@@ -14,6 +14,7 @@
 #include "analysistool.h"
 #include <histogram.h>
 #include "version.h"
+#include <modules/cg/bondedstatistics.h>
 
 using namespace std;
 using namespace boost;
@@ -27,15 +28,15 @@ class TabulatedPotential
         
         void RegisteredAt(ObjectFactory<string, AnalysisTool> &factory);
     
-        void Command(CGEngine &cg, string cmd, vector<string> &args);
+        void Command(BondedStatistics &bs, string cmd, vector<string> &args);
         
-        void WriteHistogram(CGEngine &cg, vector<string> &args);
-        void WritePotential(CGEngine &cg, vector<string> &args);
+        void WriteHistogram(BondedStatistics &bs, vector<string> &args);
+        void WritePotential(BondedStatistics &bs, vector<string> &args);
         
     private:
         bool SetOption(Histogram::options_t &op, const vector<string> &args);
         void Smooth(vector<double> &data, bool bPeriodic);
-        void BoltzmannInversion(vector<double> &data, double T);        
+        void BoltzmannInvert(vector<double> &data, double T);        
         void CalcForce(vector<double> &u, vector<double> &du, double dx, bool bPeriodic);
         
         Histogram::options_t _tab_options;
@@ -58,7 +59,7 @@ void TabulatedPotential::RegisteredAt(ObjectFactory<string, AnalysisTool> &facto
     factory.Register("hist", this);
 }
 
-void TabulatedPotential::Command(CGEngine &cg, string cmd, vector<string> &args)
+void TabulatedPotential::Command(BondedStatistics &bs, string cmd, vector<string> &args)
 {
     if(args[0] == "set") {
         if(cmd == "hist") SetOption(_hist_options, args);
@@ -85,8 +86,8 @@ void TabulatedPotential::Command(CGEngine &cg, string cmd, vector<string> &args)
         }
     }
     else if(args.size() >= 2) {
-        if(cmd == "hist") WriteHistogram(cg, args);
-        else if(cmd == "tab") WritePotential(cg, args);
+        if(cmd == "hist") WriteHistogram(bs, args);
+        else if(cmd == "tab") WritePotential(bs, args);
     }
     else cout << "wrong number of arguments" << endl;
 }
@@ -130,13 +131,13 @@ bool TabulatedPotential::SetOption(Histogram::options_t &op, const vector<string
     return true;
 }
 
-void TabulatedPotential::WriteHistogram(CGEngine &cg, vector<string> &args)
+void TabulatedPotential::WriteHistogram(BondedStatistics &bs, vector<string> &args)
 {
     ofstream out;
     DataCollection<double>::selection *sel = NULL;
 
     for(size_t i=1; i<args.size(); i++)
-        sel = cg.BondedValues().select(args[i], sel);
+        sel = bs.BondedValues().select(args[i], sel);
     Histogram h(_hist_options);
     h.ProcessData(sel);
     out.open(args[0].c_str());
@@ -170,18 +171,18 @@ void TabulatedPotential::CalcForce(vector<double> &U, vector<double> &F, double 
         F[i] = -(U[i+1] - U[i-1])*f;
 }
 
-void TabulatedPotential::WritePotential(CGEngine &cg, vector<string> &args)
+void TabulatedPotential::WritePotential(BondedStatistics &bs, vector<string> &args)
 {
-    ofstream out;
+   ofstream out;
     DataCollection<double>::selection *sel = NULL;
 
     for(size_t i=1; i<args.size(); i++)
-        sel = cg.BondedValues().select(args[i], sel);
+        sel = bs.BondedValues().select(args[i], sel);
     Histogram h(_tab_options);
     h.ProcessData(sel);
     for(int i=0; i<_tab_smooth1; ++i)
         Smooth(h.getPdf(), _tab_options._periodic);
-    BoltzmannInversion(h.getPdf(), _T);
+    BoltzmannInvert(h.getPdf(), _T);
     for(int i=0; i<_tab_smooth2; ++i)
         Smooth(h.getPdf(), _tab_options._periodic);
     out.open(args[0].c_str());
@@ -241,7 +242,7 @@ void TabulatedPotential::Smooth(vector<double> &data, bool bPeriodic)
     }
 }
 
-void TabulatedPotential::BoltzmannInversion(vector<double> &data, double T)
+void TabulatedPotential::BoltzmannInvert(vector<double> &data, double T)
 {
     double _min, _max;
     

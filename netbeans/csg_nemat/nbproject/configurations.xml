@@ -33,26 +33,26 @@
       <compileType>
         <ccCompilerTool>
           <includeDirectories>
-            <directoryPath>../../../libcsg/trunk</directoryPath>
+            <directoryPath>../../../libcsg</directoryPath>
             <directoryPath>/people/thnfs/homes/ruehle/gmx/install/include/gromacs</directoryPath>
           </includeDirectories>
         </ccCompilerTool>
         <linkerTool>
           <output>../../bin/csg_nemat</output>
           <linkerAddLib>
-            <directoryPath>../../../../gmx/install/lib</directoryPath>
+            <directoryPath>/people/thnfs/homes/ruehle/gmx/lib</directoryPath>
           </linkerAddLib>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../libcsg/trunk/netbeans"
+              <makeArtifact PL="../../../libcsg"
                             CT="3"
                             CN="Debug"
                             AC="true"
                             BL="true"
-                            WD="../../../libcsg/trunk/netbeans"
-                            BC="${MAKE}  -f Makefile CONF=Debug"
-                            CC="${MAKE}  -f Makefile CONF=Debug clean"
-                            OP="../dist/libcsg.a">
+                            WD="../../../libcsg"
+                            BC="${MAKE}  -f Makefile_nb CONF=Debug"
+                            CC="${MAKE}  -f Makefile_nb CONF=Debug clean"
+                            OP="dist/libcsg.a">
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibLibItem>gmx</linkerLibLibItem>

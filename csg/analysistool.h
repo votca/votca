@@ -12,6 +12,7 @@
 #include <string>
 #include "objectfactory.h"
 #include "cgengine.h"
+#include <modules/cg/bondedstatistics.h>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ public:
     virtual ~AnalysisTool() {}
     
     virtual void RegisteredAt(ObjectFactory<string, AnalysisTool> &factory) {}    
-    virtual void Command(CGEngine &cg, string cmd, vector<string> &args) {};
+    virtual void Command(BondedStatistics &bs, string cmd, vector<string> &args) {};
     
 private:
 //    map<string, string> _options;

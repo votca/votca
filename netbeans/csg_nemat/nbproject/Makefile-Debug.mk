@@ -25,7 +25,7 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/svn/csg/netbeans/csg_nemat/../../src/csg_nemat.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/tmp/svntest/csg/netbeans/csg_nemat/../../src/csg_nemat.o
 
 # C Compiler Flags
 CFLAGS=
@@ -38,7 +38,7 @@ CXXFLAGS=
 FFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../../../../gmx/install/lib ../../../libcsg/trunk/netbeans/../dist/libcsg.a -lgmx -lboost_program_options -lfftw3 -lxml2 -lm
+LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../../libcsg/dist/libcsg.a -lgmx -lboost_program_options -lfftw3 -lxml2 -lm
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS} ../../bin/csg_nemat
@@ -49,13 +49,13 @@ LDLIBSOPTIONS=-L../../../../gmx/install/lib ../../../libcsg/trunk/netbeans/../di
 	${MKDIR} -p ../../bin
 	${LINK.cc} -o ../../bin/csg_nemat ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/svn/csg/netbeans/csg_nemat/../../src/csg_nemat.o: ../../src/csg_nemat.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/svn/csg/netbeans/csg_nemat/../../src
-	$(COMPILE.cc) -g -I../../../libcsg/trunk -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/svn/csg/netbeans/csg_nemat/../../src/csg_nemat.o ../../src/csg_nemat.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/tmp/svntest/csg/netbeans/csg_nemat/../../src/csg_nemat.o: ../../src/csg_nemat.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/tmp/svntest/csg/netbeans/csg_nemat/../../src
+	$(COMPILE.cc) -g -I../../../libcsg -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/tmp/svntest/csg/netbeans/csg_nemat/../../src/csg_nemat.o ../../src/csg_nemat.cc
 
 # Subprojects
 .build-subprojects:
-	cd ../../../libcsg/trunk/netbeans && ${MAKE}  -f Makefile CONF=Debug
+	cd ../../../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -64,4 +64,4 @@ ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/svn/csg/netbeans/csg_nemat/../../src
 
 # Subprojects
 .clean-subprojects:
-	cd ../../../libcsg/trunk/netbeans && ${MAKE}  -f Makefile CONF=Debug clean
+	cd ../../../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean

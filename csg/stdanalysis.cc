@@ -11,6 +11,7 @@
 #include "analysistool.h"
 #include <crosscorrelate.h>
 #include <correlate.h>
+#include <modules/cg/bondedstatistics.h>
 
 class StdAnalysis
     : public AnalysisTool
@@ -21,11 +22,11 @@ class StdAnalysis
         
         void RegisteredAt(ObjectFactory<string, AnalysisTool> &factory);
     
-        void Command(CGEngine &cg, string cmd, vector<string> &args);                
+        void Command(BondedStatistics &bs, string cmd, vector<string> &args);                
         
-        void WriteValues(CGEngine &cg, vector<string> &args);
-        void WriteCorrelations(CGEngine &cg, vector<string> &args);
-        void WriteAutocorrelation(CGEngine &cg, vector<string> &args);
+        void WriteValues(BondedStatistics &bs, vector<string> &args);
+        void WriteCorrelations(BondedStatistics &bs, vector<string> &args);
+        void WriteAutocorrelation(BondedStatistics &bs, vector<string> &args);
     private:            
 };
 
@@ -38,13 +39,13 @@ void StdAnalysis::RegisteredAt(ObjectFactory<string, AnalysisTool> &factory)
     factory.Register("autocor", this);    
 }
 
-void StdAnalysis::Command(CGEngine &cg, string cmd, vector<string> &args)
+void StdAnalysis::Command(BondedStatistics &bs, string cmd, vector<string> &args)
 {
-    if(cmd == "vals") WriteValues(cg, args);
-    if(cmd == "cor") WriteCorrelations(cg, args);
-    if(cmd == "autocor") WriteAutocorrelation(cg, args);
+    if(cmd == "vals") WriteValues(bs, args);
+    if(cmd == "cor") WriteCorrelations(bs, args);
+    if(cmd == "autocor") WriteAutocorrelation(bs, args);
     if(cmd == "list") {
-        DataCollection<double>::selection *sel = cg.BondedValues().select("*");
+        DataCollection<double>::selection *sel = bs.BondedValues().select("*");
         DataCollection<double>::selection::iterator i;
         cout << "Available bonded interactions:" << endl;
         for(i=sel->begin(); i!=sel->end(); ++i)
@@ -54,14 +55,14 @@ void StdAnalysis::Command(CGEngine &cg, string cmd, vector<string> &args)
     }
 }
 
-void StdAnalysis::WriteValues(CGEngine &cg, vector<string> &args)
+void StdAnalysis::WriteValues(BondedStatistics &bs, vector<string> &args)
 {
     ofstream out;
     
     DataCollection<double>::selection *sel = NULL;
 
     for(size_t i=1; i<args.size(); i++)
-        sel = cg.BondedValues().select(args[i], sel);
+        sel = bs.BondedValues().select(args[i], sel);
     
     out.open(args[0].c_str());
     out << *sel << endl;
@@ -70,13 +71,13 @@ void StdAnalysis::WriteValues(CGEngine &cg, vector<string> &args)
     delete sel;
 }
 
-void StdAnalysis::WriteAutocorrelation(CGEngine &cg, vector<string> &args)
+void StdAnalysis::WriteAutocorrelation(BondedStatistics &bs, vector<string> &args)
 {
     ofstream out;
     DataCollection<double>::selection *sel = NULL;
 
     for(size_t i=1; i<args.size(); i++)
-        sel = cg.BondedValues().select(args[i], sel);
+        sel = bs.BondedValues().select(args[i], sel);
         
     CrossCorrelate c;
     c.AutoCorrelate(sel, false);
@@ -87,13 +88,13 @@ void StdAnalysis::WriteAutocorrelation(CGEngine &cg, vector<string> &args)
     delete sel;
 }
 
-void StdAnalysis::WriteCorrelations(CGEngine &cg, vector<string> &args)
+void StdAnalysis::WriteCorrelations(BondedStatistics &bs, vector<string> &args)
 {
     ofstream out;
         DataCollection<double>::selection *sel = NULL;
 
     for(size_t i=1; i<args.size(); i++)
-        sel = cg.BondedValues().select(args[i], sel);
+        sel = bs.BondedValues().select(args[i], sel);
         
     Correlate c;
     c.CalcCorrelations(sel);

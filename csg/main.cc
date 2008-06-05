@@ -22,6 +22,7 @@
 #include "analysistool.h"
 #include "version.h"
 #include <rangeparser.h>
+#include <modules/cg/bondedstatistics.h>
 
 using namespace std;
 //
@@ -29,18 +30,7 @@ using namespace std;
 //
 int main(int argc, char** argv)
 {    
-  /*  RangeParser parser;
-    try {
-        parser.Parse("1, 1: 2:10, 1:200");
-    }
-    catch(string str) {
-        cout << "error: " << str << endl;
-    }
-        
-    //for(RangeParser::iterator i=parser.begin(); i!=parser.end();++i)
-    //    cout << *i << " ";
-    cout << endl;
-    return 0;*/
+    BondedStatistics bs;
     TopologyReader *reader;
     TrajectoryReader *traj_reader;
     Topology top;
@@ -63,7 +53,8 @@ int main(int argc, char** argv)
     ("out", po::value<string>(), "write pdb cg trajectory")
     ("excl", po::value<string>(), "write exclusion list to file")
     ;
-
+    cg_engine.AddObserver(&bs);
+    
     TrajectoryWriter::RegisterPlugins();
     TrajectoryReader::RegisterPlugins();
     TopologyReader::RegisterPlugins();
@@ -120,7 +111,7 @@ int main(int argc, char** argv)
         //top.CreateOneBigMolecule("PS1");    
         
         cg_engine.LoadMoleculeType(vm["cg"].as<string>());
-        cg_engine.LoadMoleculeType("Cl.xml");
+        //cg_engine.LoadMoleculeType("Cl.xml");
         map = cg_engine.CreateCGTopology(top, top_cg);
         //cg_def.CreateMolecule(top_cg);
         conf_cg.Initialize();
@@ -210,7 +201,7 @@ int main(int argc, char** argv)
                 cout << "error, command not found" << endl;
                 continue;
             }
-                tool->Command(cg_engine, cmd, args);
+                tool->Command(bs, cmd, args);
         }
         catch(string error) {
             cerr << "An error occoured:" << endl << error << endl;
