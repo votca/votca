@@ -12,51 +12,47 @@
 #include <boost/program_options.hpp>
 #include "cgengine.h"
 #include "libversion.h"
-#include "nematicorder.h"
 
 using namespace std;
 
-class CGNematicOrder
+class CGForceMatching
     : public CGObserver
 {
 public:
-    void BeginCG(Topology *top, Topology *top_atom) {};
+    void BeginCG(Topology *top, Topology *top_atom)
+    {
+        cout << "hey, someone wants to coarse grain\n";
+    }
+    
     void EndCG() {
-        cout << "nematic order of u: "<< endl
-            << nemat.NematicU().eigenvalues[0] << ": " << nemat.NematicU().eigenvecs[0] << "\n"
-            << nemat.NematicU().eigenvalues[1] << ": " << nemat.NematicU().eigenvecs[1] << "\n"
-            << nemat.NematicU().eigenvalues[2] << ": " << nemat.NematicU().eigenvecs[2] << "\n";
-        cout << "nematic order of v: "<< endl
-            << nemat.NematicV().eigenvalues[0] << ": " << nemat.NematicV().eigenvecs[0] << "\n"
-            << nemat.NematicV().eigenvalues[1] << ": " << nemat.NematicV().eigenvecs[1] << "\n"
-            << nemat.NematicV().eigenvalues[2] << ": " << nemat.NematicV().eigenvecs[2] << "\n";
-/*        cout << "nematic order of w: "<< endl
-            << nemat.NematicW().eigenvalues[0] << ": " << nemat.NematicW().eigenvecs[0] << "\n"
-            << nemat.NematicW().eigenvalues[1] << ": " << nemat.NematicW().eigenvecs[1] << "\n"
-            << nemat.NematicW().eigenvalues[2] << ": " << nemat.NematicW().eigenvecs[2] << "\n";
-*/
+        cout << "write out results\n";
     };
     
     void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
-        nemat.Process(*conf);
-        cout << conf->getTime() << " " <<  nemat.NematicU().eigenvalues[2] << " " 
-            << nemat.NematicV().eigenvalues[2]<< endl;
+        cout << "yea, new configuration!\n";
+        InteractionContainer &ic = conf->getTopology()->getBondedInteractions();
+        InteractionContainer::iterator ia;
+        
+        for(ia=ic.begin(); ia != ic.end(); ++ia) {
+            const string &name = (*ia)->getName();        
+            cout << name << ": " << ((*ia)->EvaluateVar(*conf)) << endl;
+            //break;
+        }
     }
     
 protected:
-    NematicOrder nemat;
 };
 
 
 int main(int argc, char** argv)
 {    
     // we have one observer, this analyzes neamtic order
-    CGNematicOrder no;        
+    CGForceMatching fmatch;        
     // The CGEngine does the work
     CGEngine cg_engine;
     
     // add our observer that it gets called to analyze frames
-    cg_engine.AddObserver((CGObserver*)&no);
+    cg_engine.AddObserver((CGObserver*)&fmatch);
 
 
     // initialize the readers/writers,
@@ -83,13 +79,13 @@ int main(int argc, char** argv)
 
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";                
+        cout << "csg_fmatch, lib version " << LIB_VERSION_STR << "\n\n";                
         cout << desc << endl;
         return 0;
     }
     // or asks for the program version?
     if (vm.count("version")) {
-        cout << "csg_nemat, lib version " << LIB_VERSION_STR  << "\n";                        
+        cout << "csg_fmatch, lib version " << LIB_VERSION_STR  << "\n";                        
         return 0;
     }
     

@@ -12,6 +12,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>csg_fmatch.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -30,11 +31,39 @@
         <platform>2</platform>
       </toolsSet>
       <compileType>
+        <ccCompilerTool>
+          <includeDirectories>
+            <directoryPath>../../../libcsg</directoryPath>
+          </includeDirectories>
+        </ccCompilerTool>
         <linkerTool>
+          <output>../../bin/csg_fmatch</output>
+          <linkerAddLib>
+            <directoryPath>/people/thnfs/homes/ruehle/gmx/lib</directoryPath>
+          </linkerAddLib>
           <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../libcsg"
+                            CT="3"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../../../libcsg"
+                            BC="${MAKE}  -f Makefile_nb CONF=Debug"
+                            CC="${MAKE}  -f Makefile_nb CONF=Debug clean"
+                            OP="dist/libcsg.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibLibItem>boost_program_options</linkerLibLibItem>
+            <linkerLibLibItem>gmx</linkerLibLibItem>
+            <linkerLibLibItem>xml2</linkerLibLibItem>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="csg_fmatch.cc">
+        <itemTool>1</itemTool>
+      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
@@ -59,6 +88,9 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="csg_fmatch.cc">
+        <itemTool>1</itemTool>
+      </item>
     </conf>
   </confs>
 </configurationDescriptor>

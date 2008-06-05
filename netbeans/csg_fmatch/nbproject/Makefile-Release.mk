@@ -24,7 +24,8 @@ include Makefile
 OBJECTDIR=build/Release/GNU-Linux-x86
 
 # Object Files
-OBJECTFILES=
+OBJECTFILES= \
+	${OBJECTDIR}/csg_fmatch.o
 
 # C Compiler Flags
 CFLAGS=
@@ -44,7 +45,11 @@ LDLIBSOPTIONS=
 
 dist/Release/GNU-Linux-x86/csg_fmatch: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
-	${LINK.c} -o dist/Release/GNU-Linux-x86/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.cc} -o dist/Release/GNU-Linux-x86/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
+
+${OBJECTDIR}/csg_fmatch.o: csg_fmatch.cc 
+	${MKDIR} -p ${OBJECTDIR}
+	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/csg_fmatch.o csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:

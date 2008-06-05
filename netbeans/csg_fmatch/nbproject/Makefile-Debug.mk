@@ -24,7 +24,8 @@ include Makefile
 OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
-OBJECTFILES=
+OBJECTFILES= \
+	${OBJECTDIR}/csg_fmatch.o
 
 # C Compiler Flags
 CFLAGS=
@@ -37,22 +38,30 @@ CXXFLAGS=
 FFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../../libcsg/dist/libcsg.a -lboost_program_options -lgmx -lxml2 -lm
 
 # Build Targets
-.build-conf: ${BUILD_SUBPROJECTS} dist/Debug/GNU-Linux-x86/csg_fmatch
+.build-conf: ${BUILD_SUBPROJECTS} ../../bin/csg_fmatch
 
-dist/Debug/GNU-Linux-x86/csg_fmatch: ${OBJECTFILES}
-	${MKDIR} -p dist/Debug/GNU-Linux-x86
-	${LINK.c} -o dist/Debug/GNU-Linux-x86/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
+../../bin/csg_fmatch: ${BUILD_SUBPROJECTS}
+
+../../bin/csg_fmatch: ${OBJECTFILES}
+	${MKDIR} -p ../../bin
+	${LINK.cc} -o ../../bin/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
+
+${OBJECTDIR}/csg_fmatch.o: csg_fmatch.cc 
+	${MKDIR} -p ${OBJECTDIR}
+	$(COMPILE.cc) -g -I../../../libcsg -o ${OBJECTDIR}/csg_fmatch.o csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:
+	cd ../../../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
 
 # Clean Targets
-.clean-conf:
+.clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Debug
-	${RM} dist/Debug/GNU-Linux-x86/csg_fmatch
+	${RM} ../../bin/csg_fmatch
 
 # Subprojects
 .clean-subprojects:
+	cd ../../../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
