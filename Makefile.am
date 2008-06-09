@@ -2,7 +2,7 @@
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src
+SUBDIRS = src csg
 #bin_PROGRAMS = procd NetMon
 #AM_CFLAGS = @PTHREAD_CFLAGS@
 #AM_LDFLAGS = @PTHREAD_LIBS@

@@ -10,6 +10,7 @@ AC_CONFIG_HEADERS(src/config.h)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
+AC_CONFIG_FILES([csg/Makefile])
 
 AC_PROG_CXX
 AC_HEADER_STDC
