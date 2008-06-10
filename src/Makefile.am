@@ -13,6 +13,6 @@ csg_ndens_SOURCES = csg_ndens.cc
 #    csg_sample.cc
 
 AM_LDFLAGS = -L/misc/home/victorr/gmx/lib \
-             -L../../libcsg/ 
+             -L../../libcsg/dist 
 
 LDADD = -lcsg -lgmx  -lboost_program_options -lxml2 -lm

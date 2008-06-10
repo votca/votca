@@ -10,9 +10,10 @@
 #include <iostream>
 #include <fstream>
 #include <boost/program_options.hpp>
-#include "cgengine.h"
-#include "libversion.h"
-#include "numberdist.h"
+#include <cgengine.h>
+#include <libversion.h>
+#include <numberdist.h>
+#include <imccoefficients.h>
 
 using namespace std;
 
@@ -23,17 +24,26 @@ public:
     void BeginCG(Topology *top, Topology *top_atom) {
         _ndist.setCutoff(2);
         _ndist.setN(200);
+        _imccoeff.setN(200);
     };
     void EndCG() {
-        cout << _ndist << endl;
+//        cout << _ndist << endl;
+        cout <<  endl << endl;
+        _imccoeff.Average();
+        _imccoeff.OutputDist(cout);
+        cout << endl << endl;
+        _imccoeff.OutputCross(cout);
     };
     
     void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
-        _ndist.Generate(*conf);
+        _ndist.clear();
+        _ndist.Process(*conf);
+        _imccoeff.Process(_ndist.getDist());
     }
     
 protected:
     NumberDist _ndist;
+    IMCCoefficients _imccoeff;
 };
 
 

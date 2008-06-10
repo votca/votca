@@ -3,9 +3,9 @@ ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = src csg
-#bin_PROGRAMS = procd NetMon
-#AM_CFLAGS = @PTHREAD_CFLAGS@
-#AM_LDFLAGS = @PTHREAD_LIBS@
+
+AM_LDFLAGS = -L/misc/home/victorr/gmx/lib \
+             -L../../libcsg/dist
 
 #NetMon_SOURCES = NetMon.c \
 #        tools.c client.c \
