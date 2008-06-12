@@ -101,7 +101,7 @@ int main(int argc, char** argv)
     try {
         reader = TopReaderFactory().Create(vm["top"].as<string>());
         if(reader == NULL) {
-            cerr << "input format not supported:" << vm["out"].as<string>() << endl;
+            cerr << "input format not supported:" << vm["top"].as<string>() << endl;
             return 1;
         }
         reader->ReadTopology(vm["top"].as<string>(), top);
