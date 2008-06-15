@@ -14,10 +14,11 @@
 #include <libversion.h>
 #include <numberdist.h>
 #include <imccoefficients.h>
+#include <modules/cg/bondedstatistics.h>
 
 using namespace std;
 
-class CGNumberDist
+class CGDistNb
     : public CGObserver
 {
 public:
@@ -46,11 +47,33 @@ protected:
     IMCCoefficients _imccoeff;
 };
 
+/*class CGDistBonded
+    : public CGBondedStatistics
+{
+public:
+    void BeginCG(Topology *top, Topology *top_atom) {
+        _imccoeff.setN(200);
+        Histogram::options_t op;
+        op.setN(200);
+        _hist.
+    };
+    void EndCG() {
+    };
+    
+    void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
+        _ndist.clear();
+        _ndist.Process(*conf);
+        _imccoeff.Process(_ndist.getDist());
+    }
+    
+protected:
+    IMCCoefficients _imccoeff;
+};*/
 
 int main(int argc, char** argv)
 {    
     // we have one observer, this analyzes neamtic order
-    CGNumberDist no;        
+    CGDistNb no;        
     // The CGEngine does the work
     CGEngine cg_engine;
     

@@ -35,7 +35,7 @@ void InitialGuess(Table &out, Table &in)
     out.resize(in.size());
     
     for(int i=0; i<in.size(); ++i) {
-        out.x(i)=in.y(i);
+        out.x(i)=in.x(i);
         if(in.y(i)>0)
             out.y(i) = - kbT*log(in.y(i));
         else
@@ -75,9 +75,9 @@ int main(int argc, char** argv)
         return 0;
     }
     
-    if (!vm.count("in")) {
+    if (!vm.count("target")) {
         cout << desc << endl;
-        cout << "give file with number distribution";
+        cout << "give file with target distribution";
         return 1;
     }
 
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
     Table pot_out;
         
     // Read in the target distribution
-    target_dist.Load(vm["in"].as<string>());
+    target_dist.Load(vm["target"].as<string>());
     
     // if no input potential is given, make initial guess
     if (!vm.count("pin")) {
@@ -126,6 +126,7 @@ int main(int argc, char** argv)
         in.close();            
     }
 
+    cout << pot_out << endl;
     return 0;
 }
 

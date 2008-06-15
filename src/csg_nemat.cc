@@ -20,31 +20,76 @@ class CGNematicOrder
     : public CGObserver
 {
 public:
-    void BeginCG(Topology *top, Topology *top_atom) {};
+    void BeginCG(Topology *top, Topology *top_atom) {
+        if(_filename != "") {
+            _file.open(_filename.c_str());
+            if(!_file)
+                throw string("cannot open " + _filename + " for output");
+        }
+        _u.zero();
+        _v.zero();
+        _w.zero();
+        _n = 0;
+    }
+    
     void EndCG() {
-        cout << "nematic order of u: "<< endl
-            << nemat.NematicU().eigenvalues[0] << ": " << nemat.NematicU().eigenvecs[0] << "\n"
-            << nemat.NematicU().eigenvalues[1] << ": " << nemat.NematicU().eigenvecs[1] << "\n"
-            << nemat.NematicU().eigenvalues[2] << ": " << nemat.NematicU().eigenvecs[2] << "\n";
-        cout << "nematic order of v: "<< endl
-            << nemat.NematicV().eigenvalues[0] << ": " << nemat.NematicV().eigenvecs[0] << "\n"
-            << nemat.NematicV().eigenvalues[1] << ": " << nemat.NematicV().eigenvecs[1] << "\n"
-            << nemat.NematicV().eigenvalues[2] << ": " << nemat.NematicV().eigenvecs[2] << "\n";
-/*        cout << "nematic order of w: "<< endl
-            << nemat.NematicW().eigenvalues[0] << ": " << nemat.NematicW().eigenvecs[0] << "\n"
-            << nemat.NematicW().eigenvalues[1] << ": " << nemat.NematicW().eigenvecs[1] << "\n"
-            << nemat.NematicW().eigenvalues[2] << ": " << nemat.NematicW().eigenvecs[2] << "\n";
-*/
+        _file.close();
+        _u*=1./(double)_n;
+        _v*=1./(double)_n;
+        _w*=1./(double)_n;
+        if(_bU) {
+            cout << "nematic order of u: "<< endl        
+            << _u.eigenvalues[0] << ": " << _u.eigenvecs[0].normalize() << "\n"
+            << _u.eigenvalues[1] << ": " << _u.eigenvecs[1].normalize() << "\n"
+            << _u.eigenvalues[2] << ": " << _u.eigenvecs[2].normalize() << "\n";
+        }
+        
+        if(_bV) {
+            cout << "nematic order of v: "<< endl        
+            << _v.eigenvalues[0] << ": " << _v.eigenvecs[0] << "\n"
+            << _v.eigenvalues[1] << ": " << _v.eigenvecs[1] << "\n"
+            << _v.eigenvalues[2] << ": " << _v.eigenvecs[2] << "\n";
+        }
+        if(_bW) {
+            cout << "nematic order of w: "<< endl        
+            << _w.eigenvalues[0] << ": " << _w.eigenvecs[0] << "\n"
+            << _w.eigenvalues[1] << ": " << _w.eigenvecs[1] << "\n"
+            << _w.eigenvalues[2] << ": " << _w.eigenvecs[2] << "\n";
+        }
     };
     
     void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
+        _bU = conf->HasU();
+        _bV = conf->HasV();
+        _bW = conf->HasW();
+
         nemat.Process(*conf);
-        cout << conf->getTime() << " " <<  nemat.NematicU().eigenvalues[2] << " " 
-            << nemat.NematicV().eigenvalues[2]<< endl;
+        if(_file) {
+            _file << conf->getTime() << " ";        
+            if(_bU)        
+                _file << nemat.NematicU().eigenvalues[2] << " ";
+            if(_bV)        
+                _file << nemat.NematicV().eigenvalues[2] << " ";
+            if(_bW)        
+                _file << nemat.NematicW().eigenvalues[2] << " ";
+            _file << endl;
+        }
+        
+        _u += nemat.NematicU();
+        _v += nemat.NematicV();
+        _w += nemat.NematicW();
+        _n++;        
     }
+    
+    void setOut(string filename) { _filename = filename; }
     
 protected:
     NematicOrder nemat;
+    bool _bU, _bV, _bW;
+    ofstream _file;
+    string _filename;
+    int _n;
+    matrix::eigensystem_t _u, _v, _w;
 };
 
 
@@ -72,9 +117,12 @@ int main(int argc, char** argv)
     
     // Declare the supported options.
     po::options_description desc("Allowed options");    
-    
+        
     // let cg_engine add some program options
     cg_engine.AddProgramOptions(desc);
+    
+    desc.add_options()
+        ("out", boost::program_options::value<string>(), "output nematic order prameter into file");
     
     // now read in the command line
     po::variables_map vm;
@@ -92,6 +140,8 @@ int main(int argc, char** argv)
         cout << "csg_nemat, lib version " << LIB_VERSION_STR  << "\n";                        
         return 0;
     }
+    if(vm.count("out"))
+        no.setOut(vm["out"].as<string>());    
     
     // try to run the cg process, go through the frames, etc...
     try {
