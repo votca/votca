@@ -8,9 +8,7 @@
 #ifndef _version_H
 #define	_version_H
 
-#define VERSION "0.5"
-
-#define VERSION_STR VERSION " (compiled " __DATE__ ", " __TIME__ ")"
+#define VERSION_STR "svn $Rev$ (compiled " __DATE__ ", " __TIME__ ")"
 
 #endif	/* _version_H */
 

@@ -42,6 +42,7 @@
           </includeDirectories>
         </ccCompilerTool>
         <linkerTool>
+          <output>../bin/csg</output>
           <linkerAddLib>
             <directoryPath>/people/thnfs/homes/ruehle/gmx/lib</directoryPath>
           </linkerAddLib>

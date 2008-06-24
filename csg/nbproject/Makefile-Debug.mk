@@ -43,13 +43,13 @@ FFLAGS=
 LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../libcsg/dist/libcsg.a -lgmx -lxml2 -lm -lfftw3 -lboost_program_options
 
 # Build Targets
-.build-conf: ${BUILD_SUBPROJECTS} dist/Debug/GNU-Linux-x86/csg
+.build-conf: ${BUILD_SUBPROJECTS} ../bin/csg
 
-dist/Debug/GNU-Linux-x86/csg: ${BUILD_SUBPROJECTS}
+../bin/csg: ${BUILD_SUBPROJECTS}
 
-dist/Debug/GNU-Linux-x86/csg: ${OBJECTFILES}
-	${MKDIR} -p dist/Debug/GNU-Linux-x86
-	${LINK.cc} -o dist/Debug/GNU-Linux-x86/csg ${OBJECTFILES} ${LDLIBSOPTIONS} 
+../bin/csg: ${OBJECTFILES}
+	${MKDIR} -p ../bin
+	${LINK.cc} -o ../bin/csg ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/tabulatedpotential.o: tabulatedpotential.cc 
 	${MKDIR} -p ${OBJECTDIR}
@@ -70,7 +70,7 @@ ${OBJECTDIR}/stdanalysis.o: stdanalysis.cc
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Debug
-	${RM} dist/Debug/GNU-Linux-x86/csg
+	${RM} ../bin/csg
 
 # Subprojects
 .clean-subprojects:

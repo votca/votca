@@ -23,6 +23,7 @@
 #include "version.h"
 #include <rangeparser.h>
 #include <modules/cg/bondedstatistics.h>
+#include "libversion.h"
 
 using namespace std;
 //
@@ -64,7 +65,8 @@ int main(int argc, char** argv)
     po::notify(vm);
 
     if (vm.count("help")) {
-        cout << "csg, version " << VERSION_STR << "\n\n";                
+        cout << "csg, version " << VERSION_STR << "\n";                
+        cout << "libcsg, version " << LIB_VERSION_STR << "\n\n";                
         cout << desc << endl;
         return 0;
     }
