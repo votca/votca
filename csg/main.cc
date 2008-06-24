@@ -65,13 +65,14 @@ int main(int argc, char** argv)
     po::notify(vm);
 
     if (vm.count("help")) {
-        cout << "csg, version " << VERSION_STR << "\n";                
-        cout << "libcsg, version " << LIB_VERSION_STR << "\n\n";                
+        cout << "csg version " << VERSION_STR << "\n";                
+        cout << "libcsg version " << LIB_VERSION_STR << "\n\n";                
         cout << desc << endl;
         return 0;
     }
     if (vm.count("version")) {
-        cout << "csg, version " << VERSION_STR  << "\n";                        
+        cout << "csg version " << VERSION_STR  << "\n";                        
+        cout << "libcsg version " << LIB_VERSION_STR << "\n\n";                
         return 0;
     }
     if (!vm.count("top")) {
