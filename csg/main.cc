@@ -60,9 +60,15 @@ int main(int argc, char** argv)
     TrajectoryReader::RegisterPlugins();
     TopologyReader::RegisterPlugins();
     
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
+    po::variables_map vm;    
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
+    }
+    catch(po::error err) {
+        cout << "error parsing command line: " << err.what() << endl;
+        return -1;
+    }
 
     if (vm.count("help")) {
         cout << "csg version " << VERSION_STR << "\n";                
@@ -126,7 +132,7 @@ int main(int argc, char** argv)
             CGMoleculeDef *cg_def;
             cg_def = cg_engine.getMoleculeDef(top.MoleculeByIndex(0)->getName());
             if(!cg_def)
-                throw "error, no molecule definition found to create exclusion list\n";
+                throw string("error, no molecule definition found to create exclusion list");
                             
             ex = cg_def->CreateExclusionList(*top.MoleculeByIndex(0));
             ofstream fl;

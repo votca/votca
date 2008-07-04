@@ -61,9 +61,14 @@ int main(int argc, char** argv)
     
     // now read in the command line
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);    
+        po::notify(vm);
+    }
+    catch(po::error err) {
+        cout << "error parsing command line: " << err.what() << endl;
+        return -1;
+    }
     // does the user want help?
     if (vm.count("help")) {
         cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";                
