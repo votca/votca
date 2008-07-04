@@ -12,7 +12,10 @@
 #include <boost/program_options.hpp>
 #include "cgengine.h"
 #include "libversion.h"
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix_sparse.hpp>
 
+namespace ub = boost::numeric::ublas;
 using namespace std;
 
 class CGForceMatching
@@ -33,14 +36,21 @@ public:
         InteractionContainer &ic = conf->getTopology()->getBondedInteractions();
         InteractionContainer::iterator ia;
         
-        for(ia=ic.begin(); ia != ic.end(); ++ia) {
-            const string &name = (*ia)->getName();        
+        for(ia=ic.begin(); ia != ic.end(); ++ia) {            
+            const string &name = (*ia)->getName();             
             cout << name << ": " << ((*ia)->EvaluateVar(*conf)) << endl;
             //break;
         }
     }
     
 protected:
+    // _A*_x = _b
+    
+  ub::mapped_matrix<double> _A;
+  ub::vector<double> _b; // F_ref
+  ub::vector<double> _x; // 
+    // _A(i, j) = 10;
+    // _A.resize(n, m, true);
 };
 
 
