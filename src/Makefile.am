@@ -1,0 +1,3 @@
+SUBDIRS = libtools 
+CLEANFILES = *~
+
