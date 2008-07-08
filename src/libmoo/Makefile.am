@@ -1,0 +1,12 @@
+@SET_MAKE@
+ACLOCAL_AMFLAGS = -I config
+AUTOMAKE_OPTIONS = foreign
+
+
+AM_CPPFLAGS = -I$(top_srcdir)/include -I../../../libcsg 
+lib_LIBRARIES = libmoo.a
+
+libmoo_a_SOURCES = \
+    basis_set.cpp  charges.cpp fock_matrix.cpp  orbitals.cpp  qm_molecule.cpp
+
+CLEANFILES = *~ *.a
