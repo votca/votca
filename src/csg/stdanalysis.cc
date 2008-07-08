@@ -9,9 +9,9 @@
 #include <fstream>
 #include <vector>
 #include "analysistool.h"
-#include <crosscorrelate.h>
-#include <correlate.h>
-#include <modules/cg/bondedstatistics.h>
+#include <tools/crosscorrelate.h>
+#include <tools/correlate.h>
+#include "bondedstatistics.h"
 
 class StdAnalysis
     : public AnalysisTool

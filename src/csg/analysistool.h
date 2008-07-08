@@ -10,9 +10,9 @@
 
 #include <map>
 #include <string>
-#include "objectfactory.h"
+#include <tools/objectfactory.h>
 #include "cgengine.h"
-#include <modules/cg/bondedstatistics.h>
+#include "bondedstatistics.h"
 
 using namespace std;
 

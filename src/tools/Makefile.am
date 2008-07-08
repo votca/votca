@@ -1,5 +1,4 @@
-
-AM_CPPFLAGS = -I../../libcsg -I/usr/include/libxml2
+AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML) -I$(top_srcdir)/include 
 
 bin_PROGRAMS = \
     csg_dump csg_nemat csg_ndens csg_update # csg_sample
@@ -16,7 +15,6 @@ csg_update_SOURCES = csg_update.cc
 # csg_sample_SOURCES = \
 #    csg_sample.cc
 
-AM_LDFLAGS = -L/misc/home/victorr/gmx/lib \
-             -L../../libcsg/dist 
+AM_LDFLAGS = 
 
-LDADD = -lcsg -lgmx  -lboost_program_options -lxml2 -lm
+LDADD = ../libcsg/libcsg.a -ltools -lgmx  -lboost_program_options -lxml2 -lm

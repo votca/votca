@@ -10,19 +10,19 @@
 #include <iostream>
 #include <fstream>
 #include <boost/program_options.hpp>
-#include "vec.h"
+#include <tools/vec.h>
 #include "cgmoleculedef.h"
 #include "cgengine.h"
 #include "molecule.h"
 #include "topologyreader.h"
 #include "trajectorywriter.h"
 #include "trajectoryreader.h"
-#include "tools.h"
-#include "matrix.h"
+#include <tools/tokenizer.h>
+#include <tools/matrix.h>
 #include "analysistool.h"
 #include "version.h"
-#include <rangeparser.h>
-#include <modules/cg/bondedstatistics.h>
+#include <tools/rangeparser.h>
+#include "bondedstatistics.h"
 #include "libversion.h"
 
 using namespace std;

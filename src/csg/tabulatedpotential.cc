@@ -12,9 +12,9 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
 #include "analysistool.h"
-#include <histogram.h>
+#include <tools/histogram.h>
 #include "version.h"
-#include <modules/cg/bondedstatistics.h>
+#include "bondedstatistics.h"
 
 using namespace std;
 using namespace boost;

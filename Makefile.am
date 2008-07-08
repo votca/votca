@@ -2,21 +2,7 @@
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src csg
-
-AM_LDFLAGS = -L/misc/home/victorr/gmx/lib \
-             -L../../libcsg/dist
-
-#NetMon_SOURCES = NetMon.c \
-#        tools.c client.c \
-#        myconfig.h global.h
-#NetMon_LDFLAGS = @GTK_LIBS@ $(AM_LDFLAGS)
-#NetMon_CFLAGS = @GTK_CFLAGS@ $(AM_CFLAGS)
-
-#procd_SOURCES = procd.c \
-#        myconfig.h global.h
-#procd_LDFLAGS = $(AM_LDFLAGS)
-#procd_CFLAGS = $(AM_CFLAGS)
+SUBDIRS = src include 
 
 CLEANFILES = *~
 #DISTCLEANFILES =

@@ -15,7 +15,7 @@
 #include <fstream>
 #include <string>
 #include <boost/program_options.hpp>
-#include <table.h>
+#include <tools/table.h>
 
 using namespace std;
 

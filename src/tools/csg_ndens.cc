@@ -14,7 +14,7 @@
 #include <libversion.h>
 #include <numberdist.h>
 #include <imccoefficients.h>
-#include <modules/cg/bondedstatistics.h>
+// #include <modules/cg/bondedstatistics.h>
 
 using namespace std;
 
