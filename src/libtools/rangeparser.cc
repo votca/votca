@@ -6,7 +6,7 @@
 //
 
 #include "rangeparser.h"
-#include "tools.h"
+#include <tokenizer.h>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <functional>
