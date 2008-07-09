@@ -6,9 +6,10 @@
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
-#include <matrix.h>
+#include <tools/matrix.h>
 #include "basis_set.h"
 #include "global.h"
+
 using namespace std;
 
 class orb
