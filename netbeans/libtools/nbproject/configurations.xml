@@ -12,6 +12,7 @@
       <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/matrix.h</itemPath>
       <itemPath>../../include/objectfactory.h</itemPath>
+      <itemPath>../../include/random.h</itemPath>
       <itemPath>../../include/rangeparser.h</itemPath>
       <itemPath>../../include/table.h</itemPath>
       <itemPath>../../include/tokenizer.h</itemPath>
@@ -30,6 +31,7 @@
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
+      <itemPath>../../src/libtools/random.cc</itemPath>
       <itemPath>../../src/libtools/rangeparser.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
       <itemPath>../../src/libtools/tokenizer.cc</itemPath>
@@ -40,6 +42,10 @@
       <itemPath>Makefile_nb</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>../../include</Elem>
+    <Elem>../../src/libtools</Elem>
+  </sourceRootList>
   <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile_nb</projectmakefile>
   <confs>
@@ -87,6 +93,9 @@
       <item path="../../include/objectfactory.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/random.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/rangeparser.h">
         <itemTool>3</itemTool>
       </item>
@@ -115,6 +124,9 @@
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/matrix.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/random.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/rangeparser.cc">
@@ -169,6 +181,9 @@
       <item path="../../include/objectfactory.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/random.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/rangeparser.h">
         <itemTool>3</itemTool>
       </item>
@@ -197,6 +212,9 @@
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/matrix.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/random.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/rangeparser.cc">
