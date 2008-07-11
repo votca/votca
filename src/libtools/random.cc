@@ -91,7 +91,7 @@ void Random::restore( char *fileName )
     	fclose(ranFP);
 }
 
-double Random::rand( void )
+double Random::rand_uniform( void )
 {
   /*
      generates a pseudo random number 0 .. +1
@@ -123,4 +123,20 @@ double Random::rand( void )
     ranMARS += 1.0 ;
 
   return ranMARS ;
+}
+
+/** generates a random integer number in the interval [0,max_int-1]
+ */
+int Random::rand_uniform_int( int max_int ) 
+{
+  return floor (max_int * rand_uniform() );
+}
+
+/** generates a  gaussian distributed value 
+ */
+double Random::rand_gaussian( double sigma )
+{
+    double r = sigma * sqrt( -2.0*log ( 1 - Random::rand_uniform()) );
+    double theta = 2.0 * _pi * Random::rand_uniform() ;
+    return r * cos(theta); // second independent number is r*sin(theta)
 }
