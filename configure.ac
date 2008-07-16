@@ -12,6 +12,7 @@ AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([src/libmoo/Makefile])
+AC_CONFIG_FILES([tests/Makefile])
 
 AC_PROG_CXX
 AC_PROG_RANLIB

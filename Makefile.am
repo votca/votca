@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML)
 
-SUBDIRS = src include
+SUBDIRS = src include tests
 
 
 CLEANFILES = *~
