@@ -1,5 +1,5 @@
 /* 
- * File:   mat.h
+ * File:   matrix.h
  * Author: ruehle
  *
  * Created on July 11, 2007, 3:24 PM
@@ -221,5 +221,5 @@ int cjcbi(matrix &a, matrix &v, double eps=1e-10, int jt=100);
 
 
 
-#endif	/* _mat_H */
+#endif	/* _matrix_H */
 

@@ -27,6 +27,7 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/correlate.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/tokenizer.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/parcer.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/rangeparser.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/histogram.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/table.o \
@@ -64,6 +65,10 @@ ${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/correlate.o
 ${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/tokenizer.o: ../../src/libtools/tokenizer.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools
 	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/tokenizer.o ../../src/libtools/tokenizer.cc
+
+${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/parcer.o: ../../src/libtools/parcer.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/parcer.o ../../src/libtools/parcer.cc
 
 ${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools/rangeparser.o: ../../src/libtools/rangeparser.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/andrienk/src/tools/src/libtools
