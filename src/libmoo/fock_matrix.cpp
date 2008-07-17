@@ -530,7 +530,7 @@ else if(lbl1 > 9 && lbl2 > 9){ //row 3 row3
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////in this section we calculate the geometric factors///////////
-    if ( z!= 1.) {
+    if ( z*z!= 1.) {
         double cospsi   = z;
         double sinpsi   = sqrt(1.-z*z);
         double costheta = y / sinpsi;
@@ -601,7 +601,7 @@ else if(lbl1 > 1 && lbl1 < 9 && lbl2 > 9){ //row 2 row 3
     F[c1][c2+2]=beta * IIsIIIsig * (-y);  //  <2s |3py> etc.
     F[c1][c2+3]=beta * IIsIIIsig * (-z);
 ///////////in this section we calculate the geometric factors///////////
-      if ( z!= 1.) {
+      if (z*z!= 1.) {
         double cospsi   = z;
         double sinpsi   = sqrt(1.-z*z);
         double costheta = y / sinpsi;
@@ -674,7 +674,7 @@ else if( lbl1 > 9 && lbl2 > 1 && lbl2 < 9 ){ //row 3 row 2
     F[c1][c2+3]=beta * IIIsIIsig * (-z);
     
 ///////////in this section we calculate the geometric factors///////////
-    if ( z!= 1.) {
+    if ( z*z!= 1.) {
         double cospsi   = z;
         double sinpsi   = sqrt(1.-z*z);
         double costheta = y / sinpsi;
