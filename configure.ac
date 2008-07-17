@@ -5,7 +5,6 @@ AC_CONFIG_MACRO_DIR(config)
 
 AM_INIT_AUTOMAKE([1.9 foreign])
 
-
 AC_CONFIG_HEADERS(config.h)
 
 AC_CONFIG_FILES([Makefile])
@@ -23,4 +22,8 @@ AC_HEADER_STDC
 
 AC_PROG_MAKE_SET
 
+#check for boost
+AX_BOOST_BASE([1.33.1])
+
 AC_OUTPUT
+
