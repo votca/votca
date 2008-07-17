@@ -2,7 +2,6 @@
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = foreign
 
-
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML)
 
 SUBDIRS = src include tests
