@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/average.h</itemPath>
       <itemPath>../../include/correlate.h</itemPath>
       <itemPath>../../include/crosscorrelate.h</itemPath>
       <itemPath>../../include/cubicspline.h</itemPath>
@@ -12,6 +13,7 @@
       <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/matrix.h</itemPath>
       <itemPath>../../include/objectfactory.h</itemPath>
+      <itemPath>../../include/property.h</itemPath>
       <itemPath>../../include/random.h</itemPath>
       <itemPath>../../include/rangeparser.h</itemPath>
       <itemPath>../../include/table.h</itemPath>
@@ -70,6 +72,9 @@
           <output>../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/average.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/correlate.h">
         <itemTool>3</itemTool>
       </item>
@@ -92,6 +97,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/objectfactory.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/property.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/random.h">
@@ -161,6 +169,9 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../include/average.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/correlate.h">
         <itemTool>3</itemTool>
       </item>
@@ -183,6 +194,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/objectfactory.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/property.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/random.h">
