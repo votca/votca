@@ -3,5 +3,5 @@ pkginclude_HEADERS = \
   cgengine.h       exclusionlist.h      Makefile.am     nematicorder.h   topologyreader.h \
   cgmoleculedef.h  fileformatfactory.h  map.h           numberdist.h     trajectory.h \
   cgobserver.h     imccoefficients.h    molecule.h      residue.h        trajectoryreader.h \
-  configuration.h  interaction.h        moleculeinfo.h  topology.h       trajectorywriter.h
+  configuration.h  interaction.h        moleculeinfo.h  topology.h       trajectorywriter.h beadlist.h
 
