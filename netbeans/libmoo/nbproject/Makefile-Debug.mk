@@ -25,11 +25,11 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/qm_molecule.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/basis_set.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/orbitals.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/charges.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/fock_matrix.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o
 
 # C Compiler Flags
 CFLAGS=
@@ -45,33 +45,33 @@ FFLAGS=
 LDLIBSOPTIONS=
 
 # Build Targets
-.build-conf: ${BUILD_SUBPROJECTS} dist/Debug/GNU-Linux-x86/liblibmoo.a
+.build-conf: ${BUILD_SUBPROJECTS} ../../src/libmoo/libmoo.a
 
-dist/Debug/GNU-Linux-x86/liblibmoo.a: ${OBJECTFILES}
-	${MKDIR} -p dist/Debug/GNU-Linux-x86
-	${RM} dist/Debug/GNU-Linux-x86/liblibmoo.a
-	${AR} rv dist/Debug/GNU-Linux-x86/liblibmoo.a ${OBJECTFILES} 
-	$(RANLIB) dist/Debug/GNU-Linux-x86/liblibmoo.a
+../../src/libmoo/libmoo.a: ${OBJECTFILES}
+	${MKDIR} -p ../../src/libmoo
+	${RM} ../../src/libmoo/libmoo.a
+	${AR} rv ../../src/libmoo/libmoo.a ${OBJECTFILES} 
+	$(RANLIB) ../../src/libmoo/libmoo.a
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/qm_molecule.o: ../../src/libmoo/qm_molecule.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/qm_molecule.o ../../src/libmoo/qm_molecule.cpp
+${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o: ../../src/libmoo/qm_molecule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o ../../src/libmoo/qm_molecule.cpp
 
 ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/basis_set.o: ../../src/libmoo/basis_set.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo
 	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/basis_set.o ../../src/libmoo/basis_set.cpp
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/orbitals.o: ../../src/libmoo/orbitals.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/orbitals.o ../../src/libmoo/orbitals.cpp
+${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o: ../../src/libmoo/orbitals.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o ../../src/libmoo/orbitals.cpp
 
 ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/charges.o: ../../src/libmoo/charges.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo
 	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/charges.o ../../src/libmoo/charges.cpp
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/fock_matrix.o: ../../src/libmoo/fock_matrix.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/fock_matrix.o ../../src/libmoo/fock_matrix.cpp
+${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o: ../../src/libmoo/fock_matrix.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o ../../src/libmoo/fock_matrix.cpp
 
 # Subprojects
 .build-subprojects:
@@ -79,7 +79,7 @@ ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/fock_matrix.o: 
 # Clean Targets
 .clean-conf:
 	${RM} -r build/Debug
-	${RM} dist/Debug/GNU-Linux-x86/liblibmoo.a
+	${RM} ../../src/libmoo/libmoo.a
 
 # Subprojects
 .clean-subprojects:
