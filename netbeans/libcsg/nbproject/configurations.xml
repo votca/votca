@@ -107,7 +107,7 @@
           </includeDirectories>
         </ccCompilerTool>
         <archiverTool>
-          <output>../src/libcsg/libcsg.a</output>
+          <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
       <item path="../../include/beadinfo.h">
