@@ -25,8 +25,8 @@ void TopologyMap::Apply(Configuration &conf_in, Configuration &conf_out)
     conf_out.setBox(conf_in.getBox());
 
     conf_out.HasPos(conf_in.HasPos());
-    conf_out.HasPos(conf_in.HasVel());
-    conf_out.HasPos(conf_in.HasF());
+    conf_out.HasVel(conf_in.HasVel());
+    conf_out.HasF(conf_in.HasF());
 
     for(iter=_maps.begin();iter!=_maps.end();++iter) {
         Molecule min(conf_in, *_in->getMolecule(i));

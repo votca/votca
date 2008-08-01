@@ -76,7 +76,9 @@ public:
     vec &V(const int &bead) { return _bead_v[bead]; }
     /// direct access (read/write) to the orientation U of a bead
     vec &W(const int &bead) { return _bead_w[bead]; }
-    
+    /// direct access (read/write) to the force of a bead
+    vec &F(const int &bead) { return _bead_forces[bead]; }
+ 
     /// set force acting on a bead
     void setF(const int &bead, const vec &F);
     /// get the force acting on a bead

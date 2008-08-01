@@ -60,7 +60,7 @@ inline vec &Molecule::BeadPos(const int &bead)
 
 inline const vec &Molecule::getBeadF(const int &bead) const
 {
-    return _conf->Pos(_info->getBeadId(bead));
+    return _conf->F(_info->getBeadId(bead));
 }
 
 inline const vec &Molecule::getBeadVel(const int &bead) const
@@ -75,7 +75,7 @@ inline vec &Molecule::BeadVel(const int &bead)
 
 inline vec &Molecule::BeadF(const int &bead)
 {
-    return _conf->Pos(_info->getBeadId(bead));
+    return _conf->F(_info->getBeadId(bead));
 }
 
 

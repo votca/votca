@@ -24,7 +24,7 @@ void GMXTrajectoryReader::Close()
 
 bool GMXTrajectoryReader::FirstFrame(Configuration &conf)
 {
-    if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X))
+    if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         return false;
     matrix m;
     for(int i=0; i<3; i++)
