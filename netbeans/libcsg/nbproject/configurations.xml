@@ -104,6 +104,7 @@
             <directoryPath>../../include</directoryPath>
             <directoryPath>../../../include</directoryPath>
             <directoryPath>/usr/include/libxml2</directoryPath>
+            <directoryPath>../../../../../ruehle/gmx/include/gromacs</directoryPath>
           </includeDirectories>
         </ccCompilerTool>
         <archiverTool>

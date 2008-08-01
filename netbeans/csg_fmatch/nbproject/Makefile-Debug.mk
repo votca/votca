@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=g95
 
 # Include project Makefile
 include Makefile
@@ -25,7 +25,7 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/csg_fmatch.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o
 
 # C Compiler Flags
 CFLAGS=
@@ -38,30 +38,30 @@ CXXFLAGS=
 FFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../../libcsg/dist/libcsg.a -lboost_program_options -lgmx -lxml2 -lm
+LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/libcsg.a ../../../tools/src/libtools/libtools.a -lboost_program_options -lgmx -lxml2 -lgsl -lgslcblas -lm
 
 # Build Targets
-.build-conf: ${BUILD_SUBPROJECTS} ../../bin/csg_fmatch
+.build-conf: ${BUILD_SUBPROJECTS} ../../src/tools/csg_fmatch
 
-../../bin/csg_fmatch: ${BUILD_SUBPROJECTS}
+../../src/tools/csg_fmatch: ${BUILD_SUBPROJECTS}
 
-../../bin/csg_fmatch: ${OBJECTFILES}
-	${MKDIR} -p ../../bin
-	${LINK.cc} -o ../../bin/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
+../../src/tools/csg_fmatch: ${OBJECTFILES}
+	${MKDIR} -p ../../src/tools
+	${LINK.cc} -o ../../src/tools/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/csg_fmatch.o: csg_fmatch.cc 
-	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -g -I../../../libcsg -o ${OBJECTDIR}/csg_fmatch.o csg_fmatch.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:
-	cd ../../../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
+	cd ../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Debug
-	${RM} ../../bin/csg_fmatch
+	${RM} ../../src/tools/csg_fmatch
 
 # Subprojects
 .clean-subprojects:
-	cd ../../../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
+	cd ../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean

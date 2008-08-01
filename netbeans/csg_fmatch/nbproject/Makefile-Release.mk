@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=g95
 
 # Include project Makefile
 include Makefile
@@ -25,7 +25,7 @@ OBJECTDIR=build/Release/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/csg_fmatch.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o
 
 # C Compiler Flags
 CFLAGS=
@@ -47,9 +47,9 @@ dist/Release/GNU-Linux-x86/csg_fmatch: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
 	${LINK.cc} -o dist/Release/GNU-Linux-x86/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/csg_fmatch.o: csg_fmatch.cc 
-	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/csg_fmatch.o csg_fmatch.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools
+	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:
