@@ -73,7 +73,7 @@ public:
             if(_bW)        
                 _file << nemat.NematicW().eigenvalues[2] << " ";
             _file << endl;
-        }
+        } 
         
         _u += nemat.NematicU();
         _v += nemat.NematicV();
