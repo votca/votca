@@ -8,7 +8,7 @@
 
 /// this is the most dirtyest program, clean it up, don't copy anything from here!!!
 
-#define kbT  8.3109*300*0.01
+#define kB  8.3109*0.01
 
 #include <math.h>
 #include <iostream>
@@ -17,52 +17,39 @@
 #include <boost/program_options.hpp>
 #include <tools/table.h>
 
+
 using namespace std;
 
-void ReadMatrix(ifstream &in, vector<double> &matrix)
-{
-    int N;
-    in >> N;
-    
-    cout << "entries: " << N << endl;
-    matrix.resize(N*(N+1)/2);
-    for(int i=0; i<N*(N+1)/2; ++i)
-        in >> matrix[i];        
-}
+namespace po = boost::program_options;
 
-void InitialGuess(Table &out, Table &in)
-{
-    out.resize(in.size());
-    
-    for(int i=0; i<in.size(); ++i) {
-        out.x(i)=in.x(i);
-        if(in.y(i)>0)
-            out.y(i) = - kbT*log(in.y(i));
-        else
-            out.y(i) = 10000;
-    }
-}
+int DoIBM(const string &in, const string &out, const string &target, const string &current, double T, double scale);
 
 int main(int argc, char** argv)
-{    
+{
     string method, type;
-    ifstream in;
+    string action;
+    string in, out;
+    string target, current;
+    double T, scale;
     
     // lets read in some program options
-    namespace po = boost::program_options;
     // Declare the supported options.
     po::options_description desc("Allowed options");    
-         
+
     desc.add_options()
     ("help", "produce this help message")
     //("version", "show version info")
-    ("in", boost::program_options::value<string>(), "file containing number distribution")
-    ("pin", boost::program_options::value<string>(), "file containing number distribution")
-    ("target", boost::program_options::value<string>(), "file containing target")
-    ("method", boost::program_options::value<string>()->default_value("ibm"), "either ibm or imc")            
-    ("type", boost::program_options::value<string>()->default_value("nb"), "nb, bond, ang, dih")
+    ("in", boost::program_options::value<string>(&in), "file containing current potential")
+    ("out", boost::program_options::value<string>(&out)->default_value("out.dat"), "file to write the new potential")    
+    ("cur", boost::program_options::value<string>(&current), "file containing current rdf")
+    ("target", boost::program_options::value<string>(&target), "file containing target rdf")
+    ("action", boost::program_options::value<string>(&action)->default_value("ibm"), "ibm (to do: smooth, imc,...)")
+    ("T", boost::program_options::value<double>(&T)->default_value(300.), "temperature");
+    ("scale", boost::program_options::value<double>(&scale)->default_value(1.), "correction scaling");
+
+//    ("type", boost::program_options::value<string>()->default_value("nb"), "nb, bond, ang, dih")
     ;
-    
+
     // now read in the command line
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -74,59 +61,76 @@ int main(int argc, char** argv)
         cout << desc << endl;
         return 0;
     }
-    
-    if (!vm.count("target")) {
-        cout << desc << endl;
-        cout << "give file with target distribution";
-        return 1;
+
+    if(action == "ibm") {
+        return DoIBM(in, out, target, current, T, scale);
+    }
+    else
+        cerr << "unknown action\n";
+
+    return -1;
+}
+
+
+// do inverse boltzmann
+int DoIBM(const string &in, const string &out, const string &target_dist, const string &current, double T, double scale)
+{
+    Table target;     
+    Table pout;
+    // 
+    if(target_dist=="") {
+        cerr << "error, not target given for iterative inverse boltzmann"; 
+        return -1;
     }
 
-    if (!vm.count("target")) {
-        cout << desc << endl;
-        cout << "give target distribution";
-        return 1;
+    target.Load(target_dist);
+
+    // if no input potential is given, do initial guess
+    if(in=="") {
+        pout.resize(target.size());
+        pout.x() = target.x();
+	pout.flags() = ub::scalar_vector<unsigned short>(target.size(), 0);
+
+        for(int i=0; i<pout.size(); ++i) {            
+            if(target.y(i) == 0) {
+                pout.y(i) = 0; 
+                pout.flags(i) |= TBL_INVALID;
+            }
+            else
+                pout.y(i) = -kB*T*log(target.y(i));
+        }
     }
-    
-    Table dist;     
-    vector<double> matrix;     
-    Table target_dist;     
-    Table pot_in;
-    Table pot_out;
-        
-    // Read in the target distribution
-    target_dist.Load(vm["target"].as<string>());
-    
-    // if no input potential is given, make initial guess
-    if (!vm.count("pin")) {
-        InitialGuess(pot_out, target_dist);
-    }
-    // otherwise correct the potential
+    // otherwise do ibm update
     else {
+        Table pin;
+                
+        
+        if(current == "") {
+            cerr << "error, give current distribution";
+            return -1;
+	}
+        
         // read in the current potential
-        pot_in.Load(vm["pin"].as<string>());
-        
+        pin.Load(in);        
         // read the current distribution
-        in.open(vm["in"].as<string>().c_str());
-        if(!in) {
-            cerr << "cannot open in file";
-            return 1;
-        }
+        Table cur;     
+        cur.Load(current);
 
-        in >> dist;
+        pout = pin;
         
-        if(method == "ibm") {
-        //    UpdateIBM();
-        }
-        else if(method == "imc") {
-         //   UpdateIMC();
-            ReadMatrix(in, matrix);
-        }
-        else
-            cerr << "unknown update method\n";
-        in.close();            
+        for(int i=0; i<pout.size(); ++i) {            
+            if(target.y(i) == 0 || cur.y(i) == 0) {
+                pout.y(i) = 0; 
+                pout.flags(i) |= TBL_INVALID;
+            }
+            else
+                pout.y(i) += -kB*T*log(cur.y(i) / target.y(i));
+        }                
     }
-
-    cout << pot_out << endl;
+    
+    pout.Save(out);
+    // should not get here
     return 0;
 }
+
 
