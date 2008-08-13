@@ -67,6 +67,7 @@
           <includeDirectories>
             <directoryPath>../../include</directoryPath>
           </includeDirectories>
+          <commandLine>-I../../include</commandLine>
         </ccCompilerTool>
         <archiverTool>
           <output>../../src/libtools/libtools.a</output>

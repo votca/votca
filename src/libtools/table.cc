@@ -32,10 +32,3 @@ void Table::Save(string filename) const
     out.close(); 
 }
 
-void Table::ScaleRdf()
-{
-    for(int i=0; i<_x.size(); ++i)
-        if(_x[i]>0)
-            _y[i]/=_x[i]*_x[i]*4;
-            
-}
