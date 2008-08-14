@@ -30,10 +30,12 @@ class Table
 public:       
     Table() {};
     Table(Table &tbl);
-    
+        
     ~Table() {};
     
-    void resize(int N) { _x.resize(N); _y.resize(N); _flags.resize(N); }
+    void clear(void);
+    
+    void resize(int N, bool preserve=true) { _x.resize(N, preserve); _y.resize(N, preserve); _flags.resize(N, preserve); }
     int size() const {return _x.size(); }
 
     double &x(int i) { return _x[i]; }
@@ -49,6 +51,8 @@ public:
     ub::vector<double> &x() { return _x; }
     ub::vector<double> &y() { return _x; }
     ub::vector<double> &flags() { return _x; }
+    
+    void push_back(double x, double y, int flags);
 
 private:
     ub::vector<double> _x;
@@ -60,7 +64,7 @@ private:
 
 };
 
-Table::Table(Table &tbl)
+inline Table::Table(Table &tbl)
 {
     resize(tbl.size());
     _x = tbl._x;
@@ -77,18 +81,16 @@ inline ostream &operator<<(ostream &out, const Table& t)
     return out;
 }
 
-inline istream &operator>>(istream &in, Table& t)
+inline void Table::push_back(double x, double y, int flags)
 {
-    int N;
-    in >> N;
-    t.resize(N);
-    for(int i=0; i<N; ++i) {
-        in >> t._x[i];
-        in >> t._y[i];
-        in >> t._flags[i];
-    }
-    return in;
+    size_t n=size();
+    resize(n+1);
+    _x[n] = x;
+    _y[n] = y;
+    _flags[n] = flags;
 }
+
+inline istream &operator>>(istream &in, Table& t);
 
 #endif	/* _TABLE_H */
 
