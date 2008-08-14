@@ -22,7 +22,7 @@ using namespace std;
 
 namespace po = boost::program_options;
 
-int DoIBM(const string &in, const string &out, const string &target, const string &current, double T, double scale);
+int DoIBM(const string &in, const string &out, const string &target, const string &current, double T, double scalem, int Nsmooth);
 
 int main(int argc, char** argv)
 {
@@ -30,6 +30,7 @@ int main(int argc, char** argv)
     string action;
     string in, out;
     string target, current;
+    int Nsmooth;
     double T, scale;
     
     // lets read in some program options
@@ -44,10 +45,10 @@ int main(int argc, char** argv)
     ("cur", boost::program_options::value<string>(&current), "file containing current rdf")
     ("target", boost::program_options::value<string>(&target), "file containing target rdf")
     ("action", boost::program_options::value<string>(&action)->default_value("ibm"), "ibm (to do: smooth, imc,...)")
-    ("T", boost::program_options::value<double>(&T)->default_value(300.), "temperature");
-    ("scale", boost::program_options::value<double>(&scale)->default_value(1.), "correction scaling");
-
-//    ("type", boost::program_options::value<string>()->default_value("nb"), "nb, bond, ang, dih")
+    ("T", boost::program_options::value<double>(&T)->default_value(300.), "temperature")
+    ("scale", boost::program_options::value<double>(&scale)->default_value(1.), "correction scaling") 
+    ("Nsmooth", boost::program_options::value<int>(&Nsmooth)->default_value(0), "smooth Nsmooth times before writing table")
+    //("type", boost::program_options::value<string>()->default_value("nb"), "nb, bond, ang, dih")
     ;
 
     // now read in the command line
@@ -63,7 +64,7 @@ int main(int argc, char** argv)
     }
 
     if(action == "ibm") {
-        return DoIBM(in, out, target, current, T, scale);
+        return DoIBM(in, out, target, current, T, scale, Nsmooth);
     }
     else
         cerr << "unknown action\n";
@@ -73,7 +74,7 @@ int main(int argc, char** argv)
 
 
 // do inverse boltzmann
-int DoIBM(const string &in, const string &out, const string &target_dist, const string &current, double T, double scale)
+int DoIBM(const string &in, const string &out, const string &target_dist, const string &current, double T, double scale, int Nsmooth)
 {
     Table target;     
     Table pout;
@@ -127,7 +128,8 @@ int DoIBM(const string &in, const string &out, const string &target_dist, const 
                 pout.y(i) += -kB*T*log(cur.y(i) / target.y(i));
         }                
     }
-    
+
+pout.Smooth(Nsmooth);
     pout.Save(out);
     // should not get here
     return 0;
