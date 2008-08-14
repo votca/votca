@@ -17,8 +17,9 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <tools/cubicspline.h>
 #include <gsl/gsl_linalg.h>
+#include <stdio.h>
 
-#define _DEBUG
+//#define _DEBUG
 
 namespace ub = boost::numeric::ublas;
 using namespace std;
@@ -29,20 +30,21 @@ class CGForceMatching
 public:
     void BeginCG(Topology *top, Topology *top_atom)
     {
-     n = SplineBond.GenerateGrid ( 0.08, 0.25, 0.1 ); // n - number of points
-     n -= 1; // n - number of splines
+        n = SplineBond.GenerateGrid ( 0.06, 0.21, 0.01 ); // n - number of points
+        n -= 1; // n - number of splines
   
-     N = top->BeadCount();
-     L = 0;        
+        N = top->BeadCount();
+        L = 0;        
      
         cout << "hey, someone wants to coarse grain\n";
         
-        _A.resize(n-1, 2*(n+1), false); // to do: does it initialize _A with zeros?
-        _b.resize(n-1, false);
+        _A.resize(n+1, 2*(n+1), false); // to do: does it initialize _A with zeros?
+        _b.resize(n+1, false);
         _A.clear();
         _b.clear();
         
-   
+        // smoothing conditions for first derivatives:
+        // internal points
         for (int i = 0; i < n-1; ++i) {
             _A(i,i) = SplineBond.A_prime(i, 0);
             _A(i, i+1) = SplineBond.B_prime(i,0) - SplineBond.A_prime(i,1);
@@ -53,42 +55,53 @@ public:
             _A(i, n+1 + i+2) = -SplineBond.D_prime(i,1);
             
         }
+        // smoothing conditions for first derivatives:
+        // external points
+        _A(n-1, n+1 ) = 1.0;
+        _A(n, 2*(n+1) - 1) = 1.0;
     }
     
     void EndCG() {
         // Solving linear equations system
-
-    //    double *pointer_m = new double [_b.size() * 2*(n+1)];
-    //    double *pointer_b = new double [_b.size()];
+        
+        // libgsl has problems with solving overdetermined systems by means of 
+        // QR decomposition if the system doesn't have the full rank.
+        // MATLAB can handle this problem easily.
         
         double* pointer_m = & _A(0,0);
         double* pointer_b = & _b(0);        
         
 #ifdef _DEBUG        
+        // this ifdef writes _A and _b with their dimensions to myfile.bin in binary format
+        // this file can be used later to check the solution, e.g. with MATLAB
+        // it also prints _A and _b to stdout.
         
-
-
+        int lin_dim = _b.size();
+        int col_dim = 2*(n+1);
+        
+        FILE * pFile;
+        pFile = fopen ( "myfile.bin" , "wb" );
+        fwrite(&lin_dim, sizeof(int), 1, pFile);
+        fwrite(&col_dim, sizeof(int), 1, pFile);
+        fwrite (pointer_m , sizeof(double) , 2*(n+1)*_b.size() , pFile );
+        fwrite (pointer_b, sizeof(double), _b.size(), pFile);
+        fclose (pFile);
+        
         cout << _b.size() << " " << 2*(n+1) << endl;
         for(int i_line = 0; i_line < _b.size(); i_line++ ) {
             for(int j_col = 0; j_col < 2*(n+1); j_col++) {
-//                cout << _A(i_line, j_col) << " ";
-//                pointer_m[ i_line * 2*(n+1) + j_col ] = _A(i_line, j_col);
                 cout << pointer_m[ i_line * 2*(n+1) + j_col ] << "\n";
             }
-//            cout << "\n";
+            
         }
         
         cout << _b.size() << endl;
         for(int i_line = 0; i_line < _b.size(); i_line++ ) {
-//            cout << _b(i_line) << "\n";
-//            pointer_b[ i_line ] = _b(i_line);
             cout << pointer_b[ i_line ] << endl;
         }        
         
 #endif         
 
-
-        
         gsl_matrix_view m
             = gsl_matrix_view_array (pointer_m, _b.size(), 2*(n+1));
     
@@ -96,35 +109,32 @@ public:
             = gsl_vector_view_array (pointer_b, _b.size());
     
         gsl_vector *x = gsl_vector_alloc (2*(n+1));
-
-        gsl_vector *tau = gsl_vector_alloc (2*(n+1));
-
+        gsl_vector *tau = gsl_vector_alloc (2*(n+1));       
         gsl_vector *residual = gsl_vector_alloc (_b.size());
     
         gsl_linalg_QR_decomp (&m.matrix, tau);
 
+#ifdef _DEBUG 
+        // prints TAU which is used by libgsl to stdout
+        
+        cout << "TAU ";
+        for (int loop = 0; loop < 2*(n+1); loop++) {
+             cout << gsl_vector_get(tau, loop) << " ";
+        }
+        cout << endl;
+#endif
+        
+        
         gsl_linalg_QR_lssolve (&m.matrix, tau, &b.vector, x, residual);
 
-        /*
-             
-    gsl_matrix_view m 
-      = gsl_matrix_view_array (_A, lin_dim, col_dim);
-
-    gsl_vector_view b
-      = gsl_vector_view_array (_b, lin_dim);
-    
-    gsl_vector *x = gsl_vector_alloc (col_dim);
-    
-    gsl_vector *tau = gsl_vector_alloc (col_dim);
         
-    gsl_vector *residual = gsl_vector_alloc (lin_dim);
-    
-    gsl_linalg_QR_decomp (&m.matrix, tau);
-    
-    gsl_linalg_QR_lssolve (&m.matrix, tau, &b.vector, x, residual);
-         
-         */
-        
+#ifdef _DEBUG
+        // prints RESIDUAL which is used by libgsl to stdout
+        cout << "RESIDUAL \n";
+        for (int loop = 0; loop < _b.size(); loop++) {
+             cout << gsl_vector_get(residual, loop) << endl;
+        } 
+#endif
         
         //output of the results 
         _x.resize(2*(n+1), false);
@@ -135,7 +145,9 @@ public:
             cout << "x[" << i <<"] = " << gsl_vector_get(x, i) << "\n";
             _x(i) = gsl_vector_get(x, i);
         }
-         
+        
+        cout << "r  " << "F(r)  " << endl;
+        
         SplineBond.GetResult(& _x);
         SplineBond.PrintOutResult();
         
@@ -147,20 +159,16 @@ public:
     
     void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
  //       cout << "yea, new configuration!\n";
-        _A.resize(n-1 + 3*N*(L+1), 2*(n+1), true); // resize matrix
-        _b.resize(n-1 + 3*N*(L+1), true);
+        _A.resize(n+1 + 3*N*(L+1), 2*(n+1), true); // resize matrix _A
+        _b.resize(n+1 + 3*N*(L+1), true);          // resize vector _b
 
         // here we have to set zero values to the new matrix elements - stupid thing
-        for(int i_line = n-1 + 3*N*L; i_line < n-1 + 3*N*(L+1); i_line++ ) {
+        for(int i_line = n+1 + 3*N*L; i_line < n+1 + 3*N*(L+1); i_line++ ) {
             for(int j_col = 0; j_col < 2*(n+1); j_col++) {
                 _A(i_line, j_col) = 0;
             }
         }
-        
-#ifdef _DEBUG
-      //  cout << "random matrix value: " << _A(n-1 + 3*N*L + 2*N, 2) << endl;
-#endif             
-        
+                  
         InteractionContainer &ic = conf->getTopology()->getBondedInteractions();
         InteractionContainer::iterator ia;
 
@@ -176,47 +184,47 @@ public:
                vec  n_ij = (*ia)->Grad(*conf, 0);
 
 #ifdef _DEBUG
-      //         cout << r << " " << -(conf->getF(i1) * n_ij) << endl;
+               // this can be used to get reference F(r) dependence
+               cout << r << "   " << -abs(conf->getF(i1) ) << endl;
 #endif
                
-                  _A(n-1 + 3*N*L+i1,i) = SplineBond.A(r)*n_ij.x(); 
-                  _A(n-1 + 3*N*L+N+i1, i) = SplineBond.A(r)*n_ij.y();
-                  _A(n-1 + 3*N*L+2*N+i1, i) = SplineBond.A(r)*n_ij.z();  
+                  _A(n+1 + 3*N*L+i1,i) = SplineBond.A(r)*n_ij.x(); 
+                  _A(n+1 + 3*N*L+N+i1, i) = SplineBond.A(r)*n_ij.y();
+                  _A(n+1 + 3*N*L+2*N+i1, i) = SplineBond.A(r)*n_ij.z();  
 
-                  _A(n-1 + 3*N*L+i1, i+1) = SplineBond.B(r)*n_ij.x();
-                  _A(n-1 + 3*N*L+N+i1, i+1) = SplineBond.B(r)*n_ij.y();
-                  _A(n-1 + 3*N*L+2*N+i1, i+1) = SplineBond.B(r)*n_ij.z();
+                  _A(n+1 + 3*N*L+i1, i+1) = SplineBond.B(r)*n_ij.x();
+                  _A(n+1 + 3*N*L+N+i1, i+1) = SplineBond.B(r)*n_ij.y();
+                  _A(n+1 + 3*N*L+2*N+i1, i+1) = SplineBond.B(r)*n_ij.z();
 
-                  _A(n-1 + 3*N*L+i1, n+i+1) = SplineBond.C(r)*n_ij.x();
-                  _A(n-1 + 3*N*L+N+i1, n+i+1) = SplineBond.C(r)*n_ij.y();
-                  _A(n-1 + 3*N*L+2*N+i1, n+i+1) = SplineBond.C(r)*n_ij.z();
+                  _A(n+1 + 3*N*L+i1, n+i+1) = SplineBond.C(r)*n_ij.x();
+                  _A(n+1 + 3*N*L+N+i1, n+i+1) = SplineBond.C(r)*n_ij.y();
+                  _A(n+1 + 3*N*L+2*N+i1, n+i+1) = SplineBond.C(r)*n_ij.z();
 
-                  _A(n-1 + 3*N*L+i1, n+1+i+1) = SplineBond.D(r)*n_ij.x(); 
-                  _A(n-1 + 3*N*L+N+i1, n+1+i+1) = SplineBond.D(r)*n_ij.y();
-                  _A(n-1 + 3*N*L+2*N+i1, n+1+i+1) = SplineBond.D(r)*n_ij.z();
+                  _A(n+1 + 3*N*L+i1, n+1+i+1) = SplineBond.D(r)*n_ij.x(); 
+                  _A(n+1 + 3*N*L+N+i1, n+1+i+1) = SplineBond.D(r)*n_ij.y();
+                  _A(n+1 + 3*N*L+2*N+i1, n+1+i+1) = SplineBond.D(r)*n_ij.z();
 
 
               n_ij = (*ia)->Grad(*conf, 1);
 
-                  _A(n-1 + 3*N*L+i2,i) = SplineBond.A(r)*n_ij.x();
-                  _A(n-1 + 3*N*L+N+i2, i) = SplineBond.A(r)*n_ij.y();
-                  _A(n-1 + 3*N*L+2*N+i2, i) = SplineBond.A(r)*n_ij.z();
+                  _A(n+1 + 3*N*L+i2,i) = SplineBond.A(r)*n_ij.x();
+                  _A(n+1 + 3*N*L+N+i2, i) = SplineBond.A(r)*n_ij.y();
+                  _A(n+1 + 3*N*L+2*N+i2, i) = SplineBond.A(r)*n_ij.z();
 
-                  _A(n-1 + 3*N*L+i2, i+1) = SplineBond.B(r)*n_ij.x();
-                  _A(n-1 + 3*N*L+N+i2, i+1) = SplineBond.B(r)*n_ij.y();
-                  _A(n-1 + 3*N*L+2*N+i2, i+1) = SplineBond.B(r)*n_ij.z();
+                  _A(n+1 + 3*N*L+i2, i+1) = SplineBond.B(r)*n_ij.x();
+                  _A(n+1 + 3*N*L+N+i2, i+1) = SplineBond.B(r)*n_ij.y();
+                  _A(n+1 + 3*N*L+2*N+i2, i+1) = SplineBond.B(r)*n_ij.z();
 
-                  _A(n-1 + 3*N*L+i2, n+i+1) = SplineBond.C(r)*n_ij.x();
-                  _A(n-1 + 3*N*L+N+i2, n+i+1) = SplineBond.C(r)*n_ij.y();
-                  _A(n-1 + 3*N*L+2*N+i2, n+i+1) = SplineBond.C(r)*n_ij.z();
+                  _A(n+1 + 3*N*L+i2, n+i+1) = SplineBond.C(r)*n_ij.x();
+                  _A(n+1 + 3*N*L+N+i2, n+i+1) = SplineBond.C(r)*n_ij.y();
+                  _A(n+1 + 3*N*L+2*N+i2, n+i+1) = SplineBond.C(r)*n_ij.z();
 
-                  _A(n-1 + 3*N*L+i2, n+1+i+1) = SplineBond.D(r)*n_ij.x();
-                  _A(n-1 + 3*N*L+N+i2, n+1+i+1) = SplineBond.D(r)*n_ij.y();
-                  _A(n-1 + 3*N*L+2*N+i2, n+1+i+1) = SplineBond.D(r)*n_ij.z();
+                  _A(n+1 + 3*N*L+i2, n+1+i+1) = SplineBond.D(r)*n_ij.x();
+                  _A(n+1 + 3*N*L+N+i2, n+1+i+1) = SplineBond.D(r)*n_ij.y();
+                  _A(n+1 + 3*N*L+2*N+i2, n+1+i+1) = SplineBond.D(r)*n_ij.z();
 
 
              }
-//            cout << name << ": " << ((*ia)->EvaluateVar(*conf)) << endl;
 
         }
 
@@ -225,9 +233,9 @@ public:
             vec Force(0., 0., 0.);
             for (int iatom = 0; iatom < N; ++iatom) {
                      Force = conf->getF(iatom);
-                    _b(n-1 + 3*N*L + iatom) = Force.x();
-                    _b(n-1 + 3*N*L + N+iatom) = Force.y();
-                    _b(n-1 + 3*N*L + 2*N+iatom) = Force.z();
+                    _b(n+1 + 3*N*L + iatom) = Force.x();
+                    _b(n+1 + 3*N*L + N+iatom) = Force.y();
+                    _b(n+1 + 3*N*L + 2*N+iatom) = Force.z();
             }
         }
         else {
