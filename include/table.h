@@ -48,9 +48,11 @@ public:
     void Load(string filename);
     void Save(string filename) const;       
     
+    void Smooth(int Nsmooth);
+    
     ub::vector<double> &x() { return _x; }
-    ub::vector<double> &y() { return _x; }
-    ub::vector<double> &flags() { return _x; }
+    ub::vector<double> &y() { return _y; }
+    ub::vector<unsigned short> &flags() { return _flags; }
     
     void push_back(double x, double y, int flags);
 

@@ -112,3 +112,11 @@ inline istream &operator>>(istream &in, Table& t)
 
     return in;
 }
+
+void Table::Smooth(int Nsmooth)
+{
+    while(Nsmooth-- > 0)
+        for(int i=1; i<size()-1; ++i)
+            _y[i] =0.25*(_y[i-1] + 2*_y[i] +  _y[i+1]);
+}
+    
