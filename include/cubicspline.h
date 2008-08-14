@@ -15,7 +15,12 @@ class CubicSpline
 {
 public:
     CubicSpline() {}
-    ~CubicSpline() {}
+    
+    ~CubicSpline() {
+       
+    _r.clear();
+    _f.clear(); 
+    }
     
     // Generates the r_k, returns the number of grid points
     int GenerateGrid(double min, double max, double h);
@@ -144,12 +149,12 @@ void CubicSpline::GetResult(ub::vector<double> *x_pointer)
 inline double CubicSpline::getFunctionValue(double &r)
 {
     int n = _f.size()/2;
-    return A(r)*_f[getInterval(r)] + B(r)*_f[getInterval(r) + 1] + C(r)*_f[n + getInterval(r)] + D(r)*_f[n + getInterval(r) + 1];
+    return -A(r)*_f[getInterval(r)] - B(r)*_f[getInterval(r) + 1] - C(r)*_f[n + getInterval(r)] - D(r)*_f[n + getInterval(r) + 1];
 }
 
 void CubicSpline::PrintOutResult()
 {
-    for (double x = _r[0]; x <= _r[_r.size() - 1]; x += 0.005) {
+    for (double x = _r[0]; x <= _r[_r.size() - 1]; x += 0.0001) {
         cout << x << " " << getFunctionValue(x) << "\n";
     }
 }
