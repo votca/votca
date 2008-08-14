@@ -29,12 +29,8 @@ public:
     ~CrgUnit(){
         
         
-        cout << "callgin the crgunit destructor" << endl;
-        
-        vector < vector < vec > >::iterator  it_altpos = _altpos.begin();
-        for ( ; it_altpos != _altpos.end() ; ++it_altpos) it_altpos -> clear();
-        _altpos.clear();
-        _altcom.clear();
+        cout << "[crgunit.h]: Calling the crgunit destructor." << endl;
+
         _planes.clear();
         _positions.clear();
         _norms.clear();
@@ -98,30 +94,30 @@ public:
     
     }
     
-    const double & GetNRG() const{
+    const double& GetNRG() const{
         return _energy;
     }
     
-    void setNRG(const double &a){
+    void setNRG(const double& a){
         _energy=a;
     }
-    const unsigned int & GetId() const{
+    const unsigned int& GetId() const{
         return _id;
     }
     
-    void SetId (const int & i) {
+    void SetId (const int& i) {
         _id = i;
     }
     
-    const unsigned int & GetTypeID() const{
+    const unsigned int& GetTypeID() const{
         return _type->GetId();
     }
     
-    CrgUnitType * GetType() const{
+    CrgUnitType* GetType() const{
         return _type;
     }
     
-    const unsigned int & GetMolId() const{
+    const unsigned int& GetMolId() const{
         return _molid;
     }
     
@@ -132,6 +128,19 @@ public:
         return _norms.size();
     }
     
+    const vector <vec>::iterator  GetPosFirst () {
+        return _positions.begin();
+    }
+    const vector <vec>::iterator  GetPosLast () {
+        return _positions.end();
+    }
+    void SetCom(vec& com){
+        _com = com;
+    };
+    void SetPos(const int& i, vec& pos){
+        _positions[i] = pos;
+    };
+
     mol_and_orb * rotate_translate_beads( ){
         mol_and_orb *a = new mol_and_orb;
         basis_set *_indo = new basis_set;
@@ -148,13 +157,13 @@ public:
     }
     
     ///strips the extra copies of positions correspondinig to ghost atoms
-    void strip_bc(){
+   /* void strip_bc(){
         clearListList(_altpos);
         _altcom.clear();
-    }
+    }*/
     
     /// generates extra copies of the positions corresponding to "ghost" atoms
-    void apply_bc ( const vec & bc, const double & d){
+   /* void apply_bc ( const vec & bc, const double & d){
         strip_bc();
         
         if ( _com.getX() > (bc.getX()-d) ){
@@ -200,19 +209,20 @@ public:
             _altcom.push_back(com2);       
         }
         
-    }
+    }*/
 
     ///find the distance between two charge units
-    double d_min(CrgUnit &a){
+    /*double d_min(CrgUnit &a){
         return abs( displ_min(a));
-    }
+    }*/
     
     vec displ_min(CrgUnit &a){
-        vector <vec> ::iterator com1;
-        vector <vec> ::iterator com2;
+       // vector <vec> ::iterator com1;
+       // vector <vec> ::iterator com2;
         
-        vec res = (a._com) - _com  ;
-        double d = abs(res);
+        vec res = (a._com) - _com;
+        
+        /*double d = abs(res);
         for (com1 = _altcom.begin() ; com1 != _altcom.end() ; ++com1){
             for (com2 = (a._altcom).begin() ; com2 != (a._altcom).end() ; ++com2){
                 vec displ = *com2 - *com1;
@@ -239,25 +249,25 @@ public:
                 res = displ;
                 d = d_t;
             }
-        }
+        }*/
         return res;
-    
     }
     
     // this is the function called from the rate calculator on already initialised molecules
-    void rot_two_mol(  CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2){
+    void rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2){
         
-        vector <vec> ::iterator  com1;
+        /*vector <vec> ::iterator  com1;
         vector <vec> ::iterator  com2;
         vector <vector < vec > > :: iterator pos1;
-        vector <vector < vec > >:: iterator pos2;
+        vector <vector < vec > >:: iterator pos2;*/
+        
         vector <vec>::iterator bestpos1;
         vector <vec>::iterator bestpos2;
         
-        
         bestpos1 = _positions.begin();
         bestpos2 = two._positions.begin();
-        double d = abs( two._com - _com );
+        
+        /*double d = abs( two._com - _com );
         
         for ( com2 = (two._altcom).begin(), pos2 = (two._altpos).begin() ;
         com2 != (two._altcom).end() ; ++com2, ++pos2 ){
@@ -293,12 +303,11 @@ public:
                     d=d_t;
                 }
             }
-        }
+        }*/
         
         _type->rotate_each_bead(bestpos1,this->GetNorms(), this->GetPlanes(), &mol1 );
         (two._type)->rotate_each_bead(bestpos2, two.GetNorms(), two.GetPlanes(), &mol2);
     }
-    
     
     vec GetPos(const int & i){
         return _positions[i];
@@ -326,17 +335,17 @@ public:
     void shift(const vec & displ) {
         _com = _com + displ;
         vector < vec> ::iterator it_vec;
-        for (it_vec = _altcom.begin() ; it_vec != _altcom.end(); ++it_vec) *it_vec = *it_vec + displ;
+        //for (it_vec = _altcom.begin() ; it_vec != _altcom.end(); ++it_vec) *it_vec = *it_vec + displ;
         for (it_vec = _positions.begin() ; it_vec != _positions.end(); ++it_vec) *it_vec = *it_vec + displ;
-        vector < vector < vec > > :: iterator it_altpos;
+        /*vector < vector < vec > > :: iterator it_altpos;
         for (it_altpos = _altpos.begin() ; it_altpos != _altpos.end() ; ++it_altpos){
             for (it_vec =  it_altpos->begin(); it_vec != it_altpos->end() ; ++it_vec ){
                 *it_vec = *it_vec + displ;
             }
-        }
+        }*/
     }
     
-    void rotate(  matrix mat){
+    void rotate(matrix mat){
         vector <vec> ::iterator it_norm = _norms.begin();
         vector <vec> ::iterator it_plane = _planes.begin();
         for ( ; it_norm != _norms.end() ; ++it_norm, ++it_plane){
@@ -349,21 +358,21 @@ public:
         vec a = mat * _com ;
         _com = a;
         vector < vec> ::iterator it_vec;
-        for (it_vec = _altcom.begin() ; it_vec != _altcom.end(); ++it_vec) {
+        /*for (it_vec = _altcom.begin() ; it_vec != _altcom.end(); ++it_vec) {
             a = *it_vec;
             *it_vec = mat * (*it_vec);
-        }
+        }*/
         for (it_vec = _positions.begin() ; it_vec != _positions.end(); ++it_vec) {
             a = *it_vec;
             *it_vec = mat * (*it_vec);
         }
-        vector < vector < vec > > :: iterator it_altpos;
+        /*vector < vector < vec > > :: iterator it_altpos;
         for (it_altpos = _altpos.begin() ; it_altpos != _altpos.end() ; ++it_altpos){
             for (it_vec =  it_altpos->begin(); it_vec != it_altpos->end() ; ++it_vec ){
                 a = *it_vec;
                 *it_vec = mat * (*it_vec);
             }
-        }
+        }*/
     }
     
 private:
@@ -385,16 +394,14 @@ private:
     vector < vec > _norms;
     ///vector of coms of monomers
     vector < vec > _planes;
-    ///vector of coordinates (if on a ghost cell)
-    vector < vector < vec > > _altpos;
-    /// a vector of the alternative centre of masses
-    vector < vec > _altcom;
+    //vector of coordinates (if on a ghost cell)
+    //vector < vector < vec > > _altpos;
+    // a vector of the alternative centre of masses
+    //vector < vec > _altcom;
     /// a reference to the crgunittype
     CrgUnitType * _type;
     /// the energy at this site
     double _energy;
-    
-    
     
     vector <vec>::iterator  GetPositions () {
         return _positions.begin();
