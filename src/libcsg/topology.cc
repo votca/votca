@@ -118,7 +118,7 @@ void Topology::RenameMolecules(string range, string name)
     }
 }
 
-inline void Topology::AddBondedInteraction(Interaction *ic)
+void Topology::AddBondedInteraction(Interaction *ic)
 {
     map<string,int>::iterator iter;
     iter = _interaction_groups.find(ic->getGroup());
@@ -127,7 +127,7 @@ inline void Topology::AddBondedInteraction(Interaction *ic)
     else {
         int i= _interaction_groups.size();
         _interaction_groups[ic->getGroup()] = i;
-        ic->setGroupId((*iter).second);
+        ic->setGroupId(i);
     }
     _interactions.push_back(ic);
 }
