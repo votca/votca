@@ -33,6 +33,11 @@ public:
     void setGroup(const string &group) { _group = group; RebuildName(); }
     const string &getGroup() const { return _group; }
 
+    // the group id is set by topology, when interaction is added to it
+    // \todo if the group name is changed later, group id should be updated by topology
+    int getGroupId() { return _group_id; }
+    void setGroupId(int id) { _group_id = id; }
+
     void setIndex(const int &index) { _index = index; RebuildName(); }
     const int &getIndex() const { return _index; }
     
@@ -46,9 +51,9 @@ public:
 protected:
     int _index;
     string _group;
+    int _group_id;
     string _name;
     int _mol;
-    
     vector<int> _beads;
     
     void RebuildName();

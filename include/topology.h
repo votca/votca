@@ -85,6 +85,7 @@ public:
     InteractionContainer &getBondedInteractions() { return _interactions; }
     
     
+    // \todo change AddBondedinteraction to Create bonded interaction, that only topology can create interactions
     void AddBondedInteraction(Interaction *ic);
     
     BeadInfo *getBead(const int i) { return _beads[i]; }
@@ -113,6 +114,8 @@ private:
     
     /// bonded interactions in the topology
     InteractionContainer _interactions;
+    
+    map<string, int> _interaction_groups;
 };
 
 inline BeadInfo *Topology::CreateBead(byte_t symmetry, string name, int resnr, double m, double q)
@@ -140,11 +143,6 @@ inline Residue *Topology::CreateResidue(string name)
 inline MoleculeInfo *Topology::MoleculeByIndex(int index)
 {
     return _molecules[index];
-}
-
-inline void Topology::AddBondedInteraction(Interaction *ic)
-{
-    _interactions.push_back(ic);
 }
 
 #endif	/* _topology_H */
