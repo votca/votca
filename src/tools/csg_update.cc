@@ -51,6 +51,12 @@ int main(int argc, char** argv)
     //("type", boost::program_options::value<string>()->default_value("nb"), "nb, bond, ang, dih")
     ;
 
+    // changing the grid
+    // cut off, shift
+    // what to do at the ends
+    // Pressure correction
+    
+    
     // now read in the command line
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -125,11 +131,11 @@ int DoIBM(const string &in, const string &out, const string &target_dist, const 
                 pout.flags(i) |= TBL_INVALID;
             }
             else
-                pout.y(i) += -kB*T*log(cur.y(i) / target.y(i));
+                pout.y(i) += -scale*kB*T*log(cur.y(i) / target.y(i));
         }                
     }
 
-pout.Smooth(Nsmooth);
+    pout.Smooth(Nsmooth);
     pout.Save(out);
     // should not get here
     return 0;
