@@ -30,6 +30,7 @@
                    projectFiles="true">
       <itemPath>../../src/libtools/correlate.cc</itemPath>
       <itemPath>../../src/libtools/crosscorrelate.cc</itemPath>
+      <itemPath>../../include/cubicspline.cpp</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
@@ -81,6 +82,9 @@
       </item>
       <item path="../../include/crosscorrelate.h">
         <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/cubicspline.cpp">
+        <itemTool>1</itemTool>
       </item>
       <item path="../../include/cubicspline.h">
         <itemTool>3</itemTool>
@@ -178,6 +182,9 @@
       </item>
       <item path="../../include/crosscorrelate.h">
         <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/cubicspline.cpp">
+        <itemTool>1</itemTool>
       </item>
       <item path="../../include/cubicspline.h">
         <itemTool>3</itemTool>

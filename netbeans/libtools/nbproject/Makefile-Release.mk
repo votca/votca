@@ -25,6 +25,7 @@ OBJECTDIR=build/Release/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../include/cubicspline.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/tokenizer.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/parcer.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/random.o \
@@ -57,6 +58,10 @@ dist/Release/GNU-Linux-x86/liblibtools.a: ${OBJECTFILES}
 	${RM} dist/Release/GNU-Linux-x86/liblibtools.a
 	${AR} rv dist/Release/GNU-Linux-x86/liblibtools.a ${OBJECTFILES} 
 	$(RANLIB) dist/Release/GNU-Linux-x86/liblibtools.a
+
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../include/cubicspline.o: ../../include/cubicspline.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../include
+	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../include/cubicspline.o ../../include/cubicspline.cpp
 
 ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/tokenizer.o: ../../src/libtools/tokenizer.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools

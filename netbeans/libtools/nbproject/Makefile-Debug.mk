@@ -25,6 +25,7 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../include/cubicspline.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/tokenizer.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/parcer.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/random.o \
@@ -57,6 +58,10 @@ LDLIBSOPTIONS=
 	${RM} ../../src/libtools/libtools.a
 	${AR} rv ../../src/libtools/libtools.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libtools/libtools.a
+
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../include/cubicspline.o: ../../include/cubicspline.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../include
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../include/cubicspline.o ../../include/cubicspline.cpp
 
 ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/tokenizer.o: ../../src/libtools/tokenizer.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
