@@ -9,7 +9,7 @@
 
 void CubicSpline::Fit(ub::vector<double> x, ub::vector<double> y)
 {
-    ub::matrix<double> A;
-    A.resize(_r.size*4, x.size());
+//    ub::matrix<double> A;
+//    A.resize(_r.size*4, x.size());
 }
 
