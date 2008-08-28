@@ -214,7 +214,7 @@ inline double CubicSpline::D_prime_r(int i)
     return -(1.0/6.0)*(_r[i+2]-_r[i+1]);
 }
 
-void CubicSpline::GetResult(ub::vector<double> *x_pointer) 
+inline void CubicSpline::GetResult(ub::vector<double> *x_pointer) 
 {
     ub::vector<double>::iterator ia;
     int i = 0;
@@ -229,7 +229,7 @@ inline double CubicSpline::getFunctionValue(double &r)
     return -A(r)*_f[getInterval(r)] - B(r)*_f[getInterval(r) + 1] - C(r)*_f[n + getInterval(r)] - D(r)*_f[n + getInterval(r) + 1];
 }
 
-void CubicSpline::PrintOutResult()
+inline void CubicSpline::PrintOutResult()
 {
     for (double x = _r[0]; x <= _r[_r.size() - 1]; x += 0.0001) {
         std::cout << x << " " << getFunctionValue(x) << "\n";
