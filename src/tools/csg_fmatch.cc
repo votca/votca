@@ -30,22 +30,117 @@ class CGForceMatching
 public:
     void BeginCG(Topology *top, Topology *top_atom)
     {
-        n = SplineBond.GenerateGrid ( 0.06, 0.21, 0.01 ); // n - number of points
-        n -= 1; // n - number of splines
+        
+        int lines_init = 0, colms_init = 0;  // initial size of _A 
+        int sfnum; // number of spline functions for a cubicspline.        
+        
+        // set counters to zero value:
+        line_cntr = col_cntr = 0;
+        
+        
+        // SplineInfo for the first type of bond:
+//        SplineInfo Bond1;
+        Bond1.n = Bond1.Spline.GenerateGrid( 0.08, 0.37, 0.02) - 1;
+        Bond1.bonded = true;
+        Bond1.splineIndex = 0;
+        Bond1.matr_pos = colms_init;
+        
+        Bond1.result.resize( 2*(Bond1.n + 1), false);
+        Bond1.result.clear();
+        
+        //adjust initial matrix dimensions:
+        lines_init += Bond1.n + 1;
+        colms_init += 2 * (Bond1.n + 1);
+                
+        //Add SplineInfo to SplineContainer:
+        Splines.push_back( &Bond1 );
+        
+        
+        // SplineInfo for the second type of bond:
+//        SplineInfo Bond2;
+        Bond2.n = Bond2.Spline.GenerateGrid( 0.06, 0.42, 0.02) - 1;
+        Bond2.bonded = true;
+        Bond2.splineIndex = 1;
+        Bond2.matr_pos = colms_init;
+        
+        Bond2.result.resize( 2*(Bond2.n + 1), false);
+        Bond2.result.clear();
+        
+        //adjust initial matrix dimensions:
+        lines_init += Bond2.n + 1;
+        colms_init += 2 * (Bond2.n + 1);
+                
+        //Add SplineInfo to SplineContainer:
+        Splines.push_back( &Bond2 );        
+        
+        // SplineInfo for the angle:
+//        SplineInfo Angle;
+        Angle.n = Angle.Spline.GenerateGrid( 113 * 0.0175, 126 * 0.0175, 2 * 0.0175 ) - 1;
+        Angle.bonded = true;
+        Angle.splineIndex = 2;
+        Angle.matr_pos = colms_init;
+        
+        Angle.result.resize( 2*(Angle.n + 1), false);
+        Angle.result.clear();
+        
+        //adjust initial matrix dimensions:
+        lines_init += Angle.n + 1;
+        colms_init += 2 * (Angle.n + 1);
+                
+        //Add SplineInfo to SplineContainer:
+        Splines.push_back( &Angle );           
+        
+//        n = SplineBond.GenerateGrid ( 0.13, 0.17, 0.01 ); // n - number of points
+//        n -= 1; // n - number of splines
   
         N = top->BeadCount();
         L = 0;        
      
         cout << "hey, someone wants to coarse grain\n";
         
-        _A.resize(n+1, 2*(n+1), false); // to do: does it initialize _A with zeros?
-        _b.resize(n+1, false);
+        _A.resize(lines_init, colms_init, false); // to do: does it initialize _A with zeros?
+        _b.resize(lines_init, false);
         _A.clear();
-        _b.clear();
+        _b.clear();        
         
-        // smoothing conditions for first derivatives:
-        // internal points
-        for (int i = 0; i < n-1; ++i) {
+        
+//        _A.resize(n+1, 2*(n+1), false); // to do: does it initialize _A with zeros?
+//        _b.resize(n+1, false);
+//        _A.clear();
+//        _b.clear();
+        
+        SplineContainer::iterator is;
+                
+        for(is=Splines.begin(); is != Splines.end(); ++is) {
+        
+            sfnum = (*is)->n;
+            
+            // smoothing conditions for first derivatives:
+            // internal points
+            
+            for (int i =0; i < sfnum - 1; ++i) {
+                _A(line_cntr + i, col_cntr + i) = (*is)->Spline.A_prime(i, 0);
+                _A(line_cntr + i, col_cntr + i+1 ) = (*is)->Spline.B_prime(i,0) - (*is)->Spline.A_prime(i,1);
+                _A(line_cntr + i, col_cntr + i+2 ) = -(*is)->Spline.B_prime(i,1);
+                
+                _A(line_cntr + i, col_cntr + sfnum+1 + i) = (*is)->Spline.C_prime(i,0);
+                _A(line_cntr + i, col_cntr + sfnum+1 + i+1) = (*is)->Spline.D_prime(i,0) - (*is)->Spline.C_prime(i,1);
+                _A(line_cntr + i, col_cntr + sfnum+1 + i+2) = -(*is)->Spline.D_prime(i,1);
+            }
+            
+            // smoothing conditions for first derivatives:
+            // external points 
+            
+            _A(line_cntr + sfnum-1, col_cntr + sfnum+1) = 1.0;
+            _A(line_cntr + sfnum, col_cntr + 2*(sfnum+1) - 1) = 1.0;
+            
+            // update counters
+            line_cntr += sfnum + 1;
+            col_cntr += 2 * (sfnum + 1);
+                
+        }
+        
+/*        for (int i = 0; i < n-1; ++i) {
             _A(i,i) = SplineBond.A_prime(i, 0);
             _A(i, i+1) = SplineBond.B_prime(i,0) - SplineBond.A_prime(i,1);
             _A(i, i+2) = -SplineBond.B_prime(i,1);
@@ -55,10 +150,9 @@ public:
             _A(i, n+1 + i+2) = -SplineBond.D_prime(i,1);
             
         }
-        // smoothing conditions for first derivatives:
-        // external points
         _A(n-1, n+1 ) = 1.0;
         _A(n, 2*(n+1) - 1) = 1.0;
+*/        
     }
     
     void EndCG() {
@@ -103,13 +197,13 @@ public:
 #endif         
 
         gsl_matrix_view m
-            = gsl_matrix_view_array (pointer_m, _b.size(), 2*(n+1));
+            = gsl_matrix_view_array (pointer_m, _b.size(), col_cntr);
     
         gsl_vector_view b
             = gsl_vector_view_array (pointer_b, _b.size());
     
-        gsl_vector *x = gsl_vector_alloc (2*(n+1));
-        gsl_vector *tau = gsl_vector_alloc (2*(n+1));       
+        gsl_vector *x = gsl_vector_alloc (col_cntr);
+        gsl_vector *tau = gsl_vector_alloc (col_cntr);       
         gsl_vector *residual = gsl_vector_alloc (_b.size());
     
         gsl_linalg_QR_decomp (&m.matrix, tau);
@@ -137,34 +231,55 @@ public:
 #endif
         
         //output of the results 
-        _x.resize(2*(n+1), false);
+        _x.resize(col_cntr, false);
         _x.clear();
          
         cout << "write out results\n";
-        for (int i =0 ; i < 2*(n+1); i++) {
+        // do we really need this _x vector?
+        // we need many of them for each spline instead.
+        // they are implemented in SplineInfo
+/*        for (int i =0 ; i < col_cntr; i++) {
             cout << "x[" << i <<"] = " << gsl_vector_get(x, i) << "\n";
             _x(i) = gsl_vector_get(x, i);
         }
-        
+*/        
         cout << "r  " << "F(r)  " << endl;
         
-        SplineBond.GetResult(& _x);
-        SplineBond.PrintOutResult();
+        // have to change it - it's bullshit
+//        Bond1.Spline.GetResult(& _x);
+//        Bond1.Spline.PrintOutResult();
+        
+        SplineContainer::iterator is;
+                
+        for(is=Splines.begin(); is != Splines.end(); ++is) {
+            int &mp = (*is)->matr_pos;
+            int &nsf = (*is)->n;
+            cout << "interaction No. " << (*is)->splineIndex << endl;
+            
+            for (int i = 0; i < 2*(nsf + 1); i++ ) {
+               (*is)->result[i] = gsl_vector_get(x, i + mp);
+            }
+            (*is)->Spline.GetResult( & (*is)->result );
+            (*is)->Spline.PrintOutResult();
+        }        
         
         gsl_vector_free (x);
         gsl_vector_free (tau);
         gsl_vector_free (residual);
-
+ 
     };
     
     void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
  //       cout << "yea, new configuration!\n";
-        _A.resize(n+1 + 3*N*(L+1), 2*(n+1), true); // resize matrix _A
-        _b.resize(n+1 + 3*N*(L+1), true);          // resize vector _b
+        _A.resize(line_cntr + 3*N*(L+1), col_cntr, true); // resize matrix _A
+        _b.resize(line_cntr + 3*N*(L+1), true);          // resize vector _b
+
+//        _A.resize(n+1 + 3*N*(L+1), 2*(n+1), true); // resize matrix _A
+//        _b.resize(n+1 + 3*N*(L+1), true);          // resize vector _b
 
         // here we have to set zero values to the new matrix elements - stupid thing
-        for(int i_line = n+1 + 3*N*L; i_line < n+1 + 3*N*(L+1); i_line++ ) {
-            for(int j_col = 0; j_col < 2*(n+1); j_col++) {
+        for(int i_line = line_cntr + 3*N*L; i_line < line_cntr + 3*N*(L+1); i_line++ ) {
+            for(int j_col = 0; j_col < col_cntr; j_col++) {
                 _A(i_line, j_col) = 0;
             }
         }
@@ -174,58 +289,39 @@ public:
 
         // loop for the matrix:
         for(ia=ic.begin(); ia != ic.end(); ++ia) {
-            if ((*ia)->BeadCount() == 2 ) {
+            
+               int beads_in_int = (*ia)->BeadCount(); // 2 for bonds, 3 for angles, 4 for dihedrals
+                
+               int index = (*ia)->getGroupId(); // unique for every interaction type
 
-               int i1 = (*ia)->getBeadId(0);
-               int i2 = (*ia)->getBeadId(1);
-               double r = (*ia)->EvaluateVar(*conf);
-               int i = SplineBond.getInterval(r); 
-
-               vec  n_ij = (*ia)->Grad(*conf, 0);
-
-#ifdef _DEBUG
-               // this can be used to get reference F(r) dependence
-               cout << r << "   " << -abs(conf->getF(i1) ) << endl;
-#endif
+               CubicSpline &SP = Splines[ index ]->Spline;
+               int  &mpos = Splines[ index ]->matr_pos;
+               int  &nsp = Splines[ index ]->n;
                
-                  _A(n+1 + 3*N*L+i1,i) = SplineBond.A(r)*n_ij.x(); 
-                  _A(n+1 + 3*N*L+N+i1, i) = SplineBond.A(r)*n_ij.y();
-                  _A(n+1 + 3*N*L+2*N+i1, i) = SplineBond.A(r)*n_ij.z();  
+               double var = (*ia)->EvaluateVar(*conf); // value of bond, angle, or dihedral
+               int i = SP.getInterval(var);   // corresponding spline interval
 
-                  _A(n+1 + 3*N*L+i1, i+1) = SplineBond.B(r)*n_ij.x();
-                  _A(n+1 + 3*N*L+N+i1, i+1) = SplineBond.B(r)*n_ij.y();
-                  _A(n+1 + 3*N*L+2*N+i1, i+1) = SplineBond.B(r)*n_ij.z();
+               for (int loop = 0; loop < beads_in_int; loop ++) {
+                   int ii = (*ia)->getBeadId(loop);
+                   vec gradient = (*ia)->Grad(*conf, loop);
+                   
+                  _A(line_cntr + 3*N*L+ii, mpos + i) += SP.A(var)*gradient.x(); 
+                  _A(line_cntr + 3*N*L+N+ii, mpos + i) += SP.A(var)*gradient.y();
+                  _A(line_cntr + 3*N*L+2*N+ii, mpos + i) += SP.A(var)*gradient.z();  
 
-                  _A(n+1 + 3*N*L+i1, n+i+1) = SplineBond.C(r)*n_ij.x();
-                  _A(n+1 + 3*N*L+N+i1, n+i+1) = SplineBond.C(r)*n_ij.y();
-                  _A(n+1 + 3*N*L+2*N+i1, n+i+1) = SplineBond.C(r)*n_ij.z();
+                  _A(line_cntr + 3*N*L+ii, mpos + i+1) += SP.B(var)*gradient.x();
+                  _A(line_cntr + 3*N*L+N+ii, mpos + i+1) += SP.B(var)*gradient.y();
+                  _A(line_cntr + 3*N*L+2*N+ii, mpos + i+1) += SP.B(var)*gradient.z();
 
-                  _A(n+1 + 3*N*L+i1, n+1+i+1) = SplineBond.D(r)*n_ij.x(); 
-                  _A(n+1 + 3*N*L+N+i1, n+1+i+1) = SplineBond.D(r)*n_ij.y();
-                  _A(n+1 + 3*N*L+2*N+i1, n+1+i+1) = SplineBond.D(r)*n_ij.z();
+                  _A(line_cntr + 3*N*L+ii, mpos + nsp+i+1) += SP.C(var)*gradient.x();
+                  _A(line_cntr + 3*N*L+N+ii, mpos + nsp+i+1) += SP.C(var)*gradient.y();
+                  _A(line_cntr + 3*N*L+2*N+ii, mpos + nsp+i+1) += SP.C(var)*gradient.z();
 
-
-              n_ij = (*ia)->Grad(*conf, 1);
-
-                  _A(n+1 + 3*N*L+i2,i) = SplineBond.A(r)*n_ij.x();
-                  _A(n+1 + 3*N*L+N+i2, i) = SplineBond.A(r)*n_ij.y();
-                  _A(n+1 + 3*N*L+2*N+i2, i) = SplineBond.A(r)*n_ij.z();
-
-                  _A(n+1 + 3*N*L+i2, i+1) = SplineBond.B(r)*n_ij.x();
-                  _A(n+1 + 3*N*L+N+i2, i+1) = SplineBond.B(r)*n_ij.y();
-                  _A(n+1 + 3*N*L+2*N+i2, i+1) = SplineBond.B(r)*n_ij.z();
-
-                  _A(n+1 + 3*N*L+i2, n+i+1) = SplineBond.C(r)*n_ij.x();
-                  _A(n+1 + 3*N*L+N+i2, n+i+1) = SplineBond.C(r)*n_ij.y();
-                  _A(n+1 + 3*N*L+2*N+i2, n+i+1) = SplineBond.C(r)*n_ij.z();
-
-                  _A(n+1 + 3*N*L+i2, n+1+i+1) = SplineBond.D(r)*n_ij.x();
-                  _A(n+1 + 3*N*L+N+i2, n+1+i+1) = SplineBond.D(r)*n_ij.y();
-                  _A(n+1 + 3*N*L+2*N+i2, n+1+i+1) = SplineBond.D(r)*n_ij.z();
-
-
-             }
-
+                  _A(line_cntr + 3*N*L+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.x(); 
+                  _A(line_cntr + 3*N*L+N+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.y();
+                  _A(line_cntr + 3*N*L+2*N+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.z();                   
+                   
+               }
         }
 
         // loop for the forces vector: 
@@ -233,9 +329,9 @@ public:
             vec Force(0., 0., 0.);
             for (int iatom = 0; iatom < N; ++iatom) {
                      Force = conf->getF(iatom);
-                    _b(n+1 + 3*N*L + iatom) = Force.x();
-                    _b(n+1 + 3*N*L + N+iatom) = Force.y();
-                    _b(n+1 + 3*N*L + 2*N+iatom) = Force.z();
+                    _b(line_cntr + 3*N*L + iatom) = Force.x();
+                    _b(line_cntr + 3*N*L + N+iatom) = Force.y();
+                    _b(line_cntr + 3*N*L + 2*N+iatom) = Force.z();
             }
         }
         else {
@@ -255,8 +351,28 @@ protected:
     // _A.resize(n, m, true);
   int L; // counter for frames
   int N; //number of cg_beads
-  int n; //number of splines
-  CubicSpline SplineBond;
+  
+  int line_cntr, col_cntr; // counters for lines and coloumns in _A 
+  
+//  int n; //number of splines
+//  CubicSpline SplineBond;
+  
+  struct SplineInfo {
+        int n; //number of splines
+        int splineIndex; // interaction index for bonded interactions
+        bool bonded;     // true for bonded interactions, false for non-bonded
+        CubicSpline Spline;
+        int matr_pos;    // position in the _A matrix (first coloumn which is occupied with
+                         // this particular spline
+        ub::vector<double> result;
+  };
+  SplineInfo Bond1;
+  SplineInfo Bond2;
+  SplineInfo Angle;
+  
+  typedef vector<SplineInfo *> SplineContainer;
+  SplineContainer Splines;
+  
 };
 
 
