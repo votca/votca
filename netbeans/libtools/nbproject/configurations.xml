@@ -10,6 +10,7 @@
       <itemPath>../../include/cubicspline.h</itemPath>
       <itemPath>../../include/datacollection.h</itemPath>
       <itemPath>../../include/histogram.h</itemPath>
+      <itemPath>../../include/householderqr.h</itemPath>
       <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/matrix.h</itemPath>
       <itemPath>../../include/objectfactory.h</itemPath>
@@ -90,6 +91,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/histogram.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/householderqr.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/libversion.h">
@@ -190,6 +194,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/histogram.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/householderqr.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/libversion.h">
