@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   topology.h
 // Author: ruehle
@@ -147,3 +149,4 @@ inline MoleculeInfo *Topology::MoleculeByIndex(int index)
 
 #endif	/* _topology_H */
 
+/// @}

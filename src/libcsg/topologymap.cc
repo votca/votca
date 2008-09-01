@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   topologymap.cc
 // Author: ruehle
@@ -35,3 +37,4 @@ void TopologyMap::Apply(Configuration &conf_in, Configuration &conf_out)
         i++;
     }
 }
+/// @}

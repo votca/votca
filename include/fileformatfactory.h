@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   fileformatfactory.h
 // Author: ruehle
@@ -37,3 +39,4 @@ T *FileFormatFactory<T>::Create(const string &file)
 
 #endif	/* _FILEFORMATFACTORY_H */
 
+/// @}

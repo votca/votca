@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   template.cc
 // Author: ruehle
@@ -81,3 +83,4 @@ int main(int argc, char** argv)
     return 0;
 }
 
+/// @}

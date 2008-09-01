@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   connectivity.h
 // Author: ruehle
@@ -37,3 +39,4 @@ protected:
 
 #endif	/* _CONNECTIVITY_H */
 
+/// @}

@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   tabulatedpotential.cc
 // Author: ruehle
@@ -262,3 +264,4 @@ void TabulatedPotential::BoltzmannInvert(vector<double> &data, double T)
             data[i] = -8.3109*T*log(data[i])*0.001 - _max;
     }
 }
+/// @}

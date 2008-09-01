@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   cgengine.cc
 // Author: ruehle
@@ -173,3 +175,4 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     delete reader;
     delete map;                   
 }
+/// @}

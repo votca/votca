@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   boltzmanninversion.h
 // Author: victor
@@ -28,3 +30,4 @@ protected:
 
 #endif	/* _BOLZMANNINVERSION_H */
 
+/// @}

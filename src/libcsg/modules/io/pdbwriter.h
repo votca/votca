@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   pdbwriter.h
 // Author: victor
@@ -34,3 +36,4 @@ public:
 
 #endif	/* _PDBWRITER_H */
 
+/// @}

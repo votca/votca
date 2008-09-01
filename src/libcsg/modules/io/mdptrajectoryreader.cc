@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   mdptrajectoryreader.cc
  * Author: victorr
@@ -211,3 +213,4 @@ bool MDPTrajectoryReader::NextFrame(Configuration &conf)
     return true;
 }
 
+/// @}

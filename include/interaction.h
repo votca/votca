@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   interaction.h
 // Author: ruehle
@@ -159,3 +161,4 @@ inline double IDihedral::EvaluateVar(const Configuration &conf)
 
 #endif	/* _interaction_H */
 
+/// @}

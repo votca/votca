@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   numberdist.h
 // Author: ruehle
@@ -54,3 +56,4 @@ ostream& operator<<(ostream& out, NumberDist &nd);
 
 #endif	/* _NUMBERDENSITY_H */
 
+/// @}

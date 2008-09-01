@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   neighbourlist.cc
 // Author: vehoff
@@ -106,3 +108,4 @@ void NeighbourList::Cleanup(){
         delete (*iter);
     _nb_list.clear();
 }
+/// @}

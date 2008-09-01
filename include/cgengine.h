@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   cgengine.h
 // Author: ruehle
@@ -102,3 +104,4 @@ inline void CGEngine::AddObserver(CGObserver *observer)
 
 #endif	/* _cgengine_H */
 
+/// @}

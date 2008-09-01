@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   cgobserver.h
 // Author: victor
@@ -23,3 +25,4 @@ public:
 
 #endif	/* _CGOBSERVER_H */
 
+/// @}

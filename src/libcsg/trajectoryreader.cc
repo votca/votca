@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   trajectoryreader.cc
 // Author: victor
@@ -18,3 +20,4 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register("pdb", new GMXTrajectoryReader(), false);  // not tested!
     TrjReaderFactory().Register("mdp", new MDPTrajectoryReader(), false);
 }
+/// @}

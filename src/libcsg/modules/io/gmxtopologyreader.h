@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   gmxtopologyreader.h
 // Author: ruehle
@@ -33,3 +35,4 @@ private:
 
 #endif	/* _gmxtopologyreader_H */
 
+/// @}

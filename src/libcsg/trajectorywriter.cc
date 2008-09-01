@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   trajectorywriter.cc
 // Author: victor
@@ -20,3 +22,4 @@ void TrajectoryWriter::RegisterPlugins()
     TrjWriterFactory().Register("xtc", new GMXTrajectoryWriter(), false);
     TrjWriterFactory().Register("gro", new GROWriter(), false);
 }
+/// @}

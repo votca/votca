@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   moleculeinfo.h
 // Author: ruehle
@@ -70,3 +72,4 @@ private:
 
 #endif	/* _moleculeinfo_H */
 
+/// @}

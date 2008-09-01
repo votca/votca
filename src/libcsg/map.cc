@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   map.cc
 // Author: ruehle
@@ -116,3 +118,4 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     
     //out.BeadW(_out) = es.eigenvecs[2];
 }
+/// @}

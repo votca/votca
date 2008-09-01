@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   mdptopologyreader.h
  * Author: ruehle
@@ -29,3 +31,4 @@ private:
 
 #endif	/* _MDPTOPOLOGYREADER_H */
 
+/// @}

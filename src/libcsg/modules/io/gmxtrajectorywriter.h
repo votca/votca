@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   gmxtrajectorywriter.h
 // Author: victor
@@ -46,3 +48,4 @@ public:
 
 #endif	/* _GMXTRAJECTORYWRITER_H */
 
+/// @}

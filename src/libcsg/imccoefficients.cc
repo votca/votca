@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   imcoefficients.cpp
  * Author: victorr
@@ -52,3 +54,4 @@ void IMCCoefficients::OutputDist(ostream &out)
         out << *i << endl;
 }
 
+/// @}

@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   analysistool.h
  * Author: ruehle
@@ -46,3 +48,4 @@ inline ObjectFactory<string, AnalysisTool> &AnalysisFactory()
 
 #endif	/* _analasystool_H */
 
+/// @}

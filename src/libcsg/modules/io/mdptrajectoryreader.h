@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   mdptrajectoryreader.h
  * Author: victorr
@@ -36,3 +38,4 @@ class MDPTrajectoryReader : public TrajectoryReader
 
 #endif	/* _MDPTRAJECTORYREADER_H */
 
+/// @}

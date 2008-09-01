@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   cgmoleculedef.cc
 // Author: ruehle
@@ -419,3 +421,4 @@ void CGMoleculeDef::OutputNode(option_t &opt)
     cout << ">>\n";
 }
     
+/// @}

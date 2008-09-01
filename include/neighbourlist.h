@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   neighbourlist.h
 // Author: ruehle
@@ -78,3 +80,4 @@ ostream& operator<<(ostream& out, NeighbourList &nb);
 
 #endif	/* _NEIGHBOURLIST_H */
 
+/// @}

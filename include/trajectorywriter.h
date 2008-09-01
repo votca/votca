@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   trajectorywriter.h
  * Author: ruehle
@@ -41,3 +43,4 @@ inline FileFormatFactory<TrajectoryWriter> &TrjWriterFactory()
 
 #endif	/* _trajectorywriter_H */
 
+/// @}

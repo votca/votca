@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   imccrosscor.h
  * Author: victorr
@@ -40,3 +42,4 @@ protected:
 
 #endif	/* _IMCCROSSCOR_H */
 
+/// @}

@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   topologymap.h
  * Author: ruehle
@@ -42,3 +44,4 @@ inline void TopologyMap::AddMoleculeMap(Map *map)
 
 #endif	/* _topologymap_H */
 
+/// @}

@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 /* 
  * File:   beadlist.h
  * Author: ruehle
@@ -25,3 +27,4 @@ private:
 
 #endif	/* _BEADLIST_H */
 
+/// @}

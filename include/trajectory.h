@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   trajectory.h
 // Author: ruehle
@@ -29,3 +31,4 @@ class Trajectory
 
 #endif	/* _trajectory_H */
 
+/// @}

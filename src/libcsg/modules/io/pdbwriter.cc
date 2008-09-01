@@ -1,3 +1,5 @@
+/// \addtogroup csg
+///@{
 // 
 // File:   pdbwriter.cc
 // Author: ruehle
@@ -67,3 +69,4 @@ void PDBWriter::Write(Configuration *conf)
     fprintf(_out, "ENDMDL\n");
     fflush(_out);
 }
+/// @}
