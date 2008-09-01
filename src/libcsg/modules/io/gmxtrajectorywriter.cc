@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   gmxtrajectorywriter.cc
 // Author: ruehle
@@ -65,4 +63,3 @@ for(int i=0; i<N; ++i) {
     step++;
     delete[] x;
 }
-/// @}

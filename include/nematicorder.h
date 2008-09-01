@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   nematicorder.h
 // Author: ruehle
@@ -33,4 +31,3 @@ private:
 
 #endif	/* _NEMATICORDER_H */
 
-/// @}

@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   growriter.h
 // Author: victor
@@ -36,4 +34,3 @@ public:
 
 #endif	/* _GROWRITER_H */
 
-/// @}

@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   trajectoryreader.h
 // Author: ruehle
@@ -51,4 +49,3 @@ inline FileFormatFactory<TrajectoryReader> &TrjReaderFactory()
 
 #endif	/* _trajectoryreader_H */
 
-/// @}

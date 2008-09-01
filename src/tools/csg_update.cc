@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   csg_update.cc
 // Author: ruehle
@@ -144,4 +142,3 @@ int DoIBM(const string &in, const string &out, const string &target_dist, const 
 }
 
 
-/// @}

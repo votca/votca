@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   topologyreader.cc
 // Author: ruehle
@@ -20,4 +18,3 @@ void TopologyReader::RegisterPlugins(void)
     TopReaderFactory().Register("xml", new XMLTopologyReader(), false); 
     TopReaderFactory().Register("mdp", new MDPTopologyReader(), false); 
 }
-/// @}

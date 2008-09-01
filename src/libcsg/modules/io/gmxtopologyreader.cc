@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   gmxtopologyreader.cc
 // Author: ruehle
@@ -73,4 +71,3 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
     return true;
 }
-/// @}

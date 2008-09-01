@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   topologyreader.h
 // Author: ruehle
@@ -39,4 +37,3 @@ inline FileFormatFactory<TopologyReader> &TopReaderFactory()
 
 #endif	/* _TOPOLOGYREADER_H */
 
-/// @}

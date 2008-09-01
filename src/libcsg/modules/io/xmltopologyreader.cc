@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   xmltopologyreader.cc
 // Author: victor
@@ -87,4 +85,3 @@ void XMLTopologyReader::ParseMolecules(xmlNodePtr node)
         }
     }         
 }
-/// @}

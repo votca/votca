@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   cgmoleculedef.h
 // Author: ruehle
@@ -103,4 +101,3 @@ private:
 
 #endif	/* _cgmoleculedef_H */
 
-/// @}

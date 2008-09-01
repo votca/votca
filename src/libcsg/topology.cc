@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   topology.cc
 // Author: ruehle
@@ -135,4 +133,3 @@ void Topology::AddBondedInteraction(Interaction *ic)
 }
 
 
-/// @}

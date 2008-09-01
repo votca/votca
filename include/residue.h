@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   residue.h
 // Author: ruehle
@@ -48,4 +46,3 @@ inline const string &Residue::getName()
 
 #endif	/* _residue_H */
 
-/// @}

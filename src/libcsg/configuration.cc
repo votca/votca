@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   configuration.cc
 // Author: ruehle
@@ -57,4 +55,3 @@ double Configuration::BoxVolume()
     vec a = _box.getCol(0); vec b = _box.getCol(1); vec c = _box.getCol(2);
     return (a^b)*c;
 }
-/// @}

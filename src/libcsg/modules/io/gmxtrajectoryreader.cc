@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   gmxtrajectoryreader.cc
 // Author: ruehle
@@ -76,4 +74,3 @@ bool GMXTrajectoryReader::NextFrame(Configuration &conf)
     }
     return true;
 }
-/// @}

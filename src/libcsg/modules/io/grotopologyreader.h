@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   grotopologyreader.h
 // Author: victor
@@ -35,4 +33,3 @@ private:
 
 #endif	/* _GROTOPOLOGYREADER_H */
 
-/// @}

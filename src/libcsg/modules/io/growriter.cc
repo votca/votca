@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   growriter.cc
 // Author: ruehle
@@ -91,4 +89,3 @@ void GROWriter::Write(Configuration *conf)
   }
   fflush(_out);
 }
-/// @}

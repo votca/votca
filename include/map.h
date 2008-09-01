@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   map.h
 // Author: ruehle
@@ -111,4 +109,3 @@ protected:
 
 #endif	/* _map_H */
 
-/// @}

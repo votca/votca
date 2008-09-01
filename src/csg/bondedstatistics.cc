@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   bondedstatistics.cc
 // Author: victor
@@ -36,4 +34,3 @@ void BondedStatistics::EvalConfiguration(Configuration *conf, Configuration *con
         (*is)->push_back((*ia)->EvaluateVar(*conf));
     }
 }
-/// @}

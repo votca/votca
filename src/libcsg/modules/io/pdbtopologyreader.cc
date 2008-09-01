@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   pdbtopologyreader.cc
 // Author: victor
@@ -46,4 +44,3 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
     
     return true;/**/
 }
-/// @}

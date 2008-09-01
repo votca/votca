@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   configuration.h
 // Author: ruehle
@@ -266,4 +264,3 @@ inline void Configuration::HasW(bool b)
 
 #endif	/* _configuration_H */
 
-/// @}

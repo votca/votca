@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   moleculeinfo.cc
 // Author: ruehle
@@ -28,4 +26,3 @@ int MoleculeInfo::getBeadByName(const string &name)
     //return (*iter).second;
     return _beadmap[name];
 }
-/// @}

@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   csample.cc
 // Author: victor
@@ -63,4 +61,3 @@ int main(int argc, char** argv)
     return 0;
 }
 
-/// @}

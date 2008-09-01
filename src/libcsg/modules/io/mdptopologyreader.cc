@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 /* 
  * File:   mdptopologyreader.cc
  * Author: ruehle
@@ -107,4 +105,3 @@ bool MDPTopologyReader::ReadTopology(string file, Topology &top)
     
     return true;
 }
-/// @}

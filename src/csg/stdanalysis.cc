@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   stdanalysis.cc
 // Author: ruehle
@@ -106,4 +104,3 @@ void StdAnalysis::WriteCorrelations(BondedStatistics &bs, vector<string> &args)
     cout << "calculated correlations for " << sel->size() << " rows, written to " << args[0] << endl;
     delete sel;
 }
-/// @}

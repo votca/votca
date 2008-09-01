@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 /* 
  * File:   exclusionlist.h
  * Author: ruehle
@@ -39,4 +37,3 @@ std::ostream &operator<<(std::ostream &out,ExclusionList& ex);
 
 #endif	/* _exclusionlist_H */
 
-/// @}

@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   numberdensity.h
 // Author: ruehle
@@ -50,4 +48,3 @@ ostream& operator<<(ostream& out, NumberDist &nd)
     return out;
 }
 
-/// @}

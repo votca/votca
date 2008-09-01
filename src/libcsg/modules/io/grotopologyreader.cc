@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   grotopologyreader.cc
 // Author: victor
@@ -62,4 +60,3 @@ bool GROTopologyReader::ReadTopology(string file, Topology &top)
     
     return true;
 }
-/// @}

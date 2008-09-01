@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   beadinfo.h
 // Author: ruehle
@@ -62,4 +60,3 @@ private:
 
 #endif	/* _beadinfo_H */
 
-/// @}

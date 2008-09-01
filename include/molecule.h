@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   molecule.h
 // Author: ruehle
@@ -98,4 +96,3 @@ inline vec &Molecule::BeadW(const int &bead)
 
 #endif	/* _molecule_H */
 
-/// @}

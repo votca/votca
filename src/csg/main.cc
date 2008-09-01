@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   main.cc
 // Author: ruehle
@@ -223,4 +221,3 @@ int main(int argc, char** argv)
     return 0;
 }
 
-/// @}

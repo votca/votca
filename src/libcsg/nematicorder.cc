@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   nematicorder.cc
 // Author: ruehle
@@ -50,4 +48,3 @@ void NematicOrder::Process(Configuration &conf)
     if(conf.HasW())
         _mw.SolveEigensystem(_nemat_w);               
 }
-/// @}

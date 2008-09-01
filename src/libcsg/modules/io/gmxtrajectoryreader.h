@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   gmxtrajectoryreader.h
 // Author: ruehle
@@ -61,4 +59,3 @@ class GMXTrajectoryReader : public TrajectoryReader
 
 #endif	/* _gmxtrajectoryreader_H */
 
-/// @}

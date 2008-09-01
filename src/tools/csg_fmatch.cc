@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   csg_nemat.cc
 // Author: ruehle
@@ -434,4 +432,3 @@ int main(int argc, char** argv)
     return 0;
 }
 
-/// @}

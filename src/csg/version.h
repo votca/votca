@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   version.h
 // Author: ruehle
@@ -14,4 +12,3 @@
 
 #endif	/* _version_H */
 
-/// @}

@@ -1,5 +1,3 @@
-/// \addtogroup csg
-///@{
 // 
 // File:   pdbtopologyreader.h
 // Author: victor
@@ -40,4 +38,3 @@ private:
 
 #endif	/* _PDBTOPOLOGYREADER_H */
 
-/// @}
