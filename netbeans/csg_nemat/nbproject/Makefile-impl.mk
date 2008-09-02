@@ -108,6 +108,4 @@ ALLCONFS=Debug Release
 	@echo "    also build subprojects."
 	@echo "Target 'help' prints this message."
 	@echo ""
-	@echo "The active configuration (${ACTIVECONF}) is being used if the configuration is not specified."
-	@echo ""
 
