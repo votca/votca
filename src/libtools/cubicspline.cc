@@ -37,20 +37,31 @@ void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
     
     // not calculate the f''
     ub::matrix<double> A(N, N);
+    A = ub::zero_matrix<double>(N,N);
+    
     for(int i=0; i<N - 2; ++i) {
-            f2(i) = -( A_prime_l(i)*f(i)
+            f2(i+1) = -( A_prime_l(i)*f(i)
             + (B_prime_l(i) - A_prime_r(i)) * f(i+1)
-            + -B_prime_r(i) * f(i+2));
+            -B_prime_r(i) * f(i+2));
 
             A(i+1, i) = C_prime_l(i);
             A(i+1, i+1) = D_prime_l(i) - C_prime_r(i);
             A(i+1, i+2) = -D_prime_r(i);
     }
     
-    // currently only natural boundary conditions:
-    A(0, 0) = 1;
-    A(N - 1, N-1) = 1;
+    switch(_boundaries) {
+        case splineNormal:
+            A(0, 0) = 1;
+            A(N - 1, N-1) = 1;
+            break;
+        case splinePeriodic:
+            A(0,0) = 1; A(0,N-1) = -1;
+            A(N-1,0) = 1; A(N-1,N-1) = -1;
+            break;
+    }
     
+    
+
     // now A is a tridiagonal system, solve it!
     double* pointer_m = &A(0,0);
     double* pointer_b = &f2(0);        

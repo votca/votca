@@ -38,7 +38,7 @@ public:
         splinePeriodic
     };
     
-    void setBondaries(eBoundary bc) {_boundaries = bc; }
+    void setBC(eBoundary bc) {_boundaries = bc; }
     
     // Generates the r_k, returns the number of grid points
     int GenerateGrid(double min, double max, double h);
@@ -191,8 +191,19 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
             M(offset1+i+1, offset2 + _r.size() + i+2) = -D_prime_r(i);
     }
     // currently only natural boundary conditions:
-    M(offset1, offset2 + _r.size()) = 1;
-    M(offset1 + _r.size() - 1, offset2 + 2*_r.size()-1) = 1;
+    switch(_boundaries) {
+        case splineNormal:
+            M(offset1, offset2 + _r.size()) = 1;
+            M(offset1 + _r.size() - 1, offset2 + 2*_r.size()-1) = 1;
+            break;
+        case splinePeriodic:
+            M(offset1, offset2 + _r.size()) = 1;
+            M(offset1, offset2 + 2*_r.size()-1) = -1;
+            M(offset1 + _r.size() - 1, offset2 + _r.size()) = 1;
+            M(offset1 + _r.size() - 1, offset2 + 2*_r.size()-1) = -1;
+            break;
+    }
+    
 }
 
 
