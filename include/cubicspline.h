@@ -30,9 +30,15 @@ namespace ub = boost::numeric::ublas;
     \f]
     The \f$f_i\,,\,,f''_i\f$ are the function values and second derivates
     at point \f$x_i\f$.
- 
- 
+
+    The parameters \f$f''_i\f$ are no free parameters, they are determined by the 
+    smoothing condition that the first derivatives are continuous. So the only free
+    paramers are the grid points x_i as well as the functon values f_i at these points. A spline can be generated in several ways:
+    - Interpolation spline
+    - Fitting spline (fit to noisy data)
+    - calculate the parameters elsewere and fill the spline class
  */
+
 class CubicSpline
 {    
 public:
@@ -45,8 +51,8 @@ public:
     
     /// enum for type of boundary condition
     enum eBoundary {
-        splineNormal = 0,  /// normal boundary conditions: \f$f_0=f_N=0\f$
-        splinePeriodic    /// periodic boundary conditions: \f$f_0=f_N\f$
+        splineNormal = 0,  ///< normal boundary conditions: \f$f_0=f_N=0\f$ 
+        splinePeriodic    ///< periodic boundary conditions: \f$f_0=f_N\f$ 
     };
     
     /// set the boundary type of the spline
@@ -64,11 +70,13 @@ public:
     //int GenerateGrid(string range);
 
     /// \brief construct an interpolation spline
+    ///
     ///   x, y are the the points to construct interpolation,
     /// both vectors must be of same size
     void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
     
     /// \brief fit spline through noisy data
+    ///
     /// x,y are arrays with noisy data, both vectors must be of same size
     void Fit(ub::vector<double> &x, ub::vector<double> &y);
     
@@ -90,20 +98,16 @@ public:
     /// get the grid array x
     ub::vector<double> &getX() {return _r; }
     ///  \brief get the spline data
+    ///
     /// returns an array, the first half of the array are the f_i, the second half the f''_i
     ub::vector<double> &getSplineData() { return _f; }
     
     // stuff to construct fitting matrices
     
     /// \brief add a point to fitting matrix
-    /// When creating a matrix to fit data with a spline, this function creates
-    /// one entry in that fitting matrix. The problem is the least square problem
-    /// \f{algin*}[
-    ///     \mathbf{Ax} &= \mathbf{b} \,\\
-    ///     x = f_i, f''_i
-    ///     b = y_i, 0
-    /// \f]
     ///
+    /// When creating a matrix to fit data with a spline, this function creates
+    /// one entry in that fitting matrix. 
     template<typename matrix_type>
     void AddToFitMatrix(matrix_type &A, double x,
             int offset1, int offset2=0, double scale=1);
