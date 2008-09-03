@@ -28,7 +28,7 @@ public:
     };
     void EndCG() {
         for(int i=0;i<10;++i) {
-           // cout << i+1 << " " << _dist[i] << endl;
+           cout << i+1 << " " << _dist[i] << endl;
         }
     };
     
@@ -43,13 +43,15 @@ public:
             for(int i=1; i<(*iter)->BeadCount(); ++i) {
                 vec n = conf->getU(mi->getBeadId(i));
                 ++c;
-                cout << acos(fabs(no*n)) << endl ;
+                // cout << acos(fabs(no*n)) << endl ;
                 if(fabs(no*n) < thres) {
                     _dist[c-1]++;
                     c=0;
                 }
                 no = n; 
             }
+            if(c!=0)
+                _dist[c]++;
 	}
     }
     
@@ -84,7 +86,7 @@ int main(int argc, char** argv)
     po::options_description desc("Allowed options");    
     
     desc.add_options()
-        ("thres", boost::program_options::value<double>(), "conjugation threshold");
+        ("thres", boost::program_options::value<double>()->default_value(0.7), "conjugation threshold");
  
     // let cg_engine add some program options
     cg_engine.AddProgramOptions(desc);
