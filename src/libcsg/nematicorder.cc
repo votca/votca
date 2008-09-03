@@ -14,8 +14,11 @@ void NematicOrder::Process(Configuration &conf)
     _mu.ZeroMatrix();
     _mv.ZeroMatrix();
     _mw.ZeroMatrix();
-    
+    int N=0;
     for(int n=0; n<conf.getTopology()->BeadCount();++n) {
+        if( conf.getTopology()->getBead(n)->getSymmetry() ==1 )
+            continue;
+            
         if(conf.HasU()) {
             _mu += conf.getU(n)|conf.getU(n);
             _mu[0][0] -= 1./3.;
@@ -36,9 +39,10 @@ void NematicOrder::Process(Configuration &conf)
             _mw[1][1] -= 1./3.;
             _mw[2][2] -= 1./3.;
         }
+        N++;
     }
     
-    double f = 1./(double)conf.getTopology()->BeadCount()*3./2.;
+    double f = 1./(double)N*3./2.;
     _mu = f*_mu;_mv = f*_mv;_mw = f*_mw;
     
     if(conf.HasU())
