@@ -18,10 +18,21 @@ namespace ub = boost::numeric::ublas;
 /**
     \brief A cubic spline class
   
-    This class represents a Cubic spline. Spline interpolation
-    as well as spline fitting can be done.
+    This class does cubic piecewise spline interpolation and spline fitting.
+    As representation of a single spline, the general form
+    \f[
+        S_i(x) = A(x,h_i) f_i + B(x,h_i) f_{i+1} + C(x,h_i) f''_i + d(x,h_i) f''_{i+1}
+    \f]
+    with
+    \f[
+        x_i \le x < x_{i+1}\,,\\
+        h_i = x_{i+1} - x_{i}
+    \f]
+    The \f$f_i\,,\,,f''_i\f$ are the function values and second derivates
+    at point \f$x_i\f$.
+ 
+ 
  */
-
 class CubicSpline
 {    
 public:
@@ -32,45 +43,67 @@ public:
     // destructor
     ~CubicSpline() {};    
     
-    // enum for type of boundary condition
+    /// enum for type of boundary condition
     enum eBoundary {
-        splineNormal = 0,
-        splinePeriodic
+        splineNormal = 0,  /// normal boundary conditions: \f$f_0=f_N=0\f$
+        splinePeriodic    /// periodic boundary conditions: \f$f_0=f_N\f$
     };
     
+    /// set the boundary type of the spline
     void setBC(eBoundary bc) {_boundaries = bc; }
     
-    // Generates the r_k, returns the number of grid points
+    /// Generates the r_k, returns the number of grid points
+    /// max is included in the interval.
     int GenerateGrid(double min, double max, double h);
-    // in which interval is point r, return i for interval r_i r_{i+1}, -1 for out of range
+    
+    /// determine the interval the point r is in
+    /// returns i for interval r_i r_{i+1}, -1 for out of range
     int getInterval(double &r);
 
     // give string in rangeparser format: e.g. 1:0.1:10;11:1:20
     //int GenerateGrid(string range);
 
-    // construct an interpolation spline
-    void Interpolate(ub::vector<double> &x, ub::vector<double> &y);    
-    // fit spline through data
+    /// \brief construct an interpolation spline
+    ///   x, y are the the points to construct interpolation,
+    /// both vectors must be of same size
+    void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
+    
+    /// \brief fit spline through noisy data
+    /// x,y are arrays with noisy data, both vectors must be of same size
     void Fit(ub::vector<double> &x, ub::vector<double> &y);
     
     
+    /// Calculate the function value
     double Calculate(double &x);
     
+    /// Calculate the function value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void Calculate(vector_type1 &x, vector_type2 &y);
        
-    // store data in the spline, todo: rename that function
+    /// the spline parameters were calculated elsewere, store that data
     template<typename vector_type>
     void setSplineData(vector_type &f) { _f = f; }
     
+    /// print out results
     void Print(std::ostream &out, double interval = 0.0001 );
         
+    /// get the grid array x
     ub::vector<double> &getX() {return _r; }
+    ///  \brief get the spline data
+    /// returns an array, the first half of the array are the f_i, the second half the f''_i
     ub::vector<double> &getSplineData() { return _f; }
     
     // stuff to construct fitting matrices
     
-    // add the points
+    /// \brief add a point to fitting matrix
+    /// When creating a matrix to fit data with a spline, this function creates
+    /// one entry in that fitting matrix. The problem is the least square problem
+    /// \f{algin*}[
+    ///     \mathbf{Ax} &= \mathbf{b} \,\\
+    ///     x = f_i, f''_i
+    ///     b = y_i, 0
+    /// \f]
+    ///
     template<typename matrix_type>
     void AddToFitMatrix(matrix_type &A, double x,
             int offset1, int offset2=0, double scale=1);
