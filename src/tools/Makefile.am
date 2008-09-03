@@ -19,6 +19,6 @@ csg_conj_SOURCES = csg_conj.cc
 # csg_sample_SOURCES = \
 #    csg_sample.cc
 
-AM_LDFLAGS = ${BOOST_PROGRAM_OPTIONS_LIB} 
+AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a -ltools -lgmx  -lxml2 -lgsl -lgslcblas -lm 
+LDADD = ../libcsg/libcsg.a -ltools ${BOOST_PROGRAM_OPTIONS_LIB} -lgmx  -lxml2 -lgsl -lgslcblas -lm 

@@ -6,6 +6,6 @@ bin_PROGRAMS = \
 csg_SOURCES = \
     bondedstatistics.cc main.cc  stdanalysis.cc  tabulatedpotential.cc 
 
-AM_LDFLAGS = ${BOOST_PROGRAM_OPTIONS_LIB}  
+AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a -ltools -lgmx -lxml2 -lfftw3 -lm
+LDADD = ../libcsg/libcsg.a  ${BOOST_PROGRAM_OPTIONS_LIB} -ltools -lgmx -lxml2 -lfftw3 -lm
