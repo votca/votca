@@ -215,44 +215,7 @@ public:
     /*double d_min(CrgUnit &a){
         return abs( displ_min(a));
     }*/
-    
-    vec displ_min(CrgUnit &a){
-       // vector <vec> ::iterator com1;
-       // vector <vec> ::iterator com2;
         
-        vec res = (a._com) - _com;
-        
-        /*double d = abs(res);
-        for (com1 = _altcom.begin() ; com1 != _altcom.end() ; ++com1){
-            for (com2 = (a._altcom).begin() ; com2 != (a._altcom).end() ; ++com2){
-                vec displ = *com2 - *com1;
-                double d_t = abs( displ);
-                if ( d_t < d ) {
-                    res = displ;
-                    d = d_t;
-                }
-            }
-        }
-        for (com2 = (a._altcom).begin() ; com2 != (a._altcom).end() ; ++com2){
-            vec displ = *com2 - _com;
-            double d_t = abs( displ);
-            if ( d_t < d ) {
-                res = displ;
-                d = d_t;
-            }
-        }
-        for (com1 = (_altcom).begin() ; com1 != (_altcom).end() ; ++com1){
-            
-            vec displ = a._com - *com1;
-            double d_t = abs( displ);
-            if ( d_t < d ) {
-                res = displ;
-                d = d_t;
-            }
-        }*/
-        return res;
-    }
-    
     // this is the function called from the rate calculator on already initialised molecules
     void rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2){
         
