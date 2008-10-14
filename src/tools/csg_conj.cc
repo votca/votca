@@ -25,38 +25,98 @@ public:
     void BeginCG(Topology *top, Topology *top_atom) {
          for(int i=0;i<10;++i)
              _dist[i]=0;
+         for(int i=0;i<10;++i)
+             for(int j=0;j<1000;++j)
+             _lifetime[i][j]=0;
     };
     void EndCG() {
         for(int i=0;i<10;++i) {
            cout << i+1 << " " << _dist[i] << endl;
         }
+        BeginCycle();EndCycle();
+        for(int j=0;j<1000;++j) {
+            cout << j << " ";
+            for(int i=0;i<10;++i)
+                cout << _lifetime[i][j] << " ";
+            cout << endl;
+        }
+             
     };
     
     void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
         Topology *top = conf->getTopology();
+        BeginCycle();
         for(MoleculeContainer::iterator iter=top->getMolecules().begin();
             iter!=top->getMolecules().end(); ++iter) {
             MoleculeInfo *mi;
             mi = *iter;
             vec no = conf->getU(mi->getBeadId(0));
-            int c=0;
+            vector<int> beads;
             for(int i=1; i<(*iter)->BeadCount(); ++i) {
                 vec n = conf->getU(mi->getBeadId(i));
-                ++c;
-                // cout << acos(fabs(no*n)) << endl ;
+                beads.push_back(mi->getBeadId(i));
                 if(fabs(no*n) < thres) {
-                    _dist[c-1]++;
-                    c=0;
+                    UpdateCrgUnit(beads);
+                    _dist[beads.size()-1]++;
+                    beads.clear();
                 }
                 no = n; 
             }
-            if(c!=0)
-                _dist[c]++;
+            if(!beads.empty())
+                _dist[beads.size()-1]++;            
 	}
+        EndCycle();
     }
     
 protected:
     int _dist[10];
+    int _lifetime[10][1000];
+    
+    struct crgunit_t {
+        vector<int> _beads;
+        crgunit_t(vector<int> beads)
+            : _beads(beads), _alive(true), _lifetime(0) {}
+        crgunit_t() {}
+        
+        bool operator==(const vector<int> &c2) {
+            if(_beads.size()!=c2.size()) return false;
+            for(int i=0; i<_beads.size(); ++i)
+                if(_beads[i] != c2[i]) return false;
+            return true;
+        } 
+        
+        int _lifetime;
+        bool _alive;
+    };
+    
+    list<crgunit_t> _crgunits;
+
+    void UpdateCrgUnit(vector<int> beads) {
+        list<crgunit_t>::iterator iter
+            = find(_crgunits.begin(), _crgunits.end(), beads);
+        if(iter == _crgunits.end())
+            _crgunits.push_back(crgunit_t(beads));
+        else {
+            (*iter)._alive = true;
+            (*iter)._lifetime++;
+        }                
+    }
+    
+    void BeginCycle() {
+        for(list<crgunit_t>::iterator iter = _crgunits.begin();
+            iter != _crgunits.end(); ++iter)
+            (*iter)._alive = false;
+    }
+    
+    void EndCycle() {
+        for(list<crgunit_t>::iterator iter = _crgunits.begin();
+            iter != _crgunits.end();) {           
+            if(!(*iter)._alive) {
+                _lifetime[(*iter)._beads.size()-1][(*iter)._lifetime]++;
+                iter =  _crgunits.erase(iter);
+            } else ++iter;
+        }
+    }
 };
 
 
