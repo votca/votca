@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
+FC=gfortran
 
 # Include project Makefile
 include Makefile_nb
@@ -25,11 +25,11 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/basis_set.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/charges.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/basis_set.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/charges.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o
 
 # C Compiler Flags
 CFLAGS=
@@ -53,25 +53,25 @@ LDLIBSOPTIONS=
 	${AR} rv ../../src/libmoo/libmoo.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libmoo/libmoo.a
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o: ../../src/libmoo/qm_molecule.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o ../../src/libmoo/qm_molecule.cpp
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o: ../../src/libmoo/qm_molecule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/qm_molecule.o ../../src/libmoo/qm_molecule.cpp
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/basis_set.o: ../../src/libmoo/basis_set.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/basis_set.o ../../src/libmoo/basis_set.cpp
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/basis_set.o: ../../src/libmoo/basis_set.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/basis_set.o ../../src/libmoo/basis_set.cpp
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o: ../../src/libmoo/orbitals.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o ../../src/libmoo/orbitals.cpp
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o: ../../src/libmoo/orbitals.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/orbitals.o ../../src/libmoo/orbitals.cpp
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/charges.o: ../../src/libmoo/charges.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/src/libmoo/charges.o ../../src/libmoo/charges.cpp
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/charges.o: ../../src/libmoo/charges.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/charges.o ../../src/libmoo/charges.cpp
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o: ../../src/libmoo/fock_matrix.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o ../../src/libmoo/fock_matrix.cpp
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o: ../../src/libmoo/fock_matrix.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo
+	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/moo/netbeans/libmoo/../../src/libmoo/fock_matrix.o ../../src/libmoo/fock_matrix.cpp
 
 # Subprojects
 .build-subprojects:

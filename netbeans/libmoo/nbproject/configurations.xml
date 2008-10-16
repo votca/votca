@@ -33,6 +33,10 @@
       <itemPath>Makefile_nb</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>../../include</Elem>
+    <Elem>../../src/libmoo</Elem>
+  </sourceRootList>
   <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile_nb</projectmakefile>
   <confs>
