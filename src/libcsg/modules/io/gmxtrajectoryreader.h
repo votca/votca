@@ -15,13 +15,13 @@ using namespace std;
 
 namespace gmx {
    extern "C" {
-        #include <gromacs/statutil.h>
-        #include <gromacs/typedefs.h>
-        #include <gromacs/smalloc.h>
-        #include <gromacs/vec.h>
-        #include <gromacs/copyrite.h>
-        #include <gromacs/statutil.h>
-        #include <gromacs/tpxio.h>
+        #include <statutil.h>
+        #include <typedefs.h>
+        #include <smalloc.h>
+        #include <vec.h>
+        #include <copyrite.h>
+        #include <statutil.h>
+        #include <tpxio.h>
     }
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
