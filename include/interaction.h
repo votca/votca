@@ -135,7 +135,7 @@ inline vec IAngle::Grad(const Configuration &conf, int bead)
     vec v1(conf.getDist(_beads[1], _beads[0]));
     vec v2(conf.getDist(_beads[1], _beads[2]));
     
-    double acos_prime = -1.0 / (sqrt(1 - (v1 * v2)/( abs(v1) * abs(v2) ) ));
+    double acos_prime = 1.0 / (sqrt(1 - (v1*v2) * (v1*v2)/( abs(v1) * abs(v2) * abs(v1) * abs(v2) ) ));
     switch (bead) {
         case (0): return acos_prime * (-v2 / ( abs(v1)*abs(v2) ) +  (v1*v2) * v1 / ( abs(v2)*abs(v1)*abs(v1)*abs(v1) ) ); break;
         case (1): return acos_prime * ( (v1+v2)/(abs(v1) * abs(v2)) - (v1 * v2) * ((v2*v2) * v1 + (v1*v1) * v2 ) / ( abs(v1)*abs(v1)*abs(v1)*abs(v2)*abs(v2)*abs(v2) ) ); break;
