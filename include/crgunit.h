@@ -155,67 +155,7 @@ public:
                  this->GetPlanes(), a);
         return a;
     }
-    
-    ///strips the extra copies of positions correspondinig to ghost atoms
-   /* void strip_bc(){
-        clearListList(_altpos);
-        _altcom.clear();
-    }*/
-    
-    /// generates extra copies of the positions corresponding to "ghost" atoms
-   /* void apply_bc ( const vec & bc, const double & d){
-        strip_bc();
-        
-        if ( _com.getX() > (bc.getX()-d) ){
-            vec displ (-bc.getX(), 0. ,0. );
-            vector <vec> pos = shift_pos(displ);
-            _altpos.push_back(pos);
-            vec com2 = _com + displ;
-            _altcom.push_back(com2);
-        }
-        else if ( _com.getX() < d){
-            vec displ ( bc.getX(), 0. ,0. );
-            vector <vec> pos = shift_pos(displ);
-            _altpos.push_back(pos);
-            vec com2 = _com + displ;
-            _altcom.push_back(com2);
-        }
-        if ( _com.getY() > (bc.getY()-d) ){
-            vec displ (0. , -bc.getY(), 0. );
-            vector <vec> pos = shift_pos(displ);
-            _altpos.push_back(pos);
-            vec com2 = _com + displ;
-            _altcom.push_back(com2);
-        }
-        else if ( _com.getY() < d){
-            vec displ (0. , bc.getY(), 0. );
-            vector <vec> pos = shift_pos(displ);
-            _altpos.push_back(pos); 
-            vec com2 = _com + displ;
-            _altcom.push_back(com2);      
-        }
-        if ( _com.getZ() > (bc.getZ()-d) ){
-            vec displ (0. , 0, -bc.getZ() );
-            vector <vec> pos = shift_pos(displ);
-            _altpos.push_back(pos);
-            vec com2 = _com + displ;
-            _altcom.push_back(com2);
-        }
-        else if ( _com.getZ() < d){
-            vec displ (0. , 0, bc.getZ() );
-            vector <vec> pos = shift_pos(displ);
-            _altpos.push_back(pos); 
-            vec com2 = _com + displ;
-            _altcom.push_back(com2);       
-        }
-        
-    }*/
-
-    ///find the distance between two charge units
-    /*double d_min(CrgUnit &a){
-        return abs( displ_min(a));
-    }*/
-        
+            
     // this is the function called from the rate calculator on already initialised molecules
     void rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2){
         
@@ -284,28 +224,11 @@ public:
     const vec & GetCom () const{
         return _com;
     }
-    vec GetComInBox (const vec & bc) const{
-        vec com=GetCom();
-        while (com.getX() > bc.getX() ) com.setX(com.getX() - bc.getX() );
-        while (com.getX() < 0 )    com.setX(com.getX() + bc.getX() );
-        while (com.getY() > bc.getY() ) com.setY(com.getY() - bc.getY() );
-        while (com.getY() < 0 )    com.setY(com.getY() + bc.getY() );
-        while (com.getZ() > bc.getZ() ) com.setZ(com.getZ() - bc.getZ() );
-        while (com.getZ() < 0 )    com.setZ(com.getZ() + bc.getZ() );
-        return com;
-    }
     
     void shift(const vec & displ) {
-        _com = _com + displ;
         vector < vec> ::iterator it_vec;
-        //for (it_vec = _altcom.begin() ; it_vec != _altcom.end(); ++it_vec) *it_vec = *it_vec + displ;
         for (it_vec = _positions.begin() ; it_vec != _positions.end(); ++it_vec) *it_vec = *it_vec + displ;
-        /*vector < vector < vec > > :: iterator it_altpos;
-        for (it_altpos = _altpos.begin() ; it_altpos != _altpos.end() ; ++it_altpos){
-            for (it_vec =  it_altpos->begin(); it_vec != it_altpos->end() ; ++it_vec ){
-                *it_vec = *it_vec + displ;
-            }
-        }*/
+        _com+=displ;
     }
     
     void rotate(matrix mat){

@@ -24,7 +24,18 @@
 #include <libxml/parser.h>
 #include <string>
 
-void get_orient( const vec & , const vec & , const vec & , matrix & );
+inline void get_orient( const vec & a, const vec & b, const vec & c, matrix & cg ){
+    
+    cg.set(0,0,  a.getX());
+    cg.set(0,1,  b.getX());
+    cg.set(0,2,  c.getX());
+    cg.set(1,0,  a.getY());
+    cg.set(1,1,  b.getY());
+    cg.set(1,2,  c.getY());
+    cg.set(2,0,  a.getZ());
+    cg.set(2,1,  b.getZ());
+    cg.set(2,2,  c.getZ());
+}
 
 class CrgUnitType{
 public:
