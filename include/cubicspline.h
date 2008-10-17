@@ -160,9 +160,10 @@ inline int CubicSpline::GenerateGrid(double min, double max, double h)
    
     double r_init;
    
-    for (r_init = min, i=0; i < vec_size; r_init += h ) {
+    for (r_init = min, i=0; i < vec_size - 1; r_init += h ) {
             _r[i++]= r_init;
     }
+    _r[i] = max;
     _f.resize(2 * _r.size(), false);
     return _r.size();
 }
@@ -186,7 +187,7 @@ inline void CubicSpline::Calculate(vector_type1 &x, vector_type2 &y)
 
 inline void CubicSpline::Print(std::ostream &out, double interval)
 {
-    for (double x = _r[0]; x <= _r[_r.size() - 1]; x += interval)
+    for (double x = _r[0]; x < _r[_r.size() - 1]; x += interval)
         out << x << " " << Calculate(x) << "\n";    
 }
 
@@ -195,10 +196,10 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
             int offset1, int offset2, double scale)
 {
     int spi = getInterval(x);
-    M(offset1, offset2 + spi) = A(x)*scale;
-    M(offset1, offset2 + spi+1) = B(x)*scale;
-    M(offset1, offset2 + spi + _r.size()) = C(x)*scale;
-    M(offset1, offset2 + spi + _r.size() + 1) = D(x)*scale;
+    M(offset1, offset2 + spi) += A(x)*scale;
+    M(offset1, offset2 + spi+1) += B(x)*scale;
+    M(offset1, offset2 + spi + _r.size()) += C(x)*scale;
+    M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale;
 }
 
 template<typename matrix_type, typename vector_type>
@@ -272,11 +273,21 @@ inline double CubicSpline::D(double &r)
     return ( (1.0/6.0)*xxi*xxi*xxi/h - (1.0/6.0)*xxi*h ) ;
 }
 
+//inline int CubicSpline::getInterval(double &r)
+//{
+//    if (r < _r[0] || r > _r[_r.size() - 1]) return -1;
+//    return int( (r - _r[0]) / (_r[_r.size()-1] - _r[0]) * (_r.size() - 1) );
+//}
+
 inline int CubicSpline::getInterval(double &r)
 {
-    if (r < _r[0] || r > _r[_r.size() - 1]) return -1;
-    return int( (r - _r[0]) / (_r[_r.size()-1] - _r[0]) * (_r.size() - 1) );
-}
+    if (r < _r[0]) return 0;
+    if(r > _r[_r.size() - 1]) return _r.size()-1;
+    int i;
+    for(i=0; i<_r.size(); ++i)
+        if(_r[i]>r) break;
+    return i-1;
+} 
 
 inline double CubicSpline::A_prime_l(int i)
 {
