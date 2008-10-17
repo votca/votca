@@ -40,7 +40,7 @@ public:
         
         // SplineInfo for the first type of bond:
 //        SplineInfo Bond1;
-        Bond1.n = Bond1.Spline.GenerateGrid( 0.08, 0.37, 0.02) - 1;
+        Bond1.n = Bond1.Spline.GenerateGrid( 0.256, 0.337, 0.005 ) - 1;
         Bond1.bonded = true;
         Bond1.splineIndex = 0;
         Bond1.matr_pos = colms_init;
@@ -58,7 +58,7 @@ public:
         
         // SplineInfo for the second type of bond:
 //        SplineInfo Bond2;
-        Bond2.n = Bond2.Spline.GenerateGrid( 0.06, 0.42, 0.02) - 1;
+/*        Bond2.n = Bond2.Spline.GenerateGrid( 0.345, 0.395, 0.01) - 1;
         Bond2.bonded = true;
         Bond2.splineIndex = 1;
         Bond2.matr_pos = colms_init;
@@ -72,10 +72,10 @@ public:
                 
         //Add SplineInfo to SplineContainer:
         Splines.push_back( &Bond2 );        
-        
+*/        
         // SplineInfo for the angle:
 //        SplineInfo Angle;
-        Angle.n = Angle.Spline.GenerateGrid( 113 * 0.0175, 126 * 0.0175, 2 * 0.0175 ) - 1;
+        Angle.n = Angle.Spline.GenerateGrid( 69.8 * 0.0175, 170 * 0.0175, 5 * 0.0175 ) - 1;
         Angle.bonded = true;
         Angle.splineIndex = 2;
         Angle.matr_pos = colms_init;
@@ -118,7 +118,9 @@ public:
             // smoothing conditions for first derivatives:
             // internal points
             
-            for (int i =0; i < sfnum - 1; ++i) {
+            (*is)->Spline.AddBCToFitMatrix(_A, line_cntr, col_cntr);
+
+            /*for (int i =0; i < sfnum - 1; ++i) {
                 _A(line_cntr + i, col_cntr + i) = (*is)->Spline.A_prime(i, 0);
                 _A(line_cntr + i, col_cntr + i+1 ) = (*is)->Spline.B_prime(i,0) - (*is)->Spline.A_prime(i,1);
                 _A(line_cntr + i, col_cntr + i+2 ) = -(*is)->Spline.B_prime(i,1);
@@ -132,7 +134,7 @@ public:
             // external points 
             
             _A(line_cntr + sfnum-1, col_cntr + sfnum+1) = 1.0;
-            _A(line_cntr + sfnum, col_cntr + 2*(sfnum+1) - 1) = 1.0;
+            _A(line_cntr + sfnum, col_cntr + 2*(sfnum+1) - 1) = 1.0;*/
             
             // update counters
             line_cntr += sfnum + 1;
@@ -156,6 +158,7 @@ public:
     }
     
     void EndCG() {
+        ofstream out_file ("/people/pckr78/lukyanov/projects/Alq3/coarse-graining/fmatch_out.dat");
         // Solving linear equations system
         
         // libgsl has problems with solving overdetermined systems by means of 
@@ -234,7 +237,7 @@ public:
         _x.resize(col_cntr, false);
         _x.clear();
          
-        cout << "write out results\n";
+        out_file << "write out results\n";
         // do we really need this _x vector?
         // we need many of them for each spline instead.
         // they are implemented in SplineInfo
@@ -243,7 +246,7 @@ public:
             _x(i) = gsl_vector_get(x, i);
         }
 */        
-        cout << "r  " << "F(r)  " << endl;
+        out_file << "r  " << "F(r)  " << endl;
         
         // have to change it - it's bullshit
 //        Bond1.Spline.GetResult(& _x);
@@ -254,13 +257,15 @@ public:
         for(is=Splines.begin(); is != Splines.end(); ++is) {
             int &mp = (*is)->matr_pos;
             int &nsf = (*is)->n;
-            cout << "interaction No. " << (*is)->splineIndex << endl;
+            out_file << "interaction No. " << (*is)->splineIndex << endl;
             
             for (int i = 0; i < 2*(nsf + 1); i++ ) {
                (*is)->result[i] = gsl_vector_get(x, i + mp);
             }
-            (*is)->Spline.GetResult( & (*is)->result );
-            (*is)->Spline.PrintOutResult();
+            //(*is)->Spline.GetResult( & (*is)->result );
+            //(*is)->Spline.PrintOutResult();
+            (*is)->Spline.setSplineData( (*is)->result );
+            (*is)->Spline.Print(out_file, 0.001);
         }        
         
         gsl_vector_free (x);
@@ -304,8 +309,15 @@ public:
                for (int loop = 0; loop < beads_in_int; loop ++) {
                    int ii = (*ia)->getBeadId(loop);
                    vec gradient = (*ia)->Grad(*conf, loop);
-                   
-                  _A(line_cntr + 3*N*L+ii, mpos + i) += SP.A(var)*gradient.x(); 
+                  
+                   SP.AddToFitMatrix(_A, var, 
+                           line_cntr + 3*N*L + ii, mpos, gradient.x());
+                   SP.AddToFitMatrix(_A, var, 
+                           line_cntr + 3*N*L + N + ii, mpos, gradient.y());
+                   SP.AddToFitMatrix(_A, var,
+                           line_cntr + 3*N*L + 2*N + ii, mpos, gradient.z());
+                  
+/*                  _A(line_cntr + 3*N*L+ii, mpos + i) += SP.A(var)*gradient.x(); 
                   _A(line_cntr + 3*N*L+N+ii, mpos + i) += SP.A(var)*gradient.y();
                   _A(line_cntr + 3*N*L+2*N+ii, mpos + i) += SP.A(var)*gradient.z();  
 
@@ -320,7 +332,7 @@ public:
                   _A(line_cntr + 3*N*L+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.x(); 
                   _A(line_cntr + 3*N*L+N+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.y();
                   _A(line_cntr + 3*N*L+2*N+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.z();                   
-                   
+  */                 
                }
         }
 
@@ -338,7 +350,6 @@ public:
             cout << "ERROR: No forces in configuration!\n" ;   
         }
         L+=1; // update the frame counter
-        
     }
     
 protected:
@@ -367,7 +378,7 @@ protected:
         ub::vector<double> result;
   };
   SplineInfo Bond1;
-  SplineInfo Bond2;
+//  SplineInfo Bond2;
   SplineInfo Angle;
   
   typedef vector<SplineInfo *> SplineContainer;
