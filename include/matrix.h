@@ -26,7 +26,8 @@ public:
         _m[6]=a.getZ(); _m[7]=b.getZ(); _m[8]=c.getZ();
     } // takes three vectors and creates a matrix with them as columns
     
-
+    void Invert();
+    
     matrix &operator=(const real &v);
     matrix &operator=(const matrix &v);
     matrix &operator=(real [9]);

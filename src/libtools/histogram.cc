@@ -66,7 +66,7 @@ void Histogram::ProcessData(DataCollection<double>::selection *data)
                     while(ii<0) ii+=_options._n;
                     ii = ii % _options._n;
                 }
-                else {cout << "[histogram.cc]: out of bounds" << endl; continue;}
+                else { continue; } //cout << "[histogram.cc]: out of bounds" << endl; continue;}
             }
             _pdf[ii]+= v;
         }

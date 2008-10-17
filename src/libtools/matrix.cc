@@ -105,7 +105,6 @@ int cjcbi(matrix &a, matrix &v, double eps, int jt)
       }
     return(1);
 }
-#include <iostream>
 using namespace std;
 void matrix::SolveEigensystem(eigensystem_t &out)
 {
@@ -134,4 +133,26 @@ void matrix::SolveEigensystem(eigensystem_t &out)
         std::swap(out.eigenvecs[0], out.eigenvecs[1]);
     }    
 }
+
+void matrix::Invert()
+{
+    matrix mi;
+    matrix &m=*this;
+    mi[0][0] = m[1][1]*m[2][2] - m[1][2]*m[2][1];
+    mi[1][0] = m[1][2]*m[2][0] - m[1][0]*m[2][2];
+    mi[2][0] = m[1][0]*m[2][1] - m[1][1]*m[2][0];
+    mi[0][1] = m[0][2]*m[2][1] - m[0][1]*m[2][2];
+    mi[1][1] = m[0][0]*m[2][2] - m[0][2]*m[2][0];
+    mi[2][1] = m[0][1]*m[2][0] - m[0][0]*m[2][1];
+    mi[0][2] = m[0][1]*m[1][2] - m[0][2]*m[1][1];
+    mi[1][2] = m[0][2]*m[1][0] - m[0][0]*m[1][2];
+    mi[2][2] = m[0][0]*m[1][1] - m[0][1]*m[1][0];
+
+///calc the determinant, with the diagonal
+    double D;
+
+    D = m[0][0]*mi[0][0] + m[0][1]*mi[1][0] + m[0][2]*mi[2][0];
     
+    mi /= D;
+    *this = mi;
+}
