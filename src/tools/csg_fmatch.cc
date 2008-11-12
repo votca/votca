@@ -18,7 +18,6 @@
 #include <tools/cubicspline.h>
 #include <gsl/gsl_linalg.h>
 #include <stdio.h>
-
 #include <sstream>
 
 //#define _DEBUG
@@ -99,52 +98,22 @@ public:
 //        n = SplineBond.GenerateGrid ( 0.13, 0.17, 0.01 ); // n - number of points
 //        n -= 1; // n - number of splines
   
-        N = top->BeadCount();
-        L = 0;      
-
-     
+        N = top->BeadCount(); // Number of beads in topology
+        L = 0;                // Initial frame in trajectory  
         cout << "hey, someone wants to coarse grain\n";
         
-//        _A.resize(lines_init, colms_init, false); // to do: does it initialize _A with zeros?
-//        _b.resize(lines_init, false);
-//        _A.clear();
-//        _b.clear(); 
         
+        // B_constr matrix contains continuity conditions for the spline first
+        // derivatives.
         B_constr.resize(lines_init, colms_init, false);
         B_constr.clear();
-        
-        
-//        _A.resize(n+1, 2*(n+1), false); // to do: does it initialize _A with zeros?
-//        _b.resize(n+1, false);
-//        _A.clear();
-//        _b.clear();
         
         SplineContainer::iterator is;
                 
         for(is=Splines.begin(); is != Splines.end(); ++is) {
         
-            sfnum = (*is)->n;
-            
-            // smoothing conditions for first derivatives:
-            // internal points
-            
+            sfnum = (*is)->n;            
             (*is)->Spline.AddBCToFitMatrix(B_constr, line_cntr, col_cntr);
-
-            /*for (int i =0; i < sfnum - 1; ++i) {
-                _A(line_cntr + i, col_cntr + i) = (*is)->Spline.A_prime(i, 0);
-                _A(line_cntr + i, col_cntr + i+1 ) = (*is)->Spline.B_prime(i,0) - (*is)->Spline.A_prime(i,1);
-                _A(line_cntr + i, col_cntr + i+2 ) = -(*is)->Spline.B_prime(i,1);
-                
-                _A(line_cntr + i, col_cntr + sfnum+1 + i) = (*is)->Spline.C_prime(i,0);
-                _A(line_cntr + i, col_cntr + sfnum+1 + i+1) = (*is)->Spline.D_prime(i,0) - (*is)->Spline.C_prime(i,1);
-                _A(line_cntr + i, col_cntr + sfnum+1 + i+2) = -(*is)->Spline.D_prime(i,1);
-            }
-            
-            // smoothing conditions for first derivatives:
-            // external points 
-            
-            _A(line_cntr + sfnum-1, col_cntr + sfnum+1) = 1.0;
-            _A(line_cntr + sfnum, col_cntr + 2*(sfnum+1) - 1) = 1.0;*/
             
             // update counters
             line_cntr += sfnum + 1;
@@ -156,20 +125,7 @@ public:
         _b.resize( 3*N*N_frames, false);          // resize vector _b   
         _A.clear();
         _b.clear();        
-        
-/*        for (int i = 0; i < n-1; ++i) {
-            _A(i,i) = SplineBond.A_prime(i, 0);
-            _A(i, i+1) = SplineBond.B_prime(i,0) - SplineBond.A_prime(i,1);
-            _A(i, i+2) = -SplineBond.B_prime(i,1);
-
-            _A(i, n+1 + i) = SplineBond.C_prime(i,0);
-            _A(i, n+1 + i+1) = SplineBond.D_prime(i,0) - SplineBond.C_prime(i,1);
-            _A(i, n+1 + i+2) = -SplineBond.D_prime(i,1);
-            
-        }
-        _A(n-1, n+1 ) = 1.0;
-        _A(n, 2*(n+1) - 1) = 1.0;
-*/        
+               
     }
     
     void EndCG() {
@@ -178,13 +134,8 @@ public:
         double accuracy; // accuracy for output. Should be different for bonds and angles.
         
         ofstream out_file;
-        
-//        ofstream out_file ("/people/pckr78/lukyanov/projects/Alq3/coarse-graining/fmatch_out.dat"); 
+         
         // Solving linear equations system
-        
-        // libgsl has problems with solving overdetermined systems by means of 
-        // QR decomposition if the system doesn't have the full rank.
-        // MATLAB can handle this problem easily.
         
         _x.resize(col_cntr);
         _x.clear();
@@ -257,37 +208,6 @@ public:
         double* pointer_m = & A2(0,0);
         double* pointer_b = & _b(0);        
         
-#ifdef _DEBUG        
-        // this ifdef writes _A and _b with their dimensions to myfile.bin in binary format
-        // this file can be used later to check the solution, e.g. with MATLAB
-        // it also prints _A and _b to stdout.
-        
-        int lin_dim = _b.size();
-        int col_dim = 2*(n+1);
-        
-        FILE * pFile;
-        pFile = fopen ( "myfile.bin" , "wb" );
-        fwrite(&lin_dim, sizeof(int), 1, pFile);
-        fwrite(&col_dim, sizeof(int), 1, pFile);
-        fwrite (pointer_m , sizeof(double) , 2*(n+1)*_b.size() , pFile );
-        fwrite (pointer_b, sizeof(double), _b.size(), pFile);
-        fclose (pFile);
-        
-        cout << _b.size() << " " << 2*(n+1) << endl;
-        for(int i_line = 0; i_line < _b.size(); i_line++ ) {
-            for(int j_col = 0; j_col < 2*(n+1); j_col++) {
-                cout << pointer_m[ i_line * 2*(n+1) + j_col ] << "\n";
-            }
-            
-        }
-        
-        cout << _b.size() << endl;
-        for(int i_line = 0; i_line < _b.size(); i_line++ ) {
-            cout << pointer_b[ i_line ] << endl;
-        }        
-        
-#endif         
-
         gsl_matrix_view m
             = gsl_matrix_view_array (pointer_m, A2.size1(), A2.size2() );
     
@@ -299,17 +219,6 @@ public:
         gsl_vector *residual = gsl_vector_alloc ( A2.size1() );
     
         gsl_linalg_QR_decomp (&m.matrix, tau2);
-
-#ifdef _DEBUG 
-        // prints TAU which is used by libgsl to stdout
-        
-        cout << "TAU ";
-        for (int loop = 0; loop < 2*(n+1); loop++) {
-             cout << gsl_vector_get(tau, loop) << " ";
-        }
-        cout << endl;
-#endif
-        
         
         gsl_linalg_QR_lssolve (&m.matrix, tau2, &b.vector, x, residual);
         
@@ -324,32 +233,6 @@ public:
         // To get the final answer this vector should be multiplied by matrix Q
         _x = prec_prod( Q, _x );        
         
-#ifdef _DEBUG
-        // prints RESIDUAL which is used by libgsl to stdout
-        cout << "RESIDUAL \n";
-        for (int loop = 0; loop < _b.size(); loop++) {
-             cout << gsl_vector_get(residual, loop) << endl;
-        } 
-#endif
-        
-        //output of the results 
-//        _x.resize(col_cntr, false);
-//        _x.clear();
-         
-//        out_file << "write out results\n";
-        // do we really need this _x vector?
-        // we need many of them for each spline instead.
-        // they are implemented in SplineInfo
-/*        for (int i =0 ; i < col_cntr; i++) {
-            cout << "x[" << i <<"] = " << gsl_vector_get(x, i) << "\n";
-            _x(i) = gsl_vector_get(x, i);
-        }
-*/        
- //       out_file << "r  " << "F(r)  " << endl;
-        
-        // have to change it - it's bullshit
-//        Bond1.Spline.GetResult(& _x);
-//        Bond1.Spline.PrintOutResult();
         
         SplineContainer::iterator is;
                 
@@ -387,19 +270,6 @@ public:
     };
     
     void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
- //       cout << "yea, new configuration!\n";
- //       _A.resize( 3*N*(L+1), col_cntr, true); // resize matrix _A
-//        _b.resize( 3*N*(L+1), true);          // resize vector _b
-
-//        _A.resize(n+1 + 3*N*(L+1), 2*(n+1), true); // resize matrix _A
-//        _b.resize(n+1 + 3*N*(L+1), true);          // resize vector _b
-
-        // here we have to set zero values to the new matrix elements - stupid thing
-//        for(int i_line = 3*N*L; i_line < 3*N*(L+1); i_line++ ) {
-//            for(int j_col = 0; j_col < col_cntr; j_col++) {
-//                _A(i_line, j_col) = 0;
-//            }
-//        }
                   
         InteractionContainer &ic = conf->getTopology()->getBondedInteractions();
         InteractionContainer::iterator ia;
@@ -427,24 +297,7 @@ public:
                    SP.AddToFitMatrix(_A, var, 
                            3*N*L + N + ii, mpos, gradient.y());
                    SP.AddToFitMatrix(_A, var,
-                           3*N*L + 2*N + ii, mpos, gradient.z());
-                  
-/*                  _A(line_cntr + 3*N*L+ii, mpos + i) += SP.A(var)*gradient.x(); 
-                  _A(line_cntr + 3*N*L+N+ii, mpos + i) += SP.A(var)*gradient.y();
-                  _A(line_cntr + 3*N*L+2*N+ii, mpos + i) += SP.A(var)*gradient.z();  
-
-                  _A(line_cntr + 3*N*L+ii, mpos + i+1) += SP.B(var)*gradient.x();
-                  _A(line_cntr + 3*N*L+N+ii, mpos + i+1) += SP.B(var)*gradient.y();
-                  _A(line_cntr + 3*N*L+2*N+ii, mpos + i+1) += SP.B(var)*gradient.z();
-
-                  _A(line_cntr + 3*N*L+ii, mpos + nsp+i+1) += SP.C(var)*gradient.x();
-                  _A(line_cntr + 3*N*L+N+ii, mpos + nsp+i+1) += SP.C(var)*gradient.y();
-                  _A(line_cntr + 3*N*L+2*N+ii, mpos + nsp+i+1) += SP.C(var)*gradient.z();
-
-                  _A(line_cntr + 3*N*L+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.x(); 
-                  _A(line_cntr + 3*N*L+N+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.y();
-                  _A(line_cntr + 3*N*L+2*N+ii, mpos + nsp+1+i+1) += SP.D(var)*gradient.z();                   
-  */                 
+                           3*N*L + 2*N + ii, mpos, gradient.z());                
                }
         }
 
@@ -477,9 +330,6 @@ protected:
   int N; //number of cg_beads
   
   int line_cntr, col_cntr; // counters for lines and coloumns in B_constr 
-  
-//  int n; //number of splines
-//  CubicSpline SplineBond;
   
   struct SplineInfo {
         int n; //number of splines
