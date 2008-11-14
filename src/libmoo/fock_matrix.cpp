@@ -637,7 +637,7 @@ else if(lbl1 > 1 && lbl1 < 9 && lbl2 > 9){ //row 2 row 3
 }
 else if( lbl1 > 9 && lbl2 > 1 && lbl2 < 9 ){ //row 3 row 2
 //careful with Ts here!!!
-     cout << "Warning! Using untested Sulphur code! Take care!" <<endl;   
+   //  cout << "Warning! Using untested Sulphur code! Take care!" <<endl;   
     t = -t;//check this out!
     pt = p*t; 
     p_pt[0]=1.0/pt; 

@@ -29,7 +29,7 @@ public:
     ~CrgUnit(){
         
         
-        cout << "[crgunit.h]: Calling the crgunit destructor." << endl;
+     //   cout << "[crgunit.h]: Calling the crgunit destructor." << endl;
 
         _planes.clear();
         _positions.clear();
