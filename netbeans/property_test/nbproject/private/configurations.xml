@@ -10,7 +10,7 @@
       </gdbdebugger>
       <runprofile version="5">
         <args></args>
-        <rundir></rundir>
+        <rundir>../../tests</rundir>
         <buildfirst>true</buildfirst>
         <console-type>0</console-type>
         <terminal-type>0</terminal-type>

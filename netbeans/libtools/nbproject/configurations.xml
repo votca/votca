@@ -36,6 +36,7 @@
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/parcer.cc</itemPath>
+      <itemPath>../../src/libtools/property.cc</itemPath>
       <itemPath>../../src/libtools/random.cc</itemPath>
       <itemPath>../../src/libtools/rangeparser.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
@@ -147,6 +148,9 @@
       <item path="../../src/libtools/parcer.cc">
         <itemTool>1</itemTool>
       </item>
+      <item path="../../src/libtools/property.cc">
+        <itemTool>1</itemTool>
+      </item>
       <item path="../../src/libtools/random.cc">
         <itemTool>1</itemTool>
       </item>
@@ -248,6 +252,9 @@
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/parcer.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/property.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/random.cc">

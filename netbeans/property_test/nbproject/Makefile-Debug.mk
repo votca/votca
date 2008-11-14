@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 
 # Include project Makefile
 include Makefile_nb
@@ -25,7 +25,7 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/home/ruehle/src/tools/tests/property_test.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/tests/property_test.o
 
 # C Compiler Flags
 CFLAGS=
@@ -38,26 +38,30 @@ CXXFLAGS=
 FFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=../libtools/../../src/libtools/libtools.a -lxml2
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS} dist/Debug/GNU-Linux-x86/property_test
+
+dist/Debug/GNU-Linux-x86/property_test: ${BUILD_SUBPROJECTS}
 
 dist/Debug/GNU-Linux-x86/property_test: ${OBJECTFILES}
 	${MKDIR} -p dist/Debug/GNU-Linux-x86
 	${LINK.cc} -o dist/Debug/GNU-Linux-x86/property_test ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/home/ruehle/src/tools/tests/property_test.o: ../../tests/property_test.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/home/ruehle/src/tools/tests
-	$(COMPILE.cc) -g -I../include -I../../include -o ${OBJECTDIR}/_ext/home/ruehle/src/tools/tests/property_test.o ../../tests/property_test.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/tests/property_test.o: ../../tests/property_test.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/tests
+	$(COMPILE.cc) -g -I../include -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/tests/property_test.o ../../tests/property_test.cc
 
 # Subprojects
 .build-subprojects:
+	cd ../libtools && ${MAKE}  -f Makefile_nb CONF=Debug
 
 # Clean Targets
-.clean-conf:
+.clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Debug
 	${RM} dist/Debug/GNU-Linux-x86/property_test
 
 # Subprojects
 .clean-subprojects:
+	cd ../libtools && ${MAKE}  -f Makefile_nb CONF=Debug clean

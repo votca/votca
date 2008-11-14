@@ -37,6 +37,19 @@
         </ccCompilerTool>
         <linkerTool>
           <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../libtools"
+                            CT="3"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../libtools"
+                            BC="${MAKE}  -f Makefile_nb CONF=Debug"
+                            CC="${MAKE}  -f Makefile_nb CONF=Debug clean"
+                            OP="../../src/libtools/libtools.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibLibItem>xml2</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
