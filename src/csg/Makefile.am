@@ -8,4 +8,4 @@ csg_SOURCES = \
 
 AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a  ${BOOST_PROGRAM_OPTIONS_LIB} -ltools -lgmx -lxml2 -lfftw3 -lm
+LDADD = ../libcsg/libcsg.a  ${BOOST_PROGRAM_OPTIONS_LIB} -ltools -lgmx_mpi -lmpi -llam -lxml2 -lfftw3 -lm

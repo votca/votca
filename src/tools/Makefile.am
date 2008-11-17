@@ -21,4 +21,4 @@ csg_conj_SOURCES = csg_conj.cc
 
 AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a -ltools ${BOOST_PROGRAM_OPTIONS_LIB} -lgmx  -lxml2 -lgsl -lgslcblas -lm 
+LDADD = ../libcsg/libcsg.a -ltools ${BOOST_PROGRAM_OPTIONS_LIB} -lgmx_mpi -lmpi -llam -lxml2 -lgsl -lgslcblas -lm 
