@@ -61,11 +61,9 @@ get_from_mdp() {
 
 if [ -d step_00 ]; then
    echo Skiping prepare 
-   if [ -f step_00/done ]; then
-      continue
-   else
+   if [ ! -f step_00/done ]; then
      echo Incomplete step 00
-      exit 1
+     exit 1
    fi
 else
    echo Prepare
@@ -79,7 +77,6 @@ else
    for ((i=0;i<${#atoms[*]};i++)); do
       atom1=${atoms[$i]}
       for ((j=$i;j<${#atoms[*]};j++)); do
-         echo $j
          atom2=${atoms[$j]}
          cp ../rdf_${atom1}_${atom2}_aim.xvg . || exit 1
          if [ -f ../table_${atom1}_${atom2}_guess.d ]; then
@@ -187,11 +184,9 @@ done
 
 if [ -d step_p00 ]; then
    echo Skiping Pressure prepare
-   if [ -f step_p00/done ]; then
-      continue
-   else
+   if [ ! -f step_p00/done ]; then
      echo Incomplete step p00
-      exit 1
+     exit 1
    fi
 else
    echo Pressure Prepare
