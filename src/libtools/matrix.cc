@@ -6,7 +6,9 @@
 //
 
 #include <math.h>
+#include <stdlib.h>
 #include "matrix.h"
+
 #define PITIMES2 2*3.141592654
 
 void matrix::RandomRotation()

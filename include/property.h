@@ -25,6 +25,12 @@ public:
     T &as() { return boost::lexical_cast<T>(_value); }
 
     bool HasChilds() { return !_map.empty(); }
+
+    typedef map<string, Property>::iterator iterator;
+    iterator begin() { return _map.begin(); }
+    iterator end() { return _map.end(); }
+    map<string,Property>::size_type size() { return _map.size(); }
+
 private:
     map<string,Property> _map;
     string _value;
