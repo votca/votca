@@ -41,6 +41,9 @@ class CrossCorrelate
          */
         void AutoCorrelate(DataCollection<double>::selection *data, bool average = false);
 
+        // Calculates Fourier trafo and then auto correlation
+        void AutoFourier(vector <double>& ivec);
+        
         vector<double> &getData() { return _corrfunc; }
     private:
         vector<double> _corrfunc;
