@@ -30,13 +30,23 @@ iterations=50
 filelist="grompp.mdp rdf_*_aim.xvg topol.top table.xvg"
 #update scheme
 #scheme=( "X1-X1 X2-X2" "X3-X3" "X2-X3" )
-scheme=( CG CG )
+scheme=( CG-CG "" )
 
 #additional iteration for pressure
 pinterations=30
 #pressure update scheme
 #pscheme=( "X1-X1 X2-X2" "X3-X3" "X2-X3" )
-pscheme=( CG CG )
+pscheme=( "" CG-CG )
+
+method="ibm"
+sim_prog="gromacs"
+source_wrapper="$PWD/source_wrapper.sh"
+
+do_external() {
+   local script
+   script="$($source_wrapper $1 $2)" || exit 1
+   source $script
+}
 
 #useful subroutine check if a command was succesful AND log the output
 run_or_exit() {
@@ -53,7 +63,7 @@ run_or_exit() {
 
 get_from_mdp() {
    [[ -n "$1" ]] || { echo What?; exit 1;}
-   sed -n -e "s#$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##'
+   sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##'
 }
 
 #main script
@@ -68,34 +78,33 @@ if [ -d step_00 ]; then
 else
    echo Prepare
    mkdir step_00
-   cd step_00
-   cp ../conf.gro confout.gro
-   for rdf in $(ls ../rdf_*_aim.xvg); do
-      cp $rdf .
-   done
-   
+   cp conf.gro ./step_00/confout.gro
+
+   #copy all rdf in step_00
    for ((i=0;i<${#atoms[*]};i++)); do
       atom1=${atoms[$i]}
       for ((j=$i;j<${#atoms[*]};j++)); do
          atom2=${atoms[$j]}
-         cp ../rdf_${atom1}_${atom2}_aim.xvg . || exit 1
-         if [ -f ../table_${atom1}_${atom2}_guess.d ]; then
-            echo Using given table for $atom1-$atom2
-            cp ../table_${atom1}_${atom2}_guess.d table_${atom1}_${atom2}_new.d || exit 1
-         else
-            # RDF_to_POT.pl just does log g(r) = extrapolation
-            echo Using intial guess from RDF for ${atom1}-${atom2}
-            run_or_exit  --log log_RDF_to_POT_${atom1}_${atom2} ../RDF_to_POT.pl rdf_${atom1}_${atom2}_aim.xvg table_${atom1}_${atom2}_new.d
-         fi
-         #convert generic table file in gromacs table file (.xvg)
-         run_or_exit --log log_table_to_xvg_${atom1}_${atom2} ../table_to_xvg.pl table_${atom1}_${atom2}_new.d table_${atom1}_${atom2}_new.xvg
-         cp table_${atom1}_${atom2}_new.d ../table_${atom1}_${atom2}_final.d
+         cp rdf_${atom1}_${atom2}_aim.xvg ./step_00 || exit 1
+      done
+   done
+   
+   do_external init $method
+   
+   #convert generic table file in gromacs table file (.xvg)
+   do_external convert_potential $sim_prog
+   for ((i=0;i<${#atoms[*]};i++)); do
+      atom1=${atoms[$i]}
+      for ((j=$i;j<${#atoms[*]};j++)); do
+         atom2=${atoms[$j]}
+         cp table_${atom1}_${atom2}_new.d ../table_${atom1}_${atom2}_final.d || exit 1
       done
    done
    touch done
    cd ..
 fi
 
+exit
 for ((i=1;i<$iterations+1;i++)) ; do
    echo Doing iteration $i
    last=$i
@@ -109,6 +118,12 @@ for ((i=1;i<$iterations+1;i++)) ; do
          echo Incomplete step $i
          exit 1
       fi
+
+   #Run simulation maybe change to Espresso or whatever
+   echo -e "a ${atoms[*]}\nq" | make_ndx -f conf.gro &> log_make_ndx
+   run_or_exit grompp -v -n index.ndx
+   run_or_exit mdrun
+
    fi
    mkdir $this_dir
    
@@ -239,7 +254,7 @@ for ((i=1;i<$piterations+1;i++)) ; do
    #Run simulation maybe change to Espresso or whatever
    echo -e "a ${atoms[*]}\nq" | make_ndx -f conf.gro &> log_make_ndx
    run_or_exit grompp -v -n index.ndx
-   run_or_exit mdrun -n index.ndx
+   run_or_exit mdrun 
 
    nsteps=$(get_from_mdp nsteps)
    dt=$(get_from_mdp dt)
