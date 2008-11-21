@@ -52,3 +52,30 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection *data, bool
     fftw_destroy_plan(ifft);
     fftw_free(tmp);
 }
+
+void CrossCorrelate::AutoFourier(vector <double>& ivec){
+    size_t N = ivec.size();
+    _corrfunc.resize(N);
+
+    fftw_complex *tmp;
+    fftw_plan fft;
+    
+    tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (N/2+1));
+
+    fft = fftw_plan_dft_r2c_1d(N, &ivec[0], tmp, FFTW_ESTIMATE);
+    fftw_execute(fft);
+    
+    tmp[0][0] = tmp[0][1] = 0;
+    for(int i=1; i<N/2+1; i++) {
+        tmp[i][0] = tmp[i][0]*tmp[i][0] + tmp[i][1]*tmp[i][1];
+        tmp[i][1] = 0;       
+    }
+    
+    // copy the real component of temp to the _corrfunc vector
+    for(int i=0; i<N; i++){
+        _corrfunc[i] = tmp[i][0];
+    }
+    
+    fftw_destroy_plan(fft);
+    fftw_free(tmp);
+}
