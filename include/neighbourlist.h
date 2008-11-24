@@ -25,8 +25,12 @@ public:
      
      void Cleanup(); // clear occupied memory
      
+     void create_emptyNbl(int nn); // creates empty nbl for nn entries
+     
      void setCutoff(double cutoff) { _cutoff = cutoff; } // define cut-off radius
+     
      double getCutoff() { return _cutoff; } // show used cut-off radius
+     
      void CheckInput(double _cutoff, const matrix& box); // check box definition & cutoff
      
      vec CalcDist(const vec& r_i, const vec& r_j, const matrix &box);
@@ -39,30 +43,32 @@ public:
      
      void getPbc(Configuration& conf); // prints box vectors and cut-off
     
-    // this is a neighbour
-    struct neighbour_t {
-        int _bead;     // the id of the neighbour
-        // maybe also store pointer to neighbour in list?
-        // entry_t *_nb;
-        vec _r;        // the vector from current to neighbour
-        double _dist;  // the distance of the neighbours, do we need that, double information...
-    };
+     void create_Nbs(int nb1, int nb2, vec _r);
+     
+     // this is a neighbour
+     struct neighbour_t {    
+         int _bead;     // the id of the neighbour
+         // maybe also store pointer to neighbour in list?
+         // entry_t *_nb;
+         vec _r;        // the vector from current to neighbour
+         double _dist;  // the distance of the neighbours, do we need that, double information...
+     };
     
-    // not sure weather it's better to store as list or vector
-    // this typedef makes it flexible, use of iterators makes it easy to change
-    // in between these two
-    // think about: is it better to store pointers, but then have to cleanup
-    typedef list<neighbour_t> container; 
+     // not sure weather it's better to store as list or vector
+     // this typedef makes it flexible, use of iterators makes it easy to change
+     // in between these two
+     // think about: is it better to store pointers, but then have to cleanup
+     typedef list<neighbour_t> container; 
 
-    // find a better name for that struct
-    // this contains all the neighbours of 1 bead
-    struct entry_t {
-        container _neighbours;
-        // do we need more here?
-    };
+     // find a better name for that struct
+     // this contains all the neighbours of 1 bead
+     struct entry_t {
+         container _neighbours;
+         // do we need more here?
+     };
 
-    // allows access to vector<entry_t*>
-    vector<entry_t*> &NbList() { return _nb_list; }
+     // allows access to vector<entry_t*>
+     vector<entry_t*> &NbList() { return _nb_list; }
     
 private:
     // this stores the neighbours of all beads
