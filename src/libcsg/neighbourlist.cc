@@ -13,6 +13,21 @@ NeighbourList::~NeighbourList(){
     Cleanup();
 }
 
+void NeighbourList::create_emptyNbl(int nn){
+   for(int i = 0; i < nn; i++){
+       entry_t* entry = new entry_t;
+       _nb_list.push_back(entry);
+   }
+}
+
+void NeighbourList::create_Nbs(int nb1, int nb2, vec _r){
+    neighbour_t nb;
+    nb._bead = (nb2);
+    nb._r = _r;
+    nb._dist = abs(_r);
+    _nb_list[(nb1)]->_neighbours.push_back(nb);
+}
+
 void NeighbourList::Generate(Configuration& conf) {
     CheckInput(_cutoff, conf.getBox());
     for(int i = 0; i < conf.getTopology()->BeadCount(); i++){
@@ -79,15 +94,18 @@ ostream& operator<<(ostream& out, NeighbourList &nbl)
 {
    out << "There are " << nbl._nb_list.size() << " beads.\n";
    
-   // vector<NeighbourList::entry_t*>::iterator iter;
+   //vector < NeighbourList::entry_t* > 
+   
+   vector < NeighbourList::entry_t* >::iterator iter;
+   
    for(int i=0; i<nbl._nb_list.size(); ++i){
-       out << i << ":" << endl; 
+       out << i << ":" << endl;
        NeighbourList::container::iterator iter;
-       for(iter=nbl._nb_list[i]->_neighbours.begin(); iter!=nbl._nb_list[i]->_neighbours.end(); iter++){
+       for(iter=nbl._nb_list[i]->_neighbours.begin(); iter!=nbl._nb_list[i]->_neighbours.end(); ++iter){
            out << (*iter)._bead << " r_ij: " << (*iter)._r << " d: " << (*iter)._dist << endl; 
        // (*iter) corresponds to the structure neighbour_t
        }
-       out << "\n";
+       out << endl;
    }
    /* int lastmol = nbl._nb_list.size()-1;
    out << "Vectors from last molecule (" << lastmol << ") to neighbors: \n";
