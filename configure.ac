@@ -19,10 +19,6 @@ AC_PROG_RANLIB
 AC_HEADER_STDC
 AC_PROG_MAKE_SET
 
-#check for boost
-AX_BOOST([1.33.1])
-#AX_BOOST_PROGRAM_OPTIONS
-
 # check for fftw3
 AX_FFTW3
 
@@ -32,7 +28,10 @@ ACI_PACKAGE_SAVED(XML,[XML library (version XML2)],
                   AC_MSG_WARN(Cannot find the XML2 libs. Is xml2-config in your path ?)
                  )
 
-# check for gromacs
-# AX_GROMACS_HEADERS
+AX_GROMACS
+
+#check for boost
+AX_BOOST([1.33.1])
+#AX_BOOST_PROGRAM_OPTIONS
 
 AC_OUTPUT
