@@ -29,14 +29,15 @@ void NeighbourList::create_Nbs(int nb1, int nb2, vec _r){
 }
 
 void NeighbourList::Generate(Configuration& conf) {
-    CheckInput(_cutoff, conf.getBox());
-    for(int i = 0; i < conf.getTopology()->BeadCount(); i++){
+    Topology *top = conf.getTopology();
+
+    for(int i = 0; i < top->BeadCount(); i++){
         entry_t* entry = new entry_t;
         // creates a vector of pointers (one for each bead)
-        for(int j=0; j<conf.getTopology()->BeadCount(); j++){
+        for(int j=0; j<top->BeadCount(); j++){
             if (i!=j){ // prevents listing i as neigbour of itself
                 neighbour_t nb;
-                nb._r = CalcDist(conf.getPos(i), conf.getPos(j), conf.getBox());
+                nb._r = conf.getDist(i, j);
                 if((nb._dist=abs(nb._r)) < _cutoff){
                     nb._bead = j;
                     entry->_neighbours.push_back(nb);
@@ -48,21 +49,7 @@ void NeighbourList::Generate(Configuration& conf) {
     } 
 }
 
-// calculates closest distance between mol A and mol B or pbc images thereof using
-// minimum image convention and a box satisfying conditions checked by CheckInput
-vec NeighbourList::CalcDist(const vec& r_i, const vec& r_j, const matrix& box){
-    vec r_tp, r_dp, r_sp, r_ij;
-    vec a = box.getCol(0); vec b = box.getCol(1); vec c = box.getCol(2);
-    r_tp = r_j - r_i;
-    r_dp = r_tp - c*round(r_tp.getZ()/c.getZ());  
-    r_sp = r_dp - b*round(r_dp.getY()/b.getY());
-    r_ij = r_sp - a*round(r_sp.getX()/a.getX());
-    #ifdef DEBUG
-    cout << "r_ij: " << r_ij << " r_tp: " << r_tp << " d: " << abs(r_ij) << "\n";
-    #endif
-    return r_ij;
-}
-
+/*
 // check conditions for use of gmx algorithm for triclinic pbc
 void NeighbourList::CheckInput(double _cutoff, const matrix& box){
     vec a = box.getCol(0); vec b = box.getCol(1); vec c = box.getCol(2);
@@ -79,15 +66,7 @@ void NeighbourList::CheckInput(double _cutoff, const matrix& box){
         cerr << "Equation (3.3) from Gromacs Manual not fulfilled. Check your box. \n";
     if(c.getY() > 0.5*b.getY() || c.getY() < -0.5*b.getY())
         cerr << "Equation (3.3) from Gromacs Manual not fulfilled. Check your box. \n";
-}
-
-void NeighbourList::getPbc(Configuration& conf){
-     matrix box = conf.getBox();
-     vec a = box.getCol(0); vec b = box.getCol(1); vec c = box.getCol(2);
-     cout << "The box vectors are [nm]:" << endl;
-     cout << "a= " << a << endl << "b= " << b << endl << "c= " << c << endl;
-     cout << "Cut-off: " << getCutoff() << " [nm]" << endl;
-}
+}*/
 
 // outputs the neighbor list
 ostream& operator<<(ostream& out, NeighbourList &nbl)
@@ -107,13 +86,6 @@ ostream& operator<<(ostream& out, NeighbourList &nbl)
        }
        out << endl;
    }
-   /* int lastmol = nbl._nb_list.size()-1;
-   out << "Vectors from last molecule (" << lastmol << ") to neighbors: \n";
-   NeighbourList::container::iterator iter;
-       for(iter=nbl._nb_list[lastmol]->_neighbours.begin(); iter!=nbl._nb_list[lastmol]->_neighbours.end(); iter++){
-           out << (*iter)._bead << ": " << (*iter)._r << "\n"; 
-       }
-    */
    return out;
 }
 

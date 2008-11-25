@@ -14,35 +14,24 @@
 
 using namespace std;
 
-// think about: do we need s.th. to treat molecules,
-// e.g. only intra molecule, inter-molecule, ..?
-
 class NeighbourList
 {
 public:
-     NeighbourList(){}; // constructor
-     ~NeighbourList(); // destructor
+     NeighbourList(){}; /// constructor
+     ~NeighbourList(); /// destructor
      
-     void Cleanup(); // clear occupied memory
+     void Cleanup(); /// clear occupied memory
      
-     void create_emptyNbl(int nn); // creates empty nbl for nn entries
+     void create_emptyNbl(int nn); /// creates empty nbl for nn entries
      
-     void setCutoff(double cutoff) { _cutoff = cutoff; } // define cut-off radius
-     
-     double getCutoff() { return _cutoff; } // show used cut-off radius
-     
-     void CheckInput(double _cutoff, const matrix& box); // check box definition & cutoff
-     
-     vec CalcDist(const vec& r_i, const vec& r_j, const matrix &box);
-     // calculates distance to surrounding neighbors including closest images
-     // due to periodic boundary conditions which may be triclinic
-     
+     void setCutoff(double cutoff) { _cutoff = cutoff; } /// define cut-off radius     
+     double getCutoff() { return _cutoff; } /// show used cut-off radius
+               
      void Generate(Configuration &conf); // creates entire neighbour list
      // void GenerateIntraMolecular(Configuration &conf);
      // void GenerateInterMolecular(Configuration &conf);
      
-     void getPbc(Configuration& conf); // prints box vectors and cut-off
-    
+     
      void create_Nbs(int nb1, int nb2, vec _r);
      
      // this is a neighbour
@@ -69,7 +58,41 @@ public:
 
      // allows access to vector<entry_t*>
      vector<entry_t*> &NbList() { return _nb_list; }
+
+     /// \todo optimize this, not very clean implementation
+     struct pair_t {
+         int bead1, bead2;
+         vec r;
+         double dist;
+
+         pair_t(int b1, int b2, vec rr, double d)
+         : bead1(b1), bead2(b2), r(rr), dist(d) {}
+     };
+     
+    struct pair_iterator {
+        pair_iterator() : _nb_list(0) {}
+        
+        pair_t operator*() const
+            { return pair_t(_curbead, (*_curneigh)._bead, (*_curneigh)._r, (*_curneigh)._dist); }
+        
+        pair_iterator &operator++();                      
+        
+        bool operator==(const pair_iterator &);                      
+        bool operator!=(const pair_iterator &);                      
+         
+    private:
+        pair_iterator(vector<entry_t*> &nb_list, bool bEndIterator=false);
+        
+        vector<NeighbourList::entry_t *> _nb_list;
+        int _curbead;
+        NeighbourList::container::iterator _curneigh;
+        
+        friend class NeighbourList;
+    };
     
+    pair_iterator begin_pairs() { return pair_iterator(_nb_list); }
+    pair_iterator end_pairs() { return pair_iterator(_nb_list, true); }
+
 private:
     // this stores the neighbours of all beads
     // one entry for each bead
@@ -81,6 +104,44 @@ private:
 
 // output neighbourlist, look at data collection & how it works
 ostream& operator<<(ostream& out, NeighbourList &nb);
+
+
+inline NeighbourList::pair_iterator &NeighbourList::pair_iterator::operator++()
+{
+    _curneigh++;
+    if(_curneigh==_nb_list[_curbead]->_neighbours.end()) {
+        ++_curbead;
+        if(_curbead >= _nb_list.size()) {
+            _curbead = _nb_list.size();
+            _curneigh = _nb_list[0]->_neighbours.begin();
+            return *this;
+        }
+        _curneigh = _nb_list[_curbead]->_neighbours.begin();
+    }    
+    return *this;    
+}
+        
+inline bool NeighbourList::pair_iterator::operator==(const NeighbourList::pair_iterator &i)
+{
+    return ((_curbead == i._curbead) && (_curneigh == i._curneigh));
+}
+
+bool NeighbourList::pair_iterator::operator!=(const NeighbourList::pair_iterator &i)
+{
+    return !((*this)==i);
+}
+
+NeighbourList::pair_iterator(vector<NeighbourList::entry_t*> &nb_list, bool bEndIterator=false)
+        : _nb_list(nb_list)
+{
+    if(!bEndIterator) {
+        _curbead=0;
+        _curneigh=_nb_list[_curbead]->_neighbours.begin();
+        return;
+    }
+    _curbead=_nb_list.size();
+    _curneigh=_nb_list[0]->_neighbours.begin();    
+}
 
 #endif	/* _NEIGHBOURLIST_H */
 
