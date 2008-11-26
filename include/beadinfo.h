@@ -25,8 +25,8 @@ class BeadInfo
 {
 public:
     /// constructur
-    BeadInfo(int id, byte_t symmetry, string name, int resnr, double m, double q)
-        : _id(id), _symmetry(symmetry), _name(name), _resnr(resnr), _m(m), _q(q)
+    BeadInfo(int id, int type, byte_t symmetry, string name, int resnr, double m, double q)
+        : _id(id), _type(type), _symmetry(symmetry), _name(name), _resnr(resnr), _m(m), _q(q)
     { }
     
     /// get the id of the bead
@@ -34,6 +34,9 @@ public:
     /// get the name of the bead
     const string &getName() const { return _name; }
     
+    /// get the bead type id
+    const int &getType() const { return _type; }
+
     /// get the residu number of the bead
     const int &getResnr() const { return _resnr; }
     /// get the mass of the bead
@@ -49,6 +52,7 @@ public:
 
 private:
     int _id;
+    int _type;
     byte_t _symmetry;
     string _name;
     

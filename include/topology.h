@@ -43,7 +43,7 @@ public:
     void Cleanup();
     
     /// creates a new Bead
-    BeadInfo *CreateBead(byte_t symmetry, string name, int resnr, double m, double q);
+    BeadInfo *CreateBead(byte_t symmetry, string name, int type, int resnr, double m, double q);
     //int AddBead(CBeadInfo *bead);
 
     /// creates a new molecule
@@ -118,10 +118,10 @@ private:
     map<string, int> _interaction_groups;
 };
 
-inline BeadInfo *Topology::CreateBead(byte_t symmetry, string name, int resnr, double m, double q)
+inline BeadInfo *Topology::CreateBead(byte_t symmetry, string name, int type, int resnr, double m, double q)
 {
     
-    BeadInfo *b = new BeadInfo(_beads.size(), symmetry, name, resnr, m, q);    
+    BeadInfo *b = new BeadInfo(_beads.size(), type, symmetry, name, resnr, m, q);    
     _beads.push_back(b);
     return b;
 }

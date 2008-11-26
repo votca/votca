@@ -47,7 +47,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     for(int i=0; i < gtp.atoms.nr; i++) {
         gmx::t_atom *a;
         a = &(gtp.atoms.atom[i]);
-        top.CreateBead(1, *(gtp.atoms.atomname[i]), a->resnr, a->m, a->q);  
+        top.CreateBead(1, *(gtp.atoms.atomname[i]), a->type, a->resnr, a->m, a->q);  
         //cout << *(gtp.atoms.atomname[i]) << " residue: " << a->resnr << endl;
     }
     

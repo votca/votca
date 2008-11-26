@@ -109,14 +109,25 @@ ostream& operator<<(ostream& out, NeighbourList &nb);
 inline NeighbourList::pair_iterator &NeighbourList::pair_iterator::operator++()
 {
     _curneigh++;
+    // did we read the last neighbour of current bead?
     if(_curneigh==_nb_list[_curbead]->_neighbours.end()) {
-        ++_curbead;
-        if(_curbead >= _nb_list.size()) {
-            _curbead = _nb_list.size();
-            _curneigh = _nb_list[0]->_neighbours.begin();
-            return *this;
+        // look for next valid entry, as long as there are still beads
+        while(_curbead < _nb_list.size()) {
+            // go through the neighbours of the bead
+            for(_curneigh = _nb_list[_curbead]->_neighbours.begin();
+                _curneigh!=_nb_list[_curbead]->_neighbours.end();
+                ++_curneigh) {   
+                // break if we found neighbour with higher id
+                if((*_curneigh)._bead > _curbead)
+                    return *this;
+            }
+            // go to the next bead
+            ++_curbead;                
         }
-        _curneigh = _nb_list[_curbead]->_neighbours.begin();
+        // no valid bead found, point to end
+        _curbead = _nb_list.size();
+        _curneigh = _nb_list[0]->_neighbours.begin();
+        return *this;
     }    
     return *this;    
 }
@@ -131,7 +142,7 @@ bool NeighbourList::pair_iterator::operator!=(const NeighbourList::pair_iterator
     return !((*this)==i);
 }
 
-NeighbourList::pair_iterator(vector<NeighbourList::entry_t*> &nb_list, bool bEndIterator=false)
+NeighbourList::pair_iterator::pair_iterator(vector<NeighbourList::entry_t*> &nb_list, bool bEndIterator)
         : _nb_list(nb_list)
 {
     if(!bEndIterator) {
