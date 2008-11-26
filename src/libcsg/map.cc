@@ -37,7 +37,9 @@ void Map_Sphere::Apply(Molecule &in, Molecule &out)
         if(in.getConfiguration()->HasVel())
             vel += (*iter)._weight * in.getBeadVel((*iter)._in);
         if(in.getConfiguration()->HasF())
-            f += (*iter)._weight * in.getBeadF((*iter)._in);
+            /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) * sum(w_i/m_i*F_i)
+            //f += (*iter)._weight * in.getBeadF((*iter)._in);
+            f += in.getBeadF((*iter)._in);
     }
     if(out.getConfiguration()->HasPos())
         out.BeadPos(_out) = cg;
