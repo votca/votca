@@ -91,7 +91,7 @@ void Topology::Add(Topology *top)
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         BeadInfo *bi = *bead;
-        CreateBead(bi->getSymmetry(), bi->getName(), bi->getResnr()+res0, bi->getM(), bi->getQ());
+        CreateBead(bi->getSymmetry(), bi->getName(), 0, bi->getResnr()+res0, bi->getM(), bi->getQ());
     }
     
     for(res=top->_residues.begin();res!=top->_residues.end(); ++res) {

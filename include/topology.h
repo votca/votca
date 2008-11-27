@@ -15,9 +15,11 @@
 #include "moleculeinfo.h"
 #include "residue.h"
 #include "interaction.h"
+#include "beadtype.h"
 
 typedef vector<MoleculeInfo *> MoleculeContainer;
 typedef vector<BeadInfo *> BeadContainer;
+typedef vector<BeadType *> BeadTypeContainer;
 typedef vector<Residue *> ResidueContainer;
 typedef vector<Interaction *> InteractionContainer;
 
@@ -103,6 +105,9 @@ public:
     void RenameMolecules(string range, string name);
     
 private:
+    /// bead types in the topology
+    BeadTypeContainer _beadtypes;
+    
     /// beads in the topology
     BeadContainer _beads;
     

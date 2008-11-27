@@ -219,7 +219,7 @@ MoleculeInfo * CGMoleculeDef::CreateMolecule(Topology & top)
     vector<beaddef_t *>::iterator iter;
     for(iter = _beads.begin(); iter != _beads.end(); ++iter) {
         BeadInfo *bead;
-        bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, res->getId(), 0, 0);
+        bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, 0, res->getId(), 0, 0);
         minfo->AddBead(bead->getId(), bead->getName());        
         
     }    

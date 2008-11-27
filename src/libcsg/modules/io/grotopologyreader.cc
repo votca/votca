@@ -51,7 +51,7 @@ bool GROTopologyReader::ReadTopology(string file, Topology &top)
         fl >> atomname;
         fl >> tmp;
         fl >> x; fl >> y; fl >> z;
-        top.CreateBead(1, atomname, resnr, 1, 0);
+        top.CreateBead(1, atomname, 0, resnr, 1, 0);
         getline(fl, tmp);
     }
     fl.close();

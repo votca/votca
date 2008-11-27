@@ -92,7 +92,7 @@ bool MDPTopologyReader::ReadTopology(string file, Topology &top)
         for(int mol=0; mol<nmols[type]; ++mol) {
             MoleculeInfo *mi = top.CreateMolecule(boost::lexical_cast<string>(type+1));
             for(int atom=0; atom<natoms[type]; ++atom) {
-                mi->AddBead(top.CreateBead(1, "", 0, R8, 0)->getId(),
+                mi->AddBead(top.CreateBead(1, "", 0, 0, R8, 0)->getId(),
                   boost::lexical_cast<string>(atom+1));                                
             }
         }
