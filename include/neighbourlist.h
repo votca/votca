@@ -137,12 +137,12 @@ inline bool NeighbourList::pair_iterator::operator==(const NeighbourList::pair_i
     return ((_curbead == i._curbead) && (_curneigh == i._curneigh));
 }
 
-bool NeighbourList::pair_iterator::operator!=(const NeighbourList::pair_iterator &i)
+inline bool NeighbourList::pair_iterator::operator!=(const NeighbourList::pair_iterator &i)
 {
     return !((*this)==i);
 }
 
-NeighbourList::pair_iterator::pair_iterator(vector<NeighbourList::entry_t*> &nb_list, bool bEndIterator)
+inline NeighbourList::pair_iterator::pair_iterator(vector<NeighbourList::entry_t*> &nb_list, bool bEndIterator)
         : _nb_list(nb_list)
 {
     if(!bEndIterator) {
