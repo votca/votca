@@ -68,7 +68,7 @@ public:
         _energy = _type -> GetEnergy();
     }
     
-    void copyCrgUnit( CrgUnit & acrg, const int & id){
+    void copyCrgUnit( CrgUnit & acrg){
         vector <vec>::iterator it_pos;
         vector <vec>::iterator it_norm;
         vector <vec>::iterator it_planes;
@@ -86,14 +86,17 @@ public:
             
         }
         _molid = acrg._molid;
-        _id  = id;
+        _id  = acrg._id;
         _type = acrg._type;        
         
         // initialise variables derived from CrgUnitType
         _energy = acrg._energy;
     
     }
-    
+    void copyCrgUnit( CrgUnit & acrg, const int & id){
+        copyCrgUnit(acrg);
+        _id=id;
+    }
     const double& GetNRG() const{
         return _energy;
     }
