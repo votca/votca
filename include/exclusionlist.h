@@ -11,6 +11,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include "topology.h"
 
 using namespace std;
 
@@ -25,14 +26,16 @@ public:
     void Clear(void);
     void ExcludeAll(int N);    
     void Remove(list<int> l);
-
+    void ExcludeList(list<int> l);
+    
     struct exclusion_t {
         int _atom;
         list<int> _exclude;
     };    
+
+    void CreateExclusions(Topology *top);
+    exclusion_t *GetExclusions(int bead);    
     
-    //void CreateExclusions(Topology top);
-    exclusion_t *GetExclusions(int bead);
     
     typedef list< exclusion_t * >::iterator iterator;
     
