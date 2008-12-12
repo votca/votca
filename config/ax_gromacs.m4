@@ -10,7 +10,7 @@ AC_DEFUN([AX_GROMACS_LIBS], [
 Gromacs library not found!
 please make sure LDFLAGS is pointing to <gromacs-path>/lib
 
-])],[mpi lam] )])
+])],[-lmpi -llam] )])
   AC_SUBST([LIBS_GMX])
 ])
 
