@@ -40,12 +40,15 @@ pscheme=( "" CG-CG )
 
 method="ibm"
 sim_prog="gromacs"
-source_wrapper="$PWD/source_wrapper.sh"
+export scriptdir="$PWD"
+source_wrapper="$scriptdir/source_wrapper.sh"
 
 do_external() {
    local script
    script="$($source_wrapper $1 $2)" || exit 1
-   source $script
+   shift 2
+   echo Running subscript ${script##*/} "$@"
+   source $script "$@"
 }
 
 #useful subroutine check if a command was succesful AND log the output
@@ -56,14 +59,9 @@ run_or_exit() {
    shift
    [[ -n "$prog" ]] || { echo Error give one argument >&2; exit 1; }
    [[ -z "$mylog" ]] && mylog="log_${prog##*/}"
-   echo Running $prog $* \&\> $mylog
+   echo Running ${prog##*/} $* \&\> $mylog
    $prog $* &> $mylog
-   [[ $? -eq 0 ]] || { echo Error at $prog; exit 1; }
-}
-
-get_from_mdp() {
-   [[ -n "$1" ]] || { echo What?; exit 1;}
-   sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##'
+   [[ $? -eq 0 ]] || { echo Error at ${prog##*/}; exit 1; }
 }
 
 #main script
@@ -76,23 +74,33 @@ if [ -d step_00 ]; then
      exit 1
    fi
 else
-   echo Prepare
+   echo Prepare \(make step_00\)
    mkdir step_00
-   cp conf.gro ./step_00/confout.gro
+   cd step_00
 
    #copy all rdf in step_00
    for ((i=0;i<${#atoms[*]};i++)); do
       atom1=${atoms[$i]}
       for ((j=$i;j<${#atoms[*]};j++)); do
          atom2=${atoms[$j]}
-         cp rdf_${atom1}_${atom2}_aim.xvg ./step_00 || exit 1
+         cp ../rdf_${atom1}_${atom2}_aim.xvg . || exit 1
+      done
+   done
+
+   do_external init $method || exit 1
+
+   #convert generic table file in gromacs table file (.xvg)
+   for ((i=0;i<${#atoms[*]};i++)); do
+      atom1=${atoms[$i]}
+      for ((j=$i;j<${#atoms[*]};j++)); do
+         atom2=${atoms[$j]}
+         do_external convert_potential $sim_prog table_${atom1}_${atom2}_new.d || exit 1
       done
    done
    
-   do_external init $method
-   
-   #convert generic table file in gromacs table file (.xvg)
-   do_external convert_potential $sim_prog
+   #make confout.gro
+   do_external init $sim_prog || exit 1
+
    for ((i=0;i<${#atoms[*]};i++)); do
       atom1=${atoms[$i]}
       for ((j=$i;j<${#atoms[*]};j++)); do
@@ -104,7 +112,6 @@ else
    cd ..
 fi
 
-exit
 for ((i=1;i<$iterations+1;i++)) ; do
    echo Doing iteration $i
    last=$i
@@ -118,12 +125,6 @@ for ((i=1;i<$iterations+1;i++)) ; do
          echo Incomplete step $i
          exit 1
       fi
-
-   #Run simulation maybe change to Espresso or whatever
-   echo -e "a ${atoms[*]}\nq" | make_ndx -f conf.gro &> log_make_ndx
-   run_or_exit grompp -v -n index.ndx
-   run_or_exit mdrun
-
    fi
    mkdir $this_dir
    
@@ -133,167 +134,55 @@ for ((i=1;i<$iterations+1;i++)) ; do
    done
    cd $this_dir
    
-   #move output to input
-   cp ../$last_dir/confout.gro ./conf.gro
    for ((i=0;i<${#atoms[*]};i++)); do
       atom1=${atoms[$i]}
       for ((j=$i;j<${#atoms[*]};j++)); do
          atom2=${atoms[$j]}
          cp ../$last_dir/table_${atom1}_${atom2}_new.d ./table_${atom1}_${atom2}.d
-         cp ../$last_dir/table_${atom1}_${atom2}_new.xvg ./table_${atom1}_${atom2}.xvg
+         do_external convert_potential $sim_prog table_${atom1}_${atom2}.d || exit 1
       done
    done
 
    #Run simulation maybe change to Espresso or whatever
-   echo -e "a ${atoms[*]}\nq" | make_ndx -f conf.gro &> log_make_ndx
-   run_or_exit grompp -v -n index.ndx
-   run_or_exit mdrun -n index.ndx
+   do_external prepare $sim_prog
+   do_external run $sim_prog
 
-   nsteps=$(get_from_mdp nsteps)
-   dt=$(get_from_mdp dt)
-   #20 % is warmup
-   equi=$(awk "BEGIN{print 0.2*$nsteps*$dt}")
-   echo equi = $equi
-   
-   echo Running g_energy
-   echo "Pressure" | g_energy -b $equi &> log_g_energy
-   [[ $? -ne 0 ]] && echo Error at running g_energy && exit 1
-   p_now=$(awk '/^Pressure/{print $3}' log_g_energy)
+   do_external pressure $sim_prog
    echo New pressure $p_now
    echo Target pressure was $p_target
+   
    #calc pressure correction
    run_or_exit ../pressure_cor.pl $p_target $p_now pressure_cor.d
-   
 
-   #inv boltzmann scheme
+   do_external rdf $sim_prog
+   
    scheme_nr=$((i % ${#scheme[@]} - 1 ))
    echo Doing Scheme step $scheme_nr - update ${scheme[$scheme_nr]}
+   echo Doing Pressure Scheme step $scheme_nr - update ${pscheme[$scheme_nr]}
    for ((i=0;i<${#atoms[*]};i++)); do
       atom1=${atoms[$i]}
       for ((j=$i;j<${#atoms[*]};j++)); do
          atom2=${atoms[$j]}
-         echo Running g_rdf for ${atom1}-${atom2}
-         echo -e "${atom1}\n${atom2}" | g_rdf -b $equi -n index.ndx -bin 0.01 -o rdf_${atom1}_${atom2}.xvg &> log_g_rdf_${atom1}_${atom2}
-         [[ $? -ne 0 ]] && echo Error at g_rdf ${atom1}-${atom2} && exit 1
          #if atom is in this step
-         if [ -z "${scheme[$scheme_nr]/*${atom1}-${atom2}*}" ]; then
-            echo Update ${atom1}-${atom2}
-            run_or_exit --log log_update_POT_${atom1}_${atom2} ../update_POT.pl rdf_${atom1}_${atom2}_aim.xvg rdf_${atom1}_${atom2}.xvg delta_pot_${atom1}_${atom2}.d
+         if [ -n "${scheme[$scheme_nr]}" ] && [ -z "${scheme[$scheme_nr]/*${atom1}-${atom2}*}" ]; then
+            echo Update ${atom1}-${atom2} - $method
+            #update ibm
+            do_external update $method $atom1 $atom2
             run_or_exit --log log_add_POT_${atom1}_${atom2} ../add_POT.pl table_${atom1}_${atom2}.d delta_pot_${atom1}_${atom2}.d table_${atom1}_${atom2}_new1.d
             run_or_exit --log log_add_POT2_${atom1}_${atom2} ../add_POT.pl table_${atom1}_${atom2}_new1.d pressure_cor.d table_${atom1}_${atom2}_new.d
          else
-            echo Just copying ${atom1}-${atom2}
+            echo Just copying ${atom1}-${atom2} - no $method
             cp table_${atom1}_${atom2}.d table_${atom1}_${atom2}_new.d
          fi
-         run_or_exit --log log_table_to_xvg_${atom1}_${atom2} ../table_to_xvg.pl table_${atom1}_${atom2}_new.d table_${atom1}_${atom2}_new.xvg
-         
-         #copy latest results
-         cp rdf_${atom1}_${atom2}.xvg ../rdf_${atom1}_${atom2}_final.xvg
-         cp table_${atom1}_${atom2}_new.d ../table_${atom1}_${atom2}_final.d
-         cp table_${atom1}_${atom2}_new.xvg ../table_${atom1}_${atom2}_final.xvg
-      done
-   done
-   touch done
-   cd ..
-done
-
-if [ -d step_p00 ]; then
-   echo Skiping Pressure prepare
-   if [ ! -f step_p00/done ]; then
-     echo Incomplete step p00
-     exit 1
-   fi
-else
-   echo Pressure Prepare
-   mkdir step_p00
-   for ((i=0;i<${#atoms[*]};i++)); do
-      atom1=${atoms[$i]}
-      for ((j=$i;j<${#atoms[*]};j++)); do
-         atom2=${atoms[$j]}
-         cp ./$this_dir/table_${atom1}_${atom2}_new.d ./step_p00
-         cp ./$this_dir/table_${atom1}_${atom2}_new.xvg ./step_p00
-      done
-   done
-   cp ./$this_dir/confout.gro ./step_p00
-   touch step_p00/done
-fi
-
-for ((i=1;i<$piterations+1;i++)) ; do
-   echo Doing Pressure iteration $i
-   last=$i
-   ((last--))
-   last_dir=$(printf step_p%02i $last)
-   this_dir=$(printf step_p%02i $i)
-   if [ -d $this_dir ]; then
-      echo Skiping Pressure iteration $i
-      if [ -f $this_dir/done ]; then
-         continue
-      else
-         echo Incomplete step $i
-         exit 1
-      fi
-   fi
-   date
-   mkdir $this_dir
-   for myfile in $filelist; do
-      cp ./$myfile ./$this_dir/
-   done
-   cd $this_dir
-
-   #move output to input
-   cp ../$last_dir/confout.gro ./conf.gro
-   for ((i=0;i<${#atoms[*]};i++)); do
-      atom1=${atoms[$i]}
-      for ((j=$i;j<${#atoms[*]};j++)); do
-         atom2=${atoms[$j]}
-         cp ../$last_dir/table_${atom1}_${atom2}_new.d ./table_${atom1}_${atom2}.d
-         cp ../$last_dir/table_${atom1}_${atom2}_new.xvg ./table_${atom1}_${atom2}.xvg
-      done
-   done
-
-   #Run simulation maybe change to Espresso or whatever
-   echo -e "a ${atoms[*]}\nq" | make_ndx -f conf.gro &> log_make_ndx
-   run_or_exit grompp -v -n index.ndx
-   run_or_exit mdrun 
-
-   nsteps=$(get_from_mdp nsteps)
-   dt=$(get_from_mdp dt)
-   #20 % is warmup
-   equi=$(awk "BEGIN{print 0.2*$nsteps*$dt}")
-   echo equi = $equi
-   
-   echo Running g_energy
-   echo "Pressure" | g_energy -b $equi &> log_g_energy
-   [[ $? -ne 0 ]] && echo Error at running g_energy && exit 1
-   p_now=$(awk '/^Pressure/{print $3}' log_g_energy)
-   echo New pressure $p_now
-   echo Target pressure was $p_target
-   #calc pressure correction
-   run_or_exit ../pressure_cor.pl $p_target $p_now pressure_cor.d
-   
-   scheme_nr=$((i % ${#pscheme[@]} - 1))
-   echo Doing Scheme step $scheme_nr - update ${pscheme[$scheme_nr]}
-   for ((i=0;i<${#atoms[*]};i++)); do
-      atom1=${atoms[$i]}
-      for ((j=$i;j<${#atoms[*]};j++)); do
-         atom2=${atoms[$j]}
-         echo Running g_rdf for ${atom1}-${atom2}
-         echo -e "${atom1}\n${atom2}" | g_rdf -b $equi -n index.ndx -bin 0.01 -o rdf_${atom1}_${atom2}.xvg &> log_g_rdf_${atom1}_${atom2}
-         [[ $? -ne 0 ]] && echo Error at g_rdf ${atom1}-${atom2} && exit 1
-         #if atom is in this step
-         if [ -z "${scheme[$scheme_nr]/*${atom1}-${atom2}*}" ]; then
-            echo Update ${atom1}-${atom2}
-            run_or_exit --log log_add_POT_${atom1}_${atom2} ../add_POT.pl table_${atom1}_${atom2}.d pressure_cor.d table_${atom1}_${atom2}_new.d
+         if [ -n "${pscheme[$scheme_nr]}" ] && [ -z "${pscheme[$scheme_nr]/*${atom1}-${atom2}*}" ]; then
+            echo Update presuure ${atom1}-${atom2}
+            run_or_exit --log log_add_POT2_${atom1}_${atom2} ../add_POT.pl table_${atom1}_${atom2}_new1.d pressure_cor.d table_${atom1}_${atom2}_new.d
          else
-            echo Just copying ${atom1}-${atom2}
-            cp table_${atom1}_${atom2}.d table_${atom1}_${atom2}_new.d
+            echo Just copying ${atom1}-${atom2} - no pressure correction
+            cp  table_${atom1}_${atom2}_new1.d table_${atom1}_${atom2}_new.d
          fi
-         run_or_exit --log log_table_to_xvg_${atom1}_${atom2} ../table_to_xvg.pl table_${atom1}_${atom2}_new.d table_${atom1}_${atom2}_new.xvg
-         
          #copy latest results
-         cp rdf_${atom1}_${atom2}.xvg ../rdf_${atom1}_${atom2}_final.xvg
          cp table_${atom1}_${atom2}_new.d ../table_${atom1}_${atom2}_final.d
-         cp table_${atom1}_${atom2}_new.xvg ../table_${atom1}_${atom2}_final.xvg
       done
    done
    touch done
