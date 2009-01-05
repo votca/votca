@@ -34,7 +34,7 @@ Average<T>::Average()
 : _n(0) {}
 
 template <>
-Average<double>::Average()
+inline Average<double>::Average()
 : _n(0), _av(0), _m2(0) {}
 
 template<typename T>
