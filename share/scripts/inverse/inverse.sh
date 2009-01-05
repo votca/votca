@@ -1,47 +1,48 @@
 #! /bin/bash
 
+if [ "$1" = "--help" ]; then
+   echo Start the script to run ibm, imc, etc.
+   echo Usage: ${0##*/} setting_file
+   exit 0
+fi
 
-#FILES we need
+if [ -z "$1" ]; then
+   echo Error: Missing setting file > /dev/stderr
+   exit 1
+else 
+   source $1
+   shift
+fi
 
-#main dir
-#conf.gro -- starting configuration
-#grompp.mdp -- grompp seeting
-#topol.top -- topology file
-#rdf_atom1_atom2_aim.xvg -- aim rdfs
+#check if needed variables are set
+for variable in p_target iterations filelist pinterations method sim_prog CSGSHARE scriptdir; do
+   if [ -z "$(declare | grep -e "^$variable" )" ]; then
+      echo Error $variable not definded, check setting file > /dev/stderr
+      exit 1
+   fi
+done
+#check if needed arrays are set
+for array in atoms scheme pscheme; do
+   if [ -z "$(declare | grep -e "^$array=(.*)$" )" ]; then
+      echo Error $array not definded or is not an array, check setting file > /dev/stderr
+      exit 1
+   fi
+done
 
-#if you have 
-#table_atom1_atom2_guess.d -- generic table (2columns r v(r))
+export scriptdir
+export CSGSHARE
 
-
-#DEFAULTS
-
-#target pressure_cor 
-p_target=1
-#grep this from g_energy out with:
-#p_target=$(awk '/^Pressure/{print $3}' log_g_energy)
-
-#atomsname here
-#atoms=( X1 X2 X3 )
-atoms=( CG )
-
-#number of iterations
-iterations=50
-#file to run simulation
-filelist="grompp.mdp rdf_*_aim.xvg topol.top table.xvg"
-#update scheme
-#scheme=( "X1-X1 X2-X2" "X3-X3" "X2-X3" )
-scheme=( CG-CG "" )
-
-#additional iteration for pressure
-pinterations=30
-#pressure update scheme
-#pscheme=( "X1-X1 X2-X2" "X3-X3" "X2-X3" )
-pscheme=( "" CG-CG )
-
-method="ibm"
-sim_prog="gromacs"
-export scriptdir="$PWD"
-source_wrapper="$scriptdir/source_wrapper.sh"
+#find source_wrapper.sh
+#first local, then local scriptdir. then CSGSHARE
+if [ -n  "${scriptdir}" ] && [ -f "${scriptdir}/source_wrapper.sh" ]; then
+   source_wrapper="${scriptdir}/source_wrapper.sh"
+elif [ -n  "${CSGSHARE}" ] && [ -f "${CSGSHARE}/source_wrapper.sh" ]; then
+   source_wrapper="${CSGSHARE}/source_wrapper.sh"
+else
+   echo Could not find source_wrapper.sh > /dev/stderr
+   exit 1
+fi
+export source_wrapper
 
 do_external() {
    local script
@@ -74,15 +75,17 @@ if [ -d step_00 ]; then
      exit 1
    fi
 else
+   echo ------------------------
    echo Prepare \(make step_00\)
+   echo ------------------------
    mkdir step_00
    cd step_00
 
    #copy all rdf in step_00
-   for ((i=0;i<${#atoms[*]};i++)); do
-      atom1=${atoms[$i]}
-      for ((j=$i;j<${#atoms[*]};j++)); do
-         atom2=${atoms[$j]}
+   for ((a1=0;a1<${#atoms[*]};a1++)); do
+      atom1=${atoms[$a1]}
+      for ((j=$a1;a2<${#atoms[*]};a2++)); do
+         atom2=${atoms[$a2]}
          cp ../rdf_${atom1}_${atom2}_aim.xvg . || exit 1
       done
    done
@@ -90,10 +93,10 @@ else
    do_external init $method || exit 1
 
    #convert generic table file in gromacs table file (.xvg)
-   for ((i=0;i<${#atoms[*]};i++)); do
-      atom1=${atoms[$i]}
-      for ((j=$i;j<${#atoms[*]};j++)); do
-         atom2=${atoms[$j]}
+   for ((a1=0;a1<${#atoms[*]};a1++)); do
+      atom1=${atoms[$a1]}
+      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
+         atom2=${atoms[$a1]}
          do_external convert_potential $sim_prog table_${atom1}_${atom2}_new.d || exit 1
       done
    done
@@ -101,10 +104,10 @@ else
    #make confout.gro
    do_external init $sim_prog || exit 1
 
-   for ((i=0;i<${#atoms[*]};i++)); do
-      atom1=${atoms[$i]}
-      for ((j=$i;j<${#atoms[*]};j++)); do
-         atom2=${atoms[$j]}
+   for ((a1=0;a1<${#atoms[*]};a1++)); do
+      atom1=${atoms[$a1]}
+      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
+         atom2=${atoms[$a2]}
          cp table_${atom1}_${atom2}_new.d ../table_${atom1}_${atom2}_final.d || exit 1
       done
    done
@@ -113,7 +116,9 @@ else
 fi
 
 for ((i=1;i<$iterations+1;i++)) ; do
-   echo Doing iteration $i
+   echo ---------------------------------
+   echo Doing iteration $i \(make step_$i\)
+   echo -------------------------------
    last=$i
    ((last--))
    last_dir=$(printf step_%02i $last)
@@ -128,17 +133,26 @@ for ((i=1;i<$iterations+1;i++)) ; do
    fi
    mkdir $this_dir
    
+   #copy all rdf in step_00
+   for ((a1=0;a1<${#atoms[*]};a1++)); do
+      atom1=${atoms[$a1]}
+      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
+         atom2=${atoms[$a2]}
+         cp rdf_${atom1}_${atom2}_aim.xvg $this_dir || exit 1
+      done
+   done
+   
    #get need files
    for myfile in $filelist; do
-      cp ./$myfile ./$this_dir/
+      cp ./$myfile ./$this_dir/ || exit 1
    done
    cd $this_dir
    
-   for ((i=0;i<${#atoms[*]};i++)); do
-      atom1=${atoms[$i]}
-      for ((j=$i;j<${#atoms[*]};j++)); do
-         atom2=${atoms[$j]}
-         cp ../$last_dir/table_${atom1}_${atom2}_new.d ./table_${atom1}_${atom2}.d
+   for ((a1=0;a1<${#atoms[*]};a1++)); do
+      atom1=${atoms[$a1]}
+      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
+         atom2=${atoms[$a2]}
+         cp ../$last_dir/table_${atom1}_${atom2}_new.d ./table_${atom1}_${atom2}.d || exit 1
          do_external convert_potential $sim_prog table_${atom1}_${atom2}.d || exit 1
       done
    done
@@ -152,31 +166,34 @@ for ((i=1;i<$iterations+1;i++)) ; do
    echo Target pressure was $p_target
    
    #calc pressure correction
-   run_or_exit ../pressure_cor.pl $p_target $p_now pressure_cor.d
+   pressure_cor=$($source_wrapper --direct pressure_cor.pl) || exit 1
+   run_or_exit $pressure_cor $p_target $p_now pressure_cor.d 
 
    do_external rdf $sim_prog
    
-   scheme_nr=$((i % ${#scheme[@]} - 1 ))
-   echo Doing Scheme step $scheme_nr - update ${scheme[$scheme_nr]}
-   echo Doing Pressure Scheme step $scheme_nr - update ${pscheme[$scheme_nr]}
-   for ((i=0;i<${#atoms[*]};i++)); do
-      atom1=${atoms[$i]}
-      for ((j=$i;j<${#atoms[*]};j++)); do
-         atom2=${atoms[$j]}
+   scheme_nr=$(( ( i - 1 ) % ${#scheme[@]} ))
+   pscheme_nr=$(( ( i - 1 ) % ${#pscheme[@]} ))
+   echo Doing Scheme step $scheme_nr : ${scheme[$scheme_nr]}
+   echo Doing Pressure Scheme step $pscheme_nr : ${pscheme[$pscheme_nr]}
+   for ((a1=0;a1<${#atoms[*]};a1++)); do
+      atom1=${atoms[$a1]}
+      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
+         atom2=${atoms[$a2]}
          #if atom is in this step
          if [ -n "${scheme[$scheme_nr]}" ] && [ -z "${scheme[$scheme_nr]/*${atom1}-${atom2}*}" ]; then
             echo Update ${atom1}-${atom2} - $method
             #update ibm
             do_external update $method $atom1 $atom2
-            run_or_exit --log log_add_POT_${atom1}_${atom2} ../add_POT.pl table_${atom1}_${atom2}.d delta_pot_${atom1}_${atom2}.d table_${atom1}_${atom2}_new1.d
-            run_or_exit --log log_add_POT2_${atom1}_${atom2} ../add_POT.pl table_${atom1}_${atom2}_new1.d pressure_cor.d table_${atom1}_${atom2}_new.d
+            add_POT=$($source_wrapper --direct add_POT.pl) || exit 1
+            run_or_exit --log log_add_POT_${atom1}_${atom2} $add_POT table_${atom1}_${atom2}.d delta_pot_${atom1}_${atom2}.d table_${atom1}_${atom2}_new1.d
          else
             echo Just copying ${atom1}-${atom2} - no $method
-            cp table_${atom1}_${atom2}.d table_${atom1}_${atom2}_new.d
+            cp table_${atom1}_${atom2}.d table_${atom1}_${atom2}_new1.d
          fi
-         if [ -n "${pscheme[$scheme_nr]}" ] && [ -z "${pscheme[$scheme_nr]/*${atom1}-${atom2}*}" ]; then
+         if [ -n "${pscheme[$pscheme_nr]}" ] && [ -z "${pscheme[$pscheme_nr]/*${atom1}-${atom2}*}" ]; then
             echo Update presuure ${atom1}-${atom2}
-            run_or_exit --log log_add_POT2_${atom1}_${atom2} ../add_POT.pl table_${atom1}_${atom2}_new1.d pressure_cor.d table_${atom1}_${atom2}_new.d
+            add_POT=$($source_wrapper --direct add_POT.pl) || exit 1
+            run_or_exit --log log_add_POT2_${atom1}_${atom2} $add_POT table_${atom1}_${atom2}_new1.d pressure_cor.d table_${atom1}_${atom2}_new.d
          else
             echo Just copying ${atom1}-${atom2} - no pressure correction
             cp  table_${atom1}_${atom2}_new1.d table_${atom1}_${atom2}_new.d

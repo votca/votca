@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the pressure for gromacs
    echo for the Inverse Boltzmann Method
    echo Usage: ${0##*/}
-   echo Needs: \$atoms, g_rdf
+   echo Needs: g_energy
    exit 0
 fi
 
@@ -13,21 +13,6 @@ for exe in g_energy; do
       echo Could not find $exe > /dev/stderr
       exit 1
    fi
-done
-
-if [ -z "$scriptdir" ]; then
-   echo scriptdir not defined > /dev/stderr
-   exit 1
-fi
-
-if [ -z "$last_dir" ]; then
-   echo last_dir not defined > /dev/stderr
-   exit 1
-fi
-
-if [ ${#atoms[@]} -eq 0 ]; then
-   echo Could not get atomname for \$atoms > /dev/stderr
-   exit 1
 done
 
 get_from_mdp() {

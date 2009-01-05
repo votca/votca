@@ -15,11 +15,6 @@ for exe in make_ndx grompp; do
    fi
 done
 
-if [ -z "$scriptdir" ]; then
-   echo scriptdir not defined > /dev/stderr
-   exit 1
-fi
-
 if [ -z "$last_dir" ]; then
    echo last_dir not defined > /dev/stderr
    exit 1

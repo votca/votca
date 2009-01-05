@@ -1,9 +1,9 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This is a wrapper to source the right file
+   echo This is a wrapper to find the right file to a task
    echo Usage: ${0##*/} todo method
-   echo Uses: \$scriptdir
+   echo Uses: \$scriptdir \$CSGSHARE
    exit 0
 fi
 
@@ -63,22 +63,32 @@ case $1 in
       scriptname="run"
       shift
       simulation_case $1;;
+   --direct)
+      if [ -n "$2" ]; then
+         scriptname="$2"
+      else
+         echo Error: Missing scriptname > /dev/stderr
+         exit 1
+      fi
+      shift 2;;
    *)
       echo Function \"$1\" unknown > /dev/stderr
       exit 1;;
 esac
 
+#add ending .sh if no ending given
+if [ $scriptname = ${scriptname%.*} ]; then
+   scriptname="${scriptname}.sh"
+fi
 
-if [ -f "${scriptdir}/${scriptname}.sh" ]; then
-   echo ${scriptdir}/${scriptname}.sh
+#first local scriptdir. then CSGSHARE
+if [ -n  "${scriptdir}" ] && [ -f "${scriptdir}/${scriptname}" ]; then
+   echo ${scriptdir}/${scriptname}
    exit 0
-elif [ -f "${scriptname}.sh" ]; then
-   echo ${PWD}/${scriptname}.sh
-   exit 0
-elif [ -f "${CSGSHARE}/${scriptname}.sh" ]; then
-   echo ${CSGSHARE}/${scriptname}.sh
+elif [ -n  "${CSGSHARE}" ] && [ -f "${CSGSHARE}/${scriptname}" ]; then
+   echo ${CSGSHARE}/${scriptname}
    exit 0
 else
-   echo Could not find script ${scriptname}.sh > /dev/stderr
+   echo ${0##*/}: Could not find script ${scriptname} > /dev/stderr
    exit 1
 fi
