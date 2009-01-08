@@ -67,7 +67,7 @@ void Average<T>::ProcessRange(const iterator_type &begin, const iterator_type   
 template<typename T>
 double Average<T>::CalcDev(){
     double dev = 0.0;
-    dev = sqrt(_m2-_n*_av*_av);
+    dev = sqrt((_m2-_n*_av*_av)/(_n-1));
     return dev;
 }
 
