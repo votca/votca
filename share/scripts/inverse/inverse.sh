@@ -15,7 +15,7 @@ else
 fi
 
 #check if needed variables are set
-for variable in p_target iterations filelist pinterations method sim_prog CSGSHARE scriptdir; do
+for variable in p_target iterations filelist method sim_prog CSGSHARE scriptdir; do
    if [ -z "$(declare | grep -e "^$variable" )" ]; then
       echo Error $variable not definded, check setting file > /dev/stderr
       exit 1
@@ -115,7 +115,7 @@ else
    cd ..
 fi
 
-for ((i=1;i<$iterations+1;i++)) ; do
+for ((i=1;i<$iterations+1;i++)); do
    echo ---------------------------------
    echo Doing iteration $i \(make step_$i\)
    echo -------------------------------
@@ -125,6 +125,7 @@ for ((i=1;i<$iterations+1;i++)) ; do
    this_dir=$(printf step_%02i $i)
    if [ -d $this_dir ]; then
       if [ -f $this_dir/done ]; then
+         echo is already done - skipping
          continue
       else
          echo Incomplete step $i
@@ -207,4 +208,4 @@ for ((i=1;i<$iterations+1;i++)) ; do
 done
 
 touch done
-exit 0;
+exit 0

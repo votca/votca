@@ -8,7 +8,7 @@ if [ "$1" = "--help" ]; then
    exit 0
 fi
 
-for exe in make_ndx g_rdf; do
+for exe in g_rdf; do
    if [ -z $(type -p $exe) ]; then
       echo Could not find $exe > /dev/stderr
       exit 1
@@ -20,6 +20,17 @@ if [ ${#atoms[@]} -eq 0 ]; then
    exit 1
 fi
 
+get_from_mdp() {
+   [[ -n "$1" ]] || { echo What?; exit 1;}
+   sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##'
+}
+
+nsteps=$(get_from_mdp nsteps)
+dt=$(get_from_mdp dt)
+#20 % is warmup
+equi=$(awk "BEGIN{print 0.2*$nsteps*$dt}")
+echo equi = $equi
+
 for ((a1=0;a1<${#atoms[*]};a1++)); do
    atom1=${atoms[$a1]}
    for ((a2=$a1;a2<${#atoms[*]};a2++)); do
@@ -29,3 +40,4 @@ for ((a1=0;a1<${#atoms[*]};a1++)); do
       [[ $? -ne 0 ]] && echo Error at g_rdf ${atom1}-${atom2} && exit 1
    done
 done
+
