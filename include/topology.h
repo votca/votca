@@ -45,8 +45,12 @@ public:
     void Cleanup();
     
     /// creates a new Bead
-    BeadInfo *CreateBead(byte_t symmetry, string name, int type, int resnr, double m, double q);
+    BeadInfo *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
     //int AddBead(CBeadInfo *bead);
+
+    /// returns the BeadType or creates it if it doesnt exist
+    BeadType *GetOrCreateBeadType(string name);
+        
 
     /// creates a new molecule
     MoleculeInfo *CreateMolecule(string name);
@@ -90,6 +94,7 @@ public:
     // \todo change AddBondedinteraction to Create bonded interaction, that only topology can create interactions
     void AddBondedInteraction(Interaction *ic);
     
+    BeadType *getBeadType(const int i) { return _beadtypes[i]; }
     BeadInfo *getBead(const int i) { return _beads[i]; }
     Residue *getResidue(const int i) { return _residues[i]; }
     MoleculeInfo *getMolecule(const int i) { return _molecules[i]; }
@@ -121,9 +126,10 @@ private:
     InteractionContainer _interactions;
     
     map<string, int> _interaction_groups;
+    map<string, int> _beadtype_map;    
 };
 
-inline BeadInfo *Topology::CreateBead(byte_t symmetry, string name, int type, int resnr, double m, double q)
+inline BeadInfo *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
 {
     
     BeadInfo *b = new BeadInfo(_beads.size(), type, symmetry, name, resnr, m, q);    

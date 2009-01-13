@@ -6,6 +6,7 @@
                    projectFiles="true">
       <itemPath>../../include/beadinfo.h</itemPath>
       <itemPath>../../include/beadlist.h</itemPath>
+      <itemPath>../../include/beadtype.h</itemPath>
       <itemPath>../../include/cgengine.h</itemPath>
       <itemPath>../../include/cgmoleculedef.h</itemPath>
       <itemPath>../../include/cgobserver.h</itemPath>
@@ -115,6 +116,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/beadlist.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/beadtype.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/cgengine.h">
@@ -317,6 +321,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/beadlist.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/beadtype.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/cgengine.h">

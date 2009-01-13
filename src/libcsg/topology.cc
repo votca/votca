@@ -1,4 +1,4 @@
-// 
+ // 
 // File:   topology.cc
 // Author: ruehle
 //
@@ -91,7 +91,8 @@ void Topology::Add(Topology *top)
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         BeadInfo *bi = *bead;
-        CreateBead(bi->getSymmetry(), bi->getName(), 0, bi->getResnr()+res0, bi->getM(), bi->getQ());
+        BeadType *type =  GetOrCreateBeadType(bi->getType()->getName());
+        CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr()+res0, bi->getM(), bi->getQ());
     }
     
     for(res=top->_residues.begin();res!=top->_residues.end(); ++res) {
@@ -132,4 +133,19 @@ void Topology::AddBondedInteraction(Interaction *ic)
     _interactions.push_back(ic);
 }
 
-
+BeadType *Topology::GetOrCreateBeadType(string name)
+{
+    map<string, int>::iterator iter;
+    
+    iter = _beadtype_map.find(name);
+    if(iter == _beadtype_map.end()) {
+        BeadType *bt = new BeadType(_beadtypes.size(), name);
+        _beadtypes.push_back(bt);
+        _beadtype_map[name] = bt->getId();
+        return bt;
+    }
+    else {
+        return _beadtypes[(*iter).second];
+    }
+    return NULL;
+}
