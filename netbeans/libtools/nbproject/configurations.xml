@@ -49,8 +49,8 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../../include</Elem>
     <Elem>../../src/libtools</Elem>
+    <Elem>../../include</Elem>
   </sourceRootList>
   <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile_nb</projectmakefile>
@@ -171,15 +171,23 @@
       </toolsSet>
       <compileType>
         <cCompilerTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
+          <includeDirectories>
+            <directoryPath>../../include</directoryPath>
+          </includeDirectories>
         </cCompilerTool>
         <ccCompilerTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
+          <includeDirectories>
+            <directoryPath>../../include</directoryPath>
+          </includeDirectories>
+          <commandLine>-I../../include</commandLine>
         </ccCompilerTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
         <archiverTool>
+          <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
       <item path="../../include/average.h">
