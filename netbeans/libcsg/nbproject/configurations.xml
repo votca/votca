@@ -6,7 +6,6 @@
                    projectFiles="true">
       <itemPath>../../include/beadinfo.h</itemPath>
       <itemPath>../../include/beadlist.h</itemPath>
-      <itemPath>../../include/beadtype.h</itemPath>
       <itemPath>../../include/cgengine.h</itemPath>
       <itemPath>../../include/cgmoleculedef.h</itemPath>
       <itemPath>../../include/cgobserver.h</itemPath>
@@ -116,9 +115,6 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/beadlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadtype.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/cgengine.h">
@@ -309,21 +305,25 @@
           <developmentMode>5</developmentMode>
         </cCompilerTool>
         <ccCompilerTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
+          <includeDirectories>
+            <directoryPath>../../include</directoryPath>
+            <directoryPath>../../../include</directoryPath>
+            <directoryPath>/usr/include/libxml2</directoryPath>
+            <directoryPath>../../../../../ruehle/gmx/include/gromacs</directoryPath>
+          </includeDirectories>
         </ccCompilerTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
         <archiverTool>
+          <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
       <item path="../../include/beadinfo.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/beadlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadtype.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/cgengine.h">
