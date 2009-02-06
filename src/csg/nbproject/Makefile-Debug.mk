@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 
 # Include project Makefile
 include Makefile_nb
@@ -27,6 +27,7 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 OBJECTFILES= \
 	${OBJECTDIR}/tabulatedpotential.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/bondedstatistics.o \
 	${OBJECTDIR}/stdanalysis.o
 
 # C Compiler Flags
@@ -40,7 +41,7 @@ CXXFLAGS=
 FFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../libcsg/dist/libcsg.a -lgmx -lxml2 -lm -lfftw3 -lboost_program_options
+LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../netbeans/libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lxml2 -lm -lfftw3 -lboost_program_options
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS} ../bin/csg
@@ -53,19 +54,24 @@ LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../libcsg/dist/libcsg.a -l
 
 ${OBJECTDIR}/tabulatedpotential.o: tabulatedpotential.cc 
 	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -g -I../../libcsg -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -o ${OBJECTDIR}/tabulatedpotential.o tabulatedpotential.cc
+	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -o ${OBJECTDIR}/tabulatedpotential.o tabulatedpotential.cc
 
 ${OBJECTDIR}/main.o: main.cc 
 	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -g -I../../libcsg -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -o ${OBJECTDIR}/main.o main.cc
+	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -o ${OBJECTDIR}/main.o main.cc
+
+${OBJECTDIR}/bondedstatistics.o: bondedstatistics.cc 
+	${MKDIR} -p ${OBJECTDIR}
+	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -o ${OBJECTDIR}/bondedstatistics.o bondedstatistics.cc
 
 ${OBJECTDIR}/stdanalysis.o: stdanalysis.cc 
 	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -g -I../../libcsg -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -o ${OBJECTDIR}/stdanalysis.o stdanalysis.cc
+	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -o ${OBJECTDIR}/stdanalysis.o stdanalysis.cc
 
 # Subprojects
 .build-subprojects:
-	cd ../../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
+	cd ../../netbeans/libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
+	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -74,4 +80,5 @@ ${OBJECTDIR}/stdanalysis.o: stdanalysis.cc
 
 # Subprojects
 .clean-subprojects:
-	cd ../../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
+	cd ../../netbeans/libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
+	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug clean

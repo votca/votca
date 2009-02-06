@@ -8,7 +8,6 @@
 
 #include "trajectoryreader.h"
 #include "modules/io/gmxtrajectoryreader.h"
-#include "modules/io/mdptrajectoryreader.h"
 
 void TrajectoryReader::RegisterPlugins(void)
 {
@@ -16,5 +15,5 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register("xtc", new GMXTrajectoryReader(), false);
     TrjReaderFactory().Register("gro", new GMXTrajectoryReader(), false);  // not tested!
     TrjReaderFactory().Register("pdb", new GMXTrajectoryReader(), false);  // not tested!
-    TrjReaderFactory().Register("mdp", new MDPTrajectoryReader(), false);
+//    TrjReaderFactory().Register("mdp", new MDPTrajectoryReader(), false);
 }

@@ -9,7 +9,7 @@
 #define	_NEMATICORDER_H
 
 #include "topology.h"
-#include "configuration.h"
+#include "topology.h"
 #include <tools/matrix.h>
 
 class NematicOrder
@@ -18,7 +18,7 @@ public:
     NematicOrder() {}
     ~NematicOrder() {}
     
-    void Process(Configuration &conf);
+    void Process(Topology &top);
     
     matrix::eigensystem_t &NematicU() {return _nemat_u; }
     matrix::eigensystem_t &NematicV() {return _nemat_v; }

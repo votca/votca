@@ -39,9 +39,9 @@ class GMXTrajectoryReader : public TrajectoryReader
         /// open a trejectory file
         bool Open(const string &file);
         /// read in the first frame
-        bool FirstFrame(Configuration &conf);
+        bool FirstFrame(Topology &top);
         /// read in the next frame
-        bool NextFrame(Configuration &conf);
+        bool NextFrame(Topology &top);
 
         void Close();
         

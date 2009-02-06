@@ -21,13 +21,14 @@ void PDBWriter::Close()
     fclose(_out);
 }
 
-void PDBWriter::Write(Configuration *conf)
+void PDBWriter::Write(Topology *conf)
 {
-    Topology *top = conf->getTopology();
+    Topology *top = conf;
     fprintf(_out, "MODEL     %4d\n", conf->getStep());
-    for(size_t i=0; i<top->getBeads().size(); i++) {
-        vec r = conf->getPos(i);
-        BeadInfo *bi = conf->getTopology()->getBeads()[i];
+    for(BeadContainer::iterator iter=conf->Beads().begin();
+    iter!=conf->Beads().end(); ++iter) {
+        Bead *bi = *iter;
+        vec r = bi->getPos();
         fprintf(_out,
                 "ATOM  %5d %4s %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n",
                 (bi->getId()+1)%100000,   // atom serial number
@@ -38,8 +39,8 @@ void PDBWriter::Write(Configuration *conf)
                 10.*r.x(), 10.*r.y(), 10.*r.z(),
                 bi->getQ(), bi->getM());  // is this correct??
           
-        if(conf->getTopology()->getBead(i)->getSymmetry()>=2) {
-           vec ru = 0.1*conf->getU(i) + r;
+        if(bi->getSymmetry()>=2) {
+           vec ru = 0.1*bi->getU() + r;
        
             fprintf(_out,
                 "HETATM%5d %4s %3s %1s%4d    %8.3f%8.3f%8.4f%6.2f%6.2f\n",
@@ -51,8 +52,8 @@ void PDBWriter::Write(Configuration *conf)
                 10.*ru.x(), 10.*ru.y(), 10.*ru.z(),
                 0, 0);  // is this correct??
         }
-        if(conf->getTopology()->getBead(i)->getSymmetry()>=3) {
-           vec rv = 0.1*conf->getV(i) + r;
+        if(bi->getSymmetry()>=3) {
+           vec rv = 0.1*bi->getV() + r;
             fprintf(_out,
                 "HETATM%5d %4s %3s %1s%4d    %8.3f%8.3f%8.4f%6.2f%6.2f\n",
                 bi->getId()+1,   // atom serial number

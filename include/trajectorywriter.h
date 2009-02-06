@@ -10,7 +10,7 @@
 
 #include <string>
 #include "fileformatfactory.h"
-#include "configuration.h"
+#include "topology.h"
 
 using namespace std;
 
@@ -23,7 +23,7 @@ public:
     virtual void Open(string file, bool bAppend = false) {}
     virtual void Close() {};
     
-    virtual void Write(Configuration *conf) {}
+    virtual void Write(Topology *top) {}
 
     virtual void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}    
     

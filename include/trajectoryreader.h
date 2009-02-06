@@ -9,7 +9,7 @@
 #define	_trajectoryreader_H
 
 #include <string>
-#include "configuration.h"
+#include "topology.h"
 #include "fileformatfactory.h"
 
 using namespace std;
@@ -29,9 +29,9 @@ class TrajectoryReader
         virtual void Close() {};
         
         /// read in the first frame
-        virtual bool FirstFrame(Configuration &conf) = 0;
+        virtual bool FirstFrame(Topology &top) = 0;
         /// read in the next frame
-        virtual bool NextFrame(Configuration &conf) = 0;
+        virtual bool NextFrame(Topology &top) = 0;
 
         virtual void RegisteredAt(ObjectFactory<string, TrajectoryReader> &factory) {}    
 

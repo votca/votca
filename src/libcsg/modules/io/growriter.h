@@ -24,7 +24,7 @@ public:
     
     void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}    
 
-    void Write(Configuration *conf);
+    void Write(Topology *conf);
 
     TrajectoryWriter *Clone() { return new GROWriter(); }
 

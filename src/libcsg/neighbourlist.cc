@@ -28,16 +28,14 @@ void NeighbourList::create_Nbs(int nb1, int nb2, vec _r){
     _nb_list[(nb1)]->_neighbours.push_back(nb);
 }
 
-void NeighbourList::Generate(Configuration& conf) {
-    Topology *top = conf.getTopology();
-
-    for(int i = 0; i < top->BeadCount(); i++){
+void NeighbourList::Generate(Topology& top) {
+    for(int i = 0; i < top.BeadCount(); i++){
         entry_t* entry = new entry_t;
         // creates a vector of pointers (one for each bead)
-        for(int j=0; j<top->BeadCount(); j++){
+        for(int j=0; j<top.BeadCount(); j++){
             if (i!=j){ // prevents listing i as neigbour of itself
                 neighbour_t nb;
-                nb._r = conf.getDist(i, j);
+                nb._r = top.getDist(i, j);
                 if((nb._dist=abs(nb._r)) < _cutoff){
                     nb._bead = j;
                     entry->_neighbours.push_back(nb);

@@ -11,14 +11,17 @@
 #include <vector>
 #include <map>
 #include <assert.h>
-#include "beadinfo.h"
-#include "moleculeinfo.h"
+#include <tools/vec.h>
+#include <tools/matrix.h>
+#include "bead.h"
+#include "molecule.h"
 #include "residue.h"
-#include "interaction.h"
 #include "beadtype.h"
 
-typedef vector<MoleculeInfo *> MoleculeContainer;
-typedef vector<BeadInfo *> BeadContainer;
+class Interaction;
+
+typedef vector<Molecule *> MoleculeContainer;
+typedef vector<Bead *> BeadContainer;
 typedef vector<BeadType *> BeadTypeContainer;
 typedef vector<Residue *> ResidueContainer;
 typedef vector<Interaction *> InteractionContainer;
@@ -27,9 +30,9 @@ typedef vector<Interaction *> InteractionContainer;
 using namespace std;
 
 /**
-    \brief topology of a molecule
+    \brief topology of the whole system
 
-    The CTopology class stores the topology of the system like the beads, bonds, molecules and residues.
+    The Topology class stores the topology of the system like the beads, bonds, molecules and residues.
 
     \todo internal management for ids and indices
  **/
@@ -37,23 +40,22 @@ class Topology
 {
 public:
     /// constructor
-    Topology() {}
-    
+    Topology() {}    
     ~Topology();
     
     /// cleans up all the stored data
     void Cleanup();
     
     /// creates a new Bead
-    BeadInfo *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
-    //int AddBead(CBeadInfo *bead);
+    Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
+    //int AddBead(CBead *bead);
 
     /// returns the BeadType or creates it if it doesnt exist
     BeadType *GetOrCreateBeadType(string name);
         
 
     /// creates a new molecule
-    MoleculeInfo *CreateMolecule(string name);
+    Molecule *CreateMolecule(string name);
     
     /// creates a new residue
     Residue *CreateResidue(string name);
@@ -80,34 +82,57 @@ public:
     int ResidueCount() { return _residues.size(); }
        
     /// get a molecule by an index
-    MoleculeInfo *MoleculeByIndex(int index);
+    Molecule *MoleculeByIndex(int index);
     
     /// get the bead container
-    BeadContainer &getBeads() { return _beads; }
+    BeadContainer &Beads() { return _beads; }
     /// get the molecule container
-    MoleculeContainer &getMolecules() { return _molecules; }
-
+    MoleculeContainer &Molecules() { return _molecules; }
     /// get the bonded interaction container
-    InteractionContainer &getBondedInteractions() { return _interactions; }
+    InteractionContainer &BondedInteractions() { return _interactions; }
     
     
     // \todo change AddBondedinteraction to Create bonded interaction, that only topology can create interactions
     void AddBondedInteraction(Interaction *ic);
     
-    BeadType *getBeadType(const int i) { return _beadtypes[i]; }
-    BeadInfo *getBead(const int i) { return _beads[i]; }
-    Residue *getResidue(const int i) { return _residues[i]; }
-    MoleculeInfo *getMolecule(const int i) { return _molecules[i]; }
-   
-    
+    BeadType *getBeadType(const int i) const { return _beadtypes[i]; }
+    Bead *getBead(const int i) const { return _beads[i]; }
+    Residue *getResidue(const int i) const { return _residues[i]; }
+    Molecule *getMolecule(const int i) const { return _molecules[i]; }
+       
     /// a hack to get vale's topology to read
     void ClearMoleculeList(){
         _molecules.clear();
     }
     
+    /// adds all the beads+molecules+residues from other topology
     void Add(Topology *top);
     
+    /// \brief rename all the molecules in range
+    /// range is a string which is parsed by RangeParser,
+    /// check that for formating
     void RenameMolecules(string range, string name);
+    
+    /// set the simulation box
+    void setBox(const matrix &box) { _box = box; };
+    /// get the simulation box
+    const matrix &getBox() { return _box; };
+
+    /// set the time of current frame
+    void setTime(real t) { _time = t; };
+    /// get the time of current frame
+    real getTime() { return _time; };
+    
+    /// set the current step
+    void setStep(int s) { _step = s; };
+    /// get the current step
+    int getStep() { return _step; };
+
+    /// get the smallest distance between two particles with correct treatment of pbc
+    vec getDist(int bead1, int bead2) const;
+    
+    /// calculates the vox volume
+    double BoxVolume();
     
 private:
     /// bead types in the topology
@@ -126,35 +151,41 @@ private:
     InteractionContainer _interactions;
     
     map<string, int> _interaction_groups;
-    map<string, int> _beadtype_map;    
+    map<string, int> _beadtype_map;
+    
+    matrix _box;
+    real _time;
+    int _step;
 };
 
-inline BeadInfo *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
+inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
 {
     
-    BeadInfo *b = new BeadInfo(_beads.size(), type, symmetry, name, resnr, m, q);    
+    Bead *b = new Bead(this, _beads.size(), type, symmetry, name, resnr, m, q);    
     _beads.push_back(b);
     return b;
 }
 
-inline MoleculeInfo *Topology::CreateMolecule(string name)
+inline Molecule *Topology::CreateMolecule(string name)
 {
-    MoleculeInfo *mol = new MoleculeInfo(_molecules.size(), name);
+    Molecule *mol = new Molecule(this, _molecules.size(), name);
     _molecules.push_back(mol);
     return mol;
 }
 
 inline Residue *Topology::CreateResidue(string name)
 {
-    Residue *res = new Residue(_molecules.size(), name);
+    Residue *res = new Residue(this, _molecules.size(), name);
     _residues.push_back(res);
     return res;
 }
 
-inline MoleculeInfo *Topology::MoleculeByIndex(int index)
+inline Molecule *Topology::MoleculeByIndex(int index)
 {
     return _molecules[index];
 }
+
+#include "interaction.h"
 
 #endif	/* _topology_H */
 

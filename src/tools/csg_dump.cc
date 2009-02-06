@@ -65,7 +65,7 @@ int main(int argc, char** argv)
         cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
         
         MoleculeContainer::iterator mol;
-        for(mol=top.getMolecules().begin(); mol!=top.getMolecules().end();++mol) {
+        for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
             cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName() 
               << " beads: " << (*mol)->BeadCount() << endl;
             for(int i=0; i<(*mol)->BeadCount(); ++i) {

@@ -43,18 +43,18 @@ public:
              
     };
     
-    void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
-        Topology *top = conf->getTopology();
+    void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) {
+        Topology *top = conf;
         BeginCycle();
-        for(MoleculeContainer::iterator iter=top->getMolecules().begin();
-            iter!=top->getMolecules().end(); ++iter) {
-            MoleculeInfo *mi;
+        for(MoleculeContainer::iterator iter=top->Molecules().begin();
+            iter!=top->Molecules().end(); ++iter) {
+            Molecule *mi;
             mi = *iter;
-            vec no = conf->getU(mi->getBeadId(0));
+            vec no = mi->getBead(0)->getU();
             vector<int> beads;
             for(int i=1; i<(*iter)->BeadCount(); ++i) {
-                vec n = conf->getU(mi->getBeadId(i));
-                beads.push_back(mi->getBeadId(i));
+                vec n = mi->getBead(i)->getU();
+                beads.push_back(mi->getBead(i)->getId());
                 if(fabs(no*n) < thres) {
                     UpdateCrgUnit(beads);
                     _dist[beads.size()-1]++;

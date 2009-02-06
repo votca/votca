@@ -9,8 +9,8 @@
         <array_repeat_threshold>10</array_repeat_threshold>
       </gdbdebugger>
       <runprofile version="5">
-        <args></args>
-        <rundir></rundir>
+        <args>--top slice.tpr --trj slice.trr --cg ppy10.xml</args>
+        <rundir>/people/thnfs/homes/ruehle/kmc_tests/new</rundir>
         <buildfirst>true</buildfirst>
         <console-type>0</console-type>
         <terminal-type>0</terminal-type>

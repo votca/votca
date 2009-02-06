@@ -23,7 +23,8 @@ public:
     
     void AddMoleculeMap(Map *map);
 
-    void Apply(Configuration &conf_in, Configuration &conf_out);
+    void Apply();
+    
 private:
     Topology *_in;
     Topology *_out;

@@ -12,7 +12,6 @@
 #include <map>
 #include <boost/program_options.hpp>
 #include "topology.h"
-#include "configuration.h"
 #include "cgmoleculedef.h"
 #include <tools/datacollection.h>
 #include "topologymap.h"
@@ -66,7 +65,7 @@ public:
     /**
         evaluate configuration while in coarse graining process
      */
-    void EvalConfiguration(Configuration &conf_cg);
+    void EvalConfiguration(Topology &top_cg);
         
     CGMoleculeDef *getMoleculeDef(string name);
     

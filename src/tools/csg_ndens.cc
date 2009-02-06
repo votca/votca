@@ -36,7 +36,7 @@ public:
         _imccoeff.OutputCross(cout);
     };
     
-    void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
+    void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) {
         _ndist.clear();
         _ndist.Process(*conf);
         _imccoeff.Process(_ndist.getDist());

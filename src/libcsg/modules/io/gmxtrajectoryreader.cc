@@ -22,7 +22,7 @@ void GMXTrajectoryReader::Close()
     gmx::close_trx(_gmx_status);
 }
 
-bool GMXTrajectoryReader::FirstFrame(Configuration &conf)
+bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
     if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         return false;
@@ -35,22 +35,21 @@ bool GMXTrajectoryReader::FirstFrame(Configuration &conf)
     conf.setStep(_gmx_frame.step);
     cout << endl;
     
-    conf.HasPos(true);
-    conf.HasF(_gmx_frame.bF);
+    //conf.HasPos(true);
+    //conf.HasF(_gmx_frame.bF);
     
     for(int i=0; i<_gmx_frame.natoms; i++) {
         double r[3] = { _gmx_frame.x[i][XX],  _gmx_frame.x[i][YY], _gmx_frame.x[i][ZZ] };
-        //CBeadInfo *bi = conf.getTopology()->getBeads()[i];
-        conf.setPos(i, r);
+        conf.getBead(i)->setPos(r);
         if(_gmx_frame.bF) {
             double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
-            conf.setF(i, f);        
+            conf.getBead(i)->setPos(f);
         }
     }
     return true;
 }
 
-bool GMXTrajectoryReader::NextFrame(Configuration &conf)
+bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
     if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))
         return false;
@@ -62,14 +61,14 @@ bool GMXTrajectoryReader::NextFrame(Configuration &conf)
     conf.setStep(_gmx_frame.step);
     conf.setBox(m);
     
-    conf.HasF(_gmx_frame.bF);
+    //conf.HasF(_gmx_frame.bF);
     
     for(int i=0; i<_gmx_frame.natoms; i++) {
         double r[3] = { _gmx_frame.x[i][XX],  _gmx_frame.x[i][YY], _gmx_frame.x[i][ZZ] };
-        conf.setPos(i, r);
+        conf.getBead(i)->setPos(r);
         if(_gmx_frame.bF) {
             double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
-            conf.setF(i, f);        
+            conf.getBead(i)->setF(f);
         }
     }
     return true;

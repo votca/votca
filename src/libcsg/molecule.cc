@@ -5,17 +5,17 @@
 // Created on April 18, 2007, 6:35 PM
 //
 
-#include "moleculeinfo.h"
+#include "molecule.h"
 #include <iostream>
 
-void MoleculeInfo::AddBead(int bead, const string &name)
+void Molecule::AddBead(Bead *bead, const string &name)
 {
     _beads.push_back(bead);
     _bead_names.push_back(name);
     _beadmap[name] = _beads.size()-1;
 }
 
-int MoleculeInfo::getBeadByName(const string &name)
+int Molecule::getBeadByName(const string &name)
 {
     map<string, int>::iterator iter = _beadmap.find(name);
     if(iter == _beadmap.end()) {

@@ -10,7 +10,7 @@
 
 #include <list>
 #include <vector>
-#include "configuration.h"
+#include "topology.h"
 
 using namespace std;
 
@@ -36,7 +36,7 @@ public:
      // creates entire neighbour list
      // void GenerateIntraMolecular(Configuration &conf);
      // void GenerateInterMolecular(Configuration &conf);
-     void Process(Configuration &conf); 
+     void Process(Topology &top); 
 
      void clear();
      

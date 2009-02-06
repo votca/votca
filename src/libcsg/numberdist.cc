@@ -22,12 +22,12 @@ void NumberDist::clear() {
         *i=0;   
 }
 
-void NumberDist::Process(Configuration& conf) {
+void NumberDist::Process(Topology& top) {
     
     double h = _cutoff / (double)_dist.size();
-    for(int i = 0; i < conf.getTopology()->BeadCount(); i++){
-        for(int j=i+1; j<conf.getTopology()->BeadCount(); j++){
-            vec r = conf.getDist(i, j);
+    for(int i = 0; i < top.BeadCount(); i++){
+        for(int j=i+1; j< top.BeadCount(); j++){
+            vec r = top.getDist(i, j);
             double absr = abs(r);
             if(absr < _cutoff) {
 		_dist[(int)(absr/h)]++;

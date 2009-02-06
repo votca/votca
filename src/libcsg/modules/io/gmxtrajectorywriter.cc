@@ -25,10 +25,10 @@ void GMXTrajectoryWriter::Close()
     gmx::close_trx(_file);
 }
 
-void GMXTrajectoryWriter::Write(Configuration *conf)
+void GMXTrajectoryWriter::Write(Topology *conf)
 {
     static int step=0;   
-    int N = conf->getTopology()->BeadCount();
+    int N = conf->BeadCount();
     gmx::t_trxframe frame;
     gmx::rvec *x = new gmx::rvec[N];
     matrix box = conf->getBox();
@@ -53,7 +53,7 @@ void GMXTrajectoryWriter::Write(Configuration *conf)
     
     
 for(int i=0; i<N; ++i) {
-        vec v = conf->getPos(i);
+        vec v = conf->getBead(i)->getPos();
         x[i][0] = v.getX();
         x[i][1] = v.getY();
         x[i][2] = v.getZ(); 

@@ -36,13 +36,12 @@ int main(int argc, char** argv)
     TrajectoryReader *traj_reader;
     Topology top;
     Topology top_cg;
-    Configuration conf(&top);
-    Configuration conf_cg(&top_cg);
     CGEngine cg_engine;
     TrajectoryWriter *writer;
     TopologyMap *map;
     bool bWrite = false;
     namespace po = boost::program_options;
+    
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()
@@ -54,6 +53,7 @@ int main(int argc, char** argv)
     ("out", po::value<string>(), "write pdb cg trajectory")
     ("excl", po::value<string>(), "write exclusion list to file")
     ;
+    
     cg_engine.AddObserver(&bs);
     
     TrajectoryWriter::RegisterPlugins();
@@ -114,7 +114,6 @@ int main(int argc, char** argv)
             return 1;
         }
         reader->ReadTopology(vm["top"].as<string>(), top);
-        conf.Initialize();
         cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
         //top.CreateMoleculesByResidue();    
         //top.CreateOneBigMolecule("PS1");    
@@ -123,7 +122,6 @@ int main(int argc, char** argv)
         //cg_engine.LoadMoleculeType("Cl.xml");
         map = cg_engine.CreateCGTopology(top, top_cg);
         //cg_def.CreateMolecule(top_cg);
-        conf_cg.Initialize();
               
         cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
         
@@ -150,15 +148,15 @@ int main(int argc, char** argv)
                 return 1;
             }
             traj_reader->Open(vm["trj"].as<string>());
-            traj_reader->FirstFrame(conf);    
+            traj_reader->FirstFrame(top);    
         
             cg_engine.BeginCG(top_cg);
             bool bok=true;
             while(bok) {
-                map->Apply(conf, conf_cg);
-                cg_engine.EvalConfiguration(conf_cg);
-                if(bWrite) writer->Write(&conf_cg);
-                bok = traj_reader->NextFrame(conf);
+                map->Apply();
+                cg_engine.EvalConfiguration(top_cg);
+                if(bWrite) writer->Write(&top_cg);
+                bok = traj_reader->NextFrame(top);
             }
             cg_engine.EndCG();
             traj_reader->Close();

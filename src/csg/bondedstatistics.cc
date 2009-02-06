@@ -9,7 +9,7 @@
 
 void BondedStatistics::BeginCG(Topology *top, Topology *top_atom)
 {
-    InteractionContainer &ic = top->getBondedInteractions();
+    InteractionContainer &ic = top->BondedInteractions();
     InteractionContainer::iterator ia;
     
     _bonded_values.clear();
@@ -22,9 +22,9 @@ void BondedStatistics::EndCG()
 {
 }
 
-void BondedStatistics::EvalConfiguration(Configuration *conf, Configuration *conv_atom)
+void BondedStatistics::EvalConfiguration(Topology *conf, Topology *conv_atom)
 {
-    InteractionContainer &ic = conf->getTopology()->getBondedInteractions();
+    InteractionContainer &ic = conf->BondedInteractions();
     InteractionContainer::iterator ia;
     
     DataCollection<double>::container::iterator is;

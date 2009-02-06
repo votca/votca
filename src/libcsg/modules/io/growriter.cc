@@ -21,14 +21,14 @@ void GROWriter::Close()
     fclose(_out);
 }
 
-void GROWriter::Write(Configuration *conf)
+void GROWriter::Write(Topology *conf)
 {
     char nm[6],format[100];
   int  ai,i,resnr,l,vpr;
-  Topology *top = conf->getTopology();
+  Topology *top = conf;
 
   fprintf (_out,"%s\n","what a nice title");
-  fprintf (_out,"%5d\n",conf->getTopology()->BeadCount());
+  fprintf (_out,"%5d\n",top->BeadCount());
   
   bool v = false; // we don't write velocities!  
   int pr = 3; // precision of writeout
@@ -47,7 +47,7 @@ void GROWriter::Write(Configuration *conf)
   else
     sprintf(format,"%%%d.%df%%%d.%df%%%d.%df\n",l,pr,l,pr,l,pr);
   
-  for (i=0; i< conf->getTopology()->BeadCount(); i++) {
+  for (i=0; i< top->BeadCount(); i++) {
     resnr=top->getBead(i)->getResnr();
     string resname = top->getResidue(resnr)->getName();
     string atomname = top->getBead(i)->getName();
@@ -55,7 +55,7 @@ void GROWriter::Write(Configuration *conf)
     fprintf(_out,"%5d%-5.5s%5.5s%5d",
             (resnr+1)%100000,resname.c_str(),atomname.c_str(),(i+1)%100000);
     /* next fprintf uses built format string */
-    vec r = conf->Pos(i);
+    vec r = conf->getBead(i)->getPos();
     vec vv = vec(0,0,0);
     
     if (v)

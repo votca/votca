@@ -2,97 +2,76 @@
 // File:   molecule.h
 // Author: ruehle
 //
-// Created on April 17, 2007, 2:14 PM
+// Created on April 12, 2007, 4:07 PM
 //
 
-#ifndef _molecule_H
-#define	_molecule_H
+#ifndef _MOLECULE_H
+#define	_MOLECULE_H
 
-#include "configuration.h"
-#include "moleculeinfo.h"
+#include <vector>
+#include <map>
+#include <string>
+#include <assert.h>
+#include "topologyitem.h"
+#include "bead.h"
 
+using namespace std;
+    
 /**
-    \brief molecule - connection between moleculeinfo and a configuration
+    \brief information about molecules
 
-    The CMolecule class connects a molecule info with a configuration to represent the whole molecule.
+    The Molecule class stores which beads belong to a molecule.
+    The organization of beads into molecules is needed for the CG mapping.
+
+    \todo sort atoms in molecule
+
 */
-class Molecule
+class Molecule : public TopologyItem
 {
-public:
-    /// constructor
-    Molecule(Configuration &conf, MoleculeInfo &info)
-        : _conf(&conf), _info(&info) {}
-        
-    /// get the configuration which corresponds to the molecule
-    Configuration *getConfiguration() { return _conf; }
-    /// get the molecule info which stores the information about the molecule
-    MoleculeInfo *getMoleculeInfo() { return _info; }
+public:            
+    /// get the molecule ID
+    int getId() const { return _id; }
     
-    /// wrapper to easily read the position of a bead in the molecule
-    const vec &getBeadPos(const int &bead) const;
-    /// wrapper to get direct access (read/write) to the position of a bead in the molecule
-    vec &BeadPos(const int &bead);
+    /// get the name of the molecule
+    const string &getName() const { return _name; }
     
-    const vec &getBeadF(const int &bead) const;
-    vec &BeadF(const int &bead);
+    /// set the name of the molecule
+    void setName(const string &name) {  _name=name; }
     
-    const vec &getBeadVel(const int &bead) const;
-    vec &BeadVel(const int &bead);
+    /// Add a bead to the molecule
+    void AddBead(Bead *bead, const string &name);
+    /// get the id of a bead in the molecule
+    Bead *getBead(int bead) { return _beads[bead]; }
+    int getBeadId(int bead) { return _beads[bead]->getId(); }
+    int getBeadIdByName(const string &name) { return _beads[getBeadByName(name)]->getId(); }
     
-    vec &BeadU(const int &bead);
-    vec &BeadV(const int &bead);
-    vec &BeadW(const int &bead);
+    /// get the number of beads in the molecule
+    int BeadCount() const { return _beads.size(); }
+    
+    /// find a bead by it's name
+    int getBeadByName(const string &name);
+    string getBeadName(int bead) {return _bead_names[bead]; }
     
 private:
-    Configuration *_conf;
-    MoleculeInfo *_info;
+    // maps a name to a bead id
+    map<string, int> _beadmap;
+    
+    // id of the molecules
+    int _id;
+    
+    // name of the molecule
+    string _name;
+    // the beads in the molecule
+    vector<Bead *> _beads;
+    vector<string> _bead_names;
+    
+    /// constructor
+    Molecule(Topology *parent, int id, string name)
+        : _id(id), _name(name), TopologyItem(parent)
+    {}
+
+    friend class Topology;
 };
 
-inline const vec &Molecule::getBeadPos(const int &bead) const
-{
-    return _conf->Pos(_info->getBeadId(bead));
-}
-
-inline vec &Molecule::BeadPos(const int &bead)
-{
-    return _conf->Pos(_info->getBeadId(bead));
-}
-
-inline const vec &Molecule::getBeadF(const int &bead) const
-{
-    return _conf->F(_info->getBeadId(bead));
-}
-
-inline const vec &Molecule::getBeadVel(const int &bead) const
-{
-    return _conf->Vel(_info->getBeadId(bead));
-}
-
-inline vec &Molecule::BeadVel(const int &bead)
-{
-    return _conf->Vel(_info->getBeadId(bead));
-}
-
-inline vec &Molecule::BeadF(const int &bead)
-{
-    return _conf->F(_info->getBeadId(bead));
-}
-
-
-inline vec &Molecule::BeadU(const int &bead)
-{
-    return _conf->U(_info->getBeadId(bead));
-}
-
-inline vec &Molecule::BeadV(const int &bead)
-{
-    return _conf->V(_info->getBeadId(bead));
-}
-
-inline vec &Molecule::BeadW(const int &bead)
-{
-    return _conf->W(_info->getBeadId(bead));
-}
-
-#endif	/* _molecule_H */
+#endif	/* _Molecule_H */
 

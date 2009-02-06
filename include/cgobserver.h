@@ -9,7 +9,6 @@
 #define	_CGOBSERVER_H
 
 #include "topology.h"
-#include "configuration.h"
 
 class CGObserver
 {
@@ -17,7 +16,7 @@ public:
     virtual void BeginCG(Topology *top, Topology *top_atom = 0) = 0;
     virtual void EndCG() = 0;
     
-    virtual void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) = 0;
+    virtual void EvalConfiguration(Topology *top, Topology *top_atom = 0) = 0;
 };
 
 

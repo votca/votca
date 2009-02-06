@@ -30,23 +30,30 @@ void Map_Sphere::Apply(Molecule &in, Molecule &out)
 {
     vector<element_t>::iterator iter;
     vec cg(0., 0., 0.), f(0.,0.,0.), vel(0.,0.,0.);
-        
+    bool bPos, bVel, bF;
+    bPos=bVel=bF=false;
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-        if(in.getConfiguration()->HasPos())
-            cg += (*iter)._weight * in.getBeadPos((*iter)._in);
-        if(in.getConfiguration()->HasVel())
-            vel += (*iter)._weight * in.getBeadVel((*iter)._in);
-        if(in.getConfiguration()->HasF())
+        if(in.getBead((*iter)._in)->HasPos()) {
+            cg += (*iter)._weight * in.getBead((*iter)._in)->getPos();
+            bPos=true;
+        }
+        if(in.getBead((*iter)._in)->HasVel()) {
+            vel += (*iter)._weight * in.getBead((*iter)._in)->getVel();
+            bVel = true;
+        }
+        if(in.getBead((*iter)._in)->HasF()) {
             /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) * sum(w_i/m_i*F_i)
             //f += (*iter)._weight * in.getBeadF((*iter)._in);
-            f += in.getBeadF((*iter)._in);
+            f += in.getBead((*iter)._in)->getF();
+            bF = true;
+        }
     }
-    if(out.getConfiguration()->HasPos())
-        out.BeadPos(_out) = cg;
-    if(out.getConfiguration()->HasVel())
-        out.BeadVel(_out) = vel;
-    if(out.getConfiguration()->HasF())
-        out.BeadF(_out) = f;
+    if(bPos)
+        out.getBead(_out)->setPos(cg);
+    if(bVel)
+        out.getBead(_out)->setVel(vel);
+    if(bF)
+        out.getBead(_out)->setF(f);
 }
 
 /// \todo implement this function
@@ -55,35 +62,45 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     vector<element_t>::iterator iter;
     vec cg(0., 0., 0.), c(0., 0., 0.), f(0.,0.,0.), vel(0.,0.,0.);
     matrix m(0.);
-        
+     bool bPos, bVel, bF;
+    bPos=bVel=bF=false;
+      
     int n;
     n = 0;
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-        if(in.getConfiguration()->HasPos())
-            cg += (*iter)._weight * in.getBeadPos((*iter)._in);
-        if(in.getConfiguration()->HasVel())
-            vel += (*iter)._weight * in.getBeadVel((*iter)._in);
-        if(in.getConfiguration()->HasF())
-            f += (*iter)._weight * in.getBeadF((*iter)._in);
-         
+        if(in.getBead((*iter)._in)->HasPos()) {
+            cg += (*iter)._weight * in.getBead((*iter)._in)->getPos();
+            bPos=true;
+        }
+        if(in.getBead((*iter)._in)->HasVel() == true) {
+            vel += (*iter)._weight * in.getBead((*iter)._in)->getVel();
+            bVel = true;
+        }
+        if(in.getBead((*iter)._in)->HasF()) {
+            /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) * sum(w_i/m_i*F_i)
+            //f += (*iter)._weight * in.getBeadF((*iter)._in);
+            f += in.getBead((*iter)._in)->getF();
+            bF = true;
+        }
+        
         if((*iter)._weight>0) {
-            c += in.getBeadPos((*iter)._in);
+            c += in.getBead((*iter)._in)->getPos();
             n++;
         }
     }
     
-    if(out.getConfiguration()->HasPos())
-        out.BeadPos(_out) = cg;
-    if(out.getConfiguration()->HasVel())
-        out.BeadVel(_out) = vel;
-    if(out.getConfiguration()->HasF())
-        out.BeadF(_out) = f;
+    if(bPos)
+        out.getBead(_out)->setPos(cg);
+    if(bVel)
+        out.getBead(_out)->setVel(vel);
+    if(bF)
+        out.getBead(_out)->setF(f);
     
     // calculate the tensor of gyration
     c=c/(double)n;    
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         if((*iter)._weight == 0) continue;
-        vec v = (in.getBeadPos((*iter)._in) - c);
+        vec v = (in.getBead((*iter)._in)->getPos() - c);
         //v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
         //    + vec(0.5, -1, 0) * (drand48()-0.5)
         //    + vec(0, 0, 1) * (drand48()-0.5);
@@ -103,17 +120,15 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     m.SolveEigensystem(es);
     
     vec u = es.eigenvecs[0];
-    vec v = in.getBeadPos(_matrix[1]._in) - in.getBeadPos(_matrix[0]._in);
+    vec v = in.getBead(_matrix[1]._in)->getPos() - in.getBead(_matrix[0]._in)->getPos();
     v.normalize();
     
-    out.getConfiguration()->HasV(true);
-    out.BeadV(_out) = v;    
+    out.getBead(_out)->setV(v);    
     
-    vec w = in.getBeadPos(_matrix[2]._in) - in.getBeadPos(_matrix[0]._in);
+    vec w = in.getBead(_matrix[2]._in)->getPos() - in.getBead(_matrix[0]._in)->getPos();
     w.normalize();
     if((v^w)*u < 0) u=vec(0.,0.,0.)-u;
-    out.getConfiguration()->HasU(true);
-    out.BeadU(_out) = u;
+    out.getBead(_out)->setU(u);    
     //out.BeadV(_out) = v;
     
     //out.BeadW(_out) = es.eigenvecs[2];

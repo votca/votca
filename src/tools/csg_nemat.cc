@@ -58,10 +58,10 @@ public:
         }
     };
     
-    void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
-        _bU = conf->HasU();
-        _bV = conf->HasV();
-        _bW = conf->HasW();
+    void EvalConfiguration(Topology *conf, Topology*conf_atom = 0) {
+        _bU = true; //conf->HasU();
+        _bV = true; //conf->HasV();
+        _bW = true; //conf->HasW();
 
         nemat.Process(*conf);
         if(_file) {

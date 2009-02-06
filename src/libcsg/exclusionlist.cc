@@ -88,7 +88,7 @@ void ExclusionList::ExcludeList( list<int> l ) {
     
 void ExclusionList::CreateExclusions(Topology *top) {
     
-    InteractionContainer &ic = top->getBondedInteractions();
+    InteractionContainer &ic = top->BondedInteractions();
     InteractionContainer::iterator ia;
     list<int> l;
     

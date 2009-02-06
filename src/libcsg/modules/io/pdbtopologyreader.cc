@@ -26,11 +26,11 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
         //cout << *(gtp.atoms.atomname[i]) << " residue: " << a->resnr << endl;
     }
     
-    BeadInfo *bead;
+    Bead *bead;
     for(int i=0; i<gtp.blocks[gmx::ebMOLS].nr; i++) {
         int i1 = gtp.blocks[gmx::ebMOLS].index[i];
         int i2 = gtp.blocks[gmx::ebMOLS].index[i+1];
-        MoleculeInfo *mi = top.CreateMolecule("PPY10");    
+        Molecule *mi = top.CreateMolecule("PPY10");    
         int res0 = top.getBead(i1)->getResnr();
         for(int i=i1; i<i2; ++i) {
             bead = top.getBead(i);

@@ -8,11 +8,12 @@
 #ifndef _interaction_H
 #define	_interaction_H
 
-#include "configuration.h"
-
 #include <string>
 #include <sstream>
 using namespace std;
+
+#include "topology.h"
+#include "bead.h"
 
 /**
     \brief base calss for all interactions
@@ -25,7 +26,7 @@ class Interaction
 {
 public:
     virtual ~Interaction() { }
-    virtual double EvaluateVar(const Configuration &conf) = 0;
+    virtual double EvaluateVar(const Topology &top) = 0;
         
     void setName(const string &name) { _name = name; }
     string getName() const { return _name; }
@@ -44,7 +45,7 @@ public:
     void setMolecule(const int &mol) { _mol = mol; RebuildName(); }
     const int &getMolecule() const { return _mol; }
     
-    virtual vec Grad(const Configuration &conf, int bead) = 0;
+    virtual vec Grad(const Topology &top, int bead) = 0;
     int BeadCount() { return _beads.size(); }
     int getBeadId(int bead) { return _beads[bead]; }
     
@@ -75,8 +76,8 @@ public:
     IBond(int bead1, int bead2)
         { _beads.resize(2); _beads[0] = bead1; _beads[1] = bead2; }
     
-    double EvaluateVar(const Configuration &conf);
-    vec Grad(const Configuration &conf, int bead);
+    double EvaluateVar(const Topology &top);
+    vec Grad(const Topology &top, int bead);
 
 private:
 };
@@ -90,8 +91,8 @@ public:
     IAngle(int bead1, int bead2, int bead3)
         { _beads.resize(3); _beads[0] = bead1; _beads[1] = bead2; _beads[2] = bead3;}
 
-    double EvaluateVar(const Configuration &conf);
-    vec Grad(const Configuration &conf, int bead);
+    double EvaluateVar(const Topology &top);
+    vec Grad(const Topology &top, int bead);
 
 private:
 };
@@ -105,35 +106,35 @@ public:
     IDihedral(int bead1, int bead2, int bead3, int bead4)
         { _beads.resize(4); _beads[0] = bead1; _beads[1] = bead2; _beads[2] = bead3; _beads[3] = bead4;}
         
-    double EvaluateVar(const Configuration &conf);
-    vec Grad(const Configuration &conf, int bead) {}
+    double EvaluateVar(const Topology &top);
+    vec Grad(const Topology &top, int bead) {}
 
 private:
 };
 
-inline double IBond::EvaluateVar(const Configuration &conf)
+inline double IBond::EvaluateVar(const Topology &top)
 {
-    return abs(conf.getDist(_beads[0], _beads[1]));
+    return abs(top.getDist(_beads[0], _beads[1]));
 }
 
-inline vec IBond::Grad(const Configuration &conf, int bead)
+inline vec IBond::Grad(const Topology &top, int bead)
 {
-    vec r = conf.getDist(_beads[0], _beads[1]); 
+    vec r = top.getDist(_beads[0], _beads[1]); 
     r.normalize();
     return (bead == 0) ? -r : r;
 }
     
-inline double IAngle::EvaluateVar(const Configuration &conf)
+inline double IAngle::EvaluateVar(const Topology &top)
 {
-    vec v1(conf.getDist(_beads[1], _beads[0]));
-    vec v2(conf.getDist(_beads[1], _beads[2]));
+    vec v1(top.getDist(_beads[1], _beads[0]));
+    vec v2(top.getDist(_beads[1], _beads[2]));
     return  acos(v1*v2/sqrt((v1*v1) * (v2*v2)));    
 }
 
-inline vec IAngle::Grad(const Configuration &conf, int bead)
+inline vec IAngle::Grad(const Topology &top, int bead)
 {
-    vec v1(conf.getDist(_beads[1], _beads[0]));
-    vec v2(conf.getDist(_beads[1], _beads[2]));
+    vec v1(top.getDist(_beads[1], _beads[0]));
+    vec v2(top.getDist(_beads[1], _beads[2]));
     
     double acos_prime = 1.0 / (sqrt(1 - (v1*v2) * (v1*v2)/( abs(v1) * abs(v2) * abs(v1) * abs(v2) ) ));
     switch (bead) {
@@ -143,11 +144,11 @@ inline vec IAngle::Grad(const Configuration &conf, int bead)
     }
 }
 
-inline double IDihedral::EvaluateVar(const Configuration &conf)
+inline double IDihedral::EvaluateVar(const Topology &top)
 {
-    vec v1(conf.getPos(_beads[1]) - conf.getPos(_beads[0]));
-    vec v2(conf.getPos(_beads[2]) - conf.getPos(_beads[1]));
-    vec v3(conf.getPos(_beads[3]) - conf.getPos(_beads[2]));
+    vec v1(top.getBead(_beads[1])->getPos() - top.getBead(_beads[0])->getPos());
+    vec v2(top.getBead(_beads[2])->getPos() - top.getBead(_beads[1])->getPos());
+    vec v3(top.getBead(_beads[3])->getPos() - top.getBead(_beads[2])->getPos());
     vec n1, n2;
     n1 = v1^v2; // calculate the normal vector
     n2 = v2^v3; // calculate the normal vector

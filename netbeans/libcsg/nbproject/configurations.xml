@@ -4,12 +4,12 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../include/beadinfo.h</itemPath>
+      <itemPath>../../include/bead.h</itemPath>
       <itemPath>../../include/beadlist.h</itemPath>
+      <itemPath>../../include/beadtype.h</itemPath>
       <itemPath>../../include/cgengine.h</itemPath>
       <itemPath>../../include/cgmoleculedef.h</itemPath>
       <itemPath>../../include/cgobserver.h</itemPath>
-      <itemPath>../../include/configuration.h</itemPath>
       <itemPath>../../include/connectivity.h</itemPath>
       <itemPath>../../include/exclusionlist.h</itemPath>
       <itemPath>../../include/fileformatfactory.h</itemPath>
@@ -18,15 +18,14 @@
       <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/map.h</itemPath>
       <itemPath>../../include/molecule.h</itemPath>
-      <itemPath>../../include/moleculeinfo.h</itemPath>
       <itemPath>../../include/neighbourlist.h</itemPath>
       <itemPath>../../include/nematicorder.h</itemPath>
       <itemPath>../../include/numberdist.h</itemPath>
       <itemPath>../../include/residue.h</itemPath>
       <itemPath>../../include/topology.h</itemPath>
+      <itemPath>../../include/topologyitem.h</itemPath>
       <itemPath>../../include/topologymap.h</itemPath>
       <itemPath>../../include/topologyreader.h</itemPath>
-      <itemPath>../../include/trajectory.h</itemPath>
       <itemPath>../../include/trajectoryreader.h</itemPath>
       <itemPath>../../include/trajectorywriter.h</itemPath>
     </logicalFolder>
@@ -50,10 +49,6 @@
             <itemPath>../../src/libcsg/modules/io/grotopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/growriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/growriter.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/mdptopologyreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/mdptopologyreader.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/mdptrajectoryreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/mdptrajectoryreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbtopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbtopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.cc</itemPath>
@@ -65,12 +60,11 @@
       </logicalFolder>
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
-      <itemPath>../../src/libcsg/configuration.cc</itemPath>
       <itemPath>../../src/libcsg/connectivity.cc</itemPath>
       <itemPath>../../src/libcsg/exclusionlist.cc</itemPath>
       <itemPath>../../src/libcsg/imccoefficients.cc</itemPath>
       <itemPath>../../src/libcsg/map.cc</itemPath>
-      <itemPath>../../src/libcsg/moleculeinfo.cc</itemPath>
+      <itemPath>../../src/libcsg/molecule.cc</itemPath>
       <itemPath>../../src/libcsg/neighbourlist.cc</itemPath>
       <itemPath>../../src/libcsg/nematicorder.cc</itemPath>
       <itemPath>../../src/libcsg/numberdist.cc</itemPath>
@@ -111,10 +105,13 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/beadinfo.h">
+      <item path="../../include/bead.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/beadlist.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/beadtype.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/cgengine.h">
@@ -124,9 +121,6 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/cgobserver.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/configuration.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/connectivity.h">
@@ -153,9 +147,6 @@
       <item path="../../include/molecule.h">
         <itemTool>3</itemTool>
       </item>
-      <item path="../../include/moleculeinfo.h">
-        <itemTool>3</itemTool>
-      </item>
       <item path="../../include/neighbourlist.h">
         <itemTool>3</itemTool>
       </item>
@@ -171,13 +162,13 @@
       <item path="../../include/topology.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/topologyitem.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/topologymap.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/topologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/trajectory.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/trajectoryreader.h">
@@ -190,9 +181,6 @@
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/cgmoleculedef.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/configuration.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/connectivity.cc">
@@ -237,18 +225,6 @@
       <item path="../../src/libcsg/modules/io/growriter.h">
         <itemTool>3</itemTool>
       </item>
-      <item path="../../src/libcsg/modules/io/mdptopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/mdptopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/mdptrajectoryreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/mdptrajectoryreader.h">
-        <itemTool>3</itemTool>
-      </item>
       <item path="../../src/libcsg/modules/io/pdbtopologyreader.cc">
         <itemTool>1</itemTool>
       </item>
@@ -267,7 +243,7 @@
       <item path="../../src/libcsg/modules/io/xmltopologyreader.h">
         <itemTool>3</itemTool>
       </item>
-      <item path="../../src/libcsg/moleculeinfo.cc">
+      <item path="../../src/libcsg/molecule.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/neighbourlist.cc">
@@ -320,10 +296,13 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/beadinfo.h">
+      <item path="../../include/bead.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/beadlist.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/beadtype.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/cgengine.h">
@@ -333,9 +312,6 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/cgobserver.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/configuration.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/connectivity.h">
@@ -362,9 +338,6 @@
       <item path="../../include/molecule.h">
         <itemTool>3</itemTool>
       </item>
-      <item path="../../include/moleculeinfo.h">
-        <itemTool>3</itemTool>
-      </item>
       <item path="../../include/neighbourlist.h">
         <itemTool>3</itemTool>
       </item>
@@ -380,13 +353,13 @@
       <item path="../../include/topology.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/topologyitem.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/topologymap.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/topologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/trajectory.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/trajectoryreader.h">
@@ -399,9 +372,6 @@
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/cgmoleculedef.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/configuration.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/connectivity.cc">
@@ -446,18 +416,6 @@
       <item path="../../src/libcsg/modules/io/growriter.h">
         <itemTool>3</itemTool>
       </item>
-      <item path="../../src/libcsg/modules/io/mdptopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/mdptopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/mdptrajectoryreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/mdptrajectoryreader.h">
-        <itemTool>3</itemTool>
-      </item>
       <item path="../../src/libcsg/modules/io/pdbtopologyreader.cc">
         <itemTool>1</itemTool>
       </item>
@@ -476,7 +434,7 @@
       <item path="../../src/libcsg/modules/io/xmltopologyreader.h">
         <itemTool>3</itemTool>
       </item>
-      <item path="../../src/libcsg/moleculeinfo.cc">
+      <item path="../../src/libcsg/molecule.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/neighbourlist.cc">

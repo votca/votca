@@ -9,6 +9,7 @@
 #define	_residue_H
 
 #include <string>
+#include "topologyitem.h"
 
 using namespace std;
     
@@ -19,14 +20,10 @@ using namespace std;
     can be organized into molecules based on their residue.
 
 */
-class Residue
+class Residue : public TopologyItem
 {
 public:
-    /// constructor
-    Residue(int id, const string &name)
-        : _id(id), _name(name)
-    {}
-    
+   
     /// get the name of the residue
     const string &getName();
 
@@ -36,7 +33,12 @@ public:
     private:
     int _id;
     string _name;
-    
+private:
+        /// constructor
+    Residue(Topology *parent, int id, const string &name)
+        : _id(id), _name(name), TopologyItem(parent)
+    {}
+    friend class Topology;
 };
 
 inline const string &Residue::getName()

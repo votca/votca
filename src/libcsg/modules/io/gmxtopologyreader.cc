@@ -52,12 +52,12 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         //cout << *(gtp.atoms.atomname[i]) << " residue: " << a->resnr << endl;
     }
     
-    BeadInfo *bead;
+    Bead *bead;
     for(int i=0; i<gtp.mols.nr; i++) {
         int i1 = gtp.mols.index[i];
         int i2 = gtp.mols.index[i+1];
         // if(i2-i1 < 2) continue;
-        MoleculeInfo *mi = top.CreateMolecule("unnamed");    
+        Molecule *mi = top.CreateMolecule("unnamed");    
         int res0 = top.getBead(i1)->getResnr();
         for(int i=i1; i<i2; ++i) {
             bead = top.getBead(i);
@@ -65,7 +65,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
             
             n << bead->getResnr()-res0 + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
             //cout << n.str() << endl;
-            mi->AddBead(i, n.str());
+            mi->AddBead(top.getBead(i), n.str());
         }         
         
     }

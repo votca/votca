@@ -10,7 +10,7 @@
 
 #include <list>
 #include <vector>
-#include "configuration.h"
+#include "topology.h"
 
 using namespace std;
 
@@ -27,7 +27,7 @@ public:
      void setCutoff(double cutoff) { _cutoff = cutoff; } /// define cut-off radius     
      double getCutoff() { return _cutoff; } /// show used cut-off radius
                
-     void Generate(Configuration &conf); // creates entire neighbour list
+     void Generate(Topology &top); // creates entire neighbour list
      // void GenerateIntraMolecular(Configuration &conf);
      // void GenerateInterMolecular(Configuration &conf);
      

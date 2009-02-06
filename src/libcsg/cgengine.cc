@@ -22,17 +22,17 @@ CGEngine::~CGEngine()
 */
 TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out)
 {
-    MoleculeContainer &mols = in.getMolecules();
+    MoleculeContainer &mols = in.Molecules();
     MoleculeContainer::iterator iter;
     TopologyMap *m = new TopologyMap(&in, &out);
     for(iter=mols.begin(); iter!=mols.end(); ++iter) {
-        MoleculeInfo *mol = *iter;
+        Molecule *mol = *iter;
         CGMoleculeDef *def = getMoleculeDef(mol->getName());
         if(!def) {
             cout << "unknown molecule " << mol->getName() << " in topology" << endl;
             continue;
         }
-        MoleculeInfo *mcg = def->CreateMolecule(out);
+        Molecule *mcg = def->CreateMolecule(out);
         Map *map = def->CreateMap(*mol, *mcg);
         m->AddMoleculeMap(map);
     }
@@ -65,11 +65,11 @@ void CGEngine::EndCG()
         (*iter)->EndCG();
 }
     
-void CGEngine::EvalConfiguration(Configuration &conf_cg)
+void CGEngine::EvalConfiguration(Topology &top_cg)
 {
     list<CGObserver *>::iterator iter;
     for(iter=_observers.begin(); iter!=_observers.end(); ++iter)
-        (*iter)->EvalConfiguration(&conf_cg);
+        (*iter)->EvalConfiguration(&top_cg);
 }
 
 void CGEngine::AddProgramOptions(boost::program_options::options_description &desc)
@@ -89,8 +89,6 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     TrajectoryReader *traj_reader;
     Topology top;
     Topology top_cg;
-    Configuration conf(&top);
-    Configuration conf_cg(&top_cg);
     TopologyMap *map;
     
     if (!vm.count("top")) {
@@ -101,23 +99,6 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
         cout << desc << endl;
         throw string("no coarse graining definition specified");
     }
-
-/*    if (vm.count("out")) {
-        if (!vm.count("trj")) {
-            cout << desc << endl;
-            cout << "no trajectory file specified" << endl;
-            return 1;
-        }
-
-        writer = TrjWriterFactory().Create(vm["out"].as<string>());
-        if(writer == NULL) {
-            cerr << "output format not supported:" << vm["out"].as<string>() << endl;
-            return 1;
-        }
-        bWrite = true;
-        writer->Open(vm["out"].as<string>());
-    }*/
-        
     
     // create reader for atomistic topology
     reader = TopReaderFactory().Create(vm["top"].as<string>());
@@ -126,8 +107,6 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
         
     // read in the atomistic topology
     reader->ReadTopology(vm["top"].as<string>(), top);
-    // initialize configuration
-    conf.Initialize();
     cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
     
     //top.CreateMoleculesByResidue();    
@@ -138,8 +117,6 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     // create the mapping + cg topology
     map = CreateCGTopology(top, top_cg);
     //cg_def.CreateMolecule(top_cg);
-    // initialize coarse grained configuration
-    conf_cg.Initialize();
               
     cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
    
@@ -153,18 +130,17 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
         // open the trajectory
         traj_reader->Open(vm["trj"].as<string>());
         // read in first frame
-        traj_reader->FirstFrame(conf);    
+        traj_reader->FirstFrame(top);    
         
         // notify all observer that coarse graining has begun
         BeginCG(top_cg);
              
         bool bok=true;
         while(bok) {
-            map->Apply(conf, conf_cg);
-            EvalConfiguration(conf_cg);
-                
-//            if(bWrite) writer->Write(&conf_cg);
-            bok = traj_reader->NextFrame(conf);
+            map->Apply();
+            EvalConfiguration(top_cg);
+
+            bok = traj_reader->NextFrame(top);
         }
         EndCG();
         traj_reader->Close();

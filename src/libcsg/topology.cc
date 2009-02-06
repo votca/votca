@@ -7,6 +7,7 @@
 
 #include "topology.h"
 #include <tools/rangeparser.h>
+#include "interaction.h"
 
 Topology::~Topology()
 {
@@ -59,7 +60,7 @@ void Topology::CreateMoleculesByResidue()
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
         //MoleculeByIndex((*bead)->getResnr())->AddBead((*bead)->getId(), (*bead)->getName());
 
-        MoleculeByIndex((*bead)->getResnr())->AddBead((*bead)->getId(), string("1:TRI:") + (*bead)->getName());
+        MoleculeByIndex((*bead)->getResnr())->AddBead((*bead), string("1:TRI:") + (*bead)->getName());
     }
     
     /// \todo sort beads in molecules that all beads are stored in the same order. This is needed for the mapping!
@@ -67,7 +68,7 @@ void Topology::CreateMoleculesByResidue()
 
 void Topology::CreateOneBigMolecule(string name)
 {
-    MoleculeInfo *mi = CreateMolecule(name);
+    Molecule *mi = CreateMolecule(name);
     
     BeadContainer::iterator bead;    
     
@@ -75,7 +76,7 @@ void Topology::CreateOneBigMolecule(string name)
         stringstream n("");
         n << (*bead)->getResnr() +1 << ":" <<  _residues[(*bead)->getResnr()]->getName() << ":" << (*bead)->getName();
         //cout << n.str() << endl;
-        mi->AddBead((*bead)->getId(), n.str());
+        mi->AddBead((*bead), n.str());
     }    
 }
 
@@ -90,7 +91,7 @@ void Topology::Add(Topology *top)
     int mol0=MoleculeCount();
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
-        BeadInfo *bi = *bead;
+        Bead *bi = *bead;
         BeadType *type =  GetOrCreateBeadType(bi->getType()->getName());
         CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr()+res0, bi->getM(), bi->getQ());
     }
@@ -101,9 +102,9 @@ void Topology::Add(Topology *top)
   
     // \todo beadnames in molecules!!
     for(mol=top->_molecules.begin();mol!=top->_molecules.end(); ++mol) {
-        MoleculeInfo *mi = CreateMolecule((*mol)->getName());
+        Molecule *mi = CreateMolecule((*mol)->getName());
         for(int i=0; i<mi->BeadCount(); i++) {
-            mi->AddBead(mi->getBeadId(i), "invalid");
+            mi->AddBead(mi->getBead(i), "invalid");
         }
     }
 }
@@ -139,7 +140,7 @@ BeadType *Topology::GetOrCreateBeadType(string name)
     
     iter = _beadtype_map.find(name);
     if(iter == _beadtype_map.end()) {
-        BeadType *bt = new BeadType(_beadtypes.size(), name);
+        BeadType *bt = new BeadType(this, _beadtypes.size(), name);
         _beadtypes.push_back(bt);
         _beadtype_map[name] = bt->getId();
         return bt;
@@ -149,3 +150,23 @@ BeadType *Topology::GetOrCreateBeadType(string name)
     }
     return NULL;
 }
+
+vec Topology::getDist(int bead1, int bead2) const
+{
+    vec r_tp, r_dp, r_sp, r_ij;
+    vec r_i = getBead(bead1)->getPos();
+    vec r_j = getBead(bead2)->getPos();
+    vec a = _box.getCol(0); vec b = _box.getCol(1); vec c = _box.getCol(2);
+    r_tp = r_j - r_i;
+    r_dp = r_tp - c*round(r_tp.getZ()/c.getZ());  
+    r_sp = r_dp - b*round(r_dp.getY()/b.getY());
+    r_ij = r_sp - a*round(r_sp.getX()/a.getX());
+    return r_ij;
+}
+
+double Topology::BoxVolume()
+{
+    vec a = _box.getCol(0); vec b = _box.getCol(1); vec c = _box.getCol(2);
+    return (a^b)*c;
+}
+

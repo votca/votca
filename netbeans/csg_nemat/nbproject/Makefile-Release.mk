@@ -25,7 +25,7 @@ OBJECTDIR=build/Release/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_nemat.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg_noconf/netbeans/csg_nemat/../../src/tools/csg_nemat.o
 
 # C Compiler Flags
 CFLAGS=
@@ -49,9 +49,9 @@ dist/Release/GNU-Linux-x86/csg_nemat: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
 	${LINK.cc} -o dist/Release/GNU-Linux-x86/csg_nemat ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_nemat.o: ../../src/tools/csg_nemat.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools
-	$(COMPILE.cc) -O2 -I../../../libcsg/trunk -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_nemat.o ../../src/tools/csg_nemat.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg_noconf/netbeans/csg_nemat/../../src/tools/csg_nemat.o: ../../src/tools/csg_nemat.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg_noconf/netbeans/csg_nemat/../../src/tools
+	$(COMPILE.cc) -O2 -I../../../libcsg/trunk -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg_noconf/netbeans/csg_nemat/../../src/tools/csg_nemat.o ../../src/tools/csg_nemat.cc
 
 # Subprojects
 .build-subprojects:

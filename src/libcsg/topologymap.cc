@@ -16,22 +16,16 @@ TopologyMap::~TopologyMap()
     _maps.clear();
 }
     
-void TopologyMap::Apply(Configuration &conf_in, Configuration &conf_out)
+void TopologyMap::Apply()
 {
     MapContainer::iterator iter;    
     int i=0;
-    conf_out.setStep(conf_in.getStep());
-    conf_out.setTime(conf_in.getTime());
-    conf_out.setBox(conf_in.getBox());
-
-    conf_out.HasPos(conf_in.HasPos());
-    conf_out.HasVel(conf_in.HasVel());
-    conf_out.HasF(conf_in.HasF());
+    _out->setStep(_in->getStep());
+    _out->setTime(_in->getTime());
+    _out->setBox(_in->getBox());
 
     for(iter=_maps.begin();iter!=_maps.end();++iter) {
-        Molecule min(conf_in, *_in->getMolecule(i));
-        Molecule mout(conf_out, *_out->getMolecule(i));
-        (*iter)->Apply(min, mout);
+        (*iter)->Apply(*_in->getMolecule(i), *_out->getMolecule(i));
         i++;
     }
 }

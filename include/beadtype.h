@@ -9,19 +9,22 @@
 #define	_BEADTYPE_H
 
 #include <string>
+#include "topologyitem.h"
+
 using namespace std;
 
-class  BeadType {
-public:
-    BeadType(int id, const string &name)
-    : _id(id), _name(name) {}
-    
+class  BeadType : public TopologyItem {
+public:    
     const int &getId() const { return _id; }
     const string &getName() const { return _name; }
     
 private:
     int _id;
     string _name;
+    
+    BeadType(Topology *parent, int id, const string &name)
+    : _id(id), _name(name), TopologyItem(parent) {}
+    friend class Topology;
 };
 
 #endif	/* _BEADTYPE_H */

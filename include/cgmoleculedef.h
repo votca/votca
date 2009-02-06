@@ -16,7 +16,7 @@
 #include "map.h"
 #include <tools/types.h>
 #include "exclusionlist.h"
-#include "moleculeinfo.h"
+#include "molecule.h"
 
 using namespace std;
 
@@ -34,15 +34,15 @@ public:
     CGMoleculeDef() {}
     ~CGMoleculeDef();
         
-    MoleculeInfo *CreateMolecule(Topology & top);
-    Map *CreateMap(MoleculeInfo &in, MoleculeInfo &out);
+    Molecule *CreateMolecule(Topology & top);
+    Map *CreateMap(Molecule &in, Molecule &out);
 
     void Load(string filename);
     
     const string &getName() { return _name; }
     const string &getIdent() { return _ident; }
     
-    ExclusionList *CreateExclusionList(MoleculeInfo &atomistic);
+    ExclusionList *CreateExclusionList(Molecule &atomistic);
     
     struct option_t {
        string _name;

@@ -8,7 +8,6 @@
 #ifndef _GMXTRAJECTORYWRITER_H
 #define	_GMXTRAJECTORYWRITER_H
 
-#include "configuration.h"
 #include "topology.h"
 #include "trajectorywriter.h"
 
@@ -34,7 +33,7 @@ public:
     
     void Open(string file, bool bAppend = false);
     void Close();
-    void Write(Configuration *conf);
+    void Write(Topology *conf);
 
     void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory);
 

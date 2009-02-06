@@ -18,7 +18,7 @@ public:
     void BeginCG(Topology *top, Topology *top_atom = 0);
     void EndCG();
     
-    void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0);
+    void EvalConfiguration(Topology *conf, Topology *conf_atom = 0);
     
     DataCollection<double> &BondedValues() { return _bonded_values; }
 

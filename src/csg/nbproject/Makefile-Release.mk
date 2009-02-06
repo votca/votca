@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 
 # Include project Makefile
 include Makefile_nb
@@ -27,6 +27,7 @@ OBJECTDIR=build/Release/GNU-Linux-x86
 OBJECTFILES= \
 	${OBJECTDIR}/tabulatedpotential.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/bondedstatistics.o \
 	${OBJECTDIR}/stdanalysis.o
 
 # C Compiler Flags
@@ -56,6 +57,10 @@ ${OBJECTDIR}/tabulatedpotential.o: tabulatedpotential.cc
 ${OBJECTDIR}/main.o: main.cc 
 	${MKDIR} -p ${OBJECTDIR}
 	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/main.o main.cc
+
+${OBJECTDIR}/bondedstatistics.o: bondedstatistics.cc 
+	${MKDIR} -p ${OBJECTDIR}
+	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/bondedstatistics.o bondedstatistics.cc
 
 ${OBJECTDIR}/stdanalysis.o: stdanalysis.cc 
 	${MKDIR} -p ${OBJECTDIR}

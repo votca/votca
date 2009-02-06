@@ -11,6 +11,7 @@
 #include "topology.h"
 #include "cgmoleculedef.h"
 #include <tools/tokenizer.h> 
+#include "interaction.h"
 
 using boost::lexical_cast;
 
@@ -209,19 +210,19 @@ void CGMoleculeDef::ParseNode(option_t &op, xmlDocPtr doc, xmlNodePtr cur)
     }
 }
 
-MoleculeInfo * CGMoleculeDef::CreateMolecule(Topology & top)
+Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
 {   
     // add the residue names
     Residue *res = top.CreateResidue(_name);
-    MoleculeInfo *minfo = top.CreateMolecule(_name);
+    Molecule *minfo = top.CreateMolecule(_name);
     
     // create the atoms
     vector<beaddef_t *>::iterator iter;
     for(iter = _beads.begin(); iter != _beads.end(); ++iter) {
-        BeadInfo *bead;
+        Bead *bead;
         BeadType *bt = top.GetOrCreateBeadType((*iter)->_type);
         bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, bt, res->getId(), 0, 0);
-        minfo->AddBead(bead->getId(), bead->getName());        
+        minfo->AddBead(bead, bead->getName());        
         
     }    
     
@@ -282,7 +283,7 @@ MoleculeInfo * CGMoleculeDef::CreateMolecule(Topology & top)
 }
 
 /// \bug crashes when map does not exist!
-Map *CGMoleculeDef::CreateMap(MoleculeInfo &in, MoleculeInfo &out)
+Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out)
 {
     vector<beaddef_t *>::iterator def;
     mapdef_t *mdef;
@@ -336,7 +337,7 @@ Map *CGMoleculeDef::CreateMap(MoleculeInfo &in, MoleculeInfo &out)
 /**
  * \todo Check this function for multiple molecules!!!!!!! 
  */
-ExclusionList *CGMoleculeDef::CreateExclusionList(MoleculeInfo &atomistic)
+ExclusionList *CGMoleculeDef::CreateExclusionList(Molecule &atomistic)
 {
     list<int> exclude;
     int natoms;
