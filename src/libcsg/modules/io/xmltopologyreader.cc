@@ -72,6 +72,9 @@ void XMLTopologyReader::ParseTopology(xmlNodePtr node)
 void XMLTopologyReader::ParseMolecules(xmlNodePtr node)
 {
     for(node = node->xmlChildrenNode; node != NULL; node = node->next) {
+        if(!xmlStrcmp(node->name, (const xmlChar *) "clear")) {
+            _top->ClearMoleculeList();
+        }
         if(!xmlStrcmp(node->name, (const xmlChar *) "rename")) {
             char *molname = (char *) xmlGetProp(node, (const xmlChar *)"name");
             char *range = (char *) xmlGetProp(node, (const xmlChar *)"range");
@@ -79,6 +82,24 @@ void XMLTopologyReader::ParseMolecules(xmlNodePtr node)
                 _top->RenameMolecules(range, molname);
                 xmlFree(molname);
                 xmlFree(range);
+            }
+            else
+                throw string("invalid name tag");               
+        }
+        if(!xmlStrcmp(node->name, (const xmlChar *) "define")) {
+            char *molname = (char *) xmlGetProp(node, (const xmlChar *)"name");
+            char *first = (char *) xmlGetProp(node, (const xmlChar *)"first");
+            char *nbeads = (char *) xmlGetProp(node, (const xmlChar *)"nbeads");
+            char *nmols = (char *) xmlGetProp(node, (const xmlChar *)"nmols");
+            if(molname && first && nbeads && nmols) {
+                _top->CreateMoleculesByRange(molname,
+                        boost::lexical_cast<int>(first),
+                        boost::lexical_cast<int>(nbeads),
+                        boost::lexical_cast<int>(nmols));
+                xmlFree(molname);
+                xmlFree(first);
+                xmlFree(nbeads);
+                xmlFree(nmols);
             }
             else
                 throw string("invalid name tag");               

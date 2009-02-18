@@ -73,6 +73,8 @@ public:
     */
     void CreateOneBigMolecule(string name);
     
+    void CreateMoleculesByRange(string name, int first, int nbeads, int nmolecules);
+    
     /// number of molecules in the system
     int MoleculeCount() { return _molecules.size(); }
     /// number of beads in the system

@@ -46,6 +46,29 @@ void Topology::Cleanup()
     }
 }
 
+/// \todo implement checking!!
+void Topology::CreateMoleculesByRange(string name, int first, int nbeads, int nmolecules)
+{
+    Molecule *mol = CreateMolecule(name);
+    int beadcount=0;
+   
+    BeadContainer::iterator bead;    
+    for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
+        while(--first > 0) continue;
+        string bname = //lexical_cast<string>(mol->getId()) + ":" 
+                      //lexical_cast<string>(bead->Residue()) + ":" 
+                      //+
+                      (*bead)->getName();
+        cout << "adding " << bname << " to " << name << endl;
+        mol->AddBead((*bead), bname);
+        if(++beadcount == nbeads) {
+            if(--nmolecules <= 0) break;
+            mol = CreateMolecule(name);            
+            beadcount = 0;
+        }
+    }
+}
+
 /// \todo clean up CreateMoleculesByResidue!
 void Topology::CreateMoleculesByResidue()
 {
