@@ -98,7 +98,7 @@ public:
             
             if (it_mon-> size() > 3 ){
                 for (it_at = it_mon->begin(); it_at != it_mon->end(); ++it_at){
-                    vec v = _intcoords.GetPos(*it_at);
+                    vec v = _intcoords.GetPos(*it_at) - com;
                     #ifdef DEBUG
                     cout << "Adding atom " << *it_at << " to monomer " <<count <<endl;
                     #endif
