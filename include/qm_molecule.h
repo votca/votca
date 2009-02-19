@@ -315,7 +315,7 @@ public:
         return V;
     }
     
-    void write_pdb(string,string);
+    void write_pdb(string,string, const int &);
 
     void rotate_someatoms(vector <int> list_at, const matrix  & M, const vec & a, 
             const vec & com,  mol_and_orb * mol2){

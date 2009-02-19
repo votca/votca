@@ -1,6 +1,6 @@
 #include "qm_molecule.h"
 
-void mol_and_orb::write_pdb(string file, string name_mol="PPY" ){
+void mol_and_orb::write_pdb(string file, string name_mol="PPY", const int & n=0 ){
     
     ofstream fl;
     static bool first_time=true;
@@ -14,7 +14,7 @@ void mol_and_orb::write_pdb(string file, string name_mol="PPY" ){
     fl.setf(ios::fixed);
     for (int i =0 ; i < N ;i++ ){
          fl << setw(6) << "HETATM"
-           << setw(5) << i
+           << setw(5) << n+i
            << setw(5) << atom_labels[i]._type
            << setw(4) << name_mol
            << setw(3) << atom_labels[i]._lbl
