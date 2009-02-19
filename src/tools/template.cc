@@ -24,7 +24,7 @@ public:
     void EndCG() {
     };
     
-    void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
+    void EvalConfiguration(Topology *top, Topology *top_atom = 0) {
     }
     
 protected:
