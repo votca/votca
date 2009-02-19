@@ -9,6 +9,7 @@
 #define	_IMCCROSSCOR_H
 
 #include <vector>
+#include <ostream>
 
 using namespace std;
 
