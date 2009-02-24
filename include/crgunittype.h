@@ -23,6 +23,7 @@
 #include "orbitals.h"
 #include <libxml/parser.h>
 #include <string>
+#include <stdexcept>
 
 inline void get_orient( const vec & a, const vec & b, const vec & c, matrix & cg ){
     
@@ -60,7 +61,7 @@ public:
 
     CrgUnitType (char * namecoord, char * nameorb, char * nameneutr, char * namecrg, const double & reorg, 
             const double & energy, const unsigned int &transorb, const unsigned int &id, 
-            string molname, string name, vector < vector < int > > list_atoms_monomer ){
+            string molname, string name, vector < vector < int > > list_atoms_monomer, vector < vector < double > > list_weights_monomer ){
         _intcoords.define_bs(_indo);
         _intcoords.init(namecoord);
         _intcoords.init_orbitals( _orbitals, nameorb);
@@ -79,25 +80,38 @@ public:
         _molname  = molname;
         _name     = name;
         vector < vector < int > >  :: iterator it_mon;
+        vector < vector < double > >  :: iterator it_mon_weights;
+        
+        if(list_atoms_monomer.size() != list_weights_monomer.size())
+            throw invalid_argument("number of atoms and weights do not match for charge unit");
+            
         int count=0;
-        for (it_mon= list_atoms_monomer.begin() ; it_mon < list_atoms_monomer.end() ; ++it_mon ){
+        for (it_mon= list_atoms_monomer.begin(), it_mon_weights = list_weights_monomer.begin() ;
+            it_mon < list_atoms_monomer.end() ; ++it_mon, ++it_mon_weights ){
             vector <int> list_mon;
             _list_atoms_monomer.push_back(list_mon);
             vector <int> ::iterator  it_at;
+            vector <double> ::iterator  it_weight;
             vec com(0.,0.,0.);
             matrix m(0.);
             matrix orient;
             vec xprime, yprime, zprime;
-            for(it_at= it_mon->begin(); it_at != it_mon->end(); ++it_at){
-                com = com + _intcoords.GetPos(*it_at);
+            if(it_mon->size() != it_mon_weights->size()) throw invalid_argument("number of atoms and weights do not match for charge unit");
+            double sum_weights = 0;
+            for(it_at= it_mon->begin(), it_weight=it_mon_weights->begin();
+                it_at != it_mon->end(); ++it_at, ++it_weight){
+                com = com + _intcoords.GetPos(*it_at)*(*it_weight);
                 (_list_atoms_monomer[count]).push_back(*it_at);
+                sum_weights+=*it_weight;
             }
 
-            com /= it_mon->size();
+            com /= sum_weights;
             _list_coms_monomer.push_back(com);
             
             if (it_mon-> size() > 3 ){
-                for (it_at = it_mon->begin(); it_at != it_mon->end(); ++it_at){
+                for (it_at = it_mon->begin(), it_weight = it_mon_weights->begin();
+                  it_at != it_mon->end(); ++it_at, ++it_weight){
+                    if(*it_weight == 0) continue;
                     vec v = _intcoords.GetPos(*it_at) - com;
                     #ifdef DEBUG
                     cout << "Adding atom " << *it_at << " to monomer " <<count <<endl;
@@ -107,7 +121,7 @@ public:
                     m[0][2] += v.getX()*v.getZ();        
                     m[1][1] += v.getY()*v.getY();
                     m[1][2] += v.getY()*v.getZ();
-                    m[2][2] += v.getZ()*v.getZ();        
+                    m[2][2] += v.getZ()*v.getZ();                      
                 }
 
                 m[1][0] = m[0][1];
