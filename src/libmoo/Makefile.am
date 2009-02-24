@@ -7,6 +7,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I../../../libcsg
 lib_LIBRARIES = libmoo.a
 
 libmoo_a_SOURCES = \
-    basis_set.cpp  charges.cpp fock_matrix.cpp  orbitals.cpp  qm_molecule.cpp
-
+    basis_set.cpp  charges.cpp  crgunit.cc  crgunittype.cc \
+    fock_matrix.cpp  mol_pair.cc  orbitals.cpp  qm_molecule.cpp
+    
 CLEANFILES = *~ *.a

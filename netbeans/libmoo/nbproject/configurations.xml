@@ -23,7 +23,10 @@
                    projectFiles="true">
       <itemPath>../../src/libmoo/basis_set.cpp</itemPath>
       <itemPath>../../src/libmoo/charges.cpp</itemPath>
+      <itemPath>../../src/libmoo/crgunit.cc</itemPath>
+      <itemPath>../../src/libmoo/crgunittype.cc</itemPath>
       <itemPath>../../src/libmoo/fock_matrix.cpp</itemPath>
+      <itemPath>../../src/libmoo/mol_pair.cc</itemPath>
       <itemPath>../../src/libmoo/orbitals.cpp</itemPath>
       <itemPath>../../src/libmoo/qm_molecule.cpp</itemPath>
     </logicalFolder>
@@ -89,7 +92,16 @@
       <item path="../../src/libmoo/charges.cpp">
         <itemTool>1</itemTool>
       </item>
+      <item path="../../src/libmoo/crgunit.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libmoo/crgunittype.cc">
+        <itemTool>1</itemTool>
+      </item>
       <item path="../../src/libmoo/fock_matrix.cpp">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libmoo/mol_pair.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libmoo/orbitals.cpp">
@@ -155,7 +167,16 @@
       <item path="../../src/libmoo/charges.cpp">
         <itemTool>1</itemTool>
       </item>
+      <item path="../../src/libmoo/crgunit.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libmoo/crgunittype.cc">
+        <itemTool>1</itemTool>
+      </item>
       <item path="../../src/libmoo/fock_matrix.cpp">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libmoo/mol_pair.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libmoo/orbitals.cpp">
