@@ -33,6 +33,7 @@
       </toolsSet>
       <compileType>
         <ccCompilerTool>
+          <developmentMode>2</developmentMode>
           <includeDirectories>
             <directoryPath>../../include</directoryPath>
             <directoryPath>../../../include</directoryPath>
@@ -56,7 +57,18 @@
                             OP="../../src/libcsg/libcsg.a">
               </makeArtifact>
             </linkerLibProjectItem>
-            <linkerLibFileItem>../../../tools/src/libtools/libtools.a</linkerLibFileItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../tools/netbeans/libtools"
+                            CT="3"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../../../tools/netbeans/libtools"
+                            BC="${MAKE}  -f Makefile_nb CONF=Debug"
+                            CC="${MAKE}  -f Makefile_nb CONF=Debug clean"
+                            OP="../../src/libtools/libtools.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
             <linkerLibLibItem>gmx</linkerLibLibItem>
             <linkerLibLibItem>xml2</linkerLibLibItem>

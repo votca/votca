@@ -38,7 +38,7 @@ CXXFLAGS=
 FFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/libcsg.a ../../../tools/src/libtools/libtools.a -lboost_program_options -lgmx -lxml2 -lgsl -lgslcblas -lm
+LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lboost_program_options -lgmx -lxml2 -lgsl -lgslcblas -lm
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS} ../../src/tools/csg_fmatch
@@ -51,11 +51,12 @@ LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/li
 
 ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools
-	$(COMPILE.cc) -g -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
+	$(COMPILE.cc) -g -O -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:
 	cd ../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
+	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -65,3 +66,4 @@ ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o: ..
 # Subprojects
 .clean-subprojects:
 	cd ../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
+	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug clean

@@ -16,6 +16,8 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <tools/cubicspline.h>
+#include <neighbourlist.h>
+#include <exclusionlist.h>
 #include <gsl/gsl_linalg.h>
 #include <stdio.h>
 #include <sstream>
@@ -34,16 +36,20 @@ public:
         
         int lines_init = 0, colms_init = 0;  // initial size of _A 
         int sfnum; // number of spline functions for a cubicspline.  
-        const int N_frames = 50001; // Number of frames in the trajectory
+        const int N_frames = 5001; // Number of frames in the trajectory
+        
+        int interaction_number = 0;
+        beadTypes = 1;
+        numBondInt = 0;
         
         // set counters to zero value:
         line_cntr = col_cntr = 0;
         
         
-        // SplineInfo for the first type of bond:
+/*        // SplineInfo for the first type of bond:
         Bond1.n = Bond1.Spline.GenerateGrid(  0.256, 0.337, 0.005 ) - 1;
         Bond1.bonded = true;
-        Bond1.splineIndex = 0;
+        Bond1.splineIndex = interaction_number++;
         Bond1.splineName = "bond1";
         Bond1.matr_pos = colms_init;
         
@@ -56,12 +62,14 @@ public:
                 
         //Add SplineInfo to SplineContainer:
         Splines.push_back( &Bond1 );
-        
+        // update bonded interaction counter:
+        numBondInt++;
+*/        
         
         // SplineInfo for the second type of bond:
 /*        Bond2.n = Bond2.Spline.GenerateGrid( 0.345, 0.395, 0.01) - 1;
         Bond2.bonded = true;
-        Bond2.splineIndex = 1;
+        Bond2.splineIndex = interaction_number++;
         Bond2.splineName = "bond2";
         Bond2.matr_pos = colms_init;
         
@@ -73,12 +81,14 @@ public:
         colms_init += 2 * (Bond2.n + 1);
                 
         //Add SplineInfo to SplineContainer:
-        Splines.push_back( &Bond2 );        
+        Splines.push_back( &Bond2 );
+        // update bonded interaction counter:
+        numBondInt++;         
 */        
         // SplineInfo for the angle:
-        Angle1.n = Angle1.Spline.GenerateGrid( 69.8 * 0.0175, 170 * 0.0175, 5 * 0.0175 ) - 1;
+/*        Angle1.n = Angle1.Spline.GenerateGrid( 69.8 * 0.0175, 170 * 0.0175, 5 * 0.0175 ) - 1;
         Angle1.bonded = true;
-        Angle1.splineIndex = 1;
+        Angle1.splineIndex = interaction_number++;
         Angle1.splineName = "angle1";
         Angle1.matr_pos = colms_init;
 
@@ -91,18 +101,33 @@ public:
 
         //Add SplineInfo to SplineContainer:
         Splines.push_back( &Angle1 );
+        // update bonded interaction counter:
+        numBondInt++;        
+*/        
+//===== Non-bonded params ===========================
+        NB1.n = NB1.Spline.GenerateGrid( 0.024, 1.0, 0.05 ) - 1; // shity params!
+        NB1.bonded = false;
+        NB1.splineIndex = interaction_number++;
+        NB1.splineName = "non-bonded 1";
+        NB1.matr_pos = colms_init;
         
-        // angle 2
+        NB1.result.resize(2*(NB1.n + 1), false);
+        NB1.result.clear();
         
+        //adjust initial matrix dimensions:
+        lines_init += NB1.n + 1;
+        colms_init += 2 * (NB1.n + 1);
+        
+        //Add SplineInfo to SplineContainer:
+        Splines.push_back( &NB1 );
             
-//        n = SplineBond.GenerateGrid ( 0.13, 0.17, 0.01 ); // n - number of points
-//        n -= 1; // n - number of splines
+//===================================================*/
   
         N = top->BeadCount(); // Number of beads in topology
         L = 0;                // Initial frame in trajectory  
+        excList.CreateExclusions(top);  //exclusion list for non-bonded interactions
         cout << "hey, someone wants to coarse grain\n";
-        
-        
+               
         // B_constr matrix contains continuity conditions for the spline first
         // derivatives.
         B_constr.resize(lines_init, colms_init, false);
@@ -184,8 +209,8 @@ public:
             for (int icout = k; icout < col_cntr; icout++) {
                  v(icout) = gsl_matrix_get(&B_t.matrix, icout, k - 1 );
             }
-           
-            Q_k = I - gsl_vector_get(tau, k - 1 ) * outer_prod ( v, v );
+            double tmp = gsl_vector_get(tau, k - 1 );
+            Q_k = I - tmp * outer_prod ( v, v );
             Q = prec_prod(Q, Q_k);
            
         }
@@ -257,6 +282,7 @@ public:
             
             if ( ((*is)->splineName)[0] == 'a' ) accuracy = 0.05;
             else if ( ((*is)->splineName)[0] == 'b' ) accuracy = 0.001;
+            else if ( ((*is)->splineName)[0] == 'n' ) accuracy = 0.01; // Quatsch!
             
             (*is)->Spline.Print(out_file, accuracy);
             
@@ -274,7 +300,7 @@ public:
         InteractionContainer &ic = conf->getTopology()->getBondedInteractions();
         InteractionContainer::iterator ia;
 
-        // loop for the matrix:
+        // loop for the matrix: (Bonded Interactions)
         for(ia=ic.begin(); ia != ic.end(); ++ia) {
             
                int beads_in_int = (*ia)->BeadCount(); // 2 for bonds, 3 for angles, 4 for dihedrals
@@ -299,6 +325,97 @@ public:
                    SP.AddToFitMatrix(_A, var,
                            3*N*L + 2*N + ii, mpos, gradient.z());                
                }
+        }
+        
+        // loop for the matrix: (Nonbonded interactions)
+        NeighbourList::container::iterator iter;
+        list<int>::iterator excl_iter;
+        bool noExcl;
+        
+        NeighbourList nbl;
+        nbl.setCutoff(1.0);
+        nbl.Generate(*conf);
+        
+        for (int iatom = 0; iatom < N; iatom++) {
+            
+            if ( excList.GetExclusions(iatom) == NULL ) noExcl = true; 
+            else noExcl = false; 
+            
+            for(iter=nbl.NbList()[iatom]->_neighbours.begin(); iter!=nbl.NbList()[iatom]->_neighbours.end(); iter++){
+                int jatom = (*iter)._bead;
+                if ( jatom > iatom ) {
+                    double var = (*iter)._dist;
+                    vec gradient = (*iter)._r;
+                    gradient.normalize();
+                    
+                    
+                    if ( !noExcl ) { // iatom has exclusions -> we have to check them
+                        list<int> excl_iat = excList.GetExclusions(iatom)->_exclude;
+                        for (excl_iter = excl_iat.begin(); excl_iter != excl_iat.end(); ++excl_iter )
+                            if ( (*excl_iter) == jatom ) break;
+                        if ( excl_iter == excl_iat.end() ) {
+                        // iatom and jatom have to be added to matrix
+
+                            int itype = conf->getTopology()->getBeads()[iatom]->getType();
+                            int jtype = conf->getTopology()->getBeads()[jatom]->getType();
+                            int int_index = beadType2intType(itype, jtype) + numBondInt;
+                            
+                            CubicSpline &SP = Splines[ int_index ]->Spline;
+                            int  &mpos = Splines[ int_index ]->matr_pos;
+                            int  &nsp = Splines[ int_index ]->n;
+                            int i = SP.getInterval(var);
+                            
+                            // add iatom
+                            SP.AddToFitMatrix(_A, var, 
+                                3*N*L + iatom, mpos, gradient.x());
+                            SP.AddToFitMatrix(_A, var, 
+                                3*N*L + N + iatom, mpos, gradient.y());
+                            SP.AddToFitMatrix(_A, var,
+                                3*N*L + 2*N + iatom, mpos, gradient.z());  
+                            
+                            // add jatom 
+                            SP.AddToFitMatrix(_A, var, 
+                                3*N*L + jatom, mpos, -gradient.x());
+                            SP.AddToFitMatrix(_A, var, 
+                                3*N*L + N + jatom, mpos, -gradient.y());
+                            SP.AddToFitMatrix(_A, var,
+                                3*N*L + 2*N + jatom, mpos, -gradient.z());                            
+                   
+                        }
+                    }
+                    else { // iatom has no exclusions. Every neighbor has to be added!
+                        // iatom and jatom have to be added to matrix
+
+                        int itype = conf->getTopology()->getBeads()[iatom]->getType();
+                        int jtype = conf->getTopology()->getBeads()[jatom]->getType();
+                        int int_index = beadType2intType(itype, jtype) + numBondInt;
+                            
+                        CubicSpline &SP = Splines[ int_index ]->Spline;
+                        int  &mpos = Splines[ int_index ]->matr_pos;
+                        int  &nsp = Splines[ int_index ]->n;
+                        int i = SP.getInterval(var);
+                            
+                        // add iatom
+                        SP.AddToFitMatrix(_A, var, 
+                            3*N*L + iatom, mpos, gradient.x());
+                        SP.AddToFitMatrix(_A, var, 
+                            3*N*L + N + iatom, mpos, gradient.y());
+                        SP.AddToFitMatrix(_A, var,
+                            3*N*L + 2*N + iatom, mpos, gradient.z());  
+                            
+                        // add jatom 
+                        SP.AddToFitMatrix(_A, var, 
+                            3*N*L + jatom, mpos, -gradient.x());
+                        SP.AddToFitMatrix(_A, var, 
+                            3*N*L + N + jatom, mpos, -gradient.y());
+                        SP.AddToFitMatrix(_A, var,
+                            3*N*L + 2*N + jatom, mpos, -gradient.z());                            
+                        
+                    }
+                    
+                }
+            }
+     
         }
 
         // loop for the forces vector: 
@@ -326,6 +443,8 @@ protected:
   ub::matrix<double> B_constr;
     // _A(i, j) = 10;
     // _A.resize(n, m, true);
+  int beadTypes; // number of cg bead types in the system
+  int numBondInt; // number of bonded interaction types
   int L; // counter for frames
   int N; //number of cg_beads
   
@@ -338,6 +457,8 @@ protected:
         CubicSpline Spline;
         int matr_pos;    // position in the _A matrix (first coloumn which is occupied with
                          // this particular spline
+        
+        pair<int, int> beadTypes; // only for non-bonded interactions
         ub::vector<double> result;
         string splineName;
   };
@@ -346,12 +467,55 @@ protected:
   SplineInfo Angle1;
 //  SplineInfo Angle2;
 //  SplineInfo Angle3;
+  SplineInfo NB1;
+  
+  ExclusionList excList;  // exclusion list for non-bonded interactions
   
   typedef vector<SplineInfo *> SplineContainer;
   SplineContainer Splines;
   
+  int beadType2intType ( int beadType1, int beadType2 );
+  
 };
 
+int CGForceMatching::beadType2intType( int beadType1, int beadType2 ) {
+// This function returns the interaction type, knowing the bead types involved.
+// The correspondence is established as follows: (case of 4 different bead types)
+    
+// | interaction | corresponding beads |
+// |_____________|_____________________|
+// |      0      |       0 - 0         |
+// |      1      |       1 - 1         |
+// |      2      |       2 - 2         |
+// |      3      |       3 - 3         |
+// |      4      |       4 - 4         |
+// |      5      |       0 - 1         |
+// |      6      |       0 - 2         |
+// |      7      |       0 - 3         |
+// |      8      |       0 - 4         |
+// |      9      |       1 - 2          |
+// |     10      |       1 - 3         |
+// |     11      |       1 - 4         |
+// |     12      |       2 - 3         |
+// |     13      |       2 - 4         |
+// |     14      |       3 - 4         |
+// |_____________|_____________________|
+    
+    int temp, result = 0;
+
+    if ( beadType1 == beadType2 ) return beadType1;
+    if ( beadType1 > beadType2 ) {
+        temp = beadType1;
+        beadType1 = beadType2;
+        beadType2 = temp;
+    }
+    // Now beadType1 < beadType2
+    result += beadTypes - 1;
+    for ( int i = beadType1 - 1; i >=0; i-- )
+        result += beadTypes - 1 - i;
+    result += beadType2 - beadType1;
+    return result;    
+}
 
 int main(int argc, char** argv)
 {    
