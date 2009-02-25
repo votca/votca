@@ -295,9 +295,9 @@ public:
  
     };
     
-    void EvalConfiguration(Configuration *conf, Configuration *conf_atom = 0) {
+    void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) {
                   
-        InteractionContainer &ic = conf->getTopology()->getBondedInteractions();
+        InteractionContainer &ic = conf->BondedInteractions();
         InteractionContainer::iterator ia;
 
         // loop for the matrix: (Bonded Interactions)
@@ -356,8 +356,8 @@ public:
                         if ( excl_iter == excl_iat.end() ) {
                         // iatom and jatom have to be added to matrix
 
-                            int itype = conf->getTopology()->getBeads()[iatom]->getType();
-                            int jtype = conf->getTopology()->getBeads()[jatom]->getType();
+                            int itype = conf->getBead(iatom)->getType()->getId();
+                            int jtype = conf->getBead(jatom)->getType()->getId();
                             int int_index = beadType2intType(itype, jtype) + numBondInt;
                             
                             CubicSpline &SP = Splines[ int_index ]->Spline;
@@ -386,8 +386,8 @@ public:
                     else { // iatom has no exclusions. Every neighbor has to be added!
                         // iatom and jatom have to be added to matrix
 
-                        int itype = conf->getTopology()->getBeads()[iatom]->getType();
-                        int jtype = conf->getTopology()->getBeads()[jatom]->getType();
+                        int itype = conf->getBead(iatom)->getType()->getId();
+                        int jtype = conf->getBead(jatom)->getType()->getId();
                         int int_index = beadType2intType(itype, jtype) + numBondInt;
                             
                         CubicSpline &SP = Splines[ int_index ]->Spline;
@@ -419,10 +419,11 @@ public:
         }
 
         // loop for the forces vector: 
-        if ( conf->HasF() ) {
+        // hack, chage the Has functions..
+        if ( conf->getBead(0)->HasF() ) {
             vec Force(0., 0., 0.);
             for (int iatom = 0; iatom < N; ++iatom) {
-                     Force = conf->getF(iatom);
+                     Force = conf->getBead(iatom)->getF();
                     _b( 3*N*L + iatom) = Force.x();
                     _b( 3*N*L + N+iatom) = Force.y();
                     _b( 3*N*L + 2*N+iatom) = Force.z();
