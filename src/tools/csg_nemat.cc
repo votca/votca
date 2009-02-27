@@ -63,7 +63,7 @@ public:
         _bV = true; //conf->HasV();
         _bW = true; //conf->HasW();
 
-        nemat.Process(*conf);
+        nemat.Process(*conf, _filter);
         if(_file) {
             _file << conf->getTime() << " ";        
             if(_bU)        
@@ -83,6 +83,7 @@ public:
     
     void setOut(string filename) { _filename = filename; }
     
+    void setFilter(const string &filter) { _filter = filter; }
 protected:
     NematicOrder nemat;
     bool _bU, _bV, _bW;
@@ -90,6 +91,7 @@ protected:
     string _filename;
     int _n;
     matrix::eigensystem_t _u, _v, _w;
+    string _filter;
 };
 
 
@@ -99,6 +101,7 @@ int main(int argc, char** argv)
     CGNematicOrder no;        
     // The CGEngine does the work
     CGEngine cg_engine;
+    string filter;
     
     // add our observer that it gets called to analyze frames
     cg_engine.AddObserver((CGObserver*)&no);
@@ -122,6 +125,7 @@ int main(int argc, char** argv)
     cg_engine.AddProgramOptions(desc);
     
     desc.add_options()
+        ("filter", boost::program_options::value<string>(&filter)->default_value("*"), "filter molecule names");
         ("out", boost::program_options::value<string>(), "output nematic order prameter into file");
     
     // now read in the command line
@@ -148,7 +152,7 @@ int main(int argc, char** argv)
     }
     if(vm.count("out"))
         no.setOut(vm["out"].as<string>());    
-    
+    no.setFilter(filter);
     // try to run the cg process, go through the frames, etc...
     try {
         cg_engine.Run(desc, vm);

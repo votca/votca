@@ -7,9 +7,10 @@
 
 #include "nematicorder.h"
 #include <tools/matrix.h>
+#include <tools/tokenizer.h>
 #include "topology.h"
 
-void NematicOrder::Process(Topology &top)
+void NematicOrder::Process(Topology &top, const string &filter)
 {
     _mu.ZeroMatrix();
     _mv.ZeroMatrix();
@@ -20,7 +21,10 @@ void NematicOrder::Process(Topology &top)
     
     for(BeadContainer::iterator iter = top.Beads().begin();
     iter!=top.Beads().end();++iter) {
+        
         Bead *bead = *iter;
+        
+        if(!wildcmp(filter.c_str(), bead->getName().c_str())) continue;
         
         if( bead->getSymmetry() ==1 )
             continue;
