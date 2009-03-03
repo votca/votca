@@ -70,7 +70,7 @@ int main(int argc, char** argv)
               << " beads: " << (*mol)->BeadCount() << endl;
             for(int i=0; i<(*mol)->BeadCount(); ++i) {
                 cout << (*mol)->getBeadId(i) << " " << 
-                    (*mol)->getBeadName(i) << endl;
+                    (*mol)->getBeadName(i) << (*mol)->getBead(i)->getType()->getName() << endl;
             }
         }
     }
