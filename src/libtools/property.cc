@@ -8,7 +8,7 @@
 #include <libxml/parser.h>
 #include <iostream>
 #include "property.h"
-
+#include <stdexcept>
 
 Property &Property::get(const string &key)
 {
@@ -17,35 +17,63 @@ Property &Property::get(const string &key)
     
     n = tok.begin();
     
-    map<string, Property>::iterator iter;
+    map<string, Property*>::iterator iter;
     iter = _map.find(*n);
     if(iter == _map.end())
-        throw string("property not found: ") + key;
+        throw runtime_error("property not found: " + key);
     
-    Property *p(&((*iter).second));
+    Property *p(((*iter).second));
     ++n;
     try {
         for(; n!=tok.end(); ++n)
         p = &p->get(*n);
     }
-    catch(string err) {
-        throw string("property not found: ") + key;
+    catch(string err) { // catch here to get full key in exception
+        throw runtime_error("property not found: " + key);
     }
     
     return *p;
 }
 
+std::list<Property *> Property::Select(const string &filter)
+{
+    Tokenizer tok(filter, ".");
+    
+    std::list<Property *> selection;
+
+    if(tok.begin()==tok.end()) return selection;
+    
+    selection.push_back(this);
+        
+    for (Tokenizer::iterator n = tok.begin();
+            n != tok.end(); ++n) {
+        std::list<Property *> childs;
+        for (std::list<Property *>::iterator p = selection.begin();
+                p != selection.end(); ++p) {
+                for (list<Property>::iterator iter = (*p)->_properties.begin();
+                    iter != (*p)->_properties.end(); ++iter) {
+                    if (wildcmp((*n).c_str(), (*iter).name().c_str())) {
+                        childs.push_back(&(*iter));
+                    }
+                }
+        }
+        selection = childs;        
+    }
+
+    return selection;
+}
+
 void Property::PrintNode(std::ostream &out, const string &prefix, Property &p)
 {
     
-    map<string, Property>::iterator iter;
+    map<string, Property*>::iterator iter;
     if((p._value != "") || p.HasChilds())
         out << prefix << " = " << p._value << endl;
     for(iter = p._map.begin(); iter!=p._map.end(); ++iter) {
         if(prefix=="") 
-            PrintNode(out, prefix + (*iter).first, (*iter).second);
+            PrintNode(out, prefix + (*iter).first, *(*iter).second);
         else
-            PrintNode(out, prefix + "." + (*iter).first, (*iter).second);
+            PrintNode(out, prefix + "." + (*iter).first, *(*iter).second);
     }
 }
 
@@ -58,7 +86,8 @@ static void parse_node(Property &p, xmlDocPtr doc, xmlNodePtr cur)
     string value("");
     if(key) value = (const char *)key;
     
-    Property &np = p.set((const char *)cur->name, value);
+    // \todo test if unique
+    Property &np = p.add((const char *)cur->name, value);
     xmlFree(key);    
 
     for(xmlNodePtr node = cur->xmlChildrenNode; node != NULL; node = node->next) {
