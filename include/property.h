@@ -11,7 +11,6 @@
 #include <map>
 #include <string>
 #include <boost/lexical_cast.hpp>
-#include <tokenizer.h>
 #include <list>
 
 using namespace std;
@@ -28,8 +27,8 @@ class Property {
 public:
     Property() {}
     
-    Property(const string &name, const string &value) 
-        : _name(name), _value(value) {}
+    Property(const string &name, const string &value, const string &path) 
+        : _name(name), _value(value), _path(path) {}
     
     /// \brief add a new property to structure
     Property &add(const string &key, const string &value);
@@ -57,6 +56,8 @@ public:
     string &value() { return _value; }
     /// \brief name of property
     string name() { return _name; }
+    /// \brief full path of property
+    string path() { return _path; }
 
     /// \brief return value as type
     ///
@@ -84,6 +85,7 @@ private:
     
     string _name;
     string _value;
+    string _path;
     
     static void PrintNode(std::ostream &out, const string &prefix, Property &p);
     
@@ -99,7 +101,9 @@ inline Property &Property::set(const string &key, const string &value)
 
 inline Property &Property::add(const string &key, const string &value)
 {
-    _properties.push_back(Property(key, value));
+    string path = _path;
+    if(path != "") path = path + ".";
+    _properties.push_back(Property(key, value, path + _name ));
     _map[key] = &(_properties.back());
     return _properties.back();
 }
