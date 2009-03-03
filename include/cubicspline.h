@@ -235,8 +235,8 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
             M(offset1 + _r.size() - 1, offset2 + 2*_r.size()-1) = 1;
             break;
         case splinePeriodic:
-            M(offset1, offset2 + _r.size()) = 1;
-            M(offset1, offset2 + 2*_r.size()-1) = -1;
+            M(offset1, offset2) = 1;
+            M(offset1, offset2 + _r.size()-1) = -1;
             M(offset1 + _r.size() - 1, offset2 + _r.size()) = 1;
             M(offset1 + _r.size() - 1, offset2 + 2*_r.size()-1) = -1;
             break;
