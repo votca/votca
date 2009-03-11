@@ -9,16 +9,19 @@
 #define	_BEADLIST_H
 
 #include <string>
+#include <list>
+#include "topology.h"
 
 using namespace std;
 
 class BeadList
+    : public list<Bead *>
 {
 public:
     BeadList() {}
     ~BeadList() {}
     
-    int CreateList(string select);
+    int Generate(Topology &top, const string &select);
     
 private:
 };

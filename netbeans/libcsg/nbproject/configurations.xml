@@ -6,6 +6,7 @@
                    projectFiles="true">
       <itemPath>../../include/bead.h</itemPath>
       <itemPath>../../include/beadlist.h</itemPath>
+      <itemPath>../../include/beadpair.h</itemPath>
       <itemPath>../../include/beadtype.h</itemPath>
       <itemPath>../../include/cgengine.h</itemPath>
       <itemPath>../../include/cgmoleculedef.h</itemPath>
@@ -18,9 +19,11 @@
       <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/map.h</itemPath>
       <itemPath>../../include/molecule.h</itemPath>
+      <itemPath>../../include/nblist.h</itemPath>
       <itemPath>../../include/neighbourlist.h</itemPath>
       <itemPath>../../include/nematicorder.h</itemPath>
       <itemPath>../../include/numberdist.h</itemPath>
+      <itemPath>../../include/pairlist.h</itemPath>
       <itemPath>../../include/residue.h</itemPath>
       <itemPath>../../include/topology.h</itemPath>
       <itemPath>../../include/topologyitem.h</itemPath>
@@ -58,6 +61,7 @@
           </logicalFolder>
         </logicalFolder>
       </logicalFolder>
+      <itemPath>../../src/libcsg/beadlist.cc</itemPath>
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
       <itemPath>../../src/libcsg/connectivity.cc</itemPath>
@@ -65,6 +69,7 @@
       <itemPath>../../src/libcsg/imccoefficients.cc</itemPath>
       <itemPath>../../src/libcsg/map.cc</itemPath>
       <itemPath>../../src/libcsg/molecule.cc</itemPath>
+      <itemPath>../../src/libcsg/nblist.cc</itemPath>
       <itemPath>../../src/libcsg/neighbourlist.cc</itemPath>
       <itemPath>../../src/libcsg/nematicorder.cc</itemPath>
       <itemPath>../../src/libcsg/numberdist.cc</itemPath>
@@ -111,6 +116,9 @@
       <item path="../../include/beadlist.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/beadpair.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/beadtype.h">
         <itemTool>3</itemTool>
       </item>
@@ -147,6 +155,9 @@
       <item path="../../include/molecule.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/nblist.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/neighbourlist.h">
         <itemTool>3</itemTool>
       </item>
@@ -154,6 +165,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/numberdist.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/pairlist.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/residue.h">
@@ -176,6 +190,9 @@
       </item>
       <item path="../../include/trajectorywriter.h">
         <itemTool>3</itemTool>
+      </item>
+      <item path="../../src/libcsg/beadlist.cc">
+        <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/cgengine.cc">
         <itemTool>1</itemTool>
@@ -244,6 +261,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../src/libcsg/molecule.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libcsg/nblist.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/neighbourlist.cc">
@@ -302,6 +322,9 @@
       <item path="../../include/beadlist.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/beadpair.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/beadtype.h">
         <itemTool>3</itemTool>
       </item>
@@ -338,6 +361,9 @@
       <item path="../../include/molecule.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/nblist.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/neighbourlist.h">
         <itemTool>3</itemTool>
       </item>
@@ -345,6 +371,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/numberdist.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/pairlist.h">
         <itemTool>3</itemTool>
       </item>
       <item path="../../include/residue.h">
@@ -367,6 +396,9 @@
       </item>
       <item path="../../include/trajectorywriter.h">
         <itemTool>3</itemTool>
+      </item>
+      <item path="../../src/libcsg/beadlist.cc">
+        <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/cgengine.cc">
         <itemTool>1</itemTool>
@@ -435,6 +467,9 @@
         <itemTool>3</itemTool>
       </item>
       <item path="../../src/libcsg/molecule.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libcsg/nblist.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libcsg/neighbourlist.cc">

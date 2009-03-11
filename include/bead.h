@@ -12,6 +12,7 @@
 #include <string>
 #include <tools/types.h>
 #include <tools/vec.h>
+#include <assert.h>
 #include "beadtype.h"
 #include "topologyitem.h"
 

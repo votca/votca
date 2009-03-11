@@ -154,7 +154,18 @@ void Topology::AddBondedInteraction(Interaction *ic)
         ic->setGroupId(i);
     }
     _interactions.push_back(ic);
+    _interactions_by_group[ic->getGroup()].push_back(ic);
 }
+
+std::list<Interaction *> Topology::IneteractionsInGroup(const string &group)
+{
+    map<string, list<Interaction*> >::iterator iter;
+    iter = _interactions_by_group.find(group);
+    if(iter == _interactions_by_group.end())
+        return list<Interaction *>();
+    return iter->second;
+}
+
 
 BeadType *Topology::GetOrCreateBeadType(string name)
 {
@@ -173,17 +184,23 @@ BeadType *Topology::GetOrCreateBeadType(string name)
     return NULL;
 }
 
-vec Topology::getDist(int bead1, int bead2) const
+vec Topology::BCShortestConnection(const vec &r_i, const vec &r_j) const
 {
     vec r_tp, r_dp, r_sp, r_ij;
-    vec r_i = getBead(bead1)->getPos();
-    vec r_j = getBead(bead2)->getPos();
     vec a = _box.getCol(0); vec b = _box.getCol(1); vec c = _box.getCol(2);
     r_tp = r_j - r_i;
     r_dp = r_tp - c*round(r_tp.getZ()/c.getZ());  
     r_sp = r_dp - b*round(r_dp.getY()/b.getY());
     r_ij = r_sp - a*round(r_sp.getX()/a.getX());
     return r_ij;
+
+}
+
+vec Topology::getDist(int bead1, int bead2) const
+{
+    return BCShortestConnection(
+            getBead(bead1)->getPos(),
+            getBead(bead2)->getPos());
 }
 
 double Topology::BoxVolume()

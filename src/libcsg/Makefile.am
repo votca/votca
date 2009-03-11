@@ -9,7 +9,8 @@ libcsg_a_SOURCES = \
     connectivity.cc   molecule.cc     topology.cc       trajectorywriter.cc \
     modules/io/gmxtopologyreader.cc    modules/io/grotopologyreader.cc  modules/io/xmltopologyreader.cc \
     modules/io/gmxtrajectoryreader.cc  modules/io/growriter.cc          modules/io/pdbtopologyreader.cc \
-    modules/io/gmxtrajectorywriter.cc  modules/io/pdbwriter.cc
+    modules/io/gmxtrajectorywriter.cc  modules/io/pdbwriter.cc \
+    nblist.cc beadlist.cc
 
 CLEANFILES = *~
 #DISTCLEANFILES =

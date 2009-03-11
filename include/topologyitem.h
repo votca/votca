@@ -12,6 +12,8 @@ class Topology;
 
 class TopologyItem
 {
+public:    
+    Topology *getParent() { return _parent; }
 protected:
     TopologyItem(Topology *parent)
         : _parent(parent) {}

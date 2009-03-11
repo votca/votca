@@ -26,9 +26,7 @@
 #include "libversion.h"
 
 using namespace std;
-//
-// \todo improve scripting!
-//
+
 int main(int argc, char** argv)
 {    
     BondedStatistics bs;

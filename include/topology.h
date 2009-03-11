@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <map>
+#include <list>
+
 #include <assert.h>
 #include <tools/vec.h>
 #include <tools/matrix.h>
@@ -96,6 +98,7 @@ public:
     
     // \todo change AddBondedinteraction to Create bonded interaction, that only topology can create interactions
     void AddBondedInteraction(Interaction *ic);
+    std::list<Interaction *> IneteractionsInGroup(const string &group);
     
     BeadType *getBeadType(const int i) const { return _beadtypes[i]; }
     Bead *getBead(const int i) const { return _beads[i]; }
@@ -133,6 +136,8 @@ public:
     /// get the smallest distance between two particles with correct treatment of pbc
     vec getDist(int bead1, int bead2) const;
     
+    vec BCShortestConnection(const vec &r1, const vec &r2) const;
+    
     /// calculates the vox volume
     double BoxVolume();
     
@@ -154,6 +159,8 @@ private:
     
     map<string, int> _interaction_groups;
     map<string, int> _beadtype_map;
+    
+    map<string, list<Interaction *> > _interactions_by_group;
     
     matrix _box;
     real _time;
