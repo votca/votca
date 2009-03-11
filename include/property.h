@@ -64,7 +64,7 @@ public:
     /// returns the value after type conversion, e.g.
     /// p.as<int>() returns an integer
     template<typename T>
-    T &as() { return boost::lexical_cast<T>(_value); }
+    T as() const { return boost::lexical_cast<T>(_value); }
 
     /// \brief does the property has childs?
     bool HasChilds() { return !_map.empty(); }

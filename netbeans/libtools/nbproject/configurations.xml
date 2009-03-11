@@ -10,6 +10,7 @@
       <itemPath>../../include/cubicspline.h</itemPath>
       <itemPath>../../include/datacollection.h</itemPath>
       <itemPath>../../include/histogram.h</itemPath>
+      <itemPath>../../include/histogramnew.h</itemPath>
       <itemPath>../../include/householderqr.h</itemPath>
       <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/matrix.h</itemPath>
@@ -34,6 +35,7 @@
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
+      <itemPath>../../src/libtools/histogramnew.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/parcer.cc</itemPath>
       <itemPath>../../src/libtools/property.cc</itemPath>
@@ -94,6 +96,9 @@
       <item path="../../include/histogram.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/histogramnew.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/householderqr.h">
         <itemTool>3</itemTool>
       </item>
@@ -140,6 +145,9 @@
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/histogram.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/histogramnew.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/matrix.cc">
@@ -208,6 +216,9 @@
       <item path="../../include/histogram.h">
         <itemTool>3</itemTool>
       </item>
+      <item path="../../include/histogramnew.h">
+        <itemTool>3</itemTool>
+      </item>
       <item path="../../include/householderqr.h">
         <itemTool>3</itemTool>
       </item>
@@ -254,6 +265,9 @@
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/histogram.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/histogramnew.cc">
         <itemTool>1</itemTool>
       </item>
       <item path="../../src/libtools/matrix.cc">

@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
+FC=gfortran
 
 # Include project Makefile
 include Makefile_nb
@@ -25,18 +25,19 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/cubicspline.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/tokenizer.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/parcer.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/property.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/random.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/matrix.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/crosscorrelate.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/correlate.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/rangeparser.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/histogram.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/table.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/datacollection.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/cubicspline.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/tokenizer.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/parcer.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/property.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/random.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../src/libtools/histogramnew.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/matrix.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/crosscorrelate.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/correlate.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/rangeparser.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/histogram.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/table.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/datacollection.o
 
 # C Compiler Flags
 CFLAGS=
@@ -60,53 +61,57 @@ LDLIBSOPTIONS=
 	${AR} rv ../../src/libtools/libtools.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libtools/libtools.a
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/cubicspline.o: ../../src/libtools/cubicspline.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/cubicspline.o ../../src/libtools/cubicspline.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/cubicspline.o: ../../src/libtools/cubicspline.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/cubicspline.o ../../src/libtools/cubicspline.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/tokenizer.o: ../../src/libtools/tokenizer.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/tokenizer.o ../../src/libtools/tokenizer.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/tokenizer.o: ../../src/libtools/tokenizer.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/tokenizer.o ../../src/libtools/tokenizer.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/parcer.o: ../../src/libtools/parcer.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/parcer.o ../../src/libtools/parcer.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/parcer.o: ../../src/libtools/parcer.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/parcer.o ../../src/libtools/parcer.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/property.o: ../../src/libtools/property.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/property.o ../../src/libtools/property.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/property.o: ../../src/libtools/property.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/property.o ../../src/libtools/property.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/random.o: ../../src/libtools/random.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/random.o ../../src/libtools/random.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/random.o: ../../src/libtools/random.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/random.o ../../src/libtools/random.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/matrix.o: ../../src/libtools/matrix.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/matrix.o ../../src/libtools/matrix.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../src/libtools/histogramnew.o: ../../src/libtools/histogramnew.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../src/libtools/histogramnew.o ../../src/libtools/histogramnew.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/crosscorrelate.o: ../../src/libtools/crosscorrelate.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/crosscorrelate.o ../../src/libtools/crosscorrelate.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/matrix.o: ../../src/libtools/matrix.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/matrix.o ../../src/libtools/matrix.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/correlate.o: ../../src/libtools/correlate.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/correlate.o ../../src/libtools/correlate.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/crosscorrelate.o: ../../src/libtools/crosscorrelate.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/crosscorrelate.o ../../src/libtools/crosscorrelate.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/rangeparser.o: ../../src/libtools/rangeparser.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/rangeparser.o ../../src/libtools/rangeparser.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/correlate.o: ../../src/libtools/correlate.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/correlate.o ../../src/libtools/correlate.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/histogram.o: ../../src/libtools/histogram.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/histogram.o ../../src/libtools/histogram.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/rangeparser.o: ../../src/libtools/rangeparser.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/rangeparser.o ../../src/libtools/rangeparser.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/table.o: ../../src/libtools/table.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/table.o ../../src/libtools/table.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/histogram.o: ../../src/libtools/histogram.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/histogram.o ../../src/libtools/histogram.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/datacollection.o: ../../src/libtools/datacollection.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/vehoff/src/csg_svn/tools/src/libtools/datacollection.o ../../src/libtools/datacollection.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/table.o: ../../src/libtools/table.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/table.o ../../src/libtools/table.cc
+
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/datacollection.o: ../../src/libtools/datacollection.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/datacollection.o ../../src/libtools/datacollection.cc
 
 # Subprojects
 .build-subprojects:
