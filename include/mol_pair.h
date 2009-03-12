@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
+#include <string.h>
 
 class mol_pair {
 private:
