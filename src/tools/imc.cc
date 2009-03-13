@@ -12,29 +12,36 @@
 
 void Imc::BeginCG(Topology *top, Topology *top_atom) {
     cout << "begin to calculate inverse monte carlo parameters\n";
-    cout << "bonded interactions: " << _bonded.size() << endl;
-    cout << "non-bonded interactions: " << _nonbonded.size() << endl;
+    cout << "# of bonded interactions: " << _bonded.size() << endl;
+    cout << "# of non-bonded interactions: " << _nonbonded.size() << endl;
     
    _nframes = 0;
    
+   // initialize non-bonded structures
    for (list<Property*>::iterator iter = _nonbonded.begin();
-            iter != _nonbonded.end(); ++iter) {
-        string name = (*iter)->get("name").value();
-        
-        _interactions[name] = new interaction_t;
-        // \todo check weather exists       
-        interaction_t &i=*_interactions[name];
-        
-        i._step = (*iter)->get("step").as<double>();
-        i._min = (*iter)->get("min").as<double>();
-        i._max = (*iter)->get("max").as<double>();
-        
-        int n = (i._max - i._min)/i._step;
-        
-       i._current.Initialize(i._min, i._max, n);
-       i._average.Initialize(i._min, i._max, n);
-    }
+            iter != _nonbonded.end(); ++iter)
+        AddInteraction(*iter);
 };
+
+interaction *Imc::AddInteraction(Property *p)
+{
+    string name = p->get("name").value();
+    interaction_t *i = new interaction_t;
+
+    _interactions[name] = i;
+    // \todo check weather exists       
+    
+    i->_step = p->get("step").as<double>();
+    i->_min = p->get("min").as<double>();
+    i->_max = p->get("max").as<double>();
+
+    int n = (i->_max - i->_min) / i->_step;
+
+    i->_current.Initialize(i->_min, i->_max, n);
+    i->_average.Initialize(i->_min, i->_max, n);
+    
+    return *i;
+}
 
 void Imc::EndCG()
 {        
