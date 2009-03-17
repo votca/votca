@@ -18,17 +18,27 @@ Property &Property::get(const string &key)
     Tokenizer::iterator n;
     
     n = tok.begin();
+    if(n==tok.end()) return *this;
     
+    Property *p;
     map<string, Property*>::iterator iter;
-    iter = _map.find(*n);
-    if(iter == _map.end())
-        throw runtime_error("property not found: " + key);
+    if(*n=="") {
+        p = this;
+    }
+    else {
+        iter = _map.find(*n);
     
-    Property *p(((*iter).second));
+        if(iter == _map.end())
+            throw runtime_error("property not found: " + key);
+    
+        p = (((*iter).second));
+    }
     ++n;
     try {
-        for(; n!=tok.end(); ++n)
-        p = &p->get(*n);
+        for(; n!=tok.end(); ++n) {
+            p = &p->get(*n);
+            cout << "tok <" << *n << ">" << endl;
+        }
     }
     catch(string err) { // catch here to get full key in exception
         throw runtime_error("property not found: " + key);
