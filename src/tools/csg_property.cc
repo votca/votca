@@ -8,12 +8,13 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <tools/property.h>
+#include <tools/tokenizer.h>
 
 using namespace std;
 
 int main(int argc, char** argv)
 {      
-    string filter, file;
+    string filter, file, path, print;
     bool short_output = false;
     bool with_path = false;
 
@@ -24,7 +25,13 @@ int main(int argc, char** argv)
     po::options_description desc("Allowed options");    
     desc.add_options()
         ("help", "produce this help message")
-        ("values", po::value<string>(&filter)->default_value(""),
+        //("values", po::value<string>(&filter)->default_value(""),
+        //    "list option values that match given criteria")
+        ("path", po::value<string>(&path)->default_value(""),
+            "list option values that match given criteria")
+        ("filter", po::value<string>(&filter)->default_value(""),
+            "list option values that match given criteria")
+        ("print", po::value<string>(&print)->default_value(". "),
             "list option values that match given criteria")
         ("file", po::value<string>(&file), "xml file to parse")
         ("short", "short version of output")
@@ -60,15 +67,34 @@ int main(int argc, char** argv)
     Property p;
     load_property_from_xml(p, file);
     
-    list<Property *> sel = p.Select(filter);
+    list<Property *> sel = p.Select(path);
     for(list<Property*>::iterator iter = sel.begin();
         iter!=sel.end(); ++iter) {
+        if(filter!="") {
+            Tokenizer tokenizer(filter, "=");
+            Tokenizer::iterator tok;
+            tok = tokenizer.begin();
+            if(tok == tokenizer.end())
+                throw std::invalid_argument("error, specified invalid filgter");
+           
+            string field = *tok;
+            ++tok;
+            if(tok == tokenizer.end()) 
+                throw std::invalid_argument("error, specified invalid filgter");
+            
+            string value = *tok;
+            if(!wildcmp(value.c_str(), (*iter)->get(field).value().c_str()))
+                continue;
+        }
+        
+        Property *p=&((*iter)->get(print));
+       
         if(!short_output && with_path)
-            cout << (*iter)->path() << ".";
+            cout << p->path() << ".";
         if(!short_output)
-            cout << (*iter)->name() << " = ";
-        if(!(*iter)->HasChilds())
-            cout << (*iter)->value();
+            cout << p->name() << " = ";
+        if(!p->HasChilds())
+            cout << p->value();
         cout << endl;
     }
     return 0;
