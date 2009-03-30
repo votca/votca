@@ -79,3 +79,33 @@ void CrossCorrelate::AutoFourier(vector <double>& ivec){
     fftw_destroy_plan(fft);
     fftw_free(tmp);
 }
+
+void CrossCorrelate::AutoCorr(vector <double>& ivec){
+    size_t N = ivec.size();
+    _corrfunc.resize(N);
+
+    fftw_complex *tmp;
+    fftw_plan fft, ifft;
+    
+    tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (N/2+1));
+
+    fft = fftw_plan_dft_r2c_1d(N, &ivec[0], tmp, FFTW_ESTIMATE);
+    ifft = fftw_plan_dft_c2r_1d(N, tmp, &_corrfunc[0], FFTW_ESTIMATE);
+    fftw_execute(fft);
+    
+    tmp[0][0] = tmp[0][1] = 0;
+    for(int i=1; i<N/2+1; i++) {
+        tmp[i][0] = tmp[i][0]*tmp[i][0] + tmp[i][1]*tmp[i][1];
+        tmp[i][1] = 0;       
+    }
+    
+    fftw_execute(ifft);
+    
+    double d = _corrfunc[0];
+    for(int i=0; i<N; i++)
+        _corrfunc[i] = _corrfunc[i]/d;
+    
+    fftw_destroy_plan(fft);
+    fftw_destroy_plan(ifft);
+    fftw_free(tmp);
+}
