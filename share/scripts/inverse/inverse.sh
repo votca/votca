@@ -1,69 +1,61 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo Start the script to run ibm, imc, etc.
-   echo Usage: ${0##*/} setting_file
-   exit 0
+  echo Start the script to run ibm, imc, etc.
+  echo Usage: ${0##*/} setting_file.xml 
+  exit 0
 fi
 
 if [ -z "$1" ]; then
-   echo Error: Missing setting file > /dev/stderr
-   exit 1
-else 
-   source $1
-   shift
+  echo Error: Missing setting file > /dev/stderr
+  exit 1
+fi
+if [ -f "./$1" ]; then
+  export CSGXMLFILE="$PWD/$1"
+else
+  echo Error: file could not read > /dev/stderr
+  exit 1
 fi
 
-#check if needed variables are set
-for variable in p_target iterations filelist method sim_prog CSGSHARE scriptdir; do
-   if [ -z "$(declare | grep -e "^$variable" )" ]; then
-      echo Error $variable not definded, check setting file > /dev/stderr
-      exit 1
-   fi
-done
-#check if needed arrays are set
-for array in atoms scheme pscheme; do
-   if [ -z "$(declare | grep -e "^$array=(.*)$" )" ]; then
-      echo Error $array not definded or is not an array, check setting file > /dev/stderr
-      exit 1
-   fi
-done
+#check for CSGSHARE 
+if [ -z "${CSGSHARE}" ]; then
+  echo Error: CSGSHARE not definded > /dev/stderr
+  exit 1
+fi
+if [ ! -d "$CSGSHARE" ]; then
+  echo "CSGSHARE '$CSGSHARE' is not a dir" > /dev/stderr
+  exit 1
+fi
+#export CSGSHARE
 
-export scriptdir
-export CSGSHARE
+#we need csg_property
+if [ -z "$(type -p csg_property)" ]; then
+  echo Error: csg_property not found, check your PATH > /dev/stderr
+  exit 1
+fi
+
+CSGSCRIPTDIR="$(csg_property --file $CSGXMLFILE --path cg.inverse.scriptdir --short --print .)"
+#scriptdir maybe contains $PWD or something
+eval CSGSCRIPTDIR=$CSGSCRIPTDIR
+if [ ! -d "$CSGSCRIPTDIR" ]; then
+  echo "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir" > /dev/stderr
+  exit 1
+fi
+export CSGSCRIPTDIR
 
 #find source_wrapper.sh
 #first local, then local scriptdir. then CSGSHARE
-if [ -n  "${scriptdir}" ] && [ -f "${scriptdir}/source_wrapper.sh" ]; then
-   source_wrapper="${scriptdir}/source_wrapper.sh"
-elif [ -n  "${CSGSHARE}" ] && [ -f "${CSGSHARE}/source_wrapper.sh" ]; then
-   source_wrapper="${CSGSHARE}/source_wrapper.sh"
+if [ -f "${CSGSCRIPTDIR}/source_wrapper.sh" ]; then
+   SOURCE_WRAPPER="${CSGSCRIPTDIR}/source_wrapper.sh"
+elif [ -f "${CSGSHARE}/source_wrapper.sh" ]; then
+   SOURCE_WRAPPER="${CSGSHARE}/source_wrapper.sh"
 else
    echo Could not find source_wrapper.sh > /dev/stderr
    exit 1
 fi
-export source_wrapper
+export SOURCE_WRAPPER
 
-do_external() {
-   local script
-   script="$($source_wrapper $1 $2)" || exit 1
-   shift 2
-   echo Running subscript ${script##*/} "$@"
-   source $script "$@"
-}
-
-#useful subroutine check if a command was succesful AND log the output
-run_or_exit() {
-   local prog mylog
-   [[ "$1" = "--log" ]] && { mylog="$2"; shift 2; }
-   prog=$1
-   shift
-   [[ -n "$prog" ]] || { echo Error give one argument >&2; exit 1; }
-   [[ -z "$mylog" ]] && mylog="log_${prog##*/}"
-   echo Running ${prog##*/} $* \&\> $mylog
-   $prog $* &> $mylog
-   [[ $? -eq 0 ]] || { echo Error at ${prog##*/}; exit 1; }
-}
+source $($SOURCE_WRAPPER --direct inverse_functions.sh)
 
 #main script
 [[ -f done ]] && echo Job is already done && exit 0
@@ -82,14 +74,9 @@ else
    cd step_00
 
    #copy all rdf in step_00
-   for ((a1=0;a1<${#atoms[*]};a1++)); do
-      atom1=${atoms[$a1]}
-      for ((j=$a1;a2<${#atoms[*]};a2++)); do
-         atom2=${atoms[$a2]}
-         cp ../rdf_${atom1}_${atom2}_aim.xvg . || exit 1
-      done
-   done
+   for_all --cmd non-bonded cp ../rdf_\${atom1}_\${atom2}_aim.xvg . || exit 1
 
+   exit
    do_external init $method || exit 1
 
    #convert generic table file in gromacs table file (.xvg)
