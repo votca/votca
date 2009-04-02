@@ -30,7 +30,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/parcer.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/property.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/random.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../src/libtools/histogramnew.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/histogramnew.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/matrix.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/crosscorrelate.o \
 	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/correlate.o \
@@ -81,9 +81,9 @@ ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/random.o: ../
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
 	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/random.o ../../src/libtools/random.cc
 
-${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../src/libtools/histogramnew.o: ../../src/libtools/histogramnew.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../src/libtools
-	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/netbeans/libtools/../../src/libtools/histogramnew.o ../../src/libtools/histogramnew.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/histogramnew.o: ../../src/libtools/histogramnew.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools
+	$(COMPILE.cc) -g -I../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/histogramnew.o ../../src/libtools/histogramnew.cc
 
 ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/matrix.o: ../../src/libtools/matrix.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools

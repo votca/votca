@@ -292,5 +292,125 @@
         <itemTool>1</itemTool>
       </item>
     </conf>
+    <conf name="profile_release" type="3">
+      <toolsSet>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cCompilerTool>
+          <developmentMode>6</developmentMode>
+          <includeDirectories>
+            <directoryPath>../../include</directoryPath>
+          </includeDirectories>
+        </cCompilerTool>
+        <ccCompilerTool>
+          <developmentMode>6</developmentMode>
+          <includeDirectories>
+            <directoryPath>../../include</directoryPath>
+          </includeDirectories>
+          <commandLine>-I../../include -pg</commandLine>
+        </ccCompilerTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <archiverTool>
+          <output>../../src/libtools/libtools.a</output>
+        </archiverTool>
+      </compileType>
+      <item path="../../include/average.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/correlate.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/crosscorrelate.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/cubicspline.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/datacollection.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/histogram.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/histogramnew.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/householderqr.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/libversion.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/matrix.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/objectfactory.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/property.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/random.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/rangeparser.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/table.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/tokenizer.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/types.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../include/vec.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="../../src/libtools/correlate.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/crosscorrelate.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/cubicspline.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/datacollection.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/histogram.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/histogramnew.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/matrix.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/parcer.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/property.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/random.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/rangeparser.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/table.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/libtools/tokenizer.cc">
+        <itemTool>1</itemTool>
+      </item>
+    </conf>
   </confs>
 </configurationDescriptor>

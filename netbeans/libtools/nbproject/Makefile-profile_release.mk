@@ -21,7 +21,7 @@ FC=gfortran
 include Makefile_nb
 
 # Object Directory
-OBJECTDIR=build/Release/GNU-Linux-x86
+OBJECTDIR=build/profile_release/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
@@ -43,8 +43,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-I../../include
-CXXFLAGS=-I../../include
+CCFLAGS=-I../../include -pg
+CXXFLAGS=-I../../include -pg
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -118,7 +118,7 @@ ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/tools/src/libtools/datacollectio
 
 # Clean Targets
 .clean-conf:
-	${RM} -r build/Release
+	${RM} -r build/profile_release
 	${RM} ../../src/libtools/libtools.a
 
 # Subprojects
