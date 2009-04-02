@@ -15,7 +15,7 @@ template<typename element_type, typename pair_type>
 class PairList {
 public:
     PairList() {}
-    ~PairList() {}
+    ~PairList() { Cleanup(); }
               
     //void Generate(BeadList *list1, BeadList *list2 = NULL);    
     void AddPair(pair_type *p);

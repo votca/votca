@@ -133,8 +133,9 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
         traj_reader->FirstFrame(top);    
         
         // notify all observer that coarse graining has begun
-        BeginCG(top_cg);
              
+        map->Apply();
+        BeginCG(top_cg);
         bool bok=true;
         while(bok) {
             map->Apply();
