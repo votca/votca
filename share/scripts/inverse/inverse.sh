@@ -57,6 +57,9 @@ export SOURCE_WRAPPER
 
 source $($SOURCE_WRAPPER --direct inverse_functions.sh)
 
+method="$(csg_property --file $CSGXMLFILE --path cg.inverse.method --short --print .)"
+echo "We are doing: $method"
+
 #main script
 [[ -f done ]] && echo Job is already done && exit 0
 
@@ -74,10 +77,10 @@ else
    cd step_00
 
    #copy all rdf in step_00
-   for_all --cmd non-bonded cp ../rdf_\${atom1}_\${atom2}_aim.xvg . || exit 1
+   for_all non-bonded "cp ../rdf_\${type1}_\${type2}_aim.xvg ." || exit 1
 
+   do_external init $method for_all non-bonded || exit 1
    exit
-   do_external init $method || exit 1
 
    #convert generic table file in gromacs table file (.xvg)
    for ((a1=0;a1<${#atoms[*]};a1++)); do

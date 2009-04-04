@@ -34,6 +34,7 @@ esac
 }
 
 scriptname=""
+called_direct="no"
 case $1 in
   init*)
     scriptname="initalize"
@@ -64,6 +65,7 @@ case $1 in
     shift
     simulation_case $1;;
   --direct)
+    called_direct="yes"
     if [ -n "$2" ]; then
       scriptname="$2"
     else
@@ -77,7 +79,7 @@ case $1 in
 esac
 
 #add ending .sh, but not twice 
-scriptname="${scriptname%.sh}.sh"
+[[ "$called_direct" = "yes" ]] || scriptname="${scriptname%.sh}.sh"
 
 #first local CSGSCRIPTDIR. then CSGSHARE
 if [ -n  "${CSGSCRIPTDIR}" ] && [ -f "${CSGSCRIPTDIR}/${scriptname}" ]; then
