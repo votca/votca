@@ -57,61 +57,58 @@ export SOURCE_WRAPPER
 
 source $($SOURCE_WRAPPER --direct inverse_functions.sh)
 
-method="$(csg_property --file $CSGXMLFILE --path cg.inverse.method --short --print .)"
-echo "We are doing: $method"
+method="$(get_sim_property method)" || exit 1
+echo "We are doing Method: $method"
+
+sim_prog="$(get_sim_property program)" || exit 1
+echo "We using Sim Program: $sim_prog"
+source $($SOURCE_WRAPPER functions $sim_prog) || exit 1
+
+iterations="$(get_sim_property iterations_max)" || exit 1
+echo "We are doing $iterations iterations."
+
+filelist="$(get_sim_property filelist)" || exit 1
+echo "We extra need $filelist to run the simulation"
+
+p_target="$(get_sim_property p_target)" || exit 1
 
 #main script
 [[ -f done ]] && echo Job is already done && exit 0
 
 if [ -d step_00 ]; then
-   echo Skiping prepare 
-   if [ ! -f step_00/done ]; then
-     echo Incomplete step 00
-     exit 1
-   fi
+  echo Skiping prepare 
+  if [ ! -f step_00/done ]; then
+    echo Incomplete step 00
+    exit 1
+  fi
 else
-   echo ------------------------
-   echo Prepare \(make step_00\)
-   echo ------------------------
-   mkdir step_00
-   cd step_00
+  echo ------------------------
+  echo Prepare \(make step_00\)
+  echo ------------------------
+  mkdir step_00
+  cd step_00
 
-   #copy all rdf in step_00
-   for_all non-bonded "cp ../rdf_\${type1}_\${type2}_aim.xvg ." || exit 1
+  #copy all rdf in step_00
+  for_all non-bonded "cp ../rdf_\${type1}_\${type2}_aim.xvg ." || exit 1
 
-   do_external init $method for_all non-bonded || exit 1
-   exit
+  do_external init $method for_all non-bonded || exit 1
 
-   #convert generic table file in gromacs table file (.xvg)
-   for ((a1=0;a1<${#atoms[*]};a1++)); do
-      atom1=${atoms[$a1]}
-      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
-         atom2=${atoms[$a1]}
-         do_external convert_potential $sim_prog table_${atom1}_${atom2}_new.d || exit 1
-      done
-   done
+  #convert generic table file in gromacs table file (.xvg)
+  do_external convert_potential $sim_prog for_all non-bonded "table_\${type1}_\${type2}_new.d" || exit 1
    
-   #make confout.gro
-   do_external init $sim_prog || exit 1
+  #make confout.gro
+  do_external init $sim_prog || exit 1
 
-   for ((a1=0;a1<${#atoms[*]};a1++)); do
-      atom1=${atoms[$a1]}
-      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
-         atom2=${atoms[$a2]}
-         cp table_${atom1}_${atom2}_new.d ../table_${atom1}_${atom2}_final.d || exit 1
-      done
-   done
-   touch done
-   cd ..
+  for_all non-bonded cp "table_\${type1}_\${type2}_new.d ../table_\${type1}_\${type2}_final.d" || exit 1
+  touch done
+  cd ..
 fi
 
 for ((i=1;i<$iterations+1;i++)); do
    echo ---------------------------------
    echo Doing iteration $i \(make step_$i\)
    echo -------------------------------
-   last=$i
-   ((last--))
-   last_dir=$(printf step_%02i $last)
+   last_dir=$(printf step_%02i $((i-1)) )
    this_dir=$(printf step_%02i $i)
    if [ -d $this_dir ]; then
       if [ -f $this_dir/done ]; then
@@ -119,19 +116,13 @@ for ((i=1;i<$iterations+1;i++)); do
          continue
       else
          echo Incomplete step $i
-         exit 1
+         #exit 1
       fi
    fi
    mkdir $this_dir
    
    #copy all rdf in step_00
-   for ((a1=0;a1<${#atoms[*]};a1++)); do
-      atom1=${atoms[$a1]}
-      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
-         atom2=${atoms[$a2]}
-         cp rdf_${atom1}_${atom2}_aim.xvg $this_dir || exit 1
-      done
-   done
+   for_all non-bonded "cp rdf_\${type1}_\${type2}_aim.xvg $this_dir" || exit 1
    
    #get need files
    for myfile in $filelist; do
@@ -139,60 +130,27 @@ for ((i=1;i<$iterations+1;i++)); do
    done
    cd $this_dir
    
-   for ((a1=0;a1<${#atoms[*]};a1++)); do
-      atom1=${atoms[$a1]}
-      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
-         atom2=${atoms[$a2]}
-         cp ../$last_dir/table_${atom1}_${atom2}_new.d ./table_${atom1}_${atom2}.d || exit 1
-         do_external convert_potential $sim_prog table_${atom1}_${atom2}.d || exit 1
-      done
-   done
+   for_all non-bonded "cp ../$last_dir/table_\${type1}_\${type2}_new.d ./table_\${type1}_\${type2}.d" || exit 1
+   do_external convert_potential $sim_prog for_all non-bonded "table_\${type1}_\${type2}.d" || exit 1
 
    #Run simulation maybe change to Espresso or whatever
-   do_external prepare $sim_prog
-   do_external run $sim_prog
+   do_external prepare $sim_prog $last_dir || exit 1
+   #do_external run $sim_prog || exit 1
 
-   do_external pressure $sim_prog
+   p_now="$(do_external pressure $sim_prog)" || exit 1
    echo New pressure $p_now
    echo Target pressure was $p_target
    
    #calc pressure correction
-   pressure_cor=$($source_wrapper --direct pressure_cor.pl) || exit 1
+   pressure_cor=$($SOURCE_WRAPPER --direct pressure_cor.pl) || exit 1
    run_or_exit $pressure_cor $p_target $p_now pressure_cor.d 
 
-   do_external rdf $sim_prog
+   #do_external rdf $sim_prog for_all non-bonded
    
-   scheme_nr=$(( ( i - 1 ) % ${#scheme[@]} ))
-   pscheme_nr=$(( ( i - 1 ) % ${#pscheme[@]} ))
-   echo Doing Scheme step $scheme_nr : ${scheme[$scheme_nr]}
-   echo Doing Pressure Scheme step $pscheme_nr : ${pscheme[$pscheme_nr]}
-   for ((a1=0;a1<${#atoms[*]};a1++)); do
-      atom1=${atoms[$a1]}
-      for ((a2=$a1;a2<${#atoms[*]};a2++)); do
-         atom2=${atoms[$a2]}
-         #if atom is in this step
-         if [ -n "${scheme[$scheme_nr]}" ] && [ -z "${scheme[$scheme_nr]/*${atom1}-${atom2}*}" ]; then
-            echo Update ${atom1}-${atom2} - $method
-            #update ibm
-            do_external update $method $atom1 $atom2
-            add_POT=$($source_wrapper --direct add_POT.pl) || exit 1
-            run_or_exit --log log_add_POT_${atom1}_${atom2} $add_POT table_${atom1}_${atom2}.d delta_pot_${atom1}_${atom2}.d table_${atom1}_${atom2}_new1.d
-         else
-            echo Just copying ${atom1}-${atom2} - no $method
-            cp table_${atom1}_${atom2}.d table_${atom1}_${atom2}_new1.d
-         fi
-         if [ -n "${pscheme[$pscheme_nr]}" ] && [ -z "${pscheme[$pscheme_nr]/*${atom1}-${atom2}*}" ]; then
-            echo Update presuure ${atom1}-${atom2}
-            add_POT=$($source_wrapper --direct add_POT.pl) || exit 1
-            run_or_exit --log log_add_POT2_${atom1}_${atom2} $add_POT table_${atom1}_${atom2}_new1.d pressure_cor.d table_${atom1}_${atom2}_new.d
-         else
-            echo Just copying ${atom1}-${atom2} - no pressure correction
-            cp  table_${atom1}_${atom2}_new1.d table_${atom1}_${atom2}_new.d
-         fi
-         #copy latest results
-         cp table_${atom1}_${atom2}_new.d ../table_${atom1}_${atom2}_final.d
-      done
-   done
+   do_external update $method for_all non-bonded $i
+
+   #copy latest results
+   for_all non-bonded "cp table_\${type1}_\${type2}_new.d ../table_\${type1}_\${type2}_final.d"
    touch done
    cd ..
 done

@@ -15,18 +15,18 @@ for exe in g_energy; do
    fi
 done
 
-get_from_mdp() {
-   [[ -n "$1" ]] || { echo What?; exit 1;}
-   sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##'
-}
+if [ $(type -t get_from_mdp) != "function" ]; then
+   echo Could not find function get_from_mdp > /dev/stderr
+   exit 1
+fi
 
 nsteps=$(get_from_mdp nsteps)
 dt=$(get_from_mdp dt)
 #20 % is warmup
 equi=$(awk "BEGIN{print 0.2*$nsteps*$dt}")
-echo equi = $equi
 
-echo Running g_energy
+echo Running g_energy > /dev/stderr
 echo "Pressure" | g_energy -b $equi &> log_g_energy
-[[ $? -ne 0 ]] && echo Error at running g_energy && exit 1
+[[ $? -ne 0 ]] && echo Error at running g_energy > /dev/stderr && exit 1
 p_now=$(awk '/^Pressure/{print $3}' log_g_energy)
+echo ${p_now}

@@ -1,24 +1,25 @@
-#! /bin/bash
+#!/bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This is a wrapper to convert potential to gromacs
-   echo Usage: ${0##*/} potential.d
-   echo Needs: run_or_exit, \$source_wrapper, spline
-   exit 0
+  echo This is a wrapper to convert potential to gromacs
+  echo Usage: ${0##*/} potential.d
+  echo Needs: SOURCE_WRAPPER, run_or_exit, wc, spline 
+  exit 0
 fi
 
 if [ -z "$1" ]; then
-   echo Give an argument > /dev/stderr
+   echo Missing argument in ${0##*/} > /dev/stderr
    exit 1
 fi
 
-if [ -z "$source_wrapper" ]; then
-   echo source_wrapper not defined > /dev/stderr
-   exit 1
+if [ -z "${SOURCE_WRAPPER}" ]; then
+  echo SOURCE_WRAPPER not defined > /dev/stderr
+  exit 1
 fi
-table_to_xvg="$($source_wrapper --direct table_to_xvg.pl)" || exit 1
 
-for exe in spline; do
+table_to_xvg="$($SOURCE_WRAPPER --direct table_to_xvg.pl)" || exit 1
+
+for exe in spline wc; do
    if [ -z $(type -p $exe) ]; then
       echo Could not find $exe > /dev/stderr
       exit 1
@@ -34,7 +35,7 @@ input="${1%.d}.d"
 output="${1%.d}.xvg" 
 echo Convert $input to $output
 n_lines=$(wc -l $input | awk '{print 5*($1-1)}')
-echo Spline lines are $n_lines for ${atom1}-${atom2}
+echo Spline lines are $n_lines for ${type1}-${type2}
 spline -n $n_lines $input > smooth_${input}
-run_or_exit --log log_table_to_xvg_${atom1}_${atom2} $table_to_xvg smooth_${input} $output || exit 1
+run_or_exit --log log_table_to_xvg_${type1}_${type2} $table_to_xvg smooth_${input} $output || exit 1
 

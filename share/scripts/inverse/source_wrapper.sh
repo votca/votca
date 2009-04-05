@@ -64,6 +64,10 @@ case $1 in
     scriptname="run"
     shift
     simulation_case $1;;
+  functions)
+    scriptname="functions"
+    shift
+    simulation_case $1;;
   --direct)
     called_direct="yes"
     if [ -n "$2" ]; then
