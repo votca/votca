@@ -116,7 +116,7 @@ for ((i=1;i<$iterations+1;i++)); do
          continue
       else
          echo Incomplete step $i
-         #exit 1
+         exit 1
       fi
    fi
    mkdir $this_dir
@@ -135,7 +135,7 @@ for ((i=1;i<$iterations+1;i++)); do
 
    #Run simulation maybe change to Espresso or whatever
    do_external prepare $sim_prog $last_dir || exit 1
-   #do_external run $sim_prog || exit 1
+   do_external run $sim_prog || exit 1
 
    p_now="$(do_external pressure $sim_prog)" || exit 1
    echo New pressure $p_now
@@ -145,7 +145,7 @@ for ((i=1;i<$iterations+1;i++)); do
    pressure_cor=$($SOURCE_WRAPPER --direct pressure_cor.pl) || exit 1
    run_or_exit $pressure_cor $p_target $p_now pressure_cor.d 
 
-   #do_external rdf $sim_prog for_all non-bonded
+   do_external rdf $sim_prog for_all non-bonded
    
    do_external update $method for_all non-bonded $i
 
