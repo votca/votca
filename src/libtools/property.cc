@@ -37,7 +37,6 @@ Property &Property::get(const string &key)
     try {
         for(; n!=tok.end(); ++n) {
             p = &p->get(*n);
-            cout << "tok <" << *n << ">" << endl;
         }
     }
     catch(string err) { // catch here to get full key in exception
