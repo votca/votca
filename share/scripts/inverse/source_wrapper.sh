@@ -23,6 +23,18 @@ case $1 in
 esac
 }
 
+post_case() {
+case $1 in
+  update)
+    scriptname="${scriptname}_update";;
+  add)
+    scriptname="${scriptname}_add";;
+  *)
+    echo "Post case '$1' unknown" > /dev/stderr
+    exit 1;;
+esac
+}
+
 simulation_case() {
 case $1 in
   gromacs)
@@ -60,10 +72,27 @@ case $1 in
     scriptname="potential_to"
     shift
     simulation_case $1;;
+  add_pot)
+    scriptname="add_pot"
+    shift
+    method_case $1;;
   run)
     scriptname="run"
     shift
     simulation_case $1;;
+  post)
+    scriptname="post"
+    shift
+    post_case $1;;
+  postupd|postadd)
+    #no check
+    if [ -n "$2" ]; then
+      scriptname="$1_$2"
+    else
+      echo Error: Missing scriptname > /dev/stderr
+      exit 1
+    fi
+    shift 2;;
   functions)
     scriptname="functions"
     shift

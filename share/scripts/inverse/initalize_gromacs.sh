@@ -7,4 +7,4 @@ if [ "$1" = "--help" ]; then
    exit 0
 fi
 
-cp ../conf.gro confout.gro
+cp ../conf.gro confout.gro || die "cp ../conf.gro confout.gro"

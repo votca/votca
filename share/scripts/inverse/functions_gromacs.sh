@@ -1,9 +1,11 @@
 #!/bin/bash
 
 get_from_mdp() {
-   [[ -n "$1" ]] || { echo What?; exit 1;}
-   sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##' || exit 1
-   exit 0
+  local res
+  [[ -n "$1" ]] || { echo What?; exit 1;}
+  res=$(sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##') || die "get_from_mdp failed" 
+  [[ -n "$res" ]] || die "get_from_mdp: could not fetch $1"
+  echo "$res"
 }
 
 export -f get_from_mdp

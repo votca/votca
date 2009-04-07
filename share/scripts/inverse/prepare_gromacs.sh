@@ -20,15 +20,12 @@ for exe in make_ndx grompp; do
    fi
 done
 
-if [ $(type -t run_or_exit) != "function" ]; then
-   echo Could not find function run_or_exit > /dev/stderr
-   exit 1
-fi
+cp ${1}/confout.gro ./conf.gro || die "${0##*/} cp ${1}/confout.gro ./conf.gro failed" 
 
-cp ../${1}/confout.gro ./conf.gro || exit 1
+atoms="$(for_all non-bonded 'echo $($csg_get type1)'; for_all non-bonded 'echo $($csg_get type2)' 2>&1 )" || die "for_all non-bonded  failed"
+atoms="$(echo "${atoms}" | sort | uniq )" || die "sort uniq failed"
+[[ -n "${atoms}" ]] || die "no atoms found"
+log "${0##*/}: Found atoms $atoms"
+echo -e "a ${atoms}\nq" | make_ndx -f conf.gro >> $CSGLOG 2>&1 || die "${0##*/}: make_ndx -f conf.gro failed"
 
-#realy hacky but it works, looking for a smarter way
-atoms="$(for_all non-bonded "echo -e \"\${type1}\\n\${type2}\"" | sort | uniq)" || exit 1
-echo -e "a ${atoms}\nq" | make_ndx -f conf.gro &> log_make_ndx || exit 1
-
-run_or_exit grompp -v -n index.ndx || exit 1
+run_or_exit grompp -n index.ndx 

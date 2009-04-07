@@ -36,7 +36,7 @@ my $shift=int(($r_delta[0]-$r_cur[0])/$delta)+1;
 
 my $pot_shift=$pot_delta[$#r_cur-$shift]*exp(-1);
 
-print "XXX $pot_shift\n";
+#print "XXX $pot_shift\n";
 $file="$ARGV[2]";
 open(FILE,"> $file") or die "$file not found\n";
 for (my $i=0;$i<=$#r_cur;$i++){

@@ -17,7 +17,7 @@ my $delta_r=0.01;
 my @r;
 my @pot;
 while (<FILE1>){
-   next if /^#/;
+   next if /^[#@]/;
    my @parts=split(' ');
    push(@r,$parts[0]);
    my $tmp=$parts[1]>0.0?-$pref*log($parts[1]):"nan";

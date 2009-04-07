@@ -8,7 +8,7 @@ if [ "$1" = "--help" ]; then
    exit 0
 fi
 
-for exe in g_energy; do
+for exe in g_energy awk; do
    if [ -z $(type -p $exe) ]; then
       echo Could not find $exe > /dev/stderr
       exit 1
@@ -25,8 +25,7 @@ dt=$(get_from_mdp dt)
 #20 % is warmup
 equi=$(awk "BEGIN{print 0.2*$nsteps*$dt}")
 
-echo Running g_energy > /dev/stderr
-echo "Pressure" | g_energy -b $equi &> log_g_energy
-[[ $? -ne 0 ]] && echo Error at running g_energy > /dev/stderr && exit 1
-p_now=$(awk '/^Pressure/{print $3}' log_g_energy)
+log "Running g_energy"
+echo "Pressure" | g_energy -b $equi >> $CSGLOG 2>&1 || die "${0##*/}: Error at running g_energy"
+p_now=$(tail -30 $CSGLOG | awk '/^Pressure/{print $3}' ) || die "${0##*/}: awk failed"
 echo ${p_now}
