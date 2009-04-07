@@ -10,4 +10,4 @@ fi
 add_POT=$($SOURCE_WRAPPER --direct add_POT.pl) || die "${0##*/}: $SOURCE_WRAPPER --direct add_POT.pl failed" 
 
 for_all non-bonded \
-  ${add_POT} '$($csg_get type1)_$($csg_get type2).pot.cur $($csg_get type1)_$($csg_get type2).dpot.new $($csg_get type1)_$($csg_get type2).pot.new' >> $CSGLOG 2>&1
+  logrun ${add_POT} '$($csg_get type1)_$($csg_get type2).pot.cur $($csg_get type1)_$($csg_get type2).dpot.new $($csg_get type1)_$($csg_get type2).pot.new' 
