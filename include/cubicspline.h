@@ -64,7 +64,10 @@ public:
     
     /// determine the interval the point r is in
     /// returns i for interval r_i r_{i+1}, -1 for out of range
-    int getInterval(double &r);
+    int getInterval(const double &r);
+    
+    /// ERROR-PRONE implementation, make it better!!!
+    double getGridPoint(const int &i) {return _r[i];}
 
     // give string in rangeparser format: e.g. 1:0.1:10;11:1:20
     //int GenerateGrid(string range);
@@ -82,7 +85,7 @@ public:
     
     
     /// Calculate the function value
-    double Calculate(double &x);
+    double Calculate(const double &x);
     
     /// Calculate the function value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
@@ -136,10 +139,10 @@ protected:
     // A spline can be written in the form
     // S_i(x) =   A(x,x_i,x_i+1)*f_i     + B(x,x_i,x_i+1)*f''_i 
     //          + C(x,x_i,x_i+1)*f_{i+1} + D(x,x_i,x_i+1)*f''_{i+1}
-    double A(double &r);
-    double B(double &r);
-    double C(double &r);
-    double D(double &r);
+    double A(const double &r);
+    double B(const double &r);
+    double C(const double &r);
+    double D(const double &r);
   
     // tabulated derivatives at grid points. Second argument: 0 - left, 1 - right    
     double A_prime_l(int i);     
@@ -168,7 +171,7 @@ inline int CubicSpline::GenerateGrid(double min, double max, double h)
     return _r.size();
 }
 
-inline double CubicSpline::Calculate(double &r)
+inline double CubicSpline::Calculate(const double &r)
 {
     int n = _f.size()/2;
     return -A(r)*_f[getInterval(r)] - B(r)*_f[getInterval(r) + 1] - C(r)*_f[n + getInterval(r)] - D(r)*_f[n + getInterval(r) + 1];
@@ -245,17 +248,17 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
 }
 
 
-inline double CubicSpline::A(double &r)
+inline double CubicSpline::A(const double &r)
 {
     return ( 1.0 - (r -_r[getInterval(r)])/(_r[getInterval(r)+1]-_r[getInterval(r)]) );
 }
 
-inline double CubicSpline::B(double &r)
+inline double CubicSpline::B(const double &r)
 {
     return  (r -_r[getInterval(r)])/(_r[getInterval(r)+1]-_r[getInterval(r)]) ;
 }
 
-inline double CubicSpline::C(double &r)
+inline double CubicSpline::C(const double &r)
 {
     double xxi, h;
     xxi = r -_r[getInterval(r)];
@@ -264,7 +267,7 @@ inline double CubicSpline::C(double &r)
     return ( 0.5*xxi*xxi - (1.0/6.0)*xxi*xxi*xxi/h - (1.0/3.0)*xxi*h) ;
 }
 
-inline double CubicSpline::D(double &r)
+inline double CubicSpline::D(const double &r)
 {
     double xxi, h;
     xxi = r -_r[getInterval(r)];
@@ -279,7 +282,7 @@ inline double CubicSpline::D(double &r)
 //    return int( (r - _r[0]) / (_r[_r.size()-1] - _r[0]) * (_r.size() - 1) );
 //}
 
-inline int CubicSpline::getInterval(double &r)
+inline int CubicSpline::getInterval(const double &r)
 {
     if (r < _r[0]) return 0;
     if(r > _r[_r.size() - 1]) return _r.size()-1;
