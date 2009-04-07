@@ -36,12 +36,14 @@ public:
         
         int lines_init = 0, colms_init = 0;  // initial size of _A 
         int sfnum; // number of spline functions for a cubicspline.  
-        const int N_frames = 5001; // Number of frames in the trajectory
-        
+                
         int interaction_number = 0;
-        beadTypes = 1;
+        beadTypes = 1; // used by CGForceMatching::beadType2intType
         numBondInt = 0;
-        
+        ConstrLeastSQ = false;
+        N_frames = 1000; // Number of frames in the block
+        BlockNum = 0;
+       
         // set counters to zero value:
         line_cntr = col_cntr = 0;
         
@@ -53,8 +55,16 @@ public:
         Bond1.splineName = "bond1";
         Bond1.matr_pos = colms_init;
         
-        Bond1.result.resize( 2*(Bond1.n + 1), false);
+        Bond1.res_output_coeff = specify
+        Bond1.result.resize(Bond1.res_output_coeff * (Bond1.n + 1), false);
         Bond1.result.clear();
+        Bond1.error.resize(Bond1.res_output_coeff * (Bond1.n + 1), false);
+        Bond1.error.clear();
+        Bond1.resSum.resize(Bond1.res_output_coeff * (Bond1.n + 1), false);
+        Bond1.resSum.clear();
+        Bond1.resSum2.resize(Bond1.res_output_coeff * (Bond1.n + 1), false);
+        Bond1.resSum2.clear();
+        Bond2.block_res.resize(2*(Bond2.n + 1), false);
         
         //adjust initial matrix dimensions:
         lines_init += Bond1.n + 1;
@@ -73,8 +83,16 @@ public:
         Bond2.splineName = "bond2";
         Bond2.matr_pos = colms_init;
         
-        Bond2.result.resize( 2*(Bond2.n + 1), false);
+        Bond2.res_output_coeff = specify
+        Bond2.result.resize(Bond2.res_output_coeff * (Bond2.n + 1), false);
         Bond2.result.clear();
+        Bond2.error.resize(Bond2.res_output_coeff * (Bond2.n + 1), false);
+        Bond2.error.clear();
+        Bond2.resSum.resize(Bond2.res_output_coeff * (Bond2.n + 1), false);
+        Bond2.resSum.clear();
+        Bond2.resSum2.resize(Bond2.res_output_coeff * (Bond2.n + 1), false);
+        Bond2.resSum2.clear();
+        Bond2.block_res.resize(2*(Bond2.n + 1), false);
         
         //adjust initial matrix dimensions:
         lines_init += Bond2.n + 1;
@@ -92,8 +110,16 @@ public:
         Angle1.splineName = "angle1";
         Angle1.matr_pos = colms_init;
 
-        Angle1.result.resize( 2*(Angle1.n + 1), false);
+        Angle1.res_output_coeff = specify
+        Angle1.result.resize(Angle1.res_output_coeff * (Angle1.n + 1), false);
         Angle1.result.clear();
+        Angle1.error.resize(Angle1.res_output_coeff * (Angle1.n + 1), false);
+        Angle1.error.clear();
+        Angle1.resSum.resize(Angle1.res_output_coeff * (Angle1.n + 1), false);
+        Angle1.resSum.clear();
+        Angle1.resSum2.resize(Angle1.res_output_coeff * (Angle1.n + 1), false);
+        Angle1.resSum2.clear();
+        Angle1.block_res.resize(2*(Angle1.n + 1), false);
 
         //adjust initial matrix dimensions:
         lines_init += Angle1.n + 1;
@@ -105,14 +131,25 @@ public:
         numBondInt++;        
 */        
 //===== Non-bonded params ===========================
-        NB1.n = NB1.Spline.GenerateGrid( 0.024, 1.0, 0.05 ) - 1; // shity params!
+        NB1.n = NB1.Spline.GenerateGrid( 0.237, 1.1, 0.005 ) - 1; 
         NB1.bonded = false;
         NB1.splineIndex = interaction_number++;
-        NB1.splineName = "non-bonded 1";
+        NB1.splineName = "non-bonded_1";
         NB1.matr_pos = colms_init;
         
-        NB1.result.resize(2*(NB1.n + 1), false);
+        NB1.res_output_coeff = 3;
+        NB1.result.resize(NB1.res_output_coeff * (NB1.n + 1), false);
         NB1.result.clear();
+        NB1.error.resize(NB1.res_output_coeff * (NB1.n + 1), false);
+        NB1.error.clear();
+        NB1.resSum.resize(NB1.res_output_coeff * (NB1.n + 1), false);
+        NB1.resSum.clear();
+        NB1.resSum2.resize(NB1.res_output_coeff * (NB1.n + 1), false);
+        NB1.resSum2.clear();
+        NB1.block_res.resize(2*(NB1.n + 1), false);
+        
+        NB1.del_x_out = (NB1.Spline.getGridPoint(NB1.n) - NB1.Spline.getGridPoint(0)) /
+                                    NB1.res_output_coeff * (NB1.n + 1);
         
         //adjust initial matrix dimensions:
         lines_init += NB1.n + 1;
@@ -127,137 +164,71 @@ public:
         L = 0;                // Initial frame in trajectory  
         excList.CreateExclusions(top);  //exclusion list for non-bonded interactions
         cout << "hey, someone wants to coarse grain\n";
-               
-        // B_constr matrix contains continuity conditions for the spline first
-        // derivatives.
-        B_constr.resize(lines_init, colms_init, false);
-        B_constr.clear();
         
-        SplineContainer::iterator is;
-                
-        for(is=Splines.begin(); is != Splines.end(); ++is) {
-        
-            sfnum = (*is)->n;            
-            (*is)->Spline.AddBCToFitMatrix(B_constr, line_cntr, col_cntr);
+        if (ConstrLeastSQ) { // Constrained Least Squares
             
-            // update counters
-            line_cntr += sfnum + 1;
-            col_cntr += 2 * (sfnum + 1);
+            // offset, used in EvalConf
+            LeastSQOffset = 0;
+            
+            // B_constr matrix contains continuity conditions for the spline first
+            // derivatives.
+            B_constr.resize(lines_init, colms_init, false);
+            B_constr.clear();
+        
+            SplineContainer::iterator is;
                 
+            for(is=Splines.begin(); is != Splines.end(); ++is) {
+        
+                sfnum = (*is)->n;            
+                (*is)->Spline.AddBCToFitMatrix(B_constr, line_cntr, col_cntr);
+            
+                // update counters
+                line_cntr += sfnum + 1;
+                col_cntr += 2 * (sfnum + 1);
+                
+            }
+        
+            _A.resize( 3*N*N_frames, col_cntr, false); // resize matrix _A
+            _b.resize( 3*N*N_frames, false);          // resize vector _b   
+            _A.clear();
+            _b.clear();        
+        
+        }
+        else {  // Simple Least Squares
+            
+            // offset, used in EvalConf
+            LeastSQOffset = lines_init;            
+            
+            _A.resize( lines_init + 3*N*N_frames, colms_init, false); // resize matrix _A
+            _b.resize( lines_init + 3*N*N_frames, false);          // resize vector _b   
+            _A.clear();
+            _b.clear();  
+            
+            SplineContainer::iterator is;
+                
+            for(is=Splines.begin(); is != Splines.end(); ++is) {
+        
+                sfnum = (*is)->n;            
+                (*is)->Spline.AddBCToFitMatrix(_A, line_cntr, col_cntr);
+            
+                // update counters
+                line_cntr += sfnum + 1;
+                col_cntr += 2 * (sfnum + 1);
+                
+            }            
         }
         
-        _A.resize( 3*N*N_frames, col_cntr, false); // resize matrix _A
-        _b.resize( 3*N*N_frames, false);          // resize vector _b   
-        _A.clear();
-        _b.clear();        
+        _x.resize(col_cntr);
+        _x.clear(); 
                
     }
     
-    void EndCG() {
+    void EndCG() { 
         string force_raw = "_force_raw.dat";
         char file_name[20];
         double accuracy; // accuracy for output. Should be different for bonds and angles.
         
         ofstream out_file;
-         
-        // Solving linear equations system
-        
-        _x.resize(col_cntr);
-        _x.clear();
-
-        ub::matrix<double> Q; 
-        Q.resize(col_cntr, col_cntr, false );
-        Q.clear();
-        
-        ub::matrix<double> A2;  
-        A2.resize(_A.size1(), col_cntr / 2, false );
-        A2.clear();
-                
-        ub::matrix<double> Q_k;
-        Q_k.resize(col_cntr, col_cntr, false);
-        Q_k.clear();
-       
-        ub::identity_matrix<double> I (col_cntr); 
-
-        ub::vector<double> v; 
-        v.resize(col_cntr, false);
-        v.clear();        
-        
-        // To proceed we need to factorize B^T = Q*R. We need matrix Q for further
-        // calculations
-        B_constr = trans(B_constr);
-        
-        double* pointer_Bcnstr = & B_constr(0,0); 
-        
-        gsl_matrix_view B_t 
-          = gsl_matrix_view_array (pointer_Bcnstr, col_cntr, line_cntr);
-     
-        gsl_vector *tau = gsl_vector_alloc (line_cntr); 
-    
-        gsl_linalg_QR_decomp (&B_t.matrix, tau);   
-
-        // Extraction of Q matrix from tau and B_t, where it is stored in a tricky way.
-        Q = I;
-              
-        for (int k = line_cntr; k > 0 ; k--) {
-           
-            for (int icout = 0; icout < k - 1; icout++) {
-                 v(icout) = 0;
-            }
-            v(k - 1) = 1.0;
-
-            for (int icout = k; icout < col_cntr; icout++) {
-                 v(icout) = gsl_matrix_get(&B_t.matrix, icout, k - 1 );
-            }
-            double tmp = gsl_vector_get(tau, k - 1 );
-            Q_k = I - tmp * outer_prod ( v, v );
-            Q = prec_prod(Q, Q_k);
-           
-        }
-    
-            
-        Q = trans(Q);     
-    
-        // Calculate _A * Q and store the result in _A
-        _A = prec_prod(_A, Q);
-    
-        // _A = [A1 A2], so A2 is just a block of _A
-        for (int iraw = 0; iraw < _A.size1(); iraw++) {
-             for (int icol = _A.size2() / 2; icol < _A.size2(); icol++) {
-                A2(iraw, icol - _A.size2() / 2) = _A(iraw, icol);
-             }
-        }    
-        
-        
-  
-        double* pointer_m = & A2(0,0);
-        double* pointer_b = & _b(0);        
-        
-        gsl_matrix_view m
-            = gsl_matrix_view_array (pointer_m, A2.size1(), A2.size2() );
-    
-        gsl_vector_view b
-            = gsl_vector_view_array (pointer_b, A2.size1());
-    
-        gsl_vector *x = gsl_vector_alloc ( A2.size2() );
-        gsl_vector *tau2 = gsl_vector_alloc ( A2.size2() );       
-        gsl_vector *residual = gsl_vector_alloc ( A2.size1() );
-    
-        gsl_linalg_QR_decomp (&m.matrix, tau2);
-        
-        gsl_linalg_QR_lssolve (&m.matrix, tau2, &b.vector, x, residual);
-        
-        for (int i = 0; i < col_cntr / 2; i++ ) {
-               _x[i] = 0.0;
-        }  
-    
-        for (int i = col_cntr / 2; i < col_cntr; i++ ) {
-               _x[i] = gsl_vector_get(x, i - col_cntr / 2 );
-        }      
-    
-        // To get the final answer this vector should be multiplied by matrix Q
-        _x = prec_prod( Q, _x );        
-        
         
         SplineContainer::iterator is;
                 
@@ -271,32 +242,39 @@ public:
             out_file.open(file_name);
             
             out_file << "# interaction No. " << (*is)->splineIndex << endl;
-            
-            for (int i = 0; i < 2*(nsf + 1); i++ ) {
-//               (*is)->result[i] = gsl_vector_get(x, i + mp);
-                (*is)->result[i] = _x[ i + mp ];
+    
+            for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++ ) {
+                (*is)->result[i] = (*is)->resSum[i] / BlockNum;
+                (*is)->error[i] = sqrt( (*is)->resSum2[i] / BlockNum - (*is)->result[i] * (*is)->result[i]); 
             }
-            //(*is)->Spline.GetResult( & (*is)->result );
-            //(*is)->Spline.PrintOutResult();
+
             (*is)->Spline.setSplineData( (*is)->result );
             
             if ( ((*is)->splineName)[0] == 'a' ) accuracy = 0.05;
             else if ( ((*is)->splineName)[0] == 'b' ) accuracy = 0.001;
             else if ( ((*is)->splineName)[0] == 'n' ) accuracy = 0.01; // Quatsch!
             
-            (*is)->Spline.Print(out_file, accuracy);
+//            (*is)->Spline.Print(out_file, accuracy);
+
+            // Shitty implementation, think of adding functionality to CubicSpline
+            double out_x = (*is)->Spline.getGridPoint(0);
+            
+            for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++) {
+                out_file << out_x << " " <<
+                        (-1.0) * (*is)->result[i] << " " << (*is)->error[i] << endl;
+                out_x += (*is)->del_x_out;
+            }
             
             out_file.close();
-        }        
+        }          
         
-        gsl_vector_free (x);
-        gsl_vector_free (tau);
-        gsl_vector_free (residual);
- 
-    };
+        
+    }
+    
+
     
     void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) {
-                  
+         
         InteractionContainer &ic = conf->BondedInteractions();
         InteractionContainer::iterator ia;
 
@@ -319,11 +297,11 @@ public:
                    vec gradient = (*ia)->Grad(*conf, loop);
                   
                    SP.AddToFitMatrix(_A, var, 
-                           3*N*L + ii, mpos, gradient.x());
+                           LeastSQOffset + 3*N*L + ii, mpos, gradient.x());
                    SP.AddToFitMatrix(_A, var, 
-                           3*N*L + N + ii, mpos, gradient.y());
+                           LeastSQOffset + 3*N*L + N + ii, mpos, gradient.y());
                    SP.AddToFitMatrix(_A, var,
-                           3*N*L + 2*N + ii, mpos, gradient.z());                
+                           LeastSQOffset + 3*N*L + 2*N + ii, mpos, gradient.z());                
                }
         }
         
@@ -333,7 +311,7 @@ public:
         bool noExcl;
         
         NeighbourList nbl;
-        nbl.setCutoff(1.0);
+        nbl.setCutoff(1.1);
         nbl.Generate(*conf);
         
         for (int iatom = 0; iatom < N; iatom++) {
@@ -367,19 +345,19 @@ public:
                             
                             // add iatom
                             SP.AddToFitMatrix(_A, var, 
-                                3*N*L + iatom, mpos, gradient.x());
+                                LeastSQOffset + 3*N*L + iatom, mpos, gradient.x());
                             SP.AddToFitMatrix(_A, var, 
-                                3*N*L + N + iatom, mpos, gradient.y());
+                                LeastSQOffset + 3*N*L + N + iatom, mpos, gradient.y());
                             SP.AddToFitMatrix(_A, var,
-                                3*N*L + 2*N + iatom, mpos, gradient.z());  
+                                LeastSQOffset + 3*N*L + 2*N + iatom, mpos, gradient.z());  
                             
                             // add jatom 
                             SP.AddToFitMatrix(_A, var, 
-                                3*N*L + jatom, mpos, -gradient.x());
+                                LeastSQOffset + 3*N*L + jatom, mpos, -gradient.x());
                             SP.AddToFitMatrix(_A, var, 
-                                3*N*L + N + jatom, mpos, -gradient.y());
+                                LeastSQOffset + 3*N*L + N + jatom, mpos, -gradient.y());
                             SP.AddToFitMatrix(_A, var,
-                                3*N*L + 2*N + jatom, mpos, -gradient.z());                            
+                                LeastSQOffset + 3*N*L + 2*N + jatom, mpos, -gradient.z());                            
                    
                         }
                     }
@@ -397,19 +375,19 @@ public:
                             
                         // add iatom
                         SP.AddToFitMatrix(_A, var, 
-                            3*N*L + iatom, mpos, gradient.x());
+                            LeastSQOffset + 3*N*L + iatom, mpos, gradient.x());
                         SP.AddToFitMatrix(_A, var, 
-                            3*N*L + N + iatom, mpos, gradient.y());
+                            LeastSQOffset + 3*N*L + N + iatom, mpos, gradient.y());
                         SP.AddToFitMatrix(_A, var,
-                            3*N*L + 2*N + iatom, mpos, gradient.z());  
+                            LeastSQOffset + 3*N*L + 2*N + iatom, mpos, gradient.z());  
                             
                         // add jatom 
                         SP.AddToFitMatrix(_A, var, 
-                            3*N*L + jatom, mpos, -gradient.x());
+                            LeastSQOffset + 3*N*L + jatom, mpos, -gradient.x());
                         SP.AddToFitMatrix(_A, var, 
-                            3*N*L + N + jatom, mpos, -gradient.y());
+                            LeastSQOffset + 3*N*L + N + jatom, mpos, -gradient.y());
                         SP.AddToFitMatrix(_A, var,
-                            3*N*L + 2*N + jatom, mpos, -gradient.z());                            
+                            LeastSQOffset + 3*N*L + 2*N + jatom, mpos, -gradient.z());                            
                         
                     }
                     
@@ -424,15 +402,35 @@ public:
             vec Force(0., 0., 0.);
             for (int iatom = 0; iatom < N; ++iatom) {
                      Force = conf->getBead(iatom)->getF();
-                    _b( 3*N*L + iatom) = Force.x();
-                    _b( 3*N*L + N+iatom) = Force.y();
-                    _b( 3*N*L + 2*N+iatom) = Force.z();
+                    _b( LeastSQOffset + 3*N*L + iatom) = Force.x();
+                    _b( LeastSQOffset + 3*N*L + N+iatom) = Force.y();
+                    _b( LeastSQOffset + 3*N*L + 2*N+iatom) = Force.z();
             }
         }
         else {
             cout << "ERROR: No forces in configuration!\n" ;   
         }
         L+=1; // update the frame counter
+        
+        if ( L % N_frames == 0 ) {
+            BlockNum++;
+            cout << "Block No" << BlockNum << " done!" << endl;
+            FmatchAccumulateData();
+            L = 0;
+            if ( ConstrLeastSQ ) { //Constrained Least Squares
+                _A.clear();
+                _b.clear();            
+            }
+            else { // Simple Least Squares
+                // double loop has to be replaced with a matrix_range thing!
+                for (int i = line_cntr; i < line_cntr + 3*N*N_frames; i++) {
+                    for (int j = 0; j < col_cntr; j++) {
+                        _A(i,j)=0;
+                    }
+                }
+                _b.clear();
+            }
+        }
     }
     
 protected:
@@ -448,6 +446,11 @@ protected:
   int numBondInt; // number of bonded interaction types
   int L; // counter for frames
   int N; //number of cg_beads
+  bool ConstrLeastSQ; // true:  constrained least squares
+                      // false: simple least squares
+  int LeastSQOffset;  // used in EvalConf to distinguish constrained LS and simple LS
+  int N_frames;       // Number of frames used in one Block
+  int BlockNum;       // current number of Blocks
   
   int line_cntr, col_cntr; // counters for lines and coloumns in B_constr 
   
@@ -458,14 +461,23 @@ protected:
         CubicSpline Spline;
         int matr_pos;    // position in the _A matrix (first coloumn which is occupied with
                          // this particular spline
+        int res_output_coeff; // Num_output_points = Num_spline_points * res_output_coeff
+        double del_x_out;     // dx for output. Calculated in the code
         
         pair<int, int> beadTypes; // only for non-bonded interactions
-        ub::vector<double> result;
+        
+        
+        ub::vector<double> block_res;  // Result of 1 block calculation
+        ub::vector<double> result;     // Average over many blocks
+        ub::vector<double> error;
+        ub::vector<double> resSum;
+        ub::vector<double> resSum2;
+        
         string splineName;
   };
-  SplineInfo Bond1;
+ // SplineInfo Bond1;
 //  SplineInfo Bond2;
-  SplineInfo Angle1;
+//  SplineInfo Angle1;
 //  SplineInfo Angle2;
 //  SplineInfo Angle3;
   SplineInfo NB1;
@@ -476,6 +488,7 @@ protected:
   SplineContainer Splines;
   
   int beadType2intType ( int beadType1, int beadType2 );
+  void FmatchAccumulateData();
   
 };
 
@@ -517,6 +530,200 @@ int CGForceMatching::beadType2intType( int beadType1, int beadType2 ) {
     result += beadType2 - beadType1;
     return result;    
 }
+
+    void CGForceMatching::FmatchAccumulateData() {
+/*        string force_raw = "_force_raw.dat";
+        char file_name[20];
+        double accuracy; // accuracy for output. Should be different for bonds and angles.
+        
+        ofstream out_file;
+*/
+    //  _x.resize(col_cntr);
+        _x.clear(); 
+            
+        if (ConstrLeastSQ) { // Constrained Least Squares
+            
+            // Solving linear equations system
+
+            ub::matrix<double> Q; 
+            Q.resize(col_cntr, col_cntr, false );
+            Q.clear();
+        
+            ub::matrix<double> A2;  
+            A2.resize(_A.size1(), col_cntr / 2, false );
+            A2.clear();
+                
+            ub::matrix<double> Q_k;
+            Q_k.resize(col_cntr, col_cntr, false);
+            Q_k.clear();
+       
+            ub::identity_matrix<double> I (col_cntr); 
+
+            ub::vector<double> v; 
+            v.resize(col_cntr, false);
+            v.clear();        
+        
+            // To proceed we need to factorize B^T = Q*R. We need matrix Q for further
+            // calculations
+            B_constr = trans(B_constr);
+        
+            double* pointer_Bcnstr = & B_constr(0,0); 
+        
+            gsl_matrix_view B_t 
+                = gsl_matrix_view_array (pointer_Bcnstr, col_cntr, line_cntr);
+     
+            gsl_vector *tau = gsl_vector_alloc (line_cntr); 
+    
+            gsl_linalg_QR_decomp (&B_t.matrix, tau);   
+
+            // Extraction of Q matrix from tau and B_t, where it is stored in a tricky way.
+            Q = I;
+              
+            for (int k = line_cntr; k > 0 ; k--) {
+           
+                for (int icout = 0; icout < k - 1; icout++) {
+                    v(icout) = 0;
+                }
+                v(k - 1) = 1.0;
+
+                for (int icout = k; icout < col_cntr; icout++) {
+                    v(icout) = gsl_matrix_get(&B_t.matrix, icout, k - 1 );
+                }
+                double tmp = gsl_vector_get(tau, k - 1 );
+                Q_k = I - tmp * outer_prod ( v, v );
+                Q = prec_prod(Q, Q_k);
+           
+            }
+    
+            
+            Q = trans(Q);     
+    
+            // Calculate _A * Q and store the result in _A
+            _A = prec_prod(_A, Q);
+    
+            // _A = [A1 A2], so A2 is just a block of _A
+            for (int iraw = 0; iraw < _A.size1(); iraw++) {
+                for (int icol = _A.size2() / 2; icol < _A.size2(); icol++) {
+                    A2(iraw, icol - _A.size2() / 2) = _A(iraw, icol);
+                }
+            }    
+        
+        
+  
+            double* pointer_m = & A2(0,0);
+            double* pointer_b = & _b(0);        
+        
+            gsl_matrix_view m
+                = gsl_matrix_view_array (pointer_m, A2.size1(), A2.size2() );
+    
+            gsl_vector_view b
+                = gsl_vector_view_array (pointer_b, A2.size1());
+    
+            gsl_vector *x = gsl_vector_alloc ( A2.size2() );
+            gsl_vector *tau2 = gsl_vector_alloc ( A2.size2() );       
+            gsl_vector *residual = gsl_vector_alloc ( A2.size1() );
+    
+            gsl_linalg_QR_decomp (&m.matrix, tau2);
+        
+            gsl_linalg_QR_lssolve (&m.matrix, tau2, &b.vector, x, residual);
+        
+            for (int i = 0; i < col_cntr / 2; i++ ) {
+                _x[i] = 0.0;
+            }  
+    
+            for (int i = col_cntr / 2; i < col_cntr; i++ ) {
+                _x[i] = gsl_vector_get(x, i - col_cntr / 2 );
+            }      
+    
+            // To get the final answer this vector should be multiplied by matrix Q
+            _x = prec_prod( Q, _x );       
+            
+            gsl_vector_free (x);
+            gsl_vector_free (tau);
+            gsl_vector_free (residual);            
+        
+        }
+        else {  // Simple Least Squares
+            double* pointer_m = & _A(0,0);
+            double* pointer_b = & _b(0);            
+
+            gsl_matrix_view m
+                = gsl_matrix_view_array (pointer_m, _b.size(), col_cntr);
+    
+            gsl_vector_view b
+                = gsl_vector_view_array (pointer_b, _b.size());
+    
+            gsl_vector *x = gsl_vector_alloc (col_cntr);
+            gsl_vector *tau = gsl_vector_alloc (col_cntr);       
+            gsl_vector *residual = gsl_vector_alloc (_b.size());
+    
+            gsl_linalg_QR_decomp (&m.matrix, tau); 
+            gsl_linalg_QR_lssolve (&m.matrix, tau, &b.vector, x, residual); 
+            
+            for (int i =0 ; i < col_cntr; i++) {
+                _x(i) = gsl_vector_get(x, i);
+            }
+            
+            gsl_vector_free (x);
+            gsl_vector_free (tau);
+            gsl_vector_free (residual);                    
+            
+        }
+        
+        SplineContainer::iterator is;
+                
+        for(is=Splines.begin(); is != Splines.end(); ++is) {
+            int &mp = (*is)->matr_pos;
+            int &nsf = (*is)->n;
+            
+            for (int i = 0; i < 2*(nsf + 1); i++ ) {
+                (*is)->block_res[i] = _x[ i + mp ];
+//                (*is)->resSum[i] += _x[ i + mp ];
+//                (*is)->resSum2[i] += _x[ i + mp ] * _x[ i + mp ];
+            }
+            (*is)->Spline.setSplineData( (*is)->block_res );
+            
+            double out_x = (*is)->Spline.getGridPoint(0);
+
+            for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++ ) {
+                (*is)->resSum[i] += (*is)->Spline.Calculate(out_x);
+                (*is)->resSum2[i] += (*is)->Spline.Calculate(out_x) * (*is)->Spline.Calculate(out_x);
+                out_x += (*is)->del_x_out;
+            }
+            
+        }         
+        
+/*        SplineContainer::iterator is;
+                
+        for(is=Splines.begin(); is != Splines.end(); ++is) {
+            int &mp = (*is)->matr_pos;
+            int &nsf = (*is)->n;
+            
+            file_name[0] = '\0';
+            strcpy(file_name, ((*is)->splineName).c_str() );
+            strcat(file_name, force_raw.c_str());
+            out_file.open(file_name);
+            
+            out_file << "# interaction No. " << (*is)->splineIndex << endl;
+            
+            for (int i = 0; i < 2*(nsf + 1); i++ ) {
+//               (*is)->result[i] = gsl_vector_get(x, i + mp);
+                (*is)->result[i] = _x[ i + mp ];
+            }
+            //(*is)->Spline.GetResult( & (*is)->result );
+            //(*is)->Spline.PrintOutResult();
+            (*is)->Spline.setSplineData( (*is)->result );
+            
+            if ( ((*is)->splineName)[0] == 'a' ) accuracy = 0.05;
+            else if ( ((*is)->splineName)[0] == 'b' ) accuracy = 0.001;
+            else if ( ((*is)->splineName)[0] == 'n' ) accuracy = 0.01; // Quatsch!
+            
+            (*is)->Spline.Print(out_file, accuracy);
+            
+            out_file.close();
+        }        
+*/        
+    }
 
 int main(int argc, char** argv)
 {    
