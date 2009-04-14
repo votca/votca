@@ -36,18 +36,15 @@ do_external() {
 }
 
 logrun(){
-  $* >> $CSGLOG 2>&1
+  [[ -n "$1" ]] || die "logrun: missing argument"
+  log "logrun: run '$*'" 
+  bash -c "$*" >> $CSGLOG 2>&1
   return $?
 }
 
 #useful subroutine check if a command was succesful AND log the output
 run_or_exit() {
-   local prog 
-   prog=$1
-   shift
-   [[ -n "$prog" ]] || die "run_or_exit: missing argument"
-   log "Running ${prog##*/} $*" 
-   logrun $prog $* || die "run_or_exit: $prog $* failed"
+   logrun "$*" || die "run_or_exit: '$*' failed"
 }
 
 #do somefor all pairs, 1st argument is the type
@@ -74,7 +71,7 @@ for_all (){
     log "for_all: run '$*'"
     bondtype=$bondtype \
     csg_get="$csg --print" \
-    bash -c "$*" || die "for_all: bash -xc '$*' failed"   
+    bash -c "$*" || die "for_all: bash -c '$*' failed"   
   done
 }
 
