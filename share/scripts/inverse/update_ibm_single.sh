@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the function update
    echo for the Inverse Boltzmann Method for a single pair
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$source_wrapper, update_POT.pl
+   echo Needs:  run_or_exit, \$SOURCE_WRAPPER, update_POT.pl
    exit 0
 fi
 
@@ -14,13 +14,13 @@ update_POT="$($SOURCE_WRAPPER --direct update_POT.pl)" || die "${0##*/}: $SOURCE
 
 scheme=( $($csg_get  .do_potential ) )
 scheme_nr=$(( ( $1 - 1 ) % ${#scheme[@]} ))
-type1=$($csg_get type1)
-type2=$($csg_get type2)
+name=$($csg_get name)
 
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
-   log "Update potential ${type1}-${type2} : yes"
+   log "Update potential ${name} : yes"
    #update ibm
-   run_or_exit ${update_POT} ${type1}_${type2}.dist.tgt ${type1}_${type2}.dist.new ${type1}_${type2}.dpot.new
+   run_or_exit ${update_POT} ${name}.dist.tgt ${name}.dist.new ${name}.dpot.new
 else
-   log "Update potential ${type1}-${type2} : no"
+   log "Update potential ${name} : no"
+   #empty file ???
 fi

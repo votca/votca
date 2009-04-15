@@ -86,14 +86,14 @@ else
   cd step_00 || die "cd step_00 failed"
 
   #copy all rdf in step_00
-  for_all non-bonded 'cp ../$($csg_get type1)_$($csg_get type2).dist.tgt .'
+  for_all non-bonded 'cp ../$($csg_get name).dist.tgt .'
 
   do_external init $method for_all non-bonded 
 
   #get confout.gro
   do_external init $sim_prog 
 
-  for_all non-bonded cp '$($csg_get type1)_$($csg_get type2).pot.new ..' 
+  for_all non-bonded cp '$($csg_get name).pot.new ..' 
   touch done
   msg "step_00 done"
   cd ..
@@ -116,7 +116,7 @@ for ((i=1;i<$iterations+1;i++)); do
   mkdir $this_dir
   
   #copy all rdf in step_00
-  for_all non-bonded "cp \$(\$csg_get type1)_\$(\$csg_get type2).dist.tgt $this_dir" 
+  for_all non-bonded "cp \$(\$csg_get name).dist.tgt $this_dir" 
   
   #get need files
   for myfile in $filelist; do
@@ -124,7 +124,7 @@ for ((i=1;i<$iterations+1;i++)); do
   done
   cd $this_dir || die "cd $this_dir failed"
  
-  for_all non-bonded "cp ../$last_dir/\$(\$csg_get type1)_\$(\$csg_get type2).pot.new ./\$(\$csg_get type1)_\$(\$csg_get type2).pot.cur" 
+  for_all non-bonded "cp ../$last_dir/\$(\$csg_get name).pot.new ./\$(\$csg_get name).pot.cur" 
   do_external convert_potential $sim_prog for_all non-bonded
 
   #Run simulation maybe change to Espresso or whatever
@@ -146,7 +146,7 @@ for ((i=1;i<$iterations+1;i++)); do
   do_external post add
 
   #copy latest results
-  for_all non-bonded 'cp $($csg_get type1)_$($csg_get type2).pot.new ..'
+  for_all non-bonded 'cp $($csg_get name).pot.new ..'
 
   touch done
   msg "step $i done"

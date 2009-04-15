@@ -9,15 +9,14 @@ if [ "$1" = "--help" ]; then
 fi
 
 RDF_to_POT="$($SOURCE_WRAPPER --direct RDF_to_POT.pl)" || exit 1
-type1=$($csg_get type1)
-type2=$($csg_get type2)
+name=$($csg_get name)
 
-if [ -f ../${type1}_${type2}.pot.in ]; then
-  log Using given table for $type1-$type2
-  run_or_exit cp ../table_${type1}_${type2}pot.in ${type1}_${type2}.pot.new 
+if [ -f ../${name}.pot.in ]; then
+  log Using given table for ${name}
+  run_or_exit cp ../table_${name}.pot.in ${name}.pot.new 
 else
   # RDF_to_POT.pl just does log g(r) + extrapolation
-  log Using intial guess from RDF for ${type1}-${type2}
-  run_or_exit $RDF_to_POT ${type1}_${type2}.dist.tgt ${type1}_${type2}.pot.new
+  log Using intial guess from RDF for ${name}
+  run_or_exit $RDF_to_POT ${name}.dist.tgt ${name}.pot.new
 fi
 

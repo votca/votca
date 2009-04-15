@@ -11,15 +11,13 @@ fi
 
 add_POT=$($SOURCE_WRAPPER --direct add_POT.pl) || die "${0##*/}: $SOURCE_WRAPPER --direct add_POT.pl"
 
-type1=$($csg_get type1)
-type2=$($csg_get type2)
+name=$($csg_get name)
 tasklist=$($csg_get post_update) 
-#we type1_type2.dpot.new
 i=1
 for task in $tasklist; do
-  log "Doing $task for $type1 $type2"
-  mv ${type1}_${type2}.dpot.new ${type1}_${type2}.dpot.cur || die "${0##*/}: mv failed"
-  cp ${type1}_${type2}.dpot.cur ${type1}_${type2}.dpot.${i} || die "${0##*/}: cp failed"
+  log "Doing $task for ${name}"
+  mv ${name}.dpot.new ${name}.dpot.cur || die "${0##*/}: mv failed"
+  cp ${name}.dpot.cur ${name}.dpot.${i} || die "${0##*/}: cp failed"
   script=$($SOURCE_WRAPPER postupd $task) || die "${0##*/}: $SOURCE_WRAPPER postupd $task failed"
   run_or_exit "csg_get=\"$csg_get\" bondtype=\"$bondbype\" $script $1"
   ((i++))
