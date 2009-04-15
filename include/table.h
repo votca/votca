@@ -76,7 +76,7 @@ inline Table::Table(Table &tbl)
 
 inline ostream &operator<<(ostream &out, const Table& t)
 {
-    out << t.size() << endl;
+    //out << t.size() << endl;
     for(int i=0; i<t._x.size(); ++i) {
         out << t._x[i] << " " << t._y[i] << " " << t._flags[i] << endl;
     }
