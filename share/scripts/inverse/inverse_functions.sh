@@ -82,6 +82,15 @@ get_sim_property () {
     || die "get_sim_property: csg_property --file $CSGXMLFILE --path cg.inverse.${1} --print . failed "
 }
 
+#get a property from xml
+get_property () {
+  if [ -z "$1" ]; then
+    die "get_property: Missig arrgument for get_sim_property" 
+  fi
+  csg_property --file $CSGXMLFILE --path cg.${1} --short --print . \
+    || die "get_property: csg_property --file $CSGXMLFILE --path cg.${1} --print . failed "
+}
+
 #--------------------Exports-----------------
 export -f die
 export -f log 
@@ -91,4 +100,5 @@ export -f for_all
 export -f run_or_exit
 export -f do_external
 export -f get_sim_property
+export -f get_property
 
