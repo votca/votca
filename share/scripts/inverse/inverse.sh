@@ -32,14 +32,14 @@ eval CSGSCRIPTDIR=$CSGSCRIPTDIR
 [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
 export CSGSCRIPTDIR
 
-#find source_wrapper.sh
+#find source_wrapper.pl
 #first local, then local scriptdir. then CSGSHARE
-if [ -f "${CSGSCRIPTDIR}/source_wrapper.sh" ]; then
-   SOURCE_WRAPPER="${CSGSCRIPTDIR}/source_wrapper.sh"
-elif [ -f "${CSGSHARE}/source_wrapper.sh" ]; then
-   SOURCE_WRAPPER="${CSGSHARE}/source_wrapper.sh"
+if [ -f "${CSGSCRIPTDIR}/source_wrapper.pl" ]; then
+   SOURCE_WRAPPER="${CSGSCRIPTDIR}/source_wrapper.pl"
+elif [ -f "${CSGSHARE}/source_wrapper.pl" ]; then
+   SOURCE_WRAPPER="${CSGSHARE}/source_wrapper.pl"
 else
-   die "Could not find source_wrapper.sh"
+   die "Could not find source_wrapper.pl"
 fi
 export SOURCE_WRAPPER
 
@@ -61,7 +61,8 @@ echo "Sim started $(date)" > $CSGLOG || exit 1
 method="$(get_sim_property method)" 
 log "We are doing Method: $method"
 
-sim_prog="$(get_sim_property program)" 
+sim_prog="$(get_sim_property program)"
+echo $sim_prog
 log "We using Sim Program: $sim_prog"
 source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed" 
 
@@ -90,7 +91,7 @@ else
   do_external init $method for_all non-bonded 
 
   #get confout.gro
-  do_external init $sim_prog || exit 1
+  do_external init $sim_prog 
 
   for_all non-bonded cp '$($csg_get type1)_$($csg_get type2).pot.new ..' 
   touch done
@@ -132,9 +133,6 @@ for ((i=1;i<$iterations+1;i++)); do
   msg "Simualtion runs"
   do_external run $sim_prog 
 
-  msg "Calc rdf"
-  do_external rdf $sim_prog for_all non-bonded
- 
   msg "Make update $method" 
   do_external update $method $i
 

@@ -20,7 +20,13 @@ type2=$($csg_get type2)
 input="${type1}_${type2}.pot.cur" 
 output="table_${type1}_${type2}.xvg" 
 log "Convert $input to $output"
-n_lines=$(wc -l $input | awk '{print 5*($1-1)}')
+
+binsize=$($csg_get step)
+gromacs_bins="$(get_sim_property gromacs.table_bins)"
+factor=$(awk "BEGIN{print $binsize/$gromacs_bins}") || die "${0##*/}: awk failed"
+log "Spline factor is $factor for ${type1}-${type2}"
+
+n_lines=$(wc -l $input | awk -v factor=$factor '{print factor*($1-1)}')
 log "Spline lines are $n_lines for ${type1}-${type2}"
 spline -n $n_lines $input > smooth_${input} || die "${0##*/}: spline failed"
 run_or_exit $table_to_xvg smooth_${input} $output 

@@ -22,10 +22,11 @@ fi
 
 nsteps=$(get_from_mdp nsteps)
 dt=$(get_from_mdp dt)
-#20 % is warmup
-equi=$(awk "BEGIN{print 0.2*$nsteps*$dt}")
+equi_time="$(get_sim_property gromacs.equi_time)"
+equi_time=${equi_time%\%}
+equi=$(awk "BEGIN{print $equi_time/100*$nsteps*$dt}")
 
 log "Running g_energy"
-echo "Pressure" | g_energy -b $equi >> $CSGLOG 2>&1 || die "${0##*/}: Error at running g_energy"
+run_or_exit "echo Pressure | g_energy -b $equi"
 p_now=$(tail -30 $CSGLOG | awk '/^Pressure/{print $3}' ) || die "${0##*/}: awk failed"
 echo ${p_now}

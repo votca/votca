@@ -26,6 +26,5 @@ atoms="$(for_all non-bonded 'echo $($csg_get type1)'; for_all non-bonded 'echo $
 atoms="$(echo "${atoms}" | sort | uniq )" || die "sort uniq failed"
 [[ -n "${atoms}" ]] || die "no atoms found"
 log "${0##*/}: Found atoms $atoms"
-echo -e "a ${atoms}\nq" | make_ndx -f conf.gro >> $CSGLOG 2>&1 || die "${0##*/}: make_ndx -f conf.gro failed"
-
+run_or_exit "echo -e \"a ${atoms}\\nq\" | make_ndx -f conf.gro"
 run_or_exit grompp -n index.ndx 

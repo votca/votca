@@ -14,14 +14,15 @@ done
 
 nsteps=$(get_from_mdp nsteps) 
 dt=$(get_from_mdp dt)
-#20 % is warmup
-equi=$(awk "BEGIN{ print 0.2*${nsteps}*${dt} }") || die "${0##*/} awk failed"
+equi_time="$(get_sim_property gromacs.equi_time)"
+equi_time=${equi_time%\%}
+equi=$(awk "BEGIN{ print ${equi_time}/100*${nsteps}*${dt} }") || die "${0##*/} awk failed"
 
 type1=$($csg_get type1)
 type2=$($csg_get type2)
 binsize=$($csg_get step)
 log "Running g_rdf for ${type1}-${type2}"
-echo -e "${type1}\n${type2}" | g_rdf -b ${equi} -n index.ndx -bin ${binsize} -o ${type1}_${type2}.dist.new.xvg >> ${CSGLOG} 2>&1 || \
-die "${0##*/}: Error at g_rdf ${type1}-${type2}"
+run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${equi} -n index.ndx -bin ${binsize} -o ${type1}_${type2}.dist.new.xvg" 
+#gromacs allways append xvg
 mv ${type1}_${type2}.dist.new.xvg ${type1}_${type2}.dist.new || die "${0##*/}: mv failed"
 

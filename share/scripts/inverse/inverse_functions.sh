@@ -31,7 +31,7 @@ do_external() {
     for_all "$bondtype" "$script" "$@" 
   else
     log "Running subscript '${script##*/} $*'"
-    "$script" "$@" || die "do_external: $script $@ failed"
+    $script "$@" || die "do_external: $script $@ failed"
   fi
 }
 
@@ -49,10 +49,8 @@ run_or_exit() {
 
 #do somefor all pairs, 1st argument is the type
 for_all (){
-  local bondtype type1 type2
-  local csg script pair pairs
-  local mylog 
-  script="yes"
+  local bondtype csg_get
+  local pair pairs
   if [ -z "$2" ]; then
     die "for_all need at least two arguments"
   fi
@@ -62,15 +60,15 @@ for_all (){
   if [ "$bondtype" != "non-bonded" ]; then
     die  "for_all: Argmuent 1 '$bondtype' is not non-bonded" 
   fi
-  csg="csg_property --file $CSGXMLFILE --short --path cg.${bondtype}"
+  csg_get="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print"
   log "For all $bondtype"
-  pairs="$($csg --print name)" || die "for_all: $csg --print name failed"
+  pairs="$($csg_get name)" || die "for_all: $csg --print name failed"
   for pair in $pairs; do
     #write variable defines in the front is better, that export
     #no need to run export -n afterwards
     log "for_all: run '$*'"
     bondtype=$bondtype \
-    csg_get="$csg --print" \
+    csg_get="$csg_get" \
     bash -c "$*" || die "for_all: bash -c '$*' failed"   
   done
 }

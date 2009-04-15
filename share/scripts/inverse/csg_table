@@ -1,0 +1,13 @@
+add_pot ibm add_pot_ibm.sh
+convert_potential gromacs potential_to_gromacs.sh
+functions gromacs functions_gromacs.sh
+init gromacs initalize_gromacs.sh
+init ibm initalize_ibm.sh
+post add post_add.sh
+post update post_update.sh
+postupd pressure postupd_pressure.sh
+prepare gromacs prepare_gromacs.sh
+pressure gromacs calc_pressure_gromacs.sh
+rdf gromacs calc_rdf_gromacs.sh
+run gromacs run_gromacs.sh
+update ibm update_ibm.sh
