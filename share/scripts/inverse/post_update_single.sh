@@ -19,6 +19,6 @@ for task in $tasklist; do
   mv ${name}.dpot.new ${name}.dpot.cur || die "${0##*/}: mv failed"
   cp ${name}.dpot.cur ${name}.dpot.${i} || die "${0##*/}: cp failed"
   script=$($SOURCE_WRAPPER postupd $task) || die "${0##*/}: $SOURCE_WRAPPER postupd $task failed"
-  run_or_exit "csg_get=\"$csg_get\" bondtype=\"$bondbype\" $script $1"
+  csg_get="$csg_get" bondtype="$bondbype" $script $1 || die "${0##*/}: $script $1 failed"
   ((i++))
 done

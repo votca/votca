@@ -48,7 +48,7 @@ CSGLOG="$(csg_property --file $CSGXMLFILE --path cg.inverse.log_file --short --p
 CSGLOG="$PWD/$CSGLOG"
 export CSGLOG
 
-function_file=$($SOURCE_WRAPPER --direct inverse_functions.sh) || die "$SOURCE_WRAPPER --direct inverse_functions.sh failed"
+function_file=$($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions common failed"
 #die() is overwritten here
 source ${function_file} || exit 1
 unset function_file

@@ -17,7 +17,8 @@ done
 
 name=$($csg_get name)
 input="${name}.pot.cur" 
-output="table_${name}.xvg" 
+#gromacs want '_' !
+output="table_$($csg_get type1)_$($csg_get type2).xvg" 
 log "Convert $input to $output"
 
 binsize=$($csg_get step)
