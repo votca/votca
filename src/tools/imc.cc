@@ -85,8 +85,8 @@ void Imc::EndCG()
             
             rdf.y() = iter->second->_norm * element_div(rdf.y(),
                     element_prod(rdf.x(), rdf.x()));
-            rdf.Save((iter->first) + ".rdf");
-            cout << "written " << (iter->first) + ".rdf\n";
+            rdf.Save((iter->first) + ".dist.new");
+            cout << "written " << (iter->first) + ".dist.new\n";
             
             delete iter->second;
         }
@@ -103,7 +103,7 @@ void Imc::EndCG()
             group_matrix &M = iter->second->_corr;
             if (!out)
                 throw string("error, cannot open file ") + filename;
-            out << M.size1() << " " << M.size2() << endl;
+            // out << M.size1() << " " << M.size2() << endl;
             out << setprecision(8);
             for (int i = 0; i < M.size1(); ++i) {
                 for (int j = 0; j < M.size2(); ++j) {
@@ -284,11 +284,11 @@ void Imc::CalcDeltaS()
         Table target;
         target.Load(i->_p->get("imc.target").as<string>());
         
-        i->_average.data().Save(name + ".S");
+//        i->_average.data().Save(name + ".S");
         
-        target.y() = (1.0 / i->_norm)*ub::element_prod(target.y(), 
-                ub::element_prod(target.x(), target.x()));
-        target.Save(name + ".St");
+  //      target.y() = (1.0 / i->_norm)*ub::element_prod(target.y(), 
+  //              ub::element_prod(target.x(), target.x()));
+  //      target.Save(name + ".St");
         target.y() = i->_average.data().y() - target.y();
         // write S
         target.Save(name + ".imc");
