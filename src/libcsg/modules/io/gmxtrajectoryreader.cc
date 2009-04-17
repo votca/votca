@@ -43,7 +43,7 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
         conf.getBead(i)->setPos(r);
         if(_gmx_frame.bF) {
             double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
-            conf.getBead(i)->setPos(f);
+            conf.getBead(i)->setF(f);
         }
     }
     return true;
