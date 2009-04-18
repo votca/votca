@@ -41,7 +41,7 @@ public:
         beadTypes = 1; // used by CGForceMatching::beadType2intType
         numBondInt = 0;
         ConstrLeastSQ = false;
-        N_frames = 1000; // Number of frames in the block
+        N_frames = 2; // Number of frames in the block
         BlockNum = 0;
        
         // set counters to zero value:
@@ -131,7 +131,7 @@ public:
         numBondInt++;        
 */        
 //===== Non-bonded params ===========================
-        NB1.n = NB1.Spline.GenerateGrid( 0.237, 1.1, 0.005 ) - 1; 
+        NB1.n = NB1.Spline.GenerateGrid( 0.233, 0.79, 0.01 ) - 1;
         NB1.bonded = false;
         NB1.splineIndex = interaction_number++;
         NB1.splineName = "non-bonded_1";
@@ -149,7 +149,7 @@ public:
         NB1.block_res.resize(2*(NB1.n + 1), false);
         
         NB1.del_x_out = (NB1.Spline.getGridPoint(NB1.n) - NB1.Spline.getGridPoint(0)) /
-                                    NB1.res_output_coeff * (NB1.n + 1);
+                                    (NB1.res_output_coeff * (NB1.n + 1));
         
         //adjust initial matrix dimensions:
         lines_init += NB1.n + 1;
@@ -245,6 +245,7 @@ public:
     
             for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++ ) {
                 (*is)->result[i] = (*is)->resSum[i] / BlockNum;
+                     if ( i == 23) cout << (*is)->result[i] << endl;
                 (*is)->error[i] = sqrt( (*is)->resSum2[i] / BlockNum - (*is)->result[i] * (*is)->result[i]); 
             }
 
@@ -274,7 +275,6 @@ public:
 
     
     void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) {
-         
         InteractionContainer &ic = conf->BondedInteractions();
         InteractionContainer::iterator ia;
 
@@ -311,7 +311,7 @@ public:
         bool noExcl;
         
         NeighbourList nbl;
-        nbl.setCutoff(1.1);
+        nbl.setCutoff(0.79);
         nbl.Generate(*conf);
         
         for (int iatom = 0; iatom < N; iatom++) {
@@ -323,6 +323,7 @@ public:
                 int jatom = (*iter)._bead;
                 if ( jatom > iatom ) {
                     double var = (*iter)._dist;
+                   // cout << var << endl;
                     vec gradient = (*iter)._r;
                     gradient.normalize();
                     
@@ -405,6 +406,7 @@ public:
                     _b( LeastSQOffset + 3*N*L + iatom) = Force.x();
                     _b( LeastSQOffset + 3*N*L + N+iatom) = Force.y();
                     _b( LeastSQOffset + 3*N*L + 2*N+iatom) = Force.z();
+                  //  cout << Force.x() << endl;
             }
         }
         else {
@@ -414,21 +416,21 @@ public:
         
         if ( L % N_frames == 0 ) {
             BlockNum++;
-            cout << "Block No" << BlockNum << " done!" << endl;
             FmatchAccumulateData();
+            cout << "Block No" << BlockNum << " done!" << endl;
             L = 0;
             if ( ConstrLeastSQ ) { //Constrained Least Squares
                 _A.clear();
                 _b.clear();            
             }
             else { // Simple Least Squares
-                // double loop has to be replaced with a matrix_range thing!
-                for (int i = line_cntr; i < line_cntr + 3*N*N_frames; i++) {
+                FmatchAssignMatrixAgain();            
+/*                for (int i = line_cntr; i < line_cntr + 3*N*N_frames; i++) {
                     for (int j = 0; j < col_cntr; j++) {
-                        _A(i,j)=0;
+                        _A(i,j)=0.0;
                     }
                 }
-                _b.clear();
+                _b.clear(); */
             }
         }
     }
@@ -489,6 +491,7 @@ protected:
   
   int beadType2intType ( int beadType1, int beadType2 );
   void FmatchAccumulateData();
+  void FmatchAssignMatrixAgain();
   
 };
 
@@ -644,6 +647,7 @@ int CGForceMatching::beadType2intType( int beadType1, int beadType2 ) {
         
         }
         else {  // Simple Least Squares
+
             double* pointer_m = & _A(0,0);
             double* pointer_b = & _b(0);            
 
@@ -687,6 +691,7 @@ int CGForceMatching::beadType2intType( int beadType1, int beadType2 ) {
 
             for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++ ) {
                 (*is)->resSum[i] += (*is)->Spline.Calculate(out_x);
+                    if ( i == 23) cout << (*is)->Spline.Calculate(out_x) << " " << endl;
                 (*is)->resSum2[i] += (*is)->Spline.Calculate(out_x) * (*is)->Spline.Calculate(out_x);
                 out_x += (*is)->del_x_out;
             }
@@ -724,6 +729,29 @@ int CGForceMatching::beadType2intType( int beadType1, int beadType2 ) {
         }        
 */        
     }
+    
+    void CGForceMatching::FmatchAssignMatrixAgain() {
+  
+            int line_tmp, col_tmp;
+            line_tmp = 0;
+            col_tmp = 0;
+            
+            _A.clear();
+            _b.clear();  
+            
+            SplineContainer::iterator is;
+                
+            for(is=Splines.begin(); is != Splines.end(); ++is) {
+        
+                int sfnum = (*is)->n;            
+                (*is)->Spline.AddBCToFitMatrix(_A, line_tmp, col_tmp);
+            
+                // update counters
+                line_tmp += sfnum + 1;
+                col_tmp += 2 * (sfnum + 1);
+                
+            }             
+    }    
 
 int main(int argc, char** argv)
 {    
