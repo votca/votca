@@ -2,6 +2,11 @@
 
 use strict;
 
+( my $progname = $0 ) =~ s#^.*/##;
+(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
+chomp($function_file);
+(do "$function_file") || die "$progname: source $function_file failed\n";
+
 die "2 parameters are nessary\n" if ($#ARGV<1);
 
 my $file="$ARGV[0]";
@@ -10,10 +15,10 @@ open(FILE1,$file) or die "$file not found\n";
 my $file2="$ARGV[1]";
 open(FILE2,"> $file2") or die "$file2 not found\n";
 
-my $pref=300*0.00831451;
-my $r_cut=0.9;
-my $r_max=2;
-my $delta_r=0.01;
+my $pref=get_sim_property("kBT");
+my $r_cut=csg_get("cut");
+my $r_max=csg_get("max");
+my $delta_r=csg_get("step_calc");
 my @r;
 my @pot;
 while (<FILE1>){

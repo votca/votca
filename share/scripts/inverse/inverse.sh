@@ -62,7 +62,6 @@ method="$(get_sim_property method)"
 log "We are doing Method: $method"
 
 sim_prog="$(get_sim_property program)"
-echo $sim_prog
 log "We using Sim Program: $sim_prog"
 source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed" 
 
@@ -84,7 +83,8 @@ else
   msg ------------------------
   mkdir step_00
 
-  # TODO: check weather dir could be created!!!
+  #HOWTO...
+  for_all non-bonded $CSGSHARE/test.pl || die "123"
   
   #copy+resample all rdf in step_00
   cd step_00 || die "cd step_00 failed"
@@ -117,7 +117,7 @@ for ((i=1;i<$iterations+1;i++)); do
       die "Incomplete step $i"
     fi
   fi
-  mkdir $this_dir
+  mkdir $this_dir || die "mkdir $this_dir failed"
   
   #copy+resample all rdf in step_00
   for_all non-bonded "cp \$(\$csg_get name).dist.tgt $this_dir" 

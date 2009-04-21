@@ -57,6 +57,7 @@ sub find_from_table($) {
   open(FILE,"<$_[0]") || die "Could not read $_[0]\n";
   while (<FILE>) {
     next if /^#/;
+    next if /^\s*$/;
     $found="$1" if /^\s*$ARGV[0]\s+$ARGV[1]\s+(.*?)$/;
   }
   return $found;
@@ -70,8 +71,11 @@ sub find_in_dir($$) {
   $script="$1" if  ($_[0] =~ s/^(\S+).*?$/$1/);
   $args="$1" if ($_[0] =~ /^\S+\s+(.*?)$/); 
   #empty means, add no dir
-  ( $dir =~ /^\s*$/ ) || ( $script="$dir/$script" );
-  ( -f "$script" ) && return "$script $args";
+  $script="$dir/$script"  unless ($dir =~ /^\s*$/ );
+  if ( -f "$script" ) {
+    $script.=" $args" unless ($args =~ /^\s*$/ );
+    return "$script";
+  }
   return undef;
 }
 
