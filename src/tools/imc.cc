@@ -57,10 +57,10 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     i->_p=p;
     
     // initialize the current and average histogram
-    int n = (i->_max - i->_min) / i->_step;
+    int n = (int)((i->_max - i->_min) / i->_step) + 1;
 
-    i->_current.Initialize(i->_min, i->_max, n);
-    i->_average.Initialize(i->_min, i->_max, n);
+    i->_current.Initialize(i->_min, i->_max+i->_step, n);
+    i->_average.Initialize(i->_min, i->_max+i->_step, n);
     
     return i;
 }
@@ -282,13 +282,18 @@ void Imc::CalcDeltaS()
         i->_average.data().y() *= norm;
                 
         Table target;
-        target.Load(i->_p->get("imc.target").as<string>());
+        target.Load(i->_p->get("target").as<string>());
         
 //        i->_average.data().Save(name + ".S");
         
   //      target.y() = (1.0 / i->_norm)*ub::element_prod(target.y(), 
   //              ub::element_prod(target.x(), target.x()));
   //      target.Save(name + ".St");
+        
+        
+        if(target.y().size() !=  i->_average.data().y().size())
+            throw std::runtime_error("number of grid points in target does not match the grid");
+        
         target.y() = i->_average.data().y() - target.y();
         // write S
         target.Save(name + ".imc");

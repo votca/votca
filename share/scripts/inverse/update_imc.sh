@@ -18,15 +18,17 @@ traj=$(get_sim_property gromacs.traj)
 msg "calculating statistics"
 run_or_exit csg_imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap
 
-msg "solving linear equations for dpot"
-# todo: allow to specify solver in xml
-sed -e "s/%NAME/CG-CG/" $CSGSHARE/linsolve.m > imcsolve.m
-/sw/linux/suse/client/matlab/bin/matlab -arch=glnx86 -r imcsolve -nosplash -nodesktop
-rm -f imcsolve.m
+list_groups=$(csg_property --short --file $CSGXMLFILE --path "cg.*.imc.group" --print . | sort -u)
+for group in "$list_groups"; do
+  # currently this is a hack! need to create combined array
+  msg "solving linear equations for $group"
+  # todo: allow to specify solver in xml
+  sed -e "s/%NAME/$group/" $CSGSHARE/linsolve.m > imcsolve.m
+  /sw/linux/suse/client/matlab/bin/matlab -arch=glnx86 -r imcsolve -nosplash -nodesktop
+  rm -f imcsolve.m
 
-# temporary compatibility issue
+  # temporary compatibility issue
 
-sed -ie 's/NaN/0.0/' CG-CG.dpot.new
-sed -ie 's/Inf/0.0/' CG-CG.dpot.new
-
-cp CG-CG.dpot.new CG_CG.dpot.new
+  sed -ie 's/NaN/0.0/' $group.dpot.new
+  sed -ie 's/Inf/0.0/' $group.dpot.new 
+done 

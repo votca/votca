@@ -10,9 +10,9 @@ fi
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 
-min=$($csg_get min_calc )
-max=$($csg_get max_calc )
-step=$($csg_get step_calc )
+min=$($csg_get min )
+max=$($csg_get max )
+step=$($csg_get step )
 target=$($csg_get target)
 name=$($csg_get name)
 

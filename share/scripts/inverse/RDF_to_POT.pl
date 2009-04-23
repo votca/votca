@@ -18,7 +18,7 @@ open(FILE2,"> $file2") or die "$file2 not found\n";
 my $pref=get_sim_property("kBT");
 my $r_cut=csg_get("cut");
 my $r_max=csg_get("max");
-my $delta_r=csg_get("step_calc");
+my $delta_r=csg_get("step");
 my @r;
 my @pot;
 while (<FILE1>){
