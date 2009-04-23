@@ -35,15 +35,16 @@ public:
     
     void clear(void);
     
+    void GenerateGridSpacing(double min, double max, double spacing);
     void resize(int N, bool preserve=true) { _x.resize(N, preserve); _y.resize(N, preserve); _flags.resize(N, preserve); }
     int size() const {return _x.size(); }
 
     double &x(int i) { return _x[i]; }
     double &y(int i) { return _y[i]; }
-    unsigned short &flags(int i) { return _flags[i]; }
+    char &flags(int i) { return _flags[i]; }
 
     void set(const int &i, const double &x, const double &y) { _x[i] = x; _y[i]=y; }
-    void set(const int &i, const double &x, const double &y, const int &flags) { _x[i] = x; _y[i]=y; _flags[i] = flags; }
+    void set(const int &i, const double &x, const double &y, const char &flags) { _x[i] = x; _y[i]=y; _flags[i] = flags; }
 
     void Load(string filename);
     void Save(string filename) const;       
@@ -52,14 +53,14 @@ public:
     
     ub::vector<double> &x() { return _x; }
     ub::vector<double> &y() { return _y; }
-    ub::vector<unsigned short> &flags() { return _flags; }
+    ub::vector<char> &flags() { return _flags; }
     
-    void push_back(double x, double y, int flags);
+    void push_back(double x, double y, char flags);
 
 private:
     ub::vector<double> _x;
     ub::vector<double> _y;       
-    ub::vector<unsigned short>   _flags;
+    ub::vector<char>   _flags;
 
     friend ostream &operator<<(ostream &out, const Table& v);
     friend istream &operator>>(istream &out, Table& v);
@@ -83,7 +84,7 @@ inline ostream &operator<<(ostream &out, const Table& t)
     return out;
 }
 
-inline void Table::push_back(double x, double y, int flags)
+inline void Table::push_back(double x, double y, char flags)
 {
     size_t n=size();
     resize(n+1);

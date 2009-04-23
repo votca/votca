@@ -73,10 +73,10 @@ inline istream &operator>>(istream &in, Table& t)
         }
         // it's the first data line with 2 or 3 entries
         else if(tokens.size() == 2) {
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 0);            
+            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 'i');            
         }
         else if(tokens.size() == 3) {
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), lexical_cast<int>(tokens[2]));        
+            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), tokens[2].c_str()[0]);        
         }
         else throw string("error, wrong table format");                                
     }
@@ -97,10 +97,10 @@ inline istream &operator>>(istream &in, Table& t)
                     
         // it's a data line
         if(tokens.size() == 2) {            
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 0);            
+            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 'i');            
         }
         else if(tokens.size() == 3) {
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), lexical_cast<int>(tokens[2]));
+            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), tokens[2].c_str()[0]);
         }
         // otherwise error
         else throw string("error, wrong table format");                                
@@ -111,6 +111,15 @@ inline istream &operator>>(istream &in, Table& t)
     }
 
     return in;
+}
+
+void Table::GenerateGridSpacing(double min, double max, double spacing)
+{
+    int n = floor((max - min)/spacing + 1.000000001);
+    resize(n);
+    int i=0;
+    for(double x=min; i<n; x+=spacing, ++i)
+        _x[i] = x;
 }
 
 void Table::Smooth(int Nsmooth)
