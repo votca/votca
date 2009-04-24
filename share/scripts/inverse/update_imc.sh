@@ -24,6 +24,8 @@ for group in "$list_groups"; do
   msg "solving linear equations for $group"
   # todo: allow to specify solver in xml
   sed -e "s/%NAME/$group/" $CSGSHARE/linsolve.m > imcsolve.m
+  # kill the flags
+  awk '{print $1,$2}' $group.imc > ${group}_m.imc
   /sw/linux/suse/client/matlab/bin/matlab -arch=glnx86 -r imcsolve -nosplash -nodesktop
   rm -f imcsolve.m
 

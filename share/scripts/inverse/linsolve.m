@@ -1,7 +1,7 @@
 A = load('%NAME.gmc');
-b = load('%NAME.imc');
+b = load('%NAME_m.imc');
 
-b(:,2)=b(:,2)
+b(:,2)=b(:,2);
 x = b;
 x(:,2)=0;
 
