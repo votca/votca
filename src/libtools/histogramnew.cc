@@ -27,7 +27,7 @@ void HistogramNew::Initialize(double min, double max, int nbins)
         _data.x(i)=v;
     
     _data.y()=ub::zero_vector<double>(_nbins);    
-   // _data.flags()=ub::zero_vector<double>(_nbins);    
+    _data.flags()=ub::scalar_vector<char>(_nbins, 'i');    
 }
 
 void HistogramNew::Process(double &v)
