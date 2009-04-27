@@ -17,33 +17,39 @@ open(FILE2,"> $file2") or die "$file2 not found\n";
 
 my $pref=get_sim_property("kBT");
 my $r_cut=csg_get("cut");
-my $r_max=csg_get("max");
-my $delta_r=csg_get("step");
+# my $r_max=csg_get("max"); # these are not needed (vr)
+# my $delta_r=csg_get("step"); # these are not needed (vr)
+
 my @r;
 my @pot;
+my @flag;
+
 while (<FILE1>){
    next if /^[#@]/;
    my @parts=split(' ');
    push(@r,$parts[0]);
-   my $tmp=$parts[1]>0.0?-$pref*log($parts[1]):"nan";
+   my $tmp=$parts[1]>0.0?-$pref*log($parts[1]):"0";
    push(@pot,$tmp);
+   my $tmp_fl=$parts[1]>0.0?"i":"u";
+   push(@flag,$tmp_fl);
 }
 
 #find last nan
 my $nr;
 for ($nr=$#pot-1;$nr>=0;$nr--){
-   last if ($pot[$nr] =~ /nan/) ;
+   last if ($flag[$nr] =~ /u/) ;
 }
 $nr++;
 my $pot_max=$pot[$nr];
 
 #extra polation the begin
 my $deri=$pot[$nr]-$pot[$nr+1];
-while ($pot_max<100000){
+while ($nr>=0) { #$pot_max<100000){
    $deri+=$deri;
    $pot_max=$pot[$nr]+$deri;
    $nr--;
-   $pot[$nr]=$pot_max;
+   $pot[$nr]=$pot_max<100000?$pot_max:0;
+   $flag[$nr]=$pot_max<100000?"o":"u";
 }
 my $i_start=$nr;
 
@@ -56,7 +62,7 @@ my $i_cut=$nr;
 
 #substract potential of r_cut
 for (my $i=0;$i<=$i_cut;$i++){
-   $pot[$i]-=$pot[$i_cut] unless  ($pot[$i] =~ /nan/);
+   $pot[$i]-=$pot[$i_cut] unless  ($flag[$i] =~ /[uo]/);
 }
 
 #smooth end
@@ -66,8 +72,14 @@ for (my $i=$i_cut-5;$i<=$i_cut;$i++){
    #print "ZZZ $i $r[$i]  $pot[$i]\n";
 }
 
-for(my $count=$i_start;$count<=$i_cut;$count++){
-   print FILE2 "$r[$count] $pot[$count]\n";
+# set ends to zero
+for (my $i=$i_cut;$i<$#flag;$i++) {
+  $pot[$i]=0;
+  $flag[$i]="o";
+}
+
+for(my $count=0;$count<$#pot;$count++){
+   print FILE2 "$r[$count] $pot[$count] $flag[$count]\n";
 }
 
 close(FILE1) or die "Error at closing $file\n";

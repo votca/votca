@@ -28,6 +28,6 @@ log "Spline factor is $factor for ${name}"
 
 n_lines=$(wc -l $input | awk -v factor=$factor '{print factor*($1-1)}')
 log "Spline lines are $n_lines for ${name}"
-spline -n $n_lines $input > smooth_${input} || die "${0##*/}: spline failed"
+awk '{print $1,$2}' $input | spline -n $n_lines > smooth_${input} || die "${0##*/}: spline failed"
 run_or_exit $table_to_xvg smooth_${input} $output 
 

@@ -1,12 +1,20 @@
 #! /usr/bin/perl -w
 
 use strict;
+
+# added this hope its righ (victor)
+( my $progname = $0 ) =~ s#^.*/##;
+(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
+chomp($function_file);
+(do "$function_file") || die "$progname: source $function_file failed\n";
+####
+
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
-my $kBT=300*0.00831451;
-my $r_cut=0.9;
-my $max=2;
-my $delta_r=0.01;
+my $kBT=2.5; # get_sim_property("kBT");
+my $r_cut=0.9; # csg_get("cut");
+my $max=1.0; # csg_get("max");
+my $delta_r=0.01; # csg_get("step");
 
 my $p_target=$ARGV[0];
 my $p_now=$ARGV[1];
