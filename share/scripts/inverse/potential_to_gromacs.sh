@@ -21,13 +21,14 @@ input="${name}.pot.cur"
 output="table_$($csg_get type1)_$($csg_get type2).xvg" 
 log "Convert $input to $output"
 
-binsize=$($csg_get step)
+min=$($csg_get min)
+max=$($csg_get max)
 gromacs_bins="$(get_sim_property gromacs.table_bins)"
-factor=$(awk "BEGIN{print $binsize/$gromacs_bins}") || die "${0##*/}: awk failed"
-log "Spline factor is $factor for ${name}"
 
-n_lines=$(wc -l $input | awk -v factor=$factor '{print factor*($1-1)}')
-log "Spline lines are $n_lines for ${name}"
-awk '{print $1,$2}' $input | spline -n $n_lines > smooth_${input} || die "${0##*/}: spline failed"
+log echo running "csg_resample --in $input --out smooth_${input} --grid $min:$gromacs_bins:$max"
+
+csg_resample --in $input --out smooth_${input} --grid $min:$gromacs_bins:$max || die "${0##*/}: csg_resample failed"
+
+
 run_or_exit $table_to_xvg smooth_${input} $output 
 
