@@ -174,18 +174,19 @@ inline int CubicSpline::GenerateGrid(double min, double max, double h)
 inline double CubicSpline::Calculate(const double &r)
 {
     int n = _f.size()/2;
-    return -A(r)*_f[getInterval(r)] - B(r)*_f[getInterval(r) + 1] - C(r)*_f[n + getInterval(r)] - D(r)*_f[n + getInterval(r) + 1];
+    int interval =  getInterval(r);
+    return  -A(r)*_f[interval] 
+            - B(r)*_f[interval + 1] 
+            - C(r)*_f[n + interval] 
+            - D(r)*_f[n + interval + 1];
 }
 
 template<typename vector_type1, typename vector_type2>
 inline void CubicSpline::Calculate(vector_type1 &x, vector_type2 &y)
 {
     int n = _r.size();
-    for(int i=0; i<x.size(); ++i)
-        y(i) =  - A(x(i))*_f[getInterval(x(i))] 
-                - B(x(i))*_f[getInterval(x(i)) + 1] 
-                - C(x(i))*_f[n + getInterval(x(i))] 
-                - D(x(i))*_f[n + getInterval(x(i)) + 1];
+    for(int i=0; i<x.size(); ++i) 
+        y(i) = Calculate(x(i));
 }
 
 inline void CubicSpline::Print(std::ostream &out, double interval)
@@ -285,7 +286,7 @@ inline double CubicSpline::D(const double &r)
 inline int CubicSpline::getInterval(const double &r)
 {
     if (r < _r[0]) return 0;
-    if(r > _r[_r.size() - 1]) return _r.size()-1;
+    if(r > _r[_r.size() - 2]) return _r.size()-2;
     int i;
     for(i=0; i<_r.size(); ++i)
         if(_r[i]>r) break;
