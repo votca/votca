@@ -22,8 +22,11 @@ type1=$($csg_get type1)
 type2=$($csg_get type2)
 name=$($csg_get name)
 binsize=$($csg_get step)
+min=$($csg_get min)
+max=$($csg_get max)
+
 log "Running g_rdf for ${type1}-${type2}"
-run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${equi} -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg" 
+run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${equi} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg" 
 #gromacs allways append xvg
-mv ${name}.dist.new.xvg ${name}.dist.new || die "${0##*/}: mv failed"
+csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid $min:$binsize:$max || die "${0##*/}: resample failed"
 
