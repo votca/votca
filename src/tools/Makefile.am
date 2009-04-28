@@ -18,7 +18,7 @@ csg_resample_SOURCES = csg_resample.cc
 
 csg_imc_SOURCES = csg_imc.cc imc.cc
 
-csg_property_sources = csg_property.cc
+csg_property_SOURCES = csg_property.cc
 
 # csg_fmatch_SOURCES = csg_fmatch.cc
 
