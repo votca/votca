@@ -10,6 +10,7 @@ init imc initalize_ibm.sh
 post add post_add.sh
 post update post_update.sh
 postupd pressure postupd_pressure.sh
+postupd shiftnb do_shift_nb.pl
 prepare gromacs prepare_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_gromacs.sh

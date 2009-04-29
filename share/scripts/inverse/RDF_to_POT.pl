@@ -48,7 +48,7 @@ while ($nr>=0) { #$pot_max<100000){
    $deri+=$deri;
    $pot_max=$pot[$nr]+$deri;
    $nr--;
-   $pot[$nr]=$pot_max<100000?$pot_max:0;
+   $pot[$nr]=$pot_max<100000?$pot_max:100000;
    $flag[$nr]=$pot_max<100000?"o":"u";
 }
 my $i_start=$nr;
