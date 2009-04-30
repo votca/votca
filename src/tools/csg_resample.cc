@@ -25,7 +25,7 @@ void check_option(po::options_description &desc, po::variables_map &vm, const st
 
 int main(int argc, char** argv)
 {
-    string in_file, out_file, grid;
+    string in_file, out_file, grid, spfit;
     CubicSpline spline;
     Table in, out;
 
@@ -36,6 +36,7 @@ int main(int argc, char** argv)
       ("in", po::value<string>(&in_file), "table to read")
       ("out", po::value<string>(&out_file), "table to write")
       ("grid", po::value<string>(&grid), "new grid spacing (min:step:max)")
+      ("spfit", po::value<string>(&spfit), "specify spline fit grid. if option is not specified, normal spline interpolation is performed")
       //("bc", po::)
       ("help", "options file for coarse graining");
     
@@ -61,22 +62,42 @@ int main(int argc, char** argv)
     check_option(desc, vm, "grid");
     
     double min, max, step;
-    Tokenizer tok(grid, ":");
-    vector<string> toks;
-    tok.ToVector(toks);
-    if(toks.size()!=3) {
-        cout << "wrong range format, use min:step:max\n";
-        return 1;        
+    {
+        Tokenizer tok(grid, ":");
+        vector<string> toks;
+        tok.ToVector(toks);
+        if(toks.size()!=3) {
+            cout << "wrong range format, use min:step:max\n";
+            return 1;        
+        }
+        min = boost::lexical_cast<double>(toks[0]);
+        step = boost::lexical_cast<double>(toks[1]);
+        max = boost::lexical_cast<double>(toks[2]);
     }
         
-    min = boost::lexical_cast<double>(toks[0]);
-    step = boost::lexical_cast<double>(toks[1]);
-    max = boost::lexical_cast<double>(toks[2]);
-
+    
     in.Load(in_file);
-    spline.setBC(CubicSpline::splinePeriodic);
+    spline.setBC(CubicSpline::splineNormal);
 
-    spline.Interpolate(in.x(), in.y());
+    if (vm.count("spfit")) {
+        Tokenizer tok(spfit, ":");
+        vector<string> toks;
+        tok.ToVector(toks);
+        if(toks.size()!=3) {
+            cout << "wrong range format in spfit, use min:step:max\n";
+            return 1;        
+        }
+        double sp_min, sp_max, sp_step;
+        sp_min = boost::lexical_cast<double>(toks[0]);
+        sp_step = boost::lexical_cast<double>(toks[1]);
+        sp_max = boost::lexical_cast<double>(toks[2]);
+        cout << "doing spline interpolation " << sp_min << ":" << sp_step << ":" << sp_max << endl;
+        spline.GenerateGrid(sp_min, sp_max, sp_step);
+        spline.Fit(in.x(), in.y());
+    } else {
+        spline.Interpolate(in.x(), in.y());
+    }
+    
     out.GenerateGridSpacing(min, max, step);
     spline.Calculate(out.x(), out.y());
     

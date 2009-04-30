@@ -33,7 +33,7 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
             beads1.Generate(*top, (*iter)->get("type1").value());
             beads2.Generate(*top, (*iter)->get("type2").value());
 
-            i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*(beads2.size()+1.)/2.);
+            i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*(beads2.size()-1.)/2.);
    }
    
    // initialize the group structures
@@ -82,10 +82,9 @@ void Imc::EndCG()
             // calculate the rdf
             Table &t = iter->second->_average.data();            
             Table rdf(t);
-            ub::scalar_vector<double> step(rdf.x().size(), 0.5*iter->second->_step);
 
             rdf.y() = iter->second->_norm * element_div(rdf.y(),
-                    element_prod(rdf.x()+step, rdf.x()+step)
+                    element_prod(rdf.x(), rdf.x())
                     );
             rdf.Save((iter->first) + ".dist.new");
             cout << "written " << (iter->first) + ".dist.new\n";
@@ -287,11 +286,9 @@ void Imc::CalcDeltaS()
         target.Load(i->_p->get("target").as<string>());
         
         i->_average.data().Save(name + ".S");
-        
-        ub::scalar_vector<double> step(target.x().size(), 0.5*i->_step);
-        
+                
         target.y() = (1.0 / i->_norm)*ub::element_prod(target.y(), 
-            (ub::element_prod(target.x()+step, target.x()+step))
+            (ub::element_prod(target.x(), target.x()))
             ) ;
         target.Save(name + ".St");
         
