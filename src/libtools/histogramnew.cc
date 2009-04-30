@@ -32,7 +32,7 @@ void HistogramNew::Initialize(double min, double max, int nbins)
 
 void HistogramNew::Process(double &v)
 {
-    int i = (int) ((v - _min) / _step);
+    int i = (int) ((v - _min) / _step + 0.5);
     
     if (i < 0 || i >= _nbins) {
         if(!_periodic) return;
