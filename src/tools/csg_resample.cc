@@ -101,7 +101,7 @@ int main(int argc, char** argv)
     out.GenerateGridSpacing(min, max, step);
     spline.Calculate(out.x(), out.y());
     
-    out.y() = -out.y();
+    out.y() = out.y();
     out.flags() = ub::scalar_vector<double>(out.flags().size(), 'i');
     
     out.Save(out_file);

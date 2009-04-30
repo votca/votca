@@ -3,17 +3,11 @@
 if [ "$1" = "--help" ]; then
   echo This is a wrapper to convert potential to gromacs
   echo Usage: ${0##*/} 
-  echo Needs: SOURCE_WRAPPER, run_or_exit, wc, spline 
+  echo Needs: SOURCE_WRAPPER, run_or_exit, wc 
   exit 0
 fi
 
 table_to_xvg="$($SOURCE_WRAPPER --direct table_to_xvg.pl)" || die "$SOURCE_WRAPPER --direct table_to_xvg.pl failed" 
-
-for exe in spline wc; do
-   if [ -z $(type -p $exe) ]; then
-      die "${0##*/}: Could not find $exe"
-   fi
-done
 
 name=$($csg_get name)
 input="${name}.pot.cur" 
