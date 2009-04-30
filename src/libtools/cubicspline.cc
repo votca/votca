@@ -208,17 +208,14 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     }      
     
     // To get the final answer this vector should be multiplied by matrix Q
-    _f = prec_prod( Q, _f );    
+    // TODO: here i changed the sign, check again! (victor)
+    _f = -prec_prod( Q, _f );    
     
     gsl_vector_free (z);
     gsl_vector_free (tau_solve);
     gsl_vector_free (residual);
       
 //============== END SOLVE QR ===============================//
-    
-    for (int i=0; i < N; i++){
-    cout << x(i) << '\t' << Calculate(x(i)) << endl;    
-    }
     
     // construct the smoothing condition
     // first derivatives have to be continuous:

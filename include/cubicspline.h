@@ -175,10 +175,10 @@ inline double CubicSpline::Calculate(const double &r)
 {
     int n = _f.size()/2;
     int interval =  getInterval(r);
-    return  -A(r)*_f[interval] 
-            - B(r)*_f[interval + 1] 
-            - C(r)*_f[n + interval] 
-            - D(r)*_f[n + interval + 1];
+    return  A(r)*_f[interval] 
+            + B(r)*_f[interval + 1] 
+            + C(r)*_f[n + interval] 
+            + D(r)*_f[n + interval + 1];
 }
 
 template<typename vector_type1, typename vector_type2>
