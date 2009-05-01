@@ -2,54 +2,55 @@
 
 use strict;
 
+( my $progname = $0 ) =~ s#^.*/##;
+
+if ("$ARGV[0]" eq "--help"){
+  print <<EOF;
+Usage: $progname infile1 infile2 outfile
+This script adds up two potentils 
+In addtion it does some magic tricks:
+ -do not crash when calc log(0)
+ -extrapolate the beginnig of pot
+ -the maximum to interpolate is pot_max (see xml)
+ -bigger value will be set to that max
+ -shift the potential, so that it is zero at the cutoff
+ -set all values to zero after the cutoff
+EOF
+  exit 0;
+}
+
+(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
+chomp($function_file);
+(do "$function_file") || die "$progname: source $function_file failed\n";
+
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
-my $file="$ARGV[0]";
-open(FILE1,$file) or die "$file not found\n";
+my $infile="$ARGV[0]";
 my @r_cur;
 my @pot_cur;
-while (<FILE1>){
-   next if /^#/;
-   my @parts=split(' ');
-   push(@r_cur,$parts[0]);
-   push(@pot_cur,$parts[1]);
-}
-close(FILE1) or die "Error at closing $file\n";
+my @flag_cur;
+(readin_table($infile,\@r_cur,\@pot_cur,\@flag_cur)) || die "$progname: error at readin_table\n";
 
-$file="$ARGV[1]";
-open(FILE1,$file) or die "$file not found\n";
+my $infile2="$ARGV[1]";
+#delta is just a name
 my @r_delta;
 my @pot_delta;
-while (<FILE1>){
-   next if /^#/;
-   my @parts=split(' ');
-   push(@r_delta,$parts[0]);
-   push(@pot_delta,$parts[1]);
-}
-close(FILE1) or die "Error at closing $file\n";
+my @flag_delta;
+(readin_table($infile2,\@r_delta,\@pot_delta,\@flag_delta)) || die "$progname: error at readin_table\n";
 
-die "Different grids $r_delta[1] $r_delta[0] $r_cur[1] $r_cur[0]\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
+#should never happen, but ....
+die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
+die "Different start point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
 
-my $delta=$r_delta[1]-$r_delta[0];
-my $shift=int(($r_delta[0]-$r_cur[0])/$delta)+1;
-#print "XXX $delta $shift $r_cur[$shift] $r_delta[0]\n";
-
-my $pot_shift=$pot_delta[$#r_cur-$shift]*exp(-1);
-
-#print "XXX $pot_shift\n";
-$file="$ARGV[2]";
-open(FILE,"> $file") or die "$file not found\n";
+my $outfile="$ARGV[2]";
+my @pot;
 for (my $i=0;$i<=$#r_cur;$i++){
-   my $tmp;
-   if ($i>=$shift){
-      $tmp=$pot_cur[$i]+$pot_delta[$i-$shift];
-      #print "xxx $i $r_cur[$i] $pot_cur[$i] $pot_delta[$i-$shift] $tmp\n";
-   } else {
-      $tmp=$pot_cur[$i];
-   }
-   $tmp*=exp(-($i-$#r_cur+5)/5.) if ($i>$#r_cur-5);
-   #printf "xxx $i %f\n",exp(-($i-$#r_cur+5)) if ($i>=$#r_cur-5);
-   $tmp-=$pot_shift;
-   print FILE "$r_cur[$i] $tmp\n";
+  if (($flag_delta[$i] eq "i" ) && ($flag_cur[$i] eq "i")){
+    $pot[$i]=$pot_cur[$i]+$pot_delta[$i];
+  } else {
+    $pot[$i]=0;
+    $flag_cur[$i]="u";
+  }
 }
-close(FILE);
+saveto_table($outfile,\@r_cur,\@pot,\@flag_cur) || die "$progname: error at save table\n";
+

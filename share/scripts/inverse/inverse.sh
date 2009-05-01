@@ -101,7 +101,7 @@ else
 fi
 
 for ((i=1;i<$iterations+1;i++)); do
-  msg ---------------------------------
+  msg -------------------------------
   msg Doing iteration $i \(make step_$i\)
   msg -------------------------------
   last_dir=$(printf step_%02i $((i-1)) )
