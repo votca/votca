@@ -116,7 +116,7 @@ for ((i=1;i<$iterations+1;i++)); do
   fi
   mkdir $this_dir || die "mkdir $this_dir failed"
   
-  #copy+resample all rdf in step_00
+  #copy+resample all rdf in this_dir 
   for_all non-bonded $($SOURCE_WRAPPER --direct resample_to_calc.sh) $this_dir
   
   #get need files
@@ -124,8 +124,11 @@ for ((i=1;i<$iterations+1;i++)); do
     run_or_exit cp ./$myfile ./$this_dir/  
   done
   cd $this_dir || die "cd $this_dir failed"
- 
+
+  #get new pot from last step and make it current potential 
   for_all non-bonded "cp ../$last_dir/\$(\$csg_get name).pot.new ./\$(\$csg_get name).pot.cur" 
+
+  #convert potential in format for sim_prog
   do_external convert_potential $sim_prog for_all non-bonded
 
   #Run simulation maybe change to Espresso or whatever

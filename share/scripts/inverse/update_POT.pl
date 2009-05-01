@@ -13,8 +13,7 @@ chomp($function_file);
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
 my $pref=get_sim_property("kBT");
-my $r_cut=csg_get("cut");
-my $r_max=csg_get("max");
+my $r_cut=csg_get("max");
 my $delta_r=csg_get("step");
 
 #my $pref=300*0.00831451;

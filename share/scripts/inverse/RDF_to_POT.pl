@@ -30,7 +30,7 @@ my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
 my $pref=get_sim_property("kBT");
-my $r_cut=csg_get("cut");
+my $r_cut=csg_get("max");
 
 my @r;
 my @rdf;

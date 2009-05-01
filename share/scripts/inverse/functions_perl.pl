@@ -41,7 +41,7 @@ sub readin_table($\@\@\@) {
 sub saveto_table($\@\@\@) {
   ($_[3]) || die "saveto_table: Missing argument\n";
   open(OUTFILE,"> $_[0]") or die "saveto_table: could not open $_[0] \n";
-  for(my $i=0;$i<$#{$_[1]};$i++){
+  for(my $i=0;$i<=$#{$_[1]};$i++){
     print OUTFILE "${$_[1]}[$i] ${$_[2]}[$i] ${$_[3]}[$i]\n";
   }
   close(OUTFILE) or die "Error at closing $_[0]\n";

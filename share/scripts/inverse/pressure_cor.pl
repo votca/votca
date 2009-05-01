@@ -12,14 +12,8 @@ chomp($function_file);
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
 my $kBT=get_sim_property("kBT");
-my $r_cut=csg_get("cut");
 my $max=csg_get("max");
 my $delta_r=csg_get("step");
-
-#my $kBT=2.5; # get_sim_property("kBT");
-#my $r_cut=0.9; # csg_get("cut");
-#my $max=1.0; # csg_get("max");
-#my $delta_r=0.01; # csg_get("step");
 
 my $p_target=$ARGV[0];
 my $p_now=$ARGV[1];
@@ -54,12 +48,7 @@ my $file="$ARGV[2]";
 open(FILE,"> $file") or die "$file not found\n";
 for(my $count=0;$count<=$max/$delta_r;$count++){
    my $tmp_r=$count*$delta_r;
-   my $pot;
-   if ($tmp_r<$r_cut){
-      $pot=$pref*(1-$tmp_r/$r_cut);
-   } else {
-      $pot=0;
-   }
+   my $pot=$pref*(1-$tmp_r/$max);
    print FILE "$tmp_r $pot\n";
 }
 close(FILE);

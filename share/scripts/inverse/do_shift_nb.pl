@@ -20,7 +20,7 @@ die "2 parameters are nessary, <infile> <outfile>\n" if ($#ARGV<2);
 my $file="$ARGV[0]";
 open(FILE1,$file) or die "$file not found\n";
 
-my $r_cut=csg_get("cut");
+my $r_cut=csg_get("max");
 
 # read in the current dpot
 my @r;
