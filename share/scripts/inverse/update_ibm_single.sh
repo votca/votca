@@ -23,6 +23,6 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
 else
    log "Update potential ${name} : no"
    awk -v step=$($csg_get step) -v start=$($csg_get min_calc) -v end=$($csg_get max_calc) \
-     'BEGIN{x=start;while(x<end+step){print x,0.0;x+=step;}}' > ${name}.dpot.new \
+     'BEGIN{x=start;while(x<end+step){print x,0.0,"i";x+=step;}}' > ${name}.dpot.new \
       || die "${0##*/}: awk failed"
 fi
