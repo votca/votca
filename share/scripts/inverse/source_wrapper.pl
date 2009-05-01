@@ -6,6 +6,7 @@ use strict;
 sub find_from_table($);
 sub find_in_dir($$);
 sub search_and_exit;
+sub show_table($);
 
 if ( "$ARGV[0]" eq "--help" ){
   print <<END;
@@ -30,6 +31,17 @@ $csg_table="$csgshare/$csg_table";
 $user_table="$csgscriptdir/$user_table";
 
 my $scriptname=undef;
+
+if ("$ARGV[0]" eq "--status" ){
+  print "csg table status\n";
+  show_table($csg_table);
+  print "Check sums\n";
+  system('md5sum $CSGSHARE/MD5SUM');
+  system('cd $CSGSHARE; md5sum -c $CSGSHARE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them and to user scripts dir');
+  print "user table status\n";
+  ( -r "$user_table" ) && show_table($user_table);
+  exit 0;
+}
 
 ###################MAIN PROGRAMM#######################
 
@@ -88,4 +100,14 @@ sub search_and_exit {
     }
   }
   return undef;
+}
+
+sub show_table($) {
+  open(FILE,"<$_[0]") || die "Could not read $_[0]\n";
+  while (<FILE>) {
+    next if /^#/;
+    next if /^\s*$/;
+    print;
+  }
+  return 1;
 }
