@@ -17,4 +17,4 @@ rdf gromacs calc_rdf_gromacs.sh
 run gromacs run_gromacs.sh
 update ibm update_ibm.sh
 update imc update_imc.sh
-update ibm_pot update_POT.pl
+update ibm_pot update_ibm_pot.pl
