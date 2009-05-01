@@ -3,7 +3,6 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
-my $gromacs_max=100000;
 
 if ("$ARGV[0]" eq "--help"){
   print <<EOF;
@@ -11,7 +10,7 @@ Usage: $progname infile outfile
 This script convert csg potential files to xvg format
 Potential are copy in the C12 column 
 In addtion it does some magic tricks:
- -bigger value will be set to $gromacs_max 
+ -bigger value will be set to pot_max (see xml)
  -shift the potential, so that it is zero at the cutoff
  -set all values to zero after the cutoff
 EOF
@@ -27,6 +26,7 @@ die "2 parameters are nessary\n" if ($#ARGV<1);
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
+my $gromacs_max=get_sim_property("gromacs.pot_max");
 my $table_end=get_sim_property("gromacs.table_end");
 my $table_bins=get_sim_property("gromacs.table_bins");
 

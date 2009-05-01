@@ -1,14 +1,21 @@
 #! /usr/bin/perl -w
 
 use strict;
-
-
-# added this hope its righ (victor)
 ( my $progname = $0 ) =~ s#^.*/##;
+
+if ("$ARGV[0]" eq "--help"){
+  print <<EOF;
+Usage: $progname new_rdf target_rdf outfile
+This script calcs dU out of two rdfs with the rules of inverse boltzman
+In addtion it does some magic tricks:
+ -do not update if one of the both rdf is undefined
+EOF
+  exit 0;
+}
+
 (my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
 chomp($function_file);
 (do "$function_file") || die "$progname: source $function_file failed\n";
-####
 
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
@@ -16,71 +23,35 @@ my $pref=get_sim_property("kBT");
 my $r_cut=csg_get("max");
 my $delta_r=csg_get("step");
 
-#my $pref=300*0.00831451;
-#my $r_cut=0.9;
-#my $delta_r=0.01;
-
-my $small_x=0.001;
-
-my $file="$ARGV[0]";
-open(FILE1,$file) or die "$file not found\n";
+my $aim_rdf_file="$ARGV[0]";
 my @r_aim;
 my @rdf_aim;
-while (<FILE1>){
-   next if /^[#@]/;
-   my @parts=split(' ');
-   push(@r_aim,$parts[0]);
-   push(@rdf_aim,$parts[1]);
-}
-close(FILE1) or die "Error at closing $file\n";
+my @flags_aim;
+(readin_table($aim_rdf_file,\@r_aim,\@rdf_aim,\@flags_aim)) || die "$progname: error at readin_table\n";
 
-$file="$ARGV[1]";
-open(FILE1,$file) or die "$file not found\n";
+my $cur_rdf_file="$ARGV[1]";
 my @r_cur;
 my @rdf_cur;
-while (<FILE1>){
-   next if /^[#@]/;
-   my @parts=split(' ');
-   push(@r_cur,$parts[0]);
-   push(@rdf_cur,$parts[1]);
-}
-close(FILE1) or die "Error at closing $file\n";
+my @flags_cur;
+(readin_table($cur_rdf_file,\@r_cur,\@rdf_cur,\@flags_cur)) || die "$progname: error at readin_table\n";
 
+#should never happen due to resample, but better check
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
-
 die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 
-#find min_i_aim
-my $i_min_aim;
-for (my $i=$#r_aim;$i>=0;$i--){
-   $i_min_aim=$i+1;
-   last if $rdf_aim[$i]<$small_x;
+my $outfile="$ARGV[2]";
+my @pot;
+my @flag;
+
+for (my $i=0;$i<=$#r_aim;$i++){
+  if (($rdf_aim[$i] > 0.0) && ($rdf_cur[$i] > 0.0)) {
+    $pot[$i]=log($rdf_cur[$i]/$rdf_aim[$i])*$pref;
+    $flag[$i]="i";
+  } else {
+    $pot[$i]="0.0";
+    $flag[$i]="u";
+  }
 }
 
-#find min_i_cut
-my $i_min_cur;
-for (my $i=$#r_cur;$i>=0;$i--){
-   $i_min_cur=$i+1;
-   last if $rdf_cur[$i]<$small_x;
-}
+saveto_table($outfile,\@r_aim,\@pot,\@flag) || die "$progname: error at save table\n";
 
-my $i_min=($i_min_aim>$i_min_cur)?$i_min_aim:$i_min_cur;
-
-#print "XXX $i_min\n";
-$file="$ARGV[2]";
-open(FILE,"> $file") or die "$file not found\n";
-
-for (my $nr=$i_min;$nr<=$#r_cur;$nr++){
-   my $tmp_pot;
-   if($rdf_aim[$nr] != 0) {
-      $tmp_pot=log($rdf_cur[$nr]/$rdf_aim[$nr])*$pref;
-   }
-   else {
-    $tmp_pot=0;
-   }
-
-   print FILE "$r_cur[$nr] $tmp_pot\n";
-   #print "YYY $nr $tmp_r $tmp_pot\n";
-}
-
-close(FILE);

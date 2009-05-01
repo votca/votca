@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the function update
    echo for the Inverse Boltzmann Method
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$SOURCE_WRAPPER, update_POT.pl
+   echo Needs:  run_or_exit, \$SOURCE_WRAPPER
    exit 0
 fi
 

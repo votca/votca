@@ -3,7 +3,6 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
-my $gromacs_max=100000;
 
 if ("$ARGV[0]" eq "--help"){
   print <<EOF;
@@ -12,7 +11,7 @@ This script convert in rdf to pot of mean force (F(r)=-k_B T*ln(g(r))
 In addtion it does some magic tricks:
  -do not crash when calc log(0)
  -extrapolate the beginnig of pot
- -the maximum to interpolate is $gromacs_max
+ -the maximum to interpolate is pot_max (see xml)
  -bigger value will be set to that max
  -shift the potential, so that it is zero at the cutoff
  -set all values to zero after the cutoff
@@ -29,6 +28,7 @@ die "2 parameters are nessary\n" if ($#ARGV<1);
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
+my $gromacs_max=get_sim_property("gromacs.pot_max");
 my $pref=get_sim_property("kBT");
 my $r_cut=csg_get("max");
 
