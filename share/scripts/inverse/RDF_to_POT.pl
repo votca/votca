@@ -3,84 +3,102 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
+my $gromacs_max=100000;
+
+if ("$ARGV[0]" eq "--help"){
+  print <<EOF;
+Usage: $progname infile outfile
+This script convert in rdf to pot of mean force (F(r)=-k_B T*ln(g(r))
+In addtion it does some magic tricks:
+ -do not crash when calc log(0)
+ -extrapolate the beginnig of pot
+ -the maximum to interpolate is $gromacs_max
+ -bigger value will be set to that max
+ -shift the potential, so that it is zero at the cutoff
+ -set all values to zero after the cutoff
+EOF
+  exit 0;
+}
+
 (my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
 chomp($function_file);
 (do "$function_file") || die "$progname: source $function_file failed\n";
 
 die "2 parameters are nessary\n" if ($#ARGV<1);
 
-my $file="$ARGV[0]";
-open(FILE1,$file) or die "$file not found\n";
-
-my $file2="$ARGV[1]";
-open(FILE2,"> $file2") or die "$file2 not found\n";
+my $infile="$ARGV[0]";
+my $outfile="$ARGV[1]";
 
 my $pref=get_sim_property("kBT");
 my $r_cut=csg_get("cut");
-# my $r_max=csg_get("max"); # these are not needed (vr)
-# my $delta_r=csg_get("step"); # these are not needed (vr)
 
 my @r;
-my @pot;
+my @rdf;
 my @flag;
+(readin_table($infile,\@r,\@rdf,\@flag)) || die "$progname: error at readin_table\n";
 
-while (<FILE1>){
-   next if /^[#@]/;
-   my @parts=split(' ');
-   push(@r,$parts[0]);
-   my $tmp=$parts[1]>0.0?-$pref*log($parts[1]):"0";
-   push(@pot,$tmp);
-   my $tmp_fl=$parts[1]>0.0?"i":"u";
-   push(@flag,$tmp_fl);
+my @pot;
+for (my $i=0;$i<=$#r;$i++){
+  if ($flag[$i] eq "i"){
+    #rdf = 0 will give undefined pot 
+    if ($rdf[$i]>0.0) {
+      $pot[$i]=-$pref*log($rdf[$i]);
+    }
+    else {
+      $pot[$i]="nan";
+      $flag[$i]="u";
+    }
+  }
 }
 
-#find last nan
-my $nr;
-for ($nr=$#pot-1;$nr>=0;$nr--){
-   last if ($flag[$nr] =~ /u/) ;
+#find first defined value (begining for r=0)
+#but it is more stable to search first undefined value begin
+#beginning form large r
+my $first_undef_bin;
+for (my $i=$#pot;$i>=0;$i--){
+   if ($flag[$i] eq "u") {
+     $first_undef_bin=$i;
+     last;
+   }
 }
-$nr++;
-my $pot_max=$pot[$nr];
 
-#extra polation the begin
-my $deri=$pot[$nr]-$pot[$nr+1];
-while ($nr>=0) { #$pot_max<100000){
-   $deri+=$deri;
-   $pot_max=$pot[$nr]+$deri;
-   $nr--;
-   $pot[$nr]=$pot_max<100000?$pot_max:100000;
-   $flag[$nr]=$pot_max<100000?"o":"u";
+#gromacs does not like VERY big numbers
+#in the very rare case that we are already in this region
+#we try to find a new beginnig
+while ($pot[$first_undef_bin+1]>$gromacs_max){
+  $pot[$first_undef_bin+1]="nan";
+  $flag[$first_undef_bin+1]="u";
+  $first_undef_bin++;
 }
-my $i_start=$nr;
 
-#find r_cut
-for ($nr=0;$nr<=$#r;$nr++){
-   last if $r[$nr]>=$r_cut;
+#quadratic extrapolation at the begining
+#and set all undef values to max
+my $slope=$pot[$first_undef_bin+1]-$pot[$first_undef_bin+2];
+for (my $i=$first_undef_bin;$i>=0;$i--){
+   $slope+=$slope;
+   $pot[$i]=($pot[$i+1]+$slope)>$gromacs_max?$gromacs_max:($pot[$i+1]+$slope);
+   $flag[$i]="i";
 }
-#print "XXX $pot[$nr] $nr\n";
-my $i_cut=$nr;
 
-#substract potential of r_cut
+#find i which is the cutoff
+my $i_cut;
+for (my $nr=0;$nr<=$#r;$nr++){
+   if ($r[$nr]>=$r_cut) {
+     $i_cut=$nr;
+     last;
+   }
+}
+
+#shift potential so that it is zero at cutoff
 for (my $i=0;$i<=$i_cut;$i++){
    $pot[$i]-=$pot[$i_cut] unless  ($flag[$i] =~ /[uo]/);
 }
 
-#smooth end
-for (my $i=$i_cut-5;$i<=$i_cut;$i++){
-   #print "YYY $i $r[$i] $pot[$i]\n";
-   $pot[$i]=$pot[$i]*exp(-($r[$i]/$r[$i_cut-5]-1)**2);
-   #print "ZZZ $i $r[$i]  $pot[$i]\n";
-}
-
-# set ends to zero
+# set end of the potential to zero
 for (my $i=$i_cut;$i<$#flag;$i++) {
   $pot[$i]=0;
   $flag[$i]="o";
 }
 
-for(my $count=0;$count<$#pot;$count++){
-   print FILE2 "$r[$count] $pot[$count] $flag[$count]\n";
-}
+saveto_table($outfile,\@r,\@pot,\@flag) || die "$progname: error at save table\n";
 
-close(FILE1) or die "Error at closing $file\n";
-close(FILE2) or die "Error at closing $file2\n";

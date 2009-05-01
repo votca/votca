@@ -16,4 +16,4 @@ step=$($csg_get step )
 target=$($csg_get target)
 name=$($csg_get name)
 
-csg_resample --in $target --out $1/$name.dist.tgt --grid $min:$step:$max
+run_or_exit csg_resample --in ${target} --out ${1}/${name}.dist.tgt --grid ${min}:${step}:${max}
