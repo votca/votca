@@ -10,5 +10,5 @@ fi
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 update_single=$($SOURCE_WRAPPER --direct post_update_single.sh) || die "${0##*/}: $SOURCE_WRAPPER --direct post_update_single.sh"
-for_all non-bonded ${update_single} $1
+for_all non-bonded ${update_single} ${1}
 

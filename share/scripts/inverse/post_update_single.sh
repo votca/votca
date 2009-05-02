@@ -9,8 +9,6 @@ fi
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-add_POT=$($SOURCE_WRAPPER --direct add_POT.pl) || die "${0##*/}: $SOURCE_WRAPPER --direct add_POT.pl"
-
 name=$($csg_get name)
 tasklist=$($csg_get post_update) 
 i=1

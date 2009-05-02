@@ -7,6 +7,8 @@ if [ "$1" = "--help" ]; then
    exit 0
 fi
 
+[[ -n "$1" ]] || die "${0##*/}: Missing argument"
+
 update_single=$($SOURCE_WRAPPER --direct post_add_single.sh) || die "${0##*/}: $SOURCE_WRAPPER --direct post_add_single.sh"
-for_all non-bonded ${update_single}
+for_all non-bonded ${update_single} ${1}
 

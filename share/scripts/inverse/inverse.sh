@@ -114,6 +114,7 @@ for ((i=1;i<$iterations+1;i++)); do
       die "Incomplete step $i"
     fi
   fi
+  log "Step $i started at $(date)"
   mkdir $this_dir || die "mkdir $this_dir failed"
   
   #copy+resample all rdf in this_dir 
@@ -147,7 +148,7 @@ for ((i=1;i<$iterations+1;i++)); do
   do_external add_pot $method
 
   msg "Post add"
-  do_external post add
+  do_external post add $i
 
   #copy latest results
   for_all non-bonded 'cp $($csg_get name).pot.new ..'
@@ -158,4 +159,5 @@ for ((i=1;i<$iterations+1;i++)); do
 done
 
 touch done
+log "All done at $(date)"
 exit 0

@@ -9,12 +9,9 @@ if ("$ARGV[0]" eq "--help"){
 Usage: $progname infile1 infile2 outfile
 This script adds up two potentils 
 In addtion it does some magic tricks:
- -do not crash when calc log(0)
- -extrapolate the beginnig of pot
- -the maximum to interpolate is pot_max (see xml)
- -bigger value will be set to that max
- -shift the potential, so that it is zero at the cutoff
- -set all values to zero after the cutoff
+ - order of infiles MATTER !!!!
+ - if infile2 contain undef value, it uses the value from infile1
+ - if value for infile1 and infile2 are invalid, result is also invalid
 EOF
   exit 0;
 }
@@ -44,13 +41,19 @@ die "Different start point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
 
 my $outfile="$ARGV[2]";
 my @pot;
+my @flag;
 for (my $i=0;$i<=$#r_cur;$i++){
-  if (($flag_delta[$i] eq "i" ) && ($flag_cur[$i] eq "i")){
-    $pot[$i]=$pot_cur[$i]+$pot_delta[$i];
+  if ($flag_cur[$i] eq "i"){
+    if ($flag_delta[$i] eq "i"){
+      $pot[$i]=$pot_cur[$i]+$pot_delta[$i];
+    } else {
+      $pot[$i]=$pot_cur[$i];
+    }
+    $flag[$i]="i";
   } else {
-    $pot[$i]=0;
-    $flag_cur[$i]="u";
+    $pot[$i]="nan";
+    $flag[$i]="u";
   }
 }
-saveto_table($outfile,\@r_cur,\@pot,\@flag_cur) || die "$progname: error at save table\n";
+saveto_table($outfile,\@r_cur,\@pot,\@flag) || die "$progname: error at save table\n";
 
