@@ -42,18 +42,29 @@ die "Different start point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
 my $outfile="$ARGV[2]";
 my @pot;
 my @flag;
+
+# TODO: think about addition rules
+# now I did it like that to always maintain interval of interest in all potentials
 for (my $i=0;$i<=$#r_cur;$i++){
-  if ($flag_cur[$i] eq "i"){
-    if ($flag_delta[$i] eq "i"){
-      $pot[$i]=$pot_cur[$i]+$pot_delta[$i];
-    } else {
-      $pot[$i]=$pot_cur[$i];
-    }
-    $flag[$i]="i";
-  } else {
-    $pot[$i]="nan";
-    $flag[$i]="u";
+  if($flag_cur[$i] eq "u" || $flag_delta[$i] eq "u") {
+    $pot[$i] = $pot_cur[$i];  # is already nan or we don't change
+    $flag[$i] = "u";
   }
+  else {
+    $pot[$i]=$pot_cur[$i]+$pot_delta[$i];
+    $flag[$i] = $flag_cur[$i];
+  }
+  #if ($flag_cur[$i] eq "i"){
+  #  if ($flag_delta[$i] eq "i"){
+  #    $pot[$i]=$pot_cur[$i]+$pot_delta[$i];
+  #  } else {
+  #    $pot[$i]=$pot_cur[$i];
+  #  }
+  #  $flag[$i]="i";
+  #} else {
+  #  $pot[$i]="nan";
+  #  $flag[$i]="u";
+  #}
 }
 saveto_table($outfile,\@r_cur,\@pot,\@flag) || die "$progname: error at save table\n";
 

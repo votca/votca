@@ -28,6 +28,10 @@ die "2 parameters are nessary\n" if ($#ARGV<1);
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
+# TODO: this gromacs option should not be here 
+#       since it's a general initial guess files
+#       move this option out of gromacs section!!!!!
+#
 my $gromacs_max=get_sim_property("gromacs.pot_max");
 my $pref=get_sim_property("kBT");
 my $r_cut=csg_get("max");
@@ -41,7 +45,7 @@ my @pot;
 for (my $i=0;$i<=$#r;$i++){
   if ($flag[$i] eq "i"){
     #rdf = 0 will give undefined pot 
-    if ($rdf[$i]>0.0) {
+    if ($rdf[$i]>1e-10) {
       $pot[$i]=-$pref*log($rdf[$i]);
     }
     else {
@@ -71,15 +75,6 @@ while ($pot[$first_undef_bin+1]>$gromacs_max){
   $first_undef_bin++;
 }
 
-#quadratic extrapolation at the begining
-#and set all undef values to max
-my $slope=$pot[$first_undef_bin+1]-$pot[$first_undef_bin+2];
-for (my $i=$first_undef_bin;$i>=0;$i--){
-   $slope+=$slope;
-   $pot[$i]=($pot[$i+1]+$slope)>$gromacs_max?$gromacs_max:($pot[$i+1]+$slope);
-   $flag[$i]="i";
-}
-
 #find i which is the cutoff
 my $i_cut;
 for (my $nr=0;$nr<=$#r;$nr++){
@@ -90,8 +85,18 @@ for (my $nr=0;$nr<=$#r;$nr++){
 }
 
 #shift potential so that it is zero at cutoff
+#first do the shift, then extrapolation
 for (my $i=0;$i<=$i_cut;$i++){
-   $pot[$i]-=$pot[$i_cut] unless  ($flag[$i] =~ /[uo]/);
+   $pot[$i]-=$pot[$i_cut] unless  ($flag[$i] =~ /[u]/);
+}
+
+#quadratic extrapolation at the begining
+#and set all undef values to max
+my $slope=$pot[$first_undef_bin+1]-$pot[$first_undef_bin+2];
+for (my $i=$first_undef_bin;$i>=0;$i--){
+   $slope+=$slope;
+   $pot[$i]=($pot[$i+1]+$slope)>$gromacs_max?$gromacs_max:($pot[$i+1]+$slope);
+   $flag[$i]="o";
 }
 
 # set end of the potential to zero
