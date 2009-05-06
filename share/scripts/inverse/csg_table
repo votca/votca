@@ -10,6 +10,8 @@ init imc initalize_ibm.sh
 post add post_add.sh
 post update post_update.sh
 postupd pressure postupd_pressure.sh
+postupd splinesmooth postupd_splinesmooth.sh
+postupd smooth postupd_smooth.sh
 shift dpotnb do_shift_nb.pl
 prepare gromacs prepare_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
@@ -18,3 +20,4 @@ run gromacs run_gromacs.sh
 update ibm update_ibm.sh
 update imc update_imc.sh
 update ibm_pot update_ibm_pot.pl
+tools smooth smooth.pl

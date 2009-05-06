@@ -45,6 +45,7 @@ my @flag;
 
 # TODO: think about addition rules
 # now I did it like that to always maintain interval of interest in all potentials
+# shount that just be a < instead of <= ??
 for (my $i=0;$i<=$#r_cur;$i++){
   if($flag_cur[$i] eq "u" || $flag_delta[$i] eq "u") {
     $pot[$i] = $pot_cur[$i];  # is already nan or we don't change

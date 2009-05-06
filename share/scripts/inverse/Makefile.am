@@ -7,7 +7,7 @@ inverse_SCRIPTS = \
   calc_rdf_gromacs.sh       initalize_ibm.sh      post_update.sh           resample_to_calc.sh  update_ibm.sh \
   inverse_functions.sh  post_update_single.sh    run_gromacs.sh       update_ibm_single.sh \
   do_shift_nb.pl            inverse.sh            postupd_pressure.sh      source_wrapper.pl    update_imc.sh \
-  EX_to_CG.pl               linsolve.m            potential_to_gromacs.sh  source_wrapper.sh
+  EX_to_CG.pl               linsolve.m            potential_to_gromacs.sh  source_wrapper.sh postupd_smooth.sh
 
 inverse_DATA = MD5SUM csg_table
 
