@@ -1,7 +1,7 @@
 CSGBIN=@bindir@
 CSGSHARE=@pkgdatadir@/scripts/inverse
 	
-PATH=${GMXBIN}:${PATH}
+PATH=${CSGBIN}:${PATH}
 
 # export should be separate, so /bin/sh understands it
 export CSGBIN CSGSHARE PATH
