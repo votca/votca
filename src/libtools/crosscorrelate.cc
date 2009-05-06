@@ -80,6 +80,47 @@ void CrossCorrelate::AutoFourier(vector <double>& ivec){
     fftw_free(tmp);
 }
 
+void CrossCorrelate::FFTOnly(vector <double>& ivec){
+    size_t N = ivec.size();
+    _corrfunc.resize(N);
+
+    fftw_complex *tmp;
+    fftw_plan fft;
+    
+    tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (N/2+1));
+
+    fft = fftw_plan_dft_r2c_1d(N, &ivec[0], tmp, FFTW_ESTIMATE);
+    fftw_execute(fft);
+    
+    // copy the real component of temp to the _corrfunc vector
+    for(int i=0; i<N/2+1; i++){
+        _corrfunc[i] = tmp[i][0];
+    }
+    
+    fftw_destroy_plan(fft);
+    fftw_free(tmp);
+}
+
+void CrossCorrelate::DCTOnly(vector <double>& ivec){
+    size_t N = ivec.size();
+    _corrfunc.resize(N);
+    
+    vector <double> tmp;
+    tmp.resize(N);
+    fftw_plan fft;
+    
+    // do real to real discrete cosine trafo
+    fft = fftw_plan_r2r_1d(N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
+    fftw_execute(fft);
+    
+    // store results
+    for(int i=0; i<N; i++){
+        _corrfunc[i] = tmp[i];
+    }
+    
+    fftw_destroy_plan(fft);
+}
+
 void CrossCorrelate::AutoCosine(vector <double>& ivec){
     size_t N = ivec.size();
     _corrfunc.resize(N);
