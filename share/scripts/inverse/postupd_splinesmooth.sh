@@ -17,10 +17,9 @@ step=$($csg_get step)
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
   
 sed -ne '/i[[:space:]]*$/p' CG-CG.dpot.cur > $tmpfile
-sed -ie '1d' $tmpfile
 spmin=$(sed -ne '1p' $tmpfile | awk '{print $1}')
 spmax=$(sed -ne '$p' $tmpfile | awk '{print $1}')
-spstep=$($csg_get post_update_options.spinesmooth.step)
+spstep=$($csg_get post_update_options.splinesmooth.step)
 
 csg_resample --in $tmpfile --out $name.dpot.new --grid $min:$step:$max --spfit $spmin:$spstep:$spmax
 
