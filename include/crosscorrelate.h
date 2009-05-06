@@ -44,6 +44,9 @@ class CrossCorrelate
         // Calculates Fourier trafo and then auto correlation
         void AutoFourier(vector <double>& ivec);
         
+        // Calculates Discrete Cosine trafo and then auto correlation
+        void AutoCosine(vector <double>& ivec);
+        
         // Calculates auto correlation via two Fourier trafos
         void AutoCorr(vector <double>& ivec);
         
