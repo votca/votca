@@ -2,7 +2,7 @@
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src include 
+SUBDIRS = src include share scripts 
 
 CLEANFILES = *~
 #DISTCLEANFILES =

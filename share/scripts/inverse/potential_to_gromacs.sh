@@ -12,7 +12,7 @@ table_to_xvg="$($SOURCE_WRAPPER --direct table_to_xvg.pl)" || die "$SOURCE_WRAPP
 name=$($csg_get name)
 input="${name}.pot.cur" 
 #gromacs want '_' !
-output="table_$($csg_get type1)_$($csg_get type2).xvg" 
+output="$($csg_get gromacs.table)" 
 log "Convert $input to $output"
 
 r_cut=$($csg_get max)

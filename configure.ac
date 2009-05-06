@@ -14,6 +14,13 @@ AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/tools/Makefile])
 AC_CONFIG_FILES([src/libcsg/Makefile])
 
+AC_CONFIG_FILES([share/scripts/inverse/Makefile])
+AC_CONFIG_FILES([share/scripts/Makefile])
+AC_CONFIG_FILES([share/tutor/ibm_tip3p/Makefile])
+AC_CONFIG_FILES([share/tutor/Makefile])
+AC_CONFIG_FILES([share/Makefile])
+AC_CONFIG_FILES([scripts/Makefile])
+
 AC_PROG_CXX
 AC_PROG_RANLIB
 AC_HEADER_STDC
