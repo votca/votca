@@ -41,6 +41,12 @@ class CrossCorrelate
          */
         void AutoCorrelate(DataCollection<double>::selection *data, bool average = false);
 
+        // Calculates only the Fourier trafo
+        void FFTOnly(vector <double>& ivec);
+        
+        // Calculates only the Discrete Cosine trafo
+        void DCTOnly(vector <double>& ivec);
+        
         // Calculates Fourier trafo and then auto correlation
         void AutoFourier(vector <double>& ivec);
         
