@@ -80,6 +80,32 @@ void CrossCorrelate::AutoFourier(vector <double>& ivec){
     fftw_free(tmp);
 }
 
+void CrossCorrelate::AutoCosine(vector <double>& ivec){
+    size_t N = ivec.size();
+    _corrfunc.resize(N);
+    
+    vector <double> tmp;
+    tmp.resize(N);
+    fftw_plan fft;
+    
+    // do real to real discrete cosine trafo
+    fft = fftw_plan_r2r_1d(N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
+    fftw_execute(fft);
+    
+    // compute autocorrelation
+    tmp[0] = 0;
+    for(int i=1; i<N; i++) {
+        tmp[i] = tmp[i]*tmp[i];       
+    }
+    
+    // store results
+    for(int i=0; i<N; i++){
+        _corrfunc[i] = tmp[i];
+    }
+    
+    fftw_destroy_plan(fft);
+}
+
 void CrossCorrelate::AutoCorr(vector <double>& ivec){
     size_t N = ivec.size();
     _corrfunc.resize(N);
