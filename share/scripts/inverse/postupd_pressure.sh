@@ -17,16 +17,17 @@ name=$($csg_get name)
 log "New pressure $p_now"
 log "Target pressure was $p_target"
   
+pscheme=( $($csg_get .do_pressure ) )
+pscheme_nr=$(( ( $1 - 1 ) % ${#pscheme[@]} ))
+
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
-   log "Update presuure ${name} : yes"
+   log "Update pressure ${name} : yes"
    #calc pressure correction
    pressure_cor=$($SOURCE_WRAPPER --direct pressure_cor.pl) || die "${0##*/}:$SOURCE_WRAPPER --direct pressure_cor.pl failed"
    run_or_exit $pressure_cor $p_target $p_now pressure_cor.d 
 
    add_POT=$($SOURCE_WRAPPER --direct add_POT.pl) || die "${0##*/}: $SOURCE_WRAPPER --direct add_POT.pl failed" 
 
-   pscheme=( $($csg_get .do_pressure ) )
-   pscheme_nr=$(( ( $1 - 1 ) % ${#pscheme[@]} ))
    run_or_exit $add_POT pressure_cor.d ${name}.dpot.cur ${name}.dpot.new
 else
    log "Update pressure ${name} : no"

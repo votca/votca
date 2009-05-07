@@ -156,7 +156,7 @@ void Imc::DoNonbonded(Topology *top)
         
         // generate the neighbour list
         NBList nb;
-        nb.setCutoff(i._max);
+        nb.setCutoff(i._max + i._step);
         
         // is it same types or different types?
         if((*iter)->get("type1").value() == (*iter)->get("type2").value())

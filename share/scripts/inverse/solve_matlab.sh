@@ -15,6 +15,7 @@ awk '{print $1,$2}' $1.imc > ${1}_noflags.imc
 /sw/linux/suse/client/matlab/bin/matlab -arch=glnx86 -r solve_$1 -nosplash -nodesktop
 rm -f solve_$1.m
 
+paste $1.dpot.matlab $1.pot.cur | awk '{print $1,$2,$5}' > $1.dpot.new
 # temporary compatibility issue
 
 sed -ie 's/NaN/0.0/' $1.dpot.new

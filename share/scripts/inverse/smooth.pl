@@ -7,7 +7,7 @@ use strict;
 if ("$ARGV[0]" eq "--help"){
   print <<EOF;
 Usage: $progname infile outfile
-This script smoothe a table 
+This script smoothes a table 
 EOF
   exit 0;
 }
@@ -30,11 +30,21 @@ my @pot;
 # TODO: think about addition rules
 # now I did it like that to always maintain interval of interest in all potentials
 for (my $i=1;$i<$#r_cur;$i++){
-  $pot[$i] = 0.25*$pot_cur[$i-1] + 0.5*$pot_cur[$i] + 0.25*$pot_cur[$i+1]; 
+  $pot[$i]=$pot_cur[$i]; 
+  if($flag_cur[$i] eq "i") {
+    $pot[$i] = 0.25*$pot_cur[$i-1] + 0.5*$pot_cur[$i] + 0.25*$pot_cur[$i+1]; 
+  }
 }
 
-$pot[0] = (2.*$pot_cur[0] + $pot_cur[1])/3;
-$pot[$#pot_cur] = (2.*$pot_cur[$#pot_cur] + $pot_cur[$#pot_cur-1])/3;
+$pot[0]=$pot_cur[0];
+$pot[$#pot_cur]=$pot_cur[$#pot_cur];
+
+if($flag_cur[0] eq "i") {
+  $pot[0] = (2.*$pot_cur[0] + $pot_cur[1])/3;
+}
+if($flag_cur[$#pot_cur] eq "i") {
+  $pot[$#pot_cur] = (2.*$pot_cur[$#pot_cur] + $pot_cur[$#pot_cur-1])/3;
+}
 
 saveto_table($outfile,\@r_cur,\@pot,\@flag_cur) || die "$progname: error at save table\n";
 

@@ -15,6 +15,8 @@ awk '{print $1,$2}' $1.imc > ${1}_noflags.imc
 octave solve_$1.octave
 rm -f solve_$1.octave
 
+paste $1.dpot.octave $1.pot.cur | awk '{print $1,$2,$5}' > $1.dpot.new
+
 # temporary compatibility issue
 
 sed -ie 's/NaN/0.0/' $1.dpot.new
