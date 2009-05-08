@@ -27,6 +27,8 @@ sub readin_table($\@\@\@) {
   my $line=0;
   while (<TAB>){
     $line++;
+    # remove leading spacees for split
+    $_ =~ s/^\s*//;    
     next if /^[#@]/;
     next if /^\s*$/;
     my @parts=split(/\s+/);

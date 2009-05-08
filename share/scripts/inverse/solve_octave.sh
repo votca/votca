@@ -15,9 +15,13 @@ awk '{print $1,$2}' $1.imc > ${1}_noflags.imc
 octave solve_$1.octave
 rm -f solve_$1.octave
 
+# add stupid flags
+sed -ie '/^[#@]/d' $1.dpot.octave
+sed -ie '/[0-9]/s/$/ i/' $1.dpot.octave
+
 # copy flags
 merge_tables="$($SOURCE_WRAPPER tools merge_tables)" || die "${0##*/}: $SOURCE_WRAPPER tools merge_tables failed"
-run_or_exit $merge_tables --novalues $1.pot.cur $1.dpot.matlab $1.dpot.new
+run_or_exit $merge_tables --novalues $1.pot.cur $1.dpot.octave $1.dpot.new
 
 # temporary compatibility issue
 

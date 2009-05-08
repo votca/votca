@@ -72,8 +72,10 @@ END
 die "missing parameters\n$usage\n" unless $#ARGV > 1;
 
 my $src="$ARGV[0]";
-my $dst="$ARGV[0]";
-my $out="$ARGV[0]";
+my $dst="$ARGV[1]";
+my $out="$ARGV[2]";
+
+print "tables $src $dst $out\n";
 
 my @r_src;
 my @val_src;
@@ -96,11 +98,12 @@ for(my $i=0; $i<=$#r_src; $i++) {
   }
   
   # advance in dst till same r
-  while($r_dst[$idst] < $r_src[$i]) {
-    $idst++; 
+  while($r_dst[$idst] < $r_src[$i] - 1e-15) {
+    $idst++;
   }
+  my $tmp= $r_src[$i]-$r_dst[$idst];
 
-  die "error: grid mismatch" if($r_dst[$idst] != $r_src[$i]);
+  die "error: grid mismatch" if(abs($r_dst[$idst] - $r_src[$i]) > 1e-15);
 
   if($novalues eq 'no') {
     $val_dst[$idst] = $val_src[$i];

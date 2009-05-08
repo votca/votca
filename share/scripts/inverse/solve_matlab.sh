@@ -15,6 +15,10 @@ awk '{print $1,$2}' $1.imc > ${1}_noflags.imc
 /sw/linux/suse/client/matlab/bin/matlab -arch=glnx86 -r solve_$1 -nosplash -nodesktop
 rm -f solve_$1.m
 
+# add stupid flags
+sed -ie '/^[#@]/d' $1.dpot.matlab
+sed -ie '/[0-9]/s/$/ i/' $1.dpot.matlab
+
 # copy flags
 merge_tables="$($SOURCE_WRAPPER tools merge_tables)" || die "${0##*/}: $SOURCE_WRAPPER tools merge_tables failed"
 run_or_exit $merge_tables --novalues $1.pot.cur $1.dpot.matlab $1.dpot.new
