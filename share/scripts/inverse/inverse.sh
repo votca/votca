@@ -86,7 +86,7 @@ else
   mkdir step_00 || die "mkdir step_00 failed"
 
   #copy+resample all rdf in step_00
-  for_all non-bonded $($SOURCE_WRAPPER --direct resample_to_calc.sh) step_00
+  do_external resample calc for_all non-bonded step_00
   cd step_00 || die "cd step_00 failed"
 
   do_external init $method for_all non-bonded 
@@ -118,7 +118,7 @@ for ((i=1;i<$iterations+1;i++)); do
   mkdir $this_dir || die "mkdir $this_dir failed"
   
   #copy+resample all rdf in this_dir 
-  for_all non-bonded $($SOURCE_WRAPPER --direct resample_to_calc.sh) $this_dir
+  do_external resample calc for_all non-bonded $this_dir
   
   #get need files
   for myfile in $filelist; do

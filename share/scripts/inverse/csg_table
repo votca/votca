@@ -16,6 +16,7 @@ shift dpotnb do_shift_nb.pl
 prepare gromacs prepare_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_gromacs.sh
+resample calc resample_to_calc.sh
 run gromacs run_gromacs.sh
 update ibm update_ibm.sh
 update imc update_imc.sh
