@@ -1,0 +1,8 @@
+#include "ffgmx.itp"
+#include "spce.itp"
+
+[ system ]
+Flex water
+
+[ molecules ]
+SOL     2180
