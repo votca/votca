@@ -3,7 +3,10 @@
 #-------------------defines----------------
 
 log () {
+  [[ -z "$LOG_REDIRECTED" ]] ||  die "Nested log call, when calling 'log $*',LOG_REDIRECTED was '$LOG_REDIRECTED',remove one loging !!!"
+  export LOG_REDIRECTED="log $*" 
   echo -e "$*" >> $CSGLOG
+  unset LOG_REDIRECTED
 }
 #echo a msg but log it too
 msg() {
@@ -13,8 +16,9 @@ msg() {
 
 unset -f die
 die () {
-  echo "$*" >> $CSGLOG
-  echo "$*" > /dev/stderr
+  #same as log "$*", but avoid infinit log-die loop, when nested
+  echo -e "$*" >> $CSGLOG
+  echo "$*" 1>&2
   exit 1
 }
 
@@ -36,10 +40,15 @@ do_external() {
 }
 
 logrun(){
+  local ret
   [[ -n "$1" ]] || die "logrun: missing argument"
-  log "logrun: run '$*'" 
+  [[ -z "$LOG_REDIRECTED" ]] ||  die "Nested log call, when calling 'logrun $*', LOG_REDIRECTED was '$LOG_REDIRECTED', remove one loging!!!"
+  log "logrun: run '$*'"
+  export LOG_REDIRECTED="logrun $*" 
   bash -c "$*" >> $CSGLOG 2>&1
-  return $?
+  ret=$?
+  unset LOG_REDIRECTED
+  return $ret
 }
 
 #useful subroutine check if a command was succesful AND log the output

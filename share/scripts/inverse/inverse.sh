@@ -71,7 +71,7 @@ log "We are doing $iterations iterations."
 filelist="$(get_sim_property filelist)"  
 log "We extra need $filelist to run the simulation"
 
-logrun $SOURCE_WRAPPER --status
+run_or_exit $SOURCE_WRAPPER --status
 
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
