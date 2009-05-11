@@ -57,11 +57,12 @@ if ( "$ARGV[0]" eq "--direct" ) {
 if (( -r "$user_table" ) && ($scriptname=find_from_table($user_table))) {
   #first script dir, then csgshare
   search_and_exit($scriptname,$csgscriptdir,$csgshare);
+  die "Could not find user script '$scriptname' in any dir, check for typos\n";
 }
 
 #search in csg_table
 ( $scriptname=find_from_table($csg_table) ) || die "Could not find script matching '$ARGV[0] $ARGV[1]'\n";
-search_and_exit($scriptname,$csgshare) || die "Could find script '$scriptname'\n";
+search_and_exit($scriptname,$csgshare) || die "Could not find script '$scriptname' in any dir\n";
 
 ######################FUNCTIONS##########################
 sub find_from_table($) {
