@@ -10,6 +10,7 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <functional>
+#include <stdexcept>
 
 RangeParser::RangeParser()
     : _has_begin(false) , _has_end(false)
@@ -44,7 +45,7 @@ void RangeParser::ParseBlock(string str)
     block._stride = 1;
     
     tokenizer.ToVector(toks);
-    if(toks.size()>3 || toks.size() < 1) { throw string("invalid range"); }
+    if(toks.size()>3 || toks.size() < 1) { throw runtime_error("invalid range"); }
     
     block._begin = block._end = ToNumber(toks[0]);
     
@@ -57,7 +58,7 @@ void RangeParser::ParseBlock(string str)
     }
         
     if(block._begin*block._stride > block._end*block._stride) {
-        throw string("invalid range " + str + ": begin, end and stride do not form a closed interval");
+        throw runtime_error(string("invalid range " + str + ": begin, end and stride do not form a closed interval"));
     }
     
     _blocks.push_back(block);

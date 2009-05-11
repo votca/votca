@@ -10,6 +10,7 @@
 #include <boost/lexical_cast.hpp>
 #include "tokenizer.h"
 #include "table.h"
+#include <stdexcept>
 
 using namespace boost;
 
@@ -18,7 +19,7 @@ void Table::Load(string filename)
     ifstream in;
     in.open(filename.c_str());
     if(!in)
-        throw string("error, cannot open file ") + filename;
+        throw runtime_error(string("error, cannot open file ") + filename);
     
     in >> *this;
     
@@ -30,7 +31,7 @@ void Table::Save(string filename) const
     ofstream out;
     out.open(filename.c_str());
     if(!out)
-        throw string("error, cannot open file ") + filename;
+        throw runtime_error(string("error, cannot open file ") + filename);
     
     out << (*this);
     
@@ -78,7 +79,7 @@ inline istream &operator>>(istream &in, Table& t)
         else if(tokens.size() == 3) {
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), tokens[2].c_str()[0]);        
         }
-        else throw string("error, wrong table format");                                
+        else throw runtime_error("error, wrong table format");                                
     }
     
     // read the rest
@@ -103,7 +104,7 @@ inline istream &operator>>(istream &in, Table& t)
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), tokens[2].c_str()[0]);
         }
         // otherwise error
-        else throw string("error, wrong table format");                                
+        else throw runtime_error("error, wrong table format");                                
         
         // was size given and did we read N values?
         if(bHasN)
