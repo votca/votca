@@ -283,7 +283,7 @@ void Imc::CalcDeltaS()
         i->_average.data().y() *= norm;
                 
         Table target;
-        target.Load(i->_p->get("target").as<string>());
+        target.Load(i->_p->get("name").as<string>() + ".dist.tgt");
         
         i->_average.data().Save(name + ".S");
                 
