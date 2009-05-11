@@ -8,7 +8,7 @@ inverse_SCRIPTS = \
   inverse_functions.sh  post_update_single.sh    run_gromacs.sh       update_ibm_single.sh \
   do_shift_nb.pl            inverse.sh            postupd_pressure.sh      source_wrapper.pl    update_imc.sh \
   EX_to_CG.pl               linsolve.m            potential_to_gromacs.sh  source_wrapper.sh postupd_smooth.sh \
-  solve_matlab.sh solve_octave.sh linsolve.octave merge_tables.pl
+  solve_matlab.sh solve_octave.sh linsolve.octave merge_tables.pl smooth.pl postupd_splinesmooth.sh
 
 inverse_DATA = MD5SUM csg_table
 
