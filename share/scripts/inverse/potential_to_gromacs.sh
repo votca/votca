@@ -7,7 +7,7 @@ if [ "$1" = "--help" ]; then
   exit 0
 fi
 
-table_to_xvg="$($SOURCE_WRAPPER --direct table_to_xvg.pl)" || die "$SOURCE_WRAPPER --direct table_to_xvg.pl failed" 
+table_to_xvg="$($SOURCE_WRAPPER convert_potential xvg)" || die "$SOURCE_WRAPPER convert_potential xvg failed" 
 
 name=$($csg_get name)
 input="${name}.pot.cur" 

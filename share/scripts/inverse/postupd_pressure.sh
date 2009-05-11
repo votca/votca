@@ -3,7 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$SOURCE_WRAPPER, add_POT.pl
+   echo Needs:  run_or_exit, \$SOURCE_WRAPPER
    exit 0
 fi
 
@@ -23,10 +23,10 @@ pscheme_nr=$(( ( $1 - 1 ) % ${#pscheme[@]} ))
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
    log "Update pressure ${name} : yes"
    #calc pressure correction
-   pressure_cor=$($SOURCE_WRAPPER --direct pressure_cor.pl) || die "${0##*/}:$SOURCE_WRAPPER --direct pressure_cor.pl failed"
+   pressure_cor=$($SOURCE_WRAPPER pressure correction) || die "${0##*/}:$SOURCE_WRAPPER pressure correction failed"
    run_or_exit $pressure_cor $p_target $p_now pressure_cor.d 
 
-   add_POT=$($SOURCE_WRAPPER --direct add_POT.pl) || die "${0##*/}: $SOURCE_WRAPPER --direct add_POT.pl failed" 
+   add_POT=$($SOURCE_WRAPPER add pot) || die "${0##*/}: $SOURCE_WRAPPER add pot failed" 
 
    run_or_exit $add_POT pressure_cor.d ${name}.dpot.cur ${name}.dpot.new
 else

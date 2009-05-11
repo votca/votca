@@ -3,7 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo This script make all the post update with backup for single pairs 
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$source_wrapper, add_POT.pl
+   echo Needs:  run_or_exit, \$SOURCE_WRAPPER
    exit 0
 fi
 

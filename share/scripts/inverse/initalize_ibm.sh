@@ -8,7 +8,7 @@ if [ "$1" = "--help" ]; then
   exit 0
 fi
 
-RDF_to_POT="$($SOURCE_WRAPPER --direct RDF_to_POT.pl)" || exit 1
+RDF_to_POT="$($SOURCE_WRAPPER rdf pot)" || die "${0##*/}: $SOURCE_WRAPPER rdf pot failed"
 name=$($csg_get name)
 
 if [ -f ../${name}.pot.in ]; then

@@ -23,7 +23,7 @@ die () {
 }
 
 #takes a task, find the according script and run it.
-#first 2 argument are the task or --direct script
+#first 2 argument are the task
 do_external() {
   local script bondtype
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed" 

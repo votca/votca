@@ -13,7 +13,5 @@ fi
 msg "Calc rdf"
 sim_prog="$(get_sim_property program)" 
 do_external rdf $sim_prog for_all non-bonded
- 
-update_single="$($SOURCE_WRAPPER --direct update_ibm_single.sh)" || die "${0##*/}: $SOURCE_WRAPPER --direct update_ibm_single.sh failed"
-for_all non-bonded "${update_single} ${1}"
+do_external update ibm_single for_all non-bonded "${1}"
 

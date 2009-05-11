@@ -3,7 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo "This script implemtents smoothing of the potential update (.dpot)"
    echo "Usage: ${0##*/} step_nr"
-   echo "Needs:  run_or_exit, \$SOURCE_WRAPPER, add_POT.pl"
+   echo "Needs:  run_or_exit, \$SOURCE_WRAPPER"
    exit 0
 fi
 
