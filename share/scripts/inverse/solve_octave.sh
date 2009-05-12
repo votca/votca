@@ -11,7 +11,7 @@ fi
 
 r_min=$(sed -ne '/i[[:space:]]*$/p' CG-CG.pot.cur | sed -ne '1p' | awk '{print $1}')
 
-sed -e "s/\$name/$1/" -e "s/\$r_min/$r_min/" $CSGSHARE/linsolve.octave > solve_$1.octave
+sed -e "s/\$name/$1/" -e "s/\$r_min/$r_min/" $CSGINVERSE/linsolve.octave > solve_$1.octave
 
 # kill the flags
 awk '{print $1,$2}' $1.imc > ${1}_noflags.imc

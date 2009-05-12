@@ -12,11 +12,11 @@ if ( "$ARGV[0]" eq "--help" ){
   print <<END;
 This script find a script from two keywords.
 Usage: $progname word1 word2
-First we check user table and search in CSGSCRIPTDIR and than in CSGSHARE
-Then we check csg table and search in CSGSHARE
+First we check user table and search in CSGSCRIPTDIR and than in CSGINVERSE
+Then we check csg table and search in CSGINVERSE
 
 Hacky usage: $progname --direct scriptname
-then we try to find scriptname in global,pwd,CSGSCRIPTDIR,CSGSHARE
+then we try to find scriptname in global,pwd,CSGSCRIPTDIR,CSGINVERSE
 END
   exit 0;
 }
@@ -24,7 +24,7 @@ END
 my $csg_table="csg_table";
 my $user_table="csg_table";
 
-(my $csgshare=$ENV{'CSGSHARE'}) || die "CSGSHARE not defined\n";
+(my $csgshare=$ENV{'CSGINVERSE'}) || die "CSGINVERSE not defined\n";
 (my $csgscriptdir=$ENV{'CSGSCRIPTDIR'}) ||die "CSGSCRIPTDIR not defined\n";
 
 $csg_table="$csgshare/$csg_table";
@@ -36,8 +36,8 @@ if ("$ARGV[0]" eq "--status" ){
   print "csg table status\n";
   show_table($csg_table);
   print "Check sums\n";
-  system('md5sum $CSGSHARE/MD5SUM');
-  system('cd $CSGSHARE; md5sum -c $CSGSHARE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them and to user scripts dir');
+  system('md5sum $CSGINVERSE/MD5SUM');
+  system('cd $CSGINVERSE; md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them and to user scripts dir');
   print "user table status\n";
   ( -r "$user_table" ) && show_table($user_table);
   exit 0;
