@@ -19,6 +19,9 @@ die () {
   #same as log "$*", but avoid infinit log-die loop, when nested
   echo -e "$*" >> $CSGLOG
   echo "$*" 1>&2
+  echo -e "killing all processes...." >> $CSGLOG
+  #send kill signal to all process within the process groups
+  kill 0
   exit 1
 }
 
