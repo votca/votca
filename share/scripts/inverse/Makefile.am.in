@@ -1,0 +1,14 @@
+inversedir = ${pkgdatadir}/scripts/inverse
+
+inverse_SCRIPTS = \
+%scripts
+
+inverse_DATA = MD5SUM csg_table
+
+EXTRA_DIST = ${inverse_SCRIPTS} $(inverse_DATA)
+
+MD5SUM : ${inverse_SCRIPTS}
+	md5sum ${inverse_SCRIPTS} > MD5SUM
+
+CLEANFILES = *~
+

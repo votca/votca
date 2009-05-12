@@ -1,5 +1,5 @@
 setenv CSGBIN @bindir@
-setenv CSGSHARE @pkgdatadir@/scripts/inverse
+setenv CSGSHARE @pkgdatadir@
 
 # old variables begin with ':' now, or are empty.
 setenv PATH ${CSGBIN}:${PATH}
