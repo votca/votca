@@ -93,7 +93,13 @@ public:
         }	   
     }
 
-    void cp_orb( mol_and_orb const & A, vector <int> a ){
+    /*void cp_orb( mol_and_orb const & A, vector <int> a ){
+    	for (unsigned  int i=0 ;i< a.size(); i++){
+		orbitals -> cp_orb( *(A.orbitals), a[i]) ; 
+	}
+    }*/
+    
+    void cp_orb( mol_and_orb const & A, vector <unsigned int> a ){
     	for (unsigned  int i=0 ;i< a.size(); i++){
 		orbitals -> cp_orb( *(A.orbitals), a[i]) ; 
 	}
@@ -196,7 +202,12 @@ public:
     orb * getorbs() const {
     	return orbitals;
     }
-    inline double * getorb(const int & i) const {
+    
+    /*inline double * getorb(const int & i) const {
+    	return orbitals->getorb(i);
+    }*/
+ 
+    inline double * getorb(const unsigned int & i) const {
     	return orbitals->getorb(i);
     }
 
