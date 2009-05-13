@@ -38,7 +38,7 @@ public:
     CrgUnitType (
             char * namecoord, char * nameorb, char * nameneutr,
             char * namecrg, const double & reorg, 
-            const double & energy, const unsigned int &transorb,
+            const double & energy, const vector <unsigned int>& transorbs,
             const unsigned int &id, string molname, string name,
             vector < vector < int > > list_atoms_monomer,
             vector < vector < double > > list_weights_monomer );
@@ -46,8 +46,10 @@ public:
     const double & GetReorg () const;
     const double & GetEnergy () const;
     
-    const unsigned int & GetTransOrb() const;
-          
+    //const unsigned int & GetTransOrb() const;
+      
+    const vector <unsigned int>& GetTransOrbs() const;
+    
     const unsigned int & GetId() const;
     
     string & GetMolName();   
@@ -71,7 +73,8 @@ private:
     orb               _orbitals; 
     double            _reorg;
     double            _energy;
-    unsigned int      _transorb;
+    //unsigned int      _transorb;
+    vector <unsigned int> _transorbs;
     unsigned int      _id;
     ///the molecule name that this charge tranpost unit belongs to
     string            _molname;
@@ -94,8 +97,12 @@ inline const double & CrgUnitType::GetEnergy() const {
     return _energy;
 }
 
-inline const unsigned int & CrgUnitType::GetTransOrb() const {
+/*inline const unsigned int & CrgUnitType::GetTransOrb() const {
     return _transorb;
+}*/
+
+inline const vector <unsigned int>& CrgUnitType::GetTransOrbs() const{
+    return _transorbs;
 }
 
 inline const unsigned int & CrgUnitType::GetId() const {
