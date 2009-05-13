@@ -164,7 +164,7 @@ public:
 
 
 
- 
+    void rot_orbs(const vector <unsigned int>& orbs, int* i, double* psi2, const matrix& rot);
     void rot_orb ( const int &, const double [3][3]);
     void rot_orb( const double [3][3]);
 
@@ -177,9 +177,10 @@ public:
     void rotate_someatoms(vector<int> , matrix  *, 
             double * , const int &) ;
             
-
+    //void rotate_someatoms(vector<int>, matrix*, double*, const vector <unsigned int>&);
+    
     /// removes all orbitals except the a_th
-    void strip_orbitals( const int & a){
+    /*void strip_orbitals( const int & a){
         double * psinew = new double [ NBasis];
         for (int j =0; j < NBasis ; j++){
 	    psinew[j] = psi[a][j];
@@ -188,19 +189,12 @@ public:
         delete [] psi;
         psi = new double *[1];
         psi[0] = psinew;
-    }
+    }*/
     
-    void init_orbitals_stripped(const orb & orb1 ){
-	NBasis = orb1.NBasis;
-	bs = new string [NBasis];
-	psi = new double* [1];
-	psi[0] = new double [NBasis];
-	bs[0]=orb1.bs[0];
-	for ( int i = 0 ; i < NBasis ; i ++){
-		bs[i] = orb1.bs[i];
-		psi[0][i] = orb1.psi[0][i];
-	}
-    }
+    /// removes all orbitals except the relevant transorbs
+    void strip_orbitals (const vector <unsigned int>& a);
+    
+    void init_orbitals_stripped(const orb & orb1, const int& nrorbs );
 };
 
 #endif 
