@@ -834,9 +834,9 @@ for(i=0;i<n_mol1;i++){
 }
 }
 
-vector <double> fock::calcJ ( vector <pair <int, int> > input) const {
+vector <double> fock::calcJ ( vector <pair <unsigned int, unsigned int> > input) const {
 	calc_F_lean();
-	vector < pair<int, int> > :: iterator iter;
+	vector < pair<unsigned int, unsigned int> > :: iterator iter;
 	vector <double> res;
 	int nbasis_1 = molecules.first -> getNBasis();
 	int nbasis_2 = molecules.second-> getNBasis();
