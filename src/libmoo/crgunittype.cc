@@ -34,7 +34,7 @@ CrgUnitType::~CrgUnitType() {
 }
 
 CrgUnitType::CrgUnitType(char * namecoord, char * nameorb, char * nameneutr, char * namecrg, const double & reorg,
-        const double & energy, const unsigned int &transorb, const unsigned int &id,
+        const double & energy, const vector <unsigned int>& transorbs, const unsigned int &id,
         string molname, string name, vector < vector < int > > list_atoms_monomer, vector < vector < double > > list_weights_monomer) {
     _intcoords.define_bs(_indo);
     _intcoords.init(namecoord);
@@ -43,13 +43,16 @@ CrgUnitType::CrgUnitType(char * namecoord, char * nameorb, char * nameneutr, cha
 #ifdef DEBUG
     cout << "sample of the trans: " << transorb << " orbitals: " << (_orbitals.getorb(transorb))[4] << endl;
 #endif
-    _orbitals.strip_orbitals(transorb);
+    _orbitals.strip_orbitals(transorbs);
 #ifdef DEBUG
     cout << "sample of the stripped orbitals: " << (_orbitals.getorb(0))[4] << endl;
 #endif
     _reorg = reorg;
     _energy = energy;
-    _transorb = 0;
+    // _transorb = 0;
+    for(int i=0; i<transorbs.size(); i++){
+        _transorbs.push_back(i);
+    }
     _id = id;
     _molname = molname;
     _name = name;
@@ -199,7 +202,6 @@ void CrgUnitType::rotate_each_bead(vector < vec >::iterator it_pos, vector < vec
         get_orient(xprime, yprime, zprime, orient_pos);
         get_orient(xprime, yprime, zprime_orb, orient_orb);
 
-
         matrix Orient_Pos = orient_pos * (*it_ors);
         matrix Orient_Orb = orient_orb * (*it_ors);
 
@@ -210,8 +212,10 @@ void CrgUnitType::rotate_each_bead(vector < vec >::iterator it_pos, vector < vec
         cout << "normal vector: " << zprime << " and for orbitals: " << zprime_orb << " and plane vector: " << xprime << endl;
 #endif
         _intcoords.rotate_someatoms(*it_monomers, Orient_Pos, *it_pos, *it_coms, rotated_molecule);
-        _orbitals.rotate_someatoms(*it_monomers, &Orient_Orb, rotated_molecule->getorb(_transorb), _transorb);
-
+        // rotating all orbitals now (hopefully)
+        for(int i=0; i<_transorbs.size(); i++){
+            _orbitals.rotate_someatoms(*it_monomers, &Orient_Orb, rotated_molecule->getorb(i), i);
+        }
         old_norm = zprime;
         count++;
     }
