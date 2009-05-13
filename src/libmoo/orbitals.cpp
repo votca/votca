@@ -48,6 +48,57 @@ void orb::init_orbitals (string * basis, const int & N, const char * namefile ){
     }
 }
 
+void orb::strip_orbitals (const vector <unsigned int>& a){
+    int nrorbs = a.size();
+    double** psinew = new double*[nrorbs];
+    psinew[0] = new double [nrorbs*NBasis];
+    for(int i=1; i<nrorbs; i++){
+        psinew[i] = psinew[i-1]+NBasis;
+    }
+    for (int i=0; i<nrorbs; i++){
+        for (int j=0; j<NBasis; j++){
+            psinew[i][j] = psi[a[i]][j];
+        }
+    }
+    delete [] psi[0];
+    delete [] psi;
+    psi = new double *[nrorbs];
+    psi[0] = new double [nrorbs*NBasis];
+    for(int i=1; i<nrorbs; i++){
+        psi[i] = psi[i-1]+NBasis;
+    }
+    for(int i=0; i<nrorbs; i++){
+        for (int j=0; j<NBasis; j++){
+            psi[i][j]=psinew[i][j];
+        }
+    }
+    #ifdef DEBUG
+    cout << "nrorbs: " << nrorbs << endl;
+    cout << "psi[0][i] :" << endl;
+    for (int j=0; j<NBasis; j++){
+        cout << psi[0][j] << endl;
+    }
+    #endif
+}
+
+void orb::init_orbitals_stripped(const orb& orb1, const int& nrorbs ){
+    NBasis = orb1.NBasis;
+    bs = new string [NBasis];
+    psi = new double* [nrorbs];
+    psi[0] = new double [nrorbs*NBasis];
+    bs[0]=orb1.bs[0];
+    for(int i=1; i<nrorbs; i++){
+        psi[i] = psi[i-1]+NBasis;
+    }
+    for(int i = 0; i < nrorbs; i++){
+        for ( int j = 0 ; j < NBasis ; j ++){
+            bs[i] = orb1.bs[i];
+            psi[i][j] = orb1.psi[i][j];
+            //cout << "(" << i << "," << j << "): " << psi[i][j] << endl;
+        }
+    }
+}
+
 void orb::set_read_orb_gam(){
     read_orb=&orb::read_orb_gamess;
 }
@@ -55,9 +106,6 @@ void orb::set_read_orb_gam(){
 void orb::set_read_orb_gauss(){
     read_orb=&orb::read_orb_gauss;
 }
-
-    
-
 
 void orb::rot_orb(const int & orb , const double rot[3][3] ){
 	int i=0;
@@ -126,12 +174,21 @@ inline void orb::rot_orb(const double rot[3][3]){
 	}
 }
 
-void orb::rot_orb(const int & orb , int *i, double * psi2, const matrix &rot){
+/*void orb::rot_orbs(const vector <unsigned int>& orbs, int* i, double* psi2, const matrix& rot){
+    int maxcount = orbs.size();
+    for (int count=0; count<maxcount; count++){
+        rot_orb(count, i, psi2, rot);
+    }
+}*/
 
+void orb::rot_orb(const int & orb , int *i, double * psi2, const matrix &rot){
+    //cout << "BS[" << *i << "] = " << bs[*i] << endl;
+    //cout << "psi[orb][i] = psi[" << orb << "][" << *i <<  "]:" << psi[orb][*i] << endl;
+    
+    
             if ( bs[*i] == "s"){
                     (*i)++;
             }
-
             else if (bs[*i] == "x" ){	
                     double x_t,y_t,z_t;
                     psi2[*i] = psi[orb][*i]*rot.get(0,0) + psi[orb][*i+1] * rot.get(0,1) + psi[orb][*i+2] * rot.get(0,2);
@@ -170,7 +227,7 @@ void orb::rot_orb(const int & orb , int *i, double * psi2, const matrix &rot){
 
             }
             else {
-                    cerr << " Error in  rot about axis" <<endl;
+                    cerr << " Error in rot about axis" <<endl;
             }
 }
 
@@ -234,7 +291,8 @@ void orb::rot_orb(const int & orb , int *i, const matrix &rot){
 
 
 void orb::rotate_someatoms(vector<int> atoms , matrix * M, 
-        double * psi2 , const int & _orb) {
+        double * psi2 , const int & _orb){
+        //cout << "orb = " << _orb << endl;
         vector <int>::iterator it;
         for (it = atoms.begin() ; it != atoms.end(); ++it){
             int first_basis = (_basis_on_atom[*it]).first;
@@ -245,6 +303,18 @@ void orb::rotate_someatoms(vector<int> atoms , matrix * M,
             }
         }
 }
+
+/*void orb::rotate_someatoms(vector <int> atoms, matrix* M, double *psi2, const vector <unsigned int>& _orbs){
+   vector <int>::iterator it;
+   for (it = atoms.begin(); it != atoms.end(); ++it){
+        int first_basis = (_basis_on_atom[*it]).first;
+        int last_basis = first_basis + (_basis_on_atom[*it]).second;
+        int i=first_basis;
+        while (i < last_basis){
+            rot_orbs(_orbs, &i, psi2, *M);
+        }
+    }
+}*/
 
 void orb::rot_orb(const int & orb , const matrix &rot){
 	int i=0;
