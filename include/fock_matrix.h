@@ -99,7 +99,7 @@ class fock {
 	void set_zindo_1();
 	void set_zindo_s();
 
-	vector <double> calcJ( vector<pair <int, int> >) const;
+	vector <double> calcJ( vector<pair <unsigned int, unsigned int> >) const;
 	double calcJ( pair <int, int>) const;
 	
 	int init_HASH();
