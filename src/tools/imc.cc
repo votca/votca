@@ -8,9 +8,19 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <boost/lexical_cast.hpp>
 #include "beadlist.h"
 #include "nblist.h"
 #include "imc.h"
+
+Imc::Imc()
+   : _write_every(0), _do_blocks(false), _do_imc(false)
+{
+}
+
+Imc::~Imc()
+{
+}
 
 // begin the coarse graining process
 // here the data structures are prepared to handle all the data
@@ -22,7 +32,8 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
     
    // we didn't process any frames so far
     _nframes = 0;
-   
+    _nblock = 0;
+    
 // initialize non-bonded structures
    for (list<Property*>::iterator iter = _nonbonded.begin();
         iter != _nonbonded.end(); ++iter) {
@@ -37,7 +48,8 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
    }
    
    // initialize the group structures
-    InitializeGroups();
+    if(_do_imc)
+        InitializeGroups();
 };
 
 // create an entry for interactions
@@ -68,55 +80,11 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
 // end of trajectory, post processing data
 void Imc::EndCG()
 {
-    CalcDeltaS();
-    // transform correlation matrix to update matrix
-    CalcMatrix();
-
-    // write out interactions
-    {
-        map<string, interaction_t *>::iterator iter;
-
-        // for all interactions
-        for (iter = _interactions.begin(); iter != _interactions.end(); ++iter) {
-            
-            // calculate the rdf
-            Table &t = iter->second->_average.data();            
-            Table rdf(t);
-
-            rdf.y() = iter->second->_norm * element_div(rdf.y(),
-                    element_prod(rdf.x(), rdf.x())
-                    );
-            rdf.Save((iter->first) + ".dist.new");
-            cout << "written " << (iter->first) + ".dist.new\n";
-            
-            delete iter->second;
-        }
+    if(!_do_blocks) {
+        WriteDist();
+        if(_do_imc)
+            WriteIMCData();
     }
-
-    // write matrix
-    {
-        map<string,group_t *>::iterator iter;
-
-        for (iter = _groups.begin(); iter != _groups.end(); ++iter) {
-            string filename = (iter->first) + ".gmc";
-            ofstream out;
-            out.open(filename.c_str());
-            group_matrix &M = iter->second->_corr;
-            if (!out)
-                throw string("error, cannot open file ") + filename;
-            // out << M.size1() << " " << M.size2() << endl;
-            out << setprecision(8);
-            for (int i = 0; i < M.size1(); ++i) {
-                for (int j = 0; j < M.size2(); ++j) {
-                    out << M(i, j) << " ";
-                }
-                out << endl;
-            }
-            cout << "written " << filename << endl;
-            delete (*iter).second;
-        }
-    }
-
     // clear interactions and groups
     _interactions.clear();
     _groups.clear();
@@ -136,7 +104,32 @@ void Imc::EvalConfiguration(Topology *top, Topology *top_atom) {
     // process non-bonded interactions
     DoNonbonded(top);
     // update correlation matrices
-    UpdateCorrelations();
+    DoCorrelations();
+    
+    if(_write_every != 0) {
+        if((_nframes % _write_every)==0) {
+            _nblock++;
+            string suffix = string("_") + boost::lexical_cast<string>(_nblock);
+            WriteDist(suffix);
+            WriteIMCData(suffix);
+            if(_do_blocks)
+                ClearAverages();
+        }
+    }
+            
+}
+
+void Imc::ClearAverages()
+{
+    map<string, interaction_t *>::iterator ic_iter;
+    map<string, group_t *>::iterator group_iter;
+    
+    _nframes = 0;
+    for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter)
+        ic_iter->second->_average.Clear();    
+    
+    for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter)
+        group_iter->second->_corr.clear();      
 }
 
 // process non-bonded interactions for current frame
@@ -174,7 +167,8 @@ void Imc::DoNonbonded(Topology *top)
         }
         
         // update the average
-        i._average.data().y() += i._current.data().y();
+        i._average.data().y() = (((double)_nframes-1.0)*i._average.data().y() 
+                + i._current.data().y())/(double)_nframes;
     }    
 }
 
@@ -195,12 +189,12 @@ void Imc::InitializeGroups()
     map<string, group_t *>::iterator group_iter;
 
     // clear all the pairs
-    _pairs.clear();
-
+    
     // iterator over all groups
     for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter) {
-        group_t *grp = (*group_iter).second;
-        
+        group_t *grp = (*group_iter).second;      
+        grp->_pairs.clear();
+    
         int n = 0;
         // count number of bins needed in matrix
         for (list<interaction_t*>::iterator i1 = grp->_interactions.begin();
@@ -229,7 +223,7 @@ void Imc::InitializeGroups()
                 // create matrix proxy with sub-matrix
                 pair_matrix corr(M, ub::range(i, i+n1), ub::range(j, j+n2));
                 // add the pair
-                _pairs.push_back(pair_t(*i1, *i2, corr));
+                grp->_pairs.push_back(pair_t(*i1, *i2, i, j, corr));
                 j+=n2;
             }
             i+=n1;
@@ -238,68 +232,181 @@ void Imc::InitializeGroups()
 }
 
 // update the correlation matrix
-void Imc::UpdateCorrelations() {
+void Imc::DoCorrelations() {
     vector<pair_t>::iterator pair;
+    map<string, group_t *>::iterator group_iter;
     
-    // update correlation for all pairs
-    for (pair = _pairs.begin(); pair != _pairs.end(); ++pair) {
-        ub::vector<double> &a = pair->_i1->_current.data().y();
-        ub::vector<double> &b = pair->_i2->_current.data().y();
-        pair_matrix &M = pair->_corr;
+    
+     for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter) {
+        group_t *grp = (*group_iter).second;      
+        // update correlation for all pairs
+        for (pair = grp->_pairs.begin(); pair != grp->_pairs.end(); ++pair) {
+            ub::vector<double> &a = pair->_i1->_current.data().y();
+            ub::vector<double> &b = pair->_i2->_current.data().y();
+            pair_matrix &M = pair->_corr;
 
-        // M_ij += a_i*b_j
-        M += ub::outer_prod(a, b);
+            // M_ij += a_i*b_j
+            M = (((double)_nframes-1.0)*M + ub::outer_prod(a, b))/(double)_nframes;
+        }
     }
 }
 
-// transform correlations to update matrix
-void Imc::CalcMatrix() {
-    map<string, interaction_t *>::iterator ic_iter;
+// write the distribution function
+void Imc::WriteDist(const string &suffix)
+{
+    map<string, interaction_t *>::iterator iter;
 
-    double norm = (1. / (double) _nframes);
+    // for all interactions
+    for (iter = _interactions.begin(); iter != _interactions.end(); ++iter) {            
+        // calculate the rdf
+        Table &t = iter->second->_average.data();            
+        Table dist(t);
 
-    vector<pair_t>::iterator pair;
+        dist.y() = iter->second->_norm * 
+                element_div(dist.y(),
+                    element_prod(dist.x(), dist.x())
+                );
+        
+        dist.Save((iter->first) + suffix + ".dist.new");
+        cout << "written " << (iter->first) + ".dist.new\n";            
+    }
+}
 
-    for (pair = _pairs.begin(); pair != _pairs.end(); ++pair) {
-        ub::vector<double> &a = pair->_i1->_average.data().y();
-        ub::vector<double> &b = pair->_i2->_average.data().y();
-        pair_matrix &M = pair->_corr;
 
-        // divide by number of frames
-        M *= norm;
-        // M_ij = -(M_ij  - a_ib_j)
-        M = -(M - ub::outer_prod(a, b));
+/**
+ *  Here the inverse monte carlo matrix is calculated and written out
+ *
+ *  steps:
+ *      - calculate th
+ */
+void Imc::WriteIMCData(const string &suffix) {            
+    //map<string, interaction_t *>::iterator ic_iter;
+    map<string, group_t *>::iterator group_iter;
+    
+    // iterate over all groups
+    for(group_iter = _groups.begin(); group_iter!=_groups.end(); ++group_iter) {
+        group_t *grp = (*group_iter).second;    
+        string grp_name = (*group_iter).first;
+        list<interaction_t *>::iterator iter;
+        
+        // number of total bins for all interactions in group is matrix dimension
+        int n=grp->_corr.size1();
+                
+        // build full set of equations + copy some data to make
+        // code better to read
+        group_matrix gmc(grp->_corr);
+        ub::vector<double> dS(n);
+        ub::vector<double> r(n);
+        // the next two variables are to later extract the individual parts
+        // from the whole data after solving equations
+        vector<int> sizes; // sizes of the individual interactions
+        vector<string> names; // names of the interactions
+                        
+        // copy all averages+r of group to one vector
+        n=0;
+        for(iter=grp->_interactions.begin(); iter != grp->_interactions.end(); ++iter) {
+            interaction_t *ic = *iter;
+            
+            // sub vector for dS
+            ub::vector_range< ub::vector<double> > sub_dS(dS, 
+                    ub::range(n, n + ic->_average.getNBins()));
+            
+            // sub vector for r
+            ub::vector_range< ub::vector<double> > sub_r(r, 
+                    ub::range(n, n + ic->_average.getNBins()));
+            
+            // read in target and calculate dS
+            CalcDeltaS(ic, sub_dS);
+            
+            // copy r
+            sub_r = ic->_average.data().x();
+            
+            // save size
+            sizes.push_back(ic->_average.getNBins());
+            // save name
+            names.push_back(ic->_p->get("name").as<string>());
+            
+            // shift subrange by size of current
+            n+=ic->_average.getNBins();
+        }
+        
+        // now we need to calculate the 
+        // A_ij = <S_i*S_j> - <S_i>*<S_j>        
+        vector<pair_t>::iterator pair;
+        for (pair = grp->_pairs.begin(); pair != grp->_pairs.end(); ++pair) {
+            interaction_t *i1 = pair->_i1;
+            interaction_t *i2 = pair->_i2;
+            
+            // make reference to <S_i>
+            ub::vector<double> &a = i1->_average.data().y();
+            // make reference to <S_j>
+            ub::vector<double> &b = i2->_average.data().y();
+            
+            int i=pair->_offset_i;
+            int j=pair->_offset_j;
+            int n1=i1->_average.getNBins();
+            int n2=i2->_average.getNBins();
+            
+            // sub matrix for these two interactions
+            // we only need to take care about one sub-matrix and not the mirrored
+            // one since ublas makes sure the matrix is symmetric
+            pair_matrix M(gmc, ub::range(i, i+n1),
+                               ub::range(j, j+n2));
+            cout << "updating " << i << ":" << i+n1 << " " << j << ":" << j+n2 << endl;
+            // A_ij = -(<a_i*a_j>  - <a_i>*<b_j>)
+            M = -(grp->_corr - ub::outer_prod(a, b));
+        }
+        
+        // write the dS
+        ofstream out_dS; 
+        string name_dS = grp_name + suffix + "_new.imc";
+        out_dS.open(name_dS.c_str());
+        out_dS << setprecision(8);
+        if(!out_dS)
+            throw runtime_error(string("error, cannot open file ") + name_dS);
+    
+        for(int i=0; i<dS.size(); ++i) {
+            out_dS << r[i] << " " << dS[i] << endl;
+        }
+    
+        out_dS.close(); 
+        cout << "written " << name_dS << endl;
+        
+        // write the matrix
+        ofstream out_A; 
+        string name_A = grp_name + suffix + "_new.gmc";
+        out_A.open(name_A.c_str());
+        out_A << setprecision(8);
+
+        if(!out_A)
+            throw runtime_error(string("error, cannot open file ") + name_A);
+    
+        for(group_matrix::size_type i=0; i<gmc.size1(); ++i) {
+            for(group_matrix::size_type j=0; j<gmc.size2(); ++j) {
+                out_A << gmc(i, j) << " ";
+            }
+            out_A << endl;
+        }    
+        out_A.close(); 
+        cout << "written " << name_A << endl;
+
     }
 }
 
 // calculate deviation from target vectors
-void Imc::CalcDeltaS()
+void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<double> > &dS)
 {
-    map<string, interaction_t *>::iterator iter;
-    double norm = (1. / (double) _nframes);
-    for(iter = _interactions.begin(); iter != _interactions.end(); ++iter) {
-        interaction_t *i = iter->second;
-        const string &name = iter->first;
-        i->_average.data().y() *= norm;
+    const string &name = interaction->_p->get("name").as<string>();
                 
-        Table target;
-        target.Load(i->_p->get("name").as<string>() + ".dist.tgt");
-        
-        i->_average.data().Save(name + ".S");
-                
-        target.y() = (1.0 / i->_norm)*ub::element_prod(target.y(), 
+    Table target;
+    target.Load(name + ".dist.tgt");
+                      
+    target.y() = (1.0 / interaction->_norm)*ub::element_prod(target.y(), 
             (ub::element_prod(target.x(), target.x()))
             ) ;
-        target.Save(name + ".St");
-        
-        
-        if(target.y().size() !=  i->_average.data().y().size())
-            throw std::runtime_error("number of grid points in target does not match the grid");
-        
-        target.y() = i->_average.data().y() - target.y();
-        // write S
-        target.Save(name + ".imc");
-            
-        cout << "written " << name + ".imc\n";
-    }
+              
+    if(target.y().size() !=  interaction->_average.data().y().size())
+        throw std::runtime_error("number of grid points in target does not match the grid");
+
+    dS = interaction->_average.data().y() - target.y();
 }

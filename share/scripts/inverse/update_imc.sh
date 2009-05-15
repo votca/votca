@@ -17,7 +17,7 @@ traj=$(get_sim_property gromacs.traj)
 solver=$(get_sim_property imc.solver)
 
 msg "calculating statistics"
-run_or_exit csg_imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap
+run_or_exit csg_imc --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap
 
 list_groups=$(csg_property --short --file $CSGXMLFILE --path "cg.*.imc.group" --print . | sort -u)
 for group in "$list_groups"; do

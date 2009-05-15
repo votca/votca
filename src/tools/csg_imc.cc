@@ -16,6 +16,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {    
+    int write_every=0;
     // we have one observer
     Imc imc;        
     // The CGEngine does the work
@@ -43,7 +44,11 @@ int main(int argc, char** argv)
     cg_engine.AddProgramOptions(desc);
    
     desc.add_options()
-      ("options", po::value<string>(), "options file for coarse graining");
+      ("options", po::value<string>(), "options file for coarse graining")
+      ("do-imc", "write out inverse monte carlo data")
+        ("write-every", po::value<int>(&write_every), "write afer every block of this length, " \
+             "if --blocking is set, the averages are cleared after every write")
+        ("do-blocks", "write output for blocking analysis");
      
     // now read in the command line
     po::variables_map vm;
@@ -73,6 +78,12 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    imc.WriteEvery(write_every);
+    if(vm.count("do-blocks"))
+        imc.DoBlocks(true);
+    if(vm.count("do-imc"))
+        imc.DoImc(true);
+        
     imc.LoadOptions(vm["options"].as<string>());
             
     // try to run the cg process, go through the frames, etc...

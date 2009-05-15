@@ -11,6 +11,7 @@
 #include <cgengine.h>
 #include <tools/property.h>
 #include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -31,7 +32,9 @@ class Imc
     : public CGObserver
 {
 public:
-
+    Imc();
+    ~Imc();
+    
     /// load cg definitions file
     void LoadOptions(const string &file);
     
@@ -44,14 +47,15 @@ public:
     /// evaluate current conformation
     void EvalConfiguration(Topology *top, Topology *top_atom = 0);    
     
-protected:
-    /// the options parsed from cg definition file
-    Property _options;
     
-    /// list of bonded interactions
-    list<Property *> _bonded;
-    /// list of non-bonded interactions
-    list<Property *> _nonbonded;
+    void WriteEvery(int write_every) { _write_every = write_every; }
+    void DoBlocks(bool do_blocks) { _do_blocks = do_blocks; }
+    void DoImc(bool do_imc) { _do_imc = do_imc; }
+    
+protected:
+    
+    typedef ub::symmetric_matrix<double> group_matrix;
+    typedef ub::matrix_range< group_matrix > pair_matrix;
     
     /// struct to store collected information for interactions
     struct interaction_t {
@@ -62,60 +66,74 @@ protected:
         double _norm;
     };
     
-    typedef ub::symmetric_matrix<double> group_matrix;
-    typedef ub::matrix_range< group_matrix > pair_matrix;
-    
+    // a pair of interactions which are correlated
     struct pair_t {
         pair_t(interaction_t *i1, interaction_t *i2,
-                const pair_matrix &_corr);
-                
+                int offset_i, int offset_j, const pair_matrix &corr);                
         interaction_t *_i1;
         interaction_t *_i2;
-
-       pair_matrix _corr;
+        pair_matrix _corr;
+        int _offset_i, _offset_j;
     };
     
     /// struct to store collected information for groups (e.g. crosscorrelations)
     struct group_t {
         list<interaction_t*> _interactions;
         group_matrix _corr;
+        vector<pair_t> _pairs;
     };
+    
+    
+    /// the options parsed from cg definition file
+    Property _options;
+    // we want to write out every so many frames
+    int _write_every;
+    // we want do do block averaging -> clear averagings every write out
+    bool _do_blocks;
+    // calculate the inverse monte carlos parameters (cross correlations)
+    bool _do_imc;
+
+    // number of frames we processed
+    int _nframes;
+    int _nblock;
+
+    /// list of bonded interactions
+    list<Property *> _bonded;
+    /// list of non-bonded interactions
+    list<Property *> _nonbonded;        
     
     /// map ineteractionm-name to interaction
     map<string, interaction_t *> _interactions;
     /// map group-name to group
     map<string, group_t *> _groups;
-    vector< pair_t > _pairs;
-            
-    int _nframes;
-    
+                    
     /// create a new interaction entry based on given options
     interaction_t *AddInteraction(Property *p);
-    
-    /// process non-bonded interactions for given frame
-    void DoNonbonded(Topology *top);
-    
+        
     /// get group by name, creates one if it doesn't exist
     group_t *getGroup(const string &name);
     
     /// initializes the group structs after interactions were added
-    void InitializeGroups();
-    /// update the correlations after interations were processed
-    void UpdateCorrelations();
+    void InitializeGroups();    
 
+    /// process non-bonded interactions for given frame
+    void DoNonbonded(Topology *top);
     /// update the correlations after interations were processed
-    void CalcMatrix();
+    void DoCorrelations();
     
-    // calculate deviation from target vectors
-    void CalcDeltaS();
+    void WriteDist(const string &suffix="");
+    void WriteIMCData(const string &suffix="");
+    
+    void CalcDeltaS(interaction_t *interaction, 
+                    ub::vector_range< ub::vector<double> > &dS);
+    
+    void ClearAverages();
  };
  
  inline Imc::pair_t::pair_t(Imc::interaction_t *i1, Imc::interaction_t *i2,
-         const pair_matrix &corr)
+         int offset_i, int offset_j, const pair_matrix &corr)
          :
-  _i1(i1), _i2(i2), _corr(corr)  {}
-       
-
+  _i1(i1), _i2(i2), _offset_i(offset_i), _offset_j(offset_j), _corr(corr)  {}
 
 #endif	/* _IMC_H */
 
