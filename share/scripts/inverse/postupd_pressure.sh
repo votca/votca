@@ -9,9 +9,9 @@ fi
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-sim_prog=$(get_sim_property program)
+sim_prog=$(csg_get_sim_property program)
 p_now="$(do_external pressure $sim_prog)" 
-p_target="$(get_sim_property p_target)"  
+p_target="$(csg_get_sim_property p_target)"  
 name=$($csg_get name)
 
 log "New pressure $p_now"

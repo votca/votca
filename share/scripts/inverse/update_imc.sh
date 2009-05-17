@@ -11,10 +11,10 @@ fi
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 
-cgmap=$(get_property cgmap)
-topol=$(get_sim_property gromacs.topol)
-traj=$(get_sim_property gromacs.traj)
-solver=$(get_sim_property imc.solver)
+cgmap=$(csg_get_property cgmap)
+topol=$(csg_get_sim_property gromacs.topol)
+traj=$(csg_get_sim_property gromacs.traj)
+solver=$(csg_get_sim_property imc.solver)
 
 msg "calculating statistics"
 run_or_exit csg_imc --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap

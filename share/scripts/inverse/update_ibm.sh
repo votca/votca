@@ -11,7 +11,7 @@ fi
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 msg "Calc rdf"
-sim_prog="$(get_sim_property program)" 
+sim_prog="$(csg_get_sim_property program)" 
 do_external rdf $sim_prog for_all non-bonded
 do_external update ibm_single for_all non-bonded "${1}"
 

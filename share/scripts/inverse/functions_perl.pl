@@ -2,12 +2,12 @@
 
 use strict;
 
-sub get_sim_property($){
-  ($_[0]) || die "get_sim_property: Missig argument\n";
+sub csg_get_sim_property($){
+  ($_[0]) || die "csg_get_sim_property: Missig argument\n";
   open(CSG,"csg_property --file $ENV{'CSGXMLFILE'} --path cg.inverse.$_[0] --short --print . |") || 
-    die "get_sim_property: Could not open pipe\n";
-  defined(my $value=<CSG>) || die "get_sim_property: Could not get value $_[0]\n";
-  close(CSG) || die "get_sim_property: error from csg_property\n";
+    die "csg_get_sim_property: Could not open pipe\n";
+  defined(my $value=<CSG>) || die "csg_get_sim_property: Could not get value $_[0]\n";
+  close(CSG) || die "csg_get_sim_property: error from csg_property\n";
   chomp($value);
   return $value;
 }

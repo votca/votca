@@ -2,24 +2,54 @@
 
 #-------------------defines----------------
 
+function_help() {
+  cat <<EOF
+  We have defined some useful (?) functions:
+  log         = send a message to the logfile
+  msg         = message to stdout and logfile
+  die         = error message to stderr and logfile, 
+                and kills all csg process
+  do_external = get scriptname for sourcewrapper and run it
+                supports for_all
+  for_all     = run at command for all
+  logrun      = exec to log output
+  run_or_exit = logrun + die if error
+
+
+  Examples:
+    log "Hi"
+    msg "Hi"
+    die "Error at line 99"
+    do_external init gromacs NVT
+    do_external init potential for_all bonded
+    for_all bonded init_potential.sh 1 2 3
+    logrun mdrun
+    run_or_exit mdrun
+EOF
+}
+
 log () {
-  [[ -z "$LOG_REDIRECTED" ]] ||  die "Nested log call, when calling 'log $*',LOG_REDIRECTED was '$LOG_REDIRECTED',remove one loging !!!"
-  export LOG_REDIRECTED="log $*" 
-  echo -e "$*" >> $CSGLOG
-  unset LOG_REDIRECTED
+  if [ -z "$LOG_REDIRECTED" ]; then
+    echo -e "$*" >> $CSGLOG
+  else
+    echo -e "WARNING: Nested log call, when calling 'log $*'"
+    echo -e "         log was redirected by '$LOG_REDIRECTED'"
+    echo -e "         Try to avoid this, by removing one redirect, help: function_help"
+    echo -e "$*" 
+  fi
 }
 #echo a msg but log it too
 msg() {
   log "$*"
-  echo "$*"
+  echo -e "$*"
 }
 
 unset -f die
 die () {
   #same as log "$*", but avoid infinit log-die loop, when nested
-  echo -e "$*" >> $CSGLOG
-  echo "$*" 1>&2
-  echo -e "killing all processes...." >> $CSGLOG
+  log "$*"
+  echo -e "$*" 1>&2
+  log "killing all processes...." 
   #send kill signal to all process within the process groups
   kill 0
   exit 1
@@ -45,12 +75,19 @@ do_external() {
 logrun(){
   local ret
   [[ -n "$1" ]] || die "logrun: missing argument"
-  [[ -z "$LOG_REDIRECTED" ]] ||  die "Nested log call, when calling 'logrun $*', LOG_REDIRECTED was '$LOG_REDIRECTED', remove one loging!!!"
   log "logrun: run '$*'"
-  export LOG_REDIRECTED="logrun $*" 
-  bash -c "$*" >> $CSGLOG 2>&1
-  ret=$?
-  unset LOG_REDIRECTED
+  if [ -z "$LOG_REDIRECTED" ]; then
+    export LOG_REDIRECTED="logrun $*" 
+    bash -c "$*" >> $CSGLOG 2>&1
+    ret=$?
+    unset LOG_REDIRECTED
+  else
+    echo -e "WARNING: Nested log call, when calling 'logrun $*'"
+    echo -e "         log was redirected by '$LOG_REDIRECTED'"
+    echo -e "         Try to avoid this, by removing one redirect, help: function_help"
+    bash -c "$*" 2>&1
+    ret=$?
+  fi
   return $ret
 }
 
@@ -85,22 +122,63 @@ for_all (){
   done
 }
 
-#gets simulation property from xml
-get_sim_property () {
-  if [ -z "$1" ]; then
-    die "get_sim_property: Missig arrgument for get_sim_property" 
+csg_taillog () {
+  sync
+  tail $* $CSGLOG
+}
+
+#the save version of csg_get
+csg_get () {
+  local ret allow_empty
+  if [ "$1" = "--allow-empty" ]; then
+    shift
+    allow_empty="yes"
+  else
+    allow_empty="no"
   fi
-  csg_property --file $CSGXMLFILE --path cg.inverse.${1} --short --print . \
-    || die "get_sim_property: csg_property --file $CSGXMLFILE --path cg.inverse.${1} --print . failed "
+  [[ -n "$csg_get" ]] || die "csg_get: csg_get variable was empty"
+  [[ -n "$1" ]] || die "csg_get: Missing argument"
+  ret="$($csg_get $1)" || die "csg_get: '$csg_get $1' failed"
+  [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
+  [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
+    die "csg_get: Result of '$csg_get $1' was empty"
+  echo "$ret"
+}
+
+#gets simulation property from xml
+csg_get_sim_property () {
+  local ret allow_empty
+  if [ "$1" = "--allow-empty" ]; then
+    shift
+    allow_empty="yes"
+  else
+    allow_empty="no"
+  fi
+  [[ -n "$1" ]] || die "csg_get_sim_property: Missig argument" 
+  ret="$(csg_property --file $CSGXMLFILE --path cg.inverse.${1} --short --print .)" \
+    || die "csg_get_sim_property: csg_property --file $CSGXMLFILE --path cg.inverse.${1} --print . failed"
+  [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
+  [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
+    die "csg_get: Result of '$csg_get $1' was empty"
+  echo "$ret"
 }
 
 #get a property from xml
-get_property () {
-  if [ -z "$1" ]; then
-    die "get_property: Missig arrgument for get_sim_property" 
+csg_get_property () {
+  local ret allow_empty
+  if [ "$1" = "--allow-empty" ]; then
+    shift
+    allow_empty="yes"
+  else
+    allow_empty="no"
   fi
-  csg_property --file $CSGXMLFILE --path cg.${1} --short --print . \
-    || die "get_property: csg_property --file $CSGXMLFILE --path cg.${1} --print . failed "
+  [[ -n "$1" ]] || die "csg_get_property: Missig argument" 
+  ret="$(csg_property --file $CSGXMLFILE --path cg.${1} --short --print .)" \
+    || die "csg_get_property: csg_property --file $CSGXMLFILE --path cg.${1} --print . failed"
+  [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
+  [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
+    die "csg_get: Result of '$csg_get $1' was empty"
+  echo "$ret"
 }
 
 #--------------------Exports-----------------
@@ -111,6 +189,8 @@ export -f msg
 export -f for_all
 export -f run_or_exit
 export -f do_external
-export -f get_sim_property
-export -f get_property
+export -f csg_get_sim_property
+export -f csg_get_property
+export -f csg_taillog
+export -f function_help
 
