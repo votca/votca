@@ -39,7 +39,7 @@ else
   msg ------------------------
   msg Prepare \(make step_00\)
   msg ------------------------
-  mkdir step_00 || die "mkdir step_00 failed"
+  mkdir -p step_00 || die "mkdir -p step_00 failed"
 
   #copy+resample all rdf in step_00
   do_external resample calc for_all non-bonded step_00
@@ -67,11 +67,12 @@ for ((i=1;i<$iterations+1;i++)); do
       msg "step $i is already done - skipping"
       continue
     else
-      die "Incomplete step $i"
+      msg "Incomplete step $i"
+      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found"
     fi
   fi
   log "Step $i started at $(date)"
-  mkdir $this_dir || die "mkdir $this_dir failed"
+  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   
   #copy+resample all rdf in this_dir 
   do_external resample calc for_all non-bonded $this_dir
@@ -91,8 +92,13 @@ for ((i=1;i<$iterations+1;i++)); do
   #Run simulation maybe change to Espresso or whatever
   do_external prepare $sim_prog "../$last_dir" 
 
-  msg "Simualtion runs"
-  do_external run $sim_prog 
+  if is_done "Simulation"; then
+    msg "Simulation is already done"
+  else
+    msg "Simulation runs"
+    do_external run $sim_prog 
+    mark_done "Simulation"
+  fi
 
   msg "Make update $method" 
   do_external update $method $i

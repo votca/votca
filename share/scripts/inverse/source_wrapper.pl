@@ -25,10 +25,16 @@ my $csg_table="csg_table";
 my $user_table="csg_table";
 
 (my $csgshare=$ENV{'CSGINVERSE'}) || die "CSGINVERSE not defined\n";
-(my $csgscriptdir=$ENV{'CSGSCRIPTDIR'}) ||die "CSGSCRIPTDIR not defined\n";
-
 $csg_table="$csgshare/$csg_table";
-$user_table="$csgscriptdir/$user_table";
+
+my $csgscriptdir=$ENV{'CSGSCRIPTDIR'};
+if ($csgscriptdir) {
+  $user_table="$csgscriptdir/$user_table";
+  #die "CSGSCRIPTDIR not defined\n";
+} else {
+  $user_table="";
+  $csgscriptdir="";
+}
 
 my $scriptname=undef;
 

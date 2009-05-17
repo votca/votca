@@ -181,6 +181,18 @@ csg_get_property () {
   echo "$ret"
 }
 
+mark_done () {
+  [[ -n "$1" ]] || die "mark_done: Missig argument"
+  echo "$1 done" >> ${PWD}/$CSGRESTART 
+}
+
+is_done () {
+  [[ -n "$1" ]] || die "is_done: Missig argument"
+  [[ -f ${PWD}/${CSGRESTART} ]] || return 1
+  [[ -n "$(sed -n "/^$1 done\$/p" ${PWD}/${CSGRESTART})" ]] && return 0
+  return 1
+}
+
 #--------------------Exports-----------------
 export -f die
 export -f log 
@@ -193,4 +205,6 @@ export -f csg_get_sim_property
 export -f csg_get_property
 export -f csg_taillog
 export -f function_help
+export -f mark_done
+export -f is_done
 
