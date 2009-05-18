@@ -104,7 +104,8 @@ void Imc::EvalConfiguration(Topology *top, Topology *top_atom) {
     // process non-bonded interactions
     DoNonbonded(top);
     // update correlation matrices
-    DoCorrelations();
+    if(_do_imc)
+        DoCorrelations();
     
     if(_write_every != 0) {
         if((_nframes % _write_every)==0) {
@@ -186,6 +187,7 @@ Imc::group_t *Imc::getGroup(const string &name)
 // initialize the groups after interactions are added
 void Imc::InitializeGroups()
 {
+    if(!_do_imc) return;
     map<string, group_t *>::iterator group_iter;
 
     // clear all the pairs
@@ -233,6 +235,7 @@ void Imc::InitializeGroups()
 
 // update the correlation matrix
 void Imc::DoCorrelations() {
+    if(!_do_imc) return;
     vector<pair_t>::iterator pair;
     map<string, group_t *>::iterator group_iter;
     
@@ -268,7 +271,7 @@ void Imc::WriteDist(const string &suffix)
                 );
         
         dist.Save((iter->first) + suffix + ".dist.new");
-        cout << "written " << (iter->first) + ".dist.new\n";            
+        cout << "written " << (iter->first) + suffix + ".dist.new\n";            
     }
 }
 
@@ -280,6 +283,7 @@ void Imc::WriteDist(const string &suffix)
  *      - calculate th
  */
 void Imc::WriteIMCData(const string &suffix) {            
+    if(!_do_imc) return;
     //map<string, interaction_t *>::iterator ic_iter;
     map<string, group_t *>::iterator group_iter;
     
@@ -352,14 +356,13 @@ void Imc::WriteIMCData(const string &suffix) {
             // one since ublas makes sure the matrix is symmetric
             pair_matrix M(gmc, ub::range(i, i+n1),
                                ub::range(j, j+n2));
-            cout << "updating " << i << ":" << i+n1 << " " << j << ":" << j+n2 << endl;
             // A_ij = -(<a_i*a_j>  - <a_i>*<b_j>)
             M = -(grp->_corr - ub::outer_prod(a, b));
         }
         
         // write the dS
         ofstream out_dS; 
-        string name_dS = grp_name + suffix + "_new.imc";
+        string name_dS = grp_name + suffix + ".imc";
         out_dS.open(name_dS.c_str());
         out_dS << setprecision(8);
         if(!out_dS)
@@ -374,7 +377,7 @@ void Imc::WriteIMCData(const string &suffix) {
         
         // write the matrix
         ofstream out_A; 
-        string name_A = grp_name + suffix + "_new.gmc";
+        string name_A = grp_name + suffix + ".gmc";
         out_A.open(name_A.c_str());
         out_A << setprecision(8);
 

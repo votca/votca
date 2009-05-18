@@ -80,6 +80,7 @@ void CGEngine::AddProgramOptions(boost::program_options::options_description &de
     ("top", boost::program_options::value<string>(), "atomistic topology file")
     ("trj", boost::program_options::value<string>(), "atomistic trajectory file")
     ("cg", boost::program_options::value<string>(), "coarse graining definitions (xml-file)")
+    ("begin", boost::program_options::value<double>(), "skip frames before this time")
     ;
 }
 
@@ -90,6 +91,8 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     Topology top;
     Topology top_cg;
     TopologyMap *map;
+    double begin;
+    bool has_begin=false;
     
     if (!vm.count("top")) {
         cout << desc << endl;
@@ -98,6 +101,11 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     if (!vm.count("cg")) {
         cout << desc << endl;
         throw string("no coarse graining definition specified");
+    }
+    
+    if(vm.count("begin")) {
+        has_begin = true;
+        begin = vm["begin"].as<double>();
     }
     
     // create reader for atomistic topology
@@ -136,12 +144,11 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
              
         map->Apply();
         BeginCG(top_cg);
-        bool bok=true;
-        while(bok) {
+        
+        for(bool bok=true; bok==true; bok = traj_reader->NextFrame(top)) {
+            if(top.getTime() < begin) continue;
             map->Apply();
-            EvalConfiguration(top_cg);
-
-            bok = traj_reader->NextFrame(top);
+            EvalConfiguration(top_cg);            
         }
         EndCG();
         traj_reader->Close();

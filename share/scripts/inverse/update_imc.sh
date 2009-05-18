@@ -23,5 +23,5 @@ list_groups=$(csg_property --short --file $CSGXMLFILE --path "cg.*.imc.group" --
 for group in "$list_groups"; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for $group"
-  do_external imcsolver $solver $group
+  do_external imcsolver $solver $group $group.pot.cur
 done 
