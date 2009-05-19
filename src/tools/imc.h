@@ -123,7 +123,8 @@ protected:
     
     void WriteDist(const string &suffix="");
     void WriteIMCData(const string &suffix="");
-    
+    void WriteIMCBlock(const string &suffix);
+
     void CalcDeltaS(interaction_t *interaction, 
                     ub::vector_range< ub::vector<double> > &dS);
     

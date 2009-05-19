@@ -1,28 +1,33 @@
-num=1:10
-name='$name'
+name='CG-CG'
 
-for i = 1:length(num)
-  =strcat(name, '_', num2str(num(i)))
+blocks=load(strcat(name, '.blocks'));
+
+
+corr_avg = load(strcat(name, '_', num2str(blocks(1)), '.cor'));
+S_avg = load(strcat(name, '_', num2str(blocks(1)), '.S'));
+dS_avg = load(strcat(name, '_', num2str(blocks(1)), '.imc'));
+
+for i = 2:length(blocks)
+  corr_file=strcat(name, '_', num2str(blocks(i)), '.cor');
+  S_file=strcat(name, '_', num2str(blocks(i)), '.S');
+  dS_file=strcat(name, '_', num2str(blocks(i)), '.imc');
+ 
+  corr=load(corr_file);
+  S=load(S_file);
+  dS=load(dS_file);
+  
+  corr_avg += corr;
+  S_avg(:,2) += S(:,2);
+  dS_avg(:,2) += S(:,2);
+
 end;
 
-A = load('$name.gmc');
-b = load('$name_noflags.imc');
+corr_avg = corr_avg/length(blocks);
+S_avg = S_avg/length(blocks);
 
-b(:,2)=b(:,2);
-x = b;
-x(:,2)=0;
+gmc = -(corr_avg - reshape(kron(S_avg(:,2),S_avg(:,2)), size(corr_avg)));
 
-i_start = ($r_min - x(1,1))/(x(2,1) - x(1,1)) + 1;
+save('-ascii', strcat(name, '.gmc.block'), 'gmc');
+save('-ascii', strcat(name, '.imc.block'), 'dS');
 
-while(A(i_start,i_start) == 0)
-  i_start=i_start+1;
-end
-
-% x(25:end,2) = linsolve(A(25:end,25:end),b(25:end,2));
-x(i_start:end,2) = -2.49*(A(i_start:end,i_start:end)\b(i_start:end,2));
-
-x(1:i_start,2)=x(i_start,2); % that's for the shift of beginning
-x(1:end,2)=x(1:end,2)-x(end,2);
-
-save -ascii '$name.gmc.octave' x
-quit
+#quit

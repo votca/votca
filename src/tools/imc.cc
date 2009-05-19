@@ -113,6 +113,7 @@ void Imc::EvalConfiguration(Topology *top, Topology *top_atom) {
             string suffix = string("_") + boost::lexical_cast<string>(_nblock);
             WriteDist(suffix);
             WriteIMCData(suffix);
+            WriteIMCBlock(suffix);
             if(_do_blocks)
                 ClearAverages();
         }
@@ -392,24 +393,6 @@ void Imc::WriteIMCData(const string &suffix) {
         }    
         out_A.close(); 
         cout << "written " << name_A << endl;
-        
-        // write the correlations
-        ofstream out_cor; 
-        string name_cor = grp_name + suffix + ".cor";
-        out_cor.open(name_cor.c_str());
-        out_cor << setprecision(8);
-
-        if(!out_cor)
-            throw runtime_error(string("error, cannot open file ") + name_cor);
-    
-        for(group_matrix::size_type i=0; i<grp->_corr.size1(); ++i) {
-            for(group_matrix::size_type j=0; j<grp->_corr.size2(); ++j) {
-                out_cor << grp->_corr(i, j) << " ";
-            }
-            out_cor << endl;
-        }    
-        out_cor.close(); 
-        cout << "written " << name_cor << endl;
     }
 }
 
@@ -430,3 +413,91 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
 
     dS = interaction->_average.data().y() - target.y();
 }
+
+
+void Imc::WriteIMCBlock(const string &suffix)
+{
+    if(!_do_imc) return;
+    //map<string, interaction_t *>::iterator ic_iter;
+    map<string, group_t *>::iterator group_iter;
+
+    // iterate over all groups
+    for(group_iter = _groups.begin(); group_iter!=_groups.end(); ++group_iter) {
+        group_t *grp = (*group_iter).second;
+        string grp_name = (*group_iter).first;
+        list<interaction_t *>::iterator iter;
+
+        // number of total bins for all interactions in group is matrix dimension
+        int n=grp->_corr.size1();
+
+        // build full set of equations + copy some data to make
+        // code better to read
+        group_matrix gmc(grp->_corr);
+        ub::vector<double> dS(n);
+        ub::vector<double> r(n);
+        // the next two variables are to later extract the individual parts
+        // from the whole data after solving equations
+        vector<int> sizes; // sizes of the individual interactions
+        vector<string> names; // names of the interactions
+
+        // copy all averages+r of group to one vector
+        n=0;
+        for(iter=grp->_interactions.begin(); iter != grp->_interactions.end(); ++iter) {
+            interaction_t *ic = *iter;
+
+            // sub vector for dS
+            ub::vector_range< ub::vector<double> > sub_dS(dS,
+                    ub::range(n, n + ic->_average.getNBins()));
+
+            // sub vector for r
+            ub::vector_range< ub::vector<double> > sub_r(r,
+                    ub::range(n, n + ic->_average.getNBins()));
+
+            // read in target and calculate dS
+            sub_dS = ic->_average.data().y();
+            // copy r
+            sub_r = ic->_average.data().x();
+            // save size
+            sizes.push_back(ic->_average.getNBins());
+            // save name
+            names.push_back(ic->_p->get("name").as<string>());
+
+            // shift subrange by size of current
+            n+=ic->_average.getNBins();
+        }
+
+        // write the dS
+        ofstream out_dS;
+        string name_dS = grp_name + suffix + ".S";
+        out_dS.open(name_dS.c_str());
+        out_dS << setprecision(8);
+        if(!out_dS)
+            throw runtime_error(string("error, cannot open file ") + name_dS);
+
+        for(int i=0; i<dS.size(); ++i) {
+            out_dS << r[i] << " " << dS[i] << endl;
+        }
+
+        out_dS.close();
+        cout << "written " << name_dS << endl;
+
+        // write the correlations
+        ofstream out_cor;
+        string name_cor = grp_name + suffix + ".cor";
+        out_cor.open(name_cor.c_str());
+        out_cor << setprecision(8);
+
+        if(!out_cor)
+            throw runtime_error(string("error, cannot open file ") + name_cor);
+
+        for(group_matrix::size_type i=0; i<grp->_corr.size1(); ++i) {
+            for(group_matrix::size_type j=0; j<grp->_corr.size2(); ++j) {
+                out_cor << grp->_corr(i, j) << " ";
+            }
+            out_cor << endl;
+        }
+        out_cor.close();
+        cout << "written " << name_cor << endl;
+    }
+}
+
