@@ -174,13 +174,6 @@ inline void orb::rot_orb(const double rot[3][3]){
 	}
 }
 
-/*void orb::rot_orbs(const vector <unsigned int>& orbs, int* i, double* psi2, const matrix& rot){
-    int maxcount = orbs.size();
-    for (int count=0; count<maxcount; count++){
-        rot_orb(count, i, psi2, rot);
-    }
-}*/
-
 void orb::rot_orb(const int & orb , int *i, double * psi2, const matrix &rot){
     //cout << "BS[" << *i << "] = " << bs[*i] << endl;
     //cout << "psi[orb][i] = psi[" << orb << "][" << *i <<  "]:" << psi[orb][*i] << endl;
@@ -303,18 +296,6 @@ void orb::rotate_someatoms(vector<int> atoms , matrix * M,
             }
         }
 }
-
-/*void orb::rotate_someatoms(vector <int> atoms, matrix* M, double *psi2, const vector <unsigned int>& _orbs){
-   vector <int>::iterator it;
-   for (it = atoms.begin(); it != atoms.end(); ++it){
-        int first_basis = (_basis_on_atom[*it]).first;
-        int last_basis = first_basis + (_basis_on_atom[*it]).second;
-        int i=first_basis;
-        while (i < last_basis){
-            rot_orbs(_orbs, &i, psi2, *M);
-        }
-    }
-}*/
 
 void orb::rot_orb(const int & orb , const matrix &rot){
 	int i=0;
