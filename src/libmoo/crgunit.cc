@@ -78,7 +78,7 @@ mol_and_orb * CrgUnit::rotate_translate_beads() {
     a->define_bs(*_indo);
     a->cp_atompos(_type->GetCrgUnit());
     a->cp_atoms(_type->GetCrgUnit());
-    _orb->init_orbitals_stripped(_type->GetOrb(), _type->GetNrOrbs());
+    _orb->init_orbitals_stripped(_type->GetOrb(), _type->GetTransOrbs().size());
     a->assign_orb(_orb);
 
     _type->rotate_each_bead(this->GetPositions(), this->GetNorms(),
