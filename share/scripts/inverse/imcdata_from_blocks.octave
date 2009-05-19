@@ -1,0 +1,28 @@
+num=1:10
+name='$name'
+
+for i = 1:length(num)
+  =strcat(name, '_', num2str(num(i)))
+end;
+
+A = load('$name.gmc');
+b = load('$name_noflags.imc');
+
+b(:,2)=b(:,2);
+x = b;
+x(:,2)=0;
+
+i_start = ($r_min - x(1,1))/(x(2,1) - x(1,1)) + 1;
+
+while(A(i_start,i_start) == 0)
+  i_start=i_start+1;
+end
+
+% x(25:end,2) = linsolve(A(25:end,25:end),b(25:end,2));
+x(i_start:end,2) = -2.49*(A(i_start:end,i_start:end)\b(i_start:end,2));
+
+x(1:i_start,2)=x(i_start,2); % that's for the shift of beginning
+x(1:end,2)=x(1:end,2)-x(end,2);
+
+save -ascii '$name.gmc.octave' x
+quit

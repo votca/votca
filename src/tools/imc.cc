@@ -392,7 +392,24 @@ void Imc::WriteIMCData(const string &suffix) {
         }    
         out_A.close(); 
         cout << "written " << name_A << endl;
+        
+        // write the correlations
+        ofstream out_cor; 
+        string name_cor = grp_name + suffix + ".cor";
+        out_cor.open(name_cor.c_str());
+        out_cor << setprecision(8);
 
+        if(!out_cor)
+            throw runtime_error(string("error, cannot open file ") + name_cor);
+    
+        for(group_matrix::size_type i=0; i<grp->_corr.size1(); ++i) {
+            for(group_matrix::size_type j=0; j<grp->_corr.size2(); ++j) {
+                out_cor << grp->_corr(i, j) << " ";
+            }
+            out_cor << endl;
+        }    
+        out_cor.close(); 
+        cout << "written " << name_cor << endl;
     }
 }
 
