@@ -30,7 +30,11 @@ EOF
 
 log () {
   if [ -z "$LOG_REDIRECTED" ]; then
-    echo -e "$*" >> $CSGLOG
+    if [ -n "$CSGLOG" ]; then
+      echo -e "$*" >> $CSGLOG
+    else
+      echo -e "$*"
+    fi
   else
     echo -e "WARNING: Nested log call, when calling 'log $*'"
     echo -e "         log was redirected by '$LOG_REDIRECTED'"
@@ -40,7 +44,7 @@ log () {
 }
 #echo a msg but log it too
 msg() {
-  log "$*"
+  [[ -z "$CSGLOG" ]] || log "$*"
   echo -e "$*"
 }
 
@@ -59,6 +63,7 @@ die () {
 #first 2 argument are the task
 do_external() {
   local script bondtype
+  [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed" 
   shift 2
   if [ "$1" = "for_all" ]; then
@@ -77,9 +82,14 @@ logrun(){
   [[ -n "$1" ]] || die "logrun: missing argument"
   log "logrun: run '$*'"
   if [ -z "$LOG_REDIRECTED" ]; then
-    export LOG_REDIRECTED="logrun $*" 
-    bash -c "$*" >> $CSGLOG 2>&1
-    ret=$?
+    export LOG_REDIRECTED="logrun $*"
+    if [ -n "$CSGLOG" ]; then 
+      bash -c "$*" >> $CSGLOG 2>&1
+      ret=$?
+    else
+      bash -c "$*" 2>&1
+      ret=$?
+    fi
     unset LOG_REDIRECTED
   else
     echo -e "WARNING: Nested log call, when calling 'logrun $*'"
@@ -109,6 +119,7 @@ for_all (){
   if [ "$bondtype" != "non-bonded" ]; then
     die  "for_all: Argmuent 1 '$bondtype' is not non-bonded" 
   fi
+  [[ -n "$CSGXMLFILE" ]] || die "for_all: CSGXMLFILE is undefined"
   csg_get="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print"
   log "For all $bondtype"
   pairs="$($csg_get name)" || die "for_all: $csg --print name failed"
@@ -124,11 +135,11 @@ for_all (){
 
 csg_taillog () {
   sync
-  tail $* $CSGLOG
+  [[ -z "$CSGLOG" ]] || tail $* $CSGLOG
 }
 
 #the save version of csg_get
-csg_get () {
+csg_get_fct () {
   local ret allow_empty
   if [ "$1" = "--allow-empty" ]; then
     shift
@@ -136,30 +147,12 @@ csg_get () {
   else
     allow_empty="no"
   fi
-  [[ -n "$csg_get" ]] || die "csg_get: csg_get variable was empty"
-  [[ -n "$1" ]] || die "csg_get: Missing argument"
-  ret="$($csg_get $1)" || die "csg_get: '$csg_get $1' failed"
+  [[ -n "$csg_get" ]] || die "csg_get_fct: csg_get variable was empty"
+  [[ -n "$1" ]] || die "csg_get_fct: Missing argument"
+  ret="$($csg_get $1)" || die "csg_get_fct: '$csg_get $1' failed"
   [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
-    die "csg_get: Result of '$csg_get $1' was empty"
-  echo "$ret"
-}
-
-#gets simulation property from xml
-csg_get_sim_property () {
-  local ret allow_empty
-  if [ "$1" = "--allow-empty" ]; then
-    shift
-    allow_empty="yes"
-  else
-    allow_empty="no"
-  fi
-  [[ -n "$1" ]] || die "csg_get_sim_property: Missig argument" 
-  ret="$(csg_property --file $CSGXMLFILE --path cg.inverse.${1} --short --print .)" \
-    || die "csg_get_sim_property: csg_property --file $CSGXMLFILE --path cg.inverse.${1} --print . failed"
-  [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
-  [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
-    die "csg_get: Result of '$csg_get $1' was empty"
+    die "csg_get_fct: Result of '$csg_get $1' was empty"
   echo "$ret"
 }
 
@@ -173,6 +166,7 @@ csg_get_property () {
     allow_empty="no"
   fi
   [[ -n "$1" ]] || die "csg_get_property: Missig argument" 
+  [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
   ret="$(csg_property --file $CSGXMLFILE --path cg.${1} --short --print .)" \
     || die "csg_get_property: csg_property --file $CSGXMLFILE --path cg.${1} --print . failed"
   [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
@@ -183,11 +177,13 @@ csg_get_property () {
 
 mark_done () {
   [[ -n "$1" ]] || die "mark_done: Missig argument"
+  [[ -n "$CSGRESTART" ]] || die "mark_done: CSGRESTART is undefined"
   echo "$1 done" >> ${PWD}/$CSGRESTART 
 }
 
 is_done () {
   [[ -n "$1" ]] || die "is_done: Missig argument"
+  [[ -n "$CSGRESTART" ]] || die "mark_done: CSGRESTART is undefined"
   [[ -f ${PWD}/${CSGRESTART} ]] || return 1
   [[ -n "$(sed -n "/^$1 done\$/p" ${PWD}/${CSGRESTART})" ]] && return 0
   return 1
@@ -201,8 +197,8 @@ export -f msg
 export -f for_all
 export -f run_or_exit
 export -f do_external
-export -f csg_get_sim_property
 export -f csg_get_property
+export -f csg_get_fct
 export -f csg_taillog
 export -f function_help
 export -f mark_done

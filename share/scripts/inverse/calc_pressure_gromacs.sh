@@ -22,7 +22,7 @@ fi
 
 nsteps=$(get_from_mdp nsteps)
 dt=$(get_from_mdp dt)
-equi_time="$(csg_get_sim_property gromacs.equi_time)"
+equi_time="$(csg_get_property inverse.gromacs.equi_time)"
 equi_time=${equi_time%\%}
 equi=$(awk "BEGIN{print $equi_time/100*$nsteps*$dt}")
 

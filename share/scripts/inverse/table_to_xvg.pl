@@ -26,9 +26,9 @@ die "2 parameters are nessary\n" if ($#ARGV<1);
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-my $gromacs_max=csg_get_sim_property("gromacs.pot_max");
-my $table_end=csg_get_sim_property("gromacs.table_end");
-my $table_bins=csg_get_sim_property("gromacs.table_bins");
+my $gromacs_max=csg_get_property("inverse.gromacs.pot_max");
+my $table_end=csg_get_property("inverse.gromacs.table_end");
+my $table_bins=csg_get_property("inverse.gromacs.table_bins");
 
 my @r;
 my @pot;

@@ -12,9 +12,9 @@ fi
 
 
 cgmap=$(csg_get_property cgmap)
-topol=$(csg_get_sim_property gromacs.topol)
-traj=$(csg_get_sim_property gromacs.traj)
-solver=$(csg_get_sim_property imc.solver)
+topol=$(csg_get_property inverse.gromacs.topol)
+traj=$(csg_get_property inverse.gromacs.traj)
+solver=$(csg_get_property inverse.imc.solver)
 
 msg "calculating statistics"
 run_or_exit csg_imc --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap

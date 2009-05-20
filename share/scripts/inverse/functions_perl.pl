@@ -2,22 +2,26 @@
 
 use strict;
 
-sub csg_get_sim_property($){
-  ($_[0]) || die "csg_get_sim_property: Missig argument\n";
-  open(CSG,"csg_property --file $ENV{'CSGXMLFILE'} --path cg.inverse.$_[0] --short --print . |") || 
-    die "csg_get_sim_property: Could not open pipe\n";
-  defined(my $value=<CSG>) || die "csg_get_sim_property: Could not get value $_[0]\n";
-  close(CSG) || die "csg_get_sim_property: error from csg_property\n";
+sub csg_get_property($){
+  ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
+  ($_[0]) || die "csg_get_property: Missig argument\n";
+  open(CSG,"csg_property --file $xmlfile --path cg.$_[0] --short --print . |") || 
+    die "csg_get_property: Could not open pipe\n";
+  defined(my $value=<CSG>) || die "csg_get_property: Could not get value $_[0]\n";
+  close(CSG) || die "csg_get_property: error from csg_property\n";
   chomp($value);
+  return undef if ($value =~ /^\s*$/);
   return $value;
 }
 
 sub csg_get($){
+  ( my $csg_command=$ENV{'csg_get'} ) || die "csg_get: ENV{'csg_get'} was undefined\n";
   ($_[0]) || die "csg_get: Missig argument\n";
-  open(CSG,"$ENV{'csg_get'} $_[0] |") || die "csg_get: Could not open pipe\n";
+  open(CSG,"$csg_command $_[0] |") || die "csg_get: Could not open pipe\n";
   defined(my $value=<CSG>) || die "csg_get: Could not get value $_[0]\n";
   close(CSG) || die "csg_get: error from csg_property\n";
   chomp($value);
+  return undef if ($value =~ /^\s*$/);
   return $value;
 }
 

@@ -14,17 +14,17 @@ echo For a more verbose log see: $CSGLOG
 #log is created
 echo "Sim started $(date)" > $CSGLOG || exit 1
 
-method="$(csg_get_sim_property method)" 
+method="$(csg_get_property inverse.method)" 
 log "We are doing Method: $method"
 
-sim_prog="$(csg_get_sim_property program)"
+sim_prog="$(csg_get_property inverse.program)"
 log "We using Sim Program: $sim_prog"
 source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed" 
 
-iterations="$(csg_get_sim_property iterations_max)" 
+iterations="$(csg_get_property inverse.iterations_max)" 
 log "We are doing $iterations iterations."
 
-filelist="$(csg_get_sim_property filelist)"  
+filelist="$(csg_get_property inverse.filelist)"  
 log "We extra need $filelist to run the simulation"
 
 run_or_exit $SOURCE_WRAPPER --status
@@ -55,6 +55,9 @@ else
   msg "step_00 done"
   cd ..
 fi
+
+#for_all non-bonded do_external echo echo 
+#die "CJ"
 
 for ((i=1;i<$iterations+1;i++)); do
   msg -------------------------------
