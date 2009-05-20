@@ -66,15 +66,8 @@ do_external() {
   [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed" 
   shift 2
-  if [ "$1" = "for_all" ]; then
-    bondtype="$2"
-    shift 2
-    log "Running subscript '${script##*/} $*' for bondtypes $bondtype"
-    for_all "$bondtype" "$script" "$@" 
-  else
-    log "Running subscript '${script##*/} $*'"
-    $script "$@" || die "do_external: $script $@ failed"
-  fi
+  log "Running subscript '${script##*/} $*'"
+  $script "$@" || die "do_external: $script $@ failed"
 }
 
 logrun(){
@@ -139,7 +132,7 @@ csg_taillog () {
 }
 
 #the save version of csg_get
-csg_get_fct () {
+csg_get_interaction_property () {
   local ret allow_empty
   if [ "$1" = "--allow-empty" ]; then
     shift
@@ -198,7 +191,7 @@ export -f for_all
 export -f run_or_exit
 export -f do_external
 export -f csg_get_property
-export -f csg_get_fct
+export -f csg_get_interaction_property
 export -f csg_taillog
 export -f function_help
 export -f mark_done

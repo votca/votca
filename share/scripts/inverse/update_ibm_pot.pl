@@ -20,8 +20,6 @@ chomp($function_file);
 die "4 parameters are nessary\n" if ($#ARGV<3);
 
 my $pref=csg_get_property("inverse.kBT");
-#my $r_cut=csg_get("max");
-#my $delta_r=csg_get("step");
 
 my $aim_rdf_file="$ARGV[0]";
 my @r_aim;

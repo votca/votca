@@ -42,10 +42,10 @@ else
   mkdir -p step_00 || die "mkdir -p step_00 failed"
 
   #copy+resample all rdf in step_00
-  do_external resample calc for_all non-bonded step_00
+  for_all non-bonded do_external resample calc step_00
   cd step_00 || die "cd step_00 failed"
 
-  do_external init $method for_all non-bonded 
+  for_all non-bonded do_external init $method  
 
   #get confout.gro
   do_external init $sim_prog 
@@ -55,9 +55,6 @@ else
   msg "step_00 done"
   cd ..
 fi
-
-#for_all non-bonded do_external echo echo 
-#die "CJ"
 
 for ((i=1;i<$iterations+1;i++)); do
   msg -------------------------------
@@ -78,8 +75,8 @@ for ((i=1;i<$iterations+1;i++)); do
   mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   
   #copy+resample all rdf in this_dir 
-  do_external resample calc for_all non-bonded $this_dir
-  
+  for_all non-bonded do_external resample calc $this_dir
+
   #get need files
   for myfile in $filelist; do
     run_or_exit cp ./$myfile ./$this_dir/  
@@ -90,7 +87,7 @@ for ((i=1;i<$iterations+1;i++)); do
   for_all non-bonded "cp ../$last_dir/\$(\$csg_get name).pot.new ./\$(\$csg_get name).pot.cur" 
 
   #convert potential in format for sim_prog
-  do_external convert_potential $sim_prog for_all non-bonded
+  for_all non-bonded do_external convert_potential $sim_prog
 
   #Run simulation maybe change to Espresso or whatever
   do_external prepare $sim_prog "../$last_dir" 
