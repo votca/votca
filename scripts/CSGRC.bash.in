@@ -5,3 +5,18 @@ PATH=${CSGBIN}:${PATH}
 
 # export should be separate, so /bin/sh understands it
 export CSGBIN CSGSHARE PATH
+
+_csgopts()
+{
+  local cur myopt output
+  cur=${COMP_WORDS[COMP_CWORD]}
+  if [[ "$cur" == --* ]]; then
+     output=$( $1 --help 2> /dev/null)
+     myopt=$( $1 --help 2> /dev/null | sed  -e '/--/!d' \
+     -e 's/.*?\(--[A-Za-z0-9]\+\).*/\1/' | sort -u )
+     COMPREPLY=( $( compgen -W '$myopt' -- $cur ) )
+   fi
+}
+
+#complete with commands filename and options
+complete -F _myopts -c csg csg_conj csg_dump csg_imc csg_ndens csg_nemat csg_property csg_resample csg_update 
