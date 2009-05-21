@@ -69,7 +69,7 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     i->_p=p;
     
     // initialize the current and average histogram
-    int n = (int)((i->_max - i->_min) / i->_step) + 1;
+    int n = (int)((i->_max - i->_min) / i->_step + 1.000000001);
 
     i->_current.Initialize(i->_min, i->_max+i->_step, n);
     i->_average.Initialize(i->_min, i->_max+i->_step, n);

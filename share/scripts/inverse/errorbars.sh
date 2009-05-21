@@ -1,6 +1,6 @@
 #!/bin/bash
 name="CG-CG"
-method="imc"
+method=$1
 nblocks=16
 
 echo "calculate error-bars"
@@ -27,8 +27,8 @@ average_tables() {
 
 average_imc() { 
  octave $CSGINVERSE/imcdata_from_blocks.octave
- mv $name.gmc.block $1.gmc
- mv $name.imc.block $1.imc 
+ sed -e '/^[#@]/d' $name.gmc.block > $1.gmc
+ sed -e '/^[#@]/d' $name.imc.block > $1.imc
 }
 
 calc_dpot_ibm() {

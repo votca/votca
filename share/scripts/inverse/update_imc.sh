@@ -17,7 +17,13 @@ traj=$(csg_get_property inverse.gromacs.traj)
 solver=$(csg_get_property inverse.imc.solver)
 
 msg "calculating statistics"
-run_or_exit csg_imc --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap
+if is_done "imc_analysis"; then
+  msg "IMC analysis is already done"
+else
+  msg "Running IMC analysis"
+  run_or_exit csg_imc --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap --begin 20
+  mark_done "imc_analysis"
+fi
 
 list_groups=$(csg_property --short --file $CSGXMLFILE --path "cg.*.imc.group" --print . | sort -u)
 for group in "$list_groups"; do

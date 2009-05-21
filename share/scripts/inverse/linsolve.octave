@@ -1,13 +1,13 @@
 A = load('$name.gmc');
-b = load('$name_noflags.imc');
+b = load('$name.imc');
 
 b(:,2)=b(:,2);
 x = b;
 x(:,2)=0;
 
-i_start = ($r_min - x(1,1))/(x(2,1) - x(1,1)) + 1;
+i_start = round(($r_min - x(1,1))/(x(2,1) - x(1,1)) + 1);
 
-while(A(i_start,i_start) == 0)
+while(abs(A(i_start,i_start)) < 1e-10)
   i_start=i_start+1;
 end
 
