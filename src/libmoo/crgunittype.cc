@@ -176,7 +176,7 @@ void CrgUnitType::rotate_each_bead(vector < vec >::iterator it_pos, vector < vec
     for (it_monomers = _list_atoms_monomer.begin(); it_monomers != _list_atoms_monomer.end();
             ++it_monomers, ++it_pos, ++it_norm, ++it_plan, ++it_coms, ++it_ors) {
 
-
+        
         // we need to define the rotation matrix for the beads
         vec zprime = (*it_norm);
         vec yprime = zprime ^ (*it_plan);
