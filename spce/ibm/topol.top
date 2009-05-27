@@ -15,7 +15,7 @@ SOL		1
 1	CG	1	SOL		 CG		1	 0.000
 
 [ system ]
-CG methanol 
+CG water
 
 [ molecules ]
-SOL     1000
+SOL     2180

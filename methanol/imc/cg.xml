@@ -20,7 +20,7 @@
     <do_pressure>0</do_pressure>
     <do_potential>1</do_potential>
     <!-- additional post processing of dU before added to potential -->
-    <post_update></post_update>
+    <post_update>smooth</post_update>
     <!-- some options for the post update scripts -->
     <post_update_options>
         <splinesmooth>
@@ -69,7 +69,7 @@
     <!-- do so many iterations -->
     <iterations_max>400</iterations_max>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
-    <method>ibm</method>
+    <method>imc</method>
     <!-- directory for user scripts -->
     <scriptdir>$PWD</scriptdir>
     <!-- write log to this file -->

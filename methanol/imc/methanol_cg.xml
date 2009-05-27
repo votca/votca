@@ -1,0 +1,22 @@
+<cg_molecule>
+  <name>H2O</name> <!-- the name of the molecule after mapping -->
+  <ident>H2O</ident> <!-- the name of the molecule in atomistic topology --> 
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>CG</name>
+        <type>CG</type>
+        <mapping>A</mapping>
+        <beads>
+          1:SOL:CG 
+        </beads>
+      </cg_bead>
+    </cg_beads>
+  </topology>
+  <maps>
+    <map>
+      <name>A</name>
+      <weights>1</weights>
+    </map>
+  </maps>
+</cg_molecule>
