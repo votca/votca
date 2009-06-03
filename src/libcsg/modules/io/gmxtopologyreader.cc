@@ -39,7 +39,11 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     //cout << "number of blocks: " << gtp.blocks[gmx::ebMOLS].a[0] << endl;
     // read the residue names
     for(int i=0; i < gtp.atoms.nres; i++) {
-        top.CreateResidue(*(gtp.atoms.resname[i]));
+#ifdef GMX4SVN
+        top.CreateResidue(*(gtp.atoms.resinfo[i].name));
+#else
+        top.CreateResidue(*(gtp.atoms.resname[i]));            
+#endif
         //cout << "residue " << i << ": " << *(gtp.atoms.resname[i]) << endl;
     }
     
@@ -48,7 +52,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         gmx::t_atom *a;
         a = &(gtp.atoms.atom[i]);
         BeadType *type = top.GetOrCreateBeadType(*(gtp.atoms.atomtype[i]));
-        top.CreateBead(1, *(gtp.atoms.atomname[i]), type, a->resnr, a->m, a->q);  
+        top.CreateBead(1, *(gtp.atoms.atomname[i]), type, a->resind, a->m, a->q);  
         //cout << *(gtp.atoms.atomname[i]) << " residue: " << a->resnr << endl;
     }
     
