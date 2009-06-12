@@ -59,7 +59,7 @@ for(int i=0; i<N; ++i) {
         x[i][2] = v.getZ(); 
     }
         
-#ifdef GMX4SVN
+#ifdef GMX4CVS
     gmx::write_trxframe(_file, &frame, NULL);
 #else
     gmx::write_trxframe(_file, &frame);
