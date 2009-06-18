@@ -27,4 +27,4 @@ csg_property_SOURCES = csg_property.cc
 
 AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a -ltools ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) -lxml2 -lgsl -lgslcblas -lm 
+LDADD = ../libcsg/libcsg.a -ltools ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) -lxml2 -lgsl -lgslcblas -lpthread -lz -lm 
