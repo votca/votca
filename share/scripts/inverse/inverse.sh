@@ -1,10 +1,43 @@
 #! /bin/bash
+usage="Usage: ${0##*/} setting_file.xml"
+quiet="no"
+do_iterations=""
 
-if [ "$1" = "--help" ]; then
-  echo Start the script to run ibm, imc, etc.
-  echo Usage: ${0##*/} setting_file.xml 
-  exit 0
-fi
+show_help () {
+  cat << eof
+Start the script to run ibm, imc, etc.
+$usage
+
+OPTIONS:
+--do-iterations N         only do N iterations
+eof
+}
+
+### begin parsing options
+
+while [ "${1#-}" != "$1" ]; do
+ if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+    #short opt with arguments here: fc
+    if [ "${1#-[fc]}" != "${1}" ]; then
+       set -- "${1:0:2}" "${1:2}" "${@:2}"
+    else
+       set -- "${1:0:2}" "-${1:2}" "${@:2}"
+    fi
+ fi
+ case $1 in 
+   --do-iterations)
+    do_iterations=$2
+    shift 2 ;;
+   -h | --help)
+    show_help
+    exit 0;;
+  *)
+   echo Unknown option \'$1\' 
+   exit 1;;
+ esac
+done
+
+### end parsing options 
 
 #do all start up checks
 source "${0%.sh}_start.sh"  "$@" || exit 1
@@ -118,6 +151,14 @@ for ((i=1;i<$iterations+1;i++)); do
   touch done
   msg "step $i done"
   cd ..
+
+  if [ "$do_iterations" != "" ]; then
+    do_iterations=$((do_iterations-1))
+    if [ $do_iterations -lt 1 ] ; then
+      log "Stopping at $data, user requested to take some rest after this amount of iterations"
+      exit 0
+    fi
+  fi
 done
 
 touch done
