@@ -21,32 +21,108 @@
 #include <gsl/gsl_linalg.h>
 #include <stdio.h>
 #include <sstream>
+#include "csg_fmatch.h"
 
 //#define _DEBUG
 
-namespace ub = boost::numeric::ublas;
-using namespace std;
+//namespace ub = boost::numeric::ublas;
+//using namespace std;
 
-class CGForceMatching
-    : public CGObserver
-{
-public:
-    void BeginCG(Topology *top, Topology *top_atom)
+void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
     {
-        
+
         int lines_init = 0, colms_init = 0;  // initial size of _A 
-        int sfnum; // number of spline functions for a cubicspline.  
+        int sfnum; // number of spline functions for a cubicspline. 
+        
+        double grid_min, grid_max, grid_step; // used for initializing grid for 
+                                              // different interactions
                 
         int interaction_number = 0;
-        beadTypes = 1; // used by CGForceMatching::beadType2intType
+  //      beadTypes = 1; // used by CGForceMatching::beadType2intType
+        beadTypes = _options.get("cg.fmatch.bead_types").as<int>();
         numBondInt = 0;
         ConstrLeastSQ = false;
-        N_frames = 2; // Number of frames in the block
+//        N_frames = 6; // Number of frames in the block
+        N_frames = _options.get("cg.fmatch.frames_per_block").as<int>();
         BlockNum = 0;
        
         // set counters to zero value:
         line_cntr = col_cntr = 0;
         
+        // initializing bonded interactions
+        for (list<Property*>::iterator iter = _bonded.begin();
+               iter != _bonded.end(); ++iter) {
+            
+            SplineInfo *i = new SplineInfo;
+            i->splineName = (*iter)->get("name").value();
+            grid_min = (*iter)->get("fmatch.min").as<double>();
+            grid_max = (*iter)->get("fmatch.max").as<double>();
+            grid_step = (*iter)->get("fmatch.step").as<double>();
+            i->res_output_coeff = (*iter)->get("fmatch.res_output_coeff").as<int>();
+            i->n = i->Spline.GenerateGrid(grid_min, grid_max, grid_step) - 1;
+            i->bonded = true;
+            i->matr_pos = colms_init;
+            i->splineIndex = interaction_number++;
+            
+            i->result.resize(i->res_output_coeff * (i->n + 1), false);
+            i->result.clear();        
+            i->error.resize(i->res_output_coeff * (i->n + 1), false);
+            i->error.clear();
+            i->resSum.resize(i->res_output_coeff * (i->n + 1), false);
+            i->resSum.clear();
+            i->resSum2.resize(i->res_output_coeff * (i->n + 1), false);
+            i->resSum2.clear();
+            i->block_res.resize(2*(i->n + 1), false);
+            i->del_x_out = (i->Spline.getGridPoint(i->n) - i->Spline.getGridPoint(0)) /
+                                    (i->res_output_coeff * (i->n + 1));
+            
+            //adjust initial matrix dimensions:
+            lines_init += i->n + 1;
+            colms_init += 2 * (i->n + 1);
+
+            //Add SplineInfo to SplineContainer:
+            Splines.push_back( i );
+            
+            // update bonded interaction counter:
+            numBondInt++;
+        }
+        
+        
+        // initializing non-bonded interactions
+        for (list<Property*>::iterator iter = _nonbonded.begin();
+               iter != _nonbonded.end(); ++iter) {
+            
+            SplineInfo *i = new SplineInfo;
+            i->splineName = (*iter)->get("name").value();
+            grid_min = (*iter)->get("fmatch.min").as<double>();
+            grid_max = (*iter)->get("fmatch.max").as<double>();
+            grid_step = (*iter)->get("fmatch.step").as<double>();
+            i->res_output_coeff = (*iter)->get("fmatch.res_output_coeff").as<int>();
+            i->n = i->Spline.GenerateGrid(grid_min, grid_max, grid_step) - 1;
+            i->bonded = false;
+            i->matr_pos = colms_init;
+            i->splineIndex = interaction_number++;
+            
+            i->result.resize(i->res_output_coeff * (i->n + 1), false);
+            i->result.clear();        
+            i->error.resize(i->res_output_coeff * (i->n + 1), false);
+            i->error.clear();
+            i->resSum.resize(i->res_output_coeff * (i->n + 1), false);
+            i->resSum.clear();
+            i->resSum2.resize(i->res_output_coeff * (i->n + 1), false);
+            i->resSum2.clear();
+            i->block_res.resize(2*(i->n + 1), false);
+            i->del_x_out = (i->Spline.getGridPoint(i->n) - i->Spline.getGridPoint(0)) /
+                                    (i->res_output_coeff * (i->n + 1));
+            
+            //adjust initial matrix dimensions:
+            lines_init += i->n + 1;
+            colms_init += 2 * (i->n + 1);
+
+            //Add SplineInfo to SplineContainer:
+            Splines.push_back( i );
+            
+        }       
         
 /*        // SplineInfo for the first type of bond:
         Bond1.n = Bond1.Spline.GenerateGrid(  0.256, 0.337, 0.005 ) - 1;
@@ -130,14 +206,16 @@ public:
         // update bonded interaction counter:
         numBondInt++;        
 */        
-//===== Non-bonded params ===========================
-        NB1.n = NB1.Spline.GenerateGrid( 0.233, 0.79, 0.01 ) - 1;
+/*//===== Non-bonded params ===========================
+  //      NB1.n = NB1.Spline.GenerateGrid( 0.279, 1.0, 0.05 ) - 1; // LJ
+  //      NB1.n = NB1.Spline.GenerateGrid( 0.229, 0.79, 0.01 ) - 1; //water
+        NB1.n = NB1.Spline.GenerateGrid( 0.27, 1.2, 0.02 ) - 1; //methanol
         NB1.bonded = false;
         NB1.splineIndex = interaction_number++;
         NB1.splineName = "non-bonded_1";
         NB1.matr_pos = colms_init;
         
-        NB1.res_output_coeff = 3;
+        NB1.res_output_coeff = 5;
         NB1.result.resize(NB1.res_output_coeff * (NB1.n + 1), false);
         NB1.result.clear();
         NB1.error.resize(NB1.res_output_coeff * (NB1.n + 1), false);
@@ -157,13 +235,13 @@ public:
         
         //Add SplineInfo to SplineContainer:
         Splines.push_back( &NB1 );
-            
+ */           
 //===================================================*/
   
         N = top->BeadCount(); // Number of beads in topology
         L = 0;                // Initial frame in trajectory  
         excList.CreateExclusions(top);  //exclusion list for non-bonded interactions
-        cout << "hey, someone wants to coarse grain\n";
+        cout << "hey, somebody wants to forcematch!\n";
         
         if (ConstrLeastSQ) { // Constrained Least Squares
             
@@ -223,7 +301,7 @@ public:
                
     }
     
-    void EndCG() { 
+void CGForceMatching::EndCG() { 
         string force_raw = "_force_raw.dat";
         char file_name[20];
         double accuracy; // accuracy for output. Should be different for bonds and angles.
@@ -274,7 +352,7 @@ public:
     
 
     
-    void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) {
+void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
         InteractionContainer &ic = conf->BondedInteractions();
         InteractionContainer::iterator ia;
 
@@ -311,7 +389,7 @@ public:
         bool noExcl;
         
         NeighbourList nbl;
-        nbl.setCutoff(0.79);
+        nbl.setCutoff(1.2);
         nbl.Generate(*conf);
         
         for (int iatom = 0; iatom < N; iatom++) {
@@ -435,66 +513,6 @@ public:
         }
     }
     
-protected:
-    // _A*_x = _b
-    
-  ub::matrix<double> _A;
-  ub::vector<double> _b; // F_ref
-  ub::vector<double> _x; // 
-  ub::matrix<double> B_constr;
-    // _A(i, j) = 10;
-    // _A.resize(n, m, true);
-  int beadTypes; // number of cg bead types in the system
-  int numBondInt; // number of bonded interaction types
-  int L; // counter for frames
-  int N; //number of cg_beads
-  bool ConstrLeastSQ; // true:  constrained least squares
-                      // false: simple least squares
-  int LeastSQOffset;  // used in EvalConf to distinguish constrained LS and simple LS
-  int N_frames;       // Number of frames used in one Block
-  int BlockNum;       // current number of Blocks
-  
-  int line_cntr, col_cntr; // counters for lines and coloumns in B_constr 
-  
-  struct SplineInfo {
-        int n; //number of splines
-        int splineIndex; // interaction index for bonded interactions
-        bool bonded;     // true for bonded interactions, false for non-bonded
-        CubicSpline Spline;
-        int matr_pos;    // position in the _A matrix (first coloumn which is occupied with
-                         // this particular spline
-        int res_output_coeff; // Num_output_points = Num_spline_points * res_output_coeff
-        double del_x_out;     // dx for output. Calculated in the code
-        
-        pair<int, int> beadTypes; // only for non-bonded interactions
-        
-        
-        ub::vector<double> block_res;  // Result of 1 block calculation
-        ub::vector<double> result;     // Average over many blocks
-        ub::vector<double> error;
-        ub::vector<double> resSum;
-        ub::vector<double> resSum2;
-        
-        string splineName;
-  };
- // SplineInfo Bond1;
-//  SplineInfo Bond2;
-//  SplineInfo Angle1;
-//  SplineInfo Angle2;
-//  SplineInfo Angle3;
-  SplineInfo NB1;
-  
-  ExclusionList excList;  // exclusion list for non-bonded interactions
-  
-  typedef vector<SplineInfo *> SplineContainer;
-  SplineContainer Splines;
-  
-  int beadType2intType ( int beadType1, int beadType2 );
-  void FmatchAccumulateData();
-  void FmatchAssignMatrixAgain();
-  
-};
-
 int CGForceMatching::beadType2intType( int beadType1, int beadType2 ) {
 // This function returns the interaction type, knowing the bead types involved.
 // The correspondence is established as follows: (case of 4 different bead types)
@@ -751,61 +769,10 @@ int CGForceMatching::beadType2intType( int beadType1, int beadType2 ) {
                 col_tmp += 2 * (sfnum + 1);
                 
             }             
-    }    
-
-int main(int argc, char** argv)
-{    
-    // we have one observer, this analyzes neamtic order
-    CGForceMatching fmatch;        
-    // The CGEngine does the work
-    CGEngine cg_engine;
-    
-    // add our observer that it gets called to analyze frames
-    cg_engine.AddObserver((CGObserver*)&fmatch);
-
-
-    // initialize the readers/writers,
-    // this will be combined in an initialize function later
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-
-    
-    // lets read in some program options
-    namespace po = boost::program_options;
-        
-    
-    // Declare the supported options.
-    po::options_description desc("Allowed options");    
-    
-    // let cg_engine add some program options
-    cg_engine.AddProgramOptions(desc);
-    
-    // now read in the command line
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
-    // does the user want help?
-    if (vm.count("help")) {
-        cout << "csg_fmatch, lib version " << LIB_VERSION_STR << "\n\n";                
-        cout << desc << endl;
-        return 0;
-    }
-    // or asks for the program version?
-    if (vm.count("version")) {
-        cout << "csg_fmatch, lib version " << LIB_VERSION_STR  << "\n";                        
-        return 0;
     }
     
-    // try to run the cg process, go through the frames, etc...
-    try {
-        cg_engine.Run(desc, vm);
-    }
-    // did an error occour?
-    catch(string error) {
-        cerr << "An error occoured!" << endl << error << endl;
-    }
-    return 0;
-}
-
+void CGForceMatching::LoadOptions(const string &file) {
+    load_property_from_xml(_options, file);   
+    _bonded = _options.Select("cg.bonded");
+    _nonbonded = _options.Select("cg.non-bonded");
+}    
