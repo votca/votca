@@ -13,4 +13,4 @@ echo -e "Pressure" | g_energy -b $equi &> log_g_energy
 
 echo Running g_rdf
 echo -e "a OW\nq" | make_ndx -f conf.gro &> log_make_ndx
-echo -e "OW\nOW" | g_rdf -f topol.trr -b $equi -bin 0.01 -rdf mol_com -n index.ndx -o rdf_CG_CG_aim.xvg &> log_g_rdf_CG_CG
+echo -e "SOL\nSOL" | g_rdf -f topol.trr -b $equi -bin 0.01 -rdf mol_com -n index.ndx -o rdf_CG_CG_aim.xvg &> log_g_rdf_CG_CG

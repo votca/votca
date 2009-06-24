@@ -1,0 +1,25 @@
+<cg>
+  <!--fmatch section -->
+  <fmatch>
+    <!--Number of different CG beads in the system. SHOULD BE KICKED OUT!!! -->
+    <bead_types>1</bead_types>
+    <!--Number of frames for block averaging -->
+    <frames_per_block>6</frames_per_block>
+  </fmatch>
+  <!-- temporary variable for fmatch, will be
+       determined automaticaly later -->
+  <nframes>1000</nframes>
+  <cgmap>water.xml</cgmap>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CG-CG</name>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.24</min>
+      <max>1.00</max>
+      <step>0.02</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </non-bonded>
+</cg>

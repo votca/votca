@@ -14,7 +14,7 @@
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
     <min>0</min>
-    <max>1.0</max>
+    <max>0.9</max>
     <step>0.01</step>
     <!-- update cycles -->
     <do_pressure>0</do_pressure>
