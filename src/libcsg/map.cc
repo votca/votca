@@ -127,8 +127,11 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     
     vec w = in.getBead(_matrix[2]._in)->getPos() - in.getBead(_matrix[0]._in)->getPos();
     w.normalize();
+    out.getBead(_out)->setW(w);
+    
     if((v^w)*u < 0) u=vec(0.,0.,0.)-u;
-    out.getBead(_out)->setU(u);    
+    out.getBead(_out)->setU(u);
+    
     //out.BeadV(_out) = v;
     
     //out.BeadW(_out) = es.eigenvecs[2];
