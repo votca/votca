@@ -135,7 +135,7 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     
     //write out w
     w=u^v;
-    w.normalize;
+    w.normalize();
     out.getBead(_out)->setW(w);
     
     //out.BeadV(_out) = v;
