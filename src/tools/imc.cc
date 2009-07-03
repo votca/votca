@@ -56,7 +56,11 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
 Imc::interaction_t *Imc::AddInteraction(Property *p)
 {
     string name = p->get("name").value();
-    string group = p->get("imc.group").value();
+    string group;
+    if(_do_imc)
+        group = p->get("imc.group").value();
+    else
+        group = "none";
     
     interaction_t *i = new interaction_t;    
     _interactions[name] = i;

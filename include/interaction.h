@@ -133,6 +133,22 @@ inline double IAngle::EvaluateVar(const Topology &top)
 
 inline vec IAngle::Grad(const Topology &top, int bead)
 {
+    /*vec v1(top.getDist(_beads[1], _beads[0]));
+    vec v2(top.getDist(_beads[1], _beads[2]));
+    
+    double av1 = abs(v1);
+    double av2 = abs(v2);
+    double cosphi = v1*v2 / (av1*av2);
+    double acos_prime = -1.0 / (sqrt(1 - (cosphi*cosphi) ));
+    
+    switch (bead) {
+        case (0): return acos_prime * (v2 / (av1*av2) - v1*cosphi/(av1*av1)); break;
+        case (1): return -acos_prime * ( (v1+v2)/(av1 * av2)) - 
+                cosphi * ( v1/(av1*av1) + v2/(av2*av2) ); break;
+        case (2): return acos_prime * (v1 / (av1*av2) - v2*cosphi/(av2*av2)); break;
+    }
+    return 0;
+    /**/
     vec v1(top.getDist(_beads[1], _beads[0]));
     vec v2(top.getDist(_beads[1], _beads[2]));
     
@@ -141,7 +157,7 @@ inline vec IAngle::Grad(const Topology &top, int bead)
         case (0): return acos_prime * (-v2 / ( abs(v1)*abs(v2) ) +  (v1*v2) * v1 / ( abs(v2)*abs(v1)*abs(v1)*abs(v1) ) ); break;
         case (1): return acos_prime * ( (v1+v2)/(abs(v1) * abs(v2)) - (v1 * v2) * ((v2*v2) * v1 + (v1*v1) * v2 ) / ( abs(v1)*abs(v1)*abs(v1)*abs(v2)*abs(v2)*abs(v2) ) ); break;
         case (2): return acos_prime * (-v1 / ( abs(v1)*abs(v2) ) +  (v1*v2) * v2 / ( abs(v1)*abs(v2)*abs(v2)*abs(v2) ) ); break;
-    }
+    }/**/
 }
 
 inline double IDihedral::EvaluateVar(const Topology &top)

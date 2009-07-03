@@ -103,7 +103,16 @@ int main(int argc, char** argv)
     spline.Calculate(out.x(), out.y());
     
     out.y() = out.y();
-    out.flags() = ub::scalar_vector<double>(out.flags().size(), 'i');
+    out.flags() = ub::scalar_vector<double>(out.flags().size(), 'o');
+
+    int i=0;
+    for(i=0; out.x(i) < in.x(0) && i<out.size(); ++i);
+
+    int j=0;
+    for(;out.x(i) < in.x(in.size()-1) && i < out.size(); ++i) {
+        while(in.x(j) < out.x(i)) ++j;
+        out.flags(i) = in.flags(j);
+    }
     
     out.Save(out_file);
     
