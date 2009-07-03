@@ -36,7 +36,10 @@ sub readin_table($\@\@\@) {
     next if /^[#@]/;
     next if /^\s*$/;
     my @parts=split(/\s+/);
-    ($parts[2]) || die "readin_table: Not enought columns in line $line\n";
+    unless (defined ($parts[2])){
+      $parts[2]="?";
+    } 
+    defined($parts[1]) || die "readin_table: Not enought columns in line $line\n";
     #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
     push(@{$_[1]},$parts[0]);
     push(@{$_[2]},$parts[1]);
