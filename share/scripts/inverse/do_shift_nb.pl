@@ -1,7 +1,7 @@
 #! /usr/bin/perl -w
 #
 # shifts the beginning of a non-bonded delta potential which is not in the update
-# region to same as first value which is in region. It also shits the whole dpot 
+# region to same as first value which is in region. It also shifts the whole dpot 
 # that it is zero at r_cut
 #
 # TODO: care about flags, not tested
@@ -23,8 +23,6 @@ my $outfile="$ARGV[1]";
 
 print("$infile, $outfile\n");
 
-my $r_cut=csg_get("max");
-
 # read in the current dpot
 my @r;
 my @dpot;
@@ -33,7 +31,9 @@ my @flag;
 
 # find index of cutoff
 my $i_cut;
-for($i_cut=0; ($i_cut<$#r-1) && ($r[$i_cut]<$r_cut); $i_cut++) {}
+#for($i_cut=0; ($i_cut<$#r-1) && ($r[$i_cut]<$r_cut); $i_cut++) {}
+$i_cut = $#r - 1;
+
 # find last u/o
 my $i_first;
 for($i_first=0; ($i_first<$#r) && ($flag[$i_first] =~ /[uo]/); $i_first++) {}

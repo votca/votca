@@ -109,8 +109,11 @@ int main(int argc, char** argv)
     for(i=0; out.x(i) < in.x(0) && i<out.size(); ++i);
 
     int j=0;
-    for(;out.x(i) < in.x(in.size()-1) && i < out.size(); ++i) {
-        while(in.x(j) < out.x(i)) ++j;
+    for(;i < out.size(); ++i) {
+        for(; j < in.size(); ++j)
+            if(in.x(j) >= out.x(i))
+                break;        
+        if(in.size() == j) break;
         out.flags(i) = in.flags(j);
     }
     

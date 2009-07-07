@@ -102,7 +102,7 @@ run_or_exit() {
 #do somefor all pairs, 1st argument is the type
 for_all (){
   local bondtype csg_get
-  local pair pairs
+  local name interactions
   if [ -z "$2" ]; then
     die "for_all need at least two arguments"
   fi
@@ -115,8 +115,9 @@ for_all (){
   [[ -n "$CSGXMLFILE" ]] || die "for_all: CSGXMLFILE is undefined"
   csg_get="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print"
   log "For all $bondtype"
-  pairs="$($csg_get name)" || die "for_all: $csg --print name failed"
-  for pair in $pairs; do
+  interactions="$($csg_get name)" || die "for_all: $csg --print name failed"
+  for name in $interactions; do
+    csg_get="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter \"name=$name\" --print"
     #write variable defines in the front is better, that export
     #no need to run export -n afterwards
     log "for_all: run '$*'"

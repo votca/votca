@@ -26,7 +26,7 @@ min=$($csg_get min)
 max=$($csg_get max)
 
 log "Running g_rdf for ${type1}-${type2}"
-run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${equi} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg" 
+run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${equi} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg" -s topol.tpr
 #gromacs allways append xvg
 run_or_exit csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max}
 

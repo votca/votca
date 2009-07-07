@@ -22,9 +22,9 @@ done
 
 cp ${1}/confout.gro ./conf.gro || die "${0##*/} cp ${1}/confout.gro ./conf.gro failed" 
 
-atoms="$(for_all non-bonded 'echo $($csg_get type1)'; for_all non-bonded 'echo $($csg_get type2)' 2>&1 )" || die "for_all non-bonded  failed"
-atoms="$(echo "${atoms}" | sort | uniq )" || die "sort uniq failed"
-[[ -n "${atoms}" ]] || die "no atoms found"
-log "${0##*/}: Found atoms $atoms"
-run_or_exit "echo -e \"a ${atoms}\\nq\" | make_ndx -f conf.gro"
+#atoms="$(for_all non-bonded 'echo $($csg_get type1)'; for_all non-bonded 'echo #$($csg_get type2)' 2>&1 )" || die "for_all non-bonded  failed"
+#atoms="$(echo "${atoms}" | sort | uniq )" || die "sort uniq failed"
+#[[ -n "${atoms}" ]] || die "no atoms found"
+#log "${0##*/}: Found atoms $atoms"
+#run_or_exit "echo -e \"t ${atoms}\\nq\" | make_ndx -f conf.gro"
 run_or_exit grompp -n index.ndx 

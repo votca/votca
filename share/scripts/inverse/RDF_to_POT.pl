@@ -43,7 +43,7 @@ my @flag;
 
 my @pot;
 for (my $i=0;$i<=$#r;$i++){
-  if ($flag[$i] eq "i"){
+#  if ($flag[$i] eq "i"){
     #rdf = 0 will give undefined pot 
     if ($rdf[$i]>1e-10) {
       $pot[$i]=-$pref*log($rdf[$i]);
@@ -52,7 +52,7 @@ for (my $i=0;$i<=$#r;$i++){
       $pot[$i]="nan";
       $flag[$i]="u";
     }
-  }
+#  }
 }
 
 #find first defined value (begining for r=0)
