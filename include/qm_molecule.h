@@ -131,26 +131,26 @@ public:
 	rotate(m);
     }*/
 
-    void rot_orb( const double rot[3][3], vector <int> a ){
+   void rot_orb( const double rot[3][3], vector <unsigned int> a ){
     	for ( int i=0; i< a.size();i++){
 		orbitals -> rot_orb(a[i], rot);
 	}
     }
 
 
-    void rot_orb( const double rot[3][3], const int & i){
+    void rot_orb( const double rot[3][3], const unsigned int & i){
 	orbitals -> rot_orb(i, rot);	    
     }
 
     
-    void rot_orb( const matrix &rot, vector <int> a ){
+    void rot_orb( const matrix &rot, vector <unsigned int> a ){
     	for ( int i=0; i< a.size();i++){
 		orbitals -> rot_orb(a[i], rot);
 	}
     }
 
 
-    void rot_orb( const matrix &rot, const int & i){
+    void rot_orb( const matrix &rot, const unsigned int & i){
 	orbitals -> rot_orb(i, rot);	    
     }
     
