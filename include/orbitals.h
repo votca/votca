@@ -165,13 +165,13 @@ public:
 
 
     void rot_orbs(const vector <unsigned int>& orbs, int* i, double* psi2, const matrix& rot);
-    void rot_orb ( const int &, const double [3][3]);
+    void rot_orb ( const unsigned int &, const double [3][3]);
     void rot_orb( const double [3][3]);
 
  
-    void rot_orb ( const int &, const matrix &);
-    void rot_orb ( const int &, int *, const matrix &);
-    void rot_orb ( const int &, int *, double *, const matrix &);
+    void rot_orb ( const unsigned int &, const matrix &);
+    void rot_orb ( const unsigned int &, int *, const matrix &);
+    void rot_orb ( const unsigned int &, int *, double *, const matrix &);
     void rot_orb( const matrix &);
     
     void rotate_someatoms(vector<int> , matrix  *, 
