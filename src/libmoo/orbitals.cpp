@@ -107,14 +107,16 @@ void orb::set_read_orb_gauss(){
     read_orb=&orb::read_orb_gauss;
 }
 
-void orb::rot_orb(const int & orb , const double rot[3][3] ){
+void orb::rot_orb(const unsigned int & orb , const double rot[3][3] ){
 	int i=0;
 	while (i<NBasis)
 	{
+            //cout << "BS[" << i << "] = " << bs[i] << endl;
+            //cout << "psi[orb][i] = psi[" << orb << "][" << i <<  "]:" << psi[orb][i] << endl;
 		if ( bs[i] == "s"){
 			i++;
 		}
-
+                
 		else if (bs[i] == "x" ){	
 			double x_t,y_t,z_t;
 			x_t = psi[orb][i]*rot[0][0] + psi[orb][i+1] * rot[0][1] + psi[orb][i+2] * rot[0][2];
@@ -160,7 +162,6 @@ void orb::rot_orb(const int & orb , const double rot[3][3] ){
 			psi[orb][i+5] = zz_t;
 
 			i+=6;
-			    
 		}
 		else {
 			cerr << " Error in  rot about axis" <<endl;
@@ -174,7 +175,7 @@ inline void orb::rot_orb(const double rot[3][3]){
 	}
 }
 
-void orb::rot_orb(const int & orb , int *i, double * psi2, const matrix &rot){
+void orb::rot_orb(const unsigned int & orb , int *i, double * psi2, const matrix &rot){
     //cout << "BS[" << *i << "] = " << bs[*i] << endl;
     //cout << "psi[orb][i] = psi[" << orb << "][" << *i <<  "]:" << psi[orb][*i] << endl;
     
@@ -224,7 +225,7 @@ void orb::rot_orb(const int & orb , int *i, double * psi2, const matrix &rot){
             }
 }
 
-void orb::rot_orb(const int & orb , int *i, const matrix &rot){
+void orb::rot_orb(const unsigned int & orb , int *i, const matrix &rot){
 
             if ( bs[*i] == "s"){
                     (*i)++;
@@ -297,7 +298,7 @@ void orb::rotate_someatoms(vector<int> atoms , matrix * M,
         }
 }
 
-void orb::rot_orb(const int & orb , const matrix &rot){
+void orb::rot_orb(const unsigned int & orb , const matrix &rot){
 	int i=0;
 	while (i<NBasis)
 	{
