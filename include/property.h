@@ -25,7 +25,7 @@ using namespace std;
  */
 class Property {
 public:
-    Property() {}
+    Property() : _path("") {}
     
     Property(const string &name, const string &value, const string &path) 
         : _name(name), _value(value), _path(path) {}
