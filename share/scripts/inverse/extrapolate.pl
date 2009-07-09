@@ -1,10 +1,51 @@
 #! /usr/bin/perl -w
 #
-# (C) 2006-2008 Chr. Junghans
-# junghans@mpip-mainz.mpg.de
+# extrapolation methods:
+#
+# linear:
+#   y = ax + b;  b = - m*xp + yp; a = m
+# quadratic:
+#   y = a*(x-b)^2; b = (x0 - 2y0/m); a = m^2/(4*y0)
+# exponential:
+#   y = a*exp(b*x); a = y0*exp(-m*x0/y0); b = m/y0;
 #
 #
-#version 0.1  , 08.07.08 -- initial version
+#
+
+sub extrapolate_linear($$$$) {
+  my $x0 = $_[0];
+  my $y0 = $_[1]; 
+  my $m =  $_[2];
+  my $x =  $_[3];
+
+  return $m*($x - $x0) + $y0;
+}
+
+sub extrapolate_quad($$$$) {
+  my $x0 = $_[0];
+  my $y0 = $_[1]; 
+  my $m =  $_[2];
+  my $x =  $_[3];
+
+  my $a = ($m**2)/(4*$y0);
+  my $b = $x0 - 2*$y0/$m;
+  #my $b = $x0 + 2*$y0/$m;
+  #my $a = $m/(2*($x0-$b));
+
+  return $a*($x-$b)**2;
+}
+sub extrapolate_exp($$$$) {
+  my $x0 = $_[0];
+  my $y0 = $_[1]; 
+  my $m =  $_[2];
+  my $x =  $_[3];
+
+  my $a = $y0*exp(-$m*$x0 / $y0);
+  my $b = $m/$y0;
+
+  return $a*exp($b*$x);
+}
+
 use strict;
 
 $_=$0;
@@ -18,7 +59,8 @@ chomp($function_file);
 (do "$function_file") || die "$progname: source $function_file failed\n";
 
 
-my avgpoints = 3;
+my $avgpoints = 3;
+my $function="quadratic";
 # read program arguments
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
@@ -33,17 +75,24 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
               unshift(@ARGV,substr($_,0,2),"-".substr($_,2));
            }
         }
-	if($ARGV[0] eq "--avgpoints") {
-        avgpoints = $ARGV[1];
-        shift(@ARGV, 2);
+    if($ARGV[0] eq "--avgpoints") {
+        $avgpoints = $ARGV[1];
+        shift(@ARGV);
+        shift(@ARGV);
     }
-    else if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
+    elsif($ARGV[0] eq "--function") {
+        $function = $ARGV[1];
+        shift(@ARGV);
+        shift(@ARGV);
+    }
+    elsif (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
 This script calculates the integral of a table
 $usage
 OPTIONS:
 --avgpoints             average over so many points to extrapolate, standard is 3
+--function            linear, quadratic or exp, standard is quadratic
 -h, --help            Show this help message
 
 END
@@ -65,17 +114,35 @@ my @flag;
 (readin_table($infile,\@r,\@val,\@flag)) || die "$progname: error at readin_table\n";
 
 my $outfile="$ARGV[1]";
-my @out;
 
-my $min = 0;
-$out[0] = 0;
-for (my $i=1;$i<=$#r;$i++){
-  $out[$i]=$out[$i-1] - 0.5*($val[$i] + $val[$i-1])*($r[$i] - $r[$i-1]); 
-  $min = $out[$i] if $out[$i] < $min;
+# find beginning
+my $first;
+for ($first=1;$first<=$#r;$first++) {
+   last if($flag[$first] eq "i");
 }
 
-for (my $i=0;$i<=$#r;$i++){
-  $out[$i]=$out[$i]-$min;
+# find end
+my $last;
+for ($last=$#r;$last>0;$last--) {
+   last if($flag[$last] eq "i");
 }
 
-saveto_table($outfile,\@r,\@out,\@flag) || die "$progname: error at save table\n";
+# grad  of beginning
+my $grad_beg;
+$grad_beg = ($val[$first + $avgpoints] - $val[$first])/($r[$first + $avgpoints] - $r[$first]);
+
+# grad  of beginning
+my $grad_end;
+$grad_end = ($val[$last] - $val[$last - $avgpoints])/($r[$last] - $r[$last-$avgpoints]);
+
+# now extrapolate beginning
+for(my $i=$first-1; $i >= 0; $i--) {
+    $val[$i] = extrapolate_linear($r[$first], $val[$first], $grad_beg, $r[$i]);
+}
+
+# now extrapolate ends
+for(my $i=$last+1; $i <= $#r; $i++) {
+    $val[$i] = extrapolate_linear($r[$last], $val[$last], $grad_end, $r[$i]);
+}
+
+saveto_table($outfile,\@r,\@val,\@flag) || die "$progname: error at save table\n";

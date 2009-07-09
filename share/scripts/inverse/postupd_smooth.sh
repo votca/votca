@@ -13,7 +13,7 @@ name=$($csg_get name)
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
 iterations=$($csg_get post_update_options.smooth.iterations)  
 
-smooth=$($SOURCE_WRAPPER tools smooth) || die "${0##*/}: $SOURCE_WRAPPER tools mooth failed"
+smooth=$($SOURCE_WRAPPER table smooth) || die "${0##*/}: $SOURCE_WRAPPER table smooth failed"
 
 cp ${name}.dpot.cur $tmpfile
 log "doing $iterations smoothing iterations"

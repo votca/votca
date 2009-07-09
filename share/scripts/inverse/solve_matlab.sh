@@ -23,7 +23,7 @@ sed -ie '/^[#@]/d' $1.dpot.matlab
 sed -ie '/[0-9]/s/$/ i/' $1.dpot.matlab
 
 # copy flags
-merge_tables="$($SOURCE_WRAPPER tools merge_tables)" || die "${0##*/}: $SOURCE_WRAPPER tools merge_tables failed"
+merge_tables="$($SOURCE_WRAPPER table merge)" || die "${0##*/}: $SOURCE_WRAPPER table merge failed"
 run_or_exit $merge_tables --novalues $1.pot.cur $1.dpot.matlab $1.dpot.new
 
 # temporary compatibility issue
