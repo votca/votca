@@ -6,8 +6,9 @@
  */
 
 #include "nblist.h"
+#include <iostream>
 
-void NBList::Generate(BeadList &list1, BeadList &list2)
+void NBList::Generate(BeadList &list1, BeadList &list2, ExclusionList *ExcList=0)
 {
     BeadList::iterator iter1;
     BeadList::iterator iter2;
@@ -34,14 +35,34 @@ void NBList::Generate(BeadList &list1, BeadList &list2)
             vec v = (*iter2)->getPos();
             
             vec r = top->BCShortestConnection(u, v);
-            if(Match(*iter1, *iter2, r))
+            if(Match(*iter1, *iter2, r, ExcList))
                 if(!FindPair(*iter1, *iter2))
                     AddPair(new BeadPair(*iter1, *iter2, r));
         } 
     }
 }
 
-bool NBList::Match(Bead *bead1, Bead *bead2, const vec &r)
+bool NBList::Match(Bead *bead1, Bead *bead2, const vec &r, ExclusionList *ExcList=0)
 {
-    return abs(r) < _cutoff;
+
+    int bead1_id = bead1->getId();
+    int bead2_id = bead2->getId();  
+    
+    if (bead1_id > bead2_id) {
+        int tmp = bead1_id;
+        bead1_id = bead2_id;
+        bead2_id = tmp;
+    }
+    ExclusionList::exclusion_t *excl;
+    if (ExcList != 0) {
+        if(excl = ExcList->GetExclusions(bead1_id)) {
+            list<int> exclusions_bead1 = excl->_exclude;   
+            list<int>::iterator iter;
+            cout << "excl_size=" << exclusions_bead1.size() << endl;
+    
+            for (iter = exclusions_bead1.begin(); iter != exclusions_bead1.end(); ++iter)
+                if ((*iter)==bead2_id) return false;
+        }
+    }
+    return abs(r) < _cutoff;    
 }
