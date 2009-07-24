@@ -46,6 +46,8 @@ protected:
   int BlockNum;       // current number of Blocks
   
   int line_cntr, col_cntr; // counters for lines and coloumns in B_constr 
+  double cutoff;  // cutoff for non-bonded interactions
+  bool NewNeighbour;  // true - new neighbour list, false - old neighbour list
   
   struct SplineInfo {
         int n; //number of splines
@@ -67,6 +69,7 @@ protected:
         ub::vector<double> resSum2;
         
         string splineName;
+        string type1, type2; // for non-bonded: types of beads involved
   };
  // SplineInfo Bond1;
 //  SplineInfo Bond2;
