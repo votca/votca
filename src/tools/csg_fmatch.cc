@@ -17,11 +17,14 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <tools/cubicspline.h>
 #include <neighbourlist.h>
+#include <nblist.h>
+#include <beadlist.h>
 #include <exclusionlist.h>
 #include <gsl/gsl_linalg.h>
 #include <stdio.h>
 #include <sstream>
 #include "csg_fmatch.h"
+
 
 //#define _DEBUG
 
@@ -38,6 +41,7 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
                                               // different interactions
                 
         int interaction_number = 0;
+        NewNeighbour = true;
   //      beadTypes = 1; // used by CGForceMatching::beadType2intType
         beadTypes = _options.get("cg.fmatch.bead_types").as<int>();
         numBondInt = 0;
@@ -45,7 +49,8 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
 //        N_frames = 6; // Number of frames in the block
         N_frames = _options.get("cg.fmatch.frames_per_block").as<int>();
         BlockNum = 0;
-       
+        cutoff = _options.get("cg.fmatch.cutoff").as<double>();
+
         // set counters to zero value:
         line_cntr = col_cntr = 0;
         
@@ -60,6 +65,7 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
             grid_step = (*iter)->get("fmatch.step").as<double>();
             i->res_output_coeff = (*iter)->get("fmatch.res_output_coeff").as<int>();
             i->n = i->Spline.GenerateGrid(grid_min, grid_max, grid_step) - 1;
+            cout << "Number of splines for the interaction " << i->splineName <<":"<< i->n << endl;
             i->bonded = true;
             i->matr_pos = colms_init;
             i->splineIndex = interaction_number++;
@@ -94,11 +100,14 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
             
             SplineInfo *i = new SplineInfo;
             i->splineName = (*iter)->get("name").value();
+            i->type1 = (*iter)->get("type1").value();  // added recently
+            i->type2 = (*iter)->get("type2").value();  // !!!
             grid_min = (*iter)->get("fmatch.min").as<double>();
             grid_max = (*iter)->get("fmatch.max").as<double>();
             grid_step = (*iter)->get("fmatch.step").as<double>();
             i->res_output_coeff = (*iter)->get("fmatch.res_output_coeff").as<int>();
             i->n = i->Spline.GenerateGrid(grid_min, grid_max, grid_step) - 1;
+            cout << "Number of splines for the interaction " << i->splineName <<":"<< i->n << endl;            
             i->bonded = false;
             i->matr_pos = colms_init;
             i->splineIndex = interaction_number++;
@@ -286,7 +295,7 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
                 
             for(is=Splines.begin(); is != Splines.end(); ++is) {
         
-                sfnum = (*is)->n;            
+                sfnum = (*is)->n;     
                 (*is)->Spline.AddBCToFitMatrix(_A, line_cntr, col_cntr);
             
                 // update counters
@@ -353,6 +362,100 @@ void CGForceMatching::EndCG() {
 
     
 void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
+    if (NewNeighbour) { // New neighbour list
+        
+        SplineContainer::iterator spiter;
+        
+        for (spiter=Splines.begin(); spiter != Splines.end(); ++spiter) 
+        {
+            SplineInfo *sinfo = *spiter;
+            if (sinfo->bonded) { // bonded interaction
+                std::list<Interaction *> interList;
+                std::list<Interaction *>::iterator interListIter;
+                
+                interList = conf->InteractionsInGroup(sinfo->splineName);
+                
+                for (interListIter=interList.begin(); interListIter!=interList.end();++interListIter) {
+
+                   int beads_in_int = (*interListIter)->BeadCount(); // 2 for bonds, 3 for angles, 4 for dihedrals
+                   
+                   CubicSpline &SP = sinfo->Spline;
+
+                   int  &mpos = sinfo->matr_pos;
+                   int  &nsp = sinfo->n;
+               
+                   double var = (*interListIter)->EvaluateVar(*conf); // value of bond, angle, or dihedral
+                   int i = SP.getInterval(var);   // corresponding spline interval
+
+                   for (int loop = 0; loop < beads_in_int; loop ++) {
+                       int ii = (*interListIter)->getBeadId(loop);
+                       vec gradient = (*interListIter)->Grad(*conf, loop);
+                  
+                       SP.AddToFitMatrix(_A, var, 
+                               LeastSQOffset + 3*N*L + ii, mpos, gradient.x());
+                       SP.AddToFitMatrix(_A, var, 
+                               LeastSQOffset + 3*N*L + N + ii, mpos, gradient.y());
+                       SP.AddToFitMatrix(_A, var,
+                               LeastSQOffset + 3*N*L + 2*N + ii, mpos, gradient.z());                       
+                   }
+                
+                
+                }
+            }
+            else { // non-bonded interaction
+                // generate the neighbour list
+                NBList NBL;
+                NBL.setCutoff(cutoff); // implement different cutoffs for different interactions!
+                
+                // generate the bead lists
+                BeadList beads1, beads2;
+                beads1.Generate(*conf, sinfo->type1);
+                beads2.Generate(*conf, sinfo->type2); 
+                
+                // is it same types or different types?
+                if(sinfo->type1 == sinfo->type2)
+                    NBL.Generate(beads1, &excList);
+                else
+                    NBL.Generate(beads1, beads2, &excList);
+                
+                
+                NBList::iterator pair_iter;
+                // iterate over all pairs
+                for(pair_iter = NBL.begin(); pair_iter!=NBL.end();++pair_iter) {
+                    int iatom = (*pair_iter)->first->getId();
+                    int jatom = (*pair_iter)->second->getId();
+                    double var = (*pair_iter)->dist();             
+                    vec gradient = (*pair_iter)->r();
+                    gradient.normalize();
+                    
+                    CubicSpline &SP = sinfo->Spline;
+
+                    int  &mpos = sinfo->matr_pos;
+                    int  &nsp = sinfo->n;     
+                    int i = SP.getInterval(var);
+                    
+                    // add iatom
+                    SP.AddToFitMatrix(_A, var, 
+                         LeastSQOffset + 3*N*L + iatom, mpos, gradient.x());
+                    SP.AddToFitMatrix(_A, var, 
+                         LeastSQOffset + 3*N*L + N + iatom, mpos, gradient.y());
+                    SP.AddToFitMatrix(_A, var,
+                         LeastSQOffset + 3*N*L + 2*N + iatom, mpos, gradient.z());  
+                            
+                    // add jatom 
+                    SP.AddToFitMatrix(_A, var, 
+                         LeastSQOffset + 3*N*L + jatom, mpos, -gradient.x());
+                    SP.AddToFitMatrix(_A, var, 
+                         LeastSQOffset + 3*N*L + N + jatom, mpos, -gradient.y());
+                    SP.AddToFitMatrix(_A, var,
+                         LeastSQOffset + 3*N*L + 2*N + jatom, mpos, -gradient.z());                            
+                     
+                }                
+            }
+        }
+    }       
+    else { //Old neighbour list
+        
         InteractionContainer &ic = conf->BondedInteractions();
         InteractionContainer::iterator ia;
 
@@ -389,7 +492,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
         bool noExcl;
         
         NeighbourList nbl;
-        nbl.setCutoff(1.2);
+        nbl.setCutoff(cutoff);
         nbl.Generate(*conf);
         
         for (int iatom = 0; iatom < N; iatom++) {
@@ -474,6 +577,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
             }
      
         }
+    }
 
         // loop for the forces vector: 
         // hack, chage the Has functions..
