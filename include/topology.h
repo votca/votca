@@ -13,6 +13,7 @@
 #include <list>
 
 #include <assert.h>
+#include <tools/types.h>
 #include <tools/vec.h>
 #include <tools/matrix.h>
 #include "bead.h"
@@ -98,7 +99,7 @@ public:
     
     // \todo change AddBondedinteraction to Create bonded interaction, that only topology can create interactions
     void AddBondedInteraction(Interaction *ic);
-    std::list<Interaction *> IneteractionsInGroup(const string &group);
+    std::list<Interaction *> InteractionsInGroup(const string &group);
     
     BeadType *getBeadType(const int i) const { return _beadtypes[i]; }
     Bead *getBead(const int i) const { return _beads[i]; }
