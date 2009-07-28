@@ -5,6 +5,7 @@
 // Created on July 16, 2007, 11:13 AM
 //
 
+#include "topology.h"
 #include "exclusionlist.h"
 
 void ExclusionList::Clear(void)
@@ -111,6 +112,16 @@ void ExclusionList::CreateExclusions(Topology *top) {
     
 }
 
+bool ExclusionList::IsExcluded(int bead1, int bead2) {
+    exclusion_t *excl;
+    if (bead2 < bead1) swap(bead1, bead2);
+    if (excl = GetExclusions(bead1)) {
+        if(find(excl->_exclude.begin(), excl->_exclude.end(), bead2) 
+                != excl->_exclude.end()) return true;        
+    }
+    return false;
+}
+
 std::ostream &operator<<(std::ostream &out, ExclusionList& exl)
 {
     list<ExclusionList::exclusion_t*>::iterator ex;
@@ -124,3 +135,5 @@ std::ostream &operator<<(std::ostream &out, ExclusionList& exl)
         out << endl;
     }
 }
+
+

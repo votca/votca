@@ -18,12 +18,16 @@ class BeadList
     : public list<Bead *>
 {
 public:
-    BeadList() {}
+    BeadList() {};
     ~BeadList() {}
     
     int Generate(Topology &top, const string &select);
     
+    Topology *getTopology() {return _topology; }
+    
 private:
+    Topology *_topology;
+    
 };
 
 #endif	/* _BEADLIST_H */

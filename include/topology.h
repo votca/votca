@@ -16,12 +16,14 @@
 #include <tools/types.h>
 #include <tools/vec.h>
 #include <tools/matrix.h>
+#include "exclusionlist.h"
 #include "bead.h"
 #include "molecule.h"
 #include "residue.h"
 #include "beadtype.h"
 
 class Interaction;
+class ExclusionList;
 
 typedef vector<Molecule *> MoleculeContainer;
 typedef vector<Bead *> BeadContainer;
@@ -125,9 +127,9 @@ public:
     const matrix &getBox() { return _box; };
 
     /// set the time of current frame
-    void setTime(real t) { _time = t; };
+    void setTime(double t) { _time = t; };
     /// get the time of current frame
-    real getTime() { return _time; };
+    double getTime() { return _time; };
     
     /// set the current step
     void setStep(int s) { _step = s; };
@@ -141,6 +143,10 @@ public:
     
     /// calculates the vox volume
     double BoxVolume();
+    
+    
+    void RebuildExclusions();
+    ExclusionList &getExclusions() { return _exclusions; }
     
 private:
     /// bead types in the topology
@@ -158,13 +164,15 @@ private:
     /// bonded interactions in the topology
     InteractionContainer _interactions;
     
+    ExclusionList _exclusions;
+    
     map<string, int> _interaction_groups;
     map<string, int> _beadtype_map;
     
     map<string, list<Interaction *> > _interactions_by_group;
     
     matrix _box;
-    real _time;
+    double _time;
     int _step;
 };
 

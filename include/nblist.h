@@ -17,25 +17,22 @@
  * \brief new implementation of neighbourlist, will substitute Neighbourlist
  * 
  */
-
 class NBList 
     : public PairList<Bead*, BeadPair>
 {
 public:
-    NBList() : _excl(0) {}
+    NBList() : _do_exclusions(false) {}
     
-
-    void Generate(BeadList &list1, BeadList &list2, ExclusionList *ExcList=0);
-    void Generate(BeadList &list, ExclusionList *ExcList) { Generate(list, list, ExcList); }
+    void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
+    void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
     
     void setCutoff(double cutoff) { _cutoff = cutoff; }
     double getCutoff() { return _cutoff; }
    
 private:
     double _cutoff;
-    ExclusionList *_excl;
-    
-    bool Match(Bead *bead1, Bead *bead2, const vec &r, ExclusionList *ExcList=0);
+    bool _do_exclusions;
+    bool Match(Bead *bead1, Bead *bead2, const vec &r);
 };
 
 #endif	/* _NBLIST_H */

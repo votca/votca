@@ -36,6 +36,7 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out)
         Map *map = def->CreateMap(*mol, *mcg);
         m->AddMoleculeMap(map);
     }
+    out.RebuildExclusions();    
     return m;
 }
 

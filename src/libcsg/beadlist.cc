@@ -11,6 +11,7 @@
 int BeadList::Generate(Topology &top, const string &select)
 {
     BeadContainer::iterator iter;
+    _topology = &top;
     
     for(iter=top.Beads().begin(); iter!=top.Beads().end();++iter) {
         if((*iter)->getType()->getName() == select) {

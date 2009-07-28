@@ -209,3 +209,8 @@ double Topology::BoxVolume()
     return (a^b)*c;
 }
 
+void Topology::RebuildExclusions()
+{
+    _exclusions.CreateExclusions(this);
+}
+    

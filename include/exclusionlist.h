@@ -11,11 +11,13 @@
 #include <iostream>
 #include <list>
 #include <map>
-#include "topology.h"
 
 using namespace std;
 
 /// \todo fill _excl_by_bead
+/// \todo no ids but pointers, use PairList
+
+class Topology;
 
 class ExclusionList
 {
@@ -41,6 +43,8 @@ public:
     
     iterator begin() { return _exclusions.begin(); }
     iterator end() { return _exclusions.end(); }
+    
+    bool IsExcluded(int bead1, int bead2);
 
 private:
     list< exclusion_t * > _exclusions;
