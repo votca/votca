@@ -1,0 +1,64 @@
+[General]
+img_extIsRegExp=false
+img_extensions=.eps .pdf .dvi .ps .fig .gif .jpg .jpeg .png
+kileprversion=1
+kileversion=1.9.3
+lastDocument=usage/mapping.tex
+masterDocument=
+name=manual
+pkg_extIsRegExp=false
+pkg_extensions=.cls .sty .dtx
+src_extIsRegExp=false
+src_extensions=.tex .ltx .bib .mp
+
+[Tools]
+MakeIndex=
+QuickBuild=
+
+[item:introduction.tex]
+archive=true
+column=10
+encoding=ISO 8859-1
+highlight=LaTeX
+line=0
+open=true
+
+[item:manual.kilepr]
+archive=true
+column=0
+encoding=
+highlight=
+line=0
+open=false
+
+[item:manual.tex]
+archive=true
+column=0
+encoding=ISO 8859-1
+highlight=LaTeX
+line=3
+open=true
+
+[item:theory.tex]
+archive=true
+column=32
+encoding=ISO 8859-1
+highlight=LaTeX
+line=0
+open=true
+
+[item:usage.tex]
+archive=true
+column=22
+encoding=ISO 8859-1
+highlight=LaTeX
+line=2
+open=true
+
+[item:usage/mapping.tex]
+archive=true
+column=0
+encoding=ISO 8859-1
+highlight=LaTeX
+line=11
+open=true
