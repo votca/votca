@@ -118,6 +118,8 @@ protected:
 
     /// process non-bonded interactions for given frame
     void DoNonbonded(Topology *top);
+    /// process bonded interactions for given frame
+    void DoBonded(Topology *top);
     /// update the correlations after interations were processed
     void DoCorrelations();
     

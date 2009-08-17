@@ -48,23 +48,25 @@ public:
         BeginCycle();
         for(MoleculeContainer::iterator iter=top->Molecules().begin();
             iter!=top->Molecules().end(); ++iter) {
-            Molecule *mi;
-            mi = *iter;
-            vec no = mi->getBead(0)->getU();
+            Molecule *mi = *iter;
+            if(mi->BeadCount() <= 1) continue;
             vector<int> beads;
-            for(int i=1; i<(*iter)->BeadCount(); ++i) {
+            vec no = mi->getBead(0)->getU();
+            beads.push_back(mi->getBead(0)->getId());
+
+            for(int i=1; i<mi->BeadCount(); ++i) {
                 vec n = mi->getBead(i)->getU();
-                beads.push_back(mi->getBead(i)->getId());
                 if(fabs(no*n) < thres) {
                     UpdateCrgUnit(beads);
                     _dist[beads.size()-1]++;
                     beads.clear();
                 }
+                beads.push_back(mi->getBead(i)->getId());
                 no = n; 
             }
-            if(!beads.empty())
-                _dist[beads.size()-1]++;            
-	}
+           _dist[beads.size()-1]++;
+            UpdateCrgUnit(beads);
+	    }
         EndCycle();
     }
     
@@ -112,7 +114,10 @@ protected:
         for(list<crgunit_t>::iterator iter = _crgunits.begin();
             iter != _crgunits.end();) {           
             if(!(*iter)._alive) {
-                _lifetime[(*iter)._beads.size()-1][(*iter)._lifetime]++;
+                if((*iter)._lifetime < 1000)
+                    _lifetime[(*iter)._beads.size()-1][(*iter)._lifetime]+=(*iter)._lifetime;
+                else
+                    _lifetime[(*iter)._beads.size()-1][999]+=(*iter)._lifetime;
                 iter =  _crgunits.erase(iter);
             } else ++iter;
         }

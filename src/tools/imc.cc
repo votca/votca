@@ -34,7 +34,7 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
     _nframes = 0;
     _nblock = 0;
     
-// initialize non-bonded structures
+   // initialize non-bonded structures
    for (list<Property*>::iterator iter = _nonbonded.begin();
         iter != _nonbonded.end(); ++iter) {
             interaction_t *i = AddInteraction(*iter);
@@ -45,6 +45,12 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
             beads2.Generate(*top, (*iter)->get("type2").value());
 
             i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*(beads2.size()-1.)/2.);
+   }
+   
+    // initialize non-bonded structures
+   for (list<Property*>::iterator iter = _bonded.begin();
+        iter != _bonded.end(); ++iter) {
+            interaction_t *i = AddInteraction(*iter);
    }
    
    // initialize the group structures
@@ -107,6 +113,8 @@ void Imc::EvalConfiguration(Topology *top, Topology *top_atom) {
     _nframes++;
     // process non-bonded interactions
     DoNonbonded(top);
+    // process bonded interactions
+    DoBonded(top);
     // update correlation matrices
     if(_do_imc)
         DoCorrelations();
@@ -175,6 +183,21 @@ void Imc::DoNonbonded(Topology *top)
         // update the average
         i._average.data().y() = (((double)_nframes-1.0)*i._average.data().y() 
                 + i._current.data().y())/(double)_nframes;
+    }    
+}
+
+// process non-bonded interactions for current frame
+void Imc::DoBonded(Topology *top)
+{
+    for (list<Property*>::iterator iter = _bonded.begin();
+            iter != _bonded.end(); ++iter) {
+        string name = (*iter)->get("name").value();
+        
+        interaction_t &i = *_interactions[name];
+                
+        // clear the current histogram
+        i._current.Clear();
+        
     }    
 }
 
