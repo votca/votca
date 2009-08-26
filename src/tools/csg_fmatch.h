@@ -88,6 +88,7 @@ protected:
   
   void FmatchAccumulateData();
   void FmatchAssignMatrixAgain();
+  void FmatchAssignMatrixB_constr();
   void EvalBonded(Topology *conf, SplineInfo *sinfo);
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);    
 };
