@@ -45,12 +45,14 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
             beads2.Generate(*top, (*iter)->get("type2").value());
 
             i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*(beads2.size()-1.)/2.);
+            i->_is_bonded = false;
    }
    
     // initialize non-bonded structures
    for (list<Property*>::iterator iter = _bonded.begin();
         iter != _bonded.end(); ++iter) {
             interaction_t *i = AddInteraction(*iter);
+            i->_is_bonded = true;
    }
    
    // initialize the group structures
@@ -194,10 +196,22 @@ void Imc::DoBonded(Topology *top)
         string name = (*iter)->get("name").value();
         
         interaction_t &i = *_interactions[name];
-                
+
         // clear the current histogram
         i._current.Clear();
-        
+
+        // now fill with new data
+        std::list<Interaction *> list = top->InteractionsInGroup(name);
+
+        std::list<Interaction *>::iterator ic_iter;
+        for(ic_iter=list.begin(); ic_iter!=list.end(); ++ic_iter) {
+            Interaction *ic = *ic_iter;
+            double v = ic->EvaluateVar(*top);
+            i._current.Process(v);
+        }
+        // update the average
+        i._average.data().y() = (((double)_nframes-1.0)*i._average.data().y()
+                + i._current.data().y())/(double)_nframes;
     }    
 }
 
@@ -293,10 +307,15 @@ void Imc::WriteDist(const string &suffix)
         Table &t = iter->second->_average.data();            
         Table dist(t);
 
-        dist.y() = iter->second->_norm * 
+        if(!iter->second->_is_bonded) {
+            dist.y() = iter->second->_norm *
                 element_div(dist.y(),
                     element_prod(dist.x(), dist.x())
                 );
+        }
+        else {
+            dist.y() = iter->second->_norm * dist.y();
+        }
         
         dist.Save((iter->first) + suffix + ".dist.new");
         cout << "written " << (iter->first) + suffix + ".dist.new\n";            
@@ -431,10 +450,14 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
     Table target;
     target.Load(name + ".dist.tgt");
                       
-    target.y() = (1.0 / interaction->_norm)*ub::element_prod(target.y(), 
+    if(!interaction->_is_bonded) {
+        target.y() = (1.0 / interaction->_norm)*ub::element_prod(target.y(),
             (ub::element_prod(target.x(), target.x()))
             ) ;
-              
+    }
+    else {
+            target.y() = (1.0 / interaction->_norm)*target.y();
+    }
     if(target.y().size() !=  interaction->_average.data().y().size())
         throw std::runtime_error("number of grid points in target does not match the grid");
 

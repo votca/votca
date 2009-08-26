@@ -64,6 +64,7 @@ protected:
         HistogramNew _current;
         double _min, _max, _step;
         double _norm;
+        bool _is_bonded;
     };
     
     // a pair of interactions which are correlated

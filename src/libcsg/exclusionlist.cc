@@ -5,6 +5,7 @@
 // Created on July 16, 2007, 11:13 AM
 //
 
+#include <algorithm>
 #include "topology.h"
 #include "exclusionlist.h"
 
