@@ -47,7 +47,7 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
     BlockNum = 0;
     line_cntr = col_cntr = 0;
 
-    ConstrLeastSQ = false;
+    ConstrLeastSQ = true;
     
     N_frames = _options.get("cg.fmatch.frames_per_block").as<int>();
         
@@ -80,6 +80,8 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
     cout << "hey, somebody wants to forcematch!\n";
 
     if (ConstrLeastSQ) { // Constrained Least Squares
+        
+        cout << "Using constrained Least Squares! " << endl;
 
         // offset, used in EvalConf
         LeastSQOffset = 0;
@@ -92,7 +94,7 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
         _A.resize(3 * N*N_frames, col_cntr, false); // resize matrix _A
         _b.resize(3 * N*N_frames, false); // resize vector _b   
 
-        FmatchAssignMatrixAgain();        
+        FmatchAssignMatrixB_constr();        
     } else { // Simple Least Squares
 
         // offset, used in EvalConf
@@ -225,6 +227,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
         if (ConstrLeastSQ) { //Constrained Least Squares
             _A.clear();
             _b.clear();
+            FmatchAssignMatrixB_constr();
         } else { // Simple Least Squares
             FmatchAssignMatrixAgain();
         }
@@ -256,9 +259,14 @@ void CGForceMatching::FmatchAccumulateData()
 
         // To proceed we need to factorize B^T = Q*R. We need matrix Q for further
         // calculations
-        B_constr = trans(B_constr);
+        // B_constr_Tr - transpose of B_constr
+        ub::matrix<double> B_constr_Tr;
+        B_constr_Tr.resize(col_cntr, line_cntr, false);
+        B_constr_Tr.clear();   
+        
+        B_constr_Tr = trans(B_constr);
 
-        double* pointer_Bcnstr = & B_constr(0, 0);
+        double* pointer_Bcnstr = & B_constr_Tr(0, 0);
 
         // TODO: here is something wrong, see initialization of B_constr, col_cntr and line_cntr swapped!!
         gsl_matrix_view B_t
@@ -387,6 +395,25 @@ void CGForceMatching::FmatchAssignMatrixAgain()
     for (is = Splines.begin(); is != Splines.end(); ++is) {
         int sfnum = (*is)->n;
         (*is)->Spline.AddBCToFitMatrix(_A, line_tmp, col_tmp);
+        // update counters
+        line_tmp += sfnum + 1;
+        col_tmp += 2 * (sfnum + 1);
+    }
+}
+
+void CGForceMatching::FmatchAssignMatrixB_constr() 
+{
+    int line_tmp, col_tmp;
+    line_tmp = 0;
+    col_tmp = 0;
+
+    B_constr.clear();
+    
+
+    SplineContainer::iterator is;
+    for (is = Splines.begin(); is != Splines.end(); ++is) {
+        int sfnum = (*is)->n;
+        (*is)->Spline.AddBCToFitMatrix(B_constr, line_tmp, col_tmp);
         // update counters
         line_tmp += sfnum + 1;
         col_tmp += 2 * (sfnum + 1);
