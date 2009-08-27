@@ -75,12 +75,13 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
     }
 
     N = top->BeadCount(); // Number of beads in topology
-    L = 0; // Initial frame in trajectory  
-    cout << "hey, somebody wants to forcematch!\n";
+    L = 0; // Initial frame in trajectory
+    cout << "\nYou are using VOTCA!\n";
+    cout << "\nhey, somebody wants to forcematch!\n";
 
     if (ConstrLeastSQ) { // Constrained Least Squares
         
-        cout << "Using constrained Least Squares! " << endl;
+        cout << "\nUsing constrained Least Squares!\n " << endl;
 
         // offset, used in EvalConf
         LeastSQOffset = 0;
