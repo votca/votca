@@ -93,7 +93,7 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
         _A.resize(3 * N*N_frames, col_cntr, false); // resize matrix _A
         _b.resize(3 * N*N_frames, false); // resize vector _b   
 
-        FmatchAssignMatrixB_constr();        
+        FmatchAssignSmoothCondsToMatrix(B_constr);
     } else { // Simple Least Squares
 
         cout << "Using simple Least Squares! " << endl;
@@ -103,8 +103,8 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
         _A.resize(line_cntr + 3 * N*N_frames, col_cntr, false); // resize matrix _A
         _b.resize(line_cntr + 3 * N*N_frames, false); // resize vector _b   
         
-        
-        FmatchAssignMatrixAgain();
+        FmatchAssignSmoothCondsToMatrix(_A);
+        _b.clear();
     }
     _x.resize(col_cntr);
     _x.clear();
@@ -227,9 +227,10 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
         if (ConstrLeastSQ) { //Constrained Least Squares
             _A.clear();
             _b.clear();
-            FmatchAssignMatrixB_constr();
+            FmatchAssignSmoothCondsToMatrix(B_constr);
         } else { // Simple Least Squares
-            FmatchAssignMatrixAgain();
+            FmatchAssignSmoothCondsToMatrix(_A);
+            _b.clear();
         }
     }
 }
@@ -382,38 +383,22 @@ void CGForceMatching::FmatchAccumulateData()
     }
 }
 
-void CGForceMatching::FmatchAssignMatrixAgain() 
+void CGForceMatching::FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix)
 {
+// This function assigns Spline smoothing conditions to the Matrix.
+// For the simple least squares the function is used for matrix _A
+// For constrained least squares - for matrix B_constr
     int line_tmp, col_tmp;
     line_tmp = 0;
     col_tmp = 0;
 
-    _A.clear();
-    _b.clear();
+    Matrix.clear();
+
 
     SplineContainer::iterator is;
     for (is = Splines.begin(); is != Splines.end(); ++is) {
         int sfnum = (*is)->n;
-        (*is)->Spline.AddBCToFitMatrix(_A, line_tmp, col_tmp);
-        // update counters
-        line_tmp += sfnum + 1;
-        col_tmp += 2 * (sfnum + 1);
-    }
-}
-
-void CGForceMatching::FmatchAssignMatrixB_constr() 
-{
-    int line_tmp, col_tmp;
-    line_tmp = 0;
-    col_tmp = 0;
-
-    B_constr.clear();
-    
-
-    SplineContainer::iterator is;
-    for (is = Splines.begin(); is != Splines.end(); ++is) {
-        int sfnum = (*is)->n;
-        (*is)->Spline.AddBCToFitMatrix(B_constr, line_tmp, col_tmp);
+        (*is)->Spline.AddBCToFitMatrix(Matrix, line_tmp, col_tmp);
         // update counters
         line_tmp += sfnum + 1;
         col_tmp += 2 * (sfnum + 1);

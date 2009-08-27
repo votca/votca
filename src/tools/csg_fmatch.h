@@ -87,8 +87,7 @@ protected:
 
   
   void FmatchAccumulateData();
-  void FmatchAssignMatrixAgain();
-  void FmatchAssignMatrixB_constr();
+  void FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix);
   void EvalBonded(Topology *conf, SplineInfo *sinfo);
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);    
 };
