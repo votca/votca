@@ -46,10 +46,9 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
     // set counters to zero value:
     BlockNum = 0;
     line_cntr = col_cntr = 0;
-
-    ConstrLeastSQ = true;
     
     N_frames = _options.get("cg.fmatch.frames_per_block").as<int>();
+    ConstrLeastSQ = _options.get("cg.fmatch.constrainedLS").as<bool>();
         
     // initializing bonded interactions
     for (list<Property*>::iterator iter = _bonded.begin();
@@ -97,6 +96,7 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
         FmatchAssignMatrixB_constr();        
     } else { // Simple Least Squares
 
+        cout << "Using simple Least Squares! " << endl;
         // offset, used in EvalConf
         LeastSQOffset = line_cntr;
 
