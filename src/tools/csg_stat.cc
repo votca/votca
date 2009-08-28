@@ -87,13 +87,13 @@ int main(int argc, char** argv)
     imc.LoadOptions(vm["options"].as<string>());
             
     // try to run the cg process, go through the frames, etc...
-    //try {
+    try {
         cg_engine.Run(desc, vm);
-    //}
+    }
     // did an error occour?
-    //catch(string error) {
-     //   cerr << "An error occoured!" << endl << error << endl;
-    //}
+    catch(exception &error) {
+        cerr << "An error occoured!" << endl << error.what() << endl;
+    }
     return 0;
 }
 

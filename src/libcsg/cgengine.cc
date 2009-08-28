@@ -100,11 +100,11 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     bool has_begin=false;
     if (!vm.count("top")) {
         cout << desc << endl;
-        throw string("no topology file specified");
+        throw runtime_error("no topology file specified");
     }
     if (!vm.count("cg")) {
         cout << desc << endl;
-        throw string("no coarse graining definition specified");
+        throw runtime_error("no coarse graining definition specified");
     }
     
     if(vm.count("begin")) {
@@ -123,7 +123,7 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     // create reader for atomistic topology
     reader = TopReaderFactory().Create(vm["top"].as<string>());
     if(reader == NULL) 
-        throw string("input format not supported: ") + vm["top"].as<string>();
+        throw runtime_error(string("input format not supported: ") + vm["top"].as<string>());
         
     // read in the atomistic topology
     reader->ReadTopology(vm["top"].as<string>(), top);
@@ -146,7 +146,7 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
         // create reader for trajectory
         traj_reader = TrjReaderFactory().Create(vm["trj"].as<string>());
         if(traj_reader == NULL)
-            throw string("input format not supported: ") + vm["trj"].as<string>();
+            throw runtime_error(string("input format not supported: ") + vm["trj"].as<string>());
         // open the trajectory
         traj_reader->Open(vm["trj"].as<string>());
         // read in first frame

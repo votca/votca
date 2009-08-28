@@ -47,18 +47,18 @@ void CGMoleculeDef::Load(string filename)
     //cout << filename << endl;
     doc = xmlParseFile(filename.c_str());
     if(doc == NULL) 
-        throw "Error on open xml bead map: " + filename;
+        throw runtime_error("Error on open xml bead map: " + filename);
     
     node = xmlDocGetRootElement(doc);
     
     if(node == NULL) {
         xmlFreeDoc(doc);
-        throw "Error, empty xml document: " + filename;
+        throw runtime_error("Error, empty xml document: " + filename);
     }
     
     if(xmlStrcmp(node->name, (const xmlChar *)"cg_molecule")) {
         xmlFreeDoc(doc);
-        throw "Error, in xml file: " + filename;
+        throw runtime_error("Error, in xml file: " + filename);
     }
     
     // parse xml tree
@@ -234,8 +234,10 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
                 int atom1, atom2;
                 atom1 = minfo->getBeadIdByName((*fdef)->_atoms[i]);
                 atom2 = minfo->getBeadIdByName((*fdef)->_atoms[i+1]);
-                if(atom1 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i] + " not found");
-                if(atom2 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i+1] + " not found");
+                if(atom1 < 0)
+                    runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i] + " not found"));
+                if(atom2 < 0) 
+                    throw runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i+1] + " not found"));
                 IBond *ib = new IBond(atom1, atom2);
                 ib->setGroup((*fdef)->_name);
                 ib->setIndex(i/2);
@@ -250,9 +252,10 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
                 atom2 = minfo->getBeadIdByName((*fdef)->_atoms[i+1]);
                 atom3 = minfo->getBeadIdByName((*fdef)->_atoms[i+2]);
                 
-                if(atom1 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i] + " not found");
-                if(atom2 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i+1] + " not found");
-                if(atom3 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i+3] + " not found");
+                if(atom1 < 0)
+                    throw runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i] + " not found"));
+                if(atom2 < 0) throw runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i+1] + " not found"));
+                if(atom3 < 0) throw runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i+3] + " not found"));
                 IAngle *ib = new IAngle(atom1, atom2, atom3);
                 ib->setGroup((*fdef)->_name);
                 ib->setIndex(i/3);
@@ -267,10 +270,10 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
                 atom2 = minfo->getBeadIdByName((*fdef)->_atoms[i+1]);
                 atom3 = minfo->getBeadIdByName((*fdef)->_atoms[i+2]);
                 atom4 = minfo->getBeadIdByName((*fdef)->_atoms[i+3]);
-                if(atom1 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i] + " not found");
-                if(atom2 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i+1] + " not found");
-                if(atom3 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i+3] + " not found");
-                if(atom4 < 0) throw string("error while trying to create bond, bead " + (*fdef)->_atoms[i+3] + " not found");
+                if(atom1 < 0) throw runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i] + " not found"));
+                if(atom2 < 0) throw runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i+1] + " not found"));
+                if(atom3 < 0) throw runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i+3] + " not found"));
+                if(atom4 < 0) throw runtime_error(string("error while trying to create bond, bead " + (*fdef)->_atoms[i+3] + " not found"));
                 IDihedral *ib = new IDihedral(atom1, atom2, atom3, atom4);
                 ib->setGroup((*fdef)->_name);
                 ib->setIndex(i/4);
@@ -295,14 +298,14 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out)
         vector<int>::iterator iter;
         iout = out.getBeadByName((*def)->_name);
         if(iout < 0) 
-            throw string("mapping error: molecule " + (*def)->_name + " does not exist");
+            throw runtime_error(string("mapping error: molecule " + (*def)->_name + " does not exist"));
         
         mdef = getMapByName((*def)->_mapping);
         if(!mdef)
-            throw string("mapping " + (*def)->_mapping + " not found");
+            throw runtime_error(string("mapping " + (*def)->_mapping + " not found"));
         
         if((*def)->_subbeads.size() != mdef->_weights.size())
-            throw string("number of subbeads in " + (*def)->_name + "and number of weights in map " + (*def)->_mapping +" do not match");       
+            throw runtime_error(string("number of subbeads in " + (*def)->_name + "and number of weights in map " + (*def)->_mapping +" do not match"));
         
         switch((*def)->_symmetry) {
         case 1:
@@ -310,7 +313,8 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out)
             Map_Sphere *bmap = new Map_Sphere(iout);           
             for(size_t i=0; i < (*def)->_subbeads.size(); ++i) {
                 iin = in.getBeadByName((*def)->_subbeads[i]);
-                if(iin < 0) throw string("mapping error: molecule " + (*def)->_subbeads[i] + " does not exist");
+                if(iin < 0) 
+                    throw runtime_error(string("mapping error: molecule " + (*def)->_subbeads[i] + " does not exist"));
                 bmap->AddElem(iin, mdef->_weights[i]);
             }
             map->AddBeadMap(bmap);
@@ -321,14 +325,15 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out)
             Map_Ellipsoid *bmap = new Map_Ellipsoid(iout); ;
             for(size_t i=0; i < (*def)->_subbeads.size(); ++i) {
                 iin = in.getBeadByName((*def)->_subbeads[i]);
-                if(iin < 0) throw string("mapping error: molecule " + (*def)->_subbeads[i] + " does not exist");
+                if(iin < 0) 
+                    throw runtime_error(string("mapping error: molecule " + (*def)->_subbeads[i] + " does not exist"));
                 bmap->AddElem(iin, mdef->_weights[i]);
             }
             map->AddBeadMap(bmap);
         }
             break;
         default:
-            throw string("unknown symmetry in bead definition!");
+            throw runtime_error(string("unknown symmetry in bead definition!"));
         }
     }
     return map;
@@ -368,7 +373,7 @@ ExclusionList *CGMoleculeDef::CreateExclusionList(Molecule &atomistic)
         else if((*iter)->_type == "dihedral") {
             natoms = 4;              
         }
-        else throw string("unknown bond type");
+        else throw runtime_error(string("unknown bond type"));
         
         for(size_t i=0; i<(*iter)->_atoms.size(); i+=natoms) {
             exclude.clear();
@@ -376,7 +381,7 @@ ExclusionList *CGMoleculeDef::CreateExclusionList(Molecule &atomistic)
             for(int j=0; j<natoms; j++) {
                 beaddef_t *bead = getBeadByName((*iter)->_atoms[i+j]);
                 if(bead == NULL) 
-                    throw string("error while trying to create exclusion list, bead " + (*iter)->_atoms[i+j] + " not found");
+                    throw runtime_error(string("error while trying to create exclusion list, bead " + (*iter)->_atoms[i+j] + " not found"));
                 for(vector<string>::iterator sb=bead->_subbeads.begin(); sb!=bead->_subbeads.end(); ++sb) {
                     exclude.push_back(atomistic.getBeadId(atomistic.getBeadIdByName(*sb)));
                 }                

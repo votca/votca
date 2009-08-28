@@ -252,7 +252,6 @@ void Imc::InitializeGroups()
         M.resize(n);
         M = ub::zero_matrix<double>(n, n);
         
-        
         // now create references to the sub matrices
         int i, j;
         i=0;j=0;
@@ -260,6 +259,7 @@ void Imc::InitializeGroups()
         for (list<interaction_t*>::iterator i1 = grp->_interactions.begin();
                 i1 != grp->_interactions.end(); ++i1) {
             int n1 = (*i1)->_current.getNBins();
+            j = i;
             for (list<interaction_t*>::iterator i2 = i1;
                     i2 != grp->_interactions.end(); ++i2) {
                 int n2 = (*i2)->_current.getNBins();
@@ -280,8 +280,7 @@ void Imc::DoCorrelations() {
     if(!_do_imc) return;
     vector<pair_t>::iterator pair;
     map<string, group_t *>::iterator group_iter;
-    
-    
+        
      for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter) {
         group_t *grp = (*group_iter).second;      
         // update correlation for all pairs
@@ -291,7 +290,10 @@ void Imc::DoCorrelations() {
             pair_matrix &M = pair->_corr;
 
             // M_ij += a_i*b_j
-            M = (((double)_nframes-1.0)*M + ub::outer_prod(a, b))/(double)_nframes;
+            for(int i=0; i<M.size1(); ++i)
+                for(int j=0; j<M.size2(); ++j)
+                    M(i,j) = ((((double)_nframes-1.0)*M(i,j)) + (a(i)*b(j)))/(double)_nframes;
+            //  M = ((((double)_nframes-1.0)*M) + ub::outer_prod(a, b))/(double)_nframes;
         }
     }
 }
@@ -404,7 +406,10 @@ void Imc::WriteIMCData(const string &suffix) {
             pair_matrix M(gmc, ub::range(i, i+n1),
                                ub::range(j, j+n2));
             // A_ij = -(<a_i*a_j>  - <a_i>*<b_j>)
-            M = -(grp->_corr - ub::outer_prod(a, b));
+            for(i=0; i<M.size1(); ++i)
+                for(j=0; j<M.size2(); ++j)
+                    M(i,j) = -(M(i,j) - a(i)*b(j));
+            //M = -(M - ub::outer_prod(a, b));
         }
         
         // write the dS
@@ -439,6 +444,25 @@ void Imc::WriteIMCData(const string &suffix) {
         }    
         out_A.close(); 
         cout << "written " << name_A << endl;
+
+        // write the index
+
+        ofstream out_idx;
+        string name_idx = grp_name + suffix + ".idx";
+        out_idx.open(name_idx.c_str());
+
+        if(!out_idx)
+            throw runtime_error(string("error, cannot open file ") + name_idx);
+
+        int last=1;
+
+        for(int i=0; i<sizes.size();++i) {
+            out_idx << names[i] << " " << last << ":" << last + sizes[i] - 1 << endl;
+            last+=sizes[i];
+        }
+        out_idx.close();
+        cout << "written " << name_idx << endl;
+
     }
 }
 
