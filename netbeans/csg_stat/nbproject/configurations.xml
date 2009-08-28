@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="45">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../../src/tools/imc.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../../src/tools/csg_stat.cc</itemPath>
+      <itemPath>../../src/tools/imc.cc</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>../../src/tools</Elem>
+  </sourceRootList>
+  <sourceEncoding>UTF-8</sourceEncoding>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <ccCompilerTool>
+          <includeDirectories>
+            <directoryPath>../../include</directoryPath>
+            <directoryPath>../../../include</directoryPath>
+          </includeDirectories>
+        </ccCompilerTool>
+        <linkerTool>
+          <output>../../src/tools/csg_stat</output>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../libcsg"
+                            CT="3"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../libcsg"
+                            BC="${MAKE}  -f Makefile_nb CONF=Debug"
+                            CC="${MAKE}  -f Makefile_nb CONF=Debug clean"
+                            OP="../../src/libcsg/libcsg.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../tools/netbeans/libtools"
+                            CT="3"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../../../tools/netbeans/libtools"
+                            BC="${MAKE}  -f Makefile_nb CONF=Debug"
+                            CC="${MAKE}  -f Makefile_nb CONF=Debug clean"
+                            OP="../../src/libtools/libtools.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibLibItem>gmx</linkerLibLibItem>
+            <linkerLibLibItem>boost_program_options</linkerLibLibItem>
+            <linkerLibLibItem>xml2</linkerLibLibItem>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="../../src/tools/csg_stat.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/tools/imc.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/tools/imc.h">
+        <itemTool>3</itemTool>
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cCompilerTool>
+          <developmentMode>5</developmentMode>
+        </cCompilerTool>
+        <ccCompilerTool>
+          <developmentMode>2</developmentMode>
+          <includeDirectories>
+            <directoryPath>../../include</directoryPath>
+            <directoryPath>../../../include</directoryPath>
+          </includeDirectories>
+        </ccCompilerTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <linkerTool>
+          <output>../../src/tools/csg_stat</output>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../libcsg"
+                            CT="3"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../libcsg"
+                            BC="${MAKE}  -f Makefile_nb CONF=Release"
+                            CC="${MAKE}  -f Makefile_nb CONF=Release clean"
+                            OP="../../src/libcsg/libcsg.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../tools/netbeans/libtools"
+                            CT="3"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../../../tools/netbeans/libtools"
+                            BC="${MAKE}  -f Makefile_nb CONF=Release"
+                            CC="${MAKE}  -f Makefile_nb CONF=Release clean"
+                            OP="../../src/libtools/libtools.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibLibItem>gmx</linkerLibLibItem>
+            <linkerLibLibItem>boost_program_options</linkerLibLibItem>
+            <linkerLibLibItem>xml2</linkerLibLibItem>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="../../src/tools/csg_stat.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/tools/imc.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/tools/imc.h">
+        <itemTool>3</itemTool>
+      </item>
+    </conf>
+    <conf name="profile_release" type="1">
+      <toolsSet>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cCompilerTool>
+          <developmentMode>5</developmentMode>
+        </cCompilerTool>
+        <ccCompilerTool>
+          <developmentMode>2</developmentMode>
+          <includeDirectories>
+            <directoryPath>../../include</directoryPath>
+            <directoryPath>../../../include</directoryPath>
+          </includeDirectories>
+          <commandLine>-pg</commandLine>
+        </ccCompilerTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <linkerTool>
+          <output>../../src/tools/csg_stat</output>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../libcsg"
+                            CT="3"
+                            CN="profile_release"
+                            AC="false"
+                            BL="true"
+                            WD="../libcsg"
+                            BC="${MAKE}  -f Makefile_nb CONF=profile_release"
+                            CC="${MAKE}  -f Makefile_nb CONF=profile_release clean"
+                            OP="../../src/libcsg/libcsg.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../tools/netbeans/libtools"
+                            CT="3"
+                            CN="profile_release"
+                            AC="false"
+                            BL="false"
+                            WD="../../../tools/netbeans/libtools"
+                            BC="${MAKE}  -f Makefile_nb CONF=profile_release"
+                            CC="${MAKE}  -f Makefile_nb CONF=profile_release clean"
+                            OP="../../src/libtools/libtools.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibLibItem>gmx</linkerLibLibItem>
+            <linkerLibLibItem>boost_program_options</linkerLibLibItem>
+            <linkerLibLibItem>xml2</linkerLibLibItem>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+          </linkerLibItems>
+          <commandLine>-pg</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="../../src/tools/csg_stat.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/tools/imc.cc">
+        <itemTool>1</itemTool>
+      </item>
+      <item path="../../src/tools/imc.h">
+        <itemTool>3</itemTool>
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
