@@ -1,7 +1,46 @@
-
 \begin{itemize}
+\item \textbf{name} \\
+      Name of molecule in coarse-grained representation.
 \item \textbf{ident} \\
       Molecule name in reference topology.
+\item \textbf{topology} \\
+      Section containing definition of coarse grained topology of molecule.
+\item \textbf{topology.cg\_beads} \\
+      Section defining coarse grained beads of molecule.
+\item \textbf{topology.cg\_beads.cg\_bead} \\
+      Definition of a coarse grained bead.
+\item \textbf{topology.cg\_beads.cg\_bead.name} \\
+      Name of coarse grained bead.
+\item \textbf{topology.cg\_beads.cg\_bead.type} \\
+      Type of coarse grained bead.
+\item \textbf{topology.cg\_beads.cg\_bead.mapping} \\
+      Mapping scheme to be used for this bead (specified in section mapping) to map from reference system.
+\item \textbf{topology.cg\_beads.cg\_bead.beads} \\
+      The beads section lists all atoms of the reference system that are mapped to this particular
+      coarse grained bead. The syntax is RESID:RESNAME:ATOMNAME, the beads are seperated by spaces.
+\item \textbf{topology.cg\_bonded} \\
+      The cg\_bonded section contains all bonded interaction of the molecule. That can be bond, angle or dihedral.
+      An entry for each group of bonded interaction can be specified, e.g. several groups (types) of bonds can be specified.
+      A specific bonded interaction can be later on addressed by MOLECULE:NAME:NUMBER, where MOLECULE is the molecule ID in
+      the whole topology, NAME the name of the interaction group and NUMBER addresses the interaction in the group.
+\item \textbf{topology.cg\_bonded.bond} \\
+      Definition of a group of bonds.
+\item \textbf{topology.cg\_bonded.bond.name} \\
+      Name of the group.
+\item \textbf{topology.cg\_bonded.bond.beads} \\
+      List of pair of beads that define a bond. Names specified in cg\_beads, separated by commas.
+\item \textbf{topology.cg\_bonded.angle} \\
+      Definition of a group of angles.
+\item \textbf{topology.cg\_bonded.angle.name} \\
+      Name of the group.
+\item \textbf{topology.cg\_bonded.angle.beads} \\
+      List of triples of beads that define a bond. Names specified in cg\_beads, separated by commas.
+\item \textbf{topology.cg\_bonded.dihedral} \\
+      Definition of a group of dihedrals. Since the exact functional form does not matter, this combines proper as well as improper dihedrals.
+\item \textbf{topology.cg\_bonded.dihedral.name} \\
+      Name of the group.
+\item \textbf{topology.cg\_bonded.dihedral.beads} \\
+      List of quadruples of beads that define a bond. Names specified in cg\_beads, separated by commas.
 \item \textbf{maps} \\
       Section containing definitions of mapping schemes.
 \item \textbf{maps.map} \\
@@ -10,44 +49,4 @@
       Name of the mapping.
 \item \textbf{maps.map.weights} \\
       Weights of the mapping matrix. Entries are normalized to 1, number of entries must match the number of reference beads in a coarse-grained bead.
-\item \textbf{name} \\
-      Name of molecule in coarse-grained representation.
-\item \textbf{topology} \\
-      Section containing definition of coarse grained topology of molecule.
-\item \textbf{topology.cg\_beads} \\
-      Section defining coarse grained beads of molecule.
-\item \textbf{topology.cg\_beads.cg\_bead} \\
-      Definition of a coarse grained bead.
-\item \textbf{topology.cg\_beads.cg\_bead.beads} \\
-      The beads section lists all atoms of the reference system that are mapped to this particular
-      coarse grained bead. The syntax is RESID:RESNAME:ATOMNAME, the beads are seperated by spaces.
-\item \textbf{topology.cg\_beads.cg\_bead.mapping} \\
-      Mapping scheme to be used for this bead (specified in section mapping) to map from reference system.
-\item \textbf{topology.cg\_beads.cg\_bead.name} \\
-      Name of coarse grained bead.
-\item \textbf{topology.cg\_beads.cg\_bead.type} \\
-      Type of coarse grained bead.
-\item \textbf{topology.cg\_bonded} \\
-      The cg\_bonded section contains all bonded interaction of the molecule. That can be bond, angle or dihedral.
-      An entry for each group of bonded interaction can be specified, e.g. several groups (types) of bonds can be specified.
-      A specific bonded interaction can be later on addressed by MOLECULE:NAME:NUMBER, where MOLECULE is the molecule ID in
-      the whole topology, NAME the name of the interaction group and NUMBER addresses the interaction in the group.
-\item \textbf{topology.cg\_bonded.angle} \\
-      Definition of a group of angles.
-\item \textbf{topology.cg\_bonded.angle.beads} \\
-      List of triples of beads that define a bond. Names specified in cg\_beads, separated by commas.
-\item \textbf{topology.cg\_bonded.angle.name} \\
-      Name of the group.
-\item \textbf{topology.cg\_bonded.bond} \\
-      Definition of a group of bonds.
-\item \textbf{topology.cg\_bonded.bond.beads} \\
-      List of pair of beads that define a bond. Names specified in cg\_beads, separated by commas.
-\item \textbf{topology.cg\_bonded.bond.name} \\
-      Name of the group.
-\item \textbf{topology.cg\_bonded.dihedral} \\
-      Definition of a group of dihedrals. Since the exact functional form does not matter, this combines proper as well as improper dihedrals.
-\item \textbf{topology.cg\_bonded.dihedral.beads} \\
-      List of quadruples of beads that define a bond. Names specified in cg\_beads, separated by commas.
-\item \textbf{topology.cg\_bonded.dihedral.name} \\
-      Name of the group.
 \end{itemize}
