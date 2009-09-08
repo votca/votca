@@ -3,9 +3,12 @@
 if [ "$1" = "--help" ]; then
   echo This is a wrapper to convert potential to gromacs
   echo Usage: ${0##*/} 
-  echo Needs: \$SOURCE_WRAPPER, run_or_exit
+  echo USES: \$SOURCE_WRAPPER die \$csg_get log csg_get_property run_or_exit csg_resample
+  echo NEEDS: name gromacs.table max inverse.gromacs.table_bins
   exit 0
 fi
+
+check_deps "$0"
 
 table_to_xvg="$($SOURCE_WRAPPER convert_potential xvg)" || die "$SOURCE_WRAPPER convert_potential xvg failed" 
 

@@ -11,9 +11,11 @@ function_help() {
                 and kills all csg process
   do_external = get scriptname for sourcewrapper and run it
                 supports for_all
-  for_all     = run at command for all
+  for_all     = run a command for all non-bonded pairs
   logrun      = exec to log output
   run_or_exit = logrun + die if error
+  check_for   = checks if a binary exist in the path
+  check_deps  = checks the dependencies of a script
 
 
   Examples:
@@ -183,6 +185,31 @@ is_done () {
   return 1
 }
 
+check_for () {
+  [[ -n "$2" ]] || die "check_for: Missig arguments"
+  file="$1"
+  shift
+  local exe
+  for exe in $@; do
+    if [ -z "${exe##\$*}" ]; then
+      exe=${exe#\$}
+      [[ -n "${!exe}" ]] || die "check_for: '${exe}' is undefined in ${file}"
+      continue
+    fi
+    [[ -n "$(type -t $exe)" ]] || die "check_for: Could not find $exe needed ${file}" 
+  done
+}
+
+check_deps () {
+  [[ -n "$1" ]] || die "check_deps: Missig argument"
+  local deps
+  deps=$($1 --help | sed -n '/^USES:/p')
+  [[ -z "${deps}" ]] && msg "check_for '$1' has no used block please add it" && return 0
+  deps=$(echo "$deps" | sed 's/USES://')
+  [[ -z "${deps}" ]] && return 0
+  check_for "${1##*/}" $deps
+}
+
 #--------------------Exports-----------------
 export -f die
 export -f log 
@@ -197,4 +224,5 @@ export -f csg_taillog
 export -f function_help
 export -f mark_done
 export -f is_done
-
+export -f check_for
+export -f check_deps

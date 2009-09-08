@@ -4,21 +4,12 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the pressure for gromacs
    echo for the Inverse Boltzmann Method
    echo Usage: ${0##*/}
-   echo Needs: g_energy
+   echo USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die
+   echo NEEDS: inverse.gromacs.equi_time
    exit 0
 fi
 
-for exe in g_energy awk; do
-   if [ -z $(type -p $exe) ]; then
-      echo Could not find $exe > /dev/stderr
-      exit 1
-   fi
-done
-
-if [ $(type -t get_from_mdp) != "function" ]; then
-   echo Could not find function get_from_mdp > /dev/stderr
-   exit 1
-fi
+check_deps "$0"
 
 nsteps=$(get_from_mdp nsteps)
 dt=$(get_from_mdp dt)

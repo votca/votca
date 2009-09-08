@@ -4,9 +4,12 @@ if [ "$1" = "--help" ]; then
   echo This script implemtents the function initialize
   echo for the Inverse Boltzmann Method
   echo Usage: ${0##*/}
-  echo Needs: \$SOURCE_WRAPPER, run_or_exit  
+  echo USES: \$SOURCE_WRAPPER \$csg_get die log run_or_exit csg_resample log
+  echo NEEDS: name min max step
   exit 0
 fi
+
+check_deps "$0"
 
 RDF_to_POT="$($SOURCE_WRAPPER rdf pot)" || die "${0##*/}: $SOURCE_WRAPPER rdf pot failed"
 name=$($csg_get name)

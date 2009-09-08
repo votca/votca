@@ -8,4 +8,5 @@ get_from_mdp() {
   echo "$res"
 }
 
+check_for $0 \$GMXDATA
 export -f get_from_mdp

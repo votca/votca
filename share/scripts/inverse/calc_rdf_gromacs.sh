@@ -4,13 +4,12 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the rdf for gromacs
    echo for the Inverse Boltzmann Method
    echo Usage: ${0##*/}
-   echo Needs: g_rdf
+   echo USES: get_from_mdp \$csg_get csg_get_property awk die log run_or_exit g_rdf csg_resample
+   echo NEEDS: type1 type2 name step min max
    exit 0
 fi
 
-for exe in g_rdf awk; do
-   [[ -n $(type -p $exe) ]] || die "${0##*/}: Could not find $exe"
-done
+check_deps "$0"
 
 nsteps=$(get_from_mdp nsteps) 
 dt=$(get_from_mdp dt)
@@ -27,6 +26,6 @@ max=$($csg_get max)
 
 log "Running g_rdf for ${type1}-${type2}"
 run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${equi} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg" -s topol.tpr
-#gromacs allways append xvg
+#gromacs always append xvg
 run_or_exit csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max}
 

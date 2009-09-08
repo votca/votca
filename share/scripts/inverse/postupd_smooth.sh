@@ -3,9 +3,12 @@
 if [ "$1" = "--help" ]; then
    echo "This script implemtents smoothing of the potential update (.dpot)"
    echo "Usage: ${0##*/} step_nr"
-   echo "Needs:  run_or_exit, \$SOURCE_WRAPPER"
+   echo USES:  die \$csg_get mktemp \$SOURCE_WRAPPER cp log run_or_exit
+   echo NEEDS: name post_update_options.smooth.iterations
    exit 0
 fi
+
+check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 

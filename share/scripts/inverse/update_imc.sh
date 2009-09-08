@@ -4,12 +4,14 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the function update
    echo for the Inverse Monte Carlo Method
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$source_wrapper
+   echo USES: die csg_get_property msg is_done run_or_exit csg_stat \$CSGXMLFILE mark_done do_external sort
+   echo NEEDS: cgmap inverse.gromacs.topol inverse.gromacs.traj inverse.imc.solver
    exit 0
 fi
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
+check_deps "$0"
 
+[[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 cgmap=$(csg_get_property cgmap)
 topol=$(csg_get_property inverse.gromacs.topol)

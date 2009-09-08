@@ -3,9 +3,12 @@
 if [ "$1" = "--help" ]; then
    echo "This solves linear equation system from imc using matlab"
    echo "Usage: ${0##*/} <group>"
-   echo "Needs:  matlab"
+   echo "USES:  die sed awk matlab rm \$SOURCE_WRAPPER run_or_exit"
+   echo NEEDS:
    exit 0
 fi
+
+check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing arguments"
 

@@ -4,9 +4,12 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the function update
    echo for the Inverse Boltzmann Method for a single pair
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$SOURCE_WRAPPER, update_POT.pl
+   echo USES:  die \$SOURCE_WRAPPER \$csg_get log run_or_exit awk
+   echo NEEDS: name step min max
    exit 0
 fi
+
+check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 

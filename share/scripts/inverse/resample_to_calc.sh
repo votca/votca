@@ -3,12 +3,14 @@ if [ "$1" = "--help" ]; then
    echo This script resamples target distribution to grid spacing
    echo for calculations
    echo Usage: ${0##*/} target_directory
-   echo Needs:  run_or_exit, \$SOURCE_WRAPPER, update_POT.pl
+   echo USES:  die \$csg_get run_or_exit csg_resample
+   echo NEEDS: min max step target name
    exit 0
 fi
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
+check_deps "$0"
 
+[[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 min=$($csg_get min )
 max=$($csg_get max )

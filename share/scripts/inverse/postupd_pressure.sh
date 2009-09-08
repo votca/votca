@@ -3,9 +3,12 @@
 if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$SOURCE_WRAPPER
+   echo USES:  die csg_get_property do_external \$csg_get log \$SOURCE_WRAPPER run_or_exit cp
+   echo NEEDS: inverse.program inverse.p_target name .do_pressure
    exit 0
 fi
+
+check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 

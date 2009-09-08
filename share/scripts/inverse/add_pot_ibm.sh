@@ -3,9 +3,12 @@
 if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
-   echo Needs: run_or_exit, \$SOURCE_WRAPPER
+   echo USES: \$SOURCE_WRAPPER die for_all run_or_exit \$csg_get
+   echo NEEDS: name
    exit 0
 fi
+
+check_deps "$0"
 
 add_POT=$($SOURCE_WRAPPER add pot) || die "${0##*/}: $SOURCE_WRAPPER add pot failed" 
 

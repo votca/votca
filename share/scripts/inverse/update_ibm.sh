@@ -4,9 +4,12 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the function update
    echo for the Inverse Boltzmann Method
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$SOURCE_WRAPPER
+   echo USES:  die msg csg_get_property for_all do_external
+   echo NEEDS: inverse.program 
    exit 0
 fi
+
+check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 

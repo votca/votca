@@ -3,9 +3,12 @@
 if [ "$1" = "--help" ]; then
    echo This script make all the post update with backup 
    echo Usage: ${0##*/} step_nr
-   echo Needs:  run_or_exit, \$SOURCE_WRAPPER
+   echo USES:  die \$SOURCE_WRAPPER for_all
+   echo NEEDS:
    exit 0
 fi
+
+check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
