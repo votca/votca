@@ -3,7 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
-   echo USES: \$SOURCE_WRAPPER die for_all run_or_exit \$csg_get
+   echo USES: \$SOURCE_WRAPPER die for_all run_or_exit
    echo NEEDS: name
    exit 0
 fi
