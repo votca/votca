@@ -1,10 +1,9 @@
-NAME=manual
 rmflags=-f
 PICDIR=abb
 
-all: $(NAME).pdf
-pdf: $(NAME).pdf
-
+all: 
+	$(MAKE) $(MFLAGS) -C usage
+	./latexmk.pl -pdfdvi manual.tex
 
 .SUFFIXES: .tex .pdf
 
@@ -15,5 +14,7 @@ pics:
 	./latexmk.pl -pdfdvi $*
 
 clean:
+	rm -f manual.dvi manual.pdf
 	latexmk -c
+	$(MAKE) $(MFLAGS) -C usage clean
 
