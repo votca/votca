@@ -11,6 +11,11 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
+if [ -z "$(type -p csg_property)" ]; then
+  echo "csg_property not found" >&2
+  exit 1
+fi
+
 #header lines
 echo $1 > $2
 date -r cgoptions.xml  +%F >> $2
