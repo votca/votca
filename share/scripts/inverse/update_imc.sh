@@ -23,7 +23,7 @@ if is_done "imc_analysis"; then
   msg "IMC analysis is already done"
 else
   msg "Running IMC analysis"
-  run_or_exit csg_stat--do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap --begin 20
+  run_or_exit csg_stat --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap --begin 20
   mark_done "imc_analysis"
 fi
 

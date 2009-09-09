@@ -23,22 +23,26 @@ echo what: $whates
 for i in $@; do
   [[ -z "${not_to_check##*$i*}" ]] && continue
   echo Checking $i
+  [[ ! -x "$i" ]] && echo "$i is not executable" && continue
+  ./$1 --help &> /dev/null || { echo "$i has no help"; continue; }
+  [[ -z "(./$1 --help | grep "USES:")" ]] && echo "$i has no USES in help" && continue
   for what in $whates; do
+    [[ -z "${what##\$*}" ]] && what="\\$what"
     #what found in file and uses -> ok
-    [[ -n "$(grep -v USES "$i" | grep "$what")" ]] && \
-      [[ -n "$(grep USES "$i" | grep "$what")" ]] && \
+    [[ -n "$(grep -v "USES:" "$i" | grep -Ee "$what([[:space:]]|\"|$)")" ]] && \
+      [[ -n "$(./$i --help | grep -Ee "USES:.*$what([[:space:]]|$)")" ]] && \
       continue
     #what found in file, but not in uses
-    [[ -n "$(grep -v USES "$i" | grep "$what")" ]] && \
-      [[ -z "$(grep USES "$i" | grep "$what")" ]] && \
+    [[ -n "$(grep -v "USES:" "$i" | grep -Ee "$what([[:space:]]|\"|$)")" ]] && \
+      [[ -z "$(./$i --help | grep -Ee "USES:.*$what([[:space:]]|$)")" ]] && \
       echo "$i: $what found, but NOT in USES -> add it"
     #what not found in file, but in uses
-    [[ -z "$(grep -v USES "$i" | grep "$what")" ]] && \
-      [[ -n "$(grep USES "$i" | grep "$what")" ]] && \
+    [[ -z "$(grep -v "USES:" "$i" | grep -Ee "$what([[:space:]]|\"|$)")" ]] && \
+      [[ -n "$(./$i --help | grep -Ee "USES:.*$what([[:space:]]|$)")" ]] && \
       echo "$i: $what found in USES, but NOT in content -> remove it"
     #what not found in file and uses -> ok
-    [[ -n "$(grep -v USES "$i" | grep "$what")" ]] && \
-      [[ -n "$(grep USES "$i" | grep "$what")" ]] && \
+    [[ -z "$(grep -v "USES:" "$i" | grep -Ee "$what([[:space:]]|\"|$)")" ]] && \
+      [[ -z "$(./$i --help | grep -Ee "USES:.*$what([[:space:]]|$)")" ]] && \
       continue
   done
 done

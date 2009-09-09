@@ -3,6 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
+   #do NOT add $csg_get name to USES it is not defined here, done by for_all later
    echo USES: \$SOURCE_WRAPPER die for_all run_or_exit
    echo NEEDS: name
    exit 0
