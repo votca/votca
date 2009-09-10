@@ -20,9 +20,11 @@ fi
 echo $1 > $2
 date -r cgoptions.xml  +%F >> $2
 echo >> $2
+echo '%!includeconf: config.t2t' >> $2
 
 for name in $(csg_property --file $1 --path tags.item --print name --short ); do
   echo ": $name" >> $2
+  echo "anchor($name)" >> $2
   echo "$(csg_property --file $1 --path tags.item --filter "name=$name" --print desc --short | sed -e 's/^[[:space:]]*//' -e '/^$/d' )" >> $2
 done
 
