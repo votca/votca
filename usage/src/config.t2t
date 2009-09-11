@@ -11,6 +11,9 @@
 %!postproc(html): 'anchor\((.*?)\)' '<a name="\1"></a>'
 % for tex
 %!postproc(tex): 'anchor\((.*?)\)' '\label{\1}'
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
 
 %For the rest is replaced by nothing.
 %!postproc: 'anchor\(.*?\)' ''

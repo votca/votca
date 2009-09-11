@@ -22,7 +22,6 @@ html: cgoptions.html mapping.html
 
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
-	sed -i '/\label{.*}/s/\\_/_/g' $@
 
 clean:
 	rm -f *.man *.tex *.wiki
