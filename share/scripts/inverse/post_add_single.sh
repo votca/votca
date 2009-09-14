@@ -3,15 +3,15 @@
 if [ "$1" = "--help" ]; then
    echo This script make all the post update with backup for single pairs 
    echo Usage: ${0##*/} step_nr
-   echo USES:  \$csg_get log mv cp die \$SOURCE_WRAPPER
+   echo USES:  csg_get_interaction_property log mv cp die \$SOURCE_WRAPPER
    echo NEEDS: name post_add
    exit 0
 fi
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-name=$($csg_get name)
-tasklist=$($csg_get post_add) 
+name=$(csg_get_interaction_property name)
+tasklist=$(csg_get_interaction_property post_add) 
 i=1
 for task in $tasklist; do
   log "Doing $task for ${name}"

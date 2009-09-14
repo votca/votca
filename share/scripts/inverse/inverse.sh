@@ -85,7 +85,7 @@ else
   #get confout.gro
   do_external init $sim_prog 
 
-  for_all non-bonded cp '$($csg_get name).pot.new ..' 
+  for_all non-bonded cp '$(csg_get_interaction_property name).pot.new ..' 
   touch done
   msg "step_00 done"
   cd ..
@@ -119,7 +119,7 @@ for ((i=1;i<$iterations+1;i++)); do
   cd $this_dir || die "cd $this_dir failed"
 
   #get new pot from last step and make it current potential 
-  for_all non-bonded "cp ../$last_dir/\$(\$csg_get name).pot.new ./\$(\$csg_get name).pot.cur" 
+  for_all non-bonded "cp ../$last_dir/\$(csg_get_interaction_property name).pot.new ./\$(csg_get_interaction_property name).pot.cur" 
 
   #convert potential in format for sim_prog
   for_all non-bonded do_external convert_potential $sim_prog
@@ -148,7 +148,7 @@ for ((i=1;i<$iterations+1;i++)); do
   do_external post add $i
 
   #copy latest results
-  for_all non-bonded 'cp $($csg_get name).pot.new ..'
+  for_all non-bonded 'cp $(csg_get_interaction_property name).pot.new ..'
 
   touch done
   msg "step $i done"

@@ -116,7 +116,7 @@ for_all (){
   [[ -n "$CSGXMLFILE" ]] || die "for_all: CSGXMLFILE is undefined"
   csg_get="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print"
   log "For all $bondtype"
-  interactions="$($csg_get name)" || die "for_all: $csg --print name failed"
+  interactions="$(csg_get_interaction_property name)" || die "for_all: $csg --print name failed"
   for name in $interactions; do
     csg_get="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter \"name=$name\" --print"
     #write variable defines in the front is better, that export
@@ -135,19 +135,17 @@ csg_taillog () {
 
 #the save version of csg_get
 csg_get_interaction_property () {
-  local ret allow_empty
+  local ret arg
   if [ "$1" = "--allow-empty" ]; then
     shift
-    allow_empty="yes"
-  else
-    allow_empty="no"
+    arg="--allow-empty"
   fi
-  [[ -n "$csg_get" ]] || die "csg_get_fct: csg_get variable was empty"
-  [[ -n "$1" ]] || die "csg_get_fct: Missing argument"
-  ret="$($csg_get $1)" || die "csg_get_fct: '$csg_get $1' failed"
-  [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
-  [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
-    die "csg_get_fct: Result of '$csg_get $1' was empty"
+  ret=$($csg_get $1) || die "csg_get_property $arg failed"
+  #[[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype variable was empty"
+  #[[ -n "$1" ]] || die "csg_get_interaction_property: Missing argument"
+  #arg="$arg cg.${bondtype}.$1"
+  #[[ -z "$2" ]] || arg="$arg $2"
+  #ret=$(csg_get_property $arg) || die "csg_get_property $arg failed"
   echo "$ret"
 }
 
@@ -162,6 +160,7 @@ csg_get_property () {
   fi
   [[ -n "$1" ]] || die "csg_get_property: Missig argument" 
   [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
+  [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   ret="$($cmd)" \
     || die "csg_get_property: '$cmd' failed"
