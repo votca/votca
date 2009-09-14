@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the function update
    echo for the Inverse Monte Carlo Method
    echo Usage: ${0##*/} step_nr
-   echo USES: die csg_get_property msg is_done run_or_exit csg_stat \$CSGXMLFILE mark_done do_external sort
+   echo USES: die csg_get_property msg is_done run_or_exit csg_stat \$CSGXMLFILE mark_done do_external sort csg_property
    echo NEEDS: cg.cgmap cg.inverse.gromacs.topol cg.inverse.gromacs.traj cg.inverse.imc.solver cg.*.imc.group
    exit 0
 fi

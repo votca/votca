@@ -3,7 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo This script make all the post update with backup for single pairs 
    echo Usage: ${0##*/} step_nr
-   echo USES:  csg_get_interaction_property log mv die cp \$SOURCE_WRAPPER \$bondtype
+   echo USES:  csg_get_interaction_property log mv die cp \$SOURCE_WRAPPER
    echo NEEDS: name post_update
    exit 0
 fi

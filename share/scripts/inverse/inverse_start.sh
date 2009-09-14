@@ -1,8 +1,17 @@
 #! /bin/bash
 
-#NEEDS: cg.inverse.scriptdir cg.inverse.log_file cg.inverse.restart_file
-#this script just contain all startup check for inverse.sh to 
-#make inverse.sh more readable
+if [ "$1" = "--help" ]; then
+  echo this script just contain all startup check for inverse.sh to 
+  echo and makes inverse.sh more readable
+  #actually it provides this stuff
+  echo PROVIDES: \$CSGXMLFILE \$CSGINVERSE \$SOURCE_WRAPPER \$CSGSCRIPTDIR \$CSGLOG \$CSGRESTART
+  echo USES: \$CSGSHARE csg_property die csg_get_property
+  echo NEEDS: cg.inverse.scriptdir cg.inverse.log_file cg.inverse.restart_file
+  exit 0
+fi
+
+#no check_deps $0 here
+#because this bootstrap everything
 
 #for now, we will replace this function later
 die(){ echo "$*" >&2; exit 1; }
@@ -12,15 +21,15 @@ die(){ echo "$*" >&2; exit 1; }
 if [ -f "./$1" ]; then
   export CSGXMLFILE="${PWD}/${1}"
 else
-  die "Error: file could not read"
+  die "Error: file '$1' could not read, needed for \$CSGXMLFILE"
 fi
 
 #check for CSGSHARE 
-[[ -n "${CSGSHARE}" ]] || die "Error: CSGSHARE not definded"
-[[ -d "${CSGSHARE}" ]] || die "CSGSHARE '$CSGSHARE' is not a dir"
+[[ -n "$CSGSHARE" ]] || die "Error: CSGSHARE not definded"
+[[ -d "$CSGSHARE" ]] || die "CSGSHARE '$CSGSHARE' is not a dir"
 
 CSGINVERSE="${CSGSHARE}/scripts/inverse"
-[[ -d "${CSGINVERSE}" ]] || die "CSGSHARE/scripts/inverse is not a dir"
+[[ -d "$CSGINVERSE" ]] || die "CSGSHARE/scripts/inverse is not a dir"
 export CSGINVERSE
 
 #we need csg_property
@@ -46,6 +55,7 @@ CSGLOG="$(csg_get_property cg.inverse.log_file)"
 CSGLOG="$PWD/$CSGLOG"
 export CSGLOG
 
+#define $CSGRESTART
 CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
 export CSGRESTART
 

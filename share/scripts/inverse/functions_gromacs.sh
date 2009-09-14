@@ -1,5 +1,16 @@
 #!/bin/bash
 
+if [ "$1" = "--help" ]; then
+  echo Functions useful for gromacs 4.0
+  echo NEEDS:
+  #we add \$GMXDATA here, because gromacs will need it
+  echo USES: sed die \$GMXDATA
+  echo PROVIDES: get_from_mdp
+  exit 0
+fi 
+
+check_deps $0
+
 get_from_mdp() {
   local res
   [[ -n "$1" ]] || { echo What?; exit 1;}
@@ -8,5 +19,4 @@ get_from_mdp() {
   echo "$res"
 }
 
-check_for $0 \$GMXDATA
 export -f get_from_mdp
