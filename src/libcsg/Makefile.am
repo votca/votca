@@ -7,6 +7,7 @@ libcsg_a_SOURCES = \
    cgengine.cc       imccoefficients.cc  neighbourlist.cc  topologymap.cc \
    cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \
    connectivity.cc   molecule.cc         numberdist.cc     trajectoryreader.cc \
+   imcio.cc \
    modules/io/gmxtopologyreader.cc    modules/io/grotopologyreader.cc  modules/io/xmltopologyreader.cc \
     modules/io/gmxtrajectoryreader.cc  modules/io/growriter.cc          modules/io/pdbtopologyreader.cc \
     modules/io/gmxtrajectorywriter.cc  modules/io/pdbwriter.cc

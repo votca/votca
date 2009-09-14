@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="45">
+<configurationDescriptor version="62">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -15,6 +15,7 @@
       <itemPath>../../include/exclusionlist.h</itemPath>
       <itemPath>../../include/fileformatfactory.h</itemPath>
       <itemPath>../../include/imccoefficients.h</itemPath>
+      <itemPath>../../include/imcio.h</itemPath>
       <itemPath>../../include/interaction.h</itemPath>
       <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/map.h</itemPath>
@@ -67,6 +68,7 @@
       <itemPath>../../src/libcsg/connectivity.cc</itemPath>
       <itemPath>../../src/libcsg/exclusionlist.cc</itemPath>
       <itemPath>../../src/libcsg/imccoefficients.cc</itemPath>
+      <itemPath>../../src/libcsg/imcio.cc</itemPath>
       <itemPath>../../src/libcsg/map.cc</itemPath>
       <itemPath>../../src/libcsg/molecule.cc</itemPath>
       <itemPath>../../src/libcsg/nblist.cc</itemPath>
@@ -89,226 +91,47 @@
     <Elem>../../src/libcsg</Elem>
     <Elem>../../include</Elem>
   </sourceRootList>
-  <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile_nb</projectmakefile>
   <confs>
     <conf name="Debug" type="3">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <ccCompilerTool>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-            <directoryPath>/usr/include/libxml2</directoryPath>
-            <directoryPath>../../../../../ruehle/gmx/include/gromacs</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+        <ccTool>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+            <pElem>/usr/include/libxml2</pElem>
+            <pElem>../../../../../ruehle/gmx/include/gromacs</pElem>
+          </incDir>
+        </ccTool>
         <archiverTool>
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/bead.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadpair.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadtype.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgengine.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgmoleculedef.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgobserver.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/connectivity.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/exclusionlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/fileformatfactory.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/imccoefficients.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/interaction.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/libversion.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/map.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/molecule.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/nblist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/neighbourlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/nematicorder.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/numberdist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/pairlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/residue.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topology.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologyitem.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologymap.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/trajectoryreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/trajectorywriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/beadlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/cgengine.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/cgmoleculedef.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/connectivity.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/exclusionlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/imccoefficients.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/map.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/grotopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/grotopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/growriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/growriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbtopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbtopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/xmltopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/xmltopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/molecule.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/nblist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/neighbourlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/nematicorder.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/numberdist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topology.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topologymap.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/trajectoryreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/trajectorywriter.cc">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>5</developmentMode>
-        </cCompilerTool>
-        <ccCompilerTool>
+        </cTool>
+        <ccTool>
           <developmentMode>6</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-            <directoryPath>/usr/include/libxml2</directoryPath>
-            <directoryPath>../../../../../ruehle/gmx/include/gromacs</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+            <pElem>/usr/include/libxml2</pElem>
+            <pElem>../../../../../ruehle/gmx/include/gromacs</pElem>
+          </incDir>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
@@ -316,206 +139,27 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/bead.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadpair.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadtype.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgengine.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgmoleculedef.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgobserver.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/connectivity.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/exclusionlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/fileformatfactory.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/imccoefficients.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/interaction.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/libversion.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/map.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/molecule.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/nblist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/neighbourlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/nematicorder.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/numberdist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/pairlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/residue.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topology.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologyitem.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologymap.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/trajectoryreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/trajectorywriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/beadlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/cgengine.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/cgmoleculedef.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/connectivity.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/exclusionlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/imccoefficients.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/map.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/grotopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/grotopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/growriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/growriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbtopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbtopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/xmltopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/xmltopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/molecule.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/nblist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/neighbourlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/nematicorder.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/numberdist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topology.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topologymap.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/trajectoryreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/trajectorywriter.cc">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
     <conf name="profile_release" type="3">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>5</developmentMode>
-        </cCompilerTool>
-        <ccCompilerTool>
+        </cTool>
+        <ccTool>
           <developmentMode>6</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-            <directoryPath>/usr/include/libxml2</directoryPath>
-            <directoryPath>../../../../../ruehle/gmx/include/gromacs</directoryPath>
-          </includeDirectories>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+            <pElem>/usr/include/libxml2</pElem>
+            <pElem>../../../../../ruehle/gmx/include/gromacs</pElem>
+          </incDir>
           <commandLine>-pg</commandLine>
-        </ccCompilerTool>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
@@ -523,186 +167,6 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/bead.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadpair.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/beadtype.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgengine.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgmoleculedef.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cgobserver.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/connectivity.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/exclusionlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/fileformatfactory.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/imccoefficients.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/interaction.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/libversion.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/map.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/molecule.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/nblist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/neighbourlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/nematicorder.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/numberdist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/pairlist.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/residue.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topology.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologyitem.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologymap.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/topologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/trajectoryreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/trajectorywriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/beadlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/cgengine.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/cgmoleculedef.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/connectivity.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/exclusionlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/imccoefficients.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/map.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/grotopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/grotopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/growriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/growriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbtopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbtopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/xmltopologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/modules/io/xmltopologyreader.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libcsg/molecule.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/nblist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/neighbourlist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/nematicorder.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/numberdist.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topology.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topologymap.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/topologyreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/trajectoryreader.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libcsg/trajectorywriter.cc">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
   </confs>
 </configurationDescriptor>

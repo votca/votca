@@ -12,6 +12,7 @@
 #include "beadlist.h"
 #include "nblist.h"
 #include "imc.h"
+#include "imcio.h"
 
 Imc::Imc()
    : _write_every(0), _do_blocks(false), _do_imc(false)
@@ -412,56 +413,9 @@ void Imc::WriteIMCData(const string &suffix) {
             //M = -(M - ub::outer_prod(a, b));
         }
         
-        // write the dS
-        ofstream out_dS; 
-        string name_dS = grp_name + suffix + ".imc";
-        out_dS.open(name_dS.c_str());
-        out_dS << setprecision(8);
-        if(!out_dS)
-            throw runtime_error(string("error, cannot open file ") + name_dS);
-    
-        for(int i=0; i<dS.size(); ++i) {
-            out_dS << r[i] << " " << dS[i] << endl;
-        }
-    
-        out_dS.close(); 
-        cout << "written " << name_dS << endl;
-        
-        // write the matrix
-        ofstream out_A; 
-        string name_A = grp_name + suffix + ".gmc";
-        out_A.open(name_A.c_str());
-        out_A << setprecision(8);
-
-        if(!out_A)
-            throw runtime_error(string("error, cannot open file ") + name_A);
-    
-        for(group_matrix::size_type i=0; i<gmc.size1(); ++i) {
-            for(group_matrix::size_type j=0; j<gmc.size2(); ++j) {
-                out_A << gmc(i, j) << " ";
-            }
-            out_A << endl;
-        }    
-        out_A.close(); 
-        cout << "written " << name_A << endl;
-
-        // write the index
-
-        ofstream out_idx;
-        string name_idx = grp_name + suffix + ".idx";
-        out_idx.open(name_idx.c_str());
-
-        if(!out_idx)
-            throw runtime_error(string("error, cannot open file ") + name_idx);
-
-        int last=1;
-
-        for(int i=0; i<sizes.size();++i) {
-            out_idx << names[i] << " " << last << ":" << last + sizes[i] - 1 << endl;
-            last+=sizes[i];
-        }
-        out_idx.close();
-        cout << "written " << name_idx << endl;
+        imcio_write_dS(grp_name + suffix + ".imc", r, dS);
+        imcio_write_matrix(grp_name + suffix + ".cor", gmc);
+        imcio_write_index(grp_name + suffix + ".idx", names, sizes);
 
     }
 }
