@@ -1,5 +1,6 @@
 #! /bin/bash
 
+#NEEDS: cg.inverse.scriptdir cg.inverse.log_file cg.inverse.restart_file
 #this script just contain all startup check for inverse.sh to 
 #make inverse.sh more readable
 
@@ -35,16 +36,16 @@ function_file=$($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functi
 source ${function_file} || exit 1
 unset function_file
 
-CSGSCRIPTDIR="$(csg_get_property inverse.scriptdir)" 
+CSGSCRIPTDIR="$(csg_get_property cg.inverse.scriptdir)" 
 #scriptdir maybe contains $PWD or something
 eval CSGSCRIPTDIR=$CSGSCRIPTDIR
 [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
 export CSGSCRIPTDIR
 
-CSGLOG="$(csg_get_property inverse.log_file)"
+CSGLOG="$(csg_get_property cg.inverse.log_file)"
 CSGLOG="$PWD/$CSGLOG"
 export CSGLOG
 
-CSGRESTART="$(csg_get_property inverse.restart_file)"
+CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
 export CSGRESTART
 

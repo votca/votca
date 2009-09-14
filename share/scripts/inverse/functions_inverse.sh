@@ -52,7 +52,6 @@ msg() {
 
 unset -f die
 die () {
-  #same as log "$*", but avoid infinit log-die loop, when nested
   log "$*"
   echo -e "$*" 1>&2
   log "killing all processes...." 
@@ -154,7 +153,7 @@ csg_get_interaction_property () {
 
 #get a property from xml
 csg_get_property () {
-  local ret allow_empty
+  local ret allow_empty cmd
   if [ "$1" = "--allow-empty" ]; then
     shift
     allow_empty="yes"
@@ -163,11 +162,12 @@ csg_get_property () {
   fi
   [[ -n "$1" ]] || die "csg_get_property: Missig argument" 
   [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
-  ret="$(csg_property --file $CSGXMLFILE --path cg.${1} --short --print .)" \
-    || die "csg_get_property: csg_property --file $CSGXMLFILE --path cg.${1} --print . failed"
+  cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
+  ret="$($cmd)" \
+    || die "csg_get_property: '$cmd' failed"
   [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
-    die "csg_get: Result of '$csg_get $1' was empty"
+    die "csg_get_property: Result of '$cmd' was empty"
   echo "$ret"
 }
 

@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
    echo USES:  die csg_get_property do_external \$csg_get log \$SOURCE_WRAPPER run_or_exit cp
-   echo NEEDS: inverse.program inverse.p_target name .do_pressure
+   echo NEEDS: cg.inverse.program cg.inverse.p_target name .do_pressure
    exit 0
 fi
 
@@ -12,9 +12,9 @@ check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-sim_prog=$(csg_get_property inverse.program)
+sim_prog=$(csg_get_property cg.inverse.program)
 p_now="$(do_external pressure $sim_prog)" 
-p_target="$(csg_get_property inverse.p_target)"  
+p_target="$(csg_get_property cg.inverse.p_target)"  
 name=$($csg_get name)
 
 log "New pressure $p_now"

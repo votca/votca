@@ -5,7 +5,7 @@ if [ "$1" = "--help" ]; then
    echo for the Inverse Monte Carlo Method
    echo Usage: ${0##*/} step_nr
    echo USES: die csg_get_property msg is_done run_or_exit csg_stat \$CSGXMLFILE mark_done do_external sort
-   echo NEEDS: cgmap inverse.gromacs.topol inverse.gromacs.traj inverse.imc.solver
+   echo NEEDS: cg.cgmap cg.inverse.gromacs.topol cg.inverse.gromacs.traj cg.inverse.imc.solver cg.*.imc.group
    exit 0
 fi
 
@@ -13,10 +13,10 @@ check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-cgmap=$(csg_get_property cgmap)
-topol=$(csg_get_property inverse.gromacs.topol)
-traj=$(csg_get_property inverse.gromacs.traj)
-solver=$(csg_get_property inverse.imc.solver)
+cgmap=$(csg_get_property cg.cgmap)
+topol=$(csg_get_property cg.inverse.gromacs.topol)
+traj=$(csg_get_property cg.inverse.gromacs.traj)
+solver=$(csg_get_property cg.inverse.imc.solver)
 
 msg "calculating statistics"
 if is_done "imc_analysis"; then

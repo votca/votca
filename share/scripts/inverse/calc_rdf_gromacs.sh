@@ -5,7 +5,7 @@ if [ "$1" = "--help" ]; then
    echo for the Inverse Boltzmann Method
    echo Usage: ${0##*/}
    echo USES: get_from_mdp \$csg_get csg_get_property awk die log run_or_exit g_rdf csg_resample
-   echo NEEDS: type1 type2 name step min max
+   echo NEEDS: cg.inverse.gromacs.equi_time type1 type2 name step min max
    exit 0
 fi
 
@@ -13,7 +13,7 @@ check_deps "$0"
 
 nsteps=$(get_from_mdp nsteps) 
 dt=$(get_from_mdp dt)
-equi_time="$(csg_get_property inverse.gromacs.equi_time)"
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
 equi_time=${equi_time%\%}
 equi=$(awk "BEGIN{ print ${equi_time}/100*${nsteps}*${dt} }") || die "${0##*/} awk failed"
 

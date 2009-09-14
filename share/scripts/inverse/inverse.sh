@@ -10,6 +10,8 @@ $usage
 
 OPTIONS:
 --do-iterations N         only do N iterations
+USES: csg_get_property date inverse_start.sh \$SOURCE_WRAPPER msg mkdir for_all do_external printf mark_done cp die is_done log run_or_exit
+NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist 
 eof
 }
 
@@ -47,17 +49,17 @@ echo For a more verbose log see: $CSGLOG
 #log is created
 echo "Sim started $(date)" > $CSGLOG || exit 1
 
-method="$(csg_get_property inverse.method)" 
+method="$(csg_get_property cg.inverse.method)" 
 log "We are doing Method: $method"
 
-sim_prog="$(csg_get_property inverse.program)"
+sim_prog="$(csg_get_property cg.inverse.program)"
 log "We using Sim Program: $sim_prog"
 source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed" 
 
-iterations="$(csg_get_property inverse.iterations_max)" 
+iterations="$(csg_get_property cg.inverse.iterations_max)" 
 log "We are doing $iterations iterations."
 
-filelist="$(csg_get_property inverse.filelist)"  
+filelist="$(csg_get_property cg.inverse.filelist)"  
 log "We extra need $filelist to run the simulation"
 
 run_or_exit $SOURCE_WRAPPER --status
