@@ -19,7 +19,7 @@ chomp($function_file);
 
 die "4 parameters are nessary\n" if ($#ARGV<3);
 
-my $pref=csg_get_property("inverse.kBT");
+my $pref=csg_get_property("cg.inverse.kBT");
 
 my $aim_rdf_file="$ARGV[0]";
 my @r_aim;

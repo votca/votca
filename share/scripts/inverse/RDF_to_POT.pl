@@ -32,8 +32,8 @@ my $outfile="$ARGV[1]";
 #       since it's a general initial guess files
 #       move this option out of gromacs section!!!!!
 #
-my $gromacs_max=csg_get_property("inverse.gromacs.pot_max");
-my $pref=csg_get_property("inverse.kBT");
+my $gromacs_max=csg_get_property("cg.inverse.gromacs.pot_max");
+my $pref=csg_get_property("cg.inverse.kBT");
 my $r_cut=csg_get("max");
 
 my @r;

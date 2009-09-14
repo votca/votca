@@ -16,7 +16,7 @@ chomp($function_file);
 
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
-my $kBT=csg_get_property("inverse.kBT");
+my $kBT=csg_get_property("cg.inverse.kBT");
 my $max=csg_get("max");
 my $delta_r=csg_get("step");
 
