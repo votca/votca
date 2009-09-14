@@ -15,11 +15,14 @@ sub csg_get_property($){
 }
 
 sub csg_get_interaction_property($){
-  ( my $csg_command=$ENV{'csg_get'} ) || die "csg_get: ENV{'csg_get'} was undefined\n";
-  defined($_[0]) || die "csg_get: Missig argument\n";
-  open(CSG,"$csg_command $_[0] |") || die "csg_get: Could not open pipe\n";
-  defined(my $value=<CSG>) || die "csg_get: Could not get value $_[0]\n";
-  close(CSG) || die "csg_get: error from csg_property\n";
+  ( my $bondname=$ENV{'bondname'} ) || die "bondname: ENV{'bondname'} was undefined\n";
+  ( my $bondtype=$ENV{'bondtype'} ) || die "bondtype: ENV{'bondtype'} was undefined\n";
+  ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
+  defined($_[0]) || die "csg_get_interaction_property: Missig argument\n";
+  open(CSG,"csg_property --file $xmlfile --short --path cg.$bondtype --filter \"name=$bondname\" --print $_[0] |") || 
+    die "csg_get_interaction_property: Could not open pipe\n";
+  defined(my $value=<CSG>) || die "csg_get_interaction_property: Could not get value $_[0]\n";
+  close(CSG) || die "csg_get_interaction_property: error from csg_property\n";
   chomp($value);
   return undef if ($value =~ /^\s*$/);
   return $value;

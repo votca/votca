@@ -16,7 +16,7 @@ check_deps "$0"
 update_POT="$($SOURCE_WRAPPER update ibm_pot)" || die "${0##*/}: $SOURCE_WRAPPER update ibm_pot failed" 
 shift_DPOT="$($SOURCE_WRAPPER shift dpotnb)" || die "${0##*/}: $SOURCE_WRAPPER shift dpotnb failed" 
 
-scheme=( $(csg_get_interaction_property do_potential ) )
+scheme=( $(csg_get_interaction_property --allow-empty do_potential ) )
 scheme_nr=$(( ( $1 - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 

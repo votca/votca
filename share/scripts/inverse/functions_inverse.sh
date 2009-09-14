@@ -63,7 +63,7 @@ die () {
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
-  local script bondtype
+  local script
   [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed" 
   shift 2
@@ -114,16 +114,15 @@ for_all (){
     die  "for_all: Argmuent 1 '$bondtype' is not non-bonded" 
   fi
   [[ -n "$CSGXMLFILE" ]] || die "for_all: CSGXMLFILE is undefined"
-  csg_get="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print"
   log "For all $bondtype"
-  interactions="$(csg_get_interaction_property name)" || die "for_all: $csg --print name failed"
+  interactions="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name)" \
+    || die "for_all: csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name' failed"
   for name in $interactions; do
-    csg_get="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter \"name=$name\" --print"
+    log "for_all: run '$*'"
     #write variable defines in the front is better, that export
     #no need to run export -n afterwards
-    log "for_all: run '$*'"
-    bondtype=$bondtype \
-    csg_get="$csg_get" \
+    bondtype="$bondtype" \
+    bondname="$name" \
     bash -c "$*" || die "for_all: bash -c '$*' failed"   
   done
 }
@@ -135,17 +134,24 @@ csg_taillog () {
 
 #the save version of csg_get
 csg_get_interaction_property () {
-  local ret arg
+  local ret allow_empty cmd
   if [ "$1" = "--allow-empty" ]; then
     shift
-    arg="--allow-empty"
+    allow_empty="yes"
+  else
+    allow_empty="no"
   fi
-  ret=$($csg_get $1) || die "csg_get_property $arg failed"
-  #[[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype variable was empty"
-  #[[ -n "$1" ]] || die "csg_get_interaction_property: Missing argument"
-  #arg="$arg cg.${bondtype}.$1"
-  #[[ -z "$2" ]] || arg="$arg $2"
-  #ret=$(csg_get_property $arg) || die "csg_get_property $arg failed"
+  [[ -n "$1" ]] || die "csg_get_interaction_property: Missig argument" 
+  [[ -n "$CSGXMLFILE" ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined"
+  [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined"
+  [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
+  [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
+  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter \"name=$bondname\" --print $1"
+  ret="$($cmd)" \
+    || die "csg_get_interaction_property: '$cmd' failed"
+  [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
+  [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
+    die "csg_get_interaction_property: Result of '$cmd' was empty"
   echo "$ret"
 }
 
