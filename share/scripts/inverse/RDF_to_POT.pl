@@ -34,7 +34,7 @@ my $outfile="$ARGV[1]";
 #
 my $gromacs_max=csg_get_property("cg.inverse.gromacs.pot_max");
 my $pref=csg_get_property("cg.inverse.kBT");
-my $r_cut=csg_get("max");
+my $r_cut=csg_get_interaction_property("max");
 
 my @r;
 my @rdf;

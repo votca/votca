@@ -14,7 +14,7 @@ sub csg_get_property($){
   return $value;
 }
 
-sub csg_get($){
+sub csg_get_interaction_property($){
   ( my $csg_command=$ENV{'csg_get'} ) || die "csg_get: ENV{'csg_get'} was undefined\n";
   defined($_[0]) || die "csg_get: Missig argument\n";
   open(CSG,"$csg_command $_[0] |") || die "csg_get: Could not open pipe\n";
