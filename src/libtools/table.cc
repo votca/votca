@@ -45,6 +45,7 @@ void Table::clear(void)
     _flags.clear();
 }
 
+// TODO: this functon is weired, reading occours twice, cleanup!!
 inline istream &operator>>(istream &in, Table& t)
 {
     size_t N;

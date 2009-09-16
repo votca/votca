@@ -10,6 +10,7 @@
 
 #include <list>
 #include <string>
+#include <ostream>
 
 using namespace std;
 
@@ -20,6 +21,8 @@ public:
     
     void Parse(string range);
 
+    void Add(int begin, int end, int stride=1);
+    
 private:
     struct block_t {
         block_t() {}
@@ -64,8 +67,15 @@ private:
     
     bool _has_begin, _has_end;
     int _begin, _end;
+
+    friend std::ostream &operator<<(std::ostream &out, const RangeParser &rp);
     
 };
+
+inline void RangeParser::Add(int begin, int end, int stride)
+{
+    _blocks.push_back(block_t(begin, end, stride));
+}
 
 inline RangeParser::iterator RangeParser::begin()
 {
@@ -96,6 +106,16 @@ inline bool RangeParser::iterator::operator!=(const RangeParser::iterator &i)
     return  !((_block == i._block) && (_current == i._current));
 }
 
+inline std::ostream &operator<<(std::ostream &out, const RangeParser &rp)
+{
+      std::list< RangeParser::block_t >::const_iterator iter(rp._blocks.begin());
+      for(; iter!=rp._blocks.end(); ++iter) {
+          if(iter!=rp._blocks.begin())
+              out << ",";
+          out << iter->_begin << ":" << iter->_stride << ":" << iter->_end;
+      }
+      return out;
+}
 
 #endif	/* _RANGEPARSER_H */
 
