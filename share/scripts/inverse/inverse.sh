@@ -11,7 +11,7 @@ $usage
 OPTIONS:
 --do-iterations N         only do N iterations
 USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external printf mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG
-NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist 
+NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name
 eof
 }
 

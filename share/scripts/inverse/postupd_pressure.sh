@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
    echo USES:  die csg_get_property do_external csg_get_interaction_property log \$SOURCE_WRAPPER run_or_exit cp
-   echo NEEDS: cg.inverse.program cg.inverse.p_target name .do_pressure
+   echo NEEDS: cg.inverse.program cg.inverse.p_target name do_pressure
    exit 0
 fi
 

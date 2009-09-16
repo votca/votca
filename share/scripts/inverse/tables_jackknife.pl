@@ -12,7 +12,7 @@ full: table calculated with full dataset
 blocks: tables calculated with 1 block missing
 outfile: file to write results
 
-USES:\$SOURCE_WRAPPER readin_table saveto_table_err
+USES: \$SOURCE_WRAPPER readin_table saveto_table_err
 NEEDS: 
 EOF
   exit 0;

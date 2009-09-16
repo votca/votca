@@ -172,7 +172,7 @@ csg_get_property () {
   [[ -n "$1" ]] || die "csg_get_property: Missig argument" 
   [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
-  cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
+  cmd="csg_property --file $CSGXMLFILE --path '${1}' --short --print ."
   ret="$($cmd)" \
     || die "csg_get_property: '$cmd' failed"
   [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"

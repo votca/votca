@@ -27,7 +27,7 @@ else
   mark_done "imc_analysis"
 fi
 
-list_groups=$(csg_property --short --file $CSGXMLFILE --path "cg.*.imc.group" --print . | sort -u)
+list_groups=$(csg_get_property 'cg.*.imc.group' | sort -u)
 for group in "$list_groups"; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for $group"
