@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iomanip>
 #include <boost/lexical_cast.hpp>
+#include <tools/rangeparser.h>
 #include "beadlist.h"
 #include "nblist.h"
 #include "imc.h"
@@ -353,11 +354,12 @@ void Imc::WriteIMCData(const string &suffix) {
         ub::vector<double> r(n);
         // the next two variables are to later extract the individual parts
         // from the whole data after solving equations
-        vector<int> sizes; // sizes of the individual interactions
+        vector<RangeParser> ranges; // sizes of the individual interactions
         vector<string> names; // names of the interactions
                         
         // copy all averages+r of group to one vector
         n=0;
+        int begin=1;
         for(iter=grp->_interactions.begin(); iter != grp->_interactions.end(); ++iter) {
             interaction_t *ic = *iter;
             
@@ -376,7 +378,12 @@ void Imc::WriteIMCData(const string &suffix) {
             sub_r = ic->_average.data().x();
             
             // save size
-            sizes.push_back(ic->_average.getNBins());
+
+            RangeParser rp;
+            int end = begin  + ic->_average.getNBins() -1;
+            rp.Add(begin, end);
+            ranges.push_back(rp);
+            end = begin+1;
             // save name
             names.push_back(ic->_p->get("name").as<string>());
             
@@ -415,7 +422,7 @@ void Imc::WriteIMCData(const string &suffix) {
         
         imcio_write_dS(grp_name + suffix + ".imc", r, dS);
         imcio_write_matrix(grp_name + suffix + ".cor", gmc);
-        imcio_write_index(grp_name + suffix + ".idx", names, sizes);
+        imcio_write_index(grp_name + suffix + ".idx", names, ranges);
 
     }
 }

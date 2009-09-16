@@ -6,7 +6,7 @@
             <name>libcsg</name>
             <make-project-type>0</make-project-type>
             <c-extensions/>
-            <cpp-extensions>cc,cpp</cpp-extensions>
+            <cpp-extensions>cc</cpp-extensions>
             <header-extensions>h</header-extensions>
             <make-dep-projects/>
             <sourceEncoding>UTF-8</sourceEncoding>
