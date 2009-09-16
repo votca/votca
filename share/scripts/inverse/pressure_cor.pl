@@ -5,7 +5,10 @@ use strict;
 if ("$ARGV[0]" eq "--help"){
   print <<EOF;
 Usage: $progname p_target p_cur outfile
-This script calls the pressure corrections dU=A*(1-r/r_c) 
+This script calls the pressure corrections dU=A*(1-r/r_c)
+
+NEEDS: cg.inverse.kBT max step
+USES: \$SOURCE_WRAPPER csg_get_property csg_get_interaction_property saveto_table
 EOF
   exit 0;
 }

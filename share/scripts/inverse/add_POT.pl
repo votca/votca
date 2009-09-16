@@ -7,6 +7,8 @@ use strict;
 if ("$ARGV[0]" eq "--help"){
   print <<EOF;
 Usage: $progname infile1 infile2 outfile
+NEEDS:
+USES: \$SOURCE_WRAPPER readin_table saveto_table 
 This script adds up two potentils 
 In addtion it does some magic tricks:
  - order of infiles MATTER !!!!
@@ -16,7 +18,7 @@ EOF
   exit 0;
 }
 
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
+(my $function_file=`$ENV{'SOURCE_WRAPPER'} functions perl`) || die "$progname: $ENV{'SOURCE_WRAPPER'} function perl failed\n";
 chomp($function_file);
 (do "$function_file") || die "$progname: source $function_file failed\n";
 

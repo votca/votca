@@ -3,7 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo "This solves linear equation system from imc using matlab"
    echo "Usage: ${0##*/} <group>"
-   echo "USES:  die sed awk matlab rm \$SOURCE_WRAPPER run_or_exit"
+   echo "USES:  die sed awk matlab rm \$SOURCE_WRAPPER run_or_exit \$CSGINVERSE"
    echo NEEDS:
    exit 0
 fi

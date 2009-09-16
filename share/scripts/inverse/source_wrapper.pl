@@ -17,6 +17,9 @@ Then we check csg table and search in CSGINVERSE
 
 Hacky usage: $progname --direct scriptname
 then we try to find scriptname in global,pwd,CSGSCRIPTDIR,CSGINVERSE
+
+USES: \$CSGINVERSE \$CSGSCRIPTDIR 
+NEEDS:
 END
   exit 0;
 }
@@ -30,7 +33,6 @@ $csg_table="$csgshare/$csg_table";
 my $csgscriptdir=$ENV{'CSGSCRIPTDIR'};
 if ($csgscriptdir) {
   $user_table="$csgscriptdir/$user_table";
-  #die "CSGSCRIPTDIR not defined\n";
 } else {
   $user_table="";
   $csgscriptdir="";

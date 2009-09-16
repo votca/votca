@@ -1,14 +1,20 @@
 #! /usr/bin/perl -w
-#
-# shifts the beginning of a non-bonded delta potential which is not in the update
-# region to same as first value which is in region. It also shifts the whole dpot 
-# that it is zero at r_cut
-#
-# TODO: care about flags, not tested
-#
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
+
+if ("$ARGV[0]" eq "--help"){
+  print <<EOF;
+Usage: $progname infile1 infile2 outfile
+NEEDS:
+USES: \$SOURCE_WRAPPER readin_table saveto_table 
+shifts the beginning of a non-bonded delta potential which is not in the update
+region to same as first value which is in region. It also shifts the whole dpot 
+that it is zero at r_cut
+TODO: care about flags, not tested
+EOF
+  exit 0;
+}
 
 # source the function file
 (my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";

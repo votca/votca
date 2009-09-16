@@ -6,12 +6,6 @@ s#^.*/##;
 my $progname=$_;
 my $usage="Usage: $progname [OPTIONS] <source> <dest> <out>";
 
-# include perl functions
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
-########
-
 #Defaults
 my $noflags='no';
 my $novalues='no';
@@ -44,6 +38,9 @@ OPTIONS:
 Examples:  $progname -q
            $progname
 
+USES: \$SOURCE_WRAPPER readin_table saveto_table
+NEEDS: 
+
 END
 		exit;
 	}
@@ -70,6 +67,12 @@ END
 
 #Print usage
 die "missing parameters\n$usage\n" unless $#ARGV > 1;
+
+# include perl functions
+(my $function_file=`$ENV{'SOURCE_WRAPPER'} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
+chomp($function_file);
+(do "$function_file") || die "$progname: source $function_file failed\n";
+########
 
 my $src="$ARGV[0]";
 my $dst="$ARGV[1]";

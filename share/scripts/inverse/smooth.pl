@@ -7,7 +7,10 @@ use strict;
 if ("$ARGV[0]" eq "--help"){
   print <<EOF;
 Usage: $progname infile outfile
-This script smoothes a table 
+This script smoothes a table
+
+USES: \$SOURCE_WRAPPER readin_table saveto_table
+NEEDS: 
 EOF
   exit 0;
 }

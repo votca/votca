@@ -36,4 +36,3 @@ table integrate integrate.pl
 table extrapolate extrapolate.pl
 table merge merge_tables.pl
 table smooth smooth.pl
-echo echo echo.sh

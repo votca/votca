@@ -12,11 +12,6 @@ s#^.*/##;
 my $progname=$_;
 my $usage="Usage: $progname [OPTIONS] <in> <out>";
 
-# include functions
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
-
 # read program arguments
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
@@ -39,6 +34,9 @@ $usage
 OPTIONS:
 -h, --help            Show this help message
 
+NEEDS:
+USES: \$SOURCE_WRAPPER readin_table saveto_table
+
 END
 		exit;
 	}
@@ -50,6 +48,11 @@ END
 
 #Print usage
 die "no files given\n$usage\n" unless $#ARGV > 0;
+
+# include functions
+(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
+chomp($function_file);
+(do "$function_file") || die "$progname: source $function_file failed\n";
 
 my $infile="$ARGV[0]";
 my @r;

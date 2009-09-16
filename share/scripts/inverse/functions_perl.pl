@@ -2,6 +2,22 @@
 
 use strict;
 
+if ("$ARGV[0]" eq "--help"){
+  print <<EOF;
+Provides useful function for perl:
+csg_get_property($):             get a value from xml file
+csg_get_interaction_property($): get a interaction property from xmlfile
+readin_table(\$\\@\\@\\@):           reads in csg table
+saveto_table(\$\\@\\@\\@):           writes to a csg table
+saveto_table_err(\$\\@\\@\\@) :      writes to csg table with errors
+
+USES: \$CSGXMLFILE csg_property
+NEEDS: 
+PROVIDES: csg_get_property csg_get_interaction_property readin_table saveto_table saveto_table_err
+EOF
+  exit 0;
+}
+
 sub csg_get_property($){
   ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
   defined($_[0]) || die "csg_get_property: Missig argument\n";

@@ -5,7 +5,7 @@ if [ "$1" = "--help" ]; then
    echo "Usage: ${0##*/} <group> <copy-flags-from>"
    echo "if <copy-flags-from> is specified, flags are copied from that file"
    echo "otherwise every flag will be set to i"
-   echo USES:  die sed awk octave \$SOURCE_WRAPPER run_or_exit rm
+   echo USES:  die sed awk octave \$SOURCE_WRAPPER run_or_exit rm \$CSGINVERSE
    echo NEEDS:
    exit 0
 fi

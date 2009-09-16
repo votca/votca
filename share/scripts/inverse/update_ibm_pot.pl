@@ -9,6 +9,9 @@ Usage: $progname new_rdf target_rdf cur_pot outfile
 This script calcs dU out of two rdfs with the rules of inverse boltzman
 In addtion it does some magic tricks:
  -do not update if one of the both rdf is undefined
+
+NEEDS: cg.inverse.kBT
+USES: \$SOURCE_WRAPPER readin_table saveto_table csg_get_property
 EOF
   exit 0;
 }
