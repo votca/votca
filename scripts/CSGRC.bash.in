@@ -18,4 +18,4 @@ _csgopts()
 }
 
 #complete with commands filename and options
-complete -F _myopts -c csg csg_dump csg_fmatch csg_property csg_resample  csg_stat csg_imcrepack
+complete -F _csgopts -c csg csg_dump csg_fmatch csg_property csg_resample  csg_stat csg_imcrepack
