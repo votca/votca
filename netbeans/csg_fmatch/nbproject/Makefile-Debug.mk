@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
+FC=gfortran
 
 # Include project Makefile
 include Makefile
@@ -25,7 +25,8 @@ OBJECTDIR=build/Debug/GNU-Linux-x86
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch_main.o \
+	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch.o
 
 # C Compiler Flags
 CFLAGS=
@@ -49,9 +50,13 @@ LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/li
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools
-	$(COMPILE.cc) -g -O -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/lukyanov/src/csg/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch_main.o: ../../src/tools/csg_fmatch_main.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools
+	$(COMPILE.cc) -g -O -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch_main.o ../../src/tools/csg_fmatch_main.cc
+
+${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools
+	$(COMPILE.cc) -g -O -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:

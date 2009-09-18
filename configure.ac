@@ -16,10 +16,18 @@ AC_CONFIG_FILES([src/libcsg/Makefile])
 
 AC_CONFIG_FILES([share/scripts/inverse/Makefile])
 AC_CONFIG_FILES([share/scripts/Makefile])
-AC_CONFIG_FILES([share/tutor/ibm_tip3p/Makefile])
-AC_CONFIG_FILES([share/tutor/Makefile])
 AC_CONFIG_FILES([share/Makefile])
 AC_CONFIG_FILES([scripts/Makefile])
+
+AC_CONFIG_FILES([./share/tutor/Makefile])
+AC_CONFIG_FILES([./share/tutor/spce/atomistic/Makefile])
+AC_CONFIG_FILES([./share/tutor/spce/imc/Makefile])
+AC_CONFIG_FILES([./share/tutor/spce/ibm/Makefile])
+AC_CONFIG_FILES([./share/tutor/spce/Makefile])
+AC_CONFIG_FILES([./share/tutor/methanol/ibm/Makefile])
+AC_CONFIG_FILES([./share/tutor/methanol/atomistic/Makefile])
+AC_CONFIG_FILES([./share/tutor/methanol/imc/Makefile])
+AC_CONFIG_FILES([./share/tutor/methanol/Makefile])
 
 AC_PROG_CXX
 AC_PROG_RANLIB

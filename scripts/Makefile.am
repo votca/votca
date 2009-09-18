@@ -1,5 +1,5 @@
 # Scripts generated at compile time
-bin_SCRIPTS   = CSGRC.csh CSGRC.bash
+bin_SCRIPTS   = CSGRC.csh CSGRC.bash csg_inverse
 
 # Extra files we need
 EXTRA_DIST = CSGRC.csh.in CSGRC.bash.in 
