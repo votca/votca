@@ -14,7 +14,7 @@
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
     <min>0</min>
-    <max>1.16</max>
+    <max>1.54</max>
     <step>0.01</step>
     <!-- update cycles -->
     <do_pressure>0</do_pressure>
@@ -65,9 +65,9 @@
       <traj>traj.xtc</traj>
     </gromacs>
     <!-- these files are copied for each new run -->
-    <filelist>grompp.mdp topol.top table.xvg</filelist>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
-    <iterations_max>400</iterations_max>
+    <iterations_max>300</iterations_max>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
     <method>ibm</method>
     <!-- directory for user scripts -->

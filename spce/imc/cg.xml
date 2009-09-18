@@ -65,7 +65,7 @@
       <traj>traj.xtc</traj>
     </gromacs>
     <!-- these files are copied for each new run -->
-    <filelist>grompp.mdp topol.top table.xvg</filelist>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>20</iterations_max>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
