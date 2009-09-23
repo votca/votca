@@ -112,7 +112,12 @@ inline std::ostream &operator<<(std::ostream &out, const RangeParser &rp)
       for(; iter!=rp._blocks.end(); ++iter) {
           if(iter!=rp._blocks.begin())
               out << ",";
-          out << iter->_begin << ":" << iter->_stride << ":" << iter->_end;
+          if(iter->_begin == iter->_end)
+              out << iter->_begin;
+          else if(iter->_stride == 1)
+              out << iter->_begin << ":" << iter->_end;
+          else
+              out << iter->_begin << ":" << iter->_stride << ":" << iter->_end;
       }
       return out;
 }
