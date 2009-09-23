@@ -421,7 +421,7 @@ void Imc::WriteIMCData(const string &suffix) {
         }
         
         imcio_write_dS(grp_name + suffix + ".imc", r, dS);
-        imcio_write_matrix(grp_name + suffix + ".cor", gmc);
+        imcio_write_matrix(grp_name + suffix + ".gmc", gmc);
         imcio_write_index(grp_name + suffix + ".idx", names, ranges);
 
     }

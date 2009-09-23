@@ -13,6 +13,7 @@
 #include <tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
+#include "imcio.h"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -56,6 +57,58 @@ int main(int argc, char** argv)
     }
 
     check_option(desc, vm, "in");
+
+    ub::vector<double> r;
+    ub::vector<double> dS;
+    ub::symmetric_matrix<double> gmc;
+    vector<string> names;
+    vector<RangeParser> ranges;
+
+    imcio_read_dS(name_in + ".imc", r, dS);
+    imcio_read_matrix(name_in + ".cor", gmc);
+    imcio_read_index(name_in + ".idx", names, ranges);
+
+    if(vm.count("unpack")) {
+        RangeParser *cur_rp;
+
+        vector<string>::iterator iter_name = names.begin();
+        vector<RangeParser>::iterator iter_range = ranges.begin();
+
+        while(iter_name != names.end()) {
+            cur_rp = &(*iter_range);
+            Table tbl;
+            for(RangeParser::iterator ir=cur_rp->begin(); ir!=cur_rp->end(); ++ir) {
+                tbl.push_back(r(*ir-1), dS(*ir-1), 'i');
+            }
+            tbl.Save(*iter_name + ".dpot.imc");
+            ++iter_name;
+            ++iter_range;
+        }
+    } else {
+        check_option(desc, vm, "out");
+        RangeParser *cur_rp;
+
+        vector<string>::iterator iter_name = names.begin();
+        vector<RangeParser>::iterator iter_range = ranges.begin();
+
+        while(iter_name != names.end()) {
+            cur_rp = &(*iter_range);
+            RangeParser new_rp;
+            for(RangeParser::iterator ir=cur_rp->begin(); ir!=cur_rp->end(); ++ir) {
+                for(int i=0; i<gmc.size1(); ++i)
+                    if(fabs(gmc(i,*ir-1)) > 1e-8) {
+                        new_rp.Add(*ir, *ir);
+                        break;
+                    }                
+            }
+            *iter_range = new_rp;
+            ++iter_name;
+            ++iter_range;
+        }
+        imcio_write_dS(name_out + ".imc", r, dS);
+        imcio_write_matrix(name_out + ".cor", gmc);
+        imcio_write_index(name_out + ".idx", names, ranges);
+    }
 
 }
 

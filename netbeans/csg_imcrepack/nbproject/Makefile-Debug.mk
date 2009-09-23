@@ -64,7 +64,7 @@ LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtoo
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_imcrepack.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/csg_imcrepack.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
 	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_imcrepack.o ../../src/tools/csg_imcrepack.cc
+	$(COMPILE.cc) -g -I../../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_imcrepack.o ../../src/tools/csg_imcrepack.cc
 
 # Subprojects
 .build-subprojects:

@@ -19,7 +19,7 @@
 typedef ub::symmetric_matrix<double> group_matrix;
 using namespace std;
 
-void imcio_write_dS(string file, ub::vector<double> &r, ub::vector<double> &dS)
+void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS)
 {
     // write the dS
     ofstream out_dS;
@@ -36,7 +36,7 @@ void imcio_write_dS(string file, ub::vector<double> &r, ub::vector<double> &dS)
     cout << "written " << file << endl;
 }
 
-void imcio_write_matrix(string file, ub::symmetric_matrix<double> gmc)
+void imcio_write_matrix(const string &file, ub::symmetric_matrix<double> &gmc)
 {
     ofstream out_A;
     out_A.open(file.c_str());
@@ -55,7 +55,7 @@ void imcio_write_matrix(string file, ub::symmetric_matrix<double> gmc)
     cout << "written " << file << endl;
 }
 
-void imcio_write_index(string file, vector<string> &names, vector<RangeParser> &ranges)
+void imcio_write_index(const string &file, vector<string> &names, vector<RangeParser> &ranges)
 {
     // write the index
 
@@ -72,7 +72,7 @@ void imcio_write_index(string file, vector<string> &names, vector<RangeParser> &
     cout << "written " << file << endl;
 }
 
-void imcio_read_dS(string filename, ub::vector<double> &r, ub::vector<double> &dS)
+void imcio_read_dS(const string &filename, ub::vector<double> &r, ub::vector<double> &dS)
 {
     Table tbl;
     tbl.Load(filename);
@@ -86,7 +86,7 @@ void imcio_read_dS(string filename, ub::vector<double> &r, ub::vector<double> &d
     }
 }
 
-void imcio_read_matrix(string filename, ub::symmetric_matrix<double> gmc)
+void imcio_read_matrix(const string &filename, ub::symmetric_matrix<double> &gmc)
 {
     ifstream in;
     in.open(filename.c_str());
@@ -128,7 +128,7 @@ void imcio_read_matrix(string filename, ub::symmetric_matrix<double> gmc)
     in.close();
 }
 
-void imcio_read_index(string filename, vector<string> &names, vector<RangeParser> &ranges)
+void imcio_read_index(const string &filename, vector<string> &names, vector<RangeParser> &ranges)
 {
     ifstream in;
     in.open(filename.c_str());

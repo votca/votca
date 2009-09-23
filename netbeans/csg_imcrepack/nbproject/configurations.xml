@@ -32,6 +32,12 @@
         <platform>2</platform>
       </toolsSet>
       <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../../../include</pElem>
+            <pElem>../../include</pElem>
+          </incDir>
+        </ccTool>
         <linkerTool>
           <output>../../src/tools/csg_imcrepack</output>
           <linkerLibItems>
