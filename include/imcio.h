@@ -18,8 +18,8 @@
 namespace ub = boost::numeric::ublas;
 using namespace std;
 
-void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS);
-void imcio_write_matrix(const string &file, ub::symmetric_matrix<double> &gmc);
+void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS, std::list<int> *list=NULL);
+void imcio_write_matrix(const string &file, ub::symmetric_matrix<double> &gmc, std::list<int> *list=NULL);
 void imcio_write_index(const string &file, vector<string> &names, vector<RangeParser> &ranges);
 
 void imcio_read_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS);

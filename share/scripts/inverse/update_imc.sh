@@ -23,7 +23,7 @@ if is_done "imc_analysis"; then
   msg "IMC analysis is already done"
 else
   msg "Running IMC analysis"
-  run_or_exit csg_stat --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap --begin 20
+  run_or_exit csg_stat --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap
   mark_done "imc_analysis"
 fi
 
@@ -31,5 +31,9 @@ list_groups=$(csg_get_property 'cg.*.imc.group' | sort -u)
 for group in "$list_groups"; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for $group"
-  do_external imcsolver $solver $group $group.pot.cur
+  run_or_exit csg_imcrepack --in ${group} --out ${group}.packed
+  do_external imcsolver $solver ${group}.packed ${group}.packed.sol
+  run_or_exit csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
 done 
+
+for_all non-bonded do_external imc purify 

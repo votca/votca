@@ -19,7 +19,7 @@
 typedef ub::symmetric_matrix<double> group_matrix;
 using namespace std;
 
-void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS)
+void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS, std::list<int> *list)
 {
     // write the dS
     ofstream out_dS;
@@ -28,15 +28,23 @@ void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double
     if (!out_dS)
         throw runtime_error(string("error, cannot open file ") + file);
 
-    for (int i = 0; i < dS.size(); ++i) {
-        out_dS << r[i] << " " << dS[i] << endl;
+    if(list == NULL) {
+        for (int i = 0; i < dS.size(); ++i) {
+            out_dS << r[i] << " " << dS[i] << endl;
+        }
     }
+    else {
+        for(std::list<int>::iterator i = list->begin(); i!=list->end(); ++i) {
+            out_dS << r[*i] << " " << dS[*i] << endl;
+        }
+    }
+
 
     out_dS.close();
     cout << "written " << file << endl;
 }
 
-void imcio_write_matrix(const string &file, ub::symmetric_matrix<double> &gmc)
+void imcio_write_matrix(const string &file, ub::symmetric_matrix<double> &gmc, std::list<int> *list)
 {
     ofstream out_A;
     out_A.open(file.c_str());
@@ -45,13 +53,23 @@ void imcio_write_matrix(const string &file, ub::symmetric_matrix<double> &gmc)
     if (!out_A)
         throw runtime_error(string("error, cannot open file ") + file);
 
-    for (group_matrix::size_type i = 0; i < gmc.size1(); ++i) {
-        for (group_matrix::size_type j = 0; j < gmc.size2(); ++j) {
-            out_A << gmc(i, j) << " ";
+    if(list == NULL) {
+        for (group_matrix::size_type i = 0; i < gmc.size1(); ++i) {
+            for (group_matrix::size_type j = 0; j < gmc.size2(); ++j) {
+                out_A << gmc(i, j) << " ";
+            }
+            out_A << endl;
         }
-        out_A << endl;
     }
-    out_A.close();
+    else {
+        for(std::list<int>::iterator i = list->begin(); i!=list->end(); ++i) {
+            for(std::list<int>::iterator j = list->begin(); j!=list->end(); ++j) {
+                out_A << gmc(*i, *j) << " ";
+            }
+            out_A << endl;
+        }
+    }
+out_A.close();
     cout << "written " << file << endl;
 }
 
@@ -110,14 +128,13 @@ void imcio_read_matrix(const string &filename, ub::symmetric_matrix<double> &gmc
 
         // skip empty lines
         if(tokens.size()==0) continue;
-
-        gmc.resize(tokens.size());
+        if(!is_initialized)
+            gmc.resize(tokens.size());
         is_initialized=true;
 
         if(gmc.size1()!=tokens.size())
             throw runtime_error(string("error loading ")
                     + filename + ": size mismatchm, number of columns differ");
-
         for(int i=0; i<tokens.size(); ++i)
             gmc(line_count,i) = boost::lexical_cast<double>(tokens[i]);
         ++line_count;
@@ -155,8 +172,7 @@ void imcio_read_index(const string &filename, vector<string> &names, vector<Rang
         string name = line.substr(0, found);
 
         string range = line.substr(found);
-        cout << "<" << name << "><" << range << ">\n";
-
+        
         RangeParser rp;
         rp.Parse(range);
         names.push_back(name);
