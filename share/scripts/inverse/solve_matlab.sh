@@ -13,10 +13,14 @@ check_deps "$0"
 [[ -n "$2" ]] || die "${0##*/}: Missing arguments"
 
 # initialize & run the matlab file
-sed -e "s/\$name_out/$2/" -e "s/\$name/$1/" $CSGINVERSE/linsolve.m > solve_$1.m
-matlab -r solve_$1 -nosplash -nodesktop
-rm -f solve_$1.m
+sed -e "s/\$name_out/$2/" -e "s/\$name/$1/" $CSGINVERSE/linsolve.m > solve_$1.m || die "${0##*/}: sed failed"
+
+#matlab does not like -_. etc in filenames
+run_or_exit mv solve_$1.m solve.m
+run_or_exit matlab -r solve -nosplash -nodesktop
+rm -f solve.m
 
 # temporary compatibility issue
-sed -ie 's/NaN/0.0/' $2
-sed -ie 's/Inf/0.0/' $2 
+[[ -f "$2" ]] || die "Matlab failed"
+run_or_exit sed -ie 's/NaN/0.0/' $2
+run_or_exit sed -ie 's/Inf/0.0/' $2
