@@ -36,6 +36,13 @@ fi
 
 
 log () {
+  local warn
+  if [ "$1" = "--no-warn" ]; then
+    shift
+    warn="no"
+  else
+    warn="yes"
+  fi
   if [ -z "$LOG_REDIRECTED" ]; then
     if [ -n "$CSGLOG" ]; then
       echo -e "$*" >> $CSGLOG
@@ -43,9 +50,11 @@ log () {
       echo -e "$*"
     fi
   else
-    echo -e "WARNING: Nested log call, when calling 'log $*'"
-    echo -e "         log was redirected by '$LOG_REDIRECTED'"
-    echo -e "         Try to avoid this, by removing one redirect, help: function_help"
+    if [ "$warn" = "yes" ]; then
+      echo -e "WARNING: Nested log call, when calling 'log $*'"
+      echo -e "         log was redirected by '$LOG_REDIRECTED'"
+      echo -e "         Try to avoid this, by removing one redirect, help: function_help"
+    fi
     echo -e "$*" 
   fi
 }
@@ -72,14 +81,16 @@ do_external() {
   [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed" 
   shift 2
-  log "Running subscript '${script##*/} $*'"
+  #logrun do_external is a good combi to use
+  log --no-warn "Running subscript '${script##*/} $*'"
   $script "$@" || die "do_external: $script $@ failed"
 }
 
 logrun(){
   local ret
   [[ -n "$1" ]] || die "logrun: missing argument"
-  log "logrun: run '$*'"
+  #--no-warn due to the fact that we get the warning anyway
+  log --no-warn "logrun: run '$*'"
   if [ -z "$LOG_REDIRECTED" ]; then
     export LOG_REDIRECTED="logrun $*"
     if [ -n "$CSGLOG" ]; then 
