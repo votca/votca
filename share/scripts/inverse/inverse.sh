@@ -47,7 +47,14 @@ source "${0%.sh}_start.sh"  "$@" || exit 1
 #----------------End of pre checking--------------------------------
 echo For a more verbose log see: $CSGLOG
 #log is created
-echo "Sim started $(date)" > $CSGLOG || exit 1
+if [ -f "$CSGLOG" ]; then
+  log "\n\n#################################"
+  log "# Appending to existing logfile #"
+  log "#################################\n\n"
+  log "Sim started $(date)"
+else
+  echo "Sim started $(date)" > $CSGLOG || exit 1
+fi
 
 method="$(csg_get_property cg.inverse.method)" 
 log "We are doing Method: $method"
