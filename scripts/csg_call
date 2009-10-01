@@ -1,28 +1,36 @@
 #!/bin/bash
 
-#if not defined try to parse agrument
-if [ -z "${CSGSHARE}" ]; then
-   echo Error: Environment values CSGSHARE not defined 1>&2
-   exit 1
+#we have to dedine this if $SOURCE_WRAPPER functions common fails
+die() {
+  echo -e "$*" >&2
+  exit 1
+}
+
+if [ "$1" = "--help" ]; then
+  echo This script calls script for csg using source_wrapper
+  echo Usage: ${0##*/} key1 key2
+  echo Example: ${0##*/} table smooth [ARGUMENTS]
+  echo USES: \$CSGSHARE
+  echo NEEDS: 
+  exit 0
 fi
+
+
+[[ -z "$2" ]] && die "${0##*/}: Missing argument"
+
+[[ -n "${CSGSHARE}" ]] || die "${0##*/}: Environment values CSGSHARE not defined"
 
 echo \$CSGSHARE is ${CSGSHARE}
 
-if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
-   exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
-   exit 0
-else
-   echo ${0##*/}: Could not run ${CSGSHARE}/scripts/inverse/inverse.sh $@
-   exit 1
-fi
-
 export CSGINVERSE=$CSGSHARE/scripts/inverse
+[[ -d "$CSGINVERSE" ]] || die "${0##*/}: CSGINVERSE '$CSGINVERSE' is not a dir"
+
 export SOURCE_WRAPPER=$CSGINVERSE/source_wrapper.pl
-export CSGLOG=log.tmp
+[[ -x "$SOURCE_WRAPPER" ]] || die "${0##*/}: Could not execute source wrapper"
+
 source $($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions common failed" 
 
-script=$($SOURCE_WRAPPER $1 $2)
-
-echo running $script
+#script=$($SOURCE_WRAPPER $1 $2)
+#echo running $script
 
 do_external $@
