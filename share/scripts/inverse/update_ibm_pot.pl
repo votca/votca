@@ -16,11 +16,11 @@ EOF
   exit 0;
 }
 
+die "4 parameters are nessary\n" if ($#ARGV<3);
+
 (my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
 chomp($function_file);
 (do "$function_file") || die "$progname: source $function_file failed\n";
-
-die "4 parameters are nessary\n" if ($#ARGV<3);
 
 my $pref=csg_get_property("cg.inverse.kBT");
 

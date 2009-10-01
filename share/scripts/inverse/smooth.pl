@@ -15,11 +15,11 @@ EOF
   exit 0;
 }
 
+die "2 parameters are nessary\n" if ($#ARGV<1);
+
 (my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
 chomp($function_file);
 (do "$function_file") || die "$progname: source $function_file failed\n";
-
-die "2 parameters are nessary\n" if ($#ARGV<1);
 
 my $infile="$ARGV[0]";
 my @r_cur;
