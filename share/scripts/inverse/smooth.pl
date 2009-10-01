@@ -4,7 +4,7 @@ use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
 
-if ("$ARGV[0]" eq "--help"){
+if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 Usage: $progname infile outfile
 This script smoothes a table

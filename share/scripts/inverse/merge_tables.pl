@@ -103,7 +103,9 @@ for(my $i=0; $i<=$#r_src; $i++) {
   # advance in dst till same r
   while($r_dst[$idst] < $r_src[$i] - 1e-15) {
     $idst++;
-    if($idst > $#r_dst) die "merge_tables.pl: destination table is too short"
+    if ($idst > $#r_dst) {
+      die "merge_tables.pl: destination table is too short";
+    }
   }
   my $tmp= $r_src[$i]-$r_dst[$idst];
 

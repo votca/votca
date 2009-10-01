@@ -2,7 +2,7 @@
 
 use strict;
 
-if ("$ARGV[0]" eq "--help"){
+if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 Provides useful function for perl:
 csg_get_property($):             get a value from xml file

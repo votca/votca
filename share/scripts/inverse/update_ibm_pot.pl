@@ -3,7 +3,7 @@
 use strict;
 ( my $progname = $0 ) =~ s#^.*/##;
 
-if ("$ARGV[0]" eq "--help"){
+if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 Usage: $progname new_rdf target_rdf cur_pot outfile
 This script calcs dU out of two rdfs with the rules of inverse boltzman
