@@ -8,7 +8,7 @@ sub find_in_dir($$);
 sub search_and_exit;
 sub show_table($);
 
-if ( "$ARGV[0]" eq "--help" ){
+if (defined($ARGV[0])&&( "$ARGV[0]" eq "--help" )){
   print <<END;
 This script find a script from two keywords.
 Usage: $progname word1 word2
@@ -34,20 +34,24 @@ my $csgscriptdir=$ENV{'CSGSCRIPTDIR'};
 if ($csgscriptdir) {
   $user_table="$csgscriptdir/$user_table";
 } else {
-  $user_table="";
-  $csgscriptdir="";
+  $user_table=undef;
+  $csgscriptdir=undef;
 }
 
 my $scriptname=undef;
 
-if ("$ARGV[0]" eq "--status" ){
+if (defined($ARGV[0])&&("$ARGV[0]" eq "--status" )){
   print "csg table status\n";
   show_table($csg_table);
   print "Check sums\n";
   system('md5sum $CSGINVERSE/MD5SUM');
   system('cd $CSGINVERSE; md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them and to user scripts dir');
-  print "user table status\n";
-  ( -r "$user_table" ) && show_table($user_table);
+  if (defined($user_table)&&( -r "$user_table")) {
+    print "user table status\n";
+    show_table($user_table);
+  } else {
+    print "No user table\n";
+  }
   exit 0;
 }
 
@@ -62,7 +66,7 @@ if ( "$ARGV[0]" eq "--direct" ) {
 }
 
 #find script in user_table
-if (( -r "$user_table" ) && ($scriptname=find_from_table($user_table))) {
+if (defined($user_table)&&( -r "$user_table" )&&($scriptname=find_from_table($user_table))) {
   #first script dir, then csgshare
   search_and_exit($scriptname,$csgscriptdir,$csgshare);
   die "Could not find user script '$scriptname' in any dir, check for typos\n";
@@ -103,6 +107,7 @@ sub find_in_dir($$) {
 sub search_and_exit {
   ( my $scriptname = shift ) || die "search_and_exit: first argument missing\n";
   foreach my $dir (@_) {
+    next unless defined($dir);
     if ($_=find_in_dir($scriptname,$dir)) {
       print "$_\n";
       exit 0;
