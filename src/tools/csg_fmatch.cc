@@ -437,11 +437,11 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
             vec gradient = (*interListIter)->Grad(*conf, loop);
 
             SP.AddToFitMatrix(_A, var,
-                    LeastSQOffset + 3 * N * L + ii, mpos, gradient.x());
+                    LeastSQOffset + 3 * N * L + ii, mpos, -gradient.x());
             SP.AddToFitMatrix(_A, var,
-                    LeastSQOffset + 3 * N * L + N + ii, mpos, gradient.y());
+                    LeastSQOffset + 3 * N * L + N + ii, mpos, -gradient.y());
             SP.AddToFitMatrix(_A, var,
-                    LeastSQOffset + 3 * N * L + 2 * N + ii, mpos, gradient.z());
+                    LeastSQOffset + 3 * N * L + 2 * N + ii, mpos, -gradient.z());
         }
     }
 }
