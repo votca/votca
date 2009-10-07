@@ -1,0 +1,21 @@
+\chapter{Reference}
+\section{programs}
+\section{Mapping file}
+The root node always has to be cg\_molecule. It can contain the following keywords:
+
+\input{usage/src/mapping}
+
+\section{option file}
+All options for the iterative script are stored in an xml file.
+
+\input{usage/src/cgoptions}
+
+\section{scripts}
+\subsection{basic scripts}
+\subsection{post update scripts}
+== smooth ==
+does a simple triangular smooth on the active range.
+you can specify the number of smoothing iterations in <post\_update\_options><smooth><iterations>
+
+\subsection{post add scripts}
+nothing provided in standard installation so far

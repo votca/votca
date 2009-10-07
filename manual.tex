@@ -3,6 +3,7 @@
 \usepackage{listings}
 
 \begin{document}
+\pagenumbering{roman}
 \begin{titlepage}
   \title{VOTCA - User Manual}
   \author{Victor R\"uhle, Christoph Junghans, Alexander Lukyanov, Kurt Kremer, Denis Andrienko}
@@ -12,10 +13,19 @@
 \thispagestyle{empty}
 \quad 
 \newpage
+
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+\newpage
+
 \setcounter{page}{1}
+\pagenumbering{arabic}
 
 \include{introduction}
 \include{theory}
+\include{functionality}
 \include{usage}
+\include{reference}
 
 \end{document}
