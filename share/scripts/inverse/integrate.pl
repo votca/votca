@@ -14,7 +14,7 @@ my $usage="Usage: $progname [OPTIONS] <in> <out>";
 
 # read program arguments
 
-while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
         if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
            $_=shift(@ARGV);

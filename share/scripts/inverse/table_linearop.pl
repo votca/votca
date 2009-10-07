@@ -9,7 +9,7 @@ my $usage="Usage: $progname [OPTIONS] <file> <a> <b>";
 #Defaults
 my $withflag=undef;
 
-while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
         if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
            $_=shift(@ARGV);
