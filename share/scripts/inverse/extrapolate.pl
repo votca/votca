@@ -4,12 +4,12 @@
 #
 # linear:
 #   y = ax + b;  b = - m*xp + yp; a = m
-# quadratic:
+# sasha_shit:
 #   y = a*(x-b)^2; b = (x0 - 2y0/m); a = m^2/(4*y0)
 # exponential:
 #   y = a*exp(b*x); a = y0*exp(-m*x0/y0); b = m/y0;
-#
-#
+# quadratic:
+#   y = curv*(x+a)^2 + b; a = m/(2*curv) - x0; b = y0 - m^2/(4*curv)
 #
 
 sub extrapolate_linear($$$$) {
@@ -21,7 +21,7 @@ sub extrapolate_linear($$$$) {
   return $m*($x - $x0) + $y0;
 }
 
-sub extrapolate_quad($$$$) {
+sub sasha_shit($$$$) {
   my $x0 = $_[0];
   my $y0 = $_[1]; 
   my $m =  $_[2];
@@ -33,6 +33,18 @@ sub extrapolate_quad($$$$) {
   #my $a = $m/(2*($x0-$b));
 
   return $a*($x-$b)**2;
+}
+sub extrapolate_quad($$$$) {
+  my $x0 = $_[0];
+  my $y0 = $_[1]; 
+  my $m =  $_[2];
+  my $x =  $_[3];
+
+  # $curv is a global variable
+  my $a = 0.5*$m/$curv - $x0;
+  my $b = $y0 - 0.25*$m*$m/$curv;
+
+  return $curv*($x + $a)**2 + $b
 }
 sub extrapolate_exp($$$$) {
   my $x0 = $_[0];
@@ -55,9 +67,11 @@ my $usage="Usage: $progname [OPTIONS] <in> <out>";
 
 my $avgpoints = 3;
 my $function="quadratic";
-# read program arguments
+my $region = "leftright";
+our $curv = 10000.0; # curvature for quadratic extrapolation
 
-while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
+# read program arguments
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
         if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
            $_=shift(@ARGV);
@@ -79,14 +93,27 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
         shift(@ARGV);
         shift(@ARGV);
     }
+    elsif($ARGV[0] eq "--region") {
+        $region = $ARGV[1];
+        shift(@ARGV);
+        shift(@ARGV);
+    }
+    elsif($ARGV[0] eq "--curvature") {
+        $curv = $ARGV[1];
+        shift(@ARGV);
+        shift(@ARGV);
+    }
     elsif (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
-This script calculates the integral of a table
+This script extrapolates a table
 $usage
 OPTIONS:
---avgpoints             average over so many points to extrapolate, standard is 3
---function            linear, quadratic or exp, standard is quadratic
+--avgpoints           average over so many points to extrapolate: default is 3
+--function            linear, quadratic or exponential, sasha: default is quadratic
+--region	      left, right, or leftright: default is leftright
+--curvature           curvature of the quadratic function: default is 10000
+                      makes sense only for quadratic extrapolation, ignored for other cases
 -h, --help            Show this help message
 
 NEEDS:
@@ -116,34 +143,81 @@ my @flag;
 
 my $outfile="$ARGV[1]";
 
-# find beginning
-my $first;
-for ($first=1;$first<=$#r;$first++) {
-   last if($flag[$first] eq "i");
+#==============
+my ($do_left, $do_right);
+
+# parse $region: decide where to extrapolate
+if ($region eq "left") {
+  $do_left = 1;
+  $do_right = 0;
+}
+elsif ($region eq "right") {
+  $do_left = 0;
+  $do_right = 1;
+}
+elsif ($region eq "leftright") {
+  $do_left = 1;
+  $do_right = 1;
+}
+else {
+  die "$progname: Unknown region: $region !\n";
 }
 
-# find end
-my $last;
-for ($last=$#r;$last>0;$last--) {
-   last if($flag[$last] eq "i");
+my $extrap_method;
+
+# parse $function: decide which method to use
+if ($function eq "linear") {
+   $extrap_method = \&extrapolate_linear;
+}
+elsif ($function eq "quadratic") {
+   $extrap_method = \&extrapolate_quad;
+}
+elsif ($function eq "exponential") {
+   $extrap_method = \&extrapolate_exp;
+}
+elsif ($function eq "sasha") {
+   $extrap_method = \&sasha_shit;
+}
+else {
+  die "$progname: Unknown extrapolation function: $function !\n";
 }
 
-# grad  of beginning
-my $grad_beg;
-$grad_beg = ($val[$first + $avgpoints] - $val[$first])/($r[$first + $avgpoints] - $r[$first]);
+# do extrapolation: left
+if ($do_left) {
+  # find beginning
+  my $first;
+  for ($first=1;$first<=$#r;$first++) {
+     last if($flag[$first] eq "i");
+  }
 
-# grad  of beginning
-my $grad_end;
-$grad_end = ($val[$last] - $val[$last - $avgpoints])/($r[$last] - $r[$last-$avgpoints]);
+  # grad  of beginning
+  my $grad_beg;
+  $grad_beg = ($val[$first + $avgpoints] - $val[$first])/($r[$first + $avgpoints] - $r[$first]);
 
-# now extrapolate beginning
-for(my $i=$first-1; $i >= 0; $i--) {
-    $val[$i] = extrapolate_linear($r[$first], $val[$first], $grad_beg, $r[$i]);
+  # now extrapolate beginning
+  for(my $i=$first-1; $i >= 0; $i--) {
+      $val[$i] = &{$extrap_method}($r[$first], $val[$first], $grad_beg, $r[$i]);
+  }
 }
 
-# now extrapolate ends
-for(my $i=$last+1; $i <= $#r; $i++) {
-    $val[$i] = extrapolate_linear($r[$last], $val[$last], $grad_end, $r[$i]);
+# do extrapolation: right
+if ($do_right) {
+  # find end
+  my $last;
+  for ($last=$#r;$last>0;$last--) {
+     last if($flag[$last] eq "i");
+  }
+
+  # grad  of end
+  my $grad_end;
+  $grad_end = ($val[$last] - $val[$last - $avgpoints])/($r[$last] - $r[$last-$avgpoints]);
+
+  # now extrapolate ends
+  for(my $i=$last+1; $i <= $#r; $i++) {
+      $val[$i] = &{$extrap_method}($r[$last], $val[$last], $grad_end, $r[$i]);
+  } 
 }
+#==============
+
 
 saveto_table($outfile,\@r,\@val,\@flag) || die "$progname: error at save table\n";
