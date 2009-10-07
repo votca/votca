@@ -1,6 +1,23 @@
 \documentclass[a4paper,10pt]{book}
 
 \usepackage{listings}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{appendix}
+\usepackage{xspace}
+
+\renewcommand{\vec}[1]{\ensuremath{{\bm #1}}}
+\newcommand{\fig}[1]{fig.~\ref{#1}}
+\newcommand{\unit}[1]{\ensuremath{\,\mbox{#1}}}
+\newcommand{\ibi}{IBI\xspace}
+\newcommand{\imc}{IMC\xspace}
+\newcommand{\fm}{FM\xspace}
+\newcommand{\xml}{XML\xspace}
+\newcommand{\gromacs}{GROMACS\xspace}
+\newcommand{\spce}{SPC/E\xspace}
+\newcommand{\grad}{\vec{\nabla}}
 
 \begin{document}
 \pagenumbering{roman}
@@ -17,6 +34,7 @@
 \thispagestyle{empty}
 \tableofcontents
 \newpage
+\quad 
 \newpage
 
 \setcounter{page}{1}

@@ -3,7 +3,7 @@ img_extIsRegExp=false
 img_extensions=.eps .pdf .dvi .ps .fig .gif .jpg .jpeg .png
 kileprversion=1
 kileversion=1.9.3
-lastDocument=usage/mapping.tex
+lastDocument=functionality.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -15,12 +15,20 @@ src_extensions=.tex .ltx .bib .mp
 MakeIndex=
 QuickBuild=
 
-[item:introduction.tex]
+[item:functionality.tex]
 archive=true
-column=10
+column=0
 encoding=ISO 8859-1
 highlight=LaTeX
-line=0
+line=5
+open=true
+
+[item:introduction.tex]
+archive=true
+column=26
+encoding=ISO 8859-1
+highlight=LaTeX
+line=1
 open=true
 
 [item:manual.kilepr]
@@ -36,29 +44,29 @@ archive=true
 column=0
 encoding=ISO 8859-1
 highlight=LaTeX
-line=3
+line=28
+open=true
+
+[item:reference.tex]
+archive=true
+column=20
+encoding=ISO 8859-1
+highlight=LaTeX
+line=5
 open=true
 
 [item:theory.tex]
 archive=true
-column=32
+column=25
 encoding=ISO 8859-1
 highlight=LaTeX
-line=0
+line=1
 open=true
 
 [item:usage.tex]
 archive=true
-column=22
+column=1
 encoding=ISO 8859-1
 highlight=LaTeX
-line=2
-open=true
-
-[item:usage/mapping.tex]
-archive=true
-column=0
-encoding=ISO 8859-1
-highlight=LaTeX
-line=11
+line=3
 open=true
