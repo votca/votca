@@ -1,0 +1,113 @@
+<tags>
+  <item>
+    <name>cgmap</name>
+    <desc>
+      Mapping file for analysis. Currently also during coarse-grained simulations, a mappin file has to be specified
+      which is only a 1:1 mapping. This will change in the future.
+    </desc>
+  </item>
+  <item>
+    <name>non-bonded</name>
+    <desc>
+      Section for a non-bonded interaction. All sub-tags will be later on specified in 
+      interaction.* since most of them are identical to bonded interactions.
+    </desc>
+  </item>
+  <item>
+    <name>bonded</name>
+    <desc>
+      Section for a bonded interaction. All sub-tags will be later on specified in 
+      interaction.* since most of them are identical to non-bonded interactions.
+    </desc>
+  </item>
+  
+  <item>
+    <name>interaction.name</name>
+    <desc>
+      Name of the interaction
+    </desc>
+  </item>
+  <item>
+   <name>interaction.target</name>
+   <desc> target distribution (rdf), just give gromas rdf.xvg </desc>
+  </item>
+  <item>
+   <name>interaction.type1</name>
+    <desc>Only for non-bonded. Bead type 1 of non-bonded interaction.</desc>
+  </item>
+  <item>
+   <name>interaction.type2</name>
+    <desc>Only for non-bonded. Bead type 2 of non-bonded interaction.</desc>
+  </item>
+  <item>
+    <name>interaction.min</name>
+    <desc>lower bound of interval for potential table in which calculations are performed.</desc>
+  </item>
+  <item>
+    <name>interaction.max</name>
+    <desc>upper bound of interval for potential table in which calculations are performed.</desc>
+  </item>
+  <item>
+    <name>interaction.step</name>
+    <desc>step size of interval for potential table in which calculations are performed.</desc>
+  </item>
+  <item>
+   <name>interaction.do_potential</name>
+    <desc>Update cacly for potential update. 1 means update, 0 don't update. 1 1 0 means update 2 iterations, then don't update, then repeated. </desc>
+  </item>
+  <item>
+    <name>interaction.post_update</name>
+    <desc>Additional post processing of dU before added to potential. This is a list of scripts which are called separated by space.</desc>
+  </item>
+  <item>
+    <name>interaction.post_update_options</name>
+    <desc>This sectioncontains all options for post update scripts.</desc>
+  </item>
+  <item>
+    <name>interaction.post_add</name>
+    <desc>Additional post processing of U after dU added to potential. See interaction.post_update for details.</desc>
+  </item>
+  <item>
+    <name>interaction.imc</name>
+    <desc>Section containing inverse monte carlo specific options.</desc>
+  </item>
+  <item>
+    <name>interaction.imc.group</name>
+    <desc>
+      Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update.
+        I no cross correlations should be calculated, interactions have to be put into different groujps.
+    </desc>
+  </item>
+  <item>
+    <name>interaction.gromacs</name>
+    <desc>
+        This section contains gromacs specific options if gromacs is used as simulatiion program.
+    </desc>
+  </item>
+  
+  <item>
+    <name>interaction.gromacs.table</name>
+    <desc>
+      Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format for every run.
+    </desc>
+  </item>  
+
+  <item><name>inverse</name><desc> general options for inverse script </desc></item>
+  <item><name>inverse.p_target</name><desc> target pressure </desc></item>
+  <item><name>inverse.kBT</name><desc> kBT (300*0.00831451 gromacs units) </desc></item>
+  <item><name>inverse.program</name><desc>simulation package to be used (currently only gromacs) </desc></item>
+  <item><name>inverse.gromacs</name><desc> gromacs specific options </desc></item>
+  <item><name>inverse.gromacs.equi_time</name><desc> trash so many frames at the beginning </desc></item>
+  <item><name>inverse.gromacs.table_bins</name><desc> grid for table*.xvg !</desc></item>
+  <item><name>inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>
+  <item><name>inverse.gromacs.table_extend</name><desc> extend the tables to this value </desc></item>
+  <item><name>inverse.gromacs.topol</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
+  <item><name>inverse.gromacs.traj</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
+  <item><name>inverse.filelist</name><desc> these files are copied for each new run </desc></item>
+  <item><name>inverse.iterations_max</name><desc> do so many iterations </desc></item>
+  <item><name>inverse.method</name><desc> ibm: inverse biltzmann imc: inverse monte carlo </desc></item>
+  <item><name>inverse.scriptdir</name><desc> directory for user scripts (e.g. \$PWD)</desc></item>
+  <item><name>inverse.log_file</name><desc> write log to this file </desc></item>
+  <item><name>inverse.imc</name><desc> general imc specific options </desc></item>
+  <item><name>inverse.imc.solver</name><desc> solver to solve linear equation system, can be octave or matlab </desc></item>
+</tags>

@@ -1,0 +1,19 @@
+
+
+%!encoding: iso-8859-1
+
+%Anchor stuff
+%%%%%%%%%%%%%%%%%%%%%%%
+
+% for media wiki
+%!postproc(wiki): 'anchor\((.*?)\)' '<span id="\1"></span>'
+% for html
+%!postproc(html): 'anchor\((.*?)\)' '<a name="\1"></a>'
+% for tex
+%!postproc(tex): 'anchor\((.*?)\)' '\label{\1}'
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+
+%For the rest is replaced by nothing.
+%!postproc: 'anchor\(.*?\)' ''

@@ -1,0 +1,67 @@
+\section{Iterative Inversion Scripts}
+
+\subsection{Basic workflow}
+This set of scripts implement iterative boltzmann inversion + inverse monte carlo. 
+
+To setup the environment, run:
+csh, tcsh: source `<csg-installation>/bin/CSGRC.csh
+bash: source `<csg-installation>/bin/CSGRC.bash   
+
+tutorials can be found in
+<csg-installation>/share/csg/tutor
+
+just copy tip3p and try 
+  ./run.sh cg.xml
+
+Each iteration is divided n several steps:
+
+run the simulation
+
+calculate statistics + delta U
+
+a file <name>.dpot.new is created
+
+post\_update: (called for each interaction)
+
+ here the user can hook in several scripts to act on dU. One example for that is pressure correction. Also 
+smoothing/extrapolation is possible
+
+ each script reads a <name>.dpot.cur and writees <name>.dpot.new. The inverse script takes care for correct renaming and saving all the intermediate steps in <name>.dpot.X where X is a number.
+Add the potentials (called for each interaction)
+\begin{equation}
+  U_{n+1} = U_n + \Delta U
+\end{equation}
+
+write CG-CG.pot.new
+
+Post add (called for each interaction)
+
+do manipulations on the potential like smoothing,...
+
+similiar behaviour as post\_update, just acting on <name>.pot.cur, <name>.pot.new
+
+\subsection{input}
+For options + directives see ...
+
+As target distribution, any table file can be given (e.g. gromacs output from g\_rdf). The program automaticaly takes care to resample to the correct grid spacing in the .xml file.
+
+The initial guess is created by inverting the rdf. It's located in step\_00/<name>.pot.new. To create an own initial guess, place a file called <name>.pot.in in your folder where you run the scripts.
+
+Also all the files to run a simulation have to be created:
+conf.gro
+table.xvg  (if using energy\_grp\_tables give any standard file here)
+topol.top
+grompp.mdp
+
+These files have to be specified in the xml file (see tutorial or [[Coarse graining directives]])
+
+
+\subsection{post processing}
+== smooth ==
+does a simple triangular smooth on the active range.
+you can specify the number of smoothing iterations in <post\_update\_options><smooth><iterations>
+
+\subsection{Customization}
+Please never ever change our installed scripts. You can hook in your own scripts for any single sub part. The file
+<csg-install>/share/csg/scripts/inverse/csg\_table assigns to two given keywords a script which is called. You can change this by creating a file
+csg\_table in your own directory (specified in the Coarse graining directives). Just add a line for each script you want to add or change. The source\_wrapper takes care that your script is called instead of the one from the standard installations. For scripting details have a look at the source, there is no developers manual so far. Feel free to ask Christoph Junghans or Victor Rühle for details.
