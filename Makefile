@@ -2,7 +2,7 @@ rmflags=-f
 PICDIR=abb
 
 all: 
-	$(MAKE) $(MFLAGS) -C usage
+	$(MAKE) $(MFLAGS) -C reference 
 	./latexmk.pl -pdfdvi manual.tex
 
 .SUFFIXES: .tex .pdf
@@ -16,5 +16,5 @@ pics:
 clean:
 	rm -f manual.dvi manual.pdf
 	latexmk -c
-	$(MAKE) $(MFLAGS) -C usage clean
+	$(MAKE) $(MFLAGS) -C reference clean
 
