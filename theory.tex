@@ -1,2 +1,57 @@
 \chapter{Formulas \and Definitions}
-Give a brief description of all methods here, shorter than in paper. mainly definition of equations + all parameters with references
+\section{Boltzmann inversion}
+Boltzmann inversion is the simplest method one can use to obtain coarse-grained potentials~\cite{Tschoep:1998}. It is mostly used for {\em bonded} potentials, such as bonds, angles, and torsions. Boltzmann inversion is structure-based and only requires positions of atoms.
+
+The potential is calculated by inverting the probability distribution $P(q)$ 
+\begin{equation}
+  U(q) = - k_\text{B} T \ln  P(q) ~.
+  \label{eq:inv_boltzmann}
+\end{equation}
+%
+Note that the normalization factor $Z$ is not important since it would only enter the coarse-grained potential $U(q)$ as an irrelevant additive constant.
+
+Histograms for the bonds $H_r(r)$, angle $H_\theta(\theta)$, and torsion angle $H_\varphi(\varphi)$ have to be rescaled to obtain the volume normalized distribution functions $P_r(r)$, angle $P_\theta(\theta)$, and torsion angle $P_\varphi(\varphi)$: 
+%
+\begin{align}
+    P_r(r) = \frac{H_r(r)}{4\pi r^2}~,
+    P_\theta(\theta) = \frac{H_\theta(\theta)}{\sin \theta}~,
+    P_\varphi(\varphi) = H_\varphi (\varphi)~.
+    \label{eq:boltzmann_norm}
+\end{align}
+With bond length $\vec{r}$, angle~$\theta$ and torsion angle~$\varphi$.%
+The coarse-grained potential can then be calculated by Boltzmann inversion of the distribution functions
+%
+\begin{align}
+    \label{eq:boltzmann_pmf}
+    U({r}, \theta, \varphi) &= U_r({r}) + U_{\theta}(\theta) + U_{\varphi}(\varphi)~, \\
+    U_q({q}) &= - k_\text{B} T \ln P_q( q ),\; q=r, \theta, \varphi~.
+    \nonumber
+\end{align}
+
+\section{Iterative Boltzmann Inversion}
+In \ibi~\cite{Reith:2003}, potentials are refined iteratively. The potential update $\Delta U$ is given by
+\begin{eqnarray}
+  \label{eq:iter_boltzmann}
+  U^{(n+1)} &=& U^{(n)} + \lambda \Delta U^{(n)}~, \\
+  \Delta U^{(n)} &=&  k_\text{B} T \ln  \frac{P^{(n)}}{P_{\rm ref}}
+  =  U_\text{PMF}^\text{ref} - U_\text{PMF}^{(n)}~.
+\end{eqnarray}
+Here $\lambda \in ]0,1]$ is a numerical factor to stabilize the scheme.
+
+\section{Inverse Monte Carlo}
+\imc is a second iterative scheme. It additionally includes cross correlations. The potential update $\Delta U$ is calculated by solving a set of linear equations
+\begin{align}
+    \left<S_{\alpha}\right> - S_{\alpha}^{\text{ref}}= A_{\alpha \gamma} \Delta U_{\gamma}~,
+  \label{eq:imc}
+\end{align}
+%
+with
+\begin{eqnarray}
+  \label{eq:covariance}
+  A_{\alpha \gamma} &=& \frac{\partial \left< S_{\alpha} \right> }{\partial U_{\gamma}}  \\
+  \nonumber
+  &=&
+  \beta \left( \left<S_{\alpha} \right>\left<S_{\gamma} \right> - \left<S_{\alpha} S_{\gamma} \right>  \right)~.
+  \nonumber
+\end{eqnarray}
+and $S$ the histogram of the interaction. Here $S$ and $H$ from Boltzmann Inversion both mean the same, due to notation used in the original papers we keep these separat labels.
