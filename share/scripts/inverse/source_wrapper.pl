@@ -45,7 +45,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--status" )){
   show_table($csg_table);
   print "Check sums\n";
   system('md5sum $CSGINVERSE/MD5SUM');
-  system('cd $CSGINVERSE; md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them and to user scripts dir');
+  system('cd $CSGINVERSE; md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them to your user scripts dir');
   if (defined($user_table)&&( -r "$user_table")) {
     print "user table status\n";
     show_table($user_table);
