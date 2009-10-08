@@ -16,6 +16,9 @@ OPTIONS:
 -l, --list          Show list of all script
     --check         Check csg script
     --scriptdir DIR Set the user script dir
+    --xmlfile FILE  Specify the xml file to use
+    --bondtype type Specify the bondtype to use
+    --bondname name Specify the bondname to use
 -h, --help          Show this help
 
 Example: ${0##*/} table smooth [ARGUMENTS]
@@ -46,6 +49,15 @@ while [ "${1#-}" != "$1" ]; do
     shift ;;
    --scriptdir)
     export CSGSCRIPTDIR="$2"
+    shift 2;; 
+   --xmlfile)
+    export CSGXMLFILE="$2"
+    shift 2;; 
+   --iatype)
+    export bondtype="$2"
+    shift 2;; 
+   --ianame)
+    export bondname="$2"
     shift 2;; 
    -h | --help)
     show_help
@@ -79,7 +91,20 @@ if [ -n "$sw_opt" ]; then
   exit 0
 fi
 
-#script=$($SOURCE_WRAPPER $1 $2)
-#echo running $script
+needs="$(do_external $1 $2 --help)"
+needs="$(echo "$needs" | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
+[ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --xmlfile option"
+[ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "xmlfile '$CSGXMLFILE' not found"
+
+interaction=""
+
+for i in $needs; do
+  [ -n "${i#cg.*}" ] && interaction="$interaction $i" 
+done
+interaction=${interaction# }
+if [ -n "$interaction" ]; then
+  [ -z "$bondtype" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
+  [ -z "$bondname" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
+fi
 
 do_external $@
