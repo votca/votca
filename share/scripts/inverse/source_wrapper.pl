@@ -43,9 +43,6 @@ my $scriptname=undef;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--status" )){
   print "csg table status\n";
   show_table($csg_table);
-  print "Check sums\n";
-  system('md5sum $CSGINVERSE/MD5SUM');
-  system('cd $CSGINVERSE; md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them to your user scripts dir');
   if (defined($user_table)&&( -r "$user_table")) {
     print "user table status\n";
     show_table($user_table);
@@ -55,6 +52,12 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--status" )){
   exit 0;
 }
 
+if (defined($ARGV[0])&&("$ARGV[0]" eq "--check" )){
+  print "Check sums\n";
+  system('md5sum $CSGINVERSE/MD5SUM');
+  system('cd $CSGINVERSE; md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them to your user scripts dir');
+  exit 0;
+}
 ###################MAIN PROGRAMM#######################
 
 ( $#ARGV < 1 ) && die "$progname needs two arguments\n";

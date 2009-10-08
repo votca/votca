@@ -70,6 +70,7 @@ filelist="$(csg_get_property cg.inverse.filelist)"
 log "We extra need $filelist to run the simulation"
 
 run_or_exit $SOURCE_WRAPPER --status
+run_or_exit $SOURCE_WRAPPER --check
 
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
