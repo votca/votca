@@ -66,7 +66,7 @@ msg() {
 
 unset -f die
 die () {
-  log "$*"
+  [[ -z "$CSGLOG" ]] || log "$*"
   echo -e "$*" 1>&2
   log "killing all processes...." 
   #send kill signal to all process within the process groups
