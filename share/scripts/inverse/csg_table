@@ -79,6 +79,7 @@ prepare gromacs prepare_gromacs.sh
 run gromacs run_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_gromacs.sh
+imc_stat gromacs imc_stat_generic.sh
 
 # END: these scripts have to be defined for each simulation program
 

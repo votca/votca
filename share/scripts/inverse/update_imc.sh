@@ -5,7 +5,7 @@ if [ "$1" = "--help" ]; then
    echo for the Inverse Monte Carlo Method
    echo Usage: ${0##*/} step_nr
    echo USES: die csg_get_property msg is_done run_or_exit csg_stat \$CSGXMLFILE mark_done do_external sort 
-   echo NEEDS: cg.cgmap cg.inverse.gromacs.topol cg.inverse.gromacs.traj cg.inverse.imc.solver cg.*.imc.group
+   echo NEEDS: cg.cgmap cg.inverse.gromacs.topol cg.inverse.gromacs.traj cg.inverse.imc.solver cg.*.imc.group  cg.inverse.program
    exit 0
 fi
 
@@ -13,19 +13,9 @@ check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-cgmap=$(csg_get_property cg.cgmap)
-topol=$(csg_get_property cg.inverse.gromacs.topol)
-traj=$(csg_get_property cg.inverse.gromacs.traj)
 solver=$(csg_get_property cg.inverse.imc.solver)
-
-msg "calculating statistics"
-if is_done "imc_analysis"; then
-  msg "IMC analysis is already done"
-else
-  msg "Running IMC analysis"
-  run_or_exit csg_stat --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap
-  mark_done "imc_analysis"
-fi
+sim_prog="$(csg_get_property cg.inverse.program)" 
+do_external imc_stat $sim_prog
 
 list_groups=$(csg_get_property 'cg.*.imc.group' | sort -u)
 for group in "$list_groups"; do
