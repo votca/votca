@@ -12,6 +12,7 @@ update ibm update_ibm.sh
 update imc update_imc.sh
 
 # add up the potential
+# TODO: think about name add_pot, is other name maybe better
 add_pot ibm add_pot_ibm.sh
 add_pot imc add_pot_ibm.sh
 
@@ -21,10 +22,12 @@ add_pot imc add_pot_ibm.sh
 rdf pot RDF_to_POT.pl
 
 # add update to the potential scripts
+# TODO: this script dhould move to table add ...
 add pot add_POT.pl
 
 # post update
 post update post_update.sh
+# TODO: rename this to post update_single
 postupd single post_update_single.sh
 
 #post update scripts
@@ -34,6 +37,7 @@ postupd smooth postupd_smooth.sh
 
 # post add
 post add post_add.sh
+# TODO: rename this to post add_single
 postadd single post_add_single.sh
 
 # post add scripts
@@ -43,10 +47,13 @@ shift dpotnb do_shift_nb.pl
 resample calc resample_to_calc.sh
 
 # ibm specific stuff
-update ibm_single update_ibm_single.sh
+# TODO: rename to ibm single
+update ibm_single ibm_single.sh
+# TODO: rename to ibm pot
 update ibm_pot update_ibm_pot.pl
 
 # imc specific stuff
+# TODO: rename to imc single
 update imc_single update_imc_single.sh
 imcsolver matlab solve_matlab.sh
 imcsolver octave solve_octave.sh
@@ -55,7 +62,7 @@ imc purify imc_purify.sh
 # pressure correction
 pressure correction pressure_cor.pl
 
-# generic table maniupulation
+# generic table manipulation
 table integrate integrate.pl
 table extrapolate extrapolate.pl
 table merge merge_tables.pl
