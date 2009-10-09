@@ -293,7 +293,7 @@ void Imc::DoCorrelations() {
 
             // M_ij += a_i*b_j
             for(int i=0; i<M.size1(); ++i)
-                for(int j=0; j<M.size2(); ++j)
+                for(int j=i; j<M.size2(); ++j)
                     M(i,j) = ((((double)_nframes-1.0)*M(i,j)) + (a(i)*b(j)))/(double)_nframes;
             //  M = ((((double)_nframes-1.0)*M) + ub::outer_prod(a, b))/(double)_nframes;
         }
@@ -415,7 +415,7 @@ void Imc::WriteIMCData(const string &suffix) {
                                ub::range(j, j+n2));
             // A_ij = -(<a_i*a_j>  - <a_i>*<b_j>)
             for(i=0; i<M.size1(); ++i)
-                for(j=0; j<M.size2(); ++j)
+                for(j=i; j<M.size2(); ++j)
                     M(i,j) = -(M(i,j) - a(i)*b(j));
             //M = -(M - ub::outer_prod(a, b));
         }
