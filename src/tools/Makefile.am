@@ -22,7 +22,7 @@ csg_property_SOURCES = csg_property.cc
 
 csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch_main.cc
 
-csg_imcrepack = csg_imcrepack.cc
+csg_imcrepack_SOURCES = csg_imcrepack.cc
 
 # csg_sample_SOURCES = \
 #    csg_sample.cc
