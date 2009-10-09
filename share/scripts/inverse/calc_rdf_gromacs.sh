@@ -23,7 +23,7 @@ binsize=$(csg_get_interaction_property step)
 min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 
-$begin=$(echo $equi_time $first_frame $dt| awk "{print ($1 > $2*$3 ? $1 : $2*$3) }")
+begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
 log "Running g_rdf for ${type1}-${type2}"
 run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${begin} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg -s topol.tpr"
