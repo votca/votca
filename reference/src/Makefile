@@ -1,4 +1,4 @@
-all: wiki tex man html 
+all: wiki tex man 
 
 .SUFFIXES: .xml .t2t .tex .man .wiki .html .sh
 
