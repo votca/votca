@@ -15,8 +15,8 @@ cgmap=$(csg_get_property cg.cgmap)
 topol=$(csg_get_property cg.inverse.$sim_prog.topol)
 traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 
-equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time) 0"
-first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame) 0"
+equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
+first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 
 check_deps "$0"
 msg "calculating statistics"
@@ -25,6 +25,6 @@ if is_done "imc_analysis"; then
 else
   msg "Running IMC analysis"
   run_or_exit csg_stat --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap \
-        --begin $equi_time --first_frame $first_frame
+        --begin $equi_time --first-frame $first_frame
   mark_done "imc_analysis"
 fi
