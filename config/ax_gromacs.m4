@@ -3,7 +3,7 @@ AC_DEFUN([AX_GROMACS_LIBS], [
     LIBS_GMX="-lgmx"
   ],[
     AC_CHECK_LIB(gmx_mpi,GromacsVersion,[
-      LIBS_GMX="-lgmx_mpi -lmpi -llam"
+      LIBS_GMX="-lgmx_mpi -lmpi -llam -lpthread"
     ],[
       AC_MSG_ERROR([
 
