@@ -163,9 +163,12 @@ csg_get_interaction_property () {
   [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter \"name=$bondname\" --print $1"
-  ret="$($cmd)" \
-    || die "csg_get_interaction_property: '$cmd' failed"
-  [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
+  if ! ret="$($cmd 2>&1)"; then
+    #csg_property failed and no default
+    [[ -z "$2" ]] && die "csg_get_interaction_property: '$cmd' failed"
+    ret="$2"
+  fi
+  [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_interaction_property: Result of '$cmd' was empty"
   echo "$ret"
@@ -184,9 +187,12 @@ csg_get_property () {
   [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path '${1}' --short --print ."
-  ret="$($cmd)" \
-    || die "csg_get_property: '$cmd' failed"
-  [[ -n "$2" ]] && [[ -z "$ret" ]] && ret="$2"
+  if ! ret="$($cmd 2>&1)"; then
+    #csg_property failed and no default
+    [[ -z "$2" ]] && die "csg_get_property: '$cmd' failed"
+    ret="$2"
+  fi
+  [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_property: Result of '$cmd' was empty"
   echo "$ret"
