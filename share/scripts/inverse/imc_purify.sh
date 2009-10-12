@@ -24,12 +24,12 @@ scheme_nr=$(( ( $1 - 1 ) % ${#scheme[@]} ))
 
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
   log "Update potential ${name} : yes"
-  run_or_exit do_external table linearop --withflag o ${name}.dpot.new 0 0
-  run_or_exit do_external table linearop --withflag i ${name}.dpot.new $kBT 0
+  run_or_exit do_external table linearop --withflag o ${name}.dpot.new ${name}.dpot.new 0 0
+  run_or_exit do_external table linearop --withflag i ${name}.dpot.new ${name}.dpot.new $kBT 0
 
   run_or_exit do_external shift dpotnb ${name}.dpot.new ${name}.dpot.new
 else
   log "Update potential ${name} : no"
-  run_or_exit do_external table linearop ${name}.dpot.new 0 0
+  run_or_exit do_external table linearop ${name}.dpot.new ${name}.dpot.new 0 0
 fi
 

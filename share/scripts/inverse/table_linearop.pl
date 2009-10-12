@@ -4,7 +4,7 @@ use strict;
 $_=$0;
 s#^.*/##;
 my $progname=$_;
-my $usage="Usage: $progname [OPTIONS] <file> <a> <b>";
+my $usage="Usage: $progname [OPTIONS] <in> <out> <a> <b>";
 
 #Defaults
 my $withflag=undef;
@@ -24,13 +24,14 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
-Merge two tables
+Performs a linear operaton on the y values:
+y_new = a*y_old + b
 $usage
 OPTIONS:
 -h, --help            Show this help message
 --withflag            only change entries with specific flag in src
 
-Examples:  $progname tmp.dpot.new 1.0 0.0
+Examples:  $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
 
 USES: \$SOURCE_WRAPPER readin_table saveto_table
 NEEDS: 
@@ -52,7 +53,7 @@ END
 }
 
 #Print usage
-die "missing parameters\n$usage\n" unless $#ARGV >= 2;
+die "missing parameters\n$usage\n" unless $#ARGV >= 3;
 
 my $a = $ARGV[1];
 my $b = $ARGV[2]; 
