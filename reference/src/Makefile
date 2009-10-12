@@ -7,6 +7,14 @@ man: cgoptions.man mapping.man
 tex: cgoptions.tex mapping.tex
 html: cgoptions.html mapping.html
 
+cgoptions.xml:
+	if [ -f "${CSGSHARE}/doc/cgoptions.xml" ]; then
+	   xmlfile="${CSGSHARE}/doc/cgoptions.xml"
+	else
+	   echo ${0##*/}: Error, did not find ${CSGSHARE}/doc/cgoptions.xml
+	   exit 1
+	fi
+	cp $(CSGSHARE)/doc/cgoptions.xml .
 
 .xml.t2t: 
 	./xmltotxt.sh $< $@
