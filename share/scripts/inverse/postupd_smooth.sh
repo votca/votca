@@ -14,7 +14,7 @@ check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
-iterations=$(csg_get_interaction_property post_update_options.smooth.iterations)  
+iterations=$(csg_get_interaction_property post_update_options.smooth.iterations 1)  
 
 run_or_exit cp ${name}.dpot.cur $tmpfile
 log "doing $iterations smoothing iterations"
