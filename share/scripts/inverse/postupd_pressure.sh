@@ -28,10 +28,7 @@ if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
    #calc pressure correction
    pressure_cor=$($SOURCE_WRAPPER pressure correction) || die "${0##*/}:$SOURCE_WRAPPER pressure correction failed"
    run_or_exit $pressure_cor $p_target $p_now pressure_cor.d 
-
-   add_POT=$($SOURCE_WRAPPER add pot) || die "${0##*/}: $SOURCE_WRAPPER add pot failed" 
-
-   run_or_exit $add_POT pressure_cor.d ${name}.dpot.cur ${name}.dpot.new
+   run_or_exit do_external table add pressure_cor.d ${name}.dpot.cur ${name}.dpot.new
 else
    log "Update pressure ${name} : no"
    run_or_exit cp ${name}.dpot.cur ${name}.dpot.new

@@ -21,10 +21,6 @@ add_pot imc add_pot_ibm.sh
 # initial guesses
 rdf pot RDF_to_POT.pl
 
-# add update to the potential scripts
-# TODO: this script dhould move to table add ...
-add pot add_POT.pl
-
 # post update
 post update post_update.sh
 # TODO: rename this to post update_single
@@ -48,7 +44,7 @@ resample calc resample_to_calc.sh
 
 # ibm specific stuff
 # TODO: rename to ibm single
-update ibm_single ibm_single.sh
+update ibm_single update_ibm_single.sh
 # TODO: rename to ibm pot
 update ibm_pot update_ibm_pot.pl
 
@@ -63,6 +59,7 @@ imc purify imc_purify.sh
 pressure correction pressure_cor.pl
 
 # generic table manipulation
+table add add_POT.pl
 table integrate integrate.pl
 table extrapolate extrapolate.pl
 table merge merge_tables.pl
