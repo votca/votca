@@ -1,2 +1,2 @@
-SUBDIRS = scripts tutor doc 
+SUBDIRS = scripts tutor doc template 
 

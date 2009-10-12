@@ -20,6 +20,7 @@ AC_CONFIG_FILES([share/Makefile])
 AC_CONFIG_FILES([scripts/Makefile])
 
 AC_CONFIG_FILES([./share/doc/Makefile])
+AC_CONFIG_FILES([./share/template/Makefile])
 
 AC_CONFIG_FILES([./share/tutor/Makefile])
 AC_CONFIG_FILES([./share/tutor/spce/atomistic/Makefile])
