@@ -78,6 +78,7 @@ int main(int argc, char** argv)
     // did an error occour?
     catch(exception &error) {
         cerr << "An error occoured!" << endl << error.what() << endl;
+        return -1;
     }
     return 0;
 }
