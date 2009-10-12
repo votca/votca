@@ -4,8 +4,8 @@ functions perl functions_perl.pl
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
-init ibm initalize_ibm.sh
-init imc initalize_ibm.sh
+init ibm initalize_generic.sh
+init imc initalize_generic.sh
 
 # the update step
 update ibm update_ibm.sh

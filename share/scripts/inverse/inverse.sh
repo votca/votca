@@ -45,14 +45,15 @@ done
 source "${0%.sh}_start.sh"  "$@" || exit 1
 
 #----------------End of pre checking--------------------------------
-echo For a more verbose log see: $CSGLOG
-#log is created
 if [ -f "$CSGLOG" ]; then
   log "\n\n#################################"
   log "# Appending to existing logfile #"
   log "#################################\n\n"
   log "Sim started $(date)"
+  echo "Appending to existing logfile $CSGLOG"
 else
+  echo For a more verbose log see: $CSGLOG
+  #log is created in the next line
   echo "Sim started $(date)" > $CSGLOG || exit 1
 fi
 
@@ -88,7 +89,7 @@ else
   for_all non-bonded do_external resample calc step_00
   cd step_00 || die "cd step_00 failed"
 
-  for_all non-bonded do_external init $method  
+  for_all "non-bonded" do_external init $method  
 
   #get confout.gro
   do_external init $sim_prog 
