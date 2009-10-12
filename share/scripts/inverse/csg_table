@@ -32,8 +32,7 @@ postupd smooth postupd_smooth.sh
 
 # post add
 post add post_add.sh
-# TODO: rename this to post add_single
-postadd single post_add_single.sh
+post add_single post_add_single.sh
 
 # post add scripts
 
