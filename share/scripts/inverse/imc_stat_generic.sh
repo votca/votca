@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents statistical analysis for the Inverse Monte Carlo Method
    echo using generic csg tools
    echo Usage: ${0##*/}
-   echo USES: msg run_or_exit mark_done csg_stat
+   echo USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done
    echo NEEDS: cg.inverse.program cg.cgmap cg.inverse.sim_prog.topol cg.inverse.sim_prog.topol
    echo OPTIONAL: cg.inverse.$sim_prog.first_frame cg.inverse.$sim_prog.equi_time
    exit 0

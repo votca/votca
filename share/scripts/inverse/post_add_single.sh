@@ -3,7 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo This script make all the post update with backup for single pairs 
    echo Usage: ${0##*/} step_nr
-   echo USES:  csg_get_interaction_property log mv cp die \$SOURCE_WRAPPER
+   echo USES:  csg_get_interaction_property log mv cp do_external run_or_exit die
    echo NEEDS: name post_add
    exit 0
 fi
@@ -15,9 +15,8 @@ tasklist=$(csg_get_interaction_property --allow-empty post_add)
 i=1
 for task in $tasklist; do
   log "Doing $task for ${name}"
-  mv ${name}.pot.new ${name}.pot.cur || die "${0##*/}: mv failed"
-  cp ${name}.pot.cur ${name}.pot.${i} || die "${0##*/}: cp failed"
-  script=$($SOURCE_WRAPPER postadd $task) || die "${0##*/}: $SOURCE_WRAPPER postadd $task failed"
-  $script $1 || die "${0##*/}: $script $1 failed" 
+  run_or_exit mv ${name}.pot.new ${name}.pot.cur
+  run_or_ext cp ${name}.pot.cur ${name}.pot.${i}
+  run_or_exit do_external postadd "$task" "$1"
   ((i++))
 done

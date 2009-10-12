@@ -3,7 +3,7 @@
 if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
-   echo USES:  die csg_get_property do_external csg_get_interaction_property log \$SOURCE_WRAPPER run_or_exit cp
+   echo USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit cp
    echo NEEDS: cg.inverse.program cg.inverse.p_target name do_pressure
    exit 0
 fi
@@ -26,8 +26,7 @@ pscheme_nr=$(( ( $1 - 1 ) % ${#pscheme[@]} ))
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
    log "Update pressure ${name} : yes"
    #calc pressure correction
-   pressure_cor=$($SOURCE_WRAPPER pressure correction) || die "${0##*/}:$SOURCE_WRAPPER pressure correction failed"
-   run_or_exit $pressure_cor $p_target $p_now pressure_cor.d 
+   run_or_exit do_external pressure correction $p_target $p_now pressure_cor.d 
    run_or_exit do_external table add pressure_cor.d ${name}.dpot.cur ${name}.dpot.new
 else
    log "Update pressure ${name} : no"

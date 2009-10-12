@@ -76,10 +76,11 @@ pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_gromacs.sh
 imc_stat gromacs imc_stat_generic.sh
 
-# END: these scripts have to be defined for each simulation program
-
 # gromacs scripts specific stuff
-functions gromacs functions_gromacs.sh
 convert_potential gromacs potential_to_gromacs.sh
 convert_potential xvg table_to_xvg.pl 
 
+#function for gromacs
+functions gromacs functions_gromacs.sh
+
+# END: these scripts have to be defined for each simulation program
