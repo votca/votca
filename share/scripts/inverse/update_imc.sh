@@ -5,7 +5,7 @@ if [ "$1" = "--help" ]; then
    echo for the Inverse Monte Carlo Method
    echo Usage: ${0##*/} step_nr
    echo USES: die csg_get_property msg run_or_exit do_external sort for_all
-   echo NEEDS: cg.cgmap cg.inverse.gromacs.topol cg.inverse.gromacs.traj cg.inverse.imc.solver cg.*.imc.group  cg.inverse.program
+   echo NEEDS: cg.inverse.imc.solver cg.*.imc.group  cg.inverse.program
    exit 0
 fi
 

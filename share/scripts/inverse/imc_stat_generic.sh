@@ -6,7 +6,7 @@ if [ "$1" = "--help" ]; then
    echo Usage: ${0##*/}
    echo USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done
    echo NEEDS: cg.inverse.program cg.cgmap cg.inverse.sim_prog.topol cg.inverse.sim_prog.topol
-   echo OPTIONAL: cg.inverse.$sim_prog.first_frame cg.inverse.$sim_prog.equi_time
+   echo OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.\$sim_prog.topol
    exit 0
 fi
 

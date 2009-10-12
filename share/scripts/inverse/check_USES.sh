@@ -1,7 +1,7 @@
 #! /bin/bash 
 
 #note the space at the beginning and the end !!!
-not_to_check=" errorbars.sh ${0##*/} "
+not_to_check=" ${0##*/} "
 
 if [ -z "$1" ]; then
   echo MIssing argument >&2 
@@ -51,11 +51,11 @@ for i in $@; do
     #variable
     if [ -z "${what##\$*}" ]; then
       if [ -z "${i%%*.sh}" ]; then
-	what="\\${what}"
+	what="${what}"
 	what2="$what"
       elif [ -z "${i%%*.pl}" ]; then 
-	what2="\\${what}"
-	what="\\\$ENV\{'?${what##\$}'?\}"
+	what2="${what}"
+	what="\$ENV\{'?${what##\$}'?\}"
       fi
     else
       what2="$what"
@@ -66,6 +66,7 @@ for i in $@; do
     pattern2="(USES:|PROVIDES:).*[[:space:]]$what2([[:space:]]|$)"
     in_help="no"
     in_content="no"
+    #echo "$in_help $in_content xxx $pattern2"
     [[ -n "$(grep -Ev "(USES:|PROVIDES:)" "$i" | grep -Ee "$pattern1")" ]] && in_content="yes"
     [[ -n "$(./$i --help | grep -Ee "$pattern2")" ]] && in_help="yes"
     #what found in file and uses -> ok

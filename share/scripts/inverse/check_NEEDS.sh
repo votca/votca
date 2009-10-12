@@ -1,7 +1,7 @@
 #! /bin/bash 
 
 #note the space at the beginning and the end !!!
-not_to_check=" ${0##*/} errorbars.sh "
+not_to_check=" ${0##*/} "
 
 if [ -z "$1" ]; then
   echo MIssing argument >&2 
@@ -23,7 +23,7 @@ if [ "$1" = "--help" ]; then
 fi
 
 if [ "$1" = "--" ]; then
-  whates="$(for i in *.sh *.pl; do [[ -z "${not_to_check##* $i *}" ]] && continue; ./$i --help 2>&1 | sed -n 's/NEEDS: \+\(.*\) *$/\1/p' | sed 's/ /\n/g'; done | sort | uniq )"
+  whates="$(for i in *.sh *.pl; do [[ -z "${not_to_check##* $i *}" ]] && continue; ./$i --help 2>&1 | sed -n 's/\(NEEDS\|OPTIONAL\): \+\(.*\) *$/\2/p' | sed 's/ /\n/g'; done | sort | uniq )"
 else
   whates="$1"
 fi
@@ -42,7 +42,7 @@ for i in $@; do
   echo Checking $i
   [[ ! -x "$i" ]] && echo "$i is not executable" && continue
   ./$i --help &> /dev/null || { echo "$i has no help"; continue; }
-  [[ -z "(./$i --help | grep "NEEDS:")" ]] && echo "$i has no NEEDS in help" && continue
+  [[ -z "(./$i --help | grep -e 'NEEDS:' )" ]] && echo "$i has no NEEDS in help" && continue
   for what in $whates; do
     what=${what//./\.}
     what=${what//\*/\*}
@@ -62,11 +62,12 @@ for i in $@; do
     #pattern in the content of the file
     pattern1="$what2"
     #pattern in the help
-    pattern2="NEEDS:.*[[:space:]]$what([[:space:]]|$)"
+    pattern2="(NEEDS|OPTIONAL):.*[[:space:]]$what([[:space:]]|$)"
     in_help="no"
     in_content="no"
-    [[ -n "$(grep -Ev "NEEDS:" "$i" | grep -Ee "$pattern1")" ]] && in_content="yes"
+    [[ -n "$(grep -Eve "(NEEDS|OPTIONAL):" "$i" | grep -Ee "$pattern1")" ]] && in_content="yes"
     [[ -n "$(./$i --help | grep -Ee "$pattern2")" ]] && in_help="yes"
+    #echo "$in_content" xxx "$in_help" yy "$pattern2"
     #what found in file and uses -> ok
     [[ "$in_help" = "yes" ]] && [[ "$in_content" = "yes" ]] && continue
     #what found in file, but not in uses
