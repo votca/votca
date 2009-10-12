@@ -10,6 +10,9 @@
                 <make-dep-project>../libcsg</make-dep-project>
                 <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
             </make-dep-projects>
+            <c-extensions/>
+            <cpp-extensions>cc</cpp-extensions>
+            <header-extensions/>
         </data>
     </configuration>
 </project>

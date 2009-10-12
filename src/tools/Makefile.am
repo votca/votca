@@ -29,4 +29,4 @@ csg_imcrepack_SOURCES = csg_imcrepack.cc
 
 AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a -ltools ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) $(LIBS_XML) -lgsl -lgslcblas -lm 
+LDADD = ../libcsg/libcsg.a -ltools ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) $(LIBS_XML) -lgsl -lgslcblas -lm -lpthread 
