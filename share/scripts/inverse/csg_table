@@ -23,8 +23,7 @@ rdf pot RDF_to_POT.pl
 
 # post update
 post update post_update.sh
-# TODO: rename this to post update_single
-postupd single post_update_single.sh
+post update_single post_update_single.sh
 
 #post update scripts
 postupd pressure postupd_pressure.sh
