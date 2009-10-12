@@ -37,8 +37,9 @@ post add_single post_add_single.sh
 # post add scripts
 
 # table preparation
-shift dpotnb do_shift_nb.pl
+dpot shift_nb dpot_shift_nb.pl
 resample calc resample_to_calc.sh
+dpot crop dpot_crop.pl
 
 # ibm specific stuff
 # TODO: rename to ibm single

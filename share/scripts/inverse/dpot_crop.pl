@@ -4,7 +4,7 @@ use strict;
 $_=$0;
 s#^.*/##;
 my $progname=$_;
-my $usage="Usage: $progname [OPTIONS] <in> <out> <a> <b>";
+my $usage="Usage: $progname [OPTIONS] <file> <a> <b>";
 
 #Defaults
 my $withflag=undef;
@@ -24,14 +24,12 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
-Performs a linear operaton on the y values:
-y_new = a*y_old + b
+crop the potential update at poorly sampled ends
 $usage
 OPTIONS:
 -h, --help            Show this help message
---withflag            only change entries with specific flag in src
 
-Examples:  $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
+Examples:  $progname tmp.dpot.cur tmp.dpot.new 
 
 USES: \$SOURCE_WRAPPER readin_table saveto_table
 NEEDS: 
@@ -53,10 +51,7 @@ END
 }
 
 #Print usage
-die "missing parameters\n$usage\n" unless $#ARGV >= 3;
-
-my $a = $ARGV[2];
-my $b = $ARGV[3]; 
+die "missing parameters\n$usage\n" unless $#ARGV >= 1;
 
 # include perl functions
 (my $function_file=`$ENV{'SOURCE_WRAPPER'} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
@@ -64,24 +59,43 @@ chomp($function_file);
 (do "$function_file") || die "$progname: source $function_file failed\n";
 ########
 
-my $file="$ARGV[0]";
+my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
-
-print "table $file : y' = $a*y + $b\n";
 
 my @r;
 my @val;
 my @flag;
-(readin_table($file,\@r,\@val,\@flag)) || die "$progname: error at readin_table\n";
+(readin_table($infile,\@r,\@val,\@flag)) || die "$progname: error at readin_table\n";
 
-for(my $i=0; $i<=$#r; $i++) {
-  # skip if flag does not match
-  if($withflag) {
-    if(!($flag[$i] =~ m/[$withflag]/)) {
-      next;
-    }
+# find last u/o
+my $i_first;
+
+# TODO: look for at least 3 successive points with i
+for($i_first=0; ($i_first<$#r) && ($flag[$i_first] =~ /[uo]/); $i_first++) {}
+
+my $ncrop=0;
+
+while($i_first + $ncrop<=$#r-3) {
+  my $i = $i_first + $ncrop;
+  my $delta_1 = $val[$i] -  $val[$i + 1];
+  my $delta_2 = $val[$i + 1 ] -  $val[$i + 2];
+
+  # do both deltas have the same sign?
+  if($delta_1 * $delta_2 > 0) {
+    last;
+  } elsif (abs($val[$i]) < 0.5 && abs($val[$i+1]) < 0.5) {
+    last; 
   }
-  $val[$i] = $a*$val[$i] + $b;
+  $flag[$i]='o';
+  $ncrop++;
+  if($ncrop > 3) {
+    print "error: need to crop more than 3 points in $infile. think about sampleing/grid interval.";
+    exit 1;
+  }
+}
+
+if($ncrop > 0) {
+  print "warnng, I cropped $ncrop points at the beginning\n";
 }
 
 saveto_table($outfile,\@r,\@val,\@flag) || die "$progname: error at save table\n";
