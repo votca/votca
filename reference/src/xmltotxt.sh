@@ -16,22 +16,9 @@ if [ -z "$(type -p csg_property)" ]; then
   exit 1
 fi
 
-
-if [ -z "${CSGSHARE}" ]; then
-   echo Error: Environment values CSGSHARE not defined 1>&2
-   exit 1
-fi
-
-if [ -f "${CSGSHARE}/doc/cgoptions.xml" ]; then
-   xmlfile="${CSGSHARE}/doc/cgoptions.xml"
-else
-   echo ${0##*/}: Error, did not find ${CSGSHARE}/doc/cgoptions.xml
-   exit 1
-fi
-
 #header lines
 echo $1 > $2
-date -r $xmlfile  +%F >> $2
+date -r $1  +%F >> $2
 echo >> $2
 echo '%!includeconf: config.t2t' >> $2
 
