@@ -1,22 +1,26 @@
 all: wiki tex man 
 
-.SUFFIXES: .xml .t2t .tex .man .wiki .html .sh
-.PHONY: clean cgoptions.xml
+.SUFFIXES: .xml .t2t .tex .man .wiki
+.PHONY: clean xmlclean
 
-wiki: cgoptions.wiki mapping.wiki
-man: cgoptions.man mapping.man
-tex: cgoptions.tex mapping.tex
-html: cgoptions.html mapping.html
+wiki: get cgoptions.wiki mapping.wiki
+man: get cgoptions.man mapping.man
+tex: get cgoptions.tex mapping.tex
 
-cgoptions.xml:
+get: xmlclean cgoptions.xml mapping.xml
+
+xmlclean:
+	rm -f cgoptions.xml mapping.xml
+
+%.xml:
 	if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi
-	if [ -f "${CSGSHARE}/doc/cgoptions.xml" ]; then \
-	  cp -p $(CSGSHARE)/doc/cgoptions.xml .;\
+	if [ -f "${CSGSHARE}/doc/$@" ]; then \
+	  cp -p $(CSGSHARE)/doc/$@ .;\
 	else\
-	  echo ${0##*/}: Error, did not find ${CSGSHARE}/doc/cgoptions.xml >&2;\
+	  echo Error, did not find ${CSGSHARE}/doc/$@ >&2;\
 	  exit 1;\
 	fi
 
@@ -35,6 +39,6 @@ cgoptions.xml:
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 
-clean:
+clean: xmlclean
 	rm -f *.man *.tex *.wiki
 

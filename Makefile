@@ -15,6 +15,7 @@ pics:
 
 clean:
 	rm -f manual.dvi manual.pdf
+	rm -f manual.fdb_latexmk
 	latexmk -c
 	$(MAKE) $(MFLAGS) -C reference clean
 

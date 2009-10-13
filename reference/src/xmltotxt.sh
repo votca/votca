@@ -16,6 +16,11 @@ if [ -z "$(type -p csg_property)" ]; then
   exit 1
 fi
 
+if [ ! -f "$1" ]; then
+  echo "Inputfile '$1' not found" >&2
+  exit 1
+fi
+
 #header lines
 echo $1 > $2
 date -r $1  +%F >> $2
