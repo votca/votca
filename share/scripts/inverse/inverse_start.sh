@@ -31,6 +31,7 @@ fi
 CSGINVERSE="${CSGSHARE}/scripts/inverse"
 [[ -d "$CSGINVERSE" ]] || die "CSGSHARE/scripts/inverse is not a dir"
 export CSGINVERSE
+export PERL5LIB="$CSGINVERSE:$PERL5LIB"
 
 #we need csg_property
 [[ -n "$(type -p csg_property)" ]] || die "Error: csg_property not found, check your PATH"
@@ -50,6 +51,7 @@ CSGSCRIPTDIR="$(csg_get_property cg.inverse.scriptdir)"
 eval CSGSCRIPTDIR=$CSGSCRIPTDIR
 [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
 export CSGSCRIPTDIR
+export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
 
 CSGLOG="$(csg_get_property cg.inverse.log_file)"
 CSGLOG="$PWD/$CSGLOG"

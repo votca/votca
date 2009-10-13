@@ -20,22 +20,23 @@ EOF
 
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
-(my $function_file=`$ENV{'SOURCE_WRAPPER'} functions perl`) || die "$progname: $ENV{'SOURCE_WRAPPER'} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
+use CsgFunctions;
+#(my $function_file=`$ENV{'SOURCE_WRAPPER'} functions perl`) || die "$progname: $ENV{'SOURCE_WRAPPER'} function perl failed\n";
+#chomp($function_file);
+#(do "$function_file") || die "$progname: source $function_file failed\n";
 
 my $infile="$ARGV[0]";
 my @r_cur;
 my @pot_cur;
 my @flag_cur;
-(readin_table($infile,\@r_cur,\@pot_cur,\@flag_cur)) || die "$progname: error at readin_table\n";
+(readin_table($infile,@r_cur,@pot_cur,@flag_cur)) || die "$progname: error at readin_table\n";
 
 my $infile2="$ARGV[1]";
 #delta is just a name
 my @r_delta;
 my @pot_delta;
 my @flag_delta;
-(readin_table($infile2,\@r_delta,\@pot_delta,\@flag_delta)) || die "$progname: error at readin_table\n";
+(readin_table($infile2,@r_delta,@pot_delta,@flag_delta)) || die "$progname: error at readin_table\n";
 
 #should never happen, but ....
 die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
