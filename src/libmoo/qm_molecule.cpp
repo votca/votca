@@ -39,7 +39,8 @@ void mol_and_orb::write_pdb(string file, string name_mol, const int & n=0 ){
         out_qm = fopen(file.c_str(), "a");
     }
     for (int i=0 ; i < N ;i++ ){
-        fprintf(out_qm, "ATOM  %5d %4c %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n", (n+i+1)%100000, atom_labels[i]._type, name_mol.c_str(), " ", atom_labels[i]._lbl, RA*((atom_pos[i]).getX()), RA*((atom_pos[i]).getY()), RA*((atom_pos[i]).getZ()), 1.0, 20.0);
+        fprintf(out_qm, "ATOM  %5d %4c %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n", (n+i+1)%100000, atom_labels[i]._type,
+name_mol.c_str(), " ", (n+1)/N, RA*((atom_pos[i]).getX()), RA*((atom_pos[i]).getY()), RA*((atom_pos[i]).getZ()), 1.0, 20.0);
     }
     fclose(out_qm);
 }
