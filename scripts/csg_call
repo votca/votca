@@ -74,6 +74,7 @@ done
 echo \$CSGSHARE is ${CSGSHARE}
 
 export CSGINVERSE=$CSGSHARE/scripts/inverse
+export PERL5LIB="$CSGINVERSE:$PERL5LIB"
 [ -d "$CSGINVERSE" ] || die "${0##*/}: CSGINVERSE '$CSGINVERSE' is not a dir"
 
 export SOURCE_WRAPPER=$CSGINVERSE/source_wrapper.pl
@@ -84,6 +85,7 @@ source $($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions com
 if [ -n "${CSGSCRIPTDIR}" ]; then 
   [ -d "$CSGSCRIPTDIR" ] || die "${0##*/}: CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
   echo \$CSGSCRIPTDIR is ${CSGSCRIPTDIR}
+  export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
 fi
 
 if [ -n "$sw_opt" ]; then
