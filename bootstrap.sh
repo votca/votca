@@ -11,7 +11,7 @@ cd share/scripts/inverse || die "error: cd shared/scripts/inverse failed"
 rm -f Makefile.am
 sed -ne '1,/%scripts/p' Makefile.am.in | sed -e '$d' > Makefile.am \
   || die "error creating share/scripts/inverse/Makefile.am"
-ls *.sh *.pl csg_table *.m *.octave | sed -e 's/$/ \\/' -e '$s/ \\//' >> Makefile.am \
+ls *.sh *.pl csg_table *.m *.octave *.pm | sed -e 's/$/ \\/' -e '$s/ \\//' >> Makefile.am \
   || die "error creating share/scripts/inverse/Makefile.am"
 sed -ne '/%scripts/,$p' Makefile.am.in | sed -e '1d' >> Makefile.am \
   || die "error creating share/scripts/inverse/Makefile.am"
