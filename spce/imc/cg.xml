@@ -79,7 +79,7 @@
     <!-- imc specific stuff -->
     <imc>
       <!-- solver to solve linear equation system, can be octave or matlab -->
-      <solver>matlab</solver>
+      <solver>octave</solver>
     </imc>
   </inverse>
 </cg>
