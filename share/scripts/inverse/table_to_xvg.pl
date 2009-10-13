@@ -15,16 +15,14 @@ In addtion it does some magic tricks:
  -set all values to zero after the cutoff
 
 NEEDS: cg.inverse.gromacs.pot_max cg.inverse.gromacs.table_end cg.inverse.gromacs.table_bins
-USES: \$SOURCE_WRAPPER csg_get_property saveto_table readin_table
+USES: csg_get_property saveto_table readin_table
 EOF
   exit 0;
 }
 
 die "2 parameters are nessary\n" if ($#ARGV<1);
 
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
+use CsgFunctions;
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
@@ -36,7 +34,7 @@ my $table_bins=csg_get_property("cg.inverse.gromacs.table_bins");
 my @r;
 my @pot;
 my @flag;
-(readin_table($infile,\@r,\@pot,\@flag)) || die "$progname: error at readin_table\n";
+(readin_table($infile,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
 
 #gromacs does not like VERY big numbers
 for (my $i=0;$i<=$#r;$i++) {

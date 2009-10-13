@@ -12,7 +12,7 @@ full: table calculated with full dataset
 blocks: tables calculated with 1 block missing
 outfile: file to write results
 
-USES: \$SOURCE_WRAPPER readin_table saveto_table_err
+USES: readin_table saveto_table_err
 NEEDS: 
 EOF
   exit 0;
@@ -20,9 +20,7 @@ EOF
 
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
+use CsgFunctions;
 
 my $file_full="$ARGV[1]";
 my @r_full;
@@ -33,7 +31,7 @@ my $outfile="$ARGV[0]";
 my @err;
 
 
-(readin_table($file_full,\@r_full,\@val_full,\@flag_full)) || die "$progname: error at readin_table\n";
+(readin_table($file_full,@r_full,@val_full,@flag_full)) || die "$progname: error at readin_table\n";
 
 for (my $i=0;$i<=$#r_full;$i++) {
   $err[$i]=0;
@@ -49,7 +47,7 @@ while (@ARGV > 0) {
   my @val_cur;
   my @flag_cur;
 
-  (readin_table($file_cur,\@r_cur,\@val_cur,\@flag_cur)) || die "$progname: error at readin_table\n";
+  (readin_table($file_cur,@r_cur,@val_cur,@flag_cur)) || die "$progname: error at readin_table\n";
   #should never happen, but ....
   #die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
   #die "Different start point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
@@ -65,5 +63,5 @@ for (my $i=0;$i<=$#r_full;$i++) {
   $err[$i]=sqrt(($nblocks-1)/$nblocks*$err[$i]);
 }
 
-saveto_table_err($outfile,\@r_full,\@val_full,\@flag_full,\@err) || die "$progname: error at save table\n";
+saveto_table_err($outfile,@r_full,@val_full,@flag_full,@err) || die "$progname: error at save table\n";
 

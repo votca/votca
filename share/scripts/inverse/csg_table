@@ -1,6 +1,5 @@
 # generic function declarations for all inverse scripts
 functions common functions_inverse.sh
-functions perl functions_perl.pl
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization

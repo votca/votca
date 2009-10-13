@@ -8,16 +8,14 @@ Usage: $progname p_target p_cur outfile
 This script calls the pressure corrections dU=A*(1-r/r_c)
 
 NEEDS: cg.inverse.kBT max step
-USES: \$SOURCE_WRAPPER csg_get_property csg_get_interaction_property saveto_table
+USES: csg_get_property csg_get_interaction_property saveto_table
 EOF
   exit 0;
 }
 
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
+use CsgFunctions;
 
 my $kBT=csg_get_property("cg.inverse.kBT");
 my $max=csg_get_interaction_property("max");
@@ -51,5 +49,5 @@ for(my $i=0;$i<=$max/$delta_r;$i++){
   $pot[$i]=$pref*(1-$r[$i]/$max);
   $flag[$i]="i";
 }
-saveto_table($outfile,\@r,\@pot,\@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at save table\n";
 

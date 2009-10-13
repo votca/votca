@@ -16,7 +16,7 @@ In addtion it does some magic tricks:
  -shift the potential, so that it is zero at the cutoff
  -set all values to zero after the cutoff
 
-USES: readin_table csg_get_property csg_get_property csg_get_interaction_property \$SOURCE_WRAPPER saveto_table
+USES: readin_table csg_get_property csg_get_property csg_get_interaction_property saveto_table
 NEEDS: cg.inverse.gromacs.pot_max cg.inverse.kBT max
 EOF
   exit 0;
@@ -24,9 +24,7 @@ EOF
 
 die "2 parameters are nessary\n" if ($#ARGV<1);
 
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
+use CsgFunctions;
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
@@ -42,7 +40,7 @@ my $r_cut=csg_get_interaction_property("max");
 my @r;
 my @rdf;
 my @flag;
-(readin_table($infile,\@r,\@rdf,\@flag)) || die "$progname: error at readin_table\n";
+(readin_table($infile,@r,@rdf,@flag)) || die "$progname: error at readin_table\n";
 
 my @pot;
 for (my $i=0;$i<=$#r;$i++){
@@ -108,5 +106,5 @@ for (my $i=$i_cut;$i<$#flag;$i++) {
   $flag[$i]="o";
 }
 
-saveto_table($outfile,\@r,\@pot,\@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at save table\n";
 

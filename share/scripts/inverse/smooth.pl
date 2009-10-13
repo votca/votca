@@ -9,7 +9,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
 Usage: $progname infile outfile
 This script smoothes a table
 
-USES: \$SOURCE_WRAPPER readin_table saveto_table
+USES: readin_table saveto_table
 NEEDS: 
 EOF
   exit 0;
@@ -17,6 +17,7 @@ EOF
 
 die "2 parameters are nessary\n" if ($#ARGV<1);
 
+use CsgFunctions;
 (my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
 chomp($function_file);
 (do "$function_file") || die "$progname: source $function_file failed\n";
@@ -25,7 +26,7 @@ my $infile="$ARGV[0]";
 my @r_cur;
 my @pot_cur;
 my @flag_cur;
-(readin_table($infile,\@r_cur,\@pot_cur,\@flag_cur)) || die "$progname: error at readin_table\n";
+(readin_table($infile,@r_cur,@pot_cur,@flag_cur)) || die "$progname: error at readin_table\n";
 
 my $outfile="$ARGV[1]";
 my @pot;
@@ -49,5 +50,5 @@ if($flag_cur[$#pot_cur] eq "i") {
   $pot[$#pot_cur] = (2.*$pot_cur[$#pot_cur] + $pot_cur[$#pot_cur-1])/3;
 }
 
-saveto_table($outfile,\@r_cur,\@pot,\@flag_cur) || die "$progname: error at save table\n";
+saveto_table($outfile,@r_cur,@pot,@flag_cur) || die "$progname: error at save table\n";
 

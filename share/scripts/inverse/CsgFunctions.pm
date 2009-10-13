@@ -1,8 +1,14 @@
-#! /usr/bin/perl -w
+package CsgFunctions;
 
 use strict;
 
-if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
+require Exporter;
+
+use vars qw(@ISA @EXPORT);
+@ISA         = qw(Exporter);
+@EXPORT      = qw(csg_function_help csg_get_property csg_get_interaction_property readin_table saveto_table saveto_table_err);
+
+sub csg_function_help() {
   print <<EOF;
 Provides useful function for perl:
 csg_get_property($):             get a value from xml file
@@ -89,4 +95,4 @@ sub saveto_table_err($\@\@\@\@) {
 }
 
 #important
-return 1;
+1;

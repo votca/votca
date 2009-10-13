@@ -7,7 +7,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 Usage: $progname infile1 infile2 outfile
 NEEDS:
-USES: \$SOURCE_WRAPPER readin_table saveto_table 
+USES: readin_table saveto_table 
 shifts the beginning of a non-bonded delta potential which is not in the update
 region to same as first value which is in region. It also shifts the whole dpot 
 that it is zero at r_cut
@@ -18,11 +18,7 @@ EOF
 
 die "2 parameters are nessary, <infile> <outfile>\n" if ($#ARGV<1);
 
-# source the function file
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
-######
+use CsgFunctions;
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
@@ -33,7 +29,7 @@ print("$infile, $outfile\n");
 my @r;
 my @dpot;
 my @flag;
-(readin_table($infile,\@r,\@dpot,\@flag)) || die "$progname: error at readin_table\n";
+(readin_table($infile,@r,@dpot,@flag)) || die "$progname: error at readin_table\n";
 
 # find index of cutoff
 my $i_cut;
@@ -56,4 +52,4 @@ for(my $i=0; $i<$i_first; $i++) {
 }
 
 # save to file
-saveto_table($outfile,\@r,\@dpot,\@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@dpot,@flag) || die "$progname: error at save table\n";

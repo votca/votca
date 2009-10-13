@@ -117,7 +117,7 @@ OPTIONS:
 -h, --help            Show this help message
 
 NEEDS:
-USES: readin_table saveto_table \$SOURCE_WRAPPER
+USES: readin_table saveto_table
 END
 		exit;
 	}
@@ -130,16 +130,13 @@ END
 #Print usage
 die "no files given\n$usage\n" unless $#ARGV > 0;
 
-# include functions
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
+use CsgFunctions;
 
 my $infile="$ARGV[0]";
 my @r;
 my @val;
 my @flag;
-(readin_table($infile,\@r,\@val,\@flag)) || die "$progname: error at readin_table\n";
+(readin_table($infile,@r,@val,@flag)) || die "$progname: error at readin_table\n";
 
 my $outfile="$ARGV[1]";
 
@@ -220,4 +217,4 @@ if ($do_right) {
 #==============
 
 
-saveto_table($outfile,\@r,\@val,\@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@val,@flag) || die "$progname: error at save table\n";

@@ -33,7 +33,7 @@ OPTIONS:
 
 Examples:  $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
 
-USES: \$SOURCE_WRAPPER readin_table saveto_table
+USES: readin_table saveto_table
 NEEDS: 
 
 END
@@ -58,11 +58,7 @@ die "missing parameters\n$usage\n" unless $#ARGV >= 3;
 my $a = $ARGV[2];
 my $b = $ARGV[3]; 
 
-# include perl functions
-(my $function_file=`$ENV{'SOURCE_WRAPPER'} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
-########
+use CsgFunctions;
 
 my $file="$ARGV[0]";
 my $outfile="$ARGV[1]";
@@ -72,7 +68,7 @@ print "table $file : y' = $a*y + $b\n";
 my @r;
 my @val;
 my @flag;
-(readin_table($file,\@r,\@val,\@flag)) || die "$progname: error at readin_table\n";
+(readin_table($file,@r,@val,@flag)) || die "$progname: error at readin_table\n";
 
 for(my $i=0; $i<=$#r; $i++) {
   # skip if flag does not match
@@ -84,5 +80,5 @@ for(my $i=0; $i<=$#r; $i++) {
   $val[$i] = $a*$val[$i] + $b;
 }
 
-saveto_table($outfile,\@r,\@val,\@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@val,@flag) || die "$progname: error at save table\n";
 

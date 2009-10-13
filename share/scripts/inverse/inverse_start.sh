@@ -48,10 +48,12 @@ unset function_file
 
 CSGSCRIPTDIR="$(csg_get_property cg.inverse.scriptdir)" 
 #scriptdir maybe contains $PWD or something
-eval CSGSCRIPTDIR=$CSGSCRIPTDIR
-[[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-export CSGSCRIPTDIR
-export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
+if [ -n "$CSGSCRIPTDIR" ]; then
+  eval CSGSCRIPTDIR=$CSGSCRIPTDIR
+  [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
+  export CSGSCRIPTDIR
+  export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
+fi
 
 CSGLOG="$(csg_get_property cg.inverse.log_file)"
 CSGLOG="$PWD/$CSGLOG"

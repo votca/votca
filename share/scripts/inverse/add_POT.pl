@@ -8,7 +8,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 Usage: $progname infile1 infile2 outfile
 NEEDS:
-USES: \$SOURCE_WRAPPER readin_table saveto_table 
+USES: readin_table saveto_table 
 This script adds up two potentils 
 In addtion it does some magic tricks:
  - order of infiles MATTER !!!!
@@ -20,22 +20,20 @@ EOF
 
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
-(my $function_file=`$ENV{'SOURCE_WRAPPER'} functions perl`) || die "$progname: $ENV{'SOURCE_WRAPPER'} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
+use CsgFunctions;
 
 my $infile="$ARGV[0]";
 my @r_cur;
 my @pot_cur;
 my @flag_cur;
-(readin_table($infile,\@r_cur,\@pot_cur,\@flag_cur)) || die "$progname: error at readin_table\n";
+(readin_table($infile,@r_cur,@pot_cur,@flag_cur)) || die "$progname: error at readin_table\n";
 
 my $infile2="$ARGV[1]";
 #delta is just a name
 my @r_delta;
 my @pot_delta;
 my @flag_delta;
-(readin_table($infile2,\@r_delta,\@pot_delta,\@flag_delta)) || die "$progname: error at readin_table\n";
+(readin_table($infile2,@r_delta,@pot_delta,@flag_delta)) || die "$progname: error at readin_table\n";
 
 #should never happen, but ....
 die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
@@ -69,5 +67,5 @@ for (my $i=0;$i<=$#r_cur;$i++){
   #  $flag[$i]="u";
   #}
 }
-saveto_table($outfile,\@r_cur,\@pot,\@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r_cur,@pot,@flag) || die "$progname: error at save table\n";
 

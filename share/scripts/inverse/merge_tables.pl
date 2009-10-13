@@ -38,7 +38,7 @@ OPTIONS:
 Examples:  $progname -q
            $progname
 
-USES: \$SOURCE_WRAPPER readin_table saveto_table
+USES: readin_table saveto_table
 NEEDS: 
 
 END
@@ -68,11 +68,7 @@ END
 #Print usage
 die "missing parameters\n$usage\n" unless $#ARGV > 1;
 
-# include perl functions
-(my $function_file=`$ENV{'SOURCE_WRAPPER'} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
-########
+use CsgFunctions;
 
 my $src="$ARGV[0]";
 my $dst="$ARGV[1]";
@@ -83,12 +79,12 @@ print "tables $src $dst $out\n";
 my @r_src;
 my @val_src;
 my @flag_src;
-(readin_table($src,\@r_src,\@val_src,\@flag_src)) || die "$progname: error at readin_table\n";
+(readin_table($src,@r_src,@val_src,@flag_src)) || die "$progname: error at readin_table\n";
 
 my @r_dst;
 my @val_dst;
 my @flag_dst;
-(readin_table($dst,\@r_dst,\@val_dst,\@flag_dst)) || die "$progname: error at readin_table\n";
+(readin_table($dst,@r_dst,@val_dst,@flag_dst)) || die "$progname: error at readin_table\n";
 
 my $idst=0;
 
@@ -119,5 +115,5 @@ for(my $i=0; $i<=$#r_src; $i++) {
   }
 }
 
-saveto_table($out,\@r_dst,\@val_dst,\@flag_dst) || die "$progname: error at save table\n";
+saveto_table($out,@r_dst,@val_dst,@flag_dst) || die "$progname: error at save table\n";
 
