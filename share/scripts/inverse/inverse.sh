@@ -1,7 +1,9 @@
 #! /bin/bash
+
+#defaults
 usage="Usage: ${0##*/} setting_file.xml"
-quiet="no"
 do_iterations=""
+clean="no"
 
 show_help () {
   cat << eof
@@ -9,14 +11,16 @@ Start the script to run ibm, imc, etc.
 $usage
 
 OPTIONS:
---do-iterations N         only do N iterations
+-N, --do-iterations N         only do N iterationso
+    --clean                   clean out the PWD, dangerous
+
 USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external printf mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG
 NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name
 eof
 }
 
 ### begin parsing options
-
+shopt -s extglob
 while [ "${1#-}" != "$1" ]; do
  if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
     #short opt with arguments here: fc
@@ -30,6 +34,12 @@ while [ "${1#-}" != "$1" ]; do
    --do-iterations)
     do_iterations=$2
     shift 2 ;;
+   -[0-9]*)
+    do_iterations=${1#-}
+    shift ;;
+   --clean)
+    clean="yes"
+    shift ;;
    -h | --help)
     show_help
     exit 0;;
@@ -41,8 +51,10 @@ done
 
 ### end parsing options 
 
-#do all start up checks
+#do all start up checks option stuff
 source "${0%.sh}_start.sh"  "$@" || exit 1
+#shift away xml file
+shift 1
 
 #----------------End of pre checking--------------------------------
 if [ -f "$CSGLOG" ]; then
@@ -163,10 +175,10 @@ for ((i=1;i<$iterations+1;i++)); do
   msg "step $i done"
   cd ..
 
-  if [ "$do_iterations" != "" ]; then
-    do_iterations=$((do_iterations-1))
+  if [ -n "$do_iterations" ]; then
+    ((do_iterations--))
     if [ $do_iterations -lt 1 ] ; then
-      log "Stopping at $data, user requested to take some rest after this amount of iterations"
+      log "Stopping at step $i, user requested to take some rest after this amount of iterations"
       exit 0
     fi
   fi

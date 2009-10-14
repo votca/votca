@@ -63,3 +63,19 @@ export CSGLOG
 CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
 export CSGRESTART
 
+#stuff for options
+int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
+if [ "$clean" = "yes" ]; then
+  echo -e "So, you want to clean?\n"
+  echo "We will remove:"
+  files="$(ls -d done $CSGRESTART $CSGLOG step_* *~ 2>/dev/null)"
+  echo $files
+  echo -e "\nCTRL-C to stop it"
+  for ((i=10;i>0;i--)); do
+    echo -n "$i "
+    sleep 1
+  done
+  [ -n "$files" ] && rm -rf $files
+  echo -e "\n\nDone, hope you are happy now"
+  exit 0
+fi

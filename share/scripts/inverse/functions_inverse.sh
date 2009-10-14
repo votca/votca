@@ -237,6 +237,13 @@ check_deps () {
   check_for "${1##*/}" $deps
 }
 
+int_check() {
+  [[ -n "$2" ]] || die "int_check: Missig argument"
+  [[ -z "${1//[0-9]}" ]] && return 0
+  shift
+  die "$*"
+}
+
 #--------------------Exports-----------------
 export -f die
 export -f log 
@@ -252,3 +259,4 @@ export -f mark_done
 export -f is_done
 export -f check_for
 export -f check_deps
+export -f int_check
