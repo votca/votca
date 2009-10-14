@@ -4,4 +4,5 @@ setenv CSGSHARE @pkgdatadir@
 # old variables begin with ':' now, or are empty.
 setenv PATH ${CSGBIN}:${PATH}
 
-rehash
+# rehash
+
