@@ -18,9 +18,6 @@ EOF
 die "2 parameters are nessary\n" if ($#ARGV<1);
 
 use CsgFunctions;
-(my $function_file=`$ENV{SOURCE_WRAPPER} functions perl`) || die "$progname: $ENV{SOURCE_WRAPPER} function perl failed\n";
-chomp($function_file);
-(do "$function_file") || die "$progname: source $function_file failed\n";
 
 my $infile="$ARGV[0]";
 my @r_cur;
