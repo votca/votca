@@ -54,7 +54,7 @@ public:
     
 protected:
     
-    typedef ub::symmetric_matrix<double> group_matrix;
+    typedef ub::matrix<double> group_matrix;
     typedef ub::matrix_range< group_matrix > pair_matrix;
     
     /// struct to store collected information for interactions

@@ -46,7 +46,11 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
             beads1.Generate(*top, (*iter)->get("type1").value());
             beads2.Generate(*top, (*iter)->get("type2").value());
 
-            i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*(beads2.size()-1.)/2.);
+            if((*iter)->get("type1").value() ==  (*iter)->get("type2").value())
+                i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*(beads2.size()-1.)/2.);
+            else
+                i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*beads2.size());
+
             i->_is_bonded = false;
    }
    
@@ -251,7 +255,7 @@ void Imc::InitializeGroups()
         group_matrix &M = grp->_corr;
         
         // initialize matrix with zeroes
-        M.resize(n);
+        M.resize(n,n);
         M = ub::zero_matrix<double>(n, n);
         
         // now create references to the sub matrices
@@ -292,10 +296,10 @@ void Imc::DoCorrelations() {
             pair_matrix &M = pair->_corr;
 
             // M_ij += a_i*b_j
-            for(int i=0; i<M.size1(); ++i)
-                for(int j=i; j<M.size2(); ++j)
-                    M(i,j) = ((((double)_nframes-1.0)*M(i,j)) + (a(i)*b(j)))/(double)_nframes;
-            //  M = ((((double)_nframes-1.0)*M) + ub::outer_prod(a, b))/(double)_nframes;
+            //for(int i=0; i<M.size1(); ++i)
+            //    for(int j=i; j<M.size2(); ++j)
+            //        M(i,j) = ((((double)_nframes-1.0)*M(i,j)) + (a(i)*b(j)))/(double)_nframes;
+            M = ((((double)_nframes-1.0)*M) + ub::outer_prod(a, b))/(double)_nframes;
         }
     }
 }
@@ -383,7 +387,7 @@ void Imc::WriteIMCData(const string &suffix) {
             int end = begin  + ic->_average.getNBins() -1;
             rp.Add(begin, end);
             ranges.push_back(rp);
-            end = begin+1;
+            begin = end+1;
             // save name
             names.push_back(ic->_p->get("name").as<string>());
             
@@ -414,10 +418,10 @@ void Imc::WriteIMCData(const string &suffix) {
             pair_matrix M(gmc, ub::range(i, i+n1),
                                ub::range(j, j+n2));
             // A_ij = -(<a_i*a_j>  - <a_i>*<b_j>)
-            for(i=0; i<M.size1(); ++i)
-                for(j=i; j<M.size2(); ++j)
-                    M(i,j) = -(M(i,j) - a(i)*b(j));
-            //M = -(M - ub::outer_prod(a, b));
+            //for(i=0; i<M.size1(); ++i)
+            //    for(j=i; j<M.size2(); ++j)
+            //        M(i,j) = -(M(i,j) - a(i)*b(j));
+            M = -(M - ub::outer_prod(a, b));
         }
         
         imcio_write_dS(grp_name + suffix + ".imc", r, dS);

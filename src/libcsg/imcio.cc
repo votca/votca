@@ -16,7 +16,7 @@
 #include <iostream>
 #include "imcio.h"
 
-typedef ub::symmetric_matrix<double> group_matrix;
+typedef ub::matrix<double> group_matrix;
 using namespace std;
 
 void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS, std::list<int> *list)
@@ -44,7 +44,7 @@ void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double
     cout << "written " << file << endl;
 }
 
-void imcio_write_matrix(const string &file, ub::symmetric_matrix<double> &gmc, std::list<int> *list)
+void imcio_write_matrix(const string &file, ub::matrix<double> &gmc, std::list<int> *list)
 {
     ofstream out_A;
     out_A.open(file.c_str());
@@ -56,7 +56,7 @@ void imcio_write_matrix(const string &file, ub::symmetric_matrix<double> &gmc, s
     if(list == NULL) {
         for (group_matrix::size_type i = 0; i < gmc.size1(); ++i) {
             for (group_matrix::size_type j = 0; j < gmc.size2(); ++j) {
-                out_A << gmc(i, j) << " ";
+                out_A << gmc(min(i,j), max(i,j)) << " ";
             }
             out_A << endl;
         }
@@ -104,7 +104,7 @@ void imcio_read_dS(const string &filename, ub::vector<double> &r, ub::vector<dou
     }
 }
 
-void imcio_read_matrix(const string &filename, ub::symmetric_matrix<double> &gmc)
+void imcio_read_matrix(const string &filename, ub::matrix<double> &gmc)
 {
     ifstream in;
     in.open(filename.c_str());
@@ -129,7 +129,7 @@ void imcio_read_matrix(const string &filename, ub::symmetric_matrix<double> &gmc
         // skip empty lines
         if(tokens.size()==0) continue;
         if(!is_initialized)
-            gmc.resize(tokens.size());
+            gmc.resize(tokens.size(),tokens.size());
         is_initialized=true;
 
         if(gmc.size1()!=tokens.size())

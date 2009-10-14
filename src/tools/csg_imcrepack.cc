@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 
     ub::vector<double> r;
     ub::vector<double> dS;
-    ub::symmetric_matrix<double> gmc;
+    ub::matrix<double> gmc;
     vector<string> names;
     vector<RangeParser> ranges;
 
