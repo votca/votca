@@ -113,11 +113,11 @@ else
 fi
 
 for ((i=1;i<$iterations+1;i++)); do
-  msg -------------------------------
-  msg Doing iteration $i \(make step_$i\)
-  msg -------------------------------
   last_dir=$(printf step_%02i $((i-1)) )
   this_dir=$(printf step_%02i $i)
+  msg -------------------------------
+  msg "Doing iteration $i (make $this_dir)"
+  msg -------------------------------
   if [ -d $this_dir ]; then
     if [ -f $this_dir/done ]; then
       msg "step $i is already done - skipping"
