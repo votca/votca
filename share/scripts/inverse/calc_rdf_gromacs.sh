@@ -26,7 +26,12 @@ max=$(csg_get_interaction_property max)
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
 log "Running g_rdf for ${type1}-${type2}"
-run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${begin} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg -s topol.tpr"
+if is_done "rdf-$name"; then
+  msg "g_rdf for ${type1}-${type2} is already done"
+else
+  run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${begin} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg -s topol.tpr"
 #gromacs always append xvg
-run_or_exit csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max}
+  run_or_exit csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max}
+  mark_done "rdf-$name"
+fi
 
