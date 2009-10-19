@@ -19,6 +19,6 @@ for task in $tasklist; do
   log "Doing $task for ${name}"
   run_or_exit mv ${name}.dpot.new ${name}.dpot.cur
   run_or_exit cp ${name}.dpot.cur ${name}.dpot.${i}
-  run_or_exit do_external postupd "$task" "$1"
+  do_external postupd "$task" "$1"
   ((i++))
 done
