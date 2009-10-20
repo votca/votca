@@ -50,7 +50,7 @@ void PDBWriter::Write(Topology *conf)
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
                 10.*ru.x(), 10.*ru.y(), 10.*ru.z(),
-                0, 0);  // is this correct??
+                0., 0.);  // is this correct??
         }
         if(bi->getSymmetry()>=3) {
            vec rv = 0.1*bi->getV() + r;
