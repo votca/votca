@@ -1,0 +1,110 @@
+#!/bin/bash
+
+usage="Usage: ${0##*/} [options] progs"
+prefix="$HOME/csg"
+all="tools csg moo kmc tof"
+clean="yes"
+configure="yes"
+
+do_co="no"
+svn_co="svn co http://csgth.mpip-mainz.mpg.de/svn/%prog/trunk %prog"
+
+do_up="no"
+
+show_help () {
+  cat << eof
+This is a helper script to build votca + rest
+Give progs to compile or use all for "$all"
+
+$usage
+OPTIONS:
+-h, --help              Show this help
+    --do-checkout       Do a svn checkout from repository
+-u. --do-update         Do a svn update
+    --no-configure     Don't run ./configure
+    --no-clean          Don't run make clean
+    --prefix <prefix>   use prefix, standard is \$HOME/csg
+
+Examples:  ${0##*/} tools csg
+           ${0##*/} --do-checkout --prefix ~/tof all
+
+eof
+}
+
+# parse arguments
+
+while [ "${1#-}" != "$1" ]; do
+ if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+    #short opt with arguments here: fc
+    if [ "${1#-[fc]}" != "${1}" ]; then
+       set -- "${1:0:2}" "${1:2}" "${@:2}"
+    else
+       set -- "${1:0:2}" "-${1:2}" "${@:2}"
+    fi
+ fi
+ case $1 in
+   -h | --help)
+    show_help
+    exit 0;;
+   --do-checkout)
+    do_co="yes"
+    shift 1;;
+   -u | --do-update)
+    do_up="yes"
+    shift 1;;
+   --no-configure)
+    configure="no"
+    shift 1;;
+   --no-clean)
+    clean="no"
+    shift 1;;
+   --prefix)
+    prefix="$2"
+    shift 2;;
+  *)
+   echo Unknown option \'$1\'
+   exit 1;;
+ esac
+done
+
+if [ -z "$1" ]; then
+  echo No program given ! >&2
+  echo $usage >&2
+  echo Help with -h >&2
+  exit 1 >&2
+fi
+
+echo "prefix = $prefix"
+
+export CPPFLAGS="-I$prefix/include $CPPFLAGS"
+export LDFLAGS="-L$prefix/lib $LDFLAGS"
+
+progs="$(echo "$@" | sed -e "s/all/$all/" )" 
+
+# do the real stuff
+for prog in $progs; do
+  if [ "$do_co" == "yes" ]; then
+    echo "do checkout for $prog"
+    co=$(echo "$svn_co" | sed "s/%prog/$prog/g")
+    $co
+  fi
+  if [ "$do_up" == "yes" ]; then
+    echo "updating from svn"
+    svn up $prog
+  fi
+
+  echo "compiling $prog"
+  cd $prog || exit 1
+  if [ "$configure" == "yes" ]; then
+    ./bootstrap.sh || exit 1
+    ./configure --prefix "$prefix" || exit 1
+  fi
+  if [ "$clean" == "yes" ]; then
+    echo clean
+    make clean || exit 1
+  fi
+  make || exit 1
+  make install || exit 1
+  cd .. 
+done
+
