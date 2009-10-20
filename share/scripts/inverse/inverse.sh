@@ -126,27 +126,36 @@ for ((i=1;i<$iterations+1;i++)); do
       msg "Incomplete step $i"
       [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found"
     fi
+  else
+    log "Step $i started at $(date)"
+    mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   fi
-  log "Step $i started at $(date)"
-  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
-  
-  #copy+resample all rdf in this_dir 
-  for_all non-bonded do_external resample calc $this_dir
 
-  #get need files
-  for myfile in $filelist; do
-    run_or_exit cp ./$myfile ./$this_dir/  
-  done
   cd $this_dir || die "cd $this_dir failed"
 
-  #get new pot from last step and make it current potential 
-  for_all non-bonded "cp ../$last_dir/\$(csg_get_interaction_property name).pot.new ./\$(csg_get_interaction_property name).pot.cur" 
+  if is_done "Initialize"; then
+    msg "Initialization already done"
+  else
+    cd .. 
+    #copy+resample all rdf in this_dir 
+    for_all non-bonded do_external resample calc $this_dir
 
-  #convert potential in format for sim_prog
-  for_all non-bonded do_external convert_potential $sim_prog
+    #get need files
+    for myfile in $filelist; do
+      run_or_exit cp ./$myfile ./$this_dir/  
+    done
+    cd $this_dir || die "cd $this_dir failed"
 
-  #Run simulation maybe change to Espresso or whatever
-  do_external prepare $sim_prog "../$last_dir" 
+    #get new pot from last step and make it current potential 
+    for_all non-bonded "cp ../$last_dir/\$(csg_get_interaction_property name).pot.new ./\$(csg_get_interaction_property name).pot.cur" 
+
+    #convert potential in format for sim_prog
+    for_all non-bonded do_external convert_potential $sim_prog
+
+    #Run simulation maybe change to Espresso or whatever
+    do_external prepare $sim_prog "../$last_dir" 
+    mark_done "Initialize"
+  fi
 
   if is_done "Simulation"; then
     msg "Simulation is already done"
