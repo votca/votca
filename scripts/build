@@ -2,31 +2,72 @@
 
 usage="Usage: ${0##*/} [options] progs"
 prefix="$HOME/csg"
-all="tools csg moo kmc tof"
+#mind the spaces
+all=" tools csg moo kmc tof "
 clean="yes"
+prefix_clean="no"
 configure="yes"
 
 do_co="no"
-svn_co="svn co http://csgth.mpip-mainz.mpg.de/svn/%prog/trunk %prog"
+svn_co="svn co http://csgth.mpip-mainz.mpg.de/svn/PROG/trunk PROG"
 
 do_up="no"
+extra_conf=""
+
+gromacs="no"
+
+die () {
+  echo -e "$*" >&2
+  exit 1
+}
+
+prefix_clean() {
+  cd $prefix || die "Dir: '$prefix not found'"
+  files="$(ls -d bin include lib share 2>/dev/null)"
+  if [ -z "$files" ]; then 
+    echo "Found nothing to clean"
+    cd -
+    return
+  fi
+  echo "I will remove:"
+  echo $files
+  echo -e "CTRL-C to stop it"
+  countdown 10
+  rm -rf $files
+  echo -e "\nDone, hope you are happy now"
+  cd -
+}
+
+countdown() {
+  [ -z "$1" ] && "countdown: Missing argument"
+  [ -n "${1//[0-9]}" ] && "countdown: argument should be a number"
+  for ((i=$1;i>0;i--)); do
+    echo -n "$i "
+    sleep 1
+  done
+  echo
+}
 
 show_help () {
   cat << eof
 This is a helper script to build votca + rest
-Give progs to compile or use all for "$all"
+Give progs to compile or nothing meaning "$all"
 
 $usage
 OPTIONS:
 -h, --help              Show this help
-    --do-checkout       Do a svn checkout from repository
--u. --do-update         Do a svn update
-    --no-configure     Don't run ./configure
+-u, --do-update         Do a svn update
+-c, --clean-out         Clean out the prefix
+    --no-configure      Don't run ./configure
+    --conf-opts TEXT    Extra configure options
     --no-clean          Don't run make clean
-    --prefix <prefix>   use prefix, standard is \$HOME/csg
+    --prefix <prefix>   use prefix
+                        Default: $prefix
+-g, --gromacs           Set gromacs stuff base up your \$GMXLDLIB
 
 Examples:  ${0##*/} tools csg
-           ${0##*/} --do-checkout --prefix ~/tof all
+           ${0##*/} --do-checkout --prefix ~/tof 
+           ${0##*/} -cug tools csg
 
 eof
 }
@@ -35,8 +76,8 @@ eof
 
 while [ "${1#-}" != "$1" ]; do
  if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
-    #short opt with arguments here: fc
-    if [ "${1#-[fc]}" != "${1}" ]; then
+    #short opt with arguments here: f
+    if [ "${1#-[f]}" != "${1}" ]; then
        set -- "${1:0:2}" "${1:2}" "${@:2}"
     else
        set -- "${1:0:2}" "-${1:2}" "${@:2}"
@@ -46,8 +87,11 @@ while [ "${1#-}" != "$1" ]; do
    -h | --help)
     show_help
     exit 0;;
-   --do-checkout)
-    do_co="yes"
+   -c | --clean-out)
+    prefix_clean="yes"
+    shift 1;;
+   -g | --gromacs)
+    gromacs="yes"
     shift 1;;
    -u | --do-update)
     do_up="yes"
@@ -62,49 +106,56 @@ while [ "${1#-}" != "$1" ]; do
     prefix="$2"
     shift 2;;
   *)
-   echo Unknown option \'$1\'
+   die "Unknown option '$1'"
    exit 1;;
  esac
 done
 
-if [ -z "$1" ]; then
-  echo No program given ! >&2
-  echo $usage >&2
-  echo Help with -h >&2
-  exit 1 >&2
+[ -z "$1" ] && set -- $all
+[ -z "$prefix" ] && die "Error: prefix is empty"
+
+
+CPPFLAGS="-I$prefix/include $CPPFLAGS"
+LDFLAGS="-L$prefix/lib $LDFLAGS"
+
+if [ "$gromacs" = "yes" ]; then
+  LDFLAGS="-L$GMXLDLIB -L/opt/lam/lib $LDFLAGS"
+  CPPFLAGS="-I$GMXLDLIB/../include/gromacs $CPPFLAGS"
 fi
+export CPPFLAGS LDFLAGS
 
 echo "prefix = $prefix"
+echo "CPPFLAGS = $CPPFLAGS"
+echo "LDFLAGS = $LDFLAGS"
+[ "$prefix_clean" = "yes" ] && prefix_clean
 
-export CPPFLAGS="-I$prefix/include $CPPFLAGS"
-export LDFLAGS="-L$prefix/lib $LDFLAGS"
+set -e
+for prog in "$@"; do
+  [ -n "${all//* $prog *}" ] && die "Unknown progamm '$prog', I know$all"
 
-progs="$(echo "$@" | sed -e "s/all/$all/" )" 
-
-# do the real stuff
-for prog in $progs; do
-  if [ "$do_co" == "yes" ]; then
-    echo "do checkout for $prog"
-    co=$(echo "$svn_co" | sed "s/%prog/$prog/g")
-    $co
+  if [ ! -d "$prog" ]; then
+    echo "Doing checkout for $prog (CTRL-C to stop)"
+    countdown 5
+    ${svn_co//PROG/$prog}
   fi
+
+  cd $prog
   if [ "$do_up" == "yes" ]; then
     echo "updating from svn"
-    svn up $prog
+    svn update
   fi
-
   echo "compiling $prog"
-  cd $prog || exit 1
   if [ "$configure" == "yes" ]; then
-    ./bootstrap.sh || exit 1
-    ./configure --prefix "$prefix" || exit 1
+    ./bootstrap.sh 
+    ./configure --prefix "$prefix" $extra_conf 
   fi
   if [ "$clean" == "yes" ]; then
-    echo clean
-    make clean || exit 1
+    echo cleaning $prog
+    make clean
   fi
-  make || exit 1
-  make install || exit 1
+  make
+  make install
   cd .. 
 done
+set +e
 
