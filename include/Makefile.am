@@ -4,4 +4,4 @@ beadlist.h       connectivity.h       map.h            pairlist.h      trajector
 beadpair.h       exclusionlist.h      molecule.h       residue.h       trajectorywriter.h \
 beadtype.h       fileformatfactory.h  nblist.h         topology.h \
 cgengine.h       imccoefficients.h    neighbourlist.h  topologyitem.h \
-cgmoleculedef.h  interaction.h        nematicorder.h   topologymap.h imcio.h
+cgmoleculedef.h  interaction.h        nematicorder.h   topologymap.h imcio.h nblistgrid.h

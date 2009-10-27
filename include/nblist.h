@@ -29,7 +29,7 @@ public:
     void setCutoff(double cutoff) { _cutoff = cutoff; }
     double getCutoff() { return _cutoff; }
    
-private:
+protected:
     double _cutoff;
     bool _do_exclusions;
     bool Match(Bead *bead1, Bead *bead2, const vec &r);

@@ -35,7 +35,10 @@ public:
     pair_type *FindPair(element_type e1, element_type e2);
     
     partners *FindPartners(element_type e1);
-    
+
+    typedef element_type element_t;
+    typedef pair_type pair_t;
+
 protected:
     list<pair_type *> _pairs;
       
