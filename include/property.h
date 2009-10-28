@@ -63,6 +63,7 @@ public:
     ///
     /// returns the value after type conversion, e.g.
     /// p.as<int>() returns an integer
+
     template<typename T>
     T as() const { return boost::lexical_cast<T>(_value); }
 
@@ -117,5 +118,13 @@ inline bool Property::exists(const string &key)
     
 bool load_property_from_xml(Property &p, string file);
 std::ostream &operator<<(std::ostream &out, Property& p);
+
+// TO DO: write a better function for this!!!!
+template<>
+inline bool Property::as<bool>() const
+{
+    if(_value == "true" || _value == "TRUE" || _value == "1") return true;
+    else return false;
+}
 
 #endif	/* _PROPERTY_H */
