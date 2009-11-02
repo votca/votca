@@ -74,17 +74,22 @@ void NBListGrid::InitializeGrid(const matrix &box)
     _norm_b = _norm_b / (_box_b*_norm_b)*(double)_box_Nb;
     _norm_c = _norm_c / (_box_c*_norm_c)*(double)_box_Nc;
 
+    cout << "grid size: " << _box_Na << "x" << _box_Nb << "x" << _box_Nc << endl;
     _grid.resize(_box_Na*_box_Nb*_box_Nc);
 
     // wow, setting up the neighbours is an ugly for construct!
     // loop from N..2*N to avoid if and only use %
     for(int a=_box_Na; a<2*_box_Na; ++a)
         for(int b=_box_Nb; b<2*_box_Nb; ++b)
-            for(int c=_box_Nc; c<2*_box_Nc; ++c)
+            for(int c=_box_Nc; c<2*_box_Nc; ++c) {
+                cell_t &cell = getCell(a%_box_Na, b%_box_Nb, c%_box_Nc);
                 for(int aa=a-1; aa<=a+1; ++aa)
                     for(int bb=b-1; bb<=b+1; ++bb)
                         for(int cc=c-1; cc<=c+1; ++cc)
-                            getCell(aa%_box_Na, bb%_box_Nb, cc%_box_Nc);
+                            cell._neighbours.push_back(
+                                &getCell(aa%_box_Na, bb%_box_Nb, cc%_box_Nc)
+                            );
+            }
 }
 
 NBListGrid::cell_t &NBListGrid::getCell(const vec &r)
@@ -109,8 +114,9 @@ void NBListGrid::TestBead(NBListGrid::cell_t &cell, Bead *bead)
 {
     TestCell(cell, bead);
     for(vector<cell_t*>::iterator iter=cell._neighbours.begin();
-        iter!=cell._neighbours.end(); ++iter)
-        TestCell(cell, bead);
+        iter!=cell._neighbours.end(); ++iter) {
+        TestCell(*(*iter), bead);
+        }
 }
 
 void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)

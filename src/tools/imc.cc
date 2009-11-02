@@ -11,7 +11,7 @@
 #include <boost/lexical_cast.hpp>
 #include <tools/rangeparser.h>
 #include "beadlist.h"
-#include "nblist.h"
+#include "nblistgrid.h"
 #include "imc.h"
 #include "imcio.h"
 
@@ -170,7 +170,7 @@ void Imc::DoNonbonded(Topology *top)
         beads2.Generate(*top, (*iter)->get("type2").value());
         
         // generate the neighbour list
-        NBList nb;
+        NBListGrid nb;
         nb.setCutoff(i._max + i._step);
         
         // is it same types or different types?
@@ -183,7 +183,7 @@ void Imc::DoNonbonded(Topology *top)
         i._current.Clear();
         
         // process all pairs
-        NBList::iterator pair_iter;
+        NBListGrid::iterator pair_iter;
         for(pair_iter = nb.begin(); pair_iter!=nb.end();++pair_iter) {
                 i._current.Process((*pair_iter)->dist());            
         }
