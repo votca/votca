@@ -25,8 +25,6 @@ public:
     /// read a topology file
     bool ReadTopology(string file, Topology &top);
 
-    TopologyReader *Clone() { return new XMLTopologyReader(); }
-
 private:    
     void ReadTopolFile(string file);
           

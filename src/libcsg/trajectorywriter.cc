@@ -15,8 +15,8 @@ using namespace std;
 
 void TrajectoryWriter::RegisterPlugins()
 {
-    TrjWriterFactory().Register("pdb", new PDBWriter(), false);
-    TrjWriterFactory().Register("trr", new GMXTrajectoryWriter(), false);
-    TrjWriterFactory().Register("xtc", new GMXTrajectoryWriter(), false);
-    TrjWriterFactory().Register("gro", new GROWriter(), false);
+    TrjWriterFactory().Register<PDBWriter>("pdb");
+    TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
+    TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");
+    TrjWriterFactory().Register<GROWriter>("gro");
 }

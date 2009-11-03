@@ -21,23 +21,19 @@ using namespace std;
  */
 class TrajectoryReader
 {
-    public:
-        virtual ~TrajectoryReader() {}
-        /// open a trejectory file
-        virtual bool Open(const string &file) = 0;
+public:
+    virtual ~TrajectoryReader() {}
+    /// open a trejectory file
+    virtual bool Open(const string &file) = 0;
         
-        virtual void Close() {};
+    virtual void Close() {};
         
-        /// read in the first frame
-        virtual bool FirstFrame(Topology &top) = 0;
-        /// read in the next frame
-        virtual bool NextFrame(Topology &top) = 0;
+    /// read in the first frame
+    virtual bool FirstFrame(Topology &top) = 0;
+    /// read in the next frame
+    virtual bool NextFrame(Topology &top) = 0;
 
-        virtual void RegisteredAt(ObjectFactory<string, TrajectoryReader> &factory) {}    
-
-        static void RegisterPlugins(void);
-        
-        virtual TrajectoryReader *Clone(void) = 0;
+    static void RegisterPlugins(void);
 };
 
 // important - singleton pattern, make sure factory is created before accessed

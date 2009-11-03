@@ -35,10 +35,6 @@ public:
     void Close();
     void Write(Topology *conf);
 
-    void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory);
-
-    TrajectoryWriter *Clone() { return new GMXTrajectoryWriter(); }
-
     private:
         int _file;
 };

@@ -11,9 +11,8 @@
 
 void TrajectoryReader::RegisterPlugins(void)
 {
-    TrjReaderFactory().Register("trr", new GMXTrajectoryReader(), false);
-    TrjReaderFactory().Register("xtc", new GMXTrajectoryReader(), false);
-    TrjReaderFactory().Register("gro", new GMXTrajectoryReader(), false);  // not tested!
-    TrjReaderFactory().Register("pdb", new GMXTrajectoryReader(), false);  // not tested!
-//    TrjReaderFactory().Register("mdp", new MDPTrajectoryReader(), false);
+    TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
+    TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
+    TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
+    TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
 }

@@ -26,10 +26,8 @@ public:
 
     void Write(Topology *conf);
 
-    TrajectoryWriter *Clone() { return new PDBWriter(); }
-
-    private:
-        FILE *_out;
+private:
+    FILE *_out;
 };
 
 #endif	/* _PDBWRITER_H */

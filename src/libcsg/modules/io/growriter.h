@@ -22,11 +22,7 @@ public:
     void Open(string file, bool bAppend = false);
     void Close();
     
-    void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}    
-
     void Write(Topology *conf);
-
-    TrajectoryWriter *Clone() { return new GROWriter(); }
 
     private:
         FILE *_out;

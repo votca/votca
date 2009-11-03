@@ -13,9 +13,8 @@
 
 void TopologyReader::RegisterPlugins(void)
 {
-    TopReaderFactory().Register("tpr", new GMXTopologyReader(), false);
-    TopReaderFactory().Register("gro", new GROTopologyReader(), false); 
-    TopReaderFactory().Register("xml", new XMLTopologyReader(), false); 
-    TopReaderFactory().Register("pdb", new PDBTopologyReader(), false); 
-//    TopReaderFactory().Register("mdp", new MDPTopologyReader(), false); 
+    TopReaderFactory().Register<GMXTopologyReader>("tpr");
+    TopReaderFactory().Register<GROTopologyReader>("gro");
+    TopReaderFactory().Register<XMLTopologyReader>("xml");
+    TopReaderFactory().Register<PDBTopologyReader>("pdb");
 }

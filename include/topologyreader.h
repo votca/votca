@@ -16,16 +16,12 @@ using namespace std;
 
 class TopologyReader
 {
-    public:
-        virtual ~TopologyReader() {}
-        /// open a trejectory file
-        virtual bool ReadTopology(string file, Topology &top) = 0;
+public:
+    virtual ~TopologyReader() {}
+    /// open a trejectory file
+    virtual bool ReadTopology(string file, Topology &top) = 0;
         
-        virtual void RegisteredAt(ObjectFactory<string, TopologyReader> &factory) {}    
-
-        static void RegisterPlugins(void);
-        
-        virtual TopologyReader *Clone(void) = 0;
+    static void RegisterPlugins(void);
 };
 
 // important - singleton pattern, make sure factory is created before accessed

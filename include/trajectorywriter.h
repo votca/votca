@@ -24,12 +24,8 @@ public:
     virtual void Close() {};
     
     virtual void Write(Topology *top) {}
-
-    virtual void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}    
     
     static void RegisterPlugins(void);
-
-    virtual TrajectoryWriter *Clone(void) = 0;
 };
 
 // important - singleton pattern, make sure factory is created before accessed

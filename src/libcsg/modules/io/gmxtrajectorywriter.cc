@@ -9,11 +9,6 @@
 #include <string>
 #include "gmxtrajectorywriter.h"
 
-void GMXTrajectoryWriter::RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory)
-{
-    factory.Register("trx", this);
-}
-
 void GMXTrajectoryWriter::Open(string file, bool bAppend)
 {
     //char c[1] = bAppend ? "a" : "w";

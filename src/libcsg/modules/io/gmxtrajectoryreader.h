@@ -45,8 +45,6 @@ class GMXTrajectoryReader : public TrajectoryReader
 
         void Close();
         
-        TrajectoryReader *Clone() { return dynamic_cast<TrajectoryReader*>(new GMXTrajectoryReader()); }
-
     private:
         string _filename;
         
