@@ -10,6 +10,8 @@
 
 #include <map>
 #include <list>
+#include <iostream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -17,11 +19,10 @@ using namespace std;
     The REGISTER_OBJECT macro allows to easily register an object in an object factory.
  */
 #define REGISTER_OBJECT(factory, object, key) \
-    class _register_##object { \
-        public: \
-        _register_##object() { factory().Register(key, new object(), false); }  \
-    }; \
-    _register_##object _instance_register_##object;
+    namespace { \
+        ObjectFactoryRegister<object> \
+            _register_##object(factory, key); \
+    }
 
 /**
     \brief template class for object factory
@@ -34,71 +35,102 @@ using namespace std;
 template<typename key_t, typename T>
 class ObjectFactory
 {
+private:
+    typedef T* (*creator_t)();
 public:
+
+    typedef T abstract_type;
+    typedef map<key_t, creator_t> assoc_map;
+    
     ObjectFactory() {}
-    ~ObjectFactory();
+    ~ObjectFactory() {};
     
     /**
         \brief register an object
     
         This function is called to register an object in the factory. After an object is registered,
-        an instance of it can be created by calling Create specifying the corresponding key. The object
-        must implement the clone command, which creates an instance of the object.
+        an instance of it can be created by calling Create specifying the corresponding key.
      */
-    void Register(const key_t &key, T *obj, bool bSynonym = true);
+    void Register(const key_t &key, creator_t creator );
+
+    template< typename obj_t >
+    void Register(const key_t &key);
+
     /**
        Create an instance of the object identified by key.
     */
     T *Create(const key_t &key);
-    
-    /**
-        get pointer to an object which is stored in the ObjectFactory to e.g. modify creation parameters.
-     */
-    T *get(const key_t &key);
+    bool IsRegistered(const key_t & _id) const;
+
+    static ObjectFactory<key_t, T>& Instance()
+    {
+        static ObjectFactory<key_t, T> _this;
+        return _this;
+    }
+
 private:
-    map<key_t, T*> _objects;
-    list<T*> _delete_these;
+    assoc_map _objects;
 };
 
-
-template<typename key_t, typename T>
-ObjectFactory<key_t, T>::~ObjectFactory()
+template<class parent, class T> parent* create_policy_new()
 {
-    typename list<T*>::iterator iter;
-    for(iter=_delete_these.begin();iter!=_delete_these.end(); ++iter)
-        delete (*iter);
-    _objects.clear();
-    _delete_these.clear();
+    return new T();
 }
 
 template<typename key_t, typename T>
-void ObjectFactory<key_t, T>::Register(const key_t &key, T *obj, bool bSynonym)
+inline void ObjectFactory<key_t, T>::Register(const key_t &key, creator_t creator)
 {
-//   cout << "registered: " << key << endl;
-       _objects[key] = obj;
-    if(!bSynonym) {
-        obj->RegisteredAt(*this);
-        _delete_these.push_back(obj);
+    _objects.insert(typename assoc_map::value_type(key, creator)).second;
+}
+
+template<typename key_t, typename T>
+template< typename obj_t >
+inline void ObjectFactory<key_t, T>::Register(const key_t &key)
+{
+    Register(key, create_policy_new<abstract_type, obj_t>);
+}
+
+
+template<typename key_t, typename T>
+inline T* ObjectFactory<key_t, T>::Create(const key_t &key)
+{
+    typename assoc_map::const_iterator it(_objects.find(key));
+    if (it != _objects.end())
+        return (it->second)();
+    else
+        throw std::runtime_error("factory key " + key + " not found.");
+}
+
+/*template<typename key_t, typename T>
+inline static ObjectFactory<key_t, T>& ObjectFactory<key_t, T>::Instance()
+{
+    static ObjectFactory<key_t, T> _this;
+    return _this;
+}*/
+
+template<typename key_t, typename T>
+inline bool ObjectFactory<key_t, T>::IsRegistered(const key_t & _id) const
+{
+	return ( _objects.find(_id)!= _objects.end() );
+}
+
+/*std::string list_keys() const {
+    std::stringstream _str;
+    for (typename assoc_map::const_iterator it(map.begin()); it != map.end(); it++) {
+        _str << (*it).first << "\n";
     }
+    return _str.str();
 }
+*/
 
-template<typename key_t, typename T>
-T* ObjectFactory<key_t, T>::Create(const key_t &key)
-{
-    T *obj;
-    obj = get(key);
-    if(obj==NULL) return NULL;
-    return obj->Clone();
-}
+template<typename object_type >
+class ObjectFactoryRegister {
+public:
+    template<typename factory_type, typename key_type>
+    ObjectFactoryRegister(factory_type &factory, key_type &key) {
+        factory.Register(key, &create_policy_new<typename factory_type::abstract_type, object_type>);
+    }
+};
 
-template<typename key_t, typename T>
-T* ObjectFactory<key_t, T>::get(const key_t &key)
-{
-    typename map<key_t, T*>::iterator iter;
-    iter = _objects.find(key);
-    if(iter == _objects.end())
-        return NULL;
-    return (*iter).second;
-}
 
 #endif	/* _objectfactory_H */
