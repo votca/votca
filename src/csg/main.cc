@@ -4,6 +4,8 @@
 //
 // Created on April 5, 2007, 12:29 PM
 //
+// TODO: This code need lots of cleaning up! please do not look at anything in here!
+//
 
 #include <math.h>
 #include <boost/tokenizer.hpp>
@@ -24,6 +26,10 @@
 #include <tools/rangeparser.h>
 #include "bondedstatistics.h"
 #include "libversion.h"
+#include <map>
+#include <string>
+#include "tabulatedpotential.h"
+#include "stdanalysis.h"
 
 using namespace std;
 
@@ -37,9 +43,15 @@ int main(int argc, char** argv)
     CGEngine cg_engine;
     TrajectoryWriter *writer;
     TopologyMap *map;
+
     bool bWrite = false;
     namespace po = boost::program_options;
-    
+    std::map<std::string, AnalysisTool *> cmds;
+    TabulatedPotential tab;
+    StdAnalysis std;
+    tab.Register(cmds);
+    std.Register(cmds);
+
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()
@@ -201,12 +213,14 @@ int main(int argc, char** argv)
             vector<string> args;
             Tokenizer tok(arg_str, " \t");
             tok.ToVector(args);
-            AnalysisTool *tool = AnalysisFactory().get(cmd);
-            if(!tool) {
+            std::map<string, AnalysisTool *>::iterator tool;
+
+            tool = cmds.find(cmd);
+            if(tool == cmds.end()) {
                 cout << "error, command not found" << endl;
                 continue;
             }
-                tool->Command(bs, cmd, args);
+            tool->second->Command(bs, cmd, args);
         }
         catch(string error) {
             cerr << "An error occoured:" << endl << error << endl;

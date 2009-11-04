@@ -12,31 +12,15 @@
 #include <tools/crosscorrelate.h>
 #include <tools/correlate.h>
 #include "bondedstatistics.h"
+#include "stdanalysis.h"
 
-class StdAnalysis
-    : public AnalysisTool
+
+void StdAnalysis::Register(map<string, AnalysisTool *> &lib)
 {
-    public:
-        StdAnalysis() {};
-        ~StdAnalysis() {};
-        
-        void RegisteredAt(ObjectFactory<string, AnalysisTool> &factory);
-    
-        void Command(BondedStatistics &bs, string cmd, vector<string> &args);                
-        
-        void WriteValues(BondedStatistics &bs, vector<string> &args);
-        void WriteCorrelations(BondedStatistics &bs, vector<string> &args);
-        void WriteAutocorrelation(BondedStatistics &bs, vector<string> &args);
-    private:            
-};
-
-REGISTER_OBJECT(AnalysisFactory, StdAnalysis, "list");
-
-void StdAnalysis::RegisteredAt(ObjectFactory<string, AnalysisTool> &factory)
-{
-    factory.Register("vals", this);
-    factory.Register("cor", this);
-    factory.Register("autocor", this);    
+    lib["list"] = this;
+    lib["vals"] = this;
+    lib["cor"] = this;
+    lib["autocor"] = this;
 }
 
 void StdAnalysis::Command(BondedStatistics &bs, string cmd, vector<string> &args)

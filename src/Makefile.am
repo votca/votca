@@ -1,2 +1,2 @@
-SUBDIRS = libcsg tools 
+SUBDIRS = libcsg tools csg 
 

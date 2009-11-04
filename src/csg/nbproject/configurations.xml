@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="45">
+<configurationDescriptor version="62">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>analysistool.h</itemPath>
       <itemPath>bondedstatistics.h</itemPath>
+      <itemPath>stdanalysis.h</itemPath>
+      <itemPath>tabulatedpotential.h</itemPath>
       <itemPath>version.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -26,26 +28,26 @@
       <itemPath>Makefile_nb</itemPath>
     </logicalFolder>
   </logicalFolder>
-  <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile_nb</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <ccCompilerTool>
-          <includeDirectories>
-            <directoryPath>/people/thnfs/homes/ruehle/gmx/install/include/gromacs</directoryPath>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+        <ccTool>
+          <incDir>
+            <pElem>/people/thnfs/homes/ruehle/gmx/install/include/gromacs</pElem>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+          </incDir>
+        </ccTool>
         <linkerTool>
-          <output>../bin/csg</output>
+          <output>csg</output>
           <linkerAddLib>
-            <directoryPath>/people/thnfs/homes/ruehle/gmx/lib</directoryPath>
+            <pElem>/people/thnfs/homes/ruehle/gmx/lib</pElem>
           </linkerAddLib>
           <linkerLibItems>
             <linkerLibProjectItem>
@@ -80,40 +82,20 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="analysistool.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="bondedstatistics.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="bondedstatistics.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="main.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="stdanalysis.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="tabulatedpotential.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="version.h">
-        <itemTool>3</itemTool>
-      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>5</developmentMode>
-        </cCompilerTool>
-        <ccCompilerTool>
+        </cTool>
+        <ccTool>
           <developmentMode>5</developmentMode>
-        </ccCompilerTool>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
@@ -122,27 +104,6 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="analysistool.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="bondedstatistics.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="bondedstatistics.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="main.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="stdanalysis.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="tabulatedpotential.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="version.h">
-        <itemTool>3</itemTool>
-      </item>
     </conf>
   </confs>
 </configurationDescriptor>

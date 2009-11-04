@@ -10,7 +10,6 @@
 
 #include <map>
 #include <string>
-#include <tools/objectfactory.h>
 #include "cgengine.h"
 #include "bondedstatistics.h"
 
@@ -30,19 +29,12 @@ public:
     AnalysisTool() {}
     virtual ~AnalysisTool() {}
     
-    virtual void RegisteredAt(ObjectFactory<string, AnalysisTool> &factory) {}    
+    virtual void Register(map<string, AnalysisTool *> &lib) {}
     virtual void Command(BondedStatistics &bs, string cmd, vector<string> &args) {};
     
 private:
 //    map<string, string> _options;
 };
-
-// important - singleton pattern, make sure factory is created before accessed
-inline ObjectFactory<string, AnalysisTool> &AnalysisFactory()
-{
-    static ObjectFactory<string, AnalysisTool> _AnalysisFactory;
-    return _AnalysisFactory;
-}
 
 #endif	/* _analasystool_H */
 

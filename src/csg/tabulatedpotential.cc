@@ -15,38 +15,10 @@
 #include <tools/histogram.h>
 #include "version.h"
 #include "bondedstatistics.h"
+#include "tabulatedpotential.h"
 
 using namespace std;
 using namespace boost;
-
-class TabulatedPotential
-    : public AnalysisTool
-{
-    public:
-        TabulatedPotential();
-        ~TabulatedPotential() {};
-        
-        void RegisteredAt(ObjectFactory<string, AnalysisTool> &factory);
-    
-        void Command(BondedStatistics &bs, string cmd, vector<string> &args);
-        
-        void WriteHistogram(BondedStatistics &bs, vector<string> &args);
-        void WritePotential(BondedStatistics &bs, vector<string> &args);
-        
-    private:
-        bool SetOption(Histogram::options_t &op, const vector<string> &args);
-        void Smooth(vector<double> &data, bool bPeriodic);
-        void BoltzmannInvert(vector<double> &data, double T);        
-        void CalcForce(vector<double> &u, vector<double> &du, double dx, bool bPeriodic);
-        
-        Histogram::options_t _tab_options;
-        Histogram::options_t _hist_options;
-        int _tab_smooth1;
-        int _tab_smooth2;
-        double _T;
-};
-
-REGISTER_OBJECT(AnalysisFactory, TabulatedPotential, "tab");
 
 TabulatedPotential::TabulatedPotential()
 {
@@ -54,9 +26,10 @@ TabulatedPotential::TabulatedPotential()
     _T = 300;
 }
 
-void TabulatedPotential::RegisteredAt(ObjectFactory<string, AnalysisTool> &factory)
+void TabulatedPotential::Register(map<string, AnalysisTool *> &lib)
 {
-    factory.Register("hist", this);
+    lib["tab"] = this;
+    lib["hist"] = this;
 }
 
 void TabulatedPotential::Command(BondedStatistics &bs, string cmd, vector<string> &args)

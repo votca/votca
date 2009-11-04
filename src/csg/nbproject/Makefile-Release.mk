@@ -1,5 +1,5 @@
 #
-# Gererated Makefile - do not edit!
+# Generated Makefile - do not edit!
 #
 # Edit the Makefile in the project folder instead (../Makefile). Each target
 # has a -pre and a -post target defined where you can add customized code.
@@ -16,12 +16,18 @@ CC=gcc
 CCC=g++
 CXX=g++
 FC=gfortran
+AS=as
+
+# Macros
+CND_PLATFORM=GNU-Linux-x86
+CND_CONF=Release
+CND_DISTDIR=dist
 
 # Include project Makefile
 include Makefile_nb
 
 # Object Directory
-OBJECTDIR=build/Release/GNU-Linux-x86
+OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -40,31 +46,39 @@ CXXFLAGS=
 # Fortran Compiler Flags
 FFLAGS=
 
+# Assembler Flags
+ASFLAGS=
+
 # Link Libraries and Options
 LDLIBSOPTIONS=
 
 # Build Targets
-.build-conf: ${BUILD_SUBPROJECTS} dist/Release/GNU-Linux-x86/csg
+.build-conf: ${BUILD_SUBPROJECTS}
+	${MAKE}  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/csg
 
 dist/Release/GNU-Linux-x86/csg: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
-	${LINK.cc} -o dist/Release/GNU-Linux-x86/csg ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/tabulatedpotential.o: tabulatedpotential.cc 
+${OBJECTDIR}/tabulatedpotential.o: nbproject/Makefile-${CND_CONF}.mk tabulatedpotential.cc 
 	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/tabulatedpotential.o tabulatedpotential.cc
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/tabulatedpotential.o tabulatedpotential.cc
 
-${OBJECTDIR}/main.o: main.cc 
+${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cc 
 	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/main.o main.cc
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cc
 
-${OBJECTDIR}/bondedstatistics.o: bondedstatistics.cc 
+${OBJECTDIR}/bondedstatistics.o: nbproject/Makefile-${CND_CONF}.mk bondedstatistics.cc 
 	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/bondedstatistics.o bondedstatistics.cc
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/bondedstatistics.o bondedstatistics.cc
 
-${OBJECTDIR}/stdanalysis.o: stdanalysis.cc 
+${OBJECTDIR}/stdanalysis.o: nbproject/Makefile-${CND_CONF}.mk stdanalysis.cc 
 	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -O2 -o ${OBJECTDIR}/stdanalysis.o stdanalysis.cc
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/stdanalysis.o stdanalysis.cc
 
 # Subprojects
 .build-subprojects:
@@ -76,3 +90,8 @@ ${OBJECTDIR}/stdanalysis.o: stdanalysis.cc
 
 # Subprojects
 .clean-subprojects:
+
+# Enable dependency checking
+.dep.inc: .depcheck-impl
+
+include .dep.inc
