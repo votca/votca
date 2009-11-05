@@ -13,6 +13,8 @@ void Molecule::AddBead(Bead *bead, const string &name)
     _beads.push_back(bead);
     _bead_names.push_back(name);
     _beadmap[name] = _beads.size()-1;
+
+    bead->_mol = this;
 }
 
 int Molecule::getBeadByName(const string &name)

@@ -17,6 +17,7 @@
 #include "topologyitem.h"
 
 using namespace std;
+class Molecule;
 
 /**
     \brief information about a bead
@@ -114,9 +115,12 @@ public:
     void HasV(bool b);
     void HasW(bool b);
 
+    Molecule *getMolecule() { return _mol; }
 private:
     int _id;
     BeadType *_type;
+    Molecule *_mol;
+
     byte_t _symmetry;
     string _name;
     
@@ -145,6 +149,8 @@ private:
     _bF=false;}
     
     friend class Topology;
+
+    friend class Molecule;
 };
 
 
