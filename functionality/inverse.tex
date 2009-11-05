@@ -1,31 +1,32 @@
 \section{Iterative workflow control}
+For each iterative method (e.g. IBI or IMC), a simulation has to be performed with a working potential. Based on statistics from that coarse grained run, an update can be calculated. VOTCA implements a flexible scripting framework to perform such an iterative workflow. The workflow chart is shown in \fig{fig:flowchart}. The workflow is implemented as a shell script which can, in principle, be run on all available operating systems and provides the flexibility needed to call external (or overload existing) scripts and programs written in other programming languages. An interface to read values from the steering \xml files in C++, Perl and shell is also provided.
 
 \begin{figure}
-  \includegraphics[width=\columnwidth]{functionality/abb/flowchart.eps}
+  \includegraphics[width=0.7\columnwidth]{functionality/abb/flowchart.eps}
   \caption{
     \label{fig:flowchart}
     Block-scheme of the workflow control for the iterative methods. The most time-consuming parts are marked in red.
   }
 \end{figure}
 
-The workflow chart is shown in \fig{fig:flowchart}. The workflow is implemented as a~shell script which can, in principle, be run on all available operating systems and provides the flexibility needed to call external (or overload existing) scripts and programs written in other programming languages. An interface to read values from the steering \xml files in C++, Perl and shell is also provided.
-
 During the global initialization the initial guess for the coarse-grained potential is calculated from the reference radial distribution function or converted from a given potential guess to the internal format. The actual iterative step starts with an iteration initialization. It searches for possible checkpoints and copies and converts files from the previous step and the base directory. Then the simulation run is prepared by converting potentials to the format required by the external sampling program and actual sampling is performed. Currently, an interface with \gromacs~\cite{gromacs4} is implemented and extension to other packages is straightforward. After sampling the phasespace, potential update $\Delta U$ is calculated. Often the update requires postprocessing, such as smoothing, interpolation, extrapolation or fitting to an analytical form. A simple pressure correction~\cite{Reith:2003} can also be seen as a postprocessing of $\Delta U$, due to the fact that it only adds a linear interparticle separation function.
 %
 Finally, the new potential is determined and postprocessed. If the iterative process continues, the next iterative step starts to initialize.
 
-\subsection{bla}
-This set of scripts implement iterative boltzmann inversion + inverse monte carlo. 
+\subsection{General usage}
 
 To setup the environment, run:
-csh, tcsh: source `<csg-installation>/bin/CSGRC.csh
-bash: source `<csg-installation>/bin/CSGRC.bash   
+csh, tcsh: source <csg-installation>/bin/CSGRC.csh
+bash: source <csg-installation>/bin/CSGRC.bash   
 
 tutorials can be found in
 <csg-installation>/share/csg/tutor
 
 just copy tip3p and try 
-  ./run.sh cg.xml
+
+\begin{verbatim}
+ csg\_inverse cg.xml
+\end{verbatim}
 
 Each iteration is divided n several steps:
 
@@ -54,7 +55,7 @@ do manipulations on the potential like smoothing,...
 
 similiar behaviour as post\_update, just acting on <name>.pot.cur, <name>.pot.new
 
-\subsection{input}
+\subsection{Run preparation}
 For options + directives see ...
 
 As target distribution, any table file can be given (e.g. gromacs output from g\_rdf). The program automaticaly takes care to resample to the correct grid spacing in the .xml file.
@@ -69,13 +70,24 @@ grompp.mdp
 
 These files have to be specified in the xml file (see tutorial or [[Coarse graining directives]])
 
+\subsection{Output}
+VOTCA standard files for each step:
 
-\subsection{post processing}
-\subsubsection{smooth}
-does a simple triangular smooth on the active range.
-you can specify the number of smoothing iterations in <post\_update\_options><smooth><iterations>
+\begin{tabular}{ll}
+*.dist.new & distribution functions of the current step \\
+*.dpot.new & the final potential update, created in calc\_update \\
+*.dpot.<number> & for each post\_update script, the current .dpot.new is saved and a new one is created\\
+*.pot.cur & the current potential, the actual run was performed with \\
+*.pot.new & the new potential after add step \\
+*.pot.<number> & same as dpot.<number> just for post\_add
+\end{tabular}
+
+\subsection{Continue a run}
+There are two scenarios when one wants to continue a run: A finished run should be extended or the run was interrupted and one needs to restart at the current point. When csg\_inverse is started, it automatically checks for a file called \textit{done} ine the current folder. If that exists, it assumes the run as done. To extend the run, increase max\_iterations in the settings file and remove the file called done. After that, csg\_inverse can be just restarted, it will recognize available steps and continues after the last one.
+
+If a run was interrupted, csg\_inverse might not be able to restart on it's own. In that case, the easiest solution is to delete the last step and just start again. This will just redo the last step and continue. However this method is not always practical since sampling + analysis might take very long and the run just crashed due to some post processing option. To avoid redoing the whole run, VOTCA creates a file with restart points, that marks actions in the step which were already completed (like simulation, analysis, ...). The file is specified in the option \textit{restart\_????}. If specific actions should be redone, lines in that files can also removed by hand. In addition, a file \textit{done} is created int each folder for a step that already has finished.
 
 \subsection{Customization}
 Please never ever change our installed scripts. You can hook in your own scripts for any single sub part. The file
 <csg-install>/share/csg/scripts/inverse/csg\_table assigns to two given keywords a script which is called. You can change this by creating a file
-csg\_table in your own directory (specified in the Coarse graining directives). Just add a line for each script you want to add or change. The source\_wrapper takes care that your script is called instead of the one from the standard installations. For scripting details have a look at the source, there is no developers manual so far. Feel free to ask Christoph Junghans or Victor Rühle for details.
+csg\_table in your own directory (specified in the Coarse graining directives). Just add a line for each script you want to add or change. The source\_wrapper takes care that your script is called instead of the one from the standard installations. For scripting details have a look at the source, there is no developers manual so far. Feel free to ask Christoph Junghans or Victor R\"uhle for details.
