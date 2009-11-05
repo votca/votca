@@ -3,7 +3,7 @@ img_extIsRegExp=false
 img_extensions=.eps .pdf .dvi .ps .fig .gif .jpg .jpeg .png
 kileprversion=1
 kileversion=1.9.3
-lastDocument=functionality.tex
+lastDocument=manual.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -20,8 +20,16 @@ archive=true
 column=0
 encoding=ISO 8859-1
 highlight=LaTeX
-line=5
-open=true
+line=49
+open=false
+
+[item:functionality/inverse.tex]
+archive=true
+column=0
+encoding=ISO 8859-1
+highlight=LaTeX
+line=0
+open=false
 
 [item:introduction.tex]
 archive=true
@@ -29,7 +37,7 @@ column=26
 encoding=ISO 8859-1
 highlight=LaTeX
 line=1
-open=true
+open=false
 
 [item:manual.kilepr]
 archive=true
@@ -41,11 +49,11 @@ open=false
 
 [item:manual.tex]
 archive=true
-column=0
+column=8
 encoding=ISO 8859-1
 highlight=LaTeX
-line=28
-open=true
+line=39
+open=false
 
 [item:reference.tex]
 archive=true
@@ -53,20 +61,20 @@ column=20
 encoding=ISO 8859-1
 highlight=LaTeX
 line=5
-open=true
+open=false
 
 [item:theory.tex]
 archive=true
-column=25
+column=0
 encoding=ISO 8859-1
 highlight=LaTeX
-line=1
-open=true
+line=2
+open=false
 
 [item:usage.tex]
 archive=true
-column=1
+column=0
 encoding=ISO 8859-1
 highlight=LaTeX
-line=3
-open=true
+line=4
+open=false
