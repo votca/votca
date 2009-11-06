@@ -357,6 +357,20 @@ void CGForceMatching::FmatchAccumulateData()
         for (int i = 0; i < _x.size(); i++)
             _x(i) = gsl_vector_get(x, i);        
 
+        // calculate FM residual - quality of FM
+        // FM residual is initially calculated in (kJ/(mol*nm))^2
+        double fm_resid = 0;
+
+        for (int i = 0; i < _b.size(); i++)
+            fm_resid += gsl_vector_get(residual, i) * gsl_vector_get(residual, i);
+
+        // strange number is units conversion -> now (kcal/(mol*angstrom))^2
+        fm_resid /= 3*N*L*1750.5856;
+
+        cout << "#### Force matching residual ####" << endl;
+        cout << "     Chi_2 = " << fm_resid << endl;
+        cout << "#################################" << endl;
+
         gsl_vector_free(x);
         gsl_vector_free(tau);
         gsl_vector_free(residual);
