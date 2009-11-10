@@ -121,6 +121,9 @@ void CGMoleculeDef::ParseBeads(xmlDocPtr doc, xmlNodePtr cur)
                 }
                 xmlFree(key);
             }            
+            if(_beads_by_name.find(beaddef->_name)!=_beads_by_name.end())
+                throw std::runtime_error(string("bead name ") + beaddef->_name
+                        + " not unique in mapping");
             _beads.push_back(beaddef);
             _beads_by_name[beaddef->_name] = beaddef;
         }
