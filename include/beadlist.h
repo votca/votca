@@ -14,6 +14,14 @@
 
 using namespace std;
 
+/**
+    \brief Generate lists of beads
+
+    This class generates a list of beads based on some criteria, currently
+    only the bead type.
+
+*/
+
 class BeadList
     : public list<Bead *>
 {
@@ -21,6 +29,7 @@ public:
     BeadList() {};
     ~BeadList() {}
     
+    /// \brief Select all beads of type <select>
     int Generate(Topology &top, const string &select);
     
     Topology *getTopology() {return _topology; }

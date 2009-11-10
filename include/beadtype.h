@@ -13,6 +13,12 @@
 
 using namespace std;
 
+/**
+    \brief Bead Type informaton
+
+    Each bead has a type. While the bead name should be unique,
+    several beads can share the same type.
+  */
 class  BeadType : public TopologyItem {
 public:    
     const int &getId() const { return _id; }
