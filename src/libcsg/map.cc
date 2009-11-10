@@ -104,12 +104,14 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
         //v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
         //    + vec(0.5, -1, 0) * (drand48()-0.5)
         //    + vec(0, 0, 1) * (drand48()-0.5);
-        m[0][0] += v.getX()*v.getX();
-        m[0][1] += v.getX()*v.getY();
-        m[0][2] += v.getX()*v.getZ();        
-        m[1][1] += v.getY()*v.getY();
-        m[1][2] += v.getY()*v.getZ();
-        m[2][2] += v.getZ()*v.getZ();
+        
+        //Normalize the tensor with 1/number_of_atoms_per_bead
+        m[0][0] += v.getX()*v.getX()/(double)_matrix.size();
+        m[0][1] += v.getX()*v.getY()/(double)_matrix.size();
+        m[0][2] += v.getX()*v.getZ()/(double)_matrix.size();        
+        m[1][1] += v.getY()*v.getY()/(double)_matrix.size();
+        m[1][2] += v.getY()*v.getZ()/(double)_matrix.size();
+        m[2][2] += v.getZ()*v.getZ()/(double)_matrix.size();
     }
     m[1][0] = m[0][1];
     m[2][0] = m[0][2];
@@ -118,6 +120,15 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     // calculate the eigenvectors
     matrix::eigensystem_t es;
     m.SolveEigensystem(es);
+    
+    vec eigenv1=es.eigenvecs[0];
+    vec eigenv2=es.eigenvecs[1];
+    vec eigenv3=es.eigenvecs[2];
+    
+     out.getBead(_out)->seteigenvec1(eigenv1);    
+      out.getBead(_out)->seteigenvec2(eigenv2);    
+       out.getBead(_out)->seteigenvec3(eigenv3); 
+    
     
     vec u = es.eigenvecs[0];
     vec v = in.getBead(_matrix[1]._in)->getPos() - in.getBead(_matrix[0]._in)->getPos();
@@ -128,7 +139,15 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     vec w = in.getBead(_matrix[2]._in)->getPos() - in.getBead(_matrix[0]._in)->getPos();
     w.normalize();
     
+    //store the eigenvalues for the tensor of gyration
+    double eigenvalue1 = es.eigenvalues[0];
+    double eigenvalue2 = es.eigenvalues[1];
+    double eigenvalue3 = es.eigenvalues[2];
     
+    
+    out.getBead(_out)->setval1(eigenvalue1);
+    out.getBead(_out)->setval2(eigenvalue2);
+    out.getBead(_out)->setval3(eigenvalue3);
     
     if((v^w)*u < 0) u=vec(0.,0.,0.)-u;
     out.getBead(_out)->setU(u);
