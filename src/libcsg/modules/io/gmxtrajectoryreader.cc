@@ -25,7 +25,8 @@ void GMXTrajectoryReader::Close()
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
     if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
-        return false;
+        throw std::runtime_error(string("cannot open ") + _filename);
+
     matrix m;
     for(int i=0; i<3; i++)
         for(int j=0; j<3; j++)
@@ -35,6 +36,9 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
     conf.setStep(_gmx_frame.step);
     cout << endl;
     
+    if(_gmx_frame.natoms != conf.Beads().size())
+        throw std::runtime_error("number of beads in trajectory do not match topology");
+
     //conf.HasPos(true);
     //conf.HasF(_gmx_frame.bF);
     
