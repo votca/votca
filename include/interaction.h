@@ -75,7 +75,9 @@ class IBond : public Interaction
 public:
     IBond(int bead1, int bead2)
         { _beads.resize(2); _beads[0] = bead1; _beads[1] = bead2; }
-    
+
+    IBond(list<int> &beads)
+        { _beads.resize(2); for(int i=0; i<2; ++i) { _beads[i] = beads.front(); beads.pop_front(); }}
     double EvaluateVar(const Topology &top);
     vec Grad(const Topology &top, int bead);
 
@@ -90,6 +92,8 @@ class IAngle : public Interaction
 public:
     IAngle(int bead1, int bead2, int bead3)
         { _beads.resize(3); _beads[0] = bead1; _beads[1] = bead2; _beads[2] = bead3;}
+    IAngle(list<int> &beads)
+        { _beads.resize(3); for(int i=0; i<3; ++i) { _beads[i] = beads.front(); beads.pop_front(); }}
 
     double EvaluateVar(const Topology &top);
     vec Grad(const Topology &top, int bead);
@@ -105,7 +109,9 @@ class IDihedral : public Interaction
 public:
     IDihedral(int bead1, int bead2, int bead3, int bead4)
         { _beads.resize(4); _beads[0] = bead1; _beads[1] = bead2; _beads[2] = bead3; _beads[3] = bead4;}
-        
+    IDihedral(list<int> &beads)
+        { _beads.resize(4); for(int i=0; i<4; ++i) { _beads[i] = beads.front(); beads.pop_front(); }}
+   
     double EvaluateVar(const Topology &top);
     vec Grad(const Topology &top, int bead) {}
 

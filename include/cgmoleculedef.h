@@ -12,7 +12,7 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <libxml/parser.h>
+#include <tools/property.h>
 #include "map.h"
 #include <tools/types.h>
 #include "exclusionlist.h"
@@ -44,34 +44,17 @@ public:
     
     ExclusionList *CreateExclusionList(Molecule &atomistic);
     
-    struct option_t {
-       string _name;
-       string _value;
-       map<string,option_t> _childs;       
-    };
-    
 private:
+    Property _options;
+    
     struct beaddef_t {
         string _name;
         string _type;
         byte_t _symmetry;
         string _mapping;
         vector<string> _subbeads;
-        map<string,option_t> _misc;
-    };
-    
-    struct mapdef_t {
-        string _name;
-        vector<double> _weights;
-        map<string,option_t> _misc;
-    };
-
-    struct forcedef_t {
-        string _type;
-        string _name;
-        vector< string > _atoms;
-        map<string,option_t> _misc;
-    };
+        Property *_options;
+    };    
 
     // name of the coarse grained molecule
     string _name;
@@ -83,20 +66,17 @@ private:
     map<string, beaddef_t *> _beads_by_name;
     
     // mapping schemes
-    map<string, mapdef_t *> _maps;
+    map<string, Property *> _maps;
     
-    vector<forcedef_t *> _bonded;
+    list<Property *> _bonded;
     
-    void ParseTopology(xmlDocPtr doc, xmlNodePtr cur);
-    void ParseBeads(xmlDocPtr doc, xmlNodePtr cur);
-    void ParseBonded(xmlDocPtr doc, xmlNodePtr cur);
-    void ParseMapping(xmlDocPtr doc, xmlNodePtr cur);
-    
-    void ParseNode(option_t &opt, xmlDocPtr doc, xmlNodePtr cur);
-    void OutputNode(option_t &opt);
-    
+    void ParseTopology(Property &options);
+    void ParseBeads(Property &options);
+    void ParseBonded(Property &options);
+    void ParseMapping(Property &options);
+        
     beaddef_t *getBeadByName(const string &name);
-    mapdef_t *getMapByName(const string &name);    
+    Property *getMapByName(const string &name);
 };
 
 #endif	/* _cgmoleculedef_H */

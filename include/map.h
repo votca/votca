@@ -40,15 +40,8 @@ class BeadMap
 public:
     virtual ~BeadMap() {};
     virtual void Apply(Molecule &in, Molecule &out) = 0;
-    
-    /*
-        \brief clone map object
-        Clones a map object. Each mapper class must implement this function to create an instance of itself.
-        It is needed by the mapper factory to create a map of the given type.
-    */
-    //virtual BeadMap *Clone() = 0;
-        
-};
+    virtual void AddElem(int in, double weight) = 0;
+    };
 
 /*******************************************************
     Linear map for spherical beads
@@ -61,9 +54,7 @@ public:
     void Apply(Molecule &in, Molecule &out);
 
     void AddElem(int in, double weight);
-    
-    //BeadMap *Clone() { return new Map_Sphere(_out); }
-    
+        
 protected:
     Map_Sphere() {}
     
@@ -92,18 +83,9 @@ class Map_Ellipsoid
 public:
     Map_Ellipsoid(int out) : _out(out) { }
     void Apply(Molecule &in, Molecule &out);
-
-    //void AddElem(int out, int in, double weight);
-    //BeadMap *Clone() { return new Map_Ellipsoid(_out); }
     
 protected:
     int _out;
-    /*struct element_t {
-        int _in, _out;
-        double _weight;
-    };
-    
-    vector<element_t> _matrix;*/
 };
 
 
