@@ -18,14 +18,12 @@ TopologyMap::~TopologyMap()
     
 void TopologyMap::Apply()
 {
-    MapContainer::iterator iter;    
-    int i=0;
+    MapContainer::iterator iter;
+    
     _out->setStep(_in->getStep());
     _out->setTime(_in->getTime());
     _out->setBox(_in->getBox());
 
-    for(iter=_maps.begin();iter!=_maps.end();++iter) {
-        (*iter)->Apply(*_in->getMolecule(i), *_out->getMolecule(i));
-        i++;
-    }
+    for(iter=_maps.begin();iter!=_maps.end();++iter)
+        (*iter)->Apply();
 }

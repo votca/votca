@@ -8,6 +8,7 @@
 #include "map.h"
 #include <iostream>
 #include <tools/matrix.h>
+#include <tools/tokenizer.h>
 
 using namespace std;
 
@@ -19,45 +20,86 @@ Map::~Map()
     _maps.clear();
 }
 
-void Map::Apply(Molecule &in, Molecule &out)
+void Map::Apply()
 {
     vector<BeadMap *>::iterator iter;
     for(iter=_maps.begin();iter!=_maps.end();++iter)
-        (*iter)->Apply(in, out);
+        (*iter)->Apply();
 }
 
-void Map_Sphere::Apply(Molecule &in, Molecule &out)
+void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Property *opts_map) {
+    BeadMap::Initialize(in, out, opts_bead, opts_map);
+    
+    vector<string> beads;
+    vector<string> weights_str;
+    vector<double> weights;
+
+    string s(_opts_bead->get("beads").value());
+    Tokenizer tok_beads(s, " \n\t");
+    tok_beads.ToVector(beads);
+
+    Tokenizer tok_weights(_opts_map->get("weights").value(), " \n\t");
+    tok_weights.ToVector(weights_str);
+
+    double sum=0;
+    for(vector<string>::iterator iter = weights_str.begin();
+            iter!=weights_str.end(); ++iter) {
+        weights.push_back(boost::lexical_cast<int>(*iter));
+        sum+=weights.back();
+    }
+
+    for(vector<double>::iterator iter = weights.begin();
+            iter!=weights.end(); ++iter) {
+                *iter /= sum;
+    }
+
+    if (beads.size() != weights.size())
+        throw runtime_error(string("number of subbeads in " + 
+                opts_bead->get("name").value()
+                + "and number of weights in map "
+                + opts_map->get("name").value() + " do not match"));
+
+    for (size_t i = 0; i < beads.size(); ++i) {
+        int iin = in->getBeadByName(beads[i]);
+        if (iin < 0)
+            throw std::runtime_error(string("mapping error: molecule " + beads[i] + " does not exist"));
+        AddElem(in->getBead(iin), weights[i]);
+    }
+}
+
+void Map_Sphere::Apply()
 {
     vector<element_t>::iterator iter;
     vec cg(0., 0., 0.), f(0.,0.,0.), vel(0.,0.,0.);
     bool bPos, bVel, bF;
     bPos=bVel=bF=false;
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-        if(in.getBead((*iter)._in)->HasPos()) {
-            cg += (*iter)._weight * in.getBead((*iter)._in)->getPos();
+        Bead *bead = iter->_in;
+        if(bead->HasPos()) {
+            cg += (*iter)._weight * bead->getPos();
             bPos=true;
         }
-        if(in.getBead((*iter)._in)->HasVel()) {
-            vel += (*iter)._weight * in.getBead((*iter)._in)->getVel();
+        if(bead->HasVel()) {
+            vel += (*iter)._weight * bead->getVel();
             bVel = true;
         }
-        if(in.getBead((*iter)._in)->HasF()) {
+        if(bead->HasF()) {
             /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) * sum(w_i/m_i*F_i)
-            //f += (*iter)._weight * in.getBeadF((*iter)._in);
-            f += in.getBead((*iter)._in)->getF();
+            //f += (*iter)._weight * _in->getBeadF((*iter)._in);
+            f += bead->getF();
             bF = true;
         }
     }
     if(bPos)
-        out.getBead(_out)->setPos(cg);
+        _out->setPos(cg);
     if(bVel)
-        out.getBead(_out)->setVel(vel);
+        _out->setVel(vel);
     if(bF)
-        out.getBead(_out)->setF(f);
+        _out->setF(f);
 }
 
 /// \todo implement this function
-void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
+void Map_Ellipsoid::Apply()
 {
     vector<element_t>::iterator iter;
     vec cg(0., 0., 0.), c(0., 0., 0.), f(0.,0.,0.), vel(0.,0.,0.);
@@ -68,39 +110,41 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     int n;
     n = 0;
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-        if(in.getBead((*iter)._in)->HasPos()) {
-            cg += (*iter)._weight * in.getBead((*iter)._in)->getPos();
+       Bead *bead = iter->_in;
+       if(bead->HasPos()) {
+            cg += (*iter)._weight * bead->getPos();
             bPos=true;
         }
-        if(in.getBead((*iter)._in)->HasVel() == true) {
-            vel += (*iter)._weight * in.getBead((*iter)._in)->getVel();
+        if(bead->HasVel() == true) {
+            vel += (*iter)._weight * bead->getVel();
             bVel = true;
         }
-        if(in.getBead((*iter)._in)->HasF()) {
+        if(bead->HasF()) {
             /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) * sum(w_i/m_i*F_i)
-            //f += (*iter)._weight * in.getBeadF((*iter)._in);
-            f += in.getBead((*iter)._in)->getF();
+            //f += (*iter)._weight * _in->getBeadF((*iter)._in);
+            f += bead->getF();
             bF = true;
         }
         
         if((*iter)._weight>0) {
-            c += in.getBead((*iter)._in)->getPos();
+            c += bead->getPos();
             n++;
         }
     }
     
     if(bPos)
-        out.getBead(_out)->setPos(cg);
+        _out->setPos(cg);
     if(bVel)
-        out.getBead(_out)->setVel(vel);
+        _out->setVel(vel);
     if(bF)
-        out.getBead(_out)->setF(f);
+        _out->setF(f);
     
     // calculate the tensor of gyration
     c=c/(double)n;    
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         if((*iter)._weight == 0) continue;
-        vec v = (in.getBead((*iter)._in)->getPos() - c);
+        Bead *bead = iter->_in;
+        vec v = bead->getPos() - c;
         //v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
         //    + vec(0.5, -1, 0) * (drand48()-0.5)
         //    + vec(0, 0, 1) * (drand48()-0.5);
@@ -125,18 +169,18 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     vec eigenv2=es.eigenvecs[1];
     vec eigenv3=es.eigenvecs[2];
     
-     out.getBead(_out)->seteigenvec1(eigenv1);    
-      out.getBead(_out)->seteigenvec2(eigenv2);    
-       out.getBead(_out)->seteigenvec3(eigenv3); 
+    _out->seteigenvec1(eigenv1);
+    _out->seteigenvec2(eigenv2);
+    _out->seteigenvec3(eigenv3);
     
     
     vec u = es.eigenvecs[0];
-    vec v = in.getBead(_matrix[1]._in)->getPos() - in.getBead(_matrix[0]._in)->getPos();
+    vec v = _matrix[1]._in->getPos() - _matrix[0]._in->getPos();
     v.normalize();
     
-    out.getBead(_out)->setV(v);    
+    _out->setV(v);
     
-    vec w = in.getBead(_matrix[2]._in)->getPos() - in.getBead(_matrix[0]._in)->getPos();
+    vec w = _matrix[2]._in->getPos() - _matrix[0]._in->getPos();
     w.normalize();
     
     //store the eigenvalues for the tensor of gyration
@@ -145,17 +189,17 @@ void Map_Ellipsoid::Apply(Molecule &in, Molecule &out)
     double eigenvalue3 = es.eigenvalues[2];
     
     
-    out.getBead(_out)->setval1(eigenvalue1);
-    out.getBead(_out)->setval2(eigenvalue2);
-    out.getBead(_out)->setval3(eigenvalue3);
+    _out->setval1(eigenvalue1);
+    _out->setval2(eigenvalue2);
+    _out->setval3(eigenvalue3);
     
     if((v^w)*u < 0) u=vec(0.,0.,0.)-u;
-    out.getBead(_out)->setU(u);
+    _out->setU(u);
     
     //write out w
     w=u^v;
     w.normalize();
-    out.getBead(_out)->setW(w);
+    _out->setW(w);
     
     //out.BeadV(_out) = v;
     

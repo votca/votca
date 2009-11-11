@@ -28,10 +28,6 @@ CGMoleculeDef::~CGMoleculeDef()
 void CGMoleculeDef::Load(string filename)
 {
     load_property_from_xml(_options, filename);
-/*    cout << _options.name() << endl;
-    if(_options.name() != "cg_molecule")
-        throw runtime_error("Error, in xml file: " + filename);
-  */
     // parse xml tree
     _name = _options.get("cg_molecule.name").value();
     _ident = _options.get("cg_molecule.ident").value();
@@ -64,12 +60,7 @@ void CGMoleculeDef::ParseBeads(Property &options) {
             beaddef->_symmetry = p->get("symmetry").as<int>();
         else
             beaddef->_symmetry = 1;
-
-        string s(p->get("beads").value());
-        Tokenizer tok(s, " \n\t");
-        for (Tokenizer::iterator beg = tok.begin(); beg != tok.end(); ++beg)
-            beaddef->_subbeads.push_back(*beg);
-
+        
         if (_beads_by_name.find(beaddef->_name) != _beads_by_name.end())
             throw std::runtime_error(string("bead name ") + beaddef->_name
                 + " not unique in mapping");
@@ -153,43 +144,34 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out)
                 "not match, check your molecule naming.");
     }
 
-    Map *map = new Map();
+    Map *map = new Map(in, out);
     for(vector<beaddef_t *>::iterator def = _beads.begin();
             def != _beads.end(); ++def) {
-        vector<int>::iterator iter;
+
         int iout = out.getBeadByName((*def)->_name);
         if(iout < 0) 
-            throw runtime_error(string("mapping error: molecule " + (*def)->_name + " does not exist"));
+            throw runtime_error(string("mapping error: reference molecule "
+                    + (*def)->_name + " does not exist"));
         
         Property *mdef = getMapByName((*def)->_mapping);
         if(!mdef)
             throw runtime_error(string("mapping " + (*def)->_mapping + " not found"));
-
-        Tokenizer tok(mdef->get("weights").value(), " \n\t");
-        vector<string> weights;
-        tok.ToVector(weights);
-
-        if((*def)->_subbeads.size() != weights.size())
-            throw runtime_error(string("number of subbeads in " + (*def)->_name + "and number of weights in map " + (*def)->_mapping +" do not match"));
         
+        /// TODO: change this to factory, do not hardcode!!
         BeadMap *bmap;
         switch((*def)->_symmetry) {
         case 1:
-            bmap = new Map_Sphere(iout);
+            bmap = new Map_Sphere();
             break;
         case 3:
-            bmap = new Map_Ellipsoid(iout); ;
+            bmap = new Map_Ellipsoid();
             break;
         default:
             throw runtime_error(string("unknown symmetry in bead definition!"));
         }
-
-        for(size_t i=0; i < (*def)->_subbeads.size(); ++i) {
-            int iin = in.getBeadByName((*def)->_subbeads[i]);
-            if(iin < 0)
-                throw runtime_error(string("mapping error: molecule " + (*def)->_subbeads[i] + " does not exist"));
-            bmap->AddElem(iin, boost::lexical_cast<int>(weights[i]));
-        }
+        ////////////////////////////////////////////////////
+        
+        bmap->Initialize(&in, out.getBead(iout), ((*def)->_options), mdef);
         map->AddBeadMap(bmap);
         
     }

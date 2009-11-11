@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <tools/vec.h>
+#include <tools/property.h>
 #include "molecule.h"
 
 using namespace std;
@@ -23,12 +24,16 @@ class BeadMap;
 class Map
 {
 public:
-    Map() {}
+    Map(Molecule &in, Molecule &out)
+        : _in(in), _out(out) {}
     ~Map();
-    void Apply(Molecule &in, Molecule &out);
     
     void AddBeadMap(BeadMap *bmap) { _maps.push_back(bmap); }
+
+    void Apply();
+
 protected:
+    Molecule _in, _out;
     vector<BeadMap *> _maps;
 };
 
@@ -39,9 +44,19 @@ class BeadMap
 {
 public:
     virtual ~BeadMap() {};
-    virtual void Apply(Molecule &in, Molecule &out) = 0;
-    virtual void AddElem(int in, double weight) = 0;
-    };
+    virtual void Apply() = 0;
+    virtual void Initialize(Molecule *in, Bead *out, Property *opts_map, Property *opts_bead);
+protected:
+    Molecule *_in;
+    Bead *_out;
+    Property *_opts_map;
+    Property *_opts_bead;
+};
+
+inline void BeadMap::Initialize(Molecule *in, Bead *out, Property *opts_bead, Property *opts_map)
+{
+    _in = in; _out = out; _opts_map = opts_map; _opts_bead = opts_bead;
+}
 
 /*******************************************************
     Linear map for spherical beads
@@ -50,23 +65,22 @@ class Map_Sphere
     : public BeadMap
 {
 public:
-    Map_Sphere(int out) : _out(out) {};
-    void Apply(Molecule &in, Molecule &out);
-
-    void AddElem(int in, double weight);
-        
-protected:
     Map_Sphere() {}
-    
+    void Apply();
+
+    void Initialize(Molecule *in, Bead *out, Property *opts_bead, Property *opts_map);
+
+protected:
+    void AddElem(Bead *in, double weight);
+
     struct element_t {
-        int _in;
+        Bead *_in;
         double _weight;
     };
-    int _out;
     vector<element_t> _matrix;
 };
 
-inline void Map_Sphere::AddElem(int in, double weight)
+inline void Map_Sphere::AddElem(Bead *in, double weight)
 {
     element_t el;
     el._in = in;
@@ -81,11 +95,10 @@ class Map_Ellipsoid
     : public Map_Sphere
 {
 public:
-    Map_Ellipsoid(int out) : _out(out) { }
-    void Apply(Molecule &in, Molecule &out);
+    Map_Ellipsoid() { }
+    void Apply();
     
 protected:
-    int _out;
 };
 
 
