@@ -9,6 +9,7 @@
 #include <iostream>
 #include <tools/matrix.h>
 #include <tools/tokenizer.h>
+#include <numeric>
 
 using namespace std;
 
@@ -27,43 +28,79 @@ void Map::Apply()
         (*iter)->Apply();
 }
 
+template<typename item, typename list>
+void push(item, list)
+{
+
+}
+
 void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Property *opts_map) {
     BeadMap::Initialize(in, out, opts_bead, opts_map);
     
     vector<string> beads;
-    vector<string> weights_str;
     vector<double> weights;
+    vector<double> fweights;
 
+    // get the beads
     string s(_opts_bead->get("beads").value());
     Tokenizer tok_beads(s, " \n\t");
     tok_beads.ToVector(beads);
 
+    // get vector of weights
     Tokenizer tok_weights(_opts_map->get("weights").value(), " \n\t");
-    tok_weights.ToVector(weights_str);
+    tok_weights.ConvertToVector<double>(weights);
 
-    double sum=0;
-    for(vector<string>::iterator iter = weights_str.begin();
-            iter!=weights_str.end(); ++iter) {
-        weights.push_back(boost::lexical_cast<int>(*iter));
-        sum+=weights.back();
-    }
-
-    for(vector<double>::iterator iter = weights.begin();
-            iter!=weights.end(); ++iter) {
-                *iter /= sum;
-    }
-
+    // check weather weights and # beads matches
     if (beads.size() != weights.size())
-        throw runtime_error(string("number of subbeads in " + 
+        throw runtime_error(string("number of subbeads in " +
                 opts_bead->get("name").value()
                 + "and number of weights in map "
                 + opts_map->get("name").value() + " do not match"));
+
+    // normalize the weights
+    double sum = std::accumulate(weights.begin(), weights.end(), 0);
+    for_each(weights.begin(), weights.end(), bind2nd(multiplies<double>(), 1./sum));
+
+    // get the d vector if exists or initialize same as weights
+    vector<double> d;
+    if(_opts_map->exists("d")) {
+        Tokenizer tok_weights(_opts_map->get("d").value(), " \n\t");
+        tok_weights.ConvertToVector(d);
+        // normalize d coefficients
+        sum = std::accumulate(d.begin(), d.end(), 0);
+        for_each(d.begin(), d.end(), bind2nd(multiplies<double>(), 1./sum));
+    } else {
+        // initialize force-weights with weights
+        d.resize(weights.size());
+        copy(weights.begin(), weights.end(), d.begin());
+    }
+
+    // check weather number of d coeffs is correct
+    if (beads.size() != d.size()) {
+        throw runtime_error(string("number of subbeads in " +
+            opts_bead->get("name").value()
+            + "and number of d-coefficients in map "
+            + opts_map->get("name").value() + " do not match"));
+    }
+
+    // calculate force weights by d_i/w_i
+    for(int i=0; i<weights.size(); ++i) {
+        if(weights[i] == 0 && d[i]!=0) {
+            throw runtime_error(
+                "A d coefficient is nonzero while weights is zero in mapping "
+                + opts_map->get("name").value());
+        }
+        if(weights[i] != 0)
+            fweights[i] = d[i] / weights[i];
+        else
+            fweights[i] = 0;        
+    }
 
     for (size_t i = 0; i < beads.size(); ++i) {
         int iin = in->getBeadByName(beads[i]);
         if (iin < 0)
             throw std::runtime_error(string("mapping error: molecule " + beads[i] + " does not exist"));
-        AddElem(in->getBead(iin), weights[i]);
+        AddElem(in->getBead(iin), weights[i], fweights[i]);
     }
 }
 
@@ -84,9 +121,7 @@ void Map_Sphere::Apply()
             bVel = true;
         }
         if(bead->HasF()) {
-            /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) * sum(w_i/m_i*F_i)
-            //f += (*iter)._weight * _in->getBeadF((*iter)._in);
-            f += bead->getF();
+            f += (*iter)._force_weight * bead->getF();
             bF = true;
         }
     }

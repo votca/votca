@@ -71,20 +71,22 @@ public:
     void Initialize(Molecule *in, Bead *out, Property *opts_bead, Property *opts_map);
 
 protected:
-    void AddElem(Bead *in, double weight);
+    void AddElem(Bead *in, double weight, double force_weight);
 
     struct element_t {
         Bead *_in;
         double _weight;
+        double _force_weight;
     };
     vector<element_t> _matrix;
 };
 
-inline void Map_Sphere::AddElem(Bead *in, double weight)
+inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight)
 {
     element_t el;
     el._in = in;
     el._weight = weight;
+    el._force_weight = force_weight;
     _matrix.push_back(el);
 }
 
