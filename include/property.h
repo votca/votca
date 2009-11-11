@@ -112,7 +112,7 @@ inline Property &Property::add(const string &key, const string &value)
 inline bool Property::exists(const string &key)
 {
     try { get(key); }
-    catch(exception err) { return false;}
+    catch(std::exception err) { return false;}
     return true;
 }
     
