@@ -28,12 +28,6 @@ void Map::Apply()
         (*iter)->Apply();
 }
 
-template<typename item, typename list>
-void push(item, list)
-{
-
-}
-
 void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Property *opts_map) {
     BeadMap::Initialize(in, out, opts_bead, opts_map);
     
@@ -58,17 +52,17 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
                 + opts_map->get("name").value() + " do not match"));
 
     // normalize the weights
-    double sum = std::accumulate(weights.begin(), weights.end(), 0);
-    for_each(weights.begin(), weights.end(), bind2nd(multiplies<double>(), 1./sum));
-
+    double norm = 1./ std::accumulate(weights.begin(), weights.end(), 0.);
+    
+    transform(weights.begin(), weights.end(), weights.begin(), bind2nd(multiplies<double>(), norm));
     // get the d vector if exists or initialize same as weights
     vector<double> d;
     if(_opts_map->exists("d")) {
         Tokenizer tok_weights(_opts_map->get("d").value(), " \n\t");
         tok_weights.ConvertToVector(d);
         // normalize d coefficients
-        sum = std::accumulate(d.begin(), d.end(), 0);
-        for_each(d.begin(), d.end(), bind2nd(multiplies<double>(), 1./sum));
+        norm = 1./std::accumulate(d.begin(), d.end(), 0.);
+        transform(d.begin(), d.end(), d.begin(), bind2nd(multiplies<double>(), norm));
     } else {
         // initialize force-weights with weights
         d.resize(weights.size());
@@ -83,6 +77,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
             + opts_map->get("name").value() + " do not match"));
     }
 
+    fweights.resize(weights.size());
     // calculate force weights by d_i/w_i
     for(int i=0; i<weights.size(); ++i) {
         if(weights[i] == 0 && d[i]!=0) {
