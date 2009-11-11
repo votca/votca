@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 
 class Tokenizer 
 {                        
@@ -36,6 +37,15 @@ public:
     void ToVector(std::vector<std::string> &v) {
         for(iterator iter=begin(); iter!=end(); ++iter)
             v.push_back(*iter);
+    }
+
+    template < typename T >
+    void ConvertToVector(std::vector<T> &v){
+        std::vector<std::string> tmp;
+        ToVector(tmp);
+        v.resize(tmp.size());
+        transform(tmp.begin(), tmp.end(), v.begin(),
+            boost::lexical_cast<T, std::string>);
     }
     
 private:
