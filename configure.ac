@@ -9,7 +9,7 @@ AC_CONFIG_HEADERS(src/config.h)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
-AC_CONFIG_FILES([src/csg/Makefile])
+AC_CONFIG_FILES([src/csg_boltzmann/Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/tools/Makefile])
 AC_CONFIG_FILES([src/libcsg/Makefile])
