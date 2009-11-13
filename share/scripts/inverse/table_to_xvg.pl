@@ -66,7 +66,8 @@ $force[$#r]=0.0;
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 for(my $i=0;$i<=$#r;$i++){
-  print OUTFILE "$r[$i] 0.0 0.0 0.0 0.0 $pot[$i] $force[$i]\n";
+  printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n", 
+    $r[$i], 0., 0., 0., 0., $pot[$i], $force[$i]);
 }
 close(OUTFILE) or die "Error at closing $outfile\n";
 
