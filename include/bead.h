@@ -152,8 +152,12 @@ public:
     void Has1(bool b);
 
     Molecule *getMolecule() { return _mol; }
+
+    vector<int> &ParentBeads() { return _parent_beads; };
+   
 private:
     int _id;
+    vector<int> _parent_beads;
     BeadType *_type;
     Molecule *_mol;
 
@@ -193,7 +197,6 @@ private:
 
     friend class Molecule;
 };
-
 
 inline void Bead::setPos(const vec &r)
 {

@@ -33,6 +33,39 @@
 
 using namespace std;
 
+ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg)
+{
+    list<int> exclude;
+   
+    ExclusionList *ex = new ExclusionList();
+    ex->ExcludeAll(atomistic.BeadCount());
+
+    // reintroduce bead internal nonbonded interaction
+    for(int i=0; i<cg.BeadCount(); ++i) {
+        exclude.clear();
+        
+        vector<int> &v = cg.getBead(i)->ParentBeads();
+        exclude.insert(exclude.begin(), v.begin(), v.end());
+        ex->Remove(exclude);
+    }
+
+    Topology *top_cg = cg.getParent();
+    InteractionContainer::iterator iter;
+    // reintroduce nonbonded interactions for bonded beads
+    for(iter = top_cg->BondedInteractions().begin();
+            iter!=top_cg->BondedInteractions().end(); ++iter) {
+        Interaction *ic = *iter;
+        exclude.clear();
+        for(size_t i=0; i<ic->BeadCount(); i++) {
+            vector<int> &v = top_cg->getBead(ic->getBeadId(i))->ParentBeads();
+            exclude.insert(exclude.end(), v.begin(), v.end());
+        }
+        ex->Remove(exclude);
+    }
+    return ex;
+}
+
+
 int main(int argc, char** argv)
 {    
     BondedStatistics bs;
@@ -137,17 +170,25 @@ int main(int argc, char** argv)
         
         if (vm.count("excl")) {
             ExclusionList *ex;
-            CGMoleculeDef *cg_def;
-            cg_def = cg_engine.getMoleculeDef(top.MoleculeByIndex(0)->getName());
-            if(!cg_def)
-                throw string("error, no molecule definition found to create exclusion list");
-                            
-            ex = cg_def->CreateExclusionList(*top.MoleculeByIndex(0));
+            if(top.MoleculeCount() > 1)
+                cout << "WARNING: cannot create exclusion list for topology with"
+                "multiple molecules, using only first molecule\n";
+            
+            map->Apply();
+            cout << "Writing exclusion list for atomistic molecule "
+                    << top.MoleculeByIndex(0)->getName()
+                    << " in coarse grained representation "
+                    << top.MoleculeByIndex(0)->getName() << endl;
+            ex = CreateExclusionList(*top.MoleculeByIndex(0), *top_cg.MoleculeByIndex(0));
             ofstream fl;
             fl.open(vm["excl"].as<string>().c_str());
-            fl << *ex;        
+            fl << "# atomistic: " << top.MoleculeByIndex(0)->getName()
+               << " cg: " << top.MoleculeByIndex(0)->getName()
+               << " cgmap: " << vm["cg"].as<string>() << endl;
+            fl << *ex;
             fl.close();
             delete ex;
+
             return 0;
         }
 

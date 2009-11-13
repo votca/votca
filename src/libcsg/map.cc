@@ -105,8 +105,10 @@ void Map_Sphere::Apply()
     vec cg(0., 0., 0.), f(0.,0.,0.), vel(0.,0.,0.);
     bool bPos, bVel, bF;
     bPos=bVel=bF=false;
+    _out->ParentBeads().clear();
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         Bead *bead = iter->_in;
+       _out->ParentBeads().push_back(bead->getId());
         if(bead->HasPos()) {
             cg += (*iter)._weight * bead->getPos();
             bPos=true;
@@ -139,8 +141,10 @@ void Map_Ellipsoid::Apply()
       
     int n;
     n = 0;
+    _out->ParentBeads().clear();
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
        Bead *bead = iter->_in;
+       _out->ParentBeads().push_back(bead->getId());
        if(bead->HasPos()) {
             cg += (*iter)._weight * bead->getPos();
             bPos=true;
@@ -152,11 +156,11 @@ void Map_Ellipsoid::Apply()
         if(bead->HasF()) {
             /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) * sum(w_i/m_i*F_i)
             //f += (*iter)._weight * _in->getBeadF((*iter)._in);
-            f += bead->getF();
+            f += (*iter)._force_weight * bead->getF();
             bF = true;
         }
         
-        if((*iter)._weight>0) {
+        if((*iter)._weight>0 && bead->HasPos()) {
             c += bead->getPos();
             n++;
         }
