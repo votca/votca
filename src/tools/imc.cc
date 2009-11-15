@@ -170,7 +170,7 @@ void Imc::DoNonbonded(Topology *top)
         beads2.Generate(*top, (*iter)->get("type2").value());
         
         // generate the neighbour list
-        NBListGrid nb;
+        NBList nb;
         nb.setCutoff(i._max + i._step);
         
         // is it same types or different types?
@@ -183,7 +183,7 @@ void Imc::DoNonbonded(Topology *top)
         i._current.Clear();
         
         // process all pairs
-        NBListGrid::iterator pair_iter;
+        NBList::iterator pair_iter;
         for(pair_iter = nb.begin(); pair_iter!=nb.end();++pair_iter) {
                 i._current.Process((*pair_iter)->dist());            
         }
