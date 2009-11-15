@@ -18,77 +18,115 @@
 namespace ub = boost::numeric::ublas;
 using namespace std;
 
+/**
+    \brief Implements force matching algorithm using cubic spline basis set
+ *
+ *  Force matching method to obtain a coarse-grained force field is implemented
+ *  using cubic spline basis set. Block averaging over trajectory blocks
+ *  is used for calculating CG forces and their errors.  
+ *
+ **/
+
 class CGForceMatching
     : public CGObserver
 {
 public:
+    /// \brief called before the first frame
     void BeginCG(Topology *top, Topology *top_atom);
+    /// \brief called after the last frame
     void EndCG();
+    /// \brief called for each frame which is mapped
     void EvalConfiguration(Topology *conf, Topology *conf_atom = 0);
+    /// \brief load options from the input file
     void LoadOptions(const string &file);
     
-protected:         
+protected:
+  /// \brief structure, which contains CubicSpline object with related parameters
   struct SplineInfo {
-      SplineInfo(int index, bool bonded_, int matr_pos_, Property *options);
-        int n; //number of splines
-        int splineIndex; // interaction index for bonded interactions
-        bool bonded;     // true for bonded interactions, false for non-bonded
+        /// \brief constructor
+        SplineInfo(int index, bool bonded_, int matr_pos_, Property *options);
+        /// \brief number of spline functions
+        int n;
+        /// \brief interaction index
+        int splineIndex;
+        /// \brief true for bonded interactions, false for non-bonded
+        bool bonded;
+        /// \brief CubicSpline object
         CubicSpline Spline;
-        int matr_pos;    // position in the _A matrix (first coloumn which is occupied with
-                         // this particular spline
-        int res_output_coeff; // Num_output_points = Num_spline_points * res_output_coeff
-        double del_x_out;     // dx for output. Calculated in the code
+        /// \brief position in the _A matrix (first coloumn which is occupied with this particular spline)
+        int matr_pos;
+        /// \brief Num_output_points = Num_spline_points * res_output_coeff
+        int res_output_coeff;
+        /// \brief dx for output. Calculated in the code
+        double del_x_out;
+        /// \brief only for non-bonded interactions (seems like it is not used?)
+        pair<int, int> beadTypes;
         
-        pair<int, int> beadTypes; // only for non-bonded interactions
-        
-        
-        ub::vector<double> block_res;  // Result of 1 block calculation
-        ub::vector<double> result;     // Average over many blocks
+        /// \brief Result of 1 block calculation
+        ub::vector<double> block_res;
+        /// \brief Final result: average over all blocks
+        ub::vector<double> result;
+        /// \brief accuracy of the final result
         ub::vector<double> error;
+        /// \brief sum of all block_res (used to calculate error)
         ub::vector<double> resSum;
+        /// \brief sum of all squares of block_res (used to calculate error)
         ub::vector<double> resSum2;
-        
+
+        /// \brief Spline Name
         string splineName;
-        string type1, type2; // for non-bonded: types of beads involved
-        
+        /// \brief for non-bonded interactions: types of beads involved
+        string type1, type2; // 
+
+        /// \brief pointer to Property object to hande input options
         Property *_options;
   };
- 
+   /// \brief Property object to hande input options
    Property _options;  
-  /// list of bonded interactions
+   /// \brief list of bonded interactions
    list<Property *> _bonded;
-  /// list of non-bonded interactions
+   /// \brief list of non-bonded interactions
    list<Property *> _nonbonded;
       
   typedef vector<SplineInfo *> SplineContainer; 
-  SplineContainer Splines;     // please change name to _splines
-  
-    ub::matrix<double> _A;
-  ub::vector<double> _b; // F_ref
-  ub::vector<double> _x; // 
-  ub::matrix<double> B_constr;    // please change name to _B_constr
-  
-  // please use better names beginning with _ here, N and L are not very meaningfull
-  int L; // counter for frames    
-  int N; //number of cg_beads     
-  
-  // please change to _constr_least_sq or similar
-  bool ConstrLeastSQ; // true:  constrained least squares
-                      // false: simple least squares
-  // please change to _least_sq_offset or similar
-  int LeastSQOffset;  // used in EvalConf to distinguish constrained LS and simple LS
-  // please change to _nframes or similar
-  int N_frames;       // Number of frames used in one Block
-  // please change to _nblocks or similar
-  int BlockNum;       // current number of Blocks
-  
-  // please add _ to variable name
-  int line_cntr, col_cntr; // counters for lines and coloumns in B_constr 
+  /// \brief vector of SplineInfo * for all interactions
+  SplineContainer _splines;
 
+  /// \brief matrix used to store force matching equations
+  ub::matrix<double> _A;
+  /// \brief vector used to store reference forces on CG beads (from atomistic simulations)
+  ub::vector<double> _b;
+  /// \brief Solution of matrix equation _A * _x = _b : CG force-field parameters
+  ub::vector<double> _x; //
+  /// \brief Additional matrix to handle constrained least squares fit
+  /// contains constraints, which allow to get a real (smooth) spline (see VOTCA paper)
+  ub::matrix<double> _B_constr;
   
+
+  /// \brief Counter for trajectory frames
+  int L;   // please use better names beginning with _ here, N and L are not very meaningfull
+  /// \brief Number of CG beads
+  int N;      
+  
+  /// \brief Flag: true for constrained least squares, false for simple least squares
+  bool _constr_least_sq;
+  /// \brief used in EvalConf to distinguish constrained and simple least squares
+  int _least_sq_offset;
+  /// \brief Number of frames used in one block for block averaging
+  int _nframes;
+  /// \brief Current number of blocks
+  int _nblocks;
+
+  /// \brief Counters for lines and coloumns in _B_constr
+  int _line_cntr, _col_cntr;
+
+  /// \brief Solves FM equations for one block and stores the results for further processing
   void FmatchAccumulateData();
+  /// \brief Assigns smoothing conditions to matrices _A and _B_constr
   void FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix);
+  /// \brief For each trajectory frame writes equations for bonded interactions to matrix _A
   void EvalBonded(Topology *conf, SplineInfo *sinfo);
+  /// \brief For each trajectory frame writes equations for non-bonded interactions to matrix _A
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);    
 };
 

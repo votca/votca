@@ -44,34 +44,34 @@
 void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
 {
     // set counters to zero value:
-    BlockNum = 0;
-    line_cntr = col_cntr = 0;
+    _nblocks = 0;
+    _line_cntr = _col_cntr = 0;
     
-    N_frames = _options.get("cg.fmatch.frames_per_block").as<int>();
-    ConstrLeastSQ = _options.get("cg.fmatch.constrainedLS").as<bool>();
+    _nframes = _options.get("cg.fmatch.frames_per_block").as<int>();
+    _constr_least_sq = _options.get("cg.fmatch.constrainedLS").as<bool>();
         
     // initializing bonded interactions
     for (list<Property*>::iterator iter = _bonded.begin();
             iter != _bonded.end(); ++iter) {
-        SplineInfo *i = new SplineInfo(Splines.size(), true, col_cntr, *iter);
+        SplineInfo *i = new SplineInfo(_splines.size(), true, _col_cntr, *iter);
         //adjust initial matrix dimensions:
-        line_cntr += i->n + 1;
-        col_cntr += 2 * (i->n + 1);
+        _line_cntr += i->n + 1;
+        _col_cntr += 2 * (i->n + 1);
 
         // add spline to container
-        Splines.push_back(i);
+        _splines.push_back(i);
     }
 
     // initializing non-bonded interactions
     for (list<Property*>::iterator iter = _nonbonded.begin();
             iter != _nonbonded.end(); ++iter) {
-        SplineInfo *i = new SplineInfo(Splines.size(), false, col_cntr, *iter);
+        SplineInfo *i = new SplineInfo(_splines.size(), false, _col_cntr, *iter);
         //adjust initial matrix dimensions:
-        line_cntr += i->n + 1;
-        col_cntr += 2 * (i->n + 1);
+        _line_cntr += i->n + 1;
+        _col_cntr += 2 * (i->n + 1);
 
         // add spline to container
-        Splines.push_back(i);
+        _splines.push_back(i);
     }
 
     N = top->BeadCount(); // Number of beads in topology
@@ -79,35 +79,35 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
     cout << "\nYou are using VOTCA!\n";
     cout << "\nhey, somebody wants to forcematch!\n";
 
-    if (ConstrLeastSQ) { // Constrained Least Squares
+    if (_constr_least_sq) { // Constrained Least Squares
         
         cout << "\nUsing constrained Least Squares!\n " << endl;
 
         // offset, used in EvalConf
-        LeastSQOffset = 0;
+        _least_sq_offset = 0;
 
-        // B_constr matrix contains continuity conditions for the spline first
+        // _B_constr matrix contains continuity conditions for the spline first
         // derivatives.
-        B_constr.resize(line_cntr, col_cntr, false);
-        B_constr.clear();
+        _B_constr.resize(_line_cntr, _col_cntr, false);
+        _B_constr.clear();
 
-        _A.resize(3 * N*N_frames, col_cntr, false); // resize matrix _A
-        _b.resize(3 * N*N_frames, false); // resize vector _b   
+        _A.resize(3 * N*_nframes, _col_cntr, false); // resize matrix _A
+        _b.resize(3 * N*_nframes, false); // resize vector _b
 
-        FmatchAssignSmoothCondsToMatrix(B_constr);
+        FmatchAssignSmoothCondsToMatrix(_B_constr);
     } else { // Simple Least Squares
 
         cout << "Using simple Least Squares! " << endl;
         // offset, used in EvalConf
-        LeastSQOffset = line_cntr;
+        _least_sq_offset = _line_cntr;
 
-        _A.resize(line_cntr + 3 * N*N_frames, col_cntr, false); // resize matrix _A
-        _b.resize(line_cntr + 3 * N*N_frames, false); // resize vector _b   
+        _A.resize(_line_cntr + 3 * N*_nframes, _col_cntr, false); // resize matrix _A
+        _b.resize(_line_cntr + 3 * N*_nframes, false); // resize vector _b
         
         FmatchAssignSmoothCondsToMatrix(_A);
         _b.clear();
     }
-    _x.resize(col_cntr);
+    _x.resize(_col_cntr);
     _x.clear();
 }
 
@@ -161,7 +161,7 @@ void CGForceMatching::EndCG()
 
     SplineContainer::iterator is;
 
-    for (is = Splines.begin(); is != Splines.end(); ++is) {
+    for (is = _splines.begin(); is != _splines.end(); ++is) {
         int &mp = (*is)->matr_pos;
         int &nsf = (*is)->n;
 
@@ -173,9 +173,9 @@ void CGForceMatching::EndCG()
         out_file << "# interaction No. " << (*is)->splineIndex << endl;
 
         for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++) {
-            (*is)->result[i] = (*is)->resSum[i] / BlockNum;
+            (*is)->result[i] = (*is)->resSum[i] / _nblocks;
             if (i == 23) cout << (*is)->result[i] << endl;
-            (*is)->error[i] = sqrt((*is)->resSum2[i] / BlockNum - (*is)->result[i] * (*is)->result[i]);
+            (*is)->error[i] = sqrt((*is)->resSum2[i] / _nblocks - (*is)->result[i] * (*is)->result[i]);
         }
 
         (*is)->Spline.setSplineData((*is)->result);
@@ -196,7 +196,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
 {
     SplineContainer::iterator spiter;
 
-    for (spiter = Splines.begin(); spiter != Splines.end(); ++spiter) {
+    for (spiter = _splines.begin(); spiter != _splines.end(); ++spiter) {
         SplineInfo *sinfo = *spiter;
         if (sinfo->bonded) // bonded interaction
             EvalBonded(conf, sinfo);
@@ -210,9 +210,9 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
         vec Force(0., 0., 0.);
         for (int iatom = 0; iatom < N; ++iatom) {
             Force = conf->getBead(iatom)->getF();
-            _b(LeastSQOffset + 3 * N * L + iatom) = Force.x();
-            _b(LeastSQOffset + 3 * N * L + N + iatom) = Force.y();
-            _b(LeastSQOffset + 3 * N * L + 2 * N + iatom) = Force.z();
+            _b(_least_sq_offset + 3 * N * L + iatom) = Force.x();
+            _b(_least_sq_offset + 3 * N * L + N + iatom) = Force.y();
+            _b(_least_sq_offset + 3 * N * L + 2 * N + iatom) = Force.z();
             //  cout << Force.x() << endl;
         }
     } else {
@@ -220,15 +220,15 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
     }
     L += 1; // update the frame counter
 
-    if (L % N_frames == 0) {
-        BlockNum++;
+    if (L % _nframes == 0) {
+        _nblocks++;
         FmatchAccumulateData();
-        cout << "Block No" << BlockNum << " done!" << endl;
+        cout << "Block No" << _nblocks << " done!" << endl;
         L = 0;
-        if (ConstrLeastSQ) { //Constrained Least Squares
+        if (_constr_least_sq) { //Constrained Least Squares
             _A.clear();
             _b.clear();
-            FmatchAssignSmoothCondsToMatrix(B_constr);
+            FmatchAssignSmoothCondsToMatrix(_B_constr);
         } else { // Simple Least Squares
             FmatchAssignSmoothCondsToMatrix(_A);
             _b.clear();
@@ -239,49 +239,48 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
 void CGForceMatching::FmatchAccumulateData() 
 {
     _x.clear();
-    if (ConstrLeastSQ) { // Constrained Least Squares
+    if (_constr_least_sq) { // Constrained Least Squares
         // Solving linear equations system
         ub::matrix<double> Q;
-        Q.resize(col_cntr, col_cntr, false);
+        Q.resize(_col_cntr, _col_cntr, false);
         Q.clear();
 
         ub::matrix<double> A2;
-        A2.resize(_A.size1(), col_cntr / 2, false);
+        A2.resize(_A.size1(), _col_cntr / 2, false);
         A2.clear();
 
         ub::matrix<double> Q_k;
-        Q_k.resize(col_cntr, col_cntr, false);
+        Q_k.resize(_col_cntr, _col_cntr, false);
         Q_k.clear();
 
-        ub::identity_matrix<double> I(col_cntr);
+        ub::identity_matrix<double> I(_col_cntr);
 
         ub::vector<double> v;
-        v.resize(col_cntr, false);
+        v.resize(_col_cntr, false);
         v.clear();
 
         // To proceed we need to factorize B^T = Q*R. We need matrix Q for further
         // calculations
-        // B_constr_Tr - transpose of B_constr
+        // B_constr_Tr - transpose of _B_constr
         ub::matrix<double> B_constr_Tr;
-        B_constr_Tr.resize(col_cntr, line_cntr, false);
+        B_constr_Tr.resize(_col_cntr, _line_cntr, false);
         B_constr_Tr.clear();   
         
-        B_constr_Tr = trans(B_constr);
+        B_constr_Tr = trans(_B_constr);
 
         double* pointer_Bcnstr = & B_constr_Tr(0, 0);
 
-        // TODO: here is something wrong, see initialization of B_constr, col_cntr and line_cntr swapped!!
         gsl_matrix_view B_t
-                = gsl_matrix_view_array(pointer_Bcnstr, col_cntr, line_cntr);
+                = gsl_matrix_view_array(pointer_Bcnstr, _col_cntr, _line_cntr);
 
-        gsl_vector *tau = gsl_vector_alloc(line_cntr);
+        gsl_vector *tau = gsl_vector_alloc(_line_cntr);
 
         gsl_linalg_QR_decomp(&B_t.matrix, tau);
 
         // Extraction of Q matrix from tau and B_t, where it is stored in a tricky way.
         Q = I;
 
-        for (int k = line_cntr; k > 0; k--) {
+        for (int k = _line_cntr; k > 0; k--) {
 
             for (int icout = 0; icout < k - 1; icout++) {
                 v(icout) = 0;
@@ -377,7 +376,7 @@ void CGForceMatching::FmatchAccumulateData()
     }
 
     SplineContainer::iterator is;
-    for (is = Splines.begin(); is != Splines.end(); ++is) {
+    for (is = _splines.begin(); is != _splines.end(); ++is) {
         int &mp = (*is)->matr_pos;
         int &nsf = (*is)->n;
 
@@ -402,7 +401,7 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix
 {
 // This function assigns Spline smoothing conditions to the Matrix.
 // For the simple least squares the function is used for matrix _A
-// For constrained least squares - for matrix B_constr
+// For constrained least squares - for matrix _B_constr
     int line_tmp, col_tmp;
     line_tmp = 0;
     col_tmp = 0;
@@ -411,7 +410,7 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix
 
 
     SplineContainer::iterator is;
-    for (is = Splines.begin(); is != Splines.end(); ++is) {
+    for (is = _splines.begin(); is != _splines.end(); ++is) {
         int sfnum = (*is)->n;
         (*is)->Spline.AddBCToFitMatrix(Matrix, line_tmp, col_tmp);
         // update counters
@@ -451,11 +450,11 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
             vec gradient = (*interListIter)->Grad(*conf, loop);
 
             SP.AddToFitMatrix(_A, var,
-                    LeastSQOffset + 3 * N * L + ii, mpos, -gradient.x());
+                    _least_sq_offset + 3 * N * L + ii, mpos, -gradient.x());
             SP.AddToFitMatrix(_A, var,
-                    LeastSQOffset + 3 * N * L + N + ii, mpos, -gradient.y());
+                    _least_sq_offset + 3 * N * L + N + ii, mpos, -gradient.y());
             SP.AddToFitMatrix(_A, var,
-                    LeastSQOffset + 3 * N * L + 2 * N + ii, mpos, -gradient.z());
+                    _least_sq_offset + 3 * N * L + 2 * N + ii, mpos, -gradient.z());
         }
     }
 }
@@ -494,18 +493,18 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
 
         // add iatom
         SP.AddToFitMatrix(_A, var,
-                LeastSQOffset + 3 * N * L + iatom, mpos, gradient.x());
+                _least_sq_offset + 3 * N * L + iatom, mpos, gradient.x());
         SP.AddToFitMatrix(_A, var,
-                LeastSQOffset + 3 * N * L + N + iatom, mpos, gradient.y());
+                _least_sq_offset + 3 * N * L + N + iatom, mpos, gradient.y());
         SP.AddToFitMatrix(_A, var,
-                LeastSQOffset + 3 * N * L + 2 * N + iatom, mpos, gradient.z());
+                _least_sq_offset + 3 * N * L + 2 * N + iatom, mpos, gradient.z());
 
         // add jatom 
         SP.AddToFitMatrix(_A, var,
-                LeastSQOffset + 3 * N * L + jatom, mpos, -gradient.x());
+                _least_sq_offset + 3 * N * L + jatom, mpos, -gradient.x());
         SP.AddToFitMatrix(_A, var,
-                LeastSQOffset + 3 * N * L + N + jatom, mpos, -gradient.y());
+                _least_sq_offset + 3 * N * L + N + jatom, mpos, -gradient.y());
         SP.AddToFitMatrix(_A, var,
-                LeastSQOffset + 3 * N * L + 2 * N + jatom, mpos, -gradient.z());
+                _least_sq_offset + 3 * N * L + 2 * N + jatom, mpos, -gradient.z());
     }
 }
