@@ -12,5 +12,8 @@ The most common thing that can go wrong is that beads cannot be found. On reason
 
 In case everything works find, a file cg.gro which contains the coarse-grained trajectory is created. The easuiest way to compare coarse-grained and atomistic representation is to open both in e.g. vmd.  Be careful when opening in vmd specifying a .gro file + .trr, the first frame comes from the .gro, the following correspond to the trr. The coarse grained file only contains the frames from the trajectory, to compare them, the first frame of the atomistic run has to be deleted in vmd!!
 
+\subsection{Generating trajectories}
+Write about excludion lists!
+
 \subsection{Analysis}
 When \textbf{csg} finished to parse the trajectory, it enters an interactive mode which accepts commands. See reference for details.
