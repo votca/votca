@@ -16,7 +16,7 @@ i=1
 for task in $tasklist; do
   log "Doing $task for ${name}"
   run_or_exit mv ${name}.pot.new ${name}.pot.cur
-  run_or_ext cp ${name}.pot.cur ${name}.pot.${i}
+  run_or_exit cp ${name}.pot.cur ${name}.pot.${i}
   do_external postadd "$task" "$1"
   ((i++))
 done
