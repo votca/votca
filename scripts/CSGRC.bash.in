@@ -18,4 +18,4 @@ _csgopts()
 }
 
 #complete with commands filename and options
-complete -F _csgopts -c csg csg_call csg_dump csg_fmatch csg_property csg_resample csg_stat csg_imcrepack csg_inverse
+complete -F _csgopts -f csg csg_call csg_dump csg_fmatch csg_property csg_resample csg_stat csg_imcrepack csg_inverse
