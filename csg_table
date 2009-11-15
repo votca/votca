@@ -1,0 +1,2 @@
+postadd analyze analyze.sh
+run gromacs mpi_gromacs.sh
