@@ -46,6 +46,8 @@ class Histogram
         double getN() const {return _options._n; }
         vector<double> &getPdf() {return _pdf; }
         double getInterval() const { return _interval; }             
+
+        void Normalize(void);
         
         struct options_t {            
             int _n;
@@ -53,6 +55,7 @@ class Histogram
             bool _extend_interval;
             double _min, _max;
             bool _periodic;
+            bool _normalize;
             string _scale;
             
             options_t() {
@@ -61,6 +64,7 @@ class Histogram
                 _extend_interval = false;
                 _min = 0.; _max = 1.;
                 _periodic = false;
+                _normalize = true;
                 _scale = "no";
             }
         };          

@@ -7,6 +7,7 @@
 
 #include <limits>
 #include <math.h>
+#include <numeric>
 #include "histogram.h"
 
 Histogram::Histogram()
@@ -57,7 +58,7 @@ void Histogram::ProcessData(DataCollection<double>::selection *data)
     
     _interval = (_max - _min)/(double)(_options._n-1);
 
-    double v = 1./(double)ndata/_interval;
+    double v = 1.;
     for(array = data->begin(); array!=data->end(); ++array) {
         for(iter=(*array)->begin(); iter!=(*array)->end(); ++iter) {
             ii = (int)( (*iter - _min) / _interval + 0.5); // the interval should be centered around the sampling point              
@@ -105,5 +106,12 @@ void Histogram::ProcessData(DataCollection<double>::selection *data)
         _pdf[0] = (_pdf[0] + _pdf[_options._n-1]);
         _pdf[_options._n-1] = _pdf[0];
     }
+    if(_options._normalize)
+        Normalize();
 }
 
+void Histogram::Normalize(void)
+{
+    double norm = 1./ (_interval * accumulate(_pdf.begin(), _pdf.end(), 0.0));
+    transform(_pdf.begin(), _pdf.end(), _pdf.begin(), bind2nd(multiplies<double>(), norm));
+}
