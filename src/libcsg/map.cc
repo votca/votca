@@ -48,7 +48,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
     if (beads.size() != weights.size())
         throw runtime_error(string("number of subbeads in " +
                 opts_bead->get("name").value()
-                + "and number of weights in map "
+                + " and number of weights in map "
                 + opts_map->get("name").value() + " do not match"));
 
     // normalize the weights
@@ -73,7 +73,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
     if (beads.size() != d.size()) {
         throw runtime_error(string("number of subbeads in " +
             opts_bead->get("name").value()
-            + "and number of d-coefficients in map "
+            + " and number of d-coefficients in map "
             + opts_map->get("name").value() + " do not match"));
     }
 
