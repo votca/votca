@@ -12,6 +12,7 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
 #include <list>
+#include <boost/algorithm/string/trim.hpp>
 
 using namespace std;
 
@@ -125,6 +126,14 @@ inline bool Property::as<bool>() const
 {
     if(_value == "true" || _value == "TRUE" || _value == "1") return true;
     else return false;
+}
+
+template<>
+inline std::string Property::as<std::string>() const
+{
+    string tmp(_value);
+    boost::trim(tmp);
+    return tmp;
 }
 
 #endif	/* _PROPERTY_H */
