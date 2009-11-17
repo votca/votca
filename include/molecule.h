@@ -14,9 +14,11 @@
 #include <assert.h>
 #include "topologyitem.h"
 #include "bead.h"
-
 using namespace std;
-    
+
+class Interaction;
+
+
 /**
     \brief information about molecules
 
@@ -51,11 +53,18 @@ public:
     /// find a bead by it's name
     int getBeadByName(const string &name);
     string getBeadName(int bead) {return _bead_names[bead]; }
-    
+
+    /// Add an interaction to the molecule
+    void AddInteraction(Interaction *ic) { _interactions.push_back(ic);
+        }
+
+    vector<Interaction *> Interactions() { return _interactions; }
+
 private:
     // maps a name to a bead id
     map<string, int> _beadmap;
-    
+   vector<Interaction*> _interactions;
+     
     // id of the molecules
     int _id;
     
