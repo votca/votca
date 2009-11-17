@@ -225,14 +225,18 @@ int main(int argc, char** argv)
         delete writer;
     }
     
-    cout << "Interactive mode, expecting commands:" << endl;
-    cout << "q: quit" << endl;
-    cout << "list: list all available bonds" << endl;
-    cout << "vals <file> <selection>: write values to file" << endl;
-    cout << "hist <file> <selection>: create histogram" << endl;
-    cout << "tab <file> <selection>: create tabulated potential" << endl;
-    cout << "autocor <file> <selection>: calculate autocorrelation, only one row allowed in selection!" << endl;
-    cout << "cor <file> <selection>: calculate correlations, first row is correlated with all other rows" << endl;
+    string help_text = 
+        "Interactive mode, expecting commands:\n"
+        "help: show this help\n"
+        "q: quit\n"
+        "list: list all available bonds\n"
+    	"vals <file> <selection>: write values to file\n"
+    	"hist <file> <selection>: create histogram\n"
+    	"tab <file> <selection>: create tabulated potential\n"
+    	"autocor <file> <selection>: calculate autocorrelation, only one row allowed in selection!\n" 
+    	"cor <file> <selection>: calculate correlations, first row is correlated with all other rows";
+
+    cout << help_text << endl;
     
     while(1) {
         string line;
@@ -250,6 +254,11 @@ int main(int argc, char** argv)
         try {
     
             if(cmd == "q") break;
+            if(cmd == "help") {
+                cout << help_text << endl;
+                continue;
+            }
+
             string arg_str(line.substr(start));
             vector<string> args;
             Tokenizer tok(arg_str, " \t");
@@ -261,6 +270,7 @@ int main(int argc, char** argv)
                 cout << "error, command not found" << endl;
                 continue;
             }
+            
             tool->second->Command(bs, cmd, args);
         }
         catch(string error) {
