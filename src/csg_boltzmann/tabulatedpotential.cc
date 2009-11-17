@@ -81,6 +81,8 @@ bool TabulatedPotential::SetOption(Histogram::options_t &op, const vector<string
             op._auto_interval = lexical_cast<bool>(args[2]);
         else if(args[1] == "extend")
             op._extend_interval = lexical_cast<bool>(args[2]);
+        else if(args[1] == "normalize")
+            op._normalize = lexical_cast<bool>(args[2]);
         else if(args[1] == "scale") {
             if(args[2]=="no" || args[2]=="bond" || args[2]=="angle")
                 op._scale = args[2];
@@ -100,6 +102,7 @@ bool TabulatedPotential::SetOption(Histogram::options_t &op, const vector<string
         cout << "auto: " << op._auto_interval << endl;
         cout << "extend: " << op._extend_interval << endl;
         cout << "scale: " << op._scale << endl;
+        cout << "normalize: " << op._normalize << endl;
     }
     return true;
 }
