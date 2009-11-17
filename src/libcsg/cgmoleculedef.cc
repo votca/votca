@@ -29,8 +29,8 @@ void CGMoleculeDef::Load(string filename)
 {
     load_property_from_xml(_options, filename);
     // parse xml tree
-    _name = _options.get("cg_molecule.name").value();
-    _ident = _options.get("cg_molecule.ident").value();
+    _name = _options.get("cg_molecule.name").as<string>();
+    _ident = _options.get("cg_molecule.ident").as<string>();
 
     ParseTopology(_options.get("cg_molecule.topology"));
     ParseMapping(_options.get("cg_molecule.maps"));
@@ -53,9 +53,9 @@ void CGMoleculeDef::ParseBeads(Property &options) {
         beaddef_t *beaddef = new beaddef_t;
         beaddef->_options = p;
 
-        beaddef->_name = p->get("name").value();
-        beaddef->_type = p->get("type").value();
-        beaddef->_mapping = p->get("mapping").value();
+        beaddef->_name = p->get("name").as<string>();
+        beaddef->_type = p->get("type").as<string>();
+        beaddef->_mapping = p->get("mapping").as<string>();
         if (p->exists("symmetry"))
             beaddef->_symmetry = p->get("symmetry").as<int>();
         else
@@ -79,7 +79,7 @@ void CGMoleculeDef::ParseMapping(Property &options)
     list<Property *> maps = options.Select("map");
     
     for(list<Property *>::iterator iter=maps.begin(); iter!=maps.end(); ++iter)
-        _maps[(*iter)->get("name").value()] = *iter;
+        _maps[(*iter)->get("name").as<string>()] = *iter;
 }
 
 Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
@@ -127,7 +127,7 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
             else
                 throw runtime_error("unknown bonded type in map: " + (*ibnd)->name());
 
-            ic->setGroup((*ibnd)->get("name").value());
+            ic->setGroup((*ibnd)->get("name").as<string>());
             ic->setIndex(index);
             ic->setMolecule(minfo->getId());
             top.AddBondedInteraction(ic);

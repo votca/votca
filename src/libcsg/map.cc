@@ -47,9 +47,9 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
     // check weather weights and # beads matches
     if (beads.size() != weights.size())
         throw runtime_error(string("number of subbeads in " +
-                opts_bead->get("name").value()
+                opts_bead->get("name").as<string>()
                 + " and number of weights in map "
-                + opts_map->get("name").value() + " do not match"));
+                + opts_map->get("name").as<string>() + " do not match"));
 
     // normalize the weights
     double norm = 1./ std::accumulate(weights.begin(), weights.end(), 0.);
@@ -72,9 +72,9 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
     // check weather number of d coeffs is correct
     if (beads.size() != d.size()) {
         throw runtime_error(string("number of subbeads in " +
-            opts_bead->get("name").value()
+            opts_bead->get("name").as<string>()
             + " and number of d-coefficients in map "
-            + opts_map->get("name").value() + " do not match"));
+            + opts_map->get("name").as<string>() + " do not match"));
     }
 
     fweights.resize(weights.size());
@@ -83,7 +83,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
         if(weights[i] == 0 && d[i]!=0) {
             throw runtime_error(
                 "A d coefficient is nonzero while weights is zero in mapping "
-                + opts_map->get("name").value());
+                + opts_map->get("name").as<string>());
         }
         if(weights[i] != 0)
             fweights[i] = d[i] / weights[i];
