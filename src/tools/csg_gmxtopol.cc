@@ -26,8 +26,8 @@ void WriteAtoms(ostream &out, Molecule &cg)
     for(int i=0; i<cg.BeadCount(); ++i) {
         Bead *b=cg.getBead(i);
        
-        out << format("%d A 1 RES %s 1 %f %f\n")
-            % (i+1) % b->getName() % b->getQ() % b->getM();
+        out << format("%d %s 1 RES %s %d %f %f\n")
+            % (i+1) % b->getType()->getName() % b->getName() % (i+1) % b->getQ() % b->getM();
     }
     out << endl;
 }
