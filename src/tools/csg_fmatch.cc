@@ -184,7 +184,7 @@ void CGForceMatching::EndCG()
         double out_x = (*is)->Spline.getGridPoint(0);
         for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++) {
             out_file << out_x << " " <<
-                    (-1.0) * (*is)->result[i] << " " << (*is)->error[i] << endl;
+                    (-1.0) * (*is)->result[i] << " i " << (*is)->error[i] << endl;
             out_x += (*is)->del_x_out;
         }
 
