@@ -77,7 +77,7 @@ inline istream &operator>>(istream &in, Table& t)
         else if(tokens.size() == 2) {
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 'i');            
         }
-        else if(tokens.size() == 3) {
+        else if(tokens.size() > 3) {
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), tokens[2].c_str()[0]);        
         }
         else throw runtime_error("error, wrong table format");                                
@@ -101,7 +101,7 @@ inline istream &operator>>(istream &in, Table& t)
         if(tokens.size() == 2) {            
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 'i');            
         }
-        else if(tokens.size() == 3) {
+        else if(tokens.size() > 3) {
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), tokens[2].c_str()[0]);
         }
         // otherwise error
