@@ -14,6 +14,15 @@
 using namespace std;
 namespace po = boost::program_options;
 
+void help_text()
+{
+    cout << "csg_resample \n\n";                
+    cout << "Change grid + interval of any sort of table files.\n"
+            "Mainly called internally by inverse script, can also be\n"
+            "used to manually prepare input files for coarse-grained\n"
+            "simulations.\n\n";     
+}
+
 void check_option(po::options_description &desc, po::variables_map &vm, const string &option)
 {
     if(!vm.count(option)) {
@@ -52,7 +61,7 @@ int main(int argc, char** argv)
     
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_resample \n\n";                
+        help_text();
         cout << desc << endl;
         return 0;
     }

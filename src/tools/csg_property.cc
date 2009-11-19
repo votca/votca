@@ -12,6 +12,13 @@
 
 using namespace std;
 
+
+void help_text()
+{
+    cout << "csg_property\n\n";
+    cout << "Helper program called by inverse scripts to parse xml file.\n\n";
+}
+
 int main(int argc, char** argv)
 {      
     string filter, file, path, print;
@@ -49,7 +56,7 @@ int main(int argc, char** argv)
     }
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_property\n\n";                
+        help_text();
         cout << desc << endl;
         return 0;
     }

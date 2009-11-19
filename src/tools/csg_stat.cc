@@ -14,6 +14,15 @@
 
 using namespace std;
 
+void help_text(void)
+{
+    cout << "csg_stat \n\n";                
+    cout << "Calculate all distribuions (bonded + non-bonded) specified in options file.\n"
+            "Optionally calculates update matrix for invere Monte Carlo. This program\n"
+            "is called inside the inverse scripts. Unlike csg_boltzmann, big systems\n"
+            "can be treated as well as non-bonded interactions evaluated.\n\n";
+}
+
 int main(int argc, char** argv)
 {    
     int write_every=0;
@@ -62,13 +71,8 @@ int main(int argc, char** argv)
     }
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_imc, lib version " << LIB_VERSION_STR << "\n\n";                
+        help_text();
         cout << desc << endl;
-        return 0;
-    }
-    // or asks for the program version?
-    if (vm.count("version")) {
-        cout << "csg_imc, lib version " << LIB_VERSION_STR  << "\n";                        
         return 0;
     }
     

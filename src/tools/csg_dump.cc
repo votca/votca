@@ -15,6 +15,13 @@
 
 using namespace std;
 
+void help_text(void)
+{
+    cout << "csg_dump, lib version " << LIB_VERSION_STR << "\n\n";
+    cout << "Print atoms that are read from topology file to help"
+        " debugging atom naming.\n\n";  
+}
+
 int main(int argc, char** argv)
 {    
     // initialize the readers/writers,
@@ -22,10 +29,8 @@ int main(int argc, char** argv)
 //    TrajectoryReader::RegisterPlugins();
     TopologyReader::RegisterPlugins();
 
-    
     // lets read in some program options
     namespace po = boost::program_options;
-        
     
     // Declare the supported options.
     po::options_description desc("Allowed options");    
@@ -43,7 +48,7 @@ int main(int argc, char** argv)
 
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_dump, lib version " << LIB_VERSION_STR << "\n\n";                
+        help_text();
         cout << desc << endl;
         return 0;
     }

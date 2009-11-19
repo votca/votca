@@ -16,6 +16,13 @@
 
 using namespace std;
 
+void help_text()
+{
+    cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";
+    cout << "!! EXPERIMENTAL !! Calculate nematic order parameter.\n"
+            " Needs non-spherical beads in mapping.\n\n";           
+}
+
 class CGNematicOrder
     : public CGObserver
 {
@@ -141,7 +148,7 @@ int main(int argc, char** argv)
     
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";                
+        help_text();
         cout << desc << endl;
         return 0;
     }

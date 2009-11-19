@@ -15,6 +15,13 @@
 #include <libversion.h>
 #include "cgengine.h"
 
+void help_text(void)
+{
+    cout << "csg_gmxtopol, lib version " << LIB_VERSION_STR << "\n\n";
+    cout << "Create skeleton for gromacs topology based on atomistic topology\n"
+            "and a mapping file. Files still needs to be modified by the user.\n\n";     
+}
+
 using namespace std;
 
 using boost::format;
@@ -105,7 +112,7 @@ int main(int argc, char** argv)
 
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_gmxtopol, lib version " << LIB_VERSION_STR << "\n\n";
+        help_text();
         cout << desc << endl;
         return 0;
     }

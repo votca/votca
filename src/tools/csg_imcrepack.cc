@@ -15,6 +15,14 @@
 #include <iostream>
 #include "imcio.h"
 
+void help_text(void)
+{
+    cout << "csg_imcrepack \n\n";
+    cout << "This program is internally called by inversion scripts to kick out\n"
+            "zero entries in matrix for inverse Monte Carlo. It also extracts the\n"
+            "single potential updates out of the full solution.\n\n";
+}
+
 using namespace std;
 namespace po = boost::program_options;
 
@@ -51,7 +59,7 @@ int main(int argc, char** argv)
 
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_imcrepack \n\n";
+        help_text();
         cout << desc << endl;
         return 0;
     }

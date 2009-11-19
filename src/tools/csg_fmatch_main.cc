@@ -11,6 +11,13 @@
 #include <cgengine.h>
 #include <libversion.h>
 #include "csg_fmatch.h"
+
+void help_text(void)
+{
+    cout << "csg_fmatch, lib version " << LIB_VERSION_STR << "\n\n";
+    cout << "Perform force matching (also call multiscale coarse-graining)\n\n";
+}
+
 /*
  * 
  */
@@ -52,7 +59,7 @@ int main(int argc, char** argv)
 
     // does the user want help?
     if (vm.count("help")) {
-        cout << "csg_fmatch, lib version " << LIB_VERSION_STR << "\n\n";                
+        help_text();
         cout << desc << endl;
         return 0;
     }

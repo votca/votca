@@ -33,6 +33,13 @@
 
 using namespace std;
 
+void help_text()
+{
+    cout << "csg_boltzmann version " << VERSION_STR << "\n\n";                    
+    cout << "Perform tasks that are needed for simple boltzmann\n"
+            "inversion in an interactive environment.\n\n"
+}
+
 ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg)
 {
     list<int> exclude;
@@ -89,7 +96,6 @@ int main(int argc, char** argv)
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce this help message")
-    ("version", "show version info")
     ("top", po::value<string>(), "atomistic topology file")
     ("trj", po::value<string>(), "atomistic trajectory file")
     ("cg", po::value<string>(), "coarse graining definitions (xml-file)")
@@ -114,14 +120,8 @@ int main(int argc, char** argv)
     }
 
     if (vm.count("help")) {
-        cout << "csg version " << VERSION_STR << "\n";                
-        cout << "libcsg version " << LIB_VERSION_STR << "\n\n";                
+        help_text();
         cout << desc << endl;
-        return 0;
-    }
-    if (vm.count("version")) {
-        cout << "csg version " << VERSION_STR  << "\n";                        
-        cout << "libcsg version " << LIB_VERSION_STR << "\n\n";                
         return 0;
     }
     if (!vm.count("top")) {
