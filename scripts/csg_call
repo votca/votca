@@ -54,10 +54,10 @@ while [ "${1#-}" != "$1" ]; do
     export CSGXMLFILE="$2"
     shift 2;; 
    --ia-type)
-    export ia_type="$2"
+    export bondtype="$2"
     shift 2;; 
    --ia-name)
-    export ia_name="$2"
+    export bondname="$2"
     shift 2;; 
    -h | --help)
     show_help
@@ -105,8 +105,8 @@ for i in $needs; do
 done
 interaction=${interaction# }
 if [ -n "$interaction" ]; then
-  [ -z "${ia_type}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
-  [ -z "${ia_name}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
+  [ -z "${bondtype}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
+  [ -z "${bondname}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
 fi
 
 do_external $@
