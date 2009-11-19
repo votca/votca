@@ -6,8 +6,9 @@
 //
 
 #include "topology.h"
-#include <tools/rangeparser.h>
 #include "interaction.h"
+#include <tools/rangeparser.h>
+#include <stdexcept>
 
 Topology::~Topology()
 {
@@ -138,6 +139,8 @@ void Topology::RenameMolecules(string range, string name)
     
     rp.Parse(range);
     for(i=rp.begin();i!=rp.end();++i) {
+        if(*i > _molecules.size())
+            throw runtime_error(string("RenameMolecules: num molecules smaller than"));
         getMolecule(*i-1)->setName(name);
     }
 }

@@ -37,7 +37,7 @@ void help_text()
 {
     cout << "csg_boltzmann version " << VERSION_STR << "\n\n";                    
     cout << "Perform tasks that are needed for simple boltzmann\n"
-            "inversion in an interactive environment.\n\n"
+            "inversion in an interactive environment.\n\n";
 }
 
 ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg)
