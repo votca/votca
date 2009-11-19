@@ -1,17 +1,29 @@
 AC_DEFUN([AX_GROMACS_LIBS], [
-  AC_CHECK_LIB(gmx,GromacsVersion,[
-    LIBS_GMX="-lgmx"
-  ],[
-    AC_CHECK_LIB(gmx_mpi,GromacsVersion,[
-      LIBS_GMX="-lgmx_mpi -lmpi -llam -lpthread"
-    ],[
-      AC_MSG_ERROR([
+#---------
+  AC_CHECK_LIB(gmx,GromacsVersion,
+    [LIBS_GMX="-lgmx"],[],[-lm])  
 
-Gromacs library not found!
-please make sure LDFLAGS is pointing to <gromacs-path>/lib
+#----------
+  if test -z "$LIBS_GMX"; then
+    AC_CHECK_LIB(gmx_mpi,GromacsVersion,
+      [LIBS_GMX="-lgmx_mpi -lmpi -lm -lpthread"],,[-lmpi -lpthread -lm])
+  fi
+#---------- 
+  if test -z "$LIBS_GMX"; then
+    AC_CHECK_LIB(gmx_mpi,GromacsVersion,
+      [LIBS_GMX="-lgmx_mpi -lmpi -llam -lm -lpthread"],,[-lmpi -llam -lpthread -lm])
+  fi
 
-])],[-lmpi -llam -lm] )],[-lm])
-  AC_SUBST([LIBS_GMX])
+#------------
+  if test -z "$LIBS_GMX"; then
+    AC_MSG_ERROR([
+
+Could not linka against GROMACS,
+please check you LDFLAGS
+
+    ])
+   fi
+   AC_SUBST([LIBS_GMX])
 ])
 
 AC_DEFUN([AX_GROMACS_HEADERS], [
