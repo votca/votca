@@ -101,7 +101,7 @@ needs="$(echo "$needs" | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
 interaction=""
 
 for i in $needs; do
-  [ -n "${i#cg.*}" ] && interaction="$interaction $i" 
+  [ -n "${i##cg.*}" ] && interaction="$interaction $i" 
 done
 interaction=${interaction# }
 if [ -n "$interaction" ]; then
