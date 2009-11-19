@@ -51,10 +51,11 @@ please check you LDFLAGS
 ])
 
 AC_DEFUN([AX_GROMACS_HEADERS], [
-AC_CHECK_HEADERS([copyrite.h],,[AC_MSG_ERROR([
+AC_CHECK_HEADERS([tpxio.h],,[AC_MSG_ERROR([
 
 Gromacs headers not found,
-please make sure CPPFLAGS is pointing to <gomacs-path>/include])])
+please make sure CPPFLAGS is pointing to <gomacs-path>/include/gromacs 
+Do not forget the /gromacs due to bug in gromacs headers!])])
 
 ])
 
