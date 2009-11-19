@@ -17,8 +17,8 @@ OPTIONS:
     --check         Check csg script
     --scriptdir DIR Set the user script dir
     --xmlfile FILE  Specify the xml file to use
-    --bondtype type Specify the bondtype to use
-    --bondname name Specify the bondname to use
+    --ia-type type  Specify the interaction type to use
+    --ia-name name  Specify the interaction name to use
 -h, --help          Show this help
 
 Example: ${0##*/} table smooth [ARGUMENTS]
@@ -53,11 +53,11 @@ while [ "${1#-}" != "$1" ]; do
    --xmlfile)
     export CSGXMLFILE="$2"
     shift 2;; 
-   --iatype)
-    export bondtype="$2"
+   --ia-type)
+    export ia_type="$2"
     shift 2;; 
-   --ianame)
-    export bondname="$2"
+   --ia-name)
+    export ia_name="$2"
     shift 2;; 
    -h | --help)
     show_help
@@ -105,8 +105,8 @@ for i in $needs; do
 done
 interaction=${interaction# }
 if [ -n "$interaction" ]; then
-  [ -z "$bondtype" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
-  [ -z "$bondname" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
+  [ -z "${ia_type}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
+  [ -z "${ia_name}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
 fi
 
 do_external $@
