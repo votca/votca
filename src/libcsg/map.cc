@@ -106,9 +106,11 @@ void Map_Sphere::Apply()
     bool bPos, bVel, bF;
     bPos=bVel=bF=false;
     _out->ParentBeads().clear();
+    double M = 0;
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         Bead *bead = iter->_in;
-       _out->ParentBeads().push_back(bead->getId());
+        _out->ParentBeads().push_back(bead->getId());
+        M+=bead->getM();
         if(bead->HasPos()) {
             cg += (*iter)._weight * bead->getPos();
             bPos=true;
@@ -122,6 +124,7 @@ void Map_Sphere::Apply()
             bF = true;
         }
     }
+    _out->setM(M);
     if(bPos)
         _out->setPos(cg);
     if(bVel)

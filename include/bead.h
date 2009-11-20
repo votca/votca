@@ -46,6 +46,9 @@ public:
     /// get the charge of the bead
     const double &getQ() const { return _q; }
     
+    /// get the mass of the bead
+    void setM(const double &m) { _m=m; }
+
     /// get the symmetry of the bead
     /// 1: sphere
     /// 2: ellipsoid with 2 equal axis
