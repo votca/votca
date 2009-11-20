@@ -33,6 +33,7 @@ AC_CONFIG_FILES([./share/tutor/methanol/imc/Makefile])
 AC_CONFIG_FILES([./share/tutor/methanol/Makefile])
 
 AC_PROG_CXX
+AC_LANG([C++])
 AC_PROG_RANLIB
 AC_HEADER_STDC
 AC_PROG_MAKE_SET
@@ -48,9 +49,10 @@ ACI_PACKAGE_SAVED(XML,[XML library (version XML2)],
 
 AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed and check your flags]))
 AX_GROMACS
-
-#check for boost
 AX_BOOST([1.33.1])
+
+AX_VOTCA_TOOLS
+#check for boost
 #AX_BOOST_PROGRAM_OPTIONS
 
 AC_OUTPUT
