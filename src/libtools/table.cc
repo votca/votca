@@ -78,7 +78,10 @@ inline istream &operator>>(istream &in, Table& t)
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 'i');            
         }
         else if(tokens.size() > 2) {
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), tokens[2].c_str()[0]);        
+           char flag='i';
+            if(tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u")
+                flag = tokens[2].c_str()[0];
+            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), flag);
         }
         else throw runtime_error("error, wrong table format");                                
     }
@@ -102,7 +105,10 @@ inline istream &operator>>(istream &in, Table& t)
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 'i');            
         }
         else if(tokens.size() > 2) {
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), tokens[2].c_str()[0]);
+            char flag='i';
+            if(tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u")
+                flag = tokens[2].c_str()[0];
+            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), flag);
         }
         // otherwise error
         else throw runtime_error("error, wrong table format");                                
