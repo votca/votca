@@ -46,6 +46,7 @@ ACI_PACKAGE_SAVED(XML,[XML library (version XML2)],
                   AC_MSG_WARN(Cannot find the XML2 libs. Is xml2-config in your path ?)
                  )
 
+AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed and check your flags]))
 AX_GROMACS
 
 #check for boost
