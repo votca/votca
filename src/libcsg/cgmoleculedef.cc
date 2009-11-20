@@ -100,9 +100,16 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
     
     // create the bonds
     list<Property *>::iterator ibnd;
+    map<string, string> had_iagroup;
 
     for(ibnd = _bonded.begin(); ibnd!=_bonded.end(); ++ibnd) {
         list<int> atoms;
+        string iagroup = (*ibnd)->get("name").as<string>();
+
+        if(had_iagroup[iagroup] == "yes")
+            throw runtime_error(
+                string("double occurence of interactions with name ") + iagroup);
+        had_iagroup[iagroup] = "yes";
 
         Tokenizer tok((*ibnd)->get("beads").value(), " \n\t");
         for (Tokenizer::iterator atom = tok.begin(); atom != tok.end(); ++atom) {
@@ -127,7 +134,7 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
             else
                 throw runtime_error("unknown bonded type in map: " + (*ibnd)->name());
 
-            ic->setGroup((*ibnd)->get("name").as<string>());
+            ic->setGroup(iagroup);
             ic->setIndex(index);
             ic->setMolecule(minfo->getId());
             top.AddBondedInteraction(ic);
