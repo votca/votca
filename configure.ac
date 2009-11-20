@@ -30,8 +30,10 @@ AX_FFTW3
 # check for libxml2
 ACI_PACKAGE_SAVED(XML,[XML library (version XML2)],
                   xml2-config,,,
-                  AC_MSG_WARN(Cannot find the XML2 libs. Is xml2-config in your path ?)
+                  AC_MSG_ERROR([Cannot find the XML2 libs. Is xml2-config in your path ?])
                  )
+
+AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed and check your flags]))
 
 # check for gromacs
 # AX_GROMACS_HEADERS
