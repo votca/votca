@@ -1,11 +1,11 @@
 AC_DEFUN([AX_VOTCA_TOOLS_LIBS], [
 #---------
-  AC_TRY_LINK([#include <tools/property.h>], [ Property p; return 0; ], [
-      LIBS_TOOLS="-ltools" ],[])
-
-#AX_TRY_LIB([tools],[load_property_from_xml],
-#    LIBS_TOOLS="-ltools",,[$LIBS_GSL])  
-
+  tmp_libs="$LIBS"
+  LIBS="-ltools $LIBS_XML $LIBS"
+  AC_MSG_CHECKING([for votca tools library])
+  AC_TRY_LINK([#include <tools/property.h>], [ Property p; p.get("foo"); ], [
+      LIBS_TOOLS="-ltools" ],[AC_MSG_RESULT([no])])
+  LIBS="$tmp_libs"
 
 #------------
   if test -z "$LIBS_TOOLS"; then
@@ -16,6 +16,8 @@ please make sure you have it installed and check your LDFLAGS
 
     ])
    fi
+
+   AC_MSG_RESULT([yes])
    AC_SUBST([LIBS_TOOLS])
 ])
 
