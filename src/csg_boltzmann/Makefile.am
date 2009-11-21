@@ -8,4 +8,4 @@ csg_boltzmann_SOURCES = \
 
 AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a  ${BOOST_PROGRAM_OPTIONS_LIB} -ltools $(LIBS_GMX) $(LIBS_XML) -lfftw3 -lm -lpthread 
+LDADD = ../libcsg/libcsg.a  ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_TOOLS) $(LIBS_GMX) $(LIBS_XML) $(LIBS_FFTW) -lm -lpthread 

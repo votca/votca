@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML) -I$(top_srcdir)/include 
+AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML) $(GSL_CFLAGS) -I$(top_srcdir)/include 
 
 bin_PROGRAMS = \
     csg_dump csg_nemat csg_conj csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol # csg_sample
@@ -31,4 +31,4 @@ csg_gmxtopol_SOURCES = csg_gmxtopol.cc
 
 AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a -ltools ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) $(LIBS_XML) -lgsl -lgslcblas -lm -lpthread 
+LDADD = ../libcsg/libcsg.a ${LIBS_TOOLS} ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) $(LIBS_XML) ${GSL_LIBS} -lpthread
