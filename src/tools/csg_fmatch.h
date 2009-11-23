@@ -104,9 +104,9 @@ protected:
   
 
   /// \brief Counter for trajectory frames
-  int L;   // please use better names beginning with _ here, N and L are not very meaningfull
+  int _frame_counter;
   /// \brief Number of CG beads
-  int N;      
+  int _nbeads;
   
   /// \brief Flag: true for constrained least squares, false for simple least squares
   bool _constr_least_sq;

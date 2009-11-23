@@ -74,8 +74,8 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
         _splines.push_back(i);
     }
 
-    N = top->BeadCount(); // Number of beads in topology
-    L = 0; // Initial frame in trajectory
+    _nbeads = top->BeadCount(); // Number of beads in topology
+    _frame_counter = 0; // Initial frame in trajectory
     cout << "\nYou are using VOTCA!\n";
     cout << "\nhey, somebody wants to forcematch!\n";
 
@@ -91,8 +91,8 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
         _B_constr.resize(_line_cntr, _col_cntr, false);
         _B_constr.clear();
 
-        _A.resize(3 * N*_nframes, _col_cntr, false); // resize matrix _A
-        _b.resize(3 * N*_nframes, false); // resize vector _b
+        _A.resize(3 * _nbeads *_nframes, _col_cntr, false); // resize matrix _A
+        _b.resize(3 * _nbeads *_nframes, false); // resize vector _b
 
         FmatchAssignSmoothCondsToMatrix(_B_constr);
     } else { // Simple Least Squares
@@ -101,8 +101,8 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
         // offset, used in EvalConf
         _least_sq_offset = _line_cntr;
 
-        _A.resize(_line_cntr + 3 * N*_nframes, _col_cntr, false); // resize matrix _A
-        _b.resize(_line_cntr + 3 * N*_nframes, false); // resize vector _b
+        _A.resize(_line_cntr + 3 * _nbeads *_nframes, _col_cntr, false); // resize matrix _A
+        _b.resize(_line_cntr + 3 * _nbeads *_nframes, false); // resize vector _b
         
         FmatchAssignSmoothCondsToMatrix(_A);
         _b.clear();
@@ -219,23 +219,22 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
     // hack, chage the Has functions..
     if (conf->getBead(0)->HasF()) {
         vec Force(0., 0., 0.);
-        for (int iatom = 0; iatom < N; ++iatom) {
+        for (int iatom = 0; iatom < _nbeads; ++iatom) {
             Force = conf->getBead(iatom)->getF();
-            _b(_least_sq_offset + 3 * N * L + iatom) = Force.x();
-            _b(_least_sq_offset + 3 * N * L + N + iatom) = Force.y();
-            _b(_least_sq_offset + 3 * N * L + 2 * N + iatom) = Force.z();
-            //  cout << Force.x() << endl;
+            _b(_least_sq_offset + 3 * _nbeads * _frame_counter + iatom) = Force.x();
+            _b(_least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom) = Force.y();
+            _b(_least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom) = Force.z();
         }
     } else {
         cout << "ERROR: No forces in configuration!\n";
     }
-    L += 1; // update the frame counter
+    _frame_counter += 1; // update the frame counter
 
-    if (L % _nframes == 0) {
+    if (_frame_counter % _nframes == 0) {
         _nblocks++;
         FmatchAccumulateData();
         cout << "Block No" << _nblocks << " done!" << endl;
-        L = 0;
+        _frame_counter = 0;
         if (_constr_least_sq) { //Constrained Least Squares
             _A.clear();
             _b.clear();
@@ -375,7 +374,7 @@ void CGForceMatching::FmatchAccumulateData()
             fm_resid += gsl_vector_get(residual, i) * gsl_vector_get(residual, i);
 
         // strange number is units conversion -> now (kcal/(mol*angstrom))^2
-        fm_resid /= 3*N*L*1750.5856;
+        fm_resid /= 3 * _nbeads * _frame_counter * 1750.5856;
 
         cout << endl;
         cout << "#### Force matching residual ####" << endl;
@@ -463,11 +462,11 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
             vec gradient = (*interListIter)->Grad(*conf, loop);
 
             SP.AddToFitMatrix(_A, var,
-                    _least_sq_offset + 3 * N * L + ii, mpos, -gradient.x());
+                    _least_sq_offset + 3 * _nbeads * _frame_counter + ii, mpos, -gradient.x());
             SP.AddToFitMatrix(_A, var,
-                    _least_sq_offset + 3 * N * L + N + ii, mpos, -gradient.y());
+                    _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + ii, mpos, -gradient.y());
             SP.AddToFitMatrix(_A, var,
-                    _least_sq_offset + 3 * N * L + 2 * N + ii, mpos, -gradient.z());
+                    _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + ii, mpos, -gradient.z());
         }
     }
 }
@@ -506,18 +505,18 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
 
         // add iatom
         SP.AddToFitMatrix(_A, var,
-                _least_sq_offset + 3 * N * L + iatom, mpos, gradient.x());
+                _least_sq_offset + 3 * _nbeads * _frame_counter + iatom, mpos, gradient.x());
         SP.AddToFitMatrix(_A, var,
-                _least_sq_offset + 3 * N * L + N + iatom, mpos, gradient.y());
+                _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom, mpos, gradient.y());
         SP.AddToFitMatrix(_A, var,
-                _least_sq_offset + 3 * N * L + 2 * N + iatom, mpos, gradient.z());
+                _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom, mpos, gradient.z());
 
         // add jatom 
         SP.AddToFitMatrix(_A, var,
-                _least_sq_offset + 3 * N * L + jatom, mpos, -gradient.x());
+                _least_sq_offset + 3 * _nbeads * _frame_counter + jatom, mpos, -gradient.x());
         SP.AddToFitMatrix(_A, var,
-                _least_sq_offset + 3 * N * L + N + jatom, mpos, -gradient.y());
+                _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + jatom, mpos, -gradient.y());
         SP.AddToFitMatrix(_A, var,
-                _least_sq_offset + 3 * N * L + 2 * N + jatom, mpos, -gradient.z());
+                _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom, mpos, -gradient.z());
     }
 }
