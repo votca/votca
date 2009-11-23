@@ -119,7 +119,7 @@ CPPFLAGS="-I$prefix/include $CPPFLAGS"
 LDFLAGS="-L$prefix/lib $LDFLAGS"
 
 if [ "$gromacs" = "yes" ]; then
-  LDFLAGS="-L$GMXLDLIB -L/opt/lam/lib $LDFLAGS"
+  LDFLAGS="-L$GMXLDLIB $LDFLAGS"
   CPPFLAGS="-I$GMXLDLIB/../include/gromacs $CPPFLAGS"
 fi
 export CPPFLAGS LDFLAGS
