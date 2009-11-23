@@ -32,10 +32,31 @@ or copy and paste the content of that file to the exclusions section.
 
 
 \subsection{Analysis}
-If the --trj option is specified to parse a reference trajectory, \textbf{csg\_boltzmann} enters an interactive mode which accepts commands. Here, analysis operations can be performed on all interactions evaluated. All interactions specified in the mapping schema are evaluated. A specific interaction is refered to by a name which is composed of \textit{molecule:interaction-group:index}, where molecule is the molecule number in the whole topology, interaction-group the name specified in the mapping file, and index the entry in the list of this interaction. E.g. \textit{1:AA-bond:10} is the 10th AA-bond in molecule 1. To show a list all interactions that where passed, the command \textit{list} can be used. To specify a couple of interactions during analysis, either give interactions separated by space of use wildcards (e.g. *:AA-bond*).
+If the --trj option is specified to parse a reference trajectory, \textbf{csg\_boltzmann} enters an interactive mode which accepts commands.
+
+\begin{verbatim}
+  csg_boltzmann --top topol.top --trj traj.trr --cg mapping.xml 
+\end{verbatim}
+
+Here, analysis operations can be performed on all interactions evaluated. All interactions specified in the mapping schema are evaluated. A specific interaction is refered to by a name which is composed of \textit{molecule:interaction-group:index}, where molecule is the molecule number in the whole topology, interaction-group the name specified in the mapping file, and index the entry in the list of this interaction. E.g. \textit{1:AA-bond:10} is the 10th AA-bond in molecule 1. To show a list all interactions that where passed, the command \textit{list} can be used. To specify a couple of interactions during analysis, either give interactions separated by space of use wildcards (e.g. *:AA-bond*).
 
 To quit interactive mode, use command \textit{q}. If analysis commands should be read from a file, use the pipe or stdin redirects from the shell.
+
 \subsubsection{Distribution functions and tabulated potentials}
 Distribution functions (tabulated potentials) can be created with the \textit{hist} (\textit{tab}) command.
+To e.g. write out the distribution function for all interactions of group AA-bond (where AA-bond is the name specified in the mapping scheme) to file AA.txt, type
+\begin{verbatim}
+  hist AA.txt *:AA-bond:*   
+\end{verbatim}
+The command
+\begin{verbatim}
+  hist set
+\end{verbatim}
+prints a list of all parameters than can be changed for the histogram. To directly write the boltzmann inverted potential, the \textit{tab} command can be used. It's usage and options are very similar to the \textit{hist} command. If tabulated potentials are written, special care should be taken to the paramter T (temperature) and scale. The scale command does the volume normalization as given in     \eq{eq:boltzmann_norm}. Possible values are \textit{no} (no scaling), \textit{bond} (normalize for bonds) and \textit{angle} (normalize for angles). The e.g. write out the tabulated potential for an angle potential where the temperature was 300K type:
+\begin{verbatim}
+  tab set T 300
+  tab set scale angle
+  tab angle.pot *:angle:*
+\end{verbatim}
 
 \subsubsection{Correlation analysis}
