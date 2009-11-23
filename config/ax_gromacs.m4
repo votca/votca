@@ -6,20 +6,16 @@ AC_DEFUN([AX_GROMACS_LIBS], [
 #----------
   if test -z "$LIBS_GMX"; then
     AX_TRY_LIB(gmx_mpi,GromacsVersion,
-      [LIBS_GMX="-lgmx_mpi -lmpi -lm -lpthread"],[],[-lmpi -lpthread -lm])
+      [LIBS_GMX="-lgmx_mpi -lm"],[],[-lm])
   fi
-#---------- 
-  if test -z "$LIBS_GMX"; then
-    AX_TRY_LIB(gmx_mpi,GromacsVersion,
-      [LIBS_GMX="-lgmx_mpi -lmpi -llam -lm -lpthread"],,[-lmpi -llam -lpthread -lm])
-  fi
-
 #------------
   if test -z "$LIBS_GMX"; then
     AC_MSG_ERROR([
 
 Could not link against GROMACS,
-please check you LDFLAGS
+please check your LDFLAGS.
+
+If you are using a mpi version of gromacs, make sure that CXX is something like mpic++.
 
     ])
    fi
