@@ -132,7 +132,7 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
 
     n = Spline.GenerateGrid(grid_min, grid_max, grid_step) - 1;
 
-    cout << "Number of splines for the interaction " << splineName << ":" << n << endl;
+    cout << "Number of spline functions for the interaction " << splineName << ":" << n << endl;
 
     matr_pos = matr_pos_;
 
@@ -153,6 +153,15 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
 
 void CGForceMatching::EndCG() 
 {
+    // sanity check
+    if (_nblocks == 0) {
+        cout << endl;
+        cout << "ERROR in csg_fmatch::EndCG - No blocks have been processed so far" << endl;
+        cout << "It might be that you are using trajectory, which is smaller than needed for one block" << endl;
+        cout << "Check your input!" << endl;
+        exit(-1);
+    }
+
     string force_raw = ".force";
     char file_name[20];
     double accuracy; // accuracy for output. Should be different for bonds and angles.
@@ -170,11 +179,13 @@ void CGForceMatching::EndCG()
         strcat(file_name, force_raw.c_str());
         out_file.open(file_name);
 
+        // print output file names on stdout
+        cout << "Writing file: " << file_name << endl;
+
         out_file << "# interaction No. " << (*is)->splineIndex << endl;
 
         for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++) {
             (*is)->result[i] = (*is)->resSum[i] / _nblocks;
-            if (i == 23) cout << (*is)->result[i] << endl;
             (*is)->error[i] = sqrt((*is)->resSum2[i] / _nblocks - (*is)->result[i] * (*is)->result[i]);
         }
 
@@ -366,9 +377,11 @@ void CGForceMatching::FmatchAccumulateData()
         // strange number is units conversion -> now (kcal/(mol*angstrom))^2
         fm_resid /= 3*N*L*1750.5856;
 
+        cout << endl;
         cout << "#### Force matching residual ####" << endl;
         cout << "     Chi_2 = " << fm_resid << endl;
         cout << "#################################" << endl;
+        cout << endl;
 
         gsl_vector_free(x);
         gsl_vector_free(tau);
