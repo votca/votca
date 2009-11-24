@@ -46,7 +46,9 @@ protected:
         /// \brief constructor
         SplineInfo(int index, bool bonded_, int matr_pos_, Property *options);
         /// \brief number of spline functions
-        int n;
+        int num_splinefun;
+        /// \brief number of spline grid points
+        int num_gridpoints;
         /// \brief interaction index
         int splineIndex;
         /// \brief true for bonded interactions, false for non-bonded

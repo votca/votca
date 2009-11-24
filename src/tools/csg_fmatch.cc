@@ -41,8 +41,8 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
             iter != _bonded.end(); ++iter) {
         SplineInfo *i = new SplineInfo(_splines.size(), true, _col_cntr, *iter);
         //adjust initial matrix dimensions:
-        _line_cntr += i->n + 1;
-        _col_cntr += 2 * (i->n + 1);
+        _line_cntr += i->num_gridpoints;
+        _col_cntr += 2 * i->num_gridpoints;
 
         // add spline to container
         _splines.push_back(i);
@@ -53,8 +53,8 @@ void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
             iter != _nonbonded.end(); ++iter) {
         SplineInfo *i = new SplineInfo(_splines.size(), false, _col_cntr, *iter);
         //adjust initial matrix dimensions:
-        _line_cntr += i->n + 1;
-        _col_cntr += 2 * (i->n + 1);
+        _line_cntr += i->num_gridpoints;
+        _col_cntr += 2 * i->num_gridpoints;
 
         // add spline to container
         _splines.push_back(i);
@@ -128,25 +128,26 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
 
     // GenerateGrid returns number of grid points. We subtract 1 to get
     // the number of spline functions
-    n = Spline.GenerateGrid(grid_min, grid_max, grid_step) - 1;
+    num_gridpoints = Spline.GenerateGrid(grid_min, grid_max, grid_step);
+    num_splinefun = num_gridpoints - 1;
 
-    cout << "Number of spline functions for the interaction " << splineName << ":" << n << endl;
+    cout << "Number of spline functions for the interaction " << splineName << ":" << num_splinefun << endl;
 
     matr_pos = matr_pos_;
 
     // initialize grid for block averaging
     res_output_coeff = options->get("fmatch.res_output_coeff").as<int>();
-    result.resize(res_output_coeff * (n + 1), false);
+    result.resize(res_output_coeff * num_gridpoints, false);
     result.clear();
-    error.resize(res_output_coeff * (n + 1), false);
+    error.resize(res_output_coeff * num_gridpoints, false);
     error.clear();
-    resSum.resize(res_output_coeff * (n + 1), false);
+    resSum.resize(res_output_coeff * num_gridpoints, false);
     resSum.clear();
-    resSum2.resize(res_output_coeff * (n + 1), false);
+    resSum2.resize(res_output_coeff * num_gridpoints, false);
     resSum2.clear();
-    block_res.resize(2 * (n + 1), false);
-    del_x_out = (Spline.getGridPoint(n) - Spline.getGridPoint(0)) /
-            (res_output_coeff * (n + 1));
+    block_res.resize(2 * num_gridpoints, false);
+    del_x_out = (Spline.getGridPoint(num_gridpoints - 1) - Spline.getGridPoint(0)) /
+            (res_output_coeff * num_gridpoints);
 }
 
 void CGForceMatching::EndCG() 
@@ -168,7 +169,7 @@ void CGForceMatching::EndCG()
 
     for (is = _splines.begin(); is != _splines.end(); ++is) {
         int &mp = (*is)->matr_pos;
-        int &nsf = (*is)->n;
+        int &nsf = (*is)->num_splinefun;
 
         // construct meaningful outfile name
         file_name = (*is)->splineName;
@@ -403,7 +404,7 @@ void CGForceMatching::FmatchAccumulateData()
     SplineContainer::iterator is;
     for (is = _splines.begin(); is != _splines.end(); ++is) {
         int &mp = (*is)->matr_pos;
-        int &nsf = (*is)->n;
+        int &nsf = (*is)->num_splinefun;
 
         for (int i = 0; i < 2 * (nsf + 1); i++) {
             (*is)->block_res[i] = _x[ i + mp ];
@@ -436,7 +437,7 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix
 
     SplineContainer::iterator is;
     for (is = _splines.begin(); is != _splines.end(); ++is) {
-        int sfnum = (*is)->n;
+        int sfnum = (*is)->num_splinefun;
         (*is)->Spline.AddBCToFitMatrix(Matrix, line_tmp, col_tmp);
         // update counters
         line_tmp += sfnum + 1;
@@ -465,7 +466,7 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
         CubicSpline &SP = sinfo->Spline;
 
         int &mpos = sinfo->matr_pos;
-        int &nsp = sinfo->n;
+        int &nsp = sinfo->num_splinefun;
 
         double var = (*interListIter)->EvaluateVar(*conf); // value of bond, angle, or dihedral
         int i = SP.getInterval(var); // corresponding spline interval
@@ -513,7 +514,7 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
         CubicSpline &SP = sinfo->Spline;
 
         int &mpos = sinfo->matr_pos;
-        int &nsp = sinfo->n;
+        int &nsp = sinfo->num_splinefun;
         int i = SP.getInterval(var);
 
         // add iatom
