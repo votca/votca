@@ -158,8 +158,7 @@ void CGForceMatching::EndCG()
     }
 
     string file_extension = ".force";
-    const int filename_length = 40;
-    char file_name[filename_length];
+    string file_name;
 
     ofstream out_file;
 
@@ -169,18 +168,11 @@ void CGForceMatching::EndCG()
         int &mp = (*is)->matr_pos;
         int &nsf = (*is)->n;
 
-        // sanity check
-        if (strlen(((*is)->splineName).c_str()) + strlen(file_extension.c_str()) > filename_length ) {
-            cout << "\nERROR in csg_fmatch::EndCG - Name of the spline " << ((*is)->splineName).c_str() << " is too long" << endl;
-            cout << "Don't wanna write output file with this ugly name" << endl;
-            cout << "Modify your input" << endl;
-            exit(-1);
-        }
-
-        file_name[0] = '\0';
-        strcpy(file_name, ((*is)->splineName).c_str());
-        strcat(file_name, file_extension.c_str());
-        out_file.open(file_name);
+        // construct meaningful outfile name
+        file_name = ((*is)->splineName).c_str();
+        file_name = file_name + file_extension.c_str();
+        
+        out_file.open(file_name.c_str());
 
         // print output file names on stdout
         cout << "Writing file: " << file_name << endl;
