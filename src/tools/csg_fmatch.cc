@@ -126,6 +126,8 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     double grid_max = options->get("fmatch.max").as<double>();
     double grid_step = options->get("fmatch.step").as<double>();
 
+    // GenerateGrid returns number of grid points. We subtract 1 to get
+    // the number of spline functions
     n = Spline.GenerateGrid(grid_min, grid_max, grid_step) - 1;
 
     cout << "Number of spline functions for the interaction " << splineName << ":" << n << endl;
@@ -169,19 +171,22 @@ void CGForceMatching::EndCG()
         int &nsf = (*is)->n;
 
         // construct meaningful outfile name
-        file_name = ((*is)->splineName).c_str();
-        file_name = file_name + file_extension.c_str();
+        file_name = (*is)->splineName;
+        file_name = file_name + file_extension;
         
         out_file.open(file_name.c_str());
 
         // print output file names on stdout
         cout << "Writing file: " << file_name << endl;
 
+        // print interaction index as a comment to the file (do we need this?)
         out_file << "# interaction No. " << (*is)->splineIndex << endl;
 
         for (int i = 0; i < (*is)->res_output_coeff * (nsf + 1); i++) {
+            // average value
             (*is)->result[i] = (*is)->resSum[i] / _nblocks;
-            (*is)->error[i] = sqrt((*is)->resSum2[i] / _nblocks - (*is)->result[i] * (*is)->result[i]);
+            // standard deviation of the average
+            (*is)->error[i] = sqrt( ((*is)->resSum2[i] / _nblocks - (*is)->result[i] * (*is)->result[i])/_nblocks );
         }
 
         (*is)->Spline.setSplineData((*is)->result);
@@ -221,20 +226,33 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom) = Force.z();
         }
     } else {
-        cout << "ERROR: No forces in configuration!\n";
+        cout << "\nERROR in csg_fmatch::EvalConfiguration - No forces in configuration!\n" << endl;
+        exit(-1);
     }
-    _frame_counter += 1; // update the frame counter
+    // update the frame counter
+    _frame_counter += 1; 
 
-    if (_frame_counter % _nframes == 0) {
+    if (_frame_counter % _nframes == 0) { // at this point we processed _nframes frames, which is enough for one block
+        // update block counter
         _nblocks++;
+        // solve FM equations and accumulate the result
         FmatchAccumulateData();
-        cout << "Block No" << _nblocks << " done!" << endl;
+        // print status information
+        cout << "\nBlock No" << _nblocks << " done!" << endl;
+        // we must count frames from zero again for the next block
         _frame_counter = 0;
         if (_constr_least_sq) { //Constrained Least Squares
+            // Matrices should be cleaned after each block is evaluated, since
+            // gsl solver writes stuff to them instead of allocating separate memory
             _A.clear();
             _b.clear();
+            // clear and assign smoothing conditions to _B_constr
             FmatchAssignSmoothCondsToMatrix(_B_constr);
         } else { // Simple Least Squares
+            // Matrices should be cleaned after each block is evaluated, since
+            // gsl solver writes stuff to them instead of allocating separate memory
+            
+            // clear and assign smoothing conditions to _A
             FmatchAssignSmoothCondsToMatrix(_A);
             _b.clear();
         }
