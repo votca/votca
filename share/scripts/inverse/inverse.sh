@@ -14,7 +14,7 @@ OPTIONS:
 -N, --do-iterations N         only do N iterationso
     --clean                   clean out the PWD, dangerous
 
-USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external printf mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG
+USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG
 NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name
 eof
 }
@@ -88,18 +88,20 @@ run_or_exit $SOURCE_WRAPPER --check
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
 
-if [ -d step_00 ]; then
+this_dir="$(get_stepname 0)"
+if [ -d "$this_dir" ]; then
   msg "Skiping prepare"
-  [[ -f step_00/done ]] || die "Incomplete step 00"
+  [[ -f $this_dir/done ]] || die "Incomplete step 00"
 else
   msg ------------------------
-  msg Prepare \(make step_00\)
+  msg "Prepare (make $this_dir)"
   msg ------------------------
-  mkdir -p step_00 || die "mkdir -p step_00 failed"
+  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
 
-  #copy+resample all rdf in step_00
-  for_all non-bonded do_external resample calc step_00
-  cd step_00 || die "cd step_00 failed"
+  cd $this_dir || die "cd $this_dir failed"
+
+  #copy+resample all rdf in $this_dir
+  for_all non-bonded do_external resample calc ..
 
   for_all "non-bonded" do_external init $method  
 
@@ -108,13 +110,13 @@ else
 
   for_all non-bonded cp '$(csg_get_interaction_property name).pot.new ..' 
   touch done
-  msg "step_00 done"
+  msg "$this_dir done"
   cd ..
 fi
 
 for ((i=1;i<$iterations+1;i++)); do
-  last_dir=$(printf step_%02i $((i-1)) )
-  this_dir=$(printf step_%02i $i)
+  last_dir=$(get_stepname $((i-1)) )
+  this_dir=$(get_stepname $i)
   msg -------------------------------
   msg "Doing iteration $i (make $this_dir)"
   msg -------------------------------
@@ -136,15 +138,13 @@ for ((i=1;i<$iterations+1;i++)); do
   if is_done "Initialize"; then
     msg "Initialization already done"
   else
-    cd .. 
     #copy+resample all rdf in this_dir 
-    for_all non-bonded do_external resample calc $this_dir
+    for_all non-bonded do_external resample calc ..
 
     #get need files
     for myfile in $filelist; do
-      run_or_exit cp ./$myfile ./$this_dir/  
+      run_or_exit cp ../$myfile .  
     done
-    cd $this_dir || die "cd $this_dir failed"
 
     #get new pot from last step and make it current potential 
     for_all non-bonded "cp ../$last_dir/\$(csg_get_interaction_property name).pot.new ./\$(csg_get_interaction_property name).pot.cur" 

@@ -18,4 +18,4 @@ step=$(csg_get_interaction_property step )
 target=$(csg_get_interaction_property target)
 name=$(csg_get_interaction_property name)
 
-run_or_exit csg_resample --in ${target} --out ${1}/${name}.dist.tgt --grid ${min}:${step}:${max}
+run_or_exit csg_resample --in ${1}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max}

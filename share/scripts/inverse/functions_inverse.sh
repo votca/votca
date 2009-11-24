@@ -28,7 +28,7 @@ Examples:
   run_or_exit CMD
 
 USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property
-PROVIDES: log die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed run_or_exit 
+PROVIDES: log die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed run_or_exit  printf
 NEEDS:
 EOF
 exit 0
@@ -244,6 +244,16 @@ int_check() {
   die "$*"
 }
 
+get_stepname() {
+  local name
+  [[ -n "$1" ]] || die "number_to_stepname: Missig argument"
+  int_check "$1" "number_to_stepname needs a int as argument"
+  name="$(printf step_%03i "$1")"
+  [ -z "$name" ] && die "number_to_stepname: Could not get stepname"
+  echo "$name"
+}
+
+
 #--------------------Exports-----------------
 export -f die
 export -f log 
@@ -260,3 +270,4 @@ export -f is_done
 export -f check_for
 export -f check_deps
 export -f int_check
+export -f get_stepname
