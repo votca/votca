@@ -8,7 +8,7 @@
 #ifndef _CONNECTIVITY_H
 #define	_CONNECTIVITY_H
 
-#include <tools/vec.h>
+#include <votca/tools/vec.h>
 #include "interaction.h"
 
 /**

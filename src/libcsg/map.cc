@@ -7,8 +7,8 @@
 
 #include "map.h"
 #include <iostream>
-#include <tools/matrix.h>
-#include <tools/tokenizer.h>
+#include <votca/tools/matrix.h>
+#include <votca/tools/tokenizer.h>
 #include <numeric>
 
 using namespace std;

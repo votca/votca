@@ -8,11 +8,11 @@
 #ifndef _CSG_FMATCH_H
 #define	_CSG_FMATCH_H
 
-#include <tools/property.h>
+#include <votca/tools/property.h>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <tools/cubicspline.h>
+#include <votca/tools/cubicspline.h>
 #include "cgengine.h"
 
 namespace ub = boost::numeric::ublas;

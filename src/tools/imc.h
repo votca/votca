@@ -9,14 +9,14 @@
 #define	_IMC_H
 
 #include <cgengine.h>
-#include <tools/property.h>
+#include <votca/tools/property.h>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <tools/histogramnew.h>
+#include <votca/tools/histogramnew.h>
 
 namespace ub = boost::numeric::ublas;
 using namespace std;

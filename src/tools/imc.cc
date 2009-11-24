@@ -9,7 +9,7 @@
 #include <fstream>
 #include <iomanip>
 #include <boost/lexical_cast.hpp>
-#include <tools/rangeparser.h>
+#include <votca/tools/rangeparser.h>
 #include "beadlist.h"
 #include "nblistgrid.h"
 #include "imc.h"

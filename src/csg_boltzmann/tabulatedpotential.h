@@ -10,7 +10,7 @@
 
 #include <vector>
 #include "bondedstatistics.h"
-#include <tools/histogram.h>
+#include <votca/tools/histogram.h>
 
 using namespace std;
 

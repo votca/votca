@@ -9,8 +9,8 @@
  *
  */
 
-#include <tools/table.h>
-#include <tools/tokenizer.h>
+#include <votca/tools/table.h>
+#include <votca/tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include "imcio.h"

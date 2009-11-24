@@ -10,8 +10,8 @@
 #define	_bead_H
 
 #include <string>
-#include <tools/types.h>
-#include <tools/vec.h>
+#include <votca/tools/types.h>
+#include <votca/tools/vec.h>
 #include <assert.h>
 #include "beadtype.h"
 #include "topologyitem.h"

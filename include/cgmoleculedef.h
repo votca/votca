@@ -12,9 +12,9 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <tools/property.h>
+#include <votca/tools/property.h>
 #include "map.h"
-#include <tools/types.h>
+#include <votca/tools/types.h>
 #include "exclusionlist.h"
 #include "molecule.h"
 

@@ -7,7 +7,7 @@
 
 #include <fstream>
 #include "cgengine.h"
-#include <tools/tokenizer.h>
+#include <votca/tools/tokenizer.h>
 
 CGEngine::~CGEngine()
 {

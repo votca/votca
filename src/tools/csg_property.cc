@@ -7,8 +7,8 @@
 
 #include <iostream>
 #include <boost/program_options.hpp>
-#include <tools/property.h>
-#include <tools/tokenizer.h>
+#include <votca/tools/property.h>
+#include <votca/tools/tokenizer.h>
 
 using namespace std;
 

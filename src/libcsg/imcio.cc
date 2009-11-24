@@ -9,10 +9,10 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <tools/rangeparser.h>
-#include <tools/table.h>
+#include <votca/tools/rangeparser.h>
+#include <votca/tools/table.h>
 #include <boost/lexical_cast.hpp>
-#include <tools/tokenizer.h>
+#include <votca/tools/tokenizer.h>
 #include <iostream>
 #include "imcio.h"
 

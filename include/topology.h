@@ -13,9 +13,9 @@
 #include <list>
 
 #include <assert.h>
-#include <tools/types.h>
-#include <tools/vec.h>
-#include <tools/matrix.h>
+#include <votca/tools/types.h>
+#include <votca/tools/vec.h>
+#include <votca/tools/matrix.h>
 #include "exclusionlist.h"
 #include "bead.h"
 #include "molecule.h"

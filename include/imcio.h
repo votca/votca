@@ -13,7 +13,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <tools/rangeparser.h>
+#include <votca/tools/rangeparser.h>
 
 namespace ub = boost::numeric::ublas;
 using namespace std;

@@ -8,8 +8,8 @@
 #ifndef _NBLISTGRID_H
 #define	_NBLISTGRID_H
 
-#include <tools/matrix.h>
-#include <tools/vec.h>
+#include <votca/tools/matrix.h>
+#include <votca/tools/vec.h>
 #include "nblist.h"
 #include <vector>
 

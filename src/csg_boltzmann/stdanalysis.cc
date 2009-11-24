@@ -9,8 +9,8 @@
 #include <fstream>
 #include <vector>
 #include "analysistool.h"
-#include <tools/crosscorrelate.h>
-#include <tools/correlate.h>
+#include <votca/tools/crosscorrelate.h>
+#include <votca/tools/correlate.h>
 #include "bondedstatistics.h"
 #include "stdanalysis.h"
 

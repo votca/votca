@@ -10,8 +10,8 @@
 
 #include <string>
 #include <vector>
-#include <tools/vec.h>
-#include <tools/property.h>
+#include <votca/tools/vec.h>
+#include <votca/tools/property.h>
 #include "molecule.h"
 
 using namespace std;

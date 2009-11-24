@@ -10,7 +10,7 @@
 
 #include "topology.h"
 #include "topology.h"
-#include <tools/matrix.h>
+#include <votca/tools/matrix.h>
 
 class NematicOrder
 {

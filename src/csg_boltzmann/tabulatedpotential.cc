@@ -12,7 +12,7 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
 #include "analysistool.h"
-#include <tools/histogram.h>
+#include <votca/tools/histogram.h>
 #include "version.h"
 #include "bondedstatistics.h"
 #include "tabulatedpotential.h"

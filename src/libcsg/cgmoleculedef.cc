@@ -10,7 +10,7 @@
 #include <boost/lexical_cast.hpp>
 #include "topology.h"
 #include "cgmoleculedef.h"
-#include <tools/tokenizer.h> 
+#include <votca/tools/tokenizer.h> 
 #include "interaction.h"
 
 using boost::lexical_cast;

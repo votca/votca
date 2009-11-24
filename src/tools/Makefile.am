@@ -31,4 +31,4 @@ csg_gmxtopol_SOURCES = csg_gmxtopol.cc
 
 AM_LDFLAGS =  
 
-LDADD = ../libcsg/libcsg.a ${LIBS_TOOLS} ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) $(LIBS_XML) ${GSL_LIBS} -lpthread
+LDADD = ../libcsg/libvotca_csg.a ${LIBS_VOTCA_TOOLS} ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) $(LIBS_XML) ${GSL_LIBS} -lpthread

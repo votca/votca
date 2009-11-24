@@ -1,4 +1,4 @@
-AC_INIT(csg,0.5,ruehle@mpip-mainz.mpg.de)
+AC_INIT(votca,0.5,ruehle@mpip-mainz.mpg.de)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)

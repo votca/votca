@@ -6,8 +6,8 @@
 //
 
 #include "nematicorder.h"
-#include <tools/matrix.h>
-#include <tools/tokenizer.h>
+#include <votca/tools/matrix.h>
+#include <votca/tools/tokenizer.h>
 #include "topology.h"
 
 void NematicOrder::Process(Topology &top, const string &filter)

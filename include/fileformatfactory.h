@@ -10,8 +10,8 @@
 
 #include <string>
 #include <iostream>
-#include <tools/objectfactory.h>
-#include <tools/tokenizer.h>
+#include <votca/tools/objectfactory.h>
+#include <votca/tools/tokenizer.h>
 
 using namespace std;
 

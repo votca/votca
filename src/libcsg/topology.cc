@@ -7,7 +7,7 @@
 
 #include "topology.h"
 #include "interaction.h"
-#include <tools/rangeparser.h>
+#include <votca/tools/rangeparser.h>
 #include <stdexcept>
 
 Topology::~Topology()

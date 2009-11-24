@@ -1,8 +1,8 @@
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML) -I$(top_srcdir)/include
 
-lib_LIBRARIES = libcsg.a
+lib_LIBRARIES = libvotca_csg.a
 
-libcsg_a_SOURCES = \
+libvotca_csg_a_SOURCES = \
     beadlist.cc       exclusionlist.cc    nblist.cc         topology.cc          trajectorywriter.cc \
    cgengine.cc       imccoefficients.cc  neighbourlist.cc  topologymap.cc \
    cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \

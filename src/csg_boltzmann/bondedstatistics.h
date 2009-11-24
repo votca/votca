@@ -9,7 +9,7 @@
 #define	_BONDEDSTATISTICS_H
 
 #include "cgobserver.h"
-#include <tools/datacollection.h>
+#include <votca/tools/datacollection.h>
 
 class BondedStatistics
     : public CGObserver

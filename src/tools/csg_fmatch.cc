@@ -14,7 +14,7 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <gsl/gsl_linalg.h>
-#include <tools/cubicspline.h>
+#include <votca/tools/cubicspline.h>
 #include <cgengine.h>
 #include <nblist.h>
 #include <beadlist.h>

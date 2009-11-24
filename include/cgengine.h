@@ -13,19 +13,19 @@
 #include <boost/program_options.hpp>
 #include "topology.h"
 #include "cgmoleculedef.h"
-#include <tools/datacollection.h>
+#include <votca/tools/datacollection.h>
 #include "topologymap.h"
 #include "cgobserver.h"
 
-#include <tools/vec.h>
+#include <votca/tools/vec.h>
 #include "cgmoleculedef.h"
 #include "cgengine.h"
 #include "molecule.h"
 #include "topologyreader.h"
 #include "trajectorywriter.h"
 #include "trajectoryreader.h"
-#include <tools/tokenizer.h>
-#include <tools/matrix.h>
+#include <votca/tools/tokenizer.h>
+#include <votca/tools/matrix.h>
 #include "nematicorder.h"
 
 using namespace std;
