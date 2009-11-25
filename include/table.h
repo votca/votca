@@ -54,6 +54,9 @@ public:
     void Save(string filename) const;       
     
     void Smooth(int Nsmooth);
+
+    bool GetHasYErr() { return _has_yerr; }
+    void SetHasYErr(bool has_yerr) { _has_yerr = has_yerr; }
     
     ub::vector<double> &x() { return _x; }
     ub::vector<double> &y() { return _y; }
@@ -87,6 +90,7 @@ inline Table::Table(Table &tbl)
     _y = tbl._y;
     _flags = tbl._flags;
     _has_yerr = tbl._has_yerr;
+    if (_has_yerr) _yerr = tbl._yerr;
 }
 
 inline ostream &operator<<(ostream &out, const Table& t)

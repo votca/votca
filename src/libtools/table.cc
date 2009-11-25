@@ -61,11 +61,6 @@ void Table::clear(void)
 // TODO: modify function to work properly, when _has_yerr is true
 inline istream &operator>>(istream &in, Table& t)
 {
-    if ( t._has_yerr ) {
-        cerr << "ERROR in table.cc: Operator >> for table with errors is not yet implemented" << endl;
-        exit(1);
-    }
-
     size_t N;
     bool bHasN=false;
     string line;
