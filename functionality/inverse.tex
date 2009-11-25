@@ -1,5 +1,5 @@
 \section{Iterative workflow control}
-For each iterative method (e.g. IBI or IMC), a simulation has to be performed with a working potential. Based on statistics from that coarse grained run, an update can be calculated. VOTCA implements a flexible scripting framework to perform such an iterative workflow. The workflow chart is shown in \fig{fig:flowchart}. The workflow is implemented as a shell script which can, in principle, be run on all available operating systems and provides the flexibility needed to call external (or overload existing) scripts and programs written in other programming languages. An interface to read values from the steering \xml files in C++, Perl and shell is also provided.
+For each iterative method (e.g. IBI or IMC), a simulation has to be performed with a working potential. Based on statistics from that coarse grained run, an update can be calculated. \votca implements a flexible scripting framework to perform such an iterative workflow. The workflow chart is shown in \fig{fig:flowchart}. The workflow is implemented as a shell script which can, in principle, be run on all available operating systems and provides the flexibility needed to call external (or overload existing) scripts and programs written in other programming languages. An interface to read values from the steering \xml files in C++, Perl and shell is also provided.
 
 \begin{figure}
   \includegraphics[width=0.7\columnwidth]{functionality/abb/flowchart.eps}
@@ -14,73 +14,52 @@ During the global initialization the initial guess for the coarse-grained potent
 Finally, the new potential is determined and postprocessed. If the iterative process continues, the next iterative step starts to initialize.
 
 \subsection{General usage}
-
 To setup the environment, run:
-csh, tcsh: source <csg-installation>/bin/CSGRC.csh
-bash: source <csg-installation>/bin/CSGRC.bash   
-
-tutorials can be found in
-<csg-installation>/share/csg/tutor
-
-just copy tip3p and try 
-
+csh, tcsh:
 \begin{verbatim}
- csg\_inverse cg.xml
+  source <csg-installation>/bin/CSGRC.csh
+\end{verbatim}
+\begin{verbatim}
+  bash: source <csg-installation>/bin/CSGRC.bash
 \end{verbatim}
 
-Each iteration is divided n several steps:
-
-run the simulation
-
-calculate statistics + delta U
-
-a file <name>.dpot.new is created
-
-post\_update: (called for each interaction)
-
- here the user can hook in several scripts to act on dU. One example for that is pressure correction. Also 
-smoothing/extrapolation is possible
-
- each script reads a <name>.dpot.cur and writees <name>.dpot.new. The inverse script takes care for correct renaming and saving all the intermediate steps in <name>.dpot.X where X is a number.
-Add the potentials (called for each interaction)
-\begin{equation}
-  U_{n+1} = U_n + \Delta U
-\end{equation}
-
-write CG-CG.pot.new
-
-Post add (called for each interaction)
-
-do manipulations on the potential like smoothing,...
-
-similiar behaviour as post\_update, just acting on <name>.pot.cur, <name>.pot.new
+Tutorials can be found in \textit{$<$csg-installation$>$/share/csg/tutor}. Just copy one of the tutorial and try
+\begin{verbatim}
+ csg_inverse <options.xml>
+\end{verbatim}
 
 \subsection{Run preparation}
-For options + directives see ...
+To run the iterations, the input for the sampling program (e.g. \gromacs ) has to be prepared in order to carry out one iteration. All files for running a coarse-grained simulation except for the tabulated potentials that should be created must be present and specified in the options xml-file.
 
-As target distribution, any table file can be given (e.g. gromacs output from g\_rdf). The program automaticaly takes care to resample to the correct grid spacing in the .xml file.
+As target distribution, any table file can be given (e.g. gromacs output from g\_rdf). The program automaticaly takes care to resample the table to the correct grid spacing as specified in the .xml file.
+The initial guess is created by inverting the rdf. It's located in step\_00/$<$name$>$.pot.new. To specify the initial guess for a specific interaction by hand, write the potential table to a file called $<$name$>$.pot.in in the folder where you run the iterative procedure.
 
-The initial guess is created by inverting the rdf. It's located in step\_00/<name>.pot.new. To create an own initial guess, place a file called <name>.pot.in in your folder where you run the scripts.
+To define which interactions are iteratively refined, a section for each has to be specified in the config file. A full list of parameters can be found in ref.~\ref{sec:ref_options}.
 
-Also all the files to run a simulation have to be created:
-conf.gro
-table.xvg  (if using energy\_grp\_tables give any standard file here)
-topol.top
-grompp.mdp
+\subsection{Running the iterative process}
+After all input is set up, the run can be started with
+\begin{verbatim}
+  csg_inverse <options.xml>
+\end{verbatim}
 
-These files have to be specified in the xml file (see tutorial or [[Coarse graining directives]])
+For each iteration, a separate folder (\textit{step\_$<$iteration$>$}) is created, where \textit{step\_00} has the special meaning of the initial setup before the first iterations. For each new iterations, the files required to run the CG simulation ( as specified in the config file) are copied to the current working folder. Also the updated potentials from the last steps ( stetp\_$<$n-1$>$/$<$interaction$>$.pot.new ) are copied and used as the new working potentials ( stetp\_$<$n$>$\/$<$interaction$>$.pot.cur ).
 
-\subsection{Output}
-VOTCA standard files for each step:
+After the preparation, the simulation run is started. First, all potentials are converted to the format of the sampling program, and the simulation is started. As soon as the run is finished, analysis programs are started and new distributions calculated ( $<$interaction$>$.dist.new ) and the update is calculated ( $<$interaction$>$.dpot.new ). Before \votca adds the update to the old potential, the update can be processed in the post\_update step. For each script that is specified in post\_update, \votca renames $<$interaction$>$.dpot.new to $<$interaction$>$.dpot.old, stores it in $<$interaction$>$.dpot.$<$a-number$>$, and calls the processing script. Each processing script us supposed tok takes the current update ( $<$interaction$>$.dpot.cur ) and write the processed update to ( $<$interaction$>$.dpot.new ). As described, \votca takes care for all the renaming. Pressure correction is implemented as a post\_update script within this framework.
+
+After all post\_update scripts are called, the update is added to the potential and the new potential ( $<$interaction$>$.pot.new ) is written. After that, processing of the potential is performed in the post\_add step, analogous to the tasks performed in post\_update but now for the potential instead of the update.
+
+As a summary, the standard output files of \votca for each step are listed in the following table:
 
 \begin{tabular}{ll}
 *.dist.new & distribution functions of the current step \\
 *.dpot.new & the final potential update, created in calc\_update \\
-*.dpot.<number> & for each post\_update script, the current .dpot.new is saved and a new one is created\\
+*.dpot.$<$number$>$ & for each post\_update script, the current .dpot.new is saved and a new one is created\\
 *.pot.cur & the current potential, the actual run was performed with \\
 *.pot.new & the new potential after add step \\
-*.pot.<number> & same as dpot.<number> just for post\_add
+*.pot.$<$number$>$ & same as dpot.$<$number$>$ just for post\_add
 \end{tabular}
+
+If some sub step within one iteration failed, additional information can be found in the log file. The name of the log file is specified in the options xml-file.
 
 \subsection{Continue a run}
 There are two scenarios when one wants to continue a run: A finished run should be extended or the run was interrupted and one needs to restart at the current point. When csg\_inverse is started, it automatically checks for a file called \textit{done} ine the current folder. If that exists, it assumes the run as done. To extend the run, increase max\_iterations in the settings file and remove the file called done. After that, csg\_inverse can be just restarted, it will recognize available steps and continues after the last one.
@@ -88,6 +67,9 @@ There are two scenarios when one wants to continue a run: A finished run should 
 If a run was interrupted, csg\_inverse might not be able to restart on it's own. In that case, the easiest solution is to delete the last step and just start again. This will just redo the last step and continue. However this method is not always practical since sampling + analysis might take very long and the run just crashed due to some post processing option. To avoid redoing the whole run, VOTCA creates a file with restart points, that marks actions in the step which were already completed (like simulation, analysis, ...). The file is specified in the option \textit{restart\_????}. If specific actions should be redone, lines in that files can also removed by hand. In addition, a file \textit{done} is created int each folder for a step that already has finished.
 
 \subsection{Customization}
-Please never ever change our installed scripts. You can hook in your own scripts for any single sub part. The file
-<csg-install>/share/csg/scripts/inverse/csg\_table assigns to two given keywords a script which is called. You can change this by creating a file
-csg\_table in your own directory (specified in the Coarse graining directives). Just add a line for each script you want to add or change. The source\_wrapper takes care that your script is called instead of the one from the standard installations. For scripting details have a look at the source, there is no developers manual so far. Feel free to ask Christoph Junghans or Victor R\"uhle for details.
+\textbf{Customization of the iterative process it not well documented yet. Documentation will improve in the near future, feel free to ask on the votca mailing list for details! }
+
+In principle, each sub step of an iteration can be changed. All scripts that are called can be redirected ( overloaded ) to user scripts. Please never ever change the \votca installation scripts. Better copy the script and redirect it's call.
+
+The file $<$csg-install$>$/share/csg/scripts/inverse/csg\_table assigns to two given keywords a script which is called. You can change this by creating a file
+csg\_table in your own directory ( specified in the Coarse graining directives ). Just add a line for each script you want to add or change. The source\_wrapper takes care that your script is called instead of the one from the standard installations. For scripting details have a look at the source, there is no developers manual so far.
