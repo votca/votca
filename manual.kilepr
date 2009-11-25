@@ -2,9 +2,9 @@
 def_graphic_ext=
 img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
-kileprversion=2
-kileversion=2.1 beta2
-lastDocument=usage/boltzmann.tex
+kileprversion=1
+kileversion=1.9.3
+lastDocument=usage/ibi.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -18,28 +18,35 @@ QuickBuild=
 
 [item:functionality.tex]
 archive=true
-column=0
+column=12
 encoding=UTF-8
 highlight=LaTeX
-line=49
+line=26
 open=true
 order=3
 
 [item:functionality/inverse.tex]
 archive=true
 column=0
-encoding=UTF-8
-highlight=LaTeX
-line=23
+encoding=
+highlight=
+line=0
 open=true
-order=2
+
+[item:functionality/mapping.tex]
+archive=true
+column=0
+encoding=ISO 8859-1
+highlight=LaTeX
+line=14
+open=true
 
 [item:introduction.tex]
 archive=true
-column=26
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=1
+line=8
 open=true
 order=7
 
@@ -54,10 +61,10 @@ order=-1
 
 [item:manual.tex]
 archive=true
-column=15
+column=25
 encoding=UTF-8
 highlight=LaTeX
-line=13
+line=25
 open=true
 order=4
 
@@ -66,7 +73,7 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=15
+line=11
 open=true
 order=1
 
@@ -97,9 +104,33 @@ line=54
 open=true
 order=5
 
+[item:usage/forcematching.tex]
+archive=true
+column=24
+encoding=ISO 8859-1
+highlight=LaTeX
+line=0
+open=true
+
+[item:usage/ibi.tex]
+archive=true
+column=3
+encoding=ISO 8859-1
+highlight=LaTeX
+line=1
+open=true
+
+[item:usage/imc.tex]
+archive=true
+column=0
+encoding=ISO 8859-1
+highlight=LaTeX
+line=0
+open=true
+
 [item:votca.bib]
 archive=true
-column=16
+column=22
 encoding=UTF-8
 highlight=BibTeX
 line=12
