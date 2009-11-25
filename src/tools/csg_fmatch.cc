@@ -19,6 +19,7 @@
 #include <nblist.h>
 #include <beadlist.h>
 #include "csg_fmatch.h"
+#include <votca/tools/table.h>
 
 void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
 {
@@ -167,8 +168,10 @@ void CGForceMatching::WriteOutFiles()
 
     string file_extension = ".force";
     string file_name;
+    Table force_tab;
 
-    ofstream out_file;
+    // table with error column
+    force_tab.SetHasYErr(true);
 
     SplineContainer::iterator is;
 
@@ -180,13 +183,11 @@ void CGForceMatching::WriteOutFiles()
         file_name = (*is)->splineName;
         file_name = file_name + file_extension;
         
-        out_file.open(file_name.c_str());
+        // resize table
+        force_tab.resize((*is)->num_outgrid, false);
 
         // print output file names on stdout
         cout << "Updating file: " << file_name << endl;
-
-        // print interaction index as a comment to the file (do we need this?)
-        out_file << "# interaction No. " << (*is)->splineIndex << endl;
 
         // loop over output grid points
         for (int i = 0; i < (*is)->num_outgrid; i++) {
@@ -200,14 +201,15 @@ void CGForceMatching::WriteOutFiles()
         double out_x = (*is)->Spline.getGridPoint(0);
         // loop over output grid
         for (int i = 0; i < (*is)->num_outgrid; i++) {
-            // print point, result, flag and accuracy at point out_x
-            out_file << out_x << " " <<
-                    (-1.0) * (*is)->result[i] << " i " << (*is)->error[i] << endl;
+            // put point, result, flag and accuracy at point out_x into the table
+            force_tab.set(i, out_x, (-1.0) * (*is)->result[i], 'i', (*is)->error[i]);
             // update out_x for the next iteration
             out_x += (*is)->dx_out;
         }
-
-        out_file.close();
+        // save table in the file
+        force_tab.Save(file_name);
+        // clear the table for the next spline
+        force_tab.clear();
     }
 }
 
