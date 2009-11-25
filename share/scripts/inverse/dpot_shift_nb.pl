@@ -5,13 +5,12 @@ use strict;
 
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname infile1 infile2 outfile
+Usage: $progname infile outfile
+This script set the beginning of the dpot to the first valid value and shift the whole potential
+so that dpot(r_max)=0.
+
 NEEDS:
 USES: readin_table saveto_table 
-shifts the beginning of a non-bonded delta potential which is not in the update
-region to same as first value which is in region. It also shifts the whole dpot 
-that it is zero at r_cut
-TODO: care about flags, not tested
 EOF
   exit 0;
 }
@@ -31,14 +30,9 @@ my @dpot;
 my @flag;
 (readin_table($infile,@r,@dpot,@flag)) || die "$progname: error at readin_table\n";
 
-# find index of cutoff
-my $i_cut;
-#for($i_cut=0; ($i_cut<$#r-1) && ($r[$i_cut]<$r_cut); $i_cut++) {}
-$i_cut = $#r - 1;
-
-# find last u/o
+# find first u/o
 my $i_first;
-for($i_first=0; ($i_first<$#r) && ($flag[$i_first] =~ /[uo]/); $i_first++) {}
+for($i_first=0; ($i_first<=$#r) && ($flag[$i_first] =~ /[uo]/); $i_first++) {}
 
 # shift beginning
 for(my $i=0; $i<$i_first; $i++) {
@@ -47,8 +41,8 @@ for(my $i=0; $i<$i_first; $i++) {
 }
 
 # bring end to zero
-for(my $i=0; $i<$i_first; $i++) {
-    $dpot[$i] -= $dpot[$i_cut];
+for(my $i=0; $i<=$#r; $i++) {
+    $dpot[$i] -= $dpot[$#r];
 }
 
 # save to file
