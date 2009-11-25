@@ -1,0 +1,24 @@
+#! /bin/bash
+
+if [ -z "$1" ]; then
+  echo "Missing argument" >&2
+  exit 1
+fi
+
+set -e
+latex -halt-on-error ${1}
+latex -halt-on-error ${1}
+dvips -E ${1%.tex}.dvi -o ${1%.tex}.eps
+set +e
+for ext in aux bbl blg dvi log; do
+   rm -f ${1%.tex}.${ext}
+done
+
+if [ -x ./bbox_add.pl ]; then
+  ./bbox_add.pl ${1%.tex}.eps
+elif [ -n "$(type -p bbox_add.pl)" ]; then
+  bbox_add.pl ${1%.tex}.eps
+echo 
+  echo "No bbox fix"
+fi
+
