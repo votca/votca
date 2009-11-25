@@ -129,7 +129,9 @@ protected:
   /// \brief For each trajectory frame writes equations for bonded interactions to matrix _A
   void EvalBonded(Topology *conf, SplineInfo *sinfo);
   /// \brief For each trajectory frame writes equations for non-bonded interactions to matrix _A
-  void EvalNonbonded(Topology *conf, SplineInfo *sinfo);    
+  void EvalNonbonded(Topology *conf, SplineInfo *sinfo);
+  /// \brief Write results to output files
+  void WriteOutFiles();
 };
 
 #endif	/* _CSG_FMATCH_H */

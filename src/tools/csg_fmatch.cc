@@ -150,8 +150,12 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     block_res.resize(2 * num_gridpoints, false);
 
 }
+void CGForceMatching::EndCG()
+{
+    cout << "\nWe are done, thank you very much!" << endl;
+}
 
-void CGForceMatching::EndCG() 
+void CGForceMatching::WriteOutFiles()
 {
     // sanity check
     if (_nblocks == 0) {
@@ -179,7 +183,7 @@ void CGForceMatching::EndCG()
         out_file.open(file_name.c_str());
 
         // print output file names on stdout
-        cout << "Writing file: " << file_name << endl;
+        cout << "Updating file: " << file_name << endl;
 
         // print interaction index as a comment to the file (do we need this?)
         out_file << "# interaction No. " << (*is)->splineIndex << endl;
@@ -243,6 +247,9 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
         FmatchAccumulateData();
         // print status information
         cout << "\nBlock No" << _nblocks << " done!" << endl;
+        // write results to output files
+        WriteOutFiles();
+
         // we must count frames from zero again for the next block
         _frame_counter = 0;
         if (_constr_least_sq) { //Constrained Least Squares
