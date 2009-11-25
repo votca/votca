@@ -14,6 +14,17 @@
 
 using namespace boost;
 
+
+void Table::resize(int N, bool preserve)
+{
+    _x.resize(N, preserve);
+    _y.resize(N, preserve);
+    _flags.resize(N, preserve);
+    if (_has_yerr) {
+        _yerr.resize(N, preserve);
+    }
+}
+
 void Table::Load(string filename)
 {
     ifstream in;
@@ -43,11 +54,18 @@ void Table::clear(void)
     _x.clear();
     _y.clear();
     _flags.clear();
+    _yerr.clear();
 }
 
 // TODO: this functon is weired, reading occours twice, cleanup!!
+// TODO: modify function to work properly, when _has_yerr is true
 inline istream &operator>>(istream &in, Table& t)
 {
+    if ( t._has_yerr ) {
+        cerr << "ERROR in table.cc: Operator >> for table with errors is not yet implemented" << endl;
+        exit(1);
+    }
+
     size_t N;
     bool bHasN=false;
     string line;
