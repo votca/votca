@@ -5,7 +5,7 @@ Boltzmann inversion is most often performed on a single molecule in vaccuum for 
 The first thing to coarse-grain a system is to define a mapping scheme (see \sect{sec:mapping}). The mapping is defined by a simple xml file for each molecule-type. An important step is to verify the mapping scheme by:
 
 \begin{verbatim}
-  csg --top topol.tpr --trj traj.trr --cg mapping.xml --out cg.gro
+  csg_boltzmann--top topol.tpr --trj traj.trr --cg mapping.xml --out cg.gro
 \end{verbatim}
 
 The most common thing that can go wrong is that beads cannot be found. On reason is a type in the atom name of the mapping. To debug which atoms are read in from a topology file, \textbf{csg\_dump} can be used. A second reason could be, that molecules are not identified correctly. In case of a multicomponent system, see \sect{sec:adv_topology} for details.
@@ -19,7 +19,7 @@ To generate an exclusion list automaticaly, an atomistic topology without exclus
 
 To create the exclusion list, run
 \begin{verbatim}
-  csg --top topol.tpr --cg mapping.xml --excl exclusions.txt
+  csg_boltzmann--top topol.tpr --cg mapping.xml --excl exclusions.txt
 \end{verbatim}
 This will create a list of exclusions for all interactions that are not within a bonded interaction of the coarse-grained sub-bead. As an example, if the coarse grained molecule is a linear molecule of 3 beads, which are only connected by bonds, \textbf{csg\_boltzmann} will create exclusions for all non-bonded interactions of atoms from the first bead with atoms of the 3rd bead since they would contribute only to the non-bonded interaction potential which is treated separately.
 
