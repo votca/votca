@@ -49,6 +49,8 @@ protected:
         int num_splinefun;
         /// \brief number of spline grid points
         int num_gridpoints;
+        /// \brief number of grid points for output
+        int num_outgrid;
         /// \brief interaction index
         int splineIndex;
         /// \brief true for bonded interactions, false for non-bonded
@@ -57,10 +59,8 @@ protected:
         CubicSpline Spline;
         /// \brief position in the _A matrix (first coloumn which is occupied with this particular spline)
         int matr_pos;
-        /// \brief Num_output_points = Num_spline_points * res_output_coeff
-        int res_output_coeff;
         /// \brief dx for output. Calculated in the code
-        double del_x_out;
+        double dx_out;
         /// \brief only for non-bonded interactions (seems like it is not used?)
         pair<int, int> beadTypes;
         

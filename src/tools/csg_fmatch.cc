@@ -136,18 +136,19 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     matr_pos = matr_pos_;
 
     // initialize grid for block averaging
-    res_output_coeff = options->get("fmatch.res_output_coeff").as<int>();
-    result.resize(res_output_coeff * num_gridpoints, false);
+    dx_out = options->get("fmatch.out_step").as<double>();
+    // number of output grid points
+    num_outgrid = 1 + (int)((grid_max-grid_min)/dx_out);
+    result.resize(num_outgrid, false);
     result.clear();
-    error.resize(res_output_coeff * num_gridpoints, false);
+    error.resize(num_outgrid, false);
     error.clear();
-    resSum.resize(res_output_coeff * num_gridpoints, false);
+    resSum.resize(num_outgrid, false);
     resSum.clear();
-    resSum2.resize(res_output_coeff * num_gridpoints, false);
+    resSum2.resize(num_outgrid, false);
     resSum2.clear();
     block_res.resize(2 * num_gridpoints, false);
-    del_x_out = (Spline.getGridPoint(num_gridpoints - 1) - Spline.getGridPoint(0)) /
-            (res_output_coeff * num_gridpoints);
+
 }
 
 void CGForceMatching::EndCG() 
@@ -183,22 +184,23 @@ void CGForceMatching::EndCG()
         // print interaction index as a comment to the file (do we need this?)
         out_file << "# interaction No. " << (*is)->splineIndex << endl;
 
-        for (int i = 0; i < (*is)->res_output_coeff * ngp; i++) {
+        // loop over output grid points
+        for (int i = 0; i < (*is)->num_outgrid; i++) {
             // average value
             (*is)->result[i] = (*is)->resSum[i] / _nblocks;
             // standard deviation of the average
             (*is)->error[i] = sqrt( ((*is)->resSum2[i] / _nblocks - (*is)->result[i] * (*is)->result[i])/_nblocks );
         }
 
-        // The following line used to be uncommented, but it does not change anything.
- //       (*is)->Spline.setSplineData((*is)->result);
-
-        // Shitty implementation, think of adding functionality to CubicSpline
+        // first output point = first grid point
         double out_x = (*is)->Spline.getGridPoint(0);
-        for (int i = 0; i < (*is)->res_output_coeff * ngp; i++) {
+        // loop over output grid
+        for (int i = 0; i < (*is)->num_outgrid; i++) {
+            // print point, result, flag and accuracy at point out_x
             out_file << out_x << " " <<
                     (-1.0) * (*is)->result[i] << " i " << (*is)->error[i] << endl;
-            out_x += (*is)->del_x_out;
+            // update out_x for the next iteration
+            out_x += (*is)->dx_out;
         }
 
         out_file.close();
@@ -407,19 +409,24 @@ void CGForceMatching::FmatchAccumulateData()
         int &mp = (*is)->matr_pos;
         int &ngp = (*is)->num_gridpoints;
 
+        // _x contains results for all splines. Here we cut the results for one spline
         for (int i = 0; i < 2 * ngp; i++) {
             (*is)->block_res[i] = _x[ i + mp ];
-            //                (*is)->resSum[i] += _x[ i + mp ];
-            //                (*is)->resSum2[i] += _x[ i + mp ] * _x[ i + mp ];
         }
+        // result cutted before is assigned to the corresponding spline
         (*is)->Spline.setSplineData((*is)->block_res);
 
+        // first output point = first grid point
         double out_x = (*is)->Spline.getGridPoint(0);
-        for (int i = 0; i < (*is)->res_output_coeff * ngp; i++) {
+        // loop over output grid
+        for (int i = 0; i < (*is)->num_outgrid; i++) {
+            // update resSum (add result of a particular block)
             (*is)->resSum[i] += (*is)->Spline.Calculate(out_x);
             if (i == 23) cout << (*is)->Spline.Calculate(out_x) << " " << endl;
+            // update resSum2 (add result of a particular block)
             (*is)->resSum2[i] += (*is)->Spline.Calculate(out_x) * (*is)->Spline.Calculate(out_x);
-            out_x += (*is)->del_x_out;
+            // output point for the next iteration
+            out_x += (*is)->dx_out;
         }
     }
 }
