@@ -418,11 +418,16 @@ void CGForceMatching::FmatchAccumulateData()
 
         // first output point = first grid point
         double out_x = (*is)->Spline.getGridPoint(0);
+
+        // point in the middle of the output grid for printing debug information
+        int grid_point_debug = (*is)->num_outgrid / 2;
+
         // loop over output grid
         for (int i = 0; i < (*is)->num_outgrid; i++) {
             // update resSum (add result of a particular block)
             (*is)->resSum[i] += (*is)->Spline.Calculate(out_x);
-            if (i == 23) cout << (*is)->Spline.Calculate(out_x) << " " << endl;
+            // print useful debug information
+            if (i == grid_point_debug) cout << "This should be a number: " << (*is)->Spline.Calculate(out_x) << " " << endl;
             // update resSum2 (add result of a particular block)
             (*is)->resSum2[i] += (*is)->Spline.Calculate(out_x) * (*is)->Spline.Calculate(out_x);
             // output point for the next iteration
