@@ -13,12 +13,13 @@ check_deps "$0"
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 sim_prog=$(csg_get_property cg.inverse.program)
-p_now="$(do_external pressure $sim_prog)" 
 p_target="$(csg_get_property cg.inverse.p_target)"  
 name=$(csg_get_interaction_property name)
+log "Target pressure is $p_target"
 
+p_now="$(do_external pressure $sim_prog)" || die "${0##*/}: do_external pressure $sim_prog failed"
+[ -z "$p_new" ] && die "${0##*/}: Could not get p_new"
 log "New pressure $p_now"
-log "Target pressure was $p_target"
   
 pscheme=( $(csg_get_interaction_property do_pressure ) )
 pscheme_nr=$(( ( $1 - 1 ) % ${#pscheme[@]} ))
