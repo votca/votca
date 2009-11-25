@@ -155,9 +155,9 @@ void CGForceMatching::EndCG()
 {
     // sanity check
     if (_nblocks == 0) {
-        cout << "\nERROR in csg_fmatch::EndCG - No blocks have been processed so far" << endl;
-        cout << "It might be that you are using trajectory, which is smaller than needed for one block" << endl;
-        cout << "Check your input!" << endl;
+        cerr << "\nERROR in csg_fmatch::EndCG - No blocks have been processed so far" << endl;
+        cerr << "It might be that you are using trajectory, which is smaller than needed for one block" << endl;
+        cerr << "Check your input!" << endl;
         exit(-1);
     }
 
@@ -230,7 +230,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom) = Force.z();
         }
     } else {
-        cout << "\nERROR in csg_fmatch::EvalConfiguration - No forces in configuration!\n" << endl;
+        cerr << "\nERROR in csg_fmatch::EvalConfiguration - No forces in configuration!\n" << endl;
         exit(-1);
     }
     // update the frame counter
