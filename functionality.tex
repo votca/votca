@@ -1,7 +1,6 @@
-\chapter{Votca Components}
+\chapter{Implementation}
 \subsection{Coarse-graining engine}
-
-In a nutshell, coarse-graining is nothing more than an analysis of the canonical ensemble of a reference (high resolution) system. In addition to this analysis, iterative methods require canonical sampling of the coarse-grained system which can be done using either molecular dynamics (MD), stochastic dynamics (SD), or Monte Carlo (MC) techniques. The latter are implemented in many standard simulation packages. Rather than implementing its own MD/SD/MC modules, the toolkit allows swift and flexible integration of existing  programs in such a way that sampling is performed in the program of choice. Only the analysis needed for systematic coarse-graining is done using the package tools.
+\votca can be divided into two main parts. A C++ kernel, which is capable of processing topologies and trajectories and contains some helper programs, and a scripting enginge which steers the iterative procedures.
 
 The tools include calculations of probability distributions of bonded and non-bonded interactions, correlation and autocorrelation functions, and updates for the coarse-grained pair potential. Analysis tools of the MD package can also be integrated into the coarse-graining workflow, if needed.
 
@@ -11,12 +10,15 @@ The coarse-graining procedure itself is controlled by several Extensible Markup 
 %It is possible to generate exclusion lists for Boltzmann inversion of bonded interactions or virtual sites for back-mapping.
 
 \input{functionality//mapping}
+
 \section{Topologies}
 A topology is defined as a set of beads with a certain bead type which are connected by bonded interactions.
 Votca can read topologies in the \gromacs tpr format. Additionally, it can use a pdb file as topology, however, not all information are given in a pdb file and are not defined. If a pdb topology is used, it is recommended to fill additional molecule information using the xml advanced topology handling feature (see. \sect{sec:adv_topology})
-\subsection{Advanced topology handling}
+\subsection{Manual topology handling}
 \label{sec:adv_topology}
-Many file formats do not have a clear definition of a molecules. This can lead to problems, especially if a simulation contains several multiple molecules. Since during the coarse graining, the molecule type is identified by a name tag, names must be set properly. VOTCA offers the possibility to read a topology and later on modify parts of it. Everything is defined in an xml topology file.
+Many file formats do not have a clear definition of a molecules. This can lead to problems, especially if a simulation contains several multiple molecules. Since during the coarse graining, the molecule type is identified by a name tag, names must be set properly. \votca offers the possibility to read a topology and later on modify parts of it. Everything is defined in an xml topology file.
+
+Also \gromacs did not store molecule names in previous versions. This was introduced in a newer release, however the file reader of \votca was not yet adapted to also read the names. If a system with multiple molecule types is processed, molecule are read in properly but molecule names have to be specified manually as described in this section.
 
 If no molecule information is present at all, they can be created. An for a topology file that reads in last.pdb and then creates molecules is:
 \begin{verbatim}

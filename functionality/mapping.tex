@@ -1,7 +1,14 @@
-\section{Mapping definitions}
+\section{Mapping}
 \label{sec:mapping}
-{\em Mapping definitions} describe how to map a single molecule from atomistic to coarse-grained representation. A mapping definition only has to be specified once per molecule. The file contains sections for coarse-grained beads, bonded interactions in coarse grained scheme as well as mapping matrices. 
+{\em Mapping definitions} describe how to map a single molecule from atomistic to coarse-grained representation. A mapping definition only has to be specified once per molecule. The file contains sections for coarse-grained beads, bonded interactions in coarse grained scheme as well as mapping matrices. If a system contains several molecule types, it has to be assured that molecule names are set properly. The mapping files should be specified in a list separated by ; (e.g. \"protein.xml;solvent.xml\"). The ident tag in the mapping definition must match the name of the molecule in the reference system.
+
+A mapping file has similar entries as a topology, however additional information for mapping are present. In the topology section, coarse grained beads and bonded interactions are defined. Each coarse grained bead has a name, type and mapping entry, as well as a list of atoms that are mapped to this coarse-grained bead. The name must be unique withing the mapping file. Type defines the type of the bead. The mapping tag defines which mapping scheme is used from the mapping section in the file. Type and mapping can be different since the number of atoms for the same bead type might be different, e.g. at chain ends for saturating hydrogen atoms.
+
+In the mapping section of the mapping file, mappings are specified. Currently this is mainly the weights of the mapping matrix.
+
+A complete reference for mapping file definitions can be found in ref.~\ref{sec:ref_mapping}.
 
 \subsection{Example - mapping file for propane}
+TODO: Add picture
 
 \lstinputlisting[frame=single,caption=Mapping for propane]{functionality/propane.xml}
