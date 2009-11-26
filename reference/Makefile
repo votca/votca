@@ -1,13 +1,11 @@
 .PHONY: programs
 
-all: programs.tex
+all: programs.tex scripts.tex
 	$(MAKE) $(MFLAGS) -C src
 
-programs.tex: programs 
-	ls -1 programs/*.tex | sed 's%\(.*\)\.tex%\\input{reference/\1}%' > programs.tex
-
-programs:
-	$(MAKE) $(MFLAGS) -C programs
+%.tex:
+	$(MAKE) $(MFLAGS) -C $*
+	ls -1 $*/*.tex | sed 's%\(.*\)\.tex%\\input{reference/\1}%' > $@
 
 clean:
 	rm -f programs.tex
