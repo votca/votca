@@ -2,12 +2,12 @@
 
 #if not defined try to parse agrument
 if [ -z "${CSGSHARE}" ]; then
-   echo Error: Environment values CSGSHARE not defined 1>&2
-   echo Try ${0##*/} --help for help 1>&2
+   echo "Error: Environment values CSGSHARE not defined" >&2
+   echo "Try ${0##*/} --help for help" >&2
    exit 1
 fi
 
-echo \$CSGSHARE is ${CSGSHARE}
+#echo \$CSGSHARE is ${CSGSHARE}
 
 if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
    exec ${CSGSHARE}/scripts/inverse/inverse.sh $@

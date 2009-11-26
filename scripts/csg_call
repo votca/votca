@@ -21,6 +21,7 @@ OPTIONS:
     --ia-name name  Specify the interaction name to use
 -h, --help          Show this help
 
+
 Example: ${0##*/} table smooth [ARGUMENTS]
 
 USES: \$CSGSHARE
