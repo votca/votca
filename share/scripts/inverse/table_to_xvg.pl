@@ -14,6 +14,7 @@ In addtion it does some magic tricks:
  -shift the potential, so that it is zero at the cutoff
  -set all values to zero after the cutoff
 
+
 NEEDS: cg.inverse.gromacs.pot_max cg.inverse.gromacs.table_end cg.inverse.gromacs.table_bins
 USES: csg_get_property saveto_table readin_table
 EOF

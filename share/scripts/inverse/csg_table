@@ -48,7 +48,6 @@ update ibm_pot update_ibm_pot.pl
 
 # imc specific stuff
 # TODO: rename to imc single
-update imc_single update_imc_single.sh
 imcsolver matlab solve_matlab.sh
 imcsolver octave solve_octave.sh
 imc purify imc_purify.sh

@@ -31,6 +31,7 @@ OPTIONS:
 -h, --help            Show this help message
 --withflag            only change entries with specific flag in src
 
+
 Examples:  $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
 
 USES: readin_table saveto_table
