@@ -1,11 +1,17 @@
 \section{Boltzmann Inversion}
+\begin{figure}
+   \centering
+   \includegraphics{usage/fig/flow_boltzmann.eps}
+   \caption{Flowchart to perform Boltzmann inversion.}
+\end{figure}
+
 Boltzmann inversion is most often performed on a single molecule in vaccuum for deriving bonded interactions while the non-bonded parts are treated via a separate method. VOTCA offers tools to analyse distributions and correlations of such a simulation as well as the preparation of an tabulated potential. Also exclusion lists for the atomistic simulations when the separation ansatz is used (cite Tschoep) can be created automatically. The tool most often used in this section is \textbf{csg\_boltzmann}. Also mapping from atomistic to coarse-grained level can be perfomred. An important thing to remember if the program \textbf{csg\_boltzmann} is used is that it parses the whole trajectory and stores all information about bonded interactions in memory to allow interactive analysis. That's why it is not suitable for really big systems with lots of chains. If analysis of a big system is performed, \textbf{csg\_stat} should be prefered for the analysis. Though it currently offers less features than \textbf{csg\_boltzmann}, memory problems should not occur.
 
 \subsection{Mapping scheme}
 The first thing to coarse-grain a system is to define a mapping scheme (see \sect{sec:mapping}). The mapping is defined by a simple xml file for each molecule-type. An important step is to verify the mapping scheme by:
 
 \begin{verbatim}
-  csg_boltzmann--top topol.tpr --trj traj.trr --cg mapping.xml --out cg.gro
+  csg_boltzmann --top topol.tpr --trj traj.trr --cg mapping.xml --out cg.gro
 \end{verbatim}
 
 The most common thing that can go wrong is that beads cannot be found. On reason is a type in the atom name of the mapping. To debug which atoms are read in from a topology file, \textbf{csg\_dump} can be used. A second reason could be, that molecules are not identified correctly. In case of a multicomponent system, see \sect{sec:adv_topology} for details.
@@ -19,7 +25,7 @@ To generate an exclusion list automaticaly, an atomistic topology without exclus
 
 To create the exclusion list, run
 \begin{verbatim}
-  csg_boltzmann--top topol.tpr --cg mapping.xml --excl exclusions.txt
+  csg_boltzmann --top topol.tpr --cg mapping.xml --excl exclusions.txt
 \end{verbatim}
 This will create a list of exclusions for all interactions that are not within a bonded interaction of the coarse-grained sub-bead. As an example, if the coarse grained molecule is a linear molecule of 3 beads, which are only connected by bonds, \textbf{csg\_boltzmann} will create exclusions for all non-bonded interactions of atoms from the first bead with atoms of the 3rd bead since they would contribute only to the non-bonded interaction potential which is treated separately.
 
