@@ -8,6 +8,25 @@ translation invariance \\
 definition of the mass \\
 definition of specific and involved atoms \\
 
+One has to mention that we borrowed notations from Noid's paper.!!!
+
+Mapping scheme is an operator, which maps an atomistic representation of the system onto a coarse-grained one.
+Atomistic system is described specifying the values of the Cartesian coordinates $\bm r^n = \{\bm r_1,...,\bm r_n\}$ and momenta 
+$\bm p^n = \{\bm p_1,...,\bm p_n\}$ of the $n$ atoms in the system. Since we want to describe our system on a coarse-grained level, we need to introduce CG coordinates and momenta, which have a strictly defined meaning in terms of atomistic coordinates and momenta. The physical meaning of the CG sites $\bm R^N = \{\bm R_1,...,\bm R_N\}$ is specified by a linear mapping operator
+$\bm M_R^N = \{\bm M_{R1}(\bm r^n),...,\bm M_{RN}(\bm r^n)\}$
+
+\begin{equation}
+ \bm M_{RI}(\bm r^n)=\sum_{i=1}^{n}c_{Ii}\bm r_i \, \rm for\, \it I = 1,...,N
+\end{equation}
+
+Analogously, the physical meaning of the CG momenta $\bm P^N = \{\bm P_1,...,\bm P_N\}$ is
+
+\begin{equation}
+ \bm M_{PI}(\bm r^n)=M_I\sum_{i=1}^{n}c_{Ii}\bm p_i/m_i \, \rm for\, \it I = 1,...,N
+\end{equation}
+All together those {\it N} functions is a linear operator denoted by $\bm M_P^N(\bm p^n)$
+
+
 \section{Boltzmann inversion}
 Boltzmann inversion is the simplest method one can use to obtain coarse-grained potentials~\cite{Tschoep:1998}. It is mostly used for {\em bonded} potentials, such as bonds, angles, and torsions. Boltzmann inversion is structure-based and only requires positions of atoms.
 
