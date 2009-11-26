@@ -1,8 +1,9 @@
 \section{Force matching}
 \sasha
+Force matching algorithm with cubic spline basis is implemented in \csgfmatch utility.
 
-\subsection{Available options}
-When executing without any options csg\_fmatch shows available options:
+\subsection{\csgfmatch: available options}
+When executing without any options \csgfmatch shows available options:
 \begin{verbatim}
   --options arg          options file for coarse graining
   --help                 produce this help message
@@ -14,10 +15,10 @@ When executing without any options csg\_fmatch shows available options:
   --first-frame arg (=0) start with this frame
   --nframes arg          process so many frames
 \end{verbatim}
-Some options must be provided, some are optional. Must be provided: \textbf{--options}, \textbf{--top}, \textbf{--trj} and \textbf{--cg}. \textbf{--top} is an atomistic topology file: topol.tpr. \textbf{--trj} is an atomistic trajectory file: traj.trr. Note that trajectory file must contain forces ( there is an option for that in GROMACS .mdp file ), otherwise there will be nothing to match. \textbf{--cg} is a file, which contains the CG mapping scheme with all the interactions, user wants to define on a coarse-grained level, see [[Mapping scheme]]
+Some options must be provided, some are optional. Must be provided: \textbf{\ddash{options}}, \textbf{\ddash{top}}, \textbf{\ddash{trj}} and \textbf{\ddash{cg}}. \textbf{\ddash{top}} is an atomistic topology file: topol.tpr. \textbf{\ddash{trj}} is an atomistic trajectory file: traj.trr. Note that trajectory file must contain forces ( there is an option for that in GROMACS .mdp file ), otherwise there will be nothing to match. \textbf{\ddash{cg}} is a file, which contains the CG mapping scheme with all the interactions, user wants to define on a coarse-grained level, see \sect{sec:adv_topology}.
 
 \subsubsection{CG-options file}
-\textbf{--options} is an xml-file, which contains options to control force matching functionality. 
+\textbf{\ddash{options}} is an \xml-file, which contains options to control force matching functionality. 
 Currently the file has the following options:
 \begin{verbatim}
    <cg>
@@ -45,33 +46,33 @@ Currently the file has the following options:
    </cg>
 \end{verbatim}
 
-\textbf{frames\_per\_block} is number of frames, being used for block averaging, for details see VOTCA paper.
+\textbf{frames\_per\_block}\newline is number of frames, being used for block averaging. Atomistic trajectory, specified with
+\textbf{\ddash{trj}} option, is divided into blocks and the force matching equations are solved separately for each block.
+Coarse-grained force-field, which one gets on the output is averaged over those blocks.
 
-\textbf{constrainedLS} is a boolean variable: false - simple least squares, true - constrained least squares, for details see VOTCA paper.
-Practically both algorithms give the same results, but simple least squares is faster. If you are mathematician and think that a spline is only then can be called spline if it has continuous first and second derivatives, use constrained least squares.
+\textbf{constrainedLS}\newline is a boolean variable: false - simple least squares, true - constrained least squares. For details see \votca paper.
+Practically both algorithms give the same results, but simple least squares is faster. If you are mathematician and think that a spline is only then can be called spline if it has continuous first and second derivatives, use constrained least squares. \newline
 
 In this example we have only one interaction on a coarse-grained level, its name: CG-CG. But in principle several types of non-bonded as well as bonded interactions can be added. 
 
-\textbf{type1} and \textbf{type2} are the types of CG-beads involved in the interaction CG-CG. In this case this is an interaction between a CG-bead of type A with another CG-bead of type A. These types should correspond to the mapping scheme file ( option \textbf{--cg} ).
+\textbf{type1} and \textbf{type2}\newline are the types of CG-beads involved in the interaction CG-CG. In this case this is an interaction between a CG-bead of type A with another CG-bead of type A. These types should correspond to the mapping scheme file ( option \textbf{\ddash{cg}} ).
  
-\textbf{min} is a minimum distance between CG-bead of type1 and CG-bead of type2,  sampled in atomistic MD simulation. One can get this number by looking at the type1-type2 radial distribution function. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).
+\textbf{min}\newline is a minimum distance between CG-bead of \textbf{type1} and CG-bead of \textbf{type2},  sampled in atomistic MD simulation. One can get this number by looking at the \textbf{type1-type2} radial distribution function. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).
 
-\textbf{max} is the interaction cutoff in case of non-bonded interaction or a maximum value, sampled in the atomistic simulations in case of bonded interactions.
+\textbf{max}\newline is the interaction cutoff in case of non-bonded interaction or a maximum value, sampled in the atomistic simulations in case of bonded interactions.
 
-\textbf{step} is the grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small, otherwise you will have unsampled bins and will get NaNs in the output.
+\textbf{step}\newline is the grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small, otherwise you will have unsampled bins and will get NaNs in the output.
 
-\textbf{out\_step} is a grid spacing for the output grid. Normally one wants to have this parameter smaller than \textbf{step}, 
+\textbf{out\_step}\newline is a grid spacing for the output grid. Normally one wants to have this parameter smaller than \textbf{step}, 
 to have smooth curve, without additional spline interpolation. 
 As a rule of thumb we normally use \textbf{out\_step}, which is approximately 5 times smaller than \textbf{step}.
 
-If we already modified the file format but didn't modify this page and you're having problems running force matching, send an e-mail to Alexander Lukyanov.
-
-\subsection{Program Output}
-csg\_fmatch produces a separate .force file for each interaction, specified in the CG-options file ( option --options ).
-These files have 3 columns: distance, corresponding force, and the force error, estimated using block-averaging procedure.
+\subsection{Program output}
+\csgfmatch produces a separate .force file for each interaction, specified in the CG-options file (option \textbf{\ddash{options}} ).
+These files have 4 columns: distance, corresponding force, table flag and the force error, estimated using block-averaging procedure.
 If you have an angle, then the first column will contain corresponding angle in radians.
 
-To get table-files for GROMACS one has to integrate the forces to get the potentials and do extrapolation and probably smoothing.
+To get table-files for \gromacs one has to integrate the forces to get the potentials and do extrapolation and probably smoothing.
 
-\subsection{Tabulated potentials from the force}
+\subsection{Integration and extrapolation of .force files }
 
