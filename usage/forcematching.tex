@@ -1,6 +1,7 @@
 \section{Force matching}
 \subsection{Available options}
 When executing without any options csg\_fmatch shows available options:
+\begin{verbatim}
   --options arg          options file for coarse graining
   --help                 produce this help message
   --version              show version info
@@ -10,14 +11,11 @@ When executing without any options csg\_fmatch shows available options:
   --begin arg            skip frames before this time
   --first-frame arg (=0) start with this frame
   --nframes arg          process so many frames
-Some options must be provided, some are optional. Must be provided: --options, --top, --trj --cg.
---top is an atomistic topology file: topol.tpr, --trj is an atomistic trajectory file: traj.trr
-Note that trajectory file '''must contain forces''' ( there is an option for that in .mdp file ), otherwise there will be nothing to match.
+\end{verbatim}
+Some options must be provided, some are optional. Must be provided: \textbf{--options}, \textbf{--top}, \textbf{--trj} and \textbf{--cg}. \textbf{--top} is an atomistic topology file: topol.tpr. \textbf{--trj} is an atomistic trajectory file: traj.trr. Note that trajectory file must contain forces ( there is an option for that in GROMACS .mdp file ), otherwise there will be nothing to match. \textbf{--cg} is a file, which contains the CG mapping scheme with all the interactions, user wants to define on a coarse-grained level, see [[Mapping scheme]]
 
---cg is a file, which contains the CG mapping scheme with all the interactions, user wants to define on a coarse-grained level, see [[Mapping scheme]]
-
-== CG-Options file ==
---options is an xml-file, which contains options for the force matching. This file is constantly changing, we are still working on that.
+\subsubsection{CG-options file}
+\textbf{--options} is an xml-file, which contains options to control force matching functionality. 
 Currently the file has the following options:
 \begin{verbatim}
    <cg>
@@ -25,8 +23,8 @@ Currently the file has the following options:
      <fmatch>
        <!--Number of frames for block averaging -->
        <frames_per_block>6</frames_per_block>
-       <!--Constrained least squares?: 0 or 1-->
-       <constrainedLS>0</constrainedLS>
+       <!--Constrained least squares?-->
+       <constrainedLS>false</constrainedLS>
      </fmatch>
      <!-- example for a non-bonded interaction entry -->
      <non-bonded>
@@ -39,28 +37,30 @@ Currently the file has the following options:
          <min>0.27</min>
          <max>1.2</max>
          <step>0.02</step>
-         <res_output_coeff>5</res_output_coeff>
+         <out_step>0.005</out_step>
        </fmatch>
      </non-bonded>
    </cg>
 \end{verbatim}
 
-frames\_per\_block is number of frames, being used for block averaging, for details see VOTCA paper.
+\textbf{frames\_per\_block} is number of frames, being used for block averaging, for details see VOTCA paper.
 
-constrainedLS is a boolean variable: 0 - simple least squares, 1 - constrained least squares, for details see VOTCA paper.
+\textbf{constrainedLS} is a boolean variable: false - simple least squares, true - constrained least squares, for details see VOTCA paper.
 Practically both algorithms give the same results, but simple least squares is faster. If you are mathematician and think that a spline is only then can be called spline if it has continuous first and second derivatives, use constrained least squares.
 
-In this example we have only one interaction on a coarse-grained level, its'name: CG-CG. But in principle several types of non-bonded as well as bonded interactions can be added. 
+In this example we have only one interaction on a coarse-grained level, its name: CG-CG. But in principle several types of non-bonded as well as bonded interactions can be added. 
 
-type1 and type2 are the types of CG-beads involved in the interaction CG-CG. In this case this is an interaction between a CG-bead of type A with another CG-bead of type A. These types should correspond to the mapping scheme file ( option --cg ).
+\textbf{type1} and \textbf{type2} are the types of CG-beads involved in the interaction CG-CG. In this case this is an interaction between a CG-bead of type A with another CG-bead of type A. These types should correspond to the mapping scheme file ( option \textbf{--cg} ).
+ 
+\textbf{min} is a minimum distance between CG-bead of type1 and CG-bead of type2,  sampled in atomistic MD simulation. One can get this number by looking at the type1-type2 radial distribution function. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).
 
-min is a minimum distance between CG-bead of type1 and CG-bead of type2,  sampled in atomistic MD simulation. One can get this number by looking at the type1-type2 radial distribution function. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).
+\textbf{max} is the interaction cutoff in case of non-bonded interaction or a maximum value, sampled in the atomistic simulations in case of bonded interactions.
 
-max is the interaction cutoff in case of non-bonded interaction or a maximum value, sampled in the atomistic simulations in case of bonded interactions.
+\textbf{step} is the grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small, otherwise you will have unsampled bins and will get NaNs in the output.
 
-step is the grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small, otherwise you will have unsampled bins and will get NaNs in the output.
-
-res\_output\_coeff is a parameter, which controls how many points, representing the CG interaction potential you will get in the output. If you set it to 1 you will have one point per bin in the output. 5 gives you 5 points.
+\textbf{out\_step} is a grid spacing for the output grid. Normally one wants to have this parameter smaller than \textbf{step}, 
+to have smooth curve, without additional spline interpolation. 
+As a rule of thumb we normally use \textbf{out\_step}, which is approximately 5 times smaller than \textbf{step}.
 
 If we already modified the file format but didn't modify this page and you're having problems running force matching, send an e-mail to Alexander Lukyanov.
 
