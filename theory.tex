@@ -8,15 +8,16 @@ translation invariance \\
 definition of the mass \\
 definition of specific and involved atoms \\
 
-One has to mention that we borrowed notations from Noid's paper.!!!
+In this section our description follows an excellent analysis given in \cite{Noid:2008.1}
 
 Mapping scheme is an operator, which maps an atomistic representation of the system onto a coarse-grained one.
 Atomistic system is described specifying the values of the Cartesian coordinates $\bm r^n = \{\bm r_1,...,\bm r_n\}$ and momenta 
 $\bm p^n = \{\bm p_1,...,\bm p_n\}$ of the $n$ atoms in the system. Since we want to describe our system on a coarse-grained level, we need to introduce CG coordinates and momenta, which have a strictly defined meaning in terms of atomistic coordinates and momenta. The physical meaning of the CG sites $\bm R^N = \{\bm R_1,...,\bm R_N\}$ is specified by a linear mapping operator
-$\bm M_R^N = \{\bm M_{R1}(\bm r^n),...,\bm M_{RN}(\bm r^n)\}$
+$\bm M_R^N(\bm r^n) = \{\bm M_{R1}(\bm r^n),...,\bm M_{RN}(\bm r^n)\}$
 
 \begin{equation}
  \bm M_{RI}(\bm r^n)=\sum_{i=1}^{n}c_{Ii}\bm r_i \, \rm for\, \it I = 1,...,N
+\label{eq:mapping_scheme}
 \end{equation}
 
 Analogously, the physical meaning of the CG momenta $\bm P^N = \{\bm P_1,...,\bm P_N\}$ is
@@ -26,6 +27,32 @@ Analogously, the physical meaning of the CG momenta $\bm P^N = \{\bm P_1,...,\bm
 \end{equation}
 All together those {\it N} functions is a linear operator denoted by $\bm M_P^N(\bm p^n)$
 
+Mapping operator should satisfy a certain condition, related to translational invariance. If an atomistic system is translated by the vector displacement $\bm r $, corresponding coarse-grained system is similarly translated by the same vector. This imposes the following condition on the mapping coefficients $ c_{Ii} $:
+
+\begin{equation}
+ \sum_{i=1}^{n}c_{Ii}=1\, \rm for\, all\, \it I
+\end{equation}
+
+It might be useful to define CG mapping in a way that certain atoms belong to several CG beads at the same time \cite{Fritz:2009}.
+In order to understand this situation one needs to define two special sets of atoms for each of the {\it N} CG beads. For each site {\it I}, a set of {\it involved} atoms is defined as:
+
+\begin{equation}
+ {\tt I}_I=\{i|c_{Ii}\ne0\}
+\end{equation}
+An atom {\it i} in the atomistic model is involved in a CG site {\it I} if and only if the atoms provides a nonzero contribution to the sum in Eq.\ref{eq:mapping_scheme}.
+
+A set of {\it specific} atoms is defined as:
+\begin{equation}
+ {\tt S}_I=\{i|c_{Ii}\ne0\, {\rm and}\, c_{Ji}=0\, {\rm for\,all}\, J\ne I\}
+\end{equation}
+
+In other words, atom {\it i} is specific to site {\it I} if and only if the atom is involved in site {\it I} and is not involved in the definition of any other site.
+
+It can be shown (see \cite{Noid:2008.1}) that a CG model will generate an equilibrium distribution of momenta that is consistent with an underlying atomistic model if all the atoms are {\it specific} and if the mass of the CG sites is chosen according to
+
+\begin{equation}
+M_I= \left( \sum_{i \in {\tt I}_I}\frac{c_{Ii}^2}{m_i} \right)^{-1}\, \rm for\, all\, {\it I}
+\end{equation}
 
 \section{Boltzmann inversion}
 Boltzmann inversion is the simplest method one can use to obtain coarse-grained potentials~\cite{Tschoep:1998}. It is mostly used for {\em bonded} potentials, such as bonds, angles, and torsions. Boltzmann inversion is structure-based and only requires positions of atoms.
