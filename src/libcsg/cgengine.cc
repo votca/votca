@@ -29,7 +29,9 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out)
         Molecule *mol = *iter;
         CGMoleculeDef *def = getMoleculeDef(mol->getName());
         if(!def) {
-            cout << "unknown molecule " << mol->getName() << " in topology" << endl;
+            cout << "unknown molecule " << mol->getName() << " with id "
+                 << mol->getId() << " in topology" << endl
+                 << "molecule will not be mapped to CG representation" << endl;
             continue;
         }
         Molecule *mcg = def->CreateMolecule(out);
