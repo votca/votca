@@ -13,6 +13,7 @@
 #include <boost/lexical_cast.hpp>
 #include <list>
 #include <boost/algorithm/string/trim.hpp>
+#include <stdexcept>
 
 using namespace std;
 
@@ -66,7 +67,7 @@ public:
     /// p.as<int>() returns an integer
 
     template<typename T>
-    T as() const { return boost::lexical_cast<T>(_value); }
+    T as() const;
 
     /// \brief does the property has childs?
     bool HasChilds() { return !_map.empty(); }
@@ -126,6 +127,17 @@ inline bool Property::as<bool>() const
 {
     if(_value == "true" || _value == "TRUE" || _value == "1") return true;
     else return false;
+}
+
+template<typename T>
+inline T Property::as() const
+{
+    try {
+       return boost::lexical_cast<T>(_value);
+    }
+    catch(boost::bad_lexical_cast error ) {
+        throw std::runtime_error("wrong type in " + _path + "."  + _name + "\n" + error.what());
+    }
 }
 
 template<>
