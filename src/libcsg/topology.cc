@@ -145,6 +145,23 @@ void Topology::RenameMolecules(string range, string name)
     }
 }
 
+void Topology::CheckMoleculeNaming(void)
+{
+    map<string,int> nbeads;
+
+    for(MoleculeContainer::iterator iter = _molecules.begin(); iter!=_molecules.end(); ++iter) {
+        map<string,int>::iterator entry = nbeads.find((*iter)->getName());
+        if(entry != nbeads.end()) {
+            if(entry->second != (*iter)->BeadCount())
+                throw runtime_error("There are molecules which have the same name but different number of bead "
+                        "please check the section manual topology handling in the votca manual");
+            continue;
+        }
+        nbeads[(*iter)->getName()] = (*iter)->BeadCount();
+    }
+}
+
+
 void Topology::AddBondedInteraction(Interaction *ic)
 {
     map<string,int>::iterator iter;

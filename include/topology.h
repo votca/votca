@@ -61,6 +61,9 @@ public:
 
     /// creates a new molecule
     Molecule *CreateMolecule(string name);
+
+    /// checks weather molecules with the same name really contain the same number of beads
+    void CheckMoleculeNaming(void);
     
     /// creates a new residue
     Residue *CreateResidue(string name);

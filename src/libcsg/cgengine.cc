@@ -130,6 +130,7 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     // read in the atomistic topology
     reader->ReadTopology(vm["top"].as<string>(), top);
     cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
+    top.CheckMoleculeNaming();
     
     //top.CreateMoleculesByResidue();    
     //top.CreateOneBigMolecule("PS1");    

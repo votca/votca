@@ -85,7 +85,7 @@ inline CGMoleculeDef *CGEngine::getMoleculeDef(string name)
     map<string, CGMoleculeDef*>::iterator iter;
     
     // if there is only 1 molecule definition, don't care about the name
-    if(_molecule_defs.size()==1) {
+    if(_molecule_defs.size()==1 && name == "unnamed") {
             return (*(_molecule_defs.begin())).second;
     }
     

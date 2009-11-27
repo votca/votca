@@ -158,6 +158,8 @@ int main(int argc, char** argv)
         }
         reader->ReadTopology(vm["top"].as<string>(), top);
         cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
+
+        top.CheckMoleculeNaming();
         //top.CreateMoleculesByResidue();    
         //top.CreateOneBigMolecule("PS1");    
         
@@ -217,8 +219,9 @@ int main(int argc, char** argv)
         delete map;
     
     }
-    catch(string error) {
-        cerr << "An error occoured!" << endl << error << endl;
+    catch(std::exception &error) {
+        cerr << "An error occoured!" << endl << error.what() << endl;
+        exit(1);
     }
     if (vm.count("out")) {
         writer->Close();
