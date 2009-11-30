@@ -8,8 +8,35 @@
 \usepackage{appendix}
 \usepackage{xspace}
 \usepackage{a4wide}
-\usepackage{hyperref}
+%\usepackage{hyperref}
 \usepackage{wrapfig}
+
+\usepackage
+[dvips, %or dvips
+%------------- Backref Switch ---------------------------
+pagebackref, %or backref
+%------------- Cropping ---------------------------------
+pdfpagescrop={53 436 389 704}, %dvipsone; 19 lines
+%pdfpagescrop={53 486 389 754}, %dvips; 19 lines
+%------------- Color Links ------------------------------
+colorlinks=true,
+linkcolor=webgreen, %defined below
+filecolor=webbrown, %defined below
+citecolor=webgreen, %defined below
+%------------- Doc Info ---------------------------------
+pdftitle={VOTCA manual},
+%pdfauthor={D. P. Story},
+pdfsubject={How to use hyperref, color packages},
+pdfkeywords={LaTeX hyperref pdf},
+%------------ Doc View ----------------------------------
+bookmarksopen=false,
+pdfpagemode=None]{hyperref}
+%
+%Define some eye-pleasing colors for this document
+%
+\definecolor{webgreen}{rgb}{0,.5,0}
+\definecolor{webbrown}{rgb}{.6,0,0}
+
 
 \renewcommand{\vec}[1]{\ensuremath{{\bm #1}}}
 \newcommand{\fig}[1]{fig.~\ref{#1}}

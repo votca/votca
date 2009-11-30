@@ -19,6 +19,7 @@ SCRIPTS=\
 	dpot_crop.pl.tex\
 	update_ibm_single.sh.tex\
 	update_ibm_pot.pl.tex\
+	update_imc_single.sh.tex\
 	solve_matlab.sh.tex\
 	solve_octave.sh.tex\
 	imc_purify.sh.tex\
