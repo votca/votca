@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
-#include <tools/matrix.h>
+#include <votca/tools/matrix.h>
 #include "basis_set.h"
 #include "global.h"
 

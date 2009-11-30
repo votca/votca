@@ -8,8 +8,8 @@
 #ifndef _CRGUNIT_H
 #define	_CRGUNIT_H
 
-#include <tools/vec.h>
-#include <tools/matrix.h>
+#include <votca/tools/vec.h>
+#include <votca/tools/matrix.h>
 #include "global.h"
 #include "crgunittype.h"
 

@@ -12,7 +12,7 @@
 #include "basis_set.h"
 #include "charges.h"
 #include "global.h"
-#include <tools/vec.h>
+#include <votca/tools/vec.h>
 
 ////#define DEBUG
 
