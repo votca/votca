@@ -23,7 +23,8 @@ SCRIPTS=\
 	solve_matlab.sh.tex\
 	solve_octave.sh.tex\
 	imc_purify.sh.tex\
-	pressure_cor.pl.tex\
+	pressure_cor_simple.pl.tex\
+	pressure_cor_wjk.pl.tex\
 	add_POT.pl.tex\
 	integrate.pl.tex\
 	extrapolate.pl.tex\

@@ -1,15 +1,13 @@
 rmflags=-f
-PICDIR=abb
 
 all: 
 	./bootstrap.sh
 	$(MAKE) $(MFLAGS) -C reference 
+	$(MAKE) $(MFLAGS) -C fig
+	$(MAKE) $(MFLAGS) -C usage 
 	./latexmk.pl -pdfdvi manual.tex
 
 .SUFFIXES: .tex .pdf
-
-pics:
-	$(MAKE) $(MFLAGS) -C $(PICDIR)
 
 .tex.pdf:
 	./latexmk.pl -pdfdvi $*
@@ -18,5 +16,6 @@ clean:
 	rm -f manual.dvi manual.pdf
 	rm -f manual.fdb_latexmk
 	latexmk -c
-	$(MAKE) $(MFLAGS) -C reference clean
+	$(MAKE) $(MFLAGS) -C fig clean
+	$(MAKE) $(MFLAGS) -C usage clean
 
