@@ -53,7 +53,8 @@ imcsolver octave solve_octave.sh
 imc purify imc_purify.sh
 
 # pressure correction
-pressure correction pressure_cor.pl
+pressure_cor simple pressure_cor_simple.pl
+pressure_cor wjk pressure_cor_wjk.pl
 
 # generic table manipulation
 table add add_POT.pl

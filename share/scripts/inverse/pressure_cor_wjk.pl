@@ -4,8 +4,9 @@ use strict;
 ( my $progname = $0 ) =~ s#^.*/##;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname p_target p_cur outfile
-This script calls the pressure corrections dU=A*(1-r/r_c)
+Usage: $progname p_cur outfile
+This script calls the pressure corrections  like in 
+Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009) 
 
 NEEDS: cg.inverse.kBT max step
 USES: csg_get_property csg_get_interaction_property saveto_table
@@ -13,7 +14,7 @@ EOF
   exit 0;
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "2 parameters are nessary\n" if ($#ARGV<1);
 
 
 use CsgFunctions;
@@ -28,8 +29,8 @@ my $name=csg_get_interaction_property("name");
 my $pi= 3.14159265;
 my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
 
-my $p_target=$ARGV[0];
-my $p_now=$ARGV[1];
+my $p_target=csg_get_interaction_property("p_target");
+my $p_now=$ARGV[0];
 
 # load current rdf
 my $cur_rdf_file="${name}.dist.new";
@@ -70,7 +71,7 @@ print "Pressure correction factor: A=$pref\n";
 my @r;
 my @pot;
 my @flag;
-my $outfile="$ARGV[2]";
+my $outfile="$ARGV[1]";
 for(my $i=0;$i<=$max/$delta_r;$i++){
   $r[$i]=$i*$delta_r;
   $pot[$i]=$pref*(1-$r[$i]/$max);

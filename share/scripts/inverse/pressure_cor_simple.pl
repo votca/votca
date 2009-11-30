@@ -4,7 +4,7 @@ use strict;
 ( my $progname = $0 ) =~ s#^.*/##;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname p_target p_cur outfile
+Usage: $progname p_cur outfile
 This script calls the pressure corrections dU=A*(1-r/r_c)
 
 NEEDS: cg.inverse.kBT max step
@@ -13,16 +13,16 @@ EOF
   exit 0;
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "2 parameters are nessary\n" if ($#ARGV<1);
 
 use CsgFunctions;
 
 my $kBT=csg_get_property("cg.inverse.kBT");
 my $max=csg_get_interaction_property("max");
 my $delta_r=csg_get_interaction_property("step");
-
-my $p_target=$ARGV[0];
-my $p_now=$ARGV[1];
+my $scale_factor=csg_get_interaction_property("post_update_options.pressure.simple.scale");
+my $p_target=csg_get_interaction_property("p_target");
+my $p_now=$ARGV[0];
 
 #Determine the sign
 my $pref;
@@ -33,7 +33,7 @@ if ($p_now>$p_target){
 }
 
 #Determine pressure factor
-my $p_factor=($p_now-$p_target)/3000;
+my $p_factor=($p_now-$p_target)*$scale_factor;
 $p_factor=-$p_factor if $p_factor<0;
 
 #Only use pressure factor if not too big
@@ -43,7 +43,7 @@ $pref*=$p_factor if $p_factor<1;
 my @r;
 my @pot;
 my @flag;
-my $outfile="$ARGV[2]";
+my $outfile="$ARGV[1]";
 for(my $i=0;$i<=$max/$delta_r;$i++){
   $r[$i]=$i*$delta_r;
   $pot[$i]=$pref*(1-$r[$i]/$max);
