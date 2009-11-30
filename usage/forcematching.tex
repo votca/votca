@@ -82,4 +82,28 @@ To get table-files for \gromacs one has to integrate the forces to get the poten
 Output files are not only produced at the end of the program execution, but after successfull processing of every block. The user can have a look at the output files and decide to stop \csgfmatch, as long as the force error is small enough.
 
 \subsection{Integration and extrapolation of .force files }
+To convert .force to .pot one can execute
+
+\begin{verbatim}
+ csg_call table integrate CG-CG.force CG-CG.pot
+\end{verbatim}
+
+This command calls {\it integrate.pl} script, which integrates the force and writes the potential to the .pot file.
+
+Normally, some range of distances is not sampled in atomistic simulations. For example, very small distances are never sampled in the case of non-bonded interactions. But you might want to have them in your \gromacs table. So you have to extrapolate your potential. In order to do this one has to resample the grid first:
+
+\begin{verbatim}
+ csg_resample --in CH2-CH2.pot --out CH2-CH2.resampled.pot --grid 0:0.001:1.4
+\end{verbatim}
+
+Finally you can call {\it extrapolate.pl } to extrapolate the potential, for example:
+
+\begin{verbatim}
+ csg_call table extrapolate --function linear 
+--region leftright CH2-CH2.resampled.pot CH2-CH2.extrapolated.pot
+\end{verbatim}
+
+
+
+
 
