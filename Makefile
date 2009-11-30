@@ -2,6 +2,7 @@ rmflags=-f
 PICDIR=abb
 
 all: 
+	./bootstrap.sh
 	$(MAKE) $(MFLAGS) -C reference 
 	./latexmk.pl -pdfdvi manual.tex
 

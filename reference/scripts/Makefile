@@ -19,7 +19,6 @@ SCRIPTS=\
 	dpot_crop.pl.tex\
 	update_ibm_single.sh.tex\
 	update_ibm_pot.pl.tex\
-	update_imc_single.sh.tex\
 	solve_matlab.sh.tex\
 	solve_octave.sh.tex\
 	imc_purify.sh.tex\
@@ -44,19 +43,21 @@ SCRIPTS=\
 .SUFFIXES: .t2t .tex
 .PHONY: clean
 
+SHELL=/bin/sh
+
 all: $(SCRIPTS)
 
 %.t2t:
-	if [ -z "${CSGSHARE}" ]; then \
+	@if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi
-	if ! cd ${CSGSHARE}/scripts/inverse && ./$* --help &> /dev/null; then\
+	@if ! cd ${CSGSHARE}/scripts/inverse && ./$* --help &> /dev/null; then\
 	  echo $* --help failed;\
 	  exit 1;\
 	fi
 	echo -e "\n\n\n==$*==" > $@
-	#$* --help | sed 's/^  --/: --/;/--/s/[[:space:]]\{5,\}/&\n/' >> $@
+	@#$* --help | sed 's/^  --/: --/;/--/s/[[:space:]]\{5,\}/&\n/' >> $@
 	( cd ${CSGSHARE}/scripts/inverse && ./$* --help ) | sed 's/^[[:space:]]*-/- -/' >> $@
 
 .t2t.tex:
@@ -69,7 +70,7 @@ clean:
 	rm -f $(SCRIPTS)
 
 Makefile: Makefile.in
-	if [ -z "${CSGSHARE}" ]; then \
+	@if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi

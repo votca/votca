@@ -3,6 +3,8 @@ all: wiki tex man
 .SUFFIXES: .xml .t2t .tex .man .wiki
 .PHONY: clean xmlclean
 
+SHELL=/bin/sh
+
 wiki: get cgoptions.wiki mapping.wiki
 man: get cgoptions.man mapping.man
 tex: get cgoptions.tex mapping.tex
@@ -13,11 +15,11 @@ xmlclean:
 	rm -f cgoptions.xml mapping.xml
 
 %.xml:
-	if [ -z "${CSGSHARE}" ]; then \
+	@if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi
-	if [ -f "${CSGSHARE}/doc/$@" ]; then \
+	@if [ -f "${CSGSHARE}/doc/$@" ]; then \
 	  cp -p $(CSGSHARE)/doc/$@ .;\
 	else\
 	  echo Error, did not find ${CSGSHARE}/doc/$@ >&2;\
