@@ -143,7 +143,7 @@ int main(int argc, char** argv)
         
         reader = TopReaderFactory().Create(vm["top"].as<string>());
         if(reader == NULL) 
-            throw string("input format not supported: ") + vm["top"].as<string>();
+            throw std::runtime_error("input format not supported: " + vm["top"].as<string>());
         
         reader->ReadTopology(vm["top"].as<string>(), top);
         cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
@@ -164,8 +164,8 @@ int main(int argc, char** argv)
         fl.close();
     }
     // did an error occour?
-    catch(string error) {
-        cerr << "An error occoured!" << endl << error << endl;
+    catch(std::exception &error) {
+        cerr << "An error occoured!" << endl << error.what() << endl;
     }
     return 0;
 }

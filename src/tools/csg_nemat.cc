@@ -31,7 +31,7 @@ public:
         if(_filename != "") {
             _file.open(_filename.c_str());
             if(!_file)
-                throw string("cannot open " + _filename + " for output");
+                throw runtime_error("cannot open " + _filename + " for output");
         }
         _u.zero();
         _v.zero();
@@ -165,8 +165,8 @@ int main(int argc, char** argv)
         cg_engine.Run(desc, vm);
     }
     // did an error occour?
-    catch(string error) {
-        cerr << "An error occoured!" << endl << error << endl;
+    catch(std::exception &error) {
+        cerr << "An error occoured!" << endl << error.what() << endl;
     }
     return 0;
 }

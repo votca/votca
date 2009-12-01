@@ -265,8 +265,8 @@ int main(int argc, char** argv)
             
             tool->second->Command(bs, cmd, args);
         }
-        catch(string error) {
-            cerr << "An error occoured:" << endl << error << endl;
+        catch(std::exception &error) {
+            cerr << "An error occoured:" << endl << error.what() << endl;
         }
     
     }

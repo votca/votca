@@ -114,8 +114,8 @@ int main(int argc, char** argv)
         cg_engine.Run(desc, vm);
     }
     // did an error occour?
-    catch(string error) {
-        cerr << "An error occoured!" << endl << error << endl;
+    catch(std::exception &error) {
+        cerr << "An error occoured!" << endl << error.what() << endl;
     }
     return 0;
 }

@@ -10,6 +10,7 @@
 #include <boost/lexical_cast.hpp>
 #include <stdio.h>
 #include "xmltopologyreader.h"
+#include <stdexcept>
 
 bool XMLTopologyReader::ReadTopology(string filename, Topology &top)
 { 
@@ -20,19 +21,19 @@ bool XMLTopologyReader::ReadTopology(string filename, Topology &top)
     
     doc = xmlParseFile(filename.c_str());
     if(doc == NULL) 
-        throw "Error on open xml bead map: " + filename;
+        throw runtime_error("Error on open xml bead map: " + filename);
     
     node = xmlDocGetRootElement(doc);
     
     if(node == NULL) {
         xmlFreeDoc(doc);
-        throw "Error, empty xml document: " + filename;
+        throw runtime_error("Error, empty xml document: " + filename);
     }
     
     if(xmlStrcmp(node->name, (const xmlChar *) "topology")) {
         xmlFreeDoc(doc);
         xmlCleanupParser();
-        throw "Error, wrong root node in " + filename;
+        throw runtime_error("Error, wrong root node in " + filename);
     }           
     
     ParseTopology(node);
@@ -48,7 +49,7 @@ void XMLTopologyReader::ReadTopolFile(string file)
     TopologyReader *reader;
     reader = TopReaderFactory().Create(file);
     if(!reader)
-        throw file + ": unknown topology format";
+        throw runtime_error(file + ": unknown topology format");
     
     reader->ReadTopology(file, *_top);
     
@@ -84,7 +85,7 @@ void XMLTopologyReader::ParseMolecules(xmlNodePtr node)
                 xmlFree(range);
             }
             else
-                throw string("invalid name tag");               
+                throw runtime_error("invalid name tag");               
         }
         if(!xmlStrcmp(node->name, (const xmlChar *) "define")) {
             char *molname = (char *) xmlGetProp(node, (const xmlChar *)"name");
@@ -102,7 +103,7 @@ void XMLTopologyReader::ParseMolecules(xmlNodePtr node)
                 xmlFree(nmols);
             }
             else
-                throw string("invalid name tag");               
+                throw runtime_error("invalid name tag");               
         }
     }         
 }

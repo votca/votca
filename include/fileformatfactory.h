@@ -32,7 +32,10 @@ T *FileFormatFactory<T>::Create(const string &file)
     Tokenizer tok(file, ".");       
     for(Tokenizer::iterator iter=tok.begin();iter!=tok.end();iter++)
         filetype = *iter;
-    return ObjectFactory<string,T>::Create(filetype);
+    try {
+        return ObjectFactory<string,T>::Create(filetype);
+    } catch(std::exception &error) {}
+    return NULL;
 }
 
 #endif	/* _FILEFORMATFACTORY_H */
