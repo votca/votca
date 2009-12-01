@@ -56,6 +56,8 @@ M_I= \left( \sum_{i \in {\cal I}_I}\frac{c_{Ii}^2}{m_i} \right)^{-1}\, \rm for\,
 \end{equation}
 
 \section{Boltzmann inversion}
+\label{sec:bi}
+
 Boltzmann inversion is the simplest method one can use to obtain coarse-grained potentials~\cite{Tschoep:1998}. It is mostly used for {\em bonded} potentials, such as bonds, angles, and torsions. Boltzmann inversion is structure-based and only requires positions of atoms.
 
 The potential is calculated by inverting the probability distribution $P(q)$ 
@@ -85,6 +87,8 @@ The coarse-grained potential can then be calculated by Boltzmann inversion of th
 \end{align}
 
 \section{Iterative Boltzmann Inversion}
+\label{sec:ibi}
+
 In \ibi~\cite{Reith:2003}, potentials are refined iteratively. The potential update $\Delta U$ is given by
 \begin{eqnarray}
   \label{eq:iter_boltzmann}
@@ -95,6 +99,8 @@ In \ibi~\cite{Reith:2003}, potentials are refined iteratively. The potential upd
 Here $\lambda \in ]0,1]$ is a numerical factor to stabilize the scheme.
 
 \section{Inverse Monte Carlo}
+\label{sec:imc}
+
 \imc is a second iterative scheme. It additionally includes cross correlations. The potential update $\Delta U$ is calculated by solving a set of linear equations
 \begin{align}
     \left<S_{\alpha}\right> - S_{\alpha}^{\text{ref}}= A_{\alpha \gamma} \Delta U_{\gamma}~,
@@ -113,6 +119,8 @@ with
 and $S$ the histogram of the interaction. Here $S$ and $H$ from Boltzmann Inversion both mean the same, due to notation used in the original papers we keep these separat labels.
 
 \section{Force Matching}
+\label{sec:fm}
+
 \sasha
 
 Brief description with references \\
