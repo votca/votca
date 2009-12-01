@@ -1,7 +1,7 @@
 \documentclass[a4paper,10pt]{book}
 
 \usepackage{listings}
-\usepackage{graphicx}
+%\usepackage{graphicx}
 \usepackage{color}
 \usepackage{bm}
 \usepackage{amsmath}
@@ -10,33 +10,28 @@
 \usepackage{a4wide}
 %\usepackage{hyperref}
 \usepackage{wrapfig}
+\usepackage[numbers,comma,sort&compress]{natbib}
+\usepackage{graphicx}
 
 \usepackage
-[dvips, %or dvips
-%------------- Backref Switch ---------------------------
+[dvips, %or dvips or pdftex
 pagebackref, %or backref
-%------------- Cropping ---------------------------------
 pdfpagescrop={53 436 389 704}, %dvipsone; 19 lines
 %pdfpagescrop={53 486 389 754}, %dvips; 19 lines
-%------------- Color Links ------------------------------
 colorlinks=true,
 linkcolor=webgreen, %defined below
 filecolor=webbrown, %defined below
 citecolor=webgreen, %defined below
-%------------- Doc Info ---------------------------------
 pdftitle={VOTCA manual},
-%pdfauthor={D. P. Story},
-pdfsubject={How to use hyperref, color packages},
-pdfkeywords={LaTeX hyperref pdf},
-%------------ Doc View ----------------------------------
+pdfauthor={},
+pdfsubject={VOTCA},
+pdfkeywords={coarse-graining boltzmann inversion monte carlo force matching},
 bookmarksopen=false,
 pdfpagemode=None]{hyperref}
-%
-%Define some eye-pleasing colors for this document
-%
+
 \definecolor{webgreen}{rgb}{0,.5,0}
 \definecolor{webbrown}{rgb}{.6,0,0}
-
+\pdfcompresslevel=9
 
 \renewcommand{\vec}[1]{\ensuremath{{\bm #1}}}
 \newcommand{\fig}[1]{fig.~\ref{#1}}
@@ -74,7 +69,7 @@ pdfpagemode=None]{hyperref}
 \center{\fontsize{1.5cm}{3cm}\selectfont USER MANUAL}
 
 \vspace*{3cm}
-\center{\includegraphics[width=\columnwidth]{fig/logo.eps}}
+\center{\includegraphics[width=\columnwidth]{fig/logo}}
 \vspace*{1cm}
 
 \center{\Large{Victor R\"uhle}}
