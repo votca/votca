@@ -18,9 +18,7 @@ using namespace std;
 /**
     \brief base class for all analasys tools
 
-    This is the base class for all analasys tool. To implement a new analasys tool, derive it from this class
-    and call RegisterObject(AnalasysFactory, UserTool, key) where UserTool is the name of the class....
-
+    This is the base class for all analasys tool. 
     \todo do option functions!!!
 */
 class AnalysisTool
