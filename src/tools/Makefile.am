@@ -1,7 +1,7 @@
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML) $(GSL_CFLAGS) -I$(top_srcdir)/include 
 
 bin_PROGRAMS = \
-    csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol # csg_nemat csg_conj csg_sample
+    csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol # csg_nemat csg_conj csg_sample
 
 csg_dump_SOURCES = csg_dump.cc
 
@@ -25,6 +25,8 @@ csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch_main.cc
 csg_imcrepack_SOURCES = csg_imcrepack.cc
 
 csg_gmxtopol_SOURCES = csg_gmxtopol.cc
+
+csg_map_SOURCES = csg_map.cc
 
 # csg_sample_SOURCES = \
 #    csg_sample.cc
