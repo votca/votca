@@ -2,26 +2,33 @@
 
 \section{Mapping operator}
 \label{sec:mapping_operator}
-\sasha
-mapping scheme ($c_{Ii}$ coefficients) \\
-picture \\
-translation invariance \\
-definition of the mass \\
-definition of specific and involved atoms \\
+%\sasha
+%mapping scheme ($c_{Ii}$ coefficients) \\
+TO DO: picture \\
+%translation invariance \\
+%definition of the mass \\
+%definition of specific and involved atoms \\
 
-In this section our description follows an excellent analysis given in \cite{Noid:2008.1}
+Mapping operator establishes a link between the atomistic and coarse-grained representations of the system. Atomistic system is described by specifying the values of the Cartesian coordinates and momenta  
+\begin{eqnarray}
+\bm r^n &=& \{\bm r_1,...,\bm r_n\}, \\
+\bm p^n &=& \{\bm p_1,...,\bm p_n\}.
+\end{eqnarray}
+of the $n$ atoms in the system.\footnote{In what follows we adopt notations of ref.~\cite{Noid:2008.1}.} 
+%
+On a coarse-grained level, the coordinates and momenta are specified by the positions and momenta of CG sites 
+\begin{eqnarray}
+\bm R^N = \{\bm R_1,...,\bm R_N\}, \\ 
+\bm P^N = \{\bm P_1,...,\bm P_N\}.
+\end{eqnarray}
+Note that we use capitalized symbols for the CG sites while lower case letters are used for the atomistic system.
 
-Mapping scheme is an operator, which maps an atomistic representation of the system onto a coarse-grained one.
-Atomistic system is described specifying the values of the Cartesian coordinates $\bm r^n = \{\bm r_1,...,\bm r_n\}$ and momenta 
-$\bm p^n = \{\bm p_1,...,\bm p_n\}$ of the $n$ atoms in the system. Since we want to describe our system on a coarse-grained level, we need to introduce CG coordinates and momenta, which have a strictly defined meaning in terms of atomistic coordinates and momenta. The physical meaning of the CG sites $\bm R^N = \{\bm R_1,...,\bm R_N\}$ is specified by a linear mapping operator
-$\bm M_R^N(\bm r^n) = \{\bm M_{R1}(\bm r^n),...,\bm M_{RN}(\bm r^n)\}$
-
-\begin{equation}
- \bm M_{RI}(\bm r^n)=\sum_{i=1}^{n}c_{Ii}\bm r_i \, \rm for\, \it I = 1,...,N
+The mapping operator defined by a matrix for each bead $I$, ${\bm c}_I$, then links the two descriptions
+\begin{eqnarray}
+ {\bm R}_I = \sum_{i=1}^{n}c_{Ii}\bm r_i, \; I = 1,...,N \\
+ {\bm P}_I = \sum_{i=1}^{n}c_{Ii}\bm r_i, \; I = 1,...,N \\
 \label{eq:mapping_scheme}
-\end{equation}
-So, the physical meaning of $\bm R_I$ in terms of the atomistic model is $\bm M_{RI}(\bm r^n)$.
-Analogously, the physical meaning of the CG momenta $\bm P^N = \{\bm P_1,...,\bm P_N\}$ is 
+\end{eqnarray}
 
 \begin{equation}
  \bm M_{PI}(\bm r^n)=M_I\sum_{i=1}^{n}c_{Ii}\bm p_i/m_i \, \rm for\, \it I = 1,...,N
