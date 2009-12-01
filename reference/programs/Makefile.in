@@ -1,4 +1,4 @@
-SHELL=/bin/sh
+SHELL=/bin/bash
 
 .SUFFIXES: .t2t .tex
 .PHONY: clean bootstrap
