@@ -1,4 +1,4 @@
-all: wiki tex man 
+all: tex 
 
 .SUFFIXES: .xml .t2t .tex .man .wiki
 .PHONY: clean xmlclean
