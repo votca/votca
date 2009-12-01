@@ -15,8 +15,8 @@ latex -halt-on-error ${1}
 latex -halt-on-error ${1}
 dvips -E ${1%.tex}.dvi -o ${1%.tex}.eps
 
-if [ -x ./bbox_add.pl ]; then
-  ./bbox_add.pl ${1%.tex}.eps
+if [ -x ../bbox_add.pl ]; then
+  ../bbox_add.pl ${1%.tex}.eps
 elif [ -n "$(type -p bbox_add.pl)" ]; then
   bbox_add.pl ${1%.tex}.eps
 else
