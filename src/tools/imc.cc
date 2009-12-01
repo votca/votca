@@ -72,7 +72,7 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     string name = p->get("name").value();
     string group;
     if(_do_imc)
-        group = p->get("imc.group").value();
+        group = p->get("inverse.imc.group").value();
     else
         group = "none";
     

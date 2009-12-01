@@ -11,7 +11,7 @@ if [ "$1" = "--help" ]; then
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)" 
-cgmap=$(csg_get_property cg.cgmap)
+cgmap=$(csg_get_property cg.inverse.cgmap)
 topol=$(csg_get_property cg.inverse.$sim_prog.topol)
 traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 
