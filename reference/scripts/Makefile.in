@@ -5,7 +5,7 @@ SHELL=/bin/sh
 
 all: $(SCRIPTS)
 
-%.t2t:
+%.t2t: 
 	@if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \

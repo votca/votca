@@ -5,7 +5,7 @@ SHELL=/bin/sh
 
 all: $(BINS)
 
-%.t2t:
+%.t2t: 
 	@if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
@@ -31,6 +31,7 @@ all: $(BINS)
 clean: 
 	rm -f $(DOCS)
 	rm -f *.tex *~
+	rm -f Makefile
 
 bootstrap: Makefile.in
 	@if [ -z "${CSGSHARE}" ]; then \
