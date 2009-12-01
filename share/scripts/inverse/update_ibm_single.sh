@@ -5,7 +5,7 @@ if [ "$1" = "--help" ]; then
    echo for the Inverse Boltzmann Method for a single pair
    echo Usage: ${0##*/} step_nr
    echo USES:  do_external die csg_get_interaction_property log run_or_exit awk
-   echo NEEDS: name step min max
+   echo NEEDS: name step min max inverse.do_potential
    exit 0
 fi
 
@@ -13,7 +13,7 @@ check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-scheme=( $(csg_get_interaction_property do_potential 1) )
+scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
 scheme_nr=$(( ( $1 - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 

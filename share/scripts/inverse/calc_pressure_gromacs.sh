@@ -5,7 +5,7 @@ if [ "$1" = "--help" ]; then
    echo for the Inverse Boltzmann Method
    echo Usage: ${0##*/}
    echo USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die
-   echo NEEDS: cg.inverse.gromacs.equi_time
+   echo NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
    exit 0
 fi
 

@@ -5,15 +5,15 @@ if [ "$1" = "--help" ]; then
    echo using generic csg tools
    echo Usage: ${0##*/}
    echo USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done
-   echo NEEDS: cg.inverse.program cg.cgmap cg.inverse.sim_prog.topol cg.inverse.sim_prog.topol
+   echo NEEDS: cg.inverse.program cg.inverse.cgmap
    echo OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.\$sim_prog.topol
    exit 0
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)" 
 cgmap=$(csg_get_property cg.inverse.cgmap)
-topol=$(csg_get_property cg.inverse.$sim_prog.topol)
-traj=$(csg_get_property cg.inverse.$sim_prog.traj)
+topol=$(csg_get_property cg.inverse.$sim_prog.topol topol.tpr)
+traj=$(csg_get_property cg.inverse.$sim_prog.traj traj.xtc)
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"

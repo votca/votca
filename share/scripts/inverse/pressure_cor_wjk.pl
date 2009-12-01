@@ -8,7 +8,7 @@ Usage: $progname p_cur outfile
 This script calls the pressure corrections  like in 
 Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009) 
 
-NEEDS: cg.inverse.kBT max step
+NEEDS: cg.inverse.kBT max step particle_dens p_target name
 USES: csg_get_property csg_get_interaction_property saveto_table
 EOF
   exit 0;

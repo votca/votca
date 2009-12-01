@@ -7,7 +7,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
 Usage: $progname p_cur outfile
 This script calls the pressure corrections dU=A*(1-r/r_c)
 
-NEEDS: cg.inverse.kBT max step
+NEEDS: cg.inverse.kBT max step p_target post_update_options.pressure.simple.scale
 USES: csg_get_property csg_get_interaction_property saveto_table
 EOF
   exit 0;
