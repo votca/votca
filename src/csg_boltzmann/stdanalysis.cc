@@ -39,6 +39,31 @@ void StdAnalysis::Command(BondedStatistics &bs, string cmd, vector<string> &args
     }
 }
 
+void StdAnalysis::Help(string cmd, vector<string> &args)
+{
+    if(cmd == "vals") {
+    	cout << "vals <file> <selection>\n"
+             << "write values to file. The first row is the frame number, then one "
+             << "row for each interaction specified. The output can be used to generate "
+             << "2D correlation plots.\n\n"
+             << "example: vals angle *angle*\n";
+    }
+    if(cmd == "cor") {
+    	cout << "cor <file> <selection>\n"
+             << "Calculate linear correlation coefficient of the first item in selection with all the other items\n"
+             << "WARNING: for evaluating correlations in the system, it is not sufficient to calculate the "
+             << "linear correlation coefficient, 2D histograms with data from the vals command should be used instead!\n";
+    }
+    if(cmd == "autocor") {
+        cout << "autocor <file> <interaction>\n"
+             << "calculate autocorrelation function of first item in selection. The output is periodic since FFTW3 is used to "
+                "calcualte correlations.\n";
+    }
+    if(cmd == "list") {
+        cout << "list\nlists all available interactions\n";
+    }
+}
+
 void StdAnalysis::WriteValues(BondedStatistics &bs, vector<string> &args)
 {
     ofstream out;

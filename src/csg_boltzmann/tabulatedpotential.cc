@@ -39,9 +39,9 @@ void TabulatedPotential::Command(BondedStatistics &bs, string cmd, vector<string
         else if(cmd == "tab") {
             if(!SetOption(_tab_options, args)) {
                 if(args.size() >2) {
-                    if(args[1] == "smooth1")
+                    if(args[1] == "smooth_pdf")
                         _tab_smooth1 = lexical_cast<int>(args[2]);       
-                    else if(args[1] == "smooth2")
+                    else if(args[1] == "smooth_pot")
                         _tab_smooth2 = lexical_cast<int>(args[2]);       
                     else if(args[1] == "T")
                         _T = lexical_cast<double>(args[2]);
@@ -52,8 +52,8 @@ void TabulatedPotential::Command(BondedStatistics &bs, string cmd, vector<string
                 }
             }        
             if(args.size() <=2) {
-                cout << "smooth1: " << _tab_smooth1 << endl;
-                cout << "smooth2: " << _tab_smooth2 << endl;
+                cout << "smooth_pdf: " << _tab_smooth1 << endl;
+                cout << "smooth_pot: " << _tab_smooth2 << endl;
                 cout << "T: " << _T << endl;
             }
         }
@@ -63,6 +63,103 @@ void TabulatedPotential::Command(BondedStatistics &bs, string cmd, vector<string
         else if(cmd == "tab") WritePotential(bs, args);
     }
     else cout << "wrong number of arguments" << endl;
+}
+
+
+void TabulatedPotential::Help(string cmd, vector<string> &args)
+{
+    if(args.size() == 0) {
+        if(cmd == "tab") {
+            cout << "tab <file> <selection>\n"
+                 << "Calculate tabulated potential by inverting the distribution function. "
+                    "Statistics is calculated using all interactions in selection.\n"
+                    "see also: help tab set\n\n"
+                    "example:\ntab set scale bond\ntab U_bond.txt *:bond:*\n";
+        }
+        if(cmd == "hist") {
+            cout << "hist <file> <selection>\n"
+                 << "Calculate distribution function for selection. "
+                    "Statistics is calculated using all interactions in selection.\n"
+                    "see also: help hist set\n\n"
+                    "example:hist U_bond.txt *:bond:*\n";
+        }
+        return;
+    }
+    if(args[0] == "set") {
+        if(args.size() == 1) {
+            cout << cmd << " set <option> <value>\n"
+                 << "set option for this command. Use \"" << cmd << " set\""
+                    " for a list of availale options. To get telp on a specific option use e.g.\n"
+                    << cmd << " set periodic\n";
+            return;
+        }
+        if(args[1] == "n") {
+            cout << cmd << "set n <integer>\n"
+                 << "set number of bins for table\n";
+            return;
+        }
+        if(args[1] == "min") {
+            cout << cmd << "set min <value>\n"
+                 << "minimum value of interval for histogram (see also periodic, extend)\n";
+            return;
+        }
+        if(args[1] == "max") {
+            cout << cmd << "set max <value>\n"
+                 << "maximum value of interval for histogram (see also periodic, extend)\n";
+            return;
+        }
+        if(args[1] == "periodic") {
+            cout << cmd << "set periodic <value>\n"
+                << "can be 1 for periodic interval (e.g. dihedral) of 0 for "
+                    "non-periodic (e.g. bond)\n";
+            return;
+        }
+        if(args[1] == "auto") {
+            cout << cmd << "set auto <value>\n"
+                 "can be 1 for automatically determine the interval for the "
+                 "table (min, max, extend will be ignored) or 0 to use min/max as specified\n";
+            return;
+        }
+        if(args[1] == "extend") {
+            cout << cmd << "set extend <value>\n"
+                 "should only be used with auto=0. Can be 1 for extend the interval "
+                 "if values are out of bounds (min/max) "
+                 "or 0 to ignore values which are out of the interal\n";
+            return;
+        }
+        if(args[1] == "scale") {
+            cout << cmd << "set scale <value>\n"
+                "volume normalization of pdf. Can be no (no scaling), bond "
+                "(1/r^2) or angle ( 1/sin(phi) ). See VOTCA manual, section "
+                "theoretical background for details\n";
+            return;
+        }
+        if(args[1] == "normalize") {
+            cout << cmd << "set normalize <value>\n"
+                 "can be 1 for a normalized histogram or 0 to skip normalization\n";
+            return;
+        }
+
+        if(cmd == "tab") {
+            if(args[1] == "smooth_pdf") {
+                cout << "tab set smooth_pdf <value>\n"
+                 "Perform so many smoothing iterations on the distribution function before inverting the potential\n";
+                return;
+            }
+            if(args[1] == "smooth_pot") {
+                cout << "tab set smooth_pot <value>\n"
+                 "Perform so many smoothing iterations on tabulated potential after inverting the potential\n";
+                return;
+            }
+            if(args[1] == "T") {
+                cout << "tab set T <value>\n"
+                 "Temperature in Kelvin the simulation was performed\n";
+                return;
+            }
+        }
+    }
+    
+    cout << "no help text available" << endl;
 }
 
 bool TabulatedPotential::SetOption(Histogram::options_t &op, const vector<string> &args)
@@ -171,8 +268,8 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs, vector<string> &ar
     out << "# auto = " << _tab_options._auto_interval << endl;
     out << "# extend = " << _tab_options._extend_interval << endl;
     out << "# scale = " << _tab_options._scale << endl;
-    out << "# smooth1 = " << _tab_smooth1 << endl;
-    out << "# smooth2 = " << _tab_smooth2 << endl;
+    out << "# smooth_pdf = " << _tab_smooth1 << endl;
+    out << "# smooth_pot = " << _tab_smooth2 << endl;
     out << "# T = " << _T << endl;*/
 
     vector<double> F;

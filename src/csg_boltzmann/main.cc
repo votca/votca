@@ -247,26 +247,38 @@ int main(int argc, char** argv)
         getline(cin, line);
         size_t start;
         size_t end;
-        
-        start = line.find_first_not_of(' ');
-        if(start == string::npos) continue;
-        end = line.find(' ', start);
-        
-        string cmd = line.substr(start, end-start);
-        start = end+1;        
+
+        boost::trim(line);
+        vector<string> args;
+        Tokenizer tok(line, " \t");
+        tok.ToVector(args);
+
+        if(args.size() == 0) continue;
+
+        string cmd = args.front();
+        args.erase(args.begin());
+
         try {
     
-            if(cmd == "q") break;
+            if(cmd == "q") break;            
+
+            std::map<string, AnalysisTool *>::iterator tool;
             if(cmd == "help") {
-                cout << help_text << endl;
+                if(args.size() == 0) {
+                    cout << help_text << endl;
+                    continue;
+                }
+                cmd = args.front();
+                args.erase(args.begin());
+                tool = cmds.find(cmd);
+                if(tool == cmds.end()) {
+                    cout << "error, no help item found" << endl;
+                    continue;
+                }
+                tool->second->Help(cmd, args);
+                cout << endl;
                 continue;
             }
-
-            string arg_str(line.substr(start));
-            vector<string> args;
-            Tokenizer tok(arg_str, " \t");
-            tok.ToVector(args);
-            std::map<string, AnalysisTool *>::iterator tool;
 
             tool = cmds.find(cmd);
             if(tool == cmds.end()) {

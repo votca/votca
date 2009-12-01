@@ -23,6 +23,7 @@ class StdAnalysis
         void Register(map<string, AnalysisTool *> &lib);
 
         void Command(BondedStatistics &bs, string cmd, vector<string> &args);
+        void Help(string cmd, vector<string> &args);
 
         void WriteValues(BondedStatistics &bs, vector<string> &args);
         void WriteCorrelations(BondedStatistics &bs, vector<string> &args);

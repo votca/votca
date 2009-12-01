@@ -31,6 +31,7 @@ public:
     
     virtual void Register(map<string, AnalysisTool *> &lib) {}
     virtual void Command(BondedStatistics &bs, string cmd, vector<string> &args) {};
+    virtual void Help(string cmd, vector<string> &args) {};
     
 private:
 //    map<string, string> _options;

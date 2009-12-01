@@ -24,6 +24,7 @@ class TabulatedPotential
         void Register(map<string, AnalysisTool *> &lib);
 
         void Command(BondedStatistics &bs, string cmd, vector<string> &args);
+        void Help(string cmd, vector<string> &args);
 
         void WriteHistogram(BondedStatistics &bs, vector<string> &args);
         void WritePotential(BondedStatistics &bs, vector<string> &args);
