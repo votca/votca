@@ -45,11 +45,13 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out)
 void CGEngine::LoadMoleculeType(string filename)
 {
     Tokenizer tok(filename, ";");
-    Tokenizer::iterator file; 
+    Tokenizer::iterator iter;
    
-    for(file=tok.begin(); file!=tok.end(); ++file) {
-        CGMoleculeDef *def = new CGMoleculeDef();        
-        def->Load(*file);
+    for(iter=tok.begin(); iter!=tok.end(); ++iter) {
+        CGMoleculeDef *def = new CGMoleculeDef();
+        string  file = *iter;
+        boost::trim(file);
+        def->Load(file);
         _molecule_defs[def->getIdent()] = def;
     }
 }
