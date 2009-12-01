@@ -6,10 +6,6 @@
     <!--Number of frames for block averaging -->
     <frames_per_block>6</frames_per_block>
   </fmatch>
-  <!-- temporary variable for fmatch, will be
-       determined automaticaly later -->
-  <nframes>1000</nframes>
-  <cgmap>water.xml</cgmap>
   <!-- example for a non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->

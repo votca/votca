@@ -1,12 +1,8 @@
 <cg>
-  <!-- temporary variable for fmatch, will be 
-       determined automaticaly later -->
   <!-- example for a non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->
     <name>A-A</name>
-    <!-- target distribution (rdf), just give gromas rdf.xvg -->
-    <target>A-A.dist.tgt</target>
     <!-- types involved in this interaction -->
     <type1>A</type1>
     <type2>A</type2>
@@ -14,25 +10,25 @@
     <min>0</min>
     <max>1.36</max>
     <step>0.01</step>
-    <!-- update cycles -->
-    <do_pressure>0</do_pressure>
-    <do_potential>1 0 0</do_potential>
-    <!-- additional post processing of dU before added to potential -->
-    <post_update></post_update>
-    <!-- additional post processing of U after dU added to potential -->
-    <post_add></post_add>
-    <!-- inverse monte carlo specific stuff -->
-    <!-- name of the table for gromacs run -->
-    <gromacs>
-      <table>table_A_A.xvg</table>
-    </gromacs>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>A-A.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>1 0 0</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_A_A.xvg</table>
+      </gromacs>
+    </inverse>
   </non-bonded>
   
   <non-bonded>
     <!-- name of the interaction -->
     <name>B-B</name>
-    <!-- target distribution (rdf), just give gromas rdf.xvg -->
-    <target>B-B.dist.tgt</target>
     <!-- types involved in this interaction -->
     <type1>B</type1>
     <type2>B</type2>
@@ -40,25 +36,27 @@
     <min>0</min>
     <max>1.38</max>
     <step>0.01</step>
-    <!-- update cycles -->
-    <do_pressure>0</do_pressure>
-    <do_potential>0 1 0</do_potential>
-    <!-- additional post processing of dU before added to potential -->
-    <post_update></post_update>
-    <!-- additional post processing of U after dU added to potential -->
-    <post_add></post_add>
-    <!-- inverse monte carlo specific stuff -->
-    <!-- name of the table for gromacs run -->
-    <gromacs>
-      <table>table_B_B.xvg</table>
-    </gromacs>
+    
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>B-B.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>0 1 0</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_B_B.xvg</table>
+      </gromacs>
+    </inverse>
   </non-bonded>
 
   <non-bonded>
     <!-- name of the interaction -->
     <name>A-B</name>
-    <!-- target distribution (rdf), just give gromas rdf.xvg -->
-    <target>A-B.dist.tgt</target>
     <!-- types involved in this interaction -->
     <type1>A</type1>
     <type2>B</type2>
@@ -66,24 +64,25 @@
     <min>0</min>
     <max>1.36</max>
     <step>0.01</step>
-    <!-- update cycles -->
-    <do_pressure>0</do_pressure>
-    <do_potential>0 0 1</do_potential>
-    <!-- additional post processing of dU before added to potential -->
-    <post_update></post_update>
-    <!-- additional post processing of U after dU added to potential -->
-    <post_add></post_add>
-    <!-- inverse monte carlo specific stuff -->
-    <!-- name of the table for gromacs run -->
-    <gromacs>
-      <table>table_A_B.xvg</table>
-    </gromacs>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>A-B.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>0 0 1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_A_B.xvg</table>
+      </gromacs>
+    </inverse>
   </non-bonded>
 
   <!-- general options for inverse script -->
   <inverse>
-    <!-- target pressure -->
-    <p_target>1.0</p_target>
     <!-- 300*0.00831451 gromacs units -->
     <kBT>1.6629</kBT>
     <!-- use gromacs as simulation program -->
