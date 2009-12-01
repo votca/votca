@@ -10,7 +10,7 @@ all: $(SCRIPTS)
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi
-	@if ! cd ${CSGSHARE}/scripts/inverse && ./$* --help &> /dev/null; then\
+	@if ! cd ${CSGSHARE}/scripts/inverse && ./$* --help > /dev/null 2>&1; then\
 	  echo $* --help failed;\
 	  exit 1;\
 	fi

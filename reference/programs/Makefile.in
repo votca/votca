@@ -38,7 +38,7 @@ bootstrap: Makefile.in
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi
-	@if ! which csg_property &> /dev/null; then\
+	@if ! which csg_property > /dev/null 2>&1; then\
 	  echo csg_property not found;\
 	  exit 1;\
 	fi
