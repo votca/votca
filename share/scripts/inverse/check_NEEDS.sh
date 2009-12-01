@@ -23,7 +23,17 @@ if [ "$1" = "--help" ]; then
 fi
 
 if [ "$1" = "--" ]; then
-  whates="$(for i in *.sh *.pl; do [[ -z "${not_to_check##* $i *}" ]] && continue; ./$i --help 2>&1 | sed -n 's/\(NEEDS\|OPTIONAL\): \+\(.*\) *$/\2/p' | sed 's/ /\n/g'; done | sort | uniq )"
+  whates="$(\
+  for i in *.sh *.pl; do 
+    [[ -z "${not_to_check##* $i *}" ]] && continue;
+    ./$i --help 2>&1 | sed -n 's/\(NEEDS\|OPTIONAL\): \+\(.*\) *$/\2/p' | sed 's/ /\n/g' 
+  done | sort -u)"
+  whates+="$(\
+    grep -hEe 'csg_get_(interaction_)?property' *.sh *.pl |\
+    grep -v USES | sed 's/csg_get_\(interaction\)\?property/\n&/g' |\
+    perl -ne "print \"\$4\n\" if /^.*csg_get_(interaction_)?property( --allow-empty)?(\(\"| '?)([a-zA-Z0-9._*\\\$-]*)/" |\
+    sort -u)"
+  whates="$(echo "${whates}" | sort -u)"
 else
   whates="$1"
 fi
