@@ -18,4 +18,5 @@ clean:
 	latexmk -c
 	$(MAKE) $(MFLAGS) -C fig clean
 	$(MAKE) $(MFLAGS) -C usage clean
+	$(MAKE) $(MFLAGS) -C reference clean
 
