@@ -81,10 +81,8 @@ int main(int argc, char** argv)
     Topology top;
     Topology top_cg;
     CGEngine cg_engine;
-    TrajectoryWriter *writer;
     TopologyMap *map;
 
-    bool bWrite = false;
     namespace po = boost::program_options;
     std::map<std::string, AnalysisTool *> cmds;
     TabulatedPotential tab;
@@ -99,7 +97,6 @@ int main(int argc, char** argv)
     ("top", po::value<string>(), "atomistic topology file")
     ("trj", po::value<string>(), "atomistic trajectory file")
     ("cg", po::value<string>(), "coarse graining definitions (xml-file)")
-    ("out", po::value<string>(), "write pdb cg trajectory")
     ("excl", po::value<string>(), "write exclusion list to file")
     ;
     
@@ -134,22 +131,7 @@ int main(int argc, char** argv)
         cout << "no coarse graining definition specified" << endl;
         return 1;
     }
-    if (vm.count("out")) {
-        if (!vm.count("trj")) {
-            cout << desc << endl;
-            cout << "no trajectory file specified" << endl;
-            return 1;
-        }
 
-        writer = TrjWriterFactory().Create(vm["out"].as<string>());
-        if(writer == NULL) {
-            cerr << "output format not supported:" << vm["out"].as<string>() << endl;
-            return 1;
-        }
-        bWrite = true;
-        writer->Open(vm["out"].as<string>());
-    }
-        
     try {
         reader = TopReaderFactory().Create(vm["top"].as<string>());
         if(reader == NULL) {
@@ -208,7 +190,6 @@ int main(int argc, char** argv)
             while(bok) {
                 map->Apply();
                 cg_engine.EvalConfiguration(top_cg);
-                if(bWrite) writer->Write(&top_cg);
                 bok = traj_reader->NextFrame(top);
             }
             cg_engine.EndCG();
@@ -222,10 +203,6 @@ int main(int argc, char** argv)
     catch(std::exception &error) {
         cerr << "An error occoured!" << endl << error.what() << endl;
         exit(1);
-    }
-    if (vm.count("out")) {
-        writer->Close();
-        delete writer;
     }
     
     string help_text = 
