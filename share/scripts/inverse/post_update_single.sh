@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script make all the post update with backup for single pairs 
    echo Usage: ${0##*/} step_nr
    echo USES:  csg_get_interaction_property log mv die cp do_external run_or_exit
-   echo NEEDS: name post_update
+   echo NEEDS: name inverse.post_update
    exit 0
 fi
 
@@ -13,7 +13,7 @@ check_deps "$0"
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 name=$(csg_get_interaction_property name)
-tasklist=$(csg_get_interaction_property --allow-empty post_update) 
+tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update) 
 i=1
 for task in $tasklist; do
   log "Doing $task for ${name}"

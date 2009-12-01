@@ -8,7 +8,7 @@ Usage: $progname p_cur outfile
 This script calls the pressure corrections  like in 
 Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009) 
 
-NEEDS: cg.inverse.kBT max step particle_dens p_target name
+NEEDS: cg.inverse.kBT max step inverse.particle_dens inverse.p_target name
 USES: csg_get_property csg_get_interaction_property saveto_table
 EOF
   exit 0;
@@ -23,13 +23,13 @@ my $kBT=csg_get_property("cg.inverse.kBT");
 my $max=csg_get_interaction_property("max");
 my $delta_r=csg_get_interaction_property("step");
 
-my $partDens=csg_get_interaction_property("particle_dens");
+my $partDens=csg_get_interaction_property("inverse.particle_dens");
 my $name=csg_get_interaction_property("name");
 
 my $pi= 3.14159265;
 my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
 
-my $p_target=csg_get_interaction_property("p_target");
+my $p_target=csg_get_interaction_property("inverse.p_target");
 my $p_now=$ARGV[0];
 
 # load current rdf

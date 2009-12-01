@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script implemtents the pressure update
    echo Usage: ${0##*/} step_nr
    echo USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit cp
-   echo NEEDS: cg.inverse.program name post_update_options.pressure.type post_update_options.pressure.do
+   echo NEEDS: cg.inverse.program name inverse.post_update_options.pressure.type inverse.post_update_options.pressure.do
    exit 0
 fi
 
@@ -19,8 +19,8 @@ p_now="$(do_external pressure $sim_prog)" || die "${0##*/}: do_external pressure
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
 log "New pressure $p_now"
 
-ptype="$(csg_get_property post_update_options.pressure.type simple)"
-pscheme=( $(csg_get_interaction_property post_update_options.pressure.do 1 ) )
+ptype="$(csg_get_property inverse.post_update_options.pressure.type simple)"
+pscheme=( $(csg_get_interaction_property inverse.post_update_options.pressure.do 1 ) )
 pscheme_nr=$(( ( $1 - 1 ) % ${#pscheme[@]} ))
 
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
