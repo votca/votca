@@ -44,3 +44,4 @@ all: $(DOCS)
 
 clean: 
 	rm -f $(DOCS)
+	rm -f *.tex *~

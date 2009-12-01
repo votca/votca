@@ -1,5 +1,5 @@
 .SUFFIXES: .t2t .tex
-.PHONY: clean
+.PHONY: clean bootstrap
 
 SHELL=/bin/sh
 
@@ -26,14 +26,16 @@ all: $(SCRIPTS)
 
 clean: 
 	rm -f $(SCRIPTS)
+	rm -f *.tex *~
+	rm -f Makefile
 
-Makefile: Makefile.in
+bootstrap: Makefile.in
 	@if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi
 	cat ${CSGSHARE}/scripts/inverse/csg_table | awk '/^[^#]/{print $$3}' | \
-	  sed -e 's/.*/\t&.tex\\/' -e '1i SCRIPTS=\\' > $@
-	echo >> $@
-	cat Makefile.in >> $@
+	  sed -e 's/.*/\t&.tex\\/' -e '1i SCRIPTS=\\' > Makefile
+	echo >> Makefile
+	cat Makefile.in >> Makefile
 	

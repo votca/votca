@@ -4,3 +4,4 @@ all:
 
 clean:
 	$(MAKE) $(MFLAGS) -C fig clean
+	rm -f *~

@@ -13,3 +13,4 @@ all: $(PICS)
 
 clean:
 	rm -f $(PICS)
+	rm -f *~

@@ -1,7 +1,6 @@
 rmflags=-f
 
 all: 
-	./bootstrap.sh
 	$(MAKE) $(MFLAGS) -C reference 
 	$(MAKE) $(MFLAGS) -C fig
 	$(MAKE) $(MFLAGS) -C usage 
@@ -13,10 +12,10 @@ all:
 	./latexmk.pl -pdfdvi $*
 
 clean:
-	rm -f manual.dvi manual.pdf
 	rm -f manual.fdb_latexmk
-	latexmk -c
+	latexmk -C manual.tex
 	$(MAKE) $(MFLAGS) -C fig clean
 	$(MAKE) $(MFLAGS) -C usage clean
 	$(MAKE) $(MFLAGS) -C reference clean
+	rm -f *~
 

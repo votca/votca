@@ -42,5 +42,5 @@ xmlclean:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 
 clean: xmlclean
-	rm -f *.man *.tex *.wiki
+	rm -f *.man *.tex *.wiki *~
 
