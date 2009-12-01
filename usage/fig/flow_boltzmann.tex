@@ -31,7 +31,7 @@ tubnode/.style={midway, right=2pt, text width=6cm},
 \draw[tuborg, decoration={brace}] let \p1=(map.north), \p2=(map.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {csg\_dump to list atoms};
 
 \node[punktchain, join, fill=blue!20] (verify) {Verify mapping scheme};
-\draw[tuborg, decoration={brace}] let \p1=(verify.north), \p2=(verify.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {csg\_boltzmann to map\\Visualize reference + mapped in e.g. VMD};
+\draw[tuborg, decoration={brace}] let \p1=(verify.north), \p2=(verify.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {csg\_map to map\\Visualize reference + mapped in e.g. VMD};
 
 \node[punktchain, join, fill=blue!20] (excl) {Create exclusion list};
 \draw[tuborg, decoration={brace}] let \p1=(excl.north), \p2=(excl.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {csg\_boltzmann --excl};

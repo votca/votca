@@ -18,7 +18,9 @@ Votca can read topologies in the \gromacs tpr format. Additionally, it can use a
 \label{sec:adv_topology}
 Many file formats do not have a clear definition of a molecules. This can lead to problems, especially if a simulation contains several multiple molecules. Since during the coarse graining, the molecule type is identified by a name tag, names must be set properly. \votca offers the possibility to read a topology and later on modify parts of it. Everything is defined in an xml topology file.
 
-Also \gromacs did not store molecule names in previous versions. This was introduced in a newer release, however the file reader of \votca was not yet adapted to also read the names. If a system with multiple molecule types is processed, molecule are read in properly but molecule names have to be specified manually as described in this section.
+Also \gromacs did not store molecule names in previous versions. This was introduced in a newer release. If possible, always provide a recent .tpr file which contains molecule names. For old topologies, rerun grompp if possible to get a recent file.
+
+If a system with multiple molecule types is processed, but no molecule names are present, molecule names have to be specified manually as described in this section that \votca can choose the correct mapping scheme..
 
 If no molecule information is present at all, they can be created. An for a topology file that reads in last.pdb and then creates molecules is:
 \begin{verbatim}
@@ -31,7 +33,7 @@ If no molecule information is present at all, they can be created. An for a topo
 \end{verbatim}
 <clear/> clears all bolecule information that were present before.
 
-If the file format the topology is read from only does not support molecules names, csg offers the possibility to define topologies in an xml file and manipulate the molecule names after reading. A short example:
+If the file format the topology is read from only does not support molecules names, \votca offers the possibility to define topologies in an xml file and manipulate the molecule names after reading. A short example:
 \begin{verbatim}
  <topology base="topol.tpr">
    <molecules>
