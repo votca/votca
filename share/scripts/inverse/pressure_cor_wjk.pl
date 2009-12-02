@@ -9,7 +9,7 @@ This script calls the pressure corrections  like in
 Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009) 
 
 NEEDS: cg.inverse.kBT max step inverse.particle_dens inverse.p_target name
-USES: csg_get_property csg_get_interaction_property saveto_table
+USES: csg_get_property csg_get_interaction_property saveto_table readin_table
 EOF
   exit 0;
 }

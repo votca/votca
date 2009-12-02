@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the rdf for gromacs
    echo for the Inverse Boltzmann Method
    echo Usage: ${0##*/}
-   echo USES: get_from_mdp csg_get_interaction_property csg_get_property awk log run_or_exit g_rdf csg_resample
+   echo USES: get_from_mdp csg_get_interaction_property csg_get_property awk log run_or_exit g_rdf csg_resample is_done mark_done msg
    echo NEEDS: type1 type2 name step min max
    echo OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame 
    exit 0

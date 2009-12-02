@@ -47,6 +47,7 @@ for i in $@; do
     if [ -z "${i%%*.pl}" ]; then
       [[ "$what" = "die" ]] && continue
       [[ "$what" = "log" ]] && continue
+      [[ "$what" = "printf" ]] && continue
     fi
     #variable
     if [ -z "${what##\$*}" ]; then

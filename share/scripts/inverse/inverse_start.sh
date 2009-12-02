@@ -5,7 +5,7 @@ if [ "$1" = "--help" ]; then
   echo and makes inverse.sh more readable
   #actually it provides this stuff
   echo PROVIDES: \$CSGXMLFILE \$CSGINVERSE \$SOURCE_WRAPPER \$CSGSCRIPTDIR \$CSGLOG \$CSGRESTART
-  echo USES: \$CSGSHARE csg_property die csg_get_property
+  echo USES: \$CSGSHARE csg_property die csg_get_property rm
   echo NEEDS: cg.inverse.scriptdir cg.inverse.log_file cg.inverse.restart_file
   exit 0
 fi
