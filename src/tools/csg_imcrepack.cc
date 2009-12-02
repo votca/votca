@@ -14,10 +14,11 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include "imcio.h"
+#include "version.h"
 
 void help_text(void)
 {
-    cout << "csg_imcrepack \n\n";
+    votca::csg::HelpTextHeader("csg_imcrepack");
     cout << "This program is internally called by inversion scripts to kick out\n"
             "zero entries in matrix for inverse Monte Carlo. It also extracts the\n"
             "single potential updates out of the full solution.\n\n";

@@ -9,12 +9,12 @@
 #include <fstream>
 #include <boost/program_options.hpp>
 #include <cgengine.h>
-#include <libversion.h>
 #include "csg_fmatch.h"
+#include "version.h"
 
 void help_text(void)
 {
-    cout << "csg_fmatch, lib version " << LIB_VERSION_STR << "\n\n";
+    votca::csg::HelpTextHeader("csg_fmatch");
     cout << "Perform force matching (also call multiscale coarse-graining)\n\n";
 }
 
@@ -61,11 +61,6 @@ int main(int argc, char** argv)
     if (vm.count("help")) {
         help_text();
         cout << desc << endl;
-        return 0;
-    }
-    // or asks for the program version?
-    if (vm.count("version")) {
-        cout << "csg_fmatch, lib version " << LIB_VERSION_STR  << "\n";                        
         return 0;
     }
     

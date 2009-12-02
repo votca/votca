@@ -8,6 +8,7 @@
 #include <fstream>
 #include "cgengine.h"
 #include <votca/tools/tokenizer.h>
+#include "version.h"
 
 CGEngine::~CGEngine()
 {
@@ -85,7 +86,7 @@ void CGEngine::AddProgramOptions(boost::program_options::options_description &de
 {
     desc.add_options()
     ("help", "produce this help message")
-    ("version", "show version info")
+//    ("version", "show version info")
     ("top", boost::program_options::value<string>(), "atomistic topology file")
     ("trj", boost::program_options::value<string>(), "atomistic trajectory file")
     ("cg", boost::program_options::value<string>(), "coarse graining definitions (xml-file)")
@@ -106,6 +107,13 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     int first_frame;
     
     bool has_begin=false;
+
+//    if (vm.count("version")) {
+//        votca::csg::HelpTextHeader("csg");
+//        exit(0);
+//    }
+
+
     if (!vm.count("top")) {
         cout << desc << endl;
         throw runtime_error("no topology file specified");

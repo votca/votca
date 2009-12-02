@@ -11,13 +11,13 @@
 #include <fstream>
 #include <boost/program_options.hpp>
 #include <cgengine.h>
-#include <libversion.h>
+#include "version.h"
 
 using namespace std;
 
 void help_text()
 {
-    cout << "csg_map \n\n";                
+    votca::csg::HelpTextHeader("csg_map");
     cout << "Map a reference trajectory to a coarse-grained trajectory\n"
             "This program can be used to map a whole trajectory or only\n"
             "create an initial configuration for a coarse-grained run.\n\n";     

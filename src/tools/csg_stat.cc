@@ -9,14 +9,14 @@
 #include <fstream>
 #include <boost/program_options.hpp>
 #include <cgengine.h>
-#include <libversion.h>
+#include "version.h"
 #include "imc.h"
 
 using namespace std;
 
 void help_text(void)
 {
-    cout << "csg_stat \n\n";                
+    votca::csg::HelpTextHeader("csg_stat");
     cout << "Calculate all distribuions (bonded + non-bonded) specified in options file.\n"
             "Optionally calculates update matrix for invere Monte Carlo. This program\n"
             "is called inside the inverse scripts. Unlike csg_boltzmann, big systems\n"

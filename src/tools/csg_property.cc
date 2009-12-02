@@ -9,13 +9,14 @@
 #include <boost/program_options.hpp>
 #include <votca/tools/property.h>
 #include <votca/tools/tokenizer.h>
+#include "version.h"
 
 using namespace std;
 
 
 void help_text()
 {
-    cout << "csg_property\n\n";
+    votca::csg::HelpTextHeader("csg_property");
     cout << "Helper program called by inverse scripts to parse xml file.\n\n";
 }
 

@@ -12,12 +12,12 @@
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
 #include <topologyreader.h>
-#include <libversion.h>
+#include "version.h"
 #include "cgengine.h"
 
 void help_text(void)
 {
-    cout << "csg_gmxtopol, lib version " << LIB_VERSION_STR << "\n\n";
+    votca::csg::HelpTextHeader("csg_gmxtopol");
     cout << "Create skeleton for gromacs topology based on atomistic topology\n"
             "and a mapping file. Files still needs to be modified by the user.\n\n";     
 }

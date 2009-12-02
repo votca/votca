@@ -11,13 +11,13 @@
 #include <fstream>
 #include <boost/program_options.hpp>
 #include <topologyreader.h>
-#include <libversion.h>
+#include "version.h"
 
 using namespace std;
 
 void help_text(void)
 {
-    cout << "csg_dump, lib version " << LIB_VERSION_STR << "\n\n";
+    votca::csg::HelpTextHeader("csg_dump");
     cout << "Print atoms that are read from topology file to help"
         " debugging atom naming.\n\n";  
 }

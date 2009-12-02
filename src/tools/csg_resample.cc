@@ -10,13 +10,14 @@
 #include <votca/tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
+#include "version.h"
 
 using namespace std;
 namespace po = boost::program_options;
 
 void help_text()
 {
-    cout << "csg_resample \n\n";                
+    votca::csg::HelpTextHeader("csg_resample");
     cout << "Change grid + interval of any sort of table files.\n"
             "Mainly called internally by inverse script, can also be\n"
             "used to manually prepare input files for coarse-grained\n"

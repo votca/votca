@@ -11,14 +11,14 @@
 #include <fstream>
 #include <boost/program_options.hpp>
 #include "cgengine.h"
-#include "libversion.h"
+#include "version.h"
 #include "nematicorder.h"
 
 using namespace std;
 
 void help_text()
 {
-    cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";
+    votca::csg::HelpTextHeader("csg_nemat");
     cout << "!! EXPERIMENTAL !! Calculate nematic order parameter.\n"
             " Needs non-spherical beads in mapping.\n\n";           
 }

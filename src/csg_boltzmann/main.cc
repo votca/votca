@@ -25,7 +25,7 @@
 #include "version.h"
 #include <votca/tools/rangeparser.h>
 #include "bondedstatistics.h"
-#include "libversion.h"
+#include "version.h"
 #include <map>
 #include <string>
 #include "tabulatedpotential.h"
@@ -35,7 +35,7 @@ using namespace std;
 
 void help_text()
 {
-    cout << "csg_boltzmann version " << VERSION_STR << "\n\n";                    
+    votca::csg::HelpTextHeader("csg_boltzmann");
     cout << "Perform tasks that are needed for simple boltzmann\n"
             "inversion in an interactive environment.\n\n";
 }
