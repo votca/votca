@@ -3,6 +3,13 @@
 #note the space at the beginning and the end !!!
 not_to_check=" ${0##*/} "
 
+if [ "$1" = "--debug" ]; then
+  debug="yes"
+  shift
+else
+  debug="no"
+fi
+
 if [ -z "$1" ]; then
   echo MIssing argument >&2 
   echo help with ${0##*/} --help >&2
@@ -67,9 +74,12 @@ for i in $@; do
     pattern2="(USES:|PROVIDES:).*[[:space:]]$what2([[:space:]]|$)"
     in_help="no"
     in_content="no"
-    #echo "$in_help $in_content xxx $pattern2"
     [[ -n "$(grep -Ev "(USES:|PROVIDES:)" "$i" | grep -Ee "$pattern1")" ]] && in_content="yes"
     [[ -n "$(./$i --help | grep -Ee "$pattern2")" ]] && in_help="yes"
+    if [ "$debug" = "yes" ]; then
+      echo "cont $in_content" help "$in_help"
+      echo "p1 $pattern1 p2 $pattern2"
+    fi
     #what found in file and uses -> ok
     [[ "$in_help" = "yes" ]] && [[ "$in_content" = "yes" ]] && continue
     #what found in file, but not in uses
