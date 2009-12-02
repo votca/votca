@@ -1,8 +1,7 @@
-docdir = ${pkgdatadir}/doc
+xmldir =${datadir}/votca
+xml_DATA = cgoptions.xml mapping.xml 
 
-doc_DATA = cgoptions.xml mapping.xml 
-
-EXTRA_DIST = $(doc_DATA)
+EXTRA_DIST = $(xml_DATA)
 
 CLEANFILES = *~
 

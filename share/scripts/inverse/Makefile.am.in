@@ -1,4 +1,4 @@
-inversedir = ${pkgdatadir}/scripts/inverse
+inversedir = ${datadir}/votca/scripts/inverse
 
 inverse_SCRIPTS = \
 %scripts

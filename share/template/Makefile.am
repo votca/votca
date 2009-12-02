@@ -1,4 +1,4 @@
-templatedir = ${pkgdatadir}/template
+templatedir = ${datadir}/votca/template
 
 template_DATA = template.cc 
 
