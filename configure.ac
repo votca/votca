@@ -1,18 +1,10 @@
-AC_INIT(votca_tools,0.5,ruehle@mpip-mainz.mpg.de)
+AC_INIT(votca_tools,1.0rc1,devs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
 
 AM_INIT_AUTOMAKE([1.9 foreign])
 
-
-AC_CONFIG_HEADERS(config.h)
-
-AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([include/Makefile])
-AC_CONFIG_FILES([src/Makefile])
-AC_CONFIG_FILES([src/libtools/Makefile])
-AC_CONFIG_FILES([tests/Makefile])
 
 AC_PROG_CXX
 AC_PROG_RANLIB
@@ -39,5 +31,14 @@ AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed an
 # AX_GROMACS_HEADERS
 
 AC_PROG_MAKE_SET
+
+AC_CONFIG_HEADERS(config.h)
+
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([include/Makefile])
+AC_CONFIG_FILES([src/Makefile])
+AC_CONFIG_FILES([src/libtools/Makefile])
+AC_CONFIG_FILES([tests/Makefile])
+AC_CONFIG_FILES([src/libtools/version.cc])
 
 AC_OUTPUT

@@ -1,0 +1,13 @@
+#include "version.h"
+
+namespace votca { namespace tools {
+
+static const std::string version_str = "@VERSION@ HGVERSION (compiled " __DATE__ ", " __TIME__ ")";
+
+const std::string &ToolsVersionStr()
+{
+    return version_str;
+}
+
+}}
+
