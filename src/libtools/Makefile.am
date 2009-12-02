@@ -1,4 +1,4 @@
-HGVERSION= $(shell hg parents --template 'hgid: {node}' || true )
+HGVERSION:= $(shell hg parents --template 'hgid: {node}' || grep node ../../hg_archival.txt || true )
 AM_CPPFLAGS = $(CFLAGS_XML) -I$(top_srcdir)/include -DHGVERSION="\"${HGVERSION}\""
 lib_LIBRARIES = libvotca_tools.a
 
