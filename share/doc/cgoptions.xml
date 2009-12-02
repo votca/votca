@@ -1,6 +1,6 @@
 <tags>
   <item>
-    <name>cgmap</name>
+    <name>inverse.cgmap</name>
     <desc>
       Mapping file for analysis. Currently also during coarse-grained simulations, a mappin file has to be specified
       which is only a 1:1 mapping. This will change in the future.
@@ -34,7 +34,7 @@
     </desc>
   </item>
   <item>
-   <name>interaction.target</name>
+   <name>interaction.inverse.target</name>
    <desc> target distribution (rdf), just give gromas rdf.xvg </desc>
   </item>
   <item>
@@ -58,42 +58,42 @@
     <desc>step size of interval for potential table in which calculations are performed.</desc>
   </item>
   <item>
-   <name>interaction.do_potential</name>
+   <name>interaction.inverse.do_potential</name>
    <default>1</default>
    <desc>Update cacly for potential update. 1 means update, 0 don't update. 1 1 0 means update 2 iterations, then don't update, then repeated. </desc>
   </item>
   <item>
-    <name>interaction.post_update</name>
+    <name>interaction.inverse.post_update</name>
     <desc>Additional post processing of dU before added to potential. This is a list of scripts which are called separated by space.</desc>
   </item>
   <item>
-    <name>interaction.post_update_options</name>
+    <name>interaction.inverse.post_update_options</name>
     <desc>This sectioncontains all options for post update scripts.</desc>
   </item>
   <item>
-    <name>interaction.post_add</name>
+    <name>interaction.inverse.post_add</name>
     <desc>Additional post processing of U after dU added to potential. See interaction.post_update for details.</desc>
   </item>
   <item>
-    <name>interaction.imc</name>
+    <name>interaction.inverse.imc</name>
     <desc>Section containing inverse monte carlo specific options.</desc>
   </item>
   <item>
-    <name>interaction.imc.group</name>
+    <name>interaction.inverse.imc.group</name>
     <desc>
       Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update.
         I no cross correlations should be calculated, interactions have to be put into different groujps.
     </desc>
   </item>
   <item>
-    <name>interaction.gromacs</name>
+    <name>interaction.inverse.gromacs</name>
     <desc>
         This section contains gromacs specific options if gromacs is used as simulatiion program.
     </desc>
   </item>
   
   <item>
-    <name>interaction.gromacs.table</name>
+    <name>interaction.inverse.gromacs.table</name>
     <desc>
       Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format for every run.
     </desc>
