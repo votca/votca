@@ -30,7 +30,7 @@ if [ "$1" = "--" ]; then
   done | sort -u)"
   whates+="$(\
     grep -hEe 'csg_get_(interaction_)?property' *.sh *.pl |\
-    grep -v USES | sed 's/csg_get_\(interaction\)\?property/\n&/g' |\
+    grep -vEe '(USES|PROVIDES)' | sed 's/csg_get_\(interaction\)\?property/\n&/g' |\
     perl -ne "print \"\$4\n\" if /^.*csg_get_(interaction_)?property( --allow-empty)?(\(\"| '?)([a-zA-Z0-9._*\\\$-]*)/" |\
     sort -u)"
   whates="$(echo "${whates}" | sort -u)"
