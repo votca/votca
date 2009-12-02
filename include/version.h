@@ -4,7 +4,7 @@
 #include <string>
 
 namespace votca { namespace tools {
-    const std::string & VersionStr();
+    const std::string & ToolsVersionStr();
 }}
 
 #endif	/* _tools_version_H */
