@@ -1,0 +1,144 @@
+<tags>
+  <item>
+    <name>name</name>
+    <desc>
+      Name of molecule in coarse-grained representation.
+    </desc>
+  </item>
+  <item>
+    <name>ident</name>
+    <desc>
+      Molecule name in reference topology.
+    </desc>
+  </item>
+  <item>
+    <name>topology</name>
+    <desc>
+      Section containing definition of coarse grained topology of molecule.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_beads</name>
+    <desc>
+      Section defining coarse grained beads of molecule.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_beads.cg_bead</name>
+    <desc>
+      Definition of a coarse grained bead.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_beads.cg_bead.name</name>
+    <desc>
+      Name of coarse grained bead.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_beads.cg_bead.type</name>
+    <desc>
+      Type of coarse grained bead.
+    </desc>
+  </item>
+    <item>
+    <name>topology.cg_beads.cg_bead.mapping</name>
+    <desc>
+      Mapping scheme to be used for this bead (specified in section mapping) to map from reference system.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_beads.cg_bead.beads</name>
+    <desc>
+      The beads section lists all atoms of the reference system that are mapped to this particular
+      coarse grained bead. The syntax is RESID:RESNAME:ATOMNAME, the beads are seperated by spaces.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded</name>
+    <desc>
+      The cg_bonded section contains all bonded interaction of the molecule. That can be bond, angle or dihedral.
+      An entry for each group of bonded interaction can be specified, e.g. several groups (types) of bonds can be specified.
+      A specific bonded interaction can be later on addressed by MOLECULE:NAME:NUMBER, where MOLECULE is the molecule ID in
+      the whole topology, NAME the name of the interaction group and NUMBER addresses the interaction in the group.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.bond</name>
+    <desc>
+      Definition of a group of bonds.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.bond.name</name>
+    <desc>
+      Name of the group.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.bond.beads</name>
+    <desc>
+      List of pair of beads that define a bond. Names specified in cg_beads, separated by commas.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.angle</name>
+    <desc>
+      Definition of a group of angles.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.angle.name</name>
+    <desc>
+      Name of the group.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.angle.beads</name>
+    <desc>
+      List of triples of beads that define a bond. Names specified in cg_beads, separated by commas.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.dihedral</name>
+    <desc>
+      Definition of a group of dihedrals. Since the exact functional form does not matter, this combines proper as well as improper dihedrals.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.dihedral.name</name>
+    <desc>
+      Name of the group.
+    </desc>
+  </item>
+  <item>
+    <name>topology.cg_bonded.dihedral.beads</name>
+    <desc>
+      List of quadruples of beads that define a bond. Names specified in cg_beads, separated by commas.
+    </desc>
+  </item>
+  <item>
+    <name>maps</name>
+    <desc>
+      Section containing definitions of mapping schemes.
+    </desc>
+  </item>
+  <item>
+    <name>maps.map</name>
+    <desc>
+      Section for a mapping for 1 bead.
+    </desc>
+  </item>
+  <item>
+    <name>maps.map.name</name>
+    <desc>
+      Name of the mapping.
+    </desc>
+  </item>
+  <item>
+    <name>maps.map.weights</name>
+    <desc>
+      Weights of the mapping matrix. Entries are normalized to 1, number of entries must match the number of reference beads in a coarse-grained bead.
+    </desc>
+  </item>
+</tags>
