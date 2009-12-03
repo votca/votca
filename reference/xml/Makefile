@@ -14,6 +14,9 @@ get: xmlclean cgoptions.xml mapping.xml
 xmlclean:
 	rm -f cgoptions.xml mapping.xml
 
+t2tclean:
+	rm -f cgoptions.t2t mapping.t2t
+
 %.xml:
 	@if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
@@ -41,6 +44,6 @@ xmlclean:
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 
-clean: xmlclean
+clean: xmlclean t2tclean
 	rm -f *.man *.tex *.wiki *~
 
