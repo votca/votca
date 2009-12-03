@@ -18,3 +18,4 @@ config/depcomp
 config/install-sh
 config/missing
 src/libtools/version.cc
+src/libtools/hgstamp
