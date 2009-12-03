@@ -82,6 +82,8 @@
       <itemPath>../../src/libcsg/topologyreader.cc</itemPath>
       <itemPath>../../src/libcsg/trajectoryreader.cc</itemPath>
       <itemPath>../../src/libcsg/trajectorywriter.cc</itemPath>
+      <itemPath>../../include/version.h</itemPath>
+      <itemPath>../../src/libcsg/version_nb.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
