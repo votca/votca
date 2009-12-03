@@ -11,6 +11,9 @@ configure="yes"
 do_co="no"
 svn_co="svn co http://csgth.mpip-mainz.mpg.de/svn/PROG/trunk PROG"
 
+have_hg=" tools csg "
+hg_co="hg clone http://dev.votca.org/votca/PROG PROG"
+
 do_up="no"
 extra_conf=""
 
@@ -56,7 +59,7 @@ Give progs to compile or nothing meaning "$all"
 $usage
 OPTIONS:
 -h, --help              Show this help
--u, --do-update         Do a svn update
+-u, --do-update         Do a update from svn/hg
 -c, --clean-out         Clean out the prefix
     --no-configure      Don't run ./configure
     --conf-opts TEXT    Extra configure options
@@ -136,13 +139,22 @@ for prog in "$@"; do
   if [ ! -d "$prog" ]; then
     echo "Doing checkout for $prog (CTRL-C to stop)"
     countdown 5
-    ${svn_co//PROG/$prog}
+    if [ -z "${have_hg/* $prog *}" ]; then
+      ${hg_co//PROG/$prog}
+    else
+      ${svn_co//PROG/$prog}
+    fi
   fi
 
   cd $prog
   if [ "$do_up" == "yes" ]; then
-    echo "updating from svn"
-    svn update
+    if [ -z "${have_hg/* $prog *}" ]; then
+      echo "updating from hg repo"
+      hg pull
+    else
+      echo "updating from svn repo"
+      svn update
+    fi
   fi
   echo "compiling $prog"
   if [ "$configure" == "yes" ]; then
