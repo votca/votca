@@ -19,10 +19,10 @@ xmlclean:
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi
-	@if [ -f "${CSGSHARE}/doc/$@" ]; then \
-	  cp -p $(CSGSHARE)/doc/$@ .;\
+	@if [ -f "${CSGSHARE}/xml/$@" ]; then \
+	  cp -p $(CSGSHARE)/xml/$@ .;\
 	else\
-	  echo Error, did not find ${CSGSHARE}/doc/$@ >&2;\
+	  echo Error, did not find ${CSGSHARE}/xml/$@ >&2;\
 	  exit 1;\
 	fi
 
