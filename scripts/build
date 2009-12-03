@@ -150,7 +150,7 @@ for prog in "$@"; do
   if [ "$do_up" == "yes" ]; then
     if [ -z "${have_hg/* $prog *}" ]; then
       echo "updating from hg repo"
-      hg pull
+      hg pull -u
     else
       echo "updating from svn repo"
       svn update
