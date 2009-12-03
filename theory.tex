@@ -11,63 +11,58 @@ TO DO: picture \\
 
 Mapping operator establishes a link between the atomistic and coarse-grained representations of the system. Atomistic system is described by specifying the values of the Cartesian coordinates and momenta  
 \begin{eqnarray}
-\bm r^n &=& \{\bm r_1,...,\bm r_n\}, \\
-\bm p^n &=& \{\bm p_1,...,\bm p_n\}.
+\bm r^n &=& \{\bm r_1,\dots,\bm r_n\}, \\
+\bm p^n &=& \{\bm p_1,\dots,\bm p_n\}.
 \end{eqnarray}
 of the $n$ atoms in the system.\footnote{In what follows we adopt notations of ref.~\cite{Noid:2008.1}.} 
 %
 On a coarse-grained level, the coordinates and momenta are specified by the positions and momenta of CG sites 
 \begin{eqnarray}
-\bm R^N = \{\bm R_1,...,\bm R_N\}, \\ 
-\bm P^N = \{\bm P_1,...,\bm P_N\}.
+\bm R^N = \{\bm R_1,\dots,\bm R_N\}, \\ 
+\bm P^N = \{\bm P_1,\dots,\bm P_N\}.
 \end{eqnarray}
 Note that we use capitalized symbols for the CG sites while lower case letters are used for the atomistic system.
 
 The mapping operator defined by a matrix for each bead $I$, ${\bm c}_I$, then links the two descriptions
 \begin{eqnarray}
- {\bm R}_I = \sum_{i=1}^{n}c_{Ii}\bm r_i, \; I = 1,...,N \\
- {\bm P}_I = \sum_{i=1}^{n}c_{Ii}\bm r_i, \; I = 1,...,N \\
+ {\bm R}_I &=& \sum_{i=1}^{n}c_{Ii}\bm r_i, \\
+ {\bm P}_I &=& 
+ 	M_I \dot{{\bm R}}_I = 
+	M_I \sum_{i=1}^{n}c_{Ii} \dot{{\bm r}}_i = 
+	M_I \sum_{i=1}^{n} \frac{ c_{Ii}} {m_i} {\bm p}_i . 
 \label{eq:mapping_scheme}
 \end{eqnarray}
+for all $I = 1,\dots,N$.
 
+If an atomistic system is translated by a constant vector, the corresponding coarse-grained system is also translated by the same vector. This implies that, for all $I$,
 \begin{equation}
- \bm M_{PI}(\bm r^n)=M_I\sum_{i=1}^{n}c_{Ii}\bm p_i/m_i \, \rm for\, \it I = 1,...,N
-\end{equation}
-All together those {\it N} functions is a linear operator denoted by $\bm M_P^N(\bm p^n)$.
-
-Mapping operator should satisfy a certain condition, related to translational invariance. If an atomistic system is translated by the vector displacement $\bm r $, corresponding coarse-grained system is similarly translated by the same vector. This imposes the following condition on the mapping coefficients $ c_{Ii} $:
-
-\begin{equation}
- \sum_{i=1}^{n}c_{Ii}=1\, \rm for\, all\, \it I
+ \sum_{i=1}^{n}c_{Ii}=1.
 \end{equation}
 
-It might be useful to define CG mapping in a way that certain atoms belong to several CG beads at the same time \cite{Fritz:2009}.
-In order to understand this situation one needs to define two special sets of atoms for each of the {\it N} CG beads. For each site {\it I}, a set of {\it involved} atoms is defined as:
-
+In some cases it is useful to define CG mapping in a way that certain atoms belong to several CG beads at the same time~\cite{Fritz:2009}. Following ref.~\cite{Noid:2008.1} we define two sets of atoms for each of the $N$ CG beads. For each site $I$, a set of {\em involved} atoms is defined as
 \begin{equation}
- {\cal I}_I=\{i|c_{Ii}\ne0\}
+ {\cal I}_I=\{i|c_{Ii}\ne0\}.
 \end{equation}
-An atom {\it i} in the atomistic model is involved in a CG site {\it I} if and only if the atoms provides a nonzero contribution to the sum in Eq.\ref{eq:mapping_scheme}.
+An atom $i$ in the atomistic model is involved in a CG site {\it I} if and only if this atom provides a nonzero contribution to the sum in eq.~\ref{eq:mapping_scheme}.
 
-A set of {\it specific} atoms is defined as:
+A set of {\em specific} atoms is defined as:
 \begin{equation}
- {\cal S}_I=\{i|c_{Ii}\ne0\, {\rm and}\, c_{Ji}=0\, {\rm for\,all}\, J\ne I\}
+ {\cal S}_I=\{i|c_{Ii}\ne0 \text{ and } c_{Ji}=0 \text{ for all } J \ne I\}.
 \end{equation}
+In other words, atom $i$ is specific to site $I$ if and only if this atom is involved in site $I$ and is not involved in the definition of any other site.
 
-In other words, atom {\it i} is specific to site {\it I} if and only if the atom is involved in site {\it I} and is not involved in the definition of any other site.
-
-It can be shown (see \cite{Noid:2008.1}) that a CG model will generate an equilibrium distribution of momenta that is consistent with an underlying atomistic model if all the atoms are {\it specific} and if the mass of the CG sites is chosen according to
-
+The CG model will generate an equilibrium distribution of momenta that is consistent with an underlying atomistic model if all the atoms are {\em specific} and if the mass of the $I^\text{th}$ CG site is given by~\cite{Noid:2008.1}
 \begin{equation}
-M_I= \left( \sum_{i \in {\cal I}_I}\frac{c_{Ii}^2}{m_i} \right)^{-1}\, \rm for\, all\, {\it I}
+M_I= \left( \sum_{i \in {\cal I}_I}\frac{c_{Ii}^2}{m_i} \right)^{-1}.
 \end{equation}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Boltzmann inversion}
 \label{sec:bi}
 
 Boltzmann inversion is the simplest method one can use to obtain coarse-grained potentials~\cite{Tschoep:1998}. It is mostly used for {\em bonded} potentials, such as bonds, angles, and torsions. Boltzmann inversion is structure-based and only requires positions of atoms.
 
-The potential is calculated by inverting the probability distribution $P(q)$ 
+The coarse-grained potential is calculated by inverting the probability distribution $P(q)$ of a variable $q$, which is either a bond length, bond angle, or torsion angle
 \begin{equation}
   U(q) = - k_\text{B} T \ln  P(q) ~.
   \label{eq:inv_boltzmann}
@@ -83,7 +78,7 @@ Histograms for the bonds $H_r(r)$, angle $H_\theta(\theta)$, and torsion angle $
     P_\varphi(\varphi) = H_\varphi (\varphi)~.
     \label{eq:boltzmann_norm}
 \end{align}
-With bond length $\vec{r}$, angle~$\theta$ and torsion angle~$\varphi$.%
+With bond length $\r$, angle~$\theta$ and torsion angle~$\varphi$.%
 The coarse-grained potential can then be calculated by Boltzmann inversion of the distribution functions
 %
 \begin{align}
@@ -93,6 +88,8 @@ The coarse-grained potential can then be calculated by Boltzmann inversion of th
     \nonumber
 \end{align}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Iterative Boltzmann Inversion}
 \label{sec:ibi}
 
