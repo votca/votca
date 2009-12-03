@@ -1,7 +1,7 @@
 #! /bin/bash
 
 #defaults
-usage="Usage: ${0##*/} setting_file.xml"
+usage="Usage: ${0##*/} [OPTIONS] setting_file.xml"
 do_iterations=""
 clean="no"
 
@@ -11,6 +11,8 @@ Start the script to run ibm, imc, etc.
 $usage
 
 OPTIONS:
+-h, --help                    show this help
+-v, --version                 show version
 -N, --do-iterations N         only do N iterationso
     --clean                   clean out the PWD, dangerous
 

@@ -1,0 +1,42 @@
+#! /bin/bash
+
+#we leave --version and --help here to have it even when
+#CSGSHARE is not defined
+if [ "$1" = "--version" ] || [ "$1" = "-v" ]; then
+  echo "${0##*/}: @version@"
+  exit 0
+fi
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  echo -e "${0##*/}: @version@\n\n"
+  if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+    exec ${CSGSHARE}/scripts/inverse/inverse.sh --help
+    exit 0
+  fi  	
+  cat << eof
+Start the script to run ibm, imc, etc.
+Usage: ${0##*/} [OPTIONS] setting_file.xml
+
+OPTIONS:
+-h, --help     Show this help
+-v, --version  Show version 
+
+NOTE: this is a short help, please export CSGSHARE to get the full help.
+eof
+exit 0
+fi
+
+if [ -z "${CSGSHARE}" ]; then
+   echo "Error: Environment values CSGSHARE not defined" >&2
+   echo "Please source CSGRC.bash or CSGRC.csh" >&2
+   echo "Try ${0##*/} --help for help" >&2
+   exit 1
+fi
+
+if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+   exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
+   exit 0
+else
+   echo ${0##*/}: Could not run ${CSGSHARE}/scripts/inverse/inverse.sh $@
+   exit 1
+fi

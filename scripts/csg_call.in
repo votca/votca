@@ -9,7 +9,10 @@ die() {
 }
 
 show_help () {
+  echo "${0##*/}, version @version@"
   cat << eof
+
+
 This script calls script for csg using source_wrapper
 Usage: ${0##*/} key1 key2
 OPTIONS:
@@ -63,6 +66,9 @@ while [ "${1#-}" != "$1" ]; do
    -h | --help)
     show_help
     exit 0;;
+   -v | --version)
+    echo "${0##*/}, version @version@"
+    exit 0;;
   *)
    die "Unknown option '$1'";;
  esac
@@ -91,6 +97,12 @@ fi
 
 if [ -n "$sw_opt" ]; then
   $SOURCE_WRAPPER $sw_opt
+  exit 0
+fi
+
+#help should always work
+if [ "$3" = "--help" ]; then 
+  do_external $1 $2 --help
   exit 0
 fi
 
