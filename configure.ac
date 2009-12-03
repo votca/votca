@@ -47,15 +47,5 @@ AC_CONFIG_FILES([scripts/Makefile])
 AC_CONFIG_FILES([share/xml/Makefile])
 AC_CONFIG_FILES([share/template/Makefile])
 
-AC_CONFIG_FILES([share/tutor/Makefile])
-AC_CONFIG_FILES([share/tutor/spce/atomistic/Makefile])
-AC_CONFIG_FILES([share/tutor/spce/imc/Makefile])
-AC_CONFIG_FILES([share/tutor/spce/ibm/Makefile])
-AC_CONFIG_FILES([share/tutor/spce/Makefile])
-AC_CONFIG_FILES([share/tutor/methanol/ibm/Makefile])
-AC_CONFIG_FILES([share/tutor/methanol/atomistic/Makefile])
-AC_CONFIG_FILES([share/tutor/methanol/imc/Makefile])
-AC_CONFIG_FILES([share/tutor/methanol/Makefile])
-
 
 AC_OUTPUT
