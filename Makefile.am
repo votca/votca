@@ -2,7 +2,7 @@
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src include tests
+SUBDIRS = src include
 
 CLEANFILES = *~
 #DISTCLEANFILES =
