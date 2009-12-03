@@ -2,7 +2,7 @@
 
 sw_opt=""
 
-#we have to dedine this if $SOURCE_WRAPPER functions common fails
+#failback define
 die() {
   echo -e "$*" >&2
   exit 1
@@ -14,20 +14,23 @@ show_help () {
 
 
 This script calls script for csg using source_wrapper
-Usage: ${0##*/} key1 key2
-OPTIONS:
--l, --list          Show list of all script
-    --check         Check csg script
-    --scriptdir DIR Set the user script dir
-    --xmlfile FILE  Specify the xml file to use
-    --ia-type type  Specify the interaction type to use
-    --ia-name name  Specify the interaction name to use
--h, --help          Show this help
 
+Usage: ${0##*/} [OPTIONS] key1 key2
 
-Example: ${0##*/} table smooth [ARGUMENTS]
+Allowed options:
+-l, --list           Show list of all script
+    --check          Check csg script
+    --scriptdir DIR  Set the user script dir
+    --xmlfile FILE   Specify the xml file to use
+    --ia-type type   Specify the interaction type to use
+    --ia-name name   Specify the interaction name to use
+-h, --help           Show this help
+
+Examples:
+* ${0##*/} table smooth [ARGUMENTS]
 
 USES: \$CSGSHARE
+
 NEEDS:
 eof
 }

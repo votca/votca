@@ -14,10 +14,13 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     exit 0
   fi  	
   cat << eof
+
+
 Start the script to run ibm, imc, etc.
+
 Usage: ${0##*/} [OPTIONS] setting_file.xml
 
-OPTIONS:
+Allowed options:
 -h, --help     Show this help
 -v, --version  Show version 
 
