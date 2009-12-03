@@ -1,4 +1,5 @@
 \section{Iterative workflow control}
+\label{sec:impl:scripting}
 For each iterative method (e.g. IBI or IMC), a simulation has to be performed with a working potential. Based on statistics from that coarse grained run, an update can be calculated. \votca implements a flexible scripting framework to perform such an iterative workflow. The workflow chart is shown in \fig{fig:flowchart}. The workflow is implemented as a shell script which can, in principle, be run on all available operating systems and provides the flexibility needed to call external (or overload existing) scripts and programs written in other programming languages. An interface to read values from the steering \xml files in C++, Perl and shell is also provided.
 
 \begin{figure}

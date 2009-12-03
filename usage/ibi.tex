@@ -2,13 +2,33 @@
 \begin{figure}
    \centering
    \includegraphics{usage/fig/flow_ibi.eps}
-   \caption{Flowchart to perform iterative Boltzmann inversion.}
+   \caption{\label{fig:flow_ibi}Flowchart to perform iterative Boltzmann inversion.}
 \end{figure}
 
 \subsection{Input preparation}
+In this section, the usage of \ibi is described which is implemented within the scripting framework described in \sect{sec:impl:scripting}. It is suggested to get a basic understaning on the framework before proceeding.
+
+Iterative inverse boltzmann so far only supports iterative refinement of non-bonded interactions. An outline of the workflow to perform \ibi is given in \fig{fig:flow_ibi}. The first thing to do is generate reference distribution functions. They might come from experiments or from atomistic simulations. To get a reasonable results out of the iterative process, the reference distributions should have a good quality (little noise, ...).
+
+\votca can create initial guesses for the coarse-grained potentials by boltzmann inverting the distribution function. If a custom initial guess for an interaction should be used instead, the table can be provided in \textit{<interaction>.pot.in}. As just mentioned, \votca automatically create potential tables to run a simulation, however it does not know how to run a coarse-grained simulation. All files to run a coarse-grained simulation except for the potentials that are iteratively refined must be provided and added to the filelist in the option xml file (\refopt{inverse.filelist}). If an atomistic topology and a mapping definition is present, \votca offers tools to assist the setup of a  coarse-grined topology (see \sect{sec:usage:cgrun}).
+
+To get an overview how an input file for doing \ibi looks like, a good start is to look at one of the tutorials provided on \votcaweb.
 
 \subsection{Pressure correction}
 
 \subsection{Runtime optimization}
-smoothing, ...
+Most of the time for each iteration is spent in running the coarse-grained system and calculate the statistics. To get a feeling on how much statistics really is needed, it is recommended to plot the distribution functions and check weather they are sufficiently smooth. Bad statistics lead to rough potential updates and the iterative refinement might fail. The runs should be long enough to produce distributions/rdfs with reasonable quality.
+
+Often, runtime can be improved by smoothing the potential updates. Our experience has shown, that it is better to smooth the potential update instead of the rdf or potential itself. If the potential/rdf is smoothened, sharp features like the first peak in \spce water might get lost. Smoothing on the delta potential works quite well, since the sharp features are already present from the initial guess. By applying iterations of a simple triangular smooth ($ \Delta U_i = 0.25 \Delta U_{i-1} + 0.5\Delta U_i + 0.25\Delta U_{i+1} $), a reasonable coarse-grained potential for \spce water could be produced in less than 10 mins. Smoothing is implemented as a post\_update script and can be enabled by adding
+\begin{verbatim}
+  <post_update>smooth</post_update>
+  <post_update_options>
+    <smooth>
+        <iterations>4</iterations>
+    </smooth>
+  </post_update_options>
+\end{verbatim}
+to the inverse section of an interaction in the options xml.
+
+
 
