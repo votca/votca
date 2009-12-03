@@ -1,4 +1,4 @@
-HGVERSION:= $(shell grep -q node ../../hg_archival.txt 2> /dev/null || hg parents --template 'hgid: {node}' 2> /dev/null || true )
+HGVERSION:= $(shell grep -q node $(top_builddir)/hg_archival.txt 2> /dev/null || hg parents --template 'hgid: {node}' 2> /dev/null || true )
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML) -I$(top_srcdir)/include
 
 lib_LIBRARIES = libvotca_csg.a
@@ -15,3 +15,10 @@ libvotca_csg_a_SOURCES = \
 
 CLEANFILES = *~
 #DISTCLEANFILES =
+
+version.cc: hgstamp
+hgstamp: update_hgstamp
+update_hgstamp:
+	[ -f hgstamp ] || touch hgstamp
+	echo $(HGVERSION) | cmp -s hgstamp - || echo $(HGVERSION) > hgstamp
+
