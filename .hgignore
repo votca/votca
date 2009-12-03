@@ -35,3 +35,5 @@ src/tools/csg_map
 src/tools/csg_property
 src/tools/csg_resample
 src/tools/csg_stat
+scripts/hgstamp
+src/libcsg/hgstamp
