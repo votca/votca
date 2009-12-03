@@ -35,19 +35,19 @@ ALLCONFS=Debug Release profile_release
 
 
 # build
-.build-impl: .validate-impl 
+.build-impl: .build-pre .validate-impl .depcheck-impl
 	@#echo "=> Running $@... Configuration=$(CONF)"
 	${MAKE} -f nbproject/Makefile-${CONF}.mk SUBPROJECTS=${SUBPROJECTS} .build-conf
 
 
 # clean
-.clean-impl: .validate-impl
+.clean-impl: .clean-pre .validate-impl .depcheck-impl
 	@#echo "=> Running $@... Configuration=$(CONF)"
 	${MAKE} -f nbproject/Makefile-${CONF}.mk SUBPROJECTS=${SUBPROJECTS} .clean-conf
 
 
 # clobber 
-.clobber-impl:
+.clobber-impl: .clobber-pre .depcheck-impl
 	@#echo "=> Running $@..."
 	for CONF in ${ALLCONFS}; \
 	do \
@@ -55,13 +55,25 @@ ALLCONFS=Debug Release profile_release
 	done
 
 # all 
-.all-impl:
+.all-impl: .all-pre .depcheck-impl
 	@#echo "=> Running $@..."
 	for CONF in ${ALLCONFS}; \
 	do \
 	    ${MAKE} -f nbproject/Makefile-$${CONF}.mk SUBPROJECTS=${SUBPROJECTS} .build-conf; \
 	done
 
+# dependency checking support
+.depcheck-impl:
+	@echo "# This code depends on make tool being used" >.dep.inc
+	@if [ -n "${MAKE_VERSION}" ]; then \
+	    echo "DEPFILES=\$$(wildcard \$$(addsuffix .d, \$${OBJECTFILES}))" >>.dep.inc; \
+	    echo "ifneq (\$${DEPFILES},)" >>.dep.inc; \
+	    echo "include \$${DEPFILES}" >>.dep.inc; \
+	    echo "endif" >>.dep.inc; \
+	else \
+	    echo ".KEEP_STATE:" >>.dep.inc; \
+	    echo ".KEEP_STATE_FILE:.make.state.\$${CONF}" >>.dep.inc; \
+	fi
 
 # configuration validation
 .validate-impl:
@@ -80,7 +92,7 @@ ALLCONFS=Debug Release profile_release
 
 
 # help
-.help-impl:
+.help-impl: .help-pre
 	@echo "This makefile supports the following configurations:"
 	@echo "    ${ALLCONFS}"
 	@echo ""

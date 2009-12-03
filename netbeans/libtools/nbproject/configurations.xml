@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="45">
+<configurationDescriptor version="62">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -12,7 +12,6 @@
       <itemPath>../../include/histogram.h</itemPath>
       <itemPath>../../include/histogramnew.h</itemPath>
       <itemPath>../../include/householderqr.h</itemPath>
-      <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/matrix.h</itemPath>
       <itemPath>../../include/objectfactory.h</itemPath>
       <itemPath>../../include/property.h</itemPath>
@@ -22,6 +21,7 @@
       <itemPath>../../include/tokenizer.h</itemPath>
       <itemPath>../../include/types.h</itemPath>
       <itemPath>../../include/vec.h</itemPath>
+      <itemPath>../../include/version.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -43,6 +43,7 @@
       <itemPath>../../src/libtools/rangeparser.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
       <itemPath>../../src/libtools/tokenizer.cc</itemPath>
+      <itemPath>../../src/libtools/version_nb.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -54,143 +55,51 @@
     <Elem>../../src/libtools</Elem>
     <Elem>../../include</Elem>
   </sourceRootList>
-  <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile_nb</projectmakefile>
   <confs>
     <conf name="Debug" type="3">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-          </includeDirectories>
-        </cCompilerTool>
-        <ccCompilerTool>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-          </includeDirectories>
+        <cTool>
+          <incDir>
+            <pElem>../../include</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>../../include</pElem>
+          </incDir>
           <commandLine>-I../../include</commandLine>
-        </ccCompilerTool>
+        </ccTool>
         <archiverTool>
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/average.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/correlate.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/crosscorrelate.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cubicspline.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/datacollection.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/histogram.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/histogramnew.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/householderqr.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/libversion.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/matrix.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/objectfactory.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/property.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/random.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/rangeparser.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/table.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/tokenizer.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/types.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/vec.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libtools/correlate.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/crosscorrelate.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/cubicspline.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/datacollection.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/histogram.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/histogramnew.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/matrix.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/parcer.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/property.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/random.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/rangeparser.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/table.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/tokenizer.cc">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>6</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-          </includeDirectories>
-        </cCompilerTool>
-        <ccCompilerTool>
+          <incDir>
+            <pElem>../../include</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
           <developmentMode>6</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-          </includeDirectories>
+          <incDir>
+            <pElem>../../include</pElem>
+          </incDir>
           <commandLine>-I../../include</commandLine>
-        </ccCompilerTool>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
@@ -198,119 +107,27 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/average.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/correlate.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/crosscorrelate.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cubicspline.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/datacollection.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/histogram.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/histogramnew.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/householderqr.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/libversion.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/matrix.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/objectfactory.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/property.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/random.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/rangeparser.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/table.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/tokenizer.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/types.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/vec.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libtools/correlate.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/crosscorrelate.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/cubicspline.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/datacollection.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/histogram.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/histogramnew.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/matrix.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/parcer.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/property.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/random.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/rangeparser.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/table.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/tokenizer.cc">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
     <conf name="profile_release" type="3">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>6</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-          </includeDirectories>
-        </cCompilerTool>
-        <ccCompilerTool>
+          <incDir>
+            <pElem>../../include</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
           <developmentMode>6</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-          </includeDirectories>
+          <incDir>
+            <pElem>../../include</pElem>
+          </incDir>
           <commandLine>-I../../include -pg</commandLine>
-        </ccCompilerTool>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
@@ -318,99 +135,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/average.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/correlate.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/crosscorrelate.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/cubicspline.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/datacollection.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/histogram.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/histogramnew.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/householderqr.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/libversion.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/matrix.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/objectfactory.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/property.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/random.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/rangeparser.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/table.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/tokenizer.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/types.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/vec.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libtools/correlate.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/crosscorrelate.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/cubicspline.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/datacollection.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/histogram.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/histogramnew.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/matrix.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/parcer.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/property.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/random.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/rangeparser.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/table.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libtools/tokenizer.cc">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
   </confs>
 </configurationDescriptor>
