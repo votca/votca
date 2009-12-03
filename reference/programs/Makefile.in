@@ -5,22 +5,8 @@ SHELL=/bin/bash
 
 all: $(BINS)
 
-%.t2t: 
-	@if [ -z "${CSGSHARE}" ]; then \
-	  echo CSGSHARE not defined >&2; \
-	  exit 1; \
-	fi
-	@if ! which $* &> /dev/null; then\
-	  echo $* not found;\
-	  exit 1;\
-	fi
-	@if ! $* --help &> /dev/null; then\
-	  echo $* --help failed;\
-	  exit 1;\
-	fi
-	echo -e "\n\n\n==$*==" > $@
-	@#$* --help | sed 's/^  --/: --/;/--/s/[[:space:]]\{5,\}/&\n/' >> $@
-	$* --help | sed 's/^[[:space:]]*-/- -/' >> $@
+%.t2t: proghelp2t2t.sh
+	./proghelp2t2t.sh $* >> $@	
 
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@

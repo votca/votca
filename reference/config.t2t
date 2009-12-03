@@ -1,0 +1,29 @@
+
+
+%!encoding: iso-8859-1
+
+%Anchor stuff
+%%%%%%%%%%%%%%%%%%%%%%%
+
+% for media wiki
+%!postproc(wiki): 'anchor\((.*?)\)' '<span id="\1"></span>'
+% for tex
+%!postproc(tex): 'anchor\((.*?)\)' '\label{\1}'
+%replace \_ back to _
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+
+%For the rest is replaced by nothing.
+%!postproc: 'anchor\(.*?\)' ''
+
+%Linebreak
+%%%%%%%%%%%%%%%%
+
+%!postproc: '^\s*$' '\n\\noindent '
+%for tex
+%%!postproc(tex): '^LINEBREAK' '\\newline '
+
+%For the rest is replaced by nothing
+%%!postproc: '^LINEBREAK' ''
+
