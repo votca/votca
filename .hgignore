@@ -41,3 +41,4 @@ src/libcsg/hgstamp
 netbeans/*/build
 src/csg_boltzmann/build
 */nbproject/private
+.dep.inc
