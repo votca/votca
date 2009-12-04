@@ -15,7 +15,7 @@ const std::string &CsgVersionStr()
 void HelpTextHeader(const std::string &tool_name)
 {
     std::cout 
-         << "\t----- VOTCA ( http://www.votca.org ) -----\n"
+         << "\t------ VOTCA ( http://www.votca.org ) ------\n"
          << tool_name << ", version " << votca::csg::CsgVersionStr()
          << "\nvotca_tools, version " << votca::tools::ToolsVersionStr() 
          << "\n\n";
