@@ -4,15 +4,28 @@ DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
 .SUFFIXES: .t2t .tex
 .PHONY: clean bootstrap
 
-all: all.tex
+all: all.tex csg_table.tex 
 	
 all.tex: $(SCRIPTS)
 	echo $(SCRIPTS) | \
 	sed -e 's/\.tex[[:space:]]*/\n/g' | \
 	sed -e '$$d' -e 's@.*@\\input{$(DIR)/&}@' > $@
 
+csg_table.t2t:
+	@if ! which csg_call > /dev/null 2>&1; then\
+	  echo csg_call not found;\
+	  exit 1;\
+	fi
+	echo "csg_table" > $@
+	echo "make" >> $@
+	date >> $@
+	echo "|| Key1 | Key2 | Scriptname" >> $@
+	csg_call -l | \
+	sed -e '1d' -e '/\(user\|csg\) table/d' | \
+	awk '{printf "| %s | %s | %s |\n",$$1,$$2,$$3}' >> $@
+
 %.t2t: 
-	./help2t2t.sh csg_call --direct $* >> $@	
+	./help2t2t.sh csg_call --direct $* > $@	
 
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
@@ -21,8 +34,8 @@ all.tex: $(SCRIPTS)
 #	rm -f *.t2t
 
 clean: 
-	rm -f $(SCRIPTS)
-	rm -f *.tex *~
+	rm -f $(SCRIPTS) all.tex csg_table.tex
+	rm -f *.tex *~ csg_table.t2t
 	rm -f Makefile
 
 bootstrap: Makefile.in

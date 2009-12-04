@@ -11,8 +11,8 @@ all.tex: $(BINS)
 	sed -e 's/\.tex[[:space:]]*/\n/g' | \
 	sed -e '$$d' -e 's@.*@\\input{$(DIR)/&}@' > $@
 
-%.t2t:
-	./help2t2t.sh $* >> $@	
+%.t2t: 
+	./help2t2t.sh $* > $@	
 
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
@@ -21,7 +21,7 @@ all.tex: $(BINS)
 #	rm -f *.t2t
 
 clean: 
-	rm -f $(DOCS)
+	rm -f $(DOCS) all.tex
 	rm -f *.tex *~
 	rm -f Makefile
 
