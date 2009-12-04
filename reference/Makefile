@@ -1,6 +1,6 @@
-.PHONY: programs scripts
+.PHONY: programs 
 
-all: cleantex programs.tex scripts.tex
+all: cleantex scripts.tex programs_submake
 	$(MAKE) $(MFLAGS) -C xml
 
 %.tex:
@@ -10,6 +10,10 @@ all: cleantex programs.tex scripts.tex
 
 cleantex:
 	rm -f programs.tex scripts.tex
+
+%_submake:
+	$(MAKE) $(MFLAGS) -C $* -f Makefile.in bootstrap
+	$(MAKE) $(MFLAGS) -C $*
 
 %_subclean:
 	$(MAKE) $(MFLAGS) -C $* -f Makefile.in bootstrap

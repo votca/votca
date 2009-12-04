@@ -1,9 +1,16 @@
 SHELL=/bin/bash
+DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
 
 .SUFFIXES: .t2t .tex
 .PHONY: clean bootstrap
 
-all: $(BINS)
+all: all.tex
+
+all.tex: $(BINS)
+	echo $(DIR)
+	echo $(BINS) | \
+	sed -e 's/\.tex[[:space:]]*/\n/g' | \
+	sed -e '$$d' -e 's@.*@\\input{$(DIR)/&}@' > $@
 
 %.t2t:
 	./help2t2t.sh $* >> $@	
