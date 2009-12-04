@@ -7,7 +7,6 @@ DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
 all: all.tex
 
 all.tex: $(BINS)
-	echo $(DIR)
 	echo $(BINS) | \
 	sed -e 's/\.tex[[:space:]]*/\n/g' | \
 	sed -e '$$d' -e 's@.*@\\input{$(DIR)/&}@' > $@
@@ -35,8 +34,9 @@ bootstrap: Makefile.in
 	  echo csg_property not found;\
 	  exit 1;\
 	fi
-	ls `dirname \`which csg_property\``/csg_* | xargs -n1 basename | \
-	  sed -e 's/.*/\t&.tex\\/' -e '1i BINS=\\' > Makefile
+	ls `dirname \`which csg_property\``/csg_* | \
+	xargs -n1 basename | \
+	sed -e 's/.*/\t&.tex\\/' -e '1i BINS=\\' > Makefile
 	echo >> Makefile
 	cat Makefile.in >> Makefile
 	

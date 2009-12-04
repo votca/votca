@@ -7,14 +7,15 @@ die() {
 
 [ -z "$1" ] && die "${0##*/}: Missing argument"
 prog="$1"
+shift
 
 [ -z "${CSGSHARE}" ] && die "${0##*/}: CSGSHARE not defined"
  
 [ -z "$(type $prog)" ] && die "${0##*/}: $prog not found"
 
-helpmsg="$($prog --help)" || die "${0##*/}: $prog --help failed"
+helpmsg="$($prog "$@" --help)" || die "${0##*/}: $prog $@ --help failed"
 
-echo "$prog"
+echo "$prog $@"
 echo ${0##*/}
 date
 echo

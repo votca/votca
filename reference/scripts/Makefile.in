@@ -1,22 +1,18 @@
+SHELL=/bin/bash
+DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
+
 .SUFFIXES: .t2t .tex
 .PHONY: clean bootstrap
 
-SHELL=/bin/sh
-
-all: $(SCRIPTS)
+all: all.tex
+	
+all.tex: $(SCRIPTS)
+	echo $(SCRIPTS) | \
+	sed -e 's/\.tex[[:space:]]*/\n/g' | \
+	sed -e '$$d' -e 's@.*@\\input{$(DIR)/&}@' > $@
 
 %.t2t: 
-	@if [ -z "${CSGSHARE}" ]; then \
-	  echo CSGSHARE not defined >&2; \
-	  exit 1; \
-	fi
-	@if ! cd ${CSGSHARE}/scripts/inverse && ./$* --help > /dev/null 2>&1; then\
-	  echo $* --help failed;\
-	  exit 1;\
-	fi
-	echo -e "\n\n\n==$*==" > $@
-	@#$* --help | sed 's/^  --/: --/;/--/s/[[:space:]]\{5,\}/&\n/' >> $@
-	( cd ${CSGSHARE}/scripts/inverse && ./$* --help ) | sed 's/^[[:space:]]*-/- -/' >> $@
+	./help2t2t.sh csg_call --direct $* >> $@	
 
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
@@ -30,12 +26,16 @@ clean:
 	rm -f Makefile
 
 bootstrap: Makefile.in
-	@if [ -z "${CSGSHARE}" ]; then \
-	  echo CSGSHARE not defined >&2; \
-	  exit 1; \
+	@if ! which csg_call > /dev/null 2>&1; then\
+	  echo csg_call not found;\
+	  exit 1;\
 	fi
-	cat ${CSGSHARE}/scripts/inverse/csg_table | awk '/^[^#]/{print $$3}' | \
-	  sed -e 's/.*/\t&.tex\\/' -e '1i SCRIPTS=\\' > Makefile
+	csg_call -l | \
+	sed -e '1d' \
+	    -e '/\(user\|csg\) table/d' | \
+	awk '{print $$3}' | \
+	sed -e 's/.*/\t&.tex\\/' \
+	    -e '1i SCRIPTS=\\' > Makefile
 	echo >> Makefile
 	cat Makefile.in >> Makefile
 	
