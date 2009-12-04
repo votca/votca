@@ -4,31 +4,34 @@
 
 if [ "$1" = "--help" ]; then
   cat <<EOF
+${0##*/}: @version@
 We have defined some useful (?) functions:
-log         = send a message to the logfile
-msg         = message to stdout and logfile
-die         = error message to stderr and logfile, 
-              and kills all csg process
-do_external = get scriptname for sourcewrapper and run it
-              supports for_all
-for_all     = run a command for all non-bonded pairs
-logrun      = exec to log output
-run_or_exit = logrun + die if error
-check_for   = checks if a binary exist in the path
-check_deps  = checks the dependencies of a script
++ log          = send a message to the logfile
++ msg          = message to stdout and logfile
++ die          = error message to stderr and logfile, 
+                 and kills all csg process
++ do_external  = get scriptname for sourcewrapper and run it
+                 supports for_all
++ for_all      = run a command for all non-bonded pairs
++ logrun       = exec to log output
++ run_or_exit  = logrun + die if error
++ check_for    = checks if a binary exist in the path
++ check_deps   = checks the dependencies of a script
 
 Examples:
-  log "Hi"
-  msg "Hi"
-  die "Error at line 99"
-  do_external init gromacs NVT
-  do_external init potential for_all bonded
-  for_all bonded init_potential.sh 1 2 3
-  logrun CMD 
-  run_or_exit CMD
+*  log "Hi"
+*  msg "Hi"
+*  die "Error at line 99"
+*  do_external init gromacs NVT
+*  do_external init potential for_all bonded
+*  for_all bonded init_potential.sh 1 2 3
+*  logrun CMD
+*  run_or_exit CMD
 
 USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property
-PROVIDES: log die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed run_or_exit  printf
+
+PROVIDES: log die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed run_or_exit printf
+
 NEEDS:
 EOF
 exit 0
