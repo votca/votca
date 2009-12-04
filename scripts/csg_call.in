@@ -65,7 +65,10 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;; 
    --ia-name)
     export bondname="$2"
-    shift 2;; 
+    shift 2;;
+    #direct call hack
+   --direct)
+    break;; 
    -h | --help)
     show_help
     exit 0;;

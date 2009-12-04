@@ -10,7 +10,7 @@ fi
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   echo -e "${0##*/}: @version@\n\n"
   if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
-    exec ${CSGSHARE}/scripts/inverse/inverse.sh --help
+    exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | sed "s/inverse\.sh/${0##*/}/g"
     exit 0
   fi  	
   cat << eof
