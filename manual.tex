@@ -45,13 +45,23 @@ pdfpagemode=None]{hyperref}
 \newcommand{\ddash}{{-}{-}\xspace}
 \newcommand{\csgfmatch}{\textbf{csg\_fmatch}\xspace}
 
+%formating for a program option, e.g. --trj
+\newcommand{\progopt}[1]{\texttt{#1}\xspace}
+% formating for programs, e.g. csg_boltzmann
+\newcommand{\prog}[1]{\textbf{#1}\xspace}
+% formating for an xml option, e.g. cg.inverse.simprog
+\newcommand{\xmlopt}[1]{\textit{#1}\xspace}
+
+% think about what should this do?
+% reference an xml option in the reference
+\newcommand{\refopt}[1]{ref.~\ref{#1}}
+
+
 \newcommand{\sect}[1]{sec.~\ref{#1}}
 
 \newcommand{\votca}{{\sc \color{blue} votca}\xspace}
 \newcommand{\votcaweb}{\htmladdnormallink{{\sc \color{blue} www.votca.org}\xspace}{http://www.votca.org}}
 
-% reference an xml option in the reference
-\newcommand{\refopt}[1]{ref.~\ref{#1}}
 
 \newcommand{\sasha}{ {\sc \color{red} Alexander Lukyanov} \newline}
 \newcommand{\denis}{ {\sc \color{red} Denis Andrienko} \newline}
