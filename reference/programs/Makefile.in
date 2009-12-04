@@ -5,8 +5,8 @@ SHELL=/bin/bash
 
 all: $(BINS)
 
-%.t2t: proghelp2t2t.sh
-	./proghelp2t2t.sh $* >> $@	
+%.t2t:
+	./help2t2t.sh $* >> $@	
 
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
