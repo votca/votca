@@ -6,16 +6,18 @@ use strict;
 
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname infile outfile
+$progname, version %version%
 This script convert csg potential files to xvg format
 Potential are copy in the C12 column 
 In addtion it does some magic tricks:
- -bigger value will be set to pot_max (see xml)
- -shift the potential, so that it is zero at the cutoff
- -set all values to zero after the cutoff
+- bigger value will be set to pot_max (see xml)
+- shift the potential, so that it is zero at the cutoff
+- set all values to zero after the cutoff
 
+Usage: $progname infile outfile
 
 NEEDS: cg.inverse.gromacs.pot_max cg.inverse.gromacs.table_end cg.inverse.gromacs.table_bins
+
 USES: csg_get_property saveto_table readin_table
 EOF
   exit 0;

@@ -1,11 +1,17 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-  echo This script implemtents the function initialize
-  echo for the Inverse Boltzmann Method
-  echo Usage: ${0##*/}
-  echo USES: do_external csg_get_interaction_property log run_or_exit csg_resample log
-  echo NEEDS: name min max step
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents the function initialize
+for the Inverse Boltzmann Method
+
+Usage: ${0##*/}
+
+USES: do_external csg_get_interaction_property log run_or_exit csg_resample log
+
+NEEDS: name min max step
+EOF
   exit 0
 fi
 

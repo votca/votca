@@ -1,10 +1,16 @@
   #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo "This solves linear equation system from imc using octave"
-   echo "Usage: ${0##*/} <group> <outfile>"
-   echo "USES:  die sed octave rm run_or_exit \$CSGINVERSE"
-   echo NEEDS:
+cat <<EOF
+${0##*/}, version @version@
+This solves linear equation system from imc using octave
+
+Usage: ${0##*/} <group> <outfile>
+
+USES:  die sed octave rm run_or_exit \$CSGINVERSE
+
+NEEDS:
+EOF
    exit 0
 fi
 

@@ -26,15 +26,17 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
+$progname, version %version%
 Merge two tables
+
 $usage
-OPTIONS:
+
+Allowed options:
 -v, --version         Prints version
 -h, --help            Show this help message
 --withflag            only change entries with specific flag in src
 --noflags             don't copy flags
 --novalues            don't copy values
-
 
 Examples:  $progname -q
            $progname

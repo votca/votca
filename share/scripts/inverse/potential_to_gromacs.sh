@@ -1,10 +1,16 @@
 #!/bin/bash
 
 if [ "$1" = "--help" ]; then
-  echo This is a wrapper to convert potential to gromacs
-  echo Usage: ${0##*/} 
-  echo USES: do_external csg_get_interaction_property log csg_get_property run_or_exit csg_resample
-  echo NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins
+cat <<EOF
+${0##*/}, version @version@
+This is a wrapper to convert potential to gromacs
+
+Usage: ${0##*/}
+
+USES: do_external csg_get_interaction_property log csg_get_property run_or_exit csg_resample
+
+NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins
+EOF
   exit 0
 fi
 

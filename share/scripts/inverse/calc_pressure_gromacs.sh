@@ -1,11 +1,17 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script calcs the pressure for gromacs
-   echo for the Inverse Boltzmann Method
-   echo Usage: ${0##*/}
-   echo USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die
-   echo NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
+cat <<EOF
+${0##*/}, version @version@
+This script calcs the pressure for gromacs
+for the Inverse Boltzmann Method
+
+Usage: ${0##*/}
+
+USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die
+
+NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
+EOF
    exit 0
 fi
 

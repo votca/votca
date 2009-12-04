@@ -29,15 +29,17 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
+$progname, version %version%
 This script calculates the integral of a table
+
 $usage
-OPTIONS:
+
+Allowed options:
 -h, --help            Show this help message
 
-
 NEEDS:
-USES: readin_table saveto_table
 
+USES: readin_table saveto_table
 END
 		exit;
 	}

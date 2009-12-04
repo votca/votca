@@ -6,10 +6,13 @@ use strict;
 
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname infile outfile
+$progname, version %version%
 This script smoothes a table
 
+Usage: $progname infile outfile
+
 USES: readin_table saveto_table
+
 NEEDS: 
 EOF
   exit 0;

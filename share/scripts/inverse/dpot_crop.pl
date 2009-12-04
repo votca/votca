@@ -24,17 +24,20 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
+$progname, version %version%
 crop the potential update at poorly sampled ends
+
 $usage
-OPTIONS:
+
+Allowed options:
 -h, --help            Show this help message
 
-
-Examples:  $progname tmp.dpot.cur tmp.dpot.new 
+Examples: 
+* $progname tmp.dpot.cur tmp.dpot.new 
 
 USES: readin_table saveto_table
-NEEDS: 
 
+NEEDS: 
 END
 		exit;
 	}

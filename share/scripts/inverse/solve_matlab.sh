@@ -1,10 +1,16 @@
   #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo "This solves linear equation system from imc using matlab"
-   echo "Usage: ${0##*/} <group> <outfile>"
-   echo USES:  die sed matlab rm run_or_exit \$CSGINVERSE mv
-   echo NEEDS:
+cat <<EOF
+${0##*/}, version @version@
+This solves linear equation system from imc using matlab
+
+Usage: ${0##*/} <group> <outfile>
+
+USES:  die sed matlab rm run_or_exit \$CSGINVERSE mv
+
+NEEDS:
+EOF
    exit 0
 fi
 

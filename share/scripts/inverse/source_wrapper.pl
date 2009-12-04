@@ -10,15 +10,18 @@ sub show_table($);
 
 if (defined($ARGV[0])&&( "$ARGV[0]" eq "--help" )){
   print <<END;
+$progname, version %version%
 This script find a script from two keywords.
-Usage: $progname word1 word2
 First we check user table and search in CSGSCRIPTDIR and than in CSGINVERSE
 Then we check csg table and search in CSGINVERSE
 
 Hacky usage: $progname --direct scriptname
 then we try to find scriptname in global,pwd,CSGSCRIPTDIR,CSGINVERSE
 
+Usage: $progname word1 word2
+
 USES: \$CSGINVERSE \$CSGSCRIPTDIR 
+
 NEEDS:
 END
   exit 0;

@@ -6,9 +6,7 @@ use strict;
 
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-$progname #version#
-Usage: $progname infile outfile
-
+$progname, %version%
 This script convert in rdf to pot of mean force (F(r)=-k_B T*ln(g(r))
 In addtion it does some magic tricks:
 - do not crash when calc log(0)
@@ -18,6 +16,7 @@ In addtion it does some magic tricks:
 - shift the potential, so that it is zero at the cutoff
 - set all values to zero after the cutoff
 
+Usage: $progname infile outfile
 
 USES: readin_table csg_get_property csg_get_property csg_get_interaction_property saveto_table
 

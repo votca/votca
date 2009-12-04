@@ -1,11 +1,18 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script implemtents the pressure update
-   echo Usage: ${0##*/} step_nr
-   echo USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit cp
-   echo NEEDS: cg.inverse.program name
-   echo OPTIONAL: inverse.post_update_options.pressure.type inverse.post_update_options.pressure.do
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents the pressure update
+
+Usage: ${0##*/} step_nr
+
+USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit cp
+
+NEEDS: cg.inverse.program name
+
+OPTIONAL: inverse.post_update_options.pressure.type inverse.post_update_options.pressure.do
+EOF
    exit 0
 fi
 

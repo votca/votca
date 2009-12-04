@@ -24,19 +24,21 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
+$progname, version %version%
 Performs a linear operaton on the y values:
 y_new = a*y_old + b
+
 $usage
-OPTIONS:
+
+Allowed options:
 -h, --help            Show this help message
 --withflag            only change entries with specific flag in src
-
 
 Examples:  $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
 
 USES: readin_table saveto_table
-NEEDS: 
 
+NEEDS: 
 END
 		exit;
 	}

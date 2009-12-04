@@ -1,10 +1,16 @@
 #! /bin/bash
 if [ "$1" = "--help" ]; then
-   echo This script resamples target distribution to grid spacing
-   echo for calculations
-   echo Usage: ${0##*/} target_directory
-   echo USES:  die csg_get_interaction_property run_or_exit csg_resample
-   echo NEEDS: min max step inverse.target name
+cat <<EOF
+${0##*/}, version @version@
+This script resamples target distribution to grid spacing
+for calculations
+
+Usage: ${0##*/} target_directory
+
+USES:  die csg_get_interaction_property run_or_exit csg_resample
+
+NEEDS: min max step inverse.target name
+EOF
    exit 0
 fi
 

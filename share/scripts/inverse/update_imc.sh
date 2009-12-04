@@ -1,11 +1,17 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script implemtents the function update
-   echo for the Inverse Monte Carlo Method
-   echo Usage: ${0##*/} step_nr
-   echo USES: die csg_get_property msg run_or_exit do_external sort for_all
-   echo NEEDS: cg.inverse.imc.solver cg.*.inverse.imc.group  cg.inverse.program
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents the function update
+for the Inverse Monte Carlo Method
+
+Usage: ${0##*/} step_nr
+
+USES: die csg_get_property msg run_or_exit do_external sort for_all
+
+NEEDS: cg.inverse.imc.solver cg.*.inverse.imc.group  cg.inverse.program
+EOF
    exit 0
 fi
 

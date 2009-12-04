@@ -1,10 +1,16 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This is a intialize stuff for gromacs
-   echo Usage: ${0##*/}
-   echo USES: cp die
-   echo NEEDS:
+cat <<EOF
+${0##*/}, version @version@
+This is a intialize stuff for gromacs
+
+Usage: ${0##*/}
+
+USES: cp die
+
+NEEDS:
+EOF
    exit 0
 fi
 

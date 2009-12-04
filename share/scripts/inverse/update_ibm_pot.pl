@@ -5,13 +5,15 @@ use strict;
 
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname new_rdf target_rdf cur_pot outfile
+$progname, version %version%
 This script calcs dU out of two rdfs with the rules of inverse boltzman
 In addtion it does some magic tricks:
- -do not update if one of the both rdf is undefined
+- do not update if one of the both rdf is undefined
 
+Usage: $progname new_rdf target_rdf cur_pot outfile
 
 NEEDS: cg.inverse.kBT
+
 USES: readin_table saveto_table csg_get_property
 EOF
   exit 0;

@@ -1,11 +1,17 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script implemtents the function update
-   echo for the Inverse Boltzmann Method
-   echo Usage: ${0##*/} step_nr
-   echo USES:  die msg csg_get_property for_all do_external
-   echo NEEDS: cg.inverse.program 
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents the function update
+for the Inverse Boltzmann Method
+
+Usage: ${0##*/} step_nr
+
+USES:  die msg csg_get_property for_all do_external
+
+NEEDS: cg.inverse.program 
+EOF
    exit 0
 fi
 

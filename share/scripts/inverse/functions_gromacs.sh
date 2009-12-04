@@ -1,11 +1,17 @@
 #!/bin/bash
 
 if [ "$1" = "--help" ]; then
-  echo Functions useful for gromacs 4.0
-  echo NEEDS:
-  #we add \$GMXDATA here, because gromacs will need it
-  echo USES: sed die \$GMXDATA
-  echo PROVIDES: get_from_mdp
+  #we add \$GMXDATA in USES, because gromacs will need it
+cat <<EOF
+${0##*/}, version @version@
+Functions useful for gromacs 4.0
+
+NEEDS:
+
+USES: sed die \$GMXDATA
+
+PROVIDES: get_from_mdp
+EOF
   exit 0
 fi 
 

@@ -1,10 +1,16 @@
 #!/bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo "This scripts cleans up the dpot tables for each interaction when using IMC"
-   echo "Usage: ${0##*/}"
-   echo USES:  do_external run_or_exit csg_get_interaction_property csg_get_property log csg_resample
-   echo NEEDS: name min max step cg.inverse.kBT inverse.do_potential
+cat <<EOF
+${0##*/}, version @version@
+This scripts cleans up the dpot tables for each interaction when using IMC
+
+Usage: ${0##*/}
+
+USES:  do_external run_or_exit csg_get_interaction_property csg_get_property log csg_resample
+
+NEEDS: name min max step cg.inverse.kBT inverse.do_potential
+EOF
    exit 0
 fi
 

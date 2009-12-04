@@ -6,14 +6,18 @@ use strict;
 
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname infile1 infile2 outfile
-NEEDS:
-USES: readin_table saveto_table 
+$progname, version %version%
 This script adds up two potentils 
 In addtion it does some magic tricks:
- - order of infiles MATTER !!!!
- - if infile2 contain undef value, it uses the value from infile1
- - if value for infile1 and infile2 are invalid, result is also invalid
+- order of infiles MATTER !!!!
+- if infile2 contain undef value, it uses the value from infile1
+- if value for infile1 and infile2 are invalid, result is also invalid
+
+Usage: $progname infile1 infile2 outfile
+
+NEEDS:
+
+USES: readin_table saveto_table 
 EOF
   exit 0;
 }

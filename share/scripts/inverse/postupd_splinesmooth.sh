@@ -1,10 +1,16 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo "This script implemtents smoothing of the potential update (.dpot)"
-   echo "Usage: ${0##*/} step_nr"
-   echo "USES: die csg_get_interaction_property mktemp sed awk csg_resample"
-   echo "NEEDS: name min max step inverse.post_update_options.splinesmooth.step"
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents smoothing of the potential update (.dpot)
+
+Usage: ${0##*/} step_nr
+
+USES: die csg_get_interaction_property mktemp sed awk csg_resample
+
+NEEDS: name min max step inverse.post_update_options.splinesmooth.step
+EOF
    exit 0
 fi
 

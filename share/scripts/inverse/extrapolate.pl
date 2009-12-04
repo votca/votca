@@ -106,18 +106,21 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
     elsif (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
+$progname, version %version%
 This script extrapolates a table
+
 $usage
-OPTIONS:
+
+Allowed options:
 --avgpoints           average over so many points to extrapolate: default is 3
 --function            linear, quadratic or exponential, sasha: default is quadratic
---region	      left, right, or leftright: default is leftright
+--region              left, right, or leftright: default is leftright
 --curvature           curvature of the quadratic function: default is 10000
                       makes sense only for quadratic extrapolation, ignored for other cases
 -h, --help            Show this help message
 
-
 NEEDS:
+
 USES: readin_table saveto_table
 END
 		exit;

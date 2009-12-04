@@ -4,13 +4,16 @@ use strict;
 ( my $progname = $0 ) =~ s#^.*/##;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname p_cur outfile
+$progname, version %version%
 This script calls the pressure corrections  like in 
 Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009) 
 Basically dU=A*(1-r/r_c) with A= -max(0.1k_B T, Int ) * sign(p_cur-p_target)
 and Int is the integral from Eq. 7 in the paper.
 
+Usage: $progname p_cur outfile
+
 NEEDS: cg.inverse.kBT max step inverse.particle_dens inverse.p_target name
+
 USES: csg_get_property csg_get_interaction_property saveto_table readin_table
 EOF
   exit 0;

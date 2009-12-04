@@ -1,11 +1,17 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script implemtents the function update
-   echo for the Inverse Boltzmann Method for a single pair
-   echo Usage: ${0##*/} step_nr
-   echo USES:  do_external die csg_get_interaction_property log run_or_exit awk
-   echo NEEDS: name step min max inverse.do_potential
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents the function update
+for the Inverse Boltzmann Method for a single pair
+
+Usage: ${0##*/} step_nr
+
+USES:  do_external die csg_get_interaction_property log run_or_exit awk
+
+NEEDS: name step min max inverse.do_potential
+EOF
    exit 0
 fi
 

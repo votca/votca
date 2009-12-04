@@ -1,12 +1,19 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script implemtents statistical analysis for the Inverse Monte Carlo Method
-   echo using generic csg tools
-   echo Usage: ${0##*/}
-   echo USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done
-   echo NEEDS: cg.inverse.program cg.inverse.cgmap
-   echo OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.\$sim_prog.topol
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents statistical analysis for the Inverse Monte Carlo Method
+using generic csg tools
+
+Usage: ${0##*/}
+
+USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done
+
+NEEDS: cg.inverse.program cg.inverse.cgmap
+
+OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.\$sim_prog.topol
+EOF
    exit 0
 fi
 

@@ -1,10 +1,16 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo "This script implemtents smoothing of the potential update (.dpot)"
-   echo "Usage: ${0##*/} step_nr"
-   echo USES:  die csg_get_interaction_property mktemp do_external cp log run_or_exit
-   echo NEEDS: name inverse.post_update_options.smooth.iterations
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents smoothing of the potential update (.dpot)
+
+Usage: ${0##*/} step_nr
+
+USES:  die csg_get_interaction_property mktemp do_external cp log run_or_exit
+
+NEEDS: name inverse.post_update_options.smooth.iterations
+EOF
    exit 0
 fi
 

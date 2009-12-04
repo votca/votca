@@ -6,13 +6,16 @@ use strict;
 
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname out full block1 block2 ...
+$progname, version %version%
 This scripts calculates the jacknife error from existing tables 
-full: table calculated with full dataset
-blocks: tables calculated with 1 block missing
-outfile: file to write results
+* full     =  table calculated with full dataset
+* blocks   = tables calculated with 1 block missing
+* outfile  = file to write results
+
+Usage: $progname out full block1 block2 ...
 
 USES: readin_table saveto_table_err
+
 NEEDS: 
 EOF
   exit 0;

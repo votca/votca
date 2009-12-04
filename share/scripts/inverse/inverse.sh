@@ -7,6 +7,7 @@ clean="no"
 
 show_help () {
   cat << eof
+${0##*/}, version @version@
 Start the script to run ibm, imc, etc.
 
 $usage

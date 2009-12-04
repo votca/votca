@@ -1,10 +1,16 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script implemtents the pressure update
-   echo Usage: ${0##*/} step_nr
-   echo USES: do_external for_all run_or_exit csg_get_interaction_property
-   echo NEEDS: name
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents the pressure update
+
+Usage: ${0##*/} step_nr
+
+USES: do_external for_all run_or_exit csg_get_interaction_property
+
+NEEDS: name
+EOF
    exit 0
 fi
 

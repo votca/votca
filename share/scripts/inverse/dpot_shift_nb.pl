@@ -5,11 +5,14 @@ use strict;
 
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
-Usage: $progname infile outfile
+$progname, version %version%
 This script set the beginning of the dpot to the first valid value and shift the whole potential
 so that dpot(r_max)=0.
 
+Usage: $progname infile outfile
+
 NEEDS:
+
 USES: readin_table saveto_table 
 EOF
   exit 0;

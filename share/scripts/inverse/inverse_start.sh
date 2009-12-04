@@ -1,12 +1,17 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-  echo this script just contain all startup check for inverse.sh to 
-  echo and makes inverse.sh more readable
-  #actually it provides this stuff
-  echo PROVIDES: \$CSGXMLFILE \$CSGINVERSE \$SOURCE_WRAPPER \$CSGSCRIPTDIR \$CSGLOG \$CSGRESTART
-  echo USES: \$CSGSHARE csg_property die csg_get_property rm
-  echo NEEDS: cg.inverse.scriptdir cg.inverse.log_file cg.inverse.restart_file
+cat <<EOF
+${0##*/}, version @version@
+this script just contain all startup check for inverse.sh to 
+and makes inverse.sh more readable
+
+PROVIDES: \$CSGXMLFILE \$CSGINVERSE \$SOURCE_WRAPPER \$CSGSCRIPTDIR \$CSGLOG \$CSGRESTART
+
+USES: \$CSGSHARE csg_property die csg_get_property rm
+
+NEEDS: cg.inverse.scriptdir cg.inverse.log_file cg.inverse.restart_file
+EOF
   exit 0
 fi
 

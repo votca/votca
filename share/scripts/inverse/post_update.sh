@@ -1,10 +1,16 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script make all the post update with backup 
-   echo Usage: ${0##*/} step_nr
-   echo USES:  do_external die for_all
-   echo NEEDS:
+cat <<EOF
+${0##*/}, version @version@
+This script make all the post update with backup
+
+Usage: ${0##*/} step_nr
+
+USES:  do_external die for_all
+
+NEEDS:
+EOF
    exit 0
 fi
 

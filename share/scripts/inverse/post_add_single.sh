@@ -1,10 +1,16 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-   echo This script make all the post update with backup for single pairs 
-   echo Usage: ${0##*/} step_nr
-   echo USES:  csg_get_interaction_property log mv cp do_external run_or_exit die
-   echo NEEDS: name inverse.post_add
+cat <<EOF
+${0##*/}, version @version@
+This script make all the post update with backup for single pairs 
+
+Usage: ${0##*/} step_nr
+
+USES:  csg_get_interaction_property log mv cp do_external run_or_exit die
+
+NEEDS: name inverse.post_add
+EOF
    exit 0
 fi
 

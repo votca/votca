@@ -1,11 +1,17 @@
 #! /bin/bash
 
 if [ "$1" = "--help" ]; then
-  echo This script implemtents the function initialize
-  echo for the Inverse Boltzmann Method
-  echo Usage: ${0##*/} last_sim_dir
-  echo USES: die cp run_or_exit grompp
-  echo NEEDS:
+cat <<EOF
+${0##*/}, version @version@
+This script implemtents the function initialize
+for the Inverse Boltzmann Method
+
+Usage: ${0##*/} last_sim_dir
+
+USES: die cp run_or_exit grompp
+
+NEEDS:
+EOF
   exit 0
 fi
 
