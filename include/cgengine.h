@@ -35,13 +35,18 @@ using namespace std;
 
     This class manages the coarse graining, at the moment it does the measurement stuff
 
+    TODO: split this into an additional VotcaApplication object
+
 */
 class CGEngine
 {
 public:
-    CGEngine() {}
+    CGEngine();
     ~CGEngine();    
-    
+
+    void Initialize();
+    void ParseCommandLine(int argc, char **argv);
+
     /**
         create a coarse grained topolgy based on a given topology
     */
@@ -70,14 +75,25 @@ public:
     CGMoleculeDef *getMoleculeDef(string name);
     
     void AddObserver(CGObserver *observer);
-    
-    
-    void AddProgramOptions(boost::program_options::options_description &desc);
-    void Run(boost::program_options::options_description &desc, boost::program_options::variables_map &vm);
+
+    boost::program_options::options_description_easy_init
+        AddProgramOptions() { return _op_desc_specific.add_options(); }
+
+    boost::program_options::variables_map &OptionsMap() { return _op_vm; }
+    boost::program_options::options_description &OptionsDesc() { return _op_desc; }
+
+
+    void Run();
     
 private:
+    void InitializeStandardOptions();
+
     list<CGObserver *> _observers;
     map<string, CGMoleculeDef *> _molecule_defs;
+
+    boost::program_options::options_description _op_desc;
+    boost::program_options::options_description _op_desc_specific;
+    boost::program_options::variables_map _op_vm;
 };
 
 inline CGMoleculeDef *CGEngine::getMoleculeDef(string name)

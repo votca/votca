@@ -10,12 +10,40 @@
 #include <votca/tools/tokenizer.h>
 #include "version.h"
 
+namespace po = boost::program_options;
+
+CGEngine::CGEngine()
+    : _op_desc("Allowed options"), _op_desc_specific("Specific options")
+{
+    InitializeStandardOptions();
+}
+
 CGEngine::~CGEngine()
 {
     map<string, CGMoleculeDef *>::iterator i;
     for(i=_molecule_defs.begin(); i!=_molecule_defs.end();++i)
         delete (*i).second;
     _molecule_defs.clear();
+}
+
+void CGEngine::Initialize()
+{
+    TrajectoryWriter::RegisterPlugins();
+    TrajectoryReader::RegisterPlugins();
+    TopologyReader::RegisterPlugins();
+}
+
+void CGEngine::ParseCommandLine(int argc, char **argv)
+{
+    _op_desc.add(_op_desc_specific);
+    namespace po=boost::program_options;
+    try {
+        po::store(po::parse_command_line(argc, argv, _op_desc), _op_vm);
+        po::notify(_op_vm);
+    }
+    catch(boost::program_options::error err) {
+        throw runtime_error(string("error parsing command line: ") + err.what());
+    }
 }
 
 /**
@@ -82,21 +110,26 @@ void CGEngine::EvalConfiguration(Topology &top_cg)
         (*iter)->EvalConfiguration(&top_cg);
 }
 
-void CGEngine::AddProgramOptions(boost::program_options::options_description &desc)
+void CGEngine::InitializeStandardOptions()
 {
-    desc.add_options()
-    ("help", "produce this help message")
-//    ("version", "show version info")
-    ("top", boost::program_options::value<string>(), "atomistic topology file")
-    ("trj", boost::program_options::value<string>(), "atomistic trajectory file")
-    ("cg", boost::program_options::value<string>(), "coarse graining definitions (xml-file)")
-    ("begin", boost::program_options::value<double>(), "skip frames before this time")
-    ("first-frame", boost::program_options::value<int>()->default_value(0), "start with this frame")
-    ("nframes", boost::program_options::value<int>(), "process so many frames")
+    po::options_description trj("Trajectory options");
+    _op_desc.add_options()
+    ("help", "  produce this help message")
+    ("top", boost::program_options::value<string>(), "  atomistic topology file")
+    ("cg", boost::program_options::value<string>(), "  coarse graining definitions (xml-file)")
     ;
+    
+    trj.add_options()
+    ("trj", boost::program_options::value<string>(), "  atomistic trajectory file")
+    ("begin", boost::program_options::value<double>(), "  skip frames before this time")
+    ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
+    ("nframes", boost::program_options::value<int>(), "  process so many frames")
+    ;
+
+    _op_desc.add(trj);
 }
 
-void CGEngine::Run(boost::program_options::options_description &desc, boost::program_options::variables_map &vm)
+void CGEngine::Run()
 {
     TopologyReader *reader;
     TrajectoryReader *traj_reader;
@@ -114,35 +147,34 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
 //    }
 
 
-    if (!vm.count("top")) {
-        cout << desc << endl;
+    if (!_op_vm.count("top")) {
+        cout << _op_desc << endl;
         throw runtime_error("no topology file specified");
     }
-    if (!vm.count("cg")) {
-        cout << desc << endl;
+    if (!_op_vm.count("cg")) {
+        cout << _op_desc << endl;
         throw runtime_error("no coarse graining definition specified");
     }
     
-    if(vm.count("begin")) {
+    if(_op_vm.count("begin")) {
         has_begin = true;
-        begin = vm["begin"].as<double>();
-    }
-    
+        begin = _op_vm["begin"].as<double>();
+    }    
     
     int nframes = -1;
-    if(vm.count("nframes")) {
-        nframes = vm["nframes"].as<int>();
+    if(_op_vm.count("nframes")) {
+        nframes = _op_vm["nframes"].as<int>();
     }
     
-    first_frame = vm["first-frame"].as<int>();
+    first_frame = _op_vm["first-frame"].as<int>();
     
     // create reader for atomistic topology
-    reader = TopReaderFactory().Create(vm["top"].as<string>());
+    reader = TopReaderFactory().Create(_op_vm["top"].as<string>());
     if(reader == NULL) 
-        throw runtime_error(string("input format not supported: ") + vm["top"].as<string>());
+        throw runtime_error(string("input format not supported: ") + _op_vm["top"].as<string>());
         
     // read in the atomistic topology
-    reader->ReadTopology(vm["top"].as<string>(), top);
+    reader->ReadTopology(_op_vm["top"].as<string>(), top);
     cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
     top.CheckMoleculeNaming();
     
@@ -150,7 +182,7 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
     //top.CreateOneBigMolecule("PS1");    
         
     // read in the coarse graining definitions (xml files)
-    LoadMoleculeType(vm["cg"].as<string>());
+    LoadMoleculeType(_op_vm["cg"].as<string>());
     // create the mapping + cg topology
     map = CreateCGTopology(top, top_cg);
     //cg_def.CreateMolecule(top_cg);
@@ -159,13 +191,13 @@ void CGEngine::Run(boost::program_options::options_description &desc, boost::pro
    
 
     // if trj is given, process trajectory file
-    if (vm.count("trj")) {
+    if (_op_vm.count("trj")) {
         // create reader for trajectory
-        traj_reader = TrjReaderFactory().Create(vm["trj"].as<string>());
+        traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<string>());
         if(traj_reader == NULL)
-            throw runtime_error(string("input format not supported: ") + vm["trj"].as<string>());
+            throw runtime_error(string("input format not supported: ") + _op_vm["trj"].as<string>());
         // open the trajectory
-        traj_reader->Open(vm["trj"].as<string>());
+        traj_reader->Open(_op_vm["trj"].as<string>());
         // read in first frame
         traj_reader->FirstFrame(top);    
         

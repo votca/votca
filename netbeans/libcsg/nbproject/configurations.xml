@@ -17,7 +17,6 @@
       <itemPath>../../include/imccoefficients.h</itemPath>
       <itemPath>../../include/imcio.h</itemPath>
       <itemPath>../../include/interaction.h</itemPath>
-      <itemPath>../../include/libversion.h</itemPath>
       <itemPath>../../include/map.h</itemPath>
       <itemPath>../../include/molecule.h</itemPath>
       <itemPath>../../include/nblist.h</itemPath>

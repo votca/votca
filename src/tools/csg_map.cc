@@ -53,6 +53,8 @@ protected:
     TrajectoryWriter *_writer;
 };
 
+// lets read in some program options
+namespace po = boost::program_options;
 
 int main(int argc, char** argv)
 {    
@@ -64,54 +66,37 @@ int main(int argc, char** argv)
     // file to write cg trajectory to
     string out;
     
-    // add our observer that it gets called to analyze frames
-    cg_engine.AddObserver((CGObserver*)&writer);
+    try {
+        // add our observer that it gets called to analyze frames
+        cg_engine.Initialize();
+
+        cg_engine.AddObserver((CGObserver*)&writer);
 
 
-    // initialize the readers/writers,
-    // this will be combined in an initialize function later
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-    
-    // lets read in some program options
-    namespace po = boost::program_options;
+        cg_engine.AddProgramOptions()
+            ("out", po::value<string>(&out), "  output file for coarse-grained trajectory");
+
+        cg_engine.ParseCommandLine(argc, argv);
         
-    // Declare the supported options.
-    po::options_description desc("Allowed options");    
-    
-    // let cg_engine add some program options
-    cg_engine.AddProgramOptions(desc);
-    
-    desc.add_options()
-      ("out", po::value<string>(&out), "output file for coarse-grained trajectory");
-    
-    // now read in the command line
-    po::variables_map vm;
-    try {
-        po::store(po::parse_command_line(argc, argv, desc), vm);    
-        po::notify(vm);
-    }
-    catch(po::error err) {
-        cout << "error parsing command line: " << err.what() << endl;
-        return -1;
-    }
-    // does the user want help?
-    if (vm.count("help")) {
-        help_text();
-        cout << desc << endl;
-        return 0;
-    }
+        po::variables_map &vm
+            = cg_engine.OptionsMap();
+        po::options_description &desc
+            = cg_engine.OptionsDesc();
 
-    if (!vm.count("out")) {
-        cerr << "need to specify output trajectory\n";
-        return -1;
-    }
-    writer.setOut(out);
+        // does the user want help?
+        if (vm.count("help")) {
+            help_text();
+            cout << desc << endl;
+            return 0;
+        }
 
-    // try to run the cg process, go through the frames, etc...
-    try {
-        cg_engine.Run(desc, vm);
+        if (!vm.count("out")) {
+            cerr << "need to specify output trajectory\n";
+            return -1;
+        }
+        writer.setOut(out);
+
+        cg_engine.Run();
     }
     // did an error occour?
     catch(std::exception &error) {

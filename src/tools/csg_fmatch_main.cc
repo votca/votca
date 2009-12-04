@@ -27,56 +27,41 @@ int main(int argc, char** argv)
     CGForceMatching fmatch;        
     // The CGEngine does the work
     CGEngine cg_engine;
-    
-    // add our observer that it gets called to analyze frames
-    cg_engine.AddObserver((CGObserver*)&fmatch);
 
-
-    // initialize the readers/writers,
-    // this will be combined in an initialize function later
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-
-    
-    // lets read in some program options
     namespace po = boost::program_options;
-        
-    
-    // Declare the supported options.
-    po::options_description desc("Allowed options");    
 
-    desc.add_options()
-      ("options", po::value<string>(), "options file for coarse graining");    
-    
-    // let cg_engine add some program options
-    cg_engine.AddProgramOptions(desc);
-    
-    // now read in the command line
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
-    // does the user want help?
-    if (vm.count("help")) {
-        help_text();
-        cout << desc << endl;
-        return 0;
-    }
-    
-    if(!vm.count("options")) {
-        cout << "need to specify options file\n";
-        cout << desc << endl;
-        return -1;
-    }
-    
-    fmatch.LoadOptions(vm["options"].as<string>());
-    
-    // try to run the cg process, go through the frames, etc...
     try {
-        cg_engine.Run(desc, vm);
-    }
+        cg_engine.Initialize();
+        // add our observer that it gets called to analyze frames
+        cg_engine.AddObserver((CGObserver*)&fmatch);
+    
+        cg_engine.AddProgramOptions()
+            ("options", po::value<string>(), "  options file for coarse graining");
+    
+        cg_engine.ParseCommandLine(argc, argv);
 
+        po::variables_map &vm
+            = cg_engine.OptionsMap();
+        po::options_description &desc
+            = cg_engine.OptionsDesc();
+
+        // does the user want help?
+        if (vm.count("help")) {
+            help_text();
+            cout << desc << endl;
+            return 0;
+        }
+    
+        if(!vm.count("options")) {
+            cout << "need to specify options file\n";
+            cout << desc << endl;
+            return -1;
+        }
+    
+        fmatch.LoadOptions(vm["options"].as<string>());
+    
+        cg_engine.Run();
+    }
     // did an error occour?
     catch(exception &error) {
         cerr << "An error occoured!" << endl << error.what() << endl;
