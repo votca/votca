@@ -5,7 +5,7 @@ lib_LIBRARIES = libvotca_csg.a
 
 libvotca_csg_a_SOURCES = \
     beadlist.cc       exclusionlist.cc    nblist.cc         topology.cc          trajectorywriter.cc \
-   cgengine.cc       imccoefficients.cc  neighbourlist.cc  topologymap.cc \
+   cgengine.cc       neighbourlist.cc  topologymap.cc \
    cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \
    connectivity.cc   molecule.cc         numberdist.cc     trajectoryreader.cc \
    imcio.cc nblistgrid.cc version.cc \
