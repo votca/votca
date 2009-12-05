@@ -24,7 +24,14 @@ AC_PROG_MAKE_SET
 
 #check for boost
 AX_BOOST([1.33.1])
+
+ACI_PACKAGE_SAVED(XML,[XML library (version XML2)],
+                  xml2-config,,,
+                  AC_MSG_WARN(Cannot find the XML2 libs. Is xml2-config in your path ?)
+                 )
+
 #AX_BOOST_PROGRAM_OPTIONS
+AX_VOTCA_TOOLS
 
 AC_OUTPUT
 
