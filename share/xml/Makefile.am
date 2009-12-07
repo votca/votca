@@ -1,5 +1,5 @@
 xmldir =${datadir}/votca/xml
-xml_DATA = cgoptions.xml mapping.xml 
+xml_DATA = cgoptions.xml mapping.xml cginteraction.xml
 
 EXTRA_DIST = $(xml_DATA)
 
