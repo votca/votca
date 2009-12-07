@@ -29,16 +29,43 @@ public:
     }
 
     void Init(string );
+
+    vector <double> GetJ (CrgUnit & one, CrgUnit & two);
+    
 private:
-/// a list of charge transport units
+
+    struct JCalcData{
+            /// the CrgUnitType of the first (will contain coordinates of the still molecules
+        CrgUnitType *_type1;
+        CrgUnitType *_type2;
+
+        ///variables copied from _type1 and _type2
+        /// THIS COULD BE OBSOLETE!!!
+        pair <vector <unsigned int>, vector <unsigned int> > _orblabels;
+
+        /// the moved coordinates
+        mol_and_orb _mol1;
+        mol_and_orb _mol2;
+        /// the moved orbitals
+        orb         _orb1;
+        orb         _orb2;
+        /// the fock matrix herself
+        fock        _fock;
+
+        basis_set   _indo;
+    };
+    
+    /// a list of charge transport units
     vector <CrgUnitType *> _listCrgUnitType;
     /// a map of charge unit type names to their index in the list
     map <string, CrgUnitType *> _mapCrgUnitByName;
+    /// map the fock calculators to the pair of integers representing the corresponding charge unit types
+    map <pair<CrgUnitType *, CrgUnitType *> , JCalcData *> _maplistfock;
 
-
-
-void ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur );
-
+    /// Enter data for Crg Unit Type
+    void ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur );
+    /// initialise a JCAlcDAta type
+    void InitJCalcData(UnitType *, CrgUnitType * , JCalcData *);
 };
 
 #endif	/* _JCALC_H */
