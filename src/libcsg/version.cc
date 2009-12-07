@@ -1,13 +1,14 @@
 #include <votca/tools/version.h>
 #include <iostream>
 #include "version.h"
+#include "config.h"
 
 namespace votca { namespace csg {
 
 #ifdef HGVERSION
-  static const std::string version_str = "@VERSION@ " HGVERSION " (compiled " __DATE__ ", " __TIME__ ")";
+  static const std::string version_str = VERSION " " HGVERSION " (compiled " __DATE__ ", " __TIME__ ")";
 #else
-  static const std::string version_str = "@VERSION@ (compiled " __DATE__ ", " __TIME__ ")";
+  static const std::string version_str = VERSION "(compiled " __DATE__ ", " __TIME__ ")";
 #endif
 
 const std::string &CsgVersionStr()
