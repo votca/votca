@@ -32,7 +32,7 @@ pscheme=( $(csg_get_interaction_property inverse.post_update_options.pressure.do
 pscheme_nr=$(( ( $1 - 1 ) % ${#pscheme[@]} ))
 
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
-   log "Apply pressure correction for interaction ${name}"
+   log "Apply ${type} pressure correction for interaction ${name}"
    run_or_exit do_external pressure_cor $ptype $p_now pressure_cor.d 
    run_or_exit do_external table add pressure_cor.d ${name}.dpot.cur ${name}.dpot.new
 else
