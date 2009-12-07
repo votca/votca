@@ -12,17 +12,7 @@ all.tex: $(SCRIPTS)
 	sed -e '$$d' -e 's@.*@\\input{$(DIR)/&}@' > $@
 
 csg_table.t2t:
-	@if ! which csg_call > /dev/null 2>&1; then\
-	  echo csg_call not found;\
-	  exit 1;\
-	fi
-	echo "csg_table" > $@
-	echo "make" >> $@
-	date >> $@
-	echo "|| Key1 | Key2 | Scriptname" >> $@
-	csg_call -l | \
-	sed -e '1d' -e '/\(user\|csg\) table/d' | \
-	awk '{printf "| %s | %s | %s |\n",$$1,$$2,$$3}' >> $@
+	./call2t2t.sh > $@
 
 %.t2t: 
 	./help2t2t.sh csg_call --direct $* > $@	
@@ -47,6 +37,7 @@ bootstrap: Makefile.in
 	sed -e '1d' \
 	    -e '/\(user\|csg\) table/d' | \
 	awk '{print $$3}' | \
+	sort -u | \
 	sed -e 's/.*/\t&.tex\\/' \
 	    -e '1i SCRIPTS=\\' > Makefile
 	echo >> Makefile

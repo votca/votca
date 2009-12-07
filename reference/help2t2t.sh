@@ -29,6 +29,7 @@ echo
 echo '%!includeconf: config.t2t'
 echo 
 echo -e "++$progname++"
+echo -e "label($progname)"
 
 #Here comes the magic:
 #-header is trash

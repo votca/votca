@@ -8,22 +8,22 @@
 % for media wiki
 %!postproc(wiki): 'anchor\((.*?)\)' '<span id="\1"></span>'
 % for tex
-%!postproc(tex): 'anchor\((.*?)\)' '\label{\1}'
-%replace \_ back to _
-%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
-%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
-%!postproc(tex): '(\\label\{[^}]*)\\_' '\1_'
+%!postproc(tex): 'anchor\((.*?)\)' '\hypertarget{\1}{}'
+%!postproc(tex): 'label\((.*?)\)' '\label{\1}'
+%!postproc(tex): 'ref\((.*?)\)\((.*?)\)' '\hyperref{\1}{\2}'
+%replace \_ back to _ three times
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label)(\{[^}]*)\\_' '\1\2_'
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label)(\{[^}]*)\\_' '\1\2_'
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label)(\{[^}]*)\\_' '\1\2_'
+
+% hyperref[]{}
+%!postproc(tex): '(\\hyperref)\{(.*?)\}\{(.*?)\}' '\1[\2]{\3}'
 
 %For the rest is replaced by nothing.
-%!postproc: 'anchor\(.*?\)' ''
+%!postproc: '(anchor|label|ref)\(.*?\)' ''
 
 %Linebreak
 %%%%%%%%%%%%%%%%
 
 %!postproc: '^\s*$' '\n\\noindent '
-%for tex
-%%!postproc(tex): '^LINEBREAK' '\\newline '
-
-%For the rest is replaced by nothing
-%%!postproc: '^LINEBREAK' ''
 
