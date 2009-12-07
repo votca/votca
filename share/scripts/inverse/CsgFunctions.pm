@@ -10,6 +10,7 @@ use vars qw(@ISA @EXPORT);
 
 sub csg_function_help() {
   print <<EOF;
+CsgFunctions, version #version#
 Provides useful function for perl:
 csg_get_property($):             get a value from xml file
 csg_get_interaction_property($): get a interaction property from xmlfile
