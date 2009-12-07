@@ -37,7 +37,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunittype.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock_matrix.o
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock_matrix.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/include/jcalc.o
 
 # C Compiler Flags
 CFLAGS=
@@ -99,6 +100,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock_matrix.o: nbproject/Makefile-$
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock_matrix.o ../../src/libmoo/fock_matrix.cpp
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/include/jcalc.o: nbproject/Makefile-${CND_CONF}.mk ../../include/jcalc.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/include
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/include/jcalc.o ../../include/jcalc.cc
 
 # Subprojects
 .build-subprojects:
