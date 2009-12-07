@@ -1,0 +1,34 @@
+all: $(XML) 
+
+.SUFFIXES: .xml .t2t .tex 
+.PHONY: clean 
+
+SHELL=/bin/bash
+
+#xmlclean:
+#	rm -f cgoptions.xml mapping.xml
+
+#t2tclean:
+#	rm -f cgoptions.t2t mapping.t2t
+
+%.t2t: 
+	./xmltotxt.sh $*.xml > $@
+
+.t2t.tex:
+	./txt2tags -t tex --no-header --infile $< --outfile $@
+
+clean:
+	rm -f $(XML)
+	rm -f *~
+	rm -f Makefile
+
+bootstrap: Makefile.in
+	@if [ -z "${CSGSHARE}" ]; then \
+	  echo CSGSHARE not defined >&2; \
+	  exit 1; \
+	fi
+	ls ${CSGSHARE}/xml/*.xml | \
+	xargs -n1 basename | \
+	sed -e 's/^/\t/' -e 's/\.xml$$/.tex\\/' -e '1i XML=\\' > Makefile
+	echo >> Makefile
+	cat Makefile.in >> Makefile

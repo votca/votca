@@ -8,7 +8,7 @@
 % for media wiki
 %!postproc(wiki): 'anchor\((.*?)\)' '<span id="\1"></span>'
 % for tex
-%!postproc(tex): 'anchor\((.*?)\)' '\hypertarget{\1}{}'
+%!postproc(tex): 'anchor\((.*?)\)\((.*)\)' '\hypertarget{\1}{\2}'
 %!postproc(tex): 'label\((.*?)\)' '\label{\1}'
 %!postproc(tex): 'ref\((.*?)\)\((.*?)\)' '\hyperref{\1}{\2}'
 %replace \_ back to _ three times

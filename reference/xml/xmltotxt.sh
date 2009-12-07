@@ -6,25 +6,31 @@ die () {
 }
 
 if [ "$1" = "--help" ]; then
-  echo Usage: ${0##*/} infile 
+  echo Usage: ${0##*/} xmlname
   echo Will convert xml to txt2tags file
   exit 0
 fi
 
 [ -z "$1" ] && die "${0##*/}: Missing argument"
 [ -z "$(type -p csg_property)" ] && die "${0##*/}: csg_property not found"
-[ -f "$1" ] || die "Inputfile '$1' not found"
+
+xmlfile="$1"
+[ -z "${CSGSHARE}" ] && die "${0##*/}: CSGSHARE not defined"
+[ -f "${CSGSHARE}/xml/$xmlfile" ] || die "${0##*/}: Error, did not find ${CSGSHARE}/xml/$xmlfile"
 
 #header lines
-echo $1 
+echo $xmlfile 
 echo ${0##*/}
-date -r $1  +%F 
+date
 echo '%!includeconf: config.t2t'
 echo
 
-for name in $(csg_property --file $1 --path tags.item --print name --short || die "parsing xml failed" ); do
-  echo ": $name anchor(${name//\$})"
-  echo "$(csg_property --file $1 --path tags.item --filter "name=$name" --print desc --short | sed -e 's/^[[:space:]]*//' -e '/^$/d' || die \"parsing xml failed\" )"
+items="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
+for name in ${items}; do
+  spaces="$(echo "${name//[^.]}" | sed -e 's/\./  /g')"
+  echo "${spaces}- anchor(${name//\$})(**${name##*.}**)"
+  desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
+  echo ${desc}
 done
 
 
