@@ -39,6 +39,9 @@ src/tools/csg_stat
 scripts/hgstamp
 src/libcsg/hgstamp
 share/scripts/inverse/hgstamp
+share/scripts/inverse/*.pl
+share/scripts/inverse/*.pm
+share/scripts/inverse/*.sh
 
 netbeans/*/build
 src/csg_boltzmann/build
