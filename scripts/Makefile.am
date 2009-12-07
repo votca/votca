@@ -1,4 +1,4 @@
-HGVERSION:= $(shell grep -q node $(top_builddir)/hg_archival.txt 2> /dev/null || hg parents --template 'hgid: {node}' 2> /dev/null || true )
+HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node}' 2> /dev/null || grep -q node $(top_builddir)/hg_archival.txt 2> /dev/null || true )
 
 # Scripts generated at compile time
 bin_SCRIPTS   = CSGRC.csh CSGRC.bash csg_inverse csg_call
