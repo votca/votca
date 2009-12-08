@@ -38,13 +38,23 @@ or copy and paste the content of that file to the exclusions section.
 
 
 \subsection{Analysis}
-If the \progopt{--trj} option is specified to parse a reference trajectory, \prog{csg\_boltzmann} enters an interactive mode which accepts commands.
+If the \progopt{--trj} option is specified to parse a reference trajectory, \prog{csg\_boltzmann} enters an interactive mode which accepts commands. Here, analysis operations can be performed on all interactions evaluated.
 
 \begin{verbatim}
   csg_boltzmann --top topol.top --trj traj.trr --cg mapping.xml 
 \end{verbatim}
 
-Here, analysis operations can be performed on all interactions evaluated. All interactions specified in the mapping schema are evaluated. A specific interaction is refered to by a name which is composed of \textit{molecule:interaction-group:index}, where molecule is the molecule number in the whole topology, interaction-group the name specified in the mapping file, and index the entry in the list of this interaction. E.g. \textit{1:AA-bond:10} is the 10th AA-bond in molecule 1. To show a list all interactions that where passed, the command \textit{list} can be used. To specify a couple of interactions during analysis, either give interactions separated by space of use wildcards (e.g. *:AA-bond*).
+The interactive mode contains a built in \textit{help} command. To get help on a specific command use
+\begin{verbatim}
+  help <command>
+\end{verbatim}
+for example
+\begin{verbatim}
+  help hist
+  help hist set periodic
+\end{verbatim}
+
+All interactions specified in the mapping schem are evaluated. A specific interaction is refered to by a name which is composed of \textit{molecule:interaction-group:index}, where molecule is the molecule number in the whole topology, interaction-group the name specified in the mapping file, and index the entry in the list of this interaction. E.g. \textit{1:AA-bond:10} is the 10th AA-bond in molecule 1. To show a list all interactions that where passed, the command \textit{list} can be used. To specify a couple of interactions during analysis, either give interactions separated by space of use wildcards (e.g. *:AA-bond*).
 
 To quit interactive mode, use command \textit{q}. If analysis commands should be read from a file, use the pipe or stdin redirects from the shell.
 
@@ -58,7 +68,7 @@ The command
 \begin{verbatim}
   hist set
 \end{verbatim}
-prints a list of all parameters than can be changed for the histogram. To directly write the boltzmann inverted potential, the \textit{tab} command can be used. It's usage and options are very similar to the \textit{hist} command. If tabulated potentials are written, special care should be taken to the paramter T (temperature) and scale. The scale command does the volume normalization as given in     \eq{eq:boltzmann_norm}. Possible values are \textit{no} (no scaling), \textit{bond} (normalize for bonds) and \textit{angle} (normalize for angles). The e.g. write out the tabulated potential for an angle potential where the temperature was 300K type:
+prints a list of all parameters than can be changed for the histogram. To directly write the boltzmann inverted potential, the \textit{tab} command can be used. It's usage and options are very similar to the \textit{hist} command. If tabulated potentials are written, special care should be taken to the paramter T (temperature) and scale. The scale command does the volume normalization as given in \eq{eq:boltzmann_norm}. Possible values are \textit{no} (no scaling), \textit{bond} (normalize for bonds) and \textit{angle} (normalize for angles). The e.g. write out the tabulated potential for an angle potential where the temperature was 300K type:
 \begin{verbatim}
   tab set T 300
   tab set scale angle
@@ -66,3 +76,8 @@ prints a list of all parameters than can be changed for the histogram. To direct
 \end{verbatim}
 
 \subsubsection{Correlation analysis}
+\prog{csg\_boltzmann} offers two posibilities to evaluate correlations of interactions. On thing is the linear correlation coefficient using the command \textit{cor}. However this is not a good measure since it only calculates the linear corelation and often give misleading results~\cite{Ruehle:2009.a}. A better way is to create 2D Histograms. This can be performed by writing out the values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
+\begin{verbatim}
+  vals vals.txt 1:AA-bond:1 1:AAA-angle:A
+\end{verbatim}
+This will create a file which contains 3 columns, the first being the time, the second and third the bond and angle, respectively. Column 2 and 3 can either be used to generate the 2D Histogram, or simpler plot column 3 over 2 with points where the density of points reflect the probability.
