@@ -25,7 +25,7 @@ CSGRC.bash:  CSGRC.bash.in Makefile hgstamp
 	sed 's,@bindir\@,$(bindir),' | \
 	sed 's,@votcashare\@,${datadir}/votca,' > CSGRC.bash
 
-CLEANFILES = CSGRC.csh CSGRC.bash csg_call csg_inverse
+CLEANFILES = CSGRC.csh CSGRC.bash csg_call csg_inverse *~
 
 hgstamp: update_hgstamp
 update_hgstamp:
