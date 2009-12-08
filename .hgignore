@@ -1,0 +1,25 @@
+syntax: glob
+
+*~
+*.a
+*.o
+.deps
+autom4te.cache
+stamp-h1
+Makefile
+Makefile.in
+aclocal.m4
+config.log
+config.status
+config/config.guess
+config/config.sub
+config/depcomp
+config/install-sh
+config/missing
+configure
+config.h
+config.h.in
+
+netbeans/*/build
+*/nbproject/private
+.dep.inc
