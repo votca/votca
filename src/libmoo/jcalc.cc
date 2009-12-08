@@ -174,43 +174,91 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur ){
 }
 
 void JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcData * data){
-        data->_type1 = mol1;
-        data->_type2 = mol2;
+    data = new JCalcData;
+    data->_type1 = mol1;
+    data->_type2 = mol2;
 
-        data->_orblabels.first = data->_type1 -> GetTransOrbs();
-        data->_orblabels.second = data->_type2 -> GetTransOrbs();
+    data->_orblabels.first = data->_type1 -> GetTransOrbs();
+    data->_orblabels.second = data->_type2 -> GetTransOrbs();
 
-        int nrorbs = data->_orblabels.first.size();
-        for(int i=0; i<nrorbs; i++){
-            if (data->_orblabels.first[i] != i && data->_orblabels.second[i] != i){
-                cout << "orblabels: " << data->_orblabels.first[i] << " " << data->_orblabels.second[i] << endl;
-                 throw "Error in RateCalculator, the charge unit types do not have stripped orbitals";
-            }
+    int nrorbs = data->_orblabels.first.size();
+    for(int i=0; i<nrorbs; i++){
+        if (data->_orblabels.first[i] != i && data->_orblabels.second[i] != i){
+            cout << "orblabels: " << data->_orblabels.first[i] << " " << data->_orblabels.second[i] << endl;
+             throw "Error in RateCalculator, the charge unit types do not have stripped orbitals";
         }
-        //initialise the first copy of the molecules + orbitals
-        data->_mol1.define_bs(data->_indo);
-        data->_mol1.cp_atompos(mol1->GetCrgUnit() );
-        data->_mol1.cp_atoms  (mol1->GetCrgUnit() );
-        data->_orb1.init_orbitals_stripped(mol1->GetOrb(), nrorbs);
-        data->_mol1.assign_orb(&data->_orb1);
-        data->_mol1.cp_crg(mol1->GetCrgUnit());
+    }
+    //initialise the first copy of the molecules + orbitals
+    data->_mol1.define_bs(data->_indo);
+    data->_mol1.cp_atompos(mol1->GetCrgUnit() );
+    data->_mol1.cp_atoms  (mol1->GetCrgUnit() );
+    data->_orb1.init_orbitals_stripped(mol1->GetOrb(), nrorbs);
+    data->_mol1.assign_orb(&data->_orb1);
+    data->_mol1.cp_crg(mol1->GetCrgUnit());
 
-        //inititalise the second copy of molecules + orbitals
-        data->_mol2.define_bs(data->_indo);
-        data->_mol2.cp_atompos(mol2->GetCrgUnit() );
-        data->_mol2.cp_atoms  (mol2->GetCrgUnit() );
-        data->_orb2.init_orbitals_stripped(mol2->GetOrb(), nrorbs);
-        data->_mol2.assign_orb(&data->_orb2);
-        data->_mol2.cp_crg(mol2->GetCrgUnit());
+    //inititalise the second copy of molecules + orbitals
+    data->_mol2.define_bs(data->_indo);
+    data->_mol2.cp_atompos(mol2->GetCrgUnit() );
+    data->_mol2.cp_atoms  (mol2->GetCrgUnit() );
+    data->_orb2.init_orbitals_stripped(mol2->GetOrb(), nrorbs);
+    data->_mol2.assign_orb(&data->_orb2);
+    data->_mol2.cp_crg(mol2->GetCrgUnit());
 
-        // we have stripped the orbs to the bone
-        for(int i=0; i < data->_orblabels.first.size(); i++){
-            data->_orblabels.first[i]  = i;
-            data->_orblabels.second[i] = i;
-        }
+    // we have stripped the orbs to the bone
+    for(int i=0; i < data->_orblabels.first.size(); i++){
+        data->_orblabels.first[i]  = i;
+        data->_orblabels.second[i] = i;
+    }
 
-        //initialise the fock matrix
-        data->_fock.init(data->_mol1, data->_mol2);
+    //initialise the fock matrix
+    data->_fock.init(data->_mol1, data->_mol2);
 
-        _maplistfock.insert(make_pair(make_pair(mol1, mol2) , data ));
+    _maplistfock.insert(make_pair(make_pair(mol1, mol2) , data ));
 }
+
+vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
+    if ( one.GetTypeID() > two.GetTypeID()){
+        return GetJ(two, one);
+    }
+
+    JCalcData * jdata;
+    map <pair<CrgUnitType *, CrgUnitType *> , JCalcData *>::iterator itm=
+             _maplistfock.find(make_pair(one.GetType(), two.GetType()));
+     if (itm == _maplistfock.end() ){
+         InitJCalcData(one.GetType(), two.GetType(), jdata);
+     }
+     else{
+         jdata = itm->second;
+     }
+
+    //calculate J
+    #ifdef DEBUG
+    cout << one.GetId() << "is the first molecule I am rotatin and the second is: " <<  two.GetId() <<endl;
+    #endif
+
+    one.rot_two_mol(two, jdata->_mol1, jdata->_mol2);
+
+    // calculating orbitals for all pairs
+
+    vector < double > Js; // vector with all Js
+    vector < pair <int,int> > _pois; // vector with all pairs of interest
+    pair <int, int> poi; // pair of interest
+    for(int i=0; i<jdata->_orblabels.first.size(); i++){
+        for(int j=0; j<jdata->_orblabels.first.size(); j++){
+            poi.first = jdata->_orblabels.first[i];
+            poi.second = jdata->_orblabels.second[j];
+            Js.push_back(jdata->_fock.calcJ(poi));
+            _pois.push_back(poi);
+        }
+    }
+
+    //copy molecules back
+    jdata->_mol1.cp_atompos(jdata->_type1->GetCrgUnit());
+    jdata->_mol2.cp_atompos(jdata->_type2->GetCrgUnit());
+
+    jdata->_mol1.cp_orb(jdata->_type1->GetCrgUnit(), jdata->_orblabels.first);
+    jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
+
+    return Js;
+}
+
