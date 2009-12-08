@@ -32,12 +32,12 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/basis_set.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/orbitals.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/charges.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunittype.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock_matrix.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/jcalc.o
 
 # C Compiler Flags
@@ -71,6 +71,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/basis_set.o: nbproject/Makefile-${C
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/basis_set.o ../../src/libmoo/basis_set.cpp
 
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/fock.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock.o ../../src/libmoo/fock.cc
+
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/orbitals.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/orbitals.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
 	${RM} $@.d
@@ -95,11 +100,6 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o: nbproject/Makefile-$
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o ../../src/libmoo/mol_and_orb.cpp
-
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock_matrix.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/fock_matrix.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
-	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock_matrix.o ../../src/libmoo/fock_matrix.cpp
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/jcalc.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/jcalc.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo

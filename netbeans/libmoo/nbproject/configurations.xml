@@ -8,7 +8,7 @@
       <itemPath>../../include/charges.h</itemPath>
       <itemPath>../../include/crgunit.h</itemPath>
       <itemPath>../../include/crgunittype.h</itemPath>
-      <itemPath>../../include/fock_matrix.h</itemPath>
+      <itemPath>../../include/fock.h</itemPath>
       <itemPath>../../include/global.h</itemPath>
       <itemPath>../../include/jcalc.h</itemPath>
       <itemPath>../../include/mol_and_orb.h</itemPath>
@@ -24,7 +24,7 @@
       <itemPath>../../src/libmoo/charges.cpp</itemPath>
       <itemPath>../../src/libmoo/crgunit.cc</itemPath>
       <itemPath>../../src/libmoo/crgunittype.cc</itemPath>
-      <itemPath>../../src/libmoo/fock_matrix.cpp</itemPath>
+      <itemPath>../../src/libmoo/fock.cc</itemPath>
       <itemPath>../../src/libmoo/jcalc.cc</itemPath>
       <itemPath>../../src/libmoo/mol_and_orb.cpp</itemPath>
       <itemPath>../../src/libmoo/orbitals.cpp</itemPath>

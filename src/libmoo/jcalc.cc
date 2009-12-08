@@ -173,7 +173,7 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur ){
     _listCrgUnitType.push_back(crgunittype);
 }
 
-void InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcData * data){
+void JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcData * data){
         data->_type1 = mol1;
         data->_type2 = mol2;
 
@@ -200,7 +200,7 @@ void InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcData * da
         data->_mol2.cp_atompos(mol2->GetCrgUnit() );
         data->_mol2.cp_atoms  (mol2->GetCrgUnit() );
         data->_orb2.init_orbitals_stripped(mol2->GetOrb(), nrorbs);
-        data->_mol2.assign_orb(&_orb2);
+        data->_mol2.assign_orb(&data->_orb2);
         data->_mol2.cp_crg(mol2->GetCrgUnit());
 
         // we have stripped the orbs to the bone
