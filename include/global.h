@@ -10,6 +10,26 @@ const double Ang = 1E-10;
 const double Hartree =27.21; //convert H to eV
 /* this variable should sit in global.h*/
         
-template<typename T> void clearListList(T&);
+
+template<typename T>
+inline void clearListList(T&obj)
+{
+    typename T::iterator it = obj.begin();
+    for ( ; it != obj.end() ; ++it){
+        it->clear();
+    }
+    obj.clear();
+}
+
+template<typename T>
+inline void safe_delete(T& obj)
+{
+        typename T::iterator it =obj.begin();
+            for( ; it != obj.end() ; ++it ){
+                        delete *it;
+                            }
+                obj.clear();
+}
+
 
 #endif //FILE_GLOB

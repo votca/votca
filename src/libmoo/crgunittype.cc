@@ -211,6 +211,15 @@ void CrgUnitType::rotate_each_bead(vector < vec >::iterator it_pos, vector < vec
         cout << " type of crgunittype: " << _id << endl;
         cout << "normal vector: " << zprime << " and for orbitals: " << zprime_orb << " and plane vector: " << xprime << endl;
 #endif
+      /**  vector <int> tmplist= *it_monomers;
+        cout << tmplist.size() <<  endl;
+        cout << *it_pos << endl;
+        cout << *it_coms << endl;
+        cout << rotated_molecule->getN() <<endl;
+        vector <int> ::iterator ittmplist= tmplist.begin();
+        for ( ; ittmplist!=tmplist.end(); ++ittmplist){
+            cout << *ittmplist <<endl;
+        }**/
         _intcoords.rotate_someatoms(*it_monomers, Orient_Pos, *it_pos, *it_coms, rotated_molecule);
         // rotating all orbitals now (hopefully)
         for(int i=0; i<_transorbs.size(); i++){

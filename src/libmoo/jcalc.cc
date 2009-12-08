@@ -11,18 +11,18 @@ void JCalc::Init(string filename){
     //cout << filename << endl;
     doc = xmlParseFile(filename.c_str());
     if(doc == NULL)
-        throw "Error on open crgunittype list: " + filename;
+        throw runtime_error("Error on open crgunittype list: " + filename);
 
     node = xmlDocGetRootElement(doc);
 
     if(node == NULL) {
         xmlFreeDoc(doc);
-        throw "Error, empty xml document: " + filename;
+        throw runtime_error("Error, empty xml document: " + filename);
     }
 
     if(xmlStrcmp(node->name, (const xmlChar *)"crgunit_type")) {
         xmlFreeDoc(doc);
-        throw "Error, xml file not labeled crgunit_type: " + filename;
+        throw runtime_error("Error, xml file not labeled crgunit_type: " + filename);
     }
     // parse xml tree
     for(node = node->xmlChildrenNode; node != NULL; node = node->next) {
@@ -173,8 +173,9 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur ){
     _listCrgUnitType.push_back(crgunittype);
 }
 
-void JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcData * data){
-    data = new JCalcData;
+JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 ){
+    JCalcData * data = new JCalcData;
+    
     data->_type1 = mol1;
     data->_type2 = mol2;
 
@@ -196,6 +197,10 @@ void JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcDa
     data->_mol1.assign_orb(&data->_orb1);
     data->_mol1.cp_crg(mol1->GetCrgUnit());
 
+ /***   cout << "crgunit type: " <<endl;
+    cout << mol1->GetCrgUnit().getN() <<endl;
+    cout << "data type: " <<endl;
+    cout << data->_mol1.getN() <<endl;**/
     //inititalise the second copy of molecules + orbitals
     data->_mol2.define_bs(data->_indo);
     data->_mol2.cp_atompos(mol2->GetCrgUnit() );
@@ -204,6 +209,11 @@ void JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcDa
     data->_mol2.assign_orb(&data->_orb2);
     data->_mol2.cp_crg(mol2->GetCrgUnit());
 
+    /***cout << "crgunit type: " <<endl;
+    cout << mol2->GetCrgUnit().getN() <<endl;
+    cout << "data type: " <<endl;
+    cout << data->_mol2.getN() <<endl;
+    **///
     // we have stripped the orbs to the bone
     for(int i=0; i < data->_orblabels.first.size(); i++){
         data->_orblabels.first[i]  = i;
@@ -214,6 +224,7 @@ void JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcDa
     data->_fock.init(data->_mol1, data->_mol2);
 
     _maplistfock.insert(make_pair(make_pair(mol1, mol2) , data ));
+    return data;
 }
 
 vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
@@ -225,7 +236,9 @@ vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
     map <pair<CrgUnitType *, CrgUnitType *> , JCalcData *>::iterator itm=
              _maplistfock.find(make_pair(one.GetType(), two.GetType()));
      if (itm == _maplistfock.end() ){
-         InitJCalcData(one.GetType(), two.GetType(), jdata);
+         jdata = InitJCalcData(one.GetType(), two.GetType());
+///         cout << "after creating" <<endl;
+///         cout<< jdata->_mol1.getN()<<endl;
      }
      else{
          jdata = itm->second;
@@ -262,3 +275,14 @@ vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
     return Js;
 }
 
+CrgUnit JCalc::DefineCrgUnit(vec pos, matrix orient, string name){
+    map <string, CrgUnitType *>::iterator ittype = this->_mapCrgUnitByName.find(name);
+    if (ittype == _mapCrgUnitByName.end()){
+        throw runtime_error("Cannot find Crg unit type with name" + name);
+    }
+    CrgUnitType *type = ittype->second;
+
+    vec plane1 = orient.getCol(1);
+    vec norm1 = orient.getCol(2);
+    return CrgUnit::CrgUnit(pos, plane1, norm1, type);
+}

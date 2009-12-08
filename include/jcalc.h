@@ -11,6 +11,7 @@
 #include <boost/lexical_cast.hpp>
 #include <libxml/parser.h>
 #include <map>
+#include <stdexcept>
 
 #include "crgunittype.h"
 #include "votca/tools/tokenizer.h"
@@ -33,7 +34,7 @@ public:
     void Init(string );
 
     vector <double> GetJ (CrgUnit & one, CrgUnit & two);
-    
+    CrgUnit DefineCrgUnit(vec pos, matrix orient, string name);
 private:
 
     struct JCalcData{
@@ -66,7 +67,7 @@ private:
     /// Enter data for Crg Unit Type
     void ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur );
     /// initialise a JCAlcDAta type
-    void InitJCalcData(CrgUnitType *, CrgUnitType * , JCalcData *);
+    JCalcData * InitJCalcData(CrgUnitType *, CrgUnitType * );
 };
 
 #endif	/* _JCALC_H */
