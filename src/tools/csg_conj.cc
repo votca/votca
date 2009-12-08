@@ -11,8 +11,14 @@
 #include <fstream>
 #include <boost/program_options.hpp>
 #include <cgengine.h>
-#include <libversion.h>
 #include <math.h>
+#include "version.h"
+
+#define TIME_ARRAY_SIZE 500
+#define TIME_GROUP  5
+#define TIME_RANGE  TIME_GROUP*TIME_ARRAY_SIZE
+
+#define TIME_MULTIPLIER 2
 
 using namespace std;
 
@@ -26,7 +32,7 @@ public:
          for(int i=0;i<10;++i)
              _dist[i]=0;
          for(int i=0;i<10;++i)
-             for(int j=0;j<1000;++j)
+             for(int j=0;j<TIME_ARRAY_SIZE;++j)
              _lifetime[i][j]=0;
     };
     void EndCG() {
@@ -34,8 +40,8 @@ public:
            cout << i+1 << " " << _dist[i] << endl;
         }
         BeginCycle();EndCycle();
-        for(int j=0;j<1000;++j) {
-            cout << j << " ";
+        for(int j=0;j<TIME_ARRAY_SIZE;++j) {
+            cout << j*TIME_MULTIPLIER*TIME_GROUP << " ";
             for(int i=0;i<10;++i)
                 cout << _lifetime[i][j] << " ";
             cout << endl;
@@ -72,7 +78,7 @@ public:
     
 protected:
     int _dist[10];
-    int _lifetime[10][1000];
+    int _lifetime[10][TIME_ARRAY_SIZE];
     
     struct crgunit_t {
         vector<int> _beads;
@@ -114,10 +120,10 @@ protected:
         for(list<crgunit_t>::iterator iter = _crgunits.begin();
             iter != _crgunits.end();) {           
             if(!(*iter)._alive) {
-                if((*iter)._lifetime < 1000)
-                    _lifetime[(*iter)._beads.size()-1][(*iter)._lifetime]+=(*iter)._lifetime;
+                if((*iter)._lifetime < TIME_RANGE)
+                    _lifetime[(*iter)._beads.size()-1][(*iter)._lifetime/TIME_GROUP]+=(*iter)._lifetime;
                 else
-                    _lifetime[(*iter)._beads.size()-1][999]+=(*iter)._lifetime;
+                    _lifetime[(*iter)._beads.size()-1][TIME_ARRAY_SIZE-1]+=(*iter)._lifetime;
                 iter =  _crgunits.erase(iter);
             } else ++iter;
         }
@@ -132,56 +138,33 @@ int main(int argc, char** argv)
     // The CGEngine does the work
     CGEngine cg_engine;
     
-    // add our observer that it gets called to analyze frames
-    cg_engine.AddObserver((CGObserver*)&no);
-
-
-    // initialize the readers/writers,
-    // this will be combined in an initialize function later
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-
-    
-    // lets read in some program options
     namespace po = boost::program_options;
+    try {
+        cg_engine.Initialize();
+        // add our observer that it gets called to analyze frames
+        cg_engine.AddObserver((CGObserver*)&no);
+    
+        // lets read in some program options
         
-    
-    // Declare the supported options.
-    po::options_description desc("Allowed options");    
-    
-    desc.add_options()
-        ("thres", boost::program_options::value<double>()->default_value(0.7), "conjugation threshold");
- 
+
+        cg_engine.AddProgramOptions()
+            ("thres", boost::program_options::value<double>(&thres)->default_value(0.7), "conjugation threshold");
+
+        cg_engine.ParseCommandLine(argc, argv); 
     // let cg_engine add some program options
-    cg_engine.AddProgramOptions(desc);
-    
-    // now read in the command line
-    po::variables_map vm;
-    try {
-        po::store(po::parse_command_line(argc, argv, desc), vm);    
-        po::notify(vm);
-        thres = vm["thres"].as<double>();
-    }
-    catch(po::error err) {
-        cout << "error parsing command line: " << err.what() << endl;
-        return -1;
-    }
-    // does the user want help?
-    if (vm.count("help")) {
-        cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";                
-        cout << desc << endl;
-        return 0;
-    }
-    // or asks for the program version?
-    if (vm.count("version")) {
-        cout << "csg_nemat, lib version " << LIB_VERSION_STR  << "\n";                        
-        return 0;
-    }
-    
-    // try to run the cg process, go through the frames, etc...
-    try {
-        cg_engine.Run(desc, vm);
+        po::variables_map &vm
+            = cg_engine.OptionsMap();
+        po::options_description &desc
+            = cg_engine.OptionsDesc();
+ 
+        // does the user want help?
+        if (vm.count("help")) {
+            votca::csg::HelpTextHeader("csg_nemat");
+            cout << desc << endl;
+            return 0;
+        }
+        cout << "using thresold: " << thres << endl;
+        cg_engine.Run();
     }
     // did an error occour?
     catch(std::exception &error) {
