@@ -37,6 +37,8 @@ AC_CONFIG_FILES([src/csg_boltzmann/Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/tools/Makefile])
 AC_CONFIG_FILES([src/libcsg/Makefile])
+AC_CONFIG_FILES([src/libcsg/modules/Makefile])
+AC_CONFIG_FILES([src/libcsg/modules/io/Makefile])
 
 AC_CONFIG_FILES([share/scripts/inverse/Makefile])
 AC_CONFIG_FILES([share/scripts/Makefile])
