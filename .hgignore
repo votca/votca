@@ -1,0 +1,24 @@
+syntax: glob
+*~
+*.aux
+functionality/fig/*.eps
+manual.bbl
+manual.blg
+manual.brf
+manual.dvi
+manual.fdb_latexmk
+manual.log
+manual.out
+manual.pdf
+manual.toc
+reference/programs/Makefile
+reference/programs/csg_*.tex
+reference/programs/all.tex
+reference/scripts/Makefile
+reference/scripts/csg_table.t??
+reference/scripts/*.pl.tex
+reference/scripts/*.sh.tex
+reference/scripts/all.tex
+reference/xml/Makefile
+reference/xml/*.tex
+usage/fig/*.eps
