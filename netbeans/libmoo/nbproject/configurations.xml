@@ -25,7 +25,7 @@
       <itemPath>../../src/libmoo/crgunit.cc</itemPath>
       <itemPath>../../src/libmoo/crgunittype.cc</itemPath>
       <itemPath>../../src/libmoo/fock_matrix.cpp</itemPath>
-      <itemPath>../../include/jcalc.cc</itemPath>
+      <itemPath>../../src/libmoo/jcalc.cc</itemPath>
       <itemPath>../../src/libmoo/mol_and_orb.cpp</itemPath>
       <itemPath>../../src/libmoo/orbitals.cpp</itemPath>
     </logicalFolder>

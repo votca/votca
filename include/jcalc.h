@@ -14,6 +14,8 @@
 
 #include "crgunittype.h"
 #include "votca/tools/tokenizer.h"
+#include "crgunit.h"
+#include "fock.h"
 
 using namespace boost;
 
@@ -40,7 +42,6 @@ private:
         CrgUnitType *_type2;
 
         ///variables copied from _type1 and _type2
-        /// THIS COULD BE OBSOLETE!!!
         pair <vector <unsigned int>, vector <unsigned int> > _orblabels;
 
         /// the moved coordinates
@@ -65,7 +66,7 @@ private:
     /// Enter data for Crg Unit Type
     void ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur );
     /// initialise a JCAlcDAta type
-    void InitJCalcData(UnitType *, CrgUnitType * , JCalcData *);
+    void InitJCalcData(CrgUnitType *, CrgUnitType * , JCalcData *);
 };
 
 #endif	/* _JCALC_H */

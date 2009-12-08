@@ -173,3 +173,44 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur ){
     _listCrgUnitType.push_back(crgunittype);
 }
 
+void InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 , JCalc::JCalcData * data){
+        data->_type1 = mol1;
+        data->_type2 = mol2;
+
+        data->_orblabels.first = data->_type1 -> GetTransOrbs();
+        data->_orblabels.second = data->_type2 -> GetTransOrbs();
+
+        int nrorbs = data->_orblabels.first.size();
+        for(int i=0; i<nrorbs; i++){
+            if (data->_orblabels.first[i] != i && data->_orblabels.second[i] != i){
+                cout << "orblabels: " << data->_orblabels.first[i] << " " << data->_orblabels.second[i] << endl;
+                 throw "Error in RateCalculator, the charge unit types do not have stripped orbitals";
+            }
+        }
+        //initialise the first copy of the molecules + orbitals
+        data->_mol1.define_bs(data->_indo);
+        data->_mol1.cp_atompos(mol1->GetCrgUnit() );
+        data->_mol1.cp_atoms  (mol1->GetCrgUnit() );
+        data->_orb1.init_orbitals_stripped(mol1->GetOrb(), nrorbs);
+        data->_mol1.assign_orb(&data->_orb1);
+        data->_mol1.cp_crg(mol1->GetCrgUnit());
+
+        //inititalise the second copy of molecules + orbitals
+        data->_mol2.define_bs(data->_indo);
+        data->_mol2.cp_atompos(mol2->GetCrgUnit() );
+        data->_mol2.cp_atoms  (mol2->GetCrgUnit() );
+        data->_orb2.init_orbitals_stripped(mol2->GetOrb(), nrorbs);
+        data->_mol2.assign_orb(&_orb2);
+        data->_mol2.cp_crg(mol2->GetCrgUnit());
+
+        // we have stripped the orbs to the bone
+        for(int i=0; i < data->_orblabels.first.size(); i++){
+            data->_orblabels.first[i]  = i;
+            data->_orblabels.second[i] = i;
+        }
+
+        //initialise the fock matrix
+        data->_fock.init(data->_mol1, data->_mol2);
+
+        _maplistfock.insert(make_pair(make_pair(mol1, mol2) , data ));
+}
