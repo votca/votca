@@ -5,6 +5,26 @@ die () {
   exit 1
 }
 
+add_heads() {
+  local i head pattern again="no"
+  for i in $items; do
+    head=${i%.*}
+    #for main node
+    [ "$head" = "$i" ] && continue
+    pattern=${head//$/\\$}
+    #if head node is note there
+    if [ -z "$(echo -e "$items" | grep -Ee "$pattern([[:space:]]+|\$)")" ]; then
+      items="$(echo -e "$items\n$head")"
+      again="yes"
+      #echo "added $head from $i xx $pattern" >&2
+      #break here to avoid double head nodes
+      break
+    fi
+  done
+  #we have to do that because items were changed
+  [ "$again" = "yes" ] && add_heads
+}
+
 if [ "$1" = "--help" ]; then
   echo Usage: ${0##*/} xmlname
   echo Will convert xml to txt2tags file
@@ -25,7 +45,13 @@ date
 echo '%!includeconf: config.t2t'
 echo
 
+#get all items
 items="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
+#check if the 
+add_heads
+#sort them
+items="$(echo -e "$items" | sort -u)"
+#echo "$items"
 for name in ${items}; do
   spaces="$(echo "${name//[^.]}" | sed -e 's/\./  /g')"
   echo "${spaces}- anchor(${name//\$})(**${name##*.}**)"

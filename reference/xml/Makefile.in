@@ -12,7 +12,7 @@ SHELL=/bin/bash
 #	rm -f cgoptions.t2t mapping.t2t
 
 %.t2t: 
-	./xmltotxt.sh $*.xml > $@
+	./xml2t2t.sh $*.xml > $@
 
 .t2t.tex:
 	./txt2tags -t tex --no-header --infile $< --outfile $@
