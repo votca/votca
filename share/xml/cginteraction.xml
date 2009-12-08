@@ -65,12 +65,6 @@
     </desc>
   </item>
   <item>
-    <name>inverse.post_update_options</name>
-    <desc>
-      This sectioncontains all options for post update scripts.
-    </desc>
-  </item>
-  <item>
     <name>inverse.post_add</name>
     <desc>
       Additional post processing of U after dU added to potential. This is a list of
@@ -78,12 +72,12 @@
     </desc>
   </item>
   <item>
-    <name>inverse.post_add_options</name>
+    <name>inverse.p_target</name>
     <desc>
-      This sectioncontains all options for post add scripts.
+      partial pressure of this species
     </desc>
   </item>
-  
+
   <item>
     <name>inverse.particle_dens</name>
     <desc>
@@ -126,13 +120,14 @@
       grid spacing for spline fit when doing spline smoothing.
     </desc>
   </item>
+
   <item>
-    <name>inverse.p_target</name>
+    <name>inverse.post_add_options</name>
     <desc>
-      partial pressure of this species
+      This sectioncontains all options for post add scripts.
     </desc>
   </item>
-
+  
 <!-- imc specific stuff -->
 
   <item>
@@ -159,4 +154,49 @@
       Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format for every run.
     </desc>
   </item>
+
+  <item>
+    <name>fmatch</name>
+    <desc>
+      Force matching options
+    </desc>
+  </item>
+
+  <item>
+    <name>fmatch.min</name>
+    <desc>
+      Minimum value of interval for distribution sampled in atomistic MD simulation. One can get this
+      number by looking at the distribution function for this interaction. For non-bonded interactions
+      it's the distance the rdf starts. For CG bonds and angles the variable has the similar meaning
+      ( note, that for angles it is specified in radians ).
+    </desc>
+  </item>
+  
+  <item>
+    <name>fmatch.max</name>
+    <desc>
+      Maximum value of interval for distribution sampled in atomistic MD simulation. One can get this
+      number by looking at the distribution function for this interaction. For non-bonded interactions
+      it's the cut-off fot the interaction.
+    </desc>
+  </item>
+
+  <item>
+    <name>fmatch.step</name>
+    <desc>
+      grid spacing for the spline, which represents the interaction. This parameter should not be too big,
+      otherwise you might lose some features of the interaction potential, and not too small, otherwise you
+      will have unsampled bins which results in a ill-defines equation system and will get NaNs in the output.
+    </desc>
+  </item>
+
+  <item>
+    <name>fmatch.out_step</name>
+    <desc>
+      Grid spacing for the output grid. Normally one wants to have this parameter smaller than fmatch.step, 
+      to have smooth curve, without additional spline interpolation. As a rule of thumb we normally use
+      fmatch.out_step which is approximately 5 times smaller than fmatch.step.
+    </desc>
+  </item>
+
 </tags> 

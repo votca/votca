@@ -35,14 +35,17 @@
   </item>
   <item><name>cg.inverse.kBT</name><desc> kBT (300*0.00831451 gromacs units) </desc></item>
   <item><name>cg.inverse.program</name><desc>simulation package to be used (currently only gromacs) </desc></item>
-  <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
+
+  <item><name>cg.inverse.$simprog</name><desc> generic simulation program (e.g. GROMACS) options </desc></item>
   <item><name>cg.inverse.$simprog.equi_time</name><default>0.0</default><desc> begin analysis after this time </desc></item>
   <item><name>cg.inverse.$simprog.first_frame</name><default>0</default><desc> trash so many frames at the beginning </desc></item>
+  <item><name>cg.inverse.$simprog.topol</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
+  <item><name>cg.inverse.$simprog.traj</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
+
+  <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
   <item><name>cg.inverse.gromacs.table_bins</name><desc> grid for table*.xvg !</desc></item>
   <item><name>cg.inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>
   <item><name>cg.inverse.gromacs.table_end</name><desc> extend the tables to this value </desc></item>
-  <item><name>cg.inverse.$simprog.topol</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
-  <item><name>cg.inverse.$simprog.traj</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
   <item><name>cg.inverse.filelist</name><desc> these files are copied for each new run </desc></item>
   <item><name>cg.inverse.iterations_max</name><desc> do so many iterations </desc></item>
   <item><name>cg.inverse.method</name><desc> ibm: inverse boltzmann imc: inverse monte carlo </desc></item>
@@ -60,6 +63,13 @@
   
   <!-- force matching stuff -->
   <item>
+    <name>cg.fmatch</name>
+    <desc>
+      Force matching options
+    </desc>
+  </item>
+
+  <item>
     <name>cg.fmatch.frames_per_block</name>
     <desc>
       number of frames, being used for block averaging. Atomistic trajectory, specified with
@@ -76,43 +86,6 @@
       but simple least squares is faster. If you are mathematician and think that a spline
       is only then can be called spline if it has continuous first and second derivatives,
       use constrained least squares.
-    </desc>
-  </item>
-  
-  <item>
-    <name>fmatch.min</name>
-    <desc>
-      Minimum value of interval for distribution sampled in atomistic MD simulation. One can get this
-      number by looking at the distribution function for this interaction. For non-bonded interactions
-      it's the distance the rdf starts. For CG bonds and angles the variable has the similar meaning
-      ( note, that for angles it is specified in radians ).
-    </desc>
-  </item>
-  
-  <item>
-    <name>fmatch.max</name>
-    <desc>
-      Maximum value of interval for distribution sampled in atomistic MD simulation. One can get this
-      number by looking at the distribution function for this interaction. For non-bonded interactions
-      it's the cut-off fot the interaction.
-    </desc>
-  </item>
-
-  <item>
-    <name>fmatch.step</name>
-    <desc>
-      grid spacing for the spline, which represents the interaction. This parameter should not be too big,
-      otherwise you might lose some features of the interaction potential, and not too small, otherwise you
-      will have unsampled bins which results in a ill-defines equation system and will get NaNs in the output.
-    </desc>
-  </item>
-
-  <item>
-    <name>fmatch.out_step</name>
-    <desc>
-      Grid spacing for the output grid. Normally one wants to have this parameter smaller than fmatch.step, 
-      to have smooth curve, without additional spline interpolation. As a rule of thumb we normally use
-      fmatch.out_step which is approximately 5 times smaller than fmatch.step.
     </desc>
   </item>
 </tags>
