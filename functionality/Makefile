@@ -6,7 +6,7 @@
 %_subclean:
 	$(MAKE) $(MFLAGS) -C $* clean
 
-all: abb_submake
+all: fig_submake
 
-clean: abb_subclean
+clean: fig_subclean
 	rm -f *~
