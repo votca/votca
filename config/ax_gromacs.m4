@@ -1,19 +1,31 @@
 AC_DEFUN([AX_GROMACS_LIBS], [
 #---------
-  AX_TRY_LIB([gmx],[GromacsVersion],
-    LIBS_GMX="-lgmx",,[-lm])  
+  HAVE_GMX_LIBS="no"
+
+  if test ! -z "$LIBS_GMX"; then
+    AX_TRY_LIB(,[GromacsVersion],
+    HAVE_GMX_LIBS="yes",,[$LIBS_GMX])
+  fi
+#---------
+  if test -z "$LIBS_GMX"; then
+    AX_TRY_LIB([gmx],[GromacsVersion],[
+      LIBS_GMX="-lgmx"
+      HAVE_GMX_LIBS="yes"],,[-lm])  
+  fi
 
 #----------
   if test -z "$LIBS_GMX"; then
-    AX_TRY_LIB(gmx_mpi,GromacsVersion,
-      [LIBS_GMX="-lgmx_mpi -lm"],[],[-lm])
+    AX_TRY_LIB(gmx_mpi,GromacsVersion,[
+      LIBS_GMX="-lgmx_mpi -lm";
+      HAVE_GMX_LIBS="yes"],,[-lm])
   fi
 #------------
-  if test -z "$LIBS_GMX"; then
+  if test "x$HAVE_GMX_LIBS" = "xno"; then
     AC_MSG_ERROR([
 
 Could not link against GROMACS,
-please check your LDFLAGS.
+please check your LDFLAGS and/or specify libraries required to link 
+against GROMACS in LIBS_GMX (e.g. export LIBS_GMX="-lgmx -lpthread -lxml2 -lm").
 
 If you are using a mpi version of gromacs, make sure that CXX is something like mpic++.
 

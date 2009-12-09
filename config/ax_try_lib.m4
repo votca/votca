@@ -5,11 +5,16 @@ AC_DEFUN([AX_TRY_LIB],[
 	pushdef([try_if_no], [$4])
 	try_deps="$5"
 	
-
   try_libs_save="$LIBS"
-  LIBS="-l$try_lib $try_deps $LIBS"
+  try_libs_all="$try_deps"
+  
+  if test ! -z "$try_lib"; then
+    try_libs_all="-l$try_lib $try_libs_all"
+  fi
+    
+  LIBS="$try_libs_all $LIBS"
 
-  AC_MSG_CHECKING([for $try_func with -l$try_lib $try_deps"])
+  AC_MSG_CHECKING([for $try_func with "$try_libs_all"])
   AC_TRY_LINK_FUNC($try_func,try_found="yes",try_found="no")
   AC_MSG_RESULT($try_found)
 
