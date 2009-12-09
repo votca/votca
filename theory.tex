@@ -130,7 +130,7 @@ and $S$ the histogram of the interaction. Here $S$ and $H$ from Boltzmann Invers
 Brief description with references \\
 Maybe appendix with main equations \\
 
-Force matching (\fm) is another approach to evaluate corse-grained potentials~\cite{Ercolessi:1994,Izvekov:2005,Noid:2007}. In contrast to the structure-based approaches, its aim is not to reproduce various distribution functions, but instead try to match {\em forces} on coarse-grained beads as closely as possible.
+Force matching (\fm) is another approach to evaluate corse-grained potentials~\cite{Ercolessi:1994,Izvekov:2005,Noid:2007}. In contrast to the structure-based approaches, its aim is not to reproduce various distribution functions, but instead to match the multibody potential of mean force as close as possible with a given set of coarse grained interactions. 
 
 The method works as follows. We first assume that the coarse-grained force-field (and hence the forces) depends on $M$ parameters $g_1,...,g_M $. These parameters can be prefactors of analytical functions, tabulated values of the interaction potentials, or coefficients of splines used to describe these potentials.
 
@@ -139,8 +139,8 @@ In order to determine these parameters, the reference forces on coarse-grained b
   {\vec F}_I^\text{ref} = \sum_{j \in {\cal S_I}} {\vec f}_j({\vec r^n}),
   \label{eq:force_mapping}
 \end{equation}
-where the sum goes over all atoms {\it specific} to the CG site {\it I}, (see. \sect{sec:mapping_operator})
-This is the default behavior. One can also generalize that by including $d_{Ij}$ coefficients in the force mapping \cite{Noid:2008.1}. In order to do that one should add a d-coefficients tag to the mapping file, see. \sect{sec:mapping}
+where the sum goes over all atoms {\it specific} to the CG site {\it I} (see. \sect{sec:mapping_operator}).
+This is the default behavior. One can also generalize this by including $d_{Ij}$ coefficients in the force mapping \cite{Noid:2008.1}. In order to do that one should add a d-coefficients tag to the mapping file, see. \sect{sec:mapping}
 
 By calculating the reference forces for $L$ snapshots we can write down $N \times L$ equations
 %
@@ -149,10 +149,10 @@ By calculating the reference forces for $L$ snapshots we can write down $N \time
   \label{eq:fmatch1}
 \end{equation}
 %
-Here ${\vec F}_{il}^\text{ref}$ is the force on the bead $i$, ${\vec F}_{il}^\text{cg} $ is the coarse-grained representation of this force. Index $l$ enumerates snapshots picked for coarse-graining. By running the simulations long enough one can always ensure that $M < N \times L$. In this case the set of equations~\ref{eq:fmatch1} is overdetermined and can be solved in a least-squares sense.
+Here ${\vec F}_{il}^\text{ref}$ is the force on the bead $i$, ${\vec F}_{il}^\text{cg} $ is the coarse-grained representation of this force. Index $l$ enumerates snapshots picked for coarse-graining. By running the simulations long enough one can always ensure that $M < N \times L$. In this case the set of equations~\ref{eq:fmatch1} is overdetermined and can be solved in a least-squares manner.
 
 Going back to the set of equations~\ref{eq:fmatch1} one can see that ${\bm F}_{il}^\text{cg}$ is, in principle, a non-linear function of its parameters $\{g_i\}$. It is, therefore, useful to represent the coarse-grained force-field in such a way that equations~(\ref{eq:fmatch1}) become linear functions of $\{g_i\}$. This can be done using splines to describe the functional form of the forces~\cite{Izvekov:2005}.
 
-An adequate sampling of the system requires a large number of snapshots $L$. Hence, the applicability of the method is often constrained by the amount of available memory. To remedy the situation, one can split the trajectory into blocks, find the coarse-grained potential for each block and then perform averaging over the blocks. 
+An adequate sampling of the system requires a large number of snapshots $L$. Hence, the applicability of the method is often constrained by the amount of memory available. To remedy the situation, one can split the trajectory into blocks, find the coarse-grained potential for each block and then perform averaging over the blocks. 
 
 More details about spline implementation is available in the Appendix of the \votca paper.
