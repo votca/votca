@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   template.cc
-// Author: ruehle
-//
-// Created on June 8, 2008, 10:41 PM
-//
 
 #include <math.h>
 #include <boost/tokenizer.hpp>
@@ -27,8 +21,16 @@
 #include <fstream>
 #include <boost/program_options.hpp>
 #include <cgengine.h>
-#include <libversion.h>
+#include <version.h>
+#include <stdexcept>
 
+using namespace std;
+
+void help_text(void)
+{
+    votca::csg::HelpTextHeader("template");
+    cout << "Template for VOTCA application\n\n";
+}
 using namespace std;
 
 class CGAnalyzer
@@ -54,52 +56,40 @@ int main(int argc, char** argv)
     // The CGEngine does the work
     CGEngine cg_engine;
     
-    // add our observer that it gets called to analyze frames
-    cg_engine.AddObserver((CGObserver*)&no);
+    try {
+        cg_engine.Initialize();
 
-
-    // initialize the readers/writers,
-    // this will be combined in an initialize function later
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-
+        // add observer that it gets called to analyze frames
+        cg_engine.AddObserver((CGObserver*)&no);
     
-    // lets read in some program options
-    namespace po = boost::program_options;
+        // lets read in some program options
+        namespace po = boost::program_options;
         
+        // Add a user option
+        cg_engine.AddProgramOptions()
+            ("myoption", po::value<string>(), "  Example for a new option");
     
-    // Declare the supported options.
-    po::options_description desc("Allowed options");    
-    
-    // let cg_engine add some program options
-    cg_engine.AddProgramOptions(desc);
-    
-    // now read in the command line
-    po::variables_map vm;
-    try {
-        po::store(po::parse_command_line(argc, argv, desc), vm);    
-        po::notify(vm);
-    }
-    catch(po::error err) {
-        cout << "error parsing command line: " << err.what() << endl;
-        return -1;
-    }
-    // does the user want help?
-    if (vm.count("help")) {
-        cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";                
-        cout << desc << endl;
-        return 0;
-    }
-    // or asks for the program version?
-    if (vm.count("version")) {
-        cout << "csg_nemat, lib version " << LIB_VERSION_STR  << "\n";                        
-        return 0;
-    }
-    
-    // try to run the cg process, go through the frames, etc...
-    try {
-        cg_engine.Run(desc, vm);
+        cg_engine.ParseCommandLine(argc, argv);
+
+        // some shortcuts
+        po::variables_map &vm
+            = cg_engine.OptionsMap();
+        po::options_description &desc
+            = cg_engine.OptionsDesc();
+
+        // does the user want help?
+        if (vm.count("help")) {
+            cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";                
+            cout << desc << endl;
+            return 0;
+        }
+
+        // or asks for the program version?
+        if (vm.count("myoption"))
+            cout << "myoption = " << vm["myoption"].as<string>() << endl;
+
+        // start coarse graining
+        cg_engine.Run();
     }
     // did an error occour?
     catch(std::exception &error) {
