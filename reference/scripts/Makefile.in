@@ -3,6 +3,7 @@ DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
 
 .SUFFIXES: .t2t .tex
 .PHONY: clean bootstrap
+.INTERMEDIATE: csg_table.t2t
 
 all: all.tex csg_table.tex 
 	
