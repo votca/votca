@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
+FC=
 AS=as
 
 # Macros
@@ -41,7 +41,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/pdbwriter.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/trajectoryreader.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/pdbtopologyreader.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/imccoefficients.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/growriter.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/beadlist.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/xmltopologyreader.o \
@@ -135,11 +134,6 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/pdbtopologyreader.o: nbp
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/pdbtopologyreader.o ../../src/libcsg/modules/io/pdbtopologyreader.cc
-
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/imccoefficients.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/imccoefficients.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg
-	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/imccoefficients.o ../../src/libcsg/imccoefficients.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/growriter.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/modules/io/growriter.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io

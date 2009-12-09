@@ -14,7 +14,6 @@
       <itemPath>../../include/connectivity.h</itemPath>
       <itemPath>../../include/exclusionlist.h</itemPath>
       <itemPath>../../include/fileformatfactory.h</itemPath>
-      <itemPath>../../include/imccoefficients.h</itemPath>
       <itemPath>../../include/imcio.h</itemPath>
       <itemPath>../../include/interaction.h</itemPath>
       <itemPath>../../include/map.h</itemPath>
@@ -67,7 +66,6 @@
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
       <itemPath>../../src/libcsg/connectivity.cc</itemPath>
       <itemPath>../../src/libcsg/exclusionlist.cc</itemPath>
-      <itemPath>../../src/libcsg/imccoefficients.cc</itemPath>
       <itemPath>../../src/libcsg/imcio.cc</itemPath>
       <itemPath>../../src/libcsg/map.cc</itemPath>
       <itemPath>../../src/libcsg/molecule.cc</itemPath>
