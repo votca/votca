@@ -4,7 +4,7 @@ inverse_files = csg_table imcdata_from_blocks.octave linsolve.m linsolve.octave 
 
 inverse_DATA = MD5SUM $(inverse_files)
 
-EXTRA_DIST = MD5SUM ${inverse_SCRIPTSIN} $(inverse_DATA) Makefile.am.in
+EXTRA_DIST = ${inverse_SCRIPTSIN} $(inverse_files) Makefile.am.in
 
 MD5SUM: ${inverse_SCRIPTS} ${inverse_files}
 	md5sum ${inverse_SCRIPTS} $(inverse_files) > MD5SUM
