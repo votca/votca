@@ -15,7 +15,7 @@ reference/programs/Makefile
 reference/programs/csg_*.tex
 reference/programs/all.tex
 reference/scripts/Makefile
-reference/scripts/csg_table.t??
+reference/scripts/csg_table.tex
 reference/scripts/*.pl.tex
 reference/scripts/*.sh.tex
 reference/scripts/all.tex
