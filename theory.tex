@@ -9,7 +9,7 @@ TO DO: picture \\
 %definition of the mass \\
 %definition of specific and involved atoms \\
 
-Mapping operator establishes a link between the atomistic and coarse-grained representations of the system. Atomistic system is described by specifying the values of the Cartesian coordinates and momenta  
+The mapping operator establishes a link between the atomistic and coarse-grained representations of the system. An atomistic system is described by specifying the values of the Cartesian coordinates and momenta  
 \begin{eqnarray}
 \bm r^n &=& \{\bm r_1,\dots,\bm r_n\}, \\
 \bm p^n &=& \{\bm p_1,\dots,\bm p_n\}.
@@ -21,7 +21,7 @@ On a coarse-grained level, the coordinates and momenta are specified by the posi
 \bm R^N = \{\bm R_1,\dots,\bm R_N\}, \\ 
 \bm P^N = \{\bm P_1,\dots,\bm P_N\}.
 \end{eqnarray}
-Note that we use capitalized symbols for the CG sites while lower case letters are used for the atomistic system.
+Note that capitalized symbols are used for the CG sites while lower case letters are used for the atomistic system.
 
 The mapping operator defined by a matrix for each bead $I$, ${\bm c}_I$, then links the two descriptions
 \begin{eqnarray}
@@ -43,9 +43,9 @@ In some cases it is useful to define CG mapping in a way that certain atoms belo
 \begin{equation}
  {\cal I}_I=\{i|c_{Ii}\ne0\}.
 \end{equation}
-An atom $i$ in the atomistic model is involved in a CG site {\it I} if and only if this atom provides a nonzero contribution to the sum in eq.~\ref{eq:mapping_scheme}.
+An atom $i$ in the atomistic model is involved in a CG site, \textit{I}, if and only if this atom provides a nonzero contribution to the sum in eq.~\ref{eq:mapping_scheme}.
 
-A set of {\em specific} atoms is defined as:
+A set of {\em specific} atoms is defined as
 \begin{equation}
  {\cal S}_I=\{i|c_{Ii}\ne0 \text{ and } c_{Ji}=0 \text{ for all } J \ne I\}.
 \end{equation}
@@ -70,7 +70,7 @@ The coarse-grained potential is calculated by inverting the probability distribu
 %
 Note that the normalization factor $Z$ is not important since it would only enter the coarse-grained potential $U(q)$ as an irrelevant additive constant.
 
-Histograms for the bonds $H_r(r)$, angle $H_\theta(\theta)$, and torsion angle $H_\varphi(\varphi)$ have to be rescaled to obtain the volume normalized distribution functions $P_r(r)$, angle $P_\theta(\theta)$, and torsion angle $P_\varphi(\varphi)$: 
+Histograms for the bonds $H_r(r)$, angles $H_\theta(\theta)$, and torsion angles $H_\varphi(\varphi)$ have to be rescaled to obtain the volume normalized distribution functions $P_r(r)$, $P_\theta(\theta)$, and $P_\varphi(\varphi)$, respectively: 
 %
 \begin{align}
     P_r(r) = \frac{H_r(r)}{4\pi r^2}~,
@@ -78,7 +78,7 @@ Histograms for the bonds $H_r(r)$, angle $H_\theta(\theta)$, and torsion angle $
     P_\varphi(\varphi) = H_\varphi (\varphi)~.
     \label{eq:boltzmann_norm}
 \end{align}
-With bond length $r$, angle~$\theta$ and torsion angle~$\varphi$.%
+with bond length $r$, angle~$\theta$ and torsion angle~$\varphi$.%
 The coarse-grained potential can then be calculated by Boltzmann inversion of the distribution functions
 %
 \begin{align}
@@ -105,7 +105,7 @@ Here $\lambda \in ]0,1]$ is a numerical factor to stabilize the scheme.
 \section{Inverse Monte Carlo}
 \label{sec:imc}
 
-\imc is a second iterative scheme. It additionally includes cross correlations. The potential update $\Delta U$ is calculated by solving a set of linear equations
+\imc is another iterative scheme, which additionally includes cross correlations. The potential update $\Delta U$ is calculated by solving a set of linear equations
 \begin{align}
     \left<S_{\alpha}\right> - S_{\alpha}^{\text{ref}}= A_{\alpha \gamma} \Delta U_{\gamma}~,
   \label{eq:imc}
