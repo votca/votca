@@ -51,6 +51,7 @@ int main(int argc, char** argv)
         cg_engine.Initialize();
    
         cg_engine.AddProgramOptions()
+            ("options", po::value<string>(), "  options file for coarse graining")
             ("do-imc", "  write out inverse monte carlo data")
             ("write-every", po::value<int>(&write_every), "  write afer every block of this length, " \
                 "if --blocking is set, the averages are cleared after every write")
