@@ -72,9 +72,10 @@ echo
 for i in $@; do
   [[ -z "${not_to_check##* $i *}" ]] && continue
   echo Checking $i
-  [[ ! -x "$i" ]] && echo "$i is not executable" && continue
-  ./$i --help &> /dev/null || { echo "$i has no help"; continue; }
-  [[ -z "(./$i --help | grep -e 'NEEDS:' )" ]] && echo "$i has no NEEDS in help" && continue
+  [ -z "${i%%*.sh}" ] && exe="bash $i"
+  [ -z "${i%%*.pl}" ] && exe="perl $i"
+  $exe --help &> /dev/null || { echo "$i has no help"; continue; }
+  [[ -z "($exe --help | grep -e 'NEEDS:' )" ]] && echo "$i has no NEEDS in help" && continue
   for what in $whates; do
     what=${what//./\.}
     what=${what//\*/\*}
@@ -98,7 +99,7 @@ for i in $@; do
     in_help="no"
     in_content="no"
     [[ -n "$(grep -Eve "(NEEDS|OPTIONAL):" "$i" | grep -Ee "$pattern1")" ]] && in_content="yes"
-    [[ -n "$(./$i --help | grep -Ee "$pattern2")" ]] && in_help="yes"
+    [[ -n "$($exe --help | grep -Ee "$pattern2")" ]] && in_help="yes"
     if [ "$debug" = "yes" ]; then
       echo "cont $in_content" help "$in_help" 
       echo "p1 $pattern1 p2 $pattern2"
