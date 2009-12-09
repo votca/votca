@@ -25,6 +25,19 @@ add_heads() {
   [ "$again" = "yes" ] && add_heads
 }
 
+cut_heads() {
+  local i new 
+  [ -z "$1" ] && die "cut_heads: Missing argument"
+  item="$1"
+  spaces=""
+  for ((i=0;i<3;i++)); do
+    new="${item#*.}"
+    [ "$new" = "$item" ] && break
+    item="$new"
+    spaces+="  "
+  done
+}
+
 if [ "$1" = "--help" ]; then
   echo Usage: ${0##*/} xmlname
   echo Will convert xml to txt2tags file
@@ -47,16 +60,17 @@ echo
 
 #get all items
 items="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
-#check if the 
+#check if a head node is missing
 add_heads
 #sort them
 items="$(echo -e "$items" | sort -u)"
 #echo "$items"
 for name in ${items}; do
-  spaces="$(echo "${name//[^.]}" | sed -e 's/\./  /g')"
-  echo "${spaces}- anchor(${name//\$})(**${name##*.}**)"
+  #cut the first 3 heads of the item
+  cut_heads "$name"
+  echo "${spaces}- anchor(${name//\$})(**${item}**)"
   desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
-  echo ${desc}
+  echo -e "${spaces}  $(echo ${desc})" 
 done
 
 
