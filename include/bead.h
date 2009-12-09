@@ -173,7 +173,13 @@ public:
     Molecule *getMolecule() { return _mol; }
 
     vector<int> &ParentBeads() { return _parent_beads; };
-   
+
+    template<typename T>
+    void setUserData(T *userdata) { _userdata = (void*)userdata; }
+
+    template<typename T>
+    T *getUserData() { return (T *)_userdata; }
+
 private:
     int _id;
     vector<int> _parent_beads;
@@ -211,6 +217,8 @@ private:
     _b1=false;
     _b2=false;
     _b3=false;}
+
+    void *_userdata;
     
     friend class Topology;
 
