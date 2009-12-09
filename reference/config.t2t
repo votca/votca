@@ -8,13 +8,12 @@
 % for media wiki
 %!postproc(wiki): 'anchor\((.*?)\)' '<span id="\1"></span>'
 % for tex
-%!postproc(tex): 'anchor\((.*?)\)\((.*)\)' '\hypertarget{\1}{\2}'
 %!postproc(tex): 'label\((.*?)\)' '\label{\1}'
-%!postproc(tex): 'ref\((.*?)\)\((.*?)\)' '\hyperref{\1}{\2}'
+%!postproc(tex): '(ref|target|link)\((.*?)\)\((.*?)\)' '\hyper\1{\2}{\3}'
 %replace \_ back to _ three times
-%!postproc(tex): '(\\hyperref|\\hypertarget|\\label)(\{[^}]*)\\_' '\1\2_'
-%!postproc(tex): '(\\hyperref|\\hypertarget|\\label)(\{[^}]*)\\_' '\1\2_'
-%!postproc(tex): '(\\hyperref|\\hypertarget|\\label)(\{[^}]*)\\_' '\1\2_'
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
 
 % hyperref[]{}
 %!postproc(tex): '(\\hyperref)\{(.*?)\}\{(.*?)\}' '\1[\2]{\3}'
