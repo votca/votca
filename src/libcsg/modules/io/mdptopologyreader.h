@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   mdptopologyreader.h
- * Author: ruehle
- *
- * Created on June 12, 2008, 10:47 AM
- */
 
 #ifndef _MDPTOPOLOGYREADER_H
 #define	_MDPTOPOLOGYREADER_H

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   topology.h
-// Author: ruehle
-//
-// Created on April 5, 2007, 11:35 AM
-//
 
 #ifndef _topology_H
 #define	_topology_H

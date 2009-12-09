@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   topologymap.cc
-// Author: ruehle
-//
-// Created on January 16, 2008, 11:24 AM
-//
 
 #include "topologymap.h"
 

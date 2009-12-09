@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   stdanalysis.cc
-// Author: ruehle
-//
-// Created on August 2, 2007, 5:31 PM
-//
 
 #include <iostream>
 #include <fstream>

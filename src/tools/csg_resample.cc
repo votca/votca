@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   csg_resample.cc
- * Author: ruehle
- *
- * Created on April 8, 2009, 5:45 PM
- */
 
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/table.h>

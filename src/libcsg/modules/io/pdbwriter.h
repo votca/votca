@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   pdbwriter.h
-// Author: victor
-//
-// Created on 27. Dezember 2007, 20:41
-//
 
 #ifndef _PDBWRITER_H
 #define	_PDBWRITER_H

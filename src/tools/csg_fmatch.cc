@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   csg_nemat.cc
-// Author: ruehle
-//
-// Created on March 6, 2008, 4:35 PM
-//
 
 #include <math.h>
 #include <iostream>

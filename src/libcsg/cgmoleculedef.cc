@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   cgmoleculedef.cc
-// Author: ruehle
-//
-// Created on April 23, 2007, 6:36 PM
-//
 
 #include <iostream>
 #include <boost/tokenizer.hpp>

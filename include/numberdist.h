@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   numberdist.h
-// Author: ruehle
-//
-// Created on June 9, 2008, 3:00 PM
-//
 
 #ifndef _NUMBERDIST_H
 #define	_NUMBERDIST_H

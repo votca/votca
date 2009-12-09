@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   csample.cc
-// Author: victor
-//
-// Created on 27. Dezember 2007, 23:04
-//
 
 #include <grotopologyreader.h>
 #include <gmxtrajectoryreader.h>

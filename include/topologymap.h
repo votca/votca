@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   topologymap.h
- * Author: ruehle
- *
- * Created on August 13, 2007, 3:23 PM
- */
 
 #ifndef _topologymap_H
 #define	_topologymap_H

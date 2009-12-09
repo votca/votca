@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   boltzmanninversion.h
-// Author: victor
-//
-// Created on 4. Juni 2008, 17:39
-//
 
 #ifndef _BONDEDSTATISTICS_H
 #define	_BONDEDSTATISTICS_H

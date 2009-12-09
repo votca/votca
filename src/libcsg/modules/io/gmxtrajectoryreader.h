@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   gmxtrajectoryreader.h
-// Author: ruehle
-//
-// Created on April 5, 2007, 2:41 PM
-//
 
 #ifndef _gmxtrajectoryreader_H
 #define	_gmxtrajectoryreader_H

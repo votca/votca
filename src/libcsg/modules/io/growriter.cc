@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   growriter.cc
-// Author: ruehle
-//
-// Created on January 8, 2008, 18:09 PM
-//
 
 #include <stdio.h>
 #include <string>

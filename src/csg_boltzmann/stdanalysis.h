@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   stdanalysis.h
- * Author: ruehle
- *
- * Created on November 4, 2009, 4:53 PM
- */
 
 #ifndef _STDANALYSIS_H
 #define	_STDANALYSIS_H

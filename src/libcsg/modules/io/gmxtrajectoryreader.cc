@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   gmxtrajectoryreader.cc
-// Author: ruehle
-//
-// Created on April 5, 2007, 2:42 PM
-//
 
 #include <iostream>
 #include "topology.h"

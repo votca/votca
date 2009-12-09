@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   exclusionlist.h
- * Author: ruehle
- *
- * Created on July 16, 2007, 11:10 AM
- */
 
 #ifndef _exclusionlist_H
 #define	_exclusionlist_H

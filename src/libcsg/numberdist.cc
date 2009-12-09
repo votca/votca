@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   numberdensity.h
-// Author: ruehle
-//
-// Created on June 9, 2008, 3:00 PM
-//
 
 #include <iostream>
 #include "numberdist.h"

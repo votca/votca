@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   tabulatedpotential.h
- * Author: ruehle
- *
- * Created on November 4, 2009, 4:53 PM
- */
 
 #ifndef _TABULATEDPOTENTIAL_H
 #define	_TABULATEDPOTENTIAL_H

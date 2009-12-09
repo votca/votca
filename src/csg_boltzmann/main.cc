@@ -14,12 +14,8 @@
  * limitations under the License.
  *
  */
-// 
-// File:   main.cc
-// Author: ruehle
-//
-// Created on April 5, 2007, 12:29 PM
-//
+
+
 // TODO: This code need lots of cleaning up! please do not look at anything in here!
 //
 

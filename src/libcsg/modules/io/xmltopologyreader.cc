@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   xmltopologyreader.cc
-// Author: victor
-//
-// Created on 14. April 2008, 13:35
-//
 
 #include <iostream>
 #include <fstream>

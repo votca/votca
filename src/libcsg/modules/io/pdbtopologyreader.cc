@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   pdbtopologyreader.cc
-// Author: victor
-//
-// Created on 27. Dezember 2007, 21:19
-//
 
 #include <iostream>
 #include "pdbtopologyreader.h"

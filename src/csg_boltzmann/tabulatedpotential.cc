@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   tabulatedpotential.cc
-// Author: ruehle
-//
-// Created on August 2, 2007, 3:18 PM
-//
 
 #include <iostream>
 #include <fstream>

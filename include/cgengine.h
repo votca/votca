@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   cgengine.h
-// Author: ruehle
-//
-// Created on April 23, 2007, 6:01 PM
-//
 
 #ifndef _cgengine_H
 #define	_cgengine_H

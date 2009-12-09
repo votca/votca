@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   gmxtrajectorywriter.cc
-// Author: ruehle
-//
-// Created on August 31, 2007, 2:25 PM
-//
 
 
 #include <string>

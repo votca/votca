@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   moleculeinfo.cc
-// Author: ruehle
-//
-// Created on April 18, 2007, 6:35 PM
-//
 
 #include "molecule.h"
 #include <iostream>

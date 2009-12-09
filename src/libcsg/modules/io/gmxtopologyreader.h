@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   gmxtopologyreader.h
-// Author: ruehle
-//
-// Created on April 5, 2007, 12:33 PM
-//
 
 #ifndef _gmxtopologyreader_H
 #define	_gmxtopologyreader_H

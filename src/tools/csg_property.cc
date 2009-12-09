@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   property.cc
-// Author: ruehle
-//
-// Created on March 3, 2008, 15:13 PM
-//
 
 #include <iostream>
 #include <boost/program_options.hpp>

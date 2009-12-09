@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   neighbourlist.cc
-// Author: vehoff
-//
-// Created on March 31, 2008, 3:28 PM
-//
 
 #include <iostream>
 #include "neighbourlist.h"

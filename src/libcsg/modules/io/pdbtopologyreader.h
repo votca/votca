@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   pdbtopologyreader.h
-// Author: victor
-//
-// Created on 27. Dezember 2007, 21:09
-//
 
 #ifndef _PDBTOPOLOGYREADER_H
 #define	_PDBTOPOLOGYREADER_H

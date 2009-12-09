@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   pdbtopologyreader.h
-// Author: victor
-//
-// Created on 14. April 2008, 13:33
-//
 
 #ifndef _XMLTOPOLOGYREADER_H
 #define	_XMLTOPOLOGYREADER_H

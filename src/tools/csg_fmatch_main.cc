@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   csg_fmatch_main.cc
- * Author: lukyanov
- *
- * Created on June 10, 2009, 5:00 PM
- */
 
 #include <iostream>
 #include <fstream>

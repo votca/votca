@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   imcio.h
- * Author: ruehle
- *
- * Created on September 14, 2009, 5:31 PM
- */
 
 #ifndef _IMCIO_H
 #define	_IMCIO_H

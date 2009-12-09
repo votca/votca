@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   cgmoleculedef.h
-// Author: ruehle
-//
-// Created on April 23, 2007, 5:58 PM
-//
 
 #ifndef _cgmoleculedef_H
 #define	_cgmoleculedef_H

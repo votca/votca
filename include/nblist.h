@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   nblist.h
- * Author: ruehle
- *
- * Created on March 5, 2009, 3:07 PM
- */
 
 #ifndef _NBLIST_H
 #define	_NBLIST_H

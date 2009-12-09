@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   interaction.h
-// Author: ruehle
-//
-// Created on April 23, 2007, 2:26 PM
-//
 
 #ifndef _interaction_H
 #define	_interaction_H

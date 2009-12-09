@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   pairlist.h
- * Author: ruehle
- *
- * Created on March 4, 2009, 1:45 PM
- */
 
 #ifndef _PAIRLIST_H
 #define	_PAIRLIST_H

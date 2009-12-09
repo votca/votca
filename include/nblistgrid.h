@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   nblistgrid.h
- * Author: ruehle
- *
- * Created on October 26, 2009, 4:21 PM
- */
 
 #ifndef _NBLISTGRID_H
 #define	_NBLISTGRID_H

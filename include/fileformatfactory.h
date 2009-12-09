@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   fileformatfactory.h
-// Author: ruehle
-//
-// Created on January 11, 2008, 4:28 PM
-//
 
 #ifndef _FILEFORMATFACTORY_H
 #define	_FILEFORMATFACTORY_H

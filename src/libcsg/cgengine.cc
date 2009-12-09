@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   cgengine.cc
-// Author: ruehle
-//
-// Created on April 26, 2007, 4:20 PM
-//
 
 #include <fstream>
 #include "cgengine.h"

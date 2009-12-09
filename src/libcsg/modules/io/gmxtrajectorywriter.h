@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   gmxtrajectorywriter.h
-// Author: victor
-//
-// Created on 27. Dezember 2007, 20:44
-//
 
 #ifndef _GMXTRAJECTORYWRITER_H
 #define	_GMXTRAJECTORYWRITER_H

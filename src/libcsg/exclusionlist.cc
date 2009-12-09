@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   exclusionlist.cc
-// Author: ruehle
-//
-// Created on July 16, 2007, 11:13 AM
-//
 
 #include <algorithm>
 #include "topology.h"

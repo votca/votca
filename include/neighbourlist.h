@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   neighbourlist.h
-// Author: ruehle
-//
-// Created on March 31, 2008, 2:00 PM
-//
 
 #ifndef _NEIGHBOURLIST_H
 #define	_NEIGHBOURLIST_H

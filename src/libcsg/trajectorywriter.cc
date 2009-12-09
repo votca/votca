@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   trajectorywriter.cc
-// Author: victor
-//
-// Created on 27. Dezember 2007, 20:28
-//
 
 #include <iostream>
 #include "trajectorywriter.h"

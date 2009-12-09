@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   imc.h
- * Author: ruehle
- *
- * Created on March 10, 2009, 3:42 PM
- */
 
 #ifndef _IMC_H
 #define	_IMC_H

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   topologyreader.cc
-// Author: ruehle
-//
-// Created on January 18, 2008, 6:12 PM
-//
 
 #include "topologyreader.h"
 #include "modules/io/gmxtopologyreader.h"

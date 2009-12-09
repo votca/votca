@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   beadlist.cc
- * Author: ruehle
- *
- * Created on March 4, 2009, 5:42 PM
- */
 
 #include "beadlist.h"
 #include "topology.h"

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   topologyreader.h
-// Author: ruehle
-//
-// Created on January 18, 2008, 3:36 PM
-//
 
 #ifndef _TOPOLOGYREADER_H
 #define	_TOPOLOGYREADER_H

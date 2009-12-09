@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   nblistgrid.cc
- * Author: ruehle
- *
- * Created on October 26, 2009, 4:22 PM
- */
 
 #include <nblistgrid.h>
 

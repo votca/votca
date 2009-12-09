@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   trajectoryreader.h
-// Author: ruehle
-//
-// Created on April 20, 2007, 12:30 PM
-//
 
 #ifndef _trajectoryreader_H
 #define	_trajectoryreader_H

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   mdptrajectoryreader.cc
- * Author: victorr
- *
- * Created on June 12, 2008, 1:52 PM
- */
 
 #include <string>
 #include "mdptrajectoryreader.h"

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   molecule.h
-// Author: ruehle
-//
-// Created on April 12, 2007, 4:07 PM
-//
 
 #ifndef _MOLECULE_H
 #define	_MOLECULE_H

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   nblist.cc
- * Author: ruehle
- *
- * Created on March 6, 2009, 2:24 PM
- */
 
 #include "nblist.h"
 #include <iostream>

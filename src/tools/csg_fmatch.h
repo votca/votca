@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   csg_fmatch.h
- * Author: lukyanov
- *
- * Created on June 10, 2009, 4:56 PM
- */
 
 #ifndef _CSG_FMATCH_H
 #define	_CSG_FMATCH_H

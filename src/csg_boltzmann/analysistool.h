@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   analysistool.h
- * Author: ruehle
- *
- * Created on August 2, 2007, 3:12 PM
- */
 
 #ifndef _analasystool_H
 #define	_analasystool_H

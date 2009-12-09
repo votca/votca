@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   beadtype.h
- * Author: ruehle
- *
- * Created on November 26, 2008, 12:44 PM
- */
 
 #ifndef _BEADTYPE_H
 #define	_BEADTYPE_H

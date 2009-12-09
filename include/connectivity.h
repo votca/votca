@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   connectivity.h
-// Author: ruehle
-//
-// Created on January 18, 2008, 5:06 PM
-//
 
 #ifndef _CONNECTIVITY_H
 #define	_CONNECTIVITY_H

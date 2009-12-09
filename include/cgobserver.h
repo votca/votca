@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   cgobserver.h
-// Author: victor
-//
-// Created on 4. Juni 2008, 17:08
-//
 
 #ifndef _CGOBSERVER_H
 #define	_CGOBSERVER_H

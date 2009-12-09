@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   pdbwriter.cc
-// Author: ruehle
-//
-// Created on April 19, 2007, 3:22 PM
-//
 
 #include <stdio.h>
 #include <string>

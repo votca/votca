@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
- // 
-// File:   topology.cc
-// Author: ruehle
-//
-// Created on April 5, 2007, 12:30 PM
-//
 
 #include "topology.h"
 #include "interaction.h"

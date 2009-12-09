@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   map.h
-// Author: ruehle
-//
-// Created on April 13, 2007, 4:31 PM
-//
 
 #ifndef _map_H
 #define	_map_H

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   topologyitem.h
- * Author: ruehle
- *
- * Created on January 27, 2009, 5:02 PM
- */
 
 #ifndef _TOPOLOGYITEM_H
 #define	_TOPOLOGYITEM_H

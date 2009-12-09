@@ -14,19 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   grotopologyreader.cc
-// Author: victor
-//
-// Created on 27. Dezember 2007, 21:47
-//
-
-// 
-// File:   pdbtopologyreader.cc
-// Author: victor
-//
-// Created on 27. Dezember 2007, 21:19
-//
 
 #include <iostream>
 #include <fstream>

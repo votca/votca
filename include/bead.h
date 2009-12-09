@@ -14,13 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   beadinfo.h
-// Author: ruehle
-//
-// Created on April 5, 2007, 11:17 AM
-//
-
 
 #ifndef _bead_H
 #define	_bead_H

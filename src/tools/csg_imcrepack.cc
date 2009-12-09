@@ -14,12 +14,8 @@
  * limitations under the License.
  *
  */
+
 /* 
- * File:   csg_imcrepack.cpp
- * Author: ruehle
- *
- * Created on September 10, 2009, 5:14 PM
- *
  *  csg_imcrepack repacks the matri for the imc update. It either removes zero line entries (pack)
  *  or extracts the dU from the big file (unpack)
  *

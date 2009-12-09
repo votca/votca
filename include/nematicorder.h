@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   nematicorder.h
-// Author: ruehle
-//
-// Created on March 6, 2008, 4:02 PM
-//
 
 #ifndef _NEMATICORDER_H
 #define	_NEMATICORDER_H

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   pair.h
- * Author: ruehle
- *
- * Created on March 5, 2009, 10:30 AM
- */
 
 #ifndef _BEADPAIR_H
 #define	_BEADPAIR_H

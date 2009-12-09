@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   imcio.cpp
- * Author: ruehle
- *W
- * Created on September 14, 2009, 5:36 PM
- */
 
 #include <boost/algorithm/string/trim.hpp>
 #include <iostream>

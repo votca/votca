@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   residue.h
-// Author: ruehle
-//
-// Created on April 10, 2007, 12:01 PM
-//
 
 #ifndef _residue_H
 #define	_residue_H

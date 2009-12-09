@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   nematicorder.cc
-// Author: ruehle
-//
-// Created on March 6, 2008, 4:09 PM
-//
 
 #include "nematicorder.h"
 #include <votca/tools/matrix.h>

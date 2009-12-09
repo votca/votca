@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   growriter.h
-// Author: victor
-//
-// Created on 9. January 2008, 18:11
-//
 
 #ifndef _GROWRITER_H
 #define	_GROWRITER_H

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   imc.cc
- * Author: ruehle
- *
- * Created on March 10, 2009, 3:43 PM
- */
 
 #include <iostream>
 #include <fstream>

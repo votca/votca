@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   template.cc
-// Author: ruehle
-//
-// Created on June 8, 2008, 10:41 PM
-//
 
 #include <iostream>
 #include <fstream>

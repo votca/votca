@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   trajectoryreader.cc
-// Author: victor
-//
-// Created on 27. Dezember 2007, 20:27
-//
 
 
 #include "trajectoryreader.h"

@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   map.cc
-// Author: ruehle
-//
-// Created on April 13, 2007, 4:41 PM
-//
 
 #include "map.h"
 #include <iostream>

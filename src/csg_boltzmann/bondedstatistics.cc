@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-// 
-// File:   bondedstatistics.cc
-// Author: victor
-//
-// Created on 4. Juni 2008, 17:43
-//
 
 #include "bondedstatistics.h"
 

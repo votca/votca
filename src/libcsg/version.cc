@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+
 #include <votca/tools/version.h>
 #include <iostream>
 #include "version.h"

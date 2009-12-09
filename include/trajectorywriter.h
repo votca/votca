@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-/* 
- * File:   trajectorywriter.h
- * Author: ruehle
- *
- * Created on September 7, 2007, 3:01 PM
- */
 
 #ifndef _trajectorywriter_H
 #define	_trajectorywriter_H
