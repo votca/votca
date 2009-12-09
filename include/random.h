@@ -15,6 +15,14 @@
  *
  */
 
+/*************************************************
+     MARSAGLIA pseudo random number generator
+     See: G. Marsaglia and A. Zaman. Toward a universal random number generator,
+          Statistics & Probability Letters, 9(1):35–39, 1990.
+     This function returns a double precision floating point number 
+     uniformly distributed in the range [0,1)
+*************************************************/
+
 #ifndef _RANMARS_H_
 #define _RANMARS_H_
 
