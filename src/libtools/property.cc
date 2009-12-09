@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   property.cc
- * Author: ruehle
- *
- * Created on November 13, 2008, 5:54 PM
- */
-
 #include <libxml/parser.h>
 #include <iostream>
 #include "property.h"

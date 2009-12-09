@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   crosscorrelate.cc
-// Author: ruehle
-//
-// Created on May 22, 2007, 5:42 PM
-//
-
 #include <fftw3.h>
 #include "crosscorrelate.h"
 

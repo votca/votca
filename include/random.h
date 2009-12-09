@@ -15,12 +15,6 @@
  *
  */
 
-/*************************************************
-     MARSAGLIA pseudo random number generator
-     This function returns a double precision floating point number 
-     uniformly distributed in the range [0,1)
-*************************************************/
-
 #ifndef _RANMARS_H_
 #define _RANMARS_H_
 
@@ -32,7 +26,12 @@
 #define _pi 3.1415926535897932384626433832795
 
 using namespace std;
+/**
+  \brief MARSAGLIA pseudo random number generator
 
+  This class generates double precision floating point numbers
+  uniformly distributed in the range [0,1)
+*/
 class Random
 {
 public:

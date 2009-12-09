@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   objectfactory.h
- * Author: ruehle
- *
- * Created on July 12, 2007, 11:39 AM
- */
-
 #ifndef _objectfactory_H
 #define	_objectfactory_H
 

@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   tools.h
-// Author: ruehle
-//
-// Created on May 11, 2007, 12:37 PM
-//
-
 #ifndef _tools_H
 #define	_tools_H
 

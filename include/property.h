@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   property.h
- * Author: ruehle
- *
- * Created on July 17, 2008, 2:16 PM
- */
-
 #ifndef _PROPERTY_H
 #define	_PROPERTY_H
 

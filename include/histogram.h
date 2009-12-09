@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   histogram.h
- * Author: ruehle
- *
- * Created on April 26, 2007, 4:48 PM
- */
-
 #ifndef _histogram_H
 #define	_histogram_H
 

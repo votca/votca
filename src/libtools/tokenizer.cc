@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   tools.cc
-// Author: victor
-//
-// Created on 14. Februar 2008, 14:32
-//
-
 #include"tokenizer.h"
 
 int wildcmp(const char *wild, const char *string) {

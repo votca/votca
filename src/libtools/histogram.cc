@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   histogram.cc
-// Author: ruehle
-//
-// Created on April 26, 2007, 4:53 PM
-//
-
 #include <limits>
 #include <math.h>
 #include <numeric>

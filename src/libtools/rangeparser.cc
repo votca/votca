@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   rangeparser.cc
-// Author: ruehle
-//
-// Created on March 28, 2008, 10:56 AM
-//
-
 #include "rangeparser.h"
 #include <tokenizer.h>
 #include <boost/lexical_cast.hpp>

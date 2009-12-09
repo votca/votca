@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   matrix.h
- * Author: ruehle
- *
- * Created on July 11, 2007, 3:24 PM
- */
-
 #ifndef _mat_H
 #define	_mat_H
 

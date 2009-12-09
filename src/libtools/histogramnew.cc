@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   histogramnew.cc
- * Author: ruehle
- *
- * Created on March 11, 2009, 4:29 PM
- */
-
 #include "histogramnew.h"
 
 HistogramNew::HistogramNew()

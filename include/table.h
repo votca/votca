@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   table.h
- * Author: victorr
- *
- * Created on June 11, 2008, 1:34 PM
- */
-
 #ifndef _TABLE_H
 #define	_TABLE_H
 

@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   vec.h
-// Author: ruehle
-//
-// Created on April 16, 2007, 6:30 PM
-//
-
 #ifndef _vec_H
 #define	_vec_H
 

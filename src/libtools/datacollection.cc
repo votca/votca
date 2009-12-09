@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   datacollection.cc
-// Author: ruehle
-//
-// Created on May 11, 2007, 3:18 PM
-//
-
 #include <sstream>
 #include "datacollection.h"
 

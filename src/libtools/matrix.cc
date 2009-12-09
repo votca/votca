@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   matrix.cc
-// Author: ruehle
-//
-// Created on July 23, 2007, 5:39 PM
-//
-
 #include <math.h>
 #include <stdlib.h>
 #include "matrix.h"

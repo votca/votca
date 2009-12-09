@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   datacollection.h
- * Author: ruehle
- *
- * Created on May 10, 2007, 3:40 PM
- */
-
 #ifndef _datacollection_H
 #define	_datacollection_H
 

@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   correlate.cc
-// Author: ruehle
-//
-// Created on July 30, 2007, 10:58 AM
-//
-
 #include "correlate.h"
 #include <math.h>
 

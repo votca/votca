@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   table.cc
- * Author: victorr
- *
- * Created on June 11, 2008, 1:48 PM
- */
-
 #include <fstream>
 #include <vector>
 #include <boost/lexical_cast.hpp>

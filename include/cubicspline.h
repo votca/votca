@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   CubicSpline.h
- * Author: ruehle
- *
- * Created on July 4, 2008, 3:03 PM
- */
-
 #ifndef _CUBICSPLINE_H
 #define	_CUBICSPLINE_H
 

@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   HistogramNew.h
- * Author: ruehle
- *
- * Created on March 11, 2009, 4:24 PM
- */
-
 #ifndef _HISTOGRAMNEW_H
 #define	_HISTOGRAMNEW_H
 

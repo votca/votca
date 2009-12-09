@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   rangeparser.h
-// Author: ruehle
-//
-// Created on March 28, 2008, 10:50 AM
-//
-
 #ifndef _RANGEPARSER_H
 #define	_RANGEPARSER_H
 

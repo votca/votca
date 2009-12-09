@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   cubicspline.cpp
- * Author: ruehle
- *
- * Created on August 22, 2008, 4:44 PM
- */
-
 #include <cubicspline.h>
 #include <gsl/gsl_linalg.h>
 #include <boost/numeric/ublas/matrix.hpp>

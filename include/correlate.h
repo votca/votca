@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   correlate.h
- * Author: ruehle
- *
- * Created on July 30, 2007, 10:54 AM
- */
-
 #ifndef _correlate_H
 #define	_correlate_H
 

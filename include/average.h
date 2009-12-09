@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   average.h
- * Author: ruehle
- *
- * Created on July 17, 2008, 2:08 PM
- */
-
 #ifndef _AVERAGE_H
 #define	_AVERAGE_H
 

@@ -15,13 +15,6 @@
  *
  */
 
-// 
-// File:   crosscorrelate.h
-// Author: ruehle
-//
-// Created on May 21, 2007, 5:21 PM
-//
-
 #ifndef _crosscorrelate_H
 #define	_crosscorrelate_H
 

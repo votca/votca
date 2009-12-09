@@ -15,13 +15,6 @@
  *
  */
 
-/* 
- * File:   types.h
- * Author: ruehle
- *
- * Created on July 11, 2007, 12:17 PM
- */
-
 #ifndef _types_H
 #define	_types_H
 
