@@ -94,7 +94,12 @@ else
 fi
 
 method="$(csg_get_property cg.inverse.method)" 
-log "We are doing Method: $method"
+msg "We are doing Method: $method"
+if [ "$method" = "imc" ]; then
+  msg "####################################################"
+  msg "# WARNING multicomponent imc is still experimental #"
+  msg "####################################################"
+fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 log "We using Sim Program: $sim_prog"
