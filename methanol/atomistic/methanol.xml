@@ -1,6 +1,6 @@
 <cg_molecule>
-  <name>SOL</name>
-  <ident>SOL</ident>
+  <name>methanol</name>
+  <ident>methanol</ident>
   <topology>
     <cg_beads>
       <cg_bead>
