@@ -1,4 +1,22 @@
+syntax: glob
+
 spce/ibm/step_*
 spce/imc/step_*
 methanol/ibm/step_*
 methanol/imc/step_*
+
+topol.tpr
+traj.trr
+traj.xtc
+md.log
+mdout.mdp
+state.cpt
+ener.edr
+confout.gro
+\#*
+
+*.pot.*
+*.force
+angle.dist.*
+bond.dist.*
+log_*
