@@ -68,7 +68,7 @@ items="$(echo -e "$items" | sort -u)"
 for name in ${items}; do
   #cut the first 3 heads of the item
   cut_heads "$name"
-  echo "${spaces}- target(${name//\$})(**${item}**)"
+  echo "${spaces}- target(${name})(**${item}**)"
   desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
   echo -e "${spaces}  $(echo ${desc})" 
 done

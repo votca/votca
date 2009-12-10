@@ -5,11 +5,15 @@
 %Anchor stuff
 %%%%%%%%%%%%%%%%%%%%%%%
 
-% for media wiki
-%!postproc(wiki): 'anchor\((.*?)\)' '<span id="\1"></span>'
 % for tex
+%we allow label link ref target
 %!postproc(tex): 'label\((.*?)\)' '\label{\1}'
 %!postproc(tex): '(ref|target|link)\((.*?)\)\((.*?)\)' '\hyper\1{\2}{\3}'
+%latex does not allow $ in label name, remove it 3 times
+%!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
+%!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
+%!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
+
 %replace \_ back to _ three times
 %!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
 %!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
@@ -18,8 +22,9 @@
 % hyperref[]{}
 %!postproc(tex): '(\\hyperref)\{(.*?)\}\{(.*?)\}' '\1[\2]{\3}'
 
-%For the rest is replaced by nothing.
-%!postproc: '(anchor|label|ref)\(.*?\)' ''
+%For other target is replaced by nothing.
+%!postproc: '(target|link|ref)\(.*?\)\((.*?\))' '\2'
+%!postproc: 'label\(.*?\)' ''
 
 %Linebreak
 %%%%%%%%%%%%%%%%

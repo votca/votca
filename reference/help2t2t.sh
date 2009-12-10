@@ -32,13 +32,13 @@ echo -e "++$progname++"
 echo -e "label($progname)"
 
 #Here comes the magic:
-#-header is trash
+#-header in trash
 #-space at begining and end are removed
 #-optionlines (-[^ ]) -> - ``--option`` text
 #-usageline -> usage: ``code``
 #-extra empty line before new section to close itemize
 #-examplelines (^*) -> - ``line``
-#-
+#-convert NEEDS and OPTINAL in link
 echo -e "$helpmsg" | sed \
    -e '1,3d' \
    -e 's/^[[:space:]]*//' \
@@ -46,8 +46,9 @@ echo -e "$helpmsg" | sed \
    -e '/^-[^ ]/s/ \{2\}/`` /' \
    -e '/^-[^ ].*``/s/^/- ``/' \
    -e 's/^\(Usage:[[:space:]]*\)\(.*\)$/\1``\2``/' \
-   -e 's/^\(Examples\|USES\|NEEDS\|Usage\|PROVIDES\|OPTIONAL\):/\n&/' \
-   -e 's/^\(Allowed\|Trajectory\|Specific\) options:/\n&/' \
+   -e '/^\(NEEDS\|OPTIONAL\):/s/\([[:space:]]\)\([^[:space:]]\+\)/\1link(\2)(\2)/g' \
    -e '/^\* /s/\( \{2\}\|$\)/`` /' \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
+   -e 's/^\(Examples\|USES\|NEEDS\|Usage\|PROVIDES\|OPTIONAL\):/\n&/' \
+   -e 's/^\(Allowed\|Trajectory\|Specific\) options:/\n&/' \
 
