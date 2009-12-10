@@ -36,11 +36,11 @@
   <item><name>cg.inverse.kBT</name><desc> kBT (300*0.00831451 gromacs units) </desc></item>
   <item><name>cg.inverse.program</name><desc>simulation package to be used (currently only gromacs) </desc></item>
 
-  <item><name>cg.inverse.$simprog</name><desc> generic simulation program (e.g. GROMACS) options </desc></item>
-  <item><name>cg.inverse.$simprog.equi_time</name><default>0.0</default><desc> begin analysis after this time </desc></item>
-  <item><name>cg.inverse.$simprog.first_frame</name><default>0</default><desc> trash so many frames at the beginning </desc></item>
-  <item><name>cg.inverse.$simprog.topol</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
-  <item><name>cg.inverse.$simprog.traj</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
+  <item><name>cg.inverse.$sim_prog</name><desc> generic simulation program (e.g. GROMACS) options </desc></item>
+  <item><name>cg.inverse.$sim_prog.equi_time</name><default>0.0</default><desc> begin analysis after this time </desc></item>
+  <item><name>cg.inverse.$sim_prog.first_frame</name><default>0</default><desc> trash so many frames at the beginning </desc></item>
+  <item><name>cg.inverse.$sim_prog.topol</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
+  <item><name>cg.inverse.$sim_prog.traj</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
 
   <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
   <item><name>cg.inverse.gromacs.table_bins</name><desc> grid for table*.xvg !</desc></item>
