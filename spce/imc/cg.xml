@@ -29,12 +29,12 @@
       <!-- inverse monte carlo specific stuff -->
       <imc>
         <group>CG-CG</group>
-        <cgmap>../water_cg.xml</cgmap>
       </imc>
       <!-- name of the table for gromacs run -->
       <gromacs>
         <table>table_CG_CG.xvg</table>
       </gromacs>
+      <cgmap>../water_cg.xml</cgmap>
     </inverse>
   </non-bonded>
   
