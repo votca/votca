@@ -13,16 +13,14 @@ The coarse-graining procedure itself is controlled by several Extensible Markup 
 
 \section{Topologies}
 A topology is defined as a set of beads with a certain bead type which are connected by bonded interactions.
-Votca can read topologies in the \gromacs tpr format. Additionally, it can use a pdb file as topology, however, not all information are given in a pdb file and are not defined. If a pdb topology is used, it is recommended to fill additional molecule information using the xml advanced topology handling feature (see. \sect{sec:adv_topology})
+\votca can read topologies in the \gromacs tpr format. However, it can also use a pdb file as topology, but, not all information are given or defined in this file format. If a pdb topology is used, it is recommended to fill in any additional molecule information using the xml advanced topology handling feature (see. \sect{sec:adv_topology})
 \subsection{Manual topology handling}
 \label{sec:adv_topology}
-Many file formats do not have a clear definition of a molecules. This can lead to problems, especially if a simulation contains several multiple molecules. Since during the coarse graining, the molecule type is identified by a name tag, names must be set properly. \votca offers the possibility to read a topology and later on modify parts of it. Everything is defined in an xml topology file.
+Many file formats do not have a clear definition of molecules. This can lead to problems, especially if a simulation contains several molecules with multiple types. Since during the coarse graining, the molecule type is identified by a name tag, names must also be set properly. \votca also offers the possibility to read a topology and later on modify parts of it. Everything is based on a definiton in an \xml topology file. This new \xml topology can then be used as topology in the \progopt{--tpr} option, as any other topology file. 
 
-Also \gromacs did not store molecule names in previous versions. This was introduced in a newer release. If possible, always provide a recent .tpr file which contains molecule names. For old topologies, rerun grompp if possible to get a recent file.
+As \gromacs did not store molecule names in previous versions, but has introduced this feature in a newer release,  a recent .tpr file which contains molecule names should always be provided. For old topologies, rerun \gromacs \textbf{grompp} if possible to get a recent file. 
 
-If a system with multiple molecule types is processed, but no molecule names are present, molecule names have to be specified manually as described in this section that \votca can choose the correct mapping scheme..
-
-If no molecule information is present at all, they can be created. An for a topology file that reads in last.pdb and then creates molecules is:
+If no molecule information is present at all, it has to be manually defined. An example for a topology file that reads in last.pdb and then creates proper molecule definitions is:
 \begin{lstlisting}
 <topology base="last.pdb">
   <molecules>
@@ -31,9 +29,9 @@ If no molecule information is present at all, they can be created. An for a topo
   </molecules>
 </topology>
 \end{lstlisting}
-<clear/> clears all bolecule information that were present before.
+where $<$clear/$>$ clears all molecule information that were present before.
 
-If the file format the topology is read from only does not support molecules names, \votca offers the possibility to define topologies in an xml file and manipulate the molecule names after reading. A short example:
+If molecule information is already present in the parent topology, but molecule do not have proper names, molecules can be renamed. A short example is
 \begin{lstlisting}
  <topology base="topol.tpr">
    <molecules>
@@ -42,13 +40,11 @@ If the file format the topology is read from only does not support molecules nam
    </molecules>
  </topology>
 \end{lstlisting}
-Here, first to file topol.tpr is loaded. The file supports molecules but does not give a name tag. Afterwards, Molecules are renamed. This file can be loaded as any other topology.
-
-To use the new topology, create a file using the schema above and save it as .xml. To use it in the program, you'll have to give several coarse graining definitions, separated by ;. If you saved the example above as newtop.xml, use 
+Here, first the file topol.tpr is loaded, subsequently, molecules are renamed.
 
 \subsection{Trajectories}
 A trajectory is defined as a set of frames containing coordinates and eventually velecities and forces for the beads of a topology.
-VOTCA currently supports trr, xtc, pdb and gro as trajector formats.
+\votca currently supports trr, xtc, pdb and gro as trajector formats.
 
 \input{functionality//inverse}
 

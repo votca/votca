@@ -6,12 +6,12 @@ The mapping file has similar entries as a topology, but contains additional info
 
 In the \xmlopt{mapping} section, the mapping operator is defined. Currently this includes only weights for a linear mapping scheme.
 
-A complete reference for mapping file definitions can be found in ref.~\ref{sec:ref_mapping}. To map from atomistic to a reference system, \textbf{csg\_map} can be used:
+A complete reference for mapping file definitions can be found in ref.~\ref{sec:ref_mapping}. To map from an atomistic to a reference system, \textbf{csg\_map} can be used:
 \begin{verbatim}
   csg_map --top topol.tpr --trj traj.trr --cg "protein.xml;solvent.xml" --out cg.gro
 \end{verbatim}
 
-To create an coarse-grained topology based on the mapping scheme, see \textbf{csg\_gmxtopol}.
+To create a coarse-grained topology based on the mapping scheme, see \textbf{csg\_gmxtopol}.
 
 \subsection{Example - mapping file for propane}
 \begin{figure}[ht]
