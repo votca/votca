@@ -77,17 +77,15 @@ pdfpagemode=UseNone]{hyperref}
 
 
 \begin{document}
+\frontmatter
 \input{hgid}
-\pagenumbering{roman}
 \include{titlepage}
 \thispagestyle{empty}
 \cleardoublepage
 
 \tableofcontents
 \cleardoublepage
-
-\setcounter{page}{1}
-\pagenumbering{arabic}
+\mainmatter
 \include{introduction}
 \include{theory}
 \include{functionality}
