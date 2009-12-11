@@ -1,0 +1,66 @@
+\renewcommand{\vec}[1]{\ensuremath{{\bm #1}}}
+\newcommand{\fig}[1]{fig.~\ref{#1}}
+\newcommand{\eq}[1]{eq.~\ref{#1}}
+\newcommand{\unit}[1]{\ensuremath{\,\mbox{#1}}}
+\newcommand{\ibi}{IBI\xspace}
+\newcommand{\imc}{IMC\xspace}
+\newcommand{\fm}{FM\xspace}
+\newcommand{\xml}{XML\xspace}
+\newcommand{\gromacs}{GROMACS\xspace}
+\newcommand{\spce}{SPC/E\xspace}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\ddash}{{-}{-}\xspace}
+
+%formating for a program option, e.g. --trj
+\newcommand{\progopt}[1]{\texttt{#1}\xspace}
+% formating for programs, e.g. csg_boltzmann
+\newcommand{\prog}[1]{\hyperref[#1]{\textbf{\StrSubstitute{#1}{_}{\_}}}\xspace}
+% formating for an xml option, e.g. cg.inverse.simprog
+
+% reference to an xml option in the reference section
+\newcommand{\cgref}[1]{cg.#1}
+%auto hyperlink for cgopts
+\newcommand{\cgopt}[1]{\hyperlink{\cgref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
+\newcommand{\interref}[1]{cg.interaction.#1}
+\newcommand{\interopt}[1]{\hyperlink{\interref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
+\newcommand{\mapref}[1]{mapping.#1}
+\newcommand{\mapopt}[1]{\hyperlink{\mapref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
+
+\newcommand{\sect}[1]{sec.~\ref{#1}}
+
+\newcommand{\votca}{{\sc \color{blue} votca}\xspace}
+\newcommand{\votcaweb}{\htmladdnormallink{{\sc \color{blue} www.votca.org}\xspace}{http://www.votca.org}}
+
+
+\newcommand{\sasha}{ {\sc \color{red} Alexander Lukyanov} \newline}
+\newcommand{\denis}{ {\sc \color{red} Denis Andrienko} \newline}
+\newcommand{\victor}{ {\sc \color{red} Victor R\"uhle} \newline}
+\newcommand{\christoph}{ {\sc \color{red} Christoph Junghans} \newline}
+
+
+% XML listings
+\definecolor{darkgreen}{named}{green}
+\definecolor{darkblue}{named}{blue}
+\definecolor{darkred}{named}{red}
+\definecolor{grau}{named}{gray}
+\let\Righttorque\relax
+
+\lstset{language=XML}
+
+\lstset{
+    language=XML,
+    basicstyle=\ttfamily,%\scriptsize\mdseries,
+    keywordstyle=,
+    identifierstyle=,
+    commentstyle=\color{gray},
+    stringstyle=\itshape\color{black},
+    breaklines=true,
+    frame=none,
+    showstringspaces=false,
+    tabsize=2,
+    captionpos=b,
+    float=htbp,
+    moredelim=*[s][\color{darkblue}]{<}{>},
+    morecomment=[s]{<!--}{-->},
+}
+
