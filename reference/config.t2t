@@ -32,5 +32,5 @@
 %!postproc(tex): '^\s*$' '\n\\noindent '
 
 %!postproc(tex): '\\item' '\item[ ]'
-%!postproc(tex): '(\\begin\{itemize\})' '\1\n\setlength{\itemsep}{0pt}\n\setlength{\parskip}{0pt}\n\setlength{\parsep}{0pt}\n'
+%!postproc(tex): '^(.*)(\\begin\{itemize\})' '\1\2\n\1\setlength{\itemsep}{0pt}\n\1\setlength{\parskip}{0pt}\n\1\setlength{\parsep}{0pt}'
 
