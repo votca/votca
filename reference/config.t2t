@@ -29,5 +29,6 @@
 %Linebreak
 %%%%%%%%%%%%%%%%
 
-%!postproc: '^\s*$' '\n\\noindent '
+%!postproc(tex): '^\s*$' '\n\\noindent '
 
+%!postproc(tex): '\\item' '\item[ ]'
