@@ -50,13 +50,14 @@ pdfpagemode=UseNone]{hyperref}
 % formating for programs, e.g. csg_boltzmann
 \newcommand{\prog}[1]{\hyperref[#1]{\textbf{\StrSubstitute{#1}{_}{\_}}}\xspace}
 % formating for an xml option, e.g. cg.inverse.simprog
-\newcommand{\xmlopt}[1]{\textit{#1}\xspace}
 
 % reference to an xml option in the reference section
 \newcommand{\cgref}[1]{cg.#1}
+\newcommand{\cgopt}[1]{\hyperlink{\cgref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
 \newcommand{\interref}[1]{cg.interaction.#1}
+\newcommand{\interopt}[1]{\hyperlink{\interref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
 \newcommand{\mapref}[1]{mapping.#1}
-
+\newcommand{\mapopt}[1]{\hyperlink{\mapref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
 
 \newcommand{\sect}[1]{sec.~\ref{#1}}
 
