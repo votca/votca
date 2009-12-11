@@ -14,7 +14,7 @@ The first thing to coarse-grain a system is to define a mapping scheme (see \sec
   csg_map --top topol.tpr --trj traj.trr --cg mapping.xml --out cg.gro
 \end{verbatim}
 
-Make sure that the \xmlopt{ident} tag matches the molecule name in the reference system. The most common thing that can go wrong is that beads cannot be found. On reason is a type in the atom name of the mapping. To debug which atoms are read in from a topology file, \prog{csg_dump} can be used. A second reason could be, that molecules are not identified correctly. In case of a multicomponent system, see \sect{sec:adv_topology} for details.
+Make sure that the \mapopt{ident} tag matches the molecule name in the reference system. The most common thing that can go wrong is that beads cannot be found. On reason is a type in the atom name of the mapping. To debug which atoms are read in from a topology file, \prog{csg_dump} can be used. A second reason could be, that molecules are not identified correctly. In case of a multicomponent system, see \sect{sec:adv_topology} for details.
 
 In case everything works find, a file cg.gro which contains the coarse-grained trajectory is created. The easuiest way to compare coarse-grained and atomistic representation is to open both in e.g. vmd.  Be careful when opening in vmd specifying a .gro file + .trr, the first frame comes from the .gro, the following correspond to the trr. The coarse grained file only contains the frames from the trajectory, to compare them, the first frame of the atomistic run has to be deleted in vmd!!
 
