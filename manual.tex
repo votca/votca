@@ -82,49 +82,23 @@ pdfpagemode=UseNone]{hyperref}
 \let\Righttorque\relax
 
 \lstset{language=XML}
-% \lstset{
-% commentstyle=\itshape\color{darkgreen},
-% keywordstyle=\bfseries\color{darkblue},
-% stringstyle=\color{darkred},
-% extendedchars=true,
-% basicstyle=\scriptsize\ttfamily
-% basicstyle=\tiny\ttfamily,
-% tabsize=2,
-% % keywordstyle=\textbf,
-% commentstyle=\color{grau},
-% % stringstyle=\textit,
-% numbers=left,
-% numberstyle=\tiny,
-% % für schönen Zeilenumbruch
-% breakautoindent = true,
-% breakindent = 2em,
-% breaklines = true,
-% postbreak = ,
-% prebreak = \raisebox{-.8ex}[0ex][0ex]{\ensuremath{\lrcorner}},
-% prebreak = \raisebox{-.8ex}[0ex][0ex]{\Righttorque},
-% showspaces=false, % Keine Leerzeichensymbole
-% showtabs=false, % Keine Tabsymbole
-% showstringspaces=false,% Leerzeichen in Strings
-% }
+
 
 \lstset{
     language=XML,
-    basicstyle=\ttfamily\scriptsize\mdseries,
-    keywordstyle=\bfseries\color{darkblue},
+    basicstyle=\ttfamily,%\scriptsize\mdseries,
+    keywordstyle=,
     identifierstyle=,
-    commentstyle=\color{gray},  
-    stringstyle=\itshape\color{darkred},
+    commentstyle=\color{gray},
+    stringstyle=\itshape\color{black},
     breaklines=true,
     frame=none,
     showstringspaces=false,
-    tabsize=4,
+    tabsize=2,
     captionpos=b,
     float=htbp,
-    keywords={name,cg,fmatch,frames_per_block,non-bonded,
-       type1,type2,min,max,step,out_step,non-bonded,ident,cg_beads,cg_bead,topology,map,bond,cg_bonded,
-       angle,beads,maps,weights,cg_molecule,molecules,rename,clear,define,mapping,type,non-bonded,bonded,constraintedLS,
-       post_update,smooth,iterations,type},
-    morecomment=[s]{!--}{--}
+    moredelim=*[s][\color{darkblue}]{<}{>},
+    morecomment=[s]{<!--}{-->},
 }
 
 
