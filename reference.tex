@@ -7,18 +7,21 @@ The root node always has to be cg\_molecule. It can contain the following keywor
 
 \input{reference/xml/mapping}
 
-\section{option file}
+\section{Settings file}
 All options for the iterative script are stored in an xml file.
 \label{sec:ref_options}
 \input{reference/xml/cgoptions}
 
-\subsection{interaction options}
-All options for the iterative script are stored in an xml file.
+\subsection{Interaction options}
 \label{sec:ref_interaction}
+This section contains all interaction option, which could be contained in the \cgopt{non-bonded} or \cgopt{bonded} section in \sect{sec:ref_options}.
 \input{reference/xml/cginteraction}
 \vfill
 
-\section{scripts}
-\subsection{Default script table}
+\section{Scripts}
+\label{sec:csg_table}
+Scripts are used by \prog{csg_call} and \prog{csg_inverse}.
+The script table commonly used (compare \texttt{csg\_call --list}): 
 \input{reference/scripts/csg_table}
+Scripts call can be overwriting by adding a line with the 3rd column changed to \texttt{csg\_table} in \cgopt{inverse.scriptdir} directory.
 \input{reference/scripts/all}
