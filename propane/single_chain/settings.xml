@@ -3,7 +3,7 @@
   <fmatch>
     <!--Number of frames for block averaging -->
     <frames_per_block>10000</frames_per_block>
-    <constrainedLS>1</constrainedLS>
+    <constrainedLS>0</constrainedLS>
   </fmatch>
   <!-- example for a non-bonded interaction entry -->
   <bonded>
