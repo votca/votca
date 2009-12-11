@@ -20,10 +20,10 @@ When executing without any options \csgfmatch shows available options:
   --first-frame arg (=0) start with this frame
   --nframes arg          process so many frames
 \end{verbatim}
-Some options must be provided, some are optional. Must be provided: \textbf{\ddash{options}}, \textbf{\ddash{top}}, \textbf{\ddash{trj}} and \textbf{\ddash{cg}}. \textbf{\ddash{top}} is an atomistic topology file: topol.tpr. \textbf{\ddash{trj}} is an atomistic trajectory file: traj.trr. Note that trajectory file must contain forces ( there is an option for that in GROMACS .mdp file ), otherwise there will be nothing to match. \textbf{\ddash{cg}} is a file, which contains the CG mapping scheme with all the interactions, user wants to define on a coarse-grained level, see \sect{sec:adv_topology}.
+Some options must be provided, some are optional. Must be provided: \progopt{--options}, \progopt{--top}, \progopt{--trj} and \progopt{--cg}. \progopt{--top} is an atomistic topology file e.g. topol.tpr. \progopt{--trj} is an atomistic trajectory file: traj.trr. Note that trajectory file must contain forces ( there is an option for that in GROMACS .mdp file ), otherwise there will be nothing to match. \progopt{--cg} is a file, which contains the CG mapping scheme with all the interactions, user wants to define on a coarse-grained level, see \sect{sec:adv_topology}.
 
 \subsubsection{CG-options file}
-\textbf{\ddash{options}} is an \xml-file, which contains options to control force matching functionality. 
+\progopt{--options} is an \xml-file, which contains options to control force matching functionality. 
 Currently the file has the following options:
 \begin{verbatim}
    <cg>
@@ -60,7 +60,7 @@ Practically both algorithms give the same results, but simple least squares is f
 
 In this example we have only one interaction on a coarse-grained level, its name: CG-CG. But in principle several types of non-bonded as well as bonded interactions can be added. 
 
-\textbf{type1} and \textbf{type2}\newline are the types of CG-beads involved in the interaction CG-CG. In this case this is an interaction between a CG-bead of type A with another CG-bead of type A. These types should correspond to the mapping scheme file ( option \textbf{\ddash{cg}} ).
+\textbf{type1} and \textbf{type2}\newline are the types of CG-beads involved in the interaction CG-CG. In this case this is an interaction between a CG-bead of type A with another CG-bead of type A. These types should correspond to the mapping scheme file ( option \progopt{--cg} ).
  
 \textbf{min}\newline is a minimum distance between CG-bead of \textbf{type1} and CG-bead of \textbf{type2},  sampled in atomistic MD simulation. One can get this number by looking at the \textbf{type1-type2} radial distribution function. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).
 
@@ -73,7 +73,7 @@ to have smooth curve, without additional spline interpolation.
 As a rule of thumb we normally use \textbf{out\_step}, which is approximately 5 times smaller than \textbf{step}.
 
 \subsection{Program output}
-\csgfmatch produces a separate .force file for each interaction, specified in the CG-options file (option \textbf{\ddash{options}} ).
+\csgfmatch produces a separate .force file for each interaction, specified in the CG-options file (option \progopt{options} ).
 These files have 4 columns: distance, corresponding force, table flag and the force error, estimated using block-averaging procedure.
 If you have an angle, then the first column will contain corresponding angle in radians.
 
