@@ -23,25 +23,25 @@ Also \gromacs did not store molecule names in previous versions. This was introd
 If a system with multiple molecule types is processed, but no molecule names are present, molecule names have to be specified manually as described in this section that \votca can choose the correct mapping scheme..
 
 If no molecule information is present at all, they can be created. An for a topology file that reads in last.pdb and then creates molecules is:
-\begin{verbatim}
+\begin{lstlisting}
 <topology base="last.pdb">
   <molecules>
     <clear/>
     <define name="mCP" first="1" nbeads="52" nmols="216"/>
   </molecules>
 </topology>
-\end{verbatim}
+\end{lstlisting}
 <clear/> clears all bolecule information that were present before.
 
 If the file format the topology is read from only does not support molecules names, \votca offers the possibility to define topologies in an xml file and manipulate the molecule names after reading. A short example:
-\begin{verbatim}
+\begin{lstlisting}
  <topology base="topol.tpr">
    <molecules>
      <rename name="PPY3" range="1:125"/>
      <rename name="Cl" range="126:250"/>
    </molecules>
  </topology>
-\end{verbatim}
+\end{lstlisting}
 Here, first to file topol.tpr is loaded. The file supports molecules but does not give a name tag. Afterwards, Molecules are renamed. This file can be loaded as any other topology.
 
 To use the new topology, create a file using the schema above and save it as .xml. To use it in the program, you'll have to give several coarse graining definitions, separated by ;. If you saved the example above as newtop.xml, use 

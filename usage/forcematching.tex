@@ -25,7 +25,8 @@ Some options must be provided, some are optional. Must be provided: \progopt{--o
 \subsubsection{CG-options file}
 \progopt{--options} is an \xml-file, which contains options to control force matching functionality. 
 Currently the file has the following options:
-\begin{verbatim}
+
+\begin{lstlisting}
    <cg>
      <!--fmatch section -->
      <fmatch>
@@ -49,7 +50,7 @@ Currently the file has the following options:
        </fmatch>
      </non-bonded>
    </cg>
-\end{verbatim}
+\end{lstlisting}
 
 \textbf{frames\_per\_block}\newline is number of frames, being used for block averaging. Atomistic trajectory, specified with
 \textbf{\ddash{trj}} option, is divided into blocks and the force matching equations are solved separately for each block.

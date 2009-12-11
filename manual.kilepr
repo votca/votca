@@ -4,7 +4,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
 kileprversion=1
 kileversion=1.9.3
-lastDocument=usage/ibi.tex
+lastDocument=functionality/mapping.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -18,10 +18,10 @@ QuickBuild=
 
 [item:functionality.tex]
 archive=true
-column=12
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=26
+line=12
 open=true
 order=3
 
@@ -29,7 +29,7 @@ order=3
 archive=true
 column=0
 encoding=
-highlight=
+highlight=LaTeX
 line=0
 open=true
 
@@ -38,15 +38,15 @@ archive=true
 column=0
 encoding=ISO 8859-1
 highlight=LaTeX
-line=14
+line=5
 open=true
 
 [item:introduction.tex]
 archive=true
-column=0
+column=92
 encoding=UTF-8
 highlight=LaTeX
-line=8
+line=22
 open=true
 order=7
 
@@ -79,10 +79,10 @@ order=1
 
 [item:theory.tex]
 archive=true
-column=0
+column=170
 encoding=UTF-8
 highlight=LaTeX
-line=19
+line=155
 open=true
 order=8
 
@@ -97,7 +97,7 @@ order=0
 
 [item:usage/boltzmann.tex]
 archive=true
-column=472
+column=14
 encoding=UTF-8
 highlight=LaTeX
 line=54
@@ -130,9 +130,9 @@ open=true
 
 [item:votca.bib]
 archive=true
-column=22
+column=16
 encoding=UTF-8
 highlight=BibTeX
 line=12
-open=true
+open=false
 order=6
