@@ -15,7 +15,7 @@ for votca at http://groups.google.com/group/votca
 You can contact the VOTCA Development Team at devs@votca.org.
 
 
-The following tutorials are included:
+The following tutorials (compare with paper above) are included:
 
 spce/atomistic             atomistic reference simulations for SPC/E water
 spce/ibm                   boltzmann inversion for SPC/E water
@@ -31,5 +31,5 @@ propane/single_chain       atomistic simulations, boltzmann inversion
                            and force matching for a single chain of propane
 
 each of the tutorials contains a run.sh which lists all commands
-needed to execute the tutorial.
+needed to execute the tutorial. 
 
