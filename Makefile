@@ -1,8 +1,10 @@
 .SUFFIXES: .tex .pdf
-HGID:=$(shell hg parents --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{&}/')
+HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{&}/')
 
-all: hgid.tex fig_submake functionality_submake reference_submake usage_submake
+all: manual.tex
 	./latexmk.pl -pdfdvi manual.tex
+
+manual.tex: hgid.tex fig_submake functionality_submake reference_submake usage_submake
 
 .tex.pdf:
 	./latexmk.pl -pdfdvi $*
