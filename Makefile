@@ -1,3 +1,4 @@
+SHELL=/bin/bash
 .SUFFIXES: .tex .pdf
 HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{&}/')
 
