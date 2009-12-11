@@ -5,10 +5,10 @@
    \includegraphics{usage/fig/flow_fmatch.eps}
    \caption{Flowchart to perform force matching.}
 \end{figure}
-Force matching algorithm with cubic spline basis is implemented in \csgfmatch utility.
+Force matching algorithm with cubic spline basis is implemented in \prog{csg_fmatch} utility.
 
-\subsection{\csgfmatch: available options}
-When executing without any options \csgfmatch shows available options:
+\subsection{csg\_fmatch: available options}
+When executing without any options \prog{csg_fmatch} shows available options:
 \begin{verbatim}
   --options arg          options file for coarse graining
   --help                 produce this help message
@@ -74,13 +74,13 @@ to have smooth curve, without additional spline interpolation.
 As a rule of thumb we normally use \textbf{out\_step}, which is approximately 5 times smaller than \textbf{step}.
 
 \subsection{Program output}
-\csgfmatch produces a separate .force file for each interaction, specified in the CG-options file (option \progopt{options} ).
+\prog{csg_fmatch} produces a separate .force file for each interaction, specified in the CG-options file (option \progopt{options} ).
 These files have 4 columns: distance, corresponding force, table flag and the force error, estimated using block-averaging procedure.
 If you have an angle, then the first column will contain corresponding angle in radians.
 
 To get table-files for \gromacs one has to integrate the forces to get the potentials and do extrapolation and probably smoothing.
 
-Output files are not only produced at the end of the program execution, but after successfull processing of every block. The user can have a look at the output files and decide to stop \csgfmatch, as long as the force error is small enough.
+Output files are not only produced at the end of the program execution, but after successfull processing of every block. The user can have a look at the output files and decide to stop \prog{csg_fmatch}, as long as the force error is small enough.
 
 \subsection{Integration and extrapolation of .force files }
 To convert .force to .pot one can execute
