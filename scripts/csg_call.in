@@ -24,8 +24,14 @@ die() {
 }
 
 show_help () {
-  echo "${0##*/}, version @version@"
   cat << eof
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+please submit bugs to bugs@votca.org
+
+${0##*/}, version @version@
 
 
 This script calls script for csg using source_wrapper
@@ -133,6 +139,14 @@ fi
 
 #help should always work
 if [ "$3" = "--help" ]; then 
+cat <<EOF
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+please submit bugs to bugs@votca.org
+
+EOF
   echo -e "$needs"
   exit 0
 fi
