@@ -75,48 +75,17 @@ pdfpagemode=UseNone]{hyperref}
 
 
 \begin{document}
+\input{hgid}
 \pagenumbering{roman}
-\begin{titlepage}
-
-\center{\fontsize{4cm}{5cm}\selectfont VOTCA}
-\center{\fontsize{1.5cm}{3cm}\selectfont USER MANUAL}
-
-\vspace*{3cm}
-\center{\includegraphics[width=\columnwidth]{fig/logo}}
-\vspace*{1cm}
-
-\center{\Large{Victor R\"uhle}}
-\center{\Large{Christoph Junghans}}
-\center{\Large{Alexander Lukyanov}}
-\center{\Large{Kurt Kremer}}
-\center{\Large{Denis Andrienko}}
-
-\vspace*{1.5cm}
-\center{\large{\today}}
-
-\vspace*{1cm}
-%\center{
-\large{\copyright \hspace*{0.1cm} VOTCA development team}
-%}
-\vspace*{0.5cm}
-
-\htmladdnormallink{\color{black}\large{www.votca.org}}{http://www.votca.org}
-\end{titlepage}
-
-\newpage 
+\include{titlepage}
 \thispagestyle{empty}
-\quad 
-\newpage
+\cleardoublepage
 
-\thispagestyle{empty}
 \tableofcontents
-\newpage
-%\quad 
-%\newpage
+\cleardoublepage
 
 \setcounter{page}{1}
 \pagenumbering{arabic}
-
 \include{introduction}
 \include{theory}
 \include{functionality}
