@@ -65,93 +65,93 @@ If a run was interrupted, \prog{csg_inverse} might not be able to restart on its
 In principle, each sub-step of an iteration and all direct calls can be changed. 
 All script is called via two keywords.
 \begin{verbatim}
-csg_call key1 key2
+  csg_call key1 key2
 \end{verbatim} 
 For example \texttt{csg\_call update imc} calls the update script for inverse monte carlo procedure.
 The default keyword to script mapping can be seen in \sect{sec:csg_table} or seen directly by calling:
 \begin{verbatim}
-csg_call --list
+  csg_call --list
 \end{verbatim} 
 
 Please {\em never} change the scripts in the \votca installation. It is better to copy the script to your script directory (defined by \cgopt{inverse.scriptdir}) and redirect its call by creating a own \texttt{csg\_table} in this directory with a contain like this:
 \begin{verbatim}
-key1 key2 script options
-key3 key4 script2
+  key1 key2 script options
+  key3 key4 script2
 \end{verbatim} 
 One can even overload existing call.
 \subsubsection{An useful example}
 \prog{csg_inverse} runs \prog{mdrun} from the \gromacs package only on one cpu and we want to change that due to the fact that we have 8 cpu machine and want to save some time.
 First we try to find out which script calls \prog{mdrun}:
 \begin{verbatim}
-csg_call --list | grep gromacs
+  csg_call --list | grep gromacs
 \end{verbatim}
 In this case we are lucky, the output is quite helpful:
 \begin{verbatim}
-init gromacs initalize_gromacs.sh
-prepare gromacs prepare_gromacs.sh
-run gromacs run_gromacs.sh
-pressure gromacs calc_pressure_gromacs.sh
-rdf gromacs calc_rdf_gromacs.sh
-imc_stat gromacs imc_stat_generic.sh
-convert_potential gromacs potential_to_gromacs.sh
-functions gromacs functions_gromacs.sh
+  init gromacs initalize_gromacs.sh
+  prepare gromacs prepare_gromacs.sh
+  run gromacs run_gromacs.sh
+  pressure gromacs calc_pressure_gromacs.sh
+  rdf gromacs calc_rdf_gromacs.sh
+  imc_stat gromacs imc_stat_generic.sh
+  convert_potential gromacs potential_to_gromacs.sh
+  functions gromacs functions_gromacs.sh
 \end{verbatim}
 the third entry sounds reasonable. If the output of \prog{csg_call} is not useful, one should try to find the right script in \sect{sec:csg_table}. If this doesn't help one has to go the $<$csg-installation$>$/share/scripts/inverse and find the script there. However in this case the output of:
 \begin{verbatim}
-csg_call --show run gromacs
+  csg_call --show run gromacs
 \end{verbatim}
 looks like we have found the right script:
 \begin{verbatim}
-#!/bin/bash
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+  #!/bin/bash
+  # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+  #
+  # Licensed under the Apache License, Version 2.0 (the "License");
+  # you may not use this file except in compliance with the License.
+  # You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  #
 
-if [ "$1" = "--help" ]; then
-cat <<EOF
-${0##*/}, version 1.0_rc1 hgid: 5553f40f6aafbc05449582c788fd5017c72c9b7b
-This script runs gromacs
-for the Inverse Boltzmann Method
+  if [ "$1" = "--help" ]; then
+  cat <<EOF
+  ${0##*/}, version 1.0_rc1 hgid: 5553f40f6aafbc05449582c788fd5017c72c9b7b
+  This script runs gromacs
+  for the Inverse Boltzmann Method
 
-Usage: ${0##*/}
+  Usage: ${0##*/}
 
-USES: run_or_exit mdrun
-EOF
-   exit 0
-fi
+  USES: run_or_exit mdrun
+  EOF
+     exit 0
+  fi
 
-check_deps "$0"
+  check_deps "$0"
 
-run_or_exit mdrun
+  run_or_exit mdrun
 \end{verbatim}
 Now we create our own scriptdir, add script there, make it executable and overload the call of the script:
 \begin{verbatim}
-mkdir -p SCRIPTDIR
-csg_call --show run gromacs > SCRIPTDIR/MY_run_gromacs.sh
-chmod 755 SCRIPTDIR/MY_run_gromacs.sh
-echo "run gromacs MY_run_gromacs.sh" >> SCRIPTDIR/csg_table
+  mkdir -p SCRIPTDIR
+  csg_call --show run gromacs > SCRIPTDIR/MY_run_gromacs.sh
+  chmod 755 SCRIPTDIR/MY_run_gromacs.sh
+  echo "run gromacs MY_run_gromacs.sh" >> SCRIPTDIR/csg_table
 \end{verbatim}
 Please note that \texttt{MY\_run\_gromacs.sh} is the name of the script and \texttt{SCRIPTDIR} is the custom script directory, which can be a global or local path.
 Now we change the last line of \texttt{MY\_run\_gromacs.sh} to:
 \begin{verbatim}
-run_or_exit mpirun -np 8 mdrun
+  run_or_exit mpirun -np 8 mdrun
 \end{verbatim}
 and that is it, please note that you should be remove the license infomations and change the version of the scipt to not end up in a big mess.
 You can check your work by running:
 \begin{verbatim}
-csg_call --scriptdir SCRIPTDIR --list
-csg_call --scriptdir SCRIPTDIR --show run gromacs
+  csg_call --scriptdir SCRIPTDIR --list
+  csg_call --scriptdir SCRIPTDIR --show run gromacs
 \end{verbatim}
 and do not forget to add \texttt{SCRIPTDIR} to \cgopt{inverse.scriptdir} in setting \xml file (see \sect{sec:ref_options}).
 
