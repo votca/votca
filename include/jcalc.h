@@ -27,6 +27,9 @@ public:
     JCalc(){
 
     }
+
+    ~JCalc();
+    
     JCalc(string name){
         Init(name);
     }
