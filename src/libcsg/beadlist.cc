@@ -17,6 +17,7 @@
 
 #include "beadlist.h"
 #include "topology.h"
+#include <votca/tools/tokenizer.h>
 
 int BeadList::Generate(Topology &top, const string &select)
 {
@@ -24,7 +25,7 @@ int BeadList::Generate(Topology &top, const string &select)
     _topology = &top;
     
     for(iter=top.Beads().begin(); iter!=top.Beads().end();++iter) {
-        if((*iter)->getType()->getName() == select) {
+        if(wildcmp(select.c_str(), (*iter)->getType()->getName().c_str())) {
             push_back(*iter);
         }
     }
