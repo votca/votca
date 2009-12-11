@@ -34,6 +34,7 @@ Usage: ${0##*/} [OPTIONS] key1 key2
 
 Allowed options:
 -l, --list           Show list of all script
+    --show           Show the content of the script
     --check          Check csg script
     --scriptdir DIR  Set the user script dir
     --xmlfile FILE   Specify the xml file to use
@@ -82,6 +83,9 @@ while [ "${1#-}" != "$1" ]; do
     export bondname="$2"
     shift 2;;
     #direct call hack
+   --show)
+    sw_opt="show"
+    shift;; 
    --direct)
     break;; 
    -h | --help)
@@ -116,18 +120,23 @@ if [ -n "${CSGSCRIPTDIR}" ]; then
   export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
 fi
 
-if [ -n "$sw_opt" ]; then
+if [ -n "$sw_opt" ] && [ "$sw_opt" != "show" ]; then
   $SOURCE_WRAPPER $sw_opt
+  exit 0
+fi
+
+needs="$(do_external $1 $2 --help)"
+if [ "$sw_opt" = "show" ]; then
+  cat $($SOURCE_WRAPPER $1 $2)
   exit 0
 fi
 
 #help should always work
 if [ "$3" = "--help" ]; then 
-  do_external $1 $2 --help
+  echo -e "$needs"
   exit 0
 fi
 
-needs="$(do_external $1 $2 --help)"
 needs="$(echo "$needs" | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
 [ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --xmlfile option"
 [ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "xmlfile '$CSGXMLFILE' not found"
