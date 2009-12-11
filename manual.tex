@@ -25,7 +25,7 @@ pdfauthor={},
 pdfsubject={VOTCA},
 pdfkeywords={coarse-graining boltzmann inversion monte carlo force matching},
 bookmarksopen=false,
-pdfpagemode=None]{hyperref}
+pdfpagemode=UseNone]{hyperref}
 
 \definecolor{webgreen}{rgb}{0,.5,0}
 \definecolor{webbrown}{rgb}{.6,0,0}
@@ -52,9 +52,10 @@ pdfpagemode=None]{hyperref}
 % formating for an xml option, e.g. cg.inverse.simprog
 \newcommand{\xmlopt}[1]{\textit{#1}\xspace}
 
-% think about what should this do?
-% reference an xml option in the reference
-\newcommand{\refopt}[1]{#1}
+% reference to an xml option in the reference section
+\newcommand{\cgref}[1]{cg.#1}
+\newcommand{\interref}[1]{cg.interaction.#1}
+\newcommand{\mapref}[1]{mapping.#1}
 
 
 \newcommand{\sect}[1]{sec.~\ref{#1}}

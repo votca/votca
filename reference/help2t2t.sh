@@ -39,6 +39,7 @@ echo -e "label($progname)"
 #-extra empty line before new section to close itemize
 #-examplelines (^*) -> - ``line``
 #-convert NEEDS and OPTINAL in link
+#-add cg.interaction in links
 echo -e "$helpmsg" | sed \
    -e '1,3d' \
    -e 's/^[[:space:]]*//' \
@@ -47,6 +48,7 @@ echo -e "$helpmsg" | sed \
    -e '/^-[^ ].*``/s/^/- ``/' \
    -e 's/^\(Usage:[[:space:]]*\)\(.*\)$/\1``\2``/' \
    -e '/^\(NEEDS\|OPTIONAL\):/s/\([[:space:]]\)\([^[:space:]]\+\)/\1link(\2)(\2)/g' \
+   -e 's/link(\([^c][^g][^)]*\))(\([^)]*\))/link(cg.interaction.\1)(\2)/g' \
    -e '/^\* /s/\( \{2\}\|$\)/`` /' \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
    -e 's/^\(Examples\|USES\|NEEDS\|Usage\|PROVIDES\|OPTIONAL\):/\n&/' \

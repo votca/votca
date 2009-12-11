@@ -51,6 +51,10 @@ xmlfile="$1"
 [ -z "${CSGSHARE}" ] && die "${0##*/}: CSGSHARE not defined"
 [ -f "${CSGSHARE}/xml/$xmlfile" ] || die "${0##*/}: Error, did not find ${CSGSHARE}/xml/$xmlfile"
 
+trunc=""
+[ "$xmlfile" = "mapping.xml" ] && trunc="mapping."
+[ "$xmlfile" = "cginteraction.xml" ] && trunc="cg.interaction."
+
 #header lines
 echo $xmlfile 
 echo ${0##*/}
@@ -68,7 +72,7 @@ items="$(echo -e "$items" | sort -u)"
 for name in ${items}; do
   #cut the first 3 heads of the item
   cut_heads "$name"
-  echo "${spaces}- target(${name})(**${item}**)"
+  echo "${spaces}- target(${trunc}${name})(**${item}**)"
   desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
   echo -e "${spaces}  $(echo ${desc})" 
 done
