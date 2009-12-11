@@ -12,6 +12,7 @@
 \usepackage{wrapfig}
 \usepackage[numbers,comma,sort&compress]{natbib}
 \usepackage{graphicx}
+\usepackage{xstring}
 
 \usepackage
 [dvips, %or dvips or pdftex
@@ -48,7 +49,8 @@ pdfpagemode=UseNone]{hyperref}
 %formating for a program option, e.g. --trj
 \newcommand{\progopt}[1]{\texttt{#1}\xspace}
 % formating for programs, e.g. csg_boltzmann
-\newcommand{\prog}[1]{\textbf{#1}\xspace}
+\newcommand{\prog}[1]{\hyperref[#1]{\textbf{\StrSubstitute{#1}{_}{\_}}}\xspace}
+%\newcommand{\prog}[1]{\hyperref{#1}{\textbf{\StrDel{_}{#1}\xspace}}}
 % formating for an xml option, e.g. cg.inverse.simprog
 \newcommand{\xmlopt}[1]{\textit{#1}\xspace}
 
