@@ -1,22 +1,35 @@
 \section{Mapping}
 \label{sec:mapping}
-{\em Mapping definitions} describe how to map a single molecule from an atomistic to a coarse-grained representation. A mapping definition has to be specified only once per molecule. The file contains sections for coarse-grained beads, bonded interactions in the coarse grained scheme as well as mapping matrices. If a system contains several molecule types, it has to be enssured that molecule names are set properly. The mapping files should be specified in a list separated by ; (e.g. "protein.xml;solvent.xml"). The \mapopt{ident} tag in the mapping definition must match the name of the molecule in the reference system.
 
-The mapping file has similar entries as a topology, but contains additional information for mapping are present. In the topology section, coarse grained beads and bonded interactions are defined. Each coarse grained bead has a name, type and mapping entry, as well as a list of atoms which are mapped to it. The name must be unique within the mapping file. Type defines the type of the bead. The \mapopt{mapping} tag defines which mapping scheme is used from the mapping section in the file. Type and mapping can be different since the number of atoms for the same bead type may differ, e.g. at chain ends for saturating hydrogen atoms.
+{\em Mapping} describes how to relate atomistic and coarse-grained representations of the system. It is organized as follows: for each molecule {\em type} a mapping file is created. When used as a command option, these files can be combined in a list separated by a semicolon, e.~g. \progopt{--cg}~\texttt{"protein.xml;solvent.xml"}. 
+
+Each mapping file contains a {\em topology} of the coarse-grained molecule and a list of {\em maps}. Topology specifies coarse-grained beads and bonded interactions between them. Each coarse-grained bead has a name, type and a map (weights), as well as a list of atoms which belong to this bead. A map is a \hyperref[sec:mapping_operator]{set of weights} $c_{Ii}$ for an atom $i$ belonging to the bead $I$. 
+
+A complete reference for mapping file definitions can be found in sec.~\ref{sec:ref_mapping}. 
+
+In what follows we illustrate how to create a mapping file for a united atom model of a propane molecule. In this coarse-grained model two bead types (A,B) and three beads (A1, B1, A2) are defined, as shown in fig.~\ref{fig:propane_map}. We will use centers of mass of the beads to as  coarse-grained coordinates.
+
+
+\begin{figure}[ht]
+  \includegraphics[width=0.4\textwidth]{functionality/fig/propane.eps}
+  \caption{Mapping for propane
+  \label{fig:propane_map}
+}
+\end{figure}
+
+\lstinputlisting{functionality/propane.xml}
+
+The \mapopt{ident} tag in the mapping definition must match the name of the molecule in the reference system.
+
+The name must be unique within the mapping file. Type defines the type of the bead. The \mapopt{mapping} tag defines which mapping scheme is used from the mapping section in the file. 
+
+Type and mapping can be different since the number of atoms for the same bead type may differ, e.g. at chain ends for saturating hydrogen atoms.
 
 In the \mapopt{mapping} section, the mapping operator is defined. Currently this includes only weights for a linear mapping scheme.
 
-A complete reference for mapping file definitions can be found in ref.~\ref{sec:ref_mapping}. To map from an atomistic to a reference system, \textbf{csg\_map} can be used:
+To map from an atomistic to a reference system, \textbf{csg\_map} can be used:
 \begin{verbatim}
   csg_map --top topol.tpr --trj traj.trr --cg "protein.xml;solvent.xml" --out cg.gro
 \end{verbatim}
 
 To create a coarse-grained topology based on the mapping scheme, see \textbf{csg\_gmxtopol}.
-
-\subsection{Example - mapping file for propane}
-\begin{figure}[ht]
-  \includegraphics[width=0.4\textwidth]{functionality/fig/propane.eps}
-  \caption{Mapping for propane}
-\end{figure}
-
-\lstinputlisting{functionality/propane.xml}

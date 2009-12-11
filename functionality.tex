@@ -1,15 +1,16 @@
 \chapter{Implementation}
-\subsection{Coarse-graining engine}
-\votca can be divided into two main parts. A C++ kernel, which includes various coarse-graining tools and is capable of processing topologies and trajectories, and a scripting enginge to steers the iterative procedures.
 
-These tools include calculations of probability distributions of bonded and non-bonded interactions, correlation and autocorrelation functions, and updates for the coarse-grained pair potential. Analysis tools of the MD package can also be integrated into the coarse-graining workflow, as needed.
+%\subsection{Coarse-graining engine}
+The package consists of two parts: a C++ kernel and a scripting engine. The kernel is capable of processing atomistic topologies and trajectories and offers a flexible framework for reading, manipulating and analyzing of MD/SD/MC topologies and trajectories. It is modular: new file formats can be integrated without changing the existing code. Currently, an interface for \gromacs~\cite{gromacs4} topologies and trajectories is provided. 
+%
+The kernel also includes various coarse-graining tools, for example calculations of probability distributions of bonded and non-bonded interactions, correlation and autocorrelation functions, and updates for the coarse-grained pair potential. 
+ 
+The scripting enginge is used to steer the iterative procedures. Here the analysis tools of the package used for sampling (e.g. \gromacs) can be integrated into the coarse-graining workflow, if needed.
 
-The package offers a flexible framework for reading, manipulating and analyzing of MD/SD/MC topologies and trajectories. Its core is modular and new file formats can be integrated without changing the existing code. Currently, an interface for \gromacs~\cite{gromacs4} topologies and trajectories is provided.
+The coarse-graining workflow itself is controlled by several Extensible Markup Language (\xml) input files, which contain mapping and other options required for the workflow control. In what follows, these input files are described.
 
-The coarse-graining procedure itself is controlled by several Extensible Markup Language (\xml) input files, which contain mapping and other options required for the workflow control. For the mapping, it is possible to select groups of interactions which are used for the coarse-graininged analysis. 
-%It is possible to generate exclusion lists for Boltzmann inversion of bonded interactions or virtual sites for back-mapping.
 
-\input{functionality//mapping}
+\input{functionality/mapping}
 
 \section{Topologies}
 A topology is defined as a set of beads with a certain bead type which are connected by bonded interactions.
