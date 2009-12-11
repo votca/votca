@@ -43,6 +43,10 @@
   <item><name>cg.inverse.$sim_prog.traj</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
 
   <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
+  <item><name>cg.inverse.gromacs.equi_time</name><default>0.0</default><desc> begin analysis after this time when using gromacs</desc></item>
+  <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash so many frames at the beginning when using gromacs</desc></item>
+  <item><name>cg.inverse.gromacs.topol</name><desc> Gromacs topology file to use, normally topol.top.  Be careful, do not change yet! </desc></item>
+  <item><name>cg.inverse.gromacs.traj</name><desc> Gromacs trajectory fie to use, normally traj.xtc. Be careful, do not change yet! </desc></item>
   <item><name>cg.inverse.gromacs.table_bins</name><desc> grid for table*.xvg !</desc></item>
   <item><name>cg.inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>
   <item><name>cg.inverse.gromacs.table_end</name><desc> extend the tables to this value </desc></item>
