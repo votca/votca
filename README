@@ -1,0 +1,35 @@
+This is a collection of coarse-graining tutorials using the 
+VOTCA package. Further information on VOTCA can be found at
+http://www.votca.org
+
+The development of VOTCA is mainly funded by academic research grants.
+If you use this package, please cite the VOTCA paper:
+
+* Versatile Object-oriented Toolkit for Coarse-graining Applications,
+  V.Ruehle, C. Junghans, A. Lukyanov, K. Kremer, D. Andrienko,
+  J. Chem. Theo. Comp. 5 (12), 3211 (2009)
+
+In case of questions, please post them in the google discussion group
+for votca at http://groups.google.com/group/votca
+
+You can contact the VOTCA Development Team at devs@votca.org.
+
+
+The following tutorials are included:
+
+spce/atomistic             atomistic reference simulations for SPC/E water
+spce/ibm                   boltzmann inversion for SPC/E water
+spce/imc                   inverse monte carlo for SPC/E water
+
+methanol/atomistic         atomistic simulations for methanol
+methanol/ibm               boltzmann inversion for methanol
+methanol/imc               inverse monte carlo for methanol
+
+propane/ibm                iterative inverse boltzmann for nonbonded
+                           interactions of liquid propane
+propane/single_chain       atomistic simulations, boltzmann inversion 
+                           and force matching for a single chain of propane
+
+each of the tutorials contains a run.sh which lists all commands
+needed to execute the tutorial.
+
