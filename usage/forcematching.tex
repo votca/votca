@@ -1,31 +1,15 @@
 \section{Force matching}
-\sasha
 \begin{figure}
    \centering
    \includegraphics{usage/fig/flow_fmatch.eps}
    \caption{Flowchart to perform force matching.}
 \end{figure}
-Force matching algorithm with cubic spline basis is implemented in \prog{csg_fmatch} utility.
+The force matching algorithm with cubic spline basis is implemented in the \prog{csg_fmatch} utility. A list of available options can be found in the reference section for \prog{csg_fmatch}.
 
-\subsection{csg\_fmatch: available options}
-When executing without any options \prog{csg_fmatch} shows available options:
-\begin{verbatim}
-  --options arg          options file for coarse graining
-  --help                 produce this help message
-  --version              show version info
-  --top arg              atomistic topology file
-  --trj arg              atomistic trajectory file
-  --cg arg               coarse graining definitions (xml-file)
-  --begin arg            skip frames before this time
-  --first-frame arg (=0) start with this frame
-  --nframes arg          process so many frames
-\end{verbatim}
-Some options must be provided, some are optional. Must be provided: \progopt{--options}, \progopt{--top}, \progopt{--trj} and \progopt{--cg}. \progopt{--top} is an atomistic topology file e.g. topol.tpr. \progopt{--trj} is an atomistic trajectory file: traj.trr. Note that trajectory file must contain forces ( there is an option for that in GROMACS .mdp file ), otherwise there will be nothing to match. \progopt{--cg} is a file, which contains the CG mapping scheme with all the interactions, user wants to define on a coarse-grained level, see \sect{sec:adv_topology}.
+\subsection{Program input}
+\prog{csg_fmatch} needs an atomistic reference run to perform coarse-graining. Note that the trajectory file {\em must contain forces } (e.g. there is an option for that in the GROMACS .mdp file), otherwise \prog{csg_fmatch} will not be able run. 
 
-\subsubsection{CG-options file}
-\progopt{--options} is an \xml-file, which contains options to control force matching functionality. 
-Currently the file has the following options:
-
+In addition, a mapping scheme has to be created, which defines the coarse-grained model (see \sect{sec:mapping}). At last, a control file which has to be created, which contains all the informations for coarse-grining the interactions and parameters for the force-matching run. This file is specified in \progopt{--options} is an \xml-file. An example might look like the following
 \begin{lstlisting}
    <cg>
      <!--fmatch section -->
@@ -51,60 +35,32 @@ Currently the file has the following options:
      </non-bonded>
    </cg>
 \end{lstlisting}
-
-\textbf{frames\_per\_block}\newline is number of frames, being used for block averaging. Atomistic trajectory, specified with
-\textbf{\ddash{trj}} option, is divided into blocks and the force matching equations are solved separately for each block.
-Coarse-grained force-field, which one gets on the output is averaged over those blocks.
-
-\textbf{constrainedLS}\newline is a boolean variable: false - simple least squares, true - constrained least squares. For details see \votca paper.
-Practically both algorithms give the same results, but simple least squares is faster. If you are mathematician and think that a spline is only then can be called spline if it has continuous first and second derivatives, use constrained least squares. \newline
-
-In this example we have only one interaction on a coarse-grained level, its name: CG-CG. But in principle several types of non-bonded as well as bonded interactions can be added. 
-
-\textbf{type1} and \textbf{type2}\newline are the types of CG-beads involved in the interaction CG-CG. In this case this is an interaction between a CG-bead of type A with another CG-bead of type A. These types should correspond to the mapping scheme file ( option \progopt{--cg} ).
- 
-\textbf{min}\newline is a minimum distance between CG-bead of \textbf{type1} and CG-bead of \textbf{type2},  sampled in atomistic MD simulation. One can get this number by looking at the \textbf{type1-type2} radial distribution function. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).
-
-\textbf{max}\newline is the interaction cutoff in case of non-bonded interaction or a maximum value, sampled in the atomistic simulations in case of bonded interactions.
-
-\textbf{step}\newline is the grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small, otherwise you will have unsampled bins and will get NaNs in the output.
-
-\textbf{out\_step}\newline is a grid spacing for the output grid. Normally one wants to have this parameter smaller than \textbf{step}, 
-to have smooth curve, without additional spline interpolation. 
-As a rule of thumb we normally use \textbf{out\_step}, which is approximately 5 times smaller than \textbf{step}.
+A full description of all available options can be found in \sect{sec:ref_options}.
 
 \subsection{Program output}
 \prog{csg_fmatch} produces a separate .force file for each interaction, specified in the CG-options file (option \progopt{options} ).
-These files have 4 columns: distance, corresponding force, table flag and the force error, estimated using block-averaging procedure.
+These files have 4 columns: distance, corresponding force, table flag and the force error, which is estimated via a block-averaging procedure.
 If you have an angle, then the first column will contain corresponding angle in radians.
 
-To get table-files for \gromacs one has to integrate the forces to get the potentials and do extrapolation and probably smoothing.
+To get table-files for \gromacs one has to integrate the forces to get the potentials and do extrapolation and potentially smoothing.
 
 Output files are not only produced at the end of the program execution, but after successfull processing of every block. The user can have a look at the output files and decide to stop \prog{csg_fmatch}, as long as the force error is small enough.
 
 \subsection{Integration and extrapolation of .force files }
-To convert .force to .pot one can execute
-
+To convert forces (*.force) to potentials (*.pot), tables have to be integrated. To use the builtin integration command from the scripting framework, execute
 \begin{verbatim}
  csg_call table integrate CG-CG.force CG-CG.pot
 \end{verbatim}
 
-This command calls {\it integrate.pl} script, which integrates the force and writes the potential to the .pot file.
+This command calls \prog{integrate.pl} script, which integrates the force and writes the potential to the .pot file.
 
-Normally, some range of distances is not sampled in atomistic simulations. For example, very small distances are never sampled in the case of non-bonded interactions. But you might want to have them in your \gromacs table. So you have to extrapolate your potential. In order to do this one has to resample the grid first:
-
+In general, each potential contains regions which are not sampled. However, a value be defined in the tabulated potential file for the simulation program. E.g., very small distances are never sampled in the case of non-bonded interactions or one might want to extend the file for long ranges. To extrapolate the potential, the grid has to be resampled first
 \begin{verbatim}
  csg_resample --in CH2-CH2.pot --out CH2-CH2.resampled.pot --grid 0:0.001:1.4
 \end{verbatim}
 
-Finally you can call {\it extrapolate.pl } to extrapolate the potential, for example:
-
+Finally, the \prog{extrapolate.pl} script can be called, e.g.
 \begin{verbatim}
  csg_call table extrapolate --function linear 
 --region leftright CH2-CH2.resampled.pot CH2-CH2.extrapolated.pot
 \end{verbatim}
-
-
-
-
-
