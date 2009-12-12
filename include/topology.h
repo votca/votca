@@ -63,11 +63,9 @@ public:
     
     /// creates a new Bead
     Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
-    //int AddBead(CBead *bead);
 
     /// returns the BeadType or creates it if it doesnt exist
-    BeadType *GetOrCreateBeadType(string name);
-        
+    BeadType *GetOrCreateBeadType(string name);        
 
     /// creates a new molecule
     Molecule *CreateMolecule(string name);
@@ -128,7 +126,8 @@ public:
     
     /// adds all the beads+molecules+residues from other topology
     void Add(Topology *top);
-    
+    void CopyTopologyData(Topology *top);
+
     /// \brief rename all the molecules in range
     /// range is a string which is parsed by RangeParser,
     /// check that for formating

@@ -142,6 +142,48 @@ void Topology::Add(Topology *top)
     }
 }
 
+void Topology::CopyTopologyData(Topology *top)
+{
+    BeadContainer::iterator it_bead;
+    ResidueContainer::iterator it_res;
+    MoleculeContainer::iterator it_mol;
+    InteractionContainer::iterator it_ia;
+
+    _box = top->_box;
+    _time = top->_time;
+    _step = top->_step;
+
+    // cleanup old data
+    Cleanup();
+
+    // copy all residues
+    for(it_res=top->_residues.begin();it_res!=top->_residues.end(); ++it_res) {
+        CreateResidue((*it_res)->getName());
+    }
+
+    // create all beads
+    for(it_bead=top->_beads.begin(); it_bead!=top->_beads.end(); ++it_bead) {
+        Bead *bi = *it_bead;
+        BeadType *type =  GetOrCreateBeadType(bi->getType()->getName());
+        Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getM(), bi->getQ());
+        bn->setOptions(bi->Options());
+    }
+
+    // copy all molecules
+    for(it_mol=top->_molecules.begin();it_mol!=top->_molecules.end(); ++it_mol) {
+        Molecule *mi = CreateMolecule((*it_mol)->getName());
+        for(int i=0; i<mi->BeadCount(); i++) {
+            mi->AddBead(mi->getBead(i), mi->getBeadName(i));
+        }
+    }
+
+    // TODO: copy interactions
+    //for(it_ia=top->_interaction.begin();it_ia=top->_interactions.end();++it_ia) {
+
+    //}
+}
+
+
 void Topology::RenameMolecules(string range, string name)
 {
     RangeParser rp;
