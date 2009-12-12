@@ -1,35 +1,21 @@
 /* 
- * File:   QMBead.h
+ * File:   qmbeads.h
  * Author: james
  *
- * Created on 12 December 2009, 13:23
+ * Created on 12 December 2009, 16:46
  */
 
 #ifndef _QMBEAD_H
 #define	_QMBEAD_H
-
-#include "moo/crgunit.h"
-
 /**
-    \brief contains the position, etc. information for the atomistic representation of 
- * a crgunit
+    \brief contains the bead associated to a crg unit.
 
- * The Bead class describes an crgunit. It belongs to a QMTopology.
- * Since it is overloaded from Bead it can use the votca neighbour list codes etc
+ * It contains the usual bead info + a vector of all the CG beads that make up a bead
 */
+class QMBead{
 
-
-class QMBead:Bead{
-public:
-    QMBead(BeadContainer &, CrgUnit &);
-    ~QMBead();
-    
-private:
-
-    /// the energy of the site
-    double _nrg;
-    
 };
+
 
 #endif	/* _QMBEAD_H */
 

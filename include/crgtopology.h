@@ -19,6 +19,13 @@
 #include <moo/crgunittype.h>
 #include <moo/crgunit.h>
 
+#include "qmbead.h"
+/**
+    \brief contains the beads describing the c.o.m. of each cahrge unit
+ * given a CG toplogy, it should be apply the mapping for the cg beads -> qm beads and
+ * it should update the position of the crg unit. Crg units should be associated to
+ * these qm beads and not to any other.
+*/
 
 class CrgTopology:Topology{
 public:
@@ -29,6 +36,7 @@ private:
 
     /// the list of neighbours
     NBList * _neighs;
+    vector <QMBead *>;
 };
 
 #endif	/* _CRGTOPOLOGY_H */

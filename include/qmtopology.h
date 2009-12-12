@@ -12,9 +12,10 @@
 #include <votca/csg/nblist.h>
 
 /**
-    \brief contains the atomistic representation of the QM beads
+    \brief contains the atomistic representation of the crg units
 
- * It contains the QMBeads.
+ * It contains Beads describing atoms. It should contain the overloaded CreateBeads function which given
+ * a crgunit and a chrage unit type generates all the relevant atomistic beads
 */
 
 class QMTopology : Topology{
@@ -24,10 +25,7 @@ public:
     int CreateBeads();
     int Init();
 private:
-    CreateQMBeads();
 
-    NBList _neighs;
-    map <> ;
 };
 
 #endif	/* _QMTOPOLOGY_H */
