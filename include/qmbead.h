@@ -7,29 +7,30 @@
 
 #ifndef _QMBEAD_H
 #define	_QMBEAD_H
-/**
-    \brief contains the bead associated to a crg unit.
-
- * It contains the usual bead info + a vector of all the CG beads that make up a bead
-*/
 
 #include <votca/csg/bead.h>
 #include <moo/crgunit.h>
 
-class QMBead:Bead{
+/**
+    \brief contains the bead associated to a crg unit.
+
+    It contains the usual bead info + a pointer to a crg unit + position which
+    it should update
+
+*/
+
+class QMBead : public Bead
+{
 public:
-    Bead();
-    ~Bead();
     
     ///at each frame read update the QM bead and the associated crgunit
-    void UpdateQMBead();
+    void UpdateCrgUnit();
 private:
 
     ///the charge unit
     CrgUnit * _crg;
-    /// parents contains the information necessary to update the CrgUnit
-    vector <Bead *> _parents;
-
+    int _pos;
+    
 };
 
 

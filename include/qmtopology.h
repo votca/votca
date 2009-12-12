@@ -8,12 +8,6 @@
 #ifndef _QMTOPOLOGY_H
 #define	_QMTOPOLOGY_H
 
-/**
-    \brief this class knows which beads make which crg unit
-
- 
-*/
-
 #include <votca/csg/topology.h>
 #include <votca/csg/nblist.h>
 #include <moo/crgunittype.h>
@@ -22,29 +16,34 @@
 #include "qmbead.h"
 
 /**
-    \brief contains the beads describing the c.o.m. of each cahrge unit
- * given a CG toplogy, it should be apply the mapping for the cg beads -> qm beads and
- * it should update the position of the crg unit. Crg units should be associated to
- * these qm beads and not to any other.
+    \brief topology of qmbeads
+
+    contains the beads describing the c.o.m. of each cahrge unit
+    given a CG toplogy, it should be apply the mapping for the cg beads -> qm beads and
+    it should update the position of the crg unit. Crg units should be associated to
+    these qm beads and not to any other.
 */
 
-typedef map <vector <BeadType *> *, CrgUnitType *  > QMMoleculeMap;
-
-class QMTopology:Topology{
+class QMTopology : public Topology
+{
 public:
     QMTopology();
-    /// create it from a cg topologypointer and a file name with the crg unit mapping
-    /// notice that the relationship between qm topology is immutable
-    QMTopology(topology *, string);
     ~QMTopology();
 
     ///at each evaluate CG step we will need to reassess the QMBeads
-    int UpdateQMTopology();
+    //int UpdateQMTopology();
 
+    /// Initialize the qm topology based on a coarse grained topology
+    /// this could move to cgengine part since it's mainly copying of beads
+    void Initialize(Topology &cg_top);
+
+    /// update the topology based on cg positons
+    void Update(Topology &cg_top);
 
 private:
 
-    /// initialises the map that reads in the map from beadtypes to qmbead
+    NBList *_neighs;
+/*    /// initialises the map that reads in the map from beadtypes to qmbead
     void InitMap (string);
     /// pnce the map is initialised and _Cgtop assigned, call all the CreateQMBead function
     void Init();
@@ -63,7 +62,7 @@ private:
     /// assembly of charge
     /// beadtypes to a crgunit type
     map < string, QMMoleculeMap * >;
-
+*/
 };
 
 #endif	/* _CRGTOPOLOGY_H */
