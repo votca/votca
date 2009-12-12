@@ -1,11 +1,11 @@
-\section{Iterative Boltzmann Inverse}
+\chapter{Iterative Boltzmann Inversion}
 \begin{figure}
    \centering
    \includegraphics{usage/fig/flow_ibi.eps}
    \caption{\label{fig:flow_ibi}Flowchart to perform iterative Boltzmann inversion.}
 \end{figure}
 
-\subsection{Input preparation}
+\section{Input preparation}
 In this section, the usage of \ibi is described which is implemented within the scripting framework described in \sect{sec:impl:scripting}. It is suggested to get a basic understaning of this framework before proceeding.
 
 \ibi so far only supports iterative refinement of non-bonded interactions. An outline of the workflow for performing \ibi is given in \fig{fig:flow_ibi}. The first thing to do is generate reference distribution functions. These might come from experiments or from atomistic simulations. To get reasonable results out of the iterative process, the reference distributions should be of good quality (little noise, etc).
@@ -14,12 +14,12 @@ In this section, the usage of \ibi is described which is implemented within the 
 
 To get an overview of how an input file for doing \ibi looks like, it is suggested to take a look at one of the tutorials provided on \votcaweb.
 
-\subsection{Pressure correction}
+\section{Pressure correction}
 
-The pressure of the coarse-grained system usually does not match the pressure of the full atomistic system. The reason is that during the itereative boltzmann inversion only structural properties and not thermodynamic properties are targeted. In order correct the pressure to match the target pressure, different strategies have been used based on small modifications of the potential. The correction can be applied via \interopt{inverse.post_update} scripts. The type of pressure correction is selected as described in section \sect{sec:ref_interaction}.
+The pressure of the coarse-grained system usually does not match the pressure of the full atomistic system. The reason is that during the iterative Boltzmann inversion only structural properties and not thermodynamic properties are targeted. In order correct the pressure to match the target pressure, different strategies have been used based on small modifications of the potential. The correction can be applied via \interopt{inverse.post_update} scripts. The type of pressure correction is selected as described in section \sect{sec:ref_interaction}.
 
 
-\subsubsection{Simple pressure correction}
+\subsection{Simple pressure correction}
 In ref.\cite{Reith:2003} a simple linear attractive potential was added to the coarse-grained potential
 \begin{equation}
   \Delta V(r)=A(1-\frac{r}{r_{cutoff}}) \,.
@@ -45,12 +45,12 @@ An example for a block to do simple pressure correction every third interaction 
 \end{lstlisting}
 Here, \interopt{inverse.post_update_options.pressure.simple.scale} is the scaling factor $f$. In order to get the correct pressure it can become necessary to tune the scaling factor $f$ during the iterative process.
 
-\subsubsection{Advanced pressure correction}
+\subsection{Advanced pressure correction}
 In \cite{Wang:2009} a pressure correction based on the virial expression of the pressure was introduced. The potential term is the same as in the simple form with a different form of the $A$ factor being used:
 \begin{equation}
   A = \left[\frac{-2\pi\rho^{2}}{3r_{cut}}\int_{0}^{r_{cut}}r^{3}g_{i}(r)dr\right]A_{i}=\Delta P
 \end{equation}
-This requires as an additional input parameter the particle density $ \rho $ to be provided, which is added as  \interopt{inverse.particle_dens} in the input file. 
+This requires as an additional input parameter the particle density $ \rho $ to be provided, which is added as  \interopt{inverse.particle_dens} in the input file.
 
 \subsection{Runtime optimization}
 Most of the time for each iteration is spent in running the coarse-grained system and calculate the statistics. To get a feeling on how much statistics is needed, it is recommended to plot the distribution functions and check whether they are sufficiently smooth. Bad statistics lead to rough potential updates and the iterative refinement might fail. The runs should be long enough to produce distributions/rdfs with reasonable quality.

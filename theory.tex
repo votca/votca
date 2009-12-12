@@ -1,6 +1,6 @@
 \chapter{Theoretical background}
 
-\section{Mapping operator}
+\section{Mapping}
 \label{sec:mapping_operator}
 %\sasha
 %mapping scheme ($c_{Ii}$ coefficients) \\
@@ -9,16 +9,16 @@
 %definition of the mass \\
 %definition of specific and involved atoms \\
 
-The mapping operator establishes a link between the atomistic and coarse-grained representations of the system. An atomistic system is described by specifying the values of the Cartesian coordinates and momenta  
+The mapping is an operator that establishes a link between the atomistic and coarse-grained representations of the system. An atomistic system is described by specifying the values of the Cartesian coordinates and momenta
 \begin{eqnarray}
 \bm r^n &=& \{\bm r_1,\dots,\bm r_n\}, \\
 \bm p^n &=& \{\bm p_1,\dots,\bm p_n\}.
 \end{eqnarray}
-of the $n$ atoms in the system.\footnote{In what follows we adopt notations of ref.~\cite{Noid:2008.1}.} 
+of the $n$ atoms in the system.\footnote{In what follows we adopt notations of ref.~\cite{Noid:2008.1}.}
 %
-On a coarse-grained level, the coordinates and momenta are specified by the positions and momenta of CG sites 
+On a coarse-grained level, the coordinates and momenta are specified by the positions and momenta of CG sites
 \begin{eqnarray}
-\bm R^N = \{\bm R_1,\dots,\bm R_N\}, \\ 
+\bm R^N = \{\bm R_1,\dots,\bm R_N\}, \\
 \bm P^N = \{\bm P_1,\dots,\bm P_N\}.
 \end{eqnarray}
 Note that capitalized symbols are used for the CG sites while lower case letters are used for the atomistic system.
@@ -26,10 +26,10 @@ Note that capitalized symbols are used for the CG sites while lower case letters
 The mapping operator defined by a matrix for each bead $I$, ${\bm c}_I$, then links the two descriptions
 \begin{eqnarray}
  {\bm R}_I &=& \sum_{i=1}^{n}c_{Ii}\bm r_i, \\
- {\bm P}_I &=& 
- 	M_I \dot{{\bm R}}_I = 
-	M_I \sum_{i=1}^{n}c_{Ii} \dot{{\bm r}}_i = 
-	M_I \sum_{i=1}^{n} \frac{ c_{Ii}} {m_i} {\bm p}_i . 
+ {\bm P}_I &=&
+ 	M_I \dot{{\bm R}}_I =
+	M_I \sum_{i=1}^{n}c_{Ii} \dot{{\bm r}}_i =
+	M_I \sum_{i=1}^{n} \frac{ c_{Ii}} {m_i} {\bm p}_i .
 \label{eq:mapping_scheme}
 \end{eqnarray}
 for all $I = 1,\dots,N$.
@@ -108,7 +108,7 @@ Another crucial issue is the cross-correlation of the coarse-grained degrees of 
 \section{Iterative Boltzmann Inversion}
 \label{sec:ibi}
 
-Iterative Boltzmann inversion (\ibi) is a natural extension of the Boltzmann inversion method. Since the goal of the coarse-grained model is to reproduce the distribution functions of the reference system as accurately as possible, one can also iteratively refine the coarse-grained potentials using some numerical scheme. 
+Iterative Boltzmann inversion (\ibi) is a natural extension of the Boltzmann inversion method. Since the goal of the coarse-grained model is to reproduce the distribution functions of the reference system as accurately as possible, one can also iteratively refine the coarse-grained potentials using some numerical scheme.
 
 In \ibi the potential update $\Delta U$ is given by~\cite{Reith:2003}
 \begin{eqnarray}
@@ -160,7 +160,7 @@ where $N$ is the number of atoms in the system ($\frac{1}{2} N(N-1)$ is then the
 %Brief description with references \\
 % Maybe appendix with main equations \\
 
-Force matching (\fm) is another approach to evaluate corse-grained potentials~\cite{Ercolessi:1994,Izvekov:2005,Noid:2007}. In contrast to the structure-based approaches, its aim is not to reproduce various distribution functions, but instead to match the multibody potential of mean force as close as possible with a given set of coarse-grained interactions. 
+Force matching (\fm) is another approach to evaluate corse-grained potentials~\cite{Ercolessi:1994,Izvekov:2005,Noid:2007}. In contrast to the structure-based approaches, its aim is not to reproduce various distribution functions, but instead to match the multibody potential of mean force as close as possible with a given set of coarse-grained interactions.
 
 The method works as follows. We first assume that the coarse-grained force-field (and hence the forces) depends on $M$ parameters $g_1,...,g_M $. These parameters can be prefactors of analytical functions, tabulated values of the interaction potentials, or coefficients of splines used to describe these potentials.
 
@@ -175,7 +175,7 @@ The $d_{Ij}$ coefficients can, in principle, be chosen arbitrary, provided that 
 By calculating the reference forces for $L$ snapshots we can write down $N \times L$ equations
 %
 \begin{equation}
-  {\vec F}_{Il}^\text{cg}(g_1, \dots ,g_M)=\vec F_{il}^\text{ref},\; 
+  {\vec F}_{Il}^\text{cg}(g_1, \dots ,g_M)=\vec F_{il}^\text{ref},\;
   I=1,\dots,N,\; l=1,\dots,L~.
   \label{eq:fmatch1}
 \end{equation}
@@ -184,4 +184,4 @@ Here ${\vec F}_{Il}^\text{ref}$ is the force on the bead $I$, ${\vec F}_{Il}^\te
 
 ${\bm F}_{il}^\text{cg}$ is, in principle, a non-linear function of its parameters $\{g_i\}$. It is, therefore, useful to represent the coarse-grained force-field in such a way that equations~(\ref{eq:fmatch1}) become linear functions of $\{g_i\}$. This can be done using splines to describe the functional form of the forces~\cite{Izvekov:2005}. Implementation details are discussed in ref.~\cite{Ruehle:2009.a}.
 
-Note that an adequate sampling of the system requires a large number of snapshots $L$. Hence, the applicability of the method is often constrained by the amount of memory available. To remedy the situation, one can split the trajectory into blocks, find the coarse-grained potential for each block and then perform averaging over the blocks. 
+Note that an adequate sampling of the system requires a large number of snapshots $L$. Hence, the applicability of the method is often constrained by the amount of memory available. To remedy the situation, one can split the trajectory into blocks, find the coarse-grained potential for each block and then perform averaging over the blocks.
