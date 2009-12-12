@@ -1,6 +1,15 @@
 #include "jcalc.h"
 
+JCalc::~JCalc(){
 
+    safe_delete(_listCrgUnitType);
+    _mapCrgUnitByName.clear();
+    map <pair<CrgUnitType *, CrgUnitType *> , JCalcData *>::iterator itm = _maplistfock.begin();
+    for ( ; itm!=  _maplistfock.end();itm++){
+        delete itm->second;
+    }
+     _maplistfock.clear();
+}
 void JCalc::Init(string filename){
 
     xmlDocPtr doc;
