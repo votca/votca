@@ -40,6 +40,11 @@ public:
     /// update the topology based on cg positons
     void Update(Topology &cg_top);
 
+    /// \brief Cretae a new bead
+    /// We overload CreateBead to create QMBead, this is needed to make
+    /// CopyTopologyData work
+    Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
+
 private:
 
     NBList *_neighs;
@@ -64,6 +69,13 @@ private:
     map < string, QMMoleculeMap * >;
 */
 };
+
+inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
+{
+    QMBead *b = new QMBead(this, _beads.size(), type, symmetry, name, resnr, m, q);
+    _beads.push_back(b);
+    return b;
+}
 
 #endif	/* _CRGTOPOLOGY_H */
 

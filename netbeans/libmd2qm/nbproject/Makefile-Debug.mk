@@ -16,7 +16,7 @@ CC=gcc
 CCC=g++
 CXX=g++
 FC=
-AS=
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -30,7 +30,8 @@ include Makefile
 OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
-OBJECTFILES=
+OBJECTFILES= \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o
 
 # C Compiler Flags
 CFLAGS=
@@ -57,6 +58,11 @@ dist/Debug/GNU-Linux-x86/liblibmd2qm.a: ${OBJECTFILES}
 	${RM} dist/Debug/GNU-Linux-x86/liblibmd2qm.a
 	${AR} rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibmd2qm.a ${OBJECTFILES} 
 	$(RANLIB) dist/Debug/GNU-Linux-x86/liblibmd2qm.a
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmtopology.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o ../../src/libmd2qm/qmtopology.cc
 
 # Subprojects
 .build-subprojects:
