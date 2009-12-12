@@ -17,7 +17,7 @@
 
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
+${0##*/}, version %version%
 This script implemtents statistical analysis for the Inverse Monte Carlo Method
 using generic csg tools
 

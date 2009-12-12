@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 # 
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -14,29 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 if [ "$1" = "--help" ]; then
+  #we add \$GMXDATA in USES, because gromacs will need it
 cat <<EOF
-${0##*/}, version @version@
-This script resamples target distribution to grid spacing
-for calculations
+${0##*/}, version %version%
+Functions useful for gromacs 4.0
 
-Usage: ${0##*/} target_directory
+NEEDS:
 
-USES:  die csg_get_interaction_property run_or_exit csg_resample
+USES: sed die \$GMXDATA
 
-NEEDS: min max step inverse.target name
+PROVIDES: get_from_mdp
 EOF
-   exit 0
-fi
+  exit 0
+fi 
 
-check_deps "$0"
+check_deps $0
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
+get_from_mdp() {
+  local res
+  [[ -n "$1" ]] || { echo What?; exit 1;}
+  res=$(sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##') || die "get_from_mdp failed" 
+  [[ -n "$res" ]] || die "get_from_mdp: could not fetch $1"
+  echo "$res"
+}
 
-min=$(csg_get_interaction_property min )
-max=$(csg_get_interaction_property max )
-step=$(csg_get_interaction_property step )
-target=$(csg_get_interaction_property inverse.target)
-name=$(csg_get_interaction_property name)
-
-run_or_exit csg_resample --in ${1}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max}
+export -f get_from_mdp

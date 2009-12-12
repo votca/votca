@@ -1,4 +1,4 @@
-  #! /bin/bash
+#! /bin/bash
 # 
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -14,32 +14,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
-This solves linear equation system from imc using octave
+${0##*/}, version %version%
+This script resamples target distribution to grid spacing
+for calculations
 
-Usage: ${0##*/} <group> <outfile>
+Usage: ${0##*/} target_directory
 
-USES:  die sed octave rm run_or_exit \$CSGINVERSE
+USES:  die csg_get_interaction_property run_or_exit csg_resample
 
-NEEDS:
+NEEDS: min max step inverse.target name
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-[[ -n "$2" ]] || die "${0##*/}: Missing arguments"
+[[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-# initialize & run the octave file
-sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" $CSGINVERSE/linsolve.octave > solve_$1.octave || die "${0##*/}: sed failed"
-run_or_exit octave solve_$1.octave
-#rm -f solve_$1.octave
+min=$(csg_get_interaction_property min )
+max=$(csg_get_interaction_property max )
+step=$(csg_get_interaction_property step )
+target=$(csg_get_interaction_property inverse.target)
+name=$(csg_get_interaction_property name)
 
-[[ -f "$2" ]] || die "Octave failed"
-# temporary compatibility issue
-run_or_exit sed -ie 's/NaN/0.0/' $2
-run_or_exit sed -ie 's/Inf/0.0/' $2
-
+run_or_exit csg_resample --in ${1}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max}

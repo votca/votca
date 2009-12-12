@@ -14,12 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
-# (C) 2006-2008 Chr. Junghans
-# junghans@mpip-mainz.mpg.de
-#
-#
-#version 0.1  , 08.07.08 -- initial version
 use strict;
 
 $_=$0;

@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 # 
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -16,28 +16,28 @@
 #
 
 if [ "$1" = "--help" ]; then
-  #we add \$GMXDATA in USES, because gromacs will need it
 cat <<EOF
-${0##*/}, version @version@
-Functions useful for gromacs 4.0
+${0##*/}, version %version%
+This script make all the post update with backup for single pairs 
 
-NEEDS:
+Usage: ${0##*/} step_nr
 
-USES: sed die \$GMXDATA
+USES:  csg_get_interaction_property log mv cp do_external run_or_exit die
 
-PROVIDES: get_from_mdp
+NEEDS: name inverse.post_add
 EOF
-  exit 0
-fi 
+   exit 0
+fi
 
-check_deps $0
+[[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-get_from_mdp() {
-  local res
-  [[ -n "$1" ]] || { echo What?; exit 1;}
-  res=$(sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##') || die "get_from_mdp failed" 
-  [[ -n "$res" ]] || die "get_from_mdp: could not fetch $1"
-  echo "$res"
-}
-
-export -f get_from_mdp
+name=$(csg_get_interaction_property name)
+tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add) 
+i=1
+for task in $tasklist; do
+  log "Doing $task for ${name}"
+  run_or_exit mv ${name}.pot.new ${name}.pot.cur
+  run_or_exit cp ${name}.pot.cur ${name}.pot.${i}
+  do_external postadd "$task" "$1"
+  ((i++))
+done

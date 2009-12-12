@@ -17,27 +17,33 @@
 
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
-This script make all the post update with backup for single pairs 
+${0##*/}, version %version%
+This script implemtents smoothing of the potential update (.dpot)
 
 Usage: ${0##*/} step_nr
 
-USES:  csg_get_interaction_property log mv cp do_external run_or_exit die
+USES: die csg_get_interaction_property mktemp sed awk csg_resample
 
-NEEDS: name inverse.post_add
+NEEDS: name min max step inverse.post_update_options.splinesmooth.step
 EOF
    exit 0
 fi
 
+check_deps "$0"
+
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 name=$(csg_get_interaction_property name)
-tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add) 
-i=1
-for task in $tasklist; do
-  log "Doing $task for ${name}"
-  run_or_exit mv ${name}.pot.new ${name}.pot.cur
-  run_or_exit cp ${name}.pot.cur ${name}.pot.${i}
-  do_external postadd "$task" "$1"
-  ((i++))
-done
+min=$(csg_get_interaction_property min)
+max=$(csg_get_interaction_property max)
+step=$(csg_get_interaction_property step)
+
+tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
+  
+sed -ne '/i[[:space:]]*$/p' CG-CG.dpot.cur > $tmpfile
+spmin=$(sed -ne '1p' $tmpfile | awk '{print $1}')
+spmax=$(sed -ne '$p' $tmpfile | awk '{print $1}')
+spstep=$(csg_get_interaction_property inverse.post_update_options.splinesmooth.step)
+
+csg_resample --in $tmpfile --out $name.dpot.new --grid $min:$step:$max --spfit $spmin:$spstep:$spmax
+

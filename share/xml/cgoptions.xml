@@ -92,4 +92,5 @@
       use constrained least squares.
     </desc>
   </item>
+  <item><name>cg.*.inverse.imc.group</name><desc>imc groups of all interactions</desc></item>
 </tags>

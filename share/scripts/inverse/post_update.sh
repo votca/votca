@@ -17,7 +17,7 @@
 
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
+${0##*/}, version %version%
 This script make all the post update with backup
 
 Usage: ${0##*/} step_nr
@@ -33,5 +33,5 @@ check_deps "$0"
 
 [[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-for_all "non-bonded" do_external post add_single "${1}"
+for_all "non-bonded" do_external post update_single ${1}
 

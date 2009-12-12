@@ -22,13 +22,7 @@ clean="no"
 
 show_help () {
   cat << eof
-==================================================
-========   VOTCA (http://www.votca.org)   ========
-==================================================
-
-please submit bugs to bugs@votca.org
-
-${0##*/}, version @version@
+${0##*/}, version %version%
 
 
 Start the script to run ibm, imc, etc.
@@ -37,7 +31,6 @@ $usage
 
 Allowed options:
 -h, --help                    show this help
--v, --version                 show version
 -N, --do-iterations N         only do N iterationso
     --clean                   clean out the PWD, dangerous
 

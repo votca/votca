@@ -17,7 +17,7 @@
 
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
+${0##*/}, version %version%
 This script implemtents the function update
 for the Inverse Boltzmann Method for a single pair
 

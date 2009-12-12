@@ -19,7 +19,7 @@
 
 if [ "$1" = "--help" ]; then
   cat <<EOF
-${0##*/}, version @version@
+${0##*/}, version %version%
 We have defined some useful (?) functions:
 * log          = send a message to the logfile
 * msg          = message to stdout and logfile
