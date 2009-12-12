@@ -197,60 +197,6 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out)
     return map;
 }
 
-/**
- * \todo Check this function for multiple molecules!!!!!!! 
- */
-ExclusionList *CGMoleculeDef::CreateExclusionList(Molecule &atomistic)
-{
-/*    list<int> exclude;
-    int natoms;
-    
-    ExclusionList *ex = new ExclusionList();
-    ex->ExcludeAll(atomistic.BeadCount());        
-    vector<forcedef_t *>::iterator iter;
-    
-    // reintroduce bead internal nonbonded interaction
-    vector<beaddef_t *>::iterator bd_iter;
-    for(bd_iter = _beads.begin(); bd_iter!=_beads.end(); ++bd_iter) {
-        exclude.clear();
-        beaddef_t *bead = *bd_iter;
-        for(vector<string>::iterator sb=bead->_subbeads.begin(); sb!=bead->_subbeads.end(); ++sb) {
-                    exclude.push_back(atomistic.getBeadId(atomistic.getBeadIdByName(*sb)));
-//                    cout << atomistic.getBeadId(atomistic.getBeadByName(*sb)) << " ";
-        }
-//        cout << endl;
-        ex->Remove(exclude);
-    }
-    
-    // reintroduce nonbonded interactions for bonded beads
-    for(iter = _bonded.begin(); iter!=_bonded.end(); ++iter) {
-        if((*iter)->_type == "bond")
-            natoms = 2;              
-        else if((*iter)->_type == "angle")
-            natoms = 3;              
-        else if((*iter)->_type == "dihedral") {
-            natoms = 4;              
-        }
-        else throw runtime_error(string("unknown bond type"));
-        
-        for(size_t i=0; i<(*iter)->_atoms.size(); i+=natoms) {
-            exclude.clear();
-        
-            for(int j=0; j<natoms; j++) {
-                beaddef_t *bead = getBeadByName((*iter)->_atoms[i+j]);
-                if(bead == NULL) 
-                    throw runtime_error(string("error while trying to create exclusion list, bead " + (*iter)->_atoms[i+j] + " not found"));
-                for(vector<string>::iterator sb=bead->_subbeads.begin(); sb!=bead->_subbeads.end(); ++sb) {
-                    exclude.push_back(atomistic.getBeadId(atomistic.getBeadIdByName(*sb)));
-                }                
-            }
-            ex->Remove(exclude);
-        }
-    }
-   
-    return ex;
-     * */
-}
 
 CGMoleculeDef::beaddef_t *CGMoleculeDef::getBeadByName(const string &name)
 {

@@ -52,8 +52,6 @@ public:
     const string &getName() { return _name; }
     const string &getIdent() { return _ident; }
     
-    ExclusionList *CreateExclusionList(Molecule &atomistic);
-    
 private:
     Property _options;
     
