@@ -13,9 +13,10 @@
 
 %formating for a program option, e.g. --trj
 \newcommand{\progopt}[1]{\texttt{#1}\xspace}
-% formating for programs, e.g. csg_boltzmann
+% formating for intern programs, e.g. csg_boltzmann
 \newcommand{\prog}[1]{\hyperref[#1]{\textbf{\StrSubstitute{#1}{_}{\_}}}\xspace}
-% formating for an xml option, e.g. cg.inverse.simprog
+% formating for external programs, e.g. grompp
+\newcommand{\progex}[1]{\textbf{#1}\xspace}
 
 % reference to an xml option in the reference section
 \newcommand{\cgref}[1]{cg.#1}
@@ -43,24 +44,24 @@
 \definecolor{darkblue}{named}{blue}
 \definecolor{darkred}{named}{red}
 \definecolor{grau}{named}{gray}
-\let\Righttorque\relax
+%\let\Righttorque\relax
 
-\lstset{language=XML}
+%\lstset{language=XML}
 
-\lstset{
-    language=XML,
-    basicstyle=\ttfamily,%\scriptsize\mdseries,
-    keywordstyle=,
-    identifierstyle=,
-    commentstyle=\color{gray},
-    stringstyle=\itshape\color{black},
-    breaklines=true,
-    frame=none,
-    showstringspaces=false,
-    tabsize=2,
-    captionpos=b,
-    float=htbp,
-    moredelim=*[s][\color{darkblue}]{<}{>},
-    morecomment=[s]{<!--}{-->},
-}
+%\lstset{
+%    language=XML,
+%    basicstyle=\ttfamily,%\scriptsize\mdseries,
+%    keywordstyle=,
+%    identifierstyle=,
+%    commentstyle=\color{gray},
+%    stringstyle=\itshape\color{black},
+%    breaklines=true,
+%    frame=none,
+%    showstringspaces=false,
+%    tabsize=2,
+%    captionpos=b,
+%    float=htbp,
+%    moredelim=*[s][\color{darkblue}]{<}{>},
+%    morecomment=[s]{<!--}{-->},
+%}
 
