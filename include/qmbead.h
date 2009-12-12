@@ -12,7 +12,23 @@
 
  * It contains the usual bead info + a vector of all the CG beads that make up a bead
 */
-class QMBead{
+
+#include <votca/csg/bead.h>
+#include <moo/crgunit.h>
+
+class QMBead:Bead{
+public:
+    Bead();
+    ~Bead();
+    
+    ///at each frame read update the QM bead and the associated crgunit
+    void UpdateQMBead();
+private:
+
+    ///the charge unit
+    CrgUnit * _crg;
+    /// parents contains the information necessary to update the CrgUnit
+    vector <Bead *> _parents;
 
 };
 
