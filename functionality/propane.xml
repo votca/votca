@@ -1,6 +1,6 @@
 <cg_molecule>
-  <name>ppn</name>   <!-- name of the molecule in cg representation -->
-  <ident>ppn</ident> <!-- name of the molecule in atomistic topology -->
+  <name>ppn</name> <!-- molecule name in cg representation -->
+  <ident>ppn</ident> <!-- molecule name in atomistic topology -->
 
   <!-- topology of one molecule -->
   <topology>

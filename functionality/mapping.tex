@@ -1,13 +1,12 @@
 \section{Mapping}
 \label{sec:mapping}
 
-{\em Mapping} describes how to relate atomistic and coarse-grained representations of the system. It is organized as follows: for each molecule {\em type} a mapping file is created. When used as a command option, these files can be combined in a list separated by a semicolon, e.~g. \progopt{--cg}~\texttt{"protein.xml;solvent.xml"}. 
+Mapping relates atomistic and coarse-grained representations of the system. It is organized as follows: for each molecule {\em type} a mapping file is created. When used as a command option, these files are combined in a list separated by a semicolon, e.~g. \progopt{--cg}~\texttt{"protein.xml;solvent.xml"}.
 
-Each mapping file contains a {\em topology} of the coarse-grained molecule and a list of {\em maps}. Topology specifies coarse-grained beads and bonded interactions between them. Each coarse-grained bead has a name, type and a map (weights), as well as a list of atoms which belong to this bead. A map is a \hyperref[sec:mapping_operator]{set of weights} $c_{Ii}$ for an atom $i$ belonging to the bead $I$. 
+Each mapping file contains a {\em topology} of the coarse-grained molecule and a list of {\em maps}. Topology specifies coarse-grained beads and bonded interactions between them. Each coarse-grained bead has a name, type, a list of atoms which belong it, and a link to a map. A map is a \hyperref[sec:mapping_operator]{set of weights} $c_{Ii}$ for an atom $i$ belonging to the bead $I$. It is used to calculate the position of a coarse-grained bead from the positions of atoms which belong to it. Note that $c_{Ii}$ will be automatically re-normalized if their sum is not equal to 1, i.~e. in the case of a center-of-mass mapping one can simply specify atomic masses. 
+A complete reference for mapping file definitions can be found in sec.~\ref{sec:ref_mapping}.
 
-A complete reference for mapping file definitions can be found in sec.~\ref{sec:ref_mapping}. 
-
-In what follows we illustrate how to create a mapping file for a united atom model of a propane molecule. In this coarse-grained model two bead types (A,B) and three beads (A1, B1, A2) are defined, as shown in fig.~\ref{fig:propane_map}. We will use centers of mass of the beads to as  coarse-grained coordinates.
+As an example, we will describe here a mapping file of a united atom model of a propane molecule. In this coarse-grained model two bead types (A,B) and three beads (A1, B1, A2) are defined, as shown in fig.~\ref{fig:propane_map}. We will use centers of mass of the beads as  coarse-grained coordinates.
 
 
 \begin{figure}[ht]
@@ -21,7 +20,7 @@ In what follows we illustrate how to create a mapping file for a united atom mod
 
 The \mapopt{ident} tag in the mapping definition must match the name of the molecule in the reference system.
 
-The name must be unique within the mapping file. Type defines the type of the bead. The \mapopt{mapping} tag defines which mapping scheme is used from the mapping section in the file. 
+The name must be unique within the mapping file. Type defines the type of the bead. The \mapopt{mapping} tag defines which mapping scheme is used from the mapping section in the file.
 
 Type and mapping can be different since the number of atoms for the same bead type may differ, e.g. at chain ends for saturating hydrogen atoms.
 
