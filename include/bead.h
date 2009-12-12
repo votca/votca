@@ -21,6 +21,7 @@
 #include <string>
 #include <votca/tools/types.h>
 #include <votca/tools/vec.h>
+#include <votca/tools/property.h>
 #include <assert.h>
 #include "beadtype.h"
 #include "topologyitem.h"
@@ -173,11 +174,18 @@ public:
     template<typename T>
     T *getUserData() { return (T *)_userdata; }
 
+    Property &Options() { return *_options; }
+
+    void setOptions(Property &options) { _options = &options; }
+
 private:
     int _id;
     vector<int> _parent_beads;
     BeadType *_type;
     Molecule *_mol;
+    
+    // TODO: this is so far a pointer. this should change! each bead should have own options.
+    Property *_options;
 
     byte_t _symmetry;
     string _name;
