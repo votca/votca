@@ -21,7 +21,7 @@ In case everything works as desired, a file cg.gro is created which contains the
 \subsection{Generating reference trajectories with proper exclusions}
 When the Boltzmann inversion method was described in Ref.\cite{Tschoep:1998}, bonded and non-bonded interactions were treated separately. To do this, a special atomistic trajectory is needed, where all non-bonded interactions are excluded which do not contribute to a bonded interaction in the coarse-grained model. Manually, this can be a complicated task, but \prog{csg_boltzmann} offers the option \progopt{--excl} to do this automaticaly.
 
-To generate an exclusion list, an atomistic topology without exclusions and a mapping scheme has to be prepared first. Since \votca can currently only read GROMACS .tpr trajectories and not .top files, running \prog{grompp} is obligatory. Important to note here is, that \prog{csg_boltzmann} currently only creates the exclusion list for the fist mulecule in the topology.
+To generate an exclusion list, an atomistic topology without exclusions and a mapping scheme has to be prepared first. Since \votca can currently only read GROMACS .tpr trajectories and not .top files, running \progex{grompp} is obligatory. Important to note here is, that \prog{csg_boltzmann} currently only creates the exclusion list for the fist mulecule in the topology.
 
 To create the exclusion list, run
 \begin{verbatim}

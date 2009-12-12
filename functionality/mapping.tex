@@ -20,15 +20,15 @@ As an example, we will describe here a mapping file of a united atom model of a 
 
 The \mapopt{ident} tag in the mapping definition must match the name of the molecule in the reference system.
 
-The name must be unique within the mapping file. Type defines the type of the bead. The \mapopt{mapping} tag defines which mapping scheme is used from the mapping section in the file.
+The name must be unique within the mapping file. Type defines the type of the bead. The \hyperlink{\mapref{topology.cg_beads.cg_bead.mapping}}{mapping} tag defines which mapping scheme is used from the mapping section in the file.
 
 Type and mapping can be different since the number of atoms for the same bead type may differ, e.g. at chain ends for saturating hydrogen atoms.
 
-In the \mapopt{mapping} section, the mapping operator is defined. Currently this includes only weights for a linear mapping scheme.
+In the \hyperlink{\mapref{topology.cg_beads.cg_bead.mapping}}{mapping section}, the mapping operator is defined. Currently this includes only weights for a linear mapping scheme.
 
-To map from an atomistic to a reference system, \textbf{csg\_map} can be used:
+To map from an atomistic to a reference system, \prog{csg_map} can be used:
 \begin{verbatim}
   csg_map --top topol.tpr --trj traj.trr --cg "protein.xml;solvent.xml" --out cg.gro
 \end{verbatim}
 
-To create a coarse-grained topology based on the mapping scheme, see \textbf{csg\_gmxtopol}.
+To create a coarse-grained topology based on the mapping scheme, see \prog{csg_gmxtopol}.

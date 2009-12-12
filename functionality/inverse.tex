@@ -57,7 +57,7 @@ In summary, the standard output files of \votca for each step are listed in the 
 If some sub-step within one iteration has failed, additional information can be found in the log file. The name of this log file can be specified in the options xml-file.
 
 \subsection{Run continuation}
-There are two scenarios when one wants to continue a run. Either, that of extending a finished run or that the run was interrupted and one needs to restart at the current point. When \prog{csg_inverse} is started, it automatically checks for a file called \textit{done} in the current directory. If it exists, the program assumes that the run is finished. To extend the run, simply increase \cgopt{inverse.iterations_max} in the settings file and remove the file called done. After that, csg\_inverse can be restarted, it will automatically recognize existing steps and continue after the last one.
+There are two scenarios when one wants to continue a run. Either, that of extending a finished run or that the run was interrupted and one needs to restart at the current point. When \prog{csg_inverse} is started, it automatically checks for a file called \textit{done} in the current directory. If it exists, the program assumes that the run is finished. To extend the run, simply increase \cgopt{inverse.iterations_max} in the settings file and remove the file called done. After that, \prog{csg_inverse} can be restarted, it will automatically recognize existing steps and continue after the last one.
 
 If a run was interrupted, \prog{csg_inverse} might not be able to restart on its own. In this case, the easiest solution is just to delete the last step and start again. It will then redo the last step and continue. However, this method is not always practical since sampling and analysis might take a very long time and the run might have only crashed due to some bogus post processing option. To avoid redoing the entire run, \prog{csg_inverse} creates a file with restart points, which marks actions in the step that were already completed (like simulation, analysis, etc). The file is specified in the option \cgopt{inverse.restart_file}. If specific actions should be redone, lines in that file can also removed by hand. In addition, a file \textit{done} is created in each folder for a steps which have already been finished.
 
@@ -67,7 +67,11 @@ All script is called via two keywords.
 \begin{verbatim}
   csg_call key1 key2
 \end{verbatim} 
-For example \texttt{csg\_call update imc} calls the update script for inverse monte carlo procedure.
+For example:
+\begin{verbatim}
+csg_call update imc
+\end{verbatim} 
+calls the update script for inverse monte carlo procedure.
 The default keyword to script mapping can be seen in \sect{sec:csg_table} or seen directly by calling:
 \begin{verbatim}
   csg_call --list
@@ -80,8 +84,8 @@ Please {\em never} change the scripts in the \votca installation. It is better t
 \end{verbatim} 
 One can even overload existing call.
 \subsubsection{An useful example}
-\prog{csg_inverse} runs \prog{mdrun} from the \gromacs package only on one cpu and we want to change that due to the fact that we have 8 cpu machine and want to save some time.
-First we try to find out which script calls \prog{mdrun}:
+\prog{csg_inverse} runs \progex{mdrun} from the \gromacs package only on one cpu and we want to change that due to the fact that we have 8 cpu machine and want to save some time.
+First we try to find out which script calls \progex{mdrun}:
 \begin{verbatim}
   csg_call --list | grep gromacs
 \end{verbatim}
