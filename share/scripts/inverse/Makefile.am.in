@@ -9,7 +9,7 @@ EXTRA_DIST = ${inverse_SCRIPTS} $(inverse_files) Makefile.am.in
 MD5SUM: ${inverse_SCRIPTS} ${inverse_files}
 	md5sum ${inverse_SCRIPTS} $(inverse_files) > MD5SUM
 
-CLEANFILES = *~ $(inverse_SCRIPTS) CsgFunctions.pm
+CLEANFILES = *~
 
 Makefile.am: Makefile.am.in
 	echo 'inverse_SCRIPTS = \' > $@

@@ -148,7 +148,7 @@ cat <<EOF
 please submit bugs to bugs@votca.org
 
 EOF
-  echo -e "$needs" | sed "s/#version#/${version}/"
+  echo -e "$needs" | sed "s/%version%/${version}/"
   exit 0
 fi
 

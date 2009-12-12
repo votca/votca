@@ -29,7 +29,7 @@ please submit bugs to bugs@votca.org
 eof
   if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
     exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | \
-      sed -e "s/inverse\.sh/${0##*/}/g" -e "s/#version#/${version}/"
+      sed -e "s/inverse\.sh/${0##*/}/g" -e "s/%version%/${version}/"
     exit 0
   fi	
   cat << eof
