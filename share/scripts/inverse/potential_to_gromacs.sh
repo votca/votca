@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 # 
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -17,31 +17,28 @@
 
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
-This script implemtents smoothing of the potential update (.dpot)
+${0##*/}, version %version%
+This is a wrapper to convert potential to gromacs
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/}
 
-USES:  die csg_get_interaction_property mktemp do_external cp log run_or_exit
+USES: do_external csg_get_interaction_property log csg_get_property run_or_exit csg_resample
 
-NEEDS: name inverse.post_update_options.smooth.iterations
+NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins
 EOF
-   exit 0
+  exit 0
 fi
 
 check_deps "$0"
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
-
 name=$(csg_get_interaction_property name)
-tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
-iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)  
+input="${name}.pot.cur" 
+#gromacs want '_' !
+output="$(csg_get_interaction_property inverse.gromacs.table)" 
+log "Convert $input to $output"
 
-run_or_exit cp ${name}.dpot.cur $tmpfile
-log "doing $iterations smoothing iterations"
+r_cut=$(csg_get_interaction_property max)
+gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 
-for((i=0;i<$iterations;i++)); do
-  run_or_exit do_external table smooth $tmpfile ${name}.dpot.new
-  run_or_exit cp ${name}.dpot.new $tmpfile
-done
-
+run_or_exit csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} 
+run_or_exit do_external convert_potential xvg smooth_${input} ${output}

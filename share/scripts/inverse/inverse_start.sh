@@ -17,7 +17,7 @@
 
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
+${0##*/}, version %version%
 this script just contain all startup check for inverse.sh to 
 and makes inverse.sh more readable
 

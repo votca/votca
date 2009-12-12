@@ -4,35 +4,16 @@ inverse_files = csg_table imcdata_from_blocks.octave linsolve.m linsolve.octave 
 
 inverse_DATA = MD5SUM $(inverse_files)
 
-EXTRA_DIST = ${inverse_SCRIPTSIN} $(inverse_files) Makefile.am.in
+EXTRA_DIST = ${inverse_SCRIPTS} $(inverse_files) Makefile.am.in
 
 MD5SUM: ${inverse_SCRIPTS} ${inverse_files}
 	md5sum ${inverse_SCRIPTS} $(inverse_files) > MD5SUM
 
 CLEANFILES = *~ $(inverse_SCRIPTS) CsgFunctions.pm
 
-HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node}' 2> /dev/null || grep -q node $(top_builddir)/hg_archival.txt 2> /dev/null || true )
-
-%.pl: %.pl.in hgstamp
-	sed -e 's,#version#,@VERSION@ $(HGVERSION),' $< > $@
-
-%.pm: %.pm.in hgstamp
-	sed -e 's,#version#,@VERSION@ $(HGVERSION),' $< > $@
-
-%.sh: %.sh.in hgstamp
-	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
-
 Makefile.am: Makefile.am.in
 	echo 'inverse_SCRIPTS = \' > $@
-	ls *.sh.in *.pl.in | sed -e 's/\.in$$/ \\/' -e 's/^/\t/' -e '$$s/\\$$//' >> $@
-	echo >> $@
-	echo 'inverse_SCRIPTSIN = \' >> $@
-	ls *.sh.in *.pl.in | sed -e 's/$$/ \\/' -e 's/^/\t/' -e '$$s/\\$$//' >> $@
+	ls *.sh *.pl | sed -e 's/.*/\t& \\/' -e '$$s/\\$$//' >> $@
 	echo >> $@
 	cat $< >> $@
-
-hgstamp: update_hgstamp
-update_hgstamp:
-	[ -f hgstamp ] || touch hgstamp
-	echo $(HGVERSION) | cmp -s hgstamp - || echo $(HGVERSION) > hgstamp
 

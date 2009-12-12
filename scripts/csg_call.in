@@ -16,6 +16,7 @@
 #
 
 sw_opt=""
+version='@version@'
 
 #failback define
 die() {
@@ -31,7 +32,7 @@ show_help () {
 
 please submit bugs to bugs@votca.org
 
-${0##*/}, version @version@
+${0##*/}, version ${version}
 
 
 This script calls script for csg using source_wrapper
@@ -147,7 +148,7 @@ cat <<EOF
 please submit bugs to bugs@votca.org
 
 EOF
-  echo -e "$needs"
+  echo -e "$needs" | sed "s/#version#/${version}/"
   exit 0
 fi
 

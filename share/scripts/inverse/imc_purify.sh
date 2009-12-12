@@ -17,7 +17,7 @@
 
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
+${0##*/}, version %version%
 This scripts cleans up the dpot tables for each interaction when using IMC
 
 Usage: ${0##*/}

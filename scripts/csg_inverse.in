@@ -15,18 +15,10 @@
 # limitations under the License.
 #
 
-#we leave --version and --help here to have it even when
+version='@version@'
+#we leave --help here to have it even when
 #CSGSHARE is not defined
-if [ "$1" = "--version" ] || [ "$1" = "-v" ]; then
-  echo "${0##*/}: @version@"
-  exit 0
-fi
-
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-  if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
-    exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | sed "s/inverse\.sh/${0##*/}/g"
-    exit 0
-  fi  	
   cat << eof
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
@@ -34,7 +26,14 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 
 please submit bugs to bugs@votca.org
 
-${0##*/}, @version@
+eof
+  if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+    exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | \
+      sed -e "s/inverse\.sh/${0##*/}/g" -e "s/#version#/${version}/"
+    exit 0
+  fi	
+  cat << eof
+${0##*/}, version ${version}
 
 
 Start the script to run ibm, imc, etc.
@@ -43,7 +42,6 @@ Usage: ${0##*/} [OPTIONS] setting_file.xml
 
 Allowed options:
 -h, --help     Show this help
--v, --version  Show version 
 
 NOTE: this is a short help, please export CSGSHARE to get the full help.
 eof

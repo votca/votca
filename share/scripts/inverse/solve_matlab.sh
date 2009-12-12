@@ -1,4 +1,4 @@
-#! /bin/bash
+  #! /bin/bash
 # 
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -17,29 +17,31 @@
 
 if [ "$1" = "--help" ]; then
 cat <<EOF
-${0##*/}, version @version@
-This script make all the post update with backup for single pairs
+${0##*/}, version %version%
+This solves linear equation system from imc using matlab
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/} <group> <outfile>
 
-USES:  csg_get_interaction_property log mv die cp do_external run_or_exit
+USES:  die sed matlab rm run_or_exit \$CSGINVERSE mv
 
-NEEDS: name inverse.post_update
+NEEDS:
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
+[[ -n "$2" ]] || die "${0##*/}: Missing arguments"
 
-name=$(csg_get_interaction_property name)
-tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update) 
-i=1
-for task in $tasklist; do
-  log "Doing $task for ${name}"
-  run_or_exit mv ${name}.dpot.new ${name}.dpot.cur
-  run_or_exit cp ${name}.dpot.cur ${name}.dpot.${i}
-  do_external postupd "$task" "$1"
-  ((i++))
-done
+# initialize & run the matlab file
+sed -e "s/\$name_out/$2/" -e "s/\$name/$1/" $CSGINVERSE/linsolve.m > solve_$1.m || die "${0##*/}: sed failed"
+
+#matlab does not like -_. etc in filenames
+run_or_exit mv solve_$1.m solve.m
+run_or_exit matlab -r solve -nosplash -nodesktop
+rm -f solve.m
+
+# temporary compatibility issue
+[[ -f "$2" ]] || die "Matlab failed"
+run_or_exit sed -ie 's/NaN/0.0/' $2
+run_or_exit sed -ie 's/Inf/0.0/' $2
