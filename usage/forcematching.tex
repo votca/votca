@@ -7,9 +7,9 @@
 The force matching algorithm with cubic spline basis is implemented in the \prog{csg_fmatch} utility. A list of available options can be found in the reference section for \prog{csg_fmatch}.
 
 \section{Program input}
-\prog{csg_fmatch} needs an atomistic reference run to perform coarse-graining. Note that the trajectory file {\em must contain forces } (e.g. there is an option for that in the GROMACS .mdp file), otherwise \prog{csg_fmatch} will not be able run.
+\prog{csg_fmatch} needs an atomistic reference run to perform coarse-graining. Note that the trajectory file {\em must contain forces } (e.g. there is an option for that in the \gromacs .mdp file), otherwise \prog{csg_fmatch} will not be able run.
 
-In addition, a mapping scheme has to be created, which defines the coarse-grained model (see \sect{sec:mapping}). At last, a control file which has to be created, which contains all the informations for coarse-grining the interactions and parameters for the force-matching run. This file is specified in \progopt{--options} is an \xml-file. An example might look like the following
+In addition, a mapping scheme has to be created, which defines the coarse-grained model (see \sect{sec:mapping}). At last, a control file which has to be created, which contains all the information for coarse-graining the interactions and parameters for the force-matching run. This file is specified in \progopt{--options} is an \xml-file. An example might look like the following
 \begin{lstlisting}
    <cg>
      <!--fmatch section -->
@@ -44,10 +44,10 @@ If you have an angle, then the first column will contain corresponding angle in 
 
 To get table-files for \gromacs one has to integrate the forces to get the potentials and do extrapolation and potentially smoothing.
 
-Output files are not only produced at the end of the program execution, but after successfull processing of every block. The user can have a look at the output files and decide to stop \prog{csg_fmatch}, as long as the force error is small enough.
+Output files are not only produced at the end of the program execution, but after successful processing of every block. The user can have a look at the output files and decide to stop \prog{csg_fmatch}, as long as the force error is small enough.
 
 \section{Integration and extrapolation of .force files }
-To convert forces (*.force) to potentials (*.pot), tables have to be integrated. To use the builtin integration command from the scripting framework, execute
+To convert forces (*.force) to potentials (*.pot), tables have to be integrated. To use the built-in integration command from the scripting framework, execute
 \begin{verbatim}
  csg_call table integrate CG-CG.force CG-CG.pot
 \end{verbatim}
