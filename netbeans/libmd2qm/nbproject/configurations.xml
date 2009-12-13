@@ -37,6 +37,7 @@
       <compileType>
         <ccTool>
           <incDir>
+            <pElem>../../include</pElem>
             <pElem>../../../include</pElem>
           </incDir>
         </ccTool>

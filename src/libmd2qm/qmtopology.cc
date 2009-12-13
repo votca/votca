@@ -14,12 +14,13 @@ QMTopology::~QMTopology()
 
 void QMTopology::Initialize(Topology& cg_top)
 {
-    BeadContainer::iteratur iter;
+    BeadContainer::iterator iter;
 
     CopyTopologyData(&cg_top);
 
-    for(iter=_beads.begin(); iter!=_beads,end(); ++iter) {
-        QMBead *qmbead = dynamic_cast<QMBead*>*iter;
+    for(iter=_beads.begin(); iter!=_beads.end(); ++iter) {
+        Bead *b = *iter;
+        QMBead *qmbead = (QMBead *)b ;// TODO: why does dynamic_cast<QMBead*>(b); not work
 
         // TODO: initialize crgunit data here
     }
@@ -27,20 +28,25 @@ void QMTopology::Initialize(Topology& cg_top)
 
 void QMTopology::Update(Topology& cg_top)
 {
-    BeadContainer::iteratur iter;
-    BeadContainer::iteratur iter_cg;
+    BeadContainer::iterator iter;
+    BeadContainer::iterator iter_cg;
 
-    assert(cg_top._beads().size() == _beads.size());
+    assert(cg_top.Beads().size() == _beads.size());
 
-    _box = cg_top._box;
-    _time = cg_top._time;
-    _frame = cg_top._frame;
+    _box = cg_top.getBox();
+    _time = cg_top.getTime();
+    _step = cg_top.getStep();
 
-    iter_cg = cg_top._beads.begin();
-    for(iter=_beads.begin(); iter!=_beads,end(); ++iter) {
+    iter_cg = cg_top.Beads().begin();
+    for(iter=_beads.begin(); iter!=_beads.end(); ++iter) {
         (*iter)->setPos((*iter_cg)->getPos());
         (*iter)->setU((*iter_cg)->getU());
         (*iter)->setV((*iter_cg)->getV());
         (*iter)->setW((*iter_cg)->getW());
     }
+}
+
+void QMTopology::LoadListCharges(const string &file)
+{
+
 }

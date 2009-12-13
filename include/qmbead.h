@@ -10,7 +10,8 @@
 
 #include <votca/csg/bead.h>
 #include <moo/crgunit.h>
-#include "qmtopology.h"
+
+class QMTopology;
 
 /**
     \brief contains the bead associated to a crg unit.
@@ -19,7 +20,6 @@
     it should update
 
 */
-
 class QMBead : public Bead
 {
 public:
@@ -41,7 +41,7 @@ private:
 
 inline QMBead::QMBead(Topology *owner, int id, BeadType *type, byte_t symmetry,
     string name, int resnr, double m, double q)
-    : Bead(owner, id, *type, symmetry, name, resnr, m, q)
+    : Bead(owner, id, type, symmetry, name, resnr, m, q)
 {
 }
 

@@ -9,7 +9,7 @@ EasyJObserver::~EasyJObserver()
 
 void EasyJObserver::BeginCG(Topology *top, Topology *top_atom)
 {
-    _qmtop->Initialize(top);
+    _qmtop->Initialize(*top);
 }
 
 void EasyJObserver::EndCG()
@@ -19,6 +19,6 @@ void EasyJObserver::EndCG()
 
 void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 {
-    _qmtop->Update(top);
+    _qmtop->Update(*top);
 }
 

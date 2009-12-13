@@ -45,9 +45,10 @@ public:
     /// CopyTopologyData work
     Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
 
-private:
+    void LoadListCharges(const string &file);
+protected:
 
-    NBList *_neighs;
+    NBList *_nblist;
 /*    /// initialises the map that reads in the map from beadtypes to qmbead
     void InitMap (string);
     /// pnce the map is initialised and _Cgtop assigned, call all the CreateQMBead function
@@ -70,7 +71,7 @@ private:
 */
 };
 
-inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
+inline Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
 {
     QMBead *b = new QMBead(this, _beads.size(), type, symmetry, name, resnr, m, q);
     _beads.push_back(b);

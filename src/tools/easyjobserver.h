@@ -20,7 +20,7 @@ public:
     ~EasyJObserver();
 
     
-    void setQMTopology(QMTopology *qmtop) {_qmtop = qmtop; }
+    void setQMTopology(QMTopology &qmtop) {_qmtop = &qmtop; }
 
     /// begin coarse graining a trajectory
     void BeginCG(Topology *top, Topology *top_atom);
