@@ -4,5 +4,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = src include share scripts 
 
+EXTRA_DIST = NOTICE LICENSE
+
 CLEANFILES = *~
 #DISTCLEANFILES =
