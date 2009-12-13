@@ -62,19 +62,19 @@ public:
     void Cleanup();
     
     /// creates a new Bead
-    Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
+    virtual Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
 
     /// returns the BeadType or creates it if it doesnt exist
-    BeadType *GetOrCreateBeadType(string name);        
+    virtual BeadType *GetOrCreateBeadType(string name);
 
     /// creates a new molecule
-    Molecule *CreateMolecule(string name);
+    virtual Molecule *CreateMolecule(string name);
 
     /// checks weather molecules with the same name really contain the same number of beads
     void CheckMoleculeNaming(void);
     
     /// creates a new residue
-    Residue *CreateResidue(string name);
+    virtual Residue *CreateResidue(string name);
     
     /** 
         \brief create molecules based on the residue
@@ -160,7 +160,7 @@ public:
     void RebuildExclusions();
     ExclusionList &getExclusions() { return _exclusions; }
     
-private:
+protected:
     /// bead types in the topology
     BeadTypeContainer _beadtypes;
     

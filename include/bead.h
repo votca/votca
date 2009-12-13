@@ -178,7 +178,7 @@ public:
 
     void setOptions(Property &options) { _options = &options; }
 
-private:
+protected:
     int _id;
     vector<int> _parent_beads;
     BeadType *_type;
