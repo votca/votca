@@ -29,7 +29,8 @@ void QMTopology::Update(Topology& cg_top)
         (*iter)->setU((*iter_cg)->getU());
         (*iter)->setV((*iter_cg)->getV());
         (*iter)->setW((*iter_cg)->getW());
-        (*iter)->UpdateCrg();
+        QMBead * b = (QMBead*)*iter;
+        b->QMBead::UpdateCrg();
     }
 }
 

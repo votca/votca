@@ -13,8 +13,8 @@
  * It contains the usual bead info + a vector of all the CG beads that make up a bead
 */
 
-#include <votca/csg/bead.h>
-#include <moo/crgunit.h>
+#include "votca/csg/bead.h"
+#include "moo/crgunit.h"
 
 class QMTopology;
 
@@ -25,13 +25,19 @@ public:
 
     void UpdateCrg(){
         if (_crg != NULL){
-            _crg->SetPos(_ipos, Bead::GetPos());
-            _crg->SetNorm(_ipos, Bead::GetU());
-            _crg->SetPlane(_ipos, Bead::GetV());
+            _crg->SetPos(_ipos, Bead::getPos());
+            _crg->SetNorm(_ipos, Bead::getU());
+            _crg->SetPlane(_ipos, Bead::getV());
         }
     }
-    void SetCrg(CrgUnit * a): _crg(a){}
-    void SetiPos(const int & a): _ipos(a){}
+    void SetCrg(CrgUnit * a){
+        _crg=a;
+    }
+
+    void SetiPos(const int & a){
+        _ipos=a;
+    }
+
     CrgUnit* GetCrgUnit(){
         return _crg;
     }

@@ -39,6 +39,7 @@
           <incDir>
             <pElem>../../include</pElem>
             <pElem>../../../include</pElem>
+            <pElem>/usr/include/libxml2</pElem>
           </incDir>
         </ccTool>
         <archiverTool>

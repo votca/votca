@@ -12,6 +12,7 @@
 #include <votca/csg/nblist.h>
 #include <moo/crgunittype.h>
 #include <moo/crgunit.h>
+#include <moo/jcalc.h>
 
 #include "qmbead.h"
 
@@ -56,15 +57,15 @@ inline Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type
     _beads.push_back(bead);
 
     //initialise the crgunit * only if appropriate extra info is in the cg.xml file
-    if (!bead->Options()->exists("qm.crgunitname")){
+    if (! (bead->Options()).exists("qm.crgunitname")){
         string namecrgunittype = bead->getType()->getName();
-        string intpos = bead->Options->get("qm.position".as<int> ());
-        string namecrgunit = bead->Options->get("qm.crgunitname".as<string> ());
+        int intpos = (bead->Options()).get("qm.position").as<int>();
+        string namecrgunit = (bead->Options()).get("qm.crgunitname").as<string>();
 
-        CrgUnitType * crtgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
+        CrgUnitType *crgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
 
         //determine whether it  has been created already
-        int molid= Bead->getMolecule()->getId();
+        int molid= bead->getMolecule()->getId();
         string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
         map <string, CrgUnit*>::iterator  itm= _mcharges.find(molandtype);
         if (itm != _mcharges.end()){
@@ -72,7 +73,7 @@ inline Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type
             CrgUnit * acrg = new CrgUnit(empty, empty, empty, // this is because i dont want to cannot init all values at once
                 _lcharges.size(), crgtype, molid);
             _mcharges.insert(make_pair(molandtype, acrg));
-            _lcharges.pushback(acrg);
+            _lcharges.push_back(acrg);
             bead->SetCrg(acrg);
             bead->SetiPos(intpos);
         }

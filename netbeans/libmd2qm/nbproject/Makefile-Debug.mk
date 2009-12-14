@@ -62,13 +62,13 @@ dist/Debug/GNU-Linux-x86/liblibmd2qm.a: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmtopology.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o ../../src/libmd2qm/qmtopology.cc
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o ../../src/libmd2qm/qmtopology.cc
 
 # Subprojects
 .build-subprojects:
 
 # Clean Targets
-.clean-conf:
+.clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Debug
 	${RM} dist/Debug/GNU-Linux-x86/liblibmd2qm.a
 
