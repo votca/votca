@@ -21,11 +21,13 @@ public:
     Bead();
     ~Bead();
 
-    CrgUnit* GetCrgUnit{
+    CrgUnit* GetCrgUnit(){
         return _crg;
     }
     ///at each frame read update the QM bead and the associated crgunit
-    void UpdateQMBead();
+    ///this is not necessary. in order to update the _crg it is sufficient to overload
+    ///the functions setU/setV/setW.
+    ///void UpdateQMBead();
 private:
 
     ///the charge unit
@@ -33,7 +35,7 @@ private:
     /// the
     int _pos;
     /// parents contains the information necessary to update the CrgUnit
-    vector <Bead *> _parents;
+    ///vector <Bead *> _parents;
 
 };
 

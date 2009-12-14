@@ -10,6 +10,14 @@ QMTopology::~QMTopology()
     if(_nblist)
         delete _nblist;
     _nblist = NULL;
+    // TODO add destructor for the map of crgunit
+}
+
+QMTopology::QMTopology(Topology* cgtop, JCalc* jcalc, string filemap){
+    InitMap(filemap);
+    _jcalc =jcalc;
+    _cgtop = cgtop;
+    Initialize(cg_top);
 }
 
 void QMTopology::Initialize(Topology& cg_top)

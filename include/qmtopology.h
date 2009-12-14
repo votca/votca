@@ -46,8 +46,8 @@ private:
 
     /// initialises the map that reads in the map from beadtypes to qmbead
     void InitMap (string);
-    /// pnce the map is initialised and _Cgtop assigned, call all the CreateQMBead function
-    void Init();
+    /// once the map is initialised and _Cgtop assigned, call all the CreateQMBead function
+    /// void Init();
     
     ///the underlying cg toplogy
     Topology * _cgtop;
