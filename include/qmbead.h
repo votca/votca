@@ -30,9 +30,12 @@ public:
             _crg->SetPlane(_ipos, Bead::GetV());
         }
     }
+    void SetCrg(CrgUnit * a): _crg(a){}
+    void SetiPos(const int & a): _ipos(a){}
     CrgUnit* GetCrgUnit(){
         return _crg;
     }
+
 private:
     /// constructor if bead is created with no rerference bead (e.g. when reading from file)
     QMBead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name,

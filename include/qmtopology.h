@@ -46,26 +46,41 @@ protected:
 
     NBList *_nblist;
     JCalc _jcalc;
-
+    map <string, CrgUnit*> _mcharges;
+    list < CrgUnit *> _lcharges;
 };
 
 inline Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
 {
-    QMBead *b = new QMBead(this, _beads.size(), type, symmetry, name, resnr, m, q);
-    _beads.push_back(b);
-    //initialise the crgunit *
-    // NOTE: I cannot find this famours getOption in bead?!
-    string namecrgunittype = bead->getType()->getName();
-    string intpos = bead->getOptions->get("qm.position".as<int> ());
-    string namecrgunit = bead->getOptions->get("qm.crgunittype".as<string> ());
-    
-    CrgUnitType * _crtgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
+    QMBead *bead = new QMBead(this, _beads.size(), type, symmetry, name, resnr, m, q);
+    _beads.push_back(bead);
 
-    //determine whether it  has been created already
-    /does the combination of bead->Molecule()->molID + namecrgunit exist?
-        yes-> do nothing
-        no -> create a crgunit of tupe crgtype, with molid bla bla and pos xyz
-    return b;
+    //initialise the crgunit * only if appropriate extra info is in the cg.xml file
+    if (!bead->Options()->exists("qm.crgunitname")){
+        string namecrgunittype = bead->getType()->getName();
+        string intpos = bead->Options->get("qm.position".as<int> ());
+        string namecrgunit = bead->Options->get("qm.crgunitname".as<string> ());
+
+        CrgUnitType * crtgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
+
+        //determine whether it  has been created already
+        int molid= Bead->getMolecule()->getId();
+        string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
+        map <string, CrgUnit*>::iterator  itm= _mcharges.find(molandtype);
+        if (itm != _mcharges.end()){
+            vector <vec> empty;
+            CrgUnit * acrg = new CrgUnit(empty, empty, empty, // this is because i dont want to cannot init all values at once
+                _lcharges.size(), crgtype, molid);
+            _mcharges.insert(make_pair(molandtype, acrg));
+            _lcharges.pushback(acrg);
+            bead->SetCrg(acrg);
+            bead->SetiPos(intpos);
+        }
+        else{
+            bead->SetCrg(NULL);
+        }
+    }
+    return bead;
 }
 
 #endif	/* _CRGTOPOLOGY_H */
