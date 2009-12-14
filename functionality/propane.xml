@@ -2,22 +2,19 @@
   <name>ppn</name> <!-- molecule name in cg representation -->
   <ident>ppn</ident> <!-- molecule name in atomistic topology -->
 
-  <!-- topology of one molecule -->
-  <topology>
+  <topology> <!-- topology of one molecule -->
     <cg_beads>
       <cg_bead>  <!-- definition of a coarse-grained bead -->
         <name>A1</name>
         <type>A</type>
-        <mapping>A</mapping> <!-- mapping weights as specified later -->
-        <!-- atomistic beads that are mapped to this bead -->
-        <beads>1:ppn:C1 1:ppn:H4 1:ppn:H5 1:ppn:H6</beads>
+        <mapping>A</mapping> <!-- reference to a map -->
+        <!-- atoms belonging to this bead -->
+        <beads>1:ppn:C1 1:ppn:H4 1:ppn:H5 1:ppn:H6</beads> 
       </cg_bead>
-
-      .... (more bead definitions) 
-
+      <!-- more bead definitions -->
     </cg_beads>
 
-    <cg_bonded> <!-- definition of bonded interactions -->
+    <cg_bonded> <!-- bonded interactions -->
       <bond>
         <name>bond</name>
         <beads>
@@ -35,13 +32,11 @@
     </cg_bonded>
   </topology>
 
-  <maps> <!-- mapping definitions -->
-    <map> <!-- define mapping scheme A -->
+  <maps>                              
+    <map> <!-- mapping A -->
       <name>A</name>
       <weights> 12 1 1 1 </weights>
     </map>
-    
-    .... (more mapping definitions)
-
+    <!-- more mapping definitions -->
   </maps>
-</cg_molecule> <!-- end of molecule specifications -->
+</cg_molecule> <!-- end of the molecule -->
