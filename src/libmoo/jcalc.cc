@@ -284,12 +284,17 @@ vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
     return Js;
 }
 
-CrgUnit JCalc::DefineCrgUnit(vec pos, matrix orient, string name){
+CrgUnitType * JCalc::GetCrgUnitTypeByName(string name){
     map <string, CrgUnitType *>::iterator ittype = this->_mapCrgUnitByName.find(name);
     if (ittype == _mapCrgUnitByName.end()){
         throw runtime_error("Cannot find Crg unit type with name" + name);
     }
     CrgUnitType *type = ittype->second;
+    return type;
+}
+
+CrgUnit JCalc::DefineCrgUnit(vec pos, matrix orient, string name){
+    CrgUnitType *type = GetCrgUnitTypeByName(name);
 
     vec plane1 = orient.getCol(1);
     vec norm1 = orient.getCol(2);

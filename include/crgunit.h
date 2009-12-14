@@ -55,6 +55,8 @@ public:
 
     void SetCom(vec& com);
     void SetPos(const int& i, vec& pos);
+    void SetNorm(const int& i, vec& pos);
+    void SetPlane(const int& i, vec& pos);
 
     mol_and_orb * rotate_translate_beads();
 
@@ -167,6 +169,12 @@ inline void CrgUnit::SetCom(vec& com) {
 
 inline void CrgUnit::SetPos(const int& i, vec& pos) {
     _positions[i] = pos;
+};
+inline void CrgUnit::SetNorm(const int& i, vec& pos) {
+    _norms[i] = pos;
+};
+inline void CrgUnit::SetPlane(const int& i, vec& pos) {
+    _planes[i] = pos;
 };
 
 inline vec CrgUnit::GetPos(const int & i) {

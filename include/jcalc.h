@@ -34,6 +34,8 @@ public:
         Init(name);
     }
 
+    CrgUnitType * GetCrgUnitTypeByName(string);
+
     void Init(string );
 
     vector <double> GetJ (CrgUnit & one, CrgUnit & two);
