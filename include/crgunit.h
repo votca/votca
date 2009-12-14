@@ -54,9 +54,9 @@ public:
     const vector <vec>::iterator GetPosLast();
 
     void SetCom(vec& com);
-    void SetPos(const int& i, vec& pos);
-    void SetNorm(const int& i, vec& pos);
-    void SetPlane(const int& i, vec& pos);
+    void SetPos(const int& i, const vec& pos);
+    void SetNorm(const int& i, const vec& pos);
+    void SetPlane(const int& i, const  vec& pos);
 
     mol_and_orb * rotate_translate_beads();
 
@@ -167,15 +167,15 @@ inline void CrgUnit::SetCom(vec& com) {
     _com = com;
 };
 
-inline void CrgUnit::SetPos(const int& i, vec& pos) {
+inline void CrgUnit::SetPos(const int& i, const vec& pos) {
     if ( i >= _positions.size())_positions.resize(i+1);
     _positions[i] = pos;
 };
-inline void CrgUnit::SetNorm(const int& i, vec& pos) {
+inline void CrgUnit::SetNorm(const int& i, const vec& pos) {
     if ( i >= _positions.size())_positions.resize(i+1);
     _norms[i] = pos;
 };
-inline void CrgUnit::SetPlane(const int& i, vec& pos) {
+inline void CrgUnit::SetPlane(const int& i, const vec& pos) {
     if ( i >= _positions.size())_positions.resize(i+1);
     _planes[i] = pos;
 };
