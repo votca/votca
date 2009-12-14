@@ -20,13 +20,18 @@ class QMBead:Bead{
 public:
     Bead();
     ~Bead();
-    
+
+    CrgUnit* GetCrgUnit{
+        return _crg;
+    }
     ///at each frame read update the QM bead and the associated crgunit
     void UpdateQMBead();
 private:
 
     ///the charge unit
     CrgUnit * _crg;
+    /// the
+    int _pos;
     /// parents contains the information necessary to update the CrgUnit
     vector <Bead *> _parents;
 

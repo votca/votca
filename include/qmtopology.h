@@ -35,7 +35,7 @@ public:
     QMTopology();
     /// create it from a cg topologypointer and a file name with the crg unit mapping
     /// notice that the relationship between qm topology is immutable
-    QMTopology(topology *, string);
+    QMTopology(Topology *, JCalc *, string);
     ~QMTopology();
 
     ///at each evaluate CG step we will need to reassess the QMBeads
