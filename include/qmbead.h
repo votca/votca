@@ -23,16 +23,12 @@ public:
     QMBead();
     ~QMBead();
 
-    void setPosCrg(){
-        _crg->SetPos(_ipos, r);
-    }
-
-    void setNormCrg(){
-        _crg->SetNorm(_ipos, Bead::GetU());
-    }
-
-    void setPlaneCrg(){
-        _crg->SetPlane(_ipos, Bead::GetV());
+    void UpdateCrg(){
+        if (_crg != NULL){
+            _crg->SetPos(_ipos, Bead::GetPos());
+            _crg->SetNorm(_ipos, Bead::GetU());
+            _crg->SetPlane(_ipos, Bead::GetV());
+        }
     }
     CrgUnit* GetCrgUnit(){
         return _crg;
