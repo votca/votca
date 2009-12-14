@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "orbitals.h"
 #include "global.h"
-#include "mol_and_orb.h"
+#include "qm_molecule.h"
 
 
 

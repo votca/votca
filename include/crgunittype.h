@@ -19,7 +19,7 @@
 
 //#define DEBUG
 
-#include "mol_and_orb.h"
+#include "qm_molecule.h"
 #include "orbitals.h"
 #include <libxml/parser.h>
 #include <string>
