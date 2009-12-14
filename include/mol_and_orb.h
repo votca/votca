@@ -18,11 +18,8 @@
 
 using namespace std;
 
-class mol_pair;
-
 class mol_and_orb
 {
-    friend class mol_pair;
 private:
 
      struct atom_type {

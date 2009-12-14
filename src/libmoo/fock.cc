@@ -1,4 +1,4 @@
-#include "fock_matrix.h"
+#include "fock.h"
 
 
 //ZINDO/S parameters for first three rows

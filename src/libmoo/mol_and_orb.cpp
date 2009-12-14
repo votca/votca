@@ -1,4 +1,4 @@
-#include "qm_molecule.h"
+#include "mol_and_orb.h"
 
 /*void mol_and_orb::write_pdb(string file, string name_mol="PPY", const int & n=0 ){
     
