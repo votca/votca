@@ -37,5 +37,5 @@ void QMTopology::Update(Topology& cg_top)
 
 void QMTopology::LoadListCharges(const string &file)
 {
-
+    _jcalc.Init(file);
 }

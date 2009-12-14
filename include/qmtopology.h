@@ -45,6 +45,7 @@ public:
 protected:
 
     NBList *_nblist;
+    JCalc _jcalc;
 /*    /// initialises the map that reads in the map from beadtypes to qmbead
     void InitMap (string);
     /// pnce the map is initialised and _Cgtop assigned, call all the CreateQMBead function
