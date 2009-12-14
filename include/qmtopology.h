@@ -46,32 +46,25 @@ protected:
 
     NBList *_nblist;
     JCalc _jcalc;
-/*    /// initialises the map that reads in the map from beadtypes to qmbead
-    void InitMap (string);
-    /// pnce the map is initialised and _Cgtop assigned, call all the CreateQMBead function
-    void Init();
-    
-    ///the underlying cg toplogy
-    Topology * _cgtop;
-    ///the underlying jcalc with the list of charge types in it
-    JCalc * _jcalc;
-    /// the list of neighbours
-    NBList * _neighs;
-    /// the list of QM beads
-    vector <QMBead *>;
-    /// creates a QM bead from the list of cg beads
-    QMBead *CreateQMBead (BeadContainer &);
-    /// a mapping from the moleculetype to each the mapping which associates each
-    /// assembly of charge
-    /// beadtypes to a crgunit type
-    map < string, QMMoleculeMap * >;
-*/
+
 };
 
 inline Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
 {
     QMBead *b = new QMBead(this, _beads.size(), type, symmetry, name, resnr, m, q);
     _beads.push_back(b);
+    //initialise the crgunit *
+    // NOTE: I cannot find this famours getOption in bead?!
+    string namecrgunittype = bead->getType()->getName();
+    string intpos = bead->getOptions->get("qm.position".as<int> ());
+    string namecrgunit = bead->getOptions->get("qm.crgunittype".as<string> ());
+    
+    CrgUnitType * _crtgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
+
+    //determine whether it  has been created already
+    /does the combination of bead->Molecule()->molID + namecrgunit exist?
+        yes-> do nothing
+        no -> create a crgunit of tupe crgtype, with molid bla bla and pos xyz
     return b;
 }
 
