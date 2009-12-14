@@ -23,6 +23,7 @@ void QMTopology::Initialize(Topology& cg_top)
         QMBead *qmbead = (QMBead *)b ;// TODO: why does dynamic_cast<QMBead*>(b); not work
 
         // TODO: initialize crgunit data here
+        
     }
 }
 
@@ -43,6 +44,9 @@ void QMTopology::Update(Topology& cg_top)
         (*iter)->setU((*iter_cg)->getU());
         (*iter)->setV((*iter_cg)->getV());
         (*iter)->setW((*iter_cg)->getW());
+        (*iter)->setPosCrg();
+        (*iter)->setNormCrg();
+        (*iter)->setPlaneCrg();
     }
 }
 

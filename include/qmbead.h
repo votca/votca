@@ -7,30 +7,38 @@
 
 #ifndef _QMBEAD_H
 #define	_QMBEAD_H
+/**
+    \brief contains the bead associated to a crg unit.
+
+ * It contains the usual bead info + a vector of all the CG beads that make up a bead
+*/
 
 #include <votca/csg/bead.h>
 #include <moo/crgunit.h>
 
-class QMTopology;
-
-/**
-    \brief contains the bead associated to a crg unit.
-
-    It contains the usual bead info + a pointer to a crg unit + position which
-    it should update
-
-*/
-class QMBead : public Bead
-{
+class QMBead:Bead{
 public:
-    
-    ///at each frame read update the QM bead and the associated crgunit
-    void UpdateCrgUnit();
+    QMBead();
+    ~QMBead();
 
-    CrgUnit* getCrgUnit(){
-        return _crg;
+    void setPosCrg(){
+        _crg->SetPos(_ipos, r);
     }
 
+    void setNormCrg(){
+        _crg->SetNorm(_ipos, Bead::GetU());
+    }
+
+    void setPlaneCrg(){
+        _crg->SetPlane(_ipos, Bead::GetV());
+    }
+    CrgUnit* GetCrgUnit(){
+        return _crg;
+    }
+    ///at each frame read update the QM bead and the associated crgunit
+    ///this is not necessary. in order to update the _crg it is sufficient to overload
+    ///the functions setU/setV/setW.
+    ///void UpdateQMBead();
 private:
     /// constructor if bead is created with no rerference bead (e.g. when reading from file)
     QMBead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name,
@@ -38,7 +46,10 @@ private:
 
     ///the charge unit
     CrgUnit * _crg;
-    int _pos;
+    /// the
+    int _ipos;
+    /// parents contains the information necessary to update the CrgUnit
+    ///vector <Bead *> _parents;
 
     friend class QMTopology;
 };
