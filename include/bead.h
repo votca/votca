@@ -178,6 +178,8 @@ public:
 
     void setOptions(Property &options) { _options = &options; }
 
+    /// dummy function to have at least 1 virtual (dynamic_cast)
+    virtual void DummyFunction() {}
 protected:
     int _id;
     vector<int> _parent_beads;
