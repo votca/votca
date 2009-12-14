@@ -12,6 +12,12 @@ QMTopology::~QMTopology()
     _nblist = NULL;
 }
 
+
+void QMTopology::Initialize(Topology& cg_top)
+{
+    CopyTopologyData(&cg_top);
+}
+
 void QMTopology::Update(Topology& cg_top)
 {
     BeadContainer::iterator iter;

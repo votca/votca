@@ -35,6 +35,8 @@ public:
     //int UpdateQMTopology();
 
     /// update the topology based on cg positons
+    void Initialize(Topology &cg_top);
+    /// update the topology based on cg positons
     void Update(Topology &cg_top);
 
     /// \brief Cretae a new bead
