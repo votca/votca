@@ -33,10 +33,6 @@ public:
     ///at each evaluate CG step we will need to reassess the QMBeads
     //int UpdateQMTopology();
 
-    /// Initialize the qm topology based on a coarse grained topology
-    /// this could move to cgengine part since it's mainly copying of beads
-    void Initialize(Topology &cg_top);
-
     /// update the topology based on cg positons
     void Update(Topology &cg_top);
 
