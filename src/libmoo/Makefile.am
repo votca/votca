@@ -8,6 +8,6 @@ lib_LIBRARIES = libmoo.a
 
 libmoo_a_SOURCES = \
     basis_set.cpp  charges.cpp  crgunit.cc  crgunittype.cc \
-    fock.cc  orbitals.cpp  mol_and_orb.cpp jcalc.cc
+    fock_matrix.cpp  mol_pair.cc  orbitals.cpp  qm_molecule.cpp
     
 CLEANFILES = *~ *.a

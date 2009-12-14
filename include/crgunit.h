@@ -33,7 +33,7 @@ public:
     CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
             const unsigned int & id, CrgUnitType * type,
             const unsigned int & molId);
-    CrgUnit(vec pos, vec plane1, vec norm1, CrgUnitType * type);
+
     void copyCrgUnit(CrgUnit & acrg);
     void copyCrgUnit(CrgUnit & acrg, const int & id);
     const double& GetNRG() const;
@@ -55,8 +55,6 @@ public:
 
     void SetCom(vec& com);
     void SetPos(const int& i, vec& pos);
-    void SetNorm(const int& i, vec& pos);
-    void SetPlane(const int& i, vec& pos);
 
     mol_and_orb * rotate_translate_beads();
 
@@ -171,14 +169,8 @@ inline void CrgUnit::SetPos(const int& i, vec& pos) {
     if (i >= _positions.size() ) _positions.resize(i+1);
     _positions[i] = pos;
 };
-inline void CrgUnit::SetNorm(const int& i, vec& pos) {
     if (i >= _norms.size() ) _norms.resize(i+1);
-    _norms[i] = pos;
-};
-inline void CrgUnit::SetPlane(const int& i, vec& pos) {
     if (i >= _planes.size() ) _planes.resize(i+1);
-    _planes[i] = pos;
-};
 
 inline vec CrgUnit::GetPos(const int & i) {
     return _positions[i];
