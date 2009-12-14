@@ -16,8 +16,10 @@ manual.tex: hgid.tex fig_submake functionality_submake reference_submake usage_s
 %_subclean:
 	$(MAKE) $(MFLAGS) -C $* clean
 
-clean: fig_subclean functionality_subclean reference_subclean usage_submake
+qclean:
 	./latexmk.pl -C manual.tex
+
+clean: qclean fig_subclean functionality_subclean reference_subclean usage_submake
 	rm -f manual.fdb_latexmk
 	rm -f hgid.tex
 	rm -f *~
