@@ -37,3 +37,7 @@
 %wiki stuff
 %%%%%%%%%%%%%%%%%%%
 %!preproc(wiki): '\+\+' '=='
+%!preproc(wiki): '<' 'XXXLTXXX'
+%!preproc(wiki): '>' 'XXXGTXXX'
+%!postproc(wiki): 'XXXLTXXX' '<nowiki><</nowiki>'
+%!postproc(wiki): 'XXXGTXXX' '<nowiki>></nowiki>'

@@ -20,9 +20,15 @@ reference/programs/all.tex
 reference/programs/all.wiki
 reference/scripts/Makefile
 reference/scripts/csg_table.tex
+reference/scripts/csg_table.t2t
 reference/scripts/*.pl.tex
 reference/scripts/*.sh.tex
+reference/scripts/*.pl.t2t
+reference/scripts/*.sh.t2t
+reference/scripts/*.pl.wiki
+reference/scripts/*.sh.wiki
 reference/scripts/all.tex
+reference/scripts/all.wiki
 reference/xml/Makefile
 reference/xml/*.tex
 usage/fig/*.eps

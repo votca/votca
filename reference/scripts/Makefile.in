@@ -1,16 +1,20 @@
 SHELL=/bin/bash
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
+SCRIPTS:=$(shell csg_call -l | sed -e '1d' -e '/\(user\|csg\) table/d' | awk '{print $$3}' | sort -u )
 
-.SUFFIXES: .t2t .tex
 .PHONY: clean bootstrap
-.INTERMEDIATE: csg_table.t2t
+.SECONDARY:
 
 all: all.tex csg_table.tex 
+wiki: all.wiki
 	
-all.tex: $(SCRIPTS)
-	echo $(SCRIPTS) | \
+all.tex: $(SCRIPTSTEX)
+	echo $(SCRIPTSTEX) | \
 	sed -e 's/\.tex[[:space:]]*/\n/g' | \
 	sed -e '$$d' -e 's@.*@\\input{$(DIR)/&}@' > $@
+
+all.wiki: $(SCRIPTSWIKI)
+	cat $(SCRIPTSWIKI) > $@
 
 csg_table.t2t:
 	./call2t2t.sh > $@
@@ -18,29 +22,29 @@ csg_table.t2t:
 %.t2t: 
 	./help2t2t.sh csg_call --direct $* > $@	
 
-.t2t.tex:
+%.tex: %.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 
-#cleant2t:
-#	rm -f *.t2t
+%.wiki: %.t2t
+	./txt2tags -t wiki --no-header --infile $< --outfile $@
 
 clean: 
-	rm -f $(SCRIPTS) all.tex csg_table.tex
-	rm -f *.tex *~ csg_table.t2t
+	rm -f $(SCRIPTST2T) csg_table.t2t
+	rm -f $(SCRIPTSTEX) all.tex csg_table.tex
+	rm -f $(SCRIPTSWIKI) all.wiki
+	rm -f *~
 	rm -f Makefile
 
-bootstrap: Makefile.in
+bootstrap: 
 	@if ! which csg_call > /dev/null 2>&1; then\
 	  echo csg_call not found;\
 	  exit 1;\
 	fi
-	csg_call -l | \
-	sed -e '1d' \
-	    -e '/\(user\|csg\) table/d' | \
-	awk '{print $$3}' | \
-	sort -u | \
-	sed -e 's/.*/\t&.tex\\/' \
-	    -e '1i SCRIPTS=\\' > Makefile
+	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i SCRIPTST2T=\\' > Makefile
+	echo >> Makefile
+	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i SCRIPTSTEX=\\' >> Makefile
+	echo >> Makefile
+	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i SCRIPTSWIKI=\\' >> Makefile
 	echo >> Makefile
 	cat Makefile.in >> Makefile
 	
