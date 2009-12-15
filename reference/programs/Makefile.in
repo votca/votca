@@ -1,28 +1,34 @@
 SHELL=/bin/bash
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
+BINS:=$(shell ls `dirname \`which csg_property\``/csg_* | xargs -n1 basename )
 
-.SUFFIXES: .t2t .tex
 .PHONY: clean bootstrap
 
 all: all.tex
+wiki: all.wiki
 
-all.tex: $(BINS)
-	echo $(BINS) | \
+all.tex: $(BINSTEX)
+	echo $(BINSTEX) | \
 	sed -e 's/\.tex[[:space:]]*/\n/g' | \
 	sed -e '$$d' -e 's@.*@\\input{$(DIR)/&}@' > $@
+
+all.wiki: $(BINSWIKI)
+	cat $(BINSWIKI) > $@
 
 %.t2t: 
 	./help2t2t.sh $* > $@	
 
-.t2t.tex:
+%.tex: %.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 
-#cleant2t:
-#	rm -f *.t2t
+%.wiki: %.t2t
+	./txt2tags -t wiki --no-header --infile $< --outfile $@
 
 clean: 
-	rm -f $(DOCS) all.tex
-	rm -f *.tex *~
+	rm -f $(BINST2T)
+	rm -f $(BINSTEX) all.tex
+	rm -f $(BINSWIKI) all.wiki
+	rm -f *~
 	rm -f Makefile
 
 bootstrap: Makefile.in
@@ -34,9 +40,11 @@ bootstrap: Makefile.in
 	  echo csg_property not found;\
 	  exit 1;\
 	fi
-	ls `dirname \`which csg_property\``/csg_* | \
-	xargs -n1 basename | \
-	sed -e 's/.*/\t&.tex\\/' -e '1i BINS=\\' > Makefile
+	echo $(BINS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINST2T=\\' > Makefile
+	echo >> Makefile
+	echo $(BINS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINSTEX=\\' >> Makefile
+	echo >> Makefile
+	echo $(BINS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i BINSWIKI=\\' >> Makefile
 	echo >> Makefile
 	cat Makefile.in >> Makefile
 	

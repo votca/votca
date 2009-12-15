@@ -14,7 +14,10 @@ manual.pdf
 manual.toc
 reference/programs/Makefile
 reference/programs/csg_*.tex
+reference/programs/csg_*.t2t
+reference/programs/csg_*.wiki
 reference/programs/all.tex
+reference/programs/all.wiki
 reference/scripts/Makefile
 reference/scripts/csg_table.tex
 reference/scripts/*.pl.tex
