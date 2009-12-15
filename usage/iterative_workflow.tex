@@ -1,29 +1,24 @@
 \chapter{Iterative workflow control}
 
-\begin{figure}
-  \includegraphics[width=0.7\columnwidth]{functionality/fig/flowchart.eps}
+Iterative workflow control is essential for the \ibi and \imc methods. Before using it, \texttt{CSGSHARE} variable must be set. \votca initialization script will do it for you (see sec.~\ref{sec:introduction} where it is explained how to source it.)
+
+%\begin{figure}
+\begin{wrapfigure}{ht}{8cm}  
+\includegraphics[width=8cm]{functionality/fig/flowchart.eps}
   \caption{
     \label{fig:flowchart}
     Block-scheme of the workflow control for the iterative methods. The most time-consuming parts are marked in red.
   }
-\end{figure}
+\end{wrapfigure}
+%\end{figure}
 
-During the global initialization the initial guess for the coarse-grained potential is calculated from the reference radial distribution function or converted from a given potential guess to the internal format. The actual iterative step starts with an iteration initialization. It searches for possible checkpoints and copies and converts files from the previous step and the base directory. Then the simulation run is prepared by converting potentials to the format required by the external sampling program and the actual sampling is performed. Currently, an interface with \gromacs~\cite{gromacs4} is implemented but an extension for other packages is straightforward. After sampling the phasespace, the potential update $\Delta U$ is calculated. Often the update requires postprocessing, such as smoothing, interpolation, extrapolation or fitting to an analytical form. A simple pressure correction~\cite{Reith:2003} can also be seen as a postprocessing of $\Delta U$, due to the fact that it only adds a linear interparticle separation function.
-%
+The workflow control is sketched in fig.~\ref{fig:flowchart}. During the global initialization the initial guess for the coarse-grained potential is calculated from the reference function or converted from a given potential guess to the internal format. The actual iterative step starts with an iteration initialization. It searches for possible checkpoints and copies and converts files from the previous step and the base directory. Then the simulation run is prepared by converting potentials to the format required by the external sampling program and the actual sampling is performed. 
+
+After sampling the phasespace, the potential update is calculated. Often the update requires postprocessing, such as smoothing, interpolation, extrapolation or fitting to an analytical form. 
+
 Finally, the new potential is determined and postprocessed. If the iterative process continues, the next iterative step starts to initialize.
 
-\section{General usage}
-To setup the environment, run:
-csh, tcsh:
-\begin{verbatim}
-  source <csg-installation>/bin/CSGRC.csh
-\end{verbatim}
-\begin{verbatim}
-  bash: source <csg-installation>/bin/CSGRC.bash
-\end{verbatim}
-The program to run all iterative procedures is \prog{csg_inverse}. Tutorials can be found on the \votca homepage \votcaweb.
-
-\section{Run preparation}
+\section{Preparing the run}
 To run the iterations, the input for the sampling program (e.g. \gromacs ) has to be prepared in order to carry out one iteration. All files for running a coarse-grained simulation except for the tabulated potentials that will be created during the run must be present and specified in the options xml-file.
 
 As a target distribution, any table file can be given (e.g. gromacs output from g\_rdf). The program automaticaly takes care to resample the table to the correct grid spacing as specified in the .xml file.
