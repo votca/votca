@@ -340,13 +340,17 @@ int orb::read_orb_gauss( const char * nameorbs)
                 while (line.size() > 1 )
                 {
                         number.assign(line,0,15);
+    //                    cout << "DBG ONLY!!! " << number << endl;
                         file.push_back(number);
                         line.erase(0,15);
                 }
         }
         k++;
    }
-
+   if (file.size() != NBasis*NBasis ){
+       throw runtime_error(string("I expect so many basis on this molecule ") + lexical_cast<string>(NBasis*NBasis) +
+               string(" but i read so many: " ) + lexical_cast<string>(file.size()));
+   }
    for(i=0,j=0,k=0;i<file.size();i++,k++)
    {
 

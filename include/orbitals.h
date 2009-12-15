@@ -7,10 +7,15 @@
 #include <vector>
 #include <stdlib.h>
 #include <votca/tools/matrix.h>
+#include <stdexcept>
+#include <boost/lexical_cast.hpp>
+
 #include "basis_set.h"
 #include "global.h"
 
 using namespace std;
+using std::runtime_error;
+using namespace boost;
 
 class orb
 {
@@ -51,7 +56,7 @@ public:
 
 
     void clear(){
-
+    //    cout << "call destructor for orb" <<endl;
     	if (NBasis != 0 ){
 	    delete [] bs;
 	    delete [] psi[0];
