@@ -39,7 +39,7 @@ public:
     /// \brief the distance of the beads
     double &dist() { return _dist; }
     
-private:
+protected:
         vec _r;
         double _dist;
 };
