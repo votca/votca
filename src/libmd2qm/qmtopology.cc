@@ -47,12 +47,8 @@ void QMTopology::LoadListCharges(const string &file)
 }
 
 
-void QMTopology::AddAtomisticBeads(const int & molid, const string & namecrgunit, Topology * totop){
-    string uniqid=lexical_cast<string>(molid)+":"+namecrgunit;
-    map <string, CrgUnit*>::iterator  itm= _mcharges.find(uniqid);
-    if (itm == _mcharges.end())
-        throw runtime_error(string ("could not find the molid and crgtype: ") + uniqid);
-    CrgUnit * crg= itm->second;
+void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
+    
     mol_and_orb * atoms = crg->rotate_translate_beads();
 
     for (int i=0;i<atoms->getN();i++){
@@ -60,7 +56,8 @@ void QMTopology::AddAtomisticBeads(const int & molid, const string & namecrgunit
         string atomtype = "QMAT-"+string( atoms->gettype(i) );
         BeadType * bt= totop->GetOrCreateBeadType(atomtype);
         int nbead = totop-> BeadCount();
-        totop ->CreateBead(1, atomtype,bt,nbead, 0, 0.);
+        Bead * bead = totop ->CreateBead(1, atomtype,bt,nbead, 0, 0.);
+        bead->setPos(pos);
     }
     delete atoms;
 }

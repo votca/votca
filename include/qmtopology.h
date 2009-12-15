@@ -54,7 +54,7 @@ public:
     JCalc &GetJCalc() { return _jcalc; }
 
     ///Loads the atomistic beads (from mol_and_orb) into totop from the CrgUnit defined by namecrgunit and molid
-    void AddAtomisticBeads(const int & molid, const string & namecrgunit, Topology * totop);
+    void AddAtomisticBeads(CrgUnit * crg, Topology * totop);
 protected:
 
     QMNBList *_nblist;

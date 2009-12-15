@@ -34,12 +34,11 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         iter!=nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
-        vector <double> Js = _qmtop->GetJCalc().GetJ(*crg1, *crg2);
-        cout << crg1->GetId() << " "
-             << crg2->GetId() << " ";
-        for(int i=0; i<Js.size(); +i)
-            cout << Js[i] << " ";
-        cout << endl;
+
+        Topology atoms;
+        int molid;
+        string crgname;
+        _qmtop->AddAtomisticBeads(molid, crgname, &atoms);
     }
 }
 
