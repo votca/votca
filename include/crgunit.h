@@ -163,14 +163,14 @@ inline const vector <vec>::iterator CrgUnit::GetPosLast() {
 
 inline void CrgUnit::SetCom(vec& com) {
     _com = com;
-};
+}
 
 inline void CrgUnit::SetPos(const int& i, vec& pos) {
     if (i >= _positions.size() ) _positions.resize(i+1);
     _positions[i] = pos;
-};
     if (i >= _norms.size() ) _norms.resize(i+1);
     if (i >= _planes.size() ) _planes.resize(i+1);
+}
 
 inline vec CrgUnit::GetPos(const int & i) {
     return _positions[i];
