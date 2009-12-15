@@ -2,9 +2,9 @@
 def_graphic_ext=
 img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
-kileprversion=1
-kileversion=1.9.3
-lastDocument=functionality/mapping.tex
+kileprversion=2
+kileversion=2.1 beta2
+lastDocument=usage/iterative_workflow.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -21,25 +21,27 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=12
+line=0
 open=true
-order=3
+order=2
 
 [item:functionality/inverse.tex]
 archive=true
 column=0
-encoding=
+encoding=UTF-8
 highlight=LaTeX
 line=0
 open=true
+order=7
 
 [item:functionality/mapping.tex]
 archive=true
 column=0
-encoding=ISO 8859-1
+encoding=UTF-8
 highlight=LaTeX
 line=5
 open=true
+order=10
 
 [item:introduction.tex]
 archive=true
@@ -48,7 +50,7 @@ encoding=UTF-8
 highlight=LaTeX
 line=22
 open=true
-order=7
+order=5
 
 [item:manual.kilepr]
 archive=true
@@ -61,12 +63,12 @@ order=-1
 
 [item:manual.tex]
 archive=true
-column=25
+column=34
 encoding=UTF-8
 highlight=LaTeX
-line=25
+line=21
 open=true
-order=4
+order=3
 
 [item:reference.tex]
 archive=true
@@ -79,12 +81,12 @@ order=1
 
 [item:theory.tex]
 archive=true
-column=170
+column=14
 encoding=UTF-8
 highlight=LaTeX
 line=155
 open=true
-order=8
+order=6
 
 [item:usage.tex]
 archive=true
@@ -102,31 +104,52 @@ encoding=UTF-8
 highlight=LaTeX
 line=54
 open=true
-order=5
+order=4
+
+[item:usage/cgruns.tex]
+archive=true
+column=0
+encoding=UTF-8
+highlight=LaTeX
+line=4
+open=true
+order=12
 
 [item:usage/forcematching.tex]
 archive=true
 column=24
-encoding=ISO 8859-1
+encoding=UTF-8
 highlight=LaTeX
 line=0
 open=true
+order=9
 
 [item:usage/ibi.tex]
 archive=true
-column=3
-encoding=ISO 8859-1
+column=125
+encoding=UTF-8
 highlight=LaTeX
-line=1
+line=8
 open=true
+order=11
 
 [item:usage/imc.tex]
 archive=true
 column=0
-encoding=ISO 8859-1
+encoding=UTF-8
 highlight=LaTeX
 line=0
 open=true
+order=8
+
+[item:usage/iterative_workflow.tex]
+archive=true
+column=0
+encoding=UTF-8
+highlight=LaTeX
+line=15
+open=true
+order=13
 
 [item:votca.bib]
 archive=true
