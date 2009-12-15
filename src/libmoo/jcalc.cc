@@ -298,5 +298,6 @@ CrgUnit JCalc::DefineCrgUnit(vec pos, matrix orient, string name){
 
     vec plane1 = orient.getCol(1);
     vec norm1 = orient.getCol(2);
-    return CrgUnit::CrgUnit(pos, plane1, norm1, type);
+    CrgUnit acrg(pos, plane1, norm1, type);
+    return acrg;
 }
