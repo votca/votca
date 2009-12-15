@@ -30,12 +30,13 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     nblist.setCutoff(1.0);
     nblist.Generate(list1);
 
-    for(NBList::iterator iter = nblist.getNBList()->begin();
-        iter!=nblist.getNBList()->end();++iter) {
-        QMBeadPair *pair = dynamic_cast<QMBeadPair*> (*iter);
-        vector <double> Js = _qmtop->GetJCalc().GetJ(*pair->CrgUnit1(), *pair->CrgUnit2());
-        cout << pair->CrgUnit1()->GetId() << " "
-             << pair->CrgUnit1()->GetId() << " ";
+    for(QMNBList::iterator iter = nblist.begin();
+        iter!=nblist.end();++iter) {
+        CrgUnit *crg1 = (*iter)->first;
+        CrgUnit *crg2 = (*iter)->second;
+        vector <double> Js = _qmtop->GetJCalc().GetJ(*crg1, *crg2);
+        cout << crg1->GetId() << " "
+             << crg2->GetId() << " ";
         for(int i=0; i<Js.size(); +i)
             cout << Js[i] << " ";
         cout << endl;
