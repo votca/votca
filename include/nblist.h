@@ -42,11 +42,20 @@ public:
     /// functon to use a user defined pair type
     template<typename pair_type>
     void setPairType();
-   
+
+    
+    /// typedef for a user match function, return true if bead should be added
+    typedef bool (*match_function_t)(Bead *, Bead *, const vec &r);
+
+    /// set user match function
+    void setMatchFunction(match_function_t match_function);
+
+    /// match function that always matches
+    static bool match_always(Bead *b1, Bead *b2, const vec &r) { return true; }
+
 protected:
     double _cutoff;
     bool _do_exclusions;
-    bool Match(Bead *bead1, Bead *bead2, const vec &r);
 
     /// policy function to create new bead types
     template<typename pair_type>
@@ -58,12 +67,21 @@ protected:
     typedef BeadPair* (*pair_creator_t)(Bead *bead1, Bead *bead2, const vec &r);
     /// the current bead pair creator function
     pair_creator_t _pair_creator;
+
+    //    typedef T* (*creator_t)();
+
+    match_function_t _match_function;
 };
 
 template<typename pair_type>
 void NBList::setPairType()
 {
     _pair_creator = NBList::beadpair_create_policy<pair_type>;
+}
+
+inline void NBList::setMatchFunction(match_function_t match_function)
+{
+    _match_function = match_function;
 }
 
 #endif	/* _NBLIST_H */

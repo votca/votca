@@ -143,8 +143,9 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)
         vec v = (*iter)->getPos();
         vec r = _top->BCShortestConnection(u, v);
         
-        if(Match(bead, *iter, r))
-            if(!FindPair(bead, *iter))
-                AddPair(new BeadPair(bead, *iter, r));
+        if(abs(r) < _cutoff)
+            if(_match_function(bead, *iter, r))
+               if(!FindPair(bead, *iter))
+                    AddPair(new BeadPair(bead, *iter, r));
     }
 }
