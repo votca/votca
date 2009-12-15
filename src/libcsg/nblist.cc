@@ -18,6 +18,12 @@
 #include "nblist.h"
 #include <iostream>
 
+NBList::NBList()
+  : _do_exclusions(false)
+{
+    setPairType<BeadPair>();
+}
+
 void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
 {
     BeadList::iterator iter1;

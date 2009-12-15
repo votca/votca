@@ -31,19 +31,40 @@ class NBList
     : public PairList<Bead*, BeadPair>
 {
 public:
-    NBList() : _do_exclusions(false) {}
+    NBList();
     
     void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
     void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
     
     void setCutoff(double cutoff) { _cutoff = cutoff; }
     double getCutoff() { return _cutoff; }
+
+    /// functon to use a user defined pair type
+    template<typename pair_type>
+    void setPairType();
    
 protected:
     double _cutoff;
     bool _do_exclusions;
     bool Match(Bead *bead1, Bead *bead2, const vec &r);
+
+    /// policy function to create new bead types
+    template<typename pair_type>
+    static BeadPair *beadpair_create_policy(Bead *bead1, Bead *bead2, const vec &r)
+    {
+        return new pair_type(bead1, bead2, r);
+    }
+
+    typedef BeadPair* (*pair_creator_t)(Bead *bead1, Bead *bead2, const vec &r);
+    /// the current bead pair creator function
+    pair_creator_t _pair_creator;
 };
+
+template<typename pair_type>
+void NBList::setPairType()
+{
+    _pair_creator = NBList::beadpair_create_policy<pair_type>;
+}
 
 #endif	/* _NBLIST_H */
 
