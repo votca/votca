@@ -38,7 +38,9 @@ public:
     vec &r() { return _r; }
     /// \brief the distance of the beads
     double &dist() { return _dist; }
-    
+
+    /// dummy virtual for dynamic cast
+    virtual void DummyVirtual(void) {}
 protected:
         vec _r;
         double _dist;
