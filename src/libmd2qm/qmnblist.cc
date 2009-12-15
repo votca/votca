@@ -7,6 +7,7 @@ void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
     Cleanup();
     
     _father = dynamic_cast<QMTopology*> (list1.getTopology());
+    _father->AssignNBList(this);
     
     NBList nb;
     nb.setCutoff(_cutoff);

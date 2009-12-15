@@ -31,8 +31,8 @@ public:
     QMTopology();
     ~QMTopology();
 
-    ///at each evaluate CG step we will need to reassess the QMBeads
-    //int UpdateQMTopology();
+    //assign neighbours
+    void AssignNBList(NBList * nblist);
 
     /// update the topology based on cg positons
     void Initialize(Topology &cg_top);
@@ -92,6 +92,11 @@ inline Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type
     }
     return bead;
 }
+
+inline  void AssignNBList(NBList * nblist){
+    _nblist= nblist;
+}
+
 
 #endif	/* _CRGTOPOLOGY_H */
 
