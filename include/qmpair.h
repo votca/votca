@@ -11,14 +11,36 @@
 #include <moo/crgunit.h>
 #include <utility>
 
+#include "qmtopology.h"
+
 class QMPair :
     public std::pair<CrgUnit *, CrgUnit *>
 {
 public:
     QMPair() {}
-    QMPair(CrgUnit *crg1, CrgUnit *crg2, vec r)
-      : std::pair<CrgUnit *, CrgUnit *>(crg1, crg2), _r(r), _dist(abs(r)) {}
+    QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top)
+    {
+        _r = top->BCShortestConnection(crg1->GetCom(), crg2->GetCom());
+        _dist = abs(_r);
 
+        // check if PBC:
+        vec d = crg2->GetCom() - crg1->GetCom();
+        if (d !=  _r){
+            _ghost = new CrgUnit(*crg2);
+            vec displ = _r - d;
+            _ghost->shift(displ);
+            std::pair<CrgUnit *, CrgUnit *>(crg1, _ghost);
+        }
+        else {
+            std::pair<CrgUnit *, CrgUnit *>(crg1,crg2);
+            _ghost=NULL;
+        }
+    }
+
+    ~QMPair(){
+        if(_ghost != NULL)
+            delete _ghost;
+    }
     /// \brief the vector connecting two beads
     vec &r() { return _r; }
     /// \brief the distance of the beads
@@ -26,6 +48,7 @@ public:
 protected:
     vec _r;
     double _dist;
+    CrgUnit * _ghost;
 };
 
 #endif	/* _QMBEADPAIR_H */

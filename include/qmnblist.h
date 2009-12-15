@@ -30,6 +30,7 @@ public:
 protected:
 
     double _cutoff;
+    QMTopology *_father;
 
 };
 
