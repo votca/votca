@@ -15,6 +15,7 @@ void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
         QMBead *b2=dynamic_cast<QMBead*>((*iter)->second);
 
         if(b1->getMolecule() == b2->getMolecule()) continue;
+        if(b1->GetCrgUnit() == NULL || b2->GetCrgUnit() == NULL) continue;
 
         if(!FindPair(b1->GetCrgUnit(), b2->GetCrgUnit()))
             AddPair(new QMPair(b1->GetCrgUnit(), b2->GetCrgUnit(), (*iter)->r()));
