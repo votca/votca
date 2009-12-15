@@ -86,10 +86,7 @@ int mol_and_orb::init(const char * nameinput){
                     }
 		    else {getline(in, word); i--;}
 		}
-                else if (word == "" )
-                    throw runtime_error(string ("no empty lines in atomistic representation of qm molecule please. Bad file: " )
-                            + string(nameinput) );
-
+              
 		else if (i%4==1) xch = word;
 		else if (i%4==2) ych = word;
 		else if (i%4==3) {
