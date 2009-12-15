@@ -61,7 +61,7 @@ protected:
     template<typename pair_type>
     static BeadPair *beadpair_create_policy(Bead *bead1, Bead *bead2, const vec &r)
     {
-        return new pair_type(bead1, bead2, r);
+        return dynamic_cast<BeadPair*>(new pair_type(bead1, bead2, r));
     }
 
     typedef BeadPair* (*pair_creator_t)(Bead *bead1, Bead *bead2, const vec &r);
