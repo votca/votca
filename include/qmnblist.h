@@ -2,6 +2,7 @@
 #define	_QMNBList_H
 
 #include "qmpair.h"
+#include "qmtopology.h"
 #include <votca/csg/pairlist.h>
 #include <votca/csg/beadlist.h>
 #include <moo/crgunit.h>
@@ -13,6 +14,7 @@
  * nice if one want's to switch in between nbsearch algorithms
  *
  * */
+class QMTopology;
 
 class QMNBList
     : public PairList<CrgUnit *, QMPair>

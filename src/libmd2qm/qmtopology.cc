@@ -1,4 +1,5 @@
 #include "qmtopology.h"
+#include "qmnblist.h"
 
 QMTopology::QMTopology()
 {

@@ -25,6 +25,7 @@
     it should update the position of the crg unit. Crg units should be associated to
     these qm beads and not to any other.
 */
+
 class QMNBList;
 
 class QMTopology : public Topology

@@ -15,9 +15,7 @@
 
 #include "votca/csg/bead.h"
 #include "moo/crgunit.h"
-
-class QMTopology;
-
+#include "qmtopology.h"
 class QMBead : public Bead{
 public:
     QMBead();
