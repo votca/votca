@@ -34,6 +34,11 @@ public:
             const unsigned int & id, CrgUnitType * type,
             const unsigned int & molId);
     CrgUnit(vec pos, vec plane1, vec norm1, CrgUnitType * type);
+    
+    CrgUnit(CrgUnit & acrg){
+        copyCrgUnit(acrg);
+    }
+    
     void copyCrgUnit(CrgUnit & acrg);
     void copyCrgUnit(CrgUnit & acrg, const int & id);
     const double& GetNRG() const;
