@@ -44,9 +44,14 @@ public:
     /// CopyTopologyData work
     Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
 
+    /// Loads the definitions of crgunits into jcalc
     void LoadListCharges(const string &file);
 
+    /// Returns the underlying crgunit type lists etc
     JCalc &GetJCalc() { return _jcalc; }
+
+    ///Loads the atomistic beads (from mol_and_orb) into totop from the CrgUnit defined by namecrgunit and molid
+    void AddAtomisticBeads(const int & molid, const string & namecrgunit, Topology * totop);
 protected:
 
     NBList *_nblist;
