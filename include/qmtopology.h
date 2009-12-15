@@ -16,6 +16,7 @@
 
 #include "qmbead.h"
 
+
 /**
     \brief topology of qmbeads
 
@@ -24,6 +25,7 @@
     it should update the position of the crg unit. Crg units should be associated to
     these qm beads and not to any other.
 */
+class QMNBList;
 
 class QMTopology : public Topology
 {
@@ -32,7 +34,7 @@ public:
     ~QMTopology();
 
     //assign neighbours
-    void AssignNBList(NBList * nblist);
+    void AssignNBList(QMNBList * nblist);
 
     /// update the topology based on cg positons
     void Initialize(Topology &cg_top);
@@ -54,7 +56,7 @@ public:
     void AddAtomisticBeads(const int & molid, const string & namecrgunit, Topology * totop);
 protected:
 
-    NBList *_nblist;
+    QMNBList *_nblist;
     JCalc _jcalc;
     map <string, CrgUnit*> _mcharges;
     list < CrgUnit *> _lcharges;
@@ -93,7 +95,7 @@ inline Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type
     return bead;
 }
 
-inline  void AssignNBList(NBList * nblist){
+inline  void QMTopology::AssignNBList(QMNBList  * nblist){
     _nblist= nblist;
 }
 

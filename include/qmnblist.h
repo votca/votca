@@ -19,7 +19,6 @@ class QMNBList
 {
 public:
      QMNBList() {};
-     ~QMNBList() {};
 
     void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
     void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
