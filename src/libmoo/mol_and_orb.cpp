@@ -39,7 +39,7 @@ void mol_and_orb::write_pdb(string file, string name_mol, const int & n=0 ){
         out_qm = fopen(file.c_str(), "a");
     }
     for (int i=0 ; i < N ;i++ ){
-        fprintf(out_qm, "ATOM  %5d %4c %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n", (n+i+1)%100000, atom_labels[i]._type,
+        fprintf(out_qm, "ATOM  %5d %4c %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n", (n+i+1)%100000, (atom_labels[i]._type)[0],
 name_mol.c_str(), " ", (n+1)/N, RA*((atom_pos[i]).getX()), RA*((atom_pos[i]).getY()), RA*((atom_pos[i]).getZ()), 1.0, 20.0);
     }
     fclose(out_qm);
@@ -72,20 +72,24 @@ int mol_and_orb::init(const char * nameinput){
 	vec pos;
 	
 	int lbl;
-	char type;
+	string type;
+        char chtype;
 	atom_type a_type;
 
 	while ( in >> word){
 
 		if(i%4==0){
-		    if (word[0] != '#' )  type= word[0];
+		    if (word[0] != '#' ) {
+                        type= word;
+                        chtype= word[0];
+                    }
 		    else {getline(in, word); i--;}
 		}
 		else if (i%4==1) xch = word;
 		else if (i%4==2) ych = word;
 		else if (i%4==3) {
 			zch = word;
-			switch (type ){
+			switch (chtype ){
 			
 			//set up labls, basis set ///////////////////////////////
 			    case 'C': {  // definition of notation used:

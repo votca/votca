@@ -12,6 +12,7 @@
       <itemPath>../../include/global.h</itemPath>
       <itemPath>../../include/jcalc.h</itemPath>
       <itemPath>../../include/mol_and_orb.h</itemPath>
+      <itemPath>../../include/orbitals.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"

@@ -23,7 +23,7 @@ class mol_and_orb
 private:
 
      struct atom_type {
-	char _type;
+	string _type;
 	int _lbl;
     };
 
@@ -184,7 +184,7 @@ public:
 	return (atom_labels[i])._lbl;
     }
 		
-    inline char gettype (const int & i ) const {
+    inline string gettype (const int & i ) const {
 	return (atom_labels[i])._type;
     }
 
