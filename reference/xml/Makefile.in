@@ -1,34 +1,38 @@
-all: $(XML) 
-
-.SUFFIXES: .xml .t2t .tex 
-.PHONY: clean 
-
 SHELL=/bin/bash
+XMLS:=$(shell ls ${CSGSHARE}/xml/*.xml | xargs -n1 basename )
 
-#xmlclean:
-#	rm -f cgoptions.xml mapping.xml
+all: $(XMLSTEX) 
+wiki: $(XMLSWIKI)
 
-#t2tclean:
-#	rm -f cgoptions.t2t mapping.t2t
+.PHONY: clean boostrap 
+.SECONDARY:
+
 
 %.t2t: 
-	./xml2t2t.sh $*.xml > $@
+	./xml2t2t.sh $* > $@
 
-.t2t.tex:
+%.tex: %.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 
+%.wiki: %.t2t
+	./txt2tags -t wiki --no-header --infile $< --outfile $@
+
 clean:
-	rm -f $(XML)
+	rm -f $(XMLST2T)
+	rm -f $(XMLSTEX)
+	rm -f $(XMLSWIKI)
 	rm -f *~
 	rm -f Makefile
 
-bootstrap: Makefile.in
+bootstrap: 
 	@if [ -z "${CSGSHARE}" ]; then \
 	  echo CSGSHARE not defined >&2; \
 	  exit 1; \
 	fi
-	ls ${CSGSHARE}/xml/*.xml | \
-	xargs -n1 basename | \
-	sed -e 's/^/\t/' -e 's/\.xml$$/.tex\\/' -e '1i XML=\\' > Makefile
+	echo $(XMLS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i XMLST2T=\\' > Makefile
+	echo >> Makefile
+	echo $(XMLS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i XMLSTEX=\\' >> Makefile
+	echo >> Makefile
+	echo $(XMLS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i XMLSWIKI=\\' >> Makefile
 	echo >> Makefile
 	cat Makefile.in >> Makefile

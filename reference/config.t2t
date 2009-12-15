@@ -23,7 +23,7 @@
 %!postproc(tex): '(\\hyperref)\{(.*?)\}\{(.*?)\}' '\1[\2]{\3}'
 
 %For other target is replaced by nothing.
-%!postproc: '(target|link|ref)\(.*?\)\((.*?\))' '\2'
+%!postproc: '(target|link|ref)\(.*?\)\((.*?)\)' '\2'
 %!postproc: 'label\(.*?\)' ''
 
 %Linebreak
