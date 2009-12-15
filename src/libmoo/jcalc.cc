@@ -1,14 +1,17 @@
 #include "jcalc.h"
 
 JCalc::~JCalc(){
-
+   // cout << "start deleting" <<endl;
     safe_delete(_listCrgUnitType);
+ //   cout << "deleted the crgunittype" <<endl;
     _mapCrgUnitByName.clear();
     map <pair<CrgUnitType *, CrgUnitType *> , JCalcData *>::iterator itm = _maplistfock.begin();
     for ( ; itm!=  _maplistfock.end();itm++){
         delete itm->second;
     }
      _maplistfock.clear();
+
+    cout << "start deleting" <<endl;
 }
 void JCalc::Init(string filename){
 

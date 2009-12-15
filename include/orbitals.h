@@ -51,7 +51,7 @@ public:
 
 
     void clear(){
-
+    //    cout << "call destructor for orb" <<endl;
     	if (NBasis != 0 ){
 	    delete [] bs;
 	    delete [] psi[0];

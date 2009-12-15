@@ -58,14 +58,12 @@ public:
 
     ~mol_and_orb(){
         
-        #ifdef DEBUG
-        cout << "callgin the mol_and orb destructor" << endl;
-        #endif
+       // #ifdef DEBUG
+   //     cout << "callgin the mol_and orb destructor" << endl;
+     //   #endif
 	N=0;
 	atom_pos.clear();
 	atom_labels.clear();
-        delete orbitals;
-	orbitals = NULL;
     }
 
 

@@ -25,12 +25,19 @@ CrgUnitType::~CrgUnitType() {
     cout << "callgin the crgunitype destructor" << endl;
 #endif
     vector < vector <int> >::iterator it_list_atoms_monomer = _list_atoms_monomer.begin();
+//    cout << "start clearing the list of atom monomers" <<endl;
     for (; it_list_atoms_monomer != _list_atoms_monomer.end(); ++it_list_atoms_monomer) {
         it_list_atoms_monomer->clear();
     }
+  //  cout << "start clearing the list of  monomers" <<endl;
     _list_atoms_monomer.clear();
+  //  cout << "start clearing the list of com monomers" <<endl;
     _list_coms_monomer.clear();
+  //  cout << "start clearing the list of ors monomers" <<endl;
     _list_ors_monomer.clear();
+   // cout << "clear vector of transport orbitals" <<endl;
+    _transorbs.clear() ;
+
 }
 
 CrgUnitType::CrgUnitType(char * namecoord, char * nameorb, char * nameneutr, char * namecrg, const double & reorg,
