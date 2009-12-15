@@ -8,24 +8,23 @@
 #ifndef _QMBEADPAIR_H
 #define	_QMBEADPAIR_H
 
-#include <votca/tools/vec.h>
+#include <votca/csg/beadpair.h>
+#include "qmbead.h"
 
-class QMBeadPair:: public std::pair<CrgUnit *, CrgUnit *>{
+class QMBeadPair : public BeadPair
+{
 public:
-    QMBeadPair(){}
-    QMBeadPair(QMBead *bead1, QMBead *bead2, vec r)
-    :std::pair<CrgUnit *, CrgUnit *> (bead1->GetCrgUnit(),bead2->GetCrgUnit()), _r(r), _d(abs(r){}
+    QMBeadPair() {}
+    QMBeadPair(Bead *bead1, Bead *bead2, vec r);
 
-
-    /// \brief the vector connecting two beads
-    vec &r() { return _r; }
-    /// \brief the distance of the beads
-    double &dist() { return _dist; }
-    
-private:
-    vec _r;
-    double _d;
+    CrgUnit *CrgUnit1() { return dynamic_cast<QMBead*>(first)->GetCrgUnit(); }
+    CrgUnit *CrgUnit2() { return dynamic_cast<QMBead*>(second)->GetCrgUnit(); }
 };
+
+inline QMBeadPair::QMBeadPair(Bead *bead1, Bead *bead2, vec r)
+    : BeadPair(bead1, bead2, r)
+{
+}
 
 #endif	/* _QMBEADPAIR_H */
 

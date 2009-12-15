@@ -45,6 +45,8 @@ public:
     Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
 
     void LoadListCharges(const string &file);
+
+    JCalc &GetJCalc() { return _jcalc; }
 protected:
 
     NBList *_nblist;

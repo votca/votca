@@ -5,6 +5,8 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/qmbead.h</itemPath>
+      <itemPath>../../include/qmbeadpair.h</itemPath>
+      <itemPath>../../include/qmnblist.h</itemPath>
       <itemPath>../../include/qmtopology.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"

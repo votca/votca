@@ -68,7 +68,7 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o: nbproject/Makefile-
 .build-subprojects:
 
 # Clean Targets
-.clean-conf: ${CLEAN_SUBPROJECTS}
+.clean-conf:
 	${RM} -r build/Debug
 	${RM} dist/Debug/GNU-Linux-x86/liblibmd2qm.a
 
