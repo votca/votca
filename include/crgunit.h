@@ -35,9 +35,9 @@ public:
             const unsigned int & molId);
     CrgUnit(vec pos, vec plane1, vec norm1, CrgUnitType * type);
     
-    CrgUnit(CrgUnit & acrg){
+    /*CrgUnit(CrgUnit & acrg){
         copyCrgUnit(acrg);
-    }
+    }*/
     
     void copyCrgUnit(CrgUnit & acrg);
     void copyCrgUnit(CrgUnit & acrg, const int & id);
