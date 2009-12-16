@@ -2,7 +2,6 @@
 #define	_QMNBList_H
 
 #include "qmpair.h"
-#include "qmtopology.h"
 #include <votca/csg/pairlist.h>
 #include <votca/csg/beadlist.h>
 #include <moo/crgunit.h>

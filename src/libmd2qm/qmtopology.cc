@@ -2,16 +2,10 @@
 #include "qmnblist.h"
 
 QMTopology::QMTopology()
-{
-    _nblist = NULL;
-}
+{}
 
 QMTopology::~QMTopology()
-{
-    if(_nblist)
-        delete _nblist;
-    _nblist = NULL;
-}
+{}
 
 
 void QMTopology::Initialize(Topology& cg_top)

@@ -10,8 +10,8 @@
 
 #include <moo/crgunit.h>
 #include <utility>
-#include "qmtopology.h"
 
+class QMTopology;
 
 class QMPair :
     public std::pair<CrgUnit *, CrgUnit *>
