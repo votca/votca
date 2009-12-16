@@ -4,7 +4,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
 kileprversion=2
 kileversion=2.1 beta2
-lastDocument=manual.tex
+lastDocument=usage/ibi.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -22,8 +22,8 @@ column=92
 encoding=UTF-8
 highlight=LaTeX
 line=22
-open=false
-order=5
+open=true
+order=3
 
 [item:manual.kilepr]
 archive=true
@@ -54,12 +54,12 @@ order=1
 
 [item:theory.tex]
 archive=true
-column=14
+column=5
 encoding=UTF-8
 highlight=LaTeX
-line=155
-open=false
-order=6
+line=137
+open=true
+order=4
 
 [item:usage.tex]
 archive=true
@@ -81,12 +81,12 @@ order=4
 
 [item:usage/cgruns.tex]
 archive=true
-column=0
+column=222
 encoding=UTF-8
 highlight=LaTeX
-line=4
-open=false
-order=12
+line=2
+open=true
+order=7
 
 [item:usage/forcematching.tex]
 archive=true
@@ -94,26 +94,26 @@ column=24
 encoding=UTF-8
 highlight=LaTeX
 line=0
-open=false
-order=9
+open=true
+order=6
 
 [item:usage/ibi.tex]
 archive=true
-column=125
+column=24
 encoding=UTF-8
 highlight=LaTeX
-line=8
-open=false
-order=11
+line=55
+open=true
+order=1
 
 [item:usage/imc.tex]
 archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=0
-open=false
-order=8
+line=7
+open=true
+order=2
 
 [item:usage/iterative_workflow.tex]
 archive=true
@@ -121,8 +121,8 @@ column=61
 encoding=UTF-8
 highlight=LaTeX
 line=46
-open=false
-order=13
+open=true
+order=5
 
 [item:votca.bib]
 archive=true
@@ -130,5 +130,5 @@ column=16
 encoding=UTF-8
 highlight=BibTeX
 line=12
-open=false
-order=6
+open=true
+order=8
