@@ -1,4 +1,17 @@
 \chapter{Preparing coarse-grained runs}
 \label{sec:usage:cgrun}
-csg\_gmxtopol, ...
+\textbf{WARNING: this section describes an experimental features, the exact names and options of the program might change in near future.  The section is specific to gromacs support, a generalization for other md packages is planned.}
 
+\section{Generating topology file for coarse-grained run}
+The mapping definition is close to a topology needed for a coarse grained run. To avoid redundant work, \prog{csg_gmxtopol} can be used to automatically generate a gromacs topology based on an atomistic reference system and a mapping file.
+
+At the current state, \prog{csg_gmxtopol} can only generate the topology for the first molecule in the system. If more molecule types are present, a special tpr file has to be prepared. The program can be executed by
+\begin{verbatim}
+  csg_gmxtopol --top topol.tpr --cg map.xml --out cgtop
+\end{verbatim}
+which will create a file cgtop.top. This file includes the topology for the first molecule including definitions for atoms, bonds, angles and dihedrals. It can be directly used as topology in \gromacs , however the force field definitions (atom types, bond tyes, etc) still have to be added manually.
+
+\section{TODO: here is planned (partially after first manual release)}
+\begin{itemize}
+  \item refining potential files (\votca output) to use in simulation package
+\end{itemize}
