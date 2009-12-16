@@ -34,7 +34,9 @@ public:
     QMTopology();
     ~QMTopology();
 
-
+    QMNBList & getNBList(){
+        return _nblist;
+    }
     /// update the topology based on cg positons
     void Initialize(Topology &cg_top);
     /// update the topology based on cg positons
@@ -54,7 +56,6 @@ public:
     ///Loads the atomistic beads (from mol_and_orb) into totop from the CrgUnit defined by namecrgunit and molid
     void AddAtomisticBeads(CrgUnit * crg, Topology * totop);
     
-    QMNBList & GenerateNBList(BeadList &list1, BeadList &list2);
 protected:
 
     QMNBList _nblist;
@@ -63,10 +64,6 @@ protected:
     list < CrgUnit *> _lcharges;
 };
 
-inline QMNBList  & QMTopology::GenerateNBList(BeadList &list1, BeadList & list2){
-    _nblist.Generate(list1,list2);
-    return _nblist;
-}
 
 #endif	/* _CRGTOPOLOGY_H */
 

@@ -21,12 +21,12 @@ void EasyJObserver::EndCG()
 void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 {
     _qmtop->Update(*top);
-    QMNBList nblist;
+    
 
     BeadList list1;
     Topology *toptmp = dynamic_cast<Topology*>(_qmtop);
     list1.Generate(*toptmp, "*");
-
+    QMNBList nblist =(_qmtop->getNBList);
     nblist.setCutoff(1.0);
     nblist.Generate(list1);
 
@@ -36,9 +36,9 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         CrgUnit *crg2 = (*iter)->second;
 
         Topology atoms;
-        int molid;
-        string crgname;
-        _qmtop->AddAtomisticBeads(molid, crgname, &atoms);
+        _qmtop->AddAtomisticBeads(molid, crg1);
+        _qmtop->AddAtomisticBeads(molid, crg2);
+        ///write the topo somehow now.
     }
 }
 
