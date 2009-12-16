@@ -173,15 +173,27 @@ inline void CrgUnit::SetCom(vec& com) {
 };
 
 inline void CrgUnit::SetPos(const int& i, const vec& pos) {
-    if ( i >= _positions.size())_positions.resize(i+1);
+    if ( i >= _positions.size()){
+        _positions.resize(i+1);
+        _norms.resize(i+1);
+        _planes.resize(i+1);
+    }
     _positions[i] = pos;
 };
 inline void CrgUnit::SetNorm(const int& i, const vec& pos) {
-    if ( i >= _positions.size())_positions.resize(i+1);
+    if ( i >= norms.size()){
+        _positions.resize(i+1);
+        _norms.resize(i+1);
+        _planes.resize(i+1);
+    }
     _norms[i] = pos;
 };
 inline void CrgUnit::SetPlane(const int& i, const vec& pos) {
-    if ( i >= _positions.size())_positions.resize(i+1);
+    if ( i >= _planes.size()){
+        _positions.resize(i+1);
+        _norms.resize(i+1);
+        _planes.resize(i+1);
+    }
     _planes[i] = pos;
 };
 
