@@ -19,9 +19,13 @@ As an example, we will describe here a mapping file of a united atom model of a 
 
 Exempts from the \texttt{propane.xml} file of the tutorial are shown below. The \mapopt{name} tag provides molecule name in the coarse-grained topology. The \mapopt{ident} tag must match the name of the molecule in the atomistic representation. In the \mapopt{topology} section all beads are defined by specifying bead name (A1, B1, A2), type, and atoms belonging to this bead in the form \texttt{residue id:residue name:atom name}. For each bead a map has to be specified, which is defined later in \mapopt{maps} section. Note that bead \hyperlink{\mapref{topology.cg_beads.cg_bead.type}}{type} and \hyperlink{\mapref{maps.map}}{map} can be different, which might be useful in a situation when chemically different beads (A1, B1) are assigned the same bead type. After defining all beads the bonded interactions of the coarse-grained molecule must be specified in the \hyperlink{\mapref{topology.cg_bonded}}{cg\_bonded} section. Finally, in the \hyperlink{\mapref{topology.cg_beads.cg_bead.mapping}}{mapping} section, the mapping coefficients are defined.
 
+\begin{figure}
+\centering
 \framebox{
 \lstinputlisting{functionality/propane.xml}
 }
+\caption{An exempt from a mapping file of a propane molecule. The complete file can be found in the \texttt{propane/single\_molecule} tutorial.}
+\end{figure}
 
 \section{Advanced topology handling}
 \label{sec:adv_topology}
