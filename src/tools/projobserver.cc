@@ -26,7 +26,7 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     BeadList list1;
     Topology *toptmp = dynamic_cast<Topology*>(_qmtop);
     list1.Generate(*toptmp, "*");
-    QMNBList nblist =(_qmtop->getNBList);
+    QMNBList &nblist =(_qmtop->getNBList);
     nblist.setCutoff(1.0);
     nblist.Generate(list1);
 
