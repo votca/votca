@@ -6,6 +6,9 @@
 #include <votca/csg/pairlist.h>
 #include <votca/csg/beadlist.h>
 #include <moo/crgunit.h>
+
+class QMTopology;
+
 /**
  * \brief Neighbour search for crg units
  *
@@ -14,7 +17,6 @@
  * nice if one want's to switch in between nbsearch algorithms
  *
  * */
-class QMTopology;
 
 class QMNBList
     : public PairList<CrgUnit *, QMPair>

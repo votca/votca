@@ -16,6 +16,7 @@
 
 #include "qmbead.h"
 
+class QMNBList;
 
 /**
     \brief topology of qmbeads
@@ -26,7 +27,6 @@
     these qm beads and not to any other.
 */
 
-class QMNBList;
 
 class QMTopology : public Topology
 {
