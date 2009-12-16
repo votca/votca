@@ -181,7 +181,7 @@ inline void CrgUnit::SetPos(const int& i, const vec& pos) {
     _positions[i] = pos;
 };
 inline void CrgUnit::SetNorm(const int& i, const vec& pos) {
-    if ( i >= norms.size()){
+    if ( i >= _norms.size()){
         _positions.resize(i+1);
         _norms.resize(i+1);
         _planes.resize(i+1);
