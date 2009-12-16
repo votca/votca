@@ -18,24 +18,7 @@ class QMPair :
 {
 public:
     QMPair() {}
-    QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top)
-    {
-        _r = top->BCShortestConnection(crg1->GetCom(), crg2->GetCom());
-        _dist = abs(_r);
-
-        // check if PBC:
-        vec d = crg2->GetCom() - crg1->GetCom();
-        if (d !=  _r){
-            _ghost = new CrgUnit(*crg2);
-            vec displ = _r - d;
-            _ghost->shift(displ);
-            std::pair<CrgUnit *, CrgUnit *>(crg1, _ghost);
-        }
-        else {
-            std::pair<CrgUnit *, CrgUnit *>(crg1,crg2);
-            _ghost=NULL;
-        }
-    }
+    QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top);
 
     ~QMPair(){
         if(_ghost != NULL)
