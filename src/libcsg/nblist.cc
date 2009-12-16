@@ -22,6 +22,12 @@ NBList::NBList()
   : _do_exclusions(false)
 {
     setPairType<BeadPair>();
+    setMatchFunction(NBList::match_always);
+}
+
+NBList::~NBList()
+{
+  // TODO: NBList destructor
 }
 
 void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
@@ -56,14 +62,10 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
                     continue;
                 }
                     
-            if(Match(*iter1, *iter2, r))
-                if(!FindPair(*iter1, *iter2))
-                    AddPair(new BeadPair(*iter1, *iter2, r));
+            if(abs(r) < _cutoff)
+                if(_match_function(*iter1, *iter2, r))
+                    if(!FindPair(*iter1, *iter2))
+                        AddPair(new BeadPair(*iter1, *iter2, r));
         } 
     }
-}
-
-bool NBList::Match(Bead *bead1, Bead *bead2, const vec &r)
-{
-    return abs(r) < _cutoff;    
 }
