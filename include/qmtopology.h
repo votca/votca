@@ -34,7 +34,7 @@ public:
     QMTopology();
     ~QMTopology();
 
-    QMNBList & getNBList(){
+    QMNBList & nblist(){
         return _nblist;
     }
     /// update the topology based on cg positons
