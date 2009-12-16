@@ -4,7 +4,7 @@
 #include <votca/csg/cgengine.h>
 #include <votca/csg/version.h>
 #include <stdexcept>
-#include "easyjobserver.h"
+#include "projobserver.h"
 #include "qmtopology.h"
 
 using namespace std;
@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 {    
     int write_every=0;
     // we have one observer
-    EasyJObserver observer;
+    ProJObserver observer;
     // The CGEngine does the work
     CGEngine cg_engine;
     QMTopology qmtopol;

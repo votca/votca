@@ -20,8 +20,7 @@
 
 class QMBead : public Bead{
 public:
-    QMBead();
-    ~QMBead();
+    ~QMBead(){}
 
     void UpdateCrg(){
         if (_crg != NULL){

@@ -1,25 +1,25 @@
-#include "easyjobserver.h"
+#include "projobserver.h"
 #include <votca/csg/nblist.h>
 #include <votca/csg/trajectorywriter.h>
 #include <qmnblist.h>
 
-EasyJObserver::EasyJObserver()
+ProJObserver::ProJObserver()
 {}
 
-EasyJObserver::~EasyJObserver()
+ProJObserver::~ProJObserver()
 {}
 
-void EasyJObserver::BeginCG(Topology *top, Topology *top_atom)
+void ProJObserver::BeginCG(Topology *top, Topology *top_atom)
 {
     _qmtop->Initialize(*top);
 }
 
-void EasyJObserver::EndCG()
+void ProJObserver::EndCG()
 {}
 
 /// evaluate current conformation
 
-void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
+void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 {
     _qmtop->Update(*top);
     

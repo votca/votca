@@ -15,8 +15,8 @@ void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
     nb.Generate(list1, list2, do_exclusions);
 
     for(NBList::iterator iter=nb.begin(); iter!=nb.end();++iter) {
-        QMBead *b1=dynamic_cast<QMBead*>((*iter)->first);
-        QMBead *b2=dynamic_cast<QMBead*>((*iter)->second);
+        QMBead *b1=(QMBead*)((*iter)->first);
+        QMBead *b2=(QMBead*)((*iter)->second);
 
         if(b1->getMolecule() == b2->getMolecule()) continue;
         if(b1->GetCrgUnit() == NULL || b2->GetCrgUnit() == NULL) continue;

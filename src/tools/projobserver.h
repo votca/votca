@@ -10,14 +10,15 @@
 
 #include <votca/csg/cgobserver.h>
 #include <moo/jcalc.h>
+#include <libxml/parser.h>
 #include "qmtopology.h"
 
-class EasyJObserver
+class ProJObserver
     : public CGObserver
 {
 public:
-    EasyJObserver();
-    ~EasyJObserver();
+    ProJObserver();
+    ~ProJObserver();
 
     
     void setQMTopology(QMTopology &qmtop) {_qmtop = &qmtop; }
