@@ -63,38 +63,7 @@ protected:
     list < CrgUnit *> _lcharges;
 };
 
-inline Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
-{
-    QMBead *bead = new QMBead(this, _beads.size(), type, symmetry, name, resnr, m, q);
-    _beads.push_back(bead);
 
-    //initialise the crgunit * only if appropriate extra info is in the cg.xml file
-    if (! (bead->Options()).exists("qm.crgunitname")){
-        string namecrgunittype = bead->getType()->getName();
-        int intpos = (bead->Options()).get("qm.position").as<int>();
-        string namecrgunit = (bead->Options()).get("qm.crgunitname").as<string>();
-
-        CrgUnitType *crgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
-
-        //determine whether it  has been created already
-        int molid= bead->getMolecule()->getId();
-        string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
-        map <string, CrgUnit*>::iterator  itm= _mcharges.find(molandtype);
-        if (itm != _mcharges.end()){
-            vector <vec> empty;
-            CrgUnit * acrg = new CrgUnit(empty, empty, empty, // this is because i dont want to cannot init all values at once
-                _lcharges.size(), crgtype, molid);
-            _mcharges.insert(make_pair(molandtype, acrg));
-            _lcharges.push_back(acrg);
-            bead->SetCrg(acrg);
-            bead->SetiPos(intpos);
-        }
-        else{
-            bead->SetCrg(NULL);
-        }
-    }
-    return bead;
-}
 
 inline  void QMTopology::AssignNBList(QMNBList  * nblist){
     _nblist= nblist;
