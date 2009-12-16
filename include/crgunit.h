@@ -33,6 +33,8 @@ public:
     CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
             const unsigned int & id, CrgUnitType * type,
             const unsigned int & molId);
+    CrgUnit(const unsigned int & id, CrgUnitType * type,
+            const unsigned int & molId):_id(id), _type(type), _molid(molId){}
     CrgUnit(vec pos, vec plane1, vec norm1, CrgUnitType * type);
     
     /*CrgUnit(CrgUnit & acrg){
