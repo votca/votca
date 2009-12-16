@@ -63,8 +63,6 @@ protected:
     list < CrgUnit *> _lcharges;
 };
 
-
-
 inline  void QMTopology::AssignNBList(QMNBList  * nblist){
     _nblist= nblist;
 }
