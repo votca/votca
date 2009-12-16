@@ -23,6 +23,7 @@ class Topology;
 class TopologyItem
 {
 public:    
+    virtual ~TopologyItem() {}
     Topology *getParent() { return _parent; }
 protected:
     TopologyItem(Topology *parent)

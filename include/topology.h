@@ -56,7 +56,7 @@ class Topology
 public:
     /// constructor
     Topology() {}    
-    ~Topology();
+    virtual ~Topology();
     
     /// cleans up all the stored data
     void Cleanup();

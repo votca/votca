@@ -41,6 +41,8 @@ class Molecule;
 class Bead : public TopologyItem
 {
 public:   
+    virtual ~Bead() {}
+
     /// get the id of the bead
     const int &getId() const { return _id; }
     /// get the name of the bead
@@ -178,8 +180,6 @@ public:
 
     void setOptions(Property &options) { _options = &options; }
 
-    /// dummy function to have at least 1 virtual (dynamic_cast)
-    virtual void DummyFunction() {}
 protected:
     int _id;
     vector<int> _parent_beads;

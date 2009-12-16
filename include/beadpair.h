@@ -34,13 +34,13 @@ public:
     BeadPair(Bead *bead1, Bead *bead2, vec r)
             : std::pair<Bead *, Bead *>(bead1, bead2), _r(r), _dist(abs(r)) {}
         
+    virtual ~BeadPair() {}
+
     /// \brief the vector connecting two beads
     vec &r() { return _r; }
     /// \brief the distance of the beads
     double &dist() { return _dist; }
 
-    /// dummy virtual for dynamic cast
-    virtual void DummyVirtual(void) {}
 protected:
         vec _r;
         double _dist;

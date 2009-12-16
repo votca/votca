@@ -25,6 +25,11 @@ NBList::NBList()
     setMatchFunction(NBList::match_always);
 }
 
+NBList::~NBList()
+{
+  // TODO: NBList destructor
+}
+
 void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
 {
     BeadList::iterator iter1;
