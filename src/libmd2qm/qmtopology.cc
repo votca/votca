@@ -80,9 +80,8 @@ Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int r
         string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
         map <string, CrgUnit*>::iterator  itm= _mcharges.find(molandtype);
         if (itm != _mcharges.end()){
-            vector <vec> empty;
-            CrgUnit * acrg = new CrgUnit(empty, empty, empty, // this is because i dont want to cannot init all values at once
-                _lcharges.size(), crgtype, molid);
+            
+            CrgUnit * acrg = new CrgUnit(_lcharges.size(), crgtype, molid);
             _mcharges.insert(make_pair(molandtype, acrg));
             _lcharges.push_back(acrg);
             bead->setCrg(acrg);
