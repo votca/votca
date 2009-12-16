@@ -21,7 +21,7 @@ void EasyJObserver::EndCG()
 void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 {
     _qmtop->Update(*top);
-    QMNBList nblist;
+    QMNBList &nblist = _qmtop->getNBList();
 
     BeadList list1;
     Topology *toptmp = dynamic_cast<Topology*>(_qmtop);
