@@ -85,12 +85,12 @@ Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int r
                 _lcharges.size(), crgtype, molid);
             _mcharges.insert(make_pair(molandtype, acrg));
             _lcharges.push_back(acrg);
-            bead->SetCrg(acrg);
-            bead->SetiPos(intpos);
+            bead->setCrg(acrg);
+            bead->setiPos(intpos);
         }
     }
     else{
-        bead->SetCrg(NULL);
+        bead->setCrg(NULL);
     }
     return bead;
 }

@@ -28,11 +28,11 @@ public:
             _crg->SetPlane(_ipos, Bead::getV());
         }
     }
-    void SetCrg(CrgUnit * a){
+    void setCrg(CrgUnit * a){
         _crg=a;
     }
 
-    void SetiPos(const int & a){
+    void setiPos(const int & a){
         _ipos=a;
     }
 
