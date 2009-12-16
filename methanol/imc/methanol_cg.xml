@@ -1,6 +1,6 @@
 <cg_molecule>
-  <name>H2O</name> <!-- the name of the molecule after mapping -->
-  <ident>H2O</ident> <!-- the name of the molecule in atomistic topology --> 
+  <name>SOL</name> <!-- the name of the molecule after mapping -->
+  <ident>SOL</ident> <!-- the name of the molecule in atomistic topology --> 
   <topology>
     <cg_beads>
       <cg_bead>
