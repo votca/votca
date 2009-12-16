@@ -53,6 +53,7 @@ In \cite{Wang:2009} a pressure correction based on the virial expression of the 
 This requires as an additional input parameter the particle density $ \rho $ to be provided, which is added as  \interopt{inverse.particle_dens} in the input file.
 
 \subsection{Runtime optimization}
+\label{ref:ibi:optimize}
 Most of the time for each iteration is spent in running the coarse-grained system and calculate the statistics. To get a feeling on how much statistics is needed, it is recommended to plot the distribution functions and check whether they are sufficiently smooth. Bad statistics lead to rough potential updates and the iterative refinement might fail. The runs should be long enough to produce distributions/rdfs with reasonable quality.
 
 Often, runtime can be improved by smoothing the potential updates. Our experience has shown that it is better to smooth the potential update instead of the rdf or potential itself. If the potential or rdf is smoothed, sharp features like the first peak in \spce water might get lost. Smoothing on the delta potential works quite well, since the sharp features are already present from the initial guess. By applying iterations of a simple triangular smoothing ($ \Delta U_i = 0.25 \Delta U_{i-1} + 0.5\Delta U_i + 0.25\Delta U_{i+1} $), a reasonable coarse-grained potential for \spce water could be produced in less than 10 minutes. Smoothing is implemented as a post\_update script and can be enabled by adding
