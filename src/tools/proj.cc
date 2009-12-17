@@ -51,11 +51,6 @@ int main(int argc, char** argv)
             return 0;
         }
     
-        if(!vm.count("options")) {
-            cout << "need to specify options file\n";
-            cout << cg_engine.OptionsDesc() << endl;
-            return -1;
-        }
        
         qmtopol.LoadListCharges(vm["listcharges"].as<string>());
             
