@@ -44,9 +44,9 @@ After all input files have been set up, the run can be started with
   csg_inverse settings.xml
 \end{verbatim}
 
-Each iteration is stored in a separate directory, named \texttt{step\_<iteration>}. \texttt{step\_000} is a special folder which contains the initial setup. For each new iteration, the files required to run the CG simulation (as specified in the config file) are copied to the current working directory. The updated potentials from the last steps \texttt{step\_<n-1>/<interaction>.pot.new} are also copied and used as the new working potentials \texttt{step\_<n>/<interaction>.pot.cur}.
+Each iteration is stored in a separate directory, named \texttt{step\_<iteration>}. \texttt{step\_000} is a special folder which contains the initial setup. For each new iteration, the files required to run the CG simulation (as specified in the config file) are copied to the current working directory. The updated potentials  are copied from the last step, \texttt{step\_<n-1>/<interaction>.pot.new}, and used as the new working potentials \texttt{step\_<n>/<interaction>.pot.cur}.
 
-After the run preparation, all potentials are converted to the format of the sampling program and the simulation starts. Once the sampling is finished, analysis programs generate new distributions (\texttt{<interaction>.dist.new}) and the updates potential updates, stored in \texttt{<interaction>.dpot.new}. 
+After the run preparation, all potentials are converted to the format of the sampling program and the simulation starts. Once the sampling is finished, analysis programs generate new distributions, which are stored in \texttt{<interaction>.dist.new}, and new potential updates, stored in \texttt{<interaction>.dpot.new}. 
 
 Before adding the update to the old potential, it can be processed in the \texttt{post\_update} step. For each script that is specified in the postupdate, \texttt{<interaction>.dpot.new} is renamed  to \texttt{<interaction>.dpot.old}, stores it in \texttt{<interaction>.dpot.<a-number>}, and calls the processing script. Each processing script  uses the current potential update \texttt{<interaction>.dpot.cur} and writes the processed update to \texttt{<interaction>.dpot.new}. For example, pressure correction is implemented as a postupdate script within this framework.
 
