@@ -11,6 +11,7 @@ QMTopology::~QMTopology()
 void QMTopology::Initialize(Topology& cg_top)
 {
     CopyTopologyData(&cg_top);
+    this->InitChargeUnits();
 }
 
 void QMTopology::Update(Topology& cg_top)
@@ -60,30 +61,36 @@ Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int r
 {
     QMBead *bead = new QMBead(this, _beads.size(), type, symmetry, name, resnr, m, q);
     _beads.push_back(bead);
+    return bead;
+}
 
-    //initialise the crgunit * only if appropriate extra info is in the cg.xml file
-    if ( (bead->Options()).exists("qm.crgunitname")){
-        string namecrgunittype = bead->getType()->getName();
-        int intpos = (bead->Options()).get("qm.position").as<int>();
-        string namecrgunit = (bead->Options()).get("qm.crgunitname").as<string>();
+void QMTopology::InitChargeUnits(){
+    BeadContainer::iterator itb;
+    for (itb = _beads.begin() ; itb< _beads.end(); ++itb){
+        QMBead * bead = dynamic_cast<QMBead *>(*itb);
+        //initialise the crgunit * only if appropriate extra info is in the cg.xml file
+        if ( (bead->Options()).exists("qm.crgunitname")){
+            string namecrgunittype = bead->getType()->getName();
+            int intpos = (bead->Options()).get("qm.position").as<int>();
+            string namecrgunit = (bead->Options()).get("qm.crgunitname").as<string>();
 
-        CrgUnitType *crgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
+            CrgUnitType *crgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
 
-        //determine whether it  has been created already
-        int molid= bead->getMolecule()->getId();
-        string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
-        map <string, CrgUnit*>::iterator  itm= _mcharges.find(molandtype);
-        if (itm != _mcharges.end()){
-            
-            CrgUnit * acrg = new CrgUnit(_lcharges.size(), crgtype, molid);
-            _mcharges.insert(make_pair(molandtype, acrg));
-            _lcharges.push_back(acrg);
-            bead->setCrg(acrg);
-            bead->setiPos(intpos);
+            //determine whether it  has been created already
+            int molid= bead->getMolecule()->getId();
+            string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
+            map <string, CrgUnit*>::iterator  itm= _mcharges.find(molandtype);
+            if (itm != _mcharges.end()){
+
+                CrgUnit * acrg = new CrgUnit(_lcharges.size(), crgtype, molid);
+                _mcharges.insert(make_pair(molandtype, acrg));
+                _lcharges.push_back(acrg);
+                bead->setCrg(acrg);
+                bead->setiPos(intpos);
+            }
+        }
+        else{
+            bead->setCrg(NULL);
         }
     }
-    else{
-        bead->setCrg(NULL);
-    }
-    return bead;
 }

@@ -62,6 +62,9 @@ protected:
     JCalc _jcalc;
     map <string, CrgUnit*> _mcharges;
     list < CrgUnit *> _lcharges;
+    
+    ///Initialises the charge units
+    void InitChargeUnits();
 };
 
 
