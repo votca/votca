@@ -93,5 +93,3 @@ void QMTopology::InitChargeUnits(){
         }
     }
 }
-    }
-}
