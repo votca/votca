@@ -37,7 +37,6 @@ netbeans/*/build
 src/md2qm_boltzmann/build
 */nbproject/private
 .dep.inc
-Makefile-variables.mk
 Package-Debug.bash
 Package-Release.bash
 Package-profile_release.bash
