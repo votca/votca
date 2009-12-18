@@ -9,8 +9,9 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
 
     // check if PBC:
     vec d = crg2->GetCom() - crg1->GetCom();
-    if (d !=  _r){
-        _ghost = new CrgUnit(*crg2);
+    if (abs(d) !=  _dist){
+        _ghost = new CrgUnit();
+	_ghost->copyCrgUnit(*crg2);
         vec displ = _r - d;
         _ghost->shift(displ);
         this ->second = _ghost;
