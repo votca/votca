@@ -34,9 +34,18 @@ echo "END" >> ${idmol2}".pdb"
 
 babel -i pdb ${idmol1}".pdb" -o xyz ${idmol1} &> babel1.log
 babel -i pdb ${idmol2}".pdb" -o xyz ${idmol2} &> babel2.log
+n1=`wc -l ${idmol1} | awk '{print $1}'`
+n1nh=$(( $n1 - 2 ))
+tail -n $n1nh  ${idmol1}  > tmp
+mv tmp ${idmol1}
+
+n2=`wc -l ${idmol2} | awk '{print $1}' `
+n2nh=$(( $n2 - 2 ))
+tail -n $n2nh ${idmol2}  > tmp
+mv tmp ${idmol2}
 
 echo "%nproc=1
-%mem=100Mb
+%mem=500Mb
 #p pop=full METHOD nosymm
 
 autogen
