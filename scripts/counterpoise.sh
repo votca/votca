@@ -25,11 +25,11 @@ mv $namemol $idmol1"and"$idmol2
 cd $idmol1"and"$idmol2
 
 echo "MODEL 0" >   ${idmol1}".pdb"
-grep "[A-Z]-${idmol1}" $namemol | sed 's/-'$idmol1'//' >>  ${idmol1}".pdb"
+grep "[A-Z]-${idmol1}" $namemol | sed 's/-'$idmol1'//' | awk 'BEGIN{count=1} {printf "ATOM  %5d %4c %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n", $2, $3, $4, $5, $6, $7, $8, $9, $10, $11}' >>  ${idmol1}".pdb"
 echo "END" >> ${idmol1}".pdb"
 
 echo "MODEL 0" > ${idmol2}".pdb"
-grep "[A-Z]-${idmol2}" $namemol | sed 's/-'$idmol2'//' >>  ${idmol2}".pdb"
+grep "[A-Z]-${idmol2}" $namemol | sed 's/-'$idmol2'//' |  awk 'BEGIN{count=1} {printf"ATOM  %5d %4c %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n", $2, $3, $4, $5, $6, $7, $8, $9, $10, $11}' >>  ${idmol2}".pdb"
 echo "END" >> ${idmol2}".pdb"
 
 babel -i pdb ${idmol1}".pdb" -o xyz ${idmol1} &> babel1.log
@@ -78,4 +78,4 @@ cd ..
 
 tar -cvf $idmol1"and"$idmol2.tar $idmol1"and"$idmol2 &> /dev/null
 
-rm -rf $idmol1"and"$idmol2
+#rm -rf $idmol1"and"$idmol2
