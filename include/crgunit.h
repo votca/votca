@@ -60,7 +60,7 @@ public:
     const vector <vec>::iterator GetPosFirst();
     const vector <vec>::iterator GetPosLast();
 
-    void SetCom(vec& com);
+    //void SetCom(vec& com);
     void SetPos(const int& i, const vec& pos);
     void SetNorm(const int& i, const vec& pos);
     void SetPlane(const int& i, const  vec& pos);
@@ -170,9 +170,9 @@ inline const vector <vec>::iterator CrgUnit::GetPosLast() {
     return _positions.end();
 }
 
-inline void CrgUnit::SetCom(vec& com) {
-    _com = com;
-};
+//inline void CrgUnit::SetCom(vec& com) {
+//    _com = com;
+//};
 
 inline void CrgUnit::SetPos(const int& i, const vec& pos) {
     if ( i >= _positions.size()){
