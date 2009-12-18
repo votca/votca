@@ -45,13 +45,12 @@ void QMTopology::LoadListCharges(const string &file)
 void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
     
     mol_and_orb * atoms = crg->rotate_translate_beads();
-
+    totop->CreateResidue("DUM");
     for (int i=0;i<atoms->getN();i++){
         vec pos = atoms->GetPos(i);
         string atomtype = "QMAT-"+string( atoms->gettype(i) );
         BeadType * bt= totop->GetOrCreateBeadType(atomtype);
-        int nbead = totop-> BeadCount();
-        Bead * bead = totop ->CreateBead(1, atomtype,bt,nbead, 0, 0.);
+        Bead * bead = totop ->CreateBead(1, atomtype,bt,0, 0, 0.);
         bead->setPos(pos);
     }
     delete atoms;
