@@ -17,7 +17,7 @@ CrgUnit::~CrgUnit() {
 CrgUnit::CrgUnit( vec pos, vec plane1, vec norm1, CrgUnitType * type){
     
     _positions.push_back(pos);
-     _com  = pos;
+//     _com  = pos;
     _planes.push_back(plane1);
     _norms.push_back(norm1);
     _type= type;
@@ -29,7 +29,7 @@ CrgUnit::CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes
     vector <vec>::iterator it_pos;
     vector <vec>::iterator it_norm;
     vector <vec>::iterator it_planes;
-    _com = vec(0., 0., 0.);
+//    _com = vec(0., 0., 0.);
     double toll = 1E-6;
     vec xvec(1.0, 0., 0.);
     vec yvec(0., 1., 0.);
@@ -43,10 +43,10 @@ CrgUnit::CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes
             _norms.push_back(xvec);
             _planes.push_back(yvec);
         }
-        _com = _com + *it_pos;
+//        _com = _com + *it_pos;
 
     }
-    _com /= positions.size();
+//    _com /= positions.size();
     _molid = molId;
     _id = id;
     _type = type;
@@ -59,7 +59,7 @@ void CrgUnit::copyCrgUnit(CrgUnit & acrg) {
     vector <vec>::iterator it_pos;
     vector <vec>::iterator it_norm;
     vector <vec>::iterator it_planes;
-    _com = acrg._com;
+//    _com = acrg._com;
     _positions.clear();
     _norms.clear();
     _planes.clear();
@@ -162,9 +162,9 @@ void CrgUnit::rotate(matrix mat) {
         *it_norm = mat * a;
         *it_plane = mat * b;
     }
-
-    vec a = mat * _com;
-    _com = a;
+    vec a;
+//    vec a = mat * _com;
+//    _com = a;
     vector < vec> ::iterator it_vec;
     /*for (it_vec = _altcom.begin() ; it_vec != _altcom.end(); ++it_vec) {
         a = *it_vec;

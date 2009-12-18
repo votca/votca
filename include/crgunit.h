@@ -81,7 +81,7 @@ public:
 
 private:
     /// the centre of mass
-    vec _com;
+    //vec _com;
     /// the orientation
     //   matrix _orient ;
     /// the ID 
@@ -222,7 +222,7 @@ inline  vec  CrgUnit::GetCom()  {
 inline void CrgUnit::shift(const vec & displ) {
     vector < vec> ::iterator it_vec;
     for (it_vec = _positions.begin(); it_vec != _positions.end(); ++it_vec) *it_vec = *it_vec + displ;
-    _com += displ;
+//    _com += displ;
 }
 
 inline vector <vec> CrgUnit::shift_pos(const vec & a) {
