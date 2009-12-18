@@ -29,7 +29,7 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     QMNBList &nblist =(_qmtop->nblist());
     nblist.setCutoff(1.0);
     nblist.Generate(list1);
-
+   
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
@@ -41,7 +41,8 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         
         ///write the topo somehow now.
         string nameout = lexical_cast<string>(crg1->GetId())+ string("and")
-                + lexical_cast<string>(crg1->GetId()) + ".pdb";
+                + lexical_cast<string>(crg2->GetId()) + ".pdb";
+
         TrajectoryWriter *writer;
         writer = TrjWriterFactory().Create(nameout);
         if(writer == NULL)
