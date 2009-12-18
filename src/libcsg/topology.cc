@@ -172,13 +172,11 @@ void Topology::CopyTopologyData(Topology *top)
     // copy all molecules
     for(it_mol=top->_molecules.begin();it_mol!=top->_molecules.end(); ++it_mol) {
         Molecule *mi = CreateMolecule((*it_mol)->getName());
-        for(int i=0; i<mi->BeadCount(); i++) {
+        for(int i=0; i<(*it_mol)->BeadCount(); i++) {
             int beadid = (*it_mol)->getBead(i)->getId();
-            // string beadn =  (*it_mol)->getBead(i)->getName();
-            mi->AddBead(_beads[beadid], mi->getBeadName(i));
+            mi->AddBead(_beads[beadid], (*it_mol)->getBeadName(i));
         }
     }
-
     // TODO: copy interactions
     //for(it_ia=top->_interaction.begin();it_ia=top->_interactions.end();++it_ia) {
 
