@@ -11,7 +11,6 @@ void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
     
     NBList nb;
     nb.setCutoff(_cutoff);
-    nb.Generate(list1, list2);
     nb.Generate(list1, list2, do_exclusions);
 
     for(NBList::iterator iter=nb.begin(); iter!=nb.end();++iter) {
