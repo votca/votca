@@ -17,7 +17,18 @@ void ProJObserver::BeginCG(Topology *top, Topology *top_atom)
 void ProJObserver::EndCG()
 {}
 
+void ProJObserver::setNNnames(string  nnnames){
+    Tokenizer tok(nnnames, " ;");
+    Tokenizer::iterator itok = tok.begin();
+    for (; itok!= tok.end(); ++itok){
+        _nnnames.push_back(*itok);
+    }
+}
+
+
 /// evaluate current conformation
+
+
 
 void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 {
@@ -40,20 +51,31 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         iter!=nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
-
-        Topology atoms;
-        _qmtop->AddAtomisticBeads(crg1,&atoms);
-        _qmtop->AddAtomisticBeads(crg2,&atoms);
+        if(MatchNNnames(crg1, crg2)){
+            Topology atoms;
+            _qmtop->AddAtomisticBeads(crg1,&atoms);
+            _qmtop->AddAtomisticBeads(crg2,&atoms);
         
-        ///write the topo somehow now.
-        string nameout =framedir + string("/")+lexical_cast<string>(crg1->GetId())+ string("and")
+            ///write the topo somehow now.
+            string nameout =framedir + string("/")+lexical_cast<string>(crg1->GetId())+ string("and")
                 + lexical_cast<string>(crg2->GetId()) + ".pdb";
 
         
-        writer->Open(nameout);
-        writer->Write(&atoms);
-        writer->Close();
+            writer->Open(nameout);
+            writer->Write(&atoms);
+            writer->Close();
+        }
 
     }
 }
 
+bool ProJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
+    vector <string>::iterator its = _nnnames.begin();
+    string namecrg = crg1->GetType()->GetName()+string(":")+crg2->GetType()->GetName();
+    for ( ; its!= _nnnames.end(); ++its){
+        if(wildcmp(its->c_str(), namecrg.c_str()) ){
+            return true;
+        }
+    }
+    return false;
+}

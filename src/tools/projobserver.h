@@ -36,9 +36,14 @@ public:
     void setCutoff(const double & cutoff){
         _cutoff = cutoff;
     }
+
+    void setNNnames(string  nnnames);
 protected:
     QMTopology *_qmtop;
     double _cutoff;
+    vector <string> _nnnames;
+
+    bool MatchNNnames(CrgUnit * crg1, CrgUnit * crg2);
 };
 
 
