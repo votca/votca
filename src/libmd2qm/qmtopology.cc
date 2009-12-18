@@ -26,7 +26,7 @@ void QMTopology::Update(Topology& cg_top)
     _step = cg_top.getStep();
 
     iter_cg = cg_top.Beads().begin();
-    for(iter=_beads.begin(); iter!=_beads.end(); ++iter) {
+    for(iter=_beads.begin(); iter!=_beads.end(); ++iter, ++iter_cg) {
         (*iter)->setPos((*iter_cg)->getPos());
         (*iter)->setU((*iter_cg)->getU());
         (*iter)->setV((*iter_cg)->getV());

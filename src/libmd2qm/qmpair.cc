@@ -15,7 +15,7 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
     if (abs(d) !=  _dist){
         _ghost = new CrgUnit();
 	_ghost->copyCrgUnit(*crg2);
-        vec displ = _r - d;
+        vec displ = (_r - d)*(10./RA);
         _ghost->shift(displ);
         this ->second = _ghost;
     }
