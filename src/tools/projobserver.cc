@@ -38,7 +38,7 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     Topology *toptmp = dynamic_cast<Topology*>(_qmtop);
     list1.Generate(*toptmp, "*");
     QMNBList &nblist =(_qmtop->nblist());
-    nblist.setCutoff(1.0);
+    nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
     TrajectoryWriter *writer;
     writer = TrjWriterFactory().Create(".pdb");

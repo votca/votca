@@ -38,7 +38,10 @@ int main(int argc, char** argv)
    
         cg_engine.AddProgramOptions()
             ("listcharges,l", po::value<string>(), "  Crg unit definitions");
-
+        cg_engine.AddProgramOptions()
+            ("cutoff,c", po::value<double>()-> default_value(1.0), "  CutOff for nearest neighbours");
+        cg_engine.AddProgramOptions()
+            ("nnnames,n", po::value<string>()-> default_value("*"), "  List of strings that the concatenation of the two molnames must match to be printed");
         cg_engine.ParseCommandLine(argc, argv);
 
         po::variables_map &vm
@@ -50,15 +53,10 @@ int main(int argc, char** argv)
             cout << cg_engine.OptionsDesc() << endl;
             return 0;
         }
-    
-        if(!vm.count("options")) {
-            cout << "need to specify options file\n";
-            cout << cg_engine.OptionsDesc() << endl;
-            return -1;
-        }
-       
+           
         qmtopol.LoadListCharges(vm["listcharges"].as<string>());
-            
+        observer.setCutoff(vm["cutoff"].as<double>());
+        observer.setNNnames(vm["nnnames"].as<string>());
         // try to run the cg process, go through the frames, etc...
         cg_engine.Run();
     }
