@@ -80,8 +80,7 @@ void QMTopology::InitChargeUnits(){
             int molid= bead->getMolecule()->getId();
             string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
             map <string, CrgUnit*>::iterator  itm= _mcharges.find(molandtype);
-            if (itm != _mcharges.end()){
-
+            if (itm == _mcharges.end()){
                 CrgUnit * acrg = new CrgUnit(_lcharges.size(), crgtype, molid);
                 _mcharges.insert(make_pair(molandtype, acrg));
                 _lcharges.push_back(acrg);
