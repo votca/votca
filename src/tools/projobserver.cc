@@ -29,7 +29,13 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     QMNBList &nblist =(_qmtop->nblist());
     nblist.setCutoff(1.0);
     nblist.Generate(list1);
-   
+    TrajectoryWriter *writer;
+    writer = TrjWriterFactory().Create(".pdb");
+    if(writer == NULL)
+        throw runtime_error("output format not supported: .pdb");
+    string framedir=string("frame")+lexical_cast<string>(top->getStep())  ;
+
+    mkdir(framedir.c_str(),0755);
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
@@ -40,13 +46,10 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         _qmtop->AddAtomisticBeads(crg2,&atoms);
         
         ///write the topo somehow now.
-        string nameout = lexical_cast<string>(crg1->GetId())+ string("and")
+        string nameout =framedir + string("/")+lexical_cast<string>(crg1->GetId())+ string("and")
                 + lexical_cast<string>(crg2->GetId()) + ".pdb";
 
-        TrajectoryWriter *writer;
-        writer = TrjWriterFactory().Create(nameout);
-        if(writer == NULL)
-            throw runtime_error("output format not supported: " + nameout);
+        
         writer->Open(nameout);
         writer->Write(&atoms);
         writer->Close();

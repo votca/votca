@@ -38,7 +38,8 @@ int main(int argc, char** argv)
    
         cg_engine.AddProgramOptions()
             ("listcharges,l", po::value<string>(), "  Crg unit definitions");
-
+        cg_engine.AddProgramOptions()
+            ("cutoff,c", po::value<double>()-> default_value(1.0), "  CutOff for nearest neighbours");
         cg_engine.ParseCommandLine(argc, argv);
 
         po::variables_map &vm
@@ -53,7 +54,7 @@ int main(int argc, char** argv)
     
        
         qmtopol.LoadListCharges(vm["listcharges"].as<string>());
-            
+        observer.setCutoff(vm["curoff"].as<double>());
         // try to run the cg process, go through the frames, etc...
         cg_engine.Run();
     }

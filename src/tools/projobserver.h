@@ -12,6 +12,7 @@
 #include <moo/jcalc.h>
 #include <libxml/parser.h>
 #include "qmtopology.h"
+#include <sys/stat.h>
 
 class ProJObserver
     : public CGObserver
@@ -31,8 +32,13 @@ public:
 
     /// evaluate current conformation
     void EvalConfiguration(Topology *top, Topology *top_atom = 0);
+
+    void setCutoff(const double & cutoff){
+        _cutoff = cutoff;
+    }
 protected:
     QMTopology *_qmtop;
+    double _cutoff;
 };
 
 
