@@ -4,11 +4,14 @@
 
 QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit *, CrgUnit *>(crg1,crg2)
 {
-    _r = top->BCShortestConnection(crg1->GetCom(), crg2->GetCom());
+    vec crg1nm,crg2nm;
+    crg1nm =  crg1->GetCom()*(RA/10.);
+    crg2nm =  crg2->GetCom()*(RA/10.);
+    _r = top->BCShortestConnection(crg1nm, crg2nm);
     _dist = abs(_r);
 
     // check if PBC:
-    vec d = crg2->GetCom() - crg1->GetCom();
+    vec d = crg2nm - crg1nm;
     if (abs(d) !=  _dist){
         _ghost = new CrgUnit();
 	_ghost->copyCrgUnit(*crg2);
@@ -19,4 +22,7 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
     else {
         _ghost=NULL;
     }
+    /// move r and dist back to bohrs:
+    _r *= 10./RA;
+    _dist *= 10./RA;
 }
