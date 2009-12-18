@@ -73,7 +73,7 @@ public:
     vec GetPos(const int & i);
     vec GetNorm(const int & i);
     vec GetPlane(const int & i);
-    const vec & GetCom() const;
+    vec GetCom();
 
     void shift(const vec & displ);
 
@@ -211,8 +211,12 @@ inline vec CrgUnit::GetPlane(const int & i) {
     return _planes[i];
 }
 
-inline const vec & CrgUnit::GetCom() const {
-    return _com;
+inline  vec  CrgUnit::GetCom()  {
+    vector <vec>::iterator itp = _positions.begin();
+    vec com(0.,0.,0.);
+    for (; itp!=_positions.end() ; ++itp )
+        com += *itp;
+    return com/double(_positions.size());
 }
 
 inline void CrgUnit::shift(const vec & displ) {
