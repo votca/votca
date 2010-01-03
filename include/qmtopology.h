@@ -55,7 +55,9 @@ public:
 
     ///Loads the atomistic beads (from mol_and_orb) into totop from the CrgUnit defined by namecrgunit and molid
     void AddAtomisticBeads(CrgUnit * crg, Topology * totop);
-    
+
+    /// computes all transfer integrals (note that the nblist must be initialised by the user!)
+    void ComputeAllTransferIntegrals();
 protected:
 
     QMNBList _nblist;

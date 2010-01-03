@@ -93,3 +93,13 @@ void QMTopology::InitChargeUnits(){
         }
     }
 }
+
+void QMTopology::ComputeAllTransferIntegrals(){
+    for(QMNBList::iterator iter = _nblist.begin();
+        iter!=_nblist.end();++iter) {
+        CrgUnit *crg1 = (*iter)->first;
+        CrgUnit *crg2 = (*iter)->second;
+        vector <double> Js = GetJCalc().GetJ(*crg1, *crg2);
+        (*iter)->setJ(Js);
+    }
+}
