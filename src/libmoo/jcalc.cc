@@ -239,11 +239,7 @@ JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 ){
     return data;
 }
 
-vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
-    if ( one.GetTypeID() > two.GetTypeID()){
-        return GetJ(two, one);
-    }
-
+JCalc::JCalcData * JCalc::getJCalcData(CrgUnit & one, CrgUnit & two){
     JCalcData * jdata;
     map <pair<CrgUnitType *, CrgUnitType *> , JCalcData *>::iterator itm=
              _maplistfock.find(make_pair(one.GetType(), two.GetType()));
@@ -255,7 +251,15 @@ vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
      else{
          jdata = itm->second;
      }
+    return jdata;
+}
 
+vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
+    if ( one.GetTypeID() > two.GetTypeID()){
+        return GetJ(two, one);
+    }
+
+    JCalcData * jdata=getJCalcData(one, two);
     //calculate J
     #ifdef DEBUG
     cout << one.GetId() << "is the first molecule I am rotatin and the second is: " <<  two.GetId() <<endl;
@@ -285,6 +289,40 @@ vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
     jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
 
     return Js;
+}
+
+double JCalc::EstaticDifference(CrgUnit & crged , CrgUnit & neutr){
+
+        // we need to calculate E:CRG-NEUTR - E:NEUTR-NEUTR
+        // the difficulty is that ratecalculator
+        // exists only for type1 < type2
+        // this requires to check the typeIDs
+    JCalcData * jdata = getJCalcData(crged, neutr);
+        
+    if (crged.GetTypeID() > neutr.GetTypeID() ){
+
+        crged.rot_two_mol(neutr, jdata->_mol2, jdata->_mol1);
+
+        double nrg = jdata->_mol2.V_nrg_crg_neutr(jdata->_mol1) -
+        jdata->_mol2.V_nrg_neutr_neutr(jdata->_mol1);
+        //copy molecules back
+        jdata->_mol1.cp_atompos(jdata->_type1->GetCrgUnit());
+        jdata->_mol2.cp_atompos(jdata->_type2->GetCrgUnit());
+        jdata->_mol1.cp_orb(jdata->_type1->GetCrgUnit(), jdata->_orblabels.first);
+        jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
+        return nrg*Hartree;
+    }
+    else{
+        crged.rot_two_mol(neutr, jdata->_mol1, jdata->_mol2);
+
+        double nrg = jdata->_mol1.V_nrg_crg_neutr(jdata->_mol2) - jdata->_mol1.V_nrg_neutr_neutr(jdata->_mol2);
+        //copy molecules back
+        jdata->_mol1.cp_atompos(jdata->_type1->GetCrgUnit());
+        jdata->_mol2.cp_atompos(jdata->_type2->GetCrgUnit());
+        jdata->_mol1.cp_orb(jdata->_type1->GetCrgUnit(), jdata->_orblabels.first);
+        jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
+        return nrg*Hartree;
+    }
 }
 
 CrgUnitType * JCalc::GetCrgUnitTypeByName(string name){

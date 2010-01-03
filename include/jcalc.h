@@ -24,9 +24,7 @@ class JCalc{
 
 public:
 
-    JCalc(){
-
-    }
+    JCalc(){}
 
     ~JCalc();
     
@@ -40,6 +38,7 @@ public:
 
     vector <double> GetJ (CrgUnit & one, CrgUnit & two);
     CrgUnit DefineCrgUnit(vec pos, matrix orient, string name);
+    double EstaticDifference(CrgUnit & one, CrgUnit & two);
 private:
 
     struct JCalcData{
@@ -73,6 +72,8 @@ private:
     void ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur );
     /// initialise a JCAlcDAta type
     JCalcData * InitJCalcData(CrgUnitType *, CrgUnitType * );
+    /// get a J calc data from the map
+    JCalcData * getJCalcData(CrgUnit &, CrgUnit &);
 };
 
 #endif	/* _JCALC_H */
