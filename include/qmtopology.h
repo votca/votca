@@ -58,6 +58,9 @@ public:
 
     /// computes all transfer integrals (note that the nblist must be initialised by the user!)
     void ComputeAllTransferIntegrals();
+
+    /// comutes all the electrostatic energies
+    void ComputeAllElectrostaticEnergies(const double &epsilon=3.5);
 protected:
 
     QMNBList _nblist;
