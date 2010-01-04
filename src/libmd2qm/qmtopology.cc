@@ -93,3 +93,45 @@ void QMTopology::InitChargeUnits(){
         }
     }
 }
+
+void QMTopology::ComputeAllTransferIntegrals(){
+    for(QMNBList::iterator iter = _nblist.begin();
+        iter!=_nblist.end();++iter) {
+        CrgUnit *crg1 = (*iter)->first;
+        CrgUnit *crg2 = (*iter)->second;
+        vector <double> Js = GetJCalc().GetJ(*crg1, *crg2);
+        (*iter)->setJ(Js);
+    }
+}
+
+void QMTopology::ComputeAllElectrostaticEnergies(const double& epsilon){
+    list <CrgUnit * >::iterator itcrg = _lcharges.begin();
+    list <CrgUnit * >::iterator itneutr= _lcharges.begin();
+    for ( itcrg = _lcharges.begin() ; itcrg != _lcharges.end() ; ++itcrg){
+        double nrg=0.;
+        for (itneutr = _lcharges.begin() ; itneutr != _lcharges.end() ; ++itneutr){
+            if ( itcrg != itneutr){
+//              nrg += ENERGY FOR ITCRG WITH ITNEUTR WITH ITCRG CHARGED;
+//              NRG -= ENERGY FOR ITCRG WITH ITNEUTR WITH ITCRG NEUTRAL;
+
+                QMPair twocharges(*itcrg, *itneutr, this);
+                CrgUnit * crg1= twocharges.first;
+                CrgUnit * crg2= twocharges.second;
+
+                double contr = _jcalc.EstaticDifference(*crg1, *crg2);
+                nrg += contr;
+
+      //          clog << "[kmcdata.cc] contribution from" << (*itneutr)->GetType()->GetName() << " " << (*itneutr)->GetId() <<
+      //                 " to " << (*itcrg)->GetType()->GetName() << " " << (*itcrg)->GetId() <<
+      //                 " distance " << abs(r_ij) << " nrg " << contr << endl;
+
+
+            }
+        }
+        nrg /= epsilon;
+        clog << "[kmc_data.cc] FINALE ENERGY for "
+                << (*itcrg)->GetCom() << " " << (*itcrg)->GetId() << " " << (*itcrg)->GetType()->GetName()
+                << " " << nrg << endl;
+        (*itcrg)->setNRG((*itcrg)->GetNRG()+ nrg);
+    }
+}
