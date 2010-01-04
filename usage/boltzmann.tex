@@ -1,18 +1,20 @@
 \chapter{Boltzmann Inversion}
 
 \hyperref[sec:bi]{Boltzmann inversion} provides a potential of mean force for a given degree of freedom. It is often used for obtaining bonded interactions from canonical sampling of a single molecule in vacuum. 
-
+%
 \begin{wrapfigure}{t}{7cm}
    \centering
    \includegraphics[width=7cm]{usage/fig/flow_boltzmann.eps}
    \caption{Flowchart to perform Boltzmann inversion.}
 \end{wrapfigure}
+%
+The non-bonded potentials can then be obtained by using iterative  methods or force matching.
 
-Afterwards, non-bonded potentials can be obtained using iterative  methods or force matching. There are several useful tools for this method, which help to analyze distributions of specified degrees of freedom, their correlations, prepare tabulated potentials for coarse-grained simulations. In addition, exclusion lists for the atomistic simulations can be created automatically, which is often used for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}.
+The available tools analyze distributions of a specified degre of freedom, calculate their hystograms and correlations, as well as prepare tabulated potentials for coarse-grained simulations. In addition, exclusion lists for the atomistic simulations can be created automatically. The latter is often used for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}.
 
-The main tool which can be used to calculate hystograms, cross-correlate coarse-grained variables, and create exclusion lists is \prog{csg_boltzmann}.  Note that it parses the whole trajectory and stores all information bonded interactions in memory. This is useful for interactive analysis, but can be problematic for big systems. In the latter case, one can use \prog{csg_stat} which, however, has a limited number of tasks it can perform.
+The main tool which can be used to calculate hystograms, cross-correlate coarse-grained variables, and create exclusion lists is \prog{csg_boltzmann}.  It parses the whole trajectory and stores all information bonded interactions in memory, which is useful for interactive analysis. For big systems, however, one can run out of memory. In this case \prog{csg_stat} can be used which, however, has a limited number of tasks it can perform.
 
-\prog{csg_map} can also useful to convert an atomistic trajectory to a coarse-grained one. The usage of this program is discussed in sec.~\ref{sec:trajectory}.
+\prog{csg_map} can be used to convert an atomistic trajectory to a coarse-grained one, as it is discussed in sec.~\ref{sec:trajectory}.
 
 \section{Mapping scheme}
 The first thing to coarse-grain a system is to define a mapping scheme (see \sect{sec:mapping}). 
