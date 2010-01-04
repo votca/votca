@@ -1,11 +1,13 @@
 #! /bin/bash
 
-echo "The input is the name of a pdb file name #1and#2.pdb. Inside this file molecule 1 and molecule 2 are present and each of the atoms in there are 
-labelled NAMEAT-#1 or NAMEAT-#2"
+echo "The input is the name of a pdb file name #1and#2.pdb. 
+the second argumen (optional) is the job type (default b3lyp/6-311+g*)
+the third argument (optional) is the memory per job in Mb (default 1800Mb)" 
 echo "NB: at the moment you cannot specify chkpoint change by hand if needed, also _you_ gotta run the g03 jobs!!!"
 
-method="b3lyp/6-311+g*"
 namemol=$1
+method=${2:-b3lyp/6-311+g*}
+memory=${3:-1800Mb}
 idmol1=$( echo $namemol | sed -e 's/.pdb//' -e 's/and/ /' | awk '{print $1}' )
 idmol2=$( echo $namemol | sed -e 's/.pdb//' -e 's/and/ /' | awk '{print $2}' )
  
@@ -45,7 +47,7 @@ tail -n $n2nh ${idmol2}  > tmp
 mv tmp ${idmol2}
 
 echo "%nproc=1
-%mem=500Mb
+%mem=$memory
 #p pop=full METHOD nosymm
 
 autogen
@@ -78,7 +80,7 @@ cat $idmol2 >> dim/dim.com
 echo >>  dim/dim.com
 echo "--Link1--
 %chk=dimer.chk
-%mem=100Mb
+%mem=${memory} 
 #p geom(allcheck) guess(read,only) IOp(3/33=1) ${method} nosymm
 
 " >> dim/dim.com
