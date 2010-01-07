@@ -30,14 +30,25 @@ public:
     double &dist() { return _dist; }
     /// \brief returns the transfer integral
     double &j(){ return _j;}
+    /// \brief returns the transfer rate
+    double &rate(){return _rate;}
     /// \brief set the transfer integral
     void setJ(const double & j){_j=j;}
     /// \brief set the transfer integral as the rms of the transfer integrals
     void setJ(vector <double> js);
+    /// \brief set the transfer rate
+    void setRate(double rate) {_rate=rate;}
+
 protected:
+    /// vector connecting the two beads
     vec _r;
+    /// distance between the two beads
     double _dist;
+    /// transfer integral
     double _j;
+    /// transfer rate
+    double _rate;
+    /// ghost atom in case the molecules are neighbors across a boundary
     CrgUnit * _ghost;
 };
 
