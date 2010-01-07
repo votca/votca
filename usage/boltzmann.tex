@@ -1,27 +1,22 @@
 \chapter{Boltzmann Inversion}
 
-\hyperref[sec:bi]{Boltzmann inversion} provides a potential of mean force for a given degree of freedom. It is often used for obtaining bonded interactions from canonical sampling of a single molecule in vacuum. 
+\hyperref[sec:bi]{Boltzmann inversion} provides a potential of mean force for a given degree of freedom. 
 %
 \begin{wrapfigure}{t}{7cm}
    \centering
    \includegraphics[width=7cm]{usage/fig/flow_boltzmann.eps}
-   \caption{Flowchart to perform Boltzmann inversion.}
+   \caption{Flowchart deminstrating useful options of the tool.}
 \end{wrapfigure}
 %
+It is mostly used for deriving {\em bonded} interactions from canonical sampling of a single molecule in vacuum, e.~g. for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}.
+
 The non-bonded potentials can then be obtained by using iterative  methods or force matching.
 
-The available tools analyze distributions of a specified degre of freedom, calculate their hystograms and correlations, as well as prepare tabulated potentials for coarse-grained simulations. In addition, exclusion lists for the atomistic simulations can be created automatically. The latter is often used for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}.
+The main tool which can be used to calculate hystograms, cross-correlate coarse-grained variables, create exclusion lists, as well as prepare tabulated potentials for coarse-grained simulations is \prog{csg_boltzmann}.  It parses the whole trajectory and stores all information bonded interactions in memory, which is useful for interactive analysis. For big systems, however, one can run out of memory. In this case \prog{csg_stat} can be used which, however, has a limited number of tasks it can perform.
 
-The main tool which can be used to calculate hystograms, cross-correlate coarse-grained variables, and create exclusion lists is \prog{csg_boltzmann}.  It parses the whole trajectory and stores all information bonded interactions in memory, which is useful for interactive analysis. For big systems, however, one can run out of memory. In this case \prog{csg_stat} can be used which, however, has a limited number of tasks it can perform.
+Another useful tool is \prog{csg_map}. It can be used to convert an atomistic trajectory to a coarse-grained one, as it is discussed in sec.~\ref{sec:trajectory}.
 
-\prog{csg_map} can be used to convert an atomistic trajectory to a coarse-grained one, as it is discussed in sec.~\ref{sec:trajectory}.
-
-\section{Mapping scheme}
-The first thing to coarse-grain a system is to define a mapping scheme (see \sect{sec:mapping}). 
-
-Make sure that the \mapopt{ident} tag matches the molecule name in the reference system. One of the most common things that can go wrong is that beads cannot be found due to wrong naming. To debug which atoms are read in from a topology file, \prog{csg_dump} can be used. A second reason could be, that molecules are not identified correctly for the case of a multicomponent system. See \sect{sec:adv_topology} for details.
-
-In case everything works as desired, a file cg.gro is created which contains the coarse-grained trajectory. An easy way to compare coarse-grained and atomistic representations is to open both in a visualization program (e.g. vmd).  In vmd, be careful when e.g. opening a .gro and .trr file. In this case, the first frame is read from the .gro and all of the following from the .trr. The coarse-grained file only contains the frames from the trajectory, thus in order to compare the trajectories, the first frame of the atomistic run has to be deleted!!
+To use \prog{csg_boltzmann} one has to first define a mapping scheme, as described in~\sect{sec:mapping}). 
 
 \section{Generating reference trajectories with proper exclusions}
 When the Boltzmann inversion method was described in Ref.\cite{Tschoep:1998}, bonded and non-bonded interactions were treated separately. To do this, a special atomistic trajectory is needed, where all non-bonded interactions are excluded which do not contribute to a bonded interaction in the coarse-grained model. Manually, this can be a complicated task, but \prog{csg_boltzmann} offers the option \progopt{--excl} to do this automatically.
