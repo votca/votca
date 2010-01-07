@@ -20,19 +20,15 @@ int main(int argc, char** argv)
     int write_every=0;
     // we have one observer
     EasyJObserver observer;
+    Property options;
     // The CGEngine does the work
     CGEngine cg_engine;
     QMTopology qmtopol;
 
-    observer.setQMTopology(qmtopol);
-    
+    /// Namespace to read in program options
     namespace po=boost::program_options;
-    
-    try {
 
-        // add our observer that it gets called to analyze frames
-        cg_engine.AddObserver((CGObserver*)&observer);
-    
+    try {        
         // let cg_engine add some program options
         cg_engine.Initialize();
    
@@ -42,18 +38,26 @@ int main(int argc, char** argv)
             ("cutoff,c", po::value<double>()-> default_value(1.0), "  CutOff for nearest neighbours");
         cg_engine.AddProgramOptions()
             ("nnnames,n", po::value<string>()-> default_value("*"), "  List of strings that the concatenation of the two molnames must match to be printed");
+        /// Parameters required to calculate rates and to run KMC
+        cg_engine.AddProgramOptions()
+            ("options,o", po::value<string>(), "  KMC and MD2QM options");
         cg_engine.ParseCommandLine(argc, argv);
 
         po::variables_map &vm
             = cg_engine.OptionsMap();
     
-        // does the user want help?
+        // Help menu
         if (vm.count("help")) {
             help_text();
             cout << cg_engine.OptionsDesc() << endl;
             return 0;
         }
-           
+
+        load_property_from_xml(options, vm["options"].as<string>());
+        observer.Initialize(qmtopol, options);
+        // add our observer that it gets called to analyze frames
+        cg_engine.AddObserver((CGObserver*)&observer);
+
         qmtopol.LoadListCharges(vm["listcharges"].as<string>());
         observer.setCutoff(vm["cutoff"].as<double>());
         observer.setNNnames(vm["nnnames"].as<string>());
