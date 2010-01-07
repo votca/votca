@@ -39,6 +39,8 @@ public:
 
     void CalcRates(QMNBList &nblist);
 
+    void MakeRatesSIUnits(QMNBList &nblist);
+
 protected:
     QMTopology *_qmtop;
     double _cutoff;
