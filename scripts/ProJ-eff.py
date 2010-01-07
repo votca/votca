@@ -55,47 +55,57 @@ def CalcJ(namejob,orbA,orbB):
     molB_parser=ccopen("part2/"+namejob+"part2.log")
     molAB_parser=ccopen("dim/"+namejob+"dim.log")
 
-    # Limit parsing info to ERROR messages
+# Limit parsing info to ERROR messages
     molA_parser.logger.setLevel(logging.ERROR)
     molB_parser.logger.setLevel(logging.ERROR)
     molAB_parser.logger.setLevel(logging.ERROR)
 
-    # Parse LOG files
+# Parse LOG files
     molA=molA_parser.parse()
     molB=molB_parser.parse()
     molAB=molAB_parser.parse()
 
     nbs=molAB.nbasis
 
-    # Consistency checks
+# Consistency checks
     if molA.nbasis!=molB.nbasis:
-    print("Count of basis functions doesn't match. Failing.")
-    return False
+	print("Count of basis functions doesn't match. Failing.")
+	return False
 
     for mole in molA,molB,molAB:
-        if len(mole.atomcoords)!=1:
-        print(mole+" calculation appears to be an optimisation! Failing.")
+	if len(mole.atomcoords)!=1:
+	    print(mole+" calculation appears to be an optimisation! Failing.")
 
-    #Take mocoeffs[0] - the alpha electrons to get matrix in correct order
+#Take mocoeffs[0] - the alpha electrons to get matrix in correct order
     MolAB_Pro = np.transpose(np.dot(molAB.mocoeffs[0],molAB.aooverlaps))
 
-    # Determine orbitals of monomers in the basis set of the dimer
+# Determine orbitals of monomers in the basis set of the dimer
     PsiA_DimBS = np.dot(molA.mocoeffs[0], MolAB_Pro)
     PsiB_DimBS = np.dot(molB.mocoeffs[0], MolAB_Pro)
 
     # Determine transfer integral JAB and site energies JAA, JBB
-    JAB = np.dot(np.dot( PsiB_DimBS, np.diagflat(molAB.moenergies[0])) , np.transpose(PsiA_DimBS) )
-    JAA = np.dot(np.dot( PsiA_DimBS, np.diagflat(molAB.moenergies[0])) , np.transpose(PsiA_DimBS) )
-    JBB = np.dot(np.dot( PsiB_DimBS, np.diagflat(molAB.moenergies[0])) , np.transpose(PsiB_DimBS) )
+#JAB = np.dot(np.dot( PsiB_DimBS, np.diagflat(molAB.moenergies[0])) , np.transpose(PsiA_DimBS) )
+#JAA = np.dot(np.dot( PsiA_DimBS, np.diagflat(molAB.moenergies[0])) , np.transpose(PsiA_DimBS) )
+#JBB = np.dot(np.dot( PsiB_DimBS, np.diagflat(molAB.moenergies[0])) , np.transpose(PsiB_DimBS) )
+    JAB=0.
+    JAA=0.
+    JBB=0.
+    SAB=0.
+    for i in range(molAB.nbasis):
+	JAB=JAB+PsiB_DimBS[orbB,i]*molAB.moenergies[0][i]*PsiA_DimBS[orbA,i]
+	JAA=JAA+PsiA_DimBS[orbA,i]*molAB.moenergies[0][i]*PsiA_DimBS[orbA,i]
+	JBB=JBB+PsiB_DimBS[orbB,i]*molAB.moenergies[0][i]*PsiB_DimBS[orbB,i]
+	SAB=SAB+PsiB_DimBS[orbB,i]*PsiA_DimBS[orbA,i]
+
 
     # Determine overlap analogous to JAB
-    SAB = np.dot(PsiB_DimBS , np.transpose(PsiA_DimBS) )
+#SAB = np.dot(PsiB_DimBS , np.transpose(PsiA_DimBS) )
+
 
     # Calculate JAB_eff according to Eq.10 in JACS 128, 9884 (2006)
     # !only for the desired orbitals!
-    JAB_eff = (JAB[orbA,orbB] - 0.5*(JAA[orbA,orbA]+JBB[orbB,orbB])*SAB[orbA,orbB])/(1.0 - SAB[orbA,orbB]*SAB[orbA,orbB])
+    JAB_eff = (JAB - 0.5*(JAA+JBB)*SAB)/(1.0 - SAB*SAB)
 
-   
 
 #    return JAB[orbA,orbB]
     return JAB_eff
