@@ -11,8 +11,8 @@ using namespace std;
 
 void help_text(void)
 {
-    votca::csg::HelpTextHeader("easyJ");
-    cout << "Calculate transfer integrals\n\n";
+    votca::csg::HelpTextHeader("proJ");
+    cout << "Print out .pdb file with pairs of molecules\n\n";
 }
 
 int main(int argc, char** argv)
