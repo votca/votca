@@ -79,6 +79,9 @@ public:
 
     void rotate(matrix mat);
 
+    const string &getName() { return _name; }
+    void setName(const string &name) const { _name = name; }
+
 private:
     /// the centre of mass
     //vec _com;
