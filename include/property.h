@@ -25,6 +25,9 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <stdexcept>
 
+#include "vec.h"
+#include "tokenizer.h"
+
 using namespace std;
 
 /**
@@ -156,6 +159,17 @@ inline std::string Property::as<std::string>() const
     string tmp(_value);
     boost::trim(tmp);
     return tmp;
+}
+
+template<>
+inline vec Property::as<vec>() const
+{
+    vector<double> tmp;
+    Tokenizer tok(as<string>(), " ,");
+    tok.ConvertToVector<double>(tmp);
+    if(tmp.size()!=3)
+        throw runtime_error("Vector has " + boost::lexical_cast<string>(tmp.size()) + " instead of three entries");
+    return vec(tmp[0], tmp[1], tmp[2]);
 }
 
 #endif	/* _PROPERTY_H */
