@@ -11,6 +11,7 @@
 #include <votca/csg/cgobserver.h>
 #include <moo/jcalc.h>
 #include "qmtopology.h"
+#include <votca/tools/property.h>
 
 class EasyJObserver
     : public CGObserver
@@ -20,7 +21,7 @@ public:
     ~EasyJObserver();
 
     
-    void setQMTopology(QMTopology &qmtop) {_qmtop = &qmtop; }
+    void Initialize(QMTopology &qmtop, Property &opts);
 
     /// begin coarse graining a trajectory
     void BeginCG(Topology *top, Topology *top_atom);
@@ -35,11 +36,18 @@ public:
         _cutoff = cutoff;
     }
     void setNNnames(string  nnnames);
+
+    void CalcRates(QMNBList &nblist);
+
 protected:
     QMTopology *_qmtop;
     double _cutoff;
     vector <string> _nnnames;
     vector <double> _Js;
+    /// electric field [V/m]
+    vec _E;
+    /// thermal energy [eV]
+    double _kT;
 
     bool MatchNNnames(CrgUnit * crg1, CrgUnit * crg2);
 };
