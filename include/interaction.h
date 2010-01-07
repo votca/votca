@@ -178,9 +178,9 @@ inline vec IAngle::Grad(const Topology &top, int bead)
 
 inline double IDihedral::EvaluateVar(const Topology &top)
 {
-    vec v1(top.getBead(_beads[1])->getPos() - top.getBead(_beads[0])->getPos());
-    vec v2(top.getBead(_beads[2])->getPos() - top.getBead(_beads[1])->getPos());
-    vec v3(top.getBead(_beads[3])->getPos() - top.getBead(_beads[2])->getPos());
+    vec v1(top.getDist(_beads[0], _beads[1]));
+    vec v2(top.getDist(_beads[1], _beads[2]));
+    vec v3(top.getDist(_beads[2], _beads[3]));
     vec n1, n2;
     n1 = v1^v2; // calculate the normal vector
     n2 = v2^v3; // calculate the normal vector
