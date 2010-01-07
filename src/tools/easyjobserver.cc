@@ -66,6 +66,7 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
          }
     }
     CalcRates(nblist);
+    MakeRatesSIUnits(nblist);
 }
 
 bool EasyJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
@@ -107,6 +108,13 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             //cout << "dG_field = " << dG_field << endl;
         }
         (*iter)->setRate(rate);
+    }
+}
+
+void EasyJObserver::MakeRatesSIUnits(QMNBList &nblist){
+    for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
+    {
+        (*iter)->rate() *= 1/hbar;
     }
 }
 
