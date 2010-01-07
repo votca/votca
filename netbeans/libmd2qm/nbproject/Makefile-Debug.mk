@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=g95
 AS=
 
 # Macros
@@ -32,6 +32,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o
 
@@ -65,6 +66,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o: nbproject/Makefile-
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o ../../src/libmd2qm/qmtopology.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/statesaver.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o ../../src/libmd2qm/statesaver.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmpair.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
