@@ -30,8 +30,9 @@ public:
         iterator;
     
     Tokenizer(const std::string &str, const char *separators) {
+        _str = str;
         boost::char_separator<char> sep(separators);
-        tok = new boost::tokenizer<boost::char_separator<char> >(str, sep);
+        tok = new boost::tokenizer<boost::char_separator<char> >(_str, sep);
         //boost::escaped_list_separator<char> sep(" ", separators, "\"");
         //tok = new boost::tokenizer<boost::escaped_list_separator<char> >(str, sep);
         
@@ -60,6 +61,7 @@ public:
     
 private:
     boost::tokenizer< boost::char_separator<char> > *tok;
+    std::string _str;
 };
 
 
