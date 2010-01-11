@@ -334,11 +334,11 @@ CrgUnitType * JCalc::GetCrgUnitTypeByName(string name){
     return type;
 }
 
-CrgUnit JCalc::DefineCrgUnit(vec pos, matrix orient, string name){
+/*CrgUnit JCalc::DefineCrgUnit(vec pos, matrix orient, string name){
     CrgUnitType *type = GetCrgUnitTypeByName(name);
 
     vec plane1 = orient.getCol(1);
     vec norm1 = orient.getCol(2);
     CrgUnit acrg(pos, plane1, norm1, type);
     return acrg;
-}
+}*/

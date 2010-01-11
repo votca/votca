@@ -14,16 +14,6 @@ CrgUnit::~CrgUnit() {
     _norms.clear();
 }
 
-CrgUnit::CrgUnit( vec pos, vec plane1, vec norm1, CrgUnitType * type){
-    
-    _positions.push_back(pos);
-//     _com  = pos;
-    _planes.push_back(plane1);
-    _norms.push_back(norm1);
-    _type= type;
-
-}
-
 CrgUnit::CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
         const unsigned int & id, CrgUnitType * type, const unsigned int & molId) {
     vector <vec>::iterator it_pos;

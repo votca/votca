@@ -34,12 +34,7 @@ public:
             const unsigned int & id, CrgUnitType * type,
             const unsigned int & molId);
     CrgUnit(const unsigned int & id, CrgUnitType * type,
-            const unsigned int & molId):_id(id), _type(type), _molid(molId){}
-    CrgUnit(vec pos, vec plane1, vec norm1, CrgUnitType * type);
-    
-    /*CrgUnit(CrgUnit & acrg){
-        copyCrgUnit(acrg);
-    }*/
+            const unsigned int & molId):_id(id), _type(type), _molid(molId){}    
     
     void copyCrgUnit(CrgUnit & acrg);
     void copyCrgUnit(CrgUnit & acrg, const int & id);
@@ -79,8 +74,8 @@ public:
 
     void rotate(matrix mat);
 
-    const string &getName() { return _name; }
-    void setName(const string &name) const { _name = name; }
+    const string &getName() const { return _name; }
+    void setName(const string &name) { _name = name; }
 
 private:
     /// the centre of mass

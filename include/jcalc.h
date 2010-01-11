@@ -37,7 +37,11 @@ public:
     void Init(string );
 
     vector <double> GetJ (CrgUnit & one, CrgUnit & two);
-    CrgUnit DefineCrgUnit(vec pos, matrix orient, string name);
+    
+    // CrgUnit DefineCrgUnit(vec pos, matrix orient, string name);
+
+    CrgUnit *CreateCrgUnit(int id, const string &type_name, int molid=-1);
+    
     double EstaticDifference(CrgUnit & one, CrgUnit & two);
 private:
 
@@ -75,6 +79,15 @@ private:
     /// get a J calc data from the map
     JCalcData * getJCalcData(CrgUnit &, CrgUnit &);
 };
+
+inline CrgUnit *JCalc::CreateCrgUnit(int id, const string &type_name, int molid)
+{
+    CrgUnitType *type = GetCrgUnitTypeByName(type_name);
+    if(!type)
+        throw runtime_error("Charge unit type not found: " + type_name);
+
+    return new CrgUnit(id, type, molid);
+}
 
 #endif	/* _JCALC_H */
 
