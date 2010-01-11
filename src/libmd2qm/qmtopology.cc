@@ -73,20 +73,16 @@ void QMTopology::InitChargeUnits(){
             int intpos = (bead->Options()).get("qm.position").as<int>();
             string namecrgunit = (bead->Options()).get("qm.crgunitname").as<string>();
 
-            CrgUnitType *crgtype  = _jcalc.GetCrgUnitTypeByName(namecrgunittype);
-
             //determine whether it  has been created already
             int molid= bead->getMolecule()->getId();
             string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
-            map <string, CrgUnit*>::iterator  itm= _mcharges.find(molandtype);
-            if (itm == _mcharges.end()){
-
-                CrgUnit * acrg = new CrgUnit(_lcharges.size(), crgtype, molid);
-                _mcharges.insert(make_pair(molandtype, acrg));
-                _lcharges.push_back(acrg);
-                bead->setCrg(acrg);
-                bead->setiPos(intpos);
-            }
+            
+            CrgUnit * acrg = GetCrgUnitByName(molandtype);
+            if(acrg == NULL)
+                acrg = CreateCrgUnit(molandtype, molid);
+            
+            bead->setCrg(acrg);
+            bead->setiPos(intpos);
         }
         else{
             bead->setCrg(NULL);

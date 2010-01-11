@@ -61,6 +61,12 @@ public:
 
     /// comutes all the electrostatic energies
     void ComputeAllElectrostaticEnergies(const double &epsilon=3.5);
+
+    /// find a crg unit by name
+    CrgUnit *GetCrgUnitByName(const string &name);
+
+    CrgUnit *CreateCrgUnit(const string &name, int molid);
+    
 protected:
 
     QMNBList _nblist;
@@ -72,6 +78,24 @@ protected:
     void InitChargeUnits();
 };
 
+inline CrgUnit *QMTopology::GetCrgUnitByName(const string &name)
+{
+    map<string, CrgUnit *>::iterator iter;
+    iter = _mcharges.find(name);
+    if(iter!=_mcharges.end())
+        return iter->second;
+    return NULL;
+}
+
+CrgUnit *QMTopology::CreateCrgUnit(const string &name, int molid)
+{
+    if(GetCrgUnitByName(name))
+        throw std::runtime_error("charge unit with name " + name + " already exists");
+    CrgUnit *crg;
+    crg = _jcalc.CreateCrgUnit(_lcharges.size(), name, molid);
+    _mcharges.insert(make_pair(name, crg));
+    _lcharges.push_back(crg);
+}
 
 #endif	/* _CRGTOPOLOGY_H */
 
