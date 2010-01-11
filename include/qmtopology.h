@@ -87,7 +87,7 @@ inline CrgUnit *QMTopology::GetCrgUnitByName(const string &name)
     return NULL;
 }
 
-CrgUnit *QMTopology::CreateCrgUnit(const string &name, int molid)
+inline CrgUnit *QMTopology::CreateCrgUnit(const string &name, int molid)
 {
     if(GetCrgUnitByName(name))
         throw std::runtime_error("charge unit with name " + name + " already exists");
