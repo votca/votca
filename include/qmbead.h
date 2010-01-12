@@ -37,6 +37,10 @@ public:
         _ipos=a;
     }
 
+    int getiPos(){
+        return _ipos;
+    }
+
     CrgUnit* GetCrgUnit(){
         return _crg;
     }
