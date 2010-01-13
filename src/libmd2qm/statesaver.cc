@@ -4,7 +4,10 @@
 #include "statesaver.h"
 
 using namespace std;
+StateSaver::StateSaver(QMTopology& qmtop)
+{}
 
+//void StateSaver::Open(string file)
 void StateSaver::Open(string file, bool bAppend)
 {
     //_out = fopen(file.c_str(), bAppend ? "at" : "wt");
@@ -40,6 +43,7 @@ void StateSaver::Write_QMBeads(QMTopology *top)
 
     //writing all out
      _out.write((char *) &len_name, sizeof(len_name));
+     cout<<"We have"<<len_name<<"letters in the name\n";
      _out.write((char *) crg_unit_name.c_str(), sizeof(crg_unit_name));
      _out.write((char *) &ipos, sizeof(ipos));
      _out.write((char *) &len_type, sizeof(len_type));

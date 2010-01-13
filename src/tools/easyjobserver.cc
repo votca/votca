@@ -67,6 +67,12 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     }
     CalcRates(nblist);
     MakeRatesSIUnits(nblist);
+    cout<<"Falks test\n";
+       StateSaver _saver(*_qmtop);
+            string outfilename = "falks.dat";
+            _saver.Open(outfilename,true);
+  
+          _saver.Write_QMBeads(_qmtop);
 }
 
 bool EasyJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){

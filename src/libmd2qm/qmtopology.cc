@@ -79,7 +79,7 @@ void QMTopology::InitChargeUnits(){
             
             CrgUnit * acrg = GetCrgUnitByName(molandtype);
             if(acrg == NULL)
-                acrg = CreateCrgUnit(molandtype, molid);
+                acrg = CreateCrgUnit(molandtype, namecrgunittype, molid);
             
             bead->setCrg(acrg);
             bead->setiPos(intpos);

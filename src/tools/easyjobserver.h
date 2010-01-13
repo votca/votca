@@ -12,7 +12,7 @@
 #include <moo/jcalc.h>
 #include "qmtopology.h"
 #include <votca/tools/property.h>
-
+#include "statesaver.h"
 class EasyJObserver
     : public CGObserver
 {

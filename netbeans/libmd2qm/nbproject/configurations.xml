@@ -8,6 +8,7 @@
       <itemPath>../../include/qmnblist.h</itemPath>
       <itemPath>../../include/qmpair.h</itemPath>
       <itemPath>../../include/qmtopology.h</itemPath>
+      <itemPath>../../include/statesaver.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -20,7 +21,6 @@
       <itemPath>../../src/libmd2qm/qmpair.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmtopology.cc</itemPath>
       <itemPath>../../src/libmd2qm/statesaver.cc</itemPath>
-      <itemPath>../../include/statesaver.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

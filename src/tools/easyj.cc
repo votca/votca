@@ -28,8 +28,8 @@ int main(int argc, char** argv)
     /// Namespace to read in program options
     namespace po=boost::program_options;
 
-    try {        
-        // let cg_engine add some program options
+    try {
+                // let cg_engine add some program options
         cg_engine.Initialize();
    
         cg_engine.AddProgramOptions()
@@ -63,6 +63,9 @@ int main(int argc, char** argv)
         observer.setNNnames(vm["nnnames"].as<string>());
         // try to run the cg process, go through the frames, etc...
         cg_engine.Run();
+
+        
+
     }
     // did an error occour?
     catch(std::exception &error) {

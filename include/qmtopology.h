@@ -65,7 +65,7 @@ public:
     /// find a crg unit by name
     CrgUnit *GetCrgUnitByName(const string &name);
 
-    CrgUnit *CreateCrgUnit(const string &name, int molid);
+    CrgUnit *CreateCrgUnit(const string &name, const string &type_name, int molid);
     
 protected:
 
@@ -87,12 +87,12 @@ inline CrgUnit *QMTopology::GetCrgUnitByName(const string &name)
     return NULL;
 }
 
-inline CrgUnit *QMTopology::CreateCrgUnit(const string &name, int molid)
+inline CrgUnit *QMTopology::CreateCrgUnit(const string &name, const string &type_name, int molid)
 {
     if(GetCrgUnitByName(name))
         throw std::runtime_error("charge unit with name " + name + " already exists");
     CrgUnit *crg;
-    crg = _jcalc.CreateCrgUnit(_lcharges.size(), name, molid);
+    crg = _jcalc.CreateCrgUnit(_lcharges.size(), type_name, molid);
     _mcharges.insert(make_pair(name, crg));
     _lcharges.push_back(crg);
 }
