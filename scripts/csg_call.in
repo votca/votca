@@ -110,7 +110,9 @@ done
 
 [ -n "${CSGSHARE}" ] || die "${0##*/}: Environment values CSGSHARE not defined"
 
-echo \$CSGSHARE is ${CSGSHARE}
+if [ "$sw_opt" != "show" ]; then
+  echo \$CSGSHARE is ${CSGSHARE}
+fi
 
 export CSGINVERSE=$CSGSHARE/scripts/inverse
 export PERL5LIB="$CSGINVERSE:$PERL5LIB"
