@@ -109,7 +109,7 @@ the third line indicates the script we need. If the output of \prog{csg_call} is
 
 Analyzing the output of
 \begin{verbatim}
-  csg_call --show run gromacs
+  csg_call --cat run gromacs
 \end{verbatim}
 we can conclude that this is indeed the script we need:
 %
@@ -120,7 +120,7 @@ we can conclude that this is indeed the script we need:
 Now we can create our own \texttt{SCRIPTDIR}, add a new script there, make it executable and overload the call of the script:
 \begin{verbatim}
   mkdir -p SCRIPTDIR
-  csg_call --show run gromacs > SCRIPTDIR/my_run_gromacs.sh
+  cp `csg_call --quiet --show run gromacs` SCRIPTDIR/my_run_gromacs.sh
   chmod 755 SCRIPTDIR/my_run_gromacs.sh
   echo "run gromacs my_run_gromacs.sh" >> SCRIPTDIR/csg_table
 \end{verbatim}
@@ -134,7 +134,7 @@ This completes the customization. Do not forget to add \texttt{SCRIPTDIR} to \cg
 You can check the new script by running:
 \begin{verbatim}
   csg_call --scriptdir SCRIPTDIR --list
-  csg_call --scriptdir SCRIPTDIR --show run gromacs
+  csg_call --scriptdir SCRIPTDIR --cat run gromacs
 \end{verbatim}
 
 Finally, do not forget to remove the license infomation and change the version number of the script.
