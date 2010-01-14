@@ -83,6 +83,8 @@ export CSGLOG
 CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
 export CSGRESTART
 
+export CSG_MAINDIR="$PWD"
+
 #stuff for options
 int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
 if [ "$clean" = "yes" ]; then

@@ -14,28 +14,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script resamples target distribution to grid spacing
-for calculations
+This script implemtents the function update
+for the Inverse Boltzmann Method
 
-Usage: ${0##*/} target_directory
+Usage: ${0##*/}
 
-USES:  die csg_get_interaction_property run_or_exit csg_resample
+USES:  for_all csg_get_interaction_property mv
 
-NEEDS: min max step inverse.target name
+NEEDS: cg.inverse.program name 
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-min=$(csg_get_interaction_property min )
-max=$(csg_get_interaction_property max )
-step=$(csg_get_interaction_property step )
-target=$(csg_get_interaction_property inverse.target)
-name=$(csg_get_interaction_property name)
-main_dir=$(get_main_dir)
+#get new pot from last step 
+for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 
-run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max}
+#make it current potential 
+for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
+

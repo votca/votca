@@ -76,11 +76,14 @@ log () {
     echo -e "$*" 
   fi
 }
+export -f log
+
 #echo a msg but log it too
 msg() {
   [[ -z "$CSGLOG" ]] || log "$*"
   echo -e "$*"
 }
+export -f msg
 
 unset -f die
 die () {
@@ -91,6 +94,7 @@ die () {
   kill 0
   exit 1
 }
+export -f die
 
 #takes a task, find the according script and run it.
 #first 2 argument are the task
@@ -103,6 +107,7 @@ do_external() {
   log --no-warn "Running subscript '${script##*/} $*'"
   $script "$@" || die "do_external: $script $@ failed"
 }
+export -f do_external
 
 logrun(){
   local ret
@@ -128,11 +133,13 @@ logrun(){
   fi
   return $ret
 }
+export -f logrun 
 
 #useful subroutine check if a command was succesful AND log the output
 run_or_exit() {
    logrun "$*" || die "run_or_exit: '$*' failed"
 }
+export -f run_or_exit
 
 #do somefor all pairs, 1st argument is the type
 for_all (){
@@ -160,11 +167,13 @@ for_all (){
     bash -c "$*" || die "for_all: bash -c '$*' failed"   
   done
 }
+export -f for_all
 
 csg_taillog () {
   sync
   [[ -z "$CSGLOG" ]] || tail $* $CSGLOG
 }
+export -f csg_taillog
 
 #the save version of csg_get
 csg_get_interaction_property () {
@@ -191,6 +200,7 @@ csg_get_interaction_property () {
     die "csg_get_interaction_property: Result of '$cmd' was empty"
   echo "$ret"
 }
+export -f csg_get_interaction_property
 
 #get a property from xml
 csg_get_property () {
@@ -215,12 +225,14 @@ csg_get_property () {
     die "csg_get_property: Result of '$cmd' was empty"
   echo "$ret"
 }
+export -f csg_get_property
 
 mark_done () {
   [[ -n "$1" ]] || die "mark_done: Missig argument"
   [[ -n "$CSGRESTART" ]] || die "mark_done: CSGRESTART is undefined"
   echo "$1 done" >> ${PWD}/$CSGRESTART 
 }
+export -f mark_done
 
 is_done () {
   [[ -n "$1" ]] || die "is_done: Missig argument"
@@ -229,6 +241,7 @@ is_done () {
   [[ -n "$(sed -n "/^$1 done\$/p" ${PWD}/${CSGRESTART})" ]] && return 0
   return 1
 }
+export -f is_done
 
 check_for () {
   [[ -n "$2" ]] || die "check_for: Missig arguments"
@@ -244,6 +257,7 @@ check_for () {
     [[ -n "$(type -t $exe)" ]] || die "check_for: Could not find $exe needed ${file}" 
   done
 }
+export -f check_for
 
 check_deps () {
   [[ -n "$1" ]] || die "check_deps: Missig argument"
@@ -254,6 +268,7 @@ check_deps () {
   [[ -z "${deps}" ]] && return 0
   check_for "${1##*/}" $deps
 }
+export -f check_deps
 
 int_check() {
   [[ -n "$2" ]] || die "int_check: Missig argument"
@@ -261,31 +276,103 @@ int_check() {
   shift
   die "$*"
 }
+export -f int_check
 
 get_stepname() {
   local name
-  [[ -n "$1" ]] || die "number_to_stepname: Missig argument"
-  int_check "$1" "number_to_stepname needs a int as argument"
+  [[ -n "$1" ]] || die "get_stepname: Missig argument"
+  int_check "${1#-}" "get_stepname: needs a int as argument, but was $1"
   name="$(printf step_%03i "$1")"
-  [ -z "$name" ] && die "number_to_stepname: Could not get stepname"
+  [ -z "$name" ] && die "get_stepname: Could not get stepname"
   echo "$name"
 }
-
-
-#--------------------Exports-----------------
-export -f die
-export -f log 
-export -f logrun 
-export -f msg
-export -f for_all
-export -f run_or_exit
-export -f do_external
-export -f csg_get_property
-export -f csg_get_interaction_property
-export -f csg_taillog
-export -f mark_done
-export -f is_done
-export -f check_for
-export -f check_deps
-export -f int_check
 export -f get_stepname
+
+update_stepnames(){
+  local thisstep laststep nr
+  [[ -n "$1" ]] || die "update_stepnames: Missig argument"
+  nr="$1"
+  int_check "$nr" "update_stepnames: needs a int as argument"
+  [ -z "$CSG_MAINDIR" ] && die "update_stepnames: CSG_MAINDIR is empty"
+  [ -d "$CSG_MAINDIR" ] || die "update_stepnames: $CSG_MAINDIR is not dir"
+  thisstep="$(get_stepname $nr)"
+  laststep="$(get_stepname $((nr-1)) )"
+  export CSG_THISSTEP="$CSG_MAINDIR/$thisstep"
+  export CSG_LASTSTEP="$CSG_MAINDIR/$laststep"
+}
+export -f update_stepnames
+
+get_current_step_dir() {
+  [ -z "$CSG_THISSTEP" ] && die "get_current_step_dir: CSG_THISSTEP is empty"
+  if [ "$1" = "--no-check" ]; then
+    :
+  else
+    [ -d "$CSG_LASTSTEP" ] || die "get_last_step_dir: $CSG_THISSTEP is not dir"
+  fi
+  echo "$CSG_THISSTEP"
+
+}
+export -f get_current_step_dir
+
+get_last_step_dir() {
+  [ -z "$CSG_LASTSTEP" ] && die "get_last_step_dir: CSG_LASTSTEP is empty"
+  [ -d "$CSG_LASTSTEP" ] || die "get_last_step_dir: $CSG_LASTSTEP is not dir"
+  echo "$CSG_LASTSTEP"
+}
+export -f get_last_step_dir
+
+get_main_dir() {
+  [ -z "$CSG_MAINDIR" ] && die "get_main_dir: CSG_MAINDIR is empty"
+  [ -d "$CSG_MAINDIR" ] || die "update_stepnames: $CSG_MAINDIR is not dir"
+  echo "$CSG_MAINDIR"
+}
+export -f get_main_dir
+
+get_step_nr() {
+  local name
+  name=$(get_current_step_dir)
+  name=${name#*step_}
+  name=${name#0}
+  name=${name#0}
+  echo "$name"
+}
+export -f get_step_nr
+
+cp_from_to() {
+  local i to from where
+  if [ "$1" = "--from" ]; then
+    from="$2"
+    shift 2
+  else
+    die "cp_for_to: first argument should be --from DIR"
+  fi
+  if [ "$1" = "--where" ]; then
+    where="$2"
+    shift 2
+  else
+    where="."
+  fi
+  if [ "$1" = "--no-check" ]; then
+    shift
+  else
+    [ -d "$where" ] || die "cp_from_to: $where does not exist"
+    [ -d "$from" ] || die "cp_from_to: $from does not exist"
+  fi
+  [ -z "$1" ] && die "cp_from_main_dir: Missing argument"
+  for i in "$@"; do
+    #allow glob
+    ls $from/$i > /dev/null || die "cp_from_to: unglob of $i failed"
+    cp -r "$from/$i" "$where" || die "cp_from_to: cp -r "$from/$i" "$where" failed"
+  done
+}
+export -f cp_from_to
+
+cp_from_main_dir() {
+  cp_from_to --from $(get_main_dir) "$@" || die "cp_from_main_dir: cp_from_to --from $(get_main_dir) "$@" failed"
+}
+export -f cp_from_main_dir
+
+cp_from_last_step() {
+  cp_from_to --from $(get_last_step_dir) "$@" || die "cp_from_main_dir: cp_from_to --from $(get_main_dir) "$@" failed"
+}
+export -f cp_from_last_step

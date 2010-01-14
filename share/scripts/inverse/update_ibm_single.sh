@@ -32,10 +32,9 @@ fi
 
 check_deps "$0"
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
-
+step_nr=$(get_step_nr)
 scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
-scheme_nr=$(( ( $1 - 1 ) % ${#scheme[@]} ))
+scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 
 if [ "${scheme[$scheme_nr]}" = 1 ]; then

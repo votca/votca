@@ -19,8 +19,10 @@ functions common functions_inverse.sh
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
-init ibm initalize_generic.sh
-init imc initalize_generic.sh
+init ibm initialize_generic.sh
+init imc initialize_generic.sh
+initstep ibm initialize_step_generic.sh
+initstep imc initialize_step_generic.sh
 
 # the update step
 update ibm update_ibm.sh
@@ -85,7 +87,7 @@ tables jackknife tables_jackknife.pl
 
 # BEGIN: these scripts have to be defined for each simulation program
 # interface to gromacs
-init gromacs initalize_gromacs.sh
+init gromacs initialize_gromacs.sh
 prepare gromacs prepare_gromacs.sh
 run gromacs run_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh

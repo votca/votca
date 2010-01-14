@@ -21,7 +21,7 @@ ${0##*/}, version %version%
 This script implemtents the function update
 for the Inverse Monte Carlo Method
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/}
 
 USES: die csg_get_property msg run_or_exit do_external sort for_all
 
@@ -31,8 +31,6 @@ EOF
 fi
 
 check_deps "$0"
-
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 solver=$(csg_get_property cg.inverse.imc.solver)
 sim_prog="$(csg_get_property cg.inverse.program)" 

@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 This script implemtents smoothing of the potential update (.dpot)
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/}
 
 USES:  die csg_get_interaction_property mktemp do_external cp log run_or_exit
 
@@ -30,8 +30,6 @@ EOF
 fi
 
 check_deps "$0"
-
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
 name=$(csg_get_interaction_property name)
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"

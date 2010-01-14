@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 This script implemtents the pressure update
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/}
 
 USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit cp
 
@@ -33,8 +33,7 @@ fi
 
 check_deps "$0"
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
-
+step_nr="$(get_step_nr)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 name=$(csg_get_interaction_property name)
 
@@ -44,7 +43,7 @@ log "New pressure $p_now"
 
 ptype="$(csg_get_interaction_property inverse.post_update_options.pressure.type simple)"
 pscheme=( $(csg_get_interaction_property inverse.post_update_options.pressure.do 1 ) )
-pscheme_nr=$(( ( $1 - 1 ) % ${#pscheme[@]} ))
+pscheme_nr=$(( ( $step_nr - 1 ) % ${#pscheme[@]} ))
 
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
    log "Apply ${ptype} pressure correction for interaction ${name}"

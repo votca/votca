@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/perl -w
 # 
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -15,29 +15,24 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
-cat <<EOF
-${0##*/}, version %version%
-This script make all the post update with backup for single pairs
+use strict;
+( my $progname = $0 ) =~ s#^.*/##;
+if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
+  print <<EOF;
+$progname, version %version%
+Skeleton script
 
-Usage: ${0##*/}
+Usage: $progname argument
 
-USES:  csg_get_interaction_property log mv die cp do_external run_or_exit
+NEEDS: cg.inverse.kBT 
 
-NEEDS: name inverse.post_update
+USES: csg_get_property
 EOF
-   exit 0
-fi
+  exit 0;
+}
 
-check_deps "$0"
+die "1 parameter are nessary\n" if ($#ARGV<0);
 
-name=$(csg_get_interaction_property name)
-tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update) 
-i=1
-for task in $tasklist; do
-  log "Doing $task for ${name}"
-  run_or_exit mv ${name}.dpot.new ${name}.dpot.cur
-  run_or_exit cp ${name}.dpot.cur ${name}.dpot.${i}
-  do_external postupd "$task"
-  ((i++))
-done
+use CsgFunctions;
+
+my $kBT=csg_get_property("cg.inverse.kBT");

@@ -18,17 +18,19 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This is a intialize stuff for gromacs
+Skeleton script
 
 Usage: ${0##*/}
 
-USES: cp die
+USES:  die msg csg_get_property for_all do_external
 
-NEEDS:
+NEEDS: cg.inverse.program 
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-cp ../conf.gro confout.gro || die "cp ../conf.gro confout.gro"
+msg "Skeleton script"
+sim_prog="$(csg_get_property cg.inverse.program)" 
+for_all non-bonded do_external bla $sim_prog

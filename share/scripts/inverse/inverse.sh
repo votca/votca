@@ -118,10 +118,11 @@ run_or_exit $SOURCE_WRAPPER --check
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
 
-this_dir="$(get_stepname 0)"
+update_stepnames 0
+this_dir=$(get_current_step_dir --no-check)
 if [ -d "$this_dir" ]; then
   msg "Skiping prepare"
-  [[ -f $this_dir/done ]] || die "Incomplete step 00"
+  [[ -f $this_dir/done ]] || die "Incomplete step 0"
 else
   msg ------------------------
   msg "Prepare (make $this_dir)"
@@ -138,15 +139,16 @@ else
   #get confout.gro
   do_external init $sim_prog 
 
-  for_all non-bonded cp '$(csg_get_interaction_property name).pot.new ..' 
+  for_all non-bonded cp '$(csg_get_interaction_property name).pot.new $(get_main_dir)' 
   touch done
-  msg "$this_dir done"
+  msg "step 0 done"
   cd ..
 fi
 
 for ((i=1;i<$iterations+1;i++)); do
-  last_dir=$(get_stepname $((i-1)) )
-  this_dir=$(get_stepname $i)
+  update_stepnames $i
+  last_dir=$(get_last_step_dir)
+  this_dir=$(get_current_step_dir --no-check)
   msg -------------------------------
   msg "Doing iteration $i (make $this_dir)"
   msg -------------------------------
@@ -169,21 +171,19 @@ for ((i=1;i<$iterations+1;i++)); do
     msg "Initialization already done"
   else
     #copy+resample all rdf in this_dir 
-    for_all non-bonded do_external resample calc ..
+    for_all non-bonded do_external resample calc
 
     #get need files
-    for myfile in $filelist; do
-      run_or_exit cp ../$myfile .  
-    done
+    cp_from_main_dir $filelist
 
-    #get new pot from last step and make it current potential 
-    for_all non-bonded "cp ../$last_dir/\$(csg_get_interaction_property name).pot.new ./\$(csg_get_interaction_property name).pot.cur" 
+    #get file from last step and so on
+    do_external initstep $method
 
     #convert potential in format for sim_prog
     for_all non-bonded do_external convert_potential $sim_prog
 
     #Run simulation maybe change to Espresso or whatever
-    do_external prepare $sim_prog "../$last_dir" 
+    do_external prepare $sim_prog 
     mark_done "Initialize"
   fi
 
@@ -196,19 +196,19 @@ for ((i=1;i<$iterations+1;i++)); do
   fi
 
   msg "Make update $method" 
-  do_external update $method $i
+  do_external update $method
 
   msg "Post update"
-  do_external post update $i
+  do_external post update 
 
   msg "Adding up potential"
   do_external add_pot $method
 
   msg "Post add"
-  do_external post add $i
+  do_external post add
 
   #copy latest results
-  for_all non-bonded 'cp $(csg_get_interaction_property name).pot.new ..'
+  for_all non-bonded 'cp $(csg_get_interaction_property name).pot.new $(get_main_dir)'
 
   touch done
   msg "step $i done"
