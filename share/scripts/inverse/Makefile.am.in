@@ -11,9 +11,10 @@ MD5SUM: ${inverse_SCRIPTS} ${inverse_files}
 
 CLEANFILES = *~
 
+###END Makefile.am###
+.PHONY: Makefile.am
 Makefile.am: Makefile.am.in
 	echo 'inverse_SCRIPTS = \' > $@
 	ls *.sh *.pl | sed -e 's/.*/\t& \\/' -e '$$s/\\$$//' >> $@
-	echo >> $@
-	cat $< >> $@
+	sed '/^###END Makefile.am###/,$$d' $< >> $@
 
