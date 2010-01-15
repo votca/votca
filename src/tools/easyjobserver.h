@@ -41,6 +41,8 @@ public:
 
     void MakeRatesSIUnits(QMNBList &nblist);
 
+    void print_nbs_to_file(QMNBList &nblist);
+
 protected:
     QMTopology *_qmtop;
     double _cutoff;

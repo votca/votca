@@ -50,7 +50,6 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 
     nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
-
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
@@ -67,12 +66,12 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     }
     CalcRates(nblist);
     MakeRatesSIUnits(nblist);
+    print_nbs_to_file(nblist);
     cout<<"Falks test\n";
-       StateSaver _saver(*_qmtop);
-            string outfilename = "falks.dat";
-            _saver.Open(outfilename,true);
-  
-          _saver.Write_QMBeads(_qmtop);
+    StateSaver _saver(*_qmtop);
+    string outfilename = "falks.dat";
+   _saver.Open(outfilename,true);
+   _saver.Write_QMBeads(_qmtop);
 }
 
 bool EasyJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
@@ -100,15 +99,14 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             /// reorganization energy in eV as given in list_charges.xml
             double reorg = 0.5 * (crg1->GetType()->GetReorg()+crg2->GetType()->GetReorg());
             /// free energy difference due to electric field, i.e. E*r_ij
-            double dG_field = _E * ((*iter)->r()) * RA * Ang;
+            double dG_field = -_E * ((*iter)->r()) * RA * Ang;
             /// free energy difference due to different energy levels of molecules
-            double dG_lev = crg2->GetNRG() - crg1->GetNRG();
-            /// free energy difference due to electrostatics
-            double dG_estatic = 0.0;
+            double dG_en = crg2->GetNRG() - crg1->GetNRG();
+            /// electrostatics are taken into account in qmtopology and are contained in NRG
             /// total free energy difference
-            double dG = dG_field + dG_lev + dG_estatic;
+            double dG = dG_field + dG_en;
             /// Marcus rate
-            rate = prefactor * sqrt(PI/(reorg * _kT) ) * Jeff*Jeff *
+            rate = prefactor * sqrt(PI/(reorg * _kT)) * Jeff * Jeff *
                 exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
             //cout << "Rate: " << rate << endl;
             //cout << "dG_field = " << dG_field << endl;
@@ -124,3 +122,18 @@ void EasyJObserver::MakeRatesSIUnits(QMNBList &nblist){
     }
 }
 
+void EasyJObserver::print_nbs_to_file(QMNBList &nblist){
+    ofstream out_nbl;
+    out_nbl.open("nbl_votca.res");
+    if(out_nbl!=0){
+        out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [Bohr]" << endl;
+        QMNBList::iterator iter;
+        for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
+            out_nbl << "(" << (*iter)->first->GetId() << "," << (*iter)->second->GetId() << "): ";
+            out_nbl << (*iter)->j() << " " << abs((*iter)->j()) << " " << (*iter)->rate() << " ";
+            out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
+            out_nbl << " " << abs((*iter)->r()) << endl;
+        }
+    }
+    out_nbl.close();
+}
