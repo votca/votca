@@ -13,6 +13,8 @@
 #include "qmtopology.h"
 #include <votca/tools/property.h>
 #include "statesaver.h"
+#include <kmc/graph.h>
+
 class EasyJObserver
     : public CGObserver
 {
@@ -40,6 +42,10 @@ public:
     void CalcRates(QMNBList &nblist);
 
     void MakeRatesSIUnits(QMNBList &nblist);
+
+    void print_nbs_to_file(QMNBList &nblist);
+
+    void make_kmc_graph(graph *a, QMNBList &nblist);
 
 protected:
     QMTopology *_qmtop;

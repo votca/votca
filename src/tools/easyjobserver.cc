@@ -2,6 +2,7 @@
 #include <votca/csg/nblist.h>
 #include <qmnblist.h>
 #include <votca/tools/histogramnew.h>
+#include <kmc/vertex.h>
 
 EasyJObserver::EasyJObserver()
 {}
@@ -50,30 +51,32 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 
     nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
-
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
          if(MatchNNnames(crg1, crg2)){
-            //vector <double> Js = _qmtop->GetJCalc().GetJ(*crg1, *crg2);
-            //cout << crg1->GetId() << " " << crg2->GetId() << " ";
-//            for(int i=0; i<Js.size(); ++i)
+            vector <double> Js = _qmtop->GetJCalc().GetJ(*crg1, *crg2);
+            cout << crg1->GetId() << " " << crg2->GetId() << " ";
+            for(int i=0; i<Js.size(); ++i)
             {
-            //    _Js.push_back(Js[i]);
+                _Js.push_back(Js[i]);
             }
-            //(*iter)->setJ(Js[0]);
+            (*iter)->setJ(Js[0]);
          }
     }
-    //CalcRates(nblist);
-    //MakeRatesSIUnits(nblist);
+    CalcRates(nblist);
+    MakeRatesSIUnits(nblist);
+    print_nbs_to_file(nblist);
+    graph kmc_grid;
+    make_kmc_graph(&kmc_grid,nblist);
+
     cout<<"Falks test\n";
-       StateSaver _saver(*_qmtop);
-            string outfilename = "falks.dat";
-            _saver.Open(outfilename,true);
-  
-          _saver.Write_QMBeads(_qmtop);
-          _saver.Close();
+    StateSaver _saver(*_qmtop);
+    string outfilename = "falks.dat";
+    _saver.Open(outfilename,true);
+    _saver.Write_QMBeads(_qmtop);
+    _saver.Close();
 }
 
 bool EasyJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
@@ -90,7 +93,7 @@ bool EasyJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
 void EasyJObserver::CalcRates(QMNBList &nblist){
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
     {
-        double rate = 0.0;
+        double rate_12, rate_21 = 0.0;
         double Jeff = (*iter)->j();
         //cout << "Jeff = " << Jeff << endl;
         CrgUnit *crg1 = (*iter)->first;
@@ -101,27 +104,62 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             /// reorganization energy in eV as given in list_charges.xml
             double reorg = 0.5 * (crg1->GetType()->GetReorg()+crg2->GetType()->GetReorg());
             /// free energy difference due to electric field, i.e. E*r_ij
-            double dG_field = _E * ((*iter)->r()) * RA * Ang;
+            double dG_field = -_E * ((*iter)->r()) * RA * Ang;
             /// free energy difference due to different energy levels of molecules
-            double dG_lev = crg2->GetNRG() - crg1->GetNRG();
-            /// free energy difference due to electrostatics
-            double dG_estatic = 0.0;
+            double dG_en = crg2->GetNRG() - crg1->GetNRG();
+            /// electrostatics are taken into account in qmtopology and are contained in NRG
             /// total free energy difference
-            double dG = dG_field + dG_lev + dG_estatic;
-            /// Marcus rate
-            rate = prefactor * sqrt(PI/(reorg * _kT) ) * Jeff*Jeff *
+            double dG = dG_field + dG_en;
+            /// Marcus rate from first to second
+            rate_12 = prefactor * sqrt(PI/(reorg * _kT)) * Jeff * Jeff *
                 exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
-            //cout << "Rate: " << rate << endl;
-            //cout << "dG_field = " << dG_field << endl;
+            /// Marcus rate from second to first (dG_field -> -dG_field)
+            dG = -dG_field + dG_en;
+            rate_21 = prefactor * sqrt(PI/(reorg * _kT)) * Jeff * Jeff *
+                exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
         }
-        (*iter)->setRate(rate);
+        (*iter)->setRate12(rate_12);
+        (*iter)->setRate21(rate_21);
     }
 }
 
 void EasyJObserver::MakeRatesSIUnits(QMNBList &nblist){
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
     {
-        (*iter)->rate() *= 1/hbar;
+        (*iter)->rate12() *= 1/hbar;
+        (*iter)->rate21() *= 1/hbar;
     }
 }
 
+void EasyJObserver::print_nbs_to_file(QMNBList &nblist){
+    ofstream out_nbl;
+    out_nbl.open("nbl_votca.res");
+    if(out_nbl!=0){
+        out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [Bohr]" << endl;
+        QMNBList::iterator iter;
+        for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
+            out_nbl << "(" << (*iter)->first->GetId() << "," << (*iter)->second->GetId() << "): ";
+            out_nbl << (*iter)->j() << " " << abs((*iter)->j()) << " " << (*iter)->rate12() << " ";
+            out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
+            out_nbl << " " << abs((*iter)->r()) << endl;
+        }
+    }
+    out_nbl.close();
+}
+
+void EasyJObserver::make_kmc_graph(graph *a, QMNBList &nblist){
+    cout << "[make_kmc_graph]: Building KMC Graph...";
+    /// assign constants
+    a->SetField(_E);
+    /// set vertices equal to centers of mass
+    BeadContainer::iterator it;
+    for(it=_qmtop->Beads().begin(); it!=_qmtop->Beads().end(); ++it){
+        a->AddVertex((*it)->getPos(),_E); /// TO DO: remove necessity for E-field at this point
+    }
+    /// set edges, two edges 1->2 and 2->1 are created per neighboring pair
+    for(QMNBList::iterator iter = nblist.begin(); iter!=nblist.end();++iter){
+        a->AddEdge((*iter)->first->GetId(), (*iter)->second->GetId(), (*iter)->rate12(),(*iter)->r());
+        a->AddEdge((*iter)->second->GetId(), (*iter)->first->GetId(), (*iter)->rate21(),-(*iter)->r());
+    }
+    cout << " Done." << endl;
+}
