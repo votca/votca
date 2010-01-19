@@ -17,7 +17,7 @@ void StateSaver::Open(string file, bool bAppend)
 
 void StateSaver::Close()
 {
- //   fclose(_out);
+ _out.close();
 }
 
 void StateSaver::Write_QMBeads(QMTopology *top)
