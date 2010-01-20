@@ -97,7 +97,6 @@ void QMTopology::ComputeAllTransferIntegrals(){
         CrgUnit *crg2 = (*iter)->second;
         vector <double> Js = GetJCalc().GetJ(*crg1, *crg2);
         (*iter)->setJs(Js);
-        (*iter)->setJeff(Js);
     }
 }
 

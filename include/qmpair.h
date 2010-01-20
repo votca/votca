@@ -30,8 +30,6 @@ public:
     double &dist() { return _dist; }
     /// \brief returns vector of transfer integrals
     vector <double> &Js() { return _Js; }
-    /// \brief returns the effective transfer integral
-    double &Jeff2(){ return _Jeff2;}
     /// \brief returns the transfer rate from first to second
     double &rate12(){return _rate_12;}
     /// \brief returns the transfer rate from second to first
@@ -39,7 +37,7 @@ public:
     /// \brief set the transfer integral
     void setJs(const vector <double> &js){_Js=js;}
     /// \brief set the effective transfer integral as the rms of the transfer integrals
-    void setJeff(vector <double> &js);
+    double calcJeff2();
     /// \brief set transfer rate from first to second
     void setRate12(double rate) {_rate_12=rate;}
     /// \brief set transfer rate from second to first
@@ -52,8 +50,6 @@ protected:
     double _dist;
     /// transfer integrals, multiple entries in case of degeneracy
     vector <double> _Js;
-    /// the square of the effective transfer integral averaged over all combinations for degenerate orbitals
-    double _Jeff2;
     /// transfer rate from first to second
     double _rate_12;
     /// transfer rate from second to first
