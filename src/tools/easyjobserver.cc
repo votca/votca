@@ -94,7 +94,7 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
     {
         double rate_12, rate_21 = 0.0;
-        double Jeff = (*iter)->Jeff();
+        double Jeff2 = (*iter)->Jeff2();
         //cout << "Jeff = " << Jeff << endl;
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
@@ -111,11 +111,11 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             /// total free energy difference
             double dG = dG_field + dG_en;
             /// Marcus rate from first to second
-            rate_12 = prefactor * sqrt(PI/(reorg * _kT)) * Jeff * Jeff *
+            rate_12 = prefactor * sqrt(PI/(reorg * _kT)) * Jeff2 *
                 exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
             /// Marcus rate from second to first (dG_field -> -dG_field)
             dG = -dG_field + dG_en;
-            rate_21 = prefactor * sqrt(PI/(reorg * _kT)) * Jeff * Jeff *
+            rate_21 = prefactor * sqrt(PI/(reorg * _kT)) * Jeff2 *
                 exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
         }
         (*iter)->setRate12(rate_12);
@@ -139,7 +139,7 @@ void EasyJObserver::print_nbs_to_file(QMNBList &nblist){
         QMNBList::iterator iter;
         for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
             out_nbl << "(" << (*iter)->first->GetId() << "," << (*iter)->second->GetId() << "): ";
-            out_nbl << (*iter)->Js()[0] << " " << abs((*iter)->Jeff()) << " " << (*iter)->rate12() << " ";
+            out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->Jeff2()) << " " << (*iter)->rate12() << " ";
             out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
             out_nbl << " " << abs((*iter)->r()) << endl;
         }

@@ -34,5 +34,5 @@ void QMPair::setJeff(vector <double> &js){
         j+=(*itj)*(*itj);
     }
     j/= double(js.size());
-    _Jeff=sqrt(j);
+    _Jeff2=j;
 }
