@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 {
     string in_file, out_file, grid, spfit;
     CubicSpline spline;
-    Table in, out;
+    Table in, out, der;
 
     // program options
     po::options_description desc("Allowed options");            
@@ -55,6 +55,7 @@ int main(int argc, char** argv)
     desc.add_options()
       ("in", po::value<string>(&in_file), "table to read")
       ("out", po::value<string>(&out_file), "table to write")
+      ("derivative", po::value<string>(), "table to write")
       ("grid", po::value<string>(&grid), "new grid spacing (min:step:max)")
       ("spfit", po::value<string>(&spfit), "specify spline fit grid. if option is not specified, normal spline interpolation is performed")
       //("bc", po::)
@@ -139,6 +140,12 @@ int main(int argc, char** argv)
     
     out.Save(out_file);
     
+    if (vm.count("derivative")) {
+        der.GenerateGridSpacing(min, max, step);
+        der.flags() = ub::scalar_vector<double>(der.flags().size(), 'o');
+        spline.CalculateDerivative(der.x(), der.y());
+        der.Save(vm["derivative"].as<string>());
+    }
     return 0;
 }
 
