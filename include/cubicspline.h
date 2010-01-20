@@ -96,10 +96,16 @@ public:
     
     /// Calculate the function value
     double Calculate(const double &x);
+
+    /// Calculate the function derivative
+    double CalculateDerivative(const double &x);
+    
     
     /// Calculate the function value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void Calculate(vector_type1 &x, vector_type2 &y);
+    template<typename vector_type1, typename vector_type2>
+    void CalculateDerivative(vector_type1 &x, vector_type2 &y);
        
     /// the spline parameters were calculated elsewere, store that data
     template<typename vector_type>
@@ -153,6 +159,11 @@ protected:
     double B(const double &r);
     double C(const double &r);
     double D(const double &r);
+
+    double Aprime(const double &r);
+    double Bprime(const double &r);
+    double Cprime(const double &r);
+    double Dprime(const double &r);
   
     // tabulated derivatives at grid points. Second argument: 0 - left, 1 - right    
     double A_prime_l(int i);     
@@ -191,6 +202,16 @@ inline double CubicSpline::Calculate(const double &r)
             + D(r)*_f[n + interval + 1];
 }
 
+inline double CubicSpline::CalculateDerivative(const double &r)
+{
+    int n = _f.size()/2;
+    int interval =  getInterval(r);
+    return  Aprime(r)*_f[interval]
+            + Bprime(r)*_f[interval + 1]
+            + Cprime(r)*_f[n + interval]
+            + Dprime(r)*_f[n + interval + 1];
+}
+
 template<typename vector_type1, typename vector_type2>
 inline void CubicSpline::Calculate(vector_type1 &x, vector_type2 &y)
 {
@@ -198,7 +219,13 @@ inline void CubicSpline::Calculate(vector_type1 &x, vector_type2 &y)
     for(int i=0; i<x.size(); ++i) 
         y(i) = Calculate(x(i));
 }
-
+template<typename vector_type1, typename vector_type2>
+inline void CubicSpline::CalculateDerivative(vector_type1 &x, vector_type2 &y)
+{
+    int n = _r.size();
+    for(int i=0; i<x.size(); ++i)
+        y(i) = CalculateDerivative(x(i));
+}
 inline void CubicSpline::Print(std::ostream &out, double interval)
 {
     for (double x = _r[0]; x < _r[_r.size() - 1]; x += interval)
@@ -264,9 +291,19 @@ inline double CubicSpline::A(const double &r)
     return ( 1.0 - (r -_r[getInterval(r)])/(_r[getInterval(r)+1]-_r[getInterval(r)]) );
 }
 
+inline double CubicSpline::Aprime(const double &r)
+{
+    return  -1.0/(_r[getInterval(r)+1]-_r[getInterval(r)]);
+}
+
 inline double CubicSpline::B(const double &r)
 {
     return  (r -_r[getInterval(r)])/(_r[getInterval(r)+1]-_r[getInterval(r)]) ;
+}
+
+inline double CubicSpline::Bprime(const double &r)
+{
+    return  1.0/(_r[getInterval(r)+1]-_r[getInterval(r)]);
 }
 
 inline double CubicSpline::C(const double &r)
@@ -277,7 +314,14 @@ inline double CubicSpline::C(const double &r)
     
     return ( 0.5*xxi*xxi - (1.0/6.0)*xxi*xxi*xxi/h - (1.0/3.0)*xxi*h) ;
 }
+inline double CubicSpline::Cprime(const double &r)
+{
+    double xxi, h;
+    xxi = r -_r[getInterval(r)];
+    h   = _r[getInterval(r)+1]-_r[getInterval(r)];
 
+    return (xxi - 0.5*xxi*xxi/h - h/3);
+}
 inline double CubicSpline::D(const double &r)
 {
     double xxi, h;
@@ -286,7 +330,14 @@ inline double CubicSpline::D(const double &r)
     
     return ( (1.0/6.0)*xxi*xxi*xxi/h - (1.0/6.0)*xxi*h ) ;
 }
+inline double CubicSpline::Dprime(const double &r)
+{
+    double xxi, h;
+    xxi = r -_r[getInterval(r)];
+    h   = _r[getInterval(r)+1]-_r[getInterval(r)];
 
+    return ( 0.5*xxi*xxi/h - (1.0/6.0)*h ) ;
+}
 //inline int CubicSpline::getInterval(double &r)
 //{
 //    if (r < _r[0] || r > _r[_r.size() - 1]) return -1;
