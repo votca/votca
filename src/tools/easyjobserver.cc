@@ -62,7 +62,8 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
             {
                 _Js.push_back(Js[i]);
             }
-            (*iter)->setJ(Js[0]);
+            (*iter)->setJs(Js);
+            (*iter)->setJeff(Js);
          }
     }
     CalcRates(nblist);
@@ -93,7 +94,7 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
     {
         double rate_12, rate_21 = 0.0;
-        double Jeff = (*iter)->j();
+        double Jeff = (*iter)->Jeff();
         //cout << "Jeff = " << Jeff << endl;
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
@@ -138,7 +139,7 @@ void EasyJObserver::print_nbs_to_file(QMNBList &nblist){
         QMNBList::iterator iter;
         for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
             out_nbl << "(" << (*iter)->first->GetId() << "," << (*iter)->second->GetId() << "): ";
-            out_nbl << (*iter)->j() << " " << abs((*iter)->j()) << " " << (*iter)->rate12() << " ";
+            out_nbl << (*iter)->Js()[0] << " " << abs((*iter)->Jeff()) << " " << (*iter)->rate12() << " ";
             out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
             out_nbl << " " << abs((*iter)->r()) << endl;
         }

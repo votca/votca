@@ -49,8 +49,10 @@ public:
 
 protected:
     QMTopology *_qmtop;
+    /// nearest neighbor cut-off radius
     double _cutoff;
     vector <string> _nnnames;
+    /// transfer integrals, multiple entries in case of degeneracy
     vector <double> _Js;
     /// electric field [V/m]
     vec _E;
