@@ -27,12 +27,12 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
     _dist *= 10./RA;
 }
 
-void QMPair::setJeff(vector <double> js){
+void QMPair::setJeff(vector <double> &js){
     vector<double>::iterator itj=js.begin();
     double j=0.;
     for (;itj!= js.end(); itj++){
         j+=(*itj)*(*itj);
     }
     j/= double(js.size());
-    _Jeff = j;
+    _Jeff=sqrt(j);
 }

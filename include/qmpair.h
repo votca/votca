@@ -37,9 +37,9 @@ public:
     /// \brief returns the transfer rate from second to first
     double &rate21(){return _rate_21;}
     /// \brief set the transfer integral
-    void setJs(const vector <double> &j){_Js=j;}
+    void setJs(const vector <double> &js){_Js=js;}
     /// \brief set the effective transfer integral as the rms of the transfer integrals
-    void setJeff(vector <double> js);
+    void setJeff(vector <double> &js);
     /// \brief set transfer rate from first to second
     void setRate12(double rate) {_rate_12=rate;}
     /// \brief set transfer rate from second to first
