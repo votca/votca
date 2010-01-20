@@ -21,29 +21,59 @@ class StateSaver
 {
 public : 
     StateSaver(QMTopology & qmtop);
-    void Open(string file, bool bAppend = false);
-    void Close();
-    void Write_QMBeads(QMTopology *top);
-    void Write_QMNeighbourlist(ofstream & out);
-           
+    void Save(string file, bool bAppend = false);
+    void Load(string file);
+      
+    
+    
 private:
+    void Write_QMBeads();
+    void Write_QMNeighbourlist();
+
+    void Read_QMBeads();
+    void Read_QMNeighbourlist();
+
+    template<typename T>
+    void write(const T &v);
+
+    template<typename T>
+    T read(void);
+
+    QMTopology *_qmtop;
     ofstream _out;
+    ifstream _in;
 };
 
-/*VICTOR:
-class StateSaver
-: public TrajectoryWriter
+template<typename T>
+inline void StateSaver::write(const T &v)
 {
-public:
+  _out.write((const char *)&v, sizeof(T));
+}
 
-    void Open(string file, bool bAppend = false);
-    void Close();
+template<>
+inline void StateSaver::write<std::string>(const string &v)
+{
+  write<unsigned short>(v.length());
+  _out.write(v.c_str(), v.length());
+}
 
-    void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}
+template<typename T>
+inline T StateSaver::read()
+{
+    T tmp;
+    _in.read((char *)&tmp, sizeof(T));
+    return tmp;
+}
 
-    void Write(Topology *conf);
+template<>
+inline std::string StateSaver::read<std::string>()
+{
 
-private:
-    FILE *_out;
-};*/
+  int L=read<unsigned short>();
+  char tmp [L+1];
+  _in.read(tmp, L);
+  tmp[L]=0;
+  return string(tmp);
+}
+
 #endif	/* _STATESAVER_H */
