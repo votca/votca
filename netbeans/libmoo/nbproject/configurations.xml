@@ -13,6 +13,7 @@
       <itemPath>../../include/jcalc.h</itemPath>
       <itemPath>../../include/mol_and_orb.h</itemPath>
       <itemPath>../../include/orbitals.h</itemPath>
+      <itemPath>../../include/units.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -29,6 +30,7 @@
       <itemPath>../../src/libmoo/jcalc.cc</itemPath>
       <itemPath>../../src/libmoo/mol_and_orb.cpp</itemPath>
       <itemPath>../../src/libmoo/orbitals.cpp</itemPath>
+      <itemPath>../../src/libmoo/units.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
