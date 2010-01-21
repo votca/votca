@@ -34,8 +34,13 @@ public:
     QMTopology();
     ~QMTopology();
 
+    /// QM neighbor list [nm]
     QMNBList & nblist(){
         return _nblist;
+    }
+    /// List of charge units [Bohr]
+    list < CrgUnit *>& crglist(){
+        return _lcharges;
     }
     /// update the topology based on cg positons
     void Initialize(Topology &cg_top);
