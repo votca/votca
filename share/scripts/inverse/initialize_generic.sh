@@ -42,6 +42,6 @@ if [ -f ../${name}.pot.in ]; then
 else
   # RDF_to_POT.pl just does log g(r) + extrapolation
   msg "Using intial guess from RDF for ${name}"
-  run_or_exit do_external rdf pot ${name}.dist.tgt ${name}.pot.new
+  do_external rdf pot ${name}.dist.tgt ${name}.pot.new
 fi
 

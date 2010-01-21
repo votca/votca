@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method for a single pair
 
 Usage: ${0##*/} step_nr
 
-USES:  do_external die csg_get_interaction_property log run_or_exit awk
+USES:  do_external die csg_get_interaction_property log awk
 
 NEEDS: name step min max inverse.do_potential
 EOF
@@ -40,8 +40,8 @@ name=$(csg_get_interaction_property name)
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
    log "Update potential ${name} : yes"
    #update ibm
-   run_or_exit do_external update ibm_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.tmp
-   run_or_exit do_external dpot shift_nb ${name}.dpot.tmp ${name}.dpot.new
+   do_external update ibm_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.tmp
+   do_external dpot shift_nb ${name}.dpot.tmp ${name}.dpot.new
 else
    log "Update potential ${name} : no"
    awk -v step=$(csg_get_interaction_property step) -v start=$(csg_get_interaction_property min) -v end=$(csg_get_interaction_property max) \

@@ -22,7 +22,7 @@ This script implemtents smoothing of the potential update (.dpot)
 
 Usage: ${0##*/}
 
-USES:  die csg_get_interaction_property mktemp do_external cp log run_or_exit
+USES: die csg_get_interaction_property mktemp do_external cp log run_or_exit
 
 NEEDS: name inverse.post_update_options.smooth.iterations
 EOF
@@ -39,7 +39,7 @@ run_or_exit cp ${name}.dpot.cur $tmpfile
 log "doing $iterations smoothing iterations"
 
 for((i=0;i<$iterations;i++)); do
-  run_or_exit do_external table smooth $tmpfile ${name}.dpot.new
+  do_external table smooth $tmpfile ${name}.dpot.new
   run_or_exit cp ${name}.dpot.new $tmpfile
 done
 
