@@ -25,6 +25,8 @@
 #include <string>
 #include <stdexcept>
 
+class CrgUnit;
+
 class CrgUnitType{
 public:
     
@@ -59,14 +61,7 @@ public:
     mol_and_orb & GetCrgUnit();
     
     const orb & GetOrb() const;
-    
-    /// this willA take each bead and move it to positions[i] rotating by the
-    /// orientation corresponding to norm and rotate we assume that the pointer
-    /// is to a suitable molecule... 
-    void rotate_each_bead(
-            vector < vec >::iterator it_pos , vector < vec >::iterator it_norm,
-            vector <vec >::iterator it_plan, mol_and_orb * rotated_molecule );
-        
+            
 private:
     basis_set         _indo;
     mol_and_orb       _intcoords;
@@ -86,6 +81,15 @@ private:
     vector < vec  >   _list_coms_monomer;
     // a list of rotation matrices to put the internal coordinates of each monomer onto the reference state
     vector < matrix > _list_ors_monomer;
+
+        /// this willA take each bead and move it to positions[i] rotating by the
+    /// orientation corresponding to norm and rotate we assume that the pointer
+    /// is to a suitable molecule...
+    void rotate_each_bead(
+            vector < vec >::iterator it_pos , vector < vec >::iterator it_norm,
+            vector <vec >::iterator it_plan, mol_and_orb * rotated_molecule );
+
+    friend class CrgUnit;
     
 };
 
