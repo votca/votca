@@ -52,7 +52,7 @@ public:
       
     const vector <unsigned int>& GetTransOrbs() const;
     
-    const unsigned int & GetId() const;
+    const unsigned int & getId() const;
     
     string & GetMolName();   
     
@@ -109,7 +109,7 @@ inline const vector <unsigned int>& CrgUnitType::GetTransOrbs() const{
     return _transorbs;
 }
 
-inline const unsigned int & CrgUnitType::GetId() const {
+inline const unsigned int & CrgUnitType::getId() const {
     return _id;
 }
 

@@ -242,9 +242,9 @@ JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2 ){
 JCalc::JCalcData * JCalc::getJCalcData(CrgUnit & one, CrgUnit & two){
     JCalcData * jdata;
     map <pair<CrgUnitType *, CrgUnitType *> , JCalcData *>::iterator itm=
-             _maplistfock.find(make_pair(one.GetType(), two.GetType()));
+             _maplistfock.find(make_pair(one.getType(), two.getType()));
      if (itm == _maplistfock.end() ){
-         jdata = InitJCalcData(one.GetType(), two.GetType());
+         jdata = InitJCalcData(one.getType(), two.getType());
 ///         cout << "after creating" <<endl;
 ///         cout<< jdata->_mol1.getN()<<endl;
      }
@@ -255,7 +255,7 @@ JCalc::JCalcData * JCalc::getJCalcData(CrgUnit & one, CrgUnit & two){
 }
 
 vector <double> JCalc::GetJ (CrgUnit & one, CrgUnit & two) {
-    if ( one.GetTypeID() > two.GetTypeID()){
+    if ( one.getType()->getId() > two.getType()->getId()){
         return GetJ(two, one);
     }
 
@@ -299,7 +299,7 @@ double JCalc::EstaticDifference(CrgUnit & crged , CrgUnit & neutr){
         // this requires to check the typeIDs
     JCalcData * jdata = getJCalcData(crged, neutr);
         
-    if (crged.GetTypeID() > neutr.GetTypeID() ){
+    if (crged.getType()->getId() > neutr.getType()->getId() ){
 
         crged.rot_two_mol(neutr, jdata->_mol2, jdata->_mol1);
 

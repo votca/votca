@@ -33,49 +33,54 @@ public:
     CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
             const unsigned int & id, CrgUnitType * type,
             const unsigned int & molId);
+
     CrgUnit(const unsigned int & id, CrgUnitType * type,
-            const unsigned int & molId):_id(id), _type(type), _molid(molId){}    
+            const unsigned int & molId);
     
+    /// TODO: vr have a lock
     void copyCrgUnit(CrgUnit & acrg);
+    /// TODO: vr have a lock
     void copyCrgUnit(CrgUnit & acrg, const int & id);
-    const double& GetNRG() const;
 
-    void setNRG(const double& a);
+    /// get the site energy
+    const double& getEnergy() const;
+    /// set the site energy
+    void setEnergy(const double& a);
 
-    const unsigned int& GetId() const;
-    void SetId(const int& i);
+    /// get the ID of the charge unit
+    const unsigned int& getId() const;
+    /// set the ID of the charge unit
+    void setId(const int& i);
 
-    const unsigned int& GetTypeID() const;
-    CrgUnitType* GetType() const;
+    /// get the type of the crg unit
+    CrgUnitType* getType() const;
 
-    const unsigned int& GetMolId() const;
+    // get the name of the charge unit
+    const string &getName() const { return _name; }
+    // set the name of the charge unit
+    void setName(const string &name) { _name = name; }
+
+    // get the molecule ID
+    const unsigned int& getMolId() const;
 
     int GetN();
 
-    const vector <vec>::iterator GetPosFirst();
-    const vector <vec>::iterator GetPosLast();
-
-    //void SetCom(vec& com);
     void SetPos(const int& i, const vec& pos);
     void SetNorm(const int& i, const vec& pos);
     void SetPlane(const int& i, const  vec& pos);
-
-    mol_and_orb * rotate_translate_beads();
-
-    // this is the function called from the rate calculator on already initialised molecules
-    void rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2);
 
     vec GetPos(const int & i);
     vec GetNorm(const int & i);
     vec GetPlane(const int & i);
     vec GetCom();
 
+
+    mol_and_orb * rotate_translate_beads();
+
+    // this is the function called from the rate calculator on already initialised molecules
+    void rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2);
     void shift(const vec & displ);
-
     void rotate(matrix mat);
-
-    const string &getName() const { return _name; }
-    void setName(const string &name) { _name = name; }
 
 private:
     /// the centre of mass
@@ -88,68 +93,52 @@ private:
     string _name;
     /// the molecule index
     unsigned int _molid;
-    /// also the type, but as an int
-    //unsigned int _typeid;
     ///vector of coms of monomers
     vector < vec > _positions;
     ///vector of coms of monomers
     vector < vec > _norms;
     ///vector of coms of monomers
     vector < vec > _planes;
-    //vector of coordinates (if on a ghost cell)
-    //vector < vector < vec > > _altpos;
-    // a vector of the alternative centre of masses
-    //vector < vec > _altcom;
     /// a reference to the crgunittype
     CrgUnitType * _type;
     /// the energy at this site
     double _energy;
 
-    vector <vec>::iterator GetPositions() {
-        return _positions.begin();
-    }
-
-    vector <vec>::iterator GetNorms() {
-        return _norms.begin();
-    }
-
-    vector <vec>::iterator GetPlanes() {
-        return _planes.begin();
-    }
-
     vector <vec> shift_pos(const vec & a);
 };
+
+inline CrgUnit::CrgUnit(const unsigned int & id, CrgUnitType * type,
+                 const unsigned int & molId)
+    : _id(id), _type(type), _molid(molId)
+{}
+
 
 inline void CrgUnit::copyCrgUnit(CrgUnit & acrg, const int & id) {
     copyCrgUnit(acrg);
     _id = id;
 }
 
-inline const double& CrgUnit::GetNRG() const {
+inline const double& CrgUnit::getEnergy() const {
     return _energy;
 }
 
-inline void CrgUnit::setNRG(const double& a) {
+inline void CrgUnit::setEnergy(const double& a) {
     _energy = a;
 }
 
-inline const unsigned int& CrgUnit::GetId() const {
+inline const unsigned int& CrgUnit::getId() const {
     return _id;
 }
 
-inline void CrgUnit::SetId(const int& i) {
+inline void CrgUnit::setId(const int& i) {
     _id = i;
 }
 
-inline const unsigned int& CrgUnit::GetTypeID() const {
-    return _type->GetId();
-}
-
-inline CrgUnitType* CrgUnit::GetType() const {
+inline CrgUnitType* CrgUnit::getType() const {
     return _type;
 }
 
-inline const unsigned int& CrgUnit::GetMolId() const {
+inline const unsigned int& CrgUnit::getMolId() const {
     return _molid;
 }
 
@@ -158,14 +147,6 @@ inline int CrgUnit::GetN() {
         cerr << "ERror in the crg unit of id:" << _id << endl;
     }
     return _norms.size();
-}
-
-inline const vector <vec>::iterator CrgUnit::GetPosFirst() {
-    return _positions.begin();
-}
-
-inline const vector <vec>::iterator CrgUnit::GetPosLast() {
-    return _positions.end();
 }
 
 //inline void CrgUnit::SetCom(vec& com) {

@@ -81,8 +81,8 @@ mol_and_orb * CrgUnit::rotate_translate_beads() {
     _orb->init_orbitals_stripped(_type->GetOrb(), _type->GetTransOrbs().size());
     a->assign_orb(_orb);
 
-    _type->rotate_each_bead(this->GetPositions(), this->GetNorms(),
-            this->GetPlanes(), a);
+    _type->rotate_each_bead(_positions.begin(), _norms.begin(),
+            _planes.begin(), a);
     return a;
 }
 
@@ -139,8 +139,8 @@ void CrgUnit::rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2)
         }
     }*/
 
-    _type->rotate_each_bead(bestpos1, this->GetNorms(), this->GetPlanes(), &mol1);
-    (two._type)->rotate_each_bead(bestpos2, two.GetNorms(), two.GetPlanes(), &mol2);
+    _type->rotate_each_bead(bestpos1, _norms.begin(), _planes.begin(), &mol1);
+    (two._type)->rotate_each_bead(bestpos2, two._norms.begin(), two._planes.begin(), &mol2);
 }
 
 void CrgUnit::rotate(matrix mat) {
