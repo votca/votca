@@ -71,7 +71,6 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         CrgUnit *crg2 = (*iter)->second;
          if(MatchNNnames(crg1, crg2)){
             vector <double> Js = _qmtop->GetJCalc().CalcJ(*crg1, *crg2);
-            //cout << crg1->getId() << " " << crg2->getId() << " ";
             for(int i=0; i<Js.size(); ++i)
             {
                 _Js.push_back(Js[i]);
@@ -109,8 +108,10 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     cout<<"Falks test\n";
     StateSaver _saver(*_qmtop);
     string outfilename = "falks.dat";
-   _saver.Open(outfilename,true);
-   _saver.Write_QMBeads(_qmtop);
+    _saver.Save(outfilename,true);
+    
+    cout<<"now Falks read\n";
+    _saver.Load(outfilename);
 }
 
 bool EasyJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
