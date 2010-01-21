@@ -25,8 +25,7 @@ using namespace std;
 class CrgUnit {
 public:
 
-    CrgUnit() {
-    };
+    CrgUnit() {};
 
     ~CrgUnit();
 
@@ -41,12 +40,7 @@ public:
     void copyCrgUnit(CrgUnit & acrg);
     /// TODO: vr have a lock
     void copyCrgUnit(CrgUnit & acrg, const int & id);
-
-    /// get the site energy
-    const double& getEnergy() const;
-    /// set the site energy
-    void setEnergy(const double& a);
-
+    
     /// get the ID of the charge unit
     const unsigned int& getId() const;
     /// set the ID of the charge unit
@@ -60,8 +54,15 @@ public:
     // set the name of the charge unit
     void setName(const string &name) { _name = name; }
 
+    /////////////////////////////////////////////
+    // in principle this is libmd2qm stuff!
+    /// get the site energy
+    const double& getEnergy() const;
+    /// set the site energy
+    void setEnergy(const double& a);
     // get the molecule ID
     const unsigned int& getMolId() const;
+    //////////////////////////////////////////////
 
     int GetN();
 
@@ -74,20 +75,17 @@ public:
     vec GetPlane(const int & i);
     vec GetCom();
 
-
+    ///////////////////////////////////////////////
+    // what of this can we simplify/beautify?
     mol_and_orb * rotate_translate_beads();
 
     // this is the function called from the rate calculator on already initialised molecules
     void rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2);
     void shift(const vec & displ);
     void rotate(matrix mat);
+    //////////////////////////////////////////////////
 
 private:
-    /// the centre of mass
-    //vec _com;
-    /// the orientation
-    //   matrix _orient ;
-    /// the ID 
     unsigned int _id;
     /// the type
     string _name;

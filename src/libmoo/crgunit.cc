@@ -7,7 +7,8 @@
 
 #include "crgunit.h"
 
-CrgUnit::~CrgUnit() {
+CrgUnit::~CrgUnit()
+{
     //   cout << "[crgunit.h]: Calling the crgunit destructor." << endl;
     _planes.clear();
     _positions.clear();
@@ -15,11 +16,12 @@ CrgUnit::~CrgUnit() {
 }
 
 CrgUnit::CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
-        const unsigned int & id, CrgUnitType * type, const unsigned int & molId) {
+        const unsigned int & id, CrgUnitType * type, const unsigned int & molId)
+{
     vector <vec>::iterator it_pos;
     vector <vec>::iterator it_norm;
     vector <vec>::iterator it_planes;
-//    _com = vec(0., 0., 0.);
+    //    _com = vec(0., 0., 0.);
     double toll = 1E-6;
     vec xvec(1.0, 0., 0.);
     vec yvec(0., 1., 0.);
@@ -29,27 +31,29 @@ CrgUnit::CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes
         if (abs(*it_norm) > toll && abs(*it_planes) > toll) {
             _norms.push_back(*it_norm);
             _planes.push_back(*it_planes);
-        } else {
+        }
+        else {
             _norms.push_back(xvec);
             _planes.push_back(yvec);
         }
-//        _com = _com + *it_pos;
+        //        _com = _com + *it_pos;
 
     }
-//    _com /= positions.size();
+    //    _com /= positions.size();
     _molid = molId;
     _id = id;
     _type = type;
 
     // initialise variables derived from CrgUnitType
-    _energy = _type -> GetEnergy();
+    _energy = _type->getEnergy();
 }
 
-void CrgUnit::copyCrgUnit(CrgUnit & acrg) {
+void CrgUnit::copyCrgUnit(CrgUnit & acrg)
+{
     vector <vec>::iterator it_pos;
     vector <vec>::iterator it_norm;
     vector <vec>::iterator it_planes;
-//    _com = acrg._com;
+    //    _com = acrg._com;
     _positions.clear();
     _norms.clear();
     _planes.clear();
@@ -71,7 +75,8 @@ void CrgUnit::copyCrgUnit(CrgUnit & acrg) {
 
 }
 
-mol_and_orb * CrgUnit::rotate_translate_beads() {
+mol_and_orb * CrgUnit::rotate_translate_beads()
+{
     mol_and_orb *a = new mol_and_orb;
     basis_set *_indo = new basis_set;
     orb * _orb = new orb;
@@ -88,7 +93,8 @@ mol_and_orb * CrgUnit::rotate_translate_beads() {
 
 // this is the function called from the rate calculator on already initialised molecules
 
-void CrgUnit::rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2) {
+void CrgUnit::rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2)
+{
 
     /*vector <vec> ::iterator  com1;
     vector <vec> ::iterator  com2;
@@ -143,7 +149,8 @@ void CrgUnit::rot_two_mol(CrgUnit & two, mol_and_orb & mol1, mol_and_orb & mol2)
     (two._type)->rotate_each_bead(bestpos2, two._norms.begin(), two._planes.begin(), &mol2);
 }
 
-void CrgUnit::rotate(matrix mat) {
+void CrgUnit::rotate(matrix mat)
+{
     vector <vec> ::iterator it_norm = _norms.begin();
     vector <vec> ::iterator it_plane = _planes.begin();
     for (; it_norm != _norms.end(); ++it_norm, ++it_plane) {
@@ -153,8 +160,8 @@ void CrgUnit::rotate(matrix mat) {
         *it_plane = mat * b;
     }
     vec a;
-//    vec a = mat * _com;
-//    _com = a;
+    //    vec a = mat * _com;
+    //    _com = a;
     vector < vec> ::iterator it_vec;
     /*for (it_vec = _altcom.begin() ; it_vec != _altcom.end(); ++it_vec) {
         a = *it_vec;

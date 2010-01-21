@@ -24,25 +24,22 @@ class JCalc{
 
 public:
 
-    JCalc(){}
-
+    JCalc() {};
     ~JCalc();
     
-    JCalc(string name){
-        Init(name);
-    }
+    JCalc(string name);
 
     CrgUnitType * GetCrgUnitTypeByName(string);
 
-    void Init(string );
+    void Initialize(const string &file);
+    vector <double> CalcJ (CrgUnit & one, CrgUnit & two);
 
-    vector <double> GetJ (CrgUnit & one, CrgUnit & two);
-    
-    // CrgUnit DefineCrgUnit(vec pos, matrix orient, string name);
+    CrgUnit *CreateCrgUnit(int id, const string &type_name, int molid=-1);    
 
-    CrgUnit *CreateCrgUnit(int id, const string &type_name, int molid=-1);
-    
+
+    // TODO: EstaticDifference should not be in moo since it might depend on algorithm
     double EstaticDifference(CrgUnit & one, CrgUnit & two);
+    
 private:
 
     struct JCalcData{
@@ -79,6 +76,11 @@ private:
     /// get a J calc data from the map
     JCalcData * getJCalcData(CrgUnit &, CrgUnit &);
 };
+
+inline JCalc::JCalc(string name)
+{
+        Initialize (name);
+}
 
 inline CrgUnit *JCalc::CreateCrgUnit(int id, const string &type_name, int molid)
 {
