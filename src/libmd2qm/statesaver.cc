@@ -45,6 +45,28 @@ void StateSaver::Write_QMBeads() {
 
 }
 
+void StateSaver::Write_QMNeighbourlist() {
+    assert(_out.is_open());
+
+
+    QMNBList &nblist = _qmtop->nblist();
+    for(QMNBList::iterator iter = nblist.begin();
+        iter!=nblist.end();++iter) {
+        CrgUnit *crg1 = (*iter)->first;
+        CrgUnit *crg2 = (*iter)->second;
+         if(MatchNNnames(crg1, crg2)){
+            vector <double> Js = _qmtop->GetJCalc().GetJ(*crg1, *crg2);
+            double J_mean=J[0];
+            crg1->GetId();
+            crg2->GetId();
+            //electrostatic contribution from 1 and 2 (anion and cation)
+            //conformational disorder from 1 and 2 (homo and lumo)
+
+    }
+    //
+    //write<unsigned long>(_qmtop->BeadCount());
+}
+
 void StateSaver::Load(string file) {
     _qmtop->Cleanup();
     _in.open(file.c_str(), ios::in | ios::binary);
