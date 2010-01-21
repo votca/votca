@@ -12,6 +12,7 @@
 #include "basis_set.h"
 #include "charges.h"
 #include "global.h"
+#include "units.h"
 #include <votca/tools/vec.h>
 
 ////#define DEBUG
