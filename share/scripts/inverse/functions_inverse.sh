@@ -99,13 +99,14 @@ export -f die
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
-  local script
+  local script tags
   [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed" 
+  tags="$1 $2"
   shift 2
   #logrun do_external is a good combi to use
-  log --no-warn "Running subscript '${script##*/} $*'"
-  $script "$@" || die "do_external: $script $@ failed"
+  log --no-warn "Running subscript '${script##*/} $*'(from tags $tags)"
+  $script "$@" || die "do_external: subscript $script $@ (from tags $tags) failed"
 }
 export -f do_external
 
