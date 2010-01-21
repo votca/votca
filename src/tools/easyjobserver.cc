@@ -70,7 +70,7 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
          if(MatchNNnames(crg1, crg2)){
-            vector <double> Js = _qmtop->GetJCalc().GetJ(*crg1, *crg2);
+            vector <double> Js = _qmtop->GetJCalc().CalcJ(*crg1, *crg2);
             //cout << crg1->getId() << " " << crg2->getId() << " ";
             for(int i=0; i<Js.size(); ++i)
             {
@@ -136,7 +136,7 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
         {
             double prefactor = 1.0;
             /// reorganization energy in eV as given in list_charges.xml
-            double reorg = 0.5 * (crg1->getType()->GetReorg()+crg2->getType()->GetReorg());
+            double reorg = 0.5 * (crg1->getType()->getReorg()+crg2->getType()->getReorg());
             /// free energy difference due to electric field, i.e. E*r_ij
             double dG_field = -_E * ((*iter)->r()) * RA * Ang;
             /// free energy difference due to different energy levels of molecules

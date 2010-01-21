@@ -38,7 +38,7 @@ void QMTopology::Update(Topology& cg_top)
 
 void QMTopology::LoadListCharges(const string &file)
 {
-    _jcalc.Init(file);
+    _jcalc.Initialize(file);
 }
 
 
@@ -95,7 +95,7 @@ void QMTopology::ComputeAllTransferIntegrals(){
         iter!=_nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
-        vector <double> Js = GetJCalc().GetJ(*crg1, *crg2);
+        vector <double> Js = GetJCalc().CalcJ(*crg1, *crg2);
         (*iter)->setJs(Js);
     }
 }
