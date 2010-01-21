@@ -11,7 +11,7 @@
     \brief information about a CrgUnitTpe
  
     The CrgUnitType class describes a known charge unit type. It stores the ID,
- * reorganization energie, internal coordinates and orbitals. 
+    reorganization energie, internal coordinates and orbitals.
 
     \todo mod orbitals to be "stripped down" for memory?
 
@@ -33,33 +33,24 @@ public:
     ///it will be initialised by a list of ID names, molecule specifications and orbital
     ///specifications
     
-    CrgUnitType(){};
-    
     ~CrgUnitType();
-
-    CrgUnitType (
-            char * namecoord, char * nameorb, char * nameneutr,
-            char * namecrg, const double & reorg, 
-            const double & energy, const vector <unsigned int>& transorbs,
-            const unsigned int &id, string molname, string name,
-            vector < vector < int > > list_atoms_monomer,
-            vector < vector < double > > list_weights_monomer );
-
-    const double & GetReorg () const;
-    const double & GetEnergy () const;
+   
+    /// reorganization energy of the crg unit type
+    const double & getReorg () const { return _reorg; }
+    /// site energy of the crg unit type
+    const double & getEnergy () const { return _energy; }
     
-    //const unsigned int & GetTransOrb() const;
-      
     const vector <unsigned int>& GetTransOrbs() const;
     
-    const unsigned int & GetId() const;
+    const unsigned int & getId() const { return _id; }
     
     string & GetMolName();   
     
-    string & GetName();
+    const string & GetName() const { return _name; }
     
+    // TODO: mol_and_orb should not be in the interface!
     mol_and_orb & GetCrgUnit();
-    
+    // TODO: orb should not be in the interface!
     const orb & GetOrb() const;
             
 private:
@@ -68,7 +59,7 @@ private:
     orb               _orbitals; 
     double            _reorg;
     double            _energy;
-    //unsigned int      _transorb;
+
     vector <unsigned int> _transorbs;
     unsigned int      _id;
     ///the molecule name that this charge tranpost unit belongs to
@@ -82,43 +73,35 @@ private:
     // a list of rotation matrices to put the internal coordinates of each monomer onto the reference state
     vector < matrix > _list_ors_monomer;
 
-        /// this willA take each bead and move it to positions[i] rotating by the
+    /// this willA take each bead and move it to positions[i] rotating by the
     /// orientation corresponding to norm and rotate we assume that the pointer
     /// is to a suitable molecule...
     void rotate_each_bead(
             vector < vec >::iterator it_pos , vector < vec >::iterator it_norm,
             vector <vec >::iterator it_plan, mol_and_orb * rotated_molecule );
 
-    friend class CrgUnit;
+    // can only be created by JCalc
+    CrgUnitType() {};
     
+    // can only be created by JCalc
+    CrgUnitType(
+            char * namecoord, char * nameorb, char * nameneutr,
+            char * namecrg, const double & reorg,
+            const double & energy, const vector <unsigned int>& transorbs,
+            const unsigned int &id, string molname, string name,
+            vector < vector < int > > list_atoms_monomer,
+            vector < vector < double > > list_weights_monomer);
+
+    friend class CrgUnit;
+    friend class JCalc;
 };
-
-inline const double & CrgUnitType::GetReorg() const {
-    return _reorg;
-}
-
-inline const double & CrgUnitType::GetEnergy() const {
-    return _energy;
-}
-
-/*inline const unsigned int & CrgUnitType::GetTransOrb() const {
-    return _transorb;
-}*/
 
 inline const vector <unsigned int>& CrgUnitType::GetTransOrbs() const{
     return _transorbs;
 }
 
-inline const unsigned int & CrgUnitType::GetId() const {
-    return _id;
-}
-
 inline string & CrgUnitType::GetMolName() {
     return _molname;
-}
-
-inline string &CrgUnitType::GetName() {
-    return _name;
 }
 
 inline mol_and_orb & CrgUnitType::GetCrgUnit() {
