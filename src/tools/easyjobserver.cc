@@ -186,12 +186,13 @@ void EasyJObserver::make_kmc_graph(graph *a, QMNBList &nblist){
     /// assign constants
     a->SetField(_E);
     /// set vertices equal to centers of mass
-    BeadContainer::iterator it;
-    for(it=_qmtop->Beads().begin(); it!=_qmtop->Beads().end(); ++it){
-        a->AddVertex((*it)->getPos(),_E); /// TO DO: remove necessity for E-field at this point
+    list < CrgUnit *> listCharges = _qmtop->crglist();
+    list < CrgUnit *>::iterator it;
+    for(it=listCharges.begin(); it!=listCharges.end(); ++it){
+        a->AddVertex((*it)->GetCom(),_E); /// TO DO: remove necessity for E-field at this point
     }
     /// set edges, two edges 1->2 and 2->1 are created per neighboring pair
-    for(QMNBList::iterator iter = nblist.begin(); iter!=nblist.end();++iter){
+    for(QMNBList::iterator iter = nblist.begin(); iter!=nblist.end(); ++iter){
         a->AddEdge((*iter)->first->getId(), (*iter)->second->getId(), (*iter)->rate12(),(*iter)->r());
         a->AddEdge((*iter)->second->getId(), (*iter)->first->getId(), (*iter)->rate21(),-(*iter)->r());
     }
