@@ -3,6 +3,8 @@
 #include <qmnblist.h>
 #include <votca/tools/histogramnew.h>
 #include <kmc/vertex.h>
+#include <kmc/hoppers.h>
+#include <kmc/kmc.h>
 
 EasyJObserver::EasyJObserver()
 {}
@@ -28,6 +30,18 @@ void EasyJObserver::setNNnames(string  nnnames){
 void EasyJObserver::BeginCG(Topology *top, Topology *top_atom)
 {
     _qmtop->Initialize(*top);
+    ofstream out_cont; // for velocity averaging
+    ofstream out_diff; // for diffusion
+    out_cont.open("kmc_cont.res");
+    out_diff.open("kmc_diff.res");
+    if(out_cont!=0){
+        out_cont << "# number of run, time [sec], average velocity [m/s], mobility [cm^2/sec], electric field [V/m], end to end vector [nm]" << endl;
+    }
+    if(out_diff!=0){
+        out_diff << "# time [sec], displacement in x, y and z direction [m]" << endl;
+    }
+    out_cont.close();
+    out_diff.close();
 }
 
 void EasyJObserver::EndCG()
@@ -65,12 +79,33 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
             (*iter)->setJs(Js);
          }
     }
+    /// calculate & check the rates
     CalcRates(nblist);
     MakeRatesSIUnits(nblist);
     print_nbs_to_file(nblist);
+    /// create KMC graph
     graph kmc_grid;
     make_kmc_graph(&kmc_grid,nblist);
+    /// run continuous KMC
+    _out_cont.open("kmc_cont.res");
+    _out_diff.open("kmc_diff.res");
+    if(_out_cont!=0){
+        _out_cont << "# number of run, time [sec], average velocity [m/s], mobility [cm^2/sec], electric field [V/m], end to end vector [nm]" << endl;
+    }
+    if(_out_diff!=0){
+        _out_diff << "# time [sec], displacement in x, y and z direction [m]" << endl;
+    }
+    _out_cont.close();
+    _out_diff.close();
+    Random::init( 14, 122, 472, 1912 );
+    kmc_grid.setGeneratorsOnly();
+    hoppers charges(&kmc_grid);
+    KMCAlg kmc_alg(1E-8, 1E-15, 1.2, 1, &charges);
+    cout << "Starting continuos KMC..." << endl;
+    kmc_alg.kmcPBC(10, _out_cont, _out_diff);
+    cout << "Finished continuous KMC." << endl;
 
+    /// Testing the state saver class
     cout<<"Falks test\n";
     StateSaver _saver(*_qmtop);
     string outfilename = "falks.dat";

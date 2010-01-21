@@ -58,6 +58,9 @@ protected:
     vec _E;
     /// thermal energy [eV]
     double _kT;
+    ///  output streams for velocity averaging & diffusion
+    ofstream _out_cont;
+    ofstream _out_diff;
 
     bool MatchNNnames(CrgUnit * crg1, CrgUnit * crg2);
 };
