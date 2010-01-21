@@ -14,6 +14,7 @@
 #include <votca/tools/property.h>
 #include "statesaver.h"
 #include <kmc/graph.h>
+#include <moo/units.h>
 
 class EasyJObserver
     : public CGObserver
@@ -49,13 +50,18 @@ public:
 
 protected:
     QMTopology *_qmtop;
+    /// nearest neighbor cut-off radius
     double _cutoff;
     vector <string> _nnnames;
+    /// transfer integrals, multiple entries in case of degeneracy
     vector <double> _Js;
     /// electric field [V/m]
     vec _E;
     /// thermal energy [eV]
     double _kT;
+    ///  output streams for velocity averaging & diffusion
+    ofstream _out_cont;
+    ofstream _out_diff;
 
     bool MatchNNnames(CrgUnit * crg1, CrgUnit * crg2);
 };

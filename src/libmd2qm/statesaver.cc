@@ -35,7 +35,7 @@ void StateSaver::Write_QMBeads() {
         write<double>(bi->getM());
         write<double>(bi->getQ());
 
-        write<string > (bi->GetCrgUnit()->GetType()->GetName());
+        write<string > (bi->GetCrgUnit()->getType()->GetName());
         write<unsigned short>(bi->getiPos());
         write<vec > (bi->getPos());
         write<vec > (bi->getU());
@@ -52,16 +52,11 @@ void StateSaver::Write_QMNeighbourlist() {
     QMNBList &nblist = _qmtop->nblist();
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
+        QMPair *pair = *iter;
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
-         if(MatchNNnames(crg1, crg2)){
-            vector <double> Js = _qmtop->GetJCalc().GetJ(*crg1, *crg2);
-            double J_mean=J[0];
-            crg1->GetId();
-            crg2->GetId();
-            //electrostatic contribution from 1 and 2 (anion and cation)
-            //conformational disorder from 1 and 2 (homo and lumo)
-
+            crg1->getId();
+            crg2->getId();
     }
     //
     //write<unsigned long>(_qmtop->BeadCount());
@@ -96,7 +91,7 @@ void StateSaver::Read_QMBeads() {
         vec U = read<vec> ();
         vec V = read<vec> ();
 
-        cout << "Bead Symmetry " << symmetry << "\n";
+        cout << "Bead Symmetry " << (int)symmetry << "\n";
         cout << "Bead Name " << bead_name << "\n";
         cout << "Bead Type " << type_name << "\n";
         cout << "Residue Number " << resnr << "\n";

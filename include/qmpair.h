@@ -28,16 +28,16 @@ public:
     vec &r() { return _r; }
     /// \brief the distance of the beads
     double &dist() { return _dist; }
-    /// \brief returns the transfer integral
-    double &j(){ return _j;}
+    /// \brief returns vector of transfer integrals
+    vector <double> &Js() { return _Js; }
     /// \brief returns the transfer rate from first to second
     double &rate12(){return _rate_12;}
     /// \brief returns the transfer rate from second to first
     double &rate21(){return _rate_21;}
     /// \brief set the transfer integral
-    void setJ(const double & j){_j=j;}
-    /// \brief set the transfer integral as the rms of the transfer integrals
-    void setJ(vector <double> js);
+    void setJs(const vector <double> &js){_Js=js;}
+    /// \brief set the effective transfer integral as the rms of the transfer integrals
+    double calcJeff2();
     /// \brief set transfer rate from first to second
     void setRate12(double rate) {_rate_12=rate;}
     /// \brief set transfer rate from second to first
@@ -48,8 +48,8 @@ protected:
     vec _r;
     /// distance between the two beads
     double _dist;
-    /// transfer integral
-    double _j;
+    /// transfer integrals, multiple entries in case of degeneracy
+    vector <double> _Js;
     /// transfer rate from first to second
     double _rate_12;
     /// transfer rate from second to first

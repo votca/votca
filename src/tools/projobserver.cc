@@ -57,8 +57,8 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
             _qmtop->AddAtomisticBeads(crg2,&atoms);
         
             ///write the topo somehow now.
-            string nameout =framedir + string("/")+lexical_cast<string>(crg1->GetId())+ string("and")
-                + lexical_cast<string>(crg2->GetId()) + ".pdb";
+            string nameout =framedir + string("/")+lexical_cast<string>(crg1->getId())+ string("and")
+                + lexical_cast<string>(crg2->getId()) + ".pdb";
 
         
             writer->Open(nameout);
@@ -71,7 +71,7 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 
 bool ProJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
     vector <string>::iterator its = _nnnames.begin();
-    string namecrg = crg1->GetType()->GetName()+string(":")+crg2->GetType()->GetName();
+    string namecrg = crg1->getType()->GetName()+string(":")+crg2->getType()->GetName();
     for ( ; its!= _nnnames.end(); ++its){
         if(wildcmp(its->c_str(), namecrg.c_str()) ){
             return true;
