@@ -73,7 +73,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--status" )){
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--check" )){
   print "Check sums\n";
   system('md5sum $CSGINVERSE/MD5SUM');
-  system('cd $CSGINVERSE; md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them to your user scripts dir');
+  system('md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them to your user scripts dir');
   exit 0;
 }
 ###################MAIN PROGRAMM#######################
@@ -90,12 +90,12 @@ if ( "$ARGV[0]" eq "--direct" ) {
 if (defined($user_table)&&( -r "$user_table" )&&($scriptname=find_from_table($user_table))) {
   #first script dir, then csgshare
   search_and_exit($scriptname,$csgscriptdir,$csgshare);
-  die "Could not find user script '$scriptname' in any dir, check for typos\n";
+  die "Could not find script '$ARGV[0] $ARGV[1]' ($scriptname) in user and csg dir, check for typos\n";
 }
 
 #search in csg_table
 ( $scriptname=find_from_table($csg_table) ) || die "Could not find script matching '$ARGV[0] $ARGV[1]'\n";
-search_and_exit($scriptname,$csgshare) || die "Could not find script '$scriptname' in any dir\n";
+search_and_exit($scriptname,$csgshare) || die "Could not find script '$ARGV[0] $ARGV[1]' ($scriptname) in csg dir\n";
 
 ######################FUNCTIONS##########################
 sub find_from_table($) {
