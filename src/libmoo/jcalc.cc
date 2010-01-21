@@ -254,14 +254,6 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
             _pois.push_back(poi);
         }
     }
-
-    //copy molecules back
-    jdata->_mol1.cp_atompos(jdata->_type1->GetCrgUnit());
-    jdata->_mol2.cp_atompos(jdata->_type2->GetCrgUnit());
-
-    jdata->_mol1.cp_orb(jdata->_type1->GetCrgUnit(), jdata->_orblabels.first);
-    jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
-
     return Js;
 }
 
