@@ -14,6 +14,7 @@
 #include <votca/tools/property.h>
 #include "statesaver.h"
 #include <kmc/graph.h>
+#include <moo/units.h>
 
 class EasyJObserver
     : public CGObserver

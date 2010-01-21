@@ -145,11 +145,11 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             /// total free energy difference
             double dG = dG_field + dG_en;
             /// Marcus rate from first to second
-            rate_12 = prefactor * sqrt(PI/(reorg * _kT)) * Jeff2 *
+            rate_12 = prefactor * sqrt(M_PI/(reorg * _kT)) * Jeff2 *
                 exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
             /// Marcus rate from second to first (dG_field -> -dG_field)
             dG = -dG_field + dG_en;
-            rate_21 = prefactor * sqrt(PI/(reorg * _kT)) * Jeff2 *
+            rate_21 = prefactor * sqrt(M_PI/(reorg * _kT)) * Jeff2 *
                 exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
         }
         (*iter)->setRate12(rate_12);
@@ -160,8 +160,8 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
 void EasyJObserver::MakeRatesSIUnits(QMNBList &nblist){
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
     {
-        (*iter)->rate12() *= 1/hbar;
-        (*iter)->rate21() *= 1/hbar;
+        (*iter)->rate12() *= 1/hbar_eV;
+        (*iter)->rate21() *= 1/hbar_eV;
     }
 }
 
