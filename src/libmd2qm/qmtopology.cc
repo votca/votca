@@ -48,7 +48,7 @@ void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
     totop->CreateResidue("DUM");
     for (int i=0;i<atoms->getN();i++){
         vec pos = atoms->GetPos(i) *(RA/10.) ;//convert to nm!
-        string atomtype = string( atoms->gettype(i) )+ string("-") + lexical_cast<string>(crg->GetId());
+        string atomtype = string( atoms->gettype(i) )+ string("-") + lexical_cast<string>(crg->getId());
         BeadType * bt= totop->GetOrCreateBeadType(atomtype);
         Bead * bead = totop ->CreateBead(1, atomtype,bt,0, 0, 0.);
         bead->setPos(pos); 
@@ -117,8 +117,8 @@ void QMTopology::ComputeAllElectrostaticEnergies(const double& epsilon){
                 double contr = _jcalc.EstaticDifference(*crg1, *crg2);
                 nrg += contr;
 
-      //          clog << "[kmcdata.cc] contribution from" << (*itneutr)->GetType()->GetName() << " " << (*itneutr)->GetId() <<
-      //                 " to " << (*itcrg)->GetType()->GetName() << " " << (*itcrg)->GetId() <<
+      //          clog << "[kmcdata.cc] contribution from" << (*itneutr)->getType()->GetName() << " " << (*itneutr)->getId() <<
+      //                 " to " << (*itcrg)->getType()->GetName() << " " << (*itcrg)->getId() <<
       //                 " distance " << abs(r_ij) << " nrg " << contr << endl;
 
 
@@ -126,8 +126,8 @@ void QMTopology::ComputeAllElectrostaticEnergies(const double& epsilon){
         }
         nrg /= epsilon;
         clog << "[kmc_data.cc] FINALE ENERGY for "
-                << (*itcrg)->GetCom() << " " << (*itcrg)->GetId() << " " << (*itcrg)->GetType()->GetName()
+                << (*itcrg)->GetCom() << " " << (*itcrg)->getId() << " " << (*itcrg)->getType()->GetName()
                 << " " << nrg << endl;
-        (*itcrg)->setNRG((*itcrg)->GetNRG()+ nrg);
+        (*itcrg)->setEnergy((*itcrg)->getEnergy()+ nrg);
     }
 }

@@ -71,7 +71,7 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         CrgUnit *crg2 = (*iter)->second;
          if(MatchNNnames(crg1, crg2)){
             vector <double> Js = _qmtop->GetJCalc().GetJ(*crg1, *crg2);
-            //cout << crg1->GetId() << " " << crg2->GetId() << " ";
+            //cout << crg1->getId() << " " << crg2->getId() << " ";
             for(int i=0; i<Js.size(); ++i)
             {
                 _Js.push_back(Js[i]);
@@ -115,7 +115,7 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 
 bool EasyJObserver::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
     vector <string>::iterator its = _nnnames.begin();
-    string namecrg = crg1->GetType()->GetName()+string(":")+crg2->GetType()->GetName();
+    string namecrg = crg1->getType()->GetName()+string(":")+crg2->getType()->GetName();
     for ( ; its!= _nnnames.end(); ++its){
         if(wildcmp(its->c_str(), namecrg.c_str()) ){
             return true;
@@ -136,11 +136,11 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
         {
             double prefactor = 1.0;
             /// reorganization energy in eV as given in list_charges.xml
-            double reorg = 0.5 * (crg1->GetType()->GetReorg()+crg2->GetType()->GetReorg());
+            double reorg = 0.5 * (crg1->getType()->GetReorg()+crg2->getType()->GetReorg());
             /// free energy difference due to electric field, i.e. E*r_ij
             double dG_field = -_E * ((*iter)->r()) * RA * Ang;
             /// free energy difference due to different energy levels of molecules
-            double dG_en = crg2->GetNRG() - crg1->GetNRG();
+            double dG_en = crg2->getEnergy() - crg1->getEnergy();
             /// electrostatics are taken into account in qmtopology and are contained in NRG
             /// total free energy difference
             double dG = dG_field + dG_en;
@@ -172,7 +172,7 @@ void EasyJObserver::print_nbs_to_file(QMNBList &nblist){
         out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [Bohr]" << endl;
         QMNBList::iterator iter;
         for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
-            out_nbl << "(" << (*iter)->first->GetId() << "," << (*iter)->second->GetId() << "): ";
+            out_nbl << "(" << (*iter)->first->getId() << "," << (*iter)->second->getId() << "): ";
             out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->calcJeff2()) << " " << (*iter)->rate12() << " ";
             out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
             out_nbl << " " << abs((*iter)->r()) << endl;
@@ -192,8 +192,8 @@ void EasyJObserver::make_kmc_graph(graph *a, QMNBList &nblist){
     }
     /// set edges, two edges 1->2 and 2->1 are created per neighboring pair
     for(QMNBList::iterator iter = nblist.begin(); iter!=nblist.end();++iter){
-        a->AddEdge((*iter)->first->GetId(), (*iter)->second->GetId(), (*iter)->rate12(),(*iter)->r());
-        a->AddEdge((*iter)->second->GetId(), (*iter)->first->GetId(), (*iter)->rate21(),-(*iter)->r());
+        a->AddEdge((*iter)->first->getId(), (*iter)->second->getId(), (*iter)->rate12(),(*iter)->r());
+        a->AddEdge((*iter)->second->getId(), (*iter)->first->getId(), (*iter)->rate21(),-(*iter)->r());
     }
     cout << " Done." << endl;
 }

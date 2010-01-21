@@ -26,7 +26,7 @@ void StateSaver::Write_QMBeads(QMTopology *top)
     iter!=qmtop->Beads().end(); ++iter) {
         QMBead *bi = dynamic_cast<QMBead*>(*iter);
 
-    string crg_unit_name = bi->GetCrgUnit()->GetType()->GetName();
+    string crg_unit_name = bi->GetCrgUnit()->getType()->GetName();
         unsigned short len_name = crg_unit_name.length();
     int ipos=bi->getiPos();
     string type=bi->getType()->getName();
