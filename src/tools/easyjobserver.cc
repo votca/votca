@@ -97,7 +97,7 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     }
     _out_cont.close();
     _out_diff.close();
-    Random::init( 14, 122, 472, 1912 );
+    Random::init(14, 122, 472, 1912);
     kmc_grid.setGeneratorsOnly();
     hoppers charges(&kmc_grid);
     KMCAlg kmc_alg(1E-8, 1E-15, 1.2, 1, &charges);
@@ -141,7 +141,7 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             double dG_field = -_E * ((*iter)->r()) * RA * Ang;
             /// free energy difference due to different energy levels of molecules
             double dG_en = crg2->getEnergy() - crg1->getEnergy();
-            /// electrostatics are taken into account in qmtopology and are contained in NRG
+            /// electrostatics are taken into account in qmtopology and are contained in Energy
             /// total free energy difference
             double dG = dG_field + dG_en;
             /// Marcus rate from first to second
