@@ -56,6 +56,7 @@ void EasyJObserver::EndCG()
 
 void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 {
+
     _qmtop->Update(*top);
     QMNBList &nblist = _qmtop->nblist();
 
@@ -65,19 +66,21 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 
     nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
-    for(QMNBList::iterator iter = nblist.begin();
-        iter!=nblist.end();++iter) {
+    for(QMNBList::iterator iter = nblist.begin(); iter!=nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
-         if(MatchNNnames(crg1, crg2)){
+        if(MatchNNnames(crg1, crg2)){
             vector <double> Js = _qmtop->GetJCalc().CalcJ(*crg1, *crg2);
-            for(int i=0; i<Js.size(); ++i)
-            {
+            for(int i=0; i<Js.size(); ++i) {
                 _Js.push_back(Js[i]);
             }
             (*iter)->setJs(Js);
-         }
+        }
     }
+
+    /// checking the units functionality
+    cout << "1.0 nm in Bohr is: " << unit<nm,bohr>::to(1.0) << endl;
+
     /// calculate & check the rates
     CalcRates(nblist);
     MakeRatesSIUnits(nblist);

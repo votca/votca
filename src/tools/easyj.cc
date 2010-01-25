@@ -64,10 +64,9 @@ int main(int argc, char** argv)
         // try to run the cg process, go through the frames, etc...
         cg_engine.Run();
 
-        
-
     }
-    // did an error occour?
+
+    /// error handling
     catch(std::exception &error) {
         cerr << "An error occoured!" << endl << error.what() << endl;
         return -1;
