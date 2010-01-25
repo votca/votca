@@ -7,9 +7,9 @@ correlate.cc       datacollection.cc  matrix.cc    random.cc       tokenizer.cc 
 crosscorrelate.cc  histogram.cc       parcer.cc    rangeparser.cc \
 cubicspline.cc     histogramnew.cc    property.cc  table.cc version.cc
 
-CLEANFILES = *~ *.a
+CLEANFILES = *~ *.a hgstamp
 
-version.o: hgstamp
+version.cc: hgstamp
 hgstamp: update_hgstamp
 update_hgstamp:
 	[ -f hgstamp ] || touch hgstamp
