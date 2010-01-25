@@ -14,13 +14,15 @@ static double hbar_eV=6.58211899e-16; /// Planck constant in [eV*s]
 static double Ang = 1E-10; /// Angstroem in [m]
 static double Hartree =27.21; /// Hartree in [eV]
 
+/// units allowed in conversion
 enum {
-    u_nm=0,
-    u_bohr,
-    u_eV,
-    u_hartree
+    nm=0,
+    bohr,
+    eV,
+    hartree
 };
 
+/// template for compile time assertion required for unit conversion class
 template <bool t>
 struct ctassert {
   enum { N = 1 - 2 * int(!t) };
@@ -29,35 +31,28 @@ struct ctassert {
   /// ***NOTICE: If this error occurs you tried to use an undefined conversion ***
 };
 
-template<int, int>
-double convert(const double &value)
-{
-   // compile time assetion
-    ctassert<false> foo;
-}
-/// convert from nm to Bohr
-template<>
-inline double convert<u_nm, u_bohr>(const double &value)
-{
-    return value*RA/10.;
-}
-/// convert from Bohr to nm
-template<>
-inline double convert<u_bohr, u_nm>(const double &value)
-{
-    return value*10./RA;
-}
-/// convert from eV to Hartree
-template<>
-inline double convert<u_eV, u_hartree>(const double &value)
-{
-    return value/Hartree;
-}
-/// convert from Hartree to eV
-template<>
-inline double convert<u_hartree, u_eV>(const double &value)
-{
-    return value*Hartree;
-}
-#endif	/* _UNITS_H */
+/// class for unit conversion
+template<int,int>
+class unit{
+public:
+    template <typename T>
+    static T to(T d){
+        ctassert<false> foo;
+        return T();
+    }
+};
 
+/// macro to allow easy conversion definitions
+#define DEFINE_CONVERSION(a, b, c) \
+template <> \
+class unit <a,b> {\
+public: \
+    template <typename T>\
+    static T to(T value){\
+        return c;\
+    }\
+};
+
+DEFINE_CONVERSION(nm, bohr, value*10./RA);
+
+#endif /* _UNITS_H */
