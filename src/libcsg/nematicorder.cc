@@ -60,7 +60,7 @@ void NematicOrder::Process(Topology &top, const string &filter)
             _mw[0][0] -= 1./3.;
             _mw[1][1] -= 1./3.;
             _mw[2][2] -= 1./3.;
-            bU = false;
+            bW = true;
         }
         N++;
     }

@@ -119,60 +119,39 @@ int main(int argc, char** argv)
     // The CGEngine does the work
     CGEngine cg_engine;
     string filter;
-    
-    // add our observer that it gets called to analyze frames
-    cg_engine.AddObserver((CGObserver*)&no);
-
-
-    // initialize the readers/writers,
-    // this will be combined in an initialize function later
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-
-    
+         
     // lets read in some program options
     namespace po = boost::program_options;
         
-    
-    // Declare the supported options.
-    po::options_description desc("Allowed options");    
+    try {
+        // let cg_engine add some program options
+        cg_engine.Initialize();
+        // add our observer that it gets called to analyze frames
+        cg_engine.AddObserver((CGObserver*)&no);
+
         
-    // let cg_engine add some program options
-    cg_engine.AddProgramOptions(desc);
+        // Declare the supported options.
+        cg_engine.AddProgramOptions()
+            ("filter", boost::program_options::value<string>(&filter)->default_value("*"), "filter molecule names")
+            ("out", boost::program_options::value<string>(), "output nematic order prameter into file");
     
-    desc.add_options()
-        ("filter", boost::program_options::value<string>(&filter)->default_value("*"), "filter molecule names");
-        ("out", boost::program_options::value<string>(), "output nematic order prameter into file");
-    
-    // now read in the command line
-    po::variables_map vm;
-    try {
-        po::store(po::parse_command_line(argc, argv, desc), vm);    
-        po::notify(vm);
-    }
-    catch(po::error err) {
-        cout << "error parsing command line: " << err.what() << endl;
-        return -1;
-    }
-    
-    // does the user want help?
-    if (vm.count("help")) {
-        help_text();
-        cout << desc << endl;
-        return 0;
-    }
-    // or asks for the program version?
-    if (vm.count("version")) {
-        cout << "csg_nemat, lib version " << LIB_VERSION_STR  << "\n";                        
-        return 0;
-    }
-    if(vm.count("out"))
-        no.setOut(vm["out"].as<string>());    
-    no.setFilter(filter);
-    // try to run the cg process, go through the frames, etc...
-    try {
-        cg_engine.Run(desc, vm);
+        // now read in the command line
+        cg_engine.ParseCommandLine(argc, argv);
+        po::variables_map &vm
+            = cg_engine.OptionsMap();
+
+        // does the user want help?
+        if (vm.count("help")) {
+            help_text();
+            cout << cg_engine.OptionsDesc() << endl;
+            return 0;
+        }
+        
+        if(vm.count("out"))
+            no.setOut(vm["out"].as<string>());
+        no.setFilter(filter);
+        // try to run the cg process, go through the frames, etc...
+        cg_engine.Run();
     }
     // did an error occour?
     catch(std::exception &error) {
