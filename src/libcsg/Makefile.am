@@ -15,10 +15,10 @@ libvotca_csg_a_SOURCES = \
     modules/io/gmxtrajectoryreader.cc  modules/io/growriter.cc          modules/io/pdbtopologyreader.cc \
     modules/io/gmxtrajectorywriter.cc  modules/io/pdbwriter.cc
 
-CLEANFILES = *~
+CLEANFILES = *~ hgstamp
 #DISTCLEANFILES =
 
-version.o: hgstamp
+version.cc: hgstamp
 hgstamp: update_hgstamp
 update_hgstamp:
 	[ -f hgstamp ] || touch hgstamp
