@@ -51,6 +51,7 @@
   <item><name>cg.inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>
   <item><name>cg.inverse.gromacs.table_end</name><desc> extend the tables to this value </desc></item>
   <item><name>cg.inverse.filelist</name><desc> these files are copied for each new run </desc></item>
+  <item><name>cg.inverse.cleanlist</name><desc> these files are removed after each new run </desc></item>
   <item><name>cg.inverse.iterations_max</name><desc> do so many iterations </desc></item>
   <item><name>cg.inverse.method</name><desc> ibm: inverse boltzmann imc: inverse monte carlo </desc></item>
   <item><name>cg.inverse.scriptdir</name><desc> directory for user scripts (e.g. $PWD)</desc></item>

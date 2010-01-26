@@ -116,7 +116,10 @@ iterations="$(csg_get_property cg.inverse.iterations_max)"
 log "We are doing $iterations iterations."
 
 filelist="$(csg_get_property cg.inverse.filelist)"  
-log "We extra need $filelist to run the simulation"
+[ -z "$filelist" ] || log "We extra cp '$filelist' to every step to run the simulation"
+
+cleanlist="$(csg_get_property cg.inverse.cleanlist)"  
+[ -z "$cleanlist" ] || log "We extra clean '$cleanlist' after a step is done"
 
 run_or_exit $SOURCE_WRAPPER --status
 run_or_exit $SOURCE_WRAPPER --check
@@ -159,7 +162,7 @@ for ((i=1;i<$iterations+1;i++)); do
   last_dir=$(get_last_step_dir)
   this_dir=$(get_current_step_dir --no-check)
   msg -------------------------------
-  msg "Doing iteration $i (make $this_dir)"
+  msg "Doing iteration $i (dir ${this_dir##*/})"
   msg -------------------------------
   if [ -d $this_dir ]; then
     if [ -f $this_dir/done ]; then
@@ -220,8 +223,15 @@ for ((i=1;i<$iterations+1;i++)); do
   for_all non-bonded 'cp $(csg_get_interaction_property name).pot.new $(get_main_dir)'
 
   touch done
+
+  msg "Clean up"
+  for cleanfile in ${cleanlist} ${CSGRESTART}; do
+    logrun rm -f $cleanfile
+  done
+  unset cleanfile
+
   step_time="$(( $(get_time) - $step_starttime ))"
-  msg "step $i done, needed $step_time secs"
+  msg "\nstep $i done, needed $step_time secs"
   ((steps_done++))
 
   if [ -n "$wall_time" ]; then
@@ -243,7 +253,7 @@ for ((i=1;i<$iterations+1;i++)); do
       msg "Going on for another $(( $do_iterations - $steps_done )) steps"
     fi
   fi
-  cd ..
+  cd $(get_main_dir) || die "cd $(get_main_dir) failed"
 done
 
 touch done
