@@ -115,10 +115,10 @@ source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions 
 iterations="$(csg_get_property cg.inverse.iterations_max)" 
 log "We are doing $iterations iterations."
 
-filelist="$(csg_get_property cg.inverse.filelist)"  
+filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 [ -z "$filelist" ] || log "We extra cp '$filelist' to every step to run the simulation"
 
-cleanlist="$(csg_get_property cg.inverse.cleanlist)"  
+cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [ -z "$cleanlist" ] || log "We extra clean '$cleanlist' after a step is done"
 
 run_or_exit $SOURCE_WRAPPER --status
