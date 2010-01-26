@@ -24,7 +24,7 @@ public:
 
     void UpdateCrg(){
         if (_crg != NULL){
-            _crg->SetPos(_ipos, Bead::getPos()*(10./RA));
+            _crg->SetPos(_ipos, Bead::getPos());
             _crg->SetNorm(_ipos, Bead::getU());
             _crg->SetPlane(_ipos, Bead::getV());
         }

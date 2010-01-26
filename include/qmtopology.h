@@ -13,6 +13,7 @@
 #include <moo/crgunittype.h>
 #include <moo/crgunit.h>
 #include <moo/jcalc.h>
+#include <moo/units.h>
 
 #include "qmbead.h"
 #include "qmnblist.h"
