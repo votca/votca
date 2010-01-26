@@ -40,8 +40,6 @@ use CsgFunctions;
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-print("$infile, $outfile\n");
-
 # read in the current dpot
 my @r;
 my @dpot;
