@@ -42,8 +42,6 @@ public:
 
     void CalcRates(QMNBList &nblist);
 
-    void MakeRatesSIUnits(QMNBList &nblist);
-
     void print_nbs_to_file(QMNBList &nblist);
 
     void make_kmc_graph(graph *a, QMNBList &nblist);
