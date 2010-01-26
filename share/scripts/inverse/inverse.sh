@@ -134,16 +134,16 @@ if [ -d "$this_dir" ]; then
   [[ -f $this_dir/done ]] || die "Incomplete step 0"
 else
   msg ------------------------
-  msg "Prepare (make $this_dir)"
+  msg "Prepare (dir ${this_dir##*/})"
   msg ------------------------
   mkdir -p $this_dir || die "mkdir -p $this_dir failed"
 
   cd $this_dir || die "cd $this_dir failed"
 
   #copy+resample all rdf in $this_dir
-  for_all non-bonded do_external resample calc ..
+  for_all non-bonded do_external resample calc
 
-  for_all "non-bonded" do_external init $method  
+  do_external init $method
 
   #get confout.gro
   do_external init $sim_prog 

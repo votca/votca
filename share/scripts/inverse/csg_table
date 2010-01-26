@@ -21,6 +21,8 @@ functions common functions_inverse.sh
 # method initialization
 init ibm initialize_generic.sh
 init imc initialize_generic.sh
+init_single ibm initialize_generic_single.sh
+init_single imc initialize_generic_single.sh
 initstep ibm initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 
