@@ -377,3 +377,9 @@ cp_from_last_step() {
   cp_from_to --from $(get_last_step_dir) "$@" || die "cp_from_main_dir: cp_from_to --from $(get_main_dir) "$@" failed"
 }
 export -f cp_from_last_step
+
+get_time() {
+  date +%s || die "get_time:  time +%s failed"
+}
+export -f get_time
+

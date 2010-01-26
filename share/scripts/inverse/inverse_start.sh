@@ -86,7 +86,8 @@ export CSGRESTART
 export CSG_MAINDIR="$PWD"
 
 #stuff for options
-int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
+[ -z "$do_iterations" ] || int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
+[ -z "$wall_time" ] || int_check "$wall_time" "inverse.sh: --wall-time need a number as agrument"
 if [ "$clean" = "yes" ]; then
   echo -e "So, you want to clean?\n"
   echo "We will remove:"

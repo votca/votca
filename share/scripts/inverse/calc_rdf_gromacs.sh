@@ -56,4 +56,3 @@ else
   run_or_exit csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max}
   mark_done "rdf-$name"
 fi
-
