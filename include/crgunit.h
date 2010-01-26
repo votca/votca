@@ -12,6 +12,7 @@
 #include <votca/tools/matrix.h>
 #include "global.h"
 #include "crgunittype.h"
+#include "units.h"
 
 using namespace std;
 
@@ -86,16 +87,18 @@ public:
     //////////////////////////////////////////////////
 
 private:
+    /// variables are internally stored in atomic units (Hartree, Bohr etc.),
+    /// but printouts are always nm, eV, SI.
     unsigned int _id;
     /// the type
     string _name;
     /// the molecule index
     unsigned int _molid;
-    ///vector of coms of monomers
+    /// vector of coms of monomers (stored in Bohr, returned in nm)
     vector < vec > _positions;
-    ///vector of coms of monomers
+    /// normal vector of monomers (normalized)
     vector < vec > _norms;
-    ///vector of coms of monomers
+    /// orientation vector of monomers (normalized)
     vector < vec > _planes;
     /// a reference to the crgunittype
     CrgUnitType * _type;
@@ -157,7 +160,7 @@ inline void CrgUnit::SetPos(const int& i, const vec& pos) {
         _norms.resize(i+1);
         _planes.resize(i+1);
     }
-    _positions[i] = pos;
+    _positions[i] = unit<nm,bohr>::to(pos);
 };
 inline void CrgUnit::SetNorm(const int& i, const vec& pos) {
     if ( i >= _norms.size()){
@@ -177,7 +180,7 @@ inline void CrgUnit::SetPlane(const int& i, const vec& pos) {
 };
 
 inline vec CrgUnit::GetPos(const int & i) {
-    return _positions[i];
+    return unit<bohr,nm>::to(_positions[i]);
 }
 
 inline vec CrgUnit::GetNorm(const int & i) {
@@ -193,13 +196,13 @@ inline  vec  CrgUnit::GetCom()  {
     vec com(0.,0.,0.);
     for (; itp!=_positions.end() ; ++itp )
         com += *itp;
-    return com/double(_positions.size());
+    return unit<bohr,nm>::to(com/double(_positions.size()));
 }
 
 inline void CrgUnit::shift(const vec & displ) {
-    vector < vec> ::iterator it_vec;
-    for (it_vec = _positions.begin(); it_vec != _positions.end(); ++it_vec) *it_vec = *it_vec + displ;
-//    _com += displ;
+    vec displ_bohr = unit<nm,bohr>::to(displ);
+    vector <vec> ::iterator it_vec;
+    for (it_vec = _positions.begin(); it_vec != _positions.end(); ++it_vec) *it_vec = *it_vec + displ_bohr;
 }
 
 inline vector <vec> CrgUnit::shift_pos(const vec & a) {

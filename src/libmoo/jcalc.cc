@@ -277,7 +277,7 @@ double JCalc::EstaticDifference(CrgUnit & crged, CrgUnit & neutr)
         jdata->_mol2.cp_atompos(jdata->_type2->GetCrgUnit());
         jdata->_mol1.cp_orb(jdata->_type1->GetCrgUnit(), jdata->_orblabels.first);
         jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
-        return nrg*Hartree;
+        return unit<hartree,eV>::to(nrg);
     }
     else {
         crged.rot_two_mol(neutr, jdata->_mol1, jdata->_mol2);
@@ -288,7 +288,7 @@ double JCalc::EstaticDifference(CrgUnit & crged, CrgUnit & neutr)
         jdata->_mol2.cp_atompos(jdata->_type2->GetCrgUnit());
         jdata->_mol1.cp_orb(jdata->_type1->GetCrgUnit(), jdata->_orblabels.first);
         jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
-        return nrg*Hartree;
+        return unit<hartree,eV>::to(nrg);
     }
 }
 
