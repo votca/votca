@@ -73,7 +73,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--status" )){
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--check" )){
   print "Check sums\n";
   system('md5sum $CSGINVERSE/MD5SUM');
-  system('md5sum -c $CSGINVERSE/MD5SUM || echo WARNING: You have modified csg scripts, better copy them to your user scripts dir');
+  system('cd $CSGINVERSE;md5sum -c MD5SUM || echo WARNING: You have modified csg scripts, better copy them to your user scripts dir');
   exit 0;
 }
 ###################MAIN PROGRAMM#######################
