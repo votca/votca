@@ -93,9 +93,9 @@ if [ -f "$CSGLOG" ]; then
   log "# Appending to existing logfile #"
   log "#################################\n\n"
   log "Sim started $(date)"
-  echo "Appending to existing logfile $CSGLOG"
+  echo "Appending to existing logfile ${CSGLOG##*/}"
 else
-  echo For a more verbose log see: $CSGLOG
+  echo "For a more verbose log see: ${CSGLOG##*/}"
   #log is created in the next line
   echo "Sim started $(date)" > $CSGLOG || exit 1
 fi
