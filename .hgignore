@@ -21,6 +21,7 @@ scripts/CSGRC.bash
 scripts/CSGRC.csh
 scripts/csg_call
 scripts/csg_inverse
+scripts/multi_g_rdf
 share/scripts/inverse/MD5SUM
 share/scripts/inverse/Makefile.am
 src/config.h
