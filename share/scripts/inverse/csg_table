@@ -69,7 +69,10 @@ update ibm_pot update_ibm_pot.pl
 # imc specific stuff
 # TODO: rename to imc single
 imcsolver matlab solve_matlab.sh
+solve matlab linsolve.m
 imcsolver octave solve_octave.sh
+solve octave linsolve.octave
+
 imc purify imc_purify.sh
 
 # pressure correction

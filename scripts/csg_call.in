@@ -18,7 +18,7 @@
 sw_opt=""
 version='@version@'
 quiet="no"
-sc_cmd=""
+ext_cmd=""
 
 #failback define
 die() {
@@ -99,10 +99,10 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;;
     #direct call hack
    --cat)
-    sc_cmd="cat"
+    ext_cmd="cat_external"
     shift;;
    --show)
-    sc_cmd="echo"
+    ext_cmd="show_external"
     shift;;
    --direct)
     break;;
@@ -141,14 +141,13 @@ if [ -n "${CSGSCRIPTDIR}" ]; then
   export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
 fi
 
-if [ -n "$sw_opt" ] && [ -z "$sc_cmd" ]; then
+if [ -n "$sw_opt" ]; then
   $SOURCE_WRAPPER $sw_opt
   exit $?
 fi
 
-needs="$(do_external $1 $2 --help)"
-if [ -n "$sc_cmd" ]; then
-  $sc_cmd $($SOURCE_WRAPPER $1 $2)
+if [ -n "$ext_cmd" ]; then
+  $ext_cmd $1 $2
   exit $?
 fi
 
@@ -162,11 +161,11 @@ cat <<EOF
 please submit bugs to bugs@votca.org
 
 EOF
-  echo -e "$needs" | sed "s/%version%/${version}/"
+  do_external $1 $2 --help | sed "s/%version%/${version}/"
   exit 0
 fi
 
-needs="$(echo "$needs" | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
+needs="$(do_external $1 $2 --help | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
 [ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --xmlfile option"
 [ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "xmlfile '$CSGXMLFILE' not found"
 

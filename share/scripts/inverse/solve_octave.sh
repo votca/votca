@@ -22,7 +22,7 @@ This solves linear equation system from imc using octave
 
 Usage: ${0##*/} <group> <outfile>
 
-USES:  die sed octave rm run_or_exit \$CSGINVERSE
+USES:  die sed octave rm run_or_exit cat_external
 
 NEEDS:
 EOF
@@ -34,7 +34,7 @@ check_deps "$0"
 [[ -n "$2" ]] || die "${0##*/}: Missing arguments"
 
 # initialize & run the octave file
-sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" $CSGINVERSE/linsolve.octave > solve_$1.octave || die "${0##*/}: sed failed"
+cat_external solve octave | sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" > solve_$1.octave || die "${0##*/}: sed failed"
 run_or_exit octave solve_$1.octave
 #rm -f solve_$1.octave
 

@@ -96,6 +96,24 @@ die () {
 }
 export -f die
 
+#takes a task, show content of the according script
+cat_external() {
+  local script
+  [[ -n "${SOURCE_WRAPPER}" ]] || die "cat_external: SOURCE_WRAPPER is undefined"
+  script="$($SOURCE_WRAPPER $1 $2)" || die "cat_external: $SOURCE_WRAPPER $1 $2 failed"
+  cat "$script"
+}
+export -f cat_external
+
+#takes a task, shows the according script
+show_external() {
+  local script
+  [[ -n "${SOURCE_WRAPPER}" ]] || die "cat_external: SOURCE_WRAPPER is undefined"
+  script="$($SOURCE_WRAPPER $1 $2)" || die "cat_external: $SOURCE_WRAPPER $1 $2 failed"
+  echo "$script"
+}
+export -f show_external
+
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
