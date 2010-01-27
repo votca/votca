@@ -66,7 +66,7 @@ function_file=$($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functi
 source ${function_file} || exit 1
 unset function_file
 
-CSGSCRIPTDIR="$(csg_get_property cg.inverse.scriptdir)" 
+CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)" 
 #scriptdir maybe contains $PWD or something
 if [ -n "$CSGSCRIPTDIR" ]; then
   eval CSGSCRIPTDIR=$CSGSCRIPTDIR
