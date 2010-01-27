@@ -4,7 +4,7 @@ HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node|short}
 bin_SCRIPTS   = CSGRC.csh CSGRC.bash csg_inverse csg_call
 
 # Extra files we need
-EXTRA_DIST = CSGRC.csh.in CSGRC.bash.in csg_inverse.in csg_call.in
+EXTRA_DIST = CSGRC.csh.in CSGRC.bash.in csg_inverse.in csg_call.in multi_g_rdf.in
 
 #hg version is determined at compiletime
 csg_call: csg_call.in Makefile hgstamp
@@ -14,6 +14,10 @@ csg_call: csg_call.in Makefile hgstamp
 csg_inverse: csg_inverse.in Makefile hgstamp
 	cat $(srcdir)/csg_inverse.in | \
 	sed 's,@version\@,@VERSION@ $(HGVERSION),' > csg_inverse
+
+multi_g_rdf: multi_g_rdf.in Makefile hgstamp
+	cat $(srcdir)/multi_g_rdf.in | \
+	sed 's,@version\@,@VERSION@ $(HGVERSION),' > multi_g_rdf
 
 CSGRC.csh:  CSGRC.csh.in Makefile hgstamp
 	cat $(srcdir)/CSGRC.csh.in | \

@@ -1,0 +1,186 @@
+#! /bin/bash
+# 
+# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+g_cmd=${0##*/}
+g_cmd=${g_cmd#multi_}
+fbase=${g_cmd#g_}
+usage="Usage: ${0##*/} [OPTIONS] -- [${g_cmd}_options]"
+quiet="no"
+begin=0
+end=""
+np=8
+logfile="${0##*/}_NP.log"
+index="index.ndx"
+sout="${fbase}_NP"
+out="${fbase}.xvg"
+version="@version@"
+
+die() {
+  echo -e "$*"
+  exit 1
+}
+
+qecho() {
+  [ "$quiet" = "yes" ] || echo -e "$*"
+}
+
+show_help () {
+  cat << eof
+This is a multiplexed version of $g_cmd
+$usage
+OPTIONS:
+-N                  Number of tasks
+                    Default: $np 
+-b         TIME     Begin time
+                    Default: $begin
+-e         TIME     End time
+-n         FILE     Name of the index file
+                    Default: $index
+--soutput  FILE     Name of the single output files
+                    Default: ${sout} (where NP is replace by the number)
+-o         FILE     Name of the total output file
+                    Default: $out
+    --log           Name of logfile
+                    Default: $logile (where NP is replace by the number)
+-q, --quiet         Be a little bit quiet
+-h, --help          Show this help
+-v, --version       Show version
+    --hg            Show last log message for hg (or cvs)
+
+Examples:  ${0##*/} -q
+           ${0##*/}
+
+Send bugs and comment to junghans@mpip-mainz.mpg.de
+eof
+}
+
+while [ "${1#-}" != "$1" ]; do
+ if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+    #short opt with arguments here: fc
+    if [ "${1#-[ebo]}" != "${1}" ]; then
+       set -- "${1:0:2}" "${1:2}" "${@:2}"
+    else
+       set -- "${1:0:2}" "-${1:2}" "${@:2}"
+    fi
+ fi
+ case $1 in
+   -[0-9]*)
+    np=${1#-}
+    [ -z "${np//[0-9]}" ] || die "$1 could not be convert to a number"
+    shift ;;
+   -b)
+    begin="$2"
+    shift 2;;
+   -o)
+    out="$2"
+    shift 2;;
+   -n)
+    index="$2"
+    shift 2;;
+   -e)
+    end="$2"
+    shift 2;;
+   --soutput)
+    sout="$2"
+    shift 2;;
+   -q | --quiet)
+    quiet="yes"
+    shift ;;
+   -h | --help)
+    show_help
+    exit 0;;
+   --hg)
+    echo "${0##*/}: $(sed -ne 's/^#version.* -- \(.*$\)/\1/p' $0 | sed -n '$p')"
+    exit 0;;
+   -v | --version)
+    echo "${0##*/}, $(sed -ne 's/^#\(version.*\) -- .*$/\1/p' $0 | sed -n '$p') by C. Junghans"
+    exit 0;;
+   --)
+    shift
+    break;;
+  *)
+   die "Unknown option '$1'";;
+ esac
+done
+
+[ -z "$end" ] && die "-e option is missing!\n$usage\nHelp with -h"
+for i in $g_cmd paste awk sed; do
+  [  -n "$(type $i)" ] || die "g_rdf not found"
+done
+
+dt="$(awk -v b="$begin" -v e="$end" -v np="$np" 'BEGIN{print (e-b)/np}')"
+[ -z "$dt" ] && die "Could not calculate dt"
+
+[ -f "$index" ] || die "Indexfile $index not found"
+echo "Select a reference group and 1 group"
+sed -n 's/.*\[\(.*\)\].*/\1/p' $index | awk '{print "Group",NR-1,"(",$0,")"}'
+echo -n "Select a group: "
+read -r || die "Wrong input"
+input="${REPLY}"
+echo -n "Select a group: "
+read -r || die "Wrong input"
+input+="\n${REPLY}"
+echo
+
+b="$begin"
+for ((i=0;i<$np;i++)); do
+  np0="$(printf "%02i" $i)"
+  this_log="${logfile/NP/$np0}"
+  this_out="${sout/NP/$np0}.xvg"
+  e="$(awk -v b="$begin" -v dt="$dt" -v i="$i" 'BEGIN{print dt*(i+1)+b}')"
+  echo -e "$input" | $g_cmd -b $begin -e $end -n $index -o $this_out $* &> $this_log &
+  pid="$! "
+  qecho "Calculation of $fbase from $b ps to $e ps started (pid $pid)"
+  pids+="$pid "
+  b="$e"
+done
+
+qecho "Waiting for single $fbase calculations to finish"
+failed=""
+for i in $pids; do
+  wait $i || failed+="$i "
+done
+[ -z "$failed" ] || die "The $fbase calculations with pids $failed failed"
+
+qecho "Checking output"
+lines=""
+for ((i=0;i<$np;i++)); do
+  np0="$(printf "%02i" $i)"
+  this_out="${sout/NP/$np0}.xvg"
+  this_lines=$(cat $this_out | wc -l) || die "linecount failed"
+  [ -z "$lines" ] && lines="$this_lines"
+  [ $this_lines -eq $lines ] || die "Number of data lines differs for $fbase nr $i ($this_lines vs $lines)"
+done
+
+qecho "Calculating average"
+pasteline=
+mean="0"
+mean2="0"
+mco="\$$((2*$np+1))"
+for ((i=0;i<$np;i++)); do
+  np0="$(printf "%02i" $i)"
+  this_out="${sout/NP/$np0}.xvg"
+  co="\$$((2 * $i + 2 ))"
+  pasteline+="$this_out "
+  mean+="+$co"
+  mean2+="+($co-$mco)**2"
+done
+awkprog="/[@#]/{next;}{print \$0,($mean)/$np}"
+awkprog2="/[@#]/{next;}{print \$1,$mco,($mean2)/$(($np*($np-1)))}"
+qecho "awk code to calc mean: $awkprog"
+qecho "awk code to calc block error: $awkprog2"
+paste $pasteline | awk "$awkprog" | awk "$awkprog2" > $out
