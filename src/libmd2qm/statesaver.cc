@@ -79,7 +79,11 @@ void StateSaver::Write_QMNeighbourlist() {
             
         write<unsigned int>(crg1->getId());
         write<unsigned int>(crg2->getId());
-        //write<vector<double>>(pair->Js());
+        write<long unsigned>(pair->Js().size());
+        for (long unsingned int s=0;s<pair->Js().size();s++){
+            write<double>(pair->Js[s]);
+        }
+        write<vector<double>>(pair->Js());
         write<double>(pair->rate12());
         write<double>(pair->rate21());
 
@@ -148,6 +152,7 @@ void StateSaver::Read_QMBeads() {
         cout << "Molid  " << molid << "\n";
 
         QMBead *bead = dynamic_cast<QMBead*>(_qmtop->CreateBead(symmetry, bead_name, type, resnr, M, Q));
+        _qmtop->getMolecule(molid)->AddBead(bead, bead_name);
         
         CrgUnit * acrg = _qmtop->GetCrgUnitByName(crg_unit_name);
         if(acrg == NULL)
@@ -176,6 +181,11 @@ void StateSaver::Read_QMNeighbourlist() {
 
         int id1=read<unsigned int>();
         int id2=read<unsigned int>();
+        long unsigned sizeJs=read<long unsigned>();
+        for (long unsingned int s=0;s<sizeJs;s++){
+            double Js[s]=read<double>();
+            
+        }
         //read<vector<double>>(pair->Js());
         double rate12=read<double>();
         double rate21=read<double>();
