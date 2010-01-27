@@ -3,8 +3,11 @@ HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node|short}
 # Scripts generated at compile time
 bin_SCRIPTS   = CSGRC.csh CSGRC.bash csg_inverse csg_call
 
+comp_DATA = completion.bash
+compdir = ${datadir}/votca
+
 # Extra files we need
-EXTRA_DIST = CSGRC.csh.in CSGRC.bash.in csg_inverse.in csg_call.in multi_g_rdf.in
+EXTRA_DIST = CSGRC.csh.in CSGRC.bash.in csg_inverse.in csg_call.in multi_g_rdf.in $(comp_DATA)
 
 #hg version is determined at compiletime
 csg_call: csg_call.in Makefile hgstamp
@@ -29,7 +32,7 @@ CSGRC.bash:  CSGRC.bash.in Makefile hgstamp
 	sed 's,@bindir\@,$(bindir),' | \
 	sed 's,@votcashare\@,${datadir}/votca,' > CSGRC.bash
 
-CLEANFILES = CSGRC.csh CSGRC.bash csg_call csg_inverse *~
+CLEANFILES = CSGRC.csh CSGRC.bash csg_call csg_inverse multi_g_rdf *~
 
 hgstamp: update_hgstamp
 update_hgstamp:
