@@ -27,9 +27,11 @@ public :
     
     
 private:
+    void Write_Molecules();
     void Write_QMBeads();
     void Write_QMNeighbourlist();
 
+    void Read_Molecules();
     void Read_QMBeads();
     void Read_QMNeighbourlist();
 
