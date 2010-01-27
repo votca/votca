@@ -23,11 +23,11 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_interaction_property csg_get_property awk log run_or_exit g_rdf csg_resample is_done mark_done msg
+USES: get_from_mdp csg_get_interaction_property csg_get_property awk log run_or_exit g_rdf csg_resample is_done mark_done msg use_mpi multi_g_rdf
 
 NEEDS: type1 type2 name step min max
 
-OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
+OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.mpi.tasks
 EOF
    exit 0
 fi
@@ -36,6 +36,7 @@ check_deps "$0"
 
 dt=$(get_from_mdp dt)
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
+steps=$(get_from_mdp nsteps)
 first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 type1=$(csg_get_interaction_property type1)
@@ -46,12 +47,18 @@ min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
+end="$(awk -v dt=$dt -v n=steps 'BEGIN{print dt*steps}')"
 
 log "Running g_rdf for ${type1}-${type2}"
 if is_done "rdf-$name"; then
   msg "g_rdf for ${type1}-${type2} is already done"
 else
-  run_or_exit "echo -e \"${type1}\\n${type2}\" | g_rdf -b ${begin} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg -s topol.tpr"
+  if use_mpi; then
+    tasks=$(csg_get_property cg.inverse.mpi.tasks)
+    echo -e "${type1}\n${type2}" | run_or_exit multi_g_rdf -${tasks} -b ${begin} -e ${end} -n index.ndx -o ${name}.dist.new.xvg --soutput ${name}.dist.new.NP.xvg -- -noxvgr -bin ${binsize}  -s topol.tpr
+  else
+    echo -e "${type1}\n${type2}" | run_or_exit g_rdf -b ${begin} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg -s topol.tpr
+  fi
 #gromacs always append xvg
   run_or_exit csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max}
   mark_done "rdf-$name"

@@ -401,3 +401,15 @@ get_time() {
 }
 export -f get_time
 
+use_mpi() {
+  local tasks cmd
+  tasks="$(csg_get_property --allow-empty cg.inverse.mpi.tasks)"
+  [ -z "$tasks" ] && return 1
+  int_check "$tasks" "use_mpi: cg.inverse.mpi.tasks needs to be a number"
+  [ $tasks -eq 1 ] && return 1
+  cmd="$(csg_get_property --allow-empty cg.inverse.mpi.cmd)"
+  [ -z "$cmd" ] && die "use_mpi: cg.inverse.mpi.tasks != 0 but cg.inverse.mpi.cmd was empty"
+  return 0
+}
+export -f use_mpi
+
