@@ -40,7 +40,7 @@ first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
 log "Running g_energy"
-run_or_exit "echo Pressure | g_energy -b ${begin}"
+echo Pressure | run_or_exit g_energy -b ${begin}
 p_now=$(csg_taillog -30 | awk '/^Pressure/{print $3}' ) || die "${0##*/}: awk failed"
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
 echo ${p_now}
