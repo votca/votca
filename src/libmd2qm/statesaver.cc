@@ -52,6 +52,7 @@ void StateSaver::Write_QMBeads() {
         write<double>(bi->getQ());
 
         write<string > (bi->GetCrgUnit()->getName());
+        write<double > (bi->GetCrgUnit()->getEnergy());
         write<unsigned short>(bi->getiPos());
         write<vec > (bi->getPos());
         write<vec > (bi->getU());
@@ -76,14 +77,18 @@ void StateSaver::Write_QMNeighbourlist() {
         QMPair *pair = *iter;
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
-            
+        
         write<unsigned int>(crg1->getId());
         write<unsigned int>(crg2->getId());
-        write<long unsigned>(pair->Js().size());
-        for (long unsingned int s=0;s<pair->Js().size();s++){
-            write<double>(pair->Js[s]);
-        }
-        write<vector<double>>(pair->Js());
+        write<string > (crg1->getName());
+        write<string > (crg2->getName());
+        write<int>(pair->Js().size());
+        vector<double>::iterator itj=pair->Js().begin();
+        for (;itj!= pair->Js().end(); itj++){
+        write<double>(*itj);
+    }
+
+        
         write<double>(pair->rate12());
         write<double>(pair->rate21());
 
@@ -94,7 +99,7 @@ void StateSaver::Write_QMNeighbourlist() {
 
 void StateSaver::Load(string file) {
     _qmtop->Cleanup();
-
+    _qmtop->nblist().Cleanup();
     _qmtop->CreateResidue("dummy");
 
     _in.open(file.c_str(), ios::in | ios::binary);
@@ -135,6 +140,8 @@ void StateSaver::Read_QMBeads() {
         double Q =              read<double>();
         
         string crg_unit_name =  read<string> ();
+        double energy = read<double>();
+
         unsigned short ipos =   read<unsigned short>();
         vec Pos =               read<vec> ();
         vec U =                 read<vec> ();
@@ -155,6 +162,7 @@ void StateSaver::Read_QMBeads() {
         _qmtop->getMolecule(molid)->AddBead(bead, bead_name);
         
         CrgUnit * acrg = _qmtop->GetCrgUnitByName(crg_unit_name);
+        acrg->setEnergy(energy);
         if(acrg == NULL)
             acrg = _qmtop->CreateCrgUnit(type_name, crg_unit_name, molid);
 
@@ -163,8 +171,11 @@ void StateSaver::Read_QMBeads() {
         bead->setPos(Pos);
         bead->setU(U);
         bead->setV(V);
+        bead->UpdateCrg();
 
+        
         cout << "The charge unit is called " << crg_unit_name << "\n";
+        cout << "This charge unit has energy " << energy <<"\n";
         cout << "This bead is at int position " << ipos << "\n";
         cout << "This bead hast position  " << U << "\n";
         cout << "This bead has U " << U << "\n";
@@ -174,24 +185,37 @@ void StateSaver::Read_QMBeads() {
 
 void StateSaver::Read_QMNeighbourlist() {
     assert(_in.is_open());
-
+   
     int nr_pairs = read<int>();
     cout << "Total number of QMPairs is " << nr_pairs << "\n";
-    for (unsigned long i = 0; i < nr_pairs; i++) {
+    for (int i = 0; i < nr_pairs; i++) {
 
-        int id1=read<unsigned int>();
-        int id2=read<unsigned int>();
-        long unsigned sizeJs=read<long unsigned>();
-        for (long unsingned int s=0;s<sizeJs;s++){
-            double Js[s]=read<double>();
-            
+        unsigned int id1=read<unsigned int>();
+        unsigned int id2=read<unsigned int>();
+        string crg_unit_name1 =  read<string> ();
+        string crg_unit_name2 =  read<string> ();
+        cout << "This pair has charge unit ids " << id1 << " and " <<id2 <<"\n";
+        
+        CrgUnit *crg1=_qmtop->GetCrgUnitByName(crg_unit_name1);
+        CrgUnit *crg2=_qmtop->GetCrgUnitByName(crg_unit_name2);    
+        cout << "This pair has names " << crg_unit_name1 << " and " <<crg_unit_name2 <<"\n";
+        
+        QMPair *pair=new QMPair(crg1,crg2, _qmtop);
+        _qmtop->nblist().AddPair(pair);
+        int sizeJs=read<int>();
+        vector <double> Js;
+        for (int s=0;s<sizeJs;s++){
+            double J=read<double>();
+            Js.push_back(J);
+            cout << "This pair has J " << J <<"\n";
         }
-        //read<vector<double>>(pair->Js());
+        pair->setJs(Js);
+
         double rate12=read<double>();
         double rate21=read<double>();
-
-        cout << "This pair has charge unit ids " << id1 << " and " <<id2 <<"\n";
-        //Cout Js
+        pair->setRate12(rate12);
+        pair->setRate21(rate21);
+        
         cout << "This pair has rates " << rate12 << " and " << rate21 <<"\n";
     }
 }
