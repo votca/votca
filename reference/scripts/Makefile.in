@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
-SCRIPTS:=$(shell csg_call -l | sed -e '1d' -e '/\(user\|csg\) table/d' | awk '{print $$3}' | sort -u )
+SCRIPTS:=$(shell csg_call -l | sed -e '1d' -e '/\.\(sh\|pl\)/!d' | awk '{print $$3}' | sort -u )
 
 .PHONY: clean bootstrap
 .SECONDARY:
