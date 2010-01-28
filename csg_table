@@ -1,0 +1,26 @@
+
+# BEGIN: these scripts have to be defined for each method
+# method initialization
+init tf initialize_tf.sh
+initstep tf initialize_step_generic.sh
+
+# the update step
+update tf update_tf.sh
+# add up the potential
+# TODO: think about name add_pot, is other name maybe better
+add_pot tf add_pot_tf.sh
+# END: these scripts have to be defined for each method
+
+
+resample calc dummy_resample_to_calc.sh
+calc thermforce calc_thermforce.sh
+
+convert_potential xvg table_to_xvg.pl
+table integrate integrate_tf.pl
+table smooth_borders smooth_borders.py
+
+density gromacs calc_density_x_gromacs.sh
+
+thermforce calc force_prop_to_density.py
+
+run gromacs run_gromacs_tf.sh

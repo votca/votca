@@ -1,0 +1,13 @@
+# use glob syntax.
+syntax: glob
+
+*.top
+*.trr
+*.tpr
+*.gz
+*.gro
+old_version/*
+install*/*
+tmp/*
+testcase*/*
+*~
