@@ -96,5 +96,4 @@
       use constrained least squares.
     </desc>
   </item>
-  <item><name>cg.*.inverse.imc.group</name><desc>an alias for all imc groups, generated automatically - do NOT add this yourself</desc></item>
 </tags>
