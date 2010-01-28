@@ -18,7 +18,7 @@ libvotca_csg_a_SOURCES = \
 CLEANFILES = *~ hgstamp
 #DISTCLEANFILES =
 
-version.cc: hgstamp
+version.o: hgstamp
 hgstamp: update_hgstamp
 update_hgstamp:
 	[ -f hgstamp ] || touch hgstamp
