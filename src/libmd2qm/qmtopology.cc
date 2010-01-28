@@ -47,7 +47,7 @@ void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
     mol_and_orb * atoms = crg->rotate_translate_beads();
     totop->CreateResidue("DUM");
     for (int i=0;i<atoms->getN();i++){
-        vec pos = atoms->GetPos(i) *(RA/10.) ;//convert to nm!
+        vec pos = unit<bohr,nm>::to(atoms->GetPos(i));
         string atomtype = string( atoms->gettype(i) )+ string("-") + lexical_cast<string>(crg->getId());
         BeadType * bt= totop->GetOrCreateBeadType(atomtype);
         Bead * bead = totop ->CreateBead(1, atomtype,bt,0, 0, 0.);

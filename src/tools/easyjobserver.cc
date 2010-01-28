@@ -83,7 +83,6 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 
     /// calculate & check the rates
     CalcRates(nblist);
-    MakeRatesSIUnits(nblist);
     print_nbs_to_file(nblist);
     /// create KMC graph
     graph kmc_grid;
@@ -142,7 +141,8 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             /// reorganization energy in eV as given in list_charges.xml
             double reorg = 0.5 * (crg1->getType()->getReorg()+crg2->getType()->getReorg());
             /// free energy difference due to electric field, i.e. E*r_ij
-            double dG_field = -_E * ((*iter)->r()) * RA * Ang;
+            double dG_field = -_E * unit<nm,m>::to((*iter)->r());
+            cout << "dG_field = " << dG_field << endl;
             /// free energy difference due to different energy levels of molecules
             double dG_en = crg2->getEnergy() - crg1->getEnergy();
             /// electrostatics are taken into account in qmtopology and are contained in Energy
@@ -150,22 +150,14 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             double dG = dG_field + dG_en;
             /// Marcus rate from first to second
             rate_12 = prefactor * sqrt(M_PI/(reorg * _kT)) * Jeff2 *
-                exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
+                exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg))/hbar_eV;
             /// Marcus rate from second to first (dG_field -> -dG_field)
             dG = -dG_field + dG_en;
             rate_21 = prefactor * sqrt(M_PI/(reorg * _kT)) * Jeff2 *
-                exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg));
+                exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg))/hbar_eV;
         }
         (*iter)->setRate12(rate_12);
         (*iter)->setRate21(rate_21);
-    }
-}
-
-void EasyJObserver::MakeRatesSIUnits(QMNBList &nblist){
-    for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
-    {
-        (*iter)->rate12() *= 1/hbar_eV;
-        (*iter)->rate21() *= 1/hbar_eV;
     }
 }
 
@@ -173,13 +165,13 @@ void EasyJObserver::print_nbs_to_file(QMNBList &nblist){
     ofstream out_nbl;
     out_nbl.open("nbl_votca.res");
     if(out_nbl!=0){
-        out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [Bohr]" << endl;
+        out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [nm]" << endl;
         QMNBList::iterator iter;
         for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
             out_nbl << "(" << (*iter)->first->getId() << "," << (*iter)->second->getId() << "): ";
             out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->calcJeff2()) << " " << (*iter)->rate12() << " ";
             out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
-            out_nbl << " " << abs((*iter)->r()) << endl;
+            out_nbl << " " << (*iter)->dist() << endl;
         }
     }
     out_nbl.close();

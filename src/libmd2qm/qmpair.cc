@@ -5,8 +5,8 @@
 QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit *, CrgUnit *>(crg1,crg2)
 {
     vec crg1nm,crg2nm;
-    crg1nm =  crg1->GetCom()*(RA/10.);
-    crg2nm =  crg2->GetCom()*(RA/10.);
+    crg1nm =  crg1->GetCom();
+    crg2nm =  crg2->GetCom();
     _r = top->BCShortestConnection(crg1nm, crg2nm);
     _dist = abs(_r);
 
@@ -15,16 +15,13 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
     if (abs(d) !=  _dist){
         _ghost = new CrgUnit();
 	_ghost->copyCrgUnit(*crg2);
-        vec displ = (_r - d)*(10./RA);
+        vec displ = (_r - d);
         _ghost->shift(displ);
         this ->second = _ghost;
     }
     else {
         _ghost=NULL;
     }
-    /// move r and dist back to bohrs:
-    _r *= 10./RA;
-    _dist *= 10./RA;
 }
 
 double QMPair::calcJeff2(){
