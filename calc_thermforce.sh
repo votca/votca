@@ -31,21 +31,25 @@ adressc="$(csg_get_property cg.tf.adressc)"
 
 infile="dens_$name.xvg"
 outfile="dens_$name\_smooth.xvg"
-forcefile="thermforce_$name.xvg"
-forcefile_smooth="thermforce_smooth_$name.xvg"
-
-
 
 #rho_0="$(cat dens_$name.xvg | awk -f $CSGSCRIPTDIR/calc_non_hybrid_dens.awk -v adressc=$adressc adressw=$adressw adressh=$adressh)"
 #log "Density in non hybrid zone $rho_0"
 
+log "Symmetrizing density profile"
+infile="dens_$name.xvg"
+outfile="dens_$name\_symm.xvg"
+run_or_exit do_external symmetrize density --infile $infile --outfile $infile --adressc $adressc
+
+log "Smoothing density profile"
+infile="dens_$name\_symm.xvg"
+outfile="dens_$name\_smooth.xvg"
 run_or_exit csg_resample --in $infile --out $outfile --grid $xstart:$step:$xstop --derivative $forcefile --spfit $xstart:$splinestep:$xstop
+
+forcefile="thermforce_$name.xvg"
+forcefile_smooth="thermforce_smooth_$name.xvg"
 
 run_or_exit do_external table smooth_borders --infile $forcefile --outfile $forcefile_smooth --xstart $xstart --xstop $xstop  
 
 run_or_exit do_external table integrate $forcefile_smooth ${name}.dpot.new $prefactor
 
-#begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
-#log "Running g_density"
-#run_or_exit "echo ${name} | g_density -b ${begin}"
 
