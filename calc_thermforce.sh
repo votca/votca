@@ -38,7 +38,7 @@ outfile="dens_$name\_smooth.xvg"
 log "Symmetrizing density profile"
 infile="dens_$name.xvg"
 outfile="dens_$name\_symm.xvg"
-run_or_exit do_external symmetrize density --infile $infile --outfile $infile --adressc $adressc
+run_or_exit do_external density symmetrize --infile $infile --outfile $infile --adressc $adressc
 
 log "Smoothing density profile"
 infile="dens_$name\_symm.xvg"
