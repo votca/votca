@@ -9,7 +9,7 @@ cubicspline.cc     histogramnew.cc    property.cc  table.cc version.cc
 
 CLEANFILES = *~ *.a hgstamp
 
-version.cc: hgstamp
+version.o: hgstamp
 hgstamp: update_hgstamp
 update_hgstamp:
 	[ -f hgstamp ] || touch hgstamp
