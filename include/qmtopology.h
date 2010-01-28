@@ -100,6 +100,7 @@ inline CrgUnit *QMTopology::CreateCrgUnit(const string &name, const string &type
     crg = _jcalc.CreateCrgUnit(_lcharges.size(), type_name, molid);
     _mcharges.insert(make_pair(name, crg));
     _lcharges.push_back(crg);
+    crg->setName(name);
     return crg;
 }
 
