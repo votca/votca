@@ -87,6 +87,7 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;;
    -o)
     out="$2"
+    [ -z "${out%%*.xvg}" ] || die "Outfile has to end with xvg (gromacs bug)"
     shift 2;;
    -n)
     index="$2"
@@ -96,6 +97,7 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;;
    --soutput)
     sout="$2"
+    [ -z "${sout%%*.xvg}" ] || die "Outfile has to end with xvg (gromacs bug)"
     shift 2;;
    -q | --quiet)
     quiet="yes"
@@ -144,7 +146,7 @@ for ((i=0;i<$np;i++)); do
   this_out="${sout/NP/$np0}.xvg"
   e="$(awk -v b="$begin" -v dt="$dt" -v i="$i" 'BEGIN{print dt*(i+1)+b}')"
   echo -e "$input" | $g_cmd -b $begin -e $end -n $index -o $this_out $* &> $this_log &
-  pid="$! "
+  pid="$!"
   qecho "Calculation of $fbase from $b ps to $e ps started (pid $pid)"
   pids+="$pid "
   b="$e"
