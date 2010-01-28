@@ -76,11 +76,12 @@ if [ -n "$CSGSCRIPTDIR" ]; then
 fi
 
 CSGLOG="$(csg_get_property cg.inverse.log_file)"
-CSGLOG="$PWD/$CSGLOG"
+CSGLOG="$PWD/${CSGLOG##*/}"
 export CSGLOG
 
 #define $CSGRESTART
 CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
+CSGRESTART="${CSGRESTART##*/}"
 export CSGRESTART
 
 export CSG_MAINDIR="$PWD"
@@ -91,7 +92,7 @@ export CSG_MAINDIR="$PWD"
 if [ "$clean" = "yes" ]; then
   echo -e "So, you want to clean?\n"
   echo "We will remove:"
-  files="$(ls -d done $CSGRESTART $CSGLOG step_* *~ 2>/dev/null)"
+  files="$(ls -d done ${CSGRESTART} ${CSGLOG##$PWD/} step_* *~ 2>/dev/null)"
   echo $files
   echo -e "\nCTRL-C to stop it"
   for ((i=10;i>0;i--)); do
