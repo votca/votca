@@ -47,7 +47,7 @@ min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
-end="$(awk -v dt=$dt -v steps=steps 'BEGIN{print dt*steps}')"
+end="$(awk -v dt="$dt" -v steps="$steps" 'BEGIN{print dt*steps}')"
 
 log "Running g_rdf for ${type1}-${type2}"
 if is_done "rdf-$name"; then
