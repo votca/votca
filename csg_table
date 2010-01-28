@@ -20,7 +20,7 @@ table integrate integrate_tf.pl
 table smooth_borders smooth_borders.py
 
 density gromacs calc_density_x_gromacs.sh
-density symmetrize symmetrize_density.py 
+density symmetrize density_symmetrize.sh 
 
 thermforce calc force_prop_to_density.py
 
