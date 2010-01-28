@@ -32,8 +32,8 @@ fi
 
 check_deps "$0"
 
-nsteps=$(get_from_mdp nsteps)
-dt=$(get_from_mdp dt)
+nsteps=$(get_from_mdp nsteps "grompp.mdp")
+dt=$(get_from_mdp dt "grompp.mdp")
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 

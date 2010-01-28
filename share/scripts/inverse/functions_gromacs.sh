@@ -34,10 +34,16 @@ check_deps $0
 
 get_from_mdp() {
   local res
-  [[ -n "$1" ]] || { echo What?; exit 1;}
-  res=$(sed -n -e "s#[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)\$#\1#p" grompp.mdp | sed -e 's#;.*##') || die "get_from_mdp failed" 
-  [[ -n "$res" ]] || die "get_from_mdp: could not fetch $1"
+  [[ -n "$2" ]] || die "get_from_mdp: Missing argument (what file)"
+  [[ -f "$2" ]] || die "get_from_mdp: Could not read file '$2'"\
+  #1. strip comments
+  #2. get important line
+  #3. remove leading and tailing spaces
+  res="$(sed -e '/^[[:space:]]*;/d' -e 's#;.*$##' "$2" | \
+        sed -n -e "s#^[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*\$#\1#p" | \
+	sed -e 's#^[[:space:]]*##' -e 's#[[:space:]]*$##')" || \
+    die "get_from_mdp: sed failed"
+  [[ -n "$res" ]] || die "get_from_mdp: could not fetch $1 from $2"
   echo "$res"
 }
-
 export -f get_from_mdp
