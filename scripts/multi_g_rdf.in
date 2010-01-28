@@ -136,8 +136,8 @@ input="${REPLY}"
 echo -n "Select a group: "
 read -r || die "Wrong input"
 input+="\n${REPLY}"
-echo
-qecho -e "Selected: $input"
+qecho ""
+qecho "Selected: $input"
 
 b="$begin"
 for ((i=0;i<$np;i++)); do
