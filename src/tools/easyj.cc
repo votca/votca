@@ -62,7 +62,10 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        check_option(desc, cg_engine.OptionsMap(), "options");
+        check_option(cg_engine.OptionsDesc(), vm, "options");
+        check_option(cg_engine.OptionsDesc(), vm, "listcharges");
+        check_option(cg_engine.OptionsDesc(), vm, "cutoff");
+        check_option(cg_engine.OptionsDesc(), vm, "nnnames");
 
         load_property_from_xml(options, vm["options"].as<string>());
         observer.Initialize(qmtopol, options);

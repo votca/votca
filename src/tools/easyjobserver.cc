@@ -142,7 +142,6 @@ void EasyJObserver::CalcRates(QMNBList &nblist){
             double reorg = 0.5 * (crg1->getType()->getReorg()+crg2->getType()->getReorg());
             /// free energy difference due to electric field, i.e. E*r_ij
             double dG_field = -_E * unit<nm,m>::to((*iter)->r());
-            cout << "dG_field = " << dG_field << endl;
             /// free energy difference due to different energy levels of molecules
             double dG_en = crg2->getEnergy() - crg1->getEnergy();
             /// electrostatics are taken into account in qmtopology and are contained in Energy
