@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-
-import pygsl.sf
 import getopt
-from pygsl import spline
-from pygsl import _numobj as numx
 import math
 
 firstx = []

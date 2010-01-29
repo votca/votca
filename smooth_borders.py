@@ -2,10 +2,10 @@
 
 import sys
 
-import pygsl.sf
+#import pygsl.sf
 import getopt
-from pygsl import spline
-from pygsl import _numobj as numx
+#from pygsl import spline
+#from pygsl import _numobj as numx
 import math
 
 xvalues = []
@@ -58,8 +58,8 @@ for line in open(infile,"r").readlines():
 
         
         
-myspline = spline.cspline(len(xvalues))
-myspline.init(xvalues,yvalues)
+#myspline = spline.cspline(len(xvalues))
+#myspline.init(xvalues,yvalues)
 f = open(outfile,"w")
 
 
