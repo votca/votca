@@ -37,7 +37,6 @@ my @pot;
 my @flag;
 (readin_table($infile,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
 
-print "tablelength $#r\n";
 
 #gromacs does not like VERY big numbers
 for (my $i=0;$i<=$#r;$i++) {

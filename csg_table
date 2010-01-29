@@ -1,7 +1,8 @@
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
-init tf initialize_tf.sh
+init tf initialize_generic.sh
+init_single tf initialize_tf.sh
 initstep tf initialize_step_generic.sh
 
 # the update step
