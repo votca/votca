@@ -15,6 +15,18 @@ void help_text(void)
     cout << "Calculate transfer integrals\n\n";
 }
 
+ /// Namespace to read in program options
+namespace po=boost::program_options;
+
+void check_option(po::options_description &desc, po::variables_map &vm, const string &option)
+{
+    if(!vm.count(option)) {
+        cout << "easyJ \n\n";
+        cout << desc << endl << "parameter " << option << " is not specified\n";
+        exit(1);
+    }
+}
+
 int main(int argc, char** argv)
 {    
     int write_every=0;
@@ -24,9 +36,6 @@ int main(int argc, char** argv)
     // The CGEngine does the work
     CGEngine cg_engine;
     QMTopology qmtopol;
-
-    /// Namespace to read in program options
-    namespace po=boost::program_options;
 
     try {
                 // let cg_engine add some program options
@@ -52,6 +61,8 @@ int main(int argc, char** argv)
             cout << cg_engine.OptionsDesc() << endl;
             return 0;
         }
+
+        check_option(desc, cg_engine.OptionsMap(), "options");
 
         load_property_from_xml(options, vm["options"].as<string>());
         observer.Initialize(qmtopol, options);
