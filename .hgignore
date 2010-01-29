@@ -49,3 +49,5 @@ Package-Debug.bash
 Package-Release.bash
 Package-profile_release.bash
 
+CHANGELOG.wiki
+CHANGELOG

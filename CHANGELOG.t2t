@@ -1,0 +1,28 @@
+CHANGELOG
+Votca Developer Team
+%%mtime(%m/%d/%Y)
+
+For more detailed information about the changes see the
+history of the [repository http://hg.votca.org/csg]
+
+== Verion 1.0_rc3 ==
+* fixed a bug in calculation of version string
+* some fixes went build not in source dir
+* csg_call has more options
+* csg_inverse can run in parallel and has more options
+* multi_g_rdf, a multiplexed version of g_rdf was added
+* fixed a bug in reading stuff from mpd file
+
+
+== Version 1.0_rc2 ==
+* better version of the scripts
+* beadlist can now use wildcards
+* added NOTICE and LICENSE to the dist tarball
+* reworked bead and topology class
+* fixed typo in calculation of version string
+
+
+== Version 1.0_rc1 ==
+* initial version
+
+
