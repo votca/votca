@@ -12,10 +12,6 @@ fi
 
 check_deps "$0"
 
-#nsteps=$(get_from_mdp nsteps)
-#dt=$(get_from_mdp dt)
-#equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
-#first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 name=$(csg_get_interaction_property name)
 
 
