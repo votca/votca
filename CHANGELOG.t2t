@@ -6,19 +6,19 @@ For more detailed information about the changes see the
 history of the [repository http://hg.votca.org/csg]
 
 == Verion 1.0_rc3 ==
-* fixed a bug in calculation of version string
-* some fixes went build not in source dir
-* csg_call has more options
-* csg_inverse can run in parallel and has more options
+* added option --wall-time to csg_inverse if run on a queueing system
+* added option for IBI to run in parallel
 * multi_g_rdf, a multiplexed version of g_rdf was added
+* added some options to csg_call 
+* csg_resample now also calc derivatives 
 * fixed a bug in reading stuff from mpd file
+* some fixes concering autotools
+* fixed a bug in calculation of version string
 
 
 == Version 1.0_rc2 ==
-* better version of the scripts
-* beadlist can now use wildcards
+* added version string to scripts
 * added NOTICE and LICENSE to the dist tarball
-* reworked bead and topology class
 * fixed typo in calculation of version string
 
 
