@@ -6,6 +6,7 @@ syntax: glob
 *.tpr
 *.gz
 *.gro
+old*/
 old_version/*
 install*/*
 tmp/*
