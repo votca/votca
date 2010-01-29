@@ -30,6 +30,9 @@ AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed an
 # check for gromacs
 # AX_GROMACS_HEADERS
 
+AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
+AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
+
 AC_PROG_MAKE_SET
 
 AC_CONFIG_HEADERS(config.h)

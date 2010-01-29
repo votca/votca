@@ -23,3 +23,5 @@ netbeans/*/build
 */nbproject/private
 .dep.inc
 
+CHANGELOG.wiki
+CHANGELOG
