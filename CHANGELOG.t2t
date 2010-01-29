@@ -6,16 +6,15 @@ For more detailed information about the changes see the
 history of the [repository http://hg.votca.org/tools]
 
 == Verion 1.0_rc3 ==
-* csg_resample can print derivatives now
-* corrected a bug for tokenizer
+* corrected bug in tokenizer
 * fixed a bug in calculation of version string
-* some fixes went build not in source dir
+* some fixes concerning autotools
 
 
 == Version 1.0_rc2 ==
-* removed some old headers from netbeans project
 * fixed typo in calculation of version string
 * added NOTICE and LICENSE to the dist tarball
+
 
 == Version 1.0_rc1 ==
 * initial version
