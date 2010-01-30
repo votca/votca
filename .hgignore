@@ -14,6 +14,7 @@ manual.pdf
 manual.toc
 reference/programs/Makefile
 reference/programs/csg_*.*
+reference/programs/multi_*.*
 reference/programs/all.tex
 reference/programs/all.wiki
 reference/scripts/Makefile

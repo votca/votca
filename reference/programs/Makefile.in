@@ -1,6 +1,7 @@
 SHELL=/bin/bash
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
 BINS:=$(shell ls `dirname \`which csg_property\``/csg_* | xargs -n1 basename )
+BINS2="multi_g_rdf"
 
 .PHONY: clean bootstrap
 
@@ -40,11 +41,11 @@ bootstrap: Makefile.in
 	  echo csg_property not found;\
 	  exit 1;\
 	fi
-	echo $(BINS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINST2T=\\' > Makefile
+	echo $(BINS) $(BINS2)| sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINST2T=\\' > Makefile
 	echo >> Makefile
-	echo $(BINS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINSTEX=\\' >> Makefile
+	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINSTEX=\\' >> Makefile
 	echo >> Makefile
-	echo $(BINS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i BINSWIKI=\\' >> Makefile
+	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i BINSWIKI=\\' >> Makefile
 	echo >> Makefile
 	cat Makefile.in >> Makefile
 	
