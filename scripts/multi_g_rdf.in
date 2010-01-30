@@ -1,6 +1,6 @@
 #! /bin/bash
 # 
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2010 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 g_cmd=${0##*/}
 g_cmd=${g_cmd#multi_}
 fbase=${g_cmd#g_}
-usage="Usage: ${0##*/} [OPTIONS] -- [${g_cmd}_options]"
 quiet="no"
 begin=0
 end=""
@@ -40,9 +39,20 @@ qecho() {
 
 show_help () {
   cat << eof
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+please submit bugs to bugs@votca.org
+
+${0##*/}, version ${version}
+
+
 This is a multiplexed version of $g_cmd
-$usage
-OPTIONS:
+
+Usage: ${0##*/} [OPTIONS] -- [${g_cmd}_options]
+
+Allowed options:
 -N                  Number of tasks
                     Default: $np 
 -b         TIME     Begin time
@@ -58,13 +68,14 @@ OPTIONS:
                     Default: $logile (where NP is replace by the number)
 -q, --quiet         Be a little bit quiet
 -h, --help          Show this help
--v, --version       Show version
-    --hg            Show last log message for hg (or cvs)
 
-Examples:  ${0##*/} -q
-           ${0##*/}
+Examples:
+* ${0##*/} -e 1
+* ${0##*/} -e 1 -- -bin 0.05
 
-Send bugs and comment to junghans@mpip-mainz.mpg.de
+USES:
+
+NEEDS:
 eof
 }
 
@@ -105,12 +116,6 @@ while [ "${1#-}" != "$1" ]; do
    -h | --help)
     show_help
     exit 0;;
-   --hg)
-    echo "${0##*/}: $(sed -ne 's/^#version.* -- \(.*$\)/\1/p' $0 | sed -n '$p')"
-    exit 0;;
-   -v | --version)
-    echo "${0##*/}, $(sed -ne 's/^#\(version.*\) -- .*$/\1/p' $0 | sed -n '$p') by C. Junghans"
-    exit 0;;
    --)
     shift
     break;;
@@ -119,9 +124,9 @@ while [ "${1#-}" != "$1" ]; do
  esac
 done
 
-[ -z "$end" ] && die "-e option is missing!\n$usage\nHelp with -h"
+[ -z "$end" ] && die "-e option is missing!\nHelp with --help"
 for i in $g_cmd paste awk sed; do
-  [  -n "$(type $i)" ] || die "g_rdf not found"
+  [  -n "$(type $i)" ] || die "$i not found"
 done
 
 dt="$(awk -v b="$begin" -v e="$end" -v np="$np" 'BEGIN{print (e-b)/np}')"
