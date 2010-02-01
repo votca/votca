@@ -73,6 +73,7 @@ void CrgUnit::copyCrgUnit(CrgUnit & acrg)
     // initialise variables derived from CrgUnitType
     _energy = acrg._energy;
 
+    _name = acrg._name;
 }
 
 mol_and_orb * CrgUnit::rotate_translate_beads()
