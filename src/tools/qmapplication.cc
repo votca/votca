@@ -54,11 +54,11 @@ void QMApplication::Run(int argc, char **argv)
 
         if (!BeginEvaluate()) return;
 
-        StateSaver saver(_qmtop);
-        saver.Load("filein");
+        //StateSaver saver(_qmtop);
+        //saver.Load("filein");
         EvaluateFrame();
         if (_op_vm.count("out"))
-            saver.Save(_op_vm["out"].as<string > ());
+            //saver.Save(_op_vm["out"].as<string > ());
 
         // foor loop will come
         EndEvaluate();
@@ -69,7 +69,7 @@ void QMApplication::Run(int argc, char **argv)
 
 void QMApplication::HelpText()
 {
-    votca::md2qm::HelpTextHeader("unknown program name");
+    //votca::md2qm::HelpTextHeader("unknown program name");
     cout << "no help text available\n\n";
     cout << _op_desc << endl;
 }
