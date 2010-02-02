@@ -42,6 +42,8 @@ public:
     void setRate12(double rate) {_rate_12=rate;}
     /// \brief set transfer rate from second to first
     void setRate21(double rate) {_rate_21=rate;}
+    /// \brief set connecting vector, required for state saver
+    void setR(vec r){_r = r;}
 
 protected:
     /// vector connecting the two beads

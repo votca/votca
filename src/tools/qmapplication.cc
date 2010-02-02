@@ -1,5 +1,11 @@
 #include "qmapplication.h"
 
+QMApplication::QMApplication()
+{}
+
+QMApplication::~QMApplication()
+{}
+
 void QMApplication::ParseCommandLine(int argc, char **argv)
 {
     namespace po = boost::program_options;
@@ -7,7 +13,8 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     /// define standard program options
     _op_desc.add_options()
     ("help", "  produce this help message")
-    ("o, opt", boost::program_options::value<string>()->default_value("main.xml"), "  main program options")
+    ("crg", boost::program_options::value<string>()->default_value("list_charges.xml"), "  charge unit definitions")
+    ("opt", boost::program_options::value<string>()->default_value("main.xml"), "  main program options")
     ("out", boost::program_options::value<string>(), "  write new state file")
     ;
 
@@ -22,6 +29,12 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     catch(boost::program_options::error err) {
         throw runtime_error(string("error parsing command line: ") + err.what());
     }
+
+    /// load crg unit definitions from list_charges.xml
+    _qmtop.LoadListCharges(_op_vm["crg"].as<string>());
+     
+    /// read in program options from main.xml
+    load_property_from_xml(_options, _op_vm["opt"].as<string>());
 }
 
 void QMApplication::Run(int argc, char **argv)
@@ -36,12 +49,12 @@ void QMApplication::Run(int argc, char **argv)
         int first_frame; /// starting frame
         int nframes = 1; /// number of frames to be processed
 
-        if (!_op_vm.count("help")) {
+        if (_op_vm.count("help")) {
             HelpText();
             return;
         }
 
-        if (!_op_vm.count("o, opt")) {
+        if (!_op_vm.count("opt")) {
             cout << _op_desc << endl;
             throw runtime_error("Please specify a valid main program option file.");
         }
@@ -56,8 +69,10 @@ void QMApplication::Run(int argc, char **argv)
         if (!BeginEvaluate()) return;
 
         /// load qmtop from state saver
-        StateSaver saver(*_qmtop);
-        saver.Load("state.dat");
+        StateSaver saver(_qmtop);
+        cout << "Loading qmtopology via state saver." << endl;
+        string statefile = "falks.dat";
+        saver.Load(statefile);
 
         EvaluateFrame();
 
@@ -65,7 +80,7 @@ void QMApplication::Run(int argc, char **argv)
            saver.Save(_op_vm["out"].as<string > ());
         }
         else{
-            saver.Save("state.dat", false);
+            saver.Save(statefile, false);
         }
 
         EndEvaluate();

@@ -44,7 +44,7 @@ public:
 
 protected:
     /// QM topology containing all relevant system information
-    QMTopology *_qmtop;    
+    QMTopology _qmtop;    
     Property _options;
 
     /// load system information from statesaver
