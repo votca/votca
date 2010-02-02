@@ -78,9 +78,6 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         }
     }
 
-    /// checking the units functionality
-    cout << "1.0 nm in Bohr is: " << unit<nm,bohr>::to(1.0) << endl;
-
     /// calculate & check the rates
     CalcRates(nblist);
     print_nbs_to_file(nblist);
