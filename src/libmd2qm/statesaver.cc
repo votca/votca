@@ -162,9 +162,9 @@ void StateSaver::Read_QMBeads() {
         _qmtop->getMolecule(molid)->AddBead(bead, bead_name);
         
         CrgUnit * acrg = _qmtop->GetCrgUnitByName(crg_unit_name);
-        acrg->setEnergy(energy);
         if(acrg == NULL)
             acrg = _qmtop->CreateCrgUnit(type_name, crg_unit_name, molid);
+        acrg->setEnergy(energy);
 
         bead->setCrg(acrg);
         bead->setiPos(ipos);
