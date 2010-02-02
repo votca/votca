@@ -32,6 +32,8 @@ public:
     /// function implementations in child classes
     virtual void HelpText();
     /// define and add program specific parameters if necessary
+    virtual void AddSpecificOptions() {}
+    /// initialize variables of child class etc
     virtual void Initialize() {}
     /// check whether required input is present and correct
     virtual void CheckInput() {}

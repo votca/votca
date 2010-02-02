@@ -41,8 +41,9 @@ void QMApplication::Run(int argc, char **argv)
 {
     try {
 
-        Initialize(); /// initialize program-specific parameters
+        AddSpecificOptions(); /// initialize program-specific parameters
         ParseCommandLine(argc, argv); /// initialize general parameters & read input file
+        Initialize(); /// initialize program-specific parameters
 
         bool has_begin = false; /// was a starting time specified?
         double begin; /// starting time

@@ -18,13 +18,11 @@ public:
     
     void HelpText();
     void Initialize();
-    void CheckInput();
     bool EvaluateFrame();
-    void EndEvaluate();
+    
 private:
     vec _E; /// the electric field
     double _kT; /// the thermal energy
-
 };
 
 #endif	/* _RATECALCULATOR_H */
