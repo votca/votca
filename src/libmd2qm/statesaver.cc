@@ -60,8 +60,6 @@ void StateSaver::Write_QMBeads() {
         write<int>(bi->getMolecule()->getId());
 
     }
-
-
 }
 
 void StateSaver::Write_QMNeighbourlist() {
@@ -71,7 +69,7 @@ void StateSaver::Write_QMNeighbourlist() {
     QMNBList &nblist = _qmtop->nblist();
      
     write<int>(nblist.size());//?
-    cout <<"There are so many pairs in nblist" <<(int)nblist.size()<<"\n";
+    cout <<"There are so many pairs in nblist: " <<(int)nblist.size()<<"\n";
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
         QMPair *pair = *iter;
@@ -85,13 +83,13 @@ void StateSaver::Write_QMNeighbourlist() {
         write<int>(pair->Js().size());
         vector<double>::iterator itj=pair->Js().begin();
         for (;itj!= pair->Js().end(); itj++){
-        write<double>(*itj);
-    }
-
-        
+            write<double>(*itj);
+        }
         write<double>(pair->rate12());
         write<double>(pair->rate21());
-
+        write<double>(pair->r().getX());
+        write<double>(pair->r().getY());
+        write<double>(pair->r().getZ());
     }
     //
     //write<unsigned long>(_qmtop->BeadCount());
@@ -163,7 +161,7 @@ void StateSaver::Read_QMBeads() {
         
         CrgUnit * acrg = _qmtop->GetCrgUnitByName(crg_unit_name);
         if(acrg == NULL)
-            acrg = _qmtop->CreateCrgUnit(type_name, crg_unit_name, molid);
+            acrg = _qmtop->CreateCrgUnit(crg_unit_name, type_name, molid);
         acrg->setEnergy(energy);
 
         bead->setCrg(acrg);
@@ -215,7 +213,13 @@ void StateSaver::Read_QMNeighbourlist() {
         double rate21=read<double>();
         pair->setRate12(rate12);
         pair->setRate21(rate21);
-        
         cout << "This pair has rates " << rate12 << " and " << rate21 <<"\n";
+
+        vec r_ij;
+        r_ij.setX(read<double>());
+        r_ij.setY(read<double>());
+        r_ij.setZ(read<double>());
+        pair->setR(r_ij);
+        cout << "This pair has connecting vector r_ij = " << pair->r() << endl;
     }
 }
