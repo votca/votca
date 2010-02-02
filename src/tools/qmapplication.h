@@ -35,7 +35,7 @@ public:
     virtual void Initialize() {}
     /// check whether required input is present and correct
     virtual void CheckInput() {}
-    /// return true if evaluation should be started or continued
+    /// return true if evaluation should be continued, abort only if something important is missing
     virtual bool BeginEvaluate() {return true;}
     /// called for each frame, return true if evaluation should be continued
     virtual bool EvaluateFrame() { return true; }

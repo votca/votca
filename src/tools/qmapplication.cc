@@ -27,11 +27,12 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
 void QMApplication::Run(int argc, char **argv)
 {
     try {
+
         Initialize(); /// initialize program-specific parameters
         ParseCommandLine(argc, argv); /// initialize general parameters & read input file
 
         bool has_begin = false; /// was a starting time specified?
-        double begin; /// strating time
+        double begin; /// starting time
         int first_frame; /// starting frame
         int nframes = 1; /// number of frames to be processed
 
@@ -54,14 +55,21 @@ void QMApplication::Run(int argc, char **argv)
 
         if (!BeginEvaluate()) return;
 
-        //StateSaver saver(_qmtop);
-        //saver.Load("filein");
-        EvaluateFrame();
-        if (_op_vm.count("out"))
-            //saver.Save(_op_vm["out"].as<string > ());
+        /// load qmtop from state saver
+        StateSaver saver(*_qmtop);
+        saver.Load("state.dat");
 
-        // foor loop will come
+        EvaluateFrame();
+
+        if (_op_vm.count("out")){
+           saver.Save(_op_vm["out"].as<string > ());
+        }
+        else{
+            saver.Save("state.dat", false);
+        }
+
         EndEvaluate();
+
     } catch (std::exception &error) {
         cerr << "an error occured:\n" << error.what() << endl;
     }
