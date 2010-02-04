@@ -6,6 +6,25 @@ QMApplication::QMApplication()
 QMApplication::~QMApplication()
 {}
 
+void QMApplication::setNNnames(string  nnnames){
+    Tokenizer tok(nnnames, " ;");
+    Tokenizer::iterator itok = tok.begin();
+    for (; itok!= tok.end(); ++itok){
+        _nnnames.push_back(*itok);
+    }
+}
+
+bool QMApplication::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
+    vector <string>::iterator its = _nnnames.begin();
+    string namecrg = crg1->getType()->GetName()+string(":")+crg2->getType()->GetName();
+    for ( ; its!= _nnnames.end(); ++its){
+        if(wildcmp(its->c_str(), namecrg.c_str()) ){
+            return true;
+        }
+    }
+    return false;
+}
+
 void QMApplication::ParseCommandLine(int argc, char **argv)
 {
     namespace po = boost::program_options;
@@ -15,7 +34,8 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     ("help", "  produce this help message")
     ("crg", boost::program_options::value<string>()->default_value("list_charges.xml"), "  charge unit definitions")
     ("opt", boost::program_options::value<string>()->default_value("main.xml"), "  main program options")
-    ("out", boost::program_options::value<string>(), "  write new state file")
+    ("out", boost::program_options::value<string>(), "  write new state file with this name")
+    ("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
     ;
 
     /// add specific options defined via Initialize of the child class
@@ -32,7 +52,10 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
 
     /// load crg unit definitions from list_charges.xml
     _qmtop.LoadListCharges(_op_vm["crg"].as<string>());
-     
+
+    /// set the nearest neighbor names to be matched
+    setNNnames(_op_vm["nnnames"].as<string>());
+
     /// read in program options from main.xml
     load_property_from_xml(_options, _op_vm["opt"].as<string>());
 }

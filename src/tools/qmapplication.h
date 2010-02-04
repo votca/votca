@@ -46,8 +46,11 @@ public:
 
 protected:
     /// QM topology containing all relevant system information
-    QMTopology _qmtop;    
+    QMTopology _qmtop;
+    /// Property object to parse xml files elegantly
     Property _options;
+    /// List of strings that the concatenation of the two molnames must match to be analyzed
+    vector <string> _nnnames;
 
     /// load system information from statesaver
     void ReadData();
@@ -55,9 +58,14 @@ protected:
     /// write information to statesaver
     void WriteData();
 
+    /// check nearest neighbor names
+    bool MatchNNnames(CrgUnit *crg1, CrgUnit* crg2);
+
 private:
     /// get input parameters from file, location may be specified in command line
     void ParseCommandLine(int argc, char **argv);
+    /// set _nnnames based on input
+    void setNNnames(string  nnnames);
 
     boost::program_options::options_description _op_desc;
     boost::program_options::options_description _op_desc_specific;
