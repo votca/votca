@@ -19,7 +19,8 @@ bool RateCalculator::EvaluateFrame(){
     QMNBList &nblist = _qmtop.nblist();
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
     {
-        double rate_12, rate_21 = 0.0;
+        double rate_12 = 0.0;
+        double rate_21 = 0.0;
         double Jeff2 = (*iter)->calcJeff2();
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
