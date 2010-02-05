@@ -6,25 +6,6 @@ QMApplication::QMApplication()
 QMApplication::~QMApplication()
 {}
 
-void QMApplication::setNNnames(string  nnnames){
-    Tokenizer tok(nnnames, " ;");
-    Tokenizer::iterator itok = tok.begin();
-    for (; itok!= tok.end(); ++itok){
-        _nnnames.push_back(*itok);
-    }
-}
-
-bool QMApplication::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
-    vector <string>::iterator its = _nnnames.begin();
-    string namecrg = crg1->getType()->GetName()+string(":")+crg2->getType()->GetName();
-    for ( ; its!= _nnnames.end(); ++its){
-        if(wildcmp(its->c_str(), namecrg.c_str()) ){
-            return true;
-        }
-    }
-    return false;
-}
-
 void QMApplication::ParseCommandLine(int argc, char **argv)
 {
     namespace po = boost::program_options;
@@ -52,9 +33,6 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
 
     /// load crg unit definitions from list_charges.xml
     _qmtop.LoadListCharges(_op_vm["crg"].as<string>());
-
-    /// set the nearest neighbor names to be matched
-    setNNnames(_op_vm["nnnames"].as<string>());
 
     /// read in program options from main.xml
     load_property_from_xml(_options, _op_vm["opt"].as<string>());
@@ -99,15 +77,14 @@ void QMApplication::Run(int argc, char **argv)
         saver.Load(statefile);
 
         EvaluateFrame();
+        EndEvaluate();
 
         if (_op_vm.count("out")){
-           saver.Save(_op_vm["out"].as<string > ());
+          saver.Save(_op_vm["out"].as<string > ());
         }
         else{
-            saver.Save(statefile, false);
+//          saver.Save(statefile, false);
         }
-
-        EndEvaluate();
 
     } catch (std::exception &error) {
         cerr << "an error occured:\n" << error.what() << endl;
@@ -119,4 +96,21 @@ void QMApplication::HelpText()
     //votca::md2qm::HelpTextHeader("unknown program name");
     cout << "no help text available\n\n";
     cout << _op_desc << endl;
+}
+
+void QMApplication::PrintNbs(string filename){
+    ofstream out_nbl;
+    out_nbl.open(filename.c_str());
+    QMNBList &nblist = _qmtop.nblist();
+    if(out_nbl!=0){
+        out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [nm]" << endl;
+        QMNBList::iterator iter;
+        for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
+            out_nbl << "(" << (*iter)->first->getId() << "," << (*iter)->second->getId() << "): ";
+            out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->calcJeff2()) << " " << (*iter)->rate12() << " ";
+            out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
+            out_nbl << " " << (*iter)->dist() << endl;
+        }
+    }
+    out_nbl.close();
 }

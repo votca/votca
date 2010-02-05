@@ -17,10 +17,13 @@ class QMApplication
 {
 public:
     QMApplication();
-    ~QMApplication();
+    virtual ~QMApplication();
 
     /// executes the program
     void Run(int argc, char **argv);
+
+    /// print neighbor list to file in human-readable format
+    void PrintNbs(string filename);
 
     /// parse program options from command line
     boost::program_options::options_description_easy_init
@@ -45,6 +48,10 @@ public:
     virtual void EndEvaluate() {}
 
 protected:
+    /// Variable map containing all program options
+    boost::program_options::variables_map _op_vm;
+    /// Program options required by child classes
+    boost::program_options::options_description _op_desc_specific;
     /// QM topology containing all relevant system information
     QMTopology _qmtop;
     /// Property object to parse xml files elegantly
@@ -57,19 +64,11 @@ protected:
 
     /// write information to statesaver
     void WriteData();
-
-    /// check nearest neighbor names
-    bool MatchNNnames(CrgUnit *crg1, CrgUnit* crg2);
-
 private:
     /// get input parameters from file, location may be specified in command line
     void ParseCommandLine(int argc, char **argv);
-    /// set _nnnames based on input
-    void setNNnames(string  nnnames);
-
+    /// program options required by all applications
     boost::program_options::options_description _op_desc;
-    boost::program_options::options_description _op_desc_specific;
-    boost::program_options::variables_map _op_vm;
 };
 
 #endif	/* _QMAPPLICATION_H */
