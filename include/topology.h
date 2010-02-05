@@ -59,7 +59,7 @@ public:
     virtual ~Topology();
     
     /// cleans up all the stored data
-    void Cleanup();
+    virtual void Cleanup();
     
     /// creates a new Bead
     virtual Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);

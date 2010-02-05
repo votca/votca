@@ -71,6 +71,7 @@ inline void PairList<element_type, pair_type>::Cleanup()
     for(iterator iter = _pairs.begin(); iter!=_pairs.end(); ++iter)
         delete *iter;
     _pairs.clear();
+    _pair_map.clear();
 }
 
 template<typename element_type, typename pair_type>
