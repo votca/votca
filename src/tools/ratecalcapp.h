@@ -19,6 +19,7 @@ public:
     void HelpText();
     void Initialize();
     bool EvaluateFrame();
+    void EndEvaluate();
     
 private:
     vec _E; /// the electric field
