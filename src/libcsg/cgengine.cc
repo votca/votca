@@ -131,7 +131,7 @@ void CGEngine::InitializeStandardOptions()
     
     trj.add_options()
     ("trj", boost::program_options::value<string>(), "  atomistic trajectory file")
-    ("begin", boost::program_options::value<double>(), "  skip frames before this time")
+    ("begin", boost::program_options::value<double>()->default_value(0.0), "  skip frames before this time")
     ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
     ("nframes", boost::program_options::value<int>(), "  process so many frames")
     ;
