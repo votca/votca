@@ -106,7 +106,7 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     /// Testing the state saver class
     cout<<"Falks test\n";
     StateSaver _saver(*_qmtop);
-    string outfilename = "falks.dat";
+    string outfilename = "state.dat";
     _saver.Save(outfilename,true);
     
     cout<<"now Falks read\n";

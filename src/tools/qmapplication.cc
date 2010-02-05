@@ -73,7 +73,7 @@ void QMApplication::Run(int argc, char **argv)
         /// load qmtop from state saver
         StateSaver saver(_qmtop);
         cout << "Loading qmtopology via state saver." << endl;
-        string statefile = "falks.dat";
+        string statefile = "state.dat";
         saver.Load(statefile);
 
         EvaluateFrame();
