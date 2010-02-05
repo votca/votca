@@ -14,12 +14,30 @@ StateSaver::StateSaver(QMTopology &qmtop) {
 void StateSaver::Save(string file, bool bAppend) {
     //_out = fopen(file.c_str(), bAppend ? "at" : "wt");
     _out.open(file.c_str(), ios::out | ios::binary);
+    Write_PBCs();
     Write_Molecules();
     Write_QMBeads();
     Write_QMNeighbourlist();
     //Write NBL
     _out.close();
     //_out = datafile(datafile.c_str(), ios::binary|ios::out);
+}
+
+void StateSaver::Load(string file) {
+    _qmtop->Cleanup();
+    _qmtop->nblist().Cleanup();
+    _qmtop->CreateResidue("dummy");
+
+    _in.open(file.c_str(), ios::in | ios::binary);
+    Read_PBCs();
+    Read_Molecules();
+    Read_QMBeads();
+    Read_QMNeighbourlist();
+    _in.close();
+}
+
+void StateSaver::Write_PBCs(){
+    write<matrix>(_qmtop->getBox());
 }
 
 void StateSaver::Write_Molecules() {
@@ -69,7 +87,7 @@ void StateSaver::Write_QMNeighbourlist() {
     QMNBList &nblist = _qmtop->nblist();
      
     write<int>(nblist.size());//?
-    cout <<"There are so many pairs in nblist: " <<(int)nblist.size()<<"\n";
+    //cout <<"There are so many pairs in nblist: " <<(int)nblist.size()<<"\n";
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
         QMPair *pair = *iter;
@@ -87,36 +105,28 @@ void StateSaver::Write_QMNeighbourlist() {
         }
         write<double>(pair->rate12());
         write<double>(pair->rate21());
-        write<double>(pair->r().getX());
-        write<double>(pair->r().getY());
-        write<double>(pair->r().getZ());
+        write<vec>(pair->r());
     }
     //
     //write<unsigned long>(_qmtop->BeadCount());
 }
 
-void StateSaver::Load(string file) {
-    _qmtop->Cleanup();
-    _qmtop->nblist().Cleanup();
-    _qmtop->CreateResidue("dummy");
+void StateSaver::Read_PBCs(){
+    assert(_in.is_open());
 
-    _in.open(file.c_str(), ios::in | ios::binary);
-    Read_Molecules();
-    Read_QMBeads();
-    Read_QMNeighbourlist();
-    _in.close();
+    _qmtop->setBox(read<matrix>());
 }
 
 void StateSaver::Read_Molecules(){
     assert(_in.is_open());
 
     unsigned long nr_mols = read<unsigned long>();
-    cout << "Total number of mols is " << nr_mols << "\n";
+    //cout << "Total number of mols is " << nr_mols << "\n";
     for (unsigned long i = 0; i < nr_mols; i++) {
         int molid=read<int>();
-    cout << "This molecule has id "<<molid<<"\n";
+    //cout << "This molecule has id "<<molid<<"\n";
         string mol_name=read<string>();
-    cout << "This molecules has name "<<mol_name<<"\n";
+    //cout << "This molecules has name "<<mol_name<<"\n";
     Molecule *mol = _qmtop->CreateMolecule(mol_name);
     }
         
@@ -127,7 +137,7 @@ void StateSaver::Read_QMBeads() {
     assert(_in.is_open());
    
     unsigned long nr_qmbeads = read<unsigned long>();
-    cout << "Total number of QMBeads is " << nr_qmbeads << "\n";
+    //cout << "Total number of QMBeads is " << nr_qmbeads << "\n";
     for (unsigned long i = 0; i < nr_qmbeads; i++) {
 
         byte_t symmetry =       read<byte_t> ();
@@ -148,13 +158,13 @@ void StateSaver::Read_QMBeads() {
 
         BeadType *type = _qmtop->GetOrCreateBeadType(type_name);
 
-        cout << "Bead Symmetry " << (int)symmetry << "\n";
+        /*cout << "Bead Symmetry " << (int)symmetry << "\n";
         cout << "Bead Name " << bead_name << "\n";
         cout << "Bead Type " << type_name << "\n";
         cout << "Residue Number " << resnr << "\n";
         cout << "Bead Mass " << M << "\n";
         cout << "Bead Charge " << Q << "\n";
-        cout << "Molid  " << molid << "\n";
+        cout << "Molid  " << molid << "\n";*/
 
         QMBead *bead = dynamic_cast<QMBead*>(_qmtop->CreateBead(symmetry, bead_name, type, resnr, M, Q));
         _qmtop->getMolecule(molid)->AddBead(bead, bead_name);
@@ -172,12 +182,12 @@ void StateSaver::Read_QMBeads() {
         bead->UpdateCrg();
 
         
-        cout << "The charge unit is called " << crg_unit_name << "\n";
+        /*cout << "The charge unit is called " << crg_unit_name << "\n";
         cout << "This charge unit has energy " << energy <<"\n";
         cout << "This bead is at int position " << ipos << "\n";
         cout << "This bead hast position  " << U << "\n";
         cout << "This bead has U " << U << "\n";
-        cout << "This bead has V " << V << "\n";
+        cout << "This bead has V " << V << "\n";*/
     }
 }
 
@@ -185,18 +195,18 @@ void StateSaver::Read_QMNeighbourlist() {
     assert(_in.is_open());
    
     int nr_pairs = read<int>();
-    cout << "Total number of QMPairs is " << nr_pairs << "\n";
+    //cout << "Total number of QMPairs is " << nr_pairs << "\n";
     for (int i = 0; i < nr_pairs; i++) {
 
         unsigned int id1=read<unsigned int>();
         unsigned int id2=read<unsigned int>();
         string crg_unit_name1 =  read<string> ();
         string crg_unit_name2 =  read<string> ();
-        cout << "This pair has charge unit ids " << id1 << " and " <<id2 <<"\n";
+        //cout << "This pair has charge unit ids " << id1 << " and " <<id2 <<"\n";
         
         CrgUnit *crg1=_qmtop->GetCrgUnitByName(crg_unit_name1);
         CrgUnit *crg2=_qmtop->GetCrgUnitByName(crg_unit_name2);    
-        cout << "This pair has names " << crg_unit_name1 << " and " <<crg_unit_name2 <<"\n";
+        //cout << "This pair has names " << crg_unit_name1 << " and " <<crg_unit_name2 <<"\n";
         
         QMPair *pair=new QMPair(crg1,crg2, _qmtop);
         _qmtop->nblist().AddPair(pair);
@@ -205,7 +215,7 @@ void StateSaver::Read_QMNeighbourlist() {
         for (int s=0;s<sizeJs;s++){
             double J=read<double>();
             Js.push_back(J);
-            cout << "This pair has J " << J <<"\n";
+            //cout << "This pair has J " << J <<"\n";
         }
         pair->setJs(Js);
 
@@ -213,13 +223,9 @@ void StateSaver::Read_QMNeighbourlist() {
         double rate21=read<double>();
         pair->setRate12(rate12);
         pair->setRate21(rate21);
-        cout << "This pair has rates " << rate12 << " and " << rate21 <<"\n";
+        //cout << "This pair has rates " << rate12 << " and " << rate21 <<"\n";
 
-        vec r_ij;
-        r_ij.setX(read<double>());
-        r_ij.setY(read<double>());
-        r_ij.setZ(read<double>());
-        pair->setR(r_ij);
-        cout << "This pair has connecting vector r_ij = " << pair->r() << endl;
+        pair->setR(read<vec>());
+        //cout << "This pair has connecting vector r_ij = " << pair->r() << endl;
     }
 }
