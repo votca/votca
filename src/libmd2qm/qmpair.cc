@@ -12,7 +12,7 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
 
     // check if PBC:
     vec d = crg2nm - crg1nm;
-    if (abs(d) !=  _dist){
+    if (abs(d - _r) > 1e-8) {
         _ghost = new CrgUnit();
 	_ghost->copyCrgUnit(*crg2);
         vec displ = (_r - d);
