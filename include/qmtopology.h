@@ -43,6 +43,8 @@ public:
     list < CrgUnit *>& crglist(){
         return _lcharges;
     }
+
+    void Cleanup();
     /// update the topology based on cg positons
     void Initialize(Topology &cg_top);
     /// update the topology based on cg positons

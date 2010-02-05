@@ -14,6 +14,16 @@ void QMTopology::Initialize(Topology& cg_top)
     this->InitChargeUnits();
 }
 
+void QMTopology::Cleanup()
+{
+    list<CrgUnit *>::iterator iter;
+    for(iter=_lcharges.begin(); iter!=_lcharges.end(); ++iter)
+        delete *iter;
+    _lcharges.clear();
+    _mcharges.clear();
+    Topology::Cleanup();
+}
+
 void QMTopology::Update(Topology& cg_top)
 {
     BeadContainer::iterator iter;
