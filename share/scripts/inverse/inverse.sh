@@ -241,7 +241,7 @@ for ((i=1;i<$iterations+1;i++)); do
       msg "We will not manage another step, stopping"
       exit 0
     else
-      msg "We can do for another $(( ( ${start_time} + $wall_time - $(get_time) ) / $avg_steptime - 1 )) steps"
+      msg "We can go for another $(( ( ${start_time} + $wall_time - $(get_time) ) / $avg_steptime - 1 )) steps"
     fi
   fi
 
