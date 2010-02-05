@@ -40,7 +40,7 @@ CrgUnitType::~CrgUnitType() {
 
 }
 
-CrgUnitType::CrgUnitType(char * namecoord, char * nameorb, char * nameneutr, char * namecrg, const double & reorg,
+CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb, const char * nameneutr, const char * namecrg, const double & reorg,
         const double & energy, const vector <unsigned int>& transorbs, const unsigned int &id,
         string molname, string name, vector < vector < int > > list_atoms_monomer, vector < vector < double > > list_weights_monomer) {
     _intcoords.define_bs(_indo);

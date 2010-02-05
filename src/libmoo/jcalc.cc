@@ -51,10 +51,10 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
 {
     xmlChar *key;
 
-    char * namecoord;
-    char * nameorb;
-    char * namecrg;
-    char * nameneutr;
+    string namecoord;
+    string nameorb;
+    string namecrg;
+    string nameneutr;
     double reorg;
     double energy;
     // int transorb;
@@ -161,7 +161,7 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
             }
         }
     }
-    CrgUnitType* crgunittype = new CrgUnitType(namecoord, nameorb, nameneutr, namecrg, reorg, energy, transorbs, _listCrgUnitType.size(),
+    CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(), nameneutr.c_str(), namecrg.c_str(), reorg, energy, transorbs, _listCrgUnitType.size(),
             molname, name, list_atoms_monomer, list_weights_monomer);
     _mapCrgUnitByName.insert(make_pair(name, crgunittype));
 

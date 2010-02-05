@@ -85,8 +85,8 @@ private:
     
     // can only be created by JCalc
     CrgUnitType(
-            char * namecoord, char * nameorb, char * nameneutr,
-            char * namecrg, const double & reorg,
+            const char * namecoord, const char * nameorb, const char * nameneutr,
+            const char * namecrg, const double & reorg,
             const double & energy, const vector <unsigned int>& transorbs,
             const unsigned int &id, string molname, string name,
             vector < vector < int > > list_atoms_monomer,
