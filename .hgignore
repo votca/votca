@@ -2,10 +2,14 @@ syntax: glob
 
 *~
 *.a
+*.la
 *.o
+*.lo
 .deps
+.libs
 autom4te.cache
 stamp-h1
+libtool
 Makefile
 Makefile.in
 aclocal.m4

@@ -1,7 +1,7 @@
 AC_DEFUN([AX_VOTCA_TOOLS_LIBS], [
 #---------
   tmp_libs="$LIBS"
-  LIBS="-lvotca_tools $LIBS_XML $LIBS"
+  LIBS="-lvotca_tools $LIBS_XML $LIBS $GSL_LIBS"
   AC_MSG_CHECKING([for votca tools library])
   AC_TRY_LINK([#include <votca/tools/property.h>], [ Property p; p.get("foo"); ], [
       LIBS_VOTCA_TOOLS="-lvotca_tools" ],[AC_MSG_RESULT([no])])

@@ -33,4 +33,4 @@ csg_map_SOURCES = csg_map.cc
 
 AM_LDFLAGS =  
 
-LDADD = ../libcsg/libvotca_csg.a ${LIBS_VOTCA_TOOLS} ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) $(LIBS_XML) ${GSL_LIBS} -lpthread
+LDADD = ../libcsg/libvotca_csg.la ${LIBS_VOTCA_TOOLS} ${BOOST_LDFLAGS} ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) $(LIBS_XML) ${GSL_LIBS} -lpthread

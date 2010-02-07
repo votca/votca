@@ -7,6 +7,4 @@ csg_boltzmann_SOURCES = \
 	bondedstatistics.cc main.cc  stdanalysis.cc  tabulatedpotential.cc \
 	analysistool.h bondedstatistics.h stdanalysis.h tabulatedpotential.h
 
-AM_LDFLAGS =  
-
-LDADD = ../libcsg/libvotca_csg.a  ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_VOTCA_TOOLS) $(LIBS_GMX) $(LIBS_XML) $(LIBS_FFTW) -lm -lpthread 
+csg_boltzmann_LDADD = ../libcsg/libvotca_csg.la  ${BOOST_LDFLAGS} ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_VOTCA_TOOLS) $(LIBS_GMX) $(GSL_LIBS) $(LIBS_XML) $(LIBS_FFTW) -lm -lpthread
