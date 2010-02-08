@@ -15,6 +15,8 @@ libvotca_csg_la_SOURCES = \
     modules/io/gmxtrajectoryreader.cc  modules/io/growriter.cc          modules/io/pdbtopologyreader.cc \
     modules/io/gmxtrajectorywriter.cc  modules/io/pdbwriter.cc
 
+libvotca_csg_la_LIBADD = ${LIBS_VOTCA_TOOLS} $(LIBS_XML) $(LIBS_GMX)
+
 CLEANFILES = *~ hgstamp
 #DISTCLEANFILES =
 
