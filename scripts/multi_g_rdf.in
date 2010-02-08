@@ -150,7 +150,7 @@ for ((i=0;i<$np;i++)); do
   this_log="${logfile/NP/$np0}"
   this_out="${sout/NP/$np0}.xvg"
   e="$(awk -v b="$begin" -v dt="$dt" -v i="$i" 'BEGIN{print dt*(i+1)+b}')"
-  echo -e "$input" | $g_cmd -b $begin -e $end -n $index -o $this_out $* &> $this_log &
+  echo -e "$input" | $g_cmd -b $b -e $e -n $index -o $this_out $* &> $this_log &
   pid="$!"
   qecho "Calculation of $fbase from $b ps to $e ps started (pid $pid)"
   pids+="$pid "
