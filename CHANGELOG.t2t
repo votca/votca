@@ -5,6 +5,11 @@ Votca Developer Team
 For more detailed information about the changes see the
 history of the [repository http://hg.votca.org/csg]
 
+== Verion 1.0_rc4 ==
+* using libtool to build shared libs
+* fixed a bug in error calculation of multi_g_rdf
+
+
 == Verion 1.0_rc3 ==
 * added option --wall-time to csg_inverse if run on a queueing system
 * added option for IBI to run in parallel
