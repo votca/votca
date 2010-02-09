@@ -26,7 +26,14 @@ AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed an
 AX_GROMACS
 AX_BOOST([1.33.1])
 
+
+AC_ARG_ENABLE(all-static,
+              [AC_HELP_STRING([--enable-all-static],
+              [Make completely static binaries])],, enable_all_static=no)
+# Dont add the -all-static flag until after the compiler test.
+
 AX_VOTCA_TOOLS
+
 #check for boost
 #AX_BOOST_PROGRAM_OPTIONS
 
@@ -51,5 +58,9 @@ AC_CONFIG_FILES([scripts/Makefile])
 AC_CONFIG_FILES([share/xml/Makefile])
 AC_CONFIG_FILES([share/template/Makefile])
 
+
+if test "$enable_all_static" = "yes"; then
+  LDFLAGS="$LDFLAGS -all-static"
+fi
 
 AC_OUTPUT
