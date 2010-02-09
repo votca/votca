@@ -188,7 +188,7 @@ for ((i=0;i<$np;i++)); do
   mean2+="+($co-$mco)**2"
 done
 awkprog="/[@#]/{next;}{print \$0,($mean)/$np}"
-awkprog2="/[@#]/{next;}{print \$1,$mco,($mean2)/$(($np*($np-1)))}"
+awkprog2="/[@#]/{next;}{print \$1,$mco,sqrt(($mean2)/$(($np*($np-1))))}"
 qecho "awk code to calc mean: $awkprog"
 qecho "awk code to calc block error: $awkprog2"
 paste $pasteline | awk "$awkprog" | awk "$awkprog2" > $out
