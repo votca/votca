@@ -1,4 +1,4 @@
-AC_INIT(votca-tools,1.0_rc2,bugs@votca.org)
+AC_INIT(votca-tools,1.0_rc4,bugs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -7,7 +7,7 @@ AM_INIT_AUTOMAKE([1.9 foreign])
 
 
 AC_PROG_CXX
-AC_PROG_RANLIB
+LT_INIT
 
 AC_LANG_CPLUSPLUS
 
@@ -29,6 +29,9 @@ AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed an
 
 # check for gromacs
 # AX_GROMACS_HEADERS
+
+AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
+AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
 
 AC_PROG_MAKE_SET
 

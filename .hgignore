@@ -3,9 +3,13 @@ syntax:glob
 *~
 stamp-h1
 .deps
+.libs
 *.o
+*.lo
+*.la
 *.a
 autom4te.cache/*
+libtool
 configure
 Makefile
 Makefile.in
@@ -17,9 +21,13 @@ config.status
 config/depcomp
 config/install-sh
 config/missing
+config/config.guess
+config/config.sub
 src/libtools/hgstamp
 
 netbeans/*/build
 */nbproject/private
 .dep.inc
 
+CHANGELOG.wiki
+CHANGELOG

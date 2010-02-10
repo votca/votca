@@ -1,0 +1,25 @@
+CHANGELOG
+Votca Developer Team
+%%mtime(%m/%d/%Y)
+
+For more detailed information about the changes see the
+history of the [repository http://hg.votca.org/tools]
+
+== Version 1.0_rc4 ==
+* using libtool to build shared libs
+
+
+== Version 1.0_rc3 ==
+* corrected bug in tokenizer
+* fixed a bug in calculation of version string
+* some fixes concerning autotools
+
+
+== Version 1.0_rc2 ==
+* fixed typo in calculation of version string
+* added NOTICE and LICENSE to the dist tarball
+
+
+== Version 1.0_rc1 ==
+* initial version
+
