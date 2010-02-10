@@ -172,4 +172,13 @@ inline vec Property::as<vec>() const
     return vec(tmp[0], tmp[1], tmp[2]);
 }
 
+template<>
+inline vector<unsigned int> Property::as<vector <unsigned int> >() const
+{
+    vector<unsigned int> tmp;
+    Tokenizer tok(as<string>(), " ,");
+    tok.ConvertToVector<unsigned int>(tmp);
+    return tmp;
+}
+
 #endif	/* _PROPERTY_H */
