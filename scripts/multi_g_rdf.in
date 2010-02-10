@@ -27,6 +27,7 @@ index="index.ndx"
 sout="${fbase}_NP"
 out="${fbase}.xvg"
 version="@version@"
+single="no"
 
 die() {
   echo -e "$*"
@@ -53,7 +54,7 @@ This is a multiplexed version of $g_cmd
 Usage: ${0##*/} [OPTIONS] -- [${g_cmd}_options]
 
 Allowed options:
--N                  Number of tasks
+-N, --NN            Number of tasks
                     Default: $np 
 -b         TIME     Begin time
                     Default: $begin
@@ -64,8 +65,9 @@ Allowed options:
                     Default: ${sout} (where NP is replace by the number)
 -o         FILE     Name of the total output file
                     Default: $out
-    --log           Name of logfile
+    --log  FILE     Name of logfile
                     Default: $logile (where NP is replace by the number)
+    --single        Run only one task at the time
 -q, --quiet         Be a little bit quiet
 -h, --help          Show this help
 
@@ -89,7 +91,8 @@ while [ "${1#-}" != "$1" ]; do
     fi
  fi
  case $1 in
-   -[0-9]*)
+   -[0-9]* | --[0-9]**)
+    np=${1#-}
     np=${1#-}
     [ -z "${np//[0-9]}" ] || die "$1 could not be convert to a number"
     shift ;;
@@ -112,6 +115,9 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;;
    -q | --quiet)
     quiet="yes"
+    shift ;;
+   --single)
+    single="yes"
     shift ;;
    -h | --help)
     show_help
@@ -153,16 +159,22 @@ for ((i=0;i<$np;i++)); do
   echo -e "$input" | $g_cmd -b $b -e $e -n $index -o $this_out $* &> $this_log &
   pid="$!"
   qecho "Calculation of $fbase from $b ps to $e ps started (pid $pid)"
-  pids+="$pid "
   b="$e"
+  if [ "$single" = "yes" ]; then
+    wait $pid || die "The $fbase calculations with pids $failed failed"
+  else
+    pids+="$pid "
+  fi
 done
 
-qecho "Waiting for single $fbase calculations to finish"
-failed=""
-for i in $pids; do
-  wait $i || failed+="$i "
-done
-[ -z "$failed" ] || die "The $fbase calculations with pids $failed failed"
+if [ "$single" = "no" ]; then
+  qecho "Waiting for single $fbase calculations to finish"
+  failed=""
+  for i in $pids; do
+    wait $i || failed+="$i "
+  done
+  [ -z "$failed" ] || die "The $fbase calculations with pids $failed failed"
+fi
 
 qecho "Checking output"
 lines=""
