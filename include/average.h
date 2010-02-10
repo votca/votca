@@ -49,13 +49,10 @@ inline Average<double>::Average()
 
 template<typename T>
 inline void Average<T>::Process(T &value)
-{
-    if(_n==0){_av = value; _m2= value*value;}
-    else {
-        _av = _av*(double)_n/(double)(_n+1) + value / (double)(_n+1);
-        _n++;
-        _m2 += value*value;
-    }
+{ 
+   _av = _av*(double)_n/(double)(_n+1) + value / (double)(_n+1);
+   _n++;
+   _m2 += value*value;   
 }
 
 template<>
