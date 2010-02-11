@@ -103,6 +103,11 @@ On the technical side, the implementation of the Boltzmann inversion method requ
 
 Another crucial issue is the cross-correlation of the coarse-grained degrees of freedom. Independence of the coarse-grained degrees of freedom is the main assumption that allows factorization of the probability distribution and the potential, eq.~\ref{eq:boltzmann_pmf}. Hence, one has to carefully check whether this assumption holds in practice. This can be done by performing coarse-grained simulations and comparing cross-correlations for all pairs of degrees of freedom in atomistic and coarse-grained resolution, e.~g. using a two-dimensional histogram, analogous to a Ramachandran plot.~\footnote{Checking the linear correlation coefficient does not guarantee statistical independence of variables, for example $c(x, x^2)=0$ if $x$ has a symmetric probability density $P(x) = P(-x)$. This case is often encountered in systems used for coarse-graining.}
 
+\subsection{Separation of bonded and non-bonded degrees of freedom}
+When coarse-graining polymeric systems, it is convenient to treat bonded and non-bonded interactions separately~\cite{Tschoep:1998}. In this case, sampling of the atomistic system shall be performed on a special system where non-bonded interactions are artificially removed, so that the non-bonded interactions in the reference system do not contribute to the bonded interactions of the coarse-grained model.
+
+This can be done by using exclusion lists using \prog{csg_boltzmann} with the option \progopt{--excl}. This is describe in detail in sec. \ref{sec:exclusions}.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Iterative Boltzmann Inversion}

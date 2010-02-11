@@ -8,43 +8,38 @@
    \caption{Flowchart deminstrating useful options of the tool.}
 \end{wrapfigure}
 %
-It is mostly used for deriving {\em bonded} interactions from canonical sampling of a single molecule in vacuum, e.~g. for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}.
-
-The non-bonded potentials can then be obtained by using iterative  methods or force matching.
+It is mostly used for deriving {\em bonded} interactions from canonical sampling of a single molecule in vacuum, e.~g. for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}. The non-bonded potentials can then be obtained by using iterative  methods or force matching.
 
 The main tool which can be used to calculate hystograms, cross-correlate coarse-grained variables, create exclusion lists, as well as prepare tabulated potentials for coarse-grained simulations is \prog{csg_boltzmann}.  It parses the whole trajectory and stores all information bonded interactions in memory, which is useful for interactive analysis. For big systems, however, one can run out of memory. In this case \prog{csg_stat} can be used which, however, has a limited number of tasks it can perform.
 
 Another useful tool is \prog{csg_map}. It can be used to convert an atomistic trajectory to a coarse-grained one, as it is discussed in sec.~\ref{sec:trajectory}.
 
-To use \prog{csg_boltzmann} one has to first define a mapping scheme, as described in~\sect{sec:mapping}). 
+To use \prog{csg_boltzmann} one has to first define a mapping scheme. This is outlined in~\sect{sec:mapping}. Once the mapping scheme is specified, it is possible to generate an exclusion list for the proper sampling of the atomistic resolution system. 
 
-\section{Generating reference trajectories with proper exclusions}
-When the Boltzmann inversion method was described in Ref.\cite{Tschoep:1998}, bonded and non-bonded interactions were treated separately. To do this, a special atomistic trajectory is needed, where all non-bonded interactions are excluded which do not contribute to a bonded interaction in the coarse-grained model. Manually, this can be a complicated task, but \prog{csg_boltzmann} offers the option \progopt{--excl} to do this automatically.
+\section{Generating exclusion lists}
+\label{sec:exclusions}
+Exclusion lists are useful when sampling of a special reference system is needed, for example for polymer coarse-graining with a separation of bonded and non-bonded degrees of freedom.
 
-To generate an exclusion list, an atomistic topology without exclusions and a mapping scheme has to be prepared first. Since \votca can currently only read GROMACS .tpr trajectories and not .top files, running \progex{grompp} is obligatory. Important to note here is, that \prog{csg_boltzmann} currently only creates the exclusion list for the fist mulecule in the topology.
-
-To create the exclusion list, run
+To generate an exclusion list, an atomistic topology without exclusions and a mapping scheme have to be prepared first. Once the .tpr and mapping files are ready, simply run
 \begin{verbatim}
   csg_boltzmann --top topol.tpr --cg mapping.xml --excl exclusions.txt
 \end{verbatim}
-This will create a list of exclusions for all interactions that are not within a bonded interaction of the coarse-grained sub-bead. As an example consider coarse-graining of a linear chain of three beads  which are only connected by bonds. In this case, \prog{csg_boltzmann} will create exclusions for all non-bonded interactions of atoms in the first bead with atoms of the 3rd bead as these would contribute only to the non-bonded interaction potential which is treated separately.
+This will create a list of exclusions for all interactions that are not within a bonded interaction of the coarse-grained sub-bead. As an example consider coarse-graining of a linear chain of three beads  which are only connected by bonds. In this case, \prog{csg_boltzmann} will create exclusions for all non-bonded interactions of atoms in the first bead with atoms of the 3rd bead as these would contribute only to the non-bonded interaction potential. Note that \prog{csg_boltzmann} will only create the exclusion list for the fist mulecule in the topology.
 
 To add the exclusions to the \gromacs topology of the molecule, either include the file specified in --excl as follows
 \begin{verbatim}
   [ exclusions ]
   #include "exclusions.txt"
 \end{verbatim}
-or copy and paste the content of that file to the exclusions section.
+or copy and paste the content of that file to the exclusions section of the gromacs topology file.
 
-
-\section{Analysis}
-If the \progopt{--trj} option is specified to parse a reference trajectory, \prog{csg_boltzmann} enters an interactive mode which accepts commands. Here, analysis operations can be performed on all interactions evaluated.
-
+\section{Statistical analysis}
+For statistical analysis \prog{csg_boltzmann} provides an interactive mode. To enter the interactive mode, use \progopt{--trj} option followed by the file name of the reference trajectory 
 \begin{verbatim}
   csg_boltzmann --top topol.top --trj traj.trr --cg mapping.xml
 \end{verbatim}
-
-The interactive mode contains a built in \textit{help} command. To get help on a specific command use
+%
+To get help on a specific command of the interactive mode, type
 \begin{verbatim}
   help <command>
 \end{verbatim}
@@ -53,10 +48,14 @@ for example
   help hist
   help hist set periodic
 \end{verbatim}
+%
+By default, all interactions specified in the mapping scheme are processed. If a specific interaction shall be used, it can be referred to by a name which is composed of \texttt{molecule:interaction-group:index}, where \texttt{molecule} is the molecule number in the whole topology, \texttt{interaction-group} is the name specified in the mapping file, and \texttt{index} is the entry in the list of interactions. For example, \texttt{1:AA-bond:10} refers to the 10th AA-bond in molecule 1. 
 
-All interactions specified in the mapping scheme are evaluated. A specific interaction is referred to by a name which is composed of \textit{molecule:interaction-group:index}, where molecule is the molecule number in the whole topology, interaction-group the name specified in the mapping file, and index the entry in the list of interactions. E.g. \textit{1:AA-bond:10} is the 10th AA-bond in molecule 1. To show a list of all interactions that where passed, the command \textit{list} can be used. To specify a couple of interactions during analysis, either give interactions separated by space or use wildcards (e.g. *:AA-bond*).
+To show a list of all interactions that were processed, \texttt{list} command can be used. To specify a couple of interactions during analysis, either give interactions separated by space or use wildcards (e.g. \texttt{*:AA-bond*}).
 
-To exit the interactive mode, use the command \textit{q}. If analysis commands are t be read from a file, use the pipe or stdin redirects from the shell.
+To exit the interactive mode, use the command \texttt{q}. 
+
+If analysis commands are t be read from a file, use the pipe or stdin redirects from the shell.
 \begin{verbatim}
   cat commands | csg_boltzmann topol.top --trj traj.trr --cg mapping.xml
 \end{verbatim}
