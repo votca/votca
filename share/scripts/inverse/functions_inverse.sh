@@ -273,7 +273,7 @@ check_for () {
       [[ -n "${!exe}" ]] || die "check_for: '${exe}' is undefined in ${file}"
       continue
     fi
-    [[ -n "$(type -t $exe)" ]] || die "check_for: Could not find $exe needed ${file}" 
+    [[ -n "$(type -t $exe)" ]] || die "check_for: Could not find $exe needed by ${file}" 
   done
 }
 export -f check_for
