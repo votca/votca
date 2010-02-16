@@ -347,7 +347,7 @@ get_main_dir() {
 }
 export -f get_main_dir
 
-get_step_nr() {
+get_current_step_nr() {
   local name
   name=$(get_current_step_dir)
   name=${name#*step_}
@@ -355,7 +355,7 @@ get_step_nr() {
   name=${name#0}
   echo "$name"
 }
-export -f get_step_nr
+export -f get_current_step_nr
 
 cp_from_to() {
   local i to from where

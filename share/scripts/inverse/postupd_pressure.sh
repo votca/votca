@@ -33,7 +33,7 @@ fi
 
 check_deps "$0"
 
-step_nr="$(get_step_nr)"
+step_nr="$(get_current_step_nr)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 name=$(csg_get_interaction_property name)
 

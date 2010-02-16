@@ -32,7 +32,7 @@ fi
 
 check_deps "$0"
 
-step_nr=$(get_step_nr)
+step_nr=$(get_current_step_nr)
 scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
 scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
