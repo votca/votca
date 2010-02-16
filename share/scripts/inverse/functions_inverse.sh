@@ -300,6 +300,10 @@ export -f int_check
 get_stepname() {
   local name
   [[ -n "$1" ]] || die "get_stepname: Missig argument"
+  if [ "$1" = "--trunc" ]; then
+    echo "step_"
+    return 0
+  fi
   int_check "${1#-}" "get_stepname: needs a int as argument, but was $1"
   name="$(printf step_%03i "$1")"
   [ -z "$name" ] && die "get_stepname: Could not get stepname"
@@ -326,7 +330,7 @@ get_current_step_dir() {
   if [ "$1" = "--no-check" ]; then
     :
   else
-    [ -d "$CSG_LASTSTEP" ] || die "get_last_step_dir: $CSG_THISSTEP is not dir"
+    [ -d "$CSG_THISSTEP" ] || die "get_last_step_dir: $CSG_THISSTEP is not dir"
   fi
   echo "$CSG_THISSTEP"
 
@@ -348,14 +352,25 @@ get_main_dir() {
 export -f get_main_dir
 
 get_current_step_nr() {
-  local name
+  local name nr
   name=$(get_current_step_dir)
-  name=${name#*step_}
-  name=${name#0}
-  name=${name#0}
-  echo "$name"
+  nr=$(get_step_nr $name)
+  echo "$nr"
 }
 export -f get_current_step_nr
+
+get_step_nr() {
+  local nr trunc
+  trunc=$(get_stepname --trunc)
+  [[ -n "$1" ]] || die "get_step_nr: Missig argument"
+  nr=${1##*/}
+  nr=${nr#$trunc}
+  nr=${nr#0}
+  nr=${nr#0}
+  int_check "$nr" "get_step_nr: Could not fetch step nr"
+  echo "$nr"
+}
+export -f get_step_nr
 
 cp_from_to() {
   local i to from where

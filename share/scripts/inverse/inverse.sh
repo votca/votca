@@ -151,12 +151,21 @@ else
   for_all non-bonded cp '$(csg_get_interaction_property name).pot.new $(get_main_dir)' 
   touch done
   msg "step 0 done"
-  cd ..
+  cd $(get_main_dir)
 fi
+
+begin=1
+trunc=$(get_stepname --trunc)
+for i in ${trunc}*; do
+  nr=${i#$trunc}
+  [ -d "$i" ] && [ -n "$nr" ] && [ -z "${nr//[0-9]}" ] && [ $nr -gt $begin ] && begin="$nr"
+done
+unset nr trunc
+[ $begin -gt 1 ] && msg "Jumping in at iteration $begin"
 
 avg_steptime=0
 steps_done=0
-for ((i=1;i<$iterations+1;i++)); do
+for ((i=$begin;i<$iterations+1;i++)); do
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
