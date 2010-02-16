@@ -146,7 +146,7 @@ read -r || die "Wrong input"
 input="${REPLY}"
 echo -n "Select a group: "
 read -r || die "Wrong input"
-input+="\n${REPLY}"
+input="${input}\n${REPLY}"
 qecho ""
 qecho "Selected: $input"
 
@@ -163,7 +163,7 @@ for ((i=0;i<$np;i++)); do
   if [ "$single" = "yes" ]; then
     wait $pid || die "The $fbase calculations with pids $failed failed"
   else
-    pids+="$pid "
+    pids="${pids} $pid"
   fi
 done
 
@@ -171,7 +171,7 @@ if [ "$single" = "no" ]; then
   qecho "Waiting for single $fbase calculations to finish"
   failed=""
   for i in $pids; do
-    wait $i || failed+="$i "
+    wait $i || failed="$failed $i"
   done
   [ -z "$failed" ] || die "The $fbase calculations with pids $failed failed"
 fi
@@ -195,9 +195,9 @@ for ((i=0;i<$np;i++)); do
   np0="$(printf "%02i" $i)"
   this_out="${sout/NP/$np0}.xvg"
   co="\$$((2 * $i + 2 ))"
-  pasteline+="$this_out "
-  mean+="+$co"
-  mean2+="+($co-$mco)**2"
+  pasteline="$pasteline $this_out"
+  mean="${mean}+${co}"
+  mean2="${mean2}+($co-$mco)**2"
 done
 awkprog="/[@#]/{next;}{print \$0,($mean)/$np}"
 awkprog2="/[@#]/{next;}{print \$1,$mco,sqrt(($mean2)/$(($np*($np-1))))}"
