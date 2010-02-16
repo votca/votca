@@ -181,9 +181,11 @@ lines=""
 for ((i=0;i<$np;i++)); do
   np0="$(printf "%02i" $i)"
   this_out="${sout/NP/$np0}.xvg"
-  this_lines=$(cat $this_out | wc -l) || die "linecount failed"
+  [ -f "$this_out" ] || die "Could not find $this_out"
+  this_lines="$(sed -n '$=' "$this_out")" || die "linecount of $this_out failed"
+  [ -z "$this_lines" ] && die "linecount of $this_out was empty"
   [ -z "$lines" ] && lines="$this_lines"
-  [ $this_lines -eq $lines ] || die "Number of data lines differs for $fbase nr $i ($this_lines vs $lines)"
+  [ $this_lines -eq $lines ] || die "Number of data lines differs for $fbase nr $i - $this_lines vs $lines lines"
 done
 
 qecho "Calculating average"
