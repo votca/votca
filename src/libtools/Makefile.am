@@ -12,8 +12,8 @@ cubicspline.cc     histogramnew.cc    property.cc  table.cc version.cc
 CLEANFILES = *~ *.a hgstamp
 
 version.o: hgstamp
-hgstamp: update_hgstamp
-update_hgstamp:
-	[ -f hgstamp ] || touch hgstamp
-	echo $(HGVERSION) | cmp -s hgstamp - || echo $(HGVERSION) > hgstamp
-
+version.lo: hgstamp
+hgstamp: dummy 
+	[ -f $@ ] || touch $@
+	echo $(HGVERSION) | cmp -s $@ - || echo $(HGVERSION) > $@
+dummy: ;
