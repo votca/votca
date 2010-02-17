@@ -34,8 +34,7 @@ CSGRC.bash:  CSGRC.bash.in Makefile hgstamp
 
 CLEANFILES = CSGRC.csh CSGRC.bash csg_call csg_inverse multi_g_rdf *~
 
-hgstamp: update_hgstamp
-update_hgstamp:
-	[ -f hgstamp ] || touch hgstamp
-	echo $(HGVERSION) | cmp -s hgstamp - || echo $(HGVERSION) > hgstamp
-
+hgstamp: dummy 
+	[ -f $@ ] || touch $@
+	echo $(HGVERSION) | cmp -s $@ - || echo $(HGVERSION) > $@
+dummy: ;
