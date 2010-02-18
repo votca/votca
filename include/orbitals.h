@@ -167,6 +167,8 @@ public:
     ///nel_A orbital, then the NBAsis_A+nel_B orbital and finally the rest
     void print_uhf_g03(const int & nel_A, const int & nel_B, const int & NBasis_A , const int NBasis_B);
 
+    void print_g03(string & name, string mode= string ("w"));
+
 
 
     void rot_orbs(const vector <unsigned int>& orbs, int* i, double* psi2, const matrix& rot);
