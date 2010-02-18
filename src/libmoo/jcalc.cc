@@ -302,7 +302,7 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
     
     //write the input file for both
     orb dimerorb;
-    dimerorb.dimerise_orbs((jdata->_orb1), (jdata->_orb2));
+    dimerorb.dimerise_orbs((jdata->_orb1), (jdata->_orb2), (jdata->_mol1).n_el,(jdata->_mol2).n_el);
 
     out.open(namedim.c_str());
     // write header
@@ -310,7 +310,7 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
            "%mem=1Gb" << '\n'<<
            "#p b3lyp/TZVP-6D guess(cards) scf(MaxCycle=1) IOp(3/33=1) " << '\n' <<
             '\n' <<
-            "autogen" << '\n' <<
+            "autogen" << '\n' << '\n'<<
             "0 1" <<'\n';
     (jdata->_mol1).print(out);
     (jdata->_mol2).print(out);

@@ -451,3 +451,73 @@ void orb:: print_uhf_g03( const int & nel_A, const int & nel_B, const int & NBas
 
 
 
+
+void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int &elB) {
+    if ( psi != 0) {
+        clear();
+    }
+    NBasis = A.NBasis + B.NBasis;
+
+    /* set up the arrays */
+    bs = new string [NBasis];
+    psi = new double* [NBasis];
+    psi[0] = new double [NBasis * NBasis];
+    for ( int i = 1 ; i < NBasis ; i ++){
+            psi[i] = psi[i-1] + NBasis;
+    }
+
+    /* cp bs info */
+    for (int i=0; i< A.NBasis ;++i ){
+        bs[i] = A.bs[i];
+    }
+    for (int i=0; i< B.NBasis ;++i ){
+        bs[A.NBasis + i ] = B.bs[i];
+    }
+
+    /* copy occupied orbitals*/
+    int occA = (elA-1)/2;
+    int occB = (elB-1)/2;
+    
+    /*copy orbitals  from A*/
+    for (int i=0; i <occA;++i){
+        for (int j=0 ; j< A.NBasis ;++j){
+            psi[i][j] = A.psi[i][j];
+        }
+        for (int j=0; j< B.NBasis ;++j){
+            psi[i][A.NBasis+j] =0.0;
+        }
+    }
+
+    /*copy orbitals from B*/
+    for (int i=0; i <occB ;++i){
+        for (int j=0; j< A.NBasis ;++j){
+            psi[A.NBasis+i][j] = 0.0;
+        }
+        for (int j=0; j< B.NBasis ;++j){
+            psi[A.NBasis+i][A.NBasis+j] = B.psi[i][j];
+        }
+    }
+
+    /*now copy the empty ones*/
+
+    /*copy orbitals  from A*/
+    for (int i=occA; i <A.NBasis;++i){
+        for (int j=0 ; j< A.NBasis ;++j){
+            psi[i][j] = A.psi[i][j];
+        }
+        for (int j=0; j< B.NBasis ;++j){
+            psi[i][A.NBasis+j] =0.0;
+        }
+    }
+
+    /*copy orbitals from B*/
+    for (int i=occB; i <B.NBasis ;++i){
+        for (int j=0; j< A.NBasis ;++j){
+            psi[A.NBasis+i][j] = 0.0;
+        }
+        for (int j=0; j< B.NBasis ;++j){
+            psi[A.NBasis+i][A.NBasis+j] = B.psi[i][j];
+        }
+    }
+
+}

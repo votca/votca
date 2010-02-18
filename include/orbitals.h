@@ -119,51 +119,8 @@ public:
    
     /*// this function will take the orbitals from two orbitals and generate a guess for the dimer
     *	 all orbitals from both molecules upto homo-1 will be listed first.  
-    */   
-    void dimerise_orbs(const orb & A, const orb & B) {
-	if ( psi != 0) {
-	    clear();
-	}
-	NBasis = A.NBasis + B.NBasis;
-
-	/* set up the arrays */
-	bs = new string [NBasis];
-        psi = new double* [NBasis];
-        psi[0] = new double [NBasis * NBasis];
-        for ( int i = 1 ; i < NBasis ; i ++){
-                psi[i] = psi[i-1] + NBasis;
-        }
-	
-	/* cp bs info */
-	for (int i=0; i< A.NBasis ;++i ){
-	    bs[i] = A.bs[i];
-	}
-	for (int i=0; i< B.NBasis ;++i ){
-	    bs[A.NBasis + i ] = B.bs[i];
-	} 
-
-	/*copy orbitals  from A*/
-	for (int i=0; i < A.NBasis;++i){
-	    for (int j=0 ; j< A.NBasis ;++j){
-		psi[i][j] = A.psi[i][j];
-	    }
-	    for (int j=0; j< B.NBasis ;++j){
-		psi[i][A.NBasis+j] =0.0;
-	    }
-	}
-	
-	/*copy orbitals from B*/
-	for (int i=0; i <B.NBasis ;++i){
-	    for (int j=0; j< A.NBasis ;++j){
-		psi[A.NBasis+i][j] = 0.0;
-	    }
-	    for (int j=0; j< B.NBasis ;++j){
-		psi[A.NBasis+i][A.NBasis+j] = B.psi[i][j];
-	    }
-	}
-
-    }
-
+    */
+    void dimerise_orbs(const orb & A, const orb & B, const int &elA, const int &elB) ;
     ///this function will print out an UHF guess wavefunction suitable for gaussian usage. It will print
     ///the nel_A/2-1 orbitals (doubly occupied, then the Nbasis -> NBasis+nel_B/2-1 orbitals, then the 
     ///nel_A orbital, then the NBAsis_A+nel_B orbital and finally the rest
