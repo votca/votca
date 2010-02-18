@@ -5,8 +5,12 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <libxml/parser.h>
+#include "votca/tools/tokenizer.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
+using namespace boost;
 
 struct shell{
 	    int _n_orbs;
@@ -30,6 +34,9 @@ class basis_set{
 	string basis_set_name;
 
 	vector < atom_shells >   _atom_shells;
+
+        void parse_xml_basisset_info(const string &);
+        void ParseAtomBasisSet(xmlDocPtr doc, xmlNodePtr cur);
 
     public:
 	// defaul constructor defaults to INDO
