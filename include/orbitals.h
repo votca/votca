@@ -92,6 +92,8 @@ public:
     }
 
     void init_orbitals (string * basis, const int & N, const char * namefile );
+
+    void reorder_for_libint();
     
     void set_read_orb_gam();
 

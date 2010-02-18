@@ -33,8 +33,9 @@ public:
 
     void Initialize(const string &file);
     vector <double> CalcJ (CrgUnit & one, CrgUnit & two);
+    int WriteProJ(CrgUnit & one, CrgUnit & two);
 
-    CrgUnit *CreateCrgUnit(int id, const string &type_name, int molid=-1);    
+    CrgUnit *CreateCrgUnit(int id, const string &type_name, int molid=-1);
 
 
     // TODO: EstaticDifference should not be in moo since it might depend on algorithm

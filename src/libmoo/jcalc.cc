@@ -264,6 +264,52 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
     return Js;
 }
 
+int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
+{
+    // only write them when one.id < two.id
+    if (one.getType()->getId() > two.getType()->getId())
+        return -1;
+
+    //rotate the molecule and orbitals
+    JCalcData * jdata = getJCalcData(one, two);
+    one.rot_two_mol(two, jdata->_mol1, jdata->_mol2);
+
+
+    ofstream out;
+    string name1, nameorb1, name2, nameorb2, namedim;
+    name1 = lexical_cast<string>(one.getId()) + ".xyz";
+    name2 = lexical_cast<string>(two.getId()) + ".xyz";
+    nameorb1 = lexical_cast<string>(one.getId()) + ".fort.7";
+    nameorb2 = lexical_cast<string>(two.getId()) + ".fort.7";
+    namedim = lexical_cast<string>(one.getId())+"and"+
+            lexical_cast<string>(two.getId()) +".com";
+
+    //write the info for molecule1
+    out.open(name1.c_str());
+    (jdata->_mol1).print(out);
+    out.close();
+
+    (jdata->_orb1).print_g03(nameorb1);
+    //write the info for molecule2
+    out.open(name2.c_str());
+    (jdata->_mol2).print(out);
+    out.close();
+
+    (jdata->_orb2).print_g03(nameorb2);
+    
+    //write the input file for both
+    orb dimerorb;
+    dimerorb.dimerise_orbs((jdata->_orb1), (jdata->_orb2));
+
+    out.open(namedim.c_str());
+    // write header
+    (jdata->_mol1).print(out);
+    (jdata->_mol2).print(out);
+    //write blank line
+    out.close();
+    dimerorb.print_g03(namedim, string ("aw"));
+}
+
 double JCalc::EstaticDifference(CrgUnit & crged, CrgUnit & neutr)
 {
 

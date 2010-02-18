@@ -16,6 +16,9 @@ void orb::init_orbitals (string * basis, const int & N, const char * namefile ){
             psi[i] = psi[i-1] + NBasis;
     }
     (this->*read_orb) ( namefile);
+}
+
+void orb::reorder_for_libint(){
     /*reorder the d orbitals to agree with libint */
     int count=0;
     while (count < NBasis ){
