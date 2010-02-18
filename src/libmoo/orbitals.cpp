@@ -111,65 +111,17 @@ void orb::set_read_orb_gauss(){
 }
 
 void orb::rot_orb(const unsigned int & orb , const double rot[3][3] ){
-	int i=0;
-	while (i<NBasis)
-	{
-            //cout << "BS[" << i << "] = " << bs[i] << endl;
-            //cout << "psi[orb][i] = psi[" << orb << "][" << i <<  "]:" << psi[orb][i] << endl;
-		if ( bs[i] == "s"){
-			i++;
-		}
-                
-		else if (bs[i] == "x" ){	
-			double x_t,y_t,z_t;
-			x_t = psi[orb][i]*rot[0][0] + psi[orb][i+1] * rot[0][1] + psi[orb][i+2] * rot[0][2];
-			y_t = psi[orb][i]*rot[1][0] + psi[orb][i+1] * rot[1][1] + psi[orb][i+2] * rot[1][2];
-			z_t = psi[orb][i]*rot[2][0] + psi[orb][i+1] * rot[2][1] + psi[orb][i+2] * rot[2][2] ;
-			psi[orb][i]=x_t;
-			psi[orb][i+1]=y_t;
-			psi[orb][i+2]=z_t;
-			i=i+3;
-		}
-		else if (bs[i] =="xx" ){
-		    	double xx_t, xy_t, xz_t, yy_t, yz_t, zz_t;
-			xx_t= rot[0][0]*rot[0][0] * psi[orb][i]   + rot[0][0]*rot[0][1] * psi[orb][i+1] + rot[0][0]*rot[0][2]*psi[orb][i+2]
-			    + rot[0][1]*rot[0][0] * psi[orb][i+1] + rot[0][1]*rot[0][1] * psi[orb][i+3] + rot[0][1]*rot[0][2]*psi[orb][i+4]
-			    + rot[0][2]*rot[0][0] * psi[orb][i+2] + rot[0][2]*rot[0][1] * psi[orb][i+4] + rot[0][2]*rot[0][2]*psi[orb][i+5]
-			    ;
-			xy_t= rot[0][0]*rot[1][0] * psi[orb][i]   + rot[0][0]*rot[1][1] * psi[orb][i+1] + rot[0][0]*rot[1][2]*psi[orb][i+2]
-			    + rot[0][1]*rot[1][0] * psi[orb][i+1] + rot[0][1]*rot[1][1] * psi[orb][i+3] + rot[0][1]*rot[1][2]*psi[orb][i+4]
-			    + rot[0][2]*rot[1][0] * psi[orb][i+2] + rot[0][2]*rot[1][1] * psi[orb][i+4] + rot[0][2]*rot[1][2]*psi[orb][i+5]
-			    ;
-			xz_t= rot[0][0]*rot[2][0] * psi[orb][i]   + rot[0][0]*rot[2][1] * psi[orb][i+1] + rot[0][0]*rot[2][2]*psi[orb][i+2]
-			    + rot[0][1]*rot[2][0] * psi[orb][i+1] + rot[0][1]*rot[2][1] * psi[orb][i+3] + rot[0][1]*rot[2][2]*psi[orb][i+4]
-			    + rot[0][2]*rot[2][0] * psi[orb][i+2] + rot[0][2]*rot[2][1] * psi[orb][i+4] + rot[0][2]*rot[2][2]*psi[orb][i+5]
-			    ;
-			yy_t= rot[1][0]*rot[1][0] * psi[orb][i]   + rot[1][0]*rot[1][1] * psi[orb][i+1] + rot[1][0]*rot[1][2]*psi[orb][i+2]
-			    + rot[1][1]*rot[1][0] * psi[orb][i+1] + rot[1][1]*rot[1][1] * psi[orb][i+3] + rot[1][1]*rot[1][2]*psi[orb][i+4]
-			    + rot[1][2]*rot[1][0] * psi[orb][i+2] + rot[1][2]*rot[1][1] * psi[orb][i+4] + rot[1][2]*rot[1][2]*psi[orb][i+5]
-			    ;
-			yz_t= rot[1][0]*rot[2][0] * psi[orb][i]   + rot[1][0]*rot[2][1] * psi[orb][i+1] + rot[1][0]*rot[2][2]*psi[orb][i+2]
-			    + rot[1][1]*rot[2][0] * psi[orb][i+1] + rot[1][1]*rot[2][1] * psi[orb][i+3] + rot[1][1]*rot[2][2]*psi[orb][i+4]
-			    + rot[1][2]*rot[2][0] * psi[orb][i+2] + rot[1][2]*rot[2][1] * psi[orb][i+4] + rot[1][2]*rot[2][2]*psi[orb][i+5]
-			    ;
-			zz_t= rot[2][0]*rot[2][0] * psi[orb][i]   + rot[2][0]*rot[2][1] * psi[orb][i+1] + rot[2][0]*rot[2][2]*psi[orb][i+2]
-			    + rot[2][1]*rot[2][0] * psi[orb][i+1] + rot[2][1]*rot[2][1] * psi[orb][i+3] + rot[2][1]*rot[2][2]*psi[orb][i+4]
-			    + rot[2][2]*rot[2][0] * psi[orb][i+2] + rot[2][2]*rot[2][1] * psi[orb][i+4] + rot[2][2]*rot[2][2]*psi[orb][i+5]
-			    ;
-
-			psi[orb][i]   = xx_t;
-			psi[orb][i+1] = xy_t;
-			psi[orb][i+2] = xz_t;
-			psi[orb][i+3] = yy_t;
-			psi[orb][i+4] = yz_t;
-			psi[orb][i+5] = zz_t;
-
-			i+=6;
-		}
-		else {
-			cerr << " Error in  rot about axis" <<endl;
-		}
-	}
+	
+        matrix r(rot[0], rot[1], rot[2]);
+        vector <pair <int, int> >::iterator itat=_basis_on_atom.begin();
+        for ( ; itat!= _basis_on_atom.end(); ++itat){
+            int first_basis = itat->first;
+            int last_basis = first_basis + itat->second;
+            int i=first_basis;
+            while (i < last_basis){
+             rot_orb(orb, &i, r);
+            }
+        }
 }
 
 inline void orb::rot_orb(const double rot[3][3]){
@@ -178,7 +130,11 @@ inline void orb::rot_orb(const double rot[3][3]){
 	}
 }
 
-void orb::rot_orb(const unsigned int & orb , int *i, double * psi2, const matrix &rot){
+void orb::rot_orb(const unsigned int & orb, int * i, const matrix &r){
+    rot_orb(orb, i, psi[orb], r);
+}
+
+void orb::rot_orb(const unsigned int & orb , int *i, double * psi2, const matrix &r){
     //cout << "BS[" << *i << "] = " << bs[*i] << endl;
     //cout << "psi[orb][i] = psi[" << orb << "][" << *i <<  "]:" << psi[orb][*i] << endl;
     
@@ -186,14 +142,49 @@ void orb::rot_orb(const unsigned int & orb , int *i, double * psi2, const matrix
             if ( bs[*i] == "s"){
                     (*i)++;
             }
-            else if (bs[*i] == "x" ){	
-                    double x_t,y_t,z_t;
+            else if (bs[*i] == "x" ){
+                    vec in (psi[orb][*i], psi[orb][*i+1],psi[orb][*i+2]) ;
+                    vec out = r * in;
+                    psi2[*i]=out.getX();
+                    psi2[(*i)+1]=out.getY();
+                    psi2[(*i)+2]=out.getZ();
+
+                    /*double x_t,y_t,z_t;
                     psi2[*i] = psi[orb][*i]*rot.get(0,0) + psi[orb][*i+1] * rot.get(0,1) + psi[orb][*i+2] * rot.get(0,2);
                     psi2[*i+1]= psi[orb][*i]*rot.get(1,0) + psi[orb][*i+1] * rot.get(1,1) + psi[orb][*i+2] * rot.get(1,2);
                     psi2[*i+2]= psi[orb][*i]*rot.get(2,0) + psi[orb][*i+1] * rot.get(2,1) + psi[orb][*i+2] * rot.get(2,2) ;
+                    */
                     (*i)+=3;
             }
             else if (bs[*i] =="xx" ){
+                // fix a fixed reference frame
+                    string internal_order[6] = {"xx", "xy", "xz", "yy", "yz", "zz"};
+                    // find what order the basis sets are  actually in
+                    vector <int> external_order;
+                    for (int j =0; j<6;j++){
+                        for(int k=*i;k<*i+6;k++){
+                            if ( bs[k] == internal_order[j]){
+                                external_order.push_back(k);
+                                break;
+                            }
+                        }
+                    }
+                    double Dorbs[9] =
+                    { psi[orb][external_order[0]],psi[orb][external_order[1]],psi[orb][external_order[2]],
+                    psi[orb][external_order[1]],psi[orb][external_order[3]],psi[orb][external_order[4]],
+                    psi[orb][external_order[2]],psi[orb][external_order[4]],psi[orb][external_order[5]]};
+                    matrix in(Dorbs);
+
+                    matrix out;
+                    matrix tr(r);
+                    out = tr.Transpose() * in * r;
+
+                    psi2[external_order[0]] = out[0][0];
+                    psi2[external_order[1]] = out[0][1];
+                    psi2[external_order[2]] = out[0][2];
+                    psi2[external_order[3]] = out[1][1];
+                    psi2[external_order[4]] = out[1][2];
+                    psi2[external_order[5]] = out[2][2];/*
                     double xx_t, xy_t, xz_t, yy_t, yz_t, zz_t;
                     psi2[*i]= rot.get(0,0)*rot.get(0,0) * psi[orb][*i]   + rot.get(0,0)*rot.get(0,1) * psi[orb][*i+1] + rot.get(0,0)*rot.get(0,2)*psi[orb][*i+2]
                         + rot.get(0,1)*rot.get(0,0) * psi[orb][*i+1] + rot.get(0,1)*rot.get(0,1) * psi[orb][*i+3] + rot.get(0,1)*rot.get(0,2)*psi[orb][*i+4]
@@ -218,71 +209,13 @@ void orb::rot_orb(const unsigned int & orb , int *i, double * psi2, const matrix
                     psi2[*i+5]= rot.get(2,0)*rot.get(2,0) * psi[orb][*i]   + rot.get(2,0)*rot.get(2,1) * psi[orb][*i+1] + rot.get(2,0)*rot.get(2,2)*psi[orb][*i+2]
                         + rot.get(2,1)*rot.get(2,0) * psi[orb][*i+1] + rot.get(2,1)*rot.get(2,1) * psi[orb][*i+3] + rot.get(2,1)*rot.get(2,2)*psi[orb][*i+4]
                         + rot.get(2,2)*rot.get(2,0) * psi[orb][*i+2] + rot.get(2,2)*rot.get(2,1) * psi[orb][*i+4] + rot.get(2,2)*rot.get(2,2)*psi[orb][*i+5]
-                        ;
+                        ;*/
 
                     (*i)+=6;
 
             }
             else {
                     cerr << " Error in rot about axis" <<endl;
-            }
-}
-
-void orb::rot_orb(const unsigned int & orb , int *i, const matrix &rot){
-
-            if ( bs[*i] == "s"){
-                    (*i)++;
-            }
-
-            else if (bs[*i] == "x" ){	
-                    double x_t,y_t,z_t;
-                    x_t = psi[orb][*i]*rot.get(0,0) + psi[orb][*i+1] * rot.get(0,1) + psi[orb][*i+2] * rot.get(0,2);
-                    y_t = psi[orb][*i]*rot.get(1,0) + psi[orb][*i+1] * rot.get(1,1) + psi[orb][*i+2] * rot.get(1,2);
-                    z_t = psi[orb][*i]*rot.get(2,0) + psi[orb][*i+1] * rot.get(2,1) + psi[orb][*i+2] * rot.get(2,2) ;
-                    psi[orb][*i]=x_t;
-                    psi[orb][*i+1]=y_t;
-                    psi[orb][*i+2]=z_t;
-                    (*i)+=3;
-            }
-            else if (bs[*i] =="xx" ){
-                    double xx_t, xy_t, xz_t, yy_t, yz_t, zz_t;
-                    xx_t= rot.get(0,0)*rot.get(0,0) * psi[orb][*i]   + rot.get(0,0)*rot.get(0,1) * psi[orb][*i+1] + rot.get(0,0)*rot.get(0,2)*psi[orb][*i+2]
-                        + rot.get(0,1)*rot.get(0,0) * psi[orb][*i+1] + rot.get(0,1)*rot.get(0,1) * psi[orb][*i+3] + rot.get(0,1)*rot.get(0,2)*psi[orb][*i+4]
-                        + rot.get(0,2)*rot.get(0,0) * psi[orb][*i+2] + rot.get(0,2)*rot.get(0,1) * psi[orb][*i+4] + rot.get(0,2)*rot.get(0,2)*psi[orb][*i+5]
-                        ;
-                    xy_t= rot.get(0,0)*rot.get(1,0) * psi[orb][*i]   + rot.get(0,0)*rot.get(1,1) * psi[orb][*i+1] + rot.get(0,0)*rot.get(1,2)*psi[orb][*i+2]
-                        + rot.get(0,1)*rot.get(1,0) * psi[orb][*i+1] + rot.get(0,1)*rot.get(1,1) * psi[orb][*i+3] + rot.get(0,1)*rot.get(1,2)*psi[orb][*i+4]
-                        + rot.get(0,2)*rot.get(1,0) * psi[orb][*i+2] + rot.get(0,2)*rot.get(1,1) * psi[orb][*i+4] + rot.get(0,2)*rot.get(1,2)*psi[orb][*i+5]
-                        ;
-                    xz_t= rot.get(0,0)*rot.get(2,0) * psi[orb][*i]   + rot.get(0,0)*rot.get(2,1) * psi[orb][*i+1] + rot.get(0,0)*rot.get(2,2)*psi[orb][*i+2]
-                        + rot.get(0,1)*rot.get(2,0) * psi[orb][*i+1] + rot.get(0,1)*rot.get(2,1) * psi[orb][*i+3] + rot.get(0,1)*rot.get(2,2)*psi[orb][*i+4]
-                        + rot.get(0,2)*rot.get(2,0) * psi[orb][*i+2] + rot.get(0,2)*rot.get(2,1) * psi[orb][*i+4] + rot.get(0,2)*rot.get(2,2)*psi[orb][*i+5]
-                        ;
-                    yy_t= rot.get(1,0)*rot.get(1,0) * psi[orb][*i]   + rot.get(1,0)*rot.get(1,1) * psi[orb][*i+1] + rot.get(1,0)*rot.get(1,2)*psi[orb][*i+2]
-                        + rot.get(1,1)*rot.get(1,0) * psi[orb][*i+1] + rot.get(1,1)*rot.get(1,1) * psi[orb][*i+3] + rot.get(1,1)*rot.get(1,2)*psi[orb][*i+4]
-                        + rot.get(1,2)*rot.get(1,0) * psi[orb][*i+2] + rot.get(1,2)*rot.get(1,1) * psi[orb][*i+4] + rot.get(1,2)*rot.get(1,2)*psi[orb][*i+5]
-                        ;
-                    yz_t= rot.get(1,0)*rot.get(2,0) * psi[orb][*i]   + rot.get(1,0)*rot.get(2,1) * psi[orb][*i+1] + rot.get(1,0)*rot.get(2,2)*psi[orb][*i+2]
-                        + rot.get(1,1)*rot.get(2,0) * psi[orb][*i+1] + rot.get(1,1)*rot.get(2,1) * psi[orb][*i+3] + rot.get(1,1)*rot.get(2,2)*psi[orb][*i+4]
-                        + rot.get(1,2)*rot.get(2,0) * psi[orb][*i+2] + rot.get(1,2)*rot.get(2,1) * psi[orb][*i+4] + rot.get(1,2)*rot.get(2,2)*psi[orb][*i+5]
-                        ;
-                    zz_t= rot.get(2,0)*rot.get(2,0) * psi[orb][*i]   + rot.get(2,0)*rot.get(2,1) * psi[orb][*i+1] + rot.get(2,0)*rot.get(2,2)*psi[orb][*i+2]
-                        + rot.get(2,1)*rot.get(2,0) * psi[orb][*i+1] + rot.get(2,1)*rot.get(2,1) * psi[orb][*i+3] + rot.get(2,1)*rot.get(2,2)*psi[orb][*i+4]
-                        + rot.get(2,2)*rot.get(2,0) * psi[orb][*i+2] + rot.get(2,2)*rot.get(2,1) * psi[orb][*i+4] + rot.get(2,2)*rot.get(2,2)*psi[orb][*i+5]
-                        ;
-
-                    psi[orb][*i]   = xx_t;
-                    psi[orb][*i+1] = xy_t;
-                    psi[orb][*i+2] = xz_t;
-                    psi[orb][*i+3] = yy_t;
-                    psi[orb][*i+4] = yz_t;
-                    psi[orb][*i+5] = zz_t;
-
-                    (*i)+=6;
-
-            }
-            else {
-                    cerr << " Error in  rot about axis" <<endl;
             }
 }
 
@@ -296,7 +229,7 @@ void orb::rotate_someatoms(vector<int> atoms , matrix * M,
             int last_basis = first_basis + (_basis_on_atom[*it]).second;
             int i=first_basis;
             while (i < last_basis){
-                rot_orb(_orb, &i, psi2, *M); /// JAMES HERE FOR FUCKS SAKE!!!
+                rot_orb(_orb, &i, psi2, *M); 
             }
         }
 }
