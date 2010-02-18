@@ -341,6 +341,8 @@ void orb::print_g03(string & name, string  mode){
 			fprintf(out, "% 15.8E\n", psi[i][j]);
 		}
 	}
+        fprintf(out, "\n");
+        fclose(out);
 }
 
 void orb:: print_uhf_g03( const int & nel_A, const int & nel_B, const int & NBasis_A , const int NBasis_B) {

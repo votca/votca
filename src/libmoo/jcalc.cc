@@ -317,7 +317,7 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
     //write blank line
     out << '\n';
     out.close();
-    dimerorb.print_g03(namedim, string ("aw"));
+    dimerorb.print_g03(namedim, string ("a"));
     
 }
 
