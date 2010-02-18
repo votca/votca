@@ -308,7 +308,7 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
     // write header
     out << "%nproc=1" <<'\n' <<
            "%mem=1Gb" << '\n'<<
-           "#p b3lyp/TZVP-6D read(cards) scf(ncycle=1) IOp(3/33=1) " << '\n' <<
+           "#p b3lyp/TZVP-6D guess(cards) scf(MaxCycle=1) IOp(3/33=1) " << '\n' <<
             '\n' <<
             "autogen" << '\n' <<
             "0 1" <<'\n';

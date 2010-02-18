@@ -165,18 +165,19 @@ public:
     }
     
     
-    void print(ofstream & out){
+    void print(ostream & out){
 	out.setf(ios::scientific);
      	for (int i=0; i < N ;i++ ){
-	    out << atom_labels[i]._type << '\t' << RA * atom_pos[i] << '\n' ;
+	    out << atom_labels[i]._type << '\t' <<
+                    atom_pos[i].getX() << '\t' <<
+                    atom_pos[i].getY() << '\t' <<
+                    atom_pos[i].getZ() << '\t' <<
+                    '\n' ;
 	}
     } 
      
     void print(){
-	cout.setf(ios::scientific);
-     	for (int i=0; i < N ;i++ ){
-	    cout << atom_labels[i]._type << '\t' << RA * atom_pos[i] << '\n' ;
-	}
+        print(cout);
     }
 		
     inline int getlbl (const int & i ) const {
