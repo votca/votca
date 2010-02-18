@@ -166,7 +166,7 @@ public:
     
     
     void print(ostream & out){
-	out.setf(ios::scientific);
+	out.setf(ios::fixed);
      	for (int i=0; i < N ;i++ ){
 	    out << atom_labels[i]._type << '\t' <<
                     atom_pos[i].getX() << '\t' <<

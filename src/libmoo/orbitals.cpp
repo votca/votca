@@ -332,13 +332,14 @@ int orb::read_orb_gamess( const char * nameorbs)
 
 void orb::print_g03(string & name, string  mode){
 	FILE *out = fopen( name.c_str(), mode.c_str());	
-	fprintf(out, "(1E15.8)\n");
+	fprintf(out, "(5E15.8)\n");
         int count=1;
 	for (int i=0;i < NBasis;i++){
-		fprintf(out, "\t%d Alpha", count);
+		fprintf(out, "\t%d Alpha\n", count);
 		++count;
 		for (int j=0; j< NBasis ; j++ ){
-			fprintf(out, "% 15.8E\n", psi[i][j]);
+			fprintf(out, "% 15.8E", psi[i][j]);
+                        if ((j+1)%5==0 || j==NBasis-1) fprintf(out,"\n");
 		}
 	}
         fprintf(out, "\n");
