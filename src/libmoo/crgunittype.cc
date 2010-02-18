@@ -40,6 +40,8 @@ CrgUnitType::~CrgUnitType() {
 
 }
 
+// Added a feature - if transorbs starts with a -ve number, then all orbitals
+// are kept this is important for the projection
 CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
         const char * nameneutr, const char * namecrg, string & basisset,
         const double & reorg,const double & energy,
@@ -54,14 +56,23 @@ CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
 #ifdef DEBUG
     cout << "sample of the trans: " << transorb << " orbitals: " << (_orbitals.getorb(transorb))[4] << endl;
 #endif
-    _orbitals.strip_orbitals(transorbs);
+    if (transorbs[0] >= 0 ){
+        _orbitals.strip_orbitals(transorbs);
+    }
 #ifdef DEBUG
     cout << "sample of the stripped orbitals: " << (_orbitals.getorb(0))[4] << endl;
 #endif
     _reorg = reorg;
     _energy = energy;
     // _transorb = 0;
-    for(int i=0; i<transorbs.size(); i++){
+    int limit;
+    if (transorbs[0] >= 0 ){
+        limit = transorbs.size();
+    }
+    else{
+        limit = _orbitals.getNBasis();
+    }
+    for(int i=0; i<limit; i++){
         _transorbs.push_back(i);
     }
     _id = id;
