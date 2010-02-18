@@ -58,7 +58,7 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
     double reorg;
     double energy;
     // int transorb;
-    vector <unsigned int> transorbs;
+    vector < int> transorbs;
     string name;
     string beadconj;
     string molname;
@@ -89,7 +89,7 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
             string s(reinterpret_cast<char *> (key));
             Tokenizer tok(s, " \n\t");
             Tokenizer::iterator beg = tok.begin();
-            unsigned int value;
+            int value;
             while (beg != tok.end()) {
                 value = atoi((*beg).c_str());
                 transorbs.push_back(value);
@@ -303,11 +303,19 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
 
     out.open(namedim.c_str());
     // write header
+    out << "%nproc=1" <<'\n' <<
+           "%mem=1Gb" << '\n'<<
+           "#p b3lyp/TZVP-6D read(cards) scf(ncycle=1) IOp(3/33=1) " << '\n' <<
+            '\n' <<
+            "autogen" << '\n' <<
+            "0 1" <<'\n';
     (jdata->_mol1).print(out);
     (jdata->_mol2).print(out);
     //write blank line
+    out << '\n';
     out.close();
     dimerorb.print_g03(namedim, string ("aw"));
+    
 }
 
 double JCalc::EstaticDifference(CrgUnit & crged, CrgUnit & neutr)

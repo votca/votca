@@ -51,7 +51,7 @@ void orb::reorder_for_libint(){
     }
 }
 
-void orb::strip_orbitals (const vector <unsigned int>& a){
+void orb::strip_orbitals (const vector < int>& a){
     int nrorbs = a.size();
     double** psinew = new double*[nrorbs];
     psinew[0] = new double [nrorbs*NBasis];

@@ -45,7 +45,7 @@ CrgUnitType::~CrgUnitType() {
 CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
         const char * nameneutr, const char * namecrg, string & basisset,
         const double & reorg,const double & energy,
-        const vector <unsigned int>& transorbs, const unsigned int &id,
+        const vector < int>& transorbs, const unsigned int &id,
         string molname, string name, vector < vector < int > > list_atoms_monomer,
         vector < vector < double > > list_weights_monomer) {
     _bs.set_basis_set(basisset);

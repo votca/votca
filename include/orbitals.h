@@ -201,7 +201,7 @@ public:
     }*/
     
     /// removes all orbitals except the relevant transorbs
-    void strip_orbitals (const vector <unsigned int>& a);
+    void strip_orbitals (const vector < int>& a);
     
     void init_orbitals_stripped(const orb & orb1, const int& nrorbs );
 };
