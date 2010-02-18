@@ -62,6 +62,7 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
     string name;
     string beadconj;
     string molname;
+    string basisset= string("INDO");
 
     vector < vector <int> > list_atoms_monomer;
     vector < vector <double> > list_weights_monomer;
@@ -120,6 +121,10 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
             key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
             energy = atof(reinterpret_cast<char *> (key)) *27.21;
         }
+        else if (!xmlStrcmp(cur->name, (const xmlChar *) "basisset")) {
+            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+            basisset =string (reinterpret_cast<char *> (key)) ;
+        }
         else if (!xmlStrcmp(cur->name, (const xmlChar *) "monomer_atom_map")) {
             key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
             string all_monomer(reinterpret_cast<char *> (key));
@@ -161,7 +166,9 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
             }
         }
     }
-    CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(), nameneutr.c_str(), namecrg.c_str(), reorg, energy, transorbs, _listCrgUnitType.size(),
+    CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(), 
+            nameneutr.c_str(), namecrg.c_str(), basisset,
+            reorg, energy, transorbs, _listCrgUnitType.size(),
             molname, name, list_atoms_monomer, list_weights_monomer);
     _mapCrgUnitByName.insert(make_pair(name, crgunittype));
 

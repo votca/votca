@@ -54,7 +54,7 @@ public:
     const orb & GetOrb() const;
             
 private:
-    basis_set         _indo;
+    basis_set         _bs;
     mol_and_orb       _intcoords;
     orb               _orbitals; 
     double            _reorg;
@@ -86,7 +86,7 @@ private:
     // can only be created by JCalc
     CrgUnitType(
             const char * namecoord, const char * nameorb, const char * nameneutr,
-            const char * namecrg, const double & reorg,
+            const char * namecrg, string & basisset, const double & reorg,
             const double & energy, const vector <unsigned int>& transorbs,
             const unsigned int &id, string molname, string name,
             vector < vector < int > > list_atoms_monomer,

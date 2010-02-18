@@ -394,10 +394,10 @@ int orb::read_orb_gamess( const char * nameorbs)
 }
 
 
-void orb::printg03(string & name, string  mode){
+void orb::print_g03(string & name, string  mode){
 	FILE *out = fopen( name.c_str(), mode.c_str());	
 	fprintf(out, "(1E15.8)\n");
-
+        int count=1;
 	for (int i=0;i < NBasis;i++){
 		fprintf(out, "\t%d Alpha", count);
 		++count;
