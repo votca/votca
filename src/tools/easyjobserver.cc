@@ -164,10 +164,12 @@ void EasyJObserver::print_nbs_to_file(QMNBList &nblist){
         out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [nm]" << endl;
         QMNBList::iterator iter;
         for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
-            out_nbl << "(" << (*iter)->first->getId() << "," << (*iter)->second->getId() << "): ";
-            out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->calcJeff2()) << " " << (*iter)->rate12() << " ";
-            out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
-            out_nbl << " " << (*iter)->dist() << endl;
+            if(MatchNNnames((*iter)->first, (*iter)->second)){
+                out_nbl << "(" << (*iter)->first->getId() << "," << (*iter)->second->getId() << "): ";
+                out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->calcJeff2()) << " " << (*iter)->rate12() << " ";
+                out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
+                out_nbl << " " << (*iter)->dist() << endl;
+            }
         }
     }
     out_nbl.close();

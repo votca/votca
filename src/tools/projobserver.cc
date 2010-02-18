@@ -51,6 +51,10 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
         iter!=nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->first;
         CrgUnit *crg2 = (*iter)->second;
+
+        /* this next bit will be substituted by the CalcJ writer for projection
+         */
+         
         if(MatchNNnames(crg1, crg2)){
             Topology atoms;
             _qmtop->AddAtomisticBeads(crg1,&atoms);
