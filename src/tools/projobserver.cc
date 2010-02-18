@@ -56,18 +56,7 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
          */
          
         if(MatchNNnames(crg1, crg2)){
-            Topology atoms;
-            _qmtop->AddAtomisticBeads(crg1,&atoms);
-            _qmtop->AddAtomisticBeads(crg2,&atoms);
-        
-            ///write the topo somehow now.
-            string nameout =framedir + string("/")+lexical_cast<string>(crg1->getId())+ string("and")
-                + lexical_cast<string>(crg2->getId()) + ".pdb";
-
-        
-            writer->Open(nameout);
-            writer->Write(&atoms);
-            writer->Close();
+            _qmtop->GetJCalc().WriteProJ(*crg1, *crg2);
         }
 
     }
