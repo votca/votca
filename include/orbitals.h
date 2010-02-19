@@ -80,7 +80,7 @@ public:
     	return psi[i];
     }
 
-    inline double* getevl(const int & i) const {
+    inline double* getevl() const {
     	return evl;
     }
 
