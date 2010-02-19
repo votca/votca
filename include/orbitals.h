@@ -80,6 +80,10 @@ public:
     	return psi[i];
     }
 
+    inline double* getevl(const int & i) const {
+    	return evl;
+    }
+
     void cp_orb( orb const  &A){
 	for (int i=0; i < NBasis;i++) {
 		for (int j =0; j < NBasis ; j++){
