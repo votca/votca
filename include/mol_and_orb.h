@@ -249,12 +249,15 @@ public:
          vector <atom_type>::iterator it_at_type;
          int beg = 0;
          int nbasis;
+         n_el = 0;
          for (it_at_type = atom_labels.begin(); it_at_type != atom_labels.end() ; ++it_at_type){
              pair <int, int> basis_fo; 
              basis_fo.first = beg;
              basis_fo.second = _bs -> get_nbasis_at(it_at_type -> _lbl);
              basis_on_atom.push_back(basis_fo);
              beg += basis_fo.second  ;
+
+             n_el +=_bs->get_nel_at(it_at_type -> _lbl);
          }
          orb1 -> assign_basis_set(_bs, basis_on_atom);
      }

@@ -270,8 +270,8 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
 int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
 {
     // only write them when one.id < two.id
-    if (one.getType()->getId() > two.getType()->getId())
-        WriteProJ(two, one);
+    if (one.getType()->getId() < two.getType()->getId())
+        return 1;
 
     //rotate the molecule and orbitals
     JCalcData * jdata = getJCalcData(one, two);
@@ -287,6 +287,7 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
     namedim = lexical_cast<string>(one.getId())+"and"+
             lexical_cast<string>(two.getId()) +".com";
 
+    
     //write the info for molecule1
     out.open(name1.c_str());
     (jdata->_mol1).print(out);
@@ -308,7 +309,7 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
     // write header
     out << "%nproc=1" <<'\n' <<
            "%mem=1Gb" << '\n'<<
-           "#p b3lyp/TZVP-6D guess(cards) scf(MaxCycle=1, Conver=0) "<<
+           "#p b3lyp/TZVP-6D guess(cards) scf(MaxCycle=1, Conver=1) "<<
             "Nosymm IOp(3/33=1) IOp(5/32=1) punch=mo" << '\n' <<
             '\n' <<
             "autogen" << '\n' << '\n'<<
@@ -319,7 +320,7 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
     out << '\n';
     out.close();
     dimerorb.print_g03(namedim, string ("a"));
-    
+    return 0;
 }
 
 double JCalc::EstaticDifference(CrgUnit & crged, CrgUnit & neutr)

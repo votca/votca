@@ -11,6 +11,7 @@ void orb::init_orbitals (string * basis, const int & N, const char * namefile ){
     psi = new double* [NBasis];
     psi[0] = new double [NBasis * NBasis];
     bs[0]=basis[0];
+    evl = new double[NBasis];
     for ( int i = 1 ; i < NBasis ; i ++){
             bs[i] = basis[i];
             psi[i] = psi[i-1] + NBasis;
@@ -59,6 +60,7 @@ void orb::strip_orbitals (const vector < int>& a){
         psinew[i] = psinew[i-1]+NBasis;
     }
     for (int i=0; i<nrorbs; i++){
+        evl[i] = evl[a[i]];
         for (int j=0; j<NBasis; j++){
             psinew[i][j] = psi[a[i]][j];
         }
@@ -88,12 +90,14 @@ void orb::init_orbitals_stripped(const orb& orb1, const int& nrorbs ){
     NBasis = orb1.NBasis;
     bs = new string [NBasis];
     psi = new double* [nrorbs];
+    evl = new double  [nrorbs];
     psi[0] = new double [nrorbs*NBasis];
     bs[0]=orb1.bs[0];
     for(int i=1; i<nrorbs; i++){
         psi[i] = psi[i-1]+NBasis;
     }
     for(int i = 0; i < nrorbs; i++){
+        evl[i] = orb1.evl[i];
         for ( int j = 0 ; j < NBasis ; j ++){
             bs[i] = orb1.bs[i];
             psi[i][j] = orb1.psi[i][j];
@@ -263,14 +267,15 @@ int orb::read_orb_gauss( const char * nameorbs)
  int i,j;
 
  vector <string> file;
-
+ vector <string> nrg;
  int n_lin_in_wt = (NBasis-1)/5+2;
  int k=0;
-
+ i = 0;
  //skip the fortran specification line
  getline (in, line);
  while (in){
 	getline (in, line);
+        
         if(k  % (n_lin_in_wt) != 0)
         {
                 while (line.size() > 1 )
@@ -280,6 +285,12 @@ int orb::read_orb_gauss( const char * nameorbs)
                         file.push_back(number);
                         line.erase(0,15);
                 }
+        }
+        else {
+            if (i <NBasis){
+                evl[i]= parsenrg(line);
+            }
+            i++;
         }
         k++;
    }
@@ -293,10 +304,10 @@ int orb::read_orb_gauss( const char * nameorbs)
         file[i].replace(file[i].size()-4,1,1,'e');
         sscanf(file[i].c_str(), "%lf" , &psi[j][k]);
         if (i%NBasis==NBasis-1){k=-1;j++;}
-    }
-    k=0;
-    file.clear();
-    return 0;
+   }
+   k=0;
+   file.clear();
+   return 0;
 }
 
 
@@ -462,6 +473,7 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
     bs = new string [NBasis];
     psi = new double* [NBasis];
     psi[0] = new double [NBasis * NBasis];
+    evl = new double[NBasis];
     for ( int i = 1 ; i < NBasis ; i ++){
             psi[i] = psi[i-1] + NBasis;
     }
@@ -469,9 +481,11 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
     /* cp bs info */
     for (int i=0; i< A.NBasis ;++i ){
         bs[i] = A.bs[i];
+        evl[i] =0.;
     }
     for (int i=0; i< B.NBasis ;++i ){
         bs[A.NBasis + i ] = B.bs[i];
+        evl[A.NBasis + i ]=0.;
     }
 
     /* copy occupied orbitals*/
@@ -491,10 +505,10 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
     /*copy orbitals from B*/
     for (int i=0; i <occB ;++i){
         for (int j=0; j< A.NBasis ;++j){
-            psi[A.NBasis+i][j] = 0.0;
+            psi[occA+i][j] = 0.0;
         }
         for (int j=0; j< B.NBasis ;++j){
-            psi[A.NBasis+i][A.NBasis+j] = B.psi[i][j];
+            psi[occA+i][A.NBasis+j] = B.psi[i][j];
         }
     }
 
@@ -503,10 +517,10 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
     /*copy orbitals  from A*/
     for (int i=occA; i <A.NBasis;++i){
         for (int j=0 ; j< A.NBasis ;++j){
-            psi[i][j] = A.psi[i][j];
+            psi[occB+i][j] = A.psi[i][j];
         }
         for (int j=0; j< B.NBasis ;++j){
-            psi[i][A.NBasis+j] =0.0;
+            psi[occB+i][A.NBasis+j] =0.0;
         }
     }
 
@@ -520,4 +534,17 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
         }
     }
 
+}
+
+double orb::parsenrg(string & line){
+    size_t find = line.find_last_of("=");
+    if (find >= line.length() ){
+        return 0.;
+    }
+    string found = line.substr(find+1, line.length() - find);
+    double r;
+    found.replace(found.size()-4,1,1,'e');
+    sscanf(found.c_str(), "%lf" , &r);
+
+    return r;
 }

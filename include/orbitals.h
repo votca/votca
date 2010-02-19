@@ -27,8 +27,10 @@ private :
     int read_orb_gauss(const char *);
     int read_orb_gamess(const char *);
     vector < pair<int, int> > _basis_on_atom;
-    basis_set * _basis; 
-    
+    basis_set * _basis;
+    double * evl;
+
+    double parsenrg(string & line);
 public:
     
     static int (orb::*read_orb)(const char *) ;
@@ -61,6 +63,7 @@ public:
 	    delete [] bs;
 	    delete [] psi[0];
 	    delete [] psi;
+            delete [] evl;
 	}
 	NBasis =0;
 	psi = 0;
@@ -113,6 +116,7 @@ public:
         for ( int i =0 ; i< NBasis*NBasis ; ++i) {
             *(psi[0]+i) = *(orb1.psi[0]+i);
         }
+        evl = new double[NBasis];
     }
     
     
