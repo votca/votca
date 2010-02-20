@@ -181,7 +181,8 @@ void orb::rot_orb(const unsigned int & orb , int *i, double * psi2, const matrix
 
                     matrix out;
                     matrix tr(r);
-                    out = tr.Transpose() * in * r;
+		    matrix t(r);
+                    out = t * in  * tr.Transpose();
 
                     psi2[external_order[0]] = out[0][0];
                     psi2[external_order[1]] = out[0][1];
