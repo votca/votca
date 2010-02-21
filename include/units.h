@@ -19,7 +19,8 @@ enum {
     bohr,
     eV,
     hartree,
-    m
+    m,
+    A
 };
 
 /// template for compile time assertion required for unit conversion class
@@ -63,5 +64,7 @@ DEFINE_CONVERSION(eV, hartree, value/Hartree);
 DEFINE_CONVERSION(hartree, eV, value*Hartree);
 DEFINE_CONVERSION(m, nm, value*1E+9);
 DEFINE_CONVERSION(nm, m, value*1E-9);
+DEFINE_CONVERSION(A, bohr, value/RA);
+DEFINE_CONVERSION(bohr, A, value*RA);
 
 #endif /* _UNITS_H */

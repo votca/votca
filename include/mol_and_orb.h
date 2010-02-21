@@ -169,9 +169,9 @@ public:
 	out.setf(ios::fixed);
      	for (int i=0; i < N ;i++ ){
 	    out << atom_labels[i]._type << '\t' <<
-                    atom_pos[i].getX() << '\t' <<
-                    atom_pos[i].getY() << '\t' <<
-                    atom_pos[i].getZ() << '\t' <<
+                    unit<bohr,A>::to(atom_pos[i].getX()) << '\t' <<
+                    unit<bohr,A>::to(atom_pos[i].getY()) << '\t' <<
+                    unit<bohr,A>::to(atom_pos[i].getZ()) << '\t' <<
                     '\n' ;
 	}
     } 
