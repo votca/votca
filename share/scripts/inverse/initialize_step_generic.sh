@@ -25,7 +25,7 @@ Usage: ${0##*/}
 
 USES:  for_all csg_get_interaction_property mv
 
-NEEDS: cg.inverse.program name 
+NEEDS: name 
 EOF
    exit 0
 fi

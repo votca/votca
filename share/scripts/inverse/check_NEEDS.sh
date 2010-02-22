@@ -83,7 +83,7 @@ for i in $@; do
       if [ -z "${i%%*.pl}" ]; then
         what2="csg_get_property\(\\\"$what\\\"\)"
       else
-        what2="csg_get_property '?$what[^a-zA-Z_.]'?"
+        what2="csg_get_property (--allow-empty )?'?$what[^a-zA-Z_.]'?"
       fi
     else
       if [ -z "${i%%*.pl}" ]; then

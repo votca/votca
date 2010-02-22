@@ -42,7 +42,7 @@ Examples:
 
 USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG date
 
-NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name
+NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name cg.inverse.cleanlist
 eof
 }
 
