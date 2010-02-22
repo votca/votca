@@ -195,7 +195,7 @@ JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2)
         }
     }*/
     //initialise the first copy of the molecules + orbitals
-    data->_mol1.define_bs(data->_indo);
+    data->_mol1.define_bs(mol1->GetBS());
     data->_mol1.cp_atompos(mol1->GetCrgUnit());
     data->_mol1.cp_atoms(mol1->GetCrgUnit());
     data->_orb1.init_orbitals_stripped(mol1->GetOrb(), nrorbs1);
@@ -203,7 +203,7 @@ JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2)
     data->_mol1.cp_crg(mol1->GetCrgUnit());
 
     //inititalise the second copy of molecules + orbitals
-    data->_mol2.define_bs(data->_indo);
+    data->_mol2.define_bs(mol2->GetBS());
     data->_mol2.cp_atompos(mol2->GetCrgUnit());
     data->_mol2.cp_atoms(mol2->GetCrgUnit());
     data->_orb2.init_orbitals_stripped(mol2->GetOrb(), nrorbs2);

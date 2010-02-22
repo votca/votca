@@ -60,7 +60,6 @@ private:
         /// the fock matrix herself
         fock        _fock;
 
-        basis_set   _indo;
     };
     
     /// a list of charge transport units

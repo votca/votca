@@ -178,6 +178,23 @@ void basis_set::ParseAtomBasisSet(xmlDocPtr doc, xmlNodePtr cur){
     }
 }
 
+basis_set & basis_set::operator=(const basis_set a){
+    _nel_at = new int[18];
+    _nbasis_at = new int[18];
+    _basis_lbl_at = new string *[18];
+    for (int lbl=0; lbl<18;lbl++){
+    	_nel_at[lbl] = a._nel_at[lbl];
+	int nbasis = a._nbasis_at[lbl];
+	_nbasis_at[lbl] = nbasis;
+	_basis_lbl_at[lbl]= new string[nbasis];
+	for (int i=0;i<nbasis;i++){
+	    _basis_lbl_at[lbl][i] = a._basis_lbl_at[lbl][i];
+	}
+    } 
+    return *this;
+
+}
+
 int basis_set::set_bs_prim( const char * name_basis_file ){
     ifstream in(name_basis_file);
     if (!in){

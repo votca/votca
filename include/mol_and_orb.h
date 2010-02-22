@@ -280,7 +280,7 @@ public:
 
    int init_charges ( const char *, const char *);
    
-   void define_bs (basis_set & bs){
+   void define_bs ( basis_set & bs){
        _bs = &bs;
    }
 

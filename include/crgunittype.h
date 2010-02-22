@@ -52,6 +52,10 @@ public:
     mol_and_orb & GetCrgUnit();
     // TODO: orb should not be in the interface!
     const orb & GetOrb() const;
+    // 
+    basis_set & GetBS(){
+	return _bs;
+    }
             
 private:
     basis_set         _bs;

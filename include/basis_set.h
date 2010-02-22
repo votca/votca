@@ -50,6 +50,8 @@ class basis_set{
         #endif
         }
 
+	basis_set & operator =(const basis_set a);
+
 	const int & get_nel_at(const int & i) const {
 		return _nel_at[i];
 	}
