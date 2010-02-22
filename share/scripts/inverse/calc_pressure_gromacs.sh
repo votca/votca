@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die
+USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die sed
 
 NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
 EOF
@@ -41,6 +41,8 @@ begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print 
 
 log "Running g_energy"
 echo Pressure | run_or_exit g_energy -b ${begin}
-p_now=$(csg_taillog -30 | awk '/^Pressure/{print $3}' ) || die "${0##*/}: awk failed"
+#the number pattern '[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
+p_now=$(csg_taillog -30 | sed -n 's/^Pressure[^0-9]*\([0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' pressure.xvg ) || \ 
+  die "${0##*/}: awk failed"
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
 echo ${p_now}
