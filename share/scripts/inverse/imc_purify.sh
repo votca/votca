@@ -22,7 +22,7 @@ This scripts cleans up the dpot tables for each interaction when using IMC
 
 Usage: ${0##*/}
 
-USES:  do_external run_or_exit csg_get_interaction_property csg_get_property log csg_resample
+USES:  do_external run_or_exit csg_get_interaction_property csg_get_property log csg_resample check_deps
 
 NEEDS: name min max step cg.inverse.kBT inverse.do_potential
 EOF

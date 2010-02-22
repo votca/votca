@@ -22,7 +22,7 @@ This script implemtents the pressure update
 
 Usage: ${0##*/}
 
-USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit cp
+USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit cp check_deps get_current_step_nr
 
 NEEDS: cg.inverse.program name
 

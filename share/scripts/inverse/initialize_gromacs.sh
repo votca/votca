@@ -22,7 +22,7 @@ This is a intialize stuff for gromacs
 
 Usage: ${0##*/}
 
-USES: cp die
+USES: check_deps cp_from_main_dir run_or_exit mv
 
 NEEDS:
 EOF

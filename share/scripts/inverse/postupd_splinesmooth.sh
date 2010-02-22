@@ -22,7 +22,7 @@ This script implemtents smoothing of the potential update (.dpot)
 
 Usage: ${0##*/}
 
-USES: die csg_get_interaction_property mktemp sed awk csg_resample
+USES: die csg_get_interaction_property mktemp sed awk csg_resample check_deps
 
 NEEDS: name min max step inverse.post_update_options.splinesmooth.step
 EOF

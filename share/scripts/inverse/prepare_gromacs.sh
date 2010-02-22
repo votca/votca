@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/} last_sim_dir
 
-USES: die cp run_or_exit grompp
+USES: die cp run_or_exit grompp check_deps get_last_step_dir
 
 NEEDS:
 EOF

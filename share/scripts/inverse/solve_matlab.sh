@@ -22,7 +22,7 @@ This solves linear equation system from imc using matlab
 
 Usage: ${0##*/} <group> <outfile>
 
-USES:  die sed matlab rm run_or_exit cat_external mv
+USES:  die sed matlab rm run_or_exit cat_external mv check_deps
 
 NEEDS:
 EOF

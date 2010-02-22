@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property log run_or_exit csg_resample log
+USES: do_external csg_get_interaction_property log run_or_exit csg_resample log check_deps msg
 
 NEEDS: name min max step
 EOF

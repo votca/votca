@@ -23,7 +23,7 @@ using generic csg tools
 
 Usage: ${0##*/}
 
-USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done
+USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps
 
 NEEDS: cg.inverse.program cg.inverse.cgmap
 

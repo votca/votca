@@ -22,7 +22,7 @@ This solves linear equation system from imc using octave
 
 Usage: ${0##*/} <group> <outfile>
 
-USES:  die sed octave rm run_or_exit cat_external
+USES:  die sed octave rm run_or_exit cat_external check_deps
 
 NEEDS:
 EOF

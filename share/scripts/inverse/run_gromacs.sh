@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: run_or_exit mdrun use_mpi csg_get_property
+USES: run_or_exit mdrun use_mpi csg_get_property check_deps 
 OPTIONAL: cg.inverse.mpi.cmd
 EOF
    exit 0

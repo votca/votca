@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method for a single pair
 
 Usage: ${0##*/} step_nr
 
-USES:  do_external die csg_get_interaction_property log awk
+USES:  die do_external die csg_get_interaction_property log awk check_deps get_current_step_nr
 
 NEEDS: name step min max inverse.do_potential
 EOF

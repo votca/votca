@@ -22,7 +22,7 @@ This script implemtents smoothing of the potential update (.dpot)
 
 Usage: ${0##*/}
 
-USES: die csg_get_interaction_property mktemp do_external cp log run_or_exit
+USES: die csg_get_interaction_property mktemp do_external cp log run_or_exit check_deps
 
 NEEDS: name inverse.post_update_options.smooth.iterations
 EOF

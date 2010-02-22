@@ -23,7 +23,7 @@ Functions useful for gromacs 4.0
 
 NEEDS:
 
-USES: sed die \$GMXDATA
+USES: sed die \$GMXDATA check_deps
 
 PROVIDES: get_from_mdp
 EOF

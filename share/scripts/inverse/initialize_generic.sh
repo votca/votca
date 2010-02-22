@@ -22,7 +22,7 @@ This script initizalizes potentials in a generic way
 
 Usage: ${0##*/}
 
-USES:  die msg csg_get_property for_all do_external
+USES:  csg_get_property for_all do_external check_deps
 
 NEEDS: cg.inverse.method
 EOF

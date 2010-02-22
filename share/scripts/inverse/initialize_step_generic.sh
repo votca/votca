@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES:  for_all csg_get_interaction_property mv
+USES:  for_all csg_get_interaction_property mv check_deps cp_from_last_step
 
 NEEDS: name 
 EOF

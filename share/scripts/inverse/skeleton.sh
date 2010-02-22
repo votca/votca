@@ -22,7 +22,7 @@ Skeleton script
 
 Usage: ${0##*/}
 
-USES:  die msg csg_get_property for_all do_external
+USES:  die msg csg_get_property for_all do_external check_deps
 
 NEEDS: cg.inverse.program 
 EOF
@@ -34,3 +34,4 @@ check_deps "$0"
 msg "Skeleton script"
 sim_prog="$(csg_get_property cg.inverse.program)" 
 for_all non-bonded do_external bla $sim_prog
+die "This is just a Skeleton script"

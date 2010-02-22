@@ -40,7 +40,7 @@ Examples:
 * ${0##*/} cg.xml
 * ${0##*/} -6 cg.xml
 
-USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG date
+USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time logrun rm update_stepnames
 
 NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name cg.inverse.cleanlist
 eof

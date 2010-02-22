@@ -22,7 +22,7 @@ for calculations
 
 Usage: ${0##*/} target_directory
 
-USES:  die csg_get_interaction_property run_or_exit csg_resample
+USES:  csg_get_interaction_property run_or_exit csg_resample check_deps get_main_dir
 
 NEEDS: min max step inverse.target name
 EOF

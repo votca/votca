@@ -22,7 +22,7 @@ This is a wrapper to convert potential to gromacs
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property log csg_get_property run_or_exit csg_resample
+USES: do_external csg_get_interaction_property log csg_get_property run_or_exit csg_resample check_deps
 
 NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins
 EOF

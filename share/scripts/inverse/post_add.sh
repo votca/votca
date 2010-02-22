@@ -22,7 +22,7 @@ This script make all the post update with backup
 
 Usage: ${0##*/}
 
-USES:  do_external die for_all
+USES:  do_external for_all check_deps
 
 NEEDS:
 EOF

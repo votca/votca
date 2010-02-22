@@ -23,7 +23,7 @@ for the Inverse Monte Carlo Method
 
 Usage: ${0##*/}
 
-USES: die csg_get_property msg run_or_exit do_external sort for_all
+USES: csg_get_property msg run_or_exit do_external sort for_all check_deps csg_get_interaction_property
 
 NEEDS: cg.inverse.imc.solver inverse.imc.group  cg.inverse.program
 EOF

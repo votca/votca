@@ -22,7 +22,7 @@ This script make all the post update with backup for single pairs
 
 Usage: ${0##*/}
 
-USES:  csg_get_interaction_property log mv die cp do_external run_or_exit
+USES:  csg_get_interaction_property log mv cp do_external run_or_exit check_deps
 
 NEEDS: name inverse.post_update
 EOF

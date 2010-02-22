@@ -23,14 +23,14 @@ and makes inverse.sh more readable
 
 PROVIDES: \$CSGXMLFILE \$CSGINVERSE \$SOURCE_WRAPPER \$CSGSCRIPTDIR \$CSGLOG \$CSGRESTART
 
-USES: \$CSGSHARE csg_property die csg_get_property rm
+USES: \$CSGSHARE csg_property die csg_get_property rm int_check
 
 NEEDS: cg.inverse.scriptdir cg.inverse.log_file cg.inverse.restart_file
 EOF
   exit 0
 fi
 
-#no check_deps $0 here
+#no check deps $0 here
 #because this bootstrap everything
 
 #for now, we will replace this function later
