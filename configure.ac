@@ -13,7 +13,7 @@ AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([src/libmoo/Makefile])
 
 AC_PROG_CXX
-AC_PROG_RANLIB
+LT_INIT
 
 AC_LANG_CPLUSPLUS
 
