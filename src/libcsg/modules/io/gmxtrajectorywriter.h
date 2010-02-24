@@ -22,7 +22,10 @@
 #include "trajectorywriter.h"
 
 namespace gmx {
-   extern "C" {
+#ifndef GMC4CVS
+   extern "C"
+#endif
+   {
         #include <statutil.h>
         #include <typedefs.h>
         #include <smalloc.h>

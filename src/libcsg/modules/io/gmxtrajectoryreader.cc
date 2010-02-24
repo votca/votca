@@ -65,8 +65,14 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
+#ifdef GMX4DEV
     if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))
         return false;
+#else
+    if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))
+        return false;
+#endif
+
     matrix m;
     for(int i=0; i<3; i++)
         for(int j=0; j<3; j++)

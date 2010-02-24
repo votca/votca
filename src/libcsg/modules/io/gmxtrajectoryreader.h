@@ -24,7 +24,10 @@
 using namespace std;
 
 namespace gmx {
-   extern "C" {
+#ifndef GMX4DEV
+   extern "C"
+#endif
+   {
         #include <statutil.h>
         #include <typedefs.h>
         #include <smalloc.h>

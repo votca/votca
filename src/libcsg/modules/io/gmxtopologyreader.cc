@@ -19,7 +19,10 @@
 #include "gmxtopologyreader.h"
 
 namespace gmx {
-   extern "C" {
+#ifndef GMX4DEV
+    extern "C"
+#endif
+    {
         #include <statutil.h>
         #include <typedefs.h>
         #include <smalloc.h>
@@ -39,15 +42,23 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     gmx::rvec       *xtop;
     gmx::matrix     box;
 
-    // whateverer are these
-    int sss;
+
     int natoms;
-    gmx::real    ttt,lll;
     // cleanup topology to store new data
     top.Cleanup();
 
+#ifdef GMX4DEV
+    gmx::t_inputrec ir;
+    gmx::matrix gbox;
+
+    int ePBC =
+        read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
+#else
+    int sss;   // wtf is this
+    gmx::real    ttt,lll; // wtf is this
     int ePBC =
         read_tpx((char *)file.c_str(),&sss,&ttt,&lll,NULL,NULL,&natoms,NULL,NULL,NULL,&mtop);
+#endif
 
     int count=0;
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock)
@@ -71,11 +82,11 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         gmx::t_atoms *atoms=&(mol->atoms);
 
         for(int i=0; i < atoms->nres; i++) {
-//            #ifdef GMX4CVS
-//                top.CreateResidue(*(atoms->resinfo[i].name));
-//            #else
+            #ifdef GMX4DEV
+                top.CreateResidue(*(atoms->resinfo[i].name));
+            #else
                 top.CreateResidue(*(atoms->resname[i]));
-//            #endif
+            #endif
         }
 
 
@@ -87,11 +98,11 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 gmx::t_atom *a = &(atoms->atom[iatom]);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
-//            #ifdef GMX4CVS
-//                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
-//            #else
+            #ifdef GMX4DEV
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+            #else
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr, a->m, a->q);
-//            #endif
+            #endif
 
                 stringstream nm;
                 nm << bead->getResnr() + 1 << ":" <<  top.getResidue(res_offset + bead->getResnr())->getName() << ":" << bead->getName();

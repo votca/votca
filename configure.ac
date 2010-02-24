@@ -27,6 +27,14 @@ AX_GROMACS
 AX_BOOST([1.33.1])
 
 
+AC_ARG_ENABLE(gmx4dev,
+              [AC_HELP_STRING([--enable-gmx4dev],
+              [Use gromacs 4 devel version])],, enable_gmx4dev=no)
+
+if test "$enable_gmx4dev" = "yes"; then
+  AC_DEFINE(GMX4DEV,,[Use gromacs 4 devel version])
+fi
+
 AC_ARG_ENABLE(all-static,
               [AC_HELP_STRING([--enable-all-static],
               [Make completely static binaries])],, enable_all_static=no)
