@@ -1,5 +1,5 @@
-#ifndef FILE_GLOB
-#define FILE_GLOB
+#ifndef FILE_MOOGLOB
+#define FILE_MOOGLOB
 
 
 static double RA=0.529189379; // the bohr radius
