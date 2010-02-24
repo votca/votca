@@ -2,9 +2,13 @@ syntax: glob
 
 *~
 *.a
+*.la
 *.o
+*.lo
 .deps
+.libs
 autom4te.cache
+libtool
 stamp-h1
 Makefile
 Makefile.in
