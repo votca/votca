@@ -34,8 +34,14 @@ void GMXTrajectoryReader::Close()
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
+#ifdef GMX4DEV
+    gmx::output_env_t oenv; // wtf is this
+    if(!gmx::read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
+        throw std::runtime_error(string("cannot open ") + _filename);
+#else
     if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
+#endif
 
     matrix m;
     for(int i=0; i<3; i++)
@@ -66,7 +72,8 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
 #ifdef GMX4DEV
-    if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))
+    gmx::output_env_t oenv; // wtf is this
+    if(!gmx::read_next_frame(oenv, _gmx_status,&_gmx_frame))
         return false;
 #else
     if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))

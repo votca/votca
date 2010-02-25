@@ -26,8 +26,8 @@ using namespace std;
 namespace gmx {
 #ifndef GMX4DEV
    extern "C"
-#endif
    {
+#endif
         #include <statutil.h>
         #include <typedefs.h>
         #include <smalloc.h>
@@ -35,7 +35,9 @@ namespace gmx {
         #include <copyrite.h>
         #include <statutil.h>
         #include <tpxio.h>
+#ifndef GMX4DEV
     }
+#endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
 }
