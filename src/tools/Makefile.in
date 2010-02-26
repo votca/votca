@@ -1,0 +1,21 @@
+@SET_MAKE@
+ACLOCAL_AMFLAGS = -I config
+AUTOMAKE_OPTIONS = foreign
+
+
+AM_CPPFLAGS = -I$(top_srcdir)/include -I../../../libcsg 
+bin_PROGRAMS = \
+	overlap_integral  write_EV  write_MO  write_S
+
+overlap_integral_SOURCES = overlap_integral.cc
+
+write_EV_SOURCES = write_EV.cc
+
+write_MO_SOURCES = write_MO.cc
+
+write_S_SOURCE = write_S.cc
+
+    
+CLEANFILES = *~ *.a
+
+LDADD = ../libmoo/libmoo.a $(LIBS_XML) ${LIBS_VOTCA_TOOLS} ${BOOST_LDFLAGS} ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) ${GSL_LIBS} -lpthread

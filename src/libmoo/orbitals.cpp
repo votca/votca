@@ -490,8 +490,8 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
     }
 
     /* copy occupied orbitals*/
-    int occA = (elA-1)/2;
-    int occB = (elB-1)/2;
+    int occA = (elA)/2;
+    int occB = (elB)/2;
     
     /*copy orbitals  from A*/
     for (int i=0; i <occA;++i){

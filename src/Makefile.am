@@ -1,3 +1,3 @@
-SUBDIRS = libmoo 
+SUBDIRS = libmoo tools
 CLEANFILES = *~
 
