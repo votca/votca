@@ -38,11 +38,12 @@ int main(int argc, char **argv) {
         po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
     } 
-    catch (po::error err) {
+    catch (po::error &err) {
         cout << "error parsing command line: " << err.what() << endl;
         return -1;
     }
 
+    try {
     cout << "Reading Crg unit Types"<<endl;
     JCalc jcalc(listcrg);
     cout << "Finished reading Crg unit Types" <<endl;
@@ -83,6 +84,11 @@ int main(int argc, char **argv) {
 	vector <double>::iterator itJ= Js.begin();
 	for (; itJ!=Js.end(); ++itJ) cout << '\t'<< *itJ <<endl;
 
+    }
+    }
+catch (std::exception &err) {
+        cout << "error : " << err.what() << endl;
+        return -1;
     }
 
 
