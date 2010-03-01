@@ -157,8 +157,13 @@ fi
 begin=1
 trunc=$(get_stepname --trunc)
 for i in ${trunc}*; do
+  [ -d "$i" ] || continue
   nr=${i#$trunc}
-  [ -d "$i" ] && [ -n "$nr" ] && [ -z "${nr//[0-9]}" ] && [ $nr -gt $begin ] && begin="$nr"
+  if [ -n "$nr" ] && [ -z "${nr//[0-9]}" ]; then
+    #convert to base 10, otherwise 008 is interpreted as octal
+    nr=$((10#$nr))
+    [ $nr -gt $begin ] && begin="$nr"
+  fi
 done
 unset nr trunc
 [ $begin -gt 1 ] && msg "Jumping in at iteration $begin"
