@@ -148,7 +148,7 @@ inline T Property::as() const
     try {
        return boost::lexical_cast<T>(_value);
     }
-    catch(boost::bad_lexical_cast error ) {
+    catch(boost::bad_lexical_cast &error ) {
         throw std::runtime_error("wrong type in " + _path + "."  + _name + "\n" + error.what());
     }
 }
@@ -162,23 +162,53 @@ inline std::string Property::as<std::string>() const
 }
 
 template<>
-inline vec Property::as<vec>() const
-{
-    vector<double> tmp;
-    Tokenizer tok(as<string>(), " ,");
-    tok.ConvertToVector<double>(tmp);
-    if(tmp.size()!=3)
-        throw runtime_error("Vector has " + boost::lexical_cast<string>(tmp.size()) + " instead of three entries");
-    return vec(tmp[0], tmp[1], tmp[2]);
+inline vec Property::as<vec>() const {
+    try {
+        vector<double> tmp;
+        Tokenizer tok(as<string > (), " ,");
+        tok.ConvertToVector<double>(tmp);
+        if (tmp.size() != 3)
+            throw runtime_error("Vector has " + boost::lexical_cast<string > (tmp.size()) + " instead of three entries");
+        return vec(tmp[0], tmp[1], tmp[2]);
+    }    catch (boost::bad_lexical_cast &error) {
+        throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
+    }
 }
 
 template<>
-inline vector<unsigned int> Property::as<vector <unsigned int> >() const
-{
-    vector<unsigned int> tmp;
-    Tokenizer tok(as<string>(), " ,");
-    tok.ConvertToVector<unsigned int>(tmp);
-    return tmp;
+inline vector<unsigned int> Property::as<vector <unsigned int> >() const {
+    try {
+        vector<unsigned int> tmp;
+        Tokenizer tok(as<string > (), " ,");
+        tok.ConvertToVector<unsigned int>(tmp);
+        return tmp;
+    }    catch (boost::bad_lexical_cast &error) {
+        throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
+    }
+}
+
+template<>
+inline vector<int> Property::as<vector <int> >() const {
+    try {
+        vector<int> tmp;
+        Tokenizer tok(as<string > (), " ,\n\t");
+        tok.ConvertToVector<int>(tmp);
+        return tmp;
+    }    catch (boost::bad_lexical_cast &error) {
+        throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
+    }
+}
+
+template<>
+inline vector<double> Property::as<vector <double> >() const {
+    try {
+        vector<double> tmp;
+        Tokenizer tok(as<string > (), " ,\n\t");
+        tok.ConvertToVector<double>(tmp);
+        return tmp;
+    }    catch (boost::bad_lexical_cast &error) {
+        throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
+    }
 }
 
 #endif	/* _PROPERTY_H */
