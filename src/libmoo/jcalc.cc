@@ -12,8 +12,7 @@ JCalc::~JCalc()
 }
 
 /// TODO: rewrite this using Property class
-
-void JCalc::Initialize(const string &filename)
+/*void JCalc::Initialize(const string &filename)
 {
     xmlDocPtr doc;
     xmlNodePtr node;
@@ -43,11 +42,89 @@ void JCalc::Initialize(const string &filename)
             ParseCrgUnitType(doc, node->xmlChildrenNode);
         }
     }
+}*/
+
+void JCalc::Initialize(const string& filename){
+    load_property_from_xml(_options, filename.c_str());
+
+    ParseCrgUnitTypes(_options.get("crgunit_type"));
+}
+
+void JCalc::ParseCrgUnitTypes(Property &options){
+    string namecoord;
+    string nameorb;
+    string namecrg;
+    string nameneutr;
+    double reorg;
+    double energy;
+    vector <int> transorbs;
+    string beadconj;
+    string name;
+    string molname;
+    string namebasis;
+    vector < vector <int> > list_atoms_monomer;
+    vector < vector <double> > list_weights_monomer;
+
+    list<Property *> types = options.Select("ChargeUnitType");
+    list<Property *>::iterator iter;
+
+    for (iter = types.begin();iter != types.end(); ++iter){
+        namecoord = (*iter)->get("posname").as<string>();
+        nameorb = (*iter)->get("orbname").as<string>();
+        bool estatics = (*iter)->exists("nameneutr");
+        if(estatics==true){
+            nameneutr = (*iter)->get("nameneutr").as<string>();
+            namecrg = (*iter)->get("namecrg").as<string>();
+        }
+        reorg = (*iter)->get("reorg").as<double>();
+        energy = (*iter)->get("energy").as<double>();
+        transorbs = (*iter)->get("transorb").as<vector <int> >();
+        beadconj = (*iter)->get("beadconj").as<string>();
+        name = (*iter)->get("name").as<string>();
+        molname = (*iter)->get("molname").as<string>();
+        namebasis = (*iter)->get("basisset").as<string>();
+
+        string all_monomer = (*iter)->get("monomer_atom_map").as<string>();
+        for (string::iterator c = all_monomer.begin(); c != all_monomer.end(); ++c) {
+            if (*c == '\n') *c = ' ';
+            if (*c == '\t') *c = ' ';
+        }
+        Tokenizer tok1(all_monomer, ":");
+        Tokenizer::iterator it_mon;
+        for (it_mon = tok1.begin(); it_mon != tok1.end(); ++it_mon) {
+            vector <int> list_atoms;
+            Tokenizer tok2(*it_mon, " ");
+            tok2.ConvertToVector<int>(list_atoms);
+            list_atoms_monomer.push_back(list_atoms);
+        }
+
+        string all_weights = (*iter)->get("monomer_atom_weights").as<string>();
+        for (string::iterator c = all_weights.begin(); c != all_weights.end(); ++c) {
+            if (*c == '\n') *c = ' ';
+            if (*c == '\t') *c = ' ';
+        }
+        Tokenizer tok3(all_weights, ":");
+        for (it_mon = tok3.begin(); it_mon != tok3.end(); ++it_mon) {
+            vector <double> list_weights;
+            Tokenizer tok2(*it_mon, " ");
+            tok2.ConvertToVector<double>(list_weights);
+            list_weights_monomer.push_back(list_weights);
+        }
+    }
+    CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(),
+            nameneutr.c_str(), namecrg.c_str(), namebasis,
+            reorg, energy, transorbs, _listCrgUnitType.size(),
+            molname, name, list_atoms_monomer, list_weights_monomer);
+    _mapCrgUnitByName.insert(make_pair(name, crgunittype));
+
+    clearListList(list_atoms_monomer);
+    clearListList(list_weights_monomer);
+    _listCrgUnitType.push_back(crgunittype);
 }
 
 /// TODO: rewrite this using Property class
 
-void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
+/*void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
 {
     xmlChar *key;
 
@@ -174,7 +251,7 @@ void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
 
     clearListList(list_atoms_monomer);
     _listCrgUnitType.push_back(crgunittype);
-}
+}*/
 
 JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2)
 {
