@@ -365,8 +365,8 @@ get_step_nr() {
   [[ -n "$1" ]] || die "get_step_nr: Missig argument"
   nr=${1##*/}
   nr=${nr#$trunc}
-  nr=${nr#0}
-  nr=${nr#0}
+  #convert to base 10 and cut leading zeros
+  nr=$((10#$nr))
   int_check "$nr" "get_step_nr: Could not fetch step nr"
   echo "$nr"
 }
