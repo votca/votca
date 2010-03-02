@@ -45,8 +45,8 @@ bool Integrals::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
 bool Integrals::EvaluateFrame(){
     QMNBList &nblist = _qmtop.nblist();
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter){
-        CrgUnit *crg1 = (*iter)->first;
-        CrgUnit *crg2 = (*iter)->second;
+        CrgUnit *crg1 = (*iter)->Crg1();
+        CrgUnit *crg2 = (*iter)->Crg2();
         if(MatchNNnames(crg1, crg2)){
             vector <double> Js = _qmtop.GetJCalc().CalcJ(*crg1, *crg2);
             (*iter)->setJs(Js);

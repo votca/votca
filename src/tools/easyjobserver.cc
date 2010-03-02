@@ -67,8 +67,8 @@ void EasyJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
     for(QMNBList::iterator iter = nblist.begin(); iter!=nblist.end();++iter) {
-        CrgUnit *crg1 = (*iter)->first;
-        CrgUnit *crg2 = (*iter)->second;
+        CrgUnit *crg1 = (*iter)->Crg1();
+        CrgUnit *crg2 = (*iter)->Crg2();
         if(MatchNNnames(crg1, crg2)){
             vector <double> Js = _qmtop->GetJCalc().CalcJ(*crg1, *crg2);
             for(int i=0; i<Js.size(); ++i) {
