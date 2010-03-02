@@ -45,6 +45,10 @@ public:
     /// \brief set connecting vector, required for state saver
     void setR(vec r){_r = r;}
 
+    /// first and second are original copies, crg1 and crg2 take into account pbc
+    CrgUnit *Crg1() {return first;}
+    CrgUnit *Crg2() {return _crg2;}
+
 protected:
     /// vector connecting the two beads
     vec _r;
@@ -58,6 +62,8 @@ protected:
     double _rate_21;
     /// ghost atom in case the molecules are neighbors across a boundary
     CrgUnit * _ghost;
+
+    CrgUnit *_crg2;
 };
 
 #endif	/* _QMBEADPAIR_H */

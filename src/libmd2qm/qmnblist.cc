@@ -20,8 +20,15 @@ void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
         if(b1->getMolecule() == b2->getMolecule()) continue;
         if(b1->GetCrgUnit() == NULL || b2->GetCrgUnit() == NULL) continue;
 
-        if(!FindPair(b1->GetCrgUnit(), b2->GetCrgUnit()))
-            AddPair(new QMPair(b1->GetCrgUnit(), b2->GetCrgUnit(), _father));
+        CrgUnit *crg1, *crg2;
+        crg1 = b1->GetCrgUnit();
+        crg2 = b2->GetCrgUnit();
+
+        if(crg1->getId() > crg2->getId())
+            swap(crg1, crg2);
+        
+        if(!FindPair(crg1, crg2))
+            AddPair(new QMPair(crg1, crg2, _father));
     }
 }
 

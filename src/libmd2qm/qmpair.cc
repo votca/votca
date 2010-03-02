@@ -9,6 +9,7 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
     crg2nm =  crg2->GetCom();
     _r = top->BCShortestConnection(crg1nm, crg2nm);
     _dist = abs(_r);
+    _crg2 = second;
 
     // check if PBC:
     vec d = crg2nm - crg1nm;
@@ -17,7 +18,7 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
 	_ghost->copyCrgUnit(*crg2);
         vec displ = (_r - d);
         _ghost->shift(displ);
-        this ->second = _ghost;
+        _crg2 = _ghost;
     }
     else {
         _ghost=NULL;
