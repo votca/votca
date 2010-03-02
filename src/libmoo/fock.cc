@@ -19,7 +19,7 @@ static double Mu_zindo_1  [18]  ={1.200000,1.700000,0.650000,0.975000,1.300000,1
 					          //Slater exponenets are assumed to be the same for s/p.  
 						  //This is only the case up to row 3.
 						  //Including transition metals would require a major re-write.
-const static int HASH_S = 10000; // resolution in hash table to STO overlap of AOs
+const static int HASH_S = 100000; // resolution in hash table to STO overlap of AOs
 static double _1S1S [HASH_S+1];
 static double _2S2S [HASH_S+1];
 static double _2S2Sig [HASH_S+1];

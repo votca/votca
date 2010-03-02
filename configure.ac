@@ -1,4 +1,4 @@
-AC_INIT(moo,0.5,werauchimmer@mpip-mainz.mpg.de)
+AC_INIT(moo,0.5,bugs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -11,9 +11,10 @@ AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([src/libmoo/Makefile])
+AC_CONFIG_FILES([src/tools/Makefile])
 
 AC_PROG_CXX
-AC_PROG_RANLIB
+LT_INIT
 
 AC_LANG_CPLUSPLUS
 
