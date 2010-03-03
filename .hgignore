@@ -7,6 +7,7 @@ syntax: glob
 *.lo
 .deps
 .libs
+lib*.pc
 autom4te.cache
 libtool
 stamp-h1
