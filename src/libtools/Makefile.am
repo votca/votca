@@ -11,7 +11,7 @@ crosscorrelate.cc  histogram.cc       parcer.cc    rangeparser.cc \
 cubicspline.cc     histogramnew.cc    property.cc  table.cc version.cc
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libvotca-tools.pc
+pkgconfig_DATA = libvotca_tools.pc
 
 CLEANFILES = *~ *.a hgstamp
 

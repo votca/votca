@@ -35,6 +35,6 @@ AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([src/libtools/Makefile])
-AC_CONFIG_FILES([src/libtools/libvotca-tools.pc])
+AC_CONFIG_FILES([src/libtools/libvotca_tools.pc])
 
 AC_OUTPUT
