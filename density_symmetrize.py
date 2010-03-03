@@ -36,14 +36,17 @@ for o, a in opts:
 for line in open(infile,"r").readlines():
 	if line[0] != "@" and line[0] != "#":
 		values = line.split()
-		if float(values[0]) < adressc:
+		if float(values[0]) <= adressc:
 			firstx.append(float(values[0]))
 			firsty.append(float(values[1]))
+                        if float(values[0]) == adressc:
+                            secondx.append(float(values[0]))
+                            secondy.append(float(values[1]))
                 else:
                        
                         if len(firstx)-1-len(secondx) >= 0 and (len(firstx)-1-len(secondx)) < len (firsty):
                             secondx.append(float(values[0])) 
-			    secondy.append( 0.5*(firsty[len(firstx)-1-len(secondx)]+(float(values[1]))) )
+			    secondy.append( 0.5*(firsty[len(firstx)-len(secondx)]+(float(values[1]))) )
                         else:
                             print "Warning: symmetrize_density.pl : adressc not in center of data", line
                             print "index", len(firstx)-len(secondx)
