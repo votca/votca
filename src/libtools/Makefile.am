@@ -15,8 +15,8 @@ pkgconfig_DATA = libvotca_tools.pc
 
 CLEANFILES = *~ *.a hgstamp
 
-install-exec-hook:
-	rm -f $(DESTDIR)$(libdir)/libvotca_tools.la
+#install-exec-hook:
+#	rm -f $(DESTDIR)$(libdir)/libvotca_tools.la
 
 version.o: hgstamp
 version.lo: hgstamp
