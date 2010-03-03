@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libvotca_moo
+Description: moo functions of the votca package
+URL: http://www.votca.org
+Version: @VERSION@
+Requires: libvotca_tools 
+Libs: -L${libdir} -lvotca_moo
+Libs.private:
+Cflags: -I${includedir}
