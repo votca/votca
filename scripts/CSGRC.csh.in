@@ -17,7 +17,8 @@ setenv CSGBIN @bindir@
 setenv CSGSHARE @votcashare@
 
 # old variables begin with ':' now, or are empty.
-setenv PATH ${CSGBIN}:${PATH}
+setenv PATH "${CSGBIN}:${PATH}"
 
-# rehash
+if (! $?LD_LIBRARY_PATH) setenv LD_LIBRARY_PATH ""
+setenv LD_LIBRARY_PATH "@libdir@:${LD_LIBRARY_PATH}"
 

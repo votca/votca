@@ -11,21 +11,12 @@ AC_PROG_CXX
 AC_LANG([C++])
 LT_INIT
 AC_HEADER_STDC
-AC_PROG_MAKE_SET
+AC_PROG_LN_S
+PKG_PROG_PKG_CONFIG
 
-# check for fftw3
-AX_FFTW3
-
-# check for libxml2
-ACI_PACKAGE_SAVED(XML,[XML library (version XML2)],
-                  xml2-config,,,
-                  AC_MSG_WARN(Cannot find the XML2 libs. Is xml2-config in your path ?)
-                 )
-
-AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed and check your flags]))
 AX_GROMACS
-AX_BOOST([1.33.1])
-
+AX_BOOST_BASE([1.33.1])
+AX_BOOST_PROGRAM_OPTIONS([1.33.1])
 
 AC_ARG_ENABLE(gmx4dev,
               [AC_HELP_STRING([--enable-gmx4dev],
@@ -40,10 +31,17 @@ AC_ARG_ENABLE(all-static,
               [Make completely static binaries])],, enable_all_static=no)
 # Dont add the -all-static flag until after the compiler test.
 
-AX_VOTCA_TOOLS
+#look for votca tools
+PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools)
 
-#check for boost
-#AX_BOOST_PROGRAM_OPTIONS
+#look for gsl
+PKG_CHECK_MODULES([GSL],gsl)
+
+
+if test "$enable_all_static" = "yes"; then
+  AX_BROKEN_LIBXML
+  LDFLAGS="$LDFLAGS -all-static"
+fi
 
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
@@ -55,6 +53,7 @@ AC_CONFIG_FILES([src/csg_boltzmann/Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/tools/Makefile])
 AC_CONFIG_FILES([src/libcsg/Makefile])
+AC_CONFIG_FILES([src/libcsg/libvotca_csg.pc])
 AC_CONFIG_FILES([src/libcsg/modules/Makefile])
 AC_CONFIG_FILES([src/libcsg/modules/io/Makefile])
 
@@ -67,8 +66,5 @@ AC_CONFIG_FILES([share/xml/Makefile])
 AC_CONFIG_FILES([share/template/Makefile])
 
 
-if test "$enable_all_static" = "yes"; then
-  LDFLAGS="$LDFLAGS -all-static"
-fi
 
 AC_OUTPUT

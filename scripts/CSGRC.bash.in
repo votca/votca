@@ -13,12 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-CSGBIN=@bindir@
-CSGSHARE=@votcashare@
+export CSGBIN=@bindir@
+export CSGSHARE=@votcashare@
 	
-PATH=${CSGBIN}:${PATH}
-
-export CSGBIN CSGSHARE PATH
+export PATH="${CSGBIN}${PATH:+:}${PATH}"
+export LD_LIBRARY_PATH="@libdir@${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
 
 [ -f "$CSGSHARE/completion.bash" ] && source "$CSGSHARE/completion.bash"
 

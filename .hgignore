@@ -10,6 +10,7 @@ syntax: glob
 autom4te.cache
 stamp-h1
 libtool
+lib*.pc
 Makefile
 Makefile.in
 aclocal.m4

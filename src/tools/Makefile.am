@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(CFLAGS_XML) $(BOOST_CPPFLAGS) $(GSL_CFLAGS) -I$(top_srcdir)/include 
+AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) -I$(top_srcdir)/include 
 
 bin_PROGRAMS = \
     csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol # csg_nemat csg_conj csg_sample
@@ -21,6 +21,8 @@ csg_stat_SOURCES = csg_stat.cc imc.cc imc.h
 csg_property_SOURCES = csg_property.cc
 
 csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch_main.cc csg_fmatch.h
+csg_fmatch_CPPFLAGS = $(GSL_CFLAGS) $(AM_CPPFLAGS)
+csg_fmatch_LDFLAGS = $(GSL_LIBS) $(AM_LDFLAGS)
 
 csg_imcrepack_SOURCES = csg_imcrepack.cc
 
@@ -31,6 +33,4 @@ csg_map_SOURCES = csg_map.cc
 # csg_sample_SOURCES = \
 #    csg_sample.cc
 
-AM_LDFLAGS =  
-
-LDADD = ../libcsg/libvotca_csg.la $(LIBS_XML) ${LIBS_VOTCA_TOOLS} ${BOOST_LDFLAGS} ${BOOST_PROGRAM_OPTIONS_LIB} $(LIBS_GMX) ${GSL_LIBS} -lpthread
+AM_LDFLAGS = ../libcsg/libvotca_csg.la $(VOTCA_TOOLS_LIBS) ${BOOST_LDFLAGS} $(BOOST_PROGRAM_OPTIONS_LIB) $(GMX_LIBS) 
