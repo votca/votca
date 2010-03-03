@@ -14,5 +14,5 @@ if use_mpi; then
   mpicmd=$(csg_get_property cg.inverse.mpi.cmd)
   run_or_exit $mpicmd mdrun -tablea table_tf.xvg
 else
-  run_or_exit mdrun -tablea table_tf.xvg
+  run_or_exit mdrun -nt 8 -tablea table_tf.xvg
 fi
