@@ -12,28 +12,22 @@ LT_INIT
 AC_LANG_CPLUSPLUS
 
 AC_HEADER_STDC
+PKG_PROG_PKG_CONFIG
 
 # check for boost
 AX_BOOST_BASE([1.33.1])
 
 # check for fftw3
-AX_FFTW3
+PKG_CHECK_MODULES([FFTW],fftw3)
 
 # check for libxml2
-ACI_PACKAGE_SAVED(XML,[XML library (version XML2)],
-                  xml2-config,,,
-                  AC_MSG_ERROR([Cannot find the XML2 libs. Is xml2-config in your path ?])
-                 )
+PKG_CHECK_MODULES([XML],libxml-2.0)
 
-AX_PATH_GSL(,,AC_MSG_ERROR([Cannot find GSL. Please make sure it is installed and check your flags]))
-
-# check for gromacs
-# AX_GROMACS_HEADERS
+# check for gsl
+PKG_CHECK_MODULES([GSL],gsl)
 
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
-
-AC_PROG_MAKE_SET
 
 AC_CONFIG_HEADERS(config.h)
 
