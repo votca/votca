@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) -I$(top_srcdir)/include 
+AM_CPPFLAGS = $(BOOST_CFLAGS) $(VOTCA_TOOLS_CFLAGS) -I$(top_srcdir)/include
 
 bin_PROGRAMS = \
     csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol # csg_nemat csg_conj csg_sample
@@ -33,4 +33,4 @@ csg_map_SOURCES = csg_map.cc
 # csg_sample_SOURCES = \
 #    csg_sample.cc
 
-AM_LDFLAGS = ../libcsg/libvotca_csg.la $(VOTCA_TOOLS_LIBS) ${BOOST_LDFLAGS} $(BOOST_PROGRAM_OPTIONS_LIB) $(GMX_LIBS) 
+AM_LDFLAGS = ../libcsg/libvotca_csg.la $(VOTCA_TOOLS_LIBS) ${BOOST_LIBS} $(GMX_LIBS)

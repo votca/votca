@@ -15,8 +15,28 @@ AC_PROG_LN_S
 PKG_PROG_PKG_CONFIG
 
 AX_GROMACS
-AX_BOOST_BASE([1.33.1])
-AX_BOOST_PROGRAM_OPTIONS([1.33.1])
+AX_BOOST_BASE([1.33.1],[have_boost=yes],[have_boost=no])
+
+if test "$have_boost" = "no" -o "$want_boost" = "no"; then
+  AC_MSG_NOTICE([
+		
+BOOST was not found/disabled: Enabling libvotca_boost
+
+])
+  PKG_CHECK_MODULES([BOOST],libvotca_boost)
+  PKG_BOOST="libvotca_boost"
+  LBOOST=""
+else
+  AX_BOOST_PROGRAM_OPTIONS([1.33.1])
+  BOOST_CFLAGS="$BOOST_CPPFLAGS"
+  AC_SUBST(BOOST_CFLAGS)
+  BOOST_LIBS="$BOOST_LDFLAGS $BOOST_PROGRAM_OPTIONS_LIB"
+  AC_SUBST(BOOST_LIBS)
+  PKG_BOOST=""
+  LBOOST="$BOOST_PROGRAM_OPTIONS_LIB"
+fi
+AC_SUBST(PKG_BOOST)
+AC_SUBST(LBOOST)
 
 AC_ARG_ENABLE(gmx4dev,
               [AC_HELP_STRING([--enable-gmx4dev],

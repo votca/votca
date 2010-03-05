@@ -7,7 +7,7 @@ Name: libvotca_csg
 Description: csg functions of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
-Requires: libvotca_tools 
+Requires: libvotca_tools @PKG_BOOST@
 Libs: -L${libdir} -lvotca_csg
-Libs.private: @BOOST_PROGRAM_OPTIONS_LIB@ -lgmx -lm 
+Libs.private: @LBOOST@ -lgmx -lm
 Cflags: -I${includedir}
