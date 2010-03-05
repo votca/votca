@@ -10,4 +10,4 @@ Version: @VERSION@
 Requires:
 Libs: -L${libdir} -lvotca_boost
 Libs.private: -lm
-Cflags: -I${includedir}
+Cflags: -I${includedir}/votca
