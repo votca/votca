@@ -10,7 +10,7 @@ libio_la_SOURCES = \
 	pdbtopologyreader.cc 	pdbtopologyreader.h 	pdbwriter.cc\
 	pdbwriter.h 		xmltopologyreader.cc	xmltopologyreader.h
 
-libio_la_LIBADD = $(GMX_LIBS) $(VOTCA_TOOLS_LIBS)
-libio_la_CPPFLAGS = $(GMX_CFLAGS) $(VOTCA_TOOLS_CFLAGS) $(AM_CPPFLAGS)
+libio_la_LIBADD = $(BOOST_LIBS) $(GMX_LIBS) $(VOTCA_TOOLS_LIBS)
+libio_la_CPPFLAGS = $(BOOST_CFLAGS) $(GMX_CFLAGS) $(VOTCA_TOOLS_CFLAGS) $(AM_CPPFLAGS)
 
 CLEANFILES = *~
