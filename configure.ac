@@ -49,6 +49,8 @@ PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools)
 #look for gsl
 PKG_CHECK_MODULES([GSL],gsl)
 
+# check for libxml2
+PKG_CHECK_MODULES([XML],libxml-2.0)
 
 if test "$enable_all_static" = "yes"; then
   AX_BROKEN_LIBXML
