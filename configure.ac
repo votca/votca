@@ -26,8 +26,7 @@ fi
 if test "$have_boost" = "no" -o "$want_boost" = "no"; then
   AC_MSG_NOTICE([
 		
-BOOST was not found/disabled: Enabling libvotca_boost
-
+BOOST was not found/disabled: Building libvotca_boost
 ])
   with_votca_boost="yes"
 fi
