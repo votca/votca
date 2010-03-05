@@ -11,8 +11,8 @@ void RateCalculator::HelpText(){
 }
 
 void RateCalculator::Initialize(){
-    _kT = _options.get("calc_rates.thermal_energy").as<double>();
-    _E = _options.get("calc_rates.e_field").as<vec>();
+    _kT = _options.get("options.calc_rates.thermal_energy").as<double>();
+    _E = _options.get("options.calc_rates.e_field").as<vec>();
 }
 
 bool RateCalculator::EvaluateFrame(){
