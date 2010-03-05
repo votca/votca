@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libvotca_boost
+Description: boost replacement for the votca package
+URL: http://www.votca.org
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lvotca_boost
+Libs.private: -lm
+Cflags: -I${includedir}

@@ -8,3 +8,5 @@ This software contains code, in particular the vec,
 matrix, objectfactory and property class, which was
 derived from a project by V. Ruehle.
 
+The code in src/libboost is taken from the Boost
+package (www.boost.org).

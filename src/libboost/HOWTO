@@ -1,0 +1,13 @@
+- run ./find_boost.sh > boost_list votca src dir
+- download boost
+- in boost-src
+  - ./bootstrap.sh 
+  - tools/bcp
+  - ../../bjam
+- cd ../..
+- mkdir votca-boost
+- use bcp to extrat
+- run dist/bin/bcp $(cat boost_list)
+- cp votca-boost to src/tools/boost
+- run gen Makefiles
+- find . -name Makefile.am | sed 's/^.\(.*\).am/AC_CONFIG_FILES([src\/libboost\1])/' >> ../../configure.ac
