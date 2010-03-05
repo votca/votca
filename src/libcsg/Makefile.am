@@ -1,5 +1,5 @@
 HGVERSION:= $(shell hg -R $(top_srcdir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_srcdir)/.hg_archival.txt 2> /dev/null || true )
-AM_CPPFLAGS = $(BOOST_CFLAGS) $(GMX_CFLAGS) $(VOTCA_TOOLS_CFLAGS) -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
+AM_CPPFLAGS = $(BOOST_CFLAGS) $(GMX_CFLAGS) $(XML_CFLAGS) $(VOTCA_TOOLS_CFLAGS) -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
 
 SUBDIRS = modules 
 
@@ -12,7 +12,7 @@ libvotca_csg_la_SOURCES = \
     connectivity.cc   molecule.cc         numberdist.cc     trajectoryreader.cc \
     imcio.cc nblistgrid.cc version.cc 
 
-libvotca_csg_la_LIBADD = modules/io/libio.la $(VOTCA_TOOLS_LIBS) $(BOOST_LIBS)
+libvotca_csg_la_LIBADD = modules/io/libio.la $(VOTCA_TOOLS_LIBS) $(GMX_LIBS) $(XML_LIBS) $(BOOST_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libvotca_csg.pc
