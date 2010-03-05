@@ -3,7 +3,7 @@ AC_INIT(votca-csg,1.0_rc4,bugs@votca.org)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
 
-AM_INIT_AUTOMAKE([1.9 foreign])
+AM_INIT_AUTOMAKE([1.8 foreign])
 
 AC_CONFIG_HEADERS(src/config.h)
 
