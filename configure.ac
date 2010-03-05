@@ -24,7 +24,7 @@ BOOST was not found/disabled: Try to use libvotca_boost
 
 ])
   PKG_CHECK_MODULES([BOOST],libvotca_boost)
-  PKG_BOOST="libvotca_boost"
+  PBOOST="libvotca_boost"
   LBOOST=""
 else
   AX_BOOST_PROGRAM_OPTIONS([1.33.1])
@@ -32,7 +32,7 @@ else
   AC_SUBST(BOOST_CFLAGS)
   BOOST_LIBS="$BOOST_LDFLAGS $BOOST_PROGRAM_OPTIONS_LIB"
   AC_SUBST(BOOST_LIBS)
-  PKG_BOOST=""
+  PBOOST=""
   LBOOST="$BOOST_PROGRAM_OPTIONS_LIB"
 fi
 AC_SUBST(PKG_BOOST)
