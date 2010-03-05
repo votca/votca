@@ -20,7 +20,7 @@ AX_BOOST_BASE([1.33.1],[have_boost=yes],[have_boost=no])
 if test "$have_boost" = "no" -o "$want_boost" = "no"; then
   AC_MSG_NOTICE([
 		
-BOOST was not found/disabled: Enabling libvotca_boost
+BOOST was not found/disabled: Try to use libvotca_boost
 
 ])
   PKG_CHECK_MODULES([BOOST],libvotca_boost)
