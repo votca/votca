@@ -45,9 +45,9 @@ AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
 
 
 if test "$with_votca_boost" = "yes"; then
-  BOOST_CPPFLAGS='-I$$(top_srcdir)/src/libboost'
+  BOOST_CPPFLAGS='-I$(top_srcdir)/src/libboost'
   AC_SUBST(BOOST_CPPFLAGS)
-  BOOST_LDFLAGS="$$(top_srcdir)/src/libboost/libs/libvotca_boost.la"
+  BOOST_LDFLAGS='$(top_srcdir)/src/libboost/libs/libvotca_boost.la'
   AC_SUBST(BOOST_LDFLAGS)
 fi
 AM_CONDITIONAL(VOTCA_BOOST, test "$with_votca_boost" = "yes")
