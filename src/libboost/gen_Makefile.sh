@@ -69,4 +69,13 @@ for i in $(find . -type d); do
   echo *.hpp | fmt | sed -e 's/$/ \\/' -e '$s/\\$//' >> Makefile.am
   echo >>  Makefile.am
 done
+cd ${trunc_dir}
+cd ..
 echo Done with headers
+
+echo Updating configure.ac
+sed -n '1,/###ADD/p' configure.ac.in > configure.ac 
+for i in $(find . -name Makefile.am); do
+  echo $i | sed 's#^\./\(.*\).am#AC_CONFIG_FILES([\1])#' >> configure.ac
+done
+sed -n '/###END/,$p' configure.ac.in >> configure.ac
