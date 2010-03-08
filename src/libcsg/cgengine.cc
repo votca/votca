@@ -217,7 +217,7 @@ void CGEngine::Run()
         BeginCG(top_cg);
         
         for(bool bok=true; bok==true; bok = traj_reader->NextFrame(top)) {
-            if(((top.getTime() < begin) && has_begin)|| first_frame > 0) {
+            if(((top.getTime() < begin) && has_begin)|| first_frame > 1) {
                 first_frame--;
                 continue;                
             }
