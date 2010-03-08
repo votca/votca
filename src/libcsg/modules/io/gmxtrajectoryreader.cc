@@ -36,14 +36,12 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
 #ifdef GMX4DEV
     gmx::output_env_t oenv;
-    char name[10] = "noname";
-    char *argv[1]; argv[0]=name;
-    output_env_init(oenv,  1, argv,
-                     gmx::time_ps, false, gmx::exvgXMGRACE,
-                     0, 0);
+    gmx::_snew("oenv", oenv, 1);
+    output_env_init_default (oenv);
 
     if(!gmx::read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
+    gmx::sfree(oenv);
 #else
     if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
@@ -79,13 +77,11 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
 #ifdef GMX4DEV
     gmx::output_env_t oenv;
-    char name[10] = "noname";
-    char *argv[2]; argv[0]=name;
-    output_env_init(oenv,  1, argv,
-                     gmx::time_ps, false, gmx::exvgXMGRACE,
-                     0, 0);
+    gmx::_snew("oenv", oenv, 1);
+    output_env_init_default (oenv);
     if(!gmx::read_next_frame(oenv, _gmx_status,&_gmx_frame))
         return false;
+    gmx::sfree(oenv);
 #else
     if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))
         return false;
