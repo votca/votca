@@ -1,5 +1,5 @@
 HGVERSION:= $(shell hg -R $(top_srcdir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_srcdir)/.hg_archival.txt 2> /dev/null || true )
-AM_CPPFLAGS = $(BOOST_CFLAGS) $(GMX_CFLAGS) $(XML_CFLAGS) $(VOTCA_TOOLS_CFLAGS) -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
+AM_CPPFLAGS = -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
 
 SUBDIRS = modules 
 
@@ -12,7 +12,12 @@ libvotca_csg_la_SOURCES = \
     connectivity.cc   molecule.cc         numberdist.cc     trajectoryreader.cc \
     imcio.cc nblistgrid.cc version.cc 
 
-libvotca_csg_la_LIBADD = modules/io/libio.la $(VOTCA_TOOLS_LIBS) $(GMX_LIBS) $(XML_LIBS) $(BOOST_LIBS)
+#we don't use xml header here, gmx is needed because modules/io headers
+libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS) $(BOOST_CFLAGS)
+#XML_LIBS come with VOTCA_TOOLS_LIBS
+#boost is need in cgengine.h
+libvotca_csg_la_LIBADD = modules/io/libio.la
+libvotca_csg_la_LDFLAGS = $(VOTCA_TOOLS_LIBS) $(GMX_LIBS) $(BOOST_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libvotca_csg.pc
