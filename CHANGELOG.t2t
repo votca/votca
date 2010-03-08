@@ -5,6 +5,9 @@ Votca Developer Team
 For more detailed information about the changes see the
 history of the [repository http://hg.votca.org/csg]
 
+* fixed --first-frame option (--first-frame 1 before started at second frame)
+* fixed compatibility issue when using gromacs development version
+
 == Version 1.0_rc4 ==
 * using libtool to build shared libs
 * fixed a bug in error calculation of multi_g_rdf
