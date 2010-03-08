@@ -13,9 +13,24 @@ AC_PROG_RANLIB
 AC_LANG_CPLUSPLUS
 
 AC_HEADER_STDC
+PKG_PROG_PKG_CONFIG
 
 #check for boost
 AX_BOOST_BASE([1.33.1])
+
+if test "$have_boost" = "no" -o "$want_boost" = "no"; then
+  AC_MSG_NOTICE([
+		
+BOOST was not found/disabled: Try to use libvotca_boost
+
+])
+  PKG_CHECK_MODULES([BOOST],libvotca_boost)
+else
+  BOOST_CFLAGS="$BOOST_CPPFLAGS"
+  AC_SUBST(BOOST_CFLAGS)
+  BOOST_LIBS="$BOOST_LDFLAGS"
+  AC_SUBST(BOOST_LIBS)
+fi
 
 #look for votca tools
 PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools)
