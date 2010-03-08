@@ -12,8 +12,8 @@ libvotca_csg_la_SOURCES = \
     connectivity.cc   molecule.cc         numberdist.cc     trajectoryreader.cc \
     imcio.cc nblistgrid.cc version.cc 
 
-#we don't use xml header here, gmx is needed because modules/io headers
-libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS) $(BOOST_CFLAGS)
+#xml, gmx is needed because modules/io headers
+libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS) $(XML_CFLAGS) $(BOOST_CFLAGS)
 #XML_LIBS come with VOTCA_TOOLS_LIBS
 #boost is need in cgengine.h
 libvotca_csg_la_LIBADD = modules/io/libio.la
