@@ -1,9 +1,10 @@
 HGVERSION:= $(shell hg -R $(top_srcdir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_srcdir)/.hg_archival.txt 2> /dev/null || true )
-AM_CPPFLAGS = $(XML_CFLAGS) $(GSL_CFLAGS) $(FFTW_CFLAGS) $(BOOST_CPPFLAGS) -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
+AM_CPPFLAGS = -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
 lib_LTLIBRARIES = libvotca_tools.la
 
 #no BOOST_LDFLAGS here, because we just need the headers
 libvotca_tools_la_LIBADD = $(XML_LIBS) $(GSL_LIBS) $(FFTW_LIBS)
+libvotca_tools_la_CPPFLAGS = $(AM_CPPFLAGS) $(XML_CFLAGS) $(GSL_CFLAGS) $(FFTW_CFLAGS) $(BOOST_CPPFLAGS)
 
 libvotca_tools_la_SOURCES = \
 correlate.cc       datacollection.cc  matrix.cc    random.cc       tokenizer.cc \
