@@ -208,7 +208,7 @@ csg_get_interaction_property () {
   [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined"
   [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
-  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter \"name=$bondname\" --print $1"
+  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   if ! ret="$($cmd 2>&1)"; then
     #csg_property failed and no default
     [[ -z "$2" ]] && die "csg_get_interaction_property: '$cmd' failed"
