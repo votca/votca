@@ -32,7 +32,7 @@ CSGRC.bash: $(srcdir)/CSGRC.bash.in Makefile hgstamp
 CLEANFILES = CSGRC.csh CSGRC.bash csg_call csg_inverse multi_g_rdf *~
 
 install-exec-hook:
-	$(LN_S) multi_g_rdf $(DESTDIR)$(bindir)/multi_g_density
+	cd $(DESTDIR)$(bindir) && $(LN_S) -f multi_g_rdf multi_g_density
 
 hgstamp: dummy 
 	[ -f $@ ] || touch $@
