@@ -15,8 +15,8 @@ EasyJObserver::~EasyJObserver()
 void EasyJObserver::Initialize(QMTopology &qmtop, Property &opts)
 {
     _qmtop = &qmtop;
-    _kT = opts.get("calc_rates.thermal_energy").as<double>();
-    _E = opts.get("calc_rates.e_field").as<vec>();
+    _kT = opts.get("options.calc_rates.thermal_energy").as<double>();
+    _E = opts.get("options.calc_rates.e_field").as<vec>();
     cout << "E = " << _E << endl;
 }
 
