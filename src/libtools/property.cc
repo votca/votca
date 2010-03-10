@@ -115,7 +115,7 @@ static void start_hndl(void *data, const char *el, const char **attr)
         (stack<Property *> *)XML_GetUserData((XML_Parser*)data);
 
     Property *cur = property_stack->top();
-    Property &np = cur->add(el, "foo");
+    Property &np = cur->add(el, "");
     property_stack->push(&np);
 }
 
@@ -132,7 +132,7 @@ void char_hndl(void *data, const char *txt, int txtlen)
         (stack<Property *> *)XML_GetUserData((XML_Parser*)data);
 
     Property *cur = property_stack->top();
-    cur->value() = cur->value() + txt;
+    cur->value().append(txt, txtlen);
 }
 
 bool load_property_from_xml(Property &p, string filename)
@@ -146,7 +146,7 @@ bool load_property_from_xml(Property &p, string filename)
   XML_SetCharacterDataHandler(parser, char_hndl);
 
   ifstream fl;
-  fl.open("cg.xml");
+  fl.open(filename.c_str());
   if(!fl.is_open())
     throw std::ios_base::failure("Error on open xml file: " + filename);
 
