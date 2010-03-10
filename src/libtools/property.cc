@@ -164,5 +164,4 @@ bool load_property_from_xml(Property &p, string filename)
           XML_ErrorString(XML_GetErrorCode(parser)));
   }
   fl.close();
-  cout << "parsing done\n";
 }
