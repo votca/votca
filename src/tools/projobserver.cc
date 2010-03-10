@@ -41,7 +41,7 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
    
-
+    string framedir=string("frame")+lexical_cast<string>(top->getStep()) +string("/") ;
     mkdir(framedir.c_str(),0755);
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
@@ -52,7 +52,7 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
          */
          
         if(MatchNNnames(crg1, crg2)){
-            _qmtop->GetJCalc().WriteProJ(*crg1, *crg2);
+            _qmtop->GetJCalc().WriteProJ(*crg1, *crg2,framedir);
         }
 
     }
