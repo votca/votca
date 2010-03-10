@@ -32,11 +32,15 @@ my $gromacs_max=csg_get_property("cg.inverse.gromacs.pot_max");
 my $table_end=csg_get_property("cg.inverse.gromacs.table_end");
 my $table_bins=csg_get_property("cg.inverse.gromacs.table_bins");
 
+my $table_x_offset=csg_get_property("cg.tf.table_x_offset");
+
+
 my @r;
 my @pot;
 my @flag;
 (readin_table($infile,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
 
+print "infile $infile \n";
 
 #gromacs does not like VERY big numbers
 for (my $i=0;$i<=$#r;$i++) {
@@ -67,8 +71,22 @@ for (my $i=1;$i<$#r;$i++){
 $force[$#r]=0.0;
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
+
+my $ioffset;
+
+$ioffset = $table_x_offset/$table_bins;
+print "offset $table_x_offset, ioffset $ioffset, table_bins $\n, i_cut $i_cut last_r $#r\n";
 for(my $i=0;$i<=$#r;$i++){
-  printf(OUTFILE "%15.10e   %15.10e %15.10e\n", $r[$i], $pot[$i], $force[$i]);
+    if ($i > $ioffset && $i < $ioffset+$i_cut){
+        printf(OUTFILE "%15.10e   %15.10e %15.10e\n", $r[$i], $pot[$i-$ioffset], $force[$i-$ioffset]);
+    }else{
+	if ($i <= $ioffset){
+        	printf(OUTFILE "%15.10e   %15.10e %15.10e\n", $r[$i], $pot[0], 0.0);
+	}
+	else
+	{
+		printf(OUTFILE "%15.10e   %15.10e %15.10e\n", $r[$i], $pot[$#r], 0.0);
+	}
+    }
 }
 close(OUTFILE) or die "Error at closing $outfile\n";
-

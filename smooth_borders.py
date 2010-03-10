@@ -24,7 +24,7 @@ def weight(x):
     return c*c
 
 
-options = ["xstart=", "xstop=", "step=", "infile=", "outfile="]
+options = ["xstart=", "xstop=", "infile=", "outfile="]
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], "", options)
