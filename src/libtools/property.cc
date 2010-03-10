@@ -15,12 +15,17 @@
  *
  */
 
-#include <libxml/parser.h>
 #include <iostream>
 #include "property.h"
 #include <stdexcept>
 #include "tokenizer.h"
 
+#include <stdio.h>
+#include <expat.h>
+#include <string.h>
+#include <fstream>
+#include <string>
+#include <stack>
 
 Property &Property::get(const string &key)
 {
@@ -98,57 +103,66 @@ void Property::PrintNode(std::ostream &out, const string &prefix, Property &p)
     }
 }
 
-static void parse_node(Property &p, xmlDocPtr doc, xmlNodePtr cur)
-{
-    xmlChar *key;
-    
-    key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-    
-    string value("");
-    if(key) value = (const char *)key;
-    
-    // \todo test if unique
-    Property &np = p.add((const char *)cur->name, value);
-    xmlFree(key);    
-
-    for(xmlNodePtr node = cur->xmlChildrenNode; node != NULL; node = node->next) {
-        if (node->type == XML_ELEMENT_NODE)
-            parse_node(np, doc, node);                    
-    }
-}
-
-bool load_property_from_xml(Property &p, string filename)
-{
-    xmlDocPtr doc;
-    xmlNodePtr node;
-    xmlChar *key;
-    
-    doc = xmlParseFile(filename.c_str());
-    if(doc == NULL) 
-        throw std::ios_base::failure("Error on open xml bead map: " + filename);
-    
-    node = xmlDocGetRootElement(doc);
-    
-    if(node == NULL) {
-        xmlFreeDoc(doc);
-        throw std::invalid_argument("Error, empty xml document: " + filename);
-    }
-    
-    //if(xmlStrcmp(node->name, (const xmlChar *)"cg_molecule")) {
-    //    xmlFreeDoc(doc);
-    //    throw std::invalid_argument("Error, in xml file: " + filename);
-    //}
-    
-    // parse xml tree
-    parse_node(p, doc, node);
-    
-    // free the document
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
-}
-
 std::ostream &operator<<(std::ostream &out, Property& p)
 {
       Property::PrintNode(out, "", p);
       return out;
+}
+
+static void start_hndl(void *data, const char *el, const char **attr)
+{
+    stack<Property *> *property_stack =
+        (stack<Property *> *)XML_GetUserData((XML_Parser*)data);
+
+    Property *cur = property_stack->top();
+    Property &np = cur->add(el, "foo");
+    property_stack->push(&np);
+}
+
+static void end_hndl(void *data, const char *el)
+{
+    stack<Property *> *property_stack =
+        (stack<Property *> *)XML_GetUserData((XML_Parser*)data);
+    property_stack->pop();
+}
+
+void char_hndl(void *data, const char *txt, int txtlen)
+{
+    stack<Property *> *property_stack =
+        (stack<Property *> *)XML_GetUserData((XML_Parser*)data);
+
+    Property *cur = property_stack->top();
+    cur->value() = cur->value() + txt;
+}
+
+bool load_property_from_xml(Property &p, string filename)
+{
+  XML_Parser parser = XML_ParserCreate(NULL);
+  if (! parser)
+    throw std::runtime_error("Couldn't allocate memory for xml parser");
+
+  XML_UseParserAsHandlerArg(parser);
+  XML_SetElementHandler(parser, start_hndl, end_hndl);
+  XML_SetCharacterDataHandler(parser, char_hndl);
+
+  ifstream fl;
+  fl.open("cg.xml");
+  if(!fl.is_open())
+    throw std::ios_base::failure("Error on open xml file: " + filename);
+
+  stack<Property *> pstack;
+  pstack.push(&p);
+
+  XML_SetUserData(parser, (void*)&pstack);
+  while(!fl.eof()) {
+    string line;
+    getline(fl, line);
+    line=line + "\n";
+    if (! XML_Parse(parser, line.c_str(), line.length(), false))
+      throw  std::ios_base::failure(filename + ": Parse error at line " +
+          boost::lexical_cast<string>(XML_GetCurrentLineNumber(parser)) + "\n" +
+          XML_ErrorString(XML_GetErrorCode(parser)));
+  }
+  fl.close();
+  cout << "parsing done\n";
 }
