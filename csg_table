@@ -18,6 +18,7 @@ calc thermforce calc_thermforce.sh
 
 convert_potential xvg table_to_xvg.pl
 table integrate integrate_tf.pl
+tf apply_prefactor apply_prefactor.pl
 table smooth_borders smooth_borders.py
 
 density gromacs calc_density_x_gromacs.sh

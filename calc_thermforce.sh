@@ -18,6 +18,11 @@ name=$(csg_get_interaction_property name)
 splinedelta="$(csg_get_property cg.tf.splinedelta)"
 step="$(csg_get_interaction_property step)"
 prefactor="$(csg_get_property cg.tf.prefactor)"
+
+
+cg_prefactor="$(csg_get_property --allow-empty cg.tf.cg_prefactor)"
+
+
 splinestep="$(csg_get_property cg.tf.splinesmoothstep)"
 
 adressw="$(csg_get_property cg.tf.adressw)"
@@ -31,10 +36,6 @@ outfile="dens_$name\_smooth.xvg"
 xstart=$(echo "scale=8; $adressc+$adressw" | bc)
 xstop=$(echo "scale=8; $adressc+$adressw+$adressh" | bc)
 
-#rho_0="$(cat dens_$name.xvg | awk -f $CSGSCRIPTDIR/calc_non_hybrid_dens.awk -v adressc=$adressc adressw=$adressw adressh=$adressh)"
-#log "Density in non hybrid zone $rho_0"
-
-
 infile="dens_$name.xvg"
 outfile="dens_$name\_symm.xvg"
 run_or_exit do_external density symmetrize --infile $infile --outfile $outfile --adressc $adressc
@@ -44,13 +45,23 @@ infile="dens_$name\_symm.xvg"
 outfile="dens_$name\_smooth.xvg"
 
 forcefile="thermforce_$name.xvg"
+forcefile_pref="thermforce_wpref_$name.xvg"
 forcefile_smooth="thermforce_smooth_$name.xvg"
+
 spxstart=$(echo "scale=8; $adressc+$adressw-$splinedelta" | bc)
 spxstop=$(echo "scale=8; $adressc+$adressw+$adressh+$splinedelta" | bc)
+
 run_or_exit csg_resample --in $infile --out $outfile --grid $spxstart:$step:$spxstop --derivative $forcefile --spfit $spxstart:$splinestep:$spxstop
 
-run_or_exit do_external table smooth_borders --infile $forcefile --outfile $forcefile_smooth --xstart $xstart --xstop $xstop  
+if [ -z "$cg_prefactor" ];then
+       echo "Using fixed prefactor $prefactor "	
+       run_or_exit do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor
+else
+       echo "Using linear interpolation of prefactors. Ex. pref: $prefactor CG. pref : $cg_prefactor"
+       run_or_exit do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor $cg_prefactor
+fi
 
-run_or_exit do_external table integrate $forcefile_smooth ${name}.dpot.new $prefactor
+run_or_exit do_external table smooth_borders --infile $forcefile_pref --outfile $forcefile_smooth --xstart $xstart --xstop $xstop  
 
+run_or_exit do_external table integrate $forcefile_smooth ${name}.dpot.new
 

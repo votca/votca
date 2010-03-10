@@ -1,10 +1,7 @@
 #! /usr/bin/perl -w
 #
-# (C) 2006-2008 Chr. Junghans
-# junghans@mpip-mainz.mpg.de
-#
-#
-#version 0.1  , 08.07.08 -- initial version
+# (C) Sebastian Fritsch
+
 use strict;
 
 $_=$0;
@@ -52,6 +49,9 @@ die "no files given\n$usage\n" unless $#ARGV > 0;
 
 use CsgFunctions;
 
+
+my $do_interpolate = 0;
+
 my $infile="$ARGV[0]";
 my @r;
 my @val;
@@ -61,16 +61,36 @@ my @flag;
 my $outfile="$ARGV[1]";
 my @out;
 
+my $prefactor="$ARGV[2]";
+my $prefactor_cg = 0;
 
-my $min = 0;
-$out[0] = 0;
-for (my $i=1;$i<=$#r;$i++){
-  $out[$i]=$out[$i-1] + 0.5*($val[$i] + $val[$i-1])*($r[$i] - $r[$i-1]); 
-  #$min = $out[$i] if $out[$i] < $min;
+
+if (defined $ARGV[3]){
+    $prefactor_cg = "$ARGV[3]";
+    $do_interpolate = 1;
 }
 
-for (my $i=0;$i<=$#r;$i++){
-  $out[$i]=$out[$i]-$min;
+my $min = 0;
+my $i=0;
+
+for (;$i<=$#r;$i++){
+  $out[$i]=$val[$i]; 
+}
+
+if (!$do_interpolate){
+    for ($i=0;$i<=$#r;$i++){
+    # just multiply
+      $out[$i]=$out[$i]*$prefactor;
+    }
+}
+else
+{
+    for ($i=0;$i<=$#r;$i++){
+    # do a linear interpoltation between the prefactors
+    
+        $out[$i]=$i/$#r*$out[$i]*$prefactor_cg+(1-$i/$#r)*$out[$i]*$prefactor;
+
+    }   
 }
 
 saveto_table($outfile,@r,@out,@flag) || die "$progname: error at save table\n";
