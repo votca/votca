@@ -40,11 +40,7 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     QMNBList &nblist =(_qmtop->nblist());
     nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
-    TrajectoryWriter *writer;
-    writer = TrjWriterFactory().Create(".pdb");
-    if(writer == NULL)
-        throw runtime_error("output format not supported: .pdb");
-    string framedir=string("frame")+lexical_cast<string>(top->getStep())  ;
+   
 
     mkdir(framedir.c_str(),0755);
     for(QMNBList::iterator iter = nblist.begin();

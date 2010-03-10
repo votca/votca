@@ -63,6 +63,7 @@ void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
         Bead * bead = totop ->CreateBead(1, atomtype,bt,0, 0, 0.);
         bead->setPos(pos); 
     }
+    delete atoms->getorbs();
     delete atoms;
 }
 
