@@ -58,7 +58,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
     double reorg;
     double energy;
     vector <int> transorbs;
-    string beadconj;
+   // string beadconj;
     string name;
     string molname;
     string namebasis;
@@ -79,7 +79,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         reorg = (*iter)->get("reorg").as<double>();
         energy = (*iter)->get("energy").as<double>();
         transorbs = (*iter)->get("transorb").as<vector <int> >();
-        beadconj = (*iter)->get("beadconj").as<string>();
+ //       beadconj = (*iter)->get("beadconj").as<string>();
         name = (*iter)->get("name").as<string>();
         molname = (*iter)->get("molname").as<string>();
         namebasis = (*iter)->get("basisset").as<string>();
@@ -110,16 +110,19 @@ void JCalc::ParseCrgUnitTypes(Property &options){
             tok2.ConvertToVector<double>(list_weights);
             list_weights_monomer.push_back(list_weights);
         }
-    }
-    CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(),
-            nameneutr.c_str(), namecrg.c_str(), namebasis,
-            reorg, energy, transorbs, _listCrgUnitType.size(),
-            molname, name, list_atoms_monomer, list_weights_monomer);
-    _mapCrgUnitByName.insert(make_pair(name, crgunittype));
 
-    clearListList(list_atoms_monomer);
-    clearListList(list_weights_monomer);
-    _listCrgUnitType.push_back(crgunittype);
+        CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(),
+                nameneutr.c_str(), namecrg.c_str(), namebasis,
+                reorg, energy, transorbs, _listCrgUnitType.size(),
+                molname, name, list_atoms_monomer, list_weights_monomer);
+        _mapCrgUnitByName.insert(make_pair(name, crgunittype));
+
+        _listCrgUnitType.push_back(crgunittype);
+
+        clearListList(list_atoms_monomer);
+        clearListList(list_weights_monomer);
+    }
+
 }
 
 /// TODO: rewrite this using Property class
@@ -344,7 +347,7 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
     return Js;
 }
 
-int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
+int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two,string namedir)
 {
     // only write them when one.id < two.id
     if (one.getType()->getId() < two.getType()->getId())
@@ -357,11 +360,11 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two)
 
     ofstream out;
     string name1, nameorb1, name2, nameorb2, namedim;
-    name1 = lexical_cast<string>(one.getId()) + ".xyz";
-    name2 = lexical_cast<string>(two.getId()) + ".xyz";
-    nameorb1 = lexical_cast<string>(one.getId()) + ".fort.7";
-    nameorb2 = lexical_cast<string>(two.getId()) + ".fort.7";
-    namedim = lexical_cast<string>(one.getId())+"and"+
+    name1 =namedir + lexical_cast<string>(one.getId()) + ".xyz";
+    name2 = namedir +lexical_cast<string>(two.getId()) + ".xyz";
+    nameorb1 =namedir + lexical_cast<string>(one.getId()) + ".fort.7";
+    nameorb2 = namedir +lexical_cast<string>(two.getId()) + ".fort.7";
+    namedim = namedir +lexical_cast<string>(one.getId())+"and"+
             lexical_cast<string>(two.getId()) +".com";
 
     
