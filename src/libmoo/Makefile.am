@@ -4,9 +4,9 @@ AUTOMAKE_OPTIONS = foreign
 
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I../../../libcsg 
-lib_LIBRARIES = libmoo.a
+lib_LTLIBRARIES = libvotca_moo.la
 
-libmoo_a_SOURCES = \
+libvotca_moo_la_SOURCES = \
     basis_set.cpp  charges.cpp  crgunit.cc  crgunittype.cc \
     fock.cc  orbitals.cpp  mol_and_orb.cpp jcalc.cc
     

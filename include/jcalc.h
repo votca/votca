@@ -17,6 +17,7 @@
 #include "votca/tools/tokenizer.h"
 #include "crgunit.h"
 #include "fock.h"
+#include <votca/tools/property.h>
 
 using namespace boost;
 
@@ -62,6 +63,9 @@ private:
 
     };
     
+    /// To parse the xml file
+    Property _options;
+
     /// a list of charge transport units
     vector <CrgUnitType *> _listCrgUnitType;
     /// a map of charge unit type names to their index in the list
@@ -71,6 +75,8 @@ private:
 
     /// Enter data for Crg Unit Type
     void ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur );
+    /// Enter data for Crg Unit Types
+    void ParseCrgUnitTypes(Property &options);
     /// initialise a JCAlcDAta type
     JCalcData * InitJCalcData(CrgUnitType *, CrgUnitType * );
     /// get a J calc data from the map
