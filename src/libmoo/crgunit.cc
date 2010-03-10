@@ -79,9 +79,8 @@ void CrgUnit::copyCrgUnit(CrgUnit & acrg)
 mol_and_orb * CrgUnit::rotate_translate_beads()
 {
     mol_and_orb *a = new mol_and_orb;
-    basis_set *_indo = new basis_set;
     orb * _orb = new orb;
-    a->define_bs(*_indo);
+    a->define_bs(_type->GetBS());
     a->cp_atompos(_type->GetCrgUnit());
     a->cp_atoms(_type->GetCrgUnit());
     _orb->init_orbitals_stripped(_type->GetOrb(), _type->GetTransOrbs().size());

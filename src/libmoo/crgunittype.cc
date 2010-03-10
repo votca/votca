@@ -116,12 +116,12 @@ CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
 #ifdef DEBUG
                 cout << "Adding atom " << *it_at << " to monomer " << count << endl;
 #endif
-                m[0][0] += v.getX() * v.getX();
-                m[0][1] += v.getX() * v.getY();
-                m[0][2] += v.getX() * v.getZ();
-                m[1][1] += v.getY() * v.getY();
-                m[1][2] += v.getY() * v.getZ();
-                m[2][2] += v.getZ() * v.getZ();
+                m[0][0] +=  v.getX() * v.getX();
+                m[0][1] +=  v.getX() * v.getY();
+                m[0][2] +=  v.getX() * v.getZ();
+                m[1][1] +=  v.getY() * v.getY();
+                m[1][2] +=  v.getY() * v.getZ();
+                m[2][2] +=  v.getZ() * v.getZ();
             }
 
             m[1][0] = m[0][1];
