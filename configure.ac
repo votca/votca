@@ -36,8 +36,8 @@ fi
 # check for fftw3
 PKG_CHECK_MODULES([FFTW],fftw3)
 
-# check for libxml2
-PKG_CHECK_MODULES([XML],libxml-2.0)
+# checko for expat
+AX_EXPAT
 
 # check for gsl
 PKG_CHECK_MODULES([GSL],gsl)
