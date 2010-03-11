@@ -22,8 +22,6 @@ csg_property_SOURCES = csg_property.cc
 
 #fmatch uses gsl
 csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch_main.cc csg_fmatch.h
-csg_fmatch_CPPFLAGS = $(AM_CPPFLAGS) $(GSL_CFLAGS)
-csg_fmatch_LDFLAGS = $(AM_LDFLAGS)
 
 csg_imcrepack_SOURCES = csg_imcrepack.cc
 

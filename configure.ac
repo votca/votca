@@ -30,16 +30,11 @@ fi
 #look for votca tools
 PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools)
 
-#look for gsl
-PKG_CHECK_MODULES([GSL],gsl)
-
 # check for libxml2
 PKG_CHECK_MODULES([XML],libxml-2.0)
 
-
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
-
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
@@ -58,7 +53,5 @@ AC_CONFIG_FILES([scripts/Makefile])
 
 AC_CONFIG_FILES([share/xml/Makefile])
 AC_CONFIG_FILES([share/template/Makefile])
-
-
 
 AC_OUTPUT
