@@ -28,7 +28,8 @@ if test "$with_votca_boost" = no; then
 		
 BOOST was not found/disabled: Building libvotca_boost
 ])
-  with_votca_boost="yes"
+    with_votca_boost="yes"
+  fi
 fi
 
 # check for fftw3
@@ -44,16 +45,18 @@ AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
 
 if test "$with_votca_boost" = "yes"; then
-  BOOST_CPPFLAGS='-I$(top_srcdir)/src/libboost'
-  AC_SUBST(BOOST_CPPFLAGS)
-  BOOST_LDFLAGS='$(top_srcdir)/src/libboost/libs/libvotca_boost.la'
-  AC_SUBST(BOOST_LDFLAGS)
-  AC_CONFIG_SUBDIRS(src/libboost)
+  BOOST_CFLAGS='-I$(top_srcdir)/src/libboost'
+  BOOST_LIBS='$(top_srcdir)/src/libboost/libs/libvotca_boost.la'
   VOTCA_BOOST="libboost"
+  AC_CONFIG_SUBDIRS(src/libboost)
 else
+  BOOST_CFLAGS="$BOOST_CPPFLAGS"
+  BOOST_LIBS="$BOOST_LDFLAGS"
   VOTCA_BOOST=""
 fi
 AC_SUBST(VOTCA_BOOST)
+AC_SUBST(BOOST_CFLAGS)
+AC_SUBST(BOOST_LIBS)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([include/Makefile])
