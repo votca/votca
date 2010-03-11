@@ -28,7 +28,7 @@ against expat in EXPAT_LIBS (e.g. export EXPAT_LIBS="-L<expat-pat>/lib -lexpat")
       ])
     ])
     LIBS="$save_LIBS"
-    PKGEXPAT="expat"
+    PKGEXPAT=""
     PKGCFLAGSEXPAT="$EXPAT_CFLAGS"
     PKGLIBSEXPAT="$EXPAT_LIBS"
   ])
