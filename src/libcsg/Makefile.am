@@ -14,10 +14,9 @@ libvotca_csg_la_SOURCES = \
 
 #xml, gmx is needed because modules/io headers
 libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS) $(XML_CFLAGS) $(BOOST_CFLAGS)
-#XML_LIBS come with VOTCA_TOOLS_LIBS
 #boost is need in cgengine.h
 libvotca_csg_la_LIBADD = modules/io/libio.la
-libvotca_csg_la_LDFLAGS = -no-undefined $(VOTCA_TOOLS_LIBS) $(GMX_LIBS) $(BOOST_LIBS)
+libvotca_csg_la_LDFLAGS = -no-undefined $(VOTCA_TOOLS_LIBS) $(GMX_LIBS) $(XML_LIBS) $(BOOST_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libvotca_csg.pc
