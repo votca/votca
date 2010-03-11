@@ -15,28 +15,7 @@ AC_PROG_LN_S
 PKG_PROG_PKG_CONFIG
 
 AX_GROMACS
-AX_BOOST_BASE([1.33.1],[have_boost=yes],[have_boost=no])
-
-if test "$have_boost" = "no" -o "$want_boost" = "no"; then
-  AC_MSG_NOTICE([
-		
-BOOST was not found/disabled: Try to use libvotca_boost
-
-])
-  PKG_CHECK_MODULES([BOOST],libvotca_boost)
-  PBOOST="libvotca_boost"
-  LBOOST=""
-else
-  AX_BOOST_PROGRAM_OPTIONS([1.33.1])
-  BOOST_CFLAGS="$BOOST_CPPFLAGS"
-  AC_SUBST(BOOST_CFLAGS)
-  BOOST_LIBS="$BOOST_LDFLAGS $BOOST_PROGRAM_OPTIONS_LIB"
-  AC_SUBST(BOOST_LIBS)
-  PBOOST=""
-  LBOOST="$BOOST_PROGRAM_OPTIONS_LIB"
-fi
-AC_SUBST(PBOOST)
-AC_SUBST(LBOOST)
+AX_VOTCA_BOOST
 
 AC_ARG_ENABLE(all-static,
               [AC_HELP_STRING([--enable-all-static],
