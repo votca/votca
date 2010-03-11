@@ -1,5 +1,3 @@
-SUBDIRS =  detail program_options smart_ptr
-
 AM_CPPFLAGS = -I$(srcdir)/..
 
 lib_LTLIBRARIES = libvotca_boost.la
@@ -12,5 +10,8 @@ program_options/src/parsers.cpp program_options/src/positional_options.cpp \
 program_options/src/split.cpp program_options/src/utf8_codecvt_facet.cpp \
 program_options/src/value_semantic.cpp \
 program_options/src/variables_map.cpp program_options/src/winmain.cpp \
-smart_ptr/src/sp_collector.cpp smart_ptr/src/sp_debug_hooks.cpp 
+smart_ptr/src/sp_collector.cpp smart_ptr/src/sp_debug_hooks.cpp
+
+EXTRA_DIST = \
+detail/utf8_codecvt_facet.cpp
 
