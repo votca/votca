@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libvotca_csg
+Name: libvotca_csg libxml-2.0
 Description: csg functions of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
