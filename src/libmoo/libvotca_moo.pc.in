@@ -7,7 +7,7 @@ Name: libvotca_moo
 Description: moo functions of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
-Requires: libvotca_tools 
+Requires: libvotca_tools
 Libs: -L${libdir} -lvotca_moo
 Libs.private:
 Cflags: -I${includedir}
