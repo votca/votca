@@ -29,7 +29,7 @@ You can not disable boost without having libvotca_boost.
   ])
   AC_SUBST(BOOST_CFLAGS)
   AC_SUBST(BOOST_LIBS)
-  AC_SUBST(PKGNAMEBOOST)
+  AC_SUBST(PKGBOOST)
   AC_SUBST(PKGLIBSBOOST)
   AC_SUBST(PKGCFLAGSBOOST)
 ])
