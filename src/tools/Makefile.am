@@ -35,4 +35,4 @@ csg_map_SOURCES = csg_map.cc
 #    csg_sample.cc
 
 #everything is already in libvotca_csg
-AM_LDFLAGS = ../libcsg/libvotca_csg.la
+AM_LDFLAGS = $(BIN_LDFLAGS) ../libcsg/libvotca_csg.la

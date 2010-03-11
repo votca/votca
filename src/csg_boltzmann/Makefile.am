@@ -11,3 +11,4 @@ csg_boltzmann_SOURCES = \
 
 #everything is alread in libvotca_csg
 csg_boltzmann_LDADD = ../libcsg/libvotca_csg.la
+csg_boltzmann_LDFLAGS = $(BIN_LDFLAGS)

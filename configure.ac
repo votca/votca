@@ -20,7 +20,12 @@ AX_VOTCA_BOOST
 AC_ARG_ENABLE(all-static,
               [AC_HELP_STRING([--enable-all-static],
               [Make completely static binaries])],, enable_all_static=no)
-# Dont add the -all-static flag until after the compiler test.
+
+if test "$enable_all_static" = "yes"; then
+  AX_BROKEN_LIBXML
+  BIN_LDFLAGS="-all-static $BIN_LDFLAGS"
+  AC_SUBST(BIN_LDFLAGS)
+fi
 
 #look for votca tools
 PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools)
@@ -31,10 +36,6 @@ PKG_CHECK_MODULES([GSL],gsl)
 # check for libxml2
 PKG_CHECK_MODULES([XML],libxml-2.0)
 
-if test "$enable_all_static" = "yes"; then
-  AX_BROKEN_LIBXML
-  LDFLAGS="$LDFLAGS -all-static"
-fi
 
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
