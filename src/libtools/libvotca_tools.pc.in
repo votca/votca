@@ -6,8 +6,8 @@ includedir=@includedir@
 Name: libvotca_tools
 Description: basic tools of the votca package
 URL: http://www.votca.org
-Version: @VERSION@
+Version: @VERSION@ @PKGEXPAT@
 Requires: gsl fftw3
-Libs: -L${libdir} -lvotca_tools @EXPAT_LIBS@
+Libs: -L${libdir} -lvotca_tools @PKGLIBSEXPAT@
 Libs.private: -lm
-Cflags: -I${includedir} @EXPAT_CFLAGS@
+Cflags: -I${includedir} @PKGCFLAGSEXPAT@

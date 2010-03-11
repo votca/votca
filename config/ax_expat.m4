@@ -1,6 +1,10 @@
 AC_DEFUN([AX_EXPAT], [
   dnl next version of expat have pkg-config support
-  PKG_CHECK_MODULES([EXPAT],expat,[:],[
+  PKG_CHECK_MODULES([EXPAT],expat,[
+    PKGEXPAT="expat"
+    PKGCFLAGSEXPAT=""
+    PKGLIBSEXPAT=""
+  ],[
     save_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$EXPAT_CFLAGS $CPPFLAGS"
     AC_CHECK_HEADER([expat.h],[:],[AC_MSG_ERROR([
@@ -22,7 +26,13 @@ Could not link against Expat,
 please check your LDFLAGS and/or specify libraries required to link 
 against expat in EXPAT_LIBS (e.g. export EXPAT_LIBS="-L<expat-pat>/lib -lexpat").
       ])
-   ])
-   LIBS="$save_LIBS"
+    ])
+    LIBS="$save_LIBS"
+    PKGEXPAT="expat"
+    PKGCFLAGSEXPAT="$EXPAT_CFLAGS"
+    PKGLIBSEXPAT="$EXPAT_LIBS"
   ])
+  AC_SUBST(PKGCFLAGSEXPAT)
+  AC_SUBST(PKGLIBSEXPAT)
+  AC_SUBST(PKGEXPAT)
 ])
