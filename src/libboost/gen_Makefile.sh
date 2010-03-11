@@ -20,11 +20,14 @@ done
 
 echo Doing libs
 cd libs
-files=$(find . -type f -not -name "*.cpp" -and -not -name "Makefile*" -and -not -name "*.Plo")
+files=$(find . -type f -not -name "*.cpp" -and -not -name "Makefile*" -and -not -name "*.o" -and -not -name "*.l[oa]")
+files=$(echo "$files" | grep -Eve '/.(libs|deps)/')
+
 [ -n "$files" ] && die "Unknown files:\n$files"
 
 rm -f Makefile.am
-echo -e "AM_CPPFLAGS = -I\$(srcdir)/..\n" >>  Makefile.am
+echo -e "libvotca_boost_la_CPPFLAGS = -I\$(srcdir)/..\n" >>  Makefile.am
+echo -e "libvotca_boost_la_LDFLAGS = -no-undefined\n" >>  Makefile.am
 echo -e "lib_LTLIBRARIES = libvotca_boost.la\n" >> Makefile.am
 echo -e "libvotca_boost_la_SOURCES = \\" >> Makefile.am
 find . -type f -name "*.cpp" | grep -v detail | find_to_make >> Makefile.am
@@ -38,7 +41,7 @@ echo Done with libs
 echo
 echo Doing headers
 cd boost
-files=$(find . -type f -not -name "*.hpp" -a -not -name "Makefile*")
+files=$(find . -type f -not -name "*.hpp" -and -not -name "Makefile*")
 [ -n "$files" ] && die "Unknown files:\n$files"
 
 rm -f Makefile.am

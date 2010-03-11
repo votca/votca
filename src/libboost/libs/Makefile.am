@@ -1,4 +1,6 @@
-AM_CPPFLAGS = -I$(srcdir)/..
+libvotca_boost_la_CPPFLAGS = -I$(srcdir)/..
+
+libvotca_boost_la_LDFLAGS = -no-undefined
 
 lib_LTLIBRARIES = libvotca_boost.la
 
