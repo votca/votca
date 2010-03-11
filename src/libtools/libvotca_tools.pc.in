@@ -7,7 +7,7 @@ Name: libvotca_tools
 Description: basic tools of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
-Requires: gsl libxml-2.0 fftw3
-Libs: -L${libdir} -lvotca_tools
+Requires: gsl fftw3
+Libs: -L${libdir} -lvotca_tools @EXPAT_LIBS@
 Libs.private: -lm
-Cflags: -I${includedir}
+Cflags: -I${includedir} @EXPAT_CFLAGS@
