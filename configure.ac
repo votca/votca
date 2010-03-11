@@ -17,16 +17,14 @@ PKG_PROG_PKG_CONFIG
 AC_CONFIG_HEADERS(config.h)
 
 AC_ARG_WITH(votca_boost,
-            [AC_HELP_STRING([--with-votca_boost],
+            [AC_HELP_STRING([--with-votca-boost],
                             [Build libvotca_boost, a build-in replacement for boost])],,
                              [with_votca_boost="no"])
 # check for boost
 if test "$with_votca_boost" = no; then
-  AX_BOOST_BASE([1.33.1],[have_boost=yes],[have_boost=no])
-fi
-
-if test "$have_boost" = "no" -o "$want_boost" = "no"; then
-  AC_MSG_NOTICE([
+  AX_BOOST_BASE([1.33.1],[:],[have_boost=no])
+  if test "$have_boost" = "no" -o "$want_boost" = "no"; then
+    AC_MSG_NOTICE([
 		
 BOOST was not found/disabled: Building libvotca_boost
 ])
@@ -51,8 +49,11 @@ if test "$with_votca_boost" = "yes"; then
   BOOST_LDFLAGS='$(top_srcdir)/src/libboost/libs/libvotca_boost.la'
   AC_SUBST(BOOST_LDFLAGS)
   AC_CONFIG_SUBDIRS(src/libboost)
+  VOTCA_BOOST="libboost"
+else
+  VOTCA_BOOST=""
 fi
-AM_CONDITIONAL(VOTCA_BOOST, test "$with_votca_boost" = "yes")
+AC_SUBST(VOTCA_BOOST)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([include/Makefile])
