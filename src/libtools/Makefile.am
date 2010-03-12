@@ -3,7 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
 lib_LTLIBRARIES = libvotca_tools.la
 
 #no BOOST_LDFLAGS here, because we just need the headers
-libvotca_tools_la_LDFLAGS = -no-undefined $(EXPAT_LIBS) $(GSL_LIBS) $(FFTW_LIBS)
+libvotca_tools_la_LDFLAGS = -no-undefined $(EXPAT_LIBS) $(GSL_LIBS) $(FFTW_LIBS) -lm
 libvotca_tools_la_CPPFLAGS = $(AM_CPPFLAGS) $(EXPAT_CFLAGS) $(GSL_CFLAGS) $(FFTW_CFLAGS) $(BOOST_CFLAGS)
 
 libvotca_tools_la_SOURCES = \
