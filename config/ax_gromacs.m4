@@ -1,5 +1,31 @@
 AC_DEFUN([AX_GROMACS], [
-  PKG_CHECK_MODULES([GMX],libgmx)
+  PKG_CHECK_MODULES([GMX],libgmx,[:],[
+    AC_ARG_VAR([GMXLDLIB],[path to gromacs lib dir, usually set by "source GMXRC"])
+    AC_MSG_CHECKING([GMXLDLIB])
+    if test -z "$GMXLDLIB"; then
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([
+
+Could not find GMXLDLIB environment variable, please source <gomacs-path>/bin/GMXRC 
+or specify GMX_LIBS and GMX_CLFAGS
+      ])
+    else
+      AC_MSG_RESULT([yes])
+    fi
+    AC_MSG_NOTICE([creating GMX_LIBS and GMX_CFLAGS from GMXLDLIB])
+    if test -z "$GMX_LIBS"; then
+      GMX_LIBS="-L$GMXLDLIB -lgmx"
+      AC_MSG_NOTICE([setting GMX_LIBS   to "$GMX_LIBS"])
+    else
+      AC_MSG_NOTICE([GMX_LIBS was already set elsewhere to "$GMX_LIBS"])
+    fi
+    if test -z "$GMX_CFLAGS"; then
+      GMX_CFLAGS="-I$GMXLDLIB/../include/gromacs"
+      AC_MSG_NOTICE([setting GMX_CFLAGS to "$GMX_CFLAGS"])
+    else
+      AC_MSG_NOTICE([GMX_CFLAGS was already set elswhere to "$GMX_CFLAGS"])
+    fi
+  ])
   save_CPPFLAGS="$CPPFLAGS"
   save_LIBS="$LIBS"
 
