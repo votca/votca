@@ -41,7 +41,7 @@ echo -e "label($progname)"
 #-convert NEEDS and OPTINAL in link
 #-add cg.interaction in links
 echo -e "$helpmsg" | sed \
-   -e '1,9d' \
+   -e '1,10d' \
    -e 's/^[[:space:]]*//' \
    -e 's/[[:space:]]*$//' \
    -e '/^-[^ ]/s/ \{2\}/`` /' \
