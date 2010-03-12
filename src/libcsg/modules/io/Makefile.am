@@ -10,8 +10,7 @@ libio_la_SOURCES = \
 	pdbtopologyreader.cc 	pdbtopologyreader.h 	pdbwriter.cc\
 	pdbwriter.h 		xmltopologyreader.cc	xmltopologyreader.h
 
-#no LIBADD here, because this is a noint lib
-libio_la_LIBADD =
-libio_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(BOOST_CFLAGS) $(GMX_CFLAGS) $(XML_CFLAGS)
+libio_la_LDFLAGS = -no-undefined
+libio_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(BOOST_CFLAGS) $(GMX_CFLAGS) $(EXPAT_CFLAGS) 
 
 CLEANFILES = *~

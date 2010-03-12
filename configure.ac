@@ -22,16 +22,14 @@ AC_ARG_ENABLE(all-static,
               [Make completely static binaries])],, enable_all_static=no)
 
 if test "$enable_all_static" = "yes"; then
-  AX_BROKEN_LIBXML
   BIN_LDFLAGS="-all-static $BIN_LDFLAGS"
   AC_SUBST(BIN_LDFLAGS)
 fi
 
+AX_EXPAT
+
 #look for votca tools
 PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools)
-
-# check for libxml2
-PKG_CHECK_MODULES([XML],libxml-2.0)
 
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
