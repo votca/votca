@@ -19,14 +19,17 @@
 #define	_XMLTOPOLOGYREADER_H
 
 #include <string>
-#include <libxml/xmlreader.h>
 #include "topologyreader.h"
 #include <stack>
 
 using namespace std;
-    
-/**
 
+/**
+ *  Reads in an xml topology
+ *
+ * \todo this is a sloppy implementation using expat, is just reads attributes
+ * \todo should be extended to also read beads, ...
+ * 
 */
 class XMLTopologyReader
    : public TopologyReader
@@ -36,12 +39,32 @@ public:
     bool ReadTopology(string file, Topology &top);
 
 private:    
+
     void ReadTopolFile(string file);
-          
-    void ParseTopology(xmlNodePtr node);
-    void ParseMolecules(xmlNodePtr node);
+
+    void ParseRoot(const string &el, map<string, string> &attr);
+    void ParseTopology(const string &el, map<string, string> &attr);
+    void ParseMolecules(const string &el, map<string, string> &attr);
+    void ParseIgnore(const string &el, map<string, string> &attr);
     
+public:
+
+
+    /// start element callback for xml parser
+    void StartElemHndl(const string &el, map<string, string> &attr);
+    /// end element callback for xml parser
+    void EndElemHndl(const string &el);
+
+private:
+
     Topology *_top;
+
+    typedef void (XMLTopologyReader::*ElemHandler_t)(const string &, map<string, string> &);
+
+    void SetHandler(ElemHandler_t handler);
+
+    stack<ElemHandler_t> _stack_handler;
+    ElemHandler_t _handler;
 };
 
 #endif	/* _PDBTOPOLOGYREADER_H */
