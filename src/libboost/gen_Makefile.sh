@@ -30,6 +30,8 @@ echo -e "libvotca_boost_la_CPPFLAGS = -I\$(srcdir)/..\n" >>  Makefile.am
 echo -e "libvotca_boost_la_LDFLAGS = -no-undefined\n" >>  Makefile.am
 echo -e "lib_LTLIBRARIES = libvotca_boost.la\n" >> Makefile.am
 echo -e "libvotca_boost_la_SOURCES = \\" >> Makefile.am
+files=$(find . -type f -name "*.cpp")
+[ -z "${files}" ] && die "No cpp files found"
 find . -type f -name "*.cpp" | grep -v detail | find_to_make >> Makefile.am
 echo >> Makefile.am
 echo -e "EXTRA_DIST = \\" >> Makefile.am
@@ -45,10 +47,17 @@ files=$(find . -type f -not -name "*.hpp" -and -not -name "Makefile*")
 [ -n "$files" ] && die "Unknown files:\n$files"
 
 rm -f Makefile.am
-echo -e "boostincldir = \$(includedir)/votca/boost\n" >> Makefile.am
-echo -e "nobase_boostincl_HEADERS = \\" >> Makefile.am
-find . -type f -name "*.hpp" | find_to_make >> Makefile.am
-echo >> Makefile.am
-
+files=$(find . -type f -name "*.hpp")
+[ -z "${files}" ] && die "No hpp files found"
+blocks=$(( $(echo "$files" | wc -l) / 100 ))
+echo Makeing $blocks blocks
+for ((c=0;c<=$blocks;c++)); do
+  echo -e "boost${c}dir = \$(includedir)/votca/boost\n" >> Makefile.am
+  echo -e "nobase_boost${c}_HEADERS = \\" >> Makefile.am
+  a=$((c*100+1))
+  b=$((a+99))
+  echo "$files" | sed -n "${a},${b}p" | find_to_make >> Makefile.am
+  echo >> Makefile.am
+done
 cd ..
 echo Done with headers

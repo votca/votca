@@ -1,6 +1,6 @@
-boostincldir = $(includedir)/votca/boost
+boost0dir = $(includedir)/votca/boost
 
-nobase_boostincl_HEADERS = \
+nobase_boost0_HEADERS = \
 algorithm/string/classification.hpp algorithm/string/config.hpp \
 algorithm/string/detail/classification.hpp \
 algorithm/string/detail/trim.hpp algorithm/string/predicate_facade.hpp \
@@ -40,11 +40,15 @@ config/suffix.hpp config/user.hpp config/warning_disable.hpp \
 cstdint.hpp current_function.hpp detail/call_traits.hpp \
 detail/endian.hpp detail/indirect_traits.hpp detail/interlocked.hpp \
 detail/is_function_ref_tester.hpp detail/iterator.hpp \
-detail/lcast_precision.hpp detail/lightweight_mutex.hpp \
-detail/limits.hpp detail/no_exceptions_support.hpp \
-detail/ob_call_traits.hpp detail/reference_content.hpp \
-detail/sp_typeinfo.hpp detail/utf8_codecvt_facet.hpp \
-detail/workaround.hpp exception/detail/attribute_noreturn.hpp \
+detail/lcast_precision.hpp detail/lightweight_mutex.hpp detail/limits.hpp \
+detail/no_exceptions_support.hpp detail/ob_call_traits.hpp
+
+boost1dir = $(includedir)/votca/boost
+
+nobase_boost1_HEADERS = \
+detail/reference_content.hpp detail/sp_typeinfo.hpp \
+detail/utf8_codecvt_facet.hpp detail/workaround.hpp \
+exception/detail/attribute_noreturn.hpp \
 exception/exception.hpp format/alt_sstream.hpp \
 format/alt_sstream_impl.hpp format/detail/compat_workarounds.hpp \
 format/detail/config_macros.hpp format/detail/msvc_disambiguater.hpp \
@@ -82,7 +86,11 @@ mpl/aux_/config/adl.hpp mpl/aux_/config/arrays.hpp mpl/aux_/config/bcc.hpp \
 mpl/aux_/config/bind.hpp mpl/aux_/config/compiler.hpp \
 mpl/aux_/config/ctps.hpp mpl/aux_/config/dmc_ambiguous_ctps.hpp \
 mpl/aux_/config/dtp.hpp mpl/aux_/config/eti.hpp \
-mpl/aux_/config/forwarding.hpp mpl/aux_/config/gcc.hpp \
+mpl/aux_/config/forwarding.hpp mpl/aux_/config/gcc.hpp
+
+boost2dir = $(includedir)/votca/boost
+
+nobase_boost2_HEADERS = \
 mpl/aux_/config/has_apply.hpp mpl/aux_/config/has_xxx.hpp \
 mpl/aux_/config/integral.hpp mpl/aux_/config/intel.hpp \
 mpl/aux_/config/lambda.hpp mpl/aux_/config/msvc.hpp \
@@ -110,8 +118,49 @@ mpl/aux_/preprocessed/bcc551/apply.hpp \
 mpl/aux_/preprocessed/bcc551/apply_wrap.hpp \
 mpl/aux_/preprocessed/bcc551/arg.hpp \
 mpl/aux_/preprocessed/bcc551/basic_bind.hpp \
-mpl/aux_/preprocessed/bcc551/bind_fwd.hpp \
 mpl/aux_/preprocessed/bcc551/bind.hpp \
+mpl/aux_/preprocessed/bcc/advance_backward.hpp \
+mpl/aux_/preprocessed/bcc/advance_forward.hpp \
+mpl/aux_/preprocessed/bcc/and.hpp mpl/aux_/preprocessed/bcc/apply_fwd.hpp \
+mpl/aux_/preprocessed/bcc/apply.hpp \
+mpl/aux_/preprocessed/bcc/apply_wrap.hpp \
+mpl/aux_/preprocessed/bcc/arg.hpp mpl/aux_/preprocessed/bcc/basic_bind.hpp \
+mpl/aux_/preprocessed/bcc/bind_fwd.hpp mpl/aux_/preprocessed/bcc/bind.hpp \
+mpl/aux_/preprocessed/bcc/bitand.hpp mpl/aux_/preprocessed/bcc/bitor.hpp \
+mpl/aux_/preprocessed/bcc/bitxor.hpp mpl/aux_/preprocessed/bcc/deque.hpp \
+mpl/aux_/preprocessed/bcc/divides.hpp \
+mpl/aux_/preprocessed/bcc/equal_to.hpp \
+mpl/aux_/preprocessed/bcc/fold_impl.hpp \
+mpl/aux_/preprocessed/bcc/full_lambda.hpp \
+mpl/aux_/preprocessed/bcc/greater_equal.hpp \
+mpl/aux_/preprocessed/bcc/greater.hpp \
+mpl/aux_/preprocessed/bcc/inherit.hpp \
+mpl/aux_/preprocessed/bcc/iter_fold_if_impl.hpp \
+mpl/aux_/preprocessed/bcc/iter_fold_impl.hpp \
+mpl/aux_/preprocessed/bcc/lambda_no_ctps.hpp \
+mpl/aux_/preprocessed/bcc/less_equal.hpp \
+mpl/aux_/preprocessed/bcc/less.hpp mpl/aux_/preprocessed/bcc/list_c.hpp \
+mpl/aux_/preprocessed/bcc/list.hpp mpl/aux_/preprocessed/bcc/map.hpp \
+mpl/aux_/preprocessed/bcc/minus.hpp mpl/aux_/preprocessed/bcc/modulus.hpp \
+mpl/aux_/preprocessed/bcc/not_equal_to.hpp \
+mpl/aux_/preprocessed/bcc/or.hpp \
+mpl/aux_/preprocessed/bcc/placeholders.hpp \
+mpl/aux_/preprocessed/bcc/plus.hpp mpl/aux_/preprocessed/bcc/quote.hpp \
+mpl/aux_/preprocessed/bcc/reverse_fold_impl.hpp \
+mpl/aux_/preprocessed/bcc/reverse_iter_fold_impl.hpp \
+mpl/aux_/preprocessed/bcc/set_c.hpp mpl/aux_/preprocessed/bcc/set.hpp \
+mpl/aux_/preprocessed/bcc/shift_left.hpp \
+mpl/aux_/preprocessed/bcc/shift_right.hpp \
+mpl/aux_/preprocessed/bcc/template_arity.hpp \
+mpl/aux_/preprocessed/bcc/times.hpp \
+mpl/aux_/preprocessed/bcc/unpack_args.hpp \
+mpl/aux_/preprocessed/bcc/vector_c.hpp \
+mpl/aux_/preprocessed/bcc/vector.hpp
+
+boost3dir = $(includedir)/votca/boost
+
+nobase_boost3_HEADERS = \
+mpl/aux_/preprocessed/bcc551/bind_fwd.hpp \
 mpl/aux_/preprocessed/bcc551/bitand.hpp \
 mpl/aux_/preprocessed/bcc551/bitor.hpp \
 mpl/aux_/preprocessed/bcc551/bitxor.hpp \
@@ -148,33 +197,6 @@ mpl/aux_/preprocessed/bcc551/times.hpp \
 mpl/aux_/preprocessed/bcc551/unpack_args.hpp \
 mpl/aux_/preprocessed/bcc551/vector_c.hpp \
 mpl/aux_/preprocessed/bcc551/vector.hpp \
-mpl/aux_/preprocessed/bcc/advance_backward.hpp \
-mpl/aux_/preprocessed/bcc/advance_forward.hpp \
-mpl/aux_/preprocessed/bcc/and.hpp mpl/aux_/preprocessed/bcc/apply_fwd.hpp \
-mpl/aux_/preprocessed/bcc/apply.hpp \
-mpl/aux_/preprocessed/bcc/apply_wrap.hpp \
-mpl/aux_/preprocessed/bcc/arg.hpp mpl/aux_/preprocessed/bcc/basic_bind.hpp \
-mpl/aux_/preprocessed/bcc/bind_fwd.hpp mpl/aux_/preprocessed/bcc/bind.hpp \
-mpl/aux_/preprocessed/bcc/bitand.hpp mpl/aux_/preprocessed/bcc/bitor.hpp \
-mpl/aux_/preprocessed/bcc/bitxor.hpp mpl/aux_/preprocessed/bcc/deque.hpp \
-mpl/aux_/preprocessed/bcc/divides.hpp \
-mpl/aux_/preprocessed/bcc/equal_to.hpp \
-mpl/aux_/preprocessed/bcc/fold_impl.hpp \
-mpl/aux_/preprocessed/bcc/full_lambda.hpp \
-mpl/aux_/preprocessed/bcc/greater_equal.hpp \
-mpl/aux_/preprocessed/bcc/greater.hpp \
-mpl/aux_/preprocessed/bcc/inherit.hpp \
-mpl/aux_/preprocessed/bcc/iter_fold_if_impl.hpp \
-mpl/aux_/preprocessed/bcc/iter_fold_impl.hpp \
-mpl/aux_/preprocessed/bcc/lambda_no_ctps.hpp \
-mpl/aux_/preprocessed/bcc/less_equal.hpp \
-mpl/aux_/preprocessed/bcc/less.hpp mpl/aux_/preprocessed/bcc/list_c.hpp \
-mpl/aux_/preprocessed/bcc/list.hpp mpl/aux_/preprocessed/bcc/map.hpp \
-mpl/aux_/preprocessed/bcc/minus.hpp mpl/aux_/preprocessed/bcc/modulus.hpp \
-mpl/aux_/preprocessed/bcc/not_equal_to.hpp \
-mpl/aux_/preprocessed/bcc/or.hpp \
-mpl/aux_/preprocessed/bcc/placeholders.hpp \
-mpl/aux_/preprocessed/bcc/plus.hpp \
 mpl/aux_/preprocessed/bcc_pre590/advance_backward.hpp \
 mpl/aux_/preprocessed/bcc_pre590/advance_forward.hpp \
 mpl/aux_/preprocessed/bcc_pre590/and.hpp \
@@ -222,17 +244,6 @@ mpl/aux_/preprocessed/bcc_pre590/times.hpp \
 mpl/aux_/preprocessed/bcc_pre590/unpack_args.hpp \
 mpl/aux_/preprocessed/bcc_pre590/vector_c.hpp \
 mpl/aux_/preprocessed/bcc_pre590/vector.hpp \
-mpl/aux_/preprocessed/bcc/quote.hpp \
-mpl/aux_/preprocessed/bcc/reverse_fold_impl.hpp \
-mpl/aux_/preprocessed/bcc/reverse_iter_fold_impl.hpp \
-mpl/aux_/preprocessed/bcc/set_c.hpp mpl/aux_/preprocessed/bcc/set.hpp \
-mpl/aux_/preprocessed/bcc/shift_left.hpp \
-mpl/aux_/preprocessed/bcc/shift_right.hpp \
-mpl/aux_/preprocessed/bcc/template_arity.hpp \
-mpl/aux_/preprocessed/bcc/times.hpp \
-mpl/aux_/preprocessed/bcc/unpack_args.hpp \
-mpl/aux_/preprocessed/bcc/vector_c.hpp \
-mpl/aux_/preprocessed/bcc/vector.hpp \
 mpl/aux_/preprocessed/dmc/advance_backward.hpp \
 mpl/aux_/preprocessed/dmc/advance_forward.hpp \
 mpl/aux_/preprocessed/dmc/and.hpp mpl/aux_/preprocessed/dmc/apply_fwd.hpp \
@@ -242,7 +253,11 @@ mpl/aux_/preprocessed/dmc/arg.hpp mpl/aux_/preprocessed/dmc/basic_bind.hpp \
 mpl/aux_/preprocessed/dmc/bind_fwd.hpp mpl/aux_/preprocessed/dmc/bind.hpp \
 mpl/aux_/preprocessed/dmc/bitand.hpp mpl/aux_/preprocessed/dmc/bitor.hpp \
 mpl/aux_/preprocessed/dmc/bitxor.hpp mpl/aux_/preprocessed/dmc/deque.hpp \
-mpl/aux_/preprocessed/dmc/divides.hpp \
+mpl/aux_/preprocessed/dmc/divides.hpp
+
+boost4dir = $(includedir)/votca/boost
+
+nobase_boost4_HEADERS = \
 mpl/aux_/preprocessed/dmc/equal_to.hpp \
 mpl/aux_/preprocessed/dmc/fold_impl.hpp \
 mpl/aux_/preprocessed/dmc/full_lambda.hpp \
@@ -327,7 +342,11 @@ mpl/aux_/preprocessed/msvc60/fold_impl.hpp \
 mpl/aux_/preprocessed/msvc60/full_lambda.hpp \
 mpl/aux_/preprocessed/msvc60/greater_equal.hpp \
 mpl/aux_/preprocessed/msvc60/greater.hpp \
-mpl/aux_/preprocessed/msvc60/inherit.hpp \
+mpl/aux_/preprocessed/msvc60/inherit.hpp
+
+boost5dir = $(includedir)/votca/boost
+
+nobase_boost5_HEADERS = \
 mpl/aux_/preprocessed/msvc60/iter_fold_if_impl.hpp \
 mpl/aux_/preprocessed/msvc60/iter_fold_impl.hpp \
 mpl/aux_/preprocessed/msvc60/lambda_no_ctps.hpp \
@@ -422,8 +441,12 @@ mpl/aux_/preprocessed/mwcw/iter_fold_if_impl.hpp \
 mpl/aux_/preprocessed/mwcw/iter_fold_impl.hpp \
 mpl/aux_/preprocessed/mwcw/lambda_no_ctps.hpp \
 mpl/aux_/preprocessed/mwcw/less_equal.hpp \
-mpl/aux_/preprocessed/mwcw/less.hpp mpl/aux_/preprocessed/mwcw/list_c.hpp \
-mpl/aux_/preprocessed/mwcw/list.hpp mpl/aux_/preprocessed/mwcw/map.hpp \
+mpl/aux_/preprocessed/mwcw/less.hpp mpl/aux_/preprocessed/mwcw/list.hpp
+
+boost6dir = $(includedir)/votca/boost
+
+nobase_boost6_HEADERS = \
+mpl/aux_/preprocessed/mwcw/list_c.hpp mpl/aux_/preprocessed/mwcw/map.hpp \
 mpl/aux_/preprocessed/mwcw/minus.hpp \
 mpl/aux_/preprocessed/mwcw/modulus.hpp \
 mpl/aux_/preprocessed/mwcw/not_equal_to.hpp \
@@ -518,7 +541,11 @@ mpl/aux_/preprocessed/no_ttp/list.hpp mpl/aux_/preprocessed/no_ttp/map.hpp \
 mpl/aux_/preprocessed/no_ttp/minus.hpp \
 mpl/aux_/preprocessed/no_ttp/modulus.hpp \
 mpl/aux_/preprocessed/no_ttp/not_equal_to.hpp \
-mpl/aux_/preprocessed/no_ttp/or.hpp \
+mpl/aux_/preprocessed/no_ttp/or.hpp
+
+boost7dir = $(includedir)/votca/boost
+
+nobase_boost7_HEADERS = \
 mpl/aux_/preprocessed/no_ttp/placeholders.hpp \
 mpl/aux_/preprocessed/no_ttp/plus.hpp \
 mpl/aux_/preprocessed/no_ttp/quote.hpp \
@@ -588,22 +615,26 @@ mpl/aux_/sequence_wrapper.hpp mpl/aux_/static_cast.hpp \
 mpl/aux_/template_arity_fwd.hpp mpl/aux_/template_arity.hpp \
 mpl/aux_/traits_lambda_spec.hpp mpl/aux_/type_wrapper.hpp \
 mpl/aux_/value_wknd.hpp mpl/aux_/yes_no.hpp mpl/back_fwd.hpp \
-mpl/begin_end_fwd.hpp mpl/begin_end.hpp mpl/bind_fwd.hpp \
-mpl/bind.hpp mpl/bool_fwd.hpp mpl/bool.hpp mpl/clear_fwd.hpp \
-mpl/deref.hpp mpl/distance_fwd.hpp mpl/empty_fwd.hpp mpl/equal_to.hpp \
-mpl/eval_if.hpp mpl/front_fwd.hpp mpl/greater.hpp mpl/has_xxx.hpp \
-mpl/identity.hpp mpl/if.hpp mpl/integral_c_fwd.hpp mpl/integral_c.hpp \
-mpl/integral_c_tag.hpp mpl/int_fwd.hpp mpl/int.hpp mpl/is_placeholder.hpp \
-mpl/iterator_tags.hpp mpl/lambda_fwd.hpp mpl/lambda.hpp mpl/less.hpp \
-mpl/limits/arity.hpp mpl/limits/unrolling.hpp mpl/limits/vector.hpp \
-mpl/long_fwd.hpp mpl/long.hpp mpl/minus.hpp mpl/multiplies.hpp \
-mpl/negate.hpp mpl/next.hpp mpl/next_prior.hpp mpl/not.hpp \
-mpl/numeric_cast.hpp mpl/O1_size_fwd.hpp mpl/or.hpp mpl/placeholders.hpp \
-mpl/plus.hpp mpl/pop_back_fwd.hpp mpl/pop_front_fwd.hpp mpl/prior.hpp \
-mpl/protect.hpp mpl/push_back_fwd.hpp mpl/push_front_fwd.hpp \
-mpl/quote.hpp mpl/sequence_tag_fwd.hpp mpl/sequence_tag.hpp \
-mpl/size_fwd.hpp mpl/size_t_fwd.hpp mpl/size_t.hpp mpl/tag.hpp \
-mpl/times.hpp mpl/vector/aux_/at.hpp mpl/vector/aux_/back.hpp \
+mpl/begin_end_fwd.hpp mpl/begin_end.hpp mpl/bind_fwd.hpp mpl/bind.hpp \
+mpl/bool_fwd.hpp mpl/bool.hpp mpl/clear_fwd.hpp mpl/deref.hpp \
+mpl/distance_fwd.hpp mpl/empty_fwd.hpp mpl/equal_to.hpp mpl/eval_if.hpp \
+mpl/front_fwd.hpp mpl/greater.hpp mpl/has_xxx.hpp mpl/identity.hpp \
+mpl/if.hpp mpl/int.hpp
+
+boost8dir = $(includedir)/votca/boost
+
+nobase_boost8_HEADERS = \
+mpl/integral_c_fwd.hpp mpl/integral_c.hpp mpl/integral_c_tag.hpp \
+mpl/int_fwd.hpp mpl/is_placeholder.hpp mpl/iterator_tags.hpp \
+mpl/lambda_fwd.hpp mpl/lambda.hpp mpl/less.hpp mpl/limits/arity.hpp \
+mpl/limits/unrolling.hpp mpl/limits/vector.hpp mpl/long_fwd.hpp \
+mpl/long.hpp mpl/minus.hpp mpl/multiplies.hpp mpl/negate.hpp mpl/next.hpp \
+mpl/next_prior.hpp mpl/not.hpp mpl/numeric_cast.hpp mpl/O1_size_fwd.hpp \
+mpl/or.hpp mpl/placeholders.hpp mpl/plus.hpp mpl/pop_back_fwd.hpp \
+mpl/pop_front_fwd.hpp mpl/prior.hpp mpl/protect.hpp mpl/push_back_fwd.hpp \
+mpl/push_front_fwd.hpp mpl/quote.hpp mpl/sequence_tag_fwd.hpp \
+mpl/sequence_tag.hpp mpl/size_fwd.hpp mpl/size_t_fwd.hpp mpl/size_t.hpp \
+mpl/tag.hpp mpl/times.hpp mpl/vector/aux_/at.hpp mpl/vector/aux_/back.hpp \
 mpl/vector/aux_/begin_end.hpp mpl/vector/aux_/clear.hpp \
 mpl/vector/aux_/empty.hpp mpl/vector/aux_/front.hpp \
 mpl/vector/aux_/include_preprocessed.hpp mpl/vector/aux_/item.hpp \
@@ -646,10 +677,14 @@ mpl/vector/aux_/vector0.hpp mpl/vector.hpp mpl/vector/vector0_c.hpp \
 mpl/vector/vector0.hpp mpl/vector/vector10_c.hpp mpl/vector/vector10.hpp \
 mpl/vector/vector20_c.hpp mpl/vector/vector20.hpp \
 mpl/vector/vector30_c.hpp mpl/vector/vector30.hpp \
-mpl/vector/vector40_c.hpp mpl/vector/vector40.hpp \
-mpl/vector/vector50_c.hpp mpl/vector/vector50.hpp \
-mpl/void_fwd.hpp mpl/void.hpp next_prior.hpp noncopyable.hpp \
-none.hpp none_t.hpp non_type.hpp numeric/ublas/detail/config.hpp \
+mpl/vector/vector40_c.hpp mpl/vector/vector40.hpp mpl/vector/vector50.hpp
+
+boost9dir = $(includedir)/votca/boost
+
+nobase_boost9_HEADERS = \
+mpl/vector/vector50_c.hpp mpl/void_fwd.hpp \
+mpl/void.hpp next_prior.hpp noncopyable.hpp none.hpp \
+none_t.hpp non_type.hpp numeric/ublas/detail/config.hpp \
 numeric/ublas/detail/definitions.hpp numeric/ublas/detail/duff.hpp \
 numeric/ublas/detail/iterator.hpp numeric/ublas/detail/matrix_assign.hpp \
 numeric/ublas/detail/raw.hpp numeric/ublas/detail/returntype_deduction.hpp \
@@ -706,7 +741,11 @@ preprocessor/iteration/detail/iter/forward5.hpp \
 preprocessor/iteration/detail/iter/reverse1.hpp \
 preprocessor/iteration/detail/iter/reverse2.hpp \
 preprocessor/iteration/detail/iter/reverse3.hpp \
-preprocessor/iteration/detail/iter/reverse4.hpp \
+preprocessor/iteration/detail/iter/reverse4.hpp
+
+boost10dir = $(includedir)/votca/boost
+
+nobase_boost10_HEADERS = \
 preprocessor/iteration/detail/iter/reverse5.hpp \
 preprocessor/iteration/detail/local.hpp \
 preprocessor/iteration/detail/rlocal.hpp \
@@ -764,7 +803,11 @@ range/detail/const_iterator.hpp range/detail/detail_str.hpp \
 range/detail/end.hpp range/detail/implementation_help.hpp \
 range/detail/iterator.hpp range/detail/remove_extent.hpp \
 range/detail/sfinae.hpp range/detail/size_type.hpp \
-range/detail/str_types.hpp range/detail/vc6/end.hpp \
+range/detail/str_types.hpp range/detail/vc6/end.hpp
+
+boost11dir = $(includedir)/votca/boost
+
+nobase_boost11_HEADERS = \
 range/difference_type.hpp range/distance.hpp range/empty.hpp range/end.hpp \
 range/functions.hpp range/iterator.hpp range/iterator_range.hpp \
 range/mutable_iterator.hpp range/rbegin.hpp range/rend.hpp \
@@ -814,11 +857,15 @@ smart_ptr/detail/spinlock_gcc_arm.hpp smart_ptr/detail/spinlock.hpp \
 smart_ptr/detail/spinlock_nt.hpp smart_ptr/detail/spinlock_pool.hpp \
 smart_ptr/detail/spinlock_pt.hpp smart_ptr/detail/spinlock_sync.hpp \
 smart_ptr/detail/spinlock_w32.hpp smart_ptr/detail/yield_k.hpp \
-smart_ptr/shared_array.hpp smart_ptr/shared_ptr.hpp \
-static_assert.hpp swap.hpp throw_exception.hpp token_functions.hpp \
-token_iterator.hpp tokenizer.hpp type.hpp type_traits/add_const.hpp \
-type_traits/add_cv.hpp type_traits/add_pointer.hpp \
-type_traits/add_reference.hpp type_traits/add_volatile.hpp \
+smart_ptr/shared_array.hpp smart_ptr/shared_ptr.hpp static_assert.hpp \
+swap.hpp throw_exception.hpp token_functions.hpp token_iterator.hpp \
+tokenizer.hpp type.hpp type_traits/add_const.hpp type_traits/add_cv.hpp \
+type_traits/add_pointer.hpp type_traits/add_reference.hpp \
+type_traits/add_volatile.hpp type_traits.hpp
+
+boost12dir = $(includedir)/votca/boost
+
+nobase_boost12_HEADERS = \
 type_traits/aligned_storage.hpp type_traits/alignment_of.hpp \
 type_traits/arithmetic_traits.hpp type_traits/broken_compiler_spec.hpp \
 type_traits/composite_traits.hpp type_traits/config.hpp \
@@ -842,15 +889,15 @@ type_traits/has_nothrow_assign.hpp type_traits/has_nothrow_constructor.hpp \
 type_traits/has_nothrow_copy.hpp type_traits/has_nothrow_destructor.hpp \
 type_traits/has_trivial_assign.hpp type_traits/has_trivial_constructor.hpp \
 type_traits/has_trivial_copy.hpp type_traits/has_trivial_destructor.hpp \
-type_traits/has_virtual_destructor.hpp type_traits.hpp \
-type_traits/ice.hpp type_traits/integral_constant.hpp \
-type_traits/integral_promotion.hpp type_traits/intrinsics.hpp \
-type_traits/is_abstract.hpp type_traits/is_arithmetic.hpp \
-type_traits/is_array.hpp type_traits/is_base_and_derived.hpp \
-type_traits/is_base_of.hpp type_traits/is_class.hpp \
-type_traits/is_complex.hpp type_traits/is_compound.hpp \
-type_traits/is_const.hpp type_traits/is_convertible.hpp \
-type_traits/is_empty.hpp type_traits/is_enum.hpp type_traits/is_float.hpp \
+type_traits/has_virtual_destructor.hpp type_traits/ice.hpp \
+type_traits/integral_constant.hpp type_traits/integral_promotion.hpp \
+type_traits/intrinsics.hpp type_traits/is_abstract.hpp \
+type_traits/is_arithmetic.hpp type_traits/is_array.hpp \
+type_traits/is_base_and_derived.hpp type_traits/is_base_of.hpp \
+type_traits/is_class.hpp type_traits/is_complex.hpp \
+type_traits/is_compound.hpp type_traits/is_const.hpp \
+type_traits/is_convertible.hpp type_traits/is_empty.hpp \
+type_traits/is_enum.hpp type_traits/is_float.hpp \
 type_traits/is_floating_point.hpp type_traits/is_function.hpp \
 type_traits/is_fundamental.hpp type_traits/is_integral.hpp \
 type_traits/is_member_function_pointer.hpp \
@@ -867,13 +914,17 @@ type_traits/msvc/remove_all_extents.hpp type_traits/msvc/remove_bounds.hpp \
 type_traits/msvc/remove_const.hpp type_traits/msvc/remove_cv.hpp \
 type_traits/msvc/remove_extent.hpp type_traits/msvc/remove_pointer.hpp \
 type_traits/msvc/remove_reference.hpp type_traits/msvc/remove_volatile.hpp \
-type_traits/msvc/typeof.hpp type_traits/promote.hpp \
-type_traits/rank.hpp type_traits/remove_all_extents.hpp \
-type_traits/remove_bounds.hpp type_traits/remove_const.hpp \
-type_traits/remove_cv.hpp type_traits/remove_extent.hpp \
-type_traits/remove_pointer.hpp type_traits/remove_reference.hpp \
-type_traits/remove_volatile.hpp type_traits/type_with_alignment.hpp \
-utility/addressof.hpp utility/base_from_member.hpp utility/binary.hpp \
-utility/compare_pointees.hpp utility/enable_if.hpp utility.hpp \
+type_traits/msvc/typeof.hpp type_traits/promote.hpp type_traits/rank.hpp \
+type_traits/remove_all_extents.hpp type_traits/remove_bounds.hpp \
+type_traits/remove_const.hpp type_traits/remove_cv.hpp \
+type_traits/remove_extent.hpp type_traits/remove_pointer.hpp \
+type_traits/remove_reference.hpp type_traits/remove_volatile.hpp \
+type_traits/type_with_alignment.hpp utility/addressof.hpp \
+utility/base_from_member.hpp utility.hpp
+
+boost13dir = $(includedir)/votca/boost
+
+nobase_boost13_HEADERS = \
+utility/binary.hpp utility/compare_pointees.hpp utility/enable_if.hpp \
 utility/swap.hpp version.hpp visit_each.hpp
 
