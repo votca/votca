@@ -36,6 +36,7 @@ eof
 ${0##*/}, version ${version}
 
 
+
 Start the script to run ibm, imc, etc.
 
 Usage: ${0##*/} [OPTIONS] setting_file.xml
