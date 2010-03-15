@@ -74,8 +74,10 @@ protected:
         /// \brief only for non-bonded interactions (seems like it is not used?)
         pair<int, int> beadTypes;
         
-        /// \brief Result of 1 block calculation
-        ub::vector<double> block_res;
+        /// \brief Result of 1 block calculation for f
+        ub::vector<double> block_res_f;
+        /// \brief Result of 1 block calculation for f''
+        ub::vector<double> block_res_f2;
         /// \brief Final result: average over all blocks
         ub::vector<double> result;
         /// \brief accuracy of the final result
