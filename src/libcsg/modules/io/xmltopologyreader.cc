@@ -32,8 +32,8 @@ static void start_hndl(void *data, const char *el, const char **attr)
 
     for (int i = 0; attr[i]; i += 2)
        mattr[attr[i]] = attr[i + 1];
-
-    reader->StartElemHndl(el, mattr);
+    string sel = el;
+    reader->StartElemHndl(sel, mattr);
 }
 
 static void end_hndl(void *data, const char *el)
@@ -45,6 +45,8 @@ static void end_hndl(void *data, const char *el)
 
 bool XMLTopologyReader::ReadTopology(string filename, Topology &top)
 { 
+  _top = &top;
+  
   XML_Parser parser = XML_ParserCreate(NULL);
   if (! parser)
     throw std::runtime_error("Couldn't allocate memory for xml parser");
@@ -58,7 +60,7 @@ bool XMLTopologyReader::ReadTopology(string filename, Topology &top)
   if(!fl.is_open())
     throw std::ios_base::failure("Error on open xml topology: " + filename);
   
-
+  SetHandler(&XMLTopologyReader::ParseRoot);
   XML_SetUserData(parser, (void*)this);
   while(!fl.eof()) {
     string line;
@@ -100,9 +102,6 @@ void XMLTopologyReader::ParseRoot(const string &el, map<string, string> &attr)
 
 void XMLTopologyReader::ParseTopology(const string &el, map<string, string> &attr)
 {
-    if(attr["base"] != "")
-        ReadTopolFile(attr["base"]);
-    
     if(el == "molecules")
         SetHandler(&XMLTopologyReader::ParseMolecules);
 }
@@ -149,8 +148,8 @@ void XMLTopologyReader::StartElemHndl(const string &el, map<string, string> &att
 
 void XMLTopologyReader::EndElemHndl(const string &el)
 {
-    _handler = _stack_handler.top();
     _stack_handler.pop();
+    _handler = _stack_handler.top();
 }
 
 void XMLTopologyReader::SetHandler(ElemHandler_t handler)
