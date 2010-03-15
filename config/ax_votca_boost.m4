@@ -1,31 +1,82 @@
 AC_DEFUN([AX_VOTCA_BOOST], [
   PKG_CHECK_MODULES([VOTCA_BOOST],libvotca_boost,[
-    dnl we have votca_boost		   
+    dnl we have votca_boost pkg-config file or variables
+    PKG_CHECK_EXISTS(libvotca_boost,[
+      PKGBOOST="libvotca_boost"
+      PKGCFLAGSBOOST=""
+      PKGLIBSBOOST=""
+    ],[
+      PKGBOOST=""
+      PKGCFLAGSBOOST="$VOTCA_BOOST_CFLAGS"
+      PKGLIBSBOOST="$VOTCA_BOOST_LIBS"
+    ])
     BOOST_CFLAGS="$VOTCA_BOOST_CFLAGS"
     BOOST_LIBS="$VOTCA_BOOST_LIBS"
-    PKGBOOST="libvotca_boost"
-    PKGLIBSBOOST=""
-    PKGCFLAGSBOOST=""
   ],[
-    dnl we do not have votca_boost, try system boost
-    AX_BOOST_BASE([1.33.1],[:],[
-      AC_MSG_ERROR([
+    dnl we do not have votca_boost pkg-config file, try to VOTCALDLIB
+    AC_ARG_VAR([VOTCALDLIB],[path to gromacs lib dir, usually set by "source GMXRC"])
+    AC_MSG_CHECKING([VOTCALDLIB])
+    if test -z "$VOTCALDLIB"; then
+      AC_MSG_RESULT([no])
+    else
+      AC_MSG_RESULT([yes])
+      AC_MSG_NOTICE([creating VOTCA_BOOST_LIBS and VOTCA_BOOST_CFLAGS from VOTCALDLIB])
+      if test -z "$VOTCA_BOOST_LIBS"; then
+        VOTCA_BOOST_LIBS="-L$VOTCALDLIB -lvotca_boost"
+        AC_MSG_NOTICE([setting VOTCA_BOOST_LIBS   to "$VOTCA_BOOST_LIBS"])
+      else
+        AC_MSG_NOTICE([VOTCA_BOOST_LIBS was already set elsewhere to "$VOTCA_BOOST_LIBS"])
+      fi
+      if test -z "$VOTCA_BOOST_CFLAGS"; then
+        VOTCA_BOOST_CFLAGS="-I$VOTCALDLIB/../include/boost"
+        AC_MSG_NOTICE([setting VOTCA_BOOST_CFLAGS to "$VOTCA_BOOST_CFLAGS"])
+      else
+        AC_MSG_NOTICE([VOTCA_BOOST_CFLAGS was already set elsewhere to "$VOTCA_BOOST_CFLAGS"])
+      fi
+      save_CPPFLAGS="$CPPFLAGS"
+      save_LIBS="$LIBS"
+
+      CPPFLAGS="$VOTCA_BOOST_CFLAGS $CPPFLAGS"
+      LIBS="$VOTCA_BOOST_LIBS $LIBS"
+      AC_CHECK_HEADERS([boost/program_options.hpp],[
+        AC_MSG_CHECKING([for exit in $VOTCA_BOOST_LIBS])
+        AC_TRY_LINK_FUNC(exit,[
+          AC_MSG_RESULT([yes])
+        ],[
+          AC_MSG_RESULT([no])
+          vb_failed="yes"
+        ])
+      ],[vb_failed="yes"])
+      CPPFLAGS="$save_CPPFLAGS"
+      LIBS="$save_LIBS"
+    fi
+    if test "$vb_failed" != "yes"; then
+      PKGBOOST=""
+      PKGCFLAGSBOOST="$VOTCA_BOOST_CFLAGS"
+      PKGLIBSBOOST="$VOTCA_BOOST_LIBS"
+      BOOST_CFLAGS="$VOTCA_BOOST_CFLAGS"
+      BOOST_LIBS="$VOTCA_BOOST_LIBS"
+    else
+      dnl header or libs was missing, try system boost
+      AX_BOOST_BASE([1.33.1],[:],[
+        AC_MSG_ERROR([
   		
 No system BOOST and no libvotca_boost found.
+        ])
       ])
-    ])
-    if test "$want_boost" = "no"; then
-      AC_MSG_ERROR([
+      if test "$want_boost" = "no"; then
+        AC_MSG_ERROR([
   		
 You can not disable boost without having libvotca_boost.
-      ])
+        ])
+      fi
+      AX_BOOST_PROGRAM_OPTIONS([1.33.1])
+      BOOST_CFLAGS="$BOOST_CPPFLAGS"
+      BOOST_LIBS="$BOOST_LDFLAGS $BOOST_PROGRAM_OPTIONS_LIB"
+      PKGBOOST=""
+      PKGLIBSBOOST="$BOOST_LIBS"
+      PKGCFLAGSBOOST="$BOOST_CFLAGS"
     fi
-    AX_BOOST_PROGRAM_OPTIONS([1.33.1])
-    BOOST_CFLAGS="$BOOST_CPPFLAGS"
-    BOOST_LIBS="$BOOST_LDFLAGS $BOOST_PROGRAM_OPTIONS_LIB"
-    PKGBOOST=""
-    PKGLIBSBOOST="$BOOST_LIBS"
-    PKGCFLAGSBOOST="$BOOST_CFLAGS"
   ])
   AC_SUBST(BOOST_CFLAGS)
   AC_SUBST(BOOST_LIBS)
