@@ -1,35 +1,30 @@
 #include "linalg.h"
 #include <gsl/gsl_linalg.h>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 
 namespace votca { namespace tools {
 
 void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b)
 {
-    // now A is a tridiagonal system, solve it!
-    double* pointer_m = &A(0,0);
-    double* pointer_b = &b(0);
-
-    const int N = x.size();
-    
     gsl_matrix_view m
-        = gsl_matrix_view_array (pointer_m, N, N);
+        = gsl_matrix_view_array (&A(0,0), A.size1(), A.size2());
 
     gsl_vector_view gb
-        = gsl_vector_view_array (pointer_b, N);
+        = gsl_vector_view_array (&b(0), b.size());
 
-    gsl_vector *gx = gsl_vector_alloc (N);
-    gsl_vector *tau = gsl_vector_alloc (N);
-    gsl_vector *residual = gsl_vector_alloc (N);
+    gsl_vector *gsl_x = gsl_vector_alloc (x.size());
+    gsl_vector *tau = gsl_vector_alloc (x.size());
+    gsl_vector *residual = gsl_vector_alloc (b.size());
 
     gsl_linalg_QR_decomp (&m.matrix, tau);
 
-    gsl_linalg_QR_lssolve (&m.matrix, tau, &gb.vector, gx, residual);
+    gsl_linalg_QR_lssolve (&m.matrix, tau, &gb.vector, gsl_x, residual);
 
-    for (int i =0 ; i < N; i++) {
-        x(i) = gsl_vector_get(gx, i);
-    }
+    for (int i =0 ; i < x.size(); i++)
+        x(i) = gsl_vector_get(gsl_x, i);
+    
 
-    gsl_vector_free (gx);
+    gsl_vector_free (gsl_x);
     gsl_vector_free (tau);
     gsl_vector_free (residual);
 }
@@ -44,24 +39,26 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
 
     // temporary variables
     ub::matrix<double> Q(2*ngrid, 2*ngrid);       // Q matrix: QR decomposition of trans(B)
-    ub::matrix<double> A2(N, ngrid);              // Matrix A2 (see manual)
     ub::matrix<double> Q_k(2*ngrid, 2*ngrid);
     ub::identity_matrix<double> I (2*ngrid);
     ub::vector<double> v(2*ngrid);
 
     Q = ub::zero_matrix<double>(2*ngrid, 2*ngrid);
-    A2 = ub::zero_matrix<double>(N, ngrid);
     Q_k = ub::zero_matrix<double>(2*ngrid, 2*ngrid);
     v = ub::zero_vector<double>(2*ngrid);
 
-    double* pointer_m = & constr(0,0);
+    double *tmp = & constr(0,0);
+    gsl_matrix_view gsl_constr
+      = gsl_matrix_view_array (tmp, constr.size1(), constr.size2());
 
-    gsl_matrix_view B_t
-      = gsl_matrix_view_array (pointer_m, constr.size1(), constr.size2());
+    tmp = &b(0);
+    gsl_vector_view gsl_b
+         = gsl_vector_view_array (tmp, b.size());
+
 
     gsl_vector *tau_qr = gsl_vector_alloc (ngrid);
 
-    gsl_linalg_QR_decomp (&B_t.matrix, tau_qr);
+    gsl_linalg_QR_decomp (&gsl_constr.matrix, tau_qr);
 
     Q = I;
 
@@ -73,7 +70,7 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
         v(k - 1) = 1.0;
 
         for (int icout = k; icout < 2*ngrid; icout++) {
-             v(icout) = gsl_matrix_get(&B_t.matrix, icout, k - 1 );
+             v(icout) = gsl_matrix_get(&gsl_constr.matrix, icout, k - 1 );
         }
 
         Q_k = I - gsl_vector_get(tau_qr, k - 1 ) * outer_prod ( v, v );
@@ -87,29 +84,23 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
     // Calculate A * Q and store the result in A
     A = prec_prod(A, Q);
 
+
     // A = [A1 A2], so A2 is just a block of A
-    for (int iraw = 0; iraw < N; iraw++) {
-        for (int icol = ngrid; icol < 2*ngrid; icol++) {
-            A2(iraw, icol - ngrid) = A(iraw, icol);
-        }
-    }
+    ub::matrix<double> A2 = ub::matrix_range<ub::matrix<double> >(A,
+            ub::range (0, N), ub::range (ngrid, 2*ngrid)
+         );
 
-    pointer_m = & A2(0,0);
-
-    double* pointer_b = & b(0);
-
-    gsl_matrix_view m
-         = gsl_matrix_view_array (pointer_m, N, ngrid);
-
-    gsl_vector_view gsl_b
-         = gsl_vector_view_array (pointer_b, N);
-
+    tmp = &A2(0,0);
+    gsl_matrix_view gsl_A2
+         = gsl_matrix_view_array (tmp, A2.size1(), A2.size2());
+   
+        
     gsl_vector *z = gsl_vector_alloc (ngrid);
     gsl_vector *tau_solve = gsl_vector_alloc (ngrid);  // already done!
     gsl_vector *residual = gsl_vector_alloc (N);
 
-    gsl_linalg_QR_decomp (&m.matrix, tau_solve);
-    gsl_linalg_QR_lssolve (&m.matrix, tau_solve, &gsl_b.vector, z, residual);
+    gsl_linalg_QR_decomp (&gsl_A2.matrix, tau_solve);
+    gsl_linalg_QR_lssolve (&gsl_A2.matrix, tau_solve, &gsl_b.vector, z, residual);
 
     // Next two cycles assemble vector from y (which is zero-vector) and z
     // (which we just got by gsl_linalg_QR_lssolve)
