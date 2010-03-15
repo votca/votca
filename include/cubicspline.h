@@ -109,7 +109,7 @@ public:
        
     /// the spline parameters were calculated elsewere, store that data
     template<typename vector_type>
-    void setSplineData(vector_type &f) { _f = f; }
+    void setSplineData(vector_type &f, vector_type &f2) { _f = f; _f2 = f2;}
     
     /// print out results
     void Print(std::ostream &out, double interval = 0.0001 );
@@ -117,9 +117,9 @@ public:
     /// get the grid array x
     ub::vector<double> &getX() {return _r; }
     ///  \brief get the spline data
-    ///
-    /// returns an array, the first half of the array are the f_i, the second half the f''_i
-    ub::vector<double> &getSplineData() { return _f; }
+    ub::vector<double> &getSplineF() { return _f; }
+    ///  \brief get second derivatives
+    ub::vector<double> &getSplineF2() { return _f2; }
     
     // stuff to construct fitting matrices
     
@@ -145,11 +145,11 @@ protected:
     // the grid points
     ub::vector<double> _r;
     
-    // unknowns f_i and f"_i in one vector of 2*(n+1) size
-    // they are stored in one array since they are used together 
-    // in the linear equation system for the force matching scheme
-    ub::vector<double> _f; 
-    
+    // y values of grid points
+    ub::vector<double> _f;
+    // second derivatives of grid points
+    ub::vector<double> _f2;
+
     eBoundary _boundaries;
     
     // A spline can be written in the form
@@ -188,28 +188,29 @@ inline int CubicSpline::GenerateGrid(double min, double max, double h)
             _r[i++]= r_init;
     }
     _r[i] = max;
-    _f.resize(2 * _r.size(), false);
+    _f.resize(_r.size(), false);
+    _f2.resize(_r.size(), false);
     return _r.size();
 }
 
 inline double CubicSpline::Calculate(const double &r)
 {
-    int n = _f.size()/2;
+    int n = _f.size();
     int interval =  getInterval(r);
     return  A(r)*_f[interval] 
             + B(r)*_f[interval + 1] 
-            + C(r)*_f[n + interval] 
-            + D(r)*_f[n + interval + 1];
+            + C(r)*_f2[interval]
+            + D(r)*_f2[interval + 1];
 }
 
 inline double CubicSpline::CalculateDerivative(const double &r)
 {
-    int n = _f.size()/2;
+    int n = _f.size();
     int interval =  getInterval(r);
     return  Aprime(r)*_f[interval]
             + Bprime(r)*_f[interval + 1]
-            + Cprime(r)*_f[n + interval]
-            + Dprime(r)*_f[n + interval + 1];
+            + Cprime(r)*_f2[interval]
+            + Dprime(r)*_f2[interval + 1];
 }
 
 template<typename vector_type1, typename vector_type2>

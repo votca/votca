@@ -15,8 +15,8 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
-AS=as
+FC=g95
+AS=
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -43,6 +43,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/rangeparser.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogram.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/linalg.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/version_nb.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/datacollection.o
 
@@ -131,6 +132,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o: nbproject/Makefile-${CND
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o ../../src/libtools/table.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/linalg.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/linalg.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/linalg.o ../../src/libtools/linalg.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/version_nb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/version_nb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools

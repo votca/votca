@@ -11,6 +11,7 @@
       <itemPath>../../include/datacollection.h</itemPath>
       <itemPath>../../include/histogram.h</itemPath>
       <itemPath>../../include/histogramnew.h</itemPath>
+      <itemPath>../../include/linalg.h</itemPath>
       <itemPath>../../include/matrix.h</itemPath>
       <itemPath>../../include/objectfactory.h</itemPath>
       <itemPath>../../include/property.h</itemPath>
@@ -35,6 +36,7 @@
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
+      <itemPath>../../src/libtools/linalg.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/parcer.cc</itemPath>
       <itemPath>../../src/libtools/property.cc</itemPath>
