@@ -23,7 +23,7 @@ or specify GMX_LIBS and GMX_CLFAGS
       GMX_CFLAGS="-I$GMXLDLIB/../include/gromacs"
       AC_MSG_NOTICE([setting GMX_CFLAGS to "$GMX_CFLAGS"])
     else
-      AC_MSG_NOTICE([GMX_CFLAGS was already set elswhere to "$GMX_CFLAGS"])
+      AC_MSG_NOTICE([GMX_CFLAGS was already set elsewhere to "$GMX_CFLAGS"])
     fi
   ])
   save_CPPFLAGS="$CPPFLAGS"
@@ -46,7 +46,7 @@ Do not forget the /gromacs due to bug in gromacs headers!
 
 Could not link against GROMACS,
 please check your LDFLAGS and/or specify libraries required to link 
-against GROMACS in GMX_LIBS (e.g. export GMX_LIBS="-Lpath/to/gramacs/lib -lgmx").
+against GROMACS in GMX_LIBS (e.g. export GMX_LIBS="-L<gromacs-path>/lib -lgmx").
 
 If you are using a mpi version of gromacs, make sure that CXX is something like mpic++.
 (e.g. export CXX="mpic++" and export GMX_LIBS="-L<gromacs-path>/lib -lgmx_mpi")
