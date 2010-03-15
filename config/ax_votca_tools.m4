@@ -31,15 +31,19 @@ or specify VOTCA_TOOLS_LIBS and VOTCA_TOOLS_CLFAGS
 
   CPPFLAGS="$VOTCA_TOOLS_CFLAGS $CPPFLAGS"
   LIBS="$VOTCA_TOOLS_LIBS $LIBS"
-  AC_CHECK_HEADERS([votca/tools/property.h],,[
+  AC_CHECK_HEADERS([votca/tools/version.h],,[
     AC_MSG_ERROR([
 
 Votca tools headers not found,
 please make sure VOTCA_TOOLS_CFLAGS is pointing to <votca-path>/include
     ])
   ])
-  AC_MSG_CHECKING([for exit in $VOTCA_TOOLS_LIBS])
-  AC_TRY_LINK_FUNC(exit,[AC_MSG_RESULT([yes])],[
+  AC_MSG_CHECKING([for votca::tools::ToolsVersionStr in $VOTCA_TOOLS_LIBS])
+  AC_LINK_IFELSE([
+    AC_LANG_PROGRAM([#include <votca/tools/version.h>],[votca::tools::ToolsVersionStr();])
+  ],[
+    AC_MSG_RESULT([yes])
+  ],[
     AC_MSG_RESULT([no])
     AC_MSG_ERROR([
 
