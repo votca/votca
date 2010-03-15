@@ -14,7 +14,7 @@ AC_DEFUN([AX_VOTCA_BOOST], [
     BOOST_LIBS="$VOTCA_BOOST_LIBS"
   ],[
     dnl we do not have votca_boost pkg-config file, try to VOTCALDLIB
-    AC_ARG_VAR([VOTCALDLIB],[path to gromacs lib dir, usually set by "source GMXRC"])
+    AC_ARG_VAR([VOTCALDLIB],[path to gromacs lib dir, usually set by "source VOTCARC"])
     AC_MSG_CHECKING([VOTCALDLIB])
     if test -z "$VOTCALDLIB"; then
       AC_MSG_RESULT([no])
@@ -39,8 +39,11 @@ AC_DEFUN([AX_VOTCA_BOOST], [
       CPPFLAGS="$VOTCA_BOOST_CFLAGS $CPPFLAGS"
       LIBS="$VOTCA_BOOST_LIBS $LIBS"
       AC_CHECK_HEADERS([boost/program_options.hpp],[
-        AC_MSG_CHECKING([for exit in $VOTCA_BOOST_LIBS])
-        AC_TRY_LINK_FUNC(exit,[
+        AC_MSG_CHECKING([for boost::program_options::value in $VOTCA_BOOST_LIBS])
+	AC_LINK_IFELSE([
+	  AC_LANG_PROGRAM([#include <boost/program_options.hpp>
+	  ],[boost::program_options::value<int>()])
+	],[
           AC_MSG_RESULT([yes])
         ],[
           AC_MSG_RESULT([no])
