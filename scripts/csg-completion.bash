@@ -13,16 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-_csgopts()
-{
-  local cur myopt 
-  cur=${COMP_WORDS[COMP_CWORD]}
-  if [[ "$cur" == --* ]]; then
-     myopt=$( $1 --help 2> /dev/null | sed  -e '/--/!d' \
-     -e 's/.*?\(--[A-Za-z0-9]\+\).*/\1/' | sort -u )
-     COMPREPLY=( $( compgen -W '$myopt' -- $cur ) )
-   fi
-}
 
 #complete with commands filename and options
-complete -F _csgopts -f csg_boltzmann  csg_call  csg_dump  csg_fmatch  csg_gmxtopol  csg_imcrepack  csg_inverse  csg_map  csg_property  csg_resample  csg_stat 
+#_votca_common_opts is defined by votca-tools
+complete -F _votca_common_opts -f csg_boltzmann  csg_call  csg_dump  csg_fmatch  csg_gmxtopol  csg_imcrepack  csg_inverse  csg_map  csg_property  csg_resample  csg_stat 

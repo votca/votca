@@ -1,10 +1,11 @@
 HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_builddir)/.hg_archival.txt 2> /dev/null || true )
 
 # Scripts generated at compile time
-bin_SCRIPTS   = CSGRC.csh CSGRC.bash csg_inverse csg_call multi_g_rdf
+bin_SCRIPTS   = csg_inverse csg_call multi_g_rdf
 
-comp_DATA = completion.bash
-compdir = ${datadir}/votca
+rcdir = ${datadir}/votca/rc
+rcfiles = csg.rc.csh csg.rc.bash
+rc_DATA = $(comp_DATA) $(rcfiles) csg-completion.bash
 
 # Extra files we need
 EXTRA_DIST = CSGRC.csh.in CSGRC.bash.in csg_inverse.in csg_call.in multi_g_rdf.in $(comp_DATA)
@@ -19,17 +20,13 @@ csg_inverse: $(srcdir)/csg_inverse.in Makefile hgstamp
 multi_g_rdf: $(srcdir)/multi_g_rdf.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
 
-CSGRC.csh: $(srcdir)/CSGRC.csh.in Makefile hgstamp
-	sed -e 's,@bindir\@,$(bindir),' \
-	    -e 's,@libdir\@,$(libdir),' \
-	    -e 's,@votcashare\@,${datadir}/votca,' $< > $@
+csg.rc.csh: $(srcdir)/csg.rc.csh.in Makefile
+	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
-CSGRC.bash: $(srcdir)/CSGRC.bash.in Makefile hgstamp
-	sed -e 's,@bindir\@,$(bindir),' \
-	    -e 's,@libdir\@,$(libdir),' \
-	    -e 's,@votcashare\@,${datadir}/votca,' $< > $@
+csg.rc.bash: $(srcdir)/csg.rc.bash.in Makefile
+	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
-CLEANFILES = CSGRC.csh CSGRC.bash csg_call csg_inverse multi_g_rdf *~
+CLEANFILES = $(bin_SCRIPTS) $(rcfiles) *~
 
 install-exec-hook:
 	cd $(DESTDIR)$(bindir) && $(LN_S) -f multi_g_rdf multi_g_density

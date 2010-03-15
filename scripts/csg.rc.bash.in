@@ -13,12 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-setenv CSGBIN @bindir@
-setenv CSGSHARE @votcashare@
-
-# old variables begin with ':' now, or are empty.
-setenv PATH "${CSGBIN}:${PATH}"
-
-if (! $?LD_LIBRARY_PATH) setenv LD_LIBRARY_PATH ""
-setenv LD_LIBRARY_PATH "@libdir@:${LD_LIBRARY_PATH}"
+export CSGSHARE=@votcashare@
 

@@ -22,8 +22,8 @@ config/depcomp
 config/install-sh
 config/missing
 configure
-scripts/CSGRC.bash
-scripts/CSGRC.csh
+scripts/csg.rc.bash
+scripts/csg.rc.csh
 scripts/csg_call
 scripts/csg_inverse
 scripts/multi_g_rdf
