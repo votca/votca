@@ -28,7 +28,7 @@ AC_DEFUN([AX_VOTCA_BOOST], [
         AC_MSG_NOTICE([VOTCA_BOOST_LIBS was already set elsewhere to "$VOTCA_BOOST_LIBS"])
       fi
       if test -z "$VOTCA_BOOST_CFLAGS"; then
-        VOTCA_BOOST_CFLAGS="-I$VOTCALDLIB/../include/boost"
+        VOTCA_BOOST_CFLAGS="-I$VOTCALDLIB/../include/votca"
         AC_MSG_NOTICE([setting VOTCA_BOOST_CFLAGS to "$VOTCA_BOOST_CFLAGS"])
       else
         AC_MSG_NOTICE([VOTCA_BOOST_CFLAGS was already set elsewhere to "$VOTCA_BOOST_CFLAGS"])
