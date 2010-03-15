@@ -4,7 +4,7 @@
 
 namespace votca { namespace tools {
 
-void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b)
+void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual)
 {
     gsl_matrix_view m
         = gsl_matrix_view_array (&A(0,0), A.size1(), A.size2());
@@ -14,19 +14,23 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
 
     gsl_vector *gsl_x = gsl_vector_alloc (x.size());
     gsl_vector *tau = gsl_vector_alloc (x.size());
-    gsl_vector *residual = gsl_vector_alloc (b.size());
+    gsl_vector *gsl_residual = gsl_vector_alloc (b.size());
 
     gsl_linalg_QR_decomp (&m.matrix, tau);
 
-    gsl_linalg_QR_lssolve (&m.matrix, tau, &gb.vector, gsl_x, residual);
+    gsl_linalg_QR_lssolve (&m.matrix, tau, &gb.vector, gsl_x, gsl_residual);
 
     for (int i =0 ; i < x.size(); i++)
         x(i) = gsl_vector_get(gsl_x, i);
-    
+
+    if(residual)
+        for (int i =0 ; i < residual->size(); i++)
+            (*residual)(i) = gsl_vector_get(gsl_residual, i);
+
 
     gsl_vector_free (gsl_x);
     gsl_vector_free (tau);
-    gsl_vector_free (residual);
+    gsl_vector_free (gsl_residual);
 }
 
 void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr)
