@@ -289,7 +289,7 @@ void CGForceMatching::FmatchAccumulateData()
     _x.clear();
     if (_constr_least_sq) { // Constrained Least Squares
         // Solving linear equations system
-        ub::matrix<double> Q;
+        /*ub::matrix<double> Q;
         Q.resize(_col_cntr, _col_cntr, false);
         Q.clear();
 
@@ -382,7 +382,8 @@ void CGForceMatching::FmatchAccumulateData()
 
         gsl_vector_free(x);
         gsl_vector_free(tau);
-        gsl_vector_free(residual);
+        gsl_vector_free(residual);*/
+        votca::tools::linalg_constrained_qrsolve(_x, _A, _b, _B_constr);
 
     } else { // Simple Least Squares
         
