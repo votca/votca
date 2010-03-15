@@ -35,7 +35,7 @@ AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 AX_EXPAT
 
 #look for votca tools
-PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools)
+AX_VOTCA_TOOLS
 
 # check for gsl
 PKG_CHECK_MODULES([GSL],gsl)
