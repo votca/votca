@@ -14,6 +14,12 @@ AC_HEADER_STDC
 
 AC_CONFIG_HEADERS(config.h)
 
+AC_ARG_ENABLE(la-files,
+	[AC_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
+	[enable_la_files=yes])
+
+AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
+
 AC_CONFIG_FILES([libvotca_boost.pc])
 AC_CONFIG_FILES([boost/Makefile])
 AC_CONFIG_FILES([libs/Makefile])
