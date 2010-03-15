@@ -15,8 +15,8 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
-AS=as
+FC=g95
+AS=
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -69,7 +69,7 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_resample.o: nbproject/Makefile-$
 # Subprojects
 .build-subprojects:
 	cd ../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
-	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Release
+	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -79,7 +79,7 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_resample.o: nbproject/Makefile-$
 # Subprojects
 .clean-subprojects:
 	cd ../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
-	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Release clean
+	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl
