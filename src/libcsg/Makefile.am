@@ -25,8 +25,8 @@ pkgconfig_DATA = libvotca_csg.pc
 
 CLEANFILES = *~ hgstamp
 
-if NO_LA_FILES
 install-exec-hook:
+if NO_LA_FILES
 	rm -f $(DESTDIR)$(libdir)/libvotca_csg.la
 endif
 
