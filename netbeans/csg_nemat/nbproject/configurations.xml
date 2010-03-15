@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="45">
+<configurationDescriptor version="62">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -23,25 +23,25 @@
   <sourceRootList>
     <Elem>../../src/tools</Elem>
   </sourceRootList>
-  <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <ccCompilerTool>
-          <includeDirectories>
-            <directoryPath>../../../include</directoryPath>
-            <directoryPath>../../include</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+        <ccTool>
+          <incDir>
+            <pElem>../../../include</pElem>
+            <pElem>../../include</pElem>
+          </incDir>
+        </ccTool>
         <linkerTool>
           <output>../../src/tools/csg_nemat</output>
           <linkerAddLib>
-            <directoryPath>/people/thnfs/homes/ruehle/gmx/lib</directoryPath>
+            <pElem>/people/thnfs/homes/ruehle/gmx/lib</pElem>
           </linkerAddLib>
           <linkerLibItems>
             <linkerLibProjectItem>
@@ -71,37 +71,35 @@
             <linkerLibLibItem>gmx</linkerLibLibItem>
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
             <linkerLibLibItem>fftw3</linkerLibLibItem>
-            <linkerLibLibItem>xml2</linkerLibLibItem>
+            <linkerLibLibItem>expat</linkerLibLibItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="../../src/tools/csg_nemat.cc">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>5</developmentMode>
-        </cCompilerTool>
-        <ccCompilerTool>
+        </cTool>
+        <ccTool>
           <developmentMode>5</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../../libcsg/trunk</directoryPath>
-            <directoryPath>/people/thnfs/homes/ruehle/gmx/install/include/gromacs</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+          <incDir>
+            <pElem>../../../libcsg/trunk</pElem>
+            <pElem>/people/thnfs/homes/ruehle/gmx/install/include/gromacs</pElem>
+          </incDir>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
         <linkerTool>
           <linkerAddLib>
-            <directoryPath>../../../../gmx/install/lib</directoryPath>
+            <pElem>../../../../gmx/install/lib</pElem>
           </linkerAddLib>
           <linkerLibItems>
             <linkerLibProjectItem>
@@ -124,9 +122,6 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="../../src/tools/csg_nemat.cc">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
   </confs>
 </configurationDescriptor>

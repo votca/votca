@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="45">
+<configurationDescriptor version="62">
   <projectmakefile>Makefile</projectmakefile>
   <defaultConf>0</defaultConf>
   <confs>
@@ -8,9 +8,11 @@
         <gdb_command>gdb</gdb_command>
         <array_repeat_threshold>10</array_repeat_threshold>
       </gdbdebugger>
+      <gizmo_options version="1">
+      </gizmo_options>
       <runprofile version="5">
-        <args>--top slice.tpr --trj slice.trr --cg ppy10.xml</args>
-        <rundir>/people/thnfs/homes/ruehle/kmc_tests/new</rundir>
+        <args>--top topol_rename.xml --trj conf.gro --cg water.xml --out "tpr.gro"</args>
+        <rundir>/people/thnfs/homes/ruehle/src/testsuite/csg/mapping</rundir>
         <buildfirst>true</buildfirst>
         <console-type>0</console-type>
         <terminal-type>0</terminal-type>
@@ -23,6 +25,8 @@
         <gdb_command>gdb</gdb_command>
         <array_repeat_threshold>10</array_repeat_threshold>
       </gdbdebugger>
+      <gizmo_options version="1">
+      </gizmo_options>
       <runprofile version="5">
         <args></args>
         <rundir></rundir>
