@@ -266,16 +266,13 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
         // we must count frames from zero again for the next block
         _frame_counter = 0;
         if (_constr_least_sq) { //Constrained Least Squares
-            // Matrices should be cleaned after each block is evaluated, since
-            // gsl solver writes stuff to them instead of allocating separate memory
+            // Matrices should be cleaned after each block is evaluated
             _A.clear();
             _b.clear();
             // clear and assign smoothing conditions to _B_constr
             FmatchAssignSmoothCondsToMatrix(_B_constr);
         } else { // Simple Least Squares
-            // Matrices should be cleaned after each block is evaluated, since
-            // gsl solver writes stuff to them instead of allocating separate memory
-            
+            // Matrices should be cleaned after each block is evaluated            
             // clear and assign smoothing conditions to _A
             FmatchAssignSmoothCondsToMatrix(_A);
             _b.clear();
@@ -288,102 +285,7 @@ void CGForceMatching::FmatchAccumulateData()
     _x.clear();
     if (_constr_least_sq) { // Constrained Least Squares
         // Solving linear equations system
-        /*ub::matrix<double> Q;
-        Q.resize(_col_cntr, _col_cntr, false);
-        Q.clear();
-
-        ub::matrix<double> A2;
-        A2.resize(_A.size1(), _col_cntr / 2, false);
-        A2.clear();
-
-        ub::matrix<double> Q_k;
-        Q_k.resize(_col_cntr, _col_cntr, false);
-        Q_k.clear();
-
-        ub::identity_matrix<double> I(_col_cntr);
-
-        ub::vector<double> v;
-        v.resize(_col_cntr, false);
-        v.clear();
-
-        // To proceed we need to factorize B^T = Q*R. We need matrix Q for further
-        // calculations
-        // B_constr_Tr - transpose of _B_constr
-        ub::matrix<double> B_constr_Tr;
-        B_constr_Tr.resize(_col_cntr, _line_cntr, false);
-        B_constr_Tr.clear();   
-        
-        B_constr_Tr = trans(_B_constr);
-
-        double* pointer_Bcnstr = & B_constr_Tr(0, 0);
-
-        gsl_matrix_view B_t
-                = gsl_matrix_view_array(pointer_Bcnstr, _col_cntr, _line_cntr);
-
-        gsl_vector *tau = gsl_vector_alloc(_line_cntr);
-
-        gsl_linalg_QR_decomp(&B_t.matrix, tau);
-
-        // Extraction of Q matrix from tau and B_t, where it is stored in a tricky way.
-        Q = I;
-
-        for (int k = _line_cntr; k > 0; k--) {
-
-            for (int icout = 0; icout < k - 1; icout++) {
-                v(icout) = 0;
-            }
-            v(k - 1) = 1.0;
-
-            for (int icout = k; icout < v.size(); icout++) {
-                v(icout) = gsl_matrix_get(&B_t.matrix, icout, k - 1);
-            }
-            double tmp = gsl_vector_get(tau, k - 1);
-            Q_k = I - tmp * outer_prod(v, v);
-            Q = prec_prod(Q, Q_k);
-        }
-        Q = trans(Q);
-
-        // Calculate _A * Q and store the result in _A
-        _A = prec_prod(_A, Q);
-
-        // _A = [A1 A2], so A2 is just a block of _A
-        for (int iraw = 0; iraw < _A.size1(); iraw++) {
-            for (int icol = _A.size2() / 2; icol < _A.size2(); icol++) {
-                A2(iraw, icol - _A.size2() / 2) = _A(iraw, icol);
-            }
-        }
-
-        double* pointer_m = & A2(0, 0);
-        double* pointer_b = & _b(0);
-
-        gsl_matrix_view m
-                = gsl_matrix_view_array(pointer_m, A2.size1(), A2.size2());
-
-        gsl_vector_view b
-                = gsl_vector_view_array(pointer_b, A2.size1());
-
-        gsl_vector *x = gsl_vector_alloc(A2.size2());
-        gsl_vector *tau2 = gsl_vector_alloc(A2.size2());
-        gsl_vector *residual = gsl_vector_alloc(A2.size1());
-
-        gsl_linalg_QR_decomp(&m.matrix, tau2);
-
-        gsl_linalg_QR_lssolve(&m.matrix, tau2, &b.vector, x, residual);
-
-        for (int i = 0; i < _x.size() / 2; i++)
-            _x[i] = 0.0;
-        
-        for (int i = _x.size() / 2; i < _x.size(); i++)
-            _x[i] = gsl_vector_get(x, i - _x.size() / 2);
-
-        // To get the final answer this vector should be multiplied by matrix Q
-        _x = prec_prod(Q, _x);
-
-        gsl_vector_free(x);
-        gsl_vector_free(tau);
-        gsl_vector_free(residual);*/
         ub::matrix<double> B_constr = _B_constr;
-
         votca::tools::linalg_constrained_qrsolve(_x, _A, _b, B_constr);
         _x = -_x;
         
