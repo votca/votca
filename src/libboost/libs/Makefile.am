@@ -17,3 +17,8 @@ smart_ptr/src/sp_collector.cpp smart_ptr/src/sp_debug_hooks.cpp
 EXTRA_DIST = \
 detail/utf8_codecvt_facet.cpp
 
+install-exec-hook:
+if NO_LA_FILES
+	rm -f $(DESTDIR)$(libdir)/libvotca_tools.la
+endif
+

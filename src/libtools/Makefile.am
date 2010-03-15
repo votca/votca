@@ -19,8 +19,6 @@ CLEANFILES = *~ *.a hgstamp
 install-exec-hook:
 if NO_LA_FILES
 	rm -f $(DESTDIR)$(libdir)/libvotca_tools.la
-else
-	true
 endif
 
 version.o: hgstamp

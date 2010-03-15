@@ -26,17 +26,29 @@ files=$(echo "$files" | grep -Eve '/.(libs|deps)/')
 [ -n "$files" ] && die "Unknown files:\n$files"
 
 rm -f Makefile.am
-echo -e "libvotca_boost_la_CPPFLAGS = -I\$(srcdir)/..\n" >>  Makefile.am
-echo -e "libvotca_boost_la_LDFLAGS = -no-undefined\n" >>  Makefile.am
-echo -e "lib_LTLIBRARIES = libvotca_boost.la\n" >> Makefile.am
-echo -e "libvotca_boost_la_SOURCES = \\" >> Makefile.am
+cat << eof >> Makefile.am
+libvotca_boost_la_CPPFLAGS = -I\$(srcdir)/..
+
+libvotca_boost_la_LDFLAGS = -no-undefined
+
+lib_LTLIBRARIES = libvotca_boost.la
+
+libvotca_boost_la_SOURCES = \\
+eof
 files=$(find . -type f -name "*.cpp")
 [ -z "${files}" ] && die "No cpp files found"
 find . -type f -name "*.cpp" | grep -v detail | find_to_make >> Makefile.am
 echo >> Makefile.am
 echo -e "EXTRA_DIST = \\" >> Makefile.am
 find . -type f -name "*.cpp" | grep detail | find_to_make >> Makefile.am
-echo >> Makefile.am
+cat << eof >> Makefile.am
+
+install-exec-hook:
+if NO_LA_FILES
+	rm -f \$(DESTDIR)\$(libdir)/libvotca_tools.la
+endif
+
+eof
 
 cd ..
 echo Done with libs
