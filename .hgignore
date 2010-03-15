@@ -26,6 +26,9 @@ config/config.sub
 src/libtools/hgstamp
 lib*.pc
 
+scripts/VOTCARC.bash
+scripts/VOTCARC.csh
+
 netbeans/*/build
 */nbproject/private
 .dep.inc
