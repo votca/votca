@@ -23,7 +23,6 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <gsl/gsl_linalg.h>
 #include <votca/tools/cubicspline.h>
 #include <cgengine.h>
 #include <nblist.h>
@@ -383,7 +382,11 @@ void CGForceMatching::FmatchAccumulateData()
         gsl_vector_free(x);
         gsl_vector_free(tau);
         gsl_vector_free(residual);*/
-        votca::tools::linalg_constrained_qrsolve(_x, _A, _b, _B_constr);
+        ub::matrix<double> B_constr = _B_constr;
+
+        votca::tools::linalg_constrained_qrsolve(_x, _A, _b, B_constr);
+        _x = -_x;
+        
 
     } else { // Simple Least Squares
         
