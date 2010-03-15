@@ -1,4 +1,4 @@
-SUBDIRS = src include
+SUBDIRS = src include scripts
 
 EXTRA_DIST = CHANGELOG NOTICE LICENSE
 
