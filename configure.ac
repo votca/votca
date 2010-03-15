@@ -21,6 +21,12 @@ AC_ARG_ENABLE(votca_boost,
                             [Build libvotca_boost, a build-in replacement for boost])],,
                              [enable_votca_boost="no"])
 
+AC_ARG_ENABLE(la-files,
+	[AC_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
+	[enable_la_files=yes])
+
+AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
+
 # check for boost
 if test "$enable_votca_boost" = no; then
   AX_BOOST_BASE([1.33.1],[:],[have_boost=no])
