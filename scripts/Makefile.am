@@ -5,7 +5,7 @@ bin_SCRIPTS   = VOTCARC.csh VOTCARC.bash
 EXTRA_DIST = VOTCARC.csh.in VOTCARC.bash.in
 
 compdir = ${datadir}/votca
-comp_DATA = completion.bash
+dist_comp_DATA = completion.bash
 
 VOTCARC.csh: $(srcdir)/VOTCARC.csh.in Makefile
 	sed -e 's,@bindir\@,$(bindir),' \
