@@ -16,7 +16,7 @@ PKG_PROG_PKG_CONFIG
 
 AC_CONFIG_HEADERS(config.h)
 
-AC_ARG_ENABLE(votca_boost,
+AC_ARG_ENABLE(votca-boost,
             [AC_HELP_STRING([--enable-votca-boost],
                             [Build libvotca_boost, a build-in replacement for boost])],,
                              [enable_votca_boost="no"])
