@@ -28,6 +28,7 @@ or specify VOTCA_TOOLS_LIBS and VOTCA_TOOLS_CLFAGS
   ])
   save_CPPFLAGS="$CPPFLAGS"
   save_LIBS="$LIBS"
+  save_CXX="$CXX"
 
   CPPFLAGS="$VOTCA_TOOLS_CFLAGS $CPPFLAGS"
   LIBS="$VOTCA_TOOLS_LIBS $LIBS"
@@ -39,6 +40,7 @@ please make sure VOTCA_TOOLS_CFLAGS is pointing to <votca-path>/include
     ])
   ])
   AC_MSG_CHECKING([for votca::tools::ToolsVersionStr in $VOTCA_TOOLS_LIBS])
+  CXX="${SHELL-/bin/sh} ${srcdir}/libtool --mode=link $CXX"
   AC_LINK_IFELSE([
     AC_LANG_PROGRAM([#include <votca/tools/version.h>],[votca::tools::ToolsVersionStr()])
   ],[
@@ -54,4 +56,5 @@ in VOTCA_TOOLS_LIBS (e.g. export VOTCA_TOOLS_LIBS="-L<votca-path>/lib -lvotca_to
   ])
   CPPFLAGS="$save_CPPFLAGS"
   LIBS="$save_LIBS"
+  CXX="$save_CXX"
 ])
