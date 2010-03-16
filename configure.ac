@@ -14,8 +14,8 @@ AC_HEADER_STDC
 AC_PROG_LN_S
 PKG_PROG_PKG_CONFIG
 
-AX_GROMACS
-AX_VOTCA_BOOST
+#libtool is needed by AX_GROMACS and AX_VOTCA_TOOLS
+LT_OUTPUT
 
 AC_ARG_ENABLE(all-static,
               [AC_HELP_STRING([--enable-all-static],
@@ -34,8 +34,12 @@ AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 
 AX_EXPAT
 
+AX_VOTCA_BOOST
+
 #look for votca tools
 AX_VOTCA_TOOLS
+
+AX_GROMACS
 
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
