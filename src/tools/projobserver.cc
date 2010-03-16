@@ -45,8 +45,8 @@ void ProJObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     mkdir(framedir.c_str(),0755);
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
-        CrgUnit *crg1 = (*iter)->first;
-        CrgUnit *crg2 = (*iter)->second;
+        CrgUnit *crg1 = (*iter)->Crg1();
+        CrgUnit *crg2 = (*iter)->Crg2() ;
 
         /* this next bit will be substituted by the CalcJ writer for projection
          */
