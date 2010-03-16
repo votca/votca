@@ -1,17 +1,6 @@
 AC_DEFUN([AX_VOTCA_BOOST], [
   PKG_CHECK_MODULES([VOTCA_BOOST],libvotca_boost,[
     dnl we have votca_boost pkg-config file or variables
-    PKG_CHECK_EXISTS(libvotca_boost,[
-      PKGBOOST="libvotca_boost"
-      PKGCFLAGSBOOST=""
-      PKGLIBSBOOST=""
-    ],[
-      PKGBOOST=""
-      PKGCFLAGSBOOST="$VOTCA_BOOST_CFLAGS"
-      PKGLIBSBOOST="$VOTCA_BOOST_LIBS"
-    ])
-    BOOST_CFLAGS="$VOTCA_BOOST_CFLAGS"
-    BOOST_LIBS="$VOTCA_BOOST_LIBS"
   ],[
     dnl we do not have votca_boost pkg-config file, try to VOTCALDLIB
     AC_ARG_VAR([VOTCALDLIB],[path to gromacs lib dir, usually set by "source VOTCARC"])
@@ -42,6 +31,7 @@ AC_DEFUN([AX_VOTCA_BOOST], [
   LIBS="$VOTCA_BOOST_LIBS $LIBS"
   AC_CHECK_HEADERS([boost/program_options.hpp],[
     AC_MSG_CHECKING([for boost::program_options::value in $VOTCA_BOOST_LIBS])
+    dnl no libtool wrapper needed here, because boost has no deps itself
     AC_LINK_IFELSE([
       AC_LANG_PROGRAM([#include <boost/program_options.hpp>
       ],[boost::program_options::value<int>()])
@@ -55,9 +45,15 @@ AC_DEFUN([AX_VOTCA_BOOST], [
   CPPFLAGS="$save_CPPFLAGS"
   LIBS="$save_LIBS"
   if test "$vb_failed" != "yes"; then
-    PKGBOOST=""
-    PKGCFLAGSBOOST="$VOTCA_BOOST_CFLAGS"
-    PKGLIBSBOOST="$VOTCA_BOOST_LIBS"
+    PKG_CHECK_EXISTS(libvotca_boost,[
+      PKGBOOST="libvotca_boost"
+      PKGCFLAGSBOOST=""
+      PKGLIBSBOOST=""
+    ],[
+      PKGBOOST=""
+      PKGCFLAGSBOOST="$VOTCA_BOOST_CFLAGS"
+      PKGLIBSBOOST="$VOTCA_BOOST_LIBS"
+    ])
     BOOST_CFLAGS="$VOTCA_BOOST_CFLAGS"
     BOOST_LIBS="$VOTCA_BOOST_LIBS"
   else
