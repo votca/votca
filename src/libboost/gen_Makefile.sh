@@ -45,7 +45,7 @@ cat << eof >> Makefile.am
 
 install-exec-hook:
 if NO_LA_FILES
-	rm -f \$(DESTDIR)\$(libdir)/libvotca_tools.la
+	rm -f \$(DESTDIR)\$(libdir)/libvotca_boost.la
 endif
 
 eof
