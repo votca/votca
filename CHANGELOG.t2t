@@ -12,7 +12,7 @@ history of the [repository http://hg.votca.org/csg]
 * using libexpat instead of libxml2
 * using pkg-config to detect package flags
 * make it run under AIX with xlC
-* configure is using GMXLDLIB and VOTCALDLIB as failback
+* updated configure, see --help
 * added multi_g_density
 * CSGRC is replaced by VOTCARC of votca_tools
 
