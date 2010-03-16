@@ -5,10 +5,10 @@ bin_SCRIPTS   = csg_inverse csg_call multi_g_rdf
 
 rcdir = ${datadir}/votca/rc
 rcfiles = csg.rc.csh csg.rc.bash
-rc_DATA = $(comp_DATA) $(rcfiles) csg-completion.bash
+rc_DATA = $(rcfiles) csg-completion.bash
 
 # Extra files we need
-EXTRA_DIST = CSGRC.csh.in CSGRC.bash.in csg_inverse.in csg_call.in multi_g_rdf.in $(comp_DATA)
+EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf.in csg-completion.bash
 
 #hg version is determined at compiletime
 csg_call: $(srcdir)/csg_call.in Makefile hgstamp
