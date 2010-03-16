@@ -37,9 +37,6 @@ AX_EXPAT
 #look for votca tools
 AX_VOTCA_TOOLS
 
-# check for gsl
-PKG_CHECK_MODULES([GSL],gsl)
-
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
 

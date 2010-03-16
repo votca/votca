@@ -20,11 +20,7 @@ csg_stat_SOURCES = csg_stat.cc imc.cc imc.h
 
 csg_property_SOURCES = csg_property.cc
 
-#fmatch uses gsl
 csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch_main.cc csg_fmatch.h
-#gls cflags needed, because fmatch uses gsl directly
-csg_fmatch_CPPFLAGS = $(AM_CPPFLAGS) $(GSL_CFLAGS)
-#no extra gsl libs, they come with libvotca_tools in libvotca_csg.la
 
 csg_imcrepack_SOURCES = csg_imcrepack.cc
 
