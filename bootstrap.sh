@@ -19,7 +19,7 @@
 make -C share/scripts/inverse -f Makefile.am.in Makefile.am
 
 # now do usual stuff
-aclocal -I config
+aclocal
 autoheader
 automake --add-missing --copy
 autoconf 
