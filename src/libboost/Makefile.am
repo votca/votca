@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I config
+
 SUBDIRS = libs boost
 
 pkgconfigdir = $(libdir)/pkgconfig

@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I config
+
 SUBDIRS = src include scripts
 
 EXTRA_DIST = CHANGELOG NOTICE LICENSE
