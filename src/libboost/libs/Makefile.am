@@ -19,6 +19,6 @@ detail/utf8_codecvt_facet.cpp
 
 install-exec-hook:
 if NO_LA_FILES
-	rm -f $(DESTDIR)$(libdir)/libvotca_tools.la
+	rm -f $(DESTDIR)$(libdir)/libvotca_boost.la
 endif
 

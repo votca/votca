@@ -9,8 +9,9 @@ history of the [repository http://hg.votca.org/tools]
 * using libexpat instead of libxml2
 * added libvotca_boost to allow compiling without boost
 * using pkg-config to detect package flags
-* make it run under AIX with xlC
-* added VOTCARC to control all votca part
+* compiles under AIX with xlC
+* added VOTCARC to initialize all votca parts
+* updated configure, see --help
 
 
 == Version 1.0_rc4 ==
