@@ -83,6 +83,11 @@ for (my $i=1;$i<$#r;$i++){
 $force[$#r]=0.0;
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
+#peserve comments
+open(INFILE, "$infile");
+while (<INFILE>){
+	if($_ =~ /^[#@]/){print OUTFILE $_;}
+}
 for(my $i=0;$i<=$#r;$i++){
   printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n", 
     $r[$i], 0., 0., 0., 0., $pot[$i], $force[$i]);
