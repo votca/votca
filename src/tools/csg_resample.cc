@@ -45,7 +45,7 @@ void check_option(po::options_description &desc, po::variables_map &vm, const st
 
 int main(int argc, char** argv)
 {
-    string in_file, out_file, grid, spfit;
+    string in_file, out_file, grid, spfit, comment;
     CubicSpline spline;
     Table in, out, der;
 
@@ -59,6 +59,7 @@ int main(int argc, char** argv)
       ("grid", po::value<string>(&grid), "new grid spacing (min:step:max)")
       ("spfit", po::value<string>(&spfit), "specify spline fit grid. if option is not specified, normal spline interpolation is performed")
       //("bc", po::)
+      ("comment", po::value<string>(&comment), "store a comment in the output table")
       ("help", "options file for coarse graining");
     
     po::variables_map vm;
@@ -123,6 +124,10 @@ int main(int argc, char** argv)
     out.GenerateGridSpacing(min, max, step);
     spline.Calculate(out.x(), out.y());
     
+    //store a comment line
+    if (vm.count("comment")){
+        out.set_comment(comment);
+    }
     out.y() = out.y();
     out.flags() = ub::scalar_vector<double>(out.flags().size(), 'o');
 
