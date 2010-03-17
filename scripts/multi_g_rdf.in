@@ -158,10 +158,10 @@ for ((i=0;i<$np;i++)); do
   e="$(awk -v b="$begin" -v dt="$dt" -v i="$i" 'BEGIN{print dt*(i+1)+b}')"
   echo -e "$input" | $g_cmd -b $b -e $e -n $index -o $this_out $* &> $this_log &
   pid="$!"
-  qecho "Calculation of $fbase from $b ps to $e ps started (pid $pid)"
+  qecho "Calculation of $fbase from $b ps to $e ps started (pid $pid, logfile $this_log)"
   b="$e"
   if [ "$single" = "yes" ]; then
-    wait $pid || die "The $fbase calculations with pids $failed failed"
+    wait $pid || die "The $fbase calculation with pid $failed failed"
   else
     pids="${pids} $pid"
   fi
