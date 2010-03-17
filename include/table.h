@@ -20,6 +20,8 @@
 
 #include <iostream>
 #include <boost/numeric/ublas/vector.hpp>
+#include <string>
+
 using namespace std;
 
 namespace ub = boost::numeric::ublas;
@@ -60,6 +62,8 @@ public:
     void set(const int &i, const double &x, const double &y, const char &flags, const double &yerr) { _x[i] = x;
                                                                                             _y[i]=y; _flags[i] = flags; _yerr[i] = yerr; }
 
+    void set_comment(const string comment) {_has_comment=true; _comment_line = comment;}
+
     void Load(string filename);
     void Save(string filename) const;       
     
@@ -82,9 +86,12 @@ private:
     ub::vector<double> _yerr;
 
     bool _has_yerr;
+    bool _has_comment;
 
     friend ostream &operator<<(ostream &out, const Table& v);
     friend istream &operator>>(istream &out, Table& v);
+
+    string _comment_line;
 
 };
 
@@ -101,6 +108,7 @@ inline Table::Table(Table &tbl)
     _flags = tbl._flags;
     _has_yerr = tbl._has_yerr;
     if (_has_yerr) _yerr = tbl._yerr;
+    _has_comment = false;
 }
 
 inline ostream &operator<<(ostream &out, const Table& t)

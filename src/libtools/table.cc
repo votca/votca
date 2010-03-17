@@ -21,9 +21,11 @@
 #include "tokenizer.h"
 #include "table.h"
 #include <stdexcept>
+#include <iostream>
+#include <boost/algorithm/string/replace.hpp>
 
 using namespace boost;
-
+using namespace std;
 
 void Table::resize(int N, bool preserve)
 {
@@ -53,7 +55,12 @@ void Table::Save(string filename) const
     out.open(filename.c_str());
     if(!out)
         throw runtime_error(string("error, cannot open file ") + filename);
-    
+
+    if (_has_comment) {
+        string str = "# " + _comment_line;
+        boost::replace_all(str, "\\n", "\n# ");
+        out << str <<endl;
+    }
     out << (*this);
     
     out.close(); 
