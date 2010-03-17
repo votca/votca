@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-export VOTCABIN="@bindir@"
-export VOTCALDLIB="@libdir@"
+VOTCABIN="@bindir@"
+VOTCALDLIB="@libdir@"
 
-export PATH="${VOTCABIN}${PATH:+:}${PATH}"
-export LD_LIBRARY_PATH="${VOTCALDLIB}:${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
+PATH="${VOTCABIN}${PATH:+:}${PATH}"
+LD_LIBRARY_PATH="${VOTCALDLIB}:${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
+
+export VOTCABIN VOTCALDLIB PATH LD_LIBRARY_PATH
 
 #votca rc files
 VOTCASHARE="@votcashare@"
@@ -27,7 +29,7 @@ done
 unset rc
 
 #bash cmopletion
-if [ -r "$VOTCASHARE/completion.bash" ]; then 
+if [ -n "$BASH_VERSION" ] && [ -r "$VOTCASHARE/completion.bash" ]; then 
   source "$VOTCASHARE/completion.bash"
   for comp in "$VOTCASHARE/rc/"*completion.bash; do
     [ -r "$comp" ] && source "$comp"
