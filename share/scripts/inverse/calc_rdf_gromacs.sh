@@ -60,6 +60,7 @@ else
     echo -e "${type1}\n${type2}" | run_or_exit g_rdf -b ${begin} -noxvgr -n index.ndx -bin ${binsize} -o ${name}.dist.new.xvg -s topol.tpr
   fi
 #gromacs always append xvg
-  run_or_exit csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max}
+  comment="$(get_table_comment) Script command: $0 "
+  run_or_exit csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "\"$comment \""
   mark_done "rdf-$name"
 fi

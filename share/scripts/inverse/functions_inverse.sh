@@ -428,3 +428,12 @@ use_mpi() {
 }
 export -f use_mpi
 
+get_table_comment() {
+ s=" Created on $(date) on host $HOSTNAME\\n"
+version=$(csg_call -v | sed 's/^.*version //')
+ s="$s Version $version \\n"
+ s="$s Xml file used : $CSGXMLFILE \\n"
+ s="$s Path: $PWD\\n"
+ echo $s
+}
+export -f get_table_comment

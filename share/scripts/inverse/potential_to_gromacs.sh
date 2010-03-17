@@ -40,5 +40,7 @@ log "Convert $input to $output"
 r_cut=$(csg_get_interaction_property max)
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 
-run_or_exit csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} 
+comment="$(get_table_comment) Script command: $0 "
+
+run_or_exit csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} --comment "\"$comment \"" 
 do_external convert_potential xvg smooth_${input} ${output}

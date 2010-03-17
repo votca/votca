@@ -38,8 +38,9 @@ step=$(csg_get_interaction_property step)
 kBT=$(csg_get_property cg.inverse.kBT)
 log "purifying dpot for $name"
 
-run_or_exit csg_resample --in ${name}.dpot.imc --out ${name}.dpot.impure --grid ${min}:${step}:${max}
 
+comment="$(get_table_comment) Script command: $0 " 
+run_or_exit csg_resample --in ${name}.dpot.imc --out ${name}.dpot.impure --grid ${min}:${step}:${max} --comment "\"$comment \""
 scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
 scheme_nr=$(( ( $1 - 1 ) % ${#scheme[@]} ))
 

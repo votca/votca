@@ -38,4 +38,5 @@ target=$(csg_get_interaction_property inverse.target)
 name=$(csg_get_interaction_property name)
 main_dir=$(get_main_dir)
 
-run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max}
+comment="$(get_table_comment) Script command: $0 "
+run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "\"$comment \""

@@ -38,7 +38,8 @@ if [ -f ../${name}.pot.in ]; then
   min=$(csg_get_interaction_property min )
   max=$(csg_get_interaction_property max )
   step=$(csg_get_interaction_property step )
-  run_or_exit csg_resample --in ../${name}.pot.in --out ${name}.pot.new --grid ${min}:${step}:${max}
+  comment="$(get_table_comment) Script command: $0 "
+  run_or_exit csg_resample --in ../${name}.pot.in --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "\"$comment \""
 else
   # RDF_to_POT.pl just does log g(r) + extrapolation
   msg "Using intial guess from RDF for ${name}"
