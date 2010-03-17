@@ -5,11 +5,10 @@ AC_CONFIG_MACRO_DIR(config)
 
 AM_INIT_AUTOMAKE([1.8 foreign])
 
-
 AC_PROG_CXX
 LT_INIT
 
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 
 AC_HEADER_STDC
 PKG_PROG_PKG_CONFIG
@@ -17,12 +16,12 @@ PKG_PROG_PKG_CONFIG
 AC_CONFIG_HEADERS(config.h)
 
 AC_ARG_ENABLE(votca-boost,
-            [AC_HELP_STRING([--enable-votca-boost],
+            [AS_HELP_STRING([--enable-votca-boost],
                             [Build libvotca_boost, a build-in replacement for boost])],,
                              [enable_votca_boost="no"])
 
 AC_ARG_ENABLE(la-files,
-	[AC_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
+	[AS_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
 	[enable_la_files=yes])
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
@@ -55,6 +54,7 @@ if test "$enable_votca_boost" = "yes"; then
   BOOST_CFLAGS='-I$(top_srcdir)/src/libboost'
   BOOST_LIBS='$(top_srcdir)/src/libboost/libs/libvotca_boost.la'
   VOTCA_BOOST="libboost"
+  AC_CACHE_SAVE
   AC_CONFIG_SUBDIRS(src/libboost)
   PKGBOOST="libvotca_boost"
   PKGCFLAGSBOOST=""
