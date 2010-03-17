@@ -1,4 +1,4 @@
-AC_INIT(votca-csg,1.0_rc4,bugs@votca.org)
+AC_INIT(votca-csg,1.0_rc5,bugs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -18,7 +18,7 @@ PKG_PROG_PKG_CONFIG
 LT_OUTPUT
 
 AC_ARG_ENABLE(all-static,
-              [AC_HELP_STRING([--enable-all-static],
+              [AS_HELP_STRING([--enable-all-static],
               [Make completely static binaries])],, enable_all_static=no)
 
 if test "$enable_all_static" = "yes"; then
@@ -27,7 +27,7 @@ if test "$enable_all_static" = "yes"; then
 fi
 
 AC_ARG_ENABLE(la-files,
-	[AC_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
+	[AS_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
 	[enable_la_files=yes])
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])

@@ -13,5 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-export CSGSHARE=@votcashare@
+
+#Make it simple so that sh can also understand it
+CSGSHARE="@votcashare@"
+
+export CSGSHARE
 
