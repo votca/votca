@@ -18,7 +18,7 @@ PKG_PROG_PKG_CONFIG
 LT_OUTPUT
 
 AC_ARG_ENABLE(all-static,
-              [AC_HELP_STRING([--enable-all-static],
+              [AS_HELP_STRING([--enable-all-static],
               [Make completely static binaries])],, enable_all_static=no)
 
 if test "$enable_all_static" = "yes"; then
@@ -27,7 +27,7 @@ if test "$enable_all_static" = "yes"; then
 fi
 
 AC_ARG_ENABLE(la-files,
-	[AC_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
+	[AS_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
 	[enable_la_files=yes])
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])

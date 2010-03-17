@@ -1,6 +1,6 @@
-#!/bin/bash -e
-# 
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+#! /bin/sh -e
+#
+# Copyright 2009-2010 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,4 @@
 # creating Makefile.am for share/scripts/inverse, this is automated here because we always forgot to update
 make -C share/scripts/inverse -f Makefile.am.in Makefile.am
 
-# now do usual stuff
-aclocal
-autoheader
-automake --add-missing --copy
-autoconf 
-
+autoreconf -v -i
