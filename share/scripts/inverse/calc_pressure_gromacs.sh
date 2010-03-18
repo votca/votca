@@ -25,15 +25,17 @@ Usage: ${0##*/}
 
 USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die sed check_deps
 
-NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
+NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.gromacs.mdp
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-nsteps=$(get_from_mdp nsteps "grompp.mdp")
-dt=$(get_from_mdp dt "grompp.mdp")
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+nsteps=$(get_from_mdp nsteps "$mdp")
+dt=$(get_from_mdp dt "$mdp")
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 

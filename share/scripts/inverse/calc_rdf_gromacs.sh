@@ -8,7 +8,7 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
+# Unless required by applicale law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
@@ -27,16 +27,18 @@ USES: get_from_mdp csg_get_interaction_property csg_get_property awk log run_or_
 
 NEEDS: type1 type2 name step min max
 
-OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.mpi.tasks
+OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.mpi.tasks cg.inverse.gromacs.mdp
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-dt=$(get_from_mdp dt "grompp.mdp")
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+dt=$(get_from_mdp dt "$mdp")
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
-steps=$(get_from_mdp nsteps "grompp.mdp")
+steps=$(get_from_mdp nsteps "$mdp")
 first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 type1=$(csg_get_interaction_property type1)
