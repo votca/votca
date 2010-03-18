@@ -58,6 +58,7 @@ void Table::Save(string filename) const
 
     if (_has_comment) {
         string str = "# " + _comment_line;
+        boost::replace_all(str, "\n", "\n# ");
         boost::replace_all(str, "\\n", "\n# ");
         out << str <<endl;
     }
