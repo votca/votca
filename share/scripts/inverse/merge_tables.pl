@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ Examples:  $progname -q
            $progname
 
 USES: readin_table saveto_table
-NEEDS: 
+NEEDS:
 
 END
 		exit;
@@ -113,7 +113,7 @@ for(my $i=0; $i<=$#r_src; $i++) {
       next;
     }
   }
-  
+
   # advance in dst till same r
   while($r_dst[$idst] < $r_src[$i] - 1e-15) {
     $idst++;

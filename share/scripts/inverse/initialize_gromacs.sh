@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,5 +31,5 @@ fi
 
 check_deps "$0"
 
-cp_from_main_dir conf.gro 
+cp_from_main_dir conf.gro
 run_or_exit mv conf.gro confout.gro

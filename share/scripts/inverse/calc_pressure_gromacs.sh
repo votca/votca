@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print 
 log "Running g_energy"
 echo Pressure | run_or_exit g_energy -b ${begin}
 #the number pattern '[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
-p_now=$(csg_taillog -30 | sed -n 's/^Pressure[^0-9]*\([0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' pressure.xvg ) || \ 
+p_now=$(csg_taillog -30 | sed -n 's/^Pressure[^0-9]*\([0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' pressure.xvg ) || \
   die "${0##*/}: awk failed"
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
 echo ${p_now}

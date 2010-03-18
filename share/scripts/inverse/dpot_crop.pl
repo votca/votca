@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,12 +47,12 @@ $usage
 Allowed options:
 -h, --help            Show this help message
 
-Examples: 
-* $progname tmp.dpot.cur tmp.dpot.new 
+Examples:
+* $progname tmp.dpot.cur tmp.dpot.new
 
 USES: readin_table saveto_table
 
-NEEDS: 
+NEEDS:
 END
 		exit;
 	}
@@ -99,7 +99,7 @@ while($i_first + $ncrop<=$#r-3) {
   if($delta_1 * $delta_2 > 0) {
     last;
   } elsif (abs($val[$i]) < 0.5 && abs($val[$i+1]) < 0.5) {
-    last; 
+    last;
   }
   $flag[$i]='o';
   $ncrop++;

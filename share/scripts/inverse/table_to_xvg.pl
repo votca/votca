@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
 This script convert csg potential files to xvg format
-Potential are copy in the C12 column 
+Potential are copy in the C12 column
 In addtion it does some magic tricks:
 - bigger value will be set to pot_max (see xml)
 - shift the potential, so that it is zero at the cutoff
@@ -89,7 +89,7 @@ while (<INFILE>){
 	if($_ =~ /^[#@]/){print OUTFILE $_;}
 }
 for(my $i=0;$i<=$#r;$i++){
-  printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n", 
+  printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n",
     $r[$i], 0., 0., 0., 0., $pot[$i], $force[$i]);
 }
 close(OUTFILE) or die "Error at closing $outfile\n";

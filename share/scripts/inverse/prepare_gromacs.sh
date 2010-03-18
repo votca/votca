@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,6 @@ check_deps "$0"
 
 last_step=$(get_last_step_dir)
 
-cp ${last_step}/confout.gro ./conf.gro || die "${0##*/} cp ${last_step}/confout.gro ./conf.gro failed" 
+cp ${last_step}/confout.gro ./conf.gro || die "${0##*/} cp ${last_step}/confout.gro ./conf.gro failed"
 
-run_or_exit grompp -n index.ndx 
+run_or_exit grompp -n index.ndx

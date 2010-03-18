@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
-iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)  
+iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)
 
 run_or_exit cp ${name}.dpot.cur $tmpfile
 log "doing $iterations smoothing iterations"

@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@
 
 sub extrapolate_linear($$$$) {
   my $x0 = $_[0];
-  my $y0 = $_[1]; 
+  my $y0 = $_[1];
   my $m =  $_[2];
   my $x =  $_[3];
 
@@ -38,7 +38,7 @@ sub extrapolate_linear($$$$) {
 
 sub sasha_shit($$$$) {
   my $x0 = $_[0];
-  my $y0 = $_[1]; 
+  my $y0 = $_[1];
   my $m =  $_[2];
   my $x =  $_[3];
 
@@ -51,7 +51,7 @@ sub sasha_shit($$$$) {
 }
 sub extrapolate_quad($$$$) {
   my $x0 = $_[0];
-  my $y0 = $_[1]; 
+  my $y0 = $_[1];
   my $m =  $_[2];
   my $x =  $_[3];
 
@@ -63,7 +63,7 @@ sub extrapolate_quad($$$$) {
 }
 sub extrapolate_exp($$$$) {
   my $x0 = $_[0];
-  my $y0 = $_[1]; 
+  my $y0 = $_[1];
   my $m =  $_[2];
   my $x =  $_[3];
 
@@ -231,7 +231,7 @@ if ($do_right) {
   # now extrapolate ends
   for(my $i=$last+1; $i <= $#r; $i++) {
       $val[$i] = &{$extrap_method}($r[$last], $val[$last], $grad_end, $r[$i]);
-  } 
+  }
 }
 #==============
 

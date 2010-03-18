@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ Usage: ${0##*/}
 
 USES:  die msg csg_get_property for_all do_external check_deps
 
-NEEDS: cg.inverse.program 
+NEEDS: cg.inverse.program
 EOF
    exit 0
 fi
@@ -32,6 +32,6 @@ fi
 check_deps "$0"
 
 msg "Skeleton script"
-sim_prog="$(csg_get_property cg.inverse.program)" 
+sim_prog="$(csg_get_property cg.inverse.program)"
 for_all non-bonded do_external bla $sim_prog
 die "This is just a Skeleton script"

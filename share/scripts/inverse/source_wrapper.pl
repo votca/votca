@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ then we try to find scriptname in global,pwd,CSGSCRIPTDIR,CSGINVERSE
 
 Usage: $progname word1 word2
 
-USES: \$CSGINVERSE \$CSGSCRIPTDIR 
+USES: \$CSGINVERSE \$CSGSCRIPTDIR
 
 NEEDS:
 END
@@ -115,7 +115,7 @@ sub find_in_dir($$) {
   ( my $dir=$_[1] ) || die "find_in_dir: second argument missing\n";
   #remove script arguments
   $script="$1" if  ($_[0] =~ s/^(\S+).*?$/$1/);
-  $args="$1" if ($_[0] =~ /^\S+\s+(.*?)$/); 
+  $args="$1" if ($_[0] =~ /^\S+\s+(.*?)$/);
   #empty means, add no dir
   $script="$dir/$script"  unless ($dir =~ /^\s*$/ );
   if ( -f "$script" ) {

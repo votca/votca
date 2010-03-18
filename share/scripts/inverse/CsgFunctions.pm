@@ -1,5 +1,5 @@
 package CsgFunctions;
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ saveto_table(\$\\@\\@\\@):           writes to a csg table
 saveto_table_err(\$\\@\\@\\@) :      writes to csg table with errors
 
 USES: \$CSGXMLFILE csg_property
-NEEDS: 
+NEEDS:
 PROVIDES: csg_get_property csg_get_interaction_property readin_table saveto_table saveto_table_err
 EOF
   exit 0;
@@ -43,7 +43,7 @@ EOF
 sub csg_get_property($){
   ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
   defined($_[0]) || die "csg_get_property: Missig argument\n";
-  open(CSG,"csg_property --file $xmlfile --path $_[0] --short --print . |") || 
+  open(CSG,"csg_property --file $xmlfile --path $_[0] --short --print . |") ||
     die "csg_get_property: Could not open pipe\n";
   defined(my $value=<CSG>) || die "csg_get_property: Could not get value $_[0]\n";
   close(CSG) || die "csg_get_property: error from csg_property\n";
@@ -57,7 +57,7 @@ sub csg_get_interaction_property($){
   ( my $bondtype=$ENV{'bondtype'} ) || die "bondtype: ENV{'bondtype'} was undefined\n";
   ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
   defined($_[0]) || die "csg_get_interaction_property: Missig argument\n";
-  open(CSG,"csg_property --file $xmlfile --short --path cg.$bondtype --filter \"name=$bondname\" --print $_[0] |") || 
+  open(CSG,"csg_property --file $xmlfile --short --path cg.$bondtype --filter \"name=$bondname\" --print $_[0] |") ||
     die "csg_get_interaction_property: Could not open pipe\n";
   defined(my $value=<CSG>) || die "csg_get_interaction_property: Could not get value $_[0]\n";
   close(CSG) || die "csg_get_interaction_property: error from csg_property\n";
@@ -73,7 +73,7 @@ sub readin_table($\@\@\@) {
   while (<TAB>){
     $line++;
     # remove leading spacees for split
-    $_ =~ s/^\s*//;    
+    $_ =~ s/^\s*//;
     next if /^[#@]/;
     next if /^\s*$/;
     my @parts=split(/\s+/);

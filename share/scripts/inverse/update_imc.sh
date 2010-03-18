@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ fi
 check_deps "$0"
 
 solver=$(csg_get_property cg.inverse.imc.solver)
-sim_prog="$(csg_get_property cg.inverse.program)" 
+sim_prog="$(csg_get_property cg.inverse.program)"
 do_external imc_stat $sim_prog
 
 #add other groups here later
@@ -45,6 +45,6 @@ for group in $list_groups; do
   run_or_exit csg_imcrepack --in ${group} --out ${group}.packed
   do_external imcsolver $solver ${group}.packed ${group}.packed.sol
   run_or_exit csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
-done 
+done
 
-for_all non-bonded do_external imc purify 
+for_all non-bonded do_external imc purify

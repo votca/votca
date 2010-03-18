@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ while [ "${1#-}" != "$1" ]; do
        set -- "${1:0:2}" "-${1:2}" "${@:2}"
     fi
  fi
- case $1 in 
+ case $1 in
    --do-iterations)
     do_iterations="$2"
     shift 2 ;;
@@ -80,7 +80,7 @@ while [ "${1#-}" != "$1" ]; do
  esac
 done
 
-### end parsing options 
+### end parsing options
 
 #do all start up checks option stuff
 source "${0%.sh}_start.sh"  "$@" || exit 1
@@ -100,7 +100,7 @@ else
   echo "Sim started $(date)" > $CSGLOG || exit 1
 fi
 
-method="$(csg_get_property cg.inverse.method)" 
+method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
 if [ "$method" = "imc" ]; then
   msg "####################################################"
@@ -110,9 +110,9 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 log "We using Sim Program: $sim_prog"
-source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed" 
+source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed"
 
-iterations="$(csg_get_property cg.inverse.iterations_max)" 
+iterations="$(csg_get_property cg.inverse.iterations_max)"
 log "We are doing $iterations iterations."
 
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
@@ -146,9 +146,9 @@ else
   do_external init $method
 
   #get confout.gro
-  do_external init $sim_prog 
+  do_external init $sim_prog
 
-  for_all non-bonded cp '$(csg_get_interaction_property name).pot.new $(get_main_dir)' 
+  for_all non-bonded cp '$(csg_get_interaction_property name).pot.new $(get_main_dir)'
   touch done
   msg "step 0 done"
   cd $(get_main_dir)
@@ -196,7 +196,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   if is_done "Initialize"; then
     msg "Initialization already done"
   else
-    #copy+resample all rdf in this_dir 
+    #copy+resample all rdf in this_dir
     for_all non-bonded do_external resample calc
 
     #get need files
@@ -209,7 +209,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     for_all non-bonded do_external convert_potential $sim_prog
 
     #Run simulation maybe change to Espresso or whatever
-    do_external prepare $sim_prog 
+    do_external prepare $sim_prog
     mark_done "Initialize"
   fi
 
@@ -217,15 +217,15 @@ for ((i=$begin;i<$iterations+1;i++)); do
     msg "Simulation is already done"
   else
     msg "Simulation runs"
-    do_external run $sim_prog 
+    do_external run $sim_prog
     mark_done "Simulation"
   fi
 
-  msg "Make update $method" 
+  msg "Make update $method"
   do_external update $method
 
   msg "Post update"
-  do_external post update 
+  do_external post update
 
   msg "Adding up potential"
   do_external add_pot $method

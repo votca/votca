@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ pscheme_nr=$(( ( $step_nr - 1 ) % ${#pscheme[@]} ))
 
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
    log "Apply ${ptype} pressure correction for interaction ${name}"
-   do_external pressure_cor $ptype $p_now pressure_cor.d 
+   do_external pressure_cor $ptype $p_now pressure_cor.d
    do_external table add pressure_cor.d ${name}.dpot.cur ${name}.dpot.new
 else
    log "NO pressure correction for interaction ${name}"

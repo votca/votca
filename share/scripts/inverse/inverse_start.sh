@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-this script just contain all startup check for inverse.sh to 
+this script just contain all startup check for inverse.sh to
 and makes inverse.sh more readable
 
 PROVIDES: \$CSGXMLFILE \$CSGINVERSE \$SOURCE_WRAPPER \$CSGSCRIPTDIR \$CSGLOG \$CSGRESTART
@@ -44,7 +44,7 @@ else
   die "Error: file '$1' could not read, needed for \$CSGXMLFILE"
 fi
 
-#check for CSGSHARE 
+#check for CSGSHARE
 [[ -n "$CSGSHARE" ]] || die "Error: CSGSHARE not definded"
 [[ -d "$CSGSHARE" ]] || die "CSGSHARE '$CSGSHARE' is not a dir"
 
@@ -66,7 +66,7 @@ function_file=$($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functi
 source ${function_file} || exit 1
 unset function_file
 
-CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)" 
+CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
 #scriptdir maybe contains $PWD or something
 if [ -n "$CSGSCRIPTDIR" ]; then
   eval CSGSCRIPTDIR=$CSGSCRIPTDIR

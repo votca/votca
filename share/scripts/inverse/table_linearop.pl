@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,7 @@ Examples:  $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
 
 USES: readin_table saveto_table
 
-NEEDS: 
+NEEDS:
 END
 		exit;
 	}
@@ -74,7 +74,7 @@ END
 die "missing parameters\n$usage\n" unless $#ARGV >= 3;
 
 my $a = $ARGV[2];
-my $b = $ARGV[3]; 
+my $b = $ARGV[3];
 
 use CsgFunctions;
 

@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ EOF
    exit 0
 fi
 
-sim_prog="$(csg_get_property cg.inverse.program)" 
+sim_prog="$(csg_get_property cg.inverse.program)"
 cgmap=$(csg_get_property cg.inverse.cgmap)
 topol=$(csg_get_property cg.inverse.$sim_prog.topol topol.tpr)
 traj=$(csg_get_property cg.inverse.$sim_prog.traj traj.xtc)

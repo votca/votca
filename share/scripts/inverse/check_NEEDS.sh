@@ -1,5 +1,5 @@
-#! /bin/bash 
-# 
+#! /bin/bash
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ else
 fi
 
 if [ -z "$1" ]; then
-  echo MIssing argument >&2 
+  echo MIssing argument >&2
   echo help with ${0##*/} --help >&2
   exit 1
 fi
@@ -46,9 +46,9 @@ fi
 
 if [ "$1" = "--" ]; then
   whates="$(\
-  for i in *.sh *.pl; do 
+  for i in *.sh *.pl; do
     [[ -z "${not_to_check##* $i *}" ]] && continue;
-    ./$i --help 2>&1 | sed -n 's/\(NEEDS\|OPTIONAL\): \+\(.*\) *$/\2/p' | sed 's/ /\n/g' 
+    ./$i --help 2>&1 | sed -n 's/\(NEEDS\|OPTIONAL\): \+\(.*\) *$/\2/p' | sed 's/ /\n/g'
   done | sort -u)"
   whates+="$(\
     grep -hEe 'csg_get_(interaction_)?property' *.sh *.pl |\
@@ -101,7 +101,7 @@ for i in $@; do
     [[ -n "$(grep -Eve "(NEEDS|OPTIONAL):" "$i" | grep -Ee "$pattern1")" ]] && in_content="yes"
     [[ -n "$($exe --help | grep -Ee "$pattern2")" ]] && in_help="yes"
     if [ "$debug" = "yes" ]; then
-      echo "cont $in_content" help "$in_help" 
+      echo "cont $in_content" help "$in_help"
       echo "p1 $pattern1 p2 $pattern2"
     fi
     #what found in file and uses -> ok

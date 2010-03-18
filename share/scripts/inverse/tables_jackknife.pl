@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This scripts calculates the jacknife error from existing tables 
+This scripts calculates the jacknife error from existing tables
 * full     =  table calculated with full dataset
 * blocks   = tables calculated with 1 block missing
 * outfile  = file to write results
@@ -31,7 +31,7 @@ Usage: $progname out full block1 block2 ...
 
 USES: readin_table saveto_table_err
 
-NEEDS: 
+NEEDS:
 EOF
   exit 0;
 }
@@ -69,7 +69,7 @@ while (@ARGV > 0) {
   #should never happen, but ....
   #die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
   #die "Different start point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
- 
+
   for (my $i=0;$i<=$#r_cur;$i++) {
       $err[$i] += ($val_cur[$i] - $val_full[$i])**2;  # is already nan or we don't change
   }

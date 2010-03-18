@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +48,7 @@ use CsgFunctions;
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-# TODO: this gromacs option should not be here 
+# TODO: this gromacs option should not be here
 #       since it's a general initial guess files
 #       move this option out of gromacs section!!!!!
 #
@@ -64,7 +64,7 @@ my @flag;
 my @pot;
 for (my $i=0;$i<=$#r;$i++){
 #  if ($flag[$i] eq "i"){
-    #rdf = 0 will give undefined pot 
+    #rdf = 0 will give undefined pot
     if ($rdf[$i]>1e-10) {
       $pot[$i]=-$pref*log($rdf[$i]);
     }

@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ Usage: $progname infile outfile
 
 USES: readin_table saveto_table
 
-NEEDS: 
+NEEDS:
 EOF
   exit 0;
 }
@@ -49,9 +49,9 @@ my @pot;
 # TODO: think about addition rules
 # now I did it like that to always maintain interval of interest in all potentials
 for (my $i=1;$i<$#r_cur;$i++){
-  $pot[$i]=$pot_cur[$i]; 
+  $pot[$i]=$pot_cur[$i];
   if($flag_cur[$i] eq "i") {
-    $pot[$i] = 0.25*$pot_cur[$i-1] + 0.5*$pot_cur[$i] + 0.25*$pot_cur[$i+1]; 
+    $pot[$i] = 0.25*$pot_cur[$i-1] + 0.5*$pot_cur[$i] + 0.25*$pot_cur[$i+1];
   }
 }
 

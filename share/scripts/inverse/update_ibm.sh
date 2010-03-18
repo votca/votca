@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ Usage: ${0##*/}
 
 USES:  msg csg_get_property for_all do_external check_deps
 
-NEEDS: cg.inverse.program 
+NEEDS: cg.inverse.program
 EOF
    exit 0
 fi
@@ -33,6 +33,6 @@ fi
 check_deps "$0"
 
 msg "Calc rdf"
-sim_prog="$(csg_get_property cg.inverse.program)" 
+sim_prog="$(csg_get_property cg.inverse.program)"
 for_all non-bonded do_external rdf $sim_prog
 for_all non-bonded do_external update ibm_single

@@ -1,4 +1,4 @@
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,7 +101,7 @@ imc_stat gromacs imc_stat_generic.sh
 
 # gromacs scripts specific stuff
 convert_potential gromacs potential_to_gromacs.sh
-convert_potential xvg table_to_xvg.pl 
+convert_potential xvg table_to_xvg.pl
 
 #function for gromacs
 functions gromacs functions_gromacs.sh

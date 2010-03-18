@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,16 +25,16 @@ Usage: ${0##*/}
 
 USES:  for_all csg_get_interaction_property mv check_deps cp_from_last_step
 
-NEEDS: name 
+NEEDS: name
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-#get new pot from last step 
+#get new pot from last step
 for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 
-#make it current potential 
+#make it current potential
 for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 

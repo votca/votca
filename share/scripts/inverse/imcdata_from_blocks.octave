@@ -11,11 +11,11 @@ for i = 2:length(blocks)
   corr_file=strcat(name, '_', num2str(blocks(i)), '.cor');
   S_file=strcat(name, '_', num2str(blocks(i)), '.S');
   dS_file=strcat(name, '_', num2str(blocks(i)), '.imc');
- 
+
   corr=load(corr_file);
   S=load(S_file);
   dS=load(dS_file);
-  
+
   corr_avg += corr;
   S_avg(:,2) += S(:,2);
   dS_avg(:,2) += S(:,2);

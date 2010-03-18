@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ fi
 check_deps "$0"
 
 name=$(csg_get_interaction_property name)
-tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update) 
+tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
 i=1
 for task in $tasklist; do
   log "Doing $task for ${name}"
