@@ -16,5 +16,6 @@ CLEANFILES = *~
 Makefile.am: Makefile.am.in
 	echo 'inverse_SCRIPTS = \' > $@
 	ls *.sh *.pl | sed -e 's/.*/\t& \\/' -e '$$s/\\$$//' >> $@
+	echo >> $@
 	sed '/^###END Makefile.am###/,$$d' $< >> $@
 
