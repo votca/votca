@@ -1,5 +1,18 @@
 AC_DEFUN([AX_GROMACS], [
-  PKG_CHECK_MODULES([GMX],libgmx,[:],[
+  AC_ARG_WITH(libgmx,[
+    AS_HELP_STRING([--with-libgmx=NAME],
+      [Compile against this Gromacs(gmx) library, default libgmx, but libgmx_d or libgmx_mpi is possible as well.
+    ])
+  ],,[with_libgmx=yes])
+  if test "$with_libgmx" = "no"; then
+    AC_MSG_ERROR([You cannot compile without libgmx])
+  fi
+  if test -z "$withval" -o "$withval" = "yes"; then
+    libgmx="gmx"
+  else
+    libgmx="${withval#lib}"
+  fi
+  PKG_CHECK_MODULES([GMX],[lib$libgmx],[:],[
     AC_ARG_VAR([GMXLDLIB],[path to gromacs lib dir, usually set by "source GMXRC"])
     AC_MSG_CHECKING([GMXLDLIB])
     if test -z "$GMXLDLIB"; then
@@ -14,7 +27,7 @@ or specify GMX_LIBS and GMX_CLFAGS
     fi
     AC_MSG_NOTICE([creating GMX_LIBS and GMX_CFLAGS from GMXLDLIB])
     if test -z "$GMX_LIBS"; then
-      GMX_LIBS="-L$GMXLDLIB -lgmx"
+      GMX_LIBS="-L$GMXLDLIB -l$libgmx"
       AC_MSG_NOTICE([setting GMX_LIBS   to "$GMX_LIBS"])
     else
       AC_MSG_NOTICE([GMX_LIBS was already set elsewhere to "$GMX_LIBS"])
@@ -71,7 +84,7 @@ unexpected results ahead
   ])
   CPPFLAGS="$save_CPPFLAGS"
   LIBS="$save_LIBS"
-  PKG_CHECK_EXISTS(libgmx,[
+  PKG_CHECK_EXISTS([lib$libgmx],[
     PKGGMX="libgmx"
     PKGCFLAGSGMX=""
     PKGLIBSGMX=""
