@@ -89,6 +89,7 @@ unset -f die
 die () {
   [[ -z "$CSGLOG" ]] || log --no-warn "$*"
   echo -e "$*" 1>&2
+  [ -z "$CSGLOG" ] || echo "For details see $CSGLOG" 1>&2
   log --no-warn "killing all processes...."
   #send kill signal to all process within the process groups
   kill 0
