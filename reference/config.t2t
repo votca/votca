@@ -19,8 +19,11 @@
 %!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
 %!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
 
-% hyperref[]{}
+%hyperref wants [] for 1st argument -> hyperref[]{}
 %!postproc(tex): '(\\hyperref)\{(.*?)\}\{(.*?)\}' '\1[\2]{\3}'
+
+% nicer --
+%!postproc(tex): '--' '{-}{-}'
 
 %For other target is replaced by nothing.
 %!postproc: '(target|link|ref)\(.*?\)\((.*?)\)' '\2'
