@@ -32,8 +32,9 @@ fi
 
 check_deps "$0"
 
-last_step=$(get_last_step_dir)
+cp_from_last_step confout.gro
+run_or_exit mv confout.gro conf.gro
 
-cp ${last_step}/confout.gro ./conf.gro || die "${0##*/} cp ${last_step}/confout.gro ./conf.gro failed"
+for_all "non-bonded" check_cufoff grompp.mdp
 
 run_or_exit grompp -n index.ndx
