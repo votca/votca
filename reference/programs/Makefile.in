@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
 BINS:=$(shell ls `dirname \`which csg_property\``/csg_* | xargs -n1 basename )
-BINS2="multi_g_rdf"
+BINS2:=$(shell ls `dirname \`which csg_property\``/multi_g_* | xargs -n1 basename )
 
 .PHONY: clean bootstrap
 
