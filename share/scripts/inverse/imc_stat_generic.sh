@@ -27,7 +27,7 @@ USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done c
 
 NEEDS: cg.inverse.program cg.inverse.cgmap
 
-OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.\$sim_prog.topol
+OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type
 EOF
    exit 0
 fi
@@ -36,11 +36,16 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 cgmap=$(csg_get_property cg.inverse.cgmap)
 [ -f "$cgmap" ] || die "${0##*/}: imc cgmap file '$cgmap' not found"
 
-topol=$(csg_get_property cg.inverse.$sim_prog.topol "topol.tpr")
-[ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
+if [ "$sim_prog" = "gromacs" ]; then
+  topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
+  [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
 
-traj=$(csg_get_property cg.inverse.$sim_prog.traj "traj.xtc")
-[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  traj="traj.${ext}"
+  [ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
+else
+  die "${0##*/}: Simulation program '$sim_prog' not supported yet"
+fi
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"

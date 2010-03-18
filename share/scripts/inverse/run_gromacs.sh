@@ -24,16 +24,24 @@ for the Inverse Boltzmann Method
 Usage: ${0##*/}
 
 USES: run_or_exit mdrun use_mpi csg_get_property check_deps
-OPTIONAL: cg.inverse.mpi.cmd
+OPTIONAL: cg.inverse.mpi.cmd cg.inverse.gromacs.mdrun.opts cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type
 EOF
    exit 0
 fi
+
+tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
+[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found"
+
+opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
 check_deps "$0"
 
 if use_mpi; then
   mpicmd=$(csg_get_property cg.inverse.mpi.cmd)
-  run_or_exit $mpicmd mdrun
+  run_or_exit $mpicmd mdrun -s "${tpr}" "${opts}"
 else
-  run_or_exit mdrun
+  run_or_exit mdrun -s "${tpr}" "${opts}"
 fi
+ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+traj="traj.${ext}"
+[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after mdrun"
