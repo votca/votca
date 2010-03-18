@@ -43,15 +43,18 @@ rdf pot RDF_to_POT.pl
 # post update
 post update post_update.sh
 post update_single post_update_single.sh
+post dummy dummy.sh
 
 #post update scripts
 postupd pressure postupd_pressure.sh
 postupd splinesmooth postupd_splinesmooth.sh
 postupd smooth postupd_smooth.sh
+postupd dummy dummy.sh
 
 # post add
 post add post_add.sh
 post add_single post_add_single.sh
+post dummy dummy.sh
 
 # post add scripts
 
