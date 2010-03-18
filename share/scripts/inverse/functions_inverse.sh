@@ -185,7 +185,7 @@ for_all (){
     #no need to run unset afterwards
     bondtype="$bondtype" \
     bondname="$name" \
-    bash -c "$*" || die "for_all: bash -c '$*' failed"
+    bash -c "$*" || die "for_all: bash -c '$*' failed for bondname '$name'"
   done
 }
 export -f for_all
