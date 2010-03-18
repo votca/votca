@@ -57,9 +57,8 @@ Do not forget the /gromacs due to bug in gromacs headers!
     AC_MSG_RESULT([no])
     AC_MSG_ERROR([
 
-Could not link against GROMACS,
-please check your LDFLAGS and/or specify libraries required to link 
-against GROMACS in GMX_LIBS (e.g. export GMX_LIBS="-L<gromacs-path>/lib -lgmx").
+Could not link against GROMACS,please choose libraries to link against with --with-libgmx=XXX
+or specify it in GMX_LIBS (e.g. export GMX_LIBS="-L<gromacs-path>/lib -lgmx").
 
 If you are using a mpi version of gromacs, make sure that CXX is something like mpic++.
 (e.g. export CXX="mpic++" and export GMX_LIBS="-L<gromacs-path>/lib -lgmx_mpi")
