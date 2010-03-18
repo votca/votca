@@ -434,9 +434,9 @@ get_table_comment() {
   local version
   [[ -n "$(type -p csg_call)" ]] || die "get_defaults_comment: Could not find csg_version"
   version="$(csg_call --version)" || die "get_defaults_comment: csg_call --version failed"
-  echo "#Created on $(date) by $USER@$HOSTNAME"
-  echo "#from $version" | sed "s/csg_call/${0##*/}/"
-  echo "#Xml file used : $CSGXMLFILE"
-  echo "#in Dir: $PWD"
+  echo "Created on $(date) by $USER@$HOSTNAME"
+  echo "called from $version" | sed "s/csg_call/${0##*/}/"
+  echo "settings file: $CSGXMLFILE"
+  echo "working directory: $PWD"
 }
 export -f get_table_comment
