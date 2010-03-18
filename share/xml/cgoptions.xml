@@ -47,7 +47,7 @@
   <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash so many frames at the beginning when using gromacs</desc></item>
   <item><name>cg.inverse.gromacs.topol</name><desc> Gromacs topology file to use, default topol.tpr</desc></item>
   <item><name>cg.inverse.gromacs.traj_type</name><desc> Gromacs trajectory type (xtc/trr) fie to use, default xtc</desc></item>
-  <item><name>cg.inverse.gromacs.mpd</name><desc> Gromacs mdp fie to use, default grompp.mdp</desc></item>
+  <item><name>cg.inverse.gromacs.mdp</name><desc> Gromacs mdp fie to use, default grompp.mdp</desc></item>
   <item><name>cg.inverse.gromacs.grompp.index</name><desc> Gromacs grompp index file to use, default index.ndx</desc></item>
   <item><name>cg.inverse.gromacs.grompp.topol</name><desc> Gromacs grompp topol file to use, default topol.top</desc></item>
   <item><name>cg.inverse.gromacs.grompp.opts</name><desc> Additional options to Gromacs grompp (e.g. -maxwarn 1)</desc></item>
