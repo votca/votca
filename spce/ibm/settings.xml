@@ -35,7 +35,7 @@
     <!-- gromacs specific options -->
     <gromacs>
       <!-- trash so many frames at the beginning -->
-      <equi_time>20</equi_time>
+      <equi_time>0</equi_time>
       <!-- grid for table*.xvg !-->
       <table_bins>0.002</table_bins>
       <!-- cut the potential at this value (gromacs bug) -->
@@ -43,8 +43,23 @@
       <!-- extend the tables to this value -->
       <table_end>2.0</table_end>
       <!-- topology + trajectory. Be careful, do not change yet! -->
+      <grompp>
+	<opts></opts>
+	<index>index.ndx</index>
+        <topol>topol.top</topol>
+      </grompp>
+      <g_rdf>
+	<opts></opts>
+	<index>index.ndx</index>
+        <topol>topol.tpr</topol>
+      </g_rdf>
+      <mdrun>
+	<opts>-v</opts>
+      </mdrun>
+      <mdp>grompp.mdp</mdp>
       <topol>topol.tpr</topol>
-      <traj>traj.xtc</traj>
+      <traj_type>xtc</traj_type>
+      <cutoff_check>yes</cutoff_check>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
@@ -53,10 +68,14 @@
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
     <method>ibm</method>
     <!-- directory for user scripts -->
-    <scriptdir>$PWD</scriptdir>
+    <scriptdir></scriptdir>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
     <restart_file>restart_points.log</restart_file>
+    <mpi>
+      <tasks>1</tasks>
+      <cmd>mpirun -np 8</cmd>
+    </mpi>
   </inverse>
 </cg>
