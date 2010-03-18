@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ ${0##*/}, version %version%
 We have defined some useful (?) functions:
 * log          = send a message to the logfile
 * msg          = message to stdout and logfile
-* die          = error message to stderr and logfile, 
+* die          = error message to stderr and logfile,
                  and kills all csg process
 * do_external  = get scriptname for sourcewrapper and run it
                  supports for_all
@@ -40,12 +40,12 @@ Examples:
 * do_external init gromacs NVT
 * do_external init potential for_all bonded
 * for_all bonded init_potential.sh 1 2 3
-* logrun CMD 
+* logrun CMD
 * run_or_exit CMD
 
 USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property printf cp date
 
-PROVIDES: log die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed run_or_exit cat_external show_external logrun check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time use_mpi 
+PROVIDES: log die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed run_or_exit cat_external show_external logrun check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time use_mpi
 
 NEEDS:
 EOF
@@ -73,7 +73,7 @@ log () {
       echo -e "         log was redirected by '$LOG_REDIRECTED'"
       echo -e "         Try to avoid this, by removing one redirect, help: function_help"
     fi
-    echo -e "$*" 
+    echo -e "$*"
   fi
 }
 export -f log
@@ -89,7 +89,7 @@ unset -f die
 die () {
   [[ -z "$CSGLOG" ]] || log --no-warn "$*"
   echo -e "$*" 1>&2
-  log --no-warn "killing all processes...." 
+  log --no-warn "killing all processes...."
   #send kill signal to all process within the process groups
   kill 0
   exit 1
@@ -119,12 +119,12 @@ export -f show_external
 do_external() {
   local script tags
   [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
-  script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed" 
+  script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
   tags="$1 $2"
   shift 2
   #logrun do_external is a good combi to use
   log --no-warn "Running subscript '${script##*/} $*'(from tags $tags)"
-  $script "$@" || die "do_external: subscript $script $@ (from tags $tags) failed"
+  $script "$@" 2>&1 || die "do_external: subscript $script $* (from tags $tags) failed"
 }
 export -f do_external
 
@@ -134,12 +134,12 @@ logrun(){
   #--no-warn due to the fact that we get the warning anyway
   log --no-warn "logrun: run '$*'"
   if [ -z "$LOG_REDIRECTED" ]; then
-    export LOG_REDIRECTED="logrun $*"
-    if [ -n "$CSGLOG" ]; then 
-      bash -c "$*" >> $CSGLOG 2>&1
+    export LOG_REDIRECTED="logrun '$*'"
+    if [ -n "$CSGLOG" ]; then
+      "$@" >> $CSGLOG 2>&1
       ret=$?
     else
-      bash -c "$*" 2>&1
+      "$@" 2>&1
       ret=$?
     fi
     unset LOG_REDIRECTED
@@ -147,16 +147,16 @@ logrun(){
     echo -e "WARNING: Nested log call, when calling 'logrun $*'"
     echo -e "         log was redirected by '$LOG_REDIRECTED'"
     echo -e "         Try to avoid this, by removing one redirect, help: function_help"
-    bash -c "$*" 2>&1
+    "$@" 2>&1
     ret=$?
   fi
   return $ret
 }
-export -f logrun 
+export -f logrun
 
 #useful subroutine check if a command was succesful AND log the output
 run_or_exit() {
-   logrun "$*" || die "run_or_exit: '$*' failed"
+   logrun "$@" || die "run_or_exit: '$*' failed"
 }
 export -f run_or_exit
 
@@ -171,26 +171,28 @@ for_all (){
   shift
   #check that type is bonded or non-bonded
   if [ "$bondtype" != "non-bonded" ]; then
-    die  "for_all: Argmuent 1 '$bondtype' is not non-bonded" 
+    die  "for_all: Argmuent 1 '$bondtype' is not non-bonded"
   fi
   [[ -n "$CSGXMLFILE" ]] || die "for_all: CSGXMLFILE is undefined"
+  [[ -n "$(type -p csg_property)" ]] || die "for_all: Could not find csg_property"
   log "For all $bondtype"
   interactions="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name)" \
     || die "for_all: csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name' failed"
   for name in $interactions; do
     log "for_all: run '$*'"
+    #we need to use bash -c here to allow things like $(csg_get_property xxx) in arguments
     #write variable defines in the front is better, that export
-    #no need to run export -n afterwards
+    #no need to run unset afterwards
     bondtype="$bondtype" \
     bondname="$name" \
-    bash -c "$*" || die "for_all: bash -c '$*' failed"   
+    bash -c "$*" || die "for_all: bash -c '$*' failed"
   done
 }
 export -f for_all
 
 csg_taillog () {
   sync
-  [[ -z "$CSGLOG" ]] || tail $* $CSGLOG
+  [[ -z "$CSGLOG" ]] || tail "$@" $CSGLOG
 }
 export -f csg_taillog
 
@@ -203,7 +205,7 @@ csg_get_interaction_property () {
   else
     allow_empty="no"
   fi
-  [[ -n "$1" ]] || die "csg_get_interaction_property: Missig argument" 
+  [[ -n "$1" ]] || die "csg_get_interaction_property: Missig argument"
   [[ -n "$CSGXMLFILE" ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined"
   [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined"
   [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
@@ -230,7 +232,7 @@ csg_get_property () {
   else
     allow_empty="no"
   fi
-  [[ -n "$1" ]] || die "csg_get_property: Missig argument" 
+  [[ -n "$1" ]] || die "csg_get_property: Missig argument"
   [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
@@ -249,7 +251,7 @@ export -f csg_get_property
 mark_done () {
   [[ -n "$1" ]] || die "mark_done: Missig argument"
   [[ -n "$CSGRESTART" ]] || die "mark_done: CSGRESTART is undefined"
-  echo "$1 done" >> ${PWD}/$CSGRESTART 
+  echo "$1 done" >> ${PWD}/$CSGRESTART
 }
 export -f mark_done
 
@@ -273,7 +275,7 @@ check_for () {
       [[ -n "${!exe}" ]] || die "check_for: '${exe}' is undefined in ${file}"
       continue
     fi
-    [[ -n "$(type -t $exe)" ]] || die "check_for: Could not find $exe needed by ${file}" 
+    [[ -n "$(type -t $exe)" ]] || die "check_for: Could not find $exe needed by ${file}"
   done
 }
 export -f check_for
@@ -393,7 +395,7 @@ cp_from_to() {
     [ -d "$from" ] || die "cp_from_to: $from does not exist"
   fi
   [ -z "$1" ] && die "cp_from_main_dir: Missing argument"
-  for i in "$@"; do
+  for i in $@; do
     #allow glob
     ls $from/$i > /dev/null || die "cp_from_to: unglob of $i failed"
     cp -r "$from/$i" "$where" || die "cp_from_to: cp -r "$from/$i" "$where" failed"
@@ -429,11 +431,12 @@ use_mpi() {
 export -f use_mpi
 
 get_table_comment() {
- s=" Created on $(date) on host $HOSTNAME\\n"
-version=$(csg_call -v | sed 's/^.*version //')
- s="$s Version $version \\n"
- s="$s Xml file used : $CSGXMLFILE \\n"
- s="$s Path: $PWD\\n"
- echo $s
+  local version
+  [[ -n "$(type -p csg_call)" ]] || die "get_defaults_comment: Could not find csg_version"
+  version="$(csg_call --version)" || die "get_defaults_comment: csg_call --version failed"
+  echo "#Created on $(date) by $USER@$HOSTNAME"
+  echo "#from $version" | sed "s/csg_call/${0##*/}/"
+  echo "#Xml file used : $CSGXMLFILE"
+  echo "#in Dir: $PWD"
 }
 export -f get_table_comment

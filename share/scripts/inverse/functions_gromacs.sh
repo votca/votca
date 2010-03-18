@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ USES: sed die \$GMXDATA check_deps
 PROVIDES: get_from_mdp
 EOF
   exit 0
-fi 
+fi
 
 check_deps $0
 

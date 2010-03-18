@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,11 +38,11 @@ if [ -f ../${name}.pot.in ]; then
   min=$(csg_get_interaction_property min )
   max=$(csg_get_interaction_property max )
   step=$(csg_get_interaction_property step )
-  comment="$(get_table_comment) Script command: $0 "
-  run_or_exit csg_resample --in ../${name}.pot.in --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "\"$comment \""
+  comment="$(get_table_comment)"
+  run_or_exit csg_resample --in ../${name}.pot.in --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "$comment"
 else
   # RDF_to_POT.pl just does log g(r) + extrapolation
   msg "Using intial guess from RDF for ${name}"
-  do_external rdf pot ${name}.dist.tgt ${name}.pot.new
+  run_or_exit do_external rdf pot ${name}.dist.tgt ${name}.pot.new
 fi
 

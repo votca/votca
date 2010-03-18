@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,12 +37,12 @@ max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
 
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
-  
+
 sed -ne '/i[[:space:]]*$/p' CG-CG.dpot.cur > $tmpfile
 spmin=$(sed -ne '1p' $tmpfile | awk '{print $1}')
 spmax=$(sed -ne '$p' $tmpfile | awk '{print $1}')
 spstep=$(csg_get_interaction_property inverse.post_update_options.splinesmooth.step)
 
-comment="$(get_table_comment) Script command $0 "
-csg_resample --in $tmpfile --out $name.dpot.new --grid $min:$step:$max --spfit $spmin:$spstep:$spmax --comment "\"$comment \""
+comment="$(get_table_comment)"
+csg_resample --in $tmpfile --out $name.dpot.new --grid $min:$step:$max --spfit $spmin:$spstep:$spmax --comment "$comment"
 

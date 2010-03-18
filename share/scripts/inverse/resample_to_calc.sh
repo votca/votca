@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,5 +38,5 @@ target=$(csg_get_interaction_property inverse.target)
 name=$(csg_get_interaction_property name)
 main_dir=$(get_main_dir)
 
-comment="$(get_table_comment) Script command: $0 "
-run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "\"$comment \""
+comment="$(get_table_comment)"
+run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
