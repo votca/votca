@@ -34,8 +34,13 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 cgmap=$(csg_get_property cg.inverse.cgmap)
-topol=$(csg_get_property cg.inverse.$sim_prog.topol topol.tpr)
-traj=$(csg_get_property cg.inverse.$sim_prog.traj traj.xtc)
+[ -f "$cgmap" ] || die "${0##*/}: imc cgmap file '$cgmap' not found"
+
+topol=$(csg_get_property cg.inverse.$sim_prog.topol "topol.tpr")
+[ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
+
+traj=$(csg_get_property cg.inverse.$sim_prog.traj "traj.xtc")
+[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
@@ -46,7 +51,7 @@ if is_done "imc_analysis"; then
   msg "IMC analysis is already done"
 else
   msg "Running IMC analysis"
-  run_or_exit csg_stat --do-imc --options $CSGXMLFILE --top $topol --trj $traj --cg $cgmap \
+  run_or_exit csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --cg "$cgmap" \
         --begin $equi_time --first-frame $first_frame
   mark_done "imc_analysis"
 fi
