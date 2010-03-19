@@ -18,24 +18,27 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script make all the post update with backup for single pairs
+Add table_comment to the head of a file
 
-Usage: ${0##*/}
+Usage: ${0##*/} input output
 
-USES:  csg_get_interaction_property log mv cp do_external run_or_exit
+USES:  die msg do_external check_deps get_table_comment sed cat
 
-NEEDS: name inverse.post_add
+NEEDS:
 EOF
    exit 0
 fi
 
-name=$(csg_get_interaction_property name)
-tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
-i=1
-for task in $tasklist tag; do
-  log "Doing $task for ${name}"
-  run_or_exit mv ${name}.pot.new ${name}.pot.cur
-  run_or_exit cp ${name}.pot.cur ${name}.pot.${i}
-  do_external postadd "$task"
-  ((i++))
-done
+check_deps "$0"
+
+[[ -n "$2" ]] || die "${0##*/}: Missing arguments"
+
+input="$1"
+[ -f "$input" ] || die "${0##*/}: Input file not found"
+output="$2"
+comment="$(get_table_comment)"
+
+log "Taging file $input to $output"
+echo -e "$comment" | sed 's/^/#/' > "$output" || die "${0##*/}: sed failed"
+cat "$input" >> "$output" || die "${0##*/}: sed failed"
+

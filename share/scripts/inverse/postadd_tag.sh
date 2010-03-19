@@ -18,24 +18,27 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script make all the post update with backup for single pairs
+This script implemtents smoothing of the potential update (.dpot)
 
 Usage: ${0##*/}
 
-USES:  csg_get_interaction_property log mv cp do_external run_or_exit
+USES: die csg_get_interaction_property log check_deps get_table_comment
 
-NEEDS: name inverse.post_add
+NEEDS: name
 EOF
    exit 0
 fi
 
+check_deps "$0"
+
 name=$(csg_get_interaction_property name)
-tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
-i=1
-for task in $tasklist tag; do
-  log "Doing $task for ${name}"
-  run_or_exit mv ${name}.pot.new ${name}.pot.cur
-  run_or_exit cp ${name}.pot.cur ${name}.pot.${i}
-  do_external postadd "$task"
-  ((i++))
-done
+comment="$(get_table_comment)"
+input="${name}.pot.cur"
+output="${name}.pot.new"
+
+[ -f "${name}.pot.cur" ] || die "${0##*/}: could not find ${name}.pot.cur"
+
+log "${0##*/}: Taging file $output"
+echo -e "$comment" | sed 's/^/#/' > "$output" || die "${0##*/}: sed failed"
+cat "$input" >> "$output" || die "${0##*/}: cat failed"
+

@@ -17,6 +17,9 @@
 # generic function declarations for all inverse scripts
 functions common functions_inverse.sh
 
+#general scripts
+tag file tag_file.sh
+
 # BEGIN: these scripts have to be defined for each method
 # method initialization
 init ibm initialize_generic.sh
@@ -54,9 +57,10 @@ postupd dummy dummy.sh
 # post add
 post add post_add.sh
 post add_single post_add_single.sh
-post dummy dummy.sh
 
 # post add scripts
+postadd tag postadd_tag.sh
+postadd dummy dummy.sh
 
 # table preparation
 dpot shift_nb dpot_shift_nb.pl
