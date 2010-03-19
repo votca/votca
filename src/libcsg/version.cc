@@ -20,7 +20,6 @@
 #include "version.h"
 #include "config.h"
 
-namespace gmx {
 #ifndef GMX4DEV
     extern "C"
     {
@@ -31,7 +30,7 @@ namespace gmx {
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
-}
+
 namespace votca { namespace csg {
 
 #ifdef HGVERSION
@@ -54,7 +53,7 @@ void HelpTextHeader(const std::string &tool_name)
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
 	 << tool_name << ", version " << votca::csg::CsgVersionStr() 
          << "\nvotca_tools, version " << votca::tools::ToolsVersionStr() 
-         << "\ngromacs, " << gmx::GromacsVersion()
+         << "\ngromacs, " << GromacsVersion()
          << "\n\n";
 }
 
