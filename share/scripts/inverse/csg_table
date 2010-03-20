@@ -49,6 +49,7 @@ post update_single post_update_single.sh
 post dummy dummy.sh
 
 #post update scripts
+postupd scale postupd_scale.sh
 postupd pressure postupd_pressure.sh
 postupd splinesmooth postupd_splinesmooth.sh
 postupd smooth postupd_smooth.sh
