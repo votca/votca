@@ -18,13 +18,13 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents smoothing of the potential update (.dpot)
+This script implemtents scaling of the potential update (.dpot)
 
 Usage: ${0##*/}
 
-USES: die csg_get_interaction_property mktemp do_external cp log run_or_exit check_deps
+USES: csg_get_interaction_property do_external log check_deps
 
-NEEDS: name inverse.post_update_options.smooth.iterations
+NEEDS: name inverse.post_update_options.scale
 EOF
    exit 0
 fi
@@ -34,7 +34,7 @@ check_deps "$0"
 name=$(csg_get_interaction_property name)
 scale=$(csg_get_interaction_property inverse.post_update_options.scale 1.0)
 
-log "scaling potential update"
+log "scaling potential update by factor $scale"
 
 do_external table linearop ${name}.dpot.cur ${name}.dpot.new $scale 0
 
