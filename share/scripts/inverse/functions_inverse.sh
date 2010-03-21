@@ -398,7 +398,8 @@ cp_from_to() {
   [ -z "$1" ] && die "cp_from_main_dir: Missing argument"
   for i in $@; do
     #allow glob
-    ls $from/$i > /dev/null || die "cp_from_to: unglob of $i failed"
+    ls $from/$i &> /dev/null || die "cp_from_to: could not get/expand '$i'\n\
+    check existence of the file OR the correctness the glob pattern (e.g. tab_*)"
     cp -r "$from/$i" "$where" || die "cp_from_to: cp -r "$from/$i" "$where" failed"
   done
 }
