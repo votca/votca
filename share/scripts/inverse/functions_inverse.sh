@@ -392,26 +392,29 @@ cp_from_to() {
   if [ "$1" = "--no-check" ]; then
     shift
   else
-    [ -d "$where" ] || die "cp_from_to: $where does not exist"
-    [ -d "$from" ] || die "cp_from_to: $from does not exist"
+    [ -d "$where" ] || die "cp_from_to: $where is not a dir"
+    [ -d "$from" ] || die "cp_from_to: $from is not a dir"
   fi
   [ -z "$1" ] && die "cp_from_main_dir: Missing argument"
   for i in $@; do
-    #allow glob
-    ls $from/$i &> /dev/null || die "cp_from_to: could not get/expand '$i'\n\
-    check existence of the file OR the correctness the glob pattern (e.g. tab_*)"
-    cp -r "$from/$i" "$where" || die "cp_from_to: cp -r "$from/$i" "$where" failed"
+    #no glob pattern in $i or could not be expanded
+    if [ "$from/$i" = "$(echo $from/$i)" ]; then
+      [ -e "$from/$i" ] || die "cp_from_to: could not find '$from/$i'"
+    fi
+    cp -r $from/$i "$where" 2>&1 || die "cp_from_to: cp -r '$from/$i' '$where' failed"
   done
 }
 export -f cp_from_to
 
 cp_from_main_dir() {
-  cp_from_to --from $(get_main_dir) "$@" || die "cp_from_main_dir: cp_from_to --from $(get_main_dir) "$@" failed"
+  log "cp_from_main_dir: '$@'"
+  run_or_exit cp_from_to --from $(get_main_dir) "$@"
 }
 export -f cp_from_main_dir
 
 cp_from_last_step() {
-  cp_from_to --from $(get_last_step_dir) "$@" || die "cp_from_main_dir: cp_from_to --from $(get_main_dir) "$@" failed"
+  log "cp_from_last_step: '$@'"
+  run_or_exit cp_from_to --from $(get_last_step_dir) "$@"
 }
 export -f cp_from_last_step
 
