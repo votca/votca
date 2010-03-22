@@ -49,5 +49,5 @@ for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.n
 for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 
 # Get new simplex table from last step and make it current
-for_all non-bonded 'cp_from_last_step simplex.new'
-for_all non-bonded 'mv simplex.new simplex.cur'
+cp_from_last_step simplex.new
+mv simplex.new simplex.cur
