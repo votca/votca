@@ -32,18 +32,6 @@ fi
 
 check_deps "$0"
 
-main_dir=$(get_main_dir);
-step_nr=$(get_current_step_nr);
-init_steps=$(wc -l $main_dir/simplex.in | awk '{print ($1)}');
-
-if [ $step_nr -le $[$init_steps] ]; then
-   msg "Initialization step "$step_nr
-else
-   msg "Simplex step "$[$step_nr-$init_steps]
-   for_all non-bonded 'cp_from_last_step state.new'
-   for_all non-bonded 'mv state.new state.cur'
-fi
-
 # Get new pot from last step and make it current
 for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
