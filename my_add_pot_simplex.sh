@@ -31,18 +31,8 @@ fi
 
 check_deps "$0"
 
-main_dir=$(get_main_dir);
-init_steps=$(wc -l $main_dir/simplex.in | awk '{print ($1)}');
-step_nr=$(get_current_step_nr);
-p_nr=$(grep -c '^p' simplex.cur);
-p_line_nr=$(grep -n -m1 '^p' simplex.cur | sed 's/:.*//');
+c_line_nr=$(grep -n -m1 'complete$' simplex.cur | sed 's/:.*//');
 
-if [ $p_nr -gt "1" ] || [ $step_nr -eq $init_steps ]; then
 for_all "non-bonded" \
    run_or_exit do_external par pot '$(csg_get_interaction_property name).dist.tgt \
-   $(csg_get_interaction_property name).pot.new simplex.new' $(($p_line_nr-1))
-else
-for_all "non-bonded" \
-   run_or_exit do_external par pot '$(csg_get_interaction_property name).dist.tgt \
-   $(csg_get_interaction_property name).pot.new simplex.new' $init_steps
-fi
+   $(csg_get_interaction_property name).pot.new simplex.new' $(($c_line_nr+1))

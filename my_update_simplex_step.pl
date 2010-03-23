@@ -53,6 +53,7 @@ use File::Copy;
 my @ftar;
 my @sig;
 my @eps;
+my @flag_simplex;
 (readin_simplex_table($infile,@ftar,@sig,@eps,@flag_simplex)) || die "error at readin_simplex_table\n";
 
 my $tiny=1e-10;

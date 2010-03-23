@@ -39,12 +39,12 @@ for_all non-bonded do_external rdf $sim_prog
 name=$(csg_get_interaction_property name);
 
 # For active parameter set, calculate ftar
-a_line_nr=$(grep -n -m1 '^active' simplex.cur | sed 's/:.*//');
+a_line_nr=$(grep -n -m1 'active$' simplex.cur | sed 's/:.*//');
 msg "Calc ftar"
 run_or_exit do_external update simplex_ftar ${name}.dist.tgt ${name}.dist.new \
 simplex.cur simplex.tmp $a_line_nr
 
 # Generate new parameter set
-c_line_nr=$(grep -n -m1 '^complete' simplex.cur | sed 's/:.*//');
+c_line_nr=$(grep -n -m1 'complete$' simplex.cur | sed 's/:.*//');
 msg "Preparing new parameters"
 run_or_exit do_external update simplex_step simplex.tmp simplex.new $(($c_line_nr+1))
