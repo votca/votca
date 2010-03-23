@@ -53,18 +53,21 @@ my @rdf;
 my @flag;
 (readin_table($infile,@r,@rdf,@flag)) || die "$progname: error at readin_table\n";
 
-if ($simplex_table eq "simplex.in") {
-my $f_target;
-for my $i (0 .. $#sig) {
-   $f_target[$i]="0";
-   $flag[$i]="p";
-   }
-}
-
 my @f_target;
 my @sig;
 my @eps;
-(readin_simplex_table("$simplex_table",@f_target,@sig,@eps)) || die "$progname: error at readin_simplex_table\n";
+my @flag_simplex;
+
+if ($simplex_table eq "simplex.in") {
+   for my $i (0 .. $#sig) {
+      $f_target[$i]="0";
+      $flag_simplex[$i]="p";
+   }
+readin_init_simplex_table("$simplex_table",@f_target,@sig,@eps,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
+}
+else {
+   (readin_simplex_table("$simplex_table",@f_target,@sig,@eps,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
+}
 
 my @pot;
 for (my $i=0;$i<=$#r;$i++){

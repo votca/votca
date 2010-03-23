@@ -36,7 +36,10 @@ main_dir=$(get_main_dir);
 
 if [ -f $main_dir/simplex.in ]; then
    cp_from_main_dir simplex.in
-   mv simplex.in simplex.new
+   # Prepare simplex table
+   do_external prep simplex_table '$(csg_get_interaction_property name).dist.tgt \
+   $(csg_get_interaction_property name).pot.new simplex.in'
+   # Calculate potential for step_001
    for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).dist.tgt \
    $(csg_get_interaction_property name).pot.new simplex.new 0'
 else
