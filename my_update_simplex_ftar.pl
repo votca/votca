@@ -72,6 +72,6 @@ $ftar_cur[$a_line_nr]=calc_ftar($a_line_nr,@r_cur,@rdf_aim,@rdf_cur,@sig_cur,@ep
 my @ftar_new;
 @ftar_new=@ftar_cur;
 
-$ftar_new[$a_line_nr]="complete";
+$flag_simplex[$a_line_nr]="complete";
 
-saveto_table($new_ftar_file,@ftar_new,@sig_cur,@eps_cur) || die "$progname: error at save table\n";
+saveto_simplex_table($new_ftar_file,@ftar_new,@sig_cur,@eps_cur,@flag_simplex) || die "$progname: error at save table\n";
