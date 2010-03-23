@@ -53,6 +53,14 @@ my @rdf;
 my @flag;
 (readin_table($infile,@r,@rdf,@flag)) || die "$progname: error at readin_table\n";
 
+if ($simplex_table eq "simplex.in") {
+my $f_target;
+for my $i (0 .. $#sig) {
+   $f_target[$i]="0";
+   $flag[$i]="p";
+   }
+}
+
 my @f_target;
 my @sig;
 my @eps;
