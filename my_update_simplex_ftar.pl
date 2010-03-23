@@ -36,7 +36,7 @@ EOF
   exit 0;
 }
 
-die "4 parameters are necessary\n" if ($#ARGV<3);
+die "5 parameters are necessary\n" if ($#ARGV<4);
 
 use CsgFunctions;
 use SimplexFunctions;

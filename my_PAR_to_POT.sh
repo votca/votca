@@ -53,12 +53,12 @@ my @rdf;
 my @flag;
 (readin_table($infile,@r,@rdf,@flag)) || die "$progname: error at readin_table\n";
 
-my @f_target;
+my @ftar;
 my @sig;
 my @eps;
 my @flag_simplex;
 
-(readin_simplex_table("$simplex_table",@f_target,@sig,@eps,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
+(readin_simplex_table("$simplex_table",@ftar,@sig,@eps,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
 
 my @pot;
 for (my $i=0;$i<=$#r;$i++){
@@ -85,7 +85,7 @@ for (my $i=0;$i<=$i_cut;$i++){
    $pot[$i]-=$pot[$i_cut];
 }
 
-$f_target[$a_line_nr]="active";
+$ftar[$a_line_nr]="active";
 
 saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at saveto_table\n";
-saveto_simplex_table($outfile,@f_target,@sig,@eps,@flag_simplex) || die "$progname: error at saveto_simplex_table\n";
+saveto_simplex_table($outfile,@ftar,@sig,@eps,@flag_simplex) || die "$progname: error at saveto_simplex_table\n";

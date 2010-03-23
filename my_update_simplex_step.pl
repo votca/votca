@@ -40,7 +40,7 @@ EOF
   exit 0;
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<3);
+die "3 parameters are nessary\n" if ($#ARGV<2);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
@@ -103,13 +103,6 @@ for (my $i=0;$i<$mpts;$i++) {
    if ($y[$i]>$y[$inhi] && $i!=$ihi) {$inhi=$i;}
 }
 
-open (INIT, ">state.cur") || die "Could not open file $_[0]\n";
-print INIT "----------------------\n";
-print INIT "Simulation_step=$step_nr\n";
-print INIT "----------------------\n";
-print INIT "Transformation=None\n";
-close(INIT);
-
 # Create a state file
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
 print STATE "----------------------\n";
@@ -148,7 +141,7 @@ while(<STATE_CUR>) {
 }
 close(STATE_CUR);
 
-   if ($state{'Transformation'} eq 'None' && $step_nr>$ndim) {
+   if ($state{'Transformation'} eq 'None') {
       print STATE "Transformation=Reflection\n";
       @psum=calc_psum(@p,$mpts,$ndim);
       @ptry=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
