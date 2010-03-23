@@ -58,16 +58,7 @@ my @sig;
 my @eps;
 my @flag_simplex;
 
-if ($simplex_table eq "simplex.in") {
-   for my $i (0 .. $#sig) {
-      $f_target[$i]="0";
-      $flag_simplex[$i]="p";
-   }
-readin_init_simplex_table("$simplex_table",@f_target,@sig,@eps,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
-}
-else {
-   (readin_simplex_table("$simplex_table",@f_target,@sig,@eps,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
-}
+(readin_simplex_table("$simplex_table",@f_target,@sig,@eps,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
 
 my @pot;
 for (my $i=0;$i<=$#r;$i++){
