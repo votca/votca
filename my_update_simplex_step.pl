@@ -67,6 +67,8 @@ my @ptry;
 my $ytry=$ftar[-1];
 my $ysave;
 
+my $simplex_nr=$c_line_nr+1;
+
 # Generate p[mpts][ndim] matrix (parameters)
 my @p;
 my @p_trans=([@sig],[@eps]);
@@ -105,9 +107,6 @@ for (my $i=0;$i<$mpts;$i++) {
 
 # Create a state file
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
-print STATE "----------------------\n";
-print STATE "Simulation_step=$step_nr\n";
-print STATE "----------------------\n";
 
 sub print_state {
 # Print p matrix
@@ -141,7 +140,7 @@ while(<STATE_CUR>) {
 }
 close(STATE_CUR);
 
-   if ($state{'Transformation'} eq 'None') {
+   if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
       print STATE "Transformation=Reflection\n";
       @psum=calc_psum(@p,$mpts,$ndim);
       @ptry=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
@@ -227,7 +226,6 @@ close(STATE);
 
 #-----------------------------------------------------------------------
 # Check for convergence
-if ($step_nr>$ndim) {
 my $ftol=0.0001;
 my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo])+$tiny);
 
@@ -243,5 +241,4 @@ if($nfunc>=$NMAX) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
 
 # ----------------------------------------------------------------------
 # Update simplex table
-saveto_table($outfile,@ftar_asc,@sig_asc,@eps_asc) || die "$progname: error at save table\n";
-}
+saveto_simplex_table($outfile,@ftar_asc,@sig_asc,@eps_asc,@flag_simplex) || die "$progname: error at save table\n";

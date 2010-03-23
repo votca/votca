@@ -33,11 +33,12 @@ fi
 check_deps "$0"
 
 main_dir=$(get_main_dir);
+p_nr=$(grep -c 'pending$' simplex.cur);
 
 if [ -f $main_dir/simplex.in ]; then
    cp_from_main_dir simplex.in
    # Prepare simplex table
-   do_external prep simplex simplex.in simplex.new
+   do_external prep simplex simplex.in simplex.new $p_nr
    # Calculate potential for step_001
    for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).dist.tgt \
    $(csg_get_interaction_property name).pot.new simplex.new 0'

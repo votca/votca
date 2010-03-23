@@ -31,8 +31,10 @@ fi
 
 check_deps "$0"
 
-c_line_nr=$(grep -n -m1 'complete$' simplex.cur | sed 's/:.*//');
+
+c_line_nr=$(($(grep -n -m1 'complete$' simplex.cur | sed 's/:.*//')-1));
+
 
 for_all "non-bonded" \
    run_or_exit do_external par pot '$(csg_get_interaction_property name).dist.tgt \
-   $(csg_get_interaction_property name).pot.new simplex.new' $(($c_line_nr+1))
+   $(csg_get_interaction_property name).pot.new simplex.new' $(($c_line_nr))
