@@ -57,7 +57,8 @@ my $cur_ftar_file="$ARGV[2]";
 my @ftar_cur;
 my @sig_cur;
 my @eps_cur;
-(readin_simplex_table($cur_ftar_file,@ftar_cur,@sig_cur,@eps_cur)) || die "$progname: error at readin_simplex_table\n";
+my @flag_simplex;
+(readin_simplex_table($cur_ftar_file,@ftar_cur,@sig_cur,@eps_cur,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
 
 my $new_ftar_file="$ARGV[3]";
 my $a_line_nr="$ARGV[4]";
@@ -66,7 +67,7 @@ my $a_line_nr="$ARGV[4]";
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
 die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 
-$ftar_cur[$step_nr]=calc_ftar($step_nr,@r_cur,@rdf_aim,@rdf_cur,@sig_cur,@eps_cur);
+$ftar_cur[$a_line_nr]=calc_ftar($a_line_nr,@r_cur,@rdf_aim,@rdf_cur,@sig_cur,@eps_cur);
 
 my @ftar_new;
 @ftar_new=@ftar_cur;

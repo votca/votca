@@ -44,7 +44,7 @@ die "3 parameters are nessary\n" if ($#ARGV<3);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
-my $p_line_nr="$ARGV[2]";
+my $c_line_nr="$ARGV[2]";
 
 use CsgFunctions;
 use SimplexFunctions;
@@ -53,7 +53,7 @@ use File::Copy;
 my @ftar;
 my @sig;
 my @eps;
-(readin_simplex_table($infile,@ftar,@sig,@eps)) || die "error at readin_simplex_table\n";
+(readin_simplex_table($infile,@ftar,@sig,@eps,@flag_simplex)) || die "error at readin_simplex_table\n";
 
 my $tiny=1e-10;
 my $mpts=$#ftar;
