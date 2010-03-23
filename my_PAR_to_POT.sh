@@ -46,7 +46,7 @@ use SimplexFunctions;
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 my $simplex_table="$ARGV[2]";
-my $simplex_nr="$ARGV[3]";
+my $a_line_nr="$ARGV[3]";
 
 my @r;
 my @rdf;
@@ -62,7 +62,7 @@ my @pot;
 for (my $i=0;$i<=$#r;$i++){
     # Avoid undefined potential at r=0
     if ($r[$i]>1e-10) {
-        $pot[$i]=calc_func("$r[$i]","$sig[$simplex_nr]","$eps[$simplex_nr]");
+        $pot[$i]=calc_func("$r[$i]","$sig[$a_line_nr]","$eps[$a_line_nr]");
         $flag[$i]="i";
     }
     else {
