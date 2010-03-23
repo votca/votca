@@ -60,7 +60,7 @@ my @eps_cur;
 (readin_simplex_table($cur_ftar_file,@ftar_cur,@sig_cur,@eps_cur)) || die "$progname: error at readin_simplex_table\n";
 
 my $new_ftar_file="$ARGV[3]";
-my $step_nr="$ARGV[4]";
+my $a_line_nr="$ARGV[4]";
 
 # Should never happen due to resample, but better check
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
@@ -70,5 +70,7 @@ $ftar_cur[$step_nr]=calc_ftar($step_nr,@r_cur,@rdf_aim,@rdf_cur,@sig_cur,@eps_cu
 
 my @ftar_new;
 @ftar_new=@ftar_cur;
+
+$ftar_new[$a_line_nr]="complete";
 
 saveto_table($new_ftar_file,@ftar_new,@sig_cur,@eps_cur) || die "$progname: error at save table\n";

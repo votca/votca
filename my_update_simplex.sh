@@ -40,10 +40,10 @@ main_dir=$(get_main_dir);
 name=$(csg_get_interaction_property name);
 step_nr=$(get_current_step_nr);
 init_steps=$(wc -l $main_dir/simplex.in | awk '{print ($1)}');
-p_nr=$(grep -c '^p' simplex.cur);
-a_nr=$(grep -c '^a' simplex.cur);
-p_line_nr=$(grep -n -m1 '^p' simplex.cur | sed 's/:.*//');
-a_line_nr=$(grep -n -m1 '^a' simplex.cur | sed 's/:.*//');
+p_nr=$(grep -c '^pending' simplex.cur);
+a_nr=$(grep -c '^active' simplex.cur);
+p_line_nr=$(grep -n -m1 '^pending' simplex.cur | sed 's/:.*//');
+a_line_nr=$(grep -n -m1 '^active' simplex.cur | sed 's/:.*//');
 
 if [ $p_nr -gt "1" ]; then
    msg "Calc ftar"

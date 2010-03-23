@@ -85,7 +85,7 @@ for (my $i=0;$i<=$i_cut;$i++){
    $pot[$i]-=$pot[$i_cut];
 }
 
-$flag_simplex[$p_line_nr]="a";
+$f_target[$a_line_nr]="active";
 
 saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at saveto_table\n";
 saveto_simplex_table($outfile,@f_target,@sig,@eps,@flag_simplex) || die "$progname: error at saveto_simplex_table\n";
