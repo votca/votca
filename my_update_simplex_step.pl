@@ -40,11 +40,12 @@ EOF
   exit 0;
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "4 parameters are nessary\n" if ($#ARGV<3);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 my $c_line_nr="$ARGV[2]";
+my $p_nr="$ARGV[3]";
 
 use CsgFunctions;
 use SimplexFunctions;
@@ -105,6 +106,16 @@ for (my $i=0;$i<$mpts;$i++) {
    if ($y[$i]>$y[$inhi] && $i!=$ihi) {$inhi=$i;}
 }
 
+my %state;
+open (STATE_CUR, "<state.cur") || die "Could not open file $_[0]\n";
+while(<STATE_CUR>) {
+   # create a hash
+   if (/^(.*)=(.*)$/) {
+   $state{"$1"}=$2;
+   }
+}
+close(STATE_CUR);
+
 # Create a state file
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
 
@@ -130,98 +141,89 @@ print STATE "psum=\n";
    }
 }
 
-my %state;
-open (STATE_CUR, "<state.cur") || die "Could not open file $_[0]\n";
-while(<STATE_CUR>) {
-   # create a hash
-   if (/^(.*)=(.*)$/) {
-   $state{"$1"}=$2;
-   }
+if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
+   print STATE "Transformation=Reflection\n";
+   @psum=calc_psum(@p,$mpts,$ndim);
+   @ptry=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
+   unshift(@ptry,"pending");
+   push(@ftar_asc,"$ptry[0]");
+   push(@sig_asc,"$ptry[1]");
+   push(@eps_asc,"$ptry[2]");
+   print_state;
+   $nfunc++;
 }
-close(STATE_CUR);
 
-   if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
-      print STATE "Transformation=Reflection\n";
+if ($state{'Transformation'} eq 'Reflection') {
+   if ($ytry <= $y[$ilo]) {
+      print STATE "Transformation=Expansion\n";
       @psum=calc_psum(@p,$mpts,$ndim);
-      @ptry=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
-      unshift(@ptry,"p");
+      @ptry=calc_ptry($ndim,$ihi,2.0,@p,@psum);
+      unshift(@ptry,"pending");
       push(@ftar_asc,"$ptry[0]");
       push(@sig_asc,"$ptry[1]");
       push(@eps_asc,"$ptry[2]");
       print_state;
-      $nfunc++;
-   }
-
-   if ($state{'Transformation'} eq 'Reflection') {
-      if ($ytry <= $y[$ilo]) {
-         print STATE "Transformation=Expansion\n";
-         @psum=calc_psum(@p,$mpts,$ndim);
-         @ptry=calc_ptry($ndim,$ihi,2.0,@p,@psum);
-         unshift(@ptry,"p");
-         push(@ftar_asc,"$ptry[0]");
-         push(@sig_asc,"$ptry[1]");
-         push(@eps_asc,"$ptry[2]");
-         print_state;
-         print STATE "ptry=\n";
-         for(my $j=1;$j<$mpts;$j++) {
-            print STATE "$ptry[$j]\n";
-         }
-      $nfunc++;
+      print STATE "ptry=\n";
+      for(my $j=1;$j<$mpts;$j++) {
+         print STATE "$ptry[$j]\n";
       }
-      if ($ytry >= $y[$inhi]) {
-         print STATE "Transformation=Contraction\n";
-         $ysave=$y[$ihi];
-         print STATE "ysave=$ysave\n";
-         @psum=calc_psum(@p,$mpts,$ndim);
-         @ptry=calc_ptry($ndim,$ihi,0.5,@p,@psum);
-         unshift(@ptry,"p");
-         push(@ftar_asc,"$ptry[0]");
-         push(@sig_asc,"$ptry[1]");
-         push(@eps_asc,"$ptry[2]");
-         print_state;
-         print STATE "ptry=\n";
-         for(my $j=1;$j<$mpts;$j++) {
-            print STATE "$ptry[$j]\n";
-         }
-      $nfunc++;
-      }
+   $nfunc++;
    }
+   if ($ytry >= $y[$inhi]) {
+      print STATE "Transformation=Contraction\n";
+      $ysave=$y[$ihi];
+      print STATE "ysave=$ysave\n";
+      @psum=calc_psum(@p,$mpts,$ndim);
+      @ptry=calc_ptry($ndim,$ihi,0.5,@p,@psum);
+      unshift(@ptry,"pending");
+      push(@ftar_asc,"$ptry[0]");
+      push(@sig_asc,"$ptry[1]");
+      push(@eps_asc,"$ptry[2]");
+      print_state;
+      print STATE "ptry=\n";
+      for(my $j=1;$j<$mpts;$j++) {
+         print STATE "$ptry[$j]\n";
+      }
+   $nfunc++;
+   }
+}
 
-   if ($state{'Transformation'} eq 'Contraction') {
-      $ysave=$state{ysave};
-      if ($ytry>=$ysave) {
-         print STATE "Transformation=Reduction\n";
-         for (my $i=0;$i<$mpts;$i++) {
-            if ($i!=$ilo) {
-               for (my $j=0;$j<=$ndim;$j++) {
-               $p[$i][$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
-               $sig_asc[$i]=$p[$i][0];
-               $eps_asc[$i]=$p[$i][1];
-               $ftar_asc[$i]="p";
-               }
+if ($state{'Transformation'} eq 'Contraction') {
+   $ysave=$state{ysave};
+   if ($ytry>=$ysave) {
+      print STATE "Transformation=Reduction\n";
+      for (my $i=0;$i<$mpts;$i++) {
+         if ($i!=$ilo) {
+            for (my $j=0;$j<=$ndim;$j++) {
+            $p[$i][$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
+            $sig_asc[$i]=$p[$i][0];
+            $eps_asc[$i]=$p[$i][1];
+            $ftar_asc[$i]="pending";
             }
          }
-      print_state;
-      $nfunc+=$ndim;
       }
+   print_state;
+   $nfunc+=$ndim;
    }
+}
 
-   if ($state{'Transformation'} eq 'Reduction') {
-      copy("state.cur", "state.new");
-   }
+if ($state{'Transformation'} eq 'Reduction') {
+   copy("state.cur", "state.new");
+}
 
 # Replace high point if new point is better
-   if ("$ytry" ne 'p' && $ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduction') {
-      for (my $j=0;$j<$ndim;$j++) {
-         $y[$ihi]=$ytry;
-         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
-         $p[$ihi][$j]=$ptry[$j];
-      }
+if ("$ytry" ne 'pending' && $ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduction') {
+   for (my $j=0;$j<$ndim;$j++) {
+      $y[$ihi]=$ytry;
+      $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+      $p[$ihi][$j]=$ptry[$j];
    }
+}
 
 else {
-   print STATE "Transformation=None\n";
-} # end of initial moves
+   print STATE "Transformation=None\n"
+   print STATE "pending=$p_nr\n";
+}
 close(STATE);
 
 #-----------------------------------------------------------------------

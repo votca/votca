@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,8 @@ check_deps "$0"
 run_or_exit do_external update simplex_single
 
 # Generate new parameter set
-c_line_nr=$(grep -n -m1 'complete$' simplex.cur | sed 's/:.*//');
+p_nr=$(grep -c 'pending$' simplex.tmp);
+c_line_nr=$(($(grep -n -m1 'complete$' simplex.tmp | sed 's/:.*//')-1));
+
 msg "Preparing new parameters"
-run_or_exit do_external update simplex_step simplex.tmp simplex.new $(($c_line_nr+1))
+run_or_exit do_external update simplex_step simplex.tmp simplex.new $(($c_line_nr+1)) $p_nr
