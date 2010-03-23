@@ -1,5 +1,5 @@
 init simplex my_initialize_simplex.sh
-prep simplex_table my_prep_simplex_table.pl
+prep simplex my_prep_simplex.pl
 
 par pot my_PAR_to_POT.sh
 
