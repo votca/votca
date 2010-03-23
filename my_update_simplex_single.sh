@@ -31,29 +31,3 @@ EOF
 fi
 
 check_deps "$0"
-
-main_dir=$(get_main_dir);
-name=$(csg_get_interaction_property name);
-step_nr=$(get_current_step_nr);
-init_steps=$(wc -l $main_dir/simplex.in | awk '{print ($1)}');
-p_nr=$(grep -c '^p' simplex.cur);
-p_line_nr=$(grep -n -m1 '^p' simplex.cur | sed 's/:.*//');
-
-if [ $p_nr -gt "1" ]; then
-   msg "Calc ftar"
-   run_or_exit do_external update simplex_ftar ${name}.dist.tgt ${name}.dist.new \
-   simplex.cur simplex.new $(($p_line_nr-1))
-   run_or_exit do_external update simplex_step simplex.cur simplex.new $p_line_nr
-elif [ $step_nr -eq $init_steps ]; then
-   msg "Calc ftar"
-   run_or_exit do_external update simplex_ftar ${name}.dist.tgt ${name}.dist.new \
-   simplex.cur simplex.tmp $(($p_line_nr-1))
-   msg "Preparing new parameters"
-   run_or_exit do_external update simplex_step simplex.tmp simplex.new $init_steps
-else
-   msg "Calc ftar"
-   run_or_exit do_external update simplex_ftar ${name}.dist.tgt ${name}.dist.new \
-   simplex.cur simplex.tmp $init_steps
-   msg "Preparing new parameters"
-   run_or_exit do_external update simplex_step simplex.tmp simplex.new $init_steps
-fi

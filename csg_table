@@ -1,8 +1,7 @@
 init simplex my_initialize_simplex.sh
-initstep simplex my_initialize_step_simplex.sh
-
+prep simplex_table my_prep_simplex_table.pl
 par pot my_PAR_to_POT.sh
-
+initstep simplex my_initialize_step_simplex.sh
 update simplex my_update_simplex.sh
 update simplex_single my_update_simplex_single.sh
 update simplex_ftar my_update_simplex_ftar.pl
