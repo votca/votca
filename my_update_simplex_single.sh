@@ -31,3 +31,13 @@ EOF
 fi
 
 check_deps "$0"
+
+msg "Calc rdf"
+sim_prog=$(csg_get_property cg.inverse.program)
+for_all non-bonded do_external rdf $sim_prog
+
+# For active parameter set, calculate ftar
+a_line_nr=$(grep -n -m1 'active$' simplex.cur | sed 's/:.*//');
+msg "Calc ftar"
+forall non-bonded run_or_exit do_external update simplex_ftar '$(csg_get_interaction_property name).dist.tgt' \
+'$(csg_get_interaction_property name).dist.new' simplex.cur simplex.tmp $a_line_nr
