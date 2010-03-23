@@ -44,50 +44,27 @@ die "3 parameters are nessary\n" if ($#ARGV<3);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
-my $step_nr="$ARGV[2]";
-my $mpts="$ARGV[3]";
+my $p_line_nr="$ARGV[2]";
 
 use CsgFunctions;
 use SimplexFunctions;
 use File::Copy;
-
-my $tiny=1e-10;
-my $ndim=$mpts-1;
-my $nfunc=0;
-my $simplex_nr=$step_nr-$ndim;
-my $NMAX=csg_get_property("cg.inverse.iterations_max");
 
 my @ftar;
 my @sig;
 my @eps;
 (readin_simplex_table($infile,@ftar,@sig,@eps)) || die "error at readin_simplex_table\n";
 
+my $tiny=1e-10;
+my $mpts=$#ftar;
+my $ndim=$mpts-1;
+my $nfunc=0;
+my $NMAX=csg_get_property("cg.inverse.iterations_max");
+
 my @psum;
 my @ptry;
 my $ytry=$ftar[-1];
 my $ysave;
-
-sub print_state {
-# Print p matrix
-print STATE "p=\n";
-   for(my $i=0; $i<$mpts; $i++) {
-      for(my $j=0; $j<$ndim; $j++) {
-         print STATE "$p[$i][$j] ";
-      }
-   print STATE "\n";
-   }
-# Print ftar values for these
-print STATE "ftar=\n";
-   for(my $j=0;$j<$mpts;$j++) {
-      print STATE "$ftar_asc[$j]\n";
-   }
-# Print psum and ptry
-@psum=calc_psum(@p,$mpts,$ndim);
-print STATE "psum=\n";
-   for(my $j=0;$j<$ndim;$j++) {
-      print STATE "$psum[$j]\n";
-   }
-}
 
 # Generate p[mpts][ndim] matrix (parameters)
 my @p;
@@ -124,23 +101,40 @@ for (my $i=0;$i<$mpts;$i++) {
         }
    if ($y[$i]>$y[$inhi] && $i!=$ihi) {$inhi=$i;}
 }
-# -----------------------------------------------
 
-if ($step_nr==1) {
 open (INIT, ">state.cur") || die "Could not open file $_[0]\n";
 print INIT "----------------------\n";
 print INIT "Simulation_step=$step_nr\n";
 print INIT "----------------------\n";
 print INIT "Transformation=None\n";
 close(INIT);
-}
 
-else {
 # Create a state file
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
 print STATE "----------------------\n";
 print STATE "Simulation_step=$step_nr\n";
 print STATE "----------------------\n";
+
+sub print_state {
+# Print p matrix
+print STATE "p=\n";
+   for(my $i=0; $i<$mpts; $i++) {
+      for(my $j=0; $j<$ndim; $j++) {
+         print STATE "$p[$i][$j] ";
+      }
+   print STATE "\n";
+   }
+# Print ftar values for these
+print STATE "ftar=\n";
+   for(my $j=0;$j<$mpts;$j++) {
+      print STATE "$ftar_asc[$j]\n";
+   }
+# Print psum and ptry
+@psum=calc_psum(@p,$mpts,$ndim);
+print STATE "psum=\n";
+   for(my $j=0;$j<$ndim;$j++) {
+      print STATE "$psum[$j]\n";
+   }
 }
 
 my %state;
