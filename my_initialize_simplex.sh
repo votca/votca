@@ -33,13 +33,12 @@ fi
 check_deps "$0"
 
 main_dir=$(get_main_dir);
-init_steps=$(wc -l $main_dir/simplex.in | awk '{print ($1)}');
 
 if [ -f $main_dir/simplex.in ]; then
-   msg "Performing $init_steps initialization steps..."
    cp_from_main_dir simplex.in
    mv simplex.in simplex.new
-   for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).dist.tgt $(csg_get_interaction_property name).pot.new simplex.new 0'
+   for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).dist.tgt \
+   $(csg_get_interaction_property name).pot.new simplex.new 0'
 else
   die "No input file simplex.in found"
 fi
