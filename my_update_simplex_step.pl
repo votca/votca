@@ -62,8 +62,8 @@ my $NMAX=csg_get_property("cg.inverse.iterations_max");
 
 my @psum;
 my @ptry;
-my $ytry;
-my $ytry_flag;
+my $ytry=$ftar[-1];
+my $ytry_flag=$flag_simplex[-1];
 my $ysave;
 
 # Generate p[mpts][ndim] matrix (parameters)
@@ -111,11 +111,6 @@ while(<STATE_CUR>) {
    }
 }
 close(STATE_CUR);
-
-if ($state{'Transformation'} ne 'None' && $state{'Transformation'} ne 'Reduction') {
-   $ytry=$ftar[-1];
-   $ytry_flag=$flag_simplex[-1];
-}
 
 #-----------------------------------------------------------------------
 # Create a state file
