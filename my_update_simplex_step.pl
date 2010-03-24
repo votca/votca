@@ -114,7 +114,7 @@ while(<STATE_CUR>) {
 }
 close(STATE_CUR);
 
-if ($state{'Transformation'} ne 'None' && $state{'pending'} eq '1') {
+if ($state{'Transformation'} ne 'None' && $state{'Transformation'} ne 'Reduction') {
    $ytry=$ftar[-1];
    $ytry_flag=$flag_simplex[-1];
 }
@@ -154,9 +154,8 @@ elsif ($state{'Transformation'} eq 'Reflection') {
       $nfunc++;
    }
    elsif ($ytry >= $y[$inhi]) {
-      print STATE "Transformation=Contraction\n";
       $ysave=$y[$ihi];
-      print STATE "ysave=$ysave\n";
+      print STATE "Transformation=Contraction\n";
       @psum=calc_psum(@p,$mpts,$ndim);
       @ptry=calc_ptry($ndim,$ihi,0.5,@p,@psum);
       push(@ftar_asc,"0");
@@ -174,9 +173,9 @@ elsif ($state{'Transformation'} eq 'Contraction') {
          if ($i!=$ilo) {
             for (my $j=0;$j<=$ndim;$j++) {
             $p[$i][$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
+            $ftar_asc[$i]="0";
             $sig_asc[$i]=$p[$i][0];
             $eps_asc[$i]=$p[$i][1];
-            $ftar_asc[$i]="0";
             $flag_simplex[$i]="pending";
             }
          }
@@ -190,7 +189,6 @@ elsif ($state{'Transformation'} eq 'Reduction') {
    @sig_asc=@sig;
    @eps_asc=@eps;
 }
-
 else {
    print STATE "Transformation=None\n";
    print STATE "pending=$p_nr\n";
@@ -198,7 +196,6 @@ else {
    @sig_asc=@sig;
    @eps_asc=@eps;
 }
-
 close(STATE);
 #-----------------------------------------------------------------------
 
