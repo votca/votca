@@ -223,6 +223,9 @@ if ("$ytry" ne 'pending' && $ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduc
 else {
    print STATE "Transformation=None\n";
    print STATE "pending=$p_nr\n";
+   @ftar_asc=@ftar;
+   @sig_asc=@sig;
+   @eps_asc=@eps;
 }
 close(STATE);
 
