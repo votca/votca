@@ -159,8 +159,8 @@ elsif ($state{'Transformation'} eq 'Reflection') {
       @psum=calc_psum(@p,$mpts,$ndim);
       @ptry=calc_ptry($ndim,$ihi,0.5,@p,@psum);
       push(@ftar_asc,"0");
-      push(@sig_asc,"$ptry[1]");
-      push(@eps_asc,"$ptry[2]");
+      push(@sig_asc,"$ptry[0]");
+      push(@eps_asc,"$ptry[1]");
       push(@flag_simplex,"pending");
       $nfunc++;
    }
@@ -184,7 +184,6 @@ elsif ($state{'Transformation'} eq 'Contraction') {
    }
 }
 elsif ($state{'Transformation'} eq 'Reduction') {
-   #copy("state.cur", "state.new");
    @ftar_asc=@ftar;
    @sig_asc=@sig;
    @eps_asc=@eps;
