@@ -66,6 +66,7 @@ my $NMAX=csg_get_property("cg.inverse.iterations_max");
 my @psum;
 my @ptry;
 my $ytry=$ftar[-1];
+my $ytry_flag=$flag_simplex[-1];
 my $ysave;
 
 my $simplex_nr=$c_line_nr+1;
@@ -212,7 +213,7 @@ if ($state{'Transformation'} eq 'Reduction') {
 }
 
 # Replace high point if new point is better
-if ("$ytry" ne 'pending' && $ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduction') {
+if ("$ytry_flag" ne 'pending' && $ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduction' && $state{'Transformation'} ne 'None') {
    for (my $j=0;$j<$ndim;$j++) {
       $y[$ihi]=$ytry;
       $p[$j]+=$ptry[$j]-$p[$ihi][$j];

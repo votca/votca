@@ -42,5 +42,5 @@ if [ -f $main_dir/simplex.in ]; then
    for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).dist.tgt \
    $(csg_get_interaction_property name).pot.new simplex.cur 0'
 else
-  die "No input file simplex.in found"
+  die "No input file simplex.cur found"
 fi
