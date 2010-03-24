@@ -43,4 +43,4 @@ c_line_nr=0;
 fi
 
 msg "Preparing new parameters"
-run_or_exit do_external update simplex_step simplex.tmp simplex.new $c_line_nr $p_nr
+run_or_exit do_external update simplex_step simplex.tmp simplex.new $p_nr

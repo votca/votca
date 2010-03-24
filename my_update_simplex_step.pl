@@ -40,7 +40,7 @@ EOF
   exit 0;
 }
 
-die "4 parameters are nessary\n" if ($#ARGV<3);
+die "3 parameters are nessary\n" if ($#ARGV<2);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
@@ -140,7 +140,6 @@ if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
    push(@sig_asc,"$ptry[0]");
    push(@eps_asc,"$ptry[1]");
    push(@flag_simplex,"pending");
-   print STATE "@ptry";
    $nfunc++;
 }
 elsif ($state{'Transformation'} eq 'Reflection') {
