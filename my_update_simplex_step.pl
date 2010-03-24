@@ -65,8 +65,8 @@ my $NMAX=csg_get_property("cg.inverse.iterations_max");
 
 my @psum;
 my @ptry;
-my $ytry=$ftar[-1];
-my $ytry_flag=$flag_simplex[-1];
+my $ytry;
+my $ytry_flag;
 my $ysave;
 
 my $simplex_nr=$c_line_nr+1;
@@ -117,26 +117,9 @@ while(<STATE_CUR>) {
 }
 close(STATE_CUR);
 
-sub print_state {
-# Print p matrix
-print STATE "p=\n";
-   for(my $i=0; $i<$mpts; $i++) {
-      for(my $j=0; $j<$ndim; $j++) {
-         print STATE "$p[$i][$j] ";
-      }
-   print STATE "\n";
-   }
-# Print ftar values for these
-print STATE "ftar=\n";
-   for(my $j=0;$j<$mpts;$j++) {
-      print STATE "$ftar_asc[$j]\n";
-   }
-# Print psum and ptry
-@psum=calc_psum(@p,$mpts,$ndim);
-print STATE "psum=\n";
-   for(my $j=0;$j<$ndim;$j++) {
-      print STATE "$psum[$j]\n";
-   }
+if ($state{'Transformation'} ne 'None' && $state{'pending'} eq '1') {
+   $ytry=$ftar[-1];
+   $ytry_flag=$flag_simplex[-1];
 }
 
 # Create a state file
@@ -150,7 +133,6 @@ if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
    push(@ftar_asc,"$ptry[0]");
    push(@sig_asc,"$ptry[1]");
    push(@eps_asc,"$ptry[2]");
-   print_state;
    $nfunc++;
 }
 
@@ -163,7 +145,6 @@ if ($state{'Transformation'} eq 'Reflection') {
       push(@ftar_asc,"$ptry[0]");
       push(@sig_asc,"$ptry[1]");
       push(@eps_asc,"$ptry[2]");
-      print_state;
       print STATE "ptry=\n";
       for(my $j=1;$j<$mpts;$j++) {
          print STATE "$ptry[$j]\n";
@@ -180,7 +161,6 @@ if ($state{'Transformation'} eq 'Reflection') {
       push(@ftar_asc,"$ptry[0]");
       push(@sig_asc,"$ptry[1]");
       push(@eps_asc,"$ptry[2]");
-      print_state;
       print STATE "ptry=\n";
       for(my $j=1;$j<$mpts;$j++) {
          print STATE "$ptry[$j]\n";
@@ -203,7 +183,6 @@ if ($state{'Transformation'} eq 'Contraction') {
             }
          }
       }
-   print_state;
    $nfunc+=$ndim;
    }
 }
