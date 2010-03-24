@@ -44,11 +44,9 @@ die "3 parameters are nessary\n" if ($#ARGV<2);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
-my $p_nr="$ARGV[2]"-1;
 
 use CsgFunctions;
 use SimplexFunctions;
-use File::Copy;
 
 my @ftar;
 my @sig;
@@ -124,7 +122,7 @@ if ($state{'Transformation'} ne 'None' && $state{'Transformation'} ne 'Reduction
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
 
 # Replace high point if new point is better
-if ($ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduction' && $state{'Transformation'} ne 'None') {
+if ($ytry<$y[$ihi]) {
    for (my $j=0;$j<$ndim;$j++) {
       $y[$ihi]=$ytry;
       $p[$j]+=$ptry[$j]-$p[$ihi][$j];
@@ -132,17 +130,7 @@ if ($ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduction' && $state{'Transfo
    }
 }
 
-if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
-   print STATE "Transformation=Reflection\n";
-   @psum=calc_psum(@p,$mpts,$ndim);
-   @ptry=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
-   push(@ftar_asc,"0");
-   push(@sig_asc,"$ptry[0]");
-   push(@eps_asc,"$ptry[1]");
-   push(@flag_simplex,"pending");
-   $nfunc++;
-}
-elsif ($state{'Transformation'} eq 'Reflection') {
+if ($state{'Transformation'} eq 'Reflection') {
    if ($ytry <= $y[$ilo]) {
       print STATE "Transformation=Expansion\n";
       @psum=calc_psum(@p,$mpts,$ndim);
@@ -183,17 +171,15 @@ elsif ($state{'Transformation'} eq 'Contraction') {
    $nfunc+=$ndim;
    }
 }
-elsif ($state{'Transformation'} eq 'Reduction') {
-   @ftar_asc=@ftar;
-   @sig_asc=@sig;
-   @eps_asc=@eps;
-}
 else {
-   print STATE "Transformation=None\n";
-   print STATE "pending=$p_nr\n";
-   @ftar_asc=@ftar;
-   @sig_asc=@sig;
-   @eps_asc=@eps;
+   print STATE "Transformation=Reflection\n";
+   @psum=calc_psum(@p,$mpts,$ndim);
+   @ptry=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
+   push(@ftar_asc,"0");
+   push(@sig_asc,"$ptry[0]");
+   push(@eps_asc,"$ptry[1]");
+   push(@flag_simplex,"pending");
+   $nfunc++;
 }
 close(STATE);
 #-----------------------------------------------------------------------
