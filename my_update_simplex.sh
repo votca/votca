@@ -36,7 +36,7 @@ run_or_exit do_external update simplex_single
 
 p_nr=$(grep -c 'pending$' simplex.tmp);
 
-if (grep -c 'pending$' simplex.cur == "0") then
+if [ $(grep -c 'pending$' simplex.cur) == "0" ]; then
    c_line_nr=$(($(grep -n -m1 'pending' simplex.tmp | sed 's/:.*//')-2));
    # Generate new parameter set
    msg "Preparing new parameters"
