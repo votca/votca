@@ -44,8 +44,7 @@ die "4 parameters are nessary\n" if ($#ARGV<3);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
-my $c_line_nr="$ARGV[2]";
-my $p_nr="$ARGV[3]"-1;
+my $p_nr="$ARGV[2]"-1;
 
 use CsgFunctions;
 use SimplexFunctions;
@@ -68,8 +67,6 @@ my @ptry;
 my $ytry;
 my $ytry_flag;
 my $ysave;
-
-my $simplex_nr=$c_line_nr+1;
 
 # Generate p[mpts][ndim] matrix (parameters)
 my @p;
@@ -122,8 +119,18 @@ if ($state{'Transformation'} ne 'None' && $state{'pending'} eq '1') {
    $ytry_flag=$flag_simplex[-1];
 }
 
+#-----------------------------------------------------------------------
 # Create a state file
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
+
+# Replace high point if new point is better
+if ($ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduction' && $state{'Transformation'} ne 'None') {
+   for (my $j=0;$j<$ndim;$j++) {
+      $y[$ihi]=$ytry;
+      $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+      $p[$ihi][$j]=$ptry[$j];
+   }
+}
 
 if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
    print STATE "Transformation=Reflection\n";
@@ -133,6 +140,7 @@ if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
    push(@sig_asc,"$ptry[0]");
    push(@eps_asc,"$ptry[1]");
    push(@flag_simplex,"pending");
+   print STATE "@ptry";
    $nfunc++;
 }
 elsif ($state{'Transformation'} eq 'Reflection') {
@@ -146,7 +154,7 @@ elsif ($state{'Transformation'} eq 'Reflection') {
       push(@flag_simplex,"pending");
       $nfunc++;
    }
-   if ($ytry >= $y[$inhi]) {
+   elsif ($ytry >= $y[$inhi]) {
       print STATE "Transformation=Contraction\n";
       $ysave=$y[$ihi];
       print STATE "ysave=$ysave\n";
@@ -178,16 +186,12 @@ elsif ($state{'Transformation'} eq 'Contraction') {
    }
 }
 elsif ($state{'Transformation'} eq 'Reduction') {
-   copy("state.cur", "state.new");
+   #copy("state.cur", "state.new");
+   @ftar_asc=@ftar;
+   @sig_asc=@sig;
+   @eps_asc=@eps;
 }
-# Replace high point if new point is better
-elsif ("$ytry_flag" ne 'pending' && $ytry<$y[$ihi] && $state{'Transformation'} ne 'Reduction' && $state{'Transformation'} ne 'None') {
-   for (my $j=0;$j<$ndim;$j++) {
-      $y[$ihi]=$ytry;
-      $p[$j]+=$ptry[$j]-$p[$ihi][$j];
-      $p[$ihi][$j]=$ptry[$j];
-   }
-}
+
 else {
    print STATE "Transformation=None\n";
    print STATE "pending=$p_nr\n";
@@ -195,9 +199,10 @@ else {
    @sig_asc=@sig;
    @eps_asc=@eps;
 }
-close(STATE);
 
+close(STATE);
 #-----------------------------------------------------------------------
+
 # Check for convergence
 my $ftol=0.0001;
 my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo])+$tiny);
