@@ -34,13 +34,15 @@ check_deps "$0"
 
 run_or_exit do_external update simplex_single
 
-# Generate new parameter set
 p_nr=$(grep -c 'pending$' simplex.tmp);
-if (grep -c 'pending$' simplex.cur > "1") then
-c_line_nr=$(($(grep -n -m1 'pending' simplex.tmp | sed 's/:.*//')-2));
+
+if (grep -c 'pending$' simplex.cur == "0") then
+   c_line_nr=$(($(grep -n -m1 'pending' simplex.tmp | sed 's/:.*//')-2));
+   # Generate new parameter set
+   msg "Preparing new parameters"
+   run_or_exit do_external update simplex_step simplex.tmp simplex.new $p_nr
 else 
-c_line_nr=0;
+   msg "Found 'pending' parameter set"
+   cp state.cur state.new
 fi
 
-msg "Preparing new parameters"
-run_or_exit do_external update simplex_step simplex.tmp simplex.new $p_nr

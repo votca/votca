@@ -37,10 +37,10 @@ sim_prog=$(csg_get_property cg.inverse.program)
 for_all non-bonded do_external rdf $sim_prog
 
 # For active parameter set, calculate ftar
-if (grep -c 'active$' simplex.cur > "1") then
+if (grep -c 'active$' simplex.cur == "1") then
 a_line_nr=$(($(grep -n -m1 'active$' simplex.cur | sed 's/:.*//')-1));
 else 
-a_line_nr=0;
+  die "Error: Found no 'active' parameter set"
 fi
 
 msg "Calc ftar"
