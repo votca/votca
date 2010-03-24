@@ -45,7 +45,7 @@ die "4 parameters are nessary\n" if ($#ARGV<3);
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 my $c_line_nr="$ARGV[2]";
-my $p_nr="$ARGV[3]";
+my $p_nr="$ARGV[3]"-1;
 
 use CsgFunctions;
 use SimplexFunctions;
@@ -116,9 +116,6 @@ while(<STATE_CUR>) {
 }
 close(STATE_CUR);
 
-# Create a state file
-open (STATE, ">state.new") || die "Could not open file $_[0]\n";
-
 sub print_state {
 # Print p matrix
 print STATE "p=\n";
@@ -140,6 +137,9 @@ print STATE "psum=\n";
       print STATE "$psum[$j]\n";
    }
 }
+
+# Create a state file
+open (STATE, ">state.new") || die "Could not open file $_[0]\n";
 
 if ($state{'Transformation'} eq 'None' && $state{'pending'} eq '0') {
    print STATE "Transformation=Reflection\n";
