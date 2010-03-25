@@ -40,7 +40,7 @@ EOF
   exit 0;
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "2 parameters are nessary\n" if ($#ARGV<1);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
