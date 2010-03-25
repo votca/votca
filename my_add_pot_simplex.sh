@@ -31,7 +31,9 @@ fi
 
 check_deps "$0"
 
-if (grep -c 'pending$' simplex.new > "1") then
+p_nr=$(grep -c 'pending$' simplex.new);
+
+if [ $p_nr > "0" ]; then
 p_line_nr=$(($(grep -n -m1 'pending$' simplex.new | sed 's/:.*//')-1));
 else 
    die "Error: No 'pending' parameter sets found."
