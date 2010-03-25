@@ -1,4 +1,16 @@
-all: programs_submake scripts_submake xml_submake
+SHELL=/bin/bash
+all: check programs_submake scripts_submake xml_submake
+
+check:
+	@if ! which csg_property &>/dev/null; then\
+	  echo '#################################';\
+	  echo '#                               #';\
+	  echo '#  Could not find csg_property  #';\
+	  echo '#  Please source VOTCARC first  #';\
+	  echo '#                               #';\
+	  echo '#################################';\
+	  exit 1;\
+	fi
 
 %_submake:
 	$(MAKE) $(MFLAGS) -C $* -f Makefile.in bootstrap
