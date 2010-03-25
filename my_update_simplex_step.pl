@@ -47,6 +47,7 @@ my $outfile="$ARGV[1]";
 
 use CsgFunctions;
 use SimplexFunctions;
+use Switch;
 
 my @ftar;
 my @sig;
@@ -122,7 +123,9 @@ close(STATE_CUR);
 
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
 
-if ($state{'Transformation'} eq 'Reflection') {
+switch ($state{'Transformation'}) {
+
+case 'Reflection' {
    if ($ytry <= $y[$ilo]) {
       print STATE "Transformation=Expansion\n";
       @psum=calc_psum(@p,$mpts,$ndim);
@@ -145,7 +148,8 @@ if ($state{'Transformation'} eq 'Reflection') {
       $nfunc++;
    }
 }
-elsif ($state{'Transformation'} eq 'Contraction') {
+
+case 'Contraction' {
    $ysave=$state{ysave};
    if ($ytry>=$ysave) {
       print STATE "Transformation=Reduction\n";
@@ -163,6 +167,7 @@ elsif ($state{'Transformation'} eq 'Contraction') {
    $nfunc+=$ndim;
    }
 }
+
 else {
    print STATE "Transformation=Reflection\n";
    @psum=calc_psum(@p,$mpts,$ndim);
@@ -173,23 +178,24 @@ else {
    push(@flag_simplex,"pending");
    $nfunc++;
 }
-close(STATE);
-#-----------------------------------------------------------------------
+
+}
 
 # Check for convergence
 my $ftol=0.0001;
 my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo])+$tiny);
 
+if($nfunc>=$NMAX) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
+
 if($rtol<$ftol) {
    ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
       for (my $i=0;$i<$ndim;$i++){
       ($p[$ilo][$i],$p[0][$i])=($p[0][$i],$p[$ilo][$i]);
-      print "Done - Simplex converged after $nfunc steps.\n";
+      print STATE "Done - Simplex converged after $nfunc steps.\n";
    }
 }
 
-if($nfunc>=$NMAX) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
+close(STATE);
 
-# ----------------------------------------------------------------------
 # Update simplex table
 saveto_simplex_table($outfile,@ftar_asc,@sig_asc,@eps_asc,@flag_simplex) || die "$progname: error at save table\n";
