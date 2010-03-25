@@ -31,10 +31,10 @@ fi
 
 check_deps "$0"
 
-if (grep -c 'pending$' simplex.tmp > "0") then
-p_line_nr=$(($(grep -n -m1 'pending$' simplex.tmp | sed 's/:.*//')-1));
+if (grep -c 'pending$' simplex.new > "1") then
+p_line_nr=$(($(grep -n -m1 'pending$' simplex.new | sed 's/:.*//')-1));
 else 
-p_line_nr=0;
+   die "Error: No 'pending' parameter sets found."
 fi 
 
 for_all "non-bonded" \

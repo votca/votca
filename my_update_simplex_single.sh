@@ -40,7 +40,7 @@ for_all non-bonded do_external rdf $sim_prog
 if [ $(grep -c 'active$' simplex.cur) == "1" ]; then
 a_line_nr=$(($(grep -n -m1 'active$' simplex.cur | sed 's/:.*//')-1));
 else 
-  die "Error: Found no 'active' parameter set"
+  die "Error: No 'active' parameter set found."
 fi
 
 msg "Calc ftar"

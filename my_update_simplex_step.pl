@@ -63,7 +63,6 @@ my $NMAX=csg_get_property("cg.inverse.iterations_max");
 my @psum;
 my @ptry;
 my $ytry=$ftar[-1];
-my $ytry_flag=$flag_simplex[-1];
 my $ysave;
 
 # Generate p[mpts][ndim] matrix (parameters)
