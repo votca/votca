@@ -23,6 +23,12 @@ clean: qclean fig_subclean functionality_subclean reference_subclean usage_subma
 	rm -f hgid.tex
 	rm -f *~
 
+tar: all
+	rm -f $(NAME).tar.gz
+	#dirty sed hack ahead to grep files used by latexmk to produce the pdf
+	tar cvzhf $(NAME).tar.gz $(NAME).pdf \
+  	   `sed -n 's/^[[:space:]]*"\([^/][^"]*\.\(bib\|tex\|eps\|cls\)\)".*$$/\1/p' $(NAME).fdb_latexmk`
+
 hgid.tex: dummy
 	[ -f hgid.tex ] || touch hgid.tex
 	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex

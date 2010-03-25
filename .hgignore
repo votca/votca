@@ -12,6 +12,7 @@ manual.log
 manual.out
 manual.pdf
 manual.toc
+manual.tar.gz
 reference/programs/Makefile
 reference/programs/csg_*.*
 reference/programs/multi_*.*
