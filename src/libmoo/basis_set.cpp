@@ -109,7 +109,7 @@ void basis_set::set_basis_set(const string & a){
     basis_set_name = a;
 }
 
-void basis_set::parse_xml_basisset_info(const string & filename){
+/*void basis_set::parse_xml_basisset_info(const string & filename){
     _nel_at = new int [18];
     _nbasis_at = new int [18];
     _basis_lbl_at = new string *[18];
@@ -135,9 +135,34 @@ void basis_set::parse_xml_basisset_info(const string & filename){
             ParseAtomBasisSet(doc, node->xmlChildrenNode);
         }
     }
+}*/
+
+void basis_set::parse_xml_basisset_info(const string & filename){
+    load_property_from_xml(_options, filename.c_str());
+    _nel_at = new int [18];
+    _nbasis_at = new int [18];
+    _basis_lbl_at = new string *[18];
+    list<Property *> atoms = _options.Select("ATOM");
+    list<Property *>::iterator iter;
+    for (iter = atoms.begin();iter != atoms.end(); ++iter){
+        int lbl, nel,nbasis;
+        vector <string> symms;
+        lbl = (*iter)->get("label").as<int>();
+        nel = (*iter)->get("nel").as<int>();
+        nbasis = (*iter)->get("nbasis").as<int>();
+        string s = (*iter)->get("basis_symm").as<string>();
+        Tokenizer tok(s, "\n\t");
+        tok.ToVector(symms);
+        _nel_at[lbl]=nel;
+        _nbasis_at[lbl]=nbasis;
+        _basis_lbl_at[lbl]= new string[nbasis];
+        for (int i=0;i<nbasis;i++){
+            _basis_lbl_at[lbl][i] = symms[i];
+        }
+    }
 }
 
-void basis_set::ParseAtomBasisSet(xmlDocPtr doc, xmlNodePtr cur){
+/*void basis_set::ParseAtomBasisSet(xmlDocPtr doc, xmlNodePtr cur){
     int lbl, nel,nbasis;
     vector <string> symms;
     bool blbl,bnel,bnbasis,bsymms = false;
@@ -176,7 +201,7 @@ void basis_set::ParseAtomBasisSet(xmlDocPtr doc, xmlNodePtr cur){
     for (int i=0;i<nbasis;i++){
         _basis_lbl_at[lbl][i] = symms[i];
     }
-}
+}*/
 
 basis_set & basis_set::operator=(const basis_set a){
     _nel_at = new int[18];

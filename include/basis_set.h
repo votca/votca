@@ -8,6 +8,7 @@
 #include <libxml/parser.h>
 #include "votca/tools/tokenizer.h"
 #include <boost/lexical_cast.hpp>
+#include <votca/tools/property.h>
 
 using namespace std;
 using namespace boost;
@@ -32,11 +33,12 @@ class basis_set{
 	string ** _basis_lbl_at;
 
 	string basis_set_name;
+        Property _options; // to parse xml files
 
 	vector < atom_shells >   _atom_shells;
 
         void parse_xml_basisset_info(const string &);
-        void ParseAtomBasisSet(xmlDocPtr doc, xmlNodePtr cur);
+        //void ParseAtomBasisSet(xmlDocPtr doc, xmlNodePtr cur);
 
     public:
 	// defaul constructor defaults to INDO
