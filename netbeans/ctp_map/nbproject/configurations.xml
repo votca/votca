@@ -104,7 +104,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibLibItem>gmx</linkerLibLibItem>
-            <linkerLibLibItem>xml2</linkerLibLibItem>
+            <linkerLibLibItem>expat</linkerLibLibItem>
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
