@@ -10,11 +10,11 @@
             <header-extensions>h</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
-                <make-dep-project>../../../csg/netbeans/libcsg</make-dep-project>
                 <make-dep-project>../../../moo/netbeans/libmoo</make-dep-project>
-                <make-dep-project>../libmd2qm</make-dep-project>
-                <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
                 <make-dep-project>../../../kmc/netbeans/libkmc</make-dep-project>
+                <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
+                <make-dep-project>../libmd2qm</make-dep-project>
+                <make-dep-project>../../../csg/netbeans/libcsg</make-dep-project>
             </make-dep-projects>
         </data>
     </configuration>

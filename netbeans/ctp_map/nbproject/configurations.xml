@@ -105,6 +105,7 @@
             </linkerLibProjectItem>
             <linkerLibLibItem>gmx</linkerLibLibItem>
             <linkerLibLibItem>expat</linkerLibLibItem>
+            <linkerLibLibItem>xml2</linkerLibLibItem>
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>

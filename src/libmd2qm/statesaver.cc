@@ -5,35 +5,46 @@
 
 using namespace std;
 
-StateSaver::StateSaver(QMTopology &qmtop) {
+StateSaver::StateSaver(QMTopology &qmtop, string file) {
     _qmtop = &qmtop;
+    _out.open(file.c_str(),ios::binary|ios::out);
+    _in.open(file.c_str(), ios::in | ios::binary);
 }
 
 //void StateSaver::Open(string file)
 
-void StateSaver::Save(string file, bool bAppend) {
-    //_out = fopen(file.c_str(), bAppend ? "at" : "wt");
-    _out.open(file.c_str(), ios::out | ios::binary);
+void StateSaver::Save() {
+    
+    streampos start = _out.tellp();
+    _startpos.push_back(start);
     Write_PBCs();
     Write_Molecules();
     Write_QMBeads();
     Write_QMNeighbourlist();
     //Write NBL
-    _out.close();
+    //_out.close();
     //_out = datafile(datafile.c_str(), ios::binary|ios::out);
 }
 
-void StateSaver::Load(string file) {
+void StateSaver::Close(){
+    vector <streampos>::iterator itb=_startpos.begin();
+    for ( ;itb !=_startpos.end(); ++itb){
+        write<streampos>(*itb);
+    }
+    write<int>(_startpos.size());
+    _out.close();
+    _in.close();
+}
+
+void StateSaver::Load() {
     _qmtop->Cleanup();
     _qmtop->nblist().Cleanup();
     _qmtop->CreateResidue("dummy");
 
-    _in.open(file.c_str(), ios::in | ios::binary);
     Read_PBCs();
     Read_Molecules();
     Read_QMBeads();
     Read_QMNeighbourlist();
-    _in.close();
 }
 
 void StateSaver::Write_PBCs(){
@@ -228,4 +239,15 @@ void StateSaver::Read_QMNeighbourlist() {
         pair->setR(read<vec>());
         //cout << "This pair has connecting vector r_ij = " << pair->r() << endl;
     }
+}
+
+bool StateSaver::Seek(const int& pos){
+    
+    _in.seekg (- sizeof(int), ios::end); // put in at the end;
+    int n = read<int>();
+    if (pos> n){
+        return false;
+    }
+    _in.seekg (- sizeof(int) - (n-pos) * sizeof(streampos) , ios::end); // put in at the end;
+    return true;
 }

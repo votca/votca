@@ -20,9 +20,11 @@ using namespace std;
 class StateSaver
 {
 public : 
-    StateSaver(QMTopology & qmtop);
-    void Save(string file, bool bAppend = false);
-    void Load(string file);
+    StateSaver(QMTopology & qmtop,string file);
+    void Save();
+    void Load();
+    void Close();
+    bool Seek(const int &);
       
     
     
@@ -46,6 +48,7 @@ private:
     QMTopology *_qmtop;
     ofstream _out;
     ifstream _in;
+    vector <streampos> _startpos;
 };
 
 template<typename T>

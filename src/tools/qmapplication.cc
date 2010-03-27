@@ -17,6 +17,8 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     ("opt", boost::program_options::value<string>()->default_value("main.xml"), "  main program options")
     ("out", boost::program_options::value<string>(), "  write new state file with this name")
     ("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
+    ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
+    ("nframes", boost::program_options::value<int>(), "  process so many frames")
     ;
 
     /// add specific options defined via Initialize of the child class
@@ -48,8 +50,8 @@ void QMApplication::Run(int argc, char **argv)
 
         bool has_begin = false; /// was a starting time specified?
         double begin; /// starting time
-        int first_frame; /// starting frame
-        int nframes = 1; /// number of frames to be processed
+        int first_frame = _op_vm["first-frame"].as<int>(); /// starting frame
+        int nframes = _op_vm["nframes"].as<int>(); /// number of frames to be processed
 
         if (_op_vm.count("help")) {
             HelpText();
@@ -71,22 +73,24 @@ void QMApplication::Run(int argc, char **argv)
         if (!BeginEvaluate()) return;
 
         /// load qmtop from state saver
-        StateSaver saver(_qmtop);
+        
         cout << "Loading qmtopology via state saver." << endl;
         string statefile = "state.dat";
-        saver.Load(statefile);
+        StateSaver loader(_qmtop, statefile);
+        StateSaver saver(_qmtop, _op_vm["out"].as<string>());
 
-        EvaluateFrame();
+        loader.Seek(first_frame);
+        for (int i=0;i<nframes;i++){
+            loader.Load();
+            EvaluateFrame();
+            if (_op_vm.count("out")){
+                saver.Save();
+            }
+        }
         EndEvaluate();
 
-        if (_op_vm.count("out")){
-          saver.Save(_op_vm["out"].as<string > ());
-        }
-        else{
-//          saver.Save(statefile, false);
-        }
-
-    } catch (std::exception &error) {
+    }
+    catch (std::exception &error) {
         cerr << "an error occured:\n" << error.what() << endl;
     }
 }
@@ -106,10 +110,13 @@ void QMApplication::PrintNbs(string filename){
         out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [nm]" << endl;
         QMNBList::iterator iter;
         for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
-            out_nbl << "(" << (*iter)->first->getId() << "," << (*iter)->second->getId() << "): ";
-            out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->calcJeff2()) << " " << (*iter)->rate12() << " ";
-            out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
-            out_nbl << " " << (*iter)->dist() << endl;
+            ///Hack!
+            if ((*iter)->Js().size() > 0 ){
+                out_nbl << "(" << (*iter)->first->getId() << "," << (*iter)->second->getId() << "): ";
+                out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->calcJeff2()) << " " << (*iter)->rate12() << " ";
+                out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
+                out_nbl << " " << (*iter)->dist() << endl;
+            }
         }
     }
     out_nbl.close();
