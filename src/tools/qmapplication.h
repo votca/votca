@@ -52,6 +52,8 @@ protected:
     boost::program_options::variables_map _op_vm;
     /// Program options required by child classes
     boost::program_options::options_description _op_desc_specific;
+    /// program options required by all applications
+    boost::program_options::options_description _op_desc;
     /// QM topology containing all relevant system information
     QMTopology _qmtop;
     /// Property object to parse xml files elegantly
@@ -67,8 +69,6 @@ protected:
 private:
     /// get input parameters from file, location may be specified in command line
     void ParseCommandLine(int argc, char **argv);
-    /// program options required by all applications
-    boost::program_options::options_description _op_desc;
 };
 
 #endif	/* _QMAPPLICATION_H */

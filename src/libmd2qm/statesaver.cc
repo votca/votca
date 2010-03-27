@@ -5,9 +5,13 @@
 
 using namespace std;
 
-StateSaver::StateSaver(QMTopology &qmtop, string file) {
+StateSaver::StateSaver(QMTopology& qmtop, string file){
+    Open(qmtop, file);
+}
+
+void StateSaver::Open(QMTopology &qmtop, string file) {
     _qmtop = &qmtop;
-    _out.open(file.c_str(),ios::binary|ios::out);
+    _out.open( (file+string("out")).c_str(),ios::binary|ios::out);
     _in.open(file.c_str(), ios::in | ios::binary);
 }
 

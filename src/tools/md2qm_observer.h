@@ -36,6 +36,9 @@ public:
     void setCutoff(const double & cutoff){
         _cutoff = cutoff;
     }
+    void setOut(const string &  out){
+        _out=out;
+    }
     void setNNnames(string  nnnames);
 
     void print_nbs_to_file(QMNBList &nblist);
@@ -47,6 +50,8 @@ protected:
     ///  output streams for velocity averaging & diffusion
     ofstream _out_cont;
     ofstream _out_diff;
+    string _out;
+    StateSaver _save;
 };
 
 #endif	/* _MD2QM_OBSERVER_H */

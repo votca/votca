@@ -7,7 +7,11 @@ Integrals::~Integrals()
 {}
 
 void Integrals::HelpText()
-{}
+{
+    //votca::md2qm::HelpTextHeader("unknown program name");
+    cout << "no help text available\n\n";
+    cout << _op_desc << endl;
+}
 
 void Integrals::AddSpecificOptions(){
     namespace po = boost::program_options;

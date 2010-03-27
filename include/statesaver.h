@@ -19,8 +19,12 @@ using namespace std;
 
 class StateSaver
 {
-public : 
+public :
+    StateSaver(){}
+    ~StateSaver(){}
+
     StateSaver(QMTopology & qmtop,string file);
+    void Open(QMTopology & qmtop,string file);
     void Save();
     void Load();
     void Close();

@@ -15,10 +15,11 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     ("help", "  produce this help message")
     ("crg", boost::program_options::value<string>()->default_value("list_charges.xml"), "  charge unit definitions")
     ("opt", boost::program_options::value<string>()->default_value("main.xml"), "  main program options")
-    ("out", boost::program_options::value<string>(), "  write new state file with this name")
+    ("out", boost::program_options::value<string>()->default_value("stateOut.dat"), "  write new state file with this name")
+    ("in", boost::program_options::value<string>()->default_value("stateIn.dat"), "  read state file with this name")
     ("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
     ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
-    ("nframes", boost::program_options::value<int>(), "  process so many frames")
+    ("nframes", boost::program_options::value<int>()->default_value(1), "  process so many frames")
     ;
 
     /// add specific options defined via Initialize of the child class
@@ -75,7 +76,7 @@ void QMApplication::Run(int argc, char **argv)
         /// load qmtop from state saver
         
         cout << "Loading qmtopology via state saver." << endl;
-        string statefile = "state.dat";
+        string statefile = _op_vm["in"].as<string>();
         StateSaver loader(_qmtop, statefile);
         StateSaver saver(_qmtop, _op_vm["out"].as<string>());
 
@@ -87,6 +88,8 @@ void QMApplication::Run(int argc, char **argv)
                 saver.Save();
             }
         }
+        loader.Close();
+        saver.Close();
         EndEvaluate();
 
     }
@@ -100,6 +103,7 @@ void QMApplication::HelpText()
     //votca::md2qm::HelpTextHeader("unknown program name");
     cout << "no help text available\n\n";
     cout << _op_desc << endl;
+    cout << _op_desc_specific << endl;
 }
 
 void QMApplication::PrintNbs(string filename){

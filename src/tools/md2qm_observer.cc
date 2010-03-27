@@ -5,18 +5,19 @@
 MD2QMObserver::MD2QMObserver()
 {}
 
+
 MD2QMObserver::~MD2QMObserver()
 {}
 
 void MD2QMObserver::Initialize(QMTopology &qmtop, Property &opts)
 {
     _qmtop = &qmtop;
+    _save.Open(qmtop, _out);
 }
 
 void MD2QMObserver::BeginCG(Topology *top, Topology *top_atom)
 {
     _qmtop->Initialize(*top);
-    StateSaver _saver(*_qmtop, outfilename);
 }
 
 /// evaluate current conformation
@@ -33,15 +34,14 @@ void MD2QMObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 
     nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
+    _save.Save();
 
-    string outfilename = "state.dat";
-    _saver.Save(outfilename,true);
 }
 
 void MD2QMObserver::EndCG()
 {
     print_nbs_to_file(_qmtop->nblist());
-    _saver.Close();
+    _save.Close();
 }
 
 void MD2QMObserver::print_nbs_to_file(QMNBList &nblist){

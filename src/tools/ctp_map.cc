@@ -37,6 +37,7 @@ void check_option(po::options_description &desc, po::variables_map &vm, const st
 int main(int argc, char** argv)
 {
     int write_every=0;
+
     // we have one observer
     MD2QMObserver observer;
     Property options;
@@ -55,6 +56,8 @@ int main(int argc, char** argv)
         /// Parameters required to calculate rates and to run KMC
         cg_engine.AddProgramOptions()
             ("options,o", po::value<string>(), "  KMC and MD2QM options");
+        cg_engine.AddProgramOptions()
+            ("out", po::value<string>()->default_value("state.dat"), " Name of the output file for statesaver");
         cg_engine.ParseCommandLine(argc, argv);
 
         po::variables_map &vm
@@ -72,12 +75,13 @@ int main(int argc, char** argv)
         check_option(cg_engine.OptionsDesc(), vm, "cutoff");
 
         load_property_from_xml(options, vm["options"].as<string>());
-        observer.Initialize(qmtopol, options);
-        // add our observer that it gets called to analyze frames
-        cg_engine.AddObserver((CGObserver*)&observer);
 
         qmtopol.LoadListCharges(vm["listcharges"].as<string>());
         observer.setCutoff(vm["cutoff"].as<double>());
+        observer.setOut(vm["out"].as<string>());
+        observer.Initialize(qmtopol, options);
+        // add our observer that it gets called to analyze frames
+        cg_engine.AddObserver((CGObserver*)&observer);
         // try to run the cg process, go through the frames, etc...
         cg_engine.Run();
 
