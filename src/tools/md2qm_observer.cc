@@ -24,7 +24,6 @@ void MD2QMObserver::BeginCG(Topology *top, Topology *top_atom)
 
 void MD2QMObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 {
-
     _qmtop->Update(*top);
     QMNBList &nblist = _qmtop->nblist();
 

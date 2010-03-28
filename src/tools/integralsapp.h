@@ -9,6 +9,7 @@
 #define	_INTEGRALSAPP_H
 
 #include "qmapplication.h"
+#include <sstream>
 
 class Integrals : public QMApplication
 {

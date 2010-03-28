@@ -14,12 +14,7 @@ void Integrals::HelpText()
 }
 
 void Integrals::AddSpecificOptions(){
-    namespace po = boost::program_options;
-
-    /// define standard program options
-    _op_desc_specific.add_options()
-    ("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
-    ;
+  
 }
 
 void Integrals::setNNnames(string nnnames){
@@ -56,9 +51,15 @@ bool Integrals::EvaluateFrame(){
             (*iter)->setJs(Js);
         }
     }
+
+    stringstream ss;
+    ss << _qmtop.getStep();
+    string res;
+    ss >> res;
+    res = string ("nbl") + res + string(".res");
+    PrintNbs(res);
 }
 
  void Integrals::EndEvaluate()
  {
-     PrintNbs("nbl.res");
  }
