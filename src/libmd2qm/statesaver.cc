@@ -5,14 +5,29 @@
 
 using namespace std;
 
-StateSaver::StateSaver(QMTopology& qmtop, string file){
-    Open(qmtop, file);
+StateSaver::StateSaver(QMTopology& qmtop, string &filein, string & fileout){
+    Open(qmtop, filein, fileout);
 }
 
-void StateSaver::Open(QMTopology &qmtop, string file) {
+void StateSaver::Open(QMTopology &qmtop, string &filein, string & fileout) {
     _qmtop = &qmtop;
-    _out.open( (file+string("out")).c_str(),ios::binary|ios::out);
-    _in.open(file.c_str(), ios::in | ios::binary);
+    _out.open(fileout.c_str(),ios::binary|ios::out);
+    _in.open(filein.c_str(), ios::in | ios::binary);
+    _mode = 'b';
+}
+
+StateSaver::StateSaver(QMTopology& qmtop, string & file, const char & mode){
+    Open(qmtop, file, mode);
+}
+
+void StateSaver::Open(QMTopology &qmtop, string &file, const char & mode) {
+    _qmtop = &qmtop;
+    _mode = mode;
+    if (mode == 'w') {_out.open( file.c_str(),ios::binary|ios::out);}
+    else if (mode == 'r') {_in.open(file.c_str(), ios::in | ios::binary);}
+    else {
+        throw runtime_error(string("Open mode not available" ) + mode );
+    }
 }
 
 //void StateSaver::Open(string file)
@@ -31,13 +46,17 @@ void StateSaver::Save() {
 }
 
 void StateSaver::Close(){
-    vector <streampos>::iterator itb=_startpos.begin();
-    for ( ;itb !=_startpos.end(); ++itb){
-        write<streampos>(*itb);
+    if (_mode == 'w' || _mode == 'b'){
+        vector <streampos>::iterator itb=_startpos.begin();
+        for ( ;itb !=_startpos.end(); ++itb){
+            write<streampos>(*itb);
+        }
+        write<int>(_startpos.size());
+        _out.close();
     }
-    write<int>(_startpos.size());
-    _out.close();
-    _in.close();
+    if (_mode == 'r' || _mode == 'b'){
+        _in.close();
+    }
 }
 
 void StateSaver::Load() {
@@ -253,5 +272,7 @@ bool StateSaver::Seek(const int& pos){
         return false;
     }
     _in.seekg (- sizeof(int) - (n-pos) * sizeof(streampos) , ios::end); // put in at the end;
+    streampos newpos = read<streampos>();
+    _in.seekg(newpos, ios::beg);
     return true;
 }

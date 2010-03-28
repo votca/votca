@@ -23,8 +23,10 @@ public :
     StateSaver(){}
     ~StateSaver(){}
 
-    StateSaver(QMTopology & qmtop,string file);
-    void Open(QMTopology & qmtop,string file);
+    StateSaver(QMTopology & qmtop,string &filein,string& fileout );
+    void Open(QMTopology & qmtop,string &filein,string& fileout);
+    StateSaver(QMTopology & qmtop,string &file, const char & mode);
+    void Open(QMTopology & qmtop,string &file, const char & mode);
     void Save();
     void Load();
     void Close();
@@ -49,6 +51,7 @@ private:
     template<typename T>
     T read(void);
 
+    char _mode;
     QMTopology *_qmtop;
     ofstream _out;
     ifstream _in;

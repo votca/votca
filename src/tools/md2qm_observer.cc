@@ -12,7 +12,7 @@ MD2QMObserver::~MD2QMObserver()
 void MD2QMObserver::Initialize(QMTopology &qmtop, Property &opts)
 {
     _qmtop = &qmtop;
-    _save.Open(qmtop, _out);
+    _save.Open(qmtop, _out, 'w');
 }
 
 void MD2QMObserver::BeginCG(Topology *top, Topology *top_atom)

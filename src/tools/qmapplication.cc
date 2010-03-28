@@ -77,8 +77,9 @@ void QMApplication::Run(int argc, char **argv)
         
         cout << "Loading qmtopology via state saver." << endl;
         string statefile = _op_vm["in"].as<string>();
-        StateSaver loader(_qmtop, statefile);
-        StateSaver saver(_qmtop, _op_vm["out"].as<string>());
+        StateSaver loader(_qmtop, statefile,'r');
+        string stateout=_op_vm["out"].as<string>();
+        StateSaver saver(_qmtop, stateout, 'w');
 
         loader.Seek(first_frame);
         for (int i=0;i<nframes;i++){
