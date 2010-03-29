@@ -89,7 +89,7 @@ while [ "${1#-}" != "$1" ]; do
     sw_opt="--check"
     shift ;;
    --scriptdir)
-    export CSGSCRIPTDIR="$2"
+    CSGSCRIPTDIR="$2"
     shift 2;;
    --xmlfile)
     export CSGXMLFILE="$2"
@@ -147,6 +147,7 @@ fi
 if [ -n "${CSGSCRIPTDIR}" ]; then
   [ -d "$CSGSCRIPTDIR" ] || die "${0##*/}: CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
   qecho \$CSGSCRIPTDIR is ${CSGSCRIPTDIR}
+  export CSGSCRIPTDIR
   export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
 fi
 
