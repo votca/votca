@@ -39,8 +39,7 @@ private:
     typedef pair <WaveFunction *, WaveFunction *> PairWF ;
     void UpdatePolTop();
     void UpdateJs(CrgUnit*, CrgUnit *, const double & );
-    double ComputeDj(Molecule * one, Molecule *two, WaveFunction *a, WaveFunction *b,
-        const double & J);
+    //double ComputeDj(Molecule * one, Molecule *two, WaveFunction *a, WaveFunction *b,const double & J);
     void CalcWaveFunction(Molecule * mol);
     void Clean();
     void Save(string &);
@@ -50,6 +49,7 @@ private:
     vector < WaveFunction * > _states;
     map < PairWF , double > _polJs;
     map < PairWF, vec > _poldR;
+    map < CrgUnit *, int> _mcrg2bs;
     vector < vector < WaveFunction * > *> _mstates;
 
 };

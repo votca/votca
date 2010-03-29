@@ -89,12 +89,21 @@ void Polymer::UpdateJs(CrgUnit * one, CrgUnit *two, const double & J){
     }
     vector <WaveFunction *>::iterator it1=_mstates[mol1]->begin();
     vector <WaveFunction *>::iterator it2=_mstates[mol2]->begin();
+    map<CrgUnit *, int>::iterator itm1;
+    map<CrgUnit *, int>::iterator itm2;
+    itm1=_mcrg2bs.find(one);
+    itm2=_mcrg2bs.find(two);
+    if (itm1 == _mcrg2bs.end() || itm2 == _mcrg2bs.end() ){
+        throw runtime_error ("could not find the crgunit in the index in UpdateJs");
+    }
+    
     for ( ; it1 != _mstates[mol1]->end(); ++it1){
         for ( ; it2 != _mstates[mol2]->end(); ++it2){
             double amp1 = dot ((*it1)->_wf, (*it1)->_wf);
             double amp2 = dot ((*it2)->_wf, (*it2)->_wf);
             
-            double dJ = (*it1)->_wf ;
+            double dJ = gsl_vector_get( (*it1)->_wf,  itm1->second) *
+                        gsl_vector_get( (*it1)->_wf,  itm1->second) * J;
             vec R1 = one->GetCom() *amp1;
             vec R2 = one->GetCom() *amp2;
             vec dR = R1-R2;
@@ -124,9 +133,18 @@ void Polymer::CalcWaveFunction(Molecule * mol){
     
     //1 set diagonal elements
     for (int i=0; i< nbeads;i++){
-        double nrg = dynamic_cast<QMBead*>(mol->getBead(i))
-            ->GetCrgUnit()->getEnergy();
+        CrgUnit * crg = dynamic_cast<QMBead*>(mol->getBead(i))
+            ->GetCrgUnit();
+        double nrg = crg->getEnergy();
         gsl_matrix_set (pH,i,i, nrg);
+        // set a map from CrgUnits -> the integer associated with them
+        map<CrgUnit *, int>::iterator itm = _mcrg2bs.find(crg);
+        if (itm == _mcrg2bs.end()){
+            _mcrg2bs.insert(make_pair(crg, i));
+        }
+        else {
+            throw runtime_error ("each crgunit should only appeare once in CalcWaveFunction");
+        }
     }
 
     //2 set offdiagonal elements
@@ -187,9 +205,9 @@ void Polymer::Save(string & outn){
     vector <WaveFunction *>::iterator its = _states.begin();
     for (; its!=_states.end();its++ ){
         out << "mol id: " << (*its)->_molid
-                << "wf id: " << (*its)->_wfid
-                << "wf abs id: " << (*its)->_id
-                << "energy " << (*its)->_nrg << '\n';
+                << " wf id: " << (*its)->_wfid
+                << " wf abs id: " << (*its)->_id
+                << " energy " << (*its)->_nrg << '\n';
     }
     out << endl;
     out.close();
@@ -199,10 +217,10 @@ void Polymer::Save(string & outn){
     map < PairWF, double> ::iterator itJ = _polJs.begin();
     map < PairWF, vec> ::iterator itR = _poldR.begin();
     for (; itJ!= _polJs.end(); ++itJ, ++itR){
-        out << "wf ids: " << ((itJ->first).first)->_id <<
+        out << " wf ids: " << ((itJ->first).first)->_id <<
                 " " << ((itJ->first).second)->_id <<
-                "J " << (itJ->second) <<
-                "dR " << (itR->second) <<'\n';
+                " J " << (itJ->second) <<
+                " dR " << (itR->second) <<'\n';
     }
     out.close();
 
