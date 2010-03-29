@@ -84,11 +84,8 @@ void QMApplication::Run(int argc, char **argv)
         loader.Seek(first_frame);
         for (int i=0;i<nframes;i++){
             loader.Load();
-            _qmtop.setStep(i);// this is not read by the loader - nor written by the saver (should change)
             EvaluateFrame();
-            if (_op_vm.count("out")){
-                saver.Save();
-            }
+            saver.Save();
         }
         loader.Close();
         saver.Close();

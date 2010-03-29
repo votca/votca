@@ -36,6 +36,7 @@ void StateSaver::Save() {
     
     streampos start = _out.tellp();
     _startpos.push_back(start);
+    Write_TimeStep();
     Write_PBCs();
     Write_Molecules();
     Write_QMBeads();
@@ -65,9 +66,15 @@ void StateSaver::Load() {
     _qmtop->CreateResidue("dummy");
 
     Read_PBCs();
+    Read_TimeStep();
     Read_Molecules();
     Read_QMBeads();
     Read_QMNeighbourlist();
+}
+
+void StateSaver::Write_TimeStep(){
+    write<double>(_qmtop->getTime());
+    write<int>(_qmtop->getStep());
 }
 
 void StateSaver::Write_PBCs(){
@@ -143,6 +150,13 @@ void StateSaver::Write_QMNeighbourlist() {
     }
     //
     //write<unsigned long>(_qmtop->BeadCount());
+}
+
+void StateSaver::Read_TimeStep(){
+    assert(_in.is_open());
+    
+    _qmtop->setTime(read<double>());
+    _qmtop->setStep(read<int>());
 }
 
 void StateSaver::Read_PBCs(){

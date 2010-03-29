@@ -39,11 +39,13 @@ private:
     void Write_Molecules();
     void Write_QMBeads();
     void Write_QMNeighbourlist();
+    void Write_TimeStep();
 
     void Read_PBCs();
     void Read_Molecules();
     void Read_QMBeads();
     void Read_QMNeighbourlist();
+    void Read_TimeStep();
 
     template<typename T>
     void write(const T &v);
