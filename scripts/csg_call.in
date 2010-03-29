@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,6 +53,8 @@ Allowed options:
     --show           Show the path to the script
     --check          Check csg script
     --scriptdir DIR  Set the user script dir
+                     (Used if no xmlfile is given)
+		     Default: empty
     --xmlfile FILE   Specify the xml file to use
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
@@ -88,13 +90,13 @@ while [ "${1#-}" != "$1" ]; do
     shift ;;
    --scriptdir)
     export CSGSCRIPTDIR="$2"
-    shift 2;; 
+    shift 2;;
    --xmlfile)
     export CSGXMLFILE="$2"
-    shift 2;; 
+    shift 2;;
    --ia-type)
     export bondtype="$2"
-    shift 2;; 
+    shift 2;;
    --ia-name)
     export bondname="$2"
     shift 2;;
@@ -136,9 +138,15 @@ export SOURCE_WRAPPER=$CSGINVERSE/source_wrapper.pl
 
 source $($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions common failed"
 
-if [ -n "${CSGSCRIPTDIR}" ]; then 
+if [ -n "${CSGXMLFILE}" ]; then
+  CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+  #scriptdir maybe contains $PWD or something
+  eval CSGSCRIPTDIR=$CSGSCRIPTDIR
+fi
+
+if [ -n "${CSGSCRIPTDIR}" ]; then
   [ -d "$CSGSCRIPTDIR" ] || die "${0##*/}: CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-  echo \$CSGSCRIPTDIR is ${CSGSCRIPTDIR}
+  qecho \$CSGSCRIPTDIR is ${CSGSCRIPTDIR}
   export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
 fi
 
@@ -153,7 +161,7 @@ if [ -n "$ext_cmd" ]; then
 fi
 
 #help should always work
-if [ "$3" = "--help" ]; then 
+if [ "$3" = "--help" ]; then
 cat <<EOF
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
@@ -173,7 +181,7 @@ needs="$(do_external $1 $2 --help | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
 interaction=""
 
 for i in $needs; do
-  [ -n "${i##cg.*}" ] && interaction="$interaction $i" 
+  [ -n "${i##cg.*}" ] && interaction="$interaction $i"
 done
 interaction=${interaction# }
 if [ -n "$interaction" ]; then
