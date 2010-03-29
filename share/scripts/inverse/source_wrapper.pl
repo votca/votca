@@ -62,7 +62,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--status" )){
   print "csg table status\n";
   show_table($csg_table);
   if (defined($user_table)&&( -r "$user_table")) {
-    print "user table status\n";
+    print "user table status (userscriptdir: $csgscriptdir)\n";
     show_table($user_table);
   } else {
     print "No user table\n";
