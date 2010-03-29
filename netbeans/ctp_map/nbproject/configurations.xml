@@ -56,18 +56,6 @@
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../kmc/netbeans/libkmc"
-                            CT="3"
-                            CN="Debug"
-                            AC="true"
-                            BL="true"
-                            WD="../../../kmc/netbeans/libkmc"
-                            BC="${MAKE}  -f Makefile_nb CONF=Debug"
-                            CC="${MAKE}  -f Makefile_nb CONF=Debug clean"
-                            OP="../../src/libkmc/libkmc.a">
-              </makeArtifact>
-            </linkerLibProjectItem>
-            <linkerLibProjectItem>
               <makeArtifact PL="../../../csg/netbeans/libcsg"
                             CT="3"
                             CN="Debug"

@@ -15,8 +15,8 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
-AS=as
+FC=gfortran
+AS=
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -72,7 +72,7 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/md2qm_observer.o: nbproject/Makefile
 .build-subprojects:
 
 # Clean Targets
-.clean-conf: ${CLEAN_SUBPROJECTS}
+.clean-conf:
 	${RM} -r build/Release
 	${RM} dist/Release/GNU-Linux-x86/ctp_map
 
