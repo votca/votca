@@ -3,6 +3,8 @@ prep simplex my_prep_simplex.pl
 
 par pot my_PAR_to_POT.sh
 
+prepare gromacs prepare_gromacs.sh
+
 initstep simplex my_initialize_step_simplex.sh
 
 update simplex_single my_update_simplex_single.sh

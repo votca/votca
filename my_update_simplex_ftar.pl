@@ -69,6 +69,8 @@ die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 
 $ftar_cur[$a_line_nr]=calc_ftar($a_line_nr,@r_cur,@rdf_aim,@rdf_cur,@sig_cur,@eps_cur);
 
+print "Current error: $ftar_cur[$a_line_nr]\n";
+
 my @ftar_new;
 @ftar_new=@ftar_cur;
 

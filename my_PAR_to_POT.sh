@@ -72,8 +72,8 @@ for (my $i=0;$i<=$#r;$i++){
       $flag[$i]="u";
     }
     # Avoid gmx segmentation fault for large pot
-    if ($pot[$i]>=1e10) {
-        $pot[$i]=1e10;
+    if ($pot[$i]>=1e6) {
+        $pot[$i]=1e6;
     }
 }
 

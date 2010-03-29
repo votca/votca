@@ -102,15 +102,6 @@ for (my $i=0;$i<$mpts;$i++) {
    if ($y[$i]>$y[$inhi] && $i!=$ihi) {$inhi=$i;}
 }
 
-# Replace high point if trial point is better
-if ($ytry<$y[$ihi]) {
-   for (my $j=0;$j<$ndim;$j++) {
-      $y[$ihi]=$ytry;
-      $p[$j]+=$ptry[$j]-$p[$ihi][$j];
-      $p[$ihi][$j]=$ptry[$j];
-   }
-}
-
 my %state;
 open (STATE_CUR, "<state.cur") || die "Could not open file $_[0]\n";
 while(<STATE_CUR>) {
@@ -120,6 +111,17 @@ while(<STATE_CUR>) {
    }
 }
 close(STATE_CUR);
+
+if ($state{'Transformation'}!="None" || $state{'Transformation'}!="Reduction") {
+# Replace high point if trial point is better
+   if ($ytry<$y[$ihi]) {
+      for (my $j=0;$j<$ndim;$j++) {
+         $y[$ihi]=$ytry;
+         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $p[$ihi][$j]=$ptry[$j];
+      }
+   }
+}
 
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
 
@@ -182,7 +184,7 @@ else {
 }
 
 # Check for convergence
-my $ftol=0.0001;
+my $ftol=0.1;
 my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo])+$tiny);
 
 if($nfunc>=$NMAX) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
