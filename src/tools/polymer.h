@@ -53,13 +53,13 @@ private:
     vector < vector < WaveFunction * > *> _mstates;
 
 };
-
+/*
 inline double dot (gsl_vector * a, gsl_vector * b){
     double r=0.;
     for (int i=0;i< a->size;++i){
         r += gsl_vector_get(a,i) * gsl_vector_get(b,i);
     }
     return r;
-}
+}*/
 #endif	/* _POLYMER_H */
 
