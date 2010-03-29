@@ -99,11 +99,13 @@ void Polymer::UpdateJs(CrgUnit * one, CrgUnit *two, const double & J){
     
     for ( ; it1 != _mstates[mol1]->end(); ++it1){
         for ( ; it2 != _mstates[mol2]->end(); ++it2){
-            double amp1 = dot ((*it1)->_wf, (*it1)->_wf);
-            double amp2 = dot ((*it2)->_wf, (*it2)->_wf);
+            double amp1 = gsl_vector_get( (*it1)->_wf,  itm1->second)*
+                          gsl_vector_get( (*it1)->_wf,  itm1->second);
+            double amp2 = gsl_vector_get( (*it2)->_wf,  itm2->second)*
+                          gsl_vector_get( (*it2)->_wf,  itm2->second);
             
             double dJ = gsl_vector_get( (*it1)->_wf,  itm1->second) *
-                        gsl_vector_get( (*it1)->_wf,  itm1->second) * J;
+                        gsl_vector_get( (*it2)->_wf,  itm2->second) * J;
             vec R1 = one->GetCom() *amp1;
             vec R2 = one->GetCom() *amp2;
             vec dR = R1-R2;
