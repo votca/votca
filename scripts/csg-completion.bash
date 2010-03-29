@@ -1,4 +1,4 @@
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,4 +16,4 @@
 
 #complete with commands filename and options
 #_votca_common_opts is defined by votca-tools
-complete -F _votca_common_opts -f csg_boltzmann  csg_call  csg_dump  csg_fmatch  csg_gmxtopol  csg_imcrepack  csg_inverse  csg_map  csg_property  csg_resample  csg_stat 
+complete -F _votca_common_opts -f csg_boltzmann  csg_call  csg_dump  csg_fmatch  csg_gmxtopol  csg_imcrepack  csg_inverse  csg_map  csg_property  csg_resample  csg_stat

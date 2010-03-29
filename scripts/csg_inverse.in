@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ eof
     exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | \
       sed -e "s/inverse\.sh/${0##*/}/g" -e "s/%version%/${version}/"
     exit 0
-  fi	
+  fi
   cat << eof
 ${0##*/}, version ${version}
 

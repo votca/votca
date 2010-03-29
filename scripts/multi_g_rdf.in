@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2010 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,7 @@ Usage: ${0##*/} [OPTIONS] -- [${g_cmd}_options]
 
 Allowed options:
 -N, --NN            Number of tasks
-                    Default: $np 
+                    Default: $np
 -b         TIME     Begin time
                     Default: $begin
 -e         TIME     End time
