@@ -15,8 +15,8 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
-AS=
+FC=
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -36,8 +36,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/orbitals.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/charges.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/units.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunittype.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/jcalc.o
 
@@ -92,15 +92,15 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/units.o: nbproject/Makefile-${CND_C
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/units.o ../../src/libmoo/units.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/crgunit.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
-	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o ../../src/libmoo/crgunit.cc
-
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunittype.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/crgunittype.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunittype.o ../../src/libmoo/crgunittype.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/crgunit.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o ../../src/libmoo/crgunit.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/mol_and_orb.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
