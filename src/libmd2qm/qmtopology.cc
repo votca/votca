@@ -101,6 +101,8 @@ void QMTopology::InitChargeUnits(){
     }
 }
 
+
+// TODO: this function should not be in qmtopology!
 void QMTopology::ComputeAllTransferIntegrals(){
     for(QMNBList::iterator iter = _nblist.begin();
         iter!=_nblist.end();++iter) {
@@ -111,6 +113,7 @@ void QMTopology::ComputeAllTransferIntegrals(){
     }
 }
 
+// TODO: this function should not be in qmtopology!
 void QMTopology::ComputeAllElectrostaticEnergies(const double& epsilon){
     list <CrgUnit * >::iterator itcrg = _lcharges.begin();
     list <CrgUnit * >::iterator itneutr= _lcharges.begin();
@@ -125,6 +128,7 @@ void QMTopology::ComputeAllElectrostaticEnergies(const double& epsilon){
                 CrgUnit * crg1= twocharges.first;
                 CrgUnit * crg2= twocharges.second;
 
+                // TODO: estatic should not be in moo!
                 double contr = _jcalc.EstaticDifference(*crg1, *crg2);
                 nrg += contr;
 

@@ -23,18 +23,24 @@ public :
     StateSaver(){}
     ~StateSaver(){}
 
+    // TODO: I dont like this
     StateSaver(QMTopology & qmtop,string &filein,string& fileout );
     void Open(QMTopology & qmtop,string &filein,string& fileout);
     StateSaver(QMTopology & qmtop,string &file, const char & mode);
     void Open(QMTopology & qmtop,string &file, const char & mode);
+
     void Save();
+    // TODO: should return true if frame read successfully, false if now
     void Load();
+
     void Close();
     bool Seek(const int &);
       
     
     
 private:
+    // TODO: no _ in function names!
+
     void Write_PBCs();
     void Write_Molecules();
     void Write_QMBeads();
