@@ -51,5 +51,10 @@ bool RateCalculator::EvaluateFrame(){
 
 void RateCalculator::EndEvaluate()
  {
-     PrintNbs("nbl.res");
+    stringstream ss;
+    ss << _qmtop.getStep();
+    string res;
+    ss >> res;
+    res = string ("nbl_") + res + string(".res");
+    PrintNbs(res);
  }
