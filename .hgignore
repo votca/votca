@@ -15,6 +15,7 @@ Makefile
 Makefile.in
 aclocal.m4
 config.log
+config.lt
 config.status
 config/config.guess
 config/config.sub
@@ -24,7 +25,11 @@ config/missing
 configure
 config.h
 config.h.in
+src/tools/moo_overlap
 
 netbeans/*/build
 */nbproject/private
 .dep.inc
+netbeans/libmoo/nbproject/Makefile-variables.mk
+netbeans/libmoo/nbproject/Package-Debug.bash
+netbeans/libmoo/nbproject/Package-Release.bas

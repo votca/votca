@@ -27,8 +27,10 @@ private :
     int read_orb_gauss(const char *);
     int read_orb_gamess(const char *);
     vector < pair<int, int> > _basis_on_atom;
-    basis_set * _basis; 
-    
+    basis_set * _basis;
+    double * evl;
+
+    double parsenrg(string & line);
 public:
     
     static int (orb::*read_orb)(const char *) ;
@@ -61,6 +63,7 @@ public:
 	    delete [] bs;
 	    delete [] psi[0];
 	    delete [] psi;
+            delete [] evl;
 	}
 	NBasis =0;
 	psi = 0;
@@ -75,6 +78,10 @@ public:
 
     inline double* getorb(const int & i) const {
     	return psi[i];
+    }
+
+    inline double* getevl() const {
+    	return evl;
     }
 
     void cp_orb( orb const  &A){
@@ -92,6 +99,8 @@ public:
     }
 
     void init_orbitals (string * basis, const int & N, const char * namefile );
+
+    void reorder_for_libint();
     
     void set_read_orb_gam();
 
@@ -111,61 +120,21 @@ public:
         for ( int i =0 ; i< NBasis*NBasis ; ++i) {
             *(psi[0]+i) = *(orb1.psi[0]+i);
         }
+        evl = new double[NBasis];
     }
     
     
    
     /*// this function will take the orbitals from two orbitals and generate a guess for the dimer
     *	 all orbitals from both molecules upto homo-1 will be listed first.  
-    */   
-    void dimerise_orbs(const orb & A, const orb & B) {
-	if ( psi != 0) {
-	    clear();
-	}
-	NBasis = A.NBasis + B.NBasis;
-
-	/* set up the arrays */
-	bs = new string [NBasis];
-        psi = new double* [NBasis];
-        psi[0] = new double [NBasis * NBasis];
-        for ( int i = 1 ; i < NBasis ; i ++){
-                psi[i] = psi[i-1] + NBasis;
-        }
-	
-	/* cp bs info */
-	for (int i=0; i< A.NBasis ;++i ){
-	    bs[i] = A.bs[i];
-	}
-	for (int i=0; i< B.NBasis ;++i ){
-	    bs[A.NBasis + i ] = B.bs[i];
-	} 
-
-	/*copy orbitals  from A*/
-	for (int i=0; i < A.NBasis;++i){
-	    for (int j=0 ; j< A.NBasis ;++j){
-		psi[i][j] = A.psi[i][j];
-	    }
-	    for (int j=0; j< B.NBasis ;++j){
-		psi[i][A.NBasis+j] =0.0;
-	    }
-	}
-	
-	/*copy orbitals from B*/
-	for (int i=0; i <B.NBasis ;++i){
-	    for (int j=0; j< A.NBasis ;++j){
-		psi[A.NBasis+i][j] = 0.0;
-	    }
-	    for (int j=0; j< B.NBasis ;++j){
-		psi[A.NBasis+i][A.NBasis+j] = B.psi[i][j];
-	    }
-	}
-
-    }
-
+    */
+    void dimerise_orbs(const orb & A, const orb & B, const int &elA, const int &elB) ;
     ///this function will print out an UHF guess wavefunction suitable for gaussian usage. It will print
     ///the nel_A/2-1 orbitals (doubly occupied, then the Nbasis -> NBasis+nel_B/2-1 orbitals, then the 
     ///nel_A orbital, then the NBAsis_A+nel_B orbital and finally the rest
     void print_uhf_g03(const int & nel_A, const int & nel_B, const int & NBasis_A , const int NBasis_B);
+
+    void print_g03(string & name, string mode= string ("w"));
 
 
 
@@ -197,7 +166,7 @@ public:
     }*/
     
     /// removes all orbitals except the relevant transorbs
-    void strip_orbitals (const vector <unsigned int>& a);
+    void strip_orbitals (const vector < int>& a);
     
     void init_orbitals_stripped(const orb & orb1, const int& nrorbs );
 };

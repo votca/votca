@@ -1,3 +1,4 @@
 pkginclude_HEADERS = \
-    basis_set.h charges.h crgunit.h  crgunittype.h  fock_matrix.h  global.h  orbitals.h  qm_molecule.h mol_pair.h
+basis_set.h  crgunit.h      fock.h    jcalc.h   mol_and_orb.h  units.h \
+charges.h    crgunittype.h  global.h  orbitals.h
 

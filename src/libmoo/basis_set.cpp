@@ -104,11 +104,121 @@ void basis_set::set_basis_set(const string & a){
 	_basis_lbl_at= TZP_basis_lbl_at;
     }
     else {
-	cerr << a << " unknown basis set" <<endl;
+	parse_xml_basisset_info(a);
     }
     basis_set_name = a;
 }
 
+/*void basis_set::parse_xml_basisset_info(const string & filename){
+    _nel_at = new int [18];
+    _nbasis_at = new int [18];
+    _basis_lbl_at = new string *[18];
+
+    xmlDocPtr doc;
+    xmlNodePtr node;
+    xmlChar *key;
+    doc = xmlParseFile(filename.c_str());
+    if (doc == NULL)
+        throw runtime_error("Error on open basis list: " + filename);
+
+    node = xmlDocGetRootElement(doc);
+
+    if (xmlStrcmp(node->name, (const xmlChar *) "basis")) {
+        xmlFreeDoc(doc);
+        throw runtime_error("Error, xml file not labeled basis: " + filename);
+    }
+    // parse xml tree
+    for (node = node->xmlChildrenNode; node != NULL; node = node->next) {
+        key = xmlNodeListGetString(doc, node->xmlChildrenNode, 1);
+       
+        if (!xmlStrcmp(node->name, (const xmlChar *) "ATOM")) {
+            ParseAtomBasisSet(doc, node->xmlChildrenNode);
+        }
+    }
+}*/
+
+void basis_set::parse_xml_basisset_info(const string & filename){
+    load_property_from_xml(_options, filename.c_str());
+    _nel_at = new int [18];
+    _nbasis_at = new int [18];
+    _basis_lbl_at = new string *[18];
+    list<Property *> atoms = _options.Select("ATOM");
+    list<Property *>::iterator iter;
+    for (iter = atoms.begin();iter != atoms.end(); ++iter){
+        int lbl, nel,nbasis;
+        vector <string> symms;
+        lbl = (*iter)->get("label").as<int>();
+        nel = (*iter)->get("nel").as<int>();
+        nbasis = (*iter)->get("nbasis").as<int>();
+        string s = (*iter)->get("basis_symm").as<string>();
+        Tokenizer tok(s, "\n\t");
+        tok.ToVector(symms);
+        _nel_at[lbl]=nel;
+        _nbasis_at[lbl]=nbasis;
+        _basis_lbl_at[lbl]= new string[nbasis];
+        for (int i=0;i<nbasis;i++){
+            _basis_lbl_at[lbl][i] = symms[i];
+        }
+    }
+}
+
+/*void basis_set::ParseAtomBasisSet(xmlDocPtr doc, xmlNodePtr cur){
+    int lbl, nel,nbasis;
+    vector <string> symms;
+    bool blbl,bnel,bnbasis,bsymms = false;
+    xmlChar *key;
+    for (; cur != NULL; cur = cur->next) {
+        if (!xmlStrcmp(cur->name, (const xmlChar *) "label")) {
+            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+            lbl = lexical_cast<int> (key);
+            blbl=true;
+        }
+        else if (!xmlStrcmp(cur->name, (const xmlChar *) "nel")) {
+            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+            nel = lexical_cast<int> (key);
+            bnel = true;
+        }
+        else if (!xmlStrcmp(cur->name, (const xmlChar *) "nbasis")) {
+            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+            nbasis = lexical_cast<int> (key);
+            bnbasis = true;
+        }
+        else if (!xmlStrcmp(cur->name, (const xmlChar *) "basis_symm")) {
+            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+            string s(reinterpret_cast<char *> (key));
+            Tokenizer tok(s, " \n\t");
+            tok.ToVector(symms);
+            bsymms = true;
+        }
+    }
+    if (! (blbl &&bnel &&bnbasis &&bsymms )){
+        throw runtime_error ("missing one of the fields necessary to define an atom");
+    }
+
+    _nel_at[lbl]=nel;
+    _nbasis_at[lbl]=nbasis;
+    _basis_lbl_at[lbl]= new string[nbasis];
+    for (int i=0;i<nbasis;i++){
+        _basis_lbl_at[lbl][i] = symms[i];
+    }
+}*/
+
+basis_set & basis_set::operator=(const basis_set a){
+    _nel_at = new int[18];
+    _nbasis_at = new int[18];
+    _basis_lbl_at = new string *[18];
+    for (int lbl=0; lbl<18;lbl++){
+    	_nel_at[lbl] = a._nel_at[lbl];
+	int nbasis = a._nbasis_at[lbl];
+	_nbasis_at[lbl] = nbasis;
+	_basis_lbl_at[lbl]= new string[nbasis];
+	for (int i=0;i<nbasis;i++){
+	    _basis_lbl_at[lbl][i] = a._basis_lbl_at[lbl][i];
+	}
+    } 
+    return *this;
+
+}
 
 int basis_set::set_bs_prim( const char * name_basis_file ){
     ifstream in(name_basis_file);

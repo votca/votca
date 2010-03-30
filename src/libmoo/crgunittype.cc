@@ -25,32 +25,54 @@ CrgUnitType::~CrgUnitType() {
     cout << "callgin the crgunitype destructor" << endl;
 #endif
     vector < vector <int> >::iterator it_list_atoms_monomer = _list_atoms_monomer.begin();
+//    cout << "start clearing the list of atom monomers" <<endl;
     for (; it_list_atoms_monomer != _list_atoms_monomer.end(); ++it_list_atoms_monomer) {
         it_list_atoms_monomer->clear();
     }
+  //  cout << "start clearing the list of  monomers" <<endl;
     _list_atoms_monomer.clear();
+  //  cout << "start clearing the list of com monomers" <<endl;
     _list_coms_monomer.clear();
+  //  cout << "start clearing the list of ors monomers" <<endl;
     _list_ors_monomer.clear();
+   // cout << "clear vector of transport orbitals" <<endl;
+    _transorbs.clear() ;
+
 }
 
-CrgUnitType::CrgUnitType(char * namecoord, char * nameorb, char * nameneutr, char * namecrg, const double & reorg,
-        const double & energy, const vector <unsigned int>& transorbs, const unsigned int &id,
-        string molname, string name, vector < vector < int > > list_atoms_monomer, vector < vector < double > > list_weights_monomer) {
-    _intcoords.define_bs(_indo);
+// Added a feature - if transorbs starts with a -ve number, then all orbitals
+// are kept this is important for the projection
+CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
+        const char * nameneutr, const char * namecrg, string & basisset,
+        const double & reorg,const double & energy,
+        const vector < int>& transorbs, const unsigned int &id,
+        string molname, string name, vector < vector < int > > list_atoms_monomer,
+        vector < vector < double > > list_weights_monomer) {
+    _bs.set_basis_set(basisset);
+    _intcoords.define_bs(_bs);
     _intcoords.init(namecoord);
     _intcoords.init_orbitals(_orbitals, nameorb);
     _intcoords.init_charges(nameneutr, namecrg);
 #ifdef DEBUG
     cout << "sample of the trans: " << transorb << " orbitals: " << (_orbitals.getorb(transorb))[4] << endl;
 #endif
-    _orbitals.strip_orbitals(transorbs);
+    if (transorbs[0] >= 0 ){
+        _orbitals.strip_orbitals(transorbs);
+    }
 #ifdef DEBUG
     cout << "sample of the stripped orbitals: " << (_orbitals.getorb(0))[4] << endl;
 #endif
     _reorg = reorg;
     _energy = energy;
     // _transorb = 0;
-    for(int i=0; i<transorbs.size(); i++){
+    int limit;
+    if (transorbs[0] >= 0 ){
+        limit = transorbs.size();
+    }
+    else{
+        limit = _orbitals.getNBasis();
+    }
+    for(int i=0; i<limit; i++){
         _transorbs.push_back(i);
     }
     _id = id;
@@ -94,12 +116,12 @@ CrgUnitType::CrgUnitType(char * namecoord, char * nameorb, char * nameneutr, cha
 #ifdef DEBUG
                 cout << "Adding atom " << *it_at << " to monomer " << count << endl;
 #endif
-                m[0][0] += v.getX() * v.getX();
-                m[0][1] += v.getX() * v.getY();
-                m[0][2] += v.getX() * v.getZ();
-                m[1][1] += v.getY() * v.getY();
-                m[1][2] += v.getY() * v.getZ();
-                m[2][2] += v.getZ() * v.getZ();
+                m[0][0] +=  v.getX() * v.getX();
+                m[0][1] +=  v.getX() * v.getY();
+                m[0][2] +=  v.getX() * v.getZ();
+                m[1][1] +=  v.getY() * v.getY();
+                m[1][2] +=  v.getY() * v.getZ();
+                m[2][2] +=  v.getZ() * v.getZ();
             }
 
             m[1][0] = m[0][1];
@@ -211,6 +233,15 @@ void CrgUnitType::rotate_each_bead(vector < vec >::iterator it_pos, vector < vec
         cout << " type of crgunittype: " << _id << endl;
         cout << "normal vector: " << zprime << " and for orbitals: " << zprime_orb << " and plane vector: " << xprime << endl;
 #endif
+      /**  vector <int> tmplist= *it_monomers;
+        cout << tmplist.size() <<  endl;
+        cout << *it_pos << endl;
+        cout << *it_coms << endl;
+        cout << rotated_molecule->getN() <<endl;
+        vector <int> ::iterator ittmplist= tmplist.begin();
+        for ( ; ittmplist!=tmplist.end(); ++ittmplist){
+            cout << *ittmplist <<endl;
+        }**/
         _intcoords.rotate_someatoms(*it_monomers, Orient_Pos, *it_pos, *it_coms, rotated_molecule);
         // rotating all orbitals now (hopefully)
         for(int i=0; i<_transorbs.size(); i++){

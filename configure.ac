@@ -15,13 +15,26 @@ AC_LANG_CPLUSPLUS
 AC_HEADER_STDC
 PKG_PROG_PKG_CONFIG
 
-PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools)
+LT_OUTPUT
+
+AC_ARG_ENABLE(all-static,
+              [AS_HELP_STRING([--enable-all-static],
+              [Make completely static binaries])],, enable_all_static=no)
+
+if test "$enable_all_static" = "yes"; then
+  BIN_LDFLAGS="-all-static $BIN_LDFLAGS"
+  AC_SUBST(BIN_LDFLAGS)
+fi
+
+AX_VOTCA_BOOST
+AX_VOTCA_TOOLS
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([src/libmoo/Makefile])
 AC_CONFIG_FILES([src/libmoo/libvotca_moo.pc])
+AC_CONFIG_FILES([src/tools/Makefile])
 
 AC_OUTPUT
 

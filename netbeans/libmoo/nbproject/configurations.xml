@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="45">
+<configurationDescriptor version="62">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -8,11 +8,12 @@
       <itemPath>../../include/charges.h</itemPath>
       <itemPath>../../include/crgunit.h</itemPath>
       <itemPath>../../include/crgunittype.h</itemPath>
-      <itemPath>../../include/fock_matrix.h</itemPath>
+      <itemPath>../../include/fock.h</itemPath>
       <itemPath>../../include/global.h</itemPath>
-      <itemPath>../../include/mol_pair.h</itemPath>
+      <itemPath>../../include/jcalc.h</itemPath>
+      <itemPath>../../include/mol_and_orb.h</itemPath>
       <itemPath>../../include/orbitals.h</itemPath>
-      <itemPath>../../include/qm_molecule.h</itemPath>
+      <itemPath>../../include/units.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -25,10 +26,11 @@
       <itemPath>../../src/libmoo/charges.cpp</itemPath>
       <itemPath>../../src/libmoo/crgunit.cc</itemPath>
       <itemPath>../../src/libmoo/crgunittype.cc</itemPath>
-      <itemPath>../../src/libmoo/fock_matrix.cpp</itemPath>
-      <itemPath>../../src/libmoo/mol_pair.cc</itemPath>
+      <itemPath>../../src/libmoo/fock.cc</itemPath>
+      <itemPath>../../src/libmoo/jcalc.cc</itemPath>
+      <itemPath>../../src/libmoo/mol_and_orb.cpp</itemPath>
       <itemPath>../../src/libmoo/orbitals.cpp</itemPath>
-      <itemPath>../../src/libmoo/qm_molecule.cpp</itemPath>
+      <itemPath>../../src/libmoo/units.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -40,93 +42,43 @@
     <Elem>../../include</Elem>
     <Elem>../../src/libmoo</Elem>
   </sourceRootList>
-  <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile_nb</projectmakefile>
   <confs>
     <conf name="Debug" type="3">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <ccCompilerTool>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+        <ccTool>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+          </incDir>
+        </ccTool>
         <archiverTool>
           <output>../../src/libmoo/libmoo.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/basis_set.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/charges.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/crgunit.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/crgunittype.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/fock_matrix.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/global.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/mol_pair.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/orbitals.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/qm_molecule.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libmoo/basis_set.cpp">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/charges.cpp">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/crgunit.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/crgunittype.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/fock_matrix.cpp">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/mol_pair.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/orbitals.cpp">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/qm_molecule.cpp">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>5</developmentMode>
-        </cCompilerTool>
-        <ccCompilerTool>
+        </cTool>
+        <ccTool>
           <developmentMode>6</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+          </incDir>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
@@ -134,57 +86,6 @@
           <output>../../src/libmoo/libmoo.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/basis_set.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/charges.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/crgunit.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/crgunittype.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/fock_matrix.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/global.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/mol_pair.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/orbitals.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../include/qm_molecule.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="../../src/libmoo/basis_set.cpp">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/charges.cpp">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/crgunit.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/crgunittype.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/fock_matrix.cpp">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/mol_pair.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/orbitals.cpp">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/libmoo/qm_molecule.cpp">
-        <itemTool>1</itemTool>
-      </item>
     </conf>
   </confs>
 </configurationDescriptor>
