@@ -99,6 +99,10 @@ void Polymer::UpdateJs(CrgUnit * one, CrgUnit *two, const double & J){
     for ( ; it1 != _mstates[mol1]->end(); ++it1){
         for ( ; it2 != _mstates[mol2]->end(); ++it2){
 
+            // this is fundamentally wrong: the transfer integral can be
+            // computed by considering which crunits are next to each other
+            // the two r's however require computation on the whole molecule
+            // _correct it james_!!!
             double amp1 = gsl_vector_get( (*it1)->_wf,  itm1->second)*
                           gsl_vector_get( (*it1)->_wf,  itm1->second);
             double amp2 = gsl_vector_get( (*it2)->_wf,  itm2->second)*
