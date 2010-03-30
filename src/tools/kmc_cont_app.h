@@ -29,6 +29,8 @@ private:
     vec _E;
     /// total simulation time
     double _total_time;
+    /// constant
+    double _alpha;
     /// time step
     double _dt;
     /// number of charges simultaneously present in a simultion

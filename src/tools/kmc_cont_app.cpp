@@ -18,6 +18,7 @@ void KmcCont::Initialize(){
     /// Read simulation parameters from input file (main.xml)
     _total_time = _options.get("options.kmc_cont.total_time").as<double>();
     _dt = _options.get("options.kmc_cont.dt").as<double>();
+    _alpha = _options.get("options.kmc_cont.alpha").as<double>();
     _ncrg = _options.get("options.kmc_cont.ncrg").as<int>();
     _nruns = _options.get("options.kmc_cont.nruns").as<int>();
 
@@ -47,7 +48,7 @@ bool KmcCont::EvaluateFrame(){
     hoppers charges(&kmc_grid);
     
     /// preparing KMC Algorithm
-    KMCAlg kmc_alg(1E-8, 1E-15, 1.2, 1, &charges);
+    KMCAlg kmc_alg(_total_time, _dt, _alpha, _ncrg, &charges);
     cout << "Starting continuos KMC." << endl;
 
     /// A single KMC run
