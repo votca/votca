@@ -49,7 +49,7 @@ private:
     vector < WaveFunction * > _states;
     map < PairWF , double > _polJs;
     map < PairWF, vec > _poldR;
-    map < CrgUnit *, int> _mcrg2bs;
+    map < int, int> _mcrg2bs;
     vector < vector < WaveFunction * > *> _mstates;
 
 };

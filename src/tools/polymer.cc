@@ -89,16 +89,16 @@ void Polymer::UpdateJs(CrgUnit * one, CrgUnit *two, const double & J){
     }
     vector <WaveFunction *>::iterator it1=_mstates[mol1]->begin();
     vector <WaveFunction *>::iterator it2=_mstates[mol2]->begin();
-    map<CrgUnit *, int>::iterator itm1;
-    map<CrgUnit *, int>::iterator itm2;
-    itm1=_mcrg2bs.find(one);
-    itm2=_mcrg2bs.find(two);
+    map<int, int>::iterator itm1;
+    map<int, int>::iterator itm2;
+    itm1=_mcrg2bs.find(one->getId());
+    itm2=_mcrg2bs.find(two->getId());
     if (itm1 == _mcrg2bs.end() || itm2 == _mcrg2bs.end() ){
         throw runtime_error ("could not find the crgunit in the index in UpdateJs");
     }
-    
     for ( ; it1 != _mstates[mol1]->end(); ++it1){
         for ( ; it2 != _mstates[mol2]->end(); ++it2){
+
             double amp1 = gsl_vector_get( (*it1)->_wf,  itm1->second)*
                           gsl_vector_get( (*it1)->_wf,  itm1->second);
             double amp2 = gsl_vector_get( (*it2)->_wf,  itm2->second)*
@@ -107,7 +107,7 @@ void Polymer::UpdateJs(CrgUnit * one, CrgUnit *two, const double & J){
             double dJ = gsl_vector_get( (*it1)->_wf,  itm1->second) *
                         gsl_vector_get( (*it2)->_wf,  itm2->second) * J;
             vec R1 = one->GetCom() *amp1;
-            vec R2 = one->GetCom() *amp2;
+            vec R2 = two->GetCom() *amp2;
             vec dR = R1-R2;
             map < PairWF , double >::iterator
               itJ = _polJs.find( make_pair(*it1, *it2));
@@ -140,12 +140,16 @@ void Polymer::CalcWaveFunction(Molecule * mol){
         double nrg = crg->getEnergy();
         gsl_matrix_set (pH,i,i, nrg);
         // set a map from CrgUnits -> the integer associated with them
-        map<CrgUnit *, int>::iterator itm = _mcrg2bs.find(crg);
+        map<int, int>::iterator itm = _mcrg2bs.find(crg->getId());
         if (itm == _mcrg2bs.end()){
-            _mcrg2bs.insert(make_pair(crg, i));
+            _mcrg2bs.insert(make_pair(crg->getId(), i));
         }
         else {
             throw runtime_error ("each crgunit should only appeare once in CalcWaveFunction");
+        }
+        QMBead* tbead = dynamic_cast<QMBead*>(mol->getBead(i));
+        if (tbead->getiPos() != 0 ){
+            throw runtime_error("each qmbead should have ipos correpsonding to its pos in the molecule");
         }
     }
 
