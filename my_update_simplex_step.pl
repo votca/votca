@@ -64,7 +64,6 @@ my $NMAX=csg_get_property("cg.inverse.iterations_max");
 my @psum;
 my @ptry;
 my $ytry=$ftar[-1];
-my $ysave;
 
 # Generate p[mpts][ndim] matrix (parameters)
 my @p;
@@ -112,23 +111,16 @@ while(<STATE_CUR>) {
 }
 close(STATE_CUR);
 
-if ($state{'Transformation'}!="None" || $state{'Transformation'}!="Reduction") {
-# Replace high point if trial point is better
-   if ($ytry<$y[$ihi]) {
-      for (my $j=0;$j<$ndim;$j++) {
-         $y[$ihi]=$ytry;
-         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
-         $p[$ihi][$j]=$ptry[$j];
-      }
-   }
-}
-
 open (STATE, ">state.new") || die "Could not open file $_[0]\n";
 
 switch ($state{'Transformation'}) {
 
+my $ysave_R;
+my $ysave_C;
 case 'Reflection' {
+   # If better than the best, try bigger step in the same direction (Expansion)
    if ($ytry <= $y[$ilo]) {
+      $ysave_R=$state{$ytry};
       print STATE "Transformation=Expansion\n";
       @psum=calc_psum(@p,$mpts,$ndim);
       @ptry=calc_ptry($ndim,$ihi,2.0,@p,@psum);
@@ -138,8 +130,9 @@ case 'Reflection' {
       push(@flag_simplex,"pending");
       $nfunc++;
    }
-   elsif ($ytry >= $y[$inhi]) {
-      $ysave=$y[$ihi];
+   # if worse than the second worst as well as the worst, try smaller step (Contraction)
+   elsif ($ytry >= $y[$inhi] && $ytry >= $y[$ihi]) {
+      $ysave_C=$state{$y[$ihi]};
       print STATE "Transformation=Contraction\n";
       @psum=calc_psum(@p,$mpts,$ndim);
       @ptry=calc_ptry($ndim,$ihi,0.5,@p,@psum);
@@ -149,11 +142,38 @@ case 'Reflection' {
       push(@flag_simplex,"pending");
       $nfunc++;
    }
+   else {
+   # Otherwise, replace worst point by reflected point
+         for (my $j=0;$j<$ndim;$j++) {
+         $y[$ihi]=$ytry;
+         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $p[$ihi][$j]=$ptry[$j];
+      }
+   }
+}
+
+case 'Expansion' {
+   # If better the best, replace worst point by expanded point
+   if ($ytry <= $y[$ilo]) {
+      for (my $j=0;$j<$ndim;$j++) {
+         $y[$ihi]=$ytry;
+         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $p[$ihi][$j]=$ptry[$j];
+      }
+   }
+   else {
+   # Otherwise, replace worst point by reflected point
+      for (my $j=0;$j<$ndim;$j++) {
+         $y[$ihi]=$ysave_R;
+         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $p[$ihi][$j]=$ptry[$j];
+      }
+   }
 }
 
 case 'Contraction' {
-   $ysave=$state{ysave};
-   if ($ytry>=$ysave) {
+   # if worse than worst point from contraction, replace all but the best 
+   if ($ytry>=$ysave_C) {
       print STATE "Transformation=Reduction\n";
       for (my $i=0;$i<$mpts;$i++) {
          if ($i!=$ilo) {
@@ -168,9 +188,18 @@ case 'Contraction' {
       }
    $nfunc+=$ndim;
    }
+   # Otherwise, replace worst point by contracted point
+   else { 
+      for (my $j=0;$j<$ndim;$j++) {
+         $y[$ihi]=$ytry;
+         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $p[$ihi][$j]=$ptry[$j];
+      }
+   }
 }
 
-else {
+else { 
+   # Compute reflected point
    print STATE "Transformation=Reflection\n";
    @psum=calc_psum(@p,$mpts,$ndim);
    @ptry=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
@@ -181,10 +210,10 @@ else {
    $nfunc++;
 }
 
-}
+} # End of switch loop
 
 # Check for convergence
-my $ftol=0.1;
+my $ftol=0.002;
 my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo])+$tiny);
 
 if($nfunc>=$NMAX) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
