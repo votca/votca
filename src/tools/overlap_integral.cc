@@ -11,8 +11,8 @@
 
 #include <boost/program_options.hpp>
 #include <string>
-#include <moo/jcalc.h>
-#include <moo/crgunit.h>
+#include <jcalc.h>
+#include <crgunit.h>
 
 using namespace std;
 
