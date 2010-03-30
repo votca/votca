@@ -65,8 +65,8 @@ void StateSaver::Load() {
     _qmtop->nblist().Cleanup();
     _qmtop->CreateResidue("dummy");
 
-    Read_PBCs();
     Read_TimeStep();
+    Read_PBCs();
     Read_Molecules();
     Read_QMBeads();
     Read_QMNeighbourlist();

@@ -1,0 +1,9 @@
+ACLOCAL_AMFLAGS = -I config
+
+SUBDIRS = src include  
+
+EXTRA_DIST =
+
+CLEANFILES = *~
+DISTCLEANFILES =  
+

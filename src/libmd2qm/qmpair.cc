@@ -8,7 +8,6 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
     crg1nm =  crg1->GetCom();
     crg2nm =  crg2->GetCom();
     _r = top->BCShortestConnection(crg1nm, crg2nm);
-    _dist = abs(_r);
     _crg2 = second;
 
     // check if PBC:

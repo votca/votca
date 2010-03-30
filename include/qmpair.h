@@ -27,7 +27,7 @@ public:
     /// \brief the vector connecting two beads
     vec &r() { return _r; }
     /// \brief the distance of the beads
-    double &dist() { return _dist; }
+    double dist() { return abs(_r); }
     /// \brief returns vector of transfer integrals
     vector <double> &Js() { return _Js; }
     /// \brief returns the transfer rate from first to second
@@ -52,8 +52,6 @@ public:
 protected:
     /// vector connecting the two beads
     vec _r;
-    /// distance between the two beads
-    double _dist;
     /// transfer integrals, multiple entries in case of degeneracy
     vector <double> _Js;
     /// transfer rate from first to second
