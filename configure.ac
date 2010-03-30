@@ -38,7 +38,7 @@ AX_VOTCA_BOOST
 
 #look for votca tools
 AX_VOTCA_TOOLS
-PKG_CHECK_MODULES([VOTCA_KMC],libvotca_csg)
+PKG_CHECK_MODULES([VOTCA_CSG],libvotca_csg)
 PKG_CHECK_MODULES([VOTCA_MOO],libvotca_moo)
 PKG_CHECK_MODULES([VOTCA_KMC],libvotca_kmc)
 
