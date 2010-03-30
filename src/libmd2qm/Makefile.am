@@ -1,7 +1,7 @@
 HGVERSION:= $(shell hg -R $(top_srcdir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_srcdir)/.hg_archival.txt 2> /dev/null || true )
 AM_CPPFLAGS = -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
 
-SUBDIRS = modules 
+SUBDIRS =  
 
 lib_LTLIBRARIES = libvotca_md2qm.la
 

@@ -47,6 +47,6 @@ AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/tools/Makefile])
-AC_CONFIG_FILES([src/libcsg/libmd2qm])
+AC_CONFIG_FILES([src/libmd2qm/Makefile])
 
 AC_OUTPUT
