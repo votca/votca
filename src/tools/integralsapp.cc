@@ -56,7 +56,7 @@ bool Integrals::EvaluateFrame(){
     ss << _qmtop.getStep();
     string res;
     ss >> res;
-    res = string ("nbl") + res + string(".res");
+    res = string ("nbl_") + res + string(".res");
     PrintNbs(res);
 }
 
