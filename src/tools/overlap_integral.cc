@@ -13,7 +13,6 @@
 #include <string>
 #include <jcalc.h>
 #include <crgunit.h>
-
 using namespace std;
 
 int main(int argc, char **argv) {
@@ -41,6 +40,12 @@ int main(int argc, char **argv) {
     catch (po::error err) {
         cout << "error parsing command line: " << err.what() << endl;
         return -1;
+    }
+
+    if (vm.count("help")) {
+        //help_text();
+        cout << desc << endl;
+        return 0;
     }
 
     cout << "Reading Crg unit Types"<<endl;
