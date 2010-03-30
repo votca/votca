@@ -15,8 +15,8 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
-AS=
+FC=
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -34,8 +34,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/qmapplication.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o
 
 # C Compiler Flags
@@ -79,15 +79,15 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o: nbproject/Makefile-
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o ../../src/libmd2qm/version_nb.cc
 
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmapplication.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o ../../src/libmd2qm/qmapplication.cc
+
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/statesaver.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o ../../src/libmd2qm/statesaver.cc
-
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/qmapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/qmapplication.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/qmapplication.o ../../src/tools/qmapplication.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmnblist.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
