@@ -48,5 +48,6 @@ AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/tools/Makefile])
 AC_CONFIG_FILES([src/libmd2qm/Makefile])
+AC_CONFIG_FILES([src/libmd2qm/libvotca_md2qm.pc])
 
 AC_OUTPUT
