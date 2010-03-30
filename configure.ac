@@ -17,6 +17,15 @@ PKG_PROG_PKG_CONFIG
 
 LT_OUTPUT
 
+AC_ARG_ENABLE(all-static,
+              [AS_HELP_STRING([--enable-all-static],
+              [Make completely static binaries])],, enable_all_static=no)
+
+if test "$enable_all_static" = "yes"; then
+  BIN_LDFLAGS="-all-static $BIN_LDFLAGS"
+  AC_SUBST(BIN_LDFLAGS)
+fi
+
 AX_VOTCA_BOOST
 AX_VOTCA_TOOLS
 
