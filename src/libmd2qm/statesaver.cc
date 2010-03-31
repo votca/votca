@@ -26,7 +26,7 @@ void StateSaver::Open(QMTopology &qmtop, string &file, const char & mode) {
     if (mode == 'w') {_out.open( file.c_str(),ios::binary|ios::out);}
     else if (mode == 'r') {_in.open(file.c_str(), ios::in | ios::binary);}
     else {
-        throw runtime_error(string("Open mode not available" ) + mode );
+        throw runtime_error(string("Open mode not available: " ) + mode );
     }
 }
 
