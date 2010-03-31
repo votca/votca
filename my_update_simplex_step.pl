@@ -223,6 +223,7 @@ if($rtol<$ftol) {
       for (my $i=0;$i<$ndim;$i++){
       ($p[$ilo][$i],$p[0][$i])=($p[0][$i],$p[$ilo][$i]);
       print STATE "Done - Simplex converged after $nfunc steps.\n";
+      die "--- Simplex convergerd after $nfunc steps ---";
    }
 }
 
