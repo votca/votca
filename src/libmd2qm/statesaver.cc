@@ -10,9 +10,8 @@ StateSaver::StateSaver(QMTopology& qmtop, string &filein, string & fileout){
 }
 
 void StateSaver::Open(QMTopology &qmtop, string &filein, string & fileout) {
-    _qmtop = &qmtop;
-    _out.open(fileout.c_str(),ios::binary|ios::out);
-    _in.open(filein.c_str(), ios::in | ios::binary);
+    Open(qmtop,filein, 'r');
+    Open(qmtop,fileout,'w');
     _mode = 'b';
 }
 
@@ -21,6 +20,10 @@ StateSaver::StateSaver(QMTopology& qmtop, string & file, const char & mode){
 }
 
 void StateSaver::Open(QMTopology &qmtop, string &file, const char & mode) {
+    static list <string> UsedFiles;
+    if (find(UsedFiles.begin(), UsedFiles.end() , file) != UsedFiles.end()){
+        throw runtime_error(string ("file ") +file + string (" already open"));
+    }
     _qmtop = &qmtop;
     _mode = mode;
     if (mode == 'w') {_out.open( file.c_str(),ios::binary|ios::out);}
@@ -28,6 +31,7 @@ void StateSaver::Open(QMTopology &qmtop, string &file, const char & mode) {
     else {
         throw runtime_error(string("Open mode not available: " ) + mode );
     }
+
 }
 
 //void StateSaver::Open(string file)
