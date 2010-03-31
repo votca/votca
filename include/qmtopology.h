@@ -65,9 +65,11 @@ public:
     void AddAtomisticBeads(CrgUnit * crg, Topology * totop);
 
     /// computes all transfer integrals (note that the nblist must be initialised by the user!)
+    // TODO: this function should not be in qmtopology!
     void ComputeAllTransferIntegrals();
 
     /// comutes all the electrostatic energies
+    // TODO: this function should not be in qmtopology!
     void ComputeAllElectrostaticEnergies(const double &epsilon=3.5);
 
     /// find a crg unit by name

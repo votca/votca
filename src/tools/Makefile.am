@@ -1,9 +1,16 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS) $(BOOST_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS) $(VOTCA_MOO_CFLAGS) $(VOTCA_CSG_CFLAGS) $(BOOST_CFLAGS)
 
 bin_PROGRAMS = \
-	ctp_map ctp_integrals ctp_ratecalc ctp_cont_kmc
+	ctp_map ctp_integrals ctp_rates ctp_kmc
 
-ctp_map_SOURCES = atqmtopobserver.cc ctp_map.cc intergalsapp.cc integrals.cc kmc_cont_app.cpp kmc_cont.cpp md2qm_observer.cc printQMAtTop.cc proj.cc projobserver.cc qmapplication.cc ratecalcapp.cc ratecalc.cc
+ctp_map_SOURCES = ctp_map.cc md2qm_observer.cc
+ctp_integrals_SOURCES = integrals.cc integralsapp.cc
+ctp_rates_SOURCES = ratecalc.cc ratecalcapp.cc 
+
+ctp_kmc_SOURCES = kmc_cont.cc kmc_cont_app.cc
+# special treatment here since it's the only app which needs libkmc
+ctp_kmc_CPPFLAGS=$(VOTCA_KMC_CFLAGS) -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS) $(VOTCA_MOO_CFLAGS) $(VOTCA_CSG_CFLAGS) $(BOOST_CFLAGS)
+ctp_kmc_LDFLAGS=$(VOTCA_KMC_LIBS) $(BIN_LDFLAGS)
 
 #everything is already in libvotca_csg
 AM_LDFLAGS = $(BIN_LDFLAGS)
