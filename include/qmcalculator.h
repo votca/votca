@@ -22,6 +22,9 @@ public:
     virtual void Initialize();
     virtual void EvaluateFrame();
     virtual void EndCalc();
+protected:
+    /// QM topology containing all relevant system information
+    QMTopology _qmtop;
 };
 
 #endif	/* _QMCALCULATOR_H */

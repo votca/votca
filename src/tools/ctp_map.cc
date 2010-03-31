@@ -28,7 +28,7 @@ namespace po=boost::program_options;
 void check_option(po::options_description &desc, po::variables_map &vm, const string &option)
 {
     if(!vm.count(option)) {
-        cout << "easyJ \n\n";
+        cout << "ctp_map: \n\n";
         cout << desc << endl << "parameter " << option << " is not specified\n";
         exit(1);
     }
@@ -51,8 +51,8 @@ int main(int argc, char** argv)
 
         cg_engine.AddProgramOptions()
             ("listcharges,l", po::value<string>(), "  Crg unit definitions");
-        cg_engine.AddProgramOptions()
-            ("cutoff,c", po::value<double>()-> default_value(1.0), "  CutOff for nearest neighbours");
+        //cg_engine.AddProgramOptions()
+        //    ("cutoff,c", po::value<double>()-> default_value(1.0), "  CutOff for nearest neighbours");
         /// Parameters required to calculate rates and to run KMC
         cg_engine.AddProgramOptions()
             ("options,o", po::value<string>(), "  KMC and MD2QM options");
@@ -72,12 +72,13 @@ int main(int argc, char** argv)
 
         check_option(cg_engine.OptionsDesc(), vm, "options");
         check_option(cg_engine.OptionsDesc(), vm, "listcharges");
-        check_option(cg_engine.OptionsDesc(), vm, "cutoff");
+        //check_option(cg_engine.OptionsDesc(), vm, "cutoff");
 
         load_property_from_xml(options, vm["options"].as<string>());
+        double cutoff = options.get("options.map.cutoff").as<double>();
 
         qmtopol.LoadListCharges(vm["listcharges"].as<string>());
-        observer.setCutoff(vm["cutoff"].as<double>());
+        observer.setCutoff(cutoff);
         observer.setOut(vm["out"].as<string>());
         observer.Initialize(qmtopol, options);
         // add our observer that it gets called to analyze frames
