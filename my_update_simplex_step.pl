@@ -213,19 +213,25 @@ else {
 } # End of switch loop
 
 # Check for convergence
-my $ftol=0.002;
-my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo])+$tiny);
+my dftar=abs($y[$ihi]-$y[$ilo]);
 
-if($nfunc>=$NMAX) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
-
-if($rtol<$ftol) {
-   ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
-      for (my $i=0;$i<$ndim;$i++){
-      ($p[$ilo][$i],$p[0][$i])=($p[0][$i],$p[$ilo][$i]);
-      print STATE "Done - Simplex converged after $nfunc steps.\n";
-      die "--- Simplex convergerd after $nfunc steps ---";
-   }
+if ($dtar < 0.001) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
+if( $nfunc >= $NMAX) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
+if ($ytry < 0.01 ) {
+   print STATE "Done - Simplex converged after $nfunc steps.\n";
+   die "--- Simplex convergerd after $nfunc steps ---";
 }
+
+#my $ftol=0.001;
+#my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo])+$tiny);
+#if($rtol<$ftol) {
+#   ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
+#      for (my $i=0;$i<$ndim;$i++){
+#      ($p[$ilo][$i],$p[0][$i])=($p[0][$i],$p[$ilo][$i]);
+#      print STATE "Done - Simplex converged after $nfunc steps.\n";
+#      die "--- Simplex convergerd after $nfunc steps ---";
+#   }
+#}
 
 close(STATE);
 
