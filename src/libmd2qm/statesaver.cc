@@ -196,6 +196,8 @@ void StateSaver::Read_QMBeads() {
         string bead_name =      read<string> ();
         string type_name =      read<string> ();
         int resnr =             read<int>();
+        // HACK: since only one residue is created this must be set to 0 by hand.
+        resnr =0;
         double M =              read<double>();
         double Q =              read<double>();
         

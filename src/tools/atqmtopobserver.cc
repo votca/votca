@@ -24,17 +24,19 @@ void AtQmObserver::AddSpecificOptions(){
 
 void AtQmObserver::Initialize()
 {
+    TrajectoryWriter::RegisterPlugins();
+    
     string nameCG = _op_vm["outCG"].as<string>();
     string nameQM = _op_vm["outQM"].as<string>();
     string extCG  = nameCG.substr(nameCG.length()-4,4);
     string extQM  = nameCG.substr(nameQM.length()-4,4);
-    _writerCG = TrjWriterFactory().Create(extCG);
+    _writerCG = TrjWriterFactory().Create(nameCG);
     if(_writerCG == NULL)
-        throw runtime_error("output format not supported: .pdb");
+        throw runtime_error(string("output format not supported: ")+ extCG);
 
-    _writerQM = TrjWriterFactory().Create(extQM);
+    _writerQM = TrjWriterFactory().Create(nameQM);
     if(_writerQM == NULL)
-        throw runtime_error("output format not supported: .pdb");
+        throw runtime_error(string("output format not supported: ")+ extQM);
 
     _writerCG->Open(nameCG);
     _writerQM->Open(nameQM);
