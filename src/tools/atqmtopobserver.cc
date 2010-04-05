@@ -47,17 +47,18 @@ void AtQmObserver::EndEvaluate()
 }
 
 /// evaluate current conformation
-void AtQmObserver::EvaluateFrame()
+bool AtQmObserver::EvaluateFrame()
 {
-    _writerCG->Write(_qmtop);
+    _writerCG->Write(&_qmtop);
     ///the QM topology is more hard work:
-    list<CrgUnit *> lcharges = _qmtop->crglist();
+    list<CrgUnit *> lcharges = _qmtop.crglist();
     Topology qmAtomisticTop;
     for (list<CrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++){
-        _qmtop->AddAtomisticBeads(*itl,&qmAtomisticTop);
+        _qmtop.AddAtomisticBeads(*itl,&qmAtomisticTop);
     }
     _writerQM->Write(&qmAtomisticTop);
     qmAtomisticTop.Cleanup();
+    return true;
 }
 
 
