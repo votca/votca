@@ -37,7 +37,7 @@ main_dir=$(get_main_dir);
 cp ${main_dir}/conf.gro ./conf.gro || die "${0##*/} cp ${last_step}/conf.gro ./conf.gro failed" 
 
 # Energy Minimization
-#run_or_exit grompp -f steep.mdp -n index.ndx
-#run_or_exit mdrun
+run_or_exit grompp -f steep.mdp -n index.ndx
+run_or_exit mdrun
 
 run_or_exit grompp -n index.ndx 
