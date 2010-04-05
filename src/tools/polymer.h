@@ -35,12 +35,15 @@ private:
         int _molid;
         int _wfid;
         int _id;
+        vec _pos;
     };
     typedef pair <WaveFunction *, WaveFunction *> PairWF ;
     void UpdatePolTop();
     void UpdateJs(CrgUnit*, CrgUnit *, const double & );
+    void UpdatedR(const PairWF & );
     //double ComputeDj(Molecule * one, Molecule *two, WaveFunction *a, WaveFunction *b,const double & J);
     void CalcWaveFunction(Molecule * mol);
+    
     void Clean();
     void Save(string &);
     

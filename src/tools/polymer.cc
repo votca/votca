@@ -28,6 +28,7 @@ bool Polymer::EvaluateFrame(){
     string outn ("frame");
     outn = outn + lexical_cast<string> (_qmtop.getStep());
     Save(outn);
+    Clean();
 }
 
 void Polymer::EndEvaluate(){
@@ -51,34 +52,18 @@ void Polymer::UpdatePolTop(){
         //insert check for size of Js
         double J = ((*iter)->Js())[0];
         UpdateJs (one, two,J); // hard code that
-                                                // only one element is 
-                                                // considered (otherwise
-                                                // the whole method is doubtful)
+                               // only one element is 
+                               // considered (otherwise
+                               // the whole method is doubtful)
     }
-}
-/*
-double Polymer::ComputeDj(Molecule * one, Molecule *two, WaveFunction *a, WaveFunction *b,
-        const double & J){
-    int nbead1=one->BeadCount();
-    int nbead2=two->BeadCount();
 
-    cout <<  "computing contribution to J for mol1: " << one->getId() << " ( " << a->_molid
-            << ") and mol2: " << two->getId() << " ( " << b->_molid  <<
-            " with nbeads 1" << nbead1 << " ( " << a->_wf->size << " ) " <<
-            " with nbeads 2" << nbead2 << " ( " << b->_wf->size << " ) " <<
-            "wf id 1: "<< a->_wfid << " wf id 2: "<< b->_wfid << endl;
-    if (nbead1 != a->_wf->size || nbead2 != b->_wf->size ){
-        throw runtime_error ("error in compute dj - sizes of inputs dont match");
+    // 3) now that the new neighbour list is there, compute the dr.
+    map<PairWF, double>::iterator itpwf=_polJs.begin();
+    for(;itpwf != _polJs.end(); ++itpwf){
+        UpdatedR(itpwf->first);
     }
-    double r=0.;
-    for(int i=0;i<nbead1;i++){
-        for (int j=0;j<nbead2;j++){
-            r+= gsl_vector_get(a->_wf,i) *gsl_vector_get(b->_wf,j) * J;
-        }
-    }
-    return r;
 }
-*/
+
 
 void Polymer::UpdateJs(CrgUnit * one, CrgUnit *two, const double & J){
 
@@ -99,36 +84,21 @@ void Polymer::UpdateJs(CrgUnit * one, CrgUnit *two, const double & J){
     for ( ; it1 != _mstates[mol1]->end(); ++it1){
         for ( ; it2 != _mstates[mol2]->end(); ++it2){
 
-            // this is fundamentally wrong: the transfer integral can be
-            // computed by considering which crunits are next to each other
-            // the two r's however require computation on the whole molecule
-            // _correct it james_!!!
-            double amp1 = gsl_vector_get( (*it1)->_wf,  itm1->second)*
-                          gsl_vector_get( (*it1)->_wf,  itm1->second);
-            double amp2 = gsl_vector_get( (*it2)->_wf,  itm2->second)*
-                          gsl_vector_get( (*it2)->_wf,  itm2->second);
-            
             double dJ = gsl_vector_get( (*it1)->_wf,  itm1->second) *
                         gsl_vector_get( (*it2)->_wf,  itm2->second) * J;
-            vec R1 = one->GetCom() *amp1;
-            vec R2 = two->GetCom() *amp2;
-            vec dR = R1-R2;
             map < PairWF , double >::iterator
               itJ = _polJs.find( make_pair(*it1, *it2));
-            map < PairWF , vec >::iterator
-              itr = _poldR.find( make_pair(*it1, *it2));
             if (itJ == _polJs.end()){
                 _polJs.insert(make_pair (make_pair(*it1, *it2),dJ));
-                _poldR.insert(make_pair (make_pair(*it1, *it2),dR));
             }
             else {
                 itJ->second += dJ;
-                itr->second += dR;
             }
 
         }
     }
 }
+
 void Polymer::CalcWaveFunction(Molecule * mol){
     int nbeads = mol->BeadCount();
     static int id=0;
@@ -183,7 +153,7 @@ void Polymer::CalcWaveFunction(Molecule * mol){
     gsl_eigen_symmv(pH,eval, evec,gslwork);
     gsl_eigen_symmv_sort (eval, evec, GSL_EIGEN_SORT_VAL_ASC);
     
-    //for each evector make a new bead
+    //for each evector make a new wavefunction
     for (int i=0;i<nbeads;i++){
         if ( gsl_vector_get(eval,i) < gsl_vector_get(eval,0) + _cutnrg ){
             gsl_vector * pv = gsl_vector_alloc (nbeads);
@@ -197,6 +167,12 @@ void Polymer::CalcWaveFunction(Molecule * mol){
             wf->_wf = pv;
             _states.push_back(wf);
             melement->push_back(wf);
+            //determine the position
+            wf->_pos=vec(0.,0.,0.);
+            for (int j=0;j<nbeads;j++){
+                wf->_pos += (gsl_vector_get(pv,j) * gsl_vector_get(pv,j)) *
+                        (mol->getBead(j)->getPos());
+            }
             id++;
         }
     }
@@ -234,6 +210,30 @@ void Polymer::Save(string & outn){
     }
     out.close();
 
+}
 
+void Polymer::Clean(){
+    vector <WaveFunction *>::iterator its = _states.begin();
+    for (; its!=_states.end();its++ ){
+        gsl_vector_free((*its)->_wf);
+        delete *its;
+    }
+    _states.clear();
+    vector < vector < WaveFunction * > *>::iterator itms = _mstates.begin();
+    for ( ; itms != _mstates.end(); ++itms){
+        (*itms)->clear();
+    }
+    _mstates.clear();
+    _polJs.clear();
+    _poldR.clear();
+    _mcrg2bs.clear();
+}
 
+void Polymer::UpdatedR(const PairWF & pwf){
+    
+    vec r1 = (pwf.first)->_pos;
+    vec r2 =(pwf.second)->_pos;
+    vec d = _qmtop.BCShortestConnection(r1, r2);
+    _poldR.insert(make_pair(pwf, d));
+    
 }
