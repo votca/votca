@@ -19,26 +19,20 @@
 /// generate corresponding coarse graines
 /// and qm topologies according to the list charge definition
 class AtQmObserver
-    : public CGObserver
+    : public QMApplication
 {
 public:
     AtQmObserver();
     ~AtQmObserver();
 
 
-    void setQMTopology(QMTopology &qmtop) {_qmtop = &qmtop; }
-
-    /// begin coarse graining a trajectory
-    void BeginCG(Topology *top, Topology *top_atom);
-
-    /// end coarse graining a trajectory
-    void EndCG();
-
-    /// evaluate current conformation
-    void EvalConfiguration(Topology *top, Topology *top_atom = 0);
+    void HelpText();
+    void AddSpecificOptions();
+    void Initialize();
+    bool EvaluateFrame();
+    void EndEvaluate();
 
 protected:
-    QMTopology *_qmtop;
     TrajectoryWriter *_writerCG;
     TrajectoryWriter *_writerQM;
 };

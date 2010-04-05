@@ -9,37 +9,47 @@ AtQmObserver::AtQmObserver()
 AtQmObserver::~AtQmObserver()
 {}
 
-void AtQmObserver::BeginCG(Topology *top, Topology *top_atom)
+void AtQmObserver::HelpText(){
+    cout << "no help text available\n\n";
+    cout << _op_desc << endl;
+}
+
+
+void AtQmObserver::AddSpecificOptions(){
+    _op_desc.add_options()
+    ("outCG", boost::program_options::value<string>()->default_value("CGtraj.pdb"), "  the output file for coarse grained topology")
+    ("outQM", boost::program_options::value<string>()->default_value("QMtraj.pdb"), " the output file for the QM geometry")
+    ;
+}
+
+void AtQmObserver::Initialize()
 {
-    _qmtop->Initialize(*top);
-
-
-    _writerCG = TrjWriterFactory().Create(".pdb");
+    string nameCG = _op_vm["outCG"].as<string>();
+    string nameQM = _op_vm["outqm"].as<string>();
+    string extCG  = nameCG.substr(nameCG.length()-4,4);
+    string extQM  = nameCG.substr(nameQM.length()-4,4);
+    _writerCG = TrjWriterFactory().Create(extCG);
     if(_writerCG == NULL)
         throw runtime_error("output format not supported: .pdb");
 
-    _writerQM = TrjWriterFactory().Create(".pdb");
+    _writerQM = TrjWriterFactory().Create(extQM);
     if(_writerQM == NULL)
         throw runtime_error("output format not supported: .pdb");
 
-    _writerCG->Open(string("CGtraj.pdb"));
-    _writerQM->Open(string("QMtraj.pdb"));
+    _writerCG->Open(nameCG);
+    _writerQM->Open(nameQM);
 }
 
-void AtQmObserver::EndCG()
+void AtQmObserver::EndEvaluate()
 {
     _writerCG->Close();
     _writerQM->Close();
 }
 
 /// evaluate current conformation
-void AtQmObserver::EvalConfiguration(Topology *top, Topology *top_atom)
+void AtQmObserver::EvaluateFrame()
 {
-    _qmtop->Update(*top);
-    
-    _qmtop->GetJCalc();
-
-    _writerCG->Write(top);
+    _writerCG->Write(_qmtop);
     ///the QM topology is more hard work:
     list<CrgUnit *> lcharges = _qmtop->crglist();
     Topology qmAtomisticTop;
