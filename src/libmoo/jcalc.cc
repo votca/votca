@@ -58,7 +58,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
     double reorg;
     double energy;
     vector <int> transorbs;
-   // string beadconj;
+   
     string name;
     string molname;
     string namebasis;
@@ -79,9 +79,8 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         reorg = (*iter)->get("reorg").as<double>();
         energy = (*iter)->get("energy").as<double>();
         transorbs = (*iter)->get("transorb").as<vector <int> >();
- //       beadconj = (*iter)->get("beadconj").as<string>();
+ 
         name = (*iter)->get("name").as<string>();
-        molname = (*iter)->get("molname").as<string>();
         namebasis = (*iter)->get("basisset").as<string>();
 
         string all_monomer = (*iter)->get("monomer_atom_map").as<string>();
@@ -114,7 +113,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(),
                 nameneutr.c_str(), namecrg.c_str(), namebasis,
                 reorg, energy, transorbs, _listCrgUnitType.size(),
-                molname, name, list_atoms_monomer, list_weights_monomer);
+                name, list_atoms_monomer, list_weights_monomer);
         _mapCrgUnitByName.insert(make_pair(name, crgunittype));
 
         _listCrgUnitType.push_back(crgunittype);

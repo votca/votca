@@ -66,8 +66,6 @@ private:
 
     vector <unsigned int> _transorbs;
     unsigned int      _id;
-    ///the molecule name that this charge tranpost unit belongs to
-    string            _molname;
     /// the name of this transport unit
     string            _name;  
     // a list of atoms in the same bead of which atoms correspond to which bead
@@ -92,7 +90,7 @@ private:
             const char * namecoord, const char * nameorb, const char * nameneutr,
             const char * namecrg, string & basisset, const double & reorg,
             const double & energy, const vector < int>& transorbs,
-            const unsigned int &id, string molname, string name,
+            const unsigned int &id,  string name,
             vector < vector < int > > list_atoms_monomer,
             vector < vector < double > > list_weights_monomer);
 
