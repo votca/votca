@@ -1,3 +1,4 @@
+
 #include "md2qm_observer.h"
 #include <votca/csg/nblist.h>
 #include <qmnblist.h>
@@ -35,17 +36,20 @@ void MD2QMObserver::EvalConfiguration(Topology *top, Topology *top_atom)
     nblist.Generate(list1);
     _save.Save();
 
+    print_nbs_to_file(_qmtop->nblist());
+
 }
 
 void MD2QMObserver::EndCG()
 {
-    print_nbs_to_file(_qmtop->nblist());
     _save.Close();
 }
 
 void MD2QMObserver::print_nbs_to_file(QMNBList &nblist){
     ofstream out_nbl;
-    out_nbl.open("nbl_votca.res");
+    string out ;
+    out = string("nbl_votca_") + lexical_cast<string> (_qmtop->getStep()) + string(".res");
+    out_nbl.open(out.c_str());
     if(out_nbl!=0){
         out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [nm]" << endl;
         QMNBList::iterator iter;

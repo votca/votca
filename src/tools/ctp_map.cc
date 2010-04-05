@@ -18,8 +18,8 @@ using namespace std;
 
 void help_text(void)
 {
-    votca::csg::HelpTextHeader("easyJ");
-    cout << "Calculate transfer integrals\n\n";
+    votca::csg::HelpTextHeader("map");
+    cout << "Maps an atomistic into a coarse grained geometry\n\n";
 }
 
  /// Namespace to read in program options
@@ -28,7 +28,7 @@ namespace po=boost::program_options;
 void check_option(po::options_description &desc, po::variables_map &vm, const string &option)
 {
     if(!vm.count(option)) {
-        cout << "easyJ \n\n";
+        cout << "map \n\n";
         cout << desc << endl << "parameter " << option << " is not specified\n";
         exit(1);
     }
@@ -53,9 +53,7 @@ int main(int argc, char** argv)
             ("listcharges,l", po::value<string>(), "  Crg unit definitions");
         cg_engine.AddProgramOptions()
             ("cutoff,c", po::value<double>()-> default_value(1.0), "  CutOff for nearest neighbours");
-        /// Parameters required to calculate rates and to run KMC
-        cg_engine.AddProgramOptions()
-            ("options,o", po::value<string>(), "  KMC and MD2QM options");
+
         cg_engine.AddProgramOptions()
             ("out", po::value<string>()->default_value("state.dat"), " Name of the output file for statesaver");
         cg_engine.ParseCommandLine(argc, argv);
@@ -70,11 +68,8 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        check_option(cg_engine.OptionsDesc(), vm, "options");
         check_option(cg_engine.OptionsDesc(), vm, "listcharges");
         check_option(cg_engine.OptionsDesc(), vm, "cutoff");
-
-        load_property_from_xml(options, vm["options"].as<string>());
 
         qmtopol.LoadListCharges(vm["listcharges"].as<string>());
         observer.setCutoff(vm["cutoff"].as<double>());
