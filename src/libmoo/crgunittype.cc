@@ -46,7 +46,7 @@ CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
         const char * nameneutr, const char * namecrg, string & basisset,
         const double & reorg,const double & energy,
         const vector < int>& transorbs, const unsigned int &id,
-        string molname, string name, vector < vector < int > > list_atoms_monomer,
+        string name, vector < vector < int > > list_atoms_monomer,
         vector < vector < double > > list_weights_monomer) {
     _bs.set_basis_set(basisset);
     _intcoords.define_bs(_bs);
@@ -76,7 +76,6 @@ CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
         _transorbs.push_back(i);
     }
     _id = id;
-    _molname = molname;
     _name = name;
     vector < vector < int > > ::iterator it_mon;
     vector < vector < double > > ::iterator it_mon_weights;

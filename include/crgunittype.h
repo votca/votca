@@ -102,9 +102,7 @@ inline const vector <unsigned int>& CrgUnitType::GetTransOrbs() const{
     return _transorbs;
 }
 
-inline string & CrgUnitType::GetMolName() {
-    return _molname;
-}
+
 
 inline mol_and_orb & CrgUnitType::GetCrgUnit() {
     return _intcoords;
