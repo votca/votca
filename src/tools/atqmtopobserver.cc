@@ -25,7 +25,7 @@ void AtQmObserver::AddSpecificOptions(){
 void AtQmObserver::Initialize()
 {
     string nameCG = _op_vm["outCG"].as<string>();
-    string nameQM = _op_vm["outqm"].as<string>();
+    string nameQM = _op_vm["outQM"].as<string>();
     string extCG  = nameCG.substr(nameCG.length()-4,4);
     string extQM  = nameCG.substr(nameQM.length()-4,4);
     _writerCG = TrjWriterFactory().Create(extCG);

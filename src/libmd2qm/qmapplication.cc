@@ -34,11 +34,13 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
         throw runtime_error(string("error parsing command line: ") + err.what());
     }
 
+    if (!_op_vm.count("help")){
     /// load crg unit definitions from list_charges.xml
-    _qmtop.LoadListCharges(_op_vm["crg"].as<string>());
+        _qmtop.LoadListCharges(_op_vm["crg"].as<string>());
 
     /// read in program options from main.xml
-    load_property_from_xml(_options, _op_vm["opt"].as<string>());
+        load_property_from_xml(_options, _op_vm["opt"].as<string>());
+    }
 }
 
 void QMApplication::Run(int argc, char **argv)
@@ -47,17 +49,17 @@ void QMApplication::Run(int argc, char **argv)
 
         AddSpecificOptions(); /// initialize program-specific parameters
         ParseCommandLine(argc, argv); /// initialize general parameters & read input file
-        Initialize(); /// initialize program-specific parameters
-
-        bool has_begin = false; /// was a starting time specified?
-        double begin; /// starting time
-        int first_frame = _op_vm["first-frame"].as<int>(); /// starting frame
-        int nframes = _op_vm["nframes"].as<int>(); /// number of frames to be processed
-
+       
+       
         if (_op_vm.count("help")) {
             HelpText();
             return;
         }
+        Initialize(); /// initialize program-specific parameters
+        bool has_begin = false; /// was a starting time specified?
+        double begin; /// starting time
+        int first_frame = _op_vm["first-frame"].as<int>(); /// starting frame
+        int nframes = _op_vm["nframes"].as<int>(); /// number of frames to be processed
 
         if (!_op_vm.count("opt")) {
             cout << _op_desc << endl;
