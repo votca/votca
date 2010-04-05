@@ -38,11 +38,18 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     /// load crg unit definitions from list_charges.xml
         _qmtop.LoadListCharges(_op_vm["crg"].as<string>());
 
-    /// read in program options from main.xml
-        load_property_from_xml(_options, _op_vm["opt"].as<string>());
     }
 }
 
+void QMApplication::LoadOptions(){
+    if (!_op_vm.count("opt")) {
+        cout << _op_desc << endl;
+        throw runtime_error("Please specify a valid main program option file.");
+    }
+    
+    /// read in program options from main.xml
+    load_property_from_xml(_options, _op_vm["opt"].as<string>());
+}
 void QMApplication::Run(int argc, char **argv)
 {
     try {
@@ -56,6 +63,7 @@ void QMApplication::Run(int argc, char **argv)
             return;
         }
         Initialize(); /// initialize program-specific parameters
+
         bool has_begin = false; /// was a starting time specified?
         double begin; /// starting time
         int first_frame = _op_vm["first-frame"].as<int>(); /// starting frame

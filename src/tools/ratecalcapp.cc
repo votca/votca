@@ -11,6 +11,7 @@ void RateCalculator::HelpText(){
 }
 
 void RateCalculator::Initialize(){
+    LoadOptions();
     _kT = _options.get("options.calc_rates.thermal_energy").as<double>();
     _E = _options.get("options.calc_rates.e_field").as<vec>();
 }
@@ -47,14 +48,12 @@ bool RateCalculator::EvaluateFrame(){
         (*iter)->setRate12(rate_12);
         (*iter)->setRate21(rate_21);
     }
+    string res = string ("nbl_") + lexical_cast<string>(_qmtop.getStep()) + string(".res");
+    PrintNbs(res);
 }
 
 void RateCalculator::EndEvaluate()
  {
-    stringstream ss;
-    ss << _qmtop.getStep();
-    string res;
-    ss >> res;
-    res = string ("nbl_") + res + string(".res");
-    PrintNbs(res);
+
+
  }

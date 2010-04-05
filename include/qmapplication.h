@@ -66,6 +66,9 @@ protected:
 
     /// write information to statesaver
     void WriteData();
+
+    /// loads the options in from the options file
+    void LoadOptions();
 private:
     /// get input parameters from file, location may be specified in command line
     void ParseCommandLine(int argc, char **argv);
