@@ -284,13 +284,13 @@ void StateSaver::Read_QMNeighbourlist() {
 
 bool StateSaver::Seek(const int& pos){
     
-    _in.seekg (- sizeof(int), ios::end); // put in at the end;
+    _in.seekg ( (long int )(- sizeof(int)), ios::end); // put in at the end;
     int n = read<int>();
     if (pos> n){
         return false;
     }
-    _in.seekg (- sizeof(int) - (n-pos) * sizeof(streampos) , ios::end); // put in at the end;
+    _in.seekg ((long int ) (- sizeof(int) - (n-pos) * sizeof(streampos)) , ios::end); // put in at the end;
     streampos newpos = read<streampos>();
-    _in.seekg(newpos, ios::beg);
+    _in.seekg((long int )(newpos), ios::beg);
     return true;
 }
