@@ -58,7 +58,7 @@ my @flag_simplex;
 my $mpts=3;
 my $ndim=$mpts-1;
 my $nfunc=0;
-my $NMAX=csg_get_property("cg.inverse.iterations_max");
+my $ftol=csg_get_property("cg.inverse.ftol");
 
 my @psum;
 my @ptry;
@@ -211,11 +211,7 @@ else {
 
 } # End of switch loop
 
-# Fail if number of function evaluations exceeds NMAX
-if($nfunc >= $NMAX) {die "Fail: Simplex has not converged after $NMAX steps.\n"};
-
 # Check for convergence
-my $ftol=1e-6; # should be slightly larger than machine precision
 my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo]));
 
 if($rtol<$ftol) {
