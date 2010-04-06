@@ -20,7 +20,7 @@ AC_DEFUN([AX_GROMACS], [
       AC_MSG_ERROR([
 
 Could not find GMXLDLIB environment variable, please source <gomacs-path>/bin/GMXRC 
-or specify GMX_LIBS and GMX_CLFAGS
+or specify GMX_LIBS and GMX_CFLAGS
       ])
     else
       AC_MSG_RESULT([yes])
