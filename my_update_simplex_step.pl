@@ -58,7 +58,7 @@ my @flag_simplex;
 my $mpts=3;
 my $ndim=$mpts-1;
 my $nfunc=0;
-my $ftol=csg_get_property("cg.inverse.ftol");
+my $ftol=csg_get_property("cg.non-bonded.ftol");
 
 my @psum;
 my @ptry;
