@@ -18,8 +18,8 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     ("out", boost::program_options::value<string>()->default_value("stateOut.dat"), "  write new state file with this name")
     ("in", boost::program_options::value<string>()->default_value("stateIn.dat"), "  read state file with this name")
     ("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
-    //("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
-    //("nframes", boost::program_options::value<int>()->default_value(1), "  process so many frames")
+    ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
+    ("nframes", boost::program_options::value<int>()->default_value(1), "  process so many frames")
     ;
 
     /// add specific options defined via Initialize of the child class
@@ -66,10 +66,8 @@ void QMApplication::Run(int argc, char **argv)
 
         bool has_begin = false; /// was a starting time specified?
         double begin; /// starting time
-        int first_frame = _options.get("options.frames.begin").as<int>(); /// starting frame
-        int nframes = _options.get("options.frames.number").as<int>(); /// number of frames to be processed
-        //int first_frame = _op_vm["first-frame"].as<int>(); /// starting frame
-        //int nframes = _op_vm["nframes"].as<int>(); /// number of frames to be processed
+        int first_frame = _op_vm["first-frame"].as<int>(); /// starting frame
+        int nframes = _op_vm["nframes"].as<int>(); /// number of frames to be processed
 
         if (!_op_vm.count("opt")) {
             cout << _op_desc << endl;
