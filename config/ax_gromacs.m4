@@ -1,9 +1,10 @@
 AC_DEFUN([AX_GROMACS], [
-  AC_ARG_WITH(libgmx,[
-    AS_HELP_STRING([--with-libgmx=NAME],
-      [Compile against this Gromacs(gmx) library, default libgmx, but libgmx_d or libgmx_mpi is possible as well.
-    ])
-  ],,[with_libgmx=yes])
+  AC_ARG_WITH(libgmx,
+    [AS_HELP_STRING([--with-libgmx@<:@=ARG@:>@],
+      [use Gromacs(gmx) library, default single precision (ARG=libgmx),
+        but double precision (ARG=libgmx_d) or mpi version (ARG=libgmx_mpi)
+        are possible as well @<:@ARG=yes@:>@])],,
+  [with_libgmx=yes])
   if test "$with_libgmx" = "no"; then
     AC_MSG_ERROR([You cannot compile without libgmx])
   fi
