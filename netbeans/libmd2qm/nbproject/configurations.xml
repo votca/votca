@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/paircalculator.h</itemPath>
       <itemPath>../../include/qmapplication.h</itemPath>
       <itemPath>../../include/qmbead.h</itemPath>
       <itemPath>../../include/qmcalculator.h</itemPath>
