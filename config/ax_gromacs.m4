@@ -65,25 +65,23 @@ If you are using a mpi version of gromacs, make sure that CXX is something like 
 (e.g. export CXX="mpic++" and export GMX_LIBS="-L<gromacs-path>/lib -lgmx_mpi")
     ])
   ])
-  AC_CHECK_HEADERS([types/oenv.h],[
-    AC_MSG_CHECKING([for output_env_init in $GMX_LIBS])
-    AC_TRY_LINK_FUNC(output_env_init,[AC_MSG_RESULT([yes])],[
-      AC_MSG_RESULT([no])
-      AC_MSG_ERROR([
-
-We found oenv.h header, which exist only in gromacs 4 devel, but we did find
-output_env_init libgmx
-      ])
-    ])
+  AC_MSG_CHECKING([for output_env_init in $GMX_LIBS])
+  AC_TRY_LINK_FUNC(output_env_init,[
+    AC_MSG_RESULT([yes])
     AC_MSG_NOTICE([
 
 We are using a development version of gromacs, we hope you know what you are doing....
 unexpected results ahead
     ])
     AC_DEFINE(GMX4DEV,,[Use gromacs 4 devel version])
+  ],[
+    AC_MSG_RESULT([no])
   ])
   CPPFLAGS="$save_CPPFLAGS"
   LIBS="$save_LIBS"
+
+  dnl we need to do PKG_CHECK_EXISTS to know if libgmx pkg-config file
+  dnl really exist, so that we can add it to our pkg-config files
   PKG_CHECK_EXISTS([lib$libgmx],[
     PKGGMX="libgmx"
     PKGCFLAGSGMX=""
