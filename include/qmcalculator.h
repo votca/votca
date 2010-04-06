@@ -8,23 +8,19 @@
 #ifndef _QMCALCULATOR_H
 #define	_QMCALCULATOR_H
 
-#include <boost/program_options.hpp>
 #include "qmtopology.h"
-#include <votca/tools/property.h>
 
 /// the idea of this class is to make QMApplications more flexible
 
 class QMCalculator{
 public:
-    QMCalculator();
-    ~QMCalculator();
+    QMCalculator() {};
+    virtual ~QMCalculator() {};
 
-    virtual void Initialize();
-    virtual void EvaluateFrame();
-    virtual void EndCalc();
+    virtual void Initialize(QMTopology *top) {};
+    virtual void EvaluateFrame(QMTopology *top) {};
+    virtual void EndCalc(QMTopology *top) {};
 protected:
-    /// QM topology containing all relevant system information
-    QMTopology _qmtop;
 };
 
 #endif	/* _QMCALCULATOR_H */
