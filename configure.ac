@@ -42,6 +42,10 @@ PKG_CHECK_MODULES([VOTCA_CSG],libvotca_csg)
 PKG_CHECK_MODULES([VOTCA_MOO],libvotca_moo)
 PKG_CHECK_MODULES([VOTCA_KMC],libvotca_kmc)
 
+# check for gsl
+PKG_CHECK_MODULES([GSL],gsl)
+
+
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
