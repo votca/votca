@@ -134,3 +134,28 @@ void QMApplication::PrintNbs(string filename){
     }
     out_nbl.close();
 }
+
+void QMApplication::AddCalculator(QMCalculator* calculator){
+    _calculators.push_back(calculator);
+}
+
+void QMApplication::BeginCalc(){
+    list<QMCalculator *>::iterator iter;
+    for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
+        (*iter)->Initialize(&_qmtop, &_options);
+    }
+}
+
+void QMApplication::EvalCalc(){
+    list<QMCalculator *>::iterator iter;
+    for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
+        (*iter)->EvaluateFrame(&_qmtop);
+    }
+}
+
+void QMApplication::EndCalc(){
+    list<QMCalculator *>::iterator iter;
+    for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
+        (*iter)->EndCalc(&_qmtop);
+    }
+}

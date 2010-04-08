@@ -12,6 +12,7 @@
 #include "qmtopology.h"
 #include <votca/tools/property.h>
 #include "statesaver.h"
+#include "qmcalculator.h"
 
 class QMApplication
 {
@@ -21,12 +22,18 @@ public:
 
     /// executes the program
     void Run(int argc, char **argv);
-
     /// print neighbor list to file in human-readable format
     void PrintNbs(string filename);
-
     /// get string of nearest neighbor names (NNnames)
     vector <string>& get_nnnames() {return _nnnames;}
+
+    /// for use in combination with calculators (see qmcalculator.h)
+    /// prior to loop over frames
+    void BeginCalc();
+    /// for every frame
+    void EvalCalc();
+    /// after evaluation of frames
+    void EndCalc();
 
     /// parse program options from command line
     boost::program_options::options_description_easy_init
@@ -63,15 +70,18 @@ protected:
     Property _options;
     /// List of strings that the concatenation of the two molnames must match to be analyzed
     vector <string> _nnnames;
+    /// List of CTP observers for easy access of calculators
+    list<QMCalculator *> _calculators;
 
     /// load system information from statesaver
     void ReadData();
-
     /// write information to statesaver
     void WriteData();
-
     /// loads the options in from the options file
     void LoadOptions();
+    /// void add a calculator for later use (compare: cg_engine -> AddObserver)
+    void AddCalculator(QMCalculator *calculator);
+
 private:
     /// get input parameters from file, location may be specified in command line
     void ParseCommandLine(int argc, char **argv);
