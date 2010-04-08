@@ -17,7 +17,7 @@ public:
     QMCalculator() {};
     virtual ~QMCalculator() {};
 
-    virtual void Initialize(QMTopology *top) {};
+    virtual void Initialize(QMTopology *top, Property *options) {};
     virtual void EvaluateFrame(QMTopology *top) {};
     virtual void EndCalc(QMTopology *top) {};
 protected:
