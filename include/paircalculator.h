@@ -16,7 +16,7 @@ public:
     virtual ~PairCalculator();
 
     void EvaluateFrame(QMTopology *top);
-    virtual void EvaluatePair(QMPair *pair) {};
+    virtual void EvaluatePair(QMTopology *top, QMPair *pair) {};
 };
 
 void PairCalculator::EvaluateFrame(QMTopology *top){

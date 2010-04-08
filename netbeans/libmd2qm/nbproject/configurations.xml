@@ -4,6 +4,9 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="f1" displayName="calculators" projectFiles="true">
+        <itemPath>../../include/calc_integrals.h</itemPath>
+      </logicalFolder>
       <itemPath>../../include/paircalculator.h</itemPath>
       <itemPath>../../include/qmapplication.h</itemPath>
       <itemPath>../../include/qmbead.h</itemPath>
@@ -11,6 +14,7 @@
       <itemPath>../../include/qmnblist.h</itemPath>
       <itemPath>../../include/qmpair.h</itemPath>
       <itemPath>../../include/qmtopology.h</itemPath>
+      <itemPath>../../include/sitecalculator.h</itemPath>
       <itemPath>../../include/statesaver.h</itemPath>
       <itemPath>../../include/version.h</itemPath>
     </logicalFolder>

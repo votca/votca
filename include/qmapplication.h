@@ -25,6 +25,9 @@ public:
     /// print neighbor list to file in human-readable format
     void PrintNbs(string filename);
 
+    /// get string of nearest neighbor names (NNnames)
+    vector <string>& get_nnnames() {return _nnnames;}
+
     /// parse program options from command line
     boost::program_options::options_description_easy_init
         AddProgramOptions() { return _op_desc_specific.add_options(); }
