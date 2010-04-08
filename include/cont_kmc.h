@@ -1,26 +1,58 @@
-#include "kmc_cont_app.h"
+/* 
+ * File:   cont_kmc.h
+ * Author: vehoff
+ *
+ * Created on April 8, 2010, 12:04 PM
+ */
 
-KmcCont::KmcCont()
-{}
+#ifndef _CONT_KMC_H
+#define	_CONT_KMC_H
 
-KmcCont::~KmcCont()
-{}
+#include "qmcalculator.h"
+#include <kmc/vertex.h>
+#include <kmc/hoppers.h>
+#include <kmc/kmc.h>
+#include <kmc/graph.h>
 
-void KmcCont::HelpText(){
-    cout << "Continuous Kinetic Monte Carlo \n\n";
-    cout << _op_desc_specific << endl;
-}
+class ContKmc : public QMCalculator{
+public:
+    ContKmc();
+    virtual ~ContKmc();
 
-void KmcCont::Initialize(){
+    void Initialize(QMTopology *top, Property *options);
+    void EvaluateFrame(QMTopology *top);
+
+private:
+    /// electric field
+    vec _E;
+    /// total simulation time
+    double _total_time;
+    /// constant
+    double _alpha;
+    /// time step
+    double _dt;
+    /// number of charges simultaneously present in a simultion
+    int _ncrg;
+    /// number of KMC runs to be performed
+    int _nruns;
+    ///  output streams for velocity averaging & diffusion
+    ofstream _out_cont;
+    ofstream _out_diff;
+
+    /// creation of KMC graph
+    void make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist);
+};
+
+void ContKmc::Initialize(QMTopology *top, Property *options){
     /// Read in the electric field - should be the same as used for the rates
-    _E = _options.get("options.calc_rates.e_field").as<vec>();
+    _E = options.get("options.calc_rates.e_field").as<vec>();
 
     /// Read simulation parameters from input file (main.xml)
-    _total_time = _options.get("options.kmc_cont.total_time").as<double>();
-    _dt = _options.get("options.kmc_cont.dt").as<double>();
-    _alpha = _options.get("options.kmc_cont.alpha").as<double>();
-    _ncrg = _options.get("options.kmc_cont.ncrg").as<int>();
-    _nruns = _options.get("options.kmc_cont.nruns").as<int>();
+    _total_time = options.get("options.kmc_cont.total_time").as<double>();
+    _dt = options.get("options.kmc_cont.dt").as<double>();
+    _alpha = options.get("options.kmc_cont.alpha").as<double>();
+    _ncrg = options.get("options.kmc_cont.ncrg").as<int>();
+    _nruns = options.get("options.kmc_cont.nruns").as<int>();
 
     /// Initialize output files for continuous KMC and diffusion
     _out_cont.open("kmc_cont.res");
@@ -38,15 +70,14 @@ void KmcCont::Initialize(){
     Random::init(14, 122, 472, 1912);
 }
 
-bool KmcCont::EvaluateFrame(){
-
+void ContKmc::EvaluateFrame(QMTopology *top){
     /// creating graph and initializing generators and hoppers
-    QMNBList &nblist = _qmtop.nblist();
+    QMNBList &nblist = top.nblist();
     graph kmc_grid;
     make_kmc_graph(&kmc_grid,nblist);
     kmc_grid.setGeneratorsOnly();
     hoppers charges(&kmc_grid);
-    
+
     /// preparing KMC Algorithm
     KMCAlg kmc_alg(_total_time, _dt, _alpha, _ncrg, &charges);
     cout << "Starting continuos KMC." << endl;
@@ -56,12 +87,12 @@ bool KmcCont::EvaluateFrame(){
     cout << "Finished continuous KMC." << endl;
 }
 
-void KmcCont::make_kmc_graph(graph *a, QMNBList &nblist) {
+void ContKmc::make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist) {
     cout << "[make_kmc_graph]: Building KMC Graph...";
     /// assign constants
     a->SetField(_E);
     /// set vertices equal to centers of mass
-    list < CrgUnit *> listCharges = _qmtop.crglist();
+    list < CrgUnit *> listCharges = top.crglist();
     list < CrgUnit *>::iterator it;
     for (it = listCharges.begin(); it != listCharges.end(); ++it) {
         a->AddVertex((*it)->GetCom(), _E); /// TO DO: remove necessity for E-field at this point
@@ -73,3 +104,6 @@ void KmcCont::make_kmc_graph(graph *a, QMNBList &nblist) {
     }
     cout << " Done." << endl;
 }
+
+#endif	/* _CONT_KMC_H */
+
