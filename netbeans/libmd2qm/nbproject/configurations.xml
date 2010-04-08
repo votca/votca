@@ -6,6 +6,7 @@
                    projectFiles="true">
       <logicalFolder name="f1" displayName="calculators" projectFiles="true">
         <itemPath>../../include/calc_integrals.h</itemPath>
+        <itemPath>../../include/marcus_rates.h</itemPath>
       </logicalFolder>
       <itemPath>../../include/paircalculator.h</itemPath>
       <itemPath>../../include/qmapplication.h</itemPath>
