@@ -93,13 +93,17 @@ if [ "$clean" = "yes" ]; then
   echo -e "So, you want to clean?\n"
   echo "We will remove:"
   files="$(ls -d done ${CSGRESTART} ${CSGLOG##$PWD/} step_* *~ 2>/dev/null)"
-  echo $files
-  echo -e "\nCTRL-C to stop it"
-  for ((i=10;i>0;i--)); do
-    echo -n "$i "
-    sleep 1
-  done
-  [ -n "$files" ] && rm -rf $files
-  echo -e "\n\nDone, hope you are happy now"
+  if [ -z "$files" ]; then
+    echo "Nothing to clean"
+  else
+    echo $files
+    echo -e "\nCTRL-C to stop it"
+    for ((i=10;i>0;i--)); do
+      echo -n "$i "
+      sleep 1
+    done
+    rm -rf $files
+    echo -e "\n\nDone, hope you are happy now"
+  fi
   exit 0
 fi
