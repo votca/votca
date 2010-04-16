@@ -21,17 +21,18 @@ if [ "$1" = "--help" ]; then
   cat <<EOF
 ${0##*/}, version %version%
 We have defined some useful (?) functions:
-* log          = send a message to the logfile
-* msg          = message to stdout and logfile
-* die          = error message to stderr and logfile,
-                 and kills all csg process
-* do_external  = get scriptname for sourcewrapper and run it
-                 supports for_all
-* for_all      = run a command for all non-bonded pairs
-* logrun       = exec to log output
-* run_or_exit  = logrun + die if error
-* check_for    = checks if a binary exist in the path
-* check_deps   = checks the dependencies of a script
+* log           = send a message to the logfile
+* msg           = message to stdout and logfile
+* die           = error message to stderr and logfile,
+                  and kills all csg process
+* do_external   = get scriptname for sourcewrapper and run it
+                  supports for_all
+* for_all       = run a command for all non-bonded pairs
+* logrun        = exec to log output
+* run_or_exit   = logrun + die if error
+* true_or_exit  = run + die if error (no loging)
+* check_for     = checks if a binary exist in the path
+* check_deps    = checks the dependencies of a script
 
 Examples:
 * log "Hi"
@@ -161,6 +162,14 @@ run_or_exit() {
 }
 export -f run_or_exit
 
+#useful subroutine check if a command was succesful AND log the output
+true_or_exit() {
+   local ret
+   ret="$($@ 2>&1)" || die "true_or_exit: '$*' failed with error message '$ret'"
+   echo "$ret"
+}
+export -f true_or_exit
+
 #do somefor all pairs, 1st argument is the type
 for_all (){
   local bondtype csg_get
@@ -181,7 +190,7 @@ for_all (){
     || die "for_all: csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name' failed"
   for name in $interactions; do
     log "for_all: run '$*'"
-    #we need to use bash -c here to allow things like $(csg_get_property xxx) in arguments
+    #we need to use bash -c here to allow things like $(csg_get_interaction_property xxx) in arguments
     #write variable defines in the front is better, that export
     #no need to run unset afterwards
     bondtype="$bondtype" \
@@ -212,11 +221,7 @@ csg_get_interaction_property () {
   [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
-  if ! ret="$($cmd 2>&1)"; then
-    #csg_property failed and no default
-    [[ -z "$2" ]] && die "csg_get_interaction_property: '$cmd' failed"
-    ret="$2"
-  fi
+  ret="$(true_or_exit $cmd)"
   [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_interaction_property: Result of '$cmd' was empty"
@@ -237,11 +242,7 @@ csg_get_property () {
   [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
-  if ! ret="$($cmd 2>&1)"; then
-    #csg_property failed and no default
-    [[ -z "$2" ]] && die "csg_get_property: '$cmd' failed"
-    ret="$2"
-  fi
+  ret="$(true_or_exit $cmd)"
   [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_property: Result of '$cmd' was empty"
@@ -284,7 +285,8 @@ export -f check_for
 check_deps () {
   [[ -n "$1" ]] || die "check_deps: Missig argument"
   local deps
-  deps=$($1 --help | sed -n '/^USES:/p')
+  deps="$(true_or_exit $1 --help)"
+  deps="$(echo "$deps" | sed -n '/^USES:/p')" || die "check_deps: sed failed"
   [[ -z "${deps}" ]] && msg "check_for '$1' has no used block please add it" && return 0
   deps=$(echo "$deps" | sed 's/USES://')
   [[ -z "${deps}" ]] && return 0
