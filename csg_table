@@ -4,6 +4,7 @@ prep simplex my_prep_simplex.pl
 par pot my_PAR_to_POT.sh
 
 prepare gromacs my_prepare_gromacs.sh
+surften gromacs my_calc_surften_gromacs.sh
 
 initstep simplex my_initialize_step_simplex.sh
 
