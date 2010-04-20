@@ -32,9 +32,18 @@ fi
 
 check_deps "$0"
 
-msg "Calc rdf"
 sim_prog=$(csg_get_property cg.inverse.program)
+property=$(csg_get_property cg.inverse.simplex.property)
+
+#if [ $property eq "rdf" ]; then
+msg "Calc rdf"
 for_all non-bonded do_external rdf $sim_prog
+#fi
+
+if [ $property eq "surften"]; then
+msg "Calc surften"
+for_all non-bonded do_external surften $sim_prog
+fi
 
 # For active parameter set, calculate ftar
 if [ $(grep -c 'active$' simplex.cur) == "1" ]; then
