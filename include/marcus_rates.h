@@ -8,6 +8,8 @@
 #ifndef _MARCUS_RATES_H
 #define	_MARCUS_RATES_H
 
+#include "paircalculator.h"
+
 class MarcusRates : public PairCalculator
 {
 public:
@@ -23,8 +25,8 @@ private:
 };
 
 void MarcusRates::Initialize(QMTopology *top, Property *options){
-    _kT = options.get("options.calc_rates.thermal_energy").as<double>();
-    _E = options.get("options.calc_rates.e_field").as<vec>();
+    _kT = options->get("options.calc_rates.thermal_energy").as<double>();
+    _E = options->get("options.calc_rates.e_field").as<vec>();
 }
 
 void MarcusRates::EvaluatePair(QMTopology *top, QMPair* pair){

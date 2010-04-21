@@ -45,14 +45,14 @@ private:
 
 void ContKmc::Initialize(QMTopology *top, Property *options){
     /// Read in the electric field - should be the same as used for the rates
-    _E = options.get("options.calc_rates.e_field").as<vec>();
+    _E = options->get("options.calc_rates.e_field").as<vec>();
 
     /// Read simulation parameters from input file (main.xml)
-    _total_time = options.get("options.kmc_cont.total_time").as<double>();
-    _dt = options.get("options.kmc_cont.dt").as<double>();
-    _alpha = options.get("options.kmc_cont.alpha").as<double>();
-    _ncrg = options.get("options.kmc_cont.ncrg").as<int>();
-    _nruns = options.get("options.kmc_cont.nruns").as<int>();
+    _total_time = options->get("options.kmc_cont.total_time").as<double>();
+    _dt = options->get("options.kmc_cont.dt").as<double>();
+    _alpha = options->get("options.kmc_cont.alpha").as<double>();
+    _ncrg = options->get("options.kmc_cont.ncrg").as<int>();
+    _nruns = options->get("options.kmc_cont.nruns").as<int>();
 
     /// Initialize output files for continuous KMC and diffusion
     _out_cont.open("kmc_cont.res");
@@ -72,9 +72,9 @@ void ContKmc::Initialize(QMTopology *top, Property *options){
 
 void ContKmc::EvaluateFrame(QMTopology *top){
     /// creating graph and initializing generators and hoppers
-    QMNBList &nblist = top.nblist();
+    QMNBList &nblist = top->nblist();
     graph kmc_grid;
-    make_kmc_graph(&kmc_grid,nblist);
+    make_kmc_graph(top,&kmc_grid,nblist);
     kmc_grid.setGeneratorsOnly();
     hoppers charges(&kmc_grid);
 
@@ -92,7 +92,7 @@ void ContKmc::make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist) {
     /// assign constants
     a->SetField(_E);
     /// set vertices equal to centers of mass
-    list < CrgUnit *> listCharges = top.crglist();
+    list < CrgUnit *> listCharges = top->crglist();
     list < CrgUnit *>::iterator it;
     for (it = listCharges.begin(); it != listCharges.end(); ++it) {
         a->AddVertex((*it)->GetCom(), _E); /// TO DO: remove necessity for E-field at this point

@@ -20,9 +20,9 @@ public:
 };
 
 void PairCalculator::EvaluateFrame(QMTopology *top){
-    QMNBList &nblist = top.nblist();
+    QMNBList &nblist = top->nblist();
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
-        EvaluatePair(*iter);
+        EvaluatePair(top, *iter);
 }
 
 #endif	/* _PAIRCALCULATOR_H */

@@ -56,6 +56,8 @@ public:
     virtual bool EvaluateFrame() { return true; }
     /// stop evaluation & do final analysis if necessary
     virtual void EndEvaluate() {}
+    /// void add a calculator for later use (compare: cg_engine -> AddObserver)
+    void AddCalculator(QMCalculator *calculator);
 
 protected:
     /// Variable map containing all program options
@@ -79,8 +81,6 @@ protected:
     void WriteData();
     /// loads the options in from the options file
     void LoadOptions();
-    /// void add a calculator for later use (compare: cg_engine -> AddObserver)
-    void AddCalculator(QMCalculator *calculator);
 
 private:
     /// get input parameters from file, location may be specified in command line
