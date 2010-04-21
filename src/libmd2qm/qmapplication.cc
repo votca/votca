@@ -50,13 +50,13 @@ void QMApplication::LoadOptions(){
     /// read in program options from main.xml
     load_property_from_xml(_options, _op_vm["opt"].as<string>());
 }
+
 void QMApplication::Run(int argc, char **argv)
 {
     try {
 
         AddSpecificOptions(); /// initialize program-specific parameters
         ParseCommandLine(argc, argv); /// initialize general parameters & read input file
-       
        
         if (_op_vm.count("help")) {
             HelpText();
@@ -79,6 +79,7 @@ void QMApplication::Run(int argc, char **argv)
             begin = _op_vm["begin"].as<double>();
         }
 
+        LoadOptions();
         CheckInput();
 
         if (!BeginEvaluate()) return;
@@ -139,21 +140,22 @@ void QMApplication::AddCalculator(QMCalculator* calculator){
     _calculators.push_back(calculator);
 }
 
-void QMApplication::BeginCalc(){
+bool QMApplication::BeginEvaluate(){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->Initialize(&_qmtop, &_options);
     }
+    return true;
 }
 
-void QMApplication::EvalCalc(){
+void QMApplication::EvaluateFrame(){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->EvaluateFrame(&_qmtop);
     }
 }
 
-void QMApplication::EndCalc(){
+void QMApplication::EndEvaluate(){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->EndCalc(&_qmtop);

@@ -27,14 +27,6 @@ public:
     /// get string of nearest neighbor names (NNnames)
     vector <string>& get_nnnames() {return _nnnames;}
 
-    /// for use in combination with calculators (see qmcalculator.h)
-    /// prior to loop over frames
-    void BeginCalc();
-    /// for every frame
-    void EvalCalc();
-    /// after evaluation of frames
-    void EndCalc();
-
     /// parse program options from command line
     boost::program_options::options_description_easy_init
         AddProgramOptions() { return _op_desc_specific.add_options(); }
@@ -51,11 +43,11 @@ public:
     /// check whether required input is present and correct
     virtual void CheckInput() {}
     /// return true if evaluation should be continued, abort only if something important is missing
-    virtual bool BeginEvaluate() {return true;}
+    virtual bool BeginEvaluate();
     /// called for each frame, return true if evaluation should be continued
-    virtual bool EvaluateFrame() { return true; }
+    virtual void EvaluateFrame();
     /// stop evaluation & do final analysis if necessary
-    virtual void EndEvaluate() {}
+    virtual void EndEvaluate();
     /// void add a calculator for later use (compare: cg_engine -> AddObserver)
     void AddCalculator(QMCalculator *calculator);
 
