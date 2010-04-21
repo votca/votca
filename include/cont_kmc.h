@@ -16,8 +16,8 @@
 
 class ContKmc : public QMCalculator{
 public:
-    ContKmc();
-    virtual ~ContKmc();
+    ContKmc() {};
+    ~ContKmc() {};
 
     void Initialize(QMTopology *top, Property *options);
     void EvaluateFrame(QMTopology *top);

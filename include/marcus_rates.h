@@ -13,8 +13,8 @@
 class MarcusRates : public PairCalculator
 {
 public:
-    MarcusRates();
-    ~MarcusRates();
+    MarcusRates() {};
+    ~MarcusRates() {};
 
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);

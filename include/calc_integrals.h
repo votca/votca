@@ -14,8 +14,8 @@
 class CalcIntegrals : public PairCalculator
 {
 public:
-    CalcIntegrals();
-    ~CalcIntegrals();
+    CalcIntegrals() {};
+    ~CalcIntegrals() {};
 
     void EvaluatePair(QMTopology *top, QMPair *pair);
 };

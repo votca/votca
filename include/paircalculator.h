@@ -12,8 +12,8 @@
 
 class PairCalculator : public QMCalculator{
 public:
-    PairCalculator();
-    virtual ~PairCalculator();
+    PairCalculator() {};
+    virtual ~PairCalculator() {};
 
     void EvaluateFrame(QMTopology *top);
     virtual void EvaluatePair(QMTopology *top, QMPair *pair) {};
