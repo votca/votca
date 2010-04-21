@@ -69,6 +69,10 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
             double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
             conf.getBead(i)->setF(f);
         }
+        if(_gmx_frame.bV) {
+            double v[3] = { _gmx_frame.v[i][XX],  _gmx_frame.v[i][YY], _gmx_frame.v[i][ZZ] };
+            conf.getBead(i)->setVel(v);
+        }
     }
     return true;
 }
@@ -104,6 +108,12 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf)
             double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
             conf.getBead(i)->setF(f);
         }
+        if(_gmx_frame.bV) {
+            double v[3] = { _gmx_frame.v[i][XX],  _gmx_frame.v[i][YY], _gmx_frame.v[i][ZZ] };
+            conf.getBead(i)->setVel(v);
+        }
+
+
     }
     return true;
 }
