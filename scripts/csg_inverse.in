@@ -51,7 +51,7 @@ fi
 
 if [ -z "${CSGSHARE}" ]; then
    echo "Error: Environment values CSGSHARE not defined" >&2
-   echo "Please source CSGRC.bash or CSGRC.csh" >&2
+   echo "Please source VOTCARC.bash or VOTCARC.csh" >&2
    echo "Try ${0##*/} --help for help" >&2
    exit 1
 fi
