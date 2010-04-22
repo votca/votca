@@ -42,6 +42,7 @@ or specify GMX_LIBS and GMX_CFLAGS
   ])
   save_CPPFLAGS="$CPPFLAGS"
   save_LIBS="$LIBS"
+  save_CXX="$CXX"
 
   CPPFLAGS="$GMX_CFLAGS $CPPFLAGS"
   LIBS="$GMX_LIBS $LIBS"
@@ -54,6 +55,7 @@ Do not forget the /gromacs due to bug in gromacs headers!
     ])
   ])
   AC_MSG_CHECKING([for GromacsVersion in $GMX_LIBS])
+  CXX="${SHELL-/bin/sh} ${srcdir}/libtool --mode=link $CXX"
   AC_TRY_LINK_FUNC(GromacsVersion,[AC_MSG_RESULT([yes])],[
     AC_MSG_RESULT([no])
     AC_MSG_ERROR([
@@ -79,6 +81,7 @@ unexpected results ahead
   ])
   CPPFLAGS="$save_CPPFLAGS"
   LIBS="$save_LIBS"
+  CXX="$save_CXX"
 
   dnl we need to do PKG_CHECK_EXISTS to know if libgmx pkg-config file
   dnl really exist, so that we can add it to our pkg-config files
