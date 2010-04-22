@@ -15,6 +15,7 @@
  *
  */
 
+#include <malloc.h>
 #include <iostream>
 #include "topology.h"
 #include "gmxtrajectoryreader.h"
@@ -36,12 +37,14 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
 #ifdef GMX4DEV
     gmx::output_env_t oenv;
-    gmx::_snew("oenv", oenv, 1);
+    // _snew("oenv", oenv, 1);
+    oenv = (gmx::output_env_t)malloc(sizeof(*oenv));
     output_env_init_default (oenv);
 
     if(!gmx::read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
-    gmx::sfree(oenv);
+    //sfree(oenv);
+    free(oenv);
 #else
     if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
@@ -81,11 +84,13 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
 #ifdef GMX4DEV
     gmx::output_env_t oenv;
-    gmx::_snew("oenv", oenv, 1);
+    //gmx::_snew("oenv", oenv, 1);
+    oenv = (gmx::output_env_t)malloc(sizeof(*oenv));
     output_env_init_default (oenv);
     if(!gmx::read_next_frame(oenv, _gmx_status,&_gmx_frame))
         return false;
-    gmx::sfree(oenv);
+    //gmx::sfree(oenv);
+    free(oenv);
 #else
     if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))
         return false;
