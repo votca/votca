@@ -16,6 +16,18 @@
 #
 
 version='@version@'
+
+if [ -z "${CSGSHARE}" ]; then
+  CSGSHARE="${0%/*}/../share/votca"
+  if [ -f "$CSGSHARE/scripts/inverse/inverse.sh" ]; then
+    #transform it to a global path
+    export CSGSHARE="$(cd $CSGSHARE;pwd)"
+    echo "Guessed CSGSHARE to be ${CSGSHARE}"
+  else
+    unset CSGSHARE
+  fi
+fi
+
 #we leave --help here to have it even when
 #CSGSHARE is not defined
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
@@ -50,7 +62,7 @@ exit 0
 fi
 
 if [ -z "${CSGSHARE}" ]; then
-   echo "Error: Environment values CSGSHARE not defined" >&2
+   echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
    echo "Please source VOTCARC.bash or VOTCARC.csh" >&2
    echo "Try ${0##*/} --help for help" >&2
    exit 1

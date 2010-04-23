@@ -125,9 +125,18 @@ done
 
 [ -z "$2" ] && [ -z "$sw_opt" ] && die "${0##*/}: Missing argument"
 
-[ -n "${CSGSHARE}" ] || die "${0##*/}: Environment values CSGSHARE not defined"
-
-qecho "\$CSGSHARE is ${CSGSHARE}"
+if [ -z "${CSGSHARE}" ]; then
+  CSGSHARE="${0%/*}/../share/votca"
+  if [ -f "$CSGSHARE/scripts/inverse/inverse.sh" ]; then
+    #transform it to a global path
+    export CSGSHARE="$(cd $CSGSHARE;pwd)"
+    qecho "Guessed CSGSHARE to be ${CSGSHARE}"
+  else
+    die "${0##*/}: Environment values CSGSHARE not defined and could not be guessed, please source VOTCARC.{bash,csh}"
+  fi
+else
+  qecho "CSGSHARE is ${CSGSHARE}"
+fi
 
 export CSGINVERSE=$CSGSHARE/scripts/inverse
 export PERL5LIB="$CSGINVERSE:$PERL5LIB"
@@ -146,7 +155,7 @@ fi
 
 if [ -n "${CSGSCRIPTDIR}" ]; then
   [ -d "$CSGSCRIPTDIR" ] || die "${0##*/}: CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-  qecho \$CSGSCRIPTDIR is ${CSGSCRIPTDIR}
+  qecho "CSGSCRIPTDIR is ${CSGSCRIPTDIR}"
   export CSGSCRIPTDIR
   export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
 fi
