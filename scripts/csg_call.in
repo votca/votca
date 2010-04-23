@@ -51,7 +51,7 @@ Allowed options:
 -q, --quite          Be quite (useful with --show/--cat)
     --cat            Show the content of the script
     --show           Show the path to the script
-    --check          Check csg script
+    --check          Check all csg scripts
     --scriptdir DIR  Set the user script dir
                      (Used if no xmlfile is given)
 		     Default: empty
@@ -62,6 +62,8 @@ Allowed options:
 
 Examples:
 * ${0##*/} table smooth [ARGUMENTS]
+* ${0##*/} --show run gromacs
+* ${0##*/} --check
 
 USES: \$CSGSHARE
 
