@@ -23,7 +23,7 @@ export VOTCABIN VOTCALDLIB PATH LD_LIBRARY_PATH
 
 #votca rc files
 VOTCASHARE="@votcashare@"
-for rc in "$VOTCASHARE/rc/"*rc.bash; do
+for rc in "$VOTCASHARE"/rc/*rc.bash; do
   [ -r "$rc" ] && . "$rc"
 done
 unset rc
@@ -31,7 +31,7 @@ unset rc
 #bash cmopletion
 if [ -n "$BASH_VERSION" ] && [ -r "$VOTCASHARE/completion.bash" ]; then 
   source "$VOTCASHARE/completion.bash"
-  for comp in "$VOTCASHARE/rc/"*completion.bash; do
+  for comp in "$VOTCASHARE"/rc/*completion.bash; do
     [ -r "$comp" ] && source "$comp"
   done
   unset comp

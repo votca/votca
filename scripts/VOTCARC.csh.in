@@ -23,7 +23,7 @@ setenv LD_LIBRARY_PATH "@libdir@:${LD_LIBRARY_PATH}"
 
 #votca rc files
 set VOTCASHARE="@votcashare@"
-foreach rc ( "$VOTCASHARE/rc/"*rc.csh )
+foreach rc ( "$VOTCASHARE"/rc/*rc.csh )
   [ -r "$rc" ] && source "$rc"
 end
 unset VOTCASHARE rc
