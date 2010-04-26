@@ -202,7 +202,8 @@ export -f for_all
 
 csg_taillog () {
   sync
-  [[ -z "$CSGLOG" ]] || tail "$@" $CSGLOG
+  [[ -n "$CSGLOG" ]] || die "csg_taillog: logfile (CSGLOG) was not defined"
+  tail "$@" "$CSGLOG"
 }
 export -f csg_taillog
 
