@@ -57,6 +57,7 @@ my @flag;
 #gromacs does not like VERY big numbers
 for (my $i=0;$i<=$#r;$i++) {
   $pot[$i]=$gromacs_max if $pot[$i]>$gromacs_max;
+  $pot[$i]=-$gromacs_max if $pot[$i]<-$gromacs_max;
 }
 
 #cutoff is last point
