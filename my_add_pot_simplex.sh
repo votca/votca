@@ -40,5 +40,4 @@ else
 fi 
 
 for_all "non-bonded" \
-   run_or_exit do_external par pot '$(csg_get_interaction_property name).dist.tgt \
-   $(csg_get_interaction_property name).pot.new simplex.new' $p_line_nr
+   run_or_exit do_external par pot '$(csg_get_interaction_property name).pot.new simplex.new' $p_line_nr

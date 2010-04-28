@@ -1,3 +1,5 @@
+resample calc my_resample_to_calc.sh
+
 init simplex my_initialize_simplex.sh
 prep simplex my_prepare_simplex.pl
 
@@ -11,7 +13,8 @@ initstep simplex my_initialize_step_simplex.sh
 update simplex_single my_update_simplex_single.sh
 update simplex my_update_simplex.sh
 
-update simplex_ftar my_update_simplex_ftar.pl
+update ftar_rdf my_update_ftar_rdf.pl
+update ftar_surften my_update_ftar_surften.pl
 update simplex_step my_update_simplex_step.pl
 
 add_pot simplex my_add_pot_simplex.sh

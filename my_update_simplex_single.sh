@@ -35,15 +35,8 @@ check_deps "$0"
 sim_prog=$(csg_get_property cg.inverse.program)
 property=$(csg_get_property cg.inverse.simplex.property)
 
-if [ $property eq "rdf" ]; then
-msg "Calc rdf"
-for_all non-bonded do_external rdf $sim_prog
-fi
-
-if [ $property eq "surften"]; then
-msg "Calc surften"
-for_all non-bonded do_external surften $sim_prog
-fi
+msg "Calc $property"
+for_all non-bonded do_external $property $sim_prog
 
 # For active parameter set, calculate ftar
 if [ $(grep -c 'active$' simplex.cur) == "1" ]; then
@@ -52,6 +45,5 @@ else
   die "Error: No 'active' parameter set found."
 fi
 
-msg "Calc ftar"
-for_all non-bonded do_external update simplex_ftar '$(csg_get_interaction_property name).dist.tgt' \
-'$(csg_get_interaction_property name).dist.new' simplex.cur simplex.tmp $(($a_line_nr))
+msg "Calc $property ftar"
+for_all non-bonded do_external update ftar_$property simplex.cur simplex.tmp $(($a_line_nr))
