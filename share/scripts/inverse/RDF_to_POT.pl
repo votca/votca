@@ -35,7 +35,7 @@ Usage: $progname infile outfile
 
 USES: readin_table csg_get_property csg_get_property csg_get_interaction_property saveto_table
 
-NEEDS: cg.inverse.gromacs.pot_max cg.inverse.kBT max
+NEEDS: cg.inverse.kBT max
 
 EOF
   exit 0;
@@ -48,11 +48,6 @@ use CsgFunctions;
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-# TODO: this gromacs option should not be here
-#       since it's a general initial guess files
-#       move this option out of gromacs section!!!!!
-#
-my $gromacs_max=csg_get_property("cg.inverse.gromacs.pot_max");
 my $pref=csg_get_property("cg.inverse.kBT");
 my $r_cut=csg_get_interaction_property("max");
 
@@ -86,15 +81,6 @@ for (my $i=$#pot;$i>=0;$i--){
    }
 }
 
-#gromacs does not like VERY big numbers
-#in the very rare case that we are already in this region
-#we try to find a new beginnig
-while ($pot[$first_undef_bin+1]>$gromacs_max){
-  $pot[$first_undef_bin+1]="nan";
-  $flag[$first_undef_bin+1]="u";
-  $first_undef_bin++;
-}
-
 #find i which is the cutoff
 my $i_cut;
 for (my $nr=0;$nr<=$#r;$nr++){
@@ -111,11 +97,10 @@ for (my $i=0;$i<=$i_cut;$i++){
 }
 
 #quadratic extrapolation at the begining
-#and set all undef values to max
 my $slope=$pot[$first_undef_bin+1]-$pot[$first_undef_bin+2];
 for (my $i=$first_undef_bin;$i>=0;$i--){
    $slope+=$slope;
-   $pot[$i]=($pot[$i+1]+$slope)>$gromacs_max?$gromacs_max:($pot[$i+1]+$slope);
+   $pot[$i]=$pot[$i+1]+$slope;
    $flag[$i]="o";
 }
 
