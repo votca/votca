@@ -18,12 +18,13 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the surface tension for gromacs
-for the Inverse Boltzmann Method
+
+This script calculates the surface tension in
+gromacs using the Inverse Boltzmann Method.
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die sed check_deps
+USES: csg_get_property awk log run_or_exit g_energy csg_taillog die sed check_deps
 
 NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.gromacs.mdp
 EOF
@@ -33,7 +34,7 @@ fi
 check_deps "$0"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+[ -f "$mdp" ] || die "${0##*/}: Gromacs mdp file '$mdp' not found"
 
 tpr="$(csg_get_property cg.inverse.gromacs.g_energy.topol "topol.tpr")"
 [ -f "$tpr" ] || die "${0##*/}: Gromacs tpr file '$tpr' not found"
@@ -49,8 +50,11 @@ begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print 
 
 log "Running g_energy"
 echo \#Surf*SurfTen | run_or_exit g_energy -b "${begin}" -s "${tpr}" ${opts}
+
 #the number pattern '[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
-surften_now=$(csg_taillog -30 | sed -n 's/^\#Surf*SurfTen[^0-9]*\([0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
-  die "${0##*/}: awk failed"
-[ -z "$surften_now" ] && die "${0##*/}: Could not get surfance tension from simulation"
+echo log: $CSGLOG
+surften_now=$(csg_taillog -30) || die "${0##*/}: awk failed" 
+#| sed -n 's/^\#Surf\*SurfTen[^0-9]*\([0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p') || \
+#  die "${0##*/}: awk failed"
+#[ -z "$surften_now" ] && die "${0##*/}: Could not get surface tension from simulation"
 echo ${surften_now}

@@ -35,10 +35,10 @@ check_deps "$0"
 sim_prog=$(csg_get_property cg.inverse.program)
 property=$(csg_get_property cg.inverse.simplex.property)
 
-#if [ $property eq "rdf" ]; then
+if [ $property eq "rdf" ]; then
 msg "Calc rdf"
 for_all non-bonded do_external rdf $sim_prog
-#fi
+fi
 
 if [ $property eq "surften"]; then
 msg "Calc surften"

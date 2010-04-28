@@ -38,20 +38,32 @@ EOF
   exit 0;
 }
 
-die "4 parameters are nessary\n" if ($#ARGV<3);
+die "3 parameters are nessary\n" if ($#ARGV<2);
 
 use CsgFunctions;
 use SimplexFunctions;
 
-my $infile="$ARGV[0]";
-my $outfile="$ARGV[1]";
-my $simplex_table="$ARGV[2]";
-my $p_line_nr="$ARGV[3]";
+my $outfile="$ARGV[0]";
+my $simplex_table="$ARGV[1]";
+my $p_line_nr="$ARGV[2]";
+
+my $min=csg_get_property("cg.non-bonded.min");
+my $max=csg_get_property("cg.non-bonded.max");
+my $step=csg_get_property("cg.non-bonded.step");
 
 my @r;
-my @rdf;
+my @dummy;
 my @flag;
-(readin_table($infile,@r,@rdf,@flag)) || die "$progname: error at readin_table\n";
+
+open(TMP, ">tmp");
+print TMP "$min 0\n$max 0";
+
+my @args=("bash","-c","csg_resample --in tmp --out grid --grid $min:$step:$max");
+system(@args);
+
+(readin_table("grid",@r,@dummy,@flag)) || die "$progname: error at readin_table\n";
+
+close(TMP);
 
 my @ftar;
 my @sig;
