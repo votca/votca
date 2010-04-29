@@ -22,7 +22,7 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(readin_simplex_table readin_init_simplex_table saveto_simplex_table calc_func calc_psum calc_ftar calc_ptry amotry);
+@EXPORT      = qw(readin_simplex_table readin_init_simplex_table saveto_simplex_table calc_func calc_psum calc_ptry amotry);
 
 # Subroutine to read initial Simplex table
 sub readin_init_simplex_table($\@\@) {
@@ -104,29 +104,6 @@ sub calc_psum(\@$$) {
      $psum[$j]=$sum;
      }
   return @psum;
-}
-
-# Subroutine to calculate ftar
-sub calc_ftar ($\@\@\@\@\@) {
-defined($_[5]) || die "calc_ftar: Missing argument\n";
-my $a_line_nr="$_[0]";
-my @r_cur=@{$_[1]};
-my @rdf_aim=@{$_[2]};
-my @rdf_cur=@{$_[3]};
-my @sig_cur=@{$_[4]};
-my @eps_cur=@{$_[5]};
-my @w=@_;
-my @drdf=@_;
-my $ftar=0;
-my $delta_r=csg_get_interaction_property("step");
-my $max=csg_get_interaction_property("max");
-for(my $i=1;$i<=$max/$delta_r;$i++) { 
-       $w[$i]=exp(-$r_cur[$i]/$sig_cur[$a_line_nr]);
-       $drdf[$i]=($rdf_cur[$i]-$rdf_aim[$i]);
-       $ftar+=$delta_r*$w[$i]*($drdf[$i]**2);
-       }
-    $ftar+=(0.5*$delta_r*$w[$max/$delta_r]*$drdf[$max/$delta_r]**2);
-    return $ftar;
 }
 
 # Subroutine calc_ptry
