@@ -55,6 +55,13 @@ my @eps;
 my @flag_simplex;
 (readin_simplex_table($infile,@ftar,@sig,@eps,@flag_simplex)) || die "error at readin_simplex_table\n";
 
+my @sig_par;
+my @eps_par;
+foreach (0 .. $#ftar) {
+   $sig_par[$_]=sqrt($sig[$_]);
+   $eps_par[$_]=sqrt($eps[$_]);
+}
+
 my $mpts=3;
 my $ndim=$mpts-1;
 my $nfunc=0;
@@ -62,18 +69,19 @@ my $ftol=csg_get_property("cg.non-bonded.ftol");
 
 my @psum;
 my @ptry;
+my @ptry_par;
 my $ytry=$ftar[-1];
 
 # Generate p[mpts][ndim] matrix (parameters)
 my @p;
-my @p_trans=([@sig],[@eps]);
+my @p_trans=([@sig_par],[@eps_par]);
 for(my $i=0; $i<$mpts; $i++) {
    for(my $j=0; $j<$ndim; $j++) {
       $p[$i][$j]=$p_trans[$j][$i];
    }
 }
 
-# Generate and sort y[mpts] array (ftar values)
+# Generate and sort according to y[mpts] (ftar values)
 my $ilo=0;
 my @i_sort;
 my @ftar_asc;
@@ -83,8 +91,8 @@ foreach (0 .. $#ftar) {$i_sort[$_]=$_};
    @i_sort=(sort{$ftar[$a] <=> $ftar[$b]} @i_sort);
       for (my $i=0;$i<$mpts;$i++) {
       $ftar_asc[$i]=$ftar[$i_sort[$i]];
-      $sig_asc[$i]=$sig[$i_sort[$i]];
-      $eps_asc[$i]=$eps[$i_sort[$i]];
+      $sig_asc[$i]=$sig_par[$i_sort[$i]];
+      $eps_asc[$i]=$eps_par[$i_sort[$i]];
       }
 
 # Define highest, next highest, and lowest points (ihi, inhi, ilo)
@@ -103,7 +111,6 @@ for (my $i=0;$i<$mpts;$i++) {
 my %state;
 open (STATE_CUR, "<state.cur") || die "Could not open file $_[0]\n";
 while(<STATE_CUR>) {
-   # create a hash
    if (/^(.*)=(.*)$/) {
    $state{"$1"}=$2;
    }
@@ -122,7 +129,10 @@ case 'Reflection' {
       $ysave_R=$state{$ytry};
       print STATE "Transformation=Expansion\n";
       @psum=calc_psum(@p,$mpts,$ndim);
-      @ptry=calc_ptry($ndim,$ihi,2.0,@p,@psum);
+      @ptry_par=calc_ptry($ndim,$ihi,2.0,@p,@psum);
+      for (my $j=0;$j<$ndim;$j++) {
+         $ptry[$j]=$ptry_par[$j]*$ptry_par[$j];
+      }
       push(@ftar_asc,"0");
       push(@sig_asc,"$ptry[0]");
       push(@eps_asc,"$ptry[1]");
@@ -134,7 +144,10 @@ case 'Reflection' {
       $ysave_C=$state{$y[$ihi]};
       print STATE "Transformation=Contraction\n";
       @psum=calc_psum(@p,$mpts,$ndim);
-      @ptry=calc_ptry($ndim,$ihi,0.5,@p,@psum);
+      @ptry_par=calc_ptry($ndim,$ihi,0.5,@p,@psum);
+      for (my $j=0;$j<$ndim;$j++) {
+         $ptry[$j]=$ptry_par[$j]*$ptry_par[$j];
+      }
       push(@ftar_asc,"0");
       push(@sig_asc,"$ptry[0]");
       push(@eps_asc,"$ptry[1]");
@@ -179,8 +192,8 @@ case 'Contraction' {
             for (my $j=0;$j<=$ndim;$j++) {
             $p[$i][$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
             $ftar_asc[$i]="0";
-            $sig_asc[$i]=$p[$i][0];
-            $eps_asc[$i]=$p[$i][1];
+            $sig_asc[$i]=($p[$i][0])*($p[$i][0]);
+            $eps_asc[$i]=($p[$i][1])*($p[$i][1]);
             $flag_simplex[$i]="pending";
             }
          }
@@ -201,8 +214,11 @@ else {
    # Compute reflected point
    print STATE "Transformation=Reflection\n";
    @psum=calc_psum(@p,$mpts,$ndim);
-   @ptry=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
+   @ptry_par=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
    push(@ftar_asc,"0");
+   for (my $j=0;$j<$ndim;$j++) {
+         $ptry[$j]=$ptry_par[$j]*$ptry_par[$j];
+   }
    push(@sig_asc,"$ptry[0]");
    push(@eps_asc,"$ptry[1]");
    push(@flag_simplex,"pending");
