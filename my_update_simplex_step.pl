@@ -81,6 +81,8 @@ for(my $i=0; $i<$mpts; $i++) {
    }
 }
 
+foreach (0 .. $#ftar) {$i_sort[$_]=$_};
+
 # Generate and sort according to y[mpts] (ftar values)
 my $ilo=0;
 my @i_sort;

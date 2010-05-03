@@ -45,59 +45,33 @@ use SimplexFunctions;
 
 my $outfile="$ARGV[0]";
 my $simplex_table="$ARGV[1]";
-my $p_line_nr="$ARGV[2]";
-
-my $min=csg_get_property("cg.non-bonded.min");
-my $max=csg_get_property("cg.non-bonded.max");
-my $step=csg_get_property("cg.non-bonded.step");
-
-my @r;
-my @dummy;
-my @flag;
-
-open(TMP, ">tmp");
-print TMP "$min 0\n$max 0";
-
-my @args=("bash","-c","csg_resample --in tmp --out grid --grid $min:$step:$max");
-system(@args);
-
-(readin_table("grid",@r,@dummy,@flag)) || die "$progname: error at readin_table\n";
-
-close(TMP);
+my $param_N="$ARGV[2]";
+my $p_line_nr="$ARGV[3]";
+my %hash=();
 
 my @ftar;
-my @sig;
-my @eps;
-my @flag_simplex;
+my @params;
+my @flag;
 
-(readin_simplex_table($simplex_table,@ftar,@sig,@eps,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
-
-my @pot;
-for (my $i=0;$i<=$#r;$i++){
-    # Avoid undefined potential at r=0
-    if ($r[$i]>1e-10) {
-        $pot[$i]=calc_func("$r[$i]","$sig[$p_line_nr]","$eps[$p_line_nr]");
-        $flag[$i]="i";
-    }
-    else {
-      $pot[$i]="0";
-      $flag[$i]="u";
-    }
-    # Avoid gmx segmentation fault for large pot
-    if ($pot[$i]>=1e6) {
-        $pot[$i]=1e6;
-    }
+open(TAB,"$simplex_table") || die "could not open file $simplex_table\n";
+my $line=0;
+while (<TAB>) {
+  $line++;
+  $_ =~ s/^\s*//;
+  next if /^[#@]/;
+  next if /^\s*$/;
+  my @values=split(/\s+/);
+  defined($values[1]) || die "readin_table: Not enough columns in line $line in file $simplex_table\n";
+  foreach (1..$param_N) {
+    push @{$hash{"p_$_"}}, $values[$_];
+  }
 }
+close(TAB) || die "could not close file $simplex_table\n";
 
-# Find index at the cutoff
-my $i_cut=$#r;
+@ftar=@{$hash{p_0}};
+@flag=@{$hash{\"p_$param_N\"}};
 
-# Shift potential so that it is zero at the cutoff
-for (my $i=0;$i<=$i_cut;$i++){
-   $pot[$i]-=$pot[$i_cut];
-}
+# Mark current parameter set as active
+$flag[$p_line_nr]="active";
 
-$flag_simplex[$p_line_nr]="active";
-
-saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at saveto_table\n";
 saveto_simplex_table("simplex.new",@ftar,@sig,@eps,@flag_simplex) || die "$progname: error at saveto_simplex_table\n";
