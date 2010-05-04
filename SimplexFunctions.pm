@@ -22,7 +22,31 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(readin_simplex_table saveto_simplex_table calc_func calc_psum calc_ptry amotry);
+@EXPORT      = qw(readin_init_simplex_table readin_simplex_table saveto_simplex_table calc_func calc_psum calc_ptry amotry);
+
+# Subroutine to read in simplex table
+sub readin_init_simplex_table($$) {
+  defined($_[1]) || die "readin_simplex_table: Missing file\n";
+  my $infile=$_[0];
+  my $param_N=$_[1];
+  my %hash=();
+  open(TAB,"$infile") || die "could not open file $_[0]\n";
+  my $line=0;
+  while (<TAB>) {
+    $line++;
+    # remove leading spaces for split
+    $_ =~ s/^\s*//;
+    next if /^[#@]/;
+    next if /^\s*$/;
+    my @values=split(/\s+/);
+    defined($values[1]) || die "readin_table: Not enough columns in line $line in file $_[0]\n";
+    foreach (1..$param_N) {
+      push @{$hash{"p_$_"}}, $values[$_];
+    }
+  }
+close(TAB) || die "could not close file $_[0]\n";
+return %hash;
+}
 
 # Subroutine to read in simplex table
 sub readin_simplex_table($$) {
