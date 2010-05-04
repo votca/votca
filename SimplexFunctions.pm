@@ -25,8 +25,10 @@ use vars qw(@ISA @EXPORT);
 @EXPORT      = qw(readin_simplex_table saveto_simplex_table calc_func calc_psum calc_ptry amotry);
 
 # Subroutine to read in simplex table
-sub readin_simplex_table($) {
-  defined($_[0]) || die "readin_simplex_table: Missing input file\n";
+sub readin_simplex_table($$) {
+  defined($_[1]) || die "readin_simplex_table: Missing file\n";
+  my $infile=$_[0];
+  my $ndim=$_[1];
   my %hash=();
   open(TAB,"$infile") || die "could not open file $_[0]\n";
   my $line=0;
@@ -43,13 +45,18 @@ sub readin_simplex_table($) {
     }
   }
 close(TAB) || die "could not close file $_[0]\n";
-return $line;
+return %hash;
 }
 
 # Subroutine to save to simplex table
-sub saveto_simplex_table($\@\@\@) {
+sub saveto_simplex_table($$\@\@\@) {
   defined($_[4]) || die "saveto_table: Missing argument\n";
-  open(OUTFILE,"> $_[0]") or die "could not open $_[0]\n";
+  my $outfile=$_[0];
+  my $param_N=$_[1];
+  my @ftar=@{$_[2]};
+  my @hash=@{$_[3]};
+  my @flag=@{$_[4]};
+  open(OUTFILE,"> $outfile") or die "could not open file $_[0]\n";
   for(my $i=0;$i<=$#ftar;$i++){
     print OUTFILE "$ftar[$i] ";
       for(my $j=1;$j<=$param_N;$j++){

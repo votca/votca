@@ -33,20 +33,22 @@ fi
 check_deps "$0"
 
 main_dir=$(get_main_dir);
-function=$(csg_get_interaction_property inverse.simplex.function)
-total_params=$(wc -l simplex.in | awk '{print $1-1}')
-sum_interaction_params=$(for_all non-bonded do_external pot $function --nparams | awk '{sum+=$1}END{print sum}')
+columns=$(wc -l simplex.in | awk '{print $1-1}')
+param_N=$(for_all non-bonded do_external pot $function --nparams);
+interaction_N=$(for_all non-bonded do_external pot $function --ninteract);
+function=$(for_all non-bonded do_eternal csg_get_interaction_property inverse.simplex.function);
 
 if [ -f $main_dir/simplex.in ]; then
-   if [ $total_params != $sum_interaction_params]; then
+   if [ $columns != $param_N*$interact_N]; then
       die "Number of input parameters do not match!"
    else
       cp_from_main_dir simplex.in
       # Prepare simplex table
       do_external prep simplex simplex.in simplex.cur
       # Calculate potential for step_001
-      for_all "non-bonded" do_external pot $function '$(csg_get_interaction_property name).pot.new simplex.cur $'
-      for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).pot.new simplex.cur 0'
+      for_all "non-bonded" do_external pot $function '$(csg_get_interaction_property name).pot.new simplex.cur'
+      for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).pot.new simplex.cur /
+      $param_N 0'
       rm tmp grid
    fi
 else
