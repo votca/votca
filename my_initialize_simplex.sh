@@ -34,7 +34,7 @@ check_deps "$0"
 
 main_dir=$(get_main_dir);
 columns=$(wc -l simplex.in | awk '{print $1-1}')
-function=$(csg_get_interaction_property inverse.simplex.function);
+function=$(for_all non-bonded csg_get_interaction_property inverse.simplex.function);
 param_N=$(for_all non-bonded do_external pot $function --nparams);
 interaction_N=$(for_all non-bonded do_external pot $function --ninteract);
 
