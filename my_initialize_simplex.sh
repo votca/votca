@@ -36,7 +36,7 @@ main_dir=$(get_main_dir);
 columns=$(wc -l simplex.in | awk '{print $1-1}')
 param_N=$(for_all non-bonded do_external pot $function --nparams);
 interaction_N=$(for_all non-bonded do_external pot $function --ninteract);
-function=$(for_all non-bonded do_eternal csg_get_interaction_property inverse.simplex.function);
+function=$(for_all non-bonded do_external csg_get_interaction_property inverse.simplex.function);
 
 if [ -f $main_dir/simplex.in ]; then
    if [ $columns != $param_N*$interact_N]; then
