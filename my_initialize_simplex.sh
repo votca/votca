@@ -33,10 +33,10 @@ fi
 check_deps "$0"
 
 main_dir=$(get_main_dir);
-columns=$(wc -l simplex.in | awk '{print $1-1}')
+columns=$(wc -l $main_dir/simplex.in | awk '{print $1-1}')
 function=$(for_all non-bonded csg_get_interaction_property inverse.simplex.function);
-param_N=$(for_all non-bonded do_external pot $function --nparams);
-interaction_N=$(for_all non-bonded do_external pot $function --ninteract);
+param_N=$(for_all non-bonded do_external pot $function '--nparams');
+interaction_N=$(for_all non-bonded do_external pot $function '--ninteract');
 
 
 if [ -f $main_dir/simplex.in ]; then
@@ -47,9 +47,8 @@ if [ -f $main_dir/simplex.in ]; then
       # Prepare simplex table
       do_external prep simplex simplex.in simplex.cur
       # Calculate potential for step_001
-      for_all "non-bonded" do_external pot $function '$(csg_get_interaction_property name).pot.new simplex.cur'
-      for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).pot.new simplex.cur /
-      $param_N 0'
+      for_all non-bonded do_external pot $function '$(csg_get_interaction_property name).pot.new simplex.cur'
+      for_all non-bonded do_external par pot '$(csg_get_interaction_property name).pot.new simplex.cur $param_N 0'
       rm tmp grid
    fi
 else
