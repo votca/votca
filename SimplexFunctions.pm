@@ -22,59 +22,42 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(readin_simplex_table readin_init_simplex_table saveto_simplex_table calc_func calc_psum calc_ptry amotry);
+@EXPORT      = qw(readin_simplex_table saveto_simplex_table calc_func calc_psum calc_ptry amotry);
 
-# Subroutine to read initial Simplex table
-sub readin_init_simplex_table($\@\@) {
-  defined($_[2]) || die "readin_simplex_table: Missing argument\n";
-  open(TAB,"$_[0]") || die "readin_simplex_table: could not open file $_[0]\n";
+# Subroutine to read in simplex table
+sub readin_simplex_table($) {
+  defined($_[0]) || die "readin_simplex_table: Missing input file\n";
+  my %hash=();
+  open(TAB,"$infile") || die "could not open file $_[0]\n";
   my $line=0;
-  while (<TAB>){
+  while (<TAB>) {
     $line++;
-    # remove leading spacees for split
-    $_ =~ s/^\s*//;    
+    # remove leading spaces for split
+    $_ =~ s/^\s*//;
     next if /^[#@]/;
     next if /^\s*$/;
-    my @parts=split(/\s+/);
-    defined($parts[1]) || die "readin_table: Not enough columns in line $line in file $_[0]\n";
-    #very tricky array dereference (@) of pointer to an array $_[.] stored in an array $_
-    push(@{$_[1]},$parts[0]);
-    push(@{$_[2]},$parts[1]);
+    my @values=split(/\s+/);
+    defined($values[1]) || die "readin_table: Not enough columns in line $line in file $_[0]\n";
+    foreach (0..$ndim) {
+      push @{$hash{"p_$_"}}, $values[$_];
     }
-  close(TAB) || die "readin_simplex_table: could not close file $_[0]\n";
-  return $line;
-}
-
-# Subroutine to read in Simplex table
-sub readin_simplex_table($\@\@\@\@) {
-  defined($_[4]) || die "readin_simplex_table: Missing argument\n";
-  open(TAB,"$_[0]") || die "readin_simplex_table: could not open file $_[0]\n";
-  my $line=0;
-  while (<TAB>){
-    $line++;
-    # remove leading spacees for split
-    $_ =~ s/^\s*//;    
-    next if /^[#@]/;
-    next if /^\s*$/;
-    my @parts=split(/\s+/);
-    defined($parts[1]) || die "readin_table: Not enough columns in line $line in file $_[0]\n";
-    #very tricky array dereference (@) of pointer to an array $_[.] stored in an array $_
-    push(@{$_[1]},$parts[0]);
-    push(@{$_[2]},$parts[1]);
-    push(@{$_[3]},$parts[2]);
-    push(@{$_[4]},$parts[3]);
   }
-  close(TAB) || die "readin_simplex_table: could not close file $_[0]\n";
-  return $line;
+close(TAB) || die "could not close file $_[0]\n";
+return $line;
 }
 
-# Subroutine to save to Simplex table
-sub saveto_simplex_table($\@\@\@\@) {
+# Subroutine to save to simplex table
+sub saveto_simplex_table($\@\@\@) {
   defined($_[4]) || die "saveto_table: Missing argument\n";
-  open(OUTFILE,"> $_[0]") or die "saveto_table: could not open $_[0] \n";
-  for(my $i=0;$i<=$#{$_[1]};$i++){
-    print OUTFILE "${$_[1]}[$i] ${$_[2]}[$i] ${$_[3]}[$i] ${$_[4]}[$i]\n";
-  }
+  open(OUTFILE,"> $_[0]") or die "could not open $_[0]\n";
+  for(my $i=0;$i<=$#ftar;$i++){
+    print OUTFILE "$ftar[$i] ";
+      for(my $j=1;$j<=$param_N;$j++){
+        my @tmp=@{$hash{"p_$j"}};
+        print OUTFILE "$tmp[$i] ";
+      }
+      print OUTFILE "$flag[$i]\n";
+    }
   close(OUTFILE) or die "Error at closing $_[0]\n";
   return 1;
 }

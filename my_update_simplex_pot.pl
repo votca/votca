@@ -39,6 +39,7 @@ die "4 parameters are nessary\n" if ($#ARGV<3);
 use CsgFunctions;
 
 my $pref=csg_get_property("cg.inverse.kBT");
+my $interaction=csg_get_interaction_property("name");
 
 my $aim_rdf_file="$ARGV[0]";
 my @r_aim;

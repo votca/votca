@@ -45,6 +45,7 @@ if [ -f $main_dir/simplex.in ]; then
       # Prepare simplex table
       do_external prep simplex simplex.in simplex.cur
       # Calculate potential for step_001
+      for_all "non-bonded" do_external pot $function '$(csg_get_interaction_property name).pot.new simplex.cur $'
       for_all "non-bonded" do_external par pot '$(csg_get_interaction_property name).pot.new simplex.cur 0'
       rm tmp grid
    fi
