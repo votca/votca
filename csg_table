@@ -1,6 +1,7 @@
 resample calc my_resample_to_calc.sh
 
 init simplex my_initialize_simplex.sh
+init simplex_single my_initialize_simplex_single.sh
 prep simplex my_prepare_simplex.pl
 
 pot lj12-6 my_pot_lj12-6.pl

@@ -30,27 +30,19 @@ EOF
   exit 0
 fi
 
+
+# in script xxx_single.
+#  function=$(csg_get_interaction_property inverse.simplex.function)
+#  param_N=$(do_external pot $function --nparams)
+#...
+
 check_deps "$0"
 
 main_dir=$(get_main_dir);
-columns=$(wc -l $main_dir/simplex.in | awk '{print $1-1}')
-function=$(for_all non-bonded csg_get_interaction_property inverse.simplex.function);
-param_N=$(for_all non-bonded do_external pot $function '--nparams');
-interaction_N=$(for_all non-bonded do_external pot $function '--ninteract');
+name=$(for_all non-bonded csg_get_interaction_property name);
 
-
-if [ -f $main_dir/simplex.in ]; then
-   if [ $columns != $param_N*$interact_N]; then
-      die "Number of input parameters do not match!"
-   else
-      cp_from_main_dir simplex.in
-      # Prepare simplex table
-      do_external prep simplex simplex.in simplex.cur
-      # Calculate potential for step_001
-      for_all non-bonded do_external pot $function '$(csg_get_interaction_property name).pot.new simplex.cur'
-      for_all non-bonded do_external par pot '$(csg_get_interaction_property name).pot.new simplex.cur $param_N 0'
-      rm tmp grid
-   fi
+if [ -f $main_dir/simplex_$name.in ]; then
+  for_all non-bonded do_external init simplex_single
 else
-   die "No input file simplex.in found"
+  die "No input file simplex_$name.in found"
 fi
