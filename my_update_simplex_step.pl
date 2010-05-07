@@ -44,16 +44,22 @@ die "2 parameters are nessary\n" if ($#ARGV<1);
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
+my $param_N="$ARGV[2]";
+
+my $ndim=$param_N+1;
 
 use CsgFunctions;
 use SimplexFunctions;
 use Switch;
 
-my @ftar;
-my @sig;
-my @eps;
-my @flag_simplex;
-(readin_simplex_table($infile,@ftar,@sig,@eps,@flag_simplex)) || die "error at readin_simplex_table\n";
+my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
+
+my @ftar=@{$hash{p_0}};
+my @flag=@{$hash{"p_$ndim"}};
+
+# Get current parameters
+my $sig=${$hash{p_1}}[$p_line_nr];
+my $eps=${$hash{p_2}}[$p_line_nr];
 
 my @sig_par;
 my @eps_par;
@@ -244,4 +250,4 @@ if($rtol<$ftol) {
 close(STATE);
 
 # Update simplex table
-saveto_simplex_table($outfile,@ftar_asc,@sig_asc,@eps_asc,@flag_simplex) || die "$progname: error at save table\n";
+saveto_simplex_table($outfile,$param_N,@ftar,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";

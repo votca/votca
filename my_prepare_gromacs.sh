@@ -40,4 +40,4 @@ cp ${main_dir}/conf.gro ./conf.gro || die "${0##*/} cp ${last_step}/conf.gro ./c
 run_or_exit grompp -f grompp.steep.mdp -n index.ndx
 run_or_exit mdrun -c confout.steep.gro
 
-run_or_exit grompp -c confout.steep.gro -n index.ndx 
+run_or_exit grompp -f grompp.mpd -c confout.steep.gro -n index.ndx 

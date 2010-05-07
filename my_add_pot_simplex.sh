@@ -31,13 +31,15 @@ fi
 
 check_deps "$0"
 
-p_nr=$(grep -c 'pending$' simplex.new);
+name=$(for_all non-bonded csg_get_interaction_property name);
+param_N=$(do_external pot $function --nparams);
+p_nr=$(grep -c 'pending$' simplex_$name.new);
 
 if [ $p_nr > "0" ]; then
-p_line_nr=$(($(grep -n -m1 'pending$' simplex.new | sed 's/:.*//')-1));
+p_line_nr=$(($(grep -n -m1 'pending$' simplex_$name.new | sed 's/:.*//')-1));
 else 
    die "Error: No 'pending' parameter sets found."
 fi 
 
 for_all "non-bonded" \
-   run_or_exit do_external par pot '$(csg_get_interaction_property name).pot.new simplex.new' $p_line_nr
+   run_or_exit do_external par pot '$(csg_get_interaction_property name).pot.new' simplex_$name.new $param_N $p_line_nr

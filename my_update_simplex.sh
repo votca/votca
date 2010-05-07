@@ -18,12 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function update
-for the Simplex Method
+This script implements the update function for the Simplex Method.
 
 Usage: ${0##*/}
 
-USES:  die msg csg_get_property for_all do_external
+USES:  die msg csg_get_interaction_property for_all do_external run_or_exit
 
 NEEDS: cg.inverse.program
 EOF
@@ -32,16 +31,19 @@ fi
 
 check_deps "$0"
 
+name=$(for_all non-bonded csg_get_interaction_property name);
+param_N=$(do_external pot $function --nparams);
+
 run_or_exit do_external update simplex_single
 
-p_nr=$(grep -c 'pending$' simplex.tmp);
+p_nr=$(grep -c 'pending$' simplex_$name.tmp);
 
 if [ $p_nr == "0" ]; then
    # Generate new parameter set
    msg "Preparing new parameters"
-   run_or_exit do_external update simplex_step simplex.tmp simplex.new
+   run_or_exit do_external update simplex_step simplex_$name.tmp simplex_$name.new $param_N
 else 
    msg "Found 'pending' parameter set"
-   cp simplex.tmp simplex.new
-   cp state.cur state.new
+   cp simplex_$name.tmp simplex_$name.new
+   cp state_$name.cur state_$name.new
 fi

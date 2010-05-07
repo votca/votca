@@ -18,23 +18,17 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version 1.0_rc1 hgid: 49f54a9b1845112a273f8c1bf2c683f2674f71c7
-This script calculates the potential for the Simplex Method 
-for the first set of parameters given in table simplex.in
+This script calculates the potential for the Simplex Method for the first 
+set of parameters.
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property msg run_or_exit csg_resample
+USES: do_external csg_get_interaction_property for_all csg_resample
 
 NEEDS: name
 EOF
   exit 0
 fi
-
-
-# in script xxx_single.
-#  function=$(csg_get_interaction_property inverse.simplex.function)
-#  param_N=$(do_external pot $function --nparams)
-#...
 
 check_deps "$0"
 

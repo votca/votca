@@ -18,12 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function 
-initialize_step for the Simplex Method
+This script copies pot, simplex and state files from the last to
+the current directory.
 
 Usage: ${0##*/}
 
-USES:  get_step_nr get_main_dir for_all csg_get_interaction_property msg cp_from_last_step mv
+USES:  for_all csg_get_interaction_property cp_from_last_step mv
 
 NEEDS: -
 EOF
@@ -32,14 +32,17 @@ fi
 
 check_deps "$0"
 
+main_dir=$(get_main_dir);
+name=$(for_all non-bonded csg_get_interaction_property name);
+
 # Get new pot from last step and make it current
 for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 
 # Get new simplex table from last step and make it current
-cp_from_last_step simplex.new
-mv simplex.new simplex.cur
+cp_from_last_step simplex_$name.new
+mv simplex_$name.new simplex_$name.cur
 
 # Get new simplex table from last step and make it current
-cp_from_last_step state.new
-mv state.new state.cur
+cp_from_last_step state_$name.new
+mv state_$name.new state_$name.cur
