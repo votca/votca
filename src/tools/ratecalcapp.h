@@ -18,7 +18,7 @@ public:
     
     void HelpText();
     void Initialize();
-    bool EvaluateFrame();
+    void EvaluateFrame();
     void EndEvaluate();
     
 private:
