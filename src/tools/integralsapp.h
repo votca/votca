@@ -20,7 +20,7 @@ public:
     void HelpText();
     void AddSpecificOptions();
     void Initialize();
-    bool EvaluateFrame();
+    void EvaluateFrame();
     void EndEvaluate();
     
 private:
