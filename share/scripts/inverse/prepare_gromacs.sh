@@ -38,7 +38,7 @@ run_or_exit mv confout.gro conf.gro
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
 
-for_all "non-bonded" check_cufoff $mdp
+for_all "non-bonded" check_cutoff $mdp
 
 index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"
 [ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"

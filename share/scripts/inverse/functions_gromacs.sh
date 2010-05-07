@@ -48,16 +48,16 @@ get_from_mdp() {
 }
 export -f get_from_mdp
 
-check_cufoff() {
+check_cutoff() {
   local max rvdw res cutoff_check
-  [[ -n "$1" ]] || die "check_cufoff: Missing argument (interaction name)"
+  [[ -n "$1" ]] || die "check_cutoff: Missing argument (interaction name)"
   cutoff_check=$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")
   [ ${cutoff_check} = "no" ] && return 0
   max="$(csg_get_interaction_property max)"
   rvdw="$(get_from_mdp rvdw "$1")"
-  res="$(awk -v max="$max" -v rvdw="$rvdw" 'BEGIN{ print (max>rvdw)?1:0 }')" || die "check_cufoff: awk failed"
+  res="$(awk -v max="$max" -v rvdw="$rvdw" 'BEGIN{ print (max>rvdw)?1:0 }')" || die "check_cutoff: awk failed"
   [ "$res" != "0" ] && die "Error in interaction '$bondname': rvdw ($rvdw) in $1 is smaller than max ($max)\n\
 To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
   return "$res"
 }
-export -f check_cufoff
+export -f check_cutoff
