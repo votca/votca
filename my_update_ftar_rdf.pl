@@ -23,8 +23,8 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
 $progname, version %version%
 This script calculates ftar out of the two rdfs for the 
 Simplex Method and arranges the output table in order 
-of increasing magnitude of ftar. 
-In addtion it does some magic tricks:
+of increasing magnitude of ftar.
+In addition it does some magic tricks:
 - do not update if one of the both rdf are undefined
 
 Usage: $progname target_rdf cur_rdf cur_simplex outfile
@@ -36,45 +36,69 @@ EOF
   exit 0;
 }
 
-die "5 parameters are necessary\n" if ($#ARGV<4);
+die "4 parameters are necessary\n" if ($#ARGV<3);
 
 use CsgFunctions;
 use SimplexFunctions;
 
-my $aim_rdf_file="$ARGV[0]";
+my $simplex_cur_file="$ARGV[0]";
+my $simplex_tmp_file="$ARGV[1]";
+my $param_N="$ARGV[2]";
+my $a_line_nr="$ARGV[3]";
+
+my $ndim=$param_N+1;
+
+my $name=csg_get_property("cg.non-bonded.name");
+my $aim_rdf_file="$name.dist.tgt";
+
 my @r_aim;
 my @rdf_aim;
 my @flags_aim;
 (readin_table($aim_rdf_file,@r_aim,@rdf_aim,@flags_aim)) || die "$progname: error at readin_table\n";
 
-my $cur_rdf_file="$ARGV[1]";
+my $cur_rdf_file="$name.dist.new";
 my @r_cur;
 my @rdf_cur;
 my @flags_cur;
 (readin_table($cur_rdf_file,@r_cur,@rdf_cur,@flags_cur)) || die "$progname: error at readin_table\n";
 
-my $cur_ftar_file="$ARGV[2]";
 my @ftar_cur;
 my @sig_cur;
 my @eps_cur;
-my @flag_simplex;
-(readin_simplex_table($cur_ftar_file,@ftar_cur,@sig_cur,@eps_cur,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
+my @flag_cur;
 
-my $new_ftar_file="$ARGV[3]";
-my $a_line_nr="$ARGV[4]";
+my (%hash)=readin_simplex_table($simplex_cur_file,$ndim) or die "$progname: error at readin_simplex_table\n";
+
+# Define first and last column
+@ftar_cur=@{$hash{p_0}};
+@sig_cur=@{$hash{p_1}};
+@eps_cur=@{$hash{p_2}};
+@flag_cur=@{$hash{"p_$ndim"}};
 
 # Should never happen due to resample, but better check
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
 die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 
-$ftar_cur[$a_line_nr]=calc_ftar($a_line_nr,@r_cur,@rdf_aim,@rdf_cur,@sig_cur,@eps_cur);
+# Calculate ftar
 
-system("/bin/bash","-c"," echo 'ftar_cur' ");
-#print "Current error: $ftar_cur[$a_line_nr]\n";
+my @w=@_;
+my @drdf=@_;
+my $ftar=0;
+my $delta_r=csg_get_interaction_property("step");
+my $max=csg_get_interaction_property("max");
 
-my @ftar_new;
-@ftar_new=@ftar_cur;
+for(my $i=1;$i<=$max/$delta_r;$i++) {
+       $w[$i]=exp(-$r_cur[$i]/$sig_cur[$a_line_nr]);
+       $drdf[$i]=($rdf_cur[$i]-$rdf_aim[$i]);
+       $ftar+=$delta_r*$w[$i]*($drdf[$i]**2);
+}
 
-$flag_simplex[$a_line_nr]="complete";
+$ftar+=(0.5*$delta_r*$w[$max/$delta_r]*$drdf[$max/$delta_r]**2);
+$ftar_cur[$a_line_nr]=$ftar;
 
-saveto_simplex_table($new_ftar_file,@ftar_new,@sig_cur,@eps_cur,@flag_simplex) || die "$progname: error at save table\n";
+my @args=("bash","-c","echo $ftar_cur[$a_line_nr]");
+system(@args);
+
+$flag_cur[$a_line_nr]="complete";
+
+saveto_simplex_table($simplex_tmp_file,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";
