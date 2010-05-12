@@ -58,8 +58,8 @@ my @ftar=@{$hash{p_0}};
 my @flag=@{$hash{"p_$ndim"}};
 
 # Get current parameters
-my $sig=${$hash{p_1}}[$p_line_nr];
-my $eps=${$hash{p_2}}[$p_line_nr];
+my @sig=@{$hash{p_1}};
+my @eps=@{$hash{p_2}};
 
 my @sig_par;
 my @eps_par;
@@ -68,10 +68,9 @@ foreach (0 .. $#ftar) {
    $eps_par[$_]=sqrt($eps[$_]);
 }
 
-my $mpts=3;
-my $ndim=$mpts-1;
 my $nfunc=0;
-my $ftol=csg_get_property("cg.non-bonded.ftol");
+my $mpts=$ndim+1;
+my $ftol=csg_get_property("cg.inverse.simplex.ftol");
 
 my @psum;
 my @ptry;
@@ -86,8 +85,6 @@ for(my $i=0; $i<$mpts; $i++) {
       $p[$i][$j]=$p_trans[$j][$i];
    }
 }
-
-foreach (0 .. $#ftar) {$i_sort[$_]=$_};
 
 # Generate and sort according to y[mpts] (ftar values)
 my $ilo=0;
@@ -144,7 +141,7 @@ case 'Reflection' {
       push(@ftar_asc,"0");
       push(@sig_asc,"$ptry[0]");
       push(@eps_asc,"$ptry[1]");
-      push(@flag_simplex,"pending");
+      push(@flag,"pending");
       $nfunc++;
    }
    # if worse than the second worst as well as the worst, try smaller step (Contraction)
@@ -159,7 +156,7 @@ case 'Reflection' {
       push(@ftar_asc,"0");
       push(@sig_asc,"$ptry[0]");
       push(@eps_asc,"$ptry[1]");
-      push(@flag_simplex,"pending");
+      push(@flag,"pending");
       $nfunc++;
    }
    else {
@@ -202,7 +199,7 @@ case 'Contraction' {
             $ftar_asc[$i]="0";
             $sig_asc[$i]=($p[$i][0])*($p[$i][0]);
             $eps_asc[$i]=($p[$i][1])*($p[$i][1]);
-            $flag_simplex[$i]="pending";
+            $flag[$i]="pending";
             }
          }
       }
@@ -229,7 +226,7 @@ else {
    }
    push(@sig_asc,"$ptry[0]");
    push(@eps_asc,"$ptry[1]");
-   push(@flag_simplex,"pending");
+   push(@flag,"pending");
    $nfunc++;
 }
 

@@ -33,12 +33,13 @@ check_deps "$0"
 
 sim_prog=$(csg_get_property cg.inverse.program)
 property=$(csg_get_property cg.inverse.simplex.property)
-name=$(for_all non-bonded csg_get_interaction_property name);
-param_N=$(do_external pot $function --nparams);
+name=$(csg_get_interaction_property name);
+function=$(csg_get_interaction_property inverse.simplex.function);
+param_N=$(do_external pot $function --nparams | tail -1);
 
 
 msg "Calc $property"
-for_all non-bonded do_external $property $sim_prog
+run_or_exit do_external $property $sim_prog
 
 # For active parameter set, calculate ftar
 if [ $(grep -c 'active$' simplex_$name.cur) == "1" ]; then
@@ -48,4 +49,4 @@ else
 fi
 
 msg "Calc $property ftar"
-for_all non-bonded do_external update ftar_$property simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr))
+do_external update ftar_$property simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr))
