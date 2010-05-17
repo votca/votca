@@ -72,6 +72,12 @@ $force[$#r]=0.0;
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 
+#preserve comments
+open(INFILE, "$infile");
+while (<INFILE>){
+        if($_ =~ /^[#@]/){print OUTFILE $_;}
+}
+
 my $ioffset;
 
 $ioffset = $table_x_offset/$table_bins;

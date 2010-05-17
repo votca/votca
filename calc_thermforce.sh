@@ -30,28 +30,29 @@ adressh="$(csg_get_property cg.tf.adressh)"
 adressc="$(csg_get_property cg.tf.adressc)"
 
 
-infile="dens_$name.xvg"
-outfile="dens_$name\_smooth.xvg"
+infile="dens.${name}.xvg"
+outfile="dens.${name}.smooth.xvg"
 
 xstart=$(echo "scale=8; $adressc+$adressw" | bc)
 xstop=$(echo "scale=8; $adressc+$adressw+$adressh" | bc)
 
-infile="dens_$name.xvg"
-outfile="dens_$name\_symm.xvg"
+infile="dens.${name}.xvg"
+outfile="dens.${name}.symm.xvg"
 run_or_exit do_external density symmetrize --infile $infile --outfile $outfile --adressc $adressc
 
 
-infile="dens_$name\_symm.xvg"
-outfile="dens_$name\_smooth.xvg"
+infile="dens.${name}.symm.xvg"
+outfile="dens.${name}.smooth.xvg"
 
-forcefile="thermforce_$name.xvg"
-forcefile_pref="thermforce_wpref_$name.xvg"
-forcefile_smooth="thermforce_smooth_$name.xvg"
+forcefile="thermforce.${name}.xvg"
+forcefile_pref="thermforce.wpref.${name}.xvg"
+forcefile_smooth="thermforce.smooth.${name}.xvg"
 
 spxstart=$(echo "scale=8; $adressc+$adressw-$splinedelta" | bc)
 spxstop=$(echo "scale=8; $adressc+$adressw+$adressh+$splinedelta" | bc)
 
-run_or_exit csg_resample --in $infile --out $outfile --grid $spxstart:$step:$spxstop --derivative $forcefile --spfit $spxstart:$splinestep:$spxstop
+comment="$(get_table_comment)"
+run_or_exit csg_resample --in $infile --out $outfile --grid $spxstart:$step:$spxstop --derivative $forcefile --spfit $spxstart:$splinestep:$spxstop --comment "$comment"
 
 if [ -z "$cg_prefactor" ];then
        echo "Using fixed prefactor $prefactor "	

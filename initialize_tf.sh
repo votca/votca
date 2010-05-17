@@ -20,14 +20,15 @@ name=$(csg_get_interaction_property name)
    min=$(csg_get_interaction_property min )
    max=$(csg_get_interaction_property max )
    step=$(csg_get_interaction_property step )
-   run_or_exit csg_resample --in ../${name}.pot.in --out ${name}.pot.new --grid ${min}:${step}:${max}
- elif [ -f ../dens_${name}.xvg ]; then
+   comment="$(get_table_comment)"
+   run_or_exit csg_resample --in ../${name}.pot.in --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "$comment"
+ elif [ -f ../dens.${name}.xvg ]; then
    log "Calculating initial therm force from input density file dens_${name}.xvg"
-   cp ../dens_$name.xvg .
+   cp ../dens.$name.xvg .
    run_or_exit do_external calc thermforce
    cp ${name}.dpot.new ${name}.pot.new 
  else
-	die "initial therm_force_file ${name}.pot.in not found or initial density file dens_${name}.xvg not found" 
+	die "initial therm_force_file ${name}.pot.in not found or initial density file dens.${name}.xvg not found" 
    # RDF_to_POT.pl just does log g(r) + extrapolation
    # log "Using intial guess from RDF for ${name}"
    #run_or_exit do_external rdf pot ${name}.dist.tgt ${name}.pot.new
