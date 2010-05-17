@@ -66,3 +66,8 @@ run_or_exit do_external table smooth_borders --infile $forcefile_pref --outfile 
 
 run_or_exit do_external table integrate $forcefile_smooth ${name}.dpot.new
 
+
+#todo: make this less dirty:
+touch $name.dist.new 
+
+
