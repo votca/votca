@@ -38,7 +38,7 @@ void KmcCont::Initialize(){
     Random::init(14, 122, 472, 1912);
 }
 
-void KmcCont::EvaluateFrame(){
+bool KmcCont::EvaluateFrame(){
 
     /// creating graph and initializing generators and hoppers
     QMNBList &nblist = _qmtop.nblist();

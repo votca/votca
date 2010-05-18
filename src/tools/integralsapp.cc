@@ -41,7 +41,7 @@ bool Integrals::MatchNNnames(CrgUnit *crg1, CrgUnit* crg2){
     return false;
 }
 
-void Integrals::EvaluateFrame(){
+bool Integrals::EvaluateFrame(){
     QMNBList &nblist = _qmtop.nblist();
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter){
         CrgUnit *crg1 = (*iter)->Crg1();

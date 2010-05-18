@@ -148,7 +148,7 @@ bool QMApplication::BeginEvaluate(){
     return true;
 }
 
-void QMApplication::EvaluateFrame(){
+bool QMApplication::EvaluateFrame(){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->EvaluateFrame(&_qmtop);

@@ -16,7 +16,7 @@ void RateCalculator::Initialize(){
     _E = _options.get("options.calc_rates.e_field").as<vec>();
 }
 
-void RateCalculator::EvaluateFrame(){
+bool RateCalculator::EvaluateFrame(){
     QMNBList &nblist = _qmtop.nblist();
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
     {

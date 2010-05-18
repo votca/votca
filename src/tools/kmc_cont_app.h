@@ -22,7 +22,7 @@ public:
 
     void HelpText();
     void Initialize();
-    void EvaluateFrame();
+    bool EvaluateFrame();
 
 private:
     /// electric field
