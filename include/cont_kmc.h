@@ -43,7 +43,7 @@ private:
     void make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist);
 };
 
-void ContKmc::Initialize(QMTopology *top, Property *options){
+inline void ContKmc::Initialize(QMTopology *top, Property *options){
     /// Read in the electric field - should be the same as used for the rates
     _E = options->get("options.calc_rates.e_field").as<vec>();
 
@@ -70,7 +70,7 @@ void ContKmc::Initialize(QMTopology *top, Property *options){
     Random::init(14, 122, 472, 1912);
 }
 
-void ContKmc::EvaluateFrame(QMTopology *top){
+inline void ContKmc::EvaluateFrame(QMTopology *top){
     /// creating graph and initializing generators and hoppers
     QMNBList &nblist = top->nblist();
     graph kmc_grid;
@@ -87,7 +87,7 @@ void ContKmc::EvaluateFrame(QMTopology *top){
     cout << "Finished continuous KMC." << endl;
 }
 
-void ContKmc::make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist) {
+inline void ContKmc::make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist) {
     cout << "[make_kmc_graph]: Building KMC Graph...";
     /// assign constants
     a->SetField(_E);

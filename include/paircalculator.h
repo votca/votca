@@ -19,7 +19,7 @@ public:
     virtual void EvaluatePair(QMTopology *top, QMPair *pair) {};
 };
 
-void PairCalculator::EvaluateFrame(QMTopology *top){
+inline void PairCalculator::EvaluateFrame(QMTopology *top){
     QMNBList &nblist = top->nblist();
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
         EvaluatePair(top, *iter);

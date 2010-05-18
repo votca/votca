@@ -24,12 +24,12 @@ private:
     double _kT;
 };
 
-void MarcusRates::Initialize(QMTopology *top, Property *options){
+inline void MarcusRates::Initialize(QMTopology *top, Property *options){
     _kT = options->get("options.calc_rates.thermal_energy").as<double>();
     _E = options->get("options.calc_rates.e_field").as<vec>();
 }
 
-void MarcusRates::EvaluatePair(QMTopology *top, QMPair* pair){
+inline void MarcusRates::EvaluatePair(QMTopology *top, QMPair* pair){
     double rate_12 = 0.0;
         double rate_21 = 0.0;
         double Jeff2 = pair->calcJeff2();

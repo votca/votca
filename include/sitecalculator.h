@@ -19,7 +19,7 @@ public:
     virtual void EvaluateSite(CrgUnit *crg) {};
 };
 
-void SiteCalculator::EvaluateFrame(QMTopology *top){
+inline void SiteCalculator::EvaluateFrame(QMTopology *top){
     list<CrgUnit*>& crglist = top.crglist();
     for(list<CrgUnit*>::iterator iter = crglist.begin();iter!=crglist.end();++iter)
         EvaluateSite(*iter);
