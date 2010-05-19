@@ -95,9 +95,6 @@ for(my $i=1;$i<=$max/$delta_r;$i++) {
 $ftar+=(0.5*$delta_r*$w[$max/$delta_r]*$drdf[$max/$delta_r]**2);
 $ftar_cur[$a_line_nr]=$ftar;
 
-my @args=("bash","-c","echo "ftar=$ftar_cur[$a_line_nr]"");
-system(@args);
-
 # Flag current parameter set as 'complete'
 $flag_cur[$a_line_nr]="complete";
 
