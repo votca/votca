@@ -21,7 +21,7 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, %version%
-This script marks the current parameter set as active.
+This script flags the current parameter set as 'active'.
 
 Usage: $progname infile outfile param_N p_line_nr
 
@@ -46,14 +46,16 @@ my $p_line_nr="$ARGV[3]";
 my $ndim=$param_N+1;
 
 # Read in current simplex table
-my (%hash)=readin_simplex_table("$infile","$ndim") or die "$progname: error at readin_simplex_table\n";
+my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
 
-# Define first and last column
+# Define columns for ftar and flag
 my @ftar=@{$hash{p_0}};
 my @flag=@{$hash{"p_$ndim"}};
 
-# Mark current parameter set as active
+my $mdim=$#ftar+1;
+
+# Flag current parameter set as 'active'
 $flag[$p_line_nr]="active";
 
 # Save to new simplex table
-saveto_simplex_table("$outfile",$param_N,@ftar,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
+saveto_simplex_table($outfile,$mdim,$param_N,@ftar,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";

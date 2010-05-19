@@ -21,16 +21,13 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, %version%
-This script takes the input parameters matrix and adds
-columns for ftar and flag, creating the standard simplex
-table file.
+
+This script reads simplex infile and creates a table.
 
 Usage: $progname infile outfile statefile param_N
 
 USES: readin_init_simplex_table saveto_simplex_table
-
-NEEDS: -
-
+NEEDS:
 EOF
   exit 0;
 }
@@ -44,16 +41,17 @@ my $outfile="$ARGV[1]";
 my $statefile="$ARGV[2]";
 my $param_N="$ARGV[3]";
 
-# Create a state file
+my $ndim=$param_N+1;
+
+# Create state file
 open (STATE, "> $statefile") || die "Could not open file $_[0]\n";
 print STATE "Transformation=None\n";
 close STATE;
 
-my $ndim=$param_N+1;
-
-# Read in current simplex table
+# Read in simplex infile
 my (%hash)=readin_init_simplex_table($infile,$param_N) or die "$progname: error at readin_simplex_table\n";
 
+# Create columns for ftar and flag
 my @ftar;
 my @flag;
 
@@ -62,5 +60,5 @@ for my $i (0 .. $param_N) {
    $flag[$i]="pending";
 }
 
-# Save to new simplex table
-saveto_simplex_table($outfile,$param_N,@ftar,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
+# Save to simplex table
+saveto_simplex_table($outfile,$ndim,$param_N,@ftar,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";

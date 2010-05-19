@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function initialize
-for the Inverse Boltzmann Method
+This script prepares the input and configuration files for gromacs.
 
-Usage: ${0##*/} last_sim_dir
+Usage: ${0##*/}
 
-USES: die cp run_or_exit grompp check_deps get_last_step_dir
+USES: get_main_dir get_last_step_dir run_or_exit grompp mdrun
 
 NEEDS:
 EOF
@@ -33,11 +32,14 @@ fi
 check_deps "$0"
 
 main_dir=$(get_main_dir);
+last_step=$(get_last_step_dir);
 
-cp ${main_dir}/conf.gro ./conf.gro || die "${0##*/} cp ${last_step}/conf.gro ./conf.gro failed" 
+# Get initial configuration
+cp ${main_dir}/conf.gro ./conf.gro || die "${0##*/} cp ${last_step}/conf.gro ./conf.gro failed"
 
-# Energy Minimization
+# Perform Energy Minimization
 run_or_exit grompp -f grompp.steep.mdp -n index.ndx
 run_or_exit mdrun -c confout.steep.gro
 
-run_or_exit grompp -f grompp.mdp -c confout.steep.gro -n index.ndx 
+# Perform full MD simulation
+run_or_exit grompp -f grompp.mdp -c confout.steep.gro -n index.ndx

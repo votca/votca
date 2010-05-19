@@ -21,15 +21,14 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, %version%
-This script defines the number of parameters as well as
-calculates the 12-6 Lennard Jones potential.
+This script calculates the 12-6 Lennard Jones potential
+for a given parameter set.
 
 Usage: $progname infile outfile tmp param_N p_line_nr
 
-USES: readin_table saveto_table
+USES: readin_table csg_get_property csg_resample saveto_table
 
-NEEDS:
-
+NEEDS: min max step
 EOF
   exit 0;
 }
@@ -51,28 +50,29 @@ my $tmp="$ARGV[2]";
 my $param_N="$ARGV[3]";
 my $p_line_nr="$ARGV[4]";
 
-my $ndim=$param_N+1;
-
 my $min=csg_get_property("cg.non-bonded.min");
 my $max=csg_get_property("cg.non-bonded.max");
 my $step=csg_get_property("cg.non-bonded.step");
 
+my $ndim=$param_N+1;
+
+# Create table with two columns: @r (from grid) and @dummy (0)
 my @r;
 my @dummy;
 my @flag;
 
-# Create empty table
 open(TMP, ">$tmp");
 print TMP "$min 0\n$max 0";
+close(TMP);
+
 my @args=("bash","-c","csg_resample --in $tmp --out grid --grid $min:$step:$max");
 system(@args);
 (readin_table("grid",@r,@dummy,@flag)) || die "$progname: error at readin_table\n";
-close(TMP);
 my @args2=("bash","-c","rm $tmp grid");
 system(@args2);
 
 # Read in current simplex table
-my (%hash)=readin_simplex_table("$infile","$param_N") or die "$progname: error at readin_simplex_table\n";
+my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
 
 # Get current parameters
 my $sig=${$hash{p_1}}[$p_line_nr];
@@ -99,9 +99,10 @@ for (my $i=0;$i<=$#r;$i++){
 # Find index at the cutoff
 my $i_cut=$#r;
 
-# Shift potential so that it is zero at the cutoff
+# Shift potential to zero at the cutoff
 for (my $i=0;$i<=$i_cut;$i++){
    $pot[$i]-=$pot[$i_cut];
 }
 
+# Save to potential table
 saveto_table($outfile,@r,@pot,@flag) or die "$progname: error at saveto_table\n";

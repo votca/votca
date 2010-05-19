@@ -18,13 +18,16 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the Simplex Iteration step
+This script:
+- finds the pending parameter set
+- calculates the potential for this set (pot [function])
+- flags this parameter set as 'active' (par pot)
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/} method
 
-USES: do_external for_all run_or_exit csg_get_interaction_property
+USES: for_all csg_get_interaction_property do_external run_or_exit
 
-NEEDS: name
+NEEDS: name function
 EOF
    exit 0
 fi
@@ -37,12 +40,14 @@ param_N=$(do_external pot $function --nparams);
 p_nr=$(grep -c 'pending$' simplex_$name.new);
 tmp=$(mktemp simplex_XXX);
 
+# Finds pending parameter set
 if [ $p_nr > "0" ]; then
 p_line_nr=$(($(grep -n -m1 'pending$' simplex_$name.new | sed 's/:.*//')-1));
 else 
-   die "Error: No 'pending' parameter sets found."
-fi 
+   die "Error: no pending parameter sets found"
+fi
 
+# Calculate potential
 for_all "non-bonded" \
-   run_or_exit do_external pot $function simplex_$name.tmp $name.pot.new $tmp $param_N 0
-   run_or_exit do_external par pot simplex_$name.tmp simplex_$name.new $param_N $p_line_nr
+   run_or_exit do_external pot $function simplex_$name.tmp $name.pot.new $tmp $param_N $p_line_nr
+   run_or_exit do_external par pot simplex_$name.new simplex_$name.new $param_N $p_line_nr

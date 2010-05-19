@@ -25,17 +25,17 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
    print <<EOF;
 $progname, version %version%
-This script adds up two potentils 
-In addtion it does some magic tricks:
-- order of infiles MATTER !!!!
-- if infile2 contain undef value, it uses the value from infile1
-- if value for infile1 and infile2 are invalid, result is also invalid
+This script:
+- Reads in current simplex table
+- Reads in current state file
+- Decides which transformation to perfom and saves it in new state file
+- Adds new parameter set obtained from this transformation to simplex table
 
-Usage: $progname infile1 infile2 outfile
+Usage: $progname infile outfile param_N
 
-NEEDS:
+NEEDS: name ftol
 
-USES: readin_table saveto_table 
+USES: csg_get_property readin_simplex_table saveto_simplex_table 
 EOF
   exit 0;
 }
@@ -47,82 +47,98 @@ my $outfile="$ARGV[1]";
 my $param_N="$ARGV[2]";
 
 my $ndim=$param_N+1;
+my $mdim=$ndim+1;
 
 use CsgFunctions;
 use SimplexFunctions;
 use Switch;
 
-my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
+my $name=csg_get_property("cg.non-bonded.name");
+my $ftol=csg_get_property("cg.inverse.simplex.ftol");
 
+# Read in simplex table and assign to arrays
+my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
 my @ftar=@{$hash{p_0}};
 my @flag=@{$hash{"p_$ndim"}};
-
-# Get current parameters
 my @sig=@{$hash{p_1}};
 my @eps=@{$hash{p_2}};
 
+# Unphysical for parameters to be negative
 my @sig_par;
 my @eps_par;
-foreach (0 .. $#ftar) {
-   $sig_par[$_]=sqrt($sig[$_]);
-   $eps_par[$_]=sqrt($eps[$_]);
+
+foreach (0 .. $param_N) {
+  $sig_par[$_]=sqrt($sig[$_]);
+  $eps_par[$_]=sqrt($eps[$_]);
 }
 
-my $nfunc=0;
-my $mpts=$ndim+1;
-my $ftol=csg_get_property("cg.inverse.simplex.ftol");
-
+# Generate matrix of parameters p[m-1][n-1]
 my @psum;
 my @ptry;
 my @ptry_par;
 my $ytry=$ftar[-1];
 
-# Generate p[mpts][ndim] matrix (parameters)
 my @p;
 my @p_trans=([@sig_par],[@eps_par]);
-for(my $i=0; $i<$mpts; $i++) {
-   for(my $j=0; $j<$ndim; $j++) {
-      $p[$i][$j]=$p_trans[$j][$i];
-   }
+for(my $i=0; $i<$ndim; $i++) {
+  for(my $j=0; $j<$param_N; $j++) {
+    $p[$i][$j]=$p_trans[$j][$i];
+  }
 }
 
-# Generate and sort according to y[mpts] (ftar values)
-my $ilo=0;
+# Generate and sort arrays according to y[m-1]
 my @i_sort;
+my @y;
 my @ftar_asc;
 my @sig_asc;
 my @eps_asc;
-foreach (0 .. $#ftar) {$i_sort[$_]=$_};
-   @i_sort=(sort{$ftar[$a] <=> $ftar[$b]} @i_sort);
-      for (my $i=0;$i<$mpts;$i++) {
-      $ftar_asc[$i]=$ftar[$i_sort[$i]];
-      $sig_asc[$i]=$sig_par[$i_sort[$i]];
-      $eps_asc[$i]=$eps_par[$i_sort[$i]];
-      }
 
-# Define highest, next highest, and lowest points (ihi, inhi, ilo)
-my @y=@ftar_asc;
-my $ihi=$#ftar_asc;
-my $inhi=0;
-for (my $i=0;$i<$mpts;$i++) {
-   if($y[$i]<=$y[$ilo]) {$ilo=$i;}
-   if($y[$i]>$y[$ihi]) {
-        $inhi=$ihi;
-        $ihi=$i;
-        }
-   if ($y[$i]>$y[$inhi] && $i!=$ihi) {$inhi=$i;}
+foreach (0 .. $param_N) {
+  $y[$_]=$ftar[$_];
+  $i_sort[$_]=$_;
 }
 
+@i_sort=(sort{$y[$a] <=> $y[$b]} @i_sort);
+
+my @y_asc;
+for (my $i=0;$i<=$#y;$i++) {
+  $y_asc[$i]=$y[$i_sort[$i]];
+  $sig_asc[$i]=$sig_par[$i_sort[$i]];
+  $eps_asc[$i]=$eps_par[$i_sort[$i]];
+}
+@y=@y_asc;
+
+# Define highest, next highest, and lowest points (ihi, inhi, ilo)
+my $ihi=$#y;
+my $ilo=0;
+my $inhi=$ihi-1; # *********************** CHECK THIS!
+for (my $i=0;$i<=$#y;$i++) {
+  if($y[$i]<=$y[$ilo]) {$ilo=$i;}
+  if($y[$i]>$y[$ihi]) {
+    $inhi=$ihi;
+    $ihi=$i;
+  }
+  if ($y[$i]>$y[$inhi] && $i!=$ihi) {$inhi=$i;}
+}
+
+# Get Transformation from previous state file
 my %state;
-open (STATE_CUR, "<state.cur") || die "Could not open file $_[0]\n";
+open (STATE_CUR, "< state_$name.cur") || die "Could not open file state_$name.cur\n";
 while(<STATE_CUR>) {
-   if (/^(.*)=(.*)$/) {
-   $state{"$1"}=$2;
-   }
+  if (/^(.*)=(.*)$/) {
+  $state{"$1"}=$2;
+  }
 }
 close(STATE_CUR);
 
-open (STATE, ">state.new") || die "Could not open file $_[0]\n";
+# Prepare new state file
+open (STATE, "> state_$name.new") || die "Could not open file state_$name.new\n";
+
+# ---------------------------------------------------------------------------------
+#                     DOWNHILL SIMPLEX ALGORITHM starting...                      |
+# ---------------------------------------------------------------------------------
+
+my $nfunc=0;
 
 switch ($state{'Transformation'}) {
 
@@ -133,12 +149,12 @@ case 'Reflection' {
    if ($ytry <= $y[$ilo]) {
       $ysave_R=$state{$ytry};
       print STATE "Transformation=Expansion\n";
-      @psum=calc_psum(@p,$mpts,$ndim);
-      @ptry_par=calc_ptry($ndim,$ihi,2.0,@p,@psum);
-      for (my $j=0;$j<$ndim;$j++) {
+      @psum=calc_psum(@p,$param_N,$ndim);
+      @ptry_par=calc_ptry($param_N,$ihi,2.0,@p,@psum);
+      for (my $j=0;$j<$param_N;$j++) {
          $ptry[$j]=$ptry_par[$j]*$ptry_par[$j];
       }
-      push(@ftar_asc,"0");
+      push(@y,"0");
       push(@sig_asc,"$ptry[0]");
       push(@eps_asc,"$ptry[1]");
       push(@flag,"pending");
@@ -148,12 +164,12 @@ case 'Reflection' {
    elsif ($ytry >= $y[$inhi] && $ytry >= $y[$ihi]) {
       $ysave_C=$state{$y[$ihi]};
       print STATE "Transformation=Contraction\n";
-      @psum=calc_psum(@p,$mpts,$ndim);
-      @ptry_par=calc_ptry($ndim,$ihi,0.5,@p,@psum);
-      for (my $j=0;$j<$ndim;$j++) {
+      @psum=calc_psum(@p,$param_N,$ndim);
+      @ptry_par=calc_ptry($param_N,$ihi,0.5,@p,@psum);
+      for (my $j=0;$j<$param_N;$j++) {
          $ptry[$j]=$ptry_par[$j]*$ptry_par[$j];
       }
-      push(@ftar_asc,"0");
+      push(@y,"0");
       push(@sig_asc,"$ptry[0]");
       push(@eps_asc,"$ptry[1]");
       push(@flag,"pending");
@@ -161,9 +177,9 @@ case 'Reflection' {
    }
    else {
    # Otherwise, replace worst point by reflected point
-         for (my $j=0;$j<$ndim;$j++) {
+         for (my $j=0;$j<$param_N;$j++) {
          $y[$ihi]=$ytry;
-         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
          $p[$ihi][$j]=$ptry[$j];
       }
    }
@@ -172,17 +188,17 @@ case 'Reflection' {
 case 'Expansion' {
    # If better the best, replace worst point by expanded point
    if ($ytry <= $y[$ilo]) {
-      for (my $j=0;$j<$ndim;$j++) {
+      for (my $j=0;$j<$param_N;$j++) {
          $y[$ihi]=$ytry;
-         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
          $p[$ihi][$j]=$ptry[$j];
       }
    }
    else {
    # Otherwise, replace worst point by reflected point
-      for (my $j=0;$j<$ndim;$j++) {
+      for (my $j=0;$j<$param_N;$j++) {
          $y[$ihi]=$ysave_R;
-         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
          $p[$ihi][$j]=$ptry[$j];
       }
    }
@@ -190,15 +206,15 @@ case 'Expansion' {
 
 case 'Contraction' {
    # if worse than worst point from contraction, replace all but the best 
-   if ($ytry>=$ysave_C) {
+   if ($ytry >= $ysave_C) {
       print STATE "Transformation=Reduction\n";
-      for (my $i=0;$i<$mpts;$i++) {
+      for (my $i=0;$i<$ndim;$i++) {
          if ($i!=$ilo) {
-            for (my $j=0;$j<=$ndim;$j++) {
-            $p[$i][$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
-            $ftar_asc[$i]="0";
-            $sig_asc[$i]=($p[$i][0])*($p[$i][0]);
-            $eps_asc[$i]=($p[$i][1])*($p[$i][1]);
+            for (my $j=0;$j<=$param_N;$j++) {
+            $p[$i][$j]=$psum[$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
+            $y[$i]="0";
+            $sig_asc[$i]=($p[$i][0])**2;
+            $eps_asc[$i]=($p[$i][1])**2;
             $flag[$i]="pending";
             }
          }
@@ -206,24 +222,24 @@ case 'Contraction' {
    $nfunc+=$ndim;
    }
    # Otherwise, replace worst point by contracted point
-   else { 
-      for (my $j=0;$j<$ndim;$j++) {
+   else {
+      for (my $j=0;$j<=$param_N;$j++) {
          $y[$ihi]=$ytry;
-         $p[$j]+=$ptry[$j]-$p[$ihi][$j];
+         $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
          $p[$ihi][$j]=$ptry[$j];
       }
    }
 }
 
-else { 
+else {
    # Compute reflected point
    print STATE "Transformation=Reflection\n";
-   @psum=calc_psum(@p,$mpts,$ndim);
-   @ptry_par=calc_ptry($ndim,$ihi,-1.0,@p,@psum);
-   push(@ftar_asc,"0");
-   for (my $j=0;$j<$ndim;$j++) {
-         $ptry[$j]=$ptry_par[$j]*$ptry_par[$j];
+   @psum=calc_psum(@p,$param_N,$ndim);
+   @ptry_par=calc_ptry($param_N,$ihi,-1.0,@p,@psum);
+   for (my $j=0;$j<$param_N;$j++) {
+         $ptry[$j]=$ptry_par[$j]**2;
    }
+   push(@y,"0");
    push(@sig_asc,"$ptry[0]");
    push(@eps_asc,"$ptry[1]");
    push(@flag,"pending");
@@ -237,8 +253,8 @@ my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo]));
 
 if($rtol<$ftol) {
    ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
-      for (my $i=0;$i<$ndim;$i++){
-      ($p[$ilo][$i],$p[0][$i])=($p[0][$i],$p[$ilo][$i]);
+      for (my $j=0;$j<$param_N;$j++){
+      ($p[$ilo][$j],$p[0][$j])=($p[0][$j],$p[$ilo][$j]);
       print STATE "Done - Simplex converged after $nfunc steps.\n";
       die "--- Simplex convergerd after $nfunc steps ---";
    }
@@ -246,5 +262,10 @@ if($rtol<$ftol) {
 
 close(STATE);
 
+foreach (0 .. $ndim) {
+${$hash{p_1}}[$_]=$sig_asc[$_]**2;
+${$hash{p_2}}[$_]=$eps_asc[$_]**2;
+}
+
 # Update simplex table
-saveto_simplex_table($outfile,$param_N,@ftar,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
+saveto_simplex_table($outfile,$mdim,$param_N,@y,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";

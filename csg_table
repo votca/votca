@@ -2,15 +2,15 @@ resample calc my_resample_to_calc.sh
 
 init simplex my_initialize_simplex.sh
 init simplex_single my_initialize_simplex_single.sh
-prep simplex my_prepare_simplex.pl
 
+prep simplex my_prepare_simplex.pl
 pot lj12-6 my_pot_lj12-6.pl
 par pot my_PAR_to_POT.pl
 
+initstep simplex my_initialize_step_simplex.sh
+
 prepare gromacs my_prepare_gromacs.sh
 surften gromacs my_calc_surften_gromacs.sh
-
-initstep simplex my_initialize_step_simplex.sh
 
 update simplex_single my_update_simplex_single.sh
 update simplex my_update_simplex.sh

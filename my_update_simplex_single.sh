@@ -18,33 +18,34 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the function update for the Simplex Method for a single interaction pair.
+This script:
+- calculates the new property
+- compares it to the target property and calculates the target function accordingly
 
 Usage: ${0##*/}
 
-USES:  do_external die csg_get_property csg_get_interaction_property msg run_or_exit grep sed
+USES:  csg_get_property csg_get_interaction_property do_external run_or_exit
 
-NEEDS: name step min max inverse.do_potential
+NEEDS: name program property function
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
+name=$(csg_get_interaction_property name);
 sim_prog=$(csg_get_property cg.inverse.program)
 property=$(csg_get_property cg.inverse.simplex.property)
-name=$(csg_get_interaction_property name);
 function=$(csg_get_interaction_property inverse.simplex.function);
 param_N=$(do_external pot $function --nparams | tail -1);
-
 
 msg "Calc $property"
 run_or_exit do_external $property $sim_prog
 
-# For active parameter set, calculate ftar
+# Find 'active' parameter set
 if [ $(grep -c 'active$' simplex_$name.cur) == "1" ]; then
 a_line_nr=$(($(grep -n -m1 'active$' simplex_$name.cur | sed 's/:.*//')-1));
-else 
+else
   die "Error: No 'active' parameter set found."
 fi
 

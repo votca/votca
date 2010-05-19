@@ -73,36 +73,37 @@ return %hash;
 }
 
 # Subroutine to save to simplex table
-sub saveto_simplex_table($$\@\%\@) {
-  defined($_[4]) || die "saveto_table: Missing argument\n";
+sub saveto_simplex_table($$$\@\%\@) {
+  defined($_[5]) || die "saveto_table: Missing argument\n";
   my $outfile=$_[0];
-  my $param_N=$_[1];
-  my @ftar=@{$_[2]};
-  my (%hash)=%{$_[3]};
-  my @flag=@{$_[4]};
+  my $mdim=$_[1];
+  my $param_N=$_[2];
+  my @ftar=@{$_[3]};
+  my (%hash)=%{$_[4]};
+  my @flag=@{$_[5]};
   open(OUTFILE,"> $outfile") or die "could not open file $_[0]\n";
-  for(my $i=0;$i<=$param_N;$i++){
+  for(my $i=0;$i<$mdim;$i++){
     print OUTFILE "$ftar[$i] ";
       for(my $j=1;$j<=$param_N;$j++){
         my @tmp=@{$hash{"p_$j"}};
         print OUTFILE "$tmp[$i] ";
       }
       print OUTFILE "$flag[$i]\n";
-    }
+  }
   close(OUTFILE) or die "Error at closing $_[0]\n";
   return 1;
 }
 
 # Subroutine to get sum of columns of p
 sub calc_psum(\@$$) {
-  defined($_[2]) || die "get_psum: Missing argument: p[mpts][ndim]\n";
+  defined($_[2]) || die "get_psum: Missing argument: p[m][n]\n";
   my @p=@{$_[0]};
-  my $mpts=$_[1];
+  my $param_N=$_[1];
   my $ndim=$_[2];
   my $sum;
   my @psum;
-  for(my $j=0; $j<$ndim;$j++) {
-     for($sum=0, my $i=0;$i<$mpts;$i++) {
+  for(my $j=0; $j<$param_N;$j++) {
+     for($sum=0, my $i=0;$i<$ndim;$i++) {
          $sum+=$p[$i][$j];
      }
      $psum[$j]=$sum;
@@ -131,3 +132,4 @@ for (my $j=0;$j<$ndim;$j++) {
 
 #important
 1;
+

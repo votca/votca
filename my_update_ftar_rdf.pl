@@ -21,17 +21,16 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script calculates ftar out of the two rdfs for the 
-Simplex Method and arranges the output table in order 
-of increasing magnitude of ftar.
-In addition it does some magic tricks:
-- do not update if one of the both rdf are undefined
+This script:
+- calculates the target function (ftar) by comparing the current and target rdf
+- sorts ftars according to increasing order of magnitude in simplex table
+- does not update if one of the both rdf are undefined
 
-Usage: $progname target_rdf cur_rdf cur_simplex outfile
+Usage: $progname infile outfile param_N a_line_nr
 
-NEEDS: cg.inverse.kBT
+NEEDS: name kBT
 
-USES: readin_table saveto_table csg_get_property
+USES: readin_table csg_get_property saveto_table csg_get_property
 EOF
   exit 0;
 }
@@ -41,16 +40,14 @@ die "4 parameters are necessary\n" if ($#ARGV<3);
 use CsgFunctions;
 use SimplexFunctions;
 
-my $simplex_cur_file="$ARGV[0]";
-my $simplex_tmp_file="$ARGV[1]";
+my $infile="$ARGV[0]";
+my $outfile="$ARGV[1]";
 my $param_N="$ARGV[2]";
 my $a_line_nr="$ARGV[3]";
 
-my $ndim=$param_N+1;
-
 my $name=csg_get_property("cg.non-bonded.name");
-my $aim_rdf_file="$name.dist.tgt";
 
+my $aim_rdf_file="$name.dist.tgt";
 my @r_aim;
 my @rdf_aim;
 my @flags_aim;
@@ -67,20 +64,22 @@ my @sig_cur;
 my @eps_cur;
 my @flag_cur;
 
-my (%hash)=readin_simplex_table($simplex_cur_file,$ndim) or die "$progname: error at readin_simplex_table\n";
+my $ndim=$param_N+1;
 
-# Define first and last column
+# Read in temporary simplex table
+my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
+
+# Define table columns
 @ftar_cur=@{$hash{p_0}};
 @sig_cur=@{$hash{p_1}};
 @eps_cur=@{$hash{p_2}};
 @flag_cur=@{$hash{"p_$ndim"}};
 
-# Should never happen due to resample, but better check
+# Should never happen due to resampling, but better check
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
 die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 
 # Calculate ftar
-
 my @w=@_;
 my @drdf=@_;
 my $ftar=0;
@@ -96,9 +95,13 @@ for(my $i=1;$i<=$max/$delta_r;$i++) {
 $ftar+=(0.5*$delta_r*$w[$max/$delta_r]*$drdf[$max/$delta_r]**2);
 $ftar_cur[$a_line_nr]=$ftar;
 
-my @args=("bash","-c","echo $ftar_cur[$a_line_nr]");
+my @args=("bash","-c","echo "ftar=$ftar_cur[$a_line_nr]"");
 system(@args);
 
+# Flag current parameter set as 'complete'
 $flag_cur[$a_line_nr]="complete";
 
-saveto_simplex_table($simplex_tmp_file,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";
+my $mdim=$#ftar_cur+1;
+
+# Save to new simplex table
+saveto_simplex_table($outfile,$mdim,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";

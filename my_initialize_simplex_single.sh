@@ -18,12 +18,14 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version 1.0_rc1 hgid: 49f54a9b1845112a273f8c1bf2c683f2674f71c7
-This script calculates the potential for the Simplex Method 
-for the first set of parameters given in table simplex.in
+This script:
+- reads simplex infile and creates a table (prep simplex)
+- calculates potential for first parameter set (pot [function])
+- flags that parameter set as 'active' (par pot)
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property msg run_or_exit csg_resample
+USES: for_all csg_get_interaction_property do_external cp_from_main_dir
 
 NEEDS: name
 EOF
@@ -37,10 +39,10 @@ function=$(csg_get_interaction_property inverse.simplex.function);
 param_N=$(do_external pot $function --nparams);
 tmp=$(mktemp simplex_XXX);
 
+# Prepare table
 cp_from_main_dir simplex_$name.in
-# Prepare simplex table
 do_external prep simplex simplex_$name.in simplex_$name.cur state_$name.new $param_N
-# Calculate potential for step_001
+
+# Calculate potential
 do_external pot $function simplex_$name.cur $name.pot.new $tmp $param_N 0
 do_external par pot simplex_$name.cur simplex_$name.new $param_N 0
-
