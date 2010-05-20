@@ -77,7 +77,6 @@ for(my $i=0; $i<$ndim; $i++) {
 
 my @psum;
 my @ptry;
-my @ptry_param;
 my $ytry=$ftar[-1];
 
 # Generate and sort arrays according to y[m-1]
@@ -144,10 +143,7 @@ case 'Reflection' {
       $ysave_R=$state{$ytry};
       print STATE "Transformation=Expansion\n";
       @psum=calc_psum(@p,$param_N,$ndim);
-      @ptry_param=calc_ptry($param_N,$ihi,2.0,@p,@psum);
-      for (my $j=0;$j<$param_N;$j++) {
-         $ptry[$j]=$ptry_param[$j]*$ptry_par[$j];
-      }
+      @ptry=calc_ptry($param_N,$ihi,2.0,@p,@psum);
       push(@y,"0");
       my @empty=();
       push(@p_asc, \@empty);
@@ -162,10 +158,7 @@ case 'Reflection' {
       $ysave_C=$state{$y[$ihi]};
       print STATE "Transformation=Contraction\n";
       @psum=calc_psum(@p,$param_N,$ndim);
-      @ptry_param=calc_ptry($param_N,$ihi,0.5,@p,@psum);
-      for (my $j=0;$j<$param_N;$j++) {
-         $ptry[$j]=$ptry_param[$j]*$ptry_par[$j];
-      }
+      @ptry=calc_ptry($param_N,$ihi,0.5,@p,@psum);
       push(@y,"0");
       my @empty=();
       push(@p_asc, \@empty);
@@ -211,9 +204,8 @@ case 'Contraction' {
       for (my $i=0;$i<$ndim;$i++) {
          if ($i!=$ilo) {
             for (my $j=0;$j<=$param_N;$j++) {
-            $p[$i][$j]=$psum[$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
+            $p_asc[$i][$j]=$psum[$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
             $y[$i]="0";
-            $p_asc[$i][$j]=($p[$i][$j])**2;
             $flag[$i]="pending";
             }
          }
@@ -234,10 +226,7 @@ else {
    # Compute reflected point
    print STATE "Transformation=Reflection\n";
    @psum=calc_psum(@p,$param_N,$ndim);
-   @ptry_param=calc_ptry($param_N,$ihi,-1.0,@p,@psum);
-   for (my $j=0;$j<$param_N;$j++) {
-         $ptry[$j]=$ptry_param[$j]**2;
-   }
+   @ptry=calc_ptry($param_N,$ihi,-1.0,@p,@psum);
    push(@y,"0");
    my @empty=();
    push(@p_asc, \@empty);
@@ -246,24 +235,24 @@ else {
    }
    push(@flag,"pending");
    $nfunc++;
-# }
-# 
-# } # End of switch loop
-# 
-# # Check for convergence
-# my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo]));
-# 
-# if($rtol<$ftol) {
-#    ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
-#       for (my $j=0;$j<$param_N;$j++){
-#       ($p[$ilo][$j],$p[0][$j])=($p[0][$j],$p[$ilo][$j]);
-#       print STATE "Done - Simplex converged after $nfunc steps.\n";
-#       die "--- Simplex convergerd after $nfunc steps ---";
-#    }
-# }
-# 
-# close(STATE);
-# 
+}
+
+} # End of switch loop
+
+# Check for convergence
+my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo]));
+
+if($rtol<$ftol) {
+   ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
+      for (my $j=0;$j<$param_N;$j++){
+      ($p[$ilo][$j],$p[0][$j])=($p[0][$j],$p[$ilo][$j]);
+      print STATE "Done - Simplex converged after $nfunc steps.\n";
+      die "--- Simplex convergerd after $nfunc steps ---";
+   }
+}
+
+close(STATE);
+
 for (my $i=0;$i<=$#y;$i++) {
   for (my $j=1;$j<=$param_N;$j++){
     ${$hash{"p_$j"}}[$i]=($p_asc[$i][$j-1])**2;
