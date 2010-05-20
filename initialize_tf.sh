@@ -11,6 +11,12 @@ fi
 
 check_deps "$0"
 
+
+r_cut=$(csg_get_interaction_property max)
+adressh="$(csg_get_property cg.tf.adressh)"
+
+[ $(echo $r_cut == $adressh|bc) -eq 0 ] && die "r_cut $r_cut is not equal adressh $adressh! This has to be set manually"
+
  
 name=$(csg_get_interaction_property name)
 #dummy pot
