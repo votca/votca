@@ -53,45 +53,37 @@ use CsgFunctions;
 use SimplexFunctions;
 use Switch;
 
-my $name=csg_get_property("cg.non-bonded.name");
-my $ftol=csg_get_property("cg.inverse.simplex.ftol");
+my $name="CG-CG"; #csg_get_property("cg.non-bonded.name");
+my $ftol=1e-6; #csg_get_property("cg.inverse.simplex.ftol");
 
 # Read in simplex table and assign to arrays
 my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
 my @ftar=@{$hash{p_0}};
 my @flag=@{$hash{"p_$ndim"}};
-my @sig=@{$hash{p_1}};
-my @eps=@{$hash{p_2}};
 
-# Unphysical for parameters to be negative
-my @sig_par;
-my @eps_par;
-
-foreach (0 .. $param_N) {
-  $sig_par[$_]=sqrt($sig[$_]);
-  $eps_par[$_]=sqrt($eps[$_]);
+my @p_trans;
+foreach (1 .. $param_N) {
+  push (@p_trans, [@{$hash{"p_$_"}}]);
 }
 
-# Generate matrix of parameters p[m-1][n-1]
-my @psum;
-my @ptry;
-my @ptry_par;
-my $ytry=$ftar[-1];
-
+# Generate matrix of parameters p[m-1][n-1] and take their
+# squareroot, thus allowing simplex parameters to be negative.
 my @p;
-my @p_trans=([@sig_par],[@eps_par]);
 for(my $i=0; $i<$ndim; $i++) {
   for(my $j=0; $j<$param_N; $j++) {
-    $p[$i][$j]=$p_trans[$j][$i];
+    $p[$i][$j]=sqrt($p_trans[$j][$i]);
   }
 }
+
+my @psum;
+my @ptry;
+my @ptry_param;
+my $ytry=$ftar[-1];
 
 # Generate and sort arrays according to y[m-1]
 my @i_sort;
 my @y;
 my @ftar_asc;
-my @sig_asc;
-my @eps_asc;
 
 foreach (0 .. $param_N) {
   $y[$_]=$ftar[$_];
@@ -101,10 +93,12 @@ foreach (0 .. $param_N) {
 @i_sort=(sort{$y[$a] <=> $y[$b]} @i_sort);
 
 my @y_asc;
+my @p_asc;
 for (my $i=0;$i<=$#y;$i++) {
   $y_asc[$i]=$y[$i_sort[$i]];
-  $sig_asc[$i]=$sig_par[$i_sort[$i]];
-  $eps_asc[$i]=$eps_par[$i_sort[$i]];
+  for (my $j=0;$j<$param_N;$j++){
+    $p_asc[$i][$j]=$p[$i_sort[$i]][$j];
+  }
 }
 @y=@y_asc;
 
@@ -150,13 +144,16 @@ case 'Reflection' {
       $ysave_R=$state{$ytry};
       print STATE "Transformation=Expansion\n";
       @psum=calc_psum(@p,$param_N,$ndim);
-      @ptry_par=calc_ptry($param_N,$ihi,2.0,@p,@psum);
+      @ptry_param=calc_ptry($param_N,$ihi,2.0,@p,@psum);
       for (my $j=0;$j<$param_N;$j++) {
-         $ptry[$j]=$ptry_par[$j]*$ptry_par[$j];
+         $ptry[$j]=$ptry_param[$j]*$ptry_par[$j];
       }
       push(@y,"0");
-      push(@sig_asc,"$ptry[0]");
-      push(@eps_asc,"$ptry[1]");
+      my @empty=();
+      push(@p_asc, \@empty);
+      for (my $j=0;$j<$param_N;$j++){
+        $p_asc[-1][$j]=$ptry[$j];
+      }
       push(@flag,"pending");
       $nfunc++;
    }
@@ -165,13 +162,16 @@ case 'Reflection' {
       $ysave_C=$state{$y[$ihi]};
       print STATE "Transformation=Contraction\n";
       @psum=calc_psum(@p,$param_N,$ndim);
-      @ptry_par=calc_ptry($param_N,$ihi,0.5,@p,@psum);
+      @ptry_param=calc_ptry($param_N,$ihi,0.5,@p,@psum);
       for (my $j=0;$j<$param_N;$j++) {
-         $ptry[$j]=$ptry_par[$j]*$ptry_par[$j];
+         $ptry[$j]=$ptry_param[$j]*$ptry_par[$j];
       }
       push(@y,"0");
-      push(@sig_asc,"$ptry[0]");
-      push(@eps_asc,"$ptry[1]");
+      my @empty=();
+      push(@p_asc, \@empty);
+      for (my $j=0;$j<$param_N;$j++){
+        $p_asc[-1][$j]=$ptry[$j];
+      }
       push(@flag,"pending");
       $nfunc++;
    }
@@ -213,8 +213,7 @@ case 'Contraction' {
             for (my $j=0;$j<=$param_N;$j++) {
             $p[$i][$j]=$psum[$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
             $y[$i]="0";
-            $sig_asc[$i]=($p[$i][0])**2;
-            $eps_asc[$i]=($p[$i][1])**2;
+            $p_asc[$i][$j]=($p[$i][$j])**2;
             $flag[$i]="pending";
             }
          }
@@ -235,36 +234,40 @@ else {
    # Compute reflected point
    print STATE "Transformation=Reflection\n";
    @psum=calc_psum(@p,$param_N,$ndim);
-   @ptry_par=calc_ptry($param_N,$ihi,-1.0,@p,@psum);
+   @ptry_param=calc_ptry($param_N,$ihi,-1.0,@p,@psum);
    for (my $j=0;$j<$param_N;$j++) {
-         $ptry[$j]=$ptry_par[$j]**2;
+         $ptry[$j]=$ptry_param[$j]**2;
    }
    push(@y,"0");
-   push(@sig_asc,"$ptry[0]");
-   push(@eps_asc,"$ptry[1]");
+   my @empty=();
+   push(@p_asc, \@empty);
+   for (my $j=0;$j<$param_N;$j++){
+     $p_asc[-1][$j]=$ptry[$j];
+   }
    push(@flag,"pending");
    $nfunc++;
-}
-
-} # End of switch loop
-
-# Check for convergence
-my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo]));
-
-if($rtol<$ftol) {
-   ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
-      for (my $j=0;$j<$param_N;$j++){
-      ($p[$ilo][$j],$p[0][$j])=($p[0][$j],$p[$ilo][$j]);
-      print STATE "Done - Simplex converged after $nfunc steps.\n";
-      die "--- Simplex convergerd after $nfunc steps ---";
-   }
-}
-
-close(STATE);
-
-foreach (0 .. $ndim) {
-${$hash{p_1}}[$_]=$sig_asc[$_]**2;
-${$hash{p_2}}[$_]=$eps_asc[$_]**2;
+# }
+# 
+# } # End of switch loop
+# 
+# # Check for convergence
+# my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo]));
+# 
+# if($rtol<$ftol) {
+#    ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
+#       for (my $j=0;$j<$param_N;$j++){
+#       ($p[$ilo][$j],$p[0][$j])=($p[0][$j],$p[$ilo][$j]);
+#       print STATE "Done - Simplex converged after $nfunc steps.\n";
+#       die "--- Simplex convergerd after $nfunc steps ---";
+#    }
+# }
+# 
+# close(STATE);
+# 
+for (my $i=0;$i<=$#y;$i++) {
+  for (my $j=1;$j<=$param_N;$j++){
+    ${$hash{"p_$j"}}[$i]=($p_asc[$i][$j-1])**2;
+  }
 }
 
 # Update simplex table
