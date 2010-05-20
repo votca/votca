@@ -32,7 +32,7 @@ AC_ARG_ENABLE(la-files,
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 
-AX_EXPAT
+AX_VOTCA_EXPAT
 
 AX_VOTCA_BOOST
 
