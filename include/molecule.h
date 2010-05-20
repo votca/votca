@@ -70,6 +70,12 @@ public:
 
     vector<Interaction *> Interactions() { return _interactions; }
 
+    template<typename T>
+    void setUserData(T *userdata) { _userdata = (void*)userdata; }
+
+    template<typename T>
+    T *getUserData() { return (T *)_userdata; }
+    
 private:
     // maps a name to a bead id
     map<string, int> _beadmap;
@@ -83,6 +89,8 @@ private:
     // the beads in the molecule
     vector<Bead *> _beads;
     vector<string> _bead_names;
+
+    void *_userdata;
     
     /// constructor
     Molecule(Topology *parent, int id, string name)
