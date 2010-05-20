@@ -35,11 +35,10 @@ AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 if test "$enable_votca_boost" = no; then
   AX_BOOST_BASE([1.33.1],[:],[have_boost=no])
   if test "$have_boost" = "no" -o "$want_boost" = "no"; then
-    AC_MSG_NOTICE([
+    AC_MSG_ERROR([
 		
-BOOST was not found/disabled: Building libvotca_boost
+BOOST was not found/disabled: Install BOOST or enable build-in replacement libvotca_boost with --enable-votca-boost
 ])
-    enable_votca_boost="yes"
   fi
 fi
 
