@@ -16,6 +16,8 @@ Makefile.in
 aclocal.m4
 config.h
 config.h.in
+expat_config.h
+expat_config.h.in
 config.log
 config.status
 config/depcomp

@@ -20,6 +20,11 @@ AC_ARG_ENABLE(votca-boost,
                             [Build libvotca_boost, a build-in replacement for boost])],,
                              [enable_votca_boost="no"])
 
+AC_ARG_WITH(expat,
+            [AS_HELP_STRING([--without-expat],
+                            [Build libvotca_expat, a build-in replacement for expat])],,
+                             [with_expat="no"])
+
 AC_ARG_ENABLE(la-files,
 	[AS_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
 	[enable_la_files=yes])
@@ -41,20 +46,35 @@ fi
 # check for fftw3
 PKG_CHECK_MODULES([FFTW],fftw3)
 
-# checko for expat
-AX_EXPAT
-
 # check for gsl
 PKG_CHECK_MODULES([GSL],gsl)
 
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
 
+if test "$with_expat" = "no"; then
+  EXPAT_CFLAGS='-I$(top_srcdir)/src/libexpat/include'
+  EXPAT_LIBS='$(top_srcdir)/src/libexpat/libs/libvotca_expat.la'
+  VOTCA_EXPAT="libexpat"
+  AC_CONFIG_SUBDIRS(src/libexpat)
+  PKGEXPAT="libvotca_expat"
+  PKGCFLAGSEXPAT=""
+  PKGLIBSEXPAT=""
+  AC_SUBST(VOTCA_EXPAT)
+  AC_SUBST(EXPAT_CFLAGS)
+  AC_SUBST(EXPAT_LIBS)
+  AC_SUBST(PKGCFLAGSEXPAT)
+  AC_SUBST(PKGLIBSEXPAT)
+  AC_SUBST(PKGEXPAT)
+else
+# check for expat
+  AX_EXPAT
+fi
+
 if test "$enable_votca_boost" = "yes"; then
   BOOST_CFLAGS='-I$(top_srcdir)/src/libboost'
   BOOST_LIBS='$(top_srcdir)/src/libboost/libs/libvotca_boost.la'
   VOTCA_BOOST="libboost"
-  AC_CACHE_SAVE
   AC_CONFIG_SUBDIRS(src/libboost)
   PKGBOOST="libvotca_boost"
   PKGCFLAGSBOOST=""

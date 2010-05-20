@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libvotca_expat
+Description: expat replacement for the votca package
+URL: http://www.votca.org
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lvotca_expat
+Libs.private: -lm
+Cflags: -I${includedir}/votca/expat
