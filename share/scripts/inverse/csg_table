@@ -19,6 +19,7 @@ functions common functions_inverse.sh
 
 #general scripts
 tag file tag_file.sh
+dummy dummy dummy.sh
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
@@ -46,14 +47,14 @@ rdf pot RDF_to_POT.pl
 # post update
 post update post_update.sh
 post update_single post_update_single.sh
-post dummy dummy.sh
 
 #post update scripts
 postupd scale postupd_scale.sh
 postupd pressure postupd_pressure.sh
 postupd splinesmooth postupd_splinesmooth.sh
 postupd smooth postupd_smooth.sh
-postupd dummy dummy.sh
+postupd dummy postadd_dummy.sh
+postupd tag tag_file.sh
 
 # post add
 post add post_add.sh

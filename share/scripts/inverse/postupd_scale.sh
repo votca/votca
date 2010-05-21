@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 This script implemtents scaling of the potential update (.dpot)
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 
 USES: csg_get_interaction_property do_external log check_deps
 
@@ -31,10 +31,14 @@ fi
 
 check_deps "$0"
 
+[ -z "$2" ] && die "${0##*/}: Missing arguments"
+
+[ -f "$2" ] && die "${0##*/}: $2 is already there"
+
 name=$(csg_get_interaction_property name)
 scale=$(csg_get_interaction_property inverse.post_update_options.scale 1.0)
 
 log "scaling potential update by factor $scale"
 
-do_external table linearop ${name}.dpot.cur ${name}.dpot.new $scale 0
+do_external table linearop "$1" "$2" $scale 0
 

@@ -35,9 +35,16 @@ name=$(csg_get_interaction_property name)
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
 i=1
 for task in $tasklist; do
-  log "Doing $task for ${name}"
-  run_or_exit mv ${name}.dpot.new ${name}.dpot.cur
-  run_or_exit cp ${name}.dpot.cur ${name}.dpot.${i}
-  do_external postupd "$task"
+  log "Doing postupd task '$task' for '${name}'"
+
+  #make new dpot the current one
+  run_or_exit mv "${name}.dpot.new" "${name}.dpot.cur"
+
+  #save the current one
+  run_or_exit cp "${name}.dpot.cur" "${name}.dpot.${i}"
+  
+  #perform postupd task
+  do_external postupd "$task" "${name}.dpot.cur" "${name}.dpot.new"
+
   ((i++))
 done

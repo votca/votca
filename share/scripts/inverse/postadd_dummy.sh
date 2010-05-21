@@ -21,7 +21,7 @@ ${0##*/}, version %version%
 postadd dummy script, just do nothing
 useful to overwrite default by nothing
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 
 USES: die check_deps run_or_exit cp
 

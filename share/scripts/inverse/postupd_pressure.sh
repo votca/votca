@@ -20,9 +20,9 @@ cat <<EOF
 ${0##*/}, version %version%
 This script implemtents the pressure update
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 
-USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit cp check_deps get_current_step_nr
+USES:  die csg_get_property do_external csg_get_interaction_property log run_or_exit check_deps get_current_step_nr
 
 NEEDS: cg.inverse.program name
 
@@ -32,6 +32,10 @@ EOF
 fi
 
 check_deps "$0"
+
+[ -z "$2" ] && die "${0##*/}: Missing arguments"
+
+[ -f "$2" ] && die "${0##*/}: $2 is already there"
 
 step_nr="$(get_current_step_nr)"
 sim_prog="$(csg_get_property cg.inverse.program)"
@@ -48,8 +52,8 @@ pscheme_nr=$(( ( $step_nr - 1 ) % ${#pscheme[@]} ))
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
    log "Apply ${ptype} pressure correction for interaction ${name}"
    do_external pressure_cor $ptype $p_now pressure_cor.d
-   do_external table add pressure_cor.d ${name}.dpot.cur ${name}.dpot.new
+   do_external table add pressure_cor.d "$1" "$2"
 else
    log "NO pressure correction for interaction ${name}"
-   run_or_exit cp ${name}.dpot.cur ${name}.dpot.new
+   do_external postupd dummy "$1" "$2"
 fi

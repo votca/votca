@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 This script implemtents smoothing of the potential update (.dpot)
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 
 USES: die csg_get_interaction_property mktemp do_external cp log run_or_exit check_deps
 
@@ -31,15 +31,19 @@ fi
 
 check_deps "$0"
 
+[ -z "$2" ] && die "${0##*/}: Missing arguments"
+
+[ -f "$2" ] && die "${0##*/}: $2 is already there"
+
 name=$(csg_get_interaction_property name)
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
 iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)
 
-run_or_exit cp ${name}.dpot.cur $tmpfile
+run_or_exit cp "$1" $tmpfile
 log "doing $iterations smoothing iterations"
 
 for((i=0;i<$iterations;i++)); do
-  do_external table smooth $tmpfile ${name}.dpot.new
-  run_or_exit cp ${name}.dpot.new $tmpfile
+  do_external table smooth $tmpfile "$2"
+  run_or_exit cp "$2" $tmpfile
 done
 
