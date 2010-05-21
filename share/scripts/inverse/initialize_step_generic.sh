@@ -35,6 +35,6 @@ check_deps "$0"
 #get new pot from last step
 for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 
-#make it old potential
-for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.old'
+#make it current potential
+for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 

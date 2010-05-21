@@ -35,14 +35,11 @@ i=1
 for task in $tasklist tag; do
   log "Doing postadd task '$task' for '${name}'"
   
-  #make new pot the current one
-  run_or_exit mv "${name}.pot.new" "${name}.pot.cur"
-
   #save the current one
-  run_or_exit cp "${name}.pot.cur" "${name}.pot.${i}"
+  run_or_exit cp "${name}.pot.new" "${name}.pot.${i}"
 
   #perform postadd task
-  do_external postadd "$task" "${name}.pot.cur" "${name}.pot.new" 
+  do_external postadd "$task" "${name}.pot.${i}" "${name}.pot.new" 
 
   ((i++))
 done
