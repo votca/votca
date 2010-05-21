@@ -33,7 +33,7 @@ name=$(csg_get_interaction_property name)
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
 i=1
 for task in $tasklist tag; do
-  log "Doing $task for ${name}"
+  log "Doing postadd task '$task' for '${name}'"
   
   #make new pot the current one
   run_or_exit mv "${name}.pot.new" "${name}.pot.cur"
@@ -43,5 +43,6 @@ for task in $tasklist tag; do
 
   #perform postadd task
   do_external postadd "$task" "${name}.pot.cur" "${name}.pot.new" 
+
   ((i++))
 done
