@@ -58,8 +58,10 @@ public:
     /// get the charge of the bead
     const double &getQ() const { return _q; }
     
-    /// get the mass of the bead
+    /// set the mass of the bead
     void setM(const double &m) { _m=m; }
+    /// set the crg of the bead
+    void setQ(const double &q) { _q=q; }
 
     /// get the symmetry of the bead
     /// 1: sphere
