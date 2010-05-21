@@ -23,9 +23,9 @@ useful to overwrite default by nothing
 
 Usage: ${0##*/}
 
-USES:  die msg csg_get_property for_all do_external check_deps
+USES: check_deps 
 
-NEEDS: cg.inverse.program
+NEEDS: 
 EOF
    exit 0
 fi

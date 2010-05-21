@@ -18,27 +18,24 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents smoothing of the potential update (.dpot)
+postadd dummy script, just do nothing
+useful to overwrite default by nothing
 
 Usage: ${0##*/}
 
-USES: die csg_get_interaction_property log check_deps get_table_comment
+USES: die check_deps run_or_exit cp
 
-NEEDS: name
+NEEDS: 
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-name=$(csg_get_interaction_property name)
-comment="$(get_table_comment)"
-input="${name}.pot.cur"
-output="${name}.pot.new"
+[ -z "$2" ] && die "${0##*/}: Missing arguments"
 
-[ -f "${name}.pot.cur" ] || die "${0##*/}: could not find ${name}.pot.cur"
+[ -f "$2" ] && die "${0##*/}: $2 is already there"
 
-log "${0##*/}: Taging file $output"
-echo -e "$comment" | sed 's/^/#/' > "$output" || die "${0##*/}: sed failed"
-cat "$input" >> "$output" || die "${0##*/}: cat failed"
+run_or_exit cp $1 $2
 
+exit 0
