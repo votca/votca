@@ -34,8 +34,10 @@ check_deps "$0"
 [[ -n "$2" ]] || die "${0##*/}: Missing arguments"
 
 input="$1"
-[ -f "$input" ] || die "${0##*/}: Input file not found"
+[ -f "$input" ] || die "${0##*/}: Input file $input not found"
 output="$2"
+[ -f "$output" ] && die "${0##*/}: $output is already there"
+
 comment="$(get_table_comment)"
 
 log "Taging file $input to $output"
