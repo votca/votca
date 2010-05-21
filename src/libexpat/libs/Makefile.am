@@ -9,6 +9,6 @@ xmlparse.c xmlrole.c xmltok.c xmltok_impl.c xmltok_ns.c
 
 install-exec-hook:
 if NO_LA_FILES
-	rm -f $(DESTDIR)$(libdir)/libvotca_export.la
+	rm -f $(DESTDIR)$(libdir)/libvotca_expat.la
 endif
 
