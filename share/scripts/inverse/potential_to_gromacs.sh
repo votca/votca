@@ -32,7 +32,7 @@ fi
 check_deps "$0"
 
 name=$(csg_get_interaction_property name)
-input="${name}.pot.cur"
+input="${name}.pot.old"
 #gromacs want '_' !
 output="$(csg_get_interaction_property inverse.gromacs.table)"
 log "Convert $input to $output"
