@@ -24,11 +24,11 @@ $progname, %version%
 This script calculates the 12-6 Lennard Jones potential
 for a given parameter set.
 
-Usage: $progname infile outfile tmp param_N p_line_nr
+Usage: $progname infile outfile param_cur
 
-USES: readin_table csg_get_property csg_resample saveto_table
+USES: readin_table saveto_table
 
-NEEDS: min max step
+NEEDS:
 EOF
   exit 0;
 }
@@ -39,47 +39,25 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--nparams")){
   exit 0;
 }
 
-die "5 parameters are nessary\n" if ($#ARGV<4);
+die "3 parameters are nessary\n" if ($#ARGV<2);
 
 use CsgFunctions;
 use SimplexFunctions;
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
-my $tmp="$ARGV[2]";
-my $param_N="$ARGV[3]";
-my $p_line_nr="$ARGV[4]";
+# --------------------- DEFINE PARAMETERS HERE ---------------------
+my $sig="$ARGV[2]";
+my $eps="$ARGV[3]";
 
-my $min=csg_get_property("cg.non-bonded.min");
-my $max=csg_get_property("cg.non-bonded.max");
-my $step=csg_get_property("cg.non-bonded.step");
-
-my $ndim=$param_N+1;
-
-# Create table with two columns: @r (from grid) and @dummy (0)
+# Read in empty potential table
 my @r;
-my @dummy;
-my @flag;
-
-open(TMP, ">$tmp");
-print TMP "$min 0\n$max 0";
-close(TMP);
-
-my @args=("bash","-c","csg_resample --in $tmp --out grid --grid $min:$step:$max");
-system(@args);
-(readin_table("grid",@r,@dummy,@flag)) || die "$progname: error at readin_table\n";
-my @args2=("bash","-c","rm $tmp grid");
-system(@args2);
-
-# Read in current simplex table
-my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
-
-# Get current parameters
-my $sig=${$hash{p_1}}[$p_line_nr];
-my $eps=${$hash{p_2}}[$p_line_nr];
-
-# Calculate potential
 my @pot;
+my @flag;
+(readin_table($infile,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
+
+# -------------------- DEFINE POTENTIAL HERE -----------------------
+# Calculate potential
 for (my $i=0;$i<=$#r;$i++){
     # Avoid undefined potential at r=0
     if ($r[$i]>1e-10) {

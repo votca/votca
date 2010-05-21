@@ -22,7 +22,7 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(readin_init_simplex_table readin_simplex_table saveto_simplex_table calc_psum calc_ptry amotry);
+@EXPORT      = qw(readin_init_simplex_table readin_simplex_table saveto_simplex_table calc_psum calc_ptry);
 
 # Subroutine to read in simplex table
 sub readin_init_simplex_table($$) {

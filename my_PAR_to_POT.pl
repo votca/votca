@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,9 @@ This script flags the current parameter set as 'active'.
 
 Usage: $progname infile outfile param_N p_line_nr
 
-USES: readin_simplex_table saveto_simplex_table
+USES: readin_simplex_table saveto_simplex_table csg_get_property csg_resample
 
-NEEDS: -
+NEEDS:
 
 EOF
   exit 0;
@@ -52,10 +52,43 @@ my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readi
 my @ftar=@{$hash{p_0}};
 my @flag=@{$hash{"p_$ndim"}};
 
-my $mdim=$#ftar+1;
-
 # Flag current parameter set as 'active'
 $flag[$p_line_nr]="active";
 
+my $mdim=$#ftar+1;
+
 # Save to new simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@ftar,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
+
+my $name=csg_get_property("cg.non-bonded.name");
+my $min=csg_get_property("cg.non-bonded.min");
+my $max=csg_get_property("cg.non-bonded.max");
+my $step=csg_get_property("cg.non-bonded.step");
+my $function=csg_get_property("cg.non-bonded.inverse.simplex.function");
+
+# Create table with two columns: @r (from settings) and @dummy (0)
+my @r;
+my @dummy;
+
+my $tmp=`mktemp tmp_XXX`;
+my $grid=`mktemp grid_XXX`;
+chop($tmp);
+chop($grid);
+
+open(TMP, ">$tmp");
+print TMP "$min 0\n$max 0";
+close(TMP);
+
+my @args = ("bash", "-c", "csg_resample --in $tmp --out $grid --grid $min:$step:$max");
+system(@args);
+
+my $param_string="";
+foreach (1..$param_N) {
+  $param_string="$param_string ${$hash{\"p_$_\"}}[$p_line_nr]";
+}
+
+#print "$param_string\n";
+
+# Calculate potential
+@args = ("bash", "-c", "do_external pot $function $grid $name.pot.new $param_string");
+system(@args);

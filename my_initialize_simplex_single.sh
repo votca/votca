@@ -34,15 +34,13 @@ fi
 
 check_deps "$0"
 
-name=$(for_all non-bonded csg_get_interaction_property name);
+name=$(csg_get_interaction_property name);
 function=$(csg_get_interaction_property inverse.simplex.function);
 param_N=$(do_external pot $function --nparams);
-tmp=$(mktemp simplex_XXX);
 
 # Prepare table
 cp_from_main_dir simplex_$name.in
 do_external prep simplex simplex_$name.in simplex_$name.cur state_$name.new $param_N
 
 # Calculate potential
-do_external pot $function simplex_$name.cur $name.pot.new $tmp $param_N 0
 do_external par pot simplex_$name.cur simplex_$name.new $param_N 0
