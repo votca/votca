@@ -20,10 +20,10 @@ AC_ARG_ENABLE(votca-boost,
                             [Build libvotca_boost, a build-in replacement for boost])],,
                              [enable_votca_boost="no"])
 
-AC_ARG_WITH(expat,
-            [AS_HELP_STRING([--without-expat],
+AC_ARG_ENABLE(votca-expat,
+            [AS_HELP_STRING([--enable-votca-expat],
                             [Build libvotca_expat, a build-in replacement for expat])],,
-                             [with_expat="no"])
+                             [enable_votca_expat="no"])
 
 AC_ARG_ENABLE(la-files,
 	[AS_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
@@ -51,7 +51,7 @@ PKG_CHECK_MODULES([GSL],gsl)
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
 
-if test "$with_expat" = "no"; then
+if test "$enable_votca_expat" = "yes"; then
   EXPAT_CFLAGS='-I$(top_srcdir)/src/libexpat/include'
   EXPAT_LIBS='$(top_srcdir)/src/libexpat/libs/libvotca_expat.la'
   VOTCA_EXPAT="libexpat"
