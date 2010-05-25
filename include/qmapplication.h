@@ -45,7 +45,7 @@ public:
     /// return true if evaluation should be continued, abort only if something important is missing
     virtual bool BeginEvaluate();
     /// called for each frame, return true if evaluation should be continued
-    virtual bool EvaluateFrame();
+    virtual bool EvaluateFrame(int nr, int nframes);
     /// stop evaluation & do final analysis if necessary
     virtual void EndEvaluate();
     /// void add a calculator for later use (compare: cg_engine -> AddObserver)

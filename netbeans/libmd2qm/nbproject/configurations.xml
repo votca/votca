@@ -8,6 +8,7 @@
         <itemPath>../../include/calc_integrals.h</itemPath>
         <itemPath>../../include/cont_kmc.h</itemPath>
         <itemPath>../../include/marcus_rates.h</itemPath>
+        <itemPath>../../include/write_xml.h</itemPath>
       </logicalFolder>
       <itemPath>../../include/paircalculator.h</itemPath>
       <itemPath>../../include/qmapplication.h</itemPath>

@@ -20,7 +20,7 @@ public:
     ~ContKmc() {};
 
     void Initialize(QMTopology *top, Property *options);
-    void EvaluateFrame(QMTopology *top);
+    bool EvaluateFrame(QMTopology *top);
 
 private:
     /// electric field
@@ -70,7 +70,7 @@ inline void ContKmc::Initialize(QMTopology *top, Property *options){
     Random::init(14, 122, 472, 1912);
 }
 
-inline void ContKmc::EvaluateFrame(QMTopology *top){
+inline bool ContKmc::EvaluateFrame(QMTopology *top){
     /// creating graph and initializing generators and hoppers
     QMNBList &nblist = top->nblist();
     graph kmc_grid;

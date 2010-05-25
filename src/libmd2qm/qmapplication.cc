@@ -95,7 +95,7 @@ void QMApplication::Run(int argc, char **argv)
         loader.Seek(first_frame);
         for (int i=0;i<nframes;i++){
             loader.Load();
-            EvaluateFrame();
+            EvaluateFrame(i, nframes);
             saver.Save();
         }
         loader.Close();
@@ -148,10 +148,10 @@ bool QMApplication::BeginEvaluate(){
     return true;
 }
 
-bool QMApplication::EvaluateFrame(){
+bool QMApplication::EvaluateFrame(int nr, int nframes){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->EvaluateFrame(&_qmtop);
+        (*iter)->EvaluateFrame(nr, nframes, &_qmtop);
     }
 }
 
