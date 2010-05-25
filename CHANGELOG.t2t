@@ -5,6 +5,11 @@ Votca Developer Team
 For more detailed information about the changes see the
 history of the [repository http://hg.votca.org/tools]
 
+== Version in hg ==
+* added libvotca_expat to allow compiling without expat
+* allow comments in tables
+
+
 == Version 1.0_rc5 ==
 * using libexpat instead of libxml2
 * added libvotca_boost to allow compiling without boost
