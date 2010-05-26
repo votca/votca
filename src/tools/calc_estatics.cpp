@@ -52,17 +52,16 @@ double CalcEstatics::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe pe
     
     MoleculeContainer::iterator imol;
     for(imol = atop->Molecules().begin();imol!=atop->Molecules().end();imol++) {
-        if(*imol != mol) continue;
+        if(*imol == mol) continue;
         for(int i=0; i<mol->BeadCount();i++)
                 for(int j=0; j!= (*imol)->BeadCount();j++){
             Bead *bi =  mol->getBead(i); Bead *bj = (*imol)->getBead(j);
             vec r_v = atop->BCShortestConnection(bi->getPos(), bj->getPos());
-            //matrix box=atop->getBox();
             double r=abs(r_v);
             double qi=bi->getQ(); double qj=bj->getQ();
-            cout<<bj->getPos()<<r_v<<r<<qi<<qj<<epsilon_dielectric<<pot<<qi*qj/epsilon_dielectric*1/r<<endl;
+            //cout<<bj->getPos()<<r_v<<r<<qi<<qj<<epsilon_dielectric<<pot<<qi*qj/epsilon_dielectric*1/r<<endl;
             pot+=qi*qj/epsilon_dielectric*1/r;
-            cout<<pot<<endl;
+            //cout<<pot<<endl;
         }
     }
     return pot;
