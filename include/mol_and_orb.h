@@ -46,7 +46,7 @@ public:
 
     int n_el;
 
-    
+
     mol_and_orb(){
 	N=0;
 	orbitals =0;
@@ -67,6 +67,13 @@ public:
 	atom_labels.clear();
     }
 
+    multipoles *getChargesNeutr(){
+        return _neutr;
+    }
+
+    multipoles *getChargesCrged(){
+        return _crged;
+    }
 
     void cp_atompos(mol_and_orb & A) 
     {
