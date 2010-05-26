@@ -19,6 +19,10 @@ sw_opt=""
 version='@version@'
 quiet="no"
 ext_cmd=""
+simprog=""
+
+#unset stuff from enviorment
+unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
 
 #failback define
 die() {
@@ -54,7 +58,10 @@ Allowed options:
     --check          Check all csg scripts
     --scriptdir DIR  Set the user script dir
                      (Used if no xmlfile is given)
-		     Default: empty
+                     Default: empty
+    --simprog PROG   Set the simprog
+                     (Used if no xmlfile is given)
+                     Default: empty
     --xmlfile FILE   Specify the xml file to use
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
@@ -92,6 +99,9 @@ while [ "${1#-}" != "$1" ]; do
     shift ;;
    --scriptdir)
     CSGSCRIPTDIR="$2"
+    shift 2;;
+   --simprog)
+    simprog="$2"
     shift 2;;
    --xmlfile)
     export CSGXMLFILE="$2"
@@ -151,6 +161,7 @@ source $($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions com
 
 if [ -n "${CSGXMLFILE}" ]; then
   CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+  simprog="$(csg_get_property --allow-empty cg.inverse.program)"
   #scriptdir maybe contains $PWD or something
   eval CSGSCRIPTDIR=$CSGSCRIPTDIR
 fi
@@ -160,6 +171,10 @@ if [ -n "${CSGSCRIPTDIR}" ]; then
   qecho "CSGSCRIPTDIR is ${CSGSCRIPTDIR}"
   export CSGSCRIPTDIR
   export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
+fi
+
+if [ -n "${simprog}" ]; then
+  source $($SOURCE_WRAPPER functions $simprog) || die "$SOURCE_WRAPPER functions $simprog failed"
 fi
 
 if [ -n "$sw_opt" ]; then
@@ -201,4 +216,6 @@ if [ -n "$interaction" ]; then
   [ -z "${bondname}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
 fi
 
+export CSGLOG="$(mktemp ${0##*/}.log.XXX)" || die "mktemp failed"
 do_external $@
+echo "For details see: $CSGLOG"
