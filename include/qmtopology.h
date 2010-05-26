@@ -76,7 +76,12 @@ public:
     CrgUnit *GetCrgUnitByName(const string &name);
 
     CrgUnit *CreateCrgUnit(const string &name, const string &type_name, int molid);
-    
+
+
+    //Copy charges to either charged or neutral case
+    void CopyCharges(CrgUnit *crg, Molecule *mol);
+    void CopyChargesOccupied(CrgUnit *crg, Molecule *mol);
+
 protected:
 
     QMNBList _nblist;
