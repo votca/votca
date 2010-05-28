@@ -19,13 +19,13 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 postadd copyback script, copys files back to the maindir
-use ${name} in filename, as replacement for the interaction name
+use \${name} in filename, as replacement for the interaction name
 
 Usage: ${0##*/} infile outfile
 
-USES: die check_deps run_or_exit cp
+USES: die check_deps run_or_exit log do_external cp_from_to get_main_dir
 
-NEEDS: inverse.post_add_options.copyback.filelist 
+NEEDS: inverse.post_add_options.copyback.filelist name
 EOF
    exit 0
 fi
