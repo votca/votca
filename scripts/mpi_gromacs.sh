@@ -10,4 +10,4 @@ fi
 
 check_deps "$0"
 
-run_or_exit mpirun -np 2 mdrun
+run_or_exit mdrun -nt 2

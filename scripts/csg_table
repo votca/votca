@@ -1,0 +1,4 @@
+postadd analyze analyze.sh
+postadd convergence convergence.sh
+postadd plot plot_all.sh
+run gromacs mpi_gromacs.sh

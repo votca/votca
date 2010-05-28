@@ -7,8 +7,6 @@
   <non-bonded>
     <!-- name of the interaction -->
     <name>CG-CG</name>
-    <!-- target distribution (rdf), just give gromas rdf.xvg -->
-    <target>rdf_CG_CG_aim.xvg</target>
     <!-- types involved in this interaction -->
     <type1>CG</type1>
     <type2>CG</type2>
@@ -16,30 +14,34 @@
     <min>0</min>
     <max>0.9</max>
     <step>0.01</step>
-    <!-- update cycles -->
-    <do_pressure>0</do_pressure>
-    <do_potential>1</do_potential>
-    <!-- additional post processing of dU before added to potential -->
-    <post_update>smooth</post_update>
-    <!-- some options for the post update scripts -->
-    <post_update_options>
-        <splinesmooth>
-            <step>0.02</step>
-        </splinesmooth>
-        <smooth>
-          <iterations>4</iterations>
-        </smooth>
-    </post_update_options>
-    <!-- additional post processing of U after dU added to potential -->
-    <post_add>analyze</post_add>
-    <!-- inverse monte carlo specific stuff -->
-    <imc>
-      <group>CG-CG</group>
-    </imc>
-    <!-- name of the table for gromacs run -->
-    <gromacs>
-      <table>table_CG_CG.xvg</table>
-    </gromacs>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>rdf_CG_CG_aim.xvg</target>
+      <!-- update cycles -->
+      <do_pressure>0</do_pressure>
+      <do_potential>1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update>smooth</post_update>
+      <!-- some options for the post update scripts -->
+      <post_update_options>
+          <splinesmooth>
+              <step>0.02</step>
+          </splinesmooth>
+          <smooth>
+            <iterations>4</iterations>
+          </smooth>
+      </post_update_options>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add>analyze</post_add>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_CG_CG.xvg</table>
+      </gromacs>
+      <!-- inverse monte carlo specific stuff -->
+      <imc>
+        <group>CG-CG</group>
+      </imc>
+    </inverse>
   </non-bonded>
   
   <!-- general options for inverse script -->
@@ -60,9 +62,23 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.0</table_end>
-      <!-- topology + trajectory. Be careful, do not change yet! -->
+      <grompp>
+	<opts></opts>
+	<index>index.ndx</index>
+        <topol>topol.top</topol>
+      </grompp>
+      <g_rdf>
+	<opts></opts>
+	<index>index.ndx</index>
+        <topol>topol.tpr</topol>
+      </g_rdf>
+      <mdrun>
+	<opts>-v</opts>
+      </mdrun>
+      <mdp>grompp.mdp</mdp>
       <topol>topol.tpr</topol>
-      <traj>traj.xtc</traj>
+      <traj_type>xtc</traj_type>
+      <cutoff_check>yes</cutoff_check>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
@@ -71,7 +87,7 @@
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
     <method>ibm</method>
     <!-- directory for user scripts -->
-    <scriptdir>$PWD</scriptdir>
+    <scriptdir>$PWD/scripts</scriptdir>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
@@ -81,5 +97,9 @@
       <!-- solver to solve linear equation system, can be octave or matlab -->
       <solver>octave</solver>
     </imc>
+    <!--<mpi>
+      <tasks>1</tasks>
+      <cmd>mpirun -np 8</cmd>
+    </mpi>-->
   </inverse>
 </cg>
