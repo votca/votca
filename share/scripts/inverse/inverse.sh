@@ -233,10 +233,6 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "Post add"
   do_external post add
 
-  #copy latest results
-  for_all non-bonded 'cp $(csg_get_interaction_property name).pot.new $(get_main_dir)'
-  for_all non-bonded 'cp $(csg_get_interaction_property name).dist.new $(get_main_dir)'
-
   touch done
 
   msg "Clean up"
