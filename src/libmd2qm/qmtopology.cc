@@ -53,15 +53,23 @@ void QMTopology::LoadListCharges(const string &file)
 
 
 void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
-    
+     
     mol_and_orb * atoms = crg->rotate_translate_beads();
     totop->CreateResidue("DUM");
+    Molecule *mi = totop->CreateMolecule((crg)->getName());
+    mi->setUserData(crg);   //mi->getUserData<CrgUnit>();
     for (int i=0;i<atoms->getN();i++){
         vec pos = unit<bohr,nm>::to(atoms->GetPos(i));
         string atomtype = string( atoms->gettype(i) )+ string("-") + lexical_cast<string>(crg->getId());
         BeadType * bt= totop->GetOrCreateBeadType(atomtype);
         Bead * bead = totop ->CreateBead(1, atomtype,bt,0, 0, 0.);
-        bead->setPos(pos); 
+        bead->setPos(pos);
+        mi->AddBead(bead,"???");
+        if(crg->getType()->GetCrgUnit().getChargesNeutr()) {
+            double charge_of_bead_neutral=crg->getType()->GetCrgUnit().getChargesNeutr()->mpls[i];
+            bead->setQ(charge_of_bead_neutral);
+        }
+      
     }
     delete atoms->getorbs();
     delete atoms;
@@ -144,5 +152,43 @@ void QMTopology::ComputeAllElectrostaticEnergies(const double& epsilon){
                 << (*itcrg)->GetCom() << " " << (*itcrg)->getId() << " " << (*itcrg)->getType()->GetName()
                 << " " << nrg << endl;
         (*itcrg)->setEnergy((*itcrg)->getEnergy()+ nrg);
+    }
+}
+
+   // In topology.cc???
+//Copy charges to either charged or neutral case
+
+void QMTopology::CopyCharges(CrgUnit *crg, Molecule *mol)
+{
+    if(mol->BeadCount() != crg->getType()->GetCrgUnit().getN())
+        throw std::runtime_error("QMTopology::CopyCharges: number of atoms in crgunit does not match number of beads in molecule");
+
+    if(!crg->getType()->GetCrgUnit().getChargesNeutr())
+        throw std::runtime_error("QMTopology::CopyCharges: no charges defined");
+
+    //loop over all beads in that molecule
+    for (int i = 0; i < mol->BeadCount(); i++) {
+        //get charge
+        double charge_of_bead_i_neutral = crg->getType()->GetCrgUnit().getChargesNeutr()->mpls[i];
+        //set charge
+        mol->getBead(i)->setQ(charge_of_bead_i_neutral);
+    }
+}
+
+//Copy charges to either charged or neutral case
+void QMTopology::CopyChargesOccupied(CrgUnit *crg, Molecule *mol)
+{
+    if(mol->BeadCount() != crg->getType()->GetCrgUnit().getN())
+        throw std::runtime_error("QMTopology::CopyCharges: number of atoms in crgunit does not match number of beads in molecule");
+
+    if(!crg->getType()->GetCrgUnit().getChargesCrged())
+        throw std::runtime_error("QMTopology::CopyCharges: no charges defined");
+
+    //loop over all beads in that molecule
+    for (int i = 0; i < mol->BeadCount(); i++) {
+        //get charge
+        double charge_of_bead_i_charged = crg->getType()->GetCrgUnit().getChargesCrged()->mpls[i];
+        //set charge
+        mol->getBead(i)->setQ(charge_of_bead_i_charged);
     }
 }
