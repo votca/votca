@@ -8,6 +8,8 @@
         <itemPath>../../include/calc_integrals.h</itemPath>
         <itemPath>../../include/cont_kmc.h</itemPath>
         <itemPath>../../include/marcus_rates.h</itemPath>
+        <itemPath>../../src/libmd2qm/read_xml.cc</itemPath>
+        <itemPath>../../include/read_xml.h</itemPath>
         <itemPath>../../include/write_xml.h</itemPath>
       </logicalFolder>
       <itemPath>../../include/paircalculator.h</itemPath>
