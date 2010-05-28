@@ -72,7 +72,7 @@ log () {
     if [ "$warn" = "yes" ]; then
       echo -e "WARNING: Nested log call, when calling 'log $*'"
       echo -e "         log was redirected by '$LOG_REDIRECTED'"
-      echo -e "         Try to avoid this, by removing one redirect, help: function_help"
+      echo -e "         Try to avoid this, by removing one redirect, csg_call functions common --help"
     fi
     echo -e "$*"
   fi
@@ -148,7 +148,7 @@ logrun(){
   else
     echo -e "WARNING: Nested log call, when calling 'logrun $*'"
     echo -e "         log was redirected by '$LOG_REDIRECTED'"
-    echo -e "         Try to avoid this, by removing one redirect, help: function_help"
+    echo -e "         Try to avoid this, by removing one redirect, csg_call functions common --help"
     "$@" 2>&1
     ret=$?
   fi
@@ -384,7 +384,7 @@ cp_from_to() {
     from="$2"
     shift 2
   else
-    die "cp_for_to: first argument should be --from DIR"
+    die "cp_form_to: first argument should be --from DIR"
   fi
   if [ "$1" = "--where" ]; then
     where="$2"
