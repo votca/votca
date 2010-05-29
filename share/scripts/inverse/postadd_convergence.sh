@@ -54,5 +54,6 @@ true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.dist.new > $tmp2
 
 true_or_exit paste $tmp1 $tmp2 > $tmp3
 run_or_exit awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
-true_or_exit awk -v bin=$step -w=$weight '{sum+=($5-$2)**2;}END{print sum*bin*w;}' $tmp3 > ${name}.conv 
+log "Calc convergence for ${name} with weight $weight"
+true_or_exit awk -v bin=$step -v w=$weight '{sum+=($5-$2)**2;}END{print sum*bin*w;}' $tmp3 > ${name}.conv 
 

@@ -65,6 +65,7 @@ postadd tag tag_file.sh
 postadd dummy postadd_dummy.sh
 postadd copyback postadd_copyback.sh
 postadd convergence postadd_convergence.sh 
+postadd acc_convergence postadd_acc_convergence.sh 
 
 # table preparation
 dpot shift_nb dpot_shift_nb.pl
