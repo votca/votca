@@ -52,7 +52,7 @@ Usage: ${0##*/} [OPTIONS] key1 key2
 
 Allowed options:
 -l, --list           Show list of all script
--q, --quite          Be quite (useful with --show/--cat)
+-q, --quite          Be quite (useful with show and cat option)
     --cat            Show the content of the script
     --show           Show the path to the script
     --check          Check all csg scripts
@@ -120,6 +120,7 @@ while [ "${1#-}" != "$1" ]; do
     ext_cmd="show_external"
     shift;;
    --direct)
+    quiet="yes"
     break;;
    -q | --quiet)
     quiet="yes"
@@ -196,8 +197,11 @@ cat <<EOF
 
 please submit bugs to bugs@votca.org
 
+
+
+
 EOF
-  do_external $1 $2 --help | sed "s/%version%/${version}/"
+  do_external -q $1 $2 --help | sed "s/%version%/${version}/"
   exit 0
 fi
 
