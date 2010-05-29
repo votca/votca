@@ -26,6 +26,8 @@ Usage: ${0##*/} infile outfile
 USES: die check_deps do_external wc sed awk paste mktemp
 
 NEEDS: name
+
+OPTIONAL: inverse.post_add_options.convergence.weight 
 EOF
    exit 0
 fi
@@ -38,6 +40,7 @@ do_external postadd dummy "$1" "$2"
 
 name=$(csg_get_interaction_property name)
 step=$(csg_get_interaction_property step)
+weight=$(csg_get_interaction_property inverse.post_add_options.convergence.weight 1)
 
 tmp1="$(true_or_exit mktemp ${name}.dist.tgt.XXX)"
 tmp2="$(true_or_exit mktemp ${name}.dist.new.XXX)"
@@ -51,5 +54,5 @@ true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.dist.new > $tmp2
 
 true_or_exit paste $tmp1 $tmp2 > $tmp3
 run_or_exit awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
-true_or_exit awk -v bin=$step '{sum+=($5-$2)**2;}END{print sum*bin;}' $tmp3 > ${name}.conv 
+true_or_exit awk -v bin=$step -w=$weight '{sum+=($5-$2)**2;}END{print sum*bin*w;}' $tmp3 > ${name}.conv 
 
