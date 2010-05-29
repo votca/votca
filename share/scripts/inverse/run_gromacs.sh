@@ -37,7 +37,7 @@ opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 check_deps "$0"
 
 if use_mpi; then
-  mpicmd=$(csg_get_property cg.inverse.mpi.cmd)
+  mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
   run_or_exit $mpicmd mdrun -s "${tpr}" "${opts}"
 else
   run_or_exit mdrun -s "${tpr}" "${opts}"
