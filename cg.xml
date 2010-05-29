@@ -32,7 +32,15 @@
           </smooth>
       </post_update_options>
       <!-- additional post processing of U after dU added to potential -->
-      <post_add>analyze</post_add>
+      <post_add>acc_convergence plot</post_add>
+      <post_add_options>
+          <copyback>
+	    <filelist>${name}.pot.new ${name}.dpot.new ${name}.dist.new</filelist>
+          </copyback>
+	  <convergence>
+	    <weight>100</weight>
+	  </convergence>
+      </post_add_options>
       <!-- name of the table for gromacs run -->
       <gromacs>
         <table>table_CG_CG.xvg</table>
@@ -73,7 +81,7 @@
         <topol>topol.tpr</topol>
       </g_rdf>
       <mdrun>
-	<opts>-v</opts>
+	<opts>-v -nt 2</opts>
       </mdrun>
       <mdp>grompp.mdp</mdp>
       <topol>topol.tpr</topol>
@@ -97,9 +105,9 @@
       <!-- solver to solve linear equation system, can be octave or matlab -->
       <solver>octave</solver>
     </imc>
-    <!--<mpi>
-      <tasks>1</tasks>
-      <cmd>mpirun -np 8</cmd>
-    </mpi>-->
+    <mpi>
+      <tasks>2</tasks>
+      <cmd></cmd>
+    </mpi>
   </inverse>
 </cg>
