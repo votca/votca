@@ -165,7 +165,7 @@ export -f run_or_exit
 #useful subroutine check if a command was succesful AND log the output
 true_or_exit() {
    local ret
-   ret="$($@ 2>&1)" || die "true_or_exit: '$*' failed with error message '$ret'"
+   ret="$("$@" 2>&1)" || die "true_or_exit: '$*' failed with error message '$ret'"
    echo "$ret"
 }
 export -f true_or_exit
