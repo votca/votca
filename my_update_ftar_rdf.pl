@@ -71,14 +71,17 @@ my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readi
 
 # Define table columns
 @ftar_cur=@{$hash{p_0}};
-@sig_cur=@{$hash{p_1}};
-@eps_cur=@{$hash{p_2}};
 @flag_cur=@{$hash{"p_$ndim"}};
 
 # Should never happen due to resampling, but better check
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
 die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 
+# --------------------- DEFINE PARAMETERS HERE ---------------------
+@sig_cur=@{$hash{p_1}};
+@eps_cur=@{$hash{p_2}};
+
+# ------------------- DEFINE TARGET FUNCTION HERE ------------------
 # Calculate ftar
 my @w=@_;
 my @drdf=@_;

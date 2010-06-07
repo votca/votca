@@ -56,7 +56,7 @@ my @ftar;
 my @flag;
 
 for my $i (0 .. $param_N) {
-   $ftar[$i]="0.0";
+   $ftar[$i]="0";
    $flag[$i]="pending";
 }
 

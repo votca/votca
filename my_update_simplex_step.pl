@@ -49,8 +49,8 @@ use CsgFunctions;
 use SimplexFunctions;
 use Switch;
 
-my $name="CG-CG"; #csg_get_property("cg.non-bonded.name");
-my $ftol=1e-6; #csg_get_property("cg.inverse.simplex.ftol");
+my $name=csg_get_property("cg.non-bonded.name");
+my $ftol=csg_get_property("cg.inverse.simplex.ftol");
 
 # Read in simplex table and assign to arrays
 my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
@@ -73,6 +73,9 @@ for(my $i=0; $i<$ndim; $i++) {
 
 my @psum;
 my @ptry;
+foreach (1 .. $param_N) {
+push(@ptry, sqrt(${$hash{"p_$_"}}[-1]));
+}
 my $ytry=$ftar[-1];
 
 # Generate and sort arrays according to y[m-1]
@@ -100,7 +103,7 @@ for (my $i=0;$i<=$#y;$i++) {
 # Define highest, next highest, and lowest points (ihi, inhi, ilo)
 my $ihi=$#y;
 my $ilo=0;
-my $inhi=$ihi-1; # *********************** CHECK THIS!
+my $inhi=$ihi-1;
 for (my $i=0;$i<=$#y;$i++) {
   if($y[$i]<=$y[$ilo]) {$ilo=$i;}
   if($y[$i]>$y[$ihi]) {
@@ -108,6 +111,15 @@ for (my $i=0;$i<=$#y;$i++) {
     $ihi=$i;
   }
   if ($y[$i]>$y[$inhi] && $i!=$ihi) {$inhi=$i;}
+}
+
+# Evalulate function at the trial point
+if ($ytry<$y[$ihi]) {
+  for (my $j=0;$j<$param_N;$j++) {
+    $y[$ihi]=$ytry;
+    $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
+    $p_asc[$ihi][$j]=$ptry[$j];
+  }
 }
 
 # Get Transformation from previous state file
@@ -129,111 +141,67 @@ open (STATE, "> state_$name.new") || die "Could not open file state_$name.new\n"
 
 my $nfunc=0;
 
-switch ($state{'Transformation'}) {
-
-my $ysave_R;
-my $ysave_C;
-case 'Reflection' {
-   # If better than the best, try bigger step in the same direction (Expansion)
-   if ($ytry <= $y[$ilo]) {
-      $ysave_R=$state{$ytry};
-      print STATE "Transformation=Expansion\n";
-      @psum=calc_psum(@p,$param_N,$ndim);
-      @ptry=calc_ptry($param_N,$ihi,2.0,@p,@psum);
-      push(@y,"0");
-      my @empty=();
-      push(@p_asc, \@empty);
-      for (my $j=0;$j<$param_N;$j++){
-        $p_asc[-1][$j]=$ptry[$j];
-      }
-      push(@flag,"pending");
-      $nfunc++;
-   }
-   # if worse than the second worst as well as the worst, try smaller step (Contraction)
-   elsif ($ytry >= $y[$inhi] && $ytry >= $y[$ihi]) {
-      $ysave_C=$state{$y[$ihi]};
-      print STATE "Transformation=Contraction\n";
-      @psum=calc_psum(@p,$param_N,$ndim);
-      @ptry=calc_ptry($param_N,$ihi,0.5,@p,@psum);
-      push(@y,"0");
-      my @empty=();
-      push(@p_asc, \@empty);
-      for (my $j=0;$j<$param_N;$j++){
-        $p_asc[-1][$j]=$ptry[$j];
-      }
-      push(@flag,"pending");
-      $nfunc++;
-   }
-   else {
-   # Otherwise, replace worst point by reflected point
-         for (my $j=0;$j<$param_N;$j++) {
-         $y[$ihi]=$ytry;
-         $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
-         $p[$ihi][$j]=$ptry[$j];
-      }
-   }
+# If better than the best, try bigger step in the same direction (Expansion)
+if ($state{'Transformation'} eq "Reflection" && $ytry <= $y[$ilo]) {
+  print STATE "Transformation=Expansion\n";
+  @psum=calc_psum(@p,$param_N,$ndim);
+  @ptry=calc_ptry($param_N,$ihi,2.0,@p,@psum);
+  push(@y,"0");
+  my @empty=();
+  push(@p_asc, \@empty);
+  for (my $j=0;$j<$param_N;$j++){
+    $p_asc[-1][$j]=$ptry[$j];
+  }
+  push(@flag,"pending");
+  $nfunc++;
 }
 
-case 'Expansion' {
-   # If better the best, replace worst point by expanded point
-   if ($ytry <= $y[$ilo]) {
-      for (my $j=0;$j<$param_N;$j++) {
-         $y[$ihi]=$ytry;
-         $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
-         $p[$ihi][$j]=$ptry[$j];
-      }
-   }
-   else {
-   # Otherwise, replace worst point by reflected point
-      for (my $j=0;$j<$param_N;$j++) {
-         $y[$ihi]=$ysave_R;
-         $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
-         $p[$ihi][$j]=$ptry[$j];
-      }
-   }
+# if worse than the second worst, try smaller step (Contraction)
+elsif ($state{'Transformation'} eq "Reflection" && $ytry >= $y[$inhi]) {
+  print STATE "Transformation=Contraction\n";
+  print STATE "ysave=$y[$ihi]\n";
+  @psum=calc_psum(@p,$param_N,$ndim);
+  @ptry=calc_ptry($param_N,$ihi,0.5,@p,@psum);
+  push(@y,"0");
+  my @empty=();
+  push(@p_asc, \@empty);
+  for (my $j=0;$j<$param_N;$j++){
+    $p_asc[-1][$j]=$ptry[$j];
+  }
+push(@flag,"pending");
+$nfunc++;
 }
 
-case 'Contraction' {
-   # if worse than worst point from contraction, replace all but the best 
-   if ($ytry >= $ysave_C) {
-      print STATE "Transformation=Reduction\n";
-      for (my $i=0;$i<$ndim;$i++) {
-         if ($i!=$ilo) {
-            for (my $j=0;$j<=$param_N;$j++) {
-            $p_asc[$i][$j]=$psum[$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
-            $y[$i]="0";
-            $flag[$i]="pending";
-            }
-         }
+# if worse than worst point from contraction, replace all but the best
+elsif ($state{'Transformation'} eq "Contraction" && $ytry >= $state{'ysave'}) {
+  print STATE "Transformation=Reduction\n";
+  for (my $i=0;$i<$ndim;$i++) {
+    if ($i!=$ilo) {
+      for (my $j=0;$j<$param_N;$j++) {
+        $p_asc[$i][$j]=$psum[$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
+        $y[$i]="0";
+        $flag[$i]="pending";
       }
-   $nfunc+=$ndim;
-   }
-   # Otherwise, replace worst point by contracted point
-   else {
-      for (my $j=0;$j<=$param_N;$j++) {
-         $y[$ihi]=$ytry;
-         $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
-         $p[$ihi][$j]=$ptry[$j];
-      }
-   }
+    }
+  }
+  $mdim-=1;
+  $nfunc+=$ndim;
 }
 
 else {
-   # Compute reflected point
-   print STATE "Transformation=Reflection\n";
-   @psum=calc_psum(@p,$param_N,$ndim);
-   @ptry=calc_ptry($param_N,$ihi,-1.0,@p,@psum);
-   push(@y,"0");
-   my @empty=();
-   push(@p_asc, \@empty);
-   for (my $j=0;$j<$param_N;$j++){
-     $p_asc[-1][$j]=$ptry[$j];
-   }
-   push(@flag,"pending");
-   $nfunc++;
+  # Compute reflected point
+  print STATE "Transformation=Reflection\n";
+  @psum=calc_psum(@p,$param_N,$ndim);
+  @ptry=calc_ptry($param_N,$ihi,-1.0,@p,@psum);
+  push(@y,"0");
+  my @empty=();
+  push(@p_asc, \@empty);
+  for (my $j=0;$j<$param_N;$j++){
+    $p_asc[-1][$j]=$ptry[$j];
+  }
+  push(@flag,"pending");
+  $nfunc++;
 }
-
-} # End of switch loop
 
 # Check for convergence
 my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo]));

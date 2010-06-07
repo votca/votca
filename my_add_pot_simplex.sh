@@ -37,16 +37,16 @@ check_deps "$0"
 name=$(for_all non-bonded csg_get_interaction_property name);
 function=$(for_all non-bonded csg_get_interaction_property inverse.simplex.function);
 param_N=$(do_external pot $function --nparams);
-p_nr=$(grep -c 'pending$' simplex_$name.tmp);
+p_nr=$(grep -c 'pending$' simplex_$name.new);
 tmp=$(mktemp simplex_XXX);
 
 # Finds pending parameter set
 if [ $p_nr > "0" ]; then
-p_line_nr=$(($(grep -n -m1 'pending$' simplex_$name.tmp | sed 's/:.*//')-1));
+p_line_nr=$(($(grep -n -m1 'pending$' simplex_$name.new | sed 's/:.*//')-1));
 else 
-  die "Error: no pending parameter sets found"
+p_line_nr=0;
 fi
 
 # Calculate potential
 for_all "non-bonded" \
-  run_or_exit do_external par pot simplex_$name.tmp simplex_$name.new $param_N $p_line_nr
+  run_or_exit do_external par pot simplex_$name.new simplex_$name.new $param_N $p_line_nr

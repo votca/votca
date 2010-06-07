@@ -41,25 +41,47 @@ die "3 parameters are necessary\n" if ($#ARGV<2);
 use CsgFunctions;
 use SimplexFunctions;
 
-my $surften_target=csg_get_interaction_property("inverse.target");
+my $name=csg_get_property("cg.non-bonded.name");
+my $surften_tgt=csg_get_interaction_property("inverse.target");
 
 my $surften_cur;
-open(SURFTEN_CUR, "<surften_now");
+open(SURFTEN_CUR, "<surften.cur");
 while (<SURFTEN_CUR>) {
-$surften_cur=$_;
+  $surften_cur=$_;
 }
+close(SURFTEN_CUR);
 
-my $cur_ftar_file="$ARGV[0]";
+# Create an empty rdf file
+open (RDF, "> $name.dist.new") || die "Could not open file $_[0]\n";
+close(RDF);
+
+my $infile="$ARGV[0]";
+my $outfile="$ARGV[1]";
+my $param_N="$ARGV[2]";
+my $a_line_nr="$ARGV[3]";
+
 my @ftar_cur;
 my @sig_cur;
 my @eps_cur;
-my @flag_simplex;
-(readin_simplex_table($cur_ftar_file,@ftar_cur,@sig_cur,@eps_cur,@flag_simplex)) || die "$progname: error at readin_simplex_table\n";
+my @flag_cur;
 
-my $new_ftar_file="$ARGV[1]";
-my $a_line_nr="$ARGV[2]";
+my $ndim=$param_N+1;
 
-$ftar_cur[$a_line_nr]=($surften_cur-$surften_target)/$surften_target;
+# Read in temporary simplex table
+my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
+
+# Define table columns
+@ftar_cur=@{$hash{p_0}};
+@flag_cur=@{$hash{"p_$ndim"}};
+
+# --------------------- DEFINE PARAMETERS HERE ---------------------
+@sig_cur=@{$hash{p_1}};
+@eps_cur=@{$hash{p_2}};
+
+# ------------------- DEFINE TARGET FUNCTION HERE ------------------
+# Calculate ftar
+
+$ftar_cur[$a_line_nr]=abs(($surften_cur-$surften_tgt)/$surften_tgt);
 
 my @args=("bash","-c","echo $ftar_cur[$a_line_nr]");
 system(@args);
@@ -67,6 +89,10 @@ system(@args);
 my @ftar_new;
 @ftar_new=@ftar_cur;
 
-$flag_simplex[$a_line_nr]="complete";
+# Flag current parameter set as 'complete'
+$flag_cur[$a_line_nr]="complete";
 
-saveto_simplex_table($new_ftar_file,@ftar_new,@sig_cur,@eps_cur,@flag_simplex) || die "$progname: error at save table\n";
+my $mdim=$#ftar_cur+1;
+
+# Save to new simplex table
+saveto_simplex_table($outfile,$mdim,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";

@@ -53,8 +53,7 @@ echo \#Surf*SurfTen | run_or_exit g_energy -b "${begin}" -s "${tpr}" ${opts}
 
 #the number pattern '[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 echo log: $CSGLOG
-surften_now=$(csg_taillog -30) || die "${0##*/}: awk failed" 
-#| sed -n 's/^\#Surf\*SurfTen[^0-9]*\([0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p') || \
-#  die "${0##*/}: awk failed"
-#[ -z "$surften_now" ] && die "${0##*/}: Could not get surface tension from simulation"
-echo ${surften_now}
+surften_now=$(csg_taillog -30 | sed -n 's/^\#Surf\*SurfTen[^0-9]*\([0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p') || \
+die "${0##*/}: awk failed"
+[ -z "$surften_now" ] && die "${0##*/}: Could not get surface tension from simulation"
+echo ${surften_now} > surften.cur

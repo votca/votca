@@ -75,7 +75,7 @@ my $grid=`mktemp grid_XXX`;
 chop($tmp);
 chop($grid);
 
-open(TMP, ">$tmp");
+open(TMP, "> $tmp");
 print TMP "$min 0\n$max 0";
 close(TMP);
 
@@ -86,8 +86,6 @@ my $param_string="";
 foreach (1..$param_N) {
   $param_string="$param_string ${$hash{\"p_$_\"}}[$p_line_nr]";
 }
-
-#print "$param_string\n";
 
 # Calculate potential
 @args = ("bash", "-c", "do_external pot $function $grid $name.pot.new $param_string");
