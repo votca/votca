@@ -139,7 +139,7 @@ open (STATE, "> state_$name.new") || die "Could not open file state_$name.new\n"
 #                     DOWNHILL SIMPLEX ALGORITHM starting...                      |
 # ---------------------------------------------------------------------------------
 
-my $nfunc=0;
+my $nfunc=$state{'nfunc'};
 
 # If better than the best, try bigger step in the same direction (Expansion)
 if ($state{'Transformation'} eq "Reflection" && $ytry <= $y[$ilo]) {
@@ -154,6 +154,7 @@ if ($state{'Transformation'} eq "Reflection" && $ytry <= $y[$ilo]) {
   }
   push(@flag,"pending");
   $nfunc++;
+  print STATE "nfunc=$nfunc";
 }
 
 # if worse than the second worst, try smaller step (Contraction)
@@ -170,6 +171,7 @@ elsif ($state{'Transformation'} eq "Reflection" && $ytry >= $y[$inhi]) {
   }
 push(@flag,"pending");
 $nfunc++;
+print STATE "nfunc=$nfunc";
 }
 
 # if worse than worst point from contraction, replace all but the best
@@ -186,6 +188,7 @@ elsif ($state{'Transformation'} eq "Contraction" && $ytry >= $state{'ysave'}) {
   }
   $mdim-=1;
   $nfunc+=$ndim;
+  print STATE "nfunc=$nfunc";
 }
 
 else {
@@ -201,6 +204,7 @@ else {
   }
   push(@flag,"pending");
   $nfunc++;
+  print STATE "nfunc=$nfunc";
 }
 
 # Check for convergence
