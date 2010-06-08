@@ -98,134 +98,151 @@ for (my $i=0;$i<=$#y;$i++) {
     $p_asc[$i][$j]=$p[$i_sort[$i]][$j];
   }
 }
-@y=@y_asc;
 
 # Define highest, next highest, and lowest points (ihi, inhi, ilo)
-my $ihi=$#y;
+my $ihi=$#y_asc;
 my $ilo=0;
 my $inhi=$ihi-1;
-for (my $i=0;$i<=$#y;$i++) {
-  if($y[$i]<=$y[$ilo]) {$ilo=$i;}
-  if($y[$i]>$y[$ihi]) {
-    $inhi=$ihi;
-    $ihi=$i;
-  }
-  if ($y[$i]>$y[$inhi] && $i!=$ihi) {$inhi=$i;}
-}
 
 # Evalulate function at the trial point
-if ($ytry<$y[$ihi]) {
+if ($ytry<$y_asc[$ihi]) {
   for (my $j=0;$j<$param_N;$j++) {
-    $y[$ihi]=$ytry;
-    $psum[$j]+=$ptry[$j]-$p[$ihi][$j];
+    $y_asc[$ihi]=$ytry;
+    $psum[$j]+=$ptry[$j]-$p_asc[$ihi][$j];
     $p_asc[$ihi][$j]=$ptry[$j];
   }
 }
 
-# Get Transformation from previous state file
-my %state;
+# Read previous state file
+my %state_cur;
 open (STATE_CUR, "< state_$name.cur") || die "Could not open file state_$name.cur\n";
 while(<STATE_CUR>) {
   if (/^(.*)=(.*)$/) {
-  $state{"$1"}=$2;
+  $state_cur{"$1"}=$2;
   }
 }
 close(STATE_CUR);
 
 # Prepare new state file
-open (STATE, "> state_$name.new") || die "Could not open file state_$name.new\n";
+open (STATE_NEW, "> state_$name.new") || die "Could not create file state_$name.new\n";
 
 # ---------------------------------------------------------------------------------
 #                     DOWNHILL SIMPLEX ALGORITHM starting...                      |
 # ---------------------------------------------------------------------------------
 
-my $nfunc=$state{'nfunc'};
+my $nfunc=$state_cur{'nfunc'};
 
-# If better than the best, try bigger step in the same direction (Expansion)
-if ($state{'Transformation'} eq "Reflection" && $ytry <= $y[$ilo]) {
-  print STATE "Transformation=Expansion\n";
-  @psum=calc_psum(@p,$param_N,$ndim);
-  @ptry=calc_ptry($param_N,$ihi,2.0,@p,@psum);
-  push(@y,"0");
-  my @empty=();
-  push(@p_asc, \@empty);
-  for (my $j=0;$j<$param_N;$j++){
-    $p_asc[-1][$j]=$ptry[$j];
-  }
-  push(@flag,"pending");
-  $nfunc++;
-  print STATE "nfunc=$nfunc";
-}
+switch ($state_cur{'Transformation'}) {
 
-# if worse than the second worst, try smaller step (Contraction)
-elsif ($state{'Transformation'} eq "Reflection" && $ytry >= $y[$inhi]) {
-  print STATE "Transformation=Contraction\n";
-  print STATE "ysave=$y[$ihi]\n";
-  @psum=calc_psum(@p,$param_N,$ndim);
-  @ptry=calc_ptry($param_N,$ihi,0.5,@p,@psum);
-  push(@y,"0");
-  my @empty=();
-  push(@p_asc, \@empty);
-  for (my $j=0;$j<$param_N;$j++){
-    $p_asc[-1][$j]=$ptry[$j];
-  }
-push(@flag,"pending");
-$nfunc++;
-print STATE "nfunc=$nfunc";
-}
-
-# if worse than worst point from contraction, replace all but the best
-elsif ($state{'Transformation'} eq "Contraction" && $ytry >= $state{'ysave'}) {
-  print STATE "Transformation=Reduction\n";
-  for (my $i=0;$i<$ndim;$i++) {
-    if ($i!=$ilo) {
-      for (my $j=0;$j<$param_N;$j++) {
-        $p_asc[$i][$j]=$psum[$j]=0.5*($p[$i][$j]+$p[$ilo][$j]);
-        $y[$i]="0";
-        $flag[$i]="pending";
-      }
+  case "Reflection" {
+    if ($ytry <= $y[$ilo]) {
+      $nfunc++;
+      print STATE_NEW "Transformation=Expansion\n";
+      print STATE_NEW "nfunc=$nfunc\n";
+    }
+    if ($ytry >= $y[$inhi]) {
+      $nfunc++;
+      print STATE_NEW "Transformation=Contraction\n";
+      print STATE_NEW "ysave=$y[$ihi]\n";
+      print STATE_NEW "nfunc=$nfunc\n";
     }
   }
-  $mdim-=1;
-  $nfunc+=$ndim;
-  print STATE "nfunc=$nfunc";
-}
+  case "Contraction" {
+    if ($ytry >= $state_cur{'ysave'}) {
+      $nfunc+=$ndim;
+      print STATE_NEW "Transformation=Reduction\n";
+      print STATE_NEW "nfunc=$nfunc\n";
+    }
+  }
+  else {
+    $nfunc++;
+    print STATE_NEW "Transformation=Reflection\n";
+    print STATE_NEW "nfunc=$nfunc\n";
+  }
 
-else {
-  # Compute reflected point
-  print STATE "Transformation=Reflection\n";
-  @psum=calc_psum(@p,$param_N,$ndim);
-  @ptry=calc_ptry($param_N,$ihi,-1.0,@p,@psum);
-  push(@y,"0");
+} # end of switch (state_cur)
+
+# Read new state file
+my %state_new;
+open (STATE_NEW, "< state_$name.new") || die "Could not open file state_$name.cur\n";
+while(<STATE_NEW>) {
+  if (/^(.*)=(.*)$/) {
+  $state_new{"$1"}=$2;
+  }
+}
+close(STATE_NEW);
+
+switch ($state_new{'Transformation'}) {
+
+  case "Expansion" {
+    @psum=calc_psum(@p_asc,$param_N,$ndim);
+    @ptry=calc_ptry($param_N,$ihi,2.0,@p_asc,@psum);
+    push(@y_asc,"0");
+    my @empty=();
+    push(@p_asc, \@empty);
+    for (my $j=0;$j<$param_N;$j++){
+      $p_asc[-1][$j]=$ptry[$j];
+    }
+    push(@flag,"pending");
+  }
+
+  case "Contraction" {
+  @psum=calc_psum(@p_asc,$param_N,$ndim);
+  @ptry=calc_ptry($param_N,$ihi,0.5,@p_asc,@psum);
+  push(@y_asc,"0");
   my @empty=();
   push(@p_asc, \@empty);
   for (my $j=0;$j<$param_N;$j++){
     $p_asc[-1][$j]=$ptry[$j];
   }
   push(@flag,"pending");
-  $nfunc++;
-  print STATE "nfunc=$nfunc";
-}
+  }
+
+  case "Reduction" {
+    for (my $i=0;$i<$ndim;$i++) {
+      if ($i!=$ilo) {
+        for (my $j=0;$j<$param_N;$j++) {
+          $p_asc[$i][$j]=$psum[$j]=0.5*($p_asc[$i][$j]+$p_asc[$ilo][$j]);
+          $y_asc[$i]="0";
+          $flag[$i]="pending";
+        }
+      }
+    }
+  $mdim-=1;
+  }
+
+  case "Reflection" {
+    @psum=calc_psum(@p_asc,$param_N,$ndim);
+    @ptry=calc_ptry($param_N,$ihi,-1.0,@p_asc,@psum);
+    push(@y_asc,"0");
+    my @empty=();
+    push(@p_asc, \@empty);
+    for (my $j=0;$j<$param_N;$j++){
+      $p_asc[-1][$j]=$ptry[$j];
+    }
+  push(@flag,"pending");
+  }
+
+} # end of switch (state_new)
 
 # Check for convergence
-my $rtol=2.0*abs($y[$ihi]-$y[$ilo])/(abs($y[$ihi])+abs($y[$ilo]));
+my $rtol=2.0*abs($y_asc[$ihi]-$y_asc[$ilo])/(abs($y_asc[$ihi])+abs($y_asc[$ilo]));
 
 if($rtol<$ftol) {
-   ($y[$ilo],$y[0])=($y[0],$y[$ilo]);
+   ($y_asc[$ilo],$y_asc[0])=($y_asc[0],$y_asc[$ilo]);
       for (my $j=0;$j<$param_N;$j++){
-      ($p[$ilo][$j],$p[0][$j])=($p[0][$j],$p[$ilo][$j]);
-      print STATE "Done - Simplex converged after $nfunc steps.\n";
-      die "--- Simplex convergerd after $nfunc steps ---";
+      ($p_asc[$ilo][$j],$p_asc[0][$j])=($p_asc[0][$j],$p_asc[$ilo][$j]);
+      die "--- Simplex convergerd after $state_new{'nfunc'} steps ---";
    }
 }
 
-close(STATE);
+close(STATE_NEW);
 
-for (my $i=0;$i<=$#y;$i++) {
+for (my $i=0;$i<=$#y_asc;$i++) {
   for (my $j=1;$j<=$param_N;$j++){
     ${$hash{"p_$j"}}[$i]=($p_asc[$i][$j-1])**2;
   }
 }
 
 # Update simplex table
-saveto_simplex_table($outfile,$mdim,$param_N,@y,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
+saveto_simplex_table($outfile,$mdim,$param_N,@y_asc,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
