@@ -1,5 +1,3 @@
-resample calc resample_to_calc.sh
-
 init simplex initialize_simplex.sh
 init simplex_single initialize_simplex_single.sh
 
@@ -9,7 +7,6 @@ par pot PAR_to_POT.pl
 
 initstep simplex initialize_step_simplex.sh
 
-prepare gromacs prepare_gromacs.sh
 surften gromacs calc_surften_gromacs.sh
 
 update simplex_single update_simplex_single.sh
