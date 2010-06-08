@@ -1,22 +1,22 @@
-resample calc my_resample_to_calc.sh
+resample calc resample_to_calc.sh
 
-init simplex my_initialize_simplex.sh
-init simplex_single my_initialize_simplex_single.sh
+init simplex initialize_simplex.sh
+init simplex_single initialize_simplex_single.sh
 
-prep simplex my_prepare_simplex.pl
-pot lj12-6 my_pot_lj12-6.pl
-par pot my_PAR_to_POT.pl
+prep simplex prepare_simplex.pl
+pot lj12-6 pot_lj12-6.pl
+par pot PAR_to_POT.pl
 
-initstep simplex my_initialize_step_simplex.sh
+initstep simplex initialize_step_simplex.sh
 
-prepare gromacs my_prepare_gromacs.sh
-surften gromacs my_calc_surften_gromacs.sh
+prepare gromacs prepare_gromacs.sh
+surften gromacs calc_surften_gromacs.sh
 
-update simplex_single my_update_simplex_single.sh
-update simplex my_update_simplex.sh
+update simplex_single update_simplex_single.sh
+update simplex update_simplex.sh
 
-update ftar_rdf my_update_ftar_rdf.pl
-update ftar_surften my_update_ftar_surften.pl
-update simplex_step my_update_simplex_step.pl
+update ftar_rdf update_ftar_rdf.pl
+update ftar_surften update_ftar_surften.pl
+update simplex_step update_simplex_step.pl
 
-add_pot simplex my_add_pot_simplex.sh
+add_pot simplex add_pot_simplex.sh
