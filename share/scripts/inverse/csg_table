@@ -1,0 +1,23 @@
+# method initialization
+init simplex initialize_simplex.sh
+init simplex_single initialize_simplex_single.sh
+initstep simplex initialize_step_simplex.sh
+
+# the update step
+update simplex update_simplex.sh
+
+# simplex specific stuff
+update simplex_single update_simplex_single.sh
+
+prep simplex prepare_simplex.pl
+pot lj12-6 pot_lj12-6.pl
+par pot PAR_to_POT.pl
+
+add_pot simplex add_pot_simplex.sh
+
+update ftar_rdf update_ftar_rdf.pl
+update ftar_surften update_ftar_surften.pl
+update simplex_step update_simplex_step.pl
+
+# interface to gromacs
+surften gromacs calc_surften_gromacs.sh
