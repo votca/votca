@@ -24,12 +24,21 @@ Usage: ${0##*/}
 
 USES:  csg_get_property for_all do_external check_deps
 
-NEEDS: cg.inverse.method
+NEEDS: cg.inverse.method cg.inverse.program
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
+sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
-for_all non-bonded do_external init_single $method
+
+#copy+resample all rdf in $this_dir
+for_all non-bonded do_external resample target
+
+for_all non-bonded do_external prepare_single $method
+
+#cp confout.gro and so on
+do_external prepare_generic $sim_prog
+

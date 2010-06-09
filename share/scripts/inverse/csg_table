@@ -23,10 +23,10 @@ dummy dummy dummy.sh
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
-init ibm initialize_generic.sh
-init imc initialize_generic.sh
-init_single ibm initialize_generic_single.sh
-init_single imc initialize_generic_single.sh
+prepare ibm prepare_generic.sh
+prepare imc prepare_imc.sh
+prepare_single ibm prepare_generic_single.sh
+prepare_single imc prepare_generic_single.sh
 initstep ibm initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 
@@ -66,7 +66,7 @@ postadd dummy postadd_dummy.sh
 
 # table preparation
 dpot shift_nb dpot_shift_nb.pl
-resample calc resample_to_calc.sh
+resample target resample_target.sh
 dpot crop dpot_crop.pl
 
 # ibm specific stuff
@@ -101,8 +101,8 @@ tables jackknife tables_jackknife.pl
 
 # BEGIN: these scripts have to be defined for each simulation program
 # interface to gromacs
-init gromacs initialize_gromacs.sh
-prepare gromacs prepare_gromacs.sh
+prepare_generic gromacs prepare_generic_gromacs.sh
+initstep gromacs initialize_step_gromacs.sh
 run gromacs run_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_gromacs.sh

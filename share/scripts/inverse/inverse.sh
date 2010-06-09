@@ -102,11 +102,6 @@ fi
 
 method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
-if [ "$method" = "imc" ]; then
-  msg "####################################################"
-  msg "# WARNING multicomponent imc is still experimental #"
-  msg "####################################################"
-fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 log "We using Sim Program: $sim_prog"
@@ -140,15 +135,8 @@ else
 
   cd $this_dir || die "cd $this_dir failed"
 
-  #copy+resample all rdf in $this_dir
-  for_all non-bonded do_external resample calc
+  do_external prepare $method
 
-  do_external init $method
-
-  #get confout.gro
-  do_external init $sim_prog
-
-  for_all non-bonded cp '$(csg_get_interaction_property name).pot.new $(get_main_dir)'
   touch done
   msg "step 0 done"
   cd $(get_main_dir)
@@ -197,7 +185,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     msg "Initialization already done"
   else
     #copy+resample all rdf in this_dir
-    for_all non-bonded do_external resample calc
+    for_all non-bonded do_external resample target
 
     #get need files
     cp_from_main_dir $filelist
@@ -209,7 +197,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     for_all non-bonded do_external convert_potential $sim_prog
 
     #Run simulation maybe change to Espresso or whatever
-    do_external prepare $sim_prog
+    do_external initstep $sim_prog
     mark_done "Initialize"
   fi
 
