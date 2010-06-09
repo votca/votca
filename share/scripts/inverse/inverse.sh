@@ -213,7 +213,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "Post add"
   do_external post add
 
-  touch done
+  touch "done"
 
   msg "Clean up"
   for cleanfile in ${cleanlist} ${CSGRESTART}; do
@@ -247,7 +247,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   cd $(get_main_dir) || die "cd $(get_main_dir) failed"
 done
 
-touch done
+touch "done"
 log "All done at $(date)"
 exit 0
 
