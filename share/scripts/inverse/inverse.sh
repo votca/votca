@@ -184,38 +184,30 @@ for ((i=$begin;i<$iterations+1;i++)); do
   if is_done "Initialize"; then
     msg "Initialization already done"
   else
-    #copy+resample all rdf in this_dir
-    for_all non-bonded do_external resample target
-
     #get need files
     cp_from_main_dir $filelist
 
-    #get file from last step and so on
+    #get file from last step and init sim_prog
     do_external initstep $method
 
-    #convert potential in format for sim_prog
-    for_all non-bonded do_external convert_potential $sim_prog
-
-    #Run simulation maybe change to Espresso or whatever
-    do_external initstep $sim_prog
     mark_done "Initialize"
   fi
 
   if is_done "Simulation"; then
     msg "Simulation is already done"
   else
-    msg "Simulation runs"
+    msg "Simulation with $sim_prog"
     do_external run $sim_prog
     mark_done "Simulation"
   fi
 
-  msg "Make update $method"
+  msg "Make update for $method"
   do_external update $method
 
   msg "Post update"
   do_external post update
 
-  msg "Adding up potential"
+  msg "Adding up potential for $method"
   do_external add_pot $method
 
   msg "Post add"

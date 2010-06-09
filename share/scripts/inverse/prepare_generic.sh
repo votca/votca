@@ -34,7 +34,7 @@ check_deps "$0"
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
 
-#copy+resample all rdf in $this_dir
+#copy+resample all target dist in $this_dir
 for_all non-bonded do_external resample target
 
 for_all non-bonded do_external prepare_single $method
