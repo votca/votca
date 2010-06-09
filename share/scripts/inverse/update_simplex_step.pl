@@ -130,49 +130,49 @@ open (STATE_NEW, "> state_$name.new") || die "Could not create file state_$name.
 #                     DOWNHILL SIMPLEX ALGORITHM starting...                      |
 # ---------------------------------------------------------------------------------
 
-my $nfunc=$state_cur{'nfunc'};
+my $state_new;
 
 switch ($state_cur{'Transformation'}) {
 
+  case "None" {
+    $state_new="Reflection";
+  }
   case "Reflection" {
     if ($ytry <= $y[$ilo]) {
-      $nfunc++;
-      print STATE_NEW "Transformation=Expansion\n";
-      print STATE_NEW "nfunc=$nfunc\n";
+      $state_new="Expansion";
     }
-    if ($ytry >= $y[$inhi]) {
-      $nfunc++;
-      print STATE_NEW "Transformation=Contraction\n";
-      print STATE_NEW "ysave=$y[$ihi]\n";
-      print STATE_NEW "nfunc=$nfunc\n";
+    elsif ($ytry >= $y[$inhi]) {
+      $state_new="Contraction";
     }
+    else {
+        $state_new="Reflection";
+    }
+  }
+  case "Expansion" {
+    $state_new="Reflection";
   }
   case "Contraction" {
     if ($ytry >= $state_cur{'ysave'}) {
-      $nfunc+=$ndim;
-      print STATE_NEW "Transformation=Reduction\n";
-      print STATE_NEW "nfunc=$nfunc\n";
+      $state_new="Reduction";
+    }
+    else {
+        $state_new="Reflection";
     }
   }
+  case "Reduction" {
+    $state_new="Reflection";
+  }
   else {
-    $nfunc++;
-    print STATE_NEW "Transformation=Reflection\n";
-    print STATE_NEW "nfunc=$nfunc\n";
+    die "error: undefined Transformation (state_new)\n";
   }
 
 } # end of switch (state_cur)
 
-# Read new state file
-my %state_new;
-open (STATE_NEW, "< state_$name.new") || die "Could not open file state_$name.cur\n";
-while(<STATE_NEW>) {
-  if (/^(.*)=(.*)$/) {
-  $state_new{"$1"}=$2;
-  }
-}
-close(STATE_NEW);
+my $nfunc=$state_cur{'nfunc'};
 
-switch ($state_new{'Transformation'}) {
+switch ($state_new) {
+
+print STATE_NEW "Transformation=$state_new\n";
 
   case "Expansion" {
     @psum=calc_psum(@p_asc,$param_N,$ndim);
@@ -184,31 +184,38 @@ switch ($state_new{'Transformation'}) {
       $p_asc[-1][$j]=$ptry[$j];
     }
     push(@flag,"pending");
+    $nfunc++;
+    print STATE_NEW "nfunc=$nfunc\n";
   }
 
   case "Contraction" {
-  @psum=calc_psum(@p_asc,$param_N,$ndim);
-  @ptry=calc_ptry($param_N,$ihi,0.5,@p_asc,@psum);
-  push(@y_asc,"0");
-  my @empty=();
-  push(@p_asc, \@empty);
-  for (my $j=0;$j<$param_N;$j++){
-    $p_asc[-1][$j]=$ptry[$j];
-  }
-  push(@flag,"pending");
+    print STATE_NEW "ysave=$y[$ihi]\n";
+    @psum=calc_psum(@p_asc,$param_N,$ndim);
+    @ptry=calc_ptry($param_N,$ihi,0.5,@p_asc,@psum);
+    push(@y_asc,"0");
+    my @empty=();
+    push(@p_asc, \@empty);
+    for (my $j=0;$j<$param_N;$j++){
+      $p_asc[-1][$j]=$ptry[$j];
+    }
+    push(@flag,"pending");
+    $nfunc++;
+    print STATE_NEW "nfunc=$nfunc\n";
   }
 
   case "Reduction" {
     for (my $i=0;$i<$ndim;$i++) {
-      if ($i!=$ilo) {
-        for (my $j=0;$j<$param_N;$j++) {
-          $p_asc[$i][$j]=$psum[$j]=0.5*($p_asc[$i][$j]+$p_asc[$ilo][$j]);
-          $y_asc[$i]="0";
-          $flag[$i]="pending";
+        if ($i!=$ilo) {
+          for (my $j=0;$j<$param_N;$j++) {
+            $p_asc[$i][$j]=$psum[$j]=0.5*($p_asc[$i][$j]+$p_asc[$ilo][$j]);
+            $y_asc[$i]="0";
+            $flag[$i]="pending";
+          }
         }
       }
-    }
-  $mdim-=1;
+    $mdim-=1;
+    $nfunc+=$ndim-1;
+    print STATE_NEW "nfunc=$nfunc\n";
   }
 
   case "Reflection" {
@@ -220,7 +227,9 @@ switch ($state_new{'Transformation'}) {
     for (my $j=0;$j<$param_N;$j++){
       $p_asc[-1][$j]=$ptry[$j];
     }
-  push(@flag,"pending");
+    push(@flag,"pending");
+    $nfunc++;
+    print STATE_NEW "nfunc=$nfunc\n";
   }
 
 } # end of switch (state_new)
@@ -232,7 +241,7 @@ if($rtol<$ftol) {
    ($y_asc[$ilo],$y_asc[0])=($y_asc[0],$y_asc[$ilo]);
       for (my $j=0;$j<$param_N;$j++){
       ($p_asc[$ilo][$j],$p_asc[0][$j])=($p_asc[0][$j],$p_asc[$ilo][$j]);
-      die "--- Simplex convergerd after $state_new{'nfunc'} steps ---";
+      die "--- Simplex convergerd after $nfunc steps ---";
    }
 }
 
