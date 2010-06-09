@@ -20,6 +20,9 @@
 if [ "$1" = "--help" ]; then
   cat <<EOF
 ${0##*/}, version %version%
+
+
+
 We have defined some useful (?) functions:
 * log           = send a message to the logfile
 * msg           = message to stdout and logfile
@@ -72,7 +75,7 @@ log () {
     if [ "$warn" = "yes" ]; then
       echo -e "WARNING: Nested log call, when calling 'log $*'"
       echo -e "         log was redirected by '$LOG_REDIRECTED'"
-      echo -e "         Try to avoid this, by removing one redirect, help: function_help"
+      echo -e "         Try to avoid this, by removing one redirect, csg_call functions common --help"
     fi
     echo -e "$*"
   fi
@@ -119,13 +122,14 @@ export -f show_external
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
-  local script tags
+  local script tags quiet="no"
+  [ "$1" = "-q" ] && quiet="yes" && shift
   [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
   tags="$1 $2"
   shift 2
   #logrun do_external is a good combi to use
-  log --no-warn "Running subscript '${script##*/} $*'(from tags $tags)"
+  [ "$quiet" = "no" ] && log --no-warn "Running subscript '${script##*/} $*'(from tags $tags)"
   $script "$@" 2>&1 || die "do_external: subscript $script $* (from tags $tags) failed"
 }
 export -f do_external
@@ -148,7 +152,7 @@ logrun(){
   else
     echo -e "WARNING: Nested log call, when calling 'logrun $*'"
     echo -e "         log was redirected by '$LOG_REDIRECTED'"
-    echo -e "         Try to avoid this, by removing one redirect, help: function_help"
+    echo -e "         Try to avoid this, by removing one redirect, csg_call functions common --help"
     "$@" 2>&1
     ret=$?
   fi
@@ -165,7 +169,7 @@ export -f run_or_exit
 #useful subroutine check if a command was succesful AND log the output
 true_or_exit() {
    local ret
-   ret="$($@ 2>&1)" || die "true_or_exit: '$*' failed with error message '$ret'"
+   ret="$("$@" 2>&1)" || die "true_or_exit: '$*' failed with error message '$ret'"
    echo "$ret"
 }
 export -f true_or_exit
@@ -222,8 +226,12 @@ csg_get_interaction_property () {
   [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
-  ret="$(true_or_exit $cmd)"
-  [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
+  if ret="$($cmd 2>&1)"; then
+    [ -z "$ret" ] && [ -n "$2" ] && ret="$2"
+  else
+    [ -z "$2" ] && die "csg_get_interaction_property: $cmd failed with error msg: $ret and no default"
+    ret="$2"
+  fi
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_interaction_property: Result of '$cmd' was empty"
   echo "$ret"
@@ -384,7 +392,7 @@ cp_from_to() {
     from="$2"
     shift 2
   else
-    die "cp_for_to: first argument should be --from DIR"
+    die "cp_form_to: first argument should be --from DIR"
   fi
   if [ "$1" = "--where" ]; then
     where="$2"
@@ -427,13 +435,11 @@ get_time() {
 export -f get_time
 
 use_mpi() {
-  local tasks cmd
+  local tasks
   tasks="$(csg_get_property --allow-empty cg.inverse.mpi.tasks)"
   [ -z "$tasks" ] && return 1
   int_check "$tasks" "use_mpi: cg.inverse.mpi.tasks needs to be a number"
-  [ $tasks -eq 1 ] && return 1
-  cmd="$(csg_get_property --allow-empty cg.inverse.mpi.cmd)"
-  [ -z "$cmd" ] && die "use_mpi: cg.inverse.mpi.tasks != 0 but cg.inverse.mpi.cmd was empty"
+  [ $tasks -le 1 ] && return 1
   return 0
 }
 export -f use_mpi
