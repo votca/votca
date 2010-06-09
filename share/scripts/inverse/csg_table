@@ -36,8 +36,8 @@ update imc update_imc.sh
 
 # add up the potential
 # TODO: think about name add_pot, is other name maybe better
-add_pot ibm add_pot_ibm.sh
-add_pot imc add_pot_ibm.sh
+add_pot ibm add_pot_generic.sh
+add_pot imc add_pot_generic.sh
 
 # END: these scripts have to be defined for each method
 
