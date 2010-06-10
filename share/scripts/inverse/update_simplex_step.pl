@@ -97,7 +97,7 @@ if ($ytry<$y_asc[$ihi]) {
 }
 
 # Sort arrays according to y[ilo]<...<y[inhi]<y[ihi]
-($y_ref,$p_ref)=sort_ftar($param_N, @ftar, @p);
+($y_ref,$p_ref)=sort_ftar($param_N, @y_asc, @p);
 @y_asc=@$y_ref;
 @p_asc=@$p_ref;
 
