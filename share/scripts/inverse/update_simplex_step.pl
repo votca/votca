@@ -132,6 +132,9 @@ switch ($state_cur{'Transformation'}) {
     elsif ($ytry >= $y_asc[$inhi]) {
       $state_new="Contraction";
     }
+    else {
+      $state_new="Reflection";
+    }  
   }
   case "Expansion" {
     $state_new="Reflection";
