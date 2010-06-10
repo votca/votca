@@ -65,6 +65,51 @@ double CalcEstatics::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe pe
         }
     }
     return pot;
+}
+
+
+//Calculate Estatics Sasha
+double CalcEstatics::CalcPot2(Topology *atop, Molecule *mol) 
+{
+    double epsilon_dielectric=1.0;
+    double pot=0.0;
+    
+    MoleculeContainer::iterator imol;
+    for(imol = atop->Molecules().begin();imol!=atop->Molecules().end();imol++) {
+        if(*imol == mol) continue;
+	// charged
+        CrgUnit *crg1 = mol->getUserData<CrgUnit>();
+	// neutral
+        CrgUnit *crg2 = (*imol)->getUserData<CrgUnit>();
+	vec r_1 = crg1->GetCom();
+	vec oldcom = crg2->GetCom();
+	vec r_12 = atop->BCShortestConnection(r_1, oldcom); 
+	double dist_12 = sqrt(r_12.x()*r_12.x()+r_12.y()*r_12.y()+r_12.z()*r_12.z());
+
+	vector <vec> oldpos;
+	vector <vec> ::iterator ipos;
+	int count = 0;
+	for(ipos=crg2->GetPosFirst(); ipos!=crg2->GetPosLast(); ++ipos, ++count){
+	    oldpos.push_back(*ipos);
+	    vec newpos = r_12 + crg2->GetPos(count) + crg1->GetCom() - oldcom;
+	    crg2->SetPos(count, newpos);
+	}
+
+	for(int i=0; i < crg1->GetN(); i++) {
+		for(int j=0; j < crg2->GetN(); j++) {
+			vec r_v = atop->BCShortestConnection(crg1->GetPos(i), crg2->GetPos(j));
+			double r=abs(r_v);
+			double qi = mol->getBead(i)->getQ();	//  Error-prone! Change this!
+			double qj = (*imol)-getBead(j)->getQ(); //  Error-prone! Change this!
+			pot+=qi*qj/epsilon_dielectric*1/r;
+		}
+	}
+
+	// Copy back
+	count = 0;
+	for(ipos=crg2->GetPosFirst(); ipos!=crg2->GetPosLast(); ++ipos, ++count){
+	    crg2->SetPos(count, oldpos[count]);
+	}
     }
-
-
+    return pot;
+}

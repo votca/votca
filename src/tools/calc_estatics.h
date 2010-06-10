@@ -19,6 +19,7 @@ public:
     ~CalcEstatics() {};
 
     double CalcPot(Topology *atop, Molecule *mol);
+    double CalcPot2(Topology *atop, Molecule *mol);
     void EvaluateFrame(QMTopology *top);
 };
 
