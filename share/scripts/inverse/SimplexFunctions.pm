@@ -22,7 +22,7 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(readin_init_simplex_table readin_simplex_table saveto_simplex_table calc_psum calc_ptry);
+@EXPORT      = qw(readin_init_simplex_table readin_simplex_table saveto_simplex_table sort_ftar calc_psum calc_ptry);
 
 # Subroutine to read in simplex table
 sub readin_init_simplex_table($$) {
@@ -92,6 +92,29 @@ sub saveto_simplex_table($$$\@\%\@) {
   }
   close(OUTFILE) or die "Error at closing $_[0]\n";
   return 1;
+}
+
+# Subroutine to sort columns of ftar
+sub sort_ftar ($\@\@) {
+  defined($_[2]) || die "get_psum: Missing argument: p[m][n]\n";
+  my $param_N=$_[0];  
+  my @ftar=@{$_[1]};
+  my $ndim=$param_N+1;
+  my @p=@{$_[2]};  
+  my @i_sort;
+  my @y_asc;
+  my @p_asc;  
+  foreach (0 .. $param_N) {
+    $i_sort[$_]=$_;
+  }
+  @i_sort=(sort{$ftar[$a] <=> $ftar[$b]} @i_sort);
+  for (my $i=0;$i<$ndim;$i++) {
+    $y_asc[$i]=$ftar[$i_sort[$i]];
+    for (my $j=0;$j<$param_N;$j++){
+      $p_asc[$i][$j]=$p[$i_sort[$i]][$j];
+    }
+  }
+  return (\@y_asc,\@p_asc);
 }
 
 # Subroutine to get sum of columns of p

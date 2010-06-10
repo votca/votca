@@ -57,14 +57,13 @@ my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readi
 my @ftar=@{$hash{p_0}};
 my @flag=@{$hash{"p_$ndim"}};
 
+# Generate matrix of parameters p[m-1][n-1] and take their
+# squareroot, thus allowing simplex parameters to be negative.
 my @p_trans;
+my @p;
 foreach (1 .. $param_N) {
   push (@p_trans, [@{$hash{"p_$_"}}]);
 }
-
-# Generate matrix of parameters p[m-1][n-1] and take their
-# squareroot, thus allowing simplex parameters to be negative.
-my @p;
 for(my $i=0; $i<$ndim; $i++) {
   for(my $j=0; $j<$param_N; $j++) {
     $p[$i][$j]=sqrt($p_trans[$j][$i]);
@@ -78,26 +77,10 @@ push(@ptry, sqrt(${$hash{"p_$_"}}[-1]));
 }
 my $ytry=$ftar[-1];
 
-# Generate and sort arrays according to y[m-1]
-my @i_sort;
-my @y;
-my @ftar_asc;
-
-foreach (0 .. $param_N) {
-  $y[$_]=$ftar[$_];
-  $i_sort[$_]=$_;
-}
-
-@i_sort=(sort{$y[$a] <=> $y[$b]} @i_sort);
-
-my @y_asc;
-my @p_asc;
-for (my $i=0;$i<=$#y;$i++) {
-  $y_asc[$i]=$y[$i_sort[$i]];
-  for (my $j=0;$j<$param_N;$j++){
-    $p_asc[$i][$j]=$p[$i_sort[$i]][$j];
-  }
-}
+# Generate and arrays according to y[ilo]<...<y[inhi]<y[ihi]
+my ($y_ref,$p_ref)=sort_ftar($param_N, @ftar, @p);
+my @y_asc=@$y_ref;
+my @p_asc=@$p_ref;
 
 # Define highest, next highest, and lowest points (ihi, inhi, ilo)
 my $ihi=$#y_asc;
@@ -112,6 +95,11 @@ if ($ytry<$y_asc[$ihi]) {
     $p_asc[$ihi][$j]=$ptry[$j];
   }
 }
+
+# Sort arrays according to y[ilo]<...<y[inhi]<y[ihi]
+($y_ref,$p_ref)=sort_ftar($param_N, @ftar, @p);
+@y_asc=@$y_ref;
+@p_asc=@$p_ref;
 
 # Read previous state file
 my %state_cur;
@@ -138,14 +126,11 @@ switch ($state_cur{'Transformation'}) {
     $state_new="Reflection";
   }
   case "Reflection" {
-    if ($ytry <= $y[$ilo]) {
+    if ($ytry <= $y_asc[$ilo]) {
       $state_new="Expansion";
     }
-    elsif ($ytry >= $y[$inhi]) {
+    elsif ($ytry >= $y_asc[$inhi]) {
       $state_new="Contraction";
-    }
-    else {
-        $state_new="Reflection";
     }
   }
   case "Expansion" {
@@ -189,7 +174,7 @@ print STATE_NEW "Transformation=$state_new\n";
   }
 
   case "Contraction" {
-    print STATE_NEW "ysave=$y[$ihi]\n";
+    print STATE_NEW "ysave=$y_asc[$ihi]\n";
     @psum=calc_psum(@p_asc,$param_N,$ndim);
     @ptry=calc_ptry($param_N,$ihi,0.5,@p_asc,@psum);
     push(@y_asc,"0");

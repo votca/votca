@@ -42,7 +42,6 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--nparams")){
 die "3 parameters are nessary\n" if ($#ARGV<2);
 
 use CsgFunctions;
-use SimplexFunctions;
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
