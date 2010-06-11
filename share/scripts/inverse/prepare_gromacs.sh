@@ -31,16 +31,39 @@ fi
 
 check_deps "$0"
 
+# Get initial configuration
 main_dir=$(get_main_dir);
 last_step=$(get_last_step_dir);
-
-# Get initial configuration
 cp ${main_dir}/conf.gro ./conf.gro || die "${0##*/} cp ${last_step}/conf.gro ./conf.gro failed"
 
-# Perform Energy Minimization
-run_or_exit grompp -f grompp.steep.mdp -n index.ndx
-run_or_exit mdrun -c conf.gro -o confout.steep.gro
+steep_mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.steep.mdp")"
+[ -f "$steep_mdp" ] || die "${0##*/}: gromacs mdp file '$steep_mdp' not found"
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
 
-# Perform full MD simulation
-run_or_exit grompp -f grompp.mdp -n index.ndx
-run_or_exit grompp -c confout.steep.gro
+for_all "non-bonded" check_cufoff $mdp
+
+index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"
+[ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
+top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
+[ -f "$top" ] || die "${0##*/}: grompp topol file '$top' not found"
+tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
+opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
+
+# Energy Minimization
+run_or_exit grompp -n "${index}" -f "${steep_mdp}" -p "$top" -o "$tpr" ${opts}
+[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after running grompp"
+
+if use_mpi; then
+  mpicmd=$(csg_get_property cg.inverse.mpi.cmd)
+  run_or_exit $mpicmd mdrun -s "${tpr}" "${opts}"
+else
+  run_or_exit mdrun -s "${tpr}" "${opts}"
+fi
+ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+traj="traj.${ext}"
+[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after mdrun"
+
+# Full MD
+run_or_exit grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" ${opts}
+[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after running grompp"
