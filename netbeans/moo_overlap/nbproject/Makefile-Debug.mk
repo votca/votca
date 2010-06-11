@@ -31,7 +31,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/overlap_integral.o
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/moo_overlap.o
 
 # C Compiler Flags
 CFLAGS=
@@ -61,10 +61,10 @@ LDLIBSOPTIONS=../libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtoo
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/moo_overlap ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/overlap_integral.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/overlap_integral.cc 
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/moo_overlap.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/moo_overlap.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/overlap_integral.o ../../src/tools/overlap_integral.cc
+	$(COMPILE.cc) -g -I../../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/moo_overlap.o ../../src/tools/moo_overlap.cc
 
 # Subprojects
 .build-subprojects:
