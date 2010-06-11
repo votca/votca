@@ -38,8 +38,8 @@ public:
     // void SetHandler(ElemHandler_t handler);
     void ParseFrame(const string &el, map<string, string> &attr);
 
-private:
     void SetHandler(ElemHandler_t handler);
+private:
 
     stack<ElemHandler_t> _stack_handler;
     ElemHandler_t _handler;
