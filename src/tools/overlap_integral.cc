@@ -69,6 +69,7 @@ int main(int argc, char **argv) {
 		or2[1][0] >> or2[1][1] >> or2[1][2] >>
 		or2[2][0] >> or2[2][1] >> or2[2][2] ;
 
+        if(!in1 || !in2) break;
 //	cout << "mol1: " << name1 << com1 << or1<<endl;
 //	cout << "mol2: " << name2 << com2 << or2<<endl;
 
