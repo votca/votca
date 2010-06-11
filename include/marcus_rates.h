@@ -50,7 +50,7 @@ inline void MarcusRates::EvaluatePair(QMTopology *top, QMPair* pair){
     rate_12 = prefactor * sqrt(M_PI/(reorg * _kT)) * Jeff2 *
             exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg))/hbar_eV;
     /// Marcus rate from second to first (dG_field -> -dG_field)
-    dG = -dG_field + dG_en;
+    dG = -dG_field - dG_en;
     rate_21 = prefactor * sqrt(M_PI/(reorg * _kT)) * Jeff2 *
             exp (-(dG + reorg)*(dG + reorg)/(4*_kT*reorg))/hbar_eV;
 
