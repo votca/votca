@@ -39,7 +39,7 @@ cp ${main_dir}/conf.gro ./conf.gro || die "${0##*/} cp ${last_step}/conf.gro ./c
 
 # Perform Energy Minimization
 run_or_exit grompp -f grompp.steep.mdp -n index.ndx
-run_or_exit mdrun -c confout.steep.gro
+run_or_exit mdrun -c conf.gro -o confout.steep.gro
 
 # Perform full MD simulation
 run_or_exit grompp -f grompp.mdp -c confout.steep.gro -n index.ndx
