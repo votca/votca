@@ -36,7 +36,7 @@ void CalcEstatics::EvaluateFrame(QMTopology *top)
         crg->setEnergy(crged - neutr);
 
         top->CopyCharges(crg, mol);
-        cout<<"Estatic energy for neutral charged and diff: "<<crged<<" "<<neutr<<" "<<crged - neutr<<"\n";
+        cout<<"TEstatic energy for neutral charged and diff: "<<crged<<" "<<neutr<<" "<<crged - neutr<<"\n";
     }
 
     atop.Cleanup();
@@ -56,7 +56,8 @@ double CalcEstatics::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe pe
         for(int i=0; i<mol->BeadCount();i++)
                 for(int j=0; j!= (*imol)->BeadCount();j++){
             Bead *bi =  mol->getBead(i); Bead *bj = (*imol)->getBead(j);
-            vec r_v = atop->BCShortestConnection(bi->getPos(), bj->getPos());
+            //vec r_v = atop->BCShortestConnection(bi->getPos(), bj->getPos());
+            vec r_v=bi->getPos()-bj->getPos();
             double r=abs(r_v);
             double qi=bi->getQ(); double qj=bj->getQ();
             //cout<<bj->getPos()<<r_v<<r<<qi<<qj<<epsilon_dielectric<<pot<<qi*qj/epsilon_dielectric*1/r<<endl;
@@ -69,7 +70,7 @@ double CalcEstatics::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe pe
 
 
 //Calculate Estatics Sasha
-double CalcEstatics::CalcPot2(Topology *atop, Molecule *mol) 
+/*double CalcEstatics::CalcPot2(Topology *atop, Molecule *mol)
 {
     double epsilon_dielectric=1.0;
     double pot=0.0;
@@ -112,4 +113,4 @@ double CalcEstatics::CalcPot2(Topology *atop, Molecule *mol)
 	}
     }
     return pot;
-}
+}*/
