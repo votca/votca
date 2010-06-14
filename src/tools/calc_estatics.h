@@ -20,7 +20,7 @@ public:
 
     double CalcPot(Topology *atop, Molecule *mol);
     double CalcPot2(Topology *atop, Molecule *mol);
-    void EvaluateFrame(QMTopology *top);
+    bool EvaluateFrame(QMTopology *top);
 };
 
 #endif	/* _CALC_ESTATICS_H */

@@ -15,14 +15,15 @@ public:
     SiteCalculator();
     virtual ~SiteCalculator();
 
-    void EvaluateFrame(QMTopology *top);
+    bool EvaluateFrame(QMTopology *top);
     virtual void EvaluateSite(CrgUnit *crg) {};
 };
 
-inline void SiteCalculator::EvaluateFrame(QMTopology *top){
+inline bool SiteCalculator::EvaluateFrame(QMTopology *top){
     list<CrgUnit*>& crglist = top.crglist();
     for(list<CrgUnit*>::iterator iter = crglist.begin();iter!=crglist.end();++iter)
         EvaluateSite(*iter);
+    return true;
 }
 
 #endif	/* _SITECALCULATOR_H */

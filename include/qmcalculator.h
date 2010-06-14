@@ -17,9 +17,9 @@ public:
     QMCalculator() {};
     virtual ~QMCalculator() {};
 
-    virtual void Initialize(QMTopology *top, Property *options) {};
-    virtual bool EvaluateFrame(int nr, int nframes, QMTopology *top) {};
-    virtual void EndCalc(QMTopology *top) {};
+    virtual void Initialize(QMTopology *top, Property *options) {}
+    virtual bool EvaluateFrame(QMTopology *top) { return true; }
+    virtual void EndCalc(QMTopology *top) {}
 protected:
 };
 

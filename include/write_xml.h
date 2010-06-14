@@ -16,14 +16,14 @@ public:
     WriteXML() {};
     ~WriteXML() {};
 
-    bool EvaluateFrame(int nr, int nframes, QMTopology *top);
+    bool EvaluateFrame(QMTopology *top);
 
 private:
     ///  output stream to write integrals to xml file
     ofstream _out_int;
 };
 
-inline bool WriteXML::EvaluateFrame(int nr, int nframes, QMTopology *top){
+inline bool WriteXML::EvaluateFrame(QMTopology *top){
     _out_int.open("integrals.xml", ios::app);
     QMNBList &nblist = top->nblist();
     if(_out_int!=0){

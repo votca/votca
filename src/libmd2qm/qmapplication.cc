@@ -151,7 +151,7 @@ bool QMApplication::BeginEvaluate(){
 bool QMApplication::EvaluateFrame(int nr, int nframes){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->EvaluateFrame(nr, nframes, &_qmtop);
+        (*iter)->EvaluateFrame(&_qmtop);
     }
 }
 

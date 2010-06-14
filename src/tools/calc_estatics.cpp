@@ -11,7 +11,7 @@
 #include <math.h>
 #include <list>
 
-void CalcEstatics::EvaluateFrame(QMTopology *top)
+bool CalcEstatics::EvaluateFrame(QMTopology *top)
 {   cout<<"Doing Estatics\n";
     list<CrgUnit *> lcharges = top->crglist();
     Topology atop;
@@ -41,7 +41,7 @@ void CalcEstatics::EvaluateFrame(QMTopology *top)
 
     atop.Cleanup();
 
-    
+    return true;
 }
 
 //Calculate Estatics

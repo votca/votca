@@ -15,14 +15,15 @@ public:
     PairCalculator() {};
     virtual ~PairCalculator() {};
 
-    void EvaluateFrame(QMTopology *top);
+    bool EvaluateFrame(QMTopology *top);
     virtual void EvaluatePair(QMTopology *top, QMPair *pair) {};
 };
 
-inline void PairCalculator::EvaluateFrame(QMTopology *top){
+inline bool PairCalculator::EvaluateFrame(QMTopology *top){
     QMNBList &nblist = top->nblist();
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter)
         EvaluatePair(top, *iter);
+    return true;
 }
 
 #endif	/* _PAIRCALCULATOR_H */
