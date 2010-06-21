@@ -33,10 +33,9 @@ check_deps "$0"
 
 # Get initial configuration
 main_dir=$(get_main_dir);
-last_step=$(get_last_step_dir);
-cp ${main_dir}/conf.gro ./conf.gro || die "${0##*/} cp ${last_step}/conf.gro ./conf.gro failed"
+cp ${main_dir}/conf.gro ./conf.gro || die "${0##*/} cp ${main_dir}/conf.gro ./conf.gro failed"
 
-steep_mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.steep.mdp")"
+steep_mdp="$(csg_get_property cg.inverse.gromacs.steep_mdp "grompp.steep.mdp")"
 [ -f "$steep_mdp" ] || die "${0##*/}: gromacs mdp file '$steep_mdp' not found"
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
@@ -60,9 +59,8 @@ if use_mpi; then
 else
   run_or_exit mdrun -s "${tpr}" "${opts}"
 fi
-ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
-traj="traj.${ext}"
-[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after mdrun"
+ 
+mv confout.gro conf.gro
 
 # Full MD
 run_or_exit grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" ${opts}

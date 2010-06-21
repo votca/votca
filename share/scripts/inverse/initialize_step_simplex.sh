@@ -32,17 +32,28 @@ fi
 
 check_deps "$0"
 
-main_dir=$(get_main_dir);
-name=$(for_all non-bonded csg_get_interaction_property name);
+main_dir=$(get_main_dir)
+name=$(for_all non-bonded csg_get_interaction_property name)
+property=$(csg_get_property cg.inverse.simplex.property)
 
 # Copy potential
+if [[ $property =~ "rdf" ]]; then
 for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
+fi
+if [[ $property =~ "density" ]]; then
+for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).dens.new'
+for_all non-bonded 'mv $(csg_get_interaction_property name).dens.new $(csg_get_interaction_property name).dens.cur'
+fi
 
+for i in $property; do
 # Copy simplex table
 cp_from_last_step simplex_$name.new
 mv simplex_$name.new simplex_$name.cur
+done
 
 # Copy state file
 cp_from_last_step state_$name.new
 mv state_$name.new state_$name.cur
+
+for_all non-bonded do_external initstep simplex_single

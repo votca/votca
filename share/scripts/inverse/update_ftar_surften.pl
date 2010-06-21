@@ -42,7 +42,7 @@ use CsgFunctions;
 use SimplexFunctions;
 
 my $name=csg_get_property("cg.non-bonded.name");
-my $surften_tgt=csg_get_interaction_property("inverse.target");
+my $surften_tgt=csg_get_interaction_property("inverse.simplex.surften.target");
 
 my $surften_cur;
 open(SURFTEN_CUR, "<surften.cur");
@@ -82,9 +82,6 @@ my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readi
 # Calculate ftar
 
 $ftar_cur[$a_line_nr]=abs(($surften_cur-$surften_tgt)/$surften_tgt);
-
-my @args=("bash","-c","echo $ftar_cur[$a_line_nr]");
-system(@args);
 
 my @ftar_new;
 @ftar_new=@ftar_cur;

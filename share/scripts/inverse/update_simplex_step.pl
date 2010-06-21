@@ -52,6 +52,18 @@ use Switch;
 my $name=csg_get_property("cg.non-bonded.name");
 my $ftol=csg_get_property("cg.inverse.simplex.ftol");
 
+# Read previous state file
+my %state_cur;
+open (STATE_CUR, "< state_$name.cur") || die "Could not open file state_$name.cur\n";
+while(<STATE_CUR>) {
+  if (/^(.*)=(.*)$/) {
+  $state_cur{"$1"}=$2;
+  }
+}
+close(STATE_CUR);
+
+my $state_cur=$state_cur{'Transformation'};
+
 # Read in simplex table and assign to arrays
 my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
 my @ftar=@{$hash{p_0}};
@@ -73,9 +85,8 @@ for(my $i=0; $i<$ndim; $i++) {
 my @psum;
 my @ptry;
 foreach (1 .. $param_N) {
-push(@ptry, sqrt(${$hash{"p_$_"}}[-1]));
+  push(@ptry, sqrt(${$hash{"p_$_"}}[-1]));
 }
-my $ytry=$ftar[-1];
 
 # Generate and arrays according to y[ilo]<...<y[inhi]<y[ihi]
 my ($y_ref,$p_ref)=sort_ftar($param_N, @ftar, @p);
@@ -86,30 +97,22 @@ my @p_asc=@$p_ref;
 my $ihi=$#y_asc;
 my $ilo=0;
 my $inhi=$ihi-1;
+my $ytry=$ftar[-1];
 
+if ($state_cur ne "None" && $state_cur ne "Reduction") {
 # Evalulate function at the trial point
-if ($ytry<$y_asc[$ihi]) {
-  for (my $j=0;$j<$param_N;$j++) {
-    $y_asc[$ihi]=$ytry;
-    $psum[$j]+=$ptry[$j]-$p_asc[$ihi][$j];
-    $p_asc[$ihi][$j]=$ptry[$j];
+  if ($ytry<$y_asc[$ihi]) {
+    for (my $j=0;$j<$param_N;$j++) {
+      $y_asc[$ihi]=$ytry;
+      $psum[$j]+=$ptry[$j]-$p_asc[$ihi][$j];
+      $p_asc[$ihi][$j]=$ptry[$j];
+    }
   }
+  # Sort arrays according to y[ilo]<...<y[inhi]<y[ihi]
+  ($y_ref,$p_ref)=sort_ftar($param_N, @y_asc, @p_asc);
+  @y_asc=@$y_ref;
+  @p_asc=@$p_ref;
 }
-
-# Sort arrays according to y[ilo]<...<y[inhi]<y[ihi]
-($y_ref,$p_ref)=sort_ftar($param_N, @y_asc, @p);
-@y_asc=@$y_ref;
-@p_asc=@$p_ref;
-
-# Read previous state file
-my %state_cur;
-open (STATE_CUR, "< state_$name.cur") || die "Could not open file state_$name.cur\n";
-while(<STATE_CUR>) {
-  if (/^(.*)=(.*)$/) {
-  $state_cur{"$1"}=$2;
-  }
-}
-close(STATE_CUR);
 
 # Prepare new state file
 open (STATE_NEW, "> state_$name.new") || die "Could not create file state_$name.new\n";
@@ -120,7 +123,7 @@ open (STATE_NEW, "> state_$name.new") || die "Could not create file state_$name.
 
 my $state_new;
 
-switch ($state_cur{'Transformation'}) {
+switch ($state_cur) {
 
   case "None" {
     $state_new="Reflection";

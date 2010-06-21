@@ -49,12 +49,12 @@ first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
 log "Running g_energy"
-echo \#Surf*SurfTen | run_or_exit g_energy -b "${begin}" -s "${tpr}" ${opts}
+echo "#Surf*SurfTen" | run_or_exit g_energy -b "${begin}" -s "${tpr}" ${opts}
 
 #the number pattern '[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
-echo log: $CSGLOG
+#echo log: $CSGLOG
 surften_now=$(csg_taillog -30 | sed -n 's/^\#Surf\*SurfTen[^0-9]*\([0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p') || \
 die "${0##*/}: awk failed"
-surften_now="$(awk -v surften_now="$surften_now" 'BEGIN{print $surften_now/2}')"
 [ -z "$surften_now" ] && die "${0##*/}: Could not get surface tension from simulation"
-echo ${surften_now} > surften.cur
+surften="$(awk -v surften_now=$surften_now 'BEGIN{print surften_now/2 }')"
+echo ${surften} > surften.cur

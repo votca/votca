@@ -32,13 +32,21 @@ check_deps "$0"
 
 main_dir=$(get_main_dir)
 name=$(csg_get_interaction_property name)
-min=$(csg_get_interaction_property min )
-max=$(csg_get_interaction_property max )
-step=$(csg_get_interaction_property step )
-target=$(csg_get_interaction_property inverse.target)
 property=$(csg_get_property cg.inverse.simplex.property)
 
-if [ $property == "rdf" ]; then
-comment="$(get_table_comment)"
-run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
+if [[ $property =~ "rdf" ]]; then
+  comment="$(get_table_comment)"
+  min=$(csg_get_interaction_property min)
+  max=$(csg_get_interaction_property max)
+  step=$(csg_get_interaction_property step)
+  target=$(csg_get_interaction_property inverse.target)
+  run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
+fi
+if [[ $property =~ "density" ]]; then
+  comment="$(get_table_comment)"
+  min=$(csg_get_interaction_property inverse.simplex.density.min)
+  max=$(csg_get_interaction_property inverse.simplex.density.max)
+  step=$(csg_get_interaction_property inverse.simplex.density.step)
+  target=$(csg_get_interaction_property inverse.simplex.density.target)
+  run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dens.tgt --grid ${min}:${step}:${max} --comment "${comment}"
 fi

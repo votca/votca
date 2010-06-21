@@ -34,9 +34,10 @@ fi
 
 check_deps "$0"
 
-name=$(csg_get_interaction_property name);
-function=$(csg_get_interaction_property inverse.simplex.function);
-param_N=$(do_external pot $function --nparams);
+name=$(csg_get_interaction_property name)
+property=$(csg_get_property cg.inverse.simplex.property)
+function=$(csg_get_interaction_property inverse.simplex.function)
+param_N=$(do_external pot $function --nparams)
 
 # Prepare table
 cp_from_main_dir simplex_$name.in

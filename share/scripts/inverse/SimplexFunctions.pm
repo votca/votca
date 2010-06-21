@@ -99,8 +99,8 @@ sub sort_ftar ($\@\@) {
   defined($_[2]) || die "get_psum: Missing argument: p[m][n]\n";
   my $param_N=$_[0];  
   my @ftar=@{$_[1]};
-  my $ndim=$param_N+1;
   my @p=@{$_[2]};  
+  my $ndim=$param_N+1;
   my @i_sort;
   my @y_asc;
   my @p_asc;  

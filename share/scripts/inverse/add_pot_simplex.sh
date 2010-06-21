@@ -49,4 +49,4 @@ fi
 
 # Calculate potential
 for_all "non-bonded" \
-  run_or_exit do_external par pot simplex_$name.new simplex_$name.new $param_N $p_line_nr
+  do_external par pot simplex_$name.new simplex_$name.new $param_N $p_line_nr
