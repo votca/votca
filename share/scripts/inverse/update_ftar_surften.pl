@@ -45,7 +45,7 @@ my $name=csg_get_property("cg.non-bonded.name");
 my $surften_tgt=csg_get_interaction_property("inverse.simplex.surften.target");
 
 my $surften_cur;
-open(SURFTEN_CUR, "<surften.cur");
+open(SURFTEN_CUR, "<$name.surften.cur");
 while (<SURFTEN_CUR>) {
   $surften_cur=$_;
 }

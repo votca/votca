@@ -23,7 +23,7 @@ to the current step directory.
 
 Usage: ${0##*/}
 
-USES:  get_main_dir for_all csg_get_interaction_property cp_from_last_step
+USES:  get_main_dir for_all csg_get_interaction_property mv check_deps cp_from_last_step
 
 NEEDS: name
 EOF
@@ -32,19 +32,27 @@ fi
 
 check_deps "$0"
 
-main_dir=$(get_main_dir)
 name=$(for_all non-bonded csg_get_interaction_property name)
 property=$(csg_get_property cg.inverse.simplex.property)
+method=$(csg_get_property cg.inverse.method)
+sim_prog=$(csg_get_property cg.inverse.program)
+
 
 # Copy potential
-if [[ $property =~ "rdf" ]]; then
 for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
-fi
-if [[ $property =~ "density" ]]; then
-for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).dens.new'
-for_all non-bonded 'mv $(csg_get_interaction_property name).dens.new $(csg_get_interaction_property name).dens.cur'
-fi
+
+for p in $property; do
+  if [ "$p" = "rdf" ]; then
+    # Copy and resample all rdf in this_dir
+    for_all non-bonded do_external resample target
+  else
+    for_all non-bonded do_external resample_simplex $p
+  fi
+done
+
+#for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).dens.new'
+#for_all non-bonded 'mv $(csg_get_interaction_property name).dens.new $(csg_get_interaction_property name).dens.cur'
 
 for i in $property; do
 # Copy simplex table
@@ -56,4 +64,5 @@ done
 cp_from_last_step state_$name.new
 mv state_$name.new state_$name.cur
 
-for_all non-bonded do_external initstep simplex_single
+#initialize sim_prog
+do_external initstep $sim_prog

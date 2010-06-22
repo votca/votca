@@ -1,8 +1,8 @@
 # method initialization
-init simplex initialize_simplex.sh
-init simplex_single initialize_simplex_single.sh
+prepare simplex prepare_simplex.sh
+prepare_single simplex prepare_simplex_single.sh
 initstep simplex initialize_step_simplex.sh
-initstep simplex_single initialize_step_simplex_single.sh
+initstep gromacs initialize_step_gromacs.sh
 
 # the update step
 update simplex update_simplex.sh
@@ -11,10 +11,12 @@ update simplex update_simplex.sh
 add_pot simplex add_pot_simplex.sh
 
 # table preparation
-resample calc resample_to_calc.sh
+resample target resample_target.sh
+resample_simplex surften resample_simplex_surften.sh
+resample_simplex density resample_simplex_density.sh
 
 # simplex specific stuff
-prep simplex prepare_simplex.pl
+prepare_table simplex prepare_simplex_table.pl
 pot lj12-6 pot_lj12-6.pl
 pot lj12-4 pot_lj12-4.pl
 par pot PAR_to_POT.pl
@@ -26,7 +28,5 @@ update ftar_merge update_ftar_merge.pl
 update simplex_step update_simplex_step.pl
 
 # gromacs scripts specific stuff
-convert_potential gromacs potential_to_gromacs.sh
-prepare gromacs prepare_gromacs.sh
 surften gromacs calc_surften_gromacs.sh
 density gromacs calc_density_gromacs.sh

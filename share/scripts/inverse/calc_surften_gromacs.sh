@@ -33,6 +33,8 @@ fi
 
 check_deps "$0"
 
+name=$(for_all non-bonded csg_get_interaction_property name)
+
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: Gromacs mdp file '$mdp' not found"
 
@@ -57,4 +59,4 @@ surften_now=$(csg_taillog -30 | sed -n 's/^\#Surf\*SurfTen[^0-9]*\([0-9][^[:spac
 die "${0##*/}: awk failed"
 [ -z "$surften_now" ] && die "${0##*/}: Could not get surface tension from simulation"
 surften="$(awk -v surften_now=$surften_now 'BEGIN{print surften_now/2 }')"
-echo ${surften} > surften.cur
+echo ${surften} > $name.surften.cur
