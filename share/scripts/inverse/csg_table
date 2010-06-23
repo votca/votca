@@ -11,7 +11,6 @@ update simplex update_simplex.sh
 add_pot simplex add_pot_simplex.sh
 
 # table preparation
-resample target resample_target.sh
 resample_simplex surften resample_simplex_surften.sh
 resample_simplex density resample_simplex_density.sh
 

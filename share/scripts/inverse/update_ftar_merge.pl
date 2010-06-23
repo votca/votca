@@ -52,19 +52,28 @@ my @weights=split(" ", $weights);
 
 my $ndim=$param_N+1;
 
-my $count;
 my %hash;
 my @ftar_cur;
-my @ftar_new=();
+my @ftar_all=();
+my @ftar_new;
 my @flag_cur;
+my $j;
 # Read in temporary simplex table
-foreach $count (0 .. $#property) {
-(%hash)=readin_simplex_table("simplex_$name\_$property[$count].tmp",$ndim) or die "$progname: error at readin_simplex_table\n";
+foreach $j (0 .. $#property) {
+(%hash)=readin_simplex_table("simplex_$name\_$property[$j].tmp",$ndim) or die "$progname: error at readin_simplex_table\n";
 @ftar_cur=@{$hash{p_0}};
 @flag_cur=@{$hash{"p_$ndim"}};
   for (my $i=0;$i<$ndim;$i++) {
-    $ftar_new[$i][$count]=$weights[$count]*$ftar_cur[$i];
+    $ftar_all[$i][$j]=$weights[$j]*$ftar_cur[$i];
   }
+}
+
+my $sum;
+for (my $i=0;$i<$ndim;$i++) {
+  for (my $j=0;$j<=$#property;$j++) {
+    $sum+=$ftar_all[$i][$j];
+  }
+$ftar_new[$i]=$sum;
 }
 
 # ------------------- DEFINE TARGET FUNCTION HERE ------------------

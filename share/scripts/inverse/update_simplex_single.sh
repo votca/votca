@@ -57,8 +57,7 @@ if [ $count -eq "1" ]; then
  msg "Calc $property ftar"
  do_external update ftar_$property simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr))
 elif [ $count -gt "1" ]; then
-  for i in $(echo $property | tr " " "\n")
-  do
+  for i in $property; do
     msg "Calc $i ftar"
     do_external update ftar_$i simplex_$name.cur simplex_$name\_$i.tmp $param_N $(($a_line_nr))
   done
