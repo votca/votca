@@ -51,6 +51,8 @@ use Switch;
 
 my $name=csg_get_property("cg.non-bonded.name");
 my $ftol=csg_get_property("cg.inverse.simplex.ftol");
+my $property=csg_get_property("cg.inverse.simplex.property");
+my @property=split(" ", $property);
 
 # Read previous state file
 my %state_cur;
@@ -201,7 +203,7 @@ print STATE_NEW "Transformation=$state_new\n";
     for (my $i=0;$i<$ndim;$i++) {
         if ($i!=$ilo) {
           for (my $j=0;$j<$param_N;$j++) {
-            $p_asc[$i][$j]=$psum[$j]=0.5*($p_asc[$i][$j]+$p_asc[$ilo][$j]);
+            $p_asc[$i][$j]=0.5*($p_asc[$i][$j]+$p_asc[$ilo][$j]);
             $y_asc[$i]="0";
             $flag[$i]="pending";
           }
@@ -249,3 +251,25 @@ for (my $i=0;$i<=$#y_asc;$i++) {
 
 # Update simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@y_asc,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
+
+if ($state_new ne "None" && $state_new ne "Reduction") {
+  foreach (@property) {
+    my @args = ("bash", "-c", "head -$ndim simplex_$name\_$_.tmp > tmp");
+    system(@args);
+    @args = ("bash", "-c", "tail -1 simplex_$name.new >> tmp");
+    system(@args);
+    @args = ("bash", "-c", "cat tmp > simplex_$name\_$_.tmp");
+    system(@args);
+  }
+}
+elsif ($state_new eq "Reduction") {
+  foreach (@property) {
+    my @args = ("bash", "-c", "head -1 simplex_$name\_$_.tmp > tmp");
+    system(@args);
+    @args = ("bash", "-c", "tail -$param_N simplex_$name.new >> tmp");
+    system(@args);
+    @args = ("bash", "-c", "cat tmp > simplex_$name\_$_.tmp");
+    system(@args);
+  }
+}
+
