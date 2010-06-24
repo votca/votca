@@ -46,8 +46,9 @@ add_pot imc add_pot_generic.sh
 rdf pot RDF_to_POT.pl
 
 # post update
-post update post_update.sh
-post update_single post_update_single.sh
+post_update ibm post_update_generic.sh
+post_update imc post_update_generic.sh
+post_update_single generic post_update_generic_single.sh
 
 #post update scripts
 postupd scale postupd_scale.sh

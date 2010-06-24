@@ -22,14 +22,16 @@ This script make all the post update with backup
 
 Usage: ${0##*/}
 
-USES:  do_external for_all check_deps
+USES:  do_external for_all check_deps csg_get_property
 
-NEEDS:
+NEEDS: cg.inverse.method
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-for_all "non-bonded" do_external post update_single
+method="$(csg_get_property cg.inverse.method)"
+
+for_all "non-bonded" do_external post_update_single $method
 

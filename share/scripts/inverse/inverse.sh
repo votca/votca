@@ -204,8 +204,8 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "Make update for $method"
   do_external update $method
 
-  msg "Post update"
-  do_external post update
+  msg "Post update for $method"
+  do_external post_update $method
 
   msg "Adding up potential for $method"
   do_external add_pot $method
