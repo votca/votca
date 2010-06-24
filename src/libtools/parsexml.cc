@@ -23,7 +23,7 @@
 #include <expat.h>
 #include "parsexml.h"
 
-static void start_hndl(void *data, const char *el, const char **attr) {
+void start_hndl(void *data, const char *el, const char **attr) {
     ParseXML *reader =
             (ParseXML*) XML_GetUserData((XML_Parser*) data);
 
@@ -35,27 +35,30 @@ static void start_hndl(void *data, const char *el, const char **attr) {
     reader->StartElemHndl(sel, mattr);
 }
 
-static void end_hndl(void *data, const char *el) {
+void end_hndl(void *data, const char *el) {
     ParseXML *reader =
             (ParseXML*) XML_GetUserData((XML_Parser*) data);
     reader->EndElemHndl(el);
 }
 
 void ParseXML::ParseIgnore(const string &el, map<string, string> &attr) {
-    SetHandler(&ParseXML::ParseIgnore);
+    NextHandler(this, &ParseXML::ParseIgnore);
 }
 
 void ParseXML::StartElemHndl(const string &el, map<string, string> &attr) {
-    (this->*_handler)(el, attr);
+    (*_handler)(el, attr);
 }
 
 void ParseXML::EndElemHndl(const string &el) {
+    delete _handler;
     _stack_handler.pop();
     _handler = _stack_handler.top();
 }
 
-void ParseXML::SetHandler(ElemHandler_t handler) {
-    _handler = handler;
-    _stack_handler.push(handler);
+template<typename T>
+void ParseXML::NextHandler(T *object, void (T::*fkt)(const string &, map<string, string> &))
+{
+    _handler = dynamic_cast<Functor*>(new FunctorMember<T>(object, fkt));
+    _stack_handler.push(_handler);
 }
 

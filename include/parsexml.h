@@ -25,24 +25,86 @@
 
 using namespace std;
 
+/**
+    \brief XML SAX parser (wrapper for expat)
+
+    This class is a wrapper for the expat SAX interface. Parsing the xml file
+    is done via callback functions (Element handlers).
+
+    The class implements contains a stupid implementation for functors to
+    handle callbacks to memeber functions but there is lots of room for improvement.
+    So far only callbacks for start element handlers is implemented. The extension
+    to EndElement handler (to signal if an element is close) is similar and straight
+    forward. So far it was not needed and was therefore not done.
+ 
+  */
 class ParseXML {
 public:
-    /// start element callback for xml parser
-    void StartElemHndl(const string &el, map<string, string> &attr);
-    /// end element callback for xml parser
-    void EndElemHndl(const string &el);
+    /// constructor
+    ParseXML() {}
+    /// destructor
+    ~ParseXML() {}
+
+    /// \brief open an XML file and start parsing it
+    ///
+    /// This functions opens a file and parses the nodes of an XML file.
+    /// Make sure to set the corresponding element handler before to redirect
+    /// element handling.
+    void Open(const string &_filename);
+
+    /// \brief Set handler for next element
+    ///
+    /// This function always has to be called after processing an element to
+    /// say what is coming next. Optionally call IgnoreElement
+    template<typename T>
+    void NextHandler(T *object, void (T::*fkt)(const string &, map<string, string> &));
+
+    /// \brief Ignore the content of this elements and all of its childs
+    void IgnoreChilds();
+    
+private:
     // virtual void ParseRoot(const string &el, map<string, string> &attr);
     void ParseIgnore(const string &el, map<string, string> &attr);
 
-    typedef void (ParseXML::*ElemHandler_t)(const string &, map<string, string> &);
-    // void SetHandler(ElemHandler_t handler);
-    void ParseFrame(const string &el, map<string, string> &attr);
+    
+    /// end element callback for xml parser
+    void StartElemHndl(const string &el, map<string, string> &attr);
+    /// end element callback for xml parser
+    void EndElemHndl(const string &el);
 
-    void SetHandler(ElemHandler_t handler);
-private:
 
-    stack<ElemHandler_t> _stack_handler;
-    ElemHandler_t _handler;
+    class Functor {
+    public:
+        Functor() {}
+        virtual void operator()(const string &, map<string, string> &) = 0;
+    };
+
+    template<typename T>
+    class FunctorMember : public Functor {
+    public:
+        typedef void (T::*fkt_t)(const string &, map<string, string> &);
+
+        FunctorMember(T* cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
+        
+        void operator()(const string &el, map<string, string> & attr) {
+            (_cls->*_fkt)(el, attr);
+        }
+        
+    private:
+        T* _cls;
+        fkt_t _fkt;
+    };
+
+    stack<Functor *> _stack_handler;
+    Functor *_handler;
+
+    friend void start_hndl(void *data, const char *el, const char **attr);
+    friend void end_hndl(void *data, const char *el);
 };
+
+inline void ParseXML::IgnoreChilds()
+{
+    NextHandler(this, &ParseXML::ParseIgnore);
+}
 
 #endif
