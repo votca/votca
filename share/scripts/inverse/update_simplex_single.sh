@@ -39,6 +39,7 @@ property=$(csg_get_property cg.inverse.simplex.property)
 count=$(echo "$property" | wc -w)
 function=$(csg_get_interaction_property inverse.simplex.function)
 param_N=$(do_external pot $function --nparams | tail -1)
+last_dir=$(get_last_step_dir)
 
 # Calculate each property
 for i in $property; do
@@ -59,7 +60,7 @@ if [ $count -eq "1" ]; then
 elif [ $count -gt "1" ]; then
   for i in $property; do
     msg "Calc $i ftar"
-    do_external update ftar_$i simplex_$name.cur simplex_$name\_$i.tmp $param_N $(($a_line_nr))
+    do_external update ftar_$i $last_dir/simplex_$name\_$i.tmp simplex_$name\_$i.tmp $param_N $(($a_line_nr))
   done
   msg "Calc total ftar"
   do_external update ftar_merge simplex_$name.tmp $param_N

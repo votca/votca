@@ -70,7 +70,7 @@ foreach $j (0 .. $#property) {
 
 my $sum;
 for (my $i=0;$i<$ndim;$i++) {
-  for (my $j=0;$j<=$#property;$j++) {
+  for ($sum=0, my $j=0;$j<=$#property;$j++) {
     $sum+=$ftar_all[$i][$j];
   }
 $ftar_new[$i]=$sum;

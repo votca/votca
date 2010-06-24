@@ -51,9 +51,6 @@ for p in $property; do
   fi
 done
 
-#for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).dens.new'
-#for_all non-bonded 'mv $(csg_get_interaction_property name).dens.new $(csg_get_interaction_property name).dens.cur'
-
 for i in $property; do
 # Copy simplex table
 cp_from_last_step simplex_$name.new
