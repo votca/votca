@@ -37,6 +37,7 @@ check_deps "$0"
 main_dir=$(get_main_dir)
 name=$(csg_get_interaction_property name)
 property=$(csg_get_property cg.inverse.simplex.property)
+count=$(echo "$property" | wc -w)
 function=$(csg_get_interaction_property inverse.simplex.function)
 param_N=$(do_external pot $function --nparams)
 
@@ -49,9 +50,11 @@ else
 fi
 
 cp simplex_$name.cur simplex_$name.tmp
-for p in $property; do
-cp simplex_$name.tmp simplex_$name\_$p.tmp
-done
+if [ $count -gt "1" ]; then
+  for p in $property; do
+    cp simplex_$name.tmp simplex_$name\_$p.tmp
+  done
+fi
 
 msg "Calculating potential from first initial guess"
 run_or_exit do_external par pot simplex_$name.cur simplex_$name.new $param_N 0
