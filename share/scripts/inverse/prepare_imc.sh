@@ -22,27 +22,17 @@ This script initizalizes potentials in a generic way
 
 Usage: ${0##*/}
 
-USES:  csg_get_property for_all do_external check_deps
+USES: msg
 
-NEEDS: cg.inverse.method cg.inverse.program
+NEEDS:
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-method="$(csg_get_property cg.inverse.method)"
-
 msg "####################################################"
 msg "# WARNING multicomponent imc is still experimental #"
 msg "####################################################"
 
-#copy+resample all rdf in $this_dir
-for_all non-bonded do_external resample target
-
-for_all non-bonded do_external prepare_single $method
-
-#cp confout.gro and so on
-do_external prepare_generic $sim_prog
-
+do_external prepare generic

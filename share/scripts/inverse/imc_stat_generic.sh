@@ -23,7 +23,7 @@ using generic csg tools
 
 Usage: ${0##*/}
 
-USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps
+USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
 
 NEEDS: cg.inverse.program cg.inverse.cgmap
 
@@ -56,6 +56,9 @@ if is_done "imc_analysis"; then
   msg "IMC analysis is already done"
 else
   msg "Running IMC analysis"
+  #copy+resample all target dist in $this_dir
+  for_all non-bonded do_external resample target
+
   run_or_exit csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --cg "$cgmap" \
         --begin $equi_time --first-frame $first_frame
   mark_done "imc_analysis"

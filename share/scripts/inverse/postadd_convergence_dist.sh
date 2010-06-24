@@ -27,7 +27,7 @@ USES: die check_deps do_external wc sed awk paste mktemp
 
 NEEDS: name
 
-OPTIONAL: inverse.post_add_options.convergence.weight 
+OPTIONAL: inverse.post_add_options.convergence.weight
 EOF
    exit 0
 fi
@@ -46,6 +46,10 @@ tmp1="$(true_or_exit mktemp ${name}.dist.tgt.XXX)"
 tmp2="$(true_or_exit mktemp ${name}.dist.new.XXX)"
 tmp3="$(true_or_exit mktemp ${name}.dist.cmb.XXX)"
 
+if [ ! -f "${name}.dist.tgt" ]; then
+  do_external resample target
+fi
+
 true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.dist.tgt > $tmp1
 true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.dist.new > $tmp2
 
@@ -55,5 +59,5 @@ true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.dist.new > $tmp2
 true_or_exit paste $tmp1 $tmp2 > $tmp3
 run_or_exit awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
 log "Calc convergence for ${name} with weight $weight"
-true_or_exit awk -v bin=$step -v w=$weight '{sum+=($5-$2)**2;}END{print sqrt(sum*bin*w);}' $tmp3 > ${name}.conv 
+true_or_exit awk -v bin=$step -v w=$weight '{sum+=($5-$2)**2;}END{print sqrt(sum*bin*w);}' $tmp3 > ${name}.conv
 

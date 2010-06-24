@@ -34,9 +34,6 @@ check_deps "$0"
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
 
-#copy+resample all rdf in this_dir
-for_all non-bonded do_external resample target
-
 #get new pot from last step
 for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 

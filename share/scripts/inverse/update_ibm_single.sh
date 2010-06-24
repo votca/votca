@@ -40,6 +40,7 @@ name=$(csg_get_interaction_property name)
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
    log "Update potential ${name} : yes"
    #update ibm
+   do_external resample target
    do_external update ibm_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.tmp
    do_external dpot shift_nb ${name}.dpot.tmp ${name}.dpot.new
 else
