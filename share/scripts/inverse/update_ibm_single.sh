@@ -23,9 +23,11 @@ for the Inverse Boltzmann Method for a single pair
 
 Usage: ${0##*/} step_nr
 
-USES:  die do_external die csg_get_interaction_property log awk check_deps get_current_step_nr
+USES:  die do_external die csg_get_interaction_property log check_deps get_current_step_nr
 
-NEEDS: name step min max inverse.do_potential
+NEEDS: inverse.do_potential name
+
+OPTIONAL: min step max
 EOF
    exit 0
 fi
@@ -45,7 +47,8 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
    do_external dpot shift_nb ${name}.dpot.tmp ${name}.dpot.new
 else
    log "Update potential ${name} : no"
-   awk -v step=$(csg_get_interaction_property step) -v start=$(csg_get_interaction_property min) -v end=$(csg_get_interaction_property max) \
-     'BEGIN{x=start;while(x<end+step){print x,0.0,"i";x+=step;}}' > ${name}.dpot.new \
-      || die "${0##*/}: awk failed"
+   min=$(csg_get_interaction_property min)
+   step=$(csg_get_interaction_property step)
+   max=$(csg_get_interaction_property max)
+   do_external table dummy ${min}:${step}:${max} ${name}.dpot.new
 fi
