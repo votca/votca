@@ -48,7 +48,8 @@ rdf pot RDF_to_POT.pl
 # post update
 post_update ibm post_update_generic.sh
 post_update imc post_update_generic.sh
-post_update_single generic post_update_generic_single.sh
+post_update_single ibm post_update_generic_single.sh
+post_update_single imc post_update_generic_single.sh
 
 #post update scripts
 postupd scale postupd_scale.sh
@@ -102,6 +103,7 @@ table extrapolate extrapolate.pl
 table merge merge_tables.pl
 table smooth smooth.pl
 table linearop table_linearop.pl
+table dummy table_dummy.sh
 
 # error analysis
 tables jackknife tables_jackknife.pl
