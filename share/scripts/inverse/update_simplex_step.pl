@@ -260,6 +260,8 @@ if ($state_new ne "None" && $state_new ne "Reduction") {
     system(@args);
     @args = ("bash", "-c", "cat tmp > simplex_$name\_$_.tmp");
     system(@args);
+    @args = ("bash", "-c", "rm tmp");
+    system(@args);
   }
 }
 elsif ($state_new eq "Reduction") {
@@ -269,6 +271,8 @@ elsif ($state_new eq "Reduction") {
     @args = ("bash", "-c", "tail -$param_N simplex_$name.new >> tmp");
     system(@args);
     @args = ("bash", "-c", "cat tmp > simplex_$name\_$_.tmp");
+    system(@args);
+    @args = ("bash", "-c", "rm tmp");
     system(@args);
   }
 }
