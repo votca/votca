@@ -9,7 +9,7 @@ libvotca_tools_la_CPPFLAGS = $(AM_CPPFLAGS) $(GSL_CFLAGS) $(FFTW_CFLAGS) $(EXPAT
 libvotca_tools_la_SOURCES = \
 correlate.cc       datacollection.cc  matrix.cc    random.cc       tokenizer.cc \
 crosscorrelate.cc  histogram.cc       parcer.cc    rangeparser.cc \
-cubicspline.cc     histogramnew.cc    property.cc  table.cc version.cc linalg.cc
+cubicspline.cc     histogramnew.cc    property.cc  table.cc version.cc linalg.cc parsexml.cc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libvotca_tools.pc

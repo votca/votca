@@ -42,6 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/correlate.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/rangeparser.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogram.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parsexml.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/linalg.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/version_nb.o \
@@ -127,6 +128,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogram.o: nbproject/Makefile-$
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogram.o ../../src/libtools/histogram.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parsexml.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/parsexml.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parsexml.o ../../src/libtools/parsexml.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/table.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
