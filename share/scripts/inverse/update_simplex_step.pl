@@ -252,28 +252,29 @@ for (my $i=0;$i<=$#y_asc;$i++) {
 # Update simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@y_asc,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
 
-if ($state_new ne "None" && $state_new ne "Reduction") {
-  foreach (@property) {
-    my @args = ("bash", "-c", "head -$ndim simplex_$name\_$_.tmp > tmp");
-    system(@args);
-    @args = ("bash", "-c", "tail -1 simplex_$name.new >> tmp");
-    system(@args);
-    @args = ("bash", "-c", "cat tmp > simplex_$name\_$_.tmp");
-    system(@args);
-    @args = ("bash", "-c", "rm tmp");
-    system(@args);
+if ($#property>"1") {
+  if ($state_new ne "None" && $state_new ne "Reduction") {
+    foreach (@property) {
+      my @args = ("bash", "-c", "head -$ndim simplex_$name\_$_.tmp > tmp");
+      system(@args);
+      @args = ("bash", "-c", "tail -1 simplex_$name.new >> tmp");
+      system(@args);
+      @args = ("bash", "-c", "cat tmp > simplex_$name\_$_.tmp");
+      system(@args);
+      @args = ("bash", "-c", "rm tmp");
+      system(@args);
+    }
+  }
+  elsif ($state_new eq "Reduction") {
+    foreach (@property) {
+      my @args = ("bash", "-c", "head -1 simplex_$name\_$_.tmp > tmp");
+      system(@args);
+      @args = ("bash", "-c", "tail -$param_N simplex_$name.new >> tmp");
+      system(@args);
+      @args = ("bash", "-c", "cat tmp > simplex_$name\_$_.tmp");
+      system(@args);
+      @args = ("bash", "-c", "rm tmp");
+      system(@args);
+    }
   }
 }
-elsif ($state_new eq "Reduction") {
-  foreach (@property) {
-    my @args = ("bash", "-c", "head -1 simplex_$name\_$_.tmp > tmp");
-    system(@args);
-    @args = ("bash", "-c", "tail -$param_N simplex_$name.new >> tmp");
-    system(@args);
-    @args = ("bash", "-c", "cat tmp > simplex_$name\_$_.tmp");
-    system(@args);
-    @args = ("bash", "-c", "rm tmp");
-    system(@args);
-  }
-}
-
