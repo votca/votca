@@ -20,7 +20,7 @@ ${0##*/}, version %version%
 This script resamples target distribution to grid spacing
 for calculations
 
-Usage: ${0##*/} target_directory
+Usage: ${0##*/}
 
 USES:  csg_get_interaction_property run_or_exit csg_resample check_deps get_main_dir
 
