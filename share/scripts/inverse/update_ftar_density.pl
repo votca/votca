@@ -88,12 +88,6 @@ my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readi
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
 die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 
-# --------------------- DEFINE PARAMETERS HERE ---------------------
-my @sig_cur;
-my @eps_cur;
-@sig_cur=@{$hash{p_1}};
-@eps_cur=@{$hash{p_2}};
-
 # ------------------- DEFINE TARGET FUNCTION HERE ------------------
 # Calculate ftar
 my @ddens=@_;

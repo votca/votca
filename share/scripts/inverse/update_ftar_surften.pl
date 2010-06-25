@@ -46,8 +46,17 @@ my $outfile="$ARGV[1]";
 my $param_N="$ARGV[2]";
 my $a_line_nr="$ARGV[3]";
 
+my $property="surften";
 my $name=csg_get_property("cg.non-bonded.name");
+my $sim_prog=csg_get_property("cg.inverse.program");
+
+# Get tgt surften
 my $surften_tgt=csg_get_interaction_property("inverse.simplex.surften.target");
+
+# Calculate new surften
+my @args = ("bash", "-c", "for_all non-bonded do_external $property $sim_prog");
+system(@args);
+undef(@args);
 
 my $surften_cur;
 open(SURFTEN_CUR, "<$name.surften.cur");
@@ -57,8 +66,6 @@ while (<SURFTEN_CUR>) {
 close(SURFTEN_CUR);
 
 my @ftar_cur;
-my @sig_cur;
-my @eps_cur;
 my @flag_cur;
 
 my $ndim=$param_N+1;
@@ -70,22 +77,17 @@ my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readi
 @ftar_cur=@{$hash{p_0}};
 @flag_cur=@{$hash{"p_$ndim"}};
 
-# --------------------- DEFINE PARAMETERS HERE ---------------------
-@sig_cur=@{$hash{p_1}};
-@eps_cur=@{$hash{p_2}};
-
 # ------------------- DEFINE TARGET FUNCTION HERE ------------------
 # Calculate ftar
+$ftar=abs(($surften_cur-$surften_tgt)/$surften_tgt);
 
-$ftar_cur[$a_line_nr]=abs(($surften_cur-$surften_tgt)/$surften_tgt);
-
-my @ftar_new;
-@ftar_new=@ftar_cur;
-
-# Flag current parameter set as 'complete'
-$flag_cur[$a_line_nr]="complete";
-
-my $mdim=$#ftar_cur+1;
+# Write to first line of table and only print this line
+$ftar_cur[0]=$ftar;
+for (my $j=1;$j<=$param_N;$j++){
+  ${$hash{"p_$j"}}[0]=${$hash{"p_$j"}}[$a_line_nr];
+}
+$flag_cur[0]="complete";
+my $mdim=1;
 
 # Save to new simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";
