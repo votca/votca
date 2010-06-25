@@ -33,29 +33,15 @@ fi
 check_deps "$0"
 
 name=$(for_all non-bonded csg_get_interaction_property name)
-property=$(csg_get_property cg.inverse.simplex.property)
-method=$(csg_get_property cg.inverse.method)
 sim_prog=$(csg_get_property cg.inverse.program)
-
 
 # Copy potential
 for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
 for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 
-for p in $property; do
-  if [ "$p" = "rdf" ]; then
-    # Copy and resample all rdf in this_dir
-    for_all non-bonded do_external resample target
-  else
-    for_all non-bonded do_external resample_simplex $p
-  fi
-done
-
-for i in $property; do
 # Copy simplex table
 cp_from_last_step simplex_$name.new
 mv simplex_$name.new simplex_$name.cur
-done
 
 # Copy state file
 cp_from_last_step state_$name.new

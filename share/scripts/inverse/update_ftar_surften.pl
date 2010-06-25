@@ -41,6 +41,11 @@ die "3 parameters are necessary\n" if ($#ARGV<2);
 use CsgFunctions;
 use SimplexFunctions;
 
+my $infile="$ARGV[0]";
+my $outfile="$ARGV[1]";
+my $param_N="$ARGV[2]";
+my $a_line_nr="$ARGV[3]";
+
 my $name=csg_get_property("cg.non-bonded.name");
 my $surften_tgt=csg_get_interaction_property("inverse.simplex.surften.target");
 
@@ -50,15 +55,6 @@ while (<SURFTEN_CUR>) {
   $surften_cur=$_;
 }
 close(SURFTEN_CUR);
-
-# Create an empty rdf file
-open (RDF, "> $name.dist.new") || die "Could not open file $_[0]\n";
-close(RDF);
-
-my $infile="$ARGV[0]";
-my $outfile="$ARGV[1]";
-my $param_N="$ARGV[2]";
-my $a_line_nr="$ARGV[3]";
 
 my @ftar_cur;
 my @sig_cur;

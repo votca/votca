@@ -44,15 +44,29 @@ my $outfile="$ARGV[1]";
 my $param_N="$ARGV[2]";
 my $a_line_nr="$ARGV[3]";
 
+my $property="density";
 my $name=csg_get_property("cg.non-bonded.name");
+my $sim_prog=csg_get_property("cg.inverse.program");
 
+# Resample tgt density
 my $aim_dens_file="$name.dens.tgt";
+my @args;
+@args=("bash", "-c", "for_all non-bonded do_external resample_simplex $property");
+system(@args);
+undef(@args);
+
+# Calculate new density
+@args = ("bash", "-c", "for_all non-bonded do_external $property $sim_prog");
+system(@args);
+undef(@args);
+
+my $cur_dens_file="$name.dens.new";
+
 my @r_aim;
 my @dens_aim;
 my @flags_aim;
 (readin_table($aim_dens_file,@r_aim,@dens_aim,@flags_aim)) || die "$progname: error at readin_table\n";
 
-my $cur_dens_file="$name.dens.new";
 my @r_cur;
 my @dens_cur;
 my @flags_cur;
@@ -84,8 +98,8 @@ my @eps_cur;
 # Calculate ftar
 my @ddens=@_;
 my $ftar=0;
-my $max=csg_get_interaction_property("inverse.simplex.density.max");
 my $dr=csg_get_interaction_property("inverse.simplex.density.step");
+my $max=csg_get_interaction_property("inverse.simplex.density.max");
 
 for(my $i=1;$i<=$max/$dr;$i++) {
        $ddens[$i]=($dens_cur[$i]-$dens_aim[$i]);
@@ -93,12 +107,14 @@ for(my $i=1;$i<=$max/$dr;$i++) {
 }
 
 $ftar+=(0.5*$dr*$ddens[$max/$dr]**2);
-$ftar_cur[$a_line_nr]=$ftar;
 
-# Flag current parameter set as 'complete'
-$flag_cur[$a_line_nr]="complete";
-
-my $mdim=$#ftar_cur+1;
+# Write to first line of table and only print this line
+$ftar_cur[0]=$ftar;
+for (my $j=1;$j<=$param_N;$j++){
+  ${$hash{"p_$j"}}[0]=${$hash{"p_$j"}}[$a_line_nr];
+}
+$flag_cur[0]="complete";
+my $mdim=1;
 
 # Save to new simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";

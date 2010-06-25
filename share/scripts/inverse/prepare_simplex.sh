@@ -35,18 +35,8 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
 property="$(csg_get_property cg.inverse.simplex.property)"
 
-#copy+resample all target dist in $this_dir
-for p in $property; do
-  if [ "$p" = "rdf" ]; then
-    # Copy and resample all rdf in this_dir
-    for_all non-bonded do_external resample target
-  else
-    for_all non-bonded do_external resample_simplex $p
-  fi
-done
-
 for_all non-bonded do_external prepare_single $method
 
-#cp confout.gro and so on
+# cp confout.gro and so on
 do_external prepare_generic $sim_prog
 

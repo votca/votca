@@ -46,14 +46,28 @@ my $param_N="$ARGV[2]";
 my $a_line_nr="$ARGV[3]";
 
 my $name=csg_get_property("cg.non-bonded.name");
+my $sim_prog=csg_get_property("cg.inverse.program");
+my $property="rdf";
 
+# Resample tgt rdf
 my $aim_rdf_file="$name.dist.tgt";
+my @args;
+@args=("bash", "-c", "for_all non-bonded do_external resample target");
+system(@args);
+undef(@args);
+
+# Calculate new rdf
+@args = ("bash", "-c", "for_all non-bonded do_external $property $sim_prog");
+system(@args);
+undef(@args);
+
+my $cur_rdf_file="$name.dist.new";
+
 my @r_aim;
 my @rdf_aim;
 my @flags_aim;
 (readin_table($aim_rdf_file,@r_aim,@rdf_aim,@flags_aim)) || die "$progname: error at readin_table\n";
 
-my $cur_rdf_file="$name.dist.new";
 my @r_cur;
 my @rdf_cur;
 my @flags_cur;
@@ -96,12 +110,14 @@ for(my $i=1;$i<=$max/$delta_r;$i++) {
 }
 
 $ftar+=(0.5*$delta_r*$w[$max/$delta_r]*$drdf[$max/$delta_r]**2);
-$ftar_cur[$a_line_nr]=$ftar;
 
-# Flag current parameter set as 'complete'
-$flag_cur[$a_line_nr]="complete";
-
-my $mdim=$#ftar_cur+1;
+# Write to first line of table and only print this line
+$ftar_cur[0]=$ftar;
+for (my $j=1;$j<=$param_N;$j++){
+  ${$hash{"p_$j"}}[0]=${$hash{"p_$j"}}[$a_line_nr];
+}
+$flag_cur[0]="complete";
+my $mdim=1;
 
 # Save to new simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";

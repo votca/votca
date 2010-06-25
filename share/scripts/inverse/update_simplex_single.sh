@@ -34,34 +34,27 @@ fi
 check_deps "$0"
 
 name=$(csg_get_interaction_property name)
-sim_prog=$(csg_get_property cg.inverse.program)
 property=$(csg_get_property cg.inverse.simplex.property)
-count=$(echo "$property" | wc -w)
+prop_N=$(echo "$property" | wc -w)
 function=$(csg_get_interaction_property inverse.simplex.function)
 param_N=$(do_external pot $function --nparams | tail -1)
-last_dir=$(get_last_step_dir)
 
-# Calculate each property
-for i in $property; do
-  msg "Calc $i"
-  do_external $i $sim_prog
-  # Find 'active' parameter set
-  if [ $(grep -c 'active$' simplex_$name.cur) == "1" ]; then
-    a_line_nr=$(($(grep -n -m1 'active$' simplex_$name.cur | sed 's/:.*//')-1));
-  else
-    die "Error: No 'active' parameter set found."
-  fi
-done
+# Find 'active' parameter set
+if [ $(grep -c 'active$' simplex_$name.cur) == "1" ]; then
+  a_line_nr=$(($(grep -n -m1 'active$' simplex_$name.cur | sed 's/:.*//')-1));
+else
+  die "Error: No 'active' parameter set found."
+fi
 
 # Calculate penalty function
-if [ $count -eq "1" ]; then
+if [ $prop_N -eq "1" ]; then
  msg "Calc $property ftar"
  do_external update ftar_$property simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr))
-elif [ $count -gt "1" ]; then
+elif [ $prop_N -gt "1" ]; then
   for i in $property; do
     msg "Calc $i ftar"
-    do_external update ftar_$i $last_dir/simplex_$name\_$i.tmp simplex_$name\_$i.tmp $param_N $(($a_line_nr))
+    do_external update ftar_$i simplex_$name.cur simplex_$name\_$i.tmp $param_N $(($a_line_nr))
   done
   msg "Calc total ftar"
-  do_external update ftar_merge simplex_$name.tmp $param_N
+  do_external update ftar_merge simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr))
 fi

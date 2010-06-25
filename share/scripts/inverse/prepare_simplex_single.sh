@@ -49,12 +49,5 @@ else
   die "No input file simplex_$name.in found"
 fi
 
-cp simplex_$name.cur simplex_$name.tmp
-if [ $count -gt "1" ]; then
-  for p in $property; do
-    cp simplex_$name.tmp simplex_$name\_$p.tmp
-  done
-fi
-
 msg "Calculating potential from first initial guess"
 run_or_exit do_external par pot simplex_$name.cur simplex_$name.new $param_N 0
