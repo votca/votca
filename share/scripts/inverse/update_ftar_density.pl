@@ -34,7 +34,7 @@ EOF
   exit 0;
 }
 
-die "4 parameters are necessary\n" if ($#ARGV<3);
+die "5 parameters are necessary\n" if ($#ARGV<4);
 
 use CsgFunctions;
 use SimplexFunctions;
@@ -43,6 +43,7 @@ my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 my $param_N="$ARGV[2]";
 my $a_line_nr="$ARGV[3]";
+my $prop_N="$ARGV[4]";
 
 my $property="density";
 my $name=csg_get_property("cg.non-bonded.name");
@@ -102,13 +103,20 @@ for(my $i=1;$i<=$max/$dr;$i++) {
 
 $ftar+=(0.5*$dr*$ddens[$max/$dr]**2);
 
-# Write to first line of table and only print this line
-$ftar_cur[0]=$ftar;
-for (my $j=1;$j<=$param_N;$j++){
-  ${$hash{"p_$j"}}[0]=${$hash{"p_$j"}}[$a_line_nr];
+my $mdim;
+if ($prop_N == 1) {
+  $ftar_cur[$a_line_nr]=$ftar;
+  $flag_cur[$a_line_nr]="complete";
+  $mdim=$#ftar_cur+1;
 }
-$flag_cur[0]="complete";
-my $mdim=1;
+else {
+  $ftar_cur[0]=$ftar;
+  for (my $j=1;$j<=$param_N;$j++){
+    ${$hash{"p_$j"}}[0]=${$hash{"p_$j"}}[$a_line_nr];
+  }
+  $flag_cur[0]="complete";
+  my $mdim=1;
+}
 
 # Save to new simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";

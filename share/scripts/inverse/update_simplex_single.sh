@@ -49,11 +49,11 @@ fi
 # Calculate penalty function
 if [ $prop_N -eq "1" ]; then
  msg "Calc $property ftar"
- do_external update ftar_$property simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr))
+ do_external update ftar_$property simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr)) $prop_N
 elif [ $prop_N -gt "1" ]; then
-  for i in $property; do
-    msg "Calc $i ftar"
-    do_external update ftar_$i simplex_$name.cur simplex_$name\_$i.tmp $param_N $(($a_line_nr))
+  for p in $property; do
+    msg "Calc $p ftar"
+    do_external update ftar_$i simplex_$name.cur simplex_$name\_$p.tmp $param_N $(($a_line_nr)) $prop_N
   done
   msg "Calc total ftar"
   do_external update ftar_merge simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr))
