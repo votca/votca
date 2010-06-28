@@ -16,20 +16,22 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    // catches the exceptions if the program does not behave 
+    
+    // catches the exceptions if the program does not behave
     // feenableexcept(FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID);
 
     // parser for the program arguments
     namespace po = boost::program_options;
     // declare the supported options
     po::options_description desc("Allowed options");
-    string listcrg, pos1, pos2;
+    string listcrg, pos1, pos2, pdbfile;
     desc.add_options()
             ("help,h", "produce help message")
             ("listcharges,l", po::value<string > (&listcrg)-> default_value("list_charges.xml"), "xml filename containing the list of the charge unit type")
             ("posor1,1", po::value<string > (&pos1) -> default_value("posmol1"), "list of charge unit type, position and orientation for mol 1")
-            ("posor2,2", po::value<string > (&pos2) -> default_value("posmol2"), " list of charge unit type, position and orientation for mol 2")
-            ;
+            ("posor2,2", po::value<string > (&pos2) -> default_value("posmol2"), "list of charge unit type, position and orientation for mol 2")
+            ("pdb,p", po::value<string > (&pdbfile) -> default_value("posmol.pdb"), "write pdb file with used molecule positions and orientations")
+    ;
 
 
     po::variables_map vm;
@@ -53,6 +55,7 @@ int main(int argc, char **argv) {
 
         ifstream in1(pos1.c_str());
         ifstream in2(pos2.c_str());
+        int written=0;
         while (in1 && in2) {
             string name1, name2;
             vec com1;
@@ -82,6 +85,20 @@ int main(int argc, char **argv) {
             B->SetNorm(0, or2[2]);
             B->SetPlane(0, or2[1]);
 
+
+           //write pdb file
+           mol_and_orb *molecule = ( A -> rotate_translate_beads() );
+           (*molecule).write_pdb(pdbfile, "m1", written++);
+           delete molecule;
+           molecule = ( B -> rotate_translate_beads() );
+           (*molecule).write_pdb(pdbfile, "m2", written++);
+           delete molecule;
+           ofstream fl;
+           fl.open(pdbfile.c_str(), ios::app);
+           fl.setf(ios::fixed);
+           fl << "END" <<endl;
+
+           
             //	cout << "Compute J" <<endl;
             vector <double> Js = jcalc.CalcJ(*A, *B);
             //	cout << "Finished computing J" <<endl;
