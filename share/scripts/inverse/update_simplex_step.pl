@@ -77,12 +77,12 @@ my @p_trans;
 my @p;
 # Take squareroot for simplex params
 foreach (1 .. $param_N) {
-  push (@p_trans, [@{$hash{"p_$_"}}]);
+  push (@p_trans, sqrt([@{$hash{"p_$_"}}]));
 }
 # Transpose to get matrix p
 for(my $i=0; $i<$ndim; $i++) {
   for(my $j=0; $j<$param_N; $j++) {
-    $p[$i][$j]=sqrt($p_trans[$j][$i]);
+    $p[$i][$j]=$p_trans[$j][$i];
   }
 }
 
