@@ -61,8 +61,12 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
         out << "    <pair "
             << " first=\"" << (*iter)->first->getId()+1 << "\""
             << " second=\"" << (*iter)->second->getId()+1 << "\""
-            << " J_0=\"" << (*iter)->Js()[0] << "\""
-            << " Jeff=\"" << (*iter)->calcJeff2() << "\"" 
+            << " J=\"";
+        for(int i=0; i< (*iter)->Js().size(); ++i)
+            out << (*iter)->Js()[i] << " ";
+        out << "\""
+            << " rate12=\"" << (*iter)->rate12() << "\""
+            << " rate21=\"" << (*iter)->rate21() << "\""
             <<  "/>" << endl;
     }
     out << "  </frame>" << endl;

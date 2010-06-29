@@ -71,6 +71,8 @@ public:
     /// find a crg unit by name
     CrgUnit *GetCrgUnitByName(const string &name);
 
+    CrgUnit *GetCrgUnit(int index);
+
     CrgUnit *CreateCrgUnit(const string &name, const string &type_name, int molid);
 
 
@@ -88,6 +90,14 @@ protected:
     ///Initialises the charge units
     void InitChargeUnits();
 };
+
+inline CrgUnit *QMTopology::GetCrgUnit(int index)
+{
+    if(index >= _crgunits.size())
+        throw std::runtime_error("error, crgunit index out of bounds");
+    return _crgunits[index];
+}
+
 
 inline CrgUnit *QMTopology::GetCrgUnitByName(const string &name)
 {

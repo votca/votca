@@ -15,34 +15,80 @@
  *
  */
 
+#include <votca/tools/tokenizer.h>
 #include "read_xml.h"
 
-bool ReadXML::EvaluateFrame(int nr, int nframes, QMTopology *top){
-    _in_int.open("integrals.xml");
-    QMNBList &nblist = top->nblist();
-    nblist.Cleanup(); /// delete current nbl
-
+void ReadXML::Initialize(QMTopology* top, Property* options)
+{
+    
 }
+
+bool ReadXML::EvaluateFrame(QMTopology *top)
+{    
+    _top = top;
+    _top->nblist().Cleanup();
+    _parser.NextHandler(this, &ReadXML::ParseRoot);
+    _parser.Open("read.xml");
+}
+
+void ReadXML::EndEvaluate(QMTopology *top)
+{
+}
+
 
 void ReadXML::ParseRoot(const string &el, map<string, string> &attr)
 {
-    if(el == "qmtop") {
-        SetHandler(&ParseXML::ParseFrame);
-    }
-    else {
-        throw std::runtime_error("Wrong root node in xml integrals.xml. Must be qmtop.");
-    }
+    if(el != "qmtop")
+        throw std::runtime_error("Wrong root node in xml. Must be qmtop.");
+    _parser.NextHandler(this, &ReadXML::ParseBody);
 }
 
-void ReadXML::ParsePair(const string &el, map<string, string> &attr, QMNBList &nblist){
-    if(el == "pair"){
-        string first = attr["1st"];
-        string second = attr["2nd"];
-        string J_0 = attr["J_0"];
-        vector <double> Js;
-        Js.push_back(boost::lexical_cast<double>(J_0));
+void ReadXML::ParseBody(const string &el, map<string, string> &attr)
+{
+    if(el == "frame")
+        _parser.NextHandler(this, &ReadXML::ParseFrame);
+    else
+        throw std::runtime_error("error, unknown node: " + el);
+}
+
+void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
+{
+    if(el == "pair") {
+        int first = lexical_cast<int>(attr["first"]) - 1;
+        int second = lexical_cast<int>(attr["second"]) - 1;
+
+        CrgUnit *crg1 = _top->GetCrgUnit(first);
+        CrgUnit *crg2 = _top->GetCrgUnit(second);
+
+        if(crg1->getId() > crg2->getId())
+            swap(crg1, crg2);
+
+        if(_top->nblist().FindPair(crg1, crg2))
+            throw std::runtime_error("multiple definitions of pair (" 
+                    + lexical_cast<string>(first+1) + ", "
+                    + lexical_cast<string>(second+1) + ")");
+        QMPair *pair = new QMPair(crg1, crg2, _top);
+
+        map<string,string>::iterator iter;
+        for(iter=attr.begin(); iter!=attr.end(); ++iter) {
+            if(iter->first == "J") {
+                Tokenizer tok(iter->second, " ");
+                tok.ConvertToVector<double>(pair->Js());
+
+            }
+            else if(iter->first == "rate12") {
+                pair->setRate12(lexical_cast<double>(iter->second));
+            }
+            else if(iter->first == "rate21") {
+                pair->setRate21(lexical_cast<double>(iter->second));
+            }
+            else if(iter->first == "first" || iter->first == "second") {
+            }
+            else
+                throw std::runtime_error("undefined property in pair: \"" + iter->first + "\"");
+        }
+        _top->nblist().AddPair(pair);
+        
     }
-    else{
-        throw std::runtime_error("Wrong  subnode of frame in xml integrals.xml. Must be pair.");
-    }
+    _parser.IgnoreChilds();
 }

@@ -12,19 +12,25 @@
 #include "qmcalculator.h"
 #include "qmpair.h"
 
-class ReadXML : public QMCalculator, public ParseXML{
+class ReadXML : public QMCalculator
+{
 public:
     ReadXML() {};
     ~ReadXML() {};
 
-    bool EvaluateFrame(int nr, int nframes, QMTopology *top);
+    void Initialize(QMTopology *top, Property *options);
+    bool EvaluateFrame(QMTopology *top);
+    void EndEvaluate(QMTopology *top);
 
 private:
-    /// input file stream
-    ifstream _in_int;
-
     void ParseRoot(const string &el, map<string, string> &attr);
-    void ParsePair(const string &el, map<string, string> &attr, QMNBList &nblist);
+    void ParseBody(const string &el, map<string, string> &attr);
+    void ParseFrame(const string &el, map<string, string> &attr);
+    void ParsePair(const string &el, map<string, string> &attr);
+
+    ParseXML _parser;
+
+    QMTopology *_top;
 };
 
 #endif	/* _READ_XML_H */

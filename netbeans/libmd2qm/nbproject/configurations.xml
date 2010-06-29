@@ -8,6 +8,7 @@
         <itemPath>../../include/calc_integrals.h</itemPath>
         <itemPath>../../include/cont_kmc.h</itemPath>
         <itemPath>../../include/marcus_rates.h</itemPath>
+        <itemPath>../../include/read_xml.h</itemPath>
         <itemPath>../../include/write_xml.h</itemPath>
       </logicalFolder>
       <itemPath>../../include/paircalculator.h</itemPath>
@@ -28,6 +29,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="f1" displayName="calculators" projectFiles="true">
+        <itemPath>../../src/libmd2qm/read_xml.cc</itemPath>
+      </logicalFolder>
       <itemPath>../../src/libmd2qm/qmapplication.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmnblist.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmpair.cc</itemPath>
