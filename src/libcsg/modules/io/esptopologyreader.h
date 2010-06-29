@@ -15,16 +15,32 @@
  *
  */
 
+#ifndef _ESPTOPOLOGYREADER_H
+#define	_ESPTOPOLOGYREADER_H
 
-#include "trajectoryreader.h"
-#include "modules/io/gmxtrajectoryreader.h"
-#include "modules/io/esptrajectoryreader.h"
+#include <string>
+#include "topologyreader.h"
 
-void TrajectoryReader::RegisterPlugins(void)
+using namespace std;
+    
+/**
+    \brief reader for espresso blockfiles
+
+    This class encapsulates the espresso reading functions and provides an interface to fill a topolgy class
+
+*/
+class ESPTopologyReader
+    : public TopologyReader
 {
-		TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
-}
+public:
+    /// read a topology file
+    bool ReadTopology(string file, Topology &top);
+    
+private:
+		/// extract variable from input line
+		string ReadBlockfileLine(string input_line, string variable);		
+};
+
+
+#endif	/* _ESPTOPOLOGYREADER_H */
+

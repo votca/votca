@@ -16,6 +16,7 @@
  */
 
 #include "topologyreader.h"
+#include "modules/io/esptopologyreader.h"
 #include "modules/io/gmxtopologyreader.h"
 #include "modules/io/grotopologyreader.h"
 #include "modules/io/xmltopologyreader.h"
@@ -23,6 +24,7 @@
 
 void TopologyReader::RegisterPlugins(void)
 {
+    TopReaderFactory().Register<ESPTopologyReader>("esp");		
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
     TopReaderFactory().Register<GROTopologyReader>("gro");
     TopReaderFactory().Register<XMLTopologyReader>("xml");

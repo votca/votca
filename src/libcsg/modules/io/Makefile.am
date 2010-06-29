@@ -3,6 +3,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 noinst_LTLIBRARIES = libio.la
 
 libio_la_SOURCES = \
+	esptrajectoryreader.cc esptrajectoryreader.h \
+	esptopologyreader.cc esptopologyreader.h \
 	gmxtopologyreader.cc 	gmxtopologyreader.h 	gmxtrajectoryreader.cc\
 	gmxtrajectoryreader.h 	gmxtrajectorywriter.cc 	gmxtrajectorywriter.h\
 	grotopologyreader.cc 	grotopologyreader.h 	growriter.cc\

@@ -15,16 +15,33 @@
  *
  */
 
+#ifndef _ESPTRAJECTORYREADER_H
+#define	_ESPTRAJECTORYREADER_H
 
 #include "trajectoryreader.h"
-#include "modules/io/gmxtrajectoryreader.h"
-#include "modules/io/esptrajectoryreader.h"
 
-void TrajectoryReader::RegisterPlugins(void)
+using namespace std;
+
+class ESPTrajectoryReader : public TrajectoryReader
 {
-		TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
-}
+    public:        
+        /// open a trajectory file
+        bool Open(const string &file);
+        /// read in the first frame
+        bool FirstFrame(Topology &top);
+        /// read in the next frame
+        bool NextFrame(Topology &top);
+
+        void Close();
+        
+        TrajectoryReader *Clone() { return dynamic_cast<TrajectoryReader*>(new ESPTrajectoryReader()); }
+
+    private:
+        string _fl;
+				string _temp_nextframe;				
+};
+
+
+
+#endif	/* _ESPTRAJECTORYREADER_H */
+
