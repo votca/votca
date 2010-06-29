@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     }
     // did an error occour?
     catch(std::exception &error) {
-        cerr << "An error occoured!" << endl << error.what() << endl;
+        cerr << "An error occured!" << endl << error.what() << endl;
     }
     return 0;
 }
