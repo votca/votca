@@ -42,6 +42,8 @@
       <logicalFolder name="libcsg" displayName="libcsg" projectFiles="true">
         <logicalFolder name="modules" displayName="modules" projectFiles="true">
           <logicalFolder name="io" displayName="io" projectFiles="true">
+            <itemPath>../../src/libcsg/modules/io/esptopologyreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/esptopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtrajectoryreader.cc</itemPath>

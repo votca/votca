@@ -15,8 +15,8 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
-AS=as
+FC=g95
+AS=
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -46,6 +46,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/xmltopologyreader.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/gmxtopologyreader.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/grotopologyreader.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/esptopologyreader.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/topologyreader.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/gmxtrajectorywriter.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/imcio.o \
@@ -159,6 +160,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/grotopologyreader.o: nbp
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/grotopologyreader.o ../../src/libcsg/modules/io/grotopologyreader.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/esptopologyreader.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/modules/io/esptopologyreader.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/esptopologyreader.o ../../src/libcsg/modules/io/esptopologyreader.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/topologyreader.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/topologyreader.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg

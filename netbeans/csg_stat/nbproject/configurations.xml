@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="45">
+<configurationDescriptor version="62">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -25,21 +25,21 @@
   <sourceRootList>
     <Elem>../../src/tools</Elem>
   </sourceRootList>
-  <sourceEncoding>UTF-8</sourceEncoding>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <ccCompilerTool>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+        <ccTool>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+          </incDir>
+        </ccTool>
         <linkerTool>
           <output>../../src/tools/csg_stat</output>
           <linkerLibItems>
@@ -69,37 +69,29 @@
             </linkerLibProjectItem>
             <linkerLibLibItem>gmx</linkerLibLibItem>
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
-            <linkerLibLibItem>xml2</linkerLibLibItem>
+            <linkerLibLibItem>expat</linkerLibLibItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="../../src/tools/csg_stat.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/tools/imc.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/tools/imc.h">
-        <itemTool>3</itemTool>
-      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>5</developmentMode>
-        </cCompilerTool>
-        <ccCompilerTool>
+        </cTool>
+        <ccTool>
           <developmentMode>2</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-          </includeDirectories>
-        </ccCompilerTool>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+          </incDir>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
@@ -137,33 +129,25 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="../../src/tools/csg_stat.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/tools/imc.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/tools/imc.h">
-        <itemTool>3</itemTool>
-      </item>
     </conf>
     <conf name="profile_release" type="1">
       <toolsSet>
+        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
-        <cCompilerTool>
+        <cTool>
           <developmentMode>5</developmentMode>
-        </cCompilerTool>
-        <ccCompilerTool>
+        </cTool>
+        <ccTool>
           <developmentMode>2</developmentMode>
-          <includeDirectories>
-            <directoryPath>../../include</directoryPath>
-            <directoryPath>../../../include</directoryPath>
-          </includeDirectories>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+          </incDir>
           <commandLine>-pg</commandLine>
-        </ccCompilerTool>
+        </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
@@ -202,15 +186,6 @@
           <commandLine>-pg</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../src/tools/csg_stat.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/tools/imc.cc">
-        <itemTool>1</itemTool>
-      </item>
-      <item path="../../src/tools/imc.h">
-        <itemTool>3</itemTool>
-      </item>
     </conf>
   </confs>
 </configurationDescriptor>
