@@ -23,9 +23,11 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property log run_or_exit csg_resample log check_deps msg
+USES: do_external csg_get_interaction_property log run_or_exit csg_resample log check_deps msg get_main_dir
 
 NEEDS: name min max step
+
+OPTIONAL: inverse.target
 EOF
   exit 0
 fi
@@ -33,16 +35,21 @@ fi
 check_deps "$0"
 
 name=$(csg_get_interaction_property name)
-if [ -f ../${name}.pot.in ]; then
+min=$(csg_get_interaction_property min )
+max=$(csg_get_interaction_property max )
+step=$(csg_get_interaction_property step )
+comment="$(get_table_comment)"
+
+if [ -f "${main_dir}/${name}.pot.in" ]; then
   msg "Using given table ${name}.pot.in for ${name}"
-  min=$(csg_get_interaction_property min )
-  max=$(csg_get_interaction_property max )
-  step=$(csg_get_interaction_property step )
-  comment="$(get_table_comment)"
-  run_or_exit csg_resample --in ../${name}.pot.in --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "$comment"
+  run_or_exit csg_resample --in "${main_dir}/${name}.pot.in" --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "$comment"
 else
+  target=$(csg_get_interaction_property inverse.target)
+  main_dir=$(get_main_dir)
+  msg "Using intial guess from dist ${main_dir}/${target} for ${name}"
+  #copy+resample all target dist in $this_dir
+  run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
   # RDF_to_POT.pl just does log g(r) + extrapolation
-  msg "Using intial guess from RDF for ${name}"
   run_or_exit do_external rdf pot ${name}.dist.tgt ${name}.pot.new
 fi
 

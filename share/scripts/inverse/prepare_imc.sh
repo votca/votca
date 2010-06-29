@@ -18,27 +18,21 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the initialization for every step in a generic way
+This script initizalizes potentials in a generic way
 
 Usage: ${0##*/}
 
-USES:  for_all csg_get_interaction_property mv check_deps cp_from_last_step
+USES: msg
 
-NEEDS: name cg.inverse.method cg.inverse.program
+NEEDS:
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-method="$(csg_get_property cg.inverse.method)"
+msg "####################################################"
+msg "# WARNING multicomponent imc is still experimental #"
+msg "####################################################"
 
-#get new pot from last step
-for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
-
-#make it current potential
-for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
-
-#initialize sim_prog
-do_external initstep_generic $sim_prog
+do_external prepare generic

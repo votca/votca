@@ -66,7 +66,7 @@ bool XMLTopologyReader::ReadTopology(string filename, Topology &top)
     string line;
     getline(fl, line);
     line=line + "\n";
-    if (! XML_Parse(parser, line.c_str(), line.length(), false))
+    if (! XML_Parse(parser, line.c_str(), line.length(), fl.eof()))
       throw  std::ios_base::failure(filename + ": Parse error at line " +
           boost::lexical_cast<string>(XML_GetCurrentLineNumber(parser)) + "\n" +
           XML_ErrorString(XML_GetErrorCode(parser)));

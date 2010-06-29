@@ -28,6 +28,7 @@ sout="${fbase}_NP"
 out="${fbase}.xvg"
 version="@version@"
 single="no"
+debug="no"
 
 die() {
   echo -e "$*"
@@ -36,6 +37,10 @@ die() {
 
 qecho() {
   [ "$quiet" = "yes" ] || echo -e "$*"
+}
+
+decho() {
+  [ "$debug" = "yes" ] || echo -e "$*"
 }
 
 show_help () {
@@ -69,6 +74,7 @@ Allowed options:
     --log  FILE     Name of logfile
                     Default: $logile (where NP is replace by the number)
     --single        Run only one task at the time
+    --debug         Enable debug output
 -q, --quiet         Be a little bit quiet
 -h, --help          Show this help
 
@@ -119,6 +125,9 @@ while [ "${1#-}" != "$1" ]; do
     shift ;;
    --single)
     single="yes"
+    shift ;;
+   --debug)
+    debug="yes"
     shift ;;
    -h | --help)
     show_help
@@ -204,6 +213,6 @@ for ((i=0;i<$np;i++)); do
 done
 awkprog="/[@#]/{next;}{print \$0,($mean)/$np}"
 awkprog2="/[@#]/{next;}{print \$1,$mco,sqrt(($mean2)/$(($np*($np-1))))}"
-qecho "awk code to calc mean: $awkprog"
-qecho "awk code to calc block error: $awkprog2"
+decho "awk code to calc mean: $awkprog"
+decho "awk code to calc block error: $awkprog2"
 paste $pasteline | awk "$awkprog" | awk "$awkprog2" > $out

@@ -38,6 +38,9 @@ run_or_exit mv confout.gro conf.gro
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
 
+#convert potential in format for sim_prog
+for_all non-bonded do_external convert_potential gromacs
+
 for_all "non-bonded" check_cutoff $mdp
 
 index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"

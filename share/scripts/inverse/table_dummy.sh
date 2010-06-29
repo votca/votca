@@ -14,22 +14,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials in a generic way
+This script creates a dummy table with on grid min:step:max
 
-Usage: ${0##*/}
+Usage: ${0##*/} min:step:max outfile
 
-USES:  csg_get_property for_all do_external check_deps
+USES: die run_or_exit csg_resample check_deps mktemp get_table_comment 
 
-NEEDS: cg.inverse.method
+NEEDS: 
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-method="$(csg_get_property cg.inverse.method)"
-for_all non-bonded do_external init_single $method
+[ -z "$2" ] && die "${0##*/}: Missing arguments"
+
+if [ "${1//[^:]}" = "::" ]; then
+  min=${1%%:*}
+  max=${1##*:}
+else
+  die "${0##*/}: Agrument 1 should have the form XX:XX:XX"
+fi
+
+tmpfile="$(true_or_exit mktemp table.XXX)"
+echo "$min 0" > $tmpfile
+echo "$max 0" >> $tmpfile
+
+comment="$(get_table_comment)"
+run_or_exit csg_resample --in ${tmpfile} --out "${2}" --grid "${1}" --comment "${comment}"
