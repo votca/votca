@@ -94,7 +94,7 @@ else {
     ${$hash{"p_$j"}}[0]=${$hash{"p_$j"}}[$a_line_nr];
   }
   $flag_cur[0]="complete";
-  my $mdim=1;
+  $mdim=1;
 }
 
 # Save to new simplex table
