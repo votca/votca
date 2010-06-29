@@ -41,12 +41,6 @@ n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
 [ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
 
-warm_times="$(csg_get_property cg.inverse.espresso.warm_times)"
-[ -z "$warm_times" ] && die "${0##*/}: Could not read espresso property warm_times"
-
-warm_steps="$(csg_get_property cg.inverse.espresso.warm_steps)"
-[ -z "$warm_steps" ] && die "${0##*/}: Could not read espresso property warm_steps"
-
 
 check_deps "$0"
 
@@ -93,21 +87,6 @@ if { ![info exists num_molecules] || ![info exists num_atoms] } {
   }
   lappend num_atoms \$num_atoms_mol
 }
-
-#warmup
-puts "Warming up..."
-set cap 0.01
-set capincr [expr 100./($warm_times*1.)]
-for {set j 0} {\$j<$warm_times} {incr j} {
-    puts "Warmup run #\$j out of $warm_times"
-    inter tabforcecap  \$cap
-
-    integrate $warm_steps
-    puts "  [analyze energy]"
-    set cap [expr \$cap+\$capincr]
-}
-inter tabforcecap 0
-
 
  
 # Main integration loop
