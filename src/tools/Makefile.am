@@ -1,11 +1,12 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS) $(VOTCA_MOO_CFLAGS) $(VOTCA_CSG_CFLAGS) $(BOOST_CFLAGS) 
 
 bin_PROGRAMS = \
-	ctp_map ctp_integrals ctp_rates ctp_kmc printqmattop ctp_polymer ctp_readxml ctp_writexml
+	ctp_map ctp_integrals ctp_rates ctp_kmc printqmattop ctp_polymer ctp_readxml ctp_writexml ctp_estat
 
 ctp_map_SOURCES = ctp_map.cc md2qm_observer.cc
 ctp_integrals_SOURCES = ctp_integrals.cc 
 ctp_rates_SOURCES = ctp_rates.cc  
+ctp_estat_SOURCES = ctp_estat.cc  calc_estatics.cpp
 printqmattop_SOURCES = printQMAtTop.cc atqmtopobserver.cc
 ctp_readxml_SOURCES = ctp_readxml.cc
 ctp_writexml_SOURCES = ctp_writexml.cc
