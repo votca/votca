@@ -53,7 +53,7 @@ if [ $prop_N -eq "1" ]; then
 elif [ $prop_N -gt "1" ]; then
   for p in $property; do
     msg "Calc $p ftar"
-    do_external update ftar_$i simplex_$name.cur simplex_$name\_$p.tmp $param_N $(($a_line_nr)) $prop_N
+    do_external update ftar_$p simplex_$name.cur simplex_$name\_$p.tmp $param_N $(($a_line_nr)) $prop_N
   done
   msg "Calc total ftar"
   do_external update ftar_merge simplex_$name.cur simplex_$name.tmp $param_N $(($a_line_nr))
