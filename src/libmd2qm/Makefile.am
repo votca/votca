@@ -6,7 +6,7 @@ SUBDIRS =
 lib_LTLIBRARIES = libvotca_md2qm.la
 
 libvotca_md2qm_la_SOURCES = \
-	qmnblist.cc qmapplication.cc qmpair.cc  qmtopology.cc  statesaver.cc  version.cc  
+	qmnblist.cc qmapplication.cc qmpair.cc  qmtopology.cc  statesaver.cc  version.cc read_xml.cc 
 
 #gmx is needed because of headers from libio
 libvotca_md2qm_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(VOTCA_CSG_CFLAGS) $(VOTCA_MOO_CFLAGS) $(BOOST_CFLAGS)
