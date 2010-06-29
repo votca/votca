@@ -107,4 +107,13 @@ inline void ParseXML::IgnoreChilds()
     NextHandler(this, &ParseXML::ParseIgnore);
 }
 
+template<typename T>
+inline void ParseXML::NextHandler(T *object, void (T::*fkt)(const string &, map<string, string> &))
+{
+    _handler = dynamic_cast<Functor*>(new FunctorMember<T>(object, fkt));
+    _stack_handler.push(_handler);
+}
+
+
+
 #endif

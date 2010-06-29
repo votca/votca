@@ -41,6 +41,35 @@ void end_hndl(void *data, const char *el) {
     reader->EndElemHndl(el);
 }
 
+void ParseXML::Open(const string &filename)
+{
+    XML_Parser parser = XML_ParserCreate(NULL);
+    if (!parser)
+        throw std::runtime_error("Couldn't allocate memory for xml parser");
+
+    XML_UseParserAsHandlerArg(parser);
+    XML_SetElementHandler(parser, start_hndl, end_hndl);
+//    XML_SetCharacterDataHandler(parser, char_hndl);
+
+    ifstream fl;
+    fl.open(filename.c_str());
+    if (!fl.is_open())
+        throw std::ios_base::failure("Error on open xml file: " + filename);
+
+    XML_SetUserData(parser, (void*) this);
+    while (!fl.eof()) {
+        string line;
+        getline(fl, line);
+        line = line + "\n";
+        if (!XML_Parse(parser, line.c_str(), line.length(), fl.eof()))
+            throw std::ios_base::failure(filename + ": Parse error in " + filename + " at line " +
+                boost::lexical_cast<string > (XML_GetCurrentLineNumber(parser)) + "\n" +
+                XML_ErrorString(XML_GetErrorCode(parser)));
+    }
+    fl.close();
+}
+
+
 void ParseXML::ParseIgnore(const string &el, map<string, string> &attr) {
     NextHandler(this, &ParseXML::ParseIgnore);
 }
@@ -54,11 +83,3 @@ void ParseXML::EndElemHndl(const string &el) {
     _stack_handler.pop();
     _handler = _stack_handler.top();
 }
-
-template<typename T>
-void ParseXML::NextHandler(T *object, void (T::*fkt)(const string &, map<string, string> &))
-{
-    _handler = dynamic_cast<Functor*>(new FunctorMember<T>(object, fkt));
-    _stack_handler.push(_handler);
-}
-
