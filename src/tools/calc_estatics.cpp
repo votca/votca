@@ -13,10 +13,10 @@
 
 bool CalcEstatics::EvaluateFrame(QMTopology *top) {
     cout << "Doing Estatics\n";
-    list<CrgUnit *> lcharges = top->crglist();
+    vector<CrgUnit *> lcharges = top->CrgUnits();
     Topology atop;
     atop.setBox(top->getBox());
-    for (list<CrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++) {
+    for (vector<CrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++) {
         top->AddAtomisticBeads(*itl, &atop);
     }
     cout << "Number of charge units in top " << lcharges.size() << endl;

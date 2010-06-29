@@ -20,8 +20,8 @@ public:
 };
 
 inline bool SiteCalculator::EvaluateFrame(QMTopology *top){
-    list<CrgUnit*>& crglist = top.crglist();
-    for(list<CrgUnit*>::iterator iter = crglist.begin();iter!=crglist.end();++iter)
+    vector<CrgUnit*>& crglist = top.CrgUnits();
+    for(vector<CrgUnit*>::iterator iter = crglist.begin();iter!=crglist.end();++iter)
         EvaluateSite(*iter);
     return true;
 }

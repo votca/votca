@@ -40,8 +40,8 @@ public:
         return _nblist;
     }
     /// List of charge units [Bohr]
-    list < CrgUnit *>& crglist(){
-        return _lcharges;
+    vector < CrgUnit *>& CrgUnits(){
+        return _crgunits;
     }
 
     void Cleanup();
@@ -68,10 +68,6 @@ public:
     // TODO: this function should not be in qmtopology!
     void ComputeAllTransferIntegrals();
 
-    /// comutes all the electrostatic energies
-    // TODO: this function should not be in qmtopology!
-    void ComputeAllElectrostaticEnergies(const double &epsilon=3.5);
-
     /// find a crg unit by name
     CrgUnit *GetCrgUnitByName(const string &name);
 
@@ -87,7 +83,7 @@ protected:
     QMNBList _nblist;
     JCalc _jcalc;
     map <string, CrgUnit*> _mcharges;
-    list < CrgUnit *> _lcharges;
+    vector < CrgUnit *> _crgunits;
     
     ///Initialises the charge units
     void InitChargeUnits();
@@ -107,9 +103,9 @@ inline CrgUnit *QMTopology::CreateCrgUnit(const string &name, const string &type
     if(GetCrgUnitByName(name))
         throw std::runtime_error("charge unit with name " + name + " already exists");
     CrgUnit *crg;
-    crg = _jcalc.CreateCrgUnit(_lcharges.size(), type_name, molid);
+    crg = _jcalc.CreateCrgUnit(_crgunits.size(), type_name, molid);
     _mcharges.insert(make_pair(name, crg));
-    _lcharges.push_back(crg);
+    _crgunits.push_back(crg);
     crg->setName(name);
     return crg;
 }
