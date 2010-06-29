@@ -88,10 +88,12 @@ int main(int argc, char **argv) {
 
            //write pdb file
            mol_and_orb *molecule = ( A -> rotate_translate_beads() );
-           (*molecule).write_pdb(pdbfile, "m1", written++);
+           (*molecule).write_pdb(pdbfile, "m1", written);
+           written += (*molecule).getN();
            delete molecule;
            molecule = ( B -> rotate_translate_beads() );
-           (*molecule).write_pdb(pdbfile, "m2", written++);
+           (*molecule).write_pdb(pdbfile, "m2", written);
+           written += (*molecule).getN();
            delete molecule;
            ofstream fl;
            fl.open(pdbfile.c_str(), ios::app);
