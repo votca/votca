@@ -18,23 +18,23 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials in a generic way
+This script implements the function initialize in espresso
+for the Inverse Boltzmann Method
 
-Usage: ${0##*/}
+Usage: ${0##*/} last_sim_dir
 
-USES:  csg_get_property for_all do_external check_deps
+USES: check_deps cp_from_main_dir run_or_exit mv
 
-NEEDS: cg.inverse.method cg.inverse.program
+OPTIONAL: cg.inverse.espresso.blockfile
 EOF
-   exit 0
+  exit 0
 fi
 
 check_deps "$0"
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-method="$(csg_get_property cg.inverse.method)"
+esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp")"
+cp_from_main_dir $esp
+[ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-for_all non-bonded do_external prepare_single $method
+run_or_exit mv $esp confout.esp
 
-#cp confout.gro and so on
-do_external prepare_generic $sim_prog

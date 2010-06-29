@@ -118,6 +118,9 @@ imc_stat gromacs imc_stat_generic.sh
 # these scripts have to be defined for each method, if NOT generic
 prepare_generic gromacs prepare_generic_gromacs.sh
 initstep_generic gromacs initialize_step_generic_gromacs.sh
+prepare_generic espresso prepare_generic_espresso.sh
+initstep_generic espresso initialize_step_generic_espresso.sh
+
 
 # gromacs scripts specific stuff
 convert_potential gromacs potential_to_gromacs.sh
@@ -125,5 +128,19 @@ convert_potential xvg table_to_xvg.pl
 
 #function for gromacs
 functions gromacs functions_gromacs.sh
+
+# Interface to ESPResSo
+run espresso run_espresso.sh
+pressure espresso calc_pressure_espresso.sh
+rdf espresso calc_rdf_espresso.sh
+
+
+# ESPResSo scripts
+convert_potential espresso potential_to_espresso.sh
+convert_potential tab table_to_tab.pl
+
+# function for ESPResSo
+functions espresso functions_espresso.sh
+
 
 # END: these scripts have to be defined for each simulation program
