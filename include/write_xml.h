@@ -23,11 +23,16 @@ public:
     
 private:
     string _outfile;
+    bool _write_dist;
 };
 
-void WriteXML::Initialize(QMTopology *top, Property *options)
+inline void WriteXML::Initialize(QMTopology *top, Property *options)
 {
     _outfile = options->get("options.writexml.file").as<string>();
+    _write_dist = false;
+
+    if(options->exists("options.writexml.dist"))
+        _write_dist = options->get("options.writexml.dist").as<bool>();
 
     ofstream out;
     out.open(_outfile.c_str(), ios::out);
@@ -43,7 +48,7 @@ inline void WriteXML::EndEvaluate(QMTopology *top)
     out.open(_outfile.c_str(), ios::out | ios::app);
     if(!out)
         throw std::runtime_error("error, cannot open " + _outfile);
-    out << "<qmtop>" << endl;
+    out << "</qmtop>" << endl;
     out.close();
 }
 
@@ -66,8 +71,10 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
             out << (*iter)->Js()[i] << " ";
         out << "\""
             << " rate12=\"" << (*iter)->rate12() << "\""
-            << " rate21=\"" << (*iter)->rate21() << "\""
-            <<  "/>" << endl;
+            << " rate21=\"" << (*iter)->rate21() << "\"";
+        if(_write_dist)
+            out << " dist=\"" <<(*iter)->dist()<< "\"";
+        out <<  "/>" << endl;
     }
     out << "  </frame>" << endl;
 
