@@ -27,7 +27,7 @@ private:
 
 void WriteXML::Initialize(QMTopology *top, Property *options)
 {
-    _outfile = "integrals.xml";
+    _outfile = options->get("options.writexml.file").as<string>();
 
     ofstream out;
     out.open(_outfile.c_str(), ios::out);

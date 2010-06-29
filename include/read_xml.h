@@ -29,7 +29,8 @@ private:
     void ParsePair(const string &el, map<string, string> &attr);
 
     ParseXML _parser;
-
+    string _filename;
+    
     QMTopology *_top;
 };
 

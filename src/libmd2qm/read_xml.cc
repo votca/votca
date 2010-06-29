@@ -20,7 +20,7 @@
 
 void ReadXML::Initialize(QMTopology* top, Property* options)
 {
-    
+     _filename = options->get("options.readxml.file").as<string>();
 }
 
 bool ReadXML::EvaluateFrame(QMTopology *top)
@@ -28,7 +28,7 @@ bool ReadXML::EvaluateFrame(QMTopology *top)
     _top = top;
     _top->nblist().Cleanup();
     _parser.NextHandler(this, &ReadXML::ParseRoot);
-    _parser.Open("read.xml");
+    _parser.Open(_filename);
 }
 
 void ReadXML::EndEvaluate(QMTopology *top)
