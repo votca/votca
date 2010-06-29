@@ -43,7 +43,7 @@ public:
     /// check whether required input is present and correct
     virtual void CheckInput() {}
     /// return true if evaluation should be continued, abort only if something important is missing
-    virtual bool BeginEvaluate();
+    virtual void BeginEvaluate();
     /// called for each frame, return true if evaluation should be continued
     virtual bool EvaluateFrame(int nr, int nframes);
     /// stop evaluation & do final analysis if necessary
