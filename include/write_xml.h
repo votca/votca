@@ -16,33 +16,58 @@ public:
     WriteXML() {};
     ~WriteXML() {};
 
-    bool EvaluateFrame(QMTopology *top);
+    void Initialize(QMTopology *top, Property *options);
 
+    bool EvaluateFrame(QMTopology *top);
+    void EndEvaluate(QMTopology *top);
+    
 private:
-    ///  output stream to write integrals to xml file
-    ofstream _out_int;
+    string _outfile;
 };
 
-inline bool WriteXML::EvaluateFrame(QMTopology *top){
-    _out_int.open("integrals.xml", ios::app);
-    QMNBList &nblist = top->nblist();
-    if(_out_int!=0){
-        if(nr==0){
-            _out_int << "<qmtop>" << endl;
-        }
-        _out_int << "  <frame nr=\"" << nr << "\" />" << endl;
-        for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter){
-            _out_int << "    <pair 1st=\"" << (*iter)->first->getId() << "\" 2nd=\"" << (*iter)->second->getId()
-                    << "\" J_0=\"" << (*iter)->Js()[0]
-                    << "\" Jeff=\"" << (*iter)->calcJeff2() << "\" />" << endl;
-        }
-        _out_int << "  </frame>" << endl;
+void WriteXML::Initialize(QMTopology *top, Property *options)
+{
+    _outfile = "integrals.xml";
 
-        if (nr==(nframes-1)){
-            _out_int << "</qmtop>" << endl;
-        }
+    ofstream out;
+    out.open(_outfile.c_str(), ios::out);
+    if(!out)
+        throw std::runtime_error("error, cannot open " + _outfile);
+    out << "<qmtop>" << endl;
+    out.close();
+}
+
+inline void WriteXML::EndEvaluate(QMTopology *top)
+{
+    ofstream out;
+    out.open(_outfile.c_str(), ios::out | ios::app);
+    if(!out)
+        throw std::runtime_error("error, cannot open " + _outfile);
+    out << "<qmtop>" << endl;
+    out.close();
+}
+
+inline bool WriteXML::EvaluateFrame(QMTopology *top){
+    ofstream out;
+    out.open(_outfile.c_str(), ios::out | ios::app);
+    if(!out)
+        throw std::runtime_error("error, cannot open " + _outfile);
+
+
+    QMNBList &nblist = top->nblist();
+    
+    out << "  <frame>"  << endl;
+    for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter) {
+        out << "    <pair "
+            << " first=\"" << (*iter)->first->getId()+1 << "\""
+            << " second=\"" << (*iter)->second->getId()+1 << "\""
+            << " J_0=\"" << (*iter)->Js()[0] << "\""
+            << " Jeff=\"" << (*iter)->calcJeff2() << "\"" 
+            <<  "/>" << endl;
     }
-    _out_int.close();
+    out << "  </frame>" << endl;
+
+    out.close();
 }
 
 #endif	/* _WRITE_XML_H */

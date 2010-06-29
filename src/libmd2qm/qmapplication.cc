@@ -82,7 +82,7 @@ void QMApplication::Run(int argc, char **argv)
         LoadOptions();
         CheckInput();
 
-        if (!BeginEvaluate()) return;
+        BeginEvaluate();
 
         /// load qmtop from state saver
         
@@ -140,12 +140,11 @@ void QMApplication::AddCalculator(QMCalculator* calculator){
     _calculators.push_back(calculator);
 }
 
-bool QMApplication::BeginEvaluate(){
+void QMApplication::BeginEvaluate(){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->Initialize(&_qmtop, &_options);
     }
-    return true;
 }
 
 bool QMApplication::EvaluateFrame(int nr, int nframes){
@@ -158,6 +157,6 @@ bool QMApplication::EvaluateFrame(int nr, int nframes){
 void QMApplication::EndEvaluate(){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->EndCalc(&_qmtop);
+        (*iter)->EndEvaluate(&_qmtop);
     }
 }

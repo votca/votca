@@ -19,7 +19,7 @@ public:
 
     virtual void Initialize(QMTopology *top, Property *options) {}
     virtual bool EvaluateFrame(QMTopology *top) { return true; }
-    virtual void EndCalc(QMTopology *top) {}
+    virtual void EndEvaluate(QMTopology *top) {}
 protected:
 };
 
