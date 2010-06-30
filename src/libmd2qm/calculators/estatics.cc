@@ -7,7 +7,7 @@
 
 
 #include <stdlib.h>
-#include "calc_estatics.h"
+#include "estatics.h"
 #include <math.h>
 #include <list>
 

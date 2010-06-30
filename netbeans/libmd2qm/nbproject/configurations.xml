@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="62">
   <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
+      <itemPath>../../src/libmd2qm/calculators/contkmc.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/estatics.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/estatics.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/integrals.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/marcusrates.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/readxml.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/readxml.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/writexml.h</itemPath>
+    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <logicalFolder name="f1" displayName="calculators" projectFiles="true">
-        <itemPath>../../include/calc_integrals.h</itemPath>
-        <itemPath>../../include/cont_kmc.h</itemPath>
-        <itemPath>../../include/marcus_rates.h</itemPath>
-        <itemPath>../../include/read_xml.h</itemPath>
-        <itemPath>../../include/write_xml.h</itemPath>
-      </logicalFolder>
+      <itemPath>../../include/calculatorfactory.h</itemPath>
       <itemPath>../../include/paircalculator.h</itemPath>
       <itemPath>../../include/qmapplication.h</itemPath>
       <itemPath>../../include/qmbead.h</itemPath>
@@ -29,9 +33,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <logicalFolder name="f1" displayName="calculators" projectFiles="true">
-        <itemPath>../../src/libmd2qm/read_xml.cc</itemPath>
-      </logicalFolder>
+      <itemPath>../../src/libmd2qm/calculatorfactory.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmapplication.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmnblist.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmpair.cc</itemPath>

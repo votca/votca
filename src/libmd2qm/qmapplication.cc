@@ -1,7 +1,10 @@
+#include "calculatorfactory.h"
 #include "qmapplication.h"
 
 QMApplication::QMApplication()
-{}
+{
+    CalculatorFactory::RegisterAll();
+}
 
 QMApplication::~QMApplication()
 {}

@@ -33,11 +33,13 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/read_xml.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculatorfactory.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/readxml.o
 
 # C Compiler Flags
 CFLAGS=
@@ -75,30 +77,40 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o: nbproject/Makefile-${CN
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o ../../src/libmd2qm/qmpair.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/version_nb.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o ../../src/libmd2qm/version_nb.cc
-
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o ../../src/libmd2qm/qmapplication.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/read_xml.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/read_xml.cc 
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculators/estatics.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o ../../src/libmd2qm/calculators/estatics.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmnblist.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/read_xml.o ../../src/libmd2qm/read_xml.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o ../../src/libmd2qm/qmnblist.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculatorfactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculatorfactory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculatorfactory.o ../../src/libmd2qm/calculatorfactory.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/version_nb.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o ../../src/libmd2qm/version_nb.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/statesaver.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o ../../src/libmd2qm/statesaver.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmnblist.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/readxml.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculators/readxml.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o ../../src/libmd2qm/qmnblist.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/readxml.o ../../src/libmd2qm/calculators/readxml.cc
 
 # Subprojects
 .build-subprojects:

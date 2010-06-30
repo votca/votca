@@ -16,7 +16,7 @@
  */
 
 #include <votca/tools/tokenizer.h>
-#include "read_xml.h"
+#include "readxml.h"
 
 void ReadXML::Initialize(QMTopology* top, Property* options)
 {
