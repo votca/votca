@@ -60,7 +60,7 @@ my @flag;
 for (my $i=0;$i<=$#r;$i++){
     # Avoid undefined potential at r=0
     if ($r[$i]>1e-10) {
-        $pot[$i]=4*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**4);
+        $pot[$i]=(3*sqrt(3)/2)*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**4);
         $flag[$i]="i";
     }
     else {
