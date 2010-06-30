@@ -11,6 +11,6 @@ libio_la_SOURCES = \
 	pdbwriter.h 		xmltopologyreader.cc	xmltopologyreader.h
 
 libio_la_LDFLAGS = -no-undefined
-libio_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(BOOST_CFLAGS) $(GMX_CFLAGS) $(EXPAT_CFLAGS) 
+libio_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(BOOST_CFLAGS) $(GMX_CFLAGS) 
 
 CLEANFILES = *~
