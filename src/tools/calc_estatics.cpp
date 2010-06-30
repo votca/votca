@@ -55,7 +55,7 @@ bool CalcEstatics::EvaluateFrame(QMTopology *top) {
 double CalcEstatics::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
 {
     //relative dielectric constant
-    double epsilon_dielectric = 3.5;
+    double epsilon_dielectric = 1.0;
     //estatic energy including contributions from all other molecules in eV
     double pot = 0.0;
     //Coulombs constant including conversion factors (elementary charge and nm) so that pot is in eV
