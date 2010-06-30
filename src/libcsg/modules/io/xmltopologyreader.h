@@ -21,6 +21,7 @@
 #include <string>
 #include "topologyreader.h"
 #include <stack>
+#include <votca/tools/parsexml.h>
 
 using namespace std;
 
@@ -45,26 +46,11 @@ private:
     void ParseRoot(const string &el, map<string, string> &attr);
     void ParseTopology(const string &el, map<string, string> &attr);
     void ParseMolecules(const string &el, map<string, string> &attr);
-    void ParseIgnore(const string &el, map<string, string> &attr);
     
-public:
-
-
-    /// start element callback for xml parser
-    void StartElemHndl(const string &el, map<string, string> &attr);
-    /// end element callback for xml parser
-    void EndElemHndl(const string &el);
-
 private:
+    ParseXML _parser;
 
     Topology *_top;
-
-    typedef void (XMLTopologyReader::*ElemHandler_t)(const string &, map<string, string> &);
-
-    void SetHandler(ElemHandler_t handler);
-
-    stack<ElemHandler_t> _stack_handler;
-    ElemHandler_t _handler;
 };
 
 #endif	/* _PDBTOPOLOGYREADER_H */
