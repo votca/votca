@@ -59,10 +59,12 @@ if is_done "rdf-$name"; then
 else
 		# Output ${name}.dist.new.tab. Calculated by Espresso.
 		cat > temp_script_rdf_esp.tcl <<EOF
+puts "Calculating RDF. Please wait..."
 # First read the original conf.esp file to get the box size
 set esp_in [open $esp r]
 while { [blockfile \$esp_in read auto] != "eof" } { }
 close \$esp_in
+
 
 set rlist ""
 set avg_rdf ""
@@ -73,7 +75,7 @@ set numbins [expr int(($max-$min)/($binsize*1.))]
 set bf_count 0
 while { [blockfile \$in read auto] != "eof" } {
   if { \$bf_count > [expr 2 + $equi_snapshots] } {
-    set rdf [analyze rdf $type1 $type2 $min $max \$numbins]
+    set rdf [analyze rdf [set $index1] [set $index2] $min $max \$numbins]
     if { \$flag_start == 1 } {
         foreach value [lindex \$rdf 1] {
             lappend avg_rdf [lindex \$value 1]
@@ -101,6 +103,8 @@ if { \$cnt > 0 } {
 set out [open $name.dist.new.tab w]
 foreach r \$rlist rdf \$avg_rdf { puts \$out "\$r \$rdf" }
 close \$out
+
+puts "Calculation finished."
 
 EOF
 		

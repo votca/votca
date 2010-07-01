@@ -29,7 +29,7 @@ In addtion it does some magic tricks:
 - shift the potential, so that it is zero at the cutoff
 - set all values to zero after the cutoff
 
-Usage: $progname infile outfile
+Usage: $progname in_pot in_deriv_pot outfile
 
 NEEDS: cg.inverse.espresso.pot_max cg.inverse.espresso.table_end cg.inverse.espresso.table_bins
 
@@ -38,27 +38,25 @@ EOF
   exit 0;
 }
 
-die "2 parameters are nessary\n" if ($#ARGV<1);
+die "3 parameters are nessary\n" if ($#ARGV<2);
 
 use CsgFunctions;
 
-my $infile="$ARGV[0]";
-my $outfile="$ARGV[1]";
+my $in_pot="$ARGV[0]";
+my $in_deriv_pot="$ARGV[1]";
+my $outfile="$ARGV[2]";
 
-my $espresso_max=csg_get_property("cg.inverse.espresso.pot_max");
 my $table_end=csg_get_property("cg.inverse.espresso.table_end");
 my $table_bins=csg_get_property("cg.inverse.espresso.table_bins");
 
 my @r;
+my @r_repeat;
 my @pot;
+my @d_pot;
 my @flag;
-(readin_table($infile,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
-
-#Avoid very large numbers
-for (my $i=0;$i<=$#r;$i++) {
-  $pot[$i]=$espresso_max if $pot[$i]>$espresso_max;
-  $pot[$i]=-$espresso_max if $pot[$i]<-$espresso_max;
-}
+my @flag_repeat;
+(readin_table($in_pot,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
+(readin_table($in_deriv_pot,@r_repeat,@d_pot,@flag_repeat)) || die "$progname: error at readin_table\n";
 
 #cutoff is last point
 my $i_cut=$#r;
@@ -68,20 +66,27 @@ for (my $i=0;$i<=$i_cut;$i++){
    $pot[$i]-=$pot[$i_cut];
 }
 
+my @force=@d_pot;
+
 # set end of the potential to zero
 for (my $i=$i_cut;$i<=$table_end/$table_bins;$i++) {
   $pot[$i]=0;
+	$force[$i]=0;
   $r[$i]=$r[$i-1]+$table_bins;
 }
 
-my @force;
 
-#calc force
-$force[0]=0;
-for (my $i=1;$i<$#r;$i++){
-   $force[$i]=-($pot[$i+1]-$pot[$i-1])/($r[$i+1]-$r[$i-1]);
+# Smooth out force (9-point avg) 
+for (my $i=4;$i<$#r_repeat-3;$i++){
+		$force[$i]=($d_pot[$i-4]+$d_pot[$i-3]+$d_pot[$i-2]
+								+$d_pot[$i-1]+$d_pot[$i]+$d_pot[$i+1]+$d_pot[$i+2]
+								+$d_pot[$i+3]+$d_pot[$i+4])/(9.);
 }
-$force[$#r]=0.0;
+# add extra 1/r factor for ESPResSo
+for (my $i=1;$i<$#r_repeat;$i++){
+		$force[$i]*=-1.0/$r_repeat[$i];
+}
+$force[0]=$force[1];
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 # espresso specific header - no other starting comments
@@ -89,7 +94,7 @@ my $num_bins = $table_end/$table_bins;
 printf(OUTFILE "#%d 0 %f\n", $num_bins, $table_end);
 for(my $i=0;$i<=$#r;$i++){
   printf(OUTFILE "%15.10e %15.10e %15.10e\n",
-    $r[$i], $pot[$i], $force[$i]);
+    $r[$i], $force[$i], $pot[$i]);
 }
 close(OUTFILE) or die "Error at closing $outfile\n";
 

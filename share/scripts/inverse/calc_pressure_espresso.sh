@@ -30,34 +30,32 @@ EOF
    exit 0
 fi
 
-#####################
-# NOT IMPLEMENTED YET
-#####################
-log "!! Pressure correction in ESPResSo not yet implemented !!"
-
 check_deps "$0"
 
+# Espresso config file (required for certain parameters, e.g. box size)
+esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp")"
+[ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
+p_file="temp_pressure.dat"
+esp_script="temp_script_pressure_esp.tcl"
 
-# mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-# [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+log "Calculating pressure"
+cat > $esp_script <<EOF
+set esp_in [open $esp r]
+while { [blockfile \$esp_in read auto] != "eof" } { }
+close \$esp_in
 
-# tpr="$(csg_get_property cg.inverse.gromacs.g_energy.topol "topol.tpr")"
-# [ -f "$tpr" ] || die "${0##*/}: Gromacs tpr file '$tpr' not found"
+set p [analyze pressure total]
+set p_out [open $p_file w]
+puts \$p_out $\p
+close \$p_out
 
-# opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.opts)"
+EOF
 
-# nsteps=$(get_from_mdp nsteps "$mdp")
-# dt=$(get_from_mdp dt "$mdp")
-# equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
-# first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
+run_or_exit Espresso_bin $esp_script
+run_or_exit rm -f $esp_script
 
-# begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
-
-# log "Running g_energy"
-# echo Pressure | run_or_exit g_energy -b "${begin}" -s "${tpr}" ${opts}
-# #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
-# p_now=$(csg_taillog -30 | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
-#   die "${0##*/}: awk failed"
-# [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
-# echo ${p_now}
+p_now=`cat $p_file`
+run_or_exit rm -f $p_file
+[ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
+echo ${p_now}

@@ -30,6 +30,7 @@ prepare_single ibm prepare_generic_single.sh
 prepare_single imc prepare_generic_single.sh
 initstep ibm initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
+initstep pmf initialize_step_pmf.sh
 
 # the update step
 update ibm update_ibm.sh
