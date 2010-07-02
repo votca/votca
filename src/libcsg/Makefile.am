@@ -17,7 +17,6 @@ libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS) $(
 libvotca_csg_la_LIBADD = modules/io/libio.la
 
 #boost_libs is needed in cgengine.cc from cgengine.h
-#expat comes with VOTCA_TOOLS_LIBS
 libvotca_csg_la_LDFLAGS = -no-undefined $(VOTCA_TOOLS_LIBS) $(GMX_LIBS) $(BOOST_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
