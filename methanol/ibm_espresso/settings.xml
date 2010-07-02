@@ -46,14 +46,14 @@
       <!-- extend the tables to this value -->
       <table_end>1.55</table_end>
       <!-- Blockfile: contains simulation parameters -->
-      <blockfile>conf.esp</blockfile>
+      <blockfile>conf.esp.gz</blockfile>
       <!-- Number of steps to integrate between each snapshot -->
       <n_steps>1000</n_steps>
       <!-- Number of snapshots -->
       <n_snapshots>40</n_snapshots>
     </espresso>
     <!-- these files are copied for each new run -->
-    <filelist>conf.esp</filelist>
+    <filelist>conf.esp.gz</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
