@@ -33,11 +33,11 @@ fi
 
 check_deps "$0"
 
-esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp")"
+esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-cp_from_last_step confout.esp
-run_or_exit mv confout.esp $esp
+cp_from_last_step confout.esp.gz
+run_or_exit mv confout.esp.gz $esp
 
 #convert potential in format for sim_prog
 for_all non-bonded do_external convert_potential espresso

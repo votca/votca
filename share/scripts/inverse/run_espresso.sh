@@ -16,7 +16,7 @@
 #
 
 if [ "$1" = "--help" ]; then
-cat <<EOF
+    cat <<EOF
 ${0##*/}, version %version%
 This script runs espresso
 for the Inverse Boltzmann Method
@@ -29,12 +29,12 @@ NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snaps
 
 OPTIONAL: cg.inverse.espresso.blockfile cg.inverse.espresso.exclusions cg.inverse.espresso.debug
 EOF
-   exit 0
+    exit 0
 fi
 
 check_deps "$0"
 
-esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp")"
+esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
 n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
@@ -51,24 +51,24 @@ debug="$(csg_get_property cg.inverse.espresso.debug "no")"
 ################ IBM ###################
 if [ "$method" = "ibm" ]; then
 		# Topology+trajectory file
-		traj_esp="top_traj.esp"
-		
-		n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
-		[ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
+    traj_esp="top_traj.esp"
+    
+    n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
+    [ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
 
     # Make sure all particle indexes have been loaded into the blockfile
-		index_vars=$(for_all non-bonded \
-				csg_get_interaction_property inverse.espresso.index1)
-		index_vars="$index_vars $(for_all non-bonded \
+    index_vars=$(for_all non-bonded \
+	csg_get_interaction_property inverse.espresso.index1)
+    index_vars="$index_vars $(for_all non-bonded \
     csg_get_interaction_property inverse.espresso.index2)"
-		index_vars=$(for i in $index_vars; do echo $i; done | sort -u)
-		for i in $index_vars; do
-				[ `grep -c $i $esp` = "1" ] || die "${0##*/}: can't find index list: $i"
-		done
-		
+    index_vars=$(for i in $index_vars; do echo $i; done | sort -u)
+    for i in $index_vars; do
+	[ `gzip -cd $esp | grep -c $i ` = "1" ] || die "${0##*/}: can't find index list: $i"
+    done
+    
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
-		cat > temp_script_run_esp.tcl <<EOF
-set in [open $esp r]
+    cat > temp_script_run_esp.tcl <<EOF
+set in [open "|gzip -cd $esp" r]
 while { [blockfile \$in read auto] != "eof" } {}
 close \$in
 
@@ -120,7 +120,7 @@ for { set j 0 } { \$j < $n_snapshots } { incr j } {
   close \$pos_out
 }
 
-set out [open "confout.esp" w]
+set out [open "|gzip -c - > confout.esp.gz" w]
 blockfile \$out write variable all
 blockfile \$out write interactions
 blockfile \$out write thermostat
@@ -132,29 +132,30 @@ if { [has_feature "MASS"] } {
 } else {
   blockfile \$out write particles {id type molecule pos v}
 }
+blockfile \$out write bonds
 close \$out
 EOF
 
-if use_mpi; then
-  mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
-  run_or_exit $mpicmd Espresso_bin temp_script_run_esp.tcl
-else
-  run_or_exit Espresso_bin temp_script_run_esp.tcl
-fi
-run_or_exit rm -f temp_script_run_esp.tcl
-		
+    if use_mpi; then
+	mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
+	run_or_exit $mpicmd Espresso_bin temp_script_run_esp.tcl
+    else
+	run_or_exit Espresso_bin temp_script_run_esp.tcl
+    fi
+    run_or_exit rm -f temp_script_run_esp.tcl
+    
 
 ################## PMF ####################
 elif [ "$method" = "pmf" ]; then
-		meta_cmd="$(csg_get_property cg.inverse.espresso.meta_cmd)"
+    meta_cmd="$(csg_get_property cg.inverse.espresso.meta_cmd)"
 
-		meta_min_sampling="$(csg_get_property cg.inverse.espresso.meta_min_sampling)"
-		[ -z "$meta_min_sampling" ] && die "${0##*/}: Could not read metadynamics property meta_min_sampling"
+    meta_min_sampling="$(csg_get_property cg.inverse.espresso.meta_min_sampling)"
+    [ -z "$meta_min_sampling" ] && die "${0##*/}: Could not read metadynamics property meta_min_sampling"
 
-		meta_input_file="tmp_meta_input.dat"
+    meta_input_file="tmp_meta_input.dat"
 
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
-		cat > temp_script_run_esp.tcl <<EOF
+    cat > temp_script_run_esp.tcl <<EOF
 # Determine the profile's minimum sampled point
 proc min_samp { profile } {
   set result -1e30
@@ -166,7 +167,7 @@ proc min_samp { profile } {
 
 
 ### Load config
-set in [open $esp r]
+set in [open "|gzip -cd $esp" r]
 while { [blockfile \$in read auto] != "eof" } {}
 close \$in
 
@@ -240,7 +241,7 @@ set reac_coords [metadynamics print_stat coord_values]
 set force [metadynamics print_stat force]
 
 # Save simulation parameters
-set out [open "confout.esp" w]
+set out [open "|gzip -c - > confout.esp" w]
 blockfile \$out write variable all
 blockfile \$out write interactions
 blockfile \$out write thermostat
@@ -262,9 +263,9 @@ foreach r \$reac_coords p \$profile f \$force {
 close \$out
 EOF
 
-		run_or_exit Espresso_bin temp_script_run_esp.tcl
-		run_or_exit rm -f temp_script_run_esp.tcl		
-		
+    run_or_exit Espresso_bin temp_script_run_esp.tcl
+    run_or_exit rm -f temp_script_run_esp.tcl		
+    
 else
-		die "${0##*/}: ESPResSo only supports methods: IBM and PMF"
+    die "${0##*/}: ESPResSo only supports methods: IBM and PMF"
 fi

@@ -16,7 +16,7 @@
 #
 
 if [ "$1" = "--help" ]; then
-cat <<EOF
+    cat <<EOF
 ${0##*/}, version %version%
 This script calcs the rdf for espresso
 for the Inverse Boltzmann Method
@@ -29,7 +29,7 @@ NEEDS: type1 type2 name step min max inverse.espresso.index1 inverse.espresso.in
 
 OPTIONAL: cg.inverse.espresso.equi_snapshots
 EOF
-   exit 0
+    exit 0
 fi
 
 check_deps "$0"
@@ -41,7 +41,7 @@ top_traj="top_traj.esp"
 equi_snapshots="$(csg_get_property cg.inverse.espresso.equi_snapshots 0)"
 
 # Espresso config file (required for certain parameters, e.g. box size)
-esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp")"
+esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
 type1=$(csg_get_interaction_property type1)
@@ -55,13 +55,13 @@ index2=$(csg_get_interaction_property inverse.espresso.index2)
 
 log "Analyzing rdf for ${type1}-${type2}"
 if is_done "rdf-$name"; then
-  msg "rdf analsysis for ${type1}-${type2} is already done"
+    msg "rdf analsysis for ${type1}-${type2} is already done"
 else
 		# Output ${name}.dist.new.tab. Calculated by Espresso.
-		cat > temp_script_rdf_esp.tcl <<EOF
+    cat > temp_script_rdf_esp.tcl <<EOF
 puts "Calculating RDF. Please wait..."
 # First read the original conf.esp file to get the box size
-set esp_in [open $esp r]
+set esp_in [open "|gzip -cd $esp" r]
 while { [blockfile \$esp_in read auto] != "eof" } { }
 close \$esp_in
 
@@ -96,11 +96,11 @@ close \$out
 puts "Calculation finished."
 
 EOF
-		
-	 	run_or_exit Espresso_bin temp_script_rdf_esp.tcl
-		run_or_exit rm -f temp_script_rdf_esp.tcl
-		
-		comment="$(get_table_comment)"
-		run_or_exit csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
-		mark_done "rdf-$name"
+    
+    run_or_exit Espresso_bin temp_script_rdf_esp.tcl
+    run_or_exit rm -f temp_script_rdf_esp.tcl
+    
+    comment="$(get_table_comment)"
+    run_or_exit csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
+    mark_done "rdf-$name"
 fi

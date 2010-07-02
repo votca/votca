@@ -33,7 +33,7 @@ fi
 check_deps "$0"
 
 # Espresso config file (required for certain parameters, e.g. box size)
-esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp")"
+esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
 p_file="temp_pressure.dat"
@@ -41,7 +41,7 @@ esp_script="temp_script_pressure_esp.tcl"
 
 log "Calculating pressure"
 cat > $esp_script <<EOF
-set esp_in [open $esp r]
+set esp_in [open "|gzip -cd $esp" r]
 while { [blockfile \$esp_in read auto] != "eof" } { }
 close \$esp_in
 
