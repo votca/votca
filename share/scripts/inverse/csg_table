@@ -8,7 +8,7 @@ initstep gromacs initialize_step_gromacs.sh
 update simplex update_simplex.sh
 
 # post update step
-postupd simplex postadd_dummy.sh
+post_update simplex dummy.sh
 
 # add up the potential
 add_pot simplex add_pot_simplex.sh
