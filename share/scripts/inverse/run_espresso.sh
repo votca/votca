@@ -27,7 +27,7 @@ USES: run_or_exit Espresso_bin use_mpi csg_get_property check_deps use_mpi
 
 NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
 
-OPTIONAL: cg.inverse.espresso.blockfile 
+OPTIONAL: cg.inverse.espresso.blockfile cg.inverse.espresso.exclusions cg.inverse.espresso.debug
 EOF
    exit 0
 fi
@@ -42,6 +42,10 @@ n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 
 method="$(csg_get_property cg.inverse.method)"
 
+exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
+[ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"
+
+debug="$(csg_get_property cg.inverse.espresso.debug "no")"
 
 # Different Espresso scripts depending on the method used
 ################ IBM ###################
@@ -89,6 +93,10 @@ if { ![info exists num_molecules] || ![info exists num_atoms] } {
   lappend num_atoms \$num_atoms_mol
 }
 
+# Set particle exclusions
+if { $exclusions != 0 } {
+  part auto_exclusions $exclusions
+}
 
 # Main integration loop
 puts "Main integration starts"
@@ -100,7 +108,9 @@ close \$pos_out
 for { set j 0 } { \$j < $n_snapshots } { incr j } {
   integrate $n_steps
   puts "step \$j of $n_snapshots"
-  puts "  [analyze energy]"
+  if { $debug == "yes" } {
+    puts "  [analyze energy]"
+  }
   set pos_out [open $traj_esp a]
   if { [has_feature "MASS"] } {
     blockfile \$pos_out write particles {id type molecule mass pos v}
@@ -222,7 +232,9 @@ while { \$min_sampling < $meta_min_sampling }
   set profile [metadynamics print_stat profile]
   set min_sampling [min_samp \$profile]
   puts "step \$j | current minimum sampling \$min_sampling < $meta_min_sampling"
-  puts "  [analyze energy]"
+  if { $debug == "yes" } {
+    puts "  [analyze energy]"
+  }
 }
 set reac_coords [metadynamics print_stat coord_values]
 set force [metadynamics print_stat force]

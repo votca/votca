@@ -66,42 +66,31 @@ while { [blockfile \$esp_in read auto] != "eof" } { }
 close \$esp_in
 
 
-set rlist ""
-set avg_rdf ""
-set cnt 0
-set flag_start 1
 set in [open $top_traj r]
 set numbins [expr int(($max-$min)/($binsize*1.))]
 set bf_count 0
+set rdf ""
 while { [blockfile \$in read auto] != "eof" } {
   if { \$bf_count > [expr 2 + $equi_snapshots] } {
-    set rdf [analyze rdf [set $index1] [set $index2] $min $max \$numbins]
-    if { \$flag_start == 1 } {
-        foreach value [lindex \$rdf 1] {
-            lappend avg_rdf [lindex \$value 1]
-        }
+    analyze append
+    # <rdf> if there's only one molecule, <rdf-intermol> otherwise
+    if { \$num_molecules == 1 } {
+      set rdf [analyze <rdf> [set $index1] [set $index2] $min $max \$numbins]
     } else {
-        set rlist ""
-        set rdflist ""
-        foreach value [lindex \$rdf 1] {
-            lappend rlist [lindex \$value 0]
-            lappend rdflist [lindex \$value 1]
-        }
-        set avg_rdf [vecadd \$avg_rdf \$rdflist]
+      set rdf [analyze <rdf-intermol> [set $index1] [set $index2] $min $max \$numbins]
     }
-    set flag_start 0
-    incr cnt
   }
   incr bf_count
 }
 close \$in
 
-if { \$cnt > 0 } {
-    set avg_rdf [vecscale [expr 1.0/\$cnt] \$avg_rdf]
+foreach value [lindex \$rdf 1] {
+  lappend rlist [lindex \$value 0]
+  lappend rdflist [lindex \$value 1]
 }
 
 set out [open $name.dist.new.tab w]
-foreach r \$rlist rdf \$avg_rdf { puts \$out "\$r \$rdf" }
+foreach r \$rlist rdf \$rdflist { puts \$out "\$r \$rdf" }
 close \$out
 
 puts "Calculation finished."
