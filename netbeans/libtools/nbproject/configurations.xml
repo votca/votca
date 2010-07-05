@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/application.h</itemPath>
       <itemPath>../../include/average.h</itemPath>
       <itemPath>../../include/correlate.h</itemPath>
       <itemPath>../../include/crosscorrelate.h</itemPath>
@@ -31,6 +32,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>../../src/libtools/application.cc</itemPath>
       <itemPath>../../src/libtools/correlate.cc</itemPath>
       <itemPath>../../src/libtools/crosscorrelate.cc</itemPath>
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>

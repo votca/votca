@@ -46,7 +46,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/linalg.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/version_nb.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/datacollection.o
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/datacollection.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/application.o
 
 # C Compiler Flags
 CFLAGS=
@@ -153,6 +154,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/datacollection.o: nbproject/Makef
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/datacollection.o ../../src/libtools/datacollection.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/application.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/application.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/application.o ../../src/libtools/application.cc
 
 # Subprojects
 .build-subprojects:
