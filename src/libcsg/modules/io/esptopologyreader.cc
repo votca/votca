@@ -118,7 +118,7 @@ bool ESPTopologyReader::ReadTopology(string file, Topology &top)
 		fl >> mass;
 	    else
 		mass = string("1.0");
-						
+
 	    mi->AddBead(top.CreateBead(1, "", top.GetOrCreateBeadType(type), 0, atoi(mass.c_str()), 0),
 			boost::lexical_cast<string>(atom));
 	    getline(fl, parse_line);						

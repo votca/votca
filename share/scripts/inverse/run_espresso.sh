@@ -261,6 +261,20 @@ foreach r \$reac_coords p \$profile f \$force {
   puts \$out \$r [expr \$p+\$min_sampling] \$f
 }
 close \$out
+
+# Save topology+trajectory of last snapshot for PMF analysis
+# **Do not save output file as .gz**
+set pos_out [open $traj_esp w]
+blockfile \$pos_out write variable box_l
+blockfile \$pos_out write tclvariable num_molecules
+blockfile \$pos_out write tclvariable num_atoms
+if { [has_feature "MASS"] } {
+  blockfile \$pos_out write particles {id type molecule mass pos v}
+} else {
+  blockfile \$pos_out write particles {id type molecule pos v}
+}
+close \$pos_out
+
 EOF
 
     run_or_exit Espresso_bin temp_script_run_esp.tcl
