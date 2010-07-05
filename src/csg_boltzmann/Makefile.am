@@ -3,7 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 bin_PROGRAMS = \
 	csg_boltzmann
 
-csg_boltzmann_CPPFLAGS=$(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(BOOST_CFLAGS)
+csg_boltzmann_CPPFLAGS=$(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS)
 
 csg_boltzmann_SOURCES = \
 	bondedstatistics.cc main.cc  stdanalysis.cc  tabulatedpotential.cc \

@@ -13,11 +13,10 @@ libvotca_csg_la_SOURCES = \
     imcio.cc nblistgrid.cc version.cc 
 
 #gmx is needed because of headers from libio
-libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS) $(BOOST_CFLAGS)
+libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS)
 libvotca_csg_la_LIBADD = modules/io/libio.la
 
-#boost_libs is needed in cgengine.cc from cgengine.h
-libvotca_csg_la_LDFLAGS = -no-undefined $(VOTCA_TOOLS_LIBS) $(GMX_LIBS) $(BOOST_LIBS)
+libvotca_csg_la_LDFLAGS = -no-undefined $(VOTCA_TOOLS_LIBS) $(GMX_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libvotca_csg.pc
