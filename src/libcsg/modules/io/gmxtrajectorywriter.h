@@ -51,7 +51,11 @@ public:
     void Write(Topology *conf);
 
     private:
-        int _file;
+#ifdef GMX4DEV
+       gmx::t_trxstatus* _file;
+#else
+       int _file;
+#endif
 };
 
 #endif	/* _GMXTRAJECTORYWRITER_H */

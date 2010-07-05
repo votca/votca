@@ -64,7 +64,11 @@ class GMXTrajectoryReader : public TrajectoryReader
         string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
-        int _gmx_status;
+#ifdef GMX4DEV
+       gmx::t_trxstatus* _gmx_status;
+#else
+       int _gmx_status;
+#endif
         /// gmx frame
         gmx::t_trxframe _gmx_frame;
         
