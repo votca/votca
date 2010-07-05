@@ -33,7 +33,10 @@ AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 
 # check for boost
 if test "$enable_votca_boost" = no; then
-  AX_BOOST_BASE([1.33.1],[:],[have_boost=no])
+  AX_BOOST_BASE([1.33.1],[have_boost=yes],[have_boost=no])
+  if test "$have_boost" = "yes" -a "$want_boost" = "yes"; then
+    AX_BOOST_PROGRAM_OPTIONS([1.33.1],[:],[have_boost=no])
+  fi
   if test "$have_boost" = "no" -o "$want_boost" = "no"; then
     AC_MSG_ERROR([
 		
@@ -80,7 +83,7 @@ if test "$enable_votca_boost" = "yes"; then
   PKGLIBSBOOST=""
 else
   BOOST_CFLAGS="$BOOST_CPPFLAGS"
-  BOOST_LIBS=""
+  BOOST_LIBS="$BOOST_LDFLAGS $BOOST_PROGRAM_OPTIONS_LIB"
   VOTCA_BOOST=""
   PKGBOOST=""
   PKGCFLAGSBOOST="$BOOST_CFLAGS"

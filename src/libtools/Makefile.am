@@ -2,8 +2,7 @@ HGVERSION:= $(shell hg -R $(top_srcdir) parents --template 'hgid: {node|short}' 
 AM_CPPFLAGS = -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
 lib_LTLIBRARIES = libvotca_tools.la
 
-#no BOOST_LDFLAGS here, because we just need the headers
-libvotca_tools_la_LDFLAGS = -no-undefined $(GSL_LIBS) $(FFTW_LIBS) $(EXPAT_LIBS) -lm
+libvotca_tools_la_LDFLAGS = -no-undefined $(GSL_LIBS) $(FFTW_LIBS) $(EXPAT_LIBS) $(BOOST_LIBS) -lm
 libvotca_tools_la_CPPFLAGS = $(AM_CPPFLAGS) $(GSL_CFLAGS) $(FFTW_CFLAGS) $(EXPAT_CFLAGS) $(BOOST_CFLAGS)
 
 libvotca_tools_la_SOURCES = \
