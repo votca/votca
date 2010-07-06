@@ -27,7 +27,7 @@ USES: csg_get_interaction_property csg_get_property log run_or_exit csg_resample
 
 NEEDS: type1 type2 name step min max inverse.espresso.index1 inverse.espresso.index2
 
-OPTIONAL: cg.inverse.espresso.equi_snapshots
+OPTIONAL: cg.inverse.espresso.equi_snapshots cg.inverse.espresso.bin
 EOF
     exit 0
 fi
@@ -44,6 +44,8 @@ equi_snapshots="$(csg_get_property cg.inverse.espresso.equi_snapshots 0)"
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
+esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")" 
+
 type1=$(csg_get_interaction_property type1)
 type2=$(csg_get_interaction_property type2)
 name=$(csg_get_interaction_property name)
@@ -57,8 +59,9 @@ log "Analyzing rdf for ${type1}-${type2}"
 if is_done "rdf-$name"; then
     msg "rdf analsysis for ${type1}-${type2} is already done"
 else
-		# Output ${name}.dist.new.tab. Calculated by Espresso.
-    cat > temp_script_rdf_esp.tcl <<EOF
+    # Output ${name}.dist.new.tab. Calculated by Espresso.
+    esp_script="$(mktemp esp.rdf.tcl.XXXXX)" 
+    cat > $esp_script <<EOF
 puts "Calculating RDF. Please wait..."
 # First read the original conf.esp file to get the box size
 set esp_in [open "|gzip -cd $esp" r]
@@ -97,8 +100,7 @@ puts "Calculation finished."
 
 EOF
     
-    run_or_exit Espresso_bin temp_script_rdf_esp.tcl
-    run_or_exit rm -f temp_script_rdf_esp.tcl
+    run_or_exit $esp_bin $esp_script
     
     comment="$(get_table_comment)"
     run_or_exit csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"

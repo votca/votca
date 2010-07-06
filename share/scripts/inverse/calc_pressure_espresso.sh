@@ -25,7 +25,9 @@ Usage: ${0##*/}
 
 USES: log check_deps
 
-NEEDS: 
+NEEDS: cg.inverse.espresso.blockfile
+
+OPTIONAL: cg.inverse.espresso.bin
 EOF
    exit 0
 fi
@@ -36,8 +38,10 @@ check_deps "$0"
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-p_file="temp_pressure.dat"
-esp_script="temp_script_pressure_esp.tcl"
+p_file="$(mktemp esp.pressure.val.XXXXX)"
+esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
+esp_script="$(mktemp esp.pressure.tcl.XXXXX)"
+
 
 log "Calculating pressure"
 cat > $esp_script <<EOF
@@ -52,10 +56,9 @@ close \$p_out
 
 EOF
 
-run_or_exit Espresso_bin $esp_script
-run_or_exit rm -f $esp_script
+run_or_exit $esp_bin $esp_script
 
-p_now=`cat $p_file`
-run_or_exit rm -f $p_file
+p_now="$(cat $p_file)"
+
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
 echo ${p_now}

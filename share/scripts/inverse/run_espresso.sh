@@ -27,7 +27,7 @@ USES: run_or_exit Espresso_bin use_mpi csg_get_property check_deps use_mpi
 
 NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
 
-OPTIONAL: cg.inverse.espresso.blockfile cg.inverse.espresso.exclusions cg.inverse.espresso.debug
+OPTIONAL: cg.inverse.espresso.blockfile cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.bin
 EOF
     exit 0
 fi
@@ -42,6 +42,8 @@ n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 
 method="$(csg_get_property cg.inverse.method)"
 
+esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
+
 exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"
 
@@ -50,7 +52,7 @@ debug="$(csg_get_property cg.inverse.espresso.debug "no")"
 # Different Espresso scripts depending on the method used
 ################ IBM ###################
 if [ "$method" = "ibm" ]; then
-		# Topology+trajectory file
+    # Topology+trajectory file
     traj_esp="top_traj.esp"
     
     n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
@@ -67,7 +69,8 @@ if [ "$method" = "ibm" ]; then
     done
     
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
-    cat > temp_script_run_esp.tcl <<EOF
+    esp_script="$(mktemp esp.run.tcl.XXXXX)"
+    cat > $esp_script <<EOF
 set in [open "|gzip -cd $esp" r]
 while { [blockfile \$in read auto] != "eof" } {}
 close \$in
@@ -138,11 +141,10 @@ EOF
 
     if use_mpi; then
 	mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
-	run_or_exit $mpicmd Espresso_bin temp_script_run_esp.tcl
+	run_or_exit $mpicmd $esp_bin $esp_script
     else
-	run_or_exit Espresso_bin temp_script_run_esp.tcl
+	run_or_exit $esp_bin $esp_script
     fi
-    run_or_exit rm -f temp_script_run_esp.tcl
     
 
 ################## PMF ####################
@@ -155,7 +157,8 @@ elif [ "$method" = "pmf" ]; then
     meta_input_file="tmp_meta_input.dat"
 
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
-    cat > temp_script_run_esp.tcl <<EOF
+    esp_script="$(mktemp esp.run.tcl.XXXXX)"
+    cat > $esp_script <<EOF
 # Determine the profile's minimum sampled point
 proc min_samp { profile } {
   set result -1e30
@@ -277,8 +280,7 @@ close \$pos_out
 
 EOF
 
-    run_or_exit Espresso_bin temp_script_run_esp.tcl
-    run_or_exit rm -f temp_script_run_esp.tcl		
+    run_or_exit $esp_bin $esp_script
     
 else
     die "${0##*/}: ESPResSo only supports methods: IBM and PMF"
