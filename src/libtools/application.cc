@@ -22,16 +22,12 @@
 namespace votca { namespace tools {
 
 Application::Application()
+    : _op_desc("Allowed options")
 {
 }
 
 Application::~Application()
 {
-}
-
-void Application::HelpText(std::ostream &out)
-{
-    out << "no help available";
 }
 
 string Application::VersionString()
@@ -48,6 +44,9 @@ void Application::ShowHelpText(std::ostream &out)
     out << endl
         << "votca_tools, version " << ToolsVersionStr()
         << "\n\n";
+
+    HelpText(out);
+    out << "\n\n" << OptionsDesc() << endl;
 }
 
 int Application::Exec(int argc, char **argv)
@@ -73,10 +72,32 @@ int Application::Exec(int argc, char **argv)
     return 0;
 }
 
+boost::program_options::options_description_easy_init
+    Application::AddProgramOptions(const string &group)
+{
+    if(group == "")
+        return _op_desc.add_options();
+    
+    std::map<string, boost::program_options::options_description>::iterator iter;
+    iter = _op_groups.find(group);
+    if(iter!=_op_groups.end())
+        return iter->second.add_options();
+
+    _op_groups.insert(make_pair(group, boost::program_options::options_description(group)));
+
+    return _op_groups[group].add_options();
+}
+
+
 void Application::ParseCommandLine(int argc, char **argv)
 {
     namespace po = boost::program_options;
 
+    std::map<string, boost::program_options::options_description>::iterator iter;
+
+    for(iter=_op_groups.begin(); iter!=_op_groups.end(); ++iter)
+        _op_desc.add(iter->second);
+    
     /// parse the command line
     try {
         po::store(po::parse_command_line(argc, argv, _op_desc), _op_vm);

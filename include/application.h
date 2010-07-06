@@ -41,7 +41,7 @@ public:
     virtual string VersionString();
 
     /// \brief help text of application without version information
-    virtual void HelpText(std::ostream &out);
+    virtual void HelpText(std::ostream &out) = 0;
 
     /// \brief Initialize application data
     /// 
@@ -62,7 +62,7 @@ public:
 
     /// parse program options from command line
     boost::program_options::options_description_easy_init
-        AddProgramOptions() { return _op_desc.add_options(); }
+        AddProgramOptions(const string &group = "");
     /// get available program options & descriptions
     boost::program_options::variables_map &OptionsMap() { return _op_vm; }
     boost::program_options::options_description &OptionsDesc() { return _op_desc; }
@@ -74,6 +74,8 @@ protected:
     /// program options required by all applications
     boost::program_options::options_description _op_desc;
 
+    std::map<string, boost::program_options::options_description> _op_groups;
+    
     virtual void ShowHelpText(std::ostream &out);
     
 private:
