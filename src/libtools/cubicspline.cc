@@ -23,6 +23,8 @@
 #include <gsl/gsl_linalg.h>
 #include <iostream>
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
@@ -113,3 +115,4 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
 
 }
 
+}}

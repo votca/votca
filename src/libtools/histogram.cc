@@ -20,6 +20,8 @@
 #include <numeric>
 #include "histogram.h"
 
+namespace votca { namespace tools {
+
 Histogram::Histogram()
     : _min(0), _max(0)
 {}
@@ -125,3 +127,5 @@ void Histogram::Normalize(void)
     double norm = 1./ (_interval * accumulate(_pdf.begin(), _pdf.end(), 0.0));
     transform(_pdf.begin(), _pdf.end(), _pdf.begin(), bind2nd(multiplies<double>(), norm));
 }
+
+}}

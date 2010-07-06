@@ -22,6 +22,8 @@
 #include <functional>
 #include <stdexcept>
 
+namespace votca { namespace tools {
+
 RangeParser::RangeParser()
     : _has_begin(false) , _has_end(false)
 {
@@ -90,3 +92,5 @@ RangeParser::iterator & RangeParser::iterator::operator++()
             _current = -1;
     }    
 }
+
+}}

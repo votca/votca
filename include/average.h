@@ -18,6 +18,8 @@
 #ifndef _AVERAGE_H
 #define	_AVERAGE_H
 
+namespace votca { namespace tools {
+
 // do not use this calss yet!
 template<typename T>
 class Average
@@ -82,5 +84,8 @@ template<typename T>
 double Average<T>::GetAv(){
     return _av;
 }
+
+}}
+
 #endif	/* _AVERAGE_H */
 

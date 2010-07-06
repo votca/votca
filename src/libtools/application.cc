@@ -53,9 +53,9 @@ int Application::Exec(int argc, char **argv)
 {
     try {
         AddProgramOptions()("help,h", "  produce this help message");
-        Initialize(); /// initialize program-specific parameters
+        Initialize(); // initialize program-specific parameters
 
-        ParseCommandLine(argc, argv); /// initialize general parameters & read input file
+        ParseCommandLine(argc, argv); // initialize general parameters & read input file
 
         if (_op_vm.count("help")) {
             ShowHelpText(cout);
@@ -102,7 +102,7 @@ void Application::ParseCommandLine(int argc, char **argv)
     for(iter=_op_groups.begin(); iter!=_op_groups.end(); ++iter)
         _op_desc.add(iter->second);
     
-    /// parse the command line
+    // parse the command line
     try {
         po::store(po::parse_command_line(argc, argv, _op_desc), _op_vm);
         po::notify(_op_vm);

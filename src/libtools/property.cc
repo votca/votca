@@ -27,6 +27,8 @@
 #include <string>
 #include <stack>
 
+namespace votca { namespace tools {
+
 Property &Property::get(const string &key)
 {
     Tokenizer tok(key, ".");
@@ -165,3 +167,5 @@ bool load_property_from_xml(Property &p, string filename)
   }
   fl.close();
 }
+
+}}

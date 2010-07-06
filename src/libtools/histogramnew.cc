@@ -17,6 +17,8 @@
 
 #include "histogramnew.h"
 
+namespace votca { namespace tools {
+
 HistogramNew::HistogramNew()
 {
     _min=_max=_step=0;
@@ -70,3 +72,5 @@ void HistogramNew::Clear()
     _weight = 1.;
     _data.y() = ub::zero_vector<double>(_nbins);
 }
+
+}}

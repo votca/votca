@@ -17,6 +17,8 @@
 
 #include"tokenizer.h"
 
+namespace votca { namespace tools {
+
 int wildcmp(const char *wild, const char *string) {
     // Written by Jack Handy - jakkhandy@hotmail.com
     const char *cp = NULL, *mp = NULL;
@@ -50,3 +52,5 @@ int wildcmp(const char *wild, const char *string) {
     }
     return !*wild;
 }
+
+}}

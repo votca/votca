@@ -25,6 +25,8 @@
 
 #include "table.h"
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 /**
@@ -98,6 +100,8 @@ inline void HistogramNew::ProcessRange(const iterator_type &begin, const iterato
     for(iterator_type iter = begin; iter!=end; ++iter)
         Process(*iter);
 }
+
+}}
 
 #endif	/* _HISTOGRAMNEW_H */
 

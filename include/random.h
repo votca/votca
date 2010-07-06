@@ -33,6 +33,9 @@
 #define MARS_FIELD_SIZE 98
 #define _pi 3.1415926535897932384626433832795
 
+namespace votca { namespace tools {
+
+
 using namespace std;
 /**
   \brief MARSAGLIA pseudo random number generator
@@ -55,5 +58,6 @@ private:
     static int     MARSi, MARSj ; 
 };
 
+}}
 
 #endif	/* _RANMARS_H_ */

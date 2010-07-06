@@ -23,6 +23,9 @@
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 
+namespace votca { namespace tools {
+
+
 class Tokenizer 
 {                        
 public:
@@ -66,6 +69,8 @@ private:
 
 
 int wildcmp(const char *wild, const char *string);
+
+}}
 
 #endif	/* _tools_H */
 

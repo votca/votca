@@ -22,8 +22,9 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <string>
 
-using namespace std;
+namespace votca { namespace tools {
 
+using namespace std;
 namespace ub = boost::numeric::ublas;
 
 
@@ -137,6 +138,8 @@ inline void Table::push_back(double x, double y, char flags)
 }
 
 inline istream &operator>>(istream &in, Table& t);
+
+}}
 
 #endif	/* _TABLE_H */
 

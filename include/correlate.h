@@ -23,6 +23,8 @@
 #include <iostream>
 #include "datacollection.h"
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 /**
@@ -56,6 +58,8 @@ inline ostream& operator<<(ostream& out, Correlate &c)
     }
     return out;
 }
+
+}}
 
 #endif	/* _correlate_H */
 

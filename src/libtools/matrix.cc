@@ -21,6 +21,8 @@
 
 #define PITIMES2 2*3.141592654
 
+namespace votca { namespace tools {
+
 void matrix::RandomRotation()
 {
     matrix &M=(*this);
@@ -168,3 +170,5 @@ void matrix::Invert()
     mi /= D;
     *this = mi;
 }
+
+}}

@@ -18,6 +18,8 @@
 #include "correlate.h"
 #include <math.h>
 
+namespace votca { namespace tools {
+
 /**
     \todo clean implementation!!!
 */
@@ -48,3 +50,5 @@ void Correlate::CalcCorrelations(DataCollection<double>::selection *data)
         _corr.push_back(p);
     }
 }
+
+}}

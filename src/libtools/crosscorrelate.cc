@@ -18,6 +18,8 @@
 #include <fftw3.h>
 #include "crosscorrelate.h"
 
+namespace votca { namespace tools {
+
 /**
     \todo clean implementation!!!
 */
@@ -186,3 +188,5 @@ void CrossCorrelate::AutoCorr(vector <double>& ivec){
     fftw_destroy_plan(ifft);
     fftw_free(tmp);
 }
+
+}}

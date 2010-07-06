@@ -22,6 +22,8 @@
 #include <string>
 #include <ostream>
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 class RangeParser
@@ -131,6 +133,8 @@ inline std::ostream &operator<<(std::ostream &out, const RangeParser &rp)
       }
       return out;
 }
+
+}}
 
 #endif	/* _RANGEPARSER_H */
 

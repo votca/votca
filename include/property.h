@@ -28,6 +28,8 @@
 #include "vec.h"
 #include "tokenizer.h"
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 /**
@@ -210,5 +212,7 @@ inline vector<double> Property::as<vector <double> >() const {
         throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
     }
 }
+
+}}
 
 #endif	/* _PROPERTY_H */

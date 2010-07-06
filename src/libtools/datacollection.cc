@@ -18,6 +18,8 @@
 #include <sstream>
 #include "datacollection.h"
 
+namespace votca { namespace tools {
+
 ostream& operator<<(ostream& out, DataCollection<double>::selection &sel)
 {
     DataCollection<double>::selection::iterator iter;
@@ -47,3 +49,5 @@ ostream& operator<<(ostream& out, DataCollection<double>::selection &sel)
     }
     return out;
 }
+
+}}

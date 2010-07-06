@@ -23,6 +23,8 @@
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <iostream>
 
+namespace votca { namespace tools {
+
 namespace ub = boost::numeric::ublas;
 
 /**
@@ -394,6 +396,8 @@ inline double CubicSpline::D_prime_r(int i)
 {
     return -(1.0/6.0)*(_r[i+2]-_r[i+1]);
 }
+
+}}
 
 #endif	/* _CUBICSPLINE_H */
 

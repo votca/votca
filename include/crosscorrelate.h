@@ -22,6 +22,8 @@
 #include <iostream>
 #include "datacollection.h"
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 /**
@@ -79,6 +81,8 @@ inline ostream& operator<<(ostream& out, CrossCorrelate &c)
     }
     return out;
 }
+
+}}
 
 #endif	/* _crosscorrelate_H */
 

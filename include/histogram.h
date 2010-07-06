@@ -24,6 +24,8 @@
 #include <limits>
 #include <cmath>
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 /**
@@ -94,6 +96,8 @@ inline ostream& operator<<(ostream& out, Histogram &h)
     }
     return out;
 }
+
+}}
 
 #endif	/* _histogram_H */
 

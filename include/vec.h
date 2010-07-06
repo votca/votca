@@ -21,6 +21,8 @@
 #include <iostream>
 #include <math.h>
 
+namespace votca { namespace tools {
+
 /**
     \brief Vector class for a 3 component vector
 
@@ -175,7 +177,7 @@ inline vec &vec::normalize()
     return ((*this)*=1./abs(*this));
 }
 
-
+}}
 
 #endif	/* _vec_H */
 

@@ -17,6 +17,8 @@
 
 #include "random.h"
 
+namespace votca { namespace tools {
+
 double  *Random::MARSarray, Random::MARSc, Random::MARScd, Random::MARScm ;
 int     Random::MARSi, Random::MARSj ;
 
@@ -157,3 +159,5 @@ double Random::rand_gaussian( double sigma )
     double theta = 2.0 * _pi * Random::rand_uniform() ;
     return r * cos(theta); // second independent number is r*sin(theta)
 }
+
+}}

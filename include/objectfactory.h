@@ -23,6 +23,8 @@
 #include <iostream>
 #include <stdexcept>
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 /**
@@ -142,5 +144,6 @@ public:
     }
 };
 
+}}
 
 #endif	/* _objectfactory_H */

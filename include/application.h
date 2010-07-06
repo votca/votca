@@ -61,6 +61,7 @@ public:
     virtual void Run() { }
 
     /// \brief add option for command line
+    ///
     /// Adds an option to the available command line options. If no group is
     /// specified, it is added to the standard group (Allowed Options). If group
     /// is given, a sub group for this set of options will be created.

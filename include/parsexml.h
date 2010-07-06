@@ -23,6 +23,8 @@
 #include <map>
 #include <list>
 
+namespace votca { namespace tools {
+    
 using namespace std;
 
 /**
@@ -114,6 +116,6 @@ inline void ParseXML::NextHandler(T *object, void (T::*fkt)(const string &, map<
     _stack_handler.push(_handler);
 }
 
-
+}}
 
 #endif

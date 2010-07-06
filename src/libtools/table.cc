@@ -24,6 +24,8 @@
 #include <iostream>
 #include <boost/algorithm/string/replace.hpp>
 
+namespace votca { namespace tools {
+
 using namespace boost;
 using namespace std;
 
@@ -168,3 +170,4 @@ void Table::Smooth(int Nsmooth)
             _y[i] =0.25*(_y[i-1] + 2*_y[i] +  _y[i+1]);
 }
     
+}}

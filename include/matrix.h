@@ -22,6 +22,8 @@
 #include "ostream"
 #include "vec.h"
 
+namespace votca { namespace tools {
+
 class matrix
 {
 public:
@@ -230,7 +232,7 @@ inline matrix operator-(const matrix & r, const matrix & v){
 */
 int cjcbi(matrix &a, matrix &v, double eps=1e-10, int jt=100);
 
-
+}}
 
 #endif	/* _matrix_H */
 

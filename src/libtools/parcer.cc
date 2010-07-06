@@ -19,6 +19,8 @@
 #include <string>
 #include <iostream>
 
+namespace votca { namespace tools {
+
 using namespace std;
 
 //wrapper written with Denis to do MOO only on a file which give the unitary transformation + displacement one per line
@@ -37,4 +39,4 @@ void  parce_string (string line, string delims, vector<string>* result ) {
   }
 }
 
-
+}}

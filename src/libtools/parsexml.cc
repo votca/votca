@@ -23,6 +23,8 @@
 #include <expat.h>
 #include "parsexml.h"
 
+namespace votca { namespace tools {
+
 void start_hndl(void *data, const char *el, const char **attr) {
     ParseXML *reader =
             (ParseXML*) XML_GetUserData((XML_Parser*) data);
@@ -83,3 +85,5 @@ void ParseXML::EndElemHndl(const string &el) {
     _stack_handler.pop();
     _handler = _stack_handler.top();
 }
+
+}}

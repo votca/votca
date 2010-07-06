@@ -24,6 +24,8 @@
 #include <sstream>
 #include "tokenizer.h"
 
+namespace votca { namespace tools {
+
 using namespace std;
    
 template<typename T>
@@ -207,6 +209,8 @@ typename DataCollection<T>::selection *DataCollection<T>::select(string strselec
 }
 
 ostream& operator<<(ostream& out, DataCollection<double>::selection &sel);
+
+}}
 
 #endif	/* _datacontainer_H */
 
