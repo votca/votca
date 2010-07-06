@@ -20,10 +20,12 @@
 
 #include <string>
 #include <sstream>
-using namespace std;
-
 #include "topology.h"
 #include "bead.h"
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+using namespace std;
 
 /**
     \brief base calss for all interactions
@@ -189,6 +191,8 @@ inline double IDihedral::EvaluateVar(const Topology &top)
     //return sign*acos(n1*n2/sqrt((n1*n1) * (n2*n2))) + 1;
     //return pow(acos(n1*n2/sqrt((n1*n1) * (n2*n2))), 2);
 }
+
+}}
 
 #endif	/* _interaction_H */
 

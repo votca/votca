@@ -39,6 +39,10 @@ namespace gmx {
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
 }
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class GMXTrajectoryWriter
@@ -57,6 +61,8 @@ public:
        int _file;
 #endif
 };
+
+}}
 
 #endif	/* _GMXTRAJECTORYWRITER_H */
 

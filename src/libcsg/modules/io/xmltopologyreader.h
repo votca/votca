@@ -23,6 +23,10 @@
 #include <stack>
 #include <votca/tools/parsexml.h>
 
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /**
@@ -52,6 +56,8 @@ private:
 
     Topology *_top;
 };
+
+}}
 
 #endif	/* _PDBTOPOLOGYREADER_H */
 

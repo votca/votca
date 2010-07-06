@@ -22,6 +22,9 @@
 #include "topology.h"
 #include "topologyreader.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
     
 /**
@@ -39,6 +42,8 @@ public:
 
 private:
 };
+
+}}
 
 #endif	/* _PDBTOPOLOGYREADER_H */
 

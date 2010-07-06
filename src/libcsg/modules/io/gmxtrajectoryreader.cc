@@ -20,6 +20,8 @@
 #include "topology.h"
 #include "gmxtrajectoryreader.h"
 
+namespace votca { namespace csg {
+
 using namespace std;
 
 bool GMXTrajectoryReader::Open(const string &file)
@@ -122,3 +124,5 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf)
     }
     return true;
 }
+
+}}

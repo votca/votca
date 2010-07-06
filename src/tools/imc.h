@@ -28,6 +28,8 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/histogramnew.h>
 
+using namespace votca::csg;
+
 namespace ub = boost::numeric::ublas;
 using namespace std;
 

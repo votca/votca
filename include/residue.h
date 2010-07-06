@@ -21,6 +21,9 @@
 #include <string>
 #include "topologyitem.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
     
 /**
@@ -55,6 +58,8 @@ inline const string &Residue::getName()
 {
     return _name;
 }
+
+}}
 
 #endif	/* _residue_H */
 

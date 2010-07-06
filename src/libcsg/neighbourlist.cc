@@ -19,6 +19,8 @@
 #include "neighbourlist.h"
 #include "topology.h"
 
+namespace votca { namespace csg {
+
 NeighbourList::~NeighbourList(){
     Cleanup();
 }
@@ -104,3 +106,5 @@ void NeighbourList::Cleanup(){
         delete (*iter);
     _nb_list.clear();
 }
+
+}}

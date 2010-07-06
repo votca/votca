@@ -22,6 +22,9 @@
 #include <vector>
 #include "topology.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class NeighbourList
@@ -163,6 +166,8 @@ inline NeighbourList::pair_iterator::pair_iterator(vector<NeighbourList::entry_t
     _curbead=_nb_list.size();
     _curneigh=_nb_list[0]->_neighbours.begin();    
 }
+
+}}
 
 #endif	/* _NEIGHBOURLIST_H */
 

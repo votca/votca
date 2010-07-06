@@ -22,6 +22,8 @@
 #include <stdexcept>
 #include "xmltopologyreader.h"
 
+namespace votca { namespace csg {
+
 bool XMLTopologyReader::ReadTopology(string filename, Topology &top)
 { 
   _top = &top;
@@ -91,3 +93,5 @@ void XMLTopologyReader::ParseMolecules(const string &el, map<string, string> &at
         _parser.IgnoreChilds();
     }
 }
+
+}}

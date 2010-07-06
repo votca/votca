@@ -24,6 +24,7 @@
 
 using namespace std;
 namespace po = boost::program_options;
+using namespace votca::csg;
 
 void help_text()
 {

@@ -20,6 +20,8 @@
 #include <votca/tools/tokenizer.h>
 #include "version.h"
 
+namespace votca { namespace csg {
+
 namespace po = boost::program_options;
 
 CGEngine::CGEngine()
@@ -233,3 +235,5 @@ void CGEngine::Run()
     delete reader;
     delete map;                   
 }
+
+}}

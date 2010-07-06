@@ -21,6 +21,8 @@
 #include <configuration.h>
 #include <matrix.h>
 
+using namespace votca::csg;
+
 /**
  *  This program does the conformation sampling
  */

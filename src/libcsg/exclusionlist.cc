@@ -19,6 +19,8 @@
 #include "topology.h"
 #include "exclusionlist.h"
 
+namespace votca { namespace csg {
+
 void ExclusionList::Clear(void)
 {
     list< exclusion_t *>::iterator iter;
@@ -147,4 +149,4 @@ std::ostream &operator<<(std::ostream &out, ExclusionList& exl)
     }
 }
 
-
+}}

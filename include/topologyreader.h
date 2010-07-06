@@ -22,6 +22,9 @@
 #include "topology.h"
 #include "fileformatfactory.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class TopologyReader
@@ -40,6 +43,8 @@ inline FileFormatFactory<TopologyReader> &TopReaderFactory()
     static FileFormatFactory<TopologyReader> _TopReaderFactory;
     return _TopReaderFactory;
 }
+
+}}
 
 #endif	/* _TOPOLOGYREADER_H */
 

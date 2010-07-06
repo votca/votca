@@ -18,6 +18,8 @@
 #include "molecule.h"
 #include <iostream>
 
+namespace votca { namespace csg {
+
 void Molecule::AddBead(Bead *bead, const string &name)
 {
     _beads.push_back(bead);
@@ -38,3 +40,5 @@ int Molecule::getBeadByName(const string &name)
     //return (*iter).second;
     return _beadmap[name];
 }
+
+}}

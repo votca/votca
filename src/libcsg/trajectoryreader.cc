@@ -19,6 +19,9 @@
 #include "trajectoryreader.h"
 #include "modules/io/gmxtrajectoryreader.h"
 
+
+namespace votca { namespace csg {
+
 void TrajectoryReader::RegisterPlugins(void)
 {
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
@@ -26,3 +29,5 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
     TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
 }
+
+}}

@@ -21,6 +21,9 @@
 #include <list>
 #include <map>
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 template<typename element_type, typename pair_type>
 class PairList {
 public:
@@ -98,6 +101,7 @@ typename PairList<element_type, pair_type>::partners *PairList<element_type, pai
     return iter;
 }
 
+}}
 
 #endif	/* _PAIRLIST_H */
 

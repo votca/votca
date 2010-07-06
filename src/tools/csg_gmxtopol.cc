@@ -25,6 +25,8 @@
 #include "version.h"
 #include "cgengine.h"
 
+using namespace votca::csg;
+
 void help_text(void)
 {
     votca::csg::HelpTextHeader("csg_gmxtopol");

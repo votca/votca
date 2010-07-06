@@ -21,9 +21,10 @@
 #include <votca/tools/application.h>
 
 namespace votca { namespace csg {
+using namespace votca::tools;
 
 class CsgApplication
-    : public votca::tools::Application
+    : public Application
 {
 public:
 };

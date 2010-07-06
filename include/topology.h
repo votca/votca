@@ -32,6 +32,9 @@
 #include "residue.h"
 #include "beadtype.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 class Interaction;
 class ExclusionList;
 
@@ -214,6 +217,8 @@ inline Molecule *Topology::MoleculeByIndex(int index)
 {
     return _molecules[index];
 }
+
+}}
 
 #include "interaction.h"
 

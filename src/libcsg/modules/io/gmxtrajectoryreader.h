@@ -20,9 +20,6 @@
 
 #include <string>
 #include "trajectoryreader.h"
-
-using namespace std;
-
 namespace gmx {
 #ifndef GMX4DEV
    extern "C"
@@ -41,6 +38,11 @@ namespace gmx {
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
 }
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
+using namespace std;
 
 /**
     \brief class for reading gromacs trajectory files
@@ -73,6 +75,8 @@ class GMXTrajectoryReader : public TrajectoryReader
         gmx::t_trxframe _gmx_frame;
         
 };
+
+}}
 
 #endif	/* _gmxtrajectoryreader_H */
 

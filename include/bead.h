@@ -26,6 +26,9 @@
 #include "beadtype.h"
 #include "topologyitem.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 class Molecule;
 
@@ -404,6 +407,8 @@ inline void Bead::HasW(bool b)
 {
     _bW=b;
 }
+
+}}
 
 #endif	/* _beadinfo_H */
 

@@ -37,6 +37,8 @@ namespace gmx {
     #undef bool
 }
 
+namespace votca { namespace csg {
+
 bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 { 
     gmx::gmx_mtop_t mtop;
@@ -115,3 +117,5 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
     return true;
 }
+
+}}

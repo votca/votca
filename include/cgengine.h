@@ -38,6 +38,9 @@
 #include <votca/tools/matrix.h>
 #include "nematicorder.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /**
@@ -124,6 +127,8 @@ inline void CGEngine::AddObserver(CGObserver *observer)
 {
     _observers.push_back(observer);
 }
+
+}}
 
 #endif	/* _cgengine_H */
 

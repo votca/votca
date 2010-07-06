@@ -25,6 +25,7 @@
 #include "nematicorder.h"
 
 using namespace std;
+using namespace votca::csg;
 
 void help_text()
 {

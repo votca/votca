@@ -28,6 +28,8 @@
 #include "imcio.h"
 #include "version.h"
 
+using namespace votca::csg;
+
 void help_text(void)
 {
     votca::csg::HelpTextHeader("csg_imcrepack");

@@ -17,6 +17,8 @@
 
 #include "topologymap.h"
 
+namespace votca { namespace csg {
+
 TopologyMap::~TopologyMap()
 {
     MapContainer::iterator i;
@@ -37,3 +39,5 @@ void TopologyMap::Apply()
     for(iter=_maps.begin();iter!=_maps.end();++iter)
         (*iter)->Apply();
 }
+
+}}

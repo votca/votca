@@ -19,6 +19,8 @@
 #include <string>
 #include "gmxtrajectorywriter.h"
 
+namespace votca { namespace csg {
+
 void GMXTrajectoryWriter::Open(string file, bool bAppend)
 {
     //char c[1] = bAppend ? "a" : "w";
@@ -73,3 +75,5 @@ for(int i=0; i<N; ++i) {
     step++;
     delete[] x;
 }
+
+}}

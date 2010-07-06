@@ -28,6 +28,9 @@
 #include "exclusionlist.h"
 #include "molecule.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /**
@@ -86,6 +89,8 @@ private:
     beaddef_t *getBeadByName(const string &name);
     Property *getMapByName(const string &name);
 };
+
+}}
 
 #endif	/* _cgmoleculedef_H */
 

@@ -41,6 +41,8 @@ namespace gmx {
                         (nelem),sizeof(*(ptr)))
 
 
+namespace votca { namespace csg {
+
 bool PDBTopologyReader::ReadTopology(string file, Topology &top)
 {
     char title[512];
@@ -70,3 +72,5 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
    
     return true;
 }
+
+}}

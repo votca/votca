@@ -19,6 +19,8 @@
 #include "numberdist.h"
 #include "topology.h"
 
+namespace votca { namespace csg {
+
 NumberDist::~NumberDist(){
     Cleanup();
 }
@@ -58,3 +60,4 @@ ostream& operator<<(ostream& out, NumberDist &nd)
     return out;
 }
 
+}}

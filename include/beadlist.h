@@ -22,6 +22,9 @@
 #include <list>
 #include "topology.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /**
@@ -48,6 +51,8 @@ private:
     Topology *_topology;
     
 };
+
+}}
 
 #endif	/* _BEADLIST_H */
 

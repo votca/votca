@@ -25,6 +25,8 @@
 #include <votca/tools/cubicspline.h>
 #include "cgengine.h"
 
+using namespace votca::csg;
+
 namespace ub = boost::numeric::ublas;
 using namespace std;
 

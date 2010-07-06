@@ -17,6 +17,8 @@
 
 #include <nblistgrid.h>
 
+namespace votca { namespace csg {
+
 void NBListGrid::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
 {
     BeadList::iterator iter;
@@ -149,3 +151,5 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)
                     AddPair(new BeadPair(bead, *iter, r));
     }
 }
+
+}}

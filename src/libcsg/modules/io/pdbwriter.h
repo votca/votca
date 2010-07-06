@@ -22,6 +22,9 @@
 #include "topology.h"
 #include "trajectorywriter.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class PDBWriter
@@ -39,6 +42,8 @@ public:
 private:
     FILE *_out;
 };
+
+}}
 
 #endif	/* _PDBWRITER_H */
 

@@ -21,6 +21,9 @@
 #include <string>
 #include "topologyreader.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
     
 /**
@@ -39,6 +42,7 @@ public:
 private:
 };
 
+}}
 
 #endif	/* _GROTOPOLOGYREADER_H */
 

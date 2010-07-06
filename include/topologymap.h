@@ -22,6 +22,9 @@
 #include "topology.h"
 #include <vector>
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class TopologyMap 
@@ -50,6 +53,8 @@ inline void TopologyMap::AddMoleculeMap(Map *map)
 {
         _maps.push_back(map);
 }
+
+}}
 
 #endif	/* _topologymap_H */
 

@@ -18,6 +18,9 @@
 #ifndef _BEADPAIR_H
 #define	_BEADPAIR_H
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 /**
    \brief A particle pair
  
@@ -45,6 +48,8 @@ protected:
         vec _r;
         double _dist;
 };
+
+}}
 
 #endif	/* _PAIR_H */
 

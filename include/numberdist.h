@@ -22,6 +22,9 @@
 #include <vector>
 #include "topology.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /**
@@ -61,6 +64,8 @@ private:
 
 // output numberdist
 ostream& operator<<(ostream& out, NumberDist &nd);
+
+}}
 
 #endif	/* _NUMBERDENSITY_H */
 

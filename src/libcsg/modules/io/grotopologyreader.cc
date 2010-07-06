@@ -20,6 +20,9 @@
 #include <boost/lexical_cast.hpp>
 #include "grotopologyreader.h"
 
+
+namespace votca { namespace csg {
+
 bool GROTopologyReader::ReadTopology(string file, Topology &top)
 { 
     // cleanup topology to store new data
@@ -63,3 +66,5 @@ bool GROTopologyReader::ReadTopology(string file, Topology &top)
     
     return true;
 }
+
+}}

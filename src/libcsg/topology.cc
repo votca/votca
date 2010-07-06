@@ -20,6 +20,8 @@
 #include <votca/tools/rangeparser.h>
 #include <stdexcept>
 
+namespace votca { namespace csg {
+
 Topology::~Topology()
 {
     Cleanup();
@@ -285,4 +287,5 @@ void Topology::RebuildExclusions()
 {
     _exclusions.CreateExclusions(this);
 }
-    
+
+}}

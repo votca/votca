@@ -24,6 +24,10 @@
 #include <assert.h>
 #include "topologyitem.h"
 #include "bead.h"
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class Interaction;
@@ -99,6 +103,8 @@ private:
 
     friend class Topology;
 };
+
+}}
 
 #endif	/* _Molecule_H */
 

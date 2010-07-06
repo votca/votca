@@ -23,6 +23,9 @@
 #include "pairlist.h"
 #include "exclusionlist.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 /**
  * \brief new implementation of neighbourlist, will substitute Neighbourlist
  * 
@@ -84,6 +87,8 @@ inline void NBList::setMatchFunction(match_function_t match_function)
 {
     _match_function = match_function;
 }
+
+}}
 
 #endif	/* _NBLIST_H */
 

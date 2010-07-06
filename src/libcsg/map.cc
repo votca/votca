@@ -21,6 +21,8 @@
 #include <votca/tools/tokenizer.h>
 #include <numeric>
 
+namespace votca { namespace csg {
+
 using namespace std;
 
 Map::~Map()
@@ -252,3 +254,5 @@ void Map_Ellipsoid::Apply()
     
     //out.BeadW(_out) = es.eigenvecs[2];
 }
+
+}}
