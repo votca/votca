@@ -30,14 +30,36 @@ public:
     virtual ~Application();
 
     /// executes the program
-    int Run(int argc, char **argv);
+    int Exec(int argc, char **argv);
 
-    /// Initialize application data
+    /// \brief program name
+    ///
+    /// overload this function to set the program name
+    virtual string ProgramName() = 0;
+
+    /// \brief version string of application
+    virtual string VersionString();
+
+    /// \brief help text of application without version information
+    virtual void HelpText(std::ostream &out);
+
+    /// \brief Initialize application data
     /// 
-    /// The initialize function is called by run before parsing the command line.
+    /// Initialize is called by run before parsing the command line.
     /// All necesassary command line arguments can be added here
-    virtual void Initialize() {};
+    virtual void Initialize() {}
     
+    /// \brief Process command line options
+    /// 
+    /// EvaluateOptions is called by Run after parsing the command line.
+    virtual void EvaluateOptions() { }
+
+    /// \brief Main body of application
+    ///
+    /// Run is called after command line was parsed + evaluated. All
+    /// the work should be done in here.
+    virtual void Run() { }
+
     /// parse program options from command line
     boost::program_options::options_description_easy_init
         AddProgramOptions() { return _op_desc.add_options(); }
@@ -45,22 +67,15 @@ public:
     boost::program_options::variables_map &OptionsMap() { return _op_vm; }
     boost::program_options::options_description &OptionsDesc() { return _op_desc; }
 
-    /// function implementations in child classes
-    virtual string HelpText() { return ""; }
-
-    /// initialize variables of child class etc
-    ///virtual void Initialize() {}
-    /// check whether required input is present and correct
-    ///virtual void CheckInput() {}
-
-
 protected:
     /// Variable map containing all program options
     boost::program_options::variables_map _op_vm;
 
     /// program options required by all applications
     boost::program_options::options_description _op_desc;
-   
+
+    virtual void ShowHelpText(std::ostream &out);
+    
 private:
     /// get input parameters from file, location may be specified in command line
     void ParseCommandLine(int argc, char **argv);

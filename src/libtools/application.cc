@@ -17,21 +17,54 @@
 
 #include <iostream>
 #include "application.h"
+#include "version.h"
 
 namespace votca { namespace tools {
 
-int Application::Run(int argc, char **argv)
+Application::Application()
+{
+}
+
+Application::~Application()
+{
+}
+
+void Application::HelpText(std::ostream &out)
+{
+    out << "no help available";
+}
+
+string Application::VersionString()
+{
+    return "";
+}
+
+void Application::ShowHelpText(std::ostream &out)
+{
+    out << "\t------ VOTCA ( http://www.votca.org ) ------\n"
+        << ProgramName();
+    if(VersionString() != "")
+        out << ", version " << VersionString();
+    out << endl
+        << "votca_tools, version " << ToolsVersionStr()
+        << "\n\n";
+}
+
+int Application::Exec(int argc, char **argv)
 {
     try {
-        AddProgramOptions()("help", "  produce this help message");
+        AddProgramOptions()("help,h", "  produce this help message");
         Initialize(); /// initialize program-specific parameters
 
         ParseCommandLine(argc, argv); /// initialize general parameters & read input file
 
         if (_op_vm.count("help")) {
-            HelpText();
+            ShowHelpText(cout);
             return 0;
         }
+
+        EvaluateOptions();
+        Run();
     }
     catch(std::exception &error) {
          cerr << "an error occured:\n" << error.what() << endl;
