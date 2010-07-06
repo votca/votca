@@ -6,6 +6,8 @@
 #include <votca/csg/beadlist.h>
 #include <moo/crgunit.h>
 
+using namespace votca::csg;
+
 class QMTopology;
 
 /**
