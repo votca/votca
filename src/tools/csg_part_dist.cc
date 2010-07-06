@@ -63,7 +63,10 @@ int main(int argc, char** argv)
     TopologyReader *reader;
     TrajectoryReader *trajreader;
     int part_type, n_bins, first_frame(0), last_frame(-1), 
-	flag_found(0), **p_occ = NULL, n_part(0);
+	flag_found(0), **p_occ = NULL, n_part(0), frame_id(0),
+	analyzed_frames(0);
+    bool moreframes(1), not_the_last(1);
+
     MoleculeContainer::iterator mol;    
     // Load topology+trajectory formats
     TopologyReader::RegisterPlugins();
@@ -207,9 +210,6 @@ int main(int argc, char** argv)
 
 	// Read the trajectory. Analyze each frame to obtain
 	// particle occupancy as a function of coordinate z.	
-	bool moreframes = 1;
-	bool not_the_last = 1;
-	int frame_id = 0;
 	while (moreframes) {
 	    // Read frame
 	    if (frame_id == 0) 
@@ -249,6 +249,7 @@ int main(int argc, char** argv)
 
 	    // Analyze frame
 	    if (moreframes && frame_id >= first_frame && not_the_last) {
+		++analyzed_frames;
 		// Loop over each atom property
 		for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
 		    for(int i=0; i<(*mol)->BeadCount(); ++i) {
@@ -261,7 +262,7 @@ int main(int argc, char** argv)
 				    coord = (*mol)->getBead(i)->getPos().getY();
 				else 
 				    coord = (*mol)->getBead(i)->getPos().getZ();
-
+				
 				if (coord-com > min && coord-com < max)
  				    ++p_occ[j][(int)floor((coord-com-min)/step)];
 			    }
@@ -292,7 +293,10 @@ int main(int argc, char** argv)
 	for (int k=0; k < n_bins; ++k) {
 	    fl_out << min+k*step << "\t" << flush;
 	    for (int j=0; j < ptypes.size(); ++j) {
-		fl_out << p_occ[j][k] << "\t" << flush;
+		if (p_occ[j][k] == 0)
+		    fl_out << 0 << "\t" << flush;
+		else
+		    fl_out << p_occ[j][k]/(1.*analyzed_frames) << "\t" << flush;
 	    }
 	    fl_out << endl;
 	}
