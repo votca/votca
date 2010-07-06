@@ -28,7 +28,6 @@
 namespace votca { namespace csg {
 using namespace votca::tools;
 
-namespace ub = boost::numeric::ublas;
 using namespace std;
 
 void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS, std::list<int> *list=NULL);

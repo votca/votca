@@ -25,6 +25,8 @@
 #include "imc.h"
 #include "imcio.h"
 
+namespace votca { namespace csg {
+
 Imc::Imc()
    : _write_every(0), _do_blocks(false), _do_imc(false)
 {
@@ -550,3 +552,4 @@ void Imc::WriteIMCBlock(const string &suffix)
     }
 }
 
+}}

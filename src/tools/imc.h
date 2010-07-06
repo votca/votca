@@ -28,10 +28,8 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/histogramnew.h>
 
-using namespace votca::csg;
-
-namespace ub = boost::numeric::ublas;
-using namespace std;
+namespace votca { namespace csg {
+using namespace votca::tools;
 
 /**
  * \brief class to calculate distribution functions and cross correlations for inverse monte carlo
@@ -150,6 +148,8 @@ protected:
          int offset_i, int offset_j, const pair_matrix &corr)
          :
   _i1(i1), _i2(i2), _offset_i(offset_i), _offset_j(offset_j), _corr(corr)  {}
+
+}}
 
 #endif	/* _IMC_H */
 

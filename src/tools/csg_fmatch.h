@@ -27,7 +27,6 @@
 
 using namespace votca::csg;
 
-namespace ub = boost::numeric::ublas;
 using namespace std;
 
 /**

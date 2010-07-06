@@ -22,6 +22,8 @@
 #include <map>
 
 using namespace std;
+using namespace votca::tools;
+using namespace votca::csg;
 
 class StdAnalysis
     : public AnalysisTool
