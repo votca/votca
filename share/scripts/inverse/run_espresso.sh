@@ -63,7 +63,7 @@ if [ "$method" = "ibm" ]; then
     csg_get_interaction_property inverse.espresso.index2)"
     index_vars=$(for i in $index_vars; do echo $i; done | sort -u)
     for i in $index_vars; do
-	[ `gzip -cd $esp | grep -c $i ` = "1" ] || die "${0##*/}: can't find index list: $i"
+	[ -n "$(gzip -cd $esp | grep $i)" ] || die "${0##*/}: can't find index list: $i"
     done
     
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
