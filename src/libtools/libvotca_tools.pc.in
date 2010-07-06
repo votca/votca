@@ -8,6 +8,6 @@ Description: basic tools of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
 Requires: gsl fftw3 @PKGEXPAT@ @PKGBOOST@
-Libs: -L${libdir} -lvotca_tools @PKGLIBSEXPAT@
+Libs: -L${libdir} -lvotca_tools @PKGLIBSEXPAT@ @PKGLIBSBOOST@
 Libs.private: -lm
-Cflags: -I${includedir} @PKGCFLAGSBOOST@
+Cflags: -I${includedir} @PKGCFLAGSEXPAT@ @PKGCFLAGSBOOST@
