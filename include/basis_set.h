@@ -12,6 +12,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace votca::tools;
 
 struct shell{
 	    int _n_orbs;

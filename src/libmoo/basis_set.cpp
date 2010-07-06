@@ -3,10 +3,20 @@
  /* chuncks of data which I will point the internal variables _nel_at and _nbasis_at and _basis_lbl_at too
    * this way I shall be able to deal with different basis sets
    */
-void parce_string(string line, string delims, vector<string>*result);
+static void  parce_string (string line, string delims, vector<string>* result ) {
+  string::size_type begIdx, endIdx;
 
-
-
+  begIdx = line.find_first_not_of(delims);
+  while (begIdx != string::npos) {
+    endIdx = line.find_first_of (delims, begIdx);
+    if (endIdx == string::npos) {
+      endIdx = line.length();
+    }
+    result->push_back( line.substr(begIdx, endIdx-begIdx) );
+    if (endIdx == line.length()) { break; cout << "I am still here";}
+    begIdx = line.find_first_not_of (delims, endIdx);
+  }
+}
 
 static int      TZP_nel_at      [18] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18};
 static int      TZP_nbasis_at   [18] = {6,6,20,20,20,20,20,20,20,20 ,27, 27, 27, 27, 27, 27, 27, 27 };  
