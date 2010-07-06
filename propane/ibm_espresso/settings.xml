@@ -98,6 +98,8 @@
     <program>espresso</program>
     <!-- espresso specific options -->
     <espresso>
+      <!-- specify Espresso executable; can include full path -->
+      <bin>Espresso_bin</bin>
       <!-- trash so many frames at the beginning -->
       <equi_snapshots>5</equi_snapshots>
       <!-- grid for table*.tab !-->
