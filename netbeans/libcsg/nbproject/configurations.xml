@@ -12,6 +12,7 @@
       <itemPath>../../include/cgmoleculedef.h</itemPath>
       <itemPath>../../include/cgobserver.h</itemPath>
       <itemPath>../../include/connectivity.h</itemPath>
+      <itemPath>../../include/csgapplication.h</itemPath>
       <itemPath>../../include/exclusionlist.h</itemPath>
       <itemPath>../../include/fileformatfactory.h</itemPath>
       <itemPath>../../include/imcio.h</itemPath>
@@ -65,6 +66,7 @@
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
       <itemPath>../../src/libcsg/connectivity.cc</itemPath>
+      <itemPath>../../src/libcsg/csgapplication.cc</itemPath>
       <itemPath>../../src/libcsg/exclusionlist.cc</itemPath>
       <itemPath>../../src/libcsg/imcio.cc</itemPath>
       <itemPath>../../src/libcsg/map.cc</itemPath>

@@ -10,7 +10,7 @@ libvotca_csg_la_SOURCES = \
     cgengine.cc       neighbourlist.cc  topologymap.cc \
     cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \
     connectivity.cc   molecule.cc         numberdist.cc     trajectoryreader.cc \
-    imcio.cc nblistgrid.cc version.cc 
+    imcio.cc nblistgrid.cc version.cc csgapplication.cc
 
 #gmx is needed because of headers from libio
 libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS)
