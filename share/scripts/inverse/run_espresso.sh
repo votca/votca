@@ -70,6 +70,7 @@ if [ "$method" = "ibm" ]; then
     
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
     esp_script="$(mktemp esp.run.tcl.XXXXX)"
+    esp_success="$(mktemp esp.run.done.XXXXX)"
     cat > $esp_script <<EOF
 set in [open "|gzip -cd $esp" r]
 while { [blockfile \$in read auto] != "eof" } {}
@@ -137,16 +138,19 @@ if { [has_feature "MASS"] } {
 }
 blockfile \$out write bonds
 close \$out
-EOF
 
+set out [open $esp_success w]
+close \$out
+EOF
+    
     if use_mpi; then
 	mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
 	run_or_exit $mpicmd $esp_bin $esp_script
     else
 	run_or_exit $esp_bin $esp_script
     fi
+    [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
     
-
 ################## PMF ####################
 elif [ "$method" = "pmf" ]; then
     meta_cmd="$(csg_get_property cg.inverse.espresso.meta_cmd)"
@@ -158,6 +162,7 @@ elif [ "$method" = "pmf" ]; then
 
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
     esp_script="$(mktemp esp.run.tcl.XXXXX)"
+    esp_success="$(mktemp esp.run.done.XXXXX)"
     cat > $esp_script <<EOF
 # Determine the profile's minimum sampled point
 proc min_samp { profile } {
@@ -278,10 +283,13 @@ if { [has_feature "MASS"] } {
 }
 close \$pos_out
 
+set out [open $esp_success w]
+close \$out
 EOF
 
     run_or_exit $esp_bin $esp_script
-    
+    [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
+
 else
     die "${0##*/}: ESPResSo only supports methods: IBM and PMF"
 fi

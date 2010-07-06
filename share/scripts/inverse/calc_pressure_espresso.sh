@@ -41,6 +41,7 @@ esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 p_file="$(mktemp esp.pressure.val.XXXXX)"
 esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
 esp_script="$(mktemp esp.pressure.tcl.XXXXX)"
+esp_success="$(mktemp esp.pressure.done.XXXXX)"
 
 
 log "Calculating pressure"
@@ -54,9 +55,12 @@ set p_out [open $p_file w]
 puts \$p_out $\p
 close \$p_out
 
+set out [open $esp_success w]
+close \$out
 EOF
 
 run_or_exit $esp_bin $esp_script
+[ -f "$esp_success" ] || die "${0##*/}: Espresso calc pressure did not end successfully. Check log."
 
 p_now="$(cat $p_file)"
 

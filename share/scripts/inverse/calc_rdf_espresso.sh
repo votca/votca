@@ -61,6 +61,7 @@ if is_done "rdf-$name"; then
 else
     # Output ${name}.dist.new.tab. Calculated by Espresso.
     esp_script="$(mktemp esp.rdf.tcl.XXXXX)" 
+    esp_success="$(mktemp esp.rdf.done.XXXXX)"
     cat > $esp_script <<EOF
 puts "Calculating RDF. Please wait..."
 # First read the original conf.esp file to get the box size
@@ -98,9 +99,12 @@ close \$out
 
 puts "Calculation finished."
 
+set out [open $esp_success w]
+close \$out
 EOF
     
     run_or_exit $esp_bin $esp_script
+    [ -f "$esp_success" ] || die "${0##*/}: Espresso calc rdf did not end successfully. Check log."
     
     comment="$(get_table_comment)"
     run_or_exit csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
