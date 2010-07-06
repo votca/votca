@@ -75,14 +75,17 @@ int Application::Exec(int argc, char **argv)
 boost::program_options::options_description_easy_init
     Application::AddProgramOptions(const string &group)
 {
+    // if no group is given, add it to standard options
     if(group == "")
         return _op_desc.add_options();
     
+    // does group already exist, if yes, add it there
     std::map<string, boost::program_options::options_description>::iterator iter;
     iter = _op_groups.find(group);
     if(iter!=_op_groups.end())
         return iter->second.add_options();
 
+    // no group with given name was found -> create group
     _op_groups.insert(make_pair(group, boost::program_options::options_description(group)));
 
     return _op_groups[group].add_options();
@@ -95,6 +98,7 @@ void Application::ParseCommandLine(int argc, char **argv)
 
     std::map<string, boost::program_options::options_description>::iterator iter;
 
+    // add all cathegories to list of available options
     for(iter=_op_groups.begin(); iter!=_op_groups.end(); ++iter)
         _op_desc.add(iter->second);
     

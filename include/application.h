@@ -29,7 +29,7 @@ public:
     Application();
     virtual ~Application();
 
-    /// executes the program
+    /// \brief executes the program
     int Exec(int argc, char **argv);
 
     /// \brief program name
@@ -60,7 +60,10 @@ public:
     /// the work should be done in here.
     virtual void Run() { }
 
-    /// parse program options from command line
+    /// \brief add option for command line
+    /// Adds an option to the available command line options. If no group is
+    /// specified, it is added to the standard group (Allowed Options). If group
+    /// is given, a sub group for this set of options will be created.
     boost::program_options::options_description_easy_init
         AddProgramOptions(const string &group = "");
     /// get available program options & descriptions
