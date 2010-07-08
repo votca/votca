@@ -52,16 +52,6 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
    for (list<Property*>::iterator iter = _nonbonded.begin();
         iter != _nonbonded.end(); ++iter) {
             interaction_t *i = AddInteraction(*iter);
-            // calculate normalization factor for rdf
-            BeadList beads1, beads2;
-        
-            beads1.Generate(*top, (*iter)->get("type1").value());
-            beads2.Generate(*top, (*iter)->get("type2").value());
-
-            if((*iter)->get("type1").value() ==  (*iter)->get("type2").value())
-                i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*(beads2.size()-1.)/2.);
-            else
-                i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*beads2.size());
 
             i->_is_bonded = false;
    }
@@ -181,6 +171,13 @@ void Imc::DoNonbonded(Topology *top)
         beads1.Generate(*top, (*iter)->get("type1").value());
         beads2.Generate(*top, (*iter)->get("type2").value());
         
+        // calculate normalization factor for rdf
+
+        if((*iter)->get("type1").value() ==  (*iter)->get("type2").value())
+            i._norm = top->BoxVolume()/(4.*M_PI* i._step * beads1.size()*(beads2.size()-1.)/2.);
+        else
+            i._norm = top->BoxVolume()/(4.*M_PI* i._step * beads1.size()*beads2.size());
+
         // generate the neighbour list
         NBList nb;
         nb.setCutoff(i._max + i._step);
