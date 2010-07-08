@@ -216,7 +216,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   touch "done"
 
   msg "Clean up"
-  for cleanfile in ${cleanlist} ${CSGRESTART}; do
+  for cleanfile in ${cleanlist}; do
     logrun rm -f $cleanfile
   done
   unset cleanfile
