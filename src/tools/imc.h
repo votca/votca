@@ -27,6 +27,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/histogramnew.h>
+#include <votca/tools/average.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -63,6 +64,7 @@ public:
     void DoImc(bool do_imc) { _do_imc = do_imc; }
     
 protected:
+    Average<double> _avg_vol;
     
     typedef ub::matrix<double> group_matrix;
     typedef ub::matrix_range< group_matrix > pair_matrix;
