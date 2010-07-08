@@ -53,8 +53,7 @@ type2=$(csg_get_interaction_property type2)
 name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property inverse.simplex.density.min)
 max=$(csg_get_interaction_property inverse.simplex.density.max)
-binsize=$(csg_get_interaction_property inverse.simplex.density.step)
-bins="$(csg_get_interaction_property inverse.simplex.density.bins 50)"
+step=$(csg_get_interaction_property inverse.simplex.density.step)
 
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 end="$(awk -v dt="$dt" -v steps="$steps" 'BEGIN{print dt*steps}')"
@@ -65,12 +64,12 @@ if is_done "dens-$name"; then
 else
   if use_mpi; then
     tasks=$(csg_get_property cg.inverse.mpi.tasks)
-    echo -e "${type1}\n${type2}" | run_or_exit multi_g_density -${tasks} -b ${begin} -e ${end} -n "$index" -o ${name}.dens.new.xvg --soutput ${name}.dens.new.NP.xvg -- -sl ${bins}  -s "$tpr" ${opts}
+    echo -e "${type1}\n${type2}" | run_or_exit multi_g_density -${tasks} -b ${begin} -e ${end} -n "$index" -o ${name}.dens.new.xvg --soutput ${name}.dens.new.NP.xvg -- -s "$tpr" ${opts}
   else
-    echo -e "${type1}\n${type2}" | run_or_exit g_density -b ${begin} -n "$index" -sl ${bins} -o ${name}.dens.new.xvg -s "$tpr" ${opts}
+    echo -e "${type1}\n${type2}" | run_or_exit g_density -b ${begin} -n "$index" -o ${name}.dens.new.xvg -s "$tpr" ${opts}
   fi
   #gromacs always append xvg
   comment="$(get_table_comment)"
-  run_or_exit csg_resample --in ${name}.dens.new.xvg --out ${name}.dens.new --grid ${min}:${binsize}:${max} --comment "$comment"
+  run_or_exit csg_resample --in ${name}.dens.new.xvg --out ${name}.dens.new --grid ${min}:${step}:${max} --comment "$comment"
   mark_done "dens-$name"
 fi
