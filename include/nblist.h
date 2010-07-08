@@ -37,8 +37,8 @@ public:
     NBList();
     virtual ~NBList();    
 
-    void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
-    void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
+    virtual void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
+    virtual void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
     
     void setCutoff(double cutoff) { _cutoff = cutoff; }
     double getCutoff() { return _cutoff; }

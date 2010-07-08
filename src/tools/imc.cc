@@ -188,24 +188,41 @@ void Imc::DoNonbonded(Topology *top)
         _avg_vol.Process(d);
         
         // generate the neighbour list
-        NBList nb;
-        nb.setCutoff(i._max + i._step);
+        NBList *nb;
+
+        bool gridsearch=false;
+
+        if(_options.exists("cg.nbsearch")) {
+            if(_options.get("cg.nbsearch").as<string>() == "grid")
+                gridsearch=true;
+            else if(_options.get("cg.nbsearch").as<string>() == "simple")
+                gridsearch=false;
+            else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+        }
+        if(gridsearch)
+            nb = new NBListGrid();
+        else
+            nb = new NBList();
+
+        nb->setCutoff(i._max + i._step);
         
         // is it same types or different types?
         if((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            nb.Generate(beads1);
+            nb->Generate(beads1);
         else
-            nb.Generate(beads1, beads2);
+            nb->Generate(beads1, beads2);
         
         // clear the current histogram
         i._current.Clear();
         
         // process all pairs
         NBList::iterator pair_iter;
-        for(pair_iter = nb.begin(); pair_iter!=nb.end();++pair_iter) {
+        for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
                 i._current.Process((*pair_iter)->dist());            
         }
-        
+
+        delete nb;
+
         // update the average
         i._average.data().y() = (((double)_nframes-1.0)*i._average.data().y() 
                 + i._current.data().y())/(double)_nframes;

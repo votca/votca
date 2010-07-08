@@ -89,18 +89,34 @@ void NBListGrid::InitializeGrid(const matrix &box)
     cout << "grid size: " << _box_Na << "x" << _box_Nb << "x" << _box_Nc << endl;
     _grid.resize(_box_Na*_box_Nb*_box_Nc);
 
+    int a1,a2,b1,b2,c1,c2;
+    
+    a1 = b1 = c1 = -1;
+    a2 = b2 = c2 = 1;
+
+    if(_box_Na < 3) a2 = 0;
+    if(_box_Nb < 3) b2 = 0;
+    if(_box_Nc < 3) c2 = 0;
+
+    if(_box_Na < 2) a1 = 0;
+    if(_box_Nb < 2) b1 = 0;
+    if(_box_Nc < 2) c1 = 0;
+
     // wow, setting up the neighbours is an ugly for construct!
     // loop from N..2*N to avoid if and only use %
     for(int a=_box_Na; a<2*_box_Na; ++a)
         for(int b=_box_Nb; b<2*_box_Nb; ++b)
             for(int c=_box_Nc; c<2*_box_Nc; ++c) {
                 cell_t &cell = getCell(a%_box_Na, b%_box_Nb, c%_box_Nc);
-                for(int aa=a-1; aa<=a+1; ++aa)
-                    for(int bb=b-1; bb<=b+1; ++bb)
-                        for(int cc=c-1; cc<=c+1; ++cc)
+                for(int aa=a+a1; aa<=a+a2; ++aa)
+                    for(int bb=b+b1; bb<=b+b2; ++bb)
+                        for(int cc=c+c1; cc<=c+c2; ++cc) {
+                            cell_t *c = &getCell(aa%_box_Na, bb%_box_Nb, cc%_box_Nc);
+                            if(c == &cell) continue; // ignore self
                             cell._neighbours.push_back(
                                 &getCell(aa%_box_Na, bb%_box_Nb, cc%_box_Nc)
                             );
+                        }
             }
 }
 
