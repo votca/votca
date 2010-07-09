@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "qmapplication.h"
-#include "cont_kmc.h"
+#include "calculatorfactory.h"
 
 /*
  * 
@@ -16,9 +16,8 @@
 int main(int argc, char** argv) {
 
     QMApplication qm_app;
-    ContKmc cont_kmc;
 
-    qm_app.AddCalculator(dynamic_cast<QMCalculator*>(&cont_kmc));
+    qm_app.AddCalculator(Calculators().Create("kmc"));
 
     qm_app.Run(argc, argv);
 

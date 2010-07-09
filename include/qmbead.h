@@ -12,6 +12,9 @@
 #include "votca/csg/bead.h"
 #include "moo/crgunit.h"
 #include "qmtopology.h"
+
+using namespace votca::csg;
+
 /**
     \brief contains the bead associated to a crg unit.
 
