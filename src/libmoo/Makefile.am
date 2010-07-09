@@ -1,7 +1,3 @@
-@SET_MAKE@
-ACLOCAL_AMFLAGS = -I config
-AUTOMAKE_OPTIONS = foreign
-
 AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS)
 lib_LTLIBRARIES = libvotca_moo.la
 

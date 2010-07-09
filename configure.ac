@@ -26,7 +26,6 @@ if test "$enable_all_static" = "yes"; then
   AC_SUBST(BIN_LDFLAGS)
 fi
 
-AX_VOTCA_BOOST
 AX_VOTCA_TOOLS
 
 AC_CONFIG_FILES([Makefile])
