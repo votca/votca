@@ -50,6 +50,7 @@
   <sourceRootList>
     <Elem>../../include</Elem>
     <Elem>../../src/libmd2qm</Elem>
+    <Elem>../../src/libmd2qm/calculators</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

@@ -9,7 +9,7 @@
 #define	_QMBEAD_H
 
 
-#include "votca/csg/bead.h"
+#include <votca/csg/bead.h>
 #include "moo/crgunit.h"
 #include "qmtopology.h"
 
