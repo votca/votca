@@ -27,7 +27,7 @@ USES: csg_get_interaction_property csg_get_property log run_or_exit csg_resample
 
 NEEDS: type1 type2 name step min max inverse.espresso.index1 inverse.espresso.index2
 
-OPTIONAL: cg.inverse.espresso.equi_snapshots cg.inverse.espresso.bin
+OPTIONAL: cg.inverse.espresso.equi_snapshots cg.inverse.espresso.bin cg.inverse.espresso.traj
 EOF
     exit 0
 fi
@@ -35,7 +35,7 @@ fi
 check_deps "$0"
 
 # Topology+Trajectory read by Espresso
-top_traj="top_traj.esp"
+top_traj="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
 
 # Number of snapshots before statistics are taken into account
 equi_snapshots="$(csg_get_property cg.inverse.espresso.equi_snapshots 0)"

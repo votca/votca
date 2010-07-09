@@ -18,22 +18,16 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script make all the post update with backup
+This script makes all the post update with backup for the PMF method
 
 Usage: ${0##*/}
 
-USES:  do_external for_all check_deps
+USES:  
 
-NEEDS: cg.inverse.method
+NEEDS:
 EOF
    exit 0
 fi
 
-check_deps "$0"
 
-method="$(csg_get_property cg.inverse.method)"
-
-if [ "$(echo $method | tr [:upper:] [:lower:])" != "pmf" ]; then
-    for_all "non-bonded" do_external post add_single
-fi
 

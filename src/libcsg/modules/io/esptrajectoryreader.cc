@@ -39,9 +39,9 @@ bool ESPTrajectoryReader::FirstFrame(Topology &top)
     ifstream file;
     ofstream out;		
     string parse_line, tmp;
-    int check_name, mol, atom;
+    int check_name, check_name2, mol, atom;
     double r[3], v[3];		
-    bool HasMass;		
+    bool HasMass, HasVirtual;		
 
     file.open(_fl.c_str());
 
@@ -61,16 +61,36 @@ bool ESPTrajectoryReader::FirstFrame(Topology &top)
 	cerr << "Can't find particles variable in blockfile.\n";
 	return false;
     }
+    check_name  = parse_line.find("mass");
+    check_name2 = parse_line.find("virtual");
     if (check_name != string::npos) {
 	HasMass = 1;
-	// make sure the format is correct
-	check_name = parse_line.find("{id type molecule mass pos v}");
+	if (check_name2 != string::npos) {
+	    HasVirtual = 1;
+	    // make sure the format is correct
+	    check_name = parse_line.find("{id type molecule mass virtual pos v}");
+	    check_name2 = parse_line.find("{id type molecule mass virtual folded_position v}");
+	} else {
+	    HasVirtual = 0;
+	    // make sure the format is correct
+	    check_name = parse_line.find("{id type molecule mass pos v}");
+	    check_name2 = parse_line.find("{id type molecule mass folded_position v}");
+	}
     } else {
 	HasMass = 0;
-	// make sure the format is correct
-	check_name = parse_line.find("{id type molecule pos v}");
+	if (check_name2 != string::npos) {
+	    HasVirtual = 1;
+	    // make sure the format is correct
+	    check_name = parse_line.find("{id type molecule virtual pos v}");
+	    check_name2 = parse_line.find("{id type molecule virtual folded_position v}");
+	} else {
+	    HasVirtual = 0;
+	    // make sure the format is correct
+	    check_name = parse_line.find("{id type molecule pos v}");
+	    check_name2 = parse_line.find("{id type molecule folded_position v}");
+	}
     }
-    if (check_name == string::npos) {
+    if (check_name == string::npos && check_name2 == string::npos) {
 	cerr << "Check format of particles variable in blockfile.\n"
 	    "Should be {id type molecule [mass] pos v}.\n"
 	    "Instead: " << parse_line << endl;
@@ -84,6 +104,8 @@ bool ESPTrajectoryReader::FirstFrame(Topology &top)
 	file >> tmp;				
 	if (HasMass)
 	    file >> tmp;				
+	if (HasVirtual)
+	    file >> tmp;
 
 	// read particle position
 	file >> r[0];

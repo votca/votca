@@ -27,7 +27,7 @@ USES: run_or_exit Espresso_bin use_mpi csg_get_property check_deps use_mpi
 
 NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
 
-OPTIONAL: cg.inverse.espresso.blockfile cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.bin
+OPTIONAL: cg.inverse.espresso.blockfile cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.bin cg.inverse.espresso.extra cg.inverse.espresso.traj
 EOF
     exit 0
 fi
@@ -49,11 +49,13 @@ exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 
 debug="$(csg_get_property cg.inverse.espresso.debug "no")"
 
+# Topology+trajectory file
+traj_esp="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
+
+
 # Different Espresso scripts depending on the method used
 ################ IBM ###################
 if [ "$method" = "ibm" ]; then
-    # Topology+trajectory file
-    traj_esp="top_traj.esp"
     
     n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
     [ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
@@ -158,26 +160,21 @@ elif [ "$method" = "pmf" ]; then
     meta_min_sampling="$(csg_get_property cg.inverse.espresso.meta_min_sampling)"
     [ -z "$meta_min_sampling" ] && die "${0##*/}: Could not read metadynamics property meta_min_sampling"
 
-    meta_input_file="tmp_meta_input.dat"
+    meta_input_file="$(csg_get_property --allow-empty cg.inverse.espresso.meta_file "meta_file")"    
+    meta_output_file="$(csg_get_property cg.inverse.espresso.current_pmf "meta_output.dat")"
+
+    extra_cmd="$(csg_get_property cg.inverse.espresso.extra "")"
 
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
     esp_script="$(mktemp esp.run.tcl.XXXXX)"
+    esp_meta_temp="$(mktemp esp.meta.tmp.XXXXX)"
     esp_success="$(mktemp esp.run.done.XXXXX)"
     cat > $esp_script <<EOF
-# Determine the profile's minimum sampled point
-proc min_samp { profile } {
-  set result -1e30
-  foreach e \$profile {
-    if { $e > $result } { set result $e }
-  return [expr -1.*$result]
-}
-###
-
-
 ### Load config
 set in [open "|gzip -cd $esp" r]
 while { [blockfile \$in read auto] != "eof" } {}
 close \$in
+
 
 # Are num_molecules and num_atoms both already defined?
 if { ![info exists num_molecules] || ![info exists num_atoms] } {
@@ -206,7 +203,10 @@ if { ![has_feature "METADYNAMICS"] } {
   exit 1
 }
 # Set metadynamics according to XML settings
-[meta_cmd]
+$meta_cmd
+
+# Extra commands that can't go into the blockfile, if any
+if { [llength {$extra_cmd}] != 0 } { $extra_cmd }
 
 # Try to load an existing PMF (from previous step)
 if { [file exists $meta_input_file] } {
@@ -223,50 +223,83 @@ if { [file exists $meta_input_file] } {
   }
   # Now read size of metadynamics binning and compare with input data
   set reac_coords [metadynamics print_stat coord_values]
-  if { [llength \$reac_coords] != [llength \$profile_in] ||
-       [llength \$reac_coords] != [llength \$force_in] } {
+  if { [llength \$profile_in] != [llength \$force_in] } {
     puts "Error: the PMF input file $meta_input_file is not consistent."
     exit 1
   } else {
-    metadynamics load_stat \$profile_in \$force_in>
+    metadynamics load_stat \$profile_in \$force_in
   }
 }
+
+################################################
+# Determine the profile's minimum sampled point
+proc min_samp { profile } {
+  set result -1e30
+  foreach e \$profile {
+    if { \$e > \$result } { set result \$e }
+  }
+  return [expr -1.*\$result]
+}
+################################################
+
 
 set j 0
 set min_sampling 0
 # Main integration loop
-while { \$min_sampling < $meta_min_sampling } 
+while { \$min_sampling < $meta_min_sampling } {
   integrate $n_steps
   # extract profile
+  set reac_coords [metadynamics print_stat coord_values]
   set profile [metadynamics print_stat profile]
+  set force [metadynamics print_stat force]
+
+  # Determine point that was least sampled
   set min_sampling [min_samp \$profile]
+
   puts "step \$j | current minimum sampling \$min_sampling < $meta_min_sampling"
   if { $debug == "yes" } {
     puts "  [analyze energy]"
   }
+
+  set out [open $esp_meta_temp w]
+  foreach r \$reac_coords p \$profile f \$force {
+    puts \$out "\$r \$p \$f"
+  }
+  close \$out
+  incr j
 }
+
 set reac_coords [metadynamics print_stat coord_values]
+set profile [metadynamics print_stat profile]
 set force [metadynamics print_stat force]
 
 # Save simulation parameters
-set out [open "|gzip -c - > confout.esp" w]
+set out [open "|gzip -c - > confout.esp.gz" w]
 blockfile \$out write variable all
 blockfile \$out write interactions
 blockfile \$out write thermostat
 blockfile \$out write tclvariable num_molecules
 blockfile \$out write tclvariable num_atoms
 if { [has_feature "MASS"] } {
-  blockfile \$out write particles {id type molecule mass pos v}
+  if { [has_feature "VIRTUAL_SITES"] } {
+    blockfile \$out write particles {id type molecule mass virtual pos v}
+  } else {
+    blockfile \$out write particles {id type molecule mass pos v}
+  }
 } else {
-  blockfile \$out write particles {id type molecule pos v}
+  if { [has_feature "VIRTUAL_SITES"] } {
+    blockfile \$out write particles {id type molecule virtual pos v}
+  } else {
+    blockfile \$out write particles {id type molecule pos v}
+  }
 }
 close \$out
 
 # Save metadynamics (scaled) profile and force
 # Scaling brings least sampled point to F=0.
-set out [open $meta_input_file w]
+set out [open $meta_output_file w]
 foreach r \$reac_coords p \$profile f \$force {
-  puts \$out \$r [expr \$p+\$min_sampling] \$f
+  puts \$out "\$r [expr \$p+\$min_sampling] \$f"
 }
 close \$out
 
@@ -289,7 +322,6 @@ EOF
 
     run_or_exit $esp_bin $esp_script
     [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
-
 else
     die "${0##*/}: ESPResSo only supports methods: IBM and PMF"
 fi

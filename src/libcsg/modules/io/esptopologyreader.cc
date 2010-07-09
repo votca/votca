@@ -24,11 +24,11 @@ bool ESPTopologyReader::ReadTopology(string file, Topology &top)
 { 
     // cleanup topology to store new data
     ifstream fl;
-    string parse_line, type, mass, tmp;
-    int white_space1, white_space2, num_molecules, check_name;
+    string parse_line, type, mass, tmp, virt;
+    int white_space1, white_space2, num_molecules, check_name, check_name2;
     int *num_atoms = NULL;
     double box_x,box_y,box_z;
-    bool HasMass;		
+    bool HasMass, HasVirtual;
     top.Cleanup();
 
     fl.open(file.c_str());
@@ -90,17 +90,36 @@ bool ESPTopologyReader::ReadTopology(string file, Topology &top)
 	cerr << "Can't find particles variable in blockfile.\n";
 	return false;
     }
-    check_name = parse_line.find("mass");
+    check_name  = parse_line.find("mass");
+    check_name2 = parse_line.find("virtual");
     if (check_name != string::npos) {
 	HasMass = 1;
-	// make sure the format is correct
-	check_name = parse_line.find("{id type molecule mass pos v}");				
+	if (check_name2 != string::npos) {
+	    HasVirtual = 1;
+	    // make sure the format is correct
+	    check_name  = parse_line.find("{id type molecule mass virtual pos v}");
+	    check_name2 = parse_line.find("{id type molecule mass virtual folded_position v}");
+	} else {
+	    HasVirtual = 0;
+	    // make sure the format is correct
+	    check_name = parse_line.find("{id type molecule mass pos v}");
+	    check_name2 = parse_line.find("{id type molecule mass folded_position v}");
+	}
     } else {
 	HasMass = 0;				
-	// make sure the format is correct
-	check_name = parse_line.find("{id type molecule pos v}");
+	if (check_name2 != string::npos) {
+	    HasVirtual = 1;
+	    // make sure the format is correct
+	    check_name = parse_line.find("{id type molecule virtual pos v}");
+	    check_name2 = parse_line.find("{id type molecule virtual folded_position v}");
+	} else {
+	    HasVirtual = 0;
+	    // make sure the format is correct
+	    check_name = parse_line.find("{id type molecule pos v}");
+	    check_name2 = parse_line.find("{id type molecule folded_position v}");
+	}
     }
-    if (check_name == string::npos) {
+    if (check_name == string::npos && check_name2 == string::npos) {
 	cerr << "Check format of particles variable in blockfile.\n"
 	    "Should be {id type molecule [mass] pos v}.\n"
 	    "Instead: " << parse_line << endl;
@@ -118,6 +137,7 @@ bool ESPTopologyReader::ReadTopology(string file, Topology &top)
 		fl >> mass;
 	    else
 		mass = string("1.0");
+	    
 
 	    mi->AddBead(top.CreateBead(1, "", top.GetOrCreateBeadType(type), 0, atoi(mass.c_str()), 0),
 			boost::lexical_cast<string>(atom));
