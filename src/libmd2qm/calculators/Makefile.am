@@ -6,6 +6,6 @@ libcalculators_la_SOURCES = \
     contkmc.h  estatics.cc  estatics.h  integrals.h  marcusrates.h  readxml.cc  readxml.h  writexml.h
 
 libcalculators_la_LDFLAGS = -no-undefined
-libcalculators_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(VOTCA_CSG_CFLAGS) $(VOTCA_MOO_CFLAGS) $(BOOST_CFLAGS)
+libcalculators_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(VOTCA_CSG_CFLAGS) $(VOTCA_MOO_CFLAGS)
 
 CLEANFILES = *~

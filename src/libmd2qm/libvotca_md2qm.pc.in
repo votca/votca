@@ -7,7 +7,7 @@ Name: libvotca_md2qm
 Description: md2qm functions of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
-Requires: libvotca_tools libvotca_csg libvotca_moo libvotca_kmc @PKGGMX@ @PKGBOOST@ @PKGEXPAT@
-Libs: -L${libdir} -lvotca_md2qm @PKGLIBSGMX@ @PKGLIBSBOOST@ @PKGLIBSEXPAT@
+Requires: libvotca_tools libvotca_csg libvotca_moo libvotca_kmc
+Libs: -L${libdir} -lvotca_md2qm
 Libs.private: -lm
-Cflags: -I${includedir} @PKGCFLAGSGMX@ @PKGCFLAGSBOOST@
+Cflags: -I${includedir}
