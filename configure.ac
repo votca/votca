@@ -54,6 +54,9 @@ PKG_CHECK_MODULES([GSL],gsl)
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
 
+AC_CHECK_PROGS(DOXYGEN,doxygen,no)
+AM_CONDITIONAL(HAVE_DOXYGEN,[test "$TXT2TAGS" != no])
+
 if test "$enable_votca_expat" = "yes"; then
   EXPAT_CFLAGS='-I$(top_srcdir)/src/libexpat/include'
   EXPAT_LIBS='$(top_srcdir)/src/libexpat/libs/libvotca_expat.la'
@@ -102,5 +105,7 @@ AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([src/libtools/Makefile])
 AC_CONFIG_FILES([src/libtools/libvotca_tools.pc])
 AC_CONFIG_FILES([scripts/Makefile])
+AC_CONFIG_FILES([share/Makefile])
+AC_CONFIG_FILES([share/doc/Makefile])
 
 AC_OUTPUT
