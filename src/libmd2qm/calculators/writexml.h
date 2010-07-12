@@ -23,7 +23,7 @@ public:
     
 private:
     string _outfile;
-    bool _write_dist;
+    bool _write_dist, _write_rij, _write_jeff;
 };
 
 inline void WriteXML::Initialize(QMTopology *top, Property *options)
@@ -33,6 +33,12 @@ inline void WriteXML::Initialize(QMTopology *top, Property *options)
 
     if(options->exists("options.writexml.dist"))
         _write_dist = options->get("options.writexml.dist").as<bool>();
+
+    if(options->exists("options.writexml.rij"))
+        _write_rij = options->get("options.writexml.rij").as<bool>();
+
+    if(options->exists("options.writexml.jeff"))
+        _write_jeff = options->get("options.writexml.jeff").as<bool>();
 
     ofstream out;
     out.open(_outfile.c_str(), ios::out);
@@ -74,6 +80,10 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
             << " rate21=\"" << (*iter)->rate21() << "\"";
         if(_write_dist)
             out << " dist=\"" <<(*iter)->dist()<< "\"";
+        if(_write_rij)
+            out << " rij=\"" <<(*iter)->r()<< "\"";
+        if(_write_jeff)
+            out << " Jeff=\"" <<(*iter)->calcJeff2()<< "\"";
         out <<  "/>" << endl;
     }
     out << "  </frame>" << endl;
