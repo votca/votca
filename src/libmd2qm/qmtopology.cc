@@ -38,10 +38,20 @@ void QMTopology::Update(Topology& cg_top)
     iter_cg = cg_top.Beads().begin();
     for(iter=_beads.begin(); iter!=_beads.end(); ++iter, ++iter_cg) {
         (*iter)->setPos((*iter_cg)->getPos());
-        (*iter)->setU((*iter_cg)->getU());
-        (*iter)->setV((*iter_cg)->getV());
-        (*iter)->setW((*iter_cg)->getW());
+        if((*iter_cg)->HasU())
+            (*iter)->setU((*iter_cg)->getU());
+        if((*iter_cg)->HasV())
+            (*iter)->setV((*iter_cg)->getV());
+        if((*iter_cg)->HasW())
+            (*iter)->setW((*iter_cg)->getW());
         QMBead * b = (QMBead*)(*iter);
+
+        if(!(*iter_cg)->HasU()) {
+            (*iter)->setU(vec(1,0,0));
+            (*iter)->setV(vec(0,1,0));
+            (*iter)->setW(vec(0,0,1));
+        }
+
         b->UpdateCrg();
     }
 }
