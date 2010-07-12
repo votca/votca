@@ -9,6 +9,8 @@
 using namespace votca::csg;
 
 class QMTopology;
+using namespace votca::tools;
+using namespace votca::csg;
 
 /**
  * \brief Neighbour search for crg units

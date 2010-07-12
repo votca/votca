@@ -32,10 +32,6 @@ AC_ARG_ENABLE(la-files,
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 
-AX_EXPAT
-
-AX_VOTCA_BOOST
-
 #look for votca tools
 AX_VOTCA_TOOLS
 PKG_CHECK_MODULES([VOTCA_CSG],libvotca_csg)
@@ -46,12 +42,12 @@ PKG_CHECK_MODULES([VOTCA_KMC],libvotca_kmc)
 PKG_CHECK_MODULES([GSL],gsl)
 
 
-
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/tools/Makefile])
 AC_CONFIG_FILES([src/libmd2qm/Makefile])
+AC_CONFIG_FILES([src/libmd2qm/calculators/Makefile])
 AC_CONFIG_FILES([src/libmd2qm/libvotca_md2qm.pc])
 
 AC_OUTPUT

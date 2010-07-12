@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "qmapplication.h"
-#include "marcus_rates.h"
+#include "calculatorfactory.h"
 
 /*
  * 
@@ -16,9 +16,8 @@
 int main(int argc, char** argv) {
 
     QMApplication qm_app;
-    MarcusRates rates;
 
-    qm_app.AddCalculator(dynamic_cast<QMCalculator*>(&rates));
+    qm_app.AddCalculator(Calculators().Create("marcusrates"));
 
     qm_app.Run(argc, argv);
 
