@@ -64,16 +64,23 @@ void StateSaver::Close(){
     }
 }
 
-void StateSaver::Load() {
+bool StateSaver::Load() {
     _qmtop->Cleanup();
     _qmtop->nblist().Cleanup();
     _qmtop->CreateResidue("dummy");
 
-    Read_TimeStep();
-    Read_PBCs();
-    Read_Molecules();
-    Read_QMBeads();
-    Read_QMNeighbourlist();
+    try {
+        Read_TimeStep();
+        Read_PBCs();
+        Read_Molecules();
+        Read_QMBeads();
+        Read_QMNeighbourlist();
+    } catch(std::runtime_error &err) {
+        if(err.what() == "eof")
+            return false;
+        else throw err;
+    }
+    return true;
 }
 
 void StateSaver::Write_TimeStep(){

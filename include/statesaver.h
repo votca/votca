@@ -30,8 +30,8 @@ public :
     void Open(QMTopology & qmtop,string &file, const char & mode);
 
     void Save();
-    // TODO: should return true if frame read successfully, false if now
-    void Load();
+    // TODO: should return true if frame read successfully, false if not
+    bool Load();
 
     void Close();
     bool Seek(const int &);
@@ -84,6 +84,8 @@ inline T StateSaver::read()
 {
     T tmp;
     _in.read((char *)&tmp, sizeof(T));
+    if (_in.fail())
+        throw std::runtime_error("eof");
     return tmp;
 }
 
@@ -94,6 +96,8 @@ inline std::string StateSaver::read<std::string>()
   int L=read<unsigned short>();
   char tmp [L+1];
   _in.read(tmp, L);
+   if (_in.fail())
+        throw std::runtime_error("eof");
   tmp[L]=0;
   return string(tmp);
 }

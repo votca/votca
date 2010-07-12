@@ -22,7 +22,7 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     ("in", boost::program_options::value<string>()->default_value("stateIn.dat"), "  read state file with this name")
     ("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
     ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
-    ("nframes", boost::program_options::value<int>()->default_value(1), "  process so many frames")
+    ("nframes", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
     ;
 
     /// add specific options defined via Initialize of the child class
@@ -88,7 +88,6 @@ void QMApplication::Run(int argc, char **argv)
         BeginEvaluate();
 
         /// load qmtop from state saver
-        
         cout << "Loading qmtopology via state saver." << endl;
         string statefile = _op_vm["in"].as<string>();
         StateSaver loader(_qmtop, statefile,'r');
@@ -96,9 +95,10 @@ void QMApplication::Run(int argc, char **argv)
         StateSaver saver(_qmtop, stateout, 'w');
 
         loader.Seek(first_frame);
-        for (int i=0;i<nframes;i++){
+        for (int i=0;(i<nframes) || (nframes == -1);i++){
+            cout << "Reading frame " << i+first_frame << endl;
             loader.Load();
-            EvaluateFrame(i, nframes);
+            EvaluateFrame();
             saver.Save();
         }
         loader.Close();
@@ -150,7 +150,7 @@ void QMApplication::BeginEvaluate(){
     }
 }
 
-bool QMApplication::EvaluateFrame(int nr, int nframes){
+bool QMApplication::EvaluateFrame(){
     list<QMCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->EvaluateFrame(&_qmtop);
