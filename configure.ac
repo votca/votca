@@ -55,7 +55,7 @@ AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
 
 AC_CHECK_PROGS(DOXYGEN,doxygen,no)
-AM_CONDITIONAL(HAVE_DOXYGEN,[test "$TXT2TAGS" != no])
+AM_CONDITIONAL(HAVE_DOXYGEN,[test "$DOXYGEN" != no])
 
 if test "$enable_votca_expat" = "yes"; then
   EXPAT_CFLAGS='-I$(top_srcdir)/src/libexpat/include'
