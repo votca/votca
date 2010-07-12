@@ -76,9 +76,8 @@ bool StateSaver::Load() {
         Read_QMBeads();
         Read_QMNeighbourlist();
     } catch(std::runtime_error &err) {
-        if(err.what() == "eof")
-            return false;
-        else throw err;
+        //assuming err.what() is eof
+        return false;
     }
     return true;
 }

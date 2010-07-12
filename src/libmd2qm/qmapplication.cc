@@ -96,8 +96,8 @@ void QMApplication::Run(int argc, char **argv)
 
         loader.Seek(first_frame);
         for (int i=0;(i<nframes) || (nframes == -1);i++){
-            cout << "Reading frame " << i+first_frame << endl;
-            loader.Load();
+            if (!loader.Load()) break;
+            cout << "Read frame " << i+first_frame << endl;
             EvaluateFrame();
             saver.Save();
         }
