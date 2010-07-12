@@ -46,7 +46,7 @@ void QMTopology::Update(Topology& cg_top)
             (*iter)->setW((*iter_cg)->getW());
         QMBead * b = (QMBead*)(*iter);
 
-        if(!(*iter_cg)->HasU()) {
+        if((*iter_cg)->getSymmetry() == 1) {
             (*iter)->setU(vec(1,0,0));
             (*iter)->setV(vec(0,1,0));
             (*iter)->setW(vec(0,0,1));
