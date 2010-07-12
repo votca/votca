@@ -6,6 +6,7 @@
 #include "calculators/writexml.h"
 #include "calculators/contkmc.h"
 #include "calculators/estatics.h"
+#include "calculators/histintegrals.h"
 
 
 void CalculatorFactory::RegisterAll(void)
@@ -16,5 +17,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<ContKmc>("kmc");
         Calculators().Register<CalcEstatics>("estat");
         Calculators().Register<MarcusRates>("marcusrates");
-        Calculators().Register<CalcIntegrals>("histintegrals");
+        Calculators().Register<CalcHistIntegrals>("histintegrals");
 }
