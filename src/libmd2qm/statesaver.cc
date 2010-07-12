@@ -40,11 +40,13 @@ void StateSaver::Save() {
     
     streampos start = _out.tellp();
     _startpos.push_back(start);
+    //write<string>(string("BEGINBLOCK"));
     Write_TimeStep();
     Write_PBCs();
     Write_Molecules();
     Write_QMBeads();
     Write_QMNeighbourlist();
+    //write<string>(string("ENDBLOCK"));
     //Write NBL
     //_out.close();
     //_out = datafile(datafile.c_str(), ios::binary|ios::out);
@@ -52,11 +54,11 @@ void StateSaver::Save() {
 
 void StateSaver::Close(){
     if (_mode == 'w' || _mode == 'b'){
-        vector <streampos>::iterator itb=_startpos.begin();
+    /*    vector <streampos>::iterator itb=_startpos.begin();
         for ( ;itb !=_startpos.end(); ++itb){
             write<streampos>(*itb);
         }
-        write<int>(_startpos.size());
+        write<int>(_startpos.size());*/
         _out.close();
     }
     if (_mode == 'r' || _mode == 'b'){
@@ -68,7 +70,8 @@ bool StateSaver::Load() {
     _qmtop->Cleanup();
     _qmtop->nblist().Cleanup();
     _qmtop->CreateResidue("dummy");
-
+    if(_in.eof()) return false;
+    
     try {
         Read_TimeStep();
         Read_PBCs();
@@ -77,7 +80,9 @@ bool StateSaver::Load() {
         Read_QMNeighbourlist();
     } catch(std::runtime_error &err) {
         //assuming err.what() is eof
-        return false;
+        if(err.what()==string("eof"))
+            return false;
+        throw err;
     }
     return true;
 }
@@ -291,7 +296,10 @@ void StateSaver::Read_QMNeighbourlist() {
 }
 
 bool StateSaver::Seek(const int& pos){
-    
+    _in.seekg(0);
+    for(int i=0; i<pos; ++i)
+        Load();
+    /*
     _in.seekg ( (long int )(- sizeof(int)), ios::end); // put in at the end;
     int n = read<int>();
     if (pos> n){
@@ -300,5 +308,5 @@ bool StateSaver::Seek(const int& pos){
     _in.seekg ((long int ) (- sizeof(int) - (n-pos) * sizeof(streampos)) , ios::end); // put in at the end;
     streampos newpos = read<streampos>();
     _in.seekg((long int )(newpos), ios::beg);
-    return true;
+    return true;*/
 }

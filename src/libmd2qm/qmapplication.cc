@@ -21,7 +21,7 @@ void QMApplication::ParseCommandLine(int argc, char **argv)
     ("out", boost::program_options::value<string>()->default_value("stateOut.dat"), "  write new state file with this name")
     ("in", boost::program_options::value<string>()->default_value("stateIn.dat"), "  read state file with this name")
     ("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
-    ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
+    ("first-frame", boost::program_options::value<int>()->default_value(1), "  start with this frame (first frame is 1)")
     ("nframes", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
     ;
 
@@ -70,6 +70,9 @@ void QMApplication::Run(int argc, char **argv)
         bool has_begin = false; /// was a starting time specified?
         double begin; /// starting time
         int first_frame = _op_vm["first-frame"].as<int>(); /// starting frame
+        if(first_frame == 0) throw std::runtime_error("error, first frame is 0 but we start counting with 1");
+        first_frame--;
+
         int nframes = _op_vm["nframes"].as<int>(); /// number of frames to be processed
 
         if (!_op_vm.count("opt")) {
@@ -95,9 +98,9 @@ void QMApplication::Run(int argc, char **argv)
         StateSaver saver(_qmtop, stateout, 'w');
 
         loader.Seek(first_frame);
-        for (int i=0;(i<nframes) || (nframes == -1);i++){
+        for (int i=0;(i<nframes) || (nframes < 0);i++){
             if (!loader.Load()) break;
-            cout << "Read frame " << i+first_frame << endl;
+            cout << "Read frame " << i+first_frame+1 << endl;
             EvaluateFrame();
             saver.Save();
         }
