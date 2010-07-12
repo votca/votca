@@ -16,5 +16,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<ContKmc>("kmc");
         Calculators().Register<CalcEstatics>("estat");
         Calculators().Register<MarcusRates>("marcusrates");
-
+        Calculators().Register<CalcIntegrals>("histintegrals");
 }
