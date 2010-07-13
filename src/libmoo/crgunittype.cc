@@ -52,7 +52,9 @@ CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
     _intcoords.define_bs(_bs);
     _intcoords.init(namecoord);
     _intcoords.init_orbitals(_orbitals, nameorb);
-    _intcoords.init_charges(nameneutr, namecrg);
+
+    if(nameneutr[0] != 0 && namecrg[0] != 0)
+        _intcoords.init_charges(nameneutr, namecrg);
 #ifdef DEBUG
     cout << "sample of the trans: " << transorb << " orbitals: " << (_orbitals.getorb(transorb))[4] << endl;
 #endif
