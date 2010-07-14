@@ -38,6 +38,8 @@ public:
     virtual bool DoMapping(void) { return false; }
     virtual bool DoTrajectory(void) { return false; }
 
+    virtual void EvaluateTopology(Topology *top) {}
+
     /// \brief called before the first frame
     virtual void BeginEvaluate(Topology *top, Topology *top_ref = 0);
     /// \brief called after the last frame

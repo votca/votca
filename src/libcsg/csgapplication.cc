@@ -61,7 +61,7 @@ bool CsgApplication::EvaluateOptions(void)
         cout << _op_desc << endl;
         throw runtime_error("no topology file specified");
     }
-    if (!_op_vm.count("cg")) {
+    if (!_op_vm.count("cg") && DoMapping()) {
         cout << _op_desc << endl;
         throw runtime_error("no coarse graining definition specified");
     }
@@ -83,6 +83,8 @@ void CsgApplication::Run(void)
     reader->ReadTopology(_op_vm["top"].as<string>(), top);
     cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
     top.CheckMoleculeNaming();
+
+    EvaluateTopology(&top);
 
     // do we need to read a trajectory?
     if(DoTrajectory()) {
