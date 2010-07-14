@@ -62,7 +62,11 @@ int Application::Exec(int argc, char **argv)
             return 0;
         }
 
-        EvaluateOptions();
+        if(!EvaluateOptions()) {
+            ShowHelpText(cout);
+            return -1;
+        }
+        
         Run();
     }
     catch(std::exception &error) {

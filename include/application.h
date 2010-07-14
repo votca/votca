@@ -52,7 +52,8 @@ public:
     /// \brief Process command line options
     /// 
     /// EvaluateOptions is called by Run after parsing the command line.
-    virtual void EvaluateOptions() { }
+    /// return true if everything is ok, false to stop and show help text.
+    virtual bool EvaluateOptions() { return false; }
 
     /// \brief Main body of application
     ///
