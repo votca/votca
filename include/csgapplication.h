@@ -19,6 +19,7 @@
 #define	__VOTCA_CSGAPPLICATION_H
 
 #include <votca/tools/application.h>
+#include "topology.h"
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -27,6 +28,22 @@ class CsgApplication
     : public Application
 {
 public:
+    CsgApplication();
+    ~CsgApplication();
+
+    void Initialize();
+    bool EvaluateOptions();
+    void Run(void);
+
+    virtual bool DoMapping(void) { return false; }
+    virtual bool DoTrajectory(void) { return false; }
+
+    /// \brief called before the first frame
+    virtual void BeginEvaluate(Topology *top, Topology *top_ref = 0);
+    /// \brief called after the last frame
+    virtual void EndEvaluate();
+    // \brief called for each frame which is mapped
+    virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0);
 };
 
 }}
