@@ -68,7 +68,7 @@ post add_single post_add_single.sh
 postadd tag tag_file.sh
 postadd dummy postadd_dummy.sh
 postadd copyback postadd_copyback.sh
-postadd convergence_dist postadd_convergence_dist.sh
+postadd convergence postadd_convergence.sh
 postadd acc_convergence postadd_acc_convergence.sh 
 postadd shift dpot_shift_nb.pl
 
