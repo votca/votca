@@ -21,6 +21,7 @@
 #include "topologyreader.h"
 #include "topologymap.h"
 #include "cgengine.h"
+#include "version.h"
 
 namespace votca { namespace csg {
 
@@ -58,14 +59,25 @@ void CsgApplication::Initialize(void)
 bool CsgApplication::EvaluateOptions(void)
 {
     if (!_op_vm.count("top")) {
-        cout << _op_desc << endl;
+        ShowHelpText(cout);
         throw runtime_error("no topology file specified");
     }
     if (!_op_vm.count("cg") && DoMapping()) {
-        cout << _op_desc << endl;
+        ShowHelpText(cout);
         throw runtime_error("no coarse graining definition specified");
     }
     return true;
+}
+
+void CsgApplication::ShowHelpText(std::ostream &out)
+{
+    string name =  ProgramName();
+    if(VersionString() != "")
+         name = name + ", version " + VersionString();
+    
+    HelpTextHeader(name);
+    HelpText(out);
+    out << "\n\n" << OptionsDesc() << endl;
 }
 
 void CsgApplication::Run(void)

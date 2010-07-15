@@ -35,6 +35,8 @@ public:
     bool EvaluateOptions();
     void Run(void);
 
+    void ShowHelpText(std::ostream &out);
+
     /// \brief overload and return true to enable mapping command line options
     virtual bool DoMapping(void) { return false; }
     /// \brief overload and return true to enable trajectory command line options
