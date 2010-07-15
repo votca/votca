@@ -50,7 +50,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/gmxtrajectorywriter.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/imcio.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/topology.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/numberdist.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/molecule.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/nblist.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/map.o \
@@ -179,11 +178,6 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/topology.o: nbproject/Makefile-${CN
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/topology.o ../../src/libcsg/topology.cc
-
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/numberdist.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/numberdist.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/numberdist.o ../../src/libcsg/numberdist.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/molecule.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg

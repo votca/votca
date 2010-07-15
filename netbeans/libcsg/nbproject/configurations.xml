@@ -22,7 +22,6 @@
       <itemPath>../../include/nblist.h</itemPath>
       <itemPath>../../include/nblistgrid.h</itemPath>
       <itemPath>../../include/nematicorder.h</itemPath>
-      <itemPath>../../include/numberdist.h</itemPath>
       <itemPath>../../include/pairlist.h</itemPath>
       <itemPath>../../include/residue.h</itemPath>
       <itemPath>../../include/topology.h</itemPath>
@@ -73,7 +72,6 @@
       <itemPath>../../src/libcsg/nblist.cc</itemPath>
       <itemPath>../../src/libcsg/nblistgrid.cc</itemPath>
       <itemPath>../../src/libcsg/nematicorder.cc</itemPath>
-      <itemPath>../../src/libcsg/numberdist.cc</itemPath>
       <itemPath>../../src/libcsg/topology.cc</itemPath>
       <itemPath>../../src/libcsg/topologymap.cc</itemPath>
       <itemPath>../../src/libcsg/topologyreader.cc</itemPath>
