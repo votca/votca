@@ -35,9 +35,12 @@ public:
     bool EvaluateOptions();
     void Run(void);
 
+    /// \brief overload and return true to enable mapping command line options
     virtual bool DoMapping(void) { return false; }
+    /// \brief overload and return true to enable trajectory command line options
     virtual bool DoTrajectory(void) { return false; }
 
+    /// \brief called after topology was loaded
     virtual void EvaluateTopology(Topology *top) {}
 
     /// \brief called before the first frame
