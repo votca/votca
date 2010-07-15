@@ -19,9 +19,8 @@ using namespace votca::csg;
 class CsgTestApp
     : public CsgApplication
 {
-    string ProgramName() { return "csg_dump"; }
-    void HelpText(ostream &out) { out << "Print atoms that are read from topology file to help"
-        " debugging atom naming."; }
+    string ProgramName() { return "template_nblist"; }
+    void HelpText(ostream &out) { out << "rough template for rdf calculations"; }
 
     void Initialize();
 
