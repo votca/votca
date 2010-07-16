@@ -160,6 +160,10 @@ void QMTopology::CopyChargesOccupied(CrgUnit *crg, Molecule *mol)
     if(!crg->getType()->GetCrgUnit().getChargesCrged())
         throw std::runtime_error("QMTopology::CopyCharges: no charges defined");
 
+    
+    if(crg->getType()->GetCrgUnit().getChargesCrged()->mpls.size() == 0)
+        throw std::runtime_error("QMTopology::CopyCharges: no charges defined (mpls.size()==0, that is strange!)");
+
     //loop over all beads in that molecule
     for (int i = 0; i < mol->BeadCount(); i++) {
         //get charge
