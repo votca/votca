@@ -15,6 +15,7 @@ int multipoles::read_crg_eps(const char * namefile ){
                     mpls.push_back(mpl);
                 }
         }
+        in.close();
         return 0;
 }
 

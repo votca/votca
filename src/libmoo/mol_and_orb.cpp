@@ -50,6 +50,10 @@ int mol_and_orb::init_charges(const char * neutrfile, const char * crgfile){
     _crged = new multipoles;
     _neutr->read_crg_eps(neutrfile);
     _crged->read_crg_eps(crgfile);
+    if(_neutr->mpls.size() != this->N)
+        throw std::runtime_error("number of atoms and entries in neutral charges file does not match");
+    if(_crged->mpls.size() != this->N)
+        throw std::runtime_error("number of atoms and entries in charged charges file does not match");
     return 0;
 }
 
