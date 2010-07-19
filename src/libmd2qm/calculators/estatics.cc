@@ -74,7 +74,7 @@ bool CalcEstatics::EvaluateFrame(QMTopology *top) {
         //Copy back the charges as if molecule mol would be neutral so that the loop can pick up the next molecule
         top->CopyCharges(crg, mol);
 //        cout << "Estatic energy [eV] for charged / neutral / crg-neutr=espilon: " << crged << " " << neutr << " " << crged - neutr << "\n";
-        cout << "Estatic energy [eV] for crgunit " << crg->getId()  <<  " is " << crged - neutr << "\n";
+        cout << "Estatic energy [eV] for crgunit " << crg->getId()   << " at pos " << crg->GetCom() <<  " is " << crged - neutr << "\n";
     }
 
     atop.Cleanup();
@@ -112,7 +112,8 @@ double CalcEstatics::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe pe
                 double qi = bi->getQ();
                 double qj = bj->getQ();
                 //cout<<bj->getPos()<<r_v<<r<<qi<<qj<<_epsilon_dielectric<<pot<<qi*qj/_epsilon_dielectric*1/r<<endl;
-                pot += k_c * qi * qj / ( (this->*_estatic_method)(r) * r ); //in eV
+                //pot += k_c * qi * qj / ( (this->*_estatic_method)(r) * r ); //in eV
+                pot += k_c * qi * qj / ( (this->*_estatic_method)(abs(bcs)) * r ); //in eV
             }
     }
     return pot;
