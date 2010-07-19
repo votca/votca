@@ -26,7 +26,6 @@ void ReadXML::Initialize(QMTopology* top, Property* options)
 bool ReadXML::EvaluateFrame(QMTopology *top)
 {    
     _top = top;
-    _top->nblist().Cleanup();
     _parser.NextHandler(this, &ReadXML::ParseRoot);
     _parser.Open(_filename);
 }
@@ -45,15 +44,21 @@ void ReadXML::ParseRoot(const string &el, map<string, string> &attr)
 
 void ReadXML::ParseBody(const string &el, map<string, string> &attr)
 {
-    if(el == "frame")
+    if(el == "frame") {
         _parser.NextHandler(this, &ReadXML::ParseFrame);
+    }
+
     else
         throw std::runtime_error("error, unknown node: " + el);
 }
 
 void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
 {
-    if(el == "pair") {
+    if(el == "clear_nblist") {
+        _top->nblist().Cleanup();        
+    }
+    else if(el == "pair") {
+
         int first = lexical_cast<int>(attr["first"]) - 1;
         int second = lexical_cast<int>(attr["second"]) - 1;
 
@@ -90,5 +95,17 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
         _top->nblist().AddPair(pair);
         
     }
+    else if (el == "site" ) {
+    	int site_number = lexical_cast<int>(attr["number"]) - 1;
+	CrgUnit *crg = _top->GetCrgUnit(site_number);
+
+        map<string,string>::iterator iter;
+	for(iter=attr.begin(); iter!=attr.end(); ++iter) {
+	    if(iter->first == "energy") {
+		crg->setEnergy(lexical_cast<double>(iter->second));
+	    }
+	}
+    }
+    else throw std::runtime_error("unknown node: " + el);
     _parser.IgnoreChilds();
 }

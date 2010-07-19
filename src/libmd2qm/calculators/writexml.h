@@ -23,7 +23,7 @@ public:
     
 private:
     string _outfile;
-    bool _write_dist, _write_rij, _write_jeff;
+    bool _write_dist, _write_rij, _write_jeff, _write_en;
 };
 
 inline void WriteXML::Initialize(QMTopology *top, Property *options)
@@ -39,6 +39,10 @@ inline void WriteXML::Initialize(QMTopology *top, Property *options)
 
     if(options->exists("options.writexml.jeff"))
         _write_jeff = options->get("options.writexml.jeff").as<bool>();
+
+    if(options->exists("options.writexml.site_energies"))
+        _write_en = options->get("options.writexml.site_energies").as<bool>();
+
 
     ofstream out;
     out.open(_outfile.c_str(), ios::out);
@@ -66,6 +70,7 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
 
 
     QMNBList &nblist = top->nblist();
+    vector < CrgUnit *> lcharges = top->CrgUnits();
     
     out << "  <frame>"  << endl;
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter) {
@@ -85,6 +90,14 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
         if(_write_jeff)
             out << " Jeff=\"" <<(*iter)->calcJeff2()<< "\"";
         out <<  "/>" << endl;
+    }
+    if (_write_en) {
+        for (vector < CrgUnit *>::iterator lch_iter = lcharges.begin();lch_iter!=lcharges.end();++lch_iter) {
+            out << "    <site "
+                << " number=\"" << (*lch_iter)->getId()+1 << "\""
+                << " energy=\"" << (*lch_iter)->getEnergy() << "\"";
+            out << "/>" << endl;
+        }
     }
     out << "  </frame>" << endl;
 
