@@ -15,30 +15,61 @@
  *
  */
 
-#include <math.h>
-#include <boost/tokenizer.hpp>
 #include <iostream>
 #include <fstream>
-#include <boost/program_options.hpp>
 #include <boost/format.hpp>
-#include <topologyreader.h>
-#include "version.h"
-#include "cgengine.h"
+#include <csgapplication.h>
 
 using namespace votca::csg;
-
-void help_text(void)
-{
-    votca::csg::HelpTextHeader("csg_gmxtopol");
-    cout << "Create skeleton for gromacs topology based on atomistic topology\n"
-            "and a mapping file. Files still needs to be modified by the user.\n\n";     
-}
-
 using namespace std;
-
 using boost::format;
 
-void WriteAtoms(ostream &out, Molecule &cg)
+class GmxTopolApp
+    : public CsgApplication
+{
+public:
+    string ProgramName() { return "csg_gmxtopol"; }
+    void HelpText(ostream &out) {
+        out << "Create skeleton for gromacs topology based on atomistic topology\n"
+            "and a mapping file. Files still needs to be modified by the user.";
+    }
+
+    bool DoMapping(void) { return true; }
+
+    void Initialize(void);
+    bool EvaluateOptions(void) {
+        CsgApplication::EvaluateOptions();
+        CheckRequired("out", "no output topology specified");
+        return true;
+    }
+    void EvaluateTopology(Topology *top, Topology *top_ref);
+
+protected:
+    void WriteAtoms(ostream &out, Molecule &cg);
+    void WriteInteractions(ostream &out, Molecule &cg);
+    void WriteMolecule(ostream &out, Molecule &cg);
+};
+
+void GmxTopolApp::Initialize(void)
+{
+    CsgApplication::Initialize();
+    AddProgramOptions()
+      ("out", boost::program_options::value<string>(), "output topology (will create .top and in future also .itp)");
+}
+
+void GmxTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
+{
+    if(top->MoleculeCount() > 1)
+            cout << "WARNING: cannot create topology for topology with"
+            "multiple molecules, using only first molecule\n";
+    ofstream fl;
+    fl.open((OptionsMap()["out"].as<string>() + ".top").c_str());
+    WriteMolecule(fl, *(top->MoleculeByIndex(0)));
+    fl.close();
+}
+
+
+void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg)
 {
     out << "[atoms]\n";
     out << "; nr type resnr residue atom cgnr charge mass\n";
@@ -51,7 +82,7 @@ void WriteAtoms(ostream &out, Molecule &cg)
     out << endl;
 }
 
-void WriteInteractions(ostream &out, Molecule &cg)
+void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg)
 {
     int nb=-1;
     
@@ -86,7 +117,7 @@ void WriteInteractions(ostream &out, Molecule &cg)
     }
 }
 
-void WriteMolecule(ostream &out, Molecule &cg)
+void GmxTopolApp::WriteMolecule(ostream &out, Molecule &cg)
 {
     out << "[ moleculetype ]\n";
     out << cg.getName() << " 3\n\n";
@@ -97,88 +128,7 @@ void WriteMolecule(ostream &out, Molecule &cg)
 
 int main(int argc, char** argv)
 {    
-    // initialize the readers/writers,
-    // this will be combined in an initialize function later
-    //    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-
-    // lets read in some program options
-    namespace po = boost::program_options;
-        
-    
-    // Declare the supported options.
-    po::options_description desc("Allowed options");    
-    
-    // let cg_engine add some program options
-    desc.add_options()
-    ("help", "produce this help message")
-    //("version", "show version info")
-    ("top", boost::program_options::value<string>(), "atomistic topology file")
-    ("cg", boost::program_options::value<string>(), "coarse grained mapping")
-    ("out", boost::program_options::value<string>(), "output topology (will create .top and in future also .itp)");
-    
-    // now read in the command line
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
-    // does the user want help?
-    if (vm.count("help")) {
-        help_text();
-        cout << desc << endl;
-        return 0;
-    }
-
-    if(!vm.count("cg")) {
-        cout << "no mapping specified\n";
-        return 0;
-    }
-
-    if(!vm.count("out")) {
-        cout << "no output topology specified\n";
-        return 0;
-    }
-
-    if(!vm.count("top")) {
-        cout << "no topology specified\n";
-        return 0;
-    }
-    
-    // try to run the cg process, go through the frames, etc...
-    try {
-        Topology top;
-        Topology top_cg;
-        CGEngine cg_engine;
-        
-        TopologyReader *reader;
-        TopologyMap *map;
-        
-        reader = TopReaderFactory().Create(vm["top"].as<string>());
-        if(reader == NULL) 
-            throw std::runtime_error("input format not supported: " + vm["top"].as<string>());
-        
-        reader->ReadTopology(vm["top"].as<string>(), top);
-        cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
-
-        cg_engine.LoadMoleculeType(vm["cg"].as<string>());
-        map = cg_engine.CreateCGTopology(top, top_cg);
-
-        cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-
-        if(top.MoleculeCount() > 1)
-                cout << "WARNING: cannot create topology for topology with"
-                "multiple molecules, using only first molecule\n";
-        map->Apply();
-	ofstream fl;
-        fl.open((vm["out"].as<string>() + ".top").c_str());
-                    
-	WriteMolecule(fl, *top_cg.MoleculeByIndex(0));
-        fl.close();
-    }
-    // did an error occour?
-    catch(std::exception &error) {
-        cerr << "An error occoured!" << endl << error.what() << endl;
-    }
-    return 0;
+    GmxTopolApp app;
+    return app.Exec(argc, argv);        
 }
 
