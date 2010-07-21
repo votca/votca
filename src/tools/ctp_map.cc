@@ -32,6 +32,8 @@ class CtpMapApp
     void Initialize();
     bool EvaluateOptions();
 
+    void BeginEvaluate(Topology *top, Topology *top_ref);
+
 protected:
     // we have one observer
     MD2QMObserver _observer;
@@ -54,7 +56,6 @@ bool CtpMapApp::EvaluateOptions()
 {
     CheckRequired("listcharges");
 
-    _qmtopol.LoadListCharges(OptionsMap()["listcharges"].as<string>());
     _observer.setCutoff(OptionsMap()["cutoff"].as<double>());
     _observer.setOut(OptionsMap()["out"].as<string>());
     _observer.Initialize(_qmtopol, _options);
@@ -64,6 +65,11 @@ bool CtpMapApp::EvaluateOptions()
     return true;
 }
 
+void CtpMapApp::BeginEvaluate(Topology *top, Topology *top_ref)
+{
+    _qmtopol.LoadListCharges(OptionsMap()["listcharges"].as<string>());
+    CsgApplication::BeginEvaluate(top, top_ref);
+}
 
 int main(int argc, char** argv)
 {
