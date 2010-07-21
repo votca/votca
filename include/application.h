@@ -55,6 +55,13 @@ public:
     /// return true if everything is ok, false to stop and show help text.
     virtual bool EvaluateOptions() { return false; }
 
+    /// \brief Check weather required option is set
+    ///
+    /// CheckRequired is called from EvaluateOptions if a required options is set.
+    /// If not, the list of possible options is shown and an exception with
+    /// the error messig given in error_msg is thrown
+    void CheckRequired(const string &option_name, const string &error_msg="");
+
     /// \brief Main body of application
     ///
     /// Run is called after command line was parsed + evaluated. All

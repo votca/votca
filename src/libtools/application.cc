@@ -116,5 +116,14 @@ void Application::ParseCommandLine(int argc, char **argv)
     }
 }
 
+void Application::CheckRequired(const string &option_name, const string &error_msg)
+{
+    if(!_op_vm.count(option_name)) {
+        ShowHelpText(cout);
+        throw std::runtime_error("missing argument " + option_name + "\n" + error_msg);
+    }
+}
+
+
 }}
 
