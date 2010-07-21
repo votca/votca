@@ -130,6 +130,8 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic, Molecule &
 void CsgBoltzmann::Run()
 {
     CsgApplication::Run();
+    if (OptionsMap().count("excl"))
+        return;
     InteractiveMode();
 }
 

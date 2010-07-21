@@ -103,6 +103,7 @@ void CsgApplication::Run(void)
         map = cg.CreateCGTopology(top, top_cg);
 
         cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
+        map->Apply();
         if(!EvaluateTopology(&top_cg, &top))
             return;
     }
