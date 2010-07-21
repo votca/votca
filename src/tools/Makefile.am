@@ -20,7 +20,7 @@ csg_stat_SOURCES = csg_stat.cc imc.cc imc.h
 
 csg_property_SOURCES = csg_property.cc
 
-csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch_main.cc csg_fmatch.h
+csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch.h
 
 csg_imcrepack_SOURCES = csg_imcrepack.cc
 

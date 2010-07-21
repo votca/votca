@@ -10,13 +10,15 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
-AS=
+FC=gfortran
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -31,8 +33,8 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch_main.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch.o
+	${OBJECTDIR}/_ext/715944016/csg_fmatch.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -52,27 +54,22 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/csg_fmatch
+	"${MAKE}"  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/csg_fmatch
 
 dist/Release/GNU-Linux-x86/csg_fmatch: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch_main.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/csg_fmatch_main.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
+${OBJECTDIR}/_ext/715944016/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch_main.o ../../src/tools/csg_fmatch_main.cc
-
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/csg_fmatch.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_fmatch.o ../../src/tools/csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:
 
 # Clean Targets
-.clean-conf:
+.clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Release
 	${RM} dist/Release/GNU-Linux-x86/csg_fmatch
 
