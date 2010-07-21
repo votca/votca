@@ -55,7 +55,7 @@ Do not forget the /gromacs due to bug in gromacs headers!
     ])
   ])
   AC_MSG_CHECKING([for GromacsVersion in $GMX_LIBS])
-  CXX="${SHELL-/bin/sh} ${srcdir}/libtool --mode=link $CXX"
+  CXX="${SHELL-/bin/sh} ./libtool --mode=link $CXX"
   AC_TRY_LINK_FUNC(GromacsVersion,[AC_MSG_RESULT([yes])],[
     AC_MSG_RESULT([no])
     AC_MSG_ERROR([
