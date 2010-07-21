@@ -51,7 +51,8 @@ my $eps="$ARGV[3]";
 
 # Read in empty potential table
 my @r;
-my $r_cut=csg_get_interaction_property("max");
+my $r_cut_rep=2**(1/6)*$sig;
+my $r_cut_tot=csg_get_interaction_property("max");
 my $w_cut=csg_get_interaction_property("inverse.simplex.generic.range");
 my $pi= 3.14159265;
 my @pot;
@@ -67,7 +68,7 @@ for (my $i=0;$i<=$#r;$i++){
     if ($r[$i]>1e-10) {
 
       # Attractive part
-      if ($r[$i]<$r_cut) {
+      if ($r[$i]<$r_cut_rep) {
         $pot_att[$i]=-$eps;
       }
       else {
@@ -75,8 +76,8 @@ for (my $i=0;$i<=$#r;$i++){
       }
  
       # Repulsive part
-      if ($r[$i]<=$r_cut) {
-        $pot_rep[$i]=4*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**6+(1/4));
+      if ($r[$i]<=$r_cut_rep) {
+        $pot_rep[$i]=4*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**6)+$eps;
       }
       else {
         $pot_rep[$i]=0;
@@ -98,7 +99,7 @@ for (my $i=0;$i<=$#r;$i++){
 }
 
 # Find index at the cutoff
-my $i_cut=$r_cut;
+my $i_cut=$r_cut_tot;
 
 # Shift potential to zero at the cutoff
 for (my $i=0;$i<=$i_cut;$i++){
