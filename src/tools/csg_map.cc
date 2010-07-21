@@ -19,100 +19,66 @@
 #include <boost/tokenizer.hpp>
 #include <iostream>
 #include <fstream>
-#include <boost/program_options.hpp>
-#include <cgengine.h>
-#include "version.h"
+#include <csgapplication.h>
+#include <trajectorywriter.h>
 
 using namespace std;
 using namespace votca::csg;
 
-void help_text()
-{
-    votca::csg::HelpTextHeader("csg_map");
-    cout << "Map a reference trajectory to a coarse-grained trajectory\n"
-            "This program can be used to map a whole trajectory or only\n"
-            "create an initial configuration for a coarse-grained run.\n\n";     
-}
-
-class CGTrjWrite
-    : public CGObserver
+class CsgMapApp
+    : public CsgApplication
 {
 public:
-    void BeginCG(Topology *top, Topology *top_atom) {
-        cout << "writing coarse-grained trajectory to " << _out << endl;
-
-        _writer = TrjWriterFactory().Create(_out);
-        if(_writer == NULL)
-            throw runtime_error("output format not supported: " + _out);
-        
-        _writer->Open(_out);
-    };
-
-    void EndCG() {
-        _writer->Close();
-        delete _writer;
-    };
-    
-    void EvalConfiguration(Topology *top, Topology *top_atom = 0) {
-        _writer->Write(top);
+    string ProgramName() { return "csg_map"; }
+    void HelpText(ostream &out) {
+        out << "Map a reference trajectory to a coarse-grained trajectory\n"
+            "This program can be used to map a whole trajectory or only\n"
+            "create an initial configuration for a coarse-grained run.";
     }
 
-    void setOut(const string &out) { _out = out; }
+    bool DoTrajectory() { return true;}
+    bool DoMapping() { return true;}
+
+    void Initialize() {
+        CsgApplication::Initialize();
+        AddProgramOptions()
+            ("out", boost::program_options::value<string>(),
+                "  output file for coarse-grained trajectory");
+    }
     
+    bool EvaluateOptions() {
+        CheckRequired("out", "need to specify output trajectory");
+        return true;
+    }
+
+    void BeginEvaluate(Topology *top, Topology *top_ref);
+
+    void EvalConfiguration(Topology *top, Topology *top_ref) {
+        _writer->Write(top);
+    }
+    void EndEvaluate() {
+        _writer->Close();
+        delete _writer;
+    }
+
 protected:
-    string _out;
     TrajectoryWriter *_writer;
 };
 
-// lets read in some program options
-namespace po = boost::program_options;
-
-int main(int argc, char** argv)
-{    
-    // we have one observer
-    CGTrjWrite writer;        
-    // The CGEngine does the work
-    CGEngine cg_engine;
-    
-    // file to write cg trajectory to
-    string out;
-    
-    try {
-        // add our observer that it gets called to analyze frames
-        cg_engine.Initialize();
-
-        cg_engine.AddObserver((CGObserver*)&writer);
-
-
-        cg_engine.AddProgramOptions()
-            ("out", po::value<string>(&out), "  output file for coarse-grained trajectory");
-
-        cg_engine.ParseCommandLine(argc, argv);
+void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom)
+{
+    string out = OptionsMap()["out"].as<string>();
+    cout << "writing coarse-grained trajectory to " << out << endl;
+    _writer = TrjWriterFactory().Create(out);
+    if(_writer == NULL)
+        throw runtime_error("output format not supported: " + out);
         
-        po::variables_map &vm
-            = cg_engine.OptionsMap();
-        po::options_description &desc
-            = cg_engine.OptionsDesc();
+    _writer->Open(out);
+};
 
-        // does the user want help?
-        if (vm.count("help")) {
-            help_text();
-            cout << desc << endl;
-            return 0;
-        }
-
-        if (!vm.count("out")) {
-            cerr << "need to specify output trajectory\n";
-            return -1;
-        }
-        writer.setOut(out);
-
-        cg_engine.Run();
-    }
-    // did an error occour?
-    catch(std::exception &error) {
-        cerr << "An error occoured!" << endl << error.what() << endl;
-    }
-    return 0;
+int main(int argc, char **argv)
+{
+    CsgMapApp app;
+    return app.Exec(argc, argv);
 }
 
