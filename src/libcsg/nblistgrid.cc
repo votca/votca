@@ -86,7 +86,7 @@ void NBListGrid::InitializeGrid(const matrix &box)
     _norm_b = _norm_b / (_box_b*_norm_b)*(double)_box_Nb;
     _norm_c = _norm_c / (_box_c*_norm_c)*(double)_box_Nc;
 
-    cout << "grid size: " << _box_Na << "x" << _box_Nb << "x" << _box_Nc << endl;
+    //cout << "grid size: " << _box_Na << "x" << _box_Nb << "x" << _box_Nc << endl;
     _grid.resize(_box_Na*_box_Nb*_box_Nc);
 
     int a1,a2,b1,b2,c1,c2;
