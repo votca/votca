@@ -43,7 +43,7 @@ void CsgApplication::Initialize(void)
     AddProgramOptions()
         ("top", boost::program_options::value<string>(), "  atomistic topology file");
     if(DoMapping())
-        AddProgramOptions()
+        AddProgramOptions("Mapping options")
             ("cg", boost::program_options::value<string>(), "  coarse graining definitions (xml-file)");
     
 
@@ -58,14 +58,10 @@ void CsgApplication::Initialize(void)
 
 bool CsgApplication::EvaluateOptions(void)
 {
-    if (!_op_vm.count("top")) {
-        ShowHelpText(cout);
-        throw runtime_error("no topology file specified");
-    }
-    if (!_op_vm.count("cg") && DoMapping()) {
-        ShowHelpText(cout);
-        throw runtime_error("no coarse graining definition specified");
-    }
+    CheckRequired("top", "no topology file specified");
+    if (DoMapping())
+        CheckRequired("top", "no coarse graining definition specified");
+
     return true;
 }
 
@@ -174,15 +170,23 @@ void CsgApplication::Run(void)
 }
 
 void CsgApplication::BeginEvaluate(Topology *top, Topology *top_ref) {
-
+    list<CGObserver *>::iterator iter;
+    for(iter=_observers.begin(); iter!=_observers.end(); ++iter)
+        (*iter)->BeginCG(top, top_ref);
 }
 
 void CsgApplication::EndEvaluate()
 {
+    list<CGObserver *>::iterator iter;
+    for(iter=_observers.begin(); iter!=_observers.end(); ++iter)
+        (*iter)->EndCG();
 }
 
 void CsgApplication::EvalConfiguration(Topology *top, Topology *top_ref)
 {
+    list<CGObserver *>::iterator iter;
+    for(iter=_observers.begin(); iter!=_observers.end(); ++iter)
+        (*iter)->EvalConfiguration(top, top_ref);
 }
 
 

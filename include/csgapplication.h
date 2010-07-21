@@ -20,6 +20,7 @@
 
 #include <votca/tools/application.h>
 #include "topology.h"
+#include "cgobserver.h"
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -33,6 +34,7 @@ public:
 
     void Initialize();
     bool EvaluateOptions();
+
     void Run(void);
 
     void ShowHelpText(std::ostream &out);
@@ -45,13 +47,24 @@ public:
     /// \brief called after topology was loaded
     virtual void EvaluateTopology(Topology *top) {}
 
+
+    void AddObserver(CGObserver *observer);
+    
     /// \brief called before the first frame
     virtual void BeginEvaluate(Topology *top, Topology *top_ref = 0);
     /// \brief called after the last frame
     virtual void EndEvaluate();
     // \brief called for each frame which is mapped
     virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0);
+    
+protected:
+    list<CGObserver *> _observers;
 };
+
+inline void CsgApplication::AddObserver(CGObserver *observer)
+{
+    _observers.push_back(observer);
+}
 
 }}
 
