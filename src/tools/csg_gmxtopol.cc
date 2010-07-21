@@ -42,7 +42,7 @@ public:
         CheckRequired("out", "no output topology specified");
         return true;
     }
-    void EvaluateTopology(Topology *top, Topology *top_ref);
+    bool EvaluateTopology(Topology *top, Topology *top_ref);
 
 protected:
     void WriteAtoms(ostream &out, Molecule &cg);
@@ -57,7 +57,7 @@ void GmxTopolApp::Initialize(void)
       ("out", boost::program_options::value<string>(), "output topology (will create .top and in future also .itp)");
 }
 
-void GmxTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
+bool GmxTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
 {
     if(top->MoleculeCount() > 1)
             cout << "WARNING: cannot create topology for topology with"
@@ -66,6 +66,7 @@ void GmxTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
     fl.open((OptionsMap()["out"].as<string>() + ".top").c_str());
     WriteMolecule(fl, *(top->MoleculeByIndex(0)));
     fl.close();
+    return true;
 }
 
 

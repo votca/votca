@@ -103,10 +103,12 @@ void CsgApplication::Run(void)
         map = cg.CreateCGTopology(top, top_cg);
 
         cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-        EvaluateTopology(&top_cg, &top);
+        if(!EvaluateTopology(&top_cg, &top))
+            return;
     }
     else
-        EvaluateTopology(&top);
+        if(!EvaluateTopology(&top))
+            return;
 
     // do we need to read a trajectory?
     if(DoTrajectory()) {
