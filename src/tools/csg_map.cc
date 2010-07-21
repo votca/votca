@@ -47,6 +47,7 @@ public:
     }
     
     bool EvaluateOptions() {
+        CsgApplication::EvaluateOptions();
         CheckRequired("out", "need to specify output trajectory");
         return true;
     }

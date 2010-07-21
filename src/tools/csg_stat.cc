@@ -74,6 +74,7 @@ void CsgStatApp::Initialize()
 }
 bool CsgStatApp::EvaluateOptions()
 {
+    CsgApplication::EvaluateOptions();
     CheckRequired("options");
     _imc.LoadOptions(OptionsMap()["options"].as<string>());
 

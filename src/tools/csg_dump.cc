@@ -28,7 +28,7 @@ class CsgDumpApp
     void HelpText(ostream &out) { out << "Print atoms that are read from topology file to help"
         " debugging atom naming."; }
 
-    void EvaluateTopology(Topology *top);
+    void EvaluateTopology(Topology *top, Topology *top_ref);
 };
 
 int main(int argc, char** argv)
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     return app.Exec(argc, argv);
 }
 
-void CsgDumpApp::EvaluateTopology(Topology *top)
+void CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
 {
     MoleculeContainer::iterator mol;
     for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
