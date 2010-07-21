@@ -7,6 +7,7 @@
 #include "calculators/contkmc.h"
 #include "calculators/estatics.h"
 #include "calculators/histintegrals.h"
+#include "calculators/shufflenrg.h"
 
 
 void CalculatorFactory::RegisterAll(void)
@@ -18,4 +19,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<CalcEstatics>("estat");
         Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<CalcHistIntegrals>("histintegrals");
+        Calculators().Register<ShuffleNrg>("shufflenrg");
 }

@@ -10,6 +10,8 @@
       <itemPath>../../src/libmd2qm/calculators/marcusrates.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/readxml.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/readxml.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/shufflenrg.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/shufflenrg.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/writexml.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
