@@ -26,74 +26,70 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-void help_text(void)
+
+#include <stdlib.h>
+#include <csgapplication.h>
+
+//using namespace votca::tools;
+using namespace std;
+using namespace votca::csg;
+
+class CsgStatApp
+    : public CsgApplication
 {
-    votca::csg::HelpTextHeader("csg_stat");
-    cout << "Calculate all distribuions (bonded + non-bonded) specified in options file.\n"
+public:
+    CsgStatApp() : _write_every(0) {}
+    
+    string ProgramName() { return "csg_stat"; }
+    void HelpText(ostream &out);
+
+    bool DoTrajectory() {return true;}
+    bool DoMapping() {return true;}
+
+    void Initialize();
+    bool EvaluateOptions();
+    
+public:
+    Imc _imc;
+    int _write_every;
+};
+
+void CsgStatApp::HelpText(ostream &out)
+{
+    out << "Calculate all distribuions (bonded + non-bonded) specified in options file.\n"
             "Optionally calculates update matrix for invere Monte Carlo. This program\n"
             "is called inside the inverse scripts. Unlike csg_boltzmann, big systems\n"
-            "can be treated as well as non-bonded interactions evaluated.\n\n";
+            "can be treated as well as non-bonded interactions evaluated.";
+}
+
+void CsgStatApp::Initialize()
+{
+    CsgApplication::Initialize();
+    AddProgramOptions("Specific options")
+            ("options", boost::program_options::value<string>(), "  options file for coarse graining")
+            ("do-imc", "  write out inverse monte carlo data")
+            ("write-every", boost::program_options::value<int>(&_write_every), "  write afer every block of this length, " \
+                "if --blocking is set, the averages are cleared after every write")
+            ("do-blocks", "  write output for blocking analysis");
+}
+bool CsgStatApp::EvaluateOptions()
+{
+    CheckRequired("options");
+    _imc.LoadOptions(OptionsMap()["options"].as<string>());
+
+    _imc.WriteEvery(_write_every);
+    if(OptionsMap().count("do-blocks"))
+        _imc.DoBlocks(true);
+    if(OptionsMap().count("do-imc"))
+    _imc.DoImc(true);
+
+    AddObserver(dynamic_cast<CGObserver*>(&_imc));
+    return true;
 }
 
 int main(int argc, char** argv)
-{    
-    int write_every=0;
-    // we have one observer
-    Imc imc;        
-    // The CGEngine does the work
-    CGEngine cg_engine;
-    namespace po=boost::program_options;
-    
-    try {
-
-        // add our observer that it gets called to analyze frames
-        cg_engine.AddObserver((CGObserver*)&imc);
-    
-        // let cg_engine add some program options
-        cg_engine.Initialize();
-   
-        cg_engine.AddProgramOptions()
-            ("options", po::value<string>(), "  options file for coarse graining")
-            ("do-imc", "  write out inverse monte carlo data")
-            ("write-every", po::value<int>(&write_every), "  write afer every block of this length, " \
-                "if --blocking is set, the averages are cleared after every write")
-            ("do-blocks", "  write output for blocking analysis");
-     
-        cg_engine.ParseCommandLine(argc, argv);
-
-        po::variables_map &vm
-            = cg_engine.OptionsMap();
-    
-        // does the user want help?
-        if (vm.count("help")) {
-            help_text();
-            cout << cg_engine.OptionsDesc() << endl;
-            return 0;
-        }
-    
-        if(!vm.count("options")) {
-            cout << "need to specify options file\n";
-            cout << cg_engine.OptionsDesc() << endl;
-            return -1;
-        }
-
-        imc.WriteEvery(write_every);
-        if(vm.count("do-blocks"))
-            imc.DoBlocks(true);
-        if(vm.count("do-imc"))
-            imc.DoImc(true);
-        
-        imc.LoadOptions(vm["options"].as<string>());
-            
-        // try to run the cg process, go through the frames, etc...
-        cg_engine.Run();
-    }
-    // did an error occour?
-    catch(exception &error) {
-        cerr << "An error occoured!" << endl << error.what() << endl;
-        return -1;
-    }
-    return 0;
+{
+    CsgStatApp app;
+    app.Exec(argc, argv);
 }
-
 
