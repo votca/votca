@@ -45,7 +45,7 @@ public:
     virtual bool DoTrajectory(void) { return false; }
 
     /// \brief called after topology was loaded
-    virtual void EvaluateTopology(Topology *top) {}
+    virtual void EvaluateTopology(Topology *top, Topology *top_ref = 0) {}
 
 
     void AddObserver(CGObserver *observer);

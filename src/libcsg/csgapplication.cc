@@ -60,7 +60,7 @@ bool CsgApplication::EvaluateOptions(void)
 {
     CheckRequired("top", "no topology file specified");
     if (DoMapping())
-        CheckRequired("top", "no coarse graining definition specified");
+        CheckRequired("cg", "no coarse graining definition specified");
 
     return true;
 }
@@ -82,6 +82,10 @@ void CsgApplication::Run(void)
     TopologyReader *reader;
     Topology top;
 
+    Topology top_cg;
+    TopologyMap *map=0;
+    CGEngine cg;
+
     // create reader for atomistic topology
     reader = TopReaderFactory().Create(_op_vm["top"].as<string>());
     if(reader == NULL)
@@ -92,14 +96,21 @@ void CsgApplication::Run(void)
     cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
     top.CheckMoleculeNaming();
 
-    EvaluateTopology(&top);
+    if(DoMapping()) {
+        // read in the coarse graining definitions (xml files)
+        cg.LoadMoleculeType(_op_vm["cg"].as<string>());
+        // create the mapping + cg topology
+        map = cg.CreateCGTopology(top, top_cg);
+
+        cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
+        EvaluateTopology(&top_cg, &top);
+    }
+    else
+        EvaluateTopology(&top);
 
     // do we need to read a trajectory?
     if(DoTrajectory()) {
         TrajectoryReader *traj_reader;
-        Topology top_cg;
-        TopologyMap *map=0;
-        CGEngine cg;
 
         double begin;
         int first_frame;
@@ -115,17 +126,7 @@ void CsgApplication::Run(void)
             nframes = _op_vm["nframes"].as<int>();
         }
 
-        first_frame = _op_vm["first-frame"].as<int>();
-
-
-        if(DoMapping()) {
-            // read in the coarse graining definitions (xml files)
-            cg.LoadMoleculeType(_op_vm["cg"].as<string>());
-            // create the mapping + cg topology
-            map = cg.CreateCGTopology(top, top_cg);
-
-            cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-        }
+        first_frame = _op_vm["first-frame"].as<int>();        
 
         // create reader for trajectory
         traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<string>());
@@ -162,9 +163,9 @@ void CsgApplication::Run(void)
         traj_reader->Close();
 
         delete traj_reader;
-        if(map)
-            delete map;
     }
+    if(map)
+        delete map;
     delete reader;
     
 }
