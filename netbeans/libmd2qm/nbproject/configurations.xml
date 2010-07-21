@@ -5,6 +5,8 @@
       <itemPath>../../src/libmd2qm/calculators/contkmc.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/estatics.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/estatics.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/generate_nrgs.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/generate_nrgs.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/histintegrals.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/integrals.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/marcusrates.h</itemPath>

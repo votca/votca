@@ -35,6 +35,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/generate_nrgs.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculatorfactory.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o \
@@ -87,6 +88,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o: nbproject
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o ../../src/libmd2qm/calculators/estatics.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/generate_nrgs.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculators/generate_nrgs.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/generate_nrgs.o ../../src/libmd2qm/calculators/generate_nrgs.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmnblist.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm

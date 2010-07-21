@@ -8,7 +8,7 @@
 #include "calculators/estatics.h"
 #include "calculators/histintegrals.h"
 #include "calculators/shufflenrg.h"
-
+#include "calculators/generate_nrgs.h"
 
 void CalculatorFactory::RegisterAll(void)
 {
@@ -20,4 +20,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<CalcHistIntegrals>("histintegrals");
         Calculators().Register<ShuffleNrg>("shufflenrg");
+        Calculators().Register<GenerateNrgs>("generatenrgs");
 }
