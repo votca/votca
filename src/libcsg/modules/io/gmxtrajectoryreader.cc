@@ -32,23 +32,23 @@ bool GMXTrajectoryReader::Open(const string &file)
 
 void GMXTrajectoryReader::Close()
 {
-    gmx::close_trx(_gmx_status);
+    close_trx(_gmx_status);
 }
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
 #ifdef GMX4DEV
-    gmx::output_env_t oenv;
+    output_env_t oenv;
     // _snew("oenv", oenv, 1);
-    oenv = (gmx::output_env_t)malloc(sizeof(*oenv));
+    oenv = (output_env_t)malloc(sizeof(*oenv));
     output_env_init_default (oenv);
 
-    if(!gmx::read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
+    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
     //sfree(oenv);
     free(oenv);
 #else
-    if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
+    if(!read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
 #endif
 
@@ -85,16 +85,16 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
 #ifdef GMX4DEV
-    gmx::output_env_t oenv;
-    //gmx::_snew("oenv", oenv, 1);
-    oenv = (gmx::output_env_t)malloc(sizeof(*oenv));
+    output_env_t oenv;
+    //_snew("oenv", oenv, 1);
+    oenv = (output_env_t)malloc(sizeof(*oenv));
     output_env_init_default (oenv);
-    if(!gmx::read_next_frame(oenv, _gmx_status,&_gmx_frame))
+    if(!read_next_frame(oenv, _gmx_status,&_gmx_frame))
         return false;
-    //gmx::sfree(oenv);
+    //sfree(oenv);
     free(oenv);
 #else
-    if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))
+    if(!read_next_frame(_gmx_status,&_gmx_frame))
         return false;
 #endif
 

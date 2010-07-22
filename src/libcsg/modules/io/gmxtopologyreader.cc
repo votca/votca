@@ -18,11 +18,19 @@
 #include <iostream>
 #include "gmxtopologyreader.h"
 
-namespace gmx {
-#ifndef GMX4DEV
+#include "config.h"
+
+#ifdef GMX4DEV
+        #include <gromacs/statutil.h>
+        #include <gromacs/typedefs.h>
+        #include <gromacs/smalloc.h>
+        #include <gromacs/vec.h>
+        #include <gromacs/copyrite.h>
+        #include <gromacs/statutil.h>
+        #include <gromacs/tpxio.h>
+#else
     extern "C"
     {
-#endif
         #include <statutil.h>
         #include <typedefs.h>
         #include <smalloc.h>
@@ -30,21 +38,18 @@ namespace gmx {
         #include <copyrite.h>
         #include <statutil.h>
         #include <tpxio.h>
-#ifndef GMX4DEV
     }
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
-}
 
 namespace votca { namespace csg {
 
 bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 { 
-    gmx::gmx_mtop_t mtop;
+    gmx_mtop_t mtop;
     char       title[STRLEN];
-    gmx::rvec       *xtop;
-    gmx::matrix     box;
+    rvec       *xtop;
 
 
     int natoms;
@@ -52,14 +57,14 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     top.Cleanup();
 
 #ifdef GMX4DEV
-    gmx::t_inputrec ir;
-    gmx::matrix gbox;
+    t_inputrec ir;
+    ::matrix gbox;
 
     int ePBC =
         read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #else
     int sss;   // wtf is this
-    gmx::real    ttt,lll; // wtf is this
+    ::real    ttt,lll; // wtf is this
     int ePBC =
         read_tpx((char *)file.c_str(),&sss,&ttt,&lll,NULL,NULL,&natoms,NULL,NULL,NULL,&mtop);
 #endif
@@ -76,14 +81,14 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     }
 
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
-        gmx::gmx_moltype_t *mol
+        gmx_moltype_t *mol
                 = &(mtop.moltype[mtop.molblock[iblock].type]);
 
         string molname =  *(mol->name);
 
         int res_offset = top.ResidueCount();
 
-        gmx::t_atoms *atoms=&(mol->atoms);
+        t_atoms *atoms=&(mol->atoms);
 
         for(int i=0; i < atoms->nres; i++) {
             #ifdef GMX4DEV
@@ -99,7 +104,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
             // read the atoms
             for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
-                gmx::t_atom *a = &(atoms->atom[iatom]);
+                t_atom *a = &(atoms->atom[iatom]);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
             #ifdef GMX4DEV
