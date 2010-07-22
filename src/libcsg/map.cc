@@ -187,24 +187,32 @@ void Map_Ellipsoid::Apply()
         _out->setVel(vel);
     if(bF)
         _out->setF(f);
+
+    if(!_matrix[0]._in->HasPos()) {
+        _out->setU(vec(1.0,0,0));
+        _out->setV(vec(.0,1,0));
+        _out->setW(vec(.0,0,1));
+        return;
+    }
     
     // calculate the tensor of gyration
     c=c/(double)n;    
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         if((*iter)._weight == 0) continue;
         Bead *bead = iter->_in;
-        vec v = bead->getPos() - c;
-        //v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
-        //    + vec(0.5, -1, 0) * (drand48()-0.5)
-        //    + vec(0, 0, 1) * (drand48()-0.5);
+            vec v = bead->getPos() - c;
+            //v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
+            //    + vec(0.5, -1, 0) * (drand48()-0.5)
+            //    + vec(0, 0, 1) * (drand48()-0.5);
         
-        //Normalize the tensor with 1/number_of_atoms_per_bead
-        m[0][0] += v.getX()*v.getX()/(double)_matrix.size();
-        m[0][1] += v.getX()*v.getY()/(double)_matrix.size();
-        m[0][2] += v.getX()*v.getZ()/(double)_matrix.size();        
-        m[1][1] += v.getY()*v.getY()/(double)_matrix.size();
-        m[1][2] += v.getY()*v.getZ()/(double)_matrix.size();
-        m[2][2] += v.getZ()*v.getZ()/(double)_matrix.size();
+            //Normalize the tensor with 1/number_of_atoms_per_bead
+            m[0][0] += v.getX()*v.getX()/(double)_matrix.size();
+            m[0][1] += v.getX()*v.getY()/(double)_matrix.size();
+            m[0][2] += v.getX()*v.getZ()/(double)_matrix.size();
+            m[1][1] += v.getY()*v.getY()/(double)_matrix.size();
+            m[1][2] += v.getY()*v.getZ()/(double)_matrix.size();
+            m[2][2] += v.getZ()*v.getZ()/(double)_matrix.size();
+        
     }
     m[1][0] = m[0][1];
     m[2][0] = m[0][2];
