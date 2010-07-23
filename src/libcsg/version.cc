@@ -18,7 +18,10 @@
 #include <votca/tools/version.h>
 #include <iostream>
 #include "version.h"
+
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #ifdef GMX4DEV
         #include <gromacs/copyrite.h>
