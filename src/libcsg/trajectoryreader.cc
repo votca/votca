@@ -18,12 +18,14 @@
 
 #include "trajectoryreader.h"
 #include "modules/io/gmxtrajectoryreader.h"
+#include "modules/io/esptrajectoryreader.h"
 
 
 namespace votca { namespace csg {
 
 void TrajectoryReader::RegisterPlugins(void)
 {
+    TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
     TrjReaderFactory().Register<GMXTrajectoryReader>("gro");

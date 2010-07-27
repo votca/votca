@@ -15,22 +15,35 @@
  *
  */
 
-#include "topologyreader.h"
-#include "modules/io/esptopologyreader.h"
-#include "modules/io/gmxtopologyreader.h"
-#include "modules/io/grotopologyreader.h"
-#include "modules/io/xmltopologyreader.h"
-#include "modules/io/pdbtopologyreader.h"
+#ifndef _ESPTRAJECTORYREADER_H
+#define	_ESPTRAJECTORYREADER_H
+
+#include "trajectoryreader.h"
 
 namespace votca { namespace csg {
 
-void TopologyReader::RegisterPlugins(void)
+using namespace std;
+
+class ESPTrajectoryReader : public TrajectoryReader
 {
-    TopReaderFactory().Register<ESPTopologyReader>("esp");		
-    TopReaderFactory().Register<GMXTopologyReader>("tpr");
-    TopReaderFactory().Register<GROTopologyReader>("gro");
-    TopReaderFactory().Register<XMLTopologyReader>("xml");
-    TopReaderFactory().Register<PDBTopologyReader>("pdb");
-}
+    public:        
+        /// open a trajectory file
+        bool Open(const string &file);
+        /// read in the first frame
+        bool FirstFrame(Topology &top);
+        /// read in the next frame
+        bool NextFrame(Topology &top);
+
+        void Close();
+        
+        TrajectoryReader *Clone() { return dynamic_cast<TrajectoryReader*>(new ESPTrajectoryReader()); }
+
+    private:
+        string _fl;
+				string _temp_nextframe;				
+};
 
 }}
+
+#endif	/* _ESPTRAJECTORYREADER_H */
+

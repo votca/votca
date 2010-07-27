@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 #
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -18,23 +18,14 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials in a generic way
+Functions useful for espresso
 
-Usage: ${0##*/}
+NEEDS:
 
-USES:  csg_get_property for_all do_external check_deps
+USES: 
 
-NEEDS: cg.inverse.method cg.inverse.program
+PROVIDES: 
 EOF
-   exit 0
+  exit 0
 fi
 
-check_deps "$0"
-
-sim_prog="$(csg_get_property cg.inverse.program)"
-method="$(csg_get_property cg.inverse.method)"
-
-for_all non-bonded do_external prepare_single $method
-
-#cp confout.gro and so on
-do_external prepare_generic $sim_prog

@@ -18,23 +18,26 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials in a generic way
+This initializes an espresso simulation
 
 Usage: ${0##*/}
 
-USES:  csg_get_property for_all do_external check_deps
+USES: check_deps cp_from_last_step run_or_exit mv
 
-NEEDS: cg.inverse.method cg.inverse.program
+NEEDS:
+
+OPTIONAL: cg.inverse.espresso.blockfile
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-method="$(csg_get_property cg.inverse.method)"
+esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
+[ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-for_all non-bonded do_external prepare_single $method
+cp_from_last_step confout.esp.gz
+run_or_exit mv confout.esp.gz $esp
 
-#cp confout.gro and so on
-do_external prepare_generic $sim_prog
+#convert potential in format for sim_prog
+for_all non-bonded do_external convert_potential espresso
