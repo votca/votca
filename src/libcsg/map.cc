@@ -226,10 +226,10 @@ void Map_Ellipsoid::Apply()
     vec eigenv2=es.eigenvecs[1];
     vec eigenv3=es.eigenvecs[2];
     
-    _out->seteigenvec1(eigenv1);
+/*    _out->seteigenvec1(eigenv1);
     _out->seteigenvec2(eigenv2);
     _out->seteigenvec3(eigenv3);
-    
+  */  
     
     vec u = es.eigenvecs[0];
     vec v = _matrix[1]._in->getPos() - _matrix[0]._in->getPos();
@@ -246,9 +246,9 @@ void Map_Ellipsoid::Apply()
     double eigenvalue3 = es.eigenvalues[2];
     
     
-    _out->setval1(eigenvalue1);
+    /*_out->setval1(eigenvalue1);
     _out->setval2(eigenvalue2);
-    _out->setval3(eigenvalue3);
+    _out->setval3(eigenvalue3);*/
     
     if((v^w)*u < 0) u=vec(0.,0.,0.)-u;
     _out->setU(u);
