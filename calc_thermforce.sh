@@ -29,6 +29,10 @@ adressw="$(csg_get_property cg.tf.adressw)"
 adressh="$(csg_get_property cg.tf.adressh)"
 adressc="$(csg_get_property cg.tf.adressc)"
 
+# ../ in the next line is dirty but in first step gromppp is not yet copied to step_000
+mdp="../$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+adress_type=$(get_from_mdp adress_type "$mdp")
 
 infile="dens.${name}.xvg"
 outfile="dens.${name}.smooth.xvg"
@@ -36,12 +40,15 @@ outfile="dens.${name}.smooth.xvg"
 xstart=$(echo "scale=8; $adressc+$adressw" | bc)
 xstop=$(echo "scale=8; $adressc+$adressw+$adressh" | bc)
 
+if [ ! $adress_type = "sphere" ]
+then
 infile="dens.${name}.xvg"
 outfile="dens.${name}.symm.xvg"
 run_or_exit do_external density symmetrize --infile $infile --outfile $outfile --adressc $adressc
-
-
 infile="dens.${name}.symm.xvg"
+#note : in the spehere case (no symmetrizing necessary) infile stays dens.${name}.xvg, so this gets used for next step
+fi
+
 outfile="dens.${name}.smooth.xvg"
 
 forcefile="thermforce.${name}.xvg"
