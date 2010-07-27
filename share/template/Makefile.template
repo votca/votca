@@ -13,7 +13,7 @@ all: $(NAME)
 
 #if VOTCALDLIB is defined we add it to PKG_CONFIG_PATH
 ifeq "$(origin VOTCALDLIB)" "undefined"
-  $(error "libvotca_csg not found by pkg-config, please source VOTCARC")
+  $(error "VOTCALDLIB not found, please source VOTCARC")
 else
   PKG_CONFIG_PATH:=${VOTCALDLIB}/pkgconfig:${PKG_CONFIG_PATH}
 endif
