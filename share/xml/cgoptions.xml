@@ -15,6 +15,13 @@
       so they will be described in the same section.
     </desc>
   </item>
+  
+  <item>
+    <name>cg.nbsearch</name>
+    <desc>
+      Grid search algorithm, can be simple or grid. Default is simple.
+    </desc>
+  </item>
 
 <!-- general inverse options -->
   <item>
