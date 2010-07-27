@@ -26,6 +26,8 @@
 
 using namespace std;
 namespace po = boost::program_options;
+using namespace votca::csg;
+using namespace votca::tools;
 
 /**
  *  *** Analyze particle distribution as a function of a coordinate ***
