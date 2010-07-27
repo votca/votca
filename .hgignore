@@ -31,6 +31,7 @@ scripts/multi_g_rdf
 share/scripts/inverse/MD5SUM
 share/scripts/inverse/Makefile.am
 share/doc/html/*
+share/template/csg_template
 src/config.h
 src/config.h.in
 src/csg_boltzmann/csg_boltzmann
@@ -43,6 +44,7 @@ src/tools/csg_map
 src/tools/csg_property
 src/tools/csg_resample
 src/tools/csg_stat
+src/tools/csg_part_dist
 
 scripts/hgstamp
 src/libcsg/hgstamp
