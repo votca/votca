@@ -84,12 +84,11 @@ for(my $i=0;$i<=$#r_cur;$i++){
 }
 $avg_ref_cur/=$count_ref_cur;
 $avg_ref_tgt/=$count_ref_tgt;
-# Error on PMF
-my @err_pmf;
+
+# Shift PMFs
 for(my $i=0;$i<=$#r_cur;$i++){
     $pmf_cur[$i]-=$avg_ref_cur;
     $pmf_tgt[$i]-=$avg_ref_tgt;
-    push(@err_pmf, abs($pmf_tgt[$i]/$pmf_cur[$i]));
 }
 
 my @update_factor;
@@ -102,18 +101,29 @@ for(my $t=1;$t<=$num_p_types;$t++){
     my $n_part_type=0;
     ($n_part_type+=$_) for @dist_part;
 
-    # Cumulative error on PMF
-    my $cumulative_err=0.;
-
+    
+    # Weighted average of the PMFs
+    my $avg_cur=0.;
+    my $avg_tgt=0.;
 
     printf("***************\ntype #$t - $n_part_type beads\n");
-    printf("r part_dist | cur_pmf tgt_pmf | error\n");
+    printf("r part_dist | cur_pmf tgt_pmf \n");
     for(my $i=0;$i<=$#r_part;$i++){
-	$cumulative_err+= ($dist_part[$i]/$n_part_type) * $err_pmf[$i];
-	printf("%f %f | %f %f | %f\n", $r_part[$i], $dist_part[$i], $pmf_cur[$i], $pmf_tgt[$i], $err_pmf[$i]);
+	$avg_cur += ($dist_part[$i]/$n_part_type) * $pmf_cur[$i];
+	$avg_tgt += ($dist_part[$i]/$n_part_type) * $pmf_tgt[$i];
+
+	printf("%f %f | %f %f\n", $r_part[$i], $dist_part[$i], $pmf_cur[$i], $pmf_tgt[$i]);
     }
-    printf("cumul error: %f\n",$cumulative_err);
-    push(@update_factor,$cumulative_err);
+    printf("averages: cur %f; tgt %f\n",$avg_cur, $avg_tgt);
+
+    die "Current and target PMFs have opposite effects compared to reference. Stop." if ($avg_cur*$avg_tgt == -1);
+    die "No contribution coming from type $t. Stop." if ($n_part_type == 0);
+
+    if ($avg_cur > 0) {
+	push(@update_factor,$avg_cur/$avg_tgt);
+    } else {
+	push(@update_factor,$avg_tgt/$avg_cur);
+    }
 }
 
 

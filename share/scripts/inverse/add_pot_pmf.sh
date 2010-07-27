@@ -24,7 +24,7 @@ Usage: ${0##*/}
 
 USES: do_external for_all csg_get_interaction_property check_deps csg_get_property
 
-NEEDS: type cg.inverse.espresso.inclusion_type
+NEEDS: type inter cg.inverse.espresso.inclusion_type
 
 OPTIONAL: cg.inverse.espresso.analysis cg.inverse.program
 EOF
@@ -44,6 +44,10 @@ sim_prog="$(echo $sim_prog | tr [:upper:] [:lower:])"
 
 # particle types involved in the optimization (except inclusion)
 ptypes="$(for_all non-bonded csg_get_interaction_property type)"
+
+update_factor="$(csg_get_property cg.inverse.espresso.update_factor 0.5)"
+[ -z "$update_factor" ] && die "${0##*/}: Could not read metadynamics property update_factor"
+
 
 # Inclusion
 incl_type="$(csg_get_property cg.inverse.espresso.inclusion_type)"
@@ -76,9 +80,10 @@ for { set i 0 } { \$i < [llength {$ptypes}] } { incr i } {
   # Update epsilon of LJ-type interaction
   set parameter [lindex \$interaction 3]
   # Apply update factor
-  set parameter [expr \$parameter * [lindex {$err_ptypes} \$i]]
+  set parameter [expr \$parameter * ($update_factor * [lindex {$err_ptypes} \$i] + 1-$update_factor)]
   lset interaction 3 \$parameter
   eval [ concat inter \$interaction ]
+
 }
 
 # Update blockfile

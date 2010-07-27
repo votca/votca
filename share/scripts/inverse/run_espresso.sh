@@ -163,6 +163,9 @@ elif [ "$method" = "pmf" ]; then
     meta_input_file="$(csg_get_property --allow-empty cg.inverse.espresso.meta_file "meta_file")"    
     meta_output_file="$(csg_get_property cg.inverse.espresso.current_pmf "meta_output.dat")"
 
+    max_snap_traj="$(csg_get_property cg.inverse.espresso.max_snap_traj 100)"
+    [ -z "$max_snap_traj" ] && die "${0##*/}: Could not read metadynamics property max_snap_traj"
+
     extra_cmd="$(csg_get_property cg.inverse.espresso.extra "")"
 
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
@@ -242,6 +245,14 @@ proc min_samp { profile } {
 }
 ################################################
 
+# Save topology+trajectory of snapshots for PMF analysis
+# **Do not save output file as .gz**
+set pos_out [open $traj_esp w]
+blockfile \$pos_out write variable box_l
+blockfile \$pos_out write tclvariable num_molecules
+blockfile \$pos_out write tclvariable num_atoms
+close \$pos_out
+
 
 set j 0
 set min_sampling 0
@@ -259,6 +270,16 @@ while { \$min_sampling < $meta_min_sampling } {
   puts "step \$j | current minimum sampling \$min_sampling < $meta_min_sampling"
   if { $debug == "yes" } {
     puts "  [analyze energy]"
+  }
+
+  if { \$j < $max_snap_traj } {
+    set pos_out [open $traj_esp a]
+    if { [has_feature "MASS"] } {
+      blockfile \$pos_out write particles {id type molecule mass pos v}
+    } else {
+      blockfile \$pos_out write particles {id type molecule pos v}
+    }
+    close \$pos_out
   }
 
   set out [open $esp_meta_temp w]
@@ -303,18 +324,6 @@ foreach r \$reac_coords p \$profile f \$force {
 }
 close \$out
 
-# Save topology+trajectory of last snapshot for PMF analysis
-# **Do not save output file as .gz**
-set pos_out [open $traj_esp w]
-blockfile \$pos_out write variable box_l
-blockfile \$pos_out write tclvariable num_molecules
-blockfile \$pos_out write tclvariable num_atoms
-if { [has_feature "MASS"] } {
-  blockfile \$pos_out write particles {id type molecule mass pos v}
-} else {
-  blockfile \$pos_out write particles {id type molecule pos v}
-}
-close \$pos_out
 
 set out [open $esp_success w]
 close \$out
