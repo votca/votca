@@ -31,7 +31,8 @@ scripts/multi_g_rdf
 share/scripts/inverse/MD5SUM
 share/scripts/inverse/Makefile.am
 share/doc/html/*
-share/template/csg_template
+share/template/template
+share/template/votca/csg
 src/config.h
 src/config.h.in
 src/csg_boltzmann/csg_boltzmann
