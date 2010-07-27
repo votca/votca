@@ -15,22 +15,35 @@
  *
  */
 
+#ifndef _ESPTOPOLOGYREADER_H
+#define	_ESPTOPOLOGYREADER_H
+
+#include <string>
 #include "topologyreader.h"
-#include "modules/io/esptopologyreader.h"
-#include "modules/io/gmxtopologyreader.h"
-#include "modules/io/grotopologyreader.h"
-#include "modules/io/xmltopologyreader.h"
-#include "modules/io/pdbtopologyreader.h"
+
 
 namespace votca { namespace csg {
+using namespace std;
+    
+/**
+    \brief reader for espresso blockfiles
 
-void TopologyReader::RegisterPlugins(void)
+    This class encapsulates the espresso reading functions and provides an interface to fill a topolgy class
+
+*/
+class ESPTopologyReader
+    : public TopologyReader
 {
-    TopReaderFactory().Register<ESPTopologyReader>("esp");		
-    TopReaderFactory().Register<GMXTopologyReader>("tpr");
-    TopReaderFactory().Register<GROTopologyReader>("gro");
-    TopReaderFactory().Register<XMLTopologyReader>("xml");
-    TopReaderFactory().Register<PDBTopologyReader>("pdb");
-}
+public:
+    /// read a topology file
+    bool ReadTopology(string file, Topology &top);
+    
+private:
+		/// extract variable from input line
+		string ReadBlockfileLine(string input_line, string variable);		
+};
 
 }}
+
+#endif	/* _ESPTOPOLOGYREADER_H */
+

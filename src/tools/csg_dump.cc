@@ -51,3 +51,4 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
     }
     return true;
 }
+

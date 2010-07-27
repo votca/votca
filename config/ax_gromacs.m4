@@ -14,7 +14,7 @@ AC_DEFUN([AX_GROMACS], [
   else
     libgmx="${withval#lib}"
   fi
-  PKG_CHECK_MODULES([GMX],[lib$libgmx],[have],[
+  PKG_CHECK_MODULES([GMX],[lib$libgmx],[:],[
     AC_MSG_CHECKING([GMXLDLIB])
     if test -z "$GMXLDLIB"; then
       AC_MSG_RESULT([no])

@@ -117,7 +117,7 @@ int main(int argc, char** argv)
         sp_max = boost::lexical_cast<double>(toks[2]);
         cout << "doing spline fit " << sp_min << ":" << sp_step << ":" << sp_max << endl;
         spline.GenerateGrid(sp_min, sp_max, sp_step);
-                
+
         spline.Fit(in.x(), in.y());
     } else {
         spline.Interpolate(in.x(), in.y());

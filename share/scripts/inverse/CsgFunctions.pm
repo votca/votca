@@ -21,7 +21,7 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(csg_function_help csg_get_property csg_get_interaction_property readin_table saveto_table saveto_table_err);
+@EXPORT      = qw(csg_function_help csg_get_property csg_get_interaction_property readin_table readin_data saveto_table saveto_table_err);
 
 sub csg_function_help() {
   print <<EOF;
@@ -83,6 +83,28 @@ sub readin_table($\@\@\@) {
     push(@{$_[1]},$parts[0]);
     push(@{$_[2]},$parts[1]);
     push(@{$_[3]},$parts[2]);
+  }
+  close(TAB) || die "readin_table: could not close file $_[0]\n";
+  return $line;
+}
+
+sub readin_data($$\@\@) {
+  defined($_[3]) || die "readin_data: Missing argument\n";
+  open(TAB,"$_[0]") || die "readin_table: could not open file $_[0]\n";
+  my $line=0;
+  my $column=int($_[1]);
+  while (<TAB>){
+    $line++;
+    # remove leading spacees for split
+    $_ =~ s/^\s*//;
+    next if /^[#@]/;
+    next if /^\s*$/;
+    my @parts=split(/\s+/);
+    defined($parts[1]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
+    die "readin_data: Can't read column $column\n" unless (defined($parts[$column]));
+    #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
+    push(@{$_[2]},$parts[0]);
+    push(@{$_[3]},$parts[$column]);
   }
   close(TAB) || die "readin_table: could not close file $_[0]\n";
   return $line;
