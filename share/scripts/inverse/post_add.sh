@@ -24,16 +24,13 @@ Usage: ${0##*/}
 
 USES:  do_external for_all check_deps
 
-NEEDS: cg.inverse.method
+NEEDS:
 EOF
    exit 0
 fi
 
 check_deps "$0"
 
-method="$(csg_get_property cg.inverse.method)"
 
-if [ "$(echo $method | tr [:upper:] [:lower:])" != "pmf" ]; then
-    for_all "non-bonded" do_external post add_single
-fi
+for_all "non-bonded" do_external post add_single
 
