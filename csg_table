@@ -1,8 +1,9 @@
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
-init tf initialize_generic.sh
-init_single tf initialize_tf.sh
+prepare tf prepare_generic.sh
+prepare_single tf prepare_tf_single.sh
+#init_single tf init_tf.sh
 initstep tf initialize_step_generic.sh
 
 # the update step
@@ -19,7 +20,10 @@ calc thermforce calc_thermforce.sh
 convert_potential xvg table_to_xvg.pl
 table integrate integrate_tf.pl
 tf apply_prefactor apply_prefactor.pl
+# todo : can aplly_pref be the post update?
+post_update tf dummy.sh
 table smooth_borders smooth_borders.py
+
 
 density gromacs calc_density_x_gromacs.sh
 density symmetrize density_symmetrize.py 
