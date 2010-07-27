@@ -1,5 +1,5 @@
 #change the name of the program here
-NAME=csg_template
+NAME=template
 
 #add extra cc file to compile here
 EXTRA_SRC=
