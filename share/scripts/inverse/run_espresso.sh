@@ -153,6 +153,184 @@ EOF
     fi
     [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
     
+################## PMF ####################
+elif [ "$method" = "pmf" ]; then
+    meta_cmd="$(csg_get_property cg.inverse.espresso.meta_cmd)"
+
+    meta_min_sampling="$(csg_get_property cg.inverse.espresso.meta_min_sampling)"
+    [ -z "$meta_min_sampling" ] && die "${0##*/}: Could not read metadynamics property meta_min_sampling"
+
+    meta_input_file="$(csg_get_property --allow-empty cg.inverse.espresso.meta_file "meta_file")"    
+    meta_output_file="$(csg_get_property cg.inverse.espresso.current_pmf "meta_output.dat")"
+
+    max_snap_traj="$(csg_get_property cg.inverse.espresso.max_snap_traj 100)"
+    [ -z "$max_snap_traj" ] && die "${0##*/}: Could not read metadynamics property max_snap_traj"
+
+    extra_cmd="$(csg_get_property cg.inverse.espresso.extra "")"
+
+    # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
+    esp_script="$(mktemp esp.run.tcl.XXXXX)"
+    esp_meta_temp="$(mktemp esp.meta.tmp.XXXXX)"
+    esp_success="$(mktemp esp.run.done.XXXXX)"
+    cat > $esp_script <<EOF
+### Load config
+set in [open "|gzip -cd $esp" r]
+while { [blockfile \$in read auto] != "eof" } {}
+close \$in
+
+
+# Are num_molecules and num_atoms both already defined?
+if { ![info exists num_molecules] || ![info exists num_atoms] } {
+  # Loop over all particles to calculate num_molecules and num_atoms
+  set moltypes ""
+  set num_molecules 0
+  set num_atoms ""
+  set num_atoms_mol 0
+  for { set j 0 } { \$j < [setmd n_part] } { incr j } {
+    # look for molecules
+    if {[lsearch \$moltypes [part \$j print molecule]] == -1} {
+      lappend moltypes [part \$j print molecule]
+      incr num_molecules
+      if {\$j != 0 } { lappend num_atoms \$num_atoms_mol }
+      set num_atoms_mol 1
+    } else {
+      incr num_atoms_mol
+    }
+  }
+  lappend num_atoms \$num_atoms_mol
+}
+
+# If we're converging PMFs, make sure metadynamics is set
+if { ![has_feature "METADYNAMICS"] } {
+  puts "Error: the PMF votca method requires the METADYNAMICS feature."
+  exit 1
+}
+# Set metadynamics according to XML settings
+$meta_cmd
+
+# Extra commands that can't go into the blockfile, if any
+if { [llength {$extra_cmd}] != 0 } { $extra_cmd }
+
+# Try to load an existing PMF (from previous step)
+if { [file exists $meta_input_file] } {
+  set in [open $meta_input_file r]
+  set file_data [read \$in]
+  close \$in
+  #  Process data file
+  set data [split \$file_data "\n"]
+  set profile_in ""
+  set force_in ""
+  foreach line \$data {
+    lappend profile_in [lindex \$line 1]
+    lappend force_in [lindex \$line 2]
+  }
+  # Now read size of metadynamics binning and compare with input data
+  set reac_coords [metadynamics print_stat coord_values]
+  if { [llength \$profile_in] != [llength \$force_in] } {
+    puts "Error: the PMF input file $meta_input_file is not consistent."
+    exit 1
+  } else {
+    metadynamics load_stat \$profile_in \$force_in
+  }
+}
+
+################################################
+# Determine the profile's minimum sampled point
+proc min_samp { profile } {
+  set result -1e30
+  foreach e \$profile {
+    if { \$e > \$result } { set result \$e }
+  }
+  return [expr -1.*\$result]
+}
+################################################
+
+# Save topology+trajectory of snapshots for PMF analysis
+# **Do not save output file as .gz**
+set pos_out [open $traj_esp w]
+blockfile \$pos_out write variable box_l
+blockfile \$pos_out write tclvariable num_molecules
+blockfile \$pos_out write tclvariable num_atoms
+close \$pos_out
+
+
+set j 0
+set min_sampling 0
+# Main integration loop
+while { \$min_sampling < $meta_min_sampling } {
+  integrate $n_steps
+  # extract profile
+  set reac_coords [metadynamics print_stat coord_values]
+  set profile [metadynamics print_stat profile]
+  set force [metadynamics print_stat force]
+
+  # Determine point that was least sampled
+  set min_sampling [min_samp \$profile]
+
+  puts "step \$j | current minimum sampling \$min_sampling < $meta_min_sampling"
+  if { $debug == "yes" } {
+    puts "  [analyze energy]"
+  }
+
+  if { \$j < $max_snap_traj } {
+    set pos_out [open $traj_esp a]
+    if { [has_feature "MASS"] } {
+      blockfile \$pos_out write particles {id type molecule mass pos v}
+    } else {
+      blockfile \$pos_out write particles {id type molecule pos v}
+    }
+    close \$pos_out
+  }
+
+  set out [open $esp_meta_temp w]
+  foreach r \$reac_coords p \$profile f \$force {
+    puts \$out "\$r \$p \$f"
+  }
+  close \$out
+  incr j
+}
+
+set reac_coords [metadynamics print_stat coord_values]
+set profile [metadynamics print_stat profile]
+set force [metadynamics print_stat force]
+
+# Save simulation parameters
+set out [open "|gzip -c - > confout.esp.gz" w]
+blockfile \$out write variable all
+blockfile \$out write interactions
+blockfile \$out write thermostat
+blockfile \$out write tclvariable num_molecules
+blockfile \$out write tclvariable num_atoms
+if { [has_feature "MASS"] } {
+  if { [has_feature "VIRTUAL_SITES"] } {
+    blockfile \$out write particles {id type molecule mass virtual pos v}
+  } else {
+    blockfile \$out write particles {id type molecule mass pos v}
+  }
+} else {
+  if { [has_feature "VIRTUAL_SITES"] } {
+    blockfile \$out write particles {id type molecule virtual pos v}
+  } else {
+    blockfile \$out write particles {id type molecule pos v}
+  }
+}
+close \$out
+
+# Save metadynamics (scaled) profile and force
+# Scaling brings least sampled point to F=0.
+set out [open $meta_output_file w]
+foreach r \$reac_coords p \$profile f \$force {
+  puts \$out "\$r [expr \$p+\$min_sampling] \$f"
+}
+close \$out
+
+
+set out [open $esp_success w]
+close \$out
+EOF
+
+    run_or_exit $esp_bin $esp_script
+    [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
 else
-    die "${0##*/}: ESPResSo only supports method: IBM"
+    die "${0##*/}: ESPResSo only supports methods: IBM and PMF"
 fi

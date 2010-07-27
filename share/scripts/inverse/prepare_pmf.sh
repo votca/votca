@@ -18,22 +18,34 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script make all the post update with backup
+This script implements the function prepare in espresso
+for the PMF calculation
 
-Usage: ${0##*/}
+Usage: ${0##*/} last_sim_dir
 
-USES:  do_external for_all check_deps
+USES: check_deps cp_from_main_dir run_or_exit mv
 
-NEEDS: cg.inverse.method
+NEEDS: cg.inverse.program
+
+OPTIONAL: cg.inverse.espresso.blockfile 
 EOF
-   exit 0
+  exit 0
 fi
 
 check_deps "$0"
 
-method="$(csg_get_property cg.inverse.method)"
+sim_prog="$(csg_get_property cg.inverse.program)"
 
-if [ "$(echo $method | tr [:upper:] [:lower:])" != "pmf" ]; then
-    for_all "non-bonded" do_external post add_single
+meta_file="$(csg_get_property --allow-empty cg.inverse.${sim_prog}.meta_file)"
+if [ -f "$(get_main_dir)/$meta_file" ]; then
+    cp_from_main_dir $meta_file
+else
+    msg "No input metadynamics file found."
 fi
+
+esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
+cp_from_main_dir $esp
+[ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
+
+run_or_exit mv $esp confout.esp.gz
 

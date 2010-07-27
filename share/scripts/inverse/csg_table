@@ -25,20 +25,24 @@ dummy dummy dummy.sh
 # method initialization
 prepare ibm prepare_generic.sh
 prepare imc prepare_imc.sh
+prepare pmf prepare_pmf.sh
 prepare generic prepare_generic.sh
 prepare_single ibm prepare_generic_single.sh
 prepare_single imc prepare_generic_single.sh
 initstep ibm initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
+initstep pmf initialize_step_pmf.sh
 
 # the update step
 update ibm update_ibm.sh
 update imc update_imc.sh
+update pmf update_pmf.sh
 
 # add up the potential
 # TODO: think about name add_pot, is other name maybe better
 add_pot ibm add_pot_generic.sh
 add_pot imc add_pot_generic.sh
+add_pot pmf add_pot_pmf.sh
 
 # END: these scripts have to be defined for each method
 
@@ -48,6 +52,7 @@ rdf pot RDF_to_POT.pl
 # post update
 post_update ibm post_update_generic.sh
 post_update imc post_update_generic.sh
+post_update pmf post_update_pmf.sh
 post_update_single ibm post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 
@@ -133,6 +138,10 @@ functions gromacs functions_gromacs.sh
 run espresso run_espresso.sh
 pressure espresso calc_pressure_espresso.sh
 rdf espresso calc_rdf_espresso.sh
+
+# Analyze PMF
+pmf espresso analyze_pmf_espresso.sh
+pmf analyze analyze_pmf.pl
 
 # ESPResSo scripts
 convert_potential espresso potential_to_espresso.sh
