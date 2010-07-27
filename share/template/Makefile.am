@@ -1,8 +1,9 @@
 templatedir = ${datadir}/votca/template
 
-template_DATA = template.cc template_nblist.cc 
+template_DATA = csg_template.cc Makefile.template 
 
-EXTRA_DIST = $(template_DATA)
+install-data-hook:
+	cd $(DESTDIR)$(templatedir) && mv Makefile.template Makefile
 
 CLEANFILES = *~
 
