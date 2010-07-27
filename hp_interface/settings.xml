@@ -1,0 +1,76 @@
+<cg>
+  <!-- List of particles that are to be optimized with respect to inclusion -->
+  <non-bonded>
+    <name>0</name>
+    <!-- Bead type (it's a number in Espresso) -->
+    <type>0</type>
+  </non-bonded>
+  
+  <non-bonded>
+    <name>1</name>
+    <!-- Bead type (it's a number in Espresso) -->
+    <type>1</type>
+  </non-bonded>
+
+  <!-- general options for inverse script -->
+  <inverse>
+    <!-- use espresso as simulation program -->
+    <program>espresso</program>
+    <!-- espresso specific options -->
+    <espresso>
+      <!-- specify Espresso executable; can include full path -->
+      <bin>Espresso_bin</bin>
+      <!-- metadynamics command -->
+      <meta_cmd>metadynamics set relative_z 201 0 -5. 5. \
+	0.00005 .8 .05 400</meta_cmd>
+      <!-- additional espresso commands that won't go into the blockfile-->
+      <extra>analyze set chains 1 1 200</extra>
+      <!-- load metadynamics file -->
+      <meta_file></meta_file>
+      <!-- Target PMF -->
+      <target_pmf>target.pmf.dat</target_pmf>
+      <!-- minimum sampling throughout reaction coordinate before ending simulation -->
+      <meta_min_sampling>7</meta_min_sampling>
+      <!-- max number of trajectory snapshots per step -->
+      <max_snap_traj>100</max_snap_traj>
+      <!-- Grid for PMF calculation -->
+      <min>-5.0</min>
+      <binsize>0.5</binsize>
+      <max>5.0</max>
+      <!-- Blockfile: contains simulation parameters -->
+      <blockfile>conf.esp.gz</blockfile>
+      <!-- Number of steps to integrate between each snapshot -->
+      <n_steps>10000</n_steps>
+      <!-- Output file of trajectories -->
+      <traj>top_traj.esp</traj>
+      <!-- Output file of pmf analysis -->
+      <analysis>pmf.analysis.dat</analysis>
+      <!-- Output file of current PMF -->
+      <current_pmf>current.pmf.dat</current_pmf>
+      <!-- Reference region of the PMF (function=0) -->
+      <pmf_ref_min>4</pmf_ref_min>
+      <pmf_ref_max>5</pmf_ref_max>
+      <!-- Potential Update factor -->
+      <update_factor>0.5</update_factor>
+      <!-- bead type of the inclusion -->
+      <inclusion_type>2</inclusion_type>
+    </espresso>
+    <!-- these files are copied for each new run -->
+    <filelist>conf.esp.gz</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>30</iterations_max>
+    <!-- ibm: inverse biltzmann imc: inverse monte carlo pmf: free energy-->
+    <method>pmf</method>
+    <!-- directory for user scripts -->
+    <scriptdir>$PWD</scriptdir>
+    <!-- write log to this file -->
+    <log_file>inverse.log</log_file>
+    <!-- write restart step to this file -->
+    <restart_file>restart_points.log</restart_file>
+    <!-- mpi - uncomment to run in parallel -->
+    <!-- <mpi> -->
+      <!-- <cmd>mpirun -np 2</cmd> -->
+      <!-- <tasks>2</tasks> -->
+    <!-- </mpi> -->
+  </inverse>
+</cg>
