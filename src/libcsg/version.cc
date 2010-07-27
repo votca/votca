@@ -18,14 +18,17 @@
 #include <votca/tools/version.h>
 #include <iostream>
 #include "version.h"
-#include "config.h"
 
-#ifndef GMX4DEV
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef GMX4DEV
+        #include <gromacs/copyrite.h>
+#else
     extern "C"
     {
-#endif
         #include <copyrite.h>
-#ifndef GMX4DEV
     }
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx

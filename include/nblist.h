@@ -23,6 +23,9 @@
 #include "pairlist.h"
 #include "exclusionlist.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 /**
  * \brief new implementation of neighbourlist, will substitute Neighbourlist
  * 
@@ -34,8 +37,8 @@ public:
     NBList();
     virtual ~NBList();    
 
-    void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
-    void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
+    virtual void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
+    virtual void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
     
     void setCutoff(double cutoff) { _cutoff = cutoff; }
     double getCutoff() { return _cutoff; }
@@ -84,6 +87,8 @@ inline void NBList::setMatchFunction(match_function_t match_function)
 {
     _match_function = match_function;
 }
+
+}}
 
 #endif	/* _NBLIST_H */
 

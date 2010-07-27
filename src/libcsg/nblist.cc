@@ -18,6 +18,8 @@
 #include "nblist.h"
 #include <iostream>
 
+namespace votca { namespace csg {
+
 NBList::NBList()
   : _do_exclusions(false)
 {
@@ -69,3 +71,5 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
         } 
     }
 }
+
+}}

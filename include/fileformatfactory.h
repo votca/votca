@@ -23,6 +23,9 @@
 #include <votca/tools/objectfactory.h>
 #include <votca/tools/tokenizer.h>
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 template<typename T>
@@ -47,6 +50,8 @@ T *FileFormatFactory<T>::Create(const string &file)
     } catch(std::exception &error) {}
     return NULL;
 }
+
+}}
 
 #endif	/* _FILEFORMATFACTORY_H */
 

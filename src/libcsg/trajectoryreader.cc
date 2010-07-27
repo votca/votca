@@ -20,6 +20,9 @@
 #include "modules/io/gmxtrajectoryreader.h"
 #include "modules/io/esptrajectoryreader.h"
 
+
+namespace votca { namespace csg {
+
 void TrajectoryReader::RegisterPlugins(void)
 {
     TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
@@ -28,3 +31,5 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
     TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
 }
+
+}}

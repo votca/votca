@@ -21,6 +21,9 @@
 #include <votca/tools/vec.h>
 #include "interaction.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 /**
     \brief Calculates connectivity of topology
 
@@ -44,6 +47,7 @@ protected:
     vector<entry_t *> _list;
 }
 
+}}
 
 #endif	/* _CONNECTIVITY_H */
 

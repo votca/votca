@@ -21,6 +21,9 @@
 #include <string>
 #include "topologyitem.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /**
@@ -42,6 +45,8 @@ private:
     : _id(id), _name(name), TopologyItem(parent) {}
     friend class Topology;
 };
+
+}}
 
 #endif	/* _BEADTYPE_H */
 

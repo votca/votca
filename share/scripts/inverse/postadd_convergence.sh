@@ -18,16 +18,16 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd convergence script, calcs int of (\${name}.dist.tgt-\${name}.dist.new)**2
-and save it to \${name}.conv
+postadd convergence script, calcs int of (\${name}.DIST.tgt-\${name}.DIST.new)**2
+and save it to \${name}.conv. DIST ist dist, but changed by onvergence.what option
 
-Usage: ${0##*/} infile outfile
+usage: ${0##*/} infile outfile
 
 USES: die check_deps do_external wc sed awk paste mktemp
 
 NEEDS: name
 
-OPTIONAL: inverse.post_add_options.convergence.weight
+OPTIONAL: inverse.post_add_options.convergence.weight inverse.post_add_options.convergence.what
 EOF
    exit 0
 fi
@@ -41,20 +41,25 @@ do_external postadd dummy "$1" "$2"
 name=$(csg_get_interaction_property name)
 step=$(csg_get_interaction_property step)
 weight=$(csg_get_interaction_property inverse.post_add_options.convergence.weight 1)
+dist=$(csg_get_interaction_property inverse.post_add_options.convergence.what "dist")
 
-tmp1="$(true_or_exit mktemp ${name}.dist.tgt.XXX)"
-tmp2="$(true_or_exit mktemp ${name}.dist.new.XXX)"
-tmp3="$(true_or_exit mktemp ${name}.dist.cmb.XXX)"
+tmp1="$(true_or_exit mktemp ${name}.${dist}.tgt.XXX)"
+tmp2="$(true_or_exit mktemp ${name}.${dist}.new.XXX)"
+tmp3="$(true_or_exit mktemp ${name}.${dist}.cmb.XXX)"
 
-if [ ! -f "${name}.dist.tgt" ]; then
-  do_external resample target
+if [ ! -f "${name}.${dist}.tgt" ]; then
+  if [ "${dist}" = "dist" ]; then
+    do_external resample target
+  else
+    die "${0##*/}: file '${name}.${dist}.tgt' was not found"
+  fi
 fi
 
-true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.dist.tgt > $tmp1
-true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.dist.new > $tmp2
+true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
+true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.new > $tmp2
 
 [ $(sed -n '$=' $tmp1) -eq $(sed -n '$=' $tmp2) ] || \
-  die "${0##*/}: linenumber of ${name}.dist.tgt differs from ${name}.dist.new"
+  die "${0##*/}: linenumber of ${name}.${dist}.tgt differs from ${name}.${dist}.new"
 
 true_or_exit paste $tmp1 $tmp2 > $tmp3
 run_or_exit awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3

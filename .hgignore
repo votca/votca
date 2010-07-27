@@ -30,6 +30,7 @@ scripts/csg_inverse
 scripts/multi_g_rdf
 share/scripts/inverse/MD5SUM
 share/scripts/inverse/Makefile.am
+share/doc/html/*
 src/config.h
 src/config.h.in
 src/csg_boltzmann/csg_boltzmann

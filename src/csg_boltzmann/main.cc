@@ -20,39 +20,82 @@
 //
 
 #include <math.h>
-#include <boost/tokenizer.hpp>
 #include <iostream>
 #include <fstream>
-#include <boost/program_options.hpp>
-#include <votca/tools/vec.h>
-#include "cgmoleculedef.h"
-#include "cgengine.h"
-#include "molecule.h"
-#include "topologyreader.h"
-#include "trajectorywriter.h"
-#include "trajectoryreader.h"
-#include <votca/tools/tokenizer.h>
-#include <votca/tools/matrix.h>
-#include "analysistool.h"
-#include "version.h"
-#include <votca/tools/rangeparser.h>
-#include "bondedstatistics.h"
-#include "version.h"
 #include <map>
 #include <string>
+#include <votca/tools/tokenizer.h>
+#include <votca/tools/rangeparser.h>
+#include "analysistool.h"
+#include "bondedstatistics.h"
 #include "tabulatedpotential.h"
 #include "stdanalysis.h"
+#include <csgapplication.h>
 
 using namespace std;
 
-void help_text()
+class CsgBoltzmann
+    : public CsgApplication
 {
-    votca::csg::HelpTextHeader("csg_boltzmann");
-    cout << "Perform tasks that are needed for simple boltzmann\n"
-            "inversion in an interactive environment.\n\n";
+public:
+
+    string ProgramName() { return "csg_boltzmann"; }
+    void HelpText(ostream &out) {
+        out << "Perform tasks that are needed for simple boltzmann\n"
+            "inversion in an interactive environment.";
+    }
+    bool DoTrajectory() { return true; }
+    bool DoMapping() { return true; }
+
+    void Initialize();
+    void Run();
+
+    void InteractiveMode();
+    bool EvaluateTopology(Topology *top, Topology *top_ref);
+
+protected:
+
+    ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg);
+    BondedStatistics _bs;
+
+};
+void CsgBoltzmann::Initialize()
+{
+    CsgApplication::Initialize();
+    AddProgramOptions("Special options")
+        ("excl", boost::program_options::value<string>(), "write exclusion list to file");
+
+    AddObserver(&_bs);
 }
 
-ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg)
+bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref)
+{
+    if (OptionsMap().count("excl")) {
+        ExclusionList *ex;
+        if (top_ref->MoleculeCount() > 1)
+            cout << "WARNING: cannot create exclusion list for topology with"
+                "multiple molecules, using only first molecule\n";
+
+        cout << "Writing exclusion list for atomistic molecule "
+                << top_ref->MoleculeByIndex(0)->getName()
+                << " in coarse grained representation "
+                << top_ref->MoleculeByIndex(0)->getName() << endl;
+
+        ex = CreateExclusionList(*top_ref->MoleculeByIndex(0), *top->MoleculeByIndex(0));
+        ofstream fl;
+        fl.open(OptionsMap()["excl"].as<string > ().c_str());
+        fl << "# atomistic: " << top_ref->MoleculeByIndex(0)->getName()
+                << " cg: " << top_ref->MoleculeByIndex(0)->getName()
+                << " cgmap: " << OptionsMap()["cg"].as<string > () << endl;
+        fl << *ex;
+        fl.close();
+        delete ex;
+        return false;
+    }
+    return true;
+}
+
+ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic, Molecule &cg)
 {
     list<int> exclude;
    
@@ -84,138 +127,21 @@ ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg)
     return ex;
 }
 
+void CsgBoltzmann::Run()
+{
+    CsgApplication::Run();
+    if (OptionsMap().count("excl"))
+        return;
+    InteractiveMode();
+}
 
-int main(int argc, char** argv)
+void CsgBoltzmann::InteractiveMode()
 {    
-    BondedStatistics bs;
-    TopologyReader *reader;
-    TrajectoryReader *traj_reader;
-    Topology top;
-    Topology top_cg;
-    CGEngine cg_engine;
-    TopologyMap *map;
-
-    namespace po = boost::program_options;
     std::map<std::string, AnalysisTool *> cmds;
     TabulatedPotential tab;
     StdAnalysis std;
     tab.Register(cmds);
     std.Register(cmds);
-
-    // Declare the supported options.
-    po::options_description desc("Allowed options");
-    desc.add_options()
-    ("help", "produce this help message")
-    ("top", po::value<string>(), "atomistic topology file")
-    ("trj", po::value<string>(), "atomistic trajectory file")
-    ("cg", po::value<string>(), "coarse graining definitions (xml-file)")
-    ("excl", po::value<string>(), "write exclusion list to file")
-    ;
-    
-    cg_engine.AddObserver(&bs);
-    
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-    
-    po::variables_map vm;    
-    try {
-        po::store(po::parse_command_line(argc, argv, desc), vm);
-        po::notify(vm);
-    }
-    catch(po::error err) {
-        cout << "error parsing command line: " << err.what() << endl;
-        return -1;
-    }
-
-    if (vm.count("help")) {
-        help_text();
-        cout << desc << endl;
-        return 0;
-    }
-    if (!vm.count("top")) {
-        cout << desc << endl;
-        cout << "no topology file specified" << endl;
-        return 1;
-    }
-    if (!vm.count("cg")) {
-        cout << desc << endl;
-        cout << "no coarse graining definition specified" << endl;
-        return 1;
-    }
-
-    try {
-        reader = TopReaderFactory().Create(vm["top"].as<string>());
-        if(reader == NULL) {
-            cerr << "input format not supported:" << vm["top"].as<string>() << endl;
-            return 1;
-        }
-        reader->ReadTopology(vm["top"].as<string>(), top);
-        cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
-
-        top.CheckMoleculeNaming();
-        //top.CreateMoleculesByResidue();    
-        //top.CreateOneBigMolecule("PS1");    
-        
-        cg_engine.LoadMoleculeType(vm["cg"].as<string>());
-        //cg_engine.LoadMoleculeType("Cl.xml");
-        map = cg_engine.CreateCGTopology(top, top_cg);
-        //cg_def.CreateMolecule(top_cg);
-              
-        cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-        
-        if (vm.count("excl")) {
-            ExclusionList *ex;
-            if(top.MoleculeCount() > 1)
-                cout << "WARNING: cannot create exclusion list for topology with"
-                "multiple molecules, using only first molecule\n";
-            
-            map->Apply();
-            cout << "Writing exclusion list for atomistic molecule "
-                    << top.MoleculeByIndex(0)->getName()
-                    << " in coarse grained representation "
-                    << top.MoleculeByIndex(0)->getName() << endl;
-            ex = CreateExclusionList(*top.MoleculeByIndex(0), *top_cg.MoleculeByIndex(0));
-            ofstream fl;
-            fl.open(vm["excl"].as<string>().c_str());
-            fl << "# atomistic: " << top.MoleculeByIndex(0)->getName()
-               << " cg: " << top.MoleculeByIndex(0)->getName()
-               << " cgmap: " << vm["cg"].as<string>() << endl;
-            fl << *ex;
-            fl.close();
-            delete ex;
-
-            return 0;
-        }
-
-        if (vm.count("trj")) {
-            traj_reader = TrjReaderFactory().Create(vm["trj"].as<string>());
-            if(traj_reader == NULL) {
-                cerr << "input format not supported:" << vm["trj"].as<string>() << endl;
-                return 1;
-            }
-            traj_reader->Open(vm["trj"].as<string>());
-            traj_reader->FirstFrame(top);    
-        
-            cg_engine.BeginCG(top_cg);
-            bool bok=true;
-            while(bok) {
-                map->Apply();
-                cg_engine.EvalConfiguration(top_cg);
-                bok = traj_reader->NextFrame(top);
-            }
-            cg_engine.EndCG();
-            traj_reader->Close();
-        }
-        delete traj_reader;
-        delete reader;
-        delete map;
-    
-    }
-    catch(std::exception &error) {
-        cerr << "An error occoured!" << endl << error.what() << endl;
-        exit(1);
-    }
     
     string help_text = 
         "Interactive mode, expecting commands:\n"
@@ -247,7 +173,6 @@ int main(int argc, char** argv)
         string cmd = args.front();
         args.erase(args.begin());
 
-        try {
     
             if(cmd == "q") break;            
 
@@ -275,14 +200,12 @@ int main(int argc, char** argv)
                 continue;
             }
             
-            tool->second->Command(bs, cmd, args);
-        }
-        catch(std::exception &error) {
-            cerr << "An error occoured:" << endl << error.what() << endl;
-        }
-    
+            tool->second->Command(_bs, cmd, args);
     }
-
-    return 0;
 }
 
+int main(int argc, char **argv)
+{
+    CsgBoltzmann app;
+    app.Exec(argc, argv);
+}

@@ -21,6 +21,8 @@
 #include "modules/io/gmxtrajectorywriter.h"
 #include "modules/io/growriter.h"
 
+namespace votca { namespace csg {
+
 using namespace std;
 
 void TrajectoryWriter::RegisterPlugins()
@@ -30,3 +32,4 @@ void TrajectoryWriter::RegisterPlugins()
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");
     TrjWriterFactory().Register<GROWriter>("gro");
 }
+}}

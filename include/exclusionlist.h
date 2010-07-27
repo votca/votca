@@ -22,6 +22,9 @@
 #include <list>
 #include <map>
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /// \todo fill _excl_by_bead
@@ -71,6 +74,8 @@ inline ExclusionList::exclusion_t * ExclusionList::GetExclusions(int bead)
 }
 
 std::ostream &operator<<(std::ostream &out,ExclusionList& ex);
+
+}}
 
 #endif	/* _exclusionlist_H */
 

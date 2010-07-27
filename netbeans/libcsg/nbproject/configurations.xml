@@ -12,6 +12,7 @@
       <itemPath>../../include/cgmoleculedef.h</itemPath>
       <itemPath>../../include/cgobserver.h</itemPath>
       <itemPath>../../include/connectivity.h</itemPath>
+      <itemPath>../../include/csgapplication.h</itemPath>
       <itemPath>../../include/exclusionlist.h</itemPath>
       <itemPath>../../include/fileformatfactory.h</itemPath>
       <itemPath>../../include/imcio.h</itemPath>
@@ -20,9 +21,7 @@
       <itemPath>../../include/molecule.h</itemPath>
       <itemPath>../../include/nblist.h</itemPath>
       <itemPath>../../include/nblistgrid.h</itemPath>
-      <itemPath>../../include/neighbourlist.h</itemPath>
       <itemPath>../../include/nematicorder.h</itemPath>
-      <itemPath>../../include/numberdist.h</itemPath>
       <itemPath>../../include/pairlist.h</itemPath>
       <itemPath>../../include/residue.h</itemPath>
       <itemPath>../../include/topology.h</itemPath>
@@ -67,15 +66,14 @@
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
       <itemPath>../../src/libcsg/connectivity.cc</itemPath>
+      <itemPath>../../src/libcsg/csgapplication.cc</itemPath>
       <itemPath>../../src/libcsg/exclusionlist.cc</itemPath>
       <itemPath>../../src/libcsg/imcio.cc</itemPath>
       <itemPath>../../src/libcsg/map.cc</itemPath>
       <itemPath>../../src/libcsg/molecule.cc</itemPath>
       <itemPath>../../src/libcsg/nblist.cc</itemPath>
       <itemPath>../../src/libcsg/nblistgrid.cc</itemPath>
-      <itemPath>../../src/libcsg/neighbourlist.cc</itemPath>
       <itemPath>../../src/libcsg/nematicorder.cc</itemPath>
-      <itemPath>../../src/libcsg/numberdist.cc</itemPath>
       <itemPath>../../src/libcsg/topology.cc</itemPath>
       <itemPath>../../src/libcsg/topologymap.cc</itemPath>
       <itemPath>../../src/libcsg/topologyreader.cc</itemPath>

@@ -10,12 +10,14 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 AS=as
 
 # Macros
@@ -31,10 +33,11 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/tabulatedpotential.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/bondedstatistics.o \
-	${OBJECTDIR}/stdanalysis.o
+	${OBJECTDIR}/stdanalysis.o \
+	${OBJECTDIR}/tabulatedpotential.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -54,36 +57,36 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Release.mk csg_boltzmann
+	"${MAKE}"  -f nbproject/Makefile-Release.mk csg_boltzmann
 
 csg_boltzmann: ${OBJECTFILES}
 	${LINK.cc} -o csg_boltzmann ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/tabulatedpotential.o: nbproject/Makefile-${CND_CONF}.mk tabulatedpotential.cc 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/tabulatedpotential.o tabulatedpotential.cc
-
-${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cc 
+${OBJECTDIR}/main.o: main.cc 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cc
 
-${OBJECTDIR}/bondedstatistics.o: nbproject/Makefile-${CND_CONF}.mk bondedstatistics.cc 
+${OBJECTDIR}/bondedstatistics.o: bondedstatistics.cc 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/bondedstatistics.o bondedstatistics.cc
 
-${OBJECTDIR}/stdanalysis.o: nbproject/Makefile-${CND_CONF}.mk stdanalysis.cc 
+${OBJECTDIR}/stdanalysis.o: stdanalysis.cc 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/stdanalysis.o stdanalysis.cc
+
+${OBJECTDIR}/tabulatedpotential.o: tabulatedpotential.cc 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/tabulatedpotential.o tabulatedpotential.cc
 
 # Subprojects
 .build-subprojects:
 
 # Clean Targets
-.clean-conf:
+.clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Release
 	${RM} csg_boltzmann
 

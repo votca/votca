@@ -19,6 +19,9 @@
 #include <string>
 #include "pdbwriter.h"
 
+
+namespace votca { namespace csg {
+
 using namespace std;
 
 void PDBWriter::Open(string file, bool bAppend)
@@ -88,3 +91,5 @@ void PDBWriter::Write(Topology *conf)
     fprintf(_out, "ENDMDL\n");
     fflush(_out);
 }
+
+}}

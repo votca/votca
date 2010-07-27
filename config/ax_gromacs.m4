@@ -1,4 +1,5 @@
 AC_DEFUN([AX_GROMACS], [
+  AC_ARG_VAR([GMXLDLIB],[path to gromacs lib dir, usually set by "source GMXRC"])
   AC_ARG_WITH(libgmx,
     [AS_HELP_STRING([--with-libgmx@<:@=ARG@:>@],
       [use Gromacs(gmx) library, default single precision (ARG=libgmx),
@@ -14,7 +15,6 @@ AC_DEFUN([AX_GROMACS], [
     libgmx="${withval#lib}"
   fi
   PKG_CHECK_MODULES([GMX],[lib$libgmx],[:],[
-    AC_ARG_VAR([GMXLDLIB],[path to gromacs lib dir, usually set by "source GMXRC"])
     AC_MSG_CHECKING([GMXLDLIB])
     if test -z "$GMXLDLIB"; then
       AC_MSG_RESULT([no])
@@ -33,29 +33,13 @@ or specify GMX_LIBS and GMX_CFLAGS
     else
       AC_MSG_NOTICE([GMX_LIBS was already set elsewhere to "$GMX_LIBS"])
     fi
-    if test -z "$GMX_CFLAGS"; then
-      GMX_CFLAGS="-I$GMXLDLIB/../include/gromacs"
-      AC_MSG_NOTICE([setting GMX_CFLAGS to "$GMX_CFLAGS"])
-    else
-      AC_MSG_NOTICE([GMX_CFLAGS was already set elsewhere to "$GMX_CFLAGS"])
-    fi
   ])
-  save_CPPFLAGS="$CPPFLAGS"
   save_LIBS="$LIBS"
   save_CXX="$CXX"
 
-  CPPFLAGS="$GMX_CFLAGS $CPPFLAGS"
   LIBS="$GMX_LIBS $LIBS"
-  AC_CHECK_HEADERS([tpxio.h],,[
-    AC_MSG_ERROR([
-
-Gromacs headers not found,
-please make sure GMX_CFLAGS is pointing to <gomacs-path>/include/gromacs 
-Do not forget the /gromacs due to bug in gromacs headers!
-    ])
-  ])
+  CXX="${SHELL-/bin/sh} ./libtool --mode=link $CXX"
   AC_MSG_CHECKING([for GromacsVersion in $GMX_LIBS])
-  CXX="${SHELL-/bin/sh} ${srcdir}/libtool --mode=link $CXX"
   AC_TRY_LINK_FUNC(GromacsVersion,[AC_MSG_RESULT([yes])],[
     AC_MSG_RESULT([no])
     AC_MSG_ERROR([
@@ -75,26 +59,47 @@ If you are using a mpi version of gromacs, make sure that CXX is something like 
 We are using a development version of gromacs, we hope you know what you are doing....
 unexpected results ahead
     ])
-    AC_DEFINE(GMX4DEV,,[Use gromacs 4 devel version])
+    AC_DEFINE(GMX4DEV,1,[Use gromacs 4 devel version])
+    gmxsub=""
+    gmxheader="gromacs/tpxio.h"
   ],[
     AC_MSG_RESULT([no])
+    gmxsub="/gromacs"
+    gmxheader="tpxio.h"
   ])
-  CPPFLAGS="$save_CPPFLAGS"
-  LIBS="$save_LIBS"
+  PKG_CHECK_EXISTS([lib$libgmx],[:],[
+    if test -z "$GMX_CFLAGS"; then
+      GMX_CFLAGS="-I$GMXLDLIB/../include$gmxsub"
+      AC_MSG_NOTICE([setting GMX_CFLAGS to "$GMX_CFLAGS"])
+    else
+      AC_MSG_NOTICE([GMX_CFLAGS was already set elsewhere to "$GMX_CFLAGS"])
+    fi
+  ])
   CXX="$save_CXX"
+  LIBS="$save_LIBS"
+  
+  save_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$GMX_CFLAGS $CPPFLAGS"
+  AC_CHECK_HEADERS([$gmxheader],,[
+    AC_MSG_ERROR([
+
+Gromacs headers not found,
+please make sure GMX_CFLAGS is pointing to <gomacs-path>/include for gromacs version >= 4.5
+                                     or to <gomacs-path>/include/gromacs for gromacs version <= 4.0
+    ])
+  ])
+
+  CPPFLAGS="$save_CPPFLAGS"
 
   dnl we need to do PKG_CHECK_EXISTS to know if libgmx pkg-config file
   dnl really exist, so that we can add it to our pkg-config files
   PKG_CHECK_EXISTS([lib$libgmx],[
-    PKGGMX="libgmx"
-    PKGCFLAGSGMX=""
-    PKGLIBSGMX=""
+    AC_SUBST(PKGGMX,"libgmx")
+    AC_SUBST(PKGCFLAGSGMX,"")
+    AC_SUBST(PKGLIBSGMX,"")
   ],[
-    PKGGMX=""
-    PKGCFLAGSGMX="$GMX_CFLAGS"
-    PKGLIBSGMX="$GMX_LIBS"
+    AC_SUBST(PKGGMX,"")
+    AC_SUBST(PKGCFLAGSGMX,"$GMX_CFLAGS")
+    AC_SUBST(PKGLIBSGMX,"$GMX_LIBS")
   ])
-  AC_SUBST(PKGGMX)
-  AC_SUBST(PKGCFLAGSGMX)
-  AC_SUBST(PKGLIBSGMX)
 ])

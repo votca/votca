@@ -22,6 +22,8 @@
 #include "modules/io/xmltopologyreader.h"
 #include "modules/io/pdbtopologyreader.h"
 
+namespace votca { namespace csg {
+
 void TopologyReader::RegisterPlugins(void)
 {
     TopReaderFactory().Register<ESPTopologyReader>("esp");		
@@ -30,3 +32,5 @@ void TopologyReader::RegisterPlugins(void)
     TopReaderFactory().Register<XMLTopologyReader>("xml");
     TopReaderFactory().Register<PDBTopologyReader>("pdb");
 }
+
+}}

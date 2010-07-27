@@ -26,6 +26,8 @@
 #include <iostream>
 #include "imcio.h"
 
+namespace votca { namespace csg {
+
 typedef ub::matrix<double> group_matrix;
 using namespace std;
 
@@ -191,3 +193,5 @@ void imcio_read_index(const string &filename, vector<string> &names, vector<Rang
     }
     in.close();
 }
+
+}}

@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS) $(BOOST_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS)
 
 bin_PROGRAMS = \
     csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_part_dist # csg_nemat csg_conj csg_sample
@@ -20,7 +20,7 @@ csg_stat_SOURCES = csg_stat.cc imc.cc imc.h
 
 csg_property_SOURCES = csg_property.cc
 
-csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch_main.cc csg_fmatch.h
+csg_fmatch_SOURCES = csg_fmatch.cc csg_fmatch.h
 
 csg_imcrepack_SOURCES = csg_imcrepack.cc
 

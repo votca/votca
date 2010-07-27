@@ -10,12 +10,14 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 AS=as
 
 # Macros
@@ -31,10 +33,11 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/tabulatedpotential.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/bondedstatistics.o \
-	${OBJECTDIR}/stdanalysis.o
+	${OBJECTDIR}/stdanalysis.o \
+	${OBJECTDIR}/tabulatedpotential.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -50,11 +53,11 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../netbeans/libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lxml2 -lm -lfftw3 -lboost_program_options
+LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../netbeans/libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lexpat -lm -lfftw3 -lboost_program_options
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Debug.mk csg_boltzmann
+	"${MAKE}"  -f nbproject/Makefile-Debug.mk csg_boltzmann
 
 csg_boltzmann: ../../netbeans/libcsg/../../src/libcsg/libcsg.a
 
@@ -63,25 +66,25 @@ csg_boltzmann: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
 csg_boltzmann: ${OBJECTFILES}
 	${LINK.cc} -o csg_boltzmann ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/tabulatedpotential.o: nbproject/Makefile-${CND_CONF}.mk tabulatedpotential.cc 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} $@.d
-	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/tabulatedpotential.o tabulatedpotential.cc
-
-${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cc 
+${OBJECTDIR}/main.o: main.cc 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cc
 
-${OBJECTDIR}/bondedstatistics.o: nbproject/Makefile-${CND_CONF}.mk bondedstatistics.cc 
+${OBJECTDIR}/bondedstatistics.o: bondedstatistics.cc 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/bondedstatistics.o bondedstatistics.cc
 
-${OBJECTDIR}/stdanalysis.o: nbproject/Makefile-${CND_CONF}.mk stdanalysis.cc 
+${OBJECTDIR}/stdanalysis.o: stdanalysis.cc 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/stdanalysis.o stdanalysis.cc
+
+${OBJECTDIR}/tabulatedpotential.o: tabulatedpotential.cc 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/tabulatedpotential.o tabulatedpotential.cc
 
 # Subprojects
 .build-subprojects:

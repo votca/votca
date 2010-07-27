@@ -22,6 +22,9 @@
 #include "topology.h"
 #include <votca/tools/matrix.h>
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 class NematicOrder
 {
 public:
@@ -38,6 +41,8 @@ private:
     matrix _mu,_mv,_mw;
     matrix::eigensystem_t _nemat_u, _nemat_v, _nemat_w;
 };
+
+}}
 
 #endif	/* _NEMATICORDER_H */
 

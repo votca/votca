@@ -22,6 +22,9 @@
 #include "topology.h"
 #include "fileformatfactory.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /**
@@ -52,6 +55,8 @@ inline FileFormatFactory<TrajectoryReader> &TrjReaderFactory()
     static FileFormatFactory<TrajectoryReader> _TrjReaderFactory;
     return _TrjReaderFactory;
 }
+
+}}
 
 #endif	/* _trajectoryreader_H */
 

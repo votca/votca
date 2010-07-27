@@ -21,6 +21,9 @@
 #include "cgobserver.h"
 #include <votca/tools/datacollection.h>
 
+using namespace votca::tools;
+using namespace votca::csg;
+
 class BondedStatistics
     : public CGObserver
 {

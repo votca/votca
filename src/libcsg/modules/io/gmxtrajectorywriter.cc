@@ -19,23 +19,25 @@
 #include <string>
 #include "gmxtrajectorywriter.h"
 
+namespace votca { namespace csg {
+
 void GMXTrajectoryWriter::Open(string file, bool bAppend)
 {
     //char c[1] = bAppend ? "a" : "w";
-    _file = gmx::open_trx((char *)file.c_str(), "w");
+    _file = open_trx((char *)file.c_str(), "w");
 }
 
 void GMXTrajectoryWriter::Close()
 {
-    gmx::close_trx(_file);
+    close_trx(_file);
 }
 
 void GMXTrajectoryWriter::Write(Topology *conf)
 {
     static int step=0;   
     int N = conf->BeadCount();
-    gmx::t_trxframe frame;
-    gmx::rvec *x = new gmx::rvec[N];
+    t_trxframe frame;
+    rvec *x = new rvec[N];
     matrix box = conf->getBox();
     
     frame.natoms = N;
@@ -65,11 +67,13 @@ for(int i=0; i<N; ++i) {
     }
         
 #ifdef GMX4DEV
-    gmx::write_trxframe(_file, &frame, NULL);
+    write_trxframe(_file, &frame, NULL);
 #else
-    gmx::write_trxframe(_file, &frame);
+    write_trxframe(_file, &frame);
 #endif
     
     step++;
     delete[] x;
 }
+
+}}

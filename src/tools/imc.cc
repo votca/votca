@@ -25,6 +25,8 @@
 #include "imc.h"
 #include "imcio.h"
 
+namespace votca { namespace csg {
+
 Imc::Imc()
    : _write_every(0), _do_blocks(false), _do_imc(false)
 {
@@ -45,25 +47,27 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
    // we didn't process any frames so far
     _nframes = 0;
     _nblock = 0;
-    
+
    // initialize non-bonded structures
    for (list<Property*>::iterator iter = _nonbonded.begin();
-        iter != _nonbonded.end(); ++iter) {
-            interaction_t *i = AddInteraction(*iter);
-            // calculate normalization factor for rdf
-            BeadList beads1, beads2;
-        
-            beads1.Generate(*top, (*iter)->get("type1").value());
-            beads2.Generate(*top, (*iter)->get("type2").value());
+            iter != _nonbonded.end(); ++iter) {
+        interaction_t *i = AddInteraction(*iter);
+        // generate the bead lists
+        BeadList beads1, beads2;
 
-            if((*iter)->get("type1").value() ==  (*iter)->get("type2").value())
-                i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*(beads2.size()-1.)/2.);
-            else
-                i->_norm = top->BoxVolume()/(4.*M_PI* i->_step * beads1.size()*beads2.size());
+        beads1.Generate(*top, (*iter)->get("type1").value());
+        beads2.Generate(*top, (*iter)->get("type2").value());
 
-            i->_is_bonded = false;
-   }
-   
+        // calculate normalization factor for rdf
+
+        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+            i->_norm = 1. / (4. * M_PI * i->_step * beads1.size()*(beads2.size() - 1.) / 2.);
+        else
+            i->_norm = 1. / (4. * M_PI * i->_step * beads1.size() * beads2.size());
+
+        i->_is_bonded = false;
+    }
+
     // initialize non-bonded structures
    for (list<Property*>::iterator iter = _bonded.begin();
         iter != _bonded.end(); ++iter) {
@@ -179,25 +183,46 @@ void Imc::DoNonbonded(Topology *top)
         beads1.Generate(*top, (*iter)->get("type1").value());
         beads2.Generate(*top, (*iter)->get("type2").value());
         
+        // calculate average volume
+        double d = top->BoxVolume();
+        _avg_vol.Process(d);
+        
         // generate the neighbour list
-        NBList nb;
-        nb.setCutoff(i._max + i._step);
+        NBList *nb;
+
+        bool gridsearch=false;
+
+        if(_options.exists("cg.nbsearch")) {
+            if(_options.get("cg.nbsearch").as<string>() == "grid")
+                gridsearch=true;
+            else if(_options.get("cg.nbsearch").as<string>() == "simple")
+                gridsearch=false;
+            else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+        }
+        if(gridsearch)
+            nb = new NBListGrid();
+        else
+            nb = new NBList();
+
+        nb->setCutoff(i._max + i._step);
         
         // is it same types or different types?
         if((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            nb.Generate(beads1);
+            nb->Generate(beads1);
         else
-            nb.Generate(beads1, beads2);
+            nb->Generate(beads1, beads2);
         
         // clear the current histogram
         i._current.Clear();
         
         // process all pairs
         NBList::iterator pair_iter;
-        for(pair_iter = nb.begin(); pair_iter!=nb.end();++pair_iter) {
+        for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
                 i._current.Process((*pair_iter)->dist());            
         }
-        
+
+        delete nb;
+
         // update the average
         i._average.data().y() = (((double)_nframes-1.0)*i._average.data().y() 
                 + i._current.data().y())/(double)_nframes;
@@ -326,7 +351,7 @@ void Imc::WriteDist(const string &suffix)
         Table dist(t);
 
         if(!iter->second->_is_bonded) {
-            dist.y() = iter->second->_norm *
+            dist.y() = _avg_vol.GetAv()*iter->second->_norm *
                 element_div(dist.y(),
                     element_prod(dist.x(), dist.x())
                 );
@@ -450,7 +475,7 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
     target.Load(name + ".dist.tgt");
                       
     if(!interaction->_is_bonded) {
-        target.y() = (1.0 / interaction->_norm)*ub::element_prod(target.y(),
+        target.y() = (1.0 / (_avg_vol.GetAv()*interaction->_norm))*ub::element_prod(target.y(),
             (ub::element_prod(target.x(), target.x()))
             ) ;
     }
@@ -550,3 +575,4 @@ void Imc::WriteIMCBlock(const string &suffix)
     }
 }
 
+}}

@@ -10,13 +10,15 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
-AS=
+FC=gfortran
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -31,8 +33,8 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch_main.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch.o
+	${OBJECTDIR}/_ext/715944016/csg_fmatch.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -52,7 +54,7 @@ LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/li
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Debug.mk ../../src/tools/csg_fmatch
+	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/csg_fmatch
 
 ../../src/tools/csg_fmatch: ../libcsg/../../src/libcsg/libcsg.a
 
@@ -62,15 +64,10 @@ LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/li
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch_main.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/csg_fmatch_main.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
+${OBJECTDIR}/_ext/715944016/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -O -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch_main.o ../../src/tools/csg_fmatch_main.cc
-
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/csg_fmatch.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
-	${RM} $@.d
-	$(COMPILE.cc) -g -O -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
+	$(COMPILE.cc) -g -O -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_fmatch.o ../../src/tools/csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:

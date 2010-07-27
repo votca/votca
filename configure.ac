@@ -32,8 +32,6 @@ AC_ARG_ENABLE(la-files,
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 
-AX_VOTCA_BOOST
-
 #look for votca tools
 AX_VOTCA_TOOLS
 
@@ -41,6 +39,9 @@ AX_GROMACS
 
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
+
+AC_CHECK_PROGS(DOXYGEN,doxygen,no)
+AM_CONDITIONAL(HAVE_DOXYGEN,[test "$DOXYGEN" != no])
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
@@ -55,6 +56,7 @@ AC_CONFIG_FILES([src/libcsg/modules/io/Makefile])
 AC_CONFIG_FILES([share/scripts/inverse/Makefile])
 AC_CONFIG_FILES([share/scripts/Makefile])
 AC_CONFIG_FILES([share/Makefile])
+AC_CONFIG_FILES([share/doc/Makefile])
 AC_CONFIG_FILES([scripts/Makefile])
 
 AC_CONFIG_FILES([share/xml/Makefile])

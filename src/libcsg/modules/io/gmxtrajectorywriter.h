@@ -21,11 +21,21 @@
 #include "topology.h"
 #include "trajectorywriter.h"
 
-namespace gmx {
-#ifndef GMX4DEV
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef GMX4DEV
+        #include <gromacs/statutil.h>
+        #include <gromacs/typedefs.h>
+        #include <gromacs/smalloc.h>
+        #include <gromacs/vec.h>
+        #include <gromacs/copyrite.h>
+        #include <gromacs/statutil.h>
+        #include <gromacs/tpxio.h>
+#else
    extern "C"
    {
-#endif
         #include <statutil.h>
         #include <typedefs.h>
         #include <smalloc.h>
@@ -33,12 +43,14 @@ namespace gmx {
         #include <copyrite.h>
         #include <statutil.h>
         #include <tpxio.h>
-#ifndef GMX4DEV
     }
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
-}
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class GMXTrajectoryWriter
@@ -51,8 +63,14 @@ public:
     void Write(Topology *conf);
 
     private:
-        int _file;
+#ifdef GMX4DEV
+       t_trxstatus* _file;
+#else
+       int _file;
+#endif
 };
+
+}}
 
 #endif	/* _GMXTRAJECTORYWRITER_H */
 

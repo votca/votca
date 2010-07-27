@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="62">
+<configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -75,7 +75,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibLibItem>gmx</linkerLibLibItem>
-            <linkerLibLibItem>xml2</linkerLibLibItem>
+            <linkerLibLibItem>expat</linkerLibLibItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
             <linkerLibLibItem>fftw3</linkerLibLibItem>
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
@@ -101,8 +101,6 @@
         </fortranCompilerTool>
         <linkerTool>
           <output>csg_boltzmann</output>
-          <linkerLibItems>
-          </linkerLibItems>
         </linkerTool>
       </compileType>
     </conf>

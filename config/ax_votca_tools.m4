@@ -40,7 +40,7 @@ please make sure VOTCA_TOOLS_CFLAGS is pointing to <votca-path>/include
     ])
   ])
   AC_MSG_CHECKING([for votca::tools::ToolsVersionStr in $VOTCA_TOOLS_LIBS])
-  CXX="${SHELL-/bin/sh} ${srcdir}/libtool --mode=link $CXX"
+  CXX="${SHELL-/bin/sh} ./libtool --mode=link $CXX"
   AC_LINK_IFELSE([
     AC_LANG_PROGRAM([#include <votca/tools/version.h>],[votca::tools::ToolsVersionStr()])
   ],[

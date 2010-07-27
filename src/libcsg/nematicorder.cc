@@ -20,6 +20,8 @@
 #include <votca/tools/tokenizer.h>
 #include "topology.h"
 
+namespace votca { namespace csg {
+
 void NematicOrder::Process(Topology &top, const string &filter)
 {
     _mu.ZeroMatrix();
@@ -75,3 +77,5 @@ void NematicOrder::Process(Topology &top, const string &filter)
     if(bW)
         _mw.SolveEigensystem(_nemat_w);               
 }
+
+}}

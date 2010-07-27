@@ -23,6 +23,8 @@
 #include <votca/tools/tokenizer.h> 
 #include "interaction.h"
 
+namespace votca { namespace csg {
+
 using boost::lexical_cast;
 
 CGMoleculeDef::~CGMoleculeDef()
@@ -221,3 +223,5 @@ Property *CGMoleculeDef::getMapByName(const string &name)
     //return (*iter).second;
     return (*iter).second;
 }
+
+}}

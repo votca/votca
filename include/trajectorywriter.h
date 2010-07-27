@@ -22,6 +22,9 @@
 #include "fileformatfactory.h"
 #include "topology.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class TrajectoryWriter
@@ -44,6 +47,8 @@ inline FileFormatFactory<TrajectoryWriter> &TrjWriterFactory()
     static FileFormatFactory<TrajectoryWriter> _TrjWriterFactory;
     return _TrjWriterFactory;
 }
+
+}}
 
 #endif	/* _trajectorywriter_H */
 

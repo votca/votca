@@ -15,8 +15,8 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
-AS=
+FC=gfortran
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -51,13 +51,12 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/gmxtrajectorywriter.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/imcio.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/topology.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/neighbourlist.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/numberdist.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/molecule.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/nblist.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/map.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/nblistgrid.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/version_nb.o \
+	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/csgapplication.o \
 	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/gmxtrajectoryreader.o
 
 # C Compiler Flags
@@ -186,16 +185,6 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/topology.o: nbproject/Makefile-${CN
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/topology.o ../../src/libcsg/topology.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/neighbourlist.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/neighbourlist.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/neighbourlist.o ../../src/libcsg/neighbourlist.cc
-
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/numberdist.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/numberdist.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/numberdist.o ../../src/libcsg/numberdist.cc
-
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/molecule.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg
 	${RM} $@.d
@@ -220,6 +209,11 @@ ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/version_nb.o: nbproject/Makefile-${
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/version_nb.o ../../src/libcsg/version_nb.cc
+
+${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/csgapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/csgapplication.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/csgapplication.o ../../src/libcsg/csgapplication.cc
 
 ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io/gmxtrajectoryreader.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/modules/io/gmxtrajectoryreader.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libcsg/modules/io

@@ -31,7 +31,29 @@
 #include <votca/tools/table.h>
 #include <votca/tools/linalg.h>
 
-void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
+int main(int argc, char** argv)
+{
+    CGForceMatching app;
+    return app.Exec(argc, argv);
+}
+
+
+void CGForceMatching::Initialize(void)
+{
+    CsgApplication::Initialize();
+    AddProgramOptions()
+        ("options", boost::program_options::value<string>(), "  options file for coarse graining");
+}
+
+bool CGForceMatching::EvaluateOptions()
+{
+    CsgApplication::EvaluateOptions();
+    CheckRequired("options", "need to specify options file");
+    LoadOptions(OptionsMap()["options"].as<string>());
+    return true;
+}
+
+void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
 {
     // set counters to zero value:
     _nblocks = 0;
@@ -162,7 +184,7 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     block_res_f2.resize(num_gridpoints, false);
 
 }
-void CGForceMatching::EndCG()
+void CGForceMatching::EndEvaluate()
 {
     cout << "\nWe are done, thank you very much!" << endl;
 }
