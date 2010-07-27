@@ -21,6 +21,8 @@
 #include <string>
 #include "topologyreader.h"
 
+
+namespace votca { namespace csg {
 using namespace std;
     
 /**
@@ -41,6 +43,7 @@ private:
 		string ReadBlockfileLine(string input_line, string variable);		
 };
 
+}}
 
 #endif	/* _ESPTOPOLOGYREADER_H */
 

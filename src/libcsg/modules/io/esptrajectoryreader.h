@@ -20,6 +20,8 @@
 
 #include "trajectoryreader.h"
 
+namespace votca { namespace csg {
+
 using namespace std;
 
 class ESPTrajectoryReader : public TrajectoryReader
@@ -41,7 +43,7 @@ class ESPTrajectoryReader : public TrajectoryReader
 				string _temp_nextframe;				
 };
 
-
+}}
 
 #endif	/* _ESPTRAJECTORYREADER_H */
 

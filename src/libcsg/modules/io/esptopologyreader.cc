@@ -20,6 +20,8 @@
 #include <boost/lexical_cast.hpp>
 #include "esptopologyreader.h"
 
+namespace votca { namespace csg {
+
 bool ESPTopologyReader::ReadTopology(string file, Topology &top)
 { 
     // cleanup topology to store new data
@@ -185,3 +187,5 @@ string ESPTopologyReader::ReadBlockfileLine(string input_line, string variable)
 		
     return input_line;		
 }
+
+}}

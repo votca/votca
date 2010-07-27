@@ -19,6 +19,8 @@
 #include <fstream>
 #include "esptrajectoryreader.h"
 
+namespace votca { namespace csg {
+
 bool ESPTrajectoryReader::Open(const string &file)
 {						
     _fl = file;		
@@ -239,4 +241,6 @@ bool ESPTrajectoryReader::NextFrame(Topology &top)
 
     return true;
 }
+
+}}
 
