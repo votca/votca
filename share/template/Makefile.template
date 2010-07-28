@@ -15,7 +15,7 @@ all: $(NAME)
 ifeq "$(origin VOTCALDLIB)" "undefined"
   $(error "VOTCALDLIB not found, please source VOTCARC")
 else
-  PKG_CONFIG_PATH:=${VOTCALDLIB}/pkgconfig:${PKG_CONFIG_PATH}
+  export PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:${VOTCALDLIB}/pkgconfig
 endif
 
 #get CPPFLAGS and LDFLAGS from pkg-config
