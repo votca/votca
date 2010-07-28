@@ -351,7 +351,7 @@ void Imc::WriteDist(const string &suffix)
         Table dist(t);
 
         if(!iter->second->_is_bonded) {
-            dist.y() = _avg_vol.GetAv()*iter->second->_norm *
+            dist.y() = _avg_vol.getAvg()*iter->second->_norm *
                 element_div(dist.y(),
                     element_prod(dist.x(), dist.x())
                 );
@@ -475,7 +475,7 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
     target.Load(name + ".dist.tgt");
                       
     if(!interaction->_is_bonded) {
-        target.y() = (1.0 / (_avg_vol.GetAv()*interaction->_norm))*ub::element_prod(target.y(),
+        target.y() = (1.0 / (_avg_vol.getAvg()*interaction->_norm))*ub::element_prod(target.y(),
             (ub::element_prod(target.x(), target.x()))
             ) ;
     }
