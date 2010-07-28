@@ -124,9 +124,9 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref)
 void CsgTestApp::EndEvaluate()
 {
     cout << "\n\n------------------------------\n";
-    cout << "radius of gyration:                  " << sqrt(_r_gyr_sq.GetAv()) << endl;
-    cout << "mass weighted radius of gyration:    " << sqrt(_r_gyr_m_sq.GetAv()) << endl;
-    cout << "hydrodynamic radius:                 " << 1./_inv_r_hydr.GetAv() << endl;
+    cout << "radius of gyration:                  " << sqrt(_r_gyr_sq.getAvg()) << endl;
+    cout << "mass weighted radius of gyration:    " << sqrt(_r_gyr_m_sq.getAvg()) << endl;
+    cout << "hydrodynamic radius:                 " << 1./_inv_r_hydr.getAvg() << endl;
     cout << "------------------------------\n";
 }
 
@@ -140,3 +140,4 @@ void CsgTestApp::Initialize()
              ("molname", boost::program_options::value<string>()->default_value("*"),
                  "pattern for molecule name");
 }
+
