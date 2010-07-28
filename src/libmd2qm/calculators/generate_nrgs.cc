@@ -10,6 +10,9 @@
 #include <math.h>
 #include <list>
 #include <votca/tools/random.h>
+#include "qmnblist.h"
+#include <votca/tools/average.h>
+
 
 void GenerateNrgs::Initialize(QMTopology *top, Property *options) {
 
@@ -40,7 +43,8 @@ void GenerateNrgs::Initialize(QMTopology *top, Property *options) {
         cout << "Generating non-correlated site energies with sigma = " << _sigma << endl;
    }
 
-
+    /// Initialize the random number generator
+    Random::init(14, 122, 472, 1912);
 }
 
 
@@ -60,17 +64,38 @@ bool GenerateNrgs::EvaluateFrame(QMTopology *top) {
 
 void GenerateNrgs::AssignGaussian(QMTopology *top) {
 
-    Random rnd;
     vector<CrgUnit *> lcharges = top->CrgUnits();
     vector<CrgUnit *>::iterator itl;
 
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
-        (*itl)->setEnergy( rnd.rand_gaussian(_sigma) );
+        (*itl)->setEnergy( Random::rand_gaussian(_sigma) );
     }
 
 }
 
 void GenerateNrgs::AssignCorrelated(QMTopology *top) {
-    
+    // First assign gaussian energies
+    AssignGaussian( top );
+
+    QMNBList  &nblist = top->nblist();
+    vector<CrgUnit *> lcharges = top->CrgUnits();
+    std::map<CrgUnit *, Average<double> > tmp_energy;
+
+    vector<CrgUnit *>::iterator itl;
+    QMNBList::iterator piter;
+
+    // loop over all pairs
+    for (piter = nblist.begin(); piter!=nblist.end(); ++piter) {
+        double e1 = (*piter)->first->getEnergy();
+        double e2 =  (*piter)->second->getEnergy();
+
+        tmp_energy[(*piter)->first].Process(e2);
+        tmp_energy[(*piter)->second].Process(e1);
+    }
+
+    for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
+        // e1+e2+...+eN/ sqrt(N) looks weird, but should be done to get the same sigma
+        (*itl)->setEnergy( tmp_energy[(*itl)].getAvg() * sqrt( tmp_energy[(*itl)].getN() ) );
+    }
 }
 
