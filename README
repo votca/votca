@@ -1,0 +1,6 @@
+This repository contains some small analysis programs which are written based on the votca_csg framework
+
+List of programs:
+
+radii: calculate gyration radius + hydrodynamik radius of a molekule or a set of molekules
+
