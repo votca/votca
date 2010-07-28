@@ -28,11 +28,13 @@ public:
     Average();
     ~Average() {}
     
-    void Process(T &v);
+    void Process(const T &v);
     template<typename iterator_type>
     void ProcessRange(const iterator_type &begin, const iterator_type   &end);
-    double CalcDev();
-    double GetAv();
+    
+    T CalcDev();
+    const T &getAvg();
+    size_t getN();
     
 private:
     
@@ -50,7 +52,7 @@ inline Average<double>::Average()
 : _n(0), _av(0), _m2(0) {}
 
 template<typename T>
-inline void Average<T>::Process(T &value)
+inline void Average<T>::Process(const T &value)
 { 
    _av = _av*(double)_n/(double)(_n+1) + value / (double)(_n+1);
    _n++;
@@ -58,7 +60,7 @@ inline void Average<T>::Process(T &value)
 }
 
 template<>
-inline void Average<double>::Process(double &value)
+inline void Average<double>::Process(const double &value)
 {
     _av = _av*(double)_n/(double)(_n+1) + value / (double)(_n+1);
     _n++;
@@ -74,15 +76,20 @@ void Average<T>::ProcessRange(const iterator_type &begin, const iterator_type   
 }
 
 template<typename T>
-double Average<T>::CalcDev(){
+T Average<T>::CalcDev(){
     double dev = 0.0;
     dev = sqrt((_m2-_n*_av*_av)/(_n-1));
     return dev;
 }
 
 template<typename T>
-double Average<T>::GetAv(){
+const T &Average<T>::getAvg(){
     return _av;
+}
+
+template<typename T>
+size_t Average<T>::getN(){
+    return _n;
 }
 
 }}
