@@ -51,9 +51,9 @@ my $eps="$ARGV[3]";
 
 # Read in empty potential table
 my @r;
-my $r_cut_rep=2**(1/6)*$sig;
+my $r_cut_rep=3**(1/8)*$sig;
 my $r_cut_tot=csg_get_interaction_property("max");
-my $w_cut=csg_get_interaction_property("inverse.simplex.generic.range");
+my $w_cut=$r_cut_tot-$r_cut_rep;
 my $pi= 3.14159265;
 my @pot;
 my @pot_rep;
@@ -72,15 +72,15 @@ for (my $i=0;$i<=$#r;$i++){
         $pot_att[$i]=-$eps;
       }
       else {
-        $pot_att[$i]=-$eps*(cos($pi*($r[$i]-$r_cut)/(2*$w_cut)))**2;        
+        $pot_att[$i]=-$eps*(cos($pi*($r[$i]-$r_cut_rep)/(2*$w_cut)))**2;        
       }
  
       # Repulsive part
-      if ($r[$i]<=$r_cut_rep) {
-        $pot_rep[$i]=4*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**6)+$eps;
+      if ($r[$i]<$r_cut_rep) {
+        $pot_rep[$i]=-$eps;
       }
       else {
-        $pot_rep[$i]=0;
+        $pot_rep[$i]=4*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**6)+$eps;
       }
 
     # Total potential
@@ -99,7 +99,7 @@ for (my $i=0;$i<=$#r;$i++){
 }
 
 # Find index at the cutoff
-my $i_cut=$r_cut_tot;
+my $i_cut=$#r;
 
 # Shift potential to zero at the cutoff
 for (my $i=0;$i<=$i_cut;$i++){
