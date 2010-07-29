@@ -1,0 +1,36 @@
+#change the name of the program here
+NAME=sphericalorder
+
+#add extra cc file to compile here
+EXTRA_SRC=
+
+###############################################################3
+#below only boring default stuff
+#only change it if you know what you are doing ;-)
+
+#what should be done by default
+all: $(NAME)
+
+#if VOTCALDLIB is defined we add it to PKG_CONFIG_PATH
+ifeq "$(origin VOTCALDLIB)" "undefined"
+  $(error "VOTCALDLIB not found, please source VOTCARC")
+else
+  export PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:${VOTCALDLIB}/pkgconfig
+endif
+
+#get CPPFLAGS and LDFLAGS from pkg-config
+CPPFLAGS=`pkg-config --cflags libvotca_csg`
+LDFLAGS=`pkg-config --libs libvotca_csg`
+
+#generate a list of object (.o) files
+OBJS=$(patsubst %.cc,%.o,$(NAME).cc $(EXTRA_SRC))
+
+#main program depend on all objects, rest is done by implicit rules
+$(NAME): $(OBJS)
+
+#clean up rule
+clean:
+	rm -f $(NAME) $(OBJS)
+
+#all, clean are phony rules, e.g. they are always run
+.PHONY: all clean
