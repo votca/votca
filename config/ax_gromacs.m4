@@ -2,9 +2,9 @@ AC_DEFUN([AX_GROMACS], [
   AC_ARG_VAR([GMXLDLIB],[path to gromacs lib dir, usually set by "source GMXRC"])
   AC_ARG_WITH(libgmx,
     [AS_HELP_STRING([--with-libgmx@<:@=ARG@:>@],
-      [use Gromacs(gmx) library, default single precision (ARG=libgmx),
-        but double precision (ARG=libgmx_d), mpi version (ARG=libgmx_mpi) or none
-        are possible as well @<:@ARG=yes@:>@])],,
+      [use Gromacs(gmx) library, default single precision (ARG=libgmx/yes),
+        but double precision (ARG=libgmx_d), mpi version (ARG=libgmx_mpi)
+        or none (ARG=no or --without-libgmx) are possible as well @<:@ARG=yes@:>@])],,
   [with_libgmx=yes])
   if test "$with_libgmx" = "no"; then
     AC_SUBST(PKGGMX,"")
@@ -46,8 +46,9 @@ or specify GMX_LIBS and GMX_CFLAGS
       AC_MSG_RESULT([no])
       AC_MSG_ERROR([
 
-Could not link against GROMACS,please choose libraries to link against with --with-libgmx=XXX
-or specify it in GMX_LIBS (e.g. export GMX_LIBS="-L<gromacs-path>/lib -lgmx").
+Could not link against GROMACS, please choose libraries to link against with --with-libgmx=XXX
+or specify it in GMX_LIBS (e.g. export GMX_LIBS="-L<gromacs-path>/lib -lgmx")
+or disable GROMACS support with --without-libgmx.
 
 If you are using a mpi version of gromacs, make sure that CXX is something like mpic++.
 (e.g. export CXX="mpic++" and export GMX_LIBS="-L<gromacs-path>/lib -lgmx_mpi")
@@ -110,5 +111,5 @@ please make sure GMX_CFLAGS is pointing to <gomacs-path>/include for gromacs ver
     ])
     AC_DEFINE(GMX,1,[Do we have gromacs])
   fi
-  AM_CONDITIONAL(GMX,1,["$with_libgmx" != "no"])
+  AM_CONDITIONAL(GMX,[test "$with_libgmx" != "no"])
 ])
