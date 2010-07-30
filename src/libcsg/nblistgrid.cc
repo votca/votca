@@ -164,7 +164,7 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)
         if(abs(r) < _cutoff)
             if((*_match_function)(bead, *iter, r))
                if(!FindPair(bead, *iter))
-                    AddPair(new BeadPair(bead, *iter, r));
+                    AddPair(_pair_creator(bead, *iter, r));
     }
 }
 
