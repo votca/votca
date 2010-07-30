@@ -10,7 +10,7 @@
 #include <math.h>
 #include <list>
 #include "votca/tools/average.h"
-
+#include "votca/csg/nblistgrid.h"
 
 void EnergyCorr::Initialize(QMTopology* top, Property* options) {
 
@@ -49,36 +49,40 @@ void EnergyCorr::Initialize(QMTopology* top, Property* options) {
 
 bool EnergyCorr::EvaluateFrame(QMTopology* top) {
 
-    double mean_energy, stdev_energy;
     Average<double> energy_av;
 
+    // working topology = topology to do work
+    Topology mytop;
+    BeadList list1;
+    NBListGrid mynbl;
+
+    mytop.setBox(top->getBox());
     vector<CrgUnit *> lcharges = top->CrgUnits();
     vector<CrgUnit *>::iterator itl;
-
-    QMNBList  &nblist = top->nblist();
-    QMNBList::iterator piter;
-
+    // 1) calculate average energy
+    // 2) for every charge unit of real topology make a bead for a working topology
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
+        // Process data to get the average
         energy_av.Process ( (*itl)->getEnergy() );
+
+        // make a simple spherical bead for a new topology
+        BeadType *tmptype = mytop.GetOrCreateBeadType("no");
+        Bead * tmpbead = mytop.CreateBead(1, "bead", tmptype, 0, 1, 0);
+        // position of the bead = position of the corresponding crgunit
+        tmpbead->setPos( (*itl)->GetCom() );
+        // additionally it stores a pointer to the corresponding crgunit
+        tmpbead->setUserData( (*itl) );
     }
 
     // mean energy and standard deviation for a particular snapshot
-    mean_energy = energy_av.getAvg();
-    stdev_energy = energy_av.CalcSig2();
+    _mean_energy = energy_av.getAvg();
+    _stdev_energy = energy_av.CalcSig2();
 
-    // loop over all pairs
-    for (piter = nblist.begin(); piter!=nblist.end(); ++piter) {
-        double e1 = (*piter)->first->getEnergy();
-        double e2 =  (*piter)->second->getEnergy();
-        double dist = (*piter)->dist();
+    list1.Generate(mytop, "*");
+    mynbl.SetMatchFunction(this, &EnergyCorr::MyMatchingFunction);
+    mynbl.setCutoff(_max);
+    mynbl.Generate( list1, false );
 
-        double contrib = (e1-mean_energy)*(e2-mean_energy)/stdev_energy;
-        
-        _hist_count.Process( dist );
-        _hist_corr.Process( dist, contrib );
-        _hist_corr2.Process( dist, contrib*contrib );
-    }
-    
     return true;
 }
 
@@ -95,4 +99,23 @@ void EnergyCorr::EndEvaluate(QMTopology* top) {
     
     // Save to file
     _hist_corr.data().Save(_outfile);
+}
+
+bool EnergyCorr::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r) {
+
+    CrgUnit *crg1 = bead1->getUserData<CrgUnit>();
+    CrgUnit *crg2 = bead2->getUserData<CrgUnit>();
+
+    double e1 = crg1->getEnergy();
+    double e2 = crg2->getEnergy();
+    double dist = abs(r);
+//    cout << "e1= " << e1 << "  e2= " << e2 << " dist = " << dist;
+
+    double contrib = (e1-_mean_energy)*(e2-_mean_energy)/_stdev_energy;
+
+    _hist_count.Process( dist );
+    _hist_corr.Process( dist, contrib );
+    _hist_corr2.Process( dist, contrib*contrib );
+
+    return false;
 }

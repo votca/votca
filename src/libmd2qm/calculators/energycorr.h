@@ -23,6 +23,9 @@ public:
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
     void EndEvaluate(QMTopology *top);
+
+    /// A matching function to overload the standard one
+    bool MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r);
     
 private:
     // histogram for recording energy correlation function
@@ -32,6 +35,7 @@ private:
     // histogram for recording correlation function squared (needed to calculate error bars)
     HistogramNew _hist_corr2;
     double _min, _max;
+    double _mean_energy, _stdev_energy;
     int _nbins;
     /// name of the output file
     string _outfile;
