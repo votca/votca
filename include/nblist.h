@@ -47,12 +47,10 @@ public:
     template<typename pair_type>
     void setPairType();
 
-    
-    /// typedef for a user match function, return true if bead should be added
-    typedef bool (*match_function_t)(Bead *, Bead *, const vec &r);
+    template<typename T>
+    void SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &));
 
-    /// set user match function
-    void setMatchFunction(match_function_t match_function);
+    void SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &));
 
     /// match function that always matches
     static bool match_always(Bead *b1, Bead *b2, const vec &r) { return true; }
@@ -74,7 +72,45 @@ protected:
 
     //    typedef T* (*creator_t)();
 
-    match_function_t _match_function;
+protected:
+    // callback stuff
+        class Functor {
+    public:
+        Functor() {}
+        virtual bool operator()(Bead *, Bead *, const vec &) = 0;
+    };
+
+    template<typename T>
+    class FunctorMember : public Functor {
+    public:
+        typedef bool (T::*fkt_t)(Bead *, Bead *, const vec &);
+
+        FunctorMember(T* cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
+
+        bool operator()(Bead *b1, Bead *b2, const vec &r) {
+            return (_cls->*_fkt)(b1, b2, r);
+        }
+
+    private:
+        T* _cls;
+        fkt_t _fkt;
+    };
+
+    class FunctorNonMember : public Functor {
+    public:
+        typedef bool (*fkt_t)(Bead *, Bead *, const vec &);
+        FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
+
+        bool operator()(Bead *b1, Bead *b2, const vec &r) {
+            return (*_fkt)(b1, b2, r);
+        }
+
+    private:
+        fkt_t _fkt;
+    };
+
+    Functor * _match_function;
+
 };
 
 template<typename pair_type>
@@ -83,9 +119,19 @@ void NBList::setPairType()
     _pair_creator = NBList::beadpair_create_policy<pair_type>;
 }
 
-inline void NBList::setMatchFunction(match_function_t match_function)
+template<typename T>
+inline void NBList::SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &))
 {
-    _match_function = match_function;
+    if(_match_function)
+        delete _match_function;
+    _match_function = dynamic_cast<Functor*>(new FunctorMember<T>(object, fkt));
+}
+
+inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &))
+{
+    if(_match_function)
+        delete _match_function;
+    _match_function = dynamic_cast<Functor*>(new FunctorNonMember(fkt));
 }
 
 }}
