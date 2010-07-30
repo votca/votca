@@ -58,7 +58,7 @@ If you are using a mpi version of gromacs, make sure that CXX is something like 
       ])
     ])
     AC_MSG_CHECKING([for do_cpt_header in $GMX_LIBS])
-    AC_TRY_LINK_FUNC(do_cpt_header,[
+    AC_TRY_LINK_FUNC(init_mtop,[
       AC_MSG_RESULT([yes])
       AC_DEFINE(GMX,40,[Used gromacs version])
     ],[
