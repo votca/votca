@@ -10,7 +10,7 @@ void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
     
     _father = dynamic_cast<QMTopology*> (list1.getTopology());
     
-    NBList nb;
+    NBListGrid nb;
     nb.setCutoff(_cutoff);
     nb.SetMatchFunction(this, &QMNBList::Match);
     nb.Generate(list1, list2, do_exclusions);
