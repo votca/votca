@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="62">
+<configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libmd2qm/calculators/contkmc.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/energycorr.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/energycorr.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/estatics.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/estatics.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/generate_nrgs.cc</itemPath>

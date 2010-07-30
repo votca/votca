@@ -10,6 +10,8 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
@@ -31,17 +33,19 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/generate_nrgs.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculatorfactory.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/shufflenrg.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/readxml.o
+	${OBJECTDIR}/_ext/76882303/generate_nrgs.o \
+	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
+	${OBJECTDIR}/_ext/76882303/estatics.o \
+	${OBJECTDIR}/_ext/76882303/readxml.o \
+	${OBJECTDIR}/_ext/1716269789/qmpair.o \
+	${OBJECTDIR}/_ext/1716269789/calculatorfactory.o \
+	${OBJECTDIR}/_ext/1716269789/version_nb.o \
+	${OBJECTDIR}/_ext/1716269789/qmnblist.o \
+	${OBJECTDIR}/_ext/1716269789/qmtopology.o \
+	${OBJECTDIR}/_ext/76882303/energycorr.o \
+	${OBJECTDIR}/_ext/1716269789/qmapplication.o \
+	${OBJECTDIR}/_ext/1716269789/statesaver.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -61,74 +65,79 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/liblibmd2qm.a
+	"${MAKE}"  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/liblibmd2qm.a
 
 dist/Release/GNU-Linux-x86/liblibmd2qm.a: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
 	${RM} dist/Release/GNU-Linux-x86/liblibmd2qm.a
-	${AR} rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibmd2qm.a ${OBJECTFILES} 
+	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibmd2qm.a ${OBJECTFILES} 
 	$(RANLIB) dist/Release/GNU-Linux-x86/liblibmd2qm.a
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmtopology.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+${OBJECTDIR}/_ext/76882303/generate_nrgs.o: ../../src/libmd2qm/calculators/generate_nrgs.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmtopology.o ../../src/libmd2qm/qmtopology.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/generate_nrgs.o ../../src/libmd2qm/calculators/generate_nrgs.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmpair.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+${OBJECTDIR}/_ext/76882303/shufflenrg.o: ../../src/libmd2qm/calculators/shufflenrg.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmpair.o ../../src/libmd2qm/qmpair.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/shufflenrg.o ../../src/libmd2qm/calculators/shufflenrg.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmapplication.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+${OBJECTDIR}/_ext/76882303/estatics.o: ../../src/libmd2qm/calculators/estatics.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmapplication.o ../../src/libmd2qm/qmapplication.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/estatics.o ../../src/libmd2qm/calculators/estatics.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculators/estatics.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators
+${OBJECTDIR}/_ext/76882303/readxml.o: ../../src/libmd2qm/calculators/readxml.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/estatics.o ../../src/libmd2qm/calculators/estatics.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/readxml.o ../../src/libmd2qm/calculators/readxml.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/generate_nrgs.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculators/generate_nrgs.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators
+${OBJECTDIR}/_ext/1716269789/qmpair.o: ../../src/libmd2qm/qmpair.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/generate_nrgs.o ../../src/libmd2qm/calculators/generate_nrgs.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmpair.o ../../src/libmd2qm/qmpair.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/qmnblist.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+${OBJECTDIR}/_ext/1716269789/calculatorfactory.o: ../../src/libmd2qm/calculatorfactory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/qmnblist.o ../../src/libmd2qm/qmnblist.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/calculatorfactory.o ../../src/libmd2qm/calculatorfactory.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculatorfactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculatorfactory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+${OBJECTDIR}/_ext/1716269789/version_nb.o: ../../src/libmd2qm/version_nb.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculatorfactory.o ../../src/libmd2qm/calculatorfactory.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/version_nb.o ../../src/libmd2qm/version_nb.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/version_nb.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+${OBJECTDIR}/_ext/1716269789/qmnblist.o: ../../src/libmd2qm/qmnblist.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/version_nb.o ../../src/libmd2qm/version_nb.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmnblist.o ../../src/libmd2qm/qmnblist.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/statesaver.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm
+${OBJECTDIR}/_ext/1716269789/qmtopology.o: ../../src/libmd2qm/qmtopology.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/statesaver.o ../../src/libmd2qm/statesaver.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmtopology.o ../../src/libmd2qm/qmtopology.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/shufflenrg.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculators/shufflenrg.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators
+${OBJECTDIR}/_ext/76882303/energycorr.o: ../../src/libmd2qm/calculators/energycorr.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/shufflenrg.o ../../src/libmd2qm/calculators/shufflenrg.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/energycorr.o ../../src/libmd2qm/calculators/energycorr.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/readxml.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmd2qm/calculators/readxml.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators
+${OBJECTDIR}/_ext/1716269789/qmapplication.o: ../../src/libmd2qm/qmapplication.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmd2qm/calculators/readxml.o ../../src/libmd2qm/calculators/readxml.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmapplication.o ../../src/libmd2qm/qmapplication.cc
+
+${OBJECTDIR}/_ext/1716269789/statesaver.o: ../../src/libmd2qm/statesaver.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaver.o ../../src/libmd2qm/statesaver.cc
 
 # Subprojects
 .build-subprojects:
 
 # Clean Targets
-.clean-conf:
+.clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Release
 	${RM} dist/Release/GNU-Linux-x86/liblibmd2qm.a
 
