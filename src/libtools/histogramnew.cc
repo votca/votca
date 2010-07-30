@@ -38,11 +38,12 @@ void HistogramNew::Initialize(double min, double max, int nbins)
     for(double v=_min, i=0; i<nbins; v+=_step,++i)
         _data.x(i)=v;
     
-    _data.y()=ub::zero_vector<double>(_nbins);    
+    _data.y()=ub::zero_vector<double>(_nbins);
+    _data.yerr()=ub::zero_vector<double>(_nbins);
     _data.flags()=ub::scalar_vector<char>(_nbins, 'i');    
 }
 
-void HistogramNew::Process(double &v)
+void HistogramNew::Process(double &v, double scale)
 {
     int i = (int) ((v - _min) / _step + 0.5);
     
@@ -51,7 +52,7 @@ void HistogramNew::Process(double &v)
         if(i<0) i = _nbins - ((-i) % _nbins);
         else i = i % _nbins;        
     }
-    _data.y(i) += _weight;
+    _data.y(i) += _weight * scale;
 } 
 
 void HistogramNew::Normalize()
@@ -71,6 +72,7 @@ void HistogramNew::Clear()
 {
     _weight = 1.;
     _data.y() = ub::zero_vector<double>(_nbins);
+    _data.yerr() = ub::zero_vector<double>(_nbins);
 }
 
 }}

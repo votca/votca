@@ -116,7 +116,7 @@ inline ostream &operator<<(ostream &out, const Table& t)
 {
     if ( t._has_yerr ) {
         for(int i=0; i<t._x.size(); ++i) {
-            out << t._x[i] << " " << t._y[i] << " " << t._flags[i] << " " << t._yerr[i] << endl;
+            out << t._x[i] << " " << t._y[i] << " " << t._yerr[i] << " " << t._flags[i] << endl;
         }
     }
     else {

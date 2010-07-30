@@ -48,7 +48,7 @@ class HistogramNew
         /**
             process data and generate histogram
          */
-        void Process(double &v);
+        void Process(double &v, double scale = 1.0);
         
         /**
             process a range of data

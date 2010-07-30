@@ -33,6 +33,7 @@ public:
     void ProcessRange(const iterator_type &begin, const iterator_type   &end);
     
     T CalcDev();
+    T CalcSig2();
     const T &getAvg();
     size_t getN();
     
@@ -58,7 +59,7 @@ inline void Average<T>::Process(const T &value)
    _n++;
    _m2 += value*value;   
 }
-
+/*
 template<>
 inline void Average<double>::Process(const double &value)
 {
@@ -66,7 +67,7 @@ inline void Average<double>::Process(const double &value)
     _n++;
     _m2 += value*value;
 }
-
+*/
 template<typename T>
 template<typename iterator_type>
 void Average<T>::ProcessRange(const iterator_type &begin, const iterator_type   &end){ 
@@ -79,6 +80,13 @@ template<typename T>
 T Average<T>::CalcDev(){
     double dev = 0.0;
     dev = sqrt((_m2-_n*_av*_av)/(_n-1));
+    return dev;
+}
+
+template<typename T>
+T Average<T>::CalcSig2(){
+    double dev = 0.0;
+    dev = _m2/_n-_av*_av ;
     return dev;
 }
 
