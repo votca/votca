@@ -111,7 +111,9 @@ public:
 
         cout << "Average number of molecules within cutoff " << (double)_nmol/_n << endl;
 
-       // double V = _radialcutoff*_radialcutoff*_radialcutoff*4/3*M_PI;
+        double exp_value = (double)1/_nbin;
+        double orderparam = 0;
+        
         for (int n=0; n<_nbin; n++){
             _hist_u[n] /= (double)_nmol; // normalize to numberframes and avg. number of molecules
             _hist_v[n] /= (double)_nmol;
@@ -120,7 +122,13 @@ public:
             _file_u << (double)n*2/(_nbin)-1 << " " << _hist_u[n] << endl;
             _file_v << (double)n*2/(_nbin)-1 << " " << _hist_v[n] << endl;
             _file_w << (double)n*2/(_nbin)-1 << " " << _hist_w[n] << endl;
+
+            orderparam += (_hist_u[n]-exp_value)*(_hist_u[n]-exp_value);
         }
+
+        orderparam = sqrt(orderparam/_nbin);
+
+        cout << "Orderparam " << _radialcutoff << " " << orderparam << endl;
 
         _file_u.close();
         _file_v.close();
