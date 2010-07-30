@@ -25,7 +25,7 @@
 #include "config.h"
 #endif
 
-#ifdef GMX4DEV
+#if GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -33,7 +33,7 @@
         #include <gromacs/copyrite.h>
         #include <gromacs/statutil.h>
         #include <gromacs/tpxio.h>
-#else
+#elif GMX == 40
    extern "C"
    {
         #include <statutil.h>
@@ -44,6 +44,8 @@
         #include <statutil.h>
         #include <tpxio.h>
     }
+#else
+#error Unsupported GMX version
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
@@ -75,10 +77,12 @@ class GMXTrajectoryReader : public TrajectoryReader
         string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
-#ifdef GMX4DEV
+#if GMX == 45
        t_trxstatus* _gmx_status;
-#else
+#elif GMX == 40
        int _gmx_status;
+#else
+#error Unsupported GMX version
 #endif
         /// gmx frame
         t_trxframe _gmx_frame;

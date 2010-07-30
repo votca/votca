@@ -37,7 +37,7 @@ void GMXTrajectoryReader::Close()
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
-#ifdef GMX4DEV
+#if GMX == 45
     output_env_t oenv;
     // _snew("oenv", oenv, 1);
     oenv = (output_env_t)malloc(sizeof(*oenv));
@@ -47,9 +47,11 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
         throw std::runtime_error(string("cannot open ") + _filename);
     //sfree(oenv);
     free(oenv);
-#else
+#elif GMX == 40
     if(!read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
+#else
+#error Unsupported GMX version
 #endif
 
     matrix m;
@@ -84,7 +86,7 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
-#ifdef GMX4DEV
+#if GMX == 45
     output_env_t oenv;
     //_snew("oenv", oenv, 1);
     oenv = (output_env_t)malloc(sizeof(*oenv));
@@ -93,9 +95,11 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf)
         return false;
     //sfree(oenv);
     free(oenv);
-#else
+#elif GMX == 40
     if(!read_next_frame(_gmx_status,&_gmx_frame))
         return false;
+#else
+#error Unsupported GMX version
 #endif
 
     matrix m;

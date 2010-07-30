@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#ifdef GMX4DEV
+#if GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -31,7 +31,7 @@
         #include <gromacs/copyrite.h>
         #include <gromacs/statutil.h>
         #include <gromacs/tpxio.h>
-#else
+#elif GMX == 40
    extern "C" {
         #include <statutil.h>
         #include <typedefs.h>
@@ -42,6 +42,8 @@
         #include <statutil.h>
         #include <tpxio.h>
     }
+#else
+#error Unsupported GMX version
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool

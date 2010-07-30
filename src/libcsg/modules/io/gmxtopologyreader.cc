@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#ifdef GMX4DEV
+#if GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -30,7 +30,7 @@
         #include <gromacs/copyrite.h>
         #include <gromacs/statutil.h>
         #include <gromacs/tpxio.h>
-#else
+#elif GMX == 40
     extern "C"
     {
         #include <statutil.h>
@@ -41,6 +41,8 @@
         #include <statutil.h>
         #include <tpxio.h>
     }
+#else
+#error Unsupported GMX version
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
@@ -58,17 +60,19 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     // cleanup topology to store new data
     top.Cleanup();
 
-#ifdef GMX4DEV
+#if GMX == 45
     t_inputrec ir;
     ::matrix gbox;
 
     int ePBC =
         read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
-#else
+#elif GMX == 40
     int sss;   // wtf is this
     ::real    ttt,lll; // wtf is this
     int ePBC =
         read_tpx((char *)file.c_str(),&sss,&ttt,&lll,NULL,NULL,&natoms,NULL,NULL,NULL,&mtop);
+#else
+#error Unsupported GMX version
 #endif
 
     int count=0;
@@ -93,11 +97,13 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         t_atoms *atoms=&(mol->atoms);
 
         for(int i=0; i < atoms->nres; i++) {
-            #ifdef GMX4DEV
+#if GMX == 45
                 top.CreateResidue(*(atoms->resinfo[i].name));
-            #else
+#elif GMX == 40
                 top.CreateResidue(*(atoms->resname[i]));
-            #endif
+#else
+#error Unsupported GMX version
+#endif
         }
 
 
@@ -109,11 +115,13 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 t_atom *a = &(atoms->atom[iatom]);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
-            #ifdef GMX4DEV
+#if GMX == 45
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
-            #else
+#elif GMX == 40
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr, a->m, a->q);
-            #endif
+#else
+#error Unsupported GMX version
+#endif
 
                 stringstream nm;
                 nm << bead->getResnr() + 1 << ":" <<  top.getResidue(res_offset + bead->getResnr())->getName() << ":" << bead->getName();

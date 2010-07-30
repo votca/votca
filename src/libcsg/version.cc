@@ -23,17 +23,18 @@
 #include "config.h"
 #endif
 
-#ifdef GMX
-#ifdef GMX4DEV
-        #include <gromacs/copyrite.h>
-#else
+#if GMX == 45
+#include <gromacs/copyrite.h>
+#elif GMX == 40
     extern "C"
     {
         #include <copyrite.h>
     }
 #endif
-    // this one is needed because of bool is defined in one of the headers included by gmx
-    #undef bool
+
+#ifdef GMX
+// this one is needed because of bool is defined in one of the headers included by gmx
+#undef bool
 #endif
 
 namespace votca { namespace csg {

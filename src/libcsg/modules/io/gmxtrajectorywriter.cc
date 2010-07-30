@@ -66,10 +66,12 @@ for(int i=0; i<N; ++i) {
         x[i][2] = v.getZ(); 
     }
         
-#ifdef GMX4DEV
+#if GMX == 45
     write_trxframe(_file, &frame, NULL);
-#else
+#elif GMX == 40
     write_trxframe(_file, &frame);
+#else
+#error Unsupported GMX version
 #endif
     
     step++;

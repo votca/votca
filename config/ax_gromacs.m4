@@ -42,7 +42,10 @@ or specify GMX_LIBS and GMX_CFLAGS
     LIBS="$GMX_LIBS $LIBS"
     CXX="${SHELL-/bin/sh} ./libtool --mode=link $CXX"
     AC_MSG_CHECKING([for GromacsVersion in $GMX_LIBS])
-    AC_TRY_LINK_FUNC(GromacsVersion,[AC_MSG_RESULT([yes])],[
+    AC_TRY_LINK_FUNC(GromacsVersion,[
+      AC_MSG_RESULT([yes])
+      AC_DEFINE(GMX,33,[Used gromacs version])
+    ],[
       AC_MSG_RESULT([no])
       AC_MSG_ERROR([
 
@@ -54,6 +57,17 @@ If you are using a mpi version of gromacs, make sure that CXX is something like 
 (e.g. export CXX="mpic++" and export GMX_LIBS="-L<gromacs-path>/lib -lgmx_mpi")
       ])
     ])
+    AC_MSG_CHECKING([for do_cpt_header in $GMX_LIBS])
+    AC_TRY_LINK_FUNC(do_cpt_header,[
+      AC_MSG_RESULT([yes])
+      AC_DEFINE(GMX,40,[Used gromacs version])
+    ],[
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([
+
+Your version of GROMACS is too old, please update at least to version 4.0
+      ])
+    ])
     AC_MSG_CHECKING([for output_env_init in $GMX_LIBS])
     AC_TRY_LINK_FUNC(output_env_init,[
       AC_MSG_RESULT([yes])
@@ -62,7 +76,7 @@ If you are using a mpi version of gromacs, make sure that CXX is something like 
 We are using a development version of gromacs, we hope you know what you are doing....
 unexpected results ahead
       ])
-      AC_DEFINE(GMX4DEV,1,[Use gromacs 4 devel version])
+      AC_DEFINE(GMX,45,[Used gromacs version])
       gmxsub=""
       gmxheader="gromacs/tpxio.h"
     ],[
@@ -109,7 +123,6 @@ please make sure GMX_CFLAGS is pointing to <gomacs-path>/include for gromacs ver
       AC_SUBST(PKGCFLAGSGMX,"$GMX_CFLAGS")
       AC_SUBST(PKGLIBSGMX,"$GMX_LIBS")
     ])
-    AC_DEFINE(GMX,1,[Do we have gromacs])
   fi
   AM_CONDITIONAL(GMX,[test "$with_libgmx" != "no"])
 ])
