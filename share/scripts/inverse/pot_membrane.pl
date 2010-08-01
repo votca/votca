@@ -80,7 +80,7 @@ for (my $i=0;$i<=$#r;$i++){
         $pot_rep[$i]=-$eps;
       }
       else {
-        $pot_rep[$i]=4*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**4)+$eps;
+        $pot_rep[$i]=(3*sqrt(3)/2)*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**4+(2/(3*sqrt(3))))+$eps;
       }
 
     # Total potential
