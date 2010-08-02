@@ -135,27 +135,3 @@ bool GenerateNrgs::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r) {
     
     return false;
 }
-
-/*
-     QMNBList  &nblist = top->nblist();
-    vector<CrgUnit *> lcharges = top->CrgUnits();
-    std::map<CrgUnit *, Average<double> > tmp_energy;
-
-    vector<CrgUnit *>::iterator itl;
-    QMNBList::iterator piter;
-
-    // loop over all pairs
-    for (piter = nblist.begin(); piter!=nblist.end(); ++piter) {
-        double e1 = (*piter)->first->getEnergy();
-        double e2 =  (*piter)->second->getEnergy();
-
-        tmp_energy[(*piter)->first].Process(e2);
-        tmp_energy[(*piter)->second].Process(e1);
-    }
-
-    for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
-        // e1+e2+...+eN/ sqrt(N) looks weird, but should be done to get the same sigma
-        (*itl)->setEnergy( tmp_energy[(*itl)].getAvg() * sqrt( tmp_energy[(*itl)].getN() ) );
-    }
- 
- */
