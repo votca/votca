@@ -16,8 +16,12 @@ AC_DEFUN([AX_GROMACS], [
     else
       libgmx="${withval#lib}"
     fi
-    PKG_CHECK_MODULES([GMX],[lib$libgmx],[:],[
-      AC_MSG_CHECKING([GMXLDLIB])
+    AC_MSG_CHECKING([for GMX pkg-config files])
+    PKG_CHECK_EXISTS([lib$libgmx],[
+      AC_MSG_RESULT([yes])
+    ],[
+      AC_MSG_RESULT([no])
+      AC_MSG_CHECKING([for GMXLDLIB])
       if test -z "$GMXLDLIB"; then
         AC_MSG_RESULT([no])
         AC_MSG_ERROR([
@@ -28,6 +32,15 @@ or specify GMX_LIBS and GMX_CFLAGS
       else
         AC_MSG_RESULT([yes])
       fi
+      AC_MSG_CHECKING([for GMX pkg-config dir])
+      if test -d "$GMXLDLIB/pkgconfig"; then
+        AC_MSG_RESULT([yes])
+        export PKG_CONFIG_PATH="$GMXLDLIB/pkgconfig:$PKG_CONFIG_PATH"
+      else
+        AC_MSG_RESULT([no])
+      fi
+    ])
+    PKG_CHECK_MODULES([GMX],[lib$libgmx],[:],[
       AC_MSG_NOTICE([creating GMX_LIBS and GMX_CFLAGS from GMXLDLIB])
       if test -z "$GMX_LIBS"; then
         GMX_LIBS="-L$GMXLDLIB -l$libgmx"
