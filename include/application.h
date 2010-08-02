@@ -29,53 +29,86 @@ public:
     Application();
     virtual ~Application();
 
-    /// \brief executes the program
+    /**
+     * \brief executes the program
+     * \param argc argc from main
+     * \param argv argv from main
+     * \return return code
+     */
     int Exec(int argc, char **argv);
 
-    /// \brief program name
-    ///
-    /// overload this function to set the program name
+    /**
+     * \brief program name
+     * \return string with program name
+     *
+     * overload this function to set the program name
+     */
     virtual string ProgramName() = 0;
 
-    /// \brief version string of application
+    /**
+     * \brief version string of application
+     * \return version string
+     */
     virtual string VersionString();
 
-    /// \brief help text of application without version information
+    /**
+     * \brief help text of application without version information
+     * \param out ostream for output
+     */
     virtual void HelpText(std::ostream &out) = 0;
 
-    /// \brief Initialize application data
-    /// 
-    /// Initialize is called by run before parsing the command line.
-    /// All necesassary command line arguments can be added here
+    /**
+     * \brief Initialize application data
+     *
+     * Initialize is called by run before parsing the command line.
+     * All necesassary command line arguments can be added here
+     */
     virtual void Initialize() {}
     
-    /// \brief Process command line options
-    /// 
-    /// EvaluateOptions is called by Run after parsing the command line.
-    /// return true if everything is ok, false to stop and show help text.
+    /**
+     * \brief Process command line options
+     * \return true to contine, false to stop
+     *
+     * EvaluateOptions is called by Run after parsing the command line.
+     * return true if everything is ok, false to stop and show help text.
+     */
     virtual bool EvaluateOptions() { return false; }
 
-    /// \brief Check weather required option is set
-    ///
-    /// CheckRequired is called from EvaluateOptions if a required options is set.
-    /// If not, the list of possible options is shown and an exception with
-    /// the error messig given in error_msg is thrown
+    /**
+     * \brief Check weather required option is set
+     * \param option_name name of the option
+     * \param error_msg error message if option is missing
+     *
+     * CheckRequired is called from EvaluateOptions if a required options is set.
+     * If not, the list of possible options is shown and an exception with
+     * the error messig given in error_msg is thrown
+     */
     void CheckRequired(const string &option_name, const string &error_msg="");
 
-    /// \brief Main body of application
-    ///
-    /// Run is called after command line was parsed + evaluated. All
-    /// the work should be done in here.
+    /**
+     * \brief Main body of application
+     *
+     * Run is called after command line was parsed + evaluated. All
+     * the work should be done in here.
+     */
     virtual void Run() { }
 
-    /// \brief add option for command line
-    ///
-    /// Adds an option to the available command line options. If no group is
-    /// specified, it is added to the standard group (Allowed Options). If group
-    /// is given, a sub group for this set of options will be created.
+    /**
+     * \brief add option for command line
+     * \param group group string
+     * \return easy_init of boost, see documentation
+     *
+     * Adds an option to the available command line options. If no group is
+     * specified, it is added to the standard group (Allowed Options). If group
+     * is given, a sub group for this set of options will be created.
+     */
     boost::program_options::options_description_easy_init
         AddProgramOptions(const string &group = "");
-    /// get available program options & descriptions
+    
+    /**
+     * \brief get available program options & descriptions
+     * \return variables_map (see boost documentation)
+     */
     boost::program_options::variables_map &OptionsMap() { return _op_vm; }
     boost::program_options::options_description &OptionsDesc() { return _op_desc; }
 
