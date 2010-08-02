@@ -110,9 +110,6 @@
             <pElem>/usr/include/libxml2</pElem>
             <pElem>../../../../../ruehle/gmx/include/gromacs</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>GMX</Elem>
-          </preprocessorList>
         </ccTool>
         <archiverTool>
           <output>../../src/libcsg/libcsg.a</output>

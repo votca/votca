@@ -38,9 +38,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o \
 	${OBJECTDIR}/_ext/484457853/topologymap.o \
 	${OBJECTDIR}/_ext/1332856960/gmxtrajectoryreader.o \
+	${OBJECTDIR}/_ext/484457853/nblist.o \
 	${OBJECTDIR}/_ext/1332856960/grotopologyreader.o \
 	${OBJECTDIR}/_ext/484457853/exclusionlist.o \
-	${OBJECTDIR}/_ext/484457853/nblist.o \
 	${OBJECTDIR}/_ext/1332856960/esptrajectoryreader.o \
 	${OBJECTDIR}/_ext/484457853/version_nb.o \
 	${OBJECTDIR}/_ext/484457853/map.o \
@@ -114,6 +114,11 @@ ${OBJECTDIR}/_ext/1332856960/gmxtrajectoryreader.o: ../../src/libcsg/modules/io/
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/gmxtrajectoryreader.o ../../src/libcsg/modules/io/gmxtrajectoryreader.cc
 
+${OBJECTDIR}/_ext/484457853/nblist.o: ../../src/libcsg/nblist.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/nblist.o ../../src/libcsg/nblist.cc
+
 ${OBJECTDIR}/_ext/1332856960/grotopologyreader.o: ../../src/libcsg/modules/io/grotopologyreader.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
 	${RM} $@.d
@@ -123,11 +128,6 @@ ${OBJECTDIR}/_ext/484457853/exclusionlist.o: ../../src/libcsg/exclusionlist.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/exclusionlist.o ../../src/libcsg/exclusionlist.cc
-
-${OBJECTDIR}/_ext/484457853/nblist.o: ../../src/libcsg/nblist.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
-	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/nblist.o ../../src/libcsg/nblist.cc
 
 ${OBJECTDIR}/_ext/1332856960/esptrajectoryreader.o: ../../src/libcsg/modules/io/esptrajectoryreader.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
