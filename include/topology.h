@@ -61,59 +61,122 @@ public:
     Topology() {}    
     virtual ~Topology();
     
-    /// cleans up all the stored data
+    /**
+     * \brief cleans up all the stored data
+     */
     virtual void Cleanup();
     
-    /// creates a new Bead
+    /**
+     * \brief creates a new Bead
+     *
+     * \param symmetry symmetry of the bead, 1: spherical 3: ellipsoidal
+     * \param name name of the bead
+     * \param type bead type
+     * \param resnr residue number
+     * \param m mass
+     * \param q charge
+     * \return pointer to created bead
+     *
+     * The function creates a new bead and adds it to the list of beads.     
+     */
     virtual Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
 
-    /// returns the BeadType or creates it if it doesnt exist
+     /**
+     * \brief get bead type or create it
+     * \param name typename
+     * \return pointer to bead type
+     *
+     * Returns an existing bead type or creates one if it doesn't exist yet
+     */
     virtual BeadType *GetOrCreateBeadType(string name);
 
-    /// creates a new molecule
+    /**
+     * \brief creates a new molecule
+     * \param name name of the molecule
+     * \return pointer to created molecule
+     */
     virtual Molecule *CreateMolecule(string name);
 
-    /// checks weather molecules with the same name really contain the same number of beads
+    /**
+     *  \brief checks weather molecules with the same name really contain the same number of beads
+     */
     void CheckMoleculeNaming(void);
     
-    /// creates a new residue
+    /**
+     * \brief create a new resiude
+     * @param name residue name
+     * @return created residue
+     */
     virtual Residue *CreateResidue(string name);
     
     /** 
-        \brief create molecules based on the residue
-        This function scans the topology and creates molecules based on the resiude id.
-        All beads with the same resid are put int one molecule.
+     * \brief create molecules based on the residue
+     *
+     * This function scans the topology and creates molecules based on the resiude id.
+     * All beads with the same resid are put int one molecule.
     */
     void CreateMoleculesByResidue();
     
     /** 
-        \brief put the whole topology in one molecule
-        This function creates one big molecule for all beads in the topology.
+     * \brief put the whole topology in one molecule
+     * \param name name of the new molecule
+     *
+     *  This function creates one big molecule for all beads in the topology.
     */
     void CreateOneBigMolecule(string name);
     
+    /**
+     * \brief create molecules based on blocks of atoms
+     * \param name molecule name
+     * \param first first bead
+     * \param nbeads number of beads per molecule
+     * \param nmolecules number of molecules
+     */
     void CreateMoleculesByRange(string name, int first, int nbeads, int nmolecules);
     
-    /// number of molecules in the system
+    /**
+     * \brief number of molecules in the system
+     * @return number of molecule in topology
+     */
     int MoleculeCount() { return _molecules.size(); }
-    /// number of beads in the system
+
+    /**
+     * number of beads in the system
+     * @return number of beads in the system
+     */
     int BeadCount() { return _beads.size(); }
     
-    /// number of beads in the system
+    /**
+     * number of residues in the system
+     * \return number of residues
+     */
     int ResidueCount() { return _residues.size(); }
        
-    /// get a molecule by an index
+    /**
+     * get molecule by index
+     * @param index molecule number
+     * @return pointer to molecule
+     */
     Molecule *MoleculeByIndex(int index);
     
-    /// get the bead container
+    /**
+     * access containter with all beads
+     * @return bead container
+     */
     BeadContainer &Beads() { return _beads; }
-    /// get the molecule container
+
+    /**
+     * access  containter with all molecules
+     * @return molecule container
+     */
     MoleculeContainer &Molecules() { return _molecules; }
-    /// get the bonded interaction container
+
+    /**
+     * access containter with all bonded interactions
+     * @return bonded interaction container
+     */
     InteractionContainer &BondedInteractions() { return _interactions; }
     
-    
-    // \todo change AddBondedinteraction to Create bonded interaction, that only topology can create interactions
     void AddBondedInteraction(Interaction *ic);
     std::list<Interaction *> InteractionsInGroup(const string &group);
     
@@ -122,45 +185,106 @@ public:
     Residue *getResidue(const int i) const { return _residues[i]; }
     Molecule *getMolecule(const int i) const { return _molecules[i]; }
        
-    /// a hack to get vale's topology to read
+    /**
+     * delete all molecule information
+     */
     void ClearMoleculeList(){
         _molecules.clear();
     }
     
-    /// adds all the beads+molecules+residues from other topology
+    /**
+     * \brief adds all the beads+molecules+residues from other topology
+     * \param top topology to add
+     */
     void Add(Topology *top);
+
+    /**
+     * \brief copy topology data of different topology
+     * \param top topology to copy from
+     */
     void CopyTopologyData(Topology *top);
 
-    /// \brief rename all the molecules in range
-    /// range is a string which is parsed by RangeParser,
-    /// check that for formating
+    /**
+     *  \brief rename all the molecules in range
+     * \param range range string of type 1:2:10 = 1, 3, 5, 7, ...
+     * \param name new name of molecule
+     * range is a string which is parsed by RangeParser,
+     */
     void RenameMolecules(string range, string name);
     
-    /// set the simulation box
+    /**
+     * set the simulation box
+     * \param box triclinic box matrix
+     */
     void setBox(const matrix &box) { _box = box; };
-    /// get the simulation box
+    
+    /**
+     * get the simulation box
+     * \return triclinic box matrix
+     */
     const matrix &getBox() { return _box; };
 
-    /// set the time of current frame
+    /**
+     * set the time of current frame
+     * \param t simulation time in ns
+     */
     void setTime(double t) { _time = t; };
-    /// get the time of current frame
+
+    /**
+     * get the time of current frame
+     * \return simulation time in ns
+     */
     double getTime() { return _time; };
     
-    /// set the current step
+    /**
+     * set the step number of current frame
+     * \param s step number
+     */
     void setStep(int s) { _step = s; };
-    /// get the current step
+
+    /**
+     * get the step number of current frame
+     * \return step number
+     */
     int getStep() { return _step; };
 
-    /// get the smallest distance between two particles with correct treatment of pbc
+    /**
+     * \brief pbc correct distance of two beads
+     * \param bead1 index of first bead
+     * \param bead2 index of second bead
+     * \return distance vector
+     * 
+     * calculates the smallest distance between two beads with correct treatment
+     * of pbc
+     */
     vec getDist(int bead1, int bead2) const;
     
+    /**
+     * \brief calculate shortest vector connecting two points
+     * \param r1 first point
+     * \param r2 second point
+     * \return distance vector
+     *
+     * calculates the smallest distance between two points with correct treatment
+     * of pbc
+     */
     vec BCShortestConnection(const vec &r1, const vec &r2) const;
     
-    /// calculates the vox volume
+    /**
+     *  calculates the vox volume
+     *  \return box volume
+     */
     double BoxVolume();
-    
-    
+        
+    /**
+     *  rebuild exclusion list     
+     */
     void RebuildExclusions();
+
+    /**
+     * access exclusion list
+     * \return exclusion list
+     */
     ExclusionList &getExclusions() { return _exclusions; }
     
 protected:

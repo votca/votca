@@ -52,18 +52,20 @@ public:
     /// get the cutoff for the neighbour search
     double getCutoff() { return _cutoff; }
 
-    /// \brief match function for class member functions
-    ///
-    /// SetMatchFunction can be used to specify additional criteria, weather two
-    /// beads are added to the list of pairs or not. The function gets the two
-    /// two beads and the distance vector as argument. If a pair should be added,
-    /// the function should return true, otherwise false.
-    ///
-    /// This function can also be used, in a situation where each pair needs only
-    /// to be processed once, but the total number of pairs is to big to be stored
-    /// in memory, e.g. to calculate rdf for huge systems. In this case, set a
-    /// match function which always returns false (->no pair is added), and do
-    /// the processing in the match function.
+    /**
+     *  \brief match function for class member functions
+     *
+     * SetMatchFunction can be used to specify additional criteria, weather two
+     * beads are added to the list of pairs or not. The function gets the two
+     * two beads and the distance vector as argument. If a pair should be added,
+     * the function should return true, otherwise false.
+     *
+     * This function can also be used, in a situation where each pair needs only
+     * to be processed once, but the total number of pairs is to big to be stored
+     * in memory, e.g. to calculate rdf for huge systems. In this case, set a
+     * match function which always returns false (->no pair is added), and do
+     * the processing in the match function.
+     */
     template<typename T>
     void SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &));
 
