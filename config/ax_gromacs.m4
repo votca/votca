@@ -16,6 +16,7 @@ AC_DEFUN([AX_GROMACS], [
     else
       libgmx="${withval#lib}"
     fi
+    save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
     AC_MSG_CHECKING([for GMX pkg-config files])
     PKG_CHECK_EXISTS([lib$libgmx],[
       AC_MSG_RESULT([yes])
@@ -49,6 +50,9 @@ or specify GMX_LIBS and GMX_CFLAGS
         AC_MSG_NOTICE([GMX_LIBS was already set elsewhere to "$GMX_LIBS"])
       fi
     ])
+    dnl restore PKG_CONFIG_PATH, otherwise pkg-config will search for libgmx.pc later
+    dnl and will not find it again
+    PKG_CONFIG_PATH="$save_PKG_CONFIG_PATH"
     save_LIBS="$LIBS"
     save_CXX="$CXX"
 
