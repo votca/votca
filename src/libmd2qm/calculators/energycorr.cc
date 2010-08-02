@@ -57,6 +57,7 @@ bool EnergyCorr::EvaluateFrame(QMTopology* top) {
     NBListGrid mynbl;
 
     mytop.setBox(top->getBox());
+
     vector<CrgUnit *> lcharges = top->CrgUnits();
     vector<CrgUnit *>::iterator itl;
     // 1) calculate average energy
