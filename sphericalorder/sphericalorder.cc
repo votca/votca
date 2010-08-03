@@ -147,8 +147,8 @@ public:
         if (_refmol != ""){
             for(BeadContainer::iterator iter = conf->Beads().begin();
             iter!=conf->Beads().end();++iter) {
-                Bead *bead = *iter;
-                if(wildcmp("SOL", bead->getName().c_str())){
+                Bead *bead = *iter;      
+                if(wildcmp(_refmol.c_str(), bead->getName().c_str())){
                     _ref = bead->getPos();
                     cout << " Solute pos " << _ref << endl;
                 }
