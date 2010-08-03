@@ -15,6 +15,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "topologyreader.h"
 #include "modules/io/esptopologyreader.h"
 #include "modules/io/xmltopologyreader.h"
