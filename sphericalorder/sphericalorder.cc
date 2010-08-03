@@ -51,6 +51,7 @@ public:
         AddProgramOptions()
             ("filter", boost::program_options::value<string>(&_filter)->default_value("*"), "filter molecule names")
             ("radialcut", boost::program_options::value<double>(), "radial cutoff: distance from center where bead is considered")
+            ("minrad", boost::program_options::value<double>(&_minrad)->default_value(0.0), "minimal distance a parcle has to be apart from center to be considerd")
             ("refmol", boost::program_options::value<string>(&_refmol)->default_value(""), "Reference molecule");
     }
 
@@ -68,10 +69,15 @@ public:
         string filter;
 
         filter = OptionsMap()["filter"].as<string>();
+
+        _minrad=0;
+        
         _radialcutoff = OptionsMap()["radialcut"].as<double>();
+        _minrad = OptionsMap()["minrad"].as<double>();
         _refmol = OptionsMap()["refmol"].as<string>();
 
-        cout << "using radial cutoff: " << _radialcutoff << endl;
+        cout << "considering atoms between " << _minrad <<
+                " and " << _radialcutoff << endl;
 
         setFilter(filter);
 
@@ -161,7 +167,7 @@ public:
             Bead *bead = *iter;
             if(!wildcmp(_filter.c_str(), bead->getName().c_str())) continue;
                 eR = bead->getPos()-_ref;
-                if (abs(eR) < _radialcutoff && abs(eR)>0) {
+                if (abs(eR) < _radialcutoff && abs(eR)>_minrad) {
                     // cout << eR << endl;
                     eR.normalize();
                     u = bead->getU();
@@ -207,6 +213,7 @@ protected:
     int _nbin;
     int _nmol;
     double _radialcutoff;
+    double _minrad;
 
     string _filter;
     string _refmol;
