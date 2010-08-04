@@ -77,7 +77,7 @@ for (my $i=0;$i<=$#r;$i++){
  
       # Repulsive part
       if ($r[$i]<=$r_cut_rep) {
-        $pot_rep[$i]=(4*$eps*((($sig/$r[$i])**12)-(($sig/$r[$i])**4)+4));
+        $pot_rep[$i]=(4*$eps*((($sig/$r[$i])**12)-(($sig/$r[$i])**6)+4));
       }
       else {
         $pot_rep[$i]=0;
