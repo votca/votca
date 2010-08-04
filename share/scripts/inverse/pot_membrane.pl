@@ -51,7 +51,7 @@ my $eps="$ARGV[3]";
 
 # Read in empty potential table
 my @r;
-my $r_cut_rep=(3**(1/8))*$sig;
+my $r_cut_rep=(2**(1/6))*$sig;
 my $r_cut_tot=csg_get_interaction_property("max");
 my $w_cut=$r_cut_tot-$r_cut_rep;
 my $pi=3.14159265;
@@ -77,7 +77,7 @@ for (my $i=0;$i<=$#r;$i++){
  
       # Repulsive part
       if ($r[$i]<=$r_cut_rep) {
-        $pot_rep[$i]=(3*sqrt(3)/2)*$eps*(($sig/$r[$i])**12-($sig/$r[$i])**4+(2/(3*sqrt(3))));
+        $pot_rep[$i]=(4*$eps*((($sig/$r[$i])**12)-(($sig/$r[$i])**4)+4));
       }
       else {
         $pot_rep[$i]=0;
