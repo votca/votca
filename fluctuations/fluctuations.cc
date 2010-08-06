@@ -34,7 +34,9 @@ class CsgFluctuations
 {
     string ProgramName() { return "fluctuations"; }
     void HelpText(ostream &out) { 
-        out << "calculate density fluctuations in a subvolume";
+        out << "calculate density fluctuations in subvolumes of the simulation box.";
+        out << "Subolumes can be either cubic slabs in dimensions (x|y|z) or spherical";
+        out << "slabs with respect to either the center of box or a reference molecule";
     }
 
     // some program options are added here
@@ -48,6 +50,7 @@ class CsgFluctuations
                 ("rmin", boost::program_options::value<double>(&_rmin)->default_value(0.0), "minimal radial distance from refmol to be considerd")
                 ("refmol", boost::program_options::value<string>(&_refmol)->default_value(""), "Reference molecule")
                 ("nbin", boost::program_options::value<int>(&_nbins)->default_value(100), "Number of bins")
+                ("geometry", boost::program_options::value<string>(), "(sphere|x|y|z) Take radial or x, y, z slabs from rmin to rmax")
                 ("outfile", boost::program_options::value<string>(&_outfilename)->default_value("fluctuations.dat"), "Output file");
 
 
@@ -55,6 +58,7 @@ class CsgFluctuations
      bool EvaluateOptions() {
         CsgApplication::EvaluateOptions();
         CheckRequired("rmax");
+        CheckRequired("geometry");
         return true;
     }
     
@@ -69,7 +73,30 @@ class CsgFluctuations
         _rmax = OptionsMap()["rmax"].as<double>();
         _nbins = OptionsMap()["nbin"].as<int>();
         _outfilename = OptionsMap()["outfile"].as<string>();
+        _geometryinput =OptionsMap()["geometry"].as<string>();
         _nframes=0;
+
+        _do_spherical =false;
+
+        if (_geometryinput == "sphere"){
+            cout << "Doing spherical slabs" << endl;
+            _do_spherical =true;
+        }else if (_geometryinput == "x"){
+             cout << "Doing slabs along x-axis" << endl;
+             _dim =0;
+        }
+        else if (_geometryinput == "y"){
+             cout << "Doing slabs along  y-axis" << endl;
+             _dim =1;
+        }
+        else if (_geometryinput == "z"){
+             cout << "Doing slabs along  z-axis" << endl;
+             _dim =2;
+        }
+        else{
+            cout << "Unrecognized geometry option. (sphere|x|y|z)" << endl;
+            exit(0);
+        }
 
         _N_avg = new double [_nbins];
         _N_sq_avg = new double [_nbins];
@@ -80,11 +107,28 @@ class CsgFluctuations
 
         }
 
-        cout << "Calculating fluctions for " << _rmin << "<r<" << _rmax;
-        cout << "using " << _nbins << " bins" <<endl;
+        if (_do_spherical){
+            cout << "Calculating fluctions for " << _rmin << "<r<" << _rmax;
+            cout << "using " << _nbins << " bins" <<endl;
+        }
+        else{
+            cout << "Calculating fluctions for " << _rmin  << "<" << _geometryinput  << "<"  << _rmax;
+            cout << "using " << _nbins << " bins" <<endl;
+        }
+
+
+        if (_refmol == "" && _do_spherical){
+            matrix box;
+            box = top->getBox();
+            vec a = box.getCol(0); vec b = box.getCol(1); vec c = box.getCol(2);
+            _ref = (a+b+c)/2;
+
+            cout << "Refernce is center of box " << _ref << endl;
+        }
+
          _outfile.open(_outfilename.c_str());
         if(!_outfile)
-                throw runtime_error("cannot open hist_u.xvg for output");
+                throw runtime_error("cannot open outfile for output");
 
     }
 
@@ -108,6 +152,9 @@ protected:
     int _nframes;
     string _outfilename;
     ofstream _outfile;
+    string _geometryinput;
+    bool _do_spherical;
+    int  _dim;
 
 };
 
@@ -148,10 +195,15 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology*conf_atom = 0)
         Bead *bead = *iter;
         if (!wildcmp(_filter.c_str(), bead->getName().c_str())) continue;
 
-
-        eR = bead->getPos() - _ref;
-        r = abs(eR);
-
+        if (_do_spherical){
+            eR = bead->getPos() - _ref;
+            r = abs(eR);
+        }else{
+            eR = bead->getPos();
+            if (_dim == 0) r = eR.getX();
+            else if (_dim == 1) r = eR.getY();
+            else if (_dim == 2) r = eR.getZ();
+        }
         if (r > _rmin && r < _rmax) {
             rbin = (int)_nbins*(double)((r - _rmin)/(_rmax - _rmin));
             N[rbin]++;
