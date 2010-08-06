@@ -46,8 +46,8 @@ class CsgFluctuations
         // add program option to pick molecule
         AddProgramOptions("Fluctuation options")
                 ("filter", boost::program_options::value<string> (&_filter)->default_value("*"), "filter molecule names")
-                ("rmax", boost::program_options::value<double>(), "maximal radial distance from refmol to be considerd")
-                ("rmin", boost::program_options::value<double>(&_rmin)->default_value(0.0), "minimal radial distance from refmol to be considerd")
+                ("rmax", boost::program_options::value<double>(), "maximal distance to be considered")
+                ("rmin", boost::program_options::value<double>(&_rmin)->default_value(0.0), "minimal distance to be considered")
                 ("refmol", boost::program_options::value<string>(&_refmol)->default_value(""), "Reference molecule")
                 ("nbin", boost::program_options::value<int>(&_nbins)->default_value(100), "Number of bins")
                 ("geometry", boost::program_options::value<string>(), "(sphere|x|y|z) Take radial or x, y, z slabs from rmin to rmax")
