@@ -25,6 +25,21 @@ AC_ARG_ENABLE(votca-expat,
                             [Build libvotca_expat, a build-in replacement for expat])],,
                              [enable_votca_expat="no"])
 
+AC_ARG_ENABLE(votca-gsl,
+            [AS_HELP_STRING([--enable-votca-gsl],
+                            [Build libvotca_gsl, a build-in replacement for gsl])],,
+                             [enable_votca_gsl="no"])
+
+AC_ARG_WITH(fftw,
+            [AS_HELP_STRING([--without-fftw],
+                            [Compile without fftw, will disable CrossCorrelate class @<:@ARG=no@:>@])],,
+                             [with_fftw="yes"])
+
+AC_ARG_WITH(gsl,
+            [AS_HELP_STRING([--without-gsl],
+                            [Compile without gsl, will disable linalg functions and CubicSpline class @<:@ARG=no@:>@])],,
+                             [with_gsl="yes"])
+
 AC_ARG_ENABLE(la-files,
 	[AS_HELP_STRING([--disable-la-files],[Do NOT install GNU libtool's la files])],,
 	[enable_la_files=yes])
@@ -45,12 +60,8 @@ BOOST was not found/disabled: Install BOOST or enable build-in replacement libvo
   fi
 fi
 
-# check for fftw3
-AC_ARG_WITH(fftw,
-            [AS_HELP_STRING([--without-fftw],
-                            [Compile without fftw, will disable CrossCorrelate class @<:@ARG=no@:>@])],,
-                             [with_fftw="yes"])
 if test "$with_fftw" = "yes"; then
+  # check for fftw3
   PKG_CHECK_MODULES([FFTW],fftw3)
   AC_SUBST(PKGFFTW,"fftw3")
 else
@@ -60,12 +71,28 @@ else
   AC_SUBST(PKGFFTW,"")
 fi
 
-# check for gsl
-AC_ARG_WITH(gsl,
-            [AS_HELP_STRING([--without-gsl],
-                            [Compile without gsl, will disable linalg functions and CubicSpline class @<:@ARG=no@:>@])],,
-                             [with_gsl="yes"])
+AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
+AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
+
+AC_CHECK_PROGS(DOXYGEN,doxygen,no)
+AM_CONDITIONAL(HAVE_DOXYGEN,[test "$DOXYGEN" != no])
+
+if test "$enable_votca_expat" = "yes"; then
+  AC_CONFIG_SUBDIRS(src/libexpat)
+  AC_SUBST(VOTCA_EXPAT,"libexpat")
+  AC_SUBST(EXPAT_CFLAGS,'-I$(top_srcdir)/src/libexpat/include')
+  AC_SUBST(EXPAT_LIBS,'$(top_builddir)/src/libexpat/libs/libvotca_expat.la')
+  AC_SUBST(PKGEXPAT,"libvotca_expat")
+  AC_SUBST(PKGCFLAGSEXPAT,"")
+  AC_SUBST(PKGLIBSEXPAT,"")
+else
+  AC_SUBST(VOTCA_EXPAT,"")
+  # check for expat
+  AX_EXPAT
+fi
+
 if test "$with_gsl" = "yes"; then
+  # check for gsl
   PKG_CHECK_MODULES([GSL],gsl)
   AC_SUBST(PKGGSL,"gsl")
 else
@@ -75,53 +102,22 @@ else
   AC_SUBST(PKGGSL,"")
 fi
 
-AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
-AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
-
-AC_CHECK_PROGS(DOXYGEN,doxygen,no)
-AM_CONDITIONAL(HAVE_DOXYGEN,[test "$DOXYGEN" != no])
-
-if test "$enable_votca_expat" = "yes"; then
-  EXPAT_CFLAGS='-I$(top_srcdir)/src/libexpat/include'
-  EXPAT_LIBS='$(top_srcdir)/src/libexpat/libs/libvotca_expat.la'
-  VOTCA_EXPAT="libexpat"
-  AC_CONFIG_SUBDIRS(src/libexpat)
-  PKGEXPAT="libvotca_expat"
-  PKGCFLAGSEXPAT=""
-  PKGLIBSEXPAT=""
-  AC_SUBST(VOTCA_EXPAT)
-  AC_SUBST(EXPAT_CFLAGS)
-  AC_SUBST(EXPAT_LIBS)
-  AC_SUBST(PKGCFLAGSEXPAT)
-  AC_SUBST(PKGLIBSEXPAT)
-  AC_SUBST(PKGEXPAT)
-else
-# check for expat
-  AX_EXPAT
-fi
-
 if test "$enable_votca_boost" = "yes"; then
-  BOOST_CFLAGS='-I$(top_srcdir)/src/libboost'
-  BOOST_LIBS='$(top_srcdir)/src/libboost/libs/libvotca_boost.la'
-  VOTCA_BOOST="libboost"
   AC_CONFIG_SUBDIRS(src/libboost)
-  PKGBOOST="libvotca_boost"
-  PKGCFLAGSBOOST=""
-  PKGLIBSBOOST=""
+  AC_SUBST(VOTCA_BOOST,"libboost")
+  AC_SUBST(BOOST_CFLAGS,'-I$(top_srcdir)/src/libboost')
+  AC_SUBST(BOOST_LIBS,'$(top_builddir)/src/libboost/libs/libvotca_boost.la')
+  AC_SUBST(PKGBOOST,"libvotca_boost")
+  AC_SUBST(PKGCFLAGSBOOST,"")
+  AC_SUBST(PKGLIBSBOOST,"")
 else
-  BOOST_CFLAGS="$BOOST_CPPFLAGS"
-  BOOST_LIBS="$BOOST_LDFLAGS $BOOST_PROGRAM_OPTIONS_LIB"
-  VOTCA_BOOST=""
-  PKGBOOST=""
-  PKGCFLAGSBOOST="$BOOST_CFLAGS"
-  PKGLIBSBOOST="$BOOST_LIBS"
+  AC_SUBST(VOTCA_BOOST,"")
+  AC_SUBST(BOOST_CFLAGS,"$BOOST_CPPFLAGS")
+  AC_SUBST(BOOST_LIBS,"$BOOST_LDFLAGS $BOOST_PROGRAM_OPTIONS_LIB")
+  AC_SUBST(PKGBOOST,"")
+  AC_SUBST(PKGCFLAGSBOOST,"$BOOST_CFLAGS")
+  AC_SUBST(PKGLIBSBOOST,"$BOOST_LIBS")
 fi
-AC_SUBST(VOTCA_BOOST)
-AC_SUBST(BOOST_CFLAGS)
-AC_SUBST(BOOST_LIBS)
-AC_SUBST(PKGCFLAGSBOOST)
-AC_SUBST(PKGLIBSBOOST)
-AC_SUBST(PKGBOOST)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([include/Makefile])
