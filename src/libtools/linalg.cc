@@ -1,11 +1,22 @@
 #include "linalg.h"
-#include <gsl/gsl_linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifndef NOGSL
+#include <gsl/gsl_linalg.h>
+#endif
+
 
 namespace votca { namespace tools {
 
 void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual)
 {
+#ifdef NOGSL
+    throw std::runtime_error("linalg_qrsolve is not compiled-in due to disabling of GSL - recompile libtools with '--with-gsl'");
+#else
     gsl_matrix_view m
         = gsl_matrix_view_array (&A(0,0), A.size1(), A.size2());
 
@@ -31,10 +42,14 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
     gsl_vector_free (gsl_x);
     gsl_vector_free (tau);
     gsl_vector_free (gsl_residual);
+#endif
 }
 
 void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr)
 {
+#ifdef NOGSL
+    throw std::runtime_error("linalg_constrained_qrsolve is not compiled-in due to disabling of GSL - recompile libtools with '--with-gsl'");
+#else
     // Transpose constr:
     constr = trans(constr);
 
@@ -124,6 +139,7 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
     gsl_vector_free (z);
     gsl_vector_free (tau_solve);
     gsl_vector_free (residual);
+#endif
 }
 
 

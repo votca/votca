@@ -48,7 +48,7 @@ fi
 # check for fftw3
 AC_ARG_WITH(fftw,
             [AS_HELP_STRING([--without-fftw],
-                            [Compile without fftw, will disable CrossCorrelate class @<:@ARG=yes@:>@])],,
+                            [Compile without fftw, will disable CrossCorrelate class @<:@ARG=no@:>@])],,
                              [with_fftw="yes"])
 if test "$with_fftw" = "yes"; then
   PKG_CHECK_MODULES([FFTW],fftw3)
@@ -61,7 +61,19 @@ else
 fi
 
 # check for gsl
-PKG_CHECK_MODULES([GSL],gsl)
+AC_ARG_WITH(gsl,
+            [AS_HELP_STRING([--without-gsl],
+                            [Compile without gsl, will disable linalg functions and CubicSpline class @<:@ARG=no@:>@])],,
+                             [with_gsl="yes"])
+if test "$with_gsl" = "yes"; then
+  PKG_CHECK_MODULES([GSL],gsl)
+  AC_SUBST(PKGGSL,"gsl")
+else
+  AC_DEFINE([NOGSL],,[Compile without gsl and disable inalg functions and CubicSpline class])
+  AC_SUBST(GSL_CFLAGS,"")
+  AC_SUBST(GSL_LIBS,"")
+  AC_SUBST(PKGGSL,"")
+fi
 
 AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
 AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
