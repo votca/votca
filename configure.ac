@@ -46,7 +46,19 @@ BOOST was not found/disabled: Install BOOST or enable build-in replacement libvo
 fi
 
 # check for fftw3
-PKG_CHECK_MODULES([FFTW],fftw3)
+AC_ARG_WITH(fftw,
+            [AS_HELP_STRING([--without-fftw],
+                            [Compile without fftw, will disable CrossCorrelate class @<:@ARG=yes@:>@])],,
+                             [with_fftw="yes"])
+if test "$with_fftw" = "yes"; then
+  PKG_CHECK_MODULES([FFTW],fftw3)
+  AC_SUBST(PKGFFTW,"fftw3")
+else
+  AC_DEFINE([NOFFTW],,[Compile without fftw and disable CrossCorrelate class])
+  AC_SUBST(FFTW_CFLAGS,"")
+  AC_SUBST(FFTW_LIBS,"")
+  AC_SUBST(PKGFFTW,"")
+fi
 
 # check for gsl
 PKG_CHECK_MODULES([GSL],gsl)
