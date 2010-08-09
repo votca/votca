@@ -15,11 +15,14 @@
  *
  */
 
-#include <fftw3.h>
 #include "crosscorrelate.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#ifndef NOFFTW
+#include <fftw3.h>
 #endif
 
 namespace votca { namespace tools {
@@ -30,7 +33,7 @@ namespace votca { namespace tools {
 void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection *data, bool average)
 {
 #ifdef NOFFTW
-    throw std::runtime_error("CrossCorrelate::AutoCorrelate is not compiled-in due to disabling of FFTW - recompile libtool with '--with-ffw'");
+    throw std::runtime_error("CrossCorrelate::AutoCorrelate is not compiled-in due to disabling of FFTW - recompile libtools with '--with-ffw'");
 #else
     size_t N = (*data)[0].size();
     _corrfunc.resize(N);
@@ -75,7 +78,7 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection *data, bool
 
 void CrossCorrelate::AutoFourier(vector <double>& ivec){
 #ifdef NOFFTW
-    throw std::runtime_error("CrossCorrelate::AutoFourier is not compiled-in due to disabling of FFTW - recompile libtool with '--with-ffw'");
+    throw std::runtime_error("CrossCorrelate::AutoFourier is not compiled-in due to disabling of FFTW - recompile libtools with '--with-ffw'");
 #else
     size_t N = ivec.size();
     _corrfunc.resize(N);
@@ -106,7 +109,7 @@ void CrossCorrelate::AutoFourier(vector <double>& ivec){
 
 void CrossCorrelate::FFTOnly(vector <double>& ivec){
 #ifdef NOFFTW
-    throw std::runtime_error("CrossCorrelate::FFTOnly is not compiled-in due to disabling of FFTW - recompile libtool with '--with-ffw'");
+    throw std::runtime_error("CrossCorrelate::FFTOnly is not compiled-in due to disabling of FFTW - recompile libtools with '--with-ffw'");
 #else
     size_t N = ivec.size();
     _corrfunc.resize(N);
@@ -131,7 +134,7 @@ void CrossCorrelate::FFTOnly(vector <double>& ivec){
 
 void CrossCorrelate::DCTOnly(vector <double>& ivec){
 #ifdef NOFFTW
-    throw std::runtime_error("CrossCorrelate::DCTOnly is not compiled-in due to disabling of FFTW - recompile libtool with '--with-ffw'");
+    throw std::runtime_error("CrossCorrelate::DCTOnly is not compiled-in due to disabling of FFTW - recompile libtools with '--with-ffw'");
 #else
     size_t N = ivec.size();
     _corrfunc.resize(N);
@@ -155,7 +158,7 @@ void CrossCorrelate::DCTOnly(vector <double>& ivec){
 
 void CrossCorrelate::AutoCosine(vector <double>& ivec){
 #ifdef NOFFTW
-    throw std::runtime_error("CrossCorrelate::AutoCosing is not compiled-in due to disabling of FFTW - recompile libtool with '--with-ffw'");
+    throw std::runtime_error("CrossCorrelate::AutoCosing is not compiled-in due to disabling of FFTW - recompile libtools with '--with-ffw'");
 #else
     size_t N = ivec.size();
     _corrfunc.resize(N);
