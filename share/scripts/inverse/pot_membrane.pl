@@ -53,7 +53,7 @@ my $eps="$ARGV[3]";
 my @r;
 my $r_cut_rep=(2**(1/6))*$sig;
 my $r_cut_tot=csg_get_interaction_property("max");
-my $w_cut=$r_cut_tot-$r_cut_rep;
+my $w_cut=csg_get_interaction_property("w_cut");
 my $pi=3.14159265;
 my @pot;
 my @pot_rep;
