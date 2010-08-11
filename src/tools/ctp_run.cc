@@ -18,7 +18,7 @@ public:
 
     void AddSpecificOptions(){
         _op_desc_specific.add_options()
-        ("exec", boost::program_options::value<string>(), "execution list");
+        ("exec", boost::program_options::value<string>(), "execution list, separated by commas or spaces");
     }
 
     //TODO: Support for XML-File based options
