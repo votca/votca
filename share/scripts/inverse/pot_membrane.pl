@@ -71,8 +71,11 @@ for (my $i=0;$i<=$#r;$i++){
       if ($r[$i]<$r_cut_rep) {
         $pot_att[$i]=-$eps;
       }
-      else {
+      elsif ($r[$i]>=$r_cut_rep && $r[$i]<=$r_cut_tot) {
         $pot_att[$i]=-$eps*(cos($pi*($r[$i]-$r_cut_rep)/(2*$w_cut)))**2;        
+      }
+      else {
+        $pot_att[$i]=0;
       }
  
       # Repulsive part
