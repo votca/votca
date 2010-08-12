@@ -25,6 +25,7 @@ public:
         ("max", boost::program_options::value<double>(), "Maximum value")
         ("scale1", boost::program_options::value<double>(), "Drawing scale factor for bond thickness")
         ("scale2", boost::program_options::value<double>(), "Drawing scale factor for spheres")
+        ("color", boost::program_options::value<int>(), "Bond Color")
         ;
     }
 
@@ -35,6 +36,8 @@ public:
         max=_op_vm["max"].as<double>();
         scale1=_op_vm["scale1"].as<double>();
         scale2=_op_vm["scale2"].as<double>();
+        color=_op_vm["color"].as<int>();
+        
     }
 
     bool EvaluateFrame(){
@@ -70,7 +73,7 @@ public:
         for (vector<CrgUnit *>::iterator it_crgs = lcharges.begin(); it_crgs != lcharges.end(); it_crgs++){
                 com = (*it_crgs)->GetCom();
                 //if(zllim<com.getZ() && com.getZ()<zulim && xllim<com.getX() && com.getX()<xulim && yllim<com.getY() && com.getY()<yulim)
-                    fprintf(outfile, "ATOM  %5d  %3s %3s %5d     %7.3f %7.3f %7.3f\n", (*it_crgs)->getId(), type.c_str(), "CG", (*it_crgs)->getId(), com.getX(), com.getY(), com.getZ());
+                    fprintf(outfile, "ATOM  %5d  %3s %3s %5d     %7.3f %7.3f %7.3f\n", (*it_crgs)->getId(), type.c_str(), "CG", (*it_crgs)->getId(), com.getX()*10, com.getY()*10, com.getZ()*10);
         }
 
         // Transfer integrals in given range
@@ -134,8 +137,8 @@ public:
         i=0;
         for ( it_map = nbmap.begin(); it_map != nbmap.end(); ++it_map ){
             fprintf(outvmd, "mol representation $nbs_%d_rep \n", i);
-            if((*it_map).second<0.0){fprintf(outvmd, "mol color ColorID 1\n");}
-            else{fprintf(outvmd, "mol color ColorID 0\n");}
+            //if((*it_map).second<0.0){fprintf(outvmd, "mol color ColorID 1\n");}else{fprintf(outvmd, "mol color ColorID 0\n");}
+            fprintf(outvmd, "mol color ColorID %d\n", color);
             fprintf(outvmd, "mol selection $nbs_%d\n", i);
             fprintf(outvmd, "mol material Opaque\n");
             fprintf(outvmd, "mol addrep top\n\n");
@@ -150,6 +153,7 @@ public:
 
     private:
     int label;
+    int color;
     double min, max;
     double scale1,scale2;
 };
