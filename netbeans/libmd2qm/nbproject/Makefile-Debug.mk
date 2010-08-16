@@ -17,8 +17,8 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
-AS=
+FC=gfortran
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -36,6 +36,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/76882303/generate_nrgs.o \
 	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
 	${OBJECTDIR}/_ext/76882303/estatics.o \
+	${OBJECTDIR}/_ext/76882303/polymerrates.o \
 	${OBJECTDIR}/_ext/76882303/readxml.o \
 	${OBJECTDIR}/_ext/1716269789/qmpair.o \
 	${OBJECTDIR}/_ext/1716269789/calculatorfactory.o \
@@ -87,6 +88,11 @@ ${OBJECTDIR}/_ext/76882303/estatics.o: ../../src/libmd2qm/calculators/estatics.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/estatics.o ../../src/libmd2qm/calculators/estatics.cc
+
+${OBJECTDIR}/_ext/76882303/polymerrates.o: ../../src/libmd2qm/calculators/polymerrates.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/polymerrates.o ../../src/libmd2qm/calculators/polymerrates.cc
 
 ${OBJECTDIR}/_ext/76882303/readxml.o: ../../src/libmd2qm/calculators/readxml.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
