@@ -10,6 +10,7 @@
 #include "calculators/shufflenrg.h"
 #include "calculators/generate_nrgs.h"
 #include "calculators/energycorr.h"
+#include "calculators/polymerrates.h"
 
 void CalculatorFactory::RegisterAll(void)
 {
@@ -23,4 +24,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<ShuffleNrg>("shufflenrg");
         Calculators().Register<GenerateNrgs>("generatenrgs");
         Calculators().Register<EnergyCorr>("energycorr");
+        Calculators().Register<PolymerRates>("polymerrates");
 }
