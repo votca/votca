@@ -18,24 +18,55 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
+my $usage="Usage: $progname [OPTIONS] <in> <out>";
+my $type="non-bonded";
 
-if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
-  print <<EOF;
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
+{
+  if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
+    $_=shift(@ARGV);
+    #short opt having agruments examples fo
+    if ( $_ =~ /^-[fo]/ ) {
+      unshift(@ARGV,substr($_,0,2),substr($_,2));
+    }
+    else{
+      unshift(@ARGV,substr($_,0,2),"-".substr($_,2));
+    }
+  }
+  if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help")){
+    print <<EOF;
 $progname, version %version%
+
 This script convert csg potential files to xvg format
-Potential are copy in the C12 column
 In addtion it does some magic tricks:
 - bigger value will be set to pot_max (see xml)
-- shift the potential, so that it is zero at the cutoff
-- set all values to zero after the cutoff
+- set all values after the cutoff are set to the same value as the cufoff
 
-Usage: $progname infile outfile
+For non-bonded potential:
+- for shift the potential, so that it is zero at the cutoff
+- put the values in the C12 column
+
+Allowed options:
+-v, --version         Prints version
+-h, --help            Show this help message
+--type XXX            change the type of xvg table (non-bonded, bonded, ...)
+                      Default: $type
+
+Examples:  $progname --type bonded table.in table_b0.xvg
 
 NEEDS: cg.inverse.gromacs.pot_max cg.inverse.gromacs.table_end cg.inverse.gromacs.table_bins
 
 USES: csg_get_property saveto_table readin_table
 EOF
-  exit 0;
+    exit 0;
+  }
+  elsif ($ARGV[0] eq "--type"){
+      shift(@ARGV);
+      $type = shift(@ARGV);
+  }
+  else{
+    die "Unknow option '".$ARGV[0]."' !\n";
+  }
 }
 
 die "2 parameters are nessary\n" if ($#ARGV<1);
@@ -63,14 +94,16 @@ for (my $i=0;$i<=$#r;$i++) {
 #cutoff is last point
 my $i_cut=$#r;
 
-#shift potential so that it is zero at cutoff
-for (my $i=0;$i<=$i_cut;$i++){
-   $pot[$i]-=$pot[$i_cut];
+if ( "$type" eq "non-bonded" ) {
+  #shift potential so that it is zero at cutoff
+  for (my $i=0;$i<=$i_cut;$i++){
+    $pot[$i]-=$pot[$i_cut];
+  }
 }
 
 # set end of the potential to zero
-for (my $i=$i_cut;$i<=$table_end/$table_bins;$i++) {
-  $pot[$i]=0;
+for (my $i=$i_cut+1;$i<=$table_end/$table_bins;$i++) {
+  $pot[$i]=$pot[$i_cut];
   $r[$i]=$r[$i-1]+$table_bins;
 }
 
@@ -84,14 +117,27 @@ for (my $i=1;$i<$#r;$i++){
 $force[$#r]=0.0;
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
+
 #peserve comments
 open(INFILE, "$infile");
 while (<INFILE>){
 	if($_ =~ /^[#@]/){print OUTFILE $_;}
 }
+close(INFILE);
+
+my $fmt=undef;
+if ( "$type" eq "non-bonded" ){
+  $fmt=sprintf("%%15.10e   %15.10e %15.10e   %15.10e %15.10e   %%15.10e %%15.10e\n",0,0,0,0);
+}
+elsif ( "$type" eq "bonded" ){
+  $fmt="%15.10e   %15.10e %15.10e\n";
+}
+else{
+  die "$progname: Unsupported type of interatction: $type -> go and implement it\n";
+}
+
 for(my $i=0;$i<=$#r;$i++){
-  printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n",
-    $r[$i], 0., 0., 0., 0., $pot[$i], $force[$i]);
+    printf(OUTFILE "$fmt",$r[$i],$pot[$i], $force[$i]);
 }
 close(OUTFILE) or die "Error at closing $outfile\n";
 
