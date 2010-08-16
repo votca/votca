@@ -221,5 +221,5 @@ if [ -n "$interaction" ]; then
 fi
 
 export CSGLOG="$(mktemp ${0##*/}.log.XXX)" || die "mktemp failed"
-do_external $@
 echo "For details see: $CSGLOG"
+do_external $@
