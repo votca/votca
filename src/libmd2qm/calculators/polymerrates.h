@@ -24,7 +24,7 @@ public:
 
 private:
     double _nu;
-    double _j[2];
+    double _J;
     double _kT;
     vec _E;
 };
