@@ -24,29 +24,76 @@ public:
         if(_ghost != NULL)
             delete _ghost;
     }
-    /// \brief the vector connecting two beads
+    /**
+     * \brief the vector connecting two beads
+     * @return pbc correct distance vector
+     */
     vec &r() { return _r; }
-    /// \brief the distance of the beads
-    double dist() { return abs(_r); }
-    /// \brief returns vector of transfer integrals
-    vector <double> &Js() { return _Js; }
-    /// \brief returns the transfer rate from first to second
-    double &rate12(){return _rate_12;}
-    /// \brief returns the transfer rate from second to first
-    double &rate21(){return _rate_21;}
-    /// \brief set the transfer integral
-    void setJs(const vector <double> &js){_Js=js;}
-    /// \brief set the effective transfer integral as the rms of the transfer integrals
-    double calcJeff2();
-    /// \brief set transfer rate from first to second
-    void setRate12(double rate) {_rate_12=rate;}
-    /// \brief set transfer rate from second to first
-    void setRate21(double rate) {_rate_21=rate;}
-    /// \brief set connecting vector, required for state saver
-    void setR(vec r){_r = r;}
 
-    /// first and second are original copies, crg1 and crg2 take into account pbc
+    /**
+     * \brief the distance of the beads
+     * @return pbc correct distance
+     */
+    double dist() { return abs(_r); }
+
+    /**
+     * \brief vector of transfer integrals (vector because of degenerate orbitals)
+     * @return vector of transfer integrals
+     */
+    vector <double> &Js() { return _Js; }
+
+    /**
+     * \brief transfer rate from first to second
+     * @return transfer rate from first to second
+     */
+
+    double &rate12(){return _rate_12;}
+
+    /**
+     * \brief transfer rate from second to first
+     * @return transfer rate from second to first
+     */     
+    double &rate21(){return _rate_21;}
+
+    /**
+     * \brief set the transfer integral
+     * @param js vector with transfer integrals
+     */
+    void setJs(const vector <double> &js){_Js=js;}
+
+    /** \brief calculate the effective transfer integral as the rms of the transfer integrals
+     * @return effective tranfer integral squared
+     */
+    double calcJeff2();
+
+    /**
+     *  \brief set transfer rate from first to second
+     * @param rate  forward rate
+     */
+    void setRate12(double rate) {_rate_12=rate;}
+    
+    /**
+     * \brief set transfer rate from second to first
+     * @param r backward rate
+     */
+    void setRate21(double rate) {_rate_21=rate;}
+
+    /**
+     * \brief first crg unit (might be ghost copy for pbc image)
+     *
+     * first and second are original crg units, crg1 and crg2 take into account
+     * pbc and might be ghost copies
+     * @return crg unit 1
+     */
     CrgUnit *Crg1() {return first;}
+
+    /**
+     * \brief second crg unit (might be ghost copy for pbc image)
+     *
+     * first and second are original crg units, crg1 and crg2 take into account
+     * pbc and might be ghost copies
+     * @return crg unit 2
+     */
     CrgUnit *Crg2() {return _crg2;}
 
 protected:

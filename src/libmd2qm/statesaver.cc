@@ -290,7 +290,8 @@ void StateSaver::Read_QMNeighbourlist() {
         pair->setRate21(rate21);
         //cout << "This pair has rates " << rate12 << " and " << rate21 <<"\n";
 
-        pair->setR(read<vec>());
+        read<vec>(); // distance vector is set automatically, this is crap
+        //pair->setR(read<vec>());
         //cout << "This pair has connecting vector r_ij = " << pair->r() << endl;
     }
 }

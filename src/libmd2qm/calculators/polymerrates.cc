@@ -62,7 +62,7 @@ bool PolymerRates::EvaluateFrame(QMTopology *top)
                 pair = new QMPair(crg1, crg2, top);
                 top->nblist().AddPair(pair);
             }
-
+            
             // calculate the transfer integral
             double cos_u= b1->U() * b2->U() / (abs(b1->U())*abs(b2->U()));
             double J = _J*cos_u;
