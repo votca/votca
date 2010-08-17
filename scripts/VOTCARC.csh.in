@@ -21,6 +21,9 @@ setenv PATH "${VOTCABIN}:${PATH}"
 if (! $?LD_LIBRARY_PATH) setenv LD_LIBRARY_PATH ""
 setenv LD_LIBRARY_PATH "@libdir@:${LD_LIBRARY_PATH}"
 
+if (! $?PKG_CONFIG_PATH) setenv PKG_CONFIG_PATH ""
+setenv PKG_CONFIG_PATH "@libdir@/pkgconfig:${PKG_CONFIG_PATH}"
+
 #votca rc files
 set VOTCASHARE="@votcashare@"
 foreach rc ( "$VOTCASHARE"/rc/*rc.csh )
