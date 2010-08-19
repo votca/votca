@@ -142,7 +142,7 @@ done
 
 #defaults
 [ -z "$sout" ] && sout="${out%.xvg}_NP.xvg"
-[- z"$logfile" ] && logfile="${out%.xvg}_NP.log"
+[ -z "$logfile" ] && logfile="${out%.xvg}_NP.log"
 
 [ -z "$end" ] && die "-e option is missing!\nHelp with --help"
 for i in $g_cmd paste awk sed; do
