@@ -22,9 +22,7 @@ quiet="no"
 begin=0
 end=""
 np=8
-logfile="${0##*/}_NP.log"
 index="index.ndx"
-sout="${fbase}_NP"
 out="${fbase}.xvg"
 version="@version@"
 single="no"
@@ -67,12 +65,14 @@ Allowed options:
 -e         TIME     End time
 -n         FILE     Name of the index file
                     Default: $index
---soutput  FILE     Name of the single output files
-                    Default: ${sout} (where NP is replace by the number)
--o         FILE     Name of the total output file
+-o        FILE.xvg  Name of the total output file
                     Default: $out
+--soutput FILE.xvg  Name of the single output files
+                    Default: ${out%.xvg}_NP.xvg (used trunc of name given by -o)
+		    (where NP is replaced later by the number of the process)
     --log  FILE     Name of logfile
-                    Default: $logile (where NP is replace by the number)
+                    Default: ${out%.xvg}_NP.log" (used trunc of name given by -o)
+		    (where NP is replaced later by the number of the process)
     --single        Run only one task at the time
     --debug         Enable debug output
 -q, --quiet         Be a little bit quiet
@@ -108,7 +108,7 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;;
    -o)
     out="$2"
-    [ -z "${out%%*.xvg}" ] || die "Outfile has to end with xvg (gromacs bug)"
+    [ -z "${out%%*.xvg}" ] || die "Outfile has to end with xvg"
     shift 2;;
    -n)
     index="$2"
@@ -118,7 +118,7 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;;
    --soutput)
     sout="$2"
-    [ -z "${sout%%*.xvg}" ] || die "Outfile has to end with xvg (gromacs bug)"
+    [ -z "${sout%%*.xvg}" ] || die "Outfile has to end with xvg"
     shift 2;;
    -q | --quiet)
     quiet="yes"
@@ -139,6 +139,10 @@ while [ "${1#-}" != "$1" ]; do
    die "Unknown option '$1'";;
  esac
 done
+
+#defaults
+[ -z "$sout" ] && sout="${out%.xvg}_NP.xvg"
+[- z"$logfile" ] && logfile="${out%.xvg}_NP.log"
 
 [ -z "$end" ] && die "-e option is missing!\nHelp with --help"
 for i in $g_cmd paste awk sed; do
@@ -164,7 +168,7 @@ b="$begin"
 for ((i=0;i<$np;i++)); do
   np0="$(printf "%02i" $i)"
   this_log="${logfile/NP/$np0}"
-  this_out="${sout/NP/$np0}.xvg"
+  this_out="${sout/NP/$np0}"
   e="$(awk -v b="$begin" -v dt="$dt" -v i="$i" 'BEGIN{print dt*(i+1)+b}')"
   echo -e "$input" | $g_cmd -b $b -e $e -n $index -o $this_out $* &> $this_log &
   pid="$!"
@@ -190,7 +194,7 @@ qecho "Checking output"
 lines=""
 for ((i=0;i<$np;i++)); do
   np0="$(printf "%02i" $i)"
-  this_out="${sout/NP/$np0}.xvg"
+  this_out="${sout/NP/$np0}"
   [ -f "$this_out" ] || die "Could not find $this_out"
   this_lines="$(sed -n '$=' "$this_out")" || die "linecount of $this_out failed"
   [ -z "$this_lines" ] && die "linecount of $this_out was empty"
@@ -205,7 +209,7 @@ mean2="0"
 mco="\$$((2*$np+1))"
 for ((i=0;i<$np;i++)); do
   np0="$(printf "%02i" $i)"
-  this_out="${sout/NP/$np0}.xvg"
+  this_out="${sout/NP/$np0}"
   co="\$$((2 * $i + 2 ))"
   pasteline="$pasteline $this_out"
   mean="${mean}+${co}"
