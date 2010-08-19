@@ -38,7 +38,7 @@ qecho() {
 }
 
 decho() {
-  [ "$debug" = "yes" ] || echo -e "$*"
+  [ "$debug" = "yes" ] && echo -e "$*"
 }
 
 show_help () {
