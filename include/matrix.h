@@ -172,7 +172,7 @@ inline void matrix::ZeroMatrix()
 {
     for(size_t i=0; i<9; ++i)
         _m[i] = 0.;//(*this) = 0.;
-    _m[0] = _m[4] = _m[8] = 1.0;
+    
 }
 
 inline std::ostream &operator<<(std::ostream &out, matrix& m)
