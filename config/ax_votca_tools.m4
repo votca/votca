@@ -32,13 +32,6 @@ or specify VOTCA_TOOLS_LIBS and VOTCA_TOOLS_CLFAGS
 
   CPPFLAGS="$VOTCA_TOOLS_CFLAGS $CPPFLAGS"
   LIBS="$VOTCA_TOOLS_LIBS $LIBS"
-  AC_CHECK_HEADERS([votca/tools/version.h],,[
-    AC_MSG_ERROR([
-
-Votca tools headers not found,
-please make sure VOTCA_TOOLS_CFLAGS is pointing to <votca-path>/include
-    ])
-  ])
   AC_MSG_CHECKING([for votca::tools::ToolsVersionStr in $VOTCA_TOOLS_LIBS])
   CXX="${SHELL-/bin/sh} ./libtool --mode=link $CXX"
   AC_LINK_IFELSE([
@@ -54,7 +47,28 @@ please check your LDFLAGS and/or specify libraries required to link
 in VOTCA_TOOLS_LIBS (e.g. export VOTCA_TOOLS_LIBS="-L<votca-path>/lib -lvotca_tools").
     ])
   ])
+  CXX="$save_CXX"
+
+  AC_CHECK_HEADERS([votca/tools/version.h],,[
+    AC_MSG_ERROR([
+
+Votca tools headers not found,
+please make sure VOTCA_TOOLS_CFLAGS is pointing to <votca-path>/include
+(e.g. export VOTCA_TOOLS_CFLAGS="-I<votca-path>/include").
+    ])
+  ])
+
+  AC_CHECK_HEADERS([votca/tools/application.h],,[
+    AC_MSG_ERROR([
+
+Votca tools headers were found, but boost headers not!
+please make sure that VOTCA_TOOLS_CFLAGS is pointing to the votca tools headers AND to the boost headers
+(e.g. export VOTCA_TOOLS_CFLAGS="-I<votca-path>/include -I<path/to/boost>/include").
+
+If you are using votca-boost (build-in replacement for boost) please export
+VOTCA_TOOLS_CFLAGS="-I<votca-path>/include -I<votca-path>/include/votca".
+    ])
+  ])
   CPPFLAGS="$save_CPPFLAGS"
   LIBS="$save_LIBS"
-  CXX="$save_CXX"
 ])
