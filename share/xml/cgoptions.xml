@@ -68,20 +68,18 @@
   <item><name>cg.inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>
   <item><name>cg.inverse.gromacs.table_end</name><desc> extend the tables to this value </desc></item>
   <item><name>cg.inverse.gromacs.cufoff_check</name><desc> check interaction cutoffs against rvdw in mdp file: yes/no (default yes)</desc></item>
-  <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the blockfile for Espresso</desc></item>
-  <item><name>cg.inverse.espresso.bin</name><desc>Name of the Espresso binary</desc></item>
+  <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso</desc></item>
+  <item><name>cg.inverse.espresso.bin</name><desc>Name (or absolute path) of the Espresso binary</desc></item>
   <item><name>cg.inverse.espresso.equi_snapshots</name><desc>Number of snapshots to trash at the beginning of trajectory</desc></item>
-  <item><name>cg.inverse.espresso.table_bins</name><desc> grid for table*.esp !</desc></item>
-  <item><name>cg.inverse.espresso.traj</name><desc> Espresso trajectory file to use</desc></item>
-  <item><name>cg.inverse.espresso.n_steps</name><desc> number of steps to integrate in Espresso</desc></item>
-  <item><name>cg.inverse.espresso.n_snapshots</name><desc> number of snapshots to save in Espresso</desc></item>
+  <item><name>cg.inverse.espresso.table_bins</name><desc> grid for tabulated potentials </desc></item>
+  <item><name>cg.inverse.espresso.traj</name><desc> Name of the output Espresso trajectory file</desc></item>
+  <item><name>cg.inverse.espresso.n_steps</name><desc> number of steps to integrate before a snapshot</desc></item>
+  <item><name>cg.inverse.espresso.n_snapshots</name><desc> number of snapshots. Total time = n_steps * n_snapshots</desc></item>
   <item><name>cg.inverse.espresso.debug</name><desc> debug Espresso (yes/no)</desc></item>
-  <item><name>cg.inverse.espresso.extra</name><desc> Espresso extra options</desc></item>
-  <item><name>cg.inverse.espresso.pot_max</name><desc> Espresso max value for the potential</desc></item>
   <item><name>cg.inverse.espresso.table_end</name><desc> Espresso end of table</desc></item>
   <item><name>cg.inverse.espresso.exclusions</name><desc> Espresso stuff to exclude</desc></item>
-  <item><name>cg.inverse.espresso.meta_cmd</name><desc> Espresso meta dynamics command to call</desc></item>
-  <item><name>cg.inverse.espresso.meta_min_sampling</name><desc> Espresso meta dynamics minimal number of sampling</desc></item>
+  <item><name>cg.inverse.espresso.meta_cmd</name><desc> Espresso metadynamics command to call [experimental]</desc></item>
+  <item><name>cg.inverse.espresso.meta_min_sampling</name><desc> Espresso metadynamics minimal number of sampling [experimental]</desc></item>
   <item><name>cg.inverse.filelist</name><desc> these files are copied for each new run </desc></item>
   <item><name>cg.inverse.cleanlist</name><desc> these files are removed after each new run </desc></item>
   <item><name>cg.inverse.iterations_max</name><desc> do so many iterations </desc></item>

@@ -172,30 +172,35 @@
   </item>
 
   <item>
-    <name>inverse.gromacs</name>
+    <name>inverse.espresso</name>
     <desc>
-        This section contains epsresso specific options if espresso is used as simulatiion program.
+        This section contains epsresso specific options if espresso is used as simulation program.
     </desc>
   </item>
 
   <item>
     <name>inverse.espresso.table</name>
     <desc>
-      Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format for every run.
+      Name of file for tabulated potential of this interaction. This file will
+be created from the internal tabulated potential format for every run. Note,
+though, that the original espresso blockfile needs to contain the name of that
+table as the tabulated interaction (see tutorial methanol ibm_espresso for details).
     </desc>
   </item>
 
   <item>
     <name>inverse.espresso.index1</name>
     <desc>
-      Index list of type1
+      Index list of type1 -- Name of the Tcl variable containing all index1
+particles that is contained in the espresso blockfile.
     </desc>
   </item>
 
   <item>
     <name>inverse.espresso.index2</name>
     <desc>
-      Index list of type2
+      Index list of type2 -- Name of the Tcl variable containing all index2
+particles that is contained in the espresso blockfile.
     </desc>
   </item>
 
