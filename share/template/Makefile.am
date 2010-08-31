@@ -2,11 +2,12 @@ templatedir = ${datadir}/votca/template
 
 template_DATA = template.cc Makefile.template CMakeLists.txt.template
 
-template.$(OBJEXT): votca/csg
+BUILT_SOURCES = votca/csg
 
 votca/csg:
-	$(MKDIR_P) votca
-	cd votca && rm -f csg && $(LN_S) $(abs_top_builddir)/include csg
+	mkdir votca
+	cd votca && rm -f csg
+	cd votca && $(LN_S) $(abs_top_builddir)/include csg
 
 install-data-hook:
 	cd $(DESTDIR)$(templatedir) && mv Makefile.template Makefile
