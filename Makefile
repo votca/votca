@@ -6,7 +6,7 @@ all: $(NAME).pdf
 
 $(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_submake
 
-%.pdf: %.tex
+%.pdf: %.tex dummy
 	./latexmk.pl -pdfdvi $<
 
 %_submake:
