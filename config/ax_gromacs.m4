@@ -132,7 +132,7 @@ please make sure GMX_CFLAGS is pointing to <gomacs-path>/include for gromacs ver
     dnl we need to do PKG_CHECK_EXISTS to know if libgmx pkg-config file
     dnl really exist, so that we can add it to our pkg-config files
     PKG_CHECK_EXISTS([lib$libgmx],[
-      AC_SUBST(PKGGMX,"libgmx")
+      AC_SUBST(PKGGMX,"lib$libgmx")
       AC_SUBST(PKGCFLAGSGMX,"")
       AC_SUBST(PKGLIBSGMX,"")
     ],[
