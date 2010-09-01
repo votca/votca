@@ -166,7 +166,7 @@ inline vec IAngle::Grad(const Topology &top, int bead)
         case (2): return acos_prime * (v1 / (av1*av2) - v2*cosphi/(av2*av2)); break;
     }
     return 0;
-    /**/
+    */
     vec v1(top.getDist(_beads[1], _beads[0]));
     vec v2(top.getDist(_beads[1], _beads[2]));
     
