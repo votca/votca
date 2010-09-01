@@ -39,9 +39,9 @@ public:
     
 private:
     
+    size_t _n;
     T _av; // average
     T _m2; // second moment
-    size_t _n;
 };
 
 template<typename T>

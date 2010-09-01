@@ -216,15 +216,13 @@ inline double CubicSpline::CalculateDerivative(const double &r)
 template<typename vector_type1, typename vector_type2>
 inline void CubicSpline::Calculate(vector_type1 &x, vector_type2 &y)
 {
-    int n = _r.size();
-    for(int i=0; i<x.size(); ++i) 
+    for(size_t i=0; i<x.size(); ++i) 
         y(i) = Calculate(x(i));
 }
 template<typename vector_type1, typename vector_type2>
 inline void CubicSpline::CalculateDerivative(vector_type1 &x, vector_type2 &y)
 {
-    int n = _r.size();
-    for(int i=0; i<x.size(); ++i)
+    for(size_t i=0; i<x.size(); ++i)
         y(i) = CalculateDerivative(x(i));
 }
 inline void CubicSpline::Print(std::ostream &out, double interval)
