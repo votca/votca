@@ -87,6 +87,7 @@ public:
             eigenvecs[0]+=e.eigenvecs[0];
             eigenvecs[1]+=e.eigenvecs[1];
             eigenvecs[2]+=e.eigenvecs[2];
+	    return *this;
         }        
 
         eigensystem_t operator*=(const double &f) {
@@ -96,6 +97,7 @@ public:
             eigenvecs[0]*=f;
             eigenvecs[1]*=f;
             eigenvecs[2]*=f;
+	    return *this;
         }        
         
         void zero() {
