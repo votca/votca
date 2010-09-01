@@ -197,7 +197,6 @@ inline int CubicSpline::GenerateGrid(double min, double max, double h)
 
 inline double CubicSpline::Calculate(const double &r)
 {
-    int n = _f.size();
     int interval =  getInterval(r);
     return  A(r)*_f[interval] 
             + B(r)*_f[interval + 1] 
@@ -207,7 +206,6 @@ inline double CubicSpline::Calculate(const double &r)
 
 inline double CubicSpline::CalculateDerivative(const double &r)
 {
-    int n = _f.size();
     int interval =  getInterval(r);
     return  Aprime(r)*_f[interval]
             + Bprime(r)*_f[interval + 1]
@@ -250,7 +248,7 @@ template<typename matrix_type, typename vector_type>
 inline void CubicSpline::AddToFitMatrix(matrix_type &M, vector_type &x, 
             int offset1, int offset2)
 {
-    for(int i=0; i<x.size(); ++i) {
+    for(size_t i=0; i<x.size(); ++i) {
         int spi = getInterval(x(i));
         M(offset1+i, offset2 + spi) = A(x(i));
         M(offset1+i, offset2 + spi+1) = B(x(i));
@@ -263,7 +261,7 @@ template<typename matrix_type>
 inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
             int offset1, int offset2)
 {
-    for(int i=0; i<_r.size() - 2; ++i) {
+    for(size_t i=0; i<_r.size() - 2; ++i) {
             M(offset1+i+1, offset2 + i) = A_prime_l(i);
             M(offset1+i+1, offset2 + i+1) = B_prime_l(i) - A_prime_r(i);
             M(offset1+i+1, offset2 + i+2) = -B_prime_r(i);
@@ -351,7 +349,7 @@ inline int CubicSpline::getInterval(const double &r)
 {
     if (r < _r[0]) return 0;
     if(r > _r[_r.size() - 2]) return _r.size()-2;
-    int i;
+    size_t i;
     for(i=0; i<_r.size(); ++i)
         if(_r[i]>r) break;
     return i-1;

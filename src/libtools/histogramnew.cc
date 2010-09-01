@@ -34,7 +34,6 @@ void HistogramNew::Initialize(double min, double max, int nbins)
     _data.resize(nbins);  
     _nbins = nbins;
     
-    int i;
     for(double v=_min, i=0; i<nbins; v+=_step,++i)
         _data.x(i)=v;
     

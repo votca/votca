@@ -50,7 +50,7 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection *data, bool
     fftw_execute(fft);
     
     tmp[0][0] = tmp[0][1] = 0;
-    for(int i=1; i<N/2+1; i++) {
+    for(size_t i=1; i<N/2+1; i++) {
         tmp[i][0] = tmp[i][0]*tmp[i][0] + tmp[i][1]*tmp[i][1];
         tmp[i][1] = 0;       
     }
@@ -67,7 +67,7 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection *data, bool
             _corrfunc[i]+=((*data)[0][j]-m)*((*data)[0][(i+j)]-m);
     */
     double d = _corrfunc[0];
-    for(int i=0; i<N; i++)
+    for(size_t i=0; i<N; i++)
         _corrfunc[i] = _corrfunc[i]/d;
     //cout << *data << endl;
     fftw_destroy_plan(fft);
@@ -92,13 +92,13 @@ void CrossCorrelate::AutoFourier(vector <double>& ivec){
     fftw_execute(fft);
     
     tmp[0][0] = tmp[0][1] = 0;
-    for(int i=1; i<N/2+1; i++) {
+    for(size_t i=1; i<N/2+1; i++) {
         tmp[i][0] = tmp[i][0]*tmp[i][0] + tmp[i][1]*tmp[i][1];
         tmp[i][1] = 0;       
     }
     
     // copy the real component of temp to the _corrfunc vector
-    for(int i=0; i<N; i++){
+    for(size_t i=0; i<N; i++){
         _corrfunc[i] = tmp[i][0];
     }
     
@@ -123,7 +123,7 @@ void CrossCorrelate::FFTOnly(vector <double>& ivec){
     fftw_execute(fft);
     
     // copy the real component of temp to the _corrfunc vector
-    for(int i=0; i<N/2+1; i++){
+    for(size_t i=0; i<N/2+1; i++){
         _corrfunc[i] = tmp[i][0];
     }
     
@@ -148,7 +148,7 @@ void CrossCorrelate::DCTOnly(vector <double>& ivec){
     fftw_execute(fft);
     
     // store results
-    for(int i=0; i<N; i++){
+    for(size_t i=0; i<N; i++){
         _corrfunc[i] = tmp[i];
     }
     
@@ -173,12 +173,12 @@ void CrossCorrelate::AutoCosine(vector <double>& ivec){
     
     // compute autocorrelation
     tmp[0] = 0;
-    for(int i=1; i<N; i++) {
+    for(size_t i=1; i<N; i++) {
         tmp[i] = tmp[i]*tmp[i];       
     }
     
     // store results
-    for(int i=0; i<N; i++){
+    for(size_t i=0; i<N; i++){
         _corrfunc[i] = tmp[i];
     }
     
@@ -203,7 +203,7 @@ void CrossCorrelate::AutoCorr(vector <double>& ivec){
     fftw_execute(fft);
     
     tmp[0][0] = tmp[0][1] = 0;
-    for(int i=1; i<N/2+1; i++) {
+    for(size_t i=1; i<N/2+1; i++) {
         tmp[i][0] = tmp[i][0]*tmp[i][0] + tmp[i][1]*tmp[i][1];
         tmp[i][1] = 0;       
     }
@@ -211,7 +211,7 @@ void CrossCorrelate::AutoCorr(vector <double>& ivec){
     fftw_execute(ifft);
     
     double d = _corrfunc[0];
-    for(int i=0; i<N; i++)
+    for(size_t i=0; i<N; i++)
         _corrfunc[i] = _corrfunc[i]/d;
     
     fftw_destroy_plan(fft);

@@ -31,11 +31,11 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
 
     gsl_linalg_QR_lssolve (&m.matrix, tau, &gb.vector, gsl_x, gsl_residual);
 
-    for (int i =0 ; i < x.size(); i++)
+    for (size_t i =0 ; i < x.size(); i++)
         x(i) = gsl_vector_get(gsl_x, i);
 
     if(residual)
-        for (int i =0 ; i < residual->size(); i++)
+        for (size_t i =0 ; i < residual->size(); i++)
             (*residual)(i) = gsl_vector_get(gsl_residual, i);
 
 

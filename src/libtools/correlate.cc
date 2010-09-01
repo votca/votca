@@ -29,17 +29,17 @@ void Correlate::CalcCorrelations(DataCollection<double>::selection *data)
     double xm(0), xsq(0);    
     
     N = (*data)[0].size();
-     for(int i=0; i<N; i++) {
+     for(size_t i=0; i<N; i++) {
         xm += (*data)[0][i];
         xsq += (*data)[0][i]*(*data)[0][i];
     }
     xm/=(double)N;
     
-    for(int v=1; v<data->size(); v++) {
+    for(size_t v=1; v<data->size(); v++) {
         pair<string, double> p("do_names", 0);        
         double ym(0), ysq(0);
         
-        for(int i=0; i<N; i++) {
+        for(size_t i=0; i<N; i++) {
             ym+=(*data)[v][i];
             ysq+=(*data)[v][i]*(*data)[v][i];
             p.second+= (*data)[v][i]*(*data)[0][i];

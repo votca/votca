@@ -87,7 +87,7 @@ void Histogram::ProcessData(DataCollection<double>::selection *data)
     
     //cout << _pdf.size() << " " << _options._periodic << endl;
     if(_options._scale == "bond") {
-        for(int i=0; i<_pdf.size(); ++i) {
+        for(size_t i=0; i<_pdf.size(); ++i) {
             double r = _min + _interval*(double)i;
             if(abs(r) < 1e-10) {
                 r = _min + _interval*(double)(i+1);
@@ -97,7 +97,7 @@ void Histogram::ProcessData(DataCollection<double>::selection *data)
         }
     }
     else if(_options._scale == "angle") {
-        for(int i=0; i<_pdf.size(); ++i) {
+        for(size_t i=0; i<_pdf.size(); ++i) {
             double alpha = _min + _interval*(double)i;
             double sa = sin(alpha); 
             if(abs(sa) < 1e-5) {

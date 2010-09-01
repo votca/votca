@@ -90,7 +90,8 @@ RangeParser::iterator & RangeParser::iterator::operator++()
             _current = (*_block)._begin;
         else
             _current = -1;
-    }    
+    }
+    return *this;
 }
 
 }}

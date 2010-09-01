@@ -58,11 +58,11 @@ public:
         bool operator!=(const RangeParser::iterator &);                      
          
     private:
+        RangeParser *_parent;
+        
         iterator(RangeParser *, list<block_t>::iterator);
         list<block_t>::iterator _block;
         int _current;
-        
-        RangeParser *_parent;
         
         friend class RangeParser;
     };
