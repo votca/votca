@@ -121,9 +121,7 @@ void Topology::Add(Topology *top)
     ResidueContainer::iterator res;
     MoleculeContainer::iterator mol;
     
-    int bead0=BeadCount();
     int res0=ResidueCount();
-    int mol0=MoleculeCount();
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         Bead *bi = *bead;
@@ -193,7 +191,7 @@ void Topology::RenameMolecules(string range, string name)
     
     rp.Parse(range);
     for(i=rp.begin();i!=rp.end();++i) {
-        if(*i > _molecules.size())
+        if((unsigned int)*i > _molecules.size())
             throw runtime_error(string("RenameMolecules: num molecules smaller than"));
         getMolecule(*i-1)->setName(name);
     }

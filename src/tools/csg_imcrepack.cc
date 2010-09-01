@@ -123,7 +123,7 @@ int main(int argc, char** argv)
         while(iter_name != names.end()) {
             cur_rp = &(*iter_range);
             for(RangeParser::iterator ir=cur_rp->begin(); ir!=cur_rp->end(); ++ir) {
-                for(int i=0; i<gmc.size1(); ++i)
+                for(size_t i=0; i<gmc.size1(); ++i)
                     if(fabs(gmc(i,*ir-1)) > 1e-8) {
                         list.push_back(*ir-1);
                         end++;

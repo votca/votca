@@ -91,7 +91,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
 
     fweights.resize(weights.size());
     // calculate force weights by d_i/w_i
-    for(int i=0; i<weights.size(); ++i) {
+    for(size_t i=0; i<weights.size(); ++i) {
         if(weights[i] == 0 && d[i]!=0) {
             throw runtime_error(
                 "A d coefficient is nonzero while weights is zero in mapping "
@@ -239,16 +239,6 @@ void Map_Ellipsoid::Apply()
     
     vec w = _matrix[2]._in->getPos() - _matrix[0]._in->getPos();
     w.normalize();
-    
-    //store the eigenvalues for the tensor of gyration
-    double eigenvalue1 = es.eigenvalues[0];
-    double eigenvalue2 = es.eigenvalues[1];
-    double eigenvalue3 = es.eigenvalues[2];
-    
-    
-    /*_out->setval1(eigenvalue1);
-    _out->setval2(eigenvalue2);
-    _out->setval3(eigenvalue3);*/
     
     if((v^w)*u < 0) u=vec(0.,0.,0.)-u;
     _out->setU(u);

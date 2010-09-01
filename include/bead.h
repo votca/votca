@@ -180,7 +180,7 @@ protected:
     
     /// constructur
     Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name, int resnr, double m, double q)
-        : _id(id), _type(type), _symmetry(symmetry), _name(name), _resnr(resnr), _m(m), _q(q), TopologyItem(owner)
+        : TopologyItem(owner), _id(id), _type(type), _symmetry(symmetry), _name(name), _resnr(resnr), _m(m), _q(q)
     {_bPos=false;
     _bVel=false;
     _bU=false;

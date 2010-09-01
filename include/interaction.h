@@ -125,7 +125,7 @@ public:
         { _beads.resize(4); for(int i=0; i<4; ++i) { _beads[i] = beads.front(); beads.pop_front(); }}
    
     double EvaluateVar(const Topology &top);
-    vec Grad(const Topology &top, int bead) {}
+    vec Grad(const Topology &top, int bead) { assert(false); return vec(0,0,0); } // not implemented
 
 private:
 };
@@ -175,7 +175,10 @@ inline vec IAngle::Grad(const Topology &top, int bead)
         case (0): return acos_prime * (-v2 / ( abs(v1)*abs(v2) ) +  (v1*v2) * v1 / ( abs(v2)*abs(v1)*abs(v1)*abs(v1) ) ); break;
         case (1): return acos_prime * ( (v1+v2)/(abs(v1) * abs(v2)) - (v1 * v2) * ((v2*v2) * v1 + (v1*v1) * v2 ) / ( abs(v1)*abs(v1)*abs(v1)*abs(v2)*abs(v2)*abs(v2) ) ); break;
         case (2): return acos_prime * (-v1 / ( abs(v1)*abs(v2) ) +  (v1*v2) * v2 / ( abs(v1)*abs(v2)*abs(v2)*abs(v2) ) ); break;
-    }/**/
+    }
+    // should never reach this
+    assert(false);
+    return vec(0,0,0);
 }
 
 inline double IDihedral::EvaluateVar(const Topology &top)

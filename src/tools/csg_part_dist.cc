@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 		for(int i=0; i<(*mol)->BeadCount(); ++i) {
 		    flag_found = 0;
 		    part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-		    for (int j=0; j < ptypes.size(); ++j) {
+		    for (size_t j=0; j < ptypes.size(); ++j) {
 			if (part_type == ptypes[j]) 
 			    flag_found = 1;
 		    }
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 
 	// Allocate array used to store particle occupancy p_occ
 	p_occ = (int**) calloc(ptypes.size(),sizeof(int*));
-	for (int i=0; i < ptypes.size(); ++i)
+	for (size_t i=0; i < ptypes.size(); ++i)
 	    p_occ[i] = (int*) calloc(n_bins,sizeof(int));
 
 	// If we need to shift the center of mass, calculate the number of
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 	    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
 		for(int i=0; i<(*mol)->BeadCount(); ++i) {
 		    part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-		    for (int j=0; j < ptypes.size(); ++j) 
+		    for (size_t j=0; j < ptypes.size(); ++j) 
 			if (part_type == ptypes[j])
 			    ++n_part;
 		}
@@ -236,14 +236,19 @@ int main(int argc, char** argv)
 		for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
                     for(int i=0; i<(*mol)->BeadCount(); ++i) {
                         part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-                        for (int j=0; j < ptypes.size(); ++j) 
-                            if (part_type == ptypes[j]) 
-                                if (coordinate.compare("x") == 0)
+                        for (size_t j=0; j < ptypes.size(); ++j) {
+                            if (part_type == ptypes[j]) {
+                                if (coordinate.compare("x") == 0) {
 				    com += (*mol)->getBead(i)->getPos().getX();
-				else if (coordinate.compare("y") == 0)
+				}
+				else if (coordinate.compare("y") == 0) {
                                     com += (*mol)->getBead(i)->getPos().getY();
-                                else
+				}
+                                else {
                                     com += (*mol)->getBead(i)->getPos().getZ();
+				}
+			    }
+			}
 		    }
 		}
 		com /= n_part;
@@ -256,7 +261,7 @@ int main(int argc, char** argv)
 		for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
 		    for(int i=0; i<(*mol)->BeadCount(); ++i) {
 			part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-			for (int j=0; j < ptypes.size(); ++j) {	
+			for (size_t j=0; j < ptypes.size(); ++j) {	
 			    if (part_type == ptypes[j]) {
 				if (coordinate.compare("x") == 0)
 				    coord = (*mol)->getBead(i)->getPos().getX();
@@ -289,12 +294,12 @@ int main(int argc, char** argv)
 	    throw std::runtime_error("can't open " + vm["out"].as<string>());
 
 	fl_out << "#z\t" << flush;
-	for (int i=0; i < ptypes.size(); ++i)
+	for (size_t i=0; i < ptypes.size(); ++i)
 	    fl_out << "type " << ptypes[i] << "\t" << flush;
 	fl_out << endl;
 	for (int k=0; k < n_bins; ++k) {
 	    fl_out << min+k*step << "\t" << flush;
-	    for (int j=0; j < ptypes.size(); ++j) {
+	    for (size_t j=0; j < ptypes.size(); ++j) {
 		if (p_occ[j][k] == 0)
 		    fl_out << 0 << "\t" << flush;
 		else
@@ -308,7 +313,7 @@ int main(int argc, char** argv)
 	cerr << "An error occured!" << endl << error.what() << endl;
     }
 
-    for (int i=0; i < ptypes.size(); ++i)
+    for (size_t i=0; i < ptypes.size(); ++i)
 	free(p_occ[i]);
     free(p_occ);
 

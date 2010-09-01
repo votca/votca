@@ -42,7 +42,7 @@ private:
     string _name;
     
     BeadType(Topology *parent, int id, const string &name)
-    : _id(id), _name(name), TopologyItem(parent) {}
+    : TopologyItem(parent), _id(id), _name(name) {}
     friend class Topology;
 };
 

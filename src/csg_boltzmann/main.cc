@@ -118,7 +118,7 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic, Molecule &
             iter!=top_cg->BondedInteractions().end(); ++iter) {
         Interaction *ic = *iter;
         exclude.clear();
-        for(size_t i=0; i<ic->BeadCount(); i++) {
+        for(int i=0; i<ic->BeadCount(); i++) {
             vector<int> &v = top_cg->getBead(ic->getBeadId(i))->ParentBeads();
             exclude.insert(exclude.end(), v.begin(), v.end());
         }
@@ -160,8 +160,6 @@ void CsgBoltzmann::InteractiveMode()
         string line;
         cout << "> ";
         getline(cin, line);
-        size_t start;
-        size_t end;
 
         boost::trim(line);
         vector<string> args;

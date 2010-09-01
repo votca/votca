@@ -63,7 +63,7 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
     conf.setStep(_gmx_frame.step);
     cout << endl;
     
-    if(_gmx_frame.natoms != conf.Beads().size())
+    if(_gmx_frame.natoms != (int)conf.Beads().size())
         throw std::runtime_error("number of beads in trajectory do not match topology");
 
     //conf.HasPos(true);

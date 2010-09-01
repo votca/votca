@@ -209,9 +209,6 @@ void CGForceMatching::WriteOutFiles()
     SplineContainer::iterator is;
 
     for (is = _splines.begin(); is != _splines.end(); ++is) {
-        int &mp = (*is)->matr_pos;
-        int &ngp = (*is)->num_gridpoints;
-
         // construct meaningful outfile name
         file_name = (*is)->splineName;
         file_name = file_name + file_extension;
@@ -321,7 +318,7 @@ void CGForceMatching::FmatchAccumulateData()
         // FM residual is initially calculated in (kJ/(mol*nm))^2
         double fm_resid = 0;
 
-        for (int i = 0; i < _b.size(); i++)
+        for (size_t i = 0; i < _b.size(); i++)
             fm_resid += residual(i) * residual(i);
 
         // strange number is units conversion -> now (kcal/(mol*angstrom))^2
@@ -410,10 +407,8 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
         CubicSpline &SP = sinfo->Spline;
 
         int &mpos = sinfo->matr_pos;
-        int &nsp = sinfo->num_splinefun;
 
         double var = (*interListIter)->EvaluateVar(*conf); // value of bond, angle, or dihedral
-        int i = SP.getInterval(var); // corresponding spline interval
 
         for (int loop = 0; loop < beads_in_int; loop++) {
             int ii = (*interListIter)->getBeadId(loop);
@@ -458,8 +453,6 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
         CubicSpline &SP = sinfo->Spline;
 
         int &mpos = sinfo->matr_pos;
-        int &nsp = sinfo->num_splinefun;
-        int i = SP.getInterval(var);
 
         // add iatom
         SP.AddToFitMatrix(_A, var,

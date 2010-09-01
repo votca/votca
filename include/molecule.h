@@ -98,7 +98,7 @@ private:
     
     /// constructor
     Molecule(Topology *parent, int id, string name)
-        : _id(id), _name(name), TopologyItem(parent)
+        : TopologyItem(parent), _id(id), _name(name)
     {}
 
     friend class Topology;
