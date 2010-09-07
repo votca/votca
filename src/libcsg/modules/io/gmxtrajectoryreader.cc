@@ -43,12 +43,12 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
     oenv = (output_env_t)malloc(sizeof(*oenv));
     output_env_init_default (oenv);
 
-    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
+    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_V | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
     //sfree(oenv);
     free(oenv);
 #elif GMX == 40
-    if(!read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
+    if(!read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X  | TRX_READ_V | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
 #else
 #error Unsupported GMX version
