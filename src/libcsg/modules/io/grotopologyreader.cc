@@ -51,7 +51,6 @@ bool GROTopologyReader::ReadTopology(string file, Topology &top)
             top.CreateResidue(resname);
 //            cout << " created residue " << resnr << resname<<"-\n";
         }
-        Residue *res = top.getResidue(resnr-1);
         string atomname;
         string x, y, z;
         fl >> atomname;

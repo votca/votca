@@ -27,7 +27,9 @@ bool ESPTopologyReader::ReadTopology(string file, Topology &top)
     // cleanup topology to store new data
     ifstream fl;
     string parse_line, type, mass, tmp, virt;
-    int white_space1, white_space2, num_molecules, check_name, check_name2;
+    unsigned int white_space1, white_space2;
+    int num_molecules;
+    unsigned int check_name, check_name2;
     int *num_atoms = NULL;
     double box_x,box_y,box_z;
     bool HasMass, HasVirtual;
@@ -168,7 +170,7 @@ bool ESPTopologyReader::ReadTopology(string file, Topology &top)
 
 string ESPTopologyReader::ReadBlockfileLine(string input_line, string variable)
 { 
-    int pos_openvar, pos_closevar;		
+    unsigned int pos_openvar, pos_closevar;		
 		
     string str_find = "{" + variable;
 		

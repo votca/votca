@@ -25,13 +25,12 @@ $progname, version %version%
 This script convert csg potential files to tab format (as read by espresso)
 Potential are copy in the C12 column
 In addtion it does some magic tricks:
-- bigger value will be set to pot_max (see xml)
 - shift the potential, so that it is zero at the cutoff
 - set all values to zero after the cutoff
 
 Usage: $progname in_pot in_deriv_pot outfile
 
-NEEDS: cg.inverse.espresso.pot_max cg.inverse.espresso.table_end cg.inverse.espresso.table_bins
+NEEDS: cg.inverse.espresso.table_end cg.inverse.espresso.table_bins
 
 USES: csg_get_property saveto_table readin_table
 EOF

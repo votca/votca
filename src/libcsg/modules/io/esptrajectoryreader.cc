@@ -41,7 +41,8 @@ bool ESPTrajectoryReader::FirstFrame(Topology &top)
     ifstream file;
     ofstream out;		
     string parse_line, tmp;
-    int check_name, check_name2, mol, atom;
+    int atom;
+    unsigned int check_name, check_name2;
     double r[3], v[3];		
     bool HasMass, HasVirtual;		
 
@@ -155,7 +156,8 @@ bool ESPTrajectoryReader::NextFrame(Topology &top)
     ifstream file;
     ofstream out;
     string parse_line, tmp;
-    int atom, check_name;		
+    int atom; 
+    unsigned int check_name;		
     bool HasMass;
     double r[3], v[3];		
 		

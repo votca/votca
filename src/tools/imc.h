@@ -81,12 +81,12 @@ protected:
     
     // a pair of interactions which are correlated
     struct pair_t {
-        pair_t(interaction_t *i1, interaction_t *i2,
-                int offset_i, int offset_j, const pair_matrix &corr);                
         interaction_t *_i1;
         interaction_t *_i2;
-        pair_matrix _corr;
         int _offset_i, _offset_j;
+        pair_matrix _corr;
+        pair_t(interaction_t *i1, interaction_t *i2,
+                int offset_i, int offset_j, const pair_matrix &corr);                
     };
     
     /// struct to store collected information for groups (e.g. crosscorrelations)
