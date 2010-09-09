@@ -52,9 +52,6 @@ namespace votca { namespace csg {
 bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 { 
     gmx_mtop_t mtop;
-    char       title[STRLEN];
-    rvec       *xtop;
-
 
     int natoms;
     // cleanup topology to store new data
@@ -64,13 +61,11 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     t_inputrec ir;
     ::matrix gbox;
 
-    int ePBC =
-        read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
+    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #elif GMX == 40
     int sss;   // wtf is this
     ::real    ttt,lll; // wtf is this
-    int ePBC =
-        read_tpx((char *)file.c_str(),&sss,&ttt,&lll,NULL,NULL,&natoms,NULL,NULL,NULL,&mtop);
+    (void)read_tpx((char *)file.c_str(),&sss,&ttt,&lll,NULL,NULL,&natoms,NULL,NULL,NULL,&mtop);
 #else
 #error Unsupported GMX version
 #endif
