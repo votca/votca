@@ -88,11 +88,6 @@ Your version of GROMACS is too old, please update at least to version 4.0
     AC_MSG_CHECKING([for output_env_init in $GMX_LIBS])
     AC_TRY_LINK_FUNC(output_env_init,[
       AC_MSG_RESULT([yes])
-      AC_MSG_NOTICE([
-
-We are using a development version of gromacs, we hope you know what you are doing....
-unexpected results ahead
-      ])
       GMX_VERSION="45"
       gmxsub=""
       gmxheader="gromacs/tpxio.h"
@@ -101,6 +96,21 @@ unexpected results ahead
       gmxsub="/gromacs"
       gmxheader="tpxio.h"
     ])
+
+dnl     enable this if gromacs 5.0 development starts
+dnl     AC_MSG_CHECKING([for output_env_init in $GMX_LIBS])
+dnl     AC_TRY_LINK_FUNC(output_env_init,[
+dnl       AC_MSG_RESULT([yes])
+dnl       AC_MSG_NOTICE([
+dnl
+dnl  We are using a development version of gromacs, we hope you know what you are doing....
+dnl unexpected results ahead
+dnl       ])
+dnl       GMX_VERSION="50"
+dnl     ],[
+dnl       AC_MSG_RESULT([no])
+dnl     ])
+
     PKG_CHECK_EXISTS([lib$libgmx],[:],[
       if test -z "$GMX_CFLAGS"; then
         if test -z "${libgmx##*_d}"; then
