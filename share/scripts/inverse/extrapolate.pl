@@ -15,17 +15,12 @@
 # limitations under the License.
 #
 #
-# extrapolation methods:
-#
-# linear:
-#   y = ax + b;  b = - m*xp + yp; a = m
-# sasha_shit:
-#   y = a*(x-b)^2; b = (x0 - 2y0/m); a = m^2/(4*y0)
-# exponential:
-#   y = a*exp(b*x); a = y0*exp(-m*x0/y0); b = m/y0;
-# quadratic:
-#   y = curv*(x+a)^2 + b; a = m/(2*curv) - x0; b = y0 - m^2/(4*curv)
-#
+
+
+sub extrapolate_constant($$$$) {
+  my $y0 = $_[1];
+  return $y0;
+}
 
 sub extrapolate_linear($$$$) {
   my $x0 = $_[0];
@@ -128,11 +123,26 @@ $usage
 
 Allowed options:
 --avgpoints           average over so many points to extrapolate: default is 3
---function            linear, quadratic or exponential, sasha: default is quadratic
+--function            constant, linear, quadratic or exponential, sasha: default is quadratic
 --region              left, right, or leftright: default is leftright
 --curvature           curvature of the quadratic function: default is 10000
                       makes sense only for quadratic extrapolation, ignored for other cases
 -h, --help            Show this help message
+
+extrapolation methods:
+ always m = dy/dx (over avgpoints point)
+          = (y[i+avgpoint]-y[i])/(x[i+avgpoint]-x[i])
+
+constant:
+  y = y0
+linear:
+  y = ax + b;  b = - m*x0 + y0; a = m
+sasha:
+  y = a*(x-b)^2; b = (x0 - 2y0/m); a = m^2/(4*y0)
+exponential:
+  y = a*exp(b*x); a = y0*exp(-m*x0/y0); b = m/y0;
+quadratic:
+  y = curv*(x+a)^2 + b; a = m/(2*curv) - x0; b = y0 - m^2/(4*curv)
 
 NEEDS:
 
@@ -182,7 +192,10 @@ else {
 my $extrap_method;
 
 # parse $function: decide which method to use
-if ($function eq "linear") {
+if ($function eq "constant") {
+   $extrap_method = \&extrapolate_constant;
+}
+elsif ($function eq "linear") {
    $extrap_method = \&extrapolate_linear;
 }
 elsif ($function eq "quadratic") {
@@ -208,7 +221,12 @@ if ($do_left) {
 
   # grad  of beginning
   my $grad_beg;
-  $grad_beg = ($val[$first + $avgpoints] - $val[$first])/($r[$first + $avgpoints] - $r[$first]);
+  if ($function eq "constant") {
+    $grad_beg = 0;
+  }
+  else {
+    $grad_beg = ($val[$first + $avgpoints] - $val[$first])/($r[$first + $avgpoints] - $r[$first]);
+  }
 
   # now extrapolate beginning
   for(my $i=$first-1; $i >= 0; $i--) {
@@ -226,7 +244,12 @@ if ($do_right) {
 
   # grad  of end
   my $grad_end;
-  $grad_end = ($val[$last] - $val[$last - $avgpoints])/($r[$last] - $r[$last-$avgpoints]);
+  if ($function eq "constant") {
+    $grad_end = 0;
+  }
+  else {
+    $grad_end = ($val[$last] - $val[$last - $avgpoints])/($r[$last] - $r[$last-$avgpoints]);
+  }
 
   # now extrapolate ends
   for(my $i=$last+1; $i <= $#r; $i++) {
