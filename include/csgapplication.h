@@ -41,6 +41,8 @@ public:
 
     /// \brief overload and return true to enable mapping command line options
     virtual bool DoMapping(void) { return false; }
+    /// \brief if DoMapping is true, will by default require mapping or not
+    virtual bool DoMappingDefault(void) { return true; }
     /// \brief overload and return true to enable trajectory command line options
     virtual bool DoTrajectory(void) { return false; }
 
@@ -59,6 +61,7 @@ public:
     
 protected:
     list<CGObserver *> _observers;
+    bool _do_mapping;
 };
 
 inline void CsgApplication::AddObserver(CGObserver *observer)

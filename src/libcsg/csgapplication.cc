@@ -42,9 +42,17 @@ void CsgApplication::Initialize(void)
 
     AddProgramOptions()
         ("top", boost::program_options::value<string>(), "  atomistic topology file");
-    if(DoMapping())
-        AddProgramOptions("Mapping options")
-            ("cg", boost::program_options::value<string>(), "  coarse graining definitions (xml-file)");
+    if(DoMapping()) {
+        if(DoMappingDefault()) {
+            AddProgramOptions("Mapping options")
+               ("cg", boost::program_options::value<string>(), "  coarse graining mapping definitions (xml-file)")
+               ("no-map", "  disable mapping and act on original trajectory");
+        } else {
+            AddProgramOptions("Mapping options")
+                ("cg", boost::program_options::value<string>(), "  [OPTIONAL] coarse graining mapping definitions\n"
+                                                                "  (xml-file). If no file is given, program acts on original trajectory");
+        }
+    }
     
 
     if(DoTrajectory())
@@ -58,10 +66,24 @@ void CsgApplication::Initialize(void)
 
 bool CsgApplication::EvaluateOptions(void)
 {
+    _do_mapping = false;
     CheckRequired("top", "no topology file specified");
-    if (DoMapping())
-        CheckRequired("cg", "no coarse graining definition specified");
-
+    
+    // check for mapping options
+    if (DoMapping()) {
+        // default mapping is on
+        if(DoMappingDefault()) {
+            // if the user does not explicitly ask to turn it off, cg is needed
+            if(OptionsMap().count("no-map")==0) {
+                CheckRequired("cg", "no coarse graining definition specified");
+                _do_mapping = true;
+            }
+        }
+        // default mapping is off, if user gives cg, then do mapping
+        else if(OptionsMap().count("cg")) {
+            _do_mapping = true;
+        }
+    }
     return true;
 }
 
