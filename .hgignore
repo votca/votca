@@ -44,7 +44,7 @@ src/tools/ctp_map
 src/tools/ctp_polymer
 src/tools/ctp_rates
 src/tools/ctp_readxml
-src/tools/ctp_writexml
+src/tools/ctp_run
 src/tools/ctp_playground
 src/tools/ctp_ratecalc
 src/tools/printqmattop

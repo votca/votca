@@ -8,56 +8,41 @@
 #ifndef _QMAPPLICATION_H
 #define	_QMAPPLICATION_H
 
-#include <boost/program_options.hpp>
-#include "qmtopology.h"
-#include <votca/tools/property.h>
+#include <votca/tools/application.h>
 #include "statesaver.h"
 #include "qmcalculator.h"
+#include "qmtopology.h"
 
-class QMApplication
+class QMApplication : public Application
 {
 public:
     QMApplication();
-    virtual ~QMApplication();
+    ~QMApplication();
 
-    /// executes the program
-    void Run(int argc, char **argv);
-    /// print neighbor list to file in human-readable format
-    void PrintNbs(string filename);
+    void Initialize();
+    bool EvaluateOptions();
+
+    void Run(void);
+
+    void ShowHelpText(std::ostream &out);
+
+    // print neighbor list to file in human-readable format
+    //this function is obsolate, please use the writexml calculator
+    // void PrintNbs(string filename);
     /// get string of nearest neighbor names (NNnames)
     vector <string>& get_nnnames() {return _nnnames;}
 
-    /// parse program options from command line
-    boost::program_options::options_description_easy_init
-        AddProgramOptions() { return _op_desc_specific.add_options(); }
-    /// get available program options & descriptions
-    boost::program_options::variables_map &OptionsMap() { return _op_vm; }
-    boost::program_options::options_description &OptionsDesc() { return _op_desc; }
-
-    /// function implementations in child classes
-    virtual void HelpText();
-    /// define and add program specific parameters if necessary
-    virtual void AddSpecificOptions() {}
-    /// initialize variables of child class etc
-    virtual void Initialize() {}
-    /// check whether required input is present and correct
-    virtual void CheckInput() {}
     /// return true if evaluation should be continued, abort only if something important is missing
     virtual void BeginEvaluate();
     /// called for each frame, return true if evaluation should be continued
     virtual bool EvaluateFrame();
     /// stop evaluation & do final analysis if necessary
     virtual void EndEvaluate();
+
     /// void add a calculator for later use (compare: cg_engine -> AddObserver)
     void AddCalculator(QMCalculator *calculator);
 
 protected:
-    /// Variable map containing all program options
-    boost::program_options::variables_map _op_vm;
-    /// Program options required by child classes
-    boost::program_options::options_description _op_desc_specific;
-    /// program options required by all applications
-    boost::program_options::options_description _op_desc;
     /// QM topology containing all relevant system information
     QMTopology _qmtop;
     /// Property object to parse xml files elegantly
@@ -74,9 +59,6 @@ protected:
     /// loads the options in from the options file
     void LoadOptions();
 
-private:
-    /// get input parameters from file, location may be specified in command line
-    void ParseCommandLine(int argc, char **argv);
 };
 
 #endif	/* _QMAPPLICATION_H */

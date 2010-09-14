@@ -54,6 +54,7 @@ void CtpMapApp::Initialize()
 
 bool CtpMapApp::EvaluateOptions()
 {
+    CsgApplication::EvaluateOptions();
     CheckRequired("listcharges");
 
     _observer.setCutoff(OptionsMap()["cutoff"].as<double>());
