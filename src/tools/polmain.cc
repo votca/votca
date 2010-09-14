@@ -15,9 +15,7 @@
 int main(int argc, char** argv) {
 
     Polymer pol_calc;
-    pol_calc.Run(argc, argv);
-
-    return (EXIT_SUCCESS);
+    return pol_calc.Exec(argc, argv);
 }
 
 

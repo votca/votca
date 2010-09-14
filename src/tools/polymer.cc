@@ -2,14 +2,12 @@
 
 Polymer::Polymer(){}
 Polymer::~Polymer(){}
-void Polymer::HelpText(){
-    cout << _op_desc;
-}
 
 
-void Polymer::AddSpecificOptions(){
+void Polymer::Initialize(){
+    QMApplication::Initialize();
     /// define standard program options
-    _op_desc_specific.add_options()
+    AddProgramOptions("Polymer options")
     ("cutnrg", boost::program_options::value<double>()->default_value(1000),
             "  wavefunctions will be considered only if their eigenvalues are greater \
              than the smallest one by this amount")
@@ -18,8 +16,9 @@ void Polymer::AddSpecificOptions(){
  
 }
 
-void Polymer::Initialize(){
-    _cutnrg = _op_vm["cutnrg"].as<double>();
+bool Polymer::EvaluateOptions(){
+    QMApplication::EvaluateOptions();
+    _cutnrg = OptionsMap()["cutnrg"].as<double>();
 
 }
 

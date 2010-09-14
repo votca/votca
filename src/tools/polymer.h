@@ -21,9 +21,13 @@ public:
     Polymer();
     ~Polymer();
 
-    void HelpText();
-    void AddSpecificOptions();
+    string ProgramName() { return "ctp_polymer"; }
+    void HelpText(ostream &out) {
+        out << "help text needed here!";
+    }
     void Initialize();
+    bool EvaluateOptions();
+
     bool EvaluateFrame();
     void EndEvaluate();
 

@@ -9,23 +9,18 @@ AtQmObserver::AtQmObserver()
 AtQmObserver::~AtQmObserver()
 {}
 
-void AtQmObserver::HelpText(){
-    cout << "no help text available\n\n";
-    cout << _op_desc << endl;
-}
-
-
-void AtQmObserver::AddSpecificOptions(){
-    _op_desc.add_options()
+void AtQmObserver::Initialize()
+{
+    QMApplication::Initialize();
+    AddProgramOptions("Topology dump options")
     ("outCG", boost::program_options::value<string>()->default_value("CGtraj.pdb"), "  the output file for coarse grained topology")
     ("outQM", boost::program_options::value<string>()->default_value("QMtraj.pdb"), " the output file for the QM geometry")
     ;
 }
 
-void AtQmObserver::Initialize()
-{
-    TrajectoryWriter::RegisterPlugins();
-    
+bool AtQmObserver::EvaluateOptions()
+{    
+    QMApplication::EvaluateOptions();
     string nameCG = _op_vm["outCG"].as<string>();
     string nameQM = _op_vm["outQM"].as<string>();
     string extCG  = nameCG.substr(nameCG.length()-4,4);

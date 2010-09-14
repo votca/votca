@@ -20,10 +20,14 @@ public:
     AtQmObserver();
     ~AtQmObserver();
 
+    string ProgramName() { return "ctp_printqmattop"; }
+    void HelpText(ostream &out) {
+        out << "dump results of mapping procedure";
+    }
 
-    void HelpText();
-    void AddSpecificOptions();
     void Initialize();
+    bool EvaluateOptions();
+
     bool EvaluateFrame();
     void EndEvaluate();
 

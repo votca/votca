@@ -12,9 +12,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
     AtQmObserver int_calc;
-    int_calc.Run(argc, argv);
-
-    return (EXIT_SUCCESS);
+    return int_calc.Exec(argc, argv);
 }
 
 
