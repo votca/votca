@@ -53,7 +53,7 @@ my $eps="$ARGV[3]";
 my @r;
 my $r_cut_rep=(2**(1/6))*$sig;
 my $r_cut_tot=csg_get_interaction_property("max");
-my $w_cut=csg_get_interaction_property("w_cut");
+my $w_cut=$r_cut_tot-$r_cut_rep;
 my $pi=3.14159265;
 my @pot;
 my @pot_rep;
@@ -64,20 +64,10 @@ my @flag;
 # -------------------- DEFINE POTENTIAL HERE -----------------------
 # Calculate potential
 for (my $i=0;$i<=$#r;$i++){
+
     # Avoid undefined potential at r=0
     if ($r[$i]>1e-10) {
 
-      # Attractive part
-      if ($r[$i]<$r_cut_rep) {
-        $pot_att[$i]=-$eps;
-      }
-      elsif ($r[$i]>=$r_cut_rep && $r[$i]<=$r_cut_tot) {
-        $pot_att[$i]=-$eps*(cos($pi*($r[$i]-$r_cut_rep)/(2*$w_cut)))**2;        
-      }
-      else {
-        $pot_att[$i]=0;
-      }
- 
       # Repulsive part
       if ($r[$i]<=$r_cut_rep) {
         $pot_rep[$i]=(4*$eps*((($sig/$r[$i])**12)-(($sig/$r[$i])**6)+(1/4)));
@@ -85,20 +75,34 @@ for (my $i=0;$i<=$#r;$i++){
       else {
         $pot_rep[$i]=0;
       }
+    
+      # Attractive part
+      if ($r[$i]<$r_cut_rep) {
+        $pot_att[$i]=-$eps;
+      }
+      elsif ($r[$i]>=$r_cut_rep && $r[$i]<= $r_cut_tot) {
+        $pot_att[$i]=-$eps*(cos($pi*($r[$i]-$r_cut_rep)/(2*$w_cut)))**2;        
+      }
+      else {
+        $pot_att[$i]=0;
+      }
+ 
+      # Total potential
+      $pot[$i]=$pot_rep[$i]+$pot_att[$i];
+      $flag[$i]="i";
 
-    # Total potential
-    $pot[$i]=$pot_rep[$i]+$pot_att[$i];
-    $flag[$i]="i";
     }
 
     else {
       $pot[$i]="0";
       $flag[$i]="u";
     }
+
     # Avoid gmx segmentation fault for large pot
     if ($pot[$i]>=1e6) {
         $pot[$i]=1e6;
     }
+
 }
 
 # Find index at the cutoff
