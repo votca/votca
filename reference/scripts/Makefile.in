@@ -24,6 +24,7 @@ csg_table.t2t:
 
 %.tex: %.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
+	sed -ie 's/{tabular}/{longtable}/' $@
 
 %.wiki: %.t2t
 	./txt2tags -t wiki --no-header --infile $< --outfile $@
