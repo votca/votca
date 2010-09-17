@@ -58,7 +58,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457853/cgengine.o \
 	${OBJECTDIR}/_ext/484457853/nblistgrid.o \
 	${OBJECTDIR}/_ext/484457853/csgapplication.o \
-	${OBJECTDIR}/_ext/484457853/connectivity.o \
 	${OBJECTDIR}/_ext/484457853/trajectoryreader.o \
 	${OBJECTDIR}/_ext/484457853/beadlist.o
 
@@ -213,11 +212,6 @@ ${OBJECTDIR}/_ext/484457853/csgapplication.o: ../../src/libcsg/csgapplication.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/csgapplication.o ../../src/libcsg/csgapplication.cc
-
-${OBJECTDIR}/_ext/484457853/connectivity.o: ../../src/libcsg/connectivity.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/connectivity.o ../../src/libcsg/connectivity.cc
 
 ${OBJECTDIR}/_ext/484457853/trajectoryreader.o: ../../src/libcsg/trajectoryreader.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853

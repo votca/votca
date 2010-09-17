@@ -9,7 +9,7 @@ libvotca_csg_la_SOURCES = \
     beadlist.cc       exclusionlist.cc    nblist.cc         topology.cc          trajectorywriter.cc \
     cgengine.cc       topologymap.cc \
     cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \
-    connectivity.cc   molecule.cc         trajectoryreader.cc \
+    molecule.cc         trajectoryreader.cc \
     imcio.cc nblistgrid.cc version.cc csgapplication.cc
 
 #gmx is needed because of headers from libio and in version.cc
