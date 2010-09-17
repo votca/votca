@@ -21,7 +21,6 @@
 
 #include "mol_and_orb.h"
 #include "orbitals.h"
-#include <libxml/parser.h>
 #include <string>
 #include <stdexcept>
 
