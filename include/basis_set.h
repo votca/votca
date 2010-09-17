@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <libxml/parser.h>
 #include "votca/tools/tokenizer.h"
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/property.h>
