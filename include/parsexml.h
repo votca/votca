@@ -47,21 +47,30 @@ public:
     /// destructor
     ~ParseXML() {}
 
-    /// \brief open an XML file and start parsing it
-    ///
-    /// This functions opens a file and parses the nodes of an XML file.
-    /// Make sure to set the corresponding element handler before to redirect
-    /// element handling.
+    /**
+     * \brief open an XML file and start parsing it
+     * @param _filename file to read
+     *
+     * This functions opens a file and parses the nodes of an XML file.
+     * Make sure to set the corresponding element handler before to redirect
+     * element handling.
+     */
     void Open(const string &_filename);
 
-    /// \brief Set handler for next element
-    ///
-    /// This function always has to be called after processing an element to
-    /// say what is coming next. Optionally call IgnoreElement
+    /**
+     * \brief Set handler for next element (only member functions possible)
+     * @param object instance of class which for callback
+     * @param fkt member function for callback
+     *
+     * This function always has to be called after processing an element to
+     * say what is coming next. Optionally call IgnoreElement
+     */
     template<typename T>
     void NextHandler(T *object, void (T::*fkt)(const string &, map<string, string> &));
 
-    /// \brief Ignore the content of this elements and all of its childs
+    /**
+     * \brief Ignore the content of this elements and all of its childs
+     */
     void IgnoreChilds();
     
 private:

@@ -40,6 +40,9 @@ template<typename T>
     Be aware that you might specify as typename if you define a container, array or iterator!
     There is currently no suppurt for user created groups, but will follow later.
 
+   This class is relatively outdated and only used in csg_boltzmann!
+
+
 */
 class DataCollection {
 public:

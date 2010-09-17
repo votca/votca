@@ -26,12 +26,26 @@
 namespace votca { namespace tools {
 
 
+/**
+ * \brief break string into words
+ *
+ * This class wraps boost::tokenizer to break a string into words. A list of
+ * delimeters can be freely choosen.
+ */
 class Tokenizer 
 {                        
 public:
     typedef boost::tokenizer<boost::char_separator<char> >::iterator
         iterator;
     
+    /**
+     * \brief startup tokenization
+     * @param str string to break up
+     * @param separators list of separators
+     *
+     * After initialization,the words can be accessed using the iterator
+     * interface or directly transferred to a vector ToVector of ConvertToVector.
+     */
     Tokenizer(const std::string &str, const char *separators) {
         _str = str;
         boost::char_separator<char> sep(separators);
@@ -45,14 +59,35 @@ public:
         delete tok;
     }
     
+    /**
+     * \brief iterator to first element
+     * @return begin iterator
+     */
     iterator begin() { return tok->begin(); }
+    /**
+     * \brief end iterator
+     * @return end iterator
+     */
     iterator end() { return tok->end(); }
     
+    /**
+     * \brief store all words in a vector of strings.
+     * @param v storage vector
+     *
+     * This class appends all words to a vector of strings.
+     */
     void ToVector(std::vector<std::string> &v) {
         for(iterator iter=begin(); iter!=end(); ++iter)
             v.push_back(*iter);
     }
 
+    /**
+     * \brief store all words in a vector with type conversion.
+     * @param v storage vector
+     *
+     * This class appends all words to a vector of arbitrary type (e.g. double)
+     * and also does type conversion.
+     */
     template < typename T >
     void ConvertToVector(std::vector<T> &v){
         std::vector<std::string> tmp;

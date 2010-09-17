@@ -15,8 +15,26 @@
 namespace votca { namespace tools {
     namespace ub = boost::numeric::ublas;
 
+    /**
+     * \brief solves A*x=b
+     * @param x storage for x
+     * @param A matrix for linear equation system
+     * @param b inhomogenity
+     * @param residual if non-zero, residual will be stored here
+     *
+     * This function wrapps the qrsolver
+     */
     void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual=NULL);
 
+    /**
+     * \brief solves A*x=b under the constraint B*x = 0
+     * @param x storage for x
+     * @param A matrix for linear equation system
+     * @param b inhomogenity
+     * @param constr constrained condition B (or is it the transposed one? check that)
+     *
+     * This function wrapps the qrsolver under constraints
+     */
     void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr);
 
 }}

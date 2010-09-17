@@ -47,18 +47,57 @@ public:
     vec &operator*=(const double &d);
     vec &operator/=(const double &d);
     
+    /**
+     * \brief get full access to x element
+     * @return reference to x
+     */
     double &x() { return _x; }
+    /**
+     * \brief get full access to y element
+     * @return reference to y
+     */
     double &y() { return _y; }
+    /**
+     * \brief get full access to z element
+     * @return reference to z
+     */
     double &z() { return _z; }
     
     void setX(const double &x) { _x = x; }
     void setY(const double &y) { _y = y; }
     void setZ(const double &z) { _z = z; }
     
+    /**
+     * \brief read only access to x element
+     * @return x const reference to x
+     *
+     * This function can be usefule when const is used to allow for better
+     * optimization. Always use getX() instead of x() if possible.
+     */
     const double &getX() const { return _x; }
+    /**
+     * \brief read only access to y element
+     * @return x const reference to y
+     *
+     * This function can be usefule when const is used to allow for better
+     * optimization. Always use getY() instead of y() if possible.
+     */
     const double &getY() const { return _y; }
+    /**
+     * \brief read only access to z element
+     * @return x const reference to z
+     *
+     * This function can be usefule when const is used to allow for better
+     * optimization. Always use getZ() instead of Z() if possible.
+     */
     const double &getZ() const { return _z; }
     
+    /**
+     * \brief normalize the vector
+     * @return normalized vector
+     * This function normalizes the vector and returns itself after normalization.
+     * After this call, the vector stores the normalized value.
+     */
     vec &normalize();
     
     private:

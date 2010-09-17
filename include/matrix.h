@@ -65,16 +65,47 @@ public:
         return *this;
     }  
     
+    /**
+     * \brief initialize the matrix with zeros
+     */
     void ZeroMatrix();
+    /**
+     * \brief initialize the matrix as identity
+     */
     void UnitMatrix();
     
+    /**
+     * \brief set an element of the matrix
+     * @param i row
+     * @param j column
+     * @param v value
+     */
     void set(const byte_t &i, const byte_t &j, const real &v) { _m[i*3+j] = v; }
+    /**
+     * \brief get an element of the matrix
+     */
     const real &get(const byte_t &i, const byte_t &j) const { return _m[i*3+j]; }
 
+    /**
+     * \brief get a row vector
+     * @param i row
+     * @return row vector i
+     */
     vec getRow(const byte_t &i) const { return vec(&_m[i*3]); }
+    /**
+     * \brief get a column vector
+     * @param i column
+     * @return column vector i
+     */
     vec getCol(const byte_t &i) const { return vec(_m[i], _m[i+3], _m[i+6]); }
     
-    real *operator[](size_t i) { return &_m[i*3]; }       
+    /**
+     * \brief direct read/write access
+     * @param i row
+     * @return pointer to beginning of row i
+     * use it as matrix[a][b]
+     */
+    real *operator[](size_t i) { return &_m[i*3]; }
     
     struct eigensystem_t {
         real eigenvalues[3];
@@ -105,17 +136,40 @@ public:
             eigenvecs[0]=eigenvecs[1]=eigenvecs[2]=vec(0.,0.,0.);
         }
     };
+
+    /**
+     * \brief create a uniform random rotation matrix
+     *
+     * Euler angles are not good for creating random rotations. This function
+     * uses a method proposed by Arvo in Graphics Gems to produce uniform
+     * random rotations.
+     */
     void RandomRotation();
+
+    /**
+     * \brief calculate eigenvalues and eigenvectors
+     * @param out struct containing eigenvals + eigenvecs
+     */
     void SolveEigensystem(eigensystem_t &out);
     
-    matrix &Transpose(){
+    /**
+     * \brief transpose the matrix
+     * @return the matrix after transpose
+     *
+     * After this operation, matrix stores the transposed value.
+     */matrix &Transpose(){
         std::swap( _m[1], _m[3]);
         std::swap( _m[2], _m[6]);
         std::swap( _m[5], _m[7]);
         return *this;
     }
-    ///matrix multiplication
-    matrix  operator * (const matrix & a){
+
+    /**
+     * \brief matrix-matrix product
+     * @param a the matrix to multiply with
+     * @return multiplied matrix
+     */
+     matrix  operator * (const matrix & a){
         matrix r;
         r._m[0] = _m[0] * a._m[0] + _m[1] * a._m[3] + _m[2] * a._m[6];
         r._m[1] = _m[0] * a._m[1] + _m[1] * a._m[4] + _m[2] * a._m[7];
@@ -132,11 +186,17 @@ public:
         return r;
     }
        
-    vec operator * ( const vec & a){
+    /**
+     * \brief matrix-vector product A*x
+     * @param a vector
+     * @return A*x
+     */
+     vec operator * ( const vec & a){
        return vec( _m[0] * a.getX() + _m[1] * a.getY() + _m[2] * a.getZ(), 
                 _m[3] * a.getX() + _m[4] * a.getY() + _m[5] * a.getZ(),
                 _m[6] * a.getX() + _m[7] * a.getY() + _m[8] * a.getZ() ); 
     }
+
     friend matrix operator*(const double &, const matrix &);
     friend vec operator*(const vec &, const matrix &);
 	  private:

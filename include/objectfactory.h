@@ -43,6 +43,8 @@ using namespace std;
     be giving a key (e.g. a string) for the object which identifies it uniquely. This allows the implementation
     of new features (e.g. new file formats, new mapping algorithms) without touching or recompiling existing bits of code.
 
+    If you don't understand this, read the book by Alexandresku (Modern C++ design)
+    everything explained there in detail!
 */
 template<typename key_t, typename T>
 class ObjectFactory
@@ -58,10 +60,12 @@ public:
     ~ObjectFactory() {};
     
     /**
-        \brief register an object
-    
-        This function is called to register an object in the factory. After an object is registered,
-        an instance of it can be created by calling Create specifying the corresponding key.
+     * \brief register an object
+     * \param key identifier
+     * \param creator create policy
+     *
+     * This function is called to register an object in the factory. After an object is registered,
+     * an instance of it can be created by calling Create specifying the corresponding key.
      */
     void Register(const key_t &key, creator_t creator );
 

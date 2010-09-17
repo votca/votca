@@ -43,35 +43,64 @@ class HistogramNew
         /// destructor
         ~HistogramNew() {};
         
-        void Initialize(double min, double max, int nbins);        
+        /**
+         * \brief Initialize the Histogram
+         * @param min lower bound of interval
+         * @param max upper bound of interval
+         * @param nbins number of bins
+         */void Initialize(double min, double max, int nbins);
         
         /**
-            process data and generate histogram
+          * \brief process a data point
+          * \param v value of this point
+          * \scale scale weighting of this point, bin of v is increased by scale instead of 1
          */
         void Process(double &v, double scale = 1.0);
         
         /**
-            process a range of data
+            \brief process a range of data using iterator interface
          */
         template<typename iterator_type>        
         void ProcessRange(const iterator_type &begin, const iterator_type &end);
     
     
-        /// returns the minimum value
+        /**
+         * \brief get the lower bound of the histogram intervaö
+         * \return lower limit of interval
+         */
         double getMin() const {return _min; }
-        /// return the maximum value
+        /**
+         * \brief get the upper bound of the histogram intervaö
+         * \return upper limit of interval
+         */
         double getMax() const {return _max; }
-        /// return the number of grid points
+        /**
+         * \brief Get number of grid points
+         * \return number of grid poitns
+         */
         double getNBins() const {return  _nbins; }
 
-        double getStep() const { return _step; }             
+        /**
+         * \brief get the grid of histogram
+         * \return step per bin
+         */
+        double getStep() const { return _step; }
         
-        /// normalize the histogram
+        /**
+         * \brief normalize the histogram that the integral is 1
+         */
         void Normalize();
         
+        /**
+         * \brief clear all data
+         */
         void Clear();
         
     
+        /**
+         * \brief get access to content of histogram
+         * \return table object with bins in x and values in y
+         */
         Table &data() { return _data; }
         
     private:        

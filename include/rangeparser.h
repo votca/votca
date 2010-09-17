@@ -26,6 +26,11 @@ namespace votca { namespace tools {
 
 using namespace std;
 
+/**
+ * \brief RangeParser
+ *
+ * parse strings like min:step:max, not flexible enough yet to be really useful
+ */
 class RangeParser
 {
 public:

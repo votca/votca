@@ -29,7 +29,7 @@ using namespace std;
 /**
     \brief class to calculate cross correlkations and autocorrelations
 
-    This class produces a histogram out of a vector of values
+    This class is relatively outdated and only used in csg_boltzmann!
 
     \todo implementation
 */

@@ -33,13 +33,12 @@ namespace votca { namespace tools {
 using namespace std;
 
 /**
-    \brief class to manage properties and options, also used as an xml-wrapper
-
-    This class stores names and values in a hierachical structure like it's
-    used in an xml format. The structure can be eiter filled manually
-    or read in from an xml file using load_property_from_xml.
-
- */
+  * \brief class to manage properties and options, also used as an xml-wrapper
+  *
+  * This class stores names and values in a hierachical (tree like) structure like it's
+  * used in an xml format. The structure can be eiter filled manually
+  * or read in from an xml file using load_property_from_xml.
+  */
 class Property {
 public:
     Property() : _path("") {}
@@ -47,44 +46,80 @@ public:
     Property(const string &name, const string &value, const string &path) 
         : _name(name), _value(value), _path(path) {}
     
-    /// \brief add a new property to structure
+    /**
+     * \brief add a new property to structure
+     * @param key identifier
+     * @param value value
+     * @return reference to the created Property object
+     */
     Property &add(const string &key, const string &value);
-    /// \brief set value of existing property
+    /**
+     * \brief set value of existing property
+     * @param key identifier
+     * @param value value
+     * @return reference to the created Property object
+     */
     Property &set(const string &key, const string &value);
     
-    /// \brief get existing property
-    ///
-    /// This function tries to find a property specified by key separated
-    /// by "." to step down hierarchie. If the property is not
-    /// found a runtime_exception is thrown.
+    /**
+     * \brief get existing property
+     * @param key identifier
+     * @return Reference to property object
+     *
+     * This function tries to find a property specified by key separated
+     * by "." to step down hierarchie. If the property is not
+     * found a runtime_exception is thrown.
+     */
     Property &get(const string &key);
 
-    /// \brief check weather property exists
+    /**
+     * \brief check weather property exists
+     * @param key identifier
+     * @return true or false
+     */
     bool exists(const string &key);
     
-    /// \brief select property based on a filter
-    ///
-    /// returns a list of properties that match the key kriteria including 
-    /// wildcards "*" and "?". Example: "base.item*.value"
-    ///
+    /**
+     * \brief select property based on a filter
+     * @param filter
+     * @return list of pointers to property objects
+     *
+     * returns a list of properties that match the key kriteria including
+     * wildcards "*" and "?". Example: "base.item*.value"
+    */
     std::list<Property *> Select(const string &filter);
     
-    /// \brief reference to value of property
+    /**
+     * \brief reference to value of property
+     * @return string content
+     */
     string &value() { return _value; }
-    /// \brief name of property
+    /**
+     * \brief name of property
+     * @return name
+     */
     string name() { return _name; }
-    /// \brief full path of property
+    /**
+     * \brief full path of property (including parents)
+     * @return path
+     *
+     * e.g. cg.inverse.value
+     */
     string path() { return _path; }
 
-    /// \brief return value as type
-    ///
-    /// returns the value after type conversion, e.g.
-    /// p.as<int>() returns an integer
-
+    /**
+     * \brief return value as type
+     *
+     * returns the value after type conversion, e.g.
+     * p.as<int>() returns an integer
+     */
     template<typename T>
     T as() const;
 
-    /// \brief does the property has childs?
+    /**
+     * \brief does the property has childs?
+     * \return true or false
+     */
     bool HasChilds() { return !_map.empty(); }
 
     /// iterator to iterate over properties

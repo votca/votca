@@ -31,7 +31,8 @@ using namespace std;
 /**
     \brief class to generate histograms
 
-    This class produces a histogram out of a vector of values
+    This class produces a histogram out of a vector of values. This class
+    is obsolate and only used in csg_boltzman. Use HistogramNew instead!
 */
 class Histogram
 {
