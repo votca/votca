@@ -9,7 +9,6 @@
 #define	_JCALC_H
 
 #include <boost/lexical_cast.hpp>
-#include <libxml/parser.h>
 #include <map>
 #include <stdexcept>
 
@@ -73,8 +72,6 @@ private:
     /// map the fock calculators to the pair of integers representing the corresponding charge unit types
     map <pair<CrgUnitType *, CrgUnitType *> , JCalcData *> _maplistfock;
 
-    /// Enter data for Crg Unit Type
-    void ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur );
     /// Enter data for Crg Unit Types
     void ParseCrgUnitTypes(Property &options);
     /// initialise a JCAlcDAta type
