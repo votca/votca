@@ -73,7 +73,5 @@
       <!-- solver to solve linear equation system, can be octave or matlab -->
       <solver>octave</solver>
     </imc>
-    <!-- temporary option, needed for imc analysis -->
-    <cgmap>../methanol_cg.xml</cgmap>
   </inverse>
 </cg>
