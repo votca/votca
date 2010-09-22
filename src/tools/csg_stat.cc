@@ -45,7 +45,7 @@ public:
 
     bool DoTrajectory() {return true;}
     bool DoMapping() {return true;}
-
+    bool DoMappingDefault(void) { return false; }
     void Initialize();
     bool EvaluateOptions();
     

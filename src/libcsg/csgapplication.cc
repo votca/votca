@@ -118,7 +118,7 @@ void CsgApplication::Run(void)
     cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
     top.CheckMoleculeNaming();
 
-    if(DoMapping()) {
+    if(_do_mapping) {
         // read in the coarse graining definitions (xml files)
         cg.LoadMoleculeType(_op_vm["cg"].as<string>());
         // create the mapping + cg topology
@@ -164,7 +164,7 @@ void CsgApplication::Run(void)
 
         // notify all observer that coarse graining has begun
 
-        if(DoMapping()) {
+        if(_do_mapping) {
             map->Apply();
             BeginEvaluate(&top_cg, &top);
         } else
@@ -176,7 +176,7 @@ void CsgApplication::Run(void)
                 continue;
             }
             if(nframes == 0 ) break;
-            if(DoMapping()) {
+            if(_do_mapping) {
                 map->Apply();
                 EvalConfiguration(&top_cg, &top);
 

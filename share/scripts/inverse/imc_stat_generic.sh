@@ -33,8 +33,13 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-cgmap=$(csg_get_property cg.inverse.cgmap)
-[ -f "$cgmap" ] || die "${0##*/}: imc cgmap file '$cgmap' not found"
+
+cgopts=""
+cgmap=$(csg_get_property --allow-empty cg.inverse.cgmap)
+if [ ! "$cgmap" = "" ]; then
+  [ -f "$cgmap" ] || die "${0##*/}: imc cgmap file '$cgmap' not found, do you really need one?"
+  cgopts="--cg \"$cgmap\""
+fi
 
 if [ "$sim_prog" = "gromacs" ]; then
   topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
@@ -59,7 +64,7 @@ else
   #copy+resample all target dist in $this_dir
   for_all non-bonded do_external resample target
 
-  run_or_exit csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --cg "$cgmap" \
+  run_or_exit csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" $cgopts \
         --begin $equi_time --first-frame $first_frame
   mark_done "imc_analysis"
 fi

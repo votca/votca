@@ -35,9 +35,9 @@
   <item>
     <name>cg.inverse.cgmap</name>
     <desc>
-      This option currently only has to be provided for IMC. It specifies the mapping file for
-      analysis. Currently also during coarse-grained simulations, a mapping file has to be specified
-      which is only a 1:1 mapping. This will change in the future.
+      This option currently only needs to be provided for IMC if bonded interactions are of interest, but since bonded interactions are not fully supported yet in iteration process is not really needed. It specifies the mapping file for
+      analysis. A mapping file can be specified
+      which is only a 1:1 mapping to change atom types or define bonded interaction names.
     </desc>
   </item>
   <item><name>cg.inverse.kBT</name><desc> kBT (300*0.00831451 gromacs units) </desc></item>
