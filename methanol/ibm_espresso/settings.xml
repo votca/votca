@@ -1,0 +1,75 @@
+<cg>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CG-CG</name>
+    <!-- types involved in this interaction (it's a number in Espresso) -->
+    <type1>0</type1>
+    <type2>0</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0</min>
+    <max>1.54</max>
+    <step>0.02</step>
+    
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>rdf_methanol.xvg</target>
+      <!-- update cycles -->
+      <do_potential>1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- name of the table for gromacs run -->
+      <espresso>
+        <!-- table read by Espresso -->
+        <table>table_CG_CG.tab</table>
+        <!-- index list of particles (tcl variable) -->
+        <index1>list1</index1>
+        <index2>list1</index2>
+      </espresso>
+    </inverse>
+  </non-bonded>
+  
+  <!-- general options for inverse script -->
+  <inverse>
+    <!-- espresso reduced units -->
+    <kBT>1.0</kBT>
+    <!-- use espresso as simulation program -->
+    <program>espresso</program>
+    <!-- gromacs specific options -->
+    <espresso>
+      <!-- specify Espresso executable; can include full path -->
+      <bin>Espresso_bin</bin>
+      <!-- trash so many snapshots at the beginning -->
+      <equi_snapshots>5</equi_snapshots>
+      <!-- grid for table*.tab !-->
+      <table_bins>0.005</table_bins>
+      <!-- extend the tables to this value -->
+      <table_end>1.55</table_end>
+      <!-- Blockfile: contains simulation parameters -->
+      <blockfile>conf.esp.gz</blockfile>
+      <!-- Number of steps to integrate between each snapshot -->
+      <n_steps>1000</n_steps>
+      <!-- Number of snapshots -->
+      <n_snapshots>40</n_snapshots>
+    </espresso>
+    <!-- these files are copied for each new run -->
+    <filelist>conf.esp.gz</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>300</iterations_max>
+    <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
+    <method>ibm</method>
+    <!-- directory for user scripts -->
+    <scriptdir>$PWD</scriptdir>
+    <!-- write log to this file -->
+    <log_file>inverse.log</log_file>
+    <!-- write restart step to this file -->
+    <restart_file>restart_points.log</restart_file>
+    <!-- mpi - uncomment to run in parallel -->
+    <!-- <mpi> -->
+      <!-- <cmd>mpirun -np 2</cmd> -->
+      <!-- <tasks>2</tasks> -->
+    <!-- </mpi> -->
+  </inverse>
+</cg>
