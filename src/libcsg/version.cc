@@ -61,6 +61,11 @@ void HelpTextHeader(const std::string &tool_name)
          << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
 #ifdef GMX
          << "\ngromacs, " << GromacsVersion()
+#ifdef GMX_DOUBLE
+	 << " (double precision)"
+#else
+	 << " (single precision)"
+#endif
 #else
 	 << "\n"
 #endif
