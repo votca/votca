@@ -48,7 +48,7 @@ src/tools/csg_stat
 src/tools/csg_part_dist
 
 scripts/hgstamp
-src/libcsg/hgstamp
+src/libcsg/hgversion.h
 
 netbeans/*/build
 src/csg_boltzmann/build

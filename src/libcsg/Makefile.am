@@ -1,5 +1,4 @@
-HGVERSION:= $(shell hg -R $(top_srcdir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_srcdir)/.hg_archival.txt 2> /dev/null || true )
-AM_CPPFLAGS = -I$(top_srcdir)/include -DHGVERSION="\"$(HGVERSION)\""
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 SUBDIRS = modules 
 
@@ -10,7 +9,7 @@ libvotca_csg_la_SOURCES = \
     cgengine.cc       topologymap.cc \
     cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \
     molecule.cc         trajectoryreader.cc \
-    imcio.cc nblistgrid.cc version.cc csgapplication.cc
+    imcio.cc nblistgrid.cc version.cc csgapplication.cc hgversion.h
 
 #gmx is needed because of headers from libio and in version.cc
 libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS)
@@ -28,9 +27,9 @@ if NO_LA_FILES
 	rm -f $(DESTDIR)$(libdir)/libvotca_csg.la
 endif
 
-version.o: hgstamp
-version.lo: hgstamp
-hgstamp: dummy 
+HGVERSION:= $(shell hg -R $(top_srcdir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_srcdir)/.hg_archival.txt 2> /dev/null || true )
+hgversion.h: dummy
 	[ -f $@ ] || touch $@
-	echo $(HGVERSION) | cmp -s $@ - || echo $(HGVERSION) > $@
+	echo 'static const std::string hgversion = "$(HGVERSION)";' | cmp -s $@ - \
+	  || echo 'static const std::string hgversion = "$(HGVERSION)";' > $@
 dummy: ;
