@@ -36,9 +36,9 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 
 cgopts=""
 cgmap=$(csg_get_property --allow-empty cg.inverse.cgmap)
-if [ ! "$cgmap" = "" ]; then
+if [ -n "$cgmap" ]; then
   [ -f "$cgmap" ] || die "${0##*/}: imc cgmap file '$cgmap' not found, do you really need one?"
-  cgopts="--cg \"$cgmap\""
+  cgopts="--cg '$cgmap'"
 fi
 
 if [ "$sim_prog" = "gromacs" ]; then
