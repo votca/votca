@@ -118,7 +118,7 @@ $force[$#r]=0.0;
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 
-#peserve comments
+#preserve comments
 open(INFILE, "$infile");
 while (<INFILE>){
 	if($_ =~ /^[#@]/){print OUTFILE $_;}
