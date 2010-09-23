@@ -25,7 +25,7 @@ Usage: ${0##*/}
 
 USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die sed check_deps
 
-NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.gromacs.mdp
+OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.gromacs.mdp cg.inverse.gromacs.g_energy.topol cg.inverse.gromacs.g_energy.bin
 EOF
    exit 0
 fi
@@ -38,6 +38,10 @@ mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 tpr="$(csg_get_property cg.inverse.gromacs.g_energy.topol "topol.tpr")"
 [ -f "$tpr" ] || die "${0##*/}: Gromacs tpr file '$tpr' not found"
 
+g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin "g_energy")"
+[ -n "$(type -p ${g_energy})" ] || die "${0##*/}: g_energy binary '$g_energy' not found"
+
+
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.opts)"
 
 nsteps=$(get_from_mdp nsteps "$mdp")
@@ -47,8 +51,8 @@ first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
-log "Running g_energy"
-echo Pressure | run_or_exit g_energy -b "${begin}" -s "${tpr}" ${opts}
+log "Running ${g_energy}"
+echo Pressure | run_or_exit ${g_energy} -b "${begin}" -s "${tpr}" ${opts}
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 p_now=$(csg_taillog -30 | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
   die "${0##*/}: awk failed"

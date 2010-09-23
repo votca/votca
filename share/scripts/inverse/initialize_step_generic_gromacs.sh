@@ -25,7 +25,7 @@ Usage: ${0##*/} last_sim_dir
 
 USES: die cp run_or_exit grompp check_deps get_last_step_dir
 
-OPTIONAL: cg.inverse.gromacs.grompp.index cg.inverse.gromacs.grompp.topol cg.inverse.gromacs.topol cg.inverse.gromacs.grompp.opts cg.inverse.gromacs.mdp
+OPTIONAL: cg.inverse.gromacs.grompp.index cg.inverse.gromacs.grompp.topol cg.inverse.gromacs.topol cg.inverse.gromacs.grompp.opts cg.inverse.gromacs.mdp cg.inverse.gromacs.grompp.bin
 EOF
   exit 0
 fi
@@ -43,6 +43,9 @@ for_all non-bonded do_external convert_potential gromacs
 
 for_all "non-bonded" check_cutoff $mdp
 
+grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
+[ -n "$(type -p $grompp)" ] || die "${0##*/}: grompp binary '$grompp' not found"
+
 index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"
 [ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
 top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
@@ -50,5 +53,5 @@ top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
 tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
-run_or_exit grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" ${opts}
+run_or_exit $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" ${opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"

@@ -57,12 +57,16 @@
   <item><name>cg.inverse.gromacs.mdp</name><desc> Gromacs mdp fie to use, default grompp.mdp</desc></item>
   <item><name>cg.inverse.gromacs.grompp.index</name><desc> Gromacs grompp index file to use, default index.ndx</desc></item>
   <item><name>cg.inverse.gromacs.grompp.topol</name><desc> Gromacs grompp topol file to use, default topol.top</desc></item>
+  <item><name>cg.inverse.gromacs.grompp.bin</name><desc> Name (or absolute path) of the grompp binary</desc></item>
   <item><name>cg.inverse.gromacs.grompp.opts</name><desc> Additional options to Gromacs grompp (e.g. -maxwarn 1)</desc></item>
   <item><name>cg.inverse.gromacs.g_rdf.index</name><desc> Gromacs g_rdf index file to use, default index.ndx</desc></item>
   <item><name>cg.inverse.gromacs.g_rdf.topol</name><desc> Gromacs g_rdf topol file to use, default topol.tpr</desc></item>
+  <item><name>cg.inverse.gromacs.g_rdf.bin</name><desc> Name (or absolute path) of the g_rdf binary</desc></item>
   <item><name>cg.inverse.gromacs.g_rdf.opts</name><desc> Additional options to Gromacs g_rdf (e.g. -nopbc)</desc></item>
+  <item><name>cg.inverse.gromacs.mdrun.bin</name><desc> Name (or absolute path) of the mdrun binary</desc></item>
   <item><name>cg.inverse.gromacs.mdrun.opts</name><desc> Additional options to Gromacs mdrun (e.g. -nosum)</desc></item>
   <item><name>cg.inverse.gromacs.g_energy.topol</name><desc> Gromacs g_rdf topol file to use, default topol.tpr</desc></item>
+  <item><name>cg.inverse.gromacs.g_energy.bin</name><desc> Name (or absolute path) of the g_energy binary</desc></item>
   <item><name>cg.inverse.gromacs.g_energy.opts</name><desc> Additional options to Gromacs g_rdf (e.g. -P 1)</desc></item>
   <item><name>cg.inverse.gromacs.table_bins</name><desc> grid for table*.xvg !</desc></item>
   <item><name>cg.inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>

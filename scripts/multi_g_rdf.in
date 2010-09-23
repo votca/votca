@@ -73,6 +73,8 @@ Allowed options:
     --log  FILE     Name of logfile
                     Default: ${out%.xvg}_NP.log" (used trunc of name given by -o)
 		    (where NP is replaced later by the number of the process)
+    --cmd  CMD      Change the gromacs command to run
+                    Default: ${g_cmd}
     --single        Run only one task at the time
     --debug         Enable debug output
 -q, --quiet         Be a little bit quiet
@@ -126,6 +128,9 @@ while [ "${1#-}" != "$1" ]; do
    --single)
     single="yes"
     shift ;;
+   --cmd)
+    g_cmd="$2"
+    shift 2;;
    --debug)
     debug="yes"
     shift ;;
