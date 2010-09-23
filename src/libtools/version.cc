@@ -20,11 +20,9 @@
 
 namespace votca { namespace tools {
 
-#ifdef HGVERSION
-  static const std::string version_str = VERSION " " HGVERSION " (compiled " __DATE__ ", " __TIME__ ")";
-#else
-  static const std::string version_str = VERSION " (compiled " __DATE__ ", " __TIME__ ")";
-#endif
+//defines hgversion
+#include "hgversion.h"
+static const std::string version_str = std::string(VERSION) + " " + hgversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &ToolsVersionStr()
 {
