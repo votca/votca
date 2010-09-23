@@ -163,11 +163,12 @@ source $($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions com
 if [ -n "${CSGXMLFILE}" ]; then
   CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
   simprog="$(csg_get_property --allow-empty cg.inverse.program)"
-  #scriptdir maybe contains $PWD or something
-  eval CSGSCRIPTDIR=$CSGSCRIPTDIR
 fi
 
 if [ -n "${CSGSCRIPTDIR}" ]; then
+  #scriptdir maybe contains $PWD or something
+  eval CSGSCRIPTDIR=$CSGSCRIPTDIR
+  CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
   [ -d "$CSGSCRIPTDIR" ] || die "${0##*/}: CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
   qecho "CSGSCRIPTDIR is ${CSGSCRIPTDIR}"
   export CSGSCRIPTDIR

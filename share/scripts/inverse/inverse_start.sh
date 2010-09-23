@@ -70,6 +70,7 @@ CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
 #scriptdir maybe contains $PWD or something
 if [ -n "$CSGSCRIPTDIR" ]; then
   eval CSGSCRIPTDIR=$CSGSCRIPTDIR
+  CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
   [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
   export CSGSCRIPTDIR
   export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
