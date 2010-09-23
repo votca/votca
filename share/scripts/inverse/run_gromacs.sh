@@ -39,8 +39,12 @@ opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
 check_deps "$0"
 
-mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
-run_or_exit $mpicmd $mdrun -s "${tpr}" ${opts}
+if use_mpi; then
+  mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
+  run_or_exit $mpicmd $mdrun -s "${tpr}" ${opts}
+else
+  run_or_exit $mdrun -s "${tpr}" ${opts}
+fi
 
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
