@@ -112,8 +112,9 @@ inline istream &operator>>(istream &in, Table& t)
         }
         else if(tokens.size() > 2) {
            char flag='i';
-            if(tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u")
-                flag = tokens[2].c_str()[0];
+           string sflag = tokens.back();
+            if(sflag == "i" || sflag == "o" || sflag == "u")
+                flag = sflag.c_str()[0];
             t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), flag);
         }
         else throw runtime_error("error, wrong table format");                                
