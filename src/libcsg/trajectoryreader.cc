@@ -32,12 +32,12 @@ namespace votca { namespace csg {
 void TrajectoryReader::RegisterPlugins(void)
 {
     TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
-    TrjReaderFactory().Register<ESPTrajectoryReader>("dump");
+    TrjReaderFactory().Register<LAMMPSReader>("dump");
 #ifdef GMX
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
     TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
-    TrjReaderFactory().Register<LAMMPSReader>("pdb");
+    TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
 #endif
 }
 

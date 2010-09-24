@@ -15,6 +15,8 @@
  *
  */
 
+#include <vector>
+#include <boost/lexical_cast.hpp>
 #include "lammpsreader.h"
 
 namespace votca { namespace csg {
@@ -23,12 +25,16 @@ using namespace std;
 
 bool LAMMPSReader::ReadTopology(string file,  Topology &top)
 {
-    ifstream fl;
-    fl.open(file.c_str());
-    if(!fl.is_open())
+   _topology = true;
+   top.Cleanup();
+
+   _fl.open(file.c_str());
+    if(!_fl.is_open())
         throw std::ios_base::failure("Error on open topologyl file: " + file);
 
-    fl.close();
+   NextFrame(top);
+
+    _fl.close();
 
 }
 
@@ -44,14 +50,91 @@ void LAMMPSReader::Close()
     _fl.close();
 }
 
-bool LAMMPSReader::FirstFrame(Topology &conf)
+bool LAMMPSReader::FirstFrame(Topology &top)
 {
+    _topology = false;
+    NextFrame(top);
     return true;
 }
 
-bool LAMMPSReader::NextFrame(Topology &conf)
+bool LAMMPSReader::NextFrame(Topology &top)
 {
-    return true;
+    string line;
+    getline(_fl, line);
+    while(!_fl.eof()) {
+        if(line.substr(0, 5) != "ITEM:")
+            throw std::ios_base::failure("unexpected line in lammps file:\n"+line);
+        if(line.substr(6) == "TIMESTEP") {
+                ReadTimestep(top, line);
+        }
+        else if(line.substr(6) == "NUMBER OF ATOMS") {
+                ReadNumAtoms(top, line);
+        }
+        else if(line.substr(6) == "BOX BOUNDS") {
+                ReadBox(top, line);
+        }
+        else if(line.substr(6, 5) == "ATOMS") {
+                ReadAtoms(top, line);
+                break;
+        }
+
+        else {
+            throw std::ios_base::failure("unknown item lammps file : " + line.substr(6));
+        }
+        getline(_fl, line);
+    }
+    return !_fl.eof();;
+}
+
+void LAMMPSReader::ReadTimestep(Topology &top, string itemline)
+{
+    string s;
+    getline(_fl, s);
+    top.setStep(boost::lexical_cast<int>(s));
+    cout << "Reading frame, timestep " << top.getStep() << endl;
+}
+
+void LAMMPSReader::ReadBox(Topology &top, string itemline)
+{
+    string s;
+
+    matrix m;
+    m.ZeroMatrix();
+        
+    for(int i=0; i<3; ++i) {
+        getline(_fl, s);
+        Tokenizer tok(s, " ");
+        vector<double> v;
+        tok.ConvertToVector(v);
+        if(v.size()!=2)
+            throw std::ios_base::failure("invalid box format");
+        m[i][i] = v[1] - v[0];
+    }
+    top.setBox(m );
+}
+
+void LAMMPSReader::ReadNumAtoms(Topology &top, string itemline)
+{
+    string s;
+    getline(_fl, s);
+    _natoms = boost::lexical_cast<int>(s);
+    if(!_topology && _natoms !=top.BeadCount())
+        std::runtime_error("number of beads in topology and trajectory difffer");
+}
+
+void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
+    top.CreateResidue("dum");
+    for(int i=0; i<_natoms; ++i) {
+        string s;
+        getline(_fl, s);
+        Bead *b;
+        if(_topology)
+            b = top.CreateBead(1, "", top.GetOrCreateBeadType("no"), 0, 0, 0);
+        else
+            b = top.getBead(i);
+        b->setPos(vec(0,0,0));
+    }
 }
 
 }}
+

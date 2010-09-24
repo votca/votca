@@ -56,8 +56,15 @@ class LAMMPSReader :
         void Close();
         
     private:
+
+        void ReadTimestep(Topology &top, string itemline);
+        void ReadBox(Topology &top, string itemline);
+        void ReadNumAtoms(Topology &top, string itemline);
+        void ReadAtoms(Topology &top, string itemline);
+  
         ifstream _fl;
-       
+        bool _topology;
+        int _natoms;
 };
 
 }}
