@@ -162,6 +162,12 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
                 b->Pos().y() = lexical_cast<double>(*itok);
             else if(fields[j] == "z")
                 b->Pos().z() = lexical_cast<double>(*itok);
+            else if(fields[j] == "fx")
+                b->F().x() = lexical_cast<double>(*itok);
+            else if(fields[j] == "fy")
+                b->F().y() = lexical_cast<double>(*itok);
+            else if(fields[j] == "fz")
+                b->F().z() = lexical_cast<double>(*itok);
             
         }
     }
