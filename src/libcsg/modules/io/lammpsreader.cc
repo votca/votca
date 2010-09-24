@@ -20,7 +20,7 @@
 #include "lammpsreader.h"
 
 namespace votca { namespace csg {
-
+    using namespace boost;
 using namespace std;
 
 bool LAMMPSReader::ReadTopology(string file,  Topology &top)
@@ -124,6 +124,21 @@ void LAMMPSReader::ReadNumAtoms(Topology &top, string itemline)
 
 void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
     top.CreateResidue("dum");
+    bool pos=false;
+    bool force=false;
+
+    vector<string> fields;
+
+    {
+        Tokenizer tok(itemline.substr(12), " ");
+        tok.ToVector(fields);
+        for(Tokenizer::iterator i=tok.begin(); i!=tok.end(); ++i) {
+            if(*i == "x" || *i == "y" || *i == "z")
+                pos =true;
+            else if(*i == "fx" || *i == "fy" || *i == "fz")
+                force=true;
+        }
+    }
     for(int i=0; i<_natoms; ++i) {
         string s;
         getline(_fl, s);
@@ -132,7 +147,23 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
             b = top.CreateBead(1, "", top.GetOrCreateBeadType("no"), 0, 0, 0);
         else
             b = top.getBead(i);
-        b->setPos(vec(0,0,0));
+
+        b->HasPos(pos);
+        b->HasF(force);
+
+        Tokenizer tok(s, " ");
+        Tokenizer::iterator itok= tok.begin();
+        for(int j=0; itok!=tok.end(); ++itok, ++j) {
+            if(j == fields.size())
+                throw std::runtime_error("error, wrong number of columns in atoms section");
+            else if(fields[j] == "x")
+                b->Pos().x() = lexical_cast<double>(*itok);
+            else if(fields[j] == "y")
+                b->Pos().y() = lexical_cast<double>(*itok);
+            else if(fields[j] == "z")
+                b->Pos().z() = lexical_cast<double>(*itok);
+            
+        }
     }
 }
 
