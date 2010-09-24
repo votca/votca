@@ -77,12 +77,12 @@ sub readin_table($\@\@\@) {
     next if /^[#@]/;
     next if /^\s*$/;
     my @parts=split(/\s+/);
-    defined($parts[1]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
-    die "readin_table: Missing flag for r=$parts[0] in file $_[0]\n" unless (defined($parts[2]) && $parts[2] =~ /[iou]/);
+    defined($parts[2]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
+    ($parts[$#parts] =~ /[iou]/) || die "readin_table: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0]\n";
     #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
     push(@{$_[1]},$parts[0]);
     push(@{$_[2]},$parts[1]);
-    push(@{$_[3]},$parts[2]);
+    push(@{$_[3]},$parts[$#parts]);
   }
   close(TAB) || die "readin_table: could not close file $_[0]\n";
   return $line;
