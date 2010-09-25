@@ -13,7 +13,8 @@ endif
 libio_la_SOURCES = $(GMX_SOURCES)\
 	esptrajectoryreader.cc esptrajectoryreader.h \
 	esptopologyreader.cc    esptopologyreader.h  	pdbwriter.cc\
-	pdbwriter.h 		xmltopologyreader.cc	xmltopologyreader.h
+	pdbwriter.h 		xmltopologyreader.cc	xmltopologyreader.h \
+	lammpsreader.h lammpsreader.cc
 
 libio_la_LDFLAGS = -no-undefined
 libio_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS)

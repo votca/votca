@@ -43,7 +43,9 @@ void PDBWriter::Write(Topology *conf)
         Bead *bi = *iter;
         vec r = bi->getPos();
         //truncate strings if necessary
-        string resname = top->getResidue(bi->getResnr())->getName();
+        string resname="";
+        if(top->getResidue(bi->getResnr()))
+            resname = top->getResidue(bi->getResnr())->getName();
         string atomname = bi->getName();
         if (resname.size() > 3) {
             resname = resname.substr(0,3);
