@@ -46,7 +46,7 @@ if [ -f "${main_dir}/${name}.pot.in" ]; then
   run_or_exit csg_resample --in "${main_dir}/${name}.pot.in" --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "$comment"
 else
   target=$(csg_get_interaction_property inverse.target)
-  msg "Using intial guess from dist ${main_dir}/${target} for ${name}"
+  msg "Using initial guess from dist ${target} for ${name}"
   #copy+resample all target dist in $this_dir
   run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
   # RDF_to_POT.pl just does log g(r) + extrapolation
