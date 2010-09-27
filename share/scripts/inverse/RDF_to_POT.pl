@@ -73,7 +73,7 @@ for (my $i=0;$i<=$#r;$i++){
 #find first defined value (begining for r=0)
 #but it is more stable to search first undefined value begin
 #beginning form large r
-my $first_undef_bin;
+my $first_undef_bin=-1;
 for (my $i=$#pot;$i>=0;$i--){
    if ($flag[$i] eq "u") {
      $first_undef_bin=$i;
@@ -82,7 +82,7 @@ for (my $i=$#pot;$i>=0;$i--){
 }
 
 #find i which is the cutoff
-my $i_cut;
+my $i_cut=$#r;
 for (my $nr=0;$nr<=$#r;$nr++){
    if ($r[$nr]>=$r_cut) {
      $i_cut=$nr;
