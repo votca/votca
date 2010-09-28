@@ -6,11 +6,16 @@ For more detailed information about the changes see the
 history of the [repository http://hg.votca.org/csg]
 
 == Version in hg ==
+* added options to perform analysis without giving a mapping file (--no-map). No need for dummy mapping file in IMC and csg_stat anymore.
 * allow comments in tables
 * fixed bug in pressure correction when p is negative
 * added support for gromacs devel version
 * fixed a bug when compiling with gcc-4.4
 * fixed a bug that pot.cur was change at every step
+* added application class for easy implementation of analysis programs
+* fixed bug if initial potential was given and not used
+* restart points in iterative procedure are not anymore deleted after step finished
+* preliminary reader for LAMMPS dump files (very limited features)
 
 
 == Version 1.0_rc6 ==
