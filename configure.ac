@@ -25,11 +25,6 @@ AC_ARG_ENABLE(votca-expat,
                             [Build libvotca_expat, a build-in replacement for expat])],,
                              [enable_votca_expat="no"])
 
-AC_ARG_ENABLE(votca-gsl,
-            [AS_HELP_STRING([--enable-votca-gsl],
-                            [Build libvotca_gsl, a build-in replacement for gsl])],,
-                             [enable_votca_gsl="no"])
-
 AC_ARG_WITH(fftw,
             [AS_HELP_STRING([--without-fftw],
                             [Compile without fftw, will disable CrossCorrelate class @<:@ARG=no@:>@])],,
