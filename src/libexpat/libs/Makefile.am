@@ -6,7 +6,7 @@ lib_LTLIBRARIES = libvotca_expat.la
 
 libvotca_expat_la_SOURCES = xmlparse.c xmlrole.c xmltok.c
 
-EXTRA_HEADERS = xmltok_impl.c xmltok_ns.c
+noinst_HEADERS = xmltok_impl.c xmltok_ns.c
 
 install-exec-hook:
 if NO_LA_FILES
