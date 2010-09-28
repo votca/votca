@@ -13,6 +13,8 @@ history of the [repository http://hg.votca.org/tools]
 * added application class to create standardized applications
 * all boost dependecy are now in tools
 * fixes in table format, flags is always last row now
+* allow compling without fftw (needed for csg_boltzmann only)
+* allow compling without gsl (needed for csg_resample and csg_fmatch)
 
 
 == Version 1.0_rc5 ==
