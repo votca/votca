@@ -26,12 +26,16 @@ csg.rc.csh: $(srcdir)/csg.rc.csh.in Makefile
 csg.rc.bash: $(srcdir)/csg.rc.bash.in Makefile
 	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
-CLEANFILES = $(bin_SCRIPTS) $(rcfiles) *~
+CLEANFILES = $(bin_SCRIPTS) $(rcfiles) hgstamp *~
 
 install-exec-hook:
 	cd $(DESTDIR)$(bindir) && $(LN_S) -f multi_g_rdf multi_g_density
 
+uninstall-hook:
+	cd $(DESTDIR)$(bindir) && rm -f multi_g_density
+
 hgstamp: dummy
 	[ -f $@ ] || touch $@
 	echo $(HGVERSION) | cmp -s $@ - || echo $(HGVERSION) > $@
+
 dummy: ;

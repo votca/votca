@@ -7,9 +7,11 @@ inverse_DATA = MD5SUM $(inverse_files)
 EXTRA_DIST = ${inverse_SCRIPTS} $(inverse_files) Makefile.am.in
 
 MD5SUM: ${inverse_SCRIPTS} ${inverse_files}
-	md5sum ${inverse_SCRIPTS} $(inverse_files) > MD5SUM
+	THIS_DIR=`pwd` && \
+	cd ${srcdir} && \
+	md5sum ${inverse_SCRIPTS} $(inverse_files) > $$THIS_DIR/MD5SUM
 
-CLEANFILES = *~
+CLEANFILES = MD5SUM *~
 
 ###END Makefile.am###
 .PHONY: Makefile.am
