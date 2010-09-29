@@ -50,6 +50,6 @@ else
   #copy+resample all target dist in $this_dir
   run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
   # RDF_to_POT.pl just does log g(r) + extrapolation
-  run_or_exit do_external rdf pot ${name}.dist.tgt ${name}.pot.new
+  do_external rdf pot ${name}.dist.tgt ${name}.pot.new
 fi
 

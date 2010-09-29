@@ -43,4 +43,4 @@ espresso_bins="$(csg_get_property cg.inverse.espresso.table_bins)"
 comment="$(get_table_comment)"
 
 run_or_exit csg_resample --in ${input} --out smooth_${input} --der smooth_dpot_${input} --grid 0:${espresso_bins}:${r_cut} --comment "$comment"
-run_or_exit do_external convert_potential tab smooth_${input} smooth_dpot_${input} ${output}
+do_external convert_potential tab smooth_${input} smooth_dpot_${input} ${output}
