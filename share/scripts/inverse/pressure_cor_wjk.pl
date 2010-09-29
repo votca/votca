@@ -30,6 +30,8 @@ Usage: $progname p_cur outfile
 NEEDS: cg.inverse.kBT max step inverse.particle_dens inverse.p_target name
 
 USES: csg_get_property csg_get_interaction_property saveto_table readin_table
+
+OPTIONAL: inverse.post_update_options.pressure.wjk.scale 
 EOF
   exit 0;
 }
@@ -45,6 +47,7 @@ my $delta_r=csg_get_interaction_property("step");
 
 my $partDens=csg_get_interaction_property("inverse.particle_dens");
 my $name=csg_get_interaction_property("name");
+my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale","1.0");
 
 my $pi= 3.14159265;
 my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
@@ -86,6 +89,7 @@ if ($temp > 0.1*$kBT){
 	}
 }
 
+$pref=$pref*$scale_factor;
 print "Pressure correction factor: A=$pref\n";
 
 my @r;

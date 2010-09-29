@@ -103,7 +103,14 @@
   <item>
     <name>inverse.post_update_options.pressure.simple.scale</name>
     <desc>
-      scaling factor of pressure correction, add details here!!
+      slope of the simple pressure correction.
+    </desc>
+  </item>
+  <item><name>inverse.post_update_options.pressure.wjk</name><desc>Contains all options of the wjk pressure correction script</desc></item>
+  <item>
+    <name>inverse.post_update_options.pressure.wjk.scale</name>
+    <desc>
+      extra scaling factor of pressure correction
     </desc>
   </item>
   <item><name>inverse.post_update_options.smooth</name><desc>Contains all options of the smooth script</desc></item>
