@@ -1,21 +1,21 @@
 <cg>
   <!--fmatch section -->
   <fmatch>
-    <!--Number of different CG beads in the system. SHOULD BE KICKED OUT!!! -->
-    <bead_types>1</bead_types>
-    <!--Number of frames for block averaging -->
-    <frames_per_block>6</frames_per_block>
+    <constrainedLS>false</constrainedLS>
+    <frames_per_block>5</frames_per_block>
   </fmatch>
   <!-- example for a non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->
     <name>CG-CG</name>
+    <type1>*</type1>
+    <type2>*</type2>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.24</min>
       <max>1.00</max>
       <step>0.02</step>
-      <res_output_coeff>5</res_output_coeff>
+      <out_step>0.002</out_step>
     </fmatch>
   </non-bonded>
 </cg>
