@@ -1,0 +1,137 @@
+<cg>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>A-A</name>
+    <!-- types involved in this interaction -->
+    <type1>A</type1>
+    <type2>A</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0</min>
+    <max>1.36</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>A-A.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>1 0 0</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- name of the table for espresso run -->
+      <espresso>
+        <table>table_A_A.tab</table>
+        <!-- index list of particles (tcl variable) -->
+        <index1>listA</index1>
+        <index2>listA</index2>
+      </espresso>
+    </inverse>
+  </non-bonded>
+  
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>B-B</name>
+    <!-- types involved in this interaction -->
+    <type1>B</type1>
+    <type2>B</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0</min>
+    <max>1.38</max>
+    <step>0.01</step>
+    
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>B-B.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>0 1 0</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <!-- name of the table for espresso run -->
+      <espresso>
+        <table>table_B_B.tab</table>
+        <!-- index list of particles (tcl variable) -->
+        <index1>listB</index1>
+        <index2>listB</index2>
+      </espresso>
+    </inverse>
+  </non-bonded>
+
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>A-B</name>
+    <!-- types involved in this interaction -->
+    <type1>A</type1>
+    <type2>B</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0</min>
+    <max>1.36</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>A-B.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>0 0 1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <!-- name of the table for espresso run -->
+      <espresso>
+        <table>table_A_B.tab</table>
+        <!-- index list of particles (tcl variable) -->
+        <index1>listA</index1>
+        <index2>listB</index2>
+      </espresso>
+    </inverse>
+  </non-bonded>
+
+  <!-- general options for inverse script -->
+  <inverse>
+    <!-- Espresso energy units -->
+    <kBT>1.0</kBT>
+    <!-- use espresso as simulation program -->
+    <program>espresso</program>
+    <!-- espresso specific options -->
+    <espresso>
+      <!-- specify Espresso executable; can include full path -->
+      <bin>Espresso_bin</bin>
+      <!-- trash so many frames at the beginning -->
+      <equi_snapshots>5</equi_snapshots>
+      <!-- grid for table*.tab !-->
+      <table_bins>0.002</table_bins>
+      <!-- extend the tables to this value -->
+      <table_end>1.36</table_end>
+      <!-- topology + trajectory. Be careful, do not change yet! -->
+      <blockfile>conf.esp.gz</blockfile>
+      <!-- Number of steps to integrate between each snapshot -->
+      <n_steps>1000</n_steps>
+      <!-- Number of snapshots -->
+      <n_snapshots>40</n_snapshots>
+      <!-- Bonded exclusions -->
+      <exclusions>2</exclusions>
+    </espresso>
+    <!-- these files are copied for each new run -->
+    <filelist>conf.esp.gz table_a1.tab table_b1.tab</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>300</iterations_max>
+    <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
+    <method>ibm</method>
+    <!-- directory for user scripts -->
+    <scriptdir>$PWD</scriptdir>
+    <!-- write log to this file -->
+    <log_file>inverse.log</log_file>
+    <!-- write restart step to this file -->
+    <restart_file>restart_points.log</restart_file>
+    <!-- imc specific stuff -->
+    <!-- mpi -->
+    <!--     <mpi> -->
+    <!--       <cmd>mpirun -np 2</cmd> -->
+    <!--       <tasks>2</tasks> -->
+    <!--     </mpi>	 -->
+  </inverse>
+</cg>

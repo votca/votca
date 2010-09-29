@@ -15,7 +15,8 @@ for votca at http://groups.google.com/group/votca
 You can contact the VOTCA Development Team at devs@votca.org.
 
 
-The following tutorials (compare with paper above) are included:
+The following tutorials (compare with paper above) are included. They all rely
+on Gromacs unless specified otherwise:
 
 spce/atomistic             atomistic reference simulations for SPC/E water
 spce/ibm                   boltzmann inversion for SPC/E water
@@ -23,10 +24,13 @@ spce/imc                   inverse monte carlo for SPC/E water
 
 methanol/atomistic         atomistic simulations for methanol
 methanol/ibm               boltzmann inversion for methanol
+methanol/ibm_espresso      boltzmann inversion for methanol using ESPResSo
 methanol/imc               inverse monte carlo for methanol
 
 propane/ibm                iterative inverse boltzmann for nonbonded
                            interactions of liquid propane
+propante/ibm_espresso      iterative inverse boltzmann for nonbonded
+                           interactions of liquid propane using ESPResSo
 propane/single_chain       atomistic simulations, boltzmann inversion 
                            and force matching for a single chain of propane
 

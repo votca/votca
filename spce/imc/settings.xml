@@ -74,7 +74,5 @@
       <!-- solver to solve linear equation system, can be octave or matlab -->
       <solver>octave</solver>
     </imc>
-    <!-- temporary option, needed for imc analysis -->
-    <cgmap>../water_cg.xml</cgmap>
   </inverse>
 </cg>
