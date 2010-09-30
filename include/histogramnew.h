@@ -55,7 +55,7 @@ class HistogramNew
           * \param v value of this point
           * \scale scale weighting of this point, bin of v is increased by scale instead of 1
          */
-        void Process(double &v, double scale = 1.0);
+        void Process(const double &v, double scale = 1.0);
         
         /**
             \brief process a range of data using iterator interface

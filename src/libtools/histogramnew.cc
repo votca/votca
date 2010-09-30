@@ -42,7 +42,7 @@ void HistogramNew::Initialize(double min, double max, int nbins)
     _data.flags()=ub::scalar_vector<char>(_nbins, 'i');    
 }
 
-void HistogramNew::Process(double &v, double scale)
+void HistogramNew::Process(const double &v, double scale)
 {
     int i = (int) ((v - _min) / _step + 0.5);
     
