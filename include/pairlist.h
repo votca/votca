@@ -97,10 +97,10 @@ inline pair_type *PairList<element_type, pair_type>::FindPair(element_type e1, e
 template<typename element_type, typename pair_type>
 typename PairList<element_type, pair_type>::partners *PairList<element_type, pair_type>::FindPartners(element_type e1)
 {
-    typename partners::iterator iter;
+    typename map< element_type , map<element_type, pair_type *> >::iterator iter;
     if((iter=_pair_map.find(e1)) == _pair_map.end())
         return NULL;
-    return iter;
+    return &(iter->second);
 }
 
 }}
