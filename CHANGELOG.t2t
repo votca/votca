@@ -7,7 +7,7 @@ history of the [repository http://hg.votca.org/csg]
 
 == Version in hg ==
 
-== Version 1.0_rc6 ==
+== Version 1.0 ==
 * added postupdate script for scaling the update
 * added options to perform analysis without giving a mapping file (--no-map). No need for dummy mapping file in IMC and csg_stat anymore.
 * allow comments in tables
