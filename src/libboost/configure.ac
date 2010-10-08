@@ -1,7 +1,7 @@
 AC_INIT(votca-boost,1.42.0-0,bugs@votca.org)
 
-AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_MACRO_DIR(config)
+AC_CONFIG_AUX_DIR(../../config)
+AC_CONFIG_MACRO_DIR(../../config)
 
 AM_INIT_AUTOMAKE([1.8 foreign])
 

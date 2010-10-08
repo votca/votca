@@ -1,4 +1,4 @@
-ACLOCAL_AMFLAGS = -I config
+ACLOCAL_AMFLAGS = -I ../../config
 
 SUBDIRS = libs include
 
