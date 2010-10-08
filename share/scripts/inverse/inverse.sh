@@ -107,8 +107,11 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 log "We using Sim Program: $sim_prog"
 source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed"
 
-iterations="$(csg_get_property cg.inverse.iterations_max)"
-log "We are doing $iterations iterations."
+iterations_max="$(csg_get_property cg.inverse.iterations_max)"
+int_check "$do_iterations" "inverse.sh: cg.inverse.iterations_max needs to be a number"
+log "We are doing $iterations_max iterations."
+convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
+[ "$convergence_check" = "none" ] || log "After every iteration we will do the following check: $convergence_check"
 
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 [ -z "$filelist" ] || log "We extra cp '$filelist' to every step to run the simulation"
@@ -158,7 +161,9 @@ unset nr trunc
 
 avg_steptime=0
 steps_done=0
+[ $iterations_max -eq 0 ] && iterations=$begin
 for ((i=$begin;i<$iterations+1;i++)); do
+  [ $iterations_max -eq 0 ] && ((iterations++))
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
@@ -220,6 +225,18 @@ for ((i=$begin;i<$iterations+1;i++)); do
     logrun rm -f $cleanfile
   done
   unset cleanfile
+
+  if [ "$convergence_check" = "none" ]; then
+    log "No convergence check to be done"
+  else
+    msg "Doing convergence check: $convergence_check"
+    if [ "$(do_external convergence_check "$convergence_check")" = "stop" ]; then
+      msg "Iterations are converged, stopping"
+      exit 0
+    else
+      msg "Iterations are not converged, going on"
+    fi
+  fi
 
   step_time="$(( $(get_time) - $step_starttime ))"
   msg "\nstep $i done, needed $step_time secs"
