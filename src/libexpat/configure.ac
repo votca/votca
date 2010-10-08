@@ -1,7 +1,7 @@
 AC_INIT(votca-expat,2.0.1,bugs@votca.org)
 
-AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_MACRO_DIR(config)
+AC_CONFIG_AUX_DIR(../../config)
+AC_CONFIG_MACRO_DIR(../../config)
 
 AM_INIT_AUTOMAKE([1.8 foreign])
 
