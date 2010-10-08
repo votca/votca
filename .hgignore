@@ -25,7 +25,7 @@ config/install-sh
 config/missing
 config/config.guess
 config/config.sub
-src/libtools/hgstamp
+src/libtools/hgversion.h
 lib*.pc
 
 scripts/VOTCARC.bash
