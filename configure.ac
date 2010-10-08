@@ -98,6 +98,7 @@ else
 fi
 
 if test "$enable_votca_boost" = "yes"; then
+  AC_ARG_VAR([VOTCA_BOOST_CXXFLAGS],[C++ compiler flags for libvotca_boost, overwrites its CXXFLAGS])
   AC_CONFIG_SUBDIRS(src/libboost)
   AC_SUBST(VOTCA_BOOST,"libboost")
   AC_SUBST(BOOST_CFLAGS,'-I$(top_srcdir)/src/libboost')
