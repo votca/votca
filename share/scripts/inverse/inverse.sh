@@ -109,7 +109,7 @@ source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions 
 
 iterations_max="$(csg_get_property cg.inverse.iterations_max)"
 int_check "$do_iterations" "inverse.sh: cg.inverse.iterations_max needs to be a number"
-log "We are doing $iterations_max iterations."
+log "We are doing $iterations_max iterations (0=inf)."
 convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
 [ "$convergence_check" = "none" ] || log "After every iteration we will do the following check: $convergence_check"
 
@@ -161,7 +161,7 @@ unset nr trunc
 
 avg_steptime=0
 steps_done=0
-[ $iterations_max -eq 0 ] && iterations=$begin
+[ $iterations_max -eq 0 ] && iterations=$begin || iterations=$iterations_max
 for ((i=$begin;i<$iterations+1;i++)); do
   [ $iterations_max -eq 0 ] && ((iterations++))
   step_starttime="$(get_time)"
@@ -218,13 +218,17 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "Post add"
   do_external post add
 
-  touch "done"
-
   msg "Clean up"
   for cleanfile in ${cleanlist}; do
     logrun rm -f $cleanfile
   done
   unset cleanfile
+
+  step_time="$(( $(get_time) - $step_starttime ))"
+  msg "\nstep $i done, needed $step_time secs"
+  ((steps_done++))
+
+  touch "done"
 
   if [ "$convergence_check" = "none" ]; then
     log "No convergence check to be done"
@@ -237,10 +241,6 @@ for ((i=$begin;i<$iterations+1;i++)); do
       msg "Iterations are not converged, going on"
     fi
   fi
-
-  step_time="$(( $(get_time) - $step_starttime ))"
-  msg "\nstep $i done, needed $step_time secs"
-  ((steps_done++))
 
   if [ -n "$wall_time" ]; then
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
