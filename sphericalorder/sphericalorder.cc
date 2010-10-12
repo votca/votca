@@ -50,14 +50,15 @@ public:
         CsgApplication::Initialize();
         AddProgramOptions()
             ("filter", boost::program_options::value<string>(&_filter)->default_value("*"), "filter molecule names")
-            ("radialcut", boost::program_options::value<double>(), "radial cutoff: distance from center where bead is considered")
+            ("radialcut", boost::program_options::value<double>(&_radialcutoff)->default_value(0.0), "radial cutoff: distance from center where bead is considered")
             ("minrad", boost::program_options::value<double>(&_minrad)->default_value(0.0), "minimal distance a parcle has to be apart from center to be considerd")
-            ("refmol", boost::program_options::value<string>(&_refmol)->default_value(""), "Reference molecule");
+            ("refmol", boost::program_options::value<string>(&_refmol)->default_value(""), "Reference molecule")
+            ("rbinw", boost::program_options::value<double>(&_rbinw)->default_value(0), "Do multiple r_bins multiple histograms");
     }
 
      bool EvaluateOptions() {
         CsgApplication::EvaluateOptions();
-        CheckRequired("radialcut");
+        //CheckRequired("radialcut");
         return true;
     }
 
@@ -75,9 +76,12 @@ public:
         _radialcutoff = OptionsMap()["radialcut"].as<double>();
         _minrad = OptionsMap()["minrad"].as<double>();
         _refmol = OptionsMap()["refmol"].as<string>();
+        _rbinw = OptionsMap()["rbinw"].as<double>();
 
-        cout << "considering atoms between " << _minrad <<
-                " and " << _radialcutoff << endl;
+        if (_rbinw==0 && _radialcutoff <= 0){
+            throw runtime_error("_radialcut > 0 has to be specified");
+        }
+        
 
         setFilter(filter);
 
@@ -93,43 +97,68 @@ public:
                 throw runtime_error("cannot open hist_w.xvg for output");
         
         _n = 0;
-
-        if (_refmol == ""){
+        
             matrix box;
             box = top->getBox();
             vec a = box.getCol(0); vec b = box.getCol(1); vec c = box.getCol(2);
+
+        if (_refmol == ""){
+            
             _ref = (a+b+c)/2;
 
             cout << "Refernce is center of box " << _ref << endl;
         }
+
+        boxl=abs(a)/2;
+        if (_rbinw>0){ 
+        _rbins= boxl/_rbinw+1;
+        cout << "radial bins " << _rbins << endl;
+        }else{
+            _rbins=1;
+            cout << "considering atoms between " << _minrad <<
+                " and " << _radialcutoff << endl;
+        }
         
         _nbin = 100;
-        _hist_u = new real[_nbin];
-        _hist_v = new real[_nbin];
-        _hist_w = new real[_nbin];
+        _hist_u = new double * [_rbins];
+        _hist_v = new double * [_rbins];
+        _hist_w = new double * [_rbins];
+        for (int i=0; i<_rbins; i++){
+        _hist_u[i] = new double[_nbin];
+        _hist_v[i] = new double[_nbin];
+        _hist_w[i] = new double[_nbin];
+        }
 
-        _nmol=0;
+        _nmol = new int [_rbins];
+        for (int i=0; i<_rbins; i++){
+            _nmol[i]=0;
+        }
 
-         
+       // cout << "Test" << endl;
+       // _hist_u[1][10] =0.0;
+
     }
     
     void EndEvaluate() {
 
-        cout << "Average number of molecules within cutoff " << (double)_nmol/_n << endl;
+        cout << "Average number of molecules within cutoff "<< endl;
+        for (int i=0; i<_rbins; i++){
+        cout<<  i*_rbinw <<" " <<  (double)_nmol[i]/_n << endl;
+        }
 
         double exp_value = (double)1/_nbin;
         double orderparam = 0;
         
         for (int n=0; n<_nbin; n++){
-            _hist_u[n] /= (double)_nmol; // normalize to numberframes and avg. number of molecules
-            _hist_v[n] /= (double)_nmol;
-            _hist_w[n] /= (double)_nmol;
+            _hist_u[0][n] /= (double)_nmol[0]; // normalize to numberframes and avg. number of molecules
+            _hist_v[0][n] /= (double)_nmol[0];
+            _hist_w[0][n] /= (double)_nmol[0];
 
-            _file_u << (double)n*2/(_nbin)-1 << " " << _hist_u[n] << endl;
-            _file_v << (double)n*2/(_nbin)-1 << " " << _hist_v[n] << endl;
-            _file_w << (double)n*2/(_nbin)-1 << " " << _hist_w[n] << endl;
+            _file_u << (double)n*2/(_nbin)-1 << " " << _hist_u[0][n] << endl;
+            _file_v << (double)n*2/(_nbin)-1 << " " << _hist_v[0][n] << endl;
+            _file_w << (double)n*2/(_nbin)-1 << " " << _hist_w[0][n] << endl;
 
-            orderparam += (_hist_u[n]-exp_value)*(_hist_u[n]-exp_value);
+            orderparam += (_hist_u[0][n]-exp_value)*(_hist_u[0][n]-exp_value);
         }
 
         orderparam = sqrt(orderparam/_nbin);
@@ -156,7 +185,7 @@ public:
                 Bead *bead = *iter;      
                 if(wildcmp(_refmol.c_str(), bead->getName().c_str())){
                     _ref = bead->getPos();
-                    cout << " Solute pos " << _ref << endl;
+                    //cout << " Solute pos " << _ref << endl;
                 }
 
             }
@@ -166,9 +195,19 @@ public:
         iter!=conf->Beads().end();++iter) {
             Bead *bead = *iter;
             if(!wildcmp(_filter.c_str(), bead->getName().c_str())) continue;
+            if(wildcmp(_refmol.c_str(), bead->getName().c_str())) continue;
+
                 eR = bead->getPos()-_ref;
-                if (abs(eR) < _radialcutoff && abs(eR)>_minrad) {
+                if ((abs(eR) < _radialcutoff && abs(eR)>_minrad) ||_rbins!=1) {
                     // cout << eR << endl;
+                    int rb=0;
+                    if (_rbinw>0){
+                        rb = (int) ((abs(eR))/boxl*(double)_rbins);
+                        
+                    }
+                    if (rb>=_rbins) continue;
+                    //cout << "rb " << rb << endl;
+
                     eR.normalize();
                     u = bead->getU();
                     v = bead->getV();
@@ -182,10 +221,10 @@ public:
                     nw = (int) ((((eR * w) + 1) / 2) * _nbin);
 
                     //cout << "nu" << nu << "nv" << nv << "nw" << nw << endl;
-                    _hist_u[nu] += 1;
-                    _hist_v[nv] += 1;
-                    _hist_w[nw] += 1;
-                    _nmol++;
+                    _hist_u[rb][nu] += 1;
+                    _hist_v[rb][nv] += 1;
+                    _hist_w[rb][nw] += 1;
+                    _nmol[rb]++;
 
                 }
                 
@@ -207,13 +246,16 @@ protected:
     ofstream _file_u;
     ofstream _file_v;
     ofstream _file_w;
-    double * _hist_u;
-    double * _hist_v;
-    double * _hist_w;
+    double **_hist_u;
+    double **_hist_v;
+    double **_hist_w;
     int _nbin;
-    int _nmol;
+    int *_nmol;
     double _radialcutoff;
     double _minrad;
+    int _rbins;
+    double _rbinw;
+    double boxl;
 
     string _filter;
     string _refmol;

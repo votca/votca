@@ -19,7 +19,9 @@ else
 endif
 
 #get CPPFLAGS and LDFLAGS from pkg-config
-CPPFLAGS=`pkg-config --cflags libvotca_csg`
+
+CPPFLAGS=`pkg-config --cflags libvotca_csg`'-g'
+
 LDFLAGS=`pkg-config --libs libvotca_csg`
 
 #generate a list of object (.o) files
