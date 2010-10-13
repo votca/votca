@@ -35,11 +35,11 @@ EOF
 
 # Give number of parameters
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--nparams")){
-  print "2\n";
+  print "3\n";
   exit 0;
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "5 parameters are nessary\n" if ($#ARGV<4);
 
 use CsgFunctions;
 
@@ -48,12 +48,12 @@ my $outfile="$ARGV[1]";
 # --------------------- DEFINE PARAMETERS HERE ---------------------
 my $sig="$ARGV[2]";
 my $eps="$ARGV[3]";
+my $w_cut="$ARGV[4]";
 
 # Read in empty potential table
 my @r;
 my $r_cut_rep=(2**(1/6))*$sig;
-my $r_cut_tot=csg_get_interaction_property("max");
-my $w_cut=$r_cut_tot-$r_cut_rep;
+my $r_cut_tot=$r_cut_rep+$w_cut;
 my $pi=3.14159265;
 my @pot;
 my @pot_rep;
