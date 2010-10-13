@@ -88,7 +88,7 @@ else
     for ($i=0;$i<=$#r;$i++){
     # do a linear interpoltation between the prefactors
     
-        $out[$i]=$i/$#r*$out[$i]*$prefactor_cg+(1-$i/$#r)*$out[$i]*$prefactor;
+        $out[$i]=$i/$#r*$out[$i]*$prefactor+(1-$i/$#r)*$out[$i]*$prefactor_cg;
 
     }   
 }
