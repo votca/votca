@@ -100,9 +100,9 @@ my $max=csg_get_interaction_property("inverse.simplex.density.max");
 # Numerical integration via trapezoidal rule
 for(my $i=1;$i<($max-$min)/$dr;$i++) {
        $ddens[$i]=($dens_cur[$i]-$dens_aim[$i]);
-       $ftar+=$dr*($ddens[$i]**2);
+       $ftar+=$dr*($ddens[$i]);
 }
-$ftar+=(0.5*$dr*($dens_cur[0]-$dens_aim[0])**2)+(0.5*$dr*($dens_cur[$max/$dr]-$dens_aim[$max/$dr])**2);
+$ftar+=(0.5*$dr*($dens_cur[0]-$dens_aim[0]))+(0.5*$dr*($dens_cur[$max/$dr]-$dens_aim[$max/$dr]));
 
 my $mdim;
 if ($prop_N == 1) {
