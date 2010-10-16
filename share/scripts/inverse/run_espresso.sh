@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: run_or_exit Espresso_bin use_mpi csg_get_property check_deps use_mpi
+USES: run_or_exit use_mpi csg_get_property check_deps use_mpi
 
 NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
 
@@ -43,6 +43,7 @@ n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 method="$(csg_get_property cg.inverse.method)"
 
 esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
+[ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
 exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"

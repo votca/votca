@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/} last_sim_dir
 
-USES: die cp run_or_exit grompp check_deps get_last_step_dir
+USES: die cp run_or_exit check_deps get_last_step_dir
 
 OPTIONAL: cg.inverse.gromacs.grompp.index cg.inverse.gromacs.grompp.topol cg.inverse.gromacs.topol cg.inverse.gromacs.grompp.opts cg.inverse.gromacs.mdp cg.inverse.gromacs.grompp.bin
 EOF

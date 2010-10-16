@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die sed check_deps
+USES: get_from_mdp csg_get_property awk log run_or_exit csg_taillog die sed check_deps
 
 OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.gromacs.mdp cg.inverse.gromacs.g_energy.topol cg.inverse.gromacs.g_energy.bin
 EOF
