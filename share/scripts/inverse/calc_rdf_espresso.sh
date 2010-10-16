@@ -45,6 +45,7 @@ esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
 esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")" 
+[ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
 type1=$(csg_get_interaction_property type1)
 type2=$(csg_get_interaction_property type2)
