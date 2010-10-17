@@ -3,9 +3,11 @@ Votca Developer Team
 %%mtime(%m/%d/%Y)
 
 For more detailed information about the changes see the
-history of the [repository http://hg.votca.org/csg]
+history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 
 == Version in hg ==
+* fixed custom programs in sim scripts (issue 1)
+
 
 == Version 1.0 ==
 * added postupdate script for scaling the update
