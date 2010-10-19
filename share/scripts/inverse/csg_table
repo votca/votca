@@ -22,6 +22,7 @@ prepare_table simplex prepare_simplex_table.pl
 pot lj12-6 pot_lj12-6.pl
 pot lj12-4 pot_lj12-4.pl
 pot membrane pot_membrane.pl
+pot CKDgauss pot_CKDgauss.pl
 par pot PAR_to_POT.pl
 update simplex_single update_simplex_single.sh
 update ftar_rdf update_ftar_rdf.pl
