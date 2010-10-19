@@ -80,7 +80,7 @@ my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readi
 
 # ------------------- DEFINE TARGET FUNCTION HERE ------------------
 # Calculate ftar
-my $ftar=abs(($surften_cur-$surften_tgt)/$surften_tgt);
+my $ftar=abs(($surften_cur-$surften_tgt)/$surften_tgt)*100;
 
 my $mdim;
 if ($prop_N == 1) {

@@ -93,6 +93,7 @@ die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 # Calculate ftar
 my @ddens=@_;
 my $ftar=0;
+my $ftar_aim=0;
 my $dr=csg_get_interaction_property("inverse.simplex.density.step");
 my $min=csg_get_interaction_property("inverse.simplex.density.min");
 my $max=csg_get_interaction_property("inverse.simplex.density.max");
@@ -107,7 +108,7 @@ $ftar+=(0.5*$dr*abs($dens_cur[0]-$dens_aim[0]))+(0.5*$dr*abs($dens_cur[$max/$dr]
 $ftar_aim+=(0.5*$dr*$dens_aim[0])+(0.5*$dr*$dens_aim[$max/$dr]);
 
 # Normalizing
-$ftar=$ftar/$ftar_aim;
+$ftar=($ftar/$ftar_aim)*100;
 
 my $mdim;
 if ($prop_N == 1) {
