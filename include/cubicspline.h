@@ -23,6 +23,7 @@
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <iostream>
 
+using namespace std;
 namespace votca { namespace tools {
 
 namespace ub = boost::numeric::ublas;
@@ -64,7 +65,8 @@ public:
     /// enum for type of boundary condition
     enum eBoundary {
         splineNormal = 0,  ///< normal boundary conditions: \f$f_0=f_N=0\f$ 
-        splinePeriodic    ///< periodic boundary conditions: \f$f_0=f_N\f$ 
+        splinePeriodic,    ///< periodic boundary conditions: \f$f_0=f_N\f$
+        splineDerivativeZero ///< derivatives and end-points are zero.
     };
     
     /// set the boundary type of the spline
@@ -274,6 +276,22 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
             M(offset1, offset2 + _r.size()) = 1;
             M(offset1 + _r.size() - 1, offset2 + 2*_r.size()-1) = 1;
             break;
+        case splineDerivativeZero:
+            // y
+            M(offset1+0, offset2 + 0) = -1*A_prime_l(0);
+            M(offset1+0, offset2 + 1) = -1*B_prime_l(0);
+
+            M(offset1+ _r.size()-1, offset2 + _r.size()-2) = A_prime_l(_r.size()-2);
+            M(offset1+ _r.size()-1, offset2 + _r.size()-1) = B_prime_l(_r.size()-2);
+            
+            // y''
+            M(offset1+0, offset2 + _r.size() + 0) =  D_prime_l(0);
+            M(offset1+0, offset2 + _r.size() + 1) = C_prime_l(0);
+
+            M(offset1+ _r.size()-1, offset2 + 2*_r.size()-2) = C_prime_l(_r.size()-2);
+            M(offset1+ _r.size()-1, offset2 + 2*_r.size()-1) = D_prime_l(_r.size()-2);
+            break;
+
         case splinePeriodic:
             M(offset1, offset2) = 1;
             M(offset1, offset2 + _r.size()-1) = -1;
