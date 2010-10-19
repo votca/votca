@@ -47,7 +47,7 @@ void check_option(po::options_description &desc, po::variables_map &vm, const st
 
 int main(int argc, char** argv)
 {
-    string in_file, out_file, grid, spfit, comment;
+    string in_file, out_file, grid, spfit, comment, boundaries;
     CubicSpline spline;
     Table in, out, der;
 
@@ -62,6 +62,7 @@ int main(int argc, char** argv)
       ("spfit", po::value<string>(&spfit), "specify spline fit grid. if option is not specified, normal spline interpolation is performed")
       //("bc", po::)
       ("comment", po::value<string>(&comment), "store a comment in the output table")
+      ("boundaries", po::value<string>(&boundaries), "(natural|periodic|derivativezero) sets boundary conditions")
       ("help", "options file for coarse graining");
     
     po::variables_map vm;
@@ -101,8 +102,16 @@ int main(int argc, char** argv)
         
     
     in.Load(in_file);
-    spline.setBC(CubicSpline::splineNormal);
-
+    
+    if (vm.count("boundaries")){
+        if (boundaries=="periodic"){
+            spline.setBC(CubicSpline::splinePeriodic);
+        }
+        else if (boundaries=="derivativezero"){
+            spline.setBC(CubicSpline::splineDerivativeZero);
+        }
+        //default: normal
+    }    
     if (vm.count("spfit")) {
         Tokenizer tok(spfit, ":");
         vector<string> toks;
