@@ -229,11 +229,11 @@ csg_get_interaction_property () {
   if ret="$($cmd 2>&1)"; then
     [ -z "$ret" ] && [ -n "$2" ] && ret="$2"
   else
-    [ -z "$2" ] && die "csg_get_interaction_property: $cmd failed with error msg: $ret and no default"
+    [ -z "$2" ] && die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
     ret="$2"
   fi
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
-    die "csg_get_interaction_property: Result of '$cmd' was empty"
+    die "csg_get_interaction_property: Could not get '$1'\nResult of '$cmd' was empty"
   echo "$ret"
 }
 export -f csg_get_interaction_property
@@ -254,7 +254,7 @@ csg_get_property () {
   ret="$(true_or_exit $cmd)"
   [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
-    die "csg_get_property: Result of '$cmd' was empty"
+    die "csg_get_property: Could not get '$1'\nResult of '$cmd' was empty"
   echo "$ret"
 }
 export -f csg_get_property
