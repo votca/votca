@@ -150,6 +150,18 @@
     <name>inverse.post_add_options.convergence.what</name>
     <desc>for what to calc the convergence: dist pot, .. (default dist)</desc>
   </item>
+  <item>
+    <name>inverse.post_add_options.plot.gnuplot_bin</name>
+    <desc>gnuplot binary to use (default gnuplot)</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.plot.fd</name>
+    <desc>file descriptor to use (default 8), make it uniqe if you want to plot multiple things</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.plot.script</name>
+    <desc>plot script to give to gnuplot</desc>
+  </item>
   
 <!-- imc specific stuff -->
 
