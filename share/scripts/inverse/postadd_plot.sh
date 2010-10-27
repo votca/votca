@@ -26,7 +26,7 @@ USES: die check_deps run_or_exit mkfifo flock
 
 NEEDS: inverse.post_add_options.plot.script
 
-OPTIONAL: inverse.post_add_options.plot.gnuplot_bin inverse.post_add_options.plot.fd
+OPTIONAL: inverse.post_add_options.plot.gnuplot_bin inverse.post_add_options.plot.fd inverse.post_add_options.plot.kill inverse.post_add_options.plot.gnuplot_opts
 EOF
    exit 0
 fi
@@ -43,7 +43,7 @@ start_gnuplot_pipe() {
         echo -e "$REPLY"
         [ "$REPLY" = "exit" ] && break
       fi
-    done | $gnuplot
+    done | $gnuplot $opts
   fi
 }
 
@@ -58,17 +58,26 @@ int_check "$fd" "${0##*/}: inverse.post_add_options.plot.fd should be a number"
 gnuplot=$(csg_get_interaction_property inverse.post_add_options.plot.gnuplot_bin "gnuplot")
 [ -n "$(type -p $gnuplot)" ] || die "${0##*/}: gnuplot binary '$gnuplot' not found"
 
+opts=$(csg_get_interaction_property --allow-empty inverse.post_add_options.plot.gnuplot_opts)
+
 script=$(csg_get_interaction_property inverse.post_add_options.plot.script)
 [ -f "$script" ] || die "${0##*/}: plot script '$script' is not there, did you forget to add it to cg.inverse.filelist?"
 
-cd $(get_main_dir)
-start_gnuplot_pipe &
-#wait for gnuplot_pipe
-sleep 1
-cd - > /dev/null
+what_to_kill="$(csg_get_interaction_property --allow-empty inverse.post_add_options.plot.kill)"
 
-#gnuplot is in laststep_dir
-echo "cd '$PWD'" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
+msg "Plotting '$script' using $gnuplot"
+if [ -z "${what_to_kill}" ]; then
+  cd $(get_main_dir)
+  start_gnuplot_pipe &
+  #wait for gnuplot_pipe
+  sleep 1
+  cd - > /dev/null
 
-msg "Plotting '$script'"
-cat $script > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
+  #gnuplot is in laststep_dir
+  echo "cd '$PWD'" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
+
+  cat $script > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
+else
+  logrun killall $what_to_kill
+  logrun $gnuplot $opts $script
+fi

@@ -155,12 +155,20 @@
     <desc>gnuplot binary to use (default gnuplot)</desc>
   </item>
   <item>
+    <name>inverse.post_add_options.plot.gnuplot_opts</name>
+    <desc>extra options to give to gnuplot_bin (e.g. -persist, if one uses kill)</desc>
+  </item>
+  <item>
     <name>inverse.post_add_options.plot.fd</name>
     <desc>file descriptor to use (default 8), make it uniqe if you want to plot multiple things</desc>
   </item>
   <item>
     <name>inverse.post_add_options.plot.script</name>
     <desc>plot script to give to gnuplot</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.plot.kill</name>
+    <desc>killall process with that name before ploting (e.g. gnuplot_x11), this is more reliable than if you are using multiplot</desc>
   </item>
   
 <!-- imc specific stuff -->
