@@ -46,6 +46,15 @@ public:
     /// \brief overload and return true to enable trajectory command line options
     virtual bool DoTrajectory(void) { return false; }
 
+    // do threaded here!
+
+    // erstelle Worker klasse (nicht hier), wehh threaded = true muss anwendung
+    // funktion ForkWorker haben
+
+    // virtual Worker *ForkWorker(...); // erstellt einen worker
+
+    // virtual MergeWorker(Worker *) // hier werden daten
+
     /// \brief called after topology was loaded
     virtual bool EvaluateTopology(Topology *top, Topology *top_ref = 0) { return true; }
 

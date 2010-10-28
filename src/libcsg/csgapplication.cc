@@ -62,6 +62,8 @@ void CsgApplication::Initialize(void)
             ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
             ("nframes", boost::program_options::value<int>(), "  process so many frames")
             ;
+
+//    hier do theaded optionen einbauen!!!
 }
 
 bool CsgApplication::EvaluateOptions(void)
@@ -84,6 +86,9 @@ bool CsgApplication::EvaluateOptions(void)
             _do_mapping = true;
         }
     }
+
+//    ist anzahl threads sinnvoll evtl checken
+
     return true;
 }
 
@@ -101,11 +106,11 @@ void CsgApplication::ShowHelpText(std::ostream &out)
 void CsgApplication::Run(void)
 {
     // first read in the topology
-    TopologyReader *reader;
-    Topology top;
+    TopologyReader *reader; // hier nur einmal fuer alle threads
+    Topology top; // fuer jeden thread
 
-    Topology top_cg;
-    TopologyMap *map=0;
+    Topology top_cg; // for alle threads coarse-gtrained topol
+    TopologyMap *map=0;  // fuer jeden thread
     CGEngine cg;
 
     // create reader for atomistic topology
@@ -122,10 +127,10 @@ void CsgApplication::Run(void)
         // read in the coarse graining definitions (xml files)
         cg.LoadMoleculeType(_op_vm["cg"].as<string>());
         // create the mapping + cg topology
-        map = cg.CreateCGTopology(top, top_cg);
+        map = cg.CreateCGTopology(top, top_cg); // fuer jeden thread
 
         cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-        map->Apply();
+        map->Apply(); // fur jeden thread
         if(!EvaluateTopology(&top_cg, &top))
             return;
     }
@@ -135,7 +140,7 @@ void CsgApplication::Run(void)
 
     // do we need to read a trajectory?
     if(DoTrajectory()) {
-        TrajectoryReader *traj_reader;
+        TrajectoryReader *traj_reader;  // nur einmal fuer alle
 
         double begin;
         int first_frame;
@@ -159,6 +164,9 @@ void CsgApplication::Run(void)
             throw runtime_error(string("input format not supported: ") + _op_vm["trj"].as<string>());
         // open the trajectory
         traj_reader->Open(_op_vm["trj"].as<string>());
+
+        // ab hier wirds interessant fuer threads
+
         // read in first frame
         traj_reader->FirstFrame(top);
 
@@ -166,9 +174,9 @@ void CsgApplication::Run(void)
 
         if(_do_mapping) {
             map->Apply();
-            BeginEvaluate(&top_cg, &top);
+            BeginEvaluate(&top_cg, &top); // einmal fuer application
         } else
-            BeginEvaluate(&top);
+            BeginEvaluate(&top); // einmal fuer application
 
         for(bool bok=true; bok==true; bok = traj_reader->NextFrame(top)) {
             if(((top.getTime() < begin) && has_begin)|| first_frame > 1) {
@@ -178,13 +186,13 @@ void CsgApplication::Run(void)
             if(nframes == 0 ) break;
             if(_do_mapping) {
                 map->Apply();
-                EvalConfiguration(&top_cg, &top);
+                EvalConfiguration(&top_cg, &top); // das hier macht mit threads keinen sinn mehr
 
             } else
-                EvalConfiguration(&top);
+                EvalConfiguration(&top); // das hier macht mit threads keinen sinn mehr, ersetzt durch worker
             nframes--;
         }
-        EndEvaluate();
+        EndEvaluate(); // einmal fuer application
         traj_reader->Close();
 
         delete traj_reader;
