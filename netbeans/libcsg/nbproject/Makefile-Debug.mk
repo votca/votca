@@ -34,6 +34,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457853/topologyreader.o \
+	${OBJECTDIR}/_ext/1269762065/lammpsreader.o \
 	${OBJECTDIR}/_ext/484457853/imcio.o \
 	${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o \
 	${OBJECTDIR}/_ext/484457853/topologymap.o \
@@ -92,6 +93,11 @@ ${OBJECTDIR}/_ext/484457853/topologyreader.o: ../../src/libcsg/topologyreader.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/topologyreader.o ../../src/libcsg/topologyreader.cc
+
+${OBJECTDIR}/_ext/1269762065/lammpsreader.o: /data/pckr108/koschke/opt/votca/csg/src/libcsg/modules/io/lammpsreader.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1269762065
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1269762065/lammpsreader.o /data/pckr108/koschke/opt/votca/csg/src/libcsg/modules/io/lammpsreader.cc
 
 ${OBJECTDIR}/_ext/484457853/imcio.o: ../../src/libcsg/imcio.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
