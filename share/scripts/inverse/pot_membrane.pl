@@ -54,7 +54,11 @@ my $w_cut="$ARGV[4]";
 my @r;
 my $r_cut_rep=(2**(1/6))*$sig;
 my $r_cut_tot=$r_cut_rep+$w_cut;
+my $max=csg_get_property("cg.non-bonded.max");
 my $pi=3.14159265;
+
+if ($r_cut_tot>=$max) {die "$progname: Cutoff $max exceeded!\n";}
+
 my @pot;
 my @pot_rep;
 my @pot_att;

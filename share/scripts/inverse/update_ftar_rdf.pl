@@ -98,19 +98,25 @@ my @eps_cur;
 
 # ------------------- DEFINE TARGET FUNCTION HERE ------------------
 # Calculate ftar
-my @w=@_;
 my @drdf=@_;
 my $ftar=0;
-my $delta_r=csg_get_interaction_property("step");
+my $ftar_aim=0;
+my $dr=csg_get_interaction_property("step");
+my $min=csg_get_interaction_property("min");
 my $max=csg_get_interaction_property("max");
 
-for(my $i=1;$i<=$max/$delta_r;$i++) {
-       $w[$i]=exp(-$r_cur[$i]/$sig_cur[$a_line_nr]);
-       $drdf[$i]=($rdf_cur[$i]-$rdf_aim[$i]);
-       $ftar+=$delta_r*$w[$i]*($drdf[$i]**2);
+# Numerical integration via trapezoidal rule
+for(my $i=1;$i<($max-$min)/$dr;$i++) {
+       $drdf[$i]=abs($rdf_cur[$i]-$rdf_aim[$i]);
+       $ftar+=$dr*$drdf[$i];
+       $ftar_aim+=$dr*$rdf_aim[$i];
 }
 
-$ftar+=(0.5*$delta_r*$w[$max/$delta_r]*$drdf[$max/$delta_r]**2);
+$ftar+=(0.5*$dr*abs($rdf_cur[0]-$rdf_aim[0]))+(0.5*$dr*abs($rdf_cur[$max/$dr]-$rdf_aim[$max/$dr]));
+$ftar_aim+=(0.5*$dr*$rdf_aim[0])+(0.5*$dr*$rdf_aim[$max/$dr]);
+
+# Normalizing
+$ftar=($ftar/$ftar_aim)*100;
 
 my $mdim;
 if ($prop_N == 1) {
