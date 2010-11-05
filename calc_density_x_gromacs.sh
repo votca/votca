@@ -32,10 +32,10 @@ begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print 
 
 if [ $adress_type = "sphere" ]
 then
-dens_prog="g_rdf -n index.ndx"
-index_sel="DUM \n SOL\n"
+dens_prog="g_rdf -n index.ndx -bin 0.01"
+index_sel="DUM \n CG\n"
 else
-dens_prog="g_density -sl 500 -d x"
+dens_prog="g_density -n index.ndx -sl 100 -d x"
 index_sel=$name
 fi
 
