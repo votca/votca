@@ -10,13 +10,15 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
-AS=
+FC=gfortran
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -31,23 +33,26 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/cubicspline.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/tokenizer.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parcer.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/property.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/random.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogramnew.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/matrix.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/crosscorrelate.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/correlate.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/rangeparser.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogram.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parsexml.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/linalg.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/version_nb.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/datacollection.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/application.o
+	${OBJECTDIR}/_ext/1723120609/version_nb.o \
+	${OBJECTDIR}/_ext/1723120609/cubicspline.o \
+	${OBJECTDIR}/_ext/1723120609/application.o \
+	${OBJECTDIR}/_ext/1723120609/tokenizer.o \
+	${OBJECTDIR}/_ext/1723120609/table.o \
+	${OBJECTDIR}/_ext/1723120609/parcer.o \
+	${OBJECTDIR}/_ext/1723120609/mutex.o \
+	${OBJECTDIR}/_ext/1723120609/random.o \
+	${OBJECTDIR}/_ext/1723120609/property.o \
+	${OBJECTDIR}/_ext/1723120609/parsexml.o \
+	${OBJECTDIR}/_ext/1723120609/crosscorrelate.o \
+	${OBJECTDIR}/_ext/1723120609/histogramnew.o \
+	${OBJECTDIR}/_ext/1723120609/linalg.o \
+	${OBJECTDIR}/_ext/1723120609/matrix.o \
+	${OBJECTDIR}/_ext/1723120609/datacollection.o \
+	${OBJECTDIR}/_ext/1723120609/histogram.o \
+	${OBJECTDIR}/_ext/1723120609/correlate.o \
+	${OBJECTDIR}/_ext/1723120609/thread.o \
+	${OBJECTDIR}/_ext/1723120609/rangeparser.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -67,104 +72,114 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Release.mk ../../src/libtools/libtools.a
+	"${MAKE}"  -f nbproject/Makefile-Release.mk ../../src/libtools/libtools.a
 
 ../../src/libtools/libtools.a: ${OBJECTFILES}
 	${MKDIR} -p ../../src/libtools
 	${RM} ../../src/libtools/libtools.a
-	${AR} rv ../../src/libtools/libtools.a ${OBJECTFILES} 
+	${AR} -rv ../../src/libtools/libtools.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libtools/libtools.a
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/cubicspline.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/cubicspline.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/version_nb.o: ../../src/libtools/version_nb.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/cubicspline.o ../../src/libtools/cubicspline.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/version_nb.o ../../src/libtools/version_nb.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/tokenizer.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/tokenizer.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/cubicspline.o: ../../src/libtools/cubicspline.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/tokenizer.o ../../src/libtools/tokenizer.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/cubicspline.o ../../src/libtools/cubicspline.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parcer.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/parcer.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/application.o: ../../src/libtools/application.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parcer.o ../../src/libtools/parcer.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/application.o ../../src/libtools/application.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/property.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/property.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/tokenizer.o: ../../src/libtools/tokenizer.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/property.o ../../src/libtools/property.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/tokenizer.o ../../src/libtools/tokenizer.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/random.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/random.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/table.o: ../../src/libtools/table.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/random.o ../../src/libtools/random.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/table.o ../../src/libtools/table.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogramnew.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/histogramnew.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/parcer.o: ../../src/libtools/parcer.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogramnew.o ../../src/libtools/histogramnew.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/parcer.o ../../src/libtools/parcer.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/matrix.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/matrix.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/mutex.o: ../../src/libtools/mutex.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/matrix.o ../../src/libtools/matrix.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/mutex.o ../../src/libtools/mutex.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/crosscorrelate.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/crosscorrelate.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/random.o: ../../src/libtools/random.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/crosscorrelate.o ../../src/libtools/crosscorrelate.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/random.o ../../src/libtools/random.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/correlate.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/correlate.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/property.o: ../../src/libtools/property.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/correlate.o ../../src/libtools/correlate.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/property.o ../../src/libtools/property.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/rangeparser.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/rangeparser.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/parsexml.o: ../../src/libtools/parsexml.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/rangeparser.o ../../src/libtools/rangeparser.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/parsexml.o ../../src/libtools/parsexml.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogram.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/histogram.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/crosscorrelate.o: ../../src/libtools/crosscorrelate.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/histogram.o ../../src/libtools/histogram.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/crosscorrelate.o ../../src/libtools/crosscorrelate.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parsexml.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/parsexml.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/histogramnew.o: ../../src/libtools/histogramnew.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/parsexml.o ../../src/libtools/parsexml.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/histogramnew.o ../../src/libtools/histogramnew.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/table.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/linalg.o: ../../src/libtools/linalg.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/table.o ../../src/libtools/table.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/linalg.o ../../src/libtools/linalg.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/linalg.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/linalg.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/matrix.o: ../../src/libtools/matrix.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/linalg.o ../../src/libtools/linalg.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/matrix.o ../../src/libtools/matrix.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/version_nb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/version_nb.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/datacollection.o: ../../src/libtools/datacollection.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/version_nb.o ../../src/libtools/version_nb.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/datacollection.o ../../src/libtools/datacollection.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/datacollection.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/datacollection.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/histogram.o: ../../src/libtools/histogram.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/datacollection.o ../../src/libtools/datacollection.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/histogram.o ../../src/libtools/histogram.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/application.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/application.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools
+${OBJECTDIR}/_ext/1723120609/correlate.o: ../../src/libtools/correlate.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libtools/application.o ../../src/libtools/application.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/correlate.o ../../src/libtools/correlate.cc
+
+${OBJECTDIR}/_ext/1723120609/thread.o: ../../src/libtools/thread.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/thread.o ../../src/libtools/thread.cc
+
+${OBJECTDIR}/_ext/1723120609/rangeparser.o: ../../src/libtools/rangeparser.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/rangeparser.o ../../src/libtools/rangeparser.cc
 
 # Subprojects
 .build-subprojects:
 
 # Clean Targets
-.clean-conf:
+.clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Release
 	${RM} ../../src/libtools/libtools.a
 
