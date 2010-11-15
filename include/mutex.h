@@ -24,5 +24,6 @@ private:
     pthread_mutex_t _mutexVar;
 };
 
+
 #endif	/* MUTEX_H */
 

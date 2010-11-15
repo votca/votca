@@ -15,7 +15,6 @@ static void *runwrapper(void *arg) {
 }
 
 Thread::Thread() {
-    //threadInfo.instance = (void *) this;
 
 }
 
@@ -32,7 +31,7 @@ void Thread::Start() {
         throw std::runtime_error("ERROR; return code from pthread_create() is "
                 + rc);
     }
-    //waitDone();
+    //WaitDone();
     //_finished=true;
 }
 
@@ -44,6 +43,7 @@ void Thread::WaitDone() {
         throw std::runtime_error("ERROR; return code from pthread_join() is "
                 + rc);
     }
+    _finished = true;
 }
 
 bool Thread::IsFinished() const {
