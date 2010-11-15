@@ -65,7 +65,7 @@
                             OP="../../src/libtools/libtools.a">
               </makeArtifact>
             </linkerLibProjectItem>
-            <linkerLibLibItem>gmx</linkerLibLibItem>
+            <linkerLibLibItem>gmx_d</linkerLibLibItem>
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
             <linkerLibLibItem>expat</linkerLibLibItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
