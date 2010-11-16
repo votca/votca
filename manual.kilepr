@@ -4,7 +4,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
 kileprversion=2
 kileversion=2.1 beta2
-lastDocument=usage/ibi.tex
+lastDocument=manual.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -18,12 +18,12 @@ QuickBuild=
 
 [item:introduction.tex]
 archive=true
-column=92
+column=218
 encoding=UTF-8
 highlight=LaTeX
 line=22
-open=true
-order=3
+open=false
+order=1
 
 [item:manual.kilepr]
 archive=true
@@ -36,30 +36,39 @@ order=-1
 
 [item:manual.tex]
 archive=true
-column=9
+column=19
 encoding=UTF-8
 highlight=LaTeX
-line=52
+line=45
 open=true
 order=0
+
+[item:mapping.tex]
+archive=true
+column=19
+encoding=UTF-8
+highlight=LaTeX
+line=31
+open=false
+order=-1
 
 [item:reference.tex]
 archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=11
+line=2
 open=false
 order=1
 
 [item:theory.tex]
 archive=true
-column=5
+column=3
 encoding=UTF-8
 highlight=LaTeX
-line=137
-open=true
-order=4
+line=11
+open=false
+order=1
 
 [item:usage.tex]
 archive=true
@@ -72,38 +81,38 @@ order=0
 
 [item:usage/boltzmann.tex]
 archive=true
-column=14
+column=1
 encoding=UTF-8
 highlight=LaTeX
-line=54
+line=10
 open=false
 order=4
 
 [item:usage/cgruns.tex]
 archive=true
-column=222
+column=15
 encoding=UTF-8
 highlight=LaTeX
-line=2
-open=true
-order=7
+line=13
+open=false
+order=1
 
 [item:usage/forcematching.tex]
 archive=true
-column=24
+column=56
 encoding=UTF-8
 highlight=LaTeX
-line=0
-open=true
+line=61
+open=false
 order=6
 
 [item:usage/ibi.tex]
 archive=true
-column=24
+column=16
 encoding=UTF-8
 highlight=LaTeX
-line=55
-open=true
+line=66
+open=false
 order=1
 
 [item:usage/imc.tex]
@@ -111,17 +120,17 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=7
-open=true
+line=52
+open=false
 order=2
 
 [item:usage/iterative_workflow.tex]
 archive=true
-column=61
+column=251
 encoding=UTF-8
 highlight=LaTeX
-line=46
-open=true
+line=23
+open=false
 order=5
 
 [item:votca.bib]
@@ -130,5 +139,5 @@ column=16
 encoding=UTF-8
 highlight=BibTeX
 line=12
-open=true
+open=false
 order=8

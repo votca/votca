@@ -10,7 +10,7 @@
 %
 It is mostly used for deriving {\em bonded} interactions from canonical sampling of a single molecule in vacuum, e.~g. for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}. The non-bonded potentials can then be obtained by using iterative  methods or force matching.
 
-The main tool which can be used to calculate hystograms, cross-correlate coarse-grained variables, create exclusion lists, as well as prepare tabulated potentials for coarse-grained simulations is \prog{csg_boltzmann}.  It parses the whole trajectory and stores all information bonded interactions in memory, which is useful for interactive analysis. For big systems, however, one can run out of memory. In this case \prog{csg_stat} can be used which, however, has a limited number of tasks it can perform.
+The main tool which can be used to calculate histograms, cross-correlate coarse-grained variables, create exclusion lists, as well as prepare tabulated potentials for coarse-grained simulations is \prog{csg_boltzmann}.  It parses the whole trajectory and stores all information on bonded interactions in memory, which is useful for interactive analysis. For big systems, however, one can run out of memory. In this case \prog{csg_stat} can be used which, however, has a limited number of tasks it can perform.
 
 Another useful tool is \prog{csg_map}. It can be used to convert an atomistic trajectory to a coarse-grained one, as it is discussed in sec.~\ref{sec:trajectory}.
 
@@ -24,7 +24,7 @@ To generate an exclusion list, an atomistic topology without exclusions and a ma
 \begin{verbatim}
   csg_boltzmann --top topol.tpr --cg mapping.xml --excl exclusions.txt
 \end{verbatim}
-This will create a list of exclusions for all interactions that are not within a bonded interaction of the coarse-grained sub-bead. As an example consider coarse-graining of a linear chain of three beads  which are only connected by bonds. In this case, \prog{csg_boltzmann} will create exclusions for all non-bonded interactions of atoms in the first bead with atoms of the 3rd bead as these would contribute only to the non-bonded interaction potential. Note that \prog{csg_boltzmann} will only create the exclusion list for the fist mulecule in the topology.
+This will create a list of exclusions for all interactions that are not within a bonded interaction of the coarse-grained sub-bead. As an example consider coarse-graining of a linear chain of three beads  which are only connected by bonds. In this case, \prog{csg_boltzmann} will create exclusions for all non-bonded interactions of atoms in the first bead with atoms of the 3rd bead as these would contribute only to the non-bonded interaction potential. Note that \prog{csg_boltzmann} will only create the exclusion list for the fist molecule in the topology.
 
 To add the exclusions to the \gromacs topology of the molecule, either include the file specified in --excl as follows
 \begin{verbatim}
@@ -34,7 +34,7 @@ To add the exclusions to the \gromacs topology of the molecule, either include t
 or copy and paste the content of that file to the exclusions section of the gromacs topology file.
 
 \section{Statistical analysis}
-For statistical analysis \prog{csg_boltzmann} provides an interactive mode. To enter the interactive mode, use \progopt{--trj} option followed by the file name of the reference trajectory 
+For statistical analysis \prog{csg_boltzmann} provides an interactive mode. To enter the interactive mode, use the \progopt{--trj} option followed by the file name of the reference trajectory 
 \begin{verbatim}
   csg_boltzmann --top topol.top --trj traj.trr --cg mapping.xml
 \end{verbatim}
@@ -51,18 +51,18 @@ for example
 %
 By default, all interactions specified in the mapping scheme are processed. If a specific interaction shall be used, it can be referred to by a name which is composed of \texttt{molecule:interaction-group:index}, where \texttt{molecule} is the molecule number in the whole topology, \texttt{interaction-group} is the name specified in the mapping file, and \texttt{index} is the entry in the list of interactions. For example, \texttt{1:AA-bond:10} refers to the 10th AA-bond in molecule 1. 
 
-To show a list of all interactions that were processed, \texttt{list} command can be used. To specify a couple of interactions during analysis, either give interactions separated by space or use wildcards (e.g. \texttt{*:AA-bond*}).
+To show a list of all interactions that were processed, the \texttt{list} command can be used. To specify a couple of interactions during analysis, either give interactions separated by a space or use wildcards (e.g. \texttt{*:AA-bond*}).
 
 To exit the interactive mode, use the command \texttt{q}. 
 
-If analysis commands are t be read from a file, use the pipe or stdin redirects from the shell.
+If analysis commands are to be read from a file, use the pipe or stdin redirects from the shell.
 \begin{verbatim}
   cat commands | csg_boltzmann topol.top --trj traj.trr --cg mapping.xml
 \end{verbatim}
 
 \subsection{Distribution functions and tabulated potentials}
 Distribution functions (tabulated potentials) can be created with the \textit{hist} (\textit{tab}) command.
-E.g. to write out the distribution function for all interactions of group AA-bond (where AA-bond is the name specified in the mapping scheme) to the file AA.txt, type
+For instance, to write out the distribution function for all interactions of group AA-bond (where AA-bond is the name specified in the mapping scheme) to the file AA.txt, type
 \begin{verbatim}
   hist AA.txt *:AA-bond:*
 \end{verbatim}
@@ -78,8 +78,8 @@ prints a list of all parameters that can be changed for the histogram. To direct
 \end{verbatim}
 
 \subsection{Correlation analysis}
-\prog{csg_boltzmann} offers two possibilities to evaluate correlations of interactions. On thing is the linear correlation coefficient using the command \textit{cor}. However this is not a good measure since it only calculates the linear correlation and often give misleading results~\cite{Ruehle:2009.a}. A better way is to create 2D Histograms. This can be performed by writing out the values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
+\prog{csg_boltzmann} offers two possibilities to evaluate correlations of interactions. One thing is the linear correlation coefficient using the command \textit{cor}. However, this is not a good measure since it only calculates the linear correlation and often gives misleading results~\cite{Ruehle:2009.a}. A better way is to create 2D histograms. This can be done by specifying all values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
 \begin{verbatim}
   vals vals.txt 1:AA-bond:1 1:AAA-angle:A
 \end{verbatim}
-This will create a file which contains 3 columns, the first being the time, and the second and third the bond and angle, respectively. Columns 2 and 3 can either be used to generate the 2D Histogram, or a simpler plot of column 3 over 2, whose density of points reflect the probability.
+This will create a file which contains 3 columns, the first being the time, and the second and third being bond and angle, respectively. Columns 2 and 3 can either be used to generate the 2D histogram, or a simpler plot of column 3 over 2, whose density of points reflect the probability.
