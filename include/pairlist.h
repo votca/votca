@@ -22,7 +22,7 @@
 #include <map>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
+using namespace std;
 
 template<typename element_type, typename pair_type>
 class PairList {
