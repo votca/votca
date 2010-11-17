@@ -36,7 +36,7 @@ or copy and paste the content of that file to the exclusions section of the grom
 \section{Statistical analysis}
 For statistical analysis \prog{csg_boltzmann} provides an interactive mode. To enter the interactive mode, use the \progopt{--trj} option followed by the file name of the reference trajectory 
 \begin{verbatim}
-  csg_boltzmann --top topol.top --trj traj.trr --cg mapping.xml
+  csg_boltzmann --top topol.tpr --trj traj.trr --cg mapping.xml
 \end{verbatim}
 %
 To get help on a specific command of the interactive mode, type
@@ -49,9 +49,17 @@ for example
   help hist set periodic
 \end{verbatim}
 %
-By default, all interactions specified in the mapping scheme are processed. If a specific interaction shall be used, it can be referred to by \texttt{molecule:interaction-group:index}, where \texttt{molecule} is the molecule number in the whole topology, \texttt{interaction-group} is the name specified in the mapping file, and \texttt{index} is the entry in the list of interactions. For example, \texttt{1:AA-bond:10} refers to the 10th AA-bond in molecule 1. 
+Additionally, use the
+\begin{verbatim}
+  list
+\end{verbatim}
+command for a list of available interactions. Note again that \prog{csg_boltzmann} loads the whole trajectory and all information on bonded interactions into the memory. Hence, its main application should be single molecules. See the introduction of this chapter for the \prog{csg_stat} command.
 
-To show a list of all interactions that were processed, the \texttt{list} command can be used. To specify a couple of interactions during analysis, either give the interactions separated by a space or use wildcards (e.g. \texttt{*:AA-bond*}).
+If a specific interaction shall be used, it can be referred to by
+\begin{verbatim}
+  molecule:interaction-group:index
+\end{verbatim}
+Here, \texttt{molecule} is the molecule number in the whole topology, \texttt{interaction-group} is the name specified in the \texttt{<bond>} section of the mapping file, and \texttt{index} is the entry in the list of interactions. For example, \texttt{1:AA-bond:10} refers to the 10th bond named \texttt{AA-bond} in molecule 1. To specify a couple of interactions during analysis, either give the interactions separated by a space or use wildcards (e.g. \texttt{*:AA-bond*}).
 
 To exit the interactive mode, use the command \texttt{q}. 
 
@@ -70,15 +78,18 @@ The command
 \begin{verbatim}
   hist set
 \end{verbatim}
-prints a list of all parameters that can be changed for the histogram. To directly write the Boltzmann-inverted potential, the \textit{tab} command can be used. Its usage and options are very similar to the \textit{hist} command. If tabulated potentials are written, special care should be taken to the parameters \textit{T} (temperature) and the \textit{scale}. The \textit{scale} enables volume normalization as given in \eq{eq:boltzmann_norm}. Possible values are \textit{no} (no scaling), \textit{bond} (normalize for bonds) and \textit{angle} (normalize for angles). To write out the tabulated potential for an angle potential, for instance, at a temperature of 300K, type:
+prints a list of all parameters that can be changed for the histogram: the number \textit{n} of bins for the table, bounds \textit{min} and \textit{max} for table values, scaling and normalizing, a flag \textit{periodic} to ensure periodic values in the table and an \textit{auto} flag. If \textit{auto} is set to 1, bounds are calculated automatically, otherwise they can be specified by \textit{min} and \textit{max}. Larger values in the table might extend those bounds, specified by parameter \textit{extend}.
+
+To directly write the Boltzmann-inverted potential, the \textit{tab} command can be used. Its usage and options are very similar to the \textit{hist} command. If tabulated potentials are written, special care should be taken to the parameters \textit{T} (temperature) and the \textit{scale}. The \textit{scale} enables volume normalization as given in \eq{eq:boltzmann_norm}. Possible values are \textit{no} (no scaling), \textit{bond} (normalize bonds) and \textit{angle} (normalize angles). To write out the tabulated potential for an angle potential at a temperature of 300K, for instance, type:
 \begin{verbatim}
   tab set T 300
   tab set scale angle
   tab angle.pot *:angle:*
 \end{verbatim}
+The table is then written into the file \texttt{angle.pot} in the format ZZ. An optional correlation analysis is described in the next section. After the file has been created by command \texttt{tab}, the potential is prepared for the coarse-grained run in chapter \ref{sec:usage:cgrun}.
 
 \subsection{Correlation analysis}
-\prog{csg_boltzmann} offers two ways to evaluate correlations of interactions. One option is the linear correlation coefficient using the command \textit{cor}. However, this is not a good measure since it only calculates the linear correlation and often gives misleading results~\cite{Ruehle:2009.a}. A better way is to create 2D histograms. This can be done by specifying all values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
+The factorization of $P$ in \eq{eq:boltzmann_pmf} assumed uncorrelated quantities. \prog{csg_boltzmann} offers two ways to evaluate correlations of interactions. One option is to use the linear correlation coefficient (command \textit{cor}). However, this is not a good measure since \textit{cor} only calculates the linear correlation which might often lead to misleading results~\cite{Ruehle:2009.a} (An example are the two correlated random variables $X$ with uniform distribution, $X=U[-1,1]$, and $Y=X^2$. A simple calculation shows $cov(X,Y)=0$ and therefore $cor=\frac{cov(X,Y)}{\sqrt{var(X)var(Y)}}=0$). A better way is to create 2D histograms. This can be done by specifying all values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
 \begin{verbatim}
   vals vals.txt 1:AA-bond:1 1:AAA-angle:A
 \end{verbatim}

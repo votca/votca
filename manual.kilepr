@@ -4,7 +4,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
 kileprversion=2
 kileversion=2.1 beta2
-lastDocument=usage/boltzmann.tex
+lastDocument=manual.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -67,8 +67,8 @@ column=3
 encoding=UTF-8
 highlight=LaTeX
 line=11
-open=false
-order=1
+open=true
+order=2
 
 [item:usage.tex]
 archive=true
@@ -81,19 +81,19 @@ order=0
 
 [item:usage/boltzmann.tex]
 archive=true
-column=0
+column=615
 encoding=UTF-8
 highlight=LaTeX
-line=79
+line=91
 open=true
 order=1
 
 [item:usage/cgruns.tex]
 archive=true
-column=15
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=13
+line=1
 open=false
 order=1
 
