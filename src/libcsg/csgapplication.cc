@@ -242,14 +242,41 @@ namespace votca {
         }
 
         void CsgApplication::RunThreaded(void) {
-            CGEngine cg;
             TopologyReader *reader;
-
             // create reader for atomistic topology
             reader = TopReaderFactory().Create(_op_vm["top"].as<string > ());
             if (reader == NULL)
                 throw runtime_error(string("input format not supported: ") + _op_vm["top"].as<string > ());
 
+            Topology top;
+            Topology top_cg;
+            CGEngine cg;
+            TopologyMap *map;
+
+            //////////////////////////////////////////////////
+            // read in the topology for application
+            //////////////////////////////////////////////////
+            reader->ReadTopology(_op_vm["top"].as<string > (), top);
+            cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
+            top.CheckMoleculeNaming();
+
+            if (_do_mapping) {
+                // read in the coarse graining definitions (xml files)
+                cg.LoadMoleculeType(_op_vm["cg"].as<string > ());
+                // create the mapping + cg topology
+                map = cg.CreateCGTopology(top, top_cg);
+
+                cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
+                map->Apply();
+                if (!EvaluateTopology(&top_cg, &top))
+                    return;
+            } else
+                if (!EvaluateTopology(&top))
+                return;
+
+            //////////////////////////////////////////////////
+            // Here trajectory parsing starts
+            //////////////////////////////////////////////////
             if (DoTrajectory()) {
                 double begin;
                 int first_frame;
@@ -274,18 +301,16 @@ namespace votca {
                 // open the trajectory
                 _traj_reader->Open(_op_vm["trj"].as<string > ());
 
-/////////////////////////////////////////////////////////////////////////
-
-                if (_do_mapping)
-                    cg.LoadMoleculeType(_op_vm["cg"].as<string > ());
-//////////////////////////////////////////////////////////////////////////
-
+            //////////////////////////////////////////////////
+            // Create all the workers
+            //////////////////////////////////////////////////
                 for (int thread = 0; thread < _op_vm["nt"].as<int > (); thread++) {
                     Worker *myWorker = ForkWorker();
                     myWorker->setApplication(this);
                     myWorker->setId(thread);
                     _myWorkers.push_back(myWorker);
 
+                    // this will me changed to CopyTopologyData
                     // read in the topology
                     reader->ReadTopology(_op_vm["top"].as<string > (), myWorker->_top);
                     myWorker->_top.CheckMoleculeNaming();
@@ -293,31 +318,14 @@ namespace votca {
                     if (_do_mapping) {
                         // create the mapping + cg topology
                         myWorker->_map = cg.CreateCGTopology(myWorker->_top, myWorker->_top_cg);
-                        myWorker->_map->Apply();
-
-                        if (!EvaluateTopology(&myWorker->_top_cg, &myWorker->_top))
-                            return;
-                    } else
-                        if (!EvaluateTopology(&myWorker->_top))
-                        return;
+                    } 
                 }
-
-                cout << "I have " << _myWorkers[0]->_top.BeadCount() << " beads in " << _myWorkers[0]->_top.MoleculeCount() << " molecules" << endl;
                 
-/////////////////////////////////////////////////////////////////////////
-
-                if (_do_mapping) {
-                    cout << "I have " << _myWorkers[0]->_top_cg.BeadCount() << " beads in " << _myWorkers[0]->_top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-                    // create the mapping + cg topology
-                    if (!EvaluateTopology(&_myWorkers[0]->_top_cg, &_myWorkers[0]->_top))
-                        return;
-                } else
-                    if (!EvaluateTopology(&_myWorkers[0]->_top))
-                        return;
-
+            //////////////////////////////////////////////////
+            // Proceed to first frame of interest
+            //////////////////////////////////////////////////
                 
                 _traj_reader->FirstFrame(_myWorkers[0]->_top);
-
                 //seek to first frame, let thread0 do that
                 for (bool bok = true; bok == true; bok = _traj_reader->NextFrame(_myWorkers[0]->_top)) {
                     if (((_myWorkers[0]->_top.getTime() < begin) && has_begin) || first_frame > 1) {
