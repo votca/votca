@@ -70,7 +70,7 @@ int Application::Exec(int argc, char **argv)
         Run();
     }
     catch(std::exception &error) {
-         cerr << "an error occured:\n" << error.what() << endl;
+         cerr << "an error occurred:\n" << error.what() << endl;
          return -1;
     }
     return 0;
