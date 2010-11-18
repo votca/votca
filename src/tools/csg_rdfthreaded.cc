@@ -59,6 +59,7 @@ public:
     // funktionen implementieren, unter anerem initialize
     HistogramNew _rdf;
     double _cut_off;
+
 };
 
 int main(int argc, char** argv) {
@@ -76,7 +77,6 @@ void CsgTestApp::Initialize() {
 void CsgTestApp::BeginEvaluate(Topology *top, Topology *top_ref) {
     _cut_off = OptionsMap()["c"].as<double>();
     _rdf.Initialize(0, _cut_off, 50);
-
 }
 
 void CsgTestApp::EndEvaluate() {
@@ -89,7 +89,7 @@ void CsgTestApp::EndEvaluate() {
 }
 
 CsgApplication::Worker * CsgTestApp::ForkWorker() {
-    std::cout << "i am so forking a worker right now" << std::endl;
+    //std::cout << "i am so forking a worker right now" << std::endl;
     RDFWorker *worker;
     worker = new RDFWorker();
     // initializiseren here?
@@ -106,6 +106,7 @@ void CsgTestApp::MergeWorker(Worker *worker) {
     _rdf.data().y() = _rdf.data().y() + myRDFWorker->_rdf.data().y();
     //     for (int i=0; i<myRDFWorker->_rdf.data().size(); i++)
     //         std::cout << myRDFWorker->_rdf.data().x(i) << std::endl;
+
     rdfMutex.Unlock();
 }
 
@@ -114,8 +115,8 @@ RDFWorker::~RDFWorker(void) {
 
 void RDFWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
 
-    std::cout << "I am so hard working! worker id: " << getId() << ", frame nr: " << top->getStep() \
-            << ", topology copy addr: " << top << std::endl;
+    //std::cout << "I am so hard working! worker id: " << getId() << ", frame nr: " << top->getStep() \
+   //         << ", topology copy addr: " << top << std::endl;
     //    sleep(rand()%3);
     BeadList b;
     b.Generate(*top, "*");

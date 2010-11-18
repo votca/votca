@@ -79,38 +79,36 @@ namespace votca {
             virtual void EndEvaluate();
             // \brief called for each frame which is mapped
             virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0);
-            // thread specific stuff
 
             class Worker : public Thread {
             public:
-                //Worker();
-                ~Worker();
-                void Initialize(int id, Topology * top, Topology * top_cg, TopologyMap * map,   \
-                        TrajectoryReader *traj_reader, bool do_mapping, int * nframes,  \
-                        Mutex * nframesMutex, Mutex * traj_readerMutex);
-                virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0) = 0;
 
-                void Decr(int * number) {
-                    *number = *number - 1;
+                Worker() {
+                    _map = 0;
                 }
+                ~Worker();
+                //void Initialize(int id, Topology top, Topology top_cg, TopologyMap * map);
+                void Initialize(int id);
+                virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0) = 0;
 
                 int getId() {
                     return _myId;
                 }
 
-            private:
-                Topology *_top, *_top_cg; // ohne *
+            protected:
+                Topology _top, _top_cg;
                 TopologyMap * _map;
-                TrajectoryReader * _traj_reader;// in application
-                bool _do_mapping;// in application
-                int * _nframes;// in application
-                Mutex * _nframesMutex;// in application
-                Mutex * _traj_readerMutex;// in application
                 int _myId;
 
+                void setApplication(CsgApplication *app) {
+                    _app = app;
+                }
+                CsgApplication *_app;
+                friend class CsgApplication;
                 void Run(void);
-                bool GetData(TrajectoryReader *traj_reader, Topology *top); // in application
             };
+
+            bool ProcessData(Worker * worker);
 
             virtual Worker *ForkWorker(void) {
                 throw std::runtime_error("ForkWorker not implemented in application");
@@ -124,7 +122,11 @@ namespace votca {
         protected:
             list<CGObserver *> _observers;
             bool _do_mapping;
-            Worker ** _myWorkers;
+            std::vector<Worker*> _myWorkers;
+            int _nframes;
+            Mutex _nframesMutex;
+            Mutex _traj_readerMutex;
+            TrajectoryReader * _traj_reader;
         };
 
         inline void CsgApplication::AddObserver(CGObserver *observer) {
