@@ -209,12 +209,6 @@ namespace votca {
 
         }
 
-        //void CsgApplication::Worker::Initialize(int id, Topology top, Topology top_cg, TopologyMap * map) {
-
-        void CsgApplication::Worker::Initialize(int id) {
-            _myId = id;
-        }
-
         void CsgApplication::Worker::Run(void) {
             while (_app->ProcessData(this));
         }
@@ -248,10 +242,7 @@ namespace votca {
         }
 
         void CsgApplication::RunThreaded(void) {
-            Worker * myWorker;
-            // first read in the topology
             CGEngine cg;
-
             TopologyReader *reader;
 
             // create reader for atomistic topology
@@ -269,7 +260,7 @@ namespace votca {
                     begin = _op_vm["begin"].as<double>();
                 }
 
-                _nframes = -99;
+                _nframes = -1;
                 if (_op_vm.count("nframes")) {
                     _nframes = _op_vm["nframes"].as<int>();
                 }
@@ -283,79 +274,25 @@ namespace votca {
                 // open the trajectory
                 _traj_reader->Open(_op_vm["trj"].as<string > ());
 
+/////////////////////////////////////////////////////////////////////////
 
-                //for first thread(=0): initialize
-                myWorker = ForkWorker();
-                myWorker->setApplication(this);
-                _myWorkers.push_back(myWorker);
-
-                // read in the topology
-                reader->ReadTopology(_op_vm["top"].as<string > (), myWorker->_top);
-
-                cout << "I have " << myWorker->_top.BeadCount() << " beads in " << myWorker->_top.MoleculeCount() << " molecules" << endl;
-                myWorker->_top.CheckMoleculeNaming();
-
-                if (_do_mapping) {
-                    // read in the coarse graining definitions (xml files)
+                if (_do_mapping)
                     cg.LoadMoleculeType(_op_vm["cg"].as<string > ());
-                    // create the mapping + cg topology
-                    myWorker->_map = cg.CreateCGTopology(myWorker->_top, myWorker->_top_cg);
-                    cout << "I have " << myWorker->_top_cg.BeadCount() << " beads in " << myWorker->_top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-                    myWorker->_map->Apply();
+//////////////////////////////////////////////////////////////////////////
 
-                    if (!EvaluateTopology(&myWorker->_top_cg, &myWorker->_top))
-                        return;
-                } else
-                    if (!EvaluateTopology(&myWorker->_top))
-                    return;
-
-                _traj_reader->FirstFrame(myWorker->_top);
-
-                // notify all observer that coarse graining has begun
-                if (_do_mapping) {
-                    myWorker->_map->Apply();
-                    BeginEvaluate(&myWorker->_top_cg, &myWorker->_top);
-                } else
-                    BeginEvaluate(&myWorker->_top);
-
-
-                //myWorker->Initialize(thread, top, top_cg, map);
-                long thread = 0;
-                myWorker->Initialize(thread);
-
-                //seek to first frame, let thread0 do that
-                for (bool bok = true; bok == true; bok = _traj_reader->NextFrame(myWorker->_top)) {
-                    if (((myWorker->_top.getTime() < begin) && has_begin) || first_frame > 1) {
-                        first_frame--;
-                        continue;
-                    }
-                    break;
-                }
-
-                //for other threads: initialize
-                for (int thread = 1; thread < _op_vm["nt"].as<int > (); thread++) {
-                    myWorker = ForkWorker();
+                for (int thread = 0; thread < _op_vm["nt"].as<int > (); thread++) {
+                    Worker *myWorker = ForkWorker();
                     myWorker->setApplication(this);
+                    myWorker->setId(thread);
                     _myWorkers.push_back(myWorker);
-
 
                     // read in the topology
                     reader->ReadTopology(_op_vm["top"].as<string > (), myWorker->_top);
-
-                    //dirty check
-                    //if (thread == 0)
-                    //    cout << "I have " << myWorker->_top.BeadCount() << " beads in " << myWorker->_top.MoleculeCount() << " molecules" << endl;
                     myWorker->_top.CheckMoleculeNaming();
 
-
                     if (_do_mapping) {
-                        // read in the coarse graining definitions (xml files)
-                        //cg.LoadMoleculeType(_op_vm["cg"].as<string > ());
                         // create the mapping + cg topology
                         myWorker->_map = cg.CreateCGTopology(myWorker->_top, myWorker->_top_cg);
-                        //dirty check
-                        //if (thread == 0)
-                        //    cout << "I have " << myWorker->_top_cg.BeadCount() << " beads in " << myWorker->_top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
                         myWorker->_map->Apply();
 
                         if (!EvaluateTopology(&myWorker->_top_cg, &myWorker->_top))
@@ -363,34 +300,41 @@ namespace votca {
                     } else
                         if (!EvaluateTopology(&myWorker->_top))
                         return;
-
-                    //if (thread == 0) {
-                    // read in first frame
-                    //_traj_reader->FirstFrame(myWorker->_top);
-
-                    // notify all observer that coarse graining has begun
-
-                    //if (_do_mapping) {
-                    //    myWorker->_map->Apply();
-                    //    BeginEvaluate(&myWorker->_top_cg, &myWorker->_top); // einmal fuer application
-                    //} else
-                    //    BeginEvaluate(&myWorker->_top); // einmal fuer application
-                    //}
-
-                    //myWorker->Initialize(thread, top, top_cg, map);
-                    myWorker->Initialize(thread);
-
-                    //seek to first frame, let thread0 do that
-                    //if (thread == 0) {
-                    //    for (bool bok = true; bok == true; bok = _traj_reader->NextFrame(myWorker->_top)) {
-                    //        if (((myWorker->_top.getTime() < begin) && has_begin) || first_frame > 1) {
-                    //            first_frame--;
-                    //            continue;
-                    //        }
-                    //        break;
-                    //    }
-                    //}
                 }
+
+                cout << "I have " << _myWorkers[0]->_top.BeadCount() << " beads in " << _myWorkers[0]->_top.MoleculeCount() << " molecules" << endl;
+                
+/////////////////////////////////////////////////////////////////////////
+
+                if (_do_mapping) {
+                    cout << "I have " << _myWorkers[0]->_top_cg.BeadCount() << " beads in " << _myWorkers[0]->_top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
+                    // create the mapping + cg topology
+                    if (!EvaluateTopology(&_myWorkers[0]->_top_cg, &_myWorkers[0]->_top))
+                        return;
+                } else
+                    if (!EvaluateTopology(&_myWorkers[0]->_top))
+                        return;
+
+                
+                _traj_reader->FirstFrame(_myWorkers[0]->_top);
+
+                //seek to first frame, let thread0 do that
+                for (bool bok = true; bok == true; bok = _traj_reader->NextFrame(_myWorkers[0]->_top)) {
+                    if (((_myWorkers[0]->_top.getTime() < begin) && has_begin) || first_frame > 1) {
+                        first_frame--;
+                        continue;
+                    }
+                    break;
+                }
+
+                // notify all observer that coarse graining has begun
+                if (_do_mapping) {
+                    _myWorkers[0]->_map->Apply();
+                    BeginEvaluate(&_myWorkers[0]->_top_cg, &_myWorkers[0]->_top);
+                } else
+                    BeginEvaluate(&_myWorkers[0]->_top);
+
+/////////////////////////////////////////////////////////////////////////
 
                 //start threads
                 for (long thread = 0; thread < _myWorkers.size(); thread++) {
@@ -435,5 +379,15 @@ namespace votca {
             for (iter = _observers.begin(); iter != _observers.end(); ++iter)
                 (*iter)->EvalConfiguration(top, top_ref);
         }
+
+        CsgApplication::Worker *CsgApplication::ForkWorker(void) {
+            throw std::runtime_error("ForkWorker not implemented in application");
+            return NULL;
+        }
+
+        void CsgApplication::MergeWorker(CsgApplication::Worker *worker) {
+            throw std::runtime_error("MergeWorker not implemented in application");
+        }
+
     }
 }

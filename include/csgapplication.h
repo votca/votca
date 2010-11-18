@@ -80,44 +80,53 @@ namespace votca {
             // \brief called for each frame which is mapped
             virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0);
 
+
+            // thread related stuff follows
             class Worker : public Thread {
             public:
 
-                Worker() {
-                    _map = 0;
-                }
+                Worker();
                 ~Worker();
-                //void Initialize(int id, Topology top, Topology top_cg, TopologyMap * map);
-                void Initialize(int id);
+
                 virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0) = 0;
 
                 int getId() {
-                    return _myId;
+                    return _id;
                 }
 
             protected:
+                CsgApplication *_app;
                 Topology _top, _top_cg;
                 TopologyMap * _map;
-                int _myId;
+                int _id;
 
+                void Run(void);
                 void setApplication(CsgApplication *app) {
                     _app = app;
                 }
-                CsgApplication *_app;
+                void setId(int id) { _id = id; }
+                
                 friend class CsgApplication;
-                void Run(void);
             };
 
+            /**
+             *  TODO comment!
+             * @param worker
+             * @return 
+             */
             bool ProcessData(Worker * worker);
 
-            virtual Worker *ForkWorker(void) {
-                throw std::runtime_error("ForkWorker not implemented in application");
-                return NULL;
-            }
+            /**
+             * TODO comment
+             * @return
+             */
+            virtual Worker *ForkWorker(void);
 
-            virtual void MergeWorker(Worker *worker) {
-                throw std::runtime_error("MergeWorker not implemented in application");
-            }
+            /**
+             * TODO comment
+             * @param worker
+             */
+            virtual void MergeWorker(Worker *worker);
 
         protected:
             list<CGObserver *> _observers;
@@ -132,6 +141,10 @@ namespace votca {
         inline void CsgApplication::AddObserver(CGObserver *observer) {
             _observers.push_back(observer);
         }
+
+        inline CsgApplication::Worker::Worker()
+        : _map(NULL), _id(-1), _app(NULL)
+        {}
 
     }
 }
