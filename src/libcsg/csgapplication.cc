@@ -220,13 +220,15 @@ namespace votca {
                 return false;
             }
             _nframes--;
-            if(!_is_first_frame) {
+            if(!_is_first_frame || worker->getId() != 0) {
                 bool tmpRes = _traj_reader->NextFrame(worker->_top);
                 if(!tmpRes)
                     return false;
             }
-            _is_first_frame = false;
-            cout << "worker " << worker->getId() << " processing frame " << worker->_top.getStep() << endl;
+            if(worker->getId() == 0)
+                _is_first_frame = false;
+
+            //cout << "worker " << worker->getId() << " processing frame " << worker->_top.getStep() << endl;
             _traj_readerMutex.Unlock();
             if (_do_mapping) {
                 worker->_map->Apply();
@@ -242,7 +244,7 @@ namespace votca {
             reader = TopReaderFactory().Create(_op_vm["top"].as<string > ());
             if (reader == NULL)
                 throw runtime_error(string("input format not supported: ") + _op_vm["top"].as<string > ());
-
+            
             Topology top;
             Topology top_cg;
             CGEngine cg;
