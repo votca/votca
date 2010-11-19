@@ -214,31 +214,24 @@ namespace votca {
         }
 
         bool CsgApplication::ProcessData(Worker * worker) {
-            //easyLock
-            //EasyLock locker(_traj_readerMutex);
-            //return traj_reader->NextFrame(*top);
-
-            //not so easy lock
-            _nframesMutex.Lock();
-            if (_nframes > 0 || _nframes <= -99) {
-                _nframes--;
-                _nframesMutex.Unlock();
-                bool tmpRes;
-                _traj_readerMutex.Lock();
-
-                tmpRes = _traj_reader->NextFrame(worker->_top);
-
+            _traj_readerMutex.Lock();
+            if(_nframes == 0) {
                 _traj_readerMutex.Unlock();
-                if (_do_mapping) {
-                    worker->_map->Apply();
-                    worker->EvalConfiguration(&worker->_top_cg, &worker->_top);
-                } else
-                    worker->EvalConfiguration(&worker->_top);
-                return tmpRes;
-            } else {
-                _nframesMutex.Unlock();
                 return false;
             }
+            _nframes--;
+            bool tmpRes = _traj_reader->NextFrame(worker->_top);
+            _traj_readerMutex.Unlock();
+
+            if(!tmpRes)
+                return false;
+
+            if (_do_mapping) {
+                worker->_map->Apply();
+                worker->EvalConfiguration(&worker->_top_cg, &worker->_top);
+            } else
+                worker->EvalConfiguration(&worker->_top);
+            return tmpRes;
         }
 
         void CsgApplication::RunThreaded(void) {
