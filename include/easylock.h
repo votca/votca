@@ -10,6 +10,8 @@
 
 #include "mutex.h"
 
+namespace votca { namespace tools {
+
 class EasyLock {
 public:
   EasyLock(Mutex *mutex);
@@ -25,5 +27,7 @@ public:
 private:
   Mutex *myMutex;
 };
+
+}}
 
 #endif /* EASYLOCK_H_ */

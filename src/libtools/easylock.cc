@@ -7,6 +7,8 @@
 
 #include "easylock.h"
 
+namespace votca { namespace tools {
+
 EasyLock::EasyLock(Mutex *mutex) {
   // TODO Auto-generated constructor stub
   myMutex = mutex;
@@ -17,3 +19,5 @@ EasyLock::~EasyLock() {
   // TODO Auto-generated destructor stub
   myMutex->Unlock();
 }
+
+}}
