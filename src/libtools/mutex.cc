@@ -7,6 +7,8 @@
 
 #include "mutex.h"
 
+namespace votca { namespace tools {
+
 Mutex::Mutex() {
   // TODO Auto-generated constructor stub
   pthread_mutex_init(&_mutexVar, NULL);
@@ -28,4 +30,6 @@ void Mutex::Unlock()
 {
   pthread_mutex_unlock(&_mutexVar);
 }
+
+}}
 

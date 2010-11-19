@@ -9,6 +9,8 @@
 #define	MUTEX_H
 #include <pthread.h>
 
+namespace votca { namespace tools {
+
 class Mutex {
 public:
     Mutex();
@@ -24,6 +26,7 @@ private:
     pthread_mutex_t _mutexVar;
 };
 
+}}
 
 #endif	/* MUTEX_H */
 

@@ -8,6 +8,8 @@
 #include "thread.h"
 #include <stdexcept>
 
+namespace votca { namespace tools {
+
 static void *runwrapper(void *arg) {
     Thread *thread = (Thread*) (arg);
     thread->Run();
@@ -53,4 +55,6 @@ bool Thread::IsFinished() const {
     //	else
     //		return false;
 }
+
+}}
 

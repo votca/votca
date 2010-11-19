@@ -10,6 +10,8 @@
 
 #include <pthread.h>
 
+namespace votca { namespace tools {
+
 class Thread {
 public:
     Thread();
@@ -35,6 +37,8 @@ private:
     bool _finished;
 
 };
+
+}}
 
 #endif	/* THREAD_H */
 
