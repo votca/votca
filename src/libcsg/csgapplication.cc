@@ -222,8 +222,10 @@ namespace votca {
             _nframes--;
             if(!_is_first_frame || worker->getId() != 0) {
                 bool tmpRes = _traj_reader->NextFrame(worker->_top);
-                if(!tmpRes)
+                if(!tmpRes) {
+                    _traj_readerMutex.Unlock();
                     return false;
+                }
             }
             if(worker->getId() == 0)
                 _is_first_frame = false;
@@ -244,31 +246,47 @@ namespace votca {
             reader = TopReaderFactory().Create(_op_vm["top"].as<string > ());
             if (reader == NULL)
                 throw runtime_error(string("input format not supported: ") + _op_vm["top"].as<string > ());
-            
-            Topology top;
-            Topology top_cg;
-            CGEngine cg;
-            TopologyMap *map;
 
+            class DummyWorker : public Worker {
+            public:
+//                DummyWorker() {}
+                void EvalConfiguration(Topology *top, Topology *top_ref) {
+                    _app->EvalConfiguration(top, top_ref);
+                }
+            };
+            
+            // create the master worker
+            Worker *master=NULL;
+            if(DoThreaded())
+                master = ForkWorker();
+            else
+                master = new DummyWorker();
+
+            master->setApplication(this);
+            master->setId(0);
+            _myWorkers.push_back(master);
+
+            CGEngine cg;
+            
             //////////////////////////////////////////////////
-            // read in the topology for application
+            // read in the topology for master
             //////////////////////////////////////////////////
-            reader->ReadTopology(_op_vm["top"].as<string > (), top);
-            cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
-            top.CheckMoleculeNaming();
+            reader->ReadTopology(_op_vm["top"].as<string > (), master->_top);
+            cout << "I have " << master->_top.BeadCount() << " beads in " << master->_top.MoleculeCount() << " molecules" << endl;
+            master->_top.CheckMoleculeNaming();
 
             if (_do_mapping) {
                 // read in the coarse graining definitions (xml files)
                 cg.LoadMoleculeType(_op_vm["cg"].as<string > ());
                 // create the mapping + cg topology
-                map = cg.CreateCGTopology(top, top_cg);
+                master->_map = cg.CreateCGTopology(master->_top, master->_top_cg);
 
-                cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-                map->Apply();
-                if (!EvaluateTopology(&top_cg, &top))
+                cout << "I have " << master->_top_cg.BeadCount() << " beads in " << master->_top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
+                master->_map->Apply();
+                if (!EvaluateTopology(&master->_top_cg, &master->_top))
                     return;
             } else
-                if (!EvaluateTopology(&top))
+                if (!EvaluateTopology(&master->_top))
                 return;
 
             //////////////////////////////////////////////////
@@ -301,7 +319,7 @@ namespace votca {
             //////////////////////////////////////////////////
             // Create all the workers
             //////////////////////////////////////////////////
-                for (int thread = 0; thread < _op_vm["nt"].as<int > (); thread++) {
+                for (int thread = 1; thread < _op_vm["nt"].as<int > () && DoThreaded(); thread++) {
                     Worker *myWorker = ForkWorker();
                     myWorker->setApplication(this);
                     myWorker->setId(thread);
@@ -322,11 +340,11 @@ namespace votca {
             // Proceed to first frame of interest
             //////////////////////////////////////////////////
                 
-                _traj_reader->FirstFrame(_myWorkers[0]->_top);
+                _traj_reader->FirstFrame(master->_top);
                 //seek to first frame, let thread0 do that
                 bool bok;
-                for (bok = true; bok == true; bok = _traj_reader->NextFrame(_myWorkers[0]->_top)) {
-                    if (((_myWorkers[0]->_top.getTime() < begin) && has_begin) || first_frame > 1) {
+                for (bok = true; bok == true; bok = _traj_reader->NextFrame(master->_top)) {
+                    if (((master->_top.getTime() < begin) && has_begin) || first_frame > 1) {
                         first_frame--;
                         continue;
                     }
@@ -340,24 +358,30 @@ namespace votca {
 
                 // notify all observer that coarse graining has begun
                 if (_do_mapping) {
-                    _myWorkers[0]->_map->Apply();
-                    BeginEvaluate(&_myWorkers[0]->_top_cg, &_myWorkers[0]->_top);
+                    master->_map->Apply();
+                    BeginEvaluate(&master->_top_cg, &master->_top);
                 } else
-                    BeginEvaluate(&_myWorkers[0]->_top);
+                    BeginEvaluate(&master->_top);
 
                 _is_first_frame = true;
 /////////////////////////////////////////////////////////////////////////
 
                 //start threads
-                for (long thread = 0; thread < _myWorkers.size(); thread++) {
-                    _myWorkers[thread]->Start();
+                if(DoThreaded()) {
+                    for (long thread = 0; thread < _myWorkers.size(); thread++) {
+                        _myWorkers[thread]->Start();
+                    }
+                    // hier noch nen block rein
+                    for (long thread = 0; thread < _myWorkers.size(); thread++) {
+                        _myWorkers[thread]->WaitDone();
+                        MergeWorker(_myWorkers[thread]);
+                        delete _myWorkers[thread];
+                    }
+                } else {
+                    master->Run();
+                    delete master;
                 }
-                // hier noch nen block rein
-                for (long thread = 0; thread < _myWorkers.size(); thread++) {
-                    _myWorkers[thread]->WaitDone();
-                    MergeWorker(_myWorkers[thread]);
-                    delete _myWorkers[thread];
-                }
+
                 EndEvaluate();
 
                 _traj_reader->Close();
