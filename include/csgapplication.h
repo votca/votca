@@ -133,6 +133,7 @@ namespace votca {
             bool _do_mapping;
             std::vector<Worker*> _myWorkers;
             int _nframes;
+            bool _is_first_frame;
             Mutex _nframesMutex;
             Mutex _traj_readerMutex;
             TrajectoryReader * _traj_reader;

@@ -220,18 +220,20 @@ namespace votca {
                 return false;
             }
             _nframes--;
-            bool tmpRes = _traj_reader->NextFrame(worker->_top);
+            if(!_is_first_frame) {
+                bool tmpRes = _traj_reader->NextFrame(worker->_top);
+                if(!tmpRes)
+                    return false;
+            }
+            _is_first_frame = false;
+            cout << "worker " << worker->getId() << " processing frame " << worker->_top.getStep() << endl;
             _traj_readerMutex.Unlock();
-
-            if(!tmpRes)
-                return false;
-
             if (_do_mapping) {
                 worker->_map->Apply();
                 worker->EvalConfiguration(&worker->_top_cg, &worker->_top);
             } else
                 worker->EvalConfiguration(&worker->_top);
-            return tmpRes;
+            return true;
         }
 
         void CsgApplication::RunThreaded(void) {
@@ -320,12 +322,18 @@ namespace votca {
                 
                 _traj_reader->FirstFrame(_myWorkers[0]->_top);
                 //seek to first frame, let thread0 do that
-                for (bool bok = true; bok == true; bok = _traj_reader->NextFrame(_myWorkers[0]->_top)) {
+                bool bok;
+                for (bok = true; bok == true; bok = _traj_reader->NextFrame(_myWorkers[0]->_top)) {
                     if (((_myWorkers[0]->_top.getTime() < begin) && has_begin) || first_frame > 1) {
                         first_frame--;
                         continue;
                     }
                     break;
+                }
+                if(!bok) { // trajectory was too shor and we did not proceed to first frame
+                    _traj_reader->Close();
+                    delete _traj_reader;
+                    throw std::runtime_error("trajectory was too short, did not process a single frame");
                 }
 
                 // notify all observer that coarse graining has begun
@@ -335,6 +343,7 @@ namespace votca {
                 } else
                     BeginEvaluate(&_myWorkers[0]->_top);
 
+                _is_first_frame = true;
 /////////////////////////////////////////////////////////////////////////
 
                 //start threads
