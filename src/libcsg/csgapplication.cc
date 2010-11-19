@@ -22,7 +22,7 @@
 #include "topologymap.h"
 #include "cgengine.h"
 #include "version.h"
-#include "votca/tools/easylock.h"
+//#include "votca/tools/easylock.h"
 
 namespace votca {
     namespace csg {
