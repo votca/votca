@@ -1,6 +1,12 @@
 \chapter{Preparing coarse-grained runs}
 \label{sec:usage:cgrun}
-\textbf{WARNING: This section describes experimental features. The exact names and options of the program might change in the near future.  The section is specific to \gromacs support, a generalization for other md packages is planned.}
+\textbf{WARNING: This section describes experimental features. The exact names and options of the program might change in the near future.  The section is specific to \gromacs support though a generalization for other MD packages is planned.}
+$$$$
+\textbf{Preliminary note:}
+
+The coarse-grained run requires the molecule topology on the one hand and suitable potentials on the other. In this chapter, the generation of coarse-grained runs is decribed next, followed by a post-processing of the potential.
+
+If the potential is of such a form that it can be fitted directly to a functional form, the section on post-processing can be skipped. Instead, a program of choice should be used to fit a functional form to the potential. Nevertheless, special attention should be paid to units (angles, bondlengths, ... \todo). The resulting curve can then be specified in the MD package used for simulation. However, most potentials don't allow an easy processing of this kind and tabulated potentials have to be used.
 
 \section{Generating a topology file for a coarse-grained run}
 The mapping definition is close to a topology needed for a coarse grained run. To avoid redundant work, \prog{csg_gmxtopol} can be used to automatically generate a gromacs topology based on an atomistic reference system and a mapping file.
@@ -11,7 +17,30 @@ At the current state, \prog{csg_gmxtopol} can only generate the topology for the
 \end{verbatim}
 which will create a file cgtop.top. This file includes the topology for the first molecule including definitions for atoms, bonds, angles and dihedrals. It can directly be used as topology in \gromacs , however the force field definitions (atom types, bond tyes, etc) still have to be added manually.
 
-\section{TODO: here is planned (partially after first manual release)}
+\section{Post-processing of the potential}
+The post-processing roughly consists of the following steps (see further explanations below):
 \begin{itemize}
-  \item refining potential files (\votca output) to use in simulation package
+  \item clipping poorly sampled (border) regions
+  \item resampling the potential in order to change the grid to the proper format (\prog{csg_resample})
+  \item extrapolation of the potential at the borders (\prog{csg_call table extrapolate})
+  \item exporting the table to xvg (\prog{csg_call convert_potential xvg})
 \end{itemize}
+
+\subsection*{Clipping of poorly sampled regions}
+Regions with an irregular distribution of samples should be deleted first. This is simply done by editing the \texttt{.pot} file and by deleting those values.
+
+Manually check the range where the potential still looks good and is not to noisy and set the flags in the potential file of the bad parts by hand to o (for out of range).
+
+\subsection*{Resampling}
+Use the command
+\begin{verbatim}
+  csg_resample --in infile.pot --out outfile.pot --grid min:step:max
+\end{verbatim}
+to resample the potential given in file \texttt{infile.pot} from \texttt{min} to \texttt{max} with a grid spacing of \texttt{step} steps. The result is written to \texttt{outfile.pot}. Additionally, \prog{csg_resample} allows the specification of spline interpolation (\texttt{--spfit}), the calculation of derivatives (\texttt{--derivative}) and comments.
+
+\subsection*{Extrapolation}
+\begin{verbatim}
+  csg_extrapolate [options] infile.pot outfile.pot
+\end{verbatim}
+
+\subsection*{Exporting the table}

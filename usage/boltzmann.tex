@@ -86,11 +86,31 @@ To directly write the Boltzmann-inverted potential, the \textit{tab} command can
   tab set scale angle
   tab angle.pot *:angle:*
 \end{verbatim}
-The table is then written into the file \texttt{angle.pot} in the format ZZ. An optional correlation analysis is described in the next section. After the file has been created by command \texttt{tab}, the potential is prepared for the coarse-grained run in chapter \ref{sec:usage:cgrun}.
+The table is then written into the file \texttt{angle.pot} in the format \todo. An optional correlation analysis is described in the next section. After the file has been created by command \texttt{tab}, the potential is prepared for the coarse-grained run in chapter \ref{sec:usage:cgrun}.
 
 \subsection{Correlation analysis}
-The factorization of $P$ in \eq{eq:boltzmann_pmf} assumed uncorrelated quantities. \prog{csg_boltzmann} offers two ways to evaluate correlations of interactions. One option is to use the linear correlation coefficient (command \textit{cor}). However, this is not a good measure since \textit{cor} only calculates the linear correlation which might often lead to misleading results~\cite{Ruehle:2009.a} (An example are the two correlated random variables $X$ with uniform distribution, $X=U[-1,1]$, and $Y=X^2$. A simple calculation shows $cov(X,Y)=0$ and therefore $cor=\frac{cov(X,Y)}{\sqrt{var(X)var(Y)}}=0$). A better way is to create 2D histograms. This can be done by specifying all values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
+The factorization of $P$ in \eq{eq:boltzmann_pmf} assumed uncorrelated quantities. \prog{csg_boltzmann} offers two ways to evaluate correlations of interactions. One option is to use the linear correlation coefficient (command \textit{cor}). However, this is not a good measure since \textit{cor} calculates the linear correlation only which might often lead to misleading results~\cite{Ruehle:2009.a} (An example are the two correlated random variables $X \sim U[-1,1]$ with uniform distribution, and $Y:=X^2$. A simple calculation shows $cov(X,Y)=0$ and therefore $cor=\frac{cov(X,Y)}{\sqrt{var(X)var(Y)}}=0$). A better way is to create 2D histograms. This can be done by specifying all values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
 \begin{verbatim}
   vals vals.txt 1:AA-bond:1 1:AAA-angle:A
 \end{verbatim}
 This will create a file which contains 3 columns, the first being the time, and the second and third being bond and angle, respectively. Columns 2 and 3 can either be used to generate the 2D histogram, or a simpler plot of column 3 over 2, whose density of points reflect the probability.
+
+Two examples for 2D histograms are shown below: one for the propane molecule and one for hexane.
+
+\begin{figure}[b]
+\begin{minipage}{4cm}
+  \includegraphics[height=3.1cm]{fig/propane_hist2d}
+  \caption{propane histogram}
+  \label{boltzmann:propane}
+\end{minipage}
+\hfill
+\begin{minipage}{10cm}
+  \includegraphics[height=4cm]{fig/hexane2}
+  \caption{hexane histograms: before and after the coarse-grained run}
+  \label{boltzmann:hexane}
+\end{minipage}
+\end{figure}
+
+The two plots show the correlations between angle and bondlength for both molecules. In the case of propane, the two quantities are not correlated as shown by the centered distribution, while correlations exist in the case of hexane. Moreover, it is visible from the hexane plot that the partition of the correlations has changed slightly during coarse-graining.
+
+The tabulated potentials created in this section can be further modified and prepared for the coarse-grained run: This includes fitting of a smooth functional form, extrapolation and clipping of poorly sampled regions. Further processing of the potential is decribed in chapter \ref{sec:usage:cgrun}.

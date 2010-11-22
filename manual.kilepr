@@ -18,10 +18,10 @@ QuickBuild=
 
 [item:introduction.tex]
 archive=true
-column=218
+column=1
 encoding=UTF-8
 highlight=LaTeX
-line=22
+line=14
 open=false
 order=1
 
@@ -36,10 +36,10 @@ order=-1
 
 [item:manual.tex]
 archive=true
-column=0
+column=14
 encoding=UTF-8
 highlight=LaTeX
-line=46
+line=61
 open=true
 order=0
 
@@ -49,6 +49,15 @@ column=0
 encoding=UTF-8
 highlight=LaTeX
 line=20
+open=false
+order=-1
+
+[item:newcommands.tex]
+archive=true
+column=40
+encoding=UTF-8
+highlight=LaTeX
+line=41
 open=false
 order=-1
 
@@ -67,7 +76,7 @@ column=3
 encoding=UTF-8
 highlight=LaTeX
 line=11
-open=true
+open=false
 order=2
 
 [item:usage.tex]
@@ -81,20 +90,20 @@ order=0
 
 [item:usage/boltzmann.tex]
 archive=true
-column=615
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=91
-open=true
+line=23
+open=false
 order=1
 
 [item:usage/cgruns.tex]
 archive=true
-column=0
+column=32
 encoding=UTF-8
 highlight=LaTeX
-line=1
-open=false
+line=45
+open=true
 order=1
 
 [item:usage/forcematching.tex]
