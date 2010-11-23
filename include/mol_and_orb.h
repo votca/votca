@@ -113,6 +113,8 @@ public:
     }
 
     void cp_crg ( const mol_and_orb & A ){
+        if(A._crged == NULL) return;
+        if(A._neutr == NULL) return;
         if (_crged == 0 ) _crged = new multipoles;
         if (_neutr == 0 ) _neutr = new multipoles;
         
