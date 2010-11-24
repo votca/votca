@@ -111,6 +111,7 @@ void CsgTestApp::MergeWorker(Worker *worker) {
 }
 
 RDFWorker::~RDFWorker(void) {
+  //review me!
 }
 
 void RDFWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
