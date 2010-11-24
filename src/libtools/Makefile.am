@@ -3,8 +3,8 @@ lib_LTLIBRARIES = libvotca_tools.la
 
 BUILT_SOURCES = hgversion.h
 
-libvotca_tools_la_LDFLAGS = -no-undefined $(GSL_LIBS) $(FFTW_LIBS) $(EXPAT_LIBS) $(BOOST_LIBS) -lm -pthread
-libvotca_tools_la_CPPFLAGS = $(AM_CPPFLAGS) $(GSL_CFLAGS) $(FFTW_CFLAGS) $(EXPAT_CFLAGS) $(BOOST_CFLAGS) 
+libvotca_tools_la_LDFLAGS = -no-undefined $(GSL_LIBS) $(FFTW_LIBS) $(EXPAT_LIBS) $(BOOST_LIBS) $(PTHREAD_LIBS) -lm
+libvotca_tools_la_CPPFLAGS = $(AM_CPPFLAGS) $(GSL_CFLAGS) $(FFTW_CFLAGS) $(EXPAT_CFLAGS) $(BOOST_CFLAGS) $(PTHREAD_CFLAGS)
 
 libvotca_tools_la_SOURCES = \
 application.cc correlate.cc       datacollection.cc  matrix.cc    random.cc       tokenizer.cc \
