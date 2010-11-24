@@ -65,6 +65,14 @@ namespace votca {
                 return false;
             }
 
+            /* \brief overload and return false to disable synchronized (while threaded) calculations */
+            virtual bool SynchronizeThreads(void) {
+                if (DoThreaded())
+                    return true;
+                else
+                    return false;
+            }
+
             /// \brief called after topology was loaded
 
             virtual bool EvaluateTopology(Topology *top, Topology *top_ref = 0) {
@@ -82,6 +90,7 @@ namespace votca {
 
 
             // thread related stuff follows
+
             class Worker : public Thread {
             public:
 
@@ -101,11 +110,15 @@ namespace votca {
                 int _id;
 
                 void Run(void);
+
                 void setApplication(CsgApplication *app) {
                     _app = app;
                 }
-                void setId(int id) { _id = id; }
-                
+
+                void setId(int id) {
+                    _id = id;
+                }
+
                 friend class CsgApplication;
             };
 
@@ -128,14 +141,23 @@ namespace votca {
              */
             virtual void MergeWorker(Worker *worker);
 
+            /**
+             * TODO comment
+             * @param worker
+             */
+            void RequestMerge(Worker *worker);
+
         protected:
             list<CGObserver *> _observers;
             bool _do_mapping;
             std::vector<Worker*> _myWorkers;
             int _nframes;
             bool _is_first_frame;
+            int _nthreads;
             Mutex _nframesMutex;
             Mutex _traj_readerMutex;
+            std::vector<Mutex*> _threadsMutexesIn;
+            std::vector<Mutex*> _threadsMutexesOut;
             TrajectoryReader * _traj_reader;
         };
 
@@ -144,8 +166,8 @@ namespace votca {
         }
 
         inline CsgApplication::Worker::Worker()
-        : _map(NULL), _id(-1), _app(NULL)
-        {}
+        : _map(NULL), _id(-1), _app(NULL) {
+        }
 
     }
 }

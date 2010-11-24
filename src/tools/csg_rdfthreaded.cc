@@ -115,8 +115,8 @@ RDFWorker::~RDFWorker(void) {
 
 void RDFWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
 
-    //std::cout << "I am so hard working! worker id: " << getId() << ", frame nr: " << top->getStep() \
-   //         << ", topology copy addr: " << top << std::endl;
+    //std::cout << "I am so hard working! worker id: " << getId() << ", frame nr: " << top->getStep() << std::endl;
+    //         << ", topology copy addr: " << top << std::endl;
     //    sleep(rand()%3);
     BeadList b;
     b.Generate(*top, "*");

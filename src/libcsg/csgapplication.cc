@@ -63,6 +63,9 @@ namespace votca {
                 ;
 
             if (DoThreaded())
+                /**
+                 * TODO default value of 1 for nt is not smart
+                 */
                 AddProgramOptions("Threading options")
                 ("nt", boost::program_options::value<int>()->default_value(1), "  number of threads")
                 ;
@@ -90,6 +93,7 @@ namespace votca {
 
             /* check threading options */
             if (DoThreaded()) {
+                _nthreads = _op_vm["nt"].as<int > ();
                 /* TODO
                  * does the number of threads make sense?
                  * which criteria should be used? smaller than system's cores?
@@ -213,30 +217,72 @@ namespace votca {
             while (_app->ProcessData(this));
         }
 
+        void CsgApplication::RequestMerge(Worker * worker) {
+            int id;
+
+            id = worker->getId();
+            _threadsMutexesOut[id]->Lock();
+            MergeWorker(worker);
+            if (id == _nthreads - 1)
+                id = -1;
+            _threadsMutexesOut[id + 1]->Unlock();
+        }
+
         bool CsgApplication::ProcessData(Worker * worker) {
+
+            int id;
+            id = worker->getId();
+
+            if (SynchronizeThreads()) {
+                //std::cout << "thread id " << id << " nts " << _threadsMutexesIn.size() << std::endl;
+                _threadsMutexesIn[id]->Lock();
+                //std::cout << "input (id:" << id << "): locked worker" << std::endl;
+                //std::cout << "input (id:" << id << "): ... read from traj_reader!" << std::endl;
+            }
             _traj_readerMutex.Lock();
-            if(_nframes == 0) {
+            if (_nframes == 0) {
                 _traj_readerMutex.Unlock();
+
+                if (SynchronizeThreads()) {
+                    //std::cout << "input (id:" << id << "): ... unlocking worker(id:";
+                    if (id == _nthreads - 1)
+                        id = -1;
+                    _threadsMutexesIn[id + 1]->Unlock();
+                    //std::cout << id + 1 << ")" << std::endl;
+                }
+
                 return false;
             }
             _nframes--;
-            if(!_is_first_frame || worker->getId() != 0) {
+            if (!_is_first_frame || worker->getId() != 0) {
                 bool tmpRes = _traj_reader->NextFrame(worker->_top);
-                if(!tmpRes) {
+                if (!tmpRes) {
                     _traj_readerMutex.Unlock();
                     return false;
                 }
             }
-            if(worker->getId() == 0)
+            if (worker->getId() == 0)
                 _is_first_frame = false;
 
             //cout << "worker " << worker->getId() << " processing frame " << worker->_top.getStep() << endl;
             _traj_readerMutex.Unlock();
+            if (SynchronizeThreads()) {
+
+                //std::cout << "input (id:" << id << "): ... unlocking worker(id:";
+                if (id == _nthreads - 1)
+                    id = -1;
+                //std::cout << id + 1 << ")" << std::endl;
+
+                _threadsMutexesIn[id + 1]->Unlock();
+            }
             if (_do_mapping) {
                 worker->_map->Apply();
                 worker->EvalConfiguration(&worker->_top_cg, &worker->_top);
             } else
                 worker->EvalConfiguration(&worker->_top);
+
+            if (SynchronizeThreads())
+                RequestMerge(worker);
             return true;
         }
 
@@ -249,15 +295,16 @@ namespace votca {
 
             class DummyWorker : public Worker {
             public:
-//                DummyWorker() {}
+                //                DummyWorker() {}
+
                 void EvalConfiguration(Topology *top, Topology *top_ref) {
                     _app->EvalConfiguration(top, top_ref);
                 }
             };
-            
+
             // create the master worker
-            Worker *master=NULL;
-            if(DoThreaded())
+            Worker *master = NULL;
+            if (DoThreaded())
                 master = ForkWorker();
             else
                 master = new DummyWorker();
@@ -267,7 +314,7 @@ namespace votca {
             _myWorkers.push_back(master);
 
             CGEngine cg;
-            
+
             //////////////////////////////////////////////////
             // read in the topology for master
             //////////////////////////////////////////////////
@@ -316,16 +363,16 @@ namespace votca {
                 // open the trajectory
                 _traj_reader->Open(_op_vm["trj"].as<string > ());
 
-            //////////////////////////////////////////////////
-            // Create all the workers
-            //////////////////////////////////////////////////
+                //////////////////////////////////////////////////
+                // Create all the workers
+                /////////////////verbose/////////////////////////////////
                 for (int thread = 1; thread < _op_vm["nt"].as<int > () && DoThreaded(); thread++) {
                     Worker *myWorker = ForkWorker();
                     myWorker->setApplication(this);
                     myWorker->setId(thread);
                     _myWorkers.push_back(myWorker);
 
-                    // this will me changed to CopyTopologyData
+                    // this will be changed to CopyTopologyData
                     // read in the topology
                     reader->ReadTopology(_op_vm["top"].as<string > (), myWorker->_top);
                     myWorker->_top.CheckMoleculeNaming();
@@ -333,13 +380,14 @@ namespace votca {
                     if (_do_mapping) {
                         // create the mapping + cg topology
                         myWorker->_map = cg.CreateCGTopology(myWorker->_top, myWorker->_top_cg);
-                    } 
+                    }
                 }
-                
-            //////////////////////////////////////////////////
-            // Proceed to first frame of interest
-            //////////////////////////////////////////////////
-                
+
+
+                //////////////////////////////////////////////////
+                // Proceed to first frame of interest
+                //////////////////////////////////////////////////
+
                 _traj_reader->FirstFrame(master->_top);
                 //seek to first frame, let thread0 do that
                 bool bok;
@@ -350,9 +398,10 @@ namespace votca {
                     }
                     break;
                 }
-                if(!bok) { // trajectory was too shor and we did not proceed to first frame
+                if (!bok) { // trajectory was too shor and we did not proceed to first frame
                     _traj_reader->Close();
                     delete _traj_reader;
+
                     throw std::runtime_error("trajectory was too short, did not process a single frame");
                 }
 
@@ -364,18 +413,44 @@ namespace votca {
                     BeginEvaluate(&master->_top);
 
                 _is_first_frame = true;
-/////////////////////////////////////////////////////////////////////////
-
+                /////////////////////////////////////////////////////////////////////////
                 //start threads
-                if(DoThreaded()) {
+                if (DoThreaded()) {
                     for (long thread = 0; thread < _myWorkers.size(); thread++) {
-                        _myWorkers[thread]->Start();
+
+                        if (SynchronizeThreads()) {
+                            //std::cout << "starting thread(id): " << _myWorkers[thread]->getId() << std::endl;
+                            Mutex *myMutexIn = new Mutex;
+                            _threadsMutexesIn.push_back(myMutexIn);
+                            myMutexIn->Lock();
+
+                            Mutex *myMutexOut = new Mutex;
+                            _threadsMutexesOut.push_back(myMutexOut);
+                            myMutexOut->Lock();
+                        }
                     }
-                    // hier noch nen block rein
-                    for (long thread = 0; thread < _myWorkers.size(); thread++) {
-                        _myWorkers[thread]->WaitDone();
-                        MergeWorker(_myWorkers[thread]);
-                        delete _myWorkers[thread];
+                    for (long thread = 0; thread < _myWorkers.size(); thread++)
+                        _myWorkers[thread]->Start();
+
+                    if (SynchronizeThreads()) {
+                        //unlock first thread
+                        _threadsMutexesIn[0]->Unlock();
+                        _threadsMutexesOut[0]->Unlock();
+                    }
+                    if (SynchronizeThreads()) {
+                        for (long thread = 0; thread < _myWorkers.size(); thread++) {
+                            _myWorkers[thread]->WaitDone();
+                            delete _myWorkers[thread];
+                            delete _threadsMutexesIn[thread];
+                            delete _threadsMutexesOut[thread];
+                        }
+
+                    } else {
+                        for (long thread = 0; thread < _myWorkers.size(); thread++) {
+                            _myWorkers[thread]->WaitDone();
+                            MergeWorker(_myWorkers[thread]);
+                            delete _myWorkers[thread];
+                        }
                     }
                 } else {
                     master->Run();
