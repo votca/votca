@@ -141,12 +141,6 @@ namespace votca {
              */
             virtual void MergeWorker(Worker *worker);
 
-            /**
-             * TODO comment
-             * @param worker
-             */
-            void RequestMerge(Worker *worker);
-
         protected:
             list<CGObserver *> _observers;
             bool _do_mapping;

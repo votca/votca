@@ -214,18 +214,14 @@ namespace votca {
         }
 
         void CsgApplication::Worker::Run(void) {
-            while (_app->ProcessData(this));
-        }
-
-        void CsgApplication::RequestMerge(Worker * worker) {
-            int id;
-
-            id = worker->getId();
-            _threadsMutexesOut[id]->Lock();
-            MergeWorker(worker);
-            if (id == _nthreads - 1)
-                id = -1;
-            _threadsMutexesOut[id + 1]->Unlock();
+            while (_app->ProcessData(this)) {            
+                if (SynchronizeThreads()) {
+                    int id = worker->getId();
+                    _threadsMutexesOut[id]->Lock();
+                    MergeWorker(worker);
+                    _threadsMutexesOut[(id + 1)%_nthreads]->Unlock();
+                }
+            }
         }
 
         bool CsgApplication::ProcessData(Worker * worker) {
@@ -281,8 +277,6 @@ namespace votca {
             } else
                 worker->EvalConfiguration(&worker->_top);
 
-            if (SynchronizeThreads())
-                RequestMerge(worker);
             return true;
         }
 
