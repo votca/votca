@@ -360,7 +360,7 @@ namespace votca {
                 //////////////////////////////////////////////////
                 // Create all the workers
                 /////////////////verbose/////////////////////////////////
-                for (int thread = 1; thread < _op_vm["nt"].as<int > () && DoThreaded(); thread++) {
+                for (int thread = 1; thread < _nthreads && DoThreaded(); thread++) {
                     Worker *myWorker = ForkWorker();
                     myWorker->setApplication(this);
                     myWorker->setId(thread);
@@ -376,7 +376,6 @@ namespace votca {
                         myWorker->_map = cg.CreateCGTopology(myWorker->_top, myWorker->_top_cg);
                     }
                 }
-
 
                 //////////////////////////////////////////////////
                 // Proceed to first frame of interest
@@ -431,21 +430,19 @@ namespace votca {
                         _threadsMutexesIn[0]->Unlock();
                         _threadsMutexesOut[0]->Unlock();
                     }
-                    if (SynchronizeThreads()) {
-                        for (long thread = 0; thread < _myWorkers.size(); thread++) {
-                            _myWorkers[thread]->WaitDone();
-                            delete _myWorkers[thread];
+        
+                    for (long thread = 0; thread < _myWorkers.size(); thread++) {
+                        _myWorkers[thread]->WaitDone();
+                        delete _myWorkers[thread];
+                        if (!SynchronizeThreads()) 
+                            MergeWorker(_myWorkers[thread]);                        
+                    } 
+                    for(int thread=0; thread < _threadsMutexesIn.size(); ++thread) {
                             delete _threadsMutexesIn[thread];
                             delete _threadsMutexesOut[thread];
-                        }
-
-                    } else {
-                        for (long thread = 0; thread < _myWorkers.size(); thread++) {
-                            _myWorkers[thread]->WaitDone();
-                            MergeWorker(_myWorkers[thread]);
-                            delete _myWorkers[thread];
-                        }
                     }
+
+
                 } else {
                     master->Run();
                     delete master;
@@ -453,7 +450,11 @@ namespace votca {
 
                 EndEvaluate();
 
+		_myWorkers.clear();
+                _threadsMutexesIn.clear();
+                _threadsMutexesOut.clear();
                 _traj_reader->Close();
+
                 delete _traj_reader;
             }
 
