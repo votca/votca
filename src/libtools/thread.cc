@@ -26,9 +26,22 @@ Thread::~Thread() {
 }
 
 void Thread::Start() {
+    pthread_attr_t attr;
+    
+    pthread_attr_init(&attr);
+    /*
+     * according to the POSIX standard, threads are created in the joinable state
+     * by default
+     * however, some platforms do not obey
+     *
+     * explicitly create the thread in the joinable state
+     * the main program can then wait for the thread by calling pthread_join(thread)
+     *
+     */
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     _finished = false;
 
-    int rc = pthread_create(&_thread, NULL, runwrapper, (void *) this);
+    int rc = pthread_create(&_thread, &attr, runwrapper, (void *) this);
     if (rc) {
         throw std::runtime_error("ERROR; return code from pthread_create() is "
                 + rc);
