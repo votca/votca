@@ -69,6 +69,14 @@ If you are using votca-boost (build-in replacement for boost) please export
 VOTCA_TOOLS_CFLAGS="-I<votca-path>/include -I<votca-path>/include/votca".
     ])
   ])
+  AC_CHECK_HEADERS([votca/tools/thread.h],,[
+    AC_MSG_ERROR([
+
+Votca tools headers were found, but pthread headers not!
+please make sure that VOTCA_TOOLS_CFLAGS is pointing to the votca tools headers AND to the pthread headers
+(e.g. export VOTCA_TOOLS_CFLAGS="-I<votca-path>/include -I<path/to/pthread>/include").
+    ])
+  ])
   CPPFLAGS="$save_CPPFLAGS"
   LIBS="$save_LIBS"
 ])
