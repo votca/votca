@@ -74,6 +74,7 @@ postadd shift dpot_shift_nb.pl
 
 # table preparation
 dpot shift_nb dpot_shift_nb.pl
+pot shift_nb dpot_shift_nb.pl
 resample target resample_target.sh
 dpot crop dpot_crop.pl
 

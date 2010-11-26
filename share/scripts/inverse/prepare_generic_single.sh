@@ -43,7 +43,8 @@ main_dir=$(get_main_dir)
 
 if [ -f "${main_dir}/${name}.pot.in" ]; then
   msg "Using given table ${name}.pot.in for ${name}"
-  run_or_exit csg_resample --in "${main_dir}/${name}.pot.in" --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "$comment"
+  run_or_exit csg_resample --in "${main_dir}/${name}.pot.in" --out ${name}.pot.tmp --grid ${min}:${step}:${max} --comment "$comment"
+  do_external pot shift_nb ${name}.pot.tmp ${name}.pot.new
 else
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
