@@ -148,7 +148,7 @@ int main(int argc, char** argv)
     int j=0;
     for(;i < out.size(); ++i) {
         for(; j < in.size(); ++j)
-            if(in.x(j) >= out.x(i))
+            if(in.x(j) >= out.x(i)  || fabs(in.x(j)-out.x(i) ) < 1e-12) // fix for precison errors
                 break;        
         if(in.size() == j) break;
         out.flags(i) = in.flags(j);
