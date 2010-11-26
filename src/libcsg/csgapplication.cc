@@ -215,11 +215,11 @@ namespace votca {
 
         void CsgApplication::Worker::Run(void) {
             while (_app->ProcessData(this)) {            
-                if (SynchronizeThreads()) {
-                    int id = worker->getId();
-                    _threadsMutexesOut[id]->Lock();
-                    MergeWorker(worker);
-                    _threadsMutexesOut[(id + 1)%_nthreads]->Unlock();
+                if (_app->SynchronizeThreads()) {
+                    int id = getId();
+                    _app->_threadsMutexesOut[id]->Lock();
+                    _app->MergeWorker(this);
+                    _app->_threadsMutexesOut[(id + 1)%_app->_nthreads]->Unlock();
                 }
             }
         }
