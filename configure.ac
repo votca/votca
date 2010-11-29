@@ -32,6 +32,13 @@ AC_ARG_ENABLE(la-files,
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 
+AC_ARG_ENABLE(rc-files,
+  [AS_HELP_STRING([--disable-rc-files],
+  [Do NOT install VOTCA rc files, those are not needed when installing in /usr or /usr/local])],,
+	[enable_rc_files=yes])
+
+AM_CONDITIONAL(NO_RC_FILES,[test "$enable_rc_files" = no])
+
 #look for votca tools
 AX_VOTCA_TOOLS
 
