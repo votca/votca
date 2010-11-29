@@ -3,9 +3,14 @@ HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node|short}
 # Scripts generated at compile time
 bin_SCRIPTS   = csg_inverse csg_call multi_g_rdf
 
+if NO_RC_FILES
+rcdir =
+rcfiles =
+else
 rcdir = ${datadir}/votca/rc
 rcfiles = csg.rc.csh csg.rc.bash
 rc_DATA = $(rcfiles) csg-completion.bash
+endif
 
 # Extra files we need
 EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf.in csg-completion.bash
