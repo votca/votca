@@ -54,8 +54,8 @@
             <itemPath>../../src/libcsg/modules/io/grotopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/growriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/growriter.h</itemPath>
-            <itemPath>/data/pckr108/koschke/opt/votca/csg/src/libcsg/modules/io/lammpsreader.cc</itemPath>
-            <itemPath>/data/pckr108/koschke/opt/votca/csg/src/libcsg/modules/io/lammpsreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbtopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbtopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.cc</itemPath>
