@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ This is a wrapper to convert potential to gromacs
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property log csg_get_property run_or_exit csg_resample
+USES: do_external csg_get_interaction_property log csg_get_property run_or_exit csg_resample check_deps
 
 NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins
 EOF
@@ -32,13 +32,15 @@ fi
 check_deps "$0"
 
 name=$(csg_get_interaction_property name)
-input="${name}.pot.cur" 
+input="${name}.pot.cur"
 #gromacs want '_' !
-output="$(csg_get_interaction_property inverse.gromacs.table)" 
+output="$(csg_get_interaction_property inverse.gromacs.table)"
 log "Convert $input to $output"
 
 r_cut=$(csg_get_interaction_property max)
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 
-run_or_exit csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} 
-run_or_exit do_external convert_potential xvg smooth_${input} ${output}
+comment="$(get_table_comment)"
+
+run_or_exit csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} --comment "$comment"
+do_external convert_potential xvg smooth_${input} ${output}

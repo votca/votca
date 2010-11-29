@@ -23,6 +23,8 @@
 #include <votca/tools/tokenizer.h> 
 #include "interaction.h"
 
+namespace votca { namespace csg {
+
 using boost::lexical_cast;
 
 CGMoleculeDef::~CGMoleculeDef()
@@ -158,7 +160,7 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
 
 Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out)
 {       
-    if(out.BeadCount() != _beads.size()) {
+    if((unsigned int)out.BeadCount() != _beads.size()) {
         throw runtime_error("number of beads for cg molecule and mapping definition do "
                 "not match, check your molecule naming.");
     }
@@ -221,3 +223,5 @@ Property *CGMoleculeDef::getMapByName(const string &name)
     //return (*iter).second;
     return (*iter).second;
 }
+
+}}

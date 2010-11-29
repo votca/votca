@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,9 @@ cat <<EOF
 ${0##*/}, version %version%
 This script implemtents smoothing of the potential update (.dpot)
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/} infile outfile
 
-USES: die csg_get_interaction_property mktemp sed awk csg_resample
+USES: die csg_get_interaction_property mktemp sed awk csg_resample check_deps
 
 NEEDS: name min max step inverse.post_update_options.splinesmooth.step
 EOF
@@ -31,7 +31,9 @@ fi
 
 check_deps "$0"
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
+[ -z "$2" ] && die "${0##*/}: Missing arguments"
+
+[ -f "$2" ] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property min)
@@ -39,11 +41,12 @@ max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
 
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
-  
-sed -ne '/i[[:space:]]*$/p' CG-CG.dpot.cur > $tmpfile
+
+sed -ne '/i[[:space:]]*$/p' "$1" > $tmpfile
 spmin=$(sed -ne '1p' $tmpfile | awk '{print $1}')
 spmax=$(sed -ne '$p' $tmpfile | awk '{print $1}')
 spstep=$(csg_get_interaction_property inverse.post_update_options.splinesmooth.step)
 
-csg_resample --in $tmpfile --out $name.dpot.new --grid $min:$step:$max --spfit $spmin:$spstep:$spmax
+comment="$(get_table_comment)"
+run_or_exit csg_resample --in $tmpfile --out "$2" --grid $min:$step:$max --spfit $spmin:$spstep:$spmax --comment "$comment"
 

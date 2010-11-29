@@ -15,6 +15,13 @@
       so they will be described in the same section.
     </desc>
   </item>
+  
+  <item>
+    <name>cg.nbsearch</name>
+    <desc>
+      Grid search algorithm, can be simple or grid. Default is simple.
+    </desc>
+  </item>
 
 <!-- general inverse options -->
   <item>
@@ -28,9 +35,9 @@
   <item>
     <name>cg.inverse.cgmap</name>
     <desc>
-      This option currently only has to be provided for IMC. It specifies the mapping file for
-      analysis. Currently also during coarse-grained simulations, a mapping file has to be specified
-      which is only a 1:1 mapping. This will change in the future.
+      This option currently only needs to be provided for IMC if bonded interactions are of interest, but since bonded interactions are not fully supported yet in iteration process is not really needed. It specifies the mapping file for
+      analysis. A mapping file can be specified
+      which is only a 1:1 mapping to change atom types or define bonded interaction names.
     </desc>
   </item>
   <item><name>cg.inverse.kBT</name><desc> kBT (300*0.00831451 gromacs units) </desc></item>
@@ -45,16 +52,51 @@
   <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
   <item><name>cg.inverse.gromacs.equi_time</name><default>0.0</default><desc> begin analysis after this time when using gromacs</desc></item>
   <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash so many frames at the beginning when using gromacs</desc></item>
-  <item><name>cg.inverse.gromacs.topol</name><desc> Gromacs topology file to use, normally topol.top.  Be careful, do not change yet! </desc></item>
-  <item><name>cg.inverse.gromacs.traj</name><desc> Gromacs trajectory fie to use, normally traj.xtc. Be careful, do not change yet! </desc></item>
+  <item><name>cg.inverse.gromacs.topol</name><desc> Gromacs topology file to use, default topol.tpr</desc></item>
+  <item><name>cg.inverse.gromacs.traj_type</name><desc> Gromacs trajectory type (xtc/trr) fie to use, default xtc</desc></item>
+  <item><name>cg.inverse.gromacs.mdp</name><desc> Gromacs mdp fie to use, default grompp.mdp</desc></item>
+  <item><name>cg.inverse.gromacs.grompp.index</name><desc> Gromacs grompp index file to use, default index.ndx</desc></item>
+  <item><name>cg.inverse.gromacs.grompp.topol</name><desc> Gromacs grompp topol file to use, default topol.top</desc></item>
+  <item><name>cg.inverse.gromacs.grompp.bin</name><desc> Name (or absolute path) of the grompp binary</desc></item>
+  <item><name>cg.inverse.gromacs.grompp.opts</name><desc> Additional options to Gromacs grompp (e.g. -maxwarn 1)</desc></item>
+  <item><name>cg.inverse.gromacs.g_rdf.index</name><desc> Gromacs g_rdf index file to use, default index.ndx</desc></item>
+  <item><name>cg.inverse.gromacs.g_rdf.topol</name><desc> Gromacs g_rdf topol file to use, default topol.tpr</desc></item>
+  <item><name>cg.inverse.gromacs.g_rdf.bin</name><desc> Name (or absolute path) of the g_rdf binary</desc></item>
+  <item><name>cg.inverse.gromacs.g_rdf.opts</name><desc> Additional options to Gromacs g_rdf (e.g. -nopbc)</desc></item>
+  <item><name>cg.inverse.gromacs.mdrun.bin</name><desc> Name (or absolute path) of the mdrun binary</desc></item>
+  <item><name>cg.inverse.gromacs.mdrun.opts</name><desc> Additional options to Gromacs mdrun (e.g. -nosum)</desc></item>
+  <item><name>cg.inverse.gromacs.g_energy.topol</name><desc> Gromacs g_rdf topol file to use, default topol.tpr</desc></item>
+  <item><name>cg.inverse.gromacs.g_energy.bin</name><desc> Name (or absolute path) of the g_energy binary</desc></item>
+  <item><name>cg.inverse.gromacs.g_energy.opts</name><desc> Additional options to Gromacs g_rdf (e.g. -P 1)</desc></item>
   <item><name>cg.inverse.gromacs.table_bins</name><desc> grid for table*.xvg !</desc></item>
   <item><name>cg.inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>
   <item><name>cg.inverse.gromacs.table_end</name><desc> extend the tables to this value </desc></item>
+  <item><name>cg.inverse.gromacs.cufoff_check</name><desc> check interaction cutoffs against rvdw in mdp file: yes/no (default yes)</desc></item>
+  <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso</desc></item>
+  <item><name>cg.inverse.espresso.bin</name><desc>Name (or absolute path) of the Espresso binary</desc></item>
+  <item><name>cg.inverse.espresso.equi_snapshots</name><desc>Number of snapshots to trash at the beginning of trajectory</desc></item>
+  <item><name>cg.inverse.espresso.table_bins</name><desc> grid for tabulated potentials </desc></item>
+  <item><name>cg.inverse.espresso.traj</name><desc> Name of the output Espresso trajectory file</desc></item>
+  <item><name>cg.inverse.espresso.n_steps</name><desc> number of steps to integrate before a snapshot</desc></item>
+  <item><name>cg.inverse.espresso.n_snapshots</name><desc> number of snapshots. Total time = n_steps * n_snapshots</desc></item>
+  <item><name>cg.inverse.espresso.debug</name><desc> debug Espresso (yes/no)</desc></item>
+  <item><name>cg.inverse.espresso.table_end</name><desc> Espresso end of table</desc></item>
+  <item><name>cg.inverse.espresso.exclusions</name><desc> Espresso stuff to exclude</desc></item>
+  <item><name>cg.inverse.espresso.meta_cmd</name><desc> Espresso metadynamics command to call [experimental]</desc></item>
+  <item><name>cg.inverse.espresso.meta_min_sampling</name><desc> Espresso metadynamics minimal number of sampling [experimental]</desc></item>
   <item><name>cg.inverse.filelist</name><desc> these files are copied for each new run </desc></item>
-  <item><name>cg.inverse.iterations_max</name><desc> do so many iterations </desc></item>
+  <item><name>cg.inverse.cleanlist</name><desc> these files are removed after each new run </desc></item>
+  <item><name>cg.inverse.iterations_max</name><desc> do so many iterations (0=inf) </desc></item>
+  <item><name>cg.inverse.convergence_check</name><desc>type of convergence check to do</desc></item>
+  <item><name>cg.inverse.convergence_check_options</name><desc>options for the convergence</desc></item>
+  <item><name>cg.inverse.convergence_check_options.limit</name><desc>lower limit to stop</desc></item>
+  <item><name>cg.inverse.convergence_check_options.name_glob</name><desc>files to check for number (default *.conv)</desc></item>
   <item><name>cg.inverse.method</name><desc> ibm: inverse boltzmann imc: inverse monte carlo </desc></item>
   <item><name>cg.inverse.scriptdir</name><desc> directory for user scripts (e.g. $PWD)</desc></item>
   <item><name>cg.inverse.log_file</name><desc> write log to this file </desc></item>
+  <item><name>cg.inverse.mpi</name><desc>mpi options </desc></item>
+  <item><name>cg.inverse.mpi.tasks</name><desc>number of tasks </desc></item>
+  <item><name>cg.inverse.mpi.cmd</name><desc>mpi command to run (e.g. mpirun -np 8)</desc></item>
   <item>
     <name>cg.inverse.restart_file</name>
     <desc>
@@ -92,5 +134,4 @@
       use constrained least squares.
     </desc>
   </item>
-  <item><name>cg.*.inverse.imc.group</name><desc>imc groups of all interactions</desc></item>
 </tags>

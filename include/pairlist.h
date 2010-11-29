@@ -21,6 +21,9 @@
 #include <list>
 #include <map>
 
+namespace votca { namespace csg {
+using namespace std;
+
 template<typename element_type, typename pair_type>
 class PairList {
 public:
@@ -59,7 +62,9 @@ protected:
 template<typename element_type, typename pair_type>
 inline void PairList<element_type, pair_type>::AddPair(pair_type *p)
 {
+    /// \todo be careful, same pair object is used, some values might change (e.g. sign of distance vector)
     _pair_map[ p->first ][ p->second ] = p;
+    _pair_map[ p->second ][ p->first ] = p;
      /// \todo check if unique    
     _pairs.push_back(p);    
 }
@@ -71,6 +76,7 @@ inline void PairList<element_type, pair_type>::Cleanup()
     for(iterator iter = _pairs.begin(); iter!=_pairs.end(); ++iter)
         delete *iter;
     _pairs.clear();
+    _pair_map.clear();
 }
 
 template<typename element_type, typename pair_type>
@@ -91,12 +97,13 @@ inline pair_type *PairList<element_type, pair_type>::FindPair(element_type e1, e
 template<typename element_type, typename pair_type>
 typename PairList<element_type, pair_type>::partners *PairList<element_type, pair_type>::FindPartners(element_type e1)
 {
-    typename partners::iterator iter;
+    typename map< element_type , map<element_type, pair_type *> >::iterator iter;
     if((iter=_pair_map.find(e1)) == _pair_map.end())
         return NULL;
-    return iter;
+    return &(iter->second);
 }
 
+}}
 
 #endif	/* _PAIRLIST_H */
 

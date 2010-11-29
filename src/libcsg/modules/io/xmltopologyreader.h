@@ -19,14 +19,22 @@
 #define	_XMLTOPOLOGYREADER_H
 
 #include <string>
-#include <libxml/xmlreader.h>
 #include "topologyreader.h"
 #include <stack>
+#include <votca/tools/parsexml.h>
+
+
+namespace votca { namespace csg {
+using namespace votca::tools;
 
 using namespace std;
-    
-/**
 
+/**
+ *  Reads in an xml topology
+ *
+ * \todo this is a sloppy implementation using expat, is just reads attributes
+ * \todo should be extended to also read beads, ...
+ * 
 */
 class XMLTopologyReader
    : public TopologyReader
@@ -36,13 +44,20 @@ public:
     bool ReadTopology(string file, Topology &top);
 
 private:    
+
     void ReadTopolFile(string file);
-          
-    void ParseTopology(xmlNodePtr node);
-    void ParseMolecules(xmlNodePtr node);
+
+    void ParseRoot(const string &el, map<string, string> &attr);
+    void ParseTopology(const string &el, map<string, string> &attr);
+    void ParseMolecules(const string &el, map<string, string> &attr);
     
+private:
+    ParseXML _parser;
+
     Topology *_top;
 };
+
+}}
 
 #endif	/* _PDBTOPOLOGYREADER_H */
 

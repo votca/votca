@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,30 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: run_or_exit mdrun
+USES: run_or_exit use_mpi csg_get_property check_deps
+
+OPTIONAL: cg.inverse.mpi.cmd cg.inverse.gromacs.mdrun.opts cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type cg.inverse.gromacs.mdrun.bin
 EOF
    exit 0
 fi
 
+tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
+[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found"
+
+mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
+[ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
+
+opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
+
 check_deps "$0"
 
-run_or_exit mdrun
+if use_mpi; then
+  mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
+  run_or_exit $mpicmd $mdrun -s "${tpr}" ${opts}
+else
+  run_or_exit $mdrun -s "${tpr}" ${opts}
+fi
+
+ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+traj="traj.${ext}"
+[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after mdrun"

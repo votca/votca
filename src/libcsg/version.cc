@@ -18,15 +18,30 @@
 #include <votca/tools/version.h>
 #include <iostream>
 #include "version.h"
+
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#if GMX == 45
+#include <gromacs/copyrite.h>
+#elif GMX == 40
+    extern "C"
+    {
+        #include <copyrite.h>
+    }
+#endif
+
+#ifdef GMX
+// this one is needed because of bool is defined in one of the headers included by gmx
+#undef bool
+#endif
 
 namespace votca { namespace csg {
 
-#ifdef HGVERSION
-  static const std::string version_str = VERSION " " HGVERSION " (compiled " __DATE__ ", " __TIME__ ")";
-#else
-  static const std::string version_str = VERSION "(compiled " __DATE__ ", " __TIME__ ")";
-#endif
+//defines hgversion
+#include "hgversion.h"
+static const std::string version_str = std::string(VERSION) + " " + hgversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &CsgVersionStr()
 {
@@ -41,7 +56,17 @@ void HelpTextHeader(const std::string &tool_name)
          << "==================================================\n\n"
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
 	 << tool_name << ", version " << votca::csg::CsgVersionStr() 
-         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr() 
+         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
+#ifdef GMX
+         << "\ngromacs, " << GromacsVersion()
+#ifdef GMX_DOUBLE
+	 << " (double precision)"
+#else
+	 << " (single precision)"
+#endif
+#else
+	 << "\n"
+#endif
          << "\n\n";
 }
 

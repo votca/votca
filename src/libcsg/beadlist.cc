@@ -19,6 +19,8 @@
 #include "topology.h"
 #include <votca/tools/tokenizer.h>
 
+namespace votca { namespace csg {
+
 int BeadList::Generate(Topology &top, const string &select)
 {
     BeadContainer::iterator iter;
@@ -31,3 +33,5 @@ int BeadList::Generate(Topology &top, const string &select)
     }
     return size();
 }
+
+}}

@@ -23,9 +23,17 @@
 #include "pairlist.h"
 #include "exclusionlist.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 /**
- * \brief new implementation of neighbourlist, will substitute Neighbourlist
- * 
+ * \brief Neighbour list class
+ *
+ * Implements a simple N^2 neighbour search and stores neigbourlist with pair
+ * structure. User defined criteria can be added by SetMatchFunction. To only
+ * get every pair listed once, the SetMatchFunction can be used and always return
+ * that the pair is not stored.
+ *
  */
 class NBList 
     : public PairList<Bead*, BeadPair>
@@ -34,28 +42,47 @@ public:
     NBList();
     virtual ~NBList();    
 
-    void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
-    void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
+    /// Generate the neighbour list based on two bead lists (e.g. bead types)
+    virtual void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
+    /// Generate the neighbour list based on a single bead list
+    virtual void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
     
+    /// set the cutoff for the neighbour search
     void setCutoff(double cutoff) { _cutoff = cutoff; }
+    /// get the cutoff for the neighbour search
     double getCutoff() { return _cutoff; }
 
-    /// functon to use a user defined pair type
+    /**
+     *  \brief match function for class member functions
+     *
+     * SetMatchFunction can be used to specify additional criteria, weather two
+     * beads are added to the list of pairs or not. The function gets the two
+     * two beads and the distance vector as argument. If a pair should be added,
+     * the function should return true, otherwise false.
+     *
+     * This function can also be used, in a situation where each pair needs only
+     * to be processed once, but the total number of pairs is to big to be stored
+     * in memory, e.g. to calculate rdf for huge systems. In this case, set a
+     * match function which always returns false (->no pair is added), and do
+     * the processing in the match function.
+     */
+    template<typename T>
+    void SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &));
+
+    /// \brief match function for static member functions or plain functions
+    void SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &));
+
+    /// standard match function
+    static bool match_always(Bead *b1, Bead *b2, const vec &r) { return true; }
+
+    /// function to use a user defined pair type
     template<typename pair_type>
     void setPairType();
 
-    
-    /// typedef for a user match function, return true if bead should be added
-    typedef bool (*match_function_t)(Bead *, Bead *, const vec &r);
-
-    /// set user match function
-    void setMatchFunction(match_function_t match_function);
-
-    /// match function that always matches
-    static bool match_always(Bead *b1, Bead *b2, const vec &r) { return true; }
-
 protected:
+    /// cutoff
     double _cutoff;
+    /// take into account exclusions from topolgoy
     bool _do_exclusions;
 
     /// policy function to create new bead types
@@ -69,9 +96,48 @@ protected:
     /// the current bead pair creator function
     pair_creator_t _pair_creator;
 
-    //    typedef T* (*creator_t)();
 
-    match_function_t _match_function;
+protected:
+    /// Functor for match function to be able to set member and non-member functions
+    class Functor {
+    public:
+        Functor() {}
+        virtual bool operator()(Bead *, Bead *, const vec &) = 0;
+    };
+
+    /// Functor for member functions
+    template<typename T>
+    class FunctorMember : public Functor {
+    public:
+        typedef bool (T::*fkt_t)(Bead *, Bead *, const vec &);
+
+        FunctorMember(T* cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
+
+        bool operator()(Bead *b1, Bead *b2, const vec &r) {
+            return (_cls->*_fkt)(b1, b2, r);
+        }
+
+    private:
+        T* _cls;
+        fkt_t _fkt;
+    };
+
+    /// Functor for non-member functions
+    class FunctorNonMember : public Functor {
+    public:
+        typedef bool (*fkt_t)(Bead *, Bead *, const vec &);
+        FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
+
+        bool operator()(Bead *b1, Bead *b2, const vec &r) {
+            return (*_fkt)(b1, b2, r);
+        }
+
+    private:
+        fkt_t _fkt;
+    };
+
+    Functor * _match_function;
+
 };
 
 template<typename pair_type>
@@ -80,10 +146,22 @@ void NBList::setPairType()
     _pair_creator = NBList::beadpair_create_policy<pair_type>;
 }
 
-inline void NBList::setMatchFunction(match_function_t match_function)
+template<typename T>
+inline void NBList::SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &))
 {
-    _match_function = match_function;
+    if(_match_function)
+        delete _match_function;
+    _match_function = dynamic_cast<Functor*>(new FunctorMember<T>(object, fkt));
 }
+
+inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &))
+{
+    if(_match_function)
+        delete _match_function;
+    _match_function = dynamic_cast<Functor*>(new FunctorNonMember(fkt));
+}
+
+}}
 
 #endif	/* _NBLIST_H */
 

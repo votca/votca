@@ -24,6 +24,8 @@
 
 using namespace std;
 namespace po = boost::program_options;
+using namespace votca::csg;
+using namespace votca::tools;
 
 void help_text()
 {
@@ -45,9 +47,9 @@ void check_option(po::options_description &desc, po::variables_map &vm, const st
 
 int main(int argc, char** argv)
 {
-    string in_file, out_file, grid, spfit;
+    string in_file, out_file, grid, spfit, comment, boundaries;
     CubicSpline spline;
-    Table in, out;
+    Table in, out, der;
 
     // program options
     po::options_description desc("Allowed options");            
@@ -55,9 +57,12 @@ int main(int argc, char** argv)
     desc.add_options()
       ("in", po::value<string>(&in_file), "table to read")
       ("out", po::value<string>(&out_file), "table to write")
+      ("derivative", po::value<string>(), "table to write")
       ("grid", po::value<string>(&grid), "new grid spacing (min:step:max)")
       ("spfit", po::value<string>(&spfit), "specify spline fit grid. if option is not specified, normal spline interpolation is performed")
       //("bc", po::)
+      ("comment", po::value<string>(&comment), "store a comment in the output table")
+      ("boundaries", po::value<string>(&boundaries), "(natural|periodic|derivativezero) sets boundary conditions")
       ("help", "options file for coarse graining");
     
     po::variables_map vm;
@@ -97,8 +102,16 @@ int main(int argc, char** argv)
         
     
     in.Load(in_file);
-    spline.setBC(CubicSpline::splineNormal);
-
+    
+    if (vm.count("boundaries")){
+        if (boundaries=="periodic"){
+            spline.setBC(CubicSpline::splinePeriodic);
+        }
+        else if (boundaries=="derivativezero"){
+            spline.setBC(CubicSpline::splineDerivativeZero);
+        }
+        //default: normal
+    }    
     if (vm.count("spfit")) {
         Tokenizer tok(spfit, ":");
         vector<string> toks;
@@ -113,7 +126,7 @@ int main(int argc, char** argv)
         sp_max = boost::lexical_cast<double>(toks[2]);
         cout << "doing spline fit " << sp_min << ":" << sp_step << ":" << sp_max << endl;
         spline.GenerateGrid(sp_min, sp_max, sp_step);
-                
+
         spline.Fit(in.x(), in.y());
     } else {
         spline.Interpolate(in.x(), in.y());
@@ -122,6 +135,10 @@ int main(int argc, char** argv)
     out.GenerateGridSpacing(min, max, step);
     spline.Calculate(out.x(), out.y());
     
+    //store a comment line
+    if (vm.count("comment")){
+        out.set_comment(comment);
+    }
     out.y() = out.y();
     out.flags() = ub::scalar_vector<double>(out.flags().size(), 'o');
 
@@ -131,7 +148,7 @@ int main(int argc, char** argv)
     int j=0;
     for(;i < out.size(); ++i) {
         for(; j < in.size(); ++j)
-            if(in.x(j) >= out.x(i))
+            if(in.x(j) >= out.x(i)  || fabs(in.x(j)-out.x(i) ) < 1e-12) // fix for precison errors
                 break;        
         if(in.size() == j) break;
         out.flags(i) = in.flags(j);
@@ -139,6 +156,12 @@ int main(int argc, char** argv)
     
     out.Save(out_file);
     
+    if (vm.count("derivative")) {
+        der.GenerateGridSpacing(min, max, step);
+        der.flags() = ub::scalar_vector<double>(der.flags().size(), 'o');
+        spline.CalculateDerivative(der.x(), der.y());
+        der.Save(vm["derivative"].as<string>());
+    }
     return 0;
 }
 

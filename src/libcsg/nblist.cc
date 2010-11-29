@@ -18,11 +18,13 @@
 #include "nblist.h"
 #include <iostream>
 
+namespace votca { namespace csg {
+
 NBList::NBList()
-  : _do_exclusions(false)
+  : _do_exclusions(false), _match_function(0)
 {
     setPairType<BeadPair>();
-    setMatchFunction(NBList::match_always);
+    SetMatchFunction(NBList::match_always);
 }
 
 NBList::~NBList()
@@ -63,9 +65,11 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
                 }
                     
             if(abs(r) < _cutoff)
-                if(_match_function(*iter1, *iter2, r))
+                if((*_match_function)(*iter1, *iter2, r))
                     if(!FindPair(*iter1, *iter2))
-                        AddPair(new BeadPair(*iter1, *iter2, r));
+                        AddPair( _pair_creator(*iter1, *iter2, r));
         } 
     }
 }
+
+}}

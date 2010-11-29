@@ -20,6 +20,9 @@
 
 #include "topology.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 /**
    \brief Observer class for analysis hook
 
@@ -41,6 +44,7 @@ public:
     virtual void EvalConfiguration(Topology *top, Topology *top_atom = 0) = 0;
 };
 
+}}
 
 #endif	/* _CGOBSERVER_H */
 

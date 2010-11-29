@@ -21,6 +21,9 @@
 #include <string>
 #include "topologyitem.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
     
 /**
@@ -46,7 +49,7 @@ public:
 private:
         /// constructor
     Residue(Topology *parent, int id, const string &name)
-        : _id(id), _name(name), TopologyItem(parent)
+        : TopologyItem(parent), _id(id), _name(name)
     {}
     friend class Topology;
 };
@@ -55,6 +58,8 @@ inline const string &Residue::getName()
 {
     return _name;
 }
+
+}}
 
 #endif	/* _residue_H */
 

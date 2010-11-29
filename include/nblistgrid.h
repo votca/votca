@@ -23,6 +23,9 @@
 #include "nblist.h"
 #include <vector>
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 class NBListGrid
     : public NBList
 {
@@ -56,6 +59,8 @@ inline NBListGrid::cell_t &NBListGrid::getCell(const int &a, const int &b, const
 {
     return _grid[a + _box_Na*b + _box_Na*_box_Nb*c];
 }
+
+}}
 
 #endif	/* _NBLISTGRID_H */
 

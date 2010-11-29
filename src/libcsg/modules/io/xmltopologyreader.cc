@@ -19,39 +19,19 @@
 #include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <stdio.h>
-#include "xmltopologyreader.h"
 #include <stdexcept>
+#include "xmltopologyreader.h"
+
+namespace votca { namespace csg {
 
 bool XMLTopologyReader::ReadTopology(string filename, Topology &top)
 { 
-    xmlDocPtr doc;
-    xmlNodePtr node;
+  _top = &top;
+
+  _parser.NextHandler(this, &XMLTopologyReader::ParseRoot);
+  _parser.Open(filename);
     
-    _top = &top;
-    
-    doc = xmlParseFile(filename.c_str());
-    if(doc == NULL) 
-        throw runtime_error("Error on open xml bead map: " + filename);
-    
-    node = xmlDocGetRootElement(doc);
-    
-    if(node == NULL) {
-        xmlFreeDoc(doc);
-        throw runtime_error("Error, empty xml document: " + filename);
-    }
-    
-    if(xmlStrcmp(node->name, (const xmlChar *) "topology")) {
-        xmlFreeDoc(doc);
-        xmlCleanupParser();
-        throw runtime_error("Error, wrong root node in " + filename);
-    }           
-    
-    ParseTopology(node);
-    
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
-    
-    return true;
+  return true;
 }
 
 void XMLTopologyReader::ReadTopolFile(string file)
@@ -66,54 +46,53 @@ void XMLTopologyReader::ReadTopolFile(string file)
     delete reader;
 }
 
-void XMLTopologyReader::ParseTopology(xmlNodePtr node)
+void XMLTopologyReader::ParseRoot(const string &el, map<string, string> &attr)
 {
-    xmlChar *attr =  xmlGetProp(node, (const xmlChar *)"base");
-    if(attr) {
-        ReadTopolFile((const char *)attr);
-        xmlFree(attr);
+    if(el == "topology") {
+        if(attr["base"] != "")
+            ReadTopolFile(attr["base"]);
+        _parser.NextHandler(this, &XMLTopologyReader::ParseTopology);
     }
-    
-    for(node = node->xmlChildrenNode; node != NULL; node = node->next) {
-        if(!xmlStrcmp(node->name, (const xmlChar *) "molecules"))
-            ParseMolecules(node);
-    }     
+    else {
+        throw std::runtime_error("wrong root node in xml topology file");
+    }
 }
 
-void XMLTopologyReader::ParseMolecules(xmlNodePtr node)
+void XMLTopologyReader::ParseTopology(const string &el, map<string, string> &attr)
 {
-    for(node = node->xmlChildrenNode; node != NULL; node = node->next) {
-        if(!xmlStrcmp(node->name, (const xmlChar *) "clear")) {
-            _top->ClearMoleculeList();
-        }
-        if(!xmlStrcmp(node->name, (const xmlChar *) "rename")) {
-            char *molname = (char *) xmlGetProp(node, (const xmlChar *)"name");
-            char *range = (char *) xmlGetProp(node, (const xmlChar *)"range");
-            if(molname && range) {
-                _top->RenameMolecules(range, molname);
-                xmlFree(molname);
-                xmlFree(range);
-            }
-            else
-                throw runtime_error("invalid name tag");               
-        }
-        if(!xmlStrcmp(node->name, (const xmlChar *) "define")) {
-            char *molname = (char *) xmlGetProp(node, (const xmlChar *)"name");
-            char *first = (char *) xmlGetProp(node, (const xmlChar *)"first");
-            char *nbeads = (char *) xmlGetProp(node, (const xmlChar *)"nbeads");
-            char *nmols = (char *) xmlGetProp(node, (const xmlChar *)"nmols");
-            if(molname && first && nbeads && nmols) {
-                _top->CreateMoleculesByRange(molname,
-                        boost::lexical_cast<int>(first),
-                        boost::lexical_cast<int>(nbeads),
-                        boost::lexical_cast<int>(nmols));
-                xmlFree(molname);
-                xmlFree(first);
-                xmlFree(nbeads);
-                xmlFree(nmols);
-            }
-            else
-                throw runtime_error("invalid name tag");               
-        }
-    }         
+    if(el == "molecules")
+         _parser.NextHandler(this, &XMLTopologyReader::ParseMolecules);
 }
+
+void XMLTopologyReader::ParseMolecules(const string &el, map<string, string> &attr)
+{
+    map<string, string>::iterator iter;
+    if (el == "clear") {
+        _top->ClearMoleculeList();
+        _parser.IgnoreChilds();
+    }
+    else if (el == "rename") {
+        string molname = attr["name"];
+        string range = attr["range"];
+        if (molname == "" || range == "")
+            throw runtime_error("invalid rename tag");
+        _top->RenameMolecules(range, molname);
+        _parser.IgnoreChilds();
+    }
+    if (el == "define") {
+        string molname = attr["name"];
+        string first = attr["first"];
+        string nbeads = attr["nbeads"];
+        string nmols = attr["nmols"];
+        if (molname == "" && first == "" && nbeads == "" && nmols == "")
+            throw runtime_error("invalid define tag");
+        _top->CreateMoleculesByRange(molname,
+                boost::lexical_cast<int>(first),
+                boost::lexical_cast<int>(nbeads),
+                boost::lexical_cast<int>(nmols));
+        _parser.IgnoreChilds();
+    }
+}
+
+}}
+

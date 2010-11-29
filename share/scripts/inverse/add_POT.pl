@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script adds up two potentils 
+This script adds up two potentils
 In addtion it does some magic tricks:
 - order of infiles MATTER !!!!
 - if infile2 contain undef value, it uses the value from infile1
@@ -32,7 +32,7 @@ Usage: $progname infile1 infile2 outfile
 
 NEEDS:
 
-USES: readin_table saveto_table 
+USES: readin_table saveto_table
 EOF
   exit 0;
 }

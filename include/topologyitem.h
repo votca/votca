@@ -18,6 +18,8 @@
 #ifndef _TOPOLOGYITEM_H
 #define	_TOPOLOGYITEM_H
 
+namespace votca { namespace csg {
+
 class Topology;
 
 class TopologyItem
@@ -33,6 +35,8 @@ protected:
     
     friend class Topology;
 };
+
+}}
 
 #endif	/* _TOPOLOGYITEM_H */
 

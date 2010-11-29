@@ -21,6 +21,9 @@
 #include <string>
 #include "topologyitem.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 /**
@@ -39,9 +42,11 @@ private:
     string _name;
     
     BeadType(Topology *parent, int id, const string &name)
-    : _id(id), _name(name), TopologyItem(parent) {}
+    : TopologyItem(parent), _id(id), _name(name) {}
     friend class Topology;
 };
+
+}}
 
 #endif	/* _BEADTYPE_H */
 

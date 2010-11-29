@@ -23,9 +23,10 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
-#include "cgengine.h"
+#include "csgapplication.h"
 
-namespace ub = boost::numeric::ublas;
+using namespace votca::csg;
+
 using namespace std;
 
 /**
@@ -35,16 +36,29 @@ using namespace std;
  *  using cubic spline basis set. Block averaging over trajectory blocks
  *  is used for calculating CG forces and their errors.  
  *
+ * \todo force matching needs a big cleanup!
  **/
 
 class CGForceMatching
-    : public CGObserver
+    : public CsgApplication
 {
 public:
+
+    string ProgramName() { return "csg_fmatch"; }
+    void HelpText(ostream &out) {
+        out << "Perform force matching (also call multiscale coarse-graining)";
+    }
+
+    bool DoTrajectory() {return true;}
+    bool DoMapping() {return true;}
+
+    void Initialize(void);
+    bool EvaluateOptions();
+
     /// \brief called before the first frame
-    void BeginCG(Topology *top, Topology *top_atom);
+    void BeginEvaluate(Topology *top, Topology *top_atom);
     /// \brief called after the last frame
-    void EndCG();
+    void EndEvaluate();
     /// \brief called for each frame which is mapped
     void EvalConfiguration(Topology *conf, Topology *conf_atom = 0);
     /// \brief load options from the input file
@@ -74,8 +88,10 @@ protected:
         /// \brief only for non-bonded interactions (seems like it is not used?)
         pair<int, int> beadTypes;
         
-        /// \brief Result of 1 block calculation
-        ub::vector<double> block_res;
+        /// \brief Result of 1 block calculation for f
+        ub::vector<double> block_res_f;
+        /// \brief Result of 1 block calculation for f''
+        ub::vector<double> block_res_f2;
         /// \brief Final result: average over all blocks
         ub::vector<double> result;
         /// \brief accuracy of the final result

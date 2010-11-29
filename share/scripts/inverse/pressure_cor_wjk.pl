@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +20,8 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script calls the pressure corrections  like in 
-Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009) 
+This script calls the pressure corrections  like in
+Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009)
 Basically dU=A*(1-r/r_c) with A= -max(0.1k_B T, Int ) * sign(p_cur-p_target)
 and Int is the integral from Eq. 7 in the paper.
 
@@ -30,6 +30,8 @@ Usage: $progname p_cur outfile
 NEEDS: cg.inverse.kBT max step inverse.particle_dens inverse.p_target name
 
 USES: csg_get_property csg_get_interaction_property saveto_table readin_table
+
+OPTIONAL: inverse.post_update_options.pressure.wjk.scale 
 EOF
   exit 0;
 }
@@ -45,6 +47,7 @@ my $delta_r=csg_get_interaction_property("step");
 
 my $partDens=csg_get_interaction_property("inverse.particle_dens");
 my $name=csg_get_interaction_property("name");
+my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale","1.0");
 
 my $pi= 3.14159265;
 my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
@@ -63,7 +66,7 @@ my @flags_cur;
 # calculate prefactor from rdf
 my $integral=0.0;
 my $x;
-for(my $i=1;$i<$max/$delta_r;$i++){ 
+for(my $i=1;$i<$max/$delta_r;$i++){
 	$x=$i*$delta_r;
 	$integral+=$x*$x*$x*$delta_r*$rdf_cur[$i];
 }
@@ -77,7 +80,7 @@ $pref /= 2*$pi*$partDens*$partDens*$integral;
 
 my $temp;
 $temp=$pref;
-$temp = -1*$temp if $temp<0; 
+$temp = -1*$temp if $temp<0;
 if ($temp > 0.1*$kBT){
 	if ($pref >0){
 		$pref=0.1*$kBT;
@@ -86,6 +89,7 @@ if ($temp > 0.1*$kBT){
 	}
 }
 
+$pref=$pref*$scale_factor;
 print "Pressure correction factor: A=$pref\n";
 
 my @r;

@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libvotca_csg
+Description: csg functions of the votca package
+URL: http://www.votca.org
+Version: @VERSION@
+Requires: libvotca_tools @PKGGMX@
+Libs: -L${libdir} -lvotca_csg @PKGLIBSGMX@
+Libs.private: -lm
+Cflags: -I${includedir}

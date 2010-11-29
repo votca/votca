@@ -24,6 +24,9 @@
 #include <votca/tools/property.h>
 #include "molecule.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 
@@ -113,6 +116,7 @@ public:
 protected:
 };
 
+}}
 
 #endif	/* _map_H */
 

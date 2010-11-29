@@ -19,6 +19,9 @@
 #include <string>
 #include "pdbwriter.h"
 
+
+namespace votca { namespace csg {
+
 using namespace std;
 
 void PDBWriter::Open(string file, bool bAppend)
@@ -39,11 +42,23 @@ void PDBWriter::Write(Topology *conf)
     iter!=conf->Beads().end(); ++iter) {
         Bead *bi = *iter;
         vec r = bi->getPos();
+        //truncate strings if necessary
+        string resname="";
+        if(top->getResidue(bi->getResnr()))
+            resname = top->getResidue(bi->getResnr())->getName();
+        string atomname = bi->getName();
+        if (resname.size() > 3) {
+            resname = resname.substr(0,3);
+        }
+        if (atomname.size() > 4) {
+            atomname = atomname.substr(0,4);
+        }
+        
         fprintf(_out,
                 "ATOM  %5d %4s %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n",
                 (bi->getId()+1)%100000,   // atom serial number
-                bi->getName().c_str(),  // atom name
-                top->getResidue(bi->getResnr())->getName().c_str(), // residue name
+                atomname.c_str(),  // atom name
+                resname.c_str(), // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
                 10.*r.x(), 10.*r.y(), 10.*r.z(),
@@ -78,3 +93,5 @@ void PDBWriter::Write(Topology *conf)
     fprintf(_out, "ENDMDL\n");
     fflush(_out);
 }
+
+}}

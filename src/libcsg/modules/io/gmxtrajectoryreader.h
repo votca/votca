@@ -21,10 +21,21 @@
 #include <string>
 #include "trajectoryreader.h"
 
-using namespace std;
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-namespace gmx {
-   extern "C" {
+#if GMX == 45
+        #include <gromacs/statutil.h>
+        #include <gromacs/typedefs.h>
+        #include <gromacs/smalloc.h>
+        #include <gromacs/vec.h>
+        #include <gromacs/copyrite.h>
+        #include <gromacs/statutil.h>
+        #include <gromacs/tpxio.h>
+#elif GMX == 40
+   extern "C"
+   {
         #include <statutil.h>
         #include <typedefs.h>
         #include <smalloc.h>
@@ -33,9 +44,16 @@ namespace gmx {
         #include <statutil.h>
         #include <tpxio.h>
     }
+#else
+#error Unsupported GMX version
+#endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
-}
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
+using namespace std;
 
 /**
     \brief class for reading gromacs trajectory files
@@ -59,11 +77,19 @@ class GMXTrajectoryReader : public TrajectoryReader
         string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
-        int _gmx_status;
+#if GMX == 45
+       t_trxstatus* _gmx_status;
+#elif GMX == 40
+       int _gmx_status;
+#else
+#error Unsupported GMX version
+#endif
         /// gmx frame
-        gmx::t_trxframe _gmx_frame;
+        t_trxframe _gmx_frame;
         
 };
+
+}}
 
 #endif	/* _gmxtrajectoryreader_H */
 

@@ -22,6 +22,10 @@
 #include "topology.h"
 #include "trajectorywriter.h"
 
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class GROWriter
@@ -37,6 +41,8 @@ public:
     private:
         FILE *_out;
 };
+
+}}
 
 #endif	/* _GROWRITER_H */
 

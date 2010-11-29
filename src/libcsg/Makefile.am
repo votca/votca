@@ -1,26 +1,37 @@
-HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node}' 2> /dev/null || grep node $(top_builddir)/.hg_archival.txt 2> /dev/null || true )
-AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(CFLAGS_XML) -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 SUBDIRS = modules 
 
-lib_LIBRARIES = libvotca_csg.a
+BUILT_SOURCES = hgversion.h
 
-libvotca_csg_a_SOURCES = \
+lib_LTLIBRARIES = libvotca_csg.la
+
+libvotca_csg_la_SOURCES = hgversion.h \
     beadlist.cc       exclusionlist.cc    nblist.cc         topology.cc          trajectorywriter.cc \
-   cgengine.cc       neighbourlist.cc  topologymap.cc \
-   cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \
-   connectivity.cc   molecule.cc         numberdist.cc     trajectoryreader.cc \
-   imcio.cc nblistgrid.cc version.cc \
-   modules/io/gmxtopologyreader.cc    modules/io/grotopologyreader.cc  modules/io/xmltopologyreader.cc \
-    modules/io/gmxtrajectoryreader.cc  modules/io/growriter.cc          modules/io/pdbtopologyreader.cc \
-    modules/io/gmxtrajectorywriter.cc  modules/io/pdbwriter.cc
+    cgengine.cc       topologymap.cc \
+    cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \
+    molecule.cc         trajectoryreader.cc \
+    imcio.cc nblistgrid.cc version.cc csgapplication.cc
 
-CLEANFILES = *~
-#DISTCLEANFILES =
+#gmx is needed because of headers from libio and in version.cc
+libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS)
+libvotca_csg_la_LIBADD = modules/io/libio.la
 
-version.cc: hgstamp
-hgstamp: update_hgstamp
-update_hgstamp:
-	[ -f hgstamp ] || touch hgstamp
-	echo $(HGVERSION) | cmp -s hgstamp - || echo $(HGVERSION) > hgstamp
+libvotca_csg_la_LDFLAGS = -no-undefined $(VOTCA_TOOLS_LIBS) $(GMX_LIBS)
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libvotca_csg.pc
+
+CLEANFILES = *~ hgversion.h
+
+install-exec-hook:
+if NO_LA_FILES
+	rm -f $(DESTDIR)$(libdir)/libvotca_csg.la
+endif
+
+HGVERSION:= $(shell hg -R $(top_srcdir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_srcdir)/.hg_archival.txt 2> /dev/null || true )
+hgversion.h: dummy
+	[ -f $@ ] || touch $@
+	echo 'static const std::string hgversion = "$(HGVERSION)";' | cmp -s $@ - \
+	  || echo 'static const std::string hgversion = "$(HGVERSION)";' > $@
+dummy: ;

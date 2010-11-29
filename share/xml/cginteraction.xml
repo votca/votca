@@ -103,7 +103,14 @@
   <item>
     <name>inverse.post_update_options.pressure.simple.scale</name>
     <desc>
-      scaling factor of pressure correction, add details here!!
+      slope of the simple pressure correction.
+    </desc>
+  </item>
+  <item><name>inverse.post_update_options.pressure.wjk</name><desc>Contains all options of the wjk pressure correction script</desc></item>
+  <item>
+    <name>inverse.post_update_options.pressure.wjk.scale</name>
+    <desc>
+      extra scaling factor of pressure correction
     </desc>
   </item>
   <item><name>inverse.post_update_options.smooth</name><desc>Contains all options of the smooth script</desc></item>
@@ -120,12 +127,48 @@
       grid spacing for spline fit when doing spline smoothing.
     </desc>
   </item>
+  <item>
+    <name>inverse.post_update_options.scale</name>
+    <desc>scale factor for the update</desc>
+  </item>
 
   <item>
     <name>inverse.post_add_options</name>
     <desc>
       This sectioncontains all options for post add scripts.
     </desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.copyback.filelist</name>
+    <desc>list of files to copy to the main dir</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.convergence.weight</name>
+    <desc>weight factor for the convergence of the interaction</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.convergence.what</name>
+    <desc>for what to calc the convergence: dist pot, .. (default dist)</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.plot.gnuplot_bin</name>
+    <desc>gnuplot binary to use (default gnuplot)</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.plot.gnuplot_opts</name>
+    <desc>extra options to give to gnuplot_bin (e.g. -persist, if one uses kill)</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.plot.fd</name>
+    <desc>file descriptor to use (default 8), make it uniqe if you want to plot multiple things</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.plot.script</name>
+    <desc>plot script to give to gnuplot</desc>
+  </item>
+  <item>
+    <name>inverse.post_add_options.plot.kill</name>
+    <desc>killall process with that name before ploting (e.g. gnuplot_x11), this is more reliable than if you are using multiplot</desc>
   </item>
   
 <!-- imc specific stuff -->
@@ -152,6 +195,39 @@
     <name>inverse.gromacs.table</name>
     <desc>
       Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format for every run.
+    </desc>
+  </item>
+
+  <item>
+    <name>inverse.espresso</name>
+    <desc>
+        This section contains epsresso specific options if espresso is used as simulation program.
+    </desc>
+  </item>
+
+  <item>
+    <name>inverse.espresso.table</name>
+    <desc>
+      Name of file for tabulated potential of this interaction. This file will
+be created from the internal tabulated potential format for every run. Note,
+though, that the original espresso blockfile needs to contain the name of that
+table as the tabulated interaction (see tutorial methanol ibm_espresso for details).
+    </desc>
+  </item>
+
+  <item>
+    <name>inverse.espresso.index1</name>
+    <desc>
+      Index list of type1 -- Name of the Tcl variable containing all index1
+particles that is contained in the espresso blockfile.
+    </desc>
+  </item>
+
+  <item>
+    <name>inverse.espresso.index2</name>
+    <desc>
+      Index list of type2 -- Name of the Tcl variable containing all index2
+particles that is contained in the espresso blockfile.
     </desc>
   </item>
 

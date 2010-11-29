@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +75,7 @@ my @out;
 my $min = 0;
 $out[0] = 0;
 for (my $i=1;$i<=$#r;$i++){
-  $out[$i]=$out[$i-1] - 0.5*($val[$i] + $val[$i-1])*($r[$i] - $r[$i-1]); 
+  $out[$i]=$out[$i-1] - 0.5*($val[$i] + $val[$i-1])*($r[$i] - $r[$i-1]);
   $min = $out[$i] if $out[$i] < $min;
 }
 

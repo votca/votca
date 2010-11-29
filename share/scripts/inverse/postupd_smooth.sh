@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,9 @@ cat <<EOF
 ${0##*/}, version %version%
 This script implemtents smoothing of the potential update (.dpot)
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/} infile outfile
 
-USES:  die csg_get_interaction_property mktemp do_external cp log run_or_exit
+USES: die csg_get_interaction_property mktemp do_external cp log run_or_exit check_deps
 
 NEEDS: name inverse.post_update_options.smooth.iterations
 EOF
@@ -31,17 +31,19 @@ fi
 
 check_deps "$0"
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
+[ -z "$2" ] && die "${0##*/}: Missing arguments"
+
+[ -f "$2" ] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
 tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
-iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)  
+iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)
 
-run_or_exit cp ${name}.dpot.cur $tmpfile
+run_or_exit cp "$1" $tmpfile
 log "doing $iterations smoothing iterations"
 
 for((i=0;i<$iterations;i++)); do
-  run_or_exit do_external table smooth $tmpfile ${name}.dpot.new
-  run_or_exit cp ${name}.dpot.new $tmpfile
+  do_external table smooth $tmpfile "$2"
+  run_or_exit cp "$2" $tmpfile
 done
 

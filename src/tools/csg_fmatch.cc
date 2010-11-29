@@ -23,15 +23,37 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <gsl/gsl_linalg.h>
 #include <votca/tools/cubicspline.h>
 #include <cgengine.h>
 #include <nblist.h>
 #include <beadlist.h>
 #include "csg_fmatch.h"
 #include <votca/tools/table.h>
+#include <votca/tools/linalg.h>
 
-void CGForceMatching::BeginCG(Topology *top, Topology *top_atom)
+int main(int argc, char** argv)
+{
+    CGForceMatching app;
+    return app.Exec(argc, argv);
+}
+
+
+void CGForceMatching::Initialize(void)
+{
+    CsgApplication::Initialize();
+    AddProgramOptions()
+        ("options", boost::program_options::value<string>(), "  options file for coarse graining");
+}
+
+bool CGForceMatching::EvaluateOptions()
+{
+    CsgApplication::EvaluateOptions();
+    CheckRequired("options", "need to specify options file");
+    LoadOptions(OptionsMap()["options"].as<string>());
+    return true;
+}
+
+void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
 {
     // set counters to zero value:
     _nblocks = 0;
@@ -158,10 +180,11 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     resSum.clear();
     resSum2.resize(num_outgrid, false);
     resSum2.clear();
-    block_res.resize(2 * num_gridpoints, false);
+    block_res_f.resize(num_gridpoints, false);
+    block_res_f2.resize(num_gridpoints, false);
 
 }
-void CGForceMatching::EndCG()
+void CGForceMatching::EndEvaluate()
 {
     cout << "\nWe are done, thank you very much!" << endl;
 }
@@ -186,9 +209,6 @@ void CGForceMatching::WriteOutFiles()
     SplineContainer::iterator is;
 
     for (is = _splines.begin(); is != _splines.end(); ++is) {
-        int &mp = (*is)->matr_pos;
-        int &ngp = (*is)->num_gridpoints;
-
         // construct meaningful outfile name
         file_name = (*is)->splineName;
         file_name = file_name + file_extension;
@@ -265,16 +285,13 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
         // we must count frames from zero again for the next block
         _frame_counter = 0;
         if (_constr_least_sq) { //Constrained Least Squares
-            // Matrices should be cleaned after each block is evaluated, since
-            // gsl solver writes stuff to them instead of allocating separate memory
+            // Matrices should be cleaned after each block is evaluated
             _A.clear();
             _b.clear();
             // clear and assign smoothing conditions to _B_constr
             FmatchAssignSmoothCondsToMatrix(_B_constr);
         } else { // Simple Least Squares
-            // Matrices should be cleaned after each block is evaluated, since
-            // gsl solver writes stuff to them instead of allocating separate memory
-            
+            // Matrices should be cleaned after each block is evaluated            
             // clear and assign smoothing conditions to _A
             FmatchAssignSmoothCondsToMatrix(_A);
             _b.clear();
@@ -287,127 +304,22 @@ void CGForceMatching::FmatchAccumulateData()
     _x.clear();
     if (_constr_least_sq) { // Constrained Least Squares
         // Solving linear equations system
-        ub::matrix<double> Q;
-        Q.resize(_col_cntr, _col_cntr, false);
-        Q.clear();
-
-        ub::matrix<double> A2;
-        A2.resize(_A.size1(), _col_cntr / 2, false);
-        A2.clear();
-
-        ub::matrix<double> Q_k;
-        Q_k.resize(_col_cntr, _col_cntr, false);
-        Q_k.clear();
-
-        ub::identity_matrix<double> I(_col_cntr);
-
-        ub::vector<double> v;
-        v.resize(_col_cntr, false);
-        v.clear();
-
-        // To proceed we need to factorize B^T = Q*R. We need matrix Q for further
-        // calculations
-        // B_constr_Tr - transpose of _B_constr
-        ub::matrix<double> B_constr_Tr;
-        B_constr_Tr.resize(_col_cntr, _line_cntr, false);
-        B_constr_Tr.clear();   
+        ub::matrix<double> B_constr = _B_constr;
+        votca::tools::linalg_constrained_qrsolve(_x, _A, _b, B_constr);
+        _x = -_x;
         
-        B_constr_Tr = trans(_B_constr);
-
-        double* pointer_Bcnstr = & B_constr_Tr(0, 0);
-
-        gsl_matrix_view B_t
-                = gsl_matrix_view_array(pointer_Bcnstr, _col_cntr, _line_cntr);
-
-        gsl_vector *tau = gsl_vector_alloc(_line_cntr);
-
-        gsl_linalg_QR_decomp(&B_t.matrix, tau);
-
-        // Extraction of Q matrix from tau and B_t, where it is stored in a tricky way.
-        Q = I;
-
-        for (int k = _line_cntr; k > 0; k--) {
-
-            for (int icout = 0; icout < k - 1; icout++) {
-                v(icout) = 0;
-            }
-            v(k - 1) = 1.0;
-
-            for (int icout = k; icout < v.size(); icout++) {
-                v(icout) = gsl_matrix_get(&B_t.matrix, icout, k - 1);
-            }
-            double tmp = gsl_vector_get(tau, k - 1);
-            Q_k = I - tmp * outer_prod(v, v);
-            Q = prec_prod(Q, Q_k);
-        }
-        Q = trans(Q);
-
-        // Calculate _A * Q and store the result in _A
-        _A = prec_prod(_A, Q);
-
-        // _A = [A1 A2], so A2 is just a block of _A
-        for (int iraw = 0; iraw < _A.size1(); iraw++) {
-            for (int icol = _A.size2() / 2; icol < _A.size2(); icol++) {
-                A2(iraw, icol - _A.size2() / 2) = _A(iraw, icol);
-            }
-        }
-
-        double* pointer_m = & A2(0, 0);
-        double* pointer_b = & _b(0);
-
-        gsl_matrix_view m
-                = gsl_matrix_view_array(pointer_m, A2.size1(), A2.size2());
-
-        gsl_vector_view b
-                = gsl_vector_view_array(pointer_b, A2.size1());
-
-        gsl_vector *x = gsl_vector_alloc(A2.size2());
-        gsl_vector *tau2 = gsl_vector_alloc(A2.size2());
-        gsl_vector *residual = gsl_vector_alloc(A2.size1());
-
-        gsl_linalg_QR_decomp(&m.matrix, tau2);
-
-        gsl_linalg_QR_lssolve(&m.matrix, tau2, &b.vector, x, residual);
-
-        for (int i = 0; i < _x.size() / 2; i++)
-            _x[i] = 0.0;
-        
-        for (int i = _x.size() / 2; i < _x.size(); i++)
-            _x[i] = gsl_vector_get(x, i - _x.size() / 2);
-
-        // To get the final answer this vector should be multiplied by matrix Q
-        _x = prec_prod(Q, _x);
-
-        gsl_vector_free(x);
-        gsl_vector_free(tau);
-        gsl_vector_free(residual);
 
     } else { // Simple Least Squares
-        double* pointer_m = & _A(0, 0);
-        double* pointer_b = & _b(0);
-
-        gsl_matrix_view m
-                = gsl_matrix_view_array(pointer_m, _A.size1(), _A.size2());
-
-        gsl_vector_view b
-                = gsl_vector_view_array(pointer_b, _b.size());
-
-        gsl_vector *x = gsl_vector_alloc(_A.size2());
-        gsl_vector *tau = gsl_vector_alloc(_A.size2());
-        gsl_vector *residual = gsl_vector_alloc(_b.size());
-
-        gsl_linalg_QR_decomp(&m.matrix, tau);
-        gsl_linalg_QR_lssolve(&m.matrix, tau, &b.vector, x, residual);
-
-        for (int i = 0; i < _x.size(); i++)
-            _x(i) = gsl_vector_get(x, i);        
+        
+        ub::vector<double> residual(_b.size());
+        votca::tools::linalg_qrsolve(_x, _A, _b, &residual);
 
         // calculate FM residual - quality of FM
         // FM residual is initially calculated in (kJ/(mol*nm))^2
         double fm_resid = 0;
 
-        for (int i = 0; i < _b.size(); i++)
-            fm_resid += gsl_vector_get(residual, i) * gsl_vector_get(residual, i);
+        for (size_t i = 0; i < _b.size(); i++)
+            fm_resid += residual(i) * residual(i);
 
         // strange number is units conversion -> now (kcal/(mol*angstrom))^2
         fm_resid /= 3 * _nbeads * _frame_counter * 1750.5856;
@@ -417,10 +329,6 @@ void CGForceMatching::FmatchAccumulateData()
         cout << "     Chi_2 = " << fm_resid << endl;
         cout << "#################################" << endl;
         cout << endl;
-
-        gsl_vector_free(x);
-        gsl_vector_free(tau);
-        gsl_vector_free(residual);
     }
 
     SplineContainer::iterator is;
@@ -429,11 +337,12 @@ void CGForceMatching::FmatchAccumulateData()
         int &ngp = (*is)->num_gridpoints;
 
         // _x contains results for all splines. Here we cut the results for one spline
-        for (int i = 0; i < 2 * ngp; i++) {
-            (*is)->block_res[i] = _x[ i + mp ];
+        for (int i = 0; i < ngp; i++) {
+            (*is)->block_res_f[i] = _x[ i + mp ];
+            (*is)->block_res_f2[i] = _x[ i + mp + ngp];
         }
         // result cutted before is assigned to the corresponding spline
-        (*is)->Spline.setSplineData((*is)->block_res);
+        (*is)->Spline.setSplineData((*is)->block_res_f, (*is)->block_res_f2);
 
         // first output point = first grid point
         double out_x = (*is)->Spline.getGridPoint(0);
@@ -498,10 +407,8 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
         CubicSpline &SP = sinfo->Spline;
 
         int &mpos = sinfo->matr_pos;
-        int &nsp = sinfo->num_splinefun;
 
         double var = (*interListIter)->EvaluateVar(*conf); // value of bond, angle, or dihedral
-        int i = SP.getInterval(var); // corresponding spline interval
 
         for (int loop = 0; loop < beads_in_int; loop++) {
             int ii = (*interListIter)->getBeadId(loop);
@@ -546,8 +453,6 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
         CubicSpline &SP = sinfo->Spline;
 
         int &mpos = sinfo->matr_pos;
-        int &nsp = sinfo->num_splinefun;
-        int i = SP.getInterval(var);
 
         // add iatom
         SP.AddToFitMatrix(_A, var,

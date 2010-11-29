@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@
 usage="Usage: ${0##*/} [OPTIONS] setting_file.xml"
 do_iterations=""
 clean="no"
+wall_time=""
 
 show_help () {
   cat << eof
@@ -31,16 +32,17 @@ $usage
 
 Allowed options:
 -h, --help                    show this help
--N, --do-iterations N         only do N iterationso
+-N, --do-iterations N         only do N iterations
+    --wall-time SEK           Set wall clock time
     --clean                   clean out the PWD, dangerous
 
 Examples:
 * ${0##*/} cg.xml
 * ${0##*/} -6 cg.xml
 
-USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG
+USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time logrun rm update_stepnames
 
-NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name
+NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name cg.inverse.cleanlist
 eof
 }
 
@@ -55,9 +57,13 @@ while [ "${1#-}" != "$1" ]; do
        set -- "${1:0:2}" "-${1:2}" "${@:2}"
     fi
  fi
- case $1 in 
+ case $1 in
    --do-iterations)
-    do_iterations=$2
+    do_iterations="$2"
+    shift 2 ;;
+   --wall-time)
+    wall_time="$2"
+    start_time="$(date +%s)" || exit 1
     shift 2 ;;
    -[0-9]*)
     do_iterations=${1#-}
@@ -74,7 +80,7 @@ while [ "${1#-}" != "$1" ]; do
  esac
 done
 
-### end parsing options 
+### end parsing options
 
 #do all start up checks option stuff
 source "${0%.sh}_start.sh"  "$@" || exit 1
@@ -87,30 +93,31 @@ if [ -f "$CSGLOG" ]; then
   log "# Appending to existing logfile #"
   log "#################################\n\n"
   log "Sim started $(date)"
-  echo "Appending to existing logfile $CSGLOG"
+  echo "Appending to existing logfile ${CSGLOG##*/}"
 else
-  echo For a more verbose log see: $CSGLOG
+  echo "For a more verbose log see: ${CSGLOG##*/}"
   #log is created in the next line
   echo "Sim started $(date)" > $CSGLOG || exit 1
 fi
 
-method="$(csg_get_property cg.inverse.method)" 
+method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
-if [ "$method" = "imc" ]; then
-  msg "####################################################"
-  msg "# WARNING multicomponent imc is still experimental #"
-  msg "####################################################"
-fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 log "We using Sim Program: $sim_prog"
-source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed" 
+source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed"
 
-iterations="$(csg_get_property cg.inverse.iterations_max)" 
-log "We are doing $iterations iterations."
+iterations_max="$(csg_get_property cg.inverse.iterations_max)"
+int_check "$do_iterations" "inverse.sh: cg.inverse.iterations_max needs to be a number"
+log "We are doing $iterations_max iterations (0=inf)."
+convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
+[ "$convergence_check" = "none" ] || log "After every iteration we will do the following check: $convergence_check"
 
-filelist="$(csg_get_property cg.inverse.filelist)"  
-log "We extra need $filelist to run the simulation"
+filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
+[ -z "$filelist" ] || log "We extra cp '$filelist' to every step to run the simulation"
+
+cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
+[ -z "$cleanlist" ] || log "We extra clean '$cleanlist' after a step is done"
 
 run_or_exit $SOURCE_WRAPPER --status
 run_or_exit $SOURCE_WRAPPER --check
@@ -118,37 +125,51 @@ run_or_exit $SOURCE_WRAPPER --check
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
 
-this_dir="$(get_stepname 0)"
+update_stepnames 0
+this_dir=$(get_current_step_dir --no-check)
 if [ -d "$this_dir" ]; then
   msg "Skiping prepare"
-  [[ -f $this_dir/done ]] || die "Incomplete step 00"
+  [[ -f $this_dir/done ]] || die "Incomplete step 0"
 else
   msg ------------------------
-  msg "Prepare (make $this_dir)"
+  msg "Prepare (dir ${this_dir##*/})"
   msg ------------------------
   mkdir -p $this_dir || die "mkdir -p $this_dir failed"
 
   cd $this_dir || die "cd $this_dir failed"
 
-  #copy+resample all rdf in $this_dir
-  for_all non-bonded do_external resample calc ..
+  do_external prepare $method
 
-  for_all "non-bonded" do_external init $method  
-
-  #get confout.gro
-  do_external init $sim_prog 
-
-  for_all non-bonded cp '$(csg_get_interaction_property name).pot.new ..' 
   touch done
-  msg "$this_dir done"
-  cd ..
+  msg "step 0 done"
+  cd $(get_main_dir)
 fi
 
-for ((i=1;i<$iterations+1;i++)); do
-  last_dir=$(get_stepname $((i-1)) )
-  this_dir=$(get_stepname $i)
+begin=1
+trunc=$(get_stepname --trunc)
+for i in ${trunc}*; do
+  [ -d "$i" ] || continue
+  nr=${i#$trunc}
+  if [ -n "$nr" ] && [ -z "${nr//[0-9]}" ]; then
+    #convert to base 10, otherwise 008 is interpreted as octal
+    nr=$((10#$nr))
+    [ $nr -gt $begin ] && begin="$nr"
+  fi
+done
+unset nr trunc
+[ $begin -gt 1 ] && msg "Jumping in at iteration $begin"
+
+avg_steptime=0
+steps_done=0
+[ $iterations_max -eq 0 ] && iterations=$begin || iterations=$iterations_max
+for ((i=$begin;i<$iterations+1;i++)); do
+  [ $iterations_max -eq 0 ] && ((iterations++))
+  step_starttime="$(get_time)"
+  update_stepnames $i
+  last_dir=$(get_last_step_dir)
+  this_dir=$(get_current_step_dir --no-check)
   msg -------------------------------
-  msg "Doing iteration $i (make $this_dir)"
+  msg "Doing iteration $i (dir ${this_dir##*/})"
   msg -------------------------------
   if [ -d $this_dir ]; then
     if [ -f $this_dir/done ]; then
@@ -168,62 +189,82 @@ for ((i=1;i<$iterations+1;i++)); do
   if is_done "Initialize"; then
     msg "Initialization already done"
   else
-    #copy+resample all rdf in this_dir 
-    for_all non-bonded do_external resample calc ..
-
     #get need files
-    for myfile in $filelist; do
-      run_or_exit cp ../$myfile .  
-    done
+    cp_from_main_dir $filelist
 
-    #get new pot from last step and make it current potential 
-    for_all non-bonded "cp ../$last_dir/\$(csg_get_interaction_property name).pot.new ./\$(csg_get_interaction_property name).pot.cur" 
+    #get file from last step and init sim_prog
+    do_external initstep $method
 
-    #convert potential in format for sim_prog
-    for_all non-bonded do_external convert_potential $sim_prog
-
-    #Run simulation maybe change to Espresso or whatever
-    do_external prepare $sim_prog "../$last_dir" 
     mark_done "Initialize"
   fi
 
   if is_done "Simulation"; then
     msg "Simulation is already done"
   else
-    msg "Simulation runs"
-    do_external run $sim_prog 
+    msg "Simulation with $sim_prog"
+    do_external run $sim_prog
     mark_done "Simulation"
   fi
 
-  msg "Make update $method" 
-  do_external update $method $i
+  msg "Make update for $method"
+  do_external update $method
 
-  msg "Post update"
-  do_external post update $i
+  msg "Post update for $method"
+  do_external post_update $method
 
-  msg "Adding up potential"
+  msg "Adding up potential for $method"
   do_external add_pot $method
 
   msg "Post add"
-  do_external post add $i
+  do_external post add
 
-  #copy latest results
-  for_all non-bonded 'cp $(csg_get_interaction_property name).pot.new ..'
+  msg "Clean up"
+  for cleanfile in ${cleanlist}; do
+    logrun rm -f $cleanfile
+  done
+  unset cleanfile
 
-  touch done
-  msg "step $i done"
-  cd ..
+  step_time="$(( $(get_time) - $step_starttime ))"
+  msg "\nstep $i done, needed $step_time secs"
+  ((steps_done++))
 
-  if [ -n "$do_iterations" ]; then
-    ((do_iterations--))
-    if [ $do_iterations -lt 1 ] ; then
-      log "Stopping at step $i, user requested to take some rest after this amount of iterations"
+  touch "done"
+
+  if [ "$convergence_check" = "none" ]; then
+    log "No convergence check to be done"
+  else
+    msg "Doing convergence check: $convergence_check"
+    if [ "$(do_external convergence_check "$convergence_check")" = "stop" ]; then
+      msg "Iterations are converged, stopping"
       exit 0
+    else
+      msg "Iterations are not converged, going on"
     fi
   fi
+
+  if [ -n "$wall_time" ]; then
+    avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
+    log "New average steptime $avg_steptime"
+    if [ $(( $(get_time) + $avg_steptime )) -gt $(( $wall_time + $start_time )) ]; then
+      msg "We will not manage another step, stopping"
+      exit 0
+    else
+      msg "We can go for another $(( ( ${start_time} + $wall_time - $(get_time) ) / $avg_steptime - 1 )) steps"
+    fi
+  fi
+
+  if [ -n "$do_iterations" ]; then
+    if [ $do_iterations -ge $steps_done ] ; then
+      msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
+      exit 0
+    else
+      msg "Going on for another $(( $do_iterations - $steps_done )) steps"
+    fi
+  fi
+  cd $(get_main_dir) || die "cd $(get_main_dir) failed"
 done
 
-touch done
+touch "done"
 log "All done at $(date)"
 exit 0
 

@@ -1,5 +1,5 @@
 #
-# Gererated Makefile - do not edit!
+# Generated Makefile - do not edit!
 #
 # Edit the Makefile in the project folder instead (../Makefile). Each target
 # has a -pre and a -post target defined where you can add customized code.
@@ -10,23 +10,31 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
 FC=gfortran
+AS=as
+
+# Macros
+CND_PLATFORM=GNU-Linux-x86
+CND_CONF=Debug
+CND_DISTDIR=dist
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=build/Debug/GNU-Linux-x86
+OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch_main.o \
-	${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch.o
+	${OBJECTDIR}/_ext/715944016/csg_fmatch.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -38,25 +46,28 @@ CXXFLAGS=
 # Fortran Compiler Flags
 FFLAGS=
 
+# Assembler Flags
+ASFLAGS=
+
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lboost_program_options -lgmx -lxml2 -lgsl -lgslcblas -lm
+LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lboost_program_options -lgmx -lexpat -lgsl -lgslcblas -lm
 
 # Build Targets
-.build-conf: ${BUILD_SUBPROJECTS} ../../src/tools/csg_fmatch
+.build-conf: ${BUILD_SUBPROJECTS}
+	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/csg_fmatch
 
-../../src/tools/csg_fmatch: ${BUILD_SUBPROJECTS}
+../../src/tools/csg_fmatch: ../libcsg/../../src/libcsg/libcsg.a
+
+../../src/tools/csg_fmatch: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
 
 ../../src/tools/csg_fmatch: ${OBJECTFILES}
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch_main.o: ../../src/tools/csg_fmatch_main.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools
-	$(COMPILE.cc) -g -O -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch_main.o ../../src/tools/csg_fmatch_main.cc
-
-${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools
-	$(COMPILE.cc) -g -O -I../../include -I../../../include -o ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch.o ../../src/tools/csg_fmatch.cc
+${OBJECTDIR}/_ext/715944016/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
+	${RM} $@.d
+	$(COMPILE.cc) -g -O -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_fmatch.o ../../src/tools/csg_fmatch.cc
 
 # Subprojects
 .build-subprojects:
@@ -72,3 +83,8 @@ ${OBJECTDIR}/_ext/people/thnfs/homes/ruehle/src/csg/src/tools/csg_fmatch.o: ../.
 .clean-subprojects:
 	cd ../libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
 	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug clean
+
+# Enable dependency checking
+.dep.inc: .depcheck-impl
+
+include .dep.inc

@@ -15,9 +15,12 @@
  *
  */
 
+#include <malloc.h>
 #include <iostream>
 #include "topology.h"
 #include "gmxtrajectoryreader.h"
+
+namespace votca { namespace csg {
 
 using namespace std;
 
@@ -29,13 +32,27 @@ bool GMXTrajectoryReader::Open(const string &file)
 
 void GMXTrajectoryReader::Close()
 {
-    gmx::close_trx(_gmx_status);
+    close_trx(_gmx_status);
 }
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
-    if(!gmx::read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
+#if GMX == 45
+    output_env_t oenv;
+    // _snew("oenv", oenv, 1);
+    oenv = (output_env_t)malloc(sizeof(*oenv));
+    output_env_init_default (oenv);
+
+    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_V | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
+    //sfree(oenv);
+    free(oenv);
+#elif GMX == 40
+    if(!read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X  | TRX_READ_V | TRX_READ_F))
+        throw std::runtime_error(string("cannot open ") + _filename);
+#else
+#error Unsupported GMX version
+#endif
 
     matrix m;
     for(int i=0; i<3; i++)
@@ -46,7 +63,7 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
     conf.setStep(_gmx_frame.step);
     cout << endl;
     
-    if(_gmx_frame.natoms != conf.Beads().size())
+    if(_gmx_frame.natoms != (int)conf.Beads().size())
         throw std::runtime_error("number of beads in trajectory do not match topology");
 
     //conf.HasPos(true);
@@ -59,14 +76,32 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
             double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
             conf.getBead(i)->setF(f);
         }
+        if(_gmx_frame.bV) {
+            double v[3] = { _gmx_frame.v[i][XX],  _gmx_frame.v[i][YY], _gmx_frame.v[i][ZZ] };
+            conf.getBead(i)->setVel(v);
+        }
     }
     return true;
 }
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
-    if(!gmx::read_next_frame(_gmx_status,&_gmx_frame))
+#if GMX == 45
+    output_env_t oenv;
+    //_snew("oenv", oenv, 1);
+    oenv = (output_env_t)malloc(sizeof(*oenv));
+    output_env_init_default (oenv);
+    if(!read_next_frame(oenv, _gmx_status,&_gmx_frame))
         return false;
+    //sfree(oenv);
+    free(oenv);
+#elif GMX == 40
+    if(!read_next_frame(_gmx_status,&_gmx_frame))
+        return false;
+#else
+#error Unsupported GMX version
+#endif
+
     matrix m;
     for(int i=0; i<3; i++)
         for(int j=0; j<3; j++)
@@ -84,6 +119,14 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf)
             double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
             conf.getBead(i)->setF(f);
         }
+        if(_gmx_frame.bV) {
+            double v[3] = { _gmx_frame.v[i][XX],  _gmx_frame.v[i][YY], _gmx_frame.v[i][ZZ] };
+            conf.getBead(i)->setVel(v);
+        }
+
+
     }
     return true;
 }
+
+}}

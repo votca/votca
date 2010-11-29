@@ -18,7 +18,20 @@
 #include <iostream>
 #include "pdbtopologyreader.h"
 
-namespace gmx {
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#if GMX == 45
+        #include <gromacs/statutil.h>
+        #include <gromacs/typedefs.h>
+        #include <gromacs/smalloc.h>
+        #include <gromacs/confio.h>
+        #include <gromacs/vec.h>
+        #include <gromacs/copyrite.h>
+        #include <gromacs/statutil.h>
+        #include <gromacs/tpxio.h>
+#elif GMX == 40
    extern "C" {
         #include <statutil.h>
         #include <typedefs.h>
@@ -29,35 +42,39 @@ namespace gmx {
         #include <statutil.h>
         #include <tpxio.h>
     }
+#else
+#error Unsupported GMX version
+#endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
-}
 
-#define snew2(ptr,nelem) (ptr)=(gmx::rvec*)gmx::save_calloc(#ptr,__FILE__,__LINE__,\
+#define snew2(ptr,nelem) (ptr)=(rvec*)save_calloc(#ptr,__FILE__,__LINE__,\
                         (nelem),sizeof(*(ptr)))
 
+
+namespace votca { namespace csg {
 
 bool PDBTopologyReader::ReadTopology(string file, Topology &top)
 {
     char title[512];
-    gmx::rvec *x, *v;
-    gmx::matrix box;
+    rvec *x, *v;
+    ::matrix box;
     int ePBC;
-    gmx::t_atoms atoms;
+    t_atoms atoms;
     
     //snew(atoms,1);
-    gmx::get_stx_coordnum((char*)file.c_str(),&(atoms.nr));
+    get_stx_coordnum((char*)file.c_str(),&(atoms.nr));
     init_t_atoms(&atoms,atoms.nr,TRUE);
     snew2(x,atoms.nr);
     snew2(v,atoms.nr);
     fprintf(stderr,"\nReading structure file\n");
 
-    gmx::read_stx_conf((char*)file.c_str(), title,&atoms,
+    read_stx_conf((char*)file.c_str(), title,&atoms,
                           x,NULL,&ePBC,box);
     Residue *res = top.CreateResidue("no");
     // read the atoms
     for(int i=0; i < atoms.nr; i++) {
-        gmx::t_atom *a;
+        t_atom *a;
         a = &(atoms.atom[i]);
         BeadType *type = top.GetOrCreateBeadType("no");
         top.CreateBead(1, *(atoms.atomname[i]), type, res->getId(), a->m, a->q);  
@@ -66,3 +83,5 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
    
     return true;
 }
+
+}}

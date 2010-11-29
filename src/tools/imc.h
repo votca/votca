@@ -27,9 +27,10 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/histogramnew.h>
+#include <votca/tools/average.h>
 
-namespace ub = boost::numeric::ublas;
-using namespace std;
+namespace votca { namespace csg {
+using namespace votca::tools;
 
 /**
  * \brief class to calculate distribution functions and cross correlations for inverse monte carlo
@@ -63,6 +64,7 @@ public:
     void DoImc(bool do_imc) { _do_imc = do_imc; }
     
 protected:
+    Average<double> _avg_vol;
     
     typedef ub::matrix<double> group_matrix;
     typedef ub::matrix_range< group_matrix > pair_matrix;
@@ -79,12 +81,12 @@ protected:
     
     // a pair of interactions which are correlated
     struct pair_t {
-        pair_t(interaction_t *i1, interaction_t *i2,
-                int offset_i, int offset_j, const pair_matrix &corr);                
         interaction_t *_i1;
         interaction_t *_i2;
-        pair_matrix _corr;
         int _offset_i, _offset_j;
+        pair_matrix _corr;
+        pair_t(interaction_t *i1, interaction_t *i2,
+                int offset_i, int offset_j, const pair_matrix &corr);                
     };
     
     /// struct to store collected information for groups (e.g. crosscorrelations)
@@ -148,6 +150,8 @@ protected:
          int offset_i, int offset_j, const pair_matrix &corr)
          :
   _i1(i1), _i2(i2), _offset_i(offset_i), _offset_j(offset_j), _corr(corr)  {}
+
+}}
 
 #endif	/* _IMC_H */
 

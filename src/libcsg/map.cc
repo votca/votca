@@ -21,6 +21,8 @@
 #include <votca/tools/tokenizer.h>
 #include <numeric>
 
+namespace votca { namespace csg {
+
 using namespace std;
 
 Map::~Map()
@@ -89,7 +91,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
 
     fweights.resize(weights.size());
     // calculate force weights by d_i/w_i
-    for(int i=0; i<weights.size(); ++i) {
+    for(size_t i=0; i<weights.size(); ++i) {
         if(weights[i] == 0 && d[i]!=0) {
             throw runtime_error(
                 "A d coefficient is nonzero while weights is zero in mapping "
@@ -185,24 +187,32 @@ void Map_Ellipsoid::Apply()
         _out->setVel(vel);
     if(bF)
         _out->setF(f);
+
+    if(!_matrix[0]._in->HasPos()) {
+        _out->setU(vec(1.0,0,0));
+        _out->setV(vec(.0,1,0));
+        _out->setW(vec(.0,0,1));
+        return;
+    }
     
     // calculate the tensor of gyration
     c=c/(double)n;    
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         if((*iter)._weight == 0) continue;
         Bead *bead = iter->_in;
-        vec v = bead->getPos() - c;
-        //v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
-        //    + vec(0.5, -1, 0) * (drand48()-0.5)
-        //    + vec(0, 0, 1) * (drand48()-0.5);
+            vec v = bead->getPos() - c;
+            //v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
+            //    + vec(0.5, -1, 0) * (drand48()-0.5)
+            //    + vec(0, 0, 1) * (drand48()-0.5);
         
-        //Normalize the tensor with 1/number_of_atoms_per_bead
-        m[0][0] += v.getX()*v.getX()/(double)_matrix.size();
-        m[0][1] += v.getX()*v.getY()/(double)_matrix.size();
-        m[0][2] += v.getX()*v.getZ()/(double)_matrix.size();        
-        m[1][1] += v.getY()*v.getY()/(double)_matrix.size();
-        m[1][2] += v.getY()*v.getZ()/(double)_matrix.size();
-        m[2][2] += v.getZ()*v.getZ()/(double)_matrix.size();
+            //Normalize the tensor with 1/number_of_atoms_per_bead
+            m[0][0] += v.getX()*v.getX()/(double)_matrix.size();
+            m[0][1] += v.getX()*v.getY()/(double)_matrix.size();
+            m[0][2] += v.getX()*v.getZ()/(double)_matrix.size();
+            m[1][1] += v.getY()*v.getY()/(double)_matrix.size();
+            m[1][2] += v.getY()*v.getZ()/(double)_matrix.size();
+            m[2][2] += v.getZ()*v.getZ()/(double)_matrix.size();
+        
     }
     m[1][0] = m[0][1];
     m[2][0] = m[0][2];
@@ -216,10 +226,10 @@ void Map_Ellipsoid::Apply()
     vec eigenv2=es.eigenvecs[1];
     vec eigenv3=es.eigenvecs[2];
     
-    _out->seteigenvec1(eigenv1);
+/*    _out->seteigenvec1(eigenv1);
     _out->seteigenvec2(eigenv2);
     _out->seteigenvec3(eigenv3);
-    
+  */  
     
     vec u = es.eigenvecs[0];
     vec v = _matrix[1]._in->getPos() - _matrix[0]._in->getPos();
@@ -229,16 +239,6 @@ void Map_Ellipsoid::Apply()
     
     vec w = _matrix[2]._in->getPos() - _matrix[0]._in->getPos();
     w.normalize();
-    
-    //store the eigenvalues for the tensor of gyration
-    double eigenvalue1 = es.eigenvalues[0];
-    double eigenvalue2 = es.eigenvalues[1];
-    double eigenvalue3 = es.eigenvalues[2];
-    
-    
-    _out->setval1(eigenvalue1);
-    _out->setval2(eigenvalue2);
-    _out->setval3(eigenvalue3);
     
     if((v^w)*u < 0) u=vec(0.,0.,0.)-u;
     _out->setU(u);
@@ -252,3 +252,5 @@ void Map_Ellipsoid::Apply()
     
     //out.BeadW(_out) = es.eigenvecs[2];
 }
+
+}}

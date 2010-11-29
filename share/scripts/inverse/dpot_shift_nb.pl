@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ Usage: $progname infile outfile
 
 NEEDS:
 
-USES: readin_table saveto_table 
+USES: readin_table saveto_table
 EOF
   exit 0;
 }
@@ -40,17 +40,15 @@ use CsgFunctions;
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-print("$infile, $outfile\n");
-
 # read in the current dpot
 my @r;
 my @dpot;
 my @flag;
 (readin_table($infile,@r,@dpot,@flag)) || die "$progname: error at readin_table\n";
 
-# find first u/o
+# find first u
 my $i_first;
-for($i_first=0; ($i_first<=$#r) && ($flag[$i_first] =~ /[uo]/); $i_first++) {}
+for($i_first=0; ($i_first<=$#r) && ($flag[$i_first] =~ /[u]/); $i_first++) {}
 
 # shift beginning
 for(my $i=0; $i<$i_first; $i++) {

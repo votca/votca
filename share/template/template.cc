@@ -1,100 +1,75 @@
-/* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+/*
+ * File:   main.cpp
+ * Author: ruehle
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * Created on July 6, 2010, 12:15 PM
  */
 
-#include <math.h>
-#include <boost/tokenizer.hpp>
-#include <iostream>
-#include <fstream>
-#include <boost/program_options.hpp>
-#include <cgengine.h>
-#include <version.h>
-#include <stdexcept>
+#include <stdlib.h>
+#include <votca/csg/csgapplication.h>
+#include <votca/tools/histogramnew.h>
+#include <votca/csg/beadlist.h>
+#include <votca/csg/nblist.h>
+#include <votca/csg/nblistgrid.h>
 
+//using namespace votca::tools;
 using namespace std;
+using namespace votca::csg;
 
-void help_text(void)
+class CsgTestApp
+    : public CsgApplication
 {
-    votca::csg::HelpTextHeader("template");
-    cout << "Template for VOTCA application\n\n";
-}
-using namespace std;
+    string ProgramName() { return "template_nblist"; }
+    void HelpText(ostream &out) { out << "rough template for rdf calculations"; }
 
-class CGAnalyzer
-    : public CGObserver
-{
-public:
-    void BeginCG(Topology *top, Topology *top_atom) {
-    };
-    void EndCG() {
-    };
-    
-    void EvalConfiguration(Topology *top, Topology *top_atom = 0) {
-    }
-    
+    void Initialize();
+
+    bool DoTrajectory() {return true;}
+
+    void BeginEvaluate(Topology *top, Topology *top_ref);
+    void EvalConfiguration(Topology *top, Topology *top_ref);
+    void EndEvaluate();
+
 protected:
+    HistogramNew _rdf;
+    double _cut_off;
+
 };
 
-
 int main(int argc, char** argv)
-{    
-    // we have one observer
-    CGAnalyzer no;        
-    // The CGEngine does the work
-    CGEngine cg_engine;
-    
-    try {
-        cg_engine.Initialize();
+{
+    CsgTestApp app;
 
-        // add observer that it gets called to analyze frames
-        cg_engine.AddObserver((CGObserver*)&no);
-    
-        // lets read in some program options
-        namespace po = boost::program_options;
-        
-        // Add a user option
-        cg_engine.AddProgramOptions()
-            ("myoption", po::value<string>(), "  Example for a new option");
-    
-        cg_engine.ParseCommandLine(argc, argv);
+    return app.Exec(argc, argv);
+}
 
-        // some shortcuts
-        po::variables_map &vm
-            = cg_engine.OptionsMap();
-        po::options_description &desc
-            = cg_engine.OptionsDesc();
+void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref)
+{
+    BeadList b;
+    b.Generate(*top, "*");
+    NBListGrid nb;
+    nb.setCutoff(_cut_off);
+    nb.Generate(b);
+    NBList::iterator i;
+    for(i=nb.begin(); i!=nb.end(); ++i)
+        _rdf.Process((*i)->dist());
+}
 
-        // does the user want help?
-        if (vm.count("help")) {
-            cout << "csg_nemat, lib version " << LIB_VERSION_STR << "\n\n";                
-            cout << desc << endl;
-            return 0;
-        }
+void CsgTestApp::Initialize()
+{
+    CsgApplication::Initialize();
+    AddProgramOptions("RDF options")
+             ("c", boost::program_options::value<double>()->default_value(1.0), "the cutoff");
+}
 
-        // or asks for the program version?
-        if (vm.count("myoption"))
-            cout << "myoption = " << vm["myoption"].as<string>() << endl;
+void CsgTestApp::BeginEvaluate(Topology *top, Topology *top_ref)
+{
+    _cut_off = OptionsMap()["c"].as<double>();
+    _rdf.Initialize(0, _cut_off, 50);
+}
 
-        // start coarse graining
-        cg_engine.Run();
-    }
-    // did an error occour?
-    catch(std::exception &error) {
-        cerr << "An error occoured!" << endl << error.what() << endl;
-    }
-    return 0;
+void CsgTestApp::EndEvaluate()
+{
+    _rdf.data().Save("rdf.dat");
 }
 

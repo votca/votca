@@ -1,34 +1,46 @@
-HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node}' 2> /dev/null || grep node $(top_builddir)/.hg_archival.txt 2> /dev/null || true )
+HGVERSION:= $(shell hg -R $(top_builddir) parents --template 'hgid: {node|short}' 2> /dev/null || grep node $(top_builddir)/.hg_archival.txt 2> /dev/null || true )
 
 # Scripts generated at compile time
-bin_SCRIPTS   = CSGRC.csh CSGRC.bash csg_inverse csg_call
+bin_SCRIPTS   = csg_inverse csg_call multi_g_rdf
+
+if NO_RC_FILES
+rcdir =
+rcfiles =
+else
+rcdir = ${datadir}/votca/rc
+rcfiles = csg.rc.csh csg.rc.bash
+rc_DATA = $(rcfiles) csg-completion.bash
+endif
 
 # Extra files we need
-EXTRA_DIST = CSGRC.csh.in CSGRC.bash.in csg_inverse.in csg_call.in
+EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf.in csg-completion.bash
 
 #hg version is determined at compiletime
-csg_call: csg_call.in Makefile hgstamp
-	cat $(srcdir)/csg_call.in | \
-	sed 's,@version\@,@VERSION@ $(HGVERSION),' > csg_call
+csg_call: $(srcdir)/csg_call.in Makefile hgstamp
+	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
 
-csg_inverse: csg_inverse.in Makefile hgstamp
-	cat $(srcdir)/csg_inverse.in | \
-	sed 's,@version\@,@VERSION@ $(HGVERSION),' > csg_inverse
+csg_inverse: $(srcdir)/csg_inverse.in Makefile hgstamp
+	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
 
-CSGRC.csh:  CSGRC.csh.in Makefile hgstamp
-	cat $(srcdir)/CSGRC.csh.in | \
-	sed 's,@bindir\@,$(bindir),' | \
-	sed 's,@votcashare\@,${datadir}/votca,' > CSGRC.csh
+multi_g_rdf: $(srcdir)/multi_g_rdf.in Makefile hgstamp
+	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
 
-CSGRC.bash:  CSGRC.bash.in Makefile hgstamp
-	cat $(srcdir)/CSGRC.bash.in | \
-	sed 's,@bindir\@,$(bindir),' | \
-	sed 's,@votcashare\@,${datadir}/votca,' > CSGRC.bash
+csg.rc.csh: $(srcdir)/csg.rc.csh.in Makefile
+	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
-CLEANFILES = CSGRC.csh CSGRC.bash csg_call csg_inverse *~
+csg.rc.bash: $(srcdir)/csg.rc.bash.in Makefile
+	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
-hgstamp: update_hgstamp
-update_hgstamp:
-	[ -f hgstamp ] || touch hgstamp
-	echo $(HGVERSION) | cmp -s hgstamp - || echo $(HGVERSION) > hgstamp
+CLEANFILES = $(bin_SCRIPTS) $(rcfiles) hgstamp *~
 
+install-exec-hook:
+	cd $(DESTDIR)$(bindir) && $(LN_S) -f multi_g_rdf multi_g_density
+
+uninstall-hook:
+	cd $(DESTDIR)$(bindir) && rm -f multi_g_density
+
+hgstamp: dummy
+	[ -f $@ ] || touch $@
+	echo $(HGVERSION) | cmp -s $@ - || echo $(HGVERSION) > $@
+
+dummy: ;

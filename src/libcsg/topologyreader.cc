@@ -15,16 +15,33 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "topologyreader.h"
+#include "modules/io/esptopologyreader.h"
+#include "modules/io/lammpsreader.h"
+#include "modules/io/xmltopologyreader.h"
+
+#ifdef GMX
 #include "modules/io/gmxtopologyreader.h"
 #include "modules/io/grotopologyreader.h"
-#include "modules/io/xmltopologyreader.h"
 #include "modules/io/pdbtopologyreader.h"
+#endif
+
+namespace votca { namespace csg {
 
 void TopologyReader::RegisterPlugins(void)
 {
+    TopReaderFactory().Register<ESPTopologyReader>("esp");		
+    TopReaderFactory().Register<XMLTopologyReader>("xml");
+    TopReaderFactory().Register<LAMMPSReader>("dump");
+#ifdef GMX
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
     TopReaderFactory().Register<GROTopologyReader>("gro");
-    TopReaderFactory().Register<XMLTopologyReader>("xml");
     TopReaderFactory().Register<PDBTopologyReader>("pdb");
+#endif
 }
+
+}}

@@ -15,14 +15,30 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "trajectoryreader.h"
+#include "modules/io/esptrajectoryreader.h"
+#include "modules/io/lammpsreader.h"
+
+#ifdef GMX
 #include "modules/io/gmxtrajectoryreader.h"
+#endif
+
+namespace votca { namespace csg {
 
 void TrajectoryReader::RegisterPlugins(void)
 {
+    TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
+    TrjReaderFactory().Register<LAMMPSReader>("dump");
+#ifdef GMX
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
     TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
     TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
+#endif
 }
+
+}}

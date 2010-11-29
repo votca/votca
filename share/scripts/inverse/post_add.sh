@@ -1,5 +1,5 @@
 #! /bin/bash
-# 
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,9 @@ cat <<EOF
 ${0##*/}, version %version%
 This script make all the post update with backup
 
-Usage: ${0##*/} step_nr
+Usage: ${0##*/}
 
-USES:  do_external die for_all
+USES:  do_external for_all check_deps
 
 NEEDS:
 EOF
@@ -31,7 +31,6 @@ fi
 
 check_deps "$0"
 
-[[ -n "$1" ]] || die "${0##*/}: Missing argument"
 
-for_all "non-bonded" do_external post add_single "${1}"
+for_all "non-bonded" do_external post add_single
 

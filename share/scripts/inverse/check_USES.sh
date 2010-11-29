@@ -1,5 +1,5 @@
-#! /bin/bash 
-# 
+#! /bin/bash
+#
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ else
 fi
 
 if [ -z "$1" ]; then
-  echo MIssing argument >&2 
+  echo MIssing argument >&2
   echo help with ${0##*/} --help >&2
   exit 1
 fi
@@ -77,7 +77,7 @@ for i in $@; do
       if [ -z "${i%%*.sh}" ]; then
 	what="${what}"
 	what2="$what"
-      elif [ -z "${i%%*.pl}" ]; then 
+      elif [ -z "${i%%*.pl}" ]; then
 	what2="${what}"
 	what="\$ENV\{'?${what##\$}'?\}"
       fi

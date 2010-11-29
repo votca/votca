@@ -26,6 +26,9 @@
 #include "beadtype.h"
 #include "topologyitem.h"
 
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 class Molecule;
 
@@ -58,8 +61,10 @@ public:
     /// get the charge of the bead
     const double &getQ() const { return _q; }
     
-    /// get the mass of the bead
+    /// set the mass of the bead
     void setM(const double &m) { _m=m; }
+    /// set the crg of the bead
+    void setQ(const double &q) { _q=q; }
 
     /// get the symmetry of the bead
     /// 1: sphere
@@ -92,36 +97,7 @@ public:
     /// get orientation W of a bead
     const vec &getW() const;
         
-    
-    ///set first eigenvalue of tensor of gyration
-    void setval1(const double &eigenvalue_1);
-     /// get first eigenvalu
-    const double &getval1() const;
-    
-     ///set second eigenvalue of tensor of gyration
-    void setval2(const double &eigenvalue_2);
-     /// get second eigenvalu
-    const double &getval2() const;
-    
-     ///set last eigenvalue of tensor of gyration
-    void setval3(const double &eigenvalue_3);
-     /// get last eigenvalu
-    const double &getval3() const;
-    
-    /// set first eigenvector for Tensor of Gyration
-    void seteigenvec1(const vec &eigenvec_1);
-     /// get first eigenvector
-    
-    const vec &geteigenvec1() const;
-    
-     void seteigenvec2(const vec &eigenvec_2);
-     /// get first eigenvalu
-    const vec &geteigenvec2() const;
-     
-    void seteigenvec3(const vec &eigenvec_3);
-     /// get first eigenvalu
-    const vec &geteigenvec3() const;
-    
+       
     /// direct access (read/write) to the position of a bead
     vec &Pos() { return _pos; }
     /// direct access (read/write) to the velocities of a bead
@@ -152,20 +128,14 @@ public:
     bool HasV() {return _bV; }
     /// does this configuration store w-orientations?
     bool HasW() {return _bW; }
-    /// does this configuration store eigenvalue1?
-    bool Has1() {return _b1; }
-    bool Has2() {return _b2; }
-    bool Has3() {return _b3; }
-    
-    
+        
     void HasPos(bool b);
     void HasVel(bool b);
     void HasF(bool b);
     void HasU(bool b);
     void HasV(bool b);
     void HasW(bool b);
-    void Has1(bool b);
-
+    
     Molecule *getMolecule() { return _mol; }
 
     vector<int> &ParentBeads() { return _parent_beads; };
@@ -210,7 +180,7 @@ protected:
     
     /// constructur
     Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name, int resnr, double m, double q)
-        : _id(id), _type(type), _symmetry(symmetry), _name(name), _resnr(resnr), _m(m), _q(q), TopologyItem(owner)
+        : TopologyItem(owner), _id(id), _type(type), _symmetry(symmetry), _name(name), _resnr(resnr), _m(m), _q(q)
     {_bPos=false;
     _bVel=false;
     _bU=false;
@@ -288,79 +258,6 @@ inline const vec &Bead::getW() const
     return _w;
 }
 
-inline void Bead::setval1(const double &val1)
-{
-    _b1=true;
-    _val1 = val1;
-}
-
-
-inline const double &Bead::getval1() const
-{
-    assert(_b1);
-    return _val1;
-}
-
-inline void Bead::setval2(const double &val2)
-{
-    _b2=true;
-    _val2 = val2;
-}
-
-inline const double &Bead::getval2() const
-{
-    assert(_b2);
-    return _val2;
-}
-
-
-inline void Bead::setval3(const double &val3)
-{
-    _b3=true;
-     _val3 = val3;
-}
-
-inline const double &Bead::getval3() const
-{
-    assert(_b3);
-    return _val3;
-}
-
-inline void Bead::seteigenvec1(const vec &eigenvec1)
-{
-     _eigenvec1 = eigenvec1;
-}
-
-
-inline const vec &Bead::geteigenvec1() const 
-{
-     return _eigenvec1;
-}
-
-inline void Bead::seteigenvec2(const vec &eigenvec2)
-{
-     _eigenvec2 = eigenvec2;
-}
-inline const vec &Bead::geteigenvec2() const 
-{
-     return _eigenvec2;
-}
-
-inline void Bead::seteigenvec3(const vec &eigenvec3)
-{
-     _eigenvec3 = eigenvec3;
-}
-
-inline const vec &Bead::geteigenvec3() const 
-{
-     return _eigenvec3;
-}
-
-
-
-
-
-
 inline void Bead::setF(const vec &F)
 {
     _bF=true;
@@ -402,6 +299,8 @@ inline void Bead::HasW(bool b)
 {
     _bW=b;
 }
+
+}}
 
 #endif	/* _beadinfo_H */
 

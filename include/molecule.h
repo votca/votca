@@ -24,6 +24,10 @@
 #include <assert.h>
 #include "topologyitem.h"
 #include "bead.h"
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
 using namespace std;
 
 class Interaction;
@@ -70,6 +74,12 @@ public:
 
     vector<Interaction *> Interactions() { return _interactions; }
 
+    template<typename T>
+    void setUserData(T *userdata) { _userdata = (void*)userdata; }
+
+    template<typename T>
+    T *getUserData() { return (T *)_userdata; }
+    
 private:
     // maps a name to a bead id
     map<string, int> _beadmap;
@@ -83,14 +93,18 @@ private:
     // the beads in the molecule
     vector<Bead *> _beads;
     vector<string> _bead_names;
+
+    void *_userdata;
     
     /// constructor
     Molecule(Topology *parent, int id, string name)
-        : _id(id), _name(name), TopologyItem(parent)
+        : TopologyItem(parent), _id(id), _name(name)
     {}
 
     friend class Topology;
 };
+
+}}
 
 #endif	/* _Molecule_H */
 

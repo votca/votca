@@ -20,10 +20,12 @@
 
 #include <string>
 #include <sstream>
-using namespace std;
-
 #include "topology.h"
 #include "bead.h"
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+using namespace std;
 
 /**
     \brief base calss for all interactions
@@ -123,7 +125,7 @@ public:
         { _beads.resize(4); for(int i=0; i<4; ++i) { _beads[i] = beads.front(); beads.pop_front(); }}
    
     double EvaluateVar(const Topology &top);
-    vec Grad(const Topology &top, int bead) {}
+    vec Grad(const Topology &top, int bead) { assert(false); return vec(0,0,0); } // not implemented
 
 private:
 };
@@ -164,7 +166,7 @@ inline vec IAngle::Grad(const Topology &top, int bead)
         case (2): return acos_prime * (v1 / (av1*av2) - v2*cosphi/(av2*av2)); break;
     }
     return 0;
-    /**/
+    */
     vec v1(top.getDist(_beads[1], _beads[0]));
     vec v2(top.getDist(_beads[1], _beads[2]));
     
@@ -173,14 +175,17 @@ inline vec IAngle::Grad(const Topology &top, int bead)
         case (0): return acos_prime * (-v2 / ( abs(v1)*abs(v2) ) +  (v1*v2) * v1 / ( abs(v2)*abs(v1)*abs(v1)*abs(v1) ) ); break;
         case (1): return acos_prime * ( (v1+v2)/(abs(v1) * abs(v2)) - (v1 * v2) * ((v2*v2) * v1 + (v1*v1) * v2 ) / ( abs(v1)*abs(v1)*abs(v1)*abs(v2)*abs(v2)*abs(v2) ) ); break;
         case (2): return acos_prime * (-v1 / ( abs(v1)*abs(v2) ) +  (v1*v2) * v2 / ( abs(v1)*abs(v2)*abs(v2)*abs(v2) ) ); break;
-    }/**/
+    }
+    // should never reach this
+    assert(false);
+    return vec(0,0,0);
 }
 
 inline double IDihedral::EvaluateVar(const Topology &top)
 {
-    vec v1(top.getBead(_beads[1])->getPos() - top.getBead(_beads[0])->getPos());
-    vec v2(top.getBead(_beads[2])->getPos() - top.getBead(_beads[1])->getPos());
-    vec v3(top.getBead(_beads[3])->getPos() - top.getBead(_beads[2])->getPos());
+    vec v1(top.getDist(_beads[0], _beads[1]));
+    vec v2(top.getDist(_beads[1], _beads[2]));
+    vec v3(top.getDist(_beads[2], _beads[3]));
     vec n1, n2;
     n1 = v1^v2; // calculate the normal vector
     n2 = v2^v3; // calculate the normal vector
@@ -189,6 +194,8 @@ inline double IDihedral::EvaluateVar(const Topology &top)
     //return sign*acos(n1*n2/sqrt((n1*n1) * (n2*n2))) + 1;
     //return pow(acos(n1*n2/sqrt((n1*n1) * (n2*n2))), 2);
 }
+
+}}
 
 #endif	/* _interaction_H */
 

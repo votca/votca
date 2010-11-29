@@ -20,6 +20,8 @@
 #include <votca/tools/rangeparser.h>
 #include <stdexcept>
 
+namespace votca { namespace csg {
+
 Topology::~Topology()
 {
     Cleanup();
@@ -119,9 +121,7 @@ void Topology::Add(Topology *top)
     ResidueContainer::iterator res;
     MoleculeContainer::iterator mol;
     
-    int bead0=BeadCount();
     int res0=ResidueCount();
-    int mol0=MoleculeCount();
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         Bead *bi = *bead;
@@ -172,11 +172,11 @@ void Topology::CopyTopologyData(Topology *top)
     // copy all molecules
     for(it_mol=top->_molecules.begin();it_mol!=top->_molecules.end(); ++it_mol) {
         Molecule *mi = CreateMolecule((*it_mol)->getName());
-        for(int i=0; i<mi->BeadCount(); i++) {
-            mi->AddBead(mi->getBead(i), mi->getBeadName(i));
+        for(int i=0; i<(*it_mol)->BeadCount(); i++) {
+            int beadid = (*it_mol)->getBead(i)->getId();
+            mi->AddBead(_beads[beadid], (*it_mol)->getBeadName(i));
         }
     }
-
     // TODO: copy interactions
     //for(it_ia=top->_interaction.begin();it_ia=top->_interactions.end();++it_ia) {
 
@@ -191,7 +191,7 @@ void Topology::RenameMolecules(string range, string name)
     
     rp.Parse(range);
     for(i=rp.begin();i!=rp.end();++i) {
-        if(*i > _molecules.size())
+        if((unsigned int)*i > _molecules.size())
             throw runtime_error(string("RenameMolecules: num molecules smaller than"));
         getMolecule(*i-1)->setName(name);
     }
@@ -285,4 +285,5 @@ void Topology::RebuildExclusions()
 {
     _exclusions.CreateExclusions(this);
 }
-    
+
+}}

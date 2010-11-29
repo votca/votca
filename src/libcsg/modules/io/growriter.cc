@@ -19,6 +19,9 @@
 #include <string>
 #include "growriter.h"
 
+
+namespace votca { namespace csg {
+
 using namespace std;
 
 void GROWriter::Open(string file, bool bAppend)
@@ -33,8 +36,8 @@ void GROWriter::Close()
 
 void GROWriter::Write(Topology *conf)
 {
-    char nm[6],format[100];
-  int  ai,i,resnr,l,vpr;
+    char format[100];
+  int  i,resnr,l,vpr;
   Topology *top = conf;
 
   fprintf (_out,"%s\n","what a nice title");
@@ -99,3 +102,5 @@ void GROWriter::Write(Topology *conf)
   }
   fflush(_out);
 }
+
+}}
