@@ -18,13 +18,11 @@
 version='@version@'
 
 if [ -z "${CSGSHARE}" ]; then
-  CSGSHARE="${0%/*}/../share/votca"
-  if [ -f "$CSGSHARE/scripts/inverse/inverse.sh" ]; then
+  if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
-    export CSGSHARE="$(cd $CSGSHARE;pwd)"
-    echo "Guessed CSGSHARE to be ${CSGSHARE}"
-  else
-    unset CSGSHARE
+    export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
+  elif [ -f "@votcashare@/scripts/inverse/inverse.sh" ]; then
+    export CSGSHARE="@votcashare@"
   fi
 fi
 
@@ -56,22 +54,23 @@ Usage: ${0##*/} [OPTIONS] setting_file.xml
 Allowed options:
 -h, --help     Show this help
 
-NOTE: this is a short help, please export CSGSHARE to get the full help.
+NOTE: this is a short help, please export CSGSHARE or
+      source VOTCARC.bash or VOTCARC.csh to get the full help.
 eof
 exit 0
 fi
 
 if [ -z "${CSGSHARE}" ]; then
    echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
-   echo "Please source VOTCARC.bash or VOTCARC.csh" >&2
-   echo "Try ${0##*/} --help for help" >&2
+   echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
    exit 1
 fi
 
+echo "CSGSHARE is ${CSGSHARE}"
 if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
    exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
    exit 0
 else
-   echo ${0##*/}: Could not run ${CSGSHARE}/scripts/inverse/inverse.sh $@
+   echo "${0##*/}: Could not run \${CSGSHARE}/scripts/inverse/inverse.sh $@" >&2
    exit 1
 fi
