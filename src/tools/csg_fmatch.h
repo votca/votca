@@ -24,6 +24,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
 #include "csgapplication.h"
+#include <votca/csg/trajectoryreader.h>
 
 using namespace votca::csg;
 
@@ -148,6 +149,8 @@ protected:
   /// \brief Counters for lines and coloumns in _B_constr
   int _line_cntr, _col_cntr;
 
+  bool _has_existing_forces;
+  
   /// \brief Solves FM equations for one block and stores the results for further processing
   void FmatchAccumulateData();
   /// \brief Assigns smoothing conditions to matrices _A and _B_constr
@@ -158,6 +161,11 @@ protected:
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);
   /// \brief Write results to output files
   void WriteOutFiles();
+
+  void OpenForcesTrajectory();
+
+  Topology _top_force;
+  TrajectoryReader *_trjreader_force;
 };
 
 #endif	/* _CSG_FMATCH_H */

@@ -24,7 +24,6 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
-#include <cgengine.h>
 #include <nblist.h>
 #include <beadlist.h>
 #include "csg_fmatch.h"
@@ -42,7 +41,8 @@ void CGForceMatching::Initialize(void)
 {
     CsgApplication::Initialize();
     AddProgramOptions()
-        ("options", boost::program_options::value<string>(), "  options file for coarse graining");
+        ("options", boost::program_options::value<string>(), "  options file for coarse graining")
+        ("trj-force", boost::program_options::value<string>(), "  coarse-grained trajectory containing forces of already known interactions");
 }
 
 bool CGForceMatching::EvaluateOptions()
@@ -50,6 +50,10 @@ bool CGForceMatching::EvaluateOptions()
     CsgApplication::EvaluateOptions();
     CheckRequired("options", "need to specify options file");
     LoadOptions(OptionsMap()["options"].as<string>());
+
+    _has_existing_forces = false;
+    if(OptionsMap().count("trj-force"))
+        _has_existing_forces = true;
     return true;
 }
 
@@ -138,6 +142,17 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
     // resize and clear _x
     _x.resize(_col_cntr);
     _x.clear();
+
+    if(_has_existing_forces) {
+        _top_force.CopyTopologyData(top);
+        _trjreader_force = TrjReaderFactory().Create(_op_vm["trj-force"].as<string>());
+        if(_trjreader_force == NULL)
+            throw runtime_error(string("input format not supported: ") + _op_vm["trj-force"].as<string>());
+        // open the trajectory
+        _trjreader_force->Open(_op_vm["trj-force"].as<string>());
+        // read in first frame
+        _trjreader_force->FirstFrame(_top_force);
+    }
 }
 
 CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, Property *options) 
@@ -187,6 +202,8 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
 void CGForceMatching::EndEvaluate()
 {
     cout << "\nWe are done, thank you very much!" << endl;
+     _trjreader_force->Close();
+     delete _trjreader_force;
 }
 
 void CGForceMatching::WriteOutFiles()
@@ -246,6 +263,12 @@ void CGForceMatching::WriteOutFiles()
 void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) 
 {
     SplineContainer::iterator spiter;
+    if(_has_existing_forces) {
+        if(conf->BeadCount() != _top_force.BeadCount())
+            throw std::runtime_error("number of beads in topology and force topology does not match");
+        for(int i=0; i<conf->BeadCount(); ++i)
+            conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
+    }
 
     for (spiter = _splines.begin(); spiter != _splines.end(); ++spiter) {
         SplineInfo *sinfo = *spiter;
@@ -297,6 +320,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
             _b.clear();
         }
     }
+    _trjreader_force->NextFrame(_top_force);
 }
 
 void CGForceMatching::FmatchAccumulateData() 
