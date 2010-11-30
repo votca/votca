@@ -214,12 +214,12 @@ namespace votca {
         }
 
         void CsgApplication::Worker::Run(void) {
-            while (_app->ProcessData(this)) {            
+            while (_app->ProcessData(this)) {
                 if (_app->SynchronizeThreads()) {
                     int id = getId();
                     _app->_threadsMutexesOut[id]->Lock();
                     _app->MergeWorker(this);
-                    _app->_threadsMutexesOut[(id + 1)%_app->_nthreads]->Unlock();
+                    _app->_threadsMutexesOut[(id + 1) % _app->_nthreads]->Unlock();
                 }
             }
         }
@@ -254,6 +254,7 @@ namespace votca {
                 bool tmpRes = _traj_reader->NextFrame(worker->_top);
                 if (!tmpRes) {
                     _traj_readerMutex.Unlock();
+                    _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
                     return false;
                 }
             }
@@ -265,11 +266,9 @@ namespace votca {
             if (SynchronizeThreads()) {
 
                 //std::cout << "input (id:" << id << "): ... unlocking worker(id:";
-                if (id == _nthreads - 1)
-                    id = -1;
-                //std::cout << id + 1 << ")" << std::endl;
+                //std::cout << (id + 1) % _nthreads << ")" << std::endl;
 
-                _threadsMutexesIn[id + 1]->Unlock();
+                _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
             }
             if (_do_mapping) {
                 worker->_map->Apply();
@@ -409,7 +408,7 @@ namespace votca {
                 /////////////////////////////////////////////////////////////////////////
                 //start threads
                 if (DoThreaded()) {
-                    for (long thread = 0; thread < _myWorkers.size(); thread++) {
+                    for (int thread = 0; thread < _myWorkers.size(); thread++) {
 
                         if (SynchronizeThreads()) {
                             //std::cout << "starting thread(id): " << _myWorkers[thread]->getId() << std::endl;
@@ -422,7 +421,7 @@ namespace votca {
                             myMutexOut->Lock();
                         }
                     }
-                    for (long thread = 0; thread < _myWorkers.size(); thread++)
+                    for (int thread = 0; thread < _myWorkers.size(); thread++)
                         _myWorkers[thread]->Start();
 
                     if (SynchronizeThreads()) {
@@ -430,16 +429,16 @@ namespace votca {
                         _threadsMutexesIn[0]->Unlock();
                         _threadsMutexesOut[0]->Unlock();
                     }
-        
-                    for (long thread = 0; thread < _myWorkers.size(); thread++) {
+
+                    for (int thread = 0; thread < _myWorkers.size(); thread++) {
                         _myWorkers[thread]->WaitDone();
                         delete _myWorkers[thread];
-                        if (!SynchronizeThreads()) 
-                            MergeWorker(_myWorkers[thread]);                        
-                    } 
-                    for(int thread=0; thread < _threadsMutexesIn.size(); ++thread) {
-                            delete _threadsMutexesIn[thread];
-                            delete _threadsMutexesOut[thread];
+                        if (!SynchronizeThreads())
+                            MergeWorker(_myWorkers[thread]);
+                    }
+                    for (int thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
+                        delete _threadsMutexesIn[thread];
+                        delete _threadsMutexesOut[thread];
                     }
 
 
@@ -450,7 +449,7 @@ namespace votca {
 
                 EndEvaluate();
 
-		_myWorkers.clear();
+                _myWorkers.clear();
                 _threadsMutexesIn.clear();
                 _threadsMutexesOut.clear();
                 _traj_reader->Close();
