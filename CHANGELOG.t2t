@@ -7,6 +7,14 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=tools
 
 == Version in hg ==
 
+
+== Version 1.0.1 ==
+* fixed a bug in VOTCARC.csh for empty LD_LIBRARY_PATH
+* completion file has moved back to csg
+* added --disable-rc-files to configure
+* updated bundled libtool to 2.2.10
+
+
 == Version 1.0 ==
 * added libvotca_expat to allow compiling without expat
 * allow comments in tables
