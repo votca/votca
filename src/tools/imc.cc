@@ -46,6 +46,10 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
 	    cout << "begin to calculate distribution functions\n";
     cout << "# of bonded interactions: " << _bonded.size() << endl;
     cout << "# of non-bonded interactions: " << _nonbonded.size() << endl;
+
+    if ( _bonded.size()+_nonbonded.size() == 0 )
+            throw std::runtime_error("No interactions defined in options xml-file - nothing to be done");
+
     
    // we didn't process any frames so far
     _nframes = 0;
