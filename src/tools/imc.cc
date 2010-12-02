@@ -119,14 +119,18 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
 // end of trajectory, post processing data
 void Imc::EndCG()
 {
-    if(!_do_blocks) {
-        WriteDist();
-        if(_do_imc)
-            WriteIMCData();
+    if(_nframes > 0) {
+        if(!_do_blocks) {
+            WriteDist();
+            if(_do_imc)
+                WriteIMCData();
+        }
     }
     // clear interactions and groups
     _interactions.clear();
     _groups.clear();
+    if(_nframes==0)
+        throw std::runtime_error("no frames were processed. Please check your input");
 }
 
 // load options from xml file

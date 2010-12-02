@@ -76,6 +76,8 @@ bool CsgStatApp::EvaluateOptions()
 {
     CsgApplication::EvaluateOptions();
     CheckRequired("options");
+    CheckRequired("trj", "no trajectory file specified");
+    
     _imc.LoadOptions(OptionsMap()["options"].as<string>());
 
     _imc.WriteEvery(_write_every);
