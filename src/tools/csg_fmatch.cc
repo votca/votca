@@ -202,8 +202,10 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
 void CGForceMatching::EndEvaluate()
 {
     cout << "\nWe are done, thank you very much!" << endl;
-     _trjreader_force->Close();
-     delete _trjreader_force;
+     if(_has_existing_forces) {
+         _trjreader_force->Close();
+        delete _trjreader_force;
+     }
 }
 
 void CGForceMatching::WriteOutFiles()
@@ -320,7 +322,8 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
             _b.clear();
         }
     }
-    _trjreader_force->NextFrame(_top_force);
+    if(_has_existing_forces)
+        _trjreader_force->NextFrame(_top_force);
 }
 
 void CGForceMatching::FmatchAccumulateData() 
