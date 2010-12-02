@@ -24,7 +24,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
 #include "csgapplication.h"
-#include <votca/csg/trajectoryreader.h>
+#include "trajectoryreader.h"
 
 using namespace votca::csg;
 

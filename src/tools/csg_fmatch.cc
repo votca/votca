@@ -24,7 +24,7 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
-#include <nblist.h>
+#include <nblistgrid.h>
 #include <beadlist.h>
 #include "csg_fmatch.h"
 #include <votca/tools/table.h>
@@ -459,8 +459,24 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
 void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) 
 {
     // generate the neighbour list
-    NBList NBL;
-    NBL.setCutoff(sinfo->_options->get("fmatch.max").as<double>()); // implement different cutoffs for different interactions!
+            // generate the neighbour list
+        NBList *nb;
+
+        bool gridsearch=false;
+
+        if(_options.exists("cg.nbsearch")) {
+            if(_options.get("cg.nbsearch").as<string>() == "grid")
+                gridsearch=true;
+            else if(_options.get("cg.nbsearch").as<string>() == "simple")
+                gridsearch=false;
+            else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+        }
+        if(gridsearch)
+            nb = new NBListGrid();
+        else
+            nb = new NBList();
+
+   nb->setCutoff(sinfo->_options->get("fmatch.max").as<double>()); // implement different cutoffs for different interactions!
 
     // generate the bead lists
     BeadList beads1, beads2;
@@ -469,13 +485,13 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
 
     // is it same types or different types?
     if (sinfo->type1 == sinfo->type2)
-        NBL.Generate(beads1, true);
+        nb->Generate(beads1, true);
     else
-        NBL.Generate(beads1, beads2, true);
+        nb->Generate(beads1, beads2, true);
 
     NBList::iterator pair_iter;
     // iterate over all pairs
-    for (pair_iter = NBL.begin(); pair_iter != NBL.end(); ++pair_iter) {
+    for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
         int iatom = (*pair_iter)->first->getId();
         int jatom = (*pair_iter)->second->getId();
         double var = (*pair_iter)->dist();
@@ -502,4 +518,5 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
         SP.AddToFitMatrix(_A, var,
                 _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom, mpos, -gradient.z());
     }
+    delete nb;
 }
