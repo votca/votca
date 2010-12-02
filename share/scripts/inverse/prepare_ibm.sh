@@ -18,11 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials for imc
+Informs users that ibm was renamed to ibi.
 
 Usage: ${0##*/}
 
-USES: msg
+USES: msg die
 
 NEEDS:
 EOF
@@ -31,8 +31,8 @@ fi
 
 check_deps "$0"
 
-msg "####################################################"
-msg "# WARNING multicomponent imc is still experimental #"
-msg "####################################################"
+msg "####################################"
+msg "# ERROR 'ibm' was renamed to 'ibi' #"
+msg "####################################"
 
-do_external prepare generic
+die "'ibm' was renamed to 'ibi'"

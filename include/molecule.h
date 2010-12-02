@@ -59,7 +59,7 @@ public:
     /// get the id of a bead in the molecule
     Bead *getBead(int bead) { return _beads[bead]; }
     int getBeadId(int bead) { return _beads[bead]->getId(); }
-    int getBeadIdByName(const string &name) { return _beads[getBeadByName(name)]->getId(); }
+    int getBeadIdByName(const string &name);
     
     /// get the number of beads in the molecule
     int BeadCount() const { return _beads.size(); }
@@ -103,6 +103,14 @@ private:
 
     friend class Topology;
 };
+
+inline int Molecule::getBeadIdByName(const string &name)
+{
+    int i = getBeadByName(name);
+    if(i<0)
+        return i;
+    return _beads[i]->getId();
+}
 
 }}
 

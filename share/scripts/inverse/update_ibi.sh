@@ -35,4 +35,4 @@ check_deps "$0"
 msg "Calc rdf"
 sim_prog="$(csg_get_property cg.inverse.program)"
 for_all non-bonded do_external rdf $sim_prog
-for_all non-bonded do_external update ibm_single
+for_all non-bonded do_external update ibi_single

@@ -17,10 +17,12 @@ EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf
 
 #hg version is determined at compiletime
 csg_call: $(srcdir)/csg_call.in Makefile hgstamp
-	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
+	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' \
+	    -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
 csg_inverse: $(srcdir)/csg_inverse.in Makefile hgstamp
-	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
+	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' \
+	    -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
 multi_g_rdf: $(srcdir)/multi_g_rdf.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
