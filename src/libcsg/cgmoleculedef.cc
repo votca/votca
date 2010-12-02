@@ -129,7 +129,7 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
         for (Tokenizer::iterator atom = tok.begin(); atom != tok.end(); ++atom) {
             int i = minfo->getBeadIdByName(*atom);
             if(i < 0)
-                runtime_error(string("error while trying to create bonded interaction, "
+                throw runtime_error(string("error while trying to create bonded interaction, "
                         "bead " + *atom + " not found"));
 
             atoms.push_back(i);
