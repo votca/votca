@@ -31,6 +31,9 @@ prepare_single imc prepare_generic_single.sh
 initstep ibi initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 
+#this is just to warn users from old versions
+prepare ibm prepare_ibm.sh
+
 # the update step
 update ibi update_ibi.sh
 update imc update_imc.sh
