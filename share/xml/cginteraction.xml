@@ -144,11 +144,11 @@
   </item>
   <item>
     <name>inverse.post_add_options.convergence.weight</name>
-    <desc>weight factor for the convergence of the interaction</desc>
+    <desc>weight factors for the convergence of the interaction, should be a list of same length as inverse.post_add_options.convergence.what (default 1)</desc>
   </item>
   <item>
     <name>inverse.post_add_options.convergence.what</name>
-    <desc>for what to calc the convergence: dist pot, .. (default dist)</desc>
+    <desc>list for what to calc the convergence: dist pot, .. (default dist)</desc>
   </item>
   <item>
     <name>inverse.post_add_options.plot.gnuplot_bin</name>
