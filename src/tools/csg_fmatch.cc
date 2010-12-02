@@ -268,8 +268,12 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
     if(_has_existing_forces) {
         if(conf->BeadCount() != _top_force.BeadCount())
             throw std::runtime_error("number of beads in topology and force topology does not match");
-        for(int i=0; i<conf->BeadCount(); ++i)
+        for(int i=0; i<conf->BeadCount(); ++i) {
             conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
+            vec d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
+            if(abs(d) > 1e-6)
+                throw std::runtime_error("One or more bead positions in mapped and reference force trajectory differ by more than 1e-6");
+        }
     }
 
     for (spiter = _splines.begin(); spiter != _splines.end(); ++spiter) {
