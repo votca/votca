@@ -6,7 +6,15 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 
 == Version in hg ==
-* fixed custom programs in sim scripts (issue 1)
+
+
+== Version 1.0.1 ==
+* fixed custom md programs in sim scripts (issue 1)
+* completion file is back from tools
+* issue #21: fixed strange kink when pot.in was provided
+* added --disable-rc-files to configure
+* csg_call/csg_inverse: added installdir as failback for CSGSHARE
+* updated bundled libtool to 2.2.10
 
 
 == Version 1.0 ==
