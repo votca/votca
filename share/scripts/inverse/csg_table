@@ -23,21 +23,21 @@ dummy dummy dummy.sh
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
-prepare ibm prepare_generic.sh
+prepare ibi prepare_generic.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
-prepare_single ibm prepare_generic_single.sh
+prepare_single ibi prepare_generic_single.sh
 prepare_single imc prepare_generic_single.sh
-initstep ibm initialize_step_generic.sh
+initstep ibi initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 
 # the update step
-update ibm update_ibm.sh
+update ibi update_ibi.sh
 update imc update_imc.sh
 
 # add up the potential
 # TODO: think about name add_pot, is other name maybe better
-add_pot ibm add_pot_generic.sh
+add_pot ibi add_pot_generic.sh
 add_pot imc add_pot_generic.sh
 
 # END: these scripts have to be defined for each method
@@ -46,9 +46,9 @@ add_pot imc add_pot_generic.sh
 rdf pot RDF_to_POT.pl
 
 # post update
-post_update ibm post_update_generic.sh
+post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
-post_update_single ibm post_update_generic_single.sh
+post_update_single ibi post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 
 #post update scripts
@@ -82,11 +82,11 @@ pot shift_nb dpot_shift_nb.pl
 resample target resample_target.sh
 dpot crop dpot_crop.pl
 
-# ibm specific stuff
-# TODO: rename to ibm single
-update ibm_single update_ibm_single.sh
-# TODO: rename to ibm pot
-update ibm_pot update_ibm_pot.pl
+# ibi specific stuff
+# TODO: rename to ibi single
+update ibi_single update_ibi_single.sh
+# TODO: rename to ibi pot
+update ibi_pot update_ibi_pot.pl
 
 # imc specific stuff
 # TODO: rename to imc single

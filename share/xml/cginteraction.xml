@@ -211,7 +211,7 @@
       Name of file for tabulated potential of this interaction. This file will
 be created from the internal tabulated potential format for every run. Note,
 though, that the original espresso blockfile needs to contain the name of that
-table as the tabulated interaction (see tutorial methanol ibm_espresso for details).
+table as the tabulated interaction (see tutorial methanol ibi_espresso for details).
     </desc>
   </item>
 

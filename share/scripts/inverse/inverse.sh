@@ -26,7 +26,7 @@ show_help () {
 ${0##*/}, version %version%
 
 
-Start the script to run ibm, imc, etc.
+Start the script to run ibi, imc, etc.
 
 $usage
 
