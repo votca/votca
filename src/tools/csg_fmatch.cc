@@ -48,6 +48,7 @@ void CGForceMatching::Initialize(void)
 bool CGForceMatching::EvaluateOptions()
 {
     CsgApplication::EvaluateOptions();
+    CheckRequired("trj", "no trajectory file specified");
     CheckRequired("options", "need to specify options file");
     LoadOptions(OptionsMap()["options"].as<string>());
     return true;

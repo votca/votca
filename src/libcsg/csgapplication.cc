@@ -134,7 +134,7 @@ void CsgApplication::Run(void)
             return;
 
     // do we need to read a trajectory?
-    if(DoTrajectory()) {
+    if(DoTrajectory() && _op_vm.count("trj")) {
         TrajectoryReader *traj_reader;
 
         double begin;
