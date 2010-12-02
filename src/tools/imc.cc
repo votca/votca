@@ -40,7 +40,10 @@ Imc::~Imc()
 // here the data structures are prepared to handle all the data
 void Imc::BeginCG(Topology *top, Topology *top_atom) {
     // do some output
-    cout << "begin to calculate inverse monte carlo parameters\n";
+    if(_do_imc)
+	    cout << "begin to calculate inverse monte carlo parameters\n";
+    else
+	    cout << "begin to calculate distribution functions\n";
     cout << "# of bonded interactions: " << _bonded.size() << endl;
     cout << "# of non-bonded interactions: " << _nonbonded.size() << endl;
     
