@@ -46,12 +46,21 @@ public:
     bool DoTrajectory() {return true;}
     bool DoMapping() {return true;}
     bool DoMappingDefault(void) { return false; }
-
+    bool DoThreaded() {return true; }
+    bool SynchronizeThreads() {return true;}
     void Initialize();
     bool EvaluateOptions();
 
     void BeginEvaluate(Topology *top, Topology *top_ref);
     void EndEvaluate();
+
+    CsgApplication::Worker *ForkWorker() {
+        return _imc.ForkWorker();
+    }
+
+    void MergeWorker(CsgApplication::Worker *worker) {
+        _imc.MergeWorker(worker);
+    }
 
 public:
     Imc _imc;

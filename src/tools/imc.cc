@@ -76,7 +76,6 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
   // we didn't process any frames so far
     _nframes = 0;
     _nblock = 0;
-
     // initialize non-bonded structures
    for (list<Property*>::iterator iter = _nonbonded.begin();
             iter != _nonbonded.end(); ++iter) {
@@ -155,6 +154,9 @@ void Imc::LoadOptions(const string &file) {
 
 // evaluate current conformation
 void Imc::Worker::EvalConfiguration(Topology *top, Topology *top_atom) {
+    cout << "Evaluate \n";
+    
+    _cur_vol = top->BoxVolume();
     // process non-bonded interactions
     DoNonbonded(top);
     // process bonded interactions
@@ -188,10 +190,7 @@ void Imc::Worker::DoNonbonded(Topology *top)
         
         beads1.Generate(*top, (*iter)->get("type1").value());
         beads2.Generate(*top, (*iter)->get("type2").value());
-        
-        // calculate average volume
-        double _cur_vol = top->BoxVolume();
-        
+               
         // generate the neighbour list
         NBList *nb;
 
@@ -571,6 +570,26 @@ void Imc::WriteIMCBlock(const string &suffix)
         out_cor.close();
         cout << "written " << name_cor << endl;
     }
+}
+
+CsgApplication::Worker *Imc::ForkWorker()
+{
+    Imc::Worker *worker;
+    worker = new Imc::Worker;
+    map<string, interaction_t *>::iterator ic_iter;
+
+    worker->_current_hists.resize(_interactions.size());
+    worker->_imc = this;
+
+    for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter) {
+        interaction_t *i = ic_iter->second;
+        worker->_current_hists[i->_index].Initialize(
+        i->_average.getMin(),
+        i->_average.getMax(),
+        i->_average.getNBins());
+    }
+    cout << "fork worker\n";
+    return worker;
 }
 
 void Imc::MergeWorker(CsgApplication::Worker* worker_)
