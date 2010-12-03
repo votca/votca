@@ -40,8 +40,7 @@ namespace votca {
             bool EvaluateOptions();
 
             void Run(void);
-            void RunThreaded(void);
-
+  
             void ShowHelpText(std::ostream &out);
 
             /// \brief overload and return true to enable mapping command line options
