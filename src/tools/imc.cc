@@ -154,7 +154,6 @@ void Imc::LoadOptions(const string &file) {
 
 // evaluate current conformation
 void Imc::Worker::EvalConfiguration(Topology *top, Topology *top_atom) {
-    cout << "Evaluate \n";
     
     _cur_vol = top->BoxVolume();
     // process non-bonded interactions
@@ -346,7 +345,6 @@ void Imc::WriteDist(const string &suffix)
         // calculate the rdf
         Table &t = iter->second->_average.data();            
         Table dist(t);
-
         if(!iter->second->_is_bonded) {
             dist.y() = _avg_vol.getAvg()*iter->second->_norm *
                 element_div(dist.y(),
@@ -588,7 +586,6 @@ CsgApplication::Worker *Imc::ForkWorker()
         i->_average.getMax(),
         i->_average.getNBins());
     }
-    cout << "fork worker\n";
     return worker;
 }
 
@@ -602,7 +599,6 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
     ++_nframes;
     _avg_vol.Process(worker->_cur_vol);
     for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter) {
-        ic_iter->second->_average.Clear();
         interaction_t *i=ic_iter->second;
         i->_average.data().y() = (((double)_nframes-1.0)*i->_average.data().y()
             + worker->_current_hists[i->_index].data().y())/(double)_nframes;
