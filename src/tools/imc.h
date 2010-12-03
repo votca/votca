@@ -40,20 +40,21 @@ using namespace votca::tools;
  * 
  */
 class Imc
-    : public CGObserver
 {
 public:
     Imc();
     ~Imc();
-    
+
+    void Initialize(void);
+
     /// load cg definitions file
     void LoadOptions(const string &file);
     
     /// begin coarse graining a trajectory
-    void BeginCG(Topology *top, Topology *top_atom);
+    void BeginEvaluate(Topology *top, Topology *top_atom);
     
     /// end coarse graining a trajectory
-    void EndCG();
+    void EndEvaluate();
     
     /// evaluate current conformation
     void EvalConfiguration(Topology *top, Topology *top_atom = 0);    

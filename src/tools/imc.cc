@@ -38,7 +38,8 @@ Imc::~Imc()
 
 // begin the coarse graining process
 // here the data structures are prepared to handle all the data
-void Imc::BeginCG(Topology *top, Topology *top_atom) {
+void Imc::Initialize()
+{
     // do some output
     if(_do_imc)
 	    cout << "begin to calculate inverse monte carlo parameters\n";
@@ -51,27 +52,10 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
             throw std::runtime_error("No interactions defined in options xml-file - nothing to be done");
 
     
-   // we didn't process any frames so far
-    _nframes = 0;
-    _nblock = 0;
-
    // initialize non-bonded structures
    for (list<Property*>::iterator iter = _nonbonded.begin();
             iter != _nonbonded.end(); ++iter) {
         interaction_t *i = AddInteraction(*iter);
-        // generate the bead lists
-        BeadList beads1, beads2;
-
-        beads1.Generate(*top, (*iter)->get("type1").value());
-        beads2.Generate(*top, (*iter)->get("type2").value());
-
-        // calculate normalization factor for rdf
-
-        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            i->_norm = 1. / (4. * M_PI * i->_step * beads1.size()*(beads2.size() - 1.) / 2.);
-        else
-            i->_norm = 1. / (4. * M_PI * i->_step * beads1.size() * beads2.size());
-
         i->_is_bonded = false;
     }
 
@@ -86,6 +70,34 @@ void Imc::BeginCG(Topology *top, Topology *top_atom) {
     if(_do_imc)
         InitializeGroups();
 };
+
+void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
+{
+  // we didn't process any frames so far
+    _nframes = 0;
+    _nblock = 0;
+
+    // initialize non-bonded structures
+   for (list<Property*>::iterator iter = _nonbonded.begin();
+            iter != _nonbonded.end(); ++iter) {
+        string name = (*iter)->get("name").value();
+
+        interaction_t &i = *_interactions[name];
+
+        // generate the bead lists
+        BeadList beads1, beads2;
+
+        beads1.Generate(*top, (*iter)->get("type1").value());
+        beads2.Generate(*top, (*iter)->get("type2").value());
+
+        // calculate normalization factor for rdf
+
+        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+            i._norm = 1. / (4. * M_PI * i._step * beads1.size()*(beads2.size() - 1.) / 2.);
+        else
+            i._norm = 1. / (4. * M_PI * i._step * beads1.size() * beads2.size());
+    }
+}
 
 // create an entry for interactions
 Imc::interaction_t *Imc::AddInteraction(Property *p)
@@ -117,7 +129,7 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
 }
 
 // end of trajectory, post processing data
-void Imc::EndCG()
+void Imc::EndEvaluate()
 {
     if(_nframes > 0) {
         if(!_do_blocks) {
