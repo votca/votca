@@ -32,7 +32,8 @@ fi
 name=$(csg_get_interaction_property name)
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
 i=1
-for task in $tasklist tag; do
+#after all we shift the potential to be 0 at the cutoff and tag with labels
+for task in $tasklist shift tag; do
   log "Doing postadd task '$task' for '${name}'"
   
   #save the current one
