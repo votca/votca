@@ -109,7 +109,8 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     else
         group = "none";
     
-    interaction_t *i = new interaction_t;    
+    interaction_t *i = new interaction_t;
+    i->_index = _interactions.size();
     _interactions[name] = i;
     getGroup(group)->_interactions.push_back(i);
     
@@ -122,7 +123,6 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     // initialize the current and average histogram
     int n = (int)((i->_max - i->_min) / i->_step + 1.000000001);
 
-    i->_current.Initialize(i->_min, i->_max+i->_step, n);
     i->_average.Initialize(i->_min, i->_max+i->_step, n);
     
     return i;
@@ -154,28 +154,11 @@ void Imc::LoadOptions(const string &file) {
 }
 
 // evaluate current conformation
-void Imc::EvalConfiguration(Topology *top, Topology *top_atom) {
-    _nframes++;
+void Imc::Worker::EvalConfiguration(Topology *top, Topology *top_atom) {
     // process non-bonded interactions
     DoNonbonded(top);
     // process bonded interactions
-    DoBonded(top);
-    // update correlation matrices
-    if(_do_imc)
-        DoCorrelations();
-    
-    if(_write_every != 0) {
-        if((_nframes % _write_every)==0) {
-            _nblock++;
-            string suffix = string("_") + boost::lexical_cast<string>(_nblock);
-            WriteDist(suffix);
-            WriteIMCData(suffix);
-            WriteIMCBlock(suffix);
-            if(_do_blocks)
-                ClearAverages();
-        }
-    }
-            
+    DoBonded(top);            
 }
 
 void Imc::ClearAverages()
@@ -192,13 +175,13 @@ void Imc::ClearAverages()
 }
 
 // process non-bonded interactions for current frame
-void Imc::DoNonbonded(Topology *top)
+void Imc::Worker::DoNonbonded(Topology *top)
 {
-    for (list<Property*>::iterator iter = _nonbonded.begin();
-            iter != _nonbonded.end(); ++iter) {
+    for (list<Property*>::iterator iter = _imc->_nonbonded.begin();
+            iter != _imc->_nonbonded.end(); ++iter) {
         string name = (*iter)->get("name").value();
         
-        interaction_t &i = *_interactions[name];
+        interaction_t &i = *_imc->_interactions[name];
         
         // generate the bead lists
         BeadList beads1, beads2;
@@ -207,18 +190,17 @@ void Imc::DoNonbonded(Topology *top)
         beads2.Generate(*top, (*iter)->get("type2").value());
         
         // calculate average volume
-        double d = top->BoxVolume();
-        _avg_vol.Process(d);
+        double _cur_vol = top->BoxVolume();
         
         // generate the neighbour list
         NBList *nb;
 
         bool gridsearch=false;
 
-        if(_options.exists("cg.nbsearch")) {
-            if(_options.get("cg.nbsearch").as<string>() == "grid")
+        if(_imc->_options.exists("cg.nbsearch")) {
+            if(_imc->_options.get("cg.nbsearch").as<string>() == "grid")
                 gridsearch=true;
-            else if(_options.get("cg.nbsearch").as<string>() == "simple")
+            else if(_imc->_options.get("cg.nbsearch").as<string>() == "simple")
                 gridsearch=false;
             else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
         }
@@ -236,33 +218,29 @@ void Imc::DoNonbonded(Topology *top)
             nb->Generate(beads1, beads2);
         
         // clear the current histogram
-        i._current.Clear();
+        _current_hists[i._index].Clear();
         
         // process all pairs
         NBList::iterator pair_iter;
         for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
-                i._current.Process((*pair_iter)->dist());            
+                _current_hists[i._index].Process((*pair_iter)->dist());
         }
 
         delete nb;
-
-        // update the average
-        i._average.data().y() = (((double)_nframes-1.0)*i._average.data().y() 
-                + i._current.data().y())/(double)_nframes;
     }    
 }
 
 // process non-bonded interactions for current frame
-void Imc::DoBonded(Topology *top)
+void Imc::Worker::DoBonded(Topology *top)
 {
-    for (list<Property*>::iterator iter = _bonded.begin();
-            iter != _bonded.end(); ++iter) {
+    for (list<Property*>::iterator iter = _imc->_bonded.begin();
+            iter != _imc->_bonded.end(); ++iter) {
         string name = (*iter)->get("name").value();
         
-        interaction_t &i = *_interactions[name];
+        interaction_t &i = *_imc->_interactions[name];
 
         // clear the current histogram
-        i._current.Clear();
+        _current_hists[i._index].Clear();
 
         // now fill with new data
         std::list<Interaction *> list = top->InteractionsInGroup(name);
@@ -271,11 +249,8 @@ void Imc::DoBonded(Topology *top)
         for(ic_iter=list.begin(); ic_iter!=list.end(); ++ic_iter) {
             Interaction *ic = *ic_iter;
             double v = ic->EvaluateVar(*top);
-            i._current.Process(v);
+            _current_hists[i._index].Process(v);
         }
-        // update the average
-        i._average.data().y() = (((double)_nframes-1.0)*i._average.data().y()
-                + i._current.data().y())/(double)_nframes;
     }    
 }
 
@@ -307,7 +282,7 @@ void Imc::InitializeGroups()
         // count number of bins needed in matrix
         for (list<interaction_t*>::iterator i1 = grp->_interactions.begin();
                 i1 != grp->_interactions.end(); ++i1)
-            n+=(*i1)->_current.getNBins();
+            n+=(*i1)->_average.getNBins();
     
         // handy access to matrix
         group_matrix &M = grp->_corr;
@@ -322,11 +297,11 @@ void Imc::InitializeGroups()
         // iterate over all possible compinations of pairs
         for (list<interaction_t*>::iterator i1 = grp->_interactions.begin();
                 i1 != grp->_interactions.end(); ++i1) {
-            int n1 = (*i1)->_current.getNBins();
+            int n1 = (*i1)->_average.getNBins();
             j = i;
             for (list<interaction_t*>::iterator i2 = i1;
                     i2 != grp->_interactions.end(); ++i2) {
-                int n2 = (*i2)->_current.getNBins();
+                int n2 = (*i2)->_average.getNBins();
                 
                 // create matrix proxy with sub-matrix
                 pair_matrix corr(M, ub::range(i, i+n1), ub::range(j, j+n2));
@@ -340,7 +315,7 @@ void Imc::InitializeGroups()
 }
 
 // update the correlation matrix
-void Imc::DoCorrelations() {
+void Imc::DoCorrelations(Imc::Worker *worker) {
     if(!_do_imc) return;
     vector<pair_t>::iterator pair;
     map<string, group_t *>::iterator group_iter;
@@ -349,8 +324,8 @@ void Imc::DoCorrelations() {
         group_t *grp = (*group_iter).second;      
         // update correlation for all pairs
         for (pair = grp->_pairs.begin(); pair != grp->_pairs.end(); ++pair) {
-            ub::vector<double> &a = pair->_i1->_current.data().y();
-            ub::vector<double> &b = pair->_i2->_current.data().y();
+            ub::vector<double> &a = worker->_current_hists[pair->_i1->_index].data().y();
+            ub::vector<double> &b = worker->_current_hists[pair->_i2->_index].data().y();
             pair_matrix &M = pair->_corr;
 
             // M_ij += a_i*b_j
@@ -596,6 +571,40 @@ void Imc::WriteIMCBlock(const string &suffix)
         out_cor.close();
         cout << "written " << name_cor << endl;
     }
+}
+
+void Imc::MergeWorker(CsgApplication::Worker* worker_)
+{
+    Imc::Worker *worker = dynamic_cast<Imc::Worker *>(worker_);
+        // update the average
+    map<string, interaction_t *>::iterator ic_iter;
+    //map<string, group_t *>::iterator group_iter;
+
+    ++_nframes;
+    _avg_vol.Process(worker->_cur_vol);
+    for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter) {
+        ic_iter->second->_average.Clear();
+        interaction_t *i=ic_iter->second;
+        i->_average.data().y() = (((double)_nframes-1.0)*i->_average.data().y()
+            + worker->_current_hists[i->_index].data().y())/(double)_nframes;
+    }
+
+        // update correlation matrices
+    if(_do_imc)
+        DoCorrelations(worker);
+
+    if(_write_every != 0) {
+        if((_nframes % _write_every)==0) {
+            _nblock++;
+            string suffix = string("_") + boost::lexical_cast<string>(_nblock);
+            WriteDist(suffix);
+            WriteIMCData(suffix);
+            WriteIMCBlock(suffix);
+            if(_do_blocks)
+                ClearAverages();
+        }
+    }
+
 }
 
 }}
