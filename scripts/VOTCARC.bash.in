@@ -13,28 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-VOTCABIN="@bindir@"
-VOTCALDLIB="@libdir@"
 
-PATH="${VOTCABIN}${PATH:+:}${PATH}"
-LD_LIBRARY_PATH="${VOTCALDLIB}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
-PKG_CONFIG_PATH="${VOTCALDLIB}/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
+#path is never empty
+PATH="@bindir@:${PATH}"
+LD_LIBRARY_PATH="@libdir@${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
+PKG_CONFIG_PATH="@libdir@/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
 
-export VOTCABIN VOTCALDLIB PATH LD_LIBRARY_PATH PKG_CONFIG_PATH
+export PATH LD_LIBRARY_PATH PKG_CONFIG_PATH
 
 #votca rc files
-VOTCASHARE="@votcashare@"
-for rc in "$VOTCASHARE"/rc/*rc.bash; do
+for rc in "@votcashare@"/rc/*rc.bash; do
   [ -r "$rc" ] && . "$rc"
 done
 unset rc
 
 #bash cmopletion
-if [ -n "$BASH_VERSION" ] && [ -r "$VOTCASHARE/completion.bash" ]; then 
-  source "$VOTCASHARE/completion.bash"
-  for comp in "$VOTCASHARE"/rc/*completion.bash; do
+if [ -n "$BASH_VERSION" ]; then 
+  for comp in "@votcashare@"/rc/*completion.bash; do
     [ -r "$comp" ] && source "$comp"
   done
   unset comp
 fi
-unset VOTCASHARE

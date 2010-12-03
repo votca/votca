@@ -13,20 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-setenv VOTCABIN @bindir@
 
-# old variables begin with ':' now, or are empty.
-setenv PATH "${VOTCABIN}:${PATH}"
+#path is never empty
+setenv PATH "@bindir@:${PATH}"
 
-if (! $?LD_LIBRARY_PATH) setenv LD_LIBRARY_PATH ""
-setenv LD_LIBRARY_PATH "@libdir@:${LD_LIBRARY_PATH}"
+if ($?LD_LIBRARY_PATH) setenv LD_LIBRARY_PATH ":${LD_LIBRARY_PATH}"
+setenv LD_LIBRARY_PATH "@libdir@${LD_LIBRARY_PATH}"
 
-if (! $?PKG_CONFIG_PATH) setenv PKG_CONFIG_PATH ""
-setenv PKG_CONFIG_PATH "@libdir@/pkgconfig:${PKG_CONFIG_PATH}"
+if ($?PKG_CONFIG_PATH) setenv PKG_CONFIG_PATH ":${PKG_CONFIG_PATH}"
+setenv PKG_CONFIG_PATH "@libdir@/pkgconfig${PKG_CONFIG_PATH}"
 
 #votca rc files
-set VOTCASHARE="@votcashare@"
-foreach rc ( "$VOTCASHARE"/rc/*rc.csh )
+foreach rc ( "@votcashare@"/rc/*rc.csh )
   [ -r "$rc" ] && source "$rc"
 end
-unset VOTCASHARE rc
+unset rc

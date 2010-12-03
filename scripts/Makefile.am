@@ -1,11 +1,12 @@
 # Scripts generated at compile time
+if NO_RC_FILES
+bin_SCRIPTS =
+else
 bin_SCRIPTS   = VOTCARC.csh VOTCARC.bash
+endif
 
 # Extra files we need
 EXTRA_DIST = VOTCARC.csh.in VOTCARC.bash.in
-
-compdir = ${datadir}/votca
-dist_comp_DATA = completion.bash
 
 VOTCARC.csh: $(srcdir)/VOTCARC.csh.in Makefile
 	sed -e 's,@bindir\@,$(bindir),' \

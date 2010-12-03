@@ -1,4 +1,4 @@
-AC_INIT(votca-tools,1.0-dev,bugs@votca.org)
+AC_INIT(votca-tools,1.1-dev,bugs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -40,6 +40,13 @@ AC_ARG_ENABLE(la-files,
 	[enable_la_files=yes])
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
+
+AC_ARG_ENABLE(rc-files,
+  [AS_HELP_STRING([--disable-rc-files],
+  [Do NOT install VOTCA rc files, those are not needed when installing in /usr or /usr/local])],,
+	[enable_rc_files=yes])
+
+AM_CONDITIONAL(NO_RC_FILES,[test "$enable_rc_files" = no])
 
 # check for boost
 if test "$enable_votca_boost" = no; then
