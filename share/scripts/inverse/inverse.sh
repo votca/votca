@@ -129,7 +129,7 @@ update_stepnames 0
 this_dir=$(get_current_step_dir --no-check)
 if [ -d "$this_dir" ]; then
   msg "Skiping prepare"
-  [[ -f $this_dir/done ]] || die "Incomplete step 0"
+  [[ -f $this_dir/done ]] || die "Incomplete step 0 (remove it if you don't know what to do)"
 else
   msg ------------------------
   msg "Prepare (dir ${this_dir##*/})"
@@ -177,7 +177,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
       continue
     else
       msg "Incomplete step $i"
-      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found"
+      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove this step if you don't know what to do - you will lose one step at max)"
     fi
   else
     log "Step $i started at $(date)"
