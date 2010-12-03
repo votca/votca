@@ -28,7 +28,7 @@
 namespace votca { namespace csg {
 
 Imc::Imc()
-   : _write_every(0), _do_blocks(false), _do_imc(false)
+   : _write_every(0), _do_blocks(false), _do_imc(false), _processed_some_frames(false)
 {
 }
 
@@ -76,6 +76,8 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
   // we didn't process any frames so far
     _nframes = 0;
     _nblock = 0;
+    _processed_some_frames=false;
+
     // initialize non-bonded structures
    for (list<Property*>::iterator iter = _nonbonded.begin();
             iter != _nonbonded.end(); ++iter) {
@@ -140,7 +142,7 @@ void Imc::EndEvaluate()
     // clear interactions and groups
     _interactions.clear();
     _groups.clear();
-    if(_nframes==0)
+    if(!_processed_some_frames)
         throw std::runtime_error("no frames were processed. Please check your input");
 }
 
@@ -591,6 +593,7 @@ CsgApplication::Worker *Imc::ForkWorker()
 
 void Imc::MergeWorker(CsgApplication::Worker* worker_)
 {
+    _processed_some_frames = true;
     Imc::Worker *worker = dynamic_cast<Imc::Worker *>(worker_);
         // update the average
     map<string, interaction_t *>::iterator ic_iter;

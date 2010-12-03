@@ -154,6 +154,8 @@ protected:
 /// update the correlations after interations were processed
     void DoCorrelations(Imc::Worker *worker);
 
+    bool _processed_some_frames;
+    
 public:
     CsgApplication::Worker *ForkWorker();
     void MergeWorker(CsgApplication::Worker *worker);
