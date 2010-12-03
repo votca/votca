@@ -332,7 +332,7 @@ namespace votca {
             //////////////////////////////////////////////////
             // Here trajectory parsing starts
             //////////////////////////////////////////////////
-            if (DoTrajectory()) {
+            if (DoTrajectory() && _op_vm.count("trj")) {
                 double begin;
                 int first_frame;
                 bool has_begin = false;

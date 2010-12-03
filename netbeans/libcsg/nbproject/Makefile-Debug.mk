@@ -149,6 +149,11 @@ ${OBJECTDIR}/_ext/1332856960/lammpsreader.o: ../../src/libcsg/modules/io/lammpsr
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/lammpsreader.o ../../src/libcsg/modules/io/lammpsreader.cc
 
+${OBJECTDIR}/_ext/1332856960/lammpsreader.o: ../../src/libcsg/modules/io/lammpsreader.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/lammpsreader.o ../../src/libcsg/modules/io/lammpsreader.cc
+
 ${OBJECTDIR}/_ext/484457853/molecule.o: ../../src/libcsg/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d

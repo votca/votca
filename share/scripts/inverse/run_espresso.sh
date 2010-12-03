@@ -55,8 +55,8 @@ traj_esp="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
 
 
 # Different Espresso scripts depending on the method used
-################ IBM ###################
-if [ "$method" = "ibm" ]; then
+################ IBI ###################
+if [ "$method" = "ibi" ]; then
     
     n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
     [ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
@@ -155,5 +155,5 @@ EOF
     [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
     
 else
-    die "${0##*/}: ESPResSo only supports method: IBM"
+    die "${0##*/}: ESPResSo only supports method: ibi"
 fi

@@ -18,29 +18,21 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script make all the post update with backup for single pairs
+Informs users that ibm was renamed to ibi.
 
 Usage: ${0##*/}
 
-USES:  csg_get_interaction_property log mv do_external run_or_exit
+USES: msg die
 
-NEEDS: name inverse.post_add
+NEEDS:
 EOF
    exit 0
 fi
 
-name=$(csg_get_interaction_property name)
-tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
-i=1
-#after all we shift the potential to be 0 at the cutoff and tag with labels
-for task in $tasklist shift tag; do
-  log "Doing postadd task '$task' for '${name}'"
-  
-  #save the current one
-  run_or_exit mv "${name}.pot.new" "${name}.pot.${i}"
+check_deps "$0"
 
-  #perform postadd task
-  do_external postadd "$task" "${name}.pot.${i}" "${name}.pot.new" 
+msg "####################################"
+msg "# ERROR 'ibm' was renamed to 'ibi' #"
+msg "####################################"
 
-  ((i++))
-done
+die "'ibm' was renamed to 'ibi'"

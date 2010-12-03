@@ -40,29 +40,41 @@ do_external postadd dummy "$1" "$2"
 
 name=$(csg_get_interaction_property name)
 step=$(csg_get_interaction_property step)
-weight=$(csg_get_interaction_property inverse.post_add_options.convergence.weight 1)
-dist=$(csg_get_interaction_property inverse.post_add_options.convergence.what "dist")
 
-tmp1="$(true_or_exit mktemp ${name}.${dist}.tgt.XXX)"
-tmp2="$(true_or_exit mktemp ${name}.${dist}.new.XXX)"
-tmp3="$(true_or_exit mktemp ${name}.${dist}.cmb.XXX)"
+#these two are arrays
+weights=( $(csg_get_interaction_property inverse.post_add_options.convergence.weight 1) )
+what_to_do_list=( $(csg_get_interaction_property inverse.post_add_options.convergence.what "dist") )
 
-if [ ! -f "${name}.${dist}.tgt" ]; then
-  if [ "${dist}" = "dist" ]; then
-    do_external resample target
-  else
-    die "${0##*/}: file '${name}.${dist}.tgt' was not found"
+[ ${#weights[@]} -ne ${#what_to_do_list[@]} ] && die "${0##*/}: number of weights does not match number of 'what' to calc convergence from"
+tmp="$(true_or_exit mktemp ${name}.conv.XXX)"
+
+#we allow multiple thing per interaction to be checked
+for ((i=0;i<${#what_to_do_list[@]};i++)); do
+  dist=${what_to_do_list[$i]}
+  weight=${weights[$i]}
+  tmp1="$(true_or_exit mktemp ${name}.${dist}.tgt.XXX)"
+  tmp2="$(true_or_exit mktemp ${name}.${dist}.new.XXX)"
+  tmp3="$(true_or_exit mktemp ${name}.${dist}.cmb.XXX)"
+
+  if [ ! -f "${name}.${dist}.tgt" ]; then
+    #if we need $name.dist.tgt we know how to create it
+    if [ "${dist}" = "dist" ]; then
+      do_external resample target
+    else
+      die "${0##*/}: file '${name}.${dist}.tgt' was not found, add the script to create this file to the postadd routine of interaction $name"
+    fi
   fi
-fi
 
-true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
-true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.new > $tmp2
+  true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
+  true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.new > $tmp2
 
-[ $(sed -n '$=' $tmp1) -eq $(sed -n '$=' $tmp2) ] || \
-  die "${0##*/}: linenumber of ${name}.${dist}.tgt differs from ${name}.${dist}.new"
+  [ $(sed -n '$=' $tmp1) -eq $(sed -n '$=' $tmp2) ] || \
+    die "${0##*/}: linenumber of ${name}.${dist}.tgt differs from ${name}.${dist}.new"
 
-true_or_exit paste $tmp1 $tmp2 > $tmp3
-run_or_exit awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
-log "Calc convergence for ${name} with weight $weight"
-true_or_exit awk -v bin=$step -v w=$weight '{sum+=($5-$2)**2;}END{print sqrt(sum*bin*w);}' $tmp3 > ${name}.conv
+  true_or_exit paste $tmp1 $tmp2 > $tmp3
+  run_or_exit awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
+  log "Calc convergence for ${name} with weight $weight"
+  true_or_exit awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)**2;}END{print dist,sqrt(sum*bin*w);}' $tmp3 >> $tmp
+done
 
+true_or_exit awk '{sum+=$2;}END{print sum;}' $tmp > ${name}.conv
