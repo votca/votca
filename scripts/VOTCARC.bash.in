@@ -16,10 +16,12 @@
 
 #path is never empty
 PATH="@bindir@:${PATH}"
+#debian wants to have : at the end
+MANPATH="@mandir@:${MANPATH}"
 LD_LIBRARY_PATH="@libdir@${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
 PKG_CONFIG_PATH="@libdir@/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
 
-export PATH LD_LIBRARY_PATH PKG_CONFIG_PATH
+export PATH MANPATH LD_LIBRARY_PATH PKG_CONFIG_PATH
 
 #votca rc files
 for rc in "@votcashare@"/rc/*rc.bash; do
