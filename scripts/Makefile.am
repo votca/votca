@@ -19,13 +19,19 @@ EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf
 csg_call: $(srcdir)/csg_call.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' \
 	    -e 's,@votcashare\@,${datadir}/votca,' $< > $@
+	chmod 755 $@
 
 csg_inverse: $(srcdir)/csg_inverse.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' \
 	    -e 's,@votcashare\@,${datadir}/votca,' $< > $@
+	chmod 755 $@
 
 multi_g_rdf: $(srcdir)/multi_g_rdf.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
+	chmod 755 $@
+
+multi_g_density: multi_g_rdf
+	$(LN_S) -f $< $@
 
 csg.rc.csh: $(srcdir)/csg.rc.csh.in Makefile
 	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
@@ -33,7 +39,19 @@ csg.rc.csh: $(srcdir)/csg.rc.csh.in Makefile
 csg.rc.bash: $(srcdir)/csg.rc.bash.in Makefile
 	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
-CLEANFILES = $(bin_SCRIPTS) $(rcfiles) hgstamp *~
+if HAVE_TXT2TAGS
+man1_MANS= csg_call.man csg_inverse.man multi_g_rdf.man multi_g_density.man
+%.man: %.t2t
+	${TXT2TAGS} -t man -i $< -o $@
+
+%.t2t: %
+	./help2t2t.sh $* > $@
+
+else
+man1_MANS=
+endif
+
+CLEANFILES = $(bin_SCRIPTS) $(rcfiles) $(man1_MANS) hgstamp multi_g_density *~
 
 install-exec-hook:
 	cd $(DESTDIR)$(bindir) && $(LN_S) -f multi_g_rdf multi_g_density

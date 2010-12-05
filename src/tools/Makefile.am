@@ -3,6 +3,20 @@ AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS)
 bin_PROGRAMS = \
     csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_part_dist # csg_nemat csg_conj csg_sample
 
+if HAVE_TXT2TAGS
+man1_MANS= \
+	csg_map.man csg_dump.man csg_property.man csg_resample.man csg_stat.man csg_fmatch.man\
+	csg_imcrepack.man csg_gmxtopol.man csg_part_dist.man
+%.man: %.t2t
+	${TXT2TAGS} -t man -i $< -o $@
+
+%.t2t: %
+	$(top_srcdir)/scripts/help2t2t.sh $* > $@
+
+else
+man1_MANS=
+endif
+
 csg_dump_SOURCES = csg_dump.cc
 
 # csg_nemat_SOURCES = \
@@ -36,3 +50,6 @@ csg_part_dist_SOURCES = csg_part_dist.cc
 #everything is already in libvotca_csg
 AM_LDFLAGS = $(BIN_LDFLAGS)
 LDADD = ../libcsg/libvotca_csg.la
+
+CLEANFILES = $(man1_MANS) *~
+
