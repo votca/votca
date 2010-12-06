@@ -226,12 +226,14 @@ csg_get_interaction_property () {
   [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
-  if ret="$($cmd 2>&1)"; then
-    [ -z "$ret" ] && [ -n "$2" ] && ret="$2"
-  else
-    [ -z "$2" ] && die "csg_get_interaction_property: $cmd failed with error msg: $ret and no default"
-    ret="$2"
+  #the --filter option will make csg_property fail, don't stop if we have an default
+  if ! ret="$($cmd 2>&1)"; then
+    [ "$allow_empty" = "no" ] && [ -z "$2" ] && \
+      die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
+    #ret has error message
+    ret=""
   fi
+  [ "$allow_empty" = "no" ] && [ -z "$ret" ] && [ -n "$2" ] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_interaction_property: Result of '$cmd' was empty"
   echo "$ret"
@@ -251,6 +253,7 @@ csg_get_property () {
   [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
+  #csg_property only fails if xml file is bad otherwise result is empty
   ret="$(true_or_exit $cmd)"
   [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
