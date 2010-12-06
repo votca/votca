@@ -33,7 +33,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/csg_rdfthreaded.o
+	${OBJECTDIR}/_ext/256321098/template_threaded.o
 
 
 # C Compiler Flags
@@ -64,10 +64,10 @@ LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtoo
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/csg_rdfthreaded ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/715944016/csg_rdfthreaded.o: ../../src/tools/csg_rdfthreaded.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
+${OBJECTDIR}/_ext/256321098/template_threaded.o: ../../share/template/template_threaded.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/256321098
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_rdfthreaded.o ../../src/tools/csg_rdfthreaded.cc
+	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/256321098/template_threaded.o ../../share/template/template_threaded.cc
 
 # Subprojects
 .build-subprojects:
