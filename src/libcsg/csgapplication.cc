@@ -22,7 +22,6 @@
 #include "topologymap.h"
 #include "cgengine.h"
 #include "version.h"
-//#include "votca/tools/easylock.h"
 
 namespace votca {
     namespace csg {
@@ -130,27 +129,23 @@ namespace votca {
             id = worker->getId();
 
             if (SynchronizeThreads()) {
-                //std::cout << "thread id " << id << " nts " << _threadsMutexesIn.size() << std::endl;
+                //wait til its your turn
                 _threadsMutexesIn[id]->Lock();
-                //std::cout << "input (id:" << id << "): locked worker" << std::endl;
-                //std::cout << "input (id:" << id << "): ... read from traj_reader!" << std::endl;
             }
             _traj_readerMutex.Lock();
             if (_nframes == 0) {
                 _traj_readerMutex.Unlock();
 
                 if (SynchronizeThreads()) {
-                    //std::cout << "input (id:" << id << "): ... unlocking worker(id:";
-                    if (id == _nthreads - 1)
-                        id = -1;
-                    _threadsMutexesIn[id + 1]->Unlock();
-                    //std::cout << id + 1 << ")" << std::endl;
+                    //done processing? don't forget to unlock next worker anyway
+                    _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
                 }
 
                 return false;
             }
             _nframes--;
             if (!_is_first_frame || worker->getId() != 0) {
+                //get frame
                 bool tmpRes = _traj_reader->NextFrame(worker->_top);
                 if (!tmpRes) {
                     _traj_readerMutex.Unlock();
@@ -161,15 +156,12 @@ namespace votca {
             if (worker->getId() == 0)
                 _is_first_frame = false;
 
-            //cout << "worker " << worker->getId() << " processing frame " << worker->_top.getStep() << endl;
             _traj_readerMutex.Unlock();
             if (SynchronizeThreads()) {
-
-                //std::cout << "input (id:" << id << "): ... unlocking worker(id:";
-                //std::cout << (id + 1) % _nthreads << ")" << std::endl;
-
+                //unlock next frame for input
                 _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
             }
+            //evaluate
             if (_do_mapping) {
                 worker->_map->Apply();
                 worker->EvalConfiguration(&worker->_top_cg, &worker->_top);
@@ -188,7 +180,6 @@ namespace votca {
 
             class DummyWorker : public Worker {
             public:
-                //                DummyWorker() {}
 
                 void EvalConfiguration(Topology *top, Topology *top_ref) {
                     _app->EvalConfiguration(top, top_ref);
@@ -311,13 +302,14 @@ namespace votca {
                     for (int thread = 0; thread < _myWorkers.size(); thread++) {
 
                         if (SynchronizeThreads()) {
-                            //std::cout << "starting thread(id): " << _myWorkers[thread]->getId() << std::endl;
                             Mutex *myMutexIn = new Mutex;
                             _threadsMutexesIn.push_back(myMutexIn);
+                            // lock each worker for input
                             myMutexIn->Lock();
 
                             Mutex *myMutexOut = new Mutex;
                             _threadsMutexesOut.push_back(myMutexOut);
+                            // lock each worker for output
                             myMutexOut->Lock();
                         }
                     }
@@ -325,16 +317,16 @@ namespace votca {
                         _myWorkers[thread]->Start();
 
                     if (SynchronizeThreads()) {
-                        //unlock first thread
+                        //unlock first thread and start ordered input/output
                         _threadsMutexesIn[0]->Unlock();
                         _threadsMutexesOut[0]->Unlock();
                     }
 
                     for (int thread = 0; thread < _myWorkers.size(); thread++) {
                         _myWorkers[thread]->WaitDone();
-                        delete _myWorkers[thread];
                         if (!SynchronizeThreads())
                             MergeWorker(_myWorkers[thread]);
+                        delete _myWorkers[thread];
                     }
                     for (int thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
                         delete _threadsMutexesIn[thread];

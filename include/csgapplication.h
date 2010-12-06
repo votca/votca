@@ -40,7 +40,7 @@ namespace votca {
             bool EvaluateOptions();
 
             void Run(void);
-  
+
             void ShowHelpText(std::ostream &out);
 
             /// \brief overload and return true to enable mapping command line options
@@ -90,14 +90,30 @@ namespace votca {
 
             // thread related stuff follows
 
+            /**
+             \brief Worker, derived from Thread, does the work.
+             *
+             * Worker holds the information about the current frame, either in its
+             * own copy (e.g. Topology), or, by reference, from the parent CsgApplication.
+             * The computation is shifted from Run() into EvalConfiguration. The
+             * user is required to overload ForkWorker and Mergeworker and thereby
+             * define the initialization and merging of workers. By default, workers
+             * will be executed in correct order according to the frames. Also,
+             * output will follow the same order.
+             * Mutexes handle the locking of input/output and are also used to impose
+             * the correct order of frames for in/output. 
+             *
+             */
             class Worker : public Thread {
             public:
 
                 Worker();
                 ~Worker();
 
+                /// \brief overload with the actual computation
                 virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0) = 0;
 
+                /// \brief returns worker id
                 int getId() {
                     return _id;
                 }
@@ -122,20 +138,21 @@ namespace votca {
             };
 
             /**
-             *  TODO comment!
+             * Gets frames from TrajectoryReader in an ordered way and, if successful,
+             * calls Worker::EvalConfiguration for that frame.
              * @param worker
-             * @return 
+             * @return True if frames left for calculation, else False
              */
             bool ProcessData(Worker * worker);
 
             /**
-             * TODO comment
-             * @return
+             * User is required to overload ForkWorker and initialize workers.
+             * @return worker
              */
             virtual Worker *ForkWorker(void);
 
             /**
-             * TODO comment
+             * User is required to overload MergeWorker and merge data from each worker.
              * @param worker
              */
             virtual void MergeWorker(Worker *worker);
@@ -149,7 +166,10 @@ namespace votca {
             int _nthreads;
             Mutex _nframesMutex;
             Mutex _traj_readerMutex;
+
+            /// \brief stores Mutexes used to impose order for input
             std::vector<Mutex*> _threadsMutexesIn;
+            /// \brief stores Mutexes used to impose order for output
             std::vector<Mutex*> _threadsMutexesOut;
             TrajectoryReader * _traj_reader;
         };
