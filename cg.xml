@@ -39,7 +39,13 @@
           </copyback>
 	  <convergence>
 	    <weight>100</weight>
+	    <what>dist</what>
 	  </convergence>
+	  <plot>
+	    <script>allplots.gp</script>
+	    <kill>gnuplot_x11</kill>
+	    <gnuplot_opts>-geometry 1024x700 -persist</gnuplot_opts>
+	  </plot>
       </post_add_options>
       <!-- name of the table for gromacs run -->
       <gromacs>
@@ -89,13 +95,13 @@
       <cutoff_check>yes</cutoff_check>
     </gromacs>
     <!-- these files are copied for each new run -->
-    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx allplots.gp</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
-    <method>ibm</method>
+    <method>ibi</method>
     <!-- directory for user scripts -->
-    <scriptdir>$PWD/scripts</scriptdir>
+    <scriptdir></scriptdir>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
