@@ -39,10 +39,14 @@ namespace votca {
 
             void Start();
 
-            /// \brief Run() executes the actual code. Overload it.
+            /**
+             * \brief Run() executes the actual code. Overload it.
+             */
             virtual void Run(void) = 0;
 
-            /// \brief WaitDone() will not exit until thread ends computation.
+            /**
+             * \brief WaitDone() will not exit until thread ends computation.
+             */
             void WaitDone();
             bool IsFinished() const;
 
