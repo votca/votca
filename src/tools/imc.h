@@ -18,7 +18,7 @@
 #ifndef _IMC_H
 #define	_IMC_H
 
-#include <cgengine.h>
+#include <csgapplication.h>
 #include <votca/tools/property.h>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
@@ -40,24 +40,21 @@ using namespace votca::tools;
  * 
  */
 class Imc
-    : public CGObserver
 {
 public:
     Imc();
     ~Imc();
-    
+
+    void Initialize(void);
+
     /// load cg definitions file
     void LoadOptions(const string &file);
     
     /// begin coarse graining a trajectory
-    void BeginCG(Topology *top, Topology *top_atom);
+    void BeginEvaluate(Topology *top, Topology *top_atom);
     
     /// end coarse graining a trajectory
-    void EndCG();
-    
-    /// evaluate current conformation
-    void EvalConfiguration(Topology *top, Topology *top_atom = 0);    
-    
+    void EndEvaluate();
     
     void WriteEvery(int write_every) { _write_every = write_every; }
     void DoBlocks(bool do_blocks) { _do_blocks = do_blocks; }
@@ -71,9 +68,9 @@ protected:
     
     /// struct to store collected information for interactions
     struct interaction_t {
+        int _index;
         Property *_p;
         HistogramNew _average;
-        HistogramNew _current;
         double _min, _max, _step;
         double _norm;
         bool _is_bonded;
@@ -129,12 +126,6 @@ protected:
     /// initializes the group structs after interactions were added
     void InitializeGroups();    
 
-    /// process non-bonded interactions for given frame
-    void DoNonbonded(Topology *top);
-    /// process bonded interactions for given frame
-    void DoBonded(Topology *top);
-    /// update the correlations after interations were processed
-    void DoCorrelations();
     
     void WriteDist(const string &suffix="");
     void WriteIMCData(const string &suffix="");
@@ -144,6 +135,30 @@ protected:
                     ub::vector_range< ub::vector<double> > &dS);
     
     void ClearAverages();
+
+    class Worker : public CsgApplication::Worker
+    {
+    public:
+
+        vector<HistogramNew> _current_hists;
+        Imc *_imc;
+        double _cur_vol;
+
+        /// evaluate current conformation
+        void EvalConfiguration(Topology *top, Topology *top_atom);
+        /// process non-bonded interactions for given frame
+        void DoNonbonded(Topology *top);
+        /// process bonded interactions for given frame
+        void DoBonded(Topology *top);
+    };
+/// update the correlations after interations were processed
+    void DoCorrelations(Imc::Worker *worker);
+
+    bool _processed_some_frames;
+    
+public:
+    CsgApplication::Worker *ForkWorker();
+    void MergeWorker(CsgApplication::Worker *worker);
  };
  
  inline Imc::pair_t::pair_t(Imc::interaction_t *i1, Imc::interaction_t *i2,

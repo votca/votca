@@ -108,7 +108,6 @@
             <pElem>../../include</pElem>
             <pElem>../../../include</pElem>
             <pElem>/usr/include/libxml2</pElem>
-            <pElem>../../../../../ruehle/gmx/include/gromacs</pElem>
           </incDir>
         </ccTool>
         <archiverTool>

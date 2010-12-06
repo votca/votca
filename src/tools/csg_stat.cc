@@ -46,9 +46,22 @@ public:
     bool DoTrajectory() {return true;}
     bool DoMapping() {return true;}
     bool DoMappingDefault(void) { return false; }
+    bool DoThreaded() {return true; }
+    bool SynchronizeThreads() {return true;}
     void Initialize();
     bool EvaluateOptions();
-    
+
+    void BeginEvaluate(Topology *top, Topology *top_ref);
+    void EndEvaluate();
+
+    CsgApplication::Worker *ForkWorker() {
+        return _imc.ForkWorker();
+    }
+
+    void MergeWorker(CsgApplication::Worker *worker) {
+        _imc.MergeWorker(worker);
+    }
+
 public:
     Imc _imc;
     int _write_every;
@@ -86,8 +99,18 @@ bool CsgStatApp::EvaluateOptions()
     if(OptionsMap().count("do-imc"))
     _imc.DoImc(true);
 
-    AddObserver(dynamic_cast<CGObserver*>(&_imc));
+    _imc.Initialize();
     return true;
+}
+
+void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref)
+{
+    _imc.BeginEvaluate(top, top_ref);
+}
+
+void CsgStatApp::EndEvaluate()
+{
+    _imc.EndEvaluate();
 }
 
 int main(int argc, char** argv)
