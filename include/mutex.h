@@ -1,32 +1,49 @@
-/* 
- * File:   mutex.h
- * Author: koschke
+/*
+ * Copyright 2010 The VOTCA Development Team (http://www.votca.org)
  *
- * Created on October 28, 2010, 3:26 PM
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 #ifndef MUTEX_H
 #define	MUTEX_H
 #include <pthread.h>
 
-namespace votca { namespace tools {
+namespace votca {
+    namespace tools {
 
-class Mutex {
-public:
-    Mutex();
-    ~Mutex();
+/**
+         \brief Convenient class for Mutexes
 
-    //do we need recursive locks? i.e. locking a  mutex 3 times requires the same mutex to be unlocked
-    //3 times
+         * Class allows to create, lock and unlock mutexes. Destroying is handled
+         * by the destructor.
 
-    void Lock();
-    void Unlock();
+         */
+        class Mutex {
+        public:
+            Mutex();
+            ~Mutex();
 
-private:
-    pthread_mutex_t _mutexVar;
-};
 
-}}
+            void Lock();
+            void Unlock();
+
+        private:
+            pthread_mutex_t _mutexVar;
+        };
+
+    }
+}
 
 #endif	/* MUTEX_H */
 
