@@ -29,12 +29,14 @@ public:
     ~Average() {}
     
     void Process(const T &v);
+    void Clear();
     template<typename iterator_type>
     void ProcessRange(const iterator_type &begin, const iterator_type   &end);
     
     T CalcDev();
     T CalcSig2();
     const T &getAvg();
+    const T getM2();
     size_t getN();
     
 private:
@@ -59,6 +61,15 @@ inline void Average<T>::Process(const T &value)
    _n++;
    _m2 += value*value;   
 }
+
+template<typename T>
+inline void Average<T>::Clear()
+{
+   _av = 0;
+   _n = 0;
+   _m2 = 0 ;
+}
+
 /*
 template<>
 inline void Average<double>::Process(const double &value)
@@ -93,6 +104,13 @@ T Average<T>::CalcSig2(){
 template<typename T>
 const T &Average<T>::getAvg(){
     return _av;
+}
+
+template<typename T>
+const T Average<T>::getM2(){
+    double m2 = 0.0;
+    m2 = _m2/_n;
+    return m2;
 }
 
 template<typename T>
