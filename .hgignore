@@ -28,6 +28,7 @@ scripts/csg.rc.bash
 scripts/csg.rc.csh
 scripts/csg_call
 scripts/csg_inverse
+scripts/help2t2t
 scripts/multi_g_rdf
 scripts/multi_g_density
 scripts/multi_g_*.man

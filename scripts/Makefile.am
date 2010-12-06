@@ -13,22 +13,22 @@ rc_DATA = $(rcfiles) csg-completion.bash
 endif
 
 # Extra files we need
-EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf.in csg-completion.bash
+EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf.in csg-completion.bash help2t2t.in
 
 #hg version is determined at compiletime
 csg_call: $(srcdir)/csg_call.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' \
 	    -e 's,@votcashare\@,${datadir}/votca,' $< > $@
-	chmod 755 $@
+	chmod +x $@
 
 csg_inverse: $(srcdir)/csg_inverse.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' \
 	    -e 's,@votcashare\@,${datadir}/votca,' $< > $@
-	chmod 755 $@
+	chmod +x $@
 
 multi_g_rdf: $(srcdir)/multi_g_rdf.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
-	chmod 755 $@
+	chmod +x $@
 
 multi_g_density: multi_g_rdf
 	$(LN_S) -f $< $@
@@ -41,11 +41,19 @@ csg.rc.bash: $(srcdir)/csg.rc.bash.in Makefile
 
 if HAVE_TXT2TAGS
 man1_MANS= csg_call.man csg_inverse.man multi_g_rdf.man multi_g_density.man
+
+help2t2t: $(srcdir)/help2t2t.in Makefile hgstamp
+	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
+	chmod +x $@
+
+csg_inverse.t2t: csg_inverse help2t2t
+	CSGSHARE=${top_builddir}/share ./help2t2t $< > $@
+
 %.man: %.t2t
 	${TXT2TAGS} -t man -i $< -o $@
 
-%.t2t: %
-	./help2t2t.sh $* > $@
+%.t2t: % help2t2t
+	./help2t2t $* > $@
 
 else
 man1_MANS=

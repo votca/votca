@@ -10,8 +10,8 @@ man1_MANS= \
 %.man: %.t2t
 	${TXT2TAGS} -t man -i $< -o $@
 
-%.t2t: %
-	$(top_srcdir)/scripts/help2t2t.sh $* > $@
+%.t2t: % $(top_builddir)/scripts/help2t2t
+	$(top_builddir)/scripts/help2t2t $* > $@
 
 else
 man1_MANS=

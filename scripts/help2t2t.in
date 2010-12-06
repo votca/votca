@@ -1,4 +1,21 @@
 #! /bin/bash -e
+#
+# Copyright 2010 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version='@version@'
 
 die() {
   echo -e "$*" >&2
@@ -42,7 +59,7 @@ fi
 #write t2t file
 cat <<EOF
 $prog
-${0##*/}
+Version: $version
 $(date)
 
 = NAME =
@@ -92,8 +109,8 @@ cat <<EOF
 
 Written and maintained by the VOTCA Development Team <devs@votca.org>
 
-This Manual Page was extracted from '$prog --help', 
-then converted to this format by [txt2tags http://txt2tags.org] !
+This Manual Page converted from t2t format to the this format by [txt2tags http://txt2tags.org] !
+The t2t file was extracted from '$prog --help' by ' ${0##*/} $prog' (version $version)
 
 
 = COPYRIGHT =
