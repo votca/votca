@@ -36,6 +36,7 @@ public:
      * \return return code
      */
     int Exec(int argc, char **argv);
+    int ExecThreaded(int argc, char **argv);
 
     /**
      * \brief program name
@@ -92,6 +93,7 @@ public:
      * the work should be done in here.
      */
     virtual void Run() { }
+    virtual void RunThreaded() { }
 
     /**
      * \brief add option for command line

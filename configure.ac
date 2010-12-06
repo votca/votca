@@ -62,6 +62,14 @@ BOOST was not found/disabled: Install BOOST or enable build-in replacement libvo
   fi
 fi
 
+ACX_PTHREAD(,[
+  AC_MSG_ERROR([
+		
+POSIX threads could not be detected
+  ])
+])
+CC="$PTHREAD_CC"
+
 if test "$with_fftw" = "yes"; then
   # check for fftw3
   PKG_CHECK_MODULES([FFTW],fftw3)
