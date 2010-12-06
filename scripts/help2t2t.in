@@ -94,7 +94,7 @@ echo -e "$helpmsg" | sed \
    -e '/^\* /s/\( \{2\}\|$\)/``/' \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
    -e '/^\(NEEDS\|OPTIONAL\|USES\|PROVIDES\)/d' \
-   -e 's/^\(Allowed\|Trajectory\|Specific\|Mapping\) options:/\n&/'
+   -e 's/^[A-Za-z]* options:/\n&/'
 
 if [ -n "$exam" ]; then
   cat <<EOF
