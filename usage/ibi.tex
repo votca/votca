@@ -6,31 +6,31 @@
 \end{figure}
 
 \section{Input preparation}
-In this section, the usage of \ibi is described which is implemented within the scripting framework described in chapter~\ref{sec:iterative_workflow}. It is suggested to get a basic understaning of this framework before proceeding.
+This section describes the usage of \ibi, implemented within the scripting framework described in chapter~\ref{sec:iterative_workflow}. It is suggested to get a basic understanding of this framework before proceeding.
 
 \ibi so far only supports iterative refinement of non-bonded interactions. An outline of the workflow for performing \ibi is given in \fig{fig:flow_ibi}. The first thing to do is generate reference distribution functions. These might come from experiments or from atomistic simulations. To get reasonable results out of the iterative process, the reference distributions should be of good quality (little noise, etc).
 
-\votca can create initial guesses for the coarse-grained potentials by boltzmann inverting the distribution function. If a custom initial guess for an interaction needs to be used instead, the table can be provided in \textit{$<$interaction$>$.pot.in}. As already mentioned, \votca automatically creates potential tables to run a simulation. However it does not know how to run a coarse-grained simulation. Therefore, all files needed to run a coarse-grained simulation, except for the potentials that are iteratively refined, must be provided and added to the \hyperlink{\cgref{inverse.filelist}}{filelist} in the settings \xml-file. If an atomistic topology and a mapping definition are present, \votca offers tools to assist the setup of a  coarse-grined topology (see \sect{sec:usage:cgrun}).
+\votca can create initial guesses for the coarse-grained potentials by boltzmann inverting the distribution function. If a custom initial guess for an interaction needs to be used instead, the table can be provided in \textit{$<$interaction$>$.pot.in}. As already mentioned, \votca automatically creates potential tables to run a simulation. However, it does not know how to run a coarse-grained simulation. Therefore, all files needed to run a coarse-grained simulation, except for the potentials that are iteratively refined, must be provided and added to the \hyperlink{\cgref{inverse.filelist}}{filelist} in the settings \xml-file. If an atomistic topology and a mapping definition are present, \votca offers tools to assist the setup of a  coarse-grined topology (see \sect{sec:usage:cgrun}).
 
 To get an overview of how an input file for doing \ibi looks like, it is suggested to take a look at one of the tutorials provided on \votcaweb.
 
 \section{Pressure correction}
 
-The pressure of the coarse-grained system usually does not match the pressure of the full atomistic system. The reason is that during the iterative Boltzmann inversion only structural properties and not thermodynamic properties are targeted. In order correct the pressure to match the target pressure, different strategies have been used based on small modifications of the potential. The correction can be applied via \interopt{inverse.post_update} scripts. The type of pressure correction is selected as described in section \sect{sec:ref_interaction}.
+The pressure of the coarse-grained system usually does not match the pressure of the full atomistic system. This is because iterative Boltzmann inversion only targets structural properties but not thermodynamic properties. In order correct the pressure in such a way that it matches the target pressure, different strategies have been used based on small modifications of the potential. The correction can be applied via \interopt{inverse.post_update} scripts. The type of pressure correction is selected as described in \sect{sec:ref_interaction}.
 
 
 \subsection{Simple pressure correction}
 In ref.\cite{Reith:2003} a simple linear attractive potential was added to the coarse-grained potential
 \begin{equation}
-  \Delta V(r)=A(1-\frac{r}{r_{cutoff}}) \,.
+  \Delta V(r)=A(1-\frac{r}{r_{cutoff}}) \,,
 \end{equation}
 with prefactor $A$
 \begin{equation}
   A = -\operatorname{sgn}(\Delta P)0.1k_{B}T\min(1,|f\Delta P) \,,
 \end{equation}
-$\Delta p=P_i-P_{target}$, and the scaling factor f which can be specified in the settings file.
+$\Delta p=P_i-P_{target}$, and scaling factor $f$ which can be specified in the settings file.
 
-An example for a block to do simple pressure correction every third interaction is
+As an example for a block doing simple pressure correction, every third interaction is
 \begin{lstlisting}
 <post_update>pressure</post_update>
 <post_update_options>
@@ -46,15 +46,15 @@ An example for a block to do simple pressure correction every third interaction 
 Here, \interopt{inverse.post_update_options.pressure.simple.scale} is the scaling factor $f$. In order to get the correct pressure it can become necessary to tune the scaling factor $f$ during the iterative process.
 
 \subsection{Advanced pressure correction}
-In \cite{Wang:2009} a pressure correction based on the virial expression of the pressure was introduced. The potential term is the same as in the simple form with a different form of the $A$ factor being used:
+In \cite{Wang:2009} a pressure correction based on the virial expression of the pressure was introduced. The potential term remains as in the simple form while a different sturcture of the $A$ factor is used:
 \begin{equation}
-  A = \left[\frac{-2\pi\rho^{2}}{3r_{cut}}\int_{0}^{r_{cut}}r^{3}g_{i}(r)dr\right]A_{i}=\Delta P
+  A = \left[\frac{-2\pi\rho^{2}}{3r_{cut}}\int_{0}^{r_{cut}}r^{3}g_{i}(r)dr\right]A_{i}=\Delta P.
 \end{equation}
-This requires as an additional input parameter the particle density $ \rho $ to be provided, which is added as  \interopt{inverse.particle_dens} in the input file.
+This factor requires the particle density $ \rho $ as additional input parameter, which is added as  \interopt{inverse.particle_dens} in the input file.
 
 \subsection{Runtime optimization}
 \label{ref:ibi:optimize}
-Most of the time for each iteration is spent in running the coarse-grained system and calculate the statistics. To get a feeling on how much statistics is needed, it is recommended to plot the distribution functions and check whether they are sufficiently smooth. Bad statistics lead to rough potential updates and the iterative refinement might fail. The runs should be long enough to produce distributions/rdfs with reasonable quality.
+Most time per iteration is spent on running the coarse-grained system and on calculating the statistics. To get a feeling on how much statistics is needed, it is recommended to plot the distribution functions and check whether they are sufficiently smooth. Bad statistics lead to rough potential updates which might cause the iterative refinement to fail. All runs should be long enough to produce distributions/rdfs of reasonable quality.
 
 Often, runtime can be improved by smoothing the potential updates. Our experience has shown that it is better to smooth the potential update instead of the rdf or potential itself. If the potential or rdf is smoothed, sharp features like the first peak in \spce water might get lost. Smoothing on the delta potential works quite well, since the sharp features are already present from the initial guess. By applying iterations of a simple triangular smoothing ($ \Delta U_i = 0.25 \Delta U_{i-1} + 0.5\Delta U_i + 0.25\Delta U_{i+1} $), a reasonable coarse-grained potential for \spce water could be produced in less than 10 minutes. Smoothing is implemented as a post\_update script and can be enabled by adding
 \begin{lstlisting}
@@ -65,7 +65,4 @@ Often, runtime can be improved by smoothing the potential updates. Our experienc
     </smooth>
   </post_update_options>
 \end{lstlisting}
-to the inverse section of an interaction in settings \xml.
-
-
-
+to the inverse section of an interaction in the settings \xml file.

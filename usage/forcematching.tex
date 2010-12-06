@@ -7,9 +7,9 @@
 The force matching algorithm with cubic spline basis is implemented in the \prog{csg_fmatch} utility. A list of available options can be found in the reference section for \prog{csg_fmatch}.
 
 \section{Program input}
-\prog{csg_fmatch} needs an atomistic reference run to perform coarse-graining. Note that the trajectory file {\em must contain forces } (e.g. there is an option for that in the \gromacs .mdp file), otherwise \prog{csg_fmatch} will not be able run.
+\prog{csg_fmatch} needs an atomistic reference run to perform coarse-graining. Note that the trajectory file {\em must contain forces } (note that there is a suitable option in the \gromacs .mdp file), otherwise \prog{csg_fmatch} will not be able run.
 
-In addition, a mapping scheme has to be created, which defines the coarse-grained model (see \sect{sec:mapping}). At last, a control file which has to be created, which contains all the information for coarse-graining the interactions and parameters for the force-matching run. This file is specified in \progopt{--options} is an \xml-file. An example might look like the following
+In addition, a mapping scheme has to be created, which defines the coarse-grained model (see \sect{sec:mapping}). At last, a control file has to be created, which contains all the information for coarse-graining the interactions and parameters for the force-matching run. This file is specified in \progopt{--options} in the \xml format. An example might look like the following
 \begin{lstlisting}
    <cg>
      <!--fmatch section -->
@@ -38,13 +38,13 @@ In addition, a mapping scheme has to be created, which defines the coarse-graine
 A full description of all available options can be found in \sect{sec:ref_options}.
 
 \section{Program output}
-\prog{csg_fmatch} produces a separate .force file for each interaction, specified in the CG-options file (option \progopt{options} ).
-These files have 4 columns: distance, corresponding force, table flag and the force error, which is estimated via a block-averaging procedure.
-If you have an angle, then the first column will contain corresponding angle in radians.
+\prog{csg_fmatch} produces a separate .force file for each interaction, specified in the CG-options file (option \progopt{options}).
+These files have 4 columns containing distance, corresponding force, table flag and the force error, which is estimated via a block-averaging procedure.
+If you wish to use an angle, then the first column will contain corresponding angle in radians.
 
-To get table-files for \gromacs one has to integrate the forces to get the potentials and do extrapolation and potentially smoothing.
+To get table-files for \gromacs one has to integrate the forces in order to get the potentials and in order to do extrapolation and potentially smoothing.
 
-Output files are not only produced at the end of the program execution, but after successful processing of every block. The user can have a look at the output files and decide to stop \prog{csg_fmatch}, as long as the force error is small enough.
+Output files are not only produced at the end of the program execution, but also after successful processing of each block. The user is free to have a look at the output files and decide to stop \prog{csg_fmatch}, provided the force error is small enough.
 
 \section{Integration and extrapolation of .force files }
 To convert forces (*.force) to potentials (*.pot), tables have to be integrated. To use the built-in integration command from the scripting framework, execute
@@ -52,14 +52,14 @@ To convert forces (*.force) to potentials (*.pot), tables have to be integrated.
  csg_call table integrate CG-CG.force CG-CG.pot
 \end{verbatim}
 
-This command calls \prog{integrate.pl} script, which integrates the force and writes the potential to the .pot file.
+This command calls the \prog{integrate.pl} script, which integrates the force and writes the potential to the .pot file.
 
-In general, each potential contains regions which are not sampled. However, a value be defined in the tabulated potential file for the simulation program. E.g., very small distances are never sampled in the case of non-bonded interactions or one might want to extend the file for long ranges. To extrapolate the potential, the grid has to be resampled first
+In general, each potential contains regions which are not sampled. However, a special value can be defined in the tabulated potential file for the simulation program. This can be used to never sample very small distances in the case of non-bonded interactions or to extend the file to long ranges. To extrapolate the potential, the grid has to be resampled first as shown below
 \begin{verbatim}
  csg_resample --in CH2-CH2.pot --out CH2-CH2.resampled.pot --grid 0:0.001:1.4
 \end{verbatim}
 
-Finally, the \prog{extrapolate.pl} script can be called, e.g.
+Finally, the \prog{extrapolate.pl} script can be called:
 \begin{verbatim}
  csg_call table extrapolate --function linear
 --region leftright CH2-CH2.resampled.pot CH2-CH2.extrapolated.pot

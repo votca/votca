@@ -23,7 +23,7 @@ On a coarse-grained level, the coordinates and momenta are specified by the posi
 \end{eqnarray}
 Note that capitalized symbols are used for the CG sites while lower case letters are used for the atomistic system.
 
-The mapping operator defined by a matrix for each bead $I$, ${\bm c}_I$, then links the two descriptions
+The mapping operator ${\bm c}_I$ is defined by a matrix for each bead $I$ and links the two descriptions
 \begin{eqnarray}
  {\bm R}_I &=& \sum_{i=1}^{n}c_{Ii}\bm r_i, \\
  {\bm P}_I &=&
@@ -39,7 +39,7 @@ If an atomistic system is translated by a constant vector, the corresponding coa
  \sum_{i=1}^{n}c_{Ii}=1.
 \end{equation}
 
-In some cases it is useful to define CG mapping in a way that certain atoms belong to several CG beads at the same time~\cite{Fritz:2009}. Following ref.~\cite{Noid:2008.1} we define two sets of atoms for each of the $N$ CG beads. For each site $I$, a set of {\em involved} atoms is defined as
+In some cases it is useful to define the CG mapping in such a way that certain atoms belong to several CG beads at the same time~\cite{Fritz:2009}. Following ref.~\cite{Noid:2008.1}, we define two sets of atoms for each of the $N$ CG beads. For each site $I$, a set of {\em involved} atoms is defined as
 \begin{equation}
  {\cal I}_I=\{i|c_{Ii}\ne0\}.
 \end{equation}
@@ -74,7 +74,7 @@ The idea of Boltzmann inversion stems from the fact that in a canonical ensemble
 %
 where \mbox{$Z = \int \exp \left[ - \beta U(q) \right] \text{d}q $} is a partition function, \mbox{$\beta = 1/k_\text{B} T$}.
 %
-Once $P(q)$ is known one can obtain the coarse-grained potential, which in this case is a potential of mean force, by inverting the probability distribution $P(q)$ of a variable $q$, which is either a bond length, bond angle, or torsion angle
+Once $P(q)$ is known, one can obtain the coarse-grained potential, which in this case is a potential of mean force, by inverting the probability distribution $P(q)$ of a variable $q$, which is either a bond length, bond angle, or torsion angle
 \begin{equation}
   U(q) = - k_\text{B} T \ln  P(q) ~.
   \label{eq:inv_boltzmann}
@@ -82,7 +82,7 @@ Once $P(q)$ is known one can obtain the coarse-grained potential, which in this 
 %
 The normalization factor $Z$ is not important since it would only enter the coarse-grained potential $U(q)$ as an irrelevant additive constant.
 
-Note that the histograms for the bonds $H_r(r)$, angles $H_\theta(\theta)$, and torsion angles $H_\varphi(\varphi)$ have to be rescaled in order to obtain the volume normalized distribution functions $P_r(r)$, $P_\theta(\theta)$, and $P_\varphi(\varphi)$, respectively
+Note that the histograms for the bonds $H_r(r)$, angles $H_\theta(\theta)$, and torsion angles $H_\varphi(\varphi)$ have to be rescaled in order to obtain the volume normalized distribution functions $P_r(r)$, $P_\theta(\theta)$, and $P_\varphi(\varphi)$, respectively,
 %
 \begin{align}
     P_r(r) = \frac{H_r(r)}{4\pi r^2}~,\;
@@ -90,7 +90,7 @@ Note that the histograms for the bonds $H_r(r)$, angles $H_\theta(\theta)$, and 
     P_\varphi(\varphi) = H_\varphi (\varphi)~,
     \label{eq:boltzmann_norm}
 \end{align}
-where $r$ is the bond length $r$, $\theta$ is the bond angle, and $\varphi$ is the torsion angle. The bonded coarse-grained potential can then be written as a sum the distribution functions
+where $r$ is the bond length $r$, $\theta$ is the bond angle, and $\varphi$ is the torsion angle. The bonded coarse-grained potential can then be written as a sum of distribution functions
 %
 \begin{align}
     \label{eq:boltzmann_pmf}
@@ -99,14 +99,14 @@ where $r$ is the bond length $r$, $\theta$ is the bond angle, and $\varphi$ is t
     \nonumber
 \end{align}
 
-On the technical side, the implementation of the Boltzmann inversion method requires {\em smoothing} of $U(q)$ to provide a continuous force. Splines can be used for this purpose. Poorly and unsampled regions, that is regions with high $U(q)$, shall be {\em extrapolated}. Since the contribution of these regions to the canonical density of states is small the exact shape of the extrapolation is less important.
+On the technical side, the implementation of the Boltzmann inversion method requires {\em smoothing} of $U(q)$ to provide a continuous force. Splines can be used for this purpose. Poorly and unsampled regions, that is regions with high $U(q)$, shall be {\em extrapolated}. Since the contribution of these regions to the canonical density of states is small, the exact shape of the extrapolation is less important.
 
 Another crucial issue is the cross-correlation of the coarse-grained degrees of freedom. Independence of the coarse-grained degrees of freedom is the main assumption that allows factorization of the probability distribution and the potential, eq.~\ref{eq:boltzmann_pmf}. Hence, one has to carefully check whether this assumption holds in practice. This can be done by performing coarse-grained simulations and comparing cross-correlations for all pairs of degrees of freedom in atomistic and coarse-grained resolution, e.~g. using a two-dimensional histogram, analogous to a Ramachandran plot.~\footnote{Checking the linear correlation coefficient does not guarantee statistical independence of variables, for example $c(x, x^2)=0$ if $x$ has a symmetric probability density $P(x) = P(-x)$. This case is often encountered in systems used for coarse-graining.}
 
 \subsection{Separation of bonded and non-bonded degrees of freedom}
 When coarse-graining polymeric systems, it is convenient to treat bonded and non-bonded interactions separately~\cite{Tschoep:1998}. In this case, sampling of the atomistic system shall be performed on a special system where non-bonded interactions are artificially removed, so that the non-bonded interactions in the reference system do not contribute to the bonded interactions of the coarse-grained model.
 
-This can be done by using exclusion lists using \prog{csg_boltzmann} with the option \progopt{--excl}. This is describe in detail in sec. \ref{sec:exclusions}.
+This can be done by employing exclusion lists using \prog{csg_boltzmann} with the option \progopt{--excl}. This is described in detail in sec. \ref{sec:exclusions}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -124,9 +124,9 @@ In \ibi the potential update $\Delta U$ is given by~\cite{Reith:2003}
 \end{eqnarray}
 Here $\lambda \in (0,1]$ is a numerical factor which helps to stabilize the scheme.
 
-The convergence is reached as soon as the distribution function $P^{(n)}$ matches the reference distribution function $P_{\rm ref}$, or, in other words, the potential of mean force, $U_\text{PMF}^{(n)}$ converges to the reference potential of mean force.
+The convergence is reached as soon as the distribution function $P^{(n)}$ matches the reference distribution function $P_{\rm ref}$, or, in other words, the potential of mean force, $U_\text{PMF}^{(n)}$, converges to the reference potential of mean force.
 
-\ibi can be used to refine both bonded and non-bonded potentials. It is primarily used for simple fluids with the aim of reproducing the radial distribution function of the reference system in order to obtain non-bonded interactions. On the implementation side, \ibi has the same issues as the inverse Boltzmann method, i.~e. smoothing and extrapolation of the potential must be used.
+\ibi can be used to refine both bonded and non-bonded potentials. It is primarily used for simple fluids with the aim to reproduce the radial distribution function of the reference system in order to obtain non-bonded interactions. On the implementation side, \ibi has the same issues as the inverse Boltzmann method, i.~e. smoothing and extrapolation of the potential must be used.
 
 
 \section{Inverse Monte Carlo}
@@ -147,7 +147,7 @@ where
   \beta \left( \left<S_{\alpha} \right>\left<S_{\gamma} \right> - \left<S_{\alpha} S_{\gamma} \right>  \right)~,
   \nonumber
 \end{eqnarray}
-and $S$ the histogram of a coarse-grained variable of interest. For example, in case of coarse-graining of the non-bonded interactions which depend only on the distance, $r_{ij}$, between particles $i$ and $j$ and assuming that the interaction potential is short-ranged, i.e. $U(r_{ij})=0$ if $r_{ij} \ge r_{\text{cut} }$, the average value of $S_{\alpha}$ is related to the radial distribution function $g(r_{\alpha})$
+and $S$ the histogram of a coarse-grained variable of interest. For example, in case of coarse-graining of the non-bonded interactions which depend only on the distance $r_{ij}$ between particles $i$ and $j$ and assuming that the interaction potential is short-ranged, i.e. $U(r_{ij})=0$ if $r_{ij} \ge r_{\text{cut} }$, the average value of $S_{\alpha}$ is related to the radial distribution function $g(r_{\alpha})$ by
 %
 \begin{equation}
    \left< S_{\alpha} \right> =  \frac{N(N-1)}{2} \frac{4 \pi r_{\alpha}^2 \Delta r} {V}g(r_{\alpha})~,
@@ -174,8 +174,8 @@ In order to determine these parameters, the reference forces on coarse-grained b
   {\vec F}_I^\text{ref} = \sum_{j \in {\cal S_I}} \frac{d_{Ii}}{c_{Ii}} {\vec f}_j({\vec r^n}),
   \label{eq:force_mapping}
 \end{equation}
-where the sum goes over all atoms of the CG site {\it I} (see. \sect{sec:mapping_operator}).
-The $d_{Ij}$ coefficients can, in principle, be chosen arbitrary, provided that the condition $ \sum_{i=1}^{n}d_{Ii}=1$ is sutisfied~\cite{Noid:2008.1}. If mapping coefficients for the forces are not provided, it is assumed that $d_{Ij} = c_{Ij}$ (see also \sect{sec:mapping}).
+where the sum is over all atoms of the CG site {\it I} (see. \sect{sec:mapping_operator}).
+The $d_{Ij}$ coefficients can, in principle, be chosen arbitrarily, provided that the condition $ \sum_{i=1}^{n}d_{Ii}=1$ is satisfied~\cite{Noid:2008.1}. If mapping coefficients for the forces are not provided, it is assumed that $d_{Ij} = c_{Ij}$ (see also \sect{sec:mapping}).
 
 By calculating the reference forces for $L$ snapshots we can write down $N \times L$ equations
 %
@@ -185,8 +185,8 @@ By calculating the reference forces for $L$ snapshots we can write down $N \time
   \label{eq:fmatch1}
 \end{equation}
 %
-Here ${\vec F}_{Il}^\text{ref}$ is the force on the bead $I$, ${\vec F}_{Il}^\text{cg} $ is the coarse-grained representation of this force. Index $l$ enumerates snapshots picked for coarse-graining. By running the simulations long enough one can always ensure that $M < N \times L$. In this case the set of equations~\ref{eq:fmatch1} is overdetermined and can be solved in a least-squares manner.
+Here ${\vec F}_{Il}^\text{ref}$ is the force on the bead $I$ and ${\vec F}_{Il}^\text{cg} $ is the coarse-grained representation of this force. The index $l$ enumerates snapshots picked for coarse-graining. By running the simulations long enough one can always ensure that $M < N \times L$. In this case the set of equations~\ref{eq:fmatch1} is overdetermined and can be solved in a least-squares manner.
 
-${\bm F}_{il}^\text{cg}$ is, in principle, a non-linear function of its parameters $\{g_i\}$. It is, therefore, useful to represent the coarse-grained force-field in such a way that equations~(\ref{eq:fmatch1}) become linear functions of $\{g_i\}$. This can be done using splines to describe the functional form of the forces~\cite{Izvekov:2005}. Implementation details are discussed in ref.~\cite{Ruehle:2009.a}.
+${\bm F}_{il}^\text{cg}$ is, in principle, a non-linear function of its parameters $\{g_i\}$. Therefore, it is useful to represent the coarse-grained force-field in such a way that equations~(\ref{eq:fmatch1}) become linear functions of $\{g_i\}$. This can be done using splines to describe the functional form of the forces~\cite{Izvekov:2005}. Implementation details are discussed in ref.~\cite{Ruehle:2009.a}.
 
-Note that an adequate sampling of the system requires a large number of snapshots $L$. Hence, the applicability of the method is often constrained by the amount of memory available. To remedy the situation, one can split the trajectory into blocks, find the coarse-grained potential for each block and then perform averaging over the blocks.
+Note that an adequate sampling of the system requires a large number of snapshots $L$. Hence, the applicability of the method is often constrained by the amount of memory available. To remedy the situation, one can split the trajectory into blocks, find the coarse-grained potential for each block and then perform averaging over all blocks.
