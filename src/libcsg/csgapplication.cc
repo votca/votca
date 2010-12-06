@@ -149,7 +149,8 @@ namespace votca {
                 bool tmpRes = _traj_reader->NextFrame(worker->_top);
                 if (!tmpRes) {
                     _traj_readerMutex.Unlock();
-                    _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
+                    if (SynchronizeThreads())
+                        _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
                     return false;
                 }
             }

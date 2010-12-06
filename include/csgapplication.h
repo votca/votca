@@ -138,14 +138,16 @@ namespace votca {
             };
 
             /**
-             * Gets frames from TrajectoryReader in an ordered way and, if successful,
+             * \brief Gets frames from TrajectoryReader in an ordered way and, if successful,
              * calls Worker::EvalConfiguration for that frame.
+             * 
              * @param worker
              * @return True if frames left for calculation, else False
              */
             bool ProcessData(Worker * worker);
 
             /**
+             *
              * User is required to overload ForkWorker and initialize workers.
              * @return worker
              */
