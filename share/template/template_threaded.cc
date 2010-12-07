@@ -1,8 +1,18 @@
 /*
- * File:   main.cpp
- * Author: ruehle
+ * Copyright 2010 The VOTCA Development Team (http://www.votca.org)
  *
- * Created on July 6, 2010, 12:15 PM
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 #include <stdlib.h>
@@ -12,51 +22,83 @@
 #include <votca/csg/nblist.h>
 #include <votca/csg/nblistgrid.h>
 
-//using namespace votca::tools;
 using namespace std;
 using namespace votca::csg;
+
+// comments where mainly added to explain the "overhead" needed for threaded 
+// calculations/analyzation
+
+// to sum it up: instead of having one "thread" doing all your work (the whole tracetory),
+// you may split it into single frames and distribute it among many "workers"
+// a solid choice is: number of cores = number of workers
+// you, as the user, are required to define how to initialize and merge your workers
+// the main part of the program, EvalConfiguration, is shifted to the Worker class 
+// but other than that stays untouched compared to a non-threaded version
 
 class CsgTestApp
 : public CsgApplication {
 
     string ProgramName() {
-        return "template_nblist";
+        return "template_threaded_rdf";
     }
 
     void HelpText(ostream &out) {
-        out << "rough template for rdf calculations";
+        out << "template for threaded rdf calculations";
     }
 
-    /* why not setting a member variable? */
-    bool DoThreaded() {
-        return true;
-    }
     void Initialize();
 
     bool DoTrajectory() {
         return true;
     }
 
+// explicitly turn on threaded mode by overriding DoThreaded() and returning true
+// note that threads will be started and merged in an ordered way by default
+// this has the disadvantage of slowing everything down a bit (you will likely not
+// notice an decrease of performance), but the advantage of processing frames in
+// their original order
+// in most cases, you want that
+// in some cases, where reading and writing/merging does not have to occur in order, 
+// you may consider switching SynchronizeThreads() off
+// in this example, where an rdf-like value is calculated, ordered reading/writing is not
+// neccessary. however, leave it untouched to prevent future mistakes
+
+    bool DoThreaded() {
+        return true;
+    }
+// are you sure? really?
+// bool SynchronizeThreads() {
+//      return false;
+//  }
+
     void BeginEvaluate(Topology *top, Topology *top_ref);
     void EndEvaluate();
 
+// ForkWorker is the function you need to override and initialize your workers
     CsgApplication::Worker *ForkWorker(void);
+
+// MergeWorker needs you to define how to merge different workers and their data
     void MergeWorker(Worker *worker);
 protected:
+// mutexes are used to exclusively work on data
+// e.g., if you read or write global data, make sure that nobody else (i.e. no other worker)
+// works on that very same piece of data at the same time; otherwise, 
+// you will end up with wrong results that you struggle to understand
     Mutex rdfMutex;
+// data belonging to the main class CsgTestApp
     HistogramNew _rdf;
     double _cut_off;
 
 };
 
+// derive from CsgApplication::Worker and define your worker
 class RDFWorker
 : public CsgApplication::Worker {
 public:
-    /*TODO do we need con/destructor?*/
-    //RDFWorker();
     ~RDFWorker();
+// override EvalConfiguration with your analysis routine
     void EvalConfiguration(Topology *top, Topology *top_ref);
-    // funktionen implementieren, unter anerem initialize
+// data belonging to this particular worker
     HistogramNew _rdf;
     double _cut_off;
 
@@ -79,46 +121,22 @@ void CsgTestApp::BeginEvaluate(Topology *top, Topology *top_ref) {
     _rdf.Initialize(0, _cut_off, 50);
 }
 
-void CsgTestApp::EndEvaluate() {
-    _rdf.data().y() = //_avg_vol.getAvg() * iter->second->_norm *
-            element_div(_rdf.data().y(),
-            element_prod(_rdf.data().x(), _rdf.data().x())
-            );
-
-    _rdf.data().Save("rdf.dat");
-}
-
+// create and initialize single workers
+// ForkWorker() will be called as often as the parameter '--nt NTHREADS'
+// it creates a new worker and the user is required to initialize variables etc.
+// (if needed)
 CsgApplication::Worker * CsgTestApp::ForkWorker() {
-    //std::cout << "i am so forking a worker right now" << std::endl;
     RDFWorker *worker;
     worker = new RDFWorker();
-    // initializiseren here?
+// initialize
     worker->_cut_off = OptionsMap()["c"].as<double>();
     worker->_rdf.Initialize(0, worker->_cut_off, 50);
-    return worker; // evtl cast
-    //i->_norm = 1. / (4. * M_PI * i->_step * beads1.size()*(beads2.size() - 1.) / 2.);
+    return worker; 
 }
 
-void CsgTestApp::MergeWorker(Worker *worker) {
-    RDFWorker * myRDFWorker;
-    myRDFWorker = dynamic_cast<RDFWorker*> (worker);
-    rdfMutex.Lock();
-    _rdf.data().y() = _rdf.data().y() + myRDFWorker->_rdf.data().y();
-    //     for (int i=0; i<myRDFWorker->_rdf.data().size(); i++)
-    //         std::cout << myRDFWorker->_rdf.data().x(i) << std::endl;
-
-    rdfMutex.Unlock();
-}
-
-RDFWorker::~RDFWorker(void) {
-  //review me!
-}
-
+// EvalConfiguration does the actual calculation
+// you won't see any explicit threaded stuff here
 void RDFWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
-
-    //std::cout << "I am so hard working! worker id: " << getId() << ", frame nr: " << top->getStep() << std::endl;
-    //         << ", topology copy addr: " << top << std::endl;
-    //    sleep(rand()%3);
     BeadList b;
     b.Generate(*top, "*");
     NBListGrid nb;
@@ -128,6 +146,31 @@ void RDFWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
     for (i = nb.begin(); i != nb.end(); ++i) {
         _rdf.Process((*i)->dist());
     }
-    //std::cout << "      " << _rdf. << std::endl;
-    //    _rdf.y() = _rdf.y() + worker.rdf.data().y() // so ungefaehr
+}
+
+// the user is required to define how to merge the single data
+// belonging to each thread into the main data belonging to CsgTestApp
+void CsgTestApp::MergeWorker(Worker *worker) {
+    RDFWorker * myRDFWorker;
+// cast generel Worker into your derived worker class(here RDFWorker)
+    myRDFWorker = dynamic_cast<RDFWorker*> (worker);
+// make sure only one worker at a time reads/writes memory
+// get a lock on your mutex
+    rdfMutex.Lock();
+// merging of data in this simple example is easy and does not have to follow
+// the original order of frames (since plain summing is commutative)
+    _rdf.data().y() = _rdf.data().y() + myRDFWorker->_rdf.data().y();
+
+// do not forget to unlock your data, i.e. release your mutex
+// otherwise, your threads will get stuck at the rdfMutex.Lock() call
+    rdfMutex.Unlock();
+}
+
+void CsgTestApp::EndEvaluate() {
+    _rdf.data().y() = 
+            element_div(_rdf.data().y(),
+            element_prod(_rdf.data().x(), _rdf.data().x())
+            );
+
+    _rdf.data().Save("rdf.dat");
 }
