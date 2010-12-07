@@ -152,6 +152,7 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
             ic->setIndex(index);
             ic->setMolecule(minfo->getId());
             top.AddBondedInteraction(ic);
+            minfo->AddInteraction(ic);
             index++;
         }
     }
