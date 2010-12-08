@@ -59,7 +59,7 @@ else
 man1_MANS=
 endif
 
-CLEANFILES = $(bin_SCRIPTS) $(rcfiles) $(man1_MANS) hgstamp multi_g_density *~
+CLEANFILES = $(bin_SCRIPTS) $(rcfiles) $(man1_MANS) hgstamp multi_g_density help2t2t csg_inverse.t2t *~
 
 install-exec-hook:
 	cd $(DESTDIR)$(bindir) && $(LN_S) -f multi_g_rdf multi_g_density
