@@ -322,11 +322,15 @@ namespace votca {
                         _threadsMutexesIn[0]->Unlock();
                         _threadsMutexesOut[0]->Unlock();
                     }
-
+                    // mutex needed for merging if SynchronizeThreads()==False
+                    Mutex mergeMutex;
                     for (int thread = 0; thread < _myWorkers.size(); thread++) {
                         _myWorkers[thread]->WaitDone();
-                        if (!SynchronizeThreads())
+                        if (!SynchronizeThreads()) {
+                            mergeMutex.Lock();
                             MergeWorker(_myWorkers[thread]);
+                            mergeMutex.Unlock();
+                        }
                         delete _myWorkers[thread];
                     }
                     for (int thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
