@@ -182,7 +182,7 @@ protected:
 
 inline int CubicSpline::GenerateGrid(double min, double max, double h)
 {
-    int vec_size = 1 + (int)((max-min)/h);  //check it!
+    int vec_size = (int)((max-min)/h+1.00000001);
     _r.resize(vec_size);
     int i;
    

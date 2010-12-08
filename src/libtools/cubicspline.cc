@@ -30,7 +30,7 @@ using namespace std;
 void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 {    
     if(x.size() != y.size())
-        throw std::invalid_argument("error in CubicSpline::Fit : size of vector x and y dos not match");
+        throw std::invalid_argument("error in CubicSpline::Interpolate : size of vector x and y dos not match");
     
     const int N = x.size();
     

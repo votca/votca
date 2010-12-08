@@ -1,6 +1,5 @@
 #include "linalg.h"
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -37,7 +36,6 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
     if(residual)
         for (size_t i =0 ; i < residual->size(); i++)
             (*residual)(i) = gsl_vector_get(gsl_residual, i);
-
 
     gsl_vector_free (gsl_x);
     gsl_vector_free (tau);
