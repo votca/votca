@@ -46,9 +46,9 @@ my $param_N="$ARGV[2]";
 my $a_line_nr="$ARGV[3]";
 my $prop_N="$ARGV[4]";
 
+my $property="rdf";
 my $name=csg_get_property("cg.non-bonded.name");
 my $sim_prog=csg_get_property("cg.inverse.program");
-my $property="rdf";
 
 # Resample tgt rdf
 my $aim_rdf_file="$name.dist.tgt";
@@ -111,7 +111,6 @@ for(my $i=1;$i<($max-$min)/$dr;$i++) {
        $ftar+=$dr*$drdf[$i];
        $ftar_aim+=$dr*$rdf_aim[$i];
 }
-
 $ftar+=(0.5*$dr*abs($rdf_cur[0]-$rdf_aim[0]))+(0.5*$dr*abs($rdf_cur[$max/$dr]-$rdf_aim[$max/$dr]));
 $ftar_aim+=(0.5*$dr*$rdf_aim[0])+(0.5*$dr*$rdf_aim[$max/$dr]);
 
@@ -135,3 +134,5 @@ else {
 
 # Save to new simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@ftar_cur,%hash,@flag_cur) or die "$progname: error at saveto_simplex_table\n";
+
+
