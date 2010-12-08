@@ -25,13 +25,13 @@
 using namespace std;
 using namespace votca::csg;
 
-// comments where mainly added to explain the "overhead" needed for threaded 
-// calculations/analyzation
+// comments were mainly added to explain the "overhead" needed for threaded 
+// calculations/analyzations
 
 // to sum it up: instead of having one "thread" doing all your work (the whole tracetory),
-// you may split it into single frames and distribute it among many "workers"
-// a solid choice is: number of cores = number of workers
-// you, as the user, are required to define how to initialize and merge your workers
+// you may split it into single frames and distribute it among many "workers".
+// a solid choice is: number of cores = number of workers.
+// you, as the user, are required to define how to initialize and merge your workers.
 // the main part of the program, EvalConfiguration, is shifted to the Worker class 
 // but other than that stays untouched compared to a non-threaded version
 
@@ -55,11 +55,11 @@ class CsgTestApp
 // explicitly turn on threaded mode by overriding DoThreaded() and returning true
 // note that threads will be started and merged in an ordered way by default
 // this has the disadvantage of slowing everything down a bit (you will likely not
-// notice an decrease of performance), but the advantage of processing frames in
+// notice a decrease of performance), but the advantage of processing frames in
 // their original order
 // in most cases, you want that
 // in some cases, where reading and writing/merging does not have to occur in order, 
-// you may consider switching SynchronizeThreads() off
+// you may consider switching SynchronizeThreads() off 
 // in this example, where an rdf-like value is calculated, ordered reading/writing is not
 // neccessary. however, leave it untouched to prevent future mistakes
 
@@ -80,11 +80,6 @@ class CsgTestApp
 // MergeWorker needs you to define how to merge different workers and their data
     void MergeWorker(Worker *worker);
 protected:
-// mutexes are used to exclusively work on data
-// e.g., if you read or write global data, make sure that nobody else (i.e. no other worker)
-// works on that very same piece of data at the same time; otherwise, 
-// you will end up with wrong results that you struggle to understand
-    Mutex rdfMutex;
 // data belonging to the main class CsgTestApp
     HistogramNew _rdf;
     double _cut_off;
@@ -95,7 +90,7 @@ protected:
 class RDFWorker
 : public CsgApplication::Worker {
 public:
-    ~RDFWorker();
+    ~RDFWorker(){};
 // override EvalConfiguration with your analysis routine
     void EvalConfiguration(Topology *top, Topology *top_ref);
 // data belonging to this particular worker
@@ -154,16 +149,28 @@ void CsgTestApp::MergeWorker(Worker *worker) {
     RDFWorker * myRDFWorker;
 // cast generel Worker into your derived worker class(here RDFWorker)
     myRDFWorker = dynamic_cast<RDFWorker*> (worker);
-// make sure only one worker at a time reads/writes memory
-// get a lock on your mutex
-    rdfMutex.Lock();
+
+// the next comment block explains how mutexes are used internally for this function:
+// mutexes are used to exclusively work on data
+// e.g., if you read or write global data, make sure that nobody else (i.e. no other worker)
+// works on that very same piece of data at the same time; otherwise,
+// you will end up with wrong results that you struggle to understand
+// the parent class handles a "merging mutex" for you internally; this is what happens:
+// first, a mutex is created, e.g.
+//        Mutex rdfMutex;
+// then, for each worker, the mutex is first locked
+//        rdfMutex.Lock())
+// and MergeWorker(worker) is called (i.e. the code you define here is executed)
+// after MergeWorker exits, the mutex is unlocked
+//        rdfMutex.Unlock();
+// and allows other threads to get a lock and start merging
+
+// now follows your code
+
 // merging of data in this simple example is easy and does not have to follow
 // the original order of frames (since plain summing is commutative)
     _rdf.data().y() = _rdf.data().y() + myRDFWorker->_rdf.data().y();
 
-// do not forget to unlock your data, i.e. release your mutex
-// otherwise, your threads will get stuck at the rdfMutex.Lock() call
-    rdfMutex.Unlock();
 }
 
 void CsgTestApp::EndEvaluate() {
