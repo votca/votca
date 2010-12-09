@@ -286,4 +286,27 @@ void Topology::RebuildExclusions()
     _exclusions.CreateExclusions(this);
 }
 
+double Topology::ShortestBoxSize()
+{
+    vec _box_a = getBox().getCol(0);
+    vec _box_b = getBox().getCol(1);
+    vec _box_c = getBox().getCol(2);
+
+    // create plane normals
+    vec _norm_a = _box_b ^ _box_c;
+    vec _norm_b = _box_c ^ _box_a;
+    vec _norm_c = _box_a ^ _box_b;
+
+    _norm_a.normalize();
+    _norm_b.normalize();
+    _norm_c.normalize();
+
+    double la = _box_a * _norm_a;
+    double lb = _box_b * _norm_b;
+    double lc = _box_c * _norm_c;
+
+    return min(la, min(lb, lc));
+}
+
+
 }}
