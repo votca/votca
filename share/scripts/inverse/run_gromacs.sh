@@ -25,7 +25,7 @@ Usage: ${0##*/}
 
 USES: successful_or_die get_number_tasks csg_get_property check_deps
 
-OPTIONAL: cg.inverse.mpi.cmd cg.inverse.gromacs.mdrun.opts cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type cg.inverse.gromacs.mdrun.bin
+OPTIONAL: cg.inverse.parallel.cmd cg.inverse.gromacs.mdrun.opts cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type cg.inverse.gromacs.mdrun.bin
 EOF
    exit 0
 fi
@@ -42,7 +42,7 @@ check_deps "$0"
 
 tasks=$(get_number_tasks)
 if [ $tasks -gt 1 ]; then
-  mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
+  mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
   successful_or_die $mpicmd $mdrun -s "${tpr}" ${opts}
 else
   successful_or_die $mdrun -s "${tpr}" ${opts}

@@ -148,7 +148,7 @@ EOF
     
     tasks=$(get_number_tasks)
     if [ $tasks -gt 1 ]; then
-	mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
+	mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
 	successful_or_die $mpicmd $esp_bin $esp_script
     else
 	successful_or_die $esp_bin $esp_script
