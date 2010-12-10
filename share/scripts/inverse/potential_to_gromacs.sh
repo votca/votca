@@ -22,9 +22,9 @@ This is a wrapper to convert potential to gromacs
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property csg_get_property successful_or_die csg_resample check_deps
+USES: do_external csg_get_interaction_property csg_get_property successful_or_die csg_resample check_deps get_from_mdp awk
 
-NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins
+NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins cg.inverse.gromacs.table_end
 EOF
   exit 0
 fi
@@ -41,6 +41,16 @@ r_cut=$(csg_get_interaction_property max)
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 
 comment="$(get_table_comment)"
+
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+
+rlist=$(get_from_mdp rlist "$mdp" 1)
+tabext=$(get_from_mdp table-extension "$mdp" 1)
+
+tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
+res="$(awk -v rlist="$rlist" -v tabext="$tabext" -v tablend="$tablend" 'BEGIN{ print (tablend<rlist+tabext)?1:0 }')" || die "${0##*/}: awk failed"
+[ "$res" = "0" ] || die "${0##*/}: Error table is short then what gromacs needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
 
 successful_or_die csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} --comment "$comment"
 do_external convert_potential xvg smooth_${input} ${output}
