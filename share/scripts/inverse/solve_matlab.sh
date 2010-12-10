@@ -22,7 +22,7 @@ This solves linear equation system from imc using matlab
 
 Usage: ${0##*/} <group> <outfile>
 
-USES:  die sed matlab rm run_or_exit cat_external mv check_deps
+USES:  die sed matlab rm successful_or_die cat_external mv check_deps
 
 NEEDS:
 EOF
@@ -37,11 +37,11 @@ check_deps "$0"
 cat_external solve matlab | sed -e "s/\$name_out/$2/" -e "s/\$name/$1/" > solve_$1.m || die "${0##*/}: sed failed"
 
 #matlab does not like -_. etc in filenames
-run_or_exit mv solve_$1.m solve.m
-run_or_exit matlab -r solve -nosplash -nodesktop
+successful_or_die mv solve_$1.m solve.m
+successful_or_die matlab -r solve -nosplash -nodesktop
 rm -f solve.m
 
 # temporary compatibility issue
 [[ -f "$2" ]] || die "Matlab failed"
-run_or_exit sed -ie 's/NaN/0.0/' $2
-run_or_exit sed -ie 's/Inf/0.0/' $2
+successful_or_die sed -ie 's/NaN/0.0/' $2
+successful_or_die sed -ie 's/Inf/0.0/' $2

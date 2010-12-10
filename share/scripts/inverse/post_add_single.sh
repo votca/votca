@@ -22,7 +22,7 @@ This script make all the post update with backup for single pairs
 
 Usage: ${0##*/}
 
-USES:  csg_get_interaction_property mv do_external run_or_exit
+USES:  csg_get_interaction_property mv do_external successful_or_die
 
 NEEDS: name inverse.post_add
 EOF
@@ -37,7 +37,7 @@ for task in $tasklist shift tag; do
   echo "Doing postadd task '$task' for '${name}'"
   
   #save the current one
-  run_or_exit mv "${name}.pot.new" "${name}.pot.${i}"
+  successful_or_die mv "${name}.pot.new" "${name}.pot.${i}"
 
   #perform postadd task
   do_external postadd "$task" "${name}.pot.${i}" "${name}.pot.new" 

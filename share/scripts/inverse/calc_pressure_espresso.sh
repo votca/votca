@@ -61,7 +61,7 @@ set out [open $esp_success w]
 close \$out
 EOF
 
-run_or_exit $esp_bin $esp_script
+successful_or_die $esp_bin $esp_script
 [ -f "$esp_success" ] || die "${0##*/}: Espresso calc pressure did not end successfully. Check log."
 
 p_now="$(cat $p_file)"

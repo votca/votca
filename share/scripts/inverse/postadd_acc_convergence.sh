@@ -23,7 +23,7 @@ accumulate \${name}.conv of all steps
 
 Usage: ${0##*/} infile outfile
 
-USES: die check_deps run_or_exit do_external cp_from_last_step touch get_last_step_dir get_current_step_nr
+USES: die check_deps successful_or_die do_external cp_from_last_step touch get_last_step_dir get_current_step_nr
 
 NEEDS: inverse.post_add_options.copyback.filelist name
 EOF
@@ -49,4 +49,4 @@ else
   do_external postadd convergence "$1" "$2"
 fi
 
-true_or_exit echo "$(get_current_step_nr) $(cat ${name}.conv)" >> "${name}.aconv"
+successful_or_die echo "$(get_current_step_nr) $(cat ${name}.conv)" >> "${name}.aconv"

@@ -23,7 +23,7 @@ and save it to \${name}.conv. DIST ist dist, but changed by onvergence.what opti
 
 usage: ${0##*/} infile outfile
 
-USES: die check_deps do_external wc sed awk paste mktemp
+USES: die check_deps do_external wc sed awk paste mktemp successful_or_die
 
 NEEDS: name
 
@@ -46,15 +46,15 @@ weights=( $(csg_get_interaction_property inverse.post_add_options.convergence.we
 what_to_do_list=( $(csg_get_interaction_property inverse.post_add_options.convergence.what "dist") )
 
 [ ${#weights[@]} -ne ${#what_to_do_list[@]} ] && die "${0##*/}: number of weights does not match number of 'what' to calc convergence from"
-tmp="$(true_or_exit mktemp ${name}.conv.XXX)"
+tmp="$(successful_or_die mktemp ${name}.conv.XXX)"
 
 #we allow multiple thing per interaction to be checked
 for ((i=0;i<${#what_to_do_list[@]};i++)); do
   dist=${what_to_do_list[$i]}
   weight=${weights[$i]}
-  tmp1="$(true_or_exit mktemp ${name}.${dist}.tgt.XXX)"
-  tmp2="$(true_or_exit mktemp ${name}.${dist}.new.XXX)"
-  tmp3="$(true_or_exit mktemp ${name}.${dist}.cmb.XXX)"
+  tmp1="$(successful_or_die mktemp ${name}.${dist}.tgt.XXX)"
+  tmp2="$(successful_or_die mktemp ${name}.${dist}.new.XXX)"
+  tmp3="$(successful_or_die mktemp ${name}.${dist}.cmb.XXX)"
 
   if [ ! -f "${name}.${dist}.tgt" ]; then
     #if we need $name.dist.tgt we know how to create it
@@ -65,16 +65,16 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
     fi
   fi
 
-  true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
-  true_or_exit sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.new > $tmp2
+  successful_or_die sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
+  successful_or_die sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.new > $tmp2
 
   [ $(sed -n '$=' $tmp1) -eq $(sed -n '$=' $tmp2) ] || \
     die "${0##*/}: linenumber of ${name}.${dist}.tgt differs from ${name}.${dist}.new"
 
-  true_or_exit paste $tmp1 $tmp2 > $tmp3
-  run_or_exit awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
+  successful_or_die paste $tmp1 $tmp2 > $tmp3
+  successful_or_die awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
   echo "Calc convergence for ${name} with weight $weight"
-  true_or_exit awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)**2;}END{print dist,sqrt(sum*bin*w);}' $tmp3 >> $tmp
+  successful_or_die awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)**2;}END{print dist,sqrt(sum*bin*w);}' $tmp3 >> $tmp
 done
 
-true_or_exit awk '{sum+=$2;}END{print sum;}' $tmp > ${name}.conv
+successful_or_die awk '{sum+=$2;}END{print sum;}' $tmp > ${name}.conv

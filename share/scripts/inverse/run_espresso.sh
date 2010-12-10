@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: run_or_exit use_mpi csg_get_property check_deps use_mpi
+USES: successful_or_die use_mpi csg_get_property check_deps use_mpi
 
 NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
 
@@ -148,9 +148,9 @@ EOF
     
     if use_mpi; then
 	mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
-	run_or_exit $mpicmd $esp_bin $esp_script
+	successful_or_die $mpicmd $esp_bin $esp_script
     else
-	run_or_exit $esp_bin $esp_script
+	successful_or_die $esp_bin $esp_script
     fi
     [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
     

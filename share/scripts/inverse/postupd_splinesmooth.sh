@@ -48,5 +48,5 @@ spmax=$(sed -ne '$p' $tmpfile | awk '{print $1}')
 spstep=$(csg_get_interaction_property inverse.post_update_options.splinesmooth.step)
 
 comment="$(get_table_comment)"
-run_or_exit csg_resample --in $tmpfile --out "$2" --grid $min:$step:$max --spfit $spmin:$spstep:$spmax --comment "$comment"
+successful_or_die csg_resample --in $tmpfile --out "$2" --grid $min:$step:$max --spfit $spmin:$spstep:$spmax --comment "$comment"
 

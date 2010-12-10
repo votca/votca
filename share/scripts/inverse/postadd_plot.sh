@@ -22,7 +22,7 @@ postadd plot script, send a certain plot script to gnuplot
 
 Usage: ${0##*/} infile outfile
 
-USES: die check_deps run_or_exit mkfifo flock
+USES: die check_deps successful_or_die mkfifo flock
 
 NEEDS: inverse.post_add_options.plot.script
 
@@ -78,6 +78,6 @@ if [ -z "${what_to_kill}" ]; then
 
   cat $script > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
 else
-  logrun killall $what_to_kill
-  logrun $gnuplot $opts $script
+  killall $what_to_kill
+  $gnuplot $opts $script
 fi

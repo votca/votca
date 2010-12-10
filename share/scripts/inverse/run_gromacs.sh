@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: run_or_exit use_mpi csg_get_property check_deps
+USES: successful_or_die use_mpi csg_get_property check_deps
 
 OPTIONAL: cg.inverse.mpi.cmd cg.inverse.gromacs.mdrun.opts cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type cg.inverse.gromacs.mdrun.bin
 EOF
@@ -42,9 +42,9 @@ check_deps "$0"
 
 if use_mpi; then
   mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
-  run_or_exit $mpicmd $mdrun -s "${tpr}" ${opts}
+  successful_or_die $mpicmd $mdrun -s "${tpr}" ${opts}
 else
-  run_or_exit $mdrun -s "${tpr}" ${opts}
+  successful_or_die $mdrun -s "${tpr}" ${opts}
 fi
 
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")

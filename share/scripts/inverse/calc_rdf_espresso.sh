@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: csg_get_interaction_property csg_get_property run_or_exit csg_resample is_done mark_done msg check_deps
+USES: csg_get_interaction_property csg_get_property successful_or_die csg_resample is_done mark_done msg check_deps
 
 NEEDS: type1 type2 name step min max inverse.espresso.index1 inverse.espresso.index2
 
@@ -104,10 +104,10 @@ set out [open $esp_success w]
 close \$out
 EOF
     
-    run_or_exit $esp_bin $esp_script
+    successful_or_die $esp_bin $esp_script
     [ -f "$esp_success" ] || die "${0##*/}: Espresso calc rdf did not end successfully. Check log."
     
     comment="$(get_table_comment)"
-    run_or_exit csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
+    successful_or_die csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
     mark_done "rdf-$name"
 fi
