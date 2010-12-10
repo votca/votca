@@ -49,10 +49,11 @@ equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 
 check_deps "$0"
-msg "Runnig csg_stat to calculate rdfs"
+tasks=$(get_number_tasks)
+msg "Calculating rdfs with csg_stat using $tasks tasks"
 if is_done "rdf_analysis"; then
   msg "rdf analysis is already done"
 else
-  successful_or_die csg_stat --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame
+  successful_or_die csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame
   mark_done "rdf_analysis"
 fi

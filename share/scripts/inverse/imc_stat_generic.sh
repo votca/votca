@@ -56,15 +56,15 @@ equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 
 check_deps "$0"
-msg "calculating statistics"
+tasks=$(get_number_tasks)
+msg "Calculating IMC statistics using $tasks tasks"
 if is_done "imc_analysis"; then
   msg "IMC analysis is already done"
 else
-  msg "Running IMC analysis"
   #copy+resample all target dist in $this_dir
   for_all non-bonded do_external resample target
 
   successful_or_die csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" $cgopts \
-        --begin $equi_time --first-frame $first_frame
+        --begin $equi_time --first-frame $first_frame --nt $tasks
   mark_done "imc_analysis"
 fi

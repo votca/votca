@@ -45,7 +45,7 @@ Examples:
 
 USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property printf cp date
 
-PROVIDES: die msg csg_get_interaction_property csg_get_property do_external for_all is_done mark_done sed successful_or_die cat_external show_external check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time use_mpi
+PROVIDES: die msg csg_get_interaction_property csg_get_property do_external for_all is_done mark_done sed successful_or_die cat_external show_external check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time get_number_tasks
 
 NEEDS:
 EOF
@@ -364,15 +364,21 @@ get_time() {
 }
 export -f get_time
 
-use_mpi() {
+get_number_tasks() {
   local tasks
   tasks="$(csg_get_property --allow-empty cg.inverse.mpi.tasks)"
-  [ -z "$tasks" ] && return 1
-  int_check "$tasks" "use_mpi: cg.inverse.mpi.tasks needs to be a number"
-  [ $tasks -le 1 ] && return 1
-  return 0
+  [ -z "$tasks" ] && tasks=1
+  [ "$tasks" = "auto" ] && tasks=0
+  int_check "$tasks" "get_number_tasks: cg.inverse.mpi.tasks needs to be a number"
+  #this only work for linux
+  if [ $tasks -eq 0 ] && [ -r /proc/cpuinfo ]; then
+    tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')
+    [[ -z "${tasks//[0-9]}" ]] || tasks=1
+  fi
+  [ $tasks -le 1 ] && tasks=1
+  echo "$tasks"
 }
-export -f use_mpi
+export -f get_number_tasks
 
 get_table_comment() {
   local version

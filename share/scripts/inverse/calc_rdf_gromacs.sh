@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_interaction_property csg_get_property awk successful_or_die csg_resample is_done mark_done msg use_mpi multi_g_rdf check_deps
+USES: get_from_mdp csg_get_interaction_property csg_get_property awk successful_or_die csg_resample is_done mark_done msg get_number_tasks multi_g_rdf check_deps
 
 NEEDS: type1 type2 name step min max
 
@@ -65,12 +65,12 @@ max=$(csg_get_interaction_property max)
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 end="$(awk -v dt="$dt" -v steps="$steps" 'BEGIN{print dt*steps}')"
 
-echo "Running g_rdf for ${type1}-${type2}"
+tasks=$(get_number_tasks)
+echo "Running g_rdf for ${type1}-${type2} using $tasks tasks"
 if is_done "rdf-$name"; then
   msg "g_rdf for ${type1}-${type2} is already done"
 else
-  if use_mpi; then
-    tasks=$(csg_get_property cg.inverse.mpi.tasks)
+  if [ $tasks -gt 1 ]; then
     echo -e "${type1}\n${type2}" | successful_or_die multi_g_rdf --cmd ${g_rdf} -${tasks} -b ${begin} -e ${end} -n "$index" -o ${name}.dist.new.xvg --soutput ${name}.dist.new.NP.xvg -- -bin ${binsize}  -s "$tpr" -f "${traj}" ${opts} 
   else
     echo -e "${type1}\n${type2}" | successful_or_die ${g_rdf} -b ${begin} -n "$index" -bin ${binsize} -o ${name}.dist.new.xvg -s "$tpr" -f "${traj}" ${opts}
