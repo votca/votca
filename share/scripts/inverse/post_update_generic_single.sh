@@ -22,7 +22,7 @@ This script make all the post update with backup for single pairs
 
 Usage: ${0##*/}
 
-USES:  csg_get_interaction_property log mv do_external run_or_exit check_deps
+USES:  csg_get_interaction_property mv do_external run_or_exit check_deps
 
 NEEDS: name inverse.post_update
 EOF
@@ -35,7 +35,7 @@ name=$(csg_get_interaction_property name)
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
 i=1
 for task in $tasklist; do
-  log "Doing postupd task '$task' for '${name}'"
+  echo "Doing postupd task '$task' for '${name}'"
 
   #save the current one
   run_or_exit mv "${name}.dpot.new" "${name}.dpot.${i}"

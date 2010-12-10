@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_interaction_property csg_get_property awk log run_or_exit csg_resample is_done mark_done msg use_mpi multi_g_rdf check_deps
+USES: get_from_mdp csg_get_interaction_property csg_get_property awk run_or_exit csg_resample is_done mark_done msg use_mpi multi_g_rdf check_deps
 
 NEEDS: type1 type2 name step min max
 
@@ -65,7 +65,7 @@ max=$(csg_get_interaction_property max)
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 end="$(awk -v dt="$dt" -v steps="$steps" 'BEGIN{print dt*steps}')"
 
-log "Running g_rdf for ${type1}-${type2}"
+echo "Running g_rdf for ${type1}-${type2}"
 if is_done "rdf-$name"; then
   msg "g_rdf for ${type1}-${type2} is already done"
 else

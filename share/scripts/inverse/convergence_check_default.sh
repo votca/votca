@@ -42,5 +42,5 @@ glob="$(csg_get_property cg.inverse.convergence_check_options.name_glob "*.conv"
 sum="$(for i in $glob; do
     cat $i 
 done | awk 'BEGIN{sum=0}{sum+=$1}END{print sum}')"
-log "Convergence sum was $sum, limit is $limit"
+echo "Convergence sum was $sum, limit is $limit"
 awk -v sum="$sum" -v limit="$limit" 'BEGIN{print (sum<limit)?"stop":"go-on"}'

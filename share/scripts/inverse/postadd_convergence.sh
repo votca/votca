@@ -73,7 +73,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
 
   true_or_exit paste $tmp1 $tmp2 > $tmp3
   run_or_exit awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
-  log "Calc convergence for ${name} with weight $weight"
+  echo "Calc convergence for ${name} with weight $weight"
   true_or_exit awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)**2;}END{print dist,sqrt(sum*bin*w);}' $tmp3 >> $tmp
 done
 

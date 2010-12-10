@@ -24,8 +24,7 @@ ${0##*/}, version %version%
 
 
 We have defined some useful (?) functions:
-* log           = send a message to the logfile
-* msg           = message to stdout and logfile
+* msg           = message to screen and logfile
 * die           = error message to stderr and logfile,
                   and kills all csg process
 * do_external   = get scriptname for sourcewrapper and run it
@@ -38,7 +37,7 @@ We have defined some useful (?) functions:
 * check_deps    = checks the dependencies of a script
 
 Examples:
-* log "Hi"
+* echo "Hi"
 * msg "Hi"
 * die "Error at line 99"
 * do_external init gromacs NVT
@@ -49,20 +48,14 @@ Examples:
 
 USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property printf cp date
 
-PROVIDES: log die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed run_or_exit cat_external show_external logrun check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time use_mpi
+PROVIDES: die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed run_or_exit cat_external show_external logrun check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time use_mpi
 
 NEEDS:
 EOF
 exit 0
 fi
 
-
-log () {
-  echo -e "$*"
-}
-export -f log
-
-#echo a msg and log it too
+#echo a msg to the screen and send it to logfile too 
 msg() {
   [ -n "$*" ] && echo -e "$*"
   echo -e "$*" >&3
@@ -107,8 +100,7 @@ do_external() {
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
   tags="$1 $2"
   shift 2
-  #logrun do_external is a good combi to use
-  [ "$quiet" = "no" ] && log --no-warn "Running subscript '${script##*/} $*'(from tags $tags)"
+  [ "$quiet" = "no" ] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
   $script "$@" 2>&1 || die "do_external: subscript $script $* (from tags $tags) failed"
 }
 export -f do_external
@@ -127,7 +119,7 @@ run_or_exit() {
 }
 export -f run_or_exit
 
-#useful subroutine check if a command was succesful AND log the output
+#useful subroutine check if a command was succesful
 true_or_exit() {
    local ret
    ret="$("$@" 2>&1)" || die "true_or_exit: '$*' failed with error message '$ret'"
@@ -150,11 +142,11 @@ for_all (){
   fi
   [[ -n "$CSGXMLFILE" ]] || die "for_all: CSGXMLFILE is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "for_all: Could not find csg_property"
-  log "For all $bondtype"
+  echo "For all $bondtype"
   interactions="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name)" \
     || die "for_all: csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name' failed"
   for name in $interactions; do
-    log "for_all: run '$*'"
+    echo "for_all: run '$*'"
     #we need to use bash -c here to allow things like $(csg_get_interaction_property xxx) in arguments
     #write variable defines in the front is better, that export
     #no need to run unset afterwards
@@ -382,13 +374,13 @@ cp_from_to() {
 export -f cp_from_to
 
 cp_from_main_dir() {
-  log "cp_from_main_dir: '$@'"
+  echo "cp_from_main_dir: '$@'"
   run_or_exit cp_from_to --from $(get_main_dir) "$@"
 }
 export -f cp_from_main_dir
 
 cp_from_last_step() {
-  log "cp_from_last_step: '$@'"
+  echo "cp_from_last_step: '$@'"
   run_or_exit cp_from_to --from $(get_last_step_dir) "$@"
 }
 export -f cp_from_last_step
