@@ -45,7 +45,7 @@ Examples:
 
 USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property printf cp date
 
-PROVIDES: die msg csg_get_interaction_property csg_get_property csg_taillog do_external for_all is_done mark_done sed successful_or_die cat_external show_external check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time use_mpi
+PROVIDES: die msg csg_get_interaction_property csg_get_property do_external for_all is_done mark_done sed successful_or_die cat_external show_external check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time use_mpi
 
 NEEDS:
 EOF
@@ -137,13 +137,6 @@ for_all (){
   done
 }
 export -f for_all
-
-csg_taillog () {
-  sync
-  [[ -n "$CSGLOG" ]] || die "csg_taillog: logfile (CSGLOG) was not defined"
-  tail "$@" "$CSGLOG"
-}
-export -f csg_taillog
 
 #the save version of csg_get
 csg_get_interaction_property () {
