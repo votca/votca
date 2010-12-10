@@ -231,4 +231,5 @@ fi
 
 export CSGLOG="$(mktemp ${0##*/}.log.XXX)" || die "mktemp failed"
 echo "For details see: $CSGLOG"
+exec 3>&1 >> "$CSGLOG" 2>&1
 do_external $@

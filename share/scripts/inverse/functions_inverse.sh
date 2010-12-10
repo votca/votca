@@ -58,43 +58,22 @@ fi
 
 
 log () {
-  local warn
-  if [ "$1" = "--no-warn" ]; then
-    shift
-    warn="no"
-  else
-    warn="yes"
-  fi
-  if [ -z "$LOG_REDIRECTED" ]; then
-    if [ -n "$CSGLOG" ]; then
-      echo -e "$*" >> $CSGLOG
-    else
-      echo -e "$*"
-    fi
-  else
-    if [ "$warn" = "yes" ]; then
-      echo -e "WARNING: Nested log call, when calling 'log $*'"
-      echo -e "         log was redirected by '$LOG_REDIRECTED'"
-      echo -e "         Try to avoid this, by removing one redirect, csg_call functions common --help"
-    fi
-    echo -e "$*"
-  fi
+  echo -e "$*"
 }
 export -f log
 
-#echo a msg but log it too
+#echo a msg and log it too
 msg() {
-  [[ -z "$CSGLOG" ]] || log "$*"
-  echo -e "$*"
+  [ -n "$*" ] && echo -e "$*"
+  echo -e "$*" >&3
 }
 export -f msg
 
 unset -f die
 die () {
-  [[ -z "$CSGLOG" ]] || log --no-warn "$*"
-  echo -e "$*" 1>&2
-  [ -z "$CSGLOG" ] || echo "For details see $CSGLOG" 1>&2
-  log --no-warn "killing all processes...."
+  msg "$*"
+  [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
+  echo "killing all processes...."
   #send kill signal to all process within the process groups
   kill 0
   exit 1
@@ -137,26 +116,8 @@ export -f do_external
 logrun(){
   local ret
   [[ -n "$1" ]] || die "logrun: missing argument"
-  #--no-warn due to the fact that we get the warning anyway
-  log --no-warn "logrun: run '$*'"
-  if [ -z "$LOG_REDIRECTED" ]; then
-    export LOG_REDIRECTED="logrun '$*'"
-    if [ -n "$CSGLOG" ]; then
-      "$@" >> $CSGLOG 2>&1
-      ret=$?
-    else
-      "$@" 2>&1
-      ret=$?
-    fi
-    unset LOG_REDIRECTED
-  else
-    echo -e "WARNING: Nested log call, when calling 'logrun $*'"
-    echo -e "         log was redirected by '$LOG_REDIRECTED'"
-    echo -e "         Try to avoid this, by removing one redirect, csg_call functions common --help"
-    "$@" 2>&1
-    ret=$?
-  fi
-  return $ret
+  "$@"
+  return $?
 }
 export -f logrun
 

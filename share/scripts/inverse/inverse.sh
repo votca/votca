@@ -41,7 +41,7 @@ Examples:
 * ${0##*/} cg.xml
 * ${0##*/} -6 cg.xml
 
-USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time logrun rm update_stepnames
+USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done run_or_exit csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time logrun rm update_stepnames
 
 NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name cg.inverse.cleanlist
 eof
@@ -90,35 +90,37 @@ shift 1
 
 #----------------End of pre checking--------------------------------
 if [ -f "$CSGLOG" ]; then
-  log "\n\n#################################"
-  log "# Appending to existing logfile #"
-  log "#################################\n\n"
-  log "Sim started $(date)"
-  echo "Appending to existing logfile ${CSGLOG##*/}"
+  exec 3>&1 >> "$CSGLOG" 2>&1
+  echo "\n\n#################################"
+  echo "# Appending to existing logfile #"
+  echo "#################################\n\n"
+  echo "Sim started $(date)"
+  msg "Appending to existing logfile ${CSGLOG##*/}"
 else
   echo "For a more verbose log see: ${CSGLOG##*/}"
-  #log is created in the next line
-  echo "Sim started $(date)" > $CSGLOG || exit 1
+  #logfile is created in the next line
+  exec 3>&1 >> "$CSGLOG" 2>&1
+  echo "Sim started $(date)"
 fi
 
 method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-log "We using Sim Program: $sim_prog"
+echo "We using Sim Program: $sim_prog"
 source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed"
 
 iterations_max="$(csg_get_property cg.inverse.iterations_max)"
 int_check "$do_iterations" "inverse.sh: cg.inverse.iterations_max needs to be a number"
-log "We are doing $iterations_max iterations (0=inf)."
+echo "We are doing $iterations_max iterations (0=inf)."
 convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
-[ "$convergence_check" = "none" ] || log "After every iteration we will do the following check: $convergence_check"
+[ "$convergence_check" = "none" ] || echo "After every iteration we will do the following check: $convergence_check"
 
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-[ -z "$filelist" ] || log "We extra cp '$filelist' to every step to run the simulation"
+[ -z "$filelist" ] || echo "We extra cp '$filelist' to every step to run the simulation"
 
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
-[ -z "$cleanlist" ] || log "We extra clean '$cleanlist' after a step is done"
+[ -z "$cleanlist" ] || echo "We extra clean '$cleanlist' after a step is done"
 
 run_or_exit $SOURCE_WRAPPER --status
 run_or_exit $SOURCE_WRAPPER --check
@@ -181,7 +183,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
       [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove this step if you don't know what to do - you will lose one step at max)"
     fi
   else
-    log "Step $i started at $(date)"
+    echo "Step $i started at $(date)"
     mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   fi
 
@@ -232,7 +234,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   touch "done"
 
   if [ "$convergence_check" = "none" ]; then
-    log "No convergence check to be done"
+    echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
     if [ "$(do_external convergence_check "$convergence_check")" = "stop" ]; then
@@ -245,7 +247,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
 
   if [ -n "$wall_time" ]; then
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
-    log "New average steptime $avg_steptime"
+    echo "New average steptime $avg_steptime"
     if [ $(( $(get_time) + $avg_steptime )) -gt $(( $wall_time + $start_time )) ]; then
       msg "We will not manage another step, stopping"
       exit 0
@@ -266,6 +268,6 @@ for ((i=$begin;i<$iterations+1;i++)); do
 done
 
 touch "done"
-log "All done at $(date)"
+echo "All done at $(date)"
 exit 0
 
