@@ -1,3 +1,35 @@
+# ===========================================================================
+#       http://www.votca.org
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_TXT2TAGS([MINIMUM-VERSION], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+#
+# DESCRIPTION
+#
+#   Test for the txt2tags
+#
+#   This macro calls:
+#
+#     AC_SUBST(TXT2TAGS) / AM_CONDITIONAL(HAVE_TXT2TAGS)
+#
+# LICENSE
+#
+#   Copyright (c) 2010 Christoph Junghans <junghans@votca.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 AC_DEFUN([AX_TXT2TAGS],[
   AC_ARG_WITH([txt2tags],[
     AS_HELP_STRING([--without-txt2tags@<:@=ARG@:>@],
@@ -30,4 +62,11 @@ AC_DEFUN([AX_TXT2TAGS],[
     fi
   fi
   AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
+  if test  "$TXT2TAGS" != no; then
+    # execute ACTION-IF-FOUND (if present):
+    ifelse([$2], , :, [$2])
+  else
+    # execute ACTION-IF-NOT-FOUND (if present):
+    ifelse([$3], , :, [$3])
+  fi
 ])
