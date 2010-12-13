@@ -96,7 +96,7 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     A = ub::zero_matrix<double>(N, 2*ngrid);
     b  = ub::zero_vector<double>(N);
     B_constr = ub::zero_matrix<double>(ngrid, 2*ngrid);
-        
+    
     // Construct smoothing matrix
     AddBCToFitMatrix(B_constr, 0);
 
@@ -104,15 +104,12 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     AddToFitMatrix(A, x, 0);
     b = -y; // why is it -y?
 
-
     // now do a constrained qr solve
     ub::vector<double> sol(2*ngrid);
     votca::tools::linalg_constrained_qrsolve(sol, A, b, B_constr);
 
     _f = ub::vector_range<ub::vector<double> >(sol, ub::range (0, ngrid));
     _f2 = ub::vector_range<ub::vector<double> >(sol, ub::range (ngrid, 2*ngrid));
-
-
 }
 
 }}

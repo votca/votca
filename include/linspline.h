@@ -18,6 +18,7 @@
 #ifndef _LINSPLINE_H
 #define	_LINSPLINE_H
 
+#include <spline.h>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
@@ -33,38 +34,16 @@ namespace ub = boost::numeric::ublas;
  *  does linear interpolation
  */
 
-class LinSpline
+class LinSpline : public Spline
 {
 public:
     // default constructor
-    LinSpline() :
-        _boundaries(splineNormal) {}
+    LinSpline() {};
+    //LinSpline() :
+    //    _boundaries(splineNormal) {}
 
     // destructor
     ~LinSpline() {};
-
-    /// enum for type of boundary condition
-    enum eBoundary {
-        splineNormal = 0,  ///< normal boundary conditions: \f$f_0=f_N=0\f$
-        splinePeriodic    ///< periodic boundary conditions: \f$f_0=f_N\f$
-    };
-
-    /// set the boundary type of the spline
-    void setBC(eBoundary bc) {_boundaries = bc; }
-
-    /// Generates the r_k, returns the number of grid points
-    /// max is included in the interval.
-    int GenerateGrid(double min, double max, double h);
-
-    /// determine the interval the point r is in
-    /// returns i for interval r_i r_{i+1}, -1 for out of range
-    int getInterval(const double &r);
-
-    /// ERROR-PRONE implementation, make it better!!!
-    double getGridPoint(const int &i) {return _r[i];}
-
-    // give string in rangeparser format: e.g. 1:0.1:10;11:1:20
-    //int GenerateGrid(string range);
 
     /// \brief construct an interpolation spline
     ///
@@ -99,30 +78,10 @@ public:
     
 
 protected:
-    // the grid points
-    ub::vector<double> _r;
-
-    eBoundary _boundaries;
-
     // a,b for piecewise splines: ax+b
     ub::vector<double> a;
     ub::vector<double> b;
 };
-
-inline int LinSpline::GenerateGrid(double min, double max, double h)
-{
-    int vec_size = (int)((max-min)/h+1.00000001);
-    _r.resize(vec_size);
-    int i;
-
-    double r_init;
-
-    for (r_init = min, i=0; i < vec_size-1; r_init += h ) {
-            _r[i++]= r_init;
-    }
-    _r[i] = max;
-    return _r.size();
-}
 
 inline double LinSpline::Calculate(const double &r)
 {
@@ -134,36 +93,6 @@ inline double LinSpline::CalculateDerivative(const double &r)
 {
     int interval =  getInterval(r);
     return a(interval);
-}
-
-template<typename vector_type1, typename vector_type2>
-inline void LinSpline::Calculate(vector_type1 &x, vector_type2 &y)
-{
-    for(size_t i=0; i<x.size(); ++i)
-        y(i) = Calculate(x(i));
-}
-
-template<typename vector_type1, typename vector_type2>
-inline void LinSpline::CalculateDerivative(vector_type1 &x, vector_type2 &y)
-{
-    for(size_t i=0; i<x.size(); ++i)
-        y(i) = CalculateDerivative(x(i));
-}
-
-inline void LinSpline::Print(std::ostream &out, double interval)
-{
-    for (double x = _r[0]; x < _r[_r.size() - 1]; x += interval)
-        out << x << " " << Calculate(x) << "\n";
-}
-
-inline int LinSpline::getInterval(const double &r)
-{
-    if (r < _r[0]) return 0;
-    if(r > _r[_r.size() - 2]) return _r.size()-2;
-    size_t i;
-    for(i=0; i<_r.size(); ++i)
-        if(_r[i]>r) break;
-    return i-1;
 }
 
 }}
