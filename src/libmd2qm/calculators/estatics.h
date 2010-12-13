@@ -22,6 +22,7 @@ public:
     bool EvaluateFrame(QMTopology *top);
 
     double CalcPot(Topology *atop, Molecule *mol);
+    double CalcPot_Dipole(Topology *atop, Molecule *mol);
     /// distance dependent dielectric constant
     double dist_dep_eps(const double &dist);
     /// constant epsilon
@@ -31,7 +32,8 @@ private:
     // dielectric constant
     double _epsilon_dielectric;
     // parameter describing the decay of eps
-    double _s_eps; 
+    double _s_eps;
+    Property * _options;
     // function pointer 
     double (CalcEstatics::*_estatic_method)(const double &);
 };
