@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I config
 
-SUBDIRS = src include scripts share
+SUBDIRS = src include scripts share admin
 
 EXTRA_DIST = CHANGELOG.t2t CHANGELOG NOTICE LICENSE
 
