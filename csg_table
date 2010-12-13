@@ -8,6 +8,7 @@ initstep tf initialize_step_generic.sh
 
 # the update step
 update tf update_tf.sh
+update tf_single update_tf_single.sh
 # add up the potential
 # TODO: think about name add_pot, is other name maybe better
 add_pot tf add_pot_tf.sh

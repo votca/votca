@@ -26,17 +26,29 @@ adress_type=$(get_from_mdp adress_type "$mdp")
 
 echo "Calculating $adress_type density"
 
-#TODO implement property to read -sl from xml file
+
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
+
+densigroup="$(csg_get_interaction_property inverse.gromacs.density_group "UNDEF")"
+
+g_densopt="$(csg_get_property --allow-empty cg.inverse.gromacs.g_density_options "")"
+
+
+if [ $adress_type = "UNDEF" ]
+then
+index_sel=$name
+else
+index_sel=$densigroup
+fi
 
 if [ $adress_type = "sphere" ]
 then
 dens_prog="g_rdf -n index.ndx -bin 0.01"
 index_sel="DUM \n CG\n"
 else
-dens_prog="g_density -n index.ndx -sl 100 -d x"
-index_sel=$name
+dens_prog="g_density -n index.ndx -d x $g_densopt"
+
 fi
 
 log "Running $dens_prog"
