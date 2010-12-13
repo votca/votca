@@ -51,11 +51,8 @@ int main(int argc, char** argv)
 {
 
     string in_file, out_file, grid, fitgrid, comment, type, boundaries;
-    CubicSpline spline;
-    AkimaSpline akspline;
-    LinSpline linspline;
+    Spline *spline;
     Table in, out, der;
-
     // program options
     po::options_description desc("Allowed options");            
     
@@ -66,6 +63,7 @@ int main(int argc, char** argv)
       ("grid", po::value<string>(&grid), "new grid spacing (min:step:max). If 'grid' is specified only, interpolation is performed.")
       ("type", po::value<string>(&type)->default_value("akima"), "[cubic|akima|linear]. If option is not specified, the default type 'akima' is assumed.")
       ("fitgrid", po::value<string>(&fitgrid), "specify fit grid (min:step:max). If 'grid' and 'fitgrid' are specified, a fit is performed.")
+      ("nocut", "Option for fitgrid: Normally, values out of fitgrid boundaries are cut off. If they shouldn't, choose --nocut.")
       ("comment", po::value<string>(&comment), "store a comment in the output table")
       ("boundaries", po::value<string>(&boundaries), "(natural|periodic|derivativezero) sets boundary conditions")
       ("help", "options file for coarse graining");
@@ -120,28 +118,30 @@ int main(int argc, char** argv)
 
     if (vm.count("type")) {
         if(type=="cubic") {
-            spline.setBC(CubicSpline::splineNormal);
+            spline = new CubicSpline();
         }
-        if(type=="akima") {
-            akspline.setBC(AkimaSpline::splineNormal);
+        else if(type=="akima") {
+            spline = new AkimaSpline();
         }
-        if(type=="linear") {
-            linspline.setBC(LinSpline::splineNormal);
+        else if(type=="linear") {
+            spline = new LinSpline();
+        }
+        else {
+            throw std::runtime_error("unknown type");
         }
     }
+    spline->setBC(Spline::splineNormal);
     
 
     if (vm.count("boundaries")) {
         if(boundaries=="periodic") {
-            spline.setBC(CubicSpline::splinePeriodic);
-            akspline.setBC(AkimaSpline::splinePeriodic);
-            linspline.setBC(LinSpline::splinePeriodic);
+            spline->setBC(Spline::splinePeriodic);
         }
         if(boundaries=="derivativezero") {
-            spline.setBC(CubicSpline::splineDerivativeZero);
+            spline->setBC(Spline::splineDerivativeZero);
         }
         //default: normal
-    }    
+    }
 
 
     // in case fit is specified
@@ -159,44 +159,46 @@ int main(int argc, char** argv)
         sp_max = boost::lexical_cast<double>(toks[2]);
         cout << "doing " << type << " fit " << sp_min << ":" << sp_step << ":" << sp_max << endl;
 
-        if(type=="cubic") {
-            spline.GenerateGrid(sp_min, sp_max, sp_step);
-            spline.Fit(in.x(), in.y());
+        // cut off any values out of fitgrid boundaries (exception: do nothing in case of --nocut)
+        ub::vector<double> x_copy;
+        ub::vector<double> y_copy;
+        if (!vm.count("nocut")) {
+            // determine vector size
+            int minindex=-1, maxindex;
+            for (int i=0; i<in.x().size(); i++) {
+                if(in.x(i)<sp_min) {
+                    minindex = i;
+                }
+                if(in.x(i)<sp_max) {
+                    maxindex = i;
+                }
+            }
+            // copy data values in [sp_min,sp_max] into new vectors
+            minindex++;
+            x_copy = ub::zero_vector<double>(maxindex-minindex+1);
+            y_copy = ub::zero_vector<double>(maxindex-minindex+1);
+            for (int i=minindex; i<=maxindex; i++) {
+                x_copy(i-minindex) = in.x(i);
+                y_copy(i-minindex) = in.y(i);
+            }
         }
-        if(type=="akima") {
-            akspline.GenerateGrid(sp_min, sp_max, sp_step);
-            akspline.Fit(in.x(), in.y());
-        }
-        if(type=="linear") {
-            linspline.GenerateGrid(sp_min, sp_max, sp_step);
-            linspline.Fit(in.x(), in.y());
+
+        // fitting
+        spline->GenerateGrid(sp_min, sp_max, sp_step);
+        if (vm.count("nocut")) {
+            spline->Fit(in.x(), in.y());
+        } else {
+            spline->Fit(x_copy, y_copy);
         }
     } else {
-        // else: do interpolation (default = cubic)
-        if(type=="cubic") {
-            spline.Interpolate(in.x(), in.y());
-        }
-        if(type=="akima") {
-            akspline.Interpolate(in.x(), in.y());
-        }
-        if(type=="linear") {
-            linspline.Interpolate(in.x(), in.y());
-        }
+        // otherwise do interpolation (default = cubic)
+        spline->Interpolate(in.x(), in.y());
     }
 
     
     out.GenerateGridSpacing(min, max, step);
-
-    if(type=="cubic") {
-        spline.Calculate(out.x(), out.y());
-    }
-    if(type=="akima") {
-        akspline.Calculate(out.x(), out.y());
-    }
-    if(type=="linear") {
-        linspline.Calculate(out.x(), out.y());
-    }
-    
+    spline->Calculate(out.x(), out.y());
+        
     
     //store a comment line
     if (vm.count("comment")){
@@ -223,17 +225,12 @@ int main(int argc, char** argv)
         der.GenerateGridSpacing(min, max, step);
         der.flags() = ub::scalar_vector<double>(der.flags().size(), 'o');
 
-        if (type == "cubic") {
-            spline.CalculateDerivative(der.x(), der.y());
-        }
-        if (type == "akima") {
-            akspline.CalculateDerivative(der.x(), der.y());
-        }
-        if (type == "linear") {
-            linspline.CalculateDerivative(der.x(), der.y());
-        }
+        spline->CalculateDerivative(der.x(), der.y());
+
         der.Save(vm["derivative"].as<string>());
     }
+
+    delete spline;
     return 0;
 }
 
