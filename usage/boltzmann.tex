@@ -59,9 +59,9 @@ If a specific interaction shall be used, it can be referred to by
 \begin{verbatim}
   molecule:interaction-group:index
 \end{verbatim}
-Here, \texttt{molecule} is the molecule number in the whole topology, \texttt{interaction-group} is the name specified in the \texttt{<bond>} section of the mapping file, and \texttt{index} is the entry in the list of interactions. For example, \texttt{1:AA-bond:10} refers to the 10th bond named \texttt{AA-bond} in molecule 1. To specify a couple of interactions during analysis, either give the interactions separated by a space or use wildcards (e.g. \texttt{*:AA-bond*}).
+Here, \progopt{molecule} is the molecule number in the whole topology, \progopt{interaction-group} is the name specified in the \progopt{<bond>} section of the mapping file, and \progopt{index} is the entry in the list of interactions. For example, \progopt{1:AA-bond:10} refers to the 10th bond named \progopt{AA-bond} in molecule 1. To specify a couple of interactions during analysis, either give the interactions separated by a space or use wildcards (e.g. \progopt{*:AA-bond*}).
 
-To exit the interactive mode, use the command \texttt{q}. 
+To exit the interactive mode, use the command \progopt{q}. 
 
 If analysis commands are to be read from a file, use the pipe or stdin redirects from the shell.
 \begin{verbatim}
@@ -86,7 +86,7 @@ To directly write the Boltzmann-inverted potential, the \textit{tab} command can
   tab set scale angle
   tab angle.pot *:angle:*
 \end{verbatim}
-The table is then written into the file \texttt{angle.pot} in the format \todo. An optional correlation analysis is described in the next section. After the file has been created by command \texttt{tab}, the potential is prepared for the coarse-grained run in chapter \ref{sec:usage:cgrun}.
+The table is then written into the file \progopt{angle.pot} in the format \todo. An optional correlation analysis is described in the next section. After the file has been created by command \progopt{tab}, the potential is prepared for the coarse-grained run in chapter \ref{sec:usage:cgrun}.
 
 \subsection{Correlation analysis}
 The factorization of $P$ in \eq{eq:boltzmann_pmf} assumed uncorrelated quantities. \prog{csg_boltzmann} offers two ways to evaluate correlations of interactions. One option is to use the linear correlation coefficient (command \textit{cor}). However, this is not a good measure since \textit{cor} calculates the linear correlation only which might often lead to misleading results~\cite{Ruehle:2009.a} (An example are the two correlated random variables $X \sim U[-1,1]$ with uniform distribution, and $Y:=X^2$. A simple calculation shows $cov(X,Y)=0$ and therefore $cor=\frac{cov(X,Y)}{\sqrt{var(X)var(Y)}}=0$). A better way is to create 2D histograms. This can be done by specifying all values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:

@@ -4,12 +4,12 @@
    \includegraphics{usage/fig/flow_fmatch.eps}
    \caption{Flowchart to perform force matching.}
 \end{figure}
-The force matching algorithm with cubic spline basis is implemented in the \prog{csg_fmatch} utility. A list of available options can be found in the reference section for \prog{csg_fmatch}.
+The force matching algorithm with cubic spline basis is implemented in the \prog{csg_fmatch} utility. A list of available options can be found in the reference section of \prog{csg_fmatch} (command \texttt{--h}).
 
 \section{Program input}
-\prog{csg_fmatch} needs an atomistic reference run to perform coarse-graining. Note that the trajectory file {\em must contain forces } (note that there is a suitable option in the \gromacs .mdp file), otherwise \prog{csg_fmatch} will not be able run.
+\prog{csg_fmatch} needs an atomistic reference run to perform coarse-graining. Therefore, the trajectory file {\em must contain forces } (note that there is a suitable option in the \gromacs ~.mdp file), otherwise \prog{csg_fmatch} will not be able run.
 
-In addition, a mapping scheme has to be created, which defines the coarse-grained model (see \sect{sec:mapping}). At last, a control file has to be created, which contains all the information for coarse-graining the interactions and parameters for the force-matching run. This file is specified in \progopt{--options} in the \xml format. An example might look like the following
+In addition, a mapping scheme has to be created, which defines the coarse-grained model (see \sect{sec:mapping}). At last, a control file has to be created, which contains all the information for coarse-graining the interactions and parameters for the force-matching run. This file is specified by the tag \progopt{--options} in the \xml format. An example might look like the following
 \begin{lstlisting}
    <cg>
      <!--fmatch section -->
@@ -39,12 +39,12 @@ A full description of all available options can be found in \sect{sec:ref_option
 
 \section{Program output}
 \prog{csg_fmatch} produces a separate .force file for each interaction, specified in the CG-options file (option \progopt{options}).
-These files have 4 columns containing distance, corresponding force, table flag and the force error, which is estimated via a block-averaging procedure.
-If you wish to use an angle, then the first column will contain corresponding angle in radians.
+These files have 4 columns containing distance, corresponding force, a table flag and the force error, which is estimated via a block-averaging procedure.
+If you are working with an angle, then the first column will contain the corresponding angle in radians.
 
-To get table-files for \gromacs one has to integrate the forces in order to get the potentials and in order to do extrapolation and potentially smoothing.
+To get table-files for \gromacs, integrate the forces in order to get potentials and do extrapolation and potentially smoothing afterwards.
 
-Output files are not only produced at the end of the program execution, but also after successful processing of each block. The user is free to have a look at the output files and decide to stop \prog{csg_fmatch}, provided the force error is small enough.
+Output files are not only produced at the end of the program execution, but also after every successful processing of each block. The user is free to have a look at the output files and decide to stop \prog{csg_fmatch}, provided the force error is small enough.
 
 \section{Integration and extrapolation of .force files }
 To convert forces (*.force) to potentials (*.pot), tables have to be integrated. To use the built-in integration command from the scripting framework, execute

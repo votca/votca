@@ -36,10 +36,10 @@ order=-1
 
 [item:manual.tex]
 archive=true
-column=14
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=61
+line=35
 open=true
 order=0
 
@@ -99,10 +99,10 @@ order=1
 
 [item:usage/cgruns.tex]
 archive=true
-column=117
+column=6
 encoding=UTF-8
 highlight=LaTeX
-line=84
+line=90
 open=true
 order=1
 

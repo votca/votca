@@ -15,7 +15,7 @@ At the current state, \prog{csg_gmxtopol} can only generate the topology for the
 \begin{verbatim}
   csg_gmxtopol --top topol.tpr --cg map.xml --out cgtop
 \end{verbatim}
-which will create a file cgtop.top. This file includes the topology for the first molecule including definitions for atoms, bonds, angles and dihedrals. It can directly be used as topology in \gromacs, however the force field definitions (atom types, bond tyes, etc) still have to be added manually.
+which will create a file cgtop.top. This file includes the topology for the first molecule including definitions for atoms, bonds, angles and dihedrals. It can directly be used as a topology in \gromacs, however the force field definitions (atom types, bond types, etc.) still have to be added manually.
 
 \section{Post-processing of the potential}
 The post-processing roughly consists of the following steps (see further explanations below):
@@ -27,7 +27,7 @@ The post-processing roughly consists of the following steps (see further explana
 \end{itemize}
 
 \subsection*{Clipping of poorly sampled regions}
-Regions with an irregular distribution of samples should be deleted first. This is simply done by editing the \texttt{.pot} file and by deleting those values.
+Regions with an irregular distribution of samples should be deleted first. This is simply done by editing the \progopt{.pot} file and by deleting those values.
 
 Alternatively, manually check the range where the potential still looks good and is not to noisy and set the flags in the potential file of the bad parts by hand to $o$ (for \textit{out of range}). Those values will later be extrapolated and overwritten.
 
@@ -37,9 +37,9 @@ Use the command
   csg_resample --in table.pot --out table_resample.pot
                --grid min:step:max
 \end{verbatim}
-to resample the potential given in file --\texttt{table.pot} from \texttt{min} to \texttt{max} with a grid spacing of \texttt{step} steps. The result is written to the file specified by \texttt{out}. Additionally, \prog{csg_resample} allows the specification of spline interpolation (\texttt{spfit}), the calculation of derivatives (\texttt{derivative}) and comments (\texttt{comment}). Check the help (\texttt{help}) for further information.
+to resample the potential given in file --\progopt{table.pot} from \progopt{min} to \progopt{max} with a grid spacing of \progopt{step} steps. The result is written to the file specified by \progopt{out}. Additionally, \prog{csg_resample} allows the specification of spline interpolation (\progopt{spfit}), the calculation of derivatives (\progopt{derivative}) and comments (\progopt{comment}). Check the help (\progopt{help}) for further information.
 
-It is important to note that the values \texttt{min} and \texttt{max} \textit{don't} correspond to the minimum and maximum value in the input file, but to the range of values the potential is desired to cover after extrapolation. Therefore, values in $[ \min,\max ]$ that are not covered in the file are automatically marked by a flag $o$ (for \textit{out of range}) for extrapolation in the next step.
+It is important to note that the values \progopt{min} and \progopt{max} \textit{don't} correspond to the minimum and maximum value in the input file, but to the range of values the potential is desired to cover after extrapolation. Therefore, values in $[ \min,\max ]$ that are not covered in the file are automatically marked by a flag $o$ (for \textit{out of range}) for extrapolation in the next step.
 
 \subsection*{Extrapolation}
 The following line
@@ -47,14 +47,14 @@ The following line
   csg_call table extrapolate [options] table_resample.pot
            table_extrapolate.pot
 \end{verbatim}
-calls the extrapolation procedure, which processes the range of values marked by \prog{csg_resample}. The input file is \texttt{table\_resample.pot} created in the last step.
+calls the extrapolation procedure, which processes the range of values marked by \prog{csg_resample}. The input file is \progopt{table\_resample.pot} created in the last step.
 
-After resampling, all values in the potential file that should be used as a basis for extrapolation are marked with an $i$, while all values that need extrapolation are marked by $o$. The command above now extrapolates all $o$ values from the $i$ values in the file. Available options include averaging over a certain number of points (\texttt{avgpoints}), changing the functional form (\texttt{function}, default is quadratic), extrapolating just the left or right region of the file (\texttt{region}) and setting the curvature (\texttt{curvature}).
+After resampling, all values in the potential file that should be used as a basis for extrapolation are marked with an $i$, while all values that need extrapolation are marked by $o$. The command above now extrapolates all $o$ values from the $i$ values in the file. Available options include averaging over a certain number of points (\progopt{avgpoints}), changing the functional form (\progopt{function}, default is quadratic), extrapolating just the left or right region of the file (\progopt{region}) and setting the curvature (\progopt{curvature}).
 
-The output \texttt{table\_extrapolate.pot} of the extrapolation step can now be used for the coarse-grained run. If \gromacs is used as a molecule dynamics package, the potential has to be converted and exported to a suitable \gromacs format as described in the final step.
+The output \progopt{table\_extrapolate.pot} of the extrapolation step can now be used for the coarse-grained run. If \gromacs is used as a molecule dynamics package, the potential has to be converted and exported to a suitable \gromacs format as described in the final step.
 
 \subsection*{Exporting the table}
-Finally, the table is exported to \texttt{xvg}. The conversion procedure requires a small script \texttt{table.xml} as shown below:
+Finally, the table is exported to \progopt{xvg}. The conversion procedure requires a small script \progopt{table.xml} as shown below:
 \begin{verbatim}
   <cg>
     <inverse>
@@ -66,14 +66,14 @@ Finally, the table is exported to \texttt{xvg}. The conversion procedure require
     </inverse>
   </cg>
 \end{verbatim}
-where \texttt{<table\_end>} is the \gromacs \texttt{rvdw+table\_extension} and \texttt{<pot\_max>} is just a number slightly smaller than the upper value of single/ double precision. The value given in \texttt{<table\_bins>} corresponds to the \texttt{step} value of \texttt{csg\_resample -grid min:step:max}.
+where \progopt{<table\_end>} is the \gromacs \progopt{rvdw+table\_extension} and \progopt{<pot\_max>} is just a number slightly smaller than the upper value of single/ double precision. The value given in \progopt{<table\_bins>} corresponds to the \progopt{step} value of \progopt{csg\_resample -grid min:step:max}.
 
-Using the \texttt{xml} file above, call
+Using the \progopt{xml} file above, call
 \begin{verbatim}
   csg_call --xmlfile table.xml convert_potential xvg
            table_extrapolate.pot table.xvg
 \end{verbatim}
-to convert the extrapolated values in \texttt{table\_extrapolate.pot} to \texttt{table.xvg} (the file will contain \gromacs C12 parts \todo, see the \gromacs tutorial for further information).
+to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (the file will contain \gromacs C12 parts \todo, see the \gromacs tutorial for further information).
 
 To obtain a bonded table, run
 \begin{verbatim}
@@ -82,7 +82,7 @@ To obtain a bonded table, run
 \end{verbatim}
 
 \section{Alternatives}
-Additionally to the two methods described above, namely (a) providing the MD package directly with a functional form fitted with a program of choice or (b) using \texttt{csg\_resample}, \texttt{csg\_call table extrapolate} and \texttt{csg\_call convert\_potential}, another method would be suitable. This is integrating the force table as follows
+Additionally to the two methods described above, namely (a) providing the MD package directly with a functional form fitted with a program of choice or (b) using \progopt{csg\_resample}, \progopt{csg\_call table extrapolate} and \progopt{csg\_call convert\_potential}, another method would be suitable. This is integrating the force table as follows
 \begin{verbatim}
   -Integrate the table
   $csg_call table integrate force.d minus_pot.d
