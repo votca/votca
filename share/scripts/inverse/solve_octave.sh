@@ -1,4 +1,4 @@
-  #! /bin/bash
+#! /bin/bash
 #
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
