@@ -32,7 +32,7 @@
 #
 AC_DEFUN([AX_TXT2TAGS],[
   AC_ARG_WITH([txt2tags],[
-    AS_HELP_STRING([--without-txt2tags@<:@=ARG@:>@],
+    AS_HELP_STRING([--without-txt2tags],
       [disable usage of txt2tags needed for documentation and man pages.])
     ],,[with_txt2tags=yes])
 

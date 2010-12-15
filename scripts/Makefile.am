@@ -13,7 +13,7 @@ rc_DATA = $(rcfiles) csg-completion.bash
 endif
 
 # Extra files we need
-EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf.in csg-completion.bash help2t2t.in
+EXTRA_DIST = csg.rc.csh.in csg.rc.bash.in csg_inverse.in csg_call.in multi_g_rdf.in csg-completion.bash help2t2t.in votca-csg.t2t
 
 #hg version is determined at compiletime
 csg_call: $(srcdir)/csg_call.in Makefile hgstamp
@@ -40,7 +40,8 @@ csg.rc.bash: $(srcdir)/csg.rc.bash.in Makefile
 	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
 if HAVE_TXT2TAGS
-man1_MANS= csg_call.man csg_inverse.man multi_g_rdf.man multi_g_density.man
+man1_MANS = csg_call.man csg_inverse.man multi_g_rdf.man multi_g_density.man
+man7_MANS = votca-csg.man
 
 help2t2t: $(srcdir)/help2t2t.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
@@ -57,9 +58,10 @@ csg_inverse.t2t: csg_inverse help2t2t
 
 else
 man1_MANS=
+man7_MANS=
 endif
 
-CLEANFILES = $(bin_SCRIPTS) $(rcfiles) $(man1_MANS) hgstamp multi_g_density help2t2t csg_inverse.t2t *~
+CLEANFILES = $(bin_SCRIPTS) $(rcfiles) $(man1_MANS) $(man7_MANS) hgstamp multi_g_density help2t2t csg_inverse.t2t *~
 
 install-exec-hook:
 	cd $(DESTDIR)$(bindir) && $(LN_S) -f multi_g_rdf multi_g_density
