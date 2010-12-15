@@ -30,6 +30,7 @@ lib*.pc
 scripts/VOTCARC.bash
 scripts/VOTCARC.csh
 share/doc/html/*
+share/man/*.man
 netbeans/*/build
 */nbproject/private
 .dep.inc

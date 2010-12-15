@@ -137,6 +137,7 @@ AC_CONFIG_FILES([src/libtools/libvotca_tools.pc])
 AC_CONFIG_FILES([scripts/Makefile])
 AC_CONFIG_FILES([share/Makefile])
 AC_CONFIG_FILES([share/doc/Makefile])
+AC_CONFIG_FILES([share/man/Makefile])
 AC_CONFIG_FILES([admin/Makefile])
 
 AC_OUTPUT
