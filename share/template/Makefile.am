@@ -7,8 +7,8 @@ BUILT_SOURCES = votca/csg
 
 votca/csg:
 	mkdir votca
-	cd votca && rm -f csg
-	cd votca && $(LN_S) ../$(top_srcdir)/include csg
+#do not use top_src, because it is maybe global
+	cd votca && $(LN_S) $(srcdir)/../../../include csg
 
 install-data-hook:
 	cd $(DESTDIR)$(templatedir) && mv Makefile.template Makefile
