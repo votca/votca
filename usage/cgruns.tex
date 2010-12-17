@@ -1,12 +1,11 @@
 \chapter{Preparing coarse-grained runs}
 \label{sec:usage:cgrun}
 \textbf{WARNING: This section describes experimental features. The exact names and options of the program might change in the near future.  The section is specific to \gromacs support though a generalization for other MD packages is planned.}
-$$$$
-\textbf{Preliminary note:}
 
+\subsection*{Preliminary note}
 The coarse-grained run requires the molecule topology on the one hand and suitable potentials on the other. In this chapter, the generation of coarse-grained runs is decribed next, followed by a post-processing of the potential.
 
-If the potential is of such a form that it can be fitted directly to a functional form, the section on post-processing can be skipped. Instead, a program of choice should be used to fit a functional form to the potential. Nevertheless, special attention should be paid to units (angles, bondlengths, ... \todo). The resulting curve can then be specified in the MD package used for simulation. However, most potentials don't allow an easy processing of this kind and tabulated potentials have to be used.
+If the potential is of such a form that it allows direct fitting of a functional form, the section on post-processing can be skipped. Instead, a program of choice should be used to fit a functional form to the potential. Nevertheless, special attention should be paid to units (angles, bondlengths). The resulting curve can then be specified in the MD package used for simulation. However, most potentials don't allow an easy processing of this kind and tabulated potentials have to be used.
 
 \section{Generating a topology file for a coarse-grained run}
 The mapping definition is close to a topology needed for a coarse grained run. To avoid redundant work, \prog{csg_gmxtopol} can be used to automatically generate a gromacs topology based on an atomistic reference system and a mapping file.
@@ -15,9 +14,10 @@ At the current state, \prog{csg_gmxtopol} can only generate the topology for the
 \begin{verbatim}
   csg_gmxtopol --top topol.tpr --cg map.xml --out cgtop
 \end{verbatim}
-which will create a file cgtop.top. This file includes the topology for the first molecule including definitions for atoms, bonds, angles and dihedrals. It can directly be used as a topology in \gromacs, however the force field definitions (atom types, bond types, etc.) still have to be added manually.
+which will create a file \texttt{cgtop.top}. This file includes the topology for the first molecule including definitions for atoms, bonds, angles and dihedrals. It can directly be used as a topology in \gromacs, however the force field definitions (atom types, bond types, etc.) still have to be added manually.
 
 \section{Post-processing of the potential}
+\label{sec:post_processing}
 The post-processing roughly consists of the following steps (see further explanations below):
 \begin{itemize}
   \item (manually) clipping poorly sampled (border) regions
@@ -29,27 +29,27 @@ The post-processing roughly consists of the following steps (see further explana
 \subsection*{Clipping of poorly sampled regions}
 Regions with an irregular distribution of samples should be deleted first. This is simply done by editing the \progopt{.pot} file and by deleting those values.
 
-Alternatively, manually check the range where the potential still looks good and is not to noisy and set the flags in the potential file of the bad parts by hand to $o$ (for \textit{out of range}). Those values will later be extrapolated and overwritten.
+Alternatively, manually check the range where the potential still looks good and is not to noisy and set the flags in the potential file of the bad parts by hand to \texttt{o} (for \texttt{out of range}). Those values will later be extrapolated and overwritten.
 
 \subsection*{Resampling}
 Use the command
 \begin{verbatim}
-  csg_resample --in table.pot --out table_resample.pot
+  csg_resample --in table.pot --out table_resample.pot \
                --grid min:step:max
 \end{verbatim}
 to resample the potential given in file --\progopt{table.pot} from \progopt{min} to \progopt{max} with a grid spacing of \progopt{step} steps. The result is written to the file specified by \progopt{out}. Additionally, \prog{csg_resample} allows the specification of spline interpolation (\progopt{spfit}), the calculation of derivatives (\progopt{derivative}) and comments (\progopt{comment}). Check the help (\progopt{help}) for further information.
 
-It is important to note that the values \progopt{min} and \progopt{max} \textit{don't} correspond to the minimum and maximum value in the input file, but to the range of values the potential is desired to cover after extrapolation. Therefore, values in $[ \min,\max ]$ that are not covered in the file are automatically marked by a flag $o$ (for \textit{out of range}) for extrapolation in the next step.
+It is important to note that the values \progopt{min} and \progopt{max} \textit{don't} correspond to the minimum and maximum value in the input file, but to the range of values the potential is desired to cover after extrapolation. Therefore, values in $[ \min,\max ]$ that are not covered in the file are automatically marked by a flag \texttt{o} (for \texttt{out of range}) for extrapolation in the next step.
 
 \subsection*{Extrapolation}
 The following line
 \begin{verbatim}
-  csg_call table extrapolate [options] table_resample.pot
+  csg_call table extrapolate [options] table_resample.pot \
            table_extrapolate.pot
 \end{verbatim}
 calls the extrapolation procedure, which processes the range of values marked by \prog{csg_resample}. The input file is \progopt{table\_resample.pot} created in the last step.
 
-After resampling, all values in the potential file that should be used as a basis for extrapolation are marked with an $i$, while all values that need extrapolation are marked by $o$. The command above now extrapolates all $o$ values from the $i$ values in the file. Available options include averaging over a certain number of points (\progopt{avgpoints}), changing the functional form (\progopt{function}, default is quadratic), extrapolating just the left or right region of the file (\progopt{region}) and setting the curvature (\progopt{curvature}).
+After resampling, all values in the potential file that should be used as a basis for extrapolation are marked with an \texttt{i}, while all values that need extrapolation are marked by \texttt{o}. The command above now extrapolates all \texttt{o} values from the \texttt{i} values in the file. Available options include averaging over a certain number of points (\progopt{avgpoints}), changing the functional form (\progopt{function}, default is quadratic), extrapolating just the left or right region of the file (\progopt{region}) and setting the curvature (\progopt{curvature}).
 
 The output \progopt{table\_extrapolate.pot} of the extrapolation step can now be used for the coarse-grained run. If \gromacs is used as a molecule dynamics package, the potential has to be converted and exported to a suitable \gromacs format as described in the final step.
 
@@ -70,16 +70,29 @@ where \progopt{<table\_end>} is the \gromacs \progopt{rvdw+table\_extension} and
 
 Using the \progopt{xml} file above, call
 \begin{verbatim}
-  csg_call --xmlfile table.xml convert_potential xvg
+  csg_call --xmlfile table.xml convert_potential xvg \
            table_extrapolate.pot table.xvg
 \end{verbatim}
-to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (the file will contain \gromacs C12 parts \todo, see the \gromacs tutorial for further information).
+to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (The file will contain \gromacs C12 parts only which are stored in the sixth und seventh column. Ensure compatibility with the \gromacs topology. See the \gromacs manual for further information).
 
 To obtain a bonded table, run
 \begin{verbatim}
-  csg_call --xmlfile table.xml convert_potential xvg --type bonded
+  csg_call --xmlfile table.xml convert_potential xvg --type bonded \
            table_extrapolate.pot table.xvg
 \end{verbatim}
+
+\subsection*{An example on non-bonded interactions}
+\begin{verbatim}
+  csg_call pot shift_nb table.pot table.pot.refined
+  csg_resample --grid 0:0.002:2 --in table.pot.refined \
+           --out table.pot.refined
+  csg_call table extrapolate --function quadratic --region left \
+           table.pot.refined table.pot.refined
+  csg_call table extrapolate --function constant --region right \
+           table.pot.refined table.pot.refined
+\end{verbatim}
+
+%csg_call table integrate table.force table.pot (diese zeile nur bei force-matching)
 
 \section{Alternatives}
 Additionally to the two methods described above, namely (a) providing the MD package directly with a functional form fitted with a program of choice or (b) using \progopt{csg\_resample}, \progopt{csg\_call table extrapolate} and \progopt{csg\_call convert\_potential}, another method would be suitable. This is integrating the force table as follows

@@ -4,7 +4,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
 kileprversion=2
 kileversion=2.1 beta2
-lastDocument=manual.tex
+lastDocument=usage/boltzmann.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -16,14 +16,23 @@ src_extensions=.tex .ltx .latex .dtx .ins .bib .mp
 MakeIndex=
 QuickBuild=
 
-[item:introduction.tex]
+[item:inputfiles.tex]
 archive=true
-column=1
+column=165
 encoding=UTF-8
 highlight=LaTeX
-line=14
+line=39
 open=false
 order=1
+
+[item:introduction.tex]
+archive=true
+column=0
+encoding=UTF-8
+highlight=LaTeX
+line=19
+open=false
+order=2
 
 [item:manual.kilepr]
 archive=true
@@ -36,21 +45,12 @@ order=-1
 
 [item:manual.tex]
 archive=true
-column=0
+column=35
 encoding=UTF-8
 highlight=LaTeX
-line=35
+line=33
 open=true
 order=0
-
-[item:mapping.tex]
-archive=true
-column=0
-encoding=UTF-8
-highlight=LaTeX
-line=20
-open=false
-order=-1
 
 [item:newcommands.tex]
 archive=true
@@ -66,16 +66,16 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=2
+line=0
 open=false
 order=1
 
 [item:theory.tex]
 archive=true
-column=3
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=11
+line=182
 open=false
 order=2
 
@@ -90,52 +90,52 @@ order=0
 
 [item:usage/boltzmann.tex]
 archive=true
-column=0
+column=12
 encoding=UTF-8
 highlight=LaTeX
-line=23
-open=false
+line=116
+open=true
 order=1
 
 [item:usage/cgruns.tex]
 archive=true
-column=6
+column=29
 encoding=UTF-8
 highlight=LaTeX
-line=90
-open=true
+line=4
+open=false
 order=1
 
 [item:usage/forcematching.tex]
 archive=true
-column=56
+column=260
 encoding=UTF-8
 highlight=LaTeX
-line=61
+line=9
 open=false
 order=6
 
 [item:usage/ibi.tex]
 archive=true
-column=16
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=66
+line=1
 open=false
 order=1
 
 [item:usage/imc.tex]
 archive=true
-column=0
+column=11
 encoding=UTF-8
 highlight=LaTeX
-line=52
+line=31
 open=false
 order=2
 
 [item:usage/iterative_workflow.tex]
 archive=true
-column=251
+column=0
 encoding=UTF-8
 highlight=LaTeX
 line=23

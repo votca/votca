@@ -107,6 +107,11 @@ Another crucial issue is the cross-correlation of the coarse-grained degrees of 
 When coarse-graining polymeric systems, it is convenient to treat bonded and non-bonded interactions separately~\cite{Tschoep:1998}. In this case, sampling of the atomistic system shall be performed on a special system where non-bonded interactions are artificially removed, so that the non-bonded interactions in the reference system do not contribute to the bonded interactions of the coarse-grained model.
 
 This can be done by employing exclusion lists using \prog{csg_boltzmann} with the option \progopt{--excl}. This is described in detail in sec. \ref{sec:exclusions}.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{fig/excl}
+  \caption{\label{fig:excl}Example of excluded interactions.}
+\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -175,7 +180,7 @@ In order to determine these parameters, the reference forces on coarse-grained b
   \label{eq:force_mapping}
 \end{equation}
 where the sum is over all atoms of the CG site {\it I} (see. \sect{sec:mapping_operator}).
-The $d_{Ij}$ coefficients can, in principle, be chosen arbitrarily, provided that the condition $ \sum_{i=1}^{n}d_{Ii}=1$ is satisfied~\cite{Noid:2008.1}. If mapping coefficients for the forces are not provided, it is assumed that $d_{Ij} = c_{Ij}$ (see also \sect{sec:mapping}).
+The $d_{Ij}$ coefficients can, in principle, be chosen arbitrarily, provided that the condition $ \sum_{i=1}^{n}d_{Ii}=1$ is satisfied~\cite{Noid:2008.1}. If mapping coefficients for the forces are not provided, it is assumed that $d_{Ij} = c_{Ij}$ (see also \sect{sec:inputfiles}).
 
 By calculating the reference forces for $L$ snapshots we can write down $N \times L$ equations
 %

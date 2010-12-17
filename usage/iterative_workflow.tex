@@ -1,8 +1,6 @@
 \chapter{Iterative workflow control}
 \label{sec:iterative_workflow}
 
-Iterative workflow control is essential for the \ibi and \imc methods. Before using it, the \texttt{CSGSHARE} variable must be set. The \votca initialization script will do that for you (see sec.~\ref{sec:introduction} where it is explained how to source it.)
-
 %\begin{figure}
 \begin{wrapfigure}{ht}{7cm}  
 \includegraphics[width=7cm]{functionality/fig/flowchart.eps}
@@ -12,6 +10,7 @@ Iterative workflow control is essential for the \ibi and \imc methods. Before us
   }
 \end{wrapfigure}
 %\end{figure}
+Iterative workflow control is essential for the \ibi and \imc methods. Before using it, the \texttt{CSGSHARE} variable must be set. The \votca initialization script will do that for you (see sec.~\ref{sec:introduction} on how to source it.)
 
 The general idea of iterative workflow is sketched in fig.~\ref{fig:flowchart}. During the global initialization the initial guess for the coarse-grained potential is calculated from the reference function or converted from a given potential guess into the internal format. The actual iterative step starts with an iteration initialization. It searches for possible checkpoints and copies and converts files from the previous step and the base directory. Then, the simulation run is prepared by converting potentials into the format required by the external sampling program and the actual sampling is performed. 
 
@@ -21,7 +20,8 @@ Finally, the new potential is determined and postprocessed. If the iterative pro
 In what follows we describe how to setup the iterative coarse-graining, run the main script, continue the run, and add customized scripts. 
 
 \section{Preparing the run}
-To start the first iteration, one has to prepare the input for the sampling program. This means that all files for running a coarse-grained simulation must be present and described in a separate \xml file, in our case \texttt{settings.xml}. An extract from this file is given below. The only exception is tabulated potentials, which will be created and updated by the script in the course of the iterative process.
+\label{sec:preparing_the_run}
+To start the first iteration, one has to prepare the input for the sampling program. This means that all files for running a coarse-grained simulation must be present and described in a separate \xml file, in our case \texttt{settings.xml} (see sec. \ref{sec:setting_files} for details). An extract from this file is given below. The only exception are tabulated potentials, which will be created and updated by the script in the course of the iterative process.
 
 The input files include: target distributions, initial guess (optional) and a list of interactions to be iteratively refined. As a target distribution, any table file can be given (e.g. \gromacs output from \texttt{g\_rdf}). The program automatically takes care to resample the table to the correct grid spacing according to the options provided in \texttt{settings.xml}.
 
@@ -39,6 +39,7 @@ A list of interactions to be iteratively refined has to be given in the options 
 \end{figure}
 
 \section{Starting the iterative process}
+\label{sec:starting_iterative_process}
 After all input files have been set up, the run can be started with
 \begin{verbatim}
   csg_inverse settings.xml
@@ -57,7 +58,8 @@ To summarize, we list all standard output files for each iterative step:
 \begin{tabular}{ll}
 \texttt{*.dist.new} & distribution functions of the current step \\
 \texttt{*.dpot.new} & the final potential update, created by \texttt{calc\_update} \\
-\texttt{*.dpot.<number>} & for each postupdate script, the \texttt{.dpot.new} is saved and a new one is created\\
+\texttt{*.dpot.<number>} & for each postupdate script, the \texttt{.dpot.new} is saved and a new one\\
+&is created\\
 \texttt{*.pot.cur} & the current potential used for the actual run\\
 \texttt{*.pot.new} & the new potential after the add step \\
 \texttt{*.pot.<number>} & same as \texttt{dpot.<number>} but for \texttt{post\_add}
@@ -105,7 +107,11 @@ The output should look as follows
   convert_potential gromacs potential_to_gromacs.sh
   functions gromacs functions_gromacs.sh
 \end{verbatim}
-the third line indicates the script we need. If the output of \prog{csg_call} is not clear, one can try to find the right script in \sect{sec:csg_table}. Alternatively, check the folder  \texttt{<csg-installation>/share/scripts/inverse} for all available scripts. 
+the third line indicates the script we need. If the output of \prog{csg_call} is not clear, one can try to find the right script in \sect{sec:csg_table}. Alternatively, check the folder
+\begin{verbatim}
+  <csg-installation>/share/scripts/inverse
+\end{verbatim}
+for all available scripts. 
 
 Analyzing the output of
 \begin{verbatim}

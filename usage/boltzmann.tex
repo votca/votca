@@ -5,16 +5,16 @@
 \begin{wrapfigure}{t}{7cm}
    \centering
    \includegraphics[width=7cm]{usage/fig/flow_boltzmann.eps}
-   \caption{Flowchart deminstrating useful options of the tool.}
+   \caption{Flowchart demonstrating useful options of the tool.}
 \end{wrapfigure}
 %
-It is mostly used for deriving {\em bonded} interactions from canonical sampling of a single molecule in vacuum, e.~g. for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}. The non-bonded potentials can then be obtained by using iterative  methods or force matching.
+It is mostly used for deriving {\em bonded} interactions from canonical sampling of a single molecule in vacuum, e.~g. for polymer coarse-graining, where it is difficult to separate bonded and non-bonded degrees of freedom~\cite{Tschoep:1998}. The non-bonded potentials can then be obtained by using iterative methods or force matching.
 
-The main tool which can be used to calculate histograms, cross-correlate coarse-grained variables, create exclusion lists, as well as prepare tabulated potentials for coarse-grained simulations is \prog{csg_boltzmann}.  It parses the whole trajectory and stores all information on bonded interactions in memory, which is useful for interactive analysis. For big systems, however, one can run out of memory. In this case \prog{csg_stat} can be used which, however, has a limited number of tasks it can perform.
+The main tool which can be used to calculate histograms, cross-correlate coarse-grained variables, create exclusion lists, as well as prepare tabulated potentials for coarse-grained simulations is \prog{csg_boltzmann}. It parses the whole trajectory and stores all information on bonded interactions in memory, which is useful for interactive analysis. For big systems, however, one can run out of memory. In this case \prog{csg_stat} can be used which, however, has a limited number of tasks it can perform (see sec. \ref{sec:setting_files} for an example on its usage).
 
 Another useful tool is \prog{csg_map}. It can be used to convert an atomistic trajectory to a coarse-grained one, as it is discussed in sec.~\ref{sec:trajectory}.
 
-To use \prog{csg_boltzmann} one has to first define a mapping scheme. This is outlined in~\sect{sec:mapping}. Once the mapping scheme is specified, it is possible to generate an exclusion list for the proper sampling of the atomistic resolution system. 
+To use \prog{csg_boltzmann} one has to first define a mapping scheme. This is outlined in~\sect{sec:mapping_files}. Once the mapping scheme is specified, it is possible to generate an exclusion list for the proper sampling of the atomistic resolution system.
 
 \section{Generating exclusion lists}
 \label{sec:exclusions}
@@ -69,7 +69,7 @@ If analysis commands are to be read from a file, use the pipe or stdin redirects
 \end{verbatim}
 
 \subsection{Distribution functions and tabulated potentials}
-Distribution functions (tabulated potentials) can be created with the \textit{hist} (\textit{tab}) command.
+Distribution functions (tabulated potentials) can be created with the \texttt{hist} (\texttt{tab}) command.
 For instance, to write out the distribution function for all interactions of group AA-bond (where AA-bond is the name specified in the mapping scheme) to the file AA.txt, type
 \begin{verbatim}
   hist AA.txt *:AA-bond:*
@@ -78,18 +78,22 @@ The command
 \begin{verbatim}
   hist set
 \end{verbatim}
-prints a list of all parameters that can be changed for the histogram: the number \textit{n} of bins for the table, bounds \textit{min} and \textit{max} for table values, scaling and normalizing, a flag \textit{periodic} to ensure periodic values in the table and an \textit{auto} flag. If \textit{auto} is set to 1, bounds are calculated automatically, otherwise they can be specified by \textit{min} and \textit{max}. Larger values in the table might extend those bounds, specified by parameter \textit{extend}.
+prints a list of all parameters that can be changed for the histogram: the number \texttt{n} of bins for the table, bounds \texttt{min} and \texttt{max} for table values, scaling and normalizing, a flag \texttt{periodic} to ensure periodic values in the table and an \texttt{auto} flag. If \texttt{auto} is set to 1, bounds are calculated automatically, otherwise they can be specified by \texttt{min} and \texttt{max}. Larger values in the table might extend those bounds, specified by parameter \texttt{extend}.
 
-To directly write the Boltzmann-inverted potential, the \textit{tab} command can be used. Its usage and options are very similar to the \textit{hist} command. If tabulated potentials are written, special care should be taken to the parameters \textit{T} (temperature) and the \textit{scale}. The \textit{scale} enables volume normalization as given in \eq{eq:boltzmann_norm}. Possible values are \textit{no} (no scaling), \textit{bond} (normalize bonds) and \textit{angle} (normalize angles). To write out the tabulated potential for an angle potential at a temperature of 300K, for instance, type:
+To directly write the Boltzmann-inverted potential, the \texttt{tab} command can be used. Its usage and options are very similar to the \texttt{hist} command. If tabulated potentials are written, special care should be taken to the parameters \texttt{T} (temperature) and the \texttt{scale}. The \texttt{scale} enables volume normalization as given in \eq{eq:boltzmann_norm}. Possible values are \texttt{no} (no scaling), \texttt{bond} (normalize bonds) and \texttt{angle} (normalize angles). To write out the tabulated potential for an angle potential at a temperature of 300K, for instance, type:
 \begin{verbatim}
   tab set T 300
   tab set scale angle
   tab angle.pot *:angle:*
 \end{verbatim}
-The table is then written into the file \progopt{angle.pot} in the format \todo. An optional correlation analysis is described in the next section. After the file has been created by command \progopt{tab}, the potential is prepared for the coarse-grained run in chapter \ref{sec:usage:cgrun}.
+The table is then written into the file \progopt{angle.pot} in the format described in sec. \ref{sec:table_formats}. An optional correlation analysis is described in the next section. After the file has been created by command \progopt{tab}, the potential is prepared for the coarse-grained run in chapter \ref{sec:usage:cgrun}.
 
 \subsection{Correlation analysis}
-The factorization of $P$ in \eq{eq:boltzmann_pmf} assumed uncorrelated quantities. \prog{csg_boltzmann} offers two ways to evaluate correlations of interactions. One option is to use the linear correlation coefficient (command \textit{cor}). However, this is not a good measure since \textit{cor} calculates the linear correlation only which might often lead to misleading results~\cite{Ruehle:2009.a} (An example are the two correlated random variables $X \sim U[-1,1]$ with uniform distribution, and $Y:=X^2$. A simple calculation shows $cov(X,Y)=0$ and therefore $cor=\frac{cov(X,Y)}{\sqrt{var(X)var(Y)}}=0$). A better way is to create 2D histograms. This can be done by specifying all values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
+The factorization of $P$ in \eq{eq:boltzmann_pmf} assumed uncorrelated quantities. \prog{csg_boltzmann} offers two ways to evaluate correlations of interactions. One option is to use the linear correlation coefficient (command \texttt{cor}).
+
+However, this is not a good measure since \texttt{cor} calculates the linear correlation only which might often lead to misleading results~\cite{Ruehle:2009.a}. An example for such a case are the two correlated random variables $X \sim U[-1,1]$ with uniform distribution, and $Y:=X^2$. A simple calculation shows $cov(X,Y)=0$ and therefore
+$$cor=\frac{cov(X,Y)}{\sqrt{var(X)var(Y)}}=0.$$
+A better way is to create 2D histograms. This can be done by specifying all values (e.g. bond length, angle, dihedral value) using the command \textit{vals}, e.g.:
 \begin{verbatim}
   vals vals.txt 1:AA-bond:1 1:AAA-angle:A
 \end{verbatim}
@@ -97,15 +101,16 @@ This will create a file which contains 3 columns, the first being the time, and 
 
 Two examples for 2D histograms are shown below: one for the propane molecule and one for hexane.
 
-\begin{figure}[b]
+\begin{figure}[h]
+\hspace{1cm}
 \begin{minipage}{4cm}
-  \includegraphics[height=3.1cm]{fig/propane_hist2d}
+  \includegraphics[height=2.8cm]{fig/propane_hist2d}
   \caption{propane histogram}
   \label{boltzmann:propane}
 \end{minipage}
 \hfill
 \begin{minipage}{10cm}
-  \includegraphics[height=4cm]{fig/hexane2}
+  \includegraphics[height=3.6cm]{fig/hexane2}
   \caption{hexane histograms: before and after the coarse-grained run}
   \label{boltzmann:hexane}
 \end{minipage}
