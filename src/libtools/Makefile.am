@@ -27,4 +27,6 @@ hgversion.h: dummy
 	[ -f $@ ] || touch $@
 	echo 'static const std::string hgversion = "$(HGVERSION)";' | cmp -s $@ - \
 	  || echo 'static const std::string hgversion = "$(HGVERSION)";' > $@
+
+.PHONY: dummy
 dummy: ;
