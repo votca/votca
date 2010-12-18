@@ -69,6 +69,8 @@ install-exec-hook:
 uninstall-hook:
 	cd $(DESTDIR)$(bindir) && rm -f multi_g_density
 
+BUILT_SOURCES = hgstamp
+
 hgstamp: dummy
 	[ -f $@ ] || touch $@
 	echo $(HGVERSION) | cmp -s $@ - || echo $(HGVERSION) > $@
