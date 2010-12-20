@@ -30,7 +30,7 @@ using namespace std;
 void LinSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 {
     if(x.size() != y.size())
-        throw std::invalid_argument("error in LinSpline::Interpolate : size of vector x and y dos not match");
+        throw std::invalid_argument("error in LinSpline::Interpolate : sizes of vectors x and y do not match");
 
     const int N = x.size();
 
@@ -61,7 +61,7 @@ void LinSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 void LinSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
 {
     if(x.size() != y.size())
-        throw std::invalid_argument("error in LinSpline::Fit : size of vector x and y dos not match");
+        throw std::invalid_argument("error in LinSpline::Fit : sizes of vectors x and y do not match");
 
     const int N = x.size();
     const int ngrid = _r.size();

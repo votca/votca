@@ -18,7 +18,7 @@
 #ifndef _AKIMASPLINE_H
 #define	_AKIMASPLINE_H
 
-#include <spline.h>
+#include "spline.h"
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
@@ -29,11 +29,14 @@ namespace votca { namespace tools {
 namespace ub = boost::numeric::ublas;
 
 /**
-    \brief An Akima Spline Class
  *
- *  does Akima interpolation based on "A new method of interpolation and smooth
- *  curve fitting based on local procedures"
- *  fit not yet included
+ * \brief An Akima Spline Class
+ *
+ * does Akima interpolation based on the paper
+ * "A new method of interpolation and smooth curve fitting based on local procedures"
+ *
+ * Fitting is not supported. In order to fit data, do linear fitting and interpolate
+ * the linear fitted values by Akima interpolation.
  */
 
 class AkimaSpline : public Spline
@@ -47,42 +50,37 @@ public:
     // destructor
     ~AkimaSpline() {};
 
-
-    /// getSlope: handles all special cases to determine the slope t based
-    /// on m1,m2,m3,m4
+    /**
+     * \brief Calculate the slope according to the original Akima paper ("A New Method of Interpolation and Smooth Curve Fitting Based on Local Procedures")
+     * \param slopes m1 to m4 of line segments connecting the five data points
+     * \return slope
+     * handles all special cases to determine the slope t based on slopes m1,m2,m3,m4
+     */
     double getSlope(double m1, double m2, double m3, double m4);
-    
-    /// \brief construct an interpolation spline
-    ///
-    ///   x, y are the the points to construct interpolation,
-    /// both vectors must be of same size
+
+
+    // construct an interpolation spline
+    // x, y are the the points to construct interpolation, both vectors must be of same size
     void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
     
-    /// \brief fit spline through noisy data
-    ///
-    /// x,y are arrays with noisy data, both vectors must be of same size
+    // fit spline through noisy data
+    // x,y are arrays with noisy data, both vectors must be of same size
     void Fit(ub::vector<double> &x, ub::vector<double> &y);
     
-    
-    /// Calculate the function value
+    // Calculate the function value
     double Calculate(const double &x);
 
-    /// Calculate the function derivative
+    // Calculate the function derivative
     double CalculateDerivative(const double &x);
     
-    
-    /// Calculate the function value for a whole array, story it in y
+    // Calculate the function value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void Calculate(vector_type1 &x, vector_type2 &y);
+
+    // Calculate the derivative value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void CalculateDerivative(vector_type1 &x, vector_type2 &y);
-       
-    /// print out results
-    void Print(std::ostream &out, double interval = 0.0001 );
-        
-    /// get the grid array x
-    ub::vector<double> &getX() {return _r; }
-
+    
 
 protected:
     // p1,p2,p3,p4 and t1,t2 (same identifiers as in Akima paper, page 591)

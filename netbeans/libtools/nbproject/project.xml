@@ -5,11 +5,20 @@
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
             <name>libtools</name>
             <make-project-type>0</make-project-type>
-            <c-extensions/>
             <cpp-extensions>cc</cpp-extensions>
+            <c-extensions/>
             <header-extensions>h</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
+            <sourceRootList>
+                <sourceRootElem>../../src/libtools</sourceRootElem>
+                <sourceRootElem>../../include</sourceRootElem>
+            </sourceRootList>
+            <confList>
+                <confElem>Debug</confElem>
+                <confElem>Release</confElem>
+                <confElem>profile_release</confElem>
+            </confList>
         </data>
     </configuration>
 </project>

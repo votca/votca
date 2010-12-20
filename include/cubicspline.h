@@ -18,7 +18,7 @@
 #ifndef _CUBICSPLINE_H
 #define	_CUBICSPLINE_H
 
-#include <spline.h>
+#include "spline.h"
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
@@ -51,7 +51,7 @@ namespace ub = boost::numeric::ublas;
     - Interpolation spline
     - Fitting spline (fit to noisy data)
     - calculate the parameters elsewere and fill the spline class
- */
+*/
 
 class CubicSpline : public Spline
 {    
@@ -64,60 +64,61 @@ public:
     // destructor
     ~CubicSpline() {};
 
-    /// \brief construct an interpolation spline
-    ///
-    ///   x, y are the the points to construct interpolation,
-    /// both vectors must be of same size
+    // construct an interpolation spline
+    // x, y are the the points to construct interpolation, both vectors must be of same size
     void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
     
-    /// \brief fit spline through noisy data
-    ///
-    /// x,y are arrays with noisy data, both vectors must be of same size
+    // fit spline through noisy data
+    // x,y are arrays with noisy data, both vectors must be of same size
     void Fit(ub::vector<double> &x, ub::vector<double> &y);
     
-    
-    /// Calculate the function value
+    // Calculate the function value
     double Calculate(const double &x);
 
-    /// Calculate the function derivative
+    // Calculate the function derivative
     double CalculateDerivative(const double &x);
     
-    
-    /// Calculate the function value for a whole array, story it in y
+    // Calculate the function value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void Calculate(vector_type1 &x, vector_type2 &y);
+
+    // Calculate the derivative value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void CalculateDerivative(vector_type1 &x, vector_type2 &y);
-       
-    /// the spline parameters were calculated elsewere, store that data
+
+    // set spline parameters to values that were externally computed
     template<typename vector_type>
     void setSplineData(vector_type &f, vector_type &f2) { _f = f; _f2 = f2;}
-    
-    /// print out results
-    void Print(std::ostream &out, double interval = 0.0001 );
-        
-    /// get the grid array x
-    ub::vector<double> &getX() {return _r; }
-    ///  \brief get the spline data
-    ub::vector<double> &getSplineF() { return _f; }
-    ///  \brief get second derivatives
-    ub::vector<double> &getSplineF2() { return _f2; }
-    
-    // stuff to construct fitting matrices
-    
-    /// \brief add a point to fitting matrix
-    ///
-    /// When creating a matrix to fit data with a spline, this function creates
-    /// one entry in that fitting matrix. 
+
+    /**
+     * \brief Add a point (one entry) to fitting matrix
+     * \param pointer to matrix
+     * \param value x
+     * \param offsets relative to getInterval(x)
+     * \param scale parameters for terms "A,B,C,D"
+     * When creating a matrix to fit data with a spline, this function creates
+     * one entry in that fitting matrix.
+    */
     template<typename matrix_type>
     void AddToFitMatrix(matrix_type &A, double x,
             int offset1, int offset2=0, double scale=1);
-    
+
+    /**
+     * \brief Add a vector of points to fitting matrix
+     * \param pointer to matrix
+     * \param vector of x values
+     * \param offsets relative to getInterval(x)
+     * Same as previous function, but vector-valued and with scale=1.0
+    */
     template<typename matrix_type, typename vector_type>
     void AddToFitMatrix(matrix_type &M, vector_type &x, 
             int offset1, int offset2=0);
-    
-    // add the boundary conditions
+
+    /**
+     * \brief Add boundary conditions to fitting matrix
+     * \param pointer to matrix
+     * \param offsets
+    */
     template<typename matrix_type>
     void AddBCToFitMatrix(matrix_type &A,
             int offset1, int offset2=0);

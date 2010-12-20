@@ -18,7 +18,7 @@
 #ifndef _LINSPLINE_H
 #define	_LINSPLINE_H
 
-#include <spline.h>
+#include "spline.h"
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
@@ -29,10 +29,10 @@ namespace votca { namespace tools {
 namespace ub = boost::numeric::ublas;
 
 /**
-    \brief A Linear Spline Class
+ * \brief A Linear Spline Class
  *
- *  does linear interpolation
- */
+ *  class supports linear interpolation and linear fit of data
+*/
 
 class LinSpline : public Spline
 {
@@ -45,36 +45,27 @@ public:
     // destructor
     ~LinSpline() {};
 
-    /// \brief construct an interpolation spline
-    ///
-    ///   x, y are the the points to construct interpolation,
-    /// both vectors must be of same size
+    // construct an interpolation spline
+    // x, y are the the points to construct interpolation, both vectors must be of same size
     void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
 
-    /// \brief fit spline through noisy data
-    ///
-    /// x,y are arrays with noisy data, both vectors must be of same size
+    // fit spline through noisy data
+    // x,y are arrays with noisy data, both vectors must be of same size
     void Fit(ub::vector<double> &x, ub::vector<double> &y);
 
-
-    /// Calculate the function value
+    // Calculate the function value
     double Calculate(const double &x);
 
-    /// Calculate the function derivative
+    // Calculate the function derivative
     double CalculateDerivative(const double &x);
 
-
-    /// Calculate the function value for a whole array, story it in y
+    // Calculate the function value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void Calculate(vector_type1 &x, vector_type2 &y);
+
+    // Calculate the derivative value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void CalculateDerivative(vector_type1 &x, vector_type2 &y);
-
-    /// print out results
-    void Print(std::ostream &out, double interval = 0.0001 );
-
-    /// get the grid array x
-    ub::vector<double> &getX() {return _r; }
     
 
 protected:

@@ -30,7 +30,7 @@ using namespace std;
 void AkimaSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 {    
     if(x.size() != y.size())
-        throw std::invalid_argument("error in AkimaSpline::Interpolate : size of vector x and y dos not match");
+        throw std::invalid_argument("error in AkimaSpline::Interpolate : sizes of vectors x and y do not match");
     
     const int N = x.size();
     
