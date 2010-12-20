@@ -15,6 +15,7 @@
  *
  */
 
+#include <votca/tools/spline.h>
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/akimaspline.h>
 #include <votca/tools/linspline.h>
