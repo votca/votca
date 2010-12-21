@@ -61,11 +61,36 @@ export -f msg
 
 unset -f die
 die () {
+  local pid pids c
   msg "$*"
   [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
-  echo "killing all processes...."
-  #send kill signal to all process within the process groups
-  kill 0
+  if [ -n "${CSG_MASTER_PID}" ]; then
+    #grabbing the pid group would be easier, but it would not work on AIX
+    pid=$$
+    #$$ is closed by exit below 'kill $pids'
+    pids=""
+    c=0
+    #find the parent of pid until we reach CSG_MASTER_PID
+    until [ ${CSG_MASTER_PID} -eq $pid ]; do
+      #get the parent pid using BSD style due to AIX
+      pid=$(ps -o ppid= -p $pid 2>/dev/null)
+      #store them in inverse order to kill parents before the child
+      pids="$pid $pids"
+      ((c++))
+      #at max 100 iterations
+      if [ $c -eq 10000 ]; then
+        #failback to default, see comment below
+        pids="0"
+        break
+      fi
+    done
+    echo "die: CSG_MASTER_PID is $CSG_MASTER_PID"
+    echo "die: pids to kill: $pids"
+    kill $pids
+  else
+    #send kill signal to all process within the process groups
+    kill 0
+  fi
   exit 1
 }
 export -f die

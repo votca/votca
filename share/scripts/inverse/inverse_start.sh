@@ -61,6 +61,9 @@ SOURCE_WRAPPER="${CSGINVERSE}/source_wrapper.pl"
 [[ -x "${SOURCE_WRAPPER}" ]] || die "Could not find source_wrapper.pl"
 export SOURCE_WRAPPER
 
+#this is need by die later
+export CSG_MASTER_PID="$$"
+
 function_file=$($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions common failed"
 #die() is overwritten here
 source ${function_file} || exit 1

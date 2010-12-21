@@ -166,6 +166,9 @@ export PERL5LIB="$CSGINVERSE:$PERL5LIB"
 export SOURCE_WRAPPER=$CSGINVERSE/source_wrapper.pl
 [ -x "$SOURCE_WRAPPER" ] || die "${0##*/}: Could not execute source wrapper"
 
+#this is need by die later
+export CSG_MASTER_PID="$$"
+
 source $($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions common failed"
 
 if [ -n "${CSGXMLFILE}" ]; then

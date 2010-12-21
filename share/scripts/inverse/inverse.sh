@@ -76,7 +76,7 @@ while [ "${1#-}" != "$1" ]; do
     show_help
     exit 0;;
   *)
-   echo "Unknown option '$1'"
+   echo "Unknown option '$1'" >&2
    exit 1;;
  esac
 done
