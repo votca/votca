@@ -22,7 +22,7 @@ This is a wrapper to convert potential to gromacs
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property csg_get_property successful_or_die csg_resample check_deps get_from_mdp awk
+USES: do_external csg_get_interaction_property csg_get_property critical csg_resample check_deps get_from_mdp awk
 
 NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins cg.inverse.gromacs.table_end
 EOF
@@ -52,5 +52,5 @@ tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
 res="$(awk -v rlist="$rlist" -v tabext="$tabext" -v tablend="$tablend" 'BEGIN{ print (tablend<rlist+tabext)?1:0 }')" || die "${0##*/}: awk failed"
 [ "$res" = "0" ] || die "${0##*/}: Error table is short then what gromacs needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
 
-successful_or_die csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} --comment "$comment"
+critical csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} --comment "$comment"
 do_external convert_potential xvg smooth_${input} ${output}

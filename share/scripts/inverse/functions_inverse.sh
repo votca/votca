@@ -30,7 +30,7 @@ We have defined some useful (?) functions:
 * do_external       = get scriptname for sourcewrapper and run it
                       supports for_all
 * for_all           = run a command for all non-bonded pairs
-* successful_or_die = run + die if error
+* critical          = run and die if error
 * check_for         = checks if a binary exist in the path
 * check_deps        = checks the dependencies of a script
 
@@ -41,11 +41,11 @@ Examples:
 * do_external init gromacs NVT
 * do_external init potential for_all bonded
 * for_all bonded init_potential.sh 1 2 3
-* successful_or_die CMD
+* critical CMD
 
 USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property printf cp date
 
-PROVIDES: die msg csg_get_interaction_property csg_get_property do_external for_all is_done mark_done sed successful_or_die cat_external show_external check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time get_number_tasks
+PROVIDES: die msg csg_get_interaction_property csg_get_property do_external for_all is_done mark_done sed critical cat_external show_external check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time get_number_tasks
 
 NEEDS:
 EOF
@@ -128,10 +128,10 @@ do_external() {
 export -f do_external
 
 #useful subroutine check if a command was succesful AND log the output
-successful_or_die() {
-   "$@" || die "successful_or_die: '$*' failed"
+critical() {
+   "$@" || die "critical: '$*' failed"
 }
-export -f successful_or_die
+export -f critical
 
 #do somefor all pairs, 1st argument is the type
 for_all (){
@@ -206,7 +206,7 @@ csg_get_property () {
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
-  ret="$(successful_or_die $cmd)"
+  ret="$(critical $cmd)"
   [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_property: Could not get '$1'\nResult of '$cmd' was empty"
@@ -249,7 +249,7 @@ export -f check_for
 check_deps () {
   [[ -n "$1" ]] || die "check_deps: Missig argument"
   local deps
-  deps="$(successful_or_die $1 --help)"
+  deps="$(critical $1 --help)"
   deps="$(echo "$deps" | sed -n '/^USES:/p')" || die "check_deps: sed failed"
   [[ -z "${deps}" ]] && msg "check_for '$1' has no used block please add it" && return 0
   deps=$(echo "$deps" | sed 's/USES://')
@@ -374,13 +374,13 @@ export -f cp_from_to
 
 cp_from_main_dir() {
   echo "cp_from_main_dir: '$@'"
-  successful_or_die cp_from_to --from $(get_main_dir) "$@"
+  critical cp_from_to --from $(get_main_dir) "$@"
 }
 export -f cp_from_main_dir
 
 cp_from_last_step() {
   echo "cp_from_last_step: '$@'"
-  successful_or_die cp_from_to --from $(get_last_step_dir) "$@"
+  critical cp_from_to --from $(get_last_step_dir) "$@"
 }
 export -f cp_from_last_step
 

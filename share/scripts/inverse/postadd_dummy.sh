@@ -23,7 +23,7 @@ useful to overwrite default by nothing
 
 Usage: ${0##*/} infile outfile
 
-USES: die check_deps successful_or_die cp
+USES: die check_deps critical cp
 
 NEEDS: 
 EOF
@@ -36,6 +36,6 @@ check_deps "$0"
 
 [ -f "$2" ] && die "${0##*/}: $2 is already there"
 
-successful_or_die cp $1 $2
+critical cp $1 $2
 
 exit 0

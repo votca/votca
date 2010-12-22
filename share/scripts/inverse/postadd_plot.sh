@@ -22,7 +22,7 @@ postadd plot script, send a certain plot script to gnuplot
 
 Usage: ${0##*/} infile outfile
 
-USES: die check_deps successful_or_die mkfifo flock
+USES: die check_deps critical mkfifo flock
 
 NEEDS: inverse.post_add_options.plot.script
 

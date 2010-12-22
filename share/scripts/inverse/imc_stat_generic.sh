@@ -23,7 +23,7 @@ using generic csg tools
 
 Usage: ${0##*/}
 
-USES: msg successful_or_die mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
+USES: msg critical mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
 
 NEEDS: cg.inverse.program cg.inverse.cgmap
 
@@ -64,7 +64,7 @@ else
   #copy+resample all target dist in $this_dir
   for_all non-bonded do_external resample target
 
-  successful_or_die csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" $cgopts \
+  critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" $cgopts \
         --begin $equi_time --first-frame $first_frame --nt $tasks
   mark_done "imc_analysis"
 fi

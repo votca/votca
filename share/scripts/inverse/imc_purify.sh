@@ -22,7 +22,7 @@ This scripts cleans up the dpot tables for each interaction when using IMC
 
 Usage: ${0##*/}
 
-USES:  do_external successful_or_die csg_get_interaction_property csg_get_property csg_resample check_deps
+USES:  do_external critical csg_get_interaction_property csg_get_property csg_resample check_deps
 
 NEEDS: name min max step cg.inverse.kBT inverse.do_potential
 EOF
@@ -40,7 +40,7 @@ echo "purifying dpot for $name"
 
 
 comment="$(get_table_comment)"
-successful_or_die csg_resample --in ${name}.dpot.imc --out ${name}.dpot.impure --grid ${min}:${step}:${max} --comment "$comment"
+critical csg_resample --in ${name}.dpot.imc --out ${name}.dpot.impure --grid ${min}:${step}:${max} --comment "$comment"
 scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
 scheme_nr=$(( ( $1 - 1 ) % ${#scheme[@]} ))
 

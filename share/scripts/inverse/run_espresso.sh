@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: successful_or_die get_number_tasks csg_get_property check_deps
+USES: critical get_number_tasks csg_get_property check_deps
 
 NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
 
@@ -149,9 +149,9 @@ EOF
     tasks=$(get_number_tasks)
     if [ $tasks -gt 1 ]; then
 	mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-	successful_or_die $mpicmd $esp_bin $esp_script
+	critical $mpicmd $esp_bin $esp_script
     else
-	successful_or_die $esp_bin $esp_script
+	critical $esp_bin $esp_script
     fi
     [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
     

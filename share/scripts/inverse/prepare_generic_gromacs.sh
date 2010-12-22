@@ -22,7 +22,7 @@ This is a intialize stuff for gromacs
 
 Usage: ${0##*/}
 
-USES: check_deps cp_from_main_dir successful_or_die mv
+USES: check_deps cp_from_main_dir critical mv
 
 NEEDS:
 EOF
@@ -32,4 +32,4 @@ fi
 check_deps "$0"
 
 cp_from_main_dir conf.gro
-successful_or_die mv conf.gro confout.gro
+critical mv conf.gro confout.gro

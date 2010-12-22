@@ -22,7 +22,7 @@ This initializes an espresso simulation
 
 Usage: ${0##*/}
 
-USES: check_deps cp_from_last_step successful_or_die mv
+USES: check_deps cp_from_last_step critical mv
 
 NEEDS:
 
@@ -37,7 +37,7 @@ esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
 cp_from_last_step confout.esp.gz
-successful_or_die mv confout.esp.gz $esp
+critical mv confout.esp.gz $esp
 
 #convert potential in format for sim_prog
 for_all non-bonded do_external convert_potential espresso

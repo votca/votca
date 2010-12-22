@@ -23,7 +23,7 @@ using generic csg tools
 
 Usage: ${0##*/}
 
-USES: msg successful_or_die mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
+USES: msg critical mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
 
 NEEDS: cg.inverse.program
 
@@ -54,6 +54,6 @@ msg "Calculating rdfs with csg_stat using $tasks tasks"
 if is_done "rdf_analysis"; then
   msg "rdf analysis is already done"
 else
-  successful_or_die csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame
+  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame
   mark_done "rdf_analysis"
 fi

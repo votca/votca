@@ -41,7 +41,7 @@ Examples:
 * ${0##*/} cg.xml
 * ${0##*/} -6 cg.xml
 
-USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done successful_or_die csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time rm update_stepnames
+USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done critical csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time rm update_stepnames
 
 NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name cg.inverse.cleanlist
 eof
@@ -122,8 +122,8 @@ filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [ -z "$cleanlist" ] || echo "We extra clean '$cleanlist' after a step is done"
 
-successful_or_die $SOURCE_WRAPPER --status
-successful_or_die $SOURCE_WRAPPER --check
+critical $SOURCE_WRAPPER --status
+critical $SOURCE_WRAPPER --check
 
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }

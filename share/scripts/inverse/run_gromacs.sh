@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: successful_or_die get_number_tasks csg_get_property check_deps
+USES: critical get_number_tasks csg_get_property check_deps
 
 OPTIONAL: cg.inverse.parallel.cmd cg.inverse.gromacs.mdrun.opts cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type cg.inverse.gromacs.mdrun.bin
 EOF
@@ -43,9 +43,9 @@ check_deps "$0"
 tasks=$(get_number_tasks)
 if [ $tasks -gt 1 ]; then
   mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-  successful_or_die $mpicmd $mdrun -s "${tpr}" ${opts}
+  critical $mpicmd $mdrun -s "${tpr}" ${opts}
 else
-  successful_or_die $mdrun -s "${tpr}" ${opts}
+  critical $mdrun -s "${tpr}" ${opts}
 fi
 
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
