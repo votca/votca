@@ -46,9 +46,9 @@ my @dpot;
 my @flag;
 (readin_table($infile,@r,@dpot,@flag)) || die "$progname: error at readin_table\n";
 
-# find first u/o
+# find first u
 my $i_first;
-for($i_first=0; ($i_first<=$#r) && ($flag[$i_first] =~ /[uo]/); $i_first++) {}
+for($i_first=0; ($i_first<=$#r) && ($flag[$i_first] =~ /[u]/); $i_first++) {}
 
 # shift beginning
 for(my $i=0; $i<$i_first; $i++) {

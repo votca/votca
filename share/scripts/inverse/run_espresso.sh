@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: run_or_exit use_mpi csg_get_property check_deps use_mpi
+USES: critical get_number_tasks csg_get_property check_deps
 
 NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
 
@@ -55,8 +55,8 @@ traj_esp="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
 
 
 # Different Espresso scripts depending on the method used
-################ IBM ###################
-if [ "$method" = "ibm" ]; then
+################ IBI ###################
+if [ "$method" = "ibi" ]; then
     
     n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
     [ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
@@ -146,14 +146,15 @@ set out [open $esp_success w]
 close \$out
 EOF
     
-    if use_mpi; then
-	mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
-	run_or_exit $mpicmd $esp_bin $esp_script
+    tasks=$(get_number_tasks)
+    if [ $tasks -gt 1 ]; then
+	mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
+	critical $mpicmd $esp_bin $esp_script
     else
-	run_or_exit $esp_bin $esp_script
+	critical $esp_bin $esp_script
     fi
     [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
     
 else
-    die "${0##*/}: ESPResSo only supports method: IBM"
+    die "${0##*/}: ESPResSo only supports method: ibi"
 fi

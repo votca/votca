@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/} last_sim_dir
 
-USES: check_deps cp_from_main_dir run_or_exit mv
+USES: check_deps cp_from_main_dir critical mv
 
 OPTIONAL: cg.inverse.espresso.blockfile
 EOF
@@ -36,5 +36,5 @@ esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 cp_from_main_dir $esp
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-run_or_exit mv $esp confout.esp.gz
+critical mv $esp confout.esp.gz
 

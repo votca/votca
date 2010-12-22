@@ -1,4 +1,4 @@
-AC_INIT(votca-csg,1.0-dev,bugs@votca.org)
+AC_INIT(votca-csg,1.1-dev,bugs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -32,13 +32,19 @@ AC_ARG_ENABLE(la-files,
 
 AM_CONDITIONAL(NO_LA_FILES,[test "$enable_la_files" = no])
 
+AC_ARG_ENABLE(rc-files,
+  [AS_HELP_STRING([--disable-rc-files],
+  [Do NOT install VOTCA rc files, those are not needed when installing in /usr or /usr/local])],,
+	[enable_rc_files=yes])
+
+AM_CONDITIONAL(NO_RC_FILES,[test "$enable_rc_files" = no])
+
 #look for votca tools
 AX_VOTCA_TOOLS
 
 AX_GROMACS
 
-AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
-AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
+AX_TXT2TAGS(2.5)
 
 AC_CHECK_PROGS(DOXYGEN,doxygen,no)
 AM_CONDITIONAL(HAVE_DOXYGEN,[test "$DOXYGEN" != no])
@@ -58,6 +64,7 @@ AC_CONFIG_FILES([share/scripts/Makefile])
 AC_CONFIG_FILES([share/Makefile])
 AC_CONFIG_FILES([share/doc/Makefile])
 AC_CONFIG_FILES([scripts/Makefile])
+AC_CONFIG_FILES([admin/Makefile])
 
 AC_CONFIG_FILES([share/xml/Makefile])
 AC_CONFIG_FILES([share/template/Makefile])

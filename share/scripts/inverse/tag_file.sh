@@ -40,7 +40,7 @@ output="$2"
 
 comment="$(get_table_comment)"
 
-log "Taging file $input to $output"
+echo "Taging file $input to $output"
 echo -e "$comment" | sed 's/^/#/' > "$output" || die "${0##*/}: sed failed"
 cat "$input" >> "$output" || die "${0##*/}: sed failed"
 

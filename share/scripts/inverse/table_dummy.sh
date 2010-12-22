@@ -21,7 +21,7 @@ This script creates a dummy table with on grid min:step:max
 
 Usage: ${0##*/} min:step:max outfile
 
-USES: die run_or_exit csg_resample check_deps mktemp get_table_comment 
+USES: die critical csg_resample check_deps mktemp get_table_comment critical 
 
 NEEDS: 
 EOF
@@ -39,9 +39,9 @@ else
   die "${0##*/}: Agrument 1 should have the form XX:XX:XX"
 fi
 
-tmpfile="$(true_or_exit mktemp table.XXX)"
+tmpfile="$(critical mktemp table.XXX)"
 echo "$min 0" > $tmpfile
 echo "$max 0" >> $tmpfile
 
 comment="$(get_table_comment)"
-run_or_exit csg_resample --in ${tmpfile} --out "${2}" --grid "${1}" --comment "${comment}"
+critical csg_resample --in ${tmpfile} --out "${2}" --grid "${1}" --comment "${comment}"

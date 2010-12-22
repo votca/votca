@@ -36,6 +36,7 @@ bool LAMMPSReader::ReadTopology(string file,  Topology &top)
 
     _fl.close();
 
+    return true;
 }
 
 bool LAMMPSReader::Open(const string &file)
@@ -43,6 +44,7 @@ bool LAMMPSReader::Open(const string &file)
     _fl.open(file.c_str());
     if(!_fl.is_open())
         throw std::ios_base::failure("Error on open topologyl file: " + file);
+    return true;
 }
 
 void LAMMPSReader::Close()

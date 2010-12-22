@@ -1,11 +1,12 @@
 ACLOCAL_AMFLAGS = -I config
 
-SUBDIRS = src include share scripts 
+#script should be before src because help2t2t is needed to build manpages
+SUBDIRS = scripts src include share admin
 
-EXTRA_DIST = CHANGELOG.t2t CHANGELOG NOTICE LICENSE
+EXTRA_DIST = CHANGELOG.t2t NOTICE LICENSE README
 
-CLEANFILES = *~
-DISTCLEANFILES =  CHANGELOG
+CLEANFILES = CHANGELOG *~
+all: CHANGELOG
 
 if HAVE_TXT2TAGS
 CHANGELOG: CHANGELOG.t2t

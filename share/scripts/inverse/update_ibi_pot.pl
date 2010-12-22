@@ -65,18 +65,22 @@ die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
 my $outfile="$ARGV[3]";
 my @dpot;
 my @flag;
+my $value=0.0;
 
 for (my $i=0;$i<=$#r_aim;$i++){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
     $dpot[$i]=log($rdf_cur[$i]/$rdf_aim[$i])*$pref;
     $flag[$i]="i";
   } else {
-    $dpot[$i]="0.0";
-    $flag[$i]="u";
-  }
-  if($pot_flags_cur[$i] =~ /[o]/) {
-    $dpot[$i]="0.0";
+    $dpot[$i]=$value;
     $flag[$i]="o";
+  }
+  if($pot_flags_cur[$i] =~ /[u]/) {
+    $dpot[$i]=$value;
+    $flag[$i]="o";
+  }
+  else {
+    $value=$dpot[$i];
   }
 }
 
