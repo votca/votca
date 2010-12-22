@@ -63,6 +63,8 @@ Allowed options:
                      (Used if no options xml file is given)
                      Default: empty
     --options FILE   Specify the options xml file to use
+    --log     FILE   Specify the log file to use
+                     Default: stdout
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
 -h, --help           Show this help
@@ -105,6 +107,9 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;;
    --options)
     export CSGXMLFILE="$2"
+    shift 2;;
+   --log)
+    export CSGLOG="$2"
     shift 2;;
    --ia-type)
     export bondtype="$2"
@@ -211,7 +216,8 @@ if [ -n "$interaction" ]; then
   [ -z "${bondname}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
 fi
 
-export CSGLOG="$(mktemp ${0##*/}.log.XXX)" || die "mktemp failed"
-echo "For details see: $CSGLOG"
-exec 3>&1 >> "$CSGLOG" 2>&1
+if [ -n "${CSGLOG}" ]; then
+  echo "For details see logfile: $CSGLOG"
+  exec 3>&1 >> "$CSGLOG" 2>&1
+fi
 do_external $@

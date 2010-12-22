@@ -55,7 +55,7 @@ fi
 #echo a msg to the screen and send it to logfile too 
 msg() {
   [ -n "$*" ] && echo -e "$*"
-  echo -e "$*" >&3
+  [ -n "${CSGLOG}" ] && [ -t 3 ] && echo -e "$*" >&3
 }
 export -f msg
 
