@@ -17,7 +17,7 @@
 
 sw_opt=""
 version='@version@'
-quiet="no"
+verbose="no"
 ext_cmd=""
 simprog=""
 
@@ -30,8 +30,8 @@ die() {
   exit 1
 }
 
-qecho() {
-  [ "$quiet" = "yes" ] || echo -e "$*"
+vecho() {
+  [ "$verbose" = "yes" ] && echo -e "$*"
 }
 
 show_help () {
@@ -52,7 +52,7 @@ Usage: ${0##*/} [OPTIONS] key1 key2
 
 Allowed options:
 -l, --list           Show list of all script
--q, --quiet          Be quiet (useful with show and cat option)
+    --verbose        Be verbose (useful with show and cat option)
     --cat            Show the content of the script
     --show           Show the path to the script
     --check          Check all csg scripts
@@ -127,8 +127,8 @@ while [ "${1#-}" != "$1" ]; do
    --direct)
     quiet="yes"
     break;;
-   -q | --quiet)
-    quiet="yes"
+   --verbose)
+    verbose="yes"
     shift;;
    -h | --help)
     show_help
@@ -163,7 +163,7 @@ else
   fi
 fi
 
-qecho "CSGSHARE is ${CSGSHARE}"
+vecho "CSGSHARE is ${CSGSHARE}"
 if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
   source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
 else
