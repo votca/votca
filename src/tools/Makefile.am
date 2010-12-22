@@ -1,7 +1,7 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS)
 
 bin_PROGRAMS = \
-    csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_part_dist csg_spheredens # csg_nemat csg_conj csg_sample
+    csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_part_dist # csg_nemat csg_conj csg_sample
 
 if HAVE_TXT2TAGS
 man1_MANS= \
@@ -19,7 +19,6 @@ endif
 
 csg_dump_SOURCES = csg_dump.cc
 
-csg_spheredens_SOURCES = csg_spheredens.c
 # csg_nemat_SOURCES = \
 #    csg_nemat.cc
 
