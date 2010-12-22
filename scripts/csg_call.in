@@ -57,12 +57,12 @@ Allowed options:
     --show           Show the path to the script
     --check          Check all csg scripts
     --scriptdir DIR  Set the user script dir
-                     (Used if no xmlfile is given)
+                     (Used if no optins xml file is given)
                      Default: empty
     --simprog PROG   Set the simprog
-                     (Used if no xmlfile is given)
+                     (Used if no options xml file is given)
                      Default: empty
-    --xmlfile FILE   Specify the xml file to use
+    --options FILE   Specify the options xml file to use
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
 -h, --help           Show this help
@@ -103,7 +103,7 @@ while [ "${1#-}" != "$1" ]; do
    --simprog)
     simprog="$2"
     shift 2;;
-   --xmlfile)
+   --options)
     export CSGXMLFILE="$2"
     shift 2;;
    --ia-type)
@@ -159,36 +159,15 @@ else
 fi
 
 qecho "CSGSHARE is ${CSGSHARE}"
-export CSGINVERSE=$CSGSHARE/scripts/inverse
-export PERL5LIB="$CSGINVERSE:$PERL5LIB"
-[ -d "$CSGINVERSE" ] || die "${0##*/}: CSGINVERSE '$CSGINVERSE' is not a dir"
-
-export SOURCE_WRAPPER=$CSGINVERSE/source_wrapper.pl
-[ -x "$SOURCE_WRAPPER" ] || die "${0##*/}: Could not execute source wrapper"
-
-#this is need by die later
-export CSG_MASTER_PID="$$"
-
-source $($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions common failed"
-
-if [ -n "${CSGXMLFILE}" ]; then
-  CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-  simprog="$(csg_get_property --allow-empty cg.inverse.program)"
+if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
+  source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
+else
+  die "Could not find start_framework.sh"
 fi
+add_csg_scriptdir
 
-if [ -n "${CSGSCRIPTDIR}" ]; then
-  #scriptdir maybe contains $PWD or something
-  eval CSGSCRIPTDIR=$CSGSCRIPTDIR
-  CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
-  [ -d "$CSGSCRIPTDIR" ] || die "${0##*/}: CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-  qecho "CSGSCRIPTDIR is ${CSGSCRIPTDIR}"
-  export CSGSCRIPTDIR
-  export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
-fi
-
-if [ -n "${simprog}" ]; then
-  source $($SOURCE_WRAPPER functions $simprog) || die "$SOURCE_WRAPPER functions $simprog failed"
-fi
+[ -n "${CSGXMLFILE}" ] && simprog="$(csg_get_property --allow-empty cg.inverse.program)"
+[ -n "${simprog}" ] && source_function $simprog
 
 if [ -n "$sw_opt" ]; then
   $SOURCE_WRAPPER $sw_opt
@@ -200,7 +179,7 @@ if [ -n "$ext_cmd" ]; then
   exit $?
 fi
 
-#help should always work
+#help of scripts should always work
 if [ "$3" = "--help" ]; then
 cat <<EOF
 ==================================================
@@ -218,8 +197,8 @@ EOF
 fi
 
 needs="$(do_external $1 $2 --help | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
-[ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --xmlfile option"
-[ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "xmlfile '$CSGXMLFILE' not found"
+[ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --options option"
+[ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "options xml file '$CSGXMLFILE' not found"
 
 interaction=""
 

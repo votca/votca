@@ -16,10 +16,7 @@
 #
 
 #defaults
-usage="Usage: ${0##*/} [OPTIONS] setting_file.xml"
-do_iterations=""
-clean="no"
-wall_time=""
+usage="Usage: ${0##*/} [OPTIONS] [setting_file.xml]"
 
 show_help () {
   cat << eof
@@ -35,6 +32,7 @@ Allowed options:
 -h, --help                    show this help
 -N, --do-iterations N         only do N iterations
     --wall-time SEK           Set wall clock time
+    --options FILE            Specify the options xml file to use
     --clean                   clean out the PWD, dangerous
 
 Examples:
@@ -46,6 +44,22 @@ USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_
 NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name cg.inverse.cleanlist
 eof
 }
+
+#--help should always work so leave it here
+if [ "$1" = "--help" ]; then
+  show_help
+  exit 0
+fi
+
+#do all start up checks option stuff
+source "${0%/*}/start_framework.sh"  || exit 1
+
+#defaults for options
+do_iterations=""
+wall_time=""
+
+#unset stuff from enviorment
+unset CSGXMLFILE CSGSCRIPTDIR CSGLOG
 
 ### begin parsing options
 shopt -s extglob
@@ -61,34 +75,55 @@ while [ "${1#-}" != "$1" ]; do
  case $1 in
    --do-iterations)
     do_iterations="$2"
+    int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
     shift 2 ;;
    --wall-time)
     wall_time="$2"
+    int_check "$wall_time" "inverse.sh: --wall-time need a number as agrument"
     start_time="$(date +%s)" || exit 1
     shift 2 ;;
    -[0-9]*)
     do_iterations=${1#-}
     shift ;;
    --clean)
-    clean="yes"
-    shift ;;
+    csg_ivnerse_clean
+    exit $?;;
+   --xmlfile)
+    export CSGXMLFILE="$2"
+    shift 2;;
    -h | --help)
     show_help
     exit 0;;
   *)
-   echo "Unknown option '$1'" >&2
-   exit 1;;
+   die "Unknown option '$1'";;
  esac
 done
-
 ### end parsing options
 
-#do all start up checks option stuff
-source "${0%.sh}_start.sh"  "$@" || exit 1
-#shift away xml file
-shift 1
+#old style maybe, new style set by --options
+if [ -z "${CSGXMLFILE}" ]; then
+  [ -n "$1" ] || die "Error: Missing xml file"
+  export CSGXMLFILE="${1}"
+  shift
+fi
 
-#----------------End of pre checking--------------------------------
+#make CSGXMLFILE a global path
+[ "${CSGXMLFILE%/*}" = "${CSGXMLFILE}" ] && cpath="." || cpath="${CSGXMLFILE%/*}"
+cpath="$(cd $cpath;pwd)"
+export CSGXMLFILE="${cpath}/${CSGXMLFILE##*/}"
+[ -f "$CSGXMLFILE" ] || die "${0##*/}: could not find ${CSGXMLFILE##*/} (long version: $CSGXMLFILE" 
+unset cpath
+
+#other stuff we need, which comes from xmlfile -> must be done here
+#define $CSGRESTART
+CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
+CSGRESTART="${CSGRESTART##*/}"
+export CSGRESTART
+
+#get csglog
+CSGLOG="$(csg_get_property cg.inverse.log_file)"
+CSGLOG="$PWD/${CSGLOG##*/}"
+export CSGLOG
 if [ -f "$CSGLOG" ]; then
   exec 3>&1 >> "$CSGLOG" 2>&1
   echo "\n\n#################################"
@@ -107,8 +142,8 @@ method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-echo "We using Sim Program: $sim_prog"
-source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed"
+echo "We are using Sim Program: $sim_prog"
+source_function $sim_prog
 
 iterations_max="$(csg_get_property cg.inverse.iterations_max)"
 int_check "$do_iterations" "inverse.sh: cg.inverse.iterations_max needs to be a number"
@@ -121,6 +156,8 @@ filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [ -z "$cleanlist" ] || echo "We extra clean '$cleanlist' after a step is done"
+
+add_csg_scriptdir
 
 critical $SOURCE_WRAPPER --status
 critical $SOURCE_WRAPPER --check
@@ -195,7 +232,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     #get need files
     cp_from_main_dir $filelist
 
-    #get file from last step and init sim_prog
+    #get files from last step, init sim_prog and ...
     do_external initstep $method
 
     mark_done "Initialize"
@@ -204,7 +241,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   if is_done "Simulation"; then
     msg "Simulation is already done"
   else
-    msg "Simulation with $sim_prog"
+    msg "Simulation with $simgrog"
     do_external run $sim_prog
     mark_done "Simulation"
   fi

@@ -415,3 +415,46 @@ get_table_comment() {
   echo "working directory: $PWD"
 }
 export -f get_table_comment
+
+csg_ivnerse_clean() {
+  echo -e "So, you want to clean?\n"
+  echo "We will remove:"
+  files="$(ls -d done ${CSGRESTART} ${CSGLOG##$PWD/} step_* *~ 2>/dev/null)"
+  if [ -z "$files" ]; then
+    echo "Nothing to clean"
+  else
+    echo $files
+    echo -e "\nCTRL-C to stop it"
+    for ((i=10;i>0;i--)); do
+      echo -n "$i "
+      sleep 1
+    done
+    rm -rf $files
+    echo -e "\n\nDone, hope you are happy now"
+  fi
+}
+export -f csg_ivnerse_clean
+
+add_csg_scriptdir() {
+  #make this work even if there is no xmlfile
+  [ -n "${CSGXMLFILE}" ] && CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+  #but mayit was define elsewhere
+  if [ -n "$CSGSCRIPTDIR" ]; then
+    #scriptdir maybe contains $PWD or something
+    eval CSGSCRIPTDIR=$CSGSCRIPTDIR
+    CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
+    [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
+    export CSGSCRIPTDIR
+    export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
+  fi
+}
+export -f add_csg_scriptdir
+
+source_function() {
+  local function_file
+  [ -n "$1" ] || die "source_function: Missig argument"
+  [[ -n "${SOURCE_WRAPPER}" ]] || die "source_function: SOURCE_WRAPPER is undefined"
+  function_file=$($SOURCE_WRAPPER functions $1) || die "source_function: $SOURCE_WRAPPER functions $1 failed"
+  source ${function_file} || die "source_function: source ${function_file} failed"
+}
+export -f source_function
