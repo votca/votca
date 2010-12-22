@@ -17,7 +17,6 @@
 
 #include "linalg.h"
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -29,11 +28,27 @@
 
 namespace votca { namespace tools {
 
+using namespace std;
+
 void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual)
 {
 #ifdef NOGSL
     throw std::runtime_error("linalg_qrsolve is not compiled-in due to disabling of GSL - recompile libtools with '--with-gsl'");
 #else
+    // check matrix for zero column
+    int nonzero_found = 0;
+    for(int j=0; j<A.size2(); j++) {
+        nonzero_found = 0;
+        for(int i=0; i<A.size1(); i++) {
+            if(fabs(A(i,j))>0) {
+                nonzero_found = 1;
+            }
+        }
+        if(nonzero_found==0) {
+            throw std::runtime_error("error in Linalg::linalg_qrsolve : zero row in fit matrix");
+        }
+    }
+
     gsl_matrix_view m
         = gsl_matrix_view_array (&A(0,0), A.size1(), A.size2());
 
@@ -55,7 +70,6 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
         for (size_t i =0 ; i < residual->size(); i++)
             (*residual)(i) = gsl_vector_get(gsl_residual, i);
 
-
     gsl_vector_free (gsl_x);
     gsl_vector_free (tau);
     gsl_vector_free (gsl_residual);
@@ -67,6 +81,20 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
 #ifdef NOGSL
     throw std::runtime_error("linalg_constrained_qrsolve is not compiled-in due to disabling of GSL - recompile libtools with '--with-gsl'");
 #else
+    // check matrix for zero column
+    int nonzero_found = 0;
+    for(int j=0; j<A.size2(); j++) {
+        nonzero_found = 0;
+        for(int i=0; i<A.size1(); i++) {
+            if(fabs(A(i,j))>0) {
+                nonzero_found = 1;
+            }
+        }
+        if(nonzero_found==0) {
+            throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : zero row in fit matrix");
+        }
+    }
+
     // Transpose constr:
     constr = trans(constr);
 

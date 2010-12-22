@@ -22,6 +22,7 @@
 #include <linalg.h>
 #include <gsl/gsl_linalg.h>
 #include <iostream>
+#include <cmath>
 
 namespace votca { namespace tools {
 
@@ -30,7 +31,7 @@ using namespace std;
 void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 {    
     if(x.size() != y.size())
-        throw std::invalid_argument("error in CubicSpline::Fit : size of vector x and y dos not match");
+        throw std::invalid_argument("error in CubicSpline::Interpolate : sizes of vectors x and y do not match");
     
     const int N = x.size();
     
@@ -77,7 +78,7 @@ void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
 {
     if(x.size() != y.size())
-        throw std::invalid_argument("error in CubicSpline::Fit : size of vector x and y dos not match");
+        throw std::invalid_argument("error in CubicSpline::Fit : sizes of vectors x and y do not match");
     
     const int N = x.size();
     const int ngrid = _r.size();
@@ -96,7 +97,7 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     A = ub::zero_matrix<double>(N, 2*ngrid);
     b  = ub::zero_vector<double>(N);
     B_constr = ub::zero_matrix<double>(ngrid, 2*ngrid);
-        
+    
     // Construct smoothing matrix
     AddBCToFitMatrix(B_constr, 0);
 
@@ -104,15 +105,19 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     AddToFitMatrix(A, x, 0);
     b = -y; // why is it -y?
 
-
     // now do a constrained qr solve
     ub::vector<double> sol(2*ngrid);
     votca::tools::linalg_constrained_qrsolve(sol, A, b, B_constr);
 
+    // check vector "sol" for nan's
+    for(int i=0; i<2*ngrid; i++) {
+        if( (std::isinf(sol(i))) || (std::isnan(sol(i))) ) {
+            throw std::runtime_error("error in CubicSpline::Fit : value nan occurred due to wrong fitgrid boundaries");
+        }
+    }
+
     _f = ub::vector_range<ub::vector<double> >(sol, ub::range (0, ngrid));
     _f2 = ub::vector_range<ub::vector<double> >(sol, ub::range (ngrid, 2*ngrid));
-
-
 }
 
 }}
