@@ -10,7 +10,7 @@ libvotca_tools_la_SOURCES = \
 application.cc correlate.cc       datacollection.cc  matrix.cc    random.cc       tokenizer.cc \
 crosscorrelate.cc  histogram.cc       parcer.cc    rangeparser.cc \
 cubicspline.cc     histogramnew.cc    property.cc  table.cc version.cc linalg.cc parsexml.cc \
-akimaspline.cc linspline.cc mutex.cc thread.cc
+akimaspline.cc linspline.cc mutex.cc thread.cc spline.cc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libvotca_tools.pc
