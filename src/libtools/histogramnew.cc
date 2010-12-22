@@ -26,6 +26,13 @@ HistogramNew::HistogramNew()
     _periodic=false;
 }
 
+/// \todo implement this correctly
+HistogramNew::HistogramNew(const HistogramNew &hist)
+{
+    HistogramNew();
+}
+
+
 void HistogramNew::Initialize(double min, double max, int nbins)
 {
     _min = min; _max = max;

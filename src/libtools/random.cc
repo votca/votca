@@ -16,6 +16,8 @@
  */
 
 #include "random.h"
+#include <stdexcept>
+#include <string>
 
 namespace votca { namespace tools {
 
@@ -77,11 +79,10 @@ void Random::save( char *fileName )
   	ranFP = fopen(fileName, "wb");
   	if (ranFP==NULL)
   	{
-		printf("Dateifehler in 'restore_RAN'\n");
-		exit(-1);
+		throw runtime_error(string("error, cannot open file ") + fileName);
 	}
   
-	  c[0] = MARSi; c[1] = MARSj;
+	c[0] = MARSi; c[1] = MARSj;
   	fwrite(c, sizeof(int), 2, ranFP);
   	w[0] = MARSc; w[1] = MARScd; w[2] = MARScm;
   	fwrite(w, sizeof(double), 3, ranFP);
@@ -98,11 +99,10 @@ void Random::restore( char *fileName )
   	ranFP = fopen(fileName, "rb");
   	if (ranFP==NULL)
   	{
-		printf("Dateifehler in 'restore_RAN'\n");
-		exit(-1);
+		throw runtime_error(string("error, cannot open file ") + fileName);
 	}
   
-  	  fread(c, sizeof(int), 2, ranFP);
+  	fread(c, sizeof(int), 2, ranFP);
     	MARSi = c[0]; MARSj = c[1];
     	fread(w, sizeof(double), 3, ranFP);
     	MARSc = w[0]; MARScd = w[1]; MARScm = w[2];
