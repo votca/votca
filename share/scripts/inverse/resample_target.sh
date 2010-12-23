@@ -22,7 +22,7 @@ for calculations
 
 Usage: ${0##*/}
 
-USES:  csg_get_interaction_property run_or_exit csg_resample check_deps get_main_dir
+USES:  csg_get_interaction_property critical csg_resample check_deps get_main_dir
 
 NEEDS: min max step inverse.target name
 EOF
@@ -39,4 +39,4 @@ name=$(csg_get_interaction_property name)
 main_dir=$(get_main_dir)
 
 comment="$(get_table_comment)"
-run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
+critical csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"

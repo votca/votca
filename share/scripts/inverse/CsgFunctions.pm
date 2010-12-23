@@ -21,7 +21,7 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(csg_function_help csg_get_property csg_get_interaction_property readin_table readin_data saveto_table saveto_table_err);
+@EXPORT      = qw(csg_function_help csg_get_property csg_get_interaction_property readin_table readin_data saveto_table saveto_table_err readin_table_err);
 
 sub csg_function_help() {
   print <<EOF;
@@ -30,12 +30,13 @@ Provides useful function for perl:
 csg_get_property($;$):             get a value from xml file
 csg_get_interaction_property($;$): get a interaction property from xmlfile
 readin_table(\$\\@\\@\\@):           reads in csg table
+readin_table(\$\\@\\@\\@):           reads in csg table with errors
 saveto_table(\$\\@\\@\\@):           writes to a csg table
 saveto_table_err(\$\\@\\@\\@) :      writes to csg table with errors
 
 USES: \$CSGXMLFILE csg_property
 NEEDS:
-PROVIDES: csg_get_property csg_get_interaction_property readin_table saveto_table saveto_table_err
+PROVIDES: csg_get_property csg_get_interaction_property readin_table saveto_table saveto_table_err readin_table_err saveto_table_err readin_data
 EOF
   exit 0;
 }
@@ -97,6 +98,29 @@ sub readin_table($\@\@\@) {
     push(@{$_[3]},$parts[$#parts]);
   }
   close(TAB) || die "readin_table: could not close file $_[0]\n";
+  return $line;
+}
+
+sub readin_table_err($\@\@\@\@) {
+  defined($_[3]) || die "readin_table_err: Missing argument\n";
+  open(TAB,"$_[0]") || die "readin_table_err: could not open file $_[0]\n";
+  my $line=0;
+  while (<TAB>){
+    $line++;
+    # remove leading spacees for split
+    $_ =~ s/^\s*//;
+    next if /^[#@]/;
+    next if /^\s*$/;
+    my @parts=split(/\s+/);
+    defined($parts[3]) || die "readin_table_err: Not enought columns in line $line in file $_[0]\n";
+    ($parts[$#parts] =~ /[iou]/) || die "readin_table_err: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0]\n";
+    #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
+    push(@{$_[1]},$parts[0]);
+    push(@{$_[2]},$parts[1]);
+    push(@{$_[3]},$parts[2]);
+    push(@{$_[4]},$parts[$#parts]);
+  }
+  close(TAB) || die "readin_table_err: could not close file $_[0]\n";
   return $line;
 }
 

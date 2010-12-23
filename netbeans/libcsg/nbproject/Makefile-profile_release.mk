@@ -35,7 +35,6 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457853/orthorhombicbox.o \
 	${OBJECTDIR}/_ext/484457853/topologyreader.o \
-	${OBJECTDIR}/_ext/1269762065/lammpsreader.o \
 	${OBJECTDIR}/_ext/484457853/openbox.o \
 	${OBJECTDIR}/_ext/484457853/imcio.o \
 	${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o \
@@ -47,6 +46,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1332856960/esptrajectoryreader.o \
 	${OBJECTDIR}/_ext/484457853/version_nb.o \
 	${OBJECTDIR}/_ext/484457853/map.o \
+	${OBJECTDIR}/_ext/1332856960/lammpsreader.o \
 	${OBJECTDIR}/_ext/484457853/molecule.o \
 	${OBJECTDIR}/_ext/1332856960/pdbtopologyreader.o \
 	${OBJECTDIR}/_ext/484457853/topology.o \
@@ -103,11 +103,6 @@ ${OBJECTDIR}/_ext/484457853/topologyreader.o: ../../src/libcsg/topologyreader.cc
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/topologyreader.o ../../src/libcsg/topologyreader.cc
 
-${OBJECTDIR}/_ext/1269762065/lammpsreader.o: /data/pckr108/koschke/opt/votca/csg/src/libcsg/modules/io/lammpsreader.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1269762065
-	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1269762065/lammpsreader.o /data/pckr108/koschke/opt/votca/csg/src/libcsg/modules/io/lammpsreader.cc
-
 ${OBJECTDIR}/_ext/484457853/openbox.o: ../../src/libcsg/openbox.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
@@ -162,6 +157,11 @@ ${OBJECTDIR}/_ext/484457853/map.o: ../../src/libcsg/map.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/map.o ../../src/libcsg/map.cc
+
+${OBJECTDIR}/_ext/1332856960/lammpsreader.o: ../../src/libcsg/modules/io/lammpsreader.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/lammpsreader.o ../../src/libcsg/modules/io/lammpsreader.cc
 
 ${OBJECTDIR}/_ext/484457853/molecule.o: ../../src/libcsg/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853

@@ -23,7 +23,7 @@ for the Inverse Monte Carlo Method
 
 Usage: ${0##*/}
 
-USES: csg_get_property msg run_or_exit do_external sort for_all check_deps csg_get_interaction_property
+USES: csg_get_property msg critical do_external sort for_all check_deps csg_get_interaction_property
 
 NEEDS: cg.inverse.imc.solver inverse.imc.group  cg.inverse.program
 EOF
@@ -42,9 +42,9 @@ list_groups=$(echo "$nb_groups" | sort -u)
 for group in $list_groups; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for $group"
-  run_or_exit csg_imcrepack --in ${group} --out ${group}.packed
+  critical csg_imcrepack --in ${group} --out ${group}.packed
   do_external imcsolver $solver ${group}.packed ${group}.packed.sol
-  run_or_exit csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
+  critical csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
 done
 
 for_all non-bonded do_external imc purify

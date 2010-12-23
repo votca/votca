@@ -23,7 +23,7 @@ use \${name} in filename, as replacement for the interaction name
 
 Usage: ${0##*/} infile outfile
 
-USES: die check_deps run_or_exit log do_external cp_from_to get_main_dir
+USES: die check_deps critical do_external cp_from_to get_main_dir
 
 NEEDS: inverse.post_add_options.copyback.filelist name
 EOF
@@ -40,8 +40,8 @@ filelist=$(csg_get_interaction_property --allow-empty inverse.post_add_options.c
 name=$(csg_get_interaction_property name)
 
 if [ -n "$filelist" ]; then
-  log "${0##*/}: copy $filelist to $(get_main_dir)"
+  echo "${0##*/}: copy $filelist to $(get_main_dir)"
   #we do eval because i can contain $name
-  run_or_exit cp_from_to --from . --where $(get_main_dir) $(eval echo $filelist)
+  critical cp_from_to --from . --where $(get_main_dir) $(eval echo $filelist)
 fi
 

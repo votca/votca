@@ -91,12 +91,12 @@
   <item><name>cg.inverse.convergence_check_options</name><desc>options for the convergence</desc></item>
   <item><name>cg.inverse.convergence_check_options.limit</name><desc>lower limit to stop</desc></item>
   <item><name>cg.inverse.convergence_check_options.name_glob</name><desc>files to check for number (default *.conv)</desc></item>
-  <item><name>cg.inverse.method</name><desc> ibm: inverse boltzmann imc: inverse monte carlo </desc></item>
+  <item><name>cg.inverse.method</name><desc> ibi: inverse boltzmann imc: inverse monte carlo </desc></item>
   <item><name>cg.inverse.scriptdir</name><desc> directory for user scripts (e.g. $PWD)</desc></item>
   <item><name>cg.inverse.log_file</name><desc> write log to this file </desc></item>
-  <item><name>cg.inverse.mpi</name><desc>mpi options </desc></item>
-  <item><name>cg.inverse.mpi.tasks</name><desc>number of tasks </desc></item>
-  <item><name>cg.inverse.mpi.cmd</name><desc>mpi command to run (e.g. mpirun -np 8)</desc></item>
+  <item><name>cg.inverse.parallel</name><desc>parallel options </desc></item>
+  <item><name>cg.inverse.parallel.tasks</name><desc>number of tasks (0/auto = automatic detect on linux)</desc></item>
+  <item><name>cg.inverse.parallel.cmd</name><desc>prefix command to run parallel jobs(e.g. mpirun -np 8)</desc></item>
   <item>
     <name>cg.inverse.restart_file</name>
     <desc>

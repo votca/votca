@@ -298,7 +298,15 @@ public:
      * of pbc
      */
     vec BCShortestConnection(const vec &r1, const vec &r2) const;
-    
+
+    /**
+     * \brief return the shortest box size
+     * \return shortest size
+     *
+     * Calculates the shortest length to connect two sides of the box
+     */
+    double ShortestBoxSize();
+
     /**
      *  calculates the box volume
      *  \return box volume

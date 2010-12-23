@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/} last_sim_dir
 
-USES: die cp run_or_exit check_deps get_last_step_dir
+USES: die cp critical check_deps get_last_step_dir
 
 OPTIONAL: cg.inverse.gromacs.grompp.index cg.inverse.gromacs.grompp.topol cg.inverse.gromacs.topol cg.inverse.gromacs.grompp.opts cg.inverse.gromacs.mdp cg.inverse.gromacs.grompp.bin
 EOF
@@ -33,7 +33,7 @@ fi
 check_deps "$0"
 
 cp_from_last_step confout.gro
-run_or_exit mv confout.gro conf.gro
+critical mv confout.gro conf.gro
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
@@ -53,5 +53,5 @@ top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
 tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
-run_or_exit $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" ${opts}
+critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" ${opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"

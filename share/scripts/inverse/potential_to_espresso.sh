@@ -22,7 +22,7 @@ This is a wrapper to convert potential to espresso
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property log csg_get_property run_or_exit csg_resample check_deps
+USES: do_external csg_get_interaction_property csg_get_property critical csg_resample check_deps
 
 NEEDS: name inverse.espresso.table max cg.inverse.espresso.table_bins
 EOF
@@ -35,12 +35,12 @@ name=$(csg_get_interaction_property name)
 input="${name}.pot.cur"
 
 output="$(csg_get_interaction_property inverse.espresso.table)"
-log "Convert $input to $output"
+echo "Convert $input to $output"
 
 r_cut=$(csg_get_interaction_property max)
 espresso_bins="$(csg_get_property cg.inverse.espresso.table_bins)"
 
 comment="$(get_table_comment)"
 
-run_or_exit csg_resample --in ${input} --out smooth_${input} --der smooth_dpot_${input} --grid 0:${espresso_bins}:${r_cut} --comment "$comment"
+critical csg_resample --in ${input} --out smooth_${input} --der smooth_dpot_${input} --grid 0:${espresso_bins}:${r_cut} --comment "$comment"
 do_external convert_potential tab smooth_${input} smooth_dpot_${input} ${output}

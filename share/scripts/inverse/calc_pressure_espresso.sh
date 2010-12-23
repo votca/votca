@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: log check_deps
+USES: check_deps
 
 NEEDS: cg.inverse.espresso.blockfile
 
@@ -46,7 +46,7 @@ esp_script="$(mktemp esp.pressure.tcl.XXXXX)"
 esp_success="$(mktemp esp.pressure.done.XXXXX)"
 
 
-log "Calculating pressure"
+echo "Calculating pressure"
 cat > $esp_script <<EOF
 set esp_in [open "|gzip -cd $esp" r]
 while { [blockfile \$esp_in read auto] != "eof" } { }
@@ -61,7 +61,7 @@ set out [open $esp_success w]
 close \$out
 EOF
 
-run_or_exit $esp_bin $esp_script
+critical $esp_bin $esp_script
 [ -f "$esp_success" ] || die "${0##*/}: Espresso calc pressure did not end successfully. Check log."
 
 p_now="$(cat $p_file)"

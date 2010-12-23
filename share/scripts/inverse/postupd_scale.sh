@@ -22,7 +22,7 @@ This script implemtents scaling of the potential update (.dpot)
 
 Usage: ${0##*/} infile outfile
 
-USES: csg_get_interaction_property do_external log check_deps
+USES: csg_get_interaction_property do_external check_deps
 
 NEEDS: name inverse.post_update_options.scale
 EOF
@@ -38,7 +38,7 @@ check_deps "$0"
 name=$(csg_get_interaction_property name)
 scale=$(csg_get_interaction_property inverse.post_update_options.scale 1.0)
 
-log "scaling potential update by factor $scale"
+echo "scaling potential update by factor $scale"
 
 do_external table linearop "$1" "$2" $scale 0
 
