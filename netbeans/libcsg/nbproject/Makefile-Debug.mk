@@ -33,8 +33,10 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/484457853/orthorhombicbox.o \
 	${OBJECTDIR}/_ext/484457853/topologyreader.o \
 	${OBJECTDIR}/_ext/1269762065/lammpsreader.o \
+	${OBJECTDIR}/_ext/484457853/openbox.o \
 	${OBJECTDIR}/_ext/484457853/imcio.o \
 	${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o \
 	${OBJECTDIR}/_ext/484457853/topologymap.o \
@@ -48,12 +50,14 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457853/molecule.o \
 	${OBJECTDIR}/_ext/1332856960/pdbtopologyreader.o \
 	${OBJECTDIR}/_ext/484457853/topology.o \
+	${OBJECTDIR}/_ext/484457853/boundarycondition.o \
 	${OBJECTDIR}/_ext/484457853/cgmoleculedef.o \
-	${OBJECTDIR}/_ext/1332856960/esptopologyreader.o \
 	${OBJECTDIR}/_ext/484457853/nematicorder.o \
+	${OBJECTDIR}/_ext/1332856960/esptopologyreader.o \
 	${OBJECTDIR}/_ext/1332856960/gmxtopologyreader.o \
-	${OBJECTDIR}/_ext/484457853/trajectorywriter.o \
+	${OBJECTDIR}/_ext/484457853/triclinicbox.o \
 	${OBJECTDIR}/_ext/1332856960/growriter.o \
+	${OBJECTDIR}/_ext/484457853/trajectorywriter.o \
 	${OBJECTDIR}/_ext/1332856960/gmxtrajectorywriter.o \
 	${OBJECTDIR}/_ext/1332856960/pdbwriter.o \
 	${OBJECTDIR}/_ext/484457853/cgengine.o \
@@ -89,6 +93,11 @@ LDLIBSOPTIONS=
 	${AR} -rv ../../src/libcsg/libcsg.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libcsg/libcsg.a
 
+${OBJECTDIR}/_ext/484457853/orthorhombicbox.o: ../../src/libcsg/orthorhombicbox.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/orthorhombicbox.o ../../src/libcsg/orthorhombicbox.cc
+
 ${OBJECTDIR}/_ext/484457853/topologyreader.o: ../../src/libcsg/topologyreader.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
@@ -98,6 +107,11 @@ ${OBJECTDIR}/_ext/1269762065/lammpsreader.o: /data/pckr108/koschke/opt/votca/csg
 	${MKDIR} -p ${OBJECTDIR}/_ext/1269762065
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1269762065/lammpsreader.o /data/pckr108/koschke/opt/votca/csg/src/libcsg/modules/io/lammpsreader.cc
+
+${OBJECTDIR}/_ext/484457853/openbox.o: ../../src/libcsg/openbox.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/openbox.o ../../src/libcsg/openbox.cc
 
 ${OBJECTDIR}/_ext/484457853/imcio.o: ../../src/libcsg/imcio.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
@@ -164,35 +178,45 @@ ${OBJECTDIR}/_ext/484457853/topology.o: ../../src/libcsg/topology.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/topology.o ../../src/libcsg/topology.cc
 
+${OBJECTDIR}/_ext/484457853/boundarycondition.o: ../../src/libcsg/boundarycondition.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/boundarycondition.o ../../src/libcsg/boundarycondition.cc
+
 ${OBJECTDIR}/_ext/484457853/cgmoleculedef.o: ../../src/libcsg/cgmoleculedef.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/cgmoleculedef.o ../../src/libcsg/cgmoleculedef.cc
-
-${OBJECTDIR}/_ext/1332856960/esptopologyreader.o: ../../src/libcsg/modules/io/esptopologyreader.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/esptopologyreader.o ../../src/libcsg/modules/io/esptopologyreader.cc
 
 ${OBJECTDIR}/_ext/484457853/nematicorder.o: ../../src/libcsg/nematicorder.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/nematicorder.o ../../src/libcsg/nematicorder.cc
 
+${OBJECTDIR}/_ext/1332856960/esptopologyreader.o: ../../src/libcsg/modules/io/esptopologyreader.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/esptopologyreader.o ../../src/libcsg/modules/io/esptopologyreader.cc
+
 ${OBJECTDIR}/_ext/1332856960/gmxtopologyreader.o: ../../src/libcsg/modules/io/gmxtopologyreader.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/gmxtopologyreader.o ../../src/libcsg/modules/io/gmxtopologyreader.cc
 
-${OBJECTDIR}/_ext/484457853/trajectorywriter.o: ../../src/libcsg/trajectorywriter.cc 
+${OBJECTDIR}/_ext/484457853/triclinicbox.o: ../../src/libcsg/triclinicbox.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/trajectorywriter.o ../../src/libcsg/trajectorywriter.cc
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/triclinicbox.o ../../src/libcsg/triclinicbox.cc
 
 ${OBJECTDIR}/_ext/1332856960/growriter.o: ../../src/libcsg/modules/io/growriter.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/growriter.o ../../src/libcsg/modules/io/growriter.cc
+
+${OBJECTDIR}/_ext/484457853/trajectorywriter.o: ../../src/libcsg/trajectorywriter.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/trajectorywriter.o ../../src/libcsg/trajectorywriter.cc
 
 ${OBJECTDIR}/_ext/1332856960/gmxtrajectorywriter.o: ../../src/libcsg/modules/io/gmxtrajectorywriter.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960

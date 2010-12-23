@@ -8,6 +8,7 @@
       <itemPath>../../include/beadlist.h</itemPath>
       <itemPath>../../include/beadpair.h</itemPath>
       <itemPath>../../include/beadtype.h</itemPath>
+      <itemPath>../../include/boundarycondition.h</itemPath>
       <itemPath>../../include/cgengine.h</itemPath>
       <itemPath>../../include/cgmoleculedef.h</itemPath>
       <itemPath>../../include/cgobserver.h</itemPath>
@@ -21,6 +22,8 @@
       <itemPath>../../include/nblist.h</itemPath>
       <itemPath>../../include/nblistgrid.h</itemPath>
       <itemPath>../../include/nematicorder.h</itemPath>
+      <itemPath>../../include/openbox.h</itemPath>
+      <itemPath>../../include/orthorhombicbox.h</itemPath>
       <itemPath>../../include/pairlist.h</itemPath>
       <itemPath>../../include/residue.h</itemPath>
       <itemPath>../../include/topology.h</itemPath>
@@ -29,6 +32,7 @@
       <itemPath>../../include/topologyreader.h</itemPath>
       <itemPath>../../include/trajectoryreader.h</itemPath>
       <itemPath>../../include/trajectorywriter.h</itemPath>
+      <itemPath>../../include/triclinicbox.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -66,6 +70,7 @@
         </logicalFolder>
       </logicalFolder>
       <itemPath>../../src/libcsg/beadlist.cc</itemPath>
+      <itemPath>../../src/libcsg/boundarycondition.cc</itemPath>
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
       <itemPath>../../src/libcsg/csgapplication.cc</itemPath>
@@ -76,11 +81,14 @@
       <itemPath>../../src/libcsg/nblist.cc</itemPath>
       <itemPath>../../src/libcsg/nblistgrid.cc</itemPath>
       <itemPath>../../src/libcsg/nematicorder.cc</itemPath>
+      <itemPath>../../src/libcsg/openbox.cc</itemPath>
+      <itemPath>../../src/libcsg/orthorhombicbox.cc</itemPath>
       <itemPath>../../src/libcsg/topology.cc</itemPath>
       <itemPath>../../src/libcsg/topologymap.cc</itemPath>
       <itemPath>../../src/libcsg/topologyreader.cc</itemPath>
       <itemPath>../../src/libcsg/trajectoryreader.cc</itemPath>
       <itemPath>../../src/libcsg/trajectorywriter.cc</itemPath>
+      <itemPath>../../src/libcsg/triclinicbox.cc</itemPath>
       <itemPath>../../include/version.h</itemPath>
       <itemPath>../../src/libcsg/version_nb.cc</itemPath>
     </logicalFolder>
