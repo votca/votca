@@ -44,15 +44,17 @@ fi
 
 if [ $adress_type = "sphere" ]
 then
-dens_prog="g_rdf -n index.ndx -bin 0.01"
-index_sel="DUM \n CG\n"
+run_or_exit csg_spheredens --trj traj.trr --top topol.tpr --bin 0.01 --out dens.$name.xvg --begin ${begin}
+#dens_prog="g_rdf -n index.ndx -bin 0.01"
+#index_sel="DUM \n CG\n"
 else
 dens_prog="g_density -n index.ndx -d x $g_densopt"
-
-fi
-
 log "Running $dens_prog"
 echo -e $index_sel | run_or_exit $dens_prog -b ${begin} -o dens.$name.xvg
+fi
+
+
+
 
 	
 
