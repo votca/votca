@@ -59,7 +59,8 @@ spxstart=$(echo "scale=8; $adressc+$adressw-$splinedelta" | bc)
 spxstop=$(echo "scale=8; $adressc+$adressw+$adressh+$splinedelta" | bc)
 
 comment="$(get_table_comment)"
-run_or_exit csg_resample --in $infile --out $outfile --grid $spxstart:$step:$spxstop --derivative $forcefile --spfit $spxstart:$splinestep:$spxstop --comment "$comment"
+
+run_or_exit csg_resample --type cubic --in $infile --out $outfile --grid $spxstart:$step:$spxstop --derivative $forcefile --fitgrid $spxstart:$splinestep:$spxstop --comment "$comment"
 
 if [ -z "$cg_prefactor" ];then
        echo "Using fixed prefactor $prefactor "	
