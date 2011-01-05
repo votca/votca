@@ -63,6 +63,7 @@ AC_CONFIG_FILES([share/scripts/inverse/Makefile])
 AC_CONFIG_FILES([share/scripts/Makefile])
 AC_CONFIG_FILES([share/Makefile])
 AC_CONFIG_FILES([share/doc/Makefile])
+AC_CONFIG_FILES([share/man/Makefile])
 AC_CONFIG_FILES([scripts/Makefile])
 AC_CONFIG_FILES([admin/Makefile])
 
