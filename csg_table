@@ -28,3 +28,5 @@ table smooth_borders smooth_borders.py
 
 density gromacs calc_density_x_gromacs.sh
 density symmetrize density_symmetrize.py 
+
+table getsubset get_graphsubset.py
