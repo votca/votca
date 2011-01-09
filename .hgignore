@@ -43,6 +43,8 @@ src/config.h
 src/config.h.in
 src/csg_boltzmann/csg_boltzmann
 src/libcsg/version.cc
+src/libcsg/modules/io/gmx_print_version
+src/libcsg/modules/io/gmx_libs_version.h
 src/tools/csg_dump
 src/tools/csg_fmatch
 src/tools/csg_gmxtopol
