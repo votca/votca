@@ -27,6 +27,11 @@ class CsgDumpApp
     string ProgramName() { return "csg_dump"; }
     void HelpText(ostream &out) { out << "Print atoms that are read from topology file to help"
         " debugging atom naming."; }
+    void Initialize() {
+        CsgApplication::Initialize();
+        AddProgramOptions("Specific options")
+            ("excl", "  display exclusion list instead of molecule list");
+    }
 
     bool EvaluateTopology(Topology *top, Topology *top_ref);
 };
@@ -40,15 +45,22 @@ int main(int argc, char** argv)
 
 bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
 {
-    MoleculeContainer::iterator mol;
-    for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
-        cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
-                << " beads: " << (*mol)->BeadCount() << endl;
-        for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-            cout << (*mol)->getBeadId(i) << " " <<
-                    (*mol)->getBeadName(i) << " " << (*mol)->getBead(i)->getType()->getName() << endl;
+    if(!OptionsMap().count("excl")) {
+        cout << "\nList of molecules:\n";
+        MoleculeContainer::iterator mol;
+        for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
+            cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
+                    << " beads: " << (*mol)->BeadCount() << endl;
+            for (int i = 0; i < (*mol)->BeadCount(); ++i) {
+                cout << (*mol)->getBeadId(i) << " " <<
+                        (*mol)->getBeadName(i) << " " << (*mol)->getBead(i)->getType()->getName() << endl;
+            }
         }
     }
+    else {
+        cout << "\nList of exclusions:\n" << top->getExclusions();
+    }
+    
     return true;
 }
 
