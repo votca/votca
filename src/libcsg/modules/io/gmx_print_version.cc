@@ -51,5 +51,5 @@ int main(int argc, char** argv)
     << "UNDEFINED"
 #endif
   << "\";\n";
-  return true; 
+  return 0;
 }
