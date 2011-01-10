@@ -292,18 +292,18 @@ BoundaryCondition::eBoxtype Topology::autoDetectBoxType(const matrix &box) {
     if(box.get(0,0)==0 && box.get(0,1)==0 && box.get(0,2)==0 &&
        box.get(1,0)==0 && box.get(1,1)==0 && box.get(1,2)==0 &&
        box.get(2,0)==0 && box.get(2,1)==0 && box.get(2,2)==0) {
-        cout << "box open\n";
+        //cout << "box open\n";
         return BoundaryCondition::typeOpen;
     }
     else
     if(box.get(0,1)==0 && box.get(0,2)==0 &&
        box.get(1,0)==0 && box.get(1,2)==0 &&
        box.get(2,0)==0 && box.get(2,1)==0) {
-        cout << "box orth\n";
+        //cout << "box orth\n";
         return BoundaryCondition::typeOrthorhombic;
     }
     else {
-        cout << "box tric\n";
+        //cout << "box tric\n";
         return BoundaryCondition::typeTriclinic;
     }
     return BoundaryCondition::typeOpen;
