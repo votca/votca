@@ -186,14 +186,34 @@ int main(int argc, char** argv)
 
         // fitting
         spline->GenerateGrid(sp_min, sp_max, sp_step);
-        if (vm.count("nocut")) {
-            spline->Fit(in.x(), in.y());
-        } else {
-            spline->Fit(x_copy, y_copy);
+        try {
+            if (vm.count("nocut")) {
+                spline->Fit(in.x(), in.y());
+            } else {
+                spline->Fit(x_copy, y_copy);
+            }   
+        } catch (const char* message) {
+            if(message="qrsolve_zero_column_in_matrix") {
+                throw std::runtime_error("error in Linalg::linalg_qrsolve : Not enough data for fit, please adjust grid (zero row in fit matrix)");
+            }    
+            else if(message="constrained_qrsolve_zero_column_in_matrix") {
+                throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : Not enough data for fit, please adjust grid (zero row in fit matrix)");
+            }
+            else throw std::runtime_error("Unknown error in csg_resample while fitting.");
         }
     } else {
         // otherwise do interpolation (default = cubic)
-        spline->Interpolate(in.x(), in.y());
+        try {
+            spline->Interpolate(in.x(), in.y());
+        } catch (const char* message) {
+            if(message="qrsolve_zero_column_in_matrix") {
+                throw std::runtime_error("error in Linalg::linalg_qrsolve : Not enough data, please adjust grid (zero row in fit matrix)");
+            }
+            else if(message="constrained_qrsolve_zero_column_in_matrix") {
+                throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : Not enough data, please adjust grid (zero row in fit matrix)");
+            }
+            else throw std::runtime_error("Unknown error in csg_resample while interpolating.");
+        }
     }
 
     
