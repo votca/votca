@@ -16,6 +16,8 @@ AC_DEFUN([AX_GROMACS], [
     else
       libgmx="${withval#lib}"
     fi
+
+    dnl Try to find pkg-files even if PKG_CONFIG_PATH was not set
     save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
     AC_MSG_CHECKING([for GMX pkg-config files])
     PKG_CHECK_EXISTS([lib$libgmx],[
@@ -25,37 +27,39 @@ AC_DEFUN([AX_GROMACS], [
       AC_MSG_CHECKING([for GMXLDLIB])
       if test -z "$GMXLDLIB"; then
         AC_MSG_RESULT([no])
-        AC_MSG_ERROR([
+        AC_MSG_WARN([Could not find GMXLDLIB environment variable, assuming you have gromacs files in defaults paths])
+      else
+        AC_MSG_RESULT([yes])
+      fi
+      
+      dnl in the case gromacs has pkg-config file, but PKG_CONFIG_PATH not set
+      if test -n "$GMXLDLIB"; then
+        AC_MSG_CHECKING([for GMX pkg-config dir])
+        if test -d "$GMXLDLIB/pkgconfig"; then
+          AC_MSG_RESULT([yes])
+          export PKG_CONFIG_PATH="$GMXLDLIB/pkgconfig:$PKG_CONFIG_PATH"
+        else
+          AC_MSG_RESULT([no])
+        fi
+      fi
+    ])
 
-Could not find GMXLDLIB environment variable, please source <gomacs-path>/bin/GMXRC 
-or specify GMX_LIBS and GMX_CFLAGS
-        ])
-      else
-        AC_MSG_RESULT([yes])
-      fi
-      AC_MSG_CHECKING([for GMX pkg-config dir])
-      if test -d "$GMXLDLIB/pkgconfig"; then
-        AC_MSG_RESULT([yes])
-        export PKG_CONFIG_PATH="$GMXLDLIB/pkgconfig:$PKG_CONFIG_PATH"
-      else
-        AC_MSG_RESULT([no])
-      fi
-    ])
+    dnl Again PKG_CHECK_MODULES after we added $GMXLDLIB/pkgconfig to PKG_CONFIG_PATH
     PKG_CHECK_MODULES([GMX],[lib$libgmx],[:],[
-      AC_MSG_NOTICE([creating GMX_LIBS and GMX_CFLAGS from GMXLDLIB])
+      dnl Do not overwrite user settings
       if test -z "$GMX_LIBS"; then
-        GMX_LIBS="-L$GMXLDLIB -l$libgmx"
-        AC_MSG_NOTICE([setting GMX_LIBS   to "$GMX_LIBS"])
-      else
-        AC_MSG_NOTICE([GMX_LIBS was already set elsewhere to "$GMX_LIBS"])
+        if test -n "$GMXLDLIB"; then
+          AC_MSG_NOTICE([creating GMX_LIBS from GMXLDLIB])
+          GMX_LIBS="-L$GMXLDLIB -l$libgmx"
+        else
+          GMX_LIBS="-l$libgmx"
+        fi
+        AC_MSG_NOTICE([setting GMX_LIBS to "$GMX_LIBS"])
       fi
     ])
-    dnl restore PKG_CONFIG_PATH, otherwise pkg-config will search for libgmx.pc later
-    dnl and will not find it again
-    PKG_CONFIG_PATH="$save_PKG_CONFIG_PATH"
+
     save_LIBS="$LIBS"
     save_CXX="$CXX"
-
     LIBS="$GMX_LIBS $LIBS"
     CXX="${SHELL-/bin/sh} ./libtool --mode=link $CXX"
     AC_MSG_CHECKING([for GromacsVersion in $GMX_LIBS])
@@ -74,7 +78,7 @@ If you are using a mpi version of gromacs, make sure that CXX is something like 
 (e.g. export CXX="mpic++" and export GMX_LIBS="-L<gromacs-path>/lib -lgmx_mpi")
       ])
     ])
-    AC_MSG_CHECKING([for do_cpt_header in $GMX_LIBS])
+    AC_MSG_CHECKING([for init_mtop in $GMX_LIBS])
     AC_TRY_LINK_FUNC(init_mtop,[
       AC_MSG_RESULT([yes])
       GMX_VERSION="40"
@@ -89,11 +93,14 @@ Your version of GROMACS is too old, please update at least to version 4.0
     AC_TRY_LINK_FUNC(output_env_init,[
       AC_MSG_RESULT([yes])
       GMX_VERSION="45"
-      gmxsub=""
       gmxheader="gromacs/tpxio.h"
     ],[
       AC_MSG_RESULT([no])
-      gmxsub="/gromacs"
+      if test -n "$GMXLDLIB"; then
+        gmxincldir="-I$GMXLDLIB/../include/gromacs"
+      else
+        gmxincldir="-I/usr/include/gromacs"
+      fi
       gmxheader="tpxio.h"
     ])
 
@@ -110,21 +117,23 @@ dnl       GMX_VERSION="50"
 dnl     ],[
 dnl       AC_MSG_RESULT([no])
 dnl     ])
-
-    PKG_CHECK_EXISTS([lib$libgmx],[:],[
-      if test -z "$GMX_CFLAGS"; then
-        if test -z "${libgmx##*_d}"; then
-          GMX_CFLAGS="-DGMX_DOUBLE -I$GMXLDLIB/../include$gmxsub"
-	else
-          GMX_CFLAGS="-I$GMXLDLIB/../include$gmxsub"
-	fi
-        AC_MSG_NOTICE([setting GMX_CFLAGS to "$GMX_CFLAGS"])
-      else
-        AC_MSG_NOTICE([GMX_CFLAGS was already set elsewhere to "$GMX_CFLAGS"])
-      fi
-    ])
     CXX="$save_CXX"
     LIBS="$save_LIBS"
+
+    PKG_CHECK_EXISTS([lib$libgmx],[:],[
+      dnl Do not overwrite user settings
+      if test -z "$GMX_CFLAGS"; then
+        if test -n "$GMXLDLIB"; then
+          AC_MSG_NOTICE([creating GMX_CFLAGS from GMXLDLIB])
+        fi
+        GMX_CFLAGS="$gmxincldir"
+        dnl in case user wants double precision
+        if test -z "${libgmx##*_d}"; then
+          GMX_CFLAGS="-DGMX_DOUBLE $GMX_CFLAGS"
+        fi
+        AC_MSG_NOTICE([setting GMX_CFLAGS to "$GMX_CFLAGS"])
+      fi
+    ])
     
     save_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$GMX_CFLAGS $CPPFLAGS"
@@ -139,6 +148,10 @@ please make sure GMX_CFLAGS is pointing to <gomacs-path>/include for gromacs ver
   
     CPPFLAGS="$save_CPPFLAGS"
  
+    dnl restore old PKG_CONFIG_PATH, otherwise pkg-config will search for libgmx.pc
+    dnl when building against libvotca_csg and will not find it again
+    PKG_CONFIG_PATH="$save_PKG_CONFIG_PATH"
+    
     dnl we need to do PKG_CHECK_EXISTS to know if libgmx pkg-config file
     dnl really exist, so that we can add it to our pkg-config files
     PKG_CHECK_EXISTS([lib$libgmx],[
