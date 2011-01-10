@@ -48,6 +48,7 @@ public:
     
     bool EvaluateOptions() {
         CsgApplication::EvaluateOptions();
+        CheckRequired("trj", "no trajectory file specified");
         CheckRequired("out", "need to specify output trajectory");
         return true;
     }
