@@ -17,8 +17,8 @@ endif
 csg_boltzmann_CPPFLAGS=$(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS)
 
 csg_boltzmann_SOURCES = \
-	bondedstatistics.cc main.cc  stdanalysis.cc  tabulatedpotential.cc \
-	analysistool.h bondedstatistics.h stdanalysis.h tabulatedpotential.h
+analysistool.h bondedstatistics.cc bondedstatistics.h main.cc \
+stdanalysis.cc stdanalysis.h tabulatedpotential.cc tabulatedpotential.h
 
 #everything is alread in libvotca_csg
 csg_boltzmann_LDADD = ../libcsg/libvotca_csg.la

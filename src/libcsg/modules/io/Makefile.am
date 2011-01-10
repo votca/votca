@@ -8,7 +8,7 @@ GMX_SOURCES = gmx_libs_version.h \
 	gmxtrajectoryreader.h 	gmxtrajectorywriter.cc 	gmxtrajectorywriter.h\
 	grotopologyreader.cc 	grotopologyreader.h 	growriter.cc\
 	growriter.h      	pdbtopologyreader.cc 	pdbtopologyreader.h \
-	gmx_version.cc gmx_version.h
+	gmx_version.cc gmx_version.h version_check.cc version_check.h
 
 noinst_PROGRAMS = gmx_print_version
 
@@ -32,4 +32,4 @@ libio_la_SOURCES = $(GMX_SOURCES)\
 libio_la_LDFLAGS = -no-undefined
 libio_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS)
 
-CLEANFILES = *~
+CLEANFILES = gmx_libs_version.h *~

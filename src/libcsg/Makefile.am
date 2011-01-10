@@ -7,11 +7,11 @@ BUILT_SOURCES = hgversion.h
 lib_LTLIBRARIES = libvotca_csg.la
 
 libvotca_csg_la_SOURCES = hgversion.h \
-    beadlist.cc       exclusionlist.cc    nblist.cc         topology.cc          trajectorywriter.cc \
-    cgengine.cc       topologymap.cc \
-    cgmoleculedef.cc  map.cc              nematicorder.cc   topologyreader.cc \
-    molecule.cc         trajectoryreader.cc \
-    imcio.cc nblistgrid.cc version.cc csgapplication.cc
+beadlist.cc boundarycondition.cc cgengine.cc cgmoleculedef.cc \
+csgapplication.cc exclusionlist.cc imcio.cc map.cc molecule.cc nblist.cc \
+nblistgrid.cc nematicorder.cc openbox.cc orthorhombicbox.cc topology.cc \
+topologymap.cc topologyreader.cc trajectoryreader.cc trajectorywriter.cc \
+triclinicbox.cc version.cc
 
 #gmx is needed because of headers from libio and in version.cc
 libvotca_csg_la_CPPFLAGS = $(AM_CPPFLAGS) $(VOTCA_TOOLS_CFLAGS) $(GMX_CFLAGS)
