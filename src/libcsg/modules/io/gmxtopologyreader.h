@@ -20,6 +20,7 @@
 
 #include <string>
 #include "topologyreader.h"
+#include "version_check.h"
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -36,6 +37,10 @@ class GMXTopologyReader
     : public TopologyReader
 {
 public:
+    GMXTopologyReader() {
+        gmx::CheckVersion();
+    }
+
     /// read a topology file
     bool ReadTopology(string file, Topology &top);
     

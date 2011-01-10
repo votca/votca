@@ -48,6 +48,7 @@
             <itemPath>../../src/libcsg/modules/io/esptopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/esptrajectoryreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/esptrajectoryreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/gmx_version_nb.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtrajectoryreader.cc</itemPath>
@@ -64,6 +65,8 @@
             <itemPath>../../src/libcsg/modules/io/pdbtopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/version_check.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/version_check.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.h</itemPath>
           </logicalFolder>

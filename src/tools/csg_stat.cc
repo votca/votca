@@ -83,7 +83,7 @@ void CsgStatApp::Initialize()
             ("do-imc", "  write out inverse monte carlo data")
             ("write-every", boost::program_options::value<int>(&_write_every), "  write afer every block of this length, " \
                 "if --blocking   is set, the averages are cleared after every write")
-            ("do-blocks", "  write output for blocking analysis")
+            ("do-blocks", "  write output for blocking analysis");
 }
 
 bool CsgStatApp::EvaluateOptions()

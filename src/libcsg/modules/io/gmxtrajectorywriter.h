@@ -20,6 +20,7 @@
 
 #include "topology.h"
 #include "trajectorywriter.h"
+#include "version_check.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -59,7 +60,10 @@ class GMXTrajectoryWriter
     : public TrajectoryWriter
 {
 public:
-    
+    GMXTrajectoryWriter() {
+        gmx::CheckVersion();
+    }
+
     void Open(string file, bool bAppend = false);
     void Close();
     void Write(Topology *conf);
