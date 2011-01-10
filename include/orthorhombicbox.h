@@ -1,5 +1,5 @@
-/* 
- * Copyright 2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,28 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#ifndef __VOTCA_ORTHORHOMBICBOX_H
+#define	__VOTCA_ORTHORHOMBICBOX_H
 
-#include <string>
+#include "boundarycondition.h"
 
-//only used by NetBeans
+using namespace std;
 namespace votca { namespace csg {
+using namespace votca::tools;
 
-static const std::string gmx_version_str = "VERSION NOT SET";
+class OrthorhombicBox : public BoundaryCondition {
 
-const std::string &GmxVersionStr()
-{
-    return gmx_version_str;
-}
+public:
+    vec BCShortestConnection(const vec &r_i, const vec &r_j) const;
+
+    eBoxtype getBoxType() {
+        return typeOrthorhombic;
+    }
+
+protected:
+};
 
 }}
+
+#endif	/* ORTHORHOMBICBOX_H */
 

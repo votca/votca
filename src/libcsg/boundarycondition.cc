@@ -1,5 +1,5 @@
-/* 
- * Copyright 2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,16 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <vector>
+#include "boundarycondition.h"
 
-#include <string>
-
-//only used by NetBeans
 namespace votca { namespace csg {
 
-static const std::string gmx_version_str = "VERSION NOT SET";
-
-const std::string &GmxVersionStr()
-{
-    return gmx_version_str;
+double BoundaryCondition::BoxVolume() {
+    vec a = _box.getCol(0);
+    vec b = _box.getCol(1);
+    vec c = _box.getCol(2);
+    return (a^b)*c;
 }
 
 }}
-

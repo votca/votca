@@ -1,5 +1,5 @@
-/* 
- * Copyright 2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,19 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "orthorhombicbox.h"
 
-#include <string>
-
-//only used by NetBeans
 namespace votca { namespace csg {
 
-static const std::string gmx_version_str = "VERSION NOT SET";
-
-const std::string &GmxVersionStr()
+vec OrthorhombicBox::BCShortestConnection(const vec &r_i, const vec &r_j) const
 {
-    return gmx_version_str;
+    vec r_ij;
+    double a = _box.get(0,0); double b = _box.get(1,1); double c = _box.get(2,2);
+    r_ij = r_j - r_i;
+    r_ij.setZ( r_ij.getZ() - c*round(r_ij.getZ()/c) );
+    r_ij.setY( r_ij.getY() - b*round(r_ij.getY()/b) );
+    r_ij.setX( r_ij.getX() - a*round(r_ij.getX()/a) );
+    return r_ij;
 }
 
 }}
-

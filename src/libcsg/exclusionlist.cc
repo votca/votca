@@ -150,4 +150,28 @@ std::ostream &operator<<(std::ostream &out, ExclusionList& exl)
     return out;
 }
 
+void ExclusionList::InsertExclusion(int index, list<int> l) {
+
+    list<int>::iterator i;
+
+    //cout << "atom " << index << endl;
+    for(i=l.begin(); i!=l.end(); ++i) {
+        int bead1 = index;
+        int bead2 = *i;
+        if (bead2 < bead1) swap(bead1, bead2);
+        if(bead1==bead2) continue;
+        if(IsExcluded(bead1, bead2)) continue;
+        exclusion_t *e;
+        if((e = GetExclusions(bead1)) == NULL) {
+            e = new exclusion_t;
+            e->_atom = bead1;
+            _exclusions.push_back(e);
+            _excl_by_bead[ bead1 ] = e;
+        }
+        e->_exclude.push_back(bead2);
+        //cout << (*i) << " " << endl;
+    }
+    //cout << endl;
+}
+
 }}

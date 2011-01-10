@@ -273,7 +273,10 @@ namespace votca {
                 //////////////////////////////////////////////////
 
                 _traj_reader->FirstFrame(master->_top);
-                //seek to first frame, let thread0 do that
+                if(master->_top.getBoxType()==BoundaryCondition::typeOpen) {
+                    cout << "NOTE: You are using OpenBox boundary conditions. Check if this is intended.\n" << endl;
+                }
+                //seek first frame, let thread0 do that
                 bool bok;
                 for (bok = true; bok == true; bok = _traj_reader->NextFrame(master->_top)) {
                     if (((master->_top.getTime() < begin) && has_begin) || first_frame > 1) {
@@ -282,14 +285,14 @@ namespace votca {
                     }
                     break;
                 }
-                if (!bok) { // trajectory was too shor and we did not proceed to first frame
+                if (!bok) { // trajectory was too short and we did not proceed to first frame
                     _traj_reader->Close();
                     delete _traj_reader;
 
                     throw std::runtime_error("trajectory was too short, did not process a single frame");
                 }
 
-                // notify all observer that coarse graining has begun
+                // notify all observers that coarse graining has begun
                 if (_do_mapping) {
                     master->_map->Apply();
                     BeginEvaluate(&master->_top_cg, &master->_top);

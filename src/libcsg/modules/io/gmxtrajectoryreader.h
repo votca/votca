@@ -20,6 +20,7 @@
 
 #include <string>
 #include "trajectoryreader.h"
+#include "version_check.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -63,7 +64,11 @@ using namespace std;
 */
 class GMXTrajectoryReader : public TrajectoryReader
 {
-    public:        
+    public:
+        GMXTrajectoryReader() {
+            gmx::CheckVersion();
+        }
+
         /// open a trejectory file
         bool Open(const string &file);
         /// read in the first frame
