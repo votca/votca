@@ -45,7 +45,7 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
             }
         }
         if(nonzero_found==0) {
-            throw std::runtime_error("error in Linalg::linalg_qrsolve : zero row in fit matrix");
+            throw "qrsolve_zero_column_in_matrix";
         }
     }
 
@@ -91,7 +91,7 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
             }
         }
         if(nonzero_found==0) {
-            throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : zero row in fit matrix");
+            throw "constrained_qrsolve_zero_column_in_matrix";
         }
     }
 
