@@ -78,7 +78,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         throw runtime_error("gromacs topology contains inconsistency in molecule definitons\n\n"
                 "A possible reason is an outdated .tpr file. Please rerun grompp to generate a new tpr file.\n"
                 "If the problem remains or "
-                "you're missing the files to rerun grompp,\ncontact the votca mailing list for a solution.");
+                "you're missing the files to rerun grompp,\n contact the votca mailing list for a solution.");
     }
 
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
@@ -101,13 +101,22 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 #endif
         }
 
-
+        int ifirstatom = 0;
         for(int imol=0; imol<mtop.molblock[iblock].nmol; ++imol) {
             Molecule *mi = top.CreateMolecule(molname);
 
             // read the atoms
             for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
                 t_atom *a = &(atoms->atom[iatom]);
+
+                // read exclusions
+                t_blocka * excl = &(mol->excls);
+                // insert exclusions
+                list<int> excl_list;
+                for(int k=excl->index[iatom]; k<excl->index[iatom+1]; k++) {
+                    excl_list.push_back(excl->a[k]+ifirstatom);
+                }
+                top.InsertExclusion(iatom, excl_list);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
 #if GMX == 45
@@ -122,6 +131,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 nm << bead->getResnr() + 1 << ":" <<  top.getResidue(res_offset + bead->getResnr())->getName() << ":" << bead->getName();
                 mi->AddBead(bead, nm.str());
             }
+            ifirstatom+=mtop.molblock[iblock].natoms_mol;
         }
     }
 

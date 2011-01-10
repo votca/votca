@@ -328,6 +328,8 @@ public:
         return _bc->getBoxType();
     }
 
+    void InsertExclusion(int i, list<int> l);
+
 protected:
     BoundaryCondition *_bc;
 
@@ -384,6 +386,10 @@ inline Residue *Topology::CreateResidue(string name)
 inline Molecule *Topology::MoleculeByIndex(int index)
 {
     return _molecules[index];
+}
+
+inline void Topology::InsertExclusion(int i, list<int> l) {
+    _exclusions.InsertExclusion(i,l);
 }
 
 }}
