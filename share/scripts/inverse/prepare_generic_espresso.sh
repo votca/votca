@@ -33,8 +33,8 @@ fi
 check_deps "$0"
 
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
+espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
 cp_from_main_dir $esp
-[ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-critical mv $esp confout.esp.gz
+critical mv $esp $espout
 

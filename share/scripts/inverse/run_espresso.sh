@@ -37,6 +37,8 @@ check_deps "$0"
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
+espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
+
 n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 [ -z "$n_steps" ] && die "${0##*/}: Could not read espresso property n_steps"
 
@@ -127,7 +129,7 @@ for { set j 0 } { \$j < $n_snapshots } { incr j } {
   close \$pos_out
 }
 
-set out [open "|gzip -c - > confout.esp.gz" w]
+set out [open "|gzip -c - > $espout" w]
 blockfile \$out write variable all
 blockfile \$out write interactions
 blockfile \$out write thermostat
@@ -154,6 +156,8 @@ EOF
 	critical $esp_bin $esp_script
     fi
     [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
+    [ -f "$traj_esp" ] || die "${0##*/}: Espresso traj file '$traj_esp' not found after running Espresso"
+    [ -f "$espout" ] || die "${0##*/}: Espresso end coordinate '$espout' not found after running Espresso"
     
 else
     die "${0##*/}: ESPResSo only supports method: ibi"

@@ -32,8 +32,17 @@ fi
 
 check_deps "$0"
 
-cp_from_last_step confout.gro
-critical mv confout.gro conf.gro
+from="$(csg_get_property cg.inverse.initial_configuration "laststep")"
+conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
+if [ "$from" = "laststep" ]; then
+  confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+  cp_from_last_step "${confout}"
+  critical mv "${confout}" "$conf"
+elif [ "$from" = "maindir" ]; then
+  cp_from_main_dir "$conf"
+else
+  die "${0##*/}: initial_configuration '$from' not implemented"
+fi
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
@@ -53,5 +62,5 @@ top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
 tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
-critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" ${opts}
+critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"

@@ -33,11 +33,17 @@ fi
 
 check_deps "$0"
 
+from=$(csg_get_property cg.inverse.initial_configuration "laststep")
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
-[ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
-
-cp_from_last_step confout.esp.gz
-critical mv confout.esp.gz $esp
+if [ "$from" = "laststep" ]; then
+  espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
+  cp_from_last_step $espout
+  critical mv $espout $esp
+elif [ "$from" = "maindir" ]; then
+  cp_from_main_dir $esp
+else
+  die "${0##*/}: initial_configuration '$from' not implemented"
+fi
 
 #convert potential in format for sim_prog
 for_all non-bonded do_external convert_potential espresso

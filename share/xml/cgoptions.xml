@@ -41,7 +41,8 @@
     </desc>
   </item>
   <item><name>cg.inverse.kBT</name><desc> kBT (300*0.00831451 gromacs units) </desc></item>
-  <item><name>cg.inverse.program</name><desc>simulation package to be used (currently only gromacs) </desc></item>
+  <item><name>cg.inverse.program</name><desc>simulation package to be used</desc></item>
+  <item><name>cg.inverse.initial_configuration</name><desc>what initial configuration to use in every step: maindir/laststep (default laststep) </desc></item>
 
   <item><name>cg.inverse.$sim_prog</name><desc> generic simulation program (e.g. GROMACS) options </desc></item>
   <item><name>cg.inverse.$sim_prog.equi_time</name><default>0.0</default><desc> begin analysis after this time </desc></item>
@@ -50,6 +51,8 @@
   <item><name>cg.inverse.$sim_prog.traj</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
 
   <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
+  <item><name>cg.inverse.gromacs.conf</name><desc>Name of the coordinate file read by grompp (default conf.gro)</desc></item>
+  <item><name>cg.inverse.gromacs.conf_out</name><desc>Name of the original outcome coordinate written by mdrun (default confout.gro)</desc></item>
   <item><name>cg.inverse.gromacs.equi_time</name><default>0.0</default><desc> begin analysis after this time when using gromacs</desc></item>
   <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash so many frames at the beginning when using gromacs</desc></item>
   <item><name>cg.inverse.gromacs.topol</name><desc> Gromacs topology file to use, default topol.tpr</desc></item>
@@ -72,7 +75,8 @@
   <item><name>cg.inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>
   <item><name>cg.inverse.gromacs.table_end</name><desc> extend the tables to this value </desc></item>
   <item><name>cg.inverse.gromacs.cufoff_check</name><desc> check interaction cutoffs against rvdw in mdp file: yes/no (default yes)</desc></item>
-  <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso</desc></item>
+  <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso (default conf.esp.gz)</desc></item>
+  <item><name>cg.inverse.espresso.blockfile_out</name><desc>Name of the original outcome blockfile written by Espresso (default confout.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.bin</name><desc>Name (or absolute path) of the Espresso binary</desc></item>
   <item><name>cg.inverse.espresso.equi_snapshots</name><desc>Number of snapshots to trash at the beginning of trajectory</desc></item>
   <item><name>cg.inverse.espresso.table_bins</name><desc> grid for tabulated potentials </desc></item>

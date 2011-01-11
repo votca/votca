@@ -31,5 +31,7 @@ fi
 
 check_deps "$0"
 
-cp_from_main_dir conf.gro
-critical mv conf.gro confout.gro
+conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
+confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+cp_from_main_dir $conf
+critical mv $conf $confout

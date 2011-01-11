@@ -361,7 +361,7 @@ cp_from_to() {
     [ -d "$where" ] || die "cp_from_to: $where is not a dir"
     [ -d "$from" ] || die "cp_from_to: $from is not a dir"
   fi
-  [ -z "$1" ] && die "cp_from_main_dir: Missing argument"
+  [ -z "$1" ] && die "cp_from_to: Missing argument"
   for i in $@; do
     #no glob pattern in $i or could not be expanded
     if [ "$from/$i" = "$(echo $from/$i)" ]; then
