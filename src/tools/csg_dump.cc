@@ -34,6 +34,9 @@ class CsgDumpApp
     }
 
     bool EvaluateTopology(Topology *top, Topology *top_ref);
+
+    bool DoMapping() {return true;}
+    bool DoMappingDefault(void) { return false; }
 };
 
 int main(int argc, char** argv)
