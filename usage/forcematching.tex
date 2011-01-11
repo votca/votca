@@ -51,6 +51,6 @@ To convert forces (\texttt{.force}) to potentials (\texttt{.pot}), tables have t
 \begin{verbatim}
  csg_call table integrate CG-CG.force CG-CG.pot
 \end{verbatim}
-This command calls the \prog{integrate.pl} script, which integrates the force and writes the potential to the \texttt{.pot} file.
+This command calls the \prog{table_integrate.pl} script, which integrates the force and writes the potential to the \texttt{.pot} file.
 
 In general, each potential contains regions which are not sampled. In this case or in the case of further post-processing, the potential can be refined by employing resampling or extrapolating methods. See sec. \ref{sec:post_processing} for further details.
