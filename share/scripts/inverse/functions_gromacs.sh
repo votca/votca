@@ -50,7 +50,7 @@ export -f get_from_mdp
 
 check_cutoff() {
   local max rvdw res cutoff_check
-  [[ -n "$1" ]] || die "check_cutoff: Missing argument (interaction name)"
+  [[ -n "$1" ]] || die "check_cutoff: Missing argument (mdp file)"
   cutoff_check=$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")
   [ ${cutoff_check} = "no" ] && return 0
   max="$(csg_get_interaction_property max)"
@@ -61,3 +61,19 @@ To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
   return "$res"
 }
 export -f check_cutoff
+
+check_temp() {
+  local temp_check kbt temp res
+  [[ -n "$1" ]] || die "check_temp: Missing argument (mdp file)"
+  temp_check=$(csg_get_property cg.inverse.gromacs.temp_check "yes")
+  [ ${temp_check} = "no" ] && return 0
+  #kbt in energy unit
+  kbt="$(csg_get_property cg.inverse.kBT)"
+  temp="$(get_from_mdp ref_t "$1")"
+  #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
+  res="$(awk -v e="$kbt" -v t="$temp" 'BEGIN{ print (sqrt((e-t*0.00831451)**2)>0.001)?1:0 }')" || die "check_temp: awk failed"
+  [ "$res" != "0" ] && die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
+To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
+  return "$res"
+}
+export -f check_temp

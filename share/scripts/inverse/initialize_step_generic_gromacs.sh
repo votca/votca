@@ -23,7 +23,7 @@ for the Inverse Boltzmann Method
 
 Usage: ${0##*/} last_sim_dir
 
-USES: die cp critical check_deps get_last_step_dir
+USES: die cp critical check_deps get_last_step_dir check_cutoff check_temp
 
 OPTIONAL: cg.inverse.gromacs.grompp.index cg.inverse.gromacs.grompp.topol cg.inverse.gromacs.topol cg.inverse.gromacs.grompp.opts cg.inverse.gromacs.mdp cg.inverse.gromacs.grompp.bin
 EOF
@@ -50,7 +50,8 @@ mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 #convert potential in format for sim_prog
 for_all non-bonded do_external convert_potential gromacs
 
-for_all "non-bonded" check_cutoff $mdp
+check_temp "$mdp"
+for_all "non-bonded" check_cutoff "$mdp"
 
 grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
 [ -n "$(type -p $grompp)" ] || die "${0##*/}: grompp binary '$grompp' not found"
