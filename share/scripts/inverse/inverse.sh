@@ -241,7 +241,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   if is_done "Simulation"; then
     msg "Simulation is already done"
   else
-    msg "Simulation with $simgrog"
+    msg "Simulation with $sim_prog"
     do_external run $sim_prog
     mark_done "Simulation"
   fi
