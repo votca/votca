@@ -67,8 +67,7 @@ die () {
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
     pid=$$
-    #$$ is closed by exit below 'kill $pids'
-    pids=""
+    pids="$$"
     c=0
     #find the parent of pid until we reach CSG_MASTER_PID
     until [ ${CSG_MASTER_PID} -eq $pid ]; do
