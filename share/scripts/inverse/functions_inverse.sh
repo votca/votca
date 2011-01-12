@@ -83,7 +83,7 @@ die () {
         break
       fi
     done
-    echo "die: CSG_MASTER_PID is $CSG_MASTER_PID"
+    echo "die: (called from $$)  CSG_MASTER_PID is $CSG_MASTER_PID"
     echo "die: pids to kill: $pids"
     kill $pids
   else
