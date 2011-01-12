@@ -25,7 +25,7 @@ Usage: ${0##*/}
 
 USES: msg critical mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
 
-NEEDS: cg.inverse.program cg.inverse.cgmap
+NEEDS: cg.inverse.program
 
 OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type
 EOF
@@ -33,13 +33,6 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-
-cgopts=""
-cgmap=$(csg_get_property --allow-empty cg.inverse.cgmap)
-if [ -n "$cgmap" ]; then
-  [ -f "$cgmap" ] || die "${0##*/}: imc cgmap file '$cgmap' not found, do you really need one?"
-  cgopts="--cg '$cgmap'"
-fi
 
 if [ "$sim_prog" = "gromacs" ]; then
   topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
@@ -64,7 +57,7 @@ else
   #copy+resample all target dist in $this_dir
   for_all non-bonded do_external resample target
 
-  critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" $cgopts \
+  critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
         --begin $equi_time --first-frame $first_frame --nt $tasks
   mark_done "imc_analysis"
 fi
