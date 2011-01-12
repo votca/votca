@@ -75,8 +75,6 @@ else
   else
     echo -e "${type1}\n${type2}" | critical ${g_rdf} -b ${begin} -n "$index" -bin ${binsize} -o ${name}.dist.new.xvg -s "$tpr" -f "${traj}" ${opts}
   fi
-  ps
-  die "CJ"
   #gromacs always append xvg
   comment="$(get_table_comment)"
   critical csg_resample --in ${name}.dist.new.xvg --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
