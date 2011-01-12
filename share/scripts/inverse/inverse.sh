@@ -225,6 +225,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   fi
 
   cd $this_dir || die "cd $this_dir failed"
+  is_done "stepdir" || mark_done "stepdir"
 
   if is_done "Initialize"; then
     msg "Initialization already done"
