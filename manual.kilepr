@@ -4,7 +4,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
 kileprversion=2
 kileversion=2.1 beta2
-lastDocument=usage/boltzmann.tex
+lastDocument=usage/iterative_methods.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -16,14 +16,23 @@ src_extensions=.tex .ltx .latex .dtx .ins .bib .mp
 MakeIndex=
 QuickBuild=
 
-[item:inputfiles.tex]
+[item:advanced_topics.tex]
 archive=true
-column=165
+column=32
 encoding=UTF-8
 highlight=LaTeX
-line=39
+line=25
 open=false
-order=1
+order=-1
+
+[item:inputfiles.tex]
+archive=true
+column=0
+encoding=UTF-8
+highlight=LaTeX
+line=0
+open=false
+order=3
 
 [item:introduction.tex]
 archive=true
@@ -45,10 +54,10 @@ order=-1
 
 [item:manual.tex]
 archive=true
-column=35
+column=16
 encoding=UTF-8
 highlight=LaTeX
-line=33
+line=53
 open=true
 order=0
 
@@ -63,30 +72,30 @@ order=-1
 
 [item:reference.tex]
 archive=true
-column=0
+column=21
 encoding=UTF-8
 highlight=LaTeX
-line=0
-open=false
+line=21
+open=true
 order=1
 
 [item:theory.tex]
 archive=true
-column=0
+column=269
 encoding=UTF-8
 highlight=LaTeX
-line=182
+line=131
 open=false
 order=2
 
 [item:usage.tex]
 archive=true
-column=23
+column=31
 encoding=UTF-8
 highlight=LaTeX
-line=0
-open=false
-order=0
+line=2
+open=true
+order=2
 
 [item:usage/boltzmann.tex]
 archive=true
@@ -94,15 +103,24 @@ column=12
 encoding=UTF-8
 highlight=LaTeX
 line=116
-open=true
+open=false
 order=1
+
+[item:usage/boltzmann.tex.backup]
+archive=true
+column=0
+encoding=
+highlight=
+line=0
+open=false
+order=-1
 
 [item:usage/cgruns.tex]
 archive=true
-column=29
+column=249
 encoding=UTF-8
 highlight=LaTeX
-line=4
+line=20
 open=false
 order=1
 
@@ -112,35 +130,17 @@ column=260
 encoding=UTF-8
 highlight=LaTeX
 line=9
-open=false
-order=6
+open=true
+order=3
 
-[item:usage/ibi.tex]
+[item:usage/iterative_methods.tex]
 archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=1
-open=false
-order=1
-
-[item:usage/imc.tex]
-archive=true
-column=11
-encoding=UTF-8
-highlight=LaTeX
-line=31
-open=false
-order=2
-
-[item:usage/iterative_workflow.tex]
-archive=true
-column=0
-encoding=UTF-8
-highlight=LaTeX
-line=23
-open=false
-order=5
+line=114
+open=true
+order=4
 
 [item:votca.bib]
 archive=true

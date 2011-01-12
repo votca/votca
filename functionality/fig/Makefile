@@ -1,5 +1,6 @@
 PICS=\
 	flowchart.eps\
+	iterativemethods.eps
 
 all: $(PICS)
 

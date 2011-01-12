@@ -106,12 +106,28 @@ Another crucial issue is the cross-correlation of the coarse-grained degrees of 
 \subsection{Separation of bonded and non-bonded degrees of freedom}
 When coarse-graining polymeric systems, it is convenient to treat bonded and non-bonded interactions separately~\cite{Tschoep:1998}. In this case, sampling of the atomistic system shall be performed on a special system where non-bonded interactions are artificially removed, so that the non-bonded interactions in the reference system do not contribute to the bonded interactions of the coarse-grained model.
 
-This can be done by employing exclusion lists using \prog{csg_boltzmann} with the option \progopt{--excl}. This is described in detail in sec. \ref{sec:exclusions}.
+This can be done by employing exclusion lists using \prog{csg_boltzmann} with the option \progopt{---excl}. This is described in detail in sec. \ref{sec:exclusions}.
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{fig/excl}
   \caption{\label{fig:excl}Example of excluded interactions.}
 \end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Iterative methods}
+\label{sec:theory_iterative_methods}
+
+\begin{wrapfigure}{ht}{4cm}  
+\includegraphics[width=4cm]{functionality/fig/iterativemethods.eps}
+  \caption{
+    \label{fig:iterative_methods}
+    Block-scheme of an iterative method.
+  }
+\end{wrapfigure}
+%\end{figure}
+Iterative workflow control is essential for the \ibi and \imc methods. The general idea of iterative workflow is sketched in fig.~\ref{fig:iterative_methods}. A run starts with an initial guess during the global initialization phase. This guess is used for the first sampling step, followed by an update of the potential. The update itself often requires additional postprocessing such as smoothing, interpolation, extrapolation or fitting. Different methods are available to update the potential, for instance Iterative Boltzmann Inversion (see next section \ref{sec:ibi}) or Inverse Monte Carlo (see section \ref{sec:imc}). The whole procedure is then iterated until a convergence criterion is satisfied.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

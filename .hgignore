@@ -2,6 +2,7 @@ syntax: glob
 *~
 *.aux
 .*.swp
+*.backup
 functionality/fig/*.eps
 manual.bbl
 manual.blg

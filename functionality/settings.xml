@@ -33,7 +33,7 @@
 	      table_a1.xvg table_b1.xvg index.ndx
     </filelist>
     <iterations_max>300</iterations_max> <!-- number of iterations -->
-    <method>ibm</method> <!-- inverse Boltzmann or inverse MC -->    
+    <method>ibi</method> <!-- inverse Boltzmann or inverse MC -->    
     <log_file>inverse.log</log_file> <!-- log file -->
     <restart_file>restart_points.log</restart_file> <!-- restart -->
    </inverse>
