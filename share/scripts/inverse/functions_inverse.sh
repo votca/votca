@@ -390,8 +390,7 @@ export -f get_time
 
 get_number_tasks() {
   local tasks
-  tasks="$(csg_get_property --allow-empty cg.inverse.parallel.tasks)"
-  [ -z "$tasks" ] && tasks=1
+  tasks="$(csg_get_property cg.inverse.parallel.tasks 1)"
   [ "$tasks" = "auto" ] && tasks=0
   int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number"
   #this only work for linux
