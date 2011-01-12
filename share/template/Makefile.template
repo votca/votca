@@ -12,10 +12,8 @@ EXTRA_SRC=
 all: $(NAME)
 
 #if VOTCALDLIB is defined we add it to PKG_CONFIG_PATH
-ifeq "$(origin VOTCALDLIB)" "undefined"
-  $(error "VOTCALDLIB not found, please source VOTCARC")
-else
-  export PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:${VOTCALDLIB}/pkgconfig
+ifeq "$(origin CSGSHARE)" "undefined"
+  $(error "CSGSHARE not found, please source VOTCARC")
 endif
 
 #get CPPFLAGS and LDFLAGS from pkg-config
