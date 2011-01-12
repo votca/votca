@@ -168,7 +168,7 @@ critical $SOURCE_WRAPPER --check
 update_stepnames 0
 this_dir=$(get_current_step_dir --no-check)
 if [ -d "$this_dir" ]; then
-  msg "Skiping prepare"
+  msg "step 0 (prepare) is already done - skipping"
   [[ -f $this_dir/done ]] || die "Incomplete step 0 (remove it if you don't know what to do)"
 else
   msg ------------------------
@@ -217,7 +217,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
       continue
     else
       msg "Incomplete step $i"
-      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove this step if you don't know what to do - you will lose one step at max)"
+      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove step $i if you don't know what to do - you will lose one iteration)"
     fi
   else
     echo "Step $i started at $(date)"
