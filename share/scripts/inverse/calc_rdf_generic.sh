@@ -52,7 +52,7 @@ check_deps "$0"
 tasks=$(get_number_tasks)
 msg "Calculating rdfs with csg_stat using $tasks tasks"
 if is_done "rdf_analysis"; then
-  msg "rdf analysis is already done"
+  echo "rdf analysis is already done"
 else
   critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame
   mark_done "rdf_analysis"

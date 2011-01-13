@@ -58,7 +58,7 @@ index2=$(csg_get_interaction_property inverse.espresso.index2)
 
 echo "Analyzing rdf for ${type1}-${type2}"
 if is_done "rdf-$name"; then
-    msg "rdf analsysis for ${type1}-${type2} is already done"
+    echo "rdf analsysis for ${type1}-${type2} is already done"
 else
     # Output ${name}.dist.new.tab. Calculated by Espresso.
     esp_script="$(mktemp esp.rdf.tcl.XXXXX)" 
