@@ -30,6 +30,10 @@ EOF
 fi
 
 name=$(csg_get_interaction_property name)
+
+#could be done by a overwrite somewhere
+is_done "post_add-$name" && exit 0
+
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
 i=1
 #after all we shift the potential to be 0 at the cutoff and tag with labels
@@ -44,3 +48,4 @@ for task in $tasklist shift tag; do
 
   ((i++))
 done
+mark_done "post_add-$name"

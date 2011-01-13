@@ -32,6 +32,10 @@ fi
 check_deps "$0"
 
 name=$(csg_get_interaction_property name)
+
+#could be done by a overwrite somewhere
+is_done "post_update-$name" && exit 0
+
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
 i=1
 for task in $tasklist; do
@@ -45,3 +49,4 @@ for task in $tasklist; do
 
   ((i++))
 done
+mark_done "post_update-$name"
