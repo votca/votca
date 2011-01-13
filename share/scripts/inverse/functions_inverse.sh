@@ -216,7 +216,7 @@ export -f csg_get_property
 mark_done () {
   [[ -n "$1" ]] || die "mark_done: Missig argument"
   [[ -n "$CSGRESTART" ]] || die "mark_done: CSGRESTART is undefined"
-  echo "$1 done" >> ${PWD}/$CSGRESTART
+  is_done "$1" || echo "$1 done" >> ${PWD}/$CSGRESTART
 }
 export -f mark_done
 
