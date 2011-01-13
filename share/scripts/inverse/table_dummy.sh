@@ -44,4 +44,4 @@ echo "$min 0" > $tmpfile
 echo "$max 0" >> $tmpfile
 
 comment="$(get_table_comment)"
-critical csg_resample --in ${tmpfile} --out "${2}" --grid "${1}" --comment "${comment}"
+critical csg_resample --type linear --in ${tmpfile} --out "${2}" --grid "${1}" --comment "${comment}"
