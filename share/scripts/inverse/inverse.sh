@@ -180,7 +180,7 @@ else
 
   do_external prepare $method
 
-  touch done
+  touch "done"
   msg "step 0 done"
   cd $(get_main_dir)
 fi
@@ -277,6 +277,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     msg "Doing convergence check: $convergence_check"
     if [ "$(do_external convergence_check "$convergence_check")" = "stop" ]; then
       msg "Iterations are converged, stopping"
+      touch "done"
       exit 0
     else
       msg "Iterations are not converged, going on"
