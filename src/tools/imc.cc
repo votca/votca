@@ -195,7 +195,7 @@ void Imc::Worker::DoNonbonded(Topology *top)
         // generate the neighbour list
         NBList *nb;
 
-        bool gridsearch=false;
+        bool gridsearch=true;
 
         if(_imc->_options.exists("cg.nbsearch")) {
             if(_imc->_options.get("cg.nbsearch").as<string>() == "grid")

@@ -16,22 +16,10 @@
     </desc>
   </item>
   
-  <item>
-    <name>cg.nbsearch</name>
-    <desc>
-      Grid search algorithm, can be simple or grid. Default is simple.
-    </desc>
-  </item>
+  <item><name>cg.nbsearch</name><desc>Grid search algorithm, simple (N square search) or grid (default is grid)</desc></item>
 
 <!-- general inverse options -->
-  <item>
-    <name>cg.inverse</name><section/>
-    <desc>
-      general options for inverse script
-    </desc>
-  </item>
-  
-
+  <item><name>cg.inverse</name><section/><desc>general options for inverse script</desc></item>
   <item><name>cg.inverse.kBT</name><desc> kBT (300*0.00831451 gromacs units) </desc></item>
   <item><name>cg.inverse.program</name><desc>simulation package to be used</desc></item>
   <item><name>cg.inverse.initial_configuration</name><desc>what initial configuration to use in every step: maindir/laststep (default laststep) </desc></item>
