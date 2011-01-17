@@ -84,6 +84,7 @@
         <cTool>
           <incDir>
             <pElem>../../include</pElem>
+            <pElem>../../../include/votca</pElem>
           </incDir>
         </cTool>
         <ccTool>

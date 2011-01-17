@@ -50,8 +50,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1723120609/linalg.o \
 	${OBJECTDIR}/_ext/1723120609/matrix.o \
 	${OBJECTDIR}/_ext/1723120609/datacollection.o \
-	${OBJECTDIR}/_ext/1723120609/correlate.o \
 	${OBJECTDIR}/_ext/1723120609/histogram.o \
+	${OBJECTDIR}/_ext/1723120609/correlate.o \
 	${OBJECTDIR}/_ext/1723120609/linspline.o \
 	${OBJECTDIR}/_ext/1723120609/thread.o \
 	${OBJECTDIR}/_ext/1723120609/spline.o \
@@ -169,15 +169,15 @@ ${OBJECTDIR}/_ext/1723120609/datacollection.o: ../../src/libtools/datacollection
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/datacollection.o ../../src/libtools/datacollection.cc
 
-${OBJECTDIR}/_ext/1723120609/correlate.o: ../../src/libtools/correlate.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
-	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/correlate.o ../../src/libtools/correlate.cc
-
 ${OBJECTDIR}/_ext/1723120609/histogram.o: ../../src/libtools/histogram.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/histogram.o ../../src/libtools/histogram.cc
+
+${OBJECTDIR}/_ext/1723120609/correlate.o: ../../src/libtools/correlate.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/correlate.o ../../src/libtools/correlate.cc
 
 ${OBJECTDIR}/_ext/1723120609/linspline.o: ../../src/libtools/linspline.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
