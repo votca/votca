@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This solves linear equation system from imc using octave
+This script solves a linear equation system from imc using octave
 
 Usage: ${0##*/} <group> <outfile>
 

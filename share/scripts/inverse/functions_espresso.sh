@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-Functions useful for espresso
+Useful functions for espresso
 
 NEEDS:
 

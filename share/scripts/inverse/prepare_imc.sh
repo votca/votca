@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials for imc
+This script initializes potentials for imc
 
 Usage: ${0##*/}
 

@@ -18,8 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function initialize
-for the Inverse Boltzmann Method
+This script implements the function initialize for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 

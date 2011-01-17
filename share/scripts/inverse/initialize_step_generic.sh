@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the initialization for every step in a generic way
+This script implements the initialization for every step in a generic way
 
 Usage: ${0##*/}
 

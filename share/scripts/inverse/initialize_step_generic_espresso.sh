@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This initializes an espresso simulation
+This script initializes an espresso simulation
 
 Usage: ${0##*/}
 

@@ -21,9 +21,10 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script calcs dU out of two rdfs with the rules of inverse boltzman
-In addtion it does some magic tricks:
-- do not update if one of the both rdf is undefined
+This script calcs dU out of two rdfs with the rules of inverse boltzmann
+
+In addition, it does some magic tricks:
+- do not update if one of the two rdf is undefined
 
 Usage: $progname new_rdf target_rdf cur_pot outfile
 

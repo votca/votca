@@ -26,12 +26,12 @@ ${0##*/}, version %version%
 We have defined some useful (?) functions:
 * msg               = message to screen and logfile
 * die               = error message to stderr and logfile,
-                      and kills all csg process
-* do_external       = get scriptname for sourcewrapper and run it
+                      kills all csg process
+* do_external       = get scriptname for sourcewrapper and run it,
                       supports for_all
 * for_all           = run a command for all non-bonded pairs
 * critical          = run and die if error
-* check_for         = checks if a binary exist in the path
+* check_for         = checks if a binary exists in the path
 * check_deps        = checks the dependencies of a script
 
 Examples:

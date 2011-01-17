@@ -122,10 +122,10 @@ This script extrapolates a table
 $usage
 
 Allowed options:
---avgpoints           average over so many points to extrapolate: default is 3
+--avgpoints           average over the given number of points to extrapolate: default is 3
 --function            constant, linear, quadratic or exponential, sasha: default is quadratic
 --region              left, right, or leftright: default is leftright
---curvature           curvature of the quadratic function: default is 10000
+--curvature           curvature of the quadratic function: default is 10000,
                       makes sense only for quadratic extrapolation, ignored for other cases
 -h, --help            Show this help message
 

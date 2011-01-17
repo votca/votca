@@ -18,8 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd accumulate convergence script
-accumulate \${name}.conv of all steps
+postadd accumulate convergence script: accumulate \${name}.conv of all steps
 
 Usage: ${0##*/} infile outfile
 

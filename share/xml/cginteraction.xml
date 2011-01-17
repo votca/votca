@@ -23,14 +23,14 @@
     <name>min</name>
     <desc>
       lower bound of interval for potential table in which calculations are performed.
-      Should set based on reference distributions.
+      Should be set based on reference distributions.
     </desc>
   </item>
   <item>
     <name>max</name>
     <desc>
       upper bound of interval for potential table in which calculations are performed.
-      Should set based on reference distributions.
+      Should be set based on reference distributions.
     </desc>
   </item>
   <item>
@@ -42,7 +42,7 @@
     </desc>
   </item>
   <!-- inverse options -->
-  <item><name>inverse</name><desc>Contains all information important for iterative process</desc></item>
+  <item><name>inverse</name><desc>Contains all information relevant to iterative process</desc></item>
   <item>
    <name>inverse.target</name>
    <desc>
@@ -54,21 +54,21 @@
     <default>1</default>
     <desc>
       Update cycle for the potential update. 1 means update, 0 don't update. 1 1 0 means
-      update 2 iterations, then don't update, then repeated.
+      update 2 iterations, then don't update, then repeat.
     </desc>
   </item>
   <item>
     <name>inverse.post_update</name>
     <desc>
-      Additional post processing of dU before added to potential. This is a list of
-      scripts which are called separated by space. The section iterative framework for details.
+      Additional post-processing of dU before added to potential. This is a list of
+      scripts separated by spaces which are called. See section on iterative framework for details.
     </desc>
   </item>
   <item>
     <name>inverse.post_add</name>
     <desc>
       Additional post processing of U after dU added to potential. This is a list of
-      scripts which are called separated by space. The section iterative framework for details.
+      scripts separated by spaces which are called. See section on iterative framework for details.
     </desc>
   </item>
   <item>
@@ -81,7 +81,7 @@
   <item>
     <name>inverse.particle_dens</name>
     <desc>
-      particle densisty of this species (for wjk pressure correction)
+      particle density of this species (for wjk pressure correction)
     </desc>
   </item>
   <item><name>inverse.post_update_options</name><desc>Contains all options of post update scripts</desc></item>
@@ -89,7 +89,7 @@
   <item>
     <name>inverse.post_update_options.pressure.do</name>
     <desc>
-      pattern for pressure correction (1 do, 0 do not). Do to pressure correction every third
+      pattern for pressure correction (1 do, 0 do not). To do pressure correction every third
       step specify "0 0 1", similar to inverse.do_update
     </desc>
   </item>
@@ -103,7 +103,7 @@
   <item>
     <name>inverse.post_update_options.pressure.simple.scale</name>
     <desc>
-      slope of the simple pressure correction.
+      slope of the simple pressure correction
     </desc>
   </item>
   <item><name>inverse.post_update_options.pressure.wjk</name><desc>Contains all options of the wjk pressure correction script</desc></item>
@@ -124,7 +124,7 @@
   <item>
     <name>inverse.post_update_options.splinesmooth.step</name>
     <desc>
-      grid spacing for spline fit when doing spline smoothing.
+      grid spacing for spline fit when doing spline smoothing
     </desc>
   </item>
   <item>
@@ -135,7 +135,7 @@
   <item>
     <name>inverse.post_add_options</name>
     <desc>
-      This sectioncontains all options for post add scripts.
+      This section contains all options for post add scripts.
     </desc>
   </item>
   <item>
@@ -160,7 +160,7 @@
   </item>
   <item>
     <name>inverse.post_add_options.plot.fd</name>
-    <desc>file descriptor to use (default 8), make it uniqe if you want to plot multiple things</desc>
+    <desc>file descriptor to use (default 8), make it unique if you want to plot multiple things</desc>
   </item>
   <item>
     <name>inverse.post_add_options.plot.script</name>
@@ -168,7 +168,8 @@
   </item>
   <item>
     <name>inverse.post_add_options.plot.kill</name>
-    <desc>killall process with that name before ploting (e.g. gnuplot_x11), this is more reliable than if you are using multiplot</desc>
+    <desc>kill all processes with that name before ploting (e.g. gnuplot_x11), this is more reliable than using multiplot</desc>
+
   </item>
   
 <!-- imc specific stuff -->
@@ -181,13 +182,13 @@
     <name>inverse.imc.group</name>
     <desc>
       Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update.
-        I no cross correlations should be calculated, interactions have to be put into different groujps.
+        If no cross correlations should be calculated, interactions have to be put into different groups.
     </desc>
   </item>
   <item>
     <name>inverse.gromacs</name>
     <desc>
-        This section contains gromacs specific options if gromacs is used as simulatiion program.
+        This section contains gromacs specific options in case gromacs is used as simulation program.
     </desc>
   </item>
   
@@ -201,7 +202,7 @@
   <item>
     <name>inverse.espresso</name>
     <desc>
-        This section contains epsresso specific options if espresso is used as simulation program.
+        This section contains espresso specific options in case espresso is used as simulation program.
     </desc>
   </item>
 
@@ -243,7 +244,7 @@ particles that is contained in the espresso blockfile.
     <desc>
       Minimum value of interval for distribution sampled in atomistic MD simulation. One can get this
       number by looking at the distribution function for this interaction. For non-bonded interactions
-      it's the distance the rdf starts. For CG bonds and angles the variable has the similar meaning
+      it's the distance to the rdf start. For CG bonds and angles the variable has the similar meaning
       ( note, that for angles it is specified in radians ).
     </desc>
   </item>
@@ -253,7 +254,7 @@ particles that is contained in the espresso blockfile.
     <desc>
       Maximum value of interval for distribution sampled in atomistic MD simulation. One can get this
       number by looking at the distribution function for this interaction. For non-bonded interactions
-      it's the cut-off fot the interaction.
+      it's the cut-off of the interaction.
     </desc>
   </item>
 
@@ -261,16 +262,16 @@ particles that is contained in the espresso blockfile.
     <name>fmatch.step</name>
     <desc>
       grid spacing for the spline, which represents the interaction. This parameter should not be too big,
-      otherwise you might lose some features of the interaction potential, and not too small, otherwise you
-      will have unsampled bins which results in a ill-defines equation system and will get NaNs in the output.
+      otherwise you might lose some features of the interaction potential, and not too small either, otherwise you
+      will have unsampled bins which result in an ill-defined equation system and NaNs in the output.
     </desc>
   </item>
 
   <item>
     <name>fmatch.out_step</name>
     <desc>
-      Grid spacing for the output grid. Normally one wants to have this parameter smaller than fmatch.step, 
-      to have smooth curve, without additional spline interpolation. As a rule of thumb we normally use
+      Grid spacing for the output grid. Normally, one wants to have this parameter smaller than fmatch.step, 
+      to have a smooth curve, without additional spline interpolation. As a rule of thumb we normally use
       fmatch.out_step which is approximately 5 times smaller than fmatch.step.
     </desc>
   </item>

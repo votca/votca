@@ -22,8 +22,8 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This scripts calculates the jacknife error from existing tables
-* full     =  table calculated with full dataset
+This script calculates the jackknife error from existing tables
+* full     = table calculated with full dataset
 * blocks   = tables calculated with 1 block missing
 * outfile  = file to write results
 

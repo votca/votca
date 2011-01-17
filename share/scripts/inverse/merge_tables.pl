@@ -47,7 +47,7 @@ Merge two tables
 $usage
 
 Allowed options:
--v, --version         Prints version
+-v, --version         Print version
 -h, --help            Show this help message
 --withflag            only change entries with specific flag in src
 --noflags             don't copy flags

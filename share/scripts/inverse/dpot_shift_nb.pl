@@ -21,8 +21,8 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script set the beginning of the dpot to the first valid value and shift the whole potential
-so that dpot(r_max)=0.
+This script sets the beginning of the dpot to the first valid value and shifts the whole potential
+in such a way that dpot(r_max)=0.
 
 Usage: $progname infile outfile
 

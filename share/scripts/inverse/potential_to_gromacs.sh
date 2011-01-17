@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This is a wrapper to convert potential to gromacs
+This script is a wrapper to convert a potential to gromacs
 
 Usage: ${0##*/}
 

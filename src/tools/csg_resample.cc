@@ -33,7 +33,7 @@ using namespace votca::tools;
 void help_text()
 {
     votca::csg::HelpTextHeader("csg_resample");
-    cout << "Change grid + interval of any sort of table files.\n"
+    cout << "Change grid and interval of any sort of table files.\n"
             "Mainly called internally by inverse script, can also be\n"
             "used to manually prepare input files for coarse-grained\n"
             "simulations.\n\n";     
@@ -66,8 +66,7 @@ int main(int argc, char** argv)
       ("fitgrid", po::value<string>(&fitgrid), "specify fit grid (min:step:max). If 'grid' and 'fitgrid' are specified, a fit is performed.")
       ("nocut", "Option for fitgrid: Normally, values out of fitgrid boundaries are cut off. If they shouldn't, choose --nocut.")
       ("comment", po::value<string>(&comment), "store a comment in the output table")
-      ("boundaries", po::value<string>(&boundaries), "(natural|periodic|derivativezero) sets boundary conditions")
-      ("help", "options file for coarse graining");
+      ("boundaries", po::value<string>(&boundaries), "(natural|periodic|derivativezero) sets boundary conditions");
     
     po::variables_map vm;
     try {

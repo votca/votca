@@ -46,7 +46,7 @@ public:
 
     string ProgramName() { return "csg_fmatch"; }
     void HelpText(ostream &out) {
-        out << "Perform force matching (also call multiscale coarse-graining)";
+        out << "Perform force matching (also called multiscale coarse-graining)";
     }
 
     bool DoTrajectory() {return true;}
