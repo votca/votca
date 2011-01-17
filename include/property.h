@@ -132,6 +132,9 @@ public:
     /// \brief number of child properties
     list<Property>::size_type size() { return _properties.size(); }
 
+    // throw error and comment (with filename+code line)
+    void throwRuntimeError(string message);
+
 private:        
     map<string,Property*> _map;
     list<Property> _properties;
@@ -143,6 +146,14 @@ private:
     static void PrintNode(std::ostream &out, const string &prefix, Property &p);
     
     friend std::ostream &operator<<(std::ostream &out, Property& p);
+
+    struct PropertyStackEntry_t {
+        Property *prop;
+        string comment;
+    };
+/*
+stack<Property *> -> stack< Propertz_stack_entry_t>
+*/
 };
 
 inline Property &Property::set(const string &key, const string &value)
@@ -246,6 +257,10 @@ inline vector<double> Property::as<vector <double> >() const {
     }    catch (boost::bad_lexical_cast &error) {
         throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
     }
+}
+
+inline void throwRuntimeError(string message) {
+    
 }
 
 }}
