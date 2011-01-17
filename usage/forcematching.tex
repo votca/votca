@@ -1,7 +1,7 @@
 \chapter{Force matching}
 \begin{figure}
    \centering
-   \includegraphics{usage/fig/flow_fmatch.eps}
+   \includegraphics[width=0.5\textwidth]{usage/fig/flow_fmatch.eps}
    \caption{Flowchart to perform force matching.}
 \end{figure}
 The force matching algorithm with cubic spline basis is implemented in the \prog{csg_fmatch} utility. A list of available options can be found in the reference section of \prog{csg_fmatch} (command \texttt{--h}).
@@ -35,7 +35,7 @@ In addition, a mapping scheme has to be created, which defines the coarse-graine
      </non-bonded>
    </cg>
 \end{lstlisting}
-A full description of all available options can be found in \sect{sec:ref_options}.
+Similarly to the case of spline fitting (see sec. \ref{sec:ref_programs} on \prog{csg_resample}), the parameters \texttt{min} and \texttt{max} have to be chosen in such a way as to avoid empty bins within the grid. Determining \texttt{min} and \texttt{max} by using \prog{csg_stat} is recommended (see sec. \ref{sec:setting_files}). A full description of all available options can be found in sec. \ref{sec:ref_options}.
 
 \section{Program output}
 \prog{csg_fmatch} produces a separate \texttt{.force} file for each interaction, specified in the CG-options file (option \progopt{options}).

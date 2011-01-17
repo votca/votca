@@ -34,7 +34,7 @@ tubnode/.style={midway, right=2pt, text width=6cm},
 %\draw[tuborg, decoration={brace}] let \p1=(sampling.north), \p2=(sampling.south) in
 %    ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {Canonical ensemble sampling with molecular dynamics, stochastic dynamics or Monte Carlo techniques};
 
-\node[punktchain, join, fill=red!20] (pot_update) {update};
+\node[punktchain, join, fill=red!20] (pot_update) {calculate potential update};
 %\draw[tuborg, decoration={brace}] let \p1=(pot_update.north), \p2=(pot_update.south) in
 %($(2, \y1)$) -- ($(2, \y2)$) node[tubnode, text width=6cm] {Analysis of the run. Evaluation of distribution functions, potential updates $\Delta U^{(n)}$ };
 

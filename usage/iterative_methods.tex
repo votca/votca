@@ -1,18 +1,25 @@
 \chapter{Iterative methods}
 \label{sec:iterative_methods}
 
+The following sections deal with the methods of Iterative Boltzmann Inversion (\ibi) and Inverse Monte Carlo (\imc).
+
+In general, \ibi and \imc are both implemented within the same framework. Therefore, most settings and parameters of those methods are similar and thus described in a general section (see sec. \ref{sec:iterative_methods_imc}). Further information on iterative methods follows in the next chapters, in particular on the \ibi and \imc methods.
+
+\begin{figure}[h]
+   \centering
+   \includegraphics[width=7cm]{usage/fig/flow_ibi.eps}
+   \caption{\label{fig:flow_ibi}Flowchart to perform iterative Boltzmann inversion.}
+\end{figure}
+
 \section{Iterative workflow control}
 \label{sec:iterative_workflow}
 
-%\begin{figure}
-\begin{wrapfigure}{ht}{7cm}
-\includegraphics[width=7cm]{functionality/fig/flowchart.eps}
-  \caption{
-    \label{fig:flowchart}
-    Block-scheme of the workflow control for the iterative methods. The most time-consuming parts are marked in red.
-  }
-\end{wrapfigure}
-%\end{figure}
+\begin{figure}[t]
+   \centering
+   \includegraphics[width=7cm]{functionality/fig/flowchart.eps}
+   \caption{\label{fig:flowchart}Block-scheme of the workflow control for the iterative methods. The most time-consuming parts are marked in red.}
+\end{figure}
+
 Iterative workflow control is essential for the \ibi and \imc methods.
 
 The general idea of iterative workflow is sketched in fig.~\ref{fig:flowchart}. During the global initialization the initial guess for the coarse-grained potential is calculated from the reference function or converted from a given potential guess into the internal format. The actual iterative step starts with an iteration initialization. It searches for possible checkpoints and copies and converts files from the previous step and the base directory. Then, the simulation run is prepared by converting potentials into the format required by the external sampling program and the actual sampling is performed. 
@@ -29,7 +36,7 @@ The first thing to do is generate reference distribution functions. These might 
 
 To get an overview of how input files look like, it is suggested to take a look at one of the tutorials provided on \votcaweb.
 
-In what follows we describe how to set up the iterative coarse-graining, run the main script, continue the run, and add customized scripts. 
+In what follows we describe how to set up the iterative coarse-graining, run the main script, continue the run, and add customized scripts.
 
 \subsection{Preparing the run}
 \label{sec:preparing_the_run}
@@ -42,7 +49,7 @@ The initial guess is normally taken as a potential of mean force and is generate
 A list of interactions to be iteratively refined has to be given in the options file. As an example, the \texttt{setting.xml} file for a propane is shown in listing~\ref{list:settings}. For more details,  see the full description of all options in ref.~\ref{sec:ref_options}.
 \begin{figure}
 \centering
-\framebox{
+\framebox{[width=7cm]
 \lstinputlisting{functionality/settings.xml}
 }
 \caption{\texttt{settings.xml} file specifies interactions to be refined, grid spacings, sampling engine, and the iterative method. The complete file can be found in the \texttt{propane/ibm} tutorial. 
@@ -52,7 +59,7 @@ A list of interactions to be iteratively refined has to be given in the options 
 
 \subsection{Starting the iterative process}
 \label{sec:starting_iterative_process}
-After all input files have been set up, the run can be started with
+After all input files have been set up, the run can be started by
 \begin{verbatim}
   csg_inverse --options settings.xml
 \end{verbatim}
@@ -89,11 +96,6 @@ If the iteration was interrupted, the script \prog{csg_inverse} might not be abl
 % #####################################################################################################################
 
 \section{Iterative Boltzmann Inversion}
-\begin{figure}
-   \centering
-   \includegraphics{usage/fig/flow_ibi.eps}
-   \caption{\label{fig:flow_ibi}Flowchart to perform iterative Boltzmann inversion.}
-\end{figure}
 
 \subsection{Input preparation}
 This section describes the usage of \ibi, implemented within the scripting framework described in the previous section \ref{sec:iterative_workflow}. It is suggested to get a basic understanding of this framework before proceeding.
@@ -116,6 +118,7 @@ To specify Iterative Boltzmann Inversion as algorithm in the script, add \texttt
 % #####################################################################################################################
 
 \section{Inverse Monte Carlo}
+\label{sec:iterative_methods_imc}
 In this section, additional options are described to run \imc coarse graining. The usage of \imc is similar to the one of \ibi and understanding the use of the scripting framework described in chapter~\ref{sec:iterative_workflow} is necessary.
 
 \textbf{WARNING: multicomponent \imc is still experimental!}
@@ -177,7 +180,7 @@ The pressure of the coarse-grained system usually does not match the pressure of
 \subsection{Simple pressure correction}
 In ref.\cite{Reith:2003} a simple linear attractive potential was added to the coarse-grained potential
 \begin{equation}
-  \Delta V(r)=A(1-\frac{r}{r_{cutoff}}) \,,
+  \Delta V(r)=A \left( 1-\frac{r}{r_{cutoff}} \right) \,,
 \end{equation}
 with prefactor $A$
 \begin{equation}

@@ -1,6 +1,5 @@
 \chapter{Preparing coarse-grained runs}
 \label{sec:usage:cgrun}
-\textbf{WARNING: This section describes experimental features. The exact names and options of the program might change in the near future.  The section is specific to \gromacs support though a generalization for other MD packages is planned.}
 
 \subsection*{Preliminary note}
 The coarse-grained run requires the molecule topology on the one hand and suitable potentials on the other. In this chapter, the generation of coarse-grained runs is decribed next, followed by a post-processing of the potential.
@@ -8,6 +7,8 @@ The coarse-grained run requires the molecule topology on the one hand and suitab
 If the potential is of such a form that it allows direct fitting of a functional form, the section on post-processing can be skipped. Instead, a program of choice should be used to fit a functional form to the potential. Nevertheless, special attention should be paid to units (angles, bondlengths). The resulting curve can then be specified in the MD package used for simulation. However, most potentials don't allow an easy processing of this kind and tabulated potentials have to be used.
 
 \section{Generating a topology file for a coarse-grained run}
+\subsubsection*{WARNING: This section describes experimental features. The exact names and options of the program might change in the near future.  The section is specific to \gromacs support though a generalization for other MD packages is planned.}
+
 The mapping definition is close to a topology needed for a coarse grained run. To avoid redundant work, \prog{csg_gmxtopol} can be used to automatically generate a gromacs topology based on an atomistic reference system and a mapping file.
 
 At the current state, \prog{csg_gmxtopol} can only generate the topology for the first molecule in the system. If more molecule types are present, a special tpr file has to be prepared. The program can be executed by

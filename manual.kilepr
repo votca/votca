@@ -4,7 +4,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
 kileprversion=2
 kileversion=2.1 beta2
-lastDocument=usage/iterative_methods.tex
+lastDocument=reference.tex
 masterDocument=
 name=manual
 pkg_extIsRegExp=false
@@ -72,21 +72,21 @@ order=-1
 
 [item:reference.tex]
 archive=true
-column=21
+column=13
 encoding=UTF-8
 highlight=LaTeX
-line=21
+line=25
 open=true
 order=1
 
 [item:theory.tex]
 archive=true
-column=269
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=131
-open=false
-order=2
+line=121
+open=true
+order=4
 
 [item:usage.tex]
 archive=true
@@ -130,7 +130,7 @@ column=260
 encoding=UTF-8
 highlight=LaTeX
 line=9
-open=true
+open=false
 order=3
 
 [item:usage/iterative_methods.tex]
@@ -138,9 +138,9 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=114
+line=19
 open=true
-order=4
+order=3
 
 [item:votca.bib]
 archive=true
