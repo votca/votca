@@ -22,11 +22,11 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script adds up two potentils
-In addtion it does some magic tricks:
+This script adds up two potentials
+In addition, it does some magic tricks:
 - order of infiles MATTER !!!!
-- if infile2 contain undef value, it uses the value from infile1
-- if value for infile1 and infile2 are invalid, result is also invalid
+- if infile2 contains an undefined value, it uses the value from infile1
+- if value for infile1 and infile2 are both invalid, the result is also invalid
 
 Usage: $progname infile1 infile2 outfile
 

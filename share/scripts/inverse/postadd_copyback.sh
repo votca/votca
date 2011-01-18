@@ -18,8 +18,8 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd copyback script, copys files back to the maindir
-use \${name} in filename, as replacement for the interaction name
+postadd copyback script, copies files back to the maindir,
+use \${name} in filename as replacement for the interaction name
 
 Usage: ${0##*/} infile outfile
 

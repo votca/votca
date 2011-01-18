@@ -41,7 +41,7 @@ public:
 
     string ProgramName() { return "csg_boltzmann"; }
     void HelpText(ostream &out) {
-        out << "Perform tasks that are needed for simple boltzmann\n"
+        out << "Performs tasks that are needed for simple boltzmann\n"
             "inversion in an interactive environment.";
     }
     bool DoTrajectory() { return true; }

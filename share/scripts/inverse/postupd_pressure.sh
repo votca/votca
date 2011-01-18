@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the pressure update
+This script implements the pressure update
 
 Usage: ${0##*/} infile outfile
 

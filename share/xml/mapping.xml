@@ -51,13 +51,13 @@
     <name>topology.cg_beads.cg_bead.beads</name>
     <desc>
       The beads section lists all atoms of the reference system that are mapped to this particular
-      coarse grained bead. The syntax is RESID:RESNAME:ATOMNAME, the beads are seperated by spaces.
+      coarse grained bead. The syntax is RESID:RESNAME:ATOMNAME, the beads are separated by spaces.
     </desc>
   </item>
   <item>
     <name>topology.cg_bonded</name>
     <desc>
-      The cg_bonded section contains all bonded interaction of the molecule. That can be bond, angle or dihedral.
+      The cg_bonded section contains all bonded interaction of the molecule. Those can be bond, angle or dihedral.
       An entry for each group of bonded interaction can be specified, e.g. several groups (types) of bonds can be specified.
       A specific bonded interaction can be later on addressed by MOLECULE:NAME:NUMBER, where MOLECULE is the molecule ID in
       the whole topology, NAME the name of the interaction group and NUMBER addresses the interaction in the group.

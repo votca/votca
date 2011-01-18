@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function update
+This script implements the function update
 for the Inverse Monte Carlo Method
 
 Usage: ${0##*/}

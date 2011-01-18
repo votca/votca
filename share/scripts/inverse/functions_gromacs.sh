@@ -19,7 +19,7 @@ if [ "$1" = "--help" ]; then
   #we add \$GMXDATA in USES, because gromacs will need it
 cat <<EOF
 ${0##*/}, version %version%
-Functions useful for gromacs 4.0
+Useful functions for gromacs 4.0
 
 NEEDS:
 

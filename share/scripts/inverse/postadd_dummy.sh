@@ -18,8 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd dummy script, just do nothing
-useful to overwrite default by nothing
+postadd dummy script (does nothing), useful to overwrite default by nothing
 
 Usage: ${0##*/} infile outfile
 

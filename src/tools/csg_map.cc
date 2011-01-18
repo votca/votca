@@ -31,9 +31,9 @@ class CsgMapApp
 public:
     string ProgramName() { return "csg_map"; }
     void HelpText(ostream &out) {
-        out << "Map a reference trajectory to a coarse-grained trajectory\n"
-            "This program can be used to map a whole trajectory or only\n"
-            "create an initial configuration for a coarse-grained run.";
+        out << "Map a reference trajectory to a coarse-grained trajectory.\n"
+            "This program can be used to map a whole trajectory or to\n"
+            "create an initial configuration for a coarse-grained run only.";
     }
 
     bool DoTrajectory() { return true;}

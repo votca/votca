@@ -31,7 +31,7 @@ public:
     string ProgramName() { return "csg_gmxtopol"; }
     void HelpText(ostream &out) {
         out << "Create skeleton for gromacs topology based on atomistic topology\n"
-            "and a mapping file. Files still needs to be modified by the user.";
+            "and a mapping file. File still needs to be modified by the user.";
     }
 
     bool DoMapping(void) { return true; }

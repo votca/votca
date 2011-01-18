@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents smoothing of the potential update (.dpot)
+This script implements smoothing of the potential update (.dpot)
 
 Usage: ${0##*/} infile outfile
 

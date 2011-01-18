@@ -40,7 +40,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	{
 		print <<END;
 $progname, version %version%
-Performs a linear operaton on the y values:
+This script performs a linear operation on the y values:
 y_new = a*y_old + b
 
 $usage

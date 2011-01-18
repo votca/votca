@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script make all the post update with backup
+This script makes all the post update with backup
 
 Usage: ${0##*/}
 
