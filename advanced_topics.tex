@@ -19,7 +19,7 @@ It is advised not to change already implemented scripts. To customize a script o
 If the local keys are already in use, the existing call will be overloaded.
 
 As an example, we will illustrate how to overload the script which calls the sampling package. 
-The \prog{csg_inverse} script runs \progex{mdrun} from the \gromacs package only on one cpu. Our task will be to change the script so that \gromacs uses 8 cpus, which is basically the same as adding the mpi options in \cgopt{inverse.mpi}.
+The \prog{csg_inverse} script runs \progex{mdrun} from the \gromacs package only on one cpu. Our task will be to change the script so that \gromacs uses 8 cpus, which is basically the same as adding the mpi options in \cgopt{inverse.parallel}.
 
 First we find out which script calls \progex{mdrun}:
 \begin{verbatim}
