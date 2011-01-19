@@ -118,8 +118,9 @@ my @ww;
 $pot[$#r]=0;
 $ww[$#r]=0;
 for (my $i=$#r-1;$i>=0;$i--){
+  #hh = delta x /2
   my $hh=0.5*($r[$i+1]-$r[$i]);
-  $pot[$i]=$pot[$i+1] - $hh*($force[$i+1]+$force[$i]);
+  $pot[$i]=$pot[$i+1] + $hh*($force[$i+1]+$force[$i]);
   $ww[$i]+= $hh;
   $ww[$i+1]+= $hh;
 }
