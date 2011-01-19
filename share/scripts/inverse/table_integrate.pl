@@ -43,7 +43,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	{
 		print <<END;
 $progname, version %version%
-This script calculates the integral of a table
+This script calculates the integral of a table. Please note the force is the NEGATIVE integral of the potential (use 'table linearop' and multiply the table with -1)
 
 $usage
 
@@ -113,14 +113,16 @@ my @pot_errors;
 my @ww;
 
 #calc pot with trapez rule
-#pot_j= - sum_i^j (r_i+1-r_i)*(f_i+f_i+1)/2
+#int_j= sum_i^j (r_i+1 - r_i)*(f_i+f_i+1)/2
+#int_j+1= int_j + (r_i+1 - r_i)*(f_i+f_i+1)/2
+#int_j= int_j+1 - (r_i+1 - r_i)*(f_i+f_i+1)/2
 #begin from end to make pot(max)=0
 $pot[$#r]=0;
 $ww[$#r]=0;
 for (my $i=$#r-1;$i>=0;$i--){
   #hh = delta x /2
   my $hh=0.5*($r[$i+1]-$r[$i]);
-  $pot[$i]=$pot[$i+1] + $hh*($force[$i+1]+$force[$i]);
+  $pot[$i]=$pot[$i+1] - $hh*($force[$i+1]+$force[$i]);
   $ww[$i]+= $hh;
   $ww[$i+1]+= $hh;
 }
