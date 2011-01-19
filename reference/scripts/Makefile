@@ -1,13 +1,18 @@
 SHELL=/bin/bash
-DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
-SCRIPTS:=$(shell csg_call -l | sed -e '1d' -e '/\.\(sh\|pl\)/!d' | awk '{print $$3}' | sort -u )
 
-.PHONY: clean bootstrap
+#get the last two dirs from pwd
+DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
+
+.PHONY: clean
 .SECONDARY:
 
-all: all.tex csg_table.tex 
+all: Makefile.incl all.tex csg_table.tex 
 wiki: all.wiki
-	
+
+#this is a hack to generate Makefile.incl
+HAKE:=$(shell $(MAKE) -f Makefile.SCRIPTS Makefile.incl)
+include Makefile.incl
+
 all.tex: $(SCRIPTSTEX)
 	echo $(SCRIPTSTEX) | \
 	sed -e 's/\.tex[[:space:]]*/\n/g' | \
@@ -24,7 +29,7 @@ csg_table.tex: csg_table.t2t
 	sed -i -e 's/{tabular}/{longtable}/' $@
 
 %.t2t: 
-	./help2t2t.sh csg_call --direct $* > $@	
+	./script2t2t.sh $* > $@	
 
 %.tex: %.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
@@ -37,18 +42,7 @@ clean:
 	rm -f $(SCRIPTSTEX) all.tex csg_table.tex
 	rm -f $(SCRIPTSWIKI) all.wiki
 	rm -f *~
-	rm -f Makefile
+	$(MAKE) -f Makefile.SCRIPTS clean
 
-bootstrap: 
-	@if ! which csg_call > /dev/null 2>&1; then\
-	  echo csg_call not found;\
-	  exit 1;\
-	fi
-	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i SCRIPTST2T=\\' > Makefile
-	echo >> Makefile
-	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i SCRIPTSTEX=\\' >> Makefile
-	echo >> Makefile
-	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i SCRIPTSWIKI=\\' >> Makefile
-	echo >> Makefile
-	cat Makefile.in >> Makefile
-	
+Makefile.incl:
+	$(MAKE) -f Makefile.SCRIPTS Makefile.incl

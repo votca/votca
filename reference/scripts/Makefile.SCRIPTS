@@ -1,0 +1,24 @@
+SHELL=/bin/bash
+SCRIPTS:=$(shell csg_call -l | sed -e '1d' -e '/\.\(sh\|pl\)/!d' | awk '{print $$3}' | sort -u )
+
+all: Makefile.incl
+
+.PHONY: dummy
+dummy: ;
+
+Makefile.incl: dummy
+	@if ! which csg_call > /dev/null 2>&1; then\
+	  echo csg_call not found;\
+	  exit 1;\
+	fi
+	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i SCRIPTST2T=\\' > $@
+	echo >> $@
+	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i SCRIPTSTEX=\\' >> $@
+	echo >> $@
+	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i SCRIPTSWIKI=\\' >> $@
+	echo >> $@
+	@#just added to avoid clock screw
+	sleep 0.5
+
+clean:
+	rm -f Makefile.incl

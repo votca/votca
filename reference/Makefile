@@ -13,11 +13,9 @@ check:
 	fi
 
 %_submake:
-	$(MAKE) $(MFLAGS) -C $* -f Makefile.in bootstrap
 	$(MAKE) $(MFLAGS) -C $*
 
 %_subclean:
-	$(MAKE) $(MFLAGS) -C $* -f Makefile.in bootstrap
 	$(MAKE) $(MFLAGS) -C $* clean
 
 HGID:=$(shell csg_call --help | sed -n 's/.*hgid: \(.*\)/\\newcommand{\\refhgid}{\1}/p')
