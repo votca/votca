@@ -62,7 +62,10 @@ export -f msg
 unset -f die
 die () {
   local pid pids c
+  msg "#############"
+  msg "ERROR:"
   msg "$*"
+  msg "#############"
   [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
@@ -83,8 +86,10 @@ die () {
         break
       fi
     done
-    echo "die: (called from $$)  CSG_MASTER_PID is $CSG_MASTER_PID"
-    echo "die: pids to kill: $pids"
+    if [ -n "${CSGLOG}" ]; then
+      echo "die: (called from $$)  CSG_MASTER_PID is $CSG_MASTER_PID"
+      echo "die: pids to kill: $pids"
+    fi
     kill $pids
   else
     #send kill signal to all process within the process groups
