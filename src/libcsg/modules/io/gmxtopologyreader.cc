@@ -22,7 +22,15 @@
 #include "config.h"
 #endif
 
-#if GMX == 45
+#if GMX == 50
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/typedefs.h>
+        #include <gromacs/legacyheaders/smalloc.h>
+        #include <gromacs/legacyheaders/vec.h>
+        #include <gromacs/legacyheaders/copyrite.h>
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/tpxio.h>
+#elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -57,7 +65,12 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     // cleanup topology to store new data
     top.Cleanup();
 
-#if GMX == 45
+#if GMX == 50
+    t_inputrec ir;
+    ::matrix gbox;
+
+    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
+#elif GMX == 45
     t_inputrec ir;
     ::matrix gbox;
 
@@ -92,7 +105,9 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         t_atoms *atoms=&(mol->atoms);
 
         for(int i=0; i < atoms->nres; i++) {
-#if GMX == 45
+#if GMX == 50
+                top.CreateResidue(*(atoms->resinfo[i].name));
+#elif GMX == 45
                 top.CreateResidue(*(atoms->resinfo[i].name));
 #elif GMX == 40
                 top.CreateResidue(*(atoms->resname[i]));
@@ -119,7 +134,9 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 top.InsertExclusion(iatom, excl_list);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
-#if GMX == 45
+#if GMX == 50
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+#elif GMX == 45
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
 #elif GMX == 40
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr, a->m, a->q);

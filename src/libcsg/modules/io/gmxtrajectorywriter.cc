@@ -67,7 +67,9 @@ for(int i=0; i<N; ++i) {
         x[i][2] = v.getZ(); 
     }
         
-#if GMX == 45
+#if GMX == 50
+    write_trxframe(_file, &frame, NULL);
+#elif GMX == 45
     write_trxframe(_file, &frame, NULL);
 #elif GMX == 40
     write_trxframe(_file, &frame);

@@ -12,7 +12,7 @@ AC_DEFUN([AX_GROMACS], [
     AC_SUBST(PKGLIBSGMX,"")
   else 
     if test -z "$withval" -o "$withval" = "yes"; then
-      libgmx="gmx"
+      PKG_CHECK_EXISTS([libgromacs],[libgmx="gromacs"],[libgmx="gmx"])
     else
       libgmx="${withval#lib}"
     fi
@@ -76,6 +76,8 @@ or disable GROMACS support with --without-libgmx.
 
 If you are using a mpi version of gromacs, make sure that CXX is something like mpic++.
 (e.g. export CXX="mpic++" and export GMX_LIBS="-L<gromacs-path>/lib -lgmx_mpi")
+
+In gromacs version 5.0 libgmx has been renamed to libgromacs, so GMX_LIBS should contain '-lgromacs'
       ])
     ])
     AC_MSG_CHECKING([for init_mtop in $GMX_LIBS])
@@ -95,6 +97,7 @@ Your version of GROMACS is too old, please update at least to version 4.0
       GMX_VERSION="45"
       gmxheader="gromacs/tpxio.h"
     ],[
+      dnl for gmx 4.0 without pkg-config
       AC_MSG_RESULT([no])
       if test -n "$GMXLDLIB"; then
         gmxincldir="-I$GMXLDLIB/../include/gromacs"
@@ -103,20 +106,19 @@ Your version of GROMACS is too old, please update at least to version 4.0
       fi
       gmxheader="tpxio.h"
     ])
+    AC_MSG_CHECKING([for calc_pres in $GMX_LIBS])
+    AC_TRY_LINK_FUNC(calc_pres,[
+      AC_MSG_RESULT([yes])
+      AC_MSG_NOTICE([
 
-dnl     enable this if gromacs 5.0 development starts
-dnl     AC_MSG_CHECKING([for output_env_init in $GMX_LIBS])
-dnl     AC_TRY_LINK_FUNC(output_env_init,[
-dnl       AC_MSG_RESULT([yes])
-dnl       AC_MSG_NOTICE([
-dnl
-dnl  We are using a development version of gromacs, we hope you know what you are doing....
-dnl unexpected results ahead
-dnl       ])
-dnl       GMX_VERSION="50"
-dnl     ],[
-dnl       AC_MSG_RESULT([no])
-dnl     ])
+  We are using a development version of gromacs, we hope you know what you are doing....
+ unexpected results ahead
+      ])
+      GMX_VERSION="50"
+      gmxheader="gromacs/legacyheaders/tpxio.h"
+    ],[
+      AC_MSG_RESULT([no])
+    ])
     CXX="$save_CXX"
     LIBS="$save_LIBS"
 

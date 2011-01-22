@@ -21,7 +21,9 @@
 #include "config.h"
 #endif
 
-#if GMX == 45
+#if GMX == 50
+#include <gromacs/legacyheaders/copyrite.h>
+#elif GMX == 45
 #include <gromacs/copyrite.h>
 #elif GMX == 40
     extern "C"

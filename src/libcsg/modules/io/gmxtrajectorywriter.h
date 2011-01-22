@@ -26,7 +26,15 @@
 #include "config.h"
 #endif
 
-#if GMX == 45
+#if GMX == 50
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/typedefs.h>
+        #include <gromacs/legacyheaders/smalloc.h>
+        #include <gromacs/legacyheaders/vec.h>
+        #include <gromacs/legacyheaders/copyrite.h>
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/tpxio.h>
+#elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -69,7 +77,9 @@ public:
     void Write(Topology *conf);
 
     private:
-#if GMX == 45
+#if GMX == 50
+       t_trxstatus* _file;
+#elif GMX == 45
        t_trxstatus* _file;
 #elif GMX == 40
        int _file;
