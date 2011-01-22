@@ -58,6 +58,7 @@ int main(int argc, char** argv)
     po::options_description desc("Allowed options");            
     
     desc.add_options()
+      ("help", "produce this help message")
       ("in", po::value<string>(&in_file), "table to read")
       ("out", po::value<string>(&out_file), "table to write")
       ("derivative", po::value<string>(), "table to write")
