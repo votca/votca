@@ -6,6 +6,10 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 
 == Version in hg ==
+* csg_stat or csg_fmatch give an error if trj not given (issue 29)
+* csg_get_interaction_property knows about defaults
+* fixed segfault in mapping (Fixes issue 27)
+* fixed bug in gromacs writer (frame.bX = true)
 
 
 == Version 1.0.1 ==
