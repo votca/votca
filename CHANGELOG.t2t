@@ -6,7 +6,7 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=tools]
 
 == Version in hg ==
-
+* random.cc: avoid calling of exit()
 
 == Version 1.0.1 ==
 * fixed a bug in VOTCARC.csh for empty LD_LIBRARY_PATH
