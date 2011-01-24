@@ -10,7 +10,8 @@ script="$1"
 shift
 
 [ -z "$(type csg_call)" ] && die "${0##*/}: csg_call not found"
-helpmsg="$(csg_call --direct "$script" --help)" || die "${0##*/}: csg_call --direct failed"
+tags=$(csg_call -l | awk -v name="$script" '($3==name){print $1,$2;quit}') || die "could not get tags"
+helpmsg="$(csg_call $tags --help)" || die "${0##*/}: csg_call $tags --help failed"
 
 echo "$script"
 echo ${0##*/}
@@ -46,16 +47,20 @@ echo -e "$helpmsg" | sed \
    -e 's/^\(Examples\|USES\|NEEDS\|Usage\|PROVIDES\|OPTIONAL\):/\n&/' \
    -e 's/^\(Allowed\|Trajectory\|Specific\) options:/\n&/' \
 
-
 exit
+echo
+echo
+echo
 #do not parse xml options of functions files
 [ -z "${script##function_*}" ] && exit 0
 
-content="$(csg_call --cat "$script")" || die "${0##*/}: csg_call --cat failed"
+content="$(csg_call --cat $tags)" || die "${0##*/}: csg_call --cat $tags failed"
 helpmsg="$(echo -e "$content" | sed -n -e '/^USES/d' -e '/csg_get_property/p')" || die "${0##*/}: sed failed"
 #shell sciprts
 if [ -n "$helpmsg" ] && [ -z "${script%%*.sh}" ]; then
-  echo "Used xml properties:"
   #trick to manage multiple csg_get_property per line
-  echo -e "$helpmsg" | sed -e 's/([[:space:]]\(csg_get_property\)/\n(\1/g'
-
+  echo -e "$helpmsg" | sed -e 's/([[:space:]]\(csg_get_property\)/\n(\1/g' | \
+  perl -n -e 'BEGIN {my $used=undef;}' \
+          -e '$used.="-$1\n" if /csg_get_property\s+(\S+[^)])\)?\s/;' \
+          -e 'END {print "Used xml options:\n$used" if ($used);}'
+fi
