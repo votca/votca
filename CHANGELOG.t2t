@@ -9,7 +9,7 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=tools
 * added thread class
 * added spline class, with akima spline, linear spline
 * added man7 page
-
+* random.cc: avoid calling of exit()
 
 == Version 1.0.1 ==
 * fixed a bug in VOTCARC.csh for empty LD_LIBRARY_PATH
