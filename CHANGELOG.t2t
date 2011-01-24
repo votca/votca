@@ -6,6 +6,9 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=tools]
 
 == Version in hg ==
+* added thread class
+* added spline class, with akima spline, linear spline
+* added man7 page
 
 
 == Version 1.0.1 ==
