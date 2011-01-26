@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES:  csg_get_interaction_property critical csg_resample check_deps get_main_dir
 
-NEEDS: min max step inverse.target name
 EOF
    exit 0
 fi

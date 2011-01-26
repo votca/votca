@@ -28,7 +28,6 @@ In addition, it does some magic tricks:
 
 Usage: $progname new_rdf target_rdf cur_pot outfile
 
-NEEDS: cg.inverse.kBT
 
 USES: readin_table saveto_table csg_get_property
 EOF

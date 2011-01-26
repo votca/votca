@@ -25,9 +25,7 @@ Usage: ${0##*/} step_nr
 
 USES:  die do_external die csg_get_interaction_property check_deps get_current_step_nr
 
-NEEDS: inverse.do_potential name
 
-OPTIONAL: min step max
 EOF
    exit 0
 fi

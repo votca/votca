@@ -24,7 +24,6 @@ Usage: ${0##*/} infile outfile
 
 USES: csg_get_interaction_property do_external check_deps
 
-NEEDS: name inverse.post_update_options.scale
 EOF
    exit 0
 fi

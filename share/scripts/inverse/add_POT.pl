@@ -30,7 +30,6 @@ In addition, it does some magic tricks:
 
 Usage: $progname infile1 infile2 outfile
 
-NEEDS:
 
 USES: readin_table saveto_table
 EOF

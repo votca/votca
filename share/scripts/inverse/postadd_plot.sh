@@ -24,9 +24,7 @@ Usage: ${0##*/} infile outfile
 
 USES: die check_deps critical mkfifo flock
 
-NEEDS: inverse.post_add_options.plot.script
 
-OPTIONAL: inverse.post_add_options.plot.gnuplot_bin inverse.post_add_options.plot.fd inverse.post_add_options.plot.kill inverse.post_add_options.plot.gnuplot_opts
 EOF
    exit 0
 fi

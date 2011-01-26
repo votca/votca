@@ -25,7 +25,6 @@ Usage: ${0##*/}
 
 USES: critical get_number_tasks csg_get_property check_deps
 
-OPTIONAL: cg.inverse.parallel.cmd cg.inverse.gromacs.mdrun.opts cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type cg.inverse.gromacs.mdrun.bin
 EOF
    exit 0
 fi

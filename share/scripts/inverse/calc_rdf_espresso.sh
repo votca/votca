@@ -25,9 +25,7 @@ Usage: ${0##*/}
 
 USES: csg_get_interaction_property csg_get_property critical csg_resample is_done mark_done msg check_deps
 
-NEEDS: type1 type2 name step min max inverse.espresso.index1 inverse.espresso.index2
 
-OPTIONAL: cg.inverse.espresso.equi_snapshots cg.inverse.espresso.bin cg.inverse.espresso.traj
 EOF
     exit 0
 fi

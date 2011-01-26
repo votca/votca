@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES:  do_external for_all check_deps csg_get_property
 
-NEEDS: cg.inverse.method
 EOF
    exit 0
 fi

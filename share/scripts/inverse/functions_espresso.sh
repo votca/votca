@@ -20,7 +20,6 @@ cat <<EOF
 ${0##*/}, version %version%
 Useful functions for espresso
 
-NEEDS:
 
 USES: 
 

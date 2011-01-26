@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES: msg die
 
-NEEDS:
 EOF
    exit 0
 fi

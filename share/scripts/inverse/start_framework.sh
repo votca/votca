@@ -24,7 +24,6 @@ PROVIDES: \$CSGXMLFILE \$CSGINVERSE \$SOURCE_WRAPPER \$CSGSCRIPTDIR \$CSG_MASTER
 
 USES: \$CSGSHARE die 
 
-NEEDS: cg.inverse.scriptdir cg.inverse.log_file cg.inverse.restart_file
 EOF
   exit 0
 fi

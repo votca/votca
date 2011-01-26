@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES: check_deps 
 
-NEEDS: 
 EOF
    exit 0
 fi

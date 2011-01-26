@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES:  do_external for_all check_deps
 
-NEEDS:
 EOF
    exit 0
 fi

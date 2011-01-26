@@ -57,7 +57,6 @@ Allowed options:
 Examples:
 * $progname --with-S --kbT 2.49435 tmp.force tmp.dpot
 
-NEEDS:
 
 USES: readin_table saveto_table
 END

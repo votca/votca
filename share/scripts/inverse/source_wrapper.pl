@@ -37,7 +37,6 @@ Usage: $progname word1 word2
 
 USES: \$CSGINVERSE \$CSGSCRIPTDIR
 
-NEEDS:
 END
   exit 0;
 }

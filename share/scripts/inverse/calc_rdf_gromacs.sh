@@ -25,9 +25,7 @@ Usage: ${0##*/}
 
 USES: get_from_mdp csg_get_interaction_property csg_get_property awk critical csg_resample is_done mark_done msg get_number_tasks multi_g_rdf check_deps
 
-NEEDS: type1 type2 name step min max
 
-OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.parallel.tasks cg.inverse.gromacs.mdp cg.inverse.gromacs.g_rdf.topol cg.inverse.gromacs.g_rdf.index cg.inverse.gromacs.g_rdf.opts cg.inverse.gromacs.traj_type cg.inverse.gromacs.g_rdf.bin
 EOF
    exit 0
 fi

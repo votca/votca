@@ -25,9 +25,7 @@ Usage: ${0##*/}
 
 USES: check_deps
 
-NEEDS: cg.inverse.espresso.blockfile
 
-OPTIONAL: cg.inverse.espresso.bin
 EOF
    exit 0
 fi

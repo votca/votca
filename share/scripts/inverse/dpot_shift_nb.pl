@@ -26,7 +26,6 @@ in such a way that dpot(r_max)=0.
 
 Usage: $progname infile outfile
 
-NEEDS:
 
 USES: readin_table saveto_table
 EOF

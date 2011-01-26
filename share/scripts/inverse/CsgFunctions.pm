@@ -35,7 +35,6 @@ saveto_table(\$\\@\\@\\@):           writes to a csg table
 saveto_table_err(\$\\@\\@\\@) :      writes to csg table with errors
 
 USES: \$CSGXMLFILE csg_property
-NEEDS:
 PROVIDES: csg_get_property csg_get_interaction_property readin_table saveto_table saveto_table_err readin_table_err saveto_table_err readin_data
 EOF
   exit 0;

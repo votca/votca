@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES: do_external csg_get_interaction_property csg_get_property critical csg_resample check_deps get_from_mdp awk
 
-NEEDS: name inverse.gromacs.table max cg.inverse.gromacs.table_bins cg.inverse.gromacs.table_end
 EOF
   exit 0
 fi

@@ -24,7 +24,6 @@ Usage: ${0##*/} infile outfile
 
 USES: die check_deps critical cp
 
-NEEDS: 
 EOF
    exit 0
 fi

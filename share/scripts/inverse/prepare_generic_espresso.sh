@@ -25,7 +25,6 @@ Usage: ${0##*/} last_sim_dir
 
 USES: check_deps cp_from_main_dir critical mv
 
-OPTIONAL: cg.inverse.espresso.blockfile
 EOF
   exit 0
 fi

@@ -24,7 +24,6 @@ Usage: ${0##*/} input output
 
 USES:  die msg do_external check_deps get_table_comment sed cat
 
-NEEDS:
 EOF
    exit 0
 fi

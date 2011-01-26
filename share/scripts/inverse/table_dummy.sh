@@ -23,7 +23,6 @@ Usage: ${0##*/} min:step:max outfile
 
 USES: die critical csg_resample check_deps mktemp get_table_comment critical 
 
-NEEDS: 
 EOF
    exit 0
 fi

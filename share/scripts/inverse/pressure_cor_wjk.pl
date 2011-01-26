@@ -27,11 +27,9 @@ and Int is the integral from Eq. 7 in the paper.
 
 Usage: $progname p_cur outfile
 
-NEEDS: cg.inverse.kBT max step inverse.particle_dens inverse.p_target name
 
 USES: csg_get_property csg_get_interaction_property saveto_table readin_table
 
-OPTIONAL: inverse.post_update_options.pressure.wjk.scale 
 EOF
   exit 0;
 }

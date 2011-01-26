@@ -24,7 +24,6 @@ Usage: ${0##*/} infile outfile
 
 USES: die csg_get_interaction_property mktemp sed awk csg_resample check_deps
 
-NEEDS: name min max step inverse.post_update_options.splinesmooth.step
 EOF
    exit 0
 fi

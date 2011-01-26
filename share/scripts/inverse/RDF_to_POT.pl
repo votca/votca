@@ -36,7 +36,6 @@ Usage: $progname infile outfile
 
 USES: readin_table csg_get_property csg_get_property csg_get_interaction_property saveto_table
 
-NEEDS: cg.inverse.kBT max
 
 EOF
   exit 0;

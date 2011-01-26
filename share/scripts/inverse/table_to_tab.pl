@@ -31,7 +31,6 @@ In addition, it does some magic tricks:
 
 Usage: $progname in_pot in_deriv_pot outfile
 
-NEEDS: cg.inverse.espresso.table_end cg.inverse.espresso.table_bins
 
 USES: csg_get_property saveto_table readin_table
 EOF

@@ -24,7 +24,6 @@ Usage: ${0##*/} infile outfile
 
 USES: die csg_get_interaction_property mktemp do_external cp critical check_deps
 
-NEEDS: name inverse.post_update_options.smooth.iterations
 EOF
    exit 0
 fi

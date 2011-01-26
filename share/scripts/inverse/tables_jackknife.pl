@@ -31,7 +31,6 @@ Usage: $progname out full block1 block2 ...
 
 USES: readin_table saveto_table_err
 
-NEEDS:
 EOF
   exit 0;
 }

@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES:  do_external critical csg_get_interaction_property csg_get_property csg_resample check_deps
 
-NEEDS: name min max step cg.inverse.kBT inverse.do_potential
 EOF
    exit 0
 fi

@@ -24,9 +24,7 @@ Usage: ${0##*/}
 
 USES: check_deps 
 
-NEEDS: cg.inverse.convergence_check_options.limit
 
-OPTIONAL: cg.inverse.convergence_check_options.name_glob
 EOF
    exit 0
 fi

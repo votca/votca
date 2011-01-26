@@ -24,7 +24,6 @@ Usage: ${0##*/} <group> <outfile>
 
 USES:  die sed matlab rm critical cat_external mv check_deps
 
-NEEDS:
 EOF
    exit 0
 fi

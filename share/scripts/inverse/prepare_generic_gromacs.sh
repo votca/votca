@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES: check_deps cp_from_main_dir critical mv
 
-NEEDS:
 EOF
    exit 0
 fi

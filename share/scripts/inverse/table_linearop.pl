@@ -54,7 +54,6 @@ Examples:
 
 USES: readin_table saveto_table
 
-NEEDS:
 END
 		exit;
 	}

@@ -24,9 +24,7 @@ Usage: ${0##*/}
 
 USES: check_deps cp_from_last_step critical mv
 
-NEEDS:
 
-OPTIONAL: cg.inverse.espresso.blockfile
 EOF
    exit 0
 fi

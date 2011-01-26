@@ -24,9 +24,7 @@ Usage: ${0##*/}
 
 USES: do_external csg_get_interaction_property critical csg_resample check_deps msg get_main_dir mktemp
 
-NEEDS: name min max step
 
-OPTIONAL: inverse.target
 EOF
   exit 0
 fi

@@ -24,7 +24,6 @@ Usage: ${0##*/} <group> <outfile>
 
 USES:  die sed octave rm critical cat_external check_deps
 
-NEEDS:
 EOF
    exit 0
 fi

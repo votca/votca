@@ -24,7 +24,6 @@ Skeleton script
 
 Usage: $progname argument
 
-NEEDS: cg.inverse.kBT
 
 USES: csg_get_property
 EOF

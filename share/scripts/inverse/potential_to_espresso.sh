@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES: do_external csg_get_interaction_property csg_get_property critical csg_resample check_deps
 
-NEEDS: name inverse.espresso.table max cg.inverse.espresso.table_bins
 EOF
   exit 0
 fi

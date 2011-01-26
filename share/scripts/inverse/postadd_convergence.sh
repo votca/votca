@@ -25,9 +25,7 @@ usage: ${0##*/} infile outfile
 
 USES: die check_deps do_external wc sed awk paste mktemp critical
 
-NEEDS: name
 
-OPTIONAL: inverse.post_add_options.convergence.weight inverse.post_add_options.convergence.what
 EOF
    exit 0
 fi

@@ -24,7 +24,6 @@ Usage: ${0##*/} step_nr
 
 USES: do_external for_all csg_get_interaction_property check_deps
 
-NEEDS: name
 EOF
    exit 0
 fi

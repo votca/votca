@@ -25,7 +25,6 @@ Usage: ${0##*/}
 
 USES: csg_get_property msg critical do_external sort for_all check_deps csg_get_interaction_property
 
-NEEDS: cg.inverse.imc.solver inverse.imc.group  cg.inverse.program
 EOF
    exit 0
 fi

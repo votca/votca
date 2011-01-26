@@ -56,7 +56,6 @@ Allowed options:
 Examples:
 * $progname --type bonded table.in table_b0.xvg
 
-NEEDS: cg.inverse.gromacs.pot_max cg.inverse.gromacs.table_end cg.inverse.gromacs.table_bins
 
 USES: csg_get_property saveto_table readin_table
 EOF

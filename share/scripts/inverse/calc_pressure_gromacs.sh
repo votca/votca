@@ -25,7 +25,6 @@ Usage: ${0##*/}
 
 USES: get_from_mdp csg_get_property awk critical die sed check_deps
 
-OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.gromacs.mdp cg.inverse.gromacs.g_energy.topol cg.inverse.gromacs.g_energy.bin
 EOF
    exit 0
 fi

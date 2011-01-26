@@ -24,7 +24,6 @@ Usage: ${0##*/} infile outfile
 
 USES: die check_deps critical do_external cp_from_last_step touch get_last_step_dir get_current_step_nr
 
-NEEDS: inverse.post_add_options.copyback.filelist name
 EOF
    exit 0
 fi

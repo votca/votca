@@ -25,9 +25,7 @@ Usage: ${0##*/}
 
 USES: msg critical mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
 
-NEEDS: cg.inverse.program
 
-OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type
 EOF
    exit 0
 fi

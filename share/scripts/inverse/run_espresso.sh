@@ -25,9 +25,7 @@ Usage: ${0##*/}
 
 USES: critical get_number_tasks csg_get_property check_deps
 
-NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
 
-OPTIONAL: cg.inverse.espresso.blockfile cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.bin cg.inverse.espresso.traj
 EOF
     exit 0
 fi

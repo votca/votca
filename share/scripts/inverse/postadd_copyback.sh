@@ -25,7 +25,6 @@ Usage: ${0##*/} infile outfile
 
 USES: die check_deps critical do_external cp_from_to get_main_dir
 
-NEEDS: inverse.post_add_options.copyback.filelist name
 EOF
    exit 0
 fi

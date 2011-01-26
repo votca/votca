@@ -24,7 +24,6 @@ Usage: ${0##*/}
 
 USES:  csg_get_interaction_property mv do_external critical check_deps
 
-NEEDS: name inverse.post_update
 EOF
    exit 0
 fi

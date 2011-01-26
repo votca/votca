@@ -24,9 +24,7 @@ Usage: ${0##*/} infile outfile
 
 USES:  die csg_get_property do_external csg_get_interaction_property critical check_deps get_current_step_nr
 
-NEEDS: cg.inverse.program name
 
-OPTIONAL: inverse.post_update_options.pressure.type inverse.post_update_options.pressure.do
 EOF
    exit 0
 fi

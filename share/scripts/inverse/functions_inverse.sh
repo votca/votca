@@ -47,7 +47,6 @@ USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property printf cp
 
 PROVIDES: die msg csg_get_interaction_property csg_get_property do_external for_all is_done mark_done sed critical cat_external show_external check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time get_number_tasks
 
-NEEDS:
 EOF
 exit 0
 fi

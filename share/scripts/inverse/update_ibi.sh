@@ -25,7 +25,6 @@ Usage: ${0##*/}
 
 USES:  msg csg_get_property for_all do_external check_deps
 
-NEEDS: cg.inverse.program
 EOF
    exit 0
 fi

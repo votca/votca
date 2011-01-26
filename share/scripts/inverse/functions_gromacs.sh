@@ -21,7 +21,6 @@ cat <<EOF
 ${0##*/}, version %version%
 Useful functions for gromacs 4.0
 
-NEEDS:
 
 USES: sed die \$GMXDATA check_deps
 
