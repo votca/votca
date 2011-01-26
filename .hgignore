@@ -38,6 +38,7 @@ share/scripts/inverse/Makefile.am
 share/doc/html/*
 share/man/*.man
 share/template/template
+share/template/template_threaded
 share/template/votca/csg
 src/config.h
 src/config.h.in
