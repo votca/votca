@@ -15,8 +15,6 @@ Makefile.incl: dummy
 	echo >> $@
 	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i SCRIPTSTEX=\\' >> $@
 	echo >> $@
-	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i SCRIPTSWIKI=\\' >> $@
-	echo >> $@
 	@#just added to avoid clock screw
 	sleep 0.5
 
