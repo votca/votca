@@ -21,6 +21,9 @@ all.tex: $(SCRIPTSTEX)
 csg_table.t2t: call2t2t.sh
 	./call2t2t.sh > $@
 
+config.t2t: ../config.t2t
+	cp $< $@
+
 csg_table.tex: csg_table.t2t config.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 	sed -i -e 's/{tabular}/{longtable}/' $@
@@ -32,7 +35,7 @@ csg_table.tex: csg_table.t2t config.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 
 clean: 
-	rm -f $(SCRIPTST2T) csg_table.t2t
+	rm -f $(SCRIPTST2T) csg_table.t2t config.t2t
 	rm -f $(SCRIPTSTEX) all.tex csg_table.tex
 	rm -f *~
 	$(MAKE) -f Makefile.SCRIPTS clean
