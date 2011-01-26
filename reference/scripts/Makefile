@@ -5,6 +5,7 @@ DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
 
 .PHONY: clean
 .SECONDARY:
+.DELETE_ON_ERROR: %.t2t
 
 all: Makefile.incl all.tex csg_table.tex 
 wiki: all.wiki
@@ -21,14 +22,14 @@ all.tex: $(SCRIPTSTEX)
 all.wiki: $(SCRIPTSWIKI)
 	cat $(SCRIPTSWIKI) > $@
 
-csg_table.t2t:
+csg_table.t2t: call2t2t.sh
 	./call2t2t.sh > $@
 
 csg_table.tex: csg_table.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 	sed -i -e 's/{tabular}/{longtable}/' $@
 
-%.t2t: 
+%.t2t: script2t2t.sh
 	./script2t2t.sh $* > $@	
 
 %.tex: %.t2t

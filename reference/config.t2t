@@ -1,5 +1,6 @@
 
 
+
 %!encoding: iso-8859-1
 
 %Anchor stuff
@@ -37,10 +38,3 @@
 %!postproc(tex): '\\item' '\item[ ]'
 %!postproc(tex): '^(.*)(\\begin\{itemize\})' '\1\2\n\1\setlength{\itemsep}{0pt}\n\1\setlength{\parskip}{0pt}\n\1\setlength{\parsep}{0pt}'
 
-%wiki stuff
-%%%%%%%%%%%%%%%%%%%
-%!preproc(wiki): '\+\+' '=='
-%!preproc(wiki): '<' 'XXXLTXXX'
-%!preproc(wiki): '>' 'XXXGTXXX'
-%!postproc(wiki): 'XXXLTXXX' '<nowiki><</nowiki>'
-%!postproc(wiki): 'XXXGTXXX' '<nowiki>></nowiki>'

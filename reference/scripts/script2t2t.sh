@@ -10,7 +10,7 @@ script="$1"
 shift
 
 [ -z "$(type csg_call)" ] && die "${0##*/}: csg_call not found"
-tags=$(csg_call -l | awk -v name="$script" '($3==name){print $1,$2;quit}') || die "could not get tags"
+tags=$(csg_call -l | awk -v name="$script" '($3==name){print $1,$2;exit}') || die "could not get tags"
 helpmsg="$(csg_call $tags --help)" || die "${0##*/}: csg_call $tags --help failed"
 
 echo "$script"
@@ -47,7 +47,6 @@ echo -e "$helpmsg" | sed \
    -e 's/^\(Examples\|USES\|NEEDS\|Usage\|PROVIDES\|OPTIONAL\):/\n&/' \
    -e 's/^\(Allowed\|Trajectory\|Specific\) options:/\n&/' \
 
-exit
 echo
 echo
 echo
@@ -55,12 +54,21 @@ echo
 [ -z "${script##function_*}" ] && exit 0
 
 content="$(csg_call --cat $tags)" || die "${0##*/}: csg_call --cat $tags failed"
-helpmsg="$(echo -e "$content" | sed -n -e '/^USES/d' -e '/csg_get_property/p')" || die "${0##*/}: sed failed"
+helpmsg="$(echo -e "$content" | sed -n -e '/^USES/d' -e '/csg_get_\(interaction_\)\?property/p')" || die "${0##*/}: sed failed"
+echo "Used xml options:"
+#set -x
 #shell sciprts
 if [ -n "$helpmsg" ] && [ -z "${script%%*.sh}" ]; then
-  #trick to manage multiple csg_get_property per line
-  echo -e "$helpmsg" | sed -e 's/([[:space:]]\(csg_get_property\)/\n(\1/g' | \
-  perl -n -e 'BEGIN {my $used=undef;}' \
-          -e '$used.="-$1\n" if /csg_get_property\s+(\S+[^)])\)?\s/;' \
-          -e 'END {print "Used xml options:\n$used" if ($used);}'
+  #1. trick to manage multiple csg_get_property per line by adding \n in the beginning
+  #2. get value and their defaults and add link()() for txt2tags
+  #3. rm quotes
+  #4. adding itemize and link()() for txt2tags to create links later
+  echo -e "$helpmsg" | \
+  perl -n \
+    -e 'if (/\(csg_get_(interaction_)?property\s+--allow-empty\s+(\S+?)\s*\)/) { print "$2 (default: empty)\n"; }
+        elsif (/\(csg_get_(interaction_)?property\s+(\S+?)\s+(\S+?)\s*\)/) { print "$2 (default: $3)\n";}
+        elsif (/\(csg_get_(interaction_)?property\s+(\S+?)\s*\)/) { print "$2\n";}
+ 	elsif (/csg_get_(interaction_)?property/) {die "Oho, I do NOT understand the line $_\n";}' | \
+  sed -e 's/"//g' -e "s/'//g" | \
+  perl -pe 's/^(\S+)/- link(PREFIX$1)($1)/;' -e 's/PREFIX([^c][^g])/cg.interaction.$1/;' -e 's/PREFIX//;'
 fi
