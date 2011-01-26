@@ -36,5 +36,5 @@
 %!postproc(tex): '^\s*$' '\n\\noindent '
 
 %!postproc(tex): '\\item' '\item[ ]'
-%!postproc(tex): '^(.*)(\\begin\{itemize\})' '\1\2\n\1\setlength{\itemsep}{0pt}\n\1\setlength{\parskip}{0pt}\n\1\setlength{\parsep}{0pt}'
+%!postproc(tex): '(\\begin|\\end)\{itemize\}' '\1{compactitem}'
 
