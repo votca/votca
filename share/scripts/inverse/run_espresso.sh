@@ -47,6 +47,15 @@ method="$(csg_get_property cg.inverse.method)"
 esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
+esp_dir="$(csg_get_property --allow-empty cg.inverse.espresso.scriptdir)"
+if [ -z "${esp_dir}" ]; then
+  [ -z "$ESPRESSO_SCRIPTS" ] && die "${0##*/}: cg.inverse.espresso.scriptdir of the xml setting file was empty and ESPRESSO_SCRIPTS not set in the environment.\nEspresso needs this variable to find its scripts."
+  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: ESPRESSO_SCRIPTS ($ESPRESSO_SCRIPTS) is not a directory"
+else
+  export ESPRESSO_SCRIPTS="${esp_dir}"
+  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: cg.inverse.espresso.scriptdir ($ESPRESSO_SCRIPTS) is not a directory"
+fi
+
 exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"
 
@@ -151,6 +160,12 @@ EOF
     tasks=$(get_number_tasks)
     if [ $tasks -gt 1 ]; then
 	mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
+        mpi_check=$(csg_get_property cg.inverse.espresso.mpi_check "yes")
+	if [ "${mpi_check}" = "yes" ]; then
+	  #in most cases mpirun want -x option to export environment to compute nodes
+	  [ -n "${mpicmd//*-x ESPRESSO_SCRIPTS*}" ] && die "${0##*/}: You have forgotten to add '-x  ESPRESSO_SCRIPTS' to the cg.inverse.parallel.cmd!\n
+For most mpi implementation this is needed to export the environment variable ESPRESSO_SCRIPTS on compute nodes.\n
+To disable this check set cg.inverse.espresso.mpi_check to 'no'"
 	critical $mpicmd $esp_bin $esp_script
     else
 	critical $esp_bin $esp_script

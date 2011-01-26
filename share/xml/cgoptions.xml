@@ -59,6 +59,7 @@
   <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso (default conf.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.blockfile_out</name><desc>Name of the original outcome blockfile written by Espresso (default confout.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.bin</name><desc>Name (or absolute path) of the Espresso binary</desc></item>
+  <item><name>cg.inverse.espresso.cufoff_check</name><desc> check for in ESPRESSO_SCRIPTS in parallel command: yes/no (default yes)</desc></item>
   <item><name>cg.inverse.espresso.equi_snapshots</name><desc>Number of snapshots to trash at the beginning of trajectory</desc></item>
   <item><name>cg.inverse.espresso.table_bins</name><desc> grid for tabulated potentials </desc></item>
   <item><name>cg.inverse.espresso.traj</name><desc> Name of the output Espresso trajectory file</desc></item>
@@ -69,6 +70,7 @@
   <item><name>cg.inverse.espresso.exclusions</name><desc> Espresso stuff to exclude</desc></item>
   <item><name>cg.inverse.espresso.meta_cmd</name><desc> Espresso metadynamics command to call [experimental]</desc></item>
   <item><name>cg.inverse.espresso.meta_min_sampling</name><desc> Espresso metadynamics minimal number of sampling [experimental]</desc></item>
+  <item><name>cg.inverse.espresso.scriptdir</name><desc>overwrite ESPRESSO_SCRIPTS from environment with this dir</desc></item>
   <item><name>cg.inverse.filelist</name><desc> these files are copied for each new run </desc></item>
   <item><name>cg.inverse.cleanlist</name><desc> these files are removed after each new run </desc></item>
   <item><name>cg.inverse.iterations_max</name><desc> do the given number of iterations (0=inf) </desc></item>
