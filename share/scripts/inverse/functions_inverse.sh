@@ -53,7 +53,12 @@ fi
 
 #echo a msg to the screen and send it to logfile too 
 msg() {
-  [ -n "$*" ] && echo -e "$*"
+  if [ "$1" = "--to-stderr" ]; then
+    shift
+    [ -n "$*" ] && echo -e "$*" >&2
+  else
+    [ -n "$*" ] && echo -e "$*"
+  fi
   [ -n "${CSGLOG}" ] && [ -t 3 ] && echo -e "$*" >&3
 }
 export -f msg
@@ -61,10 +66,12 @@ export -f msg
 unset -f die
 die () {
   local pid pids c
-  msg "#############"
-  msg "ERROR:"
+  msg "#################################"
+  msg "#################################"
+  msg "# ERROR:                        #"
   msg "$*"
-  msg "#############"
+  msg "#################################"
+  msg "#################################"
   [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
@@ -394,6 +401,8 @@ export -f get_time
 
 get_number_tasks() {
   local tasks
+  [ -n "$(csg_get_property --allow-empty cg.inverse.mpi.tasks)" ] && \
+    msg --to-stderr "get_number_tasks: the xml option cg.inverse.mpi.tasks has been renamed to cg.inverse.parallel.tasks\nPlease remove the obsolete cg.inverse.mpi block, it is not used anyway\n"
   tasks="$(csg_get_property cg.inverse.parallel.tasks 1)"
   [ "$tasks" = "auto" ] && tasks=0
   int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number"
