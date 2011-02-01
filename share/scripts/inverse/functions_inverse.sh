@@ -145,8 +145,7 @@ export -f critical
 
 #do somefor all pairs, 1st argument is the type
 for_all (){
-  local bondtype csg_get
-  local name interactions
+  local bondtype name names interactions i j
   if [ -z "$2" ]; then
     die "for_all need at least two arguments"
   fi
@@ -161,6 +160,12 @@ for_all (){
   echo "For all $bondtype"
   interactions="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name)" \
     || die "for_all: csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name' failed"
+  names=( ${interactions} )
+  for ((i=0;i<${#names[@]};i++)); do
+    for ((j=i+1;j<${#names[@]};j++)); do
+      [ "${names[$i]}" = "${names[$j]}" ] && die "for_all: the interaction name '${names[$i]}' appeared twice, this is not allowed"
+    done
+  done
   for name in $interactions; do
     echo "for_all: run '$*'"
     #we need to use bash -c here to allow things like $(csg_get_interaction_property xxx) in arguments
