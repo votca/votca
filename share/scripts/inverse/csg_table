@@ -33,6 +33,7 @@ initstep imc initialize_step_generic.sh
 
 #this is just to warn users from old versions
 prepare ibm prepare_ibm.sh
+update ibm update_ibm.sh
 
 # the update step
 update ibi update_ibi.sh
