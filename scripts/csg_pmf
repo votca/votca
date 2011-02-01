@@ -1,0 +1,223 @@
+#!/bin/bash
+#
+# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+sw_opt=""
+version='@version@'
+verbose="no"
+ext_cmd=""
+simprog=""
+
+#unset stuff from enviorment
+unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
+
+#failback define
+die() {
+  echo -e "$*" >&2
+  exit 1
+}
+
+vecho() {
+  [ "$verbose" = "yes" ] && echo -e "$*"
+}
+
+show_help () {
+  cat << eof
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+please submit bugs to bugs@votca.org
+
+${0##*/}, version ${version}
+
+
+
+This script calls another script for csg using source_wrapper
+
+Usage: ${0##*/} [OPTIONS] key1 key2
+
+Allowed options:
+-l, --list           Show list of all script
+    --verbose        Be verbose (useful with show and cat option)
+    --cat            Show the content of the script
+    --show           Show the path to the script
+    --check          Check all csg scripts
+    --scriptdir DIR  Set the user script dir
+                     (Used if no optins xml file is given)
+                     Default: empty
+    --simprog PROG   Set the simprog
+                     (Used if no options xml file is given)
+                     Default: empty
+    --options FILE   Specify the options xml file to use
+    --log     FILE   Specify the log file to use
+                     Default: stdout
+    --ia-type type   Specify the interaction type to use
+    --ia-name name   Specify the interaction name to use
+-h, --help           Show this help
+
+Examples:
+* ${0##*/} table smooth [ARGUMENTS]
+* ${0##*/} --show run gromacs
+* ${0##*/} --check
+
+USES: \$CSGSHARE
+
+NEEDS:
+eof
+}
+
+
+while [ "${1#-}" != "$1" ]; do
+ if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+    #short opt with arguments here: fc
+    if [ "${1#-[fc]}" != "${1}" ]; then
+       set -- "${1:0:2}" "${1:2}" "${@:2}"
+    else
+       set -- "${1:0:2}" "-${1:2}" "${@:2}"
+    fi
+ fi
+ case $1 in
+   -l | --list)
+    #we can not run it directly here SOURCE_WRAPPER is defined later
+    sw_opt="--status"
+    shift ;;
+   --check)
+    #we can not run it directly here SOURCE_WRAPPER is defined later
+    sw_opt="--check"
+    shift ;;
+   --scriptdir)
+    CSGSCRIPTDIR="$2"
+    shift 2;;
+   --simprog)
+    simprog="$2"
+    shift 2;;
+   --options)
+    export CSGXMLFILE="$2"
+    shift 2;;
+   --log)
+    export CSGLOG="$2"
+    shift 2;;
+   --ia-type)
+    export bondtype="$2"
+    shift 2;;
+   --ia-name)
+    export bondname="$2"
+    shift 2;;
+    #direct call hack
+   --cat)
+    ext_cmd="cat_external"
+    shift;;
+   --show)
+    ext_cmd="show_external"
+    shift;;
+   --direct)
+    quiet="yes"
+    break;;
+   --verbose)
+    verbose="yes"
+    shift;;
+   -h | --help)
+    show_help
+    exit 0;;
+   -v | --version)
+    echo "${0##*/}, version $version"
+    exit 0;;
+  *)
+   die "Unknown option '$1'";;
+ esac
+done
+
+[ -z "$2" ] && [ -z "$sw_opt" ] && die "${0##*/}: Missing argument"
+
+if [ -z "${CSGSHARE}" ]; then
+  if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
+    #transform it to a global path
+    export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
+  elif [ -f "@votcashare@/scripts/inverse/inverse.sh" ]; then
+    export CSGSHARE="@votcashare@"
+  else
+    echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
+    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
+    exit 1
+  fi
+else
+  if [ ! -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+    echo "Error: Environment value CSGSHARE seems to be wrong" >&2
+    echo "Could not find \${CSGSHARE}/scripts/inverse/inverse.sh" >&2
+    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
+    exit 1
+  fi
+fi
+
+vecho "CSGSHARE is ${CSGSHARE}"
+if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
+  source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
+else
+  die "Could not find start_framework.sh"
+fi
+add_csg_scriptdir
+
+[ -n "${CSGXMLFILE}" ] && simprog="$(csg_get_property --allow-empty cg.inverse.program)"
+[ -n "${simprog}" ] && source_function $simprog
+
+if [ -n "$sw_opt" ]; then
+  $SOURCE_WRAPPER $sw_opt
+  exit $?
+fi
+
+if [ -n "$ext_cmd" ]; then
+  $ext_cmd $1 $2
+  exit $?
+fi
+
+#help of scripts should always work
+if [ "$3" = "--help" ]; then
+cat <<EOF
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+please submit bugs to bugs@votca.org
+
+
+
+
+EOF
+  do_external -q $1 $2 --help | sed "s/%version%/${version}/"
+  exit 0
+fi
+
+needs="$(do_external $1 $2 --help | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
+[ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --options option"
+[ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "options xml file '$CSGXMLFILE' not found"
+
+interaction=""
+
+for i in $needs; do
+  [ -n "${i##cg.*}" ] && interaction="$interaction $i"
+done
+interaction=${interaction# }
+if [ -n "$interaction" ]; then
+  [ -z "${bondtype}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
+  [ -z "${bondname}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
+fi
+
+if [ -n "${CSGLOG}" ]; then
+  echo "For details see logfile: $CSGLOG"
+  exec 3>&1 >> "$CSGLOG" 2>&1
+fi
+do_external $@
