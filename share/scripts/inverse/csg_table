@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 
-# generic function declarations for all inverse scripts
-functions common functions_inverse.sh
-
 #general scripts
 tag file tag_file.sh
 dummy dummy dummy.sh
