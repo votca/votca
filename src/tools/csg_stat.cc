@@ -117,6 +117,6 @@ void CsgStatApp::EndEvaluate()
 int main(int argc, char** argv)
 {
     CsgStatApp app;
-    app.Exec(argc, argv);
+    return app.Exec(argc, argv);
 }
 
