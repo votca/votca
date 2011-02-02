@@ -274,7 +274,8 @@ for ((i=$begin;i<$iterations+1;i++)); do
     echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
-    if [ "$(do_external convergence_check "$convergence_check")" = "stop" ]; then
+    do_external convergence_check "$convergence_check"
+    if [ -f "stop" ]; then
       msg "Iterations are converged, stopping"
       touch "done"
       exit 0
