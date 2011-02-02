@@ -188,9 +188,9 @@ csg_get_interaction_property () {
     allow_empty="no"
   fi
   [[ -n "$1" ]] || die "csg_get_interaction_property: Missig argument"
-  [[ -n "$CSGXMLFILE" ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined"
-  [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined"
-  [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
+  [[ -n "$CSGXMLFILE" ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
+  [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter option will make csg_property fail, don't stop if we have an default
@@ -217,7 +217,7 @@ csg_get_property () {
     allow_empty="no"
   fi
   [[ -n "$1" ]] || die "csg_get_property: Missig argument"
-  [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
+  [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
@@ -427,7 +427,7 @@ get_table_comment() {
   version="$(csg_call --version)" || die "get_defaults_comment: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
-  echo "settings file: $CSGXMLFILE"
+  [ -n "${CSGXMLFILE}" ] && echo "settings file: $CSGXMLFILE"
   echo "working directory: $PWD"
 }
 export -f get_table_comment

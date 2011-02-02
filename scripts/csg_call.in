@@ -107,6 +107,7 @@ while [ "${1#-}" != "$1" ]; do
     shift 2;;
    --options)
     export CSGXMLFILE="$2"
+    [ -f "$CSGXMLFILE" ] || die "options xml file '$CSGXMLFILE' not found"
     shift 2;;
    --log)
     export CSGLOG="$2"
@@ -199,21 +200,6 @@ please submit bugs to bugs@votca.org
 EOF
   do_external -q $1 $2 --help | sed "s/%version%/${version}/"
   exit 0
-fi
-
-needs="$(do_external $1 $2 --help | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
-[ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --options option"
-[ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "options xml file '$CSGXMLFILE' not found"
-
-interaction=""
-
-for i in $needs; do
-  [ -n "${i##cg.*}" ] && interaction="$interaction $i"
-done
-interaction=${interaction# }
-if [ -n "$interaction" ]; then
-  [ -z "${bondtype}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
-  [ -z "${bondname}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
 fi
 
 if [ -n "${CSGLOG}" ]; then
