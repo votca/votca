@@ -21,17 +21,8 @@ ${0##*/}, version %version%
 Informs users that ibm was renamed to ibi.
 
 Usage: ${0##*/}
-
-USES: msg die
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
-
-msg "####################################"
-msg "# ERROR 'ibm' was renamed to 'ibi' #"
-msg "####################################"
 
 die "'ibm' was renamed to 'ibi'"

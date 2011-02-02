@@ -18,13 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script runs gromacs
-for the Inverse Boltzmann Method
+This script runs gromacs for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: critical get_number_tasks csg_get_property check_deps
-
+Used external packages: gromacs
 EOF
    exit 0
 fi
@@ -37,8 +35,6 @@ mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
-
-check_deps "$0"
 
 tasks=$(get_number_tasks)
 if [ $tasks -gt 1 ]; then

@@ -18,19 +18,13 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function update
-for the Inverse Boltzmann Method for a single pair
+This script implemtents the function update for a single pair
+for the Inverse Boltzmann Method
 
-Usage: ${0##*/} step_nr
-
-USES:  die do_external die csg_get_interaction_property check_deps get_current_step_nr
-
-
+Usage: ${0##*/}
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 step_nr=$(get_current_step_nr)
 scheme=( $(csg_get_interaction_property inverse.do_potential 1) )

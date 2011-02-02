@@ -22,14 +22,10 @@ postadd plot script, send a certain plot script to gnuplot
 
 Usage: ${0##*/} infile outfile
 
-USES: die check_deps critical mkfifo flock
-
-
+Used external packages: gnuplot
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 start_gnuplot_pipe() {
   eval "exec ${fd}> gnuplot_lock"

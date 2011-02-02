@@ -23,9 +23,6 @@ $progname, version %version%
 Skeleton script
 
 Usage: $progname argument
-
-
-USES: csg_get_property
 EOF
   exit 0;
 }

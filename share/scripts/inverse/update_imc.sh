@@ -22,14 +22,9 @@ This script implements the function update
 for the Inverse Monte Carlo Method
 
 Usage: ${0##*/}
-
-USES: csg_get_property msg critical do_external sort for_all check_deps csg_get_interaction_property
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 solver=$(csg_get_property cg.inverse.imc.solver)
 sim_prog="$(csg_get_property cg.inverse.program)"

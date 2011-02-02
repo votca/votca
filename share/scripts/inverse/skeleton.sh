@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 Skeleton script
 
 Usage: ${0##*/}
-
-USES:  die msg csg_get_property for_all do_external check_deps
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 msg "Skeleton script"
 sim_prog="$(csg_get_property cg.inverse.program)"

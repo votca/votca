@@ -18,17 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script makes all the post update with backup for single pairs
+This script makes all the post update with backup for single pairs incl. backups
 
 Usage: ${0##*/}
-
-USES:  csg_get_interaction_property mv do_external critical check_deps
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 

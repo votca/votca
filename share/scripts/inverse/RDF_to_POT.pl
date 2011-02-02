@@ -33,10 +33,6 @@ In addtion, it does some magic tricks:
 - set all values to zero after the cutoff
 
 Usage: $progname infile outfile
-
-USES: readin_table csg_get_property csg_get_property csg_get_interaction_property saveto_table
-
-
 EOF
   exit 0;
 }

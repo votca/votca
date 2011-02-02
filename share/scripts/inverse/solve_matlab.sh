@@ -22,13 +22,10 @@ This script solves a linear equation system from imc using matlab
 
 Usage: ${0##*/} <group> <outfile>
 
-USES:  die sed matlab rm critical cat_external mv check_deps
-
+Used external packages: matlab
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [[ -n "$2" ]] || die "${0##*/}: Missing arguments"
 

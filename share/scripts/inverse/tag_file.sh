@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 Add table_comment to the head of a file
 
 Usage: ${0##*/} input output
-
-USES:  die msg do_external check_deps get_table_comment sed cat
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [[ -n "$2" ]] || die "${0##*/}: Missing arguments"
 

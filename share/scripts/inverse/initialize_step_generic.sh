@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 This script implements the initialization for every step in a generic way
 
 Usage: ${0##*/}
-
-USES:  for_all csg_get_interaction_property mv check_deps cp_from_last_step
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"

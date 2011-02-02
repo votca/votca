@@ -30,9 +30,6 @@ In addition, it does some magic tricks:
 - set all values to zero after the cutoff
 
 Usage: $progname in_pot in_deriv_pot outfile
-
-
-USES: csg_get_property saveto_table readin_table
 EOF
   exit 0;
 }

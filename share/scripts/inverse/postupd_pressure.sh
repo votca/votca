@@ -21,15 +21,9 @@ ${0##*/}, version %version%
 This script implements the pressure update
 
 Usage: ${0##*/} infile outfile
-
-USES:  die csg_get_property do_external csg_get_interaction_property critical check_deps get_current_step_nr
-
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 

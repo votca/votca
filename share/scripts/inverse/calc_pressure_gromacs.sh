@@ -19,17 +19,13 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script calcs the pressure for gromacs
-for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_property awk critical die sed check_deps
-
+Used external packages: gromacs
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
@@ -50,7 +46,8 @@ first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
-echo "Running ${g_energy}"
+#to stderr, p_now goes to stdout
+echo "Running ${g_energy}" >&2
 output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${tpr}" ${opts})
 echo "$output"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on

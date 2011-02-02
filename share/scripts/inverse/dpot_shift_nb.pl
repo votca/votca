@@ -25,9 +25,6 @@ This script sets the beginning of the dpot to the first valid value and shifts t
 in such a way that dpot(r_max)=0.
 
 Usage: $progname infile outfile
-
-
-USES: readin_table saveto_table
 EOF
   exit 0;
 }

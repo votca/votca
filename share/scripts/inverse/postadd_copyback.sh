@@ -22,14 +22,9 @@ postadd copyback script, copies files back to the maindir,
 use \${name} in filename as replacement for the interaction name
 
 Usage: ${0##*/} infile outfile
-
-USES: die check_deps critical do_external cp_from_to get_main_dir
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 

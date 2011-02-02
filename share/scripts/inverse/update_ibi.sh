@@ -18,18 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the function update
-for the Inverse Boltzmann Method
+This script implements the function update for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
-
-USES:  msg csg_get_property for_all do_external check_deps
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 msg "Calc rdf"
 sim_prog="$(csg_get_property cg.inverse.program)"

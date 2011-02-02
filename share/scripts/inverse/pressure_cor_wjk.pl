@@ -26,10 +26,6 @@ Basically dU=A*(1-r/r_c) with A= -max(0.1k_B T, Int ) * sign(p_cur-p_target)
 and Int is the integral from Eq. 7 in the paper.
 
 Usage: $progname p_cur outfile
-
-
-USES: csg_get_property csg_get_interaction_property saveto_table readin_table
-
 EOF
   exit 0;
 }

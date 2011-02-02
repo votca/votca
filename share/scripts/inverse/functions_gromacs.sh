@@ -16,20 +16,15 @@
 #
 
 if [ "$1" = "--help" ]; then
-  #we add \$GMXDATA in USES, because gromacs will need it
 cat <<EOF
 ${0##*/}, version %version%
-Useful functions for gromacs 4.0
 
+Useful functions for gromacs
 
-USES: sed die \$GMXDATA check_deps
-
-PROVIDES: get_from_mdp cufoff_check
+Used external packages: gromacs
 EOF
   exit 0
 fi
-
-check_deps $0
 
 get_from_mdp() {
   local res

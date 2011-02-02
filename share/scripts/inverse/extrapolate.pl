@@ -144,8 +144,6 @@ exponential:
 quadratic:
   y = curv*(x+a)^2 + b; a = m/(2*curv) - x0; b = y0 - m^2/(4*curv)
 
-
-USES: readin_table saveto_table
 END
 		exit;
 	}

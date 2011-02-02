@@ -19,18 +19,13 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 postadd convergence script, calcs int of (\${name}.DIST.tgt-\${name}.DIST.new)**2
-and saves it to \${name}.conv. DIST is dist, but changed by onvergence.what option
+and saves it to \${name}.conv.
+DIST is dist, but changed by onvergence.what option
 
 usage: ${0##*/} infile outfile
-
-USES: die check_deps do_external wc sed awk paste mktemp critical
-
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 

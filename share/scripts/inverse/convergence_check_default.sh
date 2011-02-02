@@ -21,15 +21,9 @@ ${0##*/}, version %version%
 dummy script (does nothing), useful to overwrite default by nothing
 
 Usage: ${0##*/}
-
-USES: check_deps 
-
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 limit="$(csg_get_property cg.inverse.convergence_check_options.limit)"
 glob="$(csg_get_property cg.inverse.convergence_check_options.name_glob "*.conv")"

@@ -21,15 +21,9 @@ ${0##*/}, version %version%
 This script initializes an espresso simulation
 
 Usage: ${0##*/}
-
-USES: check_deps cp_from_last_step critical mv
-
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 from=$(csg_get_property cg.inverse.initial_configuration "laststep")
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"

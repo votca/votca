@@ -19,18 +19,13 @@ if [ "$1" = "--help" ]; then
     cat <<EOF
 ${0##*/}, version %version%
 This script calcs the rdf for espresso
-for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: csg_get_interaction_property csg_get_property critical csg_resample is_done mark_done msg check_deps
-
-
+Used external packages: espresso
 EOF
     exit 0
 fi
-
-check_deps "$0"
 
 # Topology+Trajectory read by Espresso
 top_traj="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"

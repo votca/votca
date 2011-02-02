@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 postadd dummy script (does nothing), useful to overwrite default by nothing
 
 Usage: ${0##*/} infile outfile
-
-USES: die check_deps critical cp
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 

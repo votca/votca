@@ -29,9 +29,6 @@ In addition, it does some magic tricks:
 - if value for infile1 and infile2 are both invalid, the result is also invalid
 
 Usage: $progname infile1 infile2 outfile
-
-
-USES: readin_table saveto_table
 EOF
   exit 0;
 }

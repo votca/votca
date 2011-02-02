@@ -55,9 +55,6 @@ Allowed options:
 
 Examples:
 * $progname --type bonded table.in table_b0.xvg
-
-
-USES: csg_get_property saveto_table readin_table
 EOF
     exit 0;
   }

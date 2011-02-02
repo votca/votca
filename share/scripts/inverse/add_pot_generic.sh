@@ -18,17 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the pressure update
+This script adds up the tables
 
-Usage: ${0##*/} step_nr
-
-USES: do_external for_all csg_get_interaction_property check_deps
-
+Usage: ${0##*/}
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 for_all "non-bonded" \
   critical do_external table add '$(csg_get_interaction_property name).pot.cur $(csg_get_interaction_property name).dpot.new $(csg_get_interaction_property name).pot.new'

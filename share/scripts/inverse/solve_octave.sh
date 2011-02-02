@@ -22,13 +22,10 @@ This script solves a linear equation system from imc using octave
 
 Usage: ${0##*/} <group> <outfile>
 
-USES:  die sed octave rm critical cat_external check_deps
-
+Used external packages: octave
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [[ -n "$2" ]] || die "${0##*/}: Missing arguments"
 

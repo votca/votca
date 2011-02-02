@@ -19,13 +19,9 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents statistical analysis for the iterative Boltzmann inversion 
-using generic csg tools
+using generic csg tools (csg_stat)
 
 Usage: ${0##*/}
-
-USES: msg critical mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
-
-
 EOF
    exit 0
 fi
@@ -46,7 +42,6 @@ fi
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 
-check_deps "$0"
 tasks=$(get_number_tasks)
 msg "Calculating rdfs with csg_stat using $tasks tasks"
 if is_done "rdf_analysis"; then

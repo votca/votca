@@ -49,9 +49,6 @@ Allowed options:
 
 Examples:
 * $progname tmp.dpot.cur tmp.dpot.new
-
-USES: readin_table saveto_table
-
 END
 		exit;
 	}

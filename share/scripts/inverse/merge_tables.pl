@@ -55,9 +55,6 @@ Allowed options:
 
 Examples:  
 * $progname intable intable2 outtable
-
-USES: readin_table saveto_table
-
 END
 		exit;
 	}

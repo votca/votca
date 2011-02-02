@@ -15,18 +15,13 @@
 # limitations under the License.
 #
 
-#defaults
-usage="Usage: ${0##*/} [OPTIONS] [setting_file.xml]"
-
 show_help () {
   cat << eof
 ${0##*/}, version %version%
 
-
-
 Start the script to run ibi, imc, etc.
 
-$usage
+Usage: ${0##*/} [OPTIONS] [setting_file.xml]
 
 Allowed options:
 -h, --help                    show this help
@@ -38,9 +33,6 @@ Allowed options:
 Examples:
 * ${0##*/} cg.xml
 * ${0##*/} -6 cg.xml
-
-USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done critical csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time rm update_stepnames
-
 eof
 }
 

@@ -17,18 +17,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script resamples target distribution to grid spacing
-for calculations
+This script resamples target distribution to grid spacing of the setting xml file
 
 Usage: ${0##*/}
-
-USES:  csg_get_interaction_property critical csg_resample check_deps get_main_dir
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 min=$(csg_get_interaction_property min )
 max=$(csg_get_interaction_property max )

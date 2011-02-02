@@ -19,11 +19,6 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 this script starts the iterative framework and performs a lot of tests
-
-PROVIDES: \$CSGXMLFILE \$CSGINVERSE \$SOURCE_WRAPPER \$CSGSCRIPTDIR \$CSG_MASTER_PID
-
-USES: \$CSGSHARE die 
-
 EOF
   exit 0
 fi

@@ -20,11 +20,9 @@ cat <<EOF
 ${0##*/}, version %version%
 Useful functions for espresso
 
-
-USES: 
-
-PROVIDES: 
+Used external packages: espresso
 EOF
   exit 0
 fi
 
+#need to be there, because simprog function file is not optional

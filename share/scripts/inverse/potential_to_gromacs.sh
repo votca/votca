@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 This script is a wrapper to convert a potential to gromacs
 
 Usage: ${0##*/}
-
-USES: do_external csg_get_interaction_property csg_get_property critical csg_resample check_deps get_from_mdp awk
-
 EOF
   exit 0
 fi
-
-check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 input="${name}.pot.cur"

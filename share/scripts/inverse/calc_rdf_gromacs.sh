@@ -18,19 +18,14 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the rdf for gromacs
-for the Inverse Boltzmann Method
+This script calcs the rdf for gromacs using g_rdf
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_interaction_property csg_get_property awk critical csg_resample is_done mark_done msg get_number_tasks multi_g_rdf check_deps
-
-
+Used external packages: gromacs
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"

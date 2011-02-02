@@ -18,19 +18,14 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the pressure for espresso
-for the Inverse Boltzmann Method
+This script calcs the pressure for espresso and returns it to stdout
 
 Usage: ${0##*/}
 
-USES: check_deps
-
-
+Used external packages: espresso
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 # Espresso config file (required for certain parameters, e.g. box size)
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
@@ -43,8 +38,9 @@ esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
 esp_script="$(mktemp esp.pressure.tcl.XXXXX)"
 esp_success="$(mktemp esp.pressure.done.XXXXX)"
 
+#to stderr, because p_now go to stdout
+echo "Calculating pressure" >&2
 
-echo "Calculating pressure"
 cat > $esp_script <<EOF
 set esp_in [open "|gzip -cd $esp" r]
 while { [blockfile \$esp_in read auto] != "eof" } { }

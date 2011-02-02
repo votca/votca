@@ -25,9 +25,6 @@ $progname, version %version%
 This script smoothes a table
 
 Usage: $progname infile outfile
-
-USES: readin_table saveto_table
-
 EOF
   exit 0;
 }

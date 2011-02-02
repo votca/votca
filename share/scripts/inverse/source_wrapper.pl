@@ -34,9 +34,6 @@ Hacky usage: $progname --direct scriptname
 then we try to find scriptname in global,pwd,CSGSCRIPTDIR,CSGINVERSE
 
 Usage: $progname word1 word2
-
-USES: \$CSGINVERSE \$CSGSCRIPTDIR
-
 END
   exit 0;
 }

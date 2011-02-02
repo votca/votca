@@ -27,9 +27,6 @@ In addition, it does some magic tricks:
 - do not update if one of the two rdf is undefined
 
 Usage: $progname new_rdf target_rdf cur_pot outfile
-
-
-USES: readin_table saveto_table csg_get_property
 EOF
   exit 0;
 }

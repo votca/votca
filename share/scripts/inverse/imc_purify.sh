@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 This scripts cleans up the dpot tables for each interaction when using IMC
 
 Usage: ${0##*/}
-
-USES:  do_external critical csg_get_interaction_property csg_get_property csg_resample check_deps
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property min)

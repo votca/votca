@@ -20,14 +20,9 @@ ${0##*/}, version %version%
 This script creates a dummy table with grid min:step:max
 
 Usage: ${0##*/} min:step:max outfile
-
-USES: die critical csg_resample check_deps mktemp get_table_comment critical 
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 

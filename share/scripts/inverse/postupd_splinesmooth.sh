@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 This script implements smoothing of the potential update (.dpot)
 
 Usage: ${0##*/} infile outfile
-
-USES: die csg_get_interaction_property mktemp sed awk csg_resample check_deps
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 

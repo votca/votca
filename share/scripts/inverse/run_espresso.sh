@@ -18,19 +18,14 @@
 if [ "$1" = "--help" ]; then
     cat <<EOF
 ${0##*/}, version %version%
-This script runs espresso
-for the Inverse Boltzmann Method
+This script runs espresso for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: critical get_number_tasks csg_get_property check_deps
-
-
+Used external packages: espresso
 EOF
     exit 0
 fi
-
-check_deps "$0"
 
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"

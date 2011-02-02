@@ -28,9 +28,6 @@ This script calculates the jackknife error from existing tables
 * outfile  = file to write results
 
 Usage: $progname out full block1 block2 ...
-
-USES: readin_table saveto_table_err
-
 EOF
   exit 0;
 }

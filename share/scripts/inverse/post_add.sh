@@ -18,18 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script makes all the post update with backup
+This script makes all the post update
 
 Usage: ${0##*/}
-
-USES:  do_external for_all check_deps
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
-
 
 for_all "non-bonded" do_external post add_single
 
