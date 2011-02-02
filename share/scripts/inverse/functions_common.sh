@@ -31,8 +31,6 @@ We have defined some useful (?) functions:
                       supports for_all
 * for_all           = run a command for all non-bonded pairs
 * critical          = run and die if error
-* check_for         = checks if a binary exists in the path
-* check_deps        = checks the dependencies of a script
 
 Examples:
 * echo "Hi"
@@ -116,12 +114,15 @@ export -f show_external
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
-  local script tags quiet="no"
+  local script tags quiet="no" packages
   [ "$1" = "-q" ] && quiet="yes" && shift
   [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
   tags="$1 $2"
   shift 2
+  packages="$(critical $script --help)"
+  packages="$(echo "$deps" | sed -n 's/^Used external packages://p')" || die "do_external: sed failed"
+  check_for_package $packages
   [ "$quiet" = "no" ] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
   $script "$@" || die "do_external: subscript $script $* (from tags $tags) failed"
 }
@@ -129,13 +130,8 @@ export -f do_external
 
 #useful subroutine check if a command was succesful AND log the output
 critical() {
-  local quiet
-  if [ "$1" = "-q" ]; then
-    quiet="yes"
-    shift
-  else
-    quiet="no"
-  fi
+  local quiet="no"
+  [ "$1" = "-q" ] && quiet="yes" && shift
   [ -z "$1" ] && die "critical: missing argument"
   #print this message to stderr because $(critical something) is used very often
   [ "$quiet" = "no" ] && echo "Running critical command '$*'" >&2
@@ -245,33 +241,24 @@ is_done () {
 }
 export -f is_done
 
-check_for () {
-  [[ -n "$2" ]] || die "check_for: Missig arguments"
-  file="$1"
-  shift
-  local exe
-  for exe in $@; do
-    if [ -z "${exe##\$*}" ]; then
-      exe=${exe#\$}
-      [[ -n "${!exe}" ]] || die "check_for: '${exe}' is undefined in ${file}"
-      continue
-    fi
-    [[ -n "$(type -t $exe)" ]] || die "check_for: Could not find $exe needed by ${file}"
+check_for_package () {
+  local i x
+  [[ -z "$1" ]] && return 0
+  for i in "$@"; do
+    case $i in
+      espresso | gromacs )
+        x="$(csg_get_property cg.inverse.program)"
+	[ "$i" = "$x" ] || die "check_for_package: script needs '$i' please set cg.inverse.program in your xml file"
+        true;;
+      octave | matlab | gunplot )
+        [ -z "$(type -p $i)" ] && die "check_for_package: script needs '$i', but it was not found in your path"
+        true;;
+      *)
+       die "check_for_package: I don't know how to check for $i";;
+    esac
   done
 }
-export -f check_for
-
-check_deps () {
-  [[ -n "$1" ]] || die "check_deps: Missig argument"
-  local deps
-  deps="$(critical $1 --help)"
-  deps="$(echo "$deps" | sed -n '/^USES:/p')" || die "check_deps: sed failed"
-  [[ -z "${deps}" ]] && msg "check_for '$1' has no used block please add it" && return 0
-  deps=$(echo "$deps" | sed 's/USES://')
-  [[ -z "${deps}" ]] && return 0
-  check_for "${1##*/}" $deps
-}
-export -f check_deps
+export -f check_for_package
 
 int_check() {
   [[ -n "$2" ]] || die "int_check: Missig argument"
