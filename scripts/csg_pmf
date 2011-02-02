@@ -15,11 +15,7 @@
 # limitations under the License.
 #
 
-sw_opt=""
-version='@version@'
 verbose="no"
-ext_cmd=""
-simprog=""
 
 #unset stuff from enviorment
 unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
@@ -46,40 +42,17 @@ ${0##*/}, version ${version}
 
 
 
-This script calls another script for csg using source_wrapper
+This script runs csg_pmf using source_wrapper
 
-Usage: ${0##*/} [OPTIONS] key1 key2
+Usage: ${0##*/} --options xmlfile
 
 Allowed options:
--l, --list           Show list of all script
-    --verbose        Be verbose (useful with show and cat option)
-    --cat            Show the content of the script
-    --show           Show the path to the script
-    --check          Check all csg scripts
-    --scriptdir DIR  Set the user script dir
-                     (Used if no optins xml file is given)
-                     Default: empty
-    --simprog PROG   Set the simprog
-                     (Used if no options xml file is given)
-                     Default: empty
     --options FILE   Specify the options xml file to use
-    --log     FILE   Specify the log file to use
-                     Default: stdout
-    --ia-type type   Specify the interaction type to use
-    --ia-name name   Specify the interaction name to use
 -h, --help           Show this help
 
-Examples:
-* ${0##*/} table smooth [ARGUMENTS]
-* ${0##*/} --show run gromacs
-* ${0##*/} --check
-
 USES: \$CSGSHARE
-
-NEEDS:
 eof
 }
-
 
 while [ "${1#-}" != "$1" ]; do
  if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
@@ -91,57 +64,16 @@ while [ "${1#-}" != "$1" ]; do
     fi
  fi
  case $1 in
-   -l | --list)
-    #we can not run it directly here SOURCE_WRAPPER is defined later
-    sw_opt="--status"
-    shift ;;
-   --check)
-    #we can not run it directly here SOURCE_WRAPPER is defined later
-    sw_opt="--check"
-    shift ;;
-   --scriptdir)
-    CSGSCRIPTDIR="$2"
-    shift 2;;
-   --simprog)
-    simprog="$2"
-    shift 2;;
    --options)
     export CSGXMLFILE="$2"
     shift 2;;
-   --log)
-    export CSGLOG="$2"
-    shift 2;;
-   --ia-type)
-    export bondtype="$2"
-    shift 2;;
-   --ia-name)
-    export bondname="$2"
-    shift 2;;
-    #direct call hack
-   --cat)
-    ext_cmd="cat_external"
-    shift;;
-   --show)
-    ext_cmd="show_external"
-    shift;;
-   --direct)
-    quiet="yes"
-    break;;
-   --verbose)
-    verbose="yes"
-    shift;;
    -h | --help)
     show_help
-    exit 0;;
-   -v | --version)
-    echo "${0##*/}, version $version"
     exit 0;;
   *)
    die "Unknown option '$1'";;
  esac
 done
-
-[ -z "$2" ] && [ -z "$sw_opt" ] && die "${0##*/}: Missing argument"
 
 if [ -z "${CSGSHARE}" ]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
@@ -163,6 +95,8 @@ else
   fi
 fi
 
+CSGSHARE="/people/thnfs/homes/jochum/src/csg/share"
+
 vecho "CSGSHARE is ${CSGSHARE}"
 if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
   source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
@@ -171,53 +105,38 @@ else
 fi
 add_csg_scriptdir
 
-[ -n "${CSGXMLFILE}" ] && simprog="$(csg_get_property --allow-empty cg.inverse.program)"
-[ -n "${simprog}" ] && source_function $simprog
+[ -z "$CSGXMLFILE" ] && die "Script will need some options from the xml file\nPlease specify it with --options option"
+[ ! -f "$CSGXMLFILE" ] && die "options xml file '$CSGXMLFILE' not found"
 
-if [ -n "$sw_opt" ]; then
-  $SOURCE_WRAPPER $sw_opt
-  exit $?
-fi
+# Step 1 - Initialize
+mkdir 01_initialize
+do_external initialize_pmf
 
-if [ -n "$ext_cmd" ]; then
-  $ext_cmd $1 $2
-  exit $?
-fi
+# Step 2 - Generate configurations
+last_step="01_initialize"
+mkdir 02_prepare
+cd 02_prepare
+cp ../$last_step/topol.top .
+cp ../$last_step/index.ndx .
+cp ../$last_step/grompp.mdp.template .
+cp ../$last_step/confout.gro conf.gro
+cp ../$last_step/grompp.mdp start_in.mdp
+cp ../$last_step/*.itp .
 
-#help of scripts should always work
-if [ "$3" = "--help" ]; then
-cat <<EOF
-==================================================
-========   VOTCA (http://www.votca.org)   ========
-==================================================
+do_external prepare_pmf
 
-please submit bugs to bugs@votca.org
+# Step 3 - Run simulations
+unset last_step
+last_step="02_prepare"
+mkdir 03_simulate
+cp ../$last_step/topol.top .
+cp ../$last_step/index.ndx .
+cp ../$last_step/grompp.mdp.template .
+cp ../$last_step/conf_start*.gro .
+cp ../$last_step/*.itp .
+cp ../$last_step/dist.xvg .
 
+do_external simulate_pmf
 
-
-
-EOF
-  do_external -q $1 $2 --help | sed "s/%version%/${version}/"
-  exit 0
-fi
-
-needs="$(do_external $1 $2 --help | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
-[ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --options option"
-[ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "options xml file '$CSGXMLFILE' not found"
-
-interaction=""
-
-for i in $needs; do
-  [ -n "${i##cg.*}" ] && interaction="$interaction $i"
-done
-interaction=${interaction# }
-if [ -n "$interaction" ]; then
-  [ -z "${bondtype}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
-  [ -z "${bondname}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
-fi
-
-if [ -n "${CSGLOG}" ]; then
-  echo "For details see logfile: $CSGLOG"
-  exec 3>&1 >> "$CSGLOG" 2>&1
-fi
-do_external $@
+# Step 4 - Calculate pmf
+do_external calc_pmf
