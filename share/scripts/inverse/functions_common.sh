@@ -66,12 +66,7 @@ export -f msg
 unset -f die
 die () {
   local pid pids c
-  msg "#################################"
-  msg "#################################"
-  msg "# ERROR:                        #"
-  msg "$*"
-  msg "#################################"
-  msg "#################################"
+  msg "$(csg_banner "ERROR:" "$@")"
   [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
@@ -133,12 +128,22 @@ do_external() {
   tags="$1 $2"
   shift 2
   [ "$quiet" = "no" ] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
-  $script "$@" 2>&1 || die "do_external: subscript $script $* (from tags $tags) failed"
+  $script "$@" || die "do_external: subscript $script $* (from tags $tags) failed"
 }
 export -f do_external
 
 #useful subroutine check if a command was succesful AND log the output
 critical() {
+  local quiet
+  if [ "$1" = "-q" ]; then
+    quiet="yes"
+    shift
+  else
+    quiet="no"
+  fi
+  [ -z "$1" ] && die "critical: missing argument"
+  #print this message to stderr because $(critical something) is used very often
+  [ "$quiet" = "no" ] && echo "Running critical command '$*'" >&2
    "$@" || die "critical: '$*' failed"
 }
 export -f critical
@@ -194,7 +199,7 @@ csg_get_interaction_property () {
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter option will make csg_property fail, don't stop if we have an default
-  if ! ret="$($cmd 2>&1)"; then
+  if ! ret="$($cmd)"; then
     [ "$allow_empty" = "no" ] && [ -z "$2" ] && \
       die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
     #ret has error message
@@ -221,7 +226,7 @@ csg_get_property () {
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
-  ret="$(critical $cmd)"
+  ret="$(critical -q $cmd)"
   [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_property: Could not get '$1'\nResult of '$cmd' was empty"
@@ -382,7 +387,7 @@ cp_from_to() {
     if [ "$from/$i" = "$(echo $from/$i)" ]; then
       [ -e "$from/$i" ] || die "cp_from_to: could not find '$from/$i'"
     fi
-    cp -r $from/$i "$where" 2>&1 || die "cp_from_to: cp -r '$from/$i' '$where' failed"
+    cp -r $from/$i "$where" || die "cp_from_to: cp -r '$from/$i' '$where' failed"
   done
 }
 export -f cp_from_to
@@ -474,3 +479,31 @@ source_function() {
   source ${function_file} || die "source_function: source ${function_file} failed"
 }
 export -f source_function
+
+csg_banner() {
+  local i l=0 list=()
+  [ -z "$1" ] && return 0
+  for i in "$@"; do
+    while [ -z "${i/*\\n*}" ]; do
+      list[$l]="${i%%\\n*}"
+      ((l++))
+      i="${i#*\\n}"
+    done
+    list[$l]=$i
+    ((l++))
+  done
+
+  l="1"
+  for i in "${list[@]}"; do
+    [ ${#l} -lt ${#i} ] && l="${i}"
+  done
+
+  echo "####${l//?/#}"
+  echo "# ${l//?/ } #"
+  for i in "${list[@]}"; do
+    printf "# %-${#l}s #\n" "$i"
+  done
+  echo "# ${l//?/ } #"
+  echo "####${l//?/#}"
+}
+export -f csg_banner
