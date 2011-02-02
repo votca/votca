@@ -27,19 +27,19 @@
   <item><name>cg.inverse.$sim_prog</name><desc> generic simulation program (e.g. GROMACS) options </desc></item>
   <item><name>cg.inverse.$sim_prog.equi_time</name><default>0.0</default><desc> begin analysis after this time </desc></item>
   <item><name>cg.inverse.$sim_prog.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning </desc></item>
-  <item><name>cg.inverse.$sim_prog.topol</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
-  <item><name>cg.inverse.$sim_prog.traj</name><desc> topology + trajectory. Be careful, do not change yet! </desc></item>
+  <item><name>cg.inverse.$sim_prog.topol</name><desc> topology of the generic simprog </desc></item>
+  <item><name>cg.inverse.$sim_prog.traj</name><desc> topology of the generic simprog </desc></item>
 
   <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
   <item><name>cg.inverse.gromacs.conf</name><desc>Name of the coordinate file read by grompp (default conf.gro)</desc></item>
   <item><name>cg.inverse.gromacs.conf_out</name><desc>Name of the original outcome coordinate written by mdrun (default confout.gro)</desc></item>
   <item><name>cg.inverse.gromacs.equi_time</name><default>0.0</default><desc> begin analysis after this time when using gromacs</desc></item>
   <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning when using gromacs</desc></item>
-  <item><name>cg.inverse.gromacs.topol</name><desc> Gromacs topology file to use, default topol.tpr</desc></item>
+  <item><name>cg.inverse.gromacs.topol</name><desc> binary Gromacs topology file to use, default topol.tpr</desc></item>
   <item><name>cg.inverse.gromacs.traj_type</name><desc> Gromacs trajectory type (xtc/trr) file to use, default xtc</desc></item>
   <item><name>cg.inverse.gromacs.mdp</name><desc> Gromacs mdp fie to use, default grompp.mdp</desc></item>
   <item><name>cg.inverse.gromacs.grompp.index</name><desc> Gromacs grompp index file to use, default index.ndx</desc></item>
-  <item><name>cg.inverse.gromacs.grompp.topol</name><desc> Gromacs grompp topol file to use, default topol.top</desc></item>
+  <item><name>cg.inverse.gromacs.grompp.topol</name><desc> Text Gromacs toplogy file to use, default topol.top</desc></item>
   <item><name>cg.inverse.gromacs.grompp.bin</name><desc> Name (or absolute path) of the grompp binary</desc></item>
   <item><name>cg.inverse.gromacs.grompp.opts</name><desc> Additional options to Gromacs grompp (e.g. -maxwarn 1)</desc></item>
   <item><name>cg.inverse.gromacs.g_rdf.index</name><desc> Gromacs g_rdf index file to use, default index.ndx</desc></item>
