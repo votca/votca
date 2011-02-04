@@ -111,9 +111,9 @@
       <!-- solver to solve linear equation system, can be octave or matlab -->
       <solver>octave</solver>
     </imc>
-    <mpi>
+    <parallel>
       <tasks>2</tasks>
       <cmd></cmd>
-    </mpi>
+    </parallel>
   </inverse>
 </cg>
