@@ -19,7 +19,7 @@ It is advised not to change already implemented scripts. To customize a script o
 If the local keys are already in use, the existing call will be overloaded.
 
 As an example, we will illustrate how to overload the script which calls the sampling package. 
-The \prog{csg_inverse} script runs \progex{mdrun} from the \gromacs package only on one cpu. Our task will be to change the script so that \gromacs uses 8 cpus, which is basically the same as adding the mpi options in \cgopt{inverse.parallel}.
+ohe \prog{csg_inverse} script runs \progex{mdrun} from the \gromacs package only on one cpu. Our task will be to change the script so that \gromacs uses 8 cpus, which is basically the same as adding the mpi options in \cgopt{inverse.parallel}.
 
 First we find out which script calls \progex{mdrun}:
 \begin{verbatim}
@@ -74,3 +74,28 @@ You can check the new script by running:
 
 Finally, do not forget to remove the license infomation and change the version number of the script.
 
+\section{Used external packages}
+
+\subsection{GroMaCS}
+\label{progpack.gromacs}
+Get it from \htmladdnormallink{www.gromacs.org}{http://www.gromacs.org}
+\begin{itemize}
+\item \hypertarget{progex.mdrun}{\textbf{mdrun}}
+\item \hypertarget{progex.grompp}{\textbf{grompp}}
+\end{itemize}
+
+\subsection{ESPResSo}
+\label{progpack.espresso}
+Get it from \htmladdnormallink{www.espressomd.org}{http://www.espressomd.org}
+
+\subsection{Gnuplot}
+\label{progpack.gnuplot}
+Get it from \htmladdnormallink{www.gnuplot.info}{http://www.gnuplot.info}
+
+\subsection{GNU Octave}
+\label{progpack.octave}
+Get it from \htmladdnormallink{www.gnu.org}{http://www.gnu.org/software/octave/}
+
+\subsection{Matlab}
+\label{progpack.matlab}
+Get it from \htmladdnormallink{www.mathworks.com}{http://www.mathworks.com/products/matlab/}

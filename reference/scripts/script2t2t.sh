@@ -36,10 +36,9 @@ echo -e "label($script)"
 #-space at begining and end are removed
 #-optionlines (-[^ ]) -> - ``--option`` text
 #-usageline -> usage: ``code``
-#-convert NEEDS and OPTINAL in link
 #-examplelines (^*) -> - ``line``
-#-add cg.interaction in links
-#-extra empty line before new section to close itemize
+#-extra empty line before new section to close txt2tags itemize (2 empty lines)
+#-link external packages
 echo -e "$helpmsg" | sed \
    -e '1,/^please submit/d' \
    -e "/^$script/d" \
@@ -48,12 +47,11 @@ echo -e "$helpmsg" | sed \
    -e '/^-[^ ]/s/ \{2\}/`` /' \
    -e '/^-[^ ].*``/s/^/- ``/' \
    -e 's/^\(Usage:[[:space:]]*\)\(.*\)$/\1``\2``/' \
-   -e '/^\(NEEDS\|OPTIONAL\):/s/\([[:space:]]\)\([^[:space:]]\+\)/\1link(\2)(\2)/g' \
-   -e 's/link(\([^c][^g][^)]*\))(\([^)]*\))/link(cg.interaction.\1)(\2)/g' \
    -e '/^\* /s/\( \{2\}\|$\)/`` /' \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
-   -e 's/^\(Examples\|USES\|NEEDS\|Usage\|PROVIDES\|OPTIONAL\):/\n&/' \
+   -e 's/^\(Examples\|Usage\):/\n&/' \
    -e 's/^\(Allowed\|Trajectory\|Specific\) options:/\n&/' \
+   -e 's/^\(Used external packages:\)[[:space:]]*\(.*\)$/\1 ref(progpack.\2)(\2)/'
 
 assert "sed 1 failed"
 #do not parse xml options of functions files

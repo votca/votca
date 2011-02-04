@@ -17,7 +17,7 @@
 % formating for intern programs, e.g. csg_boltzmann
 \newcommand{\prog}[1]{\hyperref[#1]{\textbf{\StrSubstitute{#1}{_}{\_}}}\xspace}
 % formating for external programs, e.g. grompp
-\newcommand{\progex}[1]{\textbf{#1}\xspace}
+\newcommand{\progex}[1]{\hyperlink{progex.#1}{\textbf{#1}\xspace}}
 
 % reference to an xml option in the reference section
 \newcommand{\cgref}[1]{cg.#1}

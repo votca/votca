@@ -22,6 +22,7 @@ reference/programs/all.wiki
 reference/scripts/Makefile.incl
 reference/scripts/csg_table.tex
 reference/scripts/csg_table.t2t
+reference/scripts/config.t2t
 reference/scripts/*.pl.*
 reference/scripts/*.sh.*
 reference/scripts/all.tex
