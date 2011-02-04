@@ -74,7 +74,7 @@ echo -e "pullgroup0\npullgroup1" | run g_dist -f ${conf_in}.gro -s ${conf_in}.tp
 dist=$(sed '/^[#@]/d' ${conf_in}.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo Found distance $dist
-cp $confin.gro conf.gro
+cp ${conf_in}.gro conf.gro
 
 # Prepare grommpp file
 steps="$(awk "BEGIN{print int(($min-$dist)/$rate/$dt)}")"
@@ -100,6 +100,3 @@ echo -e "pullgroup0\npullgroup1" | run g_dist -n index.ndx -f confout.gro
 dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo "New distance is $dist"
-
-echo "Initial setup is done"
-exit 0

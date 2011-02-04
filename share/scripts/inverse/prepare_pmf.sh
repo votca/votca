@@ -39,8 +39,6 @@ fi
 
 pullgroup0=$(csg_get_property cg.non-bonded.name | sed 's/-.*$//')
 pullgroup1=$(csg_get_property cg.non-bonded.name | sed 's/^.*-//')
-pullgroup0_type=$(csg_get_property cg.non-bonded.type1)
-pullgroup1_type=$(csg_get_property cg.non-bonded.type2)
 conf_start="start"
 min=$(csg_get_property cg.non-bonded.min)
 max=$(csg_get_property cg.non-bonded.max)
