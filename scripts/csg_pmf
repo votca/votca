@@ -149,6 +149,7 @@ cp ../$last_step/topol.top .
 cp ../$last_step/index.ndx .
 cp ../$last_step/grompp.mdp.template .
 cp ../$last_step/conf_start*.gro .
+cp ../$last_step/settings.xml .
 cp ../$last_step/*.itp .
 cp ../$last_step/dist.xvg .
 
