@@ -28,7 +28,7 @@ public:
 
     CrgUnit() {};
 
-    ~CrgUnit();
+    virtual ~CrgUnit();
 
     CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
             const unsigned int & id, CrgUnitType * type,
