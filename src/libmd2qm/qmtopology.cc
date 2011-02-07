@@ -31,7 +31,7 @@ void QMTopology::Update(Topology& cg_top)
 
     assert(cg_top.Beads().size() == _beads.size());
 
-    _box = cg_top.getBox();
+    setBox(cg_top.getBox());
     _time = cg_top.getTime();
     _step = cg_top.getStep();
 
