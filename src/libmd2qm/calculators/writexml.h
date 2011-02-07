@@ -23,7 +23,7 @@ public:
     
 private:
     string _outfile;
-    bool _write_dist, _write_rij, _write_jeff, _write_en;
+    bool _write_dist, _write_rij, _write_jeff, _write_en, _write_occ, _write_coords;
 };
 
 inline void WriteXML::Initialize(QMTopology *top, Property *options)
@@ -42,6 +42,12 @@ inline void WriteXML::Initialize(QMTopology *top, Property *options)
 
     if(options->exists("options.writexml.site_energies"))
         _write_en = options->get("options.writexml.site_energies").as<bool>();
+
+    if(options->exists("options.writexml.occupation"))
+        _write_occ = options->get("options.writexml.occupation").as<bool>();
+
+    if(options->exists("options.writexml.positions"))
+        _write_coords = options->get("options.writexml.positions").as<bool>();
 
 
     ofstream out;
@@ -91,13 +97,19 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
             out << " Jeff=\"" <<(*iter)->calcJeff2()<< "\"";
         out <<  "/>" << endl;
     }
-    if (_write_en) {
         for (vector < QMCrgUnit *>::iterator lch_iter = lcharges.begin();lch_iter!=lcharges.end();++lch_iter) {
             out << "    <site "
-                << " number=\"" << (*lch_iter)->getId()+1 << "\""
-                << " energy=\"" << (*lch_iter)->getEnergy() << "\"";
+                << " number=\"" << (*lch_iter)->getId()+1 << "\"";
+            if (_write_coords) {
+                out << " pos=\"" << (*lch_iter)->GetCom() << "\"";
+            }
+            if (_write_en) {
+                out << " energy=\"" << (*lch_iter)->getEnergy() << "\"";
+            }
+            if (_write_occ) {
+                    out << " occupation=\"" << (*lch_iter)->getOccupationProbability() << "\"";
+            }
             out << "/>" << endl;
-        }
     }
     out << "  </frame>" << endl;
 

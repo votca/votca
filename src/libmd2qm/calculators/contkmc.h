@@ -77,6 +77,7 @@ inline bool ContKmc::EvaluateFrame(QMTopology *top){
     make_kmc_graph(top,&kmc_grid,nblist);
     kmc_grid.setGeneratorsOnly();
     hoppers charges(&kmc_grid);
+    charges.setRecordOcc(true);
 
     /// preparing KMC Algorithm
     KMCAlg kmc_alg(_total_time, _dt, _alpha, _ncrg, &charges);
@@ -84,6 +85,18 @@ inline bool ContKmc::EvaluateFrame(QMTopology *top){
 
     /// A single KMC run
     kmc_alg.kmcPBC(_nruns, _out_cont, _out_diff);
+
+    // copy back occupation probabilities
+    vector<vertex*>::iterator it = kmc_grid.getFirstVertex();
+
+    for (; it != kmc_grid.getLastVertex(); ++it) {
+        QMCrgUnit *crg = top->GetCrgUnit((*it)->getCrgUnitId());
+        if(crg == NULL)
+            throw std::runtime_error("did not find crgunit id given in kmc graph");
+        crg->setOccupationProbability(charges.getOccProbability(*it));
+    }
+
+
     cout << "Finished continuous KMC." << endl;
 }
 
@@ -92,10 +105,11 @@ inline void ContKmc::make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist)
     /// assign constants
     a->SetField(_E);
     /// set vertices equal to centers of mass
-    vector < QMCrgUnit *> listCharges = top->CrgUnits();
+    vector < QMCrgUnit *> &listCharges = top->CrgUnits();
     vector < QMCrgUnit *>::iterator it;
     for (it = listCharges.begin(); it != listCharges.end(); ++it) {
-        a->AddVertex((*it)->GetCom(), _E); /// TO DO: remove necessity for E-field at this point
+        vertex *v = a->AddVertex((*it)->GetCom(), _E); /// TO DO: remove necessity for E-field at this point
+        v->setCrgUnitId((*it)->getId());
     }
     /// set edges, two edges 1->2 and 2->1 are created per neighboring pair
     for (QMNBList::iterator iter = nblist.begin(); iter != nblist.end(); ++iter) {
