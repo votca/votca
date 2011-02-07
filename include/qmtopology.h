@@ -11,7 +11,7 @@
 #include <votca/csg/topology.h>
 #include <votca/csg/nblist.h>
 #include <moo/crgunittype.h>
-#include <moo/crgunit.h>
+#include "qmcrgunit.h"
 #include <moo/jcalc.h>
 #include <moo/units.h>
 
@@ -40,7 +40,7 @@ public:
         return _nblist;
     }
     /// List of charge units [Bohr]
-    vector < CrgUnit *>& CrgUnits(){
+    vector < QMCrgUnit *>& CrgUnits(){
         return _crgunits;
     }
 
@@ -69,11 +69,11 @@ public:
     void ComputeAllTransferIntegrals();
 
     /// find a crg unit by name
-    CrgUnit *GetCrgUnitByName(const string &name);
+    QMCrgUnit *GetCrgUnitByName(const string &name);
 
-    CrgUnit *GetCrgUnit(int index);
+    QMCrgUnit *GetCrgUnit(int index);
 
-    CrgUnit *CreateCrgUnit(const string &name, const string &type_name, int molid);
+    QMCrgUnit *CreateCrgUnit(const string &name, const string &type_name, int molid);
 
 
     //Copy charges to either charged or neutral case
@@ -84,14 +84,14 @@ protected:
 
     QMNBList _nblist;
     JCalc _jcalc;
-    map <string, CrgUnit*> _mcharges;
-    vector < CrgUnit *> _crgunits;
+    map <string, QMCrgUnit*> _mcharges;
+    vector < QMCrgUnit *> _crgunits;
     
     ///Initialises the charge units
     void InitChargeUnits();
 };
 
-inline CrgUnit *QMTopology::GetCrgUnit(int index)
+inline QMCrgUnit *QMTopology::GetCrgUnit(int index)
 {
     if(index >= _crgunits.size())
         throw std::runtime_error("error, crgunit index out of bounds");
@@ -99,21 +99,27 @@ inline CrgUnit *QMTopology::GetCrgUnit(int index)
 }
 
 
-inline CrgUnit *QMTopology::GetCrgUnitByName(const string &name)
+inline QMCrgUnit *QMTopology::GetCrgUnitByName(const string &name)
 {
-    map<string, CrgUnit *>::iterator iter;
+    map<string, QMCrgUnit *>::iterator iter;
     iter = _mcharges.find(name);
     if(iter!=_mcharges.end())
         return iter->second;
     return NULL;
 }
 
-inline CrgUnit *QMTopology::CreateCrgUnit(const string &name, const string &type_name, int molid)
+inline QMCrgUnit *QMTopology::CreateCrgUnit(const string &name, const string &type_name, int molid)
 {
     if(GetCrgUnitByName(name))
         throw std::runtime_error("charge unit with name " + name + " already exists");
-    CrgUnit *crg;
-    crg = _jcalc.CreateCrgUnit(_crgunits.size(), type_name, molid);
+    QMCrgUnit *crg;
+
+    CrgUnitType *type = _jcalc.GetCrgUnitTypeByName(type_name);
+    if(!type)
+        throw runtime_error("Charge unit type not found: " + type_name);
+       
+    crg = new QMCrgUnit(_crgunits.size(), type, molid);
+
     _mcharges.insert(make_pair(name, crg));
     _crgunits.push_back(crg);
     crg->setName(name);

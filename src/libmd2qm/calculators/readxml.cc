@@ -62,8 +62,8 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
         int first = lexical_cast<int>(attr["first"]) - 1;
         int second = lexical_cast<int>(attr["second"]) - 1;
 
-        CrgUnit *crg1 = _top->GetCrgUnit(first);
-        CrgUnit *crg2 = _top->GetCrgUnit(second);
+        QMCrgUnit *crg1 = _top->GetCrgUnit(first);
+        QMCrgUnit *crg2 = _top->GetCrgUnit(second);
 
         if(crg1->getId() > crg2->getId())
             swap(crg1, crg2);

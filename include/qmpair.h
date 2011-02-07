@@ -8,17 +8,17 @@
 #ifndef _QMPAIR_H
 #define	_QMPAIR_H
 
-#include <moo/crgunit.h>
+#include "qmcrgunit.h"
 #include <utility>
 
 class QMTopology;
 
 class QMPair :
-    public std::pair<CrgUnit *, CrgUnit *>
+    public std::pair<QMCrgUnit *, QMCrgUnit *>
 {
 public:
     QMPair() {}
-    QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top);
+    QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top);
 
     ~QMPair(){
         if(_ghost != NULL)
@@ -85,7 +85,7 @@ public:
      * pbc and might be ghost copies
      * @return crg unit 1
      */
-    CrgUnit *Crg1() {return first;}
+    QMCrgUnit *Crg1() {return first;}
 
     /**
      * \brief second crg unit (might be ghost copy for pbc image)
@@ -94,7 +94,7 @@ public:
      * pbc and might be ghost copies
      * @return crg unit 2
      */
-    CrgUnit *Crg2() {return _crg2;}
+    QMCrgUnit *Crg2() {return _crg2;}
 
 protected:
     /// vector connecting the two beads
@@ -106,9 +106,9 @@ protected:
     /// transfer rate from second to first
     double _rate_21;
     /// ghost atom in case the molecules are neighbors across a boundary
-    CrgUnit * _ghost;
+    QMCrgUnit * _ghost;
 
-    CrgUnit *_crg2;
+    QMCrgUnit *_crg2;
 };
 
 #endif	/* _QMBEADPAIR_H */

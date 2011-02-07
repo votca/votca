@@ -23,7 +23,7 @@ public:
 inline void CalcIntegrals::EvaluatePair(QMTopology *top, QMPair *pair){
     CrgUnit *crg1 = pair->Crg1();
     CrgUnit *crg2 = pair->Crg2();
-    vector <double> Js = top->GetJCalc().CalcJ(*crg1, *crg2);
+    vector <double> Js = top->GetJCalc().CalcJ(crg1, crg2);
     pair->setJs(Js);
 }
 

@@ -58,8 +58,8 @@ bool EnergyCorr::EvaluateFrame(QMTopology* top) {
 
     mytop.setBox(top->getBox());
 
-    vector<CrgUnit *> lcharges = top->CrgUnits();
-    vector<CrgUnit *>::iterator itl;
+    vector<QMCrgUnit *> lcharges = top->CrgUnits();
+    vector<QMCrgUnit *>::iterator itl;
     // 1) calculate average energy
     // 2) for every charge unit of real topology make a bead for a working topology
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
@@ -104,8 +104,8 @@ void EnergyCorr::EndEvaluate(QMTopology* top) {
 
 bool EnergyCorr::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r) {
 
-    CrgUnit *crg1 = bead1->getUserData<CrgUnit>();
-    CrgUnit *crg2 = bead2->getUserData<CrgUnit>();
+    QMCrgUnit *crg1 = bead1->getUserData<QMCrgUnit>();
+    QMCrgUnit *crg2 = bead2->getUserData<QMCrgUnit>();
 
     double e1 = crg1->getEnergy();
     double e2 = crg2->getEnergy();

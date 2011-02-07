@@ -43,8 +43,8 @@ bool PolymerRates::EvaluateFrame(QMTopology *top)
             QMBead *b1 = dynamic_cast<QMBead*>((*imol)->getBead(i));
             QMBead *b2 = dynamic_cast<QMBead*>((*imol)->getBead(i+1));
 
-            CrgUnit *crg1 = b1->GetCrgUnit();
-            CrgUnit *crg2 = b2->GetCrgUnit();
+            QMCrgUnit *crg1 = b1->GetCrgUnit();
+            QMCrgUnit *crg2 = b2->GetCrgUnit();
 
             // are the two beads on same crg unit or crgunit is null -> ignore
             if((crg1 == crg2)
@@ -75,7 +75,7 @@ bool PolymerRates::EvaluateFrame(QMTopology *top)
 }
 
 // adiabatic rate expression
-double PolymerRates::CalcRate(CrgUnit *crg1, CrgUnit *crg2, vec dist, double J)
+double PolymerRates::CalcRate(QMCrgUnit *crg1, QMCrgUnit *crg2, vec dist, double J)
 {    
     double dE_nofield = crg2->getEnergy() - crg1->getEnergy();
     double reorg = 0.5*(crg1->getType()->getReorg() + crg2->getType()->getReorg());

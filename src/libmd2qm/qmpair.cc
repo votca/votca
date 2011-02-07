@@ -2,7 +2,7 @@
 #include "qmtopology.h"
 
 
-QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit *, CrgUnit *>(crg1,crg2)
+QMPair::QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top):std::pair<QMCrgUnit *, QMCrgUnit *>(crg1,crg2)
 {
     vec crg1nm,crg2nm;
     crg1nm =  crg1->GetCom();
@@ -13,8 +13,8 @@ QMPair::QMPair(CrgUnit *crg1, CrgUnit *crg2, QMTopology * top):std::pair<CrgUnit
     // check if PBC:
     vec d = crg2nm - crg1nm;
     if (abs(d - _r) > 1e-8) {
-        _ghost = new CrgUnit();
-	_ghost->copyCrgUnit(*crg2);
+        _ghost = new QMCrgUnit();
+	_ghost->copyCrgUnit(crg2);
         vec displ = (_r - d);
         _ghost->shift(displ);
         _crg2 = _ghost;

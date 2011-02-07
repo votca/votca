@@ -16,7 +16,7 @@ void QMTopology::Initialize(Topology& cg_top)
 
 void QMTopology::Cleanup()
 {
-    vector<CrgUnit *>::iterator iter;
+    vector<QMCrgUnit *>::iterator iter;
     for(iter=_crgunits.begin(); iter!=_crgunits.end(); ++iter)
         delete *iter;
     _crgunits.clear();
@@ -106,7 +106,7 @@ void QMTopology::InitChargeUnits(){
             int molid= bead->getMolecule()->getId();
             string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
             
-            CrgUnit * acrg = GetCrgUnitByName(molandtype);
+            QMCrgUnit * acrg = GetCrgUnitByName(molandtype);
             if(acrg == NULL)
                 acrg = CreateCrgUnit(molandtype, namecrgunittype, molid);
             
@@ -126,7 +126,7 @@ void QMTopology::ComputeAllTransferIntegrals(){
         iter!=_nblist.end();++iter) {
         CrgUnit *crg1 = (*iter)->Crg1();
         CrgUnit *crg2 = (*iter)->Crg2();
-        vector <double> Js = GetJCalc().CalcJ(*crg1, *crg2);
+        vector <double> Js = GetJCalc().CalcJ(crg1, crg2);
         (*iter)->setJs(Js);
     }
 }

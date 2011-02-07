@@ -92,8 +92,8 @@ inline void ContKmc::make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist)
     /// assign constants
     a->SetField(_E);
     /// set vertices equal to centers of mass
-    vector < CrgUnit *> listCharges = top->CrgUnits();
-    vector < CrgUnit *>::iterator it;
+    vector < QMCrgUnit *> listCharges = top->CrgUnits();
+    vector < QMCrgUnit *>::iterator it;
     for (it = listCharges.begin(); it != listCharges.end(); ++it) {
         a->AddVertex((*it)->GetCom(), _E); /// TO DO: remove necessity for E-field at this point
     }

@@ -12,8 +12,8 @@
 
 bool ShuffleNrg::EvaluateFrame(QMTopology *top) {
 
-    vector<CrgUnit *> lcharges = top->CrgUnits();
-    vector<CrgUnit *>::iterator itl;
+    vector<QMCrgUnit *> lcharges = top->CrgUnits();
+    vector<QMCrgUnit *>::iterator itl;
     vector<double> energies;
     int i_en = 0;
 

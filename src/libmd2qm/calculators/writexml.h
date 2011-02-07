@@ -70,7 +70,7 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
 
 
     QMNBList &nblist = top->nblist();
-    vector < CrgUnit *> lcharges = top->CrgUnits();
+    vector < QMCrgUnit *> lcharges = top->CrgUnits();
     
     out << "  <frame>"  << endl;
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter) {
@@ -92,7 +92,7 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
         out <<  "/>" << endl;
     }
     if (_write_en) {
-        for (vector < CrgUnit *>::iterator lch_iter = lcharges.begin();lch_iter!=lcharges.end();++lch_iter) {
+        for (vector < QMCrgUnit *>::iterator lch_iter = lcharges.begin();lch_iter!=lcharges.end();++lch_iter) {
             out << "    <site "
                 << " number=\"" << (*lch_iter)->getId()+1 << "\""
                 << " energy=\"" << (*lch_iter)->getEnergy() << "\"";
