@@ -101,7 +101,7 @@ sub readin_table($\@\@\@) {
 }
 
 sub readin_table_err($\@\@\@\@) {
-  defined($_[3]) || die "readin_table_err: Missing argument\n";
+  defined($_[4]) || die "readin_table_err: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table_err: could not open file $_[0]\n";
   my $line=0;
   while (<TAB>){

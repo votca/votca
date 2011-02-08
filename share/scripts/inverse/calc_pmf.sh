@@ -37,6 +37,7 @@ else
   die "Could not find functions_pmf.sh"
 fi
 
+last_step="03_simulations"
 pullgroup0=$(csg_get_property cg.non-bonded.name | sed 's/-.*$//')
 pullgroup1=$(csg_get_property cg.non-bonded.name | sed 's/^.*-//')
 conf_start="start"
@@ -52,10 +53,11 @@ rdffile="rdf_${pullgroup0}_${pullgroup1}.d"
 echo "#dist <force> error" > ${forcefile}
 sims="$(find ../${last_step} -type d -name "sim_???*" | sort)"
 for sim in ${sims}; do
-  echo -n "Doing ${sim} "
+  echo -n "Doing ${sim}"
   dist="$(get_from_mdp pull_init1 ${sim}/grompp.mdp)"
   [ -f "${sim}/pullf.xvg" ] || die "Could not find file ${sim}/pullf.xvg"
-  force="$(./avg_bl.awk -v col=2 ${sim}/pullf.xvg | awk '/^[^#]/{print $1,$2}')"
+  #do_external table integrate --with-error tmp ${potfile}
+  force="$(${CSGSHARE}/scripts/inverse/avg_bl.awk -v col=2 ${sim}/pullf.xvg | awk '/^[^#]/{print $1,$2}')"
   echo "dist: $dist force: $force"
   echo "$dist $force" >>  ${forcefile}
 done
@@ -64,7 +66,9 @@ temp="$(get_from_mdp ref_t ${sim}/grompp.mdp)"
 echo "Found temp $temp K"
 echo "Using kB $kB"
 echo "Calculating pmf"
-./force_to_pot.awk -v temp="$temp" -v kB="$kB" ${forcefile} > ${potfile}
+# Make forces negative and the integrate to get pot
+do_external table_err linearop ${forcefile} tmp -1 0
+do_external table_err integrate --with-errors tmp ${potfile}
 echo "Calculating rdf"
 echo "#r rdf" > ${rdffile}
 awk  -v temp="$temp" -v kB="$kB" '/^[^@#]/{print $1,exp(-$2/temp/kB)}' ${potfile} >> ${rdffile}

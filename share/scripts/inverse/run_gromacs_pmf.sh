@@ -36,7 +36,7 @@ mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
 [ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
+opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts "-pf pullf.xvg")"
 
 check_deps "$0"
 

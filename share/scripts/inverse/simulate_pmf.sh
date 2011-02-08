@@ -58,7 +58,7 @@ for i in conf_start*.gro; do
   echo Simulation $number
   dir="$(printf sim_%03i $number)"
   mkdir $dir
-  for f in index.ndx topol.top *.itp; do
+  for f in index.ndx topol.top settings.xml *.itp; do
     cp $f ./$dir/
   done
   mv $i ./$dir/conf.gro

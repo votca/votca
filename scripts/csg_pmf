@@ -158,4 +158,14 @@ do_external simulate pmf
 cd ..
 
 # Step 4 - Calculate pmf
+unset last_step
+last_step="03_simulations"
+mkdir 04_pmf
+cd 04_pmf
+
+cp ../$last_step/settings.xml .
+
 do_external calc pmf
+
+echo "finished calculating pmf"
+exit 0
