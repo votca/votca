@@ -30,7 +30,7 @@ Provides useful function for perl:
 csg_get_property($;$):             get a value from xml file
 csg_get_interaction_property($;$): get a interaction property from xmlfile
 readin_table(\$\\@\\@\\@):           reads in csg table
-readin_table(\$\\@\\@\\@):           reads in csg table with errors
+readin_table_err(\$\\@\\@\\@):           reads in csg table with errors
 saveto_table(\$\\@\\@\\@):           writes to a csg table
 saveto_table_err(\$\\@\\@\\@) :      writes to csg table with errors
 EOF
@@ -98,7 +98,7 @@ sub readin_table($\@\@\@) {
 }
 
 sub readin_table_err($\@\@\@\@) {
-  defined($_[3]) || die "readin_table_err: Missing argument\n";
+  defined($_[4]) || die "readin_table_err: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table_err: could not open file $_[0]\n";
   my $line=0;
   while (<TAB>){
