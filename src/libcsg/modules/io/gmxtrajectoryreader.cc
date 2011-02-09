@@ -37,7 +37,10 @@ void GMXTrajectoryReader::Close()
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
+    set_program_name("VOTCA");
+
 #if GMX == 50
+
     output_env_t oenv;
     // _snew("oenv", oenv, 1);
     oenv = (output_env_t)malloc(sizeof(*oenv));

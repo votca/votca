@@ -70,7 +70,8 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
     ::matrix box;
     int ePBC;
     t_atoms atoms;
-    
+    set_program_name("VOTCA");
+
     //snew(atoms,1);
     get_stx_coordnum((char*)file.c_str(),&(atoms.nr));
     init_t_atoms(&atoms,atoms.nr,TRUE);
