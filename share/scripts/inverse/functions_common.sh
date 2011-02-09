@@ -250,9 +250,12 @@ check_for_package () {
         x="$(csg_get_property cg.inverse.program)"
 	[ "$i" = "$x" ] || die "check_for_package: script needs '$i' please set cg.inverse.program in your xml file"
         true;;
-      octave | matlab | gunplot )
+      octave | matlab )
         [ -z "$(type -p $i)" ] && die "check_for_package: script needs '$i', but it was not found in your path"
         true;;
+      gnuplot )
+        #check for gnuplot binary is done in the script itself
+	true;;
       *)
        die "check_for_package: I don't know how to check for $i";;
     esac
