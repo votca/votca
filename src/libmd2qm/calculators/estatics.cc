@@ -123,7 +123,7 @@ bool CalcEstatics::EvaluateFrame(QMTopology *top) {
             }
         }
     }
-
+   
     atop.Cleanup();
 
     return true;
@@ -182,6 +182,7 @@ double CalcEstatics::CalcPot_Dipole(Topology *atop, Molecule *mol) //wegen Über
     //Do loop over all molecules cmol
     MoleculeContainer::iterator cmol;
     //Do loop over all other molecules imol that are not cmol
+   /*
     MoleculeContainer::iterator imol;
     for (cmol = atop->Molecules().begin(); cmol != atop->Molecules().end(); cmol++) {
         for (imol = atop->Molecules().begin(); imol != atop->Molecules().end(); imol++) {
@@ -220,7 +221,35 @@ double CalcEstatics::CalcPot_Dipole(Topology *atop, Molecule *mol) //wegen Über
     }
     pot=pot_qq+pot_qd+pot_dd;
     cout << "Q-Q: "<<pot_qq << "    Q-D: "<<pot_qd<< "  D-D: "<< pot_dd<<"  total: "<< pot <<"\n";
+*/
+    int nr = mol->getId();
+            string filename = "xyz_a" + boost::lexical_cast<string > (nr);
+            FILE * data;
+            //ofstream data
+                //data.open(filename.c_str());
+            data=fopen(filename.c_str(),"w");
+     MoleculeContainer::iterator dmol;
+         for (dmol = atop->Molecules().begin(); dmol != atop->Molecules().end(); dmol++) {
+           
+        //if (*dmol == mol) continue;
+        //Check whether PBC have to be taken into account
+        //We should replace getUserData by a funtion GetCom for molecules
+        vec bcs = atop->BCShortestConnection(mol->getUserData<CrgUnit > ()->GetCom(), (*dmol)->getUserData<CrgUnit > ()->GetCom());
+        vec dist = (*dmol)->getUserData<CrgUnit > ()->GetCom() - mol->getUserData<CrgUnit > ()->GetCom();
+        vec diff = bcs - dist;
+        for (int j = 0; j != (*dmol)->BeadCount(); j++) {
+                Bead *bj = (*dmol)->getBead(j);
+                //distance vector may have to be shifted by s
+                vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos() + diff);
+               // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
+                 fprintf(data, "%d %d %.6f %.6f %.6f\n",mol->getId(),(*dmol)->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+        }
+        
+    }
+    fclose(data);
+    //data.close();
     return pot;
+
 }
 
 double CalcEstatics::dist_dep_eps(const double &dist) {
