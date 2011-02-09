@@ -70,7 +70,7 @@ sed -e "s/@DIST@/$dist/" \
 
 # Run simulation to generate initial setup
 run --log log_grompp2 grompp -n index.ndx
-do_external run gromacs_pmf
+do_external run gromacs
 
 # Calculate new distance and divide trj into separate frames
 echo -e "pullgroup0\npullgroup1" | run g_dist -n index.ndx

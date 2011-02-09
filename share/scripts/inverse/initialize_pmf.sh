@@ -46,6 +46,8 @@ min=$(csg_get_property cg.non-bonded.min)
 max=$(csg_get_property cg.non-bonded.max)
 dt=$(csg_get_property cg.non-bonded.dt)
 rate=$(csg_get_property cg.non-bonded.rate)
+ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+traj="traj.${ext}"
 
 # Get atom numbers for pull_group0, pull_group1
 n1="$(get_pullgroup_nr "$pullgroup0" "$conf_in.gro")"
@@ -93,7 +95,9 @@ sed -e "s/@DIST@/$dist/" \
 
 # Run simulation to generate initial setup
 run --log log_grompp2 grompp -n index.ndx
-do_external run gromacs_pmf
+# Create traj so "run gromacs" does not die
+touch "$traj"
+do_external run gromacs
 
 # Calculate new distance
 echo -e "pullgroup0\npullgroup1" | run g_dist -n index.ndx -f confout.gro

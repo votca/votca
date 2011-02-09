@@ -155,7 +155,6 @@ initialize pmf initialize_pmf.sh
 prepare pmf prepare_pmf.sh
 simulate pmf simulate_pmf.sh
 calc pmf calc_pmf.sh
-run gromacs_pmf run_gromacs_pmf.sh
 table_err linearop table_err_linearop.pl
 table_err integrate table_err_integrate.pl
 

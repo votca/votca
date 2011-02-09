@@ -78,7 +78,7 @@ for i in conf_start*.gro; do
   delta=$(awk -v d1=$dist -v d2=$dist2 'BEGIN{print d1-d2}')
   echo "$number $dist $dist2 $delta" >> ../dist_comp.d
   awk -v de=$delta 'BEGIN{print (de>0.001)?"Oho":"OK"}'
-  do_external run gromacs_pmf
+  do_external run gromacs
   cd ..
 done
 cat dist_comp.d | sort -n > dist_comp.d
