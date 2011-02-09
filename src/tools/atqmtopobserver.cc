@@ -48,9 +48,9 @@ bool AtQmObserver::EvaluateFrame()
 {
     _writerCG->Write(&_qmtop);
     ///the QM topology is more hard work:
-    vector<CrgUnit *> lcharges = _qmtop.CrgUnits();
+    vector<QMCrgUnit *> lcharges = _qmtop.CrgUnits();
     Topology qmAtomisticTop;
-    for (vector<CrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++){
+    for (vector<QMCrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++){
         _qmtop.AddAtomisticBeads(*itl,&qmAtomisticTop);
     }
     _writerQM->Write(&qmAtomisticTop);
