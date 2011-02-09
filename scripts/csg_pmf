@@ -167,3 +167,11 @@ cp ../$last_step/settings.xml .
 
 do_external calc pmf
 
+# Step 5 - Calculate rdf
+unset last_step
+mkdir 05_rdf
+cd 05_rdf
+
+cp ../$last_step/settings.xml .
+
+do_external calc rdf
