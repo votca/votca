@@ -16,12 +16,12 @@ public:
     virtual ~SiteCalculator();
 
     bool EvaluateFrame(QMTopology *top);
-    virtual void EvaluateSite(CrgUnit *crg) {};
+    virtual void EvaluateSite(QMCrgUnit *crg) {};
 };
 
 inline bool SiteCalculator::EvaluateFrame(QMTopology *top){
-    vector<CrgUnit*>& crglist = top.CrgUnits();
-    for(vector<CrgUnit*>::iterator iter = crglist.begin();iter!=crglist.end();++iter)
+    vector<QMCrgUnit*>& crglist = top.CrgUnits();
+    for(vector<QMCrgUnit*>::iterator iter = crglist.begin();iter!=crglist.end();++iter)
         EvaluateSite(*iter);
     return true;
 }

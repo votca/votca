@@ -20,7 +20,7 @@ public:
     bool EvaluateFrame(QMTopology *top);
 //    void EndEvaluate(QMTopology *top);
 
-    double CalcRate(CrgUnit *crg1, CrgUnit *crg2, vec dist, double J);
+    double CalcRate(QMCrgUnit *crg1, QMCrgUnit *crg2, vec dist, double J);
 
 private:
     double _nu;

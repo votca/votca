@@ -75,8 +75,8 @@ bool GenerateNrgs::EvaluateFrame(QMTopology *top) {
 
 void GenerateNrgs::AssignGaussian(QMTopology *top) {
 
-    vector<CrgUnit *> lcharges = top->CrgUnits();
-    vector<CrgUnit *>::iterator itl;
+    vector<QMCrgUnit *> lcharges = top->CrgUnits();
+    vector<QMCrgUnit *>::iterator itl;
 
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
         (*itl)->setEnergy( Random::rand_gaussian(_sigma) );
@@ -95,8 +95,8 @@ void GenerateNrgs::AssignCorrelated(QMTopology *top) {
 
     mytop.setBox(top->getBox());
 
-    vector<CrgUnit *> lcharges = top->CrgUnits();
-    vector<CrgUnit *>::iterator itl;
+    vector<QMCrgUnit *> lcharges = top->CrgUnits();
+    vector<QMCrgUnit *>::iterator itl;
 
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
         // make a simple spherical bead for a new topology

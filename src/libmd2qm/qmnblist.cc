@@ -25,7 +25,7 @@ bool QMNBList::Match(Bead *ab1, Bead *ab2, const vec &r)
     if(b1->getMolecule() == b2->getMolecule()) return false;
     if(b1->GetCrgUnit() == NULL || b2->GetCrgUnit() == NULL) return false;
 
-    CrgUnit *crg1, *crg2;
+    QMCrgUnit *crg1, *crg2;
     crg1 = b1->GetCrgUnit();
     crg2 = b2->GetCrgUnit();
 

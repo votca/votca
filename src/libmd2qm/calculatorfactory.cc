@@ -11,6 +11,7 @@
 #include "calculators/generate_nrgs.h"
 #include "calculators/energycorr.h"
 #include "calculators/polymerrates.h"
+#include "calculators/pairdump.h"
 
 void CalculatorFactory::RegisterAll(void)
 {
@@ -25,4 +26,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<GenerateNrgs>("generatenrgs");
         Calculators().Register<EnergyCorr>("energycorr");
         Calculators().Register<PolymerRates>("polymerrates");
+        Calculators().Register<PairDump>("pairdump");
 }

@@ -12,6 +12,7 @@
       <itemPath>../../src/libmd2qm/calculators/histintegrals.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/integrals.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/marcusrates.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/polymerrates.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/polymerrates.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/readxml.cc</itemPath>
@@ -28,6 +29,7 @@
       <itemPath>../../include/qmapplication.h</itemPath>
       <itemPath>../../include/qmbead.h</itemPath>
       <itemPath>../../include/qmcalculator.h</itemPath>
+      <itemPath>../../include/qmcrgunit.h</itemPath>
       <itemPath>../../include/qmnblist.h</itemPath>
       <itemPath>../../include/qmpair.h</itemPath>
       <itemPath>../../include/qmtopology.h</itemPath>

@@ -22,12 +22,12 @@ using namespace votca::csg;
  * */
 
 class QMNBList
-    : public PairList<CrgUnit *, QMPair>
+    : public PairList<QMCrgUnit *, QMPair>
 {
 public:
      QMNBList() {};
      ~QMNBList(){
-         PairList<CrgUnit *, QMPair>::Cleanup();
+         PairList<QMCrgUnit *, QMPair>::Cleanup();
      }
     void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
     void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }

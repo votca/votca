@@ -16,7 +16,7 @@ void QMTopology::Initialize(Topology& cg_top)
 
 void QMTopology::Cleanup()
 {
-    vector<CrgUnit *>::iterator iter;
+    vector<QMCrgUnit *>::iterator iter;
     for(iter=_crgunits.begin(); iter!=_crgunits.end(); ++iter)
         delete *iter;
     _crgunits.clear();
@@ -31,7 +31,7 @@ void QMTopology::Update(Topology& cg_top)
 
     assert(cg_top.Beads().size() == _beads.size());
 
-    _box = cg_top.getBox();
+    setBox(cg_top.getBox());
     _time = cg_top.getTime();
     _step = cg_top.getStep();
 
@@ -106,7 +106,7 @@ void QMTopology::InitChargeUnits(){
             int molid= bead->getMolecule()->getId();
             string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
             
-            CrgUnit * acrg = GetCrgUnitByName(molandtype);
+            QMCrgUnit * acrg = GetCrgUnitByName(molandtype);
             if(acrg == NULL)
                 acrg = CreateCrgUnit(molandtype, namecrgunittype, molid);
             

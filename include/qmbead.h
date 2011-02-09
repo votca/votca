@@ -32,7 +32,7 @@ public:
             _crg->SetPlane(_ipos, Bead::getV());
         }
     }
-    void setCrg(CrgUnit * a){
+    void setCrg(QMCrgUnit * a){
         _crg=a;
     }
 
@@ -44,7 +44,7 @@ public:
         return _ipos;
     }
 
-    CrgUnit* GetCrgUnit(){
+    QMCrgUnit* GetCrgUnit(){
         return _crg;
     }
 
@@ -54,7 +54,7 @@ private:
             int resnr, double m, double q);
 
     ///the charge unit
-    CrgUnit * _crg;
+    QMCrgUnit * _crg;
     /// the integer describing the position in the Crgunit
     int _ipos;
 

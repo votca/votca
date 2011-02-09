@@ -46,10 +46,10 @@ void CalcEstatics::Initialize(QMTopology *top, Property *options) {
 }
 
 bool CalcEstatics::EvaluateFrame(QMTopology *top) {
-    vector<CrgUnit *> lcharges = top->CrgUnits();
+    vector<QMCrgUnit *> lcharges = top->CrgUnits();
     Topology atop;
     atop.setBox(top->getBox());
-    for (vector<CrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++) {
+    for (vector<QMCrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++) {
         top->AddAtomisticBeads(*itl, &atop);
     }
     cout << "Number of charge units in top " << lcharges.size() << endl;

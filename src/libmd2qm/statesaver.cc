@@ -147,8 +147,8 @@ void StateSaver::Write_QMNeighbourlist() {
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
         QMPair *pair = *iter;
-        CrgUnit *crg1 = (*iter)->first;
-        CrgUnit *crg2 = (*iter)->second;
+        QMCrgUnit *crg1 = (*iter)->first;
+        QMCrgUnit *crg2 = (*iter)->second;
         
         write<unsigned int>(crg1->getId());
         write<unsigned int>(crg2->getId());
@@ -234,7 +234,7 @@ void StateSaver::Read_QMBeads() {
         QMBead *bead = dynamic_cast<QMBead*>(_qmtop->CreateBead(symmetry, bead_name, type, resnr, M, Q));
         _qmtop->getMolecule(molid)->AddBead(bead, bead_name);
         
-        CrgUnit * acrg = _qmtop->GetCrgUnitByName(crg_unit_name);
+        QMCrgUnit * acrg = _qmtop->GetCrgUnitByName(crg_unit_name);
         if(acrg == NULL)
             acrg = _qmtop->CreateCrgUnit(crg_unit_name, type_name, molid);
         acrg->setEnergy(energy);
@@ -269,8 +269,8 @@ void StateSaver::Read_QMNeighbourlist() {
         string crg_unit_name2 =  read<string> ();
         //cout << "This pair has charge unit ids " << id1 << " and " <<id2 <<"\n";
         
-        CrgUnit *crg1=_qmtop->GetCrgUnitByName(crg_unit_name1);
-        CrgUnit *crg2=_qmtop->GetCrgUnitByName(crg_unit_name2);    
+        QMCrgUnit *crg1=_qmtop->GetCrgUnitByName(crg_unit_name1);
+        QMCrgUnit *crg2=_qmtop->GetCrgUnitByName(crg_unit_name2);
         //cout << "This pair has names " << crg_unit_name1 << " and " <<crg_unit_name2 <<"\n";
         
         QMPair *pair=new QMPair(crg1,crg2, _qmtop);
