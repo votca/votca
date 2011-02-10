@@ -48,7 +48,7 @@ This script calculates the integral of a table. Please note the force is the NEG
 $usage
 
 Allowed options:
-    --with-error      calculate error
+    --with-errors     calculate error
     --with-S          Add entropic contribution to force
                       2*k_B T/r
     --kbT   NUMBER    use NUMBER as k_B*t for the entropic part

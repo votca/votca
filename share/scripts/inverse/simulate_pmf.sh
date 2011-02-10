@@ -76,7 +76,7 @@ for i in conf_start*.gro; do
   dist2=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
   [ -z "$dist2" ] && die "${0##*/}: Could not fetch dist2"
   delta=$(awk -v d1=$dist -v d2=$dist2 'BEGIN{print d1-d2}')
-  echo "$number $dist $dist2 $delta" >> ../dist_comp.d
+  echo "$number $dist $dist2 $delta i" >> ../dist_comp.d
   awk -v de=$delta 'BEGIN{print (de>0.001)?"Oho":"OK"}'
   do_external run gromacs
   cd ..

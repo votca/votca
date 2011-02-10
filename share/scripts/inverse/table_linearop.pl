@@ -99,4 +99,3 @@ for(my $i=0; $i<=$#r; $i++) {
 }
 
 saveto_table($outfile,@r,@val,@flag) || die "$progname: error at save table\n";
-

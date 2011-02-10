@@ -23,6 +23,7 @@ my $usage="Usage: $progname [OPTIONS] <in> <out> <a> <b>";
 
 #Defaults
 my $withflag=undef;
+my $with_errors="no";
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -48,11 +49,12 @@ $usage
 Allowed options:
 -h, --help            Show this help message
 --withflag            only change entries with specific flag in src
+--with-errors         calculate error
 
 Examples:
 * $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
 
-USES: readin_table_err saveto_table_err
+USES: readin_table saveto_table
 
 END
 		exit;
@@ -63,11 +65,14 @@ END
         die "nothing given for --withflag" unless $#ARGV > -1;
         $withflag = $ARGV[0];
     }
-	else
+    elsif ($ARGV[0] eq "--with-errors"){
+        shift(@ARGV);
+        $with_errors="yes";
+    }
+    else
 	{
-		die "Unknow option '".$ARGV[0]."' !\n";
+		die "Unknown option '".$ARGV[0]."' !\n";
 	}
-    shift(@ARGV);
 }
 
 #Print usage
@@ -78,37 +83,6 @@ my $b = $ARGV[3];
 
 use CsgFunctions;
 
-sub readin_force_table($\@\@\@) {
-  defined($_[3]) || die "readin_force_table: Missing argument\n";
-  open(TAB,"$_[0]") || die "readin_force_table: could not open file $_[0]\n";
-  my $line=0;
-  while (<TAB>){
-    $line++;
-    # remove leading spacees for split
-    $_ =~ s/^\s*//;
-    next if /^[#@]/;
-    next if /^\s*$/;
-    my @parts=split(/\s+/);
-    defined($parts[2]) || die "readin_force_table: Not enough columns in line $line in file $_[0]\n";
-    #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
-    push(@{$_[1]},$parts[0]);
-    push(@{$_[2]},$parts[1]);
-    push(@{$_[3]},$parts[2]);
-  }
-  close(TAB) || die "readin_force_table: could not close file $_[0]\n";
-  return $line;
-}
-
-sub saveto_force_table($\@\@\@) {
-  defined($_[3]) || die "saveto_force_table: Missing argument\n";
-  open(OUTFILE,"> $_[0]") or die "saveto_force_table: could not open $_[0] \n";
-  for(my $i=0;$i<=$#{$_[1]};$i++){
-    print OUTFILE "${$_[1]}[$i] ${$_[2]}[$i] ${$_[3]}[$i]\n";
-  }
-  close(OUTFILE) or die "Error at closing $_[0]\n";
-  return 1;
-}
-
 my $file="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
@@ -116,11 +90,27 @@ print "table $file : y' = $a*y + $b\n";
 
 my @r;
 my @val;
-my @err;
-(readin_force_table($file,@r,@val,@err)) || die "$progname: error at readin_table\n";
-
+my @val_errors;
+my @flag;
+if ("$with_errors" eq "yes") {
+  (readin_table_err($file,@r,@val,@val_errors,@flag)) || die "$progname: error at readin_err_table\n";
+} else {
+  (readin_table($file,@r,@val,@flag)) || die "$progname: error at readin_table\n";
+}
+ 
 for(my $i=0; $i<=$#r; $i++) {
+  # skip if flag does not match
+  if($withflag) {
+    if(!($flag[$i] =~ m/[$withflag]/)) {
+      next;
+    }
+  }
   $val[$i] = $a*$val[$i] + $b;
 }
 
-saveto_force_table($outfile,@r,@val,@err) || die "$progname: error at save table\n";
+if ("$with_errors" eq "yes") {
+  saveto_table_err($outfile,@r,@val,@val_errors,@flag) || die "$progname: error at save table\n";
+}else {
+  saveto_table($outfile,@r,@val,@flag) || die "$progname: error at save table\n";
+}
+

@@ -167,11 +167,15 @@ cp ../$last_step/settings.xml .
 
 do_external calc pmf
 
+cd ..
+
 # Step 5 - Calculate rdf
 unset last_step
+last_step="04_pmf"
 mkdir 05_rdf
 cd 05_rdf
 
+cp ../$last_step/grompp.mdp .
 cp ../$last_step/settings.xml .
 
 do_external calc rdf
