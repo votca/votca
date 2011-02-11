@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the x-density for gromacs
    echo for the AdResS therm force
    echo Usage: ${0##*/}
-   echo USES: get_from_mdp csg_get_property awk run_or_exit g_energy csg_taillog die
+   echo USES: get_from_mdp csg_get_property awk critical g_energy die
    echo NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
    exit 0
 fi
@@ -44,7 +44,7 @@ if [ ! $adress_type = "sphere" ]
 then
 infile="dens.${name}.xvg"
 outfile="dens.${name}.symm.xvg"
-run_or_exit do_external density symmetrize --infile $infile --outfile $outfile --adressc $adressc
+critical do_external density symmetrize --infile $infile --outfile $outfile --adressc $adressc
 infile="dens.${name}.symm.xvg"
 #note : in the spehere case (no symmetrizing necessary) infile stays dens.${name}.xvg, so this gets used for next step
 fi
@@ -60,19 +60,19 @@ spxstop=$(echo "scale=8; $adressc+$adressw+$adressh+$splinedelta" | bc)
 
 comment="$(get_table_comment)"
 
-run_or_exit csg_resample --type cubic --in $infile --out $outfile --grid $spxstart:$step:$spxstop --derivative $forcefile --fitgrid $spxstart:$splinestep:$spxstop --comment "$comment"
+critical csg_resample --type cubic --in $infile --out $outfile --grid $spxstart:$step:$spxstop --derivative $forcefile --fitgrid $spxstart:$splinestep:$spxstop --comment "$comment"
 
 if [ -z "$cg_prefactor" ];then
        echo "Using fixed prefactor $prefactor "	
-       run_or_exit do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor
+       critical do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor
 else
        echo "Using linear interpolation of prefactors. Ex. pref: $prefactor CG. pref : $cg_prefactor"
-       run_or_exit do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor $cg_prefactor
+       critical do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor $cg_prefactor
 fi
 
-run_or_exit do_external table smooth_borders --infile $forcefile_pref --outfile $forcefile_smooth --xstart $xstart --xstop $xstop  
+critical do_external table smooth_borders --infile $forcefile_pref --outfile $forcefile_smooth --xstart $xstart --xstop $xstop  
 
-run_or_exit do_external table integrate $forcefile_smooth ${name}.dpot.new
+critical do_external table integrate $forcefile_smooth ${name}.dpot.new
 
 
 #todo: make this less dirty:

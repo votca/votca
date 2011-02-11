@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the x-density for gromacs
    echo for the AdResS therm force
    echo Usage: ${0##*/}
-   echo USES: get_from_mdp csg_get_property awk run_or_exit g_energy csg_taillog die
+   echo USES: get_from_mdp csg_get_property awk critical g_energy die
    echo NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
    exit 0
 fi
@@ -45,13 +45,13 @@ fi
 
 if [ $adress_type = "sphere" ]
 then
-run_or_exit csg_spheredens --trj traj.trr --top topol.tpr --bin 0.01 --out dens.$name.xvg --begin ${begin}
+critical csg_spheredens --trj traj.trr --top topol.tpr --bin 0.01 --out dens.$name.xvg --begin ${begin}
 #dens_prog="g_rdf -n index.ndx -bin 0.01"
 #index_sel="DUM \n CG\n"
 else
 dens_prog="g_density -n index.ndx -d x $g_densopt"
 echo "Running $dens_prog"
-echo -e $index_sel | run_or_exit $dens_prog -b ${begin} -o dens.$name.xvg
+echo -e $index_sel | critical $dens_prog -b ${begin} -o dens.$name.xvg
 fi
 
 
