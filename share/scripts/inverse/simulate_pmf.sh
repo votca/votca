@@ -58,7 +58,7 @@ for i in conf_start*.gro; do
   echo Simulation $number
   dir="$(printf sim_%03i $number)"
   mkdir $dir
-  for f in index.ndx topol.top settings.xml *.itp; do
+  for f in index.ndx topol.top *.itp; do
     cp $f ./$dir/
   done
   mv $i ./$dir/conf.gro
@@ -78,12 +78,27 @@ for i in conf_start*.gro; do
   delta=$(awk -v d1=$dist -v d2=$dist2 'BEGIN{print d1-d2}')
   echo "$number $dist $dist2 $delta i" >> ../dist_comp.d
   awk -v de=$delta 'BEGIN{print (de>0.001)?"Oho":"OK"}'
-  do_external run gromacs
+  do_external run gromacs_pmf
   cd ..
 done
+
+# Wait for jobs to finish
+for dir in sim_*; do
+  dir="$(printf sim_%03i $number)"
+  confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+  background=$(csg_get_property --allow-empty cg.inverse.parallel.background "no")
+  sleep_time=$(csg_get_property --allow-empty cg.inverse.parallel.sleep_time "60")
+  sleep 10
+  if [ "$background" == "yes" ]; then
+    while [ ! -f "$dir/$confout" ]; do
+      sleep $sleep_time
+    done
+  else
+    ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+    traj="traj.${ext}"
+    [ -f "$dir/$confout" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"
+  fi
+done
+
 cat dist_comp.d | sort -n > dist_comp.d
 awk '{if ($4>0.001){print "Oho in step",$1}}' dist_comp.d
-
-for dir in sim_*; do
-  [ -f $dir/confout.gro ] || die "confout.gro not found in dir $dir"
-done

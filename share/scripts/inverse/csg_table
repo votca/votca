@@ -151,6 +151,7 @@ functions espresso functions_espresso.sh
 
 # pmf specific stuff
 functions pmf functions_pmf.sh
+run gromacs_pmf run_gromacs_pmf.sh
 initialize pmf initialize_pmf.sh
 prepare pmf prepare_pmf.sh
 simulate pmf simulate_pmf.sh

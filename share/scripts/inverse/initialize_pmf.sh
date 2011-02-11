@@ -97,7 +97,22 @@ sed -e "s/@DIST@/$dist/" \
 run --log log_grompp2 grompp -n index.ndx
 # Create traj so "run gromacs" does not die
 touch "$traj"
-do_external run gromacs
+do_external run gromacs_pmf
+
+# Wait for job to finish when running in background
+confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+background=$(csg_get_property --allow-empty cg.inverse.parallel.background "no")
+sleep_time=$(csg_get_property --allow-empty cg.inverse.parallel.sleep_time "60")
+sleep 10
+if [ "$background" == "yes" ]; then
+  while [ ! -f "$confout" ]; do
+    sleep $sleep_time
+  done
+else
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  traj="traj.${ext}"
+  [ -f "$confout" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"
+fi
 
 # Calculate new distance
 echo -e "pullgroup0\npullgroup1" | run g_dist -n index.ndx -f confout.gro

@@ -37,7 +37,7 @@ else
   die "Could not find functions_pmf.sh"
 fi
 
-last_step="04_pmf"
+last_dir=$(get_last_step_dir)
 pullgroup0=$(csg_get_property cg.non-bonded.name | sed 's/-.*$//')
 pullgroup1=$(csg_get_property cg.non-bonded.name | sed 's/^.*-//')
 potfile="pmf_${pullgroup0}_${pullgroup1}.d"
@@ -47,4 +47,4 @@ kBT=$(csg_get_property cg.inverse.kBT)
 temp="$(get_from_mdp ref_t grompp.mdp)"
 echo "Calculating rdf"
 echo "#r rdf flag" > ${rdffile}
-awk  -v kBT="$kBT" '/^[^@#]/{print $1,exp(-$2/kBT)}' ../$last_step/${potfile} >> ${rdffile}
+awk  -v kBT="$kBT" '/^[^@#]/{print $1,exp(-$2/kBT)}' $last_dir/${potfile} >> ${rdffile}

@@ -36,19 +36,13 @@ mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
 [ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts "-pf pullf.xvg")"
-
-check_deps "$0"
+opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
 tasks=$(get_number_tasks)
+mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
+
 if [ $tasks -gt 1 ]; then
-  mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
   critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" ${opts}
 else
   critical $mdrun -s "${tpr}" -c "${confout}" ${opts}
 fi
-
-#ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
-#traj="traj.${ext}"
-#[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after running mdrun"
-#[ -f "$confout" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"

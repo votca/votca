@@ -108,74 +108,131 @@ add_csg_scriptdir
 [ -z "$CSGXMLFILE" ] && die "Script will need some options from the xml file\nPlease specify it with --options option"
 [ ! -f "$CSGXMLFILE" ] && die "options xml file '$CSGXMLFILE' not found"
 
+# Make CSGXMLFILE a global path
+[ "${CSGXMLFILE%/*}" = "${CSGXMLFILE}" ] && cpath="." || cpath="${CSGXMLFILE%/*}"
+cpath="$(cd $cpath;pwd)"
+export CSGXMLFILE="${cpath}/${CSGXMLFILE##*/}"
+[ -f "$CSGXMLFILE" ] || die "${0##*/}: could not find ${CSGXMLFILE##*/} (long version: $CSGXMLFILE"
+unset cpath
+
+main_dir="$PWD"
+
+# Step 0 - Initialization
+update_stepnames 0
+this_dir=$(get_current_step_dir --no-check)
 conf_in=$(csg_get_property cg.non-bonded.conf_in)
+pmf_step=$(basename $this_dir)
 
-# Step 1 - Initialize
-mkdir 01_initialize
-cd 01_initialize
-cp ../topol.top .
-cp ../grompp.mdp.template .
-cp ../${conf_in}.mdp .
-cp ../${conf_in}.gro .
-cp ../settings.xml .
-cp ../*.itp .
+if [ -n $conf_in ]; then
+  
+  echo "---------------"
+  echo "Doing $pmf_step"
+  echo "---------------"
+  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+  cd $this_dir || die "cd $this_dir failed"
 
-do_external initialize pmf
+  critical cp ../topol.top .
+  critical cp ../grompp.mdp.template .
+  critical cp ../${conf_in}.mdp .
+  critical cp ../${conf_in}.gro .
+  critical cp ../settings.xml .
+  critical cp ../*.itp .
 
-cd ..
+  do_external initialize pmf
+ 
+  conf_out="$this_dir/confout.gro"
+  index="$this_dir/index.ndx"
+  grompp="$this_dir/grompp.mdp"
+  touch "done"
+  msg "$pmf_step is done"
+  cd $main_dir
+else
+  msg "$pmf_step is already done"
+  conf_out=$(csg_get_property cg.non-bonded.conf_in)
+  index=$(csg_get_property cg.non-bonded.index)
+  grompp="$main_dir/grompp.mdp"
+fi
 
-# Step 2 - Generate configurations
-last_step="01_initialize"
-mkdir 02_prepare
-cd 02_prepare
-cp ../$last_step/topol.top .
-cp ../$last_step/index.ndx .
-cp ../$last_step/grompp.mdp.template .
-cp ../$last_step/confout.gro conf.gro
-cp ../$last_step/grompp.mdp start_in.mdp
-cp ../$last_step/settings.xml .
-cp ../$last_step/*.itp .
+# Step 1 - Generate configurations
+update_stepnames 1
+this_dir=$(get_current_step_dir --no-check)
+last_dir=$(get_last_step_dir)
+pmf_step=$(basename $this_dir)
+echo "---------------"
+echo "Doing $pmf_step"
+echo "---------------"
+mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+cd $this_dir || die "cd $this_dir failed"
+
+critical cp ../topol.top .
+critical cp ${index} .
+critical cp ../grompp.mdp.template .
+critical cp ${conf_out} conf.gro
+critical cp ${grompp} start_in.mdp
+critical cp ../*.itp .
 
 do_external prepare pmf
 
-cd ..
+touch "done"
+msg "$pmf_step is done"
+cd $main_dir
 
 # Step 3 - Run simulations
-unset last_step
-last_step="02_prepare"
-mkdir 03_simulations
-cd 03_simulations
-cp ../$last_step/topol.top .
-cp ../$last_step/index.ndx .
-cp ../$last_step/grompp.mdp.template .
-cp ../$last_step/conf_start*.gro .
-cp ../$last_step/settings.xml .
-cp ../$last_step/*.itp .
-cp ../$last_step/dist.xvg .
+update_stepnames 2
+this_dir=$(get_current_step_dir --no-check)
+last_dir=$(get_last_step_dir)
+pmf_step=$(basename $this_dir)
+echo "---------------"
+echo "Doing $pmf_step"
+echo "---------------"
+mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+cd $this_dir || die "cd $this_dir failed"
+
+critical cp $last_dir/topol.top .
+critical cp $last_dir/index.ndx .
+critical cp $last_dir/grompp.mdp.template .
+critical cp $last_dir/conf_start*.gro .
+critical cp $last_dir/*.itp .
+critical cp $last_dir/dist.xvg .
 
 do_external simulate pmf
 
-cd ..
+touch "done"
+msg "$pmf_step is done"
+cd $main_dir
 
 # Step 4 - Calculate pmf
-unset last_step
-last_step="03_simulations"
-mkdir 04_pmf
-cd 04_pmf
-
-cp ../$last_step/settings.xml .
+update_stepnames 3
+this_dir=$(get_current_step_dir --no-check)
+last_dir=$(get_last_step_dir)
+pmf_step=$(basename $this_dir)
+echo "---------------"
+echo "Doing $pmf_step"
+echo "---------------"
+mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+cd $this_dir || die "cd $this_dir failed"
 
 do_external calc pmf
 
-cd ..
+touch "done"
+msg "$pmf_step is done"
+cd $main_dir
 
 # Step 5 - Calculate rdf
-unset last_step
-last_step="04_pmf"
-mkdir 05_rdf
-cd 05_rdf
+update_stepnames 4
+this_dir=$(get_current_step_dir --no-check)
+last_dir=$(get_last_step_dir)
+pmf_step=$(basename $this_dir)
+echo "---------------"
+echo "Doing $pmf_step"
+echo "---------------"
+mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+cd $this_dir || die "cd $this_dir failed"
 
-cp ../$last_step/grompp.mdp .
-cp ../$last_step/settings.xml .
+critical cp $last_dir/grompp.mdp .
 
 do_external calc rdf
+
+touch "done"
+msg "$pmf_step is done"
+cd $main_dir

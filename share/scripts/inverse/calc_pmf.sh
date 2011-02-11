@@ -32,7 +32,7 @@ else
   die "Could not find functions_pmf.sh"
 fi
 
-last_step="03_simulations"
+last_dir=$(get_last_step_dir)
 pullgroup0=$(csg_get_property cg.non-bonded.name | sed 's/-.*$//')
 pullgroup1=$(csg_get_property cg.non-bonded.name | sed 's/^.*-//')
 kBT=$(csg_get_property cg.inverse.kBT)
@@ -46,9 +46,9 @@ potfile="pmf_${pullgroup0}_${pullgroup1}.d"
 rdffile="rdf_${pullgroup0}_${pullgroup1}.d"
 
 echo "#dist <force> error flag" > ${forcefile}
-sims="$(find ../${last_step} -type d -name "sim_???*" | sort)"
+sims="$(find ${last_dir} -type d -name "sim_???*" | sort)"
 for sim in ${sims}; do
-  echo -n "Doing ${sim}"
+  echo "Doing ${sim}"
   dist="$(get_from_mdp pull_init1 ${sim}/grompp.mdp)"
   [ -f "${sim}/pullf.xvg" ] || die "Could not find file ${sim}/pullf.xvg"
   force="$(${CSGSHARE}/scripts/inverse/avg_bl.awk -v col=2 ${sim}/pullf.xvg | awk '/^[^#]/{print $1,$2}')"
@@ -56,6 +56,7 @@ for sim in ${sims}; do
   echo "$dist $force i" >>  ${forcefile}
 done
 
+# Copy grompp from last sim to current dir
 cp ${sim}/grompp.mdp .
 
 echo "Calculating pmf"
