@@ -18,18 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents smoothing of the potential update (.dpot)
+This script implements smoothing of the potential update (.dpot)
 
 Usage: ${0##*/} infile outfile
-
-USES: die csg_get_interaction_property mktemp sed awk csg_resample check_deps
-
-NEEDS: name min max step inverse.post_update_options.splinesmooth.step
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 
@@ -48,5 +42,5 @@ spmax=$(sed -ne '$p' $tmpfile | awk '{print $1}')
 spstep=$(csg_get_interaction_property inverse.post_update_options.splinesmooth.step)
 
 comment="$(get_table_comment)"
-run_or_exit csg_resample --in $tmpfile --out "$2" --grid $min:$step:$max --spfit $spmin:$spstep:$spmax --comment "$comment"
+critical csg_resample --in $tmpfile --out "$2" --grid $min:$step:$max --type cubic --fitgrid $spmin:$spstep:$spmax --comment "$comment"
 

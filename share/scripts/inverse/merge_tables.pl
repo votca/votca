@@ -47,18 +47,14 @@ Merge two tables
 $usage
 
 Allowed options:
--v, --version         Prints version
+-v, --version         Print version
 -h, --help            Show this help message
 --withflag            only change entries with specific flag in src
 --noflags             don't copy flags
 --novalues            don't copy values
 
-Examples:  $progname -q
-           $progname
-
-USES: readin_table saveto_table
-NEEDS:
-
+Examples:  
+* $progname intable intable2 outtable
 END
 		exit;
 	}

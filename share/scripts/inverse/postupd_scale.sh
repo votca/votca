@@ -18,18 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents scaling of the potential update (.dpot)
+This script implements scaling of the potential update (.dpot)
 
 Usage: ${0##*/} infile outfile
-
-USES: csg_get_interaction_property do_external log check_deps
-
-NEEDS: name inverse.post_update_options.scale
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 
@@ -38,7 +32,7 @@ check_deps "$0"
 name=$(csg_get_interaction_property name)
 scale=$(csg_get_interaction_property inverse.post_update_options.scale 1.0)
 
-log "scaling potential update by factor $scale"
+echo "scaling potential update by factor $scale"
 
 do_external table linearop "$1" "$2" $scale 0
 

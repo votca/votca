@@ -120,7 +120,7 @@ void TabulatedPotential::Help(string cmd, vector<string> &args)
         }
         if(args[1] == "periodic") {
             cout << cmd << "set periodic <value>\n"
-                << "can be 1 for periodic interval (e.g. dihedral) of 0 for "
+                << "can be 1 for periodic interval (e.g. dihedral) or 0 for "
                     "non-periodic (e.g. bond)\n";
             return;
         }

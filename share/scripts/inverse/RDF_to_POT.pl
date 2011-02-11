@@ -22,21 +22,17 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, %version%
-This script convert in rdf to pot of mean force (F(r)=-k_B T*ln(g(r))
-In addtion it does some magic tricks:
+This script converts rdf to pot of mean force (F(r)=-k_B T*ln(g(r))
+
+In addtion, it does some magic tricks:
 - do not crash when calc log(0)
-- extrapolate the beginnig of pot
+- extrapolate the beginning of pot
 - the maximum to interpolate is pot_max (see xml)
 - bigger value will be set to that max
 - shift the potential, so that it is zero at the cutoff
 - set all values to zero after the cutoff
 
 Usage: $progname infile outfile
-
-USES: readin_table csg_get_property csg_get_property csg_get_interaction_property saveto_table
-
-NEEDS: cg.inverse.kBT max
-
 EOF
   exit 0;
 }

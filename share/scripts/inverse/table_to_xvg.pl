@@ -37,26 +37,24 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
     print <<EOF;
 $progname, version %version%
 
-This script convert csg potential files to xvg format
-In addtion it does some magic tricks:
+This script converts csg potential files to the xvg format.
+
+In addition, it does some magic tricks:
 - bigger value will be set to pot_max (see xml)
-- set all values after the cutoff are set to the same value as the cufoff
+- all values after the cutoff are set to the same value as the cufoff
 
 For non-bonded potential:
-- for shift the potential, so that it is zero at the cutoff
+- shift the potential, so that it is zero at the cutoff
 - put the values in the C12 column
 
 Allowed options:
--v, --version         Prints version
--h, --help            Show this help message
+-v, --version         print version
+-h, --help            show this help message
 --type XXX            change the type of xvg table (non-bonded, bonded, ...)
                       Default: $type
 
-Examples:  $progname --type bonded table.in table_b0.xvg
-
-NEEDS: cg.inverse.gromacs.pot_max cg.inverse.gromacs.table_end cg.inverse.gromacs.table_bins
-
-USES: csg_get_property saveto_table readin_table
+Examples:
+* $progname --type bonded table.in table_b0.xvg
 EOF
     exit 0;
   }

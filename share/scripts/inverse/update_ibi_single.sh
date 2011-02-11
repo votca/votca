@@ -18,21 +18,13 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function update
-for the Inverse Boltzmann Method for a single pair
+This script implemtents the function update for a single pair
+for the Inverse Boltzmann Method
 
-Usage: ${0##*/} step_nr
-
-USES:  die do_external die csg_get_interaction_property log check_deps get_current_step_nr
-
-NEEDS: inverse.do_potential name
-
-OPTIONAL: min step max
+Usage: ${0##*/}
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 step_nr=$(get_current_step_nr)
 scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
@@ -40,13 +32,13 @@ scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
-   log "Update potential ${name} : yes"
-   #update ibm
+   echo "Update potential ${name} : yes"
+   #update ibi
    do_external resample target
-   do_external update ibm_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.tmp
+   do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.tmp
    do_external dpot shift_nb ${name}.dpot.tmp ${name}.dpot.new
 else
-   log "Update potential ${name} : no"
+   echo "Update potential ${name} : no"
    min=$(csg_get_interaction_property min)
    step=$(csg_get_interaction_property step)
    max=$(csg_get_interaction_property max)

@@ -18,21 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function update
-for the Inverse Boltzmann Method
+Informs users that ibm was renamed to ibi.
 
 Usage: ${0##*/}
-
-USES:  msg csg_get_property for_all do_external check_deps
-
-NEEDS: cg.inverse.program
 EOF
    exit 0
 fi
 
-check_deps "$0"
-
-msg "Calc rdf"
-sim_prog="$(csg_get_property cg.inverse.program)"
-for_all non-bonded do_external rdf $sim_prog
-for_all non-bonded do_external update ibm_single
+die "'ibm' was renamed to 'ibi'"

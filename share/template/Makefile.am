@@ -1,14 +1,15 @@
 
 templatedir = ${datadir}/votca/template
 
-template_DATA = template.cc Makefile.template CMakeLists.txt.template
+template_DATA = template.cc template_threaded.cc Makefile.template CMakeLists.txt.template
 
 BUILT_SOURCES = votca/csg
 
 votca/csg:
 	mkdir votca
-	cd votca && rm -f csg
-	cd votca && $(LN_S) ../$(top_srcdir)/include csg
+#this will work for global and local paths in top_srcdir
+	incl=`$(am__cd) $(top_srcdir)/include; pwd`; \
+	cd votca && $(LN_S) $$incl csg
 
 install-data-hook:
 	cd $(DESTDIR)$(templatedir) && mv Makefile.template Makefile
@@ -26,8 +27,9 @@ AM_LDFLAGS = $(BIN_LDFLAGS)
 LDADD = ../../src/libcsg/libvotca_csg.la
 
 template_SOURCES = template.cc
+template_threaded_SOURCES = template_threaded.cc
 
-noinst_PROGRAMS = template
+noinst_PROGRAMS = template template_threaded
 
 EXTRA_DIST = $(template_DATA)
 

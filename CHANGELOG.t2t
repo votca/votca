@@ -6,6 +6,14 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 
 == Version in hg ==
+* added support for gromacs 5.0
+* csg_dump: can dump exclusion
+* added boundarycondition class
+* added man pages, man7 and man1 for all bins
+* csg_inverse: renamed ibm to ibi
+* csg_stat: added thread support, read exclusions from tpr file, uses grid search by default
+* csg_inverse: added convergence check, postadd plot, better logging and weaker die
+* csg_resample: added boundary conditions option and akima spline support
 * csg_stat or csg_fmatch give an error if trj not given (issue 29)
 * csg_get_interaction_property knows about defaults
 * fixed segfault in mapping (Fixes issue 27)

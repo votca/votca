@@ -23,6 +23,8 @@ namespace votca { namespace csg {
 
 void GMXTrajectoryWriter::Open(string file, bool bAppend)
 {
+    set_program_name("VOTCA");
+
     //char c[1] = bAppend ? "a" : "w";
     _file = open_trx((char *)file.c_str(), "w");
 }
@@ -67,7 +69,9 @@ for(int i=0; i<N; ++i) {
         x[i][2] = v.getZ(); 
     }
         
-#if GMX == 45
+#if GMX == 50
+    write_trxframe(_file, &frame, NULL);
+#elif GMX == 45
     write_trxframe(_file, &frame, NULL);
 #elif GMX == 40
     write_trxframe(_file, &frame);

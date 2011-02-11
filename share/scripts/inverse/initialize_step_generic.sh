@@ -18,18 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the initialization for every step in a generic way
+This script implements the initialization for every step in a generic way
 
 Usage: ${0##*/}
-
-USES:  for_all csg_get_interaction_property mv check_deps cp_from_last_step
-
-NEEDS: name cg.inverse.method cg.inverse.program
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"

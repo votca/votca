@@ -19,18 +19,13 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script calcs the pressure for gromacs
-for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: get_from_mdp csg_get_property awk log run_or_exit csg_taillog die sed check_deps
-
-OPTIONAL: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame cg.inverse.gromacs.mdp cg.inverse.gromacs.g_energy.topol cg.inverse.gromacs.g_energy.bin
+Used external packages: gromacs
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
@@ -51,10 +46,12 @@ first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
-log "Running ${g_energy}"
-echo Pressure | run_or_exit ${g_energy} -b "${begin}" -s "${tpr}" ${opts}
+#to stderr, p_now goes to stdout
+echo "Running ${g_energy}" >&2
+output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${tpr}" ${opts})
+echo "$output"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
-p_now=$(csg_taillog -30 | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
+p_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
   die "${0##*/}: awk failed"
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
 echo ${p_now}

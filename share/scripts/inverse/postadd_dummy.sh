@@ -18,24 +18,17 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd dummy script, just do nothing
-useful to overwrite default by nothing
+postadd dummy script (does nothing), useful to overwrite default by nothing
 
 Usage: ${0##*/} infile outfile
-
-USES: die check_deps run_or_exit cp
-
-NEEDS: 
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 
 [ -f "$2" ] && die "${0##*/}: $2 is already there"
 
-run_or_exit cp $1 $2
+critical cp $1 $2
 
 exit 0

@@ -46,9 +46,22 @@ public:
     bool DoTrajectory() {return true;}
     bool DoMapping() {return true;}
     bool DoMappingDefault(void) { return false; }
+    bool DoThreaded() {return true; }
+    bool SynchronizeThreads() {return true;}
     void Initialize();
     bool EvaluateOptions();
-    
+
+    void BeginEvaluate(Topology *top, Topology *top_ref);
+    void EndEvaluate();
+
+    CsgApplication::Worker *ForkWorker() {
+        return _imc.ForkWorker();
+    }
+
+    void MergeWorker(CsgApplication::Worker *worker) {
+        _imc.MergeWorker(worker);
+    }
+
 public:
     Imc _imc;
     int _write_every;
@@ -56,10 +69,10 @@ public:
 
 void CsgStatApp::HelpText(ostream &out)
 {
-    out << "Calculate all distribuions (bonded + non-bonded) specified in options file.\n"
+    out << "Calculate all distributions (bonded and non-bonded) specified in options file.\n"
             "Optionally calculates update matrix for invere Monte Carlo. This program\n"
             "is called inside the inverse scripts. Unlike csg_boltzmann, big systems\n"
-            "can be treated as well as non-bonded interactions evaluated.";
+            "can be treated as well as non-bonded interactions can be evaluated.";
 }
 
 void CsgStatApp::Initialize()
@@ -67,11 +80,12 @@ void CsgStatApp::Initialize()
     CsgApplication::Initialize();
     AddProgramOptions("Specific options")
             ("options", boost::program_options::value<string>(), "  options file for coarse graining")
-            ("do-imc", "  write out inverse monte carlo data")
-            ("write-every", boost::program_options::value<int>(&_write_every), "  write afer every block of this length, " \
-                "if --blocking is set, the averages are cleared after every write")
+            ("do-imc", "  write out Inverse Monte Carlo data")
+            ("write-every", boost::program_options::value<int>(&_write_every), "  write after every block of this length, " \
+                "if --blocking   is set, the averages are cleared after every output")
             ("do-blocks", "  write output for blocking analysis");
 }
+
 bool CsgStatApp::EvaluateOptions()
 {
     CsgApplication::EvaluateOptions();
@@ -86,13 +100,23 @@ bool CsgStatApp::EvaluateOptions()
     if(OptionsMap().count("do-imc"))
     _imc.DoImc(true);
 
-    AddObserver(dynamic_cast<CGObserver*>(&_imc));
+    _imc.Initialize();
     return true;
+}
+
+void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref)
+{
+    _imc.BeginEvaluate(top, top_ref);
+}
+
+void CsgStatApp::EndEvaluate()
+{
+    _imc.EndEvaluate();
 }
 
 int main(int argc, char** argv)
 {
     CsgStatApp app;
-    app.Exec(argc, argv);
+    return app.Exec(argc, argv);
 }
 

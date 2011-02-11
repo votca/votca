@@ -31,6 +31,10 @@
 #include "molecule.h"
 #include "residue.h"
 #include "beadtype.h"
+#include "boundarycondition.h"
+#include "triclinicbox.h"
+#include "orthorhombicbox.h"
+#include "openbox.h"
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -58,7 +62,7 @@ class Topology
 {
 public:
     /// constructor
-    Topology() {}    
+    Topology() {  _bc = new OpenBox(); }
     virtual ~Topology();
     
     /**
@@ -211,19 +215,44 @@ public:
      * range is a string which is parsed by RangeParser,
      */
     void RenameMolecules(string range, string name);
-    
+
     /**
      * set the simulation box
      * \param box triclinic box matrix
      */
-    void setBox(const matrix &box) { _box = box; };
-    
+    void setBox(const matrix &box, BoundaryCondition::eBoxtype boxtype=BoundaryCondition::typeAuto) {
+        // determine box type automatically in case boxtype==typeAuto
+        if(boxtype==BoundaryCondition::typeAuto) {
+            boxtype = autoDetectBoxType(box);
+        }
+
+        if(_bc) {
+            delete (_bc);
+        }
+        
+        switch(boxtype) {
+            case BoundaryCondition::typeTriclinic:
+                _bc = new TriclinicBox();
+                break;
+            case BoundaryCondition::typeOrthorhombic:
+                _bc = new OrthorhombicBox();
+                break;
+            default:
+                _bc = new OpenBox();
+                break;
+        }
+               
+        _bc->setBox(box);
+    };
+
     /**
      * get the simulation box
      * \return triclinic box matrix
      */
-    const matrix &getBox() { return _box; };
-
+    const matrix &getBox() {
+        return _bc->getBox();
+    };
+    
     /**
      * set the time of current frame
      * \param t simulation time in ns
@@ -269,9 +298,17 @@ public:
      * of pbc
      */
     vec BCShortestConnection(const vec &r1, const vec &r2) const;
-    
+
     /**
-     *  calculates the vox volume
+     * \brief return the shortest box size
+     * \return shortest size
+     *
+     * Calculates the shortest length to connect two sides of the box
+     */
+    double ShortestBoxSize();
+
+    /**
+     *  calculates the box volume
      *  \return box volume
      */
     double BoxVolume();
@@ -286,8 +323,18 @@ public:
      * \return exclusion list
      */
     ExclusionList &getExclusions() { return _exclusions; }
-    
+
+    BoundaryCondition::eBoxtype getBoxType() {
+        return _bc->getBoxType();
+    }
+
+    void InsertExclusion(int i, list<int> l);
+
 protected:
+    BoundaryCondition *_bc;
+
+    BoundaryCondition::eBoxtype autoDetectBoxType(const matrix &box);
+
     /// bead types in the topology
     BeadTypeContainer _beadtypes;
     
@@ -310,7 +357,6 @@ protected:
     
     map<string, list<Interaction *> > _interactions_by_group;
     
-    matrix _box;
     double _time;
     int _step;
 };
@@ -340,6 +386,10 @@ inline Residue *Topology::CreateResidue(string name)
 inline Molecule *Topology::MoleculeByIndex(int index)
 {
     return _molecules[index];
+}
+
+inline void Topology::InsertExclusion(int i, list<int> l) {
+    _exclusions.InsertExclusion(i,l);
 }
 
 }}

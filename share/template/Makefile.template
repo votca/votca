@@ -12,21 +12,25 @@ EXTRA_SRC=
 all: $(NAME)
 
 #if VOTCALDLIB is defined we add it to PKG_CONFIG_PATH
-ifeq "$(origin VOTCALDLIB)" "undefined"
-  $(error "VOTCALDLIB not found, please source VOTCARC")
-else
-  export PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:${VOTCALDLIB}/pkgconfig
+ifeq "$(origin CSGSHARE)" "undefined"
+  $(error "CSGSHARE not found, please source VOTCARC")
 endif
 
 #get CPPFLAGS and LDFLAGS from pkg-config
 CPPFLAGS=`pkg-config --cflags libvotca_csg`
-LDFLAGS=`pkg-config --libs libvotca_csg`
+LIBS=`pkg-config --libs libvotca_csg`
+
+#for static binaries uncomment the next 3 lines
+#CPPFLAGS=`pkg-config --static --cflags libvotca_csg`
+#LDFLAGS=-static
+#LIBS=`pkg-config --static --libs libvotca_csg`
 
 #generate a list of object (.o) files
 OBJS=$(patsubst %.cc,%.o,$(NAME).cc $(EXTRA_SRC))
 
 #main program depend on all objects, rest is done by implicit rules
 $(NAME): $(OBJS)
+	${CXX} ${LDFLAGS} -o ${NAME} ${OBJS} ${LIBS}
 
 #clean up rule
 clean:

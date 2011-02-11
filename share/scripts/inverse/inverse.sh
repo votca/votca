@@ -15,36 +15,42 @@
 # limitations under the License.
 #
 
-#defaults
-usage="Usage: ${0##*/} [OPTIONS] setting_file.xml"
-do_iterations=""
-clean="no"
-wall_time=""
-
 show_help () {
   cat << eof
 ${0##*/}, version %version%
 
+Start the script to run ibi, imc, etc.
 
-Start the script to run ibm, imc, etc.
-
-$usage
+Usage: ${0##*/} [OPTIONS] [setting_file.xml]
 
 Allowed options:
 -h, --help                    show this help
 -N, --do-iterations N         only do N iterations
     --wall-time SEK           Set wall clock time
+    --options FILE            Specify the options xml file to use
     --clean                   clean out the PWD, dangerous
 
 Examples:
 * ${0##*/} cg.xml
 * ${0##*/} -6 cg.xml
-
-USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done log run_or_exit csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time logrun rm update_stepnames
-
-NEEDS: cg.inverse.method cg.inverse.program cg.inverse.iterations_max cg.inverse.filelist name cg.inverse.cleanlist
 eof
 }
+
+#--help should always work so leave it here
+if [ "$1" = "--help" ]; then
+  show_help
+  exit 0
+fi
+
+#do all start up checks option stuff
+source "${0%/*}/start_framework.sh"  || exit 1
+
+#defaults for options
+do_iterations=""
+wall_time=""
+
+#unset stuff from enviorment
+unset CSGXMLFILE CSGSCRIPTDIR CSGLOG
 
 ### begin parsing options
 shopt -s extglob
@@ -60,64 +66,92 @@ while [ "${1#-}" != "$1" ]; do
  case $1 in
    --do-iterations)
     do_iterations="$2"
+    int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
     shift 2 ;;
    --wall-time)
     wall_time="$2"
+    int_check "$wall_time" "inverse.sh: --wall-time need a number as agrument"
     start_time="$(date +%s)" || exit 1
     shift 2 ;;
    -[0-9]*)
     do_iterations=${1#-}
     shift ;;
    --clean)
-    clean="yes"
-    shift ;;
+    csg_ivnerse_clean
+    exit $?;;
+   --xmlfile)
+    export CSGXMLFILE="$2"
+    shift 2;;
    -h | --help)
     show_help
     exit 0;;
   *)
-   echo "Unknown option '$1'"
-   exit 1;;
+   die "Unknown option '$1'";;
  esac
 done
-
 ### end parsing options
 
-#do all start up checks option stuff
-source "${0%.sh}_start.sh"  "$@" || exit 1
-#shift away xml file
-shift 1
+#old style maybe, new style set by --options
+if [ -z "${CSGXMLFILE}" ]; then
+  [ -n "$1" ] || die "Error: Missing xml file"
+  export CSGXMLFILE="${1}"
+  shift
+fi
 
-#----------------End of pre checking--------------------------------
+#make CSGXMLFILE a global path
+[ "${CSGXMLFILE%/*}" = "${CSGXMLFILE}" ] && cpath="." || cpath="${CSGXMLFILE%/*}"
+cpath="$(cd $cpath;pwd)"
+export CSGXMLFILE="${cpath}/${CSGXMLFILE##*/}"
+[ -f "$CSGXMLFILE" ] || die "${0##*/}: could not find ${CSGXMLFILE##*/} (long version: $CSGXMLFILE" 
+unset cpath
+
+#other stuff we need, which comes from xmlfile -> must be done here
+#define $CSGRESTART
+CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
+CSGRESTART="${CSGRESTART##*/}"
+export CSGRESTART
+
+#get csglog
+CSGLOG="$(csg_get_property cg.inverse.log_file)"
+CSGLOG="$PWD/${CSGLOG##*/}"
+export CSGLOG
 if [ -f "$CSGLOG" ]; then
-  log "\n\n#################################"
-  log "# Appending to existing logfile #"
-  log "#################################\n\n"
-  log "Sim started $(date)"
-  echo "Appending to existing logfile ${CSGLOG##*/}"
+  exec 3>&1 >> "$CSGLOG" 2>&1
+  echo "\n\n#################################"
+  echo "# Appending to existing logfile #"
+  echo "#################################\n\n"
+  echo "Sim started $(date)"
+  msg "Appending to existing logfile ${CSGLOG##*/}"
 else
   echo "For a more verbose log see: ${CSGLOG##*/}"
-  #log is created in the next line
-  echo "Sim started $(date)" > $CSGLOG || exit 1
+  #logfile is created in the next line
+  exec 3>&1 >> "$CSGLOG" 2>&1
+  echo "Sim started $(date)"
 fi
 
 method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-log "We using Sim Program: $sim_prog"
-source $($SOURCE_WRAPPER functions $sim_prog) || die "$SOURCE_WRAPPER functions $sim_prog failed"
+echo "We are using Sim Program: $sim_prog"
+source_function $sim_prog
 
-iterations="$(csg_get_property cg.inverse.iterations_max)"
-log "We are doing $iterations iterations."
+iterations_max="$(csg_get_property cg.inverse.iterations_max)"
+int_check "$do_iterations" "inverse.sh: cg.inverse.iterations_max needs to be a number"
+echo "We are doing $iterations_max iterations (0=inf)."
+convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
+[ "$convergence_check" = "none" ] || echo "After every iteration we will do the following check: $convergence_check"
 
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-[ -z "$filelist" ] || log "We extra cp '$filelist' to every step to run the simulation"
+[ -z "$filelist" ] || echo "We extra cp '$filelist' to every step to run the simulation"
 
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
-[ -z "$cleanlist" ] || log "We extra clean '$cleanlist' after a step is done"
+[ -z "$cleanlist" ] || echo "We extra clean '$cleanlist' after a step is done"
 
-run_or_exit $SOURCE_WRAPPER --status
-run_or_exit $SOURCE_WRAPPER --check
+add_csg_scriptdir
+
+critical $SOURCE_WRAPPER --status
+critical $SOURCE_WRAPPER --check
 
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
@@ -125,8 +159,8 @@ run_or_exit $SOURCE_WRAPPER --check
 update_stepnames 0
 this_dir=$(get_current_step_dir --no-check)
 if [ -d "$this_dir" ]; then
-  msg "Skiping prepare"
-  [[ -f $this_dir/done ]] || die "Incomplete step 0"
+  msg "step 0 (prepare) is already done - skipping"
+  [[ -f $this_dir/done ]] || die "Incomplete step 0 (remove dir '${this_dir##*/}' if you don't know what to do)"
 else
   msg ------------------------
   msg "Prepare (dir ${this_dir##*/})"
@@ -137,7 +171,7 @@ else
 
   do_external prepare $method
 
-  touch done
+  touch "done"
   msg "step 0 done"
   cd $(get_main_dir)
 fi
@@ -158,7 +192,9 @@ unset nr trunc
 
 avg_steptime=0
 steps_done=0
+[ $iterations_max -eq 0 ] && iterations=$begin || iterations=$iterations_max
 for ((i=$begin;i<$iterations+1;i++)); do
+  [ $iterations_max -eq 0 ] && ((iterations++))
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
@@ -172,14 +208,15 @@ for ((i=$begin;i<$iterations+1;i++)); do
       continue
     else
       msg "Incomplete step $i"
-      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found"
+      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
     fi
   else
-    log "Step $i started at $(date)"
+    echo "Step $i started at $(date)"
     mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   fi
 
   cd $this_dir || die "cd $this_dir failed"
+  mark_done "stepdir"
 
   if is_done "Initialize"; then
     msg "Initialization already done"
@@ -187,7 +224,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     #get need files
     cp_from_main_dir $filelist
 
-    #get file from last step and init sim_prog
+    #get files from last step, init sim_prog and ...
     do_external initstep $method
 
     mark_done "Initialize"
@@ -213,11 +250,9 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "Post add"
   do_external post add
 
-  touch "done"
-
   msg "Clean up"
   for cleanfile in ${cleanlist}; do
-    logrun rm -f $cleanfile
+    rm -f $cleanfile
   done
   unset cleanfile
 
@@ -225,9 +260,25 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "\nstep $i done, needed $step_time secs"
   ((steps_done++))
 
+  touch "done"
+
+  if [ "$convergence_check" = "none" ]; then
+    echo "No convergence check to be done"
+  else
+    msg "Doing convergence check: $convergence_check"
+    do_external convergence_check "$convergence_check"
+    if [ -f "stop" ]; then
+      msg "Iterations are converged, stopping"
+      touch "done"
+      exit 0
+    else
+      msg "Iterations are not converged, going on"
+    fi
+  fi
+
   if [ -n "$wall_time" ]; then
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
-    log "New average steptime $avg_steptime"
+    echo "New average steptime $avg_steptime"
     if [ $(( $(get_time) + $avg_steptime )) -gt $(( $wall_time + $start_time )) ]; then
       msg "We will not manage another step, stopping"
       exit 0
@@ -248,6 +299,6 @@ for ((i=$begin;i<$iterations+1;i++)); do
 done
 
 touch "done"
-log "All done at $(date)"
+echo "All done at $(date)"
 exit 0
 

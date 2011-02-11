@@ -18,14 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script runs gromacs
-for the Inverse Boltzmann Method
+This script runs gromacs for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: run_or_exit use_mpi csg_get_property check_deps
-
-OPTIONAL: cg.inverse.mpi.cmd cg.inverse.gromacs.mdrun.opts cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type cg.inverse.gromacs.mdrun.bin
+Used external packages: gromacs
 EOF
    exit 0
 fi
@@ -36,17 +33,19 @@ tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
 [ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
 
+confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
-check_deps "$0"
-
-if use_mpi; then
-  mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
-  run_or_exit $mpicmd $mdrun -s "${tpr}" ${opts}
+tasks=$(get_number_tasks)
+if [ $tasks -gt 1 ]; then
+  mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
+  critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" ${opts}
 else
-  run_or_exit $mdrun -s "${tpr}" ${opts}
+  critical $mdrun -s "${tpr}" -c "${confout}" ${opts}
 fi
 
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
-[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after mdrun"
+[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after running mdrun"
+
+[ -f "$confout" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"

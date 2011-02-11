@@ -19,21 +19,25 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents the function initialize
-for the Inverse Boltzmann Method
 
-Usage: ${0##*/} last_sim_dir
+Usage: ${0##*/}
 
-USES: die cp run_or_exit check_deps get_last_step_dir
-
-OPTIONAL: cg.inverse.gromacs.grompp.index cg.inverse.gromacs.grompp.topol cg.inverse.gromacs.topol cg.inverse.gromacs.grompp.opts cg.inverse.gromacs.mdp cg.inverse.gromacs.grompp.bin
+Used external packages: gromacs
 EOF
   exit 0
 fi
 
-check_deps "$0"
-
-cp_from_last_step confout.gro
-run_or_exit mv confout.gro conf.gro
+from="$(csg_get_property cg.inverse.initial_configuration "laststep")"
+conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
+if [ "$from" = "laststep" ]; then
+  confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+  cp_from_last_step "${confout}"
+  critical mv "${confout}" "$conf"
+elif [ "$from" = "maindir" ]; then
+  cp_from_main_dir "$conf"
+else
+  die "${0##*/}: initial_configuration '$from' not implemented"
+fi
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
@@ -41,7 +45,8 @@ mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 #convert potential in format for sim_prog
 for_all non-bonded do_external convert_potential gromacs
 
-for_all "non-bonded" check_cutoff $mdp
+check_temp "$mdp"
+for_all "non-bonded" check_cutoff "$mdp"
 
 grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
 [ -n "$(type -p $grompp)" ] || die "${0##*/}: grompp binary '$grompp' not found"
@@ -53,5 +58,5 @@ top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
 tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
-run_or_exit $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" ${opts}
+critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"

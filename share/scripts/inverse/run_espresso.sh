@@ -18,24 +18,19 @@
 if [ "$1" = "--help" ]; then
     cat <<EOF
 ${0##*/}, version %version%
-This script runs espresso
-for the Inverse Boltzmann Method
+This script runs espresso for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: run_or_exit use_mpi csg_get_property check_deps use_mpi
-
-NEEDS: cg.inverse.espresso.n_steps cg.inverse.method cg.inverse.espresso.n_snapshots cg.inverse.espresso.meta_cmd cg.inverse.espresso.meta_min_sampling
-
-OPTIONAL: cg.inverse.espresso.blockfile cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.bin cg.inverse.espresso.traj
+Used external packages: espresso
 EOF
     exit 0
 fi
 
-check_deps "$0"
-
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
+
+espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
 
 n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 [ -z "$n_steps" ] && die "${0##*/}: Could not read espresso property n_steps"
@@ -64,8 +59,8 @@ traj_esp="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
 
 
 # Different Espresso scripts depending on the method used
-################ IBM ###################
-if [ "$method" = "ibm" ]; then
+################ IBI ###################
+if [ "$method" = "ibi" ]; then
     
     n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
     [ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
@@ -136,7 +131,7 @@ for { set j 0 } { \$j < $n_snapshots } { incr j } {
   close \$pos_out
 }
 
-set out [open "|gzip -c - > confout.esp.gz" w]
+set out [open "|gzip -c - > $espout" w]
 blockfile \$out write variable all
 blockfile \$out write interactions
 blockfile \$out write thermostat
@@ -155,20 +150,23 @@ set out [open $esp_success w]
 close \$out
 EOF
     
-    if use_mpi; then
-	mpicmd=$(csg_get_property --allow-empty cg.inverse.mpi.cmd)
+    tasks=$(get_number_tasks)
+    if [ $tasks -gt 1 ]; then
+	mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
         mpi_check=$(csg_get_property cg.inverse.espresso.mpi_check "yes")
 	if [ "${mpi_check}" = "yes" ]; then
 	  #in most cases mpirun want -x option to export environment to compute nodes
-	  [ -n "${mpicmd//*-x ESPRESSO_SCRIPTS*}" ] && die "${0##*/}: You have forgotten to add '-x  ESPRESSO_SCRIPTS' to the cg.inverse.mpi.cmd!\n
+	  [ -n "${mpicmd//*-x ESPRESSO_SCRIPTS*}" ] && die "${0##*/}: You have forgotten to add '-x  ESPRESSO_SCRIPTS' to the cg.inverse.parallel.cmd!\n
 For most mpi implementation this is needed to export the environment variable ESPRESSO_SCRIPTS on compute nodes.\n
 To disable this check set cg.inverse.espresso.mpi_check to 'no'"
-	run_or_exit $mpicmd $esp_bin $esp_script
+	critical $mpicmd $esp_bin $esp_script
     else
-	run_or_exit $esp_bin $esp_script
+	critical $esp_bin $esp_script
     fi
     [ -f "$esp_success" ] || die "${0##*/}: Espresso run did not end successfully. Check log."    
+    [ -f "$traj_esp" ] || die "${0##*/}: Espresso traj file '$traj_esp' not found after running Espresso"
+    [ -f "$espout" ] || die "${0##*/}: Espresso end coordinate '$espout' not found after running Espresso"
     
 else
-    die "${0##*/}: ESPResSo only supports method: IBM"
+    die "${0##*/}: ESPResSo only supports method: ibi"
 fi

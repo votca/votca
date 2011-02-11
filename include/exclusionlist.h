@@ -59,6 +59,8 @@ public:
     
     bool IsExcluded(int bead1, int bead2);
 
+    void InsertExclusion(int index, list<int> l);
+
 private:
     list< exclusion_t * > _exclusions;
     map<int, exclusion_t *> _excl_by_bead;

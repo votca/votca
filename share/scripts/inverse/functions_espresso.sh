@@ -18,14 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-Functions useful for espresso
+Useful functions for espresso
 
-NEEDS:
-
-USES: 
-
-PROVIDES: 
+Used external packages: espresso
 EOF
   exit 0
 fi
 
+#need to be there, because simprog function file is not optional

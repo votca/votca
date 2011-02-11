@@ -18,18 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-dummy script, just do nothing
-useful to overwrite default by nothing
+dummy script (does nothing), useful to overwrite default by nothing
 
 Usage: ${0##*/}
-
-USES: check_deps 
-
-NEEDS: 
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 exit 0

@@ -18,21 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function initialize
-for the Inverse Boltzmann Method
+This script implements the prepares the potential in step 0, using pot.in or by resampling the target distribution
 
 Usage: ${0##*/}
-
-USES: do_external csg_get_interaction_property log run_or_exit csg_resample log check_deps msg get_main_dir
-
-NEEDS: name min max step
-
-OPTIONAL: inverse.target
 EOF
   exit 0
 fi
-
-check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property min )
@@ -43,13 +34,15 @@ main_dir=$(get_main_dir)
 
 if [ -f "${main_dir}/${name}.pot.in" ]; then
   msg "Using given table ${name}.pot.in for ${name}"
-  run_or_exit csg_resample --in "${main_dir}/${name}.pot.in" --out ${name}.pot.tmp --grid ${min}:${step}:${max} --comment "$comment"
-  do_external pot shift_nb ${name}.pot.tmp ${name}.pot.new
+  tmp="$(critical mktemp ${name}.pot.in.smooth.XXX)"
+  echo "Converting ${main_dir}/${name}.pot.in to ${name}.pot.new through $tmp"
+  critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${tmp} --grid ${min}:${step}:${max} --comment "$comment"
+  do_external pot shift_nb ${tmp} ${name}.pot.new
 else
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
   #copy+resample all target dist in $this_dir
-  run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
+  critical csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
   # RDF_to_POT.pl just does log g(r) + extrapolation
   do_external rdf pot ${name}.dist.tgt ${name}.pot.new
 fi

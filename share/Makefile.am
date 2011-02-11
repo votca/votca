@@ -1,2 +1,2 @@
-SUBDIRS = scripts xml template doc
+SUBDIRS = scripts xml template doc man
 

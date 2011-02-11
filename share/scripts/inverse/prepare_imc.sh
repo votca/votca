@@ -18,18 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials in a generic way
+This script initializes potentials for imc
 
 Usage: ${0##*/}
-
-USES: msg
-
-NEEDS:
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 msg "####################################################"
 msg "# WARNING multicomponent imc is still experimental #"

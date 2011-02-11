@@ -47,7 +47,7 @@ ${0##*/}, version ${version}
 
 
 
-Start the script to run ibm, imc, etc.
+Start the script to run IBM, IMC, etc.
 
 Usage: ${0##*/} [OPTIONS] setting_file.xml
 
@@ -66,7 +66,6 @@ if [ -z "${CSGSHARE}" ]; then
    exit 1
 fi
 
-echo "CSGSHARE is ${CSGSHARE}"
 if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
    exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
    exit 0

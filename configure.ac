@@ -1,4 +1,4 @@
-AC_INIT(votca-csg,1.0.1,bugs@votca.org)
+AC_INIT(votca-csg,1.1_rc1,bugs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -44,8 +44,7 @@ AX_VOTCA_TOOLS
 
 AX_GROMACS
 
-AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
-AM_CONDITIONAL(HAVE_TXT2TAGS, test "$TXT2TAGS" != no)
+AX_TXT2TAGS(2.5)
 
 AC_CHECK_PROGS(DOXYGEN,doxygen,no)
 AM_CONDITIONAL(HAVE_DOXYGEN,[test "$DOXYGEN" != no])
@@ -64,7 +63,9 @@ AC_CONFIG_FILES([share/scripts/inverse/Makefile])
 AC_CONFIG_FILES([share/scripts/Makefile])
 AC_CONFIG_FILES([share/Makefile])
 AC_CONFIG_FILES([share/doc/Makefile])
+AC_CONFIG_FILES([share/man/Makefile])
 AC_CONFIG_FILES([scripts/Makefile])
+AC_CONFIG_FILES([admin/Makefile])
 
 AC_CONFIG_FILES([share/xml/Makefile])
 AC_CONFIG_FILES([share/template/Makefile])

@@ -25,6 +25,9 @@ namespace votca { namespace csg {
 Topology::~Topology()
 {
     Cleanup();
+    if(_bc)
+        delete (_bc);
+    _bc = NULL;
 }
 
 void Topology::Cleanup()
@@ -57,6 +60,10 @@ void Topology::Cleanup()
             delete (*i);
         _interactions.clear();
     }
+    // cleanup _bc object
+    if(_bc)
+        delete (_bc);
+    _bc = new OpenBox();
 }
 
 /// \todo implement checking!!
@@ -149,7 +156,7 @@ void Topology::CopyTopologyData(Topology *top)
     MoleculeContainer::iterator it_mol;
     InteractionContainer::iterator it_ia;
 
-    _box = top->_box;
+    _bc->setBox(top->getBox());
     _time = top->_time;
     _step = top->_step;
 
@@ -258,14 +265,7 @@ BeadType *Topology::GetOrCreateBeadType(string name)
 
 vec Topology::BCShortestConnection(const vec &r_i, const vec &r_j) const
 {
-    vec r_tp, r_dp, r_sp, r_ij;
-    vec a = _box.getCol(0); vec b = _box.getCol(1); vec c = _box.getCol(2);
-    r_tp = r_j - r_i;
-    r_dp = r_tp - c*round(r_tp.getZ()/c.getZ());  
-    r_sp = r_dp - b*round(r_dp.getY()/b.getY());
-    r_ij = r_sp - a*round(r_sp.getX()/a.getX());
-    return r_ij;
-
+    return _bc->BCShortestConnection(r_i, r_j);
 }
 
 vec Topology::getDist(int bead1, int bead2) const
@@ -277,13 +277,58 @@ vec Topology::getDist(int bead1, int bead2) const
 
 double Topology::BoxVolume()
 {
-    vec a = _box.getCol(0); vec b = _box.getCol(1); vec c = _box.getCol(2);
-    return (a^b)*c;
+    return _bc->BoxVolume();
 }
 
 void Topology::RebuildExclusions()
 {
     _exclusions.CreateExclusions(this);
+}
+
+BoundaryCondition::eBoxtype Topology::autoDetectBoxType(const matrix &box) {
+    // set the box type to OpenBox in case "box" is the zero matrix,
+    // to OrthorhombicBox in case "box" is a diagonal matrix,
+    // or to TriclinicBox otherwise
+    if(box.get(0,0)==0 && box.get(0,1)==0 && box.get(0,2)==0 &&
+       box.get(1,0)==0 && box.get(1,1)==0 && box.get(1,2)==0 &&
+       box.get(2,0)==0 && box.get(2,1)==0 && box.get(2,2)==0) {
+        //cout << "box open\n";
+        return BoundaryCondition::typeOpen;
+    }
+    else
+    if(box.get(0,1)==0 && box.get(0,2)==0 &&
+       box.get(1,0)==0 && box.get(1,2)==0 &&
+       box.get(2,0)==0 && box.get(2,1)==0) {
+        //cout << "box orth\n";
+        return BoundaryCondition::typeOrthorhombic;
+    }
+    else {
+        //cout << "box tric\n";
+        return BoundaryCondition::typeTriclinic;
+    }
+    return BoundaryCondition::typeOpen;
+}
+
+double Topology::ShortestBoxSize()
+{
+    vec _box_a = getBox().getCol(0);
+    vec _box_b = getBox().getCol(1);
+    vec _box_c = getBox().getCol(2);
+
+    // create plane normals
+    vec _norm_a = _box_b ^ _box_c;
+    vec _norm_b = _box_c ^ _box_a;
+    vec _norm_c = _box_a ^ _box_b;
+
+    _norm_a.normalize();
+    _norm_b.normalize();
+    _norm_c.normalize();
+
+    double la = _box_a * _norm_a;
+    double lb = _box_b * _norm_b;
+    double lc = _box_c * _norm_c;
+
+    return min(la, min(lb, lc));
 }
 
 }}

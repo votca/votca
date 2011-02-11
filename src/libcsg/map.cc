@@ -16,6 +16,7 @@
  */
 
 #include "map.h"
+#include "topology.h"
 #include <iostream>
 #include <votca/tools/matrix.h>
 #include <votca/tools/tokenizer.h>
@@ -118,13 +119,28 @@ void Map_Sphere::Apply()
     bool bPos, bVel, bF;
     bPos=bVel=bF=false;
     _out->ParentBeads().clear();
+
+    // the following is needed for pbc treatment
+    Topology *top = _out->getParent();
+    double max_dist = 0.5*top->ShortestBoxSize();
+    vec r0 = vec(0,0,0);
+    if(_matrix.size() > 0) {
+        if(_matrix.front()._in->HasPos()) {
+            r0=_matrix.front()._in->getPos();
+        }
+    }
+
     double M = 0;
+
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         Bead *bead = iter->_in;
         _out->ParentBeads().push_back(bead->getId());
         M+=bead->getM();
         if(bead->HasPos()) {
-            cg += (*iter)._weight * bead->getPos();
+            vec r = top->BCShortestConnection(r0, bead->getPos());
+            if(abs(r) > max_dist)
+                throw std::runtime_error("coarse-grained bead is bigger than half the box");
+            cg += (*iter)._weight * (r+r0);
             bPos=true;
         }
         if(bead->HasVel()) {
@@ -153,7 +169,17 @@ void Map_Ellipsoid::Apply()
     matrix m(0.);
      bool bPos, bVel, bF;
     bPos=bVel=bF=false;
-      
+
+    // the following is needed for pbc treatment
+    Topology *top = _out->getParent();
+    double max_dist = 0.5*top->ShortestBoxSize();
+    vec r0 = vec(0,0,0);
+    if(_matrix.size() > 0) {
+        if(_matrix.front()._in->HasPos()) {            
+            r0=_matrix.front()._in->getPos();
+        }
+    }
+
     int n;
     n = 0;
     _out->ParentBeads().clear();
@@ -161,7 +187,10 @@ void Map_Ellipsoid::Apply()
        Bead *bead = iter->_in;
        _out->ParentBeads().push_back(bead->getId());
        if(bead->HasPos()) {
-            cg += (*iter)._weight * bead->getPos();
+            vec r = top->BCShortestConnection(r0, bead->getPos());
+            if(abs(r) > max_dist)
+                throw std::runtime_error("coarse-grained bead is bigger than half the box");
+            cg += (*iter)._weight * (r+r0);
             bPos=true;
         }
         if(bead->HasVel() == true) {

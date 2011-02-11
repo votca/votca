@@ -23,197 +23,376 @@
 #include "cgengine.h"
 #include "version.h"
 
-namespace votca { namespace csg {
+namespace votca {
+    namespace csg {
 
-CsgApplication::CsgApplication(void)
-{
-}
-
-CsgApplication::~CsgApplication(void)
-{
-}
-
-void CsgApplication::Initialize(void)
-{
-    // register all io plugins
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-
-    AddProgramOptions()
-        ("top", boost::program_options::value<string>(), "  atomistic topology file");
-    if(DoMapping()) {
-        if(DoMappingDefault()) {
-            AddProgramOptions("Mapping options")
-               ("cg", boost::program_options::value<string>(), "  coarse graining mapping definitions (xml-file)")
-               ("no-map", "  disable mapping and act on original trajectory");
-        } else {
-            AddProgramOptions("Mapping options")
-                ("cg", boost::program_options::value<string>(), "  [OPTIONAL] coarse graining mapping definitions\n"
-                                                                "  (xml-file). If no file is given, program acts on original trajectory");
+        CsgApplication::CsgApplication(void) {
         }
-    }
-    
 
-    if(DoTrajectory())
-        AddProgramOptions("Trajectory options")
-            ("trj", boost::program_options::value<string>(), "  atomistic trajectory file")
-            ("begin", boost::program_options::value<double>()->default_value(0.0), "  skip frames before this time")
-            ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
-            ("nframes", boost::program_options::value<int>(), "  process so many frames")
-            ;
-}
+        CsgApplication::~CsgApplication(void) {
+        }
 
-bool CsgApplication::EvaluateOptions(void)
-{
-    _do_mapping = false;
-    CheckRequired("top", "no topology file specified");
-    
-    // check for mapping options
-    if (DoMapping()) {
-        // default mapping is on
-        if(DoMappingDefault()) {
-            // if the user does not explicitly ask to turn it off, cg is needed
-            if(OptionsMap().count("no-map")==0) {
-                CheckRequired("cg", "no coarse graining definition specified");
-                _do_mapping = true;
+        void CsgApplication::Initialize(void) {
+            // register all io plugins
+            TrajectoryWriter::RegisterPlugins();
+            TrajectoryReader::RegisterPlugins();
+            TopologyReader::RegisterPlugins();
+
+            AddProgramOptions()
+                    ("top", boost::program_options::value<string > (), "  atomistic topology file");
+            if (DoMapping()) {
+                if (DoMappingDefault()) {
+                    AddProgramOptions("Mapping options")
+                            ("cg", boost::program_options::value<string > (), "  coarse graining mapping definitions (xml-file)")
+                            ("no-map", "  disable mapping and act on original trajectory");
+                } else {
+                    AddProgramOptions("Mapping options")
+                            ("cg", boost::program_options::value<string > (), "  [OPTIONAL] coarse graining mapping definitions\n"
+                            "  (xml-file). If no file is given, program acts on original trajectory");
+                }
+            }
+
+
+            if (DoTrajectory())
+                AddProgramOptions("Trajectory options")
+                ("trj", boost::program_options::value<string > (), "  atomistic trajectory file")
+                ("begin", boost::program_options::value<double>()->default_value(0.0), "  skip frames before this time")
+                ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
+                ("nframes", boost::program_options::value<int>(), "  process the given number of frames")
+                ;
+
+            if (DoThreaded())
+                /**
+                 * TODO default value of 1 for nt is not smart
+                 */
+                AddProgramOptions("Threading options")
+                ("nt", boost::program_options::value<int>()->default_value(1), "  number of threads")
+                ;
+
+        }
+
+        bool CsgApplication::EvaluateOptions(void) {
+            _do_mapping = false;
+            CheckRequired("top", "no topology file specified");
+
+            // check for mapping options
+            if (DoMapping()) {
+                // default mapping is on
+                if (DoMappingDefault()) {
+                    // if the user does not explicitly ask to turn it off, cg is needed
+                    if (OptionsMap().count("no-map") == 0) {
+                        CheckRequired("cg", "no coarse graining definition specified");
+                        _do_mapping = true;
+                    }
+                }// default mapping is off, if user gives cg, then do mapping
+                else if (OptionsMap().count("cg")) {
+                    _do_mapping = true;
+                }
+            }
+
+            /* check threading options */
+            if (DoThreaded()) {
+                _nthreads = _op_vm["nt"].as<int > ();
+                /* TODO
+                 * does the number of threads make sense?
+                 * which criteria should be used? smaller than system's cores?
+                 */
+            }
+
+            return true;
+        }
+
+        void CsgApplication::ShowHelpText(std::ostream &out) {
+            string name = ProgramName();
+            if (VersionString() != "")
+                name = name + ", version " + VersionString();
+
+            HelpTextHeader(name);
+            HelpText(out);
+            out << "\n\n" << OptionsDesc() << endl;
+        }
+
+        void CsgApplication::Worker::Run(void) {
+            while (_app->ProcessData(this)) {
+                if (_app->SynchronizeThreads()) {
+                    int id = getId();
+                    _app->_threadsMutexesOut[id]->Lock();
+                    _app->MergeWorker(this);
+                    _app->_threadsMutexesOut[(id + 1) % _app->_nthreads]->Unlock();
+                }
             }
         }
-        // default mapping is off, if user gives cg, then do mapping
-        else if(OptionsMap().count("cg")) {
-            _do_mapping = true;
-        }
-    }
-    return true;
-}
 
-void CsgApplication::ShowHelpText(std::ostream &out)
-{
-    string name =  ProgramName();
-    if(VersionString() != "")
-         name = name + ", version " + VersionString();
-    
-    HelpTextHeader(name);
-    HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
-}
+        bool CsgApplication::ProcessData(Worker * worker) {
 
-void CsgApplication::Run(void)
-{
-    // first read in the topology
-    TopologyReader *reader;
-    Topology top;
+            int id;
+            id = worker->getId();
 
-    Topology top_cg;
-    TopologyMap *map=0;
-    CGEngine cg;
-
-    // create reader for atomistic topology
-    reader = TopReaderFactory().Create(_op_vm["top"].as<string>());
-    if(reader == NULL)
-        throw runtime_error(string("input format not supported: ") + _op_vm["top"].as<string>());
-
-    // read in the topology
-    reader->ReadTopology(_op_vm["top"].as<string>(), top);
-    cout << "I have " << top.BeadCount() << " beads in " << top.MoleculeCount() << " molecules" << endl;
-    top.CheckMoleculeNaming();
-
-    if(_do_mapping) {
-        // read in the coarse graining definitions (xml files)
-        cg.LoadMoleculeType(_op_vm["cg"].as<string>());
-        // create the mapping + cg topology
-        map = cg.CreateCGTopology(top, top_cg);
-
-        cout << "I have " << top_cg.BeadCount() << " beads in " << top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
-        map->Apply();
-        if(!EvaluateTopology(&top_cg, &top))
-            return;
-    }
-    else
-        if(!EvaluateTopology(&top))
-            return;
-
-    // do we need to read a trajectory?
-    if(DoTrajectory() && _op_vm.count("trj")) {
-        TrajectoryReader *traj_reader;
-
-        double begin;
-        int first_frame;
-        bool has_begin=false;
-
-        if(_op_vm.count("begin")) {
-            has_begin = true;
-            begin = _op_vm["begin"].as<double>();
-        }
-
-        int nframes = -1;
-        if(_op_vm.count("nframes")) {
-            nframes = _op_vm["nframes"].as<int>();
-        }
-
-        first_frame = _op_vm["first-frame"].as<int>();        
-
-        // create reader for trajectory
-        traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<string>());
-        if(traj_reader == NULL)
-            throw runtime_error(string("input format not supported: ") + _op_vm["trj"].as<string>());
-        // open the trajectory
-        traj_reader->Open(_op_vm["trj"].as<string>());
-        // read in first frame
-        traj_reader->FirstFrame(top);
-
-        // notify all observer that coarse graining has begun
-
-        if(_do_mapping) {
-            map->Apply();
-            BeginEvaluate(&top_cg, &top);
-        } else
-            BeginEvaluate(&top);
-
-        for(bool bok=true; bok==true; bok = traj_reader->NextFrame(top)) {
-            if(((top.getTime() < begin) && has_begin)|| first_frame > 1) {
-                first_frame--;
-                continue;
+            if (SynchronizeThreads()) {
+                //wait til its your turn
+                _threadsMutexesIn[id]->Lock();
             }
-            if(nframes == 0 ) break;
-            if(_do_mapping) {
-                map->Apply();
-                EvalConfiguration(&top_cg, &top);
+            _traj_readerMutex.Lock();
+            if (_nframes == 0) {
+                _traj_readerMutex.Unlock();
 
+                if (SynchronizeThreads()) {
+                    //done processing? don't forget to unlock next worker anyway
+                    _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
+                }
+
+                return false;
+            }
+            _nframes--;
+            if (!_is_first_frame || worker->getId() != 0) {
+                //get frame
+                bool tmpRes = _traj_reader->NextFrame(worker->_top);
+                if (!tmpRes) {
+                    _traj_readerMutex.Unlock();
+                    if (SynchronizeThreads())
+                        _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
+                    return false;
+                }
+            }
+            if (worker->getId() == 0)
+                _is_first_frame = false;
+
+            _traj_readerMutex.Unlock();
+            if (SynchronizeThreads()) {
+                //unlock next frame for input
+                _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
+            }
+            //evaluate
+            if (_do_mapping) {
+                worker->_map->Apply();
+                worker->EvalConfiguration(&worker->_top_cg, &worker->_top);
             } else
-                EvalConfiguration(&top);
-            nframes--;
+                worker->EvalConfiguration(&worker->_top);
+
+            return true;
         }
-        EndEvaluate();
-        traj_reader->Close();
 
-        delete traj_reader;
+        void CsgApplication::Run(void) {
+            TopologyReader *reader;
+            // create reader for atomistic topology
+            reader = TopReaderFactory().Create(_op_vm["top"].as<string > ());
+            if (reader == NULL)
+                throw runtime_error(string("input format not supported: ") + _op_vm["top"].as<string > ());
+
+            class DummyWorker : public Worker {
+            public:
+
+                void EvalConfiguration(Topology *top, Topology *top_ref) {
+                    _app->EvalConfiguration(top, top_ref);
+                }
+            };
+
+            // create the master worker
+            Worker *master = NULL;
+            if (DoThreaded())
+                master = ForkWorker();
+            else
+                master = new DummyWorker();
+
+            master->setApplication(this);
+            master->setId(0);
+            _myWorkers.push_back(master);
+
+            CGEngine cg;
+
+            //////////////////////////////////////////////////
+            // read in the topology for master
+            //////////////////////////////////////////////////
+            reader->ReadTopology(_op_vm["top"].as<string > (), master->_top);
+            cout << "I have " << master->_top.BeadCount() << " beads in " << master->_top.MoleculeCount() << " molecules" << endl;
+            master->_top.CheckMoleculeNaming();
+
+            if (_do_mapping) {
+                // read in the coarse graining definitions (xml files)
+                cg.LoadMoleculeType(_op_vm["cg"].as<string > ());
+                // create the mapping + cg topology
+                master->_map = cg.CreateCGTopology(master->_top, master->_top_cg);
+
+                cout << "I have " << master->_top_cg.BeadCount() << " beads in " << master->_top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
+                master->_map->Apply();
+                if (!EvaluateTopology(&master->_top_cg, &master->_top))
+                    return;
+            } else
+                if (!EvaluateTopology(&master->_top))
+                return;
+
+            //////////////////////////////////////////////////
+            // Here trajectory parsing starts
+            //////////////////////////////////////////////////
+            if (DoTrajectory() && _op_vm.count("trj")) {
+                double begin;
+                int first_frame;
+                bool has_begin = false;
+
+                if (_op_vm.count("begin")) {
+                    has_begin = true;
+                    begin = _op_vm["begin"].as<double>();
+                }
+
+                _nframes = -1;
+                if (_op_vm.count("nframes")) {
+                    _nframes = _op_vm["nframes"].as<int>();
+                }
+
+                first_frame = _op_vm["first-frame"].as<int>();
+
+                // create reader for trajectory
+                _traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<string > ());
+                if (_traj_reader == NULL)
+                    throw runtime_error(string("input format not supported: ") + _op_vm["trj"].as<string > ());
+                // open the trajectory
+                _traj_reader->Open(_op_vm["trj"].as<string > ());
+
+                //////////////////////////////////////////////////
+                // Create all the workers
+                /////////////////verbose/////////////////////////////////
+                for (int thread = 1; thread < _nthreads && DoThreaded(); thread++) {
+                    Worker *myWorker = ForkWorker();
+                    myWorker->setApplication(this);
+                    myWorker->setId(thread);
+                    _myWorkers.push_back(myWorker);
+
+                    // this will be changed to CopyTopologyData
+                    // read in the topology
+                    reader->ReadTopology(_op_vm["top"].as<string > (), myWorker->_top);
+                    myWorker->_top.CheckMoleculeNaming();
+
+                    if (_do_mapping) {
+                        // create the mapping + cg topology
+                        myWorker->_map = cg.CreateCGTopology(myWorker->_top, myWorker->_top_cg);
+                    }
+                }
+
+                //////////////////////////////////////////////////
+                // Proceed to first frame of interest
+                //////////////////////////////////////////////////
+
+                _traj_reader->FirstFrame(master->_top);
+                if(master->_top.getBoxType()==BoundaryCondition::typeOpen) {
+                    cout << "NOTE: You are using OpenBox boundary conditions. Check if this is intended.\n" << endl;
+                }
+                //seek first frame, let thread0 do that
+                bool bok;
+                for (bok = true; bok == true; bok = _traj_reader->NextFrame(master->_top)) {
+                    if (((master->_top.getTime() < begin) && has_begin) || first_frame > 1) {
+                        first_frame--;
+                        continue;
+                    }
+                    break;
+                }
+                if (!bok) { // trajectory was too short and we did not proceed to first frame
+                    _traj_reader->Close();
+                    delete _traj_reader;
+
+                    throw std::runtime_error("trajectory was too short, did not process a single frame");
+                }
+
+                // notify all observers that coarse graining has begun
+                if (_do_mapping) {
+                    master->_map->Apply();
+                    BeginEvaluate(&master->_top_cg, &master->_top);
+                } else
+                    BeginEvaluate(&master->_top);
+
+                _is_first_frame = true;
+                /////////////////////////////////////////////////////////////////////////
+                //start threads
+                if (DoThreaded()) {
+                    for (int thread = 0; thread < _myWorkers.size(); thread++) {
+
+                        if (SynchronizeThreads()) {
+                            Mutex *myMutexIn = new Mutex;
+                            _threadsMutexesIn.push_back(myMutexIn);
+                            // lock each worker for input
+                            myMutexIn->Lock();
+
+                            Mutex *myMutexOut = new Mutex;
+                            _threadsMutexesOut.push_back(myMutexOut);
+                            // lock each worker for output
+                            myMutexOut->Lock();
+                        }
+                    }
+                    for (int thread = 0; thread < _myWorkers.size(); thread++)
+                        _myWorkers[thread]->Start();
+
+                    if (SynchronizeThreads()) {
+                        //unlock first thread and start ordered input/output
+                        _threadsMutexesIn[0]->Unlock();
+                        _threadsMutexesOut[0]->Unlock();
+                    }
+                    // mutex needed for merging if SynchronizeThreads()==False
+                    Mutex mergeMutex;
+                    for (int thread = 0; thread < _myWorkers.size(); thread++) {
+                        _myWorkers[thread]->WaitDone();
+                        if (!SynchronizeThreads()) {
+                            mergeMutex.Lock();
+                            MergeWorker(_myWorkers[thread]);
+                            mergeMutex.Unlock();
+                        }
+                        delete _myWorkers[thread];
+                    }
+                    for (int thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
+                        delete _threadsMutexesIn[thread];
+                        delete _threadsMutexesOut[thread];
+                    }
+
+
+                } else {
+                    master->Run();
+                    delete master;
+                }
+
+                EndEvaluate();
+
+                _myWorkers.clear();
+                _threadsMutexesIn.clear();
+                _threadsMutexesOut.clear();
+                _traj_reader->Close();
+
+                delete _traj_reader;
+            }
+
+            delete reader;
+
+        }
+
+        CsgApplication::Worker::~Worker() {
+            if (_map)
+                delete _map;
+
+        }
+
+        void CsgApplication::BeginEvaluate(Topology *top, Topology * top_ref) {
+            list<CGObserver *>::iterator iter;
+            for (iter = _observers.begin(); iter != _observers.end(); ++iter)
+                (*iter)->BeginCG(top, top_ref);
+        }
+
+        void CsgApplication::EndEvaluate() {
+            list<CGObserver *>::iterator iter;
+            for (iter = _observers.begin(); iter != _observers.end(); ++iter)
+                (*iter)->EndCG();
+        }
+
+        void CsgApplication::EvalConfiguration(Topology *top, Topology * top_ref) {
+            list<CGObserver *>::iterator iter;
+            for (iter = _observers.begin(); iter != _observers.end(); ++iter)
+                (*iter)->EvalConfiguration(top, top_ref);
+        }
+
+        CsgApplication::Worker *CsgApplication::ForkWorker(void) {
+            throw std::runtime_error("ForkWorker not implemented in application");
+            return NULL;
+        }
+
+        void CsgApplication::MergeWorker(CsgApplication::Worker *worker) {
+            throw std::runtime_error("MergeWorker not implemented in application");
+        }
+
     }
-    if(map)
-        delete map;
-    delete reader;
-    
 }
-
-void CsgApplication::BeginEvaluate(Topology *top, Topology *top_ref) {
-    list<CGObserver *>::iterator iter;
-    for(iter=_observers.begin(); iter!=_observers.end(); ++iter)
-        (*iter)->BeginCG(top, top_ref);
-}
-
-void CsgApplication::EndEvaluate()
-{
-    list<CGObserver *>::iterator iter;
-    for(iter=_observers.begin(); iter!=_observers.end(); ++iter)
-        (*iter)->EndCG();
-}
-
-void CsgApplication::EvalConfiguration(Topology *top, Topology *top_ref)
-{
-    list<CGObserver *>::iterator iter;
-    for(iter=_observers.begin(); iter!=_observers.end(); ++iter)
-        (*iter)->EvalConfiguration(top, top_ref);
-}
-
-
-}}
