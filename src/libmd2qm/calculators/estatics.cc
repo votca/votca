@@ -35,7 +35,7 @@ void CalcEstatics::Initialize(QMTopology *top, Property *options) {
             _estatic_method = &CalcEstatics::dist_dep_eps;
             cout << "Doing distance-dependent-eps estatic with eps " << _epsilon_dielectric << " and s_eps " << _s_eps << endl;
         }
-        if (options->get("options.estatic_params.estatic_method").as<string > () == "simple") {
+        else if (options->get("options.estatic_params.estatic_method").as<string > () == "simple") {
             _estatic_method = &CalcEstatics::constant_epsilon;
             cout << "Doing simple estatic with eps " << _epsilon_dielectric << endl;
         } else if (options->get("options.estatic_params.estatic_method").as<string > () == "dipoles") {
