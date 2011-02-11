@@ -159,17 +159,17 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
             if(j == fields.size())
                 throw std::runtime_error("error, wrong number of columns in atoms section");
             else if(fields[j] == "x")
-                b->Pos().x() = lexical_cast<double>(*itok);
+                b->Pos().x() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "y")
-                b->Pos().y() = lexical_cast<double>(*itok);
+                b->Pos().y() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "z")
-                b->Pos().z() = lexical_cast<double>(*itok);
+                b->Pos().z() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fx")
-                b->F().x() = lexical_cast<double>(*itok);
+                b->F().x() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fy")
-                b->F().y() = lexical_cast<double>(*itok);
+                b->F().y() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fz")
-                b->F().z() = lexical_cast<double>(*itok);
+                b->F().z() = boost::lexical_cast<double>(*itok);
             
         }
     }
