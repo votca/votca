@@ -80,11 +80,20 @@ public:
     
     void push_back(double x, double y, char flags);
 
+    const string &getErrorDetails() {
+        return _error_details;
+    }
+
+    void setErrorDetails(string str) {
+        _error_details = str;
+    }
+
 private:
     ub::vector<double> _x;
     ub::vector<double> _y;       
     ub::vector<char>   _flags;
     ub::vector<double> _yerr;
+    string _error_details;
 
     bool _has_yerr;
     bool _has_comment;
@@ -99,6 +108,7 @@ private:
 inline Table::Table()
 {
     _has_yerr = false;
+    _error_details = "";
 }
 
 inline Table::Table(Table &tbl)
@@ -110,6 +120,7 @@ inline Table::Table(Table &tbl)
     _has_yerr = tbl._has_yerr;
     if (_has_yerr) _yerr = tbl._yerr;
     _has_comment = false;
+    _error_details = "";
 }
 
 inline ostream &operator<<(ostream &out, const Table& t)
