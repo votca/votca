@@ -83,12 +83,12 @@ for i in conf_start*.gro; do
 done
 
 # Wait for jobs to finish
+sleep 10
 for dir in sim_*; do
   dir="$(printf sim_%03i $number)"
   confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-  background=$(csg_get_property --allow-empty cg.inverse.parallel.background "no")
-  sleep_time=$(csg_get_property --allow-empty cg.inverse.parallel.sleep_time "60")
-  sleep 10
+  background=$(csg_get_property cg.inverse.parallel.background "no")
+  sleep_time=$(csg_get_property cg.inverse.parallel.sleep_time "60")
   if [ "$background" == "yes" ]; then
     while [ ! -f "$dir/$confout" ]; do
       sleep $sleep_time

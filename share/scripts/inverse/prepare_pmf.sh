@@ -22,14 +22,9 @@ This script implemtents the function prepare for the PMF calculator
 
 Usage: ${0##*/}
 
-USES: do_external csg_get_interaction_property check_deps
-
-NEEDS: pullgroup0 pullgroup1 pullgroup0_type pullgroup1_type confin min max step dt rate kB
 EOF
   exit 0
 fi
-
-check_deps "$0"
 
 if [ -f ${CSGSHARE}/scripts/inverse/functions_pmf.sh ]; then
   source ${CSGSHARE}/scripts/inverse/functions_pmf.sh || die "Could not source functions_pmf.sh"
