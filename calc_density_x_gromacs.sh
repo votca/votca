@@ -45,7 +45,7 @@ fi
 
 if [ $adress_type = "sphere" ]
 then
-critical csg_spheredens --trj traj.trr --top topol.tpr --bin 0.01 --out dens.$name.xvg --begin ${begin}
+critical csg_spheredens --trj traj.trr --top topol.tpr --bin 0.01 --out dens.$name.xvg --begin ${begin} --molname $densigroup
 #dens_prog="g_rdf -n index.ndx -bin 0.01"
 #index_sel="DUM \n CG\n"
 else
