@@ -84,6 +84,8 @@
   <item><name>cg.inverse.parallel</name><desc>parallel options </desc></item>
   <item><name>cg.inverse.parallel.tasks</name><desc>number of tasks (0/auto = automatic detect on linux)</desc></item>
   <item><name>cg.inverse.parallel.cmd</name><desc>prefix command to run parallel jobs(e.g. mpirun -np 8)</desc></item>
+  <item><name>cg.inverse.parallel.background</name><desc>run in background (default: no)</desc></item>
+  <item><name>cg.inverse.parallel.sleep_time</name><desc>For PMF, time interval at which to check if jobs are finished</desc></item>
   <item>
     <name>cg.inverse.restart_file</name>
     <desc>

@@ -3,20 +3,21 @@
     <name>name</name>
     <desc>
       Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this
-      should match the name specified in the mapping file.
+      should match the name specified in the mapping file. For PMF, this refers to the atoms which should be
+      pulled (pull_group0, pull_group1).
     </desc>
   </item>
   
   <item>
    <name>type1</name>
     <desc>
-      Only for non-bonded. Bead type 1 of non-bonded interaction.
+      Only for non-bonded. Bead type 1 of non-bonded interaction. For PMF, this is the residue name of pull_group0.
     </desc>
   </item>
   <item>
    <name>type2</name>
     <desc>
-      Only for non-bonded. Bead type 2 of non-bonded interaction.
+      Only for non-bonded. Bead type 2 of non-bonded interaction. For PMF, this is the residue name of pull_group1.
     </desc>
   </item>
   <item>
@@ -24,6 +25,7 @@
     <desc>
       lower bound of interval for potential table in which calculations are performed.
       Should be set based on reference distributions.
+      For PMF, this is the minimum distance between pull_group0 and pull_group1.
     </desc>
   </item>
   <item>
@@ -31,6 +33,7 @@
     <desc>
       upper bound of interval for potential table in which calculations are performed.
       Should be set based on reference distributions.
+      For PMF, this is the maxmimum distance between pull_group0 and pull_group1.
     </desc>
   </item>
   <item>
@@ -39,6 +42,37 @@
       step size of interval for potential table in which calculations are performed.
       If step site is too small, lots of statistics is needed ( long runs ). If it's too big,
       features in the distribtuion/potentials might get lost.
+    </desc>
+  </item>
+  <item>
+    <name>steps</name>
+    <desc>
+      Only for PMF. Number of steps which should be performed for each simulation, 
+      equivalent to the "nsteps" entry in the gromacs grompp file.
+    </desc>
+  </item>
+  <item>
+    <name>conf_in</name>
+    <desc>
+      Only for PMF. Input *.gro file used to setup pullgroup0 and pull_group1 at "min" distance.
+    </desc>
+  </item>
+  <item>
+    <name>rate</name>
+    <desc>
+      Only for PMF. Rate at which pull_group1 should be pulled (pullrate1).
+    </desc>
+  </item>
+  <item>
+    <name>dt</name>
+    <desc>
+      Only for PMF. Timestep for simulation.
+    </desc>
+  </item>
+  <item>
+    <name>f_meas</name>
+    <desc>
+      Only for PMF. Step interval at which to measure forces.
     </desc>
   </item>
   <!-- inverse options -->
