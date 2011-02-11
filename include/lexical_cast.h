@@ -36,7 +36,7 @@ inline Target lexical_cast(const Source &arg, const std::string &error)
 {
     try {
         boost::lexical_cast<Target,Source>(arg);
-    } catch(boost::exception &err) {
+    } catch(std::exception &err) {
         throw std::runtime_error("invaid type: " + error);
     }
 }
