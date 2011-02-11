@@ -27,15 +27,12 @@ config/config.guess
 config/config.sub
 src/libtools/hgversion.h
 lib*.pc
-
 scripts/VOTCARC.bash
 scripts/VOTCARC.csh
-
 share/doc/html/*
-
+share/man/*.man
 netbeans/*/build
 */nbproject/private
 .dep.inc
-
 CHANGELOG.wiki
 CHANGELOG

@@ -40,6 +40,9 @@ class HistogramNew
        
         /// constructor
         HistogramNew();
+        /// constructor
+        HistogramNew(const HistogramNew &hist);
+        
         /// destructor
         ~HistogramNew() {};
         

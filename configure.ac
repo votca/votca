@@ -1,4 +1,4 @@
-AC_INIT(votca-tools,1.0.1,bugs@votca.org)
+AC_INIT(votca-tools,1.1_rc1,bugs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -62,6 +62,14 @@ BOOST was not found/disabled: Install BOOST or enable build-in replacement libvo
   fi
 fi
 
+ACX_PTHREAD(,[
+  AC_MSG_ERROR([
+		
+POSIX threads could not be detected
+  ])
+])
+CC="$PTHREAD_CC"
+
 if test "$with_fftw" = "yes"; then
   # check for fftw3
   PKG_CHECK_MODULES([FFTW],fftw3)
@@ -73,8 +81,7 @@ else
   AC_SUBST(PKGFFTW,"")
 fi
 
-AC_CHECK_PROGS(TXT2TAGS,txt2tags,no)
-AM_CONDITIONAL(HAVE_TXT2TAGS,[test "$TXT2TAGS" != no])
+AX_TXT2TAGS(2.5)
 
 AC_CHECK_PROGS(DOXYGEN,doxygen,no)
 AM_CONDITIONAL(HAVE_DOXYGEN,[test "$DOXYGEN" != no])
@@ -105,6 +112,7 @@ else
 fi
 
 if test "$enable_votca_boost" = "yes"; then
+  AC_ARG_VAR([VOTCA_BOOST_CXXFLAGS],[C++ compiler flags for libvotca_boost, overwrites its CXXFLAGS])
   AC_CONFIG_SUBDIRS(src/libboost)
   AC_SUBST(VOTCA_BOOST,"libboost")
   AC_SUBST(BOOST_CFLAGS,'-I$(top_srcdir)/src/libboost')
@@ -129,5 +137,7 @@ AC_CONFIG_FILES([src/libtools/libvotca_tools.pc])
 AC_CONFIG_FILES([scripts/Makefile])
 AC_CONFIG_FILES([share/Makefile])
 AC_CONFIG_FILES([share/doc/Makefile])
+AC_CONFIG_FILES([share/man/Makefile])
+AC_CONFIG_FILES([admin/Makefile])
 
 AC_OUTPUT

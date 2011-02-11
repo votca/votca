@@ -1,25 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="62">
+<configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/akimaspline.h</itemPath>
       <itemPath>../../include/application.h</itemPath>
       <itemPath>../../include/average.h</itemPath>
       <itemPath>../../include/correlate.h</itemPath>
       <itemPath>../../include/crosscorrelate.h</itemPath>
       <itemPath>../../include/cubicspline.h</itemPath>
       <itemPath>../../include/datacollection.h</itemPath>
+      <itemPath>../../include/easylock.h</itemPath>
       <itemPath>../../include/histogram.h</itemPath>
       <itemPath>../../include/histogramnew.h</itemPath>
+      <itemPath>../../include/lexical_cast.h</itemPath>
       <itemPath>../../include/linalg.h</itemPath>
+      <itemPath>../../include/linspline.h</itemPath>
       <itemPath>../../include/matrix.h</itemPath>
+      <itemPath>../../include/mutex.h</itemPath>
       <itemPath>../../include/objectfactory.h</itemPath>
       <itemPath>../../include/parsexml.h</itemPath>
       <itemPath>../../include/property.h</itemPath>
       <itemPath>../../include/random.h</itemPath>
       <itemPath>../../include/rangeparser.h</itemPath>
+      <itemPath>../../include/spline.h</itemPath>
       <itemPath>../../include/table.h</itemPath>
+      <itemPath>../../include/thread.h</itemPath>
       <itemPath>../../include/tokenizer.h</itemPath>
       <itemPath>../../include/types.h</itemPath>
       <itemPath>../../include/vec.h</itemPath>
@@ -32,21 +39,27 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>../../src/libtools/akimaspline.cc</itemPath>
       <itemPath>../../src/libtools/application.cc</itemPath>
       <itemPath>../../src/libtools/correlate.cc</itemPath>
       <itemPath>../../src/libtools/crosscorrelate.cc</itemPath>
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
+      <itemPath>../../src/libtools/easylock.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
       <itemPath>../../src/libtools/linalg.cc</itemPath>
+      <itemPath>../../src/libtools/linspline.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
+      <itemPath>../../src/libtools/mutex.cc</itemPath>
       <itemPath>../../src/libtools/parcer.cc</itemPath>
       <itemPath>../../src/libtools/parsexml.cc</itemPath>
       <itemPath>../../src/libtools/property.cc</itemPath>
       <itemPath>../../src/libtools/random.cc</itemPath>
       <itemPath>../../src/libtools/rangeparser.cc</itemPath>
+      <itemPath>../../src/libtools/spline.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
+      <itemPath>../../src/libtools/thread.cc</itemPath>
       <itemPath>../../src/libtools/tokenizer.cc</itemPath>
       <itemPath>../../src/libtools/version_nb.cc</itemPath>
     </logicalFolder>
@@ -72,6 +85,7 @@
         <cTool>
           <incDir>
             <pElem>../../include</pElem>
+            <pElem>../../../include/votca</pElem>
           </incDir>
         </cTool>
         <ccTool>

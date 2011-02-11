@@ -17,6 +17,10 @@
 #path is never empty
 setenv PATH "@bindir@:${PATH}"
 
+#debian wants to have : at the end
+if (! $?MANPATH) setenv MANPATH ""
+setenv MANPATH "@mandir@:${MANPATH}"
+
 if ($?LD_LIBRARY_PATH) setenv LD_LIBRARY_PATH ":${LD_LIBRARY_PATH}"
 setenv LD_LIBRARY_PATH "@libdir@${LD_LIBRARY_PATH}"
 

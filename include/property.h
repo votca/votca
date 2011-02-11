@@ -20,7 +20,7 @@
 
 #include <map>
 #include <string>
-#include <boost/lexical_cast.hpp>
+#include <lexical_cast.h>
 #include <list>
 #include <boost/algorithm/string/trim.hpp>
 #include <stdexcept>
@@ -132,6 +132,9 @@ public:
     /// \brief number of child properties
     list<Property>::size_type size() { return _properties.size(); }
 
+    // throw error and comment (with filename+code line)
+    void throwRuntimeError(string message);
+
 private:        
     map<string,Property*> _map;
     list<Property> _properties;
@@ -143,6 +146,14 @@ private:
     static void PrintNode(std::ostream &out, const string &prefix, Property &p);
     
     friend std::ostream &operator<<(std::ostream &out, Property& p);
+
+    struct PropertyStackEntry_t {
+        Property *prop;
+        string comment;
+    };
+/*
+stack<Property *> -> stack< Propertz_stack_entry_t>
+*/
 };
 
 inline Property &Property::set(const string &key, const string &value)
@@ -182,12 +193,7 @@ inline bool Property::as<bool>() const
 template<typename T>
 inline T Property::as() const
 {
-    try {
-       return boost::lexical_cast<T>(_value);
-    }
-    catch(boost::bad_lexical_cast &error ) {
-        throw std::runtime_error("wrong type in " + _path + "."  + _name + "\n" + error.what());
-    }
+    return lexical_cast<T>(_value, "wrong type in " + _path + "."  + _name + "\n");
 }
 
 template<>
@@ -200,52 +206,40 @@ inline std::string Property::as<std::string>() const
 
 template<>
 inline vec Property::as<vec>() const {
-    try {
-        vector<double> tmp;
-        Tokenizer tok(as<string > (), " ,");
-        tok.ConvertToVector<double>(tmp);
-        if (tmp.size() != 3)
-            throw runtime_error("Vector has " + boost::lexical_cast<string > (tmp.size()) + " instead of three entries");
-        return vec(tmp[0], tmp[1], tmp[2]);
-    }    catch (boost::bad_lexical_cast &error) {
-        throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
-    }
+    vector<double> tmp;
+    Tokenizer tok(as<string > (), " ,");
+    tok.ConvertToVector<double>(tmp);
+    if (tmp.size() != 3)
+        throw runtime_error("Vector has " + boost::lexical_cast<string > (tmp.size()) + " instead of three entries");
+    return vec(tmp[0], tmp[1], tmp[2]);
 }
 
 template<>
 inline vector<unsigned int> Property::as<vector <unsigned int> >() const {
-    try {
-        vector<unsigned int> tmp;
-        Tokenizer tok(as<string > (), " ,");
-        tok.ConvertToVector<unsigned int>(tmp);
-        return tmp;
-    }    catch (boost::bad_lexical_cast &error) {
-        throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
-    }
+    vector<unsigned int> tmp;
+    Tokenizer tok(as<string > (), " ,");
+    tok.ConvertToVector<unsigned int>(tmp);
+    return tmp;
 }
 
 template<>
 inline vector<int> Property::as<vector <int> >() const {
-    try {
-        vector<int> tmp;
-        Tokenizer tok(as<string > (), " ,\n\t");
-        tok.ConvertToVector<int>(tmp);
-        return tmp;
-    }    catch (boost::bad_lexical_cast &error) {
-        throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
-    }
+    vector<int> tmp;
+    Tokenizer tok(as<string > (), " ,\n\t");
+    tok.ConvertToVector<int>(tmp);
+    return tmp;
 }
 
 template<>
 inline vector<double> Property::as<vector <double> >() const {
-    try {
-        vector<double> tmp;
-        Tokenizer tok(as<string > (), " ,\n\t");
-        tok.ConvertToVector<double>(tmp);
-        return tmp;
-    }    catch (boost::bad_lexical_cast &error) {
-        throw std::runtime_error("wrong type in " + _path + "." + _name + "\n" + error.what());
-    }
+    vector<double> tmp;
+    Tokenizer tok(as<string > (), " ,\n\t");
+    tok.ConvertToVector<double>(tmp);
+    return tmp;
+}
+
+inline void throwRuntimeError(string message) {
+    
 }
 
 }}

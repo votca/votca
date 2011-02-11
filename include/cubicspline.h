@@ -18,11 +18,13 @@
 #ifndef _CUBICSPLINE_H
 #define	_CUBICSPLINE_H
 
+#include "spline.h"
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <iostream>
 
+using namespace std;
 namespace votca { namespace tools {
 
 namespace ub = boost::numeric::ublas;
@@ -49,111 +51,80 @@ namespace ub = boost::numeric::ublas;
     - Interpolation spline
     - Fitting spline (fit to noisy data)
     - calculate the parameters elsewere and fill the spline class
- */
+*/
 
-class CubicSpline
+class CubicSpline : public Spline
 {    
 public:
     // default constructor
-    CubicSpline() :
-        _boundaries(splineNormal) {}
+    CubicSpline() {};
+    //CubicSpline() :
+    //    _boundaries(splineNormal) {}
     
     // destructor
-    ~CubicSpline() {};    
-    
-    /// enum for type of boundary condition
-    enum eBoundary {
-        splineNormal = 0,  ///< normal boundary conditions: \f$f_0=f_N=0\f$ 
-        splinePeriodic    ///< periodic boundary conditions: \f$f_0=f_N\f$ 
-    };
-    
-    /// set the boundary type of the spline
-    void setBC(eBoundary bc) {_boundaries = bc; }
-    
-    /// Generates the r_k, returns the number of grid points
-    /// max is included in the interval.
-    int GenerateGrid(double min, double max, double h);
-    
-    /// determine the interval the point r is in
-    /// returns i for interval r_i r_{i+1}, -1 for out of range
-    int getInterval(const double &r);
-    
-    /// ERROR-PRONE implementation, make it better!!!
-    double getGridPoint(const int &i) {return _r[i];}
+    ~CubicSpline() {};
 
-    // give string in rangeparser format: e.g. 1:0.1:10;11:1:20
-    //int GenerateGrid(string range);
-
-    /// \brief construct an interpolation spline
-    ///
-    ///   x, y are the the points to construct interpolation,
-    /// both vectors must be of same size
+    // construct an interpolation spline
+    // x, y are the the points to construct interpolation, both vectors must be of same size
     void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
     
-    /// \brief fit spline through noisy data
-    ///
-    /// x,y are arrays with noisy data, both vectors must be of same size
+    // fit spline through noisy data
+    // x,y are arrays with noisy data, both vectors must be of same size
     void Fit(ub::vector<double> &x, ub::vector<double> &y);
     
-    
-    /// Calculate the function value
+    // Calculate the function value
     double Calculate(const double &x);
 
-    /// Calculate the function derivative
+    // Calculate the function derivative
     double CalculateDerivative(const double &x);
     
-    
-    /// Calculate the function value for a whole array, story it in y
+    // Calculate the function value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void Calculate(vector_type1 &x, vector_type2 &y);
+
+    // Calculate the derivative value for a whole array, story it in y
     template<typename vector_type1, typename vector_type2>
     void CalculateDerivative(vector_type1 &x, vector_type2 &y);
-       
-    /// the spline parameters were calculated elsewere, store that data
+
+    // set spline parameters to values that were externally computed
     template<typename vector_type>
     void setSplineData(vector_type &f, vector_type &f2) { _f = f; _f2 = f2;}
-    
-    /// print out results
-    void Print(std::ostream &out, double interval = 0.0001 );
-        
-    /// get the grid array x
-    ub::vector<double> &getX() {return _r; }
-    ///  \brief get the spline data
-    ub::vector<double> &getSplineF() { return _f; }
-    ///  \brief get second derivatives
-    ub::vector<double> &getSplineF2() { return _f2; }
-    
-    // stuff to construct fitting matrices
-    
-    /// \brief add a point to fitting matrix
-    ///
-    /// When creating a matrix to fit data with a spline, this function creates
-    /// one entry in that fitting matrix. 
+
+    /**
+     * \brief Add a point (one entry) to fitting matrix
+     * \param pointer to matrix
+     * \param value x
+     * \param offsets relative to getInterval(x)
+     * \param scale parameters for terms "A,B,C,D"
+     * When creating a matrix to fit data with a spline, this function creates
+     * one entry in that fitting matrix.
+    */
     template<typename matrix_type>
     void AddToFitMatrix(matrix_type &A, double x,
             int offset1, int offset2=0, double scale=1);
-    
+
+    /**
+     * \brief Add a vector of points to fitting matrix
+     * \param pointer to matrix
+     * \param vector of x values
+     * \param offsets relative to getInterval(x)
+     * Same as previous function, but vector-valued and with scale=1.0
+    */
     template<typename matrix_type, typename vector_type>
     void AddToFitMatrix(matrix_type &M, vector_type &x, 
             int offset1, int offset2=0);
-    
-    // add the boundary conditions
+
+    /**
+     * \brief Add boundary conditions to fitting matrix
+     * \param pointer to matrix
+     * \param offsets
+    */
     template<typename matrix_type>
     void AddBCToFitMatrix(matrix_type &A,
             int offset1, int offset2=0);
 
 
 protected:    
-    // the grid points
-    ub::vector<double> _r;
-    
-    // y values of grid points
-    ub::vector<double> _f;
-    // second derivatives of grid points
-    ub::vector<double> _f2;
-
-    eBoundary _boundaries;
-    
     // A spline can be written in the form
     // S_i(x) =   A(x,x_i,x_i+1)*f_i     + B(x,x_i,x_i+1)*f''_i 
     //          + C(x,x_i,x_i+1)*f_{i+1} + D(x,x_i,x_i+1)*f''_{i+1}
@@ -178,23 +149,6 @@ protected:
     double D_prime_r(int i);
 };
 
-inline int CubicSpline::GenerateGrid(double min, double max, double h)
-{
-    int vec_size = 1 + (int)((max-min)/h);  //check it!
-    _r.resize(vec_size);
-    int i;
-   
-    double r_init;
-   
-    for (r_init = min, i=0; i < vec_size - 1; r_init += h ) {
-            _r[i++]= r_init;
-    }
-    _r[i] = max;
-    _f.resize(_r.size(), false);
-    _f2.resize(_r.size(), false);
-    return _r.size();
-}
-
 inline double CubicSpline::Calculate(const double &r)
 {
     int interval =  getInterval(r);
@@ -211,24 +165,6 @@ inline double CubicSpline::CalculateDerivative(const double &r)
             + Bprime(r)*_f[interval + 1]
             + Cprime(r)*_f2[interval]
             + Dprime(r)*_f2[interval + 1];
-}
-
-template<typename vector_type1, typename vector_type2>
-inline void CubicSpline::Calculate(vector_type1 &x, vector_type2 &y)
-{
-    for(size_t i=0; i<x.size(); ++i) 
-        y(i) = Calculate(x(i));
-}
-template<typename vector_type1, typename vector_type2>
-inline void CubicSpline::CalculateDerivative(vector_type1 &x, vector_type2 &y)
-{
-    for(size_t i=0; i<x.size(); ++i)
-        y(i) = CalculateDerivative(x(i));
-}
-inline void CubicSpline::Print(std::ostream &out, double interval)
-{
-    for (double x = _r[0]; x < _r[_r.size() - 1]; x += interval)
-        out << x << " " << Calculate(x) << "\n";    
 }
 
 template<typename matrix_type>
@@ -274,6 +210,22 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
             M(offset1, offset2 + _r.size()) = 1;
             M(offset1 + _r.size() - 1, offset2 + 2*_r.size()-1) = 1;
             break;
+        case splineDerivativeZero:
+            // y
+            M(offset1+0, offset2 + 0) = -1*A_prime_l(0);
+            M(offset1+0, offset2 + 1) = -1*B_prime_l(0);
+
+            M(offset1+ _r.size()-1, offset2 + _r.size()-2) = A_prime_l(_r.size()-2);
+            M(offset1+ _r.size()-1, offset2 + _r.size()-1) = B_prime_l(_r.size()-2);
+            
+            // y''
+            M(offset1+0, offset2 + _r.size() + 0) =  D_prime_l(0);
+            M(offset1+0, offset2 + _r.size() + 1) = C_prime_l(0);
+
+            M(offset1+ _r.size()-1, offset2 + 2*_r.size()-2) = C_prime_l(_r.size()-2);
+            M(offset1+ _r.size()-1, offset2 + 2*_r.size()-1) = D_prime_l(_r.size()-2);
+            break;
+
         case splinePeriodic:
             M(offset1, offset2) = 1;
             M(offset1, offset2 + _r.size()-1) = -1;
@@ -283,7 +235,6 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
     }
     
 }
-
 
 inline double CubicSpline::A(const double &r)
 {
@@ -337,21 +288,14 @@ inline double CubicSpline::Dprime(const double &r)
 
     return ( 0.5*xxi*xxi/h - (1.0/6.0)*h ) ;
 }
-//inline int CubicSpline::getInterval(double &r)
-//{
-//    if (r < _r[0] || r > _r[_r.size() - 1]) return -1;
-//    return int( (r - _r[0]) / (_r[_r.size()-1] - _r[0]) * (_r.size() - 1) );
-//}
 
-inline int CubicSpline::getInterval(const double &r)
+/**
+inline int CubicSpline::getInterval(double &r)
 {
-    if (r < _r[0]) return 0;
-    if(r > _r[_r.size() - 2]) return _r.size()-2;
-    size_t i;
-    for(i=0; i<_r.size(); ++i)
-        if(_r[i]>r) break;
-    return i-1;
-} 
+    if (r < _r[0] || r > _r[_r.size() - 1]) return -1;
+    return int( (r - _r[0]) / (_r[_r.size()-1] - _r[0]) * (_r.size() - 1) );
+}
+ **/
 
 inline double CubicSpline::A_prime_l(int i)
 {

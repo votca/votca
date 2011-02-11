@@ -1,8 +1,8 @@
 toolsincldir=$(includedir)/votca/tools
 
 toolsincl_HEADERS = \
-application.h average.h         cubicspline.h     histogramnew.h   matrix.h         random.h       tokenizer.h \
-correlate.h       datacollection.h  objectfactory.h  rangeparser.h  types.h \
-crosscorrelate.h  histogram.h       version.h        property.h       table.h        vec.h linalg.h \
-parsexml.h
-
+akimaspline.h application.h average.h correlate.h crosscorrelate.h \
+cubicspline.h datacollection.h easylock.h histogram.h histogramnew.h \
+linalg.h linspline.h matrix.h mutex.h objectfactory.h parsexml.h \
+property.h random.h rangeparser.h spline.h table.h thread.h tokenizer.h \
+types.h vec.h version.h

@@ -17,12 +17,12 @@
 
 #include <fstream>
 #include <vector>
-#include <boost/lexical_cast.hpp>
 #include "tokenizer.h"
 #include "table.h"
 #include <stdexcept>
 #include <iostream>
 #include <boost/algorithm/string/replace.hpp>
+#include <lexical_cast.h>
 
 namespace votca { namespace tools {
 
@@ -45,7 +45,8 @@ void Table::Load(string filename)
     in.open(filename.c_str());
     if(!in)
         throw runtime_error(string("error, cannot open file ") + filename);
-    
+
+    setErrorDetails("file " + filename);
     in >> *this;
     
     in.close();   
@@ -84,11 +85,14 @@ inline istream &operator>>(istream &in, Table& t)
     size_t N;
     bool bHasN=false;
     string line;
-    
+    int line_number=0;
    t.clear();
     
     // read till the first data line
-    while(getline(in, line)) {        
+    while(getline(in, line)) {
+        line_number++;
+        string conversion_error =  t.getErrorDetails() + ", line " + boost::lexical_cast<string>(line_number);
+
         // remove comments and xmgrace stuff
         line = line.substr(0, line.find("#"));
         line = line.substr(0, line.find("@"));
@@ -103,25 +107,28 @@ inline istream &operator>>(istream &in, Table& t)
         
         // if first line is only 1 token, it's the size
         if(tokens.size() == 1) {
-            N = lexical_cast<int>(tokens[0]);
+            N = lexical_cast<int>(tokens[0], conversion_error);
             bHasN = true;
         }
         // it's the first data line with 2 or 3 entries
         else if(tokens.size() == 2) {
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 'i');            
+            t.push_back(lexical_cast<double>(tokens[0], conversion_error), lexical_cast<double>(tokens[1], conversion_error), 'i');
         }
         else if(tokens.size() > 2) {
            char flag='i';
            string sflag = tokens.back();
             if(sflag == "i" || sflag == "o" || sflag == "u")
                 flag = sflag.c_str()[0];
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), flag);
+            t.push_back(lexical_cast<double>(tokens[0], conversion_error), lexical_cast<double>(tokens[1], conversion_error), flag);
         }
         else throw runtime_error("error, wrong table format");                                
     }
     
     // read the rest
-    while(getline(in, line)) {        
+    while(getline(in, line)) {
+        line_number++;
+        string conversion_error =  t.getErrorDetails() + ", line " + boost::lexical_cast<string>(line_number);
+
         // remove comments and xmgrace stuff
         line = line.substr(0, line.find("#"));
         line = line.substr(0, line.find("@"));
@@ -136,13 +143,13 @@ inline istream &operator>>(istream &in, Table& t)
                     
         // it's a data line
         if(tokens.size() == 2) {            
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), 'i');            
+            t.push_back(lexical_cast<double>(tokens[0], conversion_error), lexical_cast<double>(tokens[1], conversion_error), 'i');
         }
         else if(tokens.size() > 2) {
             char flag='i';
             if(tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u")
                 flag = tokens[2].c_str()[0];
-            t.push_back(lexical_cast<double>(tokens[0]), lexical_cast<double>(tokens[1]), flag);
+            t.push_back(lexical_cast<double>(tokens[0], conversion_error), lexical_cast<double>(tokens[1], conversion_error), flag);
         }
         // otherwise error
         else throw runtime_error("error, wrong table format");                                
