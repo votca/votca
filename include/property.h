@@ -20,7 +20,7 @@
 
 #include <map>
 #include <string>
-#include <lexical_cast.h>
+#include "lexical_cast.h"
 #include <list>
 #include <boost/algorithm/string/trim.hpp>
 #include <stdexcept>
