@@ -4,7 +4,7 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the x-density for gromacs
    echo for the AdResS therm force
    echo Usage: ${0##*/}
-   echo USES: get_from_mdp csg_get_property awk log run_or_exit g_energy csg_taillog die
+   echo USES: get_from_mdp csg_get_property awk run_or_exit g_energy csg_taillog die
    echo NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
    exit 0
 fi
