@@ -37,3 +37,4 @@ public:
 }}
 
 #endif	/* OPENBOX_H */
+

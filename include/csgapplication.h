@@ -181,7 +181,7 @@ namespace votca {
         }
 
         inline CsgApplication::Worker::Worker()
-        : _map(NULL), _id(-1), _app(NULL) {
+        : _app(NULL), _map(NULL) , _id(-1) {
         }
 
     }

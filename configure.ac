@@ -1,4 +1,4 @@
-AC_INIT(votca-csg,1.1_rc1,bugs@votca.org)
+AC_INIT(votca-csg,1.1_rc2,bugs@votca.org)
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
