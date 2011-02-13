@@ -1,30 +1,10 @@
 AC_DEFUN([AX_VOTCA_TOOLS], [
   PKG_CHECK_MODULES([VOTCA_TOOLS],libvotca_tools,[:],[
-    AC_ARG_VAR([VOTCALDLIB],[path to gromacs lib dir, usually set by "source VOTCARC"])
-    AC_MSG_CHECKING([VOTCALDLIB])
-    if test -z "$VOTCALDLIB"; then
-      AC_MSG_RESULT([no])
-      AC_MSG_ERROR([
+    AC_MSG_ERROR([
 
-Could not find VOTCALDLIB environment variable, please source <votca-path>/bin/VOTCARC.{csh,bash} 
+Could not find libvotca_tools pkg-config files, please source <votca-path>/bin/VOTCARC.{csh,bash} 
 or specify VOTCA_TOOLS_LIBS and VOTCA_TOOLS_CLFAGS
-      ])
-    else
-      AC_MSG_RESULT([yes])
-    fi
-    AC_MSG_NOTICE([creating VOTCA_TOOLS_LIBS and VOTCA_TOOLS_CFLAGS from VOTCALDLIB])
-    if test -z "$VOTCA_TOOLS_LIBS"; then
-      VOTCA_TOOLS_LIBS="-L$VOTCALDLIB -lvotca_tools"
-      AC_MSG_NOTICE([setting VOTCA_TOOLS_LIBS   to "$VOTCA_TOOLS_LIBS"])
-    else
-      AC_MSG_NOTICE([VOTCA_TOOLS_LIBS was already set elsewhere to "$VOTCA_TOOLS_LIBS"])
-    fi
-    if test -z "$VOTCA_TOOLS_CFLAGS"; then
-      VOTCA_TOOLS_CFLAGS="-I$VOTCALDLIB/../include"
-      AC_MSG_NOTICE([setting VOTCA_TOOLS_CFLAGS to "$VOTCA_TOOLS_CFLAGS"])
-    else
-      AC_MSG_NOTICE([VOTCA_TOOLS_CFLAGS was already set elsewhere to "$VOTCA_TOOLS_CFLAGS"])
-    fi
+    ])
   ])
   save_CPPFLAGS="$CPPFLAGS"
   save_LIBS="$LIBS"
