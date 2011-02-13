@@ -75,6 +75,7 @@ void Random::save( char *fileName )
   	FILE *ranFP;
   	int c[2];
   	double w[3];
+	size_t t;
 
   	ranFP = fopen(fileName, "wb");
   	if (ranFP==NULL)
@@ -83,10 +84,10 @@ void Random::save( char *fileName )
 	}
   
 	c[0] = MARSi; c[1] = MARSj;
-  	fwrite(c, sizeof(int), 2, ranFP);
+  	t=fwrite(c, sizeof(int), 2, ranFP);
   	w[0] = MARSc; w[1] = MARScd; w[2] = MARScm;
-  	fwrite(w, sizeof(double), 3, ranFP);
-  	fwrite(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
+  	t=fwrite(w, sizeof(double), 3, ranFP);
+  	t=fwrite(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
   	fclose(ranFP);
 }
 
@@ -95,6 +96,7 @@ void Random::restore( char *fileName )
 	FILE *ranFP;
   	double w[3];
   	int c[2];
+	size_t t;
 
   	ranFP = fopen(fileName, "rb");
   	if (ranFP==NULL)
@@ -102,11 +104,11 @@ void Random::restore( char *fileName )
 		throw runtime_error(string("error, cannot open file ") + fileName);
 	}
   
-  	fread(c, sizeof(int), 2, ranFP);
+  	t=fread(c, sizeof(int), 2, ranFP);
     	MARSi = c[0]; MARSj = c[1];
-    	fread(w, sizeof(double), 3, ranFP);
+    	t=fread(w, sizeof(double), 3, ranFP);
     	MARSc = w[0]; MARScd = w[1]; MARScm = w[2];
-    	fread(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
+    	t=fread(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
     	fclose(ranFP);
 }
 
