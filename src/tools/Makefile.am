@@ -15,7 +15,7 @@ man1_MANS= \
 	$(top_builddir)/scripts/help2t2t $< > $@
 
 %.help: %
-	LD_LIBRARY_PATH="../libcsg/.libs$${LD_LIBRARY_PATH:=:}$$LD_LIBRARY_PATH" \
+	[ -z "$${LD_LIBRARY_PATH}" ] && export LD_LIBRARY_PATH="../libcsg/.libs" || export LD_LIBRARY_PATH="../libcsg/.libs:$$LD_LIBRARY_PATH"; \
 	./$* --help > $@
 
 else
