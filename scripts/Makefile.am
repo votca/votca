@@ -40,20 +40,24 @@ csg.rc.bash: $(srcdir)/csg.rc.bash.in Makefile
 	sed -e 's,@votcashare\@,${datadir}/votca,' $< > $@
 
 if HAVE_TXT2TAGS
+#these are all scripts -> no LD_LIBRARY_PATH needed
 man1_MANS = csg_call.man csg_inverse.man multi_g_rdf.man multi_g_density.man
 
 help2t2t: $(srcdir)/help2t2t.in Makefile hgstamp
 	sed -e 's,@version\@,@VERSION@ $(HGVERSION),' $< > $@
 	chmod +x $@
 
-csg_inverse.t2t: csg_inverse help2t2t
-	CSGSHARE=${top_builddir}/share ./help2t2t $< > $@
+csg_inverse.help: csg_inverse
+	CSGSHARE=${top_builddir}/share ./$< --help > $@
+
+%.t2t: %.help help2t2t
+	./help2t2t $< > $@
 
 %.man: %.t2t
 	${TXT2TAGS} -t man -i $< -o $@
 
-%.t2t: % help2t2t
-	./help2t2t $* > $@
+%.help: %
+	./$* --help > $@
 
 else
 man1_MANS=

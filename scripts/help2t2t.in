@@ -22,27 +22,38 @@ die() {
   exit 1
 }
 
-[ -z "$1" ] && die "Usage: ${0##*/} prog"
-prog="$1"
+assert() {
+  local x pipestatus=${PIPESTATUS[*]}
+  for x in $pipestatus ; do
+      [[ $x -eq 0 ]] || die "$@"
+  done
+}
 
-[ -x "./$prog" ] || die "${0##*/}: ./$prog not found"
+[ -z "$1" ] && die "Usage: ${0##*/} helpfile"
+prog="${1%.*}"
+
+[ -f "$1" ] || die "${0##*/}: $1 not found"
 
 #trash the header
-helpmsg="$(./$prog --help | sed -e '1,10d')" || die "$prog --help failed"
+helpmsg="$(sed -e '1,10d' $1)" || die "$prog --help failed"
 
 #first block is descprition
-desc="$(echo "$helpmsg" | sed -n '1,/^[[:space:]]*$/p')" || die "parse of desc failed"
+desc="$(echo "$helpmsg" | sed -n '1,/^[[:space:]]*$/p')"
+assert "parse of desc failed"
 [ -z "$desc" ] && die "Failed to fetch desc"
-helpmsg="$(echo "$helpmsg" | sed '1,/^[[:space:]]*$/d')" || die "cut of help msg failed"
+helpmsg="$(echo "$helpmsg" | sed '1,/^[[:space:]]*$/d')" 
+assert "cut of help msg failed"
 
 #second block can be usage line
-usage="$(echo "$helpmsg" | sed -n '1s/Usage:[[:space:]]*\(.*\)$/\1/p')" || die "parse of usage failed"
+usage="$(echo "$helpmsg" | sed -n '1s/Usage:[[:space:]]*\(.*\)$/\1/p')" 
+assert "parse of usage failed"
 if [ -z "$usage" ]; then
   usage="**$prog** \"\"[\"\"//OPTION//\"\"]\"\" \"\"[\"\"//OPTIONPARAMETERS//\"\"]\"\""
 else
-  usage="$(echo "$usage" | sed -e 's/^/**/' -e 's/ /** /' -e 's/\([][]\)/""\1""/g')" || \
-    die "parse part 2 of usage failed"
-  helpmsg="$(echo "$helpmsg" | sed '1,/^[[:space:]]*$/d')" || die "cut of help msg failed"
+  usage="$(echo "$usage" | sed -e 's/^/**/' -e 's/ /** /' -e 's/\([][]\)/""\1""/g')"
+  assert "parse part 2 of usage failed"
+  helpmsg="$(echo "$helpmsg" | sed '1,/^[[:space:]]*$/d')"
+  assert "cut of help msg failed"
 fi
 
 #try to find examples block
@@ -51,9 +62,10 @@ if [ -n "$exam" ]; then
   exam="$(echo "$exam" | \
     sed -e '1d' \
       -e '/^\* /s/\( \{2\}\|$\)/``/' \
-      -e '/^\*.*``/s/^\*[[:space:]]*/- ``/')" ||
-    die "parse part 2 of exam failed"
-  helpmsg="$(echo "$helpmsg" | sed '/^Examples:/,/^[[:space:]]*$/d')" || die "cut of help msg failed"
+      -e '/^\*.*``/s/^\*[[:space:]]*/- ``/')"
+  assert "parse part 2 of exam failed"
+  helpmsg="$(echo "$helpmsg" | sed '/^Examples:/,/^[[:space:]]*$/d')"
+  assert "cut of help msg failed"
 fi
 
 #write t2t file
@@ -95,6 +107,8 @@ echo -e "$helpmsg" | sed \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
    -e '/^\(NEEDS\|OPTIONAL\|USES\|PROVIDES\)/d' \
    -e 's/^[A-Za-z]* options:/\n&/'
+
+assert "sed of options failed"
 
 if [ -n "$exam" ]; then
   cat <<EOF

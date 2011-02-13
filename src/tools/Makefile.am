@@ -7,11 +7,16 @@ if HAVE_TXT2TAGS
 man1_MANS= \
 	csg_map.man csg_dump.man csg_property.man csg_resample.man csg_stat.man csg_fmatch.man\
 	csg_imcrepack.man csg_gmxtopol.man csg_part_dist.man
+
 %.man: %.t2t
 	${TXT2TAGS} -t man -i $< -o $@
 
-%.t2t: % $(top_builddir)/scripts/help2t2t
-	$(top_builddir)/scripts/help2t2t $* > $@
+%.t2t: %.help $(top_builddir)/scripts/help2t2t
+	$(top_builddir)/scripts/help2t2t $< > $@
+
+%.help: %
+	LD_LIBRARY_PATH="../libcsg/.libs$${LD_LIBRARY_PATH:=:}$$LD_LIBRARY_PATH" \
+	./$* --help > $@
 
 else
 man1_MANS=

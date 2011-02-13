@@ -8,8 +8,12 @@ man1_MANS= csg_boltzmann.man
 %.man: %.t2t
 	${TXT2TAGS} -t man -i $< -o $@
 
-%.t2t: % $(top_builddir)/scripts/help2t2t
-	$(top_builddir)/scripts/help2t2t $* > $@
+%.t2t: %.help $(top_builddir)/scripts/help2t2t
+	$(top_builddir)/scripts/help2t2t $< > $@
+
+%.help: %
+	LD_LIBRARY_PATH="../libcsg/.libs$${LD_LIBRARY_PATH:=:}$$LD_LIBRARY_PATH" \
+	./$* --help > $@
 
 else
 man1_MANS=
