@@ -37,9 +37,9 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
 #else
     // check matrix for zero column
     int nonzero_found = 0;
-    for(int j=0; j<A.size2(); j++) {
+    for(size_t j=0; j<A.size2(); j++) {
         nonzero_found = 0;
-        for(int i=0; i<A.size1(); i++) {
+        for(size_t i=0; i<A.size1(); i++) {
             if(fabs(A(i,j))>0) {
                 nonzero_found = 1;
             }
@@ -83,9 +83,9 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
 #else
     // check matrix for zero column
     int nonzero_found = 0;
-    for(int j=0; j<A.size2(); j++) {
+    for(size_t j=0; j<A.size2(); j++) {
         nonzero_found = 0;
-        for(int i=0; i<A.size1(); i++) {
+        for(size_t i=0; i<A.size1(); i++) {
             if(fabs(A(i,j))>0) {
                 nonzero_found = 1;
             }

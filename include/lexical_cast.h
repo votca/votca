@@ -35,7 +35,7 @@ template<typename Target, typename Source>
 inline Target lexical_cast(const Source &arg, const std::string &error)
 {
     try {
-        boost::lexical_cast<Target,Source>(arg);
+        return boost::lexical_cast<Target,Source>(arg);
     } catch(std::exception &err) {
         throw std::runtime_error("invaid type: " + error);
     }
