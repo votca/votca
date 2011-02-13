@@ -117,6 +117,9 @@ void AkimaSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
             t(N-2) = getSlope(m1,m2,m3,m4);
             t(N-1) = getSlope(m2,m3,m4,m5);
             break;
+        case splineDerivativeZero:
+	    throw std::runtime_error("erro in AkimaSpline::Interpolate: case splineDerivativeZero not implemented yet");
+	    break;
     }
     
     // calculate t's for all inner points [2,N-3]

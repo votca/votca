@@ -70,6 +70,9 @@ void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
             A(0,0) = 1; A(0,N-1) = -1;
             A(N-1,0) = 1; A(N-1,N-1) = -1;
             break;
+        case splineDerivativeZero:
+	    throw std::runtime_error("erro in CubicSpline::Interpolate: case splineDerivativeZero not implemented yet");
+	    break;
     }
 
     votca::tools::linalg_qrsolve(_f2, A, _f2);
