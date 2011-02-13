@@ -155,7 +155,7 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
 
         Tokenizer tok(s, " ");
         Tokenizer::iterator itok= tok.begin();
-        for(int j=0; itok!=tok.end(); ++itok, ++j) {
+        for(size_t j=0; itok!=tok.end(); ++itok, ++j) {
             if(j == fields.size())
                 throw std::runtime_error("error, wrong number of columns in atoms section");
             else if(fields[j] == "x")
