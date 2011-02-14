@@ -50,6 +50,11 @@ rate=$(csg_get_property cg.non-bonded.rate)
 f_meas=$(csg_get_property cg.non-bonded.f_meas)
 out=$((steps/f_meas))
 
+# Get energy groups
+last=$(wc -l ${conf_in}.gro | awk '{print $1}')
+sec_last=$(($last-1))
+energygrps="$(sed -n "3,${sec_last}p" ${conf_in}.gro | awk '{print $1}' | sed 's/[0-9]//g' | sort | uniq | grep -v "$pullgroup0_type" | grep -v "$pullgroup1_type" | xargs)"
+
 echo "#dist.xvg grofile delta" > dist_comp.d
 for i in conf_start*.gro; do
   number=${i#conf_start}
@@ -69,7 +74,8 @@ for i in conf_start*.gro; do
       -e "s/@TIMESTEP@/$dt/" \
       -e "s/@OUT@/0/" \
       -e "s/@PULL_OUT@/$out/" \
-      -e "s/@STEPS@/$steps/" grompp.mdp.template > $dir/grompp.mdp
+      -e "s/@STEPS@/$steps/" \
+      -e "s/@ENERGYGRPS/pullgroup0 pullgroup1 pullgroup0_type pullgroup1_type $energygrps" grompp.mdp.template > $dir/grompp.mdp
   cd $dir
   run grompp -n index.ndx
   echo -e "pullgroup0\npullgroup1" | run g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg

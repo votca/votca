@@ -54,16 +54,26 @@ fi
 # Generate index files for pullgroup0, pullgroup1 and their environments
 echo -e "
 del 1-10
-r SOL
 a $n1
 a $n2
-name 2 pullgroup0
-name 3 pullgroup1
+name 1 pullgroup0
+name 2 pullgroup1
 a $pullgroup0_type & ! a $n1 & ! a $n2
-name 4 $pullgroup0_type
+name 3 pullgroup0_type
 a $pullgroup1_type & ! a $n1 & ! a $n2
-name 5 $pullgroup1_type
+name 4 pullgroup1_type
 q" | run make_ndx -f ${conf_in}.gro
+
+# Get remaining energy groups
+last=$(wc -l ${conf_in}.gro | awk '{print $1}')
+sec_last=$(($last-1))
+energygrps="$(sed -n "3,${sec_last}p" ${conf_in}.gro | awk '{print $1}' | sed 's/[0-9]//g' | sort | uniq | grep -v "$pullgroup0_type" | grep -v "$pullgroup1_type" | xargs)"
+
+for i in $energygrps; do
+  echo -e "
+r $i
+q" | run make_ndx -f ${conf_in}.gro -n index.ndx -o index2.ndx
+done
 
 # Run grompp to generate tpr, then calculate distance
 run grompp -n index.ndx -c ${conf_in}.gro -o ${conf_in}.tpr -f ${conf_in}.mdp -po ${conf_in}_all.mdp
@@ -86,7 +96,8 @@ sed -e "s/@DIST@/$dist/" \
     -e "s/@TIMESTEP@/$dt/" \
     -e "s/@OUT@/0/" \
     -e "s/@PULL_OUT@/0/" \
-    -e "s/@STEPS@/$steps/" grompp.mdp.template > grompp.mdp
+    -e "s/@STEPS@/$steps/" \
+    -e "s/@ENERGYGRPS/pullgroup0 pullgroup1 pullgroup0_type pullgroup1_type $energygrps" grompp.mdp.template > grompp.mdp
 
 # Run simulation to generate initial setup
 run --log log_grompp2 grompp -n index.ndx

@@ -40,6 +40,11 @@ max=$(csg_get_property cg.non-bonded.max)
 dt=$(csg_get_property cg.non-bonded.dt)
 rate=$(csg_get_property cg.non-bonded.rate)
 
+# Get energy groups
+last=$(wc -l ${conf_in}.gro | awk '{print $1}')
+sec_last=$(($last-1))
+energygrps="$(sed -n "3,${sec_last}p" ${conf_in}.gro | awk '{print $1}' | sed 's/[0-9]//g' | sort | uniq | grep -v "$pullgroup0_type" | grep -v "$pullgroup1_type" | xargs)"
+
 # Run grompp to generate tpr, then calculate distance
 run grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp
 echo -e "pullgroup0\npullgroup1" | run g_dist -f conf.gro -s ${conf_start}.tpr -n index.ndx -o ${conf_start}.xvg
@@ -61,7 +66,8 @@ sed -e "s/@DIST@/$dist/" \
     -e "s/@TIMESTEP@/$dt/" \
     -e "s/@OUT@/$out/" \
     -e "s/@PULL_OUT@/0/" \
-    -e "s/@STEPS@/$steps/" grompp.mdp.template > grompp.mdp
+    -e "s/@STEPS@/$steps/" \
+    -e "s/@ENERGYGRPS/pullgroup0 pullgroup1 pullgroup0_type pullgroup1_type $energygrps" grompp.mdp.template > grompp.mdp
 
 # Run simulation to generate initial setup
 run --log log_grompp2 grompp -n index.ndx
