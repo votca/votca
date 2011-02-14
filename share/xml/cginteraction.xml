@@ -72,7 +72,8 @@
   <item>
     <name>f_meas</name>
     <desc>
-      Only for PMF. Step interval at which to measure forces.
+      Only for PMF. Step interval at which to measure forces, equivalent to "pull_nstfout" entry in the
+      gromacs grompp file.
     </desc>
   </item>
   <!-- inverse options -->

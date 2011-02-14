@@ -36,10 +36,6 @@ last_dir=$(get_last_step_dir)
 pullgroup0=$(csg_get_property cg.non-bonded.name | sed 's/-.*$//')
 pullgroup1=$(csg_get_property cg.non-bonded.name | sed 's/^.*-//')
 kBT=$(csg_get_property cg.inverse.kBT)
-conf_start="start"
-steps=$(csg_get_property cg.non-bonded.steps)
-f_meas=$(csg_get_property cg.non-bonded.f_meas)
-out=$((steps/f_meas))
 
 forcefile="forces_${pullgroup0}_${pullgroup1}.d"
 potfile="pmf_${pullgroup0}_${pullgroup1}.d"
