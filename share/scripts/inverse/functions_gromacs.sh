@@ -26,6 +26,15 @@ EOF
   exit 0
 fi
 
+#check performed when this file is sourced
+gmxrc="$(csg_get_property --allow-empty cg.inverse.gromacs.gmxrc)"
+if [ -n "${gmxrc}" ]; then
+  [ -f "$gmxrc" ] || die "functions_gromacs: Could not find gmxrc from xml file '$gmxrc'"
+  msg "sourcing gromacs setting file: $gmxrc"
+  source $gmxrc || die "functions_gromacs: error when 'source $gmxrc'"
+fi
+unset gmxrc
+
 get_from_mdp() {
   local res
   [[ -n "$2" ]] || die "get_from_mdp: Missing argument (what file)"

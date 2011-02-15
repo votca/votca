@@ -25,4 +25,14 @@ EOF
   exit 0
 fi
 
-#need to be there, because simprog function file is not optional
+#check performed when this file is sourced
+esp_dir="$(csg_get_property --allow-empty cg.inverse.espresso.scriptdir)"
+if [ -z "${esp_dir}" ]; then
+  [ -z "$ESPRESSO_SCRIPTS" ] && die "${0##*/}: cg.inverse.espresso.scriptdir of the xml setting file was empty and ESPRESSO_SCRIPTS not set in the environment.\nEspresso needs this variable to find its scripts."
+  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: ESPRESSO_SCRIPTS ($ESPRESSO_SCRIPTS) is not a directory"
+else
+  export ESPRESSO_SCRIPTS="${esp_dir}"
+  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: cg.inverse.espresso.scriptdir ($ESPRESSO_SCRIPTS) is not a directory"
+fi
+unset esp_dir
+
