@@ -33,6 +33,7 @@
   <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
   <item><name>cg.inverse.gromacs.conf</name><desc>Name of the coordinate file read by grompp (default conf.gro)</desc></item>
   <item><name>cg.inverse.gromacs.conf_out</name><desc>Name of the original outcome coordinate written by mdrun (default confout.gro)</desc></item>
+  <item><name>cg.inverse.gromacs.gmxrc</name><desc>GMXRC to source at the startup</desc></item>
   <item><name>cg.inverse.gromacs.equi_time</name><default>0.0</default><desc> begin analysis after this time when using gromacs</desc></item>
   <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning when using gromacs</desc></item>
   <item><name>cg.inverse.gromacs.topol</name><desc> binary Gromacs topology file to use, default topol.tpr</desc></item>

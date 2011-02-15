@@ -40,15 +40,6 @@ method="$(csg_get_property cg.inverse.method)"
 esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
-esp_dir="$(csg_get_property --allow-empty cg.inverse.espresso.scriptdir)"
-if [ -z "${esp_dir}" ]; then
-  [ -z "$ESPRESSO_SCRIPTS" ] && die "${0##*/}: cg.inverse.espresso.scriptdir of the xml setting file was empty and ESPRESSO_SCRIPTS not set in the environment.\nEspresso needs this variable to find its scripts."
-  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: ESPRESSO_SCRIPTS ($ESPRESSO_SCRIPTS) is not a directory"
-else
-  export ESPRESSO_SCRIPTS="${esp_dir}"
-  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: cg.inverse.espresso.scriptdir ($ESPRESSO_SCRIPTS) is not a directory"
-fi
-
 exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"
 

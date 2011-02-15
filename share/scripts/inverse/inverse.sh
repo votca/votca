@@ -156,25 +156,36 @@ critical $SOURCE_WRAPPER --check
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
 
+######## BEGIN STEP 0 ############
 update_stepnames 0
 this_dir=$(get_current_step_dir --no-check)
-if [ -d "$this_dir" ]; then
-  msg "step 0 (prepare) is already done - skipping"
-  [[ -f $this_dir/done ]] || die "Incomplete step 0 (remove dir '${this_dir##*/}' if you don't know what to do)"
+if [ -d "$this_dir" ] && [ -f $this_dir/done ]; then
+  msg "step 0 is already done - skipping"
 else
   msg ------------------------
   msg "Prepare (dir ${this_dir##*/})"
   msg ------------------------
-  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
-
+  if [ -d "$this_dir" ]; then
+    msg "Incomplete step 0"
+    [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
+  else
+    mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+  fi
   cd $this_dir || die "cd $this_dir failed"
+  mark_done "stepdir"
 
-  do_external prepare $method
+  if is_done "Prepare"; then
+    msg "Prepare of potentials already done"
+  else
+    do_external prepare $method
+    mark_done "Prepare"
+  fi
 
   touch "done"
   msg "step 0 done"
   cd $(get_main_dir)
 fi
+######## END STEP 0 ############
 
 begin=1
 trunc=$(get_stepname --trunc)
