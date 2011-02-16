@@ -5,7 +5,7 @@ HAKE:=$(shell $(MAKE) -f Makefile.XMLS Makefile.incl)
 include Makefile.incl
 
 all: $(XMLSTEX) 
-wiki: $(XMLSWIKI)
+html: $(XMLSHTML)
 
 .PHONY: clean
 .SECONDARY:
@@ -17,13 +17,13 @@ wiki: $(XMLSWIKI)
 %.tex: %.t2t
 	./txt2tags -t tex --no-header --infile $< --outfile $@
 
-%.wiki: %.t2t
-	./txt2tags -t wiki --no-header --infile $< --outfile $@
+%.html: %.t2t
+	./txt2tags -t html --no-header --infile $< --outfile $@
 
 clean:
 	rm -f $(XMLST2T)
 	rm -f $(XMLSTEX)
-	rm -f $(XMLSWIKI)
+	rm -f $(XMLSHTML)
 	rm -f *~
 	$(MAKE) -f Makefile.XMLS clean
 
