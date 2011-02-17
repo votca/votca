@@ -25,6 +25,7 @@ namespace votca {
             Thread *thread = (Thread*) (arg);
             thread->Run();
             pthread_exit(NULL);
+            return NULL; 
         }
 
         Thread::Thread() {
