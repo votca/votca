@@ -96,6 +96,12 @@ Your version of GROMACS is too old, please update at least to version 4.0
       AC_MSG_RESULT([yes])
       GMX_VERSION="45"
       gmxheader="gromacs/tpxio.h"
+      dnl for gmx 4.5 without pkg-config
+      if test -n "$GMXLDLIB"; then
+        gmxincldir="-I$GMXLDLIB/../include"
+      else
+        gmxincldir="-I/usr/include"
+      fi
     ],[
       dnl for gmx 4.0 without pkg-config
       AC_MSG_RESULT([no])
