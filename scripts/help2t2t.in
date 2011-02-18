@@ -1,6 +1,6 @@
 #! /bin/bash -e
 #
-# Copyright 2010 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ The t2t file was extracted from '$prog --help' by ' ${0##*/} $prog' (version $ve
 
 = COPYRIGHT =
 
-Copyright 2009-2010 The VOTCA Development Team (http://www.votca.org)
+Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
