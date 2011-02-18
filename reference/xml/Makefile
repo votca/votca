@@ -7,7 +7,7 @@ include Makefile.incl
 all: $(XMLSTEX) 
 html: $(XMLSHTML)
 
-.PHONY: clean
+.PHONY: clean upload
 .SECONDARY:
 
 
@@ -19,6 +19,11 @@ html: $(XMLSHTML)
 
 %.html: %.t2t
 	./txt2tags -t html --no-header --infile $< --outfile $@
+
+upload: 
+	googlesites_upload.py  -d "/Documentation/reference-cgoptions"  -f cgoptions.xml.html
+	googlesites_upload.py  -d "/Documentation/reference-cginteraction"  -f cginteraction.xml.html
+	googlesites_upload.py  -d "/Documentation/reference-mapping"  -f mapping.xml.html
 
 clean:
 	rm -f $(XMLST2T)
