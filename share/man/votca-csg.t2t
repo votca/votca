@@ -18,19 +18,19 @@ Please visit the program site at __http://www.votca.org__.
 The following commands make up the votca-csg suite.  Please refer to their individual man pages for further details.
 
 : **csg_boltzmann**
-Performs tasks that are needed for simple boltzmann inversion in an interactive environment.
+Performs tasks that are needed for simple Boltzmann inversion in an interactive environment.
 : **csg_call**
-Calls script from interactive framework for the user.
+Calls script from the interactive framework for the user.
 : **csg_dump**
-Prints atoms that are read from topology file to help debugging atom naming.
+Prints atoms that are read from a topology file to help debug atom naming.
 : **csg_fmatch**
-Performs force matching (also call multiscale coarse-graining).
+Performs force matching (also called //multiscale coarse-graining//).
 : **csg_gmxtopol**
 Create skeleton for gromacs topology based on atomistic topology and a mapping file.
 : **csg_imcrepack**
-Is internally called by inversion scripts to kick out zero entries in matrix for inverse Monte Carlo.
+Is internally called by inversion scripts to kick out zero entries in the matrix for inverse Monte Carlo (imc).
 : **csg_inverse**
-Starts the script to run ibi, imc, etc.
+Starts the script to run iterative Boltzmann inverse (ibi) or inverse Monte Carlo (imc), etc.
 : **csg_map**
 Map a reference trajectory to a coarse-grained trajectory.
 : **csg_part_dist**

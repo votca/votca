@@ -307,10 +307,10 @@ void TabulatedPotential::Smooth(vector<double> &data, bool bPeriodic)
     }
     size_t i;
     for(i=0; i<data.size()-2; i++) {
-        old[3] = data[i];
+        old[2] = data[i];
         data[i] = (old[0] + 2.*old[1] + 3.*data[i] + 2.*data[i+1] + data[i+2])/9.;
         old[0]=old[1];
-        old[1]=old[3];;
+        old[1]=old[2];;
     }
     if(bPeriodic) {
         data[i] = (old[0] + 2.*old[1] + 3.*data[i] + 2.*data[i+1] + data[0])/9.;
