@@ -114,7 +114,7 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
 
     // check vector "sol" for nan's
     for(int i=0; i<2*ngrid; i++) {
-        if( (std::isinf(sol(i))) || (std::isnan(sol(i))) ) {
+        if( (isinf(sol(i))) || (isnan(sol(i))) ) {
             throw std::runtime_error("error in CubicSpline::Fit : value nan occurred due to wrong fitgrid boundaries");
         }
     }

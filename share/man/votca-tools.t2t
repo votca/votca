@@ -4,7 +4,7 @@ VOTCA Development Team
 
 = NAME =
 
-votca-tools - The basic tools library of VOTCA package
+votca-tools - The basic tools library of the VOTCA package
 
 = DESCRIPTION =
 
@@ -14,7 +14,7 @@ Please visit the program site at __http://www.votca.org__.
 
 = SYNOPSIS =
 
-If VOTCA was installed in a non-default location one can use the VOTCARC file to get the important environment variables (PATH, MANPATH, CSGSHARE) set.
+If VOTCA was installed in a non-default location one can use the VOTCARC file to set the important environment variables (PATH, MANPATH, CSGSHARE).
 
 In bash shell:
 **source VOTCARC.bash**
