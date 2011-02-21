@@ -95,8 +95,6 @@ else
   fi
 fi
 
-CSGSHARE="/people/thnfs/homes/jochum/src/csg/share"
-
 vecho "CSGSHARE is ${CSGSHARE}"
 if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
   source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
@@ -115,15 +113,22 @@ export CSGXMLFILE="${cpath}/${CSGXMLFILE##*/}"
 [ -f "$CSGXMLFILE" ] || die "${0##*/}: could not find ${CSGXMLFILE##*/} (long version: $CSGXMLFILE"
 unset cpath
 
-main_dir="$PWD"
+main_dir=$(get_main_dir)
+
+filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
+[ -z "$filelist" ] || echo "We extra cp '$filelist' to every step to run the simulation"
 
 # Step 0 - Initialization
 update_stepnames 0
 this_dir=$(get_current_step_dir --no-check)
-conf_in=$(csg_get_property cg.non-bonded.conf_in)
 pmf_step=$(basename $this_dir)
 
-if [ -n $conf_in ]; then
+conf_in=$(csg_get_property --allow-empty cg.non-bonded.conf_in)
+
+if [ -z "$conf_in" ]; then
+  
+  conf_init=$(csg_get_property cg.non-bonded.conf_init)
+  mdp_init=$(csg_get_property cg.non-bonded.mdp_init)
   
   echo "---------------"
   echo "Doing $pmf_step"
@@ -131,24 +136,21 @@ if [ -n $conf_in ]; then
   mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   cd $this_dir || die "cd $this_dir failed"
 
-  critical cp ../topol.top .
-  critical cp ../grompp.mdp.template .
-  critical cp ../${conf_in}.mdp .
-  critical cp ../${conf_in}.gro .
-  critical cp ../settings.xml .
-  critical cp ../*.itp .
+  cp_from_main_dir $filelist
+  critical cp_from_main_dir grompp.mdp.template ${mdp_init} ${conf_init} 
 
   do_external initialize pmf
  
-  conf_out="$this_dir/confout.gro"
   index="$this_dir/index.ndx"
   grompp="$this_dir/grompp.mdp"
   touch "done"
   msg "$pmf_step is done"
   cd $main_dir
 else
+  mkdir step_000
   msg "$pmf_step is already done"
   conf_out=$(csg_get_property cg.non-bonded.conf_in)
+  critical cp $(conf_out) step_000/confout.gro
   index=$(csg_get_property cg.non-bonded.index)
   grompp="$main_dir/grompp.mdp"
 fi
@@ -162,14 +164,15 @@ echo "---------------"
 echo "Doing $pmf_step"
 echo "---------------"
 mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+
 cd $this_dir || die "cd $this_dir failed"
 
-critical cp ../topol.top .
-critical cp ${index} .
-critical cp ../grompp.mdp.template .
-critical cp ${conf_out} conf.gro
-critical cp ${grompp} start_in.mdp
-critical cp ../*.itp .
+cp_from_main_dir $filelist
+critical cp_from_main_dir grompp.mdp.template 
+critical cp_from_last_step confout.gro 
+#critical cp_from_main_dir ${grompp} start_in.mdp
+critical cp_from_main_dir start_in.mdp
+critical mv confout.gro conf.gro
 
 do_external prepare pmf
 
