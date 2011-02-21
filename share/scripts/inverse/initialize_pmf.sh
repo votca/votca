@@ -32,11 +32,10 @@ else
   die "Could not find functions_pmf.sh"
 fi
 
-pullgroup0=$(csg_get_property cg.non-bonded.name | sed 's/-.*$//')
-pullgroup1=$(csg_get_property cg.non-bonded.name | sed 's/^.*-//')
-pullgroup0_type=$(csg_get_property cg.non-bonded.type1)
-pullgroup1_type=$(csg_get_property cg.non-bonded.type2)
-conf_in=$(csg_get_property cg.non-bonded.conf_in)
+pullgroup0="pullgroup0"
+pullgroup1="pullgroup1"
+mdp_init=$(csg_get_property cg.non-bonded.mdp_init)
+conf_init=$(csg_get_property cg.non-bonded.conf_init)
 min=$(csg_get_property cg.non-bonded.min)
 max=$(csg_get_property cg.non-bonded.max)
 dt=$(csg_get_property cg.non-bonded.dt)
@@ -44,44 +43,13 @@ rate=$(csg_get_property cg.non-bonded.rate)
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
 
-# Get atom numbers for pull_group0, pull_group1
-n1="$(get_pullgroup_nr "$pullgroup0" "$conf_in.gro")"
-n2="$(get_pullgroup_nr "$pullgroup1" "$conf_in.gro")"
-if [ $n1 -eq $n2 ]; then
-  n2="$(get_pullgroup_nr "$pullgroup1" "$conf_in.gro" 2)"
-fi
-
-# Generate index files for pullgroup0, pullgroup1 and their environments
-echo -e "
-del 1-10
-a $n1
-a $n2
-name 1 pullgroup0
-name 2 pullgroup1
-a $pullgroup0_type & ! a $n1 & ! a $n2
-name 3 pullgroup0_type
-a $pullgroup1_type & ! a $n1 & ! a $n2
-name 4 pullgroup1_type
-q" | run make_ndx -f ${conf_in}.gro
-
-# Get remaining energy groups
-last=$(wc -l ${conf_in}.gro | awk '{print $1}')
-sec_last=$(($last-1))
-energygrps="$(sed -n "3,${sec_last}p" ${conf_in}.gro | awk '{print $1}' | sed 's/[0-9]//g' | sort | uniq | grep -v "$pullgroup0_type" | grep -v "$pullgroup1_type" | xargs)"
-
-for i in $energygrps; do
-  echo -e "
-r $i
-q" | run make_ndx -f ${conf_in}.gro -n index.ndx -o index2.ndx
-done
-
 # Run grompp to generate tpr, then calculate distance
-run grompp -n index.ndx -c ${conf_in}.gro -o ${conf_in}.tpr -f ${conf_in}.mdp -po ${conf_in}_all.mdp
-echo -e "pullgroup0\npullgroup1" | run g_dist -f ${conf_in}.gro -s ${conf_in}.tpr -n index.ndx -o ${conf_in}.xvg
-dist=$(sed '/^[#@]/d' ${conf_in}.xvg | awk '{print $2}')
+run grompp -n index.ndx -c ${conf_init} -f ${mdp_init} 
+echo -e "pullgroup0\npullgroup1" | run g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
+dist=$(sed '/^[#@]/d' ${conf_init}.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo Found distance $dist
-cp ${conf_in}.gro conf.gro
+cp ${conf_init} conf.gro
 
 # Prepare grommpp file
 steps="$(awk "BEGIN{print int(($min-$dist)/$rate/$dt)}")"
@@ -96,8 +64,7 @@ sed -e "s/@DIST@/$dist/" \
     -e "s/@TIMESTEP@/$dt/" \
     -e "s/@OUT@/0/" \
     -e "s/@PULL_OUT@/0/" \
-    -e "s/@STEPS@/$steps/" \
-    -e "s/@ENERGYGRPS/pullgroup0 pullgroup1 pullgroup0_type pullgroup1_type $energygrps" grompp.mdp.template > grompp.mdp
+    -e "s/@STEPS@/$steps/"  grompp.mdp.template > grompp.mdp
 
 # Run simulation to generate initial setup
 run --log log_grompp2 grompp -n index.ndx
