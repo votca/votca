@@ -4,16 +4,10 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the x-density for gromacs
    echo for the AdResS therm force
    echo Usage: ${0##*/}
-   echo USES: get_from_mdp csg_get_property awk critical g_energy die
-   echo NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
    exit 0
 fi
 
-
-check_deps "$0"
-
 name=$(csg_get_interaction_property name)
-
 
 splinedelta="$(csg_get_property cg.tf.splinedelta)"
 step="$(csg_get_interaction_property step)"

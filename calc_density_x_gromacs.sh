@@ -4,13 +4,8 @@ if [ "$1" = "--help" ]; then
    echo This script calcs the x-density for gromacs
    echo for the AdResS therm force
    echo Usage: ${0##*/}
-   echo USES: get_from_mdp csg_get_property awk critical g_energy die
-   echo NEEDS: cg.inverse.gromacs.equi_time cg.inverse.gromacs.first_frame
    exit 0
 fi
-
-check_deps "$0"
-
 
 dt=$(get_from_mdp dt "grompp.mdp")
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"

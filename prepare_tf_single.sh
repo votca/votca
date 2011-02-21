@@ -4,13 +4,8 @@ if [ "$1" = "--help" ]; then
   echo This script implemtents the function initialize
   echo for the Inverse Boltzmann Method
   echo Usage: ${0##*/}
-  echo USES: do_external csg_get_interaction_property critical csg_resample
-  echo NEEDS: name min max step
   exit 0
 fi
-
-check_deps "$0"
-
 
 r_cut=$(csg_get_interaction_property max)
 adressh="$(csg_get_property cg.tf.adressh)"

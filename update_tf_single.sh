@@ -6,15 +6,9 @@ This script implemtents the function update
 for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
-
-USES:  die msg csg_get_property for_all do_external
-
-NEEDS: cg.inverse.program
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 step_nr=$(get_current_step_nr)
 scheme=( $(csg_get_interaction_property inverse.do_tf 1) )

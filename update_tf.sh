@@ -22,14 +22,8 @@ This script implements the function update
 for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
-
-USES:  msg csg_get_property for_all do_external check_deps
-
-NEEDS: cg.inverse.program
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 for_all non-bonded do_external update tf_single
