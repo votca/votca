@@ -8,7 +8,7 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 == Version in hg ==
 
 
-== Version in 1.1 ==
+== Version in 1.1 (SuperAnn) ==
 * added support for gromacs 5.0
 * csg_dump: can dump exclusion
 * added boundarycondition class
