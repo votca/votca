@@ -1,7 +1,9 @@
 syntax: glob
 
 *~
+.*.swp
 spce/ibm/step_*
+spce/realtime/step_*
 spce/imc/step_*
 methanol/ibm/step_*
 methanol/imc/step_*
