@@ -61,7 +61,7 @@
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>20</iterations_max>
-    <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
+    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>imc</method>
     <!-- directory for user scripts -->
     <scriptdir>$PWD</scriptdir>

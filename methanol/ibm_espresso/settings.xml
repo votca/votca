@@ -58,8 +58,8 @@
     <filelist>conf.esp.gz</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
-    <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
-    <method>ibm</method>
+    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
+    <method>ibi</method>
     <!-- directory for user scripts -->
     <scriptdir>$PWD</scriptdir>
     <!-- write log to this file -->
