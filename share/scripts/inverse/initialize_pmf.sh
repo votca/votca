@@ -58,7 +58,7 @@ if [ $steps -le 0 ]; then
   rate="-$rate"
 fi
 ((steps++))
-echo Doing $steps steps with rate $rate
+msg Doing $steps steps with rate $rate
 sed -e "s/@DIST@/$dist/" \
     -e "s/@RATE@/$rate/" \
     -e "s/@TIMESTEP@/$dt/" \

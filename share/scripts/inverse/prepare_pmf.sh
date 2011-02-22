@@ -55,7 +55,7 @@ if [ $steps -le 0 ]; then
 fi
 ((steps++))
 out="$(awk "BEGIN{print int(1/$dt)}")"
-echo Doing $steps steps with rate $rate output every $out steps a $dt ps 
+msg Doing $steps steps with rate $rate output every $out steps a $dt ps 
 sed -e "s/@DIST@/$dist/" \
     -e "s/@RATE@/$rate/" \
     -e "s/@TIMESTEP@/$dt/" \
