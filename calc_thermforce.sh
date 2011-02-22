@@ -1,9 +1,27 @@
 #! /bin/bash
+#
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 if [ "$1" = "--help" ]; then
-   echo This script calcs the x-density for gromacs
-   echo for the AdResS therm force
-   echo Usage: ${0##*/}
+cat <<EOF
+${0##*/}, version %version%
+This script calcs the thermoforce out of gromacs density for the AdResS therm force
+
+Usage: ${0##*/}
+EOF
    exit 0
 fi
 
@@ -13,48 +31,49 @@ splinedelta="$(csg_get_property cg.tf.splinedelta)"
 step="$(csg_get_interaction_property step)"
 prefactor="$(csg_get_property cg.tf.prefactor)"
 
-
 cg_prefactor="$(csg_get_property --allow-empty cg.tf.cg_prefactor)"
-
-
 splinestep="$(csg_get_property cg.tf.splinesmoothstep)"
 
+#TODO compare this to mdp file
 adressw="$(csg_get_property cg.tf.adressw)"
 adressh="$(csg_get_property cg.tf.adressh)"
 adressc="$(csg_get_property cg.tf.adressc)"
-
-# ../ in the next line is dirty but in first step gromppp is not yet copied to step_000
-mdp="../$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
 adress_type=$(get_from_mdp adress_type "$mdp")
 
-infile="dens.${name}.xvg"
-outfile="dens.${name}.smooth.xvg"
-
-xstart=$(echo "scale=8; $adressc+$adressw" | bc)
-xstop=$(echo "scale=8; $adressc+$adressw+$adressh" | bc)
-
-if [ ! $adress_type = "sphere" ]
-then
-infile="dens.${name}.xvg"
-outfile="dens.${name}.symm.xvg"
-critical do_external density symmetrize --infile $infile --outfile $outfile --adressc $adressc
-infile="dens.${name}.symm.xvg"
-#note : in the spehere case (no symmetrizing necessary) infile stays dens.${name}.xvg, so this gets used for next step
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+#this needs to done in step_000
+if [ ! -f "$mdp" ]; then
+  cp_from_maindir "$mdp"
 fi
 
+infile="dens.${name}.xvg"
 outfile="dens.${name}.smooth.xvg"
 
+xstart="$(awk -v x="$adressc" -v y="$adressw" 'BEGIN{print x+y}')" || die "${0##*/}: awk failed"
+xstop="$(awk -v x="$xstart" -v y="$adressh" 'BEGIN{print x+y}')" || die "${0##*/}: awk failed"
+
+infile="dens.${name}.xvg"
+if [ $adress_type = "sphere" ]; then
+  #note : in the spehere case (no symmetrizing necessary) infile stays dens.${name}.xvg, so this gets used for next step
+  :
+else
+  outfile="dens.${name}.symm.xvg"
+  critical do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$adressc"
+  infile="dens.${name}.symm.xvg"
+fi
+outfile="dens.${name}.smooth.xvg"
+
+#TODO remove this hardcoded stuff
 forcefile="thermforce.${name}.xvg"
 forcefile_pref="thermforce.wpref.${name}.xvg"
 forcefile_smooth="thermforce.smooth.${name}.xvg"
 
-spxstart=$(echo "scale=8; $adressc+$adressw-$splinedelta" | bc)
-spxstop=$(echo "scale=8; $adressc+$adressw+$adressh+$splinedelta" | bc)
+spxstart="$(awk -v x="$xstart" -v y="$splinedelta" 'BEGIN{print x-y}')" || die "${0##*/}: awk failed"
+spxstop="$(awk -v x="$xstop" -v y="$splinedelta" 'BEGIN{print x+y}')" || die "${0##*/}: awk failed"
 
 comment="$(get_table_comment)"
 
-critical csg_resample --type cubic --in $infile --out $outfile --grid $spxstart:$step:$spxstop --derivative $forcefile --fitgrid $spxstart:$splinestep:$spxstop --comment "$comment"
+critical csg_resample --type cubic --in "$infile" --out "$outfile" --grid "$spxstart:$step:$spxstop" --derivative "$forcefile" --fitgrid "$spxstart:$splinestep:$spxstop" --comment "$comment"
 
 if [ -z "$cg_prefactor" ];then
        echo "Using fixed prefactor $prefactor "	
@@ -64,12 +83,7 @@ else
        critical do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor $cg_prefactor
 fi
 
-critical do_external table smooth_borders --infile $forcefile_pref --outfile $forcefile_smooth --xstart $xstart --xstop $xstop  
+critical do_external table smooth_borders --infile "$forcefile_pref" --outfile "$forcefile_smooth" --xstart "$xstart" --xstop "$xstop"
 
-critical do_external table integrate $forcefile_smooth ${name}.dpot.new
-
-
-#todo: make this less dirty:
-touch $name.dist.new 
-
+critical do_external table integrate "$forcefile_smooth" "${name}.dpot.new"
 

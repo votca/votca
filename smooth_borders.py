@@ -1,11 +1,23 @@
 #!/usr/bin/env python
+#
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 import sys
 
-#import pygsl.sf
 import getopt
-#from pygsl import spline
-#from pygsl import _numobj as numx
 import math
 
 xvalues = []
@@ -19,13 +31,15 @@ doresample =False
 dosmoothtorho_0 = False
 dowritedpotf = False
 
+#TODO hardcoded weight function
 def weight(x):
     c = math.cos(math.pi/(2*(xstop-xstart)*0.1)*x)
     return c*c
 
 
-options = ["xstart=", "xstop=", "infile=", "outfile="]
+options = ["xstart=", "xstop=", "infile=", "outfile=","help"]
 
+#TODO --help option
 try:
     opts, args = getopt.getopt(sys.argv[1:], "", options)
 except getopt.GetoptError, err:
@@ -34,7 +48,21 @@ except getopt.GetoptError, err:
     print options
     sys.exit(2)
 for o, a in opts:
-    if o == "-v":
+    if o == "--help":
+      print """%(name)s, version %(ver)s 
+This script smooths the border for thermodynamic force iteration
+
+Usage: %(name)s 
+Allowed options:
+    --xstart     X.X  where the smoothing starts
+    --xstop      X.X  where the smoothing stops
+    --infile    FILE  input file
+    --outfile   FILE  output file
+
+
+""" % {'name': sys.argv[0],'ver': '%version%'}
+      sys.exit(2)
+    elif o == "-v":
         verbose = True
     elif o == "--xstart":
         xstart = float(a)
@@ -58,8 +86,6 @@ for line in open(infile,"r").readlines():
 
         
         
-#myspline = spline.cspline(len(xvalues))
-#myspline.init(xvalues,yvalues)
 f = open(outfile,"w")
 
 
