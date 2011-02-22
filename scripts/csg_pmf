@@ -20,12 +20,6 @@ verbose="no"
 #unset stuff from enviorment
 unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
 
-#failback define
-die() {
-  echo -e "$*" >&2
-  exit 1
-}
-
 vecho() {
   [ "$verbose" = "yes" ] && echo -e "$*"
 }
@@ -227,7 +221,6 @@ else
   cp_from_main_dir $filelist
   cp_from_main_dir grompp.mdp.template
   cp_from_last_step conf_start*.gro 
-  cp_from_last_step rdist.xvg
 
   do_external simulate pmf
 

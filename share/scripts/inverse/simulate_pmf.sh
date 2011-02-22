@@ -24,7 +24,7 @@ Usage: ${0##*/}
 
 USES: do_external csg_get_interaction_property check_deps
 
-NEEDS: pullgroup0 pullgroup1 pullgroup0_type pullgroup1_type confin min max step dt rate kB
+NEEDS: pullgroup0 pullgroup1 confin min max step dt rate kB
 EOF
   exit 0
 fi
@@ -37,10 +37,9 @@ else
   die "Could not find functions_pmf.sh"
 fi
 
-pullgroup0=$(csg_get_property cg.non-bonded.name | sed 's/-.*$//')
-pullgroup1=$(csg_get_property cg.non-bonded.name | sed 's/^.*-//')
-pullgroup0_type=$(csg_get_property cg.non-bonded.type1)
-pullgroup1_type=$(csg_get_property cg.non-bonded.type2)
+pullgroup0="pullgroup0"
+pullgroup1="pullgroup1"
+
 conf_start="start"
 min=$(csg_get_property cg.non-bonded.min)
 max=$(csg_get_property cg.non-bonded.max)
@@ -49,11 +48,6 @@ dt=$(csg_get_property cg.non-bonded.dt)
 rate=$(csg_get_property cg.non-bonded.rate)
 f_meas=$(csg_get_property cg.non-bonded.f_meas)
 out=$((steps/f_meas))
-
-# Get energy groups
-last=$(wc -l ${conf_in}.gro | awk '{print $1}')
-sec_last=$(($last-1))
-energygrps="$(sed -n "3,${sec_last}p" ${conf_in}.gro | awk '{print $1}' | sed 's/[0-9]//g' | sort | uniq | grep -v "$pullgroup0_type" | grep -v "$pullgroup1_type" | xargs)"
 
 echo "#dist.xvg grofile delta" > dist_comp.d
 for i in conf_start*.gro; do
@@ -67,23 +61,25 @@ for i in conf_start*.gro; do
     cp $f ./$dir/
   done
   mv $i ./$dir/conf.gro
-  dist=$(sed '/^[#@]/d' dist.xvg | sed -n "$((number+1))p" | awk '{print $2}')
-  [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
+  dist=2
   sed -e "s/@DIST@/$dist/" \
       -e "s/@RATE@/0/" \
       -e "s/@TIMESTEP@/$dt/" \
       -e "s/@OUT@/0/" \
       -e "s/@PULL_OUT@/$out/" \
-      -e "s/@STEPS@/$steps/" \
-      -e "s/@ENERGYGRPS/pullgroup0 pullgroup1 pullgroup0_type pullgroup1_type $energygrps" grompp.mdp.template > $dir/grompp.mdp
+      -e "s/@STEPS@/$steps/" grompp.mdp.template > $dir/grompp.mdp
   cd $dir
   run grompp -n index.ndx
   echo -e "pullgroup0\npullgroup1" | run g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg
-  dist2=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
-  [ -z "$dist2" ] && die "${0##*/}: Could not fetch dist2"
-  delta=$(awk -v d1=$dist -v d2=$dist2 'BEGIN{print d1-d2}')
-  echo "$number $dist $dist2 $delta i" >> ../dist_comp.d
-  awk -v de=$delta 'BEGIN{print (de>0.001)?"Oho":"OK"}'
+  dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
+  [ -z "$dist" ] && die "${0##*/}: Could not fetch dist2"
+  sed -e "s/@DIST@/$dist/" \
+      -e "s/@RATE@/0/" \
+      -e "s/@TIMESTEP@/$dt/" \
+      -e "s/@OUT@/0/" \
+      -e "s/@PULL_OUT@/$out/" \
+      -e "s/@STEPS@/$steps/" grompp.mdp.template > $dir/grompp.mdp
+
   do_external run gromacs_pmf
   cd ..
 done
