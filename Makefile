@@ -1,13 +1,23 @@
 SHELL=/bin/bash
 HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{&}/')
+LATEXMK=scripts/latexmk.pl
+LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
 NAME=manual
 all: $(NAME).pdf
+dvi: $(NAME).dvi
+ps: $(NAME).ps
 
 $(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_submake
 
-%.pdf: %.tex dummy
-	./latexmk.pl -pdfdvi $<
+#remove broken dvi if LATEXMK fails
+.DELETE_ON_ERROR: %.dvi
+
+%.dvi: %.tex dummy
+	$(LATEXMK) $(LATEXMKOPTS) -dvi $<
+
+%.pdf: %.dvi
+	dvipdf $< $@
 
 %_submake:
 	$(MAKE) $(MFLAGS) -C $*
@@ -16,7 +26,7 @@ $(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_
 	$(MAKE) $(MFLAGS) -C $* clean
 
 qclean:
-	./latexmk.pl -C $(NAME).tex
+	$(LATEXMK) -C $(NAME).tex
 
 clean: qclean fig_subclean functionality_subclean reference_subclean usage_submake
 	rm -f $(NAME).fdb_latexmk
