@@ -17,29 +17,19 @@
 
 import sys
 
+#import pygsl.sf
 import getopt
+#from pygsl import spline
+#from pygsl import _numobj as numx
 import math
 
 xvalues = []
 yvalues = []
 
-
-
 outfile = ""
-
-doresample =False
-dosmoothtorho_0 = False
-dowritedpotf = False
-
-#TODO hardcoded weight function
-def weight(x):
-    c = math.cos(math.pi/(2*(xstop-xstart)*0.1)*x)
-    return c*c
-
 
 options = ["xstart=", "xstop=", "infile=", "outfile=","help"]
 
-#TODO --help option
 try:
     opts, args = getopt.getopt(sys.argv[1:], "", options)
 except getopt.GetoptError, err:
@@ -50,16 +40,14 @@ except getopt.GetoptError, err:
 for o, a in opts:
     if o == "--help":
       print """%(name)s, version %(ver)s 
-This script smooths the border for thermodynamic force iteration
+This script get the a subset of a table
 
 Usage: %(name)s 
 Allowed options:
-    --xstart     X.X  where the smoothing starts
-    --xstop      X.X  where the smoothing stops
+    --xstart     X.X  x value where the subset starts
+    --xstop      X.X  x value where the subset stops
     --infile    FILE  input file
     --outfile   FILE  output file
-
-
 """ % {'name': sys.argv[0],'ver': '%version%'}
       sys.exit(2)
     elif o == "-v":
@@ -83,9 +71,6 @@ for line in open(infile,"r").readlines():
 			xvalues.append(float(values[0]))
 			yvalues.append(float(values[1]))
 
-
-        
-        
 f = open(outfile,"w")
 
 
@@ -94,14 +79,7 @@ tempx = []
 tempy = []
 for x in xvalues:
     tempx.append (x)
-    if x-xstart < 0.1*(xstop-xstart): 
-
-        tempy.append ((1-weight(math.fabs(x-xstart)))*yvalues[i])
-    elif x-xstart > 0.9*(xstop-xstart): 
-
-        tempy.append ((1-weight(math.fabs(xstop-x)))*yvalues[i])
-    else:
-        tempy.append(yvalues[i])
+    tempy.append(yvalues[i])
     i=i+1
 
 i = 0

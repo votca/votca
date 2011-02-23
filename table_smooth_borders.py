@@ -16,18 +16,30 @@
 #
 
 import sys
+
 import getopt
 import math
 
-firstx = []
-firsty = []
-secondx = []
-secondy = []
+xvalues = []
+yvalues = []
+
+
 
 outfile = ""
 
-options = ["adressc=", "infile=", "outfile=","help"]
+doresample =False
+dosmoothtorho_0 = False
+dowritedpotf = False
 
+#TODO hardcoded weight function
+def weight(x):
+    c = math.cos(math.pi/(2*(xstop-xstart)*0.1)*x)
+    return c*c
+
+
+options = ["xstart=", "xstop=", "infile=", "outfile=","help"]
+
+#TODO --help option
 try:
     opts, args = getopt.getopt(sys.argv[1:], "", options)
 except getopt.GetoptError, err:
@@ -42,15 +54,18 @@ This script smooths the border for thermodynamic force iteration
 
 Usage: %(name)s 
 Allowed options:
-    --adressc    X.X  center of the adress zone (x-value)
+    --xstart     X.X  where the smoothing starts
+    --xstop      X.X  where the smoothing stops
     --infile    FILE  input file
     --outfile   FILE  output file
 """ % {'name': sys.argv[0],'ver': '%version%'}
       sys.exit(2)
     elif o == "-v":
         verbose = True
-    elif o == "--adressc":
-        adressc = float(a)
+    elif o == "--xstart":
+        xstart = float(a)
+    elif o == "--xstop":
+        xstop = float(a)
     elif o in ("--infile"):
         infile = a
     elif o in ("--outfile"):
@@ -62,23 +77,32 @@ Allowed options:
 for line in open(infile,"r").readlines():
 	if line[0] != "@" and line[0] != "#":
 		values = line.split()
-		if float(values[0]) <= adressc:
-			firstx.append(float(values[0]))
-			firsty.append(float(values[1]))
-                        if float(values[0]) == adressc:
-                            secondx.append(float(values[0]))
-                            secondy.append(float(values[1]))
-                else:
-                       
-                        if len(firstx)-1-len(secondx) >= 0 and (len(firstx)-1-len(secondx)) < len (firsty):
-                            secondx.append(float(values[0])) 
-			    secondy.append( 0.5*(firsty[len(firstx)-len(secondx)]+(float(values[1]))) )
-                        else:
-                            print "Warning: symmetrize_density.pl : adressc not in center of data", line
-                            print "index", len(firstx)-len(secondx)
+		if float(values[0]) >= xstart and float(values[0]) <= xstop:
+			xvalues.append(float(values[0]))
+			yvalues.append(float(values[1]))
 
+
+        
+        
 f = open(outfile,"w")
-i=0
-for x in secondx:
-    f.write('%15.10e %15.10e i\n' % (x, secondy[i]))
+
+
+i = 0
+tempx = []
+tempy = []
+for x in xvalues:
+    tempx.append (x)
+    if x-xstart < 0.1*(xstop-xstart): 
+
+        tempy.append ((1-weight(math.fabs(x-xstart)))*yvalues[i])
+    elif x-xstart > 0.9*(xstop-xstart): 
+
+        tempy.append ((1-weight(math.fabs(xstop-x)))*yvalues[i])
+    else:
+        tempy.append(yvalues[i])
+    i=i+1
+
+i = 0
+for x in tempx:
+    f.write('%15.10e %15.10e i\n' % (x-xstart, tempy[i]))
     i=i+1

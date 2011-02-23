@@ -9,9 +9,10 @@ initstep tf initialize_step_generic.sh
 # the update step
 update tf update_tf.sh
 update tf_single update_tf_single.sh
+
 # add up the potential
 # TODO: think about name add_pot, is other name maybe better
-add_pot tf add_pot_tf.sh
+add_pot tf add_pot_generic.sh
 # END: these scripts have to be defined for each method
 
 
@@ -23,10 +24,10 @@ table integrate integrate_tf.pl
 tf apply_prefactor apply_prefactor.pl
 # todo : can aplly_pref be the post update?
 post_update tf dummy.sh
-table smooth_borders smooth_borders.py
 
 
 density gromacs calc_density_x_gromacs.sh
 density symmetrize density_symmetrize.py 
 
-table getsubset get_graphsubset.py
+table getsubset table_getsubset.py
+table smooth_borders table_smooth_borders.py
