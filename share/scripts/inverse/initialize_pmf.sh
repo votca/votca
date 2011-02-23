@@ -32,6 +32,8 @@ else
   die "Could not find functions_pmf.sh"
 fi
 
+# TODO: check for all commands whether successful, especially sed, grep, ... or use bash -e
+# TODO: read pullgroups from xml
 pullgroup0="pullgroup0"
 pullgroup1="pullgroup1"
 mdp_init=$(csg_get_property cg.non-bonded.mdp_init)
@@ -43,6 +45,7 @@ rate=$(csg_get_property cg.non-bonded.rate)
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
 
+# TODO: is this additional mdp file really needed?
 # Run grompp to generate tpr, then calculate distance
 run grompp -n index.ndx -c ${conf_init} -f ${mdp_init} 
 echo -e "pullgroup0\npullgroup1" | run g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
@@ -72,6 +75,7 @@ run --log log_grompp2 grompp -n index.ndx
 touch "$traj"
 do_external run gromacs_pmf
 
+# TODO: cleaup as soon as christopg implemented new stuff
 # Wait for job to finish when running in background
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
 background=$(csg_get_property --allow-empty cg.inverse.parallel.background "no")
@@ -88,7 +92,7 @@ else
 fi
 
 # Calculate new distance
-echo -e "pullgroup0\npullgroup1" | run g_dist -n index.ndx -f confout.gro
+echo -e "${pullgroup0}\n${pullgroup1}" | run g_dist -n index.ndx -f confout.gro
 dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo "New distance is $dist"

@@ -40,9 +40,10 @@ rate=$(csg_get_property cg.non-bonded.rate)
 
 # Run grompp to generate tpr, then calculate distance
 run grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp
-
+# TODO: do not hardcode pullgroups
 echo -e "pullgroup0\npullgroup1" | run g_dist -f conf.gro -s ${conf_start}.tpr -n index.ndx -o ${conf_start}.xvg
 
+# TODO: check for all commands (sed, awk, ...) whether successful or use bash -e
 dist=$(sed '/^[#@]/d' ${conf_start}.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo Found distance $dist

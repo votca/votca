@@ -62,7 +62,7 @@ for i in conf_start*.gro; do
   done
   mv $i ./$dir/conf.gro
   dist=2
-  sed -e "s/@DIST@/$dist/" \
+  critical sed -e "s/@DIST@/$dist/" \
       -e "s/@RATE@/0/" \
       -e "s/@TIMESTEP@/$dt/" \
       -e "s/@OUT@/0/" \
@@ -72,13 +72,14 @@ for i in conf_start*.gro; do
   run grompp -n index.ndx
   echo -e "pullgroup0\npullgroup1" | run g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg
   dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
-  [ -z "$dist" ] && die "${0##*/}: Could not fetch dist2"
-  sed -e "s/@DIST@/$dist/" \
+  [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
+  msg "Dist is $dist"
+  critical sed -e "s/@DIST@/$dist/" \
       -e "s/@RATE@/0/" \
       -e "s/@TIMESTEP@/$dt/" \
       -e "s/@OUT@/0/" \
       -e "s/@PULL_OUT@/$out/" \
-      -e "s/@STEPS@/$steps/" grompp.mdp.template > $dir/grompp.mdp
+      -e "s/@STEPS@/$steps/" ../grompp.mdp.template > grompp.mdp
 
   do_external run gromacs_pmf
   cd ..
