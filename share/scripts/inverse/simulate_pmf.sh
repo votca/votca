@@ -81,6 +81,7 @@ for i in conf_start*.gro; do
       -e "s/@PULL_OUT@/$out/" \
       -e "s/@STEPS@/$steps/" ../grompp.mdp.template > grompp.mdp
 
+  run grompp -n index.ndx
   do_external run gromacs_pmf
   cd ..
 done
