@@ -85,5 +85,6 @@ fi
 
 critical do_external table smooth_borders --infile "$forcefile_pref" --outfile "$forcefile_smooth" --xstart "$xstart" --xstop "$xstop"
 
-critical do_external table integrate "$forcefile_smooth" "${name}.dpot.new"
+critical do_external table integrate "$forcefile_smooth" "minus_${name}.dpot.new"
+critical do_external table linearop "minus_${name}.dpot.new" "minus_${name}.dpot.new" -1.0 0.0
 
