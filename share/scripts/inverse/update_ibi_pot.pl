@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,9 +27,6 @@ In addition, it does some magic tricks:
 - do not update if one of the two rdf is undefined
 
 Usage: $progname new_rdf target_rdf cur_pot outfile
-
-
-USES: readin_table saveto_table csg_get_property
 EOF
   exit 0;
 }

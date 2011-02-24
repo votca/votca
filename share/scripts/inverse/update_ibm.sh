@@ -18,24 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd copyback script, copies files back to the maindir,
-use \${name} in filename as replacement for the interaction name
+Informs users that ibm was renamed to ibi.
 
-Usage: ${0##*/} infile outfile
+Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
-
-do_external postadd dummy "$1" "$2"
-
-filelist=$(csg_get_interaction_property --allow-empty inverse.post_add_options.copyback.filelist)
-name=$(csg_get_interaction_property name)
-
-if [ -n "$filelist" ]; then
-  echo "${0##*/}: copy $filelist to $(get_main_dir)"
-  #we do eval because i can contain $name
-  critical cp_from_to --from . --where $(get_main_dir) $(eval echo $filelist)
-fi
-
+die "'ibm' was renamed to 'ibi'"

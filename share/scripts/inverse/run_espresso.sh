@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,19 +18,14 @@
 if [ "$1" = "--help" ]; then
     cat <<EOF
 ${0##*/}, version %version%
-This script runs espresso
-for the Inverse Boltzmann Method
+This script runs espresso for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: critical get_number_tasks csg_get_property check_deps
-
-
+Used external packages: espresso
 EOF
     exit 0
 fi
-
-check_deps "$0"
 
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
@@ -44,15 +39,6 @@ method="$(csg_get_property cg.inverse.method)"
 
 esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
-
-esp_dir="$(csg_get_property --allow-empty cg.inverse.espresso.scriptdir)"
-if [ -z "${esp_dir}" ]; then
-  [ -z "$ESPRESSO_SCRIPTS" ] && die "${0##*/}: cg.inverse.espresso.scriptdir of the xml setting file was empty and ESPRESSO_SCRIPTS not set in the environment.\nEspresso needs this variable to find its scripts."
-  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: ESPRESSO_SCRIPTS ($ESPRESSO_SCRIPTS) is not a directory"
-else
-  export ESPRESSO_SCRIPTS="${esp_dir}"
-  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: cg.inverse.espresso.scriptdir ($ESPRESSO_SCRIPTS) is not a directory"
-fi
 
 exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"

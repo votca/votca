@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,16 +21,13 @@ ${0##*/}, version %version%
 This script makes all the post update with backup for single pairs
 
 Usage: ${0##*/}
-
-USES:  csg_get_interaction_property mv do_external critical
-
 EOF
    exit 0
 fi
 
 name=$(csg_get_interaction_property name)
 
-#could be done by a overwrite somewhere
+#could be done by a overwrite somewhere else
 is_done "post_add-$name" && exit 0
 
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,15 +21,9 @@ ${0##*/}, version %version%
 This script initializes an espresso simulation
 
 Usage: ${0##*/}
-
-USES: check_deps cp_from_last_step critical mv
-
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 from=$(csg_get_property cg.inverse.initial_configuration "laststep")
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,21 +155,21 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
 
         Tokenizer tok(s, " ");
         Tokenizer::iterator itok= tok.begin();
-        for(int j=0; itok!=tok.end(); ++itok, ++j) {
+        for(size_t j=0; itok!=tok.end(); ++itok, ++j) {
             if(j == fields.size())
                 throw std::runtime_error("error, wrong number of columns in atoms section");
             else if(fields[j] == "x")
-                b->Pos().x() = lexical_cast<double>(*itok);
+                b->Pos().x() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "y")
-                b->Pos().y() = lexical_cast<double>(*itok);
+                b->Pos().y() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "z")
-                b->Pos().z() = lexical_cast<double>(*itok);
+                b->Pos().z() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fx")
-                b->F().x() = lexical_cast<double>(*itok);
+                b->F().x() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fy")
-                b->F().y() = lexical_cast<double>(*itok);
+                b->F().y() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fz")
-                b->F().z() = lexical_cast<double>(*itok);
+                b->F().z() = boost::lexical_cast<double>(*itok);
             
         }
     }

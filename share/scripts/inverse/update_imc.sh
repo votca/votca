@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,14 +22,9 @@ This script implements the function update
 for the Inverse Monte Carlo Method
 
 Usage: ${0##*/}
-
-USES: csg_get_property msg critical do_external sort for_all check_deps csg_get_interaction_property
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 solver=$(csg_get_property cg.inverse.imc.solver)
 sim_prog="$(csg_get_property cg.inverse.program)"

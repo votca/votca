@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,9 +25,6 @@ This script sets the beginning of the dpot to the first valid value and shifts t
 in such a way that dpot(r_max)=0.
 
 Usage: $progname infile outfile
-
-
-USES: readin_table saveto_table
 EOF
   exit 0;
 }

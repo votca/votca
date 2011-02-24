@@ -1,6 +1,6 @@
 package CsgFunctions;
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,12 +30,9 @@ Provides useful function for perl:
 csg_get_property($;$):             get a value from xml file
 csg_get_interaction_property($;$): get a interaction property from xmlfile
 readin_table(\$\\@\\@\\@):           reads in csg table
-readin_table(\$\\@\\@\\@):           reads in csg table with errors
+readin_table_err(\$\\@\\@\\@):           reads in csg table with errors
 saveto_table(\$\\@\\@\\@):           writes to a csg table
 saveto_table_err(\$\\@\\@\\@) :      writes to csg table with errors
-
-USES: \$CSGXMLFILE csg_property
-PROVIDES: csg_get_property csg_get_interaction_property readin_table saveto_table saveto_table_err readin_table_err saveto_table_err readin_data
 EOF
   exit 0;
 }

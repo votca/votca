@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,9 +24,6 @@ This script calls the pressure corrections dU=A*(1-r/r_c), where
 A=-0.1k_B T * max(1,|p_cur-p_target|*scale) * sign(p_cur-p_target)
 
 Usage: $progname p_cur outfile
-
-
-USES: csg_get_property csg_get_interaction_property saveto_table
 EOF
   exit 0;
 }

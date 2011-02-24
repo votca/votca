@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,20 +16,24 @@
 #
 
 if [ "$1" = "--help" ]; then
-  #we add \$GMXDATA in USES, because gromacs will need it
 cat <<EOF
 ${0##*/}, version %version%
-Useful functions for gromacs 4.0
 
+Useful functions for gromacs
 
-USES: sed die \$GMXDATA check_deps
-
-PROVIDES: get_from_mdp cufoff_check
+Used external packages: gromacs
 EOF
   exit 0
 fi
 
-check_deps $0
+#check performed when this file is sourced
+gmxrc="$(csg_get_property --allow-empty cg.inverse.gromacs.gmxrc)"
+if [ -n "${gmxrc}" ]; then
+  [ -f "$gmxrc" ] || die "functions_gromacs: Could not find gmxrc from xml file '$gmxrc'"
+  msg "sourcing gromacs setting file: $gmxrc"
+  source $gmxrc || die "functions_gromacs: error when 'source $gmxrc'"
+fi
+unset gmxrc
 
 get_from_mdp() {
   local res

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
         if (!vm.count("nocut")) {
             // determine vector size
             int minindex=-1, maxindex;
-            for (int i=0; i<in.x().size(); i++) {
+            for (size_t i=0; i<in.x().size(); i++) {
                 if(in.x(i)<sp_min) {
                     minindex = i;
                 }
@@ -193,10 +193,10 @@ int main(int argc, char** argv)
                 spline->Fit(x_copy, y_copy);
             }   
         } catch (const char* message) {
-            if(message="qrsolve_zero_column_in_matrix") {
+            if(strcmp("qrsolve_zero_column_in_matrix",message)) {
                 throw std::runtime_error("error in Linalg::linalg_qrsolve : Not enough data for fit, please adjust grid (zero row in fit matrix)");
             }    
-            else if(message="constrained_qrsolve_zero_column_in_matrix") {
+            else if(strcmp("constrained_qrsolve_zero_column_in_matrix",message)) {
                 throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : Not enough data for fit, please adjust grid (zero row in fit matrix)");
             }
             else throw std::runtime_error("Unknown error in csg_resample while fitting.");
@@ -206,10 +206,10 @@ int main(int argc, char** argv)
         try {
             spline->Interpolate(in.x(), in.y());
         } catch (const char* message) {
-            if(message="qrsolve_zero_column_in_matrix") {
+            if(strcmp("qrsolve_zero_column_in_matrix",message)) {
                 throw std::runtime_error("error in Linalg::linalg_qrsolve : Not enough data, please adjust grid (zero row in fit matrix)");
             }
-            else if(message="constrained_qrsolve_zero_column_in_matrix") {
+            else if(strcmp("constrained_qrsolve_zero_column_in_matrix",message)) {
                 throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : Not enough data, please adjust grid (zero row in fit matrix)");
             }
             else throw std::runtime_error("Unknown error in csg_resample while interpolating.");

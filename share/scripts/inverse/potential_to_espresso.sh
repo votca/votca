@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 This script is a wrapper to convert a potential to espresso
 
 Usage: ${0##*/}
-
-USES: do_external csg_get_interaction_property csg_get_property critical csg_resample check_deps
-
 EOF
   exit 0
 fi
-
-check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 input="${name}.pot.cur"

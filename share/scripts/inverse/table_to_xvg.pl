@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,9 +55,6 @@ Allowed options:
 
 Examples:
 * $progname --type bonded table.in table_b0.xvg
-
-
-USES: csg_get_property saveto_table readin_table
 EOF
     exit 0;
   }

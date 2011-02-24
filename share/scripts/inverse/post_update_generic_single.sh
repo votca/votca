@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,17 +18,12 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script makes all the post update with backup for single pairs
+This script makes all the post update with backup for single pairs incl. backups
 
 Usage: ${0##*/}
-
-USES:  csg_get_interaction_property mv do_external critical check_deps
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 

@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009,2010 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,9 +56,6 @@ Allowed options:
 
 Examples:
 * $progname --with-S --kbT 2.49435 tmp.force tmp.dpot
-
-
-USES: readin_table saveto_table
 END
 		exit;
 	}

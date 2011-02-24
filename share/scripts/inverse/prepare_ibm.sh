@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 Informs users that ibm was renamed to ibi.
 
 Usage: ${0##*/}
-
-USES: msg die
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 msg "####################################"
 msg "# ERROR 'ibm' was renamed to 'ibi' #"

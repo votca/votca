@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -303,7 +303,7 @@ namespace votca {
                 /////////////////////////////////////////////////////////////////////////
                 //start threads
                 if (DoThreaded()) {
-                    for (int thread = 0; thread < _myWorkers.size(); thread++) {
+                    for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
 
                         if (SynchronizeThreads()) {
                             Mutex *myMutexIn = new Mutex;
@@ -317,7 +317,7 @@ namespace votca {
                             myMutexOut->Lock();
                         }
                     }
-                    for (int thread = 0; thread < _myWorkers.size(); thread++)
+                    for (size_t thread = 0; thread < _myWorkers.size(); thread++)
                         _myWorkers[thread]->Start();
 
                     if (SynchronizeThreads()) {
@@ -327,7 +327,7 @@ namespace votca {
                     }
                     // mutex needed for merging if SynchronizeThreads()==False
                     Mutex mergeMutex;
-                    for (int thread = 0; thread < _myWorkers.size(); thread++) {
+                    for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
                         _myWorkers[thread]->WaitDone();
                         if (!SynchronizeThreads()) {
                             mergeMutex.Lock();
@@ -336,7 +336,7 @@ namespace votca {
                         }
                         delete _myWorkers[thread];
                     }
-                    for (int thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
+                    for (size_t thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
                         delete _threadsMutexesIn[thread];
                         delete _threadsMutexesOut[thread];
                     }

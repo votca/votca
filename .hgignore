@@ -6,6 +6,7 @@ syntax: glob
 *.o
 *.lo
 csg_*.man
+csg_*.help
 .deps
 .libs
 autom4te.cache
@@ -32,6 +33,7 @@ scripts/help2t2t
 scripts/multi_g_rdf
 scripts/multi_g_density
 scripts/multi_g_*.man
+scripts/multi_g_*.help
 scripts/csg_inverse.t2t
 share/scripts/inverse/MD5SUM
 share/scripts/inverse/Makefile.am

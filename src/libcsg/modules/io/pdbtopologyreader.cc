@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,8 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
     ::matrix box;
     int ePBC;
     t_atoms atoms;
-    
+    set_program_name("VOTCA");
+
     //snew(atoms,1);
     get_stx_coordnum((char*)file.c_str(),&(atoms.nr));
     init_t_atoms(&atoms,atoms.nr,TRUE);

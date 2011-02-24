@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,17 +19,13 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents the function initialize
-for the Inverse Boltzmann Method
 
-Usage: ${0##*/} last_sim_dir
+Usage: ${0##*/}
 
-USES: die cp critical check_deps get_last_step_dir check_cutoff check_temp
-
+Used external packages: gromacs
 EOF
   exit 0
 fi
-
-check_deps "$0"
 
 from="$(csg_get_property cg.inverse.initial_configuration "laststep")"
 conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"

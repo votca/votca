@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,18 +19,13 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 postadd convergence script, calcs int of (\${name}.DIST.tgt-\${name}.DIST.new)**2
-and saves it to \${name}.conv. DIST is dist, but changed by onvergence.what option
+and saves it to \${name}.conv.
+DIST is dist, but changed by onvergence.what option
 
 usage: ${0##*/} infile outfile
-
-USES: die check_deps do_external wc sed awk paste mktemp critical
-
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 

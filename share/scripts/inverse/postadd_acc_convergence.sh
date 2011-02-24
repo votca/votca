@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 postadd accumulate convergence script: accumulate \${name}.conv of all steps
 
 Usage: ${0##*/} infile outfile
-
-USES: die check_deps critical do_external cp_from_last_step touch get_last_step_dir get_current_step_nr
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 [ -z "$2" ] && die "${0##*/}: Missing arguments"
 

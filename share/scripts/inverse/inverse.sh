@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,18 +15,13 @@
 # limitations under the License.
 #
 
-#defaults
-usage="Usage: ${0##*/} [OPTIONS] [setting_file.xml]"
-
 show_help () {
   cat << eof
 ${0##*/}, version %version%
 
-
-
 Start the script to run ibi, imc, etc.
 
-$usage
+Usage: ${0##*/} [OPTIONS] [setting_file.xml]
 
 Allowed options:
 -h, --help                    show this help
@@ -38,9 +33,6 @@ Allowed options:
 Examples:
 * ${0##*/} cg.xml
 * ${0##*/} -6 cg.xml
-
-USES: csg_get_property date \$SOURCE_WRAPPER msg mkdir for_all do_external mark_done cp die is_done critical csg_get_interaction_property date \$CSGLOG date cp_from_main_dir get_current_step_dir get_last_step_dir get_main_dir get_stepname get_time rm update_stepnames
-
 eof
 }
 
@@ -164,25 +156,36 @@ critical $SOURCE_WRAPPER --check
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
 
+######## BEGIN STEP 0 ############
 update_stepnames 0
 this_dir=$(get_current_step_dir --no-check)
-if [ -d "$this_dir" ]; then
-  msg "step 0 (prepare) is already done - skipping"
-  [[ -f $this_dir/done ]] || die "Incomplete step 0 (remove it if you don't know what to do)"
+if [ -d "$this_dir" ] && [ -f $this_dir/done ]; then
+  msg "step 0 is already done - skipping"
 else
   msg ------------------------
   msg "Prepare (dir ${this_dir##*/})"
   msg ------------------------
-  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
-
+  if [ -d "$this_dir" ]; then
+    msg "Incomplete step 0"
+    [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
+  else
+    mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+  fi
   cd $this_dir || die "cd $this_dir failed"
+  mark_done "stepdir"
 
-  do_external prepare $method
+  if is_done "Prepare"; then
+    msg "Prepare of potentials already done"
+  else
+    do_external prepare $method
+    mark_done "Prepare"
+  fi
 
   touch "done"
   msg "step 0 done"
   cd $(get_main_dir)
 fi
+######## END STEP 0 ############
 
 begin=1
 trunc=$(get_stepname --trunc)
@@ -216,7 +219,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
       continue
     else
       msg "Incomplete step $i"
-      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove step $i if you don't know what to do - you will lose one iteration)"
+      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
     fi
   else
     echo "Step $i started at $(date)"
@@ -274,7 +277,8 @@ for ((i=$begin;i<$iterations+1;i++)); do
     echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
-    if [ "$(do_external convergence_check "$convergence_check")" = "stop" ]; then
+    do_external convergence_check "$convergence_check"
+    if [ -f "stop" ]; then
       msg "Iterations are converged, stopping"
       touch "done"
       exit 0

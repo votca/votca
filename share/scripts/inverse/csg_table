@@ -1,5 +1,5 @@
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-# generic function declarations for all inverse scripts
-functions common functions_inverse.sh
 
 #general scripts
 tag file tag_file.sh
@@ -33,6 +30,7 @@ initstep imc initialize_step_generic.sh
 
 #this is just to warn users from old versions
 prepare ibm prepare_ibm.sh
+update ibm update_ibm.sh
 
 # the update step
 update ibi update_ibi.sh
@@ -120,7 +118,7 @@ tables jackknife tables_jackknife.pl
 # interface to gromacs
 run gromacs run_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
-rdf gromacs calc_rdf_gromacs.sh
+rdf gromacs calc_rdf_generic.sh
 imc_stat gromacs imc_stat_generic.sh
 
 # these scripts have to be defined for each method, if NOT generic

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     int natoms;
     // cleanup topology to store new data
     top.Cleanup();
+    set_program_name("VOTCA");
 
 #if GMX == 50
     t_inputrec ir;
@@ -73,7 +74,6 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 #elif GMX == 45
     t_inputrec ir;
     ::matrix gbox;
-
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #elif GMX == 40
     int sss;   // wtf is this

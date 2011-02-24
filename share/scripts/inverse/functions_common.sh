@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ We have defined some useful (?) functions:
                       supports for_all
 * for_all           = run a command for all non-bonded pairs
 * critical          = run and die if error
-* check_for         = checks if a binary exists in the path
-* check_deps        = checks the dependencies of a script
 
 Examples:
 * echo "Hi"
@@ -42,18 +40,18 @@ Examples:
 * do_external init potential for_all bonded
 * for_all bonded init_potential.sh 1 2 3
 * critical CMD
-
-USES: \$CSGXMLFILE \$SOURCE_WRAPPER \$CSGLOG \$CSGRESTART csg_property printf cp date
-
-PROVIDES: die msg csg_get_interaction_property csg_get_property do_external for_all is_done mark_done sed critical cat_external show_external check_for check_deps int_check get_stepname update_stepnames get_current_step_dir get_last_step_dir get_main_dir get_current_step_nr get_step_nr cp_from_to cp_from_main_dir cp_from_last_step get_time get_number_tasks
-
 EOF
 exit 0
 fi
 
 #echo a msg to the screen and send it to logfile too 
 msg() {
-  [ -n "$*" ] && echo -e "$*"
+  if [ "$1" = "--to-stderr" ]; then
+    shift
+    [ -n "$*" ] && echo -e "$*" >&2
+  else
+    [ -n "$*" ] && echo -e "$*"
+  fi
   [ -n "${CSGLOG}" ] && [ -t 3 ] && echo -e "$*" >&3
 }
 export -f msg
@@ -61,10 +59,7 @@ export -f msg
 unset -f die
 die () {
   local pid pids c
-  msg "#############"
-  msg "ERROR:"
-  msg "$*"
-  msg "#############"
+  msg "$(csg_banner "ERROR:" "$@")"
   [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
@@ -119,27 +114,34 @@ export -f show_external
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
-  local script tags quiet="no"
+  local script tags quiet="no" packages
   [ "$1" = "-q" ] && quiet="yes" && shift
   [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
   tags="$1 $2"
   shift 2
+  packages="$(critical $script --help)"
+  packages="$(echo "$deps" | sed -n 's/^Used external packages://p')" || die "do_external: sed failed"
+  check_for_package $packages
   [ "$quiet" = "no" ] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
-  $script "$@" 2>&1 || die "do_external: subscript $script $* (from tags $tags) failed"
+  $script "$@" || die "do_external: subscript $script $* (from tags $tags) failed"
 }
 export -f do_external
 
 #useful subroutine check if a command was succesful AND log the output
 critical() {
+  local quiet="no"
+  [ "$1" = "-q" ] && quiet="yes" && shift
+  [ -z "$1" ] && die "critical: missing argument"
+  #print this message to stderr because $(critical something) is used very often
+  [ "$quiet" = "no" ] && echo "Running critical command '$*'" >&2
    "$@" || die "critical: '$*' failed"
 }
 export -f critical
 
 #do somefor all pairs, 1st argument is the type
 for_all (){
-  local bondtype csg_get
-  local name interactions
+  local bondtype name names interactions i j
   if [ -z "$2" ]; then
     die "for_all need at least two arguments"
   fi
@@ -154,6 +156,12 @@ for_all (){
   echo "For all $bondtype"
   interactions="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name)" \
     || die "for_all: csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name' failed"
+  names=( ${interactions} )
+  for ((i=0;i<${#names[@]};i++)); do
+    for ((j=i+1;j<${#names[@]};j++)); do
+      [ "${names[$i]}" = "${names[$j]}" ] && die "for_all: the interaction name '${names[$i]}' appeared twice, this is not allowed"
+    done
+  done
   for name in $interactions; do
     echo "for_all: run '$*'"
     #we need to use bash -c here to allow things like $(csg_get_interaction_property xxx) in arguments
@@ -176,13 +184,13 @@ csg_get_interaction_property () {
     allow_empty="no"
   fi
   [[ -n "$1" ]] || die "csg_get_interaction_property: Missig argument"
-  [[ -n "$CSGXMLFILE" ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined"
-  [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined"
-  [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined"
+  [[ -n "$CSGXMLFILE" ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
+  [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter option will make csg_property fail, don't stop if we have an default
-  if ! ret="$($cmd 2>&1)"; then
+  if ! ret="$($cmd)"; then
     [ "$allow_empty" = "no" ] && [ -z "$2" ] && \
       die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
     #ret has error message
@@ -205,11 +213,11 @@ csg_get_property () {
     allow_empty="no"
   fi
   [[ -n "$1" ]] || die "csg_get_property: Missig argument"
-  [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined"
+  [[ -n "$CSGXMLFILE" ]] || die "csg_get_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
-  ret="$(critical $cmd)"
+  ret="$(critical -q $cmd)"
   [[ -z "$ret" ]] && [[ -n "$2" ]] && ret="$2"
   [[ "$allow_empty" = "no" ]] && [[ -z "$ret" ]] && \
     die "csg_get_property: Could not get '$1'\nResult of '$cmd' was empty"
@@ -233,33 +241,27 @@ is_done () {
 }
 export -f is_done
 
-check_for () {
-  [[ -n "$2" ]] || die "check_for: Missig arguments"
-  file="$1"
-  shift
-  local exe
-  for exe in $@; do
-    if [ -z "${exe##\$*}" ]; then
-      exe=${exe#\$}
-      [[ -n "${!exe}" ]] || die "check_for: '${exe}' is undefined in ${file}"
-      continue
-    fi
-    [[ -n "$(type -t $exe)" ]] || die "check_for: Could not find $exe needed by ${file}"
+check_for_package () {
+  local i x
+  [[ -z "$1" ]] && return 0
+  for i in "$@"; do
+    case $i in
+      espresso | gromacs )
+        x="$(csg_get_property cg.inverse.program)"
+	[ "$i" = "$x" ] || die "check_for_package: script needs '$i' please set cg.inverse.program in your xml file"
+        true;;
+      octave | matlab )
+        [ -z "$(type -p $i)" ] && die "check_for_package: script needs '$i', but it was not found in your path"
+        true;;
+      gnuplot )
+        #check for gnuplot binary is done in the script itself
+	true;;
+      *)
+       die "check_for_package: I don't know how to check for $i";;
+    esac
   done
 }
-export -f check_for
-
-check_deps () {
-  [[ -n "$1" ]] || die "check_deps: Missig argument"
-  local deps
-  deps="$(critical $1 --help)"
-  deps="$(echo "$deps" | sed -n '/^USES:/p')" || die "check_deps: sed failed"
-  [[ -z "${deps}" ]] && msg "check_for '$1' has no used block please add it" && return 0
-  deps=$(echo "$deps" | sed 's/USES://')
-  [[ -z "${deps}" ]] && return 0
-  check_for "${1##*/}" $deps
-}
-export -f check_deps
+export -f check_for_package
 
 int_check() {
   [[ -n "$2" ]] || die "int_check: Missig argument"
@@ -370,7 +372,7 @@ cp_from_to() {
     if [ "$from/$i" = "$(echo $from/$i)" ]; then
       [ -e "$from/$i" ] || die "cp_from_to: could not find '$from/$i'"
     fi
-    cp -r $from/$i "$where" 2>&1 || die "cp_from_to: cp -r '$from/$i' '$where' failed"
+    cp -r $from/$i "$where" || die "cp_from_to: cp -r '$from/$i' '$where' failed"
   done
 }
 export -f cp_from_to
@@ -394,6 +396,8 @@ export -f get_time
 
 get_number_tasks() {
   local tasks
+  [ -n "$(csg_get_property --allow-empty cg.inverse.mpi.tasks)" ] && \
+    msg --to-stderr "get_number_tasks: the xml option cg.inverse.mpi.tasks has been renamed to cg.inverse.parallel.tasks\nPlease remove the obsolete cg.inverse.mpi block, it is not used anyway\n"
   tasks="$(csg_get_property cg.inverse.parallel.tasks 1)"
   [ "$tasks" = "auto" ] && tasks=0
   int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number"
@@ -413,7 +417,7 @@ get_table_comment() {
   version="$(csg_call --version)" || die "get_defaults_comment: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
-  echo "settings file: $CSGXMLFILE"
+  [ -n "${CSGXMLFILE}" ] && echo "settings file: $CSGXMLFILE"
   echo "working directory: $PWD"
 }
 export -f get_table_comment
@@ -460,3 +464,31 @@ source_function() {
   source ${function_file} || die "source_function: source ${function_file} failed"
 }
 export -f source_function
+
+csg_banner() {
+  local i l=0 list=()
+  [ -z "$1" ] && return 0
+  for i in "$@"; do
+    while [ -z "${i/*\\n*}" ]; do
+      list[$l]="${i%%\\n*}"
+      ((l++))
+      i="${i#*\\n}"
+    done
+    list[$l]=$i
+    ((l++))
+  done
+
+  l="1"
+  for i in "${list[@]}"; do
+    [ ${#l} -lt ${#i} ] && l="${i}"
+  done
+
+  echo "####${l//?/#}"
+  echo "# ${l//?/ } #"
+  for i in "${list[@]}"; do
+    printf "# %-${#l}s #\n" "$i"
+  done
+  echo "# ${l//?/ } #"
+  echo "####${l//?/#}"
+}
+export -f csg_banner

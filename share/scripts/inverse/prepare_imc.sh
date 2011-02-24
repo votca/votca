@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,14 +21,9 @@ ${0##*/}, version %version%
 This script initializes potentials for imc
 
 Usage: ${0##*/}
-
-USES: msg
-
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 msg "####################################################"
 msg "# WARNING multicomponent imc is still experimental #"
