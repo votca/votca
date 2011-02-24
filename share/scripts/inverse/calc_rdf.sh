@@ -26,12 +26,6 @@ EOF
   exit 0
 fi
 
-if [ -f ${CSGSHARE}/scripts/inverse/functions_pmf.sh ]; then
-  source ${CSGSHARE}/scripts/inverse/functions_pmf.sh || die "Could not source functions_pmf.sh"
-else
-  die "Could not find functions_pmf.sh"
-fi
-
 last_dir=$(get_last_step_dir)
 pullgroup0=$(csg_get_property cg.non-bonded.name | sed 's/-.*$//')
 pullgroup1=$(csg_get_property cg.non-bonded.name | sed 's/^.*-//')

@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -e
 #
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -26,12 +26,6 @@ EOF
   exit 0
 fi
 
-if [ -f ${CSGSHARE}/scripts/inverse/functions_pmf.sh ]; then
-  source ${CSGSHARE}/scripts/inverse/functions_pmf.sh || die "Could not source functions_pmf.sh"
-else
-  die "Could not find functions_pmf.sh"
-fi
-
 # TODO: check for all commands whether successful, especially sed, grep, ... or use bash -e
 # TODO: read pullgroups from xml
 pullgroup0="pullgroup0"
@@ -47,8 +41,8 @@ traj="traj.${ext}"
 
 # TODO: is this additional mdp file really needed?
 # Run grompp to generate tpr, then calculate distance
-run grompp -n index.ndx -c ${conf_init} -f ${mdp_init} 
-echo -e "pullgroup0\npullgroup1" | run g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
+grompp -n index.ndx -c ${conf_init} -f ${mdp_init} 
+echo -e "pullgroup0\npullgroup1" |  g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
 dist=$(sed '/^[#@]/d' ${conf_init}.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo Found distance $dist
@@ -70,7 +64,7 @@ sed -e "s/@DIST@/$dist/" \
     -e "s/@STEPS@/$steps/"  grompp.mdp.template > grompp.mdp
 
 # Run simulation to generate initial setup
-run --log log_grompp2 grompp -n index.ndx
+grompp -n index.ndx
 # Create traj so "run gromacs" does not die
 touch "$traj"
 do_external run gromacs_pmf
@@ -92,7 +86,7 @@ else
 fi
 
 # Calculate new distance
-echo -e "${pullgroup0}\n${pullgroup1}" | run g_dist -n index.ndx -f confout.gro
+echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -n index.ndx -f confout.gro
 dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo "New distance is $dist"

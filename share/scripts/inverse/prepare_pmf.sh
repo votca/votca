@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -e
 #
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -26,12 +26,6 @@ EOF
   exit 0
 fi
 
-if [ -f ${CSGSHARE}/scripts/inverse/functions_pmf.sh ]; then
-  source ${CSGSHARE}/scripts/inverse/functions_pmf.sh || die "Could not source functions_pmf.sh"
-else
-  die "Could not find functions_pmf.sh"
-fi
-
 conf_start="start"
 min=$(csg_get_property cg.non-bonded.min)
 max=$(csg_get_property cg.non-bonded.max)
@@ -39,9 +33,9 @@ dt=$(csg_get_property cg.non-bonded.dt)
 rate=$(csg_get_property cg.non-bonded.rate)
 
 # Run grompp to generate tpr, then calculate distance
-run grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp
+grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp
 # TODO: do not hardcode pullgroups
-echo -e "pullgroup0\npullgroup1" | run g_dist -f conf.gro -s ${conf_start}.tpr -n index.ndx -o ${conf_start}.xvg
+echo -e "pullgroup0\npullgroup1" | g_dist -f conf.gro -s ${conf_start}.tpr -n index.ndx -o ${conf_start}.xvg
 
 # TODO: check for all commands (sed, awk, ...) whether successful or use bash -e
 dist=$(sed '/^[#@]/d' ${conf_start}.xvg | awk '{print $2}')
@@ -65,7 +59,7 @@ sed -e "s/@DIST@/$dist/" \
     -e "s/@STEPS@/$steps/" grompp.mdp.template > grompp.mdp
 
 # Run simulation to generate initial setup
-run --log log_grompp2 grompp -n index.ndx
+grompp -n index.ndx
 do_external run gromacs_pmf
 
 # Wait for job to finish when running in background
@@ -84,5 +78,5 @@ else
 fi
 
 # Calculate new distance and divide trj into separate frames
-echo -e "pullgroup0\npullgroup1" | run g_dist -n index.ndx
+echo -e "pullgroup0\npullgroup1" | g_dist -n index.ndx
 echo "System" | trjconv -sep -o conf_start.gro 

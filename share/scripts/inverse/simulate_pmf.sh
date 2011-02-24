@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -e
 #
 # Copyright 2009 The VOTCA Development Team (http://www.votca.org)
 #
@@ -27,14 +27,6 @@ USES: do_external csg_get_interaction_property check_deps
 NEEDS: pullgroup0 pullgroup1 confin min max step dt rate kB
 EOF
   exit 0
-fi
-
-check_deps "$0"
-
-if [ -f ${CSGSHARE}/scripts/inverse/functions_pmf.sh ]; then
-  source ${CSGSHARE}/scripts/inverse/functions_pmf.sh || die "Could not source functions_pmf.sh"
-else
-  die "Could not find functions_pmf.sh"
 fi
 
 pullgroup0="pullgroup0"
@@ -69,8 +61,8 @@ for i in conf_start*.gro; do
       -e "s/@STEPS@/$steps/" grompp.mdp.template > $dir/grompp.mdp
   cd $dir
   cp_from_main_dir $filelist
-  run grompp -n index.ndx
-  echo -e "pullgroup0\npullgroup1" | run g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg
+  grompp -n index.ndx
+  echo -e "pullgroup0\npullgroup1" | g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg
   dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
   [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
   msg "Dist is $dist"
@@ -81,7 +73,7 @@ for i in conf_start*.gro; do
       -e "s/@PULL_OUT@/$out/" \
       -e "s/@STEPS@/$steps/" ../grompp.mdp.template > grompp.mdp
 
-  run grompp -n index.ndx
+  grompp -n index.ndx
   do_external run gromacs_pmf
   cd ..
 done
