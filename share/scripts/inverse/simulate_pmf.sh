@@ -48,6 +48,7 @@ dt=$(csg_get_property cg.non-bonded.dt)
 rate=$(csg_get_property cg.non-bonded.rate)
 f_meas=$(csg_get_property cg.non-bonded.f_meas)
 out=$((steps/f_meas))
+filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 
 echo "#dist.xvg grofile delta" > dist_comp.d
 for i in conf_start*.gro; do
@@ -57,9 +58,7 @@ for i in conf_start*.gro; do
   echo Simulation $number
   dir="$(printf sim_%03i $number)"
   mkdir $dir
-  for f in index.ndx topol.top *.itp; do
-    cp $f ./$dir/
-  done
+  cp_from_main_dir $filelist
   mv $i ./$dir/conf.gro
   dist=2
   critical sed -e "s/@DIST@/$dist/" \
@@ -69,6 +68,7 @@ for i in conf_start*.gro; do
       -e "s/@PULL_OUT@/$out/" \
       -e "s/@STEPS@/$steps/" grompp.mdp.template > $dir/grompp.mdp
   cd $dir
+  cp_from_main_dir $filelist
   run grompp -n index.ndx
   echo -e "pullgroup0\npullgroup1" | run g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg
   dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
