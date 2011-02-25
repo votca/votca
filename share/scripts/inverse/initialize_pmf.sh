@@ -26,23 +26,21 @@ EOF
   exit 0
 fi
 
-# TODO: check for all commands whether successful, especially sed, grep, ... or use bash -e
-# TODO: read pullgroups from xml
-pullgroup0="pullgroup0"
-pullgroup1="pullgroup1"
-mdp_init=$(csg_get_property cg.non-bonded.mdp_init)
-conf_init=$(csg_get_property cg.non-bonded.conf_init)
-min=$(csg_get_property cg.non-bonded.min)
-max=$(csg_get_property cg.non-bonded.max)
-dt=$(csg_get_property cg.non-bonded.dt)
-rate=$(csg_get_property cg.non-bonded.rate)
+pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
+pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
+mdp_init=$(csg_get_property cg.non-bonded.pmf.mdp_init)
+conf_init=$(csg_get_property cg.non-bonded.pmf.conf_init)
+min=$(csg_get_property cg.non-bonded.pmf.from)
+max=$(csg_get_property cg.non-bonded.pmf.to)
+dt=$(csg_get_property cg.non-bonded.pmf.dt)
+rate=$(csg_get_property cg.non-bonded.pmf.rate)
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
 
 # TODO: is this additional mdp file really needed?
 # Run grompp to generate tpr, then calculate distance
 grompp -n index.ndx -c ${conf_init} -f ${mdp_init} 
-echo -e "pullgroup0\npullgroup1" |  g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
+echo -e "${pullgroup0}\n${pullgroup1}" |  g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
 dist=$(sed '/^[#@]/d' ${conf_init}.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo Found distance $dist

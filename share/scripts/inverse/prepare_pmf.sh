@@ -27,15 +27,17 @@ EOF
 fi
 
 conf_start="start"
-min=$(csg_get_property cg.non-bonded.min)
-max=$(csg_get_property cg.non-bonded.max)
-dt=$(csg_get_property cg.non-bonded.dt)
-rate=$(csg_get_property cg.non-bonded.rate)
+pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
+pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
+min=$(csg_get_property cg.non-bonded.pmf.from)
+max=$(csg_get_property cg.non-bonded.pmf.to)
+dt=$(csg_get_property cg.non-bonded.pmf.dt)
+rate=$(csg_get_property cg.non-bonded.pmf.rate)
 
 # Run grompp to generate tpr, then calculate distance
 grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp
 # TODO: do not hardcode pullgroups
-echo -e "pullgroup0\npullgroup1" | g_dist -f conf.gro -s ${conf_start}.tpr -n index.ndx -o ${conf_start}.xvg
+echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -f conf.gro -s ${conf_start}.tpr -n index.ndx -o ${conf_start}.xvg
 
 # TODO: check for all commands (sed, awk, ...) whether successful or use bash -e
 dist=$(sed '/^[#@]/d' ${conf_start}.xvg | awk '{print $2}')
@@ -78,5 +80,5 @@ else
 fi
 
 # Calculate new distance and divide trj into separate frames
-echo -e "pullgroup0\npullgroup1" | g_dist -n index.ndx
+echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -n index.ndx
 echo "System" | trjconv -sep -o conf_start.gro 

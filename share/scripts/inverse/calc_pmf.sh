@@ -27,8 +27,8 @@ EOF
 fi
 
 last_dir=$(get_last_step_dir)
-pullgroup0="pullgroup0"
-pullgroup1="pullgroup1"
+pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
+pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
 kBT=$(csg_get_property cg.inverse.kBT)
 
 forcefile="forces_${pullgroup0}_${pullgroup1}.d"

@@ -29,16 +29,15 @@ EOF
   exit 0
 fi
 
-pullgroup0="pullgroup0"
-pullgroup1="pullgroup1"
-
+pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
+pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
 conf_start="start"
-min=$(csg_get_property cg.non-bonded.min)
-max=$(csg_get_property cg.non-bonded.max)
-steps=$(csg_get_property cg.non-bonded.steps)
-dt=$(csg_get_property cg.non-bonded.dt)
-rate=$(csg_get_property cg.non-bonded.rate)
-f_meas=$(csg_get_property cg.non-bonded.f_meas)
+min=$(csg_get_property cg.non-bonded.pmf.from)
+max=$(csg_get_property cg.non-bonded.pmf.to)
+steps=$(csg_get_property cg.non-bonded.pmf.steps)
+dt=$(csg_get_property cg.non-bonded.pmf.dt)
+rate=$(csg_get_property cg.non-bonded.pmf.rate)
+f_meas=$(csg_get_property cg.non-bonded.pmf.f_meas)
 out=$((steps/f_meas))
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 
@@ -62,7 +61,7 @@ for i in conf_start*.gro; do
   cd $dir
   cp_from_main_dir $filelist
   grompp -n index.ndx
-  echo -e "pullgroup0\npullgroup1" | g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg
+  echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg
   dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
   [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
   msg "Dist is $dist"
