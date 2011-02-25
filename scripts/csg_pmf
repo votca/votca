@@ -140,36 +140,17 @@ pmf_step=$(basename $this_dir)
 
 if [ -f $this_dir/done ]; then
   msg "step $pmf_step is already done - skipping"0
-else
-  conf_in=$(csg_get_property --allow-empty cg.non-bonded.pmf.conf_in)
+else 
+  msg "---------------"
+  msg "Doing $pmf_step"
+  msg "---------------"
+  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+  cd $this_dir || die "cd $this_dir failed"
 
-  if [ -z "$conf_in" ]; then
-  
-    conf_init=$(csg_get_property cg.non-bonded.pmf.conf_init)
-    mdp_init=$(csg_get_property cg.non-bonded.pmf.mdp_init)
-  
-    msg "---------------"
-    msg "Doing $pmf_step"
-    msg "---------------"
-    mkdir -p $this_dir || die "mkdir -p $this_dir failed"
-    cd $this_dir || die "cd $this_dir failed"
-
-    cp_from_main_dir $filelist
-    critical cp_from_main_dir grompp.mdp.template ${mdp_init} ${conf_init} 
-
-    do_external initialize pmf
- 
-    grompp="$this_dir/grompp.mdp"
-    touch "done"
-    echo "$pmf_step is done"
-    cd $main_dir
-  else
-    mkdir step_000
-    msg "$pmf_step is already done"
-    conf_out=$(csg_get_property cg.non-bonded.pmf.conf_in)
-    critical cp $(conf_out) step_000/confout.gro
-    grompp="$main_dir/grompp.mdp"
-  fi
+  do_external initialize pmf
+  touch "done"
+  echo "$pmf_step is done"
+  cd $main_dir
 fi
 
 # Step 1 - Generate configurations

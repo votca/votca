@@ -31,11 +31,25 @@ pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
 mdp_init=$(csg_get_property cg.non-bonded.pmf.mdp_init)
 conf_init=$(csg_get_property cg.non-bonded.pmf.conf_init)
 min=$(csg_get_property cg.non-bonded.pmf.from)
-max=$(csg_get_property cg.non-bonded.pmf.to)
 dt=$(csg_get_property cg.non-bonded.pmf.dt)
 rate=$(csg_get_property cg.non-bonded.pmf.rate)
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
+
 traj="traj.${ext}"
+
+conf_in=$(csg_get_property --allow-empty cg.non-bonded.pmf.conf_in)
+if [! -z "$conf_in" ]; then
+    msg "Initial configuration specified in xml, wsing $conf_in"
+    mkdir step_000
+    conf_out=$(csg_get_property cg.non-bonded.pmf.conf_in)
+    critical cp $(conf_out) step_000/confout.gro
+    grompp="$main_dir/grompp.mdp"
+    exit 0
+fi
+
+cp_from_main_dir $filelist
+critical cp_from_main_dir grompp.mdp.template ${mdp_init} ${conf_init}  
 
 # TODO: is this additional mdp file really needed?
 # Run grompp to generate tpr, then calculate distance
@@ -54,6 +68,7 @@ if [ $steps -le 0 ]; then
 fi
 ((steps++))
 msg Doing $steps steps with rate $rate
+
 sed -e "s/@DIST@/$dist/" \
     -e "s/@RATE@/$rate/" \
     -e "s/@TIMESTEP@/$dt/" \
