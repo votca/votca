@@ -74,10 +74,13 @@ Could not link against GROMACS, please choose libraries to link against with --w
 or specify it in GMX_LIBS (e.g. export GMX_LIBS="-L<gromacs-path>/lib -lgmx")
 or disable GROMACS support with --without-libgmx.
 
+If you are using a double precision version of gromacs, configure with --with-libgmx=libgmx_d.
+
 If you are using a mpi version of gromacs, make sure that CXX is something like mpic++.
 (e.g. export CXX="mpic++" and export GMX_LIBS="-L<gromacs-path>/lib -lgmx_mpi")
 
-In gromacs version 5.0 libgmx has been renamed to libgromacs, so GMX_LIBS should contain '-lgromacs'
+In gromacs version 5.0 libgmx has been renamed to libgromacs, configure with --with-libgmx=libgromacs
+If you are using a double precision version of gromacs, configure with --with-libgmx=libgromacs_d.
       ])
     ])
     AC_MSG_CHECKING([for init_mtop in $GMX_LIBS])
