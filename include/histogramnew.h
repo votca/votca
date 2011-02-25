@@ -105,7 +105,13 @@ class HistogramNew
          * \return table object with bins in x and values in y
          */
         Table &data() { return _data; }
-        
+ 
+        /**
+         * \brief set whether interval is periodic
+         * \param periodic is periodic
+         */
+       void setPeriodic(bool periodic) { _periodic = periodic; }	
+
     private:        
         double _weight;
         double _min, _max;

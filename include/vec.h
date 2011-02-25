@@ -189,6 +189,14 @@ inline std::ostream &operator<<(std::ostream &out, const vec& v)
       out << '<' << v.getX() << ',' << v.getY() << ',' << v.getZ() << '>';
       return out;
 }
+
+inline std::istream &operator>>(std::istream &in, vec& v)
+{
+      in >> v.x();
+      in >> v.y();
+      in >> v.z();
+      return in;
+}
     
 /// dot product
 inline double operator*(const vec &v1, const vec &v2)
