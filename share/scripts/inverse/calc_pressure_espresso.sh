@@ -33,12 +33,12 @@ fi
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-p_file="$(mktemp esp.pressure.val.XXXXX)"
+p_file="$(critical mktemp esp.pressure.val.XXXXX)"
 esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
-esp_script="$(mktemp esp.pressure.tcl.XXXXX)"
-esp_success="$(mktemp esp.pressure.done.XXXXX)"
+esp_script="$(critical mktemp esp.pressure.tcl.XXXXX)"
+esp_success="$(critical mktemp esp.pressure.done.XXXXX)"
 
 echo "Calculating pressure"
 
