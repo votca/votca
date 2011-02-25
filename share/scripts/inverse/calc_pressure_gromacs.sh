@@ -18,14 +18,16 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the pressure for gromacs
+This script calcs the pressure for gromacs and writes it to outfile
 
-Usage: ${0##*/}
+Usage: ${0##*/} outfile
 
 Used external packages: gromacs
 EOF
    exit 0
 fi
+
+[ -z "$1" ] && die "${0##*/}: Missing argument"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
@@ -46,12 +48,11 @@ first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
 
-#to stderr, p_now goes to stdout
-echo "Running ${g_energy}" >&2
+echo "Running ${g_energy}"
 output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${tpr}" ${opts})
 echo "$output"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 p_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
   die "${0##*/}: awk failed"
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
-echo ${p_now}
+echo "Pressure=${p_now}" > "$1"
