@@ -1,13 +1,12 @@
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
-includedir=@includedir@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@LIB@
+includedir=${prefix}/include
 
 Name: libvotca_tools
 Description: basic tools of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
-Requires: @PKGGSL@ @PKGFFTW@ @PKGEXPAT@ @PKGBOOST@
+Requires: gsl fftw3 @BOOST_PKG@
 Libs: -L${libdir} -lvotca_tools @PKGLIBSEXPAT@ @PKGLIBSBOOST@ @PTHREAD_LIBS@ @PTHREAD_CFLAGS@
 Libs.private: -lm
-Cflags: -I${includedir} @PKGCFLAGSEXPAT@ @PKGCFLAGSBOOST@ @PTHREAD_CFLAGS@
+Cflags: -I${includedir} -I@EXPAT_INCLUDE_DIR@ @PKGCFLAGSBOOST@ @PTHREAD_CFLAGS@
