@@ -15,23 +15,23 @@
 #
 
 #path is never empty
-PATH="@bindir@:${PATH}"
+PATH="@CMAKE_INSTALL_PREFIX@/bin:${PATH}"
 #debian wants to have : at the end
-MANPATH="@mandir@:${MANPATH}"
-LD_LIBRARY_PATH="@libdir@${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
+MANPATH="@CMAKE_INSTALL_PREFIX@/@MAN@:${MANPATH}"
+LD_LIBRARY_PATH="@CMAKE_INSTALL_PREFIX@/@LIB@${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
 PKG_CONFIG_PATH="@libdir@/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
 
 export PATH MANPATH LD_LIBRARY_PATH PKG_CONFIG_PATH
 
 #votca rc files
-for rc in "@votcashare@"/rc/*rc.bash; do
+for rc in "@VOTCASHARE@"/rc/*rc.bash; do
   [ -r "$rc" ] && . "$rc"
 done
 unset rc
 
 #bash cmopletion
 if [ -n "$BASH_VERSION" ]; then 
-  for comp in "@votcashare@"/rc/*completion.bash; do
+  for comp in "@VOTCASHARE@"/rc/*completion.bash; do
     [ -r "$comp" ] && source "$comp"
   done
   unset comp

@@ -45,11 +45,16 @@ option(BUILD_SHARED_LIBS "Build shared libs" ON)
 if (NOT DEFINED LIB)
   set(LIB "lib")
 endif(NOT DEFINED LIB)
+if (NOT DEFINED MAN)
+  set(MAN "share/man")
+endif(NOT DEFINED MAN)
 
 ########################################################################
 #Find external packages
 ########################################################################
 find_package(Mercurial)
+find_package(Threads REQUIRED)
+set(THREAD_LIBRARY ${CMAKE_THREAD_LIBS_INIT})
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
@@ -64,4 +69,5 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ######################################
 add_subdirectory(src)
 add_subdirectory(include)
+add_subdirectory(scripts)
 
