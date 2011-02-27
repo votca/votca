@@ -24,14 +24,15 @@ pkg_check_modules(PC_GSL gsl)
 find_path(GSL_INCLUDE_DIR gsl/gsl_linalg.h HINTS ${PC_GSL_INCLUDE_DIRS})
 
 find_library(GSL_LIBRARY NAMES gsl HINTS ${PC_GSL_LIBRARY_DIRS} )
-
-set(GSL_LIBRARIES ${GSL_LIBRARY} )
-set(GSL_INCLUDE_DIRS ${GSL_INCLUDE_DIR} )
+find_library(GSL_CBLAS_LIBRARY NAMES gslcblas HINTS ${PC_GSL_LIBRARY_DIRS} )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GSL_FOUND to TRUE
 # if all listed variables are TRUE
-
 find_package_handle_standard_args(GSL DEFAULT_MSG GSL_LIBRARY GSL_INCLUDE_DIR )
+find_package_handle_standard_args(GSL DEFAULT_MSG GSL_CBLAS_LIBRARY GSL_INCLUDE_DIR )
 
-mark_as_advanced(GSL_INCLUDE_DIR GSL_LIBRARY )
+set(GSL_LIBRARIES "${GSL_LIBRARY};${GSL_CBLAS_LIBRARY}" )
+set(GSL_INCLUDE_DIRS ${GSL_INCLUDE_DIR} )
+
+mark_as_advanced(GSL_INCLUDE_DIR GSL_LIBRARY GSL_CBLAS_LIBRARY)
