@@ -39,8 +39,8 @@ file(GLOB_RECURSE VOTCA_SOURCES *.cc)
 file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc test.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 add_library(votca_tools hgversion.h ${VOTCA_SOURCES})
-target_link_libraries(votca_tools ${BOOST_LIBRARIES} 
-  ${FFTW3_LIBRARIES} ${GSL_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES})
+target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES}
+  ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
 install(TARGETS votca_tools LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_tools.pc.in libvotca_tools.pc @ONLY)

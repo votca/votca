@@ -63,10 +63,31 @@ find_package(TXT2TAGS)
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFiles)
-check_include_files("sys/time.h;sys/resource.h;unistd.h" CMAKE_HEADERS)
+include(CheckIncludeFile)
+foreach(HEADER assert.h math.h stdio.h stdlib.h string.h)
+  check_include_file(${HEADER} FOUND_${HEADER})
+  if(NOT FOUND_${HEADER})
+    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
+  endif(NOT FOUND_${HEADER})
+endforeach(HEADER)
 
+include(CheckIncludeFileCXX)
+foreach(HEADER cmath fstream functional iostream limits list map ostream sstream stack stdexcept string vector)
+  check_include_file_cxx(${HEADER} FOUND_${HEADER})
+  if(NOT FOUND_${HEADER})
+    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
+  endif(NOT FOUND_${HEADER})
+endforeach(HEADER)
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+include(CheckLibraryExists)
+foreach(FUNC sqrt)
+  check_library_exists(m ${FUNC} "" FOUND_${FUNC})
+  if(NOT FOUND_${FUNC})
+    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
+  endif(NOT FOUND_${FUNC})
+endforeach(FUNC)
+set(MATH_LIBRARIES m)
 
 ######################################
 # Include the following subdirectory # 
