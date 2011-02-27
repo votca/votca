@@ -48,6 +48,9 @@ endif(NOT DEFINED LIB)
 if (NOT DEFINED MAN)
   set(MAN "share/man")
 endif(NOT DEFINED MAN)
+if (NOT DEFINED DATA)
+  set(DATA "share/votca")
+endif(NOT DEFINED DATA)
 
 ########################################################################
 #Find external packages
@@ -70,4 +73,6 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 add_subdirectory(src)
 add_subdirectory(include)
 add_subdirectory(scripts)
+add_subdirectory(share/man)
+add_subdirectory(share/doc)
 

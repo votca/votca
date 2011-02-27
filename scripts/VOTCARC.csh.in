@@ -28,7 +28,7 @@ if ($?PKG_CONFIG_PATH) setenv PKG_CONFIG_PATH ":${PKG_CONFIG_PATH}"
 setenv PKG_CONFIG_PATH "@CMAKE_INSTALL_PREFIX@/@LIB@/pkgconfig${PKG_CONFIG_PATH}"
 
 #votca rc files
-foreach rc ( "@VOTCASHARE@"/rc/*rc.csh )
+foreach rc ( "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*rc.csh )
   [ -r "$rc" ] && source "$rc"
 end
 unset rc
