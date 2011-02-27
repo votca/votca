@@ -8,5 +8,4 @@
 - mkdir votca-boost
 - use bcp to extrat
 - run dist/bin/bcp $(cat boost_list)
-- cp votca-boost to src/tools/boost
-- run gen Makefiles
+- cp votca-boost to src/tools/libboost
