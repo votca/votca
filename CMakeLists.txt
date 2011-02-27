@@ -57,7 +57,7 @@ endif(NOT DEFINED DATA)
 ########################################################################
 find_package(Mercurial)
 find_package(Threads REQUIRED)
-set(THREAD_LIBRARY ${CMAKE_THREAD_LIBS_INIT})
+set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

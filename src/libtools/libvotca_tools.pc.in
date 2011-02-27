@@ -7,6 +7,6 @@ Description: basic tools of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
 Requires: gsl fftw3 @BOOST_PKG@
-Libs: -L${libdir} -lvotca_tools -L@EXPAT_LIB_DIR_PKG@ -l@EXPAT_LIB_PKG@ -L@BOOST_LIB_DIR_PKG@ -l@BOOST_LIB_PKG@ @THREAD_LIBRARY@
+Libs: -L${libdir} -lvotca_tools @EXPAT_LIBS_PKG@ @BOOST_LIBS_PKG@ @THREAD_LIBRARY@
 Libs.private: -lm
-Cflags: -I${includedir} -I@EXPAT_INCLUDE_DIR@ -I@BOOST_INCLUDE_DIR_PKG@
+Cflags: -I${includedir} @EXPAT_CFLAGS_PKG@ @BOOST_CFLAGS_PKG@
