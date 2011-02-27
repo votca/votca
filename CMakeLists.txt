@@ -58,6 +58,7 @@ endif(NOT DEFINED DATA)
 find_package(Mercurial)
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+find_package(TXT2TAGS)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
@@ -76,3 +77,10 @@ add_subdirectory(scripts)
 add_subdirectory(share/man)
 add_subdirectory(share/doc)
 
+if (TXT2TAGS_FOUND)
+  add_custom_command(OUTPUT CHANGELOG
+    COMMAND ${TXT2TAGS_EXECUTABLE} -q -t txt -i ${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.t2t -o CHANGELOG
+    COMMENT "Building CHANGELOG")
+  add_custom_target(changelog ALL DEPENDS CHANGELOG)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/CHANGELOG DESTINATION @DATA@)
+endif (TXT2TAGS_FOUND)
