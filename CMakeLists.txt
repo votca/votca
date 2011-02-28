@@ -57,6 +57,14 @@ endif(NOT DEFINED DATA)
 #Find external packages
 ########################################################################
 find_package(Mercurial)
+if (MERCURIAL_FOUND)
+  MERCURIAL_HG_INFO(${PROJECT_SOURCE_DIR} CSG)
+  MESSAGE("Current revision is ${CSG_HG_ID}")
+  set (CSG_HG_ID "hgid: ${CSG_HG_ID}")
+else(MERCURIAL_FOUND)
+  set (CSG_HG_ID)
+endif(MERCURIAL_FOUND)
+
 find_package(TXT2TAGS)
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
@@ -95,6 +103,7 @@ set(MATH_LIBRARIES m)
 ######################################
 # Include the following subdirectory # 
 ######################################
+add_custom_target(manpages ALL)
 add_subdirectory(src)
 add_subdirectory(include)
 add_subdirectory(scripts)

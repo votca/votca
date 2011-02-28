@@ -16,7 +16,7 @@
 #
 
 sw_opt=""
-version='@version@'
+version='@CSG_HG_ID@'
 verbose="no"
 ext_cmd=""
 simprog=""
@@ -148,8 +148,8 @@ if [ -z "${CSGSHARE}" ]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
     export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
-  elif [ -f "@votcashare@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@votcashare@"
+  elif [ -f "@CMAKE_INSTALL_PREFIX@/@DATA@/scripts/inverse/inverse.sh" ]; then
+    export CSGSHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
   else
     echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
     echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2

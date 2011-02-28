@@ -15,14 +15,14 @@
 # limitations under the License.
 #
 
-version='@version@'
+version='@CSG_HG_ID@'
 
 if [ -z "${CSGSHARE}" ]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
     export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
-  elif [ -f "@votcashare@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@votcashare@"
+  elif [ -f "@CMAKE_INSTALL_PREFIX@/@DATA@/scripts/inverse/inverse.sh" ]; then
+    export CSGSHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
   fi
 fi
 

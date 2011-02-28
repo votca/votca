@@ -35,13 +35,6 @@ list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${NOT_IO_SOURCES})
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-if (MERCURIAL_FOUND)
-  MERCURIAL_HG_INFO(${PROJECT_SOURCE_DIR} CSG)
-  MESSAGE("Current revision is ${CSG_HG_ID}")
-  set (CSG_HG_ID "hgid: ${CSG_HG_ID}")
-else(MERCURIAL_FOUND)
-  set (CSG_HG_ID)
-endif(MERCURIAL_FOUND)
 set (HG_HEADER "hgversion.h")
 add_custom_command(OUTPUT ${HG_HEADER}
   COMMAND ${CMAKE_COMMAND} -E echo 
