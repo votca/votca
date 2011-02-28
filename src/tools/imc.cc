@@ -183,6 +183,20 @@ void Imc::ClearAverages()
         group_iter->second->_corr.clear();      
 }
 
+class IMCNBSearchHandler {
+public:
+    IMCNBSearchHandler(HistogramNew *hist)
+            : _hist(hist) {}
+
+    HistogramNew *_hist;
+
+    bool FoundPair(Bead *b1, Bead *b2, const vec &r) {
+        _hist->Process(abs(r));
+        return false;
+    }
+};
+
+
 // process non-bonded interactions for current frame
 void Imc::Worker::DoNonbonded(Topology *top)
 {
@@ -216,21 +230,25 @@ void Imc::Worker::DoNonbonded(Topology *top)
             nb = new NBList();
 
         nb->setCutoff(i._max + i._step);
-        
+                
+        // clear the current histogram
+        _current_hists[i._index].Clear();
+
+        IMCNBSearchHandler h(&(_current_hists[i._index]));
+
+        nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
+
         // is it same types or different types?
         if((*iter)->get("type1").value() == (*iter)->get("type2").value())
             nb->Generate(beads1);
         else
             nb->Generate(beads1, beads2);
-        
-        // clear the current histogram
-        _current_hists[i._index].Clear();
-        
+
         // process all pairs
-        NBList::iterator pair_iter;
+        /*NBList::iterator pair_iter;
         for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
                 _current_hists[i._index].Process((*pair_iter)->dist());
-        }
+        }*/
 
         delete nb;
     }    
