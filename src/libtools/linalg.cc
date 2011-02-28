@@ -17,9 +17,7 @@
 
 #include "linalg.h"
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "votca_config.h"
 
 #ifndef NOGSL
 #include <gsl/gsl_linalg.h>

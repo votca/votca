@@ -1,6 +1,6 @@
 option(EXTERNAL_BOOST "Use external boost" ON)
 if (EXTERNAL_BOOST)
-  find_package(Boost 1.42.0 REQUIRED COMPONENTS program_options )
+  find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options )
   if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost not found, to use our internal replacement set -DEXTERNAL_BOOST=OFF")
   endif(NOT Boost_FOUND)

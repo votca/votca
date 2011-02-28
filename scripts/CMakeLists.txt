@@ -1,4 +1,4 @@
-configure_file(VOTCARC.csh.in VOTCARC.csh @ONLY)
-configure_file(VOTCARC.bash.in VOTCARC.bash @ONLY)
+configure_file(VOTCARC.csh.in ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.csh @ONLY)
+configure_file(VOTCARC.bash.in ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.bash @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.csh
   ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.bash DESTINATION bin)

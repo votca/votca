@@ -20,8 +20,7 @@ else(NOGSL)
   include_directories(${GSL_INCLUDE_DIRS})
 endif(NOGSL)
 
-add_definitions( -DHAVE_CONFIG_H )
-configure_file(config.h.in config.h)
+configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if (MERCURIAL_FOUND)
@@ -43,7 +42,7 @@ target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES}
   ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
 install(TARGETS votca_tools LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
-configure_file(libvotca_tools.pc.in libvotca_tools.pc @ONLY)
+configure_file(libvotca_tools.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_tools.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/libvotca_tools.pc DESTINATION ${LIB}/pkgconfig)
 
 add_executable(test test.cc)
