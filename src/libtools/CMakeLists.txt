@@ -34,13 +34,14 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 if (MERCURIAL_FOUND)
   MERCURIAL_HG_INFO(${PROJECT_SOURCE_DIR} TOOLS)
   MESSAGE("Current revision is ${TOOLS_HG_ID}")
+  set (TOOLS_HG_ID "hgid: ${TOOLS_HG_ID}")
 else(MERCURIAL_FOUND)
   set (TOOLS_HG_ID)
 endif(MERCURIAL_FOUND)
 set (HG_HEADER "hgversion.h")
 add_custom_command(OUTPUT ${HG_HEADER}
   COMMAND ${CMAKE_COMMAND} -E echo 
-  static const std::string hgversion = "\\\"hgid: ${TOOLS_HG_ID}\\\"\;" > ${HG_HEADER})
+  static const std::string hgversion = "\\\"${TOOLS_HG_ID}\\\"\;" > ${HG_HEADER})
 
 file(GLOB_RECURSE VOTCA_SOURCES *.cc)
 file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc test.cc)

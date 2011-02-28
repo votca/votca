@@ -1,9 +1,9 @@
 # - Find gsl
 # Find the native GSL headers and libraries.
 #
-#  GSL_INCLUDE_DIRS - where to find expat.h, etc.
-#  GSL_LIBRARIES    - List of libraries when using expat.
-#  GSL_FOUND        - True if expat found.
+#  GSL_INCLUDE_DIRS - where to find gsl/gsl_linalg.h, etc.
+#  GSL_LIBRARIES    - List of libraries when using gsl.
+#  GSL_FOUND        - True if gsl found.
 
 #=============================================================================
 # Copyright 2011 VOTCA Development Team

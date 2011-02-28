@@ -1,9 +1,9 @@
-# - Find gsl
+# - Find fftw3
 # Find the native FFTW3 headers and libraries.
 #
-#  FFTW3_INCLUDE_DIRS - where to find expat.h, etc.
-#  FFTW3_LIBRARIES    - List of libraries when using expat.
-#  FFTW3_FOUND        - True if expat found.
+#  FFTW3_INCLUDE_DIRS - where to find fftw3.h, etc.
+#  FFTW3_LIBRARIES    - List of libraries when using fftw3.
+#  FFTW3_FOUND        - True if fftw3 found.
 
 #=============================================================================
 # Copyright 2011 VOTCA Development Team

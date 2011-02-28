@@ -6,8 +6,8 @@
 #
 # Once done this will define
 #
-#  TXT2TAGS_FOUND - system has Gnuplot
-#  TXT2TAGS_EXECUTABLE - the Gnuplot executable
+#  TXT2TAGS_FOUND - system has txt2tags
+#  TXT2TAGS_EXECUTABLE - the txt2tags executable
 
 #=============================================================================
 # Copyright 2002-2009 Kitware, Inc.
