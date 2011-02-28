@@ -1,7 +1,7 @@
 # - Find libgmx
 # Find the native libgmx headers and libraries.
 #
-#  VOTCA_TOOLS_INCLUDE_DIRS - where to find gromacs/t, etc.
+#  VOTCA_TOOLS_INCLUDE_DIRS - where to find votca/tools/version.h, etc.
 #  VOTCA_TOOLS_LIBRARIES    - List of libraries when using expat.
 #  VOTCA_TOOLS_FOUND        - True if expat found.
 
@@ -27,7 +27,7 @@ find_path(VOTCA_TOOLS_INCLUDE_DIR votca/tools/version.h HINTS ${PC_VOTCA_TOOLS_I
 find_library(VOTCA_TOOLS_LIBRARY NAMES votca_tools HINTS ${PC_VOTCA_TOOLS_LIBRARY_DIRS})
 
 set(VOTCA_TOOLS_LIBRARIES ${VOTCA_TOOLS_LIBRARY} )
-set(VOTCA_TOOLS_INCLUDE_DIRS ${VOTCA_TOOLS_INCLUDE_DIR} )
+set(VOTCA_TOOLS_INCLUDE_DIRS ${PC_VOTCA_TOOLS_INCLUDE_DIRS} )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set VOTCA_TOOLS_FOUND to TRUE

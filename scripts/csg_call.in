@@ -16,7 +16,7 @@
 #
 
 sw_opt=""
-version='@CSG_HG_ID@'
+version='@PROJECT_VERSION@ @CSG_HG_ID@'
 verbose="no"
 ext_cmd=""
 simprog=""

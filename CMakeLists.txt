@@ -68,6 +68,7 @@ endif(MERCURIAL_FOUND)
 find_package(TXT2TAGS)
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
+find_package(UnixCommands)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

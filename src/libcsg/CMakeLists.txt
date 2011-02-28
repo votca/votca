@@ -44,7 +44,7 @@ file(GLOB VOTCA_SOURCES *.cc)
 file(GLOB NOT_VOTCA_SOURCES version_nb.cc test.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 add_library(votca_csg hgversion.h ${VOTCA_SOURCES} ${GMX_SOURCES} ${IO_SOURCES})
-target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GMX_LIBRARIES})
+target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GMX_LIBS})
 install(TARGETS votca_csg LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_csg.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_csg.pc @ONLY)

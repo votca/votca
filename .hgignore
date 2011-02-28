@@ -14,9 +14,9 @@ scripts/csg_call
 scripts/csg_inverse
 scripts/help2t2t
 scripts/multi_g_rdf
-scripts/multi_g_density
 scripts/multi_g_*.man
 scripts/multi_g_*.help
+scripts/multi_g_*.t2t
 scripts/csg_inverse.t2t
 share/scripts/inverse/MD5SUM
 share/doc/Doxyfile

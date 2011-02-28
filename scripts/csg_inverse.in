@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-version='@CSG_HG_ID@'
+version='@PROJECT_VERSION@ @CSG_HG_ID@'
 
 if [ -z "${CSGSHARE}" ]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then

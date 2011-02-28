@@ -3,12 +3,14 @@ foreach(PROG csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_csg)
   install(TARGETS ${PROG} RUNTIME DESTINATION bin)
-  if (TXT2TAGS_FOUND)
-    add_custom_command(OUTPUT ${PROG}.help COMMAND ${PROG} --help > ${PROG}.help DEPENDS ${PROG})
-    add_custom_command(OUTPUT ${PROG}.t2t COMMAND ${CMAKE_BINARY_DIR}/scripts/help2t2t ${PROG}.help > ${PROG}.t2t DEPENDS ${PROG}.help)
-    add_custom_command(OUTPUT ${PROG}.man COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${PROG}.t2t -o ${PROG}.man DEPENDS ${PROG}.t2t)
+  if (TXT2TAGS_FOUND AND BASH)
+    add_custom_command(OUTPUT ${PROG}.man 
+      COMMAND ${PROG} --help > ${PROG}.help
+      COMMAND ${BASH} ${CMAKE_BINARY_DIR}/scripts/help2t2t ${PROG}.help > ${PROG}.t2t 
+      COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${PROG}.t2t -o ${PROG}.man
+      DEPENDS ${CMAKE_BINARY_DIR}/scripts/help2t2t ${PROG})
     add_custom_target(manpage_${PROG} DEPENDS ${PROG}.man)
     add_dependencies(manpages manpage_${PROG})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1)
-  endif(TXT2TAGS_FOUND)
+  endif(TXT2TAGS_FOUND AND BASH)
 endforeach(PROG)
