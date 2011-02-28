@@ -6,7 +6,6 @@ include_directories(${EXPAT_INCLUDE_DIR})
 set (EXPAT_CFLAGS_PKG "-I${EXPAT_INCLUDE_DIRS}")
 string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" EXPAT_LIBS_PKG ${EXPAT_LIBRARY})
 
-find_package(PkgConfig)
 option(NOFFTW "Do not use FFTW3, leads to reduced functionality!" OFF)
 if (NOFFTW)
   set(NOFFTW TRUE)

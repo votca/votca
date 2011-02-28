@@ -17,7 +17,6 @@ share/doc/html/*
 share/man/*.man
 netbeans/*/build
 */nbproject/private
-CHANGELOG.wiki
 CHANGELOG
 CMakeFiles/*
 cmake_install.cmake
