@@ -54,8 +54,8 @@ if is_done "rdf-$name"; then
     echo "rdf analsysis for ${type1}-${type2} is already done"
 else
     # Output ${name}.dist.new.tab. Calculated by Espresso.
-    esp_script="$(mktemp esp.rdf.tcl.XXXXX)" 
-    esp_success="$(mktemp esp.rdf.done.XXXXX)"
+    esp_script="$(critical mktemp esp.rdf.tcl.XXXXX)" 
+    esp_success="$(critical mktemp esp.rdf.done.XXXXX)"
     cat > $esp_script <<EOF
 puts "Calculating RDF. Please wait..."
 # First read the original conf.esp file to get the box size

@@ -33,7 +33,9 @@ step_nr="$(get_current_step_nr)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 name=$(csg_get_interaction_property name)
 
-p_now="$(do_external pressure $sim_prog)" || die "${0##*/}: do_external pressure $sim_prog failed"
+p_file="$(critical mktemp pressure.XXXXX)"
+do_external pressure "$sim_prog" "$p_file" 
+p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Pressure failed"
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
 echo "New pressure $p_now"
 
