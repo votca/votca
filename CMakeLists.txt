@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(votca-tools)
+project(votca-csg)
 
 set(PROJECT_VERSION "1.2.0-dev")
+set(PROJECT_CONTACT "bugs@votca.org")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -62,7 +63,8 @@ find_package(TXT2TAGS)
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
 include(CheckIncludeFile)
-foreach(HEADER assert.h math.h stdio.h stdlib.h string.h)
+#foreach(HEADER assert.h math.h stdio.h stdlib.h string.h)
+foreach(HEADER assert.h)
   check_include_file(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
@@ -70,7 +72,8 @@ foreach(HEADER assert.h math.h stdio.h stdlib.h string.h)
 endforeach(HEADER)
 
 include(CheckIncludeFileCXX)
-foreach(HEADER cmath fstream functional iostream limits list map ostream sstream stack stdexcept string vector)
+#foreach(HEADER cmath fstream functional iostream limits list map ostream sstream stack stdexcept string vector)
+foreach(HEADER cmath)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")

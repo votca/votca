@@ -16,17 +16,13 @@
  */
 
 #include <iostream>
-#include "votca_config.h"
+#include <version.h>
 
-namespace votca { namespace csg {
+using namespace votca::csg;
+using namespace std;
 
-//defines gmx_version
-#include "gmx_libs_version.h"
-
-const std::string &GmxVersionStr()
+int main(int argc, char **argv)
 {
-    return gmx_version;
+    cout << "libcsg version: " << votca::csg::CsgVersionStr() << endl;
 }
-
-}}
 

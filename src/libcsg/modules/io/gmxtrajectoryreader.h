@@ -21,10 +21,7 @@
 #include <string>
 #include "trajectoryreader.h"
 #include "version_check.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "votca_config.h"
 
 #if GMX == 50
         #include <gromacs/legacyheaders/statutil.h>
