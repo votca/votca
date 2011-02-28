@@ -32,9 +32,6 @@ file(GLOB IO_SOURCES modules/io/*.cc)
 file(GLOB NOT_IO_SOURCES modules/io/mdp*.cc)
 list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${NOT_IO_SOURCES})
 
-find_package(VOTCA_TOOLS REQUIRED)
-include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
-
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 

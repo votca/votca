@@ -58,6 +58,8 @@ endif(NOT DEFINED DATA)
 ########################################################################
 find_package(Mercurial)
 find_package(TXT2TAGS)
+find_package(VOTCA_TOOLS REQUIRED)
+include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

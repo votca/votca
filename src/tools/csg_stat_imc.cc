@@ -22,7 +22,7 @@
 #include <votca/tools/rangeparser.h>
 #include "beadlist.h"
 #include "nblistgrid.h"
-#include "imc.h"
+#include "csg_stat_imc.h"
 #include "imcio.h"
 
 namespace votca { namespace csg {
