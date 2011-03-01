@@ -20,4 +20,4 @@ foreach(RC csg.rc.bash csg.rc.csh)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RC} DESTINATION @DATA@/rc)
 endforeach(RC)
 
-install(FILES csg-comletion.bash DESTINATION @DATA@/rc)
+install(FILES csg-completion.bash DESTINATION @DATA@/rc)

@@ -20,7 +20,7 @@
 
 #include <string>
 #include "trajectoryreader.h"
-#include "version_check.h"
+#include "gmx_version_check.h"
 #include "votca_config.h"
 
 #if GMX == 50

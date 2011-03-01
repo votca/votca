@@ -25,13 +25,10 @@ share/man/*.man
 share/template/template
 share/template/template_threaded
 share/template/votca/csg
-src/config.h
-src/config.h.in
 src/csg_boltzmann/csg_boltzmann
 src/libcsg/version.cc
 src/libcsg/gmx_print_version
 src/libcsg/gmx_libs_version.h
-src/libcsg/linktest
 src/tools/csg_dump
 src/tools/csg_fmatch
 src/tools/csg_gmxtopol

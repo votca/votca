@@ -33,7 +33,7 @@
 #undef bool
 #endif
 
-#include "version_check.h"
+#include "gmx_version_check.h"
 #include "gmx_version.h"
 #include <iostream>
 

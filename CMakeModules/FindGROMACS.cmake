@@ -1,31 +1,51 @@
 # - Find libgromacs
 # Find the native libgromacs headers and libraries.
 #
-#  GROMACS_INCLUDE_DIRS - where to find gromacs/t, etc.
-#  GROMACS_LIBRARIES    - List of libraries when using expat.
-#  GROMACS_FOUND        - True if expat found.
-
-#=============================================================================
-# Copyright 2011 VOTCA Development Team
+#  GROMACS_INCLUDE_DIRS - where to find gromacs/tpxio.h, etc.
+#  GROMACS_LIBRARIES    - List of libraries when using libgromacs.
+#  GROMACS_FOUND        - True if libgromacs found.
+#  GROMACS_PKG          - Whether we are using libgromacs oder libgromacs_d
+#  GROMACS_DEFINITIONS  - Extra definies needed by libgromacs
 #
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
-# (To distributed this file outside of CMake, substitute the full
-#  License text for the above reference.)
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 find_package(PkgConfig)
 
-pkg_check_modules(PC_GROMACS_D libgromacs_d)
-pkg_check_modules(PC_GROMACS libgromacs)
+pkg_check_modules(PC_GROMACS libgromacs_d)
+set(GROMACS_PKG "libgromacs_d")
+find_path(GROMACS_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
+foreach (LIB ${PC_GROMACS_LIBRARIES})
+  find_library(GROMACS_${LIB} NAMES ${LIB} HINTS ${PC_GROMACS_LIBRARY_DIRS} )
+  list(APPEND GROMACS_LIBRARY ${GROMACS_${LIB}})
+endforeach(LIB)
+if ("${GROMACS_LIBRARY}" STREQUAL "NOTFOUND" OR "${GROMACS_INCLUDE_DIR}" STREQUAL "NOTFOUND")
+  pkg_check_modules(PC_GROMACS libgromacs)
+  find_path(GROMACS_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
+  foreach (LIB ${PC_GROMACS_LIBRARIES})
+    find_library(GROMACS_${LIB} NAMES ${LIB} HINTS ${PC_GROMACS_LIBRARY_DIRS} )
+    list(APPEND GROMACS_LIBRARY ${GROMACS_${LIB}})
+  endforeach(LIB)
+  set(GROMACS_PKG "libgromacs")
+endif ("${GROMACS_LIBRARY}" STREQUAL "NOTFOUND" OR "${GROMACS_INCLUDE_DIR}" STREQUAL "NOTFOUND")
 
-#double over single
-find_path(GROMACS_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_D_INCLUDE_DIRS} ${PC_GROMACS_INCLUDE_DIRS})
-find_library(GROMACS_LIBRARY NAMES gromacs_d gromacs HINTS ${PC_GROMACS_D_LIBRARY_DIRS} ${PC_GROMACS_LIBRARY_DIRS})
+foreach(DEF ${PC_GROMACS_CFLAGS_OTHER})
+  if (${DEF} MATCHES "^-D")
+    list(APPEND GROMACS_DEFINITIONS ${DEF})
+  endif (${DEF} MATCHES "^-D")
+endforeach(DEF)
 
 set(GROMACS_LIBRARIES ${GROMACS_LIBRARY} )
 set(GROMACS_INCLUDE_DIRS ${GROMACS_INCLUDE_DIR} )
@@ -35,4 +55,4 @@ include(FindPackageHandleStandardArgs)
 # if all listed variables are TRUE
 find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACS_INCLUDE_DIR )
 
-mark_as_advanced(GROMACS_INCLUDE_DIR GROMACS_LIBRARY )
+mark_as_advanced(GROMACS_INCLUDE_DIR GROMACS_LIBRARY GROMACS_DEFINITIONS )
