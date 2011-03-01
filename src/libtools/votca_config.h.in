@@ -4,9 +4,5 @@
 /* Compile without gsl and disable linalg functions and CubicSpline class */
 #cmakedefine NOGSL
 
-/* Define to necessary symbol if this constant uses a non-standard name on
-   your system. */
-#cmakedefine PTHREAD_CREATE_JOINABLE
-
 /* Version number of package */
 #define VERSION "@PROJECT_VERSION@"
