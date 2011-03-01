@@ -61,4 +61,4 @@ target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GMX_LIBS})
 install(TARGETS votca_csg LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_csg.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_csg.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/libvotca_csg.pc DESTINATION ${LIB}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libvotca_csg.pc DESTINATION ${LIB}/pkgconfig)
