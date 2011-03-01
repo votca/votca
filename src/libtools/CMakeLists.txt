@@ -54,7 +54,7 @@ target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES}
 install(TARGETS votca_tools LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_tools.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_tools.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/libvotca_tools.pc DESTINATION ${LIB}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libvotca_tools.pc DESTINATION ${LIB}/pkgconfig)
 
 add_executable(linktest linktest.cc)
 target_link_libraries(linktest votca_tools)
