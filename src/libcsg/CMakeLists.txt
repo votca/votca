@@ -32,7 +32,7 @@ if (WITH_GMX)
   endif (WITH_GMX_DEVEL)
   #general to a bmx builds
   include(CheckLibraryExists)
-  check_library_exists("${GMX_LIBRARIES}" init_mtop "" FOUND_INIT_MTOP)
+  check_library_exists("${GMX_LIBS}" init_mtop "" FOUND_INIT_MTOP)
   if(NOT FOUND_INIT_MTOP)
     message(FATAL_ERROR "Gromacs lib is too old.")
   endif(NOT FOUND_INIT_MTOP)
