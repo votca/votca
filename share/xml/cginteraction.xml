@@ -10,13 +10,13 @@
   <item>
    <name>type1</name>
     <desc>
-      Only for non-bonded. Bead type 1 of non-bonded interaction.
+      Only for non-bonded. **Bead** type 1 of non-bonded interaction.
     </desc>
   </item>
   <item>
    <name>type2</name>
     <desc>
-      Only for non-bonded. Bead type 2 of non-bonded interaction.
+      Only for non-bonded. **Bead** type 2 of non-bonded interaction.
     </desc>
   </item>
   <item>
@@ -196,6 +196,20 @@
     <name>inverse.gromacs.table</name>
     <desc>
       Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format for every run.
+    </desc>
+  </item>
+
+  <item>
+    <name>inverse.gromacs.grp1</name>
+    <desc>
+      Name of energy group of bead type1 using in the g_rdf index file.
+    </desc>
+  </item>
+
+  <item>
+    <name>inverse.gromacs.grp2</name>
+    <desc>
+      Name of energy group of bead type2 using in the g_rdf index file.
     </desc>
   </item>
 
