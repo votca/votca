@@ -190,8 +190,8 @@ public:
 
     HistogramNew *_hist;
 
-    bool FoundPair(Bead *b1, Bead *b2, const vec &r) {
-        _hist->Process(abs(r));
+    bool FoundPair(Bead *b1, Bead *b2, const vec &r, const double dist) {
+        _hist->Process(dist);
         return false;
     }
 };
