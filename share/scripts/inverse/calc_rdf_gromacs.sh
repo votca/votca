@@ -48,8 +48,16 @@ g_rdf="$(csg_get_property cg.inverse.gromacs.g_rdf.bin "g_rdf")"
 
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_rdf.opts)"
 
-type1=$(csg_get_interaction_property type1)
-type2=$(csg_get_interaction_property type2)
+grp1=$(csg_get_interaction_property --allow-empty gromacs.grp1)
+if [ -z "$grp1" ]; then
+  grp1=$(csg_get_interaction_property type1)
+  msg --to-stderr "WARNING (in ${0##*/}): could not find energy group of type1 (interaction property gromacs.grp1) using bead type1 ($grp1) as failback !"
+fi
+grp2=$(csg_get_interaction_property --allow-empty gromacs.grp2)
+if [ -z "$grp2" ]; then
+  grp2=$(csg_get_interaction_property type2)
+  msg --to-stderr "WARNING (in ${0##*/}): could not find energy group of type2 (interaction property gromacs.grp2) using bead type2 ($grp2) as failback !"
+fi
 name=$(csg_get_interaction_property name)
 binsize=$(csg_get_interaction_property step)
 min=$(csg_get_interaction_property min)
@@ -59,14 +67,14 @@ begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print 
 end="$(awk -v dt="$dt" -v steps="$steps" 'BEGIN{print dt*steps}')"
 
 tasks=$(get_number_tasks)
-echo "Running g_rdf for ${type1}-${type2} using $tasks tasks"
+echo "Running g_rdf for ${grp1}-${grp2} using $tasks tasks"
 if is_done "rdf-$name"; then
-  echo "g_rdf for ${type1}-${type2} is already done"
+  echo "g_rdf for ${grp1}-${grp2} is already done"
 else
   if [ $tasks -gt 1 ]; then
-    echo -e "${type1}\n${type2}" | critical multi_g_rdf --cmd ${g_rdf} -${tasks} -b ${begin} -e ${end} -n "$index" -o ${name}.dist.new.xvg --soutput ${name}.dist.new.NP.xvg -- -bin ${binsize}  -s "$tpr" -f "${traj}" ${opts} 
+    echo -e "${grp1}\n${grp2}" | critical multi_g_rdf --cmd ${g_rdf} -${tasks} -b ${begin} -e ${end} -n "$index" -o ${name}.dist.new.xvg --soutput ${name}.dist.new.NP.xvg -- -bin ${binsize}  -s "$tpr" -f "${traj}" ${opts}
   else
-    echo -e "${type1}\n${type2}" | critical ${g_rdf} -b ${begin} -n "$index" -bin ${binsize} -o ${name}.dist.new.xvg -s "$tpr" -f "${traj}" ${opts}
+    echo -e "${grp1}\n${grp2}" | critical ${g_rdf} -b ${begin} -n "$index" -bin ${binsize} -o ${name}.dist.new.xvg -s "$tpr" -f "${traj}" ${opts}
   fi
   #gromacs always append xvg
   comment="$(get_table_comment)"
