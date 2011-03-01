@@ -9,8 +9,8 @@ foreach(PROG csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_
       COMMAND ${BASH} ${CMAKE_BINARY_DIR}/scripts/help2t2t ${PROG}.help > ${PROG}.t2t 
       COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${PROG}.t2t -o ${PROG}.man
       DEPENDS ${CMAKE_BINARY_DIR}/scripts/help2t2t ${PROG})
-    add_custom_target(manpage_${PROG} DEPENDS ${PROG}.man)
-    add_dependencies(manpages manpage_${PROG})
+    add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
+    add_dependencies(manpages ${PROG}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1)
   endif(TXT2TAGS_FOUND AND BASH)
 endforeach(PROG)

@@ -3,6 +3,11 @@ option(NOGMX "Do not build gromacs reader/writer, leads to reduced functionality
 file(GLOB GMX_SOURCES modules/io/gmx*.cc modules/io/gro*.cc modules/io/pdbtopology*.cc)
 file(GLOB NOT_GMX_SOURCES modules/io/gmx_print_version.cc modules/io/gmx_version_nb.cc)
 list(REMOVE_ITEM GMX_SOURCES ${NOT_GMX_SOURCES})
+
+file(GLOB IO_SOURCES modules/io/*.cc)
+file(GLOB NOT_IO_SOURCES modules/io/mdp*.cc)
+list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${NOT_IO_SOURCES})
+
 if (NOGMX)
   set(GMX)
   set(GMX_SOURCES)
@@ -28,9 +33,6 @@ else(NOGMX)
   add_custom_command(OUTPUT gmx_libs_version.h COMMAND gmx_print_version > gmx_libs_version.h DEPENDS gmx_print_version) 
   list(APPEND GMX_SOURCES gmx_libs_version.h)
 endif(NOGMX)
-file(GLOB IO_SOURCES modules/io/*.cc)
-file(GLOB NOT_IO_SOURCES modules/io/mdp*.cc)
-list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${NOT_IO_SOURCES})
 
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

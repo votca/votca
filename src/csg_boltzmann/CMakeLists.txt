@@ -8,7 +8,7 @@ if (TXT2TAGS_FOUND AND BASH)
     COMMAND ${BASH} ${CMAKE_BINARY_DIR}/scripts/help2t2t csg_boltzmann.help > csg_boltzmann.t2t
     COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i csg_boltzmann.t2t -o csg_boltzmann.man
     DEPENDS ${CMAKE_BINARY_DIR}/scripts/help2t2t csg_boltzmann)
-  add_custom_target(manpage_csg_boltzmann DEPENDS csg_boltzmann.man)
-  add_dependencies(manpages manpage_csg_boltzmann)
+  add_custom_target(csg_boltzmann_manpage DEPENDS csg_boltzmann.man)
+  add_dependencies(manpages csg_boltzmann_manpage)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg_boltzmann.man DESTINATION ${MAN}/man1)
 endif(TXT2TAGS_FOUND AND BASH)
