@@ -31,8 +31,15 @@ pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
 pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
 min=$(csg_get_property cg.non-bonded.pmf.from)
 max=$(csg_get_property cg.non-bonded.pmf.to)
-dt=$(csg_get_property cg.non-bonded.pmf.dt)
+dt=$(get_from_mdp dt "$mdp")
+dt=$(get_from_mdp nstxtcout "$mdp")
 rate=$(csg_get_property cg.non-bonded.pmf.rate)
+
+# Generate start_in.mdp
+cat grompp.mdp.template | sed 's/^pull.*$//' | uniq > tmp
+sed -e "s/@TIMESTEP@/$dt/" \
+    -e "s/@STEPS@/$steps/" tmp > start_in.mdp
+rm tmp
 
 # Run grompp to generate tpr, then calculate distance
 grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp
@@ -56,7 +63,6 @@ msg Doing $steps steps with rate $rate output every $out steps a $dt ps
 sed -e "s/@DIST@/$dist/" \
     -e "s/@RATE@/$rate/" \
     -e "s/@TIMESTEP@/$dt/" \
-    -e "s/@OUT@/$out/" \
     -e "s/@PULL_OUT@/0/" \
     -e "s/@STEPS@/$steps/" grompp.mdp.template > grompp.mdp
 

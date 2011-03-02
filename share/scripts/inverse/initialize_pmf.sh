@@ -28,10 +28,10 @@ fi
 
 pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
 pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
-mdp_init=$(csg_get_property cg.non-bonded.pmf.mdp_init)
 conf_init=$(csg_get_property cg.non-bonded.pmf.conf_init)
+mdp_init="start_in.mdp"
 min=$(csg_get_property cg.non-bonded.pmf.from)
-dt=$(csg_get_property cg.non-bonded.pmf.dt)
+dt=$(get_from_mdp dt "$mdp_init")
 rate=$(csg_get_property cg.non-bonded.pmf.rate)
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
@@ -48,12 +48,17 @@ if [! -z "$conf_in" ]; then
     exit 0
 fi
 
+# Generate start_in.mdp
+cat grompp.mdp.template | sed 's/^pull.*$//' | uniq > tmp
+sed -e "s/@TIMESTEP@/$dt/" \
+    -e "s/@STEPS@/$steps/" tmp > ${mdp_init}
+rm tmp
+
 cp_from_main_dir $filelist
 critical cp_from_main_dir grompp.mdp.template ${mdp_init} ${conf_init}  
 
-# TODO: is this additional mdp file really needed?
 # Run grompp to generate tpr, then calculate distance
-grompp -n index.ndx -c ${conf_init} -f ${mdp_init} 
+grompp -n index.ndx -c ${conf_init} -f ${mdp_init}
 echo -e "${pullgroup0}\n${pullgroup1}" |  g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
 dist=$(sed '/^[#@]/d' ${conf_init}.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"

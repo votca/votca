@@ -232,26 +232,4 @@ else
   cd $main_dir
 fi
 
-# Step 5 - Calculate rdf
-#update_stepnames 4
-#this_dir=$(get_current_step_dir --no-check)
-#last_dir=$(get_last_step_dir)
-#pmf_step=$(basename $this_dir)
-#msg "---------------"
-#msg "Doing $pmf_step"
-#msg "---------------"
-
-#if [ -f $this_dir/done ]; then
-#  msg "step $pmf_step is already done - skipping"
-#else
-#  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
-#  cd $this_dir || die "cd $this_dir failed"
-#
-#  critical cp $last_dir/grompp.mdp .
-#
-#  do_external calc rdf
-#
-#  touch "done"
-#  echo "$pmf_step is done"
-#  cd $main_dir
-#fi
+echo "Done!"

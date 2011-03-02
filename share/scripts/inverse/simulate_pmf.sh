@@ -35,10 +35,9 @@ conf_start="start"
 min=$(csg_get_property cg.non-bonded.pmf.from)
 max=$(csg_get_property cg.non-bonded.pmf.to)
 steps=$(csg_get_property cg.non-bonded.pmf.steps)
-dt=$(csg_get_property cg.non-bonded.pmf.dt)
+dt=$(get_from_mdp dt "$mdp")
 rate=$(csg_get_property cg.non-bonded.pmf.rate)
 f_meas=$(csg_get_property cg.non-bonded.pmf.f_meas)
-out=$((steps/f_meas))
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 
 echo "#dist.xvg grofile delta" > dist_comp.d
@@ -56,7 +55,6 @@ for i in conf_start*.gro; do
       -e "s/@RATE@/0/" \
       -e "s/@TIMESTEP@/$dt/" \
       -e "s/@OUT@/0/" \
-      -e "s/@PULL_OUT@/$out/" \
       -e "s/@STEPS@/$steps/" grompp.mdp.template > $dir/grompp.mdp
   cd $dir
   cp_from_main_dir $filelist
@@ -69,7 +67,6 @@ for i in conf_start*.gro; do
       -e "s/@RATE@/0/" \
       -e "s/@TIMESTEP@/$dt/" \
       -e "s/@OUT@/0/" \
-      -e "s/@PULL_OUT@/$out/" \
       -e "s/@STEPS@/$steps/" ../grompp.mdp.template > grompp.mdp
 
   grompp -n index.ndx
