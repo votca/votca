@@ -4,7 +4,6 @@
 #  GROMACS_INCLUDE_DIRS - where to find gromacs/tpxio.h, etc.
 #  GROMACS_LIBRARIES    - List of libraries when using libgromacs.
 #  GROMACS_FOUND        - True if libgromacs found.
-#  GROMACS_PKG          - Whether we are using libgromacs oder libgromacs_d
 #  GROMACS_DEFINITIONS  - Extra definies needed by libgromacs
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
@@ -24,35 +23,34 @@
 
 find_package(PkgConfig)
 
-pkg_check_modules(PC_GROMACS libgromacs_d)
-set(GROMACS_PKG "libgromacs_d")
+pkg_check_modules(PC_GROMACS libgromacs)
+#avoid PC_GROMACS_LIBRARIES being empty
+list(INSERT PC_GROMACS_LIBRARIES 0 gromacs)
+list(REMOVE_DUPLICATES PC_GROMACS_LIBRARIES)
+
 find_path(GROMACS_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
-foreach (LIB ${PC_GROMACS_LIBRARIES})
-  find_library(GROMACS_${LIB} NAMES ${LIB} HINTS ${PC_GROMACS_LIBRARY_DIRS} )
-  list(APPEND GROMACS_LIBRARY ${GROMACS_${LIB}})
-endforeach(LIB)
-if ("${GROMACS_LIBRARY}" STREQUAL "NOTFOUND" OR "${GROMACS_INCLUDE_DIR}" STREQUAL "NOTFOUND")
-  pkg_check_modules(PC_GROMACS libgromacs)
-  find_path(GROMACS_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
+if (NOT GROMACS_LIBRARY)
+  #add deps
   foreach (LIB ${PC_GROMACS_LIBRARIES})
     find_library(GROMACS_${LIB} NAMES ${LIB} HINTS ${PC_GROMACS_LIBRARY_DIRS} )
     list(APPEND GROMACS_LIBRARY ${GROMACS_${LIB}})
   endforeach(LIB)
-  set(GROMACS_PKG "libgromacs")
-endif ("${GROMACS_LIBRARY}" STREQUAL "NOTFOUND" OR "${GROMACS_INCLUDE_DIR}" STREQUAL "NOTFOUND")
+endif (NOT GROMACS_LIBRARY)
 
-foreach(DEF ${PC_GROMACS_CFLAGS_OTHER})
-  if (${DEF} MATCHES "^-D")
-    list(APPEND GROMACS_DEFINITIONS ${DEF})
-  endif (${DEF} MATCHES "^-D")
-endforeach(DEF)
+if (NOT GROMACS_DEFINITIONS)
+  foreach(DEF ${PC_GROMACS_CFLAGS_OTHER})
+      if (${DEF} MATCHES "^-D")
+        list(APPEND GROMACS_DEFINITIONS ${DEF})
+      endif (${DEF} MATCHES "^-D")
+    endforeach(DEF)
+endif (NOT GROMACS_DEFINITIONS)
 
 set(GROMACS_LIBRARIES ${GROMACS_LIBRARY} )
-set(GROMACS_INCLUDE_DIRS ${GROMACS_INCLUDE_DIR} )
+set(GROMACS_NCLUDE_DIRS ${GROMACS_INCLUDE_DIR} )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GROMACS_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACS_INCLUDE_DIR )
+find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACSD_INCLUDE_DIR )
 
 mark_as_advanced(GROMACS_INCLUDE_DIR GROMACS_LIBRARY GROMACS_DEFINITIONS )

@@ -4,7 +4,6 @@
 #  GMX_INCLUDE_DIRS - where to find gromacs/tpxio.h, etc.
 #  GMX_LIBRARIES    - List of libraries when using libgmx.
 #  GMX_FOUND        - True if libgmx found.
-#  GMX_PKG          - Whether we are using libgmx oder libgmx_d
 #  GMX_DEFINITIONS  - Extra definies needed by libgmx
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
@@ -24,31 +23,30 @@
 
 find_package(PkgConfig)
 
-pkg_check_modules(PC_GMX libgmx_d)
-set(GMX_PKG "libgmx_d")
+pkg_check_modules(PC_GMX libgmx)
+#avoid PC_GMX_LIBRARIES being empty
+list(INSERT PC_GMX_LIBRARIES 0 gmx)
+list(REMOVE_DUPLICATES PC_GMX_LIBRARIES)
+
 find_path(GMX_INCLUDE_DIR gromacs/tpxio.h HINTS ${PC_GMX_INCLUDE_DIRS})
-foreach (LIB ${PC_GMX_LIBRARIES})
-  find_library(GMX_${LIB} NAMES ${LIB} HINTS ${PC_GMX_LIBRARY_DIRS} )
-  list(APPEND GMX_LIBRARY ${GMX_${LIB}})
-endforeach(LIB)
-if ("${GMX_LIBRARY}" STREQUAL "NOTFOUND" OR "${GMX_INCLUDE_DIR}" STREQUAL "NOTFOUND")
-  pkg_check_modules(PC_GMX libgmx)
-  find_path(GMX_INCLUDE_DIR gromacs/tpxio.h HINTS ${PC_GMX_INCLUDE_DIRS})
+if (NOT GMX_LIBRARY)
+  #add deps
   foreach (LIB ${PC_GMX_LIBRARIES})
     find_library(GMX_${LIB} NAMES ${LIB} HINTS ${PC_GMX_LIBRARY_DIRS} )
     list(APPEND GMX_LIBRARY ${GMX_${LIB}})
   endforeach(LIB)
-  set(GMX_PKG "libgmx")
-endif ("${GMX_LIBRARY}" STREQUAL "NOTFOUND" OR "${GMX_INCLUDE_DIR}" STREQUAL "NOTFOUND")
+endif (NOT GMX_LIBRARY)
 
-foreach(DEF ${PC_GMX_CFLAGS_OTHER})
-  if (${DEF} MATCHES "^-D")
-    list(APPEND GMX_DEFINITIONS ${DEF})
-  endif (${DEF} MATCHES "^-D")
-endforeach(DEF)
+if (NOT GMX_DEFINITIONS)
+  foreach(DEF ${PC_GMX_CFLAGS_OTHER})
+      if (${DEF} MATCHES "^-D")
+        list(APPEND GMX_DEFINITIONS ${DEF})
+      endif (${DEF} MATCHES "^-D")
+    endforeach(DEF)
+endif (NOT GMX_DEFINITIONS)
 
 set(GMX_LIBRARIES ${GMX_LIBRARY} )
-set(GMX_INCLUDE_DIRS ${GMX_INCLUDE_DIR} )
+set(GMX_NCLUDE_DIRS ${GMX_INCLUDE_DIR} )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GMX_FOUND to TRUE
