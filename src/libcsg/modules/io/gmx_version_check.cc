@@ -15,9 +15,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "votca_config.h"
 
 #if GMX == 50
 #include <gromacs/legacyheaders/copyrite.h>
@@ -35,7 +33,7 @@
 #undef bool
 #endif
 
-#include "version_check.h"
+#include "gmx_version_check.h"
 #include "gmx_version.h"
 #include <iostream>
 

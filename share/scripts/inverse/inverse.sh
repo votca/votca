@@ -159,7 +159,6 @@ cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 add_csg_scriptdir
 
 critical $SOURCE_WRAPPER --status
-critical $SOURCE_WRAPPER --check
 
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }

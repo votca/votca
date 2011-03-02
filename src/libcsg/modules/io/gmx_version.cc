@@ -16,10 +16,7 @@
  */
 
 #include <iostream>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "votca_config.h"
 
 namespace votca { namespace csg {
 

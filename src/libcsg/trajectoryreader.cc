@@ -15,10 +15,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
+#include "votca_config.h"
 #include "trajectoryreader.h"
 #include "modules/io/esptrajectoryreader.h"
 #include "modules/io/lammpsreader.h"

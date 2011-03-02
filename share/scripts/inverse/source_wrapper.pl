@@ -71,13 +71,6 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--status" )){
   exit 0;
 }
 
-if (defined($ARGV[0])&&("$ARGV[0]" eq "--check" )){
-  print "Check sums\n";
-  ( -r "$csgshare/MD5SUM" ) or die "Could not read checksum file $csgshare/MD5SUM\n";
-  system('md5sum $CSGINVERSE/MD5SUM');
-  system('cd $CSGINVERSE;md5sum -c MD5SUM || echo WARNING: You have modified csg scripts, better copy them to your user scripts dir');
-  exit 0;
-}
 ###################MAIN PROGRAMM#######################
 
 ( $#ARGV < 1 ) && die "$progname needs two arguments\n";

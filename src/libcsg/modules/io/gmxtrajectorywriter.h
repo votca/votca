@@ -20,11 +20,8 @@
 
 #include "topology.h"
 #include "trajectorywriter.h"
-#include "version_check.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "gmx_version_check.h"
+#include "votca_config.h"
 
 #if GMX == 50
         #include <gromacs/legacyheaders/statutil.h>

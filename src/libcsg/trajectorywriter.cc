@@ -15,10 +15,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
+#include "votca_config.h"
 #include <iostream>
 #include "trajectorywriter.h"
 #include "modules/io/pdbwriter.h"
