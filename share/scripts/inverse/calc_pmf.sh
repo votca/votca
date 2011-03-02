@@ -50,7 +50,5 @@ done
 cp ${sim}/grompp.mdp .
 
 echo "Calculating pmf"
-# Make forces negative and the integrate to get pot
-do_external table_err linearop --with-errors ${forcefile} tmp -1 0
-do_external table integrate --with-errors --with-S --kbT $kBT tmp ${potfile}
-rm tmp
+# Integrate to get pot
+do_external table integrate --with-errors --with-S --kbT $kBT ${forcefile} ${potfile}

@@ -40,7 +40,7 @@ traj="traj.${ext}"
 
 conf_in=$(csg_get_property --allow-empty cg.non-bonded.pmf.conf_in)
 if [! -z "$conf_in" ]; then
-    msg "Initial configuration specified in xml, wsing $conf_in"
+    msg "Initial configuration specified in xml, using $conf_in"
     mkdir step_000
     conf_out=$(csg_get_property cg.non-bonded.pmf.conf_in)
     critical cp $(conf_out) step_000/confout.gro
