@@ -15,19 +15,14 @@
  *
  */
 
-#include "version.h"
-#include "votca_config.h"
+#include <iostream>
+#include <version.h>
 
-namespace votca { namespace tools {
+using namespace votca::tools;
+using namespace std;
 
-//defines hgversion
-#include "hgversion.h"
-static const std::string version_str = std::string(VERSION) + " " + hgversion + " (compiled " __DATE__ ", " __TIME__ ")";
-
-const std::string &ToolsVersionStr()
+int main(int argc, char **argv)
 {
-    return version_str;
+    cout << "libtools version: " << votca::tools::ToolsVersionStr() << endl;
 }
-
-}}
 

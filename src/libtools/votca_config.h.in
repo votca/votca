@@ -1,0 +1,8 @@
+/* Compile without fftw and disable CrossCorrelate class */
+#cmakedefine NOFFTW
+
+/* Compile without gsl and disable linalg functions and CubicSpline class */
+#cmakedefine NOGSL
+
+/* Version number of package */
+#define VERSION "@PROJECT_VERSION@"

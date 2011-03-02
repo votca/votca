@@ -1,4 +1,0 @@
-SUBDIRS = $(VOTCA_BOOST) $(VOTCA_EXPAT) libtools
-
-CLEANFILES = *~
-

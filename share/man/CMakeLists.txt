@@ -1,0 +1,9 @@
+if (TXT2TAGS_FOUND)
+  add_custom_command(OUTPUT votca-tools.man 
+    COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${CMAKE_CURRENT_SOURCE_DIR}/votca-tools.t2t -o votca-tools.man
+    COMMENT "Building votca_tools manpage")
+  add_custom_target(manpages DEPENDS votca-tools.man)
+  add_dependencies(votca_tools manpages)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/votca-tools.man DESTINATION ${MAN}/man7)
+endif (TXT2TAGS_FOUND)
+
