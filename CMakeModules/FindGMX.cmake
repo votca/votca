@@ -46,7 +46,7 @@ if (NOT GMX_DEFINITIONS)
 endif (NOT GMX_DEFINITIONS)
 
 set(GMX_LIBRARIES ${GMX_LIBRARY} )
-set(GMX_NCLUDE_DIRS ${GMX_INCLUDE_DIR} )
+set(GMX_INCLUDE_DIRS ${GMX_INCLUDE_DIR} )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GMX_FOUND to TRUE
