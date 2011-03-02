@@ -34,7 +34,7 @@ min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
 
-tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
+tmpfile=$(critical mktemp ${name}.XXX)
 
 sed -ne '/i[[:space:]]*$/p' "$1" > $tmpfile
 spmin=$(sed -ne '1p' $tmpfile | awk '{print $1}')

@@ -1,12 +1,12 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include $(VOTCA_TOOLS_CFLAGS)
 
 bin_PROGRAMS = \
-    csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_part_dist
+    csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_part_dist csg_density
 
 if HAVE_TXT2TAGS
 man1_MANS= \
 	csg_map.man csg_dump.man csg_property.man csg_resample.man csg_stat.man csg_fmatch.man\
-	csg_imcrepack.man csg_gmxtopol.man csg_part_dist.man
+	csg_imcrepack.man csg_gmxtopol.man csg_part_dist.man csg_density.man
 
 %.man: %.t2t
 	${TXT2TAGS} -t man -i $< -o $@
@@ -23,6 +23,8 @@ man1_MANS=
 endif
 
 csg_dump_SOURCES = csg_dump.cc
+
+csg_density_SOURCES = csg_density.cc
 
 csg_resample_SOURCES = csg_resample.cc
 

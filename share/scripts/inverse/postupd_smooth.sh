@@ -30,7 +30,7 @@ fi
 [ -f "$2" ] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
-tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
+tmpfile=$(critical mktemp ${name}.XXX)
 iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)
 
 critical cp "$1" $tmpfile

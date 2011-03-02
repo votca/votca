@@ -67,8 +67,8 @@ if [ "$method" = "ibi" ]; then
     done
     
     # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
-    esp_script="$(mktemp esp.run.tcl.XXXXX)"
-    esp_success="$(mktemp esp.run.done.XXXXX)"
+    esp_script="$(critical mktemp esp.run.tcl.XXXXX)"
+    esp_success="$(critical mktemp esp.run.done.XXXXX)"
     cat > $esp_script <<EOF
 set in [open "|gzip -cd $esp" r]
 while { [blockfile \$in read auto] != "eof" } {}

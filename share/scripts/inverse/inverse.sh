@@ -47,6 +47,7 @@ source "${0%/*}/start_framework.sh"  || exit 1
 
 #defaults for options
 do_iterations=""
+do_clean="no"
 wall_time=""
 
 #unset stuff from enviorment
@@ -77,8 +78,9 @@ while [ "${1#-}" != "$1" ]; do
     do_iterations=${1#-}
     shift ;;
    --clean)
-    csg_ivnerse_clean
-    exit $?;;
+    #needs to be done below, because it needs CSG* variables
+    do_clean="yes"
+    shift ;;
    --xmlfile)
     export CSGXMLFILE="$2"
     shift 2;;
@@ -115,6 +117,12 @@ export CSGRESTART
 CSGLOG="$(csg_get_property cg.inverse.log_file)"
 CSGLOG="$PWD/${CSGLOG##*/}"
 export CSGLOG
+
+if [ "$do_clean" = "yes" ]; then
+  csg_ivnerse_clean
+  exit $?
+fi
+
 if [ -f "$CSGLOG" ]; then
   exec 3>&1 >> "$CSGLOG" 2>&1
   echo "\n\n#################################"
