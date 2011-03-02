@@ -26,6 +26,10 @@ pkg_check_modules(PC_GSL gsl)
 find_path(GSL_INCLUDE_DIR gsl/gsl_linalg.h HINTS ${PC_GSL_INCLUDE_DIRS})
 
 if (NOT GSL_LIBRARY)
+  #avoid PC_GSL_LIBRARIES being empty
+  list(INSERT PC_GSL_LIBRARIES 0 gsl)
+  list(REMOVE_DUPLICATES PC_GSL_LIBRARIES)
+  #added gls depends
   foreach (LIB ${PC_GSL_LIBRARIES})
     find_library(GSL_${LIB} NAMES ${LIB} HINTS ${PC_GSL_LIBRARY_DIRS} )
     list(APPEND GSL_LIBRARY ${GSL_${LIB}})
