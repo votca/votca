@@ -402,9 +402,9 @@ get_number_tasks() {
   local tasks
   [ -n "$(csg_get_property --allow-empty cg.inverse.mpi.tasks)" ] && \
     msg --to-stderr "get_number_tasks: the xml option cg.inverse.mpi.tasks has been renamed to cg.inverse.parallel.tasks\nPlease remove the obsolete cg.inverse.mpi block, it is not used anyway\n"
-  tasks="$(csg_get_property cg.inverse.parallel.tasks 1)"
+  tasks="$(csg_get_property cg.inverse.parallel.tasks "auto")"
   [ "$tasks" = "auto" ] && tasks=0
-  int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number"
+  int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number or 'auto'"
   #this only work for linux
   if [ $tasks -eq 0 ] && [ -r /proc/cpuinfo ]; then
     tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')
