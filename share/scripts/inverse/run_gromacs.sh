@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script runs gromacs for the Inverse Boltzmann Method
+This script runs a gromacs simulation
 
 Usage: ${0##*/}
 
@@ -28,21 +28,28 @@ EOF
 fi
 
 tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
-[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found"
 
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
-[ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
+#no check for mdrun, because mdrun_mpi could maybe exist only computenodes
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
+mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
-tasks=$(get_number_tasks)
-if [ $tasks -gt 1 ]; then
-  mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-  critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" ${opts}
-else
-  critical $mdrun -s "${tpr}" -c "${confout}" ${opts}
-fi
+index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"
+[ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
+top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
+[ -f "$top" ] || die "${0##*/}: grompp topol file '$top' not found"
+
+grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
+
+grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
+[ -n "$(type -p $grompp)" ] || die "${0##*/}: grompp binary '$grompp' not found"
+
+critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${grompp_opts}
+[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
+
+mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
+critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" ${mdrun_opts}
 
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
