@@ -1,0 +1,6 @@
+foreach(PROG moo_overlap)
+  file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
+  add_executable(${PROG} ${${PROG}_SOURCES})
+  target_link_libraries(${PROG} votca_moo)
+  install(TARGETS ${PROG} RUNTIME DESTINATION bin)
+endforeach(PROG)

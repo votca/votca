@@ -1,30 +1,10 @@
 syntax: glob
 
 *~
-*.a
-*.la
-*.o
-*.lo
-.deps
-.libs
-lib*.pc
-autom4te.cache
-libtool
-stamp-h1
+libvotca*.pc
+libvotca*.a
+libvotca*.so
 Makefile
-Makefile.in
-aclocal.m4
-config.log
-config.lt
-config.status
-config/config.guess
-config/config.sub
-config/depcomp
-config/install-sh
-config/missing
-configure
-config.h
-config.h.in
 src/tools/moo_overlap
 
 netbeans/*/build
@@ -33,3 +13,8 @@ netbeans/*/build
 netbeans/libmoo/nbproject/Makefile-variables.mk
 netbeans/libmoo/nbproject/Package-Debug.bash
 netbeans/libmoo/nbproject/Package-Release.bas
+
+CMakeFiles/*
+cmake_install.cmake
+CMakeCache.txt
+install_manifest.txt
