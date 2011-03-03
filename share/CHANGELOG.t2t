@@ -8,6 +8,13 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 == Version in hg ==
 
 
+== Version in 1.1.1 ==
+* fixed csg_inverse --clean
+* make postupdate pressure work again
+* fixed bug when reading exclusions from tpr
+* end with error in csg_stat if bead type does not exist (issue 77)
+
+
 == Version in 1.1 (SuperAnn) ==
 * added support for gromacs 5.0
 * csg_dump: can dump exclusion

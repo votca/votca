@@ -141,7 +141,8 @@ export -f critical
 
 #do somefor all pairs, 1st argument is the type
 for_all (){
-  local bondtype name names interactions i j
+  local bondtype name names interactions i j quiet="no"
+  [ "$1" = "-q" ] && quiet="yes" && shift
   if [ -z "$2" ]; then
     die "for_all need at least two arguments"
   fi
@@ -153,7 +154,7 @@ for_all (){
   fi
   [[ -n "$CSGXMLFILE" ]] || die "for_all: CSGXMLFILE is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "for_all: Could not find csg_property"
-  echo "For all $bondtype"
+  [ "$quiet" = "no" ] && echo "For all $bondtype" >&2
   interactions="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name)" \
     || die "for_all: csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name' failed"
   names=( ${interactions} )
@@ -163,7 +164,8 @@ for_all (){
     done
   done
   for name in $interactions; do
-    echo "for_all: run '$*'"
+    #print this message to stderr because $(for_all something) is used very often
+    [ "$quiet" = "no" ] && echo "for_all: run '$*'" >&2
     #we need to use bash -c here to allow things like $(csg_get_interaction_property xxx) in arguments
     #write variable defines in the front is better, that export
     #no need to run unset afterwards
