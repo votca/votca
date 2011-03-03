@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-SCRIPTS:=$(shell csg_call -l | sed -e '1d' -e '/\.\(sh\|pl\)/!d' | awk '{print $$3}' | sort -u )
+SCRIPTS:=$(shell csg_call -l | sed -e '1d' -e '/\.\(sh\|pl\)/!d' | awk '!/^functions/{print $$3}' | sort -u )
 
 all: Makefile.incl
 
