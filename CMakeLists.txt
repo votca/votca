@@ -71,5 +71,6 @@ endforeach(FUNC)
 ######################################
 # Include the following subdirectory # 
 ######################################
+add_subdirectory(include)
 add_subdirectory(src/libmoo)
 add_subdirectory(src/tools)
