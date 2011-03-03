@@ -190,8 +190,10 @@ csg_get_interaction_property () {
   [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
   [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
-  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
-  #the --filter option will make csg_property fail, don't stop if we have an default
+  #bondtype is special -> dirty hack - removed whenever issue 13 is fixed
+  [ "$1" = "bondtype" ] && cmd="echo $bondtype" || \
+    cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
+  #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
   if ! ret="$($cmd)"; then
     [ "$allow_empty" = "no" ] && [ -z "$2" ] && \
       die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
