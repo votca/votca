@@ -12,6 +12,7 @@
 #include "calculators/energycorr.h"
 #include "calculators/polymerrates.h"
 #include "calculators/pairdump.h"
+#include "calculators/CurrentDensity.h"
 
 void CalculatorFactory::RegisterAll(void)
 {
@@ -27,4 +28,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<EnergyCorr>("energycorr");
         Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
+        Calculators().Register<CurrentDensity>("currden");
 }

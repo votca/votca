@@ -17,7 +17,7 @@ void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
 
 }
 
-bool QMNBList::Match(Bead *ab1, Bead *ab2, const vec &r)
+bool QMNBList::Match(Bead *ab1, Bead *ab2, const vec &r, const double notused)
 {
     QMBead *b1=dynamic_cast<QMBead*>(ab1);
     QMBead *b2=dynamic_cast<QMBead*>(ab2);

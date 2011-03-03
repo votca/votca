@@ -37,7 +37,7 @@ public:
 
 protected:
 
-    bool Match(Bead *b1, Bead *b2, const vec &r);
+    bool Match(Bead *b1, Bead *b2, const vec &r, const double notused);
     double _cutoff;
     QMTopology *_father;
 

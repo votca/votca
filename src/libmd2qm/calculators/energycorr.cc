@@ -102,7 +102,7 @@ void EnergyCorr::EndEvaluate(QMTopology* top) {
     _hist_corr.data().Save(_outfile);
 }
 
-bool EnergyCorr::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r) {
+bool EnergyCorr::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused) {
 
     QMCrgUnit *crg1 = bead1->getUserData<QMCrgUnit>();
     QMCrgUnit *crg2 = bead2->getUserData<QMCrgUnit>();

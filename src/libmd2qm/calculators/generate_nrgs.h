@@ -24,7 +24,7 @@ public:
     bool EvaluateFrame(QMTopology *top);
 
     /// A matching function to overload the standard one
-    bool MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r);
+    bool MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused);
     
 private:
     /// sigma of the gaussian distribution

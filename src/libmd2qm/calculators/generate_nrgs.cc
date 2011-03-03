@@ -121,7 +121,7 @@ void GenerateNrgs::AssignCorrelated(QMTopology *top) {
 
 }
 
-bool GenerateNrgs::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r) {
+bool GenerateNrgs::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused) {
 
     CrgUnit *crg1 = bead1->getUserData<CrgUnit>();
     CrgUnit *crg2 = bead2->getUserData<CrgUnit>();
