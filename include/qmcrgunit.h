@@ -8,7 +8,7 @@
 #ifndef __VOTCA_MD2QM_QMCRGUNIT_H
 #define	__VOTCA_MD2QM_QMCRGUNIT_H
 
-#include <moo/crgunit.h>
+#include <votca/moo/crgunit.h>
 
 using namespace std;
 

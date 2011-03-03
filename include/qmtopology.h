@@ -10,10 +10,10 @@
 
 #include <votca/csg/topology.h>
 #include <votca/csg/nblist.h>
-#include <moo/crgunittype.h>
+#include <votca/moo/crgunittype.h>
 #include "qmcrgunit.h"
-#include <moo/jcalc.h>
-#include <moo/units.h>
+#include <votca/moo/jcalc.h>
+#include <votca/moo/units.h>
 
 #include "qmbead.h"
 #include "qmnblist.h"

@@ -1,0 +1,10 @@
+add_executable(ctp_map ctp_map.cc md2qm_observer.cc)
+target_link_libraries(ctp_map votca_md2qm)
+add_executable(ctp_run ctp_run.cc)
+target_link_libraries(ctp_run votca_md2qm)
+add_executable(ctp_printqmattop printQMAtTop.cc atqmtopobserver.cc)
+target_link_libraries(ctp_printqmattop votca_md2qm)
+add_executable(ctp_polymer polmain.cc polymer.cc)
+target_link_libraries(ctp_polymer votca_md2qm)
+
+install(TARGETS ctp_map ctp_run ctp_printqmattop ctp_polymer RUNTIME DESTINATION bin)

@@ -9,10 +9,10 @@
 #define	_CONT_KMC_H
 
 #include "qmcalculator.h"
-#include <kmc/vertex.h>
-#include <kmc/hoppers.h>
-#include <kmc/kmc.h>
-#include <kmc/graph.h>
+#include <votca/kmc/vertex.h>
+#include <votca/kmc/hoppers.h>
+#include <votca/kmc/kmc.h>
+#include <votca/kmc/graph.h>
 
 class ContKmc : public QMCalculator{
 public:

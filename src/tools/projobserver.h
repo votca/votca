@@ -9,7 +9,7 @@
 #define	_EASYJTOFOBSERVER_H
 
 #include <votca/csg/cgobserver.h>
-#include <moo/jcalc.h>
+#include <votca/moo/jcalc.h>
 #include <libxml/parser.h>
 #include "qmtopology.h"
 #include <sys/stat.h>

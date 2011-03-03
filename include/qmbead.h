@@ -10,7 +10,7 @@
 
 
 #include <votca/csg/bead.h>
-#include "moo/crgunit.h"
+#include <votca/moo/crgunit.h>
 #include "qmtopology.h"
 
 using namespace votca::csg;

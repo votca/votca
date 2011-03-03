@@ -18,7 +18,7 @@
 #include <votca/tools/version.h>
 #include <iostream>
 #include "version.h"
-#include "config.h"
+#include "votca_config.h"
 
 namespace votca { namespace md2qm {
 

@@ -12,7 +12,7 @@
 #include "qmtopology.h"
 #include <votca/tools/property.h>
 #include "statesaver.h"
-#include <moo/units.h>
+#include <votca/moo/units.h>
 
 class MD2QMObserver
     : public CGObserver

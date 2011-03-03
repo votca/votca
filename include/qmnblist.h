@@ -4,7 +4,7 @@
 #include "qmpair.h"
 #include <votca/csg/pairlist.h>
 #include <votca/csg/beadlist.h>
-#include <moo/crgunit.h>
+#include <votca/moo/crgunit.h>
 
 using namespace votca::csg;
 

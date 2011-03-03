@@ -1,13 +1,13 @@
 prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
-includedir=@includedir@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@LIB@
+includedir=${prefix}/include
 
 Name: libvotca_md2qm
 Description: md2qm functions of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
-Requires: libvotca_tools libvotca_csg libvotca_moo libvotca_kmc
+Requires: libvotca_tools libvotca_csg libvotca_kmc libvotca_moo
 Libs: -L${libdir} -lvotca_md2qm
 Libs.private: -lm
 Cflags: -I${includedir}
