@@ -89,6 +89,9 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
             }
             else if(iter->first == "first" || iter->first == "second") {
             }
+            else if(iter->first == "lambda_out") {
+                pair->setLambdaOuter(lexical_cast<double>(iter->second));
+            }
             else
                 throw std::runtime_error("undefined property in pair: \"" + iter->first + "\"");
         }
