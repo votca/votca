@@ -78,6 +78,18 @@ public:
      */
     void setRate21(double rate) {_rate_21=rate;}
 
+     /**
+     * \brief set outer sphere lambda
+     * @param r backward rate
+     */
+    void setLambdaOuter(double lambda) {_lambda_outer=lambda;}
+
+    /**
+     * \brief outer sphere lambda
+     * @return outer sphere lambda
+     */
+    double &lambda_outer(){return _lambda_outer;}
+
     /**
      * \brief first crg unit (might be ghost copy for pbc image)
      *
@@ -105,6 +117,8 @@ protected:
     double _rate_12;
     /// transfer rate from second to first
     double _rate_21;
+    /// outer sphere reorganization energy
+    double _lambda_outer;
     /// ghost atom in case the molecules are neighbors across a boundary
     QMCrgUnit * _ghost;
 
