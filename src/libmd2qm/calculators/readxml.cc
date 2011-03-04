@@ -68,11 +68,16 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
         if(crg1->getId() > crg2->getId())
             swap(crg1, crg2);
 
-        if(_top->nblist().FindPair(crg1, crg2))
+        QMPair *pair=_top->nblist().FindPair(crg1, crg2);
+
+        /*if(_top->nblist().FindPair(crg1, crg2))
             throw std::runtime_error("multiple definitions of pair (" 
                     + lexical_cast<string>(first+1) + ", "
-                    + lexical_cast<string>(second+1) + ")");
-        QMPair *pair = new QMPair(crg1, crg2, _top);
+                    + lexical_cast<string>(second+1) + ")");*/
+        if(!pair) {
+            pair = new QMPair(crg1, crg2, _top);
+            _top->nblist().AddPair(pair);
+        }
 
         map<string,string>::iterator iter;
         for(iter=attr.begin(); iter!=attr.end(); ++iter) {
@@ -92,16 +97,19 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
             else if(iter->first == "lambda_out") {
                 pair->setLambdaOuter(lexical_cast<double>(iter->second));
             }
+            else if(iter->first == "first" || iter->first == "second" || iter->first == "dist" || iter->first == "rij" ) {
+                // do nothing
+            }
             else
-                throw std::runtime_error("undefined property in pair: \"" + iter->first + "\"");
-        }
-        _top->nblist().AddPair(pair);
-        
+                cerr << "WARNING in readxml: undefined property in pair: \"" + iter->first + "\"";
+        }        
     }
     else if (el == "site" ) {
     	int site_number = lexical_cast<int>(attr["number"]) - 1;
 	QMCrgUnit *crg = _top->GetCrgUnit(site_number);
-
+        if(!crg)
+            throw std::runtime_error("readxml error, no site #" + lexical_cast<string>(site_number+1) + " fond");
+        
         map<string,string>::iterator iter;
 	for(iter=attr.begin(); iter!=attr.end(); ++iter) {
 	    if(iter->first == "energy") {
