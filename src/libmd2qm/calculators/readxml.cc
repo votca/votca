@@ -100,13 +100,16 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
     }
     else if (el == "site" ) {
     	int site_number = lexical_cast<int>(attr["number"]) - 1;
-	CrgUnit *crg = _top->GetCrgUnit(site_number);
+	QMCrgUnit *crg = _top->GetCrgUnit(site_number);
 
         map<string,string>::iterator iter;
 	for(iter=attr.begin(); iter!=attr.end(); ++iter) {
 	    if(iter->first == "energy") {
 		crg->setEnergy(lexical_cast<double>(iter->second));
 	    }
+            else if(iter->first == "occupation") {
+                crg->setOccupationProbability(lexical_cast<double>(iter->second));
+            }
 	}
     }
     else throw std::runtime_error("unknown node: " + el);
