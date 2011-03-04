@@ -180,7 +180,7 @@ inline int Spline::getInterval(const double &r)
 
 inline double Spline::getGridPoint(const size_t &i)
 {
-    if((i<0) || (i>=_r.size())) {
+    if(i>=_r.size()) {
         return 0;
     }
     return _r[i];
