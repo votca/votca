@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca_config.h"
+#include "../../votca_config.h"
 
 #if GMX == 50
 #include <gromacs/legacyheaders/copyrite.h>
