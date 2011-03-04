@@ -186,7 +186,7 @@ inline vec operator/(const vec &v1, const double &d)
 
 inline std::ostream &operator<<(std::ostream &out, const vec& v)
 {
-      out << '<' << v.getX() << ',' << v.getY() << ',' << v.getZ() << '>';
+      out << '[' << v.getX() << ", " << v.getY() << ", " << v.getZ() << ']';
       return out;
 }
 
