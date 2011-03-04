@@ -6,6 +6,6 @@ add_library(votca_boost ${BOOST_SOURCES})
 install(TARGETS votca_boost LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_boost.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_boost.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/libvotca_boost.pc DESTINATION ${LIB}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libvotca_boost.pc DESTINATION ${LIB}/pkgconfig)
 
 install(DIRECTORY boost DESTINATION include/votca)
