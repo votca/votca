@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include "pdbtopologyreader.h"
-#include "votca_config.h"
+#include "../../votca_config.h"
 
 #if GMX == 50
         #include <gromacs/legacyheaders/statutil.h>

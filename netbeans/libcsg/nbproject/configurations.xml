@@ -65,8 +65,6 @@
             <itemPath>../../src/libcsg/modules/io/pdbtopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/version_check.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/version_check.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.h</itemPath>
           </logicalFolder>

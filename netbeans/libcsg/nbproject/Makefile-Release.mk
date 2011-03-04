@@ -38,7 +38,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457853/openbox.o \
 	${OBJECTDIR}/_ext/484457853/imcio.o \
 	${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o \
-	${OBJECTDIR}/_ext/1332856960/version_check.o \
 	${OBJECTDIR}/_ext/484457853/topologymap.o \
 	${OBJECTDIR}/_ext/1332856960/gmxtrajectoryreader.o \
 	${OBJECTDIR}/_ext/484457853/nblist.o \
@@ -119,11 +118,6 @@ ${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o: ../../src/libcsg/modules/io/xm
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o ../../src/libcsg/modules/io/xmltopologyreader.cc
-
-${OBJECTDIR}/_ext/1332856960/version_check.o: ../../src/libcsg/modules/io/version_check.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
-	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/version_check.o ../../src/libcsg/modules/io/version_check.cc
 
 ${OBJECTDIR}/_ext/484457853/topologymap.o: ../../src/libcsg/topologymap.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
