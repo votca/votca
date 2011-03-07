@@ -24,25 +24,26 @@
 find_package(PkgConfig)
 
 pkg_check_modules(PC_GROMACS libgromacs)
-#avoid PC_GROMACS_LIBRARIES being empty
-list(INSERT PC_GROMACS_LIBRARIES 0 gromacs)
-list(REMOVE_DUPLICATES PC_GROMACS_LIBRARIES)
-
 find_path(GROMACS_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
-if (NOT GROMACS_LIBRARY)
-  #add deps
+find_library(GROMACS_LIBRARY NAMES gromacs HINTS ${PC_GROMACS_LIBRARY_DIRS} )
+
+#add deps
+if (NOT BUILD_SHARED_LIBS)
+  list(REMOVE_ITEM PC_GROMACS_LIBRARIES gromacs)
   foreach (LIB ${PC_GROMACS_LIBRARIES})
     find_library(GROMACS_${LIB} NAMES ${LIB} HINTS ${PC_GROMACS_LIBRARY_DIRS} )
     list(APPEND GROMACS_LIBRARY ${GROMACS_${LIB}})
+    unset(GROMACS_${LIB} CACHE)
   endforeach(LIB)
-endif (NOT GROMACS_LIBRARY)
+endif (NOT BUILD_SHARED_LIBS)
 
+set(GROMACS_DEFINITIONS "" CACHE STRING "extra GROMACS DEFINITIONS")
 if (NOT GROMACS_DEFINITIONS)
   foreach(DEF ${PC_GROMACS_CFLAGS_OTHER})
-      if (${DEF} MATCHES "^-D")
-        list(APPEND GROMACS_DEFINITIONS ${DEF})
-      endif (${DEF} MATCHES "^-D")
-    endforeach(DEF)
+    if (${DEF} MATCHES "^-D")
+      list(APPEND GROMACS_DEFINITIONS ${DEF})
+    endif (${DEF} MATCHES "^-D")
+  endforeach(DEF)
 endif (NOT GROMACS_DEFINITIONS)
 
 set(GROMACS_LIBRARIES ${GROMACS_LIBRARY} )
@@ -51,6 +52,6 @@ set(GROMACS_INCLUDE_DIRS ${GROMACS_INCLUDE_DIR} )
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GROMACS_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACSD_INCLUDE_DIR )
+find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACS_INCLUDE_DIR )
 
 mark_as_advanced(GROMACS_INCLUDE_DIR GROMACS_LIBRARY GROMACS_DEFINITIONS )

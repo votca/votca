@@ -1,5 +1,5 @@
 # - Find libgromacs_d
-# Find the native libgromacs headers and libraries.
+# Find the native libgromacs_d headers and libraries.
 #
 #  GROMACS_D_INCLUDE_DIRS - where to find gromacs/tpxio.h, etc.
 #  GROMACS_D_LIBRARIES    - List of libraries when using libgromacs_d.
@@ -23,20 +23,21 @@
 
 find_package(PkgConfig)
 
-pkg_check_modules(PC_GROMACS_D libgromacs_d)
-#avoid PC_GROMACS_D_LIBRARIES being empty
-list(INSERT PC_GROMACS_D_LIBRARIES 0 gromacs_d)
-list(REMOVE_DUPLICATES PC_GROMACS_D_LIBRARIES)
-
+pkg_check_modules(PC_GROMACS libgromacs_d)
 find_path(GROMACS_D_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_D_INCLUDE_DIRS})
-if (NOT GROMACS_D_LIBRARY)
-  #add deps
+find_library(GROMACS_D_LIBRARY NAMES gromacs_d HINTS ${PC_GROMACS_D_LIBRARY_DIRS} )
+
+#add deps
+if (NOT BUILD_SHARED_LIBS)
+  list(REMOVE_ITEM PC_GROMACS_D_LIBRARIES gromacs_d)
   foreach (LIB ${PC_GROMACS_D_LIBRARIES})
     find_library(GROMACS_D_${LIB} NAMES ${LIB} HINTS ${PC_GROMACS_D_LIBRARY_DIRS} )
     list(APPEND GROMACS_D_LIBRARY ${GROMACS_D_${LIB}})
+    unset(GROMACS_D_${LIB} CACHE)
   endforeach(LIB)
-endif (NOT GROMACS_D_LIBRARY)
+endif (NOT BUILD_SHARED_LIBS)
 
+set(GROMACS_D_DEFINITIONS "" CACHE STRING "extra GROMACS_D DEFINITIONS")
 if (NOT GROMACS_D_DEFINITIONS)
   list(INSERT GROMACS_D_DEFINITIONS 0 "-DGMX_DOUBLE")
   foreach(DEF ${PC_GROMACS_D_CFLAGS_OTHER})

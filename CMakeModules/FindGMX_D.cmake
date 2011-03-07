@@ -1,5 +1,5 @@
 # - Find libgmx_d
-# Find the native libgmx headers and libraries.
+# Find the native libgmx_d headers and libraries.
 #
 #  GMX_D_INCLUDE_DIRS - where to find gromacs/tpxio.h, etc.
 #  GMX_D_LIBRARIES    - List of libraries when using libgmx_d.
@@ -23,20 +23,21 @@
 
 find_package(PkgConfig)
 
-pkg_check_modules(PC_GMX_D libgmx_d)
-#avoid PC_GMX_D_LIBRARIES being empty
-list(INSERT PC_GMX_D_LIBRARIES 0 gmx_d)
-list(REMOVE_DUPLICATES PC_GMX_D_LIBRARIES)
-
+pkg_check_modules(PC_GMX libgmx_d)
 find_path(GMX_D_INCLUDE_DIR gromacs/tpxio.h HINTS ${PC_GMX_D_INCLUDE_DIRS})
-if (NOT GMX_D_LIBRARY)
-  #add deps
+find_library(GMX_D_LIBRARY NAMES gmx_d HINTS ${PC_GMX_D_LIBRARY_DIRS} )
+
+#add deps
+if (NOT BUILD_SHARED_LIBS)
+  list(REMOVE_ITEM PC_GMX_D_LIBRARIES gmx_d)
   foreach (LIB ${PC_GMX_D_LIBRARIES})
     find_library(GMX_D_${LIB} NAMES ${LIB} HINTS ${PC_GMX_D_LIBRARY_DIRS} )
     list(APPEND GMX_D_LIBRARY ${GMX_D_${LIB}})
+    unset(GMX_D_${LIB} CACHE)
   endforeach(LIB)
-endif (NOT GMX_D_LIBRARY)
+endif (NOT BUILD_SHARED_LIBS)
 
+set(GMX_D_DEFINITIONS "" CACHE STRING "extra GMX_D DEFINITIONS")
 if (NOT GMX_D_DEFINITIONS)
   list(INSERT GMX_D_DEFINITIONS 0 "-DGMX_DOUBLE")
   foreach(DEF ${PC_GMX_D_CFLAGS_OTHER})

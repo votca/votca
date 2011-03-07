@@ -24,25 +24,26 @@
 find_package(PkgConfig)
 
 pkg_check_modules(PC_GMX libgmx)
-#avoid PC_GMX_LIBRARIES being empty
-list(INSERT PC_GMX_LIBRARIES 0 gmx)
-list(REMOVE_DUPLICATES PC_GMX_LIBRARIES)
-
 find_path(GMX_INCLUDE_DIR gromacs/tpxio.h HINTS ${PC_GMX_INCLUDE_DIRS})
-if (NOT GMX_LIBRARY)
-  #add deps
+find_library(GMX_LIBRARY NAMES gmx HINTS ${PC_GMX_LIBRARY_DIRS} )
+
+#add deps
+if (NOT BUILD_SHARED_LIBS)
+  list(REMOVE_ITEM PC_GMX_LIBRARIES gmx)
   foreach (LIB ${PC_GMX_LIBRARIES})
     find_library(GMX_${LIB} NAMES ${LIB} HINTS ${PC_GMX_LIBRARY_DIRS} )
     list(APPEND GMX_LIBRARY ${GMX_${LIB}})
+    unset(GMX_${LIB} CACHE)
   endforeach(LIB)
-endif (NOT GMX_LIBRARY)
+endif (NOT BUILD_SHARED_LIBS)
 
+set(GMX_DEFINITIONS "" CACHE STRING "extra GMX DEFINITIONS")
 if (NOT GMX_DEFINITIONS)
   foreach(DEF ${PC_GMX_CFLAGS_OTHER})
-      if (${DEF} MATCHES "^-D")
-        list(APPEND GMX_DEFINITIONS ${DEF})
-      endif (${DEF} MATCHES "^-D")
-    endforeach(DEF)
+    if (${DEF} MATCHES "^-D")
+      list(APPEND GMX_DEFINITIONS ${DEF})
+    endif (${DEF} MATCHES "^-D")
+  endforeach(DEF)
 endif (NOT GMX_DEFINITIONS)
 
 set(GMX_LIBRARIES ${GMX_LIBRARY} )
