@@ -15,7 +15,9 @@
  *
  */
 
-#include "../../votca_config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
+#endif
 
 #if GMX == 50
 #include <gromacs/legacyheaders/copyrite.h>

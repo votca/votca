@@ -15,7 +15,6 @@
  *
  */
 
-#include "../../votca_config.h"
 #include <string>
 
 //only used by NetBeans

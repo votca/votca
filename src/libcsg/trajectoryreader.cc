@@ -15,7 +15,10 @@
  *
  */
 
-#include "votca_config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
+#endif
+
 #include "trajectoryreader.h"
 #include "modules/io/esptrajectoryreader.h"
 #include "modules/io/lammpsreader.h"
