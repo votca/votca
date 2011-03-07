@@ -32,7 +32,7 @@ if (NOT BUILD_SHARED_LIBS)
   foreach (LIB ${PC_GSL_LIBRARIES})
     find_library(GSL_${LIB} NAMES ${LIB} HINTS ${PC_GSL_LIBRARY_DIRS} )
     list(APPEND GSL_LIBRARY ${GSL_${LIB}})
-    unset(${GSL_${LIB}} CACHE)
+    unset(GSL_${LIB} CACHE)
   endforeach(LIB)
 endif (NOT BUILD_SHARED_LIBS)
 
