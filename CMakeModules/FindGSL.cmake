@@ -24,17 +24,17 @@ find_package(PkgConfig)
 
 pkg_check_modules(PC_GSL gsl)
 find_path(GSL_INCLUDE_DIR gsl/gsl_linalg.h HINTS ${PC_GSL_INCLUDE_DIRS})
+find_library(GSL_LIBRARY NAMES gsl HINTS ${PC_GSL_LIBRARY_DIRS} )
 
-if (NOT GSL_LIBRARY)
-  #avoid PC_GSL_LIBRARIES being empty
-  list(INSERT PC_GSL_LIBRARIES 0 gsl)
-  list(REMOVE_DUPLICATES PC_GSL_LIBRARIES)
-  #added gls depends
+#added gsl depends
+if (NOT BUILD_SHARED_LIBS)
+  list(REMOVE_ITEM PC_GSL_LIBRARIES gsl)
   foreach (LIB ${PC_GSL_LIBRARIES})
     find_library(GSL_${LIB} NAMES ${LIB} HINTS ${PC_GSL_LIBRARY_DIRS} )
     list(APPEND GSL_LIBRARY ${GSL_${LIB}})
+    unset(${GSL_${LIB}} CACHE)
   endforeach(LIB)
-endif (NOT GSL_LIBRARY)
+endif (NOT BUILD_SHARED_LIBS)
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GSL_FOUND to TRUE
