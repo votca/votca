@@ -38,16 +38,18 @@ find_library(GSL_LIBRARY NAMES HINTS ${PC_GSL_LIBRARY_DIRS} )
   endforeach(LIB)
 #endif (NOT BUILD_SHARED_LIBS)
 
-include(CheckLibraryExists)
-check_library_exists("${GSL_LIBRARY}" gsl_linalg_QR_decomp "" FOUND_QR_DECOMP)
-if(NOT FOUND_QR_DECOMP)
-  message(FATAL_ERROR "Could not find gsl_linalg_QR_decompx in ${GSL_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GSL_LIBRARY by hand and include libgslcblas and libm in there (i.e. -DGSL_LIBRARY='/path/to/libgsl.so;/path/to/libgslcblas.so;/path/to/libm.so') !")
-endif(NOT FOUND_QR_DECOMP)
-
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GSL_FOUND to TRUE
 # if all listed variables are TRUE
 find_package_handle_standard_args(GSL DEFAULT_MSG GSL_LIBRARY GSL_INCLUDE_DIR )
+
+if (GSL_FOUND)
+  include(CheckLibraryExists)
+  check_library_exists("${GSL_LIBRARY}" gsl_linalg_QR_decomp "" FOUND_QR_DECOMP)
+  if(NOT FOUND_QR_DECOMP)
+    message(FATAL_ERROR "Could not find gsl_linalg_QR_decompx in ${GSL_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GSL_LIBRARY by hand and include libgslcblas and libm in there (i.e. -DGSL_LIBRARY='/path/to/libgsl.so;/path/to/libgslcblas.so;/path/to/libm.so') !")
+  endif(NOT FOUND_QR_DECOMP)
+endif (GSL_FOUND)
 
 set(GSL_LIBRARIES ${GSL_LIBRARY} )
 set(GSL_INCLUDE_DIRS ${GSL_INCLUDE_DIR} )
