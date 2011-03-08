@@ -25,11 +25,10 @@ find_package(PkgConfig)
 pkg_check_modules(PC_GSL gsl)
 find_path(GSL_INCLUDE_DIR gsl/gsl_linalg.h HINTS ${PC_GSL_INCLUDE_DIRS})
 find_library(GSL_LIBRARY NAMES gsl HINTS ${PC_GSL_LIBRARY_DIRS} )
-find_library(GSL_LIBRARY NAMES HINTS ${PC_GSL_LIBRARY_DIRS} )
 
 #added gsl depends
 #BUG in OpenSuse (missing libgslcblas.so link libgsl.so)
-#if (NOT BUILD_SHARED_LIBS)
+#if (NOT BUILD_SHARED_LIBS and PC_GSL_LIBRARIES)
 if (PC_GSL_LIBRARIES)
   list(REMOVE_ITEM PC_GSL_LIBRARIES gsl)
   foreach (LIB ${PC_GSL_LIBRARIES})
@@ -37,8 +36,9 @@ if (PC_GSL_LIBRARIES)
     list(APPEND GSL_LIBRARY ${GSL_${LIB}})
     unset(GSL_${LIB} CACHE)
   endforeach(LIB)
+  set(GSL_LIBRARY "${GSL_LIBRARY}" CACHE FILEPATH "lib GSL and its deps" FORCE)
 endif (PC_GSL_LIBRARIES)
-#endif (NOT BUILD_SHARED_LIBS)
+#endif (NOT BUILD_SHARED_LIBS and PC_GSL_LIBRARIES)
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GSL_FOUND to TRUE
