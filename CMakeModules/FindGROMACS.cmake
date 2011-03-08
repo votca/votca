@@ -54,4 +54,12 @@ include(FindPackageHandleStandardArgs)
 # if all listed variables are TRUE
 find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACS_INCLUDE_DIR )
 
+if (GROMACS_FOUND)
+  include(CheckLibraryExists)
+  check_library_exists("${GROMACS_LIBRARY}" GromacsVersion "" FOUND_GROMACS_VERSION)
+  if(NOT FOUND_GROMACS_VERSION)
+    message(FATAL_ERROR "Could not find GromacsVersion in ${GROMACS_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GROMACS_LIBRARY by hand and include all it's deps in there (i.e. -DGROMACS_LIBRARY='/path/to/libgromacs.so;/path/to/libblas.so;/path/to/libm.so') !")
+  endif(NOT FOUND_GROMACS_VERSION)
+endif (GROMACS_FOUND)
+
 mark_as_advanced(GROMACS_INCLUDE_DIR GROMACS_LIBRARY GROMACS_DEFINITIONS )

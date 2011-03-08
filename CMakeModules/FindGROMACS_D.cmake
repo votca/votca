@@ -23,7 +23,7 @@
 
 find_package(PkgConfig)
 
-pkg_check_modules(PC_GROMACS libgromacs_d)
+pkg_check_modules(PC_GROMACS_D libgromacs_d)
 find_path(GROMACS_D_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_D_INCLUDE_DIRS})
 find_library(GROMACS_D_LIBRARY NAMES gromacs_d HINTS ${PC_GROMACS_D_LIBRARY_DIRS} )
 
@@ -55,5 +55,13 @@ include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GROMACS_D_FOUND to TRUE
 # if all listed variables are TRUE
 find_package_handle_standard_args(GROMACS_D DEFAULT_MSG GROMACS_D_LIBRARY GROMACS_D_INCLUDE_DIR )
+
+if (GROMACS_D_FOUND)
+  include(CheckLibraryExists)
+  check_library_exists("${GROMACS_D_LIBRARY}" GromacsVersion "" FOUND_GROMACS_D_VERSION)
+  if(NOT FOUND_GROMACS_D_VERSION)
+    message(FATAL_ERROR "Could not find GromacsVersion in ${GROMACS_D_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GROMACS_D_LIBRARY by hand and include all it's deps in there (i.e. -DGROMACS_D_LIBRARY='/path/to/libgromacs_d.so;/path/to/libblas.so;/path/to/libm.so') !")
+  endif(NOT FOUND_GROMACS_D_VERSION)
+endif (GROMACS_D_FOUND)
 
 mark_as_advanced(GROMACS_D_INCLUDE_DIR GROMACS_D_LIBRARY GROMACS_D_DEFINITIONS )

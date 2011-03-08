@@ -54,4 +54,16 @@ include(FindPackageHandleStandardArgs)
 # if all listed variables are TRUE
 find_package_handle_standard_args(GMX DEFAULT_MSG GMX_LIBRARY GMX_INCLUDE_DIR )
 
+if (GMX_FOUND)
+  include(CheckLibraryExists)
+  check_library_exists("${GMX_LIBRARY}" GromacsVersion "" FOUND_GMX_VERSION)
+  if(NOT FOUND_GMX_VERSION)
+    message(FATAL_ERROR "Could not find GromacsVersion in ${GMX_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GMX_LIBRARY by hand and include all it's deps in there (i.e. -DGMX_LIBRARY='/path/to/libgmx.so;/path/to/libblas.so;/path/to/libm.so') !")
+  endif(NOT FOUND_GMX_VERSION)
+  check_library_exists("${GMX_LIBRARY}" init_mtop "" FOUND_GMX_INIT_MTOP)
+  if(NOT FOUND_GMX_INIT_MTOP)
+    message(FATAL_ERROR "Could not find GromacsVersion in ${GMX_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This mostly means that your libgmx version is too old, we need at least libgmx-4.0.7.") 
+  endif(NOT FOUND_GMX_INIT_MTOP)
+endif (GMX_FOUND)
+
 mark_as_advanced(GMX_INCLUDE_DIR GMX_LIBRARY GMX_DEFINITIONS )

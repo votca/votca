@@ -23,7 +23,7 @@
 
 find_package(PkgConfig)
 
-pkg_check_modules(PC_GMX libgmx_d)
+pkg_check_modules(PC_GMX_D libgmx_d)
 find_path(GMX_D_INCLUDE_DIR gromacs/tpxio.h HINTS ${PC_GMX_D_INCLUDE_DIRS})
 find_library(GMX_D_LIBRARY NAMES gmx_d HINTS ${PC_GMX_D_LIBRARY_DIRS} )
 
@@ -55,5 +55,17 @@ include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GMX_D_FOUND to TRUE
 # if all listed variables are TRUE
 find_package_handle_standard_args(GMX_D DEFAULT_MSG GMX_D_LIBRARY GMX_D_INCLUDE_DIR )
+
+if (GMX_D_FOUND)
+  include(CheckLibraryExists)
+  check_library_exists("${GMX_D_LIBRARY}" GromacsVersion "" FOUND_GMX_D_VERSION)
+  if(NOT FOUND_GMX_D_VERSION)
+    message(FATAL_ERROR "Could not find GromacsVersion in ${GMX_D_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GMX_D_LIBRARY by hand and include all it's deps in there (i.e. -DGMX_D_LIBRARY='/path/to/libgmx_d.so;/path/to/libblas.so;/path/to/libm.so') !")
+  endif(NOT FOUND_GMX_D_VERSION)
+  check_library_exists("${GMX_D_LIBRARY}" init_mtop "" FOUND_GMX_D_INIT_MTOP)
+  if(NOT FOUND_GMX_D_INIT_MTOP)
+    message(FATAL_ERROR "Could not find GromacsVersion in ${GMX_D_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This mostly means that your libgmx_d is too old, we need at least libgmx_d-4.0.7.") 
+  endif(NOT FOUND_GMX_D_INIT_MTOP)
+endif (GMX_D_FOUND)
 
 mark_as_advanced(GMX_D_INCLUDE_DIR GMX_D_LIBRARY GMX_D_DEFINITIONS )
