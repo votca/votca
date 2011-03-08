@@ -29,8 +29,12 @@ fi
 
 tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
 
-mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
-#no check for mdrun, because mdrun_mpi could maybe exist only computenodes
+
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+
+conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
+[ -f "$conf" ] || die "${0##*/}: gromacs initial configuration file '$conf' not found"
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
 mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
@@ -48,8 +52,11 @@ grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
 critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${grompp_opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
 
+mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
+#no check for mdrun, because mdrun_mpi could maybe exist only computenodes
+
 mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" ${mdrun_opts}
+critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}
 
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
