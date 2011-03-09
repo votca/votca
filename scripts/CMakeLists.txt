@@ -11,7 +11,7 @@ foreach(SCRIPT csg_call csg_inverse multi_g_rdf)
       DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/help2t2t)
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
     add_dependencies(manpages ${SCRIPT}_manpage)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${MAN}/man1)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${MAN}/man1 RENAME ${SCRIPT}.1)
   endif(TXT2TAGS_FOUND AND BASH)
 endforeach(SCRIPT)
 
