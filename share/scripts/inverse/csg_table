@@ -105,7 +105,7 @@ pressure_cor wjk pressure_cor_wjk.pl
 # generic table manipulation
 table add add_POT.pl
 table integrate table_integrate.pl
-table extrapolate extrapolate.pl
+table extrapolate table_extrapolate.pl
 table merge merge_tables.pl
 table smooth smooth.pl
 table linearop table_linearop.pl
