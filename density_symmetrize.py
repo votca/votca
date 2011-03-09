@@ -38,7 +38,7 @@ except getopt.GetoptError, err:
 for o, a in opts:
     if o == "--help":
       print """%(name)s, version %(ver)s 
-This script smooths the border for thermodynamic force iteration
+This script symmetrizes the density around --adressc for thermodynamic force iteration
 
 Usage: %(name)s 
 Allowed options:
