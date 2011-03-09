@@ -4,6 +4,6 @@ if (TXT2TAGS_FOUND)
     COMMENT "Building votca_tools manpage")
   add_custom_target(manpages DEPENDS votca-tools.man)
   add_dependencies(votca_tools manpages)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/votca-tools.man DESTINATION ${MAN}/man7)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/votca-tools.man DESTINATION ${MAN}/man7 RENAME votca-tools.7)
 endif (TXT2TAGS_FOUND)
 
