@@ -98,3 +98,6 @@ else (TXT2TAGS_FOUND)
     COMMENT "Building CHANGELOG using copy")
 endif (TXT2TAGS_FOUND)
 add_custom_target(changelog ALL DEPENDS CHANGELOG)
+
+configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
