@@ -36,15 +36,34 @@ gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 
 comment="$(get_table_comment)"
 
+tablend="$(csg_get_property --allow-empty cg.inverse.gromacs.table_end)"
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+if [ -f "${mdp}" ]; then
+  rlist=$(get_from_mdp rlist "$mdp" 0)
+  tabext=$(get_from_mdp table-extension "$mdp" 0)
+else
+  rlist=0
+  tabext=0
+fi
 
-rlist=$(get_from_mdp rlist "$mdp" 1)
-tabext=$(get_from_mdp table-extension "$mdp" 1)
+if [ -z "${tablend}" ]; then
+  ( [ "${rlist}" = "0" ] || [ "${tabext}" = "0" ] ) && die "${0##*/}: cg.inverse.gromacs.table_end not given and rlist and table-extension not found in mdp file ($mdp)"
+  tablend=$(csg_calc "$rlist" + "$tabext")
+elif [ "${rlist}" != "0" ] && [ "${tabext}" != "0" ]; then
+  csg_calc $tablend "<" "$rlist+$tabext" && \
+    die "${0##*/}: Error table is shorter then what gromacs needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
+fi
 
-tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
-res="$(awk -v rlist="$rlist" -v tabext="$tabext" -v tablend="$tablend" 'BEGIN{ print (tablend<rlist+tabext)?1:0 }')" || die "${0##*/}: awk failed"
-[ "$res" = "0" ] || die "${0##*/}: Error table is short then what gromacs needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
+smooth="$(critical mktemp smooth_${name}.XXXXX)"
+csg_resample --in ${input} --out "$smooth" --grid 0:${gromacs_bins}:${tablend} --comment "$comment"
+extrapol="$(critical mktemp extrapol_${name}.XXXXX)"
+do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${extrapol}"
+tshift="$(critical mktemp shift_${name}.XXXXX)"
+#will shift the potential to the last defined value
+do_external pot shift_nb "${extrapol}" "${tshift}"
 
-critical csg_resample --in ${input} --out smooth_${input} --grid 0:${gromacs_bins}:${r_cut} --comment "$comment"
-do_external convert_potential xvg smooth_${input} ${output}
+potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
+[ -n "${potmax}" ] && potmax="--max ${potmax}"
+tabtype="$(csg_get_interaction_property bondtype)"
+[ "$(csg_get_property cg.inverse.method)" = "tf" ] && tabtype="thermforce"
+do_external convert_potential xvg ${potmax} --type "${tabtype}" "${tshift}" "${output}" 
