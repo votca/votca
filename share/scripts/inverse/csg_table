@@ -23,10 +23,13 @@ dummy dummy dummy.sh
 prepare ibi prepare_generic.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
+prepare tf prepare_generic.sh
 prepare_single ibi prepare_generic_single.sh
 prepare_single imc prepare_generic_single.sh
+prepare_single tf prepare_tf_single.sh
 initstep ibi initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
+initstep tf initialize_step_generic.sh
 
 #this is just to warn users from old versions
 prepare ibm prepare_ibm.sh
@@ -40,6 +43,7 @@ update imc update_imc.sh
 # TODO: think about name add_pot, is other name maybe better
 add_pot ibi add_pot_generic.sh
 add_pot imc add_pot_generic.sh
+add_pot tf add_pot_generic.sh
 
 # END: these scripts have to be defined for each method
 
@@ -49,6 +53,7 @@ rdf pot RDF_to_POT.pl
 # post update
 post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
+post_update tf dummy.sh
 post_update_single ibi post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 
@@ -98,9 +103,18 @@ solve octave linsolve.octave
 
 imc purify imc_purify.sh
 
+# tf specific stuff
+update tf update_tf.sh
+update tf_single update_tf_single.sh
+calc thermforce calc_thermforce.sh
+tf apply_prefactor apply_prefactor.pl
+
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl
 pressure_cor wjk pressure_cor_wjk.pl
+
+#density correction
+density symmetrize density_symmetrize.py 
 
 # generic table manipulation
 table add add_POT.pl
@@ -111,6 +125,8 @@ table smooth smooth.pl
 table linearop table_linearop.pl
 table dummy table_dummy.sh
 table get_value table_get_value.pl
+table getsubset table_getsubset.py
+table smooth_borders table_smooth_borders.py
 
 # error analysis
 tables jackknife tables_jackknife.pl
@@ -121,6 +137,8 @@ run gromacs run_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_generic.sh
 imc_stat gromacs imc_stat_generic.sh
+
+density gromacs calc_density_gromacs.sh
 
 # these scripts have to be defined for each method, if NOT generic
 prepare_generic gromacs prepare_generic_gromacs.sh
