@@ -21,4 +21,5 @@ CHANGELOG
 CMakeFiles/*
 install_manifest.txt
 cmake_install.cmake
+cmake_uninstall.cmake
 CMakeCache.txt
