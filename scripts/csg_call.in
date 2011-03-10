@@ -17,9 +17,9 @@
 
 sw_opt=""
 version='@PROJECT_VERSION@ @CSG_HG_ID@'
-verbose="no"
 ext_cmd=""
 simprog=""
+show_share="no"
 
 #unset stuff from enviorment
 unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
@@ -28,10 +28,6 @@ unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
 die() {
   echo -e "$*" >&2
   exit 1
-}
-
-vecho() {
-  [ "$verbose" = "yes" ] && echo -e "$*"
 }
 
 show_help () {
@@ -52,9 +48,9 @@ Usage: ${0##*/} [OPTIONS] key1 key2
 
 Allowed options:
 -l, --list           Show list of all script
-    --verbose        Be verbose (useful with show and cat option)
     --cat            Show the content of the script
     --show           Show the path to the script
+    --show-share     Shows the used CSGSHARE dir and exits
     --check          Check all csg scripts
     --scriptdir DIR  Set the user script dir
                      (Used if no optins xml file is given)
@@ -73,10 +69,6 @@ Examples:
 * ${0##*/} table smooth [ARGUMENTS]
 * ${0##*/} --show run gromacs
 * ${0##*/} --check
-
-USES: \$CSGSHARE
-
-NEEDS:
 eof
 }
 
@@ -125,12 +117,13 @@ while [ "${1#-}" != "$1" ]; do
    --show)
     ext_cmd="show_external"
     shift;;
+   --show-share)
+    show_share="yes"
+    sw_opt="--status"
+    shift;;
    --direct)
     quiet="yes"
     break;;
-   --verbose)
-    verbose="yes"
-    shift;;
    -h | --help)
     show_help
     exit 0;;
@@ -164,7 +157,11 @@ else
   fi
 fi
 
-vecho "CSGSHARE is ${CSGSHARE}"
+if [ "$show_share" = "yes" ]; then
+  echo "${CSGSHARE}"
+  exit 0
+fi
+
 if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
   source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
 else
