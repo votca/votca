@@ -46,9 +46,10 @@ fi
 
 [ -z "$1" ] && die "${0##*/}: Missing argument"
 [ -z "$(type -p csg_property)" ] && die "${0##*/}: csg_property not found"
+[ -z "$(type -p csg_call)" ] && die "${0##*/}: csg_call not found"
 
 xmlfile="$1"
-[ -z "${CSGSHARE}" ] && die "${0##*/}: CSGSHARE not defined"
+CSGSHARE="$(csg_call --show-share)"
 [ -f "${CSGSHARE}/xml/$xmlfile" ] || die "${0##*/}: Error, did not find ${CSGSHARE}/xml/$xmlfile"
 
 trunc=""

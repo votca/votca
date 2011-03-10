@@ -2,10 +2,10 @@ SHELL=/bin/bash
 all: check hgid.tex programs_submake scripts_submake xml_submake
 
 check:
-	@if ! which csg_property &>/dev/null; then\
+	@if ! which csg_call &>/dev/null; then\
 	  echo '#################################';\
 	  echo '#                               #';\
-	  echo '#  Could not find csg_property  #';\
+	  echo '#  Could not find csg_call      #';\
 	  echo '#  Please source VOTCARC first  #';\
 	  echo '#                               #';\
 	  echo '#################################';\

@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-XMLS:=$(shell ls ${CSGSHARE}/xml/*.xml | xargs -n1 basename )
+XMLS:=$(shell ls `csg_call --show-share`/xml/*.xml | xargs -n1 basename )
 
 all: Makefile.incl
 
@@ -7,9 +7,9 @@ all: Makefile.incl
 dummy: ;
 
 Makefile.incl: dummy
-	@if [ -z "${CSGSHARE}" ]; then \
-	  echo CSGSHARE not defined >&2; \
-	  exit 1; \
+	@if ! which csg_call > /dev/null 2>&1; then\
+	  echo csg_call not found;\
+	  exit 1;\
 	fi
 	echo $(XMLS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i XMLST2T=\\' > $@
 	echo >> $@

@@ -2,6 +2,8 @@ SHELL=/bin/bash
 
 #get the last two dirs from pwd
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
+TRUNC=$(shell hg root)
+TXT2TAGS=$(TRUNC)/scripts/txt2tags
 
 .PHONY: clean
 .SECONDARY:
@@ -22,14 +24,14 @@ csg_table.t2t: call2t2t.sh
 	./call2t2t.sh > $@
 
 csg_table.tex: csg_table.t2t config.t2t
-	./txt2tags -t tex --no-header --infile $< --outfile $@
+	$(TXT2TAGS) -t tex --no-header --infile $< --outfile $@
 	sed -i -e 's/{tabular}/{longtable}/' $@
 
 %.t2t: script2t2t.sh
 	[ $@ = "config.t2t" ] && cp ../$@ . || ./script2t2t.sh $* > $@	
 
 %.tex: %.t2t config.t2t
-	./txt2tags -t tex --no-header --infile $< --outfile $@
+	$(TXT2TAGS) -t tex --no-header --infile $< --outfile $@
 
 clean: 
 	rm -f $(SCRIPTST2T) csg_table.t2t config.t2t

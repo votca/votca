@@ -33,6 +33,7 @@ echo -e "label($script)"
 
 #Here comes the magic:
 #-header in trash
+#-remove script version line
 #-space at begining and end are removed
 #-optionlines (-[^ ]) -> - ``--option`` text
 #-usageline -> usage: ``code``

@@ -1,6 +1,6 @@
 SHELL=/bin/bash
-BINS:=$(shell ls `dirname \`which csg_property\``/csg_* | xargs -n1 basename )
-BINS2:=$(shell ls `dirname \`which csg_property\``/multi_g_* | xargs -n1 basename )
+BINS:=$(shell ls `dirname \`which csg_call\``/csg_* | xargs -n1 basename )
+BINS2:=$(shell ls `dirname \`which csg_call\``/multi_g_* | xargs -n1 basename )
 
 all: Makefile.incl
 
@@ -8,19 +8,13 @@ all: Makefile.incl
 dummy: ;
 
 Makefile.incl: dummy
-	@if [ -z "${CSGSHARE}" ]; then \
-	  echo CSGSHARE not defined >&2; \
-	  exit 1; \
-	fi
-	@if ! which csg_property > /dev/null 2>&1; then\
-	  echo csg_property not found;\
+	@if ! which csg_call > /dev/null 2>&1; then\
+	  echo csg_call not found;\
 	  exit 1;\
 	fi
 	echo $(BINS) $(BINS2)| sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINST2T=\\' > $@
 	echo >> $@
 	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINSTEX=\\' >> $@
-	echo >> $@
-	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i BINSWIKI=\\' >> $@
 	echo >> $@
 	@#just added to avoid clock screw
 	sleep 0.5
