@@ -20,6 +20,12 @@
     </desc>
   </item>
   <item>
+   <name>bondtype</name>
+    <desc>
+      Internal alias for non-bonded and bonded, set automatically
+    </desc>
+  </item>
+  <item>
     <name>min</name>
     <desc>
       lower bound of interval for potential table in which calculations are performed.
