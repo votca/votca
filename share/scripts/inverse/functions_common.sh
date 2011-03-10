@@ -59,7 +59,7 @@ export -f msg
 unset -f die
 die () {
   local pid pids c
-  msg "$(csg_banner "ERROR:" "$@")"
+  msg --to-stderr "$(csg_banner "ERROR:" "$@")"
   [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
@@ -81,8 +81,8 @@ die () {
       fi
     done
     if [ -n "${CSGLOG}" ]; then
-      echo "die: (called from $$)  CSG_MASTER_PID is $CSG_MASTER_PID"
-      echo "die: pids to kill: $pids"
+      echo "die: (called from $$)  CSG_MASTER_PID is $CSG_MASTER_PID" >&2
+      echo "die: pids to kill: $pids" >&2
     fi
     kill $pids
   else
@@ -120,7 +120,7 @@ do_external() {
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
   tags="$1 $2"
   shift 2
-  packages="$(critical $script --help)"
+  packages="$(critical -q $script --help)"
   packages="$(echo "$deps" | sed -n 's/^Used external packages://p')" || die "do_external: sed failed"
   check_for_package $packages
   [ "$quiet" = "no" ] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
@@ -452,6 +452,7 @@ add_csg_scriptdir() {
   if [ -n "$CSGSCRIPTDIR" ]; then
     #scriptdir maybe contains $PWD or something
     eval CSGSCRIPTDIR=$CSGSCRIPTDIR
+    [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
     CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
     [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
     export CSGSCRIPTDIR
@@ -496,3 +497,34 @@ csg_banner() {
   echo "####${l//?/#}"
 }
 export -f csg_banner
+
+csg_calc() {
+  local res ret=0 err="1e-6"
+  [ -z "$3" ] && die "csg_calc: Missing argument"
+  [[ -n "$(type -p awk)" ]] || die "for_all: Could not find awk"
+  case "$2" in
+    "+"|"-"|'*'|"/"|"**")
+       res="$(awk "BEGIN{print ($1)$2($3)}")" || die "csg_calc: awk 'BEGIN{print ($1)$2($3)}' failed"
+       true;;
+    '>'|'<' )
+       res="$(awk "BEGIN{print (($1)$2($3))}")" || die "csg_calc: awk 'BEGIN{print (($1)$2($3))}' failed"
+       #awk return 1 for true and 0 for false, shell exit codes are the other way around
+       ret="$((1-$res))"
+       #return value matters
+       res=""
+       true;;
+    "="|"==")
+       res="$(awk "BEGIN{print (sqrt((($1)-($3))**2)<$err)}")" || die "csg_calc: awk 'BEGIN{print (sqrt((($1)-($3))**2)<$err)}' failed"
+       #awk return 1 for true and 0 for false, shell exit codes are the other way around
+       ret="$((1-$res))"
+       #return value matters
+       res=""
+       true;;
+    *)
+       die "csg_calc: unknow operation" 
+       true;;
+  esac
+  [ -n "$res" ] && echo "$res"
+  return $ret
+}
+export -f csg_calc
