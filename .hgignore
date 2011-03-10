@@ -54,5 +54,6 @@ Package-profile_release.bash
 CMakeFiles/*
 cmake_install.cmake
 CMakeCache.txt
+install_manifest.txt
 
 CHANGELOG

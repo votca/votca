@@ -109,7 +109,7 @@ public:
      *
      * \return bead symmetry
      */
-    const byte_t getSymmetry() const { return _symmetry; }
+    byte_t getSymmetry() const { return _symmetry; }
 
     /**
      * set the position of the bead

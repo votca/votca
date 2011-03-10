@@ -2,6 +2,8 @@ votca-csg
 VOTCA Development Team 
 %%mtime(%d/%m/%Y)
 
+%!postproc(man): "^(\.TH.*) 1 "  "\1 7 "
+
 = NAME =
 
 votca-csg - The VOTCA coarse-graining engine

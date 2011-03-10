@@ -69,14 +69,15 @@ foreach(HEADER algorithm fstream iomanip iostream list map numeric sstream stdex
 endforeach(HEADER)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+set(MATH_LIBRARIES "m" CACHE STRING "math library")
+mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
 foreach(FUNC sqrt)
-  check_library_exists(m ${FUNC} "" FOUND_${FUNC})
-  if(NOT FOUND_${FUNC})
+  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
+  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
     message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-  endif(NOT FOUND_${FUNC})
+  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
 endforeach(FUNC)
-set(MATH_LIBRARIES m)
 
 ######################################
 # Include the following subdirectory # 

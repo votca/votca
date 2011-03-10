@@ -15,10 +15,10 @@
  *
  */
 
+#include <votca_config.h>
 #include <votca/tools/version.h>
 #include <iostream>
 #include "version.h"
-#include "votca_config.h"
 
 #if GMX == 50
 #include <gromacs/legacyheaders/copyrite.h>

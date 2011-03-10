@@ -1,4 +1,3 @@
-prefix=@prefix@
 prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${prefix}/@LIB@
 includedir=${prefix}/include

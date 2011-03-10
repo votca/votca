@@ -16,7 +16,7 @@
  */
 
 #include <iostream>
-#include "votca_config.h"
+#include <votca_config.h>
 
 namespace votca { namespace csg {
 

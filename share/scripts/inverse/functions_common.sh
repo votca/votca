@@ -59,7 +59,7 @@ export -f msg
 unset -f die
 die () {
   local pid pids c
-  msg "$(csg_banner "ERROR:" "$@")"
+  msg --to-stderr "$(csg_banner "ERROR:" "$@")"
   [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
@@ -81,8 +81,8 @@ die () {
       fi
     done
     if [ -n "${CSGLOG}" ]; then
-      echo "die: (called from $$)  CSG_MASTER_PID is $CSG_MASTER_PID"
-      echo "die: pids to kill: $pids"
+      echo "die: (called from $$)  CSG_MASTER_PID is $CSG_MASTER_PID" >&2
+      echo "die: pids to kill: $pids" >&2
     fi
     kill $pids
   else
@@ -120,7 +120,7 @@ do_external() {
   script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
   tags="$1 $2"
   shift 2
-  packages="$(critical $script --help)"
+  packages="$(critical -q $script --help)"
   packages="$(echo "$deps" | sed -n 's/^Used external packages://p')" || die "do_external: sed failed"
   check_for_package $packages
   [ "$quiet" = "no" ] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
@@ -141,7 +141,8 @@ export -f critical
 
 #do somefor all pairs, 1st argument is the type
 for_all (){
-  local bondtype name names interactions i j
+  local bondtype name names interactions i j quiet="no"
+  [ "$1" = "-q" ] && quiet="yes" && shift
   if [ -z "$2" ]; then
     die "for_all need at least two arguments"
   fi
@@ -153,7 +154,7 @@ for_all (){
   fi
   [[ -n "$CSGXMLFILE" ]] || die "for_all: CSGXMLFILE is undefined"
   [[ -n "$(type -p csg_property)" ]] || die "for_all: Could not find csg_property"
-  echo "For all $bondtype"
+  [ "$quiet" = "no" ] && echo "For all $bondtype" >&2
   interactions="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name)" \
     || die "for_all: csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --print name' failed"
   names=( ${interactions} )
@@ -163,7 +164,8 @@ for_all (){
     done
   done
   for name in $interactions; do
-    echo "for_all: run '$*'"
+    #print this message to stderr because $(for_all something) is used very often
+    [ "$quiet" = "no" ] && echo "for_all: run '$*'" >&2
     #we need to use bash -c here to allow things like $(csg_get_interaction_property xxx) in arguments
     #write variable defines in the front is better, that export
     #no need to run unset afterwards
@@ -188,8 +190,10 @@ csg_get_interaction_property () {
   [[ -n "$bondtype" ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
   [[ -n "$bondname" ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
-  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
-  #the --filter option will make csg_property fail, don't stop if we have an default
+  #bondtype is special -> dirty hack - removed whenever issue 13 is fixed
+  [ "$1" = "bondtype" ] && cmd="echo $bondtype" || \
+    cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
+  #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
   if ! ret="$($cmd)"; then
     [ "$allow_empty" = "no" ] && [ -z "$2" ] && \
       die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
@@ -398,9 +402,9 @@ get_number_tasks() {
   local tasks
   [ -n "$(csg_get_property --allow-empty cg.inverse.mpi.tasks)" ] && \
     msg --to-stderr "get_number_tasks: the xml option cg.inverse.mpi.tasks has been renamed to cg.inverse.parallel.tasks\nPlease remove the obsolete cg.inverse.mpi block, it is not used anyway\n"
-  tasks="$(csg_get_property cg.inverse.parallel.tasks 1)"
+  tasks="$(csg_get_property cg.inverse.parallel.tasks "auto")"
   [ "$tasks" = "auto" ] && tasks=0
-  int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number"
+  int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number or 'auto'"
   #this only work for linux
   if [ $tasks -eq 0 ] && [ -r /proc/cpuinfo ]; then
     tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')
@@ -448,6 +452,7 @@ add_csg_scriptdir() {
   if [ -n "$CSGSCRIPTDIR" ]; then
     #scriptdir maybe contains $PWD or something
     eval CSGSCRIPTDIR=$CSGSCRIPTDIR
+    [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
     CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
     [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
     export CSGSCRIPTDIR
@@ -492,3 +497,34 @@ csg_banner() {
   echo "####${l//?/#}"
 }
 export -f csg_banner
+
+csg_calc() {
+  local res ret=0 err="1e-6"
+  [ -z "$3" ] && die "csg_calc: Missing argument"
+  [[ -n "$(type -p awk)" ]] || die "for_all: Could not find awk"
+  case "$2" in
+    "+"|"-"|'*'|"/"|"**")
+       res="$(awk "BEGIN{print ($1)$2($3)}")" || die "csg_calc: awk 'BEGIN{print ($1)$2($3)}' failed"
+       true;;
+    '>'|'<' )
+       res="$(awk "BEGIN{print (($1)$2($3))}")" || die "csg_calc: awk 'BEGIN{print (($1)$2($3))}' failed"
+       #awk return 1 for true and 0 for false, shell exit codes are the other way around
+       ret="$((1-$res))"
+       #return value matters
+       res=""
+       true;;
+    "="|"==")
+       res="$(awk "BEGIN{print (sqrt((($1)-($3))**2)<$err)}")" || die "csg_calc: awk 'BEGIN{print (sqrt((($1)-($3))**2)<$err)}' failed"
+       #awk return 1 for true and 0 for false, shell exit codes are the other way around
+       ret="$((1-$res))"
+       #return value matters
+       res=""
+       true;;
+    *)
+       die "csg_calc: unknow operation" 
+       true;;
+  esac
+  [ -n "$res" ] && echo "$res"
+  return $ret
+}
+export -f csg_calc
