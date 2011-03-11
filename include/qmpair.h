@@ -80,7 +80,6 @@ public:
 
      /**
      * \brief set outer sphere lambda
-     * @param r backward rate
      */
     void setLambdaOuter(double lambda) {_lambda_outer=lambda;}
 
@@ -88,7 +87,8 @@ public:
      * \brief outer sphere lambda
      * @return outer sphere lambda
      */
-    double &lambda_outer(){return _lambda_outer;}
+    const double &getLambdaOuter() const {return _lambda_outer;}
+    //double &getLambdaOuter() {return _lambda_outer;}
 
     /**
      * \brief first crg unit (might be ghost copy for pbc image)
