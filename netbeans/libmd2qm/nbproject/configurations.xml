@@ -12,7 +12,9 @@
       <itemPath>../../src/libmd2qm/calculators/generate_nrgs.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/histintegrals.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/integrals.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/jortnerrates.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/marcusrates.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/marcusrateslambdaouter.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/polymerrates.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/polymerrates.h</itemPath>
