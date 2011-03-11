@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
+set(PROJECT_VERSION "1.2.0-dev")
+
 project(csgapps)
 
 file(GLOB_RECURSE DIRS */CMakeLists.txt)
