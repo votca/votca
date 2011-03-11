@@ -6,7 +6,7 @@ add_custom_target(csg_include_links DEPENDS votca/csg)
 set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM TRUE)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-foreach(PROG template template_threaded)
+foreach(PROG template_serial template_threaded)
   file(GLOB ${PROG}_SOURCES ${PROG}.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   add_dependencies(${PROG} csg_include_links)

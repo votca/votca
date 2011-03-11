@@ -1,20 +1,26 @@
+#change the name here or run cmake -DNAME="XXX"
+set(NAME "template_serial" CACHE STRING "Name of the csg app")
+
 cmake_minimum_required(VERSION 2.6)
 
-project(template)
+project(${NAME})
 
 enable_language(CXX)
 
 FIND_PACKAGE(PkgConfig)
 #only check for libvotca_csg, because it depends on libvotca_tools
-#do not use REQUIRED here, we have a better error message then pkgconfig
 #do not use find_package to avoid extra dependencies
+#do not use REQUIRED here, we have a better error message then pkgconfig
 PKG_CHECK_MODULES(VOTCA_CSG libvotca_csg)
 if (NOT VOTCA_CSG_FOUND)
   message(FATAL_ERROR "libvotca_csg not found, source VOTCARC.")
 endif (NOT VOTCA_CSG_FOUND)
-add_definitions( ${VOTCA_CSG_CFLAGS} )
+find_library(LIB_CSG votca_csg HINTS ${VOTCA_CSG_LIBRARY_DIRS})
 include_directories( ${VOTCA_CSG_INCLUDE_DIRS} )
-link_directories( ${VOTCA_CSG_LIBRARY_DIRS} )
 
-add_executable(template template.cc)
-target_link_libraries(template ${VOTCA_CSG_LIBRARIES})
+file(GLOB ${NAME}_SOURCES ${NAME}*.cc)
+#add extra source files here
+add_executable(${NAME} ${${NAME}_SOURCES})
+target_link_libraries(${NAME} ${LIB_CSG})
+install(TARGETS ${NAME} RUNTIME DESTINATION bin)
+set_target_properties(${NAME} PROPERTIES OUTPUT_NAME csg_${NAME})
