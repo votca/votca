@@ -13,6 +13,8 @@
 #include "calculators/polymerrates.h"
 #include "calculators/pairdump.h"
 #include "calculators/CurrentDensity.h"
+#include "calculators/jortnerrates.h"
+#include "calculators/marcusrateslambdaouter.h"
 
 void CalculatorFactory::RegisterAll(void)
 {
@@ -29,4 +31,6 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
         Calculators().Register<CurrentDensity>("currden");
+        Calculators().Register<JortnerRates>("jortnerrates");
+        Calculators().Register<MarcusRatesLambdaOuter>("marcusrateslambdaouter");
 }
