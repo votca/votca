@@ -14,5 +14,4 @@ foreach(PROG template template_threaded)
  install(FILES ${${PROG}_SOURCES} DESTINATION @DATA@/template)
 endforeach(PROG)
 
-install(FILES Makefile.template DESTINATION @DATA@/template RENAME Makefile)
 install(FILES CMakeLists.txt.template DESTINATION @DATA@/template RENAME CMakeLists.txt)
