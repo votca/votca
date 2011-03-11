@@ -10,6 +10,7 @@
 
 
 #include "paircalculator.h"
+#include <math.h>
 
 class JortnerRates : public PairCalculator
 {
@@ -25,6 +26,7 @@ private:
     double _kT;
     double _omegavib;
     int _nmaxvib;
+     int Factorial(int i);
 };
 
 inline void JortnerRates::Initialize(QMTopology *top, Property *options){
@@ -38,7 +40,7 @@ inline void JortnerRates::EvaluatePair(QMTopology *top, QMPair* pair){
     double rate_12 = 0.0;
     double rate_21 = 0.0;
     double Jeff2 = pair->calcJeff2();
-    double lambda_outer = pair->lambda_outer();
+    double lambda_outer = pair->getLambdaOuter();
     CrgUnit *crg1 = pair->first;
     CrgUnit *crg2 = pair->second;
     /// prefactor for future modifications
@@ -54,21 +56,32 @@ inline void JortnerRates::EvaluatePair(QMTopology *top, QMPair* pair){
     /// electrostatics are taken into account in qmtopology and are contained in Energy
     /// total free energy difference
     double dG = dG_field + dG_en;
-    /// do loop over excited vibrations
+    
     int nn;
     for (nn = 0; nn<=_nmaxvib; nn++) {
         /// Jortner rate from first to second
-    rate_12 = rate_12 + prefactor * sqrt(M_PI/(lambda_outer * _kT)) * Jeff2 *
+    dG = dG_field + dG_en;
+    rate_12 = rate_12 + prefactor * sqrt(M_PI/(lambda_outer * _kT)) * Jeff2 * exp(-huang_rhys) * pow(huang_rhys,nn) / Factorial(nn) *
             exp (-(dG + nn*_omegavib + lambda_outer)*(dG + nn*_omegavib +lambda_outer)/(4*_kT*lambda_outer))/hbar_eV;
     /// Jortner rate from second to first (dG_field -> -dG_field)
     dG = -dG_field - dG_en;
-    rate_21 = rate_21 + prefactor * sqrt(M_PI/(lambda_outer * _kT)) * Jeff2 *
+    rate_21 = rate_21 + prefactor * sqrt(M_PI/(lambda_outer * _kT)) * Jeff2 * exp(-huang_rhys) * pow(huang_rhys,nn) / Factorial(nn) *
             exp (-(dG + nn*_omegavib +lambda_outer)*(dG + nn*_omegavib +lambda_outer)/(4*_kT*lambda_outer))/hbar_eV;
     }
     pair->setRate12(rate_12);
+    //cout<<rate_12;
     pair->setRate21(rate_21);
 }
 
+int JortnerRates::Factorial(int i) {
+    int k,j;
+k=1;
+for(j=1;j<i;j++)
+  {
+  k=k*(j+1);
+  }
+return k;
+}
 
 #endif	/* JORTNERRATES_H */
 
