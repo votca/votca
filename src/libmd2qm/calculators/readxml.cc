@@ -76,23 +76,27 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
 
         map<string,string>::iterator iter;
         for(iter=attr.begin(); iter!=attr.end(); ++iter) {
+            //cout << iter->first <<endl;
             if(iter->first == "J") {
                 Tokenizer tok(iter->second, " ");
                 tok.ConvertToVector<double>(pair->Js());
 
             }
             else if(iter->first == "rate12") {
-                pair->setRate12(lexical_cast<double>(iter->second));
+                                pair->setRate12(lexical_cast<double>(iter->second));
             }
             else if(iter->first == "rate21") {
                 pair->setRate21(lexical_cast<double>(iter->second));
             }
-            else if(iter->first == "first" || iter->first == "second") {
+            else if(iter->first == "dist" || iter->first == "Jeff" ||iter->first == "rij"  ) {
+
             }
-            else if(iter->first == "lambda_out") {
+            else if(iter->first == "lambdaout") {
                 pair->setLambdaOuter(lexical_cast<double>(iter->second));
             }
-            else
+            else if(iter->first == "first" || iter->first == "second") {
+            }
+              else
                 throw std::runtime_error("undefined property in pair: \"" + iter->first + "\"");
         }
         _top->nblist().AddPair(pair);
