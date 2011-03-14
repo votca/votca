@@ -2,6 +2,7 @@ votca-csg
 VOTCA Development Team 
 %%mtime(%d/%m/%Y)
 
+%make the manpage type 7, txt2tags does 1 by default
 %!postproc(man): "^(\.TH.*) 1 "  "\1 7 "
 
 = NAME =
