@@ -132,56 +132,67 @@ main_dir=$(get_main_dir)
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 [ -z "$filelist" ] || msg "We extra cp '$filelist' to every step to run the simulation"
 
-# Step 0 - Initialization
-update_stepnames 0
+mdrun="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.bin "mdrun")"
+[ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
 
-this_dir=$(get_current_step_dir --no-check)
-pmf_step=$(basename $this_dir)
+# if no -rerun option, run as normal
+if [[ $mdrun != *-rerun* ]]; then
 
-if [ -f $this_dir/done ]; then
-  msg "step $pmf_step is already done - skipping"0
-else 
+  # Step 0 - Initialization
+  update_stepnames 0
+
+  this_dir=$(get_current_step_dir --no-check)
+  pmf_step=$(basename $this_dir)
+
+  if [ -f $this_dir/done ]; then
+    msg "step $pmf_step is already done - skipping"0
+  else 
+    msg "---------------"
+    msg "Doing $pmf_step"
+    msg "---------------"
+    mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+    cd $this_dir || die "cd $this_dir failed"
+
+    do_external initialize pmf
+    touch "done"
+    echo "$pmf_step is done"
+    cd $main_dir
+  fi
+
+  # Step 1 - Generate configurations
+  update_stepnames 1
+  this_dir=$(get_current_step_dir --no-check)
+  last_dir=$(get_last_step_dir)
+  pmf_step=$(basename $this_dir)
   msg "---------------"
   msg "Doing $pmf_step"
   msg "---------------"
-  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
-  cd $this_dir || die "cd $this_dir failed"
 
-  do_external initialize pmf
-  touch "done"
-  echo "$pmf_step is done"
-  cd $main_dir
-fi
+  if [ -f $this_dir/done ]; then
+    msg "step $pmf_step is already done - skipping"
+  else
+    mkdir -p $this_dir || die "mkdir -p $this_dir failed"
 
-# Step 1 - Generate configurations
-update_stepnames 1
-this_dir=$(get_current_step_dir --no-check)
-last_dir=$(get_last_step_dir)
-pmf_step=$(basename $this_dir)
-msg "---------------"
-msg "Doing $pmf_step"
-msg "---------------"
+    cd $this_dir || die "cd $this_dir failed"
 
-if [ -f $this_dir/done ]; then
-  msg "step $pmf_step is already done - skipping"
+    cp_from_main_dir $filelist
+    cp_from_main_dir grompp.mdp.template 
+    cp_from_last_step confout.gro 
+    critical mv confout.gro conf.gro
+
+    do_external prepare pmf
+
+    touch "done"
+    echo "$pmf_step is done"
+    cd $main_dir
+  fi
+
 else
-  mkdir -p $this_dir || die "mkdir -p $this_dir failed"
-
-  cd $this_dir || die "cd $this_dir failed"
-
-  cp_from_main_dir $filelist
-  cp_from_main_dir grompp.mdp.template 
-  cp_from_last_step confout.gro 
-  #critical cp_from_main_dir ${grompp} start_in.mdp
-  cp_from_main_dir start_in.mdp
-  critical mv confout.gro conf.gro
-
-  do_external prepare pmf
-
-  touch "done"
-  echo "$pmf_step is done"
-  cd $main_dir
-fi
+  old_pmf="$(csg_get_property cg.non-bonded.pmf.old_pmf)"
+  [ -d "$old_pmf" ] || die "${0##*/}: old pmf dir '$old_pmf' not found"
+  msg "Preparing 'mdrun -rerun' from $old_pmf"
+  cp -r $old_pmf/step_001 .
+fi # end if no -rerun option
 
 # Step 3 - Run simulations
 update_stepnames 2

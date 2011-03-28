@@ -33,7 +33,8 @@ kBT=$(csg_get_property cg.inverse.kBT)
 
 forcefile="forces_${pullgroup0}_${pullgroup1}.d"
 potfile="pmf_${pullgroup0}_${pullgroup1}.d"
-rdffile="rdf_${pullgroup0}_${pullgroup1}.d"
+forcefile2="forces_${pullgroup0}_${pullgroup1}2.d"
+potfile2="pmf_${pullgroup0}_${pullgroup1}2.d"
 
 echo "#dist <force> error flag" > ${forcefile}
 sims="$(find ${last_dir} -type d -name "sim_???*" | sort)"
@@ -41,9 +42,13 @@ for sim in ${sims}; do
   echo "Doing ${sim}"
   dist="$(get_from_mdp pull_init1 ${sim}/grompp.mdp)"
   [ -f "${sim}/pullf.xvg" ] || die "Could not find file ${sim}/pullf.xvg"
-  force="$(${CSGSHARE}/scripts/inverse/avg_bl.awk -v col=2 ${sim}/pullf.xvg | awk '/^[^#]/{print $1,$2}')"
+  [ -f "${sim}/pullf2.xvg" ] || die "Could not find file ${sim}/pullf.xvg"
+  force1="$(${CSGSHARE}/scripts/inverse/avg_bl.awk -v col=2 ${sim}/pullf.xvg | awk '/^[^#]/{print $1,$2}')"
+  force2="$(${CSGSHARE}/scripts/inverse/avg_bl.awk -v col=2 ${sim}/pullf2.xvg | awk '/^[^#]/{print $1,$2}')"
   echo "dist: $dist force: $force"
   echo "$dist $force i" >>  ${forcefile}
+  echo "dist: $dist force: $force"
+  echo "$dist $force i" >>  ${forcefile2}
 done
 
 # Copy grompp from last sim to current dir
@@ -52,3 +57,4 @@ cp ${sim}/grompp.mdp .
 echo "Calculating pmf"
 # Integrate to get pot
 do_external table integrate --with-errors --with-S --kbT $kBT ${forcefile} ${potfile}
+do_external table integrate --with-errors --with-S --kbT $kBT ${forcefile2} ${potfile2}

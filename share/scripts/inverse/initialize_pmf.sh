@@ -29,17 +29,26 @@ fi
 pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
 pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
 conf_init=$(csg_get_property cg.non-bonded.pmf.conf_init)
-mdp_init="start_in.mdp"
 min=$(csg_get_property cg.non-bonded.pmf.from)
-dt=$(get_from_mdp dt "$mdp_init")
 rate=$(csg_get_property cg.non-bonded.pmf.rate)
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-
+mdp_init="start_in.mdp"
+mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 traj="traj.${ext}"
 
+# Generate start_in.mdp
+critical cp_from_main_dir grompp.mdp.template
+cat grompp.mdp.template | sed 's/^pull.*$//' | uniq > tmp
+sed -e "s/@STEPS@/$steps/" \
+    -e "s/@EXCL@//" \
+    -e "s/@OUT@/0/" tmp > ${mdp_init}
+rm tmp
+
+dt=$(get_from_mdp dt "$mdp_init")
+
 conf_in=$(csg_get_property --allow-empty cg.non-bonded.pmf.conf_in)
-if [! -z "$conf_in" ]; then
+if [ ! -z "$conf_in" ]; then
     msg "Initial configuration specified in xml, using $conf_in"
     mkdir step_000
     conf_out=$(csg_get_property cg.non-bonded.pmf.conf_in)
@@ -48,17 +57,11 @@ if [! -z "$conf_in" ]; then
     exit 0
 fi
 
-# Generate start_in.mdp
-cat grompp.mdp.template | sed 's/^pull.*$//' | uniq > tmp
-sed -e "s/@TIMESTEP@/$dt/" \
-    -e "s/@STEPS@/$steps/" tmp > ${mdp_init}
-rm tmp
-
 cp_from_main_dir $filelist
-critical cp_from_main_dir grompp.mdp.template ${mdp_init} ${conf_init}  
+critical cp_from_main_dir ${conf_init}  
 
 # Run grompp to generate tpr, then calculate distance
-grompp -n index.ndx -c ${conf_init} -f ${mdp_init}
+grompp -n index.ndx -c ${conf_init} -f ${mdp_init} ${mdp_opts}
 echo -e "${pullgroup0}\n${pullgroup1}" |  g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
 dist=$(sed '/^[#@]/d' ${conf_init}.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
@@ -72,17 +75,17 @@ if [ $steps -le 0 ]; then
   rate="-$rate"
 fi
 ((steps++))
+
 msg Doing $steps steps with rate $rate
 
 sed -e "s/@DIST@/$dist/" \
     -e "s/@RATE@/$rate/" \
-    -e "s/@TIMESTEP@/$dt/" \
-    -e "s/@OUT@/0/" \
-    -e "s/@PULL_OUT@/0/" \
-    -e "s/@STEPS@/$steps/"  grompp.mdp.template > grompp.mdp
+    -e "s/@STEPS@/$steps/" \
+    -e "s/@EXCL@//" \
+    -e "s/@OUT@/0/"  grompp.mdp.template > grompp.mdp
 
 # Run simulation to generate initial setup
-grompp -n index.ndx
+grompp -n index.ndx ${mdp_opts}
 # Create traj so "run gromacs" does not die
 touch "$traj"
 do_external run gromacs_pmf

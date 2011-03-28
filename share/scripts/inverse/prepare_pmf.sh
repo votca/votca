@@ -31,18 +31,22 @@ pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
 pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
 min=$(csg_get_property cg.non-bonded.pmf.from)
 max=$(csg_get_property cg.non-bonded.pmf.to)
-dt=$(get_from_mdp dt "$mdp")
-dt=$(get_from_mdp nstxtcout "$mdp")
 rate=$(csg_get_property cg.non-bonded.pmf.rate)
+mdp_init="start_in.mdp"
+mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
 # Generate start_in.mdp
+critical cp_from_main_dir grompp.mdp.template
 cat grompp.mdp.template | sed 's/^pull.*$//' | uniq > tmp
-sed -e "s/@TIMESTEP@/$dt/" \
-    -e "s/@STEPS@/$steps/" tmp > start_in.mdp
+sed -e "s/@STEPS@/$steps/" \
+    -e "s/@EXCL@//" \
+    -e "s/@OUT@/1/" tmp > ${mdp_init}
 rm tmp
 
+dt=$(get_from_mdp dt "$mdp_init")
+
 # Run grompp to generate tpr, then calculate distance
-grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp
+grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp ${mdp_opts}
 # TODO: do not hardcode pullgroups
 echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -f conf.gro -s ${conf_start}.tpr -n index.ndx -o ${conf_start}.xvg
 
@@ -59,15 +63,15 @@ if [ $steps -le 0 ]; then
 fi
 ((steps++))
 out="$(awk "BEGIN{print int(1/$dt)}")"
-msg Doing $steps steps with rate $rate output every $out steps a $dt ps 
+msg Doing $(($steps+1)) simulations with rate $rate, output every $out steps at $dt ps 
 sed -e "s/@DIST@/$dist/" \
     -e "s/@RATE@/$rate/" \
-    -e "s/@TIMESTEP@/$dt/" \
-    -e "s/@PULL_OUT@/0/" \
-    -e "s/@STEPS@/$steps/" grompp.mdp.template > grompp.mdp
+    -e "s/@STEPS@/$steps/" \
+    -e "s/@EXCL@//" \
+    -e "s/@OUT@/1/" grompp.mdp.template > grompp.mdp
 
 # Run simulation to generate initial setup
-grompp -n index.ndx
+grompp -n index.ndx ${mdp_opts}
 do_external run gromacs_pmf
 
 # Wait for job to finish when running in background
