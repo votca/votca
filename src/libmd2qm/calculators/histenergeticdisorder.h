@@ -39,7 +39,7 @@ inline void CalcHistEnergeticDisorder::Initialize(QMTopology *top, Property *opt
 }
 
 inline void CalcHistEnergeticDisorder::EndEvaluate(QMTopology *top){
-    cout << "Writing Distribution of energetic disorder to file " << _outfile << endl;
+    cout << "Writing Distribution of site energy differences to file " << _outfile << endl;
     histogram.data().Save(_outfile);
 }
 
