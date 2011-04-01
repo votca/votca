@@ -24,8 +24,7 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
-#include <cgengine.h>
-#include <nblist.h>
+#include <nblistgrid.h>
 #include <beadlist.h>
 #include "csg_fmatch.h"
 #include <votca/tools/table.h>
@@ -42,7 +41,8 @@ void CGForceMatching::Initialize(void)
 {
     CsgApplication::Initialize();
     AddProgramOptions()
-        ("options", boost::program_options::value<string>(), "  options file for coarse graining");
+        ("options", boost::program_options::value<string>(), "  options file for coarse graining")
+        ("trj-force", boost::program_options::value<string>(), "  coarse-grained trajectory containing forces of already known interactions");
 }
 
 bool CGForceMatching::EvaluateOptions()
@@ -51,6 +51,10 @@ bool CGForceMatching::EvaluateOptions()
     CheckRequired("trj", "no trajectory file specified");
     CheckRequired("options", "need to specify options file");
     LoadOptions(OptionsMap()["options"].as<string>());
+
+    _has_existing_forces = false;
+    if(OptionsMap().count("trj-force"))
+        _has_existing_forces = true;
     return true;
 }
 
@@ -139,6 +143,17 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
     // resize and clear _x
     _x.resize(_col_cntr);
     _x.clear();
+
+    if(_has_existing_forces) {
+        _top_force.CopyTopologyData(top);
+        _trjreader_force = TrjReaderFactory().Create(_op_vm["trj-force"].as<string>());
+        if(_trjreader_force == NULL)
+            throw runtime_error(string("input format not supported: ") + _op_vm["trj-force"].as<string>());
+        // open the trajectory
+        _trjreader_force->Open(_op_vm["trj-force"].as<string>());
+        // read in first frame
+        _trjreader_force->FirstFrame(_top_force);
+    }
 }
 
 CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, Property *options) 
@@ -188,6 +203,10 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
 void CGForceMatching::EndEvaluate()
 {
     cout << "\nWe are done, thank you very much!" << endl;
+     if(_has_existing_forces) {
+         _trjreader_force->Close();
+        delete _trjreader_force;
+     }
 }
 
 void CGForceMatching::WriteOutFiles()
@@ -247,6 +266,16 @@ void CGForceMatching::WriteOutFiles()
 void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) 
 {
     SplineContainer::iterator spiter;
+    if(_has_existing_forces) {
+        if(conf->BeadCount() != _top_force.BeadCount())
+            throw std::runtime_error("number of beads in topology and force topology does not match");
+        for(int i=0; i<conf->BeadCount(); ++i) {
+            conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
+            vec d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
+            if(abs(d) > 1e-6)
+                throw std::runtime_error("One or more bead positions in mapped and reference force trajectory differ by more than 1e-6");
+        }
+    }
 
     for (spiter = _splines.begin(); spiter != _splines.end(); ++spiter) {
         SplineInfo *sinfo = *spiter;
@@ -298,6 +327,8 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
             _b.clear();
         }
     }
+    if(_has_existing_forces)
+        _trjreader_force->NextFrame(_top_force);
 }
 
 void CGForceMatching::FmatchAccumulateData() 
@@ -428,8 +459,24 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
 void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) 
 {
     // generate the neighbour list
-    NBList NBL;
-    NBL.setCutoff(sinfo->_options->get("fmatch.max").as<double>()); // implement different cutoffs for different interactions!
+            // generate the neighbour list
+        NBList *nb;
+
+        bool gridsearch=false;
+
+        if(_options.exists("cg.nbsearch")) {
+            if(_options.get("cg.nbsearch").as<string>() == "grid")
+                gridsearch=true;
+            else if(_options.get("cg.nbsearch").as<string>() == "simple")
+                gridsearch=false;
+            else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+        }
+        if(gridsearch)
+            nb = new NBListGrid();
+        else
+            nb = new NBList();
+
+   nb->setCutoff(sinfo->_options->get("fmatch.max").as<double>()); // implement different cutoffs for different interactions!
 
     // generate the bead lists
     BeadList beads1, beads2;
@@ -438,13 +485,13 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
 
     // is it same types or different types?
     if (sinfo->type1 == sinfo->type2)
-        NBL.Generate(beads1, true);
+        nb->Generate(beads1, true);
     else
-        NBL.Generate(beads1, beads2, true);
+        nb->Generate(beads1, beads2, true);
 
     NBList::iterator pair_iter;
     // iterate over all pairs
-    for (pair_iter = NBL.begin(); pair_iter != NBL.end(); ++pair_iter) {
+    for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
         int iatom = (*pair_iter)->first->getId();
         int jatom = (*pair_iter)->second->getId();
         double var = (*pair_iter)->dist();
@@ -471,4 +518,5 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
         SP.AddToFitMatrix(_A, var,
                 _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom, mpos, -gradient.z());
     }
+    delete nb;
 }
