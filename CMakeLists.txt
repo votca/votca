@@ -8,6 +8,10 @@ set(PROJECT_CONTACT "bugs@votca.org")
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
+if(NOT CMAKE_BUILD_TYPE)
+  #Release comes with -O3 by default
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
 
 enable_language(CXX)
 
@@ -98,3 +102,6 @@ else (TXT2TAGS_FOUND)
     COMMENT "Building CHANGELOG using copy")
 endif (TXT2TAGS_FOUND)
 add_custom_target(changelog ALL DEPENDS CHANGELOG)
+
+configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

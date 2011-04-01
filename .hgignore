@@ -53,6 +53,7 @@ Package-profile_release.bash
 
 CMakeFiles/*
 cmake_install.cmake
+cmake_uninstall.cmake
 CMakeCache.txt
 install_manifest.txt
 
