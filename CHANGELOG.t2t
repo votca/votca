@@ -8,6 +8,11 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=csg&r
 == Version in hg ==
 
 
+== Version in 1.1.2 ==
+* fixed head of votca-csg manpage
+* csg_fmatch: added support for known forces (--trj-force option)
+
+
 == Version in 1.1.1 ==
 * fixed csg_inverse --clean
 * make postupdate pressure work again
