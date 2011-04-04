@@ -8,6 +8,10 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=tools
 == Version in hg ==
 
 
+== Version in 1.1.2 ==
+* fixed head of votca-tools manpage
+
+
 == Version in 1.1.1 ==
 * just a bugfix release
 
