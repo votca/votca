@@ -6,6 +6,11 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=tools]
 
 == Version in hg ==
+* changed buildsystem to cmake
+
+
+== Version in 1.1.2 ==
+* fixed head of votca-tools manpage
 
 
 == Version in 1.1.1 ==
