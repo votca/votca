@@ -45,15 +45,25 @@ mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
 this_dir=$(get_current_step_dir --no-check)
 pmf_step=$(basename $this_dir)
 if [[ "$pmf_step" == "step_002" ]]; then
-  opts="-noappend -cpi state.cpt -maxh 36"
-fi
-
-# If sim is done, do mdrun -rerun
-if [ -f sim_done ]; then
-  traj=$(basename $(find . -maxdepth 1 -name traj.part*) )
-  mpicmd="q2start -8tn rerun -f rerun_done --nompi"
-  mdrun="mdrun -rerun ${traj} -noappend -cpi state.cpt -maxh 36 -e ener2.edr"
-  opts="-pf pullf2.xvg"
+  # Rerun traj
+  if [ -f "sim_done" ]; then
+    rm sim_done
+    traj=$(basename $(find . -maxdepth 1 -name traj.part*) )
+    mpicmd="q2start -8tn rerun -f rerun_done --nompi"
+    mdrun="mdrun -rerun ${traj} -noappend -cpi state.cpt -maxh 36 -e ener2.edr"
+    opts="-pf pullf2.xvg"
+  # Start/Continue run
+  elif [ -f "rerun_done" ] || [ -f "prep_done" ]; then
+    if [ -f "rerun_done" ]; then
+      rm rerun_done
+    elif [ -f "prep_done" ]; then
+      rm prep_done
+    fi
+    traj=$(basename $(find . -maxdepth 1 -name traj.part*) )
+    mpicmd="q2start -8tn run -f sim_done --nompi"
+    mdrun="mdrun -noappend -cpi state.cpt -maxh 36 -e ener.edr"
+    opts="-pf pullf.xvg"
+  fi
 fi
 
 # Run gromacs
