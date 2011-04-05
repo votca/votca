@@ -48,32 +48,41 @@ CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
         const vector < int>& transorbs, const unsigned int &id,
         string name, vector < vector < int > > list_atoms_monomer,
         vector < vector < double > > list_weights_monomer) {
+
+    _reorg = reorg;
+    _energy = energy;
+
     _bs.set_basis_set(basisset);
     _intcoords.define_bs(_bs);
     _intcoords.init(namecoord);
-    _intcoords.init_orbitals(_orbitals, nameorb);
+
+    if(strlen(nameorb) >0)
+        _intcoords.init_orbitals(_orbitals, nameorb);
 
     if(nameneutr[0] != 0 && namecrg[0] != 0)
         _intcoords.init_charges(nameneutr, namecrg);
 #ifdef DEBUG
     cout << "sample of the trans: " << transorb << " orbitals: " << (_orbitals.getorb(transorb))[4] << endl;
 #endif
-    if (transorbs[0] >= 0 ){
-        _orbitals.strip_orbitals(transorbs);
+    if (transorbs.size() > 0 ){
+        if(transorbs[0] >= 0)
+            _orbitals.strip_orbitals(transorbs);
     }
+
 #ifdef DEBUG
     cout << "sample of the stripped orbitals: " << (_orbitals.getorb(0))[4] << endl;
 #endif
-    _reorg = reorg;
-    _energy = energy;
     // _transorb = 0;
-    int limit;
-    if (transorbs[0] >= 0 ){
+    int limit = _orbitals.getNBasis();
+    if (transorbs.size() > 0 ) {
+      if (transorbs[0] >= 0 ) {
         limit = transorbs.size();
+     }
+    } else {
+        limit = 0;
     }
-    else{
-        limit = _orbitals.getNBasis();
-    }
+
+
     for(int i=0; i<limit; i++){
         _transorbs.push_back(i);
     }
@@ -162,16 +171,7 @@ CrgUnitType::CrgUnitType(const char * namecoord, const char * nameorb,
             get_orient(xprime, yprime, zprime, orient);
             orient.Transpose();
         } else {
-
-            orient[0][0] = 1.0;
-            orient[0][1] = 0.;
-            orient[0][2] = 0.;
-            orient[1][0] = 0.;
-            orient[1][1] = 1.0;
-            orient[1][2] = 0.;
-            orient[2][0] = 0.;
-            orient[2][1] = 0.;
-            orient[2][2] = 1.0;
+            orient.UnitMatrix();
         }
         _list_ors_monomer.push_back(orient);
 

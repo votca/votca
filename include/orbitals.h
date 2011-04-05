@@ -21,21 +21,20 @@ class orb
 {
 private :
     
-    string *bs;
+    vector<string> bs;
     double **psi;
     int NBasis; // the number of basis sets
     int read_orb_gauss(const char *);
     int read_orb_gamess(const char *);
     vector < pair<int, int> > _basis_on_atom;
     basis_set * _basis;
-    double * evl;
+    vector<double> evl;
 
     double parsenrg(string & line);
 public:
     
     static int (orb::*read_orb)(const char *) ;
     orb () {
-	bs = 0;
 	psi=0;
 	NBasis=0;
     }
@@ -60,14 +59,13 @@ public:
     void clear(){
     //    cout << "call destructor for orb" <<endl;
     	if (NBasis != 0 ){
-	    delete [] bs;
 	    delete [] psi[0];
 	    delete [] psi;
-            delete [] evl;
 	}
 	NBasis =0;
 	psi = 0;
-	bs = 0;
+	bs.clear();
+        evl.clear();
         _basis_on_atom.clear();
     }
 
@@ -80,8 +78,8 @@ public:
     	return psi[i];
     }
 
-    inline double* getevl() const {
-    	return evl;
+    inline double* getevl()  {
+    	return &evl[0];
     }
 
     void cp_orb( orb const  &A){
@@ -109,7 +107,7 @@ public:
     
     void init_orbitals (const orb & orb1 ){
 	NBasis = orb1.NBasis;
-	bs = new string [NBasis];
+	bs.resize(NBasis);
 	psi = new double* [NBasis];
 	psi[0] = new double [NBasis * NBasis];
 	bs[0]=orb1.bs[0];
@@ -120,7 +118,7 @@ public:
         for ( int i =0 ; i< NBasis*NBasis ; ++i) {
             *(psi[0]+i) = *(orb1.psi[0]+i);
         }
-        evl = new double[NBasis];
+        evl.resize(NBasis);
     }
     
     

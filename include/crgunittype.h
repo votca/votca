@@ -55,7 +55,10 @@ public:
     basis_set & GetBS(){
 	return _bs;
     }
-            
+
+    Property *getOptions() { return _options; }
+    void setOptions(Property *options) { _options = options; }
+
 private:
     basis_set         _bs;
     mol_and_orb       _intcoords;
@@ -63,6 +66,8 @@ private:
     double            _reorg;
     double            _energy;
 
+    Property *_options;
+    
     vector <unsigned int> _transorbs;
     unsigned int      _id;
     /// the name of this transport unit

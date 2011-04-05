@@ -7,11 +7,11 @@ int (orb::*orb::read_orb)(const char *)=&orb::read_orb_gauss;
 
 void orb::init_orbitals (string * basis, const int & N, const char * namefile ){
     NBasis = N;
-    bs = new string [NBasis];
+    bs.resize(NBasis);
     psi = new double* [NBasis];
     psi[0] = new double [NBasis * NBasis];
     bs[0]=basis[0];
-    evl = new double[NBasis];
+    evl.resize(NBasis);
     for ( int i = 1 ; i < NBasis ; i ++){
             bs[i] = basis[i];
             psi[i] = psi[i-1] + NBasis;
@@ -88,11 +88,16 @@ void orb::strip_orbitals (const vector < int>& a){
 
 void orb::init_orbitals_stripped(const orb& orb1, const int& nrorbs ){
     NBasis = orb1.NBasis;
-    bs = new string [NBasis];
-    psi = new double* [nrorbs];
-    evl = new double  [nrorbs];
-    psi[0] = new double [nrorbs*NBasis];
-    bs[0]=orb1.bs[0];
+    bs.resize(NBasis);
+    evl.resize(nrorbs);
+    if(nrorbs==0) {
+        psi = NULL;
+    }
+    else {
+        psi = new double* [nrorbs];
+        psi[0] = new double [nrorbs*NBasis];
+        bs[0]=orb1.bs[0];
+    }
     for(int i=1; i<nrorbs; i++){
         psi[i] = psi[i-1]+NBasis;
     }
@@ -471,10 +476,15 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
     NBasis = A.NBasis + B.NBasis;
 
     /* set up the arrays */
-    bs = new string [NBasis];
-    psi = new double* [NBasis];
-    psi[0] = new double [NBasis * NBasis];
-    evl = new double[NBasis];
+    bs.resize(NBasis);
+    evl.resize(NBasis);
+
+    if(NBasis==0)
+        psi=NULL;
+    else {
+        psi = new double* [NBasis];
+        psi[0] = new double [NBasis * NBasis];
+    }
     for ( int i = 1 ; i < NBasis ; i ++){
             psi[i] = psi[i-1] + NBasis;
     }

@@ -11,39 +11,6 @@ JCalc::~JCalc()
     _maplistfock.clear();
 }
 
-/// TODO: rewrite this using Property class
-/*void JCalc::Initialize(const string &filename)
-{
-    xmlDocPtr doc;
-    xmlNodePtr node;
-    xmlChar *key;
-
-    // open the xml file
-    //cout << filename << endl;
-    doc = xmlParseFile(filename.c_str());
-    if (doc == NULL)
-        throw runtime_error("Error on open crgunittype list: " + filename);
-
-    node = xmlDocGetRootElement(doc);
-
-    if (node == NULL) {
-        xmlFreeDoc(doc);
-        throw runtime_error("Error, empty xml document: " + filename);
-    }
-
-    if (xmlStrcmp(node->name, (const xmlChar *) "crgunit_type")) {
-        xmlFreeDoc(doc);
-        throw runtime_error("Error, xml file not labeled crgunit_type: " + filename);
-    }
-    // parse xml tree
-    for (node = node->xmlChildrenNode; node != NULL; node = node->next) {
-        key = xmlNodeListGetString(doc, node->xmlChildrenNode, 1);
-        if (!xmlStrcmp(node->name, (const xmlChar *) "ChargeUnitType")) {
-            ParseCrgUnitType(doc, node->xmlChildrenNode);
-        }
-    }
-}*/
-
 void JCalc::Initialize(const string& filename){
     load_property_from_xml(_options, filename.c_str());
 
@@ -70,7 +37,6 @@ void JCalc::ParseCrgUnitTypes(Property &options){
 
     for (iter = types.begin();iter != types.end(); ++iter){
         namecoord = (*iter)->get("posname").as<string>();
-        nameorb = (*iter)->get("orbname").as<string>();
         bool estatics = (*iter)->exists("nameneutr");
         if(estatics==true){
             nameneutr = (*iter)->get("nameneutr").as<string>();
@@ -79,7 +45,10 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         reorg = (*iter)->get("reorg").as<double>();
         energy = (*iter)->get("energy").as<double>();
         transorbs = (*iter)->get("transorb").as<vector <int> >();
- 
+
+        if(transorbs.size() > 0)
+            nameorb = (*iter)->get("orbname").as<string>();
+
         name = (*iter)->get("name").as<string>();
         namebasis = (*iter)->get("basisset").as<string>();
 
@@ -114,8 +83,8 @@ void JCalc::ParseCrgUnitTypes(Property &options){
                 nameneutr.c_str(), namecrg.c_str(), namebasis,
                 reorg, energy, transorbs, _listCrgUnitType.size(),
                 name, list_atoms_monomer, list_weights_monomer);
+        crgunittype->setOptions(*iter);
         _mapCrgUnitByName.insert(make_pair(name, crgunittype));
-
         _listCrgUnitType.push_back(crgunittype);
 
         clearListList(list_atoms_monomer);
