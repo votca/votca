@@ -6,6 +6,12 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 
 == Version in hg ==
+* changed buildsystem to cmake
+
+
+== Version in 1.1.2 ==
+* fixed head of votca-csg manpage
+* csg_fmatch: added support for known forces (--trj-force option)
 
 
 == Version in 1.1.1 ==
