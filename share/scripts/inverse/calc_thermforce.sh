@@ -43,7 +43,7 @@ if [ $adress_type = "sphere" ]; then
   #note: in the spehere case (no symmetrizing necessary) infile stays dens.${name}.xvg, so this gets used for next step
   :
 else
-  outfile="$(critical mktemp sym_density_${name}.XXXXX)"
+  outfile="${name}.sym.dens"
   adressc="$(get_from_mdp adress_reference_coords "$mdp" "0")"
   ref="$(echo "$adressc" | awk '{if (NF<1) exit 1; print "$1";}')" || die "${0##*/}: we need at least one number in adress_reference_coords, but got '$adressc'"
   critical do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$ref"
@@ -61,27 +61,27 @@ sp_max=$(csg_get_interaction_property tf.spline_end )
 sp_step="$(csg_get_interaction_property tf.spline_step)"
 
 #resample to a bigger grid
-bigger="$(critical mktemp bigger_density_${name}.XXXXX)"
+bigger="${name}.extended.dens"
 critical csg_resample --type cubic --in "$infile" --out "$bigger" --grid "$sp_min:$step:$sp_max" --comment "$comment"
 
 #calculate derivative of the density using csg_resample on a spline grid
-forcefile="$(critical mktemp tf_${name}.XXXXX)"
-smooth="$(critical mktemp smooth_density_${name}.XXXXX)"
+forcefile="tf_${name}"
+smooth="${name}.smooth.dens"
 critical csg_resample --type cubic --in "$bigger" --out "$smooth" --grid "$sp_min:$step:$sp_max" --derivative "$forcefile" --fitgrid "$sp_min:$sp_step:$sp_max" --comment "$comment"
 
 #multiply the prefactor on
 prefactor="$(csg_get_interaction_property tf.prefactor)"
 cg_prefactor="$(csg_get_interaction_property --allow-empty tf.cg_prefactor)"
 [ -z "$cg_prefactor" ] && echo "Using fixed prefactor $prefactor" || echo "Using linear interpolation of prefactors. Ex. pref: $prefactor CG. pref : $cg_prefactor"
-forcefile_pref="$(critical mktemp tf_with_prefactor_${name}.XXXXX)"
+forcefile_pref="tf_with_prefactor_${name}"
 do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor $cg_prefactor
 
 #cut it down to the range min to max
-forcefile_smooth="$(critical mktemp tf_smooth_${name}.XXXXX)"
+forcefile_smooth="tf_smooth_${name}"
 do_external table smooth_borders --infile "$forcefile_pref" --outfile "$forcefile_smooth" --xstart "$min" --xstop "$max"
 
 #integrate the force table
-pot_file="$(critical mktemp tf_potential_${name}.XXXXX)"
+pot_file="tf_potential_${name}"
 do_external table integrate "$forcefile_smooth" "${pot_file}"
 do_external table linearop "${pot_file}" "${endfile}" -1.0 0.0
 
