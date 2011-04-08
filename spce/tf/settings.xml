@@ -28,7 +28,7 @@
       <post_add></post_add>
       <!-- name of the table for gromacs run -->
       <gromacs>
-        <table>table_tf.xvg</table>
+        <table>tabletf.xvg</table>
       </gromacs>
     </inverse>
   </non-bonded>
@@ -57,7 +57,7 @@
                <opts></opts>
        </grompp>
        <mdrun>
-               <opts>-tablea table_tf.xvg</opts>
+               <opts></opts>
        </mdrun>
 
     </gromacs>

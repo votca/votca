@@ -133,6 +133,6 @@ adress_hy_width		= 1.5
 adress_interface_correction	=thermoforce
 adress_reference_coords = 4 4 4
 
-adress_tf_full_box = yes
+
 adress_cg_grp_names = CG
 
