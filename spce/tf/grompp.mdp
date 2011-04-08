@@ -3,8 +3,7 @@ integrator               = sd
 ; Start time and timestep in ps
 tinit                    = 0
 dt                       = 0.002
-;dt			= 0.0005
-nsteps                   = 100
+nsteps                   = 100000
 ; For exact run continuation or redoing part of a run
 init_step                = 0
 ; mode for center of mass motion removal
@@ -80,26 +79,6 @@ optimize_fft             = no
 ; IMPLICIT SOLVENT ALGORITHM
 implicit_solvent         = No
 
-; GENERALIZED BORN ELECTROSTATICS
-; Algorithm for calculating Born radii
-gb_algorithm             = Still
-; Frequency of calculating the Born radii inside rlist
-nstgbradii               = 1
-; Cutoff for Born radii calculation; the contribution from atoms
-; between rlist and rgbradii is updated every nstlist steps
-rgbradii                 = 2
-; Dielectric coefficient of the implicit solvent
-gb_epsilon_solvent       = 80
-; Salt concentration in M for Generalized Born models
-gb_saltconc              = 0
-; Scaling factors used in the OBC GB model. Default values are OBC(II)
-gb_obc_alpha             = 1
-gb_obc_beta              = 0.8
-gb_obc_gamma             = 4.85
-; Surface tension (kJ/mol/nm^2) for the SA (nonpolar surface) part of GBSA
-; The default value (2.092) corresponds to 0.005 kcal/mol/Angstrom^2.
-sa_surface_tension       = 2.092
-
 ; OPTIONS FOR WEAK COUPLING ALGORITHMS
 ; Temperature coupling  
 Tcoupl                   = no
@@ -127,12 +106,10 @@ gen-vel                  = no
 constraints              = none
 
 adress_type 		= sphere
-;adress_const_wf		= 1
 adress_ex_width 	= 1.5
 adress_hy_width		= 1.5
 adress_interface_correction	=thermoforce
 adress_reference_coords = 4 4 4
-
 
 adress_cg_grp_names = CG
 

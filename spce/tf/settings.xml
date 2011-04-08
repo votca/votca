@@ -5,7 +5,7 @@
     <name>SOL</name>
     <!-- types involved in this interaction -->
    
-    <!-- dimension + grid spacing of tables for calculations -->
+    <!-- thermodynmic force: apply in this range -->
     <min>1.4</min>
     <max>3.1</max>
     <step>0.01</step>
