@@ -39,7 +39,7 @@ else
 fi
 
 name=$(csg_get_interaction_property name)
-max=$(csg_get_interaction_property max)
+max=$(csg_get_interaction_property tf.spline_end)
 step=$(csg_get_interaction_property step)
 bins=$(csg_calc $max / $step )
 
