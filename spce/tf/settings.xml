@@ -1,0 +1,79 @@
+<cg>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the index group to calculate density from -->
+    <name>SOL</name>
+    <!-- types involved in this interaction -->
+   
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>1.4</min>
+    <max>3.1</max>
+    <step>0.01</step>
+    <!--spline:offset beyond the hyrbid zone to take into account for fitting the spline-->
+    <tf>
+      <spline_start>0.9</spline_start>
+      <spline_end>3.6</spline_end>
+      <spline_step>0.4</spline_step>
+      <molname>SOL</molname>
+      <prefactor>0.01382</prefactor> 
+    </tf>
+    <inverse>
+      <!-- target distribution -->
+      <target>dens.SOL.xvg</target>
+      <!-- update cycles -->
+      <do_potential>1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_tf.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+  
+  <!-- general options for inverse script -->
+  <inverse>
+    <!-- 300*0.00831451 gromacs units -->
+    <kBT>2.49435</kBT>
+    <!-- use gromacs as simulation program -->
+    <program>gromacs</program>
+    <!-- gromacs specific options -->
+    <gromacs>
+      <!-- trash so many frames at the beginning -->
+      <equi_time>0</equi_time>
+      <!-- grid for table*.xvg !-->
+      <table_bins>0.01</table_bins>
+      <!-- cut the potential at this value (gromacs bug) -->
+      <pot_max>1000000</pot_max>
+      <!-- extend the tables to this value -->
+      <table_end>7.1</table_end>
+      <!-- topology + trajectory. Be careful, do not change yet! -->
+      <topol>topol.tpr</topol>
+      <traj>traj.xtc</traj>
+	<cutoff_check>no</cutoff_check>
+	<grompp>
+               <opts></opts>
+       </grompp>
+       <mdrun>
+               <opts>-tablea table_tf.xvg</opts>
+       </mdrun>
+
+    </gromacs>
+    <!-- these files are copied for each new run -->
+    <filelist>adress_spce.itp grompp.mdp topol.top table.xvg index.ndx table_CG_CG.xvg</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>300</iterations_max>
+    <!-- ibi: inverse biltzmann imc: inverse monte carlo tf: thermody force -->
+    <method>tf</method>
+    <!-- directory for user scripts -->
+    <scriptdir></scriptdir>
+    <!-- write log to this file -->
+    <log_file>inverse.log</log_file>
+    <!-- write restart step to this file -->
+    <restart_file>restart_points.log</restart_file>
+
+  </inverse>
+</cg>
+

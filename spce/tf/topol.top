@@ -1,0 +1,24 @@
+; AdResS SPC/E Water
+; Scale all atom parameters corresponding to w=1
+
+[ defaults ]
+; nbfunc   comb-rule	gen-pairs	fudgeLJ	fudgeQQ
+  1	   1		no		1.0	1.0
+
+[ atomtypes ]
+;name  mass        charge    ptype  C6             C12           ; sigma     epsilon
+ OW    15.99940   -0.8476    A      2.617065E-03   2.633456E-06  ; 0.316557  0.650194
+ HW    1.00800     0.4238    A      0.000000E+00   0.000000E+00
+ COM    0.00000     0.0000    V      0.000000E+00   0.000000E+00
+
+[ nonbond_params ]
+; i   j   func c6             c12
+  COM  COM  1    0.000000E+00   1.000000E+00
+
+#include "adress_spce.itp"
+
+[ system ]
+AdResS
+
+[ molecules ]
+SOL    17041 

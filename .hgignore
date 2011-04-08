@@ -2,18 +2,15 @@ syntax: glob
 
 *~
 .*.swp
-spce/ibm/step_*
-spce/realtime/step_*
-spce/imc/step_*
-methanol/ibm/step_*
-methanol/imc/step_*
+*/*/step_*
+*.orig
 
 topol.tpr
 traj.trr
 traj.xtc
 md.log
 mdout.mdp
-state.cpt
+state*.cpt
 ener.edr
 confout.gro
 \#*
@@ -22,4 +19,4 @@ confout.gro
 *.force
 angle.dist.*
 bond.dist.*
-log_*
+*.log

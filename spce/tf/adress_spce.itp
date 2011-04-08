@@ -1,0 +1,39 @@
+;AdResS SPC/E Water
+;Scale all atom parameters corresponding to w=1
+
+[ moleculetype ]
+; molname      nrexcl
+SOL		2
+
+[ atoms ]
+; id	at type	res nr	residu name	at name
+1 OW	1  SOL	     OW	       1	-0.8476
+2 HW	1  SOL	     HW1       1	 0.4238
+3 HW	1  SOL	     HW2       1	 0.4238
+4 COM	1  SOL	     COM        2	 0.0000
+
+[ virtual_sites3 ]
+; Site from funct a d
+4 1 2 3 1 0.05595E+00 0.05595E+00
+
+#ifdef FLEXIBLE
+[ bonds ]
+; i	j	funct	length	force.c.
+  1     2	1	0.1	345000
+  1     3	1	0.1	345000
+  
+[ angles ]
+; i	 j	k	funct	angle	force.c.
+  2      1	3	1	109.47  383
+
+#else
+[ settles ]
+; i     j       funct   length
+1       1       0.1     0.1633
+#endif
+
+[ exclusions ]
+1       2       3       4
+2       1       3       4
+3       1       2       4
+4       1       2       3
