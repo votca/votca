@@ -1,4 +1,4 @@
-file(GLOB VOTCA_SCRIPTS *.sh *.pl)
+file(GLOB VOTCA_SCRIPTS *.sh *.pl *.py)
 file(GLOB VOTCA_SCRIPT_FUNCTIONS functions_*.sh)
 list(REMOVE_ITEM VOTCA_SCRIPTS ${VOTCA_SCRIPT_FUNCTIONS})
 file(GLOB VOTCA_FILES csg_table *.pm *.m *.octave) 
