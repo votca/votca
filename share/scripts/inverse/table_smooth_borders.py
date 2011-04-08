@@ -39,7 +39,6 @@ def weight(x):
 
 options = ["xstart=", "xstop=", "infile=", "outfile=","help"]
 
-#TODO --help option
 try:
     opts, args = getopt.getopt(sys.argv[1:], "", options)
 except getopt.GetoptError, err:

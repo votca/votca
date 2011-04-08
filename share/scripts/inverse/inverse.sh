@@ -109,12 +109,12 @@ unset cpath
 
 #other stuff we need, which comes from xmlfile -> must be done here
 #define $CSGRESTART
-CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
+CSGRESTART="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
 CSGRESTART="${CSGRESTART##*/}"
 export CSGRESTART
 
 #get csglog
-CSGLOG="$(csg_get_property cg.inverse.log_file)"
+CSGLOG="$(csg_get_property cg.inverse.log_file "inverse.log")"
 CSGLOG="$PWD/${CSGLOG##*/}"
 export CSGLOG
 

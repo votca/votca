@@ -26,18 +26,15 @@ EOF
 fi
 
 step_nr=$(get_current_step_nr)
-#TODO rename this to inverse.do
-scheme=( $(csg_get_interaction_property inverse.do_tf 1) )
+scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
 scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
    echo "Update tf ${name} : yes"
-#update ibm
-    msg "Calc density"
     sim_prog="$(csg_get_property cg.inverse.program)" 
     do_external density $sim_prog
-    do_external calc thermforce
+    do_external calc thermforce ${name}.dist.new ${name}.dpot.new
 else
    echo "Update tf ${name} : no"
    min=$(csg_get_interaction_property min)

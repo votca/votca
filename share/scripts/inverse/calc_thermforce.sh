@@ -44,8 +44,9 @@ if [ $adress_type = "sphere" ]; then
   :
 else
   outfile="$(critical mktemp sym_density_${name}.XXXXX)"
-  adressc="$(get_from_mdp adress_reference_coords "$mdp")"
-  critical do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$adressc"
+  adressc="$(get_from_mdp adress_reference_coords "$mdp" "0")"
+  ref="$(echo "$adressc" | awk '{if (NF<1) exit 1; print "$1";}')" || die "${0##*/}: we need at least one number in adress_reference_coords, but got '$adressc'"
+  critical do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$ref"
   infile="${outfile}"
 fi
 
@@ -69,8 +70,8 @@ smooth="$(critical mktemp smooth_density_${name}.XXXXX)"
 critical csg_resample --type cubic --in "$bigger" --out "$smooth" --grid "$sp_min:$step:$sp_max" --derivative "$forcefile" --fitgrid "$sp_min:$sp_step:$sp_max" --comment "$comment"
 
 #multiply the prefactor on
-prefactor="$(csg_get_property cg.tf.prefactor)"
-cg_prefactor="$(csg_get_property --allow-empty cg.tf.cg_prefactor)"
+prefactor="$(csg_get_interaction_property tf.prefactor)"
+cg_prefactor="$(csg_get_interaction_property --allow-empty tf.cg_prefactor)"
 [ -z "$cg_prefactor" ] && echo "Using fixed prefactor $prefactor" || echo "Using linear interpolation of prefactors. Ex. pref: $prefactor CG. pref : $cg_prefactor"
 forcefile_pref="$(critical mktemp tf_with_prefactor_${name}.XXXXX)"
 do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor $cg_prefactor

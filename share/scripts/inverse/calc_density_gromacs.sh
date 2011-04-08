@@ -25,13 +25,23 @@ EOF
    exit 0
 fi
 
-dt=$(get_from_mdp dt "grompp.mdp")
-equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
-first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
-nsteps=$(get_from_mdp nsteps "grompp.mdp")
+sim_prog="$(csg_get_property cg.inverse.program)"
+
+if [ "$sim_prog" = "gromacs" ]; then
+  topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
+  [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
+
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  traj="traj.${ext}"
+  [ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
+else
+  die "${0##*/}: Simulation program '$sim_prog' not supported yet"
+fi
 
 name=$(csg_get_interaction_property name)
-
+max=$(csg_get_interaction_property max)
+step=$(csg_get_interaction_property step)
+bins=$(csg_calc $max / $step )
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
@@ -39,27 +49,23 @@ adress_type=$(get_from_mdp adress_type "$mdp")
 
 echo "Adress type: $adress_type"
 
-
-begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
-
-#TODO rename that to ALL or "*"
-densigroup="$(csg_get_interaction_property inverse.gromacs.density_group "UNDEF")"
-g_densopt="$(csg_get_property --allow-empty cg.inverse.gromacs.g_density_options)"
-
-#TODO check this
-if [ $densigroup = "UNDEF" ]; then
-  index_sel="$name"
-  echo "Calculating density for $name"
+equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
+first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
+mol="$(csg_get_interaction_property tf.molname "*")"
+if [ "$adress_type" = "sphere" ]; then
+  adressc="$(get_from_mdp adress_reference_coords "$mdp" "0 0 0")"
+  ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
+  axis="r"
+  opts="--ref $ref"
 else
-  index_sel="$densigroup"
+  axis="x"
 fi
 
-if [ $adress_type = "sphere" ]; then
-  #TODO hardcoded values
-  critical csg_spheredens --trj traj.trr --top topol.tpr --bin 0.01 --out "dens.$name.xvg" --begin "${begin}" --molname "$densigroup"
+msg "Calculating density for $name (molname $mol) on axis $axis"
+if is_done "density_analysis"; then
+  echo "density analysis is already done"
 else
-  #TODO hardcoded stuff
-  dens_prog="g_density -n index.ndx -d x $g_densopt"
-  echo "Running $dens_prog"
-  echo -e "$index_sel" | critical $dens_prog -b "${begin}" -o "dens.$name.xvg"
+  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" $opts
+  critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
+  mark_done "density_analysis"
 fi
