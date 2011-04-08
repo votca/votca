@@ -195,11 +195,13 @@ inline std::ostream &operator<<(std::ostream &out, const vec& v)
 
 inline std::istream &operator>>(std::istream &in, vec& v)
 {
-    if(in.peek() != '[')
+    char c;
+    in.get(c);
+    if(c != '[') {
         throw std::runtime_error("error, invalid character in vector string");
+    }
     
     string str;
-    char c;
     while (in.good()) {
         in.get(c);
         if(c==']') { // found end of vector
@@ -211,9 +213,12 @@ inline std::istream &operator>>(std::istream &in, vec& v)
             v.setX(d[0]);
             v.setY(d[1]);
             v.setZ(d[2]);
+	    return in;
         }
         str += c;
     }
+    throw std::runtime_error("did not find closing bracket in string to vec conversion");
+
     return in;
 }
     
