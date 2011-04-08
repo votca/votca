@@ -20,9 +20,12 @@
 
 #include <iostream>
 #include <math.h>
+#include <stdexcept>
+#include <string>
+#include "tokenizer.h"
 
 namespace votca { namespace tools {
-
+using namespace std;
 /**
     \brief Vector class for a 3 component vector
 
@@ -192,10 +195,26 @@ inline std::ostream &operator<<(std::ostream &out, const vec& v)
 
 inline std::istream &operator>>(std::istream &in, vec& v)
 {
-      in >> v.x();
-      in >> v.y();
-      in >> v.z();
-      return in;
+    if(in.peek() != '[')
+        throw std::runtime_error("error, invalid character in vector string");
+    
+    string str;
+    char c;
+    while (in.good()) {
+        in.get(c);
+        if(c==']') { // found end of vector
+            Tokenizer tok(str, ",");
+            vector<double> d;
+            tok.ConvertToVector(d);
+            if(d.size() != 3)
+                throw std::runtime_error("error, invalid number of entries in vector");
+            v.setX(d[0]);
+            v.setY(d[1]);
+            v.setZ(d[2]);
+        }
+        str += c;
+    }
+    return in;
 }
     
 /// dot product
