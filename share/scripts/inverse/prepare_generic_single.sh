@@ -31,6 +31,7 @@ max=$(csg_get_interaction_property max )
 step=$(csg_get_interaction_property step )
 comment="$(get_table_comment)"
 main_dir=$(get_main_dir)
+method="$(csg_get_property cg.inverse.method)"
 
 if [ -f "${main_dir}/${name}.pot.in" ]; then
   msg "Using given table ${name}.pot.in for ${name}"
@@ -43,7 +44,12 @@ else
   msg "Using initial guess from dist ${target} for ${name}"
   #copy+resample all target dist in $this_dir
   critical csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
-  # RDF_to_POT.pl just does log g(r) + extrapolation
-  do_external rdf pot ${name}.dist.tgt ${name}.pot.new
+  if [ "$method" = "tf" ]; then
+    #initial guess from density
+    do_external calc thermforce ${name}.dist.tgt ${name}.pot.new
+  else
+    # initial guess from rdf
+    do_external rdf pot ${name}.dist.tgt ${name}.pot.new
+  fi
 fi
 

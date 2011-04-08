@@ -59,7 +59,7 @@ Allowed options:
     --infile    FILE  input file
     --outfile   FILE  output file
 """ % {'name': sys.argv[0],'ver': '%version%'}
-      sys.exit(2)
+      sys.exit(0)
     elif o == "-v":
         verbose = True
     elif o == "--xstart":
