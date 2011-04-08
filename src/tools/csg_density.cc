@@ -109,11 +109,11 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
       _rmax = OptionsMap()["rmax"].as<double>();
 
     if (_axisname=="r") {
-      if(!OptionsMap().count("reference"))
+      if(!OptionsMap().count("ref"))
          _ref = a/2+b/2+c/2;
        cout << "Using referece point: " << _ref << endl;
     } 
-    else if(OptionsMap().count("reference"))
+    else if(OptionsMap().count("ref"))
         throw std::runtime_error("reference center can only be used in case of spherical density");
        
     _dist.Initialize(0, _rmax, _nbin);
@@ -177,7 +177,7 @@ void CsgDensityApp::Initialize()
              ("rmax", boost::program_options::value<double>(), "rmax (default for [r] =min of all box vectors/2, else l )")
              ("scale", boost::program_options::value<double>(&_scale)->default_value(1.0), "scale factor for the density")
              ("molname", boost::program_options::value<string>(&_molname)->default_value("*"), "molname")
-             ("filter", boost::program_options::value<string>(&_filter)->default_value("*"), "filter bead names");
-             //("ref", boost::program_options::value<&_ref>(), "reference zero point");
+             ("filter", boost::program_options::value<string>(&_filter)->default_value("*"), "filter bead names")
+             ("ref", boost::program_options::value<vec>(&_ref), "reference zero point");
 }
 
