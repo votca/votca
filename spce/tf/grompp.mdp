@@ -15,7 +15,7 @@ comm-grps                =
 
 ; OUTPUT CONTROL OPTIONS
 ; Output frequency for coords (x), velocities (v) and forces (f)
-nstxout                  = 10
+nstxout                  = 1000
 nstvout                  = 0
 nstfout                  = 0
 ; Checkpointing helps you continue after crashes
@@ -24,7 +24,7 @@ nstcheckpoint            = 10000
 nstlog                   = 0
 nstenergy                = 500
 ; Output frequency and precision for xtc file
-nstxtcout                = 10
+nstxtcout                = 100
 xtc-precision            = 1000
 ; This selects the subset of atoms for the xtc file. You can
 ; select multiple groups. By default all atoms will be written.
