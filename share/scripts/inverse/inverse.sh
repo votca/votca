@@ -29,6 +29,7 @@ Allowed options:
     --wall-time SEK           Set wall clock time
     --options FILE            Specify the options xml file to use
     --clean                   clean out the PWD, dangerous
+    --nocolor                 disable colors
 
 Examples:
 * ${0##*/} cg.xml
@@ -81,9 +82,12 @@ while [ "${1#-}" != "$1" ]; do
     #needs to be done below, because it needs CSG* variables
     do_clean="yes"
     shift ;;
-   --xmlfile)
+   --options)
     export CSGXMLFILE="$2"
     shift 2;;
+   --nocolor)
+    export CSG_NOCOLOR="yes"
+    shift;; 
    -h | --help)
     show_help
     exit 0;;
@@ -124,16 +128,16 @@ if [ "$do_clean" = "yes" ]; then
 fi
 
 if [ -f "$CSGLOG" ]; then
-  exec 3>&1 >> "$CSGLOG" 2>&1
+  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
   echo "\n\n#################################"
   echo "# Appending to existing logfile #"
   echo "#################################\n\n"
   echo "Sim started $(date)"
-  msg "Appending to existing logfile ${CSGLOG##*/}"
+  msg --color blue "Appending to existing logfile ${CSGLOG##*/}"
 else
   echo "For a more verbose log see: ${CSGLOG##*/}"
   #logfile is created in the next line
-  exec 3>&1 >> "$CSGLOG" 2>&1
+  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
   echo "Sim started $(date)"
 fi
 
@@ -169,9 +173,9 @@ this_dir=$(get_current_step_dir --no-check)
 if [ -d "$this_dir" ] && [ -f $this_dir/done ]; then
   msg "step 0 is already done - skipping"
 else
-  msg ------------------------
-  msg "Prepare (dir ${this_dir##*/})"
-  msg ------------------------
+  echo ------------------------
+  msg --color blue "Prepare (dir ${this_dir##*/})"
+  echo ------------------------
   if [ -d "$this_dir" ]; then
     msg "Incomplete step 0"
     [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
@@ -217,9 +221,9 @@ for ((i=$begin;i<$iterations+1;i++)); do
   update_stepnames $i
   last_dir=$(get_last_step_dir)
   this_dir=$(get_current_step_dir --no-check)
-  msg -------------------------------
-  msg "Doing iteration $i (dir ${this_dir##*/})"
-  msg -------------------------------
+  echo -------------------------------
+  msg --color blue "Doing iteration $i (dir ${this_dir##*/})"
+  echo -------------------------------
   if [ -d $this_dir ]; then
     if [ -f $this_dir/done ]; then
       msg "step $i is already done - skipping"
@@ -237,7 +241,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   mark_done "stepdir"
 
   if is_done "Initialize"; then
-    msg "Initialization already done"
+    echo "Initialization already done"
   else
     #get need files
     cp_from_main_dir $filelist
@@ -249,7 +253,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   fi
 
   if is_done "Simulation"; then
-    msg "Simulation is already done"
+    echo "Simulation is already done"
   else
     msg "Simulation with $sim_prog"
     do_external run $sim_prog

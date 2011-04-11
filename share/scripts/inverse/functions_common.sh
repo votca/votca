@@ -46,21 +46,50 @@ fi
 
 #echo a msg to the screen and send it to logfile too 
 msg() {
+  local color colors=" blue cyan cyann green red purp "
+  if [ -z "${CSG_NOCOLOR}" ]; then
+    local blue="[34;01m"
+    local cyan="[36;01m"
+    local cyann="[36m"
+    local green="[32;01m"
+    local red="[31;01m"
+    local purp="[35;01m"
+    local off="[0m"
+  else
+    local blue cyan cyann green red purp off
+  fi
+  if [ "$1" = "--color" ]; then
+    [ -z "$2" ] && die "msg: missing argument after --color"
+    [ -n "${colors//* $2 *}" ] && die "msg: Unknown color ($colors allowed)"
+    color="${!2}"
+    shift 2
+  fi
   if [ "$1" = "--to-stderr" ]; then
     shift
-    [ -n "$*" ] && echo -e "$*" >&2
+    [ -z "$*" ] && return
+    if [ -n "${CSGLOG}" ] && [ -t 4 ]; then
+      echo -e "${color}$*${off}" >&4
+      echo -e "$*" >&2
+    else
+      echo -e "${color}$*${off}" >&2
+    fi
   else
-    [ -n "$*" ] && echo -e "$*"
+    [ -z "$*" ] && return
+    if [ -n "${CSGLOG}" ] && [ -t 3 ]; then
+      echo -e "${color}$*${off}" >&3
+      echo -e "$*"
+    else
+      echo -e "${color}$*${off}"
+    fi
   fi
-  [ -n "${CSGLOG}" ] && [ -t 3 ] && echo -e "$*" >&3
 }
 export -f msg
 
 unset -f die
 die () {
   local pid pids c
-  msg --to-stderr "$(csg_banner "ERROR:" "$@")"
-  [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
+  msg --color red --to-stderr "$(csg_banner "ERROR:" "$@")"
+  [ -z "$CSGLOG" ] || msg --color blue "For details see $CSGLOG"
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
     pid=$$
@@ -73,7 +102,7 @@ die () {
       #store them in inverse order to kill parents before the child
       pids="$pid $pids"
       ((c++))
-      #at max 100 iterations
+      #at max 10000 iterations
       if [ $c -eq 10000 ]; then
         #failback to default, see comment below
         pids="0"
@@ -433,14 +462,14 @@ csg_ivnerse_clean() {
   if [ -z "$files" ]; then
     echo "Nothing to clean"
   else
-    echo $files
-    echo -e "\nCTRL-C to stop it"
+    msg --color red $files
+    msg --color blue "\nCTRL-C to stop it"
     for ((i=10;i>0;i--)); do
       echo -n "$i "
       sleep 1
     done
     rm -rf $files
-    echo -e "\n\nDone, hope you are happy now"
+    msg --color green "\n\nDone, hope you are happy now"
   fi
 }
 export -f csg_ivnerse_clean

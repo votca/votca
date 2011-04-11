@@ -51,12 +51,12 @@ opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_rdf.opts)"
 grp1=$(csg_get_interaction_property --allow-empty gromacs.grp1)
 if [ -z "$grp1" ]; then
   grp1=$(csg_get_interaction_property type1)
-  msg --to-stderr "WARNING (in ${0##*/}): could not find energy group of type1 (interaction property gromacs.grp1) using bead type1 ($grp1) as failback !"
+  msg --color blue --to-stderr "WARNING (in ${0##*/}): could not find energy group of type1 (interaction property gromacs.grp1) using bead type1 ($grp1) as failback !"
 fi
 grp2=$(csg_get_interaction_property --allow-empty gromacs.grp2)
 if [ -z "$grp2" ]; then
   grp2=$(csg_get_interaction_property type2)
-  msg --to-stderr "WARNING (in ${0##*/}): could not find energy group of type2 (interaction property gromacs.grp2) using bead type2 ($grp2) as failback !"
+  msg --color blue --to-stderr "WARNING (in ${0##*/}): could not find energy group of type2 (interaction property gromacs.grp2) using bead type2 ($grp2) as failback !"
 fi
 name=$(csg_get_interaction_property name)
 binsize=$(csg_get_interaction_property step)

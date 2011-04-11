@@ -63,6 +63,7 @@ Allowed options:
                      Default: stdout
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
+    --nocolor        Disable colors
 -h, --help           Show this help
 
 Examples:
@@ -121,9 +122,9 @@ while [ "${1#-}" != "$1" ]; do
     show_share="yes"
     sw_opt="--status"
     shift;;
-   --direct)
-    quiet="yes"
-    break;;
+   --nocolor)
+    export CSG_NOCOLOR="yes"
+    shift;;
    -h | --help)
     show_help
     exit 0;;
@@ -201,6 +202,6 @@ fi
 
 if [ -n "${CSGLOG}" ]; then
   echo "For details see logfile: $CSGLOG"
-  exec 3>&1 >> "$CSGLOG" 2>&1
+  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
 fi
 do_external $@
