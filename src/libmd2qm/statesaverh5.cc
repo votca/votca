@@ -1,7 +1,7 @@
 #include <statesaverh5.h>
 #include "hdf5_hl.h"
 
-void StateSaverH5::Open(QMTopology& qmtop, string& file)
+void StateSaverH5::Open(QMTopology& qmtop, const string& file)
 {
     _file = H5Fcreate(file.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     _frame = 0;

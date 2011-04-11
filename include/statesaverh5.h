@@ -22,7 +22,7 @@ public:
     StateSaverH5() {}
     ~StateSaverH5(){}
 
-    void Open(QMTopology & qmtop,string &file);
+    void Open(QMTopology & qmtop,const string &file);
     void Close();
     void WriteFrame();
 private:

@@ -6,8 +6,8 @@
 
 class HDF5Writer : public QMCalculator {
 public:
-    PairCalculator() {};
-    virtual ~PairCalculator() {};
+    HDF5Writer() {};
+    virtual ~HDF5Writer() {};
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
