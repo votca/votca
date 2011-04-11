@@ -20,26 +20,28 @@
 # limitations under the License.
 #
 
+#gsl needs cblas 
+find_package(CBLAS REQUIRED)
+
 find_package(PkgConfig)
 
 pkg_check_modules(PC_GSL gsl)
 find_path(GSL_INCLUDE_DIR gsl/gsl_linalg.h HINTS ${PC_GSL_INCLUDE_DIRS})
 find_library(GSL_LIBRARY NAMES gsl HINTS ${PC_GSL_LIBRARY_DIRS} )
-find_library(GSL_CBLAS_LIBRARY NAMES gslcblas HINTS ${PC_GSL_LIBRARY_DIRS} )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GSL_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(GSL DEFAULT_MSG GSL_LIBRARY GSL_INCLUDE_DIR GSL_CBLAS_LIBRARY )
+find_package_handle_standard_args(GSL DEFAULT_MSG GSL_LIBRARY GSL_INCLUDE_DIR )
 
-set(GSL_LIBRARIES "${GSL_LIBRARY};${GSL_CBLAS_LIBRARY}")
+set(GSL_LIBRARIES "${GSL_LIBRARY};${CBLAS_LIBRARY}")
 set(GSL_INCLUDE_DIRS ${GSL_INCLUDE_DIR} )
 
 if (GSL_FOUND)
   include(CheckLibraryExists)
   check_library_exists("${GSL_LIBRARIES}" gsl_linalg_QR_decomp "" FOUND_QR_DECOMP)
   if(NOT FOUND_QR_DECOMP)
-    message(FATAL_ERROR "Could not find gsl_linalg_QR_decompx in ${GSL_LIBRARIES}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GSL_LIBRARY and GSL_CBLAS_LIBRARY by hand (i.e. -DGSL_LIBRARY='/path/to/libgsl.so' -DGSL_CBLAS_LIBRARY='/path/to/libgslcblas.so') !")
+    message(FATAL_ERROR "Could not find gsl_linalg_QR_decompx in ${GSL_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GSL_LIBRARY by hand (i.e. -DGSL_LIBRARY='/path/to/libgsl.so') !")
   endif(NOT FOUND_QR_DECOMP)
 endif (GSL_FOUND)
 
