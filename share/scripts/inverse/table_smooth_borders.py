@@ -103,5 +103,5 @@ for x in xvalues:
 
 i = 0
 for x in tempx:
-    f.write('%15.10e %15.10e i\n' % (x-xstart, tempy[i]))
+    f.write('%15.10e %15.10e i\n' % (x, tempy[i]))
     i=i+1
