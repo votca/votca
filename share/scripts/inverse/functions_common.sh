@@ -46,21 +46,50 @@ fi
 
 #echo a msg to the screen and send it to logfile too 
 msg() {
+  local color colors=" blue cyan cyann green red purp "
+  if [ -z "${CSG_NOCOLOR}" ]; then
+    local blue="[34;01m"
+    local cyan="[36;01m"
+    local cyann="[36m"
+    local green="[32;01m"
+    local red="[31;01m"
+    local purp="[35;01m"
+    local off="[0m"
+  else
+    local blue cyan cyann green red purp off
+  fi
+  if [ "$1" = "--color" ]; then
+    [ -z "$2" ] && die "msg: missing argument after --color"
+    [ -n "${colors//* $2 *}" ] && die "msg: Unknown color ($colors allowed)"
+    color="${!2}"
+    shift 2
+  fi
   if [ "$1" = "--to-stderr" ]; then
     shift
-    [ -n "$*" ] && echo -e "$*" >&2
+    [ -z "$*" ] && return
+    if [ -n "${CSGLOG}" ] && [ -t 4 ]; then
+      echo -e "${color}$*${off}" >&4
+      echo -e "$*" >&2
+    else
+      echo -e "${color}$*${off}" >&2
+    fi
   else
-    [ -n "$*" ] && echo -e "$*"
+    [ -z "$*" ] && return
+    if [ -n "${CSGLOG}" ] && [ -t 3 ]; then
+      echo -e "${color}$*${off}" >&3
+      echo -e "$*"
+    else
+      echo -e "${color}$*${off}"
+    fi
   fi
-  [ -n "${CSGLOG}" ] && [ -t 3 ] && echo -e "$*" >&3
 }
 export -f msg
 
 unset -f die
 die () {
   local pid pids c
-  msg --to-stderr "$(csg_banner "ERROR:" "$@")"
-  [ -z "$CSGLOG" ] || msg "For details see $CSGLOG"
+  msg --color red --to-stderr "$(csg_banner "ERROR:" "$@")"
+  [ -z "$CSGLOG" ] || msg --color blue "For details see $CSGLOG"
   if [ -n "${CSG_MASTER_PID}" ]; then
     #grabbing the pid group would be easier, but it would not work on AIX
     pid=$$
@@ -73,7 +102,7 @@ die () {
       #store them in inverse order to kill parents before the child
       pids="$pid $pids"
       ((c++))
-      #at max 100 iterations
+      #at max 10000 iterations
       if [ $c -eq 10000 ]; then
         #failback to default, see comment below
         pids="0"
@@ -96,28 +125,17 @@ export -f die
 #takes a task, show content of the according script
 cat_external() {
   local script
-  [[ -n "${SOURCE_WRAPPER}" ]] || die "cat_external: SOURCE_WRAPPER is undefined"
-  script="$($SOURCE_WRAPPER $1 $2)" || die "cat_external: $SOURCE_WRAPPER $1 $2 failed"
-  cat "$script"
+  script="$(source_wrapper $1 $2)" || die "cat_external: source_wrapper $1 $2 failed"
+  cat "${script/ *}"
 }
 export -f cat_external
-
-#takes a task, shows the according script
-show_external() {
-  local script
-  [[ -n "${SOURCE_WRAPPER}" ]] || die "cat_external: SOURCE_WRAPPER is undefined"
-  script="$($SOURCE_WRAPPER $1 $2)" || die "cat_external: $SOURCE_WRAPPER $1 $2 failed"
-  echo "$script"
-}
-export -f show_external
 
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
   local script tags quiet="no" packages
   [ "$1" = "-q" ] && quiet="yes" && shift
-  [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
-  script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
+  script="$(source_wrapper $1 $2)" || die "do_external: source_wrapper $1 $2 failed"
   tags="$1 $2"
   shift 2
   packages="$(critical -q $script --help)"
@@ -433,39 +451,52 @@ csg_ivnerse_clean() {
   if [ -z "$files" ]; then
     echo "Nothing to clean"
   else
-    echo $files
-    echo -e "\nCTRL-C to stop it"
+    msg --color red $files
+    msg --color blue "\nCTRL-C to stop it"
     for ((i=10;i>0;i--)); do
       echo -n "$i "
       sleep 1
     done
     rm -rf $files
-    echo -e "\n\nDone, hope you are happy now"
+    msg --color green "\n\nDone, hope you are happy now"
   fi
 }
 export -f csg_ivnerse_clean
 
-add_csg_scriptdir() {
-  #make this work even if there is no xmlfile
-  [ -n "${CSGXMLFILE}" ] && CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-  #but mayit was define elsewhere
-  if [ -n "$CSGSCRIPTDIR" ]; then
-    #scriptdir maybe contains $PWD or something
-    eval CSGSCRIPTDIR=$CSGSCRIPTDIR
-    [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-    CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
-    [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-    export CSGSCRIPTDIR
-    export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
-  fi
+add_to_csgshare() {
+  local dir
+  for dir in "$@"; do
+    [[ -z $dir ]] && continue
+    #dir maybe contains $PWD or something
+    eval dir="$dir"
+    dir="$(globalize_dir "$dir")"
+    export CSGSHARE="$dir${CSGSHARE:+:}$CSGSHARE"
+    export PERL5LIB="$dir${PERL5LIB:+:}$PERL5LIB"
+  done
 }
-export -f add_csg_scriptdir
+export -f add_to_csgshare
+
+globalize_dir() {
+  [ -z "$1" ] && die "globalize_dir: missing argument"
+  [ -d "$1" ] || die "globalize_dir: '$1' is not a dir"
+  cd $1
+  pwd
+}
+export -f globalize_dir
+
+globalize_file() {
+  [[ -z $1 ]] && die "globalize_file: missing argument"
+  [[ -f $1 ]] || die "globalize_file: '$1' is not a file"
+  local dir
+  [[ ${1%/*} = ${1} ]] && dir="." || dir="${1%/*}"
+  echo "$(globalize_dir "$dir")/${1##*/}"
+}
+export -f globalize_file
 
 source_function() {
   local function_file
   [ -n "$1" ] || die "source_function: Missig argument"
-  [[ -n "${SOURCE_WRAPPER}" ]] || die "source_function: SOURCE_WRAPPER is undefined"
-  function_file=$($SOURCE_WRAPPER functions $1) || die "source_function: $SOURCE_WRAPPER functions $1 failed"
+  function_file=$(source_wrapper functions $1) || die "source_function: source_wrapper functions $1 failed"
   source ${function_file} || die "source_function: source ${function_file} failed"
 }
 export -f source_function
@@ -528,3 +559,57 @@ csg_calc() {
   return $ret
 }
 export -f csg_calc
+
+show_csg_tables() {
+  local old_IFS dir
+  old_IFS="$IFS"
+  IFS=":"
+  echo "#The order in which scripts get called"
+  for dir in ${CSGSHARE}; do
+    [ -f "$dir/csg_table" ] || continue
+    echo "#From: $dir/csg_table"
+    #remove comments and empty line, trim begin and end, tab to spaces
+    sed -e '/^#/d' -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]]\+/ /g' "$dir/csg_table"
+  done
+  IFS="$old_IFS"
+}
+export -f show_csg_tables
+
+get_command_from_csg_tables() {
+  [ -z "$2" ] && die "get_command_from_csg_tables: Missing argument"
+  show_csg_tables | \
+    sed -e '/^#/d' | \
+    sed -n "s/^$1 $2 \(.*\)$/\1/p" | \
+    sed -n '1p'
+}
+export -f get_command_from_csg_tables
+
+source_wrapper() {
+  [ -z "$2" ] && die "source_wrapper: Missing argument"
+  local cmd script
+  cmd=$(get_command_from_csg_tables "$1" "$2") || die
+  [ -z "$cmd" ] && die "source_wrapper: Could not get any script from tags '$1' '$2'"
+  script="${cmd/* }"
+  real_script="$(find_in_csgshare "$script")"
+  echo "${cmd/${script}/${real_script}}"
+}
+export -f source_wrapper
+
+find_in_csgshare() {
+  [ -z "$1" ] && die "find_in_csgshare: missing argument"
+  #global path
+  if [ -z "${1##/*}" ]; then
+    [ -f "$1" ] || die "find_in_csgshare: $1 is a script with global path, but was not found"
+    echo "$1" && return
+  fi
+  local old_IFS dir
+  old_IFS="$IFS"
+  IFS=":"
+  for dir in ${CSGSHARE}; do
+    [ -f "$dir/$1" ] && break
+  done
+  IFS="$old_IFS"
+  [ -f "$dir/$1" ] && echo "$dir/$1" && return
+  die "find_in_csgshare: Could not find script $1 in $CSGSHARE"
+}
+export -f find_in_csgshare

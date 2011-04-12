@@ -22,7 +22,7 @@ share/scripts/inverse/MD5SUM
 share/doc/Doxyfile
 share/doc/html/*
 share/man/*.man
-share/template/template
+share/template/template_serial
 share/template/template_threaded
 share/template/votca/csg
 src/csg_boltzmann/csg_boltzmann

@@ -18,15 +18,11 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-Informs users that ibm was renamed to ibi.
+This script implements the function update for the thermodynamic force interation
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-msg --color blue "####################################"
-msg --color blue "# ERROR 'ibm' was renamed to 'ibi' #"
-msg --color blue "####################################"
-
-die "'ibm' was renamed to 'ibi'"
+for_all non-bonded do_external update tf_single

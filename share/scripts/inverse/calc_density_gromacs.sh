@@ -18,8 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents statistical analysis for the Inverse Monte Carlo Method
-using generic csg tools (csg_stat)
+This script calcs the density for gromacs for the AdResS therm force
 
 Usage: ${0##*/}
 EOF
@@ -39,18 +38,34 @@ else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
 
+name=$(csg_get_interaction_property name)
+max=$(csg_get_interaction_property tf.spline_end)
+step=$(csg_get_interaction_property step)
+bins=$(csg_calc $max / $step )
+
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+adress_type=$(get_from_mdp adress_type "$mdp")
+
+echo "Adress type: $adress_type"
+
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
-
-tasks=$(get_number_tasks)
-msg "Calculating IMC statistics using $tasks tasks"
-if is_done "imc_analysis"; then
-  echo "IMC analysis is already done"
+mol="$(csg_get_interaction_property tf.molname "*")"
+if [ "$adress_type" = "sphere" ]; then
+  adressc="$(get_from_mdp adress_reference_coords "$mdp" "0 0 0")"
+  ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
+  axis="r"
+  opts="--ref $ref"
 else
-  #copy+resample all target dist in $this_dir
-  for_all non-bonded do_external resample target
+  axis="x"
+fi
 
-  critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
-        --begin $equi_time --first-frame $first_frame --nt $tasks
-  mark_done "imc_analysis"
+msg "Calculating density for $name (molname $mol) on axis $axis"
+if is_done "density_analysis"; then
+  echo "density analysis is already done"
+else
+  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" $opts
+  critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
+  mark_done "density_analysis"
 fi

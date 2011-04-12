@@ -114,7 +114,7 @@ elsif ( "$type" eq "C6" ){
 elsif ( "$type" eq "bonded" ){
   $fmt="%15.10e   %15.10e %15.10e\n";
 }
-elsif ( "$type" eq "thermoforce" ){
+elsif ( "$type" eq "thermforce" ){
   $fmt="%15.10e   %15.10e %15.10e\n";
 }
 else{

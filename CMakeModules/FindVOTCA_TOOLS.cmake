@@ -1,5 +1,5 @@
-# - Find libgmx
-# Find the native libgmx headers and libraries.
+# - Find libvotca_tools
+# Find the native libvotca_tools headers and libraries.
 #
 #  VOTCA_TOOLS_INCLUDE_DIRS - where to find votca/tools/version.h, etc.
 #  VOTCA_TOOLS_LIBRARIES    - List of libraries when using expat.
