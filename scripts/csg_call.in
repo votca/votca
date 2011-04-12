@@ -15,14 +15,13 @@
 # limitations under the License.
 #
 
-sw_opt=""
 version='@PROJECT_VERSION@ @CSG_HG_ID@'
 ext_cmd=""
 simprog=""
 show_share="no"
 
 #unset stuff from enviorment
-unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
+unset CSGXMLFILE bondtype bondname CSGLOG
 
 #failback define
 die() {
@@ -40,8 +39,6 @@ please submit bugs to bugs@votca.org
 
 ${0##*/}, version ${version}
 
-
-
 This script calls another script for csg using source_wrapper
 
 Usage: ${0##*/} [OPTIONS] key1 key2
@@ -51,7 +48,6 @@ Allowed options:
     --cat            Show the content of the script
     --show           Show the path to the script
     --show-share     Shows the used CSGSHARE dir and exits
-    --check          Check all csg scripts
     --scriptdir DIR  Set the user script dir
                      (Used if no optins xml file is given)
                      Default: empty
@@ -69,7 +65,6 @@ Allowed options:
 Examples:
 * ${0##*/} table smooth [ARGUMENTS]
 * ${0##*/} --show run gromacs
-* ${0##*/} --check
 eof
 }
 
@@ -85,15 +80,10 @@ while [ "${1#-}" != "$1" ]; do
  fi
  case $1 in
    -l | --list)
-    #we can not run it directly here SOURCE_WRAPPER is defined later
-    sw_opt="--status"
-    shift ;;
-   --check)
-    #we can not run it directly here SOURCE_WRAPPER is defined later
-    sw_opt="--check"
+    ext_cmd="show_csg_tables"
     shift ;;
    --scriptdir)
-    CSGSCRIPTDIR="$2"
+    scriptdir="$2"
     shift 2;;
    --simprog)
     simprog="$2"
@@ -116,11 +106,10 @@ while [ "${1#-}" != "$1" ]; do
     ext_cmd="cat_external"
     shift;;
    --show)
-    ext_cmd="show_external"
+    ext_cmd="source_wrapper"
     shift;;
    --show-share)
     show_share="yes"
-    sw_opt="--status"
     shift;;
    --nocolor)
     export CSG_NOCOLOR="yes"
@@ -135,8 +124,6 @@ while [ "${1#-}" != "$1" ]; do
    die "Unknown option '$1'";;
  esac
 done
-
-[ -z "$2" ] && [ -z "$sw_opt" ] && die "${0##*/}: Missing argument"
 
 if [ -z "${CSGSHARE}" ]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
@@ -168,32 +155,31 @@ if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
 else
   die "Could not find start_framework.sh"
 fi
-add_csg_scriptdir
+[ -n "${CSGXMLFILE}" ] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+add_to_csgshare "$scriptdir"
 
 [ -n "${CSGXMLFILE}" ] && simprog="$(csg_get_property --allow-empty cg.inverse.program)"
 [ -n "${simprog}" ] && source_function $simprog
 
-if [ -n "$sw_opt" ]; then
-  $SOURCE_WRAPPER $sw_opt
+if [[ $ext_cmd = show_csg_tables ]]; then
+  $ext_cmd
   exit $?
 fi
+[[ -z $2 ]] && die "${0##*/}: Missing argument"
 
-if [ -n "$ext_cmd" ]; then
+if [[ -n $ext_cmd ]]; then
   $ext_cmd $1 $2
   exit $?
 fi
 
 #help of scripts should always work
-if [ "$3" = "--help" ]; then
+if [[ $3 = --help ]]; then
 cat <<EOF
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
 please submit bugs to bugs@votca.org
-
-
-
 
 EOF
   do_external -q $1 $2 --help | sed "s/%version%/${version}/"

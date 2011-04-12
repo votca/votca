@@ -125,28 +125,17 @@ export -f die
 #takes a task, show content of the according script
 cat_external() {
   local script
-  [[ -n "${SOURCE_WRAPPER}" ]] || die "cat_external: SOURCE_WRAPPER is undefined"
-  script="$($SOURCE_WRAPPER $1 $2)" || die "cat_external: $SOURCE_WRAPPER $1 $2 failed"
-  cat "$script"
+  script="$(source_wrapper $1 $2)" || die "cat_external: source_wrapper $1 $2 failed"
+  cat "${script/ *}"
 }
 export -f cat_external
-
-#takes a task, shows the according script
-show_external() {
-  local script
-  [[ -n "${SOURCE_WRAPPER}" ]] || die "cat_external: SOURCE_WRAPPER is undefined"
-  script="$($SOURCE_WRAPPER $1 $2)" || die "cat_external: $SOURCE_WRAPPER $1 $2 failed"
-  echo "$script"
-}
-export -f show_external
 
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
   local script tags quiet="no" packages
   [ "$1" = "-q" ] && quiet="yes" && shift
-  [[ -n "${SOURCE_WRAPPER}" ]] || die "do_external: SOURCE_WRAPPER is undefined"
-  script="$($SOURCE_WRAPPER $1 $2)" || die "do_external: $SOURCE_WRAPPER $1 $2 failed"
+  script="$(source_wrapper $1 $2)" || die "do_external: source_wrapper $1 $2 failed"
   tags="$1 $2"
   shift 2
   packages="$(critical -q $script --help)"
@@ -474,27 +463,40 @@ csg_ivnerse_clean() {
 }
 export -f csg_ivnerse_clean
 
-add_csg_scriptdir() {
-  #make this work even if there is no xmlfile
-  [ -n "${CSGXMLFILE}" ] && CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-  #but mayit was define elsewhere
-  if [ -n "$CSGSCRIPTDIR" ]; then
-    #scriptdir maybe contains $PWD or something
-    eval CSGSCRIPTDIR=$CSGSCRIPTDIR
-    [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-    CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
-    [[ -d "$CSGSCRIPTDIR" ]] || die "CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-    export CSGSCRIPTDIR
-    export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
-  fi
+add_to_csgshare() {
+  local dir
+  for dir in "$@"; do
+    [[ -z $dir ]] && continue
+    #dir maybe contains $PWD or something
+    eval dir="$dir"
+    dir="$(globalize_dir "$dir")"
+    export CSGSHARE="$dir${CSGSHARE:+:}$CSGSHARE"
+    export PERL5LIB="$dir${PERL5LIB:+:}$PERL5LIB"
+  done
 }
-export -f add_csg_scriptdir
+export -f add_to_csgshare
+
+globalize_dir() {
+  [ -z "$1" ] && die "globalize_dir: missing argument"
+  [ -d "$1" ] || die "globalize_dir: '$1' is not a dir"
+  cd $1
+  pwd
+}
+export -f globalize_dir
+
+globalize_file() {
+  [[ -z $1 ]] && die "globalize_file: missing argument"
+  [[ -f $1 ]] || die "globalize_file: '$1' is not a file"
+  local dir
+  [[ ${1%/*} = ${1} ]] && dir="." || dir="${1%/*}"
+  echo "$(globalize_dir "$dir")/${1##*/}"
+}
+export -f globalize_file
 
 source_function() {
   local function_file
   [ -n "$1" ] || die "source_function: Missig argument"
-  [[ -n "${SOURCE_WRAPPER}" ]] || die "source_function: SOURCE_WRAPPER is undefined"
-  function_file=$($SOURCE_WRAPPER functions $1) || die "source_function: $SOURCE_WRAPPER functions $1 failed"
+  function_file=$(source_wrapper functions $1) || die "source_function: source_wrapper functions $1 failed"
   source ${function_file} || die "source_function: source ${function_file} failed"
 }
 export -f source_function
@@ -557,3 +559,57 @@ csg_calc() {
   return $ret
 }
 export -f csg_calc
+
+show_csg_tables() {
+  local old_IFS dir
+  old_IFS="$IFS"
+  IFS=":"
+  echo "#The order in which scripts get called"
+  for dir in ${CSGSHARE}; do
+    [ -f "$dir/csg_table" ] || continue
+    echo "#From: $dir/csg_table"
+    #remove comments and empty line, trim begin and end, tab to spaces
+    sed -e '/^#/d' -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]]\+/ /g' "$dir/csg_table"
+  done
+  IFS="$old_IFS"
+}
+export -f show_csg_tables
+
+get_command_from_csg_tables() {
+  [ -z "$2" ] && die "get_command_from_csg_tables: Missing argument"
+  show_csg_tables | \
+    sed -e '/^#/d' | \
+    sed -n "s/^$1 $2 \(.*\)$/\1/p" | \
+    sed -n '1p'
+}
+export -f get_command_from_csg_tables
+
+source_wrapper() {
+  [ -z "$2" ] && die "source_wrapper: Missing argument"
+  local cmd script
+  cmd=$(get_command_from_csg_tables "$1" "$2") || die
+  [ -z "$cmd" ] && die "source_wrapper: Could not get any script from tags '$1' '$2'"
+  script="${cmd/* }"
+  real_script="$(find_in_csgshare "$script")"
+  echo "${cmd/${script}/${real_script}}"
+}
+export -f source_wrapper
+
+find_in_csgshare() {
+  [ -z "$1" ] && die "find_in_csgshare: missing argument"
+  #global path
+  if [ -z "${1##/*}" ]; then
+    [ -f "$1" ] || die "find_in_csgshare: $1 is a script with global path, but was not found"
+    echo "$1" && return
+  fi
+  local old_IFS dir
+  old_IFS="$IFS"
+  IFS=":"
+  for dir in ${CSGSHARE}; do
+    [ -f "$dir/$1" ] && break
+  done
+  IFS="$old_IFS"
+  [ -f "$dir/$1" ] && echo "$dir/$1" && return
+  die "find_in_csgshare: Could not find script $1 in $CSGSHARE"
+}
+export -f find_in_csgshare

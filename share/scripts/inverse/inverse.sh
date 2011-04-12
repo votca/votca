@@ -103,13 +103,7 @@ if [ -z "${CSGXMLFILE}" ]; then
   export CSGXMLFILE="${1}"
   shift
 fi
-
-#make CSGXMLFILE a global path
-[ "${CSGXMLFILE%/*}" = "${CSGXMLFILE}" ] && cpath="." || cpath="${CSGXMLFILE%/*}"
-cpath="$(cd $cpath;pwd)"
-export CSGXMLFILE="${cpath}/${CSGXMLFILE##*/}"
-[ -f "$CSGXMLFILE" ] || die "${0##*/}: could not find ${CSGXMLFILE##*/} (long version: $CSGXMLFILE" 
-unset cpath
+export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
 
 #other stuff we need, which comes from xmlfile -> must be done here
 #define $CSGRESTART
@@ -160,9 +154,10 @@ filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [ -z "$cleanlist" ] || echo "We extra clean '$cleanlist' after a step is done"
 
-add_csg_scriptdir
+scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+add_to_csgshare "$scriptdir"
 
-critical $SOURCE_WRAPPER --status
+show_csg_tables
 
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
