@@ -613,3 +613,25 @@ find_in_csgshare() {
   die "find_in_csgshare: Could not find script $1 in $CSGSHARE"
 }
 export -f find_in_csgshare
+
+if [ -z "$(type -p mktemp)" ]; then
+  mktemp() {
+    [ -z "$1" ] && die "mktemp: missing argument"
+    [ -z "${1##*X}" ] || die "mktemp: argument has to end at least with X"
+    local end trunc i l tmp newend
+    end=${1##*[^X]}
+    trunc=${1%${end}}
+    l=${end//[^X]}
+    l=${#l}
+    while true; do
+      newend="$end"
+      for ((i=0;i<$l;i++)); do
+        newend=${newend/X/${RANDOM:0:1}}
+      done
+      tmp="${trunc}${newend}"
+      [[ -f $tmp ]] || break
+    done
+    echo "$tmp"
+  }
+  export -f mktemp
+fi
