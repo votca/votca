@@ -174,7 +174,7 @@ Unlike \ibi, \imc also takes cross-correlations of interactions into account in 
 
 \section{Pressure correction}
 
-The pressure of the coarse-grained system usually does not match the pressure of the full atomistic system. This is because iterative Boltzmann inversion only targets structural properties but not thermodynamic properties. In order correct the pressure in such a way that it matches the target pressure, different strategies have been used based on small modifications of the potential. The correction can be applied via \interopt{inverse.post_update} scripts. The type of pressure correction is selected as described in \sect{sec:ref_interaction}.
+The pressure of the coarse-grained system usually does not match the pressure of the full atomistic system. This is because iterative Boltzmann inversion only targets structural properties but not thermodynamic properties. In order correct the pressure in such a way that it matches the target pressure (\interopt{inverse.p_target})., different strategies have been used based on small modifications of the potential. The correction can be enable by adding pressure to the list of \interopt{inverse.post_update} scripts. The type of pressure correction is selected by setting \interopt{inverse.post_update_options.pressure.type}.
 
 \subsection{Simple pressure correction}
 In ref.\cite{Reith:2003} a simple linear attractive potential was added to the coarse-grained potential
@@ -185,7 +185,7 @@ with prefactor $A$
 \begin{equation}
   A = -\operatorname{sgn}(\Delta P)0.1k_{B}T\min(1,|f\Delta P) \,,
 \end{equation}
-$\Delta p=P_i-P_{target}$, and scaling factor $f$ which can be specified in the settings file.
+$\Delta p=P_i-P_\text{target}$, and scaling factor $f$ and $P_\text{target}$ can be specified in the settings file as \interopt{inverse.post_update_options.pressure.simple.scale} and \interopt{inverse.p_target}.
 
 As an example for a block doing simple pressure correction, every third interaction is
 \begin{lstlisting}
