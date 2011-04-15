@@ -49,10 +49,9 @@ source "${0%/*}/start_framework.sh"  || exit 1
 #defaults for options
 do_iterations=""
 do_clean="no"
-wall_time=""
 
 #unset stuff from enviorment
-unset CSGXMLFILE CSGSCRIPTDIR CSGLOG
+unset CSGXMLFILE CSGSCRIPTDIR CSGLOG CSGENDING
 
 ### begin parsing options
 shopt -s extglob
@@ -71,9 +70,8 @@ while [ "${1#-}" != "$1" ]; do
     int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
     shift 2 ;;
    --wall-time)
-    wall_time="$2"
-    int_check "$wall_time" "inverse.sh: --wall-time need a number as agrument"
-    start_time="$(date +%s)" || exit 1
+    int_check "$2" "inverse.sh: --wall-time need a number as agrument"
+    export CSGENDING=$(( $(get_time) + $2 ))
     shift 2 ;;
    -[0-9]*)
     do_iterations=${1#-}
@@ -86,7 +84,7 @@ while [ "${1#-}" != "$1" ]; do
     export CSGXMLFILE="$2"
     shift 2;;
    --nocolor)
-    export CSG_NOCOLOR="yes"
+    export CSGNOCOLOR="yes"
     shift;; 
    -h | --help)
     show_help
@@ -173,7 +171,7 @@ else
   echo ------------------------
   if [ -d "$this_dir" ]; then
     msg "Incomplete step 0"
-    [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
+    [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose the prepare step)"
   else
     mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   fi
@@ -252,7 +250,20 @@ for ((i=$begin;i<$iterations+1;i++)); do
   else
     msg "Simulation with $sim_prog"
     do_external run $sim_prog
+  fi
+
+  if simulation_finish; then
     mark_done "Simulation"
+  elif [ "$(csg_get_property cg.inverse.simulation.background "no")" = "yes" ]; then
+    msg "Simulation is suppose to run in background, which we cannot check."
+    msg "Stopping now, resume csg_inverse whenever the simulation is done."
+    exit 0
+  elif checkpoint_exist; then
+    msg "Simulation is not finished, but a checkpoint was found, so it seems"
+    msg "walltime is nearly up, stopping now, resume csg_inverse whenever you want."
+    exit 0
+  else
+    die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
   fi
 
   msg "Make update for $method"
@@ -293,14 +304,14 @@ for ((i=$begin;i<$iterations+1;i++)); do
     fi
   fi
 
-  if [ -n "$wall_time" ]; then
+  if [ -n "$CSGENDING" ]; then
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
     echo "New average steptime $avg_steptime"
-    if [ $(( $(get_time) + $avg_steptime )) -gt $(( $wall_time + $start_time )) ]; then
+    if [ $(( $(get_time) + $avg_steptime )) -gt ${CSGENDING} ]; then
       msg "We will not manage another step, stopping"
       exit 0
     else
-      msg "We can go for another $(( ( ${start_time} + $wall_time - $(get_time) ) / $avg_steptime - 1 )) steps"
+      msg "We can go for another $(( ( ${CSGENDING} - $(get_time) ) / $avg_steptime - 1 )) steps"
     fi
   fi
 

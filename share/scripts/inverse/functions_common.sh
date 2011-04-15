@@ -47,7 +47,7 @@ fi
 #echo a msg to the screen and send it to logfile too 
 msg() {
   local color colors=" blue cyan cyann green red purp "
-  if [ -z "${CSG_NOCOLOR}" ]; then
+  if [ -z "${CSGNOCOLOR}" ]; then
     local blue="[34;01m"
     local cyan="[36;01m"
     local cyann="[36m"

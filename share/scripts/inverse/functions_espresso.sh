@@ -36,3 +36,18 @@ else
 fi
 unset esp_dir
 
+simulation_finish() {
+  local esp_success traj_esp espout
+  esp_success="$(critical mktemp esp.run.done.XXXXX)"
+  traj_esp="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
+  espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
+  [ -f "$esp_success" ] && [ -f "$traj_esp" ] && [ -f "$espout" ] && return 0 
+  return 1
+}
+export -f simulation_finish
+
+checkpoint_exist() {
+  #espresso has not support for checkpoints, yet !
+  return 1
+}
+export -f checkpoint_exist

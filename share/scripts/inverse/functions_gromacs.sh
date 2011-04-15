@@ -80,3 +80,21 @@ To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
   return "$res"
 }
 export -f check_temp
+
+simulation_finish() {
+  local ext traj confout
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  traj="traj.${ext}"
+  confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+  [ -f "$traj" ] && [ -f "$confout" ] && return 0
+  return 1
+}
+export -f simulation_finish
+
+checkpoint_exist() {
+  local checkpoint
+  checkpoint="$(csg_get_property cg.inverse.mdrun.checkpoint "state.cpt")"
+  [ -f "$checkpoint" ] && return 0
+  return 1
+}
+export -f checkpoint_exist
