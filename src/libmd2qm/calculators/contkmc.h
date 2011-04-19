@@ -13,6 +13,7 @@
 #include <votca/kmc/hoppers.h>
 #include <votca/kmc/kmc.h>
 #include <votca/kmc/graph.h>
+#include <time.h>
 
 class ContKmc : public QMCalculator{
 public:
@@ -38,7 +39,7 @@ private:
     ///  output streams for velocity averaging & diffusion
     ofstream _out_cont;
     ofstream _out_diff;
-
+    unsigned int _seed;
     /// creation of KMC graph
     void make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist);
 };
@@ -54,10 +55,15 @@ inline void ContKmc::Initialize(QMTopology *top, Property *options){
     _ncrg = options->get("options.kmc_cont.ncrg").as<int>();
     _nruns = options->get("options.kmc_cont.nruns").as<int>();
 
+    _seed = time(NULL)%0xFFFFFFFF;
+    if(options->exists("options.kmc_cont.seed"))
+        _seed = options->get("options.kmc_cont.seed").as<unsigned int>();
+
     /// Initialize output files for continuous KMC and diffusion
     _out_cont.open("kmc_cont.res");
     _out_diff.open("kmc_diff.res");
     if(_out_cont!=0){
+        _out_cont << "# seed for random number generator: " << _seed << endl;
         _out_cont << "# number of run, time [sec], average velocity [m/s], mobility [cm^2/sec], electric field [V/m], end to end vector [nm]" << endl;
     }
     if(_out_diff!=0){
@@ -67,7 +73,14 @@ inline void ContKmc::Initialize(QMTopology *top, Property *options){
     _out_diff.close();
 
     /// Initialize the random number generator
-    Random::init(14, 122, 472, 1912);
+    // \todo this routine is shitty, replace it!
+    // according to marsaglia paper, choosing 4 initial values out of range
+    // demanded by the generator will
+    // give satisfactory results, however doesn't guarantee same execution on
+    // different machins. This also applies for rand() which might be specific
+    // for different architectures.
+    srand(_seed);
+    Random::init(rand(), rand(), rand(), rand());
 }
 
 inline bool ContKmc::EvaluateFrame(QMTopology *top){
