@@ -81,7 +81,6 @@ forcefile_smooth="tf_smooth_${name}"
 do_external table smooth_borders --infile "$forcefile_pref" --outfile "$forcefile_smooth" --xstart "$min" --xstop "$max"
 
 #integrate the force table
-pot_file="tf_potential_${name}"
-do_external table integrate "$forcefile_smooth" "${pot_file}"
-do_external table linearop "${pot_file}" "${endfile}" -1.0 0.0
+do_external table integrate "$forcefile_smooth" "${endfile}"
+#we do not need to multiply it with -1, because we assue that the prefactor is always positiv, but the update is -prefacor * grad density
 

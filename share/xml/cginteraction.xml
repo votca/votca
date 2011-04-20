@@ -300,7 +300,7 @@ particles that is contained in the espresso blockfile.
   <item><name>tf.spline_end</name><desc>End of the spline used to smooth the density</desc></item>
   <item><name>tf.spline_step</name><desc>Grid of the spline used to smooth the density</desc></item>
   <item><name>tf.molname</name><desc>Molecule name of this gropu used in gromacs topology</desc></item>
-  <item><name>tf.prefactor</name><desc>Prefactor for the thermoforce (f=prefactor * grad density)</desc></item>
+  <item><name>tf.prefactor</name><desc>Prefactor for the thermoforce (f=-prefactor * grad density)</desc></item>
   <item><name>tf.cg_prefactor</name><desc>Second Prefactor for the thermoforce will be linear interpolated with tf.prefactor</desc></item>
 
 </tags> 
