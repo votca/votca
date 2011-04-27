@@ -53,13 +53,6 @@
       <topol>topol.tpr</topol>
       <traj>traj.xtc</traj>
 	<cutoff_check>no</cutoff_check>
-	<grompp>
-               <opts></opts>
-       </grompp>
-       <mdrun>
-               <opts></opts>
-       </mdrun>
-
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>adress_spce.itp grompp.mdp topol.top table.xvg index.ndx table_CG_CG.xvg</filelist>
