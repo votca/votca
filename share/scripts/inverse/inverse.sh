@@ -51,7 +51,7 @@ do_iterations=""
 do_clean="no"
 
 #unset stuff from enviorment
-unset CSGXMLFILE CSGSCRIPTDIR CSGLOG CSGENDING
+unset CSGXMLFILE CSGENDING
 
 ### begin parsing options
 shopt -s extglob

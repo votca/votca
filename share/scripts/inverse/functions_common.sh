@@ -182,7 +182,7 @@ for_all (){
     done
   done
   for name in $interactions; do
-    #print this message to stderr because $(for_all something) is used very often
+    #print this message to stderr to avoid problem with $(for_all something)
     [ "$quiet" = "no" ] && echo "for_all: run '$*'" >&2
     #we need to use bash -c here to allow things like $(csg_get_interaction_property xxx) in arguments
     #write variable defines in the front is better, that export
@@ -532,7 +532,7 @@ export -f csg_banner
 csg_calc() {
   local res ret=0 err="1e-6"
   [ -z "$3" ] && die "csg_calc: Missing argument"
-  [[ -n "$(type -p awk)" ]] || die "for_all: Could not find awk"
+  [[ -n "$(type -p awk)" ]] || die "csg_calc: Could not find awk"
   case "$2" in
     "+"|"-"|'*'|"/"|"**")
        res="$(awk "BEGIN{print ($1)$2($3)}")" || die "csg_calc: awk 'BEGIN{print ($1)$2($3)}' failed"

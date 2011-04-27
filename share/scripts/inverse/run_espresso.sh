@@ -61,10 +61,8 @@ n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
 [ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
 
 # Make sure all particle indexes have been loaded into the blockfile
-index_vars=$(for_all -q non-bonded \
-    csg_get_interaction_property inverse.espresso.index1)
-index_vars="$index_vars $(for_all -q non-bonded \
-csg_get_interaction_property inverse.espresso.index2)"
+index_vars="$(csg_get_property cg.non-bonded.inverse.espresso.index1)"
+index_vars="$index_vars $(csg_get_property cg.non-bonded.inverse.espresso.index2)"
 index_vars=$(for i in $index_vars; do echo $i; done | sort -u)
 for i in $index_vars; do
     [ -n "$(gzip -cd $esp | grep $i)" ] || die "${0##*/}: can't find index list: $i"
