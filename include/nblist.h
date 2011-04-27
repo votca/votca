@@ -67,13 +67,13 @@ public:
      * the processing in the match function.
      */
     template<typename T>
-    void SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &));
+    void SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &, const double dist));
 
     /// \brief match function for static member functions or plain functions
-    void SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &));
+    void SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &, const double dist));
 
     /// standard match function
-    static bool match_always(Bead *b1, Bead *b2, const vec &r) { return true; }
+    static bool match_always(Bead *b1, Bead *b2, const vec &r, const double dist) { return true; }
 
     /// function to use a user defined pair type
     template<typename pair_type>
@@ -102,19 +102,19 @@ protected:
     class Functor {
     public:
         Functor() {}
-        virtual bool operator()(Bead *, Bead *, const vec &) = 0;
+        virtual bool operator()(Bead *, Bead *, const vec &, const double dist) = 0;
     };
 
     /// Functor for member functions
     template<typename T>
     class FunctorMember : public Functor {
     public:
-        typedef bool (T::*fkt_t)(Bead *, Bead *, const vec &);
+        typedef bool (T::*fkt_t)(Bead *, Bead *, const vec &, const double dist);
 
         FunctorMember(T* cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 
-        bool operator()(Bead *b1, Bead *b2, const vec &r) {
-            return (_cls->*_fkt)(b1, b2, r);
+        bool operator()(Bead *b1, Bead *b2, const vec &r, const double dist) {
+            return (_cls->*_fkt)(b1, b2, r, dist);
         }
 
     private:
@@ -125,11 +125,11 @@ protected:
     /// Functor for non-member functions
     class FunctorNonMember : public Functor {
     public:
-        typedef bool (*fkt_t)(Bead *, Bead *, const vec &);
+        typedef bool (*fkt_t)(Bead *, Bead *, const vec &, const double dist);
         FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
 
-        bool operator()(Bead *b1, Bead *b2, const vec &r) {
-            return (*_fkt)(b1, b2, r);
+        bool operator()(Bead *b1, Bead *b2, const vec &r, const double dist) {
+            return (*_fkt)(b1, b2, r, dist);
         }
 
     private:
@@ -147,14 +147,14 @@ void NBList::setPairType()
 }
 
 template<typename T>
-inline void NBList::SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &))
+inline void NBList::SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &, const double))
 {
     if(_match_function)
         delete _match_function;
     _match_function = dynamic_cast<Functor*>(new FunctorMember<T>(object, fkt));
 }
 
-inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &))
+inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &, const double))
 {
     if(_match_function)
         delete _match_function;

@@ -20,7 +20,7 @@
 #include <boost/program_options.hpp>
 #include <cgengine.h>
 #include "version.h"
-#include "imc.h"
+#include "csg_stat_imc.h"
 
 using namespace std;
 using namespace votca::csg;

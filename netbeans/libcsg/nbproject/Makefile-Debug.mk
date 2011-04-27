@@ -33,12 +33,12 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/1332856960/gmx_version_check.o \
 	${OBJECTDIR}/_ext/484457853/orthorhombicbox.o \
 	${OBJECTDIR}/_ext/484457853/topologyreader.o \
 	${OBJECTDIR}/_ext/484457853/openbox.o \
 	${OBJECTDIR}/_ext/484457853/imcio.o \
 	${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o \
-	${OBJECTDIR}/_ext/1332856960/version_check.o \
 	${OBJECTDIR}/_ext/484457853/topologymap.o \
 	${OBJECTDIR}/_ext/1332856960/gmxtrajectoryreader.o \
 	${OBJECTDIR}/_ext/484457853/nblist.o \
@@ -47,8 +47,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1332856960/esptrajectoryreader.o \
 	${OBJECTDIR}/_ext/484457853/version_nb.o \
 	${OBJECTDIR}/_ext/484457853/map.o \
-	${OBJECTDIR}/_ext/1332856960/lammpsreader.o \
 	${OBJECTDIR}/_ext/484457853/molecule.o \
+	${OBJECTDIR}/_ext/1332856960/lammpsreader.o \
 	${OBJECTDIR}/_ext/1332856960/pdbtopologyreader.o \
 	${OBJECTDIR}/_ext/484457853/topology.o \
 	${OBJECTDIR}/_ext/484457853/boundarycondition.o \
@@ -56,6 +56,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457853/nematicorder.o \
 	${OBJECTDIR}/_ext/1332856960/esptopologyreader.o \
 	${OBJECTDIR}/_ext/1332856960/gmxtopologyreader.o \
+	${OBJECTDIR}/_ext/1332856960/gmx_print_version.o \
 	${OBJECTDIR}/_ext/484457853/triclinicbox.o \
 	${OBJECTDIR}/_ext/1332856960/growriter.o \
 	${OBJECTDIR}/_ext/484457853/trajectorywriter.o \
@@ -95,6 +96,11 @@ LDLIBSOPTIONS=
 	${AR} -rv ../../src/libcsg/libcsg.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libcsg/libcsg.a
 
+${OBJECTDIR}/_ext/1332856960/gmx_version_check.o: ../../src/libcsg/modules/io/gmx_version_check.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/gmx_version_check.o ../../src/libcsg/modules/io/gmx_version_check.cc
+
 ${OBJECTDIR}/_ext/484457853/orthorhombicbox.o: ../../src/libcsg/orthorhombicbox.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
@@ -119,11 +125,6 @@ ${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o: ../../src/libcsg/modules/io/xm
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/xmltopologyreader.o ../../src/libcsg/modules/io/xmltopologyreader.cc
-
-${OBJECTDIR}/_ext/1332856960/version_check.o: ../../src/libcsg/modules/io/version_check.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/version_check.o ../../src/libcsg/modules/io/version_check.cc
 
 ${OBJECTDIR}/_ext/484457853/topologymap.o: ../../src/libcsg/topologymap.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
@@ -165,15 +166,15 @@ ${OBJECTDIR}/_ext/484457853/map.o: ../../src/libcsg/map.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/map.o ../../src/libcsg/map.cc
 
-${OBJECTDIR}/_ext/1332856960/lammpsreader.o: ../../src/libcsg/modules/io/lammpsreader.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/lammpsreader.o ../../src/libcsg/modules/io/lammpsreader.cc
-
 ${OBJECTDIR}/_ext/484457853/molecule.o: ../../src/libcsg/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/molecule.o ../../src/libcsg/molecule.cc
+
+${OBJECTDIR}/_ext/1332856960/lammpsreader.o: ../../src/libcsg/modules/io/lammpsreader.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/lammpsreader.o ../../src/libcsg/modules/io/lammpsreader.cc
 
 ${OBJECTDIR}/_ext/1332856960/pdbtopologyreader.o: ../../src/libcsg/modules/io/pdbtopologyreader.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
@@ -209,6 +210,11 @@ ${OBJECTDIR}/_ext/1332856960/gmxtopologyreader.o: ../../src/libcsg/modules/io/gm
 	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/gmxtopologyreader.o ../../src/libcsg/modules/io/gmxtopologyreader.cc
+
+${OBJECTDIR}/_ext/1332856960/gmx_print_version.o: ../../src/libcsg/modules/io/gmx_print_version.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/gmx_print_version.o ../../src/libcsg/modules/io/gmx_print_version.cc
 
 ${OBJECTDIR}/_ext/484457853/triclinicbox.o: ../../src/libcsg/triclinicbox.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853

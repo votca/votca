@@ -29,6 +29,7 @@ Allowed options:
     --wall-time SEK           Set wall clock time
     --options FILE            Specify the options xml file to use
     --clean                   clean out the PWD, dangerous
+    --nocolor                 disable colors
 
 Examples:
 * ${0##*/} cg.xml
@@ -48,10 +49,9 @@ source "${0%/*}/start_framework.sh"  || exit 1
 #defaults for options
 do_iterations=""
 do_clean="no"
-wall_time=""
 
 #unset stuff from enviorment
-unset CSGXMLFILE CSGSCRIPTDIR CSGLOG
+unset CSGXMLFILE CSGSCRIPTDIR CSGLOG CSGENDING
 
 ### begin parsing options
 shopt -s extglob
@@ -70,9 +70,8 @@ while [ "${1#-}" != "$1" ]; do
     int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
     shift 2 ;;
    --wall-time)
-    wall_time="$2"
-    int_check "$wall_time" "inverse.sh: --wall-time need a number as agrument"
-    start_time="$(date +%s)" || exit 1
+    int_check "$2" "inverse.sh: --wall-time need a number as agrument"
+    export CSGENDING=$(( $(get_time) + $2 ))
     shift 2 ;;
    -[0-9]*)
     do_iterations=${1#-}
@@ -81,9 +80,12 @@ while [ "${1#-}" != "$1" ]; do
     #needs to be done below, because it needs CSG* variables
     do_clean="yes"
     shift ;;
-   --xmlfile)
+   --options)
     export CSGXMLFILE="$2"
     shift 2;;
+   --nocolor)
+    export CSGNOCOLOR="yes"
+    shift;; 
    -h | --help)
     show_help
     exit 0;;
@@ -99,22 +101,16 @@ if [ -z "${CSGXMLFILE}" ]; then
   export CSGXMLFILE="${1}"
   shift
 fi
-
-#make CSGXMLFILE a global path
-[ "${CSGXMLFILE%/*}" = "${CSGXMLFILE}" ] && cpath="." || cpath="${CSGXMLFILE%/*}"
-cpath="$(cd $cpath;pwd)"
-export CSGXMLFILE="${cpath}/${CSGXMLFILE##*/}"
-[ -f "$CSGXMLFILE" ] || die "${0##*/}: could not find ${CSGXMLFILE##*/} (long version: $CSGXMLFILE" 
-unset cpath
+export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
 
 #other stuff we need, which comes from xmlfile -> must be done here
 #define $CSGRESTART
-CSGRESTART="$(csg_get_property cg.inverse.restart_file)"
+CSGRESTART="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
 CSGRESTART="${CSGRESTART##*/}"
 export CSGRESTART
 
 #get csglog
-CSGLOG="$(csg_get_property cg.inverse.log_file)"
+CSGLOG="$(csg_get_property cg.inverse.log_file "inverse.log")"
 CSGLOG="$PWD/${CSGLOG##*/}"
 export CSGLOG
 
@@ -124,16 +120,16 @@ if [ "$do_clean" = "yes" ]; then
 fi
 
 if [ -f "$CSGLOG" ]; then
-  exec 3>&1 >> "$CSGLOG" 2>&1
+  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
   echo "\n\n#################################"
   echo "# Appending to existing logfile #"
   echo "#################################\n\n"
   echo "Sim started $(date)"
-  msg "Appending to existing logfile ${CSGLOG##*/}"
+  msg --color blue "Appending to existing logfile ${CSGLOG##*/}"
 else
   echo "For a more verbose log see: ${CSGLOG##*/}"
   #logfile is created in the next line
-  exec 3>&1 >> "$CSGLOG" 2>&1
+  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
   echo "Sim started $(date)"
 fi
 
@@ -156,10 +152,10 @@ filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [ -z "$cleanlist" ] || echo "We extra clean '$cleanlist' after a step is done"
 
-add_csg_scriptdir
+scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+add_to_csgshare "$scriptdir"
 
-critical $SOURCE_WRAPPER --status
-critical $SOURCE_WRAPPER --check
+show_csg_tables
 
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }
@@ -170,12 +166,12 @@ this_dir=$(get_current_step_dir --no-check)
 if [ -d "$this_dir" ] && [ -f $this_dir/done ]; then
   msg "step 0 is already done - skipping"
 else
-  msg ------------------------
-  msg "Prepare (dir ${this_dir##*/})"
-  msg ------------------------
+  echo ------------------------
+  msg --color blue "Prepare (dir ${this_dir##*/})"
+  echo ------------------------
   if [ -d "$this_dir" ]; then
     msg "Incomplete step 0"
-    [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
+    [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose the prepare step)"
   else
     mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   fi
@@ -218,9 +214,9 @@ for ((i=$begin;i<$iterations+1;i++)); do
   update_stepnames $i
   last_dir=$(get_last_step_dir)
   this_dir=$(get_current_step_dir --no-check)
-  msg -------------------------------
-  msg "Doing iteration $i (dir ${this_dir##*/})"
-  msg -------------------------------
+  echo -------------------------------
+  msg --color blue "Doing iteration $i (dir ${this_dir##*/})"
+  echo -------------------------------
   if [ -d $this_dir ]; then
     if [ -f $this_dir/done ]; then
       msg "step $i is already done - skipping"
@@ -238,7 +234,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   mark_done "stepdir"
 
   if is_done "Initialize"; then
-    msg "Initialization already done"
+    echo "Initialization already done"
   else
     #get need files
     cp_from_main_dir $filelist
@@ -250,11 +246,24 @@ for ((i=$begin;i<$iterations+1;i++)); do
   fi
 
   if is_done "Simulation"; then
-    msg "Simulation is already done"
+    echo "Simulation is already done"
   else
     msg "Simulation with $sim_prog"
     do_external run $sim_prog
+  fi
+
+  if simulation_finish; then
     mark_done "Simulation"
+  elif [ "$(csg_get_property cg.inverse.simulation.background "no")" = "yes" ]; then
+    msg "Simulation is suppose to run in background, which we cannot check."
+    msg "Stopping now, resume csg_inverse whenever the simulation is done."
+    exit 0
+  elif checkpoint_exist; then
+    msg "Simulation is not finished, but a checkpoint was found, so it seems"
+    msg "walltime is nearly up, stopping now, resume csg_inverse whenever you want."
+    exit 0
+  else
+    die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
   fi
 
   msg "Make update for $method"
@@ -295,14 +304,14 @@ for ((i=$begin;i<$iterations+1;i++)); do
     fi
   fi
 
-  if [ -n "$wall_time" ]; then
+  if [ -n "$CSGENDING" ]; then
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
     echo "New average steptime $avg_steptime"
-    if [ $(( $(get_time) + $avg_steptime )) -gt $(( $wall_time + $start_time )) ]; then
+    if [ $(( $(get_time) + $avg_steptime )) -gt ${CSGENDING} ]; then
       msg "We will not manage another step, stopping"
       exit 0
     else
-      msg "We can go for another $(( ( ${start_time} + $wall_time - $(get_time) ) / $avg_steptime - 1 )) steps"
+      msg "We can go for another $(( ( ${CSGENDING} - $(get_time) ) / $avg_steptime - 1 )) steps"
     fi
   fi
 

@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-version='@version@'
+version='@PROJECT_VERSION@ @CSG_HG_ID@'
 
 die() {
   echo -e "$*" >&2
@@ -82,11 +82,13 @@ $prog - Part of the VOTCA package
 
 $usage
 
+
 = DESCRIPTION =
 
 $desc
 
 Please visit the program site at __http://www.votca.org__.
+
 
 = OPTIONS =
 EOF
@@ -112,6 +114,8 @@ assert "sed of options failed"
 
 if [ -n "$exam" ]; then
   cat <<EOF
+
+
 = EXAMPLES =
 $exam
 EOF
@@ -123,8 +127,8 @@ cat <<EOF
 
 Written and maintained by the VOTCA Development Team <devs@votca.org>
 
-This Manual Page converted from t2t format to the this format by [txt2tags http://txt2tags.org] !
-The t2t file was extracted from '$prog --help' by ' ${0##*/} $prog' (version $version)
+This Manual Page was converted from t2t format to the this format by [txt2tags http://txt2tags.org] !
+The t2t file was extracted from '$prog --help' by ${0##*/} (version $version)
 
 
 = COPYRIGHT =

@@ -25,8 +25,8 @@ EOF
    exit 0
 fi
 
-msg "####################################################"
-msg "# WARNING multicomponent imc is still experimental #"
-msg "####################################################"
+msg --color blue "####################################################"
+msg --color blue "# WARNING multicomponent imc is still experimental #"
+msg --color blue "####################################################"
 
 do_external prepare generic

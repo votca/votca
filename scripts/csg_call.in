@@ -15,23 +15,18 @@
 # limitations under the License.
 #
 
-sw_opt=""
-version='@version@'
-verbose="no"
+version='@PROJECT_VERSION@ @CSG_HG_ID@'
 ext_cmd=""
 simprog=""
+show_share="no"
 
 #unset stuff from enviorment
-unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
+unset CSGXMLFILE bondtype bondname CSGLOG
 
 #failback define
 die() {
   echo -e "$*" >&2
   exit 1
-}
-
-vecho() {
-  [ "$verbose" = "yes" ] && echo -e "$*"
 }
 
 show_help () {
@@ -44,18 +39,15 @@ please submit bugs to bugs@votca.org
 
 ${0##*/}, version ${version}
 
-
-
 This script calls another script for csg using source_wrapper
 
 Usage: ${0##*/} [OPTIONS] key1 key2
 
 Allowed options:
 -l, --list           Show list of all script
-    --verbose        Be verbose (useful with show and cat option)
     --cat            Show the content of the script
     --show           Show the path to the script
-    --check          Check all csg scripts
+    --show-share     Shows the used CSGSHARE dir and exits
     --scriptdir DIR  Set the user script dir
                      (Used if no optins xml file is given)
                      Default: empty
@@ -67,16 +59,12 @@ Allowed options:
                      Default: stdout
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
+    --nocolor        Disable colors
 -h, --help           Show this help
 
 Examples:
 * ${0##*/} table smooth [ARGUMENTS]
 * ${0##*/} --show run gromacs
-* ${0##*/} --check
-
-USES: \$CSGSHARE
-
-NEEDS:
 eof
 }
 
@@ -92,15 +80,10 @@ while [ "${1#-}" != "$1" ]; do
  fi
  case $1 in
    -l | --list)
-    #we can not run it directly here SOURCE_WRAPPER is defined later
-    sw_opt="--status"
-    shift ;;
-   --check)
-    #we can not run it directly here SOURCE_WRAPPER is defined later
-    sw_opt="--check"
+    ext_cmd="show_csg_tables"
     shift ;;
    --scriptdir)
-    CSGSCRIPTDIR="$2"
+    scriptdir="$2"
     shift 2;;
    --simprog)
     simprog="$2"
@@ -123,13 +106,13 @@ while [ "${1#-}" != "$1" ]; do
     ext_cmd="cat_external"
     shift;;
    --show)
-    ext_cmd="show_external"
+    ext_cmd="source_wrapper"
     shift;;
-   --direct)
-    quiet="yes"
-    break;;
-   --verbose)
-    verbose="yes"
+   --show-share)
+    show_share="yes"
+    shift;;
+   --nocolor)
+    export CSGNOCOLOR="yes"
     shift;;
    -h | --help)
     show_help
@@ -142,14 +125,12 @@ while [ "${1#-}" != "$1" ]; do
  esac
 done
 
-[ -z "$2" ] && [ -z "$sw_opt" ] && die "${0##*/}: Missing argument"
-
 if [ -z "${CSGSHARE}" ]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
     export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
-  elif [ -f "@votcashare@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@votcashare@"
+  elif [ -f "@CMAKE_INSTALL_PREFIX@/@DATA@/scripts/inverse/inverse.sh" ]; then
+    export CSGSHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
   else
     echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
     echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
@@ -164,38 +145,41 @@ else
   fi
 fi
 
-vecho "CSGSHARE is ${CSGSHARE}"
+if [ "$show_share" = "yes" ]; then
+  echo "${CSGSHARE}"
+  exit 0
+fi
+
 if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
   source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
 else
   die "Could not find start_framework.sh"
 fi
-add_csg_scriptdir
+[ -n "${CSGXMLFILE}" ] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+add_to_csgshare "$scriptdir"
 
 [ -n "${CSGXMLFILE}" ] && simprog="$(csg_get_property --allow-empty cg.inverse.program)"
 [ -n "${simprog}" ] && source_function $simprog
 
-if [ -n "$sw_opt" ]; then
-  $SOURCE_WRAPPER $sw_opt
+if [[ $ext_cmd = show_csg_tables ]]; then
+  $ext_cmd
   exit $?
 fi
+[[ -z $2 ]] && die "${0##*/}: Missing argument"
 
-if [ -n "$ext_cmd" ]; then
+if [[ -n $ext_cmd ]]; then
   $ext_cmd $1 $2
   exit $?
 fi
 
 #help of scripts should always work
-if [ "$3" = "--help" ]; then
+if [[ $3 = --help ]]; then
 cat <<EOF
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
 please submit bugs to bugs@votca.org
-
-
-
 
 EOF
   do_external -q $1 $2 --help | sed "s/%version%/${version}/"
@@ -204,6 +188,6 @@ fi
 
 if [ -n "${CSGLOG}" ]; then
   echo "For details see logfile: $CSGLOG"
-  exec 3>&1 >> "$CSGLOG" 2>&1
+  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
 fi
 do_external $@

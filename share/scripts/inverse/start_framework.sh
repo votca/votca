@@ -30,22 +30,13 @@ fi
 die(){ echo "$*" >&2; exit 1; }
 
 #check for CSGSHARE
-[[ -n "$CSGSHARE" ]] || die "Error: CSGSHARE not definded"
-[[ -d "$CSGSHARE" ]] || die "CSGSHARE '$CSGSHARE' is not a dir"
-
-CSGINVERSE="${CSGSHARE}/scripts/inverse"
-[[ -d "$CSGINVERSE" ]] || die "\$CSGSHARE/scripts/inverse is not a dir"
-[ -f "${CSGSHARE}/scripts/inverse/inverse.sh" ] || die "inverse.sh not found"
-export CSGINVERSE
-export PERL5LIB="$CSGINVERSE:$PERL5LIB"
-
-[[ -f "${CSGINVERSE}/functions_common.sh" ]] || die "Could not find default common framework functions (functions_common.sh)"
-source "${CSGINVERSE}/functions_common.sh" || die "Failed to source common framework functions"
-
-#find source_wrapper.pl
-SOURCE_WRAPPER="${CSGINVERSE}/source_wrapper.pl"
-[[ -x "${SOURCE_WRAPPER}" ]] || die "Could not find source_wrapper.pl"
-export SOURCE_WRAPPER
+[[ -n $CSGSHARE ]] || die "Error: CSGSHARE not definded"
+[[ -d $CSGSHARE ]] || die "CSGSHARE '$CSGSHARE' is not a dir"
+[[ -d ${CSGSHARE}/scripts/inverse ]] || die "\$CSGSHARE/scripts/inverse is not found. Is CSGSHARE set corectly?"
+[[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]] || die "Could not find inverse.sh, \$CSGSHARE/scripts/inverse seem to point to the wrong place!"
+[[ -f ${CSGSHARE}/scripts/inverse/functions_common.sh ]] || die "Could not find default common framework functions (functions_common.sh)"
+source "${CSGSHARE}/scripts/inverse/functions_common.sh" || die "Failed to source common framework functions"
+add_to_csgshare "${CSGSHARE}/scripts/inverse"
 
 #this is need by die later
 export CSG_MASTER_PID="$$"

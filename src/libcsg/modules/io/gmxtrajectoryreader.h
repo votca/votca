@@ -18,13 +18,13 @@
 #ifndef _gmxtrajectoryreader_H
 #define	_gmxtrajectoryreader_H
 
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
+#endif
+
 #include <string>
 #include "trajectoryreader.h"
-#include "version_check.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "gmx_version_check.h"
 
 #if GMX == 50
         #include <gromacs/legacyheaders/statutil.h>

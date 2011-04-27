@@ -11,13 +11,19 @@
   <item>
    <name>type1</name>
     <desc>
-      Only for non-bonded. Bead type 1 of non-bonded interaction. For PMF, this is the residue name of pull_group0.
+      Only for non-bonded. **Bead** type 1 of non-bonded interaction. For PMF, this is the energy group name of pull_group0.
     </desc>
   </item>
   <item>
    <name>type2</name>
     <desc>
-      Only for non-bonded. Bead type 2 of non-bonded interaction. For PMF, this is the residue name of pull_group1.
+      Only for non-bonded. **Bead** type 2 of non-bonded interaction. For PMF, this is the energy group name of pull_group1.
+    </desc>
+  </item>
+  <item>
+   <name>bondtype</name>
+    <desc>
+      Internal alias for non-bonded and bonded, set automatically
     </desc>
   </item>
   <item>
@@ -235,6 +241,20 @@
   </item>
 
   <item>
+    <name>inverse.gromacs.grp1</name>
+    <desc>
+      Name of energy group of bead type1 using in the g_rdf index file.
+    </desc>
+  </item>
+
+  <item>
+    <name>inverse.gromacs.grp2</name>
+    <desc>
+      Name of energy group of bead type2 using in the g_rdf index file.
+    </desc>
+  </item>
+
+  <item>
     <name>inverse.espresso</name>
     <desc>
         This section contains espresso specific options in case espresso is used as simulation program.
@@ -310,5 +330,12 @@ particles that is contained in the espresso blockfile.
       fmatch.out_step which is approximately 5 times smaller than fmatch.step.
     </desc>
   </item>
+  <item><name>tf</name><desc>Contains all information relevant to thermoforce iteration</desc></item>
+  <item><name>tf.spline_start</name><desc>Start of the spline used to smooth the density</desc></item>
+  <item><name>tf.spline_end</name><desc>End of the spline used to smooth the density</desc></item>
+  <item><name>tf.spline_step</name><desc>Grid of the spline used to smooth the density</desc></item>
+  <item><name>tf.molname</name><desc>Molecule name of this gropu used in gromacs topology</desc></item>
+  <item><name>tf.prefactor</name><desc>Prefactor for the thermoforce (f=-prefactor * grad density)</desc></item>
+  <item><name>tf.cg_prefactor</name><desc>Second Prefactor for the thermoforce will be linear interpolated with tf.prefactor</desc></item>
 
 </tags> 

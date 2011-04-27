@@ -1,0 +1,103 @@
+CHANGELOG
+Votca Developer Team
+%%mtime(%m/%d/%Y)
+
+For more detailed information about the changes see the
+history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
+
+== Version in hg ==
+* changed buildsystem to cmake
+
+
+== Version in 1.1.2 ==
+* fixed head of votca-csg manpage
+* csg_fmatch: added support for known forces (--trj-force option)
+
+
+== Version in 1.1.1 ==
+* fixed csg_inverse --clean
+* make postupdate pressure work again
+* fixed bug when reading exclusions from tpr
+* end with error in csg_stat if bead type does not exist (issue 77)
+
+
+== Version in 1.1 (SuperAnn) ==
+* added support for gromacs 5.0
+* csg_dump: can dump exclusion
+* added boundarycondition class
+* added man pages, man7 and man1 for all bins
+* csg_inverse: renamed ibm to ibi
+* csg_inverse: many internal improvements
+* csg_stat: added thread support, read exclusions from tpr file, uses grid search by default
+* csg_inverse: added convergence check, postadd plot, better logging and weaker die
+* csg_resample: added boundary conditions option and akima spline support
+* csg_stat or csg_fmatch give an error if trj not given (issue 29)
+* csg_get_interaction_property knows about defaults
+* fixed segfault in mapping (Fixes issue 27)
+* fixed bug in gromacs writer (frame.bX = true)
+* fixed segfault in gromacs writer (issue 54)
+
+
+== Version 1.0.1 ==
+* fixed custom md programs in sim scripts (issue 1)
+* completion file is back from tools
+* issue #21: fixed strange kink when pot.in was provided
+* added --disable-rc-files to configure
+* csg_call/csg_inverse: added installdir as failback for CSGSHARE
+* updated bundled libtool to 2.2.10
+
+
+== Version 1.0 ==
+* added postupdate script for scaling the update
+* added options to perform analysis without giving a mapping file (--no-map). No need for dummy mapping file in IMC and csg_stat anymore.
+* allow comments in tables
+* fixed bug in pressure correction when p is negative
+* added support for gromacs devel version
+* fixed a bug when compiling with gcc-4.4
+* fixed a bug that pot.cur was change at every step
+* added application class for easy implementation of analysis programs
+* fixed bug if initial potential was given and not used
+* restart points in iterative procedure are not anymore deleted after step finished
+* preliminary reader for ESPResSo Blockfiles and ESPResSo as Simulation program for csg_inverse
+* preliminary reader for LAMMPS dump files (very limited features)
+* allow compling without gromacs
+* a lot new xml options
+* full support for gromacs 4.5
+
+== Version 1.0_rc5 ==
+* fixed ""--first-frame option"" (""--first-frame"" 1 before started at second frame)
+* fixed compatibility issue when using gromacs development version
+* using libexpat instead of libxml2
+* using pkg-config to detect package flags
+* compiles under AIX with xlC
+* updated configure, see --help
+* added multi_g_density
+* CSGRC is replaced by VOTCARC of votca_tools
+
+
+== Version 1.0_rc4 ==
+* using libtool to build shared libs
+* fixed a bug in error calculation of multi_g_rdf
+
+
+== Version 1.0_rc3 ==
+* added option --wall-time to csg_inverse if run on a queueing system
+* added option for IBI to run in parallel
+* multi_g_rdf, a multiplexed version of g_rdf was added
+* added some options to csg_call
+* csg_resample now also calc derivatives
+* fixed a bug in reading stuff from mpd file
+* some fixes concering autotools
+* fixed a bug in calculation of version string
+
+
+== Version 1.0_rc2 ==
+* added version string to scripts
+* added NOTICE and LICENSE to the dist tarball
+* fixed typo in calculation of version string
+
+
+== Version 1.0_rc1 ==
+* initial version
+
+
