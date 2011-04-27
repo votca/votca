@@ -19,6 +19,7 @@ import sys
 
 import getopt
 import math
+import os
 
 xvalues = []
 yvalues = []
@@ -57,7 +58,7 @@ Allowed options:
     --xstop      X.X  where the smoothing stops
     --infile    FILE  input file
     --outfile   FILE  output file
-""" % {'name': sys.argv[0],'ver': '%version%'}
+""" % {'name': os.path.basename(sys.argv[0]),'ver': '%version%'}
       sys.exit(0)
     elif o == "-v":
         verbose = True
