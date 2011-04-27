@@ -86,8 +86,6 @@ if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
 else
   die "Could not find start_framework.sh"
 fi
-[ -n "${CSGXMLFILE}" ] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-add_to_csgshare "$scriptdir"
 
 [ -z "${CSGXMLFILE}" ] && die "Error: Missing xml file - add it behind the '--options' option"
 export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
@@ -128,8 +126,12 @@ main_dir=$(get_main_dir)
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 [ -z "$filelist" ] || echo "We extra cp '$filelist' to every step to run the simulation"
 
+[ -n "${CSGXMLFILE}" ] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+add_to_csgshare "$scriptdir"
+
+show_csg_tables
+
 mdrun="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.bin "mdrun")"
-[ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
 
 # if no -rerun option, run as normal
 if [[ $mdrun != *-rerun* ]]; then
