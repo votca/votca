@@ -15,14 +15,8 @@
 # limitations under the License.
 #
 
-verbose="no"
-
 #unset stuff from enviorment
-unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
-
-vecho() {
-  [ "$verbose" = "yes" ] && echo -e "$*"
-}
+unset CSGXMLFILE
 
 show_help () {
   cat << eof
@@ -43,8 +37,6 @@ Usage: ${0##*/} --options xmlfile
 Allowed options:
     --options FILE   Specify the options xml file to use
 -h, --help           Show this help
-
-USES: \$CSGSHARE
 eof
 }
 
@@ -73,8 +65,8 @@ if [ -z "${CSGSHARE}" ]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
     export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
-  elif [ -f "@votcashare@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@votcashare@"
+  elif [ -f "/people/thnfs/homes/junghans/votca/share/votca/scripts/inverse/inverse.sh" ]; then
+    export CSGSHARE="/people/thnfs/homes/junghans/votca/share/votca"
   else
     echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
     echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
@@ -89,30 +81,33 @@ else
   fi
 fi
 
-vecho "CSGSHARE is ${CSGSHARE}"
 if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
   source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
 else
   die "Could not find start_framework.sh"
 fi
-add_csg_scriptdir
+[ -n "${CSGXMLFILE}" ] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+add_to_csgshare "$scriptdir"
 
-[ -z "$CSGXMLFILE" ] && die "Script will need some options from the xml file\nPlease specify it with --options option"
-[ ! -f "$CSGXMLFILE" ] && die "options xml file '$CSGXMLFILE' not found"
+[ -z "${CSGXMLFILE}" ] && die "Error: Missing xml file - add it behind the '--options' option"
+export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
 
-# Make CSGXMLFILE a global path
-[ "${CSGXMLFILE%/*}" = "${CSGXMLFILE}" ] && cpath="." || cpath="${CSGXMLFILE%/*}"
-cpath="$(cd $cpath;pwd)"
-export CSGXMLFILE="${cpath}/${CSGXMLFILE##*/}"
-[ -f "$CSGXMLFILE" ] || die "${0##*/}: could not find ${CSGXMLFILE##*/} (long version: $CSGXMLFILE"
-unset cpath
+sim_prog="$(csg_get_property cg.inverse.program)"
+[ "$sim_prog" = "gromacs" ] || die "${0##*/} only support gromacs at this point"
+
+#other stuff we need, which comes from xmlfile -> must be done here
+#define $CSGRESTART
+CSGRESTART="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
+CSGRESTART="${CSGRESTART##*/}"
+export CSGRESTART
 
 #get csglog
-CSGLOG="$(csg_get_property cg.inverse.log_file)"
+CSGLOG="$(csg_get_property cg.inverse.log_file "pmf.log")"
 CSGLOG="$PWD/${CSGLOG##*/}"
 export CSGLOG
+
 if [ -f "$CSGLOG" ]; then
-  exec 3>&1 >> "$CSGLOG" 2>&1
+  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
   echo "\n\n#################################"
   echo "# Appending to existing logfile #"
   echo "#################################\n\n"
@@ -121,16 +116,17 @@ if [ -f "$CSGLOG" ]; then
 else
   echo "For a more verbose log see: ${CSGLOG##*/}"
   #logfile is created in the next line
-  exec 3>&1 >> "$CSGLOG" 2>&1
+  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
   echo "Sim started $(date)"
 fi
 
-source_function gromacs 
+echo "We are using Sim Program: $sim_prog"
+source_function $sim_prog
 
 main_dir=$(get_main_dir)
 
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-[ -z "$filelist" ] || msg "We extra cp '$filelist' to every step to run the simulation"
+[ -z "$filelist" ] || echo "We extra cp '$filelist' to every step to run the simulation"
 
 mdrun="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.bin "mdrun")"
 [ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
@@ -145,7 +141,7 @@ if [[ $mdrun != *-rerun* ]]; then
   pmf_step=$(basename $this_dir)
 
   if [ -f $this_dir/done ]; then
-    msg "step $pmf_step is already done - skipping"0
+    msg "step $pmf_step is already done - skipping"
   else 
     msg "---------------"
     msg "Doing $pmf_step"
