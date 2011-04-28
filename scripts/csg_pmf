@@ -28,9 +28,7 @@ please submit bugs to bugs@votca.org
 
 ${0##*/}, version ${version}
 
-
-
-This script runs csg_pmf using source_wrapper
+Calculates pmf between two groups.
 
 Usage: ${0##*/} --options xmlfile
 
@@ -61,25 +59,8 @@ while [ "${1#-}" != "$1" ]; do
  esac
 done
 
-if [ -z "${CSGSHARE}" ]; then
-  if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
-    #transform it to a global path
-    export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
-  elif [ -f "/people/thnfs/homes/junghans/votca/share/votca/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="/people/thnfs/homes/junghans/votca/share/votca"
-  else
-    echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
-    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
-    exit 1
-  fi
-else
-  if [ ! -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
-    echo "Error: Environment value CSGSHARE seems to be wrong" >&2
-    echo "Could not find \${CSGSHARE}/scripts/inverse/inverse.sh" >&2
-    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
-    exit 1
-  fi
-fi
+[ -n "$(type -p csg_call)" ] || die "Could not find csg_call"
+export CSGSHARE="$(csg_call --show-share)"
 
 if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
   source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
@@ -91,7 +72,7 @@ fi
 export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-[ "$sim_prog" = "gromacs" ] || die "${0##*/} only support gromacs at this point"
+[ "$sim_prog" = "gromacs" ] || die "${0##*/} only supports gromacs at this point"
 
 #other stuff we need, which comes from xmlfile -> must be done here
 #define $CSGRESTART
