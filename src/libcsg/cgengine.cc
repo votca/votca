@@ -46,6 +46,7 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out)
     TopologyMap *m = new TopologyMap(&in, &out);
     for(iter=mols.begin(); iter!=mols.end(); ++iter) {
         Molecule *mol = *iter;
+        if(IsIgnored(mol->getName())) continue;
         CGMoleculeDef *def = getMoleculeDef(mol->getName());
         if(!def) {
             cout << "--------------------------------------\n"
