@@ -22,6 +22,7 @@
 #include "topologymap.h"
 #include "cgengine.h"
 #include "version.h"
+#include <boost/algorithm/string/trim.hpp>
 
 namespace votca {
     namespace csg {
@@ -44,6 +45,7 @@ namespace votca {
                 if (DoMappingDefault()) {
                     AddProgramOptions("Mapping options")
                             ("cg", boost::program_options::value<string > (), "  coarse graining mapping definitions (xml-file)")
+                            ("map-ignore", boost::program_options::value<string >(), "  list of molecules to ignore separated by ;")
                             ("no-map", "  disable mapping and act on original trajectory");
                 } else {
                     AddProgramOptions("Mapping options")
@@ -62,7 +64,7 @@ namespace votca {
                 ;
 
             if (DoThreaded())
-                /**
+                /*
                  * TODO default value of 1 for nt is not smart
                  */
                 AddProgramOptions("Threading options")
@@ -211,6 +213,18 @@ namespace votca {
                 // read in the coarse graining definitions (xml files)
                 cg.LoadMoleculeType(_op_vm["cg"].as<string > ());
                 // create the mapping + cg topology
+
+                if(_op_vm.count("map-ignore") != 0) {
+                    Tokenizer tok(_op_vm["map-ignore"].as<string>(), ";");
+                    Tokenizer::iterator iter;
+                    for(iter=tok.begin(); iter!=tok.end(); ++iter) {
+                        string str=*iter;
+                        boost::trim(str);
+                        if(str.length() > 0)
+                            cg.AddIgnore(str);
+                    }
+                }
+
                 master->_map = cg.CreateCGTopology(master->_top, master->_top_cg);
 
                 cout << "I have " << master->_top_cg.BeadCount() << " beads in " << master->_top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
