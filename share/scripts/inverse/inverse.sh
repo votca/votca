@@ -48,7 +48,6 @@ source "${0%/*}/start_framework.sh"  || exit 1
 
 #defaults for options
 do_iterations=""
-do_clean="no"
 
 #unset stuff from enviorment
 unset CSGXMLFILE CSGENDING
@@ -77,11 +76,12 @@ while [ "${1#-}" != "$1" ]; do
     do_iterations=${1#-}
     shift ;;
    --clean)
-    #needs to be done below, because it needs CSG* variables
-    do_clean="yes"
-    shift ;;
+    csg_ivnerse_clean
+    exit $?;;
    --options)
-    export CSGXMLFILE="$2"
+    CSGXMLFILE="$2"
+    [ -f "$CSGXMLFILE" ] || die "options xml file '$CSGXMLFILE' not found"
+    export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
     shift 2;;
    --nocolor)
     export CSGNOCOLOR="yes"
@@ -95,43 +95,12 @@ while [ "${1#-}" != "$1" ]; do
 done
 ### end parsing options
 
-#old style maybe, new style set by --options
-if [ -z "${CSGXMLFILE}" ]; then
-  [ -n "$1" ] || die "Error: Missing xml file"
-  export CSGXMLFILE="${1}"
-  shift
-fi
-export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
+#old style, inform user
+[ -z "${CSGXMLFILE}" ] && die "options xml file has now to be specifed after --options option (like for all other votca programs)"
 
-#other stuff we need, which comes from xmlfile -> must be done here
-#define $CSGRESTART
-CSGRESTART="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
-CSGRESTART="${CSGRESTART##*/}"
-export CSGRESTART
+enable_logging
 
-#get csglog
-CSGLOG="$(csg_get_property cg.inverse.log_file "inverse.log")"
-CSGLOG="$PWD/${CSGLOG##*/}"
-export CSGLOG
-
-if [ "$do_clean" = "yes" ]; then
-  csg_ivnerse_clean
-  exit $?
-fi
-
-if [ -f "$CSGLOG" ]; then
-  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-  echo "\n\n#################################"
-  echo "# Appending to existing logfile #"
-  echo "#################################\n\n"
-  echo "Sim started $(date)"
-  msg --color blue "Appending to existing logfile ${CSGLOG##*/}"
-else
-  echo "For a more verbose log see: ${CSGLOG##*/}"
-  #logfile is created in the next line
-  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-  echo "Sim started $(date)"
-fi
+echo "Sim started $(date)"
 
 method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
@@ -156,6 +125,7 @@ scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
 add_to_csgshare "$scriptdir"
 
 show_csg_tables
+csg_export CSGRESTART
 
 #main script
 [[ ! -f done ]] || { msg "Job is already done"; exit 0; }

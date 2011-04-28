@@ -445,9 +445,15 @@ get_table_comment() {
 export -f get_table_comment
 
 csg_ivnerse_clean() {
+  local i files log="inverse.log"
+  if [ -n "${CSGXMLFILE}" ]; then
+    log="$(csg_get_property cg.inverse.log_file "$log")"
+  else
+    msg --color blue "No options xml given, so we assume '$log' to be the logfile"
+  fi
   echo -e "So, you want to clean?\n"
-  echo "We will remove:"
-  files="$(ls -d done ${CSGRESTART} ${CSGLOG##$PWD/} step_* *~ 2>/dev/null)"
+  echo "I will remove:"
+  files="$(ls -d done ${log} step_* *~ 2>/dev/null)"
   if [ -z "$files" ]; then
     echo "Nothing to clean"
   else
@@ -635,3 +641,42 @@ if [ -z "$(type -p mktemp)" ]; then
   }
   export -f mktemp
 fi
+
+enable_logging() {
+  local log
+  if [ -z "$1" ]; then
+    log="$(csg_get_property cg.inverse.log_file "inverse.log")"
+  else
+    log="$1"
+  fi
+  log="$(globalize_file "${log##*/}")"
+  export CSGLOG="$log"
+  if [ -f "$CSGLOG" ]; then
+    exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
+    echo "\n\n#################################"
+    echo "# Appending to existing logfile #"
+    echo "#################################\n\n"
+    msg --color blue "Appending to existing logfile ${CSGLOG##*/}"
+  else
+    exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
+    msg "For a more verbose log see: ${CSGLOG##*/}"
+  fi
+}
+export -f enable_logging
+
+csg_export() {
+  local i var
+  for i in "$@"; do
+    case $i in
+      CSGRESTART)
+        var="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
+        var="${var##*/}"
+        shift;;
+      *)
+        die "csg_export: Unknown variable $i";;
+    esac
+    eval export $i='$var' || die "csg_export: export $i='$var' failed"
+  done
+}
+export -f csg_export
+
