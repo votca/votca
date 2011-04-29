@@ -32,13 +32,13 @@ Allowed options:
     --nocolor                 disable colors
 
 Examples:
-* ${0##*/} cg.xml
-* ${0##*/} -6 cg.xml
+* ${0##*/} --options cg.xml
+* ${0##*/} -6 --options cg.xml
 eof
 }
 
 #--help should always work so leave it here
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
   show_help
   exit 0
 fi
@@ -54,10 +54,10 @@ unset CSGXMLFILE CSGENDING
 
 ### begin parsing options
 shopt -s extglob
-while [ "${1#-}" != "$1" ]; do
- if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+while [[ ${1#-} != $1 ]]; do
+ if [[ ${1#--} = $1 && -n ${1:2} ]]; then
     #short opt with arguments here: fc
-    if [ "${1#-[fc]}" != "${1}" ]; then
+    if [[ ${1#-[fc]} != ${1} ]]; then
        set -- "${1:0:2}" "${1:2}" "${@:2}"
     else
        set -- "${1:0:2}" "-${1:2}" "${@:2}"
@@ -80,7 +80,7 @@ while [ "${1#-}" != "$1" ]; do
     exit $?;;
    --options)
     CSGXMLFILE="$2"
-    [ -f "$CSGXMLFILE" ] || die "options xml file '$CSGXMLFILE' not found"
+    [[ -f $CSGXMLFILE ]] || die "options xml file '$CSGXMLFILE' not found"
     export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
     shift 2;;
    --nocolor)
@@ -96,7 +96,7 @@ done
 ### end parsing options
 
 #old style, inform user
-[ -z "${CSGXMLFILE}" ] && die "options xml file has now to be specifed after --options option (like for all other votca programs)"
+[[ -z ${CSGXMLFILE} ]] && die "Mssing options xml file, please specifed after --options option (like for all other votca programs)"
 
 enable_logging
 
@@ -110,16 +110,16 @@ echo "We are using Sim Program: $sim_prog"
 source_function $sim_prog
 
 iterations_max="$(csg_get_property cg.inverse.iterations_max)"
-int_check "$do_iterations" "inverse.sh: cg.inverse.iterations_max needs to be a number"
+int_check "$iterations_max" "inverse.sh: cg.inverse.iterations_max needs to be a number"
 echo "We are doing $iterations_max iterations (0=inf)."
 convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
-[ "$convergence_check" = "none" ] || echo "After every iteration we will do the following check: $convergence_check"
+[[ $convergence_check = none ]] || echo "After every iteration we will do the following check: $convergence_check"
 
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-[ -z "$filelist" ] || echo "We extra cp '$filelist' to every step to run the simulation"
+[[ -z $filelist ]] || echo "We extra cp '$filelist' to every step to run the simulation"
 
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
-[ -z "$cleanlist" ] || echo "We extra clean '$cleanlist' after a step is done"
+[[ -z $cleanlist ]] || echo "We extra clean '$cleanlist' after a step is done"
 
 scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
 add_to_csgshare "$scriptdir"
@@ -128,18 +128,18 @@ show_csg_tables
 csg_export CSGRESTART
 
 #main script
-[[ ! -f done ]] || { msg "Job is already done"; exit 0; }
+[[ -f done ]] && { msg "Job is already done"; exit 0; }
 
 ######## BEGIN STEP 0 ############
 update_stepnames 0
 this_dir=$(get_current_step_dir --no-check)
-if [ -d "$this_dir" ] && [ -f $this_dir/done ]; then
+if [[ -d $this_dir &&  -f "$this_dir/done" ]]; then
   msg "step 0 is already done - skipping"
 else
   echo ------------------------
   msg --color blue "Prepare (dir ${this_dir##*/})"
   echo ------------------------
-  if [ -d "$this_dir" ]; then
+  if [[ -d $this_dir ]]; then
     msg "Incomplete step 0"
     [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose the prepare step)"
   else
@@ -164,20 +164,20 @@ fi
 begin=1
 trunc=$(get_stepname --trunc)
 for i in ${trunc}*; do
-  [ -d "$i" ] || continue
+  [[ -d $i ]] || continue
   nr=${i#$trunc}
-  if [ -n "$nr" ] && [ -z "${nr//[0-9]}" ]; then
+  if [[ -n $nr && -z ${nr//[0-9]} ]]; then
     #convert to base 10, otherwise 008 is interpreted as octal
     nr=$((10#$nr))
-    [ $nr -gt $begin ] && begin="$nr"
+    [[ $nr -gt $begin ]] && begin="$nr"
   fi
 done
 unset nr trunc
-[ $begin -gt 1 ] && msg "Jumping in at iteration $begin"
+[[ $begin -gt 1 ]] && msg "Jumping in at iteration $begin"
 
 avg_steptime=0
 steps_done=0
-[ $iterations_max -eq 0 ] && iterations=$begin || iterations=$iterations_max
+[[ $iterations_max -eq 0 ]] && iterations=$begin || iterations=$iterations_max
 for ((i=$begin;i<$iterations+1;i++)); do
   [ $iterations_max -eq 0 ] && ((iterations++))
   step_starttime="$(get_time)"
@@ -187,8 +187,8 @@ for ((i=$begin;i<$iterations+1;i++)); do
   echo -------------------------------
   msg --color blue "Doing iteration $i (dir ${this_dir##*/})"
   echo -------------------------------
-  if [ -d $this_dir ]; then
-    if [ -f $this_dir/done ]; then
+  if [[ -d $this_dir ]]; then
+    if [[ -f "$this_dir/done" ]]; then
       msg "step $i is already done - skipping"
       continue
     else
@@ -260,12 +260,12 @@ for ((i=$begin;i<$iterations+1;i++)); do
 
   touch "done"
 
-  if [ "$convergence_check" = "none" ]; then
+  if [[ $convergence_check = none ]]; then
     echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
     do_external convergence_check "$convergence_check"
-    if [ -f "stop" ]; then
+    if [[ -f stop ]]; then
       msg "Iterations are converged, stopping"
       touch "done"
       exit 0
@@ -274,10 +274,10 @@ for ((i=$begin;i<$iterations+1;i++)); do
     fi
   fi
 
-  if [ -n "$CSGENDING" ]; then
+  if [[ -n $CSGENDING ]]; then
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
     echo "New average steptime $avg_steptime"
-    if [ $(( $(get_time) + $avg_steptime )) -gt ${CSGENDING} ]; then
+    if [[ $(( $(get_time) + $avg_steptime )) -gt ${CSGENDING} ]]; then
       msg "We will not manage another step, stopping"
       exit 0
     else
@@ -285,8 +285,8 @@ for ((i=$begin;i<$iterations+1;i++)); do
     fi
   fi
 
-  if [ -n "$do_iterations" ]; then
-    if [ $do_iterations -ge $steps_done ] ; then
+  if [[ -n $do_iterations ]]; then
+    if [[ $do_iterations -ge $steps_done ]] ; then
       msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
       exit 0
     else

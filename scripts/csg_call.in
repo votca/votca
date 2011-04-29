@@ -70,10 +70,10 @@ eof
 }
 
 
-while [ "${1#-}" != "$1" ]; do
- if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+while [[ ${1#-} != $1 ]]; do
+ if [[ ${1#--} = $1 && -n ${1:2} ]]; then
     #short opt with arguments here: fc
-    if [ "${1#-[fc]}" != "${1}" ]; then
+    if [[ ${1#-[fc]} != ${1} ]]; then
        set -- "${1:0:2}" "${1:2}" "${@:2}"
     else
        set -- "${1:0:2}" "-${1:2}" "${@:2}"
@@ -125,7 +125,7 @@ while [ "${1#-}" != "$1" ]; do
  esac
 done
 
-if [ -z "${CSGSHARE}" ]; then
+if [[ -z ${CSGSHARE} ]]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
     export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
@@ -137,7 +137,7 @@ if [ -z "${CSGSHARE}" ]; then
     exit 1
   fi
 else
-  if [ ! -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+  if [[ ! -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
     echo "Error: Environment value CSGSHARE seems to be wrong" >&2
     echo "Could not find \${CSGSHARE}/scripts/inverse/inverse.sh" >&2
     echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
@@ -150,22 +150,22 @@ if [ "$show_share" = "yes" ]; then
   exit 0
 fi
 
-if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
+if [[ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]]; then
   source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
 else
   die "Could not find start_framework.sh"
 fi
-[ -n "${CSGXMLFILE}" ] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+[[ -n ${CSGXMLFILE} ]] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
 add_to_csgshare "$scriptdir"
 
-[ -n "${CSGXMLFILE}" ] && simprog="$(csg_get_property --allow-empty cg.inverse.program)"
-[ -n "${simprog}" ] && source_function $simprog
+[[ -n ${CSGXMLFILE} ]] && simprog="$(csg_get_property --allow-empty cg.inverse.program)"
+[[ -n ${simprog} ]] && source_function $simprog
 
 if [[ $ext_cmd = show_csg_tables ]]; then
   $ext_cmd
   exit $?
 fi
-[[ -z $2 ]] && die "${0##*/}: Missing argument"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
 
 if [[ -n $ext_cmd ]]; then
   $ext_cmd $1 $2
@@ -186,6 +186,6 @@ EOF
   exit 0
 fi
 
-[ -n "${log}" ] && enable_logging "$log"
+[[ -n ${log} ]] && enable_logging "$log"
 do_external $@
 exit $?

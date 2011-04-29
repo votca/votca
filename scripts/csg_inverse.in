@@ -24,7 +24,7 @@ fi
 
 #we leave --help here to have it even when
 #CSGSHARE is not defined
-if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+if [[ $1 = "--help" || $1 = "-h" ]]; then
   cat << eof
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
@@ -33,7 +33,7 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 please submit bugs to bugs@votca.org
 
 eof
-  if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+  if [[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
     exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | \
       sed -e "s/inverse\.sh/${0##*/}/g" -e "s/%version%/${version}/"
     exit 0
@@ -55,7 +55,7 @@ exit 0
 fi
 
 #we don't know if it was done above
-if [ -n "$(type -p csg_call)" ]; then
+if [[ -n "$(type -p csg_call)" ]]; then
   CSGSHARE="$(csg_call --show-share)" || exit 1
   export CSGSHARE
 else
@@ -63,7 +63,7 @@ else
   exit 1
 fi
 
-if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+if [[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
    exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
    exit 0
 else
