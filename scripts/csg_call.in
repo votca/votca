@@ -18,10 +18,11 @@
 version='@PROJECT_VERSION@ @CSG_HG_ID@'
 ext_cmd=""
 simprog=""
+log=""
 show_share="no"
 
 #unset stuff from enviorment
-unset CSGXMLFILE bondtype bondname CSGLOG
+unset CSGXMLFILE bondtype bondname
 
 #failback define
 die() {
@@ -39,7 +40,7 @@ please submit bugs to bugs@votca.org
 
 ${0##*/}, version ${version}
 
-This script calls another script for csg using source_wrapper
+This script calls scripts for the iterative framework
 
 Usage: ${0##*/} [OPTIONS] key1 key2
 
@@ -93,7 +94,7 @@ while [ "${1#-}" != "$1" ]; do
     [ -f "$CSGXMLFILE" ] || die "options xml file '$CSGXMLFILE' not found"
     shift 2;;
    --log)
-    export CSGLOG="$2"
+    log="$2"
     shift 2;;
    --ia-type)
     export bondtype="$2"
@@ -101,7 +102,6 @@ while [ "${1#-}" != "$1" ]; do
    --ia-name)
     export bondname="$2"
     shift 2;;
-    #direct call hack
    --cat)
     ext_cmd="cat_external"
     shift;;
@@ -172,7 +172,7 @@ if [[ -n $ext_cmd ]]; then
   exit $?
 fi
 
-#help of scripts should always work
+#help of scripts should always work and be quiet
 if [[ $3 = --help ]]; then
 cat <<EOF
 ==================================================
@@ -186,8 +186,6 @@ EOF
   exit 0
 fi
 
-if [ -n "${CSGLOG}" ]; then
-  echo "For details see logfile: $CSGLOG"
-  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-fi
+[ -n "${log}" ] && enable_logging "$log"
 do_external $@
+exit $?

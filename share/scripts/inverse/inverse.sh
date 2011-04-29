@@ -21,7 +21,7 @@ ${0##*/}, version %version%
 
 Start the script to run ibi, imc, etc.
 
-Usage: ${0##*/} [OPTIONS] [setting_file.xml]
+Usage: ${0##*/} [OPTIONS] --options settings.xml
 
 Allowed options:
 -h, --help                    show this help
