@@ -15,32 +15,34 @@
  *
  */
 
-#ifndef HAVE_NO_CONFIG
-#include <votca_config.h>
-#endif
+#ifndef __VOTCA_CSG_XYZWRITER_H
+#define	__VOTCA_CSG_XYZWRITER_H
 
-#include <iostream>
+#include <stdio.h>
+#include "topology.h"
 #include "trajectorywriter.h"
-#include "modules/io/pdbwriter.h"
-#include "modules/io/xyzwriter.h"
-
-#ifdef GMX
-#include "modules/io/gmxtrajectorywriter.h"
-#include "modules/io/growriter.h"
-#endif
 
 namespace votca { namespace csg {
+using namespace votca::tools;
 
 using namespace std;
 
-void TrajectoryWriter::RegisterPlugins()
+class XYZWriter
+: public TrajectoryWriter
 {
-    TrjWriterFactory().Register<PDBWriter>("pdb");
-    TrjWriterFactory().Register<XYZWriter>("xyz");
-#ifdef GMX
-    TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
-    TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");
-    TrjWriterFactory().Register<GROWriter>("gro");
-#endif
-}
+public:
+    
+    void Open(string file, bool bAppend = false);
+    void Close();
+    
+    void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}    
+
+    void Write(Topology *conf);
+
+private:
+    FILE *_out;
+};
+
 }}
+
+#endif
