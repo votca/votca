@@ -19,6 +19,7 @@ public:
     PairDump() {};
     ~PairDump() {};
 
+    void EvaluateSite(QMTopology *top, QMCrgUnit *crg);
     void EvaluatePair(QMTopology *top, QMPair *pair);
     bool EvaluateFrame(QMTopology *top);
     void EndEvaluate(QMTopology *top);
@@ -29,27 +30,66 @@ protected:
     TrajectoryWriter *_writer;
     string _format; // extension for writing files
     string _framedir;
+    bool _subfolders;
+    bool _mols;
+    bool _pairs;
 };
 
 inline void PairDump::Initialize(QMTopology *top, Property *options)
 {
     _format = "pdb";
-    if(options->exists("options..pairdump.format"))
-            _format = options->get("options..pairdump.ext").as<string>();
+    if(options->exists("options.pairdump.format"))
+            _format = options->get("options.pairdump.ext").as<string>();
+    _subfolders=false;
+    if(options->exists("options.pairdump.subfolders"))
+            _subfolders= options->get("options.pairdump.subfolders").as<bool>();
+    _mols=false;
+    _pairs=true;
+    if(options->exists("options.pairdump.molecules"))
+            _mols = options->get("options.pairdump.molecules").as<bool>();
+    if(options->exists("options.pairdump.pairs"))
+            _pairs = options->get("options.pairdump.pairs").as<bool>();
+        
 }
 
-bool PairDump::EvaluateFrame(QMTopology *top) {
+inline bool PairDump::EvaluateFrame(QMTopology *top) {
     _writer = TrjWriterFactory().Create("." + _format);
     if(_writer == NULL)
         throw runtime_error(string("output format not supported: ") + _format);
-    _framedir=string("frame")+lexical_cast<string>(top->getStep()) +string("/") ;
+    _framedir=string("frame")+lexical_cast<string>(top->getStep()+1) +string("/") ;
     mkdir(_framedir.c_str(),0755);
-    PairCalculator::EvaluateFrame(top);
+    
+    if(_pairs)
+        PairCalculator::EvaluateFrame(top);
+
+    if(!_mols) return true;
+    vector<QMCrgUnit*>& crglist = top->CrgUnits();
+    for(vector<QMCrgUnit*>::iterator iter = crglist.begin();iter!=crglist.end();++iter)
+        EvaluateSite(top, *iter);
+    return true;
 }
 
-void PairDump::EndEvaluate(QMTopology *top)
+inline void PairDump::EndEvaluate(QMTopology *top)
 {
     delete _writer;
+}
+
+inline void PairDump::EvaluateSite(QMTopology *top, QMCrgUnit *crg)
+{
+    Topology atop;
+
+    top->AddAtomisticBeads(crg,&atop);
+    string subdir = "";
+    if(_subfolders) {
+        subdir="mol_" + boost::lexical_cast<string>(crg->getId()+1) + "/";
+        mkdir(subdir.c_str(),0755);
+    }
+
+    string file = _framedir + subdir
+            + "mol_" + boost::lexical_cast<string>(crg->getId()+1) + "."  + _format;
+    _writer->Open(file);
+    _writer->Write(&atop);
+    _writer->Close();
 }
 
 inline void PairDump::EvaluatePair(QMTopology *top, QMPair *pair){
@@ -61,8 +101,18 @@ inline void PairDump::EvaluatePair(QMTopology *top, QMPair *pair){
     top->AddAtomisticBeads(crg1,&atop);
     top->AddAtomisticBeads(crg2,&atop);
 
-    string file = _framedir
-            + boost::lexical_cast<string>(crg1->getId()+1) + string("_")
+    string subdir = "";
+    if(_subfolders) {
+        subdir=
+            + "pair_" + boost::lexical_cast<string>(crg1->getId()+1) + string("_")
+            + boost::lexical_cast<string>(crg2->getId()+1) + "/";
+        mkdir(subdir.c_str(),0755);
+        subdir=subdir+"dim/";
+        mkdir(subdir.c_str(),0755);
+    }
+
+    string file = _framedir + subdir
+            + "pair_" + boost::lexical_cast<string>(crg1->getId()+1) + string("_")
             + boost::lexical_cast<string>(crg2->getId()+1) + "."  + _format;
     _writer->Open(file);
     _writer->Write(&atop);
