@@ -39,7 +39,7 @@ inline void PairDump::Initialize(QMTopology *top, Property *options)
 {
     _format = "pdb";
     if(options->exists("options.pairdump.format"))
-            _format = options->get("options.pairdump.ext").as<string>();
+            _format = options->get("options.pairdump.format").as<string>();
     _subfolders=false;
     if(options->exists("options.pairdump.subfolders"))
             _subfolders= options->get("options.pairdump.subfolders").as<bool>();
@@ -79,7 +79,7 @@ inline void PairDump::EvaluateSite(QMTopology *top, QMCrgUnit *crg)
     Topology atop;
 
     top->AddAtomisticBeads(crg,&atop);
-    string subdir = framedir;
+    string subdir = _framedir;
     if(_subfolders) {
         subdir=subdir + "mol_" + boost::lexical_cast<string>(crg->getId()+1) + "/";
         mkdir(subdir.c_str(),0755);
@@ -101,7 +101,7 @@ inline void PairDump::EvaluatePair(QMTopology *top, QMPair *pair){
     top->AddAtomisticBeads(crg1,&atop);
     top->AddAtomisticBeads(crg2,&atop);
 
-    string subdir = framedir;
+    string subdir = _framedir;
     if(_subfolders) {
         subdir=subdir+
             + "pair_" + boost::lexical_cast<string>(crg1->getId()+1) + string("_")
