@@ -70,7 +70,7 @@ void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
     mi->setUserData(crg);   //mi->getUserData<CrgUnit>();
     for (int i=0;i<atoms->getN();i++){
         vec pos = unit<bohr,nm>::to(atoms->GetPos(i));
-        string atomtype = string( atoms->gettype(i) )+ string("-") + lexical_cast<string>(crg->getId());
+        string atomtype = string( atoms->gettype(i) ); //+ string("-") + lexical_cast<string>(crg->getId());
         BeadType * bt= totop->GetOrCreateBeadType(atomtype);
         Bead * bead = totop ->CreateBead(1, atomtype,bt,0, 0, 0.);
         bead->setPos(pos);
