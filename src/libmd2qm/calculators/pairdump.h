@@ -79,13 +79,13 @@ inline void PairDump::EvaluateSite(QMTopology *top, QMCrgUnit *crg)
     Topology atop;
 
     top->AddAtomisticBeads(crg,&atop);
-    string subdir = "";
+    string subdir = framedir;
     if(_subfolders) {
-        subdir="mol_" + boost::lexical_cast<string>(crg->getId()+1) + "/";
+        subdir=subdir + "mol_" + boost::lexical_cast<string>(crg->getId()+1) + "/";
         mkdir(subdir.c_str(),0755);
     }
 
-    string file = _framedir + subdir
+    string file = subdir
             + "mol_" + boost::lexical_cast<string>(crg->getId()+1) + "."  + _format;
     _writer->Open(file);
     _writer->Write(&atop);
@@ -101,9 +101,9 @@ inline void PairDump::EvaluatePair(QMTopology *top, QMPair *pair){
     top->AddAtomisticBeads(crg1,&atop);
     top->AddAtomisticBeads(crg2,&atop);
 
-    string subdir = "";
+    string subdir = framedir;
     if(_subfolders) {
-        subdir=
+        subdir=subdir+
             + "pair_" + boost::lexical_cast<string>(crg1->getId()+1) + string("_")
             + boost::lexical_cast<string>(crg2->getId()+1) + "/";
         mkdir(subdir.c_str(),0755);
@@ -111,7 +111,7 @@ inline void PairDump::EvaluatePair(QMTopology *top, QMPair *pair){
         mkdir(subdir.c_str(),0755);
     }
 
-    string file = _framedir + subdir
+    string file = subdir
             + "pair_" + boost::lexical_cast<string>(crg1->getId()+1) + string("_")
             + boost::lexical_cast<string>(crg2->getId()+1) + "."  + _format;
     _writer->Open(file);
