@@ -35,8 +35,8 @@ espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
 n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 [ -z "$n_steps" ] && die "${0##*/}: Could not read espresso property n_steps"
 
-esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
-[ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
+esp_bin="$(csg_get_property cg.inverse.espresso.command "Espresso_bin")"
+#no check for Espresso_bin, because Espresso_bin could maybe exist only computenodes
 
 exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"
@@ -143,17 +143,4 @@ set out [open $esp_success w]
 close \$out
 EOF
     
-tasks=$(get_number_tasks)
-if [ $tasks -gt 1 ]; then
-  mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-  mpi_check=$(csg_get_property cg.inverse.espresso.mpi_check "yes")
-  if [ "${mpi_check}" = "yes" ]; then
-     #in most cases mpirun want -x option to export environment to compute nodes
-    [ -n "${mpicmd//*-x ESPRESSO_SCRIPTS*}" ] && die "${0##*/}: You have forgotten to add '-x  ESPRESSO_SCRIPTS' to the cg.inverse.parallel.cmd!\n
-For most mpi implementation this is needed to export the environment variable ESPRESSO_SCRIPTS on compute nodes.\n
-To disable this check set cg.inverse.espresso.mpi_check to 'no'"
-  fi
-  critical $mpicmd $esp_bin $esp_script
-else
-  critical $esp_bin $esp_script
-fi
+critical $esp_bin $esp_script

@@ -52,7 +52,7 @@ grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
 critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${grompp_opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
 
-mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
+mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command "mdrun")"
 #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
 
 if [ -n "$CSGENDING" ]; then
@@ -61,11 +61,10 @@ if [ -n "$CSGENDING" ]; then
   #convert to hours
   wall_h=$(csg_calc $wall_h / 3600 )
   echo "${0##*/}: Setting $mdrun maxh option to $wall_h (hours)"
-  checkpoint="$(csg_get_property cg.inverse.mdrun.checkpoint "state.cpt")"
+  checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
   mdrun_opts="-cpi $checkpoint -maxh $wall_h ${mdrun_opts}"
 else
   echo "${0##*/}: No walltime defined, so time limitation given to $mdrun"
 fi
 
-mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}
+critical $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}

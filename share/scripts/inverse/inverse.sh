@@ -29,6 +29,7 @@ Allowed options:
     --wall-time SEK           Set wall clock time
     --options FILE            Specify the options xml file to use
     --clean                   clean out the PWD, dangerous
+    --debug                   enable debug mode with a lot of information
     --nocolor                 disable colors
 
 Examples:
@@ -50,7 +51,7 @@ source "${0%/*}/start_framework.sh"  || exit 1
 do_iterations=""
 
 #unset stuff from enviorment
-unset CSGXMLFILE CSGENDING
+unset CSGXMLFILE CSGENDING CSGDEBUG
 
 ### begin parsing options
 shopt -s extglob
@@ -76,7 +77,7 @@ while [[ ${1#-} != $1 ]]; do
     do_iterations=${1#-}
     shift ;;
    --clean)
-    csg_ivnerse_clean
+    csg_inverse_clean
     exit $?;;
    --options)
     CSGXMLFILE="$2"
@@ -85,6 +86,9 @@ while [[ ${1#-} != $1 ]]; do
     shift 2;;
    --nocolor)
     export CSGNOCOLOR="yes"
+    shift;; 
+   --debug)
+    export CSGDEBUG="yes"
     shift;; 
    -h | --help)
     show_help
@@ -99,6 +103,8 @@ done
 [[ -z ${CSGXMLFILE} ]] && die "Mssing options xml file, please specifed after --options option (like for all other votca programs)"
 
 enable_logging
+[ -n $CSGDEBUG ] && set -x
+check_for_obsolete_xml_options
 
 echo "Sim started $(date)"
 

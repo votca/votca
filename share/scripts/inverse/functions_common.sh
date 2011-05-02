@@ -17,7 +17,7 @@
 
 #-------------------defines----------------
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
   cat <<EOF
 ${0##*/}, version %version%
 
@@ -47,7 +47,7 @@ fi
 #echo a msg to the screen and send it to logfile too 
 msg() {
   local color colors=" blue cyan cyann green red purp "
-  if [ -z "${CSGNOCOLOR}" ]; then
+  if [[ -z ${CSGNOCOLOR} ]]; then
     local blue="[34;01m"
     local cyan="[36;01m"
     local cyann="[36m"
@@ -58,24 +58,24 @@ msg() {
   else
     local blue cyan cyann green red purp off
   fi
-  if [ "$1" = "--color" ]; then
-    [ -z "$2" ] && die "msg: missing argument after --color"
-    [ -n "${colors//* $2 *}" ] && die "msg: Unknown color ($colors allowed)"
+  if [[ $1 = "--color" ]]; then
+    [[ -z $2 ]] && die "msg: missing argument after --color"
+    [[ -n ${colors//* $2 *} ]] && die "msg: Unknown color ($colors allowed)"
     color="${!2}"
     shift 2
   fi
-  if [ "$1" = "--to-stderr" ]; then
+  if [[ $1 = "--to-stderr" ]]; then
     shift
-    [ -z "$*" ] && return
-    if [ -n "${CSGLOG}" ] && [ -t 4 ]; then
+    [[ -z $* ]] && return
+    if [[ -n ${CSGLOG} &&  -t 4 ]]; then
       echo -e "${color}$*${off}" >&4
       echo -e "$*" >&2
     else
       echo -e "${color}$*${off}" >&2
     fi
   else
-    [ -z "$*" ] && return
-    if [ -n "${CSGLOG}" ] && [ -t 3 ]; then
+    [[ -z $* ]] && return
+    if [[ -n ${CSGLOG} && -t 3 ]]; then
       echo -e "${color}$*${off}" >&3
       echo -e "$*"
     else
@@ -89,27 +89,27 @@ unset -f die
 die () {
   local pid pids c
   msg --color red --to-stderr "$(csg_banner "ERROR:" "$@")"
-  [ -z "$CSGLOG" ] || msg --color blue "For details see $CSGLOG"
-  if [ -n "${CSG_MASTER_PID}" ]; then
+  [[ -z $CSGLOG ]] || msg --color blue "For details see $CSGLOG"
+  if [[ -n ${CSG_MASTER_PID} ]]; then
     #grabbing the pid group would be easier, but it would not work on AIX
     pid=$$
     pids="$$"
     c=0
     #find the parent of pid until we reach CSG_MASTER_PID
-    until [ ${CSG_MASTER_PID} -eq $pid ]; do
+    until [[ ${CSG_MASTER_PID} -eq $pid ]]; do
       #get the parent pid using BSD style due to AIX
       pid=$(ps -o ppid= -p $pid 2>/dev/null)
       #store them in inverse order to kill parents before the child
       pids="$pid $pids"
       ((c++))
       #at max 10000 iterations
-      if [ $c -eq 10000 ]; then
+      if [[ $c -eq 10000 ]]; then
         #failback to default, see comment below
         pids="0"
         break
       fi
     done
-    if [ -n "${CSGLOG}" ]; then
+    if [[ -n ${CSGLOG} ]]; then
       echo "die: (called from $$)  CSG_MASTER_PID is $CSG_MASTER_PID" >&2
       echo "die: pids to kill: $pids" >&2
     fi
@@ -134,25 +134,26 @@ export -f cat_external
 #first 2 argument are the task
 do_external() {
   local script tags quiet="no" packages
-  [ "$1" = "-q" ] && quiet="yes" && shift
+  [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "do_external: source_wrapper $1 $2 failed"
   tags="$1 $2"
   shift 2
-  packages="$(critical -q $script --help)"
-  packages="$(echo "$deps" | sed -n 's/^Used external packages://p')" || die "do_external: sed failed"
-  check_for_package $packages
-  [ "$quiet" = "no" ] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
-  $script "$@" || die "do_external: subscript $script $* (from tags $tags) failed"
+  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
+  if [[ -n $CSGDEBUG && -n "$(sed -n '1s@/bin/bash@XXX@p' "$script")" ]]; then
+    bash -x $script "$@" || die "do_external: subscript $script $* (from tags $tags) failed"
+  else
+    $script "$@" || die "do_external: subscript $script $* (from tags $tags) failed"
+  fi
 }
 export -f do_external
 
 #useful subroutine check if a command was succesful AND log the output
 critical() {
   local quiet="no"
-  [ "$1" = "-q" ] && quiet="yes" && shift
-  [ -z "$1" ] && die "critical: missing argument"
+  [[ $1 = "-q" ]] && quiet="yes" && shift
+  [[ -z $1 ]] && die "critical: missing argument"
   #print this message to stderr because $(critical something) is used very often
-  [ "$quiet" = "no" ] && echo "Running critical command '$*'" >&2
+  [[ $quiet = "no" ]] && echo "Running critical command '$*'" >&2
    "$@" || die "critical: '$*' failed"
 }
 export -f critical
@@ -165,10 +166,10 @@ for_all (){
   bondtype="$1"
   shift
   #check that type is bonded or non-bonded
-  if [ "$bondtype" != "non-bonded" ]; then
+  if [[ $bondtype != "non-bonded" ]]; then
     die  "for_all: Argmuent 1 '$bondtype' is not non-bonded"
   fi
-  [[ $quiet = no ]] && echo "For all $bondtype" >&2
+  [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
   check_for_duplicated_interactions
   interactions="$(csg_get_property cg.${bondtype}.name)"
   for name in $interactions; do
@@ -194,11 +195,9 @@ check_for_duplicated_interactions() {
 }
 export -f check_for_duplicated_interactions
 
-
-#the save version of csg_get
 csg_get_interaction_property () {
   local ret allow_empty cmd
-  if [ "$1" = "--allow-empty" ]; then
+  if [[ $1 = "--allow-empty" ]]; then
     shift
     allow_empty="yes"
   else
@@ -210,11 +209,11 @@ csg_get_interaction_property () {
   [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   #bondtype is special -> dirty hack - removed whenever issue 13 is fixed
-  [ "$1" = "bondtype" ] && cmd="echo $bondtype" || \
+  [[ $1 = "bondtype" ]] && cmd="echo $bondtype" || \
     cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
   if ! ret="$($cmd)"; then
-    [[ $allow_empty = no ]] && [[ -z $2 ]] && \
+    [[ $allow_empty = "no" && -z $2 ]] && \
       die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
     #ret has error message
     ret=""
@@ -262,28 +261,6 @@ is_done () {
 }
 export -f is_done
 
-check_for_package () {
-  local i x
-  [[ -z $1 ]] && return 0
-  for i in "$@"; do
-    case $i in
-      espresso | gromacs )
-        x="$(csg_get_property cg.inverse.program)"
-	[[ $i = $x ]] || die "check_for_package: script needs '$i' please set cg.inverse.program in your xml file"
-        true;;
-      octave | matlab )
-        [ -z "$(type -p $i)" ] && die "check_for_package: script needs '$i', but it was not found in your path"
-        true;;
-      gnuplot )
-        #check for gnuplot binary is done in the script itself
-	true;;
-      *)
-       die "check_for_package: I don't know how to check for $i";;
-    esac
-  done
-}
-export -f check_for_package
-
 int_check() {
   [[ -n $2 ]] || die "int_check: Missig argument"
   [[ -n $1 && -z ${1//[0-9]} ]] && return 0
@@ -294,7 +271,7 @@ export -f int_check
 
 get_stepname() {
   local name
-  [[ -n "$1" ]] || die "get_stepname: Missig argument"
+  [[ -n $1 ]] || die "get_stepname: Missig argument"
   if [[ $1 = "--trunc" ]]; then
     echo "step_"
     return 0
@@ -390,8 +367,8 @@ cp_from_to() {
   [[ -z $1 ]] && die "cp_from_to: Missing argument"
   for i in $@; do
     #no glob pattern in $i or could not be expanded
-    if [[ "$from/$i" = "$(echo $from/$i)" ]]; then
-      [[ -e "$from/$i" ]] || die "cp_from_to: could not find '$from/$i'"
+    if [[ $from/$i = "$(echo $from/$i)" ]]; then
+      [[ -e $from/$i ]] || die "cp_from_to: could not find '$from/$i'"
     fi
     cp -r $from/$i "$where" || die "cp_from_to: cp -r '$from/$i' '$where' failed"
   done
@@ -417,10 +394,8 @@ export -f get_time
 
 get_number_tasks() {
   local tasks
-  [[ -n "$(csg_get_property --allow-empty cg.inverse.mpi.tasks)" ]] && \
-    msg --to-stderr "get_number_tasks: the xml option cg.inverse.mpi.tasks has been renamed to cg.inverse.parallel.tasks\nPlease remove the obsolete cg.inverse.mpi block, it is not used anyway\n"
-  tasks="$(csg_get_property cg.inverse.parallel.tasks "auto")"
-  [[ $tasks = auto ]] && tasks=0
+  tasks="$(csg_get_property cg.inverse.simulation.tasks "auto")"
+  [[ $tasks = "auto" ]] && tasks=0
   int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number or 'auto'"
   #this only work for linux
   if [[ $tasks -eq 0 && -r /proc/cpuinfo ]]; then
@@ -438,14 +413,14 @@ get_table_comment() {
   version="$(csg_call --version)" || die "get_defaults_comment: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
-  [ -n "${CSGXMLFILE}" ] && echo "settings file: $CSGXMLFILE"
+  [[ -n ${CSGXMLFILE} ]] && echo "settings file: $CSGXMLFILE"
   echo "working directory: $PWD"
 }
 export -f get_table_comment
 
-csg_ivnerse_clean() {
+csg_inverse_clean() {
   local i files log="inverse.log"
-  if [ -n "${CSGXMLFILE}" ]; then
+  if [[ -n ${CSGXMLFILE} ]]; then
     log="$(csg_get_property cg.inverse.log_file "$log")"
   else
     msg --color blue "No options xml given, so we assume '$log' to be the logfile"
@@ -453,7 +428,7 @@ csg_ivnerse_clean() {
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
   files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
-  if [ -z "$files" ]; then
+  if [[ -z $files ]]; then
     echo "Nothing to clean"
   else
     msg --color red $files
@@ -466,7 +441,7 @@ csg_ivnerse_clean() {
     msg --color green "\n\nDone, hope you are happy now"
   fi
 }
-export -f csg_ivnerse_clean
+export -f csg_inverse_clean
 
 add_to_csgshare() {
   local dir
@@ -482,9 +457,9 @@ add_to_csgshare() {
 export -f add_to_csgshare
 
 globalize_dir() {
-  [ -z "$1" ] && die "globalize_dir: missing argument"
-  [ -d "$1" ] || die "globalize_dir: '$1' is not a dir"
-  cd $1
+  [[ -z $1 ]] && die "globalize_dir: missing argument"
+  [[ -d $1 ]] || die "globalize_dir: '$1' is not a dir"
+  cd "$1"
   pwd
 }
 export -f globalize_dir
@@ -500,7 +475,7 @@ export -f globalize_file
 
 source_function() {
   local function_file
-  [ -n "$1" ] || die "source_function: Missig argument"
+  [[ -n $1 ]] || die "source_function: Missig argument"
   function_file=$(source_wrapper functions $1) || die "source_function: source_wrapper functions $1 failed"
   source ${function_file} || die "source_function: source ${function_file} failed"
 }
@@ -508,9 +483,9 @@ export -f source_function
 
 csg_banner() {
   local i l=0 list=()
-  [ -z "$1" ] && return 0
+  [[ -z $1 ]] && return 0
   for i in "$@"; do
-    while [ -z "${i/*\\n*}" ]; do
+    while [[ -n $i && -z ${i/*\\n*} ]]; do
       list[$l]="${i%%\\n*}"
       ((l++))
       i="${i#*\\n}"
@@ -521,7 +496,7 @@ csg_banner() {
 
   l="1"
   for i in "${list[@]}"; do
-    [ ${#l} -lt ${#i} ] && l="${i}"
+    [[ ${#l} -lt ${#i} ]] && l="${i}"
   done
 
   echo "####${l//?/#}"
@@ -560,7 +535,7 @@ csg_calc() {
        die "csg_calc: unknow operation" 
        true;;
   esac
-  [ -n "$res" ] && echo "$res"
+  [[ -n $res ]] && echo "$res"
   return $ret
 }
 export -f csg_calc
@@ -571,7 +546,7 @@ show_csg_tables() {
   IFS=":"
   echo "#The order in which scripts get called"
   for dir in ${CSGSHARE}; do
-    [ -f "$dir/csg_table" ] || continue
+    [[ -f $dir/csg_table ]] || continue
     echo "#From: $dir/csg_table"
     #remove comments and empty line, trim begin and end, tab to spaces
     sed -e '/^#/d' -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]]\+/ /g' "$dir/csg_table"
@@ -593,7 +568,7 @@ source_wrapper() {
   [[ -z $1 || -z $2 ]] && die "source_wrapper: Needs two tags"
   local cmd script
   cmd=$(get_command_from_csg_tables "$1" "$2") || die
-  [ -z "$cmd" ] && die "source_wrapper: Could not get any script from tags '$1' '$2'"
+  [[ -z $cmd ]] && die "source_wrapper: Could not get any script from tags '$1' '$2'"
   script="${cmd/* }"
   real_script="$(find_in_csgshare "$script")"
   echo "${cmd/${script}/${real_script}}"
@@ -621,8 +596,8 @@ export -f find_in_csgshare
 
 if [ -z "$(type -p mktemp)" ]; then
   mktemp() {
-    [ -z "$1" ] && die "mktemp: missing argument"
-    [ -z "${1##*X}" ] || die "mktemp: argument has to end at least with X"
+    [[ -z $1 ]] && die "mktemp: missing argument"
+    [[ -z ${1##*X} ]] || die "mktemp: argument has to end at least with X"
     local end trunc i l tmp newend
     end=${1##*[^X]}
     trunc=${1%${end}}
@@ -650,7 +625,7 @@ enable_logging() {
   fi
   log="${PWD}/${log##*/}"
   export CSGLOG="$log"
-  if [ -f "$CSGLOG" ]; then
+  if [[ -f $CSGLOG ]]; then
     exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
     echo "\n\n#################################"
     echo "# Appending to existing logfile #"
@@ -678,4 +653,25 @@ csg_export() {
   done
 }
 export -f csg_export
+
+check_for_obsolete_xml_options() {
+  local i
+  for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
+    cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin; do
+    [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue
+    case $i in
+      cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
+        new="";;
+      cg.inverse.mpi.tasks|cg.inverse.parallel.tasks)
+        new="cg.inverse.simulation.tasks";;
+      cg.inverse.gromacs.mdrun.bin|cg.inverse.espresso.bin)
+        new="${i/bin/command}";;
+      *)
+        die "check_for_obsolete_xml_options: Unknown new name for obsolete xml option '$i'";;
+    esac
+    [[ -n $new ]] && new="has been renamed to $new" || new="has been removed"
+    die "The xml option $i has been renamed to $new\nPlease remove the obsolete options from the xmlfile"
+  done
+}
+export -f check_for_obsolete_xml_options
 

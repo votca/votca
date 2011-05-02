@@ -28,12 +28,11 @@
   <item><name>cg.inverse.$sim_prog.equi_time</name><default>0.0</default><desc> begin analysis after this time </desc></item>
   <item><name>cg.inverse.$sim_prog.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning </desc></item>
   <item><name>cg.inverse.$sim_prog.topol</name><desc> topology of the generic simprog </desc></item>
-  <item><name>cg.inverse.$sim_prog.traj</name><desc> topology of the generic simprog </desc></item>
+  <item><name>cg.inverse.$sim_prog.traj</name><desc> trajectory of the generic simprog </desc></item>
 
   <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
   <item><name>cg.inverse.gromacs.conf</name><desc>Name of the coordinate file read by grompp (default conf.gro)</desc></item>
   <item><name>cg.inverse.gromacs.conf_out</name><desc>Name of the original outcome coordinate written by mdrun (default confout.gro)</desc></item>
-  <item><name>cg.inverse.gromacs.checkpoint</name><desc>Name of the checkpint to use in case of restarted simulation (default state.cpt)</desc></item>
   <item><name>cg.inverse.gromacs.gmxrc</name><desc>GMXRC to source at the startup</desc></item>
   <item><name>cg.inverse.gromacs.equi_time</name><default>0.0</default><desc> begin analysis after this time when using gromacs</desc></item>
   <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning when using gromacs</desc></item>
@@ -48,8 +47,9 @@
   <item><name>cg.inverse.gromacs.g_rdf.topol</name><desc> Gromacs g_rdf topol file to use, default topol.tpr</desc></item>
   <item><name>cg.inverse.gromacs.g_rdf.bin</name><desc> Name (or absolute path) of the g_rdf binary</desc></item>
   <item><name>cg.inverse.gromacs.g_rdf.opts</name><desc> Additional options for Gromacs g_rdf (e.g. -nopbc)</desc></item>
-  <item><name>cg.inverse.gromacs.mdrun.bin</name><desc> Name (or absolute path) of the mdrun binary</desc></item>
+  <item><name>cg.inverse.gromacs.mdrun.command</name><desc>Command to run mdrun (name or absolute path or mpirun mdrun..)</desc></item>
   <item><name>cg.inverse.gromacs.mdrun.opts</name><desc> Additional options to Gromacs mdrun (e.g. -nosum)</desc></item>
+  <item><name>cg.inverse.gromacs.mdrun.checkpoint</name><desc>Name of the checkpint to use in case of restarted simulation (default state.cpt)</desc></item>
   <item><name>cg.inverse.gromacs.g_energy.topol</name><desc> Gromacs g_rdf topol file to use, default topol.tpr</desc></item>
   <item><name>cg.inverse.gromacs.g_energy.bin</name><desc> Name (or absolute path) of the g_energy binary</desc></item>
   <item><name>cg.inverse.gromacs.g_energy.opts</name><desc> Additional options to Gromacs g_rdf (e.g. -P 1)</desc></item>
@@ -60,8 +60,9 @@
   <item><name>cg.inverse.gromacs.temp_check</name><desc> check temperture against t_ref in mdp file: yes/no (default yes)</desc></item>
   <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso (default conf.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.blockfile_out</name><desc>Name of the original outcome blockfile written by Espresso (default confout.esp.gz)</desc></item>
-  <item><name>cg.inverse.espresso.bin</name><desc>Name (or absolute path) of the Espresso binary</desc></item>
-  <item><name>cg.inverse.espresso.mpi_check</name><desc> check for in ESPRESSO_SCRIPTS in parallel command: yes/no (default yes)</desc></item>
+  <item><name>cg.inverse.espresso.command</name><desc>Command to run espresso (name or absolute path or mpirun espresso..)</desc></item>
+  <item><name>cg.inverse.espresso.rdf_command</name><desc>Espresso command to run when calculating the rdf (name or absolute path or mpirun espresso..)</desc></item>
+  <item><name>cg.inverse.espresso.pressure_command</name><desc>Espresso command to run when calculating the pressure (name or absolute path or mpirun espresso..)</desc></item>
   <item><name>cg.inverse.espresso.equi_snapshots</name><desc>Number of snapshots to trash at the beginning of trajectory</desc></item>
   <item><name>cg.inverse.espresso.table_bins</name><desc> grid for tabulated potentials </desc></item>
   <item><name>cg.inverse.espresso.traj</name><desc> Name of the output Espresso trajectory file</desc></item>
@@ -83,9 +84,8 @@
   <item><name>cg.inverse.method</name><desc> ibi: inverse boltzmann imc: inverse monte carlo </desc></item>
   <item><name>cg.inverse.scriptdir</name><desc> directory for user scripts (e.g. $PWD)</desc></item>
   <item><name>cg.inverse.log_file</name><desc> write log to this file </desc></item>
-  <item><name>cg.inverse.parallel</name><desc>parallel options </desc></item>
-  <item><name>cg.inverse.parallel.tasks</name><desc>number of tasks (0/auto = automatic detect on linux)</desc></item>
-  <item><name>cg.inverse.parallel.cmd</name><desc>prefix command to run parallel jobs(e.g. mpirun -np 8)</desc></item>
+  <item><name>cg.inverse.simulation</name><desc>simulation options </desc></item>
+  <item><name>cg.inverse.simulation.tasks</name><desc>number of tasks (0/auto = automatic detect on linux)</desc></item>
   <item>
     <name>cg.inverse.restart_file</name>
     <desc>
@@ -94,6 +94,8 @@
   </item>
   <item><name>cg.inverse.imc</name><desc> general imc specific options </desc></item>
   <item><name>cg.inverse.imc.solver</name><desc> solver for solving a linear equation system, can be octave or matlab </desc></item>
+  <item><name>cg.inverse.imc.octave.bin</name><desc> Name (or absolute path) of the octave binary </desc></item>
+  <item><name>cg.inverse.imc.matlab.bin</name><desc> Name (or absolute path) of the matlab binary </desc></item>
   
   
   <!-- force matching stuff -->
