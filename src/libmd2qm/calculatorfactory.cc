@@ -17,6 +17,7 @@
 #include "calculators/jortnerrates.h"
 #include "calculators/marcusrateslambdaouter.h"
 #include "calculators/hdf5writer.h"
+#include "calculators/nbgen.h"
 
 void CalculatorFactory::RegisterAll(void)
 {
@@ -37,4 +38,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<JortnerRates>("jortnerrates");
         Calculators().Register<MarcusRatesLambdaOuter>("marcusrateslambdaouter");
         Calculators().Register<HDF5Writer>("hdf5writer");
+        Calculators().Register<NBGen>("nbgen");
 }

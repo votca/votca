@@ -15,6 +15,7 @@
       <itemPath>../../src/libmd2qm/calculators/jortnerrates.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/marcusrates.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/marcusrateslambdaouter.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/nbgen.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/polymerrates.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/polymerrates.h</itemPath>
