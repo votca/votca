@@ -12,9 +12,12 @@ html: $(XMLSHTML)
 .PHONY: clean upload
 .SECONDARY:
 
+$(XMLST2T): xml2t2t.sh
+%.t2t: 
+	./xml2t2t.sh $* > $@
 
-%.t2t: xml2t2t.sh
-	[ $@ = "config.t2t" ] && cp ../$@ . || ./xml2t2t.sh $* > $@
+config.t2t: ../config.t2t
+	cp $< .
 
 %.tex: %.t2t config.t2t
 	$(TXT2TAGS) -t tex --no-header --infile $< --outfile $@

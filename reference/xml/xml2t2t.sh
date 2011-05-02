@@ -54,7 +54,7 @@ CSGSHARE="$(csg_call --show-share)"
 
 trunc=""
 [ "$xmlfile" = "mapping.xml" ] && trunc="mapping."
-[ "$xmlfile" = "cginteraction.xml" ] && trunc="cg.interaction."
+[ "$xmlfile" = "cginteraction.xml" ] && trunc="cg.non-bonded."
 
 #header lines
 echo $xmlfile 

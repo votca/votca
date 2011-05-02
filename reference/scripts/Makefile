@@ -27,8 +27,12 @@ csg_table.tex: csg_table.t2t config.t2t
 	$(TXT2TAGS) -t tex --no-header --infile $< --outfile $@
 	sed -i -e 's/{tabular}/{longtable}/' $@
 
-%.t2t: script2t2t.sh
-	[ $@ = "config.t2t" ] && cp ../$@ . || ./script2t2t.sh $* > $@	
+$(SCRIPTST2T): script2t2t.sh
+%.t2t:
+	./script2t2t.sh $* > $@
+
+config.t2t: ../config.t2t
+	cp $< .
 
 %.tex: %.t2t config.t2t
 	$(TXT2TAGS) -t tex --no-header --infile $< --outfile $@

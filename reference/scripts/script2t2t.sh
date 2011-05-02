@@ -92,7 +92,7 @@ else
   die "Don't know how to handle script ${script}"
 fi | \
 sed -e 's/"//g' -e "s/'//g" | \
-perl -pe 's/^(\S+)/- link(PREFIX$1)($1)/;' -e 's/PREFIX([^c][^g])/cg.interaction.$1/;' -e 's/PREFIX//;' | \
+perl -pe 's/^(\S+)/- link(PREFIX$1)($1)/;' -e 's/PREFIX([^c][^g])/cg.non-bonded.$1/;' -e 's/PREFIX//;' | \
 sort -u
 
 assert "${0##*/}: sed 3 failed"

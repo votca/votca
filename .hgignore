@@ -19,6 +19,7 @@ reference/programs/csg_*.*
 reference/programs/multi_*.*
 reference/programs/all.tex
 reference/programs/all.wiki
+reference/programs/config.t2t
 reference/scripts/Makefile.incl
 reference/scripts/csg_table.tex
 reference/scripts/csg_table.t2t

@@ -12,7 +12,7 @@ Makefile.incl: dummy
 	  echo csg_call not found;\
 	  exit 1;\
 	fi
-	echo $(BINS) $(BINS2)| sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINST2T=\\' > $@
+	echo $(BINS) $(BINS2)| sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i BINST2T=\\' > $@
 	echo >> $@
 	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINSTEX=\\' >> $@
 	echo >> $@
