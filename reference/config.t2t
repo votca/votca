@@ -7,9 +7,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%
 
 % for tex
-%we allow label link ref target
+
+%allow labels
 %!postproc(tex): 'label\((.*?)\)' '\label{\1}'
+%ref,tagrget,link to hyperXXX
 %!postproc(tex): '(ref|target|link)\((.*?)\)\((.*?)\)' '\hyper\1{\2}{\3}'
+
+%latex is picky about $ and \_ in name of the label (1st bracket)
+
 %latex does not allow $ in label name, remove it 3 times
 %!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
 %!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
@@ -33,8 +38,11 @@
 %Linebreak
 %%%%%%%%%%%%%%%%
 
+%empty line to noindent
 %!postproc(tex): '^\s*$' '\n\\noindent '
 
+%we do not like the default item marks, so we make them empty
 %!postproc(tex): '\\item' '\item[ ]'
+%replace itemize by compactitem which looks nicer
 %!postproc(tex): '(\\begin|\\end)\{itemize\}' '\1{compactitem}'
 

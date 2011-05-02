@@ -21,7 +21,10 @@
 
 % reference to an xml option in the reference section
 \newcommand{\cgref}[1]{cg.#1}
-%auto hyperlink for cgopts
+
+%we need \StrSubstitute{#1}{_}{\_} to replace _ \_ in the text of the reference (not in the label it self)
+
+%hyperlink for cgopts
 \newcommand{\cgopt}[1]{\hyperlink{\cgref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
 \newcommand{\interref}[1]{cg.non-bonded.#1}
 \newcommand{\interopt}[1]{\hyperlink{\interref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
@@ -35,11 +38,6 @@
 
 \input{hgid}
 \input{reference/hgid}
-
-\newcommand{\sasha}{ {\sc \color{red} Alexander Lukyanov} \newline}
-\newcommand{\denis}{ {\sc \color{red} Denis Andrienko} \newline}
-\newcommand{\victor}{ {\sc \color{red} Victor R\"uhle} \newline}
-\newcommand{\christoph}{ {\sc \color{red} Christoph Junghans} \newline}
 
 % todo
 \newcommand{\todo}{{\marginpar{\sc \color{red} TODO}}\xspace}
