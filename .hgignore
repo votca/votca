@@ -24,10 +24,12 @@ reference/scripts/csg_table.tex
 reference/scripts/csg_table.t2t
 reference/scripts/config.t2t
 reference/scripts/*.pl.*
+reference/scripts/*.py.*
 reference/scripts/*.sh.*
 reference/scripts/all.tex
 reference/scripts/all.wiki
 reference/xml/Makefile.incl
 reference/xml/*.xml.*
+reference/xml/config.t2t
 usage/fig/*.eps
 hgid.tex

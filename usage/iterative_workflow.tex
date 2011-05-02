@@ -42,7 +42,7 @@ A list of interactions to be iteratively refined has to be given in the options 
 \label{sec:starting_iterative_process}
 After all input files have been set up, the run can be started with
 \begin{verbatim}
-  csg_inverse settings.xml
+  csg_inverse --options settings.xml
 \end{verbatim}
 
 Each iteration is stored in a separate directory, named \texttt{step\_<iteration>}. \texttt{step\_000} is a special folder which contains the initial setup. For each new iteration, the files required to run the CG simulation (as specified in the config file) are copied to the current working directory. The updated potentials  are copied from the last step, \texttt{step\_<n-1>/<interaction>.pot.new}, and used as the new working potentials \texttt{step\_<n>/<interaction>.pot.cur}.

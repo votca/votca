@@ -28,8 +28,8 @@ $(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_
 qclean:
 	$(LATEXMK) -C $(NAME).tex
 
-clean: qclean fig_subclean functionality_subclean reference_subclean usage_submake
-	rm -f $(NAME).fdb_latexmk
+clean: qclean fig_subclean functionality_subclean reference_subclean usage_subclean
+	rm -f $(NAME).fdb_latexmk $(NAME).brf
 	rm -f hgid.tex
 	rm -f *~
 

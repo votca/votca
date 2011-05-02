@@ -73,14 +73,14 @@ where \progopt{<table\_end>} is the \gromacs \progopt{rvdw+table\_extension} and
 
 Using the \progopt{xml} file above, call
 \begin{verbatim}
-  csg_call --xmlfile table.xml convert_potential xvg \
+  csg_call --options table.xml convert_potential xvg \
            table_extrapolate.pot table.xvg
 \end{verbatim}
 to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (The file will contain \gromacs C12 parts only which are stored in the sixth und seventh column. Ensure compatibility with the \gromacs topology. See the \gromacs manual for further information).
 
 To obtain a bonded table, run
 \begin{verbatim}
-  csg_call --xmlfile table.xml convert_potential xvg --type bonded \
+  csg_call --options table.xml convert_potential xvg --type bonded \
            table_extrapolate.pot table.xvg
 \end{verbatim}
 

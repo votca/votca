@@ -28,7 +28,7 @@ upload: html
 	googlesites_upload.py  -d "/Documentation/reference-mapping"  -f mapping.xml.html
 
 clean:
-	rm -f $(XMLST2T)
+	rm -f $(XMLST2T) config.t2t
 	rm -f $(XMLSTEX)
 	rm -f $(XMLSHTML)
 	rm -f *~
