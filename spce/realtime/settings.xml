@@ -86,9 +86,6 @@
 	<index>index.ndx</index>
         <topol>topol.tpr</topol>
       </g_rdf>
-      <mdrun>
-	<opts>-v -nt 2</opts>
-      </mdrun>
       <mdp>grompp.mdp</mdp>
       <topol>topol.tpr</topol>
       <traj_type>xtc</traj_type>
@@ -111,9 +108,5 @@
       <!-- solver to solve linear equation system, can be octave or matlab -->
       <solver>octave</solver>
     </imc>
-    <parallel>
-      <tasks>2</tasks>
-      <cmd></cmd>
-    </parallel>
   </inverse>
 </cg>

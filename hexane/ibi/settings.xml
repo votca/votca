@@ -97,9 +97,6 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.5</table_end>
-      <mdrun>
-	<opts>-v -nt 8</opts>
-      </mdrun>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg table_a1.xvg table_b1.xvg index.ndx</filelist>
@@ -116,9 +113,5 @@
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
     <restart_file>restart_points.log</restart_file>
-    <mpi>
-      <tasks>8</tasks>
-      <cmd></cmd>
-    </mpi>
   </inverse>
 </cg>

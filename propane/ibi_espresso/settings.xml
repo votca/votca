@@ -127,11 +127,5 @@
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
     <restart_file>restart_points.log</restart_file>
-    <!-- imc specific stuff -->
-    <!-- mpi -->
-    <!--     <mpi> -->
-    <!--       <cmd>mpirun -np 2</cmd> -->
-    <!--       <tasks>2</tasks> -->
-    <!--     </mpi>	 -->
   </inverse>
 </cg>
