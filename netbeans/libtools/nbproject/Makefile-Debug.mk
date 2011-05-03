@@ -34,7 +34,6 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1723120609/version_nb.o \
-	${OBJECTDIR}/_ext/1723120609/easylock.o \
 	${OBJECTDIR}/_ext/1723120609/cubicspline.o \
 	${OBJECTDIR}/_ext/1723120609/application.o \
 	${OBJECTDIR}/_ext/1723120609/tokenizer.o \
@@ -88,11 +87,6 @@ ${OBJECTDIR}/_ext/1723120609/version_nb.o: ../../src/libtools/version_nb.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/version_nb.o ../../src/libtools/version_nb.cc
-
-${OBJECTDIR}/_ext/1723120609/easylock.o: ../../src/libtools/easylock.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/easylock.o ../../src/libtools/easylock.cc
 
 ${OBJECTDIR}/_ext/1723120609/cubicspline.o: ../../src/libtools/cubicspline.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
