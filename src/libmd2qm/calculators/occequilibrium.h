@@ -26,11 +26,12 @@ inline bool OccEquilibrium::EvaluateFrame(QMTopology *top)
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
     vector<QMCrgUnit *>::iterator itl;
 
+
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
-        double p = exp(-(*itl)->getEnergy() / _kT);
+        double reorg = (*itl)->getType()->getReorg();
+        double p = exp(-((*itl)->getEnergy()) / _kT);
         Ptot +=p;
         (*itl)->setOccupationProbability(p);
-        cout << p << endl;
     }
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
         (*itl)->setOccupationProbability(

@@ -25,7 +25,6 @@ inline void AvgVelocity::Initialize(QMTopology *top, Property *options) {
 
     if (_do_mobility)
         _E = options->get("options.calc_rates.e_field").as<vec > ();
-
     _v = vec(0,0,0);
 }
 
@@ -33,14 +32,15 @@ inline void AvgVelocity::EvaluatePair(QMTopology *top, QMPair *pair)
 {
     QMCrgUnit *crg1 = pair->first;
     QMCrgUnit *crg2 = pair->second;
-    _v+=(pair->rate12()*crg1->getOccupationProbability() - pair->rate21()*crg1->getOccupationProbability())*pair->r();
+    _v+=(pair->rate12()*crg1->getOccupationProbability() - pair->rate21()*crg2->getOccupationProbability())*unit<nm,m>::to(pair->r());
+    //cout << crg1->getOccupationProbability() << "\t" << crg2->getOccupationProbability() << "\t" << pair->rate12() <<  "\t" << pair->rate21() << "\t" <<(pair->rate12()*crg1->getOccupationProbability() - pair->rate21()*crg2->getOccupationProbability())*pair->r() << endl;
 }
 
 void AvgVelocity::EndEvaluate(QMTopology *top)
 {
-    cout << "Average velocity: " << _v << endl;
+    cout << "Average velocity [m/s]: " << _v << endl;
     if(_do_mobility)
-       cout << "Average mobility: " << _v*_E/(_E*_E) << endl;
+       cout << "Average mobility [cm^2/Vs]: " << _v*_E/(_E*_E)*1E4 << endl;
 }
 
 #endif	/* AVGVELOCITY_H */
