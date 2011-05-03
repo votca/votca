@@ -3,7 +3,6 @@
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libmd2qm/calculators/CurrentDensity.h</itemPath>
-      <itemPath>../../include/calculators/avgvelocity.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/contkmc.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/energycorr.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/energycorr.h</itemPath>
@@ -25,6 +24,7 @@
       <itemPath>../../src/libmd2qm/calculators/readxml.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.h</itemPath>
+      <itemPath>../../src/libmd2qm/statesaverh5.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/writexml.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"

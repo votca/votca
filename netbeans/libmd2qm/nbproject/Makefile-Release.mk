@@ -36,6 +36,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/76882303/generate_nrgs.o \
 	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
 	${OBJECTDIR}/_ext/76882303/estatics.o \
+	${OBJECTDIR}/_ext/1716269789/statesaverh5.o \
 	${OBJECTDIR}/_ext/76882303/polymerrates.o \
 	${OBJECTDIR}/_ext/76882303/readxml.o \
 	${OBJECTDIR}/_ext/1716269789/qmpair.o \
@@ -88,6 +89,11 @@ ${OBJECTDIR}/_ext/76882303/estatics.o: ../../src/libmd2qm/calculators/estatics.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/estatics.o ../../src/libmd2qm/calculators/estatics.cc
+
+${OBJECTDIR}/_ext/1716269789/statesaverh5.o: ../../src/libmd2qm/statesaverh5.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaverh5.o ../../src/libmd2qm/statesaverh5.cc
 
 ${OBJECTDIR}/_ext/76882303/polymerrates.o: ../../src/libmd2qm/calculators/polymerrates.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
