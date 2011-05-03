@@ -19,6 +19,7 @@
 #include "calculators/hdf5writer.h"
 #include "calculators/nbgen.h"
 #include "calculators/occequilibrium.h"
+#include "calculators/avgvelocity.h"
 
 void CalculatorFactory::RegisterAll(void)
 {
@@ -41,4 +42,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<HDF5Writer>("hdf5writer");
         Calculators().Register<NBGen>("nbgen");
         Calculators().Register<NBGen>("occequilibrium");
+        Calculators().Register<AvgVelocity>("avgvelocity");
 }
