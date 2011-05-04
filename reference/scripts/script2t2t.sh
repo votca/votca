@@ -19,7 +19,6 @@ shift
 [ -z "$(type csg_call)" ] && die "${0##*/}: csg_call not found"
 tags=$(csg_call -l | awk -v name="$script" '($3==name){print $1,$2;exit}') 
 assert "could not get tags"
-helpmsg="$(csg_call $tags --help)" || die "${0##*/}: csg_call $tags --help failed"
 
 echo "$script"
 echo ${0##*/}
@@ -30,6 +29,8 @@ echo
 echo -e "++$script++"
 echo -e "label($script)"
 
+
+helpmsg="$(csg_call $tags --help 2>/dev/null)" || { echo "\nThis script has no help"; exit 0; }
 
 #Here comes the magic:
 #-header in trash
@@ -52,19 +53,25 @@ echo -e "$helpmsg" | sed \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
    -e 's/^\(Examples\|Usage\):/\n&/' \
    -e 's/^\(Allowed\|Trajectory\|Specific\) options:/\n&/' \
-   -e 's/^\(Used external packages:\)[[:space:]]*\(.*\)$/\1 ref(progpack.\2)(\2)/'
+   -e 's/^\(Used external packages:\)[[:space:]]*\(.*\)$/\n\1 ref(progpack.\2)(\2)/'
 
 assert "sed 1 failed"
-#do not parse xml options of functions files
-[ -z "${script##functions_*}" ] && exit 0
 
 content="$(csg_call --cat $tags)" || die "${0##*/}: csg_call --cat $tags failed"
-helpmsg="$(echo -e "$content" | sed -n -e '/csg_get_\(interaction_\)\?property/p')" 
+#filter defining and export from function_common
+helpmsg="$(echo -e "$content" | \
+   sed -n -e '/die.*"csg_get_\(interaction_\)\?property:/d' \
+   -e '/^csg_get_\(interaction_\)\?property.*().*{/d' \
+   -e '/^export.*-f.*csg_get_\(interaction_\)\?property/d' \
+   -e '/csg_get_\(interaction_\)\?property.*#filter me away/d' \
+   -e '/csg_get_\(interaction_\)\?property/p')" 
+
 assert "${0##*/}: sed 2 failed"
 
 #no properties found
 [ -n "$helpmsg" ] || exit 0
 
+echo
 echo
 echo "Used xml options:"
 #set -x
@@ -82,12 +89,12 @@ if [ -z "${script%%*.sh}" ]; then
     -e 'if (/csg_get_(interaction_)?property\s+--allow-empty\s+(\S+?)\s*\)/) { print "$2 (default: empty)\n"; }
         elsif (/csg_get_(interaction_)?property\s+(\S+?)\s+(\S+?)\s*\)/) { print "$2 (default: $3)\n";}
         elsif (/csg_get_(interaction_)?property\s+(\S+?)\s*\)/) { print "$2\n";}
- 	elsif (/csg_get_(interaction_)?property/) {die "Oho, I do NOT understand the line $_\n";}'
+ 	elsif (/csg_get_(interaction_)?property/) {die "Oho, I do NOT understand the line '$_'\n";}'
 elif [ -z "${script%%*.pl}" ]; then
   perl -n \
     -e 'if (/csg_get_(interaction_)?property\s*\(\s*(\S+?)\s*,\s*(\S+?)\s*\)/) { print "$2 (default: $3)\n";}
         elsif (/csg_get_(interaction_)?property\s*\(\s*(\S+?)\s*\)/) { print "$2\n";}
- 	elsif (/csg_get_(interaction_)?property/) {die "Oho, I do NOT understand the line $_\n";}'
+ 	elsif (/csg_get_(interaction_)?property/) {die "Oho, I do NOT understand the line '$_'\n";}'
 else
   die "Don't know how to handle script ${script}"
 fi | \

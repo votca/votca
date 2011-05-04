@@ -13,5 +13,5 @@ echo '%!includeconf: config.t2t'
 echo
 echo "|| Key1 | Key2 | Scriptname"
 csg_call -l | \
-sed -e '1d' -e '/\.\(sh\|pl\|py\)/!d' -e '/^functions/d' | \
+sed -e '/^#/d' | \
 awk '{printf "| %s | %s | ref(%s)(%s) |\n",$1,$2,$3,$3}'

@@ -27,6 +27,7 @@ reference/scripts/config.t2t
 reference/scripts/*.pl.*
 reference/scripts/*.py.*
 reference/scripts/*.sh.*
+reference/scripts/linsolve*
 reference/scripts/all.tex
 reference/scripts/all.wiki
 reference/xml/Makefile.incl
