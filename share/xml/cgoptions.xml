@@ -86,6 +86,7 @@
   <item><name>cg.inverse.log_file</name><desc> write log to this file </desc></item>
   <item><name>cg.inverse.simulation</name><desc>simulation options </desc></item>
   <item><name>cg.inverse.simulation.tasks</name><desc>number of tasks (0/auto = automatic detect on linux)</desc></item>
+  <item><name>cg.inverse.simulation.background</name><desc>tell csg_inverse that  simulation was send to the backgroud (default no)</desc></item>
   <item>
     <name>cg.inverse.restart_file</name>
     <desc>
