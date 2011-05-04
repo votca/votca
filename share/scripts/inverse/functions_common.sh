@@ -21,31 +21,14 @@ if [[ $1 = "--help" ]]; then
   cat <<EOF
 ${0##*/}, version %version%
 
-
-
-We have defined some useful (?) functions:
-* msg               = message to screen and logfile
-* die               = error message to stderr and logfile,
-                      kills all csg process
-* do_external       = get scriptname for sourcewrapper and run it,
-                      supports for_all
-* for_all           = run a command for all non-bonded pairs
-* critical          = run and die if error
-
-Examples:
-* echo "Hi"
-* msg "Hi"
-* die "Error at line 99"
-* do_external init gromacs NVT
-* do_external init potential for_all bonded
-* for_all bonded init_potential.sh 1 2 3
-* critical CMD
+This file defines some commonly used functions:
 EOF
+sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1   = \2/p' ${0}
+echo
 exit 0
 fi
 
-#echo a msg to the screen and send it to logfile too 
-msg() {
+msg() { #echos a msg on the screen and send it to the logfile if logging is enabled
   local color colors=" blue cyan cyann green red purp "
   if [[ -z ${CSGNOCOLOR} ]]; then
     local blue="[34;01m"
@@ -86,7 +69,7 @@ msg() {
 export -f msg
 
 unset -f die
-die () {
+die () { #make the iterative frame work stopp
   local pid pids c
   msg --color red --to-stderr "$(csg_banner "ERROR:" "$@")"
   [[ -z $CSGLOG ]] || msg --color blue "For details see $CSGLOG"
@@ -122,17 +105,14 @@ die () {
 }
 export -f die
 
-#takes a task, show content of the according script
-cat_external() {
+cat_external() { #takes a two tags and shows content of the according script
   local script
   script="$(source_wrapper $1 $2)" || die "cat_external: source_wrapper $1 $2 failed"
   cat "${script/ *}"
 }
 export -f cat_external
 
-#takes a task, find the according script and run it.
-#first 2 argument are the task
-do_external() {
+do_external() { #takes two tags, find the according script and excute it
   local script tags quiet="no" 
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "do_external: source_wrapper $1 $2 failed"
@@ -153,8 +133,7 @@ do_external() {
 }
 export -f do_external
 
-#useful subroutine check if a command was succesful AND log the output
-critical() {
+critical() { #executes arguments as command and calls die if not succesful
   local quiet="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   [[ -z $1 ]] && die "critical: missing argument"
@@ -164,8 +143,7 @@ critical() {
 }
 export -f critical
 
-#do somefor all pairs, 1st argument is the type
-for_all (){
+for_all (){ #do something for all interactions (1st argument)
   local bondtype name interactions quiet="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   [[ -z $1 || -z $2 ]] && "for_all need at least two arguments"
@@ -191,7 +169,7 @@ for_all (){
 }
 export -f for_all
 
-check_for_duplicated_interactions() {
+check_for_duplicated_interactions() { #checks for duplicated interactions
   local i j names=( $(csg_get_property cg.${bondtype}.name) )
   for ((i=0;i<${#names[@]};i++)); do
     for ((j=i+1;j<${#names[@]};j++)); do
@@ -201,7 +179,7 @@ check_for_duplicated_interactions() {
 }
 export -f check_for_duplicated_interactions
 
-csg_get_interaction_property () {
+csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop
   local ret allow_empty cmd
   if [[ $1 = "--allow-empty" ]]; then
     shift
@@ -230,8 +208,7 @@ csg_get_interaction_property () {
 }
 export -f csg_get_interaction_property
 
-#get a property from xml
-csg_get_property () {
+csg_get_property () { #get an property from the xml file
   local ret allow_empty cmd
   if [[ $1 = "--allow-empty" ]]; then
     shift
@@ -251,7 +228,7 @@ csg_get_property () {
 }
 export -f csg_get_property
 
-mark_done () {
+mark_done () { #mark a task (1st argument) as done in the restart file
   local file
   [[ -n $1 ]] || die "mark_done: Missig argument"
   file="$(get_restart_file)"
@@ -259,7 +236,7 @@ mark_done () {
 }
 export -f mark_done
 
-is_done () {
+is_done () { #checks if something is already do in the restart file
   local file
   [[ -n $1 ]] || die "is_done: Missig argument"
   file="$(get_restart_file)"
@@ -269,7 +246,7 @@ is_done () {
 }
 export -f is_done
 
-int_check() {
+int_check() { #checks if 1st argument is a integer or calls die with error message (2nd argument)
   [[ -n $2 ]] || die "int_check: Missig argument"
   [[ -n $1 && -z ${1//[0-9]} ]] && return 0
   shift
@@ -277,7 +254,7 @@ int_check() {
 }
 export -f int_check
 
-get_stepname() {
+get_stepname() { #get the dir name of a certain step number (1st argument)
   local name
   [[ -n $1 ]] || die "get_stepname: Missig argument"
   if [[ $1 = "--trunc" ]]; then
@@ -291,7 +268,7 @@ get_stepname() {
 }
 export -f get_stepname
 
-update_stepnames(){
+update_stepnames(){ #updated the current working step to a certain number (1st argument)
   local thisstep laststep nr
   [[ -n $1 ]] || die "update_stepnames: Missig argument"
   nr="$1"
@@ -305,7 +282,7 @@ update_stepnames(){
 }
 export -f update_stepnames
 
-get_current_step_dir() {
+get_current_step_dir() { #print the directory of the current step
   [[ -z $CSG_THISSTEP ]] && die "get_current_step_dir: \$CSG_THISSTEP is undefined (when calling from csg_call export it yourself)"
   if [[ $1 = "--no-check" ]]; then
     :
@@ -317,21 +294,21 @@ get_current_step_dir() {
 }
 export -f get_current_step_dir
 
-get_last_step_dir() {
+get_last_step_dir() { #print the directory of the last step
   [[ -z $CSG_LASTSTEP ]] && die "get_last_step_dir: CSG_LASTSTEP is undefined  (when calling from csg_call export it yourself)"
   [[ -d $CSG_LASTSTEP ]] || die "get_last_step_dir: $CSG_LASTSTEP is not dir"
   echo "$CSG_LASTSTEP"
 }
 export -f get_last_step_dir
 
-get_main_dir() {
+get_main_dir() { #print the main directory
   [[ -z $CSG_MAINDIR ]] && die "get_main_dir: CSG_MAINDIR is defined"
   [[ -d $CSG_MAINDIR ]] || die "update_stepnames: $CSG_MAINDIR is not dir"
   echo "$CSG_MAINDIR"
 }
 export -f get_main_dir
 
-get_current_step_nr() {
+get_current_step_nr() { #print the main directory
   local name nr
   name=$(get_current_step_dir)
   nr=$(get_step_nr $name)
@@ -339,10 +316,10 @@ get_current_step_nr() {
 }
 export -f get_current_step_nr
 
-get_step_nr() {
+get_step_nr() { #print the number of a certain step directory (1st argument)
   local nr trunc
   trunc=$(get_stepname --trunc)
-  [[ -n $1 ]] || die "get_step_nr: Missig argument"
+  [[ -n $1 ]] || die "get_step_nr: Missing argument"
   nr=${1##*/}
   nr=${nr#$trunc}
   #convert to base 10 and cut leading zeros
@@ -352,7 +329,7 @@ get_step_nr() {
 }
 export -f get_step_nr
 
-cp_from_to() {
+cp_from_to() { #copy a file from somewhere to somewhere, should be called as ``cp_from_to --from XXX --where YYY what``
   local i to from where
   if [[ $1 = "--from" ]]; then
     from="$2"
@@ -383,13 +360,13 @@ cp_from_to() {
 }
 export -f cp_from_to
 
-cp_from_main_dir() {
+cp_from_main_dir() { #copy something from the main directory
   echo "cp_from_main_dir: '$@'"
   critical cp_from_to --from $(get_main_dir) "$@"
 }
 export -f cp_from_main_dir
 
-cp_from_last_step() {
+cp_from_last_step() { #copy something from the last step
   echo "cp_from_last_step: '$@'"
   critical cp_from_to --from $(get_last_step_dir) "$@"
 }
@@ -400,7 +377,7 @@ get_time() {
 }
 export -f get_time
 
-get_number_tasks() {
+get_number_tasks() { #get the number of possible tasks from the xml file or determine it automatically under linux
   local tasks
   tasks="$(csg_get_property cg.inverse.simulation.tasks "auto")"
   [[ $tasks = "auto" ]] && tasks=0
@@ -415,7 +392,7 @@ get_number_tasks() {
 }
 export -f get_number_tasks
 
-get_table_comment() {
+get_table_comment() { #print the common comments from a table, which include the hgid and other information
   local version
   [[ -n "$(type -p csg_call)" ]] || die "get_defaults_comment: Could not find csg_version"
   version="$(csg_call --version)" || die "get_defaults_comment: csg_call --version failed"
@@ -426,7 +403,7 @@ get_table_comment() {
 }
 export -f get_table_comment
 
-csg_inverse_clean() {
+csg_inverse_clean() { #clean out the main directory 
   local i files log="inverse.log"
   if [[ -n ${CSGXMLFILE} ]]; then
     log="$(csg_get_property cg.inverse.log_file "$log")"
@@ -451,7 +428,7 @@ csg_inverse_clean() {
 }
 export -f csg_inverse_clean
 
-add_to_csgshare() {
+add_to_csgshare() { #added an directory to the csg internal search directories
   local dir
   for dir in "$@"; do
     [[ -z $dir ]] && continue
@@ -464,7 +441,7 @@ add_to_csgshare() {
 }
 export -f add_to_csgshare
 
-globalize_dir() {
+globalize_dir() { #convert a local directory to a global one
   [[ -z $1 ]] && die "globalize_dir: missing argument"
   [[ -d $1 ]] || die "globalize_dir: '$1' is not a dir"
   cd "$1"
@@ -472,7 +449,7 @@ globalize_dir() {
 }
 export -f globalize_dir
 
-globalize_file() {
+globalize_file() { #convert a local file name to a global one
   [[ -z $1 ]] && die "globalize_file: missing argument"
   [[ -f $1 ]] || die "globalize_file: '$1' is not a file"
   local dir
@@ -481,7 +458,7 @@ globalize_file() {
 }
 export -f globalize_file
 
-source_function() {
+source_function() { #source an extra function file
   local function_file
   [[ -n $1 ]] || die "source_function: Missig argument"
   function_file=$(source_wrapper functions $1) || die "source_function: source_wrapper functions $1 failed"
@@ -489,7 +466,7 @@ source_function() {
 }
 export -f source_function
 
-csg_banner() {
+csg_banner() { #print a big banner
   local i l=0 list=()
   [[ -z $1 ]] && return 0
   for i in "$@"; do
@@ -517,7 +494,7 @@ csg_banner() {
 }
 export -f csg_banner
 
-csg_calc() {
+csg_calc() { #simple calculator, a + b, ...
   local res ret=0 err="1e-6"
   [[ -z $1 || -z $2 || -z $3 ]] && die "csg_calc: Needs 3 arguments"
   [[ -n "$(type -p awk)" ]] || die "csg_calc: Could not find awk"
@@ -548,7 +525,7 @@ csg_calc() {
 }
 export -f csg_calc
 
-show_csg_tables() {
+show_csg_tables() { #show all concatinated csg tables
   local old_IFS dir
   old_IFS="$IFS"
   IFS=":"
@@ -563,7 +540,7 @@ show_csg_tables() {
 }
 export -f show_csg_tables
 
-get_command_from_csg_tables() {
+get_command_from_csg_tables() { #print the name of script belonging to certain tags (1st, 2nd argument)
   [[ -z $1 || -z $2 ]] && die "get_command_from_csg_tables: Needs two tags"
   show_csg_tables | \
     sed -e '/^#/d' | \
@@ -572,7 +549,7 @@ get_command_from_csg_tables() {
 }
 export -f get_command_from_csg_tables
 
-source_wrapper() {
+source_wrapper() { #print the full name of a script belonging to two tags (1st, 2nd argument)
   [[ -z $1 || -z $2 ]] && die "source_wrapper: Needs two tags"
   local cmd script
   cmd=$(get_command_from_csg_tables "$1" "$2") || die
@@ -583,7 +560,7 @@ source_wrapper() {
 }
 export -f source_wrapper
 
-find_in_csgshare() {
+find_in_csgshare() { #find a script in csg script search path
   [[ -z $1 ]] && die "find_in_csgshare: missing argument"
   #global path
   if [[ -z ${1##/*} ]]; then
@@ -603,6 +580,7 @@ find_in_csgshare() {
 export -f find_in_csgshare
 
 if [ -z "$(type -p mktemp)" ]; then
+  #do not document this
   mktemp() {
     [[ -z $1 ]] && die "mktemp: missing argument"
     [[ -z ${1##*X} ]] || die "mktemp: argument has to end at least with X"
@@ -624,7 +602,7 @@ if [ -z "$(type -p mktemp)" ]; then
   export -f mktemp
 fi
 
-enable_logging() {
+enable_logging() { #enables the logging to a certain file (1st argument) or the logfile taken from the xml file
   local log
   if [[ -z $1 ]]; then
     log="$(csg_get_property cg.inverse.log_file "inverse.log")"
@@ -646,7 +624,7 @@ enable_logging() {
 }
 export -f enable_logging
 
-get_restart_file() {
+get_restart_file() { #print the name of the restart file to use
   local file
   file="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
   [[ -z ${file/*\/*} ]] && die "get_restart_file: cg.inverse.restart_file has to be a local file with slash '/'"
@@ -654,7 +632,7 @@ get_restart_file() {
 }
 export -f get_restart_file
 
-check_for_obsolete_xml_options() {
+check_for_obsolete_xml_options() { #check xml file for obsolete options
   local i
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin; do
