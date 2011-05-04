@@ -41,7 +41,7 @@ eof
   cat << eof
 ${0##*/}, version ${version}
 
-Start the script to run IBM, IMC, etc.
+Start the script (inverse.sh) to run IBM, IMC, etc.
 
 Usage: ${0##*/} [OPTIONS] --options settings.xml
 

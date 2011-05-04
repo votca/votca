@@ -56,7 +56,7 @@ Allowed options:
                      (Used if no options xml file is given)
                      Default: empty
     --options FILE   Specify the options xml file to use
-    --log     FILE   Specify the log file to use
+    --log FILE       Specify the log file to use
                      Default: stdout
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use

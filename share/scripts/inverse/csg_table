@@ -17,6 +17,8 @@
 #general scripts
 tag file tag_file.sh
 dummy dummy dummy.sh
+function common functions_common.sh
+csg master inverse.sh
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
@@ -165,6 +167,5 @@ convert_potential tab table_to_tab.pl
 
 # function for ESPResSo
 functions espresso functions_espresso.sh
-
 
 # END: these scripts have to be defined for each simulation program

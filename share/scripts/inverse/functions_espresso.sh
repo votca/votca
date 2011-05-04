@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 Useful functions for espresso:
 EOF
-sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1   = \2/p' ${0}
+sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1   -- \2/p' ${0}
 
 echo
 echo Used external packages: espresso

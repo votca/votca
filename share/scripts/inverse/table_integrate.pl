@@ -49,9 +49,8 @@ $usage
 
 Allowed options:
     --with-errors     calculate error
-    --with-S          Add entropic contribution to force
-                      2*k_B T/r
-    --kbT   NUMBER    use NUMBER as k_B*t for the entropic part
+    --with-S          Add entropic contribution to force ''\$2k_B T/r\$''
+    --kbT NUMBER      use NUMBER as ''\$k_B*T\$'' for the entropic part
 -h, --help            Show this help message
 
 Examples:

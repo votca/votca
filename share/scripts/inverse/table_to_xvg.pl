@@ -45,8 +45,10 @@ Allowed options:
 -h, --help            show this help message
 --type XXX            change the type of xvg table
                       Default: $type
-		      Possible: non-bonded (=C12), bond, thermoforce, C12, C6
 --max MAX             Replace all pot value bigger MAX by MAX 
+
+
+Possible types: non-bonded (=C12), bond, thermoforce, C12, C6
 
 Examples:
 * $progname --type bond table.in table_b0.xvg

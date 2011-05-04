@@ -41,7 +41,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 		print <<END;
 $progname, version %version%
 This script performs a linear operation on the y values:
-y_new = a*y_old + b
+''\$y_{new} = a*y_{old} + b\$''
 
 $usage
 

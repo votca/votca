@@ -23,7 +23,7 @@ ${0##*/}, version %version%
 
 This file defines some commonly used functions:
 EOF
-sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1   = \2/p' ${0}
+sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1  -- \2/p' ${0}
 echo
 exit 0
 fi
@@ -155,11 +155,11 @@ for_all (){ #do something for all interactions (1st argument)
   fi
   [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
   check_for_duplicated_interactions
-  interactions="$(csg_get_property cg.${bondtype}.name)"
+  interactions="$(csg_get_property cg.non-bonded.name)"
   for name in $interactions; do
     #print this message to stderr to avoid problem with $(for_all something)
     [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
-    #we need to use bash -c here to allow things like $(csg_get_interaction_property xxx) in arguments
+    #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
     #write variable defines in the front is better, that export
     #no need to run unset afterwards
     bondtype="$bondtype" \
@@ -170,7 +170,7 @@ for_all (){ #do something for all interactions (1st argument)
 export -f for_all
 
 check_for_duplicated_interactions() { #checks for duplicated interactions
-  local i j names=( $(csg_get_property cg.${bondtype}.name) )
+  local i j names=( $(csg_get_property cg.non-bonded.name) ) 
   for ((i=0;i<${#names[@]};i++)); do
     for ((j=i+1;j<${#names[@]};j++)); do
       [[ ${names[$i]} = ${names[$j]} ]] && die "for_all: the interaction name '${names[$i]}' appeared twice, this is not allowed"
@@ -187,7 +187,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   else
     allow_empty="no"
   fi
-  [[ -n $1 ]] || die "csg_get_interaction_property: Missig argument"
+  [[ -n $1 ]] || die "csg_get_interaction_property: Missing argument"
   [[ -n $CSGXMLFILE ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
   [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
@@ -216,7 +216,7 @@ csg_get_property () { #get an property from the xml file
   else
     allow_empty="no"
   fi
-  [[ -n $1 ]] || die "csg_get_property: Missig argument"
+  [[ -n $1 ]] || die "csg_get_property: Missing argument"
   [[ -n $CSGXMLFILE ]] || die "csg_get_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
@@ -230,7 +230,7 @@ export -f csg_get_property
 
 mark_done () { #mark a task (1st argument) as done in the restart file
   local file
-  [[ -n $1 ]] || die "mark_done: Missig argument"
+  [[ -n $1 ]] || die "mark_done: Missing argument"
   file="$(get_restart_file)"
   is_done "$1" || echo "$1 done" >> "${file}"
 }
@@ -238,7 +238,7 @@ export -f mark_done
 
 is_done () { #checks if something is already do in the restart file
   local file
-  [[ -n $1 ]] || die "is_done: Missig argument"
+  [[ -n $1 ]] || die "is_done: Missing argument"
   file="$(get_restart_file)"
   [[ -f ${file} ]] || return 1
   [[ -n "$(sed -n "/^$1 done\$/p" ${file})" ]] && return 0
@@ -247,7 +247,7 @@ is_done () { #checks if something is already do in the restart file
 export -f is_done
 
 int_check() { #checks if 1st argument is a integer or calls die with error message (2nd argument)
-  [[ -n $2 ]] || die "int_check: Missig argument"
+  [[ -n $2 ]] || die "int_check: Missing argument"
   [[ -n $1 && -z ${1//[0-9]} ]] && return 0
   shift
   die "$*"
@@ -256,7 +256,7 @@ export -f int_check
 
 get_stepname() { #get the dir name of a certain step number (1st argument)
   local name
-  [[ -n $1 ]] || die "get_stepname: Missig argument"
+  [[ -n $1 ]] || die "get_stepname: Missing argument"
   if [[ $1 = "--trunc" ]]; then
     echo "step_"
     return 0
@@ -270,7 +270,7 @@ export -f get_stepname
 
 update_stepnames(){ #updated the current working step to a certain number (1st argument)
   local thisstep laststep nr
-  [[ -n $1 ]] || die "update_stepnames: Missig argument"
+  [[ -n $1 ]] || die "update_stepnames: Missing argument"
   nr="$1"
   int_check "$nr" "update_stepnames: needs a int as argument"
   [[ -z $CSG_MAINDIR ]] && die "update_stepnames: CSG_MAINDIR is undefined"
@@ -460,7 +460,7 @@ export -f globalize_file
 
 source_function() { #source an extra function file
   local function_file
-  [[ -n $1 ]] || die "source_function: Missig argument"
+  [[ -n $1 ]] || die "source_function: Missing argument"
   function_file=$(source_wrapper functions $1) || die "source_function: source_wrapper functions $1 failed"
   source ${function_file} || die "source_function: source ${function_file} failed"
 }
@@ -636,7 +636,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   local i
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin; do
-    [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue
+    [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
         new="";;

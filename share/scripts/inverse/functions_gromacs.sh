@@ -21,7 +21,7 @@ ${0##*/}, version %version%
 
 Useful functions for gromacs:
 EOF
-sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1    = \2/p' ${0}
+sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1    -- \2/p' ${0}
 
 echo
 echo Used external packages: gromacs
