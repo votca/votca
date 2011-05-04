@@ -37,8 +37,8 @@ unset gmxrc
 
 get_from_mdp() {
   local res
-  [[ -n "$2" ]] || die "get_from_mdp: Missing argument (what file)"
-  [[ -f "$2" ]] || die "get_from_mdp: Could not read file '$2'"
+  [[ -z $1 || -z $2 ]] && die "get_from_mdp: Missing argument (what file)"
+  [[ -f $2 ]] || die "get_from_mdp: Could not read file '$2'"
   #1. strip comments
   #2. get important line
   #3. remove leading and tailing spaces
@@ -53,7 +53,7 @@ export -f get_from_mdp
 
 check_cutoff() {
   local max rvdw res cutoff_check
-  [[ -n "$1" ]] || die "check_cutoff: Missing argument (mdp file)"
+  [[ -z $1 ]] && die "check_cutoff: Missing argument (mdp file)"
   cutoff_check=$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")
   [ ${cutoff_check} = "no" ] && return 0
   max="$(csg_get_interaction_property max)"
@@ -67,7 +67,7 @@ export -f check_cutoff
 
 check_temp() {
   local temp_check kbt temp res
-  [[ -n "$1" ]] || die "check_temp: Missing argument (mdp file)"
+  [[ -z $1 ]] && die "check_temp: Missing argument (mdp file)"
   temp_check=$(csg_get_property cg.inverse.gromacs.temp_check "yes")
   [ ${temp_check} = "no" ] && return 0
   #kbt in energy unit

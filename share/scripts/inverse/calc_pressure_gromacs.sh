@@ -27,7 +27,7 @@ EOF
    exit 0
 fi
 
-[ -z "$1" ] && die "${0##*/}: Missing argument"
+[[ -z $1 ]] && die "${0##*/}: Missing argument"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 [ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"

@@ -41,9 +41,9 @@ start_gnuplot_pipe() {
   fi
 }
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-[ -f "$2" ] && die "${0##*/}: $2 is already there"
+[[ -f $2 ]] && die "${0##*/}: $2 is already there"
 do_external postadd dummy "$1" "$2"
 
 fd=$(csg_get_interaction_property inverse.post_add_options.plot.fd "8")

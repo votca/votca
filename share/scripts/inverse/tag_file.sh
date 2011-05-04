@@ -25,7 +25,7 @@ EOF
    exit 0
 fi
 
-[[ -n "$2" ]] || die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 input="$1"
 [ -f "$input" ] || die "${0##*/}: Input file $input not found"

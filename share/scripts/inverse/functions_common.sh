@@ -133,17 +133,23 @@ export -f cat_external
 #takes a task, find the according script and run it.
 #first 2 argument are the task
 do_external() {
-  local script tags quiet="no" packages
+  local script tags quiet="no" 
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "do_external: source_wrapper $1 $2 failed"
   tags="$1 $2"
   shift 2
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
-  if [[ -n $CSGDEBUG && -n "$(sed -n '1s@/bin/bash@XXX@p' "$script")" ]]; then
-    bash -x $script "$@" || die "do_external: subscript $script $* (from tags $tags) failed"
+  if [[ -n $CSGDEBUG && -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
+    bash -x $script "$@"
+  elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
+    local perl_debug="$(mktemp perl_debug.XXX)" ret
+    PERLDB_OPTS="NonStop=1 AutoTrace=1 frame=2 LineInfo=$perl_debug" perl -dS $script "$@"
+    ret=$?
+    cat "$perl_debug" 2>&1
+    [[ $ret -eq 0 ]]
   else
-    $script "$@" || die "do_external: subscript $script $* (from tags $tags) failed"
-  fi
+    $script "$@"
+  fi || die "do_external: subscript $script $* (from tags $tags) failed"
 }
 export -f do_external
 
@@ -246,17 +252,19 @@ csg_get_property () {
 export -f csg_get_property
 
 mark_done () {
+  local file
   [[ -n $1 ]] || die "mark_done: Missig argument"
-  [[ -n $CSGRESTART ]] || die "mark_done: CSGRESTART is undefined"
-  is_done "$1" || echo "$1 done" >> "${PWD}/$CSGRESTART"
+  file="$(get_restart_file)"
+  is_done "$1" || echo "$1 done" >> "${file}"
 }
 export -f mark_done
 
 is_done () {
+  local file
   [[ -n $1 ]] || die "is_done: Missig argument"
-  [[ -n $CSGRESTART ]] || die "mark_done: CSGRESTART is undefined"
-  [[ -f ${PWD}/${CSGRESTART} ]] || return 1
-  [[ -n "$(sed -n "/^$1 done\$/p" ${PWD}/${CSGRESTART})" ]] && return 0
+  file="$(get_restart_file)"
+  [[ -f ${file} ]] || return 1
+  [[ -n "$(sed -n "/^$1 done\$/p" ${file})" ]] && return 0
   return 1
 }
 export -f is_done
@@ -288,7 +296,7 @@ update_stepnames(){
   [[ -n $1 ]] || die "update_stepnames: Missig argument"
   nr="$1"
   int_check "$nr" "update_stepnames: needs a int as argument"
-  [[ -z $CSG_MAINDIR ]] && die "update_stepnames: CSG_MAINDIR is empty"
+  [[ -z $CSG_MAINDIR ]] && die "update_stepnames: CSG_MAINDIR is undefined"
   [[ -d $CSG_MAINDIR ]] || die "update_stepnames: $CSG_MAINDIR is not dir"
   thisstep="$(get_stepname $nr)"
   laststep="$(get_stepname $((nr-1)) )"
@@ -298,7 +306,7 @@ update_stepnames(){
 export -f update_stepnames
 
 get_current_step_dir() {
-  [[ -z $CSG_THISSTEP ]] && die "get_current_step_dir: CSG_THISSTEP is empty"
+  [[ -z $CSG_THISSTEP ]] && die "get_current_step_dir: \$CSG_THISSTEP is undefined (when calling from csg_call export it yourself)"
   if [[ $1 = "--no-check" ]]; then
     :
   else
@@ -310,14 +318,14 @@ get_current_step_dir() {
 export -f get_current_step_dir
 
 get_last_step_dir() {
-  [[ -z $CSG_LASTSTEP ]] && die "get_last_step_dir: CSG_LASTSTEP is empty"
+  [[ -z $CSG_LASTSTEP ]] && die "get_last_step_dir: CSG_LASTSTEP is undefined  (when calling from csg_call export it yourself)"
   [[ -d $CSG_LASTSTEP ]] || die "get_last_step_dir: $CSG_LASTSTEP is not dir"
   echo "$CSG_LASTSTEP"
 }
 export -f get_last_step_dir
 
 get_main_dir() {
-  [[ -z $CSG_MAINDIR ]] && die "get_main_dir: CSG_MAINDIR is empty"
+  [[ -z $CSG_MAINDIR ]] && die "get_main_dir: CSG_MAINDIR is defined"
   [[ -d $CSG_MAINDIR ]] || die "update_stepnames: $CSG_MAINDIR is not dir"
   echo "$CSG_MAINDIR"
 }
@@ -638,21 +646,13 @@ enable_logging() {
 }
 export -f enable_logging
 
-csg_export() {
-  local i var
-  for i in "$@"; do
-    case $i in
-      CSGRESTART)
-        var="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
-        var="${var##*/}"
-        shift;;
-      *)
-        die "csg_export: Unknown variable $i";;
-    esac
-    eval export $i='$var' || die "csg_export: export $i='$var' failed"
-  done
+get_restart_file() {
+  local file
+  file="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
+  [[ -z ${file/*\/*} ]] && die "get_restart_file: cg.inverse.restart_file has to be a local file with slash '/'"
+  echo "$file"
 }
-export -f csg_export
+export -f get_restart_file
 
 check_for_obsolete_xml_options() {
   local i

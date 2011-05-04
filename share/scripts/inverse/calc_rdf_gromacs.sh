@@ -67,10 +67,10 @@ begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print 
 end="$(awk -v dt="$dt" -v steps="$steps" 'BEGIN{print dt*steps}')"
 
 tasks=$(get_number_tasks)
-echo "Running g_rdf for ${grp1}-${grp2} using $tasks tasks"
 if is_done "rdf-$name"; then
   echo "g_rdf for ${grp1}-${grp2} is already done"
 else
+  msg "Running g_rdf for ${grp1}-${grp2} using $tasks tasks"
   if [ $tasks -gt 1 ]; then
     echo -e "${grp1}\n${grp2}" | critical multi_g_rdf --cmd ${g_rdf} -${tasks} -b ${begin} -e ${end} -n "$index" -o ${name}.dist.new.xvg --soutput ${name}.dist.new.NP.xvg -- -bin ${binsize}  -s "$tpr" -f "${traj}" ${opts}
   else

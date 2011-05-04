@@ -27,7 +27,7 @@ EOF
    exit 0
 fi
 
-[ -z "$1" ] && die "${0##*/}: Missing argument"
+[[ -z $1 ]] && die "${0##*/}: Missing argument"
 
 # Espresso config file (required for certain parameters, e.g. box size)
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
