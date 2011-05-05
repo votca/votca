@@ -75,8 +75,7 @@ check_temp() { #compares k_B T in xml with temp in mpd file
   kbt="$(csg_get_property cg.inverse.kBT)"
   temp="$(get_from_mdp ref_t "$1")"
   #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
-  csg_calc "$kbt" "=" "0.00831451*$temp" || die "check_temp: awk failed"
-  [ "$res" != "0" ] && die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
+  csg_calc "$kbt" "=" "0.00831451*$temp" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
 To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
   return 0
 }

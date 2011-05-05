@@ -495,7 +495,7 @@ csg_banner() { #print a big banner
 export -f csg_banner
 
 csg_calc() { #simple calculator, a + b, ...
-  local res ret=0 err="1e-6"
+  local res ret=0 err="1e-5"
   [[ -z $1 || -z $2 || -z $3 ]] && die "csg_calc: Needs 3 arguments"
   [[ -n "$(type -p awk)" ]] || die "csg_calc: Could not find awk"
   case "$2" in
