@@ -26,7 +26,8 @@ using namespace std;
 class CrgUnit {
 public:
 
-    CrgUnit() {};
+    CrgUnit() :
+        _id(-1), _energy(0), _type(NULL), _molid(-1)  {};
 
     virtual ~CrgUnit();
 
@@ -110,7 +111,7 @@ private:
 
 inline CrgUnit::CrgUnit(const unsigned int & id, CrgUnitType * type,
                  const unsigned int & molId)
-    : _id(id), _type(type), _molid(molId)
+    : _id(id), _type(type), _molid(molId), _energy(0)
 {}
 
 
