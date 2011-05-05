@@ -31,7 +31,6 @@ input="${name}.pot.cur"
 output="$(csg_get_interaction_property inverse.gromacs.table)"
 echo "Convert $input to $output"
 
-r_cut=$(csg_get_interaction_property max)
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 
 comment="$(get_table_comment)"

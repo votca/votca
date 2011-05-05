@@ -495,7 +495,7 @@ csg_banner() { #print a big banner
 export -f csg_banner
 
 csg_calc() { #simple calculator, a + b, ...
-  local res ret=0 err="1e-5"
+  local res ret=0 err="1e-2"
   [[ -z $1 || -z $2 || -z $3 ]] && die "csg_calc: Needs 3 arguments"
   [[ -n "$(type -p awk)" ]] || die "csg_calc: Could not find awk"
   case "$2" in
@@ -510,7 +510,7 @@ csg_calc() { #simple calculator, a + b, ...
        res=""
        true;;
     "="|"==")
-       res="$(awk "BEGIN{print (sqrt((($1)-($3))**2)<$err)}")" || die "csg_calc: awk 'BEGIN{print (sqrt((($1)-($3))**2)<$err)}' failed"
+       res="$(awk "BEGIN{print ((sqrt((($1)-($3))**2)/($1))<$err)}")" || die "csg_calc: awk 'BEGIN{print (sqrt((($1)-($3))**2)<$err)}' failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
        #return value matters
