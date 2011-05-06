@@ -118,6 +118,7 @@ do_external() { #takes two tags, find the according script and excute it
   script="$(source_wrapper $1 $2)" || die "do_external: source_wrapper $1 $2 failed"
   tags="$1 $2"
   shift 2
+
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
   if [[ -n $CSGDEBUG && -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
     bash -x $script "$@"
@@ -188,13 +189,19 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     allow_empty="no"
   fi
   [[ -n $1 ]] || die "csg_get_interaction_property: Missing argument"
-  [[ -n $CSGXMLFILE ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
-  [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
-  [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
+  
   #bondtype is special -> dirty hack - removed whenever issue 13 is fixed
-  [[ $1 = "bondtype" ]] && cmd="echo $bondtype" || \
-    cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
+  #make these this case work even without name (called by csg_call)
+  [[ $1 = "bondtype" ]] && echo "$bondtype" && return 0
+
+  [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
+  #make these this case work even without xml file (called by csg_call)
+  [[ $1 = "name" ]] && echo "$name" && return 0
+
+  [[ -n $CSGXMLFILE ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
+  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
   if ! ret="$($cmd)"; then
     [[ $allow_empty = "no" && -z $2 ]] && \
@@ -431,7 +438,7 @@ export -f csg_inverse_clean
 add_to_csgshare() { #added an directory to the csg internal search directories
   local dir
   for dir in "$@"; do
-    [[ -z $dir ]] && continue
+    [[ -z $dir ]] && die "add_to_csgshare: Missing argument"
     #dir maybe contains $PWD or something
     eval dir="$dir"
     dir="$(globalize_dir "$dir")"
@@ -652,4 +659,16 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   done
 }
 export -f check_for_obsolete_xml_options
+
+command_not_found_handle() { #print and error message if a command or a function was not found
+  die "Command/function $1 not found (when calling from csg_call you might need to add --simprog option or set cg.inverse.program in the xml file)"
+}
+export -f command_not_found_handle
+
+#in bash4 this is not needed, but for older bash we add add a failback from most important simulation functions
+for i in simulation_finish checkpoint_exist get_simulation_setting; do
+  eval $i\(\) { command_not_found_handle $i\; }
+  eval export -f $i 
+done
+unset i
 

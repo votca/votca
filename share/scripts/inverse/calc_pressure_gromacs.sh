@@ -29,9 +29,6 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
-
 tpr="$(csg_get_property cg.inverse.gromacs.g_energy.topol "topol.tpr")"
 [ -f "$tpr" ] || die "${0##*/}: Gromacs tpr file '$tpr' not found"
 
@@ -41,8 +38,8 @@ g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin "g_energy")"
 
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.opts)"
 
-nsteps=$(get_from_mdp nsteps "$mdp")
-dt=$(get_from_mdp dt "$mdp")
+nsteps=$(get_simulation_setting nsteps)
+dt=$(get_simulation_setting dt)
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 

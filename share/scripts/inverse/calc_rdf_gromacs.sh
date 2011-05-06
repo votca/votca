@@ -27,11 +27,9 @@ EOF
    exit 0
 fi
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
-dt=$(get_from_mdp dt "$mdp")
+dt=$(get_simulation_setting dt)
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
-steps=$(get_from_mdp nsteps "$mdp")
+steps=$(get_simulation_setting nsteps)
 first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 index="$(csg_get_property cg.inverse.gromacs.g_rdf.index "index.ndx")"
