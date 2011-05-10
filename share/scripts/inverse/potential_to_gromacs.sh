@@ -75,12 +75,15 @@ comment="$(get_table_comment)"
 smooth="$(critical mktemp smooth_${name}.XXXXX)"
 csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 extrapol="$(critical mktemp extrapol_${name}.XXXXX)"
-do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${extrapol}"
 
 tshift="$(critical mktemp shift_${name}.XXXXX)"
 if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
+  extrapol1="$(critical mktemp extrapol1_${name}.XXXXX)"
+  do_external table extrapolate --function exponential --avgpoints 1 --region left "${smooth}" "${extrapol1}"
+  do_external table extrapolate --function constant --avgpoints 1 --region right "${extrapol1}" "${extrapol}"
   do_external pot shift_nonbonded "${extrapol}" "${tshift}"
 else
+  do_external table extrapolate --function exponential --avgpoints 1 --region leftright "${smooth}" "${extrapol}"
   do_external pot shift_bonded "${extrapol}" "${tshift}"
 fi
 
