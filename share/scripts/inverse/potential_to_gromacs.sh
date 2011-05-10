@@ -44,35 +44,48 @@ fi
 
 echo "Convert $input to $output"
 
-gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
-
-comment="$(get_table_comment)"
-
-tablend="$(csg_get_property --allow-empty cg.inverse.gromacs.table_end)"
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-if [[ -f ${mdp} ]]; then
-  echo "Found setting file '$mdp' not trying to check options in there"
-  rlist=$(get_simulation_setting rlist)
-  tabext=$(get_simulation_setting table-extension)
-  # if we have all 3 numbers do this checks
-  [[ -n $tablend  ]] &&  csg_calc "$tablend" "<" "$rlist+$tabext" && \
-    die "${0##*/}: Error table is shorter then what mdp file ($mdp) needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
-  [[ -z $tablend ]] && tablend=$(csg_calc "$rlist" + "$tabext")
-elif [[ -z $tablend ]]; then
-  die "${0##*/}: cg.inverse.gromacs.table_end was not defined in xml seeting file"
+zero=0
+tabtype="$(csg_get_interaction_property bondtype)"
+if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
+  tablend="$(csg_get_property --allow-empty cg.inverse.gromacs.table_end)"
+  mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+  if [[ -f ${mdp} ]]; then
+    echo "Found setting file '$mdp' not trying to check options in there"
+    rlist=$(get_simulation_setting rlist)
+    tabext=$(get_simulation_setting table-extension)
+    # if we have all 3 numbers do this checks
+    [[ -n $tablend  ]] &&  csg_calc "$tablend" "<" "$rlist+$tabext" && \
+      die "${0##*/}: Error table is shorter then what mdp file ($mdp) needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
+    [[ -z $tablend ]] && tablend=$(csg_calc "$rlist" + "$tabext")
+  elif [[ -z $tablend ]]; then
+    die "${0##*/}: cg.inverse.gromacs.table_end was not defined in xml seeting file"
+  fi
+elif [[ $tabtype = "bonded" ]]; then
+  tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
+elif [[ $tabtype = "angle" ]]; then
+  tableend=180
+elif [[ $tabtype = "dihedral" ]]; then
+  zero="-180"
+  tableend=180
 fi
 
+gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
+comment="$(get_table_comment)"
+
 smooth="$(critical mktemp smooth_${name}.XXXXX)"
-csg_resample --in ${input} --out "$smooth" --grid 0:${gromacs_bins}:${tablend} --comment "$comment"
+csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 extrapol="$(critical mktemp extrapol_${name}.XXXXX)"
 do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${extrapol}"
+
 tshift="$(critical mktemp shift_${name}.XXXXX)"
-#will shift the potential to the last defined value
-do_external pot shift_nb "${extrapol}" "${tshift}"
+if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
+  do_external pot shift_nonbonded "${extrapol}" "${tshift}"
+else
+  do_external pot shift_bonded "${extrapol}" "${tshift}"
+fi
 
 potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
 [[ -n ${potmax} ]] && potmax="--max ${potmax}"
-tabtype="$(csg_get_interaction_property bondtype)"
 
 #do this with --allow-empty to avoid stoping if calling from csg_call
 [[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]] && tabtype="thermforce"

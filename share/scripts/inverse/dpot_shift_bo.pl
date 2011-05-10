@@ -21,7 +21,7 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script shifts the whole potential to the last value, like it is normally done for non-bonded potentials.
+This script shifts the whole potential to minimum, like it is normally done for bonded potentials.
 
 Usage: $progname infile outfile
 EOF
@@ -41,9 +41,17 @@ my @dpot;
 my @flag;
 (readin_table($infile,@r,@dpot,@flag)) || die "$progname: error at readin_table\n";
 
+my $min=undef;
 # bring end to zero
 for(my $i=0; $i<=$#r; $i++) {
-    $dpot[$i] -= $dpot[$#r];
+  $min=$dpot[$i] if (($flag[$i] =~ /[i]/) and not defined($min));
+  $min=$dpot[$i] if (($flag[$i] =~ /[i]/) and ($dpot[$i]<$min));
+}
+die "No valid value found in $infile" unless defined($min);
+
+# bring end to zero
+for(my $i=0; $i<=$#r; $i++) {
+    $dpot[$i] -= $min;
 }
 
 # save to file
