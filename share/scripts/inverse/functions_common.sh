@@ -197,7 +197,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
   #make these this case work even without xml file (called by csg_call)
-  [[ $1 = "name" ]] && echo "$name" && return 0
+  [[ $1 = "name" ]] && echo "$bondname" && return 0
 
   [[ -n $CSGXMLFILE ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
