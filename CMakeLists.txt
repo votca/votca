@@ -45,6 +45,8 @@ find_package(VOTCA_MOO REQUIRED)
 include_directories(${VOTCA_MOO_INCLUDE_DIRS})
 find_package(HDF5 REQUIRED)
 include_directories(${HDF5_INCLUDE_DIRS})
+find_package(SQLITE3 REQUIRED)
+include_directories(${SQLITE3_INCLUDE_DIRS})
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
