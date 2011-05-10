@@ -17,6 +17,7 @@
 #include "calculators/jortnerrates.h"
 #include "calculators/marcusrateslambdaouter.h"
 #include "calculators/hdf5writer.h"
+#include "calculators/sqlitewriter.h"
 #include "calculators/nbgen.h"
 #include "calculators/occequilibrium.h"
 #include "calculators/avgvelocity.h"
@@ -40,6 +41,7 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<JortnerRates>("jortnerrates");
         Calculators().Register<MarcusRatesLambdaOuter>("marcusrateslambdaouter");
         Calculators().Register<HDF5Writer>("hdf5writer");
+        Calculators().Register<SQLiteWriter>("sqlitewriter");
         Calculators().Register<NBGen>("nbgen");
         Calculators().Register<OccEquilibrium>("occequilibrium");
         Calculators().Register<AvgVelocity>("avgvelocity");

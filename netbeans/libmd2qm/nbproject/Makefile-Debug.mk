@@ -37,6 +37,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
 	${OBJECTDIR}/_ext/76882303/estatics.o \
 	${OBJECTDIR}/_ext/1716269789/statesaverh5.o \
+	${OBJECTDIR}/_ext/1716269789/statesaversqlite.o \
 	${OBJECTDIR}/_ext/76882303/polymerrates.o \
 	${OBJECTDIR}/_ext/76882303/readxml.o \
 	${OBJECTDIR}/_ext/1716269789/qmpair.o \
@@ -94,6 +95,11 @@ ${OBJECTDIR}/_ext/1716269789/statesaverh5.o: ../../src/libmd2qm/statesaverh5.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaverh5.o ../../src/libmd2qm/statesaverh5.cc
+
+${OBJECTDIR}/_ext/1716269789/statesaversqlite.o: ../../src/libmd2qm/statesaversqlite.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaversqlite.o ../../src/libmd2qm/statesaversqlite.cc
 
 ${OBJECTDIR}/_ext/76882303/polymerrates.o: ../../src/libmd2qm/calculators/polymerrates.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303

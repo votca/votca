@@ -25,7 +25,7 @@
       <itemPath>../../src/libmd2qm/calculators/readxml.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.h</itemPath>
-      <itemPath>../../src/libmd2qm/statesaverh5.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/sqlitewriter.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/writexml.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -42,6 +42,7 @@
       <itemPath>../../include/qmtopology.h</itemPath>
       <itemPath>../../include/sitecalculator.h</itemPath>
       <itemPath>../../include/statesaver.h</itemPath>
+      <itemPath>../../include/statesaversqlite.h</itemPath>
       <itemPath>../../include/version.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -57,6 +58,8 @@
       <itemPath>../../src/libmd2qm/qmpair.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmtopology.cc</itemPath>
       <itemPath>../../src/libmd2qm/statesaver.cc</itemPath>
+      <itemPath>../../src/libmd2qm/statesaverh5.cc</itemPath>
+      <itemPath>../../src/libmd2qm/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libmd2qm/version_nb.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
