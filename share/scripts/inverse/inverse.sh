@@ -103,7 +103,7 @@ done
 [[ -z ${CSGXMLFILE} ]] && die "Mssing options xml file, please specifed after --options option (like for all other votca programs)"
 
 enable_logging
-[ -n $CSGDEBUG ] && set -x
+[[ -n $CSGDEBUG ]] && set -x
 check_for_obsolete_xml_options
 
 echo "Sim started $(date)"
@@ -128,16 +128,16 @@ cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [[ -z $cleanlist ]] || echo "We extra clean '$cleanlist' after a step is done"
 
 scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-add_to_csgshare "$scriptdir"
+[[ -n $scriptdir ]] && add_to_csgshare "$scriptdir"
 
 show_csg_tables
-csg_export CSGRESTART
 
 #main script
 [[ -f done ]] && { msg "Job is already done"; exit 0; }
 
 ######## BEGIN STEP 0 ############
 update_stepnames 0
+restart_file="$(get_restart_file)"
 this_dir=$(get_current_step_dir --no-check)
 if [[ -d $this_dir &&  -f "$this_dir/done" ]]; then
   msg "step 0 is already done - skipping"
@@ -147,7 +147,7 @@ else
   echo ------------------------
   if [[ -d $this_dir ]]; then
     msg "Incomplete step 0"
-    [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose the prepare step)"
+    [[ -f "${this_dir}/${restart_file}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose the prepare step)"
   else
     mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   fi
@@ -199,7 +199,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
       continue
     else
       msg "Incomplete step $i"
-      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
+      [[ -f ${this_dir}/${restart_file} ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
     fi
   else
     echo "Step $i started at $(date)"
@@ -242,13 +242,13 @@ for ((i=$begin;i<$iterations+1;i++)); do
     die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
   fi
 
-  msg "Make update for $method"
+  msg "Make update"
   do_external update $method
 
-  msg "Post update for $method"
+  msg "Post update"
   do_external post_update $method
 
-  msg "Adding up potential for $method"
+  msg "Adding up potential"
   do_external add_pot $method
 
   msg "Post add"

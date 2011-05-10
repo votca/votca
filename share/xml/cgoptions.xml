@@ -72,6 +72,7 @@
   <item><name>cg.inverse.espresso.table_end</name><desc> Espresso end of table</desc></item>
   <item><name>cg.inverse.espresso.exclusions</name><desc> Espresso stuff to exclude</desc></item>
   <item><name>cg.inverse.espresso.meta_cmd</name><desc> Espresso metadynamics command to call [experimental]</desc></item>
+  <item><name>cg.inverse.espresso.success</name><desc> File to create if Espresso simulation was successfull</desc></item>
   <item><name>cg.inverse.espresso.meta_min_sampling</name><desc> Espresso metadynamics minimal number of sampling [experimental]</desc></item>
   <item><name>cg.inverse.espresso.scriptdir</name><desc>overwrite ESPRESSO_SCRIPTS from environment with this dir</desc></item>
   <item><name>cg.inverse.filelist</name><desc> these files are copied for each new run </desc></item>
@@ -86,6 +87,7 @@
   <item><name>cg.inverse.log_file</name><desc> write log to this file </desc></item>
   <item><name>cg.inverse.simulation</name><desc>simulation options </desc></item>
   <item><name>cg.inverse.simulation.tasks</name><desc>number of tasks (0/auto = automatic detect on linux)</desc></item>
+  <item><name>cg.inverse.simulation.background</name><desc>tell csg_inverse that  simulation was send to the backgroud (default no)</desc></item>
   <item>
     <name>cg.inverse.restart_file</name>
     <desc>

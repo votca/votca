@@ -43,17 +43,14 @@ max=$(csg_get_interaction_property tf.spline_end)
 step=$(csg_get_interaction_property step)
 bins=$(csg_calc $max / $step )
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
-adress_type=$(get_from_mdp adress_type "$mdp")
-
+adress_type=$(get_simulation_setting adress_type)
 echo "Adress type: $adress_type"
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 mol="$(csg_get_interaction_property tf.molname "*")"
 if [ "$adress_type" = "sphere" ]; then
-  adressc="$(get_from_mdp adress_reference_coords "$mdp" "0 0 0")"
+  adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
   ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
   axis="r"
   opts="--ref $ref"

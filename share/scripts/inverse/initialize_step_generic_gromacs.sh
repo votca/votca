@@ -39,11 +39,8 @@ else
   die "${0##*/}: initial_configuration '$from' not implemented"
 fi
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
-
 #convert potential in format for sim_prog
 for_all non-bonded do_external convert_potential gromacs
 
-check_temp "$mdp"
-for_all "non-bonded" check_cutoff "$mdp"
+check_temp || die "${0##*/}: check of tempertures failed"
+for_all "non-bonded" check_cutoff || die "${0##*/}: check of cutoff for non-bonded interactions failed"

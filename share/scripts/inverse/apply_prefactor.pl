@@ -41,7 +41,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 		print <<END;
 This script calculates the integral of a table
 $usage
-OPTIONS:
+Allowed options:
 -h, --help            Show this help message
 END
 		exit;

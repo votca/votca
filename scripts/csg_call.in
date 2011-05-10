@@ -22,7 +22,7 @@ log=""
 show_share="no"
 
 #unset stuff from enviorment
-unset CSGXMLFILE bondtype bondname
+unset CSGXMLFILE CSGDEBUG bondtype bondname
 
 #failback define
 die() {
@@ -56,11 +56,12 @@ Allowed options:
                      (Used if no options xml file is given)
                      Default: empty
     --options FILE   Specify the options xml file to use
-    --log     FILE   Specify the log file to use
+    --log FILE       Specify the log file to use
                      Default: stdout
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
     --nocolor        Disable colors
+    --debug          Enable debug mode with a lot of information
 -h, --help           Show this help
 
 Examples:
@@ -117,6 +118,9 @@ while [[ ${1#-} != $1 ]]; do
    -h | --help)
     show_help
     exit 0;;
+   --debug)
+    export CSGDEBUG="yes"
+    shift;; 
    -v | --version)
     echo "${0##*/}, version $version"
     exit 0;;
@@ -155,10 +159,11 @@ if [[ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]]; then
 else
   die "Could not find start_framework.sh"
 fi
-[[ -n ${CSGXMLFILE} ]] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-add_to_csgshare "$scriptdir"
 
-[[ -n ${CSGXMLFILE} ]] && simprog="$(csg_get_property --allow-empty cg.inverse.program)"
+[[ -n ${CSGXMLFILE} ]] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir "$scriptdir")"
+[[ -n ${scriptdir} ]] && add_to_csgshare "$scriptdir"
+
+[[ -n ${CSGXMLFILE} ]] && simprog="$(csg_get_property --allow-empty cg.inverse.program "$simprog")"
 [[ -n ${simprog} ]] && source_function $simprog
 
 if [[ $ext_cmd = show_csg_tables ]]; then
@@ -187,5 +192,6 @@ EOF
 fi
 
 [[ -n ${log} ]] && enable_logging "$log"
+[[ -n $CSGDEBUG ]] && set -x
 do_external $@
 exit $?

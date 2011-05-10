@@ -24,7 +24,7 @@ EOF
    exit 0
 fi
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 if [ "${1//[^:]}" = "::" ]; then
   min=${1%%:*}

@@ -17,6 +17,8 @@
 #general scripts
 tag file tag_file.sh
 dummy dummy dummy.sh
+function common functions_common.sh
+csg master inverse.sh
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
@@ -83,8 +85,9 @@ postadd plot postadd_plot.sh
 convergence_check default convergence_check_default.sh
 
 # table preparation
-dpot shift_nb dpot_shift_nb.pl
-pot shift_nb dpot_shift_nb.pl
+dpot shift_nonbonded dpot_shift_nb.pl
+pot shift_nonbonded dpot_shift_nb.pl
+pot shift_bonded dpot_shift_bo.pl
 resample target resample_target.sh
 dpot crop dpot_crop.pl
 
@@ -165,6 +168,5 @@ convert_potential tab table_to_tab.pl
 
 # function for ESPResSo
 functions espresso functions_espresso.sh
-
 
 # END: these scripts have to be defined for each simulation program

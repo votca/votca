@@ -36,9 +36,10 @@ die(){ echo "$*" >&2; exit 1; }
 [[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]] || die "Could not find inverse.sh, \$CSGSHARE/scripts/inverse seem to point to the wrong place!"
 [[ -f ${CSGSHARE}/scripts/inverse/functions_common.sh ]] || die "Could not find default common framework functions (functions_common.sh)"
 source "${CSGSHARE}/scripts/inverse/functions_common.sh" || exit 1 
-add_to_csgshare "${CSGSHARE}/scripts/inverse"
 
 #this is need by die later
 export CSG_MASTER_PID="$$"
 
 export CSG_MAINDIR="$PWD"
+
+add_to_csgshare "${CSGSHARE}/scripts/inverse"
