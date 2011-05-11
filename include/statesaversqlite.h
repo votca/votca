@@ -29,6 +29,7 @@ private:
     sqlite3 *_db;
     
     void WriteMolecules();
+    void WriteCrgUnits();
     void WriteBeads();
     void WritePairs();
 

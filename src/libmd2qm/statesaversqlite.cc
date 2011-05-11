@@ -68,6 +68,7 @@ void StateSaverSQLite::WriteFrame()
        throw std::runtime_error("finalize failed\n");
 
     WriteMolecules();
+    WriteCrgUnits();
     WriteBeads();
     WritePairs();
 
@@ -121,6 +122,55 @@ void StateSaverSQLite::WriteMolecules()
        throw std::runtime_error("finalize failed\n");
 }
 
+void StateSaverSQLite::WriteCrgUnits() {
+    sqlite3_stmt *stmt;
+    int ret = sqlite3_exec(_db,
+        "CREATE TABLE crgunits (_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "id INT NOT NULL,"
+        "name TEXT NOT NULL,"
+        "energy REAL NOT NULL,"
+        "occ REAL NOT NULL)",
+        NULL, NULL,  NULL);
+    if(ret != SQLITE_OK)
+        throw std::runtime_error("cannot create frame table:\n");
+
+
+        ret = sqlite3_exec(_db,
+        "BEGIN;",
+        NULL, NULL,  NULL);
+    if(ret != SQLITE_OK)
+        throw std::runtime_error("begin transaction failed");
+
+
+    ret = sqlite3_prepare_v2(_db,
+            "INSERT INTO crgunits (id, name, energy, occ) VALUES (?,?,?,?)"
+            , -1, &stmt, NULL);
+    if(ret != SQLITE_OK)
+        throw std::runtime_error("prepare insert frame statement failed");
+
+
+     int imol=0;
+    for (vector < QMCrgUnit *>::iterator iter = _qmtop->CrgUnits().begin(); iter!=_qmtop->CrgUnits().end(); ++iter) {
+        QMCrgUnit *crg = *iter;
+        sqlite3_bind_int(stmt, 1, crg->getId());
+        sqlite3_bind_text(stmt, 2, crg->getName().c_str(), -1, NULL);;
+        sqlite3_bind_double(stmt, 3, crg->getEnergy());
+        sqlite3_bind_double(stmt, 4, crg->getOccupationProbability());
+        sqlite3_step(stmt);
+        sqlite3_reset(stmt);
+    }
+    ret = sqlite3_exec(_db,
+        "END;",
+        NULL, NULL,  NULL);
+    if(ret != SQLITE_OK)
+        throw std::runtime_error("end transaction failed");
+
+
+    ret = sqlite3_finalize(stmt);
+    if(ret != SQLITE_OK)
+       throw std::runtime_error("finalize failed\n");
+}
+
 void StateSaverSQLite::WriteBeads() {
     sqlite3_stmt *stmt;
     int ret = sqlite3_exec(_db,
@@ -132,9 +182,8 @@ void StateSaverSQLite::WriteBeads() {
         "resnr INT NOT NULL,"
         "mass REAL NOT NULL,"
         "charge REAL NOT NULL,"
-        "crgunit TEXT NOT NULL,"
+        "crgunit INT NOT NULL,"
         "crgunit_index INT NOT NULL,"
-        "energy REAL NOT NULL,"
         "pos_x REAL NOT NULL,"
         "pos_y REAL NOT NULL,"
         "pos_z REAL NOT NULL,"
@@ -159,7 +208,7 @@ void StateSaverSQLite::WriteBeads() {
 
     ret = sqlite3_prepare_v2(_db,
             "INSERT INTO beads (id,name,symmetry,type,resnr,mass,charge,crgunit,"
-            "crgunit_index,energy,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            "crgunit_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             , -1, &stmt, NULL);
     if(ret != SQLITE_OK)
         throw std::runtime_error("prepare insert frame statement failed");
@@ -174,21 +223,20 @@ void StateSaverSQLite::WriteBeads() {
         sqlite3_bind_int(stmt,     5, bi->getResnr());
         sqlite3_bind_double(stmt,  6, bi->getM());
         sqlite3_bind_double(stmt,  7, bi->getQ());
-        sqlite3_bind_text(stmt,    8, bi->GetCrgUnit()->getName().c_str(), -1, NULL);;
-        sqlite3_bind_double(stmt,  9, bi->GetCrgUnit()->getEnergy());
-        sqlite3_bind_int(stmt,    10, bi->getiPos());
+        sqlite3_bind_int(stmt,     8, bi->GetCrgUnit()->getId());;
+        sqlite3_bind_int(stmt,     9, bi->getiPos());
         
-        sqlite3_bind_double(stmt, 11, bi->getPos().getX());
-        sqlite3_bind_double(stmt, 12, bi->getPos().getY());
-        sqlite3_bind_double(stmt, 13, bi->getPos().getZ());
-        sqlite3_bind_double(stmt, 14, bi->getU().getX());
-        sqlite3_bind_double(stmt, 15, bi->getU().getY());
-        sqlite3_bind_double(stmt, 16, bi->getU().getZ());
-        sqlite3_bind_double(stmt, 17, bi->getV().getX());
-        sqlite3_bind_double(stmt, 18, bi->getV().getY());
-        sqlite3_bind_double(stmt, 19, bi->getV().getZ());
+        sqlite3_bind_double(stmt, 10, bi->getPos().getX());
+        sqlite3_bind_double(stmt, 11, bi->getPos().getY());
+        sqlite3_bind_double(stmt, 12, bi->getPos().getZ());
+        sqlite3_bind_double(stmt, 13, bi->getU().getX());
+        sqlite3_bind_double(stmt, 14, bi->getU().getY());
+        sqlite3_bind_double(stmt, 15, bi->getU().getZ());
+        sqlite3_bind_double(stmt, 16, bi->getV().getX());
+        sqlite3_bind_double(stmt, 17, bi->getV().getY());
+        sqlite3_bind_double(stmt, 18, bi->getV().getZ());
         
-        sqlite3_bind_int(stmt,    20, bi->getMolecule()->getId());
+        sqlite3_bind_int(stmt,    19, bi->getMolecule()->getId());
 
         sqlite3_step(stmt);
         sqlite3_reset(stmt);
