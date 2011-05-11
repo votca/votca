@@ -45,8 +45,8 @@ pscheme_nr=$(( ( $step_nr - 1 ) % ${#pscheme[@]} ))
 
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
    echo "Apply ${ptype} pressure correction for interaction ${name}"
-   do_external pressure_cor $ptype $p_now pressure_cor.d
-   do_external table add pressure_cor.d "$1" "$2"
+   do_external pressure_cor $ptype $p_now ${name}.pressure_correction
+   do_external table add ${name}.pressure_correction "$1" "$2"
 else
    echo "NO pressure correction for interaction ${name}"
    do_external postupd dummy "$1" "$2"

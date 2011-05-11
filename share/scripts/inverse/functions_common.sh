@@ -398,8 +398,10 @@ get_table_comment() { #get comment lines from a table and add common information
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
   [[ -n ${CSGXMLFILE} ]] && echo "settings file: $(globalize_file $CSGXMLFILE)"
   echo "working directory: $PWD"
-  [[ -f $1 ]] && co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "get_table_comment: sed failed"
-  [[ -n $co ]] && echo "Comments from $(globalize_file $1):\n$co"
+  if [[ -f $1 ]]; then 
+    co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "get_table_comment: sed failed"
+    [[ -n $co ]] && echo "Comments from $(globalize_file $1):\n$co"
+  fi
 }
 export -f get_table_comment
 

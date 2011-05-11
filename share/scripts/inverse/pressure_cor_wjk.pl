@@ -90,10 +90,11 @@ my @r;
 my @pot;
 my @flag;
 my $outfile="$ARGV[1]";
+my $comment="#$progname: p_now=$p_now, p_target=$p_target, prefactor=$pref\n";
 for(my $i=0;$i<=$max/$delta_r;$i++){
   $r[$i]=$i*$delta_r;
   $pot[$i]=$pref*(1-$r[$i]/$max);
   $flag[$i]="i";
 }
-saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@pot,@flag,$comment) || die "$progname: error at save table\n";
 
