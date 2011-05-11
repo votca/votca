@@ -337,18 +337,36 @@ get_step_nr() { #print the number of a certain step directory (1st argument)
 export -f get_step_nr
 
 cp_from_main_dir() { #copy something from the main directory
-  echo "cp_from_main_dir: '$@'"
-  critical pushd "$(get_main_dir)"
-  critical cp "$@" "$(dirs -l +1)"
-  critical popd
+  if [[ $1 = "--rename" ]]; then
+    shift
+    [[ $# -eq 2 && -n $1 && -n $2 ]] || die "cp_from_main_dir: with --rename option has to be called with exactly 2 (non-empty) arguments"
+    echo "cp_from_main_dir: '$1' to '$2'"
+    critical pushd "$(get_main_dir)"
+    critical cp "$1" "$(dirs -l +1)/$2"
+    critical popd
+  else
+    echo "cp_from_main_dir: '$@'"
+    critical pushd "$(get_main_dir)"
+    critical cp "$@" "$(dirs -l +1)"
+    critical popd
+  fi
 }
 export -f cp_from_main_dir
 
 cp_from_last_step() { #copy something from the last step
-  echo "cp_from_main_dir: '$@'"
-  critical pushd "$(get_last_step_dir)"
-  critical cp "$@" "$(dirs -l +1)"
-  critical popd
+  if [[ $1 = "--rename" ]]; then
+    shift
+    [[ $# -eq 2 && -n $1 && -n $2 ]] || die "cp_from_last_step: with --rename option has to be called with exactly 2 (non-empty) arguments"
+    echo "cp_from_last_step: '$1' to '$2'"
+    critical pushd "$(get_last_step_dir)"
+    critical cp "$1" "$(dirs -l +1)/$2"
+    critical popd
+  else
+    echo "cp_from_last_step: '$@'"
+    critical pushd "$(get_last_step_dir)"
+    critical cp "$@" "$(dirs -l +1)"
+    critical popd
+  fi
 }
 export -f cp_from_last_step
 

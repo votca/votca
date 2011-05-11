@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents the function initialize
@@ -29,11 +29,11 @@ fi
 
 from="$(csg_get_property cg.inverse.initial_configuration "laststep")"
 conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
-if [ "$from" = "laststep" ]; then
+if [[ $from = "laststep" ]]; then
   confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-  cp_from_last_step "${confout}"
-  critical mv "${confout}" "$conf"
-elif [ "$from" = "maindir" ]; then
+  #avoid overwriting $confout
+  cp_from_last_step --rename "${confout}" "${conf}"
+elif [[ $from = "maindir" ]]; then
   cp_from_main_dir "$conf"
 else
   die "${0##*/}: initial_configuration '$from' not implemented"
