@@ -336,46 +336,19 @@ get_step_nr() { #print the number of a certain step directory (1st argument)
 }
 export -f get_step_nr
 
-cp_from_to() { #copy a file from somewhere to somewhere, should be called as ``cp_from_to --from XXX --where YYY what``
-  local i to from where
-  if [[ $1 = "--from" ]]; then
-    from="$2"
-    shift 2
-  else
-    die "cp_form_to: first argument should be --from DIR"
-  fi
-  if [[ $1 = "--where" ]]; then
-    where="$2"
-    shift 2
-  else
-    where="."
-  fi
-  if [[ $1 = "--no-check" ]]; then
-    shift
-  else
-    [[ -d $where ]] || die "cp_from_to: $where is not a dir"
-    [[ -d $from ]] || die "cp_from_to: $from is not a dir"
-  fi
-  [[ -z $1 ]] && die "cp_from_to: Missing argument"
-  for i in $@; do
-    #no glob pattern in $i or could not be expanded
-    if [[ $from/$i = "$(echo $from/$i)" ]]; then
-      [[ -e $from/$i ]] || die "cp_from_to: could not find '$from/$i'"
-    fi
-    cp -r $from/$i "$where" || die "cp_from_to: cp -r '$from/$i' '$where' failed"
-  done
-}
-export -f cp_from_to
-
 cp_from_main_dir() { #copy something from the main directory
   echo "cp_from_main_dir: '$@'"
-  critical cp_from_to --from $(get_main_dir) "$@"
+  critical pushd "$(get_main_dir)"
+  critical cp "$@" "$(dirs -l +1)"
+  critical popd
 }
 export -f cp_from_main_dir
 
 cp_from_last_step() { #copy something from the last step
-  echo "cp_from_last_step: '$@'"
-  critical cp_from_to --from $(get_last_step_dir) "$@"
+  echo "cp_from_main_dir: '$@'"
+  critical pushd "$(get_last_step_dir)"
+  critical cp "$@" "$(dirs -l +1)"
+  critical popd
 }
 export -f cp_from_last_step
 
@@ -411,12 +384,8 @@ get_table_comment() { #print the common comments from a table, which include the
 export -f get_table_comment
 
 csg_inverse_clean() { #clean out the main directory 
-  local i files log="inverse.log"
-  if [[ -n ${CSGXMLFILE} ]]; then
-    log="$(csg_get_property cg.inverse.log_file "$log")"
-  else
-    msg --color blue "No options xml given, so we assume '$log' to be the logfile"
-  fi
+  local i files log
+  log="$(csg_get_property cg.inverse.log_file "inverse.log")"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
   files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
