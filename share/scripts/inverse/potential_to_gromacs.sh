@@ -70,10 +70,10 @@ elif [[ $tabtype = "dihedral" ]]; then
 fi
 
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
-comment="$(get_table_comment)"
+comment="$(get_table_comment $input)"
 
 smooth="$(critical mktemp smooth_${name}.XXXXX)"
-csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
+critical csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 extrapol="$(critical mktemp extrapol_${name}.XXXXX)"
 
 tshift="$(critical mktemp shift_${name}.XXXXX)"
@@ -92,4 +92,4 @@ potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
 
 #do this with --allow-empty to avoid stoping if calling from csg_call
 [[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]] && tabtype="thermforce"
-do_external convert_potential xvg ${potmax} --type "${tabtype}" "${tshift}" "${output}" 
+do_external convert_potential xvg ${potmax} --type "${tabtype}" "${tshift}" "${output}"

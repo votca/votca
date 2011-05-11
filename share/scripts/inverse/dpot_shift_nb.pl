@@ -39,7 +39,8 @@ my $outfile="$ARGV[1]";
 my @r;
 my @dpot;
 my @flag;
-(readin_table($infile,@r,@dpot,@flag)) || die "$progname: error at readin_table\n";
+my $comments;
+(readin_table($infile,@r,@dpot,@flag,$comments)) || die "$progname: error at readin_table\n";
 
 # bring end to zero
 for(my $i=0; $i<=$#r; $i++) {
@@ -47,4 +48,4 @@ for(my $i=0; $i<=$#r; $i++) {
 }
 
 # save to file
-saveto_table($outfile,@r,@dpot,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@dpot,@flag,$comments) || die "$progname: error at save table\n";

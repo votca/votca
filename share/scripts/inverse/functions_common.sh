@@ -390,14 +390,16 @@ get_number_tasks() { #get the number of possible tasks from the xml file or dete
 }
 export -f get_number_tasks
 
-get_table_comment() { #print the common comments from a table, which include the hgid and other information
-  local version
+get_table_comment() { #get comment lines from a table and add common information, which include the hgid and other information
+  local version co
   [[ -n "$(type -p csg_call)" ]] || die "get_defaults_comment: Could not find csg_version"
   version="$(csg_call --version)" || die "get_defaults_comment: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
-  [[ -n ${CSGXMLFILE} ]] && echo "settings file: $CSGXMLFILE"
+  [[ -n ${CSGXMLFILE} ]] && echo "settings file: $(globalize_file $CSGXMLFILE)"
   echo "working directory: $PWD"
+  [[ -f $1 ]] && co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "get_table_comment: sed failed"
+  [[ -n $co ]] && echo "Comments from $(globalize_file $1):\n$co"
 }
 export -f get_table_comment
 

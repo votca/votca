@@ -157,7 +157,8 @@ my $infile="$ARGV[0]";
 my @r;
 my @val;
 my @flag;
-(readin_table($infile,@r,@val,@flag)) || die "$progname: error at readin_table\n";
+my $comments;
+(readin_table($infile,@r,@val,@flag,$comments)) || die "$progname: error at readin_table\n";
 
 my $outfile="$ARGV[1]";
 
@@ -251,4 +252,4 @@ if ($do_right) {
 #==============
 
 
-saveto_table($outfile,@r,@val,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@val,@flag,$comments) || die "$progname: error at save table\n";

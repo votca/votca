@@ -75,15 +75,16 @@ sub csg_get_interaction_property($;$){
   return $value;
 }
 
-sub readin_table($\@\@\@) {
+sub readin_table($\@\@\@;\$) {
   defined($_[3]) || die "readin_table: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table: could not open file $_[0]\n";
   my $line=0;
   while (<TAB>){
     $line++;
     # remove leading spacees for split
-    $_ =~ s/^\s*//;
+    ${$_[4]}.=$_ if (defined($_[4]) and (/^[#@]/));
     next if /^[#@]/;
+    $_ =~ s/^\s*//;
     next if /^\s*$/;
     my @parts=split(/\s+/);
     defined($parts[2]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
@@ -142,9 +143,10 @@ sub readin_data($$\@\@) {
   return $line;
 }
 
-sub saveto_table($\@\@\@) {
+sub saveto_table($\@\@\@;$) {
   defined($_[3]) || die "saveto_table: Missing argument\n";
   open(OUTFILE,"> $_[0]") or die "saveto_table: could not open $_[0] \n";
+  print OUTFILE "$_[4]" if (defined $_[4]);
   for(my $i=0;$i<=$#{$_[1]};$i++){
     print OUTFILE "${$_[1]}[$i] ${$_[2]}[$i] ${$_[3]}[$i]\n";
   }

@@ -78,7 +78,8 @@ my $outfile="$ARGV[1]";
 my @r;
 my @pot;
 my @flag;
-(readin_table($infile,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
+my $comments;
+(readin_table($infile,@r,@pot,@flag,$comments)) || die "$progname: error at readin_table\n";
 
 if (defined($gmx_max)) {
   #gromacs does not like VERY big numbers
@@ -103,13 +104,6 @@ if ( "$type" eq "dihedral" ) {
 }
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
-
-#preserve comments
-open(INFILE, "$infile");
-while (<INFILE>){
-	if($_ =~ /^[#@]/){print OUTFILE $_;}
-}
-close(INFILE);
 
 my $fmt=undef;
 my $begin=0;
@@ -142,6 +136,7 @@ else{
 die "$progname: table for type $type should begin with $begin, but I found $r[0]\n" if(abs($begin-$r[0]) > 1e-3);
 die "$progname: table for type $type should end with $end, but I found $r[$#r]\n" if(($end) and (abs($end-$r[$#r]) > 1e-3));
 
+print OUTFILE "$comments" if (defined($comments));
 for(my $i=0;$i<=$#r;$i++){
     printf(OUTFILE "$fmt",$r[$i],$pot[$i], $force[$i]);
 }
