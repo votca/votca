@@ -26,7 +26,7 @@ The post-processing roughly consists of the following steps (see further explana
   \item (manually) clipping poorly sampled (border) regions
   \item resampling the potential in order to change the grid to the proper format (\prog{csg_resample})
   \item extrapolation of the potential at the borders (\prog{csg_call} table extrapolate)
-  \item exporting the table to xvg (\prog{csg_call} convert\_potential xvg)
+  \item exporting the table to xvg (\prog{csg_call} convert\_potential gromacs)
 \end{itemize}
 
 \subsection*{Clipping of poorly sampled regions}
@@ -73,14 +73,14 @@ where \progopt{<table\_end>} is the \gromacs \progopt{rvdw+table\_extension} and
 
 Using the \progopt{xml} file above, call
 \begin{verbatim}
-  csg_call --options table.xml convert_potential xvg \
+  csg_call --options table.xml convert_potential gromacs \
            table_extrapolate.pot table.xvg
 \end{verbatim}
-to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (The file will contain \gromacs C12 parts only which are stored in the sixth und seventh column. Ensure compatibility with the \gromacs topology. See the \gromacs manual for further information).
+to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (The file will contain \gromacs C12 parts only which are stored in the sixth und seventh column, this can be changed by adding the \progopt{--ia-type C6} option after \prog{csg_call}. Ensure compatibility with the \gromacs topology. See the \gromacs manual for further information).
 
 To obtain a bonded table, run
 \begin{verbatim}
-  csg_call --options table.xml convert_potential xvg --type bonded \
+  csg_call --ia-type bonded --options table.xml convert_potential gromacs \
            table_extrapolate.pot table.xvg
 \end{verbatim}
 

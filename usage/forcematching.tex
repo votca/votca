@@ -49,7 +49,8 @@ Output files are not only produced at the end of the program execution, but also
 \section{Integration and extrapolation of .force files }
 To convert forces (\texttt{.force}) to potentials (\texttt{.pot}), tables have to be integrated. To use the built-in integration command from the scripting framework, execute
 \begin{verbatim}
- csg_call table integrate CG-CG.force CG-CG.pot
+ $csg_call table integrate CG-CG.force minus_CG-CG.pot
+ $csg_call table linearop minus_CG-CG.d CG-CG.d -1 0
 \end{verbatim}
 This command calls the \prog{table_integrate.pl} script, which integrates the force and writes the potential to the \texttt{.pot} file.
 
