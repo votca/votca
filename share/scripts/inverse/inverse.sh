@@ -96,7 +96,7 @@ done
 ### end parsing options
 
 #old style, inform user
-[[ -z ${CSGXMLFILE} ]] && die "Mssing options xml file, please specifed after --options option (like for all other votca programs)"
+[[ -z ${CSGXMLFILE} ]] && die "Please add your setting xml file behind the --options option (like for all other votca programs) !"
 
 [[ $1 = "clean" ]] && { csg_inverse_clean; exit $?; }
 

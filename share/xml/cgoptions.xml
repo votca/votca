@@ -26,16 +26,15 @@
 
   <item><name>cg.inverse.$sim_prog</name><desc> generic simulation program (e.g. GROMACS) options </desc></item>
   <item><name>cg.inverse.$sim_prog.equi_time</name><default>0.0</default><desc> begin analysis after this time </desc></item>
-  <item><name>cg.inverse.$sim_prog.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning </desc></item>
-  <item><name>cg.inverse.$sim_prog.topol</name><desc> topology of the generic simprog </desc></item>
-  <item><name>cg.inverse.$sim_prog.traj</name><desc> trajectory of the generic simprog </desc></item>
+  <item><name>cg.inverse.$sim_prog.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning of trajectory</desc></item>
+
 
   <item><name>cg.inverse.gromacs</name><desc> gromacs specific options </desc></item>
   <item><name>cg.inverse.gromacs.conf</name><desc>Name of the coordinate file read by grompp (default conf.gro)</desc></item>
   <item><name>cg.inverse.gromacs.conf_out</name><desc>Name of the original outcome coordinate written by mdrun (default confout.gro)</desc></item>
   <item><name>cg.inverse.gromacs.gmxrc</name><desc>GMXRC to source at the startup</desc></item>
   <item><name>cg.inverse.gromacs.equi_time</name><default>0.0</default><desc> begin analysis after this time when using gromacs</desc></item>
-  <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning when using gromacs</desc></item>
+  <item><name>cg.inverse.gromacs.first_frame</name><default>0</default><desc> trash the given number of frames at the beginning of trajectory</desc></item>
   <item><name>cg.inverse.gromacs.topol</name><desc> binary Gromacs topology file to use, default topol.tpr</desc></item>
   <item><name>cg.inverse.gromacs.traj_type</name><desc> Gromacs trajectory type (xtc/trr) file to use, default xtc</desc></item>
   <item><name>cg.inverse.gromacs.mdp</name><desc> Gromacs mdp fie to use, default grompp.mdp</desc></item>
@@ -58,12 +57,13 @@
   <item><name>cg.inverse.gromacs.table_end</name><desc> extend the tables to this value </desc></item>
   <item><name>cg.inverse.gromacs.cutoff_check</name><desc> check interaction cutoffs against rvdw in mdp file: yes/no (default yes)</desc></item>
   <item><name>cg.inverse.gromacs.temp_check</name><desc> check temperture against t_ref in mdp file: yes/no (default yes)</desc></item>
+  <item><name>cg.inverse.gromacs.rdf.topol</name><desc> Gromacs topol file to be used for csg_stat default topol.tpr</desc></item>
   <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso (default conf.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.blockfile_out</name><desc>Name of the original outcome blockfile written by Espresso (default confout.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.command</name><desc>Command to run espresso (name or absolute path or mpirun espresso..)</desc></item>
   <item><name>cg.inverse.espresso.rdf_command</name><desc>Espresso command to run when calculating the rdf (name or absolute path or mpirun espresso..)</desc></item>
   <item><name>cg.inverse.espresso.pressure_command</name><desc>Espresso command to run when calculating the pressure (name or absolute path or mpirun espresso..)</desc></item>
-  <item><name>cg.inverse.espresso.equi_snapshots</name><desc>Number of snapshots to trash at the beginning of trajectory</desc></item>
+  <item><name>cg.inverse.espresso.first_frame</name><desc>rash the given number of frames at the beginning of trajectory</desc></item>
   <item><name>cg.inverse.espresso.table_bins</name><desc> grid for tabulated potentials </desc></item>
   <item><name>cg.inverse.espresso.traj</name><desc> Name of the output Espresso trajectory file</desc></item>
   <item><name>cg.inverse.espresso.n_steps</name><desc> number of steps to integrate before a snapshot</desc></item>
