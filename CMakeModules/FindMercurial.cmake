@@ -142,7 +142,7 @@ IF(MERCURIAL_EXECUTABLE)
 
 
   # mercurial version
-  MERCURIAL_COMMAND(${PROJECT_SOURCE_DIR} version)
+  MERCURIAL_COMMAND(${CMAKE_BINARY_DIR} version)
 
   STRING(REGEX REPLACE "^Mercurial Distributed SCM \\(version ([.0-9]+)\\).*"
     "\\1" MERCURIAL_VERSION "${MERCURIAL_version_OUTPUT}")

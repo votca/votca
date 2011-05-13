@@ -33,22 +33,13 @@ endif(WITH_GSL)
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-if (MERCURIAL_FOUND)
-  MERCURIAL_HG_INFO(${PROJECT_SOURCE_DIR} TOOLS)
-  MESSAGE("Current revision is ${TOOLS_HG_ID}")
-  set (TOOLS_HG_ID "hgid: ${TOOLS_HG_ID}")
-else(MERCURIAL_FOUND)
-  set (TOOLS_HG_ID)
-endif(MERCURIAL_FOUND)
-set (HG_HEADER "hgversion.h")
-add_custom_command(OUTPUT ${HG_HEADER}
-  COMMAND ${CMAKE_COMMAND} -E echo 
-  static const std::string hgversion = "\\\"${TOOLS_HG_ID}\\\"\;" > ${HG_HEADER})
+add_custom_target(hgversion COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgversion.cmake)
 
 file(GLOB_RECURSE VOTCA_SOURCES *.cc)
 file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc test.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
-add_library(votca_tools hgversion.h ${VOTCA_SOURCES})
+add_library(votca_tools ${VOTCA_SOURCES})
+add_dependencies(votca_tools hgversion)
 target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES}
   ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
 install(TARGETS votca_tools LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
