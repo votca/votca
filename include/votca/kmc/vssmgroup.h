@@ -6,6 +6,7 @@
 
 namespace votca { namespace kmc {
 
+using namespace votca::tools;
 
 /***
  * \brief groups events based on variable step size method
@@ -54,6 +55,8 @@ public:
 		_waiting_time = -log( 1.0 - Random::rand_uniform() ) / Rate();
 	}
 
+	event_t *getEvent(int i) { return _events[i]; }
+
 protected:
 
 	/**
@@ -70,30 +73,32 @@ protected:
 	double _waiting_time;
 };
 
-inline VSSMGroup::Rate()
+template<typename event_t>
+inline double VSSMGroup<event_t>::Rate()
 {
 	double r=0;
-	for(std::vector<event_t>::iterator e=_events.begin();
-			e!=events.end(); ++e) {
+	for(typename std::vector<event_t*>::iterator e=_events.begin();
+			e!=_events.end(); ++e) {
 			r+=(*e)->Rate();
 	}
 	return r;
 }
 
-inline void VSSMGroup::onExecute()
+template<typename event_t>
+inline void VSSMGroup<event_t>::onExecute()
 {
 	SelectEvent().onExecute();
 	UpdateWaitingTime();
 }
 
-inline event_t *VSSMGroup::SelectEvent()
+template<typename event_t>
+inline event_t *VSSMGroup<event_t>::SelectEvent()
 {
 	double u = 1.-Random::rand_uniform();
-	u=u*Rate();
 	event_t *event;
 	// find the biggest event for that u < \sum omega_i
-	for(std::vector<event_t>::iterator e=_events.begin();
-			e!=events.end(); ++e) {
+	for(typename std::vector<event_t*>::iterator e=_events.begin();
+			e!=_events.end(); ++e) {
 			u-=(*e)->Rate();
 			if(u<=0) return *e;
 	}

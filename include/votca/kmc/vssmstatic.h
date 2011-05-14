@@ -1,5 +1,5 @@
-#ifndef __VOTCA_KMC_VSSMGROUP_H_
-#define __VOTCA_KMC_VSSMGROUP_H_
+#ifndef __VOTCA_KMC_VSSMSTATIC_H_
+#define __VOTCA_KMC_VSSMSTATIC_H_
 
 #include <vector>
 #include "vssmgroup.h"
@@ -22,20 +22,23 @@ public:
 
 protected:
 
-	void onEventAdded(event_t *event)
-	event_t *VSSMGroup::SelectEvent();
+	void onEventAdded(event_t *event);
+
+	event_t *SelectEvent();
 
 	// precalculated accumulated rate, this allows for quick binary search
 	std::vector<double> _acc_rate;
 };
 
-inline VSSMStatic::onEventAdded(event_t *event)
+template<typename event_t>
+inline void VSSMStatic<event_t>::onEventAdded(event_t *event)
 {
-	_acc_rates.push_back(_acc_rates.back() + event->Rate());
+	_acc_rate.push_back(_acc_rate.back() + event->Rate());
 
 }
 
-event_t *VSSMGroup::SelectEvent()
+template<typename event_t>
+event_t *VSSMStatic<event_t>::SelectEvent()
 {
 	double u = 1.-Random::rand_uniform();
 	u=u*Rate();
@@ -43,17 +46,17 @@ event_t *VSSMGroup::SelectEvent()
 
 	// to a binary search in accumulated events
 	int imin=0;
-	int imax=_acc_rates.size();
+	int imax=_acc_rate.size();
 
 	while(imin - imax > 1) {
 		int imid=(int)((imin+imax)*0.5);
-		if(u<_acc_rates[imid])
+		if(u<_acc_rate[imid])
 			imin=imid;
 		else
 			imax=imid;
 	}
 
-	return _events[imin];
+	return VSSMGroup<event_t>::getEvent(imin);
 }
 
 }}
