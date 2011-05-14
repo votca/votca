@@ -87,7 +87,7 @@ inline double VSSMGroup<event_t>::Rate()
 template<typename event_t>
 inline void VSSMGroup<event_t>::onExecute()
 {
-	SelectEvent().onExecute();
+	SelectEvent()->onExecute();
 	UpdateWaitingTime();
 }
 
