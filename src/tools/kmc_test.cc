@@ -8,7 +8,7 @@ using namespace votca::kmc;
 
 struct link_t;
 
-class node_t : public VSSMStatic<link_t> {
+class node_t : public VSSMGroup<link_t> {
 	double _occ;
 };
 

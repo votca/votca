@@ -39,7 +39,9 @@ public:
 	/**
 	 * \brief get the total rate of this group
 	 */
-	double Rate();
+	double Rate() {
+		return _total_rate;
+	}
 	/**
 	 * \brief this group is called, select and execute an event in group
 	 */
@@ -53,8 +55,11 @@ public:
 	 * \brief calculate a new waiting time
 	 */
 	void UpdateWaitingTime() {
+		CalcTotalRate();
 		_waiting_time = -log( 1.0 - Random::rand_uniform() ) / Rate();
 	}
+
+	void CalcTotalRate();
 
 	event_t *getEvent(int i) { return _events[i]; }
 
@@ -70,19 +75,19 @@ protected:
 	 */
 	event_t *SelectEvent();
 
+	double _total_rate;
 	std::vector<event_t*> _events;
 	double _waiting_time;
 };
 
 template<typename event_t>
-inline double VSSMGroup<event_t>::Rate()
+inline void VSSMGroup<event_t>::CalcTotalRate()
 {
-	double r=0;
+	_total_rate=0;
 	for(typename std::vector<event_t*>::iterator e=_events.begin();
 			e!=_events.end(); ++e) {
-			r+=(*e)->Rate();
+			_total_rate+=(*e)->Rate();
 	}
-	return r;
 }
 
 template<typename event_t>

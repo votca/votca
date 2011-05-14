@@ -74,7 +74,7 @@ event_t *VSSMStatic<event_t>::SelectEvent()
 	while(imax - imin > 1) {
 		int imid=(int)((imin+imax)*0.5);
 		//std::cout << u << " " << _acc_rate[imid] << std::endl;
-		if(u<_acc_rate[imid])
+		if(u<=_acc_rate[imid])
 			imax=imid;
 		else
 			imin=imid;
