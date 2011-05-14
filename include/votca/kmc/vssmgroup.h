@@ -3,6 +3,7 @@
 
 #include <votca/tools/random.h>
 #include <vector>
+#include <iostream>
 
 namespace votca { namespace kmc {
 
@@ -94,7 +95,7 @@ inline void VSSMGroup<event_t>::onExecute()
 template<typename event_t>
 inline event_t *VSSMGroup<event_t>::SelectEvent()
 {
-	double u = 1.-Random::rand_uniform();
+	double u = (1.-Random::rand_uniform())*Rate();
 	event_t *event;
 	// find the biggest event for that u < \sum omega_i
 	for(typename std::vector<event_t*>::iterator e=_events.begin();
@@ -102,6 +103,7 @@ inline event_t *VSSMGroup<event_t>::SelectEvent()
 			u-=(*e)->Rate();
 			if(u<=0) return *e;
 	}
+	std::cout << "foo\n";
 	// should never happen
 	return _events.back();
 }

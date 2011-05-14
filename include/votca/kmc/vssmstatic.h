@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "vssmgroup.h"
+#include <iostream>
 
 namespace votca { namespace kmc {
 
@@ -14,11 +15,21 @@ namespace votca { namespace kmc {
  * Using this class should be used instead of VSSMGroup wherever possible.
  */
 template<typename event_t>
-class VSSMStatic : public VSSMGroup<event_t> {
+class VSSMStatic  {
 public:
 	VSSMStatic() {}
-
+	void AddEvent(event_t *event) {
+			_events.push_back(event);
+			onEventAdded(event);
+			UpdateWaitingTime();
+		}
 	double Rate() { return _acc_rate.back(); };
+	void UpdateWaitingTime() {
+		_waiting_time = -log( 1.0 - Random::rand_uniform() ) / Rate();
+	}
+
+	double WaitingTime();
+	void onExecute();
 
 protected:
 
@@ -28,13 +39,26 @@ protected:
 
 	// precalculated accumulated rate, this allows for quick binary search
 	std::vector<double> _acc_rate;
+
+	std::vector<event_t*> _events;
+	double _waiting_time;
 };
+
+template<typename event_t>
+inline void VSSMStatic<event_t>::onExecute()
+{
+	SelectEvent()->onExecute();
+	UpdateWaitingTime();
+}
 
 template<typename event_t>
 inline void VSSMStatic<event_t>::onEventAdded(event_t *event)
 {
-	_acc_rate.push_back(_acc_rate.back() + event->Rate());
-
+	if(_acc_rate.size()==0) {
+		_acc_rate.push_back(0);
+		_acc_rate.push_back(event->Rate());
+	}
+	else _acc_rate.push_back(_acc_rate.back() + event->Rate());
 }
 
 template<typename event_t>
@@ -43,20 +67,20 @@ event_t *VSSMStatic<event_t>::SelectEvent()
 	double u = 1.-Random::rand_uniform();
 	u=u*Rate();
 	double max = Rate();
-
 	// to a binary search in accumulated events
 	int imin=0;
 	int imax=_acc_rate.size();
 
-	while(imin - imax > 1) {
+	while(imax - imin > 1) {
 		int imid=(int)((imin+imax)*0.5);
+		//std::cout << u << " " << _acc_rate[imid] << std::endl;
 		if(u<_acc_rate[imid])
-			imin=imid;
-		else
 			imax=imid;
+		else
+			imin=imid;
 	}
-
-	return VSSMGroup<event_t>::getEvent(imin);
+   // std::cout << imin << " " << Rate() <<" " << u << std::endl;
+	return _events[imin];
 }
 
 }}
