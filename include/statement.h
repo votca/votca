@@ -24,13 +24,13 @@ class Database;
 class Statement
 {
 public:
+	~Statement();
 
 	template<typename T>
 	void Bind(int i, const T &value);
 
 	void Step();
 	void Reset();
-	void Finalize();
 
 	sqlite3_stmt *getSQLiteStatement() { return _stmt; }
 protected:
@@ -40,6 +40,11 @@ protected:
 
 	friend class Database;
 };
+
+inline void Statement::~Statement()
+{
+	sqlite3_finalize(_stmt);
+}
 
 template<>
 inline void Statement::Bind(int i, const int &value)
@@ -67,11 +72,6 @@ inline void Statement::Step()
 inline void Statement::Reset()
 {
 	sqlite3_reset(_stmt);
-}
-
-inline void Statement::Finalize()
-{
-	sqlite3_finalize(_stmt);
 }
 
 }}
