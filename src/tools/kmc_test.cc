@@ -1,4 +1,4 @@
-#include <votca/kmc/vssmstatic.h>
+#include <votca/kmc/vssmgroup.h>
 #include <vector>
 #include <iostream>
 #include <votca/tools/vec.h>
