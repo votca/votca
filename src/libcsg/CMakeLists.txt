@@ -76,4 +76,3 @@ install(TARGETS votca_csg LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_csg.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_csg.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libvotca_csg.pc DESTINATION ${LIB}/pkgconfig)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES libvotca_csg.pc votca_config.h)
