@@ -27,9 +27,12 @@ public:
 	~Statement();
 
 	template<typename T>
-	void Bind(int i, const T &value);
+		void Bind(int col, const T &value);
 
-	void Step();
+	template<typename T>
+	T Column(int col);
+
+	int Step();
 	void Reset();
 
 	sqlite3_stmt *getSQLiteStatement() { return _stmt; }
@@ -47,26 +50,44 @@ inline void Statement::~Statement()
 }
 
 template<>
-inline void Statement::Bind(int i, const int &value)
+inline void Statement::Bind(int col, const int &value)
 {
-	sqlite3_bind_int(_stmt, i, value);
+	sqlite3_bind_int(_stmt, col, value);
 }
 
 template<>
-inline void Statement::Bind(int i, const double &value)
+inline void Statement::Bind(int col, const double &value)
 {
-	sqlite3_bind_double(_stmt, i, value);
+	sqlite3_bind_double(_stmt, col, value);
 }
 
 template<>
-inline void Statement::Bind(int i, const string &value)
+int Statement::Column<int>(int col)
 {
-    sqlite3_bind_text(_stmt, i, value.c_str(), -1, NULL);;
+	return sqlite3_column_int(_stmt, col);
 }
 
-inline void Statement::Step()
+template<>
+double Statement::Column<double>(int col)
 {
-	sqlite3_step(_stmt);
+	return sqlite3_column_double(_stmt, col);
+}
+
+template<>
+string Statement::Column<string>(int col)
+{
+	return sqlite3_column_text(_stmt, col);
+}
+
+template<>
+inline void Statement::Bind(int col, const string &value)
+{
+    sqlite3_bind_text(_stmt, col, value.c_str(), -1, NULL);;
+}
+
+inline int Statement::Step()
+{
+	return sqlite3_step(_stmt);
 }
 
 inline void Statement::Reset()
