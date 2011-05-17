@@ -14,6 +14,8 @@
  * limitations under the License.
  *
  */
+#ifndef __VOTCA_TOOLS_STATEMENT_H
+#define __VOTCA_TOOLS_STATEMENT_H
 
 #include <sqlite3.h>
 
@@ -44,7 +46,7 @@ protected:
 	friend class Database;
 };
 
-inline void Statement::~Statement()
+inline Statement::~Statement()
 {
 	sqlite3_finalize(_stmt);
 }
@@ -76,7 +78,7 @@ double Statement::Column<double>(int col)
 template<>
 string Statement::Column<string>(int col)
 {
-	return sqlite3_column_text(_stmt, col);
+	return string((const char*)sqlite3_column_text(_stmt, col));
 }
 
 template<>
@@ -96,3 +98,5 @@ inline void Statement::Reset()
 }
 
 }}
+
+#endif

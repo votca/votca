@@ -14,8 +14,11 @@
  * limitations under the License.
  *
  */
+#ifndef __VOTCA_TOOLS_DATABASE_H
+#define __VOTCA_TOOLS_DATABASE_H
 
 #include <sqlite3.h>
+#include "statement.h"
 
 namespace votca { namespace tools {
 
@@ -25,9 +28,9 @@ public:
 	Database();
 	~Database();
 
-	slite3 getSQLiteDatabase() { return _db; }
+	sqlite3 *getSQLiteDatabase() { return _db; }
 
-	void Open(string file, int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
+	void Open(string file, int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 	void Close(void);
 
 	void Exec(string sql);
@@ -71,7 +74,7 @@ inline void Database::Exec(string sql)
 inline Statement *Database::Prepare(string sql)
 {
     sqlite3_stmt *stmt;
-    ret = sqlite3_prepare_v2(_db,
+    int ret = sqlite3_prepare_v2(_db,
             sql.c_str(), -1, &stmt, NULL);
     if(ret != SQLITE_OK)
         throw std::runtime_error("prepare insert frame statement failed");
@@ -79,3 +82,5 @@ inline Statement *Database::Prepare(string sql)
 }
 
 }}
+
+#endif
