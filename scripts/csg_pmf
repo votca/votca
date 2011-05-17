@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 
+version='@PROJECT_VERSION@ #CSG_HG_ID#'
+
 #unset stuff from enviorment
 unset CSGXMLFILE
 
@@ -38,8 +40,22 @@ Allowed options:
 eof
 }
 
-while [ "${1#-}" != "$1" ]; do
- if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+if [[ -n "$(type -p csg_call)" ]]; then
+  CSGSHARE="$(csg_call --show-share)" || exit 1
+  export CSGSHARE
+else
+  echo "Could not find csg_call" >&2
+  exit 1
+fi
+
+if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
+  source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
+else
+  die "Could not find start_framework.sh"
+fi
+
+while [[ ${1#-} != $1 ]]; do
+ if [[ ${1#--} = $1 && -n ${1:2} ]]; then
     #short opt with arguments here: fc
     if [ "${1#-[fc]}" != "${1}" ]; then
        set -- "${1:0:2}" "${1:2}" "${@:2}"
@@ -49,8 +65,15 @@ while [ "${1#-}" != "$1" ]; do
  fi
  case $1 in
    --options)
-    export CSGXMLFILE="$2"
+    [[ -f $CSGXMLFILE ]] || die "options xml file '$CSGXMLFILE' not found"
+    export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
     shift 2;;
+   --nocolor)
+    export CSGNOCOLOR="yes"
+    shift;; 
+   --debug)
+    export CSGDEBUG="yes"
+    shift;; 
    -h | --help)
     show_help
     exit 0;;
@@ -59,46 +82,14 @@ while [ "${1#-}" != "$1" ]; do
  esac
 done
 
-[ -n "$(type -p csg_call)" ] || die "Could not find csg_call"
-export CSGSHARE="$(csg_call --show-share)"
+[[ -z ${CSGXMLFILE} ]] && die "Please specify your setting xml file behind the --options option!"
 
-if [ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]; then
-  source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
-else
-  die "Could not find start_framework.sh"
-fi
-
-[ -z "${CSGXMLFILE}" ] && die "Error: Missing xml file - add it behind the '--options' option"
-export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
+enable_logging
+[[ -n $CSGDEBUG ]] && set -x
+check_for_obsolete_xml_options
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 [ "$sim_prog" = "gromacs" ] || die "${0##*/} only supports gromacs at this point"
-
-#other stuff we need, which comes from xmlfile -> must be done here
-#define $CSGRESTART
-CSGRESTART="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
-CSGRESTART="${CSGRESTART##*/}"
-export CSGRESTART
-
-#get csglog
-CSGLOG="$(csg_get_property cg.inverse.log_file "pmf.log")"
-CSGLOG="$PWD/${CSGLOG##*/}"
-export CSGLOG
-
-if [ -f "$CSGLOG" ]; then
-  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-  echo "\n\n#################################"
-  echo "# Appending to existing logfile #"
-  echo "#################################\n\n"
-  echo "Sim started $(date)"
-  msg "Appending to existing logfile ${CSGLOG##*/}"
-else
-  echo "For a more verbose log see: ${CSGLOG##*/}"
-  #logfile is created in the next line
-  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-  echo "Sim started $(date)"
-fi
-
 echo "We are using Sim Program: $sim_prog"
 source_function $sim_prog
 
@@ -107,8 +98,8 @@ main_dir=$(get_main_dir)
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 [ -z "$filelist" ] || echo "We extra cp '$filelist' to every step to run the simulation"
 
-[ -n "${CSGXMLFILE}" ] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-add_to_csgshare "$scriptdir"
+scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
+[[ -n $scriptdir ]] && add_to_csgshare "$scriptdir"
 
 show_csg_tables
 
