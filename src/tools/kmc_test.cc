@@ -14,9 +14,14 @@ struct link_t;
 class node_t : public VSSMGroup<link_t> {
   public:
 	node_t(int id)
-	  : _id(id) {}
+	  : _id(id), _occ(0) {}
 	double _occ;
 	int _id;
+
+	void onExecute() {
+		_occ+=WaitingTime();
+		VSSMGroup<link_t>::onExecute();
+	}
 };
 
 node_t *current;
@@ -50,6 +55,8 @@ public:
 protected:
 	    void LoadGraph(void);
 		void RunKMC(void);
+		void WriteOcc(void);
+
 		map<int , node_t *> _nodes_lookup;
 		vector<node_t *> _nodes;
 		double _runtime;
@@ -123,13 +130,31 @@ void KMCApplication::RunKMC(void)
     int i=0;
     while(t<_runtime) {
     	t+=current->WaitingTime();
-    	current->onExecute();
+		current->onExecute();
     	if(t > next_output) {
     		next_output = t + _dt;
     		cout << t << ": " << r << endl;
     	}
     }
+    _runtime = t;
+    WriteOcc();
     cout << std::scientific << "\nKMC run finished\nAverage velocity (m/s): " << r/t*1e-9 << endl;
+}
+
+void KMCApplication::WriteOcc()
+{
+    Database db;
+	db.Open(OptionsMap()["graph"].as<string>());
+	db.Exec("BEGIN;");
+	Statement *stmt = db.Prepare("UPDATE crgunits SET occ = ? WHERE id = ?;");
+	for(int i=0; i<_nodes.size(); ++i) {
+		stmt->Reset();
+		stmt->Bind(1, _nodes[i]->_occ/_runtime);
+		stmt->Bind(2, _nodes[i]->_id);
+		stmt->Step();
+	}
+	db.Exec("END;");
+	delete stmt;
 }
 
 int main(int argc, char **argv)
