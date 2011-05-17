@@ -5,7 +5,7 @@
 #include <votca/tools/vec.h>
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
-
+#include <votca/tools/application.h>
 using namespace std;
 using namespace votca::kmc;
 
@@ -38,28 +38,72 @@ struct link_t {
 	vec _r;
 };
 
-int main(int argc, char **argv)
+class KMCApplication
+	: public Application
 {
-	map<int , node_t *> nodes;
-    Database db;
-	db.Open("state.db");
-	
-    Random::init(1, 2, 3, 4);
+public:
+	    virtual string ProgramName() { return "kmc_test"; }
+	    virtual void HelpText(std::ostream &out) { };
+	    void Initialize();
+	    bool EvaluateOptions();
+	    void Run(void);
+protected:
+	    void LoadGraph(void);
+		void RunKMC(void);
+		map<int , node_t *> _nodes_lookup;
+		vector<node_t *> _nodes;
+		double _runtime;
+		double _dt;
+};
 
+void KMCApplication::Initialize()
+{
+	AddProgramOptions("KMC Options")
+		("graph,g", boost::program_options::value<string>(), "file which contains graph")
+		("time,t", boost::program_options::value<double>(), "time to run")
+	    ("seed,s", boost::program_options::value<int>(), "seed for kmc")
+		("dt", boost::program_options::value<double>()->default_value(1e-4), "output frequency during run");
+}
+
+bool KMCApplication::EvaluateOptions()
+{
+	CheckRequired("graph");
+	CheckRequired("seed");
+	CheckRequired("time");
+	_runtime = OptionsMap()["time"].as<double>();
+	_dt = OptionsMap()["dt"].as<double>();
+	return true;
+}
+
+void KMCApplication::Run(void)
+{
+    srand(OptionsMap()["seed"].as<int>());
+    Random::init(rand(), rand(), rand(), rand());
+    LoadGraph();
+    RunKMC();
+}
+
+void KMCApplication::LoadGraph()
+{
+
+    Database db;
+	db.Open(OptionsMap()["graph"].as<string>());
+	
 	Statement *stmt = db.Prepare("SELECT id FROM crgunits;");
 	
 	while(stmt->Step() != SQLITE_DONE) {
 		int id = stmt->Column<int>(0);
-		nodes[id] = new node_t(id);
+		_nodes.push_back(new node_t(id));
+		_nodes_lookup[id] = _nodes.back();
 	}
 	delete stmt;
-	cout << "Nodes: " << nodes.size() << endl;
+	cout << "Nodes: " << _nodes.size() << endl;
 	
 	int links=0;
 	stmt = db.Prepare("SELECT crgunit1, crgunit2, rate12, rate21, r_x, r_y, r_z FROM pairs;");
 	while(stmt->Step() != SQLITE_DONE) {
-	  node_t *n1 = nodes[stmt->Column<int>(0)];
-	  node_t *n2 = nodes[stmt->Column<int>(1)];
+	  node_t *n1 = _nodes_lookup[stmt->Column<int>(0)];
+	  node_t *n2 = _nodes_lookup[stmt->Column<int>(1)];
 	  double rate12 = stmt->Column<double>(2);
 	  double rate21 = stmt->Column<double>(3);
 	  vec r = vec(stmt->Column<double>(4),stmt->Column<double>(5),stmt->Column<double>(6));
@@ -69,16 +113,28 @@ int main(int argc, char **argv)
 	}
 	delete stmt;
 	cout << "Links: " << links << endl;
+}
 
+void KMCApplication::RunKMC(void)
+{
 	double t = 0;
-	current=nodes[10];
-    while(t<1e-1) {
-	  for(int m=0; m<2000000; ++m) {
-		    t+=current->WaitingTime();
-    		current->onExecute();
+	current=_nodes[Random::rand_uniform_int(_nodes.size())];
+	double next_output = _dt;
+    int i=0;
+    while(t<_runtime) {
+    	t+=current->WaitingTime();
+    	current->onExecute();
+    	if(t > next_output) {
+    		next_output = t + _dt;
+    		cout << t << ": " << r << endl;
     	}
-    	cout << t << ": " << r << endl;
     }
-    return 0;
+    cout << std::scientific << "\nKMC run finished\nAverage velocity (m/s): " << r/t*1e-9 << endl;
+}
+
+int main(int argc, char **argv)
+{
+	KMCApplication app;
+	return app.Exec(argc, argv);
 }
  
