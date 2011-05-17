@@ -49,7 +49,7 @@ public:
 	/**
 	 * \brief get the waiting time for this group of events
 	 */
-	double WaitingTime();
+	double WaitingTime() { return _waiting_time; }
 
 	/**
 	 * \brief calculate a new waiting time
