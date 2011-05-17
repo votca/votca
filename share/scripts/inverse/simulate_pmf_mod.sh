@@ -44,8 +44,8 @@ mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
 times=$( seq 0 $step_time $(($sim_time-$step_time)) )
-background=$(csg_get_property cg.inverse.parallel.background "no")
-sleep_time=$(csg_get_property cg.inverse.parallel.sleep_time "60")
+background=$(csg_get_property cg.inverse.simulation.background "no")
+sleep_time=$(csg_get_property cg.inverse.simulation.sleep_time "60")
 dt=$(get_from_mdp dt "grompp.mdp.template")
 
 # Prepare sim directories

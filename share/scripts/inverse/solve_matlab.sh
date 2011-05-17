@@ -27,17 +27,20 @@ EOF
    exit 0
 fi
 
-[[ -n "$2" ]] || die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $1 ]] && die "${0##*/}: Missing arguments"
 
 # initialize & run the matlab file
 cat_external solve matlab | sed -e "s/\$name_out/$2/" -e "s/\$name/$1/" > solve_$1.m || die "${0##*/}: sed failed"
 
+matlab="$(csg_get_property cg.inverse.imc.matlab.bin "matlab")"
+[ -n "$(type -p $matlab)" ] || die "${0##*/}: matlab binary '$matlab' not found"
+
 #matlab does not like -_. etc in filenames
-critical mv solve_$1.m solve.m
-critical matlab -r solve -nosplash -nodesktop
+critical cp solve_$1.m solve.m
+critical $matlab -r solve -nosplash -nodesktop
 rm -f solve.m
 
+[[ -f $2 ]] || die "Matlab failed"
 # temporary compatibility issue
-[[ -f "$2" ]] || die "Matlab failed"
-critical sed -ie 's/NaN/0.0/' $2
-critical sed -ie 's/Inf/0.0/' $2
+critical sed -ie 's/NaN/0.0/' "$2"
+critical sed -ie 's/Inf/0.0/' "$2"

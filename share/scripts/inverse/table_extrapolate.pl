@@ -122,27 +122,22 @@ This script extrapolates a table
 $usage
 
 Allowed options:
---avgpoints           average over the given number of points to extrapolate: default is 3
+--avgpoints A         average over the given number of points to extrapolate: default is 3
 --function            constant, linear, quadratic or exponential, sasha: default is quadratic
 --region              left, right, or leftright: default is leftright
---curvature           curvature of the quadratic function: default is 10000,
+--curvature C         curvature of the quadratic function: default is 10000,
                       makes sense only for quadratic extrapolation, ignored for other cases
 -h, --help            Show this help message
 
-extrapolation methods:
- always m = dy/dx (over avgpoints point)
-          = (y[i+avgpoint]-y[i])/(x[i+avgpoint]-x[i])
 
-constant:
-  y = y0
-linear:
-  y = ax + b;  b = - m*x0 + y0; a = m
-sasha:
-  y = a*(x-b)^2; b = (x0 - 2y0/m); a = m^2/(4*y0)
-exponential:
-  y = a*exp(b*x); a = y0*exp(-m*x0/y0); b = m/y0;
-quadratic:
-  y = curv*(x+a)^2 + b; a = m/(2*curv) - x0; b = y0 - m^2/(4*curv)
+Extrapolation methods:
+ always ''\$m = dy/dx= (y[i+A]-y[i])/(x[i+A]-x[i])\$''
+
+- constant:  ''\$y = y0\$''
+- linear:  ''\$y = ax + b\\;\\;b = - m*x_0 + y_0\;\;a = m\$''
+- sasha: ''\$y = a*(x-b)^2\\;\\;b = (x0 - 2y_0/m)\\;\\; a = m^2/(4*y_0)\$''
+- exponential: ''\$y = a*\\\\exp(b*x)\\;\\;a = y0*\\\\exp(-m*x0/y0)\\;\\;b = m/y_0\$''
+- quadratic: ''\$y = C*(x+a)^2 + b\\;\\;a = m/(2*C) - x0\\;\\; b = y_0 - m^2/(4*C)\$''
 
 END
 		exit;
@@ -162,7 +157,8 @@ my $infile="$ARGV[0]";
 my @r;
 my @val;
 my @flag;
-(readin_table($infile,@r,@val,@flag)) || die "$progname: error at readin_table\n";
+my $comments;
+(readin_table($infile,@r,@val,@flag,$comments)) || die "$progname: error at readin_table\n";
 
 my $outfile="$ARGV[1]";
 
@@ -256,4 +252,4 @@ if ($do_right) {
 #==============
 
 
-saveto_table($outfile,@r,@val,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@val,@flag,$comments) || die "$progname: error at save table\n";

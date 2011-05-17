@@ -39,7 +39,7 @@ confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
 tasks=$(get_number_tasks)
-mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
+mpicmd=$(csg_get_property --allow-empty cg.inverse.simulation.cmd)
 
 # If in step_002, do mdrun -noappend
 this_dir=$(get_current_step_dir --no-check)

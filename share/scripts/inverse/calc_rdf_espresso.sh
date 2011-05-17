@@ -31,13 +31,13 @@ fi
 top_traj="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
 
 # Number of snapshots before statistics are taken into account
-equi_snapshots="$(csg_get_property cg.inverse.espresso.equi_snapshots 0)"
+equi_snapshots="$(csg_get_property cg.inverse.espresso.first_frame 0)"
 
 # Espresso config file (required for certain parameters, e.g. box size)
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")" 
+esp_bin="$(csg_get_property cg.inverse.espresso.rdf_command "Espresso_bin")" 
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
 type1=$(csg_get_interaction_property type1)

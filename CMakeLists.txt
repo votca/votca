@@ -39,15 +39,6 @@ endif(NOT DEFINED DATA)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Mercurial)
-if (MERCURIAL_FOUND)
-  MERCURIAL_HG_INFO(${PROJECT_SOURCE_DIR} CSG)
-  MESSAGE("Current revision is ${CSG_HG_ID}")
-  set (CSG_HG_ID "hgid: ${CSG_HG_ID}")
-else(MERCURIAL_FOUND)
-  set (CSG_HG_ID)
-endif(MERCURIAL_FOUND)
-
 find_package(TXT2TAGS)
 option(EXTERNAL_BOOST "Use external boost" ON)
 if (EXTERNAL_BOOST)

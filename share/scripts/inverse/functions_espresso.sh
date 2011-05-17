@@ -15,39 +15,48 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-Useful functions for espresso
-
-Used external packages: espresso
+Useful functions for espresso:
 EOF
+sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1   -- \2/p' ${0}
+
+echo
+echo Used external packages: espresso
   exit 0
 fi
 
 #check performed when this file is sourced
-esp_dir="$(csg_get_property --allow-empty cg.inverse.espresso.scriptdir)"
-if [ -z "${esp_dir}" ]; then
-  [ -z "$ESPRESSO_SCRIPTS" ] && die "${0##*/}: cg.inverse.espresso.scriptdir of the xml setting file was empty and ESPRESSO_SCRIPTS not set in the environment.\nEspresso needs this variable to find its scripts."
-  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: ESPRESSO_SCRIPTS ($ESPRESSO_SCRIPTS) is not a directory"
+esp_dir="$(csg_get_property --allow-empty cg.inverse.espresso.scriptdir)" || exit 1
+if [[ -z ${esp_dir} ]]; then
+  [[ -z $ESPRESSO_SCRIPTS ]] && die "${0##*/}: cg.inverse.espresso.scriptdir of the xml setting file was empty and ESPRESSO_SCRIPTS not set in the environment.\nEspresso needs this variable to find its scripts."
+  [[ -d $ESPRESSO_SCRIPTS ]] || die "${0##*/}: ESPRESSO_SCRIPTS ($ESPRESSO_SCRIPTS) is not a directory"
 else
   export ESPRESSO_SCRIPTS="${esp_dir}"
-  [ -d "${ESPRESSO_SCRIPTS}" ] || die "${0##*/}: cg.inverse.espresso.scriptdir ($ESPRESSO_SCRIPTS) is not a directory"
+  [[ -d ${ESPRESSO_SCRIPTS} ]] || die "${0##*/}: cg.inverse.espresso.scriptdir ($ESPRESSO_SCRIPTS) is not a directory"
 fi
 unset esp_dir
 
-simulation_finish() {
+simulation_finish() { #checks if simulation is finished
   local esp_success traj_esp espout
-  esp_success="$(critical mktemp esp.run.done.XXXXX)"
+  esp_success="$(csg_get_property cg.inverse.espresso.success "success.esp")"
   traj_esp="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
   espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
-  [ -f "$esp_success" ] && [ -f "$traj_esp" ] && [ -f "$espout" ] && return 0 
+  [[ -f $esp_success && -f $traj_esp && -f $espout ]] && return 0 
   return 1
 }
 export -f simulation_finish
 
-checkpoint_exist() {
+checkpoint_exist() { #check if a checkpoint exists
   #espresso has not support for checkpoints, yet !
   return 1
 }
 export -f checkpoint_exist
+
+get_simulation_setting() { #check if a checkpoint exists
+  #espresso has not support for checkpoints, yet !
+  die "get_simulation_setting: Not implemented for Espresso yet"
+  return 1
+}
+export -f get_simulation_setting

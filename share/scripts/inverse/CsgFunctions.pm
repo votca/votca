@@ -39,7 +39,7 @@ EOF
 
 sub csg_get_property($;$){
   ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
-  defined($_[0]) || die "csg_get_property: Missig argument\n";
+  defined($_[0]) || die "csg_get_property: Missing argument\n";
   open(CSG,"csg_property --file $xmlfile --path $_[0] --short --print . |") ||
     die "csg_get_property: Could not open pipe\n";
   my $value=<CSG>;
@@ -55,7 +55,7 @@ sub csg_get_interaction_property($;$){
   ( my $bondname=$ENV{'bondname'} ) || die "bondname: ENV{'bondname'} was undefined\n";
   ( my $bondtype=$ENV{'bondtype'} ) || die "bondtype: ENV{'bondtype'} was undefined\n";
   ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
-  defined($_[0]) || die "csg_get_interaction_property: Missig argument\n";
+  defined($_[0]) || die "csg_get_interaction_property: Missing argument\n";
   open(CSG,"csg_property --file $xmlfile --short --path cg.$bondtype --filter \"name=$bondname\" --print $_[0] 2>&1 |") ||
     die "csg_get_interaction_property: Could not open pipe\n";
   my $value=<CSG>;
@@ -75,15 +75,16 @@ sub csg_get_interaction_property($;$){
   return $value;
 }
 
-sub readin_table($\@\@\@) {
+sub readin_table($\@\@\@;\$) {
   defined($_[3]) || die "readin_table: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table: could not open file $_[0]\n";
   my $line=0;
   while (<TAB>){
     $line++;
     # remove leading spacees for split
-    $_ =~ s/^\s*//;
+    ${$_[4]}.=$_ if (defined($_[4]) and (/^[#@]/));
     next if /^[#@]/;
+    $_ =~ s/^\s*//;
     next if /^\s*$/;
     my @parts=split(/\s+/);
     defined($parts[2]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
@@ -142,9 +143,10 @@ sub readin_data($$\@\@) {
   return $line;
 }
 
-sub saveto_table($\@\@\@) {
+sub saveto_table($\@\@\@;$) {
   defined($_[3]) || die "saveto_table: Missing argument\n";
   open(OUTFILE,"> $_[0]") or die "saveto_table: could not open $_[0] \n";
+  print OUTFILE "$_[4]" if (defined $_[4]);
   for(my $i=0;$i<=$#{$_[1]};$i++){
     print OUTFILE "${$_[1]}[$i] ${$_[2]}[$i] ${$_[3]}[$i]\n";
   }

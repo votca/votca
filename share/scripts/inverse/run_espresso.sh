@@ -35,8 +35,8 @@ espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
 n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 [ -z "$n_steps" ] && die "${0##*/}: Could not read espresso property n_steps"
 
-esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
-[ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
+esp_bin="$(csg_get_property cg.inverse.espresso.command "Espresso_bin")"
+#no check for Espresso_bin, because Espresso_bin could maybe exist only computenodes
 
 exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"
@@ -61,10 +61,8 @@ n_snapshots="$(csg_get_property cg.inverse.espresso.n_snapshots)"
 [ -z "$n_snapshots" ] && die "${0##*/}: Could not read espresso property n_snapshots"
 
 # Make sure all particle indexes have been loaded into the blockfile
-index_vars=$(for_all -q non-bonded \
-    csg_get_interaction_property inverse.espresso.index1)
-index_vars="$index_vars $(for_all -q non-bonded \
-csg_get_interaction_property inverse.espresso.index2)"
+index_vars="$(csg_get_property cg.non-bonded.inverse.espresso.index1)"
+index_vars="$index_vars $(csg_get_property cg.non-bonded.inverse.espresso.index2)"
 index_vars=$(for i in $index_vars; do echo $i; done | sort -u)
 for i in $index_vars; do
     [ -n "$(gzip -cd $esp | grep $i)" ] || die "${0##*/}: can't find index list: $i"
@@ -72,7 +70,7 @@ done
 
 # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
 esp_script="$(critical mktemp esp.run.tcl.XXXXX)"
-esp_success="$(critical mktemp esp.run.done.XXXXX)"
+esp_success="$(csg_get_property cg.inverse.espresso.success "success.esp")"
 cat > $esp_script <<EOF
 set in [open "|gzip -cd $esp" r]
 while { [blockfile \$in read auto] != "eof" } {}
@@ -145,17 +143,4 @@ set out [open $esp_success w]
 close \$out
 EOF
     
-tasks=$(get_number_tasks)
-if [ $tasks -gt 1 ]; then
-  mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-  mpi_check=$(csg_get_property cg.inverse.espresso.mpi_check "yes")
-  if [ "${mpi_check}" = "yes" ]; then
-     #in most cases mpirun want -x option to export environment to compute nodes
-    [ -n "${mpicmd//*-x ESPRESSO_SCRIPTS*}" ] && die "${0##*/}: You have forgotten to add '-x  ESPRESSO_SCRIPTS' to the cg.inverse.parallel.cmd!\n
-For most mpi implementation this is needed to export the environment variable ESPRESSO_SCRIPTS on compute nodes.\n
-To disable this check set cg.inverse.espresso.mpi_check to 'no'"
-  fi
-  critical $mpicmd $esp_bin $esp_script
-else
-  critical $esp_bin $esp_script
-fi
+critical $esp_bin $esp_script

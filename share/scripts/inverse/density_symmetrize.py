@@ -17,6 +17,7 @@
 
 import sys
 import getopt
+import os
 import math
 
 firstx = []
@@ -42,10 +43,10 @@ This script symmetrizes the density around --adressc for thermodynamic force ite
 
 Usage: %(name)s 
 Allowed options:
-    --adressc    X.X  center of the adress zone (x-value)
-    --infile    FILE  input file
-    --outfile   FILE  output file
-""" % {'name': sys.argv[0],'ver': '%version%'}
+    --adressc X.X     center of the adress zone (x-value)
+    --infile FILE     input file
+    --outfile FILE    output file
+""" % {'name': os.path.basename(sys.argv[0]),'ver': '%version%'}
       sys.exit(0)
     elif o == "-v":
         verbose = True

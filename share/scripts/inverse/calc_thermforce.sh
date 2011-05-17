@@ -25,9 +25,9 @@ EOF
    exit 0
 fi
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-[ -f "$2" ] && die "${0##*/}: $2 is already there"
+[[ -f $2 ]] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
 
@@ -38,13 +38,13 @@ mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
 infile="${1}"
 endfile="${2}"
 
-adress_type=$(get_from_mdp adress_type "$mdp")
+adress_type=$(get_simulation_setting adress_type)
 if [ $adress_type = "sphere" ]; then
   #note: in the spehere case (no symmetrizing necessary) infile stays dens.${name}.xvg, so this gets used for next step
   :
 else
   outfile="${name}.sym.dens"
-  adressc="$(get_from_mdp adress_reference_coords "$mdp" "0")"
+  adressc="$(get_simulation_setting adress_reference_coords "0")"
   ref="$(echo "$adressc" | awk '{if (NF<1) exit 1; print "$1";}')" || die "${0##*/}: we need at least one number in adress_reference_coords, but got '$adressc'"
   critical do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$ref"
   infile="${outfile}"

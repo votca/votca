@@ -12,5 +12,6 @@ foreach(PROG csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_
     add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
     add_dependencies(manpages ${PROG}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
+    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${PROG}.help ${PROG}.t2t)
   endif(TXT2TAGS_FOUND AND BASH)
 endforeach(PROG)

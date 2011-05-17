@@ -101,8 +101,8 @@ for t in $times; do
     cd $dir
     dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
     [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
-    background=$(csg_get_property cg.inverse.parallel.background "no")
-    sleep_time=$(csg_get_property cg.inverse.parallel.sleep_time "60")
+    background=$(csg_get_property cg.inverse.simulation.background "no")
+    sleep_time=$(csg_get_property cg.inverse.simulation.sleep_time "60")
     if [ "$background" == "yes" ]; then
       while [ -z $(find . -maxdepth 1 -name confout.part*) ]; do
         sleep $sleep_time

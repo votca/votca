@@ -76,8 +76,8 @@ do_external run gromacs_pmf
 
 # Wait for job to finish when running in background
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-background=$(csg_get_property --allow-empty cg.inverse.parallel.background "no")
-sleep_time=$(csg_get_property --allow-empty cg.inverse.parallel.sleep_time "60")
+background=$(csg_get_property --allow-empty cg.inverse.simulation.background "no")
+sleep_time=$(csg_get_property --allow-empty cg.inverse.simulation.sleep_time "60")
 sleep 10
 if [ "$background" == "yes" ]; then
   while [ ! -f "$confout" ]; do

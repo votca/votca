@@ -19,26 +19,26 @@ show_help () {
   cat << eof
 ${0##*/}, version %version%
 
-Start the script to run ibi, imc, etc.
+Start the script to run ibi, imc, etc. or clean out current dir
 
-Usage: ${0##*/} [OPTIONS] [setting_file.xml]
+Usage: ${0##*/} [OPTIONS] --options settings.xml [clean]
 
 Allowed options:
 -h, --help                    show this help
 -N, --do-iterations N         only do N iterations
     --wall-time SEK           Set wall clock time
     --options FILE            Specify the options xml file to use
-    --clean                   clean out the PWD, dangerous
+    --debug                   enable debug mode with a lot of information
     --nocolor                 disable colors
 
 Examples:
-* ${0##*/} cg.xml
-* ${0##*/} -6 cg.xml
+* ${0##*/} --options cg.xml
+* ${0##*/} -6 --options cg.xml
 eof
 }
 
 #--help should always work so leave it here
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
   show_help
   exit 0
 fi
@@ -48,17 +48,16 @@ source "${0%/*}/start_framework.sh"  || exit 1
 
 #defaults for options
 do_iterations=""
-do_clean="no"
 
 #unset stuff from enviorment
-unset CSGXMLFILE CSGSCRIPTDIR CSGLOG CSGENDING
+unset CSGXMLFILE CSGENDING CSGDEBUG
 
 ### begin parsing options
 shopt -s extglob
-while [ "${1#-}" != "$1" ]; do
- if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+while [[ ${1#-} != $1 ]]; do
+ if [[ ${1#--} = $1 && -n ${1:2} ]]; then
     #short opt with arguments here: fc
-    if [ "${1#-[fc]}" != "${1}" ]; then
+    if [[ ${1#-[fc]} != ${1} ]]; then
        set -- "${1:0:2}" "${1:2}" "${@:2}"
     else
        set -- "${1:0:2}" "-${1:2}" "${@:2}"
@@ -76,15 +75,16 @@ while [ "${1#-}" != "$1" ]; do
    -[0-9]*)
     do_iterations=${1#-}
     shift ;;
-   --clean)
-    #needs to be done below, because it needs CSG* variables
-    do_clean="yes"
-    shift ;;
    --options)
-    export CSGXMLFILE="$2"
+    CSGXMLFILE="$2"
+    [[ -f $CSGXMLFILE ]] || die "options xml file '$CSGXMLFILE' not found"
+    export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
     shift 2;;
    --nocolor)
     export CSGNOCOLOR="yes"
+    shift;; 
+   --debug)
+    export CSGDEBUG="yes"
     shift;; 
    -h | --help)
     show_help
@@ -95,43 +95,16 @@ while [ "${1#-}" != "$1" ]; do
 done
 ### end parsing options
 
-#old style maybe, new style set by --options
-if [ -z "${CSGXMLFILE}" ]; then
-  [ -n "$1" ] || die "Error: Missing xml file"
-  export CSGXMLFILE="${1}"
-  shift
-fi
-export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
+#old style, inform user
+[[ -z ${CSGXMLFILE} ]] && die "Please add your setting xml file behind the --options option (like for all other votca programs) !"
 
-#other stuff we need, which comes from xmlfile -> must be done here
-#define $CSGRESTART
-CSGRESTART="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
-CSGRESTART="${CSGRESTART##*/}"
-export CSGRESTART
+[[ $1 = "clean" ]] && { csg_inverse_clean; exit $?; }
 
-#get csglog
-CSGLOG="$(csg_get_property cg.inverse.log_file "inverse.log")"
-CSGLOG="$PWD/${CSGLOG##*/}"
-export CSGLOG
+enable_logging
+[[ -n $CSGDEBUG ]] && set -x
+check_for_obsolete_xml_options
 
-if [ "$do_clean" = "yes" ]; then
-  csg_ivnerse_clean
-  exit $?
-fi
-
-if [ -f "$CSGLOG" ]; then
-  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-  echo "\n\n#################################"
-  echo "# Appending to existing logfile #"
-  echo "#################################\n\n"
-  echo "Sim started $(date)"
-  msg --color blue "Appending to existing logfile ${CSGLOG##*/}"
-else
-  echo "For a more verbose log see: ${CSGLOG##*/}"
-  #logfile is created in the next line
-  exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-  echo "Sim started $(date)"
-fi
+echo "Sim started $(date)"
 
 method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
@@ -141,37 +114,38 @@ echo "We are using Sim Program: $sim_prog"
 source_function $sim_prog
 
 iterations_max="$(csg_get_property cg.inverse.iterations_max)"
-int_check "$do_iterations" "inverse.sh: cg.inverse.iterations_max needs to be a number"
+int_check "$iterations_max" "inverse.sh: cg.inverse.iterations_max needs to be a number"
 echo "We are doing $iterations_max iterations (0=inf)."
 convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
-[ "$convergence_check" = "none" ] || echo "After every iteration we will do the following check: $convergence_check"
+[[ $convergence_check = none ]] || echo "After every iteration we will do the following check: $convergence_check"
 
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-[ -z "$filelist" ] || echo "We extra cp '$filelist' to every step to run the simulation"
+[[ -z $filelist ]] || echo "We extra cp '$filelist' to every step to run the simulation"
 
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
-[ -z "$cleanlist" ] || echo "We extra clean '$cleanlist' after a step is done"
+[[ -z $cleanlist ]] || echo "We extra clean '$cleanlist' after a step is done"
 
 scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-add_to_csgshare "$scriptdir"
+[[ -n $scriptdir ]] && add_to_csgshare "$scriptdir"
 
 show_csg_tables
 
 #main script
-[[ ! -f done ]] || { msg "Job is already done"; exit 0; }
+[[ -f done ]] && { msg "Job is already done"; exit 0; }
 
 ######## BEGIN STEP 0 ############
 update_stepnames 0
+restart_file="$(get_restart_file)"
 this_dir=$(get_current_step_dir --no-check)
-if [ -d "$this_dir" ] && [ -f $this_dir/done ]; then
+if [[ -d $this_dir &&  -f "$this_dir/done" ]]; then
   msg "step 0 is already done - skipping"
 else
   echo ------------------------
   msg --color blue "Prepare (dir ${this_dir##*/})"
   echo ------------------------
-  if [ -d "$this_dir" ]; then
+  if [[ -d $this_dir ]]; then
     msg "Incomplete step 0"
-    [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose the prepare step)"
+    [[ -f "${this_dir}/${restart_file}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose the prepare step)"
   else
     mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   fi
@@ -194,20 +168,20 @@ fi
 begin=1
 trunc=$(get_stepname --trunc)
 for i in ${trunc}*; do
-  [ -d "$i" ] || continue
+  [[ -d $i ]] || continue
   nr=${i#$trunc}
-  if [ -n "$nr" ] && [ -z "${nr//[0-9]}" ]; then
+  if [[ -n $nr && -z ${nr//[0-9]} ]]; then
     #convert to base 10, otherwise 008 is interpreted as octal
     nr=$((10#$nr))
-    [ $nr -gt $begin ] && begin="$nr"
+    [[ $nr -gt $begin ]] && begin="$nr"
   fi
 done
 unset nr trunc
-[ $begin -gt 1 ] && msg "Jumping in at iteration $begin"
+[[ $begin -gt 1 ]] && msg "Jumping in at iteration $begin"
 
 avg_steptime=0
 steps_done=0
-[ $iterations_max -eq 0 ] && iterations=$begin || iterations=$iterations_max
+[[ $iterations_max -eq 0 ]] && iterations=$begin || iterations=$iterations_max
 for ((i=$begin;i<$iterations+1;i++)); do
   [ $iterations_max -eq 0 ] && ((iterations++))
   step_starttime="$(get_time)"
@@ -217,13 +191,13 @@ for ((i=$begin;i<$iterations+1;i++)); do
   echo -------------------------------
   msg --color blue "Doing iteration $i (dir ${this_dir##*/})"
   echo -------------------------------
-  if [ -d $this_dir ]; then
-    if [ -f $this_dir/done ]; then
+  if [[ -d $this_dir ]]; then
+    if [[ -f "$this_dir/done" ]]; then
       msg "step $i is already done - skipping"
       continue
     else
       msg "Incomplete step $i"
-      [[ -f "${this_dir}/${CSGRESTART}" ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
+      [[ -f ${this_dir}/${restart_file} ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
     fi
   else
     echo "Step $i started at $(date)"
@@ -266,13 +240,13 @@ for ((i=$begin;i<$iterations+1;i++)); do
     die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
   fi
 
-  msg "Make update for $method"
+  msg "Make update"
   do_external update $method
 
-  msg "Post update for $method"
+  msg "Post update"
   do_external post_update $method
 
-  msg "Adding up potential for $method"
+  msg "Adding up potential"
   do_external add_pot $method
 
   msg "Post add"
@@ -290,12 +264,12 @@ for ((i=$begin;i<$iterations+1;i++)); do
 
   touch "done"
 
-  if [ "$convergence_check" = "none" ]; then
+  if [[ $convergence_check = none ]]; then
     echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
     do_external convergence_check "$convergence_check"
-    if [ -f "stop" ]; then
+    if [[ -f stop ]]; then
       msg "Iterations are converged, stopping"
       touch "done"
       exit 0
@@ -304,10 +278,10 @@ for ((i=$begin;i<$iterations+1;i++)); do
     fi
   fi
 
-  if [ -n "$CSGENDING" ]; then
+  if [[ -n $CSGENDING ]]; then
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
     echo "New average steptime $avg_steptime"
-    if [ $(( $(get_time) + $avg_steptime )) -gt ${CSGENDING} ]; then
+    if [[ $(( $(get_time) + $avg_steptime )) -gt ${CSGENDING} ]]; then
       msg "We will not manage another step, stopping"
       exit 0
     else
@@ -315,8 +289,8 @@ for ((i=$begin;i<$iterations+1;i++)); do
     fi
   fi
 
-  if [ -n "$do_iterations" ]; then
-    if [ $do_iterations -ge $steps_done ] ; then
+  if [[ -n $do_iterations ]]; then
+    if [[ $do_iterations -ge $steps_done ]] ; then
       msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
       exit 0
     else

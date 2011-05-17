@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
@@ -21,31 +22,36 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script shifts the whole potential to the last value, like it is normally done for non-bonded potentials.
+This script compares two tables
 
 Usage: $progname infile outfile
 EOF
   exit 0;
 }
 
-die "2 parameters are nessary, <infile> <outfile>\n" if ($#ARGV<1);
+die "2 parameters are nessary\n" if ($#ARGV<1);
 
 use CsgFunctions;
 
-my $infile="$ARGV[0]";
-my $outfile="$ARGV[1]";
+my $epsilon=1e-3;
 
-# read in the current dpot
-my @r;
-my @dpot;
-my @flag;
-my $comments;
-(readin_table($infile,@r,@dpot,@flag,$comments)) || die "$progname: error at readin_table\n";
+my $file1="$ARGV[0]";
+my $file2="$ARGV[1]";
 
-# bring end to zero
-for(my $i=0; $i<=$#r; $i++) {
-    $dpot[$i] -= $dpot[$#r];
+my @r1;
+my @pot1;
+my @flag1;
+(readin_table($file1,@r1,@pot1,@flag1)) || die "$progname: error at readin_table\n";
+
+my @r2;
+my @pot2;
+my @flag2;
+(readin_table($file2,@r2,@pot2,@flag2)) || die "$progname: error at readin_table\n";
+
+$#r1 == $#r2 || die "$progname: error, tables have different length";
+
+for (my $i=0;$i<=$#r1; $i++) {
+  abs($r1[$i] - $r2[$i]) < $epsilon || "$progname: first row different at position $i\n";
+  abs($pot1[$i] - $pot2[$i]) < $epsilon || "$progname: second row different at position $i\n";
+  $flag1[$i] == $flag2[$i] || "$progname: flag different at position $i\n";
 }
-
-# save to file
-saveto_table($outfile,@r,@dpot,@flag,$comments) || die "$progname: error at save table\n";

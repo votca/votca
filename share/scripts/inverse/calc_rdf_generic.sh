@@ -29,7 +29,7 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
+  topol=$(csg_get_property cg.inverse.gromacs.rdf.topol "topol.tpr")
   [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
 
   ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
@@ -43,10 +43,10 @@ equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 
 tasks=$(get_number_tasks)
-msg "Calculating rdfs with csg_stat using $tasks tasks"
 if is_done "rdf_analysis"; then
   echo "rdf analysis is already done"
 else
+  msg "Calculating rdfs with csg_stat using $tasks tasks"
   critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame
   mark_done "rdf_analysis"
 fi

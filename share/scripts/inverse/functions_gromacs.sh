@@ -19,10 +19,12 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 
-Useful functions for gromacs
-
-Used external packages: gromacs
+Useful functions for gromacs:
 EOF
+sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1    -- \2/p' ${0}
+
+echo
+echo Used external packages: gromacs
   exit 0
 fi
 
@@ -35,53 +37,53 @@ if [ -n "${gmxrc}" ]; then
 fi
 unset gmxrc
 
-get_from_mdp() {
+get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp file (2nd parameter)
   local res
-  [[ -n "$2" ]] || die "get_from_mdp: Missing argument (what file)"
-  [[ -f "$2" ]] || die "get_from_mdp: Could not read file '$2'"
+  if [[ $1 = "--file" ]]; then
+    mdp="$2"
+    shift 2
+  else
+    mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+  fi
+  [[ -z $1 ]] && die "get_simulation_setting: Missing argument (property)"
+  [[ -f $mdp ]] || die "get_simulation_setting: Could not read setting file '$mdp'"
   #1. strip comments
   #2. get important line
   #3. remove leading and tailing spaces
-  res="$(sed -e '/^[[:space:]]*;/d' -e 's#;.*$##' "$2" | \
-        sed -n -e "s#^[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*\$#\1#p" | \
+  res="$(sed -e '/^[[:space:]]*;/d' -e 's#;.*$##' "$mdp" | \
+        sed -n -e "s#^[[:space:]]*$1[[:space:]]*=\(.*\)\$#\1#p" | \
 	sed -e 's#^[[:space:]]*##' -e 's#[[:space:]]*$##')" || \
-    die "get_from_mdp: sed failed"
-  [[ -z "$res" ]] && [ -z "$3" ] && die "get_from_mdp: could not fetch $1 from $2, please add it"
-  [ -n "$res" ] && echo "$res" || echo "$3"
+    die "get_simulation_setting: sed failed"
+  [[ -z $res && -z $2 ]] && die "get_simulation_setting: could not fetch $1 from $mdp and no default given, please add it in there"
+  [[ -n $res ]] && echo "$res" || echo "$2"
 }
-export -f get_from_mdp
+export -f get_simulation_setting
 
-check_cutoff() {
-  local max rvdw res cutoff_check
-  [[ -n "$1" ]] || die "check_cutoff: Missing argument (mdp file)"
-  cutoff_check=$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")
-  [ ${cutoff_check} = "no" ] && return 0
+check_cutoff() { #compared current interactions cutoff vs rvdw, 
+  local max rvdw
+  [[ "$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")" = "no" ]] && return 0
   max="$(csg_get_interaction_property max)"
-  rvdw="$(get_from_mdp rvdw "$1")"
-  res="$(awk -v max="$max" -v rvdw="$rvdw" 'BEGIN{ print (max>rvdw)?1:0 }')" || die "check_cutoff: awk failed"
-  [ "$res" != "0" ] && die "Error in interaction '$bondname': rvdw ($rvdw) in $1 is smaller than max ($max)\n\
+  rvdw="$(get_simulation_setting rvdw)"
+  csg_calc "$max" ">" "$rvdw" && die "Error in interaction '$bondname': rvdw ($rvdw) in $1 is smaller than max ($max)\n\
 To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
-  return "$res"
+  return 0
 }
 export -f check_cutoff
 
-check_temp() {
-  local temp_check kbt temp res
-  [[ -n "$1" ]] || die "check_temp: Missing argument (mdp file)"
-  temp_check=$(csg_get_property cg.inverse.gromacs.temp_check "yes")
-  [ ${temp_check} = "no" ] && return 0
+check_temp() { #compares k_B T in xml with temp in mpd file
+  local kbt temp
+  [[ "$(csg_get_property cg.inverse.gromacs.temp_check "yes")" = "no" ]] && return 0
   #kbt in energy unit
   kbt="$(csg_get_property cg.inverse.kBT)"
-  temp="$(get_from_mdp ref_t "$1")"
+  temp="$(get_simulation_setting ref_t)"
   #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
-  res="$(awk -v e="$kbt" -v t="$temp" 'BEGIN{ print (sqrt((e-t*0.00831451)**2)>0.001)?1:0 }')" || die "check_temp: awk failed"
-  [ "$res" != "0" ] && die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
+  csg_calc "$kbt" "=" "0.00831451*$temp" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
 To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
-  return "$res"
+  return 0
 }
 export -f check_temp
 
-simulation_finish() {
+simulation_finish() { #checks if simulation is finished
   local ext traj confout
   ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
   traj="traj.${ext}"
@@ -91,9 +93,9 @@ simulation_finish() {
 }
 export -f simulation_finish
 
-checkpoint_exist() {
+checkpoint_exist() { #check if a checkpoint exists
   local checkpoint
-  checkpoint="$(csg_get_property cg.inverse.mdrun.checkpoint "state.cpt")"
+  checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
   [ -f "$checkpoint" ] && return 0
   return 1
 }

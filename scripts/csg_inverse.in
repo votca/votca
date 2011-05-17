@@ -15,20 +15,16 @@
 # limitations under the License.
 #
 
-version='@PROJECT_VERSION@ @CSG_HG_ID@'
+version='@PROJECT_VERSION@ #CSG_HG_ID#'
 
-if [ -z "${CSGSHARE}" ]; then
-  if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
-    #transform it to a global path
-    export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
-  elif [ -f "@CMAKE_INSTALL_PREFIX@/@DATA@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
-  fi
+if [ -n "$(type -p csg_call)" ]; then
+  CSGSHARE="$(csg_call --show-share)" || exit 1
+  export CSGSHARE
 fi
 
 #we leave --help here to have it even when
 #CSGSHARE is not defined
-if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+if [[ $1 = "--help" || $1 = "-h" ]]; then
   cat << eof
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
@@ -37,7 +33,7 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 please submit bugs to bugs@votca.org
 
 eof
-  if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+  if [[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
     exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | \
       sed -e "s/inverse\.sh/${0##*/}/g" -e "s/%version%/${version}/"
     exit 0
@@ -45,28 +41,29 @@ eof
   cat << eof
 ${0##*/}, version ${version}
 
+Start the script (inverse.sh) to run IBM, IMC, etc.
 
-
-Start the script to run IBM, IMC, etc.
-
-Usage: ${0##*/} [OPTIONS] setting_file.xml
+Usage: ${0##*/} [OPTIONS] --options settings.xml
 
 Allowed options:
 -h, --help     Show this help
 
-NOTE: this is a short help, please export CSGSHARE or
-      source VOTCARC.bash or VOTCARC.csh to get the full help.
+NOTE: this is a short help, please source VOTCARC.bash or VOTCARC.csh
+      or export CSGSHARE to get the full help.
 eof
 exit 0
 fi
 
-if [ -z "${CSGSHARE}" ]; then
-   echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
-   echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
-   exit 1
+#we don't know if it was done above
+if [[ -n "$(type -p csg_call)" ]]; then
+  CSGSHARE="$(csg_call --show-share)" || exit 1
+  export CSGSHARE
+else
+  echo "Could not find csg_call" >&2
+  exit 1
 fi
 
-if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
+if [[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
    exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
    exit 0
 else

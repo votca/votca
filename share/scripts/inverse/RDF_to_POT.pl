@@ -22,7 +22,7 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, %version%
-This script converts rdf to pot of mean force (F(r)=-k_B T*ln(g(r))
+This script converts rdf to pot of mean force (''\$F(r)=-k_B T\\\\ln g(r)\$'')
 
 In addtion, it does some magic tricks:
 - do not crash when calc log(0)

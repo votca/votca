@@ -10,13 +10,15 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=g95
-AS=
+FC=gfortran
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -31,8 +33,9 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/imc.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_stat.o
+	${OBJECTDIR}/_ext/715944016/csg_stat_imc.o \
+	${OBJECTDIR}/_ext/715944016/csg_stat.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -52,7 +55,7 @@ LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtoo
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Debug.mk ../../src/tools/csg_stat
+	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/csg_stat
 
 ../../src/tools/csg_stat: ../libcsg/../../src/libcsg/libcsg.a
 
@@ -62,15 +65,15 @@ LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtoo
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/csg_stat ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/imc.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/imc.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
+${OBJECTDIR}/_ext/715944016/csg_stat_imc.o: ../../src/tools/csg_stat_imc.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/imc.o ../../src/tools/imc.cc
+	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat_imc.o ../../src/tools/csg_stat_imc.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_stat.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/csg_stat.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
+${OBJECTDIR}/_ext/715944016/csg_stat.o: ../../src/tools/csg_stat.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/csg_stat.o ../../src/tools/csg_stat.cc
+	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat.o ../../src/tools/csg_stat.cc
 
 # Subprojects
 .build-subprojects:
