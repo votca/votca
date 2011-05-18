@@ -179,4 +179,3 @@ prepare pmf prepare_pmf.sh
 simulate pmf simulate_pmf_mod.sh
 calc pmf calc_pmf.sh
 calc rdf calc_rdf.sh
-table_err linearop table_err_linearop.pl
