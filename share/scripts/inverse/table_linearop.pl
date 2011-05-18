@@ -23,6 +23,7 @@ my $usage="Usage: $progname [OPTIONS] <in> <out> <a> <b>";
 
 #Defaults
 my $withflag=undef;
+my $with_errors="no";
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -47,24 +48,27 @@ $usage
 
 Allowed options:
 -h, --help            Show this help message
---withflag            only change entries with specific flag in src
+    --withflag        only change entries with specific flag in src
+    --with-errors     also read and calculate errors
 
 Examples:
 * $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
 END
 		exit;
 	}
-    elsif ($ARGV[0] eq "--withflag")
-    {
+    elsif ($ARGV[0] eq "--withflag"){
         shift(@ARGV);
         die "nothing given for --withflag" unless $#ARGV > -1;
-        $withflag = $ARGV[0];
+        $withflag = shift(@ARGV);
     }
-	else
+    elsif ($ARGV[0] eq "--with-errors"){
+          shift(@ARGV);
+	  $with_errors="yes";
+    }	
+    else
 	{
 		die "Unknow option '".$ARGV[0]."' !\n";
 	}
-    shift(@ARGV);
 }
 
 #Print usage
@@ -78,12 +82,18 @@ use CsgFunctions;
 my $file="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-print "table $file : y' = $a*y + $b\n";
+print "$progname: $file to $outfile with y' = $a*y + $b \n";
 
 my @r;
 my @val;
 my @flag;
-(readin_table($file,@r,@val,@flag)) || die "$progname: error at readin_table\n";
+my @errors;
+my $comments="";
+if ("$with_errors" eq "yes") {
+  (readin_table_err($file,@r,@val,@errors,@flag,$comments)) || die "$progname: error at readin_table\n";
+} else {
+  (readin_table($file,@r,@val,@flag,$comments)) || die "$progname: error at readin_table\n";
+}
 
 for(my $i=0; $i<=$#r; $i++) {
   # skip if flag does not match
@@ -93,6 +103,14 @@ for(my $i=0; $i<=$#r; $i++) {
     }
   }
   $val[$i] = $a*$val[$i] + $b;
+  if ("$with_errors" eq "yes") {
+    $errors[$i] = $a*$errors[$i];
+  }
 }
 
-saveto_table($outfile,@r,@val,@flag) || die "$progname: error at save table\n";
+$comments.="# $progname: $file -> $outfile y' = $a*y + $b\n";
+if ("$with_errors" eq "yes") {
+  saveto_table_err($outfile,@r,@val,@errors,@flag,$comments) || die "$progname: error at save table\n";
+}else {
+  saveto_table($outfile,@r,@val,@flag,$comments) || die "$progname: error at save table\n";
+}

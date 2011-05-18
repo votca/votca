@@ -205,12 +205,12 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
   if ! ret="$($cmd)"; then
     [[ $allow_empty = "no" && -z $2 ]] && \
-      die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
+      die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' for interaction '$bondname' with error msg:\n $ret\n and no default for $1"
     #ret has error message
     ret=""
   fi
   [[ $allow_empty = no && -z $ret && -n $2 ]] && ret="$2"
-  [[ $allow_empty = no && -z $ret ]] && die "csg_get_interaction_property: Could not get '$1'\nResult of '$cmd' was empty"
+  [[ $allow_empty = no && -z $ret ]] && die "csg_get_interaction_property: Could not get '$1' for interaction '$bondname'\nResult of '$cmd' was empty"
   echo "$ret"
 }
 export -f csg_get_interaction_property

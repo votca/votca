@@ -131,7 +131,7 @@ for(my $i=0; $i<=$#r_src; $i++) {
   }
 }
 
-my $comments="#merged $src with $dst\n";
+my $comments="# $progname: merged $src with $dst to $out\n";
 $comments.="$comments1" if (defined($comments1));
 $comments.="$comments2" if (defined($comments2));
 
