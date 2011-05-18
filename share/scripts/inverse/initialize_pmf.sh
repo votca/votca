@@ -26,11 +26,11 @@ EOF
   exit 0
 fi
 
-pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
-pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
-conf_init=$(csg_get_property cg.non-bonded.pmf.conf_init)
-min=$(csg_get_property cg.non-bonded.pmf.from)
-rate=$(csg_get_property cg.non-bonded.pmf.rate)
+pullgroup0=$(csg_get_interaction_property pmf.pullgroup0)
+pullgroup1=$(csg_get_interaction_property pmf.pullgroup1)
+conf_init=$(csg_get_interaction_property pmf.conf_init)
+min=$(csg_get_interaction_property pmf.from)
+rate=$(csg_get_nteraction_property pmf.rate)
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 mdp_init="start_in.mdp"
@@ -47,11 +47,11 @@ rm tmp
 
 dt=$(get_from_mdp dt "$mdp_init")
 
-conf_in=$(csg_get_property --allow-empty cg.non-bonded.pmf.conf_in)
+conf_in=$(csg_get_interaction_property --allow-empty pmf.conf_in)
 if [ ! -z "$conf_in" ]; then
     msg "Initial configuration specified in xml, using $conf_in"
     mkdir step_000
-    conf_out=$(csg_get_property cg.non-bonded.pmf.conf_in)
+    conf_out=$(csg_get_interaction_property .pmf.conf_in)
     critical cp $(conf_out) step_000/confout.gro
     grompp="$main_dir/grompp.mdp"
     exit 0

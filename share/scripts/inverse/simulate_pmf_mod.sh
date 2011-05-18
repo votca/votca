@@ -29,16 +29,16 @@ EOF
   exit 0
 fi
 
-pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
-pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
+pullgroup0=$(csg_get_interaction_property .pmf.pullgroup0)
+pullgroup1=$(csg_get_interaction_property .pmf.pullgroup1)
 conf_start="start"
-min=$(csg_get_property cg.non-bonded.pmf.from)
-max=$(csg_get_property cg.non-bonded.pmf.to)
-steps=$(csg_get_property cg.non-bonded.pmf.steps)
-rate=$(csg_get_property cg.non-bonded.pmf.rate)
-out=$(csg_get_property cg.non-bonded.pmf.out)
-sim_time=$(csg_get_property cg.non-bonded.pmf.sim_time)
-step_time=$(csg_get_property cg.non-bonded.pmf.step_time)
+min=$(csg_get_interaction_property .pmf.from)
+max=$(csg_get_interaction_property .pmf.to)
+steps=$(csg_get_interaction_property .pmf.steps)
+rate=$(csg_get_interaction_property .pmf.rate)
+out=$(csg_get_interaction_property .pmf.out)
+sim_time=$(csg_get_interaction_property .pmf.sim_time)
+step_time=$(csg_get_interaction_property .pmf.step_time)
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")

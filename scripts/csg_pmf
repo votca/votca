@@ -18,7 +18,7 @@
 version='@PROJECT_VERSION@ #CSG_HG_ID#'
 
 #unset stuff from enviorment
-unset CSGXMLFILE
+unset CSGXMLFILE CSGDEBUG bondtype bondname
 
 show_help () {
   cat << eof
@@ -65,6 +65,7 @@ while [[ ${1#-} != $1 ]]; do
  fi
  case $1 in
    --options)
+    CSGXMLFILE="$2"
     [[ -f $CSGXMLFILE ]] || die "options xml file '$CSGXMLFILE' not found"
     export CSGXMLFILE="$(globalize_file "${CSGXMLFILE}")"
     shift 2;;
@@ -74,6 +75,9 @@ while [[ ${1#-} != $1 ]]; do
    --debug)
     export CSGDEBUG="yes"
     shift;; 
+   --ia-name)
+    export bondname="$2"
+    shift 2;;
    -h | --help)
     show_help
     exit 0;;
@@ -92,6 +96,19 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 [ "$sim_prog" = "gromacs" ] || die "${0##*/} only supports gromacs at this point"
 echo "We are using Sim Program: $sim_prog"
 source_function $sim_prog
+
+[[ -z $bondtype ]] && export bondtype="non-bonded"
+[[ $bondtype != "non-bonded" ]] && die "${0##*/} only supports non-bonded interactions"
+
+check_for_duplicated_interactions
+interaction_names=( $(csg_get_property cg.non-bonded.name) )
+if [[ ${#interaction_names[@]} -eq 1 ]]; then
+  export bondname="${interaction_names[0]}"
+else
+  [[ -z "$bondname" ]] && die "There multiple interaction in ${CSGXMLFILE##*/}, please specify the name of the one to use behind the --ia-name option"
+fi
+unset interaction_names
+msg "We are doing pmf calculation for interaction $bondname"
 
 main_dir=$(get_main_dir)
 

@@ -27,11 +27,11 @@ EOF
 fi
 
 conf_start="start"
-pullgroup0=$(csg_get_property cg.non-bonded.pmf.pullgroup0)
-pullgroup1=$(csg_get_property cg.non-bonded.pmf.pullgroup1)
-min=$(csg_get_property cg.non-bonded.pmf.from)
-max=$(csg_get_property cg.non-bonded.pmf.to)
-rate=$(csg_get_property cg.non-bonded.pmf.rate)
+pullgroup0=$(csg_get_interaction_property .pmf.pullgroup0)
+pullgroup1=$(csg_get_interaction_property .pmf.pullgroup1)
+min=$(csg_get_interaction_property .pmf.from)
+max=$(csg_get_interaction_property .pmf.to)
+rate=$(csg_get_interaction_property .pmf.rate)
 mdp_init="start_in.mdp"
 mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
