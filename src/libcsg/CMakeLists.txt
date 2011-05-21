@@ -71,6 +71,7 @@ file(GLOB NOT_VOTCA_SOURCES version_nb.cc test.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 add_library(votca_csg ${VOTCA_SOURCES} ${GMX_SOURCES} ${IO_SOURCES})
 add_dependencies(votca_csg hgversion)
+set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GMX_LIBS} ${BOOST_LIBRARIES})
 install(TARGETS votca_csg LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 

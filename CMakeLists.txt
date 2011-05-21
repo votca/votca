@@ -4,6 +4,7 @@ project(votca-csg)
 
 set(PROJECT_VERSION "1.2.0-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
+string(REGEX REPLACE "^[1-9]+\\.([1-9]+)\\.[0-9].*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -98,9 +99,9 @@ endforeach(FUNC)
 # Include the following subdirectory # 
 ######################################
 add_custom_target(manpages ALL)
+add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(include)
-add_subdirectory(scripts)
 add_subdirectory(share)
 
 if (TXT2TAGS_FOUND)
