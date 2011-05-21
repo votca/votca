@@ -19,7 +19,7 @@ foreach(SCRIPT csg_call csg_inverse multi_g_rdf)
       COMMAND CSGSHARE=${CMAKE_SOURCE_DIR}/share ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} --help > ${SCRIPT}.help
       COMMAND ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/help2t2t ${SCRIPT}.help > ${SCRIPT}.t2t 
       COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${SCRIPT}.t2t -o ${SCRIPT}.man
-      DEPENDS ${SCRIPT} scripts/help2t2t)
+      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/help2t2t)
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
     add_dependencies(manpages ${SCRIPT}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${MAN}/man1 RENAME ${SCRIPT}.1)
