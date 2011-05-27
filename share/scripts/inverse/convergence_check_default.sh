@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 dummy script (does nothing), useful to overwrite default by nothing
@@ -28,11 +28,9 @@ fi
 limit="$(csg_get_property cg.inverse.convergence_check_options.limit)"
 glob="$(csg_get_property cg.inverse.convergence_check_options.name_glob "*.conv")"
 
-#we don't have glob pattern or no file matching found
-[ "$glob" = "$(echo $glob)" ] && [ ! -f "$glob" ] && die "${0##*/}: No file matching '$glob' found!\nHave you added convergence to the postadd list of at least one interaction?"
 sum="$(for i in $glob; do
+    [[ -f $i ]] || die "${0##*/}: File '$i' not found!\nHave you added convergence to the postadd list of at least one interaction?"
     cat $i 
-done | awk 'BEGIN{sum=0}{sum+=$1}END{print sum}')"
+done | awk 'BEGIN{sum=0}{sum+=$1}END{print sum}')" || die "${0##*/}: Calculation of the convergence sum failed"
 echo "Convergence sum was $sum, limit is $limit"
-result="$(awk -v sum="$sum" -v limit="$limit" 'BEGIN{print (sum<limit)?"stop":"go-on"}')"
-[ "$result" = "stop" ] && touch "stop"
+csg_calc "$sum" "<" "$limit" && touch 'stop'
