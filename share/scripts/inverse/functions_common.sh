@@ -209,10 +209,10 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     #ret has error message
     ret=""
   fi
-  [[ $allow_empty = no && -z $ret && -n $2 ]] && ret="$2"
-  [[ $allow_empty = no && -z $ret ]] && die "csg_get_interaction_property: Could not get '$1' for interaction '$bondname'\nResult of '$cmd' was empty"
   ret="${ret%%[[:space:]]}"
   ret="${ret##[[:space:]]}"
+  [[ $allow_empty = no && -z $ret && -n $2 ]] && ret="$2"
+  [[ $allow_empty = no && -z $ret ]] && die "csg_get_interaction_property: Could not get '$1' for interaction '$bondname'\nResult of '$cmd' was empty"
   echo "${ret}"
 }
 export -f csg_get_interaction_property
@@ -231,10 +231,10 @@ csg_get_property () { #get an property from the xml file
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
   ret="$(critical -q $cmd)"
-  [[ -z $ret && -n $2 ]] && ret="$2"
-  [[ $allow_empty = "no" && -z $ret ]] && die "csg_get_property: Could not get '$1'\nResult of '$cmd' was empty"
   ret="${ret%%[[:space:]]}"
   ret="${ret##[[:space:]]}"
+  [[ -z $ret && -n $2 ]] && ret="$2"
+  [[ $allow_empty = "no" && -z $ret ]] && die "csg_get_property: Could not get '$1'\nResult of '$cmd' was empty"
   echo "${ret}"
 }
 export -f csg_get_property
