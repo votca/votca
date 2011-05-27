@@ -71,13 +71,14 @@ To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
 export -f check_cutoff
 
 check_temp() { #compares k_B T in xml with temp in mpd file
-  local kbt temp
+  local kbt kbt2 temp
   [[ "$(csg_get_property cg.inverse.gromacs.temp_check "yes")" = "no" ]] && return 0
   #kbt in energy unit
   kbt="$(csg_get_property cg.inverse.kBT)"
   temp="$(get_simulation_setting ref_t)"
   #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
-  csg_calc "$kbt" "=" "0.00831451*$temp" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
+  kbt2=$(csg_calc "$temp" "*" 0.00831451)
+  csg_calc "$kbt" "=" "$kbt2" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
 To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
   return 0
 }
@@ -100,3 +101,21 @@ checkpoint_exist() { #check if a checkpoint exists
   return 1
 }
 export -f checkpoint_exist
+
+calc_begin_time() { #return the max of dt*frames and eqtime
+  local dt equi_time first_frame
+  dt=$(get_simulation_setting dt)
+  first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
+  equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
+  t1=$(csg_calc "$dt" "*" "$first_frame")
+  csg_calc "$t1" '>' "$equi_time" && echo "$t1" || echo "$equi_time"
+}
+export -f calc_begin_time
+
+calc_end_time() { #return dt * nsteps
+  local dt steps
+  dt=$(get_simulation_setting dt)
+  steps=$(get_simulation_setting nsteps)
+  csg_calc "$dt" "*" "$steps"
+}
+export -f calc_end_time

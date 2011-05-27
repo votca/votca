@@ -33,4 +33,4 @@ sum="$(for i in $glob; do
     cat $i 
 done | awk 'BEGIN{sum=0}{sum+=$1}END{print sum}')" || die "${0##*/}: Calculation of the convergence sum failed"
 echo "Convergence sum was $sum, limit is $limit"
-csg_calc "$sum" "<" "$limit" && touch 'stop'
+csg_calc "$sum" ">" "$limit" || touch 'stop'
