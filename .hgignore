@@ -9,6 +9,7 @@ src/libtools/linktest
 .cproject
 libvotca*.pc
 libvotca*.so
+libvotca*.so.*
 libvotca*.a
 scripts/VOTCARC.bash
 scripts/VOTCARC.csh
