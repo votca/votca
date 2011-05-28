@@ -3,7 +3,7 @@ add_custom_command(OUTPUT help2t2t DEPENDS help2t2t)
 add_custom_target(help2t2t ALL COMMAND ${CMAKE_COMMAND}
     -DINPUT="help2t2t.out" -DOUTPUT="help2t2t"
     -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgscript.cmake
-    DEPENDS help2t2t.out)
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/help2t2t.out)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES help2t2t)
 
 foreach(SCRIPT csg_call csg_inverse multi_g_rdf)
