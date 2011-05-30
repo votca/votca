@@ -34,7 +34,7 @@ tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
 [[ -n $tasklist ]] && msg "Postadd tasks for $name: $tasklist"
 i=1
 #after all we shift the potential to be 0 at the cutoff and tag with labels
-for task in $tasklist shift tag; do
+for task in tag $tasklist; do
   echo "Doing postadd task '$task' for '${name}'"
   
   #save the current one
