@@ -63,15 +63,15 @@ endif(WITH_GMX)
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-set (HG_HEADER "hgversion.h")
-add_custom_command(OUTPUT ${HG_HEADER}
-  COMMAND ${CMAKE_COMMAND} -E echo 
-  static const std::string hgversion = "\\\"${CSG_HG_ID}\\\"\;" > ${HG_HEADER})
+add_custom_target(hgversion COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgversion.cmake)
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
 
 file(GLOB VOTCA_SOURCES *.cc)
 file(GLOB NOT_VOTCA_SOURCES version_nb.cc test.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
-add_library(votca_csg hgversion.h ${VOTCA_SOURCES} ${GMX_SOURCES} ${IO_SOURCES})
+add_library(votca_csg ${VOTCA_SOURCES} ${GMX_SOURCES} ${IO_SOURCES})
+add_dependencies(votca_csg hgversion)
+set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GMX_LIBS} ${BOOST_LIBRARIES})
 install(TARGETS votca_csg LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 

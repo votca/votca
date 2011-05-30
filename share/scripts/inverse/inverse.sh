@@ -19,16 +19,15 @@ show_help () {
   cat << eof
 ${0##*/}, version %version%
 
-Start the script to run ibi, imc, etc.
+Start the script to run ibi, imc, etc. or clean out current dir
 
-Usage: ${0##*/} [OPTIONS] --options settings.xml
+Usage: ${0##*/} [OPTIONS] --options settings.xml [clean]
 
 Allowed options:
 -h, --help                    show this help
 -N, --do-iterations N         only do N iterations
     --wall-time SEK           Set wall clock time
     --options FILE            Specify the options xml file to use
-    --clean                   clean out the PWD, dangerous
     --debug                   enable debug mode with a lot of information
     --nocolor                 disable colors
 
@@ -76,9 +75,6 @@ while [[ ${1#-} != $1 ]]; do
    -[0-9]*)
     do_iterations=${1#-}
     shift ;;
-   --clean)
-    csg_inverse_clean
-    exit $?;;
    --options)
     CSGXMLFILE="$2"
     [[ -f $CSGXMLFILE ]] || die "options xml file '$CSGXMLFILE' not found"
@@ -100,7 +96,9 @@ done
 ### end parsing options
 
 #old style, inform user
-[[ -z ${CSGXMLFILE} ]] && die "Mssing options xml file, please specifed after --options option (like for all other votca programs)"
+[[ -z ${CSGXMLFILE} ]] && die "Please add your setting xml file behind the --options option (like for all other votca programs) !"
+
+[[ $1 = "clean" ]] && { csg_inverse_clean; exit $?; }
 
 enable_logging
 [[ -n $CSGDEBUG ]] && set -x
@@ -128,7 +126,7 @@ cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [[ -z $cleanlist ]] || echo "We extra clean '$cleanlist' after a step is done"
 
 scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-add_to_csgshare "$scriptdir"
+[[ -n $scriptdir ]] && add_to_csgshare "$scriptdir"
 
 show_csg_tables
 

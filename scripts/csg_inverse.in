@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-version='@PROJECT_VERSION@ @CSG_HG_ID@'
+version='@PROJECT_VERSION@ #CSG_HG_ID#'
 
 if [ -n "$(type -p csg_call)" ]; then
   CSGSHARE="$(csg_call --show-share)" || exit 1

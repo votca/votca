@@ -53,3 +53,10 @@ checkpoint_exist() { #check if a checkpoint exists
   return 1
 }
 export -f checkpoint_exist
+
+get_simulation_setting() { #check if a checkpoint exists
+  #espresso has not support for checkpoints, yet !
+  die "get_simulation_setting: Not implemented for Espresso yet"
+  return 1
+}
+export -f get_simulation_setting

@@ -27,12 +27,12 @@ sub csg_function_help() {
   print <<EOF;
 CsgFunctions, version %version%
 Provides useful function for perl:
-csg_get_property($;$):             get a value from xml file
-csg_get_interaction_property($;$): get a interaction property from xmlfile
-readin_table(\$\\@\\@\\@):           reads in csg table
-readin_table_err(\$\\@\\@\\@):           reads in csg table with errors
-saveto_table(\$\\@\\@\\@):           writes to a csg table
-saveto_table_err(\$\\@\\@\\@) :      writes to csg table with errors
+csg_get_property(\$;\$):             get a value from xml file
+csg_get_interaction_property(\$;\$): get a interaction property from xmlfile
+readin_table(\$\\@\\@\\@;\\\$):           reads in csg table
+readin_table_err(\$\\@\\@\\@;\\\$):           reads in csg table with errors
+saveto_table(\$\\@\\@\\@;\$):           writes to a csg table
+saveto_table_err(\$\\@\\@\\@;\$) :      writes to csg table with errors
 EOF
   exit 0;
 }
@@ -75,15 +75,16 @@ sub csg_get_interaction_property($;$){
   return $value;
 }
 
-sub readin_table($\@\@\@) {
+sub readin_table($\@\@\@;\$) {
   defined($_[3]) || die "readin_table: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table: could not open file $_[0]\n";
   my $line=0;
   while (<TAB>){
     $line++;
+    ${$_[4]}.=$_ if (defined($_[4]) and (/^[#@]/));
+    next if /^[#@]/;
     # remove leading spacees for split
     $_ =~ s/^\s*//;
-    next if /^[#@]/;
     next if /^\s*$/;
     my @parts=split(/\s+/);
     defined($parts[2]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
@@ -97,12 +98,13 @@ sub readin_table($\@\@\@) {
   return $line;
 }
 
-sub readin_table_err($\@\@\@\@) {
+sub readin_table_err($\@\@\@\@;\$) {
   defined($_[4]) || die "readin_table_err: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table_err: could not open file $_[0]\n";
   my $line=0;
   while (<TAB>){
     $line++;
+    ${$_[5]}.=$_ if (defined($_[4]) and (/^[#@]/));
     # remove leading spacees for split
     $_ =~ s/^\s*//;
     next if /^[#@]/;
@@ -142,9 +144,10 @@ sub readin_data($$\@\@) {
   return $line;
 }
 
-sub saveto_table($\@\@\@) {
+sub saveto_table($\@\@\@;$) {
   defined($_[3]) || die "saveto_table: Missing argument\n";
   open(OUTFILE,"> $_[0]") or die "saveto_table: could not open $_[0] \n";
+  print OUTFILE "$_[4]" if (defined $_[4]);
   for(my $i=0;$i<=$#{$_[1]};$i++){
     print OUTFILE "${$_[1]}[$i] ${$_[2]}[$i] ${$_[3]}[$i]\n";
   }
@@ -152,9 +155,10 @@ sub saveto_table($\@\@\@) {
   return 1;
 }
 
-sub saveto_table_err($\@\@\@\@) {
+sub saveto_table_err($\@\@\@\@;$) {
   defined($_[3]) || die "saveto_table: Missing argument\n";
   open(OUTFILE,"> $_[0]") or die "saveto_table: could not open $_[0] \n";
+  print OUTFILE "$_[5]" if (defined $_[5]);
   for(my $i=0;$i<=$#{$_[1]};$i++){
     print OUTFILE "${$_[1]}[$i] ${$_[2]}[$i] ${$_[3]}[$i] ${$_[4]}[$i]\n";
   }

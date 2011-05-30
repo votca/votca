@@ -85,8 +85,9 @@ postadd plot postadd_plot.sh
 convergence_check default convergence_check_default.sh
 
 # table preparation
-dpot shift_nb dpot_shift_nb.pl
-pot shift_nb dpot_shift_nb.pl
+dpot shift_nonbonded dpot_shift_nb.pl
+pot shift_nonbonded dpot_shift_nb.pl
+pot shift_bonded dpot_shift_bo.pl
 resample target resample_target.sh
 dpot crop dpot_crop.pl
 
@@ -129,6 +130,7 @@ table dummy table_dummy.sh
 table get_value table_get_value.pl
 table getsubset table_getsubset.py
 table smooth_borders table_smooth_borders.py
+table compare table_compare.pl 
 
 # error analysis
 tables jackknife tables_jackknife.pl

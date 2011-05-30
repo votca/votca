@@ -13,6 +13,14 @@
                 <make-dep-project>../libcsg</make-dep-project>
                 <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
             </make-dep-projects>
+            <sourceRootList>
+                <sourceRootElem>../../src/tools</sourceRootElem>
+            </sourceRootList>
+            <confList>
+                <confElem>Debug</confElem>
+                <confElem>Release</confElem>
+                <confElem>profile_release</confElem>
+            </confList>
         </data>
     </configuration>
 </project>

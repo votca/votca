@@ -24,7 +24,7 @@ end=""
 np=8
 index="index.ndx"
 out="${fbase}.xvg"
-version="@PROJECT_VERSION@ @CSG_HG_ID@"
+version="@PROJECT_VERSION@ #CSG_HG_ID#"
 single="no"
 debug="no"
 

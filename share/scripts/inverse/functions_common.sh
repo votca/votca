@@ -75,13 +75,13 @@ die () { #make the iterative frame work stopp
   [[ -z $CSGLOG ]] || msg --color blue "For details see $CSGLOG"
   if [[ -n ${CSG_MASTER_PID} ]]; then
     #grabbing the pid group would be easier, but it would not work on AIX
-    pid=$$
+    pid="$$"
     pids="$$"
     c=0
     #find the parent of pid until we reach CSG_MASTER_PID
     until [[ ${CSG_MASTER_PID} -eq $pid ]]; do
       #get the parent pid using BSD style due to AIX
-      pid=$(ps -o ppid= -p $pid 2>/dev/null)
+      pid=$(ps -o ppid= -p "$pid" 2>/dev/null)
       #store them in inverse order to kill parents before the child
       pids="$pid $pids"
       ((c++))
@@ -118,6 +118,7 @@ do_external() { #takes two tags, find the according script and excute it
   script="$(source_wrapper $1 $2)" || die "do_external: source_wrapper $1 $2 failed"
   tags="$1 $2"
   shift 2
+
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
   if [[ -n $CSGDEBUG && -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
     bash -x $script "$@"
@@ -188,23 +189,31 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     allow_empty="no"
   fi
   [[ -n $1 ]] || die "csg_get_interaction_property: Missing argument"
-  [[ -n $CSGXMLFILE ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
-  [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
-  [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
+  
   #bondtype is special -> dirty hack - removed whenever issue 13 is fixed
-  [[ $1 = "bondtype" ]] && cmd="echo $bondtype" || \
-    cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
+  #make these this case work even without name (called by csg_call)
+  [[ $1 = "bondtype" ]] && echo "$bondtype" && return 0
+
+  [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
+  #make these this case work even without xml file (called by csg_call)
+  [[ $1 = "name" ]] && echo "$bondname" && return 0
+
+  [[ -n $CSGXMLFILE ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
+  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
   if ! ret="$($cmd)"; then
     [[ $allow_empty = "no" && -z $2 ]] && \
-      die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' with error msg:\n $ret\n and no default for $1"
+      die "csg_get_interaction_property:\n'$cmd'\nfailed geting '$1' for interaction '$bondname' with error msg:\n $ret\n and no default for $1"
     #ret has error message
     ret=""
   fi
+  ret="${ret%%[[:space:]]}"
+  ret="${ret##[[:space:]]}"
   [[ $allow_empty = no && -z $ret && -n $2 ]] && ret="$2"
-  [[ $allow_empty = no && -z $ret ]] && die "csg_get_interaction_property: Could not get '$1'\nResult of '$cmd' was empty"
-  echo "$ret"
+  [[ $allow_empty = no && -z $ret ]] && die "csg_get_interaction_property: Could not get '$1' for interaction '$bondname'\nResult of '$cmd' was empty"
+  echo "${ret}"
 }
 export -f csg_get_interaction_property
 
@@ -222,9 +231,11 @@ csg_get_property () { #get an property from the xml file
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
   ret="$(critical -q $cmd)"
+  ret="${ret%%[[:space:]]}"
+  ret="${ret##[[:space:]]}"
   [[ -z $ret && -n $2 ]] && ret="$2"
   [[ $allow_empty = "no" && -z $ret ]] && die "csg_get_property: Could not get '$1'\nResult of '$cmd' was empty"
-  echo "$ret"
+  echo "${ret}"
 }
 export -f csg_get_property
 
@@ -253,6 +264,16 @@ int_check() { #checks if 1st argument is a integer or calls die with error messa
   die "$*"
 }
 export -f int_check
+
+num_check() { #checks if 1st argument is a number or calls die with error message (2nd argument)
+  local res
+  [[ -n $1 || -n $2 ]] || die "num_check: Missing argument"
+  res=$(awk -v x="$1" 'BEGIN{ print x+0==x; }')
+  [[ $res -eq 1 ]] && return 0
+  shift
+  die "$*"
+}
+export -f num_check
 
 get_stepname() { #get the dir name of a certain step number (1st argument)
   local name
@@ -329,46 +350,37 @@ get_step_nr() { #print the number of a certain step directory (1st argument)
 }
 export -f get_step_nr
 
-cp_from_to() { #copy a file from somewhere to somewhere, should be called as ``cp_from_to --from XXX --where YYY what``
-  local i to from where
-  if [[ $1 = "--from" ]]; then
-    from="$2"
-    shift 2
-  else
-    die "cp_form_to: first argument should be --from DIR"
-  fi
-  if [[ $1 = "--where" ]]; then
-    where="$2"
-    shift 2
-  else
-    where="."
-  fi
-  if [[ $1 = "--no-check" ]]; then
-    shift
-  else
-    [[ -d $where ]] || die "cp_from_to: $where is not a dir"
-    [[ -d $from ]] || die "cp_from_to: $from is not a dir"
-  fi
-  [[ -z $1 ]] && die "cp_from_to: Missing argument"
-  for i in $@; do
-    #no glob pattern in $i or could not be expanded
-    if [[ $from/$i = "$(echo $from/$i)" ]]; then
-      [[ -e $from/$i ]] || die "cp_from_to: could not find '$from/$i'"
-    fi
-    cp -r $from/$i "$where" || die "cp_from_to: cp -r '$from/$i' '$where' failed"
-  done
-}
-export -f cp_from_to
-
 cp_from_main_dir() { #copy something from the main directory
-  echo "cp_from_main_dir: '$@'"
-  critical cp_from_to --from $(get_main_dir) "$@"
+  if [[ $1 = "--rename" ]]; then
+    shift
+    [[ $# -eq 2 && -n $1 && -n $2 ]] || die "cp_from_main_dir: with --rename option has to be called with exactly 2 (non-empty) arguments"
+    echo "cp_from_main_dir: '$1' to '$2'"
+    critical pushd "$(get_main_dir)"
+    critical cp "$1" "$(dirs -l +1)/$2"
+    critical popd
+  else
+    echo "cp_from_main_dir: '$@'"
+    critical pushd "$(get_main_dir)"
+    critical cp "$@" "$(dirs -l +1)"
+    critical popd
+  fi
 }
 export -f cp_from_main_dir
 
 cp_from_last_step() { #copy something from the last step
-  echo "cp_from_last_step: '$@'"
-  critical cp_from_to --from $(get_last_step_dir) "$@"
+  if [[ $1 = "--rename" ]]; then
+    shift
+    [[ $# -eq 2 && -n $1 && -n $2 ]] || die "cp_from_last_step: with --rename option has to be called with exactly 2 (non-empty) arguments"
+    echo "cp_from_last_step: '$1' to '$2'"
+    critical pushd "$(get_last_step_dir)"
+    critical cp "$1" "$(dirs -l +1)/$2"
+    critical popd
+  else
+    echo "cp_from_last_step: '$@'"
+    critical pushd "$(get_last_step_dir)"
+    critical cp "$@" "$(dirs -l +1)"
+    critical popd
+  fi
 }
 export -f cp_from_last_step
 
@@ -392,24 +404,24 @@ get_number_tasks() { #get the number of possible tasks from the xml file or dete
 }
 export -f get_number_tasks
 
-get_table_comment() { #print the common comments from a table, which include the hgid and other information
-  local version
+get_table_comment() { #get comment lines from a table and add common information, which include the hgid and other information
+  local version co
   [[ -n "$(type -p csg_call)" ]] || die "get_defaults_comment: Could not find csg_version"
   version="$(csg_call --version)" || die "get_defaults_comment: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
-  [[ -n ${CSGXMLFILE} ]] && echo "settings file: $CSGXMLFILE"
+  [[ -n ${CSGXMLFILE} ]] && echo "settings file: $(globalize_file $CSGXMLFILE)"
   echo "working directory: $PWD"
+  if [[ -f $1 ]]; then 
+    co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "get_table_comment: sed failed"
+    [[ -n $co ]] && echo "Comments from $(globalize_file $1):\n$co"
+  fi
 }
 export -f get_table_comment
 
 csg_inverse_clean() { #clean out the main directory 
-  local i files log="inverse.log"
-  if [[ -n ${CSGXMLFILE} ]]; then
-    log="$(csg_get_property cg.inverse.log_file "$log")"
-  else
-    msg --color blue "No options xml given, so we assume '$log' to be the logfile"
-  fi
+  local i files log
+  log="$(csg_get_property cg.inverse.log_file "inverse.log")"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
   files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
@@ -431,7 +443,7 @@ export -f csg_inverse_clean
 add_to_csgshare() { #added an directory to the csg internal search directories
   local dir
   for dir in "$@"; do
-    [[ -z $dir ]] && continue
+    [[ -z $dir ]] && die "add_to_csgshare: Missing argument"
     #dir maybe contains $PWD or something
     eval dir="$dir"
     dir="$(globalize_dir "$dir")"
@@ -495,22 +507,26 @@ csg_banner() { #print a big banner
 export -f csg_banner
 
 csg_calc() { #simple calculator, a + b, ...
-  local res ret=0 err="1e-5"
-  [[ -z $1 || -z $2 || -z $3 ]] && die "csg_calc: Needs 3 arguments"
+  local res ret=0 err="1e-2"
+  [[ -z $1 || -z $2 || -z $3 ]] && die "csg_calc: Needs 3 arguments, but got '$*'"
+  num_check "$1" "csg_calc: First argument should be a number, but found '$1'"
+  num_check "$3" "csg_calc: Third argument should be a number, but found '$3'"
   [[ -n "$(type -p awk)" ]] || die "csg_calc: Could not find awk"
+  #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
     "+"|"-"|'*'|"/"|"**")
-       res="$(awk "BEGIN{print ($1)$2($3)}")" || die "csg_calc: awk 'BEGIN{print ($1)$2($3)}' failed"
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print x $2 y}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print x $2 y}' failed"
        true;;
     '>'|'<' )
-       res="$(awk "BEGIN{print (($1)$2($3))}")" || die "csg_calc: awk 'BEGIN{print (($1)$2($3))}' failed"
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
        #return value matters
        res=""
        true;;
     "="|"==")
-       res="$(awk "BEGIN{print (sqrt((($1)-($3))**2)<$err)}")" || die "csg_calc: awk 'BEGIN{print (sqrt((($1)-($3))**2)<$err)}' failed"
+       #we expect that x and y are close together
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( (sqrt((x-y)/x)**2) < $err )}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ((sqrt(x-y)**2)/(x))<$err)}' failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
        #return value matters
@@ -652,4 +668,16 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   done
 }
 export -f check_for_obsolete_xml_options
+
+command_not_found_handle() { #print and error message if a command or a function was not found
+  die "Command/function $1 not found (when calling from csg_call you might need to add --simprog option or set cg.inverse.program in the xml file)"
+}
+export -f command_not_found_handle
+
+#in bash4 this is not needed, but for older bash we add add a failback from most important simulation functions
+for i in simulation_finish checkpoint_exist get_simulation_setting; do
+  eval $i\(\) { command_not_found_handle $i\; }
+  eval export -f $i 
+done
+unset i
 

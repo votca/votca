@@ -29,5 +29,5 @@ esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
 cp_from_main_dir $esp
 
-critical mv $esp $espout
+critical cp $esp $espout
 

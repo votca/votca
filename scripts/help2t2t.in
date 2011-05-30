@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-version='@PROJECT_VERSION@ @CSG_HG_ID@'
+version='@PROJECT_VERSION@ #CSG_HG_ID#'
 
 die() {
   echo -e "$*" >&2
@@ -24,7 +24,7 @@ die() {
 
 assert() {
   local x pipestatus=${PIPESTATUS[*]}
-  for x in $pipestatus ; do
+  for x in $pipestatus; do
       [[ $x -eq 0 ]] || die "$@"
   done
 }

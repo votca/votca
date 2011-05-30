@@ -31,7 +31,7 @@ fi
 top_traj="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
 
 # Number of snapshots before statistics are taken into account
-equi_snapshots="$(csg_get_property cg.inverse.espresso.equi_snapshots 0)"
+equi_snapshots="$(csg_get_property cg.inverse.espresso.first_frame 0)"
 
 # Espresso config file (required for certain parameters, e.g. box size)
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"

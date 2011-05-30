@@ -63,6 +63,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1332856960/gmxtrajectorywriter.o \
 	${OBJECTDIR}/_ext/1332856960/pdbwriter.o \
 	${OBJECTDIR}/_ext/484457853/cgengine.o \
+	${OBJECTDIR}/_ext/1332856960/xyzwriter.o \
 	${OBJECTDIR}/_ext/484457853/nblistgrid.o \
 	${OBJECTDIR}/_ext/484457853/csgapplication.o \
 	${OBJECTDIR}/_ext/1332856960/gmx_version_nb.o \
@@ -245,6 +246,11 @@ ${OBJECTDIR}/_ext/484457853/cgengine.o: ../../src/libcsg/cgengine.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457853/cgengine.o ../../src/libcsg/cgengine.cc
+
+${OBJECTDIR}/_ext/1332856960/xyzwriter.o: ../../src/libcsg/modules/io/xyzwriter.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1332856960
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -I../../../include -I/usr/include/libxml2 -I../../../../../ruehle/gmx/include/gromacs -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1332856960/xyzwriter.o ../../src/libcsg/modules/io/xyzwriter.cc
 
 ${OBJECTDIR}/_ext/484457853/nblistgrid.o: ../../src/libcsg/nblistgrid.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457853

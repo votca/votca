@@ -37,29 +37,33 @@ if [ -n "${gmxrc}" ]; then
 fi
 unset gmxrc
 
-get_from_mdp() { #gets a parameter (1st argument) from gromacs mdp file (2nd parameter)
+get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp file (2nd parameter)
   local res
-  [[ -z $1 || -z $2 ]] && die "get_from_mdp: Missing argument (what file)"
-  [[ -f $2 ]] || die "get_from_mdp: Could not read file '$2'"
+  if [[ $1 = "--file" ]]; then
+    mdp="$2"
+    shift 2
+  else
+    mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+  fi
+  [[ -z $1 ]] && die "get_simulation_setting: Missing argument (property)"
+  [[ -f $mdp ]] || die "get_simulation_setting: Could not read setting file '$mdp'"
   #1. strip comments
   #2. get important line
   #3. remove leading and tailing spaces
-  res="$(sed -e '/^[[:space:]]*;/d' -e 's#;.*$##' "$2" | \
-        sed -n -e "s#^[[:space:]]*$1[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*\$#\1#p" | \
+  res="$(sed -e '/^[[:space:]]*;/d' -e 's#;.*$##' "$mdp" | \
+        sed -n -e "s#^[[:space:]]*$1[[:space:]]*=\(.*\)\$#\1#p" | \
 	sed -e 's#^[[:space:]]*##' -e 's#[[:space:]]*$##')" || \
-    die "get_from_mdp: sed failed"
-  [[ -z "$res" ]] && [ -z "$3" ] && die "get_from_mdp: could not fetch $1 from $2, please add it"
-  [ -n "$res" ] && echo "$res" || echo "$3"
+    die "get_simulation_setting: sed failed"
+  [[ -z $res && -z $2 ]] && die "get_simulation_setting: could not fetch $1 from $mdp and no default given, please add it in there"
+  [[ -n $res ]] && echo "$res" || echo "$2"
 }
-export -f get_from_mdp
+export -f get_simulation_setting
 
 check_cutoff() { #compared current interactions cutoff vs rvdw, 
-  local max rvdw res cutoff_check
-  [[ -z $1 ]] && die "check_cutoff: Missing argument (mdp file)"
-  cutoff_check=$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")
-  [ ${cutoff_check} = "no" ] && return 0
+  local max rvdw
+  [[ "$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")" = "no" ]] && return 0
   max="$(csg_get_interaction_property max)"
-  rvdw="$(get_from_mdp rvdw "$1")"
+  rvdw="$(get_simulation_setting rvdw)"
   csg_calc "$max" ">" "$rvdw" && die "Error in interaction '$bondname': rvdw ($rvdw) in $1 is smaller than max ($max)\n\
 To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
   return 0
@@ -67,15 +71,14 @@ To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
 export -f check_cutoff
 
 check_temp() { #compares k_B T in xml with temp in mpd file
-  local temp_check kbt temp res
-  [[ -z $1 ]] && die "check_temp: Missing argument (mdp file)"
-  temp_check=$(csg_get_property cg.inverse.gromacs.temp_check "yes")
-  [ ${temp_check} = "no" ] && return 0
+  local kbt kbt2 temp
+  [[ "$(csg_get_property cg.inverse.gromacs.temp_check "yes")" = "no" ]] && return 0
   #kbt in energy unit
   kbt="$(csg_get_property cg.inverse.kBT)"
-  temp="$(get_from_mdp ref_t "$1")"
+  temp="$(get_simulation_setting ref_t)"
   #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
-  csg_calc "$kbt" "=" "0.00831451*$temp" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
+  kbt2=$(csg_calc "$temp" "*" 0.00831451)
+  csg_calc "$kbt" "=" "$kbt2" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
 To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
   return 0
 }
@@ -98,3 +101,21 @@ checkpoint_exist() { #check if a checkpoint exists
   return 1
 }
 export -f checkpoint_exist
+
+calc_begin_time() { #return the max of dt*frames and eqtime
+  local dt equi_time first_frame
+  dt=$(get_simulation_setting dt)
+  first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
+  equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
+  t1=$(csg_calc "$dt" "*" "$first_frame")
+  csg_calc "$t1" '>' "$equi_time" && echo "$t1" || echo "$equi_time"
+}
+export -f calc_begin_time
+
+calc_end_time() { #return dt * nsteps
+  local dt steps
+  dt=$(get_simulation_setting dt)
+  steps=$(get_simulation_setting nsteps)
+  csg_calc "$dt" "*" "$steps"
+}
+export -f calc_end_time

@@ -7,6 +7,7 @@ csg_*.help
 libvotca*.pc
 libvotca*.a
 libvotca*.so
+libvotca*.so.*
 Makefile
 scripts/csg.rc.bash
 scripts/csg.rc.csh
@@ -18,6 +19,7 @@ scripts/multi_g_*.man
 scripts/multi_g_*.help
 scripts/multi_g_*.t2t
 scripts/csg_inverse.t2t
+scripts/*.out
 share/scripts/inverse/MD5SUM
 share/doc/Doxyfile
 share/doc/html/*
