@@ -34,6 +34,7 @@ use CsgFunctions;
 
 my $kBT=csg_get_property("cg.inverse.kBT");
 my $max=csg_get_interaction_property("max");
+my $min=csg_get_interaction_property("min");
 my $delta_r=csg_get_interaction_property("step");
 my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.simple.scale");
 my $p_target=csg_get_interaction_property("inverse.p_target");
@@ -60,7 +61,7 @@ my @pot;
 my @flag;
 my $outfile="$ARGV[1]";
 my $comment="#$progname: p_now=$p_now, p_target=$p_target, prefactor=$pref\n";
-for(my $i=0;$i<=$max/$delta_r;$i++){
+for(my $i=$min/$delta_r;$i<=$max/$delta_r;$i++){
   $r[$i]=$i*$delta_r;
   $pot[$i]=$pref*(1-$r[$i]/$max);
   $flag[$i]="i";
