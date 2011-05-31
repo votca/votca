@@ -1,2 +1,5 @@
 file(GLOB_RECURSE VOTCA_HEADERS *.h)
+if (NOT WITH_SQLITE3)
+  list(REMOVE_ITEM VOTCA_HEADERS database.h statement.h)
+endif(NOT WITH_SQLITE3)
 install(FILES ${VOTCA_HEADERS} DESTINATION include/votca/tools)
