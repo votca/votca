@@ -11,7 +11,7 @@ list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${NOT_IO_SOURCES})
 
 if (WITH_GMX)
   if (WITH_GMX_DEVEL)
-    message(WARNING "Using gromacs-5.0, this is very experimental, hope you know what you are doing")
+    message(WARNING " Using gromacs-5.0, this is very experimental, hope you know what you are doing")
     find_package(GROMACS_D)
     if (GROMACS_D_FOUND)
       set(GMX_PKG libgromacs_d)
