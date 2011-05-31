@@ -4,6 +4,7 @@
 #  VOTCA_TOOLS_INCLUDE_DIRS - where to find votca/tools/version.h, etc.
 #  VOTCA_TOOLS_LIBRARIES    - List of libraries when using expat.
 #  VOTCA_TOOLS_FOUND        - True if expat found.
+#  VOTCA_TOOLS_HAS_SQLITE3  - True if votca tools was build with sqlite3 support
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
@@ -24,6 +25,14 @@ find_package(PkgConfig)
 
 pkg_check_modules(PC_VOTCA_TOOLS libvotca_tools)
 find_path(VOTCA_TOOLS_INCLUDE_DIR votca/tools/version.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
+
+find_path(VOTCA_TOOLS_HAS_SQLITE3 votca/tools/database.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
+if (VOTCA_TOOLS_HAS_SQLITE3)
+  set(VOTCA_TOOLS_HAS_SQLITE3 TRUE)
+else(VOTCA_TOOLS_HAS_SQLITE3)
+  set(VOTCA_TOOLS_HAS_SQLITE3 FALSE)
+endif(VOTCA_TOOLS_HAS_SQLITE3)
+
 find_library(VOTCA_TOOLS_LIBRARY NAMES votca_tools HINTS ${PC_VOTCA_TOOLS_LIBRARY_DIRS} )
 
 #add deps
