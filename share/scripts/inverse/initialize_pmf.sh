@@ -26,49 +26,54 @@ EOF
   exit 0
 fi
 
-pullgroup0=$(csg_get_interaction_property pmf.pullgroup0)
-pullgroup1=$(csg_get_interaction_property pmf.pullgroup1)
-conf_init=$(csg_get_interaction_property pmf.conf_init)
-min=$(csg_get_interaction_property pmf.from)
-rate=$(csg_get_nteraction_property pmf.rate)
+#if user gave us a conf_in we use this one
+conf_in=$(csg_get_interaction_property --allow-empty pmf.conf_in)
+if [[ -n $conf_in ]]; then
+    msg "Initial configuration specified in xml, using $conf_in"
+    conf_out="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+    cp_from_main_dir --rename "${conf_in}" "${conf_out}"
+    #todo check if distance is really correct
+    exit 0
+fi
+
+name=$(csg_get_interaction_property name)
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
-filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-mdp_init="start_in.mdp"
 mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 traj="traj.${ext}"
 
 # Generate start_in.mdp
-critical cp_from_main_dir grompp.mdp.template
-cat grompp.mdp.template | sed 's/^pull.*$//' | uniq > tmp
+mdp_template="$(csg_get_property cg.inverse.gromacs.mdp_template "grompp.mdp.template")"
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+cp_from_main_dir --rename "${mdp_template}" "${mdp}"
 sed -e "s/@STEPS@/$steps/" \
     -e "s/@EXCL@//" \
-    -e "s/@OUT@/0/" tmp > ${mdp_init}
-rm tmp
+    -e "s/@OUT@/0/" -i  "${mdp}"
 
-dt=$(get_from_mdp dt "$mdp_init")
-
-conf_in=$(csg_get_interaction_property --allow-empty pmf.conf_in)
-if [ ! -z "$conf_in" ]; then
-    msg "Initial configuration specified in xml, using $conf_in"
-    mkdir step_000
-    conf_out=$(csg_get_interaction_property .pmf.conf_in)
-    critical cp $(conf_out) step_000/confout.gro
-    grompp="$main_dir/grompp.mdp"
-    exit 0
-fi
-
-cp_from_main_dir $filelist
-critical cp_from_main_dir ${conf_init}  
+conf=$(csg_get_interaction_property cg.inverse.gromacs.conf "conf.gro")
+critical cp_from_main_dir ${conf} 
 
 # Run grompp to generate tpr, then calculate distance
-grompp -n index.ndx -c ${conf_init} -f ${mdp_init} ${mdp_opts}
-echo -e "${pullgroup0}\n${pullgroup1}" |  g_dist -f ${conf_init} -n index.ndx -o ${conf_init}.xvg
-dist=$(sed '/^[#@]/d' ${conf_init}.xvg | awk '{print $2}')
-[ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
-echo Found distance $dist
-cp ${conf_init} conf.gro
+do_external run gromacs --prepare-only
+
+grp1=$(csg_get_interaction_property --allow-empty gromacs.grp1)
+grp2=$(csg_get_interaction_property --allow-empty gromacs.grp2)
+g_dist="$(csg_get_property cg.inverse.gromacs.g_dist.bin "g_dist")"
+[ -n "$(type -p $grompp)" ] || die "${0##*/}: grompp binary '$grompp' not found"
+index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"
+[ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
+
+distfile="$(critical mktemp smooth_${name}.dist.XXXXX)"
+echo -e "${grp1}\n${grp2}" |  "$g_dist" -f "${conf}" -n "$index" -o "$distfile"
+dist=$(awk '/^[^#@]/{print $2}' "$distfile") || die "${0##*/}: Awk get of distance from $distfile failed"
+[ -z "$dist" ] && die "${0##*/}: Could not fetch dist for $distfile"
+echo "Distance between ${grp1} and ${grp2} in ${conf}:$dist"
+
+#ToDo
 
 # Prepare grommpp file
+dt=$(get_simulation_setting dt)
+rate=$(csg_get_interaction_property pmf.rate)
+min=$(csg_get_interaction_property min)
 steps="$(awk "BEGIN{print int(($min-$dist)/$rate/$dt)}")"
 if [ $steps -le 0 ]; then
   steps="${steps#-}"

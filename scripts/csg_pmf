@@ -140,6 +140,7 @@ if [[ $mdrun != *-rerun* ]]; then
     mkdir -p $this_dir || die "mkdir -p $this_dir failed"
     cd $this_dir || die "cd $this_dir failed"
 
+    cp_from_main_dir $filelist
     do_external initialize pmf
     touch "done"
     echo "$pmf_step is done"

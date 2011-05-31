@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 This script runs a gromacs simulation
 
-Usage: ${0##*/}
+Usage: ${0##*/} [--prepare-only]
 
 Used external packages: gromacs
 EOF
@@ -67,4 +67,4 @@ else
   echo "${0##*/}: No walltime defined, so time limitation given to $mdrun"
 fi
 
-critical $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}
+[[ $1 = "--prepare-only" ]] || critical $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}
