@@ -75,13 +75,13 @@ die () { #make the iterative frame work stopp
   [[ -z $CSGLOG ]] || msg --color blue "For details see $CSGLOG"
   if [[ -n ${CSG_MASTER_PID} ]]; then
     #grabbing the pid group would be easier, but it would not work on AIX
-    pid=$$
+    pid="$$"
     pids="$$"
     c=0
     #find the parent of pid until we reach CSG_MASTER_PID
     until [[ ${CSG_MASTER_PID} -eq $pid ]]; do
       #get the parent pid using BSD style due to AIX
-      pid=$(ps -o ppid= -p $pid 2>/dev/null)
+      pid=$(ps -o ppid= -p "$pid" 2>/dev/null)
       #store them in inverse order to kill parents before the child
       pids="$pid $pids"
       ((c++))
@@ -209,9 +209,11 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     #ret has error message
     ret=""
   fi
+  ret="${ret%%[[:space:]]}"
+  ret="${ret##[[:space:]]}"
   [[ $allow_empty = no && -z $ret && -n $2 ]] && ret="$2"
   [[ $allow_empty = no && -z $ret ]] && die "csg_get_interaction_property: Could not get '$1' for interaction '$bondname'\nResult of '$cmd' was empty"
-  echo "$ret"
+  echo "${ret}"
 }
 export -f csg_get_interaction_property
 
@@ -229,9 +231,11 @@ csg_get_property () { #get an property from the xml file
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
   ret="$(critical -q $cmd)"
+  ret="${ret%%[[:space:]]}"
+  ret="${ret##[[:space:]]}"
   [[ -z $ret && -n $2 ]] && ret="$2"
   [[ $allow_empty = "no" && -z $ret ]] && die "csg_get_property: Could not get '$1'\nResult of '$cmd' was empty"
-  echo "$ret"
+  echo "${ret}"
 }
 export -f csg_get_property
 
@@ -260,6 +264,16 @@ int_check() { #checks if 1st argument is a integer or calls die with error messa
   die "$*"
 }
 export -f int_check
+
+num_check() { #checks if 1st argument is a number or calls die with error message (2nd argument)
+  local res
+  [[ -n $1 || -n $2 ]] || die "num_check: Missing argument"
+  res=$(awk -v x="$1" 'BEGIN{ print x+0==x; }')
+  [[ $res -eq 1 ]] && return 0
+  shift
+  die "$*"
+}
+export -f num_check
 
 get_stepname() { #get the dir name of a certain step number (1st argument)
   local name
@@ -494,21 +508,25 @@ export -f csg_banner
 
 csg_calc() { #simple calculator, a + b, ...
   local res ret=0 err="1e-2"
-  [[ -z $1 || -z $2 || -z $3 ]] && die "csg_calc: Needs 3 arguments"
+  [[ -z $1 || -z $2 || -z $3 ]] && die "csg_calc: Needs 3 arguments, but got '$*'"
+  num_check "$1" "csg_calc: First argument should be a number, but found '$1'"
+  num_check "$3" "csg_calc: Third argument should be a number, but found '$3'"
   [[ -n "$(type -p awk)" ]] || die "csg_calc: Could not find awk"
+  #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
     "+"|"-"|'*'|"/"|"**")
-       res="$(awk "BEGIN{print ($1)$2($3)}")" || die "csg_calc: awk 'BEGIN{print ($1)$2($3)}' failed"
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print x $2 y}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print x $2 y}' failed"
        true;;
     '>'|'<' )
-       res="$(awk "BEGIN{print (($1)$2($3))}")" || die "csg_calc: awk 'BEGIN{print (($1)$2($3))}' failed"
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
        #return value matters
        res=""
        true;;
     "="|"==")
-       res="$(awk "BEGIN{print ((sqrt((($1)-($3))**2)/($1))<$err)}")" || die "csg_calc: awk 'BEGIN{print (sqrt((($1)-($3))**2)<$err)}' failed"
+       #we expect that x and y are close together
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( (sqrt((x-y)/x)**2) < $err )}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ((sqrt(x-y)**2)/(x))<$err)}' failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
        #return value matters

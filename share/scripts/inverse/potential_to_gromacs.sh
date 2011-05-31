@@ -54,7 +54,8 @@ if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
     rlist=$(get_simulation_setting rlist)
     tabext=$(get_simulation_setting table-extension)
     # if we have all 3 numbers do this checks
-    [[ -n $tablend  ]] &&  csg_calc "$tablend" "<" "$rlist+$tabext" && \
+    tabl=$(csg_calc "$rlist" + "$tabext")
+    [[ -n $tablend  ]] &&  csg_calc "$tablend" "<" "$tabl" && \
       die "${0##*/}: Error table is shorter then what mdp file ($mdp) needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
     [[ -z $tablend ]] && tablend=$(csg_calc "$rlist" + "$tabext")
   elif [[ -z $tablend ]]; then

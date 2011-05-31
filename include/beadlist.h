@@ -44,6 +44,8 @@ public:
     
     /// \brief Select all beads of type <select>
     int Generate(Topology &top, const string &select);
+     /// \brief Select all beads of type <select> withn a radius <radius> of reference vector <ref>
+    int GenerateInSphericalSubvolume(Topology &top, const string &select,  vec ref, double radius);
     
     Topology *getTopology() {return _topology; }
     

@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script calcs the rdf for gromacs using g_rdf
@@ -26,11 +26,6 @@ Used external packages: gromacs
 EOF
    exit 0
 fi
-
-dt=$(get_simulation_setting dt)
-equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
-steps=$(get_simulation_setting nsteps)
-first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 index="$(csg_get_property cg.inverse.gromacs.g_rdf.index "index.ndx")"
 [ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
@@ -47,12 +42,12 @@ g_rdf="$(csg_get_property cg.inverse.gromacs.g_rdf.bin "g_rdf")"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_rdf.opts)"
 
 grp1=$(csg_get_interaction_property --allow-empty gromacs.grp1)
-if [ -z "$grp1" ]; then
+if [[ -z $grp1 ]]; then
   grp1=$(csg_get_interaction_property type1)
   msg --color blue --to-stderr "WARNING (in ${0##*/}): could not find energy group of type1 (interaction property gromacs.grp1) using bead type1 ($grp1) as failback !"
 fi
 grp2=$(csg_get_interaction_property --allow-empty gromacs.grp2)
-if [ -z "$grp2" ]; then
+if [[ -z $grp2 ]]; then
   grp2=$(csg_get_interaction_property type2)
   msg --color blue --to-stderr "WARNING (in ${0##*/}): could not find energy group of type2 (interaction property gromacs.grp2) using bead type2 ($grp2) as failback !"
 fi
@@ -61,8 +56,8 @@ binsize=$(csg_get_interaction_property step)
 min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 
-begin="$(awk -v dt=$dt -v frames=$first_frame -v eqtime=$equi_time 'BEGIN{print (eqtime > dt*frames ? eqtime : dt*frames) }')"
-end="$(awk -v dt="$dt" -v steps="$steps" 'BEGIN{print dt*steps}')"
+begin="$(calc_begin_time)"
+end="$(calc_end_time)"
 
 tasks=$(get_number_tasks)
 if is_done "rdf-$name"; then

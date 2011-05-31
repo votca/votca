@@ -36,9 +36,9 @@ step=$(csg_get_interaction_property step)
 
 tmpfile=$(critical mktemp ${name}.XXX)
 
-sed -ne '/i[[:space:]]*$/p' "$1" > $tmpfile
-spmin=$(sed -ne '1p' $tmpfile | awk '{print $1}')
-spmax=$(sed -ne '$p' $tmpfile | awk '{print $1}')
+sed -e '/^#/d' "$1" | sed -n -e '/i[[:space:]]*$/p' > $tmpfile
+spmin=$(sed -n -e '1p' $tmpfile | awk '{print $1}')
+spmax=$(sed -n -e '$p' $tmpfile | awk '{print $1}')
 spstep=$(csg_get_interaction_property inverse.post_update_options.splinesmooth.step)
 
 comment="$(get_table_comment)"
