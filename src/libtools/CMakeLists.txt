@@ -34,7 +34,7 @@ else(WITH_GSL)
   set(GSL_PKG "")
 endif(WITH_GSL)
 
-option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport parts!" OFF)
+option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport parts!" ON)
 if (WITH_SQLITE3)
   find_package(SQLITE3)
   if(NOT SQLITE3_FOUND)
