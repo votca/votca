@@ -31,7 +31,7 @@ using namespace std;
 void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual)
 {
 #ifdef NOGSL
-    throw std::runtime_error("linalg_qrsolve is not compiled-in due to disabling of GSL - recompile libtools with '--with-gsl'");
+    throw std::runtime_error("linalg_qrsolve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
 #else
     // check matrix for zero column
     int nonzero_found = 0;
@@ -77,7 +77,7 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
 void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr)
 {
 #ifdef NOGSL
-    throw std::runtime_error("linalg_constrained_qrsolve is not compiled-in due to disabling of GSL - recompile libtools with '--with-gsl'");
+    throw std::runtime_error("linalg_constrained_qrsolve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
 #else
     // check matrix for zero column
     int nonzero_found = 0;
