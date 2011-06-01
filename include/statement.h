@@ -46,57 +46,6 @@ protected:
 	friend class Database;
 };
 
-inline Statement::~Statement()
-{
-	sqlite3_finalize(_stmt);
-}
-
-template<>
-inline void Statement::Bind(int col, const int &value)
-{
-	sqlite3_bind_int(_stmt, col, value);
-}
-
-template<>
-inline void Statement::Bind(int col, const double &value)
-{
-	sqlite3_bind_double(_stmt, col, value);
-}
-
-template<>
-int Statement::Column<int>(int col)
-{
-	return sqlite3_column_int(_stmt, col);
-}
-
-template<>
-double Statement::Column<double>(int col)
-{
-	return sqlite3_column_double(_stmt, col);
-}
-
-template<>
-string Statement::Column<string>(int col)
-{
-	return string((const char*)sqlite3_column_text(_stmt, col));
-}
-
-template<>
-inline void Statement::Bind(int col, const string &value)
-{
-    sqlite3_bind_text(_stmt, col, value.c_str(), -1, NULL);;
-}
-
-inline int Statement::Step()
-{
-	return sqlite3_step(_stmt);
-}
-
-inline void Statement::Reset()
-{
-	sqlite3_reset(_stmt);
-}
-
 }}
 
 #endif

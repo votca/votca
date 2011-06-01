@@ -17,7 +17,7 @@ if (WITH_FFTW)
 else(WITH_FFTW)
   #used in votca_config.h
   set(NOFFTW TRUE)
-  set(FFTW3_PKG "")
+  set(FFTW3_PKG)
 endif(WITH_FFTW)
 
 option(WITH_GSL "Use GSL, disabling leads to reduced functionality!" ON)
@@ -31,8 +31,13 @@ if (WITH_GSL)
 else(WITH_GSL)
   #used in votca_config.h
   set(NOGSL TRUE)
-  set(GSL_PKG "")
+  set(GSL_PKG)
 endif(WITH_GSL)
+
+file(GLOB_RECURSE VOTCA_SOURCES *.cc)
+file(GLOB NOT_VOTCA_SOURCES version_nb.cc test.cc)
+file(GLOB_RECURSE VOTCA_SQL_SOURCES database.cc statement.cc)
+list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 
 option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport parts!" ON)
 if (WITH_SQLITE3)
@@ -43,7 +48,8 @@ if (WITH_SQLITE3)
   include_directories(${SQLITE3_INCLUDE_DIRS})
   set(SQLITE3_PKG "sqlite3")
 else(WITH_SQLITE3)
-  set(SQLITE3_PKG "")
+  set(SQLITE3_PKG)
+  set(VOTCA_SQL_SOURCES)
 endif(WITH_SQLITE3)
 
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
@@ -52,13 +58,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_custom_target(hgversion COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
 
-file(GLOB_RECURSE VOTCA_SOURCES *.cc)
-file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc test.cc)
-list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
-add_library(votca_tools ${VOTCA_SOURCES})
+add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 add_dependencies(votca_tools hgversion)
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES}
+target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES} ${SQLITE3_LIBRARIES}
   ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
 install(TARGETS votca_tools LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 

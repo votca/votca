@@ -17,10 +17,13 @@
 #ifndef __VOTCA_TOOLS_DATABASE_H
 #define __VOTCA_TOOLS_DATABASE_H
 
+#include <string>
 #include <sqlite3.h>
 #include "statement.h"
 
 namespace votca { namespace tools {
+
+using namespace std;
 
 class Database
 {
@@ -40,46 +43,6 @@ public:
 protected:
 	sqlite3 *_db;
 };
-
-inline Database::Database()
-	: _db(NULL)
-{}
-
-inline Database::~Database()
-{
-	Close();
-}
-
-inline void Database::Open(string file, int flags)
-{
-	int ret = sqlite3_open_v2(file.c_str(),&_db,SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,NULL);
-    if(ret != SQLITE_OK)
-        throw std::runtime_error("cannot open database " + file);
-}
-
-inline void Database::Close()
-{
-    if(_db)
-        sqlite3_close(_db);
-}
-
-inline void Database::Exec(string sql)
-{
-    char *error;
-    int ret = sqlite3_exec(_db, sql.c_str(), NULL, NULL,  &error);
-    if(ret != SQLITE_OK)
-        throw std::runtime_error(string("cannot create frame table:\n") + error);
-}
-
-inline Statement *Database::Prepare(string sql)
-{
-    sqlite3_stmt *stmt;
-    int ret = sqlite3_prepare_v2(_db,
-            sql.c_str(), -1, &stmt, NULL);
-    if(ret != SQLITE_OK)
-        throw std::runtime_error("prepare insert frame statement failed");
-    return new Statement(stmt);
-}
 
 }}
 
