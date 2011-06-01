@@ -1,9 +1,10 @@
-# - Find libgmx
-# Find the native libgmx headers and libraries.
+# - Find libvotca_tools
+# Find the native libvotca_tools headers and libraries.
 #
 #  VOTCA_TOOLS_INCLUDE_DIRS - where to find votca/tools/version.h, etc.
 #  VOTCA_TOOLS_LIBRARIES    - List of libraries when using expat.
 #  VOTCA_TOOLS_FOUND        - True if expat found.
+#  VOTCA_TOOLS_HAS_SQLITE3  - True if votca tools was build with sqlite3 support
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
@@ -24,15 +25,26 @@ find_package(PkgConfig)
 
 pkg_check_modules(PC_VOTCA_TOOLS libvotca_tools)
 find_path(VOTCA_TOOLS_INCLUDE_DIR votca/tools/version.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
-find_path(VOTCA_BOOST_INCLUDE_DIR boost/algorithm/string/trim.hpp HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
-list(APPEND VOTCA_TOOLS_INCLUDE_DIR ${VOTCA_BOOST_INCLUDE_DIR})
 
-list(INSERT PC_VOTCA_TOOLS_LIBRARIES 0 votca_tools)
-list(REMOVE_DUPLICATES PC_VOTCA_TOOLS_LIBRARIES)
-foreach (LIB ${PC_VOTCA_TOOLS_LIBRARIES})
-  find_library(VOTCA_TOOLS_${LIB} NAMES ${LIB} HINTS ${PC_VOTCA_TOOLS_LIBRARY_DIRS} )
-  list(APPEND VOTCA_TOOLS_LIBRARY ${VOTCA_TOOLS_${LIB}})
-endforeach(LIB)
+find_path(VOTCA_TOOLS_HAS_SQLITE3 votca/tools/database.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
+if (VOTCA_TOOLS_HAS_SQLITE3)
+  set(VOTCA_TOOLS_HAS_SQLITE3 TRUE)
+else(VOTCA_TOOLS_HAS_SQLITE3)
+  set(VOTCA_TOOLS_HAS_SQLITE3 FALSE)
+endif(VOTCA_TOOLS_HAS_SQLITE3)
+
+find_library(VOTCA_TOOLS_LIBRARY NAMES votca_tools HINTS ${PC_VOTCA_TOOLS_LIBRARY_DIRS} )
+
+#add deps
+if (NOT BUILD_SHARED_LIBS AND PC_VOTCA_TOOLS_LIBRARIES)
+  list(REMOVE_ITEM PC_VOTCA_TOOLS_LIBRARIES votca_tools)
+  foreach (LIB ${PC_VOTCA_TOOLS_LIBRARIES})
+    find_library(VOTCA_TOOLS_${LIB} NAMES ${LIB} HINTS ${PC_VOTCA_TOOLS_LIBRARY_DIRS} )
+    list(APPEND VOTCA_TOOLS_LIBRARY ${VOTCA_TOOLS_${LIB}})
+    unset(VOTCA_TOOLS_${LIB} CACHE)
+  endforeach(LIB)
+  set(VOTCA_TOOLS_LIBRARY "${VOTCA_TOOLS_LIBRARY}" CACHE FILEPATH "VOTCA_TOOLS lib and it's deps" FORCE)
+endif (NOT BUILD_SHARED_LIBS AND PC_VOTCA_TOOLS_LIBRARIES)
 
 set(VOTCA_TOOLS_LIBRARIES "${VOTCA_TOOLS_LIBRARY}" )
 set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR}" )

@@ -36,9 +36,10 @@ endif(NOT DEFINED DATA)
 #Find external packages
 ########################################################################
 find_package(VOTCA_TOOLS REQUIRED)
+if(NOT VOTCA_TOOLS_HAS_SQLITE3)
+  message(FATAL_ERROR "Votca tools was build without SQLITE3 support, rebuild it and try again")
+endif(NOT VOTCA_TOOLS_HAS_SQLITE3)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
-find_package(SQLITE3 REQUIRED)
-include_directories(${SQLITE3_INCLUDE_DIRS})
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
