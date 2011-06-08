@@ -17,7 +17,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
+FC=
 AS=as
 
 # Macros
@@ -47,14 +47,18 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1723120609/crosscorrelate.o \
 	${OBJECTDIR}/_ext/1723120609/histogramnew.o \
 	${OBJECTDIR}/_ext/1723120609/linalg.o \
+	${OBJECTDIR}/_ext/1723120609/linktest.o \
+	${OBJECTDIR}/_ext/1723120609/database.o \
 	${OBJECTDIR}/_ext/1723120609/matrix.o \
 	${OBJECTDIR}/_ext/1723120609/datacollection.o \
-	${OBJECTDIR}/_ext/1723120609/histogram.o \
+	${OBJECTDIR}/_ext/1723120609/version.o \
 	${OBJECTDIR}/_ext/1723120609/correlate.o \
-	${OBJECTDIR}/_ext/1723120609/linspline.o \
+	${OBJECTDIR}/_ext/1723120609/histogram.o \
 	${OBJECTDIR}/_ext/1723120609/thread.o \
+	${OBJECTDIR}/_ext/1723120609/linspline.o \
 	${OBJECTDIR}/_ext/1723120609/spline.o \
-	${OBJECTDIR}/_ext/1723120609/rangeparser.o
+	${OBJECTDIR}/_ext/1723120609/rangeparser.o \
+	${OBJECTDIR}/_ext/1723120609/statement.o
 
 
 # C Compiler Flags
@@ -153,6 +157,16 @@ ${OBJECTDIR}/_ext/1723120609/linalg.o: ../../src/libtools/linalg.cc
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/linalg.o ../../src/libtools/linalg.cc
 
+${OBJECTDIR}/_ext/1723120609/linktest.o: ../../src/libtools/linktest.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/linktest.o ../../src/libtools/linktest.cc
+
+${OBJECTDIR}/_ext/1723120609/database.o: ../../src/libtools/database.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/database.o ../../src/libtools/database.cc
+
 ${OBJECTDIR}/_ext/1723120609/matrix.o: ../../src/libtools/matrix.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
@@ -163,25 +177,30 @@ ${OBJECTDIR}/_ext/1723120609/datacollection.o: ../../src/libtools/datacollection
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/datacollection.o ../../src/libtools/datacollection.cc
 
-${OBJECTDIR}/_ext/1723120609/histogram.o: ../../src/libtools/histogram.cc 
+${OBJECTDIR}/_ext/1723120609/version.o: ../../src/libtools/version.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/histogram.o ../../src/libtools/histogram.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/version.o ../../src/libtools/version.cc
 
 ${OBJECTDIR}/_ext/1723120609/correlate.o: ../../src/libtools/correlate.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/correlate.o ../../src/libtools/correlate.cc
 
-${OBJECTDIR}/_ext/1723120609/linspline.o: ../../src/libtools/linspline.cc 
+${OBJECTDIR}/_ext/1723120609/histogram.o: ../../src/libtools/histogram.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/linspline.o ../../src/libtools/linspline.cc
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/histogram.o ../../src/libtools/histogram.cc
 
 ${OBJECTDIR}/_ext/1723120609/thread.o: ../../src/libtools/thread.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/thread.o ../../src/libtools/thread.cc
+
+${OBJECTDIR}/_ext/1723120609/linspline.o: ../../src/libtools/linspline.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/linspline.o ../../src/libtools/linspline.cc
 
 ${OBJECTDIR}/_ext/1723120609/spline.o: ../../src/libtools/spline.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
@@ -192,6 +211,11 @@ ${OBJECTDIR}/_ext/1723120609/rangeparser.o: ../../src/libtools/rangeparser.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/rangeparser.o ../../src/libtools/rangeparser.cc
+
+${OBJECTDIR}/_ext/1723120609/statement.o: ../../src/libtools/statement.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/statement.o ../../src/libtools/statement.cc
 
 # Subprojects
 .build-subprojects:
