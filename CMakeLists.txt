@@ -37,6 +37,10 @@ if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
 
+
+#this has to be the first include directive
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
 ########################################################################
 #Find external packages
 ########################################################################
@@ -63,7 +67,6 @@ foreach(HEADER cmath fstream functional iostream limits list map ostream sstream
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
-include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
