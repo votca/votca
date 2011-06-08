@@ -17,7 +17,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
+FC=
 AS=as
 
 # Macros
@@ -51,7 +51,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lboost_program_options -lexpat -lm
+LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lboost_program_options -lexpat -lm -lpthread
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -68,12 +68,12 @@ LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtoo
 ${OBJECTDIR}/_ext/715944016/csg_stat_imc.o: ../../src/tools/csg_stat_imc.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat_imc.o ../../src/tools/csg_stat_imc.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat_imc.o ../../src/tools/csg_stat_imc.cc
 
 ${OBJECTDIR}/_ext/715944016/csg_stat.o: ../../src/tools/csg_stat.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat.o ../../src/tools/csg_stat.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat.o ../../src/tools/csg_stat.cc
 
 # Subprojects
 .build-subprojects:

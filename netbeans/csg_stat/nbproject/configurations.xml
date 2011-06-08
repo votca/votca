@@ -37,7 +37,7 @@
         <ccTool>
           <incDir>
             <pElem>../../include</pElem>
-            <pElem>../../../include</pElem>
+            <pElem>../../../tools/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>
@@ -71,6 +71,7 @@
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
             <linkerLibLibItem>expat</linkerLibLibItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
