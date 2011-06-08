@@ -15,11 +15,11 @@
  *
  */
 
-#include <akimaspline.h>
+#include <votca/tools/akimaspline.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-#include <linalg.h>
+#include <votca/tools/linalg.h>
 #include <gsl/gsl_linalg.h>
 #include <iostream>
 

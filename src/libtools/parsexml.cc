@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdexcept>
 #include <expat.h>
-#include "parsexml.h"
+#include <votca/tools/parsexml.h>
 
 namespace votca { namespace tools {
 

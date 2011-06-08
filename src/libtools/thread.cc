@@ -15,7 +15,7 @@
  *
  */
 
-#include "thread.h"
+#include <votca/tools/thread.h>
 #include <stdexcept>
 
 namespace votca {

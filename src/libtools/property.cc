@@ -16,9 +16,9 @@
  */
 
 #include <iostream>
-#include "property.h"
+#include <votca/tools/property.h>
 #include <stdexcept>
-#include "tokenizer.h"
+#include <votca/tools/tokenizer.h>
 
 #include <stdio.h>
 #include <expat.h>

@@ -16,8 +16,8 @@
  */
 
 #include <iostream>
-#include "application.h"
-#include "version.h"
+#include <votca/tools/application.h>
+#include <votca/tools/version.h>
 
 namespace votca { namespace tools {
 

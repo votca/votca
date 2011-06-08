@@ -15,7 +15,7 @@
  *
  */
 
-#include "version.h"
+#include <votca/tools/version.h>
 #include "votca_config.h"
 
 namespace votca { namespace tools {

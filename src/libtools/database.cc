@@ -15,7 +15,7 @@
  *
  */
 #include <stdexcept>
-#include <database.h>
+#include <votca/tools/database.h>
 
 namespace votca { namespace tools {
 

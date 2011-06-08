@@ -1,4 +1,4 @@
-#include <spline.h>
+#include <votca/tools/spline.h>
 
 namespace votca {
     namespace tools {

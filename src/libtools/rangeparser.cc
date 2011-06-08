@@ -15,8 +15,8 @@
  *
  */
 
-#include "rangeparser.h"
-#include <tokenizer.h>
+#include <votca/tools/rangeparser.h>
+#include <votca/tools/tokenizer.h>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <functional>

@@ -16,7 +16,7 @@
  */
 
 #include <string>
-#include <statement.h>
+#include <votca/tools/statement.h>
 
 namespace votca { namespace tools {
 

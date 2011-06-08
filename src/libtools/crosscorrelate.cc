@@ -15,7 +15,7 @@
  *
  */
 
-#include "crosscorrelate.h"
+#include <votca/tools/crosscorrelate.h>
 #include "votca_config.h"
 
 #ifndef NOFFTW

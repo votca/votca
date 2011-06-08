@@ -79,7 +79,7 @@ endforeach(FUNC)
 # Include the following subdirectory # 
 ######################################
 add_subdirectory(src)
-add_subdirectory(include)
+add_subdirectory(include/votca/tools)
 add_subdirectory(scripts)
 add_subdirectory(share/man)
 add_subdirectory(share/doc)

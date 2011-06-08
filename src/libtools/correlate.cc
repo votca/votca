@@ -14,7 +14,7 @@
  *
  */
 
-#include "correlate.h"
+#include <votca/tools/correlate.h>
 #include <math.h>
 
 namespace votca { namespace tools {

@@ -16,7 +16,7 @@
  */
 
 #include <iostream>
-#include <version.h>
+#include <votca/tools/version.h>
 
 using namespace votca::tools;
 using namespace std;

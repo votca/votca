@@ -17,7 +17,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include "matrix.h"
+#include <votca/tools/matrix.h>
 
 #define PITIMES2 2*3.141592654
 
