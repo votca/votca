@@ -19,7 +19,7 @@
 #define	_gmxtopologyreader_H
 
 #include <string>
-#include "topologyreader.h"
+#include <votca/csg/topologyreader.h>
 #include "gmx_version_check.h"
 
 namespace votca { namespace csg {

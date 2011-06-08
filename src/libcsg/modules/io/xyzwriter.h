@@ -19,8 +19,8 @@
 #define	__VOTCA_CSG_XYZWRITER_H
 
 #include <stdio.h>
-#include "topology.h"
-#include "trajectorywriter.h"
+#include <votca/csg/topology.h>
+#include <votca/csg/trajectorywriter.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;

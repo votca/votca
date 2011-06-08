@@ -21,12 +21,12 @@
 
 #include <iostream>
 #include <votca/csg/trajectorywriter.h>
-#include <votca/csg/modules/io/pdbwriter.h>
-#include <votca/csg/modules/io/xyzwriter.h>
+#include "modules/io/pdbwriter.h"
+#include "modules/io/xyzwriter.h"
 
 #ifdef GMX
-#include <votca/csg/modules/io/gmxtrajectorywriter.h>
-#include <votca/csg/modules/io/growriter.h>
+#include "modules/io/gmxtrajectorywriter.h"
+#include "modules/io/growriter.h"
 #endif
 
 namespace votca { namespace csg {

@@ -23,7 +23,7 @@
 #endif
 
 #include <string>
-#include "trajectoryreader.h"
+#include <votca/csg/trajectoryreader.h>
 #include "gmx_version_check.h"
 
 #if GMX == 50
