@@ -19,7 +19,7 @@
 #include <boost/program_options.hpp>
 #include <votca/tools/property.h>
 #include <votca/tools/tokenizer.h>
-#include "version.h"
+#include <votca/csg/version.h>
 
 using namespace std;
 using namespace votca::csg;

@@ -20,10 +20,10 @@
 #include <iomanip>
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/rangeparser.h>
-#include "beadlist.h"
-#include "nblistgrid.h"
+#include <votca/csg/beadlist.h>
+#include <votca/csg/nblistgrid.h>
 #include "csg_stat_imc.h"
-#include "imcio.h"
+#include <votca/csg/imcio.h>
 
 namespace votca { namespace csg {
 

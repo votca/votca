@@ -18,7 +18,7 @@
 #include <math.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;

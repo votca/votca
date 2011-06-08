@@ -23,7 +23,7 @@
 #include <votca/tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include "version.h"
+#include <votca/csg/version.h>
 
 using namespace std;
 namespace po = boost::program_options;
