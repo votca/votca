@@ -15,7 +15,7 @@
  *
  */
 
-#include "nblist.h"
+#include <votca/csg/nblist.h>
 #include <iostream>
 
 namespace votca { namespace csg {

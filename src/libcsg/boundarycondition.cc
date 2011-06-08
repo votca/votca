@@ -16,7 +16,7 @@
  */
 
 #include <vector>
-#include "boundarycondition.h"
+#include <votca/csg/boundarycondition.h>
 
 namespace votca { namespace csg {
 

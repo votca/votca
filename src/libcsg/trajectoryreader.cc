@@ -19,12 +19,12 @@
 #include <votca_config.h>
 #endif
 
-#include "trajectoryreader.h"
-#include "modules/io/esptrajectoryreader.h"
-#include "modules/io/lammpsreader.h"
+#include <votca/csg/trajectoryreader.h>
+#include <votca/csg/modules/io/esptrajectoryreader.h>
+#include <votca/csg/modules/io/lammpsreader.h>
 
 #ifdef GMX
-#include "modules/io/gmxtrajectoryreader.h"
+#include <votca/csg/modules/io/gmxtrajectoryreader.h>
 #endif
 
 namespace votca { namespace csg {

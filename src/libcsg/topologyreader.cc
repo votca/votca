@@ -19,15 +19,15 @@
 #include <votca_config.h>
 #endif
 
-#include "topologyreader.h"
-#include "modules/io/esptopologyreader.h"
-#include "modules/io/lammpsreader.h"
-#include "modules/io/xmltopologyreader.h"
+#include <votca/csg/topologyreader.h>
+#include <votca/csg/modules/io/esptopologyreader.h>
+#include <votca/csg/modules/io/lammpsreader.h>
+#include <votca/csg/modules/io/xmltopologyreader.h>
 
 #ifdef GMX
-#include "modules/io/gmxtopologyreader.h"
-#include "modules/io/grotopologyreader.h"
-#include "modules/io/pdbtopologyreader.h"
+#include <votca/csg/modules/io/gmxtopologyreader.h>
+#include <votca/csg/modules/io/grotopologyreader.h>
+#include <votca/csg/modules/io/pdbtopologyreader.h>
 #endif
 
 namespace votca { namespace csg {

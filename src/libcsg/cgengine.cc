@@ -16,9 +16,9 @@
  */
 
 #include <fstream>
-#include "cgengine.h"
+#include <votca/csg/cgengine.h>
 #include <votca/tools/tokenizer.h>
-#include "version.h"
+#include <votca/csg/version.h>
 
 namespace votca { namespace csg {
 

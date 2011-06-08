@@ -18,10 +18,10 @@
 #include <iostream>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
-#include "topology.h"
-#include "cgmoleculedef.h"
+#include <votca/csg/topology.h>
+#include <votca/csg/cgmoleculedef.h>
 #include <votca/tools/tokenizer.h> 
-#include "interaction.h"
+#include <votca/csg/interaction.h>
 
 namespace votca { namespace csg {
 

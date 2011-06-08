@@ -15,7 +15,7 @@
  *
  */
 
-#include <nblistgrid.h>
+#include <votca/csg/nblistgrid.h>
 
 namespace votca { namespace csg {
 

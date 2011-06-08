@@ -24,7 +24,7 @@
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/tokenizer.h>
 #include <iostream>
-#include "imcio.h"
+#include <<votca/csg/imcio.h>
 
 namespace votca { namespace csg {
 

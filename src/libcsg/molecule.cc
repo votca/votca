@@ -15,7 +15,7 @@
  *
  */
 
-#include "molecule.h"
+#include <votca/csg/molecule.h>
 #include <iostream>
 
 namespace votca { namespace csg {

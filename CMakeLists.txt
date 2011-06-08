@@ -101,7 +101,7 @@ endforeach(FUNC)
 add_custom_target(manpages ALL)
 add_subdirectory(scripts)
 add_subdirectory(src)
-add_subdirectory(include)
+add_subdirectory(include/votca/csg)
 add_subdirectory(share)
 
 if (TXT2TAGS_FOUND)
