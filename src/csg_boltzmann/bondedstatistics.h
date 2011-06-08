@@ -18,7 +18,7 @@
 #ifndef _BONDEDSTATISTICS_H
 #define	_BONDEDSTATISTICS_H
 
-#include "cgobserver.h"
+#include <votca/csg/cgobserver.h>
 #include <votca/tools/datacollection.h>
 
 using namespace votca::tools;
