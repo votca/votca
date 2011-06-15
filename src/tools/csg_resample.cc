@@ -79,6 +79,7 @@ int main(int argc, char** argv)
         return -1;
     }
     
+    try {
     // does the user want help?
     if (vm.count("help")) {
         help_text();
@@ -252,6 +253,11 @@ int main(int argc, char** argv)
     }
 
     delete spline;
+	}
+    catch(std::exception &error) {
+         cerr << "an error occurred:\n" << error.what() << endl;
+         return -1;
+    }
     return 0;
 }
 
