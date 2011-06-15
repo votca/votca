@@ -100,9 +100,9 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
         // calculate normalization factor for rdf
 
         if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            i._norm = 1. / (4. * M_PI * i._step * beads1.size()*(beads2.size() - 1.) / 2.);
+            i._norm = 1. / (beads1.size()*(beads2.size()) / 2.);
         else
-            i._norm = 1. / (4. * M_PI * i._step * beads1.size() * beads2.size());
+            i._norm = 1. / (beads1.size() * beads2.size());
     }
 }
 
@@ -372,10 +372,18 @@ void Imc::WriteDist(const string &suffix)
         Table &t = iter->second->_average.data();            
         Table dist(t);
         if(!iter->second->_is_bonded) {
-            dist.y() = _avg_vol.getAvg()*iter->second->_norm *
-                element_div(dist.y(),
-                    element_prod(dist.x(), dist.x())
-                );
+            // normalization is calculated using exact shell volume (difference of spheres)
+            for(int i=0; i<dist.y().size(); ++i) {
+                double x1 = dist.x()[i] - 0.5*iter->second->_step;
+                double x2 = x1 + iter->second->_step;
+                if(x1<0) {
+                    dist.y()[i]=0;
+                }
+                else {
+                    dist.y()[i] = _avg_vol.getAvg()*iter->second->_norm *
+                        dist.y()[i]/(4./3.*M_PI*(x2*x2*x2 - x1*x1*x1));                
+                }
+            }
         }
         else {
             dist.y() = iter->second->_norm * dist.y();
@@ -494,11 +502,16 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
                 
     Table target;
     target.Load(name + ".dist.tgt");
-                      
+
     if(!interaction->_is_bonded) {
-        target.y() = (1.0 / (_avg_vol.getAvg()*interaction->_norm))*ub::element_prod(target.y(),
-            (ub::element_prod(target.x(), target.x()))
-            ) ;
+        for(int i=0; i<target.y().size(); ++i) {
+            double x1 = target.x()[i] - 0.5*interaction->_step;
+            double x2 = x1 + interaction->_step;
+            if(x1<0)
+                x1=x2=0;
+            target.y()[i] = 1./(_avg_vol.getAvg()*interaction->_norm) *
+                target.y()[i] * (4./3.*M_PI*(x2*x2*x2 - x1*x1*x1));                
+        }        
     }
     else {
             target.y() = (1.0 / interaction->_norm)*target.y();
