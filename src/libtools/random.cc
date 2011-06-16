@@ -15,7 +15,7 @@
  *
  */
 
-#include "random.h"
+#include <votca/tools/random.h>
 #include <stdexcept>
 #include <string>
 

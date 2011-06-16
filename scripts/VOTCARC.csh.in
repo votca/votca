@@ -15,20 +15,20 @@
 #
 
 #path is never empty
-setenv PATH "@bindir@:${PATH}"
+setenv PATH "@CMAKE_INSTALL_PREFIX@/bin:${PATH}"
 
 #debian wants to have : at the end
 if (! $?MANPATH) setenv MANPATH ""
-setenv MANPATH "@mandir@:${MANPATH}"
+setenv MANPATH "@CMAKE_INSTALL_PREFIX@/@MAN@:${MANPATH}"
 
 if ($?LD_LIBRARY_PATH) setenv LD_LIBRARY_PATH ":${LD_LIBRARY_PATH}"
-setenv LD_LIBRARY_PATH "@libdir@${LD_LIBRARY_PATH}"
+setenv LD_LIBRARY_PATH "@CMAKE_INSTALL_PREFIX@/@LIB@${LD_LIBRARY_PATH}"
 
 if ($?PKG_CONFIG_PATH) setenv PKG_CONFIG_PATH ":${PKG_CONFIG_PATH}"
-setenv PKG_CONFIG_PATH "@libdir@/pkgconfig${PKG_CONFIG_PATH}"
+setenv PKG_CONFIG_PATH "@CMAKE_INSTALL_PREFIX@/@LIB@/pkgconfig${PKG_CONFIG_PATH}"
 
 #votca rc files
-foreach rc ( "@votcashare@"/rc/*rc.csh )
+foreach rc ( "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*rc.csh )
   [ -r "$rc" ] && source "$rc"
 end
 unset rc

@@ -10,6 +10,3 @@ derived from a project by V. Ruehle.
 
 The code in src/libboost is taken from the Boost
 package (www.boost.org).
-
-The code in src/libexpat is taken from the expat
-package (expat.sourceforge.net).

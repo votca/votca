@@ -18,7 +18,7 @@
 #include <limits>
 #include <math.h>
 #include <numeric>
-#include "histogram.h"
+#include <votca/tools/histogram.h>
 
 namespace votca { namespace tools {
 

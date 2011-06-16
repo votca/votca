@@ -15,7 +15,7 @@
  *
  */
 
-#include"tokenizer.h"
+#include <votca/tools/tokenizer.h>
 
 namespace votca { namespace tools {
 

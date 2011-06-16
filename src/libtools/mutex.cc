@@ -15,7 +15,7 @@
  *
  */
 
-#include "mutex.h"
+#include <votca/tools/mutex.h>
 
 namespace votca {
     namespace tools {

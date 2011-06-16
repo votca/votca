@@ -16,7 +16,7 @@
  */
 
 #include <sstream>
-#include "datacollection.h"
+#include <votca/tools/datacollection.h>
 
 namespace votca { namespace tools {
 

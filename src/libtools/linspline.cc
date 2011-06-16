@@ -15,12 +15,11 @@
  *
  */
 
-#include <linspline.h>
+#include <votca/tools/linspline.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-#include <linalg.h>
-#include <gsl/gsl_linalg.h>
+#include <votca/tools/linalg.h>
 #include <iostream>
 
 namespace votca { namespace tools {

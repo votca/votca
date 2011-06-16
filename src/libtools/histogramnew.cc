@@ -15,7 +15,7 @@
  *
  */
 
-#include "histogramnew.h"
+#include <votca/tools/histogramnew.h>
 
 namespace votca { namespace tools {
 

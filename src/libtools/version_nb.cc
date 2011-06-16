@@ -16,7 +16,7 @@
  */
 
 // This file is for netbeans only
-#include "version.h"
+#include <votca/tools/version.h>
 
 namespace votca { namespace tools {
 

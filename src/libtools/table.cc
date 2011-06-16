@@ -17,12 +17,12 @@
 
 #include <fstream>
 #include <vector>
-#include "tokenizer.h"
-#include "table.h"
+#include <votca/tools/tokenizer.h>
+#include <votca/tools/table.h>
 #include <stdexcept>
 #include <iostream>
 #include <boost/algorithm/string/replace.hpp>
-#include <lexical_cast.h>
+#include <votca/tools/lexical_cast.h>
 
 namespace votca { namespace tools {
 
