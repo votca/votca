@@ -6,6 +6,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
@@ -26,9 +27,18 @@ EOF
   exit 0
 fi
 
+# To read the name of the 2 pull groups. 
+# If in the main folder there is not 
+# a file called grompp.mdp it is creates 
+# from the PMF simulation mdp file
+if ![ -f "grompp.mdp" ] do 
+	md_sim=$(csg_get_propdderty cg.non-bonded.pmf.mdp_sim)
+       	cp ${md_sim} gompp.mdp 
+done
+
 last_dir=$(get_last_step_dir)
-pullgroup0=$(csg_get_interaction_property .pmf.pullgroup0)
-pullgroup1=$(csg_get_interaction_property .pmf.pullgroup1)
+pullgroup0=$(get_from_mdp pull_group0)
+pullgroup1=$(get_from_mdp pull_group1)
 kBT=$(csg_get_property cg.inverse.kBT)
 
 forcefile="forces_${pullgroup0}_${pullgroup1}.all.d"
