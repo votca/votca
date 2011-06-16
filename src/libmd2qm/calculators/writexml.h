@@ -7,7 +7,8 @@
 /** \brief Writes out data to xml format
 
 Callname: writexml
- - Writes out the following pair properties to xml format:
+
+Writes out the following pair properties to xml format:
  - Distance between sites i and j in the pair in nm.
  - Distance vector coordinates x,y,z in nm.
  - Transfer integral in eV (or the effective value if more frontier orbitals are involved)
