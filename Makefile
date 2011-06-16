@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{&}/')
+HGID:="1.2"
 LATEXMK=scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
