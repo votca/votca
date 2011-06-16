@@ -21,7 +21,11 @@ for file in latex/*.tex; do
   if [ ! -z "$name" ]; then
     echo "Generating documentation for calculator $name from $file"
     echo "\subsubsection{$name}" >> $out
-    sed -ne '/\\subsection{Detailed Description}/,/\\subsection/p' $file | sed -e '1d' -e '$d' -e '/The documentation for this class was generated from the following/,$d' -e '/Callname/d' >> $out
+    sed -ne '/\\subsection{Detailed Description}/,/\\subsection/p' $file | \
+      sed -e '1d' -e '$d' \
+      -e '/The documentation for this class was generated from the following/,$d' \
+      -e '/Callname/d' \
+      -e 's/DoxyItemize/itemize/' >> $out
   fi
 done
 
