@@ -1,18 +1,22 @@
-/* 
- * File:   energycorr.h
- * Author: lukyanov
- *
- * Created on July 28, 2010, 6:04 PM
- */
-
 #ifndef ENERGYCORR_H
 #define	ENERGYCORR_H
 
 #include "qmpair.h"
 #include "qmcalculator.h"
 #include <votca/tools/histogramnew.h>
+/**
+    \brief Calculates reduced site energy correlation function
 
-/// Calculate reduced site energy correlation function, see J.Chem.Phys. 129, 034709 (2008)
+Callname: energycorr
+
+To quantify the degree of correlation in site energies due to electrostatics, one can calculate the spatial correlation function of \f$E_i\f$ and \f$E_j\f$ at a distance \f$r_{ij}\f$
+\f[C(r_{ij}) = \frac{  \langle \left( E_i-\langle E\rangle \right)
+                   \left( E_j-\langle E\rangle \right)\rangle}
+                   {\langle\left( E_i -\langle E\rangle \right)^2\rangle}\f]
+where \f$\langle E\rangle\f$ is the average site energy. \f$C(r_{ij})\f$ is zero if \f$E_i\f$ and \f$E_j\f$ are uncorrelated and 1 if they are fully correlated. For a system of randomly oriented point dipoles, the correlation function decays as \f$1/r\f$ at large distances
+
+Reference : J.Chem.Phys. 129, 034709 (2008)
+*/
 
 class EnergyCorr : public QMCalculator
 {

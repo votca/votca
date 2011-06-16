@@ -1,15 +1,18 @@
-/* 
- * File:   calc_integrals.h
- * Author: vehoff
- *
- * Created on April 8, 2010, 10:33 AM
- */
-
 #ifndef _CALC_INTEGRALS_H
 #define	_CALC_INTEGRALS_H
 
 #include "qmpair.h"
 #include "paircalculator.h"
+
+/**
+	\brief Compute all transfer integrals from the neighborlist
+
+Transfer integrals for all pairs in the neighborlist are computed using the ZINDO method.
+
+Callname: integrals
+
+Reference : Kirkpatrick, J. International Journal of Quantum Chemistry 2008, 108, 51–56.
+*/
 
 class CalcIntegrals : public PairCalculator
 {

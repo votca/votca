@@ -1,10 +1,3 @@
-/*
- * File:   calc_integrals.h
- * Author: schrader
- *
- * Created on July 7, 2010
- */
-
 #ifndef _HIST_INTEGRALS_H
 #define	_HIST_INTEGRALS_H
 
@@ -12,6 +5,11 @@
 #include "paircalculator.h"
 #include <votca/tools/histogramnew.h>
 
+/**
+	\brief Compute a histogram of transfer integrals from the neighborlist
+
+Callname: histintegrals
+*/
 class CalcHistIntegrals : public PairCalculator
 {
 public:

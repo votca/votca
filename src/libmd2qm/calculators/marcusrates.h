@@ -1,14 +1,20 @@
-/* 
- * File:   marcus_rates.h
- * Author: vehoff
- *
- * Created on April 8, 2010, 10:53 AM
- */
-
 #ifndef _MARCUS_RATES_H
 #define	_MARCUS_RATES_H
 
 #include "paircalculator.h"
+
+/**
+    \brief Calculates hopping rates using Marcus theroy
+
+Callname: marcusrates
+
+Hopping rates between all pairs i,j are computed from the high temperature limit of Marcus theory
+    \f[\omega_{ij}  = \frac{2 \pi}{\hbar}  \frac{ J_{ij}^2 }{\sqrt{ 4 \pi \lambda_{ij} k_B T}} \exp \left[-\frac{\left(\Delta E_{ij}-\lambda_{ij}\right)^2}{4 \lambda_{ij}k_B T} \right]
+    \f]
+where \f$T\f$ is the temperature, \f$\lambda_{ij} = \lambda_{ij}^{int} + \lambda_{ij}^{out}\f$ is the reorganization energy, which is a sum of intra- and inter-molecular (outer-sphere) contributions, \f$\Delta E_{ij}\f$ is the site-energy difference, or driving force, and \f$J_{ij}\f$ is the electronic coupling element, or transfer integral. You should have computed transfer integrals and site energies before.   
+
+Reference: Marcus, R. A. Reviews of Modern Physics 1993, 65, 599. 
+*/
 
 class MarcusRates : public PairCalculator
 {
