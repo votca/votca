@@ -19,7 +19,7 @@
 #define	_XMLTOPOLOGYREADER_H
 
 #include <string>
-#include "topologyreader.h"
+#include <votca/csg/topologyreader.h>
 #include <stack>
 #include <votca/tools/parsexml.h>
 

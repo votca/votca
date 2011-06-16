@@ -21,8 +21,7 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script sets the beginning of the dpot to the first valid value and shifts the whole potential
-in such a way that dpot(r_max)=0.
+This script shifts the whole potential to the last value, like it is normally done for non-bonded potentials.
 
 Usage: $progname infile outfile
 EOF
@@ -40,17 +39,8 @@ my $outfile="$ARGV[1]";
 my @r;
 my @dpot;
 my @flag;
-(readin_table($infile,@r,@dpot,@flag)) || die "$progname: error at readin_table\n";
-
-# find first u
-my $i_first;
-for($i_first=0; ($i_first<=$#r) && ($flag[$i_first] =~ /[u]/); $i_first++) {}
-
-# shift beginning
-for(my $i=0; $i<$i_first; $i++) {
-    $dpot[$i] = $dpot[$i_first];
-    $flag[$i]="o"
-}
+my $comments;
+(readin_table($infile,@r,@dpot,@flag,$comments)) || die "$progname: error at readin_table\n";
 
 # bring end to zero
 for(my $i=0; $i<=$#r; $i++) {
@@ -58,4 +48,4 @@ for(my $i=0; $i<=$#r; $i++) {
 }
 
 # save to file
-saveto_table($outfile,@r,@dpot,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@dpot,@flag,$comments) || die "$progname: error at save table\n";

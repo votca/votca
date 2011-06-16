@@ -20,7 +20,7 @@
 
 #include <map>
 #include <string>
-#include "cgengine.h"
+#include <votca/csg/cgengine.h>
 #include "bondedstatistics.h"
 
 using namespace std;

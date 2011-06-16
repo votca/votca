@@ -23,8 +23,8 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
-#include "csgapplication.h"
-#include "trajectoryreader.h"
+#include <votca/csg/csgapplication.h>
+#include <votca/csg/trajectoryreader.h>
 
 using namespace votca::csg;
 

@@ -18,7 +18,7 @@
 #ifndef _ESPTRAJECTORYREADER_H
 #define	_ESPTRAJECTORYREADER_H
 
-#include "trajectoryreader.h"
+#include <votca/csg/trajectoryreader.h>
 
 namespace votca { namespace csg {
 

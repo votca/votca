@@ -15,12 +15,12 @@
  *
  */
 
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
+#endif
+
 #include <iostream>
 #include "gmxtopologyreader.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #if GMX == 50
         #include <gromacs/legacyheaders/statutil.h>

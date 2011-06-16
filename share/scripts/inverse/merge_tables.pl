@@ -93,12 +93,14 @@ print "tables $src $dst $out\n";
 my @r_src;
 my @val_src;
 my @flag_src;
-(readin_table($src,@r_src,@val_src,@flag_src)) || die "$progname: error at readin_table\n";
+my $comments1;
+(readin_table($src,@r_src,@val_src,@flag_src,$comments1)) || die "$progname: error at readin_table\n";
 
 my @r_dst;
 my @val_dst;
 my @flag_dst;
-(readin_table($dst,@r_dst,@val_dst,@flag_dst)) || die "$progname: error at readin_table\n";
+my $comments2;
+(readin_table($dst,@r_dst,@val_dst,@flag_dst,$comments2)) || die "$progname: error at readin_table\n";
 
 my $idst=0;
 
@@ -129,5 +131,9 @@ for(my $i=0; $i<=$#r_src; $i++) {
   }
 }
 
-saveto_table($out,@r_dst,@val_dst,@flag_dst) || die "$progname: error at save table\n";
+my $comments="# $progname: merged $src with $dst to $out\n";
+$comments.="$comments1" if (defined($comments1));
+$comments.="$comments2" if (defined($comments2));
+
+saveto_table($out,@r_dst,@val_dst,@flag_dst,$comments) || die "$progname: error at save table\n";
 

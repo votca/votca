@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script runs gromacs for the Inverse Boltzmann Method
+This script runs a gromacs simulation
 
 Usage: ${0##*/}
 
@@ -28,24 +28,43 @@ EOF
 fi
 
 tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
-[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found"
 
-mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
-[ -n "$(type -p $mdrun)" ] || die "${0##*/}: mdrun binary '$mdrun' not found"
+
+mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+
+conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
+[ -f "$conf" ] || die "${0##*/}: gromacs initial configuration file '$conf' not found"
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
+mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
-tasks=$(get_number_tasks)
-if [ $tasks -gt 1 ]; then
-  mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-  critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" ${opts}
+index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"
+[ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
+top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
+[ -f "$top" ] || die "${0##*/}: grompp topol file '$top' not found"
+
+grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
+
+grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
+[ -n "$(type -p $grompp)" ] || die "${0##*/}: grompp binary '$grompp' not found"
+
+critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${grompp_opts}
+[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
+
+mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command "mdrun")"
+#no check for mdrun, because mdrun_mpi could maybe exist only computenodes
+
+if [ -n "$CSGENDING" ]; then
+  #seconds left for the run
+  wall_h=$(( $CSGENDING - $(get_time) ))
+  #convert to hours
+  wall_h=$(csg_calc $wall_h / 3600 )
+  echo "${0##*/}: Setting $mdrun maxh option to $wall_h (hours)"
+  checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
+  mdrun_opts="-cpi $checkpoint -maxh $wall_h ${mdrun_opts}"
 else
-  critical $mdrun -s "${tpr}" -c "${confout}" ${opts}
+  echo "${0##*/}: No walltime defined, so time limitation given to $mdrun"
 fi
 
-ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
-traj="traj.${ext}"
-[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after running mdrun"
-
-[ -f "$confout" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"
+critical $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}

@@ -15,7 +15,6 @@
 #
 
 #Make it simple so that sh can also understand it
-CSGSHARE="@votcashare@"
+CSGSHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
 
 export CSGSHARE
-

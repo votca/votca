@@ -27,15 +27,18 @@ EOF
    exit 0
 fi
 
-[[ -n "$2" ]] || die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 # initialize & run the octave file
 cat_external solve octave | sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" > solve_$1.octave || die "${0##*/}: sed failed"
-critical octave solve_$1.octave
-#rm -f solve_$1.octave
 
-[[ -f "$2" ]] || die "Octave failed"
+octave="$(csg_get_property cg.inverse.imc.octave.bin "octave")"
+[ -n "$(type -p $octave)" ] || die "${0##*/}: octave binary '$octave' not found"
+
+critical $octave solve_$1.octave
+
+[[ -f $2 ]] || die "Octave failed"
 # temporary compatibility issue
-critical sed -ie 's/NaN/0.0/' $2
-critical sed -ie 's/Inf/0.0/' $2
+critical sed -ie 's/NaN/0.0/' "$2"
+critical sed -ie 's/Inf/0.0/' "$2"
 

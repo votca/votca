@@ -16,7 +16,7 @@
  */
 
 #include <stdlib.h>
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;

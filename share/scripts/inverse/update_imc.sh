@@ -30,10 +30,9 @@ solver=$(csg_get_property cg.inverse.imc.solver)
 sim_prog="$(csg_get_property cg.inverse.program)"
 do_external imc_stat $sim_prog
 
-#add other groups here later
-nb_groups=$(for_all non-bonded csg_get_interaction_property inverse.imc.group)
-list_groups=$(echo "$nb_groups" | sort -u)
-for group in $list_groups; do
+imc_groups=$(csg_get_property cg.non-bonded.inverse.imc.group)
+imc_groups=$(echo "$imc_groups" | sort -u)
+for group in $imc_groups; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for $group"
   critical csg_imcrepack --in ${group} --out ${group}.packed

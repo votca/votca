@@ -17,7 +17,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
+FC=
 AS=as
 
 # Macros
@@ -67,7 +67,7 @@ LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtoo
 ${OBJECTDIR}/_ext/715944016/csg_resample.o: ../../src/tools/csg_resample.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_resample.o ../../src/tools/csg_resample.cc
+	$(COMPILE.cc) -g -I../../../tools/include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_resample.o ../../src/tools/csg_resample.cc
 
 # Subprojects
 .build-subprojects:

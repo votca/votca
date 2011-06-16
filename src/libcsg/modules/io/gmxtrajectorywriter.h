@@ -18,13 +18,13 @@
 #ifndef _GMXTRAJECTORYWRITER_H
 #define	_GMXTRAJECTORYWRITER_H
 
-#include "topology.h"
-#include "trajectorywriter.h"
-#include "version_check.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
+
+#include <votca/csg/topology.h>
+#include <votca/csg/trajectorywriter.h>
+#include "gmx_version_check.h"
 
 #if GMX == 50
         #include <gromacs/legacyheaders/statutil.h>

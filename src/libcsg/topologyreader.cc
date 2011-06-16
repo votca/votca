@@ -15,11 +15,11 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
 
-#include "topologyreader.h"
+#include <votca/csg/topologyreader.h>
 #include "modules/io/esptopologyreader.h"
 #include "modules/io/lammpsreader.h"
 #include "modules/io/xmltopologyreader.h"

@@ -23,7 +23,7 @@
 #include <votca/tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include "version.h"
+#include <votca/csg/version.h>
 
 using namespace std;
 namespace po = boost::program_options;
@@ -79,6 +79,7 @@ int main(int argc, char** argv)
         return -1;
     }
     
+    try {
     // does the user want help?
     if (vm.count("help")) {
         help_text();
@@ -252,6 +253,11 @@ int main(int argc, char** argv)
     }
 
     delete spline;
+	}
+    catch(std::exception &error) {
+         cerr << "an error occurred:\n" << error.what() << endl;
+         return -1;
+    }
     return 0;
 }
 

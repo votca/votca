@@ -15,10 +15,10 @@
  *
  */
 
-#include "nematicorder.h"
+#include <votca/csg/nematicorder.h>
 #include <votca/tools/matrix.h>
 #include <votca/tools/tokenizer.h>
-#include "topology.h"
+#include <votca/csg/topology.h>
 
 namespace votca { namespace csg {
 

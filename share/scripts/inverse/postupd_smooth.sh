@@ -25,7 +25,7 @@ EOF
    exit 0
 fi
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 [ -f "$2" ] && die "${0##*/}: $2 is already there"
 
@@ -34,7 +34,7 @@ tmpfile=$(critical mktemp ${name}.XXX)
 iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)
 
 critical cp "$1" $tmpfile
-echo "doing $iterations smoothing iterations"
+echo "doing $iterations smoothing iterations for interaction $name"
 
 for((i=0;i<$iterations;i++)); do
   do_external table smooth $tmpfile "$2"

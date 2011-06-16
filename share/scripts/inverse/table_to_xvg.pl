@@ -20,6 +20,7 @@ use strict;
 ( my $progname = $0 ) =~ s#^.*/##;
 my $usage="Usage: $progname [OPTIONS] <in> <out>";
 my $type="non-bonded";
+my $gmx_max=undef;
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -39,28 +40,28 @@ $progname, version %version%
 
 This script converts csg potential files to the xvg format.
 
-In addition, it does some magic tricks:
-- bigger value will be set to pot_max (see xml)
-- all values after the cutoff are set to the same value as the cufoff
-
-For non-bonded potential:
-- shift the potential, so that it is zero at the cutoff
-- put the values in the C12 column
-
 Allowed options:
 -v, --version         print version
 -h, --help            show this help message
---type XXX            change the type of xvg table (non-bonded, bonded, ...)
+--type XXX            change the type of xvg table
                       Default: $type
+--max MAX             Replace all pot value bigger MAX by MAX 
+
+
+Possible types: non-bonded (=C12), bond, thermoforce, C12, C6
 
 Examples:
-* $progname --type bonded table.in table_b0.xvg
+* $progname --type bond table.in table_b0.xvg
 EOF
     exit 0;
   }
   elsif ($ARGV[0] eq "--type"){
       shift(@ARGV);
       $type = shift(@ARGV);
+  }
+  elsif ($ARGV[0] eq "--max"){
+      shift(@ARGV);
+      $gmx_max = shift(@ARGV);
   }
   else{
     die "Unknow option '".$ARGV[0]."' !\n";
@@ -74,66 +75,68 @@ use CsgFunctions;
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-my $gromacs_max=csg_get_property("cg.inverse.gromacs.pot_max");
-my $table_end=csg_get_property("cg.inverse.gromacs.table_end");
-my $table_bins=csg_get_property("cg.inverse.gromacs.table_bins");
-
 my @r;
 my @pot;
 my @flag;
-(readin_table($infile,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
+my $comments;
+(readin_table($infile,@r,@pot,@flag,$comments)) || die "$progname: error at readin_table\n";
 
-#gromacs does not like VERY big numbers
-for (my $i=0;$i<=$#r;$i++) {
-  $pot[$i]=$gromacs_max if $pot[$i]>$gromacs_max;
-  $pot[$i]=-$gromacs_max if $pot[$i]<-$gromacs_max;
-}
-
-#cutoff is last point
-my $i_cut=$#r;
-
-if ( "$type" eq "non-bonded" ) {
-  #shift potential so that it is zero at cutoff
-  for (my $i=0;$i<=$i_cut;$i++){
-    $pot[$i]-=$pot[$i_cut];
+if (defined($gmx_max)) {
+  #gromacs does not like VERY big numbers
+  for (my $i=0;$i<=$#r;$i++) {
+    $pot[$i]=$gmx_max if $pot[$i]>$gmx_max;
+    $pot[$i]=-$gmx_max if $pot[$i]<-$gmx_max;
   }
-}
-
-# set end of the potential to zero
-for (my $i=$i_cut+1;$i<=$table_end/$table_bins;$i++) {
-  $pot[$i]=$pot[$i_cut];
-  $r[$i]=$r[$i-1]+$table_bins;
 }
 
 my @force;
 
 #calc force
-$force[0]=0;
 for (my $i=1;$i<$#r;$i++){
    $force[$i]=-($pot[$i+1]-$pot[$i-1])/($r[$i+1]-$r[$i-1]);
 }
-$force[$#r]=0.0;
+if ( "$type" eq "dihedral" ) {
+  $force[0]=-($pot[1]-$pot[$#r-1])/($r[1]-$r[0]+$r[$#r]-$r[$#r-1]);
+  $force[$#r]=$force[0];
+} else {
+  $force[0]=0;
+  $force[$#r]=0.0;
+}
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 
-#preserve comments
-open(INFILE, "$infile");
-while (<INFILE>){
-	if($_ =~ /^[#@]/){print OUTFILE $_;}
-}
-close(INFILE);
-
 my $fmt=undef;
-if ( "$type" eq "non-bonded" ){
+my $begin=0;
+my $end=undef;
+if (( "$type" eq "non-bonded" ) or ("$type" eq "C12" )) {
   $fmt=sprintf("%%15.10e   %15.10e %15.10e   %15.10e %15.10e   %%15.10e %%15.10e\n",0,0,0,0);
 }
+elsif ( "$type" eq "C6" ){
+  $fmt=sprintf("%%15.10e   %15.10e %15.10e   %%15.10e %%15.10e   %15.10e %15.10e\n",0,0,0,0);
+}
 elsif ( "$type" eq "bonded" ){
+  $fmt="%15.10e   %15.10e %15.10e\n";
+}
+elsif ( "$type" eq "angle" ){
+  $fmt="%15.10e   %15.10e %15.10e\n";
+  $end=180;
+}
+elsif ( "$type" eq "dihedral" ){
+  $fmt="%15.10e   %15.10e %15.10e\n";
+  $begin=-180;
+  $end=180;
+}
+elsif ( "$type" eq "thermforce" ){
   $fmt="%15.10e   %15.10e %15.10e\n";
 }
 else{
   die "$progname: Unsupported type of interatction: $type -> go and implement it\n";
 }
 
+die "$progname: table for type $type should begin with $begin, but I found $r[0]\n" if(abs($begin-$r[0]) > 1e-3);
+die "$progname: table for type $type should end with $end, but I found $r[$#r]\n" if(($end) and (abs($end-$r[$#r]) > 1e-3));
+
+print OUTFILE "$comments" if (defined($comments));
 for(my $i=0;$i<=$#r;$i++){
     printf(OUTFILE "$fmt",$r[$i],$pot[$i], $force[$i]);
 }

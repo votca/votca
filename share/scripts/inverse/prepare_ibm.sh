@@ -25,8 +25,8 @@ EOF
    exit 0
 fi
 
-msg "####################################"
-msg "# ERROR 'ibm' was renamed to 'ibi' #"
-msg "####################################"
+msg --color blue "####################################"
+msg --color blue "# ERROR 'ibm' was renamed to 'ibi' #"
+msg --color blue "####################################"
 
 die "'ibm' was renamed to 'ibi'"
