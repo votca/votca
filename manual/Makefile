@@ -4,6 +4,11 @@ LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
 NAME=manual
+ifeq ($(OSTYPE),darwin)
+CWD=$(shell pwd)
+ND=$(subst work/Paper,Dropbox,$(CWD))
+endif
+
 all: $(NAME).pdf
 dvi: $(NAME).dvi
 ps: $(NAME).ps
@@ -19,7 +24,15 @@ $(NAME).tex: titlepage.tex introduction.tex
 	$(LATEXMK) $(LATEXMKOPTS) -dvi $<
 
 %.pdf: %.dvi
-	dvipdfmx $<   
+ifeq ($(OSTYPE),darwin)
+	dvips $(NAME).dvi
+	ps2pdf $(NAME).ps
+	mkdir -p $(ND)
+	cp $(NAME).pdf $(ND)
+else
+	dvipdfmx $*
+endif
+
 
 %_submake:
 	$(MAKE) $(MFLAGS) -C $*
