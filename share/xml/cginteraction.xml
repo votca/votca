@@ -78,7 +78,7 @@
     </desc>
   </item>
   <item><name>inverse.post_add_options</name><desc>Contains all options of post add scripts</desc></item>
-  <item><name>inverse.post_update_options.overwrite</name><desc>Contains all options of the overwrite postadd scripts</desc></item>
+  <item><name>inverse.post_add_options.overwrite</name><desc>Contains all options of the overwrite postadd scripts</desc></item>
   <item>
     <name>inverse.post_update_options.overwrite.do</name>
     <desc>
