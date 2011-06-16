@@ -20,7 +20,7 @@ $(NAME).tex: titlepage.tex introduction.tex reference.tex
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi
 
-%.dvi: %.tex dummy
+%.dvi: %.tex dummy ref_calculators.tex
 	$(LATEXMK) $(LATEXMKOPTS) -dvi $<
 
 %.pdf: %.dvi
