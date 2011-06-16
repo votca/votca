@@ -1,10 +1,3 @@
-/*
- * File:   calc_integrals.h
- * Author: schrader
- *
- * Created on March 28, 2011
- */
-
 #ifndef _HIST_ENERGETICDISORDER_H
 #define	_HIST_ENERGETICDISORDER_H
 
@@ -12,6 +5,11 @@
 #include "paircalculator.h"
 #include <votca/tools/histogramnew.h>
 
+/**
+	\brief Compute a histogram of site energy differences from the neighborlist
+
+Callname : "histenergeticdisorder"
+*/
 class CalcHistEnergeticDisorder : public PairCalculator
 {
 public:

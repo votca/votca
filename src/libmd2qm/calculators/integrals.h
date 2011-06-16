@@ -1,15 +1,14 @@
-/* 
- * File:   calc_integrals.h
- * Author: vehoff
- *
- * Created on April 8, 2010, 10:33 AM
- */
-
 #ifndef _CALC_INTEGRALS_H
 #define	_CALC_INTEGRALS_H
 
 #include "qmpair.h"
 #include "paircalculator.h"
+
+/**
+	\brief Compute all transfer integrals from the neighborlist
+
+Callname : "integrals"
+*/
 
 class CalcIntegrals : public PairCalculator
 {
