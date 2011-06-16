@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="62">
+<configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../include/basis_set.h</itemPath>
-      <itemPath>../../include/charges.h</itemPath>
-      <itemPath>../../include/crgunit.h</itemPath>
-      <itemPath>../../include/crgunittype.h</itemPath>
-      <itemPath>../../include/fock.h</itemPath>
-      <itemPath>../../include/global.h</itemPath>
-      <itemPath>../../include/jcalc.h</itemPath>
-      <itemPath>../../include/mol_and_orb.h</itemPath>
-      <itemPath>../../include/orbitals.h</itemPath>
-      <itemPath>../../include/units.h</itemPath>
+      <itemPath>../../include/votca/moo/basis_set.h</itemPath>
+      <itemPath>../../include/votca/moo/charges.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -54,7 +46,7 @@
         <ccTool>
           <incDir>
             <pElem>../../include</pElem>
-            <pElem>../../../include</pElem>
+            <pElem>../../../tools/include</pElem>
           </incDir>
         </ccTool>
         <archiverTool>

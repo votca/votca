@@ -10,12 +10,14 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
+FC=
 AS=as
 
 # Macros
@@ -31,7 +33,8 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/moo_overlap.o
+	${OBJECTDIR}/_ext/715944016/moo_overlap.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -51,7 +54,7 @@ LDLIBSOPTIONS=../libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtoo
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Debug.mk ../../src/tools/moo_overlap
+	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/moo_overlap
 
 ../../src/tools/moo_overlap: ../libmoo/../../src/libmoo/libmoo.a
 
@@ -61,10 +64,10 @@ LDLIBSOPTIONS=../libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtoo
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/moo_overlap ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/moo_overlap.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/moo_overlap.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools
+${OBJECTDIR}/_ext/715944016/moo_overlap.o: ../../src/tools/moo_overlap.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/tools/moo_overlap.o ../../src/tools/moo_overlap.cc
+	$(COMPILE.cc) -g -I../../../tools/include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/moo_overlap.o ../../src/tools/moo_overlap.cc
 
 # Subprojects
 .build-subprojects:

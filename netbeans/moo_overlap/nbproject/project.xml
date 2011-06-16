@@ -13,6 +13,14 @@
                 <make-dep-project>../libmoo</make-dep-project>
                 <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
             </make-dep-projects>
+            <sourceRootList>
+                <sourceRootElem>../../include</sourceRootElem>
+                <sourceRootElem>../../src/tools</sourceRootElem>
+            </sourceRootList>
+            <confList>
+                <confElem>Debug</confElem>
+                <confElem>Release</confElem>
+            </confList>
         </data>
     </configuration>
 </project>

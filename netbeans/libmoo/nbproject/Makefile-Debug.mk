@@ -10,12 +10,14 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
+FC=
 AS=as
 
 # Macros
@@ -31,15 +33,16 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/basis_set.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/orbitals.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/charges.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/units.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunittype.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o \
-	${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/jcalc.o
+	${OBJECTDIR}/_ext/484467347/orbitals.o \
+	${OBJECTDIR}/_ext/484467347/crgunittype.o \
+	${OBJECTDIR}/_ext/484467347/crgunit.o \
+	${OBJECTDIR}/_ext/484467347/charges.o \
+	${OBJECTDIR}/_ext/484467347/fock.o \
+	${OBJECTDIR}/_ext/484467347/basis_set.o \
+	${OBJECTDIR}/_ext/484467347/mol_and_orb.o \
+	${OBJECTDIR}/_ext/484467347/units.o \
+	${OBJECTDIR}/_ext/484467347/jcalc.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -59,64 +62,64 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Debug.mk ../../src/libmoo/libmoo.a
+	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/libmoo/libmoo.a
 
 ../../src/libmoo/libmoo.a: ${OBJECTFILES}
 	${MKDIR} -p ../../src/libmoo
 	${RM} ../../src/libmoo/libmoo.a
-	${AR} rv ../../src/libmoo/libmoo.a ${OBJECTFILES} 
+	${AR} -rv ../../src/libmoo/libmoo.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libmoo/libmoo.a
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/basis_set.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/basis_set.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/orbitals.o: ../../src/libmoo/orbitals.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/basis_set.o ../../src/libmoo/basis_set.cpp
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/orbitals.o ../../src/libmoo/orbitals.cpp
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/fock.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/crgunittype.o: ../../src/libmoo/crgunittype.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/fock.o ../../src/libmoo/fock.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/crgunittype.o ../../src/libmoo/crgunittype.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/orbitals.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/orbitals.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/crgunit.o: ../../src/libmoo/crgunit.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/orbitals.o ../../src/libmoo/orbitals.cpp
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/crgunit.o ../../src/libmoo/crgunit.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/charges.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/charges.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/charges.o: ../../src/libmoo/charges.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/charges.o ../../src/libmoo/charges.cpp
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/charges.o ../../src/libmoo/charges.cpp
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/units.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/units.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/fock.o: ../../src/libmoo/fock.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/units.o ../../src/libmoo/units.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/fock.o ../../src/libmoo/fock.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunittype.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/crgunittype.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/basis_set.o: ../../src/libmoo/basis_set.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunittype.o ../../src/libmoo/crgunittype.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/basis_set.o ../../src/libmoo/basis_set.cpp
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/crgunit.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/mol_and_orb.o: ../../src/libmoo/mol_and_orb.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/crgunit.o ../../src/libmoo/crgunit.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/mol_and_orb.o ../../src/libmoo/mol_and_orb.cpp
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/mol_and_orb.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/units.o: ../../src/libmoo/units.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/mol_and_orb.o ../../src/libmoo/mol_and_orb.cpp
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/units.o ../../src/libmoo/units.cc
 
-${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/jcalc.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/jcalc.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo
+${OBJECTDIR}/_ext/484467347/jcalc.o: ../../src/libmoo/jcalc.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/_DOTDOT/_DOTDOT/src/libmoo/jcalc.o ../../src/libmoo/jcalc.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/jcalc.o ../../src/libmoo/jcalc.cc
 
 # Subprojects
 .build-subprojects:
 
 # Clean Targets
-.clean-conf:
+.clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Debug
 	${RM} ../../src/libmoo/libmoo.a
 
