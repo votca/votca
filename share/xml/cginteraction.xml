@@ -77,6 +77,14 @@
       scripts separated by spaces which are called. See section on iterative framework for details.
     </desc>
   </item>
+  <item><name>inverse.post_add_options</name><desc>Contains all options of post add scripts</desc></item>
+  <item><name>inverse.post_update_options.overwrite</name><desc>Contains all options of the overwrite postadd scripts</desc></item>
+  <item>
+    <name>inverse.post_update_options.overwrite.do</name>
+    <desc>
+      pattern for overwrite postadd script (1 do, 0 do not).
+    </desc>
+  </item>
   <item>
     <name>inverse.p_target</name>
     <desc>
