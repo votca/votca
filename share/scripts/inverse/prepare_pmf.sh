@@ -27,50 +27,39 @@ EOF
 fi
 
 conf_start="start"
-pullgroup0=$(csg_get_interaction_property .pmf.pullgroup0)
-pullgroup1=$(csg_get_interaction_property .pmf.pullgroup1)
-min=$(csg_get_interaction_property .pmf.from)
-max=$(csg_get_interaction_property .pmf.to)
-rate=$(csg_get_interaction_property .pmf.rate)
-mdp_init="start_in.mdp"
+min=$(csg_get_property cg.non-bonded.pmf.min)
+max=$(csg_get_property cg.non-bonded.pmf.max)
+mdp_prep=$(csg_get_property cg.non-bonded.pmf.mdp_prep)
 mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
-# Generate start_in.mdp
-critical cp_from_main_dir grompp.mdp.template
-cat grompp.mdp.template | sed 's/^pull.*$//' | uniq > tmp
-sed -e "s/@STEPS@/$steps/" \
-    -e "s/@EXCL@//" \
-    -e "s/@OUT@/1/" tmp > ${mdp_init}
-rm tmp
+cp_from_main_dir $mdp_prep
+mv $mdp_prep grompp.mdp
 
-dt=$(get_from_mdp dt "$mdp_init")
+pullgroup0=$(get_from_mdp pull_group0)
+pullgroup1=$(get_from_mdp pull_group1)
+rate=$(get_from_mdp pull_rate1)
+steps=$(get_from_mdp nsteps)
+dt=$(get_from_mdp dt)
 
-# Run grompp to generate tpr, then calculate distance
-grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f start_in.mdp -po ${conf_start}.mdp ${mdp_opts}
-# TODO: do not hardcode pullgroups
+# Run grompp to generate tpr
+grompp -n index.ndx -c conf.gro -o ${conf_start}.tpr -f grompp.mdp -po ${conf_start}.mdp ${mdp_opts}
+
+# Calculate distance
 echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -f conf.gro -s ${conf_start}.tpr -n index.ndx -o ${conf_start}.xvg
-
-# TODO: check for all commands (sed, awk, ...) whether successful or use bash -e
 dist=$(sed '/^[#@]/d' ${conf_start}.xvg | awk '{print $2}')
 [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
 echo Found distance $dist
 
-# Prepare grompp file
+# Calculate number of simulations
 steps="$(awk "BEGIN{print int(($max-$dist)/$rate/$dt)}")"
 if [ $steps -le 0 ]; then
   steps="${steps#-}"
   rate="-$rate"
 fi
 ((steps++))
-out="$(awk "BEGIN{print int(1/$dt)}")"
-msg Doing $(($steps+1)) simulations with rate $rate, output every $out steps at $dt ps 
-sed -e "s/@DIST@/$dist/" \
-    -e "s/@RATE@/$rate/" \
-    -e "s/@STEPS@/$steps/" \
-    -e "s/@EXCL@//" \
-    -e "s/@OUT@/1/" grompp.mdp.template > grompp.mdp
+msg Doing $(($steps+1)) simulations with rate $rate
 
-# Run simulation to generate initial setup
+# Run simulation
 grompp -n index.ndx ${mdp_opts}
 do_external run gromacs_pmf
 
@@ -84,11 +73,9 @@ if [ "$background" == "yes" ]; then
     sleep $sleep_time
   done
 else
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
-  traj="traj.${ext}"
-  [ -f "$confout" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"
+  [ -f "$confout" ] || die "${0##*/}: Gromacs final coordinate file '$confout' not found after mdrun"
 fi
 
-# Calculate new distance and divide trj into separate frames
+# Calculate new distance and chop up trajectory
 echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -n index.ndx
 echo "System" | trjconv -sep -o conf_start.gro 
