@@ -8,7 +8,7 @@
 /**
 	\brief Compute a histogram of transfer integrals from the neighborlist
 
-Callname : "histintegrals"
+Callname: histintegrals
 */
 class CalcHistIntegrals : public PairCalculator
 {

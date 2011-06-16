@@ -6,7 +6,7 @@
 /**
     \brief Calculates hopping rates using Marcus theroy
 
-Callname : "marcusrates"
+Callname: marcusrates
 
 Hopping rates between all pairs i,j are computed from the high temperature limit of Marcus theory
     \f[\omega_{ij}  = \frac{2 \pi}{\hbar}  \frac{ J_{ij}^2 }{\sqrt{ 4 \pi \lambda_{ij} k_B T}} \exp \left[-\frac{\left(\Delta E_{ij}-\lambda_{ij}\right)^2}{4 \lambda_{ij}k_B T} \right]

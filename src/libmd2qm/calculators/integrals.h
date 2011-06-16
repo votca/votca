@@ -7,7 +7,11 @@
 /**
 	\brief Compute all transfer integrals from the neighborlist
 
-Callname : "integrals"
+Transfer integrals for all pairs in the neighborlist are computed using the ZINDO method.
+
+Callname: integrals
+
+Reference : Kirkpatrick, J. International Journal of Quantum Chemistry 2008, 108, 51–56.
 */
 
 class CalcIntegrals : public PairCalculator

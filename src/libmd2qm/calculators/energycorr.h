@@ -7,7 +7,7 @@
 /**
     \brief Calculates reduced site energy correlation function
 
-Callname : "energycorr"
+Callname: energycorr
 
 To quantify the degree of correlation in site energies due to electrostatics, one can calculate the spatial correlation function of \f$E_i\f$ and \f$E_j\f$ at a distance \f$r_{ij}\f$
 \f[C(r_{ij}) = \frac{  \langle \left( E_i-\langle E\rangle \right)

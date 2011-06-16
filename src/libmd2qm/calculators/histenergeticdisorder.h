@@ -8,7 +8,7 @@
 /**
 	\brief Compute a histogram of site energy differences from the neighborlist
 
-Callname : "histenergeticdisorder"
+Callname: histenergeticdisorder
 */
 class CalcHistEnergeticDisorder : public PairCalculator
 {
