@@ -25,6 +25,13 @@ EOF
   exit 0
 fi
 
+msg --color blue "########################################################"
+msg --color blue "# WARNING the espresso interface is still experimental #"
+msg --color blue "# If you find a problem report it under:               #"
+msg --color blue "# http://code.google.com/p/votca/issues/list           #"
+msg --color blue "# with the template espresso                           #"
+msg --color blue "########################################################"
+
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
 cp_from_main_dir $esp
