@@ -89,7 +89,7 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
             }
         }
         if(nonzero_found==0) {
-            throw "constrained_qrsolve_zero_column_in_matrix";
+            throw std::runtime_error("constrained_qrsolve_zero_column_in_matrix");
         }
     }
 
