@@ -1,5 +1,6 @@
 #include <stdlib.h>
-#include "basis_set.h"
+#include <votca/moo/basis_set.h>
+
  /* chuncks of data which I will point the internal variables _nel_at and _nbasis_at and _basis_lbl_at too
    * this way I shall be able to deal with different basis sets
    */

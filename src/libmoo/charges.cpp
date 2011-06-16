@@ -1,4 +1,4 @@
-#include "charges.h"
+#include <votca/moo/charges.h>
 
 int multipoles::read_crg_eps(const char * namefile ){
         ifstream in(namefile);

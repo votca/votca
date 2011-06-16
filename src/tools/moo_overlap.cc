@@ -11,8 +11,9 @@
 
 #include <boost/program_options.hpp>
 #include <string>
-#include <jcalc.h>
-#include <crgunit.h>
+#include <votca/moo/jcalc.h>
+#include <votca/moo/crgunit.h>
+
 using namespace std;
 
 int main(int argc, char **argv) {

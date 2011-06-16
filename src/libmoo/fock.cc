@@ -1,4 +1,4 @@
-#include "fock.h"
+#include <votca/moo/fock.h>
 
 
 //ZINDO/S parameters for first three rows

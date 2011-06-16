@@ -1,4 +1,4 @@
-#include "jcalc.h"
+#include <votca/moo/jcalc.h>
 
 JCalc::~JCalc()
 {

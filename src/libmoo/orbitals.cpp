@@ -1,4 +1,4 @@
-#include "orbitals.h"
+#include <votca/moo/orbitals.h>
 #include <stdio.h>
 #include <stdlib.h>
 

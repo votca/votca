@@ -5,7 +5,7 @@
  * Created on February 24, 2009, 12:08 PM
  */
 
-#include "crgunittype.h"
+#include <votca/moo/crgunittype.h>
 
 inline void get_orient(const vec & a, const vec & b, const vec & c, matrix & cg) {
 

@@ -5,7 +5,7 @@
  * Created on February 24, 2009, 1:59 PM
  */
 
-#include "crgunit.h"
+#include <votca/moo/crgunit.h>
 
 CrgUnit::~CrgUnit()
 {
