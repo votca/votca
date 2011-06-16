@@ -1,10 +1,3 @@
-/* 
- * File:   generate_nrgs.h
- * Author: lukyanov
- *
- * Created on July 21, 2010, 4:46 PM
- */
-
 #ifndef _GENERATE_NRGS_H
 #define	_GENERATE_NRGS_H
 
@@ -12,8 +5,11 @@
 #include "qmcalculator.h"
 #include "votca/tools/average.h"
 
-/// Generate Gaussian-distributed site energies, with or without spatial correlations
+/** \brief Generate Gaussian-distributed site energies with or without spatial correlations
 
+Callname: 
+
+*/
 class GenerateNrgs : public QMCalculator
 {
 public:
