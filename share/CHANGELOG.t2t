@@ -7,7 +7,7 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=tools
 
 == Version in hg ==
 * changed buildsystem to cmake
-
+* added database class through sqlite3
 
 == Version in 1.1.2 ==
 * fixed head of votca-tools manpage
