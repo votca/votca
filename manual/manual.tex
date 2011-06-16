@@ -1,0 +1,60 @@
+\documentclass[a4paper,10pt]{book}
+
+\usepackage{color}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{appendix}
+\usepackage{xspace}
+\usepackage{a4wide}
+\usepackage{wrapfig}
+\usepackage[numbers,comma,sort&compress]{natbib}
+\usepackage{graphicx}
+%\usepackage{xstring}
+\usepackage{listings,xcolor,courier}
+%\usepackage{draftcopy}
+\usepackage{longtable}
+\usepackage{paralist}
+
+\usepackage
+[dvips, %or dvips or pdftex
+pagebackref, %or backref
+colorlinks=true,
+linkcolor=webgreen, %defined below
+filecolor=webbrown, %defined below
+citecolor=webgreen, %defined below
+pdftitle={VOTCA-CT manual},
+pdfauthor={},
+pdfsubject={VOTCA-CT},
+pdfkeywords={charge transport organic semiconductors},
+bookmarksopen=false,
+pdfpagemode=UseNone]{hyperref}
+
+\definecolor{webgreen}{rgb}{0,.5,0}
+\definecolor{webbrown}{rgb}{.6,0,0}
+\pdfcompresslevel=9
+
+\usepackage[T1]{fontenc}
+%\usepackage{times}
+\usepackage{type1cm}
+
+%\input{newcommands}
+
+\begin{document}
+\frontmatter
+\include{titlepage}
+\thispagestyle{empty}
+\cleardoublepage
+
+\tableofcontents
+\cleardoublepage
+\mainmatter
+\include{introduction}
+\include{morphology}
+\include{mapping}
+\include{transfer_integrals}
+%\include{reference}
+
+\bibliographystyle{unsrt}
+%\bibliography{votca}
+
+\end{document} 
