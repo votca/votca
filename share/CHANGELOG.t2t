@@ -7,6 +7,11 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 
 == Version in hg ==
 * changed buildsystem to cmake
+* added thermforce iteration method
+* added csg_density
+* a lot of framework clean up
+* added type selector name:*
+* allow long and restart of simulations
 
 
 == Version in 1.1.2 ==
