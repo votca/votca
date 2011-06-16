@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-HGID:="1.2"
+HGID:=\newcommand{\hgid}{1.2}
 LATEXMK=scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 

@@ -18,7 +18,7 @@ check:
 %_subclean:
 	$(MAKE) $(MFLAGS) -C $* clean
 
-HGID:="1.2"
+HGID:=\newcommand{\refhgid}{1.2}
 hgid.tex: check dummy
 	[ -f hgid.tex ] || touch hgid.tex
 	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex
