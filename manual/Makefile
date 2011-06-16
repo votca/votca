@@ -15,12 +15,12 @@ ps: $(NAME).ps
 
 #$(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_submake
 
-$(NAME).tex: titlepage.tex introduction.tex
+$(NAME).tex: titlepage.tex introduction.tex reference.tex
 
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi
 
-%.dvi: %.tex dummy
+%.dvi: %.tex dummy ref_calculators.tex
 	$(LATEXMK) $(LATEXMKOPTS) -dvi $<
 
 %.pdf: %.dvi
@@ -47,6 +47,9 @@ clean: qclean fig_subclean functionality_subclean reference_subclean usage_subcl
 	rm -f $(NAME).fdb_latexmk $(NAME).brf
 	rm -f hgid.tex
 	rm -f *~
+
+ref_calculators.tex: dummy
+	scripts/extract_calculators.sh
 
 tar: all
 	rm -f $(NAME).tar.gz
