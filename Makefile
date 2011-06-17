@@ -1,5 +1,7 @@
 SHELL=/bin/bash
-HGID:=\newcommand{\hgid}{1.2}
+#the next line is used by the buildutil !
+VER=1.2
+HGID:=\newcommand{\hgid}{${VER}}
 LATEXMK=scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 

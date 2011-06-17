@@ -18,7 +18,7 @@ check:
 %_subclean:
 	$(MAKE) $(MFLAGS) -C $* clean
 
-HGID:=\newcommand{\refhgid}{1.2}
+HGID:=$(shell csg_call --help | sed -n 's/.*hgid: \(.*\)/\\newcommand{\\refhgid}{\1}/p')
 hgid.tex: check dummy
 	[ -f hgid.tex ] || touch hgid.tex
 	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex
