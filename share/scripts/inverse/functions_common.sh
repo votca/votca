@@ -145,33 +145,33 @@ critical() { #executes arguments as command and calls die if not succesful
 export -f critical
 
 for_all (){ #do something for all interactions (1st argument)
-  local bondtype name interactions quiet="no"
+  local bondtypes type name interactions quiet="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   [[ -z $1 || -z $2 ]] && "for_all need at least two arguments"
-  bondtype="$1"
+  bondtypes="$1"
   shift
-  #check that type is bonded or non-bonded
-  if [[ $bondtype != "non-bonded" ]]; then
-    die  "for_all: Argmuent 1 '$bondtype' is not non-bonded"
-  fi
-  [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
   check_for_duplicated_interactions
-  interactions="$(csg_get_property cg.non-bonded.name)"
-  for name in $interactions; do
-    #print this message to stderr to avoid problem with $(for_all something)
-    [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
-    #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
-    #write variable defines in the front is better, that export
-    #no need to run unset afterwards
-    bondtype="$bondtype" \
-    bondname="$name" \
-    bash -c "$*" || die "for_all: bash -c '$*' failed for bondname '$name'"
+  for type in $bondtypes; do
+    #check that type is bonded or non-bonded
+    [[ $type = "non-bonded" || $type = "bonded" ]] || die  "for_all: Argument 1 is not non-bonded or bonded"
+    [[ $quiet = "no" ]] && echo "For all $type" >&2
+    interactions="$(csg_get_property cg.$type.name)"
+    for name in $interactions; do
+      #print this message to stderr to avoid problem with $(for_all something)
+      [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
+      #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
+      #write variable defines in the front is better, that export
+      #no need to run unset afterwards
+      bondtype="$type" \
+      bondname="$name" \
+      bash -c "$*" || die "for_all: bash -c '$*' failed for bondname '$name'"
+    done
   done
 }
 export -f for_all
 
 check_for_duplicated_interactions() { #checks for duplicated interactions
-  local i j names=( $(csg_get_property cg.non-bonded.name) ) 
+  local i j names=( $(csg_get_property --allow-empty cg.non-bonded.name) $(csg_get_property --allow-empty cg.bonded.name) )
   for ((i=0;i<${#names[@]};i++)); do
     for ((j=i+1;j<${#names[@]};j++)); do
       [[ ${names[$i]} = ${names[$j]} ]] && die "for_all: the interaction name '${names[$i]}' appeared twice, this is not allowed"

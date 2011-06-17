@@ -26,5 +26,5 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-for_all non-bonded do_external rdf $sim_prog
-for_all non-bonded do_external update ibi_single
+for_all "non-bonded bonded" do_external rdf $sim_prog
+for_all "non-bonded bonded" do_external update ibi_single

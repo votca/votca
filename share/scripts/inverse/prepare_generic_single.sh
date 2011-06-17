@@ -38,8 +38,11 @@ if [[ -f ${main_dir}/${name}.pot.in ]]; then
   tmp="$(critical mktemp ${name}.pot.in.smooth.XXX)"
   echo "Converting ${main_dir}/${name}.pot.in to ${name}.pot.new through $tmp"
   critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${tmp} --grid ${min}:${step}:${max} --comment "$comment"
+  [[ $(csg_get_interaction_property bondtype) = "bonded" ]] && \
+  do_external pot shift_bonded ${tmp} ${name}.pot.new || \
   do_external pot shift_nonbonded ${tmp} ${name}.pot.new
 else
+  [[ $(csg_get_interaction_property bondtype) = "bonded" ]] && die "${0##*/}: Not implemented yet, implement it or provide ${name}.pot.in!"
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
   #resample all target dist in $this_dir
