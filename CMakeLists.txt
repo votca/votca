@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 2.6)
 project(votca-tools)
 
 set(PROJECT_VERSION "1.2")
-string(REGEX REPLACE "^[1-9]+\\.([1-9]+)\\.[0-9].*$" "\\1" SOVERSION "${PROJECT_VERSION}")
+string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
+if (NOT ${SOVERSION} MATCHES "[1-9]+")
+  message(FATAL_ERROR "Could not determind SOVERSION from ${PROJECT_VERSION}")
+endif (NOT ${SOVERSION} MATCHES "[1-9]+")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
