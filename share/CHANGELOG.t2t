@@ -3,21 +3,24 @@ Votca Developer Team
 %%mtime(%m/%d/%Y)
 
 For more detailed information about the changes see the
-history of the [repository http://code.google.com/p/votca/source/list?repo=tools]
+history of the [repository http://code.google.com/p/votca/source/list?repo=tools&r=stable]
 
 == Version in hg ==
+
+== Version 1.2 (SuperDoris) ==
 * changed buildsystem to cmake
 * added database class through sqlite3
 
-== Version in 1.1.2 ==
+
+== Version 1.1.2 ==
 * fixed head of votca-tools manpage
 
 
-== Version in 1.1.1 ==
+== Version 1.1.1 ==
 * just a bugfix release
 
 
-== Version in 1.1 (SuperAnn) ==
+== Version 1.1 (SuperAnn) ==
 * added thread class
 * added spline class, with akima spline, linear spline
 * added man7 page
