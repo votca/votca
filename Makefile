@@ -12,14 +12,15 @@ ps: $(NAME).ps
 
 $(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_submake
 
-#remove broken dvi if LATEXMK fails
-.DELETE_ON_ERROR: %.dvi
-
 %.dvi: %.tex dummy
-	$(LATEXMK) $(LATEXMKOPTS) -dvi $<
+	@#rm target if latexmk failed, worked better than DELETE_ON_ERROR
+	$(LATEXMK) $(LATEXMKOPTS) -dvi $< || rm -f $@
+	@#rm has exit code 0
+	@[ -f $@ ]
 
 %.pdf: %.dvi
-	dvipdf $< $@
+	dvipdf $< $*_shadow.pdf
+	mv $*_shadow.pdf $@
 
 %_submake:
 	$(MAKE) $(MFLAGS) -C $*
