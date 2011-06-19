@@ -1,2 +1,92 @@
 \chapter{Mapping}
+{\color{red} Old text from Thorsten. Cleaning is needeed.}
+
+The first step in a computation is the conversion of a gromacs atomistic geometry into a coarse grained set of beads. This is requires a file to give the mapping (more info in the votca manual). 
+
+The program that makes this conversion is called ctp\_map. Its' input are the gromacs files, a mapping file, a cutoff distance for defining nearest neighbours and a file with the characteristics of the charge unit types.
+
+\subsubsection{Program options}
+
+Running the program with the --help option will give a list of obvious options. The next subsections describe the input files for the mapping.
+
+\subsubsection{The mapping file}
+
+To define how the molecule is mapped to a coarse-grained bead requires an \emph{xml} file specifying the molecules and their masses based on the configuration used for the molecular dynamics simulations which were used to generate {\bf topol.tpr} and {\bf traj.trr}. A file for a single molecule - in this example an indolocarbazole - is shown below.
+
+\begin{itemize}
+ \item {\bf name} \\
+ Name of the molecule in the coarse-grained model. 
+ \item {\bf ident} \\
+ Name of the molecule in the all-atom model. This \emph{must} match the molecule name from the GROMACS topology.
+ \item {\bf topology} \\
+ Section describing the topology of the molecule based on the labelling using for the MD simulations in \emph{Gromacs}.
+ \item {\bf cg\_beads} \\
+ Section describing the different coarse-grained beads a molecule or polymer chain may consist of.
+ \item {\bf cg\_bead} \\
+ Section defining one particular bead.
+ \item {\bf name} \\
+ The name of the bead. This must be unique for each bead in a molecule. So a polymer made of 10 repeat units needs 10 different bead name identifiers.
+ \item {\bf type} \\
+ The type of the bead. This may be the same for beads which only differ by a hydrogen atom or two to simplify the interactions, while the mapping must take such tiny differences into account.
+ \item {\bf mapping} \\
+ The type of the mapping. Different beads may have the same mapping, since a molecule may contain multiple beads of the same type, but in the bead definition each must correspond to different atoms.
+ \item {\bf beads} \\
+ Precise mapping. Lists the molecule labels used in \emph{Gromacs} which form the bead. \\
+ Note: The first three atoms are used to calculate vectors defining the orientation of the molecule so they must not lie on the same axis. Also the first three atoms in the mapping need not correspond to the first three in the \emph{rtp} or \emph{gro} file, but this mapping must be consistent with the definitions in the list\_charges definition.
+ \item {\bf symmetry} \\
+ The symmetry of the molecule. \\
+ 3 = ellipsoidal with three different axes.
+
+\item {\bf qm} \\
+ This section lets votca know that the mapping will be with beads that are associated with a particular charge unit type
+ \item {\bf crgunitname}
+ The name of the charge unit type the bead is associated with
+ \item {\bf bead}
+ The position within that charge unit type for the bead.(DO WE ACTUALLY EVER USE THIS??) 
+ \item {\bf maps} \\
+ Section describing the different mapping, i.e. different types of beads.
+ \item {\bf map} \\
+ Section defining one particular map.
+ \item {\bf name} \\
+ The name of the mapping. Must correspond to a name used to define the beads above.
+ \item {\bf weights} \\
+ The weighting of the atoms inside the bead, usually taken to be the mass of the nucleus in atomic mass units. The weights must be in the same order as the corresponding bead definition.
+\end{itemize}
+
+
+\clearpage
+%\VerbatimInput[%
+%frame=lines,
+%framesep=4mm,
+%label=\fbox{Partitioning of DCV2T}, 
+%framerule=0.5mm,
+%rulecolor=\color{red},
+%baselinestretch=1,
+%fontsize=\footnotesize%,
+%numbers=left
+%]%
+%{./fig/mapping/cgmap.xml}
+
+
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+\lstset{
+  language=XML,
+  frame=lines,
+  basicstyle=\ttfamily\footnotesize,
+  identifierstyle=\color{red},
+  keywordstyle=\color{blue},
+  showstringspaces=false,
+  columns=fullflexible,
+  commentstyle=\color{gray}\rmfamily\itshape,
+  morekeywords={cg_molecule,cg_beads,cg_bead,crgunitname,bead,beads,type,topology,name,ident,maps,map,mapping,weights,position,qm,symmetry},
+}
+
+\lstinputlisting[
+ label=list:map, 
+ morekeywords={cg_molecule,cg_beads,name,ident,maps,map,mapping,weights,qm,symmetry},
+ caption={Partitioning of DCV2T on conjugates segments and rigid fragments}]%
+{./fig/mapping/cgmap.xml}
 

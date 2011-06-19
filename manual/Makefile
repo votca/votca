@@ -15,7 +15,7 @@ ps: $(NAME).ps
 
 #$(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_submake
 
-$(NAME).tex: titlepage.tex introduction.tex reference.tex
+$(NAME).tex: titlepage.tex introduction.tex mapping.tex reference.tex
 
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi
