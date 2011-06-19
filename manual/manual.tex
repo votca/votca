@@ -39,9 +39,10 @@ pdfpagemode=UseNone]{hyperref}
 %\usepackage{times}
 \usepackage{type1cm}
 
+\begin{document}
+
 \input{newcommands}
 
-\begin{document}
 \frontmatter
 \include{titlepage}
 \thispagestyle{empty}
@@ -56,7 +57,7 @@ pdfpagemode=UseNone]{hyperref}
 \include{transfer_integrals}
 \include{reference}
 
-\bibliographystyle{unsrt}
-%\bibliography{votca}
+\bibliographystyle{achemso}
+\bibliography{literature_short}
 
 \end{document} 
