@@ -36,7 +36,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/76882303/generate_nrgs.o \
 	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
 	${OBJECTDIR}/_ext/76882303/estatics.o \
-	${OBJECTDIR}/_ext/1716269789/statesaverh5.o \
+	${OBJECTDIR}/_ext/76882303/lambdaout.o \
 	${OBJECTDIR}/_ext/1716269789/statesaversqlite.o \
 	${OBJECTDIR}/_ext/76882303/polymerrates.o \
 	${OBJECTDIR}/_ext/76882303/readxml.o \
@@ -91,10 +91,10 @@ ${OBJECTDIR}/_ext/76882303/estatics.o: ../../src/libmd2qm/calculators/estatics.c
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/estatics.o ../../src/libmd2qm/calculators/estatics.cc
 
-${OBJECTDIR}/_ext/1716269789/statesaverh5.o: ../../src/libmd2qm/statesaverh5.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
+${OBJECTDIR}/_ext/76882303/lambdaout.o: ../../src/libmd2qm/calculators/lambdaout.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaverh5.o ../../src/libmd2qm/statesaverh5.cc
+	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/lambdaout.o ../../src/libmd2qm/calculators/lambdaout.cc
 
 ${OBJECTDIR}/_ext/1716269789/statesaversqlite.o: ../../src/libmd2qm/statesaversqlite.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789

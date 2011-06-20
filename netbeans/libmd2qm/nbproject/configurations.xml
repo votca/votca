@@ -14,6 +14,8 @@
       <itemPath>../../src/libmd2qm/calculators/histintegrals.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/integrals.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/jortnerrates.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/lambdaout.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/lambdaout.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/marcusrates.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/marcusrateslambdaouter.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/nbgen.h</itemPath>
@@ -58,7 +60,6 @@
       <itemPath>../../src/libmd2qm/qmpair.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmtopology.cc</itemPath>
       <itemPath>../../src/libmd2qm/statesaver.cc</itemPath>
-      <itemPath>../../src/libmd2qm/statesaverh5.cc</itemPath>
       <itemPath>../../src/libmd2qm/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libmd2qm/version_nb.cc</itemPath>
     </logicalFolder>
