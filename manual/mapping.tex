@@ -24,7 +24,7 @@ Finally, a list of neighboring conjugated segments is constructed. Two segments 
 
 \section{Mapping the system onto conjugated segments}
 
-\texttt{ctp\_map} partitions the system on conjugated segments and rigid fragments
+\texttt{ctp\_map} partitions the system on conjugated segments and rigid fragments:
 \begin{verbatim}
   ctp_map --top topology.tpr -c 15 -cg cgmap.xml --trj traj.trr
 \end{verbatim}
@@ -42,35 +42,35 @@ To partition the system onto conjugated segments and rigid fragments a mapping \
 %
 \texttt{ident} & Name (identification) of the molecule in the all-atom representation. This \emph{must} match the molecule name in the atomistic representation (e.g. \gromacs topology). \\
 %
-\texttt{topology} & Section describing the partitioning of the molecule on rigid fragments (beads). Atom and residue names/types \emph{must} correspond to those used in the atomistic representation (e.g. \gromacs topology)\\
+\texttt{topology} & Section describing the partitioning of the molecule on rigid fragments. Atom and residue names/types \emph{must} correspond to those used in the atomistic representation (e.g. \gromacs topology)\\
 & \\
-\texttt{cg\_beads} & Section describing the different coarse-grained beads (rigid fragments) a molecule or polymer chain may consist of. \\
+\texttt{cg\_beads} & Section describing all rigid fragments of a molecule. \\
 %
-\texttt{cg\_bead} & Section defining one particular bead. \\
+\texttt{cg\_bead} & Section defining one particular rigid fragment. \\
 %
-\texttt{cg\_bead.name} &  The name of the bead. This must be unique for each bead in a molecule. So a polymer made of 10 repeat units needs 10 different bead name identifiers. \\
+\texttt{cg\_bead.name} &  The name of the bead. This must be unique for each rigid fragment in a molecule, for example a polymer made of ten repeat units needs ten different name identifiers if each repeat unit is a rigid fragment. \\
 %
-\texttt{cg\_bead.type} &  The type of the bead. This may be the same for beads which only differ by a hydrogen atom or two to simplify the interactions, while the mapping must take such tiny differences into account. \\
+\texttt{cg\_bead.type} &  The type of the rigid fragment. This may be the same for beads which only differ by a hydrogen atom or two to simplify the calculations, while the mapping must take these differences into account. \\
 %
 \texttt{cg\_bead.mapping} & The type of the mapping. Different beads may have the same mapping, since a molecule may contain multiple beads of the same type, but in the bead definition each must correspond to different atoms. \\
 %
-\texttt{cg\_bead.beads} &  Precise mapping. Lists the molecule labels used in \emph{Gromacs} which form the bead. Note: The first three atoms are used to calculate vectors defining the orientation of the molecule so they must not lie on the same axis. Also the first three atoms in the mapping need not correspond to the first three in the \emph{rtp} or \emph{gro} file, but this mapping must be consistent with the definitions in the list\_charges definition. \\
+\texttt{cg\_bead.beads} &  List of all atoms belonging to the rigid fragment in the format \texttt{residue number:residue name:atom name}. Depending on the options, the first three atoms might be used to calculate vectors defining the orientation of the rigid fragment. In this case they must not lie on the same axis. Even though the first three atoms in the mapping need not correspond to the first three atoms in the \texttt{*.rtp} or \texttt{*.gro} files, the order must be consistent with the definitions in the \texttt{list\_charges} file. \\
 %
-\texttt{cg\_bead.symmetry} &  The symmetry of the molecule. 3 = ellipsoidal with three different axes. \\
+\texttt{cg\_bead.symmetry} &  The symmetry of the molecule. \texttt{symmetry = 3} corresponds to a fragment with three different moments of inertia of the mass tensor. Used to automatically determine fragment orientation.\\
 & \\
-\texttt{qm} & This section associates beads (rigid fragments) with a particular charge unit type \\
+\texttt{qm} & This section associates rigid fragments (beads) with a particular type of a conjugated segment. \\
 %
-\texttt{qm.crgunitname} &  The name of the charge unit type the fragment is associated with \\
+\texttt{qm.crgunitname} &  The name of the conjugated segment the fragment is associated with. \\
 %
-\texttt{qm.bead} & The position of the fragment in the charge unit type. \\
+\texttt{qm.bead} & The position of the rigid fragment in the conjugated segment. \\
 & \\
-\texttt{maps} & Section describing the different mapping for all types of beads. \\
+\texttt{maps} & Section describing maps for all types of rigid fragments. Maps are used to determine the position of a rigid fragment. \\
 %
-\texttt{map} &  Section defining one particular map (used to determine the center of a fragment). \\
+\texttt{map} &  Section defining one particular map. \\
 %
-\texttt{map.name} & The name of the mapping. Must correspond to a name used to define the beads above. \\
+\texttt{map.name} & The map name must correspond to the name used to define the fragments (\texttt{cg\_beads.mapping} tag) . \\
 %
-\texttt{map.weights} & The weighting of the atoms inside the bead, usually taken to be the mass of the nucleus in atomic mass units. The weights must be in the same order as the corresponding bead definition.
+\texttt{map.weights} & The weighting of the atoms in the rigid fragment. If the mass of the nucleus in atomic mass units is used, the center of the rigid fragment will be its center of mass. The weights must be in the same order as in the corresponding rigid fragment definition (\texttt{cg\_beads.bead} tag).
 \end{tabular}
 }
 %\end{table}
