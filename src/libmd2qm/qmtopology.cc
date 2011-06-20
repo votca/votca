@@ -62,7 +62,7 @@ void QMTopology::LoadListCharges(const string &file)
 }
 
 
-void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
+Molecule *QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
      
     mol_and_orb * atoms = crg->rotate_translate_beads();
     totop->CreateResidue("DUM");
@@ -83,6 +83,7 @@ void QMTopology::AddAtomisticBeads(CrgUnit *crg, Topology * totop){
     }
     delete atoms->getorbs();
     delete atoms;
+    return mi;
 }
 
 Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
