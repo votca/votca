@@ -32,7 +32,7 @@ public:
     
 private:
     string _outfile;
-    bool _write_dist, _write_rij, _write_jeff, _write_en, _write_occ, _write_coords;
+    bool _write_dist, _write_rij, _write_jeff, _write_en, _write_occ, _write_coords, _write_lambdaout;
 };
 
 inline void WriteXML::Initialize(QMTopology *top, Property *options)
@@ -57,6 +57,9 @@ inline void WriteXML::Initialize(QMTopology *top, Property *options)
 
     if(options->exists("options.writexml.positions"))
         _write_coords = options->get("options.writexml.positions").as<bool>();
+
+    if(options->exists("options.writexml.lambdaout"))
+        _write_lambdaout = options->get("options.writexml.lambdaout").as<bool>();
 
 
     ofstream out;
@@ -105,6 +108,10 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
         if(_write_jeff)
             out << " Jeff=\"" <<(*iter)->calcJeff2()<< "\"";
         out <<  "/>" << endl;
+        if(_write_lambdaout)
+            out << " lambdaout=\"" <<(*iter)->getLambdaOuter() << "\"";
+        out <<  "/>" << endl;
+
     }
         for (vector < QMCrgUnit *>::iterator lch_iter = lcharges.begin();lch_iter!=lcharges.end();++lch_iter) {
             out << "    <site "
