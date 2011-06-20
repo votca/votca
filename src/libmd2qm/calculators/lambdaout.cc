@@ -96,7 +96,7 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
             double nanometer = 1.0e-09;
             double lambda = _pekar * e / (4.0 * M_PI * epsilon_zero)*(1.0 / (2.0 * R_one * nanometer) + 1.0 / (2.0 * R_two * nanometer) - 1.0 / (distance * nanometer));
         pair->setLambdaOuter(lambda);
-        cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() << " is " << lambda << "\n";
+        cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() << " at distance "<< distance << " is " << lambda << "\n";
     }
      }
 
@@ -104,10 +104,11 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
         QMNBList& nblist=top->nblist();
         for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
         QMPair *pair = *ipair;
+        double distance = pair->dist();
         QMCrgUnit *crg1 = pair->Crg1();
         QMCrgUnit *crg2 = pair->Crg2();
         double lambda = 0.0;
-           //IS THIS THE RIGHT PLACE TO DEFINE LCHARGES AND WITH TOP NOT ATOP???
+           
             vector<QMCrgUnit *> lcharges = top->CrgUnits();
             Topology atop;
             atop.setBox(top->getBox());
@@ -121,51 +122,71 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
                 top->AddAtomisticBeads(*itl, &atop);
             }
            //Loop over all beads exterior to crgunits i and j
-            vec diff;
+            
             for (BeadContainer::iterator ibead = atop.Beads().begin(); ibead != atop.Beads().end(); ++ibead) {
                 Bead *bk = *ibead;
-                //bk->getUserData<QMCrgUnit>->getId()
-                
+                                
                 if (bk->getMolecule()->getUserData<QMCrgUnit>()->getId() == crg1->getId()) continue;
                 if (bk->getMolecule()->getUserData<QMCrgUnit>()->getId() == crg2->getId()) continue;
-                double D = 0.0;
-                //Get shortest distance to crgunit i
-                diff = top->BCShortestConnection(crg1->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
+                //cout << "chosen bead number:" << bk->getMolecule()->getUserData<QMCrgUnit>()->getId() << endl;
+
+                double Dx = 0.0;
+                double Dy = 0.0;
+                double Dz = 0.0;
+                double nanometer = 1.0e-09;
+                double nanometer3 = 1.0e-27;
+                double elementary_charge = 1.60217646e-19;
+                double epsilon_zero = 8.85418782e-12;
+                vec bcs, diff , dist;
+                //Get shortest distance to crgunit i TOP OR ATOP???
+                //diff = top->BCShortestConnection(crg1->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
+                 bcs = atop.BCShortestConnection(crg1->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
+                 dist =  bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom() - crg1->GetCom();
+                 diff = bcs - dist;
                 //Loop over all bead of crgunit i
                 for (int bi = 0; bi < molcrg1->BeadCount(); ++bi) {
                     Bead *beadi = molcrg1->getBead(bi);
                     //Compute deltaQ
                     double charge_of_bead_i_charged = crg1->getType()->GetCrgUnit().getChargesCrged()->mpls[bi];
                     double charge_of_bead_i_neutral = crg1->getType()->GetCrgUnit().getChargesNeutr()->mpls[bi];
-                    double delta_Q = charge_of_bead_i_neutral - charge_of_bead_i_neutral;
+                    double delta_Q = charge_of_bead_i_charged - charge_of_bead_i_neutral;
                     vec r_v = bk->getPos()-(beadi->getPos() + diff);
                     double r = abs(r_v);
-                    double r3 = r * r*r;
-                    double nanometer = 1.0e-09;
-                    double nanometer3 = 1.0e-27;
-                    D = D + delta_Q / (4.0 * M_PI * r3 * nanometer3) * r_v.getX() * nanometer;
+                    double r3 = r * r * r;
+                    //cout << "delta Q:" << delta_Q << "|r3: " <<r3 << "|r_v.getX "<<r_v.getX()<<endl;
+                    Dx = Dx + elementary_charge * delta_Q / (4.0 * M_PI * r3 * nanometer3) * r_v.getX() * nanometer;
+                    Dy = Dy + elementary_charge * delta_Q / (4.0 * M_PI * r3 * nanometer3) * r_v.getY() * nanometer;
+                    Dz = Dz + elementary_charge * delta_Q / (4.0 * M_PI * r3 * nanometer3) * r_v.getZ() * nanometer;
                 }
-                //Get shortest distance to crgunit j
-                diff = top->BCShortestConnection(crg2->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
+                //cout << "D due to mol i:"<<D<<endl;
+                //Get shortest distance to crgunit j TOP OR ATOP???
+                //diff = top->BCShortestConnection(crg2->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
+                 
+                bcs = atop.BCShortestConnection(crg2->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
+                dist =  bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom() - crg2->GetCom();
+                diff = bcs - dist;
                 //Loop over all bead of crgunit j
                 for (int bj = 0; bj < molcrg2->BeadCount(); ++bj) {
                     Bead *beadj = molcrg2->getBead(bj);
                     //Compute deltaQ
                     double charge_of_bead_j_charged = crg2->getType()->GetCrgUnit().getChargesCrged()->mpls[bj];
                     double charge_of_bead_j_neutral = crg2->getType()->GetCrgUnit().getChargesNeutr()->mpls[bj];
-                    double delta_Q = charge_of_bead_j_neutral - charge_of_bead_j_neutral;
+                    double delta_Q = charge_of_bead_j_neutral - charge_of_bead_j_charged;
                     vec r_v = bk->getPos()-(beadj->getPos() + diff);
-                    double nanometer = 1.0e-09;
-                    double nanometer3 = 1.0e-27;
                     double r = abs(r_v);
-                    double r3 = r * r*r;
-                    D = D + delta_Q / (4.0 * M_PI * r3 * nanometer3) * r_v.getX() * nanometer;
+                    double r3 = r * r * r;
+                  //  cout << "delta Q:" << delta_Q << "|r3: " <<r3 << "|r_v.getX "<<r_v.getX()<<endl;
+                    Dx = Dx + elementary_charge * delta_Q / (4.0 * M_PI * r3 * nanometer3) * r_v.getX() * nanometer;
+                    Dy = Dy + elementary_charge * delta_Q / (4.0 * M_PI * r3 * nanometer3) * r_v.getY() * nanometer;
+                    Dz = Dz + elementary_charge * delta_Q / (4.0 * M_PI * r3 * nanometer3) * r_v.getZ() * nanometer;
                 }
-                double epsilon_zero = 8.85418782e-12;
-                lambda = lambda + D * D * _pekar * atop.BeadCount() / (2.0 * epsilon_zero * atop.BoxVolume());
+                //cout << "Dx :"<<Dx<<endl; cout << "Dy :"<<Dy<<endl; cout << "Dz :"<<Dz<<endl;
+
+                //cout << "box volume:"<<atop.BoxVolume()<< " and beads:"<<atop.BeadCount()<<endl;
+                lambda = lambda + (Dx*Dx+Dy*Dy+Dz*Dz)  * _pekar * atop.BoxVolume()*nanometer3/atop.BeadCount()  * 1/(2.0 * epsilon_zero * elementary_charge);
             }
         pair->setLambdaOuter(lambda);
-        cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() << " is " << lambda << "\n";
+        cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() <<" at distance "<< distance << " is " << lambda << "\n";
        }
     }
 
