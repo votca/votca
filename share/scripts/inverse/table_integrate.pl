@@ -24,6 +24,7 @@ my $usage="Usage: $progname [OPTIONS] <in> <out>";
 my $with_errors="no";
 my $with_entropie="no";
 my $kbT=undef;
+my $from="right";
 
 # read program arguments
 
@@ -51,6 +52,8 @@ Allowed options:
     --with-errors     calculate error
     --with-S          Add entropic contribution to force ''\$2k_B T/r\$''
     --kbT NUMBER      use NUMBER as ''\$k_B*T\$'' for the entropic part
+    --from            Integrate from left or right (to define the zero point)
+                      Default: $from
 -h, --help            Show this help message
 
 Examples:
@@ -69,6 +72,11 @@ END
 	elsif ($ARGV[0] eq "--kbT"){
           shift(@ARGV);
 	  $kbT=shift(@ARGV);
+	}
+	elsif ($ARGV[0] eq "--from"){
+          shift(@ARGV);
+	  $from=shift(@ARGV);
+	  die "Option --from needs right or left as argument\n" unless ( ($from eq "left") or ($from eq "right"));
 	}
 	else
 	{
@@ -107,34 +115,53 @@ my @pot;
 my @pot_errors;
 my @ww;
 
-#calc pot with trapez rule
-#int_j= sum_i^j (r_i+1 - r_i)*(f_i+f_i+1)/2
-#int_j+1= int_j + (r_i+1 - r_i)*(f_i+f_i+1)/2
-#int_j= int_j+1 - (r_i+1 - r_i)*(f_i+f_i+1)/2
-#begin from end to make pot(max)=0
-$pot[$#r]=0;
-$ww[$#r]=0;
-for (my $i=$#r-1;$i>=0;$i--){
-  #hh = delta x /2
-  my $hh=0.5*($r[$i+1]-$r[$i]);
-  $pot[$i]=$pot[$i+1] - $hh*($force[$i+1]+$force[$i]);
-  $ww[$i]+= $hh;
-  $ww[$i+1]+= $hh;
-}
-#ww contains w_i=(r_i+1-r_i-1)/2
-
-
-if ("$with_errors" eq "yes") {
-  #all error are independent(we assume that)
-  #resort sum (only one force per summand)
-  # U_j= sum_i ^j = sum_i^j f_i(r_i+1 - r_i-1)/2 + randterm
-  # o^2(U_j)=sum_i o^2(f_i)*(r_i+1 - r_i-1)/2 + o^2(randterm)
-  my $var_int = ($ww[$#r]*$force_errors[$#r])**2;
-  $pot_errors[$#r]=sqrt($var_int);
-  for(my $i=$#r-1; $i>=0;$i--) {
-    my $hh = 0.5*($r[$i+1] - $r[$i]);
-    $pot_errors[$i] = sqrt($var_int + ($hh*$force_errors[$i])**2);
-    $var_int += ($ww[$i]*$force_errors[$i])**2;
+if ("$from" eq "right") {
+  #calc pot with trapez rule
+  #int_j= sum_i^j (r_i+1 - r_i)*(f_i+f_i+1)/2
+  #int_j+1= int_j + (r_i+1 - r_i)*(f_i+f_i+1)/2
+  #int_j= int_j+1 - (r_i+1 - r_i)*(f_i+f_i+1)/2
+  #begin from end to make pot(max)=0
+  $pot[$#r]=0;
+  $ww[$#r]=0;
+  for (my $i=$#r-1;$i>=0;$i--){
+    #hh = delta x /2
+    my $hh=0.5*($r[$i+1]-$r[$i]);
+    $pot[$i]=$pot[$i+1] - $hh*($force[$i+1]+$force[$i]);
+    $ww[$i]+= $hh;
+    $ww[$i+1]+= $hh;
+  }
+  #ww contains w_i=(r_i+1-r_i-1)/2
+  if ("$with_errors" eq "yes") {
+    #all error are independent(we assume that)
+    #resort sum (only one force per summand)
+    # U_j= sum_i ^j = sum_i^j f_i(r_i+1 - r_i-1)/2 + randterm
+    # o^2(U_j)=sum_i o^2(f_i)*(r_i+1 - r_i-1)/2 + o^2(randterm)
+    my $var_int = ($ww[$#r]*$force_errors[$#r])**2;
+    $pot_errors[$#r]=sqrt($var_int);
+    for(my $i=$#r-1; $i>=0;$i--) {
+      my $hh = 0.5*($r[$i+1] - $r[$i]);
+      $pot_errors[$i] = sqrt($var_int + ($hh*$force_errors[$i])**2);
+      $var_int += ($ww[$i]*$force_errors[$i])**2;
+    }
+  }
+} else {
+  $pot[0]=0;
+  $ww[0]=0;
+  for (my $i=1;$i<=$#r;$i++){
+    #hh = delta x /2
+    my $hh=0.5*($r[$i]-$r[$i-1]);
+    $pot[$i]=$pot[$i-1] + $hh*($force[$i]+$force[$i-1]);
+    $ww[$i]+= $hh;
+    $ww[$i+1]+= $hh;
+  }
+  if ("$with_errors" eq "yes") {
+    my $var_int = ($ww[0]*$force_errors[0])**2;
+    $pot_errors[0]=sqrt($var_int);
+    for(my $i=1; $i<=$#r;$i++) {
+      my $hh = 0.5*($r[$i] - $r[$i-1]);
+      $pot_errors[$i] = sqrt($var_int + ($hh*$force_errors[$i])**2);
+      $var_int += ($ww[$i]*$force_errors[$i])**2;
+    }
   }
 }
 
