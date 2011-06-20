@@ -1,10 +1,20 @@
-\section{Semi-empirical determination of transfer intergals}
+\section{Semi-empirical calculation of transfer intergals}
 \label{sec:moo}
+
+{\color{red} Cleaning/revising is needeed.}
+
 
 \newcommand{\xyz}{\texttt{geometry.xyz}\xspace}
 \newcommand{\orb}{\texttt{zindo.orb}\xspace}
 
-The main purpose of the molecular orbital overal library (MOO) is fast evaluation of electronic coupling elements. It is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of this method to the DFT-based calculations. MOO constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals. Hence, it requires the optimized geometry of the molecule (\xyz) and the projection coefficients of the molecular on atomic orbitals (\orb). 
+Semi-empirical method of evaluation of electronic couplings is provided by the \texttt{integrals} calculator of \texttt{ctp\_run} 
+\begin{verbatim}
+  ctp_run --exec "intergals"
+\end{verbatim}
+
+The main advantage of the molecular orbital overal library (MOO) is {\em fast} evaluation of electronic coupling elements. A detailed description of the method is provided in ref.~\cite{kirkpatrick_approximate_2008}. Please site this paper if you are using the method.
+%
+MOO is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of this method to the DFT-based calculations. MOO constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals. Hence, it requires the optimized geometry of the molecule (\xyz) and the projection coefficients of the molecular on atomic orbitals (\orb). 
 
 \xyz file contains four columns, first being the atom type and the next three its coordinates. The \orb can be generated using \gaussian program and the input script \texttt{get\_orbitals.com} which shown in listing~\ref{list:zindo_orbitals}.
 
@@ -22,34 +32,49 @@ Provided with this input, \gaussian will generate \texttt{fort.7} file containin
 
 Decription of conjugated segments is stored in \texttt{charges.xml}.
 
+\lstset{
+  language=XML,
+  frame=lines,
+  basicstyle=\ttfamily\footnotesize,
+  identifierstyle=\color{red},
+  keywordstyle=\color{blue},
+  showstringspaces=false,
+  columns=fullflexible,
+  commentstyle=\color{gray}\rmfamily\itshape,
+  morekeywords={crgunit_type,ChargeUnitType,posname,orbname,basisset,transorb,reorg,nameneutr,namecrg,energy,beadconj,molname,name,monomer_atom_map,monomer_atom_weights},
+}
+
 \lstinputlisting[
  label=list:conjugated_segments, 
  caption={\small \xml file describing conjugated segments.
 }]%
 {./fig/moo/charges.xml}
 
+\noindent
+\suggestion{%
+crgunit\_type -> ConjugatedSegmentTypes \\ 
+ChargeUnitType -> ConjugatedSegmentType \\ 
+posname -> CoordinatesFile \\
+orbname -> OrbitalsFile \\
+transorb -> TransportOrbital \\
+reorg -> ReorganizationEnergy (do we need this here?) \\
+nameneutr -> ChargesNeutralFile \\
+namecrg -> ChargesChargedFile (do we need this here?) 
+}
 
-{\color{red} Old text from Thorsten. Cleaning is needeed.}
-
-
-
-\begin{itemize}
- \item {\bf posname} \\
- Location of {\bf INPUT\_COORDS}.
- \item {\bf orbname} \\
- Location of {\bf fort.7}.
- \item{\bf basis} \\
- This should be set to INDO, unless the fort.7 has been created using another basis set. In that case it must be set to an xml file setting the characteristics of the basis set.
- \item {\bf transorb} \\
- Number of HOMO (LUMO) orbital. Corresponds to the number of $\alpha$ electrons in the \emph{Gaussian} log-file {\bf get\_orbitals.log} minus one (since counting in C++ starts at zero) for the HOMO and the number of $\alpha$ electrons for the LUMO.
- \item {\bf reorg} \\
- Reorganization energy of the cation or anion in eV calculated via \emph{Gaussian}. mp2 should be used at least for anions.
- \item {\bf name} \\
- Name of the mapping of the molecule. Must correspond to CG mapping.
- \item {\bf energy} \\
- Energy of the HOMO/LUMO level
- \item {\bf monomer\_atom\_map} \\
- List of atom indices as they were specified in the \emph{Gaussian} input used to create the {\bf fort.7} file. \\
- Note: The first three values are important, since they must correspond to the first three atoms defined in the coarse-grained mapping, which are used to calculate two vectors indicating the orientation of the molecule. The third required vector is the eigenvector of the smallest eigenvalue of the gyration tensor, i.e. perpendicular to the planar core. \\
- Note: The number of molecules here may differ from that in the coarse-grained mapping, since for example only the core is important for transport and not the side chains, but it has to be the same number of atoms as in the \emph{Gaussian} input file otherwise overlap integral values will be terribly wrong.
-\end{itemize}
+{\small 
+\begin{tabular}{p{3cm} p{10cm}}
+\xml tag & Description \\
+\hline
+ \texttt{posname} & Location of \xyz. \\
+ \texttt{orbname} & Location of \orb. \\
+ \texttt{basisset} & This should be set to INDO, unless the fort.7 has been created using another basis set. In that case it must be set to an \xml file setting the characteristics of the basis set. \\
+ \texttt{transorb} & Number of HOMO (LUMO) orbital. Corresponds to the number of $\alpha$ electrons in the \emph{Gaussian} log-file {get\_orbitals.log} minus one (since counting in C++ starts at zero) for the HOMO and the number of $\alpha$ electrons for the LUMO. \\
+ \texttt{reorg} & Reorganization energy of the cation or anion in eV. \\
+ \texttt{name} & Name of the mapping of the molecule. Must correspond to CG mapping.\\
+ \texttt{energy} & Site energy of the conjugated segment. \\
+ \texttt{monomer\_atom\_map} &
+ List of atom indices as they were specified in the \gaussian input used to create the \orb file. 
+ Note: The first three values are important, since they must correspond to the first three atoms defined in the coarse-grained mapping, which are used to calculate two vectors indicating the orientation of the molecule. The third required vector is the eigenvector of the smallest eigenvalue of the gyration tensor, i.e. perpendicular to the planar core.
+ Note: The number of molecules here may differ from that in the coarse-grained mapping, since for example only the core is important for transport and not the side chains, but it has to be the same number of atoms as in the \gaussian input file otherwise overlap integral values will be terribly wrong. 
+\end{tabular}
