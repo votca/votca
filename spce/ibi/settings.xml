@@ -43,19 +43,6 @@
       <!-- extend the tables to this value -->
       <table_end>2.0</table_end>
       <!-- topology + trajectory. Be careful, do not change yet! -->
-      <grompp>
-	<opts></opts>
-	<index>index.ndx</index>
-        <topol>topol.top</topol>
-      </grompp>
-      <g_rdf>
-	<opts></opts>
-	<index>index.ndx</index>
-      </g_rdf>
-      <mdp>grompp.mdp</mdp>
-      <topol>topol.tpr</topol>
-      <traj_type>xtc</traj_type>
-      <cutoff_check>yes</cutoff_check>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
