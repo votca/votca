@@ -4,8 +4,7 @@
 \newcommand{\xyz}{\texttt{geometry.xyz}\xspace}
 \newcommand{\orb}{\texttt{zindo.orb}\xspace}
 
-
-The main purpose of the molecular orbital overal library (MOO) is fast evaluation of electronic coupling elements. Note that it is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of this method to the DFT-based calculations. MOO constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals. Hence, it requires the optimized geometry of the molecule (\xyz) and the projection coefficients of the molecular on atomic orbitals (\orb). 
+The main purpose of the molecular orbital overal library (MOO) is fast evaluation of electronic coupling elements. It is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of this method to the DFT-based calculations. MOO constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals. Hence, it requires the optimized geometry of the molecule (\xyz) and the projection coefficients of the molecular on atomic orbitals (\orb). 
 
 \xyz file contains four columns, first being the atom type and the next three its coordinates. The \orb can be generated using \gaussian program and the input script \texttt{get\_orbitals.com} which shown in listing~\ref{list:zindo_orbitals}.
 
@@ -13,41 +12,26 @@ The main purpose of the molecular orbital overal library (MOO) is fast evaluatio
  label=list:zindo_orbitals, 
  caption={\small \gaussian input file \texttt{get\_orbitals.com} used for generating molecular orbitals. The first line contains  the name of the check file, the second the requested RAM. 
 %
- \texttt{int=zindos} requests the method ZINDO, \texttt{punch=mo} states that the molecular orbitals ought to be written to  the \texttt{fort.7} file, \texttt{nosymm} forbids use of symmetry simplifcations and is necessary to ensure correct position of orbitals with respect to the provided coordinates. The two integer numbers correspond to the charge and multiplicity of the system: $0\, 1$ corresponds to a neutral system with a multiplicity of one. They are followed by the types and coordinates of all atoms in the molecule.
+ \texttt{int=zindos} requests the method ZINDO, \texttt{punch=mo} states that the molecular orbitals ought to be written to  the \texttt{fort.7} file, \texttt{nosymm} forbids use of symmetry and is necessary to ensure correct position of orbitals with respect to the provided coordinates. The two integer numbers correspond to the charge and multiplicity of the system: $0\, 1$ corresponds to a neutral system with a multiplicity of one. They are followed by the types and coordinates of all atoms in the molecule.
 }]%
 {./fig/moo/get_orbitals.com}
 
 Provided with this input, \gaussian will generate \texttt{fort.7} file containing the molecular orbitals of a single molecule. This file can be renamed to \orb. 
 
-\subsubsection{The charge unit types: list\_charges.xml}
+\subsection{Conjugated segments}
+
+Decription of conjugated segments is stored in \texttt{charges.xml}.
+
+\lstinputlisting[
+ label=list:conjugated_segments, 
+ caption={\small \xml file describing conjugated segments.
+}]%
+{./fig/moo/charges.xml}
 
 
 {\color{red} Old text from Thorsten. Cleaning is needeed.}
 
-\begin{verbatim}
-<crgunit_type>
-        <ChargeUnitType>
-                <posname>QM_files/INPUT_COORDS</posname>
-                <orbname>QM_files/fort.7</orbname>
-                <basis>INDO</basis>
-                <transorb>64</transorb>
-                <reorg>0.21</reorg>
-                <name>NMC</name>
-                <energy>-0.21705</energy>
-                <monomer_atom_map>
-                 21 23 13 0 1 2 3 4 5 6 7 8 9 10 11 12 14
-                 15 16 17 18 19 20 22  24 25 26 27 28 30
-                 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45
-                </monomer_atom_map>
-                <monomer_atom_weights>
-                  16 16 12 12 12 12 12 12 12 14 12 12 12 12 12 12 12 14
-                  12 12 12 12 12 12 12 12 1 1 1 1 1
-                  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                </monomer_atom_weights>
 
-        </ChargeUnitType>
-</crgunit_type>
-\end{verbatim}
 
 \begin{itemize}
  \item {\bf posname} \\
