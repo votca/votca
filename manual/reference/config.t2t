@@ -1,0 +1,48 @@
+
+
+
+%!encoding: iso-8859-1
+
+%Anchor stuff
+%%%%%%%%%%%%%%%%%%%%%%%
+
+% for tex
+
+%allow labels
+%!postproc(tex): 'label\((.*?)\)' '\label{\1}'
+%ref,tagrget,link to hyperXXX
+%!postproc(tex): '(ref|target|link)\((.*?)\)\((.*?)\)' '\hyper\1{\2}{\3}'
+
+%latex is picky about $ and \_ in name of the label (1st bracket)
+
+%latex does not allow $ in label name, remove it 3 times
+%!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
+%!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
+%!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
+
+%replace \_ back to _ three times
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
+
+%hyperref wants [] for 1st argument -> hyperref[]{}
+%!postproc(tex): '(\\hyperref)\{(.*?)\}\{(.*?)\}' '\1[\2]{\3}'
+
+% nicer --
+%!postproc(tex): '--' '{-}{-}'
+
+%For other target is replaced by nothing.
+%!postproc: '(target|link|ref)\(.*?\)\((.*?)\)' '\2'
+%!postproc: 'label\(.*?\)' ''
+
+%Linebreak
+%%%%%%%%%%%%%%%%
+
+%empty line to noindent
+%!postproc(tex): '^\s*$' '\n\\noindent '
+
+%we do not like the default item marks, so we make them empty
+%!postproc(tex): '\\item' '\item[ ]'
+%replace itemize by compactitem which looks nicer
+%!postproc(tex): '(\\begin|\\end)\{itemize\}' '\1{compactitem}'
+
