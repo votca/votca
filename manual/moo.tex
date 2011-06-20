@@ -1,46 +1,23 @@
 \section{Semi-empirical determination of transfer intergals}
 \label{sec:moo}
 
-Molecular orbital overal module (MOO) is useful for fast evaluation of electronic coupling elements. It is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of this method to the DFT-based calculations.  
+\newcommand{\xyz}{\texttt{geometry.xyz}\xspace}
+\newcommand{\orb}{\texttt{zindo.orb}\xspace}
 
-Even though MOO is self-sufficent, it relies on the knowledge of the molecular orbitals of 
 
-{\color{red} Old text from Thorsten. Cleaning is needeed.}
+The main purpose of the molecular orbital overal library (MOO) is fast evaluation of electronic coupling elements. Note that it is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of this method to the DFT-based calculations. MOO constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals. Hence, it requires the optimized geometry of the molecule (\xyz) and the projection coefficients of the molecular on atomic orbitals (\orb). 
 
-Two types of input files are necessary for each charge unit: a geometry specification (which we refer to as INPUT\_COORDS) and a molecular orbital file (which we refer to as fort.7).
+\xyz file contains four columns, first being the atom type and the next three its coordinates. The \orb can be generated using \gaussian program and the input script \texttt{get\_orbitals.com} which shown in listing~\ref{list:zindo_orbitals}.
 
-First, let us have a quick look at the quantum mechanical input files: {\bf INPUT\_COORDS} and {\bf fort.7}. By convention, they should be stored in a folder named {\bf QM\_input}. INPUT\_COORDS is simply an \emph{xyz} file without headers, i.e. contains four columns, first being the atom type and the next three its coordinates. The {\bf fort.7} file is obtained by running a \emph{Gaussian} simulation with the input file {\bf get\_orbitals.com} as specified below.
+\lstinputlisting[
+ label=list:zindo_orbitals, 
+ caption={\small \gaussian input file \texttt{get\_orbitals.com} used for generating molecular orbitals. The first line contains  the name of the check file, the second the requested RAM. 
+%
+ \texttt{int=zindos} requests the method ZINDO, \texttt{punch=mo} states that the molecular orbitals ought to be written to  the \texttt{fort.7} file, \texttt{nosymm} forbids use of symmetry simplifcations and is necessary to ensure correct position of orbitals with respect to the provided coordinates. The two integer numbers correspond to the charge and multiplicity of the system: $0\, 1$ corresponds to a neutral system with a multiplicity of one. They are followed by the types and coordinates of all atoms in the molecule.
+}]%
+{./fig/moo/get_orbitals.com}
 
-\begin{verbatim}
-%chk=zindo.chk
-%mem=100Mb
-#p int=zindos punch=mo nosymm
-
-Norma CH3 calculation of orbitals
-
-0 1
- C     0.094716     0.101569     0.002762
-[...]
-\end{verbatim}
-
-The first line contains only the name of the check file,
-the second the requested RAM. The third is the truly important
-one explained below. After that follows a description of what
-is being calculated. The two integer numbers correspond to the
-charge and multiplicity of the system, $0 1$ therefore represents
-a neutral system with a multiplicity of one. Below are the coordinates
-and types of all atoms within the molecule given in \emph{xyz} format.
-
-\begin{itemize}
- \item {\bf int=zindos} \\
-        Requires the method \emph{ZINDO} to be used as integrator for the orbitals.
- \item {\bf punch=mo} \\
-        States that the molecular orbitals ought to be written. Creates the {\bf fort.7} file.
- \item {\bf nosymm} \\
-        Forbids use of symmetry simplifcations. Necessary to ensure correct order of orbitals.
-\end{itemize}
-
-Output generated are the {\bf fort.7} file containing the molecular orbitals as well as the file {\bf get\_orbitals.log} holding the usual Gaussian output. 
+Provided with this input, \gaussian will generate \texttt{fort.7} file containing the molecular orbitals of a single molecule. This file can be renamed to \orb. 
 
 \subsubsection{The charge unit types: list\_charges.xml}
 
