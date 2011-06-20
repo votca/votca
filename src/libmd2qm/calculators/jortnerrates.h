@@ -33,7 +33,7 @@ inline void JortnerRates::Initialize(QMTopology *top, Property *options){
     _kT = options->get("options.calc_rates.thermal_energy").as<double>();
     _E = options->get("options.calc_rates.e_field").as<vec>();
     _omegavib=0.2;
-    _nmaxvib=5;
+    _nmaxvib=10;
 }
 
 inline void JortnerRates::EvaluatePair(QMTopology *top, QMPair* pair){

@@ -228,13 +228,20 @@ double CalcEstatics::CalcPot_Dipole(Topology *atop, Molecule *mol) //wegen Über
             //ofstream data
                 //data.open(filename.c_str());
             data=fopen(filename.c_str(),"w");
+            for (int j = 0; j != mol->BeadCount(); j++) {
+                Bead *bj = mol->getBead(j);
+                vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos());
+                fprintf(data, "%d %d %.6f %.6f %.6f\n",mol->getId(),mol->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+        }
      MoleculeContainer::iterator dmol;
          for (dmol = atop->Molecules().begin(); dmol != atop->Molecules().end(); dmol++) {
-           
+           if (*dmol == mol) continue;
         //if (*dmol == mol) continue;
         //Check whether PBC have to be taken into account
         //We should replace getUserData by a funtion GetCom for molecules
         vec bcs = atop->BCShortestConnection(mol->getUserData<CrgUnit > ()->GetCom(), (*dmol)->getUserData<CrgUnit > ()->GetCom());
+         if ( abs(bcs)> 3.5) continue;
+
         vec dist = (*dmol)->getUserData<CrgUnit > ()->GetCom() - mol->getUserData<CrgUnit > ()->GetCom();
         vec diff = bcs - dist;
         for (int j = 0; j != (*dmol)->BeadCount(); j++) {

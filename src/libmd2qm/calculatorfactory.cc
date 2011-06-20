@@ -20,7 +20,7 @@
 #include "calculators/nbgen.h"
 #include "calculators/occequilibrium.h"
 #include "calculators/avgvelocity.h"
- 
+#include "calculators/lambdaout.h"
 void CalculatorFactory::RegisterAll(void)
 {
         Calculators().Register<CalcIntegrals>("integrals");
@@ -28,6 +28,7 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<ReadXML>("readxml");
         Calculators().Register<ContKmc>("kmc");
         Calculators().Register<CalcEstatics>("estat");
+        Calculators().Register<CalcLambdaOut>("lambdaout");
         Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<CalcHistIntegrals>("histintegrals");
         Calculators().Register<CalcHistEnergeticDisorder>("histenergeticdisorder");
