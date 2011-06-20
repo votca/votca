@@ -105,13 +105,11 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
             out << " dist=\"" <<(*iter)->dist()<< "\"";
         if(_write_rij)
             out << " rij=\"" <<(*iter)->r()<< "\"";
+        if(_write_lambdaout)
+            out << " lambdaout=\"" <<(*iter)->getLambdaOuter() << "\"";
         if(_write_jeff)
             out << " Jeff=\"" <<(*iter)->calcJeff2()<< "\"";
         out <<  "/>" << endl;
-        if(_write_lambdaout)
-            out << " lambdaout=\"" <<(*iter)->getLambdaOuter() << "\"";
-        out <<  "/>" << endl;
-
     }
         for (vector < QMCrgUnit *>::iterator lch_iter = lcharges.begin();lch_iter!=lcharges.end();++lch_iter) {
             out << "    <site "
