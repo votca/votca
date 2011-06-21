@@ -148,7 +148,7 @@ inline void Table::push_back(double x, double y, char flags)
     _flags[n] = flags;
 }
 
-inline istream &operator>>(istream &in, Table& t);
+istream &operator>>(istream &in, Table& t);
 
 }}
 
