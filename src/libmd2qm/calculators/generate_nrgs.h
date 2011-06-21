@@ -7,7 +7,9 @@
 
 /** \brief Generate Gaussian-distributed site energies with or without spatial correlations
 
-Callname: 
+Callname: generatenrgs
+
+ Site energies of a gaussian distribution with width sigma are constructed. Then for every site a new energy is computed from the average of neighboring sites up to a cutoffradius. Then the new site energies are uniformly scaled as to reproduce the intial sigma of the site energy distribution.
 
 */
 class GenerateNrgs : public QMCalculator
