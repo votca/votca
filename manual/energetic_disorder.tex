@@ -28,6 +28,25 @@ where the parameter $s$ is the inverse screening length. For a monovalent ion in
 
 Evaluation of the electrostatic contribution is provided by the \estat calculator of \texttt{ctp\_run} 
 \begin{verbatim}
-  ctp_run --exec "estat"
+  ctp_run --exec "estat" --opt main.xml
 \end{verbatim}
-\suggestion{Need to describe all possible options, with and without screening, etc}
+
+The file \texttt{main.xml} should contain the following section 
+\lstset{
+  language=XML,
+  frame=lines,
+  basicstyle=\ttfamily\footnotesize,
+  identifierstyle=\color{red},
+  keywordstyle=\color{blue},
+  showstringspaces=false,
+  columns=fullflexible,
+  commentstyle=\color{gray}\rmfamily\itshape,
+  mathescape=true,
+  morekeywords={estatic_params,estatic_method,epsilon_dielectric,s_eps},
+}
+
+\lstinputlisting[
+ label=list:estatic, 
+ caption={\small part of the \xml file with options for electrostatic energetic disorder. \texttt{method} can be either \texttt{simple} or \texttt{distdep}. In the latter case \texttt{s\_eps} mast be specified.
+}]%
+{./fig/energetic_disorder/estatic.xml}
