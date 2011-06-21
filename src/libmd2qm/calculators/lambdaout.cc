@@ -140,8 +140,8 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
                 vec bcs, diff , dist;
                 //Get shortest distance to crgunit i TOP OR ATOP???
                 //diff = top->BCShortestConnection(crg1->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
-                 bcs = atop.BCShortestConnection(crg1->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
-                 dist =  bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom() - crg1->GetCom();
+                 bcs = atop.BCShortestConnection(bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom(),crg1->GetCom());
+                 dist = crg1->GetCom()- bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom() ;
                  diff = bcs - dist;
                 //Loop over all bead of crgunit i
                 for (int bi = 0; bi < molcrg1->BeadCount(); ++bi) {
@@ -162,8 +162,8 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
                 //Get shortest distance to crgunit j TOP OR ATOP???
                 //diff = top->BCShortestConnection(crg2->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
                  
-                bcs = atop.BCShortestConnection(crg2->GetCom(), bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom());
-                dist =  bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom() - crg2->GetCom();
+                bcs = atop.BCShortestConnection(bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom(),crg2->GetCom());
+                dist =  crg2->GetCom()-bk->getMolecule()->getUserData<QMCrgUnit>()->GetCom();
                 diff = bcs - dist;
                 //Loop over all bead of crgunit j
                 for (int bj = 0; bj < molcrg2->BeadCount(); ++bj) {
@@ -183,7 +183,7 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
                 //cout << "Dx :"<<Dx<<endl; cout << "Dy :"<<Dy<<endl; cout << "Dz :"<<Dz<<endl;
 
                 //cout << "box volume:"<<atop.BoxVolume()<< " and beads:"<<atop.BeadCount()<<endl;
-                lambda = lambda + (Dx*Dx+Dy*Dy+Dz*Dz)  * _pekar * atop.BoxVolume()*nanometer3/atop.BeadCount()  * 1/(2.0 * epsilon_zero * elementary_charge);
+                lambda = lambda + (Dx*Dx+Dy*Dy+Dz*Dz)  * _pekar * atop.BoxVolume()*nanometer3/atop.BeadCount()  * 1.0/(2.0 * epsilon_zero * elementary_charge);
             }
         pair->setLambdaOuter(lambda);
         cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() <<" at distance "<< distance << " is " << lambda << "\n";
