@@ -21,8 +21,7 @@ void QMApplication::Initialize(void)
     CalculatorFactory::RegisterAll();
 
     AddProgramOptions()
-        ("help", "  produce this help message")
-        ("crg", boost::program_options::value<string>()->default_value("list_charges.xml"), "  charge unit definitions")
+         ("crg", boost::program_options::value<string>()->default_value("list_charges.xml"), "  charge unit definitions")
         ("opt", boost::program_options::value<string>()->default_value("main.xml"), "  main program options")
         ("out", boost::program_options::value<string>()->default_value("stateOut.dat"), "  write new state file with this name")
         ("in", boost::program_options::value<string>()->default_value("stateIn.dat"), "  read state file with this name")

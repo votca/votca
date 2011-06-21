@@ -3,11 +3,6 @@
 #include <votca/csg/trajectorywriter.h>
 #include <qmnblist.h>
 
-AtQmObserver::AtQmObserver()
-{}
-
-AtQmObserver::~AtQmObserver()
-{}
 
 void AtQmObserver::Initialize()
 {
@@ -57,5 +52,4 @@ bool AtQmObserver::EvaluateFrame()
     qmAtomisticTop.Cleanup();
     return true;
 }
-
 

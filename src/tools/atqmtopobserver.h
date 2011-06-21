@@ -14,14 +14,14 @@
 /// will read in the atomistic trajectory and
 /// generate corresponding coarse graines
 /// and qm topologies according to the list charge definition
-class AtQmObserver: public QMApplication
+class AtQmObserver: public QMApplication 
 {
 public:
-    AtQmObserver();
-    ~AtQmObserver();
+
+    void HelpText() {}
 
     string ProgramName() { return "ctp_printqmattop"; }
-    void HelpText(ostream &out) {
+    void HelpText(std::ostream &out) {
         out << "dump results of mapping procedure";
     }
 
