@@ -80,7 +80,7 @@ void Table::clear(void)
 
 // TODO: this functon is weired, reading occours twice, cleanup!!
 // TODO: modify function to work properly, when _has_yerr is true
-inline istream &operator>>(istream &in, Table& t)
+istream &operator>>(istream &in, Table& t)
 {
     size_t N;
     bool bHasN=false;
