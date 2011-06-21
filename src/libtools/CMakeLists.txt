@@ -43,7 +43,7 @@ option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport
 if (WITH_SQLITE3)
   find_package(SQLITE3)
   if(NOT SQLITE3_FOUND)
-    message(FATAL_ERROR "SQLITE3 not found,  make sure you have also installed the sqlite3 and it's dev package, at this point sqlite3 is only needed for charge transport parts of VOTCA")
+    message(FATAL_ERROR "SQLITE3 not found,  make sure you have also installed the sqlite3 and it's dev package, at this point sqlite3 is only needed for charge transport parts of VOTCA, so you can just switch it off using -DWITH_SQLITE3=OFF in case you do not need it.")
   endif(NOT SQLITE3_FOUND)
   include_directories(${SQLITE3_INCLUDE_DIRS})
   set(SQLITE3_PKG "sqlite3")
