@@ -35,7 +35,7 @@ else(WITH_GSL)
 endif(WITH_GSL)
 
 file(GLOB_RECURSE VOTCA_SOURCES *.cc)
-file(GLOB NOT_VOTCA_SOURCES version_nb.cc test.cc)
+file(GLOB NOT_VOTCA_SOURCES version_nb.cc linktest.cc)
 file(GLOB_RECURSE VOTCA_SQL_SOURCES database.cc statement.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 
