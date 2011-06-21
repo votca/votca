@@ -21,6 +21,8 @@
 #include "calculators/occequilibrium.h"
 #include "calculators/avgvelocity.h"
 #include "calculators/lambdaout.h"
+#include "calculators/dump_atoms.h"
+
 void CalculatorFactory::RegisterAll(void)
 {
         Calculators().Register<CalcIntegrals>("integrals");
@@ -44,4 +46,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<NBGen>("nbgen");
         Calculators().Register<OccEquilibrium>("occequilibrium");
         Calculators().Register<AvgVelocity>("avgvelocity");
+        Calculators().Register<DumpAtoms>("dumpatoms");
 }

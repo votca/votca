@@ -5,6 +5,8 @@
       <itemPath>../../src/libmd2qm/calculators/CurrentDensity.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/avgvelocity.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/contkmc.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/dump_atoms.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/dump_atoms.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/energycorr.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/energycorr.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/estatics.cc</itemPath>
