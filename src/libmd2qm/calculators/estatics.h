@@ -26,7 +26,6 @@ public:
     bool EvaluateFrame(QMTopology *top);
 
     double CalcPot(Topology *atop, Molecule *mol);
-    double CalcPot_Dipole(Topology *atop, Molecule *mol);
     /// distance dependent dielectric constant
     double dist_dep_eps(const double &dist);
     /// constant epsilon
