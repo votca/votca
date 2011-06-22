@@ -53,3 +53,9 @@ bool AtQmObserver::EvaluateFrame()
     return true;
 }
 
+int main(int argc, char** argv)
+{
+    AtQmObserver int_calc;
+    return int_calc.Exec(argc, argv);
+}
+

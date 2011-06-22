@@ -228,3 +228,9 @@ void Polymer::UpdatedR(const PairWF & pwf){
     _poldR.insert(make_pair(pwf, d));
     
 }
+
+int main(int argc, char** argv) {
+
+    Polymer pol_calc;
+    return pol_calc.Exec(argc, argv);
+}

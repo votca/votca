@@ -21,8 +21,9 @@ public:
 
     string ProgramName() { return "ctp_polymer"; }
     void HelpText(std::ostream &out) {
-        out << "Charge transport in conjugated polymers [OUTDATED]";
+        out << "Charge transport in conjugated polymers [OUTDATED]" << endl ;
     }
+    
     void Initialize();
     bool EvaluateOptions();
 
