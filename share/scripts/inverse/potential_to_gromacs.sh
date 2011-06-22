@@ -64,10 +64,10 @@ if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
 elif [[ $tabtype = "bonded" ]]; then
   tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
 elif [[ $tabtype = "angle" ]]; then
-  tableend=180
+  tablend=180
 elif [[ $tabtype = "dihedral" ]]; then
   zero="-180"
-  tableend=180
+  tablend=180
 fi
 
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"

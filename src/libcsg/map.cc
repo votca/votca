@@ -15,8 +15,8 @@
  *
  */
 
-#include "map.h"
-#include "topology.h"
+#include <votca/csg/map.h>
+#include <votca/csg/topology.h>
 #include <iostream>
 #include <votca/tools/matrix.h>
 #include <votca/tools/tokenizer.h>

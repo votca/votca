@@ -18,7 +18,7 @@
 #ifndef _IMC_H
 #define	_IMC_H
 
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 #include <votca/tools/property.h>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>

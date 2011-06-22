@@ -15,8 +15,8 @@
  *
  */
 
-#include "topology.h"
-#include "interaction.h"
+#include <votca/csg/topology.h>
+#include <votca/csg/interaction.h>
 #include <votca/tools/rangeparser.h>
 #include <stdexcept>
 

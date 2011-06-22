@@ -24,8 +24,8 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
-#include <nblistgrid.h>
-#include <beadlist.h>
+#include <votca/csg/nblistgrid.h>
+#include <votca/csg/beadlist.h>
 #include "csg_fmatch.h"
 #include <votca/tools/table.h>
 #include <votca/tools/linalg.h>

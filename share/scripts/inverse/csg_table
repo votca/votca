@@ -79,6 +79,7 @@ postadd copyback postadd_copyback.sh
 postadd convergence postadd_convergence.sh
 postadd acc_convergence postadd_acc_convergence.sh 
 postadd shift dpot_shift_nb.pl
+postadd overwrite postadd_overwrite.sh
 postadd plot postadd_plot.sh
 
 #convergence checks

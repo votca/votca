@@ -15,13 +15,13 @@
  *
  */
 
-#include "csgapplication.h"
-#include "trajectorywriter.h"
-#include "trajectoryreader.h"
-#include "topologyreader.h"
-#include "topologymap.h"
-#include "cgengine.h"
-#include "version.h"
+#include <votca/csg/csgapplication.h>
+#include <votca/csg/trajectorywriter.h>
+#include <votca/csg/trajectoryreader.h>
+#include <votca/csg/topologyreader.h>
+#include <votca/csg/topologymap.h>
+#include <votca/csg/cgengine.h>
+#include <votca/csg/version.h>
 #include <boost/algorithm/string/trim.hpp>
 
 namespace votca {

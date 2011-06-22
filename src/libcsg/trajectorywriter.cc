@@ -20,7 +20,7 @@
 #endif
 
 #include <iostream>
-#include "trajectorywriter.h"
+#include <votca/csg/trajectorywriter.h>
 #include "modules/io/pdbwriter.h"
 #include "modules/io/xyzwriter.h"
 

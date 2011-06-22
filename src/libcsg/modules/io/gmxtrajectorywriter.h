@@ -22,8 +22,8 @@
 #include <votca_config.h>
 #endif
 
-#include "topology.h"
-#include "trajectorywriter.h"
+#include <votca/csg/topology.h>
+#include <votca/csg/trajectorywriter.h>
 #include "gmx_version_check.h"
 
 #if GMX == 50

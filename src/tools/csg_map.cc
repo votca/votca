@@ -19,8 +19,8 @@
 #include <boost/tokenizer.hpp>
 #include <iostream>
 #include <fstream>
-#include <csgapplication.h>
-#include <trajectorywriter.h>
+#include <votca/csg/csgapplication.h>
+#include <votca/csg/trajectorywriter.h>
 
 using namespace std;
 using namespace votca::csg;

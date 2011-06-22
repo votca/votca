@@ -30,7 +30,7 @@
 #include "bondedstatistics.h"
 #include "tabulatedpotential.h"
 #include "stdanalysis.h"
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 
