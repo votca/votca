@@ -13,17 +13,15 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_eigen.h>
 
-
-
 class Polymer : public QMApplication
 {
 public:
-    Polymer();
-    ~Polymer();
+ 
+    void HelpText() {}
 
     string ProgramName() { return "ctp_polymer"; }
-    void HelpText(ostream &out) {
-        out << "help text needed here!";
+    void HelpText(std::ostream &out) {
+        out << "Charge transport in conjugated polymers [OUTDATED]";
     }
     void Initialize();
     bool EvaluateOptions();
