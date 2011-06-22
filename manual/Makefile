@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-#HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{&}/')
+HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{&}/')
 LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
@@ -13,14 +13,13 @@ all: $(NAME).pdf
 dvi: $(NAME).dvi
 ps: $(NAME).ps
 
-#$(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_submake
 
-$(NAME).tex: titlepage.tex introduction.tex mapping.tex reference.tex
+$(NAME).tex: reference_submake fig_submake titlepage.tex introduction.tex mapping.tex reference.tex
 
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi
 
-%.dvi: %.tex dummy ref_calculators.tex
+%.dvi: %.tex dummy 
 	$(LATEXMK) $(LATEXMKOPTS) -dvi $<
 
 %.pdf: %.dvi
@@ -38,18 +37,16 @@ endif
 	$(MAKE) $(MFLAGS) -C $*
 
 %_subclean:
+	rm -f *.backup
 	$(MAKE) $(MFLAGS) -C $* clean
 
 qclean:
 	$(LATEXMK) -C $(NAME).tex
 
-clean: qclean fig_subclean functionality_subclean reference_subclean usage_subclean
+clean: qclean reference_subclean fig_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf
 	rm -f hgid.tex
 	rm -f *~
-
-ref_calculators.tex: dummy
-	scripts/extract_calculators.sh
 
 tar: all
 	rm -f $(NAME).tar.gz
