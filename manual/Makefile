@@ -54,8 +54,8 @@ tar: all
 	tar cvzhf $(NAME).tar.gz $(NAME).pdf \
   	   `sed -n 's/^[[:space:]]*"\([^/][^"]*\.\(bib\|tex\|eps\|cls\)\)".*$$/\1/p' $(NAME).fdb_latexmk` 
 
-#hgid.tex: dummy
-#	[ -f hgid.tex ] || touch hgid.tex
-#	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex
+hgid.tex: dummy
+	[ -f hgid.tex ] || touch hgid.tex
+	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex
 
 dummy: ;

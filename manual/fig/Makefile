@@ -1,5 +1,3 @@
-ROOTDIR := $(shell cat ../trunc)
-
 JPGPICS :=
 PNGPICS := 
 FIGPICS := 

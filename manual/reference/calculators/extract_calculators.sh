@@ -22,7 +22,7 @@ for file in latex/*.tex; do
   name=$(sed -ne '/\\subsection{Detailed Description}/,/\\subsection/p' $file | awk '/Callname/{print $2}')
   if [ ! -z "$name" ]; then
     echo "Generating documentation for calculator $name from $file"
-    echo "\subsubsection{$name}" >> $OUT
+    echo "\subsection{$name}" >> $OUT
     echo "\label{calc:$name}" >> $OUT
     sed -ne '/\\subsection{Detailed Description}/,/\\subsection/p' $file | \
       sed -e '1d' -e '$d' \

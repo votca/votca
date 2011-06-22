@@ -1,7 +1,7 @@
 SHELL=/bin/bash
-BINS:=$(shell ls `dirname \`which ctp_run\``/ctp_* | xargs -n1 basename ) 
-BINS2:=$(shell ls `dirname \`which ctp_run\``/kmc_* | xargs -n1 basename )
-BINS3:=$(shell ls `dirname \`which ctp_run\``/moo_* | xargs -n1 basename )
+BINS1:=$(shell ls `dirname \`which ctp_run\``/ctp_* | xargs -n1 basename ) 
+BINS2:=$(shell ls `dirname \`which kmc_test\``/kmc_* | xargs -n1 basename )
+BINS3:=$(shell ls `dirname \`which moo_overlap\``/moo_* | xargs -n1 basename )
 
 all: Makefile.incl
 
@@ -13,9 +13,9 @@ Makefile.incl: dummy
 	  echo csg_call not found;\
 	  exit 1;\
 	fi
-	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i BINST2T=\\' > $@
+	echo $(BINS1) $(BINS2) $(BINS3) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i BINST2T=\\' > $@
 	echo >> $@
-	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINSTEX=\\' >> $@
+	echo $(BINS1) $(BINS2) $(BINS3) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINSTEX=\\' >> $@
 	echo >> $@
 	@#just added to avoid clock screw
 	sleep 0.5
