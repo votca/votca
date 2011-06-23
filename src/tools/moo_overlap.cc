@@ -33,7 +33,6 @@ protected:
 void MOOApplication::Initialize()
 {
 	AddProgramOptions("Options")
-		("help,h", boost::program_options::value<string>(), "provides this help message")
 		("listcharges,l", boost::program_options::value<string>(), "xml filename with charge unit types")
 		("posor1,1", boost::program_options::value<string>() -> default_value("posmol1"), "position and orientation for mol 1")
 		("posor2,2", boost::program_options::value<string>() -> default_value("posmol2"), "position and orientation for mol 1")		
