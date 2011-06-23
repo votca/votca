@@ -7,15 +7,18 @@
 void AtQmObserver::Initialize()
 {
     QMApplication::Initialize();
-    AddProgramOptions("Topology dump options")
-    ("outCG", boost::program_options::value<string>()->default_value("CGtraj.pdb"), "  the output file for coarse grained topology")
-    ("outQM", boost::program_options::value<string>()->default_value("QMtraj.pdb"), " the output file for the QM geometry")
+    AddProgramOptions("Output options")
+    ("outCG", boost::program_options::value<string>(), "  the output file for coarse grained topology")
+    ("outQM", boost::program_options::value<string>(), " the output file for the QM geometry")
     ;
 }
 
 bool AtQmObserver::EvaluateOptions()
 {    
     QMApplication::EvaluateOptions();
+    CheckRequired("outCG", "no name for a coarse-grained trajectory provided");
+    CheckRequired("outQM", "no name for a quantum trajectory  provided");
+
     string nameCG = _op_vm["outCG"].as<string>();
     string nameQM = _op_vm["outQM"].as<string>();
     string extCG  = nameCG.substr(nameCG.length()-4,4);

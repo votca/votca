@@ -22,7 +22,7 @@ public:
 
     string ProgramName() { return "ctp_printqmattop"; }
     void HelpText(std::ostream &out) {
-        out << "dump results of mapping procedure";
+        out << "outputs partitioned on rigid fragments trajectory (pdb format)";
     }
 
     void Initialize();

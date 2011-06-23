@@ -42,16 +42,6 @@ void HelpTextHeader(const std::string &tool_name)
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
 	 << tool_name << ", version " << votca::md2qm::CtpVersionStr() 
          << "\nvotca_csg, version " << votca::csg::CsgVersionStr()
-#ifdef GMX
-         << "\ngromacs, " << GromacsVersion()
-#ifdef GMX_DOUBLE
-	 << " (double precision)"
-#else
-	 << " (single precision)"
-#endif
-#else
-	 << "\n"
-#endif
          << "\n\n";
 }
 
