@@ -20,7 +20,7 @@ echo
 echo '%!includeconf: config.t2t'
 echo 
 echo -e "++$prog++"
-echo -e "label($prog)"
+echo -e "label(prog:$prog)"
 
 #Here comes the magic:
 #-header in trash
