@@ -6,7 +6,7 @@ TXT2TAGS=$(TRUNC)/scripts/txt2tags
 .PHONY: clean bootstrap
 .SECONDARY:
 
-all: all.tex   
+all: clean all.tex   
 
 #this is a hack to generate Makefile.incl
 HAKE:=$(shell $(MAKE) -f Makefile.BINS Makefile.incl)
