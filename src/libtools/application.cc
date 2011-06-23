@@ -37,8 +37,12 @@ string Application::VersionString()
 
 void Application::ShowHelpText(std::ostream &out)
 {
-    out << "\t------ VOTCA ( http://www.votca.org ) ------\n"
-        << ProgramName();
+    out << "==================================================\n";
+    out << "========   VOTCA (http://www.votca.org)   ========\n";
+    out << "==================================================\n\n";
+
+    out << "please submit bugs to bugs@votca.org\n\n";
+    out << ProgramName();
     if(VersionString() != "")
         out << ", version " << VersionString();
     out << endl
