@@ -33,10 +33,10 @@ protected:
 void MOOApplication::Initialize()
 {
 	AddProgramOptions("Options")
-		("listcharges,l", boost::program_options::value<string>(), "xml filename with charge unit types")
-		("posor1,1", boost::program_options::value<string>() -> default_value("posmol1"), "position and orientation for mol 1")
-		("posor2,2", boost::program_options::value<string>() -> default_value("posmol2"), "position and orientation for mol 1")		
-		("pdb,p", boost::program_options::value<string>() -> default_value("posmol.pdb"), "pdb file with two molecules")		
+		("listcharges", boost::program_options::value<string>(), "xml filename with charge unit types")
+		("mol1", boost::program_options::value<string>() -> default_value("mol1"), "position and orientation for mol 1")
+		("mol2", boost::program_options::value<string>() -> default_value("mol2"), "position and orientation for mol 2")		
+		("pdb", boost::program_options::value<string>() -> default_value("geometry.pdb"), "pdb file of two molecules")		
 		;
 }
 
