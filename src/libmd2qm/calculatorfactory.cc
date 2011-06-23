@@ -22,6 +22,7 @@
 #include "calculators/avgvelocity.h"
 #include "calculators/lambdaout.h"
 #include "calculators/dump_atoms.h"
+#include "calculators/dump_trajectory.h"
 
 void CalculatorFactory::RegisterAll(void)
 {
@@ -47,4 +48,5 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<OccEquilibrium>("occequilibrium");
         Calculators().Register<AvgVelocity>("avgvelocity");
         Calculators().Register<DumpAtoms>("dumpatoms");
+        Calculators().Register<DumpTrajectory>("dumptraj");
 }
