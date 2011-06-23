@@ -1,6 +1,9 @@
 \chapter{Hopping sites}
 \label{sec:mapping}
 
+\newcommand{\ctpmap}{\hyperref[prog:ctp_map]{\texttt{ctp\_map}}\xspace}
+\newcommand{\dumptraj}{\hyperref[calc:dumptraj]{\texttt{dumptraj}}\xspace}
+
 \section{Conjugated segments and rigid fragments}
 \label{sec:conjugated_segments}
 
@@ -24,20 +27,19 @@ Finally, a list of neighboring conjugated segments is constructed. Two segments 
 
 \section{Mapping the system onto conjugated segments}
 
-\texttt{ctp\_map} partitions the system on conjugated segments and rigid fragments:
+\ctpmap partitions the system on conjugated segments and rigid fragments:
 \begin{verbatim}
   ctp_map --top topology.tpr -c 15 -cg cgmap.xml --trj traj.trr
 \end{verbatim}
 The input are the gromacs topology and trajectory files, a mapping file, a cutoff distance for defining nearest neighbours and a file describing the charge unit types. The output includes a neighbour list, labelled by the gromacs step number, and a binary 
 file and a state file with the mapped onto conjugated segments system. 
 
-In order to check the mapping one can use \texttt{ctp\_printqmattop} 
+In order to check the mapping one can use the \dumptraj calculator
 \begin{verbatim}
-  \texttt{ctp_printqmattop} --
+  ctp_run --exec  "dumptraj" -cg map.xml 
 \end{verbatim}
 
-This programme will read in the state from ctp\_map together with a list charge unit description and will create two output trajectory files corresponding to the coarse grained and quantum topologies. The coase grained topology is defined by two vectors per bead. The quantum topology has the coordinates from INPUT\_COORD backmapped onto the coarse grained topology. It is suggested to view all three file (atomistic, coarse grained and quantum) on top of each other to check the mapping before proceding.
-
+This program will read in the state file created by \ctpmap together with a conjugated segment definitions and will create two output trajectory files corresponding to the coarse-grained and back-mapped topologies. The back-maping of the coase-grained topology is performed using stored rigid fragment positions and orientations. It is suggested to view all three trajectories (atomistic, coarse grained, and quantum) on top of each other to check the mapping.
 
 \subsection{The mapping file}
 To partition the system onto conjugated segments and rigid fragments a mapping \xml file is required. This file is based on the input provided for generation of \texttt{topol.tpr} and \texttt{traj.trr} files. An example of a mapping file for a single \dcvt molecule is shown in listing~\ref{list:map}. 
