@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,20 @@
  *
  */
 
+#include <votca_config.h>
 #include <votca/tools/version.h>
+#include <votca/csg/version.h>
 #include <iostream>
-#include "version.h"
-#include "votca_config.h"
+#include <version.h>
+
 
 namespace votca { namespace md2qm {
 
-#ifdef HGVERSION
-  static const std::string version_str = VERSION " " HGVERSION " (compiled " __DATE__ ", " __TIME__ ")";
-#else
-  static const std::string version_str = VERSION "(compiled " __DATE__ ", " __TIME__ ")";
-#endif
+//defines hgversion
+#include "hgversion.h"
+static const std::string version_str = std::string(VERSION) + " " + hgversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
-const std::string &MD2QMVersionStr()
+const std::string &CtpVersionStr()
 {
     return version_str;
 }
@@ -40,10 +40,21 @@ void HelpTextHeader(const std::string &tool_name)
          << "========   VOTCA (http://www.votca.org)   ========\n"
          << "==================================================\n\n"
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
-	 << tool_name << ", version " << votca::md2qm::MD2QMVersionStr() 
-         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr() 
+	 << tool_name << ", version " << votca::md2qm::CtpVersionStr() 
+         << "\nvotca_csg, version " << votca::csg::CsgVersionStr()
+#ifdef GMX
+         << "\ngromacs, " << GromacsVersion()
+#ifdef GMX_DOUBLE
+	 << " (double precision)"
+#else
+	 << " (single precision)"
+#endif
+#else
+	 << "\n"
+#endif
          << "\n\n";
 }
 
 }}
+
 

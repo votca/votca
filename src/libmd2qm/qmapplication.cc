@@ -3,6 +3,7 @@
 #include <votca/csg/topologyreader.h>
 #include "calculatorfactory.h"
 #include "qmapplication.h"
+#include "version.h"
 
 QMApplication::QMApplication()
 {
@@ -79,7 +80,7 @@ void QMApplication::ShowHelpText(std::ostream &out)
     if(VersionString() != "")
          name = name + ", version " + VersionString();
 
-    //HelpTextHeader(name);
+    votca::md2qm::HelpTextHeader(name);
     HelpText(out);
     out << "\n\n" << OptionsDesc() << endl;
 }

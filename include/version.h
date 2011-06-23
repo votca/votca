@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  *
  */
 
-#ifndef _md2qm_version_H
-#define	_md2qm_version_H
+#ifndef __VOTCA_MD2QM_VERSION_H
+#define	__VOTCA_MD2QM_VERSION_H
 
 #include <string>
 
 namespace votca { namespace md2qm {
-    const std::string & MD2QMVersionStr();
+    const std::string & CtpVersionStr();
     void HelpTextHeader(const std::string &tool_name);
 }}
 
-#endif	/* _tools_version_H */
+#endif
 
