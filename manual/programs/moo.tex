@@ -5,8 +5,8 @@
 \moo can be used both in a sandalone mode and as a \calculator of the \votcact. \moo constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals and therefore requires the optimized geometry of the molecule and the projection coefficients of the molecular on atomic orbitals. 
 
 
-\subsubsection{Standalone use}
-MOO can also be used in a standalone mode. For this purpose a program \overlap is provided 
+\subsubsection{Standalone mode}
+For a standalone mode program \overlap is provided 
 \begin{verbatim}
  moo_overlap --conjseg benzene.xml --pos1 benzene1.pos --pos2 benzene2.pos
 \end{verbatim}
@@ -18,10 +18,7 @@ Its input requires a description of two conjugated segments (\texttt{benzene.xml
 
 
 \subsubsection{Calculator of \votcact}
-Semi-empirical method of evaluation of electronic couplings is provided by the \integrals calculator of  \ctprun
-\begin{verbatim}
-  ctp_run --exec "intergals"
-\end{verbatim}
+Semi-empirical method of evaluation of electronic couplings is provided by the \integrals \calculator.
 
 
 \moo requires the following input files: \\

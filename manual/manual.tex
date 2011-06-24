@@ -18,7 +18,7 @@
 \usepackage{listings}
 
 \usepackage
-[dvips, %or dvips or pdftex
+[hypertex, %or dvips or pdftex
 pagebackref, %or backref
 colorlinks=true,
 linkcolor=webgreen, %defined below
@@ -70,13 +70,13 @@ pdfpagemode=UseNone]{hyperref}
 %\cleardoublepage
 \mainmatter
 \include{introduction}
-\include{theory}
+\include{theory/theory}
 \include{input}
 
 \chapter{Programs and interfaces}
-\include{programs}
-\include{interfaces}
-\include{reference}
+\include{programs/programs}
+\include{programs/interfaces}
+\include{reference/reference}
 
 \bibliographystyle{achemso}
 \bibliography{literature_short}

@@ -1,0 +1,13 @@
+\subsection{Calculators}
+\label{sec:calculators}
+
+\ctprun is a wrapper program which is used to run all calculators. The generic syntax is 
+\begin{verbatim}
+  ctp_run --exec "calc1, calc2, ..." --opt options.xml
+\end{verbatim}
+%
+File \texttt{options.xml} lists all options needed to run a specific calculator. The format of this file is explained in listing~\ref{list:calc}. A complete list of calculators is given in the \refcalc reference section.
+%
+\lstinputlisting[label=list:calc, 
+ caption={\small Part of the \texttt{options.xml} file with options for the \texttt{calculator\_name} \refcalc.
+}]{./programs/calculators.xml}

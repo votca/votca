@@ -14,7 +14,7 @@ dvi: $(NAME).dvi
 ps: $(NAME).ps
 
 
-$(NAME).tex: reference_submake fig_submake titlepage.tex introduction.tex theory.tex input.tex reference.tex
+$(NAME).tex: reference_submake fig_submake programs_submake theory_submake reference_submake titlepage.tex introduction.tex input.tex 
 
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi
@@ -43,7 +43,7 @@ endif
 qclean:
 	$(LATEXMK) -C $(NAME).tex
 
-clean: qclean reference_subclean fig_subclean
+clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf
 	rm -f hgid.tex
 	rm -f *~
