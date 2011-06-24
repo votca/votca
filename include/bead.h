@@ -70,6 +70,12 @@ public:
     const BeadType *getType() const { return _type; }
 
     /**
+     * get the bead type pointer (not constant)
+     * \return bead type object
+     */
+    BeadType *Type() const { return _type; }
+
+    /**
      * get the residu number of the bead
      * \return residue id
      */
