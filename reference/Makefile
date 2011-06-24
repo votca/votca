@@ -1,5 +1,8 @@
 SHELL=/bin/bash
-all: check hgid.tex programs_submake scripts_submake xml_submake
+all: check hgid.tex programs_submake scripts_submake xml_submake 
+
+upload: scripts_upload xml_upload programs_upload
+
 
 check:
 	@if ! which csg_call &>/dev/null; then\
@@ -14,6 +17,10 @@ check:
 
 %_submake:
 	$(MAKE) $(MFLAGS) -C $*
+
+%_upload:
+	$(MAKE) $(MFLAGS) -C $* upload
+
 
 %_subclean:
 	$(MAKE) $(MFLAGS) -C $* clean

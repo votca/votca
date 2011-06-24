@@ -46,3 +46,7 @@
 %replace itemize by compactitem which looks nicer
 %!postproc(tex): '(\\begin|\\end)\{itemize\}' '\1{compactitem}'
 
+%%%%%%%%%%%%%%%
+% for html
+
+%!preproc(html): '\+\+' '=='
