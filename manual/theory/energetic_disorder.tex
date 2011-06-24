@@ -1,8 +1,6 @@
 \section{Site energies}
 \label{sec:site_energies}
 
-\newcommand{\estat}{\hyperref[calc:estat]{\texttt{estat}}\xspace}
-
 \subsection{Electrostatic energy}
 \label{sec:electrostatic}
 Variations of the local electric field can result in large electrostatic contributions to the energetic disorder. Using the atomic partial charges of charged and neutral molecules, $\Delta E_{ij}^\text{el}$ can be computed from the site energies~\cite{kirkpatrick_columnar_2008}
@@ -26,15 +24,4 @@ The contribution to $E_i^\text{el}$ from the first coordination shell is then un
 \end{equation}
 where the parameter $s$ is the inverse screening length. For a monovalent ion in water, for example, $\epsilon_{\text{s}}=80$ and $s=3\,\textrm{nm}^{-1}$~\cite{daggett_molecular_1991}. This screening function ensures that neighboring atoms interact via an unscreened Coulomb potential ($\epsilon \sim 1$) while the electrostatic interaction between atoms at large separations is screened as in the bulk. 
 
-Evaluation of the electrostatic contribution is provided by the \estat calculator of \texttt{ctp\_run} 
-\begin{verbatim}
-  ctp_run --exec "estat" --opt main.xml
-\end{verbatim}
-
-The file \texttt{main.xml} should contain the following section 
-
-\lstinputlisting[
- label=list:estatic, 
- caption={\small part of the \xml file with options for electrostatic energetic disorder. \texttt{method} can be either \texttt{simple} or \texttt{distdep}. In the latter case \texttt{s\_eps} mast be specified.
-}]%
-{./fig/energetic_disorder/estatic.xml}
+Evaluation of the electrostatic contribution is provided by the \estat \calculator.

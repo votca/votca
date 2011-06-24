@@ -1,40 +1,39 @@
 \chapter{Input files}
 \label{sec:mapping}
 
-\newcommand{\ctpmap}{\hyperref[prog:ctp_map]{\texttt{ctp\_map}}\xspace}
-\newcommand{\dumptraj}{\hyperref[calc:dumptraj]{\texttt{dumptraj}}\xspace}
-\newcommand{\calculator}{\hyperref[sec:alculators]{\texttt{calculator}}\xspace}
-
-The \xml input files has to be specify atomistic topology, coarse-grained topology, and conjugated segments. In addition, practically every \calculator requires extra options which are provided in a separate \xml file.
+\xml-based input files specify atomistic topology, coarse-grained topology, and define conjugated segments. In addition, practically every \calculator requires options provided in a separate \xml file.
 
 \section{Atomistic topology}
 \label{sec:atomistic}
-In this section we describe how to specify the morphology of the system. We will use DCV2T as an example.
+\subsection{\gromacs topology}
+If you are using \gromacs for generating atomistic configurations, it is possible to directly use the topology file provided by \gromacs (\texttt{topology.tpr}). In this case the residue and atom names should correspond to those used  in the coarse-grained topology and conjugated segments. 
 
-\begin{wrapfigure}{ht}{0.5\linewidth}
+\subsection{Custom topology}
+
+
+The structure of \dcvt, together with atom type definitions, is shown in fig.~\ref{fig:dcv2t_at}. DCV2T has two thiophene (THI) and two dicyanovinyl (NIT) groups. The pdb file which contains residue types, residue numbering, atom names, atom types, and atom coordinates is shown below. In its ground state the molecule is practically planar. 
+
+An amorphous morphology was obtained by quenching the 512 \dcvt molecules after equilibrating the system above the glass transition temperature. What we will need is a snapshot out of the trajectory and the topology file describing the system (all in \gromacs format).
+
+\clearpage
+\begin{figure}[ht]
 \centering
-\includegraphics[width=0.9\linewidth]{./fig/chemical_structure/dcv2t_atom_types}
-\caption{\small Atom types of DCV2T. The molecule consists of two building blocks (residues): thiophene (THI) and dicyanovinyl (NIT). }
+\includegraphics[width=0.5\linewidth]{./fig/chemical_structure/dcv2t_atom_types}
+\caption{\small Atom types of \dcvt. The molecule consists of two building blocks (residues): thiophene (THI) and dicyanovinyl (NIT). The corresponding pdb file is given in listing~\ref{list:pdb}.}
 \label{fig:dcv2t_at}
-\end{wrapfigure}
+\end{figure}
 
-%\clearpage
-The structure of DCV2T, together with atom type definitions, is shown in fig.~\ref{fig:dcv2t_at}. DCV2T is a typical donor-acceptor-type molecule, with two electron-donating thiophene and two electron-withdrawing dicyanovinyl groups. The pdb file which contains residue types, residue numbering, atom names, atom types, and atom coordinates is shown below. In its ground state the molecule is practically planar. 
-
-An amorphous morphology was obtained by quenching the 512 DCV2T molecules after equilibrating the system above the glass transition temperature. What we will need is a snapshot out of the trajectory and the topology file describing the system (all in \gromacs format).
-
-%\clearpage
 \lstinputlisting[
   language=XML,
-  basicstyle=\ttfamily\footnotesize,
-  frame=lines,
-  identifierstyle=\color{red},
-  keywordstyle=\color{blue},
+  basicstyle=\ttfamily\small,
+  stringstyle=\ttfamily\small,
   showstringspaces=false,
- label=list:pdb, 
- morekeywords={HETATM,THI,NIT},
- caption={pdb file of DCV2T}]%
+  frame=lines,
+  label=list:pdb, 
+  morekeywords={HETATM,THI,NIT},
+  caption={pdb file of DCV2T}]%
 {./fig/chemical_structure/dcv2t.pdb}
+\clearpage
 
 \section{Coarse-grained topology}
 \label{sec:coarsegrained}
