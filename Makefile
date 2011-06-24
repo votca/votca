@@ -33,4 +33,7 @@ hgid.tex: dummy
 	[ -f hgid.tex ] || touch hgid.tex
 	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex
 
+upload-pdf: manual.pdf
+	googlesites_upload.py -d "/Documentation" -a manual.pdf
+
 dummy: ;

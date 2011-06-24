@@ -22,6 +22,8 @@ Makefile.incl: dummy
 	echo >> $@
 	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.wiki\\/' -e '1i BINSWIKI=\\' >> $@
 	echo >> $@
+	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.html\\/' -e '1i BINSHTML=\\' >> $@
+	echo >> $@
 	@#just added to avoid clock screw
 	sleep 0.5
 

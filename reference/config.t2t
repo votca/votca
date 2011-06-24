@@ -38,3 +38,7 @@
 %!postproc(tex): '\\item' '\item[ ]'
 %!postproc(tex): '(\\begin|\\end)\{itemize\}' '\1{compactitem}'
 
+%%%%%%%%%%%%%%%
+% for html
+
+%!preproc(html): '\+\+' '=='
