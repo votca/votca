@@ -43,7 +43,7 @@ config.t2t: ../config.t2t
 	$(TXT2TAGS) -t tex --no-header --infile $< --outfile $@
 
 %.html: %.t2t config.t2t
-	./txt2tags -t html --no-header --infile $< --outfile $@
+	$(TXT2TAGS) -t html --no-header --infile $< --outfile $@
 
 upload: html
 	googlesites_upload.py  -d "/Documentation/reference-scripts"  -f all.html
