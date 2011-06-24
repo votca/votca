@@ -22,7 +22,7 @@
 \definecolor{invisiblegray}{rgb}{.97,0.97,0.97}
 
 \usepackage
-[ps2pdf, %or dvips or pdftex 
+[dvipdf, %or dvips or pdftex 
 pagebackref, %or backref
 colorlinks=true,
 linkcolor=webgreen, %defined below
@@ -35,7 +35,7 @@ pdfkeywords={charge transport organic semiconductors},
 bookmarksopen=false,
 pdfpagemode=UseNone]{hyperref}
 
-\pdfcompresslevel=9
+%\pdfcompresslevel=9
 
 \usepackage[T1]{fontenc}
 %\usepackage{times}
@@ -70,9 +70,9 @@ pdfpagemode=UseNone]{hyperref}
 \tableofcontents
 %\cleardoublepage
 \mainmatter
-\include{introduction}
+\include{theory/introduction}
 \include{theory/theory}
-\include{input}
+\include{input/input}
 
 \chapter{Programs and interfaces}
 \include{programs/programs}

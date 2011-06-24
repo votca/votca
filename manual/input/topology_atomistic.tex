@@ -1,0 +1,27 @@
+\section{Atomistic topology}
+\label{sec:atomistic}
+\subsection{\gromacs topology}
+If you are using \gromacs for generating atomistic configurations, it is possible to directly use the topology file provided by \gromacs (\texttt{topology.tpr}). In this case the residue and atom names should correspond to those used  for creating the coarse-grained topology and defining the conjugated segments. 
+
+\subsection{Custom topology}
+The custom topology can also be defined using an \xml file. Moreover, it s possible to partially overwrite the information provided in, for example, \gromacs topology file. We will illustrate how to create a custom topology file using \dcvt. The structure of \dcvt, together with atom type definitions, is shown in fig.~\ref{fig:dcv2t_at}. \dcvt has two thiophene (THI) and two dicyanovinyl (NIT) groups. The pdb file which contains residue types, residue numbering, atom names, atom types, and atom coordinates is shown in listing~\ref{list:pdb}.
+
+\clearpage
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{./fig/chemical_structure/dcv2t_atom_types}
+\caption{\small \dcvt with atoms labelled according to \texttt{residue\_number:residue\_name:atom\_name}. There are four residues and two residue types: thiophene (THI) and dicyanovinyl (NIT). The corresponding pdb file is given in listing~\ref{list:pdb}.}
+\label{fig:dcv2t_at}
+\end{figure}
+
+\lstinputlisting[
+  language=XML,
+  basicstyle=\ttfamily\small,
+  stringstyle=\ttfamily\small,
+  showstringspaces=false,
+  frame=lines,
+  label=list:pdb, 
+  morekeywords={HETATM,THI,NIT},
+  caption={pdb file of \dcvt}]%
+{./fig/chemical_structure/dcv2t.pdb}
+\clearpage
