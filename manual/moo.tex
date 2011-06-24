@@ -1,4 +1,4 @@
-\section{Semi-empirical calculation of transfer intergals}
+\subsection{Semi-empirical method}
 \label{sec:moo}
 
 {\color{red} Cleaning/revising is needeed.}
@@ -16,7 +16,7 @@ The main advantage of the molecular orbital overlap \moo library is {\em fast} e
 
 Since \moo constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals, it requires the optimized geometry of the molecule (\xyz) and the projection coefficients of the molecular on atomic orbitals (\orb). Note that \moo is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of the \moo method to the DFT-based calculations. 
 
-\subsection{Input files}
+\moo requires the following input files: \\
 \noindent
 \xyz contains four columns, first being the atom type and the next three its coordinates. This is a standard \texttt{xyz} format without a header. 
 \vskip 0.1cm
@@ -37,7 +37,7 @@ Provided with this input, \gaussian will generate \texttt{fort.7} file containin
 %\subsection{Standalone use}
 MOO can also be used in a standalone mode. For this purpose an interface \overlap is provided. 
 \begin{verbatim}
-    moo_overlap --conjseg benzene.xml --pos1 benzene1.pos --pos2 benzene2.pos
+ moo_overlap --conjseg benzene.xml --pos1 benzene1.pos --pos2 benzene2.pos
 \end{verbatim}
 Its input requires a description of two conjugated segments (\texttt{benzene.xml}, positions and orientations of the molecules and the files with molecular coordinates and orbitals. The structure of the files is shown in listings \ref{list:benzene_xml} and  \ref{list:benzene_pos}.
 \vskip 0.1cm

@@ -45,6 +45,20 @@ pdfpagemode=UseNone]{hyperref}
 
 \begin{document}
 
+
+\lstset{
+  language=XML,
+  frame=lines,
+  basicstyle=\ttfamily\footnotesize,
+  identifierstyle=\color{red},
+  keywordstyle=\color{blue},
+  showstringspaces=false,
+  columns=fullflexible,
+  commentstyle=\color{gray}\rmfamily\itshape,
+  mathescape=true,
+  morekeywords={estatic_params,estatic_method,epsilon_dielectric,s_eps}
+}
+
 \input{newcommands}
 
 \frontmatter
@@ -53,14 +67,11 @@ pdfpagemode=UseNone]{hyperref}
 \cleardoublepage
 
 \tableofcontents
-\cleardoublepage
+%\cleardoublepage
 \mainmatter
 \include{introduction}
 \include{theory}
 \include{input}
-\include{transfer_integrals}
-\include{energetic_disorder}
-\include{kmc}
 \include{reference}
 
 \bibliographystyle{achemso}

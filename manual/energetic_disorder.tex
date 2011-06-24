@@ -1,9 +1,9 @@
-\chapter{Site energies}
+\section{Site energies}
 \label{sec:site_energies}
 
 \newcommand{\estat}{\hyperref[calc:estat]{\texttt{estat}}\xspace}
 
-\section{Electrostatic energy}
+\subsection{Electrostatic energy}
 \label{sec:electrostatic}
 Variations of the local electric field can result in large electrostatic contributions to the energetic disorder. Using the atomic partial charges of charged and neutral molecules, $\Delta E_{ij}^\text{el}$ can be computed from the site energies~\cite{kirkpatrick_columnar_2008}
 \begin{equation}
@@ -32,18 +32,6 @@ Evaluation of the electrostatic contribution is provided by the \estat calculato
 \end{verbatim}
 
 The file \texttt{main.xml} should contain the following section 
-\lstset{
-  language=XML,
-  frame=lines,
-  basicstyle=\ttfamily\footnotesize,
-  identifierstyle=\color{red},
-  keywordstyle=\color{blue},
-  showstringspaces=false,
-  columns=fullflexible,
-  commentstyle=\color{gray}\rmfamily\itshape,
-  mathescape=true,
-  morekeywords={estatic_params,estatic_method,epsilon_dielectric,s_eps},
-}
 
 \lstinputlisting[
  label=list:estatic, 

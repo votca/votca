@@ -14,7 +14,7 @@ dvi: $(NAME).dvi
 ps: $(NAME).ps
 
 
-$(NAME).tex: reference_submake fig_submake titlepage.tex introduction.tex mapping.tex reference.tex
+$(NAME).tex: reference_submake fig_submake titlepage.tex introduction.tex theory.tex input.tex reference.tex
 
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi
