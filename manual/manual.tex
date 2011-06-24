@@ -1,6 +1,6 @@
 \documentclass[a4paper,10pt]{book}
 
-\usepackage{color}
+\usepackage[usenames]{color}
 \usepackage{bm}
 \usepackage{amsmath}
 \usepackage{appendix}
@@ -33,6 +33,7 @@ pdfpagemode=UseNone]{hyperref}
 
 \definecolor{webgreen}{rgb}{0,.5,0}
 \definecolor{webbrown}{rgb}{.6,0,0}
+\definecolor{invisiblegray}{rgb}{.97,0.97,0.97}
 \pdfcompresslevel=9
 
 \usepackage[T1]{fontenc}
@@ -49,6 +50,7 @@ pdfpagemode=UseNone]{hyperref}
 \lstset{
   language=XML,
   frame=lines,
+  backgroundcolor=\color{invisiblegray},
   basicstyle=\ttfamily\footnotesize,
   identifierstyle=\color{red},
   keywordstyle=\color{blue},
@@ -72,6 +74,10 @@ pdfpagemode=UseNone]{hyperref}
 \include{introduction}
 \include{theory}
 \include{input}
+
+\chapter{Programs and interfaces}
+\include{programs}
+\include{interfaces}
 \include{reference}
 
 \bibliographystyle{achemso}

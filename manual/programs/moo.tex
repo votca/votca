@@ -1,0 +1,46 @@
+\newcommand{\integrals}{\hyperref[calc:integrals]{\texttt{integrals}}\xspace}
+
+\subsection{Molecular Orbital Overlap (\moo)}
+
+\moo can be used both in a sandalone mode and as a \calculator of the \votcact. \moo constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals and therefore requires the optimized geometry of the molecule and the projection coefficients of the molecular on atomic orbitals. 
+
+
+\subsubsection{Standalone use}
+MOO can also be used in a standalone mode. For this purpose a program \overlap is provided 
+\begin{verbatim}
+ moo_overlap --conjseg benzene.xml --pos1 benzene1.pos --pos2 benzene2.pos
+\end{verbatim}
+Its input requires a description of two conjugated segments (\texttt{benzene.xml}, positions and orientations of the molecules and the files with molecular coordinates and orbitals. The structure of the files is shown in listings \ref{list:benzene_xml} and  \ref{list:benzene_pos}.
+\vskip 0.1cm
+\lstinputlisting[label=list:benzene_xml,caption={\small \texttt{benzene.xml} file with the description of the benzene molecule, which is also a single conjugated segment and a rigid fragment.}] {./fig/moo/moo_overlap/benzene.xml}
+\vskip 0.1cm
+\lstinputlisting[label=list:benzene_pos, caption={\small \texttt{benzene1.pos} file which describes the position and orientation of the molecule. The name of the molecule is followed by three coordinates (relative to the center of mass of the supplied \texttt{xyz} file and then by nine elements of the rotation matrix $a_{ij} = e_i e^\text{mol}_j $. The reference coordinate frame is determined from the provided \texttt{xyz} file.}] {./fig/moo/moo_overlap/benzene1.pos}
+
+
+\subsubsection{Calculator of \votcact}
+Semi-empirical method of evaluation of electronic couplings is provided by the \integrals calculator of  \ctprun
+\begin{verbatim}
+  ctp_run --exec "intergals"
+\end{verbatim}
+
+
+\moo requires the following input files: \\
+\noindent
+\xyz contains four columns, first being the atom type and the next three its coordinates. This is a standard \texttt{xyz} format without a header. 
+\vskip 0.1cm
+\noindent
+
+\subsubsection{Molecular orbitals}
+\orb can be generated using \gaussian program and the input script \texttt{get\_orbitals.com} which shown in listing~\ref{list:zindo_orbitals}.
+\vskip 0.1cm
+\noindent
+\lstinputlisting[
+ label=list:zindo_orbitals, 
+ caption={\footnotesize \gaussian input file \texttt{get\_orbitals.com} used for generating molecular orbitals. The first line contains  the name of the check file, the second the requested RAM. 
+%
+ \texttt{int=zindos} requests the method ZINDO, \texttt{punch=mo} states that the molecular orbitals ought to be written to  the \texttt{fort.7} file, \texttt{nosymm} forbids use of symmetry and is necessary to ensure correct position of orbitals with respect to the provided coordinates. The two integer numbers correspond to the charge and multiplicity of the system: $0\, 1$ corresponds to a neutral system with a multiplicity of one. They are followed by the types and coordinates of all atoms in the molecule.
+}]%
+{./fig/moo/get_orbitals.com}
+%
+Provided with this input, \gaussian will generate \texttt{fort.7} file containing the molecular orbitals of a single molecule. This file can be renamed to \orb. 
+
