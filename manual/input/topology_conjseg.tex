@@ -2,35 +2,6 @@
 
 Conjugated segments are described in a separate \xml file. An example for \dcvt is shown in listing~\ref{list:conjugated_segments}.
 
-\lstset{
-  language=XML,
-  frame=lines,
-  basicstyle=\ttfamily\footnotesize,
-  identifierstyle=\color{red},
-  keywordstyle=\color{blue},
-  showstringspaces=false,
-  columns=fullflexible,
-  commentstyle=\color{gray}\rmfamily\itshape,
-  morekeywords={crgunit_type,ChargeUnitType,posname,orbname,basisset,transorb,reorg,nameneutr,namecrg,energy,beadconj,molname,name,monomer_atom_map,monomer_atom_weights},
-}
-
-\lstinputlisting[
- label=list:conjugated_segments, 
- caption={\small \xml file describing conjugated segments.
-}]%
-{./fig/moo/charges.xml}
-
-\noindent
-%\suggestion{%
-%crgunit\_type -> ConjugatedSegmentTypes \\ 
-%ChargeUnitType -> ConjugatedSegmentType \\ 
-%posname -> CoordinatesFile \\
-%orbname -> OrbitalsFile \\
-%transorb -> TransportOrbital \\
-%reorg -> ReorganizationEnergy (do we need this here?) \\
-%nameneutr -> ChargesNeutralFile \\
-%namecrg -> ChargesChargedFile (do we need this here?) 
-%}
 
 {\small 
 \begin{tabular}{p{3cm} p{10cm}}
@@ -48,5 +19,46 @@ Conjugated segments are described in a separate \xml file. An example for \dcvt 
  Note: The first three values are important, since they must correspond to the first three atoms defined in the coarse-grained mapping, which are used to calculate two vectors indicating the orientation of the molecule. The third required vector is the eigenvector of the smallest eigenvalue of the gyration tensor, i.e. perpendicular to the planar core.
  Note: The number of molecules here may differ from that in the coarse-grained mapping, since for example only the core is important for transport and not the side chains, but it has to be the same number of atoms as in the \gaussian input file otherwise overlap integral values will be terribly wrong. 
 \end{tabular}
+
+
+
+\clearpage
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{./fig/chemical_structure/dcv2t_gaussian} 
+\caption{\small Atom order of \dcvt in the atomistic topology (MD) and qunatum chemical calculations (QM). The  link between two is established in the description of a conjugated segment shown in listing~\ref{list:conjugated_segments}.}
+\label{fig:dcv2t_qm}
+\end{figure}
+
+\lstset{
+  language=XML,
+  frame=lines,
+  basicstyle=\ttfamily\footnotesize,
+  identifierstyle=\color{red},
+  keywordstyle=\color{blue},
+  showstringspaces=false,
+  columns=fullflexible,
+  commentstyle=\color{gray}\rmfamily\itshape,
+  morekeywords={crgunit_type,ChargeUnitType,posname,orbname,basisset,transorb,reorg,nameneutr,namecrg,energy,beadconj,molname,name,monomer_atom_map,monomer_atom_weights},
+}
+
+\lstinputlisting[
+ label=list:conjugated_segments, 
+ caption={\small \xml file describing conjugated segments.
+}]%
+{./input/segments.xml}
+\clearpage
+
+%\noindent
+%\suggestion{%
+%crgunit\_type -> ConjugatedSegmentTypes \\ 
+%ChargeUnitType -> ConjugatedSegmentType \\ 
+%posname -> CoordinatesFile \\
+%orbname -> OrbitalsFile \\
+%transorb -> TransportOrbital \\
+%reorg -> ReorganizationEnergy (do we need this here?) \\
+%nameneutr -> ChargesNeutralFile \\
+%namecrg -> ChargesChargedFile (do we need this here?) 
+%}
 
 

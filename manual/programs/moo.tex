@@ -1,5 +1,3 @@
-\newcommand{\integrals}{\hyperref[calc:integrals]{\texttt{integrals}}\xspace}
-
 \subsection{Molecular Orbital Overlap}
 
 \moo can be used both in a sandalone mode and as a \calculator of the \votcact. \moo constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals and therefore requires the optimized geometry of the molecule and the projection coefficients of the molecular on atomic orbitals. 
@@ -30,11 +28,4 @@ Its input requires a description of two conjugated segments (\texttt{benzene.xml
 
 
 \subsubsection{Calculator of \votcact}
-Semi-empirical method of evaluation of electronic couplings is provided by the \integrals \calculator.
-
-\moo requires the following input files: \\
-\noindent
-\xyz contains four columns, first being the atom type and the next three its coordinates. This is a standard \texttt{xyz} format without a header. 
-\vskip 0.1cm
-\noindent
-
+Semi-empirical method of evaluation of electronic couplings in a morphology is provided by the \integrals \calculator. In addition to definitions of conjugated segments, atomistic trajectory, and state file, the program needs coordinates and orbitals of conjugated segments. Coordinates are stored in \xyz files with four columns, first being the atom type and the next three atom coordinates. This is a standard \texttt{xyz} format without a header. Note that the atom order in \xyz files can be different from that of the mapping files. The correspondence between the two is established in the file which defines conjugated segments.
