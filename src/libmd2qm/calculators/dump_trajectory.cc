@@ -8,10 +8,10 @@
 
 void DumpTrajectory::Initialize(QMTopology *top, Property *options) {
     _options = options;
-    if ( options->exists("options.dump_trajectory.traj_cg") && 
-          options->exists("options.dump_trajectory.traj_qm") ) {
-        _nameCG = options->get("options.dump_trajectory.traj_cg").as<string>();
-        _nameQM = options->get("options.dump_trajectory.traj_qm").as<string>();
+    if ( options->exists("options.dumptraj.traj_cg") && 
+          options->exists("options.dumptraj.traj_qm") ) {
+        _nameCG = options->get("options.dumptraj.traj_cg").as<string>();
+        _nameQM = options->get("options.dumptraj.traj_qm").as<string>();
         cout << "Writing the  conjugated  segments trajectory to " << _nameCG <<endl;
         cout << "Writing the backmapped atomistic trajectory to " << _nameQM <<endl;
     } else {
@@ -37,7 +37,7 @@ void DumpTrajectory::Initialize(QMTopology *top, Property *options) {
 
 bool DumpTrajectory::EvaluateFrame(QMTopology *top) {
     
-    // dumping the coarse-grained trajectory
+     // dumping the coarse-grained trajectory
     _writerCG->Write( top );
     
     // creating the back-mapped atomistic trajectory

@@ -1,8 +1,5 @@
 /* 
  * File:   ctp_map.cc
- * Author: vehoff
- *
- * Created on March 5, 2010, 3:02 PM
  */
 
 #include <iostream>
@@ -13,9 +10,6 @@
 #include <votca/csg/csgapplication.h>
 
 using namespace std;
-
-
-using namespace std;
 using namespace votca::csg;
 
 class CtpMapApp
@@ -23,16 +17,16 @@ class CtpMapApp
 {
     string ProgramName() { return "ctp_map"; }
     void HelpText(ostream &out) {
-        out << "Maps an atomistic into a coarse grained geometry";
+        out << "Converts atomistic topology and trajectory into coarse-grained ones";
     }
-
-    bool DoTrajectory() {return true;}
-    bool DoMapping() { return true; }
 
     void Initialize();
     bool EvaluateOptions();
-
     void BeginEvaluate(Topology *top, Topology *top_ref);
+
+    bool DoTrajectory() {return true;}
+    bool DoMapping() {return true;}
+
 
 protected:
     // we have one observer
@@ -46,10 +40,10 @@ namespace po = boost::program_options;
 void CtpMapApp::Initialize()
 {
     CsgApplication::Initialize();
-    AddProgramOptions("Charge transport options")
-            ("listcharges,l", po::value<string>(), "  Crg unit definitions")
-            ("out", po::value<string>()->default_value("state.dat"), " Name of the output file for statesaver")
-            ("cutoff,c", po::value<double>()-> default_value(1.0), "  CutOff for nearest neighbours");
+    AddProgramOptions("Mapping options")
+            ("listcharges,l", po::value<string>(), "  conjugated segment definitions")
+            ("out", po::value<string>()->default_value("state.dat"), " state file")
+            ("cutoff,c", po::value<double>()-> default_value(1.0), "  cutoff radius for nearest neighbours");
 }
 
 bool CtpMapApp::EvaluateOptions()

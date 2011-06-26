@@ -22,10 +22,10 @@ void QMApplication::Initialize(void)
     CalculatorFactory::RegisterAll();
 
     AddProgramOptions()
-         ("crg", boost::program_options::value<string>()->default_value("list_charges.xml"), "  charge unit definitions")
-        ("opt", boost::program_options::value<string>()->default_value("main.xml"), "  main program options")
+        ("crg", boost::program_options::value<string>(), "  description of conjugated segments")
+        ("opt", boost::program_options::value<string>(), "  program options")
         ("out", boost::program_options::value<string>()->default_value("stateOut.dat"), "  write new state file with this name")
-        ("in", boost::program_options::value<string>()->default_value("stateIn.dat"), "  read state file with this name")
+        ("in", boost::program_options::value<string>(), "  input state file name")
         ("first-frame", boost::program_options::value<int>()->default_value(1), "  start with this frame (first frame is 1)")
         ("nframes", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
         //  this is shit, move it out!
@@ -37,7 +37,7 @@ bool QMApplication::EvaluateOptions(void)
 {
     CheckRequired("crg", "no chargeunit file specified");
     CheckRequired("opt", "no option file specified");
-    CheckRequired("in", "no input statefile file specified");
+    CheckRequired("in", "no input state file specified");
     return true;
 }
 
