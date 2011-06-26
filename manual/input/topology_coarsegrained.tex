@@ -1,7 +1,22 @@
 \section{Coarse-grained topology}
 \label{sec:coarsegrained}
 
-To partition the system onto conjugated segments and rigid fragments a mapping \xml file is required. An example of a mapping file for a single \dcvt molecule is shown in listing~\ref{list:map}. 
+Definitions of rigid fragments are stored in a separate \xml file. This file is used by the program \ctpmap which converts a supplied atomistic trajectory to a coarse-grained one. The coarse-grained trajectory contains positions, names, types, and orientations of rigid fragments. It is used to construct a neighbor list. This list comprises of pairs of molecules with a direct link in a graph used for kinetic Monte Carlo simulations. Backward and forward rates must be calculated for all neighbor list pairs.  
+
+An example of the input file for a \dcvt molecule is shown in listing~\ref{list:map}. 
+
+\clearpage
+
+\lstinputlisting[
+ language=XML,
+ basicstyle=\ttfamily\scriptsize,
+ commentstyle=\color{gray}\ttfamily,
+ label=list:map, 
+ morekeywords={cg_molecule,cg_beads,cg_bead,crgunitname,bead,beads,type,topology,name,ident,maps,map,mapping,weights,position,qm,symmetry},
+ caption={\small Partitioning of DCV2T on rigid fragments. Each fragment is defined by a list of atoms.}]%
+{./input/map.xml}
+
+
 
 %\begin{table}
 {\small 
@@ -44,30 +59,6 @@ To partition the system onto conjugated segments and rigid fragments a mapping \
 \end{tabular}
 }
 %\end{table}
-
-\clearpage
-
-\definecolor{gray}{rgb}{0.4,0.4,0.4}
-\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
-\definecolor{cyan}{rgb}{0.0,0.6,0.6}
-
-\lstset{
-  language=XML,
-  frame=lines,
-  basicstyle=\ttfamily\footnotesize,
-  identifierstyle=\color{red},
-  keywordstyle=\color{blue},
-  showstringspaces=false,
-  columns=fullflexible,
-  commentstyle=\color{gray}\rmfamily\itshape,
-  morekeywords={cg_molecule,cg_beads,cg_bead,crgunitname,bead,beads,type,topology,name,ident,maps,map,mapping,weights,position,qm,symmetry},
-}
-
-\lstinputlisting[
- label=list:map, 
- morekeywords={cg_molecule,cg_beads,name,ident,maps,map,mapping,weights,qm,symmetry},
- caption={Partitioning of DCV2T on conjugates segments and rigid fragments}]%
-{./fig/mapping/cgmap.xml}
 
 
 
