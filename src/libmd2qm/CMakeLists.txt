@@ -1,6 +1,6 @@
 option(WITH_VOTCA_KMCOLD "Enable the calculator which uses the old kmc code!" OFF)
 if (WITH_VOTCA_KMCOLD)
-find_package(VOTCA_KMCOLD REQUIRED)
+find_package(VOTCA_KMCOLD)
   if(NOT VOTCA_KMCOLD_FOUND)
     message(FATAL_ERROR "libvotca_kmcold not found (obsolate package). Please install or better use the new kmc code.")
   endif(NOT VOTCA_KMCOLD_FOUND)
