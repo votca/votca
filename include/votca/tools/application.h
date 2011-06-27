@@ -114,6 +114,15 @@ public:
     boost::program_options::variables_map &OptionsMap() { return _op_vm; }
     boost::program_options::options_description &OptionsDesc() { return _op_desc; }
 
+    /**
+     * \brief call StopExecution after EvaluateOptions
+     *
+     * This is usefule if the program executes an operation in EvaluateOptions
+     * and then wants to stop execution successfully. Call StopExecution and
+     * return true in EvaluateOptions.
+     */
+    void StopExecution() { _continue_execution = false; }
+
 protected:
     /// Variable map containing all program options
     boost::program_options::variables_map _op_vm;
@@ -124,6 +133,8 @@ protected:
     std::map<string, boost::program_options::options_description> _op_groups;
     
     virtual void ShowHelpText(std::ostream &out);
+
+    bool _continue_execution;
     
 private:
     /// get input parameters from file, location may be specified in command line

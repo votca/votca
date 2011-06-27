@@ -22,7 +22,7 @@
 namespace votca { namespace tools {
 
 Application::Application()
-    : _op_desc("Allowed options")
+    : _op_desc("Allowed options"), _continue_execution(true)
 {
 }
 
@@ -70,8 +70,9 @@ int Application::Exec(int argc, char **argv)
             ShowHelpText(cout);
             return -1;
         }
-        
-        Run();
+
+        if(_continue_execution)
+            Run();
     }
     catch(std::exception &error) {
          cerr << "an error occurred:\n" << error.what() << endl;
