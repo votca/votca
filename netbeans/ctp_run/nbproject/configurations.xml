@@ -35,7 +35,9 @@
         <ccTool>
           <incDir>
             <pElem>../../include</pElem>
-            <pElem>../../../include</pElem>
+            <pElem>../../../tools/include</pElem>
+            <pElem>../../../moo/include</pElem>
+            <pElem>../../../csg/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>
@@ -51,18 +53,6 @@
                             BC="${MAKE}  -f Makefile CONF=Debug"
                             CC="${MAKE}  -f Makefile CONF=Debug clean"
                             OP="dist/Debug/GNU-Linux-x86/liblibmd2qm.a">
-              </makeArtifact>
-            </linkerLibProjectItem>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../../../kmc/netbeans/libkmc"
-                            CT="3"
-                            CN="Debug"
-                            AC="true"
-                            BL="true"
-                            WD="../../../kmc/netbeans/libkmc"
-                            BC="${MAKE}  -f Makefile_nb CONF=Debug"
-                            CC="${MAKE}  -f Makefile_nb CONF=Debug clean"
-                            OP="../../src/libkmc/libkmc.a">
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibProjectItem>

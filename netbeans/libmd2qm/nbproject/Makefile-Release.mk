@@ -34,6 +34,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/76882303/dump_atoms.o \
+	${OBJECTDIR}/_ext/76882303/dump_trajectory.o \
 	${OBJECTDIR}/_ext/76882303/generate_nrgs.o \
 	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
 	${OBJECTDIR}/_ext/76882303/estatics.o \
@@ -81,6 +82,11 @@ ${OBJECTDIR}/_ext/76882303/dump_atoms.o: ../../src/libmd2qm/calculators/dump_ato
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/dump_atoms.o ../../src/libmd2qm/calculators/dump_atoms.cc
+
+${OBJECTDIR}/_ext/76882303/dump_trajectory.o: ../../src/libmd2qm/calculators/dump_trajectory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/dump_trajectory.o ../../src/libmd2qm/calculators/dump_trajectory.cc
 
 ${OBJECTDIR}/_ext/76882303/generate_nrgs.o: ../../src/libmd2qm/calculators/generate_nrgs.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303

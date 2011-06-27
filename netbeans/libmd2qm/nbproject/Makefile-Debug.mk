@@ -34,6 +34,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/76882303/dump_atoms.o \
+	${OBJECTDIR}/_ext/76882303/dump_trajectory.o \
 	${OBJECTDIR}/_ext/76882303/generate_nrgs.o \
 	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
 	${OBJECTDIR}/_ext/76882303/estatics.o \
@@ -80,82 +81,87 @@ dist/Debug/GNU-Linux-x86/liblibmd2qm.a: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/76882303/dump_atoms.o: ../../src/libmd2qm/calculators/dump_atoms.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/dump_atoms.o ../../src/libmd2qm/calculators/dump_atoms.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/dump_atoms.o ../../src/libmd2qm/calculators/dump_atoms.cc
+
+${OBJECTDIR}/_ext/76882303/dump_trajectory.o: ../../src/libmd2qm/calculators/dump_trajectory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/dump_trajectory.o ../../src/libmd2qm/calculators/dump_trajectory.cc
 
 ${OBJECTDIR}/_ext/76882303/generate_nrgs.o: ../../src/libmd2qm/calculators/generate_nrgs.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/generate_nrgs.o ../../src/libmd2qm/calculators/generate_nrgs.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/generate_nrgs.o ../../src/libmd2qm/calculators/generate_nrgs.cc
 
 ${OBJECTDIR}/_ext/76882303/shufflenrg.o: ../../src/libmd2qm/calculators/shufflenrg.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/shufflenrg.o ../../src/libmd2qm/calculators/shufflenrg.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/shufflenrg.o ../../src/libmd2qm/calculators/shufflenrg.cc
 
 ${OBJECTDIR}/_ext/76882303/estatics.o: ../../src/libmd2qm/calculators/estatics.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/estatics.o ../../src/libmd2qm/calculators/estatics.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/estatics.o ../../src/libmd2qm/calculators/estatics.cc
 
 ${OBJECTDIR}/_ext/76882303/lambdaout.o: ../../src/libmd2qm/calculators/lambdaout.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/lambdaout.o ../../src/libmd2qm/calculators/lambdaout.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/lambdaout.o ../../src/libmd2qm/calculators/lambdaout.cc
 
 ${OBJECTDIR}/_ext/1716269789/statesaversqlite.o: ../../src/libmd2qm/statesaversqlite.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaversqlite.o ../../src/libmd2qm/statesaversqlite.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaversqlite.o ../../src/libmd2qm/statesaversqlite.cc
 
 ${OBJECTDIR}/_ext/76882303/polymerrates.o: ../../src/libmd2qm/calculators/polymerrates.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/polymerrates.o ../../src/libmd2qm/calculators/polymerrates.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/polymerrates.o ../../src/libmd2qm/calculators/polymerrates.cc
 
 ${OBJECTDIR}/_ext/76882303/readxml.o: ../../src/libmd2qm/calculators/readxml.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/readxml.o ../../src/libmd2qm/calculators/readxml.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/readxml.o ../../src/libmd2qm/calculators/readxml.cc
 
 ${OBJECTDIR}/_ext/1716269789/qmpair.o: ../../src/libmd2qm/qmpair.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmpair.o ../../src/libmd2qm/qmpair.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmpair.o ../../src/libmd2qm/qmpair.cc
 
 ${OBJECTDIR}/_ext/1716269789/calculatorfactory.o: ../../src/libmd2qm/calculatorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/calculatorfactory.o ../../src/libmd2qm/calculatorfactory.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/calculatorfactory.o ../../src/libmd2qm/calculatorfactory.cc
 
 ${OBJECTDIR}/_ext/1716269789/version_nb.o: ../../src/libmd2qm/version_nb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/version_nb.o ../../src/libmd2qm/version_nb.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/version_nb.o ../../src/libmd2qm/version_nb.cc
 
 ${OBJECTDIR}/_ext/1716269789/qmnblist.o: ../../src/libmd2qm/qmnblist.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmnblist.o ../../src/libmd2qm/qmnblist.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmnblist.o ../../src/libmd2qm/qmnblist.cc
 
 ${OBJECTDIR}/_ext/1716269789/qmtopology.o: ../../src/libmd2qm/qmtopology.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmtopology.o ../../src/libmd2qm/qmtopology.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmtopology.o ../../src/libmd2qm/qmtopology.cc
 
 ${OBJECTDIR}/_ext/76882303/energycorr.o: ../../src/libmd2qm/calculators/energycorr.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/energycorr.o ../../src/libmd2qm/calculators/energycorr.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/energycorr.o ../../src/libmd2qm/calculators/energycorr.cc
 
 ${OBJECTDIR}/_ext/1716269789/qmapplication.o: ../../src/libmd2qm/qmapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmapplication.o ../../src/libmd2qm/qmapplication.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmapplication.o ../../src/libmd2qm/qmapplication.cc
 
 ${OBJECTDIR}/_ext/1716269789/statesaver.o: ../../src/libmd2qm/statesaver.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaver.o ../../src/libmd2qm/statesaver.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaver.o ../../src/libmd2qm/statesaver.cc
 
 # Subprojects
 .build-subprojects:

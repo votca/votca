@@ -50,15 +50,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=../libmd2qm/dist/Debug/GNU-Linux-x86/liblibmd2qm.a ../../../kmc/netbeans/libkmc/../../src/libkmc/libkmc.a ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lexpat -lhdf5_hl -lhdf5 -lsqlite3 -lboost_program_options -lpthread -lm
+LDLIBSOPTIONS=../libmd2qm/dist/Debug/GNU-Linux-x86/liblibmd2qm.a ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lexpat -lhdf5_hl -lhdf5 -lsqlite3 -lboost_program_options -lpthread -lm
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/ctp_run
 
 ../../src/tools/ctp_run: ../libmd2qm/dist/Debug/GNU-Linux-x86/liblibmd2qm.a
-
-../../src/tools/ctp_run: ../../../kmc/netbeans/libkmc/../../src/libkmc/libkmc.a
 
 ../../src/tools/ctp_run: ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a
 
@@ -73,12 +71,11 @@ LDLIBSOPTIONS=../libmd2qm/dist/Debug/GNU-Linux-x86/liblibmd2qm.a ../../../kmc/ne
 ${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
 
 # Subprojects
 .build-subprojects:
 	cd ../libmd2qm && ${MAKE}  -f Makefile CONF=Debug
-	cd ../../../kmc/netbeans/libkmc && ${MAKE}  -f Makefile_nb CONF=Debug
 	cd ../../../csg/netbeans/libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
 	cd ../../../moo/netbeans/libmoo && ${MAKE}  -f Makefile_nb CONF=Debug
 	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug
@@ -91,7 +88,6 @@ ${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc
 # Subprojects
 .clean-subprojects:
 	cd ../libmd2qm && ${MAKE}  -f Makefile CONF=Debug clean
-	cd ../../../kmc/netbeans/libkmc && ${MAKE}  -f Makefile_nb CONF=Debug clean
 	cd ../../../csg/netbeans/libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
 	cd ../../../moo/netbeans/libmoo && ${MAKE}  -f Makefile_nb CONF=Debug clean
 	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug clean

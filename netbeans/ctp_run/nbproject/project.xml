@@ -14,7 +14,6 @@
                 <make-dep-project>../../../moo/netbeans/libmoo</make-dep-project>
                 <make-dep-project>../libmd2qm</make-dep-project>
                 <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
-                <make-dep-project>../../../kmc/netbeans/libkmc</make-dep-project>
             </make-dep-projects>
             <sourceRootList>
                 <sourceRootElem>../../src/tools</sourceRootElem>

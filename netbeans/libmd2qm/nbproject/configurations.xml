@@ -7,6 +7,8 @@
       <itemPath>../../src/libmd2qm/calculators/contkmc.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/dump_atoms.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/dump_atoms.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/dump_trajectory.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/dump_trajectory.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/energycorr.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/energycorr.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/estatics.cc</itemPath>
@@ -87,7 +89,9 @@
         <ccTool>
           <incDir>
             <pElem>../../include</pElem>
-            <pElem>../../../include</pElem>
+            <pElem>../../../tools/include</pElem>
+            <pElem>../../../csg/include</pElem>
+            <pElem>../../../moo/include</pElem>
             <pElem>/usr/include/libxml2</pElem>
           </incDir>
         </ccTool>

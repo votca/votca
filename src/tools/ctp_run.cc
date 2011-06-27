@@ -24,11 +24,23 @@ public:
     void Initialize() {
         QMApplication::Initialize();
         AddProgramOptions("calculator execution")
-            ("exec", boost::program_options::value<string>(), "list of calculators separated by commas or spaces");
+            ("exec", boost::program_options::value<string>(), "list of calculators separated by commas or spaces")
+            ("list", "show available calculators");
     }
 
     //TODO: Support for XML-File based options
     bool EvaluateOptions() {
+        if(OptionsMap().count("list")) {
+            cout << "Available calculators:\n\n";
+            for(CalculatorFactory::assoc_map::const_iterator iter=Calculators().getObjects().begin();
+                    iter != Calculators().getObjects().end(); ++iter) {
+                cout << iter->first << endl;
+            }
+            cout << "\n";
+            StopExecution();
+            return true;
+        }
+
         QMApplication::EvaluateOptions();
         CheckRequired("exec", "no calculator is given");
         
