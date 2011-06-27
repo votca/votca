@@ -39,14 +39,9 @@ find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 find_package(VOTCA_CSG REQUIRED)
 include_directories(${VOTCA_CSG_INCLUDE_DIRS})
-find_package(VOTCA_KMCOLD REQUIRED)
-include_directories(${VOTCA_KMCOLD_INCLUDE_DIRS})
 find_package(VOTCA_MOO REQUIRED)
 include_directories(${VOTCA_MOO_INCLUDE_DIRS})
-# find_package(HDF5 REQUIRED)
-# include_directories(${HDF5_INCLUDE_DIRS})
-find_package(SQLITE3 REQUIRED)
-include_directories(${SQLITE3_INCLUDE_DIRS})
+
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

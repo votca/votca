@@ -1,5 +1,4 @@
-/* Used gromacs version */
-#cmakedefine GMX @GMX@
+#cmakedefine WITH_VOTCA_KMCOLD 
 
 /* Version number of package */
 #define VERSION "@PROJECT_VERSION@"

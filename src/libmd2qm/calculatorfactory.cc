@@ -1,10 +1,10 @@
 #include "calculatorfactory.h"
 
+#include "votca_config.h"
 #include "calculators/integrals.h"
 #include "calculators/marcusrates.h"
 #include "calculators/readxml.h"
 #include "calculators/writexml.h"
-#include "calculators/contkmc.h"
 #include "calculators/estatics.h"
 #include "calculators/histintegrals.h"
 #include "calculators/histenergeticdisorder.h"
@@ -24,12 +24,15 @@
 #include "calculators/dump_atoms.h"
 #include "calculators/dump_trajectory.h"
 
+#ifdef WITH_VOTCA_KMCOLD        
+    #include "calculators/contkmc.h"
+#endif
+
 void CalculatorFactory::RegisterAll(void)
 {
-        Calculators().Register<CalcIntegrals>("integrals");
+Calculators().Register<CalcIntegrals>("integrals");
         Calculators().Register<WriteXML>("writexml");
         Calculators().Register<ReadXML>("readxml");
-        Calculators().Register<ContKmc>("kmc");
         Calculators().Register<CalcEstatics>("estat");
         Calculators().Register<CalcLambdaOut>("lambdaout");
         Calculators().Register<MarcusRates>("marcusrates");
@@ -49,4 +52,8 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<AvgVelocity>("avgvelocity");
         Calculators().Register<DumpAtoms>("dumpatoms");
         Calculators().Register<DumpTrajectory>("dumptraj");
+#ifdef WITH_VOTCA_KMCOLD        
+        Calculators().Register<ContKmc>("kmc");
+#endif
+
 }
