@@ -84,6 +84,7 @@ public:
         return _this;
     }
 
+    const assoc_map &getObjects() { return _objects; }
 private:
     assoc_map _objects;
 };
