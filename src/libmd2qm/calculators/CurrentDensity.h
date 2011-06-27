@@ -17,6 +17,8 @@ public:
     CurrentDensity() {};
     ~CurrentDensity() {};
 
+    const char *Description() { return "TODO"; }
+
     void EvaluatePair(QMTopology *top, QMPair *pair);
     void Initialize(QMTopology *top, Property *options);
     void EndEvaluate(QMTopology *top);

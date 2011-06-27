@@ -20,6 +20,8 @@ public:
     DumpTrajectory() {};
     ~DumpTrajectory() {};
 
+    const char *Description() { return "Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
     void EndEvaluate(QMTopology *top);

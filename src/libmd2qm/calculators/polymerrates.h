@@ -16,6 +16,8 @@ public:
     PolymerRates() {};
     ~PolymerRates() {};
 
+    const char *Description() { return "TODO: No clue what this is doing"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
 //    void EndEvaluate(QMTopology *top);

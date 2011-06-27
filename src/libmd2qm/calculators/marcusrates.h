@@ -22,6 +22,8 @@ public:
     MarcusRates() {};
     ~MarcusRates() {};
 
+    const char *Description() { return "Calculates hopping rates using Marcus theroy"; }
+
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
 

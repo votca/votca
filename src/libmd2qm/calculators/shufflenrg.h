@@ -17,6 +17,7 @@ public:
     ShuffleNrg() {};
     ~ShuffleNrg() {};
 
+    const char *Description() { return "Shuffle site energies to get rid of spatial correlations, while preserving the distribution width"; }
 
     bool EvaluateFrame(QMTopology *top);
 

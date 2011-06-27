@@ -17,7 +17,7 @@ public:
     QMCalculator() {};
     virtual ~QMCalculator() {};
 
-    virtual const char *Description() { return "IMPLEMENT Description FOR THIS CALCULATOR! THIS WILL BE ENFORCED SOON"; }
+    virtual const char *Description() = 0;
 
     virtual void Initialize(QMTopology *top, Property *options) {}
     virtual bool EvaluateFrame(QMTopology *top) { return true; }

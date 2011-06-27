@@ -16,6 +16,8 @@ public:
     CalcHistEnergeticDisorder() {};
     ~CalcHistEnergeticDisorder() {};
 
+    const char *Description() { return "Compute a histogram of site energy differences from the neighborlist"; }
+
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
     void EndEvaluate(QMTopology *top);

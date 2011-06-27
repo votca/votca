@@ -29,6 +29,8 @@ public:
     ReadXML() {};
     ~ReadXML() {};
 
+    const char *Description() { return "Reads in data in xml format, TODO: remove this calculator once sqlite is running"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
     void EndEvaluate(QMTopology *top);

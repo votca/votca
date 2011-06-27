@@ -16,6 +16,8 @@ public:
     CalcHistIntegrals() {};
     ~CalcHistIntegrals() {};
 
+    const char *Description() { return "Compute a histogram of transfer integrals from the neighborlist"; }
+
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
     void EndEvaluate(QMTopology *top);

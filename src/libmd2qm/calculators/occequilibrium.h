@@ -9,6 +9,8 @@ public:
     OccEquilibrium() {}
     ~OccEquilibrium() {}
 
+    const char *Description() { return "TODO"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
 private:

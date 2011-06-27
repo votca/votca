@@ -18,6 +18,8 @@ public:
     GenerateNrgs() {};
     ~GenerateNrgs() {};
 
+    const char *Description() { return "Generate Gaussian-distributed site energies with or without spatial correlations"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
 

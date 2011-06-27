@@ -20,6 +20,8 @@ public:
     CalcIntegrals() {};
     ~CalcIntegrals() {};
 
+    const char *Description() { return "Compute all transfer integrals from the neighborlist"; }
+
     void EvaluatePair(QMTopology *top, QMPair *pair);
 };
 

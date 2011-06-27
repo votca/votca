@@ -22,6 +22,8 @@ public:
     CalcEstatics() {};
     ~CalcEstatics() {};
 
+    const char *Description() { return "Calculates electrostatic contribution to site-energies"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
 

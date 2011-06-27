@@ -24,6 +24,8 @@ public:
     EnergyCorr() {};
     ~EnergyCorr() {};
 
+    const char *Description() { return "Calculates reduced site energy correlation function"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
     void EndEvaluate(QMTopology *top);

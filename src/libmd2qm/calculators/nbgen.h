@@ -9,6 +9,8 @@ public:
     NBGen() {}
     ~NBGen() {}
 
+    const char *Description() { return "Regenerate the neigbour list with a new cutoff"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
     

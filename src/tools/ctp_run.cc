@@ -35,7 +35,7 @@ public:
             for(CalculatorFactory::assoc_map::const_iterator iter=Calculators().getObjects().begin();
                     iter != Calculators().getObjects().end(); ++iter) {
                 QMCalculator *tmp = iter->second();                
-                cout << " * " << iter->first << "\n   " << tmp->Description() << endl;
+                cout << " * " << iter->first << ", " << tmp->Description() << endl;
                 delete tmp;
             }
             cout << "\n";

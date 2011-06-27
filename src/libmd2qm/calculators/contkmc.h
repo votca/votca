@@ -20,6 +20,8 @@ public:
     ContKmc() {};
     ~ContKmc() {};
 
+    const char *Description() { return "Run the old Kinetic Monte Carlo code"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
 
