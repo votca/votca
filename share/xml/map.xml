@@ -1,0 +1,93 @@
+<tags>
+  
+ <item>
+<name>cg_molecule</name>
+<desc>Head option. Contains all mapping options.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.name</name>
+<desc>Name of the molecule in the coarse-grained model. Useful for multicomponent systems.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.ident</name>
+<desc>Name (identification) of the molecule in the all-atom representation. This must match the molecule name in the atomistic representation.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology</name>
+<desc>Section describing the partitioning of the molecule on rigid fragments. Atom and residue names/types must correspond to those used in the atomistic representation.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads</name>
+<desc>Section describing all rigid fragments of a molecule.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead</name>
+<desc>Section defining one particular rigid fragment.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.name</name>
+<desc>The name of the bead. This must be unique for each rigid fragment in a molecule, for example a polymer made of ten repeat units needs ten different name identifiers if each repeat unit is a rigid fragment. </desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.type</name>
+<desc>The type of the rigid fragment. This may be the same for beads which only differ by a hydrogen atom or two to simplify the calculations, while the mapping must take these differences into account.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.mapping</name>
+<desc>The type of the mapping. Different beads may have the same mapping, since a molecule may contain multiple beads of the same type, but in the bead definition each must correspond to different atoms.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.beads</name>
+<desc>List of all atoms belonging to the rigid fragment in the format residue number:residue name:atom name. Depending on the options, the first three atoms might be used to calculate vectors defining the orientation of the rigid fragment. In this case they must not lie on the same axis. Even though the first three atoms in the mapping need not correspond to the first three atoms in the *.rtp or *.gro files, the order must be consistent with the definitions of conjugated segments.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.symmetry</name>
+<desc>The symmetry of the molecule. symmetry = 3 corresponds to a fragment with three different moments of inertia of the mass tensor. Used to automatically determine fragment orientation.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.qm</name>
+<desc>This section associates rigid fragments (beads) with a particular type of a conjugated segment. </desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.qm.crgunitname</name>
+<desc>The name of the conjugated segment the fragment is associated with.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.qm.position</name>
+<desc>The position of the rigid fragment in the conjugated segment.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.maps</name>
+<desc>Section describing maps for all types of rigid fragments. Maps are used to determine the position of a rigid fragment.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.maps.map</name>
+<desc>Section defining one particular map.</desc>
+</item>  
+
+<item>
+<name>cg_molecule.maps.map.name</name>
+<desc>The map name must correspond to the name used to define the fragments (cg_beads.mapping tag) .</desc>
+</item>  
+
+<item>
+<name>cg_molecule.maps.map.weights</name>
+<desc>The weighting of the atoms in the rigid fragment. If the mass of the nucleus in atomic mass units is used, the center of the rigid fragment will be its center of mass. The weights must be in the same order as in the corresponding rigid fragment definition (cg_beads.bead tag)</desc>
+</item>  
+
+</tags>

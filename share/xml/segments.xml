@@ -1,0 +1,58 @@
+<tags>
+  
+ <item>
+<name>crgunit_type</name>
+<desc>Container for all types of conjugated segments</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType</name>
+<desc>Container for a specific type of a conjugated segment</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType.posname</name>
+<desc>File containing atom positions in the $xyz$ format</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType.orbname</name>
+<desc>File containing molecular orbitals (semi-empirical)</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType.basisset</name>
+<desc>This should be set to INDO, unless the fort.7 has been created using another basis set. In that case it must be set to an \xml file setting the characteristics of the basis set.</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType.transorb</name>
+<desc>Number of HOMO (LUMO) orbital. Corresponds to the number of $\alpha$ electrons in the \gaussian log-file {get\_orbitals.log} minus one (since counting in C++ starts at zero) for the HOMO and the number of $\alpha$ electrons for the LUMO.</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType.reorg</name>
+<desc>Reorganization energy of the cation or anion in eV.</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType.name</name>
+<desc>Name of the mapping of the molecule. Must correspond to CG mapping.</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType.energy</name>
+<desc>Site energy of the conjugated segment.</desc>
+</item>  
+
+<item>
+<name>crgunit_type.ChargeUnitType.monomer_atom_map</name>
+<desc>List of atom indices as they were specified in the gaussian input used to create the orb file. The first three values are important, since they must correspond to the first three atoms defined in the coarse-grained mapping, which are used to calculate two vectors indicating the orientation of the molecule. The third required vector is the eigenvector of the smallest eigenvalue of the gyration tensor, i.e. perpendicular to the planar core.  The number of molecules here may differ from that in the coarse-grained mapping, since for example only the core is important for transport and not the side chains, but it has to be the same number of atoms as in the \gaussian input file otherwise overlap integral values will be terribly wrong.</desc>
+ </item>  
+
+<item>
+  <name>crgunit_type.ChargeUnitType.monomer_atom_weights</name>
+  <desc>Atomic weights for each monomer.</desc>
+</item>  
+
+</tags>
