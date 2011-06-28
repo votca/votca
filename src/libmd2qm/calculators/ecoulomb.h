@@ -5,9 +5,9 @@
 #include "qmcalculator.h"
 
 /**
-    \brief Calculates electrostatic contribution to site-energies
+    \brief Coulomb contribution to site energies
 
-Callname: estat
+Callname: ecoulomb
 
 Electrostatic contributions to site-energies of \f$E_i\f$ are computed from Coulomb's law for all sites \f$i\f$
     \f[E_{i}  = \frac{1}{4 \pi \epsilon_0} \sum_{a_i} \sum_{b_k, k\neq i }
