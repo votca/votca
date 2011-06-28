@@ -18,6 +18,8 @@ public:
     DumpAtoms() {};
     ~DumpAtoms() {};
 
+    const char *Description() { return "TODO"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
     void WriteAtoms(Topology *atop, Molecule *mol);

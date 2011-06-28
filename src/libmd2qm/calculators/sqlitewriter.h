@@ -27,6 +27,8 @@ public:
     SQLiteWriter() {};
     virtual ~SQLiteWriter() {};
 
+    const char *Description() { return "Writes out data to sqlite3 format"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
     void EndEvaluate(QMTopology *top);

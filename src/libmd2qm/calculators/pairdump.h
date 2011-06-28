@@ -19,6 +19,8 @@ public:
     PairDump() {};
     ~PairDump() {};
 
+    const char *Description() { return "Write pairs for DFT integral input"; }
+
     void EvaluateSite(QMTopology *top, QMCrgUnit *crg);
     void EvaluatePair(QMTopology *top, QMPair *pair);
     bool EvaluateFrame(QMTopology *top);

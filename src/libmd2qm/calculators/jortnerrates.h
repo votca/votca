@@ -25,6 +25,8 @@ public:
     JortnerRates() {};
     ~JortnerRates() {};
 
+    const char *Description() { return "Calculates hopping rates using Jortner's derivation"; }
+
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
 

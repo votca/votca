@@ -21,6 +21,8 @@ public:
     CalcLambdaOut() {};
     ~CalcLambdaOut() {};
 
+    const char *Description() { return "TODO: give description"; }
+
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
 

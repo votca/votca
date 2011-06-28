@@ -23,6 +23,8 @@ public:
     MarcusRatesLambdaOuter() {};
     ~MarcusRatesLambdaOuter() {};
 
+    const char *Description() { return "TODO: give description"; }
+
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
 

@@ -8,6 +8,8 @@ public:
     AvgVelocity() {}
     ~AvgVelocity() {}
 
+    const char *Description() { return "TODO"; }
+
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
     void EndEvaluate(QMTopology *top);

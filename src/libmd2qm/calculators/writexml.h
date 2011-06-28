@@ -25,6 +25,8 @@ public:
     WriteXML() {};
     ~WriteXML() {};
 
+    const char *Description() { return "Writes out data to xml format, TODO: remove this calculator once sqlite is running"; }
+
     void Initialize(QMTopology *top, Property *options);
 
     bool EvaluateFrame(QMTopology *top);
