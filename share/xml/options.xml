@@ -1,17 +1,22 @@
 <tags>
-  <!-- estat calculator -->
+  <!-- ecoulomb calculator -->
 <item>
-<name>estat</name>
+<name>ecoulomb</name>
 <desc>Electrostatic contribution to site energies.</desc>
 </item>
 
 <item>
-<name>estat.method</name>
+<name>ecoulomb.method</name>
 <desc>Type of screening used. **simple** for a constant dielectric constant, **distdep** for a distance-dependent screening. In the latter case screening length must be specified.</desc>
 </item>
 
 <item>
-<name>estat.epsilon</name>
+<name>ecoulomb.epsilon</name>
+<desc>Screening length used in distance-dependent screening.</desc>
+</item>
+
+<item>
+<name>ecoulomb.screening</name>
 <desc>Screening length used in distance-dependent screening.</desc>
 </item>
 

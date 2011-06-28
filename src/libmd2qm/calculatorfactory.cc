@@ -5,7 +5,7 @@
 #include "calculators/marcusrates.h"
 #include "calculators/readxml.h"
 #include "calculators/writexml.h"
-#include "calculators/estatics.h"
+#include "calculators/ecoulomb.h"
 #include "calculators/histintegrals.h"
 #include "calculators/histenergeticdisorder.h"
 #include "calculators/shufflenrg.h"
@@ -34,7 +34,7 @@ void CalculatorFactory::RegisterAll(void)
 Calculators().Register<CalcIntegrals>("integrals");
         Calculators().Register<WriteXML>("writexml");
         Calculators().Register<ReadXML>("readxml");
-        Calculators().Register<CalcEstatics>("estat");
+        Calculators().Register<CalcEstatics>("ecoulomb");
         Calculators().Register<CalcLambdaOut>("lambdaout");
         Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<CalcHistIntegrals>("histintegrals");

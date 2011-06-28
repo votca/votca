@@ -1,41 +1,33 @@
-/*
- * File:   calc_estatics.cpp
- * Author: mayfalk
- *
- * Created on May 21, 2010, 11:21 PM
- */
-
-
 #include <stdlib.h>
-#include "estatics.h"
 #include <math.h>
 #include <list>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <fstream>
+#include "ecoulomb.h"
 
 void CalcEstatics::Initialize(QMTopology *top, Property *options) {
     _options = options;
-    if (options->exists("options.estatic_params.epsilon_dielectric")) {
-        _epsilon_dielectric = options->get("options.estatic_params.epsilon_dielectric").as<double>();
+    if (options->exists("options.ecoulomb.epsilon")) {
+        _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
     } else {
         _epsilon_dielectric = 3.0;
         cout << "Warning: dielectric constant in not provided, using default" << endl;
     }
 
-    if (options->exists("options.estatic_params.s_eps")) {
-        _s_eps = options->get("options.estatic_params.s_eps").as<double>();
+    if (options->exists("options.ecoulomb.screening")) {
+        _s_eps = options->get("options.ecoulomb.screening").as<double>();
     } else {
         _s_eps = 3.0;
         cout << "Warning: s_eps is not provided, using default" << endl;
     }
 
-    if (options->exists("options.estatic_params.estatic_method")) {
-        if (options->get("options.estatic_params.estatic_method").as<string > () == "distdep") {
+    if (options->exists("options.ecoulomb.method")) {
+        if (options->get("options.ecoulomb.method").as<string > () == "distdep") {
             _estatic_method = &CalcEstatics::dist_dep_eps;
             cout << "Doing distance-dependent-eps estatic with eps " << _epsilon_dielectric << " and s_eps " << _s_eps << endl;
         }
-        else if (options->get("options.estatic_params.estatic_method").as<string > () == "simple") {
+        else if (options->get("options.ecoulomb.method").as<string > () == "simple") {
             _estatic_method = &CalcEstatics::constant_epsilon;
             cout << "Doing simple estatic with constant eps " << _epsilon_dielectric << endl;
         } else throw std::runtime_error("Error in CalcEstatics::Initialize : no such estatic method, should be simple or distdep");
