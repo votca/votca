@@ -57,6 +57,7 @@ CSGSHARE="../../../md2qm/share" # "$(csg_call --show-share)"
 [ -f "${CSGSHARE}/xml/$xmlfile" ] || die "${0##*/}: Error, did not find ${CSGSHARE}/xml/$xmlfile"
 
 trunc=""
+[ "$xmlfile" = "segments.xml" ] && trunc="segments."
 [ "$xmlfile" = "mapping.xml" ] && trunc="mapping."
 [ "$xmlfile" = "cginteraction.xml" ] && trunc="cg.non-bonded."
 

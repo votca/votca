@@ -30,3 +30,6 @@
 
 \newcommand{\suggestion}[1]{{\color{red}SUGGESTION: #1}}
 
+\newcommand{\segmentref}[1]{segments.#1}
+\newcommand{\segmentopt}[1]{\hyperlink{\segmentref{#1}}{\StrSubstitute{#1}{_}{\_}}\xspace}
+

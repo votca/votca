@@ -9,7 +9,7 @@
 \usepackage{wrapfig}
 \usepackage[numbers,comma,sort&compress]{natbib}
 \usepackage{graphicx}
-%\usepackage{xstring}
+\usepackage{xstring}
 \usepackage{listings,courier}
 %\usepackage{draftcopy}
 \usepackage{longtable}
@@ -24,7 +24,7 @@
 \definecolor{invisiblegray}{rgb}{.97,0.97,0.97}
 
 \usepackage
-[dvipdf, %or dvips or pdftex 
+[dvips, %dvipdf, %or dvips or pdftex 
 pagebackref, %or backref
 colorlinks=true,
 linkcolor=webgreen, %defined below
@@ -73,6 +73,7 @@ pdfpagemode=UseNone]{hyperref}
 \tableofcontents
 %\cleardoublepage
 \mainmatter
+\segmentopt{crgunit_type.ChargeUnitType.posname}
 \include{theory/introduction}
 \include{theory/theory}
 \include{input/input}
