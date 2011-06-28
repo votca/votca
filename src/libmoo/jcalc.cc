@@ -14,7 +14,7 @@ JCalc::~JCalc()
 void JCalc::Initialize(const string& filename){
     load_property_from_xml(_options, filename.c_str());
 
-    ParseCrgUnitTypes(_options.get("crgunit_type"));
+    ParseCrgUnitTypes(_options.get("segments"));
 }
 
 void JCalc::ParseCrgUnitTypes(Property &options){
@@ -32,27 +32,27 @@ void JCalc::ParseCrgUnitTypes(Property &options){
     vector < vector <int> > list_atoms_monomer;
     vector < vector <double> > list_weights_monomer;
 
-    list<Property *> types = options.Select("ChargeUnitType");
+    list<Property *> types = options.Select("segment");
     list<Property *>::iterator iter;
 
     for (iter = types.begin();iter != types.end(); ++iter){
-        namecoord = (*iter)->get("posname").as<string>();
-        bool estatics = (*iter)->exists("nameneutr");
+        namecoord = (*iter)->get("coordinates").as<string>();
+        bool estatics = (*iter)->exists("qneutral");
         if(estatics==true){
-            nameneutr = (*iter)->get("nameneutr").as<string>();
-            namecrg = (*iter)->get("namecrg").as<string>();
+            nameneutr = (*iter)->get("qneutral").as<string>();
+            namecrg = (*iter)->get("qcharged").as<string>();
         }
-        reorg = (*iter)->get("reorg").as<double>();
+        reorg = (*iter)->get("reorganization").as<double>();
         energy = (*iter)->get("energy").as<double>();
-        transorbs = (*iter)->get("transorb").as<vector <int> >();
+        transorbs = (*iter)->get("torbital").as<vector <int> >();
 
         if(transorbs.size() > 0)
-            nameorb = (*iter)->get("orbname").as<string>();
+            nameorb = (*iter)->get("orbitals").as<string>();
 
         name = (*iter)->get("name").as<string>();
         namebasis = (*iter)->get("basisset").as<string>();
 
-        string all_monomer = (*iter)->get("monomer_atom_map").as<string>();
+        string all_monomer = (*iter)->get("map").as<string>();
         for (string::iterator c = all_monomer.begin(); c != all_monomer.end(); ++c) {
             if (*c == '\n') *c = ' ';
             if (*c == '\t') *c = ' ';
@@ -66,7 +66,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
             list_atoms_monomer.push_back(list_atoms);
         }
 
-        string all_weights = (*iter)->get("monomer_atom_weights").as<string>();
+        string all_weights = (*iter)->get("weights").as<string>();
         for (string::iterator c = all_weights.begin(); c != all_weights.end(); ++c) {
             if (*c == '\n') *c = ' ';
             if (*c == '\t') *c = ' ';
@@ -90,139 +90,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         clearListList(list_atoms_monomer);
         clearListList(list_weights_monomer);
     }
-
 }
-
-/// TODO: rewrite this using Property class
-
-/*void JCalc::ParseCrgUnitType(xmlDocPtr doc, xmlNodePtr cur)
-{
-    xmlChar *key;
-
-    string namecoord;
-    string nameorb;
-    string namecrg;
-    string nameneutr;
-    double reorg;
-    double energy;
-    // int transorb;
-    vector < int> transorbs;
-    string name;
-    string beadconj;
-    string molname;
-    string basisset= string("INDO");
-
-    vector < vector <int> > list_atoms_monomer;
-    vector < vector <double> > list_weights_monomer;
-
-    for (; cur != NULL; cur = cur->next) {
-        if (!xmlStrcmp(cur->name, (const xmlChar *) "posname")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            namecoord = reinterpret_cast<char *> (key);
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "orbname")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            nameorb = reinterpret_cast<char *> (key);
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "nameneutr")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            nameneutr = reinterpret_cast<char *> (key);
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "namecrg")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            namecrg = reinterpret_cast<char *> (key);
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "transorb")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            string s(reinterpret_cast<char *> (key));
-            Tokenizer tok(s, " \n\t");
-            Tokenizer::iterator beg = tok.begin();
-            int value;
-            while (beg != tok.end()) {
-                value = atoi((*beg).c_str());
-                transorbs.push_back(value);
-                ++beg;
-            }
-            clog << "Orbitals relevant for charge transport: ";
-            for (int i = 0; i < transorbs.size(); i++) {
-                clog << transorbs[i] << " ";
-            }
-            clog << endl;
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "reorg")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            reorg = atof(reinterpret_cast<char *> (key));
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "beadconj")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            beadconj = reinterpret_cast<char *> (key);
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "name")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            name = reinterpret_cast<char *> (key);
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "molname")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            molname = reinterpret_cast<char *> (key);
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "energy")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            energy = atof(reinterpret_cast<char *> (key)) *27.21;
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "basisset")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            basisset =string (reinterpret_cast<char *> (key)) ;
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "monomer_atom_map")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            string all_monomer(reinterpret_cast<char *> (key));
-
-            for (string::iterator c = all_monomer.begin(); c != all_monomer.end(); ++c) {
-                if (*c == '\n') *c = ' ';
-                if (*c == '\t') *c = ' ';
-            }
-
-            Tokenizer tok1(all_monomer, ":");
-            Tokenizer::iterator it_mon;
-            for (it_mon = tok1.begin(); it_mon != tok1.end(); ++it_mon) {
-                Tokenizer tok2(*it_mon, " ");
-                Tokenizer::iterator it_at;
-                vector <int> list_atoms;
-                for (it_at = tok2.begin(); it_at != tok2.end(); ++it_at) {
-                    list_atoms.push_back(lexical_cast<int> (*it_at));
-                }
-                list_atoms_monomer.push_back(list_atoms);
-            }
-        }
-        else if (!xmlStrcmp(cur->name, (const xmlChar *) "monomer_atom_weights")) {
-            key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            string all_monomer(reinterpret_cast<char *> (key));
-            for (string::iterator c = all_monomer.begin(); c != all_monomer.end(); ++c) {
-                if (*c == '\n') *c = ' ';
-                if (*c == '\t') *c = ' ';
-            }
-            Tokenizer tok1(all_monomer, ":");
-            Tokenizer::iterator it_mon;
-            for (it_mon = tok1.begin(); it_mon != tok1.end(); ++it_mon) {
-                Tokenizer tok2(*it_mon, " ");
-                Tokenizer::iterator it_at;
-                vector <double> list_weights;
-                for (it_at = tok2.begin(); it_at != tok2.end(); ++it_at) {
-                    list_weights.push_back(lexical_cast<double> (*it_at));
-                }
-                list_weights_monomer.push_back(list_weights);
-            }
-        }
-    }
-    CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(), 
-            nameneutr.c_str(), namecrg.c_str(), basisset,
-            reorg, energy, transorbs, _listCrgUnitType.size(),
-            molname, name, list_atoms_monomer, list_weights_monomer);
-    _mapCrgUnitByName.insert(make_pair(name, crgunittype));
-
-    clearListList(list_atoms_monomer);
-    _listCrgUnitType.push_back(crgunittype);
-}*/
 
 JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2)
 {
