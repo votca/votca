@@ -30,7 +30,7 @@ for file in latex/*.tex; do
       -e '/Callname/d' \
       -e 's/DoxyItemize/itemize/' >> $OUT
     echo "" >> $OUT
-    echo "Required options: \calcopt{$name}." >> $OUT
+    echo "Required options: see \calcopt{$name}." >> $OUT
 
   fi
 done
