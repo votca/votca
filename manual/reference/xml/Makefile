@@ -6,7 +6,7 @@ TXT2TAGS=$(TRUNC)/scripts/txt2tags
 HAKE:= $(shell $(MAKE) -f Makefile.XMLS Makefile.incl)
 include Makefile.incl
 
-all: $(XMLSTEX) 
+all: clean $(XMLSTEX) 
 html: $(XMLSHTML)
 
 .PHONY: clean upload

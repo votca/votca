@@ -2,6 +2,7 @@
 
 
 %!encoding: iso-8859-1
+%!options: --toc-level 5
 
 %Anchor stuff
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -10,7 +11,8 @@
 
 %allow labels
 %!postproc(tex): 'label\((.*?)\)' '\label{\1}'
-%ref,tagrget,link to hyperXXX
+%ref,target,link to hyperXXX
+%!postproc(tex): 'hspace\((.*?)\)'  \\hspace{\1pt}
 %!postproc(tex): '(ref|target|link)\((.*?)\)\((.*?)\)' '\hyper\1{\2}{\3}'
 
 %latex is picky about $ and \_ in name of the label (1st bracket)
@@ -30,6 +32,7 @@
 
 % nicer --
 %!postproc(tex): '--' '{-}{-}'
+%!postproc(tex): '{ll}' '{m{4cm}|m{9cm}}'
 
 %For other target is replaced by nothing.
 %!postproc: '(target|link|ref)\(.*?\)\((.*?)\)' '\2'
@@ -46,3 +49,5 @@
 %replace itemize by compactitem which looks nicer
 %!postproc(tex): '(\\begin|\\end)\{itemize\}' '\1{compactitem}'
 
+%!postproc(tex): \\begin{center} ''
+%!postproc(tex): \\end{center} ''

@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-XMLS:= ctp_listcharges.xml # $(shell ls `csg_call --show-share`/xml/*.xml | xargs -n1 basename )
+XMLS:= segments.xml map.xml options.xml # $(shell ls `csg_call --show-share`/xml/*.xml | xargs -n1 basename )
 
 all: Makefile.incl
 

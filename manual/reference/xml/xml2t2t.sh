@@ -29,12 +29,14 @@ cut_heads() {
   local i new 
   [ -z "$1" ] && die "cut_heads: Missing argument"
   item="$1"
+  hspace=0
   spaces=""
-  for ((i=0;i<3;i++)); do
+  for ((i=0;i<5;i++)); do
     new="${item#*.}"
     [ "$new" = "$item" ] && break
     item="$new"
     spaces+="  "
+    let "hspace+=10"
   done
 }
 
@@ -70,14 +72,15 @@ items="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --print n
 #check if a head node is missing
 add_heads
 #sort them
-items="$(echo -e "$items" | sort -u)"
+#items="$(echo -e "$items" | sort -u)"
 #echo "$items"
 for name in ${items}; do
   #cut the first 3 heads of the item
   cut_heads "$name"
-  echo -n "${spaces}- target(${trunc}${name})(**${item}**) "
+  head="$(echo $name | sed -e 's/'${item}'//' )"
+  #echo $head $name $item
   desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
-  echo ${desc}
+  echo " | hspace($hspace) target(${trunc}${name})(**${item}**)  | ${desc}"
 done
 
 
