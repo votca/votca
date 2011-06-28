@@ -34,7 +34,6 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/715944016/md2qm_observer.o \
-	${OBJECTDIR}/_ext/2116220268/persistence_length.o \
 	${OBJECTDIR}/_ext/715944016/ctp_map.o
 
 
@@ -66,11 +65,6 @@ ${OBJECTDIR}/_ext/715944016/md2qm_observer.o: ../../src/tools/md2qm_observer.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/md2qm_observer.o ../../src/tools/md2qm_observer.cc
-
-${OBJECTDIR}/_ext/2116220268/persistence_length.o: ../../../../data102/projects/polythiophene/kostas/analysis/persistence_length.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/2116220268
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/2116220268/persistence_length.o ../../../../data102/projects/polythiophene/kostas/analysis/persistence_length.cc
 
 ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016

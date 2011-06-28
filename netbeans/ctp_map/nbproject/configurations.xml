@@ -21,7 +21,6 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
-    <itemPath>../../../../data102/projects/polythiophene/kostas/analysis/persistence_length.cc</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../src/tools</Elem>
@@ -37,8 +36,10 @@
       <compileType>
         <ccTool>
           <incDir>
-            <pElem>../../../include</pElem>
+            <pElem>../../../csg/include</pElem>
             <pElem>../../include</pElem>
+            <pElem>../../../tools/include</pElem>
+            <pElem>../../../moo/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>

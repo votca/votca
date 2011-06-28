@@ -34,7 +34,6 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/715944016/md2qm_observer.o \
-	${OBJECTDIR}/_ext/2116220268/persistence_length.o \
 	${OBJECTDIR}/_ext/715944016/ctp_map.o
 
 
@@ -73,17 +72,12 @@ LDLIBSOPTIONS=../libmd2qm/dist/Debug/GNU-Linux-x86/liblibmd2qm.a ../../../csg/ne
 ${OBJECTDIR}/_ext/715944016/md2qm_observer.o: ../../src/tools/md2qm_observer.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/md2qm_observer.o ../../src/tools/md2qm_observer.cc
-
-${OBJECTDIR}/_ext/2116220268/persistence_length.o: ../../../../data102/projects/polythiophene/kostas/analysis/persistence_length.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/2116220268
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/2116220268/persistence_length.o ../../../../data102/projects/polythiophene/kostas/analysis/persistence_length.cc
+	$(COMPILE.cc) -g -I../../../csg/include -I../../include -I../../../tools/include -I../../../moo/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/md2qm_observer.o ../../src/tools/md2qm_observer.cc
 
 ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_map.o ../../src/tools/ctp_map.cc
+	$(COMPILE.cc) -g -I../../../csg/include -I../../include -I../../../tools/include -I../../../moo/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_map.o ../../src/tools/ctp_map.cc
 
 # Subprojects
 .build-subprojects:
