@@ -1,9 +1,45 @@
 <tags>
-
+  <!-- estat calculator -->
 <item>
 <name>estat</name>
-<desc>File containing atom positions in the xyz format</desc>
+<desc>Electrostatic contribution to site energies.</desc>
+</item>
+
+<item>
+<name>estat.method</name>
+<desc>Type of screening used. **simple** for a constant dielectric constant, **distdep** for a distance-dependent screening. In the latter case screening length must be specified.</desc>
+</item>
+
+<item>
+<name>estat.epsilon</name>
+<desc>Screening length used in distance-dependent screening.</desc>
+</item>
+
+
+  <!-- ehist calculator -->
+<item>
+<name>ehist</name>
+<desc>Histogram of site energy differences of neighbor list pairs.</desc>
+</item>
+
+<item>
+<name>ehist.min</name>
+<desc>Minimum of the energy interval, eV.</desc>
+</item>
+
+<item>
+<name>ehist.max</name>
+<desc>Maximum of the energy interval, eV.</desc>
+</item>
+
+<item>
+<name>ehist.nbins</name>
+<desc>Number of bins.</desc>
+</item>
+
+<item>
+<name>ehist.file</name>
+<desc>Output file.</desc>
 </item>
 
 </tags>
-
