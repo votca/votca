@@ -44,13 +44,18 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         }
         reorg = (*iter)->get("reorg").as<double>();
         energy = (*iter)->get("energy").as<double>();
-        transorbs = (*iter)->get("transorb").as<vector <int> >();
+        
+        if((*iter)->exists("transorb"))
+            transorbs = (*iter)->get("transorb").as<vector <int> >();
 
         if(transorbs.size() > 0)
             nameorb = (*iter)->get("orbname").as<string>();
 
         name = (*iter)->get("name").as<string>();
-        namebasis = (*iter)->get("basisset").as<string>();
+        
+        namebasis = "INDO";
+        if((*iter)->exists("basisset") > 0)
+            namebasis = (*iter)->get("basisset").as<string>();
 
         string all_monomer = (*iter)->get("monomer_atom_map").as<string>();
         for (string::iterator c = all_monomer.begin(); c != all_monomer.end(); ++c) {
@@ -291,6 +296,11 @@ JCalc::JCalcData * JCalc::getJCalcData(CrgUnit & one, CrgUnit & two)
 
 vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
 {
+    if(one.getType()->_transorbs.size() == 0)
+        throw std::runtime_error("no orbital information founr for conjugated segment " + one.getName());
+    if(two.getType()->_transorbs.size() == 0)
+        throw std::runtime_error("no orbital information founr for conjugated segment " + two.getName());
+
     if (one.getType()->getId() > two.getType()->getId())
         return CalcJ(two, one);
     
