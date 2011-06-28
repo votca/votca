@@ -12,12 +12,12 @@
 
 <item>
 <name>ecoulomb.epsilon</name>
-<desc>Screening length used in distance-dependent screening.</desc>
+<desc>Relative dielectric constant of the semiconductor.</desc>
 </item>
 
 <item>
 <name>ecoulomb.screening</name>
-<desc>Screening length used in distance-dependent screening.</desc>
+<desc>Screening length used in the distance-dependent screening.</desc>
 </item>
 
 

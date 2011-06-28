@@ -6,9 +6,9 @@
 #include <votca/tools/histogramnew.h>
 
 /**
-	\brief Compute a histogram of site energy differences from the neighborlist
+	\brief Histogram of site energy differences of neighbor list pairs
 
-Callname: histenergeticdisorder
+Callname: ehist
 */
 class CalcHistEnergeticDisorder : public PairCalculator
 {
@@ -16,7 +16,7 @@ public:
     CalcHistEnergeticDisorder() {};
     ~CalcHistEnergeticDisorder() {};
 
-    const char *Description() { return "Compute a histogram of site energy differences from the neighborlist"; }
+    const char *Description() { return "Histogram of site energy differences of neighbor list pairs"; }
 
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
@@ -30,10 +30,10 @@ private:
 };
 
 inline void CalcHistEnergeticDisorder::Initialize(QMTopology *top, Property *options){
-    _min = options->get("options.histenergeticdisorder.min").as<double>();
-    _max = options->get("options.histenergeticdisorder.max").as<double>();
-    _nbins = options->get("options.histenergeticdisorder.nbins").as<int>();
-    _outfile = options->get("options.histenergeticdisorder.file").as<string>();
+    _min = options->get("options.ehist.min").as<double>();
+    _max = options->get("options.ehist.max").as<double>();
+    _nbins = options->get("options.ehist.nbins").as<int>();
+    _outfile = options->get("options.ehist.file").as<string>();
 
     histogram.Initialize(_min,_max,_nbins);
 }
