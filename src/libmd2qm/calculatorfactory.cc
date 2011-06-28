@@ -23,6 +23,7 @@
 #include "calculators/lambdaout.h"
 #include "calculators/dump_atoms.h"
 #include "calculators/dump_trajectory.h"
+#include "calculators/dump_atoms_bj.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
     #include "calculators/contkmc.h"
@@ -50,8 +51,9 @@ Calculators().Register<CalcIntegrals>("integrals");
         Calculators().Register<NBGen>("nbgen");
         Calculators().Register<OccEquilibrium>("occequilibrium");
         Calculators().Register<AvgVelocity>("avgvelocity");
-        Calculators().Register<DumpAtoms>("dumpatoms");
+        Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
         Calculators().Register<DumpTrajectory>("dumptraj");
+        Calculators().Register<DumpTrajectory>("dumpatomsbj");
 #ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");
 #endif

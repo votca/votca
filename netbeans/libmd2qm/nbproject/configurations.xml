@@ -7,6 +7,8 @@
       <itemPath>../../src/libmd2qm/calculators/contkmc.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/dump_atoms.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/dump_atoms.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/dump_atoms_bj.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/dump_atoms_bj.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/dump_trajectory.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/dump_trajectory.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/energycorr.cc</itemPath>
