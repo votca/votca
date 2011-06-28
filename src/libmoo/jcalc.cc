@@ -37,20 +37,22 @@ void JCalc::ParseCrgUnitTypes(Property &options){
 
     for (iter = types.begin();iter != types.end(); ++iter){
         namecoord = (*iter)->get("coordinates").as<string>();
-        bool estatics = (*iter)->exists("qneutral");
+
+	bool estatics = (*iter)->exists("qneutral");
         if(estatics==true){
             nameneutr = (*iter)->get("qneutral").as<string>();
             namecrg = (*iter)->get("qcharged").as<string>();
         }
         reorg = (*iter)->get("reorganization").as<double>();
         energy = (*iter)->get("energy").as<double>();
-        transorbs = (*iter)->get("torbital").as<vector <int> >();
-
-        if(transorbs.size() > 0)
-            nameorb = (*iter)->get("orbitals").as<string>();
+        
+        if((*iter)->exists("torbital")) transorbs = (*iter)->get("torbital").as<vector <int> >();
+        if(transorbs.size() > 0) nameorb = (*iter)->get("orbitals").as<string>();
 
         name = (*iter)->get("name").as<string>();
-        namebasis = (*iter)->get("basisset").as<string>();
+        
+        namebasis = "INDO";
+        if((*iter)->exists("basisset") > 0) namebasis = (*iter)->get("basisset").as<string>();
 
         string all_monomer = (*iter)->get("map").as<string>();
         for (string::iterator c = all_monomer.begin(); c != all_monomer.end(); ++c) {
@@ -91,6 +93,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         clearListList(list_weights_monomer);
     }
 }
+
 
 JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2)
 {
@@ -159,6 +162,11 @@ JCalc::JCalcData * JCalc::getJCalcData(CrgUnit & one, CrgUnit & two)
 
 vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
 {
+    if(one.getType()->_transorbs.size() == 0)
+        throw std::runtime_error("no orbital information found for conjugated segment " + one.getName());
+    if(two.getType()->_transorbs.size() == 0)
+        throw std::runtime_error("no orbital information found for conjugated segment " + two.getName());
+
     if (one.getType()->getId() > two.getType()->getId())
         return CalcJ(two, one);
     
