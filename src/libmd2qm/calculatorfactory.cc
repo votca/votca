@@ -7,7 +7,7 @@
 #include "calculators/writexml.h"
 #include "calculators/ecoulomb.h"
 #include "calculators/histintegrals.h"
-#include "calculators/ehist.h"
+#include "calculators/ehistogram.h"
 #include "calculators/shufflenrg.h"
 #include "calculators/generate_nrgs.h"
 #include "calculators/energycorr.h"
@@ -38,7 +38,7 @@ Calculators().Register<CalcIntegrals>("integrals");
         Calculators().Register<CalcLambdaOut>("lambdaout");
         Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<CalcHistIntegrals>("histintegrals");
-        Calculators().Register<CalcHistEnergeticDisorder>("ehist");
+        Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
         Calculators().Register<ShuffleNrg>("shufflenrg");
         Calculators().Register<GenerateNrgs>("generatenrgs");
         Calculators().Register<EnergyCorr>("energycorr");

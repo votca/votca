@@ -8,7 +8,7 @@
 /**
 	\brief Histogram of site energy differences of neighbor list pairs
 
-Callname: ehist
+Callname: ehistogram
 */
 class CalcHistEnergeticDisorder : public PairCalculator
 {
@@ -30,10 +30,10 @@ private:
 };
 
 inline void CalcHistEnergeticDisorder::Initialize(QMTopology *top, Property *options){
-    _min = options->get("options.ehist.min").as<double>();
-    _max = options->get("options.ehist.max").as<double>();
-    _nbins = options->get("options.ehist.nbins").as<int>();
-    _outfile = options->get("options.ehist.file").as<string>();
+    _min = options->get("options.ehistogram.min").as<double>();
+    _max = options->get("options.ehistogram.max").as<double>();
+    _nbins = options->get("options.ehistogram.nbins").as<int>();
+    _outfile = options->get("options.ehistogram.file").as<string>();
 
     histogram.Initialize(_min,_max,_nbins);
 }

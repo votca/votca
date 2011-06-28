@@ -21,29 +21,29 @@
 </item>
 
 
-  <!-- ehist calculator -->
+  <!-- ehistogram calculator -->
 <item>
-<name>ehist</name>
+<name>ehistogram</name>
 <desc>Histogram of site energy differences of neighbor list pairs.</desc>
 </item>
 
 <item>
-<name>ehist.min</name>
+<name>ehistogram.min</name>
 <desc>Minimum of the energy interval, eV.</desc>
 </item>
 
 <item>
-<name>ehist.max</name>
+<name>ehistogram.max</name>
 <desc>Maximum of the energy interval, eV.</desc>
 </item>
 
 <item>
-<name>ehist.nbins</name>
+<name>ehistogram.nbins</name>
 <desc>Number of bins.</desc>
 </item>
 
 <item>
-<name>ehist.file</name>
+<name>ehistogram.file</name>
 <desc>Output file.</desc>
 </item>
 
