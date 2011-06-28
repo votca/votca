@@ -64,9 +64,11 @@ else
 fi
 
 if [[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
-   exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
-   exit 0
+  pre="$*"
+  [[ -n $pre && -z ${pre//*--debug*} ]] && pre="bash -x " || pre=""
+  exec ${pre} ${CSGSHARE}/scripts/inverse/inverse.sh "$@"
+  exit 0
 else
-   echo "${0##*/}: Could not run \${CSGSHARE}/scripts/inverse/inverse.sh $@" >&2
-   exit 1
+  echo "${0##*/}: Could not run \${CSGSHARE}/scripts/inverse/inverse.sh $@" >&2
+  exit 1
 fi

@@ -48,6 +48,7 @@ source "${0%/*}/start_framework.sh"  || exit 1
 
 #defaults for options
 do_iterations=""
+waittime=10
 
 #unset stuff from enviorment
 unset CSGXMLFILE CSGENDING CSGDEBUG
@@ -83,6 +84,9 @@ while [[ ${1#-} != $1 ]]; do
    --nocolor)
     export CSGNOCOLOR="yes"
     shift;; 
+   --nowait)
+    waittime=0
+    shift;;
    --debug)
     export CSGDEBUG="yes"
     shift;; 
@@ -98,7 +102,7 @@ done
 #old style, inform user
 [[ -z ${CSGXMLFILE} ]] && die "Please add your setting xml file behind the --options option (like for all other votca programs) !"
 
-[[ $1 = "clean" ]] && { csg_inverse_clean; exit $?; }
+[[ $1 = "clean" ]] && { csg_inverse_clean "$waittime"; exit $?; }
 
 enable_logging
 [[ -n $CSGDEBUG ]] && set -x

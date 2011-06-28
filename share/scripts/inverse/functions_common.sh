@@ -420,7 +420,8 @@ get_table_comment() { #get comment lines from a table and add common information
 export -f get_table_comment
 
 csg_inverse_clean() { #clean out the main directory 
-  local i files log
+  local i files log t
+  [[ -n $1 ]] && t="$1" || t="30"
   log="$(csg_get_property cg.inverse.log_file "inverse.log")"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
@@ -430,7 +431,7 @@ csg_inverse_clean() { #clean out the main directory
   else
     msg --color red $files
     msg --color blue "\nCTRL-C to stop it"
-    for ((i=10;i>0;i--)); do
+    for ((i=$t;i>0;i--)); do
       echo -n "$i "
       sleep 1
     done
