@@ -29,6 +29,9 @@ for file in latex/*.tex; do
       -e '/The documentation for this class was generated from the following/,$d' \
       -e '/Callname/d' \
       -e 's/DoxyItemize/itemize/' >> $OUT
+    echo "" >> $OUT
+    echo "Required options: \calcopt{$name}." >> $OUT
+
   fi
 done
 
