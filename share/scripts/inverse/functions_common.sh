@@ -50,7 +50,7 @@ msg() { #echos a msg on the screen and send it to the logfile if logging is enab
   if [[ $1 = "--to-stderr" ]]; then
     shift
     [[ -z $* ]] && return
-    if [[ -n ${CSGLOG} &&  -t 4 ]]; then
+    if [[ -n ${CSGLOG} ]]; then
       echo -e "${color}$*${off}" >&4
       echo -e "$*" >&2
     else
@@ -58,7 +58,7 @@ msg() { #echos a msg on the screen and send it to the logfile if logging is enab
     fi
   else
     [[ -z $* ]] && return
-    if [[ -n ${CSGLOG} && -t 3 ]]; then
+    if [[ -n ${CSGLOG} ]]; then
       echo -e "${color}$*${off}" >&3
       echo -e "$*"
     else
