@@ -13,7 +13,9 @@
 #include "qmtopology.h"
 #include "qmpair.h"
 #include "qmnblist.h"
-#include <sqlite3.h>
+#include <votca/tools/database.h>
+
+using namespace votca::tools;
 
 class StateSaverSQLite
 {
@@ -26,7 +28,7 @@ public:
     void WriteFrame();
 private:
     int _frame;
-    sqlite3 *_db;
+    Database _db;
     
     void WriteMolecules();
     void WriteCrgUnits();
