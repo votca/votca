@@ -15,8 +15,10 @@ Callname: dumpatoms
 class DumpAtomsBJ : public QMCalculator
 {
 public:
+
     DumpAtomsBJ() {};
     ~DumpAtomsBJ() {};
+    const char *Description() { return "Write three files per pair for integrals in presence of surrouding partial charges"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
