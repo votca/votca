@@ -101,7 +101,6 @@
 <desc>Basis set used to generate orbitals. Default is **ZINDO**. **Shall be moved from the charge unit description to the calculator options**</desc>
 </item>
 
-
 <!-- ihistogram calculator -->
 <item>
 <name>ehistogram</name>
