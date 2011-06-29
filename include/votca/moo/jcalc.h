@@ -36,10 +36,6 @@ public:
     int WriteProJ(CrgUnit & one, CrgUnit & two, string namedir=(string("./")) );
 
     CrgUnit *CreateCrgUnit(int id, const string &type_name, int molid=-1);
-
-
-    // TODO: EstaticDifference should not be in moo since it might depend on algorithm
-    double EstaticDifference(CrgUnit & one, CrgUnit & two);
     
 private:
 

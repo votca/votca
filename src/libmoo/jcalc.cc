@@ -247,41 +247,6 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two,string namedir)
     return 0;
 }
 
-double JCalc::EstaticDifference(CrgUnit & crged, CrgUnit & neutr)
-{
-
-    // we need to calculate E:CRG-NEUTR - E:NEUTR-NEUTR
-    // the difficulty is that ratecalculator
-    // exists only for type1 < type2
-    // this requires to check the typeIDs
-    JCalcData * jdata = getJCalcData(crged, neutr);
-
-    if (crged.getType()->getId() > neutr.getType()->getId()) {
-
-        crged.rot_two_mol(neutr, jdata->_mol2, jdata->_mol1);
-
-        double nrg = jdata->_mol2.V_nrg_crg_neutr(jdata->_mol1) -
-                jdata->_mol2.V_nrg_neutr_neutr(jdata->_mol1);
-        //copy molecules back
-        jdata->_mol1.cp_atompos(jdata->_type1->GetCrgUnit());
-        jdata->_mol2.cp_atompos(jdata->_type2->GetCrgUnit());
-        jdata->_mol1.cp_orb(jdata->_type1->GetCrgUnit(), jdata->_orblabels.first);
-        jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
-        return unit<hartree,eV>::to(nrg);
-    }
-    else {
-        crged.rot_two_mol(neutr, jdata->_mol1, jdata->_mol2);
-
-        double nrg = jdata->_mol1.V_nrg_crg_neutr(jdata->_mol2) - jdata->_mol1.V_nrg_neutr_neutr(jdata->_mol2);
-        //copy molecules back
-        jdata->_mol1.cp_atompos(jdata->_type1->GetCrgUnit());
-        jdata->_mol2.cp_atompos(jdata->_type2->GetCrgUnit());
-        jdata->_mol1.cp_orb(jdata->_type1->GetCrgUnit(), jdata->_orblabels.first);
-        jdata->_mol2.cp_orb(jdata->_type2->GetCrgUnit(), jdata->_orblabels.second);
-        return unit<hartree,eV>::to(nrg);
-    }
-}
-
 CrgUnitType * JCalc::GetCrgUnitTypeByName(string name)
 {
     map <string, CrgUnitType *>::iterator ittype = this->_mapCrgUnitByName.find(name);
