@@ -10,7 +10,7 @@
 #include "calculators/ehistogram.h"
 #include "calculators/shufflenrg.h"
 #include "calculators/generate_nrgs.h"
-#include "calculators/energycorr.h"
+#include "calculators/ecorrelation.h"
 #include "calculators/polymerrates.h"
 #include "calculators/pairdump.h"
 #include "calculators/CurrentDensity.h"
@@ -41,7 +41,7 @@ Calculators().Register<CalcIntegrals>("integrals");
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
         Calculators().Register<ShuffleNrg>("shufflenrg");
         Calculators().Register<GenerateNrgs>("generatenrgs");
-        Calculators().Register<EnergyCorr>("energycorr");
+        Calculators().Register<EnergyCorr>("ecorrelation");
         Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
         Calculators().Register<CurrentDensity>("currden");

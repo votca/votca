@@ -5,9 +5,9 @@
 #include "qmcalculator.h"
 #include <votca/tools/histogramnew.h>
 /**
-    \brief Calculates reduced site energy correlation function
+    \brief Normalized site energy correlation function
 
-Callname: energycorr
+Callname: ecorrelation
 
 To quantify the degree of correlation in site energies due to electrostatics, one can calculate the spatial correlation function of \f$E_i\f$ and \f$E_j\f$ at a distance \f$r_{ij}\f$
 \f[C(r_{ij}) = \frac{  \langle \left( E_i-\langle E\rangle \right)
@@ -24,7 +24,7 @@ public:
     EnergyCorr() {};
     ~EnergyCorr() {};
 
-    const char *Description() { return "Calculates reduced site energy correlation function"; }
+    const char *Description() { return "Normalized site energy correlation function"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);

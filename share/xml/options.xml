@@ -1,5 +1,5 @@
 <tags>
-  <!-- ecoulomb calculator -->
+<!-- ecoulomb calculator -->
 <item>
 <name>ecoulomb</name>
 <desc>Electrostatic contribution to site energies.</desc>
@@ -21,7 +21,7 @@
 </item>
 
 
-  <!-- ehistogram calculator -->
+<!-- ehistogram calculator -->
 <item>
 <name>ehistogram</name>
 <desc>Histogram of site energy differences of neighbor list pairs.</desc>
@@ -44,6 +44,33 @@
 
 <item>
 <name>ehistogram.file</name>
+<desc>Output file.</desc>
+</item>
+
+
+<!-- ecorrelation calculator -->
+<item>
+<name>ecorrelation</name>
+<desc>Normalized site energy correlation function.</desc>
+</item>
+
+<item>
+<name>ecorrelation.min</name>
+<desc>Minimum of the energy interval, eV.</desc>
+</item>
+
+<item>
+<name>ecorrelation.max</name>
+<desc>Maximum of the energy interval, eV.</desc>
+</item>
+
+<item>
+<name>ecorrelation.nbins</name>
+<desc>Number of bins.</desc>
+</item>
+
+<item>
+<name>ecorrelation.file</name>
 <desc>Output file.</desc>
 </item>
 

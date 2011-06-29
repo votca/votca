@@ -1,12 +1,5 @@
-/* 
- * File:   energycorr.cc
- * Author: lukyanov
- * 
- * Created on July 28, 2010, 6:03 PM
- */
-
 #include <stdlib.h>
-#include "energycorr.h"
+#include "ecorrelation.h"
 #include <math.h>
 #include <list>
 #include "votca/tools/average.h"
@@ -25,15 +18,15 @@ void EnergyCorr::Initialize(QMTopology* top, Property* options) {
    }
 
    // read in min and max
-   _min = options->get("options.energy_corr.min").as<double>();
-   _max = options->get("options.energy_corr.max").as<double>();
+   _min = options->get("options.ecorrelation.min").as<double>();
+   _max = options->get("options.ecorrelation.max").as<double>();
 
    // read in _outfile
-   if (options->exists("options.energy_corr.file")) {
+   if (options->exists("options.ecorrelation.file")) {
    	_outfile = options->get("options.energy_corr.file").as<string>();
    }
    else {
-	_outfile = "energy_corr.dat";
+	_outfile = "ecorrelation.dat";
 	cout << "Warning: output filename for site energy distribution is not provided, using default "
              << "filename = " << _outfile << endl;
    }
