@@ -2,6 +2,7 @@ votca-csg
 VOTCA Development Team 
 %%mtime(%d/%m/%Y)
 
+%make the manpage type 7, txt2tags does 1 by default
 %!postproc(man): "^(\.TH.*) 1 "  "\1 7 "
 
 = NAME =
@@ -23,6 +24,8 @@ The following commands make up the votca-csg suite.  Please refer to their indiv
 Performs tasks that are needed for simple Boltzmann inversion in an interactive environment.
 : **csg_call**
 Calls script from the interactive framework for the user.
+: **csg_density**
+Calculates all kind of density profiles.
 : **csg_dump**
 Prints atoms that are read from a topology file to help debug atom naming.
 : **csg_fmatch**
@@ -43,8 +46,6 @@ Helper program called by inverse scripts to parse xml file.
 Changes grid + interval and interpolated any sort of table files.
 : **csg_stat**
 Calculates  all kind of distribuions  (bonded + non-bonded).
-: **multi_g_density**
-A multiplexed version of g_density
 : **multi_g_rdf**
 A multiplexed version of g_rdf
 

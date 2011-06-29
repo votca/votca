@@ -20,6 +20,12 @@
     </desc>
   </item>
   <item>
+   <name>bondtype</name>
+    <desc>
+      Internal alias for non-bonded and bonded, set automatically
+    </desc>
+  </item>
+  <item>
     <name>min</name>
     <desc>
       lower bound of interval for potential table in which calculations are performed.
@@ -69,6 +75,14 @@
     <desc>
       Additional post processing of U after dU added to potential. This is a list of
       scripts separated by spaces which are called. See section on iterative framework for details.
+    </desc>
+  </item>
+  <item><name>inverse.post_add_options</name><desc>Contains all options of post add scripts</desc></item>
+  <item><name>inverse.post_add_options.overwrite</name><desc>Contains all options of the overwrite postadd scripts</desc></item>
+  <item>
+    <name>inverse.post_add_options.overwrite.do</name>
+    <desc>
+      pattern for overwrite postadd script (1 do, 0 do not).
     </desc>
   </item>
   <item>
@@ -289,5 +303,12 @@ particles that is contained in the espresso blockfile.
       fmatch.out_step which is approximately 5 times smaller than fmatch.step.
     </desc>
   </item>
+  <item><name>tf</name><desc>Contains all information relevant to thermoforce iteration</desc></item>
+  <item><name>tf.spline_start</name><desc>Start of the spline used to smooth the density</desc></item>
+  <item><name>tf.spline_end</name><desc>End of the spline used to smooth the density</desc></item>
+  <item><name>tf.spline_step</name><desc>Grid of the spline used to smooth the density</desc></item>
+  <item><name>tf.molname</name><desc>Molecule name of this gropu used in gromacs topology</desc></item>
+  <item><name>tf.prefactor</name><desc>Prefactor for the thermoforce (f=-prefactor * grad density)</desc></item>
+  <item><name>tf.cg_prefactor</name><desc>Second Prefactor for the thermoforce will be linear interpolated with tf.prefactor</desc></item>
 
 </tags> 

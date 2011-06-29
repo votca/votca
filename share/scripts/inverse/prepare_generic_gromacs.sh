@@ -28,4 +28,4 @@ fi
 conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
 confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
 cp_from_main_dir $conf
-critical mv $conf $confout
+critical cp $conf $confout

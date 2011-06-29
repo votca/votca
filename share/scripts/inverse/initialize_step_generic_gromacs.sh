@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents the function initialize
@@ -29,34 +29,18 @@ fi
 
 from="$(csg_get_property cg.inverse.initial_configuration "laststep")"
 conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
-if [ "$from" = "laststep" ]; then
+if [[ $from = "laststep" ]]; then
   confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-  cp_from_last_step "${confout}"
-  critical mv "${confout}" "$conf"
-elif [ "$from" = "maindir" ]; then
+  #avoid overwriting $confout
+  cp_from_last_step --rename "${confout}" "${conf}"
+elif [[ $from = "maindir" ]]; then
   cp_from_main_dir "$conf"
 else
   die "${0##*/}: initial_configuration '$from' not implemented"
 fi
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
-
 #convert potential in format for sim_prog
 for_all non-bonded do_external convert_potential gromacs
 
-check_temp "$mdp"
-for_all "non-bonded" check_cutoff "$mdp"
-
-grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
-[ -n "$(type -p $grompp)" ] || die "${0##*/}: grompp binary '$grompp' not found"
-
-index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"
-[ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
-top="$(csg_get_property cg.inverse.gromacs.grompp.topol "topol.top")"
-[ -f "$top" ] || die "${0##*/}: grompp topol file '$top' not found"
-tpr="$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")"
-opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
-
-critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${opts}
-[ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
+check_temp || die "${0##*/}: check of tempertures failed"
+for_all "non-bonded" check_cutoff || die "${0##*/}: check of cutoff for non-bonded interactions failed"

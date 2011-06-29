@@ -15,13 +15,14 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
 
 #include <iostream>
-#include "trajectorywriter.h"
+#include <votca/csg/trajectorywriter.h>
 #include "modules/io/pdbwriter.h"
+#include "modules/io/xyzwriter.h"
 
 #ifdef GMX
 #include "modules/io/gmxtrajectorywriter.h"
@@ -35,6 +36,7 @@ using namespace std;
 void TrajectoryWriter::RegisterPlugins()
 {
     TrjWriterFactory().Register<PDBWriter>("pdb");
+    TrjWriterFactory().Register<XYZWriter>("xyz");
 #ifdef GMX
     TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");

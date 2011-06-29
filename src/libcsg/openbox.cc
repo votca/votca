@@ -15,7 +15,7 @@
  *
  */
 
-#include "openbox.h"
+#include <votca/csg/openbox.h>
 
 namespace votca { namespace csg {
 

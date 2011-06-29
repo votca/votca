@@ -18,17 +18,10 @@
 #include <iostream>
 #include <fstream>
 #include <boost/program_options.hpp>
-#include <cgengine.h>
-#include "version.h"
-#include "imc.h"
-
-using namespace std;
-using namespace votca::csg;
-using namespace votca::tools;
-
-
+#include <votca/csg/version.h>
+#include "csg_stat_imc.h"
 #include <stdlib.h>
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 
 //using namespace votca::tools;
 using namespace std;

@@ -15,11 +15,11 @@
  *
  */
 
-#include <topologyreader.h>
-#include <trajectoryreader.h>
+#include <votca/csg/topologyreader.h>
+#include <votca/csg/trajectoryreader.h>
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
-#include "version.h"
+#include <votca/csg/version.h>
 #include <iostream>
 #include <fstream>
 

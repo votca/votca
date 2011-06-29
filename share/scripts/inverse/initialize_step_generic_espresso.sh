@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script initializes an espresso simulation
@@ -27,11 +27,11 @@ fi
 
 from=$(csg_get_property cg.inverse.initial_configuration "laststep")
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
-if [ "$from" = "laststep" ]; then
+if [[ $from = "laststep" ]]; then
   espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
-  cp_from_last_step $espout
-  critical mv $espout $esp
-elif [ "$from" = "maindir" ]; then
+  #avoid overwriting $espout
+  cp_from_last_step --rename "$espout" "$esp"
+elif [[ $from = "maindir" ]]; then
   cp_from_main_dir $esp
 else
   die "${0##*/}: initial_configuration '$from' not implemented"

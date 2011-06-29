@@ -25,8 +25,8 @@
 #include <votca/tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include "imcio.h"
-#include "version.h"
+#include <votca/csg/imcio.h>
+#include <votca/csg/version.h>
 
 using namespace votca::csg;
 using namespace votca::tools;

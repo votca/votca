@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implements smoothing of the potential update (.dpot)
@@ -25,9 +25,9 @@ EOF
    exit 0
 fi
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-[ -f "$2" ] && die "${0##*/}: $2 is already there"
+[[ -f $2 ]] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property min)
@@ -36,9 +36,9 @@ step=$(csg_get_interaction_property step)
 
 tmpfile=$(critical mktemp ${name}.XXX)
 
-sed -ne '/i[[:space:]]*$/p' "$1" > $tmpfile
-spmin=$(sed -ne '1p' $tmpfile | awk '{print $1}')
-spmax=$(sed -ne '$p' $tmpfile | awk '{print $1}')
+sed -e '/^#/d' "$1" | sed -n -e '/i[[:space:]]*$/p' > $tmpfile
+spmin=$(sed -n -e '1p' $tmpfile | awk '{print $1}')
+spmax=$(sed -n -e '$p' $tmpfile | awk '{print $1}')
 spstep=$(csg_get_interaction_property inverse.post_update_options.splinesmooth.step)
 
 comment="$(get_table_comment)"

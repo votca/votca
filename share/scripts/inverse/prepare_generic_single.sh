@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implements the prepares the potential in step 0, using pot.in or by resampling the target distribution
@@ -31,19 +31,29 @@ max=$(csg_get_interaction_property max )
 step=$(csg_get_interaction_property step )
 comment="$(get_table_comment)"
 main_dir=$(get_main_dir)
+method="$(csg_get_property cg.inverse.method)"
 
-if [ -f "${main_dir}/${name}.pot.in" ]; then
+if [[ -f ${main_dir}/${name}.pot.in ]]; then
   msg "Using given table ${name}.pot.in for ${name}"
   tmp="$(critical mktemp ${name}.pot.in.smooth.XXX)"
   echo "Converting ${main_dir}/${name}.pot.in to ${name}.pot.new through $tmp"
   critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${tmp} --grid ${min}:${step}:${max} --comment "$comment"
-  do_external pot shift_nb ${tmp} ${name}.pot.new
+  do_external pot shift_nonbonded ${tmp} ${name}.pot.new
 else
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
-  #copy+resample all target dist in $this_dir
+  #resample all target dist in $this_dir
   critical csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
-  # RDF_to_POT.pl just does log g(r) + extrapolation
-  do_external rdf pot ${name}.dist.tgt ${name}.pot.new
+  if [[ $method = "tf" ]]; then
+    #initial guess from density
+    do_external calc thermforce ${name}.dist.tgt ${name}.pot.new
+  else
+    # initial guess from rdf
+    tmp="$(critical mktemp ${name}.pot.new.raw.XXX)"
+    do_external rdf pot ${name}.dist.tgt ${tmp}
+    tmp2="$(critical mktemp ${name}.pot.new.smooth.XXX)"
+    critical csg_resample --in ${tmp} --out ${tmp2} --grid ${min}:${step}:${max} --comment "${comment}"
+    do_external pot shift_nonbonded ${tmp2} ${name}.pot.new
+  fi
 fi
 

@@ -24,9 +24,9 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
 $progname, version %version%
 This script adds up two potentials
 In addition, it does some magic tricks:
-- order of infiles MATTER !!!!
-- if infile2 contains an undefined value, it uses the value from infile1
-- if value for infile1 and infile2 are both invalid, the result is also invalid
++ order of infiles MATTER !!!!
++ if infile2 contains an undefined value, it uses the value from infile1
++ if value for infile1 and infile2 are both invalid, the result is also invalid
 
 Usage: $progname infile1 infile2 outfile
 EOF

@@ -45,7 +45,7 @@ first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 tasks=$(get_number_tasks)
 msg "Calculating IMC statistics using $tasks tasks"
 if is_done "imc_analysis"; then
-  msg "IMC analysis is already done"
+  echo "IMC analysis is already done"
 else
   #copy+resample all target dist in $this_dir
   for_all non-bonded do_external resample target

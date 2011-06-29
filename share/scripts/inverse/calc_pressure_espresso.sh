@@ -27,14 +27,14 @@ EOF
    exit 0
 fi
 
-[ -z "$1" ] && die "${0##*/}: Missing argument"
+[[ -z $1 ]] && die "${0##*/}: Missing argument"
 
 # Espresso config file (required for certain parameters, e.g. box size)
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
 p_file="$(critical mktemp esp.pressure.val.XXXXX)"
-esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
+esp_bin="$(csg_get_property cg.inverse.espresso.pressure_command "Espresso_bin")"
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
 esp_script="$(critical mktemp esp.pressure.tcl.XXXXX)"

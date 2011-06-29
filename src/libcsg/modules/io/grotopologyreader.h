@@ -19,7 +19,7 @@
 #define	_GROTOPOLOGYREADER_H
 
 #include <string>
-#include "topologyreader.h"
+#include <votca/csg/topologyreader.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;

@@ -15,7 +15,7 @@
  *
  */
 
-#include "topologymap.h"
+#include <votca/csg/topologymap.h>
 
 namespace votca { namespace csg {
 

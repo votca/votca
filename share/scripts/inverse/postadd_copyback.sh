@@ -26,7 +26,7 @@ EOF
    exit 0
 fi
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 do_external postadd dummy "$1" "$2"
 
@@ -36,6 +36,6 @@ name=$(csg_get_interaction_property name)
 if [ -n "$filelist" ]; then
   echo "${0##*/}: copy $filelist to $(get_main_dir)"
   #we do eval because i can contain $name
-  critical cp_from_to --from . --where $(get_main_dir) $(eval echo $filelist)
+  critical cp $(eval echo $filelist) $(get_main_dir)
 fi
 
