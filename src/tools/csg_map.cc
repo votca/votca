@@ -45,7 +45,7 @@ public:
             ("out", boost::program_options::value<string>(),
                 "  output file for coarse-grained trajectory")
                 ("hybrid", boost::program_options::value<string>(&_hybrid_string)->default_value(""),
-                "  Create hybrid topology containing both atomistic and coarse-grained");
+                " [yes/no] Create hybrid topology containing both atomistic and coarse-grained");
     }
 
     bool EvaluateOptions() {
@@ -73,45 +73,53 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
             hybtol->setTime(top->getTime());
             hybtol->setStep(top->getStep());
 
-            // copy all residues
+            // copy all residues from both
+            for (it_res = top_ref->Residues().begin(); it_res != top_ref->Residues().end(); ++it_res) {
+                hybtol->CreateResidue((*it_res)->getName());
+            }
             for (it_res = top->Residues().begin(); it_res != top->Residues().end(); ++it_res) {
                 hybtol->CreateResidue((*it_res)->getName());
-                //cout << (*it_res)->getName() << endl;
             }
-            // copy all molecules
-            /// TODO: copy molecules below....
-            for(it_mol=top->_molecules.begin();it_mol!=top->_molecules.end(); ++it_mol) {
-                Molecule *mi = CreateMolecule((*it_mol)->getName());
-                for(int i=0; i<(*it_mol)->BeadCount(); i++) {
+
+            // copy all molecules and beads
+          
+            for(it_mol=top_ref->Molecules().begin();it_mol!=top_ref->Molecules().end(); ++it_mol) {
+                Molecule *mi = hybtol->CreateMolecule((*it_mol)->getName());
+                for (int i = 0; i < (*it_mol)->BeadCount(); i++) {
+                    // copy atomistic beads of molecule
                     int beadid = (*it_mol)->getBead(i)->getId();
-                    mi->AddBead(_beads[beadid], (*it_mol)->getBeadName(i));
+
+                    Bead *bi = (*it_mol)->getBead(i);
+                    BeadType *type = hybtol->GetOrCreateBeadType(bi->getType()->getName());
+                    Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getM(), bi->getQ());
+                    bn->setOptions(bi->Options());
+                    bn->setPos(bi->getPos());
+                    if (bi->HasVel()) bn->setVel(bi->getVel());
+
+                    mi->AddBead(hybtol->Beads()[beadid], (*it_mol)->getBeadName(i));
+
                 }
-            }
 
-            // TODO: use bead-> getParent!
+                if (mi->getId() < top->MoleculeCount()) {
+                    // copy cg beads of molecule
+                    Molecule *cgmol = top->Molecules()[mi->getId()];
+                    for (int i = 0; i < cgmol->BeadCount(); i++) {
+                        Bead *bi = cgmol->getBead(i);
+                        // todo: this is a bit dirty as a cg bead will always have the resid of its first parent
+                        Bead *bparent = (*it_mol)->getBead(0);
+                        BeadType *type = hybtol->GetOrCreateBeadType(bi->getType()->getName());
+                        Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), type, bparent->getResnr(), bi->getM(), bi->getQ());
+                        bn->setOptions(bi->Options());
+                        bn->setPos(bi->getPos());
+                        if (bi->HasVel()) bn->setVel(bi->getVel());
+                        int mid = bparent->getMolecule()->getId();
+                        mi->AddBead(bi, bi->getName());
+                    }
+                }
+                
+            }
+           hybtol->setBox(top_ref->getBox());
 
-            BeadContainer::iterator iterAT = top_ref->Beads().begin();
-            for (BeadContainer::iterator iterCG = top->Beads().begin();
-                    (iterCG != top->Beads().end() && iterAT != top->Beads().end());
-                    ++iterCG, ++iterAT) {
-                Bead *beadAT = *iterAT;
-                Bead *beadCG = *iterCG;
-                //cout << beadAT->getName() << endl;
-                //hybtol->CreateBead(1, "", top->GetOrCreateBeadType("no"), 0, 0, 0);
-                cout << "AT " <<beadAT->getName() << beadAT->getPos() << endl;
-                 Bead *hybBead= hybtol->CreateBead(beadAT->getSymmetry(), beadAT->getName(),
-                 hybtol->GetOrCreateBeadType(beadAT->getType()->getName()), beadAT->getResnr(), beadAT->getM(),
-                 beadAT->getQ());
-                 hybBead->setPos(beadAT->getPos());
-                 hybBead->setOptions(beadAT->Options());
-                /*hybtol->CreateBead(beadCG->getSymmetry(), beadCG->getName(),
-                beadCGet->Type(), beadAT->getResnr(), beadCG->getM(),
-                beadCG->getQ());*/
-            }
-            for (it_bead = hybtol->Beads().begin(); it_bead != hybtol->Beads().end(); ++it_bead) {
-                Bead *bi = *it_bead;
-                cout << bi->getName() << bi->getPos() << endl;
-            }
             _writer->Write(hybtol);
         }
     }
