@@ -5,11 +5,11 @@
 #include "qmcalculator.h"
 #include "votca/tools/average.h"
 
-/** \brief Generate Gaussian-distributed site energies with or without spatial correlations
+/** \brief Gaussian-distributed site energies with or without spatial correlations
 
-Callname: generatenrgs
+Callname: egaussian
 
- Site energies of a gaussian distribution with width sigma are constructed. Then for every site a new energy is computed from the average of neighboring sites up to a cutoffradius. Then the new site energies are uniformly scaled as to reproduce the intial sigma of the site energy distribution.
+Site energies of a gaussian distribution with width sigma are constructed. Then for every site a new energy is computed from the average of neighboring sites up to a cutoffradius. Then the new site energies are uniformly scaled in order to reproduce the intial sigma of the site energy distribution.
 
 */
 class GenerateNrgs : public QMCalculator
@@ -18,7 +18,7 @@ public:
     GenerateNrgs() {};
     ~GenerateNrgs() {};
 
-    const char *Description() { return "Generate Gaussian-distributed site energies with or without spatial correlations"; }
+    const char *Description() { return "Gaussian-distributed site energies with or without spatial correlations"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);

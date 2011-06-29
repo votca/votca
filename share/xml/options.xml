@@ -74,4 +74,20 @@
 <desc>Output file.</desc>
 </item>
 
+<!-- egaussian calculator -->
+<item>
+<name>egaussian</name>
+<desc>Gaussian-distributed site energies with or without spatial correlations.</desc>
+</item>
+
+<item>
+<name>egaussian.sigma</name>
+<desc>Variance of site energies.</desc>
+</item>
+
+<item>
+<name>egaussian.correlation</name>
+<desc>Correlation of site energies.</desc>
+</item>
+
 </tags>

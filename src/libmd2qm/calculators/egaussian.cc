@@ -1,12 +1,5 @@
-/* 
- * File:   generate_nrgs.cc
- * Author: lukyanov
- * 
- * Created on July 21, 2010, 4:46 PM
- */
-
 #include <stdlib.h>
-#include "generate_nrgs.h"
+#include "egaussian.h"
 #include <math.h>
 #include <list>
 #include <votca/tools/random.h>
@@ -17,8 +10,8 @@
 void GenerateNrgs::Initialize(QMTopology *top, Property *options) {
 
    // read in _sigma
-   if (options->exists("options.generate_energies.sigma")) {
-   	_sigma = options->get("options.generate_energies.sigma").as<double>();
+   if (options->exists("options.egaussian.sigma")) {
+   	_sigma = options->get("options.egaussian.sigma").as<double>();
    }
    else {
 	_sigma = 1.0;
@@ -27,18 +20,18 @@ void GenerateNrgs::Initialize(QMTopology *top, Property *options) {
    }
 
    // read in _correl
-   if (options->exists("options.generate_energies.correl")) {
+   if (options->exists("options.egaussian.correlation")) {
    	_correl = options->get("options.generate_energies.correl").as<bool>();
    }
    else {
 	_correl = false;
-	cout << "Warning: correlations of site energies are not specified, using non-correlated" << endl;
+	cout << "Warning: correlation of site energies is not specified, using non-correlated" << endl;
    }
 
    // print info
    if (_correl) {
             // read in _cutoff
-            if (options->exists("options.generate_energies.cutoff")) {
+            if (options->exists("options.egaussian.cutoff")) {
                 _cutoff = options->get("options.generate_energies.cutoff").as<double>();
             }
             else {
