@@ -5,13 +5,13 @@
 #include "paircalculator.h"
 
 /**
-	\brief Compute all transfer integrals from the neighborlist
+	\brief Semi-empirical electronic coupling elements for all neighbor list pairs
 
-Transfer integrals for all pairs in the neighborlist are computed using the ZINDO method.
+Semi-emprirical (ZINDO-based) electronic coupling elements for all conjuageted segments from the neighbout list. Requires molecular orbitals in GAUSSIAN format.
 
-Callname: integrals
+Callname: zintegrals
 
-Reference : Kirkpatrick, J. International Journal of Quantum Chemistry 2008, 108, 51–56.
+References: Kirkpatrick, J. Int. J. Quantum Chem. 2008, 108, 51-56.
 */
 
 class CalcIntegrals : public PairCalculator
@@ -20,7 +20,7 @@ public:
     CalcIntegrals() {};
     ~CalcIntegrals() {};
 
-    const char *Description() { return "Compute all transfer integrals from the neighborlist"; }
+    const char *Description() { return "Semi-empirical electronic coupling elements for all neighbor list pairs"; }
 
     void EvaluatePair(QMTopology *top, QMPair *pair);
 };

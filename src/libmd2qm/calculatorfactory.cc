@@ -1,12 +1,12 @@
 #include "calculatorfactory.h"
 
 #include "votca_config.h"
-#include "calculators/integrals.h"
+#include "calculators/zintegrals.h"
 #include "calculators/marcusrates.h"
 #include "calculators/readxml.h"
 #include "calculators/writexml.h"
 #include "calculators/ecoulomb.h"
-#include "calculators/histintegrals.h"
+#include "calculators/ihistogram.h"
 #include "calculators/ehistogram.h"
 #include "calculators/shufflenrg.h"
 #include "calculators/egaussian.h"
@@ -31,13 +31,13 @@
 
 void CalculatorFactory::RegisterAll(void)
 {
-Calculators().Register<CalcIntegrals>("integrals");
+Calculators().Register<CalcIntegrals>("zintegrals");
         Calculators().Register<WriteXML>("writexml");
         Calculators().Register<ReadXML>("readxml");
         Calculators().Register<CalcEstatics>("ecoulomb");
         Calculators().Register<CalcLambdaOut>("lambdaout");
         Calculators().Register<MarcusRates>("marcusrates");
-        Calculators().Register<CalcHistIntegrals>("histintegrals");
+        Calculators().Register<CalcHistIntegrals>("ihistogram");
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
         Calculators().Register<ShuffleNrg>("shufflenrg");
         Calculators().Register<GenerateNrgs>("egaussian");
