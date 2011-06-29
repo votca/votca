@@ -170,6 +170,12 @@ public:
     BeadContainer &Beads() { return _beads; }
 
     /**
+     * access containter with all residues
+     * @return bead container
+     */
+    ResidueContainer &Residues() { return _residues; }
+
+    /**
      * access  containter with all molecules
      * @return molecule container
      */
