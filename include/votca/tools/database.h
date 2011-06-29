@@ -25,6 +25,11 @@ namespace votca { namespace tools {
 
 using namespace std;
 
+/**
+ *  \brief  SQLite Database wrapper
+ *
+ *
+ */
 class Database
 {
 public:
@@ -33,8 +38,39 @@ public:
 
 	sqlite3 *getSQLiteDatabase() { return _db; }
 
-	void Open(string file, int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+	/**
+         *  \brief Helper function for opening / creating / upgrading a sqlite3 database
+         *  @param file
+         *
+         *  This function helps to manage a sqlite database. It is inspired by the
+         *  SQLiteOpenHelper from the Android API.
+         *
+         *  If this function is used to open a database, and the database
+         *  doesn't exist already, onCreate is called. If it exists but in an
+         *  older Version, onUpgrade is called to bring it to the most current version.
+         */
+        void OpenHelper(string file);
+        void Open(string file, int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 	void Close(void);
+
+        /**
+         * \brief called by OpenHelper if database doesnt exists
+         *
+         * All necessary SQL statements to create the database if it does
+         * not exist should be executed here. This is only called if the
+         * database is opened via OpenHelper.
+         */
+        void onCreate();
+
+        /**
+         * \brief called if database has an older version
+         *
+         * If the version specified does not match the database version,
+         * onUpgrade is called to make necessary changes. This is only called if the
+         * database is opened via OpenHelper.
+         */
+        void onUpgrade(int oldVersion, int newVersion);
+
 
 	void Exec(string sql);
 

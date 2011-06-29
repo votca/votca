@@ -30,9 +30,29 @@ Database::~Database()
 
 void Database::Open(string file, int flags)
 {
-	int ret = sqlite3_open_v2(file.c_str(),&_db,SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,NULL);
+    int ret = sqlite3_open_v2(file.c_str(),&_db,flags,NULL);
     if(ret != SQLITE_OK)
         throw std::runtime_error("cannot open database " + file);
+}
+
+void Database::OpenHelper(string file)
+{
+    int ret = sqlite3_open_v2(file.c_str(),&_db,SQLITE_OPEN_READWRITE,NULL);
+    if(ret != SQLITE_OK) {
+        Open(file, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+        onCreate();
+    }
+    // TODO: onUpgrade
+}
+
+void Database::onCreate()
+{
+    throw std::runtime_error("database is opened via OpenHelper but onCreate is not imlemented");
+}
+
+void Database::onUpgrade(int oldVersion, int newVersion)
+{
+    throw std::runtime_error("database is opened via OpenHelper but onUpgrade is not implemented");
 }
 
 void Database::Close()
