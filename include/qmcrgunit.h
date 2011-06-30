@@ -9,6 +9,8 @@
 #define	__VOTCA_MD2QM_QMCRGUNIT_H
 
 #include <votca/moo/crgunit.h>
+#include <string>
+#include <map>
 
 using namespace std;
 
@@ -30,8 +32,25 @@ public:
     double getOccupationProbability() { return _occupation_probability; }
     void  setOccupationProbability(double prob) { _occupation_probability = prob; }
 
+    // for Falk: clean out the old SetEnergy / getEnergy and then rename these functions
+    void setEnergy_(string label, double value) { _energies[label] = value; }
+    double getEnergy_(string label) { return _energies[label]; }
+    map<string, double> &getEnergies() { return _energies; }
+
+    double SumEnergies() { // TODO: add label + wildcard
+        double e=0;
+        for(map<string, double>::iterator iter = _energies.begin();
+            iter!= _energies.end(); ++iter) e+= iter->second;
+        return e;
+    }
+
+    // use pair<double, double> for lambdea. pair.first = charging, pair.second = discharging
+    // setReorg(string label, double charging, double discharging) { _reorg[label] = makepair(charging, discharging); }
+    // pair<double,double> &getReorg(string label) { return _reorg[label]; }
 protected:
     double _occupation_probability;
+
+    map<string, double> _energies;
 
     
 };
