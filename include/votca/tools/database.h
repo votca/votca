@@ -76,6 +76,12 @@ public:
 
 	Statement *Prepare(string sql);
 
+        int LastInsertRowId();
+        void BeginTransaction() { Exec("BEGIN TRANSACTION;"); }
+        void EndTransaction() { Exec("BEGIN TRANSACTION;"); }
+        void CommitTransaction() { Exec("COMMIT TRANSACTION;"); }
+        void RollbackTransaction() { Exec("ROLLBACK TRANSACTION;"); }
+
 protected:
 	sqlite3 *_db;
 };

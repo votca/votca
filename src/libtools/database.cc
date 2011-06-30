@@ -79,5 +79,10 @@ Statement *Database::Prepare(string sql)
     return new Statement(stmt);
 }
 
+int Database::LastInsertRowId()
+{
+    return sqlite3_last_insert_rowid(_db);
+}
+
 }}
 
