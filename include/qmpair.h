@@ -17,7 +17,9 @@ class QMPair :
     public std::pair<QMCrgUnit *, QMCrgUnit *>
 {
 public:
-    QMPair() {}
+    QMPair() 
+        : _r(0.,0.,0.), _rate_12(0.),_rate_21(0.),_lambda_outer(0.),_ghost(NULL),_crg2(NULL) {}
+
     QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top);
 
     ~QMPair(){
