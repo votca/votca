@@ -6,9 +6,9 @@
 #include <votca/tools/histogramnew.h>
 
 /**
-	\brief Compute a histogram of transfer integrals from the neighborlist
+	\brief Histogram of transfer integrals of neighbor list pairs
 
-Callname: histintegrals
+Callname: ihistogram   
 */
 class CalcHistIntegrals : public PairCalculator
 {
@@ -16,7 +16,7 @@ public:
     CalcHistIntegrals() {};
     ~CalcHistIntegrals() {};
 
-    const char *Description() { return "Compute a histogram of transfer integrals from the neighborlist"; }
+    const char *Description() { return "Histogram of transfer integrals of neighbor list pairs"; }
 
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
@@ -30,10 +30,10 @@ private:
 };
 
 inline void CalcHistIntegrals::Initialize(QMTopology *top, Property *options){
-    _min = options->get("options.histintegrals.min").as<double>();
-    _max = options->get("options.histintegrals.max").as<double>();
-    _nbins = options->get("options.histintegrals.nbins").as<int>();
-    _outfile = options->get("options.histintegrals.file").as<string>();
+    _min = options->get("options.ihistogram.min").as<double>();
+    _max = options->get("options.ihistogram.max").as<double>();
+    _nbins = options->get("options.ihistogram.nbins").as<int>();
+    _outfile = options->get("options.ihistogram.file").as<string>();
 
     histogram.Initialize(_min,_max,_nbins);
 }

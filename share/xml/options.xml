@@ -74,6 +74,7 @@
 <desc>Output file.</desc>
 </item>
 
+
 <!-- egaussian calculator -->
 <item>
 <name>egaussian</name>
@@ -88,6 +89,62 @@
 <item>
 <name>egaussian.correlation</name>
 <desc>Correlation of site energies.</desc>
+</item>
+
+
+<!-- zintegrals calculator -->
+<item>
+<name>izindo</name>
+<desc>Semi-empirical electronic coupling elements for all neighbor list pairs</desc>
+</item>
+
+<item>
+<name>izindo.basisset</name>
+<desc>Basis set used to generate monomer orbitals. Default is **ZINDO**. **Shall be moved from the charge unit description to the calculator options**</desc>
+</item>
+
+
+<!-- ihistogram calculator -->
+<item>
+<name>ihistogram</name>
+<desc>Histogram of transfer integrals for all pairs from neighbour list.</desc>
+</item>
+
+<item>
+<name>ihistogram.min</name>
+<desc>Minimum of the energy interval, eV.</desc>
+</item>
+
+<item>
+<name>ihistogram.max</name>
+<desc>Maximum of the energy interval, eV.</desc>
+</item>
+
+<item>
+<name>ihistogram.nbins</name>
+<desc>Number of bins.</desc>
+</item>
+
+<item>
+<name>ihistogram.file</name>
+<desc>Output file.</desc>
+</item>
+
+
+<!-- tdump calculator -->
+<item>
+<name>tdump</name>
+<desc>Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories</desc>
+</item>
+
+<item>
+<name>tdump.cg</name>
+<desc>Name of the coarse-grained trajectory.</desc>
+</item>
+
+<item>
+<name>tdump.qm</name>
+<desc>Name of the atomistic trajectory with back-substituted rigid fragments.</desc>
 </item>
 
 </tags>
