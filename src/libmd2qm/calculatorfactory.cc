@@ -1,7 +1,7 @@
 #include "calculatorfactory.h"
 
 #include "votca_config.h"
-#include "calculators/zintegrals.h"
+#include "calculators/izindo.h"
 #include "calculators/marcusrates.h"
 #include "calculators/readxml.h"
 #include "calculators/writexml.h"
@@ -31,7 +31,7 @@
 
 void CalculatorFactory::RegisterAll(void)
 {
-Calculators().Register<CalcIntegrals>("zintegrals");
+Calculators().Register<CalcIntegrals>("izindo");
         Calculators().Register<WriteXML>("writexml");
         Calculators().Register<ReadXML>("readxml");
         Calculators().Register<CalcEstatics>("ecoulomb");
