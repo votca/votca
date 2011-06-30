@@ -64,7 +64,7 @@ private:
 
 inline QMBead::QMBead(Topology *owner, int id, BeadType *type, byte_t symmetry,
     string name, int resnr, double m, double q)
-    : Bead(owner, id, type, symmetry, name, resnr, m, q), _crg(NULL)
+    : Bead(owner, id, type, symmetry, name, resnr, m, q), _crg(NULL), _ipos(-1)
 {
 }
 
