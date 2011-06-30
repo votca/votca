@@ -45,6 +45,7 @@
       <itemPath>../../include/qmbead.h</itemPath>
       <itemPath>../../include/qmcalculator.h</itemPath>
       <itemPath>../../include/qmcrgunit.h</itemPath>
+      <itemPath>../../include/qmdatabase.h</itemPath>
       <itemPath>../../include/qmnblist.h</itemPath>
       <itemPath>../../include/qmpair.h</itemPath>
       <itemPath>../../include/qmtopology.h</itemPath>
@@ -62,6 +63,7 @@
                    projectFiles="true">
       <itemPath>../../src/libmd2qm/calculatorfactory.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmapplication.cc</itemPath>
+      <itemPath>../../src/libmd2qm/qmdatabase.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmnblist.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmpair.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmtopology.cc</itemPath>

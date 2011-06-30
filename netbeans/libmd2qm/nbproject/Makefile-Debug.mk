@@ -47,6 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1716269789/qmnblist.o \
 	${OBJECTDIR}/_ext/76882303/ecoulomb.o \
 	${OBJECTDIR}/_ext/1716269789/qmtopology.o \
+	${OBJECTDIR}/_ext/1716269789/qmdatabase.o \
 	${OBJECTDIR}/_ext/76882303/egaussian.o \
 	${OBJECTDIR}/_ext/1716269789/qmapplication.o \
 	${OBJECTDIR}/_ext/1716269789/statesaver.o
@@ -147,6 +148,11 @@ ${OBJECTDIR}/_ext/1716269789/qmtopology.o: ../../src/libmd2qm/qmtopology.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmtopology.o ../../src/libmd2qm/qmtopology.cc
+
+${OBJECTDIR}/_ext/1716269789/qmdatabase.o: ../../src/libmd2qm/qmdatabase.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmdatabase.o ../../src/libmd2qm/qmdatabase.cc
 
 ${OBJECTDIR}/_ext/76882303/egaussian.o: ../../src/libmd2qm/calculators/egaussian.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
