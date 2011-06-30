@@ -1,12 +1,12 @@
 #include "calculatorfactory.h"
 
 #include "votca_config.h"
-#include "calculators/integrals.h"
+#include "calculators/izindo.h"
 #include "calculators/marcusrates.h"
 #include "calculators/readxml.h"
 #include "calculators/writexml.h"
 #include "calculators/ecoulomb.h"
-#include "calculators/histintegrals.h"
+#include "calculators/ihistogram.h"
 #include "calculators/ehistogram.h"
 #include "calculators/shufflenrg.h"
 #include "calculators/egaussian.h"
@@ -22,7 +22,7 @@
 #include "calculators/avgvelocity.h"
 #include "calculators/lambdaout.h"
 #include "calculators/dump_atoms.h"
-#include "calculators/dump_trajectory.h"
+#include "calculators/tdump.h"
 #include "calculators/dump_atoms_bj.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
@@ -31,13 +31,13 @@
 
 void CalculatorFactory::RegisterAll(void)
 {
-Calculators().Register<CalcIntegrals>("integrals");
+Calculators().Register<CalcIntegrals>("izindo");
         Calculators().Register<WriteXML>("writexml");
         Calculators().Register<ReadXML>("readxml");
         Calculators().Register<CalcEstatics>("ecoulomb");
         Calculators().Register<CalcLambdaOut>("lambdaout");
         Calculators().Register<MarcusRates>("marcusrates");
-        Calculators().Register<CalcHistIntegrals>("histintegrals");
+        Calculators().Register<CalcHistIntegrals>("ihistogram");
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
         Calculators().Register<ShuffleNrg>("shufflenrg");
         Calculators().Register<GenerateNrgs>("egaussian");
@@ -52,7 +52,7 @@ Calculators().Register<CalcIntegrals>("integrals");
         Calculators().Register<OccEquilibrium>("occequilibrium");
         Calculators().Register<AvgVelocity>("avgvelocity");
         Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
-        Calculators().Register<DumpTrajectory>("dumptraj");
+        Calculators().Register<DumpTrajectory>("tdump");
         Calculators().Register<DumpTrajectory>("dumpatomsbj");
 #ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");

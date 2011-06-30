@@ -77,5 +77,8 @@ endforeach(FUNC)
 # Include the following subdirectory # 
 ######################################
 add_subdirectory(include)
+add_subdirectory(scripts)
 add_subdirectory(src/libmd2qm)
 add_subdirectory(src/tools)
+add_subdirectory(src/dipro)
+add_subdirectory(share/scripts/dipro)   
