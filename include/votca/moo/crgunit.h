@@ -27,7 +27,7 @@ class CrgUnit {
 public:
 
     CrgUnit() :
-        _id(-1), _energy(0), _type(NULL), _molid(-1)  {};
+        _id(-1), _energy(0.), _type(NULL), _molid(-1)  {};
 
     virtual ~CrgUnit();
 

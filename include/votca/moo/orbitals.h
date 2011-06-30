@@ -34,9 +34,8 @@ private :
 public:
     
     static int (orb::*read_orb)(const char *) ;
-    orb () {
-	psi=0;
-	NBasis=0;
+    orb (): psi(NULL), NBasis(0) {
+	//psi=0; Basis=0;
     }
 
     void assign_basis_set ( basis_set * a, vector< pair <int, int> > b){

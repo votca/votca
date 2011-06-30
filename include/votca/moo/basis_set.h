@@ -18,7 +18,8 @@ struct shell{
 	    int _lambda;
 	    int _n_prim;
 	    vector <double> _prim_exponent;
-	    vector <double> _prim_contract;	
+	    vector <double> _prim_contract;
+            shell() : _n_orbs(0), _lambda(0), _n_prim(0) {}
 	};
 
 class basis_set{
@@ -42,7 +43,7 @@ class basis_set{
 
     public:
 	// defaul constructor defaults to INDO
-	basis_set(){
+	basis_set() {
 		set_basis_set("INDO");
 	}
 	~basis_set(){

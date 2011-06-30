@@ -36,6 +36,8 @@ public:
    
     /// reorganization energy of the crg unit type
     const double & getReorg () const { return _reorg; }
+    /// radius of chrgunit as sphere for lambda out
+
     /// site energy of the crg unit type
     const double & getEnergy () const { return _energy; }
     
@@ -87,7 +89,7 @@ private:
             vector <vec >::iterator it_plan, mol_and_orb * rotated_molecule );
 
     // can only be created by JCalc
-    CrgUnitType() {};
+    CrgUnitType(): _reorg(0.), _energy(0.), _id(-1) {};
     
     // can only be created by JCalc
     CrgUnitType(

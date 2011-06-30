@@ -32,14 +32,15 @@ class fock {
 
 	/// the fock matrix to calculate F[i][j] will contain the ith elemnt of the basis on the first molecule and the jth element on the second  
 	
-	fock () {
-		F = NULL;
+	fock (): Beta(NULL), Mu(NULL), F(NULL)  {
+		//F = NULL;
 		molecules.first = NULL;
 		molecules.second = NULL;
 		
 	}
 
-	fock (  const mol_and_orb & A, const mol_and_orb & B ){
+	fock (  const mol_and_orb & A, const mol_and_orb & B ):Beta(NULL), Mu(NULL), F(NULL){
+                
 		molecules.first  = &A;
 		molecules.second = &B;
 		int n1, n2;

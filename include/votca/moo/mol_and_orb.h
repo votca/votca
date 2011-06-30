@@ -47,14 +47,8 @@ public:
     int n_el;
 
 
-    mol_and_orb(){
-	N=0;
-	orbitals =0;
-        _crged = 0;
-        _neutr = 0;
-	centre.setX(0.);
-	centre.setY(0.);
-	centre.setZ(0.);
+    mol_and_orb(): N(0), orbitals(0), _crged(0), _neutr(0), centre(0.,0.,0.), n_el(0){
+	//N=0;	orbitals =0; _crged = 0 ;_neutr = 0; centre.setX(0.);centre.setY(0.);centre.setZ(0.);
     }
 
     ~mol_and_orb(){
@@ -62,7 +56,7 @@ public:
        // #ifdef DEBUG
    //     cout << "callgin the mol_and orb destructor" << endl;
      //   #endif
-	N=0;
+	//N=0;
 	atom_pos.clear();
 	atom_labels.clear();
     }

@@ -6,6 +6,9 @@
                    projectFiles="true">
       <itemPath>../../include/votca/moo/basis_set.h</itemPath>
       <itemPath>../../include/votca/moo/charges.h</itemPath>
+      <itemPath>../../include/votca/moo/crgunit.h</itemPath>
+      <itemPath>../../include/votca/moo/crgunittype.h</itemPath>
+      <itemPath>../../include/votca/moo/fock.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
