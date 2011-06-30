@@ -258,7 +258,7 @@ if [ "$1" == "T" ]; then
 
     run_define $basis $func
     # dimer run orthogonalization (merge tool by A. Fuchs, BASF)
-    $DIPRODIR/merge_orbitals.py  ../molA  ../molB
+    $CSGSHARE/scripts/dipro/merge_orbitals.py  ../molA  ../molB
     adapt_mem
     kdg scfiterlimit
     sed '1i\
@@ -448,7 +448,6 @@ elif [ "$1" == "G" ]; then
     mkdir -p temp
     g09 dimer
     
-
 fi
 
 
