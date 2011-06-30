@@ -1,6 +1,6 @@
 #include "qmdatabase.h"
 
-QMDatabase::onCreate()
+void QMDatabase::onCreate()
 {
    // table for frames
     Exec("CREATE TABLE frames ("
@@ -23,13 +23,7 @@ QMDatabase::onCreate()
         "id INT NOT NULL,"
         "name TEXT NOT NULL,"
         "frame INT NOT NULL)");
-
-    // delete molecules if frame is deleted
-    Exec("CREATE TRIGGER trig_delete_frame BEFOR DELETE ON frames "
-            "FOR EACH ROW BEGIN "
-            "DELETE FROM molecules WHERE molecules.frame = OLD._id;"
-            " END");
-       
+      
     // table for conjugated segments
     Exec("CREATE TABLE segments ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -40,15 +34,9 @@ QMDatabase::onCreate()
     // additional properties of conjugated segments
     Exec("CREATE TABLE segment_properties ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "segmentid INTEGER NOT NULL,"
+        "segment INTEGER NOT NULL,"
         "key TEXT NOT NULL,"
         "value REAL NOT NULL)");
-
-        // delete molecules if frame is deleted
-    Exec("CREATE TRIGGER trig_delete_frame BEFOR DELETE ON frames "
-            "FOR EACH ROW BEGIN "
-            "DELETE FROM molecules WHERE molecules.frame = OLD._id;"
-            " END");
 
     // table for rigid fragments
     Exec("CREATE TABLE fragments ("
@@ -94,7 +82,36 @@ QMDatabase::onCreate()
     // additional properties of pairs
     Exec("CREATE TABLE pair_properties ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "pairid INTEGER NOT NULL,"
+        "pair INTEGER NOT NULL,"
         "key TEXT NOT NULL,"
         "value REAL NOT NULL)");
+
+    // delete molecules if frame is deleted
+    Exec("CREATE TRIGGER trig_delete_frame BEFOR DELETE ON frames "
+            "FOR EACH ROW BEGIN "
+            "DELETE FROM molecules WHERE molecules.frame = OLD._id;"
+            " END");
+
+    // delete segment properties + fragments + pairs if segment is deleted
+    Exec("CREATE TRIGGER trig_delete_segment BEFOR DELETE ON segments "
+            "FOR EACH ROW BEGIN "
+            "DELETE FROM segment_properties WHERE segment_properties=segmentid.segment = OLD._id;"
+            "DELETE FROM fragments WHERE segment_id=segmentid.frame = OLD._id;"
+            "DELETE FROM pairs WHERE pairs.segment1 = OLD._id OR pairs.segment2 = OLD._id;"
+            " END");
+
+    // delete fragment properties if fragment is deleted
+    Exec("CREATE TRIGGER trig_delete_fragment BEFOR DELETE ON fragments "
+            "FOR EACH ROW BEGIN "
+            "DELETE FROM fragment_properties WHERE fragment_properties.fragment = OLD._id;"
+            "DELETE FROM fragments WHERE segment_id=segmentid.frame = OLD._id;"
+            " END");
+
+    // delete pair property if property is deleted
+    Exec("CREATE TRIGGER trig_delete_pair BEFOR DELETE ON pairs "
+            "FOR EACH ROW BEGIN "
+            "DELETE FROM pair_properties WHERE pair_properties.pair = OLD._id;"
+            " END");
+
+
 }
