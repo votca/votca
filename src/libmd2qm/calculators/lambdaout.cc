@@ -18,33 +18,33 @@
 void CalcLambdaOut::Initialize(QMTopology *top, Property *options) {
     _options = options;
 
-    if (options->exists("options.lambda_params.lambda_method")) {
-       if (options->get("options.lambda_params.lambda_method").as<string > () == "constant") {
-        //_lambda_method = &CalcLambdaOut::const_lambda;
-        if (options->exists("options.lambda_params.lambdaout")) {
+    if (options->exists("options.lambdaout.method")) {
+       if (options->get("options.lambdaout.method").as<string > () == "constant") {
+        
+        if (options->exists("options.lambdaout.lambdconst")) {
             cout << "Thank you for choosing the constant lambda method"<<endl;
-            _lambda_const = options->get("options.lambda_params.lambdaout").as<double>();
+            _lambda_const = options->get("options.lambdaout.lambdaconst").as<double>();
             cout << "Using a constant lambda outer of " << _lambda_const << endl;
         } else {
             _lambda_const = 0.0;
-            cout << "Warning: no lambda outer sphere defined, using lambdaout=0." << endl;
+            cout << "Warning: no lambdaconst defined in options file, using outer sphere lambda = 0." << endl;
         }
-    } else if (options->get("options.lambda_params.lambda_method").as<string > () == "spheres") {
-        //_lambda_method = &CalcLambdaOut::spheres_lambda;
+    } else if (options->get("options.lambdaout.method").as<string > () == "spheres") {
+        //_method = &CalcLambdaOut::spheres_lambda;
         cout << "Thank you for choosing the spheres lambda method"<<endl;
-        if (options->exists("options.lambda_params.pekar")) {
-            _pekar = options->get("options.lambda_params.pekar").as<double>();
+        if (options->exists("options.lambdaout.pekar")) {
+            _pekar = options->get("options.lambdaout.pekar").as<double>();
             cout << "Using a Pekar factor of " << _pekar << endl;
         } else {
             _pekar = 0.05;
             cout << "Warning: no Pekar factor defined, using pekar =0.05" << endl;
         }
     }
-    else if (options->get("options.lambda_params.lambda_method").as<string > () == "dielectric") {
-        //_lambda_method = &CalcLambdaOut::dielectric_lambda;
+    else if (options->get("options.lambdaout.method").as<string > () == "dielectric") {
+        //_method = &CalcLambdaOut::dielectric_lambda;
         cout << "Thank you for choosing the dielectric lambda method"<<endl;
-        if (options->exists("options.lambda_params.pekar")) {
-            _pekar = options->get("options.lambda_params.pekar").as<double>();
+        if (options->exists("options.lambdaout.pekar")) {
+            _pekar = options->get("options.lambdaout.pekar").as<double>();
             cout << "Using a Pekar factor of " << _pekar << endl;
         } else {
             _pekar = 0.05;
@@ -55,13 +55,13 @@ void CalcLambdaOut::Initialize(QMTopology *top, Property *options) {
 }
 
 bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
-        if (_options->get("options.lambda_params.lambda_method").as<string > () == "constant") {
+        if (_options->get("options.lambdaout.method").as<string > () == "constant") {
             const_lambda(top);
            }
-        else if (_options->get("options.lambda_params.lambda_method").as<string > () == "spheres") {
+        else if (_options->get("options.lambdaout.method").as<string > () == "spheres") {
            spheres_lambda(top);
         }
-        else if (_options->get("options.lambda_params.lambda_method").as<string > () == "dielectric") {
+        else if (_options->get("options.lambdaout.method").as<string > () == "dielectric") {
            dielectric_lambda(top);
        }
     return true;
