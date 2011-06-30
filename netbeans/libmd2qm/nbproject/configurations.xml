@@ -9,16 +9,15 @@
       <itemPath>../../src/libmd2qm/calculators/dump_atoms.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/dump_atoms_bj.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/dump_atoms_bj.h</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/dump_trajectory.cc</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/dump_trajectory.h</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/energycorr.cc</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/energycorr.h</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/estatics.cc</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/estatics.h</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/generate_nrgs.cc</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/generate_nrgs.h</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/histintegrals.h</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/integrals.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/ecorrelation.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/ecorrelation.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/ecoulomb.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/ecoulomb.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/egaussian.cc</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/egaussian.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/ehistogram.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/ihistogram.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/izindo.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/jortnerrates.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/lambdaout.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/lambdaout.h</itemPath>
@@ -34,6 +33,7 @@
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/sqlitewriter.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/tdump.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/writexml.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"

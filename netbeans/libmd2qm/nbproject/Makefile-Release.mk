@@ -17,7 +17,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
+FC=
 AS=as
 
 # Macros
@@ -35,10 +35,8 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/76882303/dump_atoms_bj.o \
 	${OBJECTDIR}/_ext/76882303/dump_atoms.o \
-	${OBJECTDIR}/_ext/76882303/dump_trajectory.o \
-	${OBJECTDIR}/_ext/76882303/generate_nrgs.o \
 	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
-	${OBJECTDIR}/_ext/76882303/estatics.o \
+	${OBJECTDIR}/_ext/76882303/ecorrelation.o \
 	${OBJECTDIR}/_ext/76882303/lambdaout.o \
 	${OBJECTDIR}/_ext/1716269789/statesaversqlite.o \
 	${OBJECTDIR}/_ext/76882303/polymerrates.o \
@@ -47,8 +45,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1716269789/calculatorfactory.o \
 	${OBJECTDIR}/_ext/1716269789/version_nb.o \
 	${OBJECTDIR}/_ext/1716269789/qmnblist.o \
+	${OBJECTDIR}/_ext/76882303/ecoulomb.o \
 	${OBJECTDIR}/_ext/1716269789/qmtopology.o \
-	${OBJECTDIR}/_ext/76882303/energycorr.o \
+	${OBJECTDIR}/_ext/76882303/egaussian.o \
 	${OBJECTDIR}/_ext/1716269789/qmapplication.o \
 	${OBJECTDIR}/_ext/1716269789/statesaver.o
 
@@ -89,25 +88,15 @@ ${OBJECTDIR}/_ext/76882303/dump_atoms.o: ../../src/libmd2qm/calculators/dump_ato
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/dump_atoms.o ../../src/libmd2qm/calculators/dump_atoms.cc
 
-${OBJECTDIR}/_ext/76882303/dump_trajectory.o: ../../src/libmd2qm/calculators/dump_trajectory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/dump_trajectory.o ../../src/libmd2qm/calculators/dump_trajectory.cc
-
-${OBJECTDIR}/_ext/76882303/generate_nrgs.o: ../../src/libmd2qm/calculators/generate_nrgs.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/generate_nrgs.o ../../src/libmd2qm/calculators/generate_nrgs.cc
-
 ${OBJECTDIR}/_ext/76882303/shufflenrg.o: ../../src/libmd2qm/calculators/shufflenrg.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/shufflenrg.o ../../src/libmd2qm/calculators/shufflenrg.cc
 
-${OBJECTDIR}/_ext/76882303/estatics.o: ../../src/libmd2qm/calculators/estatics.cc 
+${OBJECTDIR}/_ext/76882303/ecorrelation.o: ../../src/libmd2qm/calculators/ecorrelation.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/estatics.o ../../src/libmd2qm/calculators/estatics.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/ecorrelation.o ../../src/libmd2qm/calculators/ecorrelation.cc
 
 ${OBJECTDIR}/_ext/76882303/lambdaout.o: ../../src/libmd2qm/calculators/lambdaout.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
@@ -149,15 +138,20 @@ ${OBJECTDIR}/_ext/1716269789/qmnblist.o: ../../src/libmd2qm/qmnblist.cc
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmnblist.o ../../src/libmd2qm/qmnblist.cc
 
+${OBJECTDIR}/_ext/76882303/ecoulomb.o: ../../src/libmd2qm/calculators/ecoulomb.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/ecoulomb.o ../../src/libmd2qm/calculators/ecoulomb.cc
+
 ${OBJECTDIR}/_ext/1716269789/qmtopology.o: ../../src/libmd2qm/qmtopology.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmtopology.o ../../src/libmd2qm/qmtopology.cc
 
-${OBJECTDIR}/_ext/76882303/energycorr.o: ../../src/libmd2qm/calculators/energycorr.cc 
+${OBJECTDIR}/_ext/76882303/egaussian.o: ../../src/libmd2qm/calculators/egaussian.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/energycorr.o ../../src/libmd2qm/calculators/energycorr.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/egaussian.o ../../src/libmd2qm/calculators/egaussian.cc
 
 ${OBJECTDIR}/_ext/1716269789/qmapplication.o: ../../src/libmd2qm/qmapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789

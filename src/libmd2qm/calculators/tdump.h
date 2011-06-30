@@ -1,17 +1,51 @@
+#ifndef _DUMP_TRAJECORY_H
+#define	_DUMP_TRAJECTORY_H
+
 #include <stdlib.h>
-#include "dump_trajectory.h"
 #include <math.h>
 #include <list>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <fstream>
 
-void DumpTrajectory::Initialize(QMTopology *top, Property *options) {
+#include "qmpair.h"
+#include "qmcalculator.h"
+
+#include <votca/csg/trajectorywriter.h>
+
+/**
+    \brief Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories
+
+
+Callname: tdump
+
+Useful for checking whether the mapping of the atomistic trajectory on conjugated segments and rigid fragments is correct. One can use VisualMolecularDnamics (vmd) to view the initial, coarse-grained, and back-mapped trajectories together.
+
+*/
+class DumpTrajectory : public QMCalculator
+{
+public:
+    DumpTrajectory() {};
+    ~DumpTrajectory() {};
+
+    const char *Description() { return "Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories"; }
+
+    void Initialize(QMTopology *top, Property *options);
+    bool EvaluateFrame(QMTopology *top);
+    void EndEvaluate(QMTopology *top);
+   
+private:
+    Property * _options;
+    string _nameCG, _nameQM;
+    TrajectoryWriter *_writerCG, *_writerQM; 
+};
+
+inline void DumpTrajectory::Initialize(QMTopology *top, Property *options) {
     _options = options;
-    if ( options->exists("options.dumptraj.traj_cg") && 
-          options->exists("options.dumptraj.traj_qm") ) {
-        _nameCG = options->get("options.dumptraj.traj_cg").as<string>();
-        _nameQM = options->get("options.dumptraj.traj_qm").as<string>();
+    if ( options->exists("options.tdump.cg") && 
+          options->exists("options.tdump.qm") ) {
+        _nameCG = options->get("options.tdump.cg").as<string>();
+        _nameQM = options->get("options.tdump.qm").as<string>();
         cout << "Writing the  conjugated  segments trajectory to " << _nameCG <<endl;
         cout << "Writing the backmapped atomistic trajectory to " << _nameQM <<endl;
     } else {
@@ -35,7 +69,7 @@ void DumpTrajectory::Initialize(QMTopology *top, Property *options) {
 
 }
 
-bool DumpTrajectory::EvaluateFrame(QMTopology *top) {
+inline bool DumpTrajectory::EvaluateFrame(QMTopology *top) {
     
      // dumping the coarse-grained trajectory
     _writerCG->Write( top );
@@ -55,8 +89,11 @@ bool DumpTrajectory::EvaluateFrame(QMTopology *top) {
     return true;
 }
 
-void DumpTrajectory::EndEvaluate(QMTopology *top)
+inline void DumpTrajectory::EndEvaluate(QMTopology *top)
 {
     _writerCG->Close();
     _writerQM->Close();
 }
+
+#endif	/* _DUMP_TRAJECTORY_H */
+

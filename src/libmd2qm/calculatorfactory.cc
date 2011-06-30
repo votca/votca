@@ -1,7 +1,7 @@
 #include "calculatorfactory.h"
 
 #include "votca_config.h"
-#include "calculators/zintegrals.h"
+#include "calculators/izindo.h"
 #include "calculators/marcusrates.h"
 #include "calculators/readxml.h"
 #include "calculators/writexml.h"
@@ -22,7 +22,7 @@
 #include "calculators/avgvelocity.h"
 #include "calculators/lambdaout.h"
 #include "calculators/dump_atoms.h"
-#include "calculators/dump_trajectory.h"
+#include "calculators/tdump.h"
 #include "calculators/dump_atoms_bj.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
@@ -31,7 +31,7 @@
 
 void CalculatorFactory::RegisterAll(void)
 {
-Calculators().Register<CalcIntegrals>("zintegrals");
+Calculators().Register<CalcIntegrals>("izindo");
         Calculators().Register<WriteXML>("writexml");
         Calculators().Register<ReadXML>("readxml");
         Calculators().Register<CalcEstatics>("ecoulomb");
@@ -52,7 +52,7 @@ Calculators().Register<CalcIntegrals>("zintegrals");
         Calculators().Register<OccEquilibrium>("occequilibrium");
         Calculators().Register<AvgVelocity>("avgvelocity");
         Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
-        Calculators().Register<DumpTrajectory>("dumptraj");
+        Calculators().Register<DumpTrajectory>("tdump");
         Calculators().Register<DumpTrajectory>("dumpatomsbj");
 #ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");
