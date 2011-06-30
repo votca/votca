@@ -60,7 +60,7 @@ public:
          * not exist should be executed here. This is only called if the
          * database is opened via OpenHelper.
          */
-        void onCreate();
+        virtual void onCreate();
 
         /**
          * \brief called if database has an older version
@@ -69,7 +69,7 @@ public:
          * onUpgrade is called to make necessary changes. This is only called if the
          * database is opened via OpenHelper.
          */
-        void onUpgrade(int oldVersion, int newVersion);
+        virtual void onUpgrade(int oldVersion, int newVersion);
 
 
 	void Exec(string sql);
