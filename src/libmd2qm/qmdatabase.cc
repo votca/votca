@@ -25,21 +25,21 @@ void QMDatabase::onCreate()
         "frame INT NOT NULL)");
       
     // table for conjugated segments
-    Exec("CREATE TABLE segments ("
+    Exec("CREATE TABLE conjseg ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "id INT NOT NULL,"
         "name TEXT NOT NULL,"
         "occ REAL NOT NULL)");
 
     // additional properties of conjugated segments
-    Exec("CREATE TABLE segment_properties ("
+    Exec("CREATE TABLE conjseg_properties ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "segment INTEGER NOT NULL,"
         "key TEXT NOT NULL,"
         "value REAL NOT NULL)");
 
     // table for rigid fragments
-    Exec("CREATE TABLE fragments ("
+    Exec("CREATE TABLE rigidfrag ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "id INT NOT NULL,"
         "name TEXT NOT NULL,"
@@ -49,8 +49,8 @@ void QMDatabase::onCreate()
         "mass REAL NOT NULL,"
         "charge REAL NOT NULL,"
         "molid INT NOT NULL,"
-        "segment_id INT NOT NULL,"
-        "segment_index INT NOT NULL,"
+        "conjseg_id INT NOT NULL,"
+        "conjseg_index INT NOT NULL,"
         "pos_x REAL NOT NULL,"
         "pos_y REAL NOT NULL,"
         "pos_z REAL NOT NULL,"
@@ -62,7 +62,7 @@ void QMDatabase::onCreate()
         "v_z REAL NOT NULL)");
 
     // additional properties of rigid fragments
-    Exec("CREATE TABLE fragment_properties ("
+    Exec("CREATE TABLE rigidfrag_properties ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "fragmenttid INTEGER NOT NULL,"
         "key TEXT NOT NULL,"
@@ -71,8 +71,8 @@ void QMDatabase::onCreate()
     // table for pairs
     Exec("CREATE TABLE pairs ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "segment1 INT NOT NULL,"
-        "segment2 INT NOT NULL,"
+        "conjseg1 INT NOT NULL,"
+        "conjseg2 INT NOT NULL,"
         "rate12 REAL NOT NULL,"
         "rate21 REAL NOT NULL,"
         "r_x REAL NOT NULL,"
@@ -93,18 +93,18 @@ void QMDatabase::onCreate()
             " END");
 
     // delete segment properties + fragments + pairs if segment is deleted
-    Exec("CREATE TRIGGER trig_delete_segment BEFOR DELETE ON segments "
+    Exec("CREATE TRIGGER trig_delete_conjseg BEFOR DELETE ON conjseg "
             "FOR EACH ROW BEGIN "
-            "DELETE FROM segment_properties WHERE segment_properties=segmentid.segment = OLD._id;"
-            "DELETE FROM fragments WHERE segment_id=segmentid.frame = OLD._id;"
-            "DELETE FROM pairs WHERE pairs.segment1 = OLD._id OR pairs.segment2 = OLD._id;"
+            "DELETE FROM conjseg_properties WHERE conjseg_properties.conjsegment = OLD._id;"
+            "DELETE FROM rigidfrag WHERE conjseg_id= OLD._id;"
+            "DELETE FROM pairs WHERE pairs.conjseg1 = OLD._id OR pairs.conjseg2 = OLD._id;"
             " END");
 
-    // delete fragment properties if fragment is deleted
-    Exec("CREATE TRIGGER trig_delete_fragment BEFOR DELETE ON fragments "
+    /*// delete fragment properties if fragment is deleted
+    Exec("CREATE TRIGGER trig_delete_fragment BEFOR DELETE ON rigidfrag "
             "FOR EACH ROW BEGIN "
-            "DELETE FROM fragment_properties WHERE fragment_properties.fragment = OLD._id;"
-            "DELETE FROM fragments WHERE segment_id=segmentid.frame = OLD._id;"
+            "DELETE FROM rigidfrag_properties WHERE fragment_properties.fragment = OLD._id;"
+            "DELETE FROM conjseg WHERE segment_id=segmentid.frame = OLD._id;"
             " END");
 
     // delete pair property if property is deleted
@@ -113,5 +113,5 @@ void QMDatabase::onCreate()
             "DELETE FROM pair_properties WHERE pair_properties.pair = OLD._id;"
             " END");
 
-
+*/
 }

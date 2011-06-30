@@ -30,10 +30,10 @@ private:
     int _frame;
     Database _db;
     
-    void WriteMolecules();
-    void WriteCrgUnits();
-    void WriteBeads();
-    void WritePairs();
+    void WriteMolecules(int frameid);
+    void WriteCrgUnits(int frameid);
+    void WriteBeads(int frameid);
+    void WritePairs(int frameid);
 
     QMTopology *_qmtop;
 };

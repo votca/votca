@@ -23,25 +23,15 @@ void StateSaverSQLite::Close()
 
 void StateSaverSQLite::WriteFrame()
 {
+    _db.BeginTransaction();
     Statement *stmt;
-    _db.Exec("CREATE TABLE frames (_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "time REAL NOT NULL,"
-        "step INT NOT NULL,"
-        "box11 REAL NOT NULL,"
-        "box12 REAL NOT NULL,"
-        "box13 REAL NOT NULL,"
-        "box21 REAL NOT NULL,"
-        "box22 REAL NOT NULL,"
-        "box23 REAL NOT NULL,"
-        "box31 REAL NOT NULL,"
-        "box32 REAL NOT NULL,"
-        "box33 REAL NOT NULL)");
-
     stmt = _db.Prepare(
-            "INSERT INTO frames (time, step, box11, box12, box13, box21, box22, box23, box31, box32, box33) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+            "INSERT INTO frames (time, step, "
+            "box11, box12, box13, box21, box22, box23, box31, box32, box33) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)");
 
     stmt->Bind(1, _qmtop->getTime());
-    stmt->Bind(1, _qmtop->getStep());
+    stmt->Bind(2, _qmtop->getStep());
 
     for(int i=0; i<3; ++i)
         for(int j=0; j<9; ++j)
@@ -49,28 +39,24 @@ void StateSaverSQLite::WriteFrame()
 
     stmt->Step();
     delete stmt;
-    
-    WriteMolecules();
-    WriteCrgUnits();
-    WriteBeads();
-    WritePairs();
 
+    int frameid = _db.LastInsertRowId();
+    WriteMolecules(frameid);
+    WriteCrgUnits(frameid);
+    WriteBeads(frameid);
+    WritePairs(frameid);
+
+    _db.EndTransaction();
     _frame++;
 }
 
-void StateSaverSQLite::WriteMolecules()
+void StateSaverSQLite::WriteMolecules(int frameid)
 {
     Statement *stmt;
 
-    _db.Exec(
-        "CREATE TABLE molecules (_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "id INT NOT NULL,"
-        "name TEXT NOT NULL)");
-
-    _db.Exec("BEGIN;");
     stmt = _db.Prepare("INSERT INTO molecules (id, name) VALUES (?, ?)");
 
-     int imol=0;
+    int imol=0;
     for (MoleculeContainer::iterator iter = _qmtop->Molecules().begin();
             iter != _qmtop->Molecules().end() ; ++iter) {
         Molecule *mol=*iter;
@@ -80,27 +66,15 @@ void StateSaverSQLite::WriteMolecules()
         stmt->Reset();
     }
 
-    _db.Exec("END;");
-
     delete stmt;
 }
 
-void StateSaverSQLite::WriteCrgUnits() {
-    _db.Exec(
-        "CREATE TABLE crgunits (_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "id INT NOT NULL,"
-        "name TEXT NOT NULL,"
-        "energy REAL NOT NULL,"
-        "occ REAL NOT NULL)");
-
-    _db.Exec("BEGIN;");
-
-
+void StateSaverSQLite::WriteCrgUnits(int frameid) {
     Statement *stmt = _db.Prepare(
             "INSERT INTO crgunits (id, name, energy, occ) VALUES (?,?,?,?)"
-            );
+    );
 
-     int imol=0;
+    int imol=0;
     for (vector < QMCrgUnit *>::iterator iter = _qmtop->CrgUnits().begin(); iter!=_qmtop->CrgUnits().end(); ++iter) {
         QMCrgUnit *crg = *iter;
         stmt->Bind<int>(1, crg->getId());
@@ -110,41 +84,14 @@ void StateSaverSQLite::WriteCrgUnits() {
         stmt->Step();
         stmt->Reset();
     }
-
-    _db.Exec("END;");
-
     delete stmt;
 }
 
-void StateSaverSQLite::WriteBeads() {
-    
-    _db.Exec(
-        "CREATE TABLE beads (_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "id INT NOT NULL,"
-        "name TEXT NOT NULL,"
-        "symmetry INT NOT NULL,"
-        "type TEXT NOT NULL,"
-        "resnr INT NOT NULL,"
-        "mass REAL NOT NULL,"
-        "charge REAL NOT NULL,"
-        "crgunit INT NOT NULL,"
-        "crgunit_index INT NOT NULL,"
-        "pos_x REAL NOT NULL,"
-        "pos_y REAL NOT NULL,"
-        "pos_z REAL NOT NULL,"
-        "u_x REAL NOT NULL,"
-        "u_y REAL NOT NULL,"
-        "u_z REAL NOT NULL,"
-        "v_x REAL NOT NULL,"
-        "v_y REAL NOT NULL,"
-        "v_z REAL NOT NULL,"
-        "molid INT NOT NULL)");
-
-    _db.Exec("BEGIN;");
-
+void StateSaverSQLite::WriteBeads(int frameid) {
     Statement *stmt= _db.Prepare(
             "INSERT INTO beads (id,name,symmetry,type,resnr,mass,charge,crgunit,"
-            "crgunit_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            "crgunit_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molid) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
     for (BeadContainer::iterator iter = _qmtop->Beads().begin();
             iter != _qmtop->Beads().end(); ++iter) {
@@ -174,23 +121,10 @@ void StateSaverSQLite::WriteBeads() {
         stmt->Step();
         stmt->Reset();
     }
-    _db.Exec("END;");
 }
 
-void StateSaverSQLite::WritePairs() {
+void StateSaverSQLite::WritePairs(int frameid) {
     Statement *stmt;
-    _db.Exec(
-        "CREATE TABLE pairs (_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "crgunit1 INT NOT NULL,"
-        "crgunit2 INT NOT NULL,"
-        "rate12 REAL NOT NULL,"
-        "rate21 REAL NOT NULL,"
-        "r_x REAL NOT NULL,"
-        "r_y REAL NOT NULL,"
-        "r_z REAL NOT NULL)");
-
-    _db.Exec("BEGIN;");
-
     stmt = _db.Prepare(
             "INSERT INTO pairs (crgunit1, crgunit2, rate12, rate21, r_x, r_y,r_z)"
             " VALUES (?,?,?,?,?,?,?)");
@@ -213,8 +147,5 @@ void StateSaverSQLite::WritePairs() {
         stmt->Step();
         stmt->Reset();
     }
-
-    _db.Exec("END;");
-
     delete stmt;
 }
