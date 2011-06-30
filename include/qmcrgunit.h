@@ -15,7 +15,7 @@ using namespace std;
 class QMCrgUnit : public CrgUnit
 {
 public:
-    QMCrgUnit() : _occupation_probability(0) {}
+    QMCrgUnit() : _occupation_probability(0), _dbid(-1) {}
     QMCrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
             const unsigned int & id, CrgUnitType * type,
             const unsigned int & molId);
@@ -30,10 +30,12 @@ public:
     double getOccupationProbability() { return _occupation_probability; }
     void  setOccupationProbability(double prob) { _occupation_probability = prob; }
 
+    void setDatabaseId(int id) { _dbid = id; }
+    int getDatabaseId() { return _dbid; }
+
 protected:
     double _occupation_probability;
-
-    
+    int _dbid;
 };
 
 inline QMCrgUnit::QMCrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,

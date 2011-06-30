@@ -25,7 +25,7 @@ void QMDatabase::onCreate()
         "frame INT NOT NULL)");
       
     // table for conjugated segments
-    Exec("CREATE TABLE conjseg ("
+    Exec("CREATE TABLE conjsegs ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "id INT NOT NULL,"
         "name TEXT NOT NULL,"
@@ -48,7 +48,7 @@ void QMDatabase::onCreate()
         "resnr INT NOT NULL,"
         "mass REAL NOT NULL,"
         "charge REAL NOT NULL,"
-        "molid INT NOT NULL,"
+        "molecule INT NOT NULL,"
         "conjseg_id INT NOT NULL,"
         "conjseg_index INT NOT NULL,"
         "pos_x REAL NOT NULL,"

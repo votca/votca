@@ -54,16 +54,19 @@ void StateSaverSQLite::WriteMolecules(int frameid)
 {
     Statement *stmt;
 
-    stmt = _db.Prepare("INSERT INTO molecules (id, name) VALUES (?, ?)");
+    stmt = _db.Prepare("INSERT INTO molecules (frame, id, name) VALUES (?, ?, ?)");
 
     int imol=0;
+    stmt->Bind(1, frameid);
+
     for (MoleculeContainer::iterator iter = _qmtop->Molecules().begin();
             iter != _qmtop->Molecules().end() ; ++iter) {
         Molecule *mol=*iter;
-        stmt->Bind(1, mol->getId());
-        stmt->Bind(2, mol->getName());
+        stmt->Bind(2, mol->getId());
+        stmt->Bind(3, mol->getName());
         stmt->Step();
         stmt->Reset();
+        //mol->setDBId(_db.LastInsertRowId());
     }
 
     delete stmt;
@@ -71,7 +74,7 @@ void StateSaverSQLite::WriteMolecules(int frameid)
 
 void StateSaverSQLite::WriteCrgUnits(int frameid) {
     Statement *stmt = _db.Prepare(
-            "INSERT INTO crgunits (id, name, energy, occ) VALUES (?,?,?,?)"
+            "INSERT INTO conjsegs (id, name) VALUES (?,?)"
     );
 
     int imol=0;
@@ -79,18 +82,17 @@ void StateSaverSQLite::WriteCrgUnits(int frameid) {
         QMCrgUnit *crg = *iter;
         stmt->Bind<int>(1, crg->getId());
         stmt->Bind(2, crg->getName());;
-        stmt->Bind(3, crg->getEnergy());
-        stmt->Bind(4, crg->getOccupationProbability());
         stmt->Step();
         stmt->Reset();
+        crg->setDatabaseId(_db.LastInsertRowId());
     }
     delete stmt;
 }
 
 void StateSaverSQLite::WriteBeads(int frameid) {
     Statement *stmt= _db.Prepare(
-            "INSERT INTO beads (id,name,symmetry,type,resnr,mass,charge,crgunit,"
-            "crgunit_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molid) "
+            "INSERT INTO rigidfrag (id,name,symmetry,type,resnr,mass,charge,conjseg_id,"
+            "conjseg_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
     for (BeadContainer::iterator iter = _qmtop->Beads().begin();
@@ -103,7 +105,7 @@ void StateSaverSQLite::WriteBeads(int frameid) {
         stmt->Bind(5, bi->getResnr());
         stmt->Bind(6, bi->getM());
         stmt->Bind(7, bi->getQ());
-        stmt->Bind<int>(8, bi->GetCrgUnit()->getId());;
+        stmt->Bind<int>(8, bi->GetCrgUnit()->getDatabaseId());;
         stmt->Bind(9, bi->getiPos());
         
         stmt->Bind(10, bi->getPos().getX());
@@ -116,8 +118,6 @@ void StateSaverSQLite::WriteBeads(int frameid) {
         stmt->Bind(17, bi->getV().getY());
         stmt->Bind(18, bi->getV().getZ());
         
-        stmt->Bind(19, bi->getMolecule()->getId());
-
         stmt->Step();
         stmt->Reset();
     }
@@ -126,7 +126,7 @@ void StateSaverSQLite::WriteBeads(int frameid) {
 void StateSaverSQLite::WritePairs(int frameid) {
     Statement *stmt;
     stmt = _db.Prepare(
-            "INSERT INTO pairs (crgunit1, crgunit2, rate12, rate21, r_x, r_y,r_z)"
+            "INSERT INTO pairs (conjseg1, conjseg2, rate12, rate21, r_x, r_y,r_z)"
             " VALUES (?,?,?,?,?,?,?)");
 
     QMNBList &nblist = _qmtop->nblist();
@@ -136,8 +136,8 @@ void StateSaverSQLite::WritePairs(int frameid) {
         QMCrgUnit *crg1 = (*iter)->first;
         QMCrgUnit *crg2 = (*iter)->second;
 
-        stmt->Bind(1, (int)crg1->getId());
-        stmt->Bind(2, (int)crg2->getId());
+        stmt->Bind(1, (int)crg1->getDatabaseId());
+        stmt->Bind(2, (int)crg2->getDatabaseId());
         stmt->Bind(3, pair->rate12());
         stmt->Bind(4, pair->rate21());
         stmt->Bind(5, pair->r().getX());
