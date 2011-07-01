@@ -14,11 +14,62 @@ void StateSaverSQLite::Open(QMTopology& qmtop, const string& file)
     _db.Open(file.c_str(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
     _frame = 0;
     _qmtop=&qmtop;
+
+    // now query available frames in database
+    Statement *stmt = _db.Prepare("SELECT _id FRAMES;");
+    while(stmt->Step() != SQLITE_DONE) {
+            _frames.push_back(stmt->Column<int>(0));
+
+    }
+    delete stmt;
+
+    cout << "Found " << _frames.size() << " in database\n";
+    _current_frame = -1;
 }
 
 void StateSaverSQLite::Close()
 {
     _db.Close();
+}
+
+bool StateSaverSQLite::NextFrame()
+{
+    _qmtop->Cleanup();
+    _qmtop->nblist().Cleanup();
+    _qmtop->CreateResidue("dummy");
+
+    _current_frame++;
+    if(_current_frame >= _frames.size())
+        return false;
+
+    ReadFrame();
+    ReadMolecules();
+    ReadBeads();
+    ReadPairs();
+    return true;
+}
+
+void StateSaverSQLite::ReadFrame(void)
+{
+    Statement *stmt =
+        _db.Prepare("SELECT time, step, "
+            "box11, box12, box13, "
+            "box21, box22, box23, "
+            "box31, box32, box33 "
+            "FROM frames WHERE _id = ?;");
+    stmt->Bind(1, _current_frame);
+
+    if(stmt->Step() == SQLITE_DONE)
+        throw std::runtime_error("cannot read frame, database might have changed while program is running");
+
+    _qmtop->setTime(stmt->Column<double>(0));
+    _qmtop->setStep(stmt->Column<int>(1));
+    matrix m;
+    for(int i=0; i<3; ++i)
+        for(int j=0; j<9; ++j)
+            m.set(i, j, stmt->Column<double>(2+i*3+j));
+    _qmtop->setBox(m);
+    delete stmt;
 }
 
 void StateSaverSQLite::WriteFrame()

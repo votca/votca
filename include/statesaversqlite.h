@@ -26,6 +26,8 @@ public:
     void Open(QMTopology & qmtop,const string &file);
     void Close();
     void WriteFrame();
+
+    bool NextFrame();
 private:
     int _frame;
     Database _db;
@@ -35,7 +37,16 @@ private:
     void WriteBeads(int frameid);
     void WritePairs(int frameid);
 
+    void ReadFrame(void);
+    void ReadMolecules(void);
+    void ReadCrgUnits(void);
+    void ReadBeads(void);
+    void ReadPairs(void);
+
     QMTopology *_qmtop;
+
+    vector<int> _frames;
+    int _current_frame;
 };
 
 #endif	/* __VOTCA_MD2QM_StateSaverSQLite_H */
