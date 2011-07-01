@@ -1,0 +1,10 @@
+<cg>
+  <inverse>
+    <gromacs>
+      <pot_max>1e8</pot_max>
+      <table_end>180.0</table_end>
+      <table_bins>0.05</table_bins>
+    </gromacs>
+  </inverse>
+</cg>
+
