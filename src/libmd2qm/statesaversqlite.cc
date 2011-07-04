@@ -72,6 +72,81 @@ void StateSaverSQLite::ReadFrame(void)
     delete stmt;
 }
 
+void StateSaverSQLite::ReadMolecules(void)
+{
+       Statement *stmt =
+        _db.Prepare("SELECT time, step, "
+            "box11, box12, box13, "
+            "box21, box22, box23, "
+            "box31, box32, box33 "
+            "FROM frames WHERE _id = ?;");
+    stmt->Bind(1, _current_frame);
+
+    while(stmt->Step() != SQLITE_DONE)
+        throw std::runtime_error("cannot read frame, database might have changed while program is running");
+
+    _qmtop->setTime(stmt->Column<double>(0));
+    _qmtop->setStep(stmt->Column<int>(1));
+    matrix m;
+    for(int i=0; i<3; ++i)
+        for(int j=0; j<9; ++j)
+            m.set(i, j, stmt->Column<double>(2+i*3+j));
+    _qmtop->setBox(m);
+    delete stmt;
+
+        stmt = _db.Prepare("INSERT INTO molecules (frame, id, name) VALUES (?, ?, ?)");
+
+}
+
+void StateSaverSQLite::ReaBeads() {
+    assert(_in.is_open());
+
+    unsigned long nr_qmbeads = read<unsigned long>();
+    for (unsigned long i = 0; i < nr_qmbeads; i++) {
+        Statement *stmt =
+            _db.Prepare("SELECT "
+                "_id, id, name, symmetry, type, resnr, mass, charge, molecule, "
+                "conjseg_id, conjseg_index, pos_x, pos_y, pos_y, "
+                "u_x, u_y, u_z, v_x, v_y, v_z "
+                "FROM rigidfrags WHERE (molecules._id = molecule AND molecules.frame = ?)");
+
+        byte_t symmetry =       read<byte_t> ();
+        string bead_name =      read<string> ();
+        string type_name =      read<string> ();
+        int resnr =             read<int>();
+        // HACK: since only one residue is created this must be set to 0 by hand.
+        resnr =0;
+        double M =              read<double>();
+        double Q =              read<double>();
+
+        string crg_unit_name =  read<string> ();
+        double energy = read<double>();
+
+        unsigned short ipos =   read<unsigned short>();
+        vec Pos =               read<vec> ();
+        vec U =                 read<vec> ();
+        vec V =                 read<vec> ();
+        int molid =             read<int>();
+
+        BeadType *type = _qmtop->GetOrCreateBeadType(type_name);
+      
+        QMBead *bead = dynamic_cast<QMBead*>(_qmtop->CreateBead(symmetry, bead_name, type, resnr, M, Q));
+        _qmtop->getMolecule(molid)->AddBead(bead, bead_name);
+
+        QMCrgUnit * acrg = _qmtop->GetCrgUnitByName(crg_unit_name);
+        if(acrg == NULL)
+            acrg = _qmtop->CreateCrgUnit(crg_unit_name, type_name, molid);
+        acrg->setEnergy(energy);
+
+        bead->setCrg(acrg);
+        bead->setiPos(ipos);
+        bead->setPos(Pos);
+        bead->setU(U);
+        bead->setV(V);
+        bead->UpdateCrg();
+    }
+}
+
 void StateSaverSQLite::WriteFrame()
 {
     _db.BeginTransaction();
