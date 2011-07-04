@@ -78,7 +78,7 @@ public:
 
         int LastInsertRowId();
         void BeginTransaction() { Exec("BEGIN TRANSACTION;"); }
-        void EndTransaction() { Exec("BEGIN TRANSACTION;"); }
+        void EndTransaction() { Exec("END TRANSACTION;"); }
         void CommitTransaction() { Exec("COMMIT TRANSACTION;"); }
         void RollbackTransaction() { Exec("ROLLBACK TRANSACTION;"); }
 
