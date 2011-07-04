@@ -32,7 +32,7 @@ void QMDatabase::onCreate()
         "type TEXT NOT NULL,"
         "molecule INT NOT NULL,"
         "frame INT NOT NULL," // TODO: this is bad
-        "occ REAL NOT NULL)"); 
+        "occ REAL)"); 
 
     // additional properties of conjugated segments
     Exec("CREATE TABLE conjseg_properties ("

@@ -74,18 +74,6 @@ void StateSaverSQLite::ReadFrame(void)
     delete stmt;
 }
 
-void StateSaverSQLite::ReadMolecules(void)
-{
-   Statement *stmt =
-        _db.Prepare("SELECT name FROM molecules WHERE frame = ?;");
-    stmt->Bind(1, _frames[_current_frame]);
-
-    while(stmt->Step() != SQLITE_DONE) {
-        Molecule *mol = _qmtop->CreateMolecule(stmt->Column<string>(0));
-    }
-    delete stmt;
-}
-
 void StateSaverSQLite::ReadBeads() {
     Statement *stmt =
         _db.Prepare("SELECT "
@@ -186,6 +174,18 @@ void StateSaverSQLite::WriteMolecules(int frameid)
     delete stmt;
 }
 
+void StateSaverSQLite::ReadMolecules(void)
+{
+   Statement *stmt =
+        _db.Prepare("SELECT name FROM molecules WHERE frame = ?;");
+    stmt->Bind(1, _frames[_current_frame]);
+
+    while(stmt->Step() != SQLITE_DONE) {
+        Molecule *mol = _qmtop->CreateMolecule(stmt->Column<string>(0));
+    }
+    delete stmt;
+}
+
 void StateSaverSQLite::WriteCrgUnits(int frameid) {
     Statement *stmt = _db.Prepare(
             "INSERT INTO conjsegs (id, name, type, molecule, frame) VALUES (?,?,?,?,?)"
@@ -198,7 +198,7 @@ void StateSaverSQLite::WriteCrgUnits(int frameid) {
         stmt->Bind(2, crg->getName());;
         stmt->Bind(3, crg->getType()->GetName());;
         stmt->Bind<int>(4, crg->getMolId());;
-        stmt->Bind(4, frameid);;
+        stmt->Bind(5, frameid);;
         stmt->Step();
         stmt->Reset();
         crg->setDatabaseId(_db.LastInsertRowId());
