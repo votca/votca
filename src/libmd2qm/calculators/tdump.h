@@ -77,6 +77,11 @@ inline bool DumpTrajectory::EvaluateFrame(QMTopology *top) {
     // creating the back-mapped atomistic trajectory
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
     Topology qmAtomisticTop;
+    qmAtomisticTop.setBox(top->getBox());
+    qmAtomisticTop.setStep(top->getStep());
+    qmAtomisticTop.setTime(top->getTime());
+
+
     for (vector<QMCrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++){
         top->AddAtomisticBeads(*itl,&qmAtomisticTop);
     }
