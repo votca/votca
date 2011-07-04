@@ -62,7 +62,7 @@ bool CalcEstatics::EvaluateFrame(QMTopology *top) {
         //Attention not to overwrite the site energies from list_charges.xml
             crg->setEnergy(crged - neutr);
         //cout << "Estatic energy [eV] for charged / neutral / crg-neutr=espilon: " << crged << " " << neutr << " " << crged - neutr << "\n";
-        cout << "estatic energy [eV] for crgunit " << crg->getId() << " at pos " << crg->GetCom() << " is " << crged - neutr << "\n";
+        //cout << "estatic energy [eV] for crgunit " << crg->getId() << " at pos " << crg->GetCom() << " is " << crged - neutr << "\n";
     }
    
     atop.Cleanup();
