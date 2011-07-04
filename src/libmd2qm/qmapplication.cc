@@ -58,16 +58,15 @@ void QMApplication::Run()
     /// load qmtop from state saver
     cout << "Loading qmtopology via state saver." << endl;
     string statefile = OptionsMap()["in"].as<string>();
-    StateSaver loader(_qmtop, statefile,'r');
+    StateSaverSQLite loader;
+    loader.Open(_qmtop, statefile);
     string stateout=OptionsMap()["out"].as<string>();
-    StateSaver saver(_qmtop, stateout, 'w');
+    StateSaverSQLite saver;
+    saver.Open(_qmtop, stateout);
 
-    loader.Seek(first_frame);
-    for (int i=0;(i<nframes) || (nframes < 0);i++){
-        if (!loader.Load()) break;
-        cout << "Read frame " << i+first_frame+1 << endl;
+    while(loader.NextFrame()) {
         EvaluateFrame();
-        saver.Save();
+        saver.WriteFrame();
     }
     loader.Close();
     saver.Close();

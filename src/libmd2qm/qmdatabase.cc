@@ -29,7 +29,10 @@ void QMDatabase::onCreate()
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "id INT NOT NULL,"
         "name TEXT NOT NULL,"
-        "occ REAL NOT NULL)");
+        "type TEXT NOT NULL,"
+        "molecule INT NOT NULL,"
+        "frame INT NOT NULL," // TODO: this is bad
+        "occ REAL NOT NULL)"); 
 
     // additional properties of conjugated segments
     Exec("CREATE TABLE conjseg_properties ("
@@ -39,7 +42,7 @@ void QMDatabase::onCreate()
         "value REAL NOT NULL)");
 
     // table for rigid fragments
-    Exec("CREATE TABLE rigidfrag ("
+    Exec("CREATE TABLE rigidfrags ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "id INT NOT NULL,"
         "name TEXT NOT NULL,"
@@ -85,7 +88,7 @@ void QMDatabase::onCreate()
         "pair INTEGER NOT NULL,"
         "key TEXT NOT NULL,"
         "value REAL NOT NULL)");
-
+/*
     // delete molecules if frame is deleted
     Exec("CREATE TRIGGER trig_delete_frame BEFOR DELETE ON frames "
             "FOR EACH ROW BEGIN "
@@ -100,7 +103,7 @@ void QMDatabase::onCreate()
             "DELETE FROM pairs WHERE pairs.conjseg1 = OLD._id OR pairs.conjseg2 = OLD._id;"
             " END");
 
-    /*// delete fragment properties if fragment is deleted
+    // delete fragment properties if fragment is deleted
     Exec("CREATE TRIGGER trig_delete_fragment BEFOR DELETE ON rigidfrag "
             "FOR EACH ROW BEGIN "
             "DELETE FROM rigidfrag_properties WHERE fragment_properties.fragment = OLD._id;"

@@ -13,7 +13,7 @@ MD2QMObserver::~MD2QMObserver()
 void MD2QMObserver::Initialize(QMTopology &qmtop, Property &opts)
 {
     _qmtop = &qmtop;
-    _save.Open(qmtop, _out, 'w');
+    _save.Open(qmtop, _out);
 }
 
 void MD2QMObserver::BeginCG(Topology *top, Topology *top_atom)
@@ -34,7 +34,7 @@ void MD2QMObserver::EvalConfiguration(Topology *top, Topology *top_atom)
 
     nblist.setCutoff(_cutoff);
     nblist.Generate(list1);
-    _save.Save();
+    _save.WriteFrame();
 
 // Old stuff is now replaced by output of pairs.xml (xmlwriter calculator)
 //

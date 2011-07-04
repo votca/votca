@@ -11,15 +11,14 @@ StateSaverSQLite::~StateSaverSQLite()
 
 void StateSaverSQLite::Open(QMTopology& qmtop, const string& file)
 {
-    _db.Open(file.c_str(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+    _db.OpenHelper(file.c_str());
     _frame = 0;
     _qmtop=&qmtop;
 
     // now query available frames in database
-    Statement *stmt = _db.Prepare("SELECT _id FRAMES;");
+    Statement *stmt = _db.Prepare("SELECT _id FROM frames;");
     while(stmt->Step() != SQLITE_DONE) {
-            _frames.push_back(stmt->Column<int>(0));
-
+        _frames.push_back(stmt->Column<int>(0));
     }
     delete stmt;
 
@@ -44,26 +43,29 @@ bool StateSaverSQLite::NextFrame()
 
     ReadFrame();
     ReadMolecules();
-    ReadBeads();
-    ReadPairs();
+    ReadConjugatedSegments();
+    //ReadBeads();
+//    ReadPairs();
     return true;
 }
 
 void StateSaverSQLite::ReadFrame(void)
 {
+    cout << "reading frame " << _current_frame+1 << ", id " << _frames[_current_frame] << endl;
     Statement *stmt =
         _db.Prepare("SELECT time, step, "
             "box11, box12, box13, "
             "box21, box22, box23, "
             "box31, box32, box33 "
             "FROM frames WHERE _id = ?;");
-    stmt->Bind(1, _current_frame);
+    stmt->Bind(1, _frames[_current_frame]);
 
     if(stmt->Step() == SQLITE_DONE)
         throw std::runtime_error("cannot read frame, database might have changed while program is running");
 
     _qmtop->setTime(stmt->Column<double>(0));
     _qmtop->setStep(stmt->Column<int>(1));
+    cout << "time " << stmt->Column<double>(0) << endl;
     matrix m;
     for(int i=0; i<3; ++i)
         for(int j=0; j<9; ++j)
@@ -74,43 +76,28 @@ void StateSaverSQLite::ReadFrame(void)
 
 void StateSaverSQLite::ReadMolecules(void)
 {
-       Statement *stmt =
-        _db.Prepare("SELECT time, step, "
-            "box11, box12, box13, "
-            "box21, box22, box23, "
-            "box31, box32, box33 "
-            "FROM frames WHERE _id = ?;");
-    stmt->Bind(1, _current_frame);
+   Statement *stmt =
+        _db.Prepare("SELECT name FROM molecules WHERE frame = ?;");
+    stmt->Bind(1, _frames[_current_frame]);
 
-    while(stmt->Step() != SQLITE_DONE)
-        throw std::runtime_error("cannot read frame, database might have changed while program is running");
-
-    _qmtop->setTime(stmt->Column<double>(0));
-    _qmtop->setStep(stmt->Column<int>(1));
-    matrix m;
-    for(int i=0; i<3; ++i)
-        for(int j=0; j<9; ++j)
-            m.set(i, j, stmt->Column<double>(2+i*3+j));
-    _qmtop->setBox(m);
+    while(stmt->Step() != SQLITE_DONE) {
+        Molecule *mol = _qmtop->CreateMolecule(stmt->Column<string>(0));
+    }
     delete stmt;
-
-        stmt = _db.Prepare("INSERT INTO molecules (frame, id, name) VALUES (?, ?, ?)");
-
 }
 
-void StateSaverSQLite::ReaBeads() {
-    assert(_in.is_open());
+void StateSaverSQLite::ReadBeads() {
+    Statement *stmt =
+        _db.Prepare("SELECT "
+            "rigidfrags._id, rigidfrags.id, rigidfrags.name, symmetry, type, resnr, mass, charge, molecule, "
+            "conjseg_id, conjseg_index, pos_x, pos_y, pos_y, "
+            "u_x, u_y, u_z, v_x, v_y, v_z "
+            "FROM rigidfrags, molecules WHERE (molecules._id = molecule AND molecules.frame = ?)");
+    stmt->Bind(1, _current_frame);
 
-    unsigned long nr_qmbeads = read<unsigned long>();
-    for (unsigned long i = 0; i < nr_qmbeads; i++) {
-        Statement *stmt =
-            _db.Prepare("SELECT "
-                "_id, id, name, symmetry, type, resnr, mass, charge, molecule, "
-                "conjseg_id, conjseg_index, pos_x, pos_y, pos_y, "
-                "u_x, u_y, u_z, v_x, v_y, v_z "
-                "FROM rigidfrags WHERE (molecules._id = molecule AND molecules.frame = ?)");
-
-        byte_t symmetry =       read<byte_t> ();
+    while (stmt->Step() != SQLITE_DONE) {
+/*
+        byte_t symmetry =       ;
         string bead_name =      read<string> ();
         string type_name =      read<string> ();
         int resnr =             read<int>();
@@ -143,8 +130,9 @@ void StateSaverSQLite::ReaBeads() {
         bead->setPos(Pos);
         bead->setU(U);
         bead->setV(V);
-        bead->UpdateCrg();
+        bead->UpdateCrg();*/
     }
+    delete stmt;
 }
 
 void StateSaverSQLite::WriteFrame()
@@ -200,7 +188,7 @@ void StateSaverSQLite::WriteMolecules(int frameid)
 
 void StateSaverSQLite::WriteCrgUnits(int frameid) {
     Statement *stmt = _db.Prepare(
-            "INSERT INTO conjsegs (id, name) VALUES (?,?)"
+            "INSERT INTO conjsegs (id, name, type, molecule, frame) VALUES (?,?,?,?,?)"
     );
 
     int imol=0;
@@ -208,6 +196,9 @@ void StateSaverSQLite::WriteCrgUnits(int frameid) {
         QMCrgUnit *crg = *iter;
         stmt->Bind<int>(1, crg->getId());
         stmt->Bind(2, crg->getName());;
+        stmt->Bind(3, crg->getType()->GetName());;
+        stmt->Bind<int>(4, crg->getMolId());;
+        stmt->Bind(4, frameid);;
         stmt->Step();
         stmt->Reset();
         crg->setDatabaseId(_db.LastInsertRowId());
@@ -215,10 +206,22 @@ void StateSaverSQLite::WriteCrgUnits(int frameid) {
     delete stmt;
 }
 
+void StateSaverSQLite::ReadConjugatedSegments(void)
+{
+   Statement *stmt =
+        _db.Prepare("SELECT name, type, molecule FROM conjsegs WHERE frame = ?;");
+    stmt->Bind(1, _frames[_current_frame]);
+
+    while(stmt->Step() != SQLITE_DONE) {
+        QMCrgUnit *acrg = _qmtop->CreateCrgUnit(stmt->Column<string>(0), stmt->Column<string>(1), stmt->Column<int>(2));
+    }
+    delete stmt;
+}
+
 void StateSaverSQLite::WriteBeads(int frameid) {
     Statement *stmt= _db.Prepare(
-            "INSERT INTO rigidfrag (id,name,symmetry,type,resnr,mass,charge,conjseg_id,"
-            "conjseg_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z) "
+            "INSERT INTO rigidfrags (id,name,symmetry,type,resnr,mass,charge,conjseg_id,"
+            "conjseg_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molecule) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
     for (BeadContainer::iterator iter = _qmtop->Beads().begin();
@@ -243,6 +246,7 @@ void StateSaverSQLite::WriteBeads(int frameid) {
         stmt->Bind(16, bi->getV().getX());
         stmt->Bind(17, bi->getV().getY());
         stmt->Bind(18, bi->getV().getZ());
+        stmt->Bind(19, bi->getMolecule()->getId());
         
         stmt->Step();
         stmt->Reset();

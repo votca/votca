@@ -13,7 +13,7 @@
 #include "qmtopology.h"
 #include "qmpair.h"
 #include "qmnblist.h"
-#include <votca/tools/database.h>
+#include "qmdatabase.h"
 
 using namespace votca::tools;
 
@@ -30,7 +30,7 @@ public:
     bool NextFrame();
 private:
     int _frame;
-    Database _db;
+    QMDatabase _db;
     
     void WriteMolecules(int frameid);
     void WriteCrgUnits(int frameid);
@@ -39,7 +39,7 @@ private:
 
     void ReadFrame(void);
     void ReadMolecules(void);
-    void ReadCrgUnits(void);
+    void ReadConjugatedSegments(void);
     void ReadBeads(void);
     void ReadPairs(void);
 
