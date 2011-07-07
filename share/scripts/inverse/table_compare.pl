@@ -19,12 +19,12 @@ use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
 
-if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
+if (defined($ARGV[0]) && ( ("$ARGV[0]" eq "-h" ) || ("$ARGV[0]" eq "--help") )){
   print <<EOF;
 $progname, version %version%
 This script compares two tables
 
-Usage: $progname infile outfile
+Usage: $progname infile1 infile2
 EOF
   exit 0;
 }
@@ -33,7 +33,7 @@ die "2 parameters are nessary\n" if ($#ARGV<1);
 
 use CsgFunctions;
 
-my $epsilon=1e-3;
+my $epsilon=1e-5;
 
 my $file1="$ARGV[0]";
 my $file2="$ARGV[1]";
@@ -51,7 +51,8 @@ my @flag2;
 $#r1 == $#r2 || die "$progname: error, tables have different length";
 
 for (my $i=0;$i<=$#r1; $i++) {
-  abs($r1[$i] - $r2[$i]) < $epsilon || "$progname: first row different at position $i\n";
-  abs($pot1[$i] - $pot2[$i]) < $epsilon || "$progname: second row different at position $i\n";
-  $flag1[$i] == $flag2[$i] || "$progname: flag different at position $i\n";
+  abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first row different at position $i\n";
+  #check relative error!
+  abs($pot1[$i] - $pot2[$i])/(($pot1[$i] == 0.0) ? 1.0 : $pot1[$i]) < $epsilon || die "$progname: second row different at position $i\n";
+  $flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
 }
