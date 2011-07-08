@@ -15,13 +15,13 @@ void CalcEstatics::Initialize(QMTopology *top, Property *options) {
                 _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
             } else {
                 _epsilon_dielectric = 3.0;
-                cout << "Warning: dielectric constant in not provided, using default 3.0" << endl;
+                cout << "Warning: dielectric constant is not provided, using default 3.0" << endl;
             }
             if (options->exists("options.ecoulomb.screening")) {
                 _s_eps = options->get("options.ecoulomb.screening").as<double>();
             } else {
                 _s_eps = 3.0;
-                cout << "Warning: s_eps is not provided, using default 3.0" << endl;
+                cout << "Warning: screening is not provided, using default 3.0" << endl;
             }
             cout << "Doing distance-dependent-eps estatic with eps " << _epsilon_dielectric << " and s_eps " << _s_eps << endl;
         }
@@ -31,7 +31,7 @@ void CalcEstatics::Initialize(QMTopology *top, Property *options) {
         _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
     } else {
         _epsilon_dielectric = 3.0;
-        cout << "Warning: dielectric constant in not provided, using default 3.0" << endl;
+        cout << "Warning: dielectric constant is not provided, using default 3.0" << endl;
     }
             cout << "Doing simple estatic with constant eps " << _epsilon_dielectric << endl;
         }
@@ -68,7 +68,7 @@ bool CalcEstatics::EvaluateFrame(QMTopology *top) {
         //Attention not to overwrite the site energies from list_charges.xml
             crg->setEnergy(crged - neutr);
         //cout << "Estatic energy [eV] for charged / neutral / crg-neutr=espilon: " << crged << " " << neutr << " " << crged - neutr << "\n";
-        //cout << "estatic energy [eV] for crgunit " << crg->getId() << " at pos " << crg->GetCom() << " is " << crged - neutr << "\n";
+        cout << "Ecoulomb for crgunit " << crg->getId() << " at pos " << crg->GetCom() << " is " << crged - neutr << " eV\n";
     }
    
     atop.Cleanup();
