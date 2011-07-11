@@ -153,7 +153,7 @@ void basis_set::parse_xml_basisset_info(const string & filename){
     _nel_at = new int [18];
     _nbasis_at = new int [18];
     _basis_lbl_at = new string *[18];
-    list<Property *> atoms = _options.Select("ATOM");
+    list<Property *> atoms = (_options.get("basis")).Select("ATOM");
     list<Property *>::iterator iter;
     for (iter = atoms.begin();iter != atoms.end(); ++iter){
         int lbl, nel,nbasis;
@@ -162,7 +162,7 @@ void basis_set::parse_xml_basisset_info(const string & filename){
         nel = (*iter)->get("nel").as<int>();
         nbasis = (*iter)->get("nbasis").as<int>();
         string s = (*iter)->get("basis_symm").as<string>();
-        Tokenizer tok(s, "\n\t");
+        Tokenizer tok(s, "\n\t ");
         tok.ToVector(symms);
         _nel_at[lbl]=nel;
         _nbasis_at[lbl]=nbasis;
