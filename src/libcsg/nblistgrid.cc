@@ -127,13 +127,13 @@ NBListGrid::cell_t &NBListGrid::getCell(const vec &r)
     int c = (int)(r*_norm_c);
 
     if(a<0) a = _box_Na + a%_box_Na;
-    else a %= _box_Na;
+    a %= _box_Na;
 
     if(b<0) b = _box_Nb + b%_box_Nb;
-    else b %= _box_Nb;
+    b %= _box_Nb;
 
     if(c<0) c = _box_Nc + c%_box_Nc;
-    else c %= _box_Nc;
+    c %= _box_Nc;
 
     return getCell(a,b,c);
  }
