@@ -277,3 +277,14 @@ void StateSaverSQLite::WritePairs(int frameid) {
     }
     delete stmt;
 }
+
+void StateSaverSQLite::ReadPairs(void)
+{
+    Statement *stmt =
+    _db.Prepare("SELECT conjseg1, conjseg2, r_x, r_y, r_z");
+    stmt->Bind(1, _frames[_current_frame]);
+
+    while (stmt->Step() != SQLITE_DONE) {
+    }
+    delete stmt;
+}
