@@ -28,13 +28,10 @@
       <itemPath>../../src/libmd2qm/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/polymerrates.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/polymerrates.h</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/readxml.cc</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/readxml.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.cc</itemPath>
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/sqlitewriter.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/tdump.h</itemPath>
-      <itemPath>../../src/libmd2qm/calculators/writexml.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -49,6 +46,7 @@
       <itemPath>../../include/qmnblist.h</itemPath>
       <itemPath>../../include/qmpair.h</itemPath>
       <itemPath>../../include/qmtopology.h</itemPath>
+      <itemPath>../../include/qmtopologycreator.h</itemPath>
       <itemPath>../../include/sitecalculator.h</itemPath>
       <itemPath>../../include/statesaver.h</itemPath>
       <itemPath>../../include/statesaversqlite.h</itemPath>

@@ -160,11 +160,12 @@ void StateSaverSQLite::WriteCrgUnits(int frameid) {
 void StateSaverSQLite::ReadConjugatedSegments(void)
 {
    Statement *stmt =
-        _db.Prepare("SELECT name, type, molecule FROM conjsegs WHERE frame = ?;");
+        _db.Prepare("SELECT _id, name, type, molecule FROM conjsegs WHERE frame = ?;");
     stmt->Bind(1, _frames[_current_frame]);
 
     while(stmt->Step() != SQLITE_DONE) {
-        QMCrgUnit *acrg = _qmtop->CreateCrgUnit(stmt->Column<string>(0), stmt->Column<string>(1), stmt->Column<int>(2));
+        QMCrgUnit *acrg = _qmtop->CreateCrgUnit(stmt->Column<int>(0),
+                stmt->Column<string>(1), stmt->Column<string>(2), stmt->Column<int>(3));
     }
     delete stmt;
 }
@@ -208,9 +209,9 @@ void StateSaverSQLite::ReadBeads() {
     Statement *stmt =
         _db.Prepare("SELECT "
             "rigidfrags._id, rigidfrags.id, rigidfrags.name, symmetry, rigidfrags.type, resnr, mass, charge, rigidfrags.molecule, "
-            "conjsegs.id, conjseg_index, pos_x, pos_y, pos_y, "
+            "conjseg_id, conjseg_index, pos_x, pos_y, pos_y, "
             "u_x, u_y, u_z, v_x, v_y, v_z "
-            "FROM rigidfrags, molecules, conjsegs WHERE (molecules._id = rigidfrags.molecule AND molecules.frame = ? AND conjseg_id = conjsegs._id)");
+            "FROM rigidfrags, molecules WHERE (molecules._id = rigidfrags.molecule AND molecules.frame = ?)");
     stmt->Bind(1, _frames[_current_frame]);
 
     while (stmt->Step() != SQLITE_DONE) {
@@ -236,7 +237,7 @@ void StateSaverSQLite::ReadBeads() {
         QMBead *bead = dynamic_cast<QMBead*>(_qmtop->CreateBead(symmetry, bead_name, type, resnr, M, Q));
         _qmtop->getMolecule(molecule)->AddBead(bead, bead_name);
 
-        QMCrgUnit * acrg = _qmtop->GetCrgUnit(conjseg_id);
+        QMCrgUnit * acrg = _qmtop->getCrgUnit(conjseg_id);
         if(acrg == NULL)
             throw std::runtime_error("error reading rigid fragments: charge unit not found");
         //acrg = _qmtop->CreateCrgUnit(crg_unit_name, type_name, molid);
@@ -281,7 +282,7 @@ void StateSaverSQLite::WritePairs(int frameid) {
 void StateSaverSQLite::ReadPairs(void)
 {
     Statement *stmt =
-    _db.Prepare("SELECT conjseg1, conjseg2, r_x, r_y, r_z");
+    _db.Prepare("SELECT conjseg1, conjseg2, r_x, r_y, r_z FROM pairs, ");
     stmt->Bind(1, _frames[_current_frame]);
 
     while (stmt->Step() != SQLITE_DONE) {

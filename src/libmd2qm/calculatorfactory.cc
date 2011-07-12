@@ -3,8 +3,8 @@
 #include "votca_config.h"
 #include "calculators/izindo.h"
 #include "calculators/marcusrates.h"
-#include "calculators/readxml.h"
-#include "calculators/writexml.h"
+//#include "calculators/readxml.h"
+//#include "calculators/writexml.h"
 #include "calculators/ecoulomb.h"
 #include "calculators/ihistogram.h"
 #include "calculators/ehistogram.h"
@@ -32,8 +32,8 @@
 void CalculatorFactory::RegisterAll(void)
 {
 Calculators().Register<CalcIntegrals>("izindo");
-        Calculators().Register<WriteXML>("writexml");
-        Calculators().Register<ReadXML>("readxml");
+//        Calculators().Register<WriteXML>("writexml");
+//        Calculators().Register<ReadXML>("readxml");
         Calculators().Register<CalcEstatics>("ecoulomb");
         Calculators().Register<CalcLambdaOut>("lambdaout");
         Calculators().Register<MarcusRates>("marcusrates");
