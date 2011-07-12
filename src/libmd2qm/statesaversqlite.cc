@@ -44,7 +44,7 @@ bool StateSaverSQLite::NextFrame()
     ReadFrame();
     ReadMolecules();
     ReadConjugatedSegments();
-    //ReadBeads();
+    ReadBeads();
 //    ReadPairs();
     return true;
 }
@@ -71,55 +71,6 @@ void StateSaverSQLite::ReadFrame(void)
         for(int j=0; j<9; ++j)
             m.set(i, j, stmt->Column<double>(2+i*3+j));
     _qmtop->setBox(m);
-    delete stmt;
-}
-
-void StateSaverSQLite::ReadBeads() {
-    Statement *stmt =
-        _db.Prepare("SELECT "
-            "rigidfrags._id, rigidfrags.id, rigidfrags.name, symmetry, type, resnr, mass, charge, molecule, "
-            "conjseg_id, conjseg_index, pos_x, pos_y, pos_y, "
-            "u_x, u_y, u_z, v_x, v_y, v_z "
-            "FROM rigidfrags, molecules WHERE (molecules._id = molecule AND molecules.frame = ?)");
-    stmt->Bind(1, _current_frame);
-
-    while (stmt->Step() != SQLITE_DONE) {
-/*
-        byte_t symmetry =       ;
-        string bead_name =      read<string> ();
-        string type_name =      read<string> ();
-        int resnr =             read<int>();
-        // HACK: since only one residue is created this must be set to 0 by hand.
-        resnr =0;
-        double M =              read<double>();
-        double Q =              read<double>();
-
-        string crg_unit_name =  read<string> ();
-        double energy = read<double>();
-
-        unsigned short ipos =   read<unsigned short>();
-        vec Pos =               read<vec> ();
-        vec U =                 read<vec> ();
-        vec V =                 read<vec> ();
-        int molid =             read<int>();
-
-        BeadType *type = _qmtop->GetOrCreateBeadType(type_name);
-      
-        QMBead *bead = dynamic_cast<QMBead*>(_qmtop->CreateBead(symmetry, bead_name, type, resnr, M, Q));
-        _qmtop->getMolecule(molid)->AddBead(bead, bead_name);
-
-        QMCrgUnit * acrg = _qmtop->GetCrgUnitByName(crg_unit_name);
-        if(acrg == NULL)
-            acrg = _qmtop->CreateCrgUnit(crg_unit_name, type_name, molid);
-        acrg->setEnergy(energy);
-
-        bead->setCrg(acrg);
-        bead->setiPos(ipos);
-        bead->setPos(Pos);
-        bead->setU(U);
-        bead->setV(V);
-        bead->UpdateCrg();*/
-    }
     delete stmt;
 }
 
@@ -251,6 +202,53 @@ void StateSaverSQLite::WriteBeads(int frameid) {
         stmt->Step();
         stmt->Reset();
     }
+}
+
+void StateSaverSQLite::ReadBeads() {
+    Statement *stmt =
+        _db.Prepare("SELECT "
+            "rigidfrags._id, rigidfrags.id, rigidfrags.name, symmetry, rigidfrags.type, resnr, mass, charge, rigidfrags.molecule, "
+            "conjsegs.id, conjseg_index, pos_x, pos_y, pos_y, "
+            "u_x, u_y, u_z, v_x, v_y, v_z "
+            "FROM rigidfrags, molecules, conjsegs WHERE (molecules._id = rigidfrags.molecule AND molecules.frame = ? AND conjseg_id = conjsegs._id)");
+    stmt->Bind(1, _frames[_current_frame]);
+
+    while (stmt->Step() != SQLITE_DONE) {
+        cout << "read bead\n";
+        int id = stmt->Column<int>(1);
+        string bead_name = stmt->Column<string>(2);
+        byte_t symmetry = stmt->Column<int>(3);
+        string type_name = stmt->Column<string>(4);
+
+        int resnr = stmt->Column<int>(5);
+        double M =  stmt->Column<double>(6);
+        double Q =  stmt->Column<double>(7);
+        int molecule = stmt->Column<double>(8);
+
+        int conjseg_id =  stmt->Column<int>(9);
+        int conjseg_index =  stmt->Column<int>(10);
+
+        vec pos(stmt->Column<double>(11), stmt->Column<double>(12), stmt->Column<double>(13));
+        vec u(stmt->Column<double>(14), stmt->Column<double>(15), stmt->Column<double>(16));
+        vec v(stmt->Column<double>(17), stmt->Column<double>(18), stmt->Column<double>(19));
+
+        BeadType *type = _qmtop->GetOrCreateBeadType(type_name);
+        QMBead *bead = dynamic_cast<QMBead*>(_qmtop->CreateBead(symmetry, bead_name, type, resnr, M, Q));
+        _qmtop->getMolecule(molecule)->AddBead(bead, bead_name);
+
+        QMCrgUnit * acrg = _qmtop->GetCrgUnit(conjseg_id);
+        if(acrg == NULL)
+            throw std::runtime_error("error reading rigid fragments: charge unit not found");
+        //acrg = _qmtop->CreateCrgUnit(crg_unit_name, type_name, molid);
+
+        bead->setCrg(acrg);
+        bead->setiPos(conjseg_index);
+        bead->setPos(pos);
+        bead->setU(u);
+        bead->setV(v);
+        bead->UpdateCrg();
+    }
+    delete stmt;
 }
 
 void StateSaverSQLite::WritePairs(int frameid) {
