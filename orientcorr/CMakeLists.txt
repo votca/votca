@@ -1,5 +1,5 @@
 #change the name here or run cmake -DNAME="XXX"
-set(NAME "fluctuations" CACHE STRING "Name of the csg app")
+set(NAME "orientcorr" CACHE STRING "Name of the csg app")
 
 cmake_minimum_required(VERSION 2.6)
 
