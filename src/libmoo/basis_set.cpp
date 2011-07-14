@@ -18,7 +18,9 @@ static void  parce_string (string line, string delims, vector<string>* result ) 
     begIdx = line.find_first_not_of (delims, endIdx);
   }
 }
-
+/*TODO: 
+ change these static arrays to a data file included somewhere in the code. and extend so that arrays 
+ have 55 elements*/
 static int      TZP_nel_at      [18] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18};
 static int      TZP_nbasis_at   [18] = {6,6,20,20,20,20,20,20,20,20 ,27, 27, 27, 27, 27, 27, 27, 27 };  
 static string   TZP_basis_lbl_1 [6]  = {"s","s","s","x","y","z"};

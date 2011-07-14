@@ -5,6 +5,9 @@
 //Slater exponenets are assumed to be the same for s/p.  This is only the case up to row 3.  Including transition metals would require copious
 //rewriting.
 //jjk: Add Zindo_s parameters for Al (from Orca) - Values for H,C,N,O all agree.  Haven't yet checked for other atoms
+
+/*TODO change these arrays so that they have 55 elements. not sure where we can get these numbers from */
+/*this data should also be read from a data file*/
 static double Beta_zindo_s[18] = {-12.000000, 0.000000, 0.000000, 0.000000, 0.000000, -17.000000, -26.000000, -34.000000, -44.000000, 0.000000, 0.000000, -6.000000, -11.3000000, 0.000000, 0.000000, -15.000000, -19.000000, 0.00000 } ; // JK : made these static so that only 1 copy exists for all instantiated class objects
 
 static double Mu_zindo_s  [18]  ={ 1.200000, 0.000000, 0.000000, 0.000000, 0.000000, 1.625000, 1.950000, 2.275000, 2.600000, 0.000000, 0.000000, 1.103000, 1.370000, 0.000000, 0.000000, 1.816670, 2.033330, 0.000000 };   //Zindo_s parameters for the first three rows
