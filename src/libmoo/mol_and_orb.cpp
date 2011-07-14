@@ -1,5 +1,67 @@
 #include <votca/moo/mol_and_orb.h>
 
+map <string, int> MakePeriodicTable(){
+    map <string, int> m;
+    m.insert(pair<string, int>("H",0));
+    m.insert(pair<string, int>("He",1));
+    m.insert(pair<string, int>("Li",2));
+    m.insert(pair<string, int>("Be",3));
+    m.insert(pair<string, int>("B",4));
+    m.insert(pair<string, int>("C",5));
+    m.insert(pair<string, int>("N",6));
+    m.insert(pair<string, int>("O",7));
+    m.insert(pair<string, int>("F",8));
+    m.insert(pair<string, int>("Ne",9));
+    m.insert(pair<string, int>("Na",10));
+    m.insert(pair<string, int>("Mg",11));
+    m.insert(pair<string, int>("Al",12));
+    m.insert(pair<string, int>("Si",13));
+    m.insert(pair<string, int>("P",14));
+    m.insert(pair<string, int>("S",15));
+    m.insert(pair<string, int>("Cl",16));
+    m.insert(pair<string, int>("Ar",17));
+    m.insert(pair<string, int>("K",18));
+    m.insert(pair<string, int>("Ca",19));
+    m.insert(pair<string, int>("Sc",20));
+    m.insert(pair<string, int>("Ti",21));
+    m.insert(pair<string, int>("V",22));
+    m.insert(pair<string, int>("Cr",23));
+    m.insert(pair<string, int>("Mn",24));
+    m.insert(pair<string, int>("Fe",25));
+    m.insert(pair<string, int>("Co",26));
+    m.insert(pair<string, int>("Ni",27));
+    m.insert(pair<string, int>("Cu",28));
+    m.insert(pair<string, int>("Zn",29));
+    m.insert(pair<string, int>("Ga",30));
+    m.insert(pair<string, int>("Ge",31));
+    m.insert(pair<string, int>("As",32));
+    m.insert(pair<string, int>("Se",33));
+    m.insert(pair<string, int>("Br",34));
+    m.insert(pair<string, int>("Kr",35));
+    m.insert(pair<string, int>("Rb",36));
+    m.insert(pair<string, int>("Sr",37));
+    m.insert(pair<string, int>("Y",38));
+    m.insert(pair<string, int>("Zr",39));
+    m.insert(pair<string, int>("Nb",40));
+    m.insert(pair<string, int>("Mo",41));
+    m.insert(pair<string, int>("Tc",42));
+    m.insert(pair<string, int>("Ru",43));
+    m.insert(pair<string, int>("Rh",44));
+    m.insert(pair<string, int>("Pd",45));
+    m.insert(pair<string, int>("Ag",46));
+    m.insert(pair<string, int>("Cd",47));
+    m.insert(pair<string, int>("In",48));
+    m.insert(pair<string, int>("Sn",49));
+    m.insert(pair<string, int>("Sb",50));
+    m.insert(pair<string, int>("Te",51));
+    m.insert(pair<string, int>("I",52));
+    m.insert(pair<string, int>("Xe",53));
+    m.insert(pair<string, int>("Bq",54));
+    return m ;
+}
+
+map <string, int> periodic_table = MakePeriodicTable();
+
 /*void mol_and_orb::write_pdb(string file, string name_mol="PPY", const int & n=0 ){
     
     ofstream fl;
@@ -94,7 +156,16 @@ int mol_and_orb::init(const char * nameinput){
 		else if (i%4==2) ych = word;
 		else if (i%4==3) {
 			zch = word;
-			switch (chtype ){
+                        /*read the atom type*/
+                        map<string, int>::iterator itp = periodic_table.find(type);
+                        if (itp != periodic_table.end() ){
+                            lbl = itp->second;
+                            n_el += _bs->get_nel_at(lbl);
+                        }
+                        else {
+                            throw runtime_error(string("Bad atom type, "));
+                        }
+			/*switch (chtype ){
 			
 			//set up labls, basis set ///////////////////////////////
 			    case 'C': {  // definition of notation used:
@@ -137,7 +208,7 @@ int mol_and_orb::init(const char * nameinput){
 				cout << "Bad atom type, we accept only: A (Al), C, O, H, N, S (use CAPITAL letters)" << endl;
 				return 1;
 				     }
-			}
+			}*/
 			////////////////////////////////////////////////////////
 			sscanf(xch.c_str() , "%lf", &x );
 			sscanf(ych.c_str() , "%lf", &y );
