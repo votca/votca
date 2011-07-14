@@ -23,6 +23,7 @@
 #include "modules/io/esptopologyreader.h"
 #include "modules/io/lammpsreader.h"
 #include "modules/io/xmltopologyreader.h"
+#include "modules/io/xyzreader.h"
 
 #ifdef GMX
 #include "modules/io/gmxtopologyreader.h"
@@ -37,6 +38,7 @@ void TopologyReader::RegisterPlugins(void)
     TopReaderFactory().Register<ESPTopologyReader>("esp");		
     TopReaderFactory().Register<XMLTopologyReader>("xml");
     TopReaderFactory().Register<LAMMPSReader>("dump");
+    TopReaderFactory().Register<XYZReader>("xyz");
 #ifdef GMX
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
     TopReaderFactory().Register<GROTopologyReader>("gro");
