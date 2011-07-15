@@ -33,11 +33,11 @@ main_dir=$(get_main_dir)
 output="${name}.dist.tgt"
 
 comment="$(get_table_comment)"
-smooth="$(critical mktemp smooth_${name}.dist.tgt.XXXXX)"
+smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
 critical csg_resample --type linear --in ${main_dir}/${target} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
 
 tabtype="$(csg_get_interaction_property bondtype)"
-extrapol="$(critical mktemp extrapol_${name}.XXXXX)"
+extrapol="$(critical mktemp ${name}.dist.tgt_extrapol.XXXXX)"
 if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
   #the left side is usually not a problem, but still we do it
   do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
