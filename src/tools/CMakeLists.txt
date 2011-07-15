@@ -1,6 +1,6 @@
 foreach(PROG kmc_test)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
-  target_link_libraries(${PROG} ${VOTCA_TOOLS_LIBRARIES} ${SQLITE3_LIBRARIES})
+  target_link_libraries(${PROG} ${VOTCA_TOOLS_LIBRARIES}  ${BOOST_LIBRARIES})
   install(TARGETS ${PROG} RUNTIME DESTINATION bin)
 endforeach(PROG)
