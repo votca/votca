@@ -71,6 +71,7 @@
             <itemPath>../../src/libcsg/modules/io/pdbwriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/xyzreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xyzwriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xyzwriter.h</itemPath>
           </logicalFolder>
