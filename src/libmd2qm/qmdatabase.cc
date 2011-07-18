@@ -87,6 +87,13 @@ void QMDatabase::onCreate()
         "pair INTEGER NOT NULL,"
         "key TEXT NOT NULL,"
         "value REAL NOT NULL)");
+
+    Exec("CREATE TABLE pair_integrals ("
+        "pair INTEGER NOT NULL,"
+        "num INTEGER NOT NULL,"
+        "J REAL NOT NULL)");
+
+
 /*
     // delete molecules if frame is deleted
     Exec("CREATE TRIGGER trig_delete_frame BEFOR DELETE ON frames "

@@ -111,6 +111,9 @@ public:
     void setInDatabase(bool indb) { _in_database = indb; }
     bool getInDatabase() { return _in_database; }
 
+    int getId() { return _id; }
+    void setId(int id) { _id = _id; }
+
 protected:
     /// vector connecting the two beads
     vec _r;
@@ -128,6 +131,7 @@ protected:
     QMCrgUnit *_crg2;
 
     bool _in_database;
+    int _id;
 };
 
 #endif	/* _QMBEADPAIR_H */

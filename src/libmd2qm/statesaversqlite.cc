@@ -317,6 +317,9 @@ void StateSaverSQLite::WritePairs(int frameid) {
         stmt->Bind(7, _conjseg_id_map[crg2->getId()]);
 
         stmt->Step();
+
+        pair->setInDatabase(true);
+        pair->setId(_db.LastInsertRowId());
         stmt->Reset();
     }
     delete update_stmt;
@@ -326,15 +329,14 @@ void StateSaverSQLite::WritePairs(int frameid) {
 void StateSaverSQLite::ReadPairs(void)
 {
     Statement *stmt =
-    _db.Prepare("SELECT conjseg1, conjseg2, r_x, r_y, r_z FROM pairs,conjsegs, molecules "
-            "WHERE (molecules._id = conjsegs.molecule AND molecules.frame = ? and  conjseg1 = conjsegs._id)");
+    _db.Prepare("SELECT _id, conjseg1, conjseg2, r_x, r_y, r_z FROM pairs,conjsegs "
+            "WHERE (conjsegs.frame = ? and  conjseg1 = conjsegs._id)");
     stmt->Bind(1, _frames[_current_frame]);
-
     while (stmt->Step() != SQLITE_DONE) {
-        int id1 = stmt->Column<int>(0);
+        int id1 = stmt->Column<int>(1);
         int id2 = stmt->Column<int>(2);
-        QMCrgUnit *crg1 = _qmtop->getCrgUnit(stmt->Column<int>(0));
-        QMCrgUnit *crg2 = _qmtop->getCrgUnit(stmt->Column<int>(1));
+        QMCrgUnit *crg1 = _qmtop->getCrgUnit(id1);
+        QMCrgUnit *crg2 = _qmtop->getCrgUnit(id2);
 
         if(crg1 == NULL)
             throw std::runtime_error("broken database, pair refers to non-existent conjugated segment");
@@ -343,11 +345,44 @@ void StateSaverSQLite::ReadPairs(void)
 
         QMPair *pair = new QMPair(crg1, crg2, _qmtop);
         _qmtop->nblist().AddPair(pair);
-        vec r1(stmt->Column<double>(2), stmt->Column<double>(3), stmt->Column<double>(4));
+        vec r1(stmt->Column<double>(3), stmt->Column<double>(4), stmt->Column<double>(5));
         vec r2 = pair->r();
         if(abs(r2 - r1) > 1e-6)
-            cerr << "WARNING: pair (" << id1 << ", " << id2 << ") distance differs by more than 1e-6 from the value in the database\n" << r1 << " " << r2 << " " << abs(r2 - r1) << endl;
+            cerr << "WARNING: pair (" << id1 << ", " << id2 << ") distance differs by more than 1e-6 from the value in the database\n";
         pair->setInDatabase(true);
+        pair->setId(stmt->Column<int>(0));
+    }
+    delete stmt;
+}
+
+void StateSaverSQLite::WriteIntegrals(QMPair *pair)
+{
+    _db.Exec("DELETE FROM pair_integrals WHERE _id = " + pair->getId());
+
+    Statement *stmt =
+    _db.Prepare("INSERT INTO pair_integrals (pair, num, J) VALUES (?, ?, ?)");
+
+    for(int i=0; i<pair->Js().size();++i) {
+        stmt->Bind(1, pair->getId());
+        stmt->Bind(2, i);
+        stmt->Bind(3, pair->Js()[i]);
+        stmt->Step();
+        stmt->Reset();
+    }
+
+    delete stmt;
+}
+
+void StateSaverSQLite::ReadIntegrals()
+{
+    Statement *stmt =
+    _db.Prepare("SELECT J FROM pair_integrals ORDER BY num "
+            "WHERE pair = ?");
+
+    for(QMNBList::iterator iter=_qmtop->nblist().begin(); iter!=_qmtop->nblist().end(); ++iter) {
+        stmt->Bind(1, (*iter)->getId());
+        while (stmt->Step() != SQLITE_DONE)
+            (*iter)->Js().push_back(stmt->Column<double>(0));
     }
     delete stmt;
 }

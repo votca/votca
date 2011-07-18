@@ -36,13 +36,15 @@ private:
     void WriteConjugatedSegments(int frameid);
     void WriteBeads(int frameid);
     void WritePairs(int frameid);
+    void WriteIntegrals(QMPair *pair);
 
     void ReadFrame(void);
     void ReadMolecules(void);
     void ReadConjugatedSegments(void);
     void ReadBeads(void);
     void ReadPairs(void);
-
+    void ReadIntegrals();
+    
     QMTopology *_qmtop;
 
     vector<int> _frames;
