@@ -27,6 +27,9 @@ setenv LD_LIBRARY_PATH "@CMAKE_INSTALL_PREFIX@/@LIB@${LD_LIBRARY_PATH}"
 if ($?PKG_CONFIG_PATH) setenv PKG_CONFIG_PATH ":${PKG_CONFIG_PATH}"
 setenv PKG_CONFIG_PATH "@CMAKE_INSTALL_PREFIX@/@LIB@/pkgconfig${PKG_CONFIG_PATH}"
 
+if ($?VOTCASHARE) setenv VOTCASHARE ":${VOTCASHARE}"
+setenv VOTCASHARE "@CMAKE_INSTALL_PREFIX@/@DATA@${VOTCASHARE}"
+
 #votca rc files
 foreach rc ( "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*rc.csh )
   [ -r "$rc" ] && source "$rc"
