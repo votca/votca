@@ -15,7 +15,7 @@ using namespace std;
 class QMCrgUnit : public CrgUnit
 {
 public:
-    QMCrgUnit() : _occupation_probability(0), _dbid(-1) {}
+    QMCrgUnit() : _occupation_probability(0), _in_database(false) {}
     QMCrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
             const unsigned int & id, CrgUnitType * type,
             const unsigned int & molId);
@@ -30,12 +30,12 @@ public:
     double getOccupationProbability() { return _occupation_probability; }
     void  setOccupationProbability(double prob) { _occupation_probability = prob; }
 
-    void setDatabaseId(int id) { _dbid = id; }
-    int getDatabaseId() { return _dbid; }
+    void setInDatabase(bool indb) { _in_database = indb; }
+    bool getInDatabase() { return _in_database; }
 
 protected:
     double _occupation_probability;
-    int _dbid;
+    bool _in_database;
 };
 
 inline QMCrgUnit::QMCrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
@@ -46,7 +46,7 @@ inline QMCrgUnit::QMCrgUnit(vector <vec> positions, vector <vec> norms, vector <
 }
 
 inline QMCrgUnit::QMCrgUnit(const unsigned int & id, CrgUnitType * type,
-            const unsigned int & molId) : CrgUnit(id, type, molId), _occupation_probability(0)
+            const unsigned int & molId) : CrgUnit(id, type, molId), _occupation_probability(0), _in_database(false)
 {
     
 }

@@ -39,7 +39,7 @@ private:
 
 inline void SQLiteWriter::Initialize(QMTopology *top, Property *options)
 {
-    _saver.Open(*top, "state.db");
+    _saver.Open(*top, "state_calculator.db");
 }
 
 inline bool SQLiteWriter::EvaluateFrame(QMTopology *top)

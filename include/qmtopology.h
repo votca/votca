@@ -83,6 +83,8 @@ public:
     void CopyCharges(CrgUnit *crg, Molecule *mol);
     void CopyChargesOccupied(CrgUnit *crg, Molecule *mol);
 
+    int getDatabaseId() { return _db_id; };
+    void setDatabaseId(int id) { _db_id = id; }
 protected:
 
     QMNBList _nblist;
@@ -90,6 +92,8 @@ protected:
     map <string, QMCrgUnit*> _mcharges;
     vector < QMCrgUnit *> _crgunits;
     map <int, QMCrgUnit *> _crgunits_by_id;
+
+    int _db_id;
 };
 
 inline QMCrgUnit *QMTopology::getCrgUnit(int id)

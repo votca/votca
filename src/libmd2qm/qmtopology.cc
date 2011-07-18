@@ -2,6 +2,7 @@
 #include "qmnblist.h"
 
 QMTopology::QMTopology()
+    : _db_id(0)
 {}
 
 QMTopology::~QMTopology()
@@ -16,6 +17,7 @@ void QMTopology::Cleanup()
     _crgunits.clear();
     _mcharges.clear();
     Topology::Cleanup();
+    _db_id=0;
 }
 
 void QMTopology::Initialize(Topology& cg_top)

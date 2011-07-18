@@ -33,7 +33,7 @@ private:
     QMDatabase _db;
     
     void WriteMolecules(int frameid);
-    void WriteCrgUnits(int frameid);
+    void WriteConjugatedSegments(int frameid);
     void WriteBeads(int frameid);
     void WritePairs(int frameid);
 
@@ -47,6 +47,9 @@ private:
 
     vector<int> _frames;
     int _current_frame;
+
+    map<int,int> _conjseg_id_map;
+    map<int,int> _pair_id_map;
 };
 
 #endif	/* __VOTCA_MD2QM_StateSaverSQLite_H */

@@ -45,7 +45,7 @@ bool StateSaverSQLite::NextFrame()
     ReadMolecules();
     ReadConjugatedSegments();
     ReadBeads();
-//    ReadPairs();
+    ReadPairs();
     return true;
 }
 
@@ -69,8 +69,10 @@ void StateSaverSQLite::ReadFrame(void)
     matrix m;
     for(int i=0; i<3; ++i)
         for(int j=0; j<9; ++j)
-            m.set(i, j, stmt->Column<double>(2+i*3+j));
+            m.set(i, j, stmt->Column<double>(3+i*3+j));
     _qmtop->setBox(m);
+
+    _qmtop->setDatabaseId(_frames[_current_frame]);
     delete stmt;
 }
 
@@ -78,10 +80,20 @@ void StateSaverSQLite::WriteFrame()
 {
     _db.BeginTransaction();
     Statement *stmt;
-    stmt = _db.Prepare(
+    
+    // create a new entry or update existing one
+    if(_qmtop->getDatabaseId() == 0) {
+        stmt = _db.Prepare(
             "INSERT INTO frames (time, step, "
             "box11, box12, box13, box21, box22, box23, box31, box32, box33) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+    } else {
+        stmt = _db.Prepare(
+            "UPDATE frames SET time = ?, step = ?, "
+            "box11 = ?, box12 = ?, box13 = ?, box21 = ?, box22 = ?, box23 = ?, box31 = ?, box32 = ?, box33 = ? "
+            "WHERE _id = ?");
+        stmt->Bind(12, _qmtop->getDatabaseId());
+    }
 
     stmt->Bind(1, _qmtop->getTime());
     stmt->Bind(2, _qmtop->getStep());
@@ -91,16 +103,22 @@ void StateSaverSQLite::WriteFrame()
             stmt->Bind(3+i*3+j, _qmtop->getBox().get(i,j));
 
     stmt->Step();
+    if(_qmtop->getDatabaseId() == 0)
+        _qmtop->setDatabaseId(_db.LastInsertRowId());
+
     delete stmt;
 
+
     int frameid = _db.LastInsertRowId();
-    WriteMolecules(frameid);
-    WriteCrgUnits(frameid);
-    WriteBeads(frameid);
-    WritePairs(frameid);
+    WriteMolecules(_qmtop->getDatabaseId());
+    WriteConjugatedSegments(_qmtop->getDatabaseId());
+    WriteBeads(_qmtop->getDatabaseId());
+    WritePairs(_qmtop->getDatabaseId());
 
     _db.EndTransaction();
     _frame++;
+    _conjseg_id_map.clear();
+    _pair_id_map.clear();
 }
 
 void StateSaverSQLite::WriteMolecules(int frameid)
@@ -137,24 +155,41 @@ void StateSaverSQLite::ReadMolecules(void)
     delete stmt;
 }
 
-void StateSaverSQLite::WriteCrgUnits(int frameid) {
-    Statement *stmt = _db.Prepare(
-            "INSERT INTO conjsegs (id, name, type, molecule, frame) VALUES (?,?,?,?,?)"
+void StateSaverSQLite::WriteConjugatedSegments(int frameid) {
+    Statement *update_stmt = _db.Prepare(
+            "UPDATE conjsegs SET name = ?, type = ?, molecule = ?, frame = ? WHERE _id = ?"
     );
+    Statement *insert_stmt = _db.Prepare(
+            "INSERT INTO conjsegs (name, type, molecule, frame) VALUES (?,?,?,?)"
+    );
+
 
     int imol=0;
     for (vector < QMCrgUnit *>::iterator iter = _qmtop->CrgUnits().begin(); iter!=_qmtop->CrgUnits().end(); ++iter) {
         QMCrgUnit *crg = *iter;
-        stmt->Bind<int>(1, crg->getId());
-        stmt->Bind(2, crg->getName());;
-        stmt->Bind(3, crg->getType()->GetName());;
-        stmt->Bind<int>(4, crg->getMolId());;
-        stmt->Bind(5, frameid);;
+        Statement *stmt;
+        if(crg->getInDatabase()) {
+            stmt = update_stmt;
+            stmt->Bind(5, (int)crg->getId());
+        }
+        else
+            stmt = insert_stmt;
+
+        stmt->Bind(1, crg->getName());;
+        stmt->Bind(2, crg->getType()->GetName());;
+        stmt->Bind<int>(3, crg->getMolId());;
+        stmt->Bind(4, frameid);;
         stmt->Step();
         stmt->Reset();
-        crg->setDatabaseId(_db.LastInsertRowId());
+
+        if(crg->getInDatabase())
+            _conjseg_id_map[crg->getId()] = crg->getId();
+        else
+            _conjseg_id_map[crg->getId()] = _db.LastInsertRowId();
+        
     }
-    delete stmt;
+    delete insert_stmt;
+    delete update_stmt;
 }
 
 void StateSaverSQLite::ReadConjugatedSegments(void)
@@ -166,6 +201,7 @@ void StateSaverSQLite::ReadConjugatedSegments(void)
     while(stmt->Step() != SQLITE_DONE) {
         QMCrgUnit *acrg = _qmtop->CreateCrgUnit(stmt->Column<int>(0),
                 stmt->Column<string>(1), stmt->Column<string>(2), stmt->Column<int>(3));
+        acrg->setInDatabase(true);
     }
     delete stmt;
 }
@@ -186,7 +222,7 @@ void StateSaverSQLite::WriteBeads(int frameid) {
         stmt->Bind(5, bi->getResnr());
         stmt->Bind(6, bi->getM());
         stmt->Bind(7, bi->getQ());
-        stmt->Bind<int>(8, bi->GetCrgUnit()->getDatabaseId());;
+        stmt->Bind<int>(8, _conjseg_id_map[bi->GetCrgUnit()->getId()]);
         stmt->Bind(9, bi->getiPos());
         
         stmt->Bind(10, bi->getPos().getX());
@@ -215,7 +251,6 @@ void StateSaverSQLite::ReadBeads() {
     stmt->Bind(1, _frames[_current_frame]);
 
     while (stmt->Step() != SQLITE_DONE) {
-        cout << "read bead\n";
         int id = stmt->Column<int>(1);
         string bead_name = stmt->Column<string>(2);
         byte_t symmetry = stmt->Column<int>(3);
@@ -254,8 +289,11 @@ void StateSaverSQLite::ReadBeads() {
 
 void StateSaverSQLite::WritePairs(int frameid) {
     Statement *stmt;
-    stmt = _db.Prepare(
-            "INSERT INTO pairs (conjseg1, conjseg2, rate12, rate21, r_x, r_y,r_z)"
+
+    Statement *update_stmt = _db.Prepare(
+            "UPDATE pairs SET rate12 = ?, rate21 = ?, r_x = ?, r_y = ?,r_z = ? WHERE conjseg1 = ? AND conjseg2 = ?");
+    Statement *insert_stmt = _db.Prepare(
+            "INSERT INTO pairs (rate12, rate21, r_x, r_y,r_z, conjseg1, conjseg2)"
             " VALUES (?,?,?,?,?,?,?)");
 
     QMNBList &nblist = _qmtop->nblist();
@@ -265,27 +303,51 @@ void StateSaverSQLite::WritePairs(int frameid) {
         QMCrgUnit *crg1 = (*iter)->first;
         QMCrgUnit *crg2 = (*iter)->second;
 
-        stmt->Bind(1, (int)crg1->getDatabaseId());
-        stmt->Bind(2, (int)crg2->getDatabaseId());
-        stmt->Bind(3, pair->rate12());
-        stmt->Bind(4, pair->rate21());
-        stmt->Bind(5, pair->r().getX());
-        stmt->Bind(6, pair->r().getY());
-        stmt->Bind(7, pair->r().getZ());
+        if(pair->getInDatabase())
+            stmt = update_stmt;
+        else
+            stmt = insert_stmt;
+
+        stmt->Bind(1, pair->rate12());
+        stmt->Bind(2, pair->rate21());
+        stmt->Bind(3, pair->r().getX());
+        stmt->Bind(4, pair->r().getY());
+        stmt->Bind(5, pair->r().getZ());
+        stmt->Bind(6, _conjseg_id_map[crg1->getId()]);
+        stmt->Bind(7, _conjseg_id_map[crg2->getId()]);
 
         stmt->Step();
         stmt->Reset();
     }
-    delete stmt;
+    delete update_stmt;
+    delete insert_stmt;
 }
 
 void StateSaverSQLite::ReadPairs(void)
 {
     Statement *stmt =
-    _db.Prepare("SELECT conjseg1, conjseg2, r_x, r_y, r_z FROM pairs, ");
+    _db.Prepare("SELECT conjseg1, conjseg2, r_x, r_y, r_z FROM pairs,conjsegs, molecules "
+            "WHERE (molecules._id = conjsegs.molecule AND molecules.frame = ? and  conjseg1 = conjsegs._id)");
     stmt->Bind(1, _frames[_current_frame]);
 
     while (stmt->Step() != SQLITE_DONE) {
+        int id1 = stmt->Column<int>(0);
+        int id2 = stmt->Column<int>(2);
+        QMCrgUnit *crg1 = _qmtop->getCrgUnit(stmt->Column<int>(0));
+        QMCrgUnit *crg2 = _qmtop->getCrgUnit(stmt->Column<int>(1));
+
+        if(crg1 == NULL)
+            throw std::runtime_error("broken database, pair refers to non-existent conjugated segment");
+        if(crg2 == NULL)
+            throw std::runtime_error("broken database, pair refers to non-existent conjugated segment");
+
+        QMPair *pair = new QMPair(crg1, crg2, _qmtop);
+        _qmtop->nblist().AddPair(pair);
+        vec r1(stmt->Column<double>(2), stmt->Column<double>(3), stmt->Column<double>(4));
+        vec r2 = pair->r();
+        if(abs(r2 - r1) > 1e-6)
+            cerr << "WARNING: pair (" << id1 << ", " << id2 << ") distance differs by more than 1e-6 from the value in the database\n" << r1 << " " << r2 << " " << abs(r2 - r1) << endl;
+        pair->setInDatabase(true);
     }
     delete stmt;
 }

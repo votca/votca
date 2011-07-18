@@ -17,7 +17,7 @@ class QMPair :
     public std::pair<QMCrgUnit *, QMCrgUnit *>
 {
 public:
-    QMPair() {}
+    QMPair() : _in_database(false) {}
     QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top);
 
     ~QMPair(){
@@ -108,6 +108,9 @@ public:
      */
     QMCrgUnit *Crg2() {return _crg2;}
 
+    void setInDatabase(bool indb) { _in_database = indb; }
+    bool getInDatabase() { return _in_database; }
+
 protected:
     /// vector connecting the two beads
     vec _r;
@@ -123,6 +126,8 @@ protected:
     QMCrgUnit * _ghost;
 
     QMCrgUnit *_crg2;
+
+    bool _in_database;
 };
 
 #endif	/* _QMBEADPAIR_H */

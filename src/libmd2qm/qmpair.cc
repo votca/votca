@@ -2,7 +2,8 @@
 #include "qmtopology.h"
 
 
-QMPair::QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top):std::pair<QMCrgUnit *, QMCrgUnit *>(crg1,crg2)
+QMPair::QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top) 
+    : std::pair<QMCrgUnit *, QMCrgUnit *>(crg1,crg2), _in_database(false)
 {
     vec crg1nm,crg2nm;
     crg1nm =  crg1->GetCom();

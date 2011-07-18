@@ -24,8 +24,7 @@ void QMApplication::Initialize(void)
     AddProgramOptions()
         ("crg", boost::program_options::value<string>(), "  description of conjugated segments")
         ("opt", boost::program_options::value<string>(), "  program options")
-        ("out", boost::program_options::value<string>()->default_value("stateOut.dat"), "  write new state file with this name")
-        ("in", boost::program_options::value<string>(), "  input state file name")
+        ("db", boost::program_options::value<string>()->default_value("state.db"), "  the state file")
         ("first-frame", boost::program_options::value<int>()->default_value(1), "  start with this frame (first frame is 1)")
         ("nframes", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
         //  this is shit, move it out!
@@ -37,7 +36,7 @@ bool QMApplication::EvaluateOptions(void)
 {
     CheckRequired("crg", "no chargeunit file specified");
     CheckRequired("opt", "no option file specified");
-    CheckRequired("in", "no input state file specified");
+    CheckRequired("db", "no state databse specified");
     return true;
 }
 
@@ -57,19 +56,15 @@ void QMApplication::Run()
 
     /// load qmtop from state saver
     cout << "Loading qmtopology via state saver." << endl;
-    string statefile = OptionsMap()["in"].as<string>();
+    string statefile = OptionsMap()["db"].as<string>();
     StateSaverSQLite loader;
     loader.Open(_qmtop, statefile);
-    string stateout=OptionsMap()["out"].as<string>();
-    StateSaverSQLite saver;
-    saver.Open(_qmtop, stateout);
 
     while(loader.NextFrame()) {
         EvaluateFrame();
-        saver.WriteFrame();
+        loader.WriteFrame();
     }
     loader.Close();
-    saver.Close();
     EndEvaluate();
 }
 
