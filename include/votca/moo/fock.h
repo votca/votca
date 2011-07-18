@@ -18,7 +18,8 @@ class fock {
     private:
 
 	pair <const mol_and_orb *, const mol_and_orb *> molecules; // an ordered pair of pointers to the molecules
-	double *Beta, *Mu; // the choice of paramters
+	vector <double> Beta ;
+        vector <double> Mu; // the choice of paramters
 
 	double **F; 
 
@@ -32,14 +33,14 @@ class fock {
 
 	/// the fock matrix to calculate F[i][j] will contain the ith elemnt of the basis on the first molecule and the jth element on the second  
 	
-	fock (): Beta(NULL), Mu(NULL), F(NULL)  {
+	fock ():  F(NULL)  {
 		//F = NULL;
 		molecules.first = NULL;
 		molecules.second = NULL;
 		
 	}
 
-	fock (  const mol_and_orb & A, const mol_and_orb & B ):Beta(NULL), Mu(NULL), F(NULL){
+	fock (  const mol_and_orb & A, const mol_and_orb & B ): F(NULL){
                 
 		molecules.first  = &A;
 		molecules.second = &B;
@@ -78,7 +79,10 @@ class fock {
 		    fock::init_HASH();
                     _init_HASH = true;
 		}
-                set_zindo_s();
+                
+                SetParameters();
+                CheckParameters(A);
+                CheckParameters(B);
 	}
         
 	~fock() {
@@ -95,10 +99,14 @@ class fock {
 		delete [] F;
 		F = NULL;
 	    }
+            Beta.clear();
+            Mu.clear();
 	}
 
-	void set_zindo_1();
-	void set_zindo_s();
+//void set_zindo_1();
+//void set_zindo_s();
+        void SetParameters();
+        void CheckParameters(const mol_and_orb & );
 
 	vector <double> calcJ( vector<pair <unsigned int, unsigned int> >) const;
 	double calcJ( pair <int, int>) const;

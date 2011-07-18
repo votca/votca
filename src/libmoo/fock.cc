@@ -1,13 +1,12 @@
 #include <votca/moo/fock.h>
-
+#include <votca/tools/property.h>
 
 //ZINDO/S parameters for first three rows
 //Slater exponenets are assumed to be the same for s/p.  This is only the case up to row 3.  Including transition metals would require copious
 //rewriting.
 //jjk: Add Zindo_s parameters for Al (from Orca) - Values for H,C,N,O all agree.  Haven't yet checked for other atoms
 
-/*TODO change these arrays so that they have 55 elements. not sure where we can get these numbers from */
-/*this data should also be read from a data file*/
+/* data now read in from file
 static double Beta_zindo_s[18] = {-12.000000, 0.000000, 0.000000, 0.000000, 0.000000, -17.000000, -26.000000, -34.000000, -44.000000, 0.000000, 0.000000, -6.000000, -11.3000000, 0.000000, 0.000000, -15.000000, -19.000000, 0.00000 } ; // JK : made these static so that only 1 copy exists for all instantiated class objects
 
 static double Mu_zindo_s  [18]  ={ 1.200000, 0.000000, 0.000000, 0.000000, 0.000000, 1.625000, 1.950000, 2.275000, 2.600000, 0.000000, 0.000000, 1.103000, 1.370000, 0.000000, 0.000000, 1.816670, 2.033330, 0.000000 };   //Zindo_s parameters for the first three rows
@@ -16,7 +15,7 @@ static double Beta_zindo_1[18]  ={-11.800000,-0.000000,-9.000000,-13.000000,-17.
 
 static double Mu_zindo_1  [18]  ={1.200000,1.700000,0.650000,0.975000,1.300000,1.625000,1.950000,2.275000,2.600000,2.925000,0.733330,1.103000,1.166670,1.383330,1.600000,1.816670,2.033330,2.250000  };  //Zindo_1  --''--
 
-
+*/
 
  					          //!!N.B.!! :
 					          //Slater exponenets are assumed to be the same for s/p.  
@@ -37,6 +36,7 @@ const static double PMIN=0.0;
 
 bool fock::_init_HASH=false;
 
+/*
 void fock::set_zindo_1() {
 	Beta=Beta_zindo_1;
 	Mu=Mu_zindo_1;
@@ -45,8 +45,54 @@ void fock::set_zindo_s() {
 	Beta=Beta_zindo_s;
 	Mu=Mu_zindo_s;
     }
+         * */
+void fock::SetParameters(){
+    string nameParameter = string(getenv("MOOSHARE"))+string("INDOParameters.xml");
+    Property Options;
+    load_property_from_xml(Options,nameParameter);
+    
+    Property values = (Options.get("INDOparam"));
+    
+    string muS, betaS;
+    muS    = values.get("mu").as<string>();
+    betaS  = values.get("beta").as<string>();
+    
+    Tokenizer tokM(muS, "\n\t ");
+    Tokenizer tokB(betaS, "\n\t ");
+    vector<string> Mutok, Betatok;
+    tokM.ToVector(Mutok);
+    tokB.ToVector(Betatok);
+    vector<string>::iterator it= Mutok.begin();
+    for (; it != Mutok.end();++it)
+    {
+        Mu.push_back(lexical_cast<double>(*it));
+    }
+     it= Betatok.begin();
+    for (; it != Betatok.end();++it)
+    {
+        Beta.push_back(lexical_cast<double>(*it));
+    }
+}
 
-
+void fock::CheckParameters(const mol_and_orb & A ){
+    int Nat = A.getN();
+    for (int i=0;i<Nat;i++){
+        int lbl = A.getlbl(i);
+        if (lbl>=Mu.size() ){
+            throw runtime_error("not enough specifications for mu ");
+        }
+        if (lbl>=Beta.size() ){
+            throw runtime_error("not enough specifications for beta ");
+        }
+        if (Mu[lbl] ==0){
+            throw runtime_error("atom with lbl "+lexical_cast<string>(lbl)+ " has no mu param");
+        }
+        if (Beta[lbl] ==0){
+            throw runtime_error("atom with lbl "+lexical_cast<string>(lbl)+ " has no beta param");
+        }
+    }
+    
+}
 
 inline double Abs (const double & a)
 {
