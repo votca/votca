@@ -25,6 +25,7 @@ my $with_errors="no";
 my $with_entropie="no";
 my $kbT=undef;
 my $from="right";
+my $spherical="no";
 
 # read program arguments
 
@@ -54,6 +55,7 @@ Allowed options:
     --kbT NUMBER      use NUMBER as ''\$k_B*T\$'' for the entropic part
     --from            Integrate from left or right (to define the zero point)
                       Default: $from
+    --sphere          Add spherical volume term (''\$r^2\$'')		   
 -h, --help            Show this help message
 
 Examples:
@@ -64,6 +66,10 @@ END
 	elsif ($ARGV[0] eq "--with-errors"){
           shift(@ARGV);
 	  $with_errors="yes";
+	}
+	elsif ($ARGV[0] eq "--sphere"){
+          shift(@ARGV);
+	  $spherical="yes";
 	}
 	elsif ($ARGV[0] eq "--with-S"){
           shift(@ARGV);
@@ -126,7 +132,9 @@ if ("$from" eq "right") {
   for (my $i=$#r-1;$i>=0;$i--){
     #hh = delta x /2
     my $hh=0.5*($r[$i+1]-$r[$i]);
-    $pot[$i]=$pot[$i+1] - $hh*($force[$i+1]+$force[$i]);
+    my $vol=1;
+    $vol=($r[$i])**2 if ("$spherical" eq "yes");
+    $pot[$i]=$pot[$i+1] - $hh*$vol*($force[$i+1]+$force[$i]);
     $ww[$i]+= $hh;
     $ww[$i+1]+= $hh;
   }
@@ -150,7 +158,9 @@ if ("$from" eq "right") {
   for (my $i=1;$i<=$#r;$i++){
     #hh = delta x /2
     my $hh=0.5*($r[$i]-$r[$i-1]);
-    $pot[$i]=$pot[$i-1] + $hh*($force[$i]+$force[$i-1]);
+    my $vol=1;
+    $vol=($r[$i])**2 if ("$spherical" eq "yes");
+    $pot[$i]=$pot[$i-1] + $hh*$vol*($force[$i]+$force[$i-1]);
     $ww[$i]+= $hh;
     $ww[$i+1]+= $hh;
   }
