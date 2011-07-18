@@ -29,11 +29,4 @@ foreach(SCRIPT csg_call csg_inverse multi_g_rdf)
 endforeach(SCRIPT)
 
 option(WITH_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
-if (WITH_RC_FILES)
-  foreach(RC csg.rc.bash csg.rc.csh)
-    configure_file(${RC}.in ${CMAKE_CURRENT_BINARY_DIR}/${RC} @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RC} DESTINATION ${DATA}/rc)
-  endforeach(RC)
-endif (WITH_RC_FILES)
-
 install(FILES csg-completion.bash DESTINATION ${DATA}/rc)

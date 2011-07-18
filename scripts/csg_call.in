@@ -48,7 +48,7 @@ Allowed options:
 -l, --list           Show list of all script
     --cat            Show the content of the script
     --show           Show the path to the script
-    --show-share     Shows the used CSGSHARE dir and exits
+    --show-share     Shows the used VOTCASHARE dir and exits
     --scriptdir DIR  Set the user script dir
                      (Used if no optins xml file is given)
                      Default: empty
@@ -129,33 +129,33 @@ while [[ ${1#-} != $1 ]]; do
  esac
 done
 
-if [[ -z ${CSGSHARE} ]]; then
+if [[ -z ${VOTCASHARE} ]]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
-    export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
+    export VOTCASHARE="$(cd ${0%/*}/../share/votca;pwd)"
   elif [ -f "@CMAKE_INSTALL_PREFIX@/@DATA@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
+    export VOTCASHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
   else
-    echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
-    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
+    echo "Error: Environment value VOTCASHARE is not defined and could not be guessed" >&2
+    echo "Export VOTCASHARE or source VOTCARC.bash or VOTCARC.csh" >&2
     exit 1
   fi
 else
-  if [[ ! -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
-    echo "Error: Environment value CSGSHARE seems to be wrong" >&2
-    echo "Could not find \${CSGSHARE}/scripts/inverse/inverse.sh" >&2
-    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
+  if [[ ! -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]]; then
+    echo "Error: Environment value VOTCASHARE seems to be wrong" >&2
+    echo "Could not find \${VOTCASHARE}/scripts/inverse/inverse.sh" >&2
+    echo "Export VOTCASHARE or source VOTCARC.bash or VOTCARC.csh" >&2
     exit 1
   fi
 fi
 
 if [ "$show_share" = "yes" ]; then
-  echo "${CSGSHARE}"
+  echo "${VOTCASHARE}"
   exit 0
 fi
 
-if [[ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]]; then
-  source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
+if [[ -f ${VOTCASHARE}/scripts/inverse/start_framework.sh ]]; then
+  source ${VOTCASHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
 else
   die "Could not find start_framework.sh"
 fi
