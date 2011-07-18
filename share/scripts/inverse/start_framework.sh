@@ -23,9 +23,6 @@ EOF
   exit 0
 fi
 
-#no check deps $0 here
-#because this bootstrap everything
-
 #for now, we will replace this function later
 die(){ echo "$*" >&2; exit 1; }
 
@@ -37,7 +34,7 @@ die(){ echo "$*" >&2; exit 1; }
 [[ -f ${VOTCASHARE}/scripts/inverse/functions_common.sh ]] || die "Could not find default common framework functions (functions_common.sh)"
 source "${VOTCASHARE}/scripts/inverse/functions_common.sh" || exit 1 
 
-#this is need by die later
+#this is needed by die later
 export CSG_MASTER_PID="$$"
 
 export CSG_MAINDIR="$PWD"

@@ -441,6 +441,22 @@ csg_inverse_clean() { #clean out the main directory
 }
 export -f csg_inverse_clean
 
+check_path_variable() { #check if a variable contains only valid paths
+  local old_IFS dir
+  [[ -z $1 ]] && die "check_path_variable: Missing argument"
+  for var in "$@"; do
+    [[ -z $var ]] && continue
+    old_IFS="$IFS"
+    IFS=":"
+    for dir in ${!var}; do
+      [[ -z $dir ]] && continue
+      [[ -d $dir ]] || die "check_path_variable: $dir from variable $var is not a directory"
+    done
+    IFS="$old_IFS"
+  done
+}
+export -f check_path_variable
+
 add_to_csgshare() { #added an directory to the csg internal search directories
   local dir
   for dir in "$@"; do
@@ -451,6 +467,7 @@ add_to_csgshare() { #added an directory to the csg internal search directories
     export CSGSHARE="$dir${CSGSHARE:+:}$CSGSHARE"
     export PERL5LIB="$dir${PERL5LIB:+:}$PERL5LIB"
   done
+  check_path_variable CSGSHARE PERL5LIB
 }
 export -f add_to_csgshare
 
