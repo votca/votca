@@ -18,6 +18,39 @@ void QMTopology::Cleanup()
     Topology::Cleanup();
 }
 
+void QMTopology::Initialize(Topology& cg_top)
+{
+    CopyTopologyData(&cg_top);
+    this->InitChargeUnits();
+}
+
+void QMTopology::InitChargeUnits(){
+    BeadContainer::iterator itb;
+    for (itb = _beads.begin() ; itb< _beads.end(); ++itb){
+        QMBead * bead = dynamic_cast<QMBead *>(*itb);
+        //initialise the crgunit * only if appropriate extra info is in the cg.xml file
+        if ( (bead->Options()).exists("qm.crgunitname")){
+            string namecrgunittype = bead->getType()->getName();
+            int intpos = (bead->Options()).get("qm.position").as<int>();
+            string namecrgunit = (bead->Options()).get("qm.crgunitname").as<string>();
+
+            //determine whether it  has been created already
+            int molid= bead->getMolecule()->getId();
+            string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
+
+            QMCrgUnit * acrg = GetCrgUnitByName(molandtype);
+            if(acrg == NULL)
+                acrg = CreateCrgUnit(molandtype, namecrgunittype, molid);
+
+            bead->setCrg(acrg);
+            bead->setiPos(intpos);
+        }
+        else{
+            bead->setCrg(NULL);
+        }
+    }
+}
+
 void QMTopology::Update(Topology& cg_top)
 {
     BeadContainer::iterator iter;
@@ -138,4 +171,34 @@ void QMTopology::CopyChargesOccupied(CrgUnit *crg, Molecule *mol)
         //set charge
         mol->getBead(i)->setQ(charge_of_bead_i_charged);
     }
+}
+
+QMCrgUnit *QMTopology::CreateCrgUnit(const string &name, const string &type_name, int molid)
+{
+    CreateCrgUnit(_crgunits_by_id.size()+1, name, type_name, molid);
+}
+
+QMCrgUnit *QMTopology::CreateCrgUnit(int id, const string &name, const string &type_name, int molid)
+{
+    map<int, QMCrgUnit*>::iterator iter;
+    iter = _crgunits_by_id.find(id);
+    if(iter != _crgunits_by_id.end())
+        throw std::runtime_error("charge unit with id " + lexical_cast<string>(id) + " already exists");
+
+    if(GetCrgUnitByName(name))
+        throw std::runtime_error("charge unit with name " + name + " already exists");
+
+    QMCrgUnit *crg;
+
+    CrgUnitType *type = _jcalc.GetCrgUnitTypeByName(type_name);
+    if(!type)
+        throw runtime_error("Charge unit type not found: " + type_name);
+
+    crg = new QMCrgUnit(id, type, molid);
+
+    _mcharges.insert(make_pair(name, crg));
+    _crgunits.push_back(crg);
+    _crgunits_by_id.insert(make_pair(id, crg));
+    crg->setName(name);
+    return crg;
 }

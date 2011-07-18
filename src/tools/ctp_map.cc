@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-#include "qmtopologycreator.h"
+#include "qmtopology.h"
 #include "md2qm_observer.h"
 #include <votca/csg/csgapplication.h>
 
@@ -32,7 +32,7 @@ protected:
     // we have one observer
     MD2QMObserver _observer;
     Property _options;
-    QMTopologyCreator _qmtopol;
+    QMTopology _qmtopol;
 };
 
 namespace po = boost::program_options;

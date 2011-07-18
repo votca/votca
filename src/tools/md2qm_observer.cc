@@ -10,7 +10,7 @@ MD2QMObserver::MD2QMObserver()
 MD2QMObserver::~MD2QMObserver()
 {}
 
-void MD2QMObserver::Initialize(QMTopologyCreator &qmtop, Property &opts)
+void MD2QMObserver::Initialize(QMTopology &qmtop, Property &opts)
 {
     _qmtop = &qmtop;
     _save.Open(qmtop, _out);

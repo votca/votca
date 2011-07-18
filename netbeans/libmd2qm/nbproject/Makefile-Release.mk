@@ -33,7 +33,6 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/1716269789/qmtopologycreator.o \
 	${OBJECTDIR}/_ext/76882303/dump_atoms_bj.o \
 	${OBJECTDIR}/_ext/76882303/dump_atoms.o \
 	${OBJECTDIR}/_ext/76882303/shufflenrg.o \
@@ -77,11 +76,6 @@ dist/Release/GNU-Linux-x86/liblibmd2qm.a: ${OBJECTFILES}
 	${RM} dist/Release/GNU-Linux-x86/liblibmd2qm.a
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibmd2qm.a ${OBJECTFILES} 
 	$(RANLIB) dist/Release/GNU-Linux-x86/liblibmd2qm.a
-
-${OBJECTDIR}/_ext/1716269789/qmtopologycreator.o: ../../src/libmd2qm/qmtopologycreator.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmtopologycreator.o ../../src/libmd2qm/qmtopologycreator.cc
 
 ${OBJECTDIR}/_ext/76882303/dump_atoms_bj.o: ../../src/libmd2qm/calculators/dump_atoms_bj.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303

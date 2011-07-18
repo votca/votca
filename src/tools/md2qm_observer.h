@@ -9,7 +9,7 @@
 #define	_MD2QM_OBSERVER_H
 
 #include <votca/csg/cgobserver.h>
-#include "qmtopologycreator.h"
+#include "qmtopology.h"
 #include <votca/tools/property.h>
 #include "statesaversqlite.h"
 #include <votca/moo/units.h>
@@ -22,7 +22,7 @@ public:
     ~MD2QMObserver();
 
 
-    void Initialize(QMTopologyCreator &qmtop, Property &opts);
+    void Initialize(QMTopology &qmtop, Property &opts);
 
     /// begin coarse graining a trajectory
     void BeginCG(Topology *top, Topology *top_atom);
@@ -44,7 +44,7 @@ public:
     void print_nbs_to_file(QMNBList &nblist);
 
 protected:
-    QMTopologyCreator *_qmtop;
+    QMTopology *_qmtop;
     /// nearest neighbor cut-off radius
     double _cutoff;
     ///  output streams for velocity averaging & diffusion
