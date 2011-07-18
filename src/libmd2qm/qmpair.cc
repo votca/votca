@@ -5,6 +5,7 @@
 QMPair::QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top) 
     : std::pair<QMCrgUnit *, QMCrgUnit *>(crg1,crg2), _in_database(false)
 {
+    QMPair();
     vec crg1nm,crg2nm;
     crg1nm =  crg1->GetCom();
     crg2nm =  crg2->GetCom();

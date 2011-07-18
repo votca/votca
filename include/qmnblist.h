@@ -25,7 +25,7 @@ class QMNBList
     : public PairList<QMCrgUnit *, QMPair>
 {
 public:
-     QMNBList() {};
+     QMNBList(): _cutoff(0.) {};
      ~QMNBList(){
          PairList<QMCrgUnit *, QMPair>::Cleanup();
      }

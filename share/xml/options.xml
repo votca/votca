@@ -147,4 +147,75 @@
 <desc>Name of the atomistic trajectory with back-substituted rigid fragments.</desc>
 </item>
 
+<item>
+<name>lambdaout</name>
+<desc>Outer sphere reorganization energy for all pairs</desc>
+</item>
+
+<item>
+<name>lambdaout.method</name>
+<desc>Type of method used. Can be **constant**(all pairs have the same value **lambdaconst** set in options file), **spheres**(molecules are treated as spheres with radii **R_lambda** given in the segments file and Pekar factor **pekar** set in options file) or **dielectric** (with Pekar factor **pekar** set in options file and partial charges and resulting dielectric fields) </desc>
+</item>
+
+<item>
+<name>lambdaout.lambdaconst</name>
+<desc>Constant value for all pairs used in method **constant**</desc>
+</item>
+
+<item>
+<name>lambdaout.pekar</name>
+<desc>Pekar factor used for methods **spheres** and **dielectric**</desc>
+</item>
+
+<item>
+<name>lambdaout.R_lambda</name>
+<desc>Radius of spherical molecule as used in  method **spheres**</desc>
+</item>
+
+
+<item>
+<name>marcusrates</name>
+<desc></desc>
+</item>
+
+<item>
+<name>shufflenrg</name>
+<desc></desc>
+</item>
+
+<item>
+<name>polymerrates</name>
+<desc>kick it out ?</desc>
+</item>
+
+<item>
+<name>pairdump</name>
+<desc></desc>
+</item>
+
+<item>
+<name>currden</name>
+<desc></desc>
+</item>
+
+<item>
+<name>jortnerrates</name>
+<desc></desc>
+</item>
+
+<item>
+<name>nbgen</name>
+<desc></desc>
+</item>
+
+<item>
+<name>avgvelocity</name>
+<desc></desc>
+</item>
+
+<item>
+<name>dumpatoms</name>
+<desc></desc>
+</item>
+
 </tags>
