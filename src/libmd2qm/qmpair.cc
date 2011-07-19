@@ -3,8 +3,8 @@
 
 
 QMPair::QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top):std::pair<QMCrgUnit *, QMCrgUnit *>(crg1,crg2)
+, _rate_12(0.),_rate_21(0.),_lambda_outer(0.)
 {
-    QMPair();
     vec crg1nm,crg2nm;
     crg1nm =  crg1->GetCom();
     crg2nm =  crg2->GetCom();
