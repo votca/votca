@@ -56,7 +56,8 @@ void Application::ShowHelpText(std::ostream &out)
 int Application::Exec(int argc, char **argv)
 {
     try {
-        AddProgramOptions()("help,h", "  produce this help message");
+        //_continue_execution = true;
+	AddProgramOptions()("help,h", "  produce this help message");
         Initialize(); // initialize program-specific parameters
 
         ParseCommandLine(argc, argv); // initialize general parameters & read input file
@@ -73,6 +74,7 @@ int Application::Exec(int argc, char **argv)
 
         if(_continue_execution)
             Run();
+	else cout << "nothing to be done - stopping here\n";
     }
     catch(std::exception &error) {
          cerr << "an error occurred:\n" << error.what() << endl;
