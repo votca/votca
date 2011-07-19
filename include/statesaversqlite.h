@@ -51,7 +51,7 @@ private:
     int _current_frame;
 
     map<int,int> _conjseg_id_map;
-    map<int,int> _pair_id_map;
+    bool _was_read;
 };
 
 #endif	/* __VOTCA_MD2QM_StateSaverSQLite_H */

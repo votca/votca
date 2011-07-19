@@ -24,6 +24,7 @@ void StateSaverSQLite::Open(QMTopology& qmtop, const string& file)
 
     cout << "Found " << _frames.size() << " in database\n";
     _current_frame = -1;
+    _was_read=false;
 }
 
 void StateSaverSQLite::Close()
@@ -46,6 +47,7 @@ bool StateSaverSQLite::NextFrame()
     ReadConjugatedSegments();
     ReadBeads();
     ReadPairs();
+    _was_read=true;
     return true;
 }
 
@@ -117,13 +119,12 @@ void StateSaverSQLite::WriteFrame()
     _db.EndTransaction();
     _frame++;
     _conjseg_id_map.clear();
-    _pair_id_map.clear();
 }
 
 void StateSaverSQLite::WriteMolecules(int frameid)
 {
     Statement *stmt;
-
+    if(_was_read) return;
     stmt = _db.Prepare("INSERT INTO molecules (frame, id, name) VALUES (?, ?, ?)");
 
     int imol=0;
@@ -208,6 +209,7 @@ void StateSaverSQLite::ReadConjugatedSegments(void)
 }
 
 void StateSaverSQLite::WriteBeads(int frameid) {
+    if(_was_read) return;
     Statement *stmt= _db.Prepare(
             "INSERT INTO rigidfrags (id,name,symmetry,type,resnr,mass,charge,conjseg_id,"
             "conjseg_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molecule,frame) "
