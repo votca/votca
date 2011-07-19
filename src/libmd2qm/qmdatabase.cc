@@ -44,6 +44,7 @@ void QMDatabase::onCreate()
     Exec("CREATE TABLE rigidfrags ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "id INT NOT NULL,"
+        "frame INT NOT NULL,"
         "name TEXT NOT NULL,"
         "symmetry INT NOT NULL,"
         "type TEXT NOT NULL,"

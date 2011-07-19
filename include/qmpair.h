@@ -113,7 +113,7 @@ public:
     bool getInDatabase() { return _in_database; }
 
     int getId() { return _id; }
-    void setId(int id) { _id = _id; }
+    void setId(int id) { _id = id; }
 
 protected:
     /// vector connecting the two beads

@@ -174,6 +174,8 @@ void StateSaverSQLite::WriteConjugatedSegments(int frameid) {
         else
             stmt = insert_stmt;
 
+        // cout << "conjseg " << crg->getId() << " " << crg->GetCom() << endl;
+
         stmt->Bind(1, crg->getName());;
         stmt->Bind(2, crg->getType()->GetName());;
         stmt->Bind<int>(3, crg->getMolId());;
@@ -208,8 +210,8 @@ void StateSaverSQLite::ReadConjugatedSegments(void)
 void StateSaverSQLite::WriteBeads(int frameid) {
     Statement *stmt= _db.Prepare(
             "INSERT INTO rigidfrags (id,name,symmetry,type,resnr,mass,charge,conjseg_id,"
-            "conjseg_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molecule) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            "conjseg_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molecule,frame) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
     int i = 0;
     for (BeadContainer::iterator iter = _qmtop->Beads().begin();
@@ -235,6 +237,7 @@ void StateSaverSQLite::WriteBeads(int frameid) {
         stmt->Bind(17, bi->getV().getY());
         stmt->Bind(18, bi->getV().getZ());
         stmt->Bind(19, bi->getMolecule()->getId());
+        stmt->Bind(20, frameid);
         
         stmt->Step();
         stmt->Reset();
@@ -244,10 +247,10 @@ void StateSaverSQLite::WriteBeads(int frameid) {
 void StateSaverSQLite::ReadBeads() {
     Statement *stmt =
         _db.Prepare("SELECT "
-            "rigidfrags._id, rigidfrags.id, rigidfrags.name, symmetry, rigidfrags.type, resnr, mass, charge, rigidfrags.molecule, "
+            "rigidfrags._id, rigidfrags.id, rigidfrags.name, symmetry, rigidfrags.type, resnr, mass, charge, molecule, "
             "conjseg_id, conjseg_index, pos_x, pos_y, pos_z, "
             "u_x, u_y, u_z, v_x, v_y, v_z "
-            "FROM rigidfrags, molecules WHERE (molecules._id = rigidfrags.molecule AND molecules.frame = ?)");
+            "FROM rigidfrags WHERE (frame = ?)");
     stmt->Bind(1, _frames[_current_frame]);
 
     while (stmt->Step() != SQLITE_DONE) {
@@ -267,6 +270,7 @@ void StateSaverSQLite::ReadBeads() {
  	vec pos(stmt->Column<double>(11), stmt->Column<double>(12), stmt->Column<double>(13));
         vec u(stmt->Column<double>(14), stmt->Column<double>(15), stmt->Column<double>(16));
         vec v(stmt->Column<double>(17), stmt->Column<double>(18), stmt->Column<double>(19));
+        //cout << "read bead with conksegment " << conjseg_id << endl;
 
         BeadType *type = _qmtop->GetOrCreateBeadType(type_name);
 	resnr = 0;
@@ -283,6 +287,7 @@ void StateSaverSQLite::ReadBeads() {
         bead->setPos(pos);
         bead->setU(u);
         bead->setV(v);
+        //cout << "pos " << pos << endl;
         bead->UpdateCrg();
     }
     delete stmt;
@@ -293,13 +298,16 @@ void StateSaverSQLite::WritePairs(int frameid) {
 
     _db.Exec("UPDATE pairs SET deleted=1 WHERE conjseg1 IN (SELECT _id from conjsegs WHERE frame = " 
         + lexical_cast<string>(frameid) +  ")");
+    //Statement *update_stmt = _db.Prepare(
+    //        "UPDATE pairs SET rate12 = ?, rate21 = ?, r_x = ?, r_y = ?,r_z = ?, deleted = 0 WHERE conjseg1 = ? AND conjseg2 = ?");
     Statement *update_stmt = _db.Prepare(
-            "UPDATE pairs SET rate12 = ?, rate21 = ?, r_x = ?, r_y = ?,r_z = ?, deleted = 0 WHERE conjseg1 = ? AND conjseg2 = ?");
+            "UPDATE pairs SET rate12 = ?, rate21 = ?, r_x = ?, r_y = ?,r_z = ?, deleted = 0, conjseg1 = ?, conjseg2 = ? WHERE _id = ?");
     Statement *insert_stmt = _db.Prepare(
             "INSERT INTO pairs (rate12, rate21, r_x, r_y,r_z, conjseg1, conjseg2)"
             " VALUES (?,?,?,?,?,?,?)");
 
-    QMNBList &nblist = _qmtop->nblist();
+    int i=0;
+QMNBList &nblist = _qmtop->nblist();
     for(QMNBList::iterator iter = nblist.begin();
         iter!=nblist.end();++iter) {
         QMPair *pair = *iter;
@@ -310,7 +318,8 @@ void StateSaverSQLite::WritePairs(int frameid) {
             stmt = update_stmt;
         else
             stmt = insert_stmt;
-
+        //cout << pair->getId() << " " << _conjseg_id_map[crg1->getId()] << " " << _conjseg_id_map[crg2->getId()] <<
+        // " " << pair->rate12() << " " << pair->rate21() << " " <<  pair->r() << endl;
         stmt->Bind(1, pair->rate12());
         stmt->Bind(2, pair->rate21());
         stmt->Bind(3, pair->r().getX());
@@ -318,13 +327,18 @@ void StateSaverSQLite::WritePairs(int frameid) {
         stmt->Bind(5, pair->r().getZ());
         stmt->Bind(6, _conjseg_id_map[crg1->getId()]);
         stmt->Bind(7, _conjseg_id_map[crg2->getId()]);
-
+        if(pair->getInDatabase())
+            stmt->Bind(8, pair->getId());
+        ++i;
         stmt->Step();
-
+        if(!pair->getInDatabase())
+            pair->setId(_db.LastInsertRowId());
         pair->setInDatabase(true);
-        pair->setId(_db.LastInsertRowId());
         stmt->Reset();
+
+        WriteIntegrals(pair);
     }
+    // cout << "written pairs: " << i << endl;
     _db.Exec("DELETE FROM pairs WHERE deleted=1");
     delete update_stmt;
     delete insert_stmt;
@@ -354,13 +368,16 @@ void StateSaverSQLite::ReadPairs(void)
             cerr << "WARNING: pair (" << id1 << ", " << id2 << ") distance differs by more than 1e-6 from the value in the database\nread: " << r1 << " calculated: " << r2 << endl ;
         pair->setInDatabase(true);
         pair->setId(stmt->Column<int>(0));
+        // cout << stmt->Column<int>(0) << "foo" << endl;
     }
+    // cout << "read pairs: " + _qmtop->nblist().size() << endl;
+    ReadIntegrals();
     delete stmt;
 }
 
 void StateSaverSQLite::WriteIntegrals(QMPair *pair)
 {
-    _db.Exec("DELETE FROM pair_integrals WHERE _id = " + pair->getId());
+    _db.Exec("DELETE FROM pair_integrals WHERE pair = " + lexical_cast<string>(pair->getId()));
 
     Statement *stmt =
     _db.Prepare("INSERT INTO pair_integrals (pair, num, J) VALUES (?, ?, ?)");
@@ -379,13 +396,13 @@ void StateSaverSQLite::WriteIntegrals(QMPair *pair)
 void StateSaverSQLite::ReadIntegrals()
 {
     Statement *stmt =
-    _db.Prepare("SELECT J FROM pair_integrals ORDER BY num "
-            "WHERE pair = ?");
+    _db.Prepare("SELECT J FROM pair_integrals WHERE pair = ? ORDER BY num");
 
     for(QMNBList::iterator iter=_qmtop->nblist().begin(); iter!=_qmtop->nblist().end(); ++iter) {
         stmt->Bind(1, (*iter)->getId());
         while (stmt->Step() != SQLITE_DONE)
             (*iter)->Js().push_back(stmt->Column<double>(0));
+        stmt->Reset();
     }
     delete stmt;
 }

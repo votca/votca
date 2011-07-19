@@ -200,7 +200,7 @@ QMCrgUnit *QMTopology::CreateCrgUnit(int id, const string &name, const string &t
 
     _mcharges.insert(make_pair(name, crg));
     _crgunits.push_back(crg);
-    _crgunits_by_id.insert(make_pair(id, crg));
+    _crgunits_by_id[id] = crg;
     crg->setName(name);
     return crg;
 }
