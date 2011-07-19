@@ -62,8 +62,8 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
         int first = lexical_cast<int>(attr["first"]) - 1;
         int second = lexical_cast<int>(attr["second"]) - 1;
 
-        QMCrgUnit *crg1 = _top->GetCrgUnit(first);
-        QMCrgUnit *crg2 = _top->GetCrgUnit(second);
+        QMCrgUnit *crg1 = _top->getCrgUnit(first);
+        QMCrgUnit *crg2 = _top->getCrgUnit(second);
 
         if(crg1->getId() > crg2->getId())
             swap(crg1, crg2);
@@ -108,7 +108,7 @@ void ReadXML::ParseFrame(const string &el, map<string, string> &attr)
     }
     else if (el == "site" ) {
     	int site_number = lexical_cast<int>(attr["number"]) - 1;
-	QMCrgUnit *crg = _top->GetCrgUnit(site_number);
+	QMCrgUnit *crg = _top->getCrgUnit(site_number);
         if(!crg)
             throw std::runtime_error("readxml error, no site #" + lexical_cast<string>(site_number+1) + " fond");
         

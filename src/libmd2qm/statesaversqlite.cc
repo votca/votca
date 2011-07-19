@@ -68,10 +68,10 @@ void StateSaverSQLite::ReadFrame(void)
     cout << "time " << stmt->Column<double>(0) << endl;
     matrix m;
     for(int i=0; i<3; ++i)
-        for(int j=0; j<9; ++j)
-            m.set(i, j, stmt->Column<double>(3+i*3+j));
+        for(int j=0; j<3; ++j)
+            m.set(i, j, stmt->Column<double>(2+i*3+j));
     _qmtop->setBox(m);
-
+    cout << "Box: " << m << endl;
     _qmtop->setDatabaseId(_frames[_current_frame]);
     delete stmt;
 }
@@ -97,9 +97,10 @@ void StateSaverSQLite::WriteFrame()
 
     stmt->Bind(1, _qmtop->getTime());
     stmt->Bind(2, _qmtop->getStep());
-
+    matrix m = _qmtop->getBox();
+    cout << "Writing Box: " << m << endl;
     for(int i=0; i<3; ++i)
-        for(int j=0; j<9; ++j)
+        for(int j=0; j<3; ++j)
             stmt->Bind(3+i*3+j, _qmtop->getBox().get(i,j));
 
     stmt->Step();
@@ -269,6 +270,7 @@ void StateSaverSQLite::ReadBeads() {
         vec v(stmt->Column<double>(17), stmt->Column<double>(18), stmt->Column<double>(19));
 
         BeadType *type = _qmtop->GetOrCreateBeadType(type_name);
+	resnr = 0;
         QMBead *bead = dynamic_cast<QMBead*>(_qmtop->CreateBead(symmetry, bead_name, type, resnr, M, Q));
         _qmtop->getMolecule(molecule)->AddBead(bead, bead_name);
 
@@ -329,7 +331,7 @@ void StateSaverSQLite::WritePairs(int frameid) {
 void StateSaverSQLite::ReadPairs(void)
 {
     Statement *stmt =
-    _db.Prepare("SELECT _id, conjseg1, conjseg2, r_x, r_y, r_z FROM pairs,conjsegs "
+    _db.Prepare("SELECT pairs._id, conjseg1, conjseg2, r_x, r_y, r_z FROM pairs,conjsegs "
             "WHERE (conjsegs.frame = ? and  conjseg1 = conjsegs._id)");
     stmt->Bind(1, _frames[_current_frame]);
     while (stmt->Step() != SQLITE_DONE) {
@@ -337,7 +339,6 @@ void StateSaverSQLite::ReadPairs(void)
         int id2 = stmt->Column<int>(2);
         QMCrgUnit *crg1 = _qmtop->getCrgUnit(id1);
         QMCrgUnit *crg2 = _qmtop->getCrgUnit(id2);
-
         if(crg1 == NULL)
             throw std::runtime_error("broken database, pair refers to non-existent conjugated segment");
         if(crg2 == NULL)
@@ -348,10 +349,11 @@ void StateSaverSQLite::ReadPairs(void)
         vec r1(stmt->Column<double>(3), stmt->Column<double>(4), stmt->Column<double>(5));
         vec r2 = pair->r();
         if(abs(r2 - r1) > 1e-6)
-            cerr << "WARNING: pair (" << id1 << ", " << id2 << ") distance differs by more than 1e-6 from the value in the database\n";
+            cerr << "WARNING: pair (" << id1 << ", " << id2 << ") distance differs by more than 1e-6 from the value in the database\nread: " << r1 << " calculated: " << r2 << endl ;
         pair->setInDatabase(true);
         pair->setId(stmt->Column<int>(0));
     }
+    cout << "read pairs: " <<   _qmtop->nblist().size()<<endl;
     delete stmt;
 }
 
