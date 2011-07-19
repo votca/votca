@@ -97,6 +97,7 @@
   <item><name>cg.inverse.imc</name><desc> general imc specific options </desc></item>
   <item><name>cg.inverse.imc.solver</name><desc> solver for solving a linear equation system, can be octave or matlab </desc></item>
   <item><name>cg.inverse.imc.octave.bin</name><desc> Name (or absolute path) of the octave binary </desc></item>
+  <item><name>cg.inverse.imc.numpy.bin</name><desc> Name (or absolute path) of the python binary used by the numpy solver</desc></item>
   <item><name>cg.inverse.imc.matlab.bin</name><desc> Name (or absolute path) of the matlab binary </desc></item>
   
   
