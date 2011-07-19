@@ -71,7 +71,6 @@ void StateSaverSQLite::ReadFrame(void)
         for(int j=0; j<3; ++j)
             m.set(i, j, stmt->Column<double>(2+i*3+j));
     _qmtop->setBox(m);
-    cout << "Box: " << m << endl;
     _qmtop->setDatabaseId(_frames[_current_frame]);
     delete stmt;
 }
@@ -98,7 +97,6 @@ void StateSaverSQLite::WriteFrame()
     stmt->Bind(1, _qmtop->getTime());
     stmt->Bind(2, _qmtop->getStep());
     matrix m = _qmtop->getBox();
-    cout << "Writing Box: " << m << endl;
     for(int i=0; i<3; ++i)
         for(int j=0; j<3; ++j)
             stmt->Bind(3+i*3+j, _qmtop->getBox().get(i,j));
@@ -213,6 +211,7 @@ void StateSaverSQLite::WriteBeads(int frameid) {
             "conjseg_index,pos_x,pos_y,pos_z,u_x,u_y,u_z,v_x,v_y,v_z,molecule) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
+    int i = 0;
     for (BeadContainer::iterator iter = _qmtop->Beads().begin();
             iter != _qmtop->Beads().end(); ++iter) {
         QMBead *bi = dynamic_cast<QMBead*> (*iter);
@@ -246,7 +245,7 @@ void StateSaverSQLite::ReadBeads() {
     Statement *stmt =
         _db.Prepare("SELECT "
             "rigidfrags._id, rigidfrags.id, rigidfrags.name, symmetry, rigidfrags.type, resnr, mass, charge, rigidfrags.molecule, "
-            "conjseg_id, conjseg_index, pos_x, pos_y, pos_y, "
+            "conjseg_id, conjseg_index, pos_x, pos_y, pos_z, "
             "u_x, u_y, u_z, v_x, v_y, v_z "
             "FROM rigidfrags, molecules WHERE (molecules._id = rigidfrags.molecule AND molecules.frame = ?)");
     stmt->Bind(1, _frames[_current_frame]);
@@ -265,7 +264,7 @@ void StateSaverSQLite::ReadBeads() {
         int conjseg_id =  stmt->Column<int>(9);
         int conjseg_index =  stmt->Column<int>(10);
 
-        vec pos(stmt->Column<double>(11), stmt->Column<double>(12), stmt->Column<double>(13));
+ 	vec pos(stmt->Column<double>(11), stmt->Column<double>(12), stmt->Column<double>(13));
         vec u(stmt->Column<double>(14), stmt->Column<double>(15), stmt->Column<double>(16));
         vec v(stmt->Column<double>(17), stmt->Column<double>(18), stmt->Column<double>(19));
 
@@ -292,8 +291,10 @@ void StateSaverSQLite::ReadBeads() {
 void StateSaverSQLite::WritePairs(int frameid) {
     Statement *stmt;
 
+    _db.Exec("UPDATE pairs SET deleted=1 WHERE conjseg1 IN (SELECT _id from conjsegs WHERE frame = " 
+        + lexical_cast<string>(frameid) +  ")");
     Statement *update_stmt = _db.Prepare(
-            "UPDATE pairs SET rate12 = ?, rate21 = ?, r_x = ?, r_y = ?,r_z = ? WHERE conjseg1 = ? AND conjseg2 = ?");
+            "UPDATE pairs SET rate12 = ?, rate21 = ?, r_x = ?, r_y = ?,r_z = ?, deleted = 0 WHERE conjseg1 = ? AND conjseg2 = ?");
     Statement *insert_stmt = _db.Prepare(
             "INSERT INTO pairs (rate12, rate21, r_x, r_y,r_z, conjseg1, conjseg2)"
             " VALUES (?,?,?,?,?,?,?)");
@@ -324,6 +325,7 @@ void StateSaverSQLite::WritePairs(int frameid) {
         pair->setId(_db.LastInsertRowId());
         stmt->Reset();
     }
+    _db.Exec("DELETE FROM pairs WHERE deleted=1");
     delete update_stmt;
     delete insert_stmt;
 }
@@ -353,7 +355,6 @@ void StateSaverSQLite::ReadPairs(void)
         pair->setInDatabase(true);
         pair->setId(stmt->Column<int>(0));
     }
-    cout << "read pairs: " <<   _qmtop->nblist().size()<<endl;
     delete stmt;
 }
 

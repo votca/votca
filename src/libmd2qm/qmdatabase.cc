@@ -79,7 +79,8 @@ void QMDatabase::onCreate()
         "rate21 REAL NOT NULL,"
         "r_x REAL NOT NULL,"
         "r_y REAL NOT NULL,"
-        "r_z REAL NOT NULL)");
+        "r_z REAL NOT NULL,"
+        "deleted INT DEFAULT 0)");
 
     // additional properties of pairs
     Exec("CREATE TABLE pair_properties ("
