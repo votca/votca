@@ -22,7 +22,7 @@ This script solves a linear equation system from imc using numpy
 
 Usage: ${0##*/} <group> <outfile>
 
-Used external packages: python, numpy
+Used external packages: numpy
 EOF
    exit 0
 fi
