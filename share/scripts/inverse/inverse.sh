@@ -131,7 +131,7 @@ scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
 show_csg_tables
 
 #main script
-[[ -f done ]] && { msg "Job is already done"; exit 0; }
+[[ -f done ]] && { msg "Job is already done (remove the file named 'done' if you want to go on)"; exit 0; }
 
 ######## BEGIN STEP 0 ############
 update_stepnames 0
@@ -268,6 +268,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
+    [[ -f stop ]] && rm -f stop
     do_external convergence_check "$convergence_check"
     if [[ -f stop ]]; then
       msg "Iterations are converged, stopping"
