@@ -9,6 +9,7 @@
 #define	__VOTCA_MD2QM_STATESAVERSQLITE_H
 
 #include <stdio.h>
+#include <map>
 #include "qmbead.h"
 #include "qmtopology.h"
 #include "qmpair.h"
@@ -47,6 +48,10 @@ private:
     void ReadBeads(void);
     void ReadPairs(void);
     void ReadIntegrals();
+
+    template<typename T>
+    void WriteCustomProperties(string table, std::map<string, T> &properties,
+        const string field_key, const string field_value);
     
     QMTopology *_qmtop;
 

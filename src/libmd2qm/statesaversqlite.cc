@@ -408,3 +408,27 @@ void StateSaverSQLite::ReadIntegrals()
     }
     delete stmt;
 }
+
+
+template<typename T>
+void StateSaver::WriteCustomProperties(int object_id, std::map<string, T> &properties,
+        string table, const string field_objectid, const string field_key, const string field_value)
+{
+    _db.Exec("DELETE FROM " + table + " WHERE " + field_objectid + " = " 
+        + lexical_cast<string>(object_id));
+
+    Statement *stmt =
+    _db.Prepare("INSERT INTO " + table + "(" + field_objectid + ", " + field_key + ", " + field_value
+            + ") VALUES (?, ?, ?)");
+
+    for(map<string, T>::iterator i = properties.begin(); i!=properties.end(); ++i) {
+        stmt->Bind(1, object_id);
+        stmt->Bind(2, i->first);
+        stmt->Bind(3, i->second);
+        stmt->Step();
+        stmt->Reset();
+    }
+
+    delete stmt;
+}
+
