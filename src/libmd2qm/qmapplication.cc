@@ -59,6 +59,8 @@ void QMApplication::Run()
     string statefile = OptionsMap()["db"].as<string>();
     StateSaverSQLite loader;
     loader.Open(_qmtop, statefile);
+    if(loader.FramesInDatabase() != 1)
+        throw std::runtime_error("database contains none or more than one frame which is not supported yet.");
 
     while(loader.NextFrame()) {
         EvaluateFrame();

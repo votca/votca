@@ -28,6 +28,9 @@ public:
     void WriteFrame();
 
     bool NextFrame();
+
+    int FramesInDatabase() { return _frames.size(); }
+    
 private:
     int _frame;
     QMDatabase _db;
