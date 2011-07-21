@@ -1,21 +1,40 @@
 \subsection{Electronic coupling: \gaussian and \turbomole}
 
-Apartm from semi-empirical methods, we also provide interfaces for a DFT-based evaluation of electronic coupling elements.
-
-\begin{itemize}
-\item {\it not sure about directory structure yet, using {\tt
-      \$DIRECTORY} for the time being}
-\item creating file structure for frame $N$ (raw: no postpocessing,
-  min: MD energy minimization) in directory {\tt OUTDIR}
+Apart from semi-empirical methods, we also provide interfaces for a DFT-based evaluation of electronic coupling elements. The interfacing procedure consists of three main steps: generation of directory structures containing input coordinates for monomers and dimers, performing the actual quantum-chemical calculations and calculating the transfer integrals using the DIPRO method, and finally reading the output into VOTCA\_CT.
+\subsubsection{Generation of directory structure and input coordinates}
+First, hopping sites and a neighbor list need to be generated from the atomistic topology and trajectory. Rigid fragments are resubstituted into the molecular geometries and the neighbor list is defined based on a cutoff distance between such fragments. This can be achieved by running, e.g.  
 \begin{verbatim}
-$DIRECTORY/perpare.sh raw/min N OUTDIR
-cd OUTDIR
-$DIRECTORY/pairdump.sh
+ctp_map [required options] --cutoff 0.6 --nframes 1 --first-frame 10
 \end{verbatim}
-\item make sure QCP environments are set!
-\item running calculations for all monomers
- \begin{verbatim}
-$DIRECTORY/calc_monomer QCP [METHOD]
+A state file is written for frame 10 of the trajectory and from that the full file and directory structure needed by {\tt ctp\_dipro} is written by 
+\begin{verbatim}
+ctp_run --in STATEFILE --crg CRGFILE --exec pairdump
+\end{verbatim}
+This requires the specification of the content of listing \ref{list:benzene_xml} in {\tt main.xml}.
+\lstinputlisting[
+  language=XML,
+  label=list:pairdump_xml,
+  stringstyle=\ttfamily\footnotesize,
+  showstringspaces=false,
+  caption={\small Block of pairdump options required in {\tt main.xml} for generating the directory structure and coordinate files for {\tt ctp\_dipro}.}] {./programs/pairdump.xml}
+After this, the following directories and files have been created:
+\begin{verbatim}
+|----frame10/
+| |----mol_1/
+| | |----mol_1.xyz
+| | [...]
+| |----pair_1_2/
+| | |----dim/
+| | | |----pair_1_2.xyz
+| | [...]
+\end{verbatim}
+
+\subsubsection{Calculating the transfer integrals}
+Before starting the quantum-chemical calculations with either {\tt Gaussian} or {\tt Turbomole}, make sure that the respective environments for these programs are set. 
+
+First, for each molecule a converged electronic structure calculatiom has to be performed by running 
+\begin{verbatim}
+ctp_dipro --monomer QCP [METHOD]
 
 QCP:   G for Gaussian09
        T for Turbomole
@@ -23,20 +42,29 @@ QCP:   G for Gaussian09
 METHOD: func/basis (optional)
         overrides default functional/basisset combination
         defaults: pbepbe/6-311G** Gaussian09
-                  b-p/def-TZVP    Turbomole
+                  pbe/def-TZVP    Turbomole
 \end{verbatim}
-\item check monomer calculations (Gaussian version to test!) 
+in each {\tt mol\_*} directory. If no method is specified, {\tt ctp\_dipro} defaults to running a DFT calculation with the PBE functional and a 6-311G** basis set in {\tt Gaussian} and def-TZVP in {\tt Turbomole}. Note that {\tt OpenBabel} needs to be installed is {\tt Turbomole} is used. It is recommended to perform these calculations in batch mode on some kind of cluster system. Since it can eventually happen that files are not written back correctly, one should check if all files that are needed for the pair runs are present by executing in the {\tt frame*} directory
 \begin{verbatim}
-$DIRECTORY/check_mols N M QCP
+ctp_dipro --check N M QCP
 
 N:   First monomer to test
 M:   Last monomer to test
 QCP: G/T 
 \end{verbatim}
-incomplete monomers are written to file {\tt TROUBLE.mol}
-\item running calculations for all dimers
+A list of incomplete monomer calculations is written to file {\tt TROUBLE.mol}. If this is empty, one can proceed with running the pair calculations. For any directory {\tt pair\_A\_B}, the completed monomer calculations from the previous step have to be present in subdirectories {\tt mol\_A} and {\tt mol\_B}, e.g.
+\begin{verbatim}
+| | [...]
+| |----pair_1_2/
+| | |----molA/
+| | |----molB/
+| | |----dim/
+| | | |----pair_1_2.xyz
+| | [...]
+\end{verbatim}
+These subdirectories can be either copies or symbolic links, however, the most practical realization depends on the specifics of execute machine (e.g. local or network, hard disc etc.) so that these are not created automatically! Once these are created by the user, the transfer integral for the pair can be calculated by running {\tt ctp\_dipro --dimer} in the {\tt pair\_A\_B/dim} directory:
  \begin{verbatim}
-$DIRECTORY/calc_dimer_noSCF QCP [METHOD]
+ctp_dipro --dimer QCP [METHOD]
 
 QCP:   G for Gaussian09
        T for Turbomole
@@ -44,8 +72,14 @@ QCP:   G for Gaussian09
 METHOD: func/basis (optional)
         overrides default functional/basisset combination
         defaults: pbepbe/6-311G** Gaussian09
-                  b-p/def-TZVP    Turbomole
+                  pbe/def-TZVP    Turbomole
 \end{verbatim}
-\item should we add {\tt trajectory\_submit.sh} that does all monomer
-  and dimer calculations on the cluster (MPIP-specific)?
-\end{itemize}
+This command automatically generates a dimer input guess from the converged monomer orbitals, detects (pseudo-)degeneracies of HOMO or LUMO and calculates the required transfer integrals. As a result of the run, a file {\tt pair\_A\_B/TI.xml} as shown in listing \ref{list:TI_xml} is created (needs proper example).
+\lstinputlisting[
+  language=XML,
+  label=list:TI_xml,
+  stringstyle=\ttfamily\footnotesize,
+  showstringspaces=false,
+  caption={\small Example {\tt TI.xml} file created as the output of a DIPRO calculation. Due to slightly different implementations, the orbitals indices refer to monomer indices in a {\tt Gaussian} run but to indices in the merged dimer guess in a {\tt Turbomole} run.}] {./programs/TI.xml}
+\subsubsection{Generation of state file}
+TO BE DONE...
