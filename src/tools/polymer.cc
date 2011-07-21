@@ -100,9 +100,9 @@ void Polymer::CalcWaveFunction(Molecule * mol){
     
     //1 set diagonal elements
     for (int i=0; i< nbeads;i++){
-        CrgUnit * crg = dynamic_cast<QMBead*>(mol->getBead(i))
+        QMCrgUnit * crg = dynamic_cast<QMBead*>(mol->getBead(i))
             ->GetCrgUnit();
-        double nrg = crg->getEnergy();
+		double nrg = crg->getTotalEnergy();
         gsl_matrix_set (pH,i,i, nrg);
         // set a map from CrgUnits -> the integer associated with them
         map<int, int>::iterator itm = _mcrg2bs.find(crg->getId());
