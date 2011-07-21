@@ -8,7 +8,7 @@
 #ifndef _POLYMER_H
 #define	_POLYMER_H
 
-#include "qmapplication.h"
+#include <votca/ctp/qmapplication.h>
 #include <stdio.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_eigen.h>

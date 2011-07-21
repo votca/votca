@@ -1,7 +1,7 @@
 
 #include "md2qm_observer.h"
 #include <votca/csg/nblist.h>
-#include <qmnblist.h>
+#include <votca/ctp/qmnblist.h>
 
 MD2QMObserver::MD2QMObserver()
 {}
