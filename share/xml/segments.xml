@@ -36,9 +36,15 @@
 </item>  
 
 <item>
-<name>segments.segment.reorganization</name>
-<desc>Reorganization energy of the cation or anion in eV.</desc>
+<name>segments.segment.reorg_charging</name>
+<desc>Reorganization energy for charging the conjugated segment. If only the total reorganization energy is known, use half of that.</desc>
 </item>  
+
+<item>
+<name>segments.segment.reorg_discharging</name>
+<desc>Reorganization energy for discharging the conjugated in eV. If only the total reorganization energy is known, use half of that.</desc>
+</item>
+
 
 <item>
 <name>segments.segment.energy</name>
