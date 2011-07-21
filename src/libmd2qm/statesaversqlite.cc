@@ -424,10 +424,8 @@ void StateSaverSQLite::WriteCustomProperties(int object_id, std::map<string, T> 
     Statement *stmt =
     _db.Prepare("INSERT INTO " + table + "(" + field_objectid + ", " + field_key + ", " + field_value
             + ") VALUES (?, ?, ?)");
-    cout << "costom\n";
     for(typename std::map<string, T>::iterator i = properties.begin();
             i!=properties.end(); ++i) {
-        cout << i->first << " " << i->second;
         stmt->Bind(1, object_id);
         stmt->Bind(2, i->first);
         stmt->Bind(3, i->second);
