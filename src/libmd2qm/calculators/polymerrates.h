@@ -8,7 +8,7 @@
 #ifndef _POLYMERRATES_H
 #define	_POLYMERRATES_H
 
-#include "qmcalculator.h"
+#include <votca/ctp/qmcalculator.h>
 
 class PolymerRates : public QMCalculator
 {

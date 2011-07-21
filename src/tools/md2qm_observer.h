@@ -9,9 +9,9 @@
 #define	_MD2QM_OBSERVER_H
 
 #include <votca/csg/cgobserver.h>
-#include "qmtopology.h"
+#include <votca/ctp/qmtopology.h>
 #include <votca/tools/property.h>
-#include "statesaversqlite.h"
+#include <votca/ctp/statesaversqlite.h>
 #include <votca/moo/units.h>
 
 class MD2QMObserver

@@ -1,5 +1,5 @@
-#include "qmtopology.h"
-#include "qmnblist.h"
+#include <votca/ctp/qmtopology.h>
+#include <votca/ctp/qmnblist.h>
 
 QMTopology::QMTopology()
     : _db_id(0)

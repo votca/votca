@@ -1,8 +1,8 @@
 #ifndef _DUMP_ATOMS_BJ_H
 #define	_DUMP_ATOMS_BJ_H
 
-#include "qmpair.h"
-#include "qmcalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
 
 /**
     \brief Writes xyz coordinates [Angstroem] for all atoms with a given molecule in the origin.

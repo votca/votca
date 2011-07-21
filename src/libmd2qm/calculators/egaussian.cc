@@ -3,9 +3,9 @@
 #include <math.h>
 #include <list>
 #include <votca/tools/random.h>
-#include "qmnblist.h"
+#include <votca/ctp/qmnblist.h>
 #include <votca/tools/average.h>
-#include "votca/csg/nblistgrid.h"
+#include <votca/csg/nblistgrid.h>
 
 void GenerateNrgs::Initialize(QMTopology *top, Property *options) {
 

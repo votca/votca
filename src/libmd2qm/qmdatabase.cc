@@ -1,4 +1,4 @@
-#include "qmdatabase.h"
+#include <votca/ctp/qmdatabase.h>
 
 void QMDatabase::onCreate()
 {

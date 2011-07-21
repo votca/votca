@@ -1,5 +1,5 @@
-#include "qmpair.h"
-#include "qmtopology.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmtopology.h>
 
 
 QMPair::QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top)

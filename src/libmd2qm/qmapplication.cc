@@ -1,9 +1,9 @@
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
 #include <votca/csg/topologyreader.h>
-#include "calculatorfactory.h"
-#include "qmapplication.h"
-#include "version.h"
+#include <votca/ctp/calculatorfactory.h>
+#include <votca/ctp/qmapplication.h>
+#include <votca/ctp/version.h>
 
 QMApplication::QMApplication()
 {

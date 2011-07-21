@@ -1,7 +1,7 @@
 #ifndef _MARCUS_RATES_H
 #define	_MARCUS_RATES_H
 
-#include "paircalculator.h"
+#include <votca/ctp/paircalculator.h>
 
 /**
     \brief Calculates hopping rates using Marcus theroy

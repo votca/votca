@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-#include "qmtopology.h"
+#include <votca/ctp/qmtopology.h>
 #include "md2qm_observer.h"
 #include <votca/csg/csgapplication.h>
 

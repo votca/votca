@@ -1,4 +1,4 @@
-#include "calculatorfactory.h"
+#include <votca/ctp/calculatorfactory.h>
 
 #include "votca_config.h"
 #include "calculators/izindo.h"

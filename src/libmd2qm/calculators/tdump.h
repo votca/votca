@@ -8,8 +8,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "qmpair.h"
-#include "qmcalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
 
 #include <votca/csg/trajectorywriter.h>
 

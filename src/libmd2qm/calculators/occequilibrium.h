@@ -1,7 +1,7 @@
 #ifndef __VOTCA_MD2QM_OCCEQUILIBRIUM_H
 #define	__VOTCA_MD2QM_OCCEQUILIBRIUM_H
 
-#include <qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
 class OccEquilibrium : public QMCalculator
 {

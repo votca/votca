@@ -1,8 +1,8 @@
 #ifndef _WRITE_XML_H
 #define	_WRITE_XML_H
 
-#include "qmcalculator.h"
-#include "qmpair.h"
+#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/qmpair.h>
 
 /** \brief Writes out data to xml format
 

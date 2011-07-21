@@ -1,7 +1,7 @@
 #ifndef __VOTCA_MD2QM_NBGEN_H
 #define	__VOTCA_MD2QM_NBGEN_H
 
-#include <qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
 class NBGen : public QMCalculator
 {

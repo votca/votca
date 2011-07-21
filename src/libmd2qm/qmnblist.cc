@@ -1,8 +1,8 @@
-#include "qmnblist.h"
-#include "qmbead.h"
+#include <votca/ctp/qmnblist.h>
+#include <votca/ctp/qmbead.h>
 #include <votca/csg/nblist.h>
 #include <votca/csg/nblistgrid.h>
-#include "qmtopology.h"
+#include <votca/ctp/qmtopology.h>
 
 void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
 {

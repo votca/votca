@@ -1,9 +1,9 @@
 #ifndef _GENERATE_NRGS_H
 #define	_GENERATE_NRGS_H
 
-#include "qmpair.h"
-#include "qmcalculator.h"
-#include "votca/tools/average.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
+#include <votca/tools/average.h>
 
 /** \brief Gaussian-distributed site energies with or without spatial correlations
 
