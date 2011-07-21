@@ -45,7 +45,8 @@ void QMTopology::InitChargeUnits(){
                 acrg = CreateCrgUnit(molandtype, namecrgunittype, molid);
             acrg->setDouble("lambda_intra_charging", acrg->getType()->getOptions()->get("reorg_charging").as<double>());
             acrg->setDouble("lambda_intra_discharging", acrg->getType()->getOptions()->get("reorg_discharging").as<double>());
-            bead->setCrg(acrg);
+            acrg->setDouble("energy_intra", acrg->getType()->getOptions()->get("energy").as<double>());
+	    bead->setCrg(acrg);
             bead->setiPos(intpos);
         }
         else{
