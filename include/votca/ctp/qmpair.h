@@ -18,7 +18,7 @@ class QMPair :
     public std::pair<QMCrgUnit *, QMCrgUnit *>, public CustomFields
 {
 public:
-    QMPair(): _r(0.,0.,0.), _rate_12(0.),_rate_21(0.),_lambda_outer(0.),_ghost(NULL),_crg2(NULL), _in_database(false) {}
+    QMPair(): _r(0.,0.,0.), _rate_12(0.),_rate_21(0.),_ghost(NULL),_crg2(NULL), _in_database(false) {}
 
     QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top);
 
@@ -113,8 +113,7 @@ protected:
     double _rate_12;
     /// transfer rate from second to first
     double _rate_21;
-    /// outer sphere reorganization energy
-    double _lambda_outer;
+    
     /// ghost atom in case the molecules are neighbors across a boundary
     QMCrgUnit * _ghost;
 
