@@ -460,13 +460,14 @@ export -f check_path_variable
 add_to_csgshare() { #added an directory to the csg internal search directories
   local dir end="no"
   [[ $1 = "--at-the-end" ]] && end="yes" && shift
+  [[ -z $1 ]] && die "add_to_csgshare: Missing argument"
   for dirlist in "$@"; do
-    [[ -z $dir ]] && die "add_to_csgshare: Missing argument"
     old_IFS="$IFS"
     IFS=":"
     for dir in $dirlist; do
       #dir maybe contains $PWD or something
       eval dir="$dir"
+      [[ -d $dir ]] || die "add_to_csgshare: Could not find scriptdir $dir"
       dir="$(globalize_dir "$dir")"
       if [[ $end = "yes" ]]; then
         export CSGSHARE="${CSGSHARE}${CSGSHARE:+:}$dir"
