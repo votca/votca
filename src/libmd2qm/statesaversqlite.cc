@@ -355,7 +355,7 @@ QMNBList &nblist = _qmtop->nblist();
 void StateSaverSQLite::ReadPairs(void)
 {
     Statement *stmt =
-    _db.Prepare("SELECT pairs._id, conjseg1, conjseg2, r_x, r_y, r_z FROM pairs,conjsegs "
+    _db.Prepare("SELECT pairs._id, conjseg1, conjseg2, r_x, r_y, r_z, rate12, rate21 FROM pairs,conjsegs "
             "WHERE (conjsegs.frame = ? and  conjseg1 = conjsegs._id)");
     stmt->Bind(1, _frames[_current_frame]);
     while (stmt->Step() != SQLITE_DONE) {
@@ -374,6 +374,9 @@ void StateSaverSQLite::ReadPairs(void)
         vec r2 = pair->r();
         if(abs(r2 - r1) > 1e-6)
             cerr << "WARNING: pair (" << id1 << ", " << id2 << ") distance differs by more than 1e-6 from the value in the database\nread: " << r1 << " calculated: " << r2 << endl ;
+        pair->setRate12(stmt->Column<double>(6));
+        pair->setRate21(stmt->Column<double>(7));
+
         pair->setInDatabase(true);
         pair->setId(stmt->Column<int>(0));
         ReadCustomProperties(pair->getId(), pair->DoubleValues(), "pair_properties", "pair");
