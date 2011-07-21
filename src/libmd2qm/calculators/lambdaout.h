@@ -37,6 +37,7 @@ private:
     double _pekar;
     double _R_one, _R_two;
     double _lambda_const;
+    double _lambda_cutoff;
     Property * _options;
     // function pointer
     double (CalcLambdaOut::*_lambda_method)(const double &);

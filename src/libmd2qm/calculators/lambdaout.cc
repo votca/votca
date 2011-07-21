@@ -39,7 +39,14 @@ void CalcLambdaOut::Initialize(QMTopology *top, Property *options) {
             _pekar = 0.05;
             cout << "Warning: no Pekar factor defined, using pekar =0.05" << endl;
         }
-    }
+        if (options->exists("options.lambdaout.cutoff")) {
+            _lambda_cutoff = options->get("options.lambdaout.cutoff").as<double>();
+            cout << "Using a cutoff for lambda outer sphere of " << _lambda_cutoff << endl;
+        } else {
+            _lambda_cutoff = 50;
+            cout << "Warning: no cutoff defined, using 50nm" << endl;
+        }
+      }
     else if (options->get("options.lambdaout.method").as<string > () == "dielectric") {
         //_method = &CalcLambdaOut::dielectric_lambda;
         cout << "Thank you for choosing the dielectric lambda method"<<endl;
@@ -49,6 +56,13 @@ void CalcLambdaOut::Initialize(QMTopology *top, Property *options) {
         } else {
             _pekar = 0.05;
             cout << "Warning: no Pekar factor defined, using pekar =0.05" << endl;
+        }
+        if (options->exists("options.lambdaout.cutoff")) {
+            _lambda_cutoff = options->get("options.lambdaout.cutoff").as<double>();
+            cout << "Using a cutoff for lambda outer sphere of " << _lambda_cutoff << endl;
+        } else {
+            _lambda_cutoff = 50;
+            cout << "Warning: no cutoff defined, using 50nm" << endl;
         }
     } else throw std::runtime_error("Error in CalcLambdaOut::Initialize : no such lambda method, should be constant, spheres or dielectric");
     } else throw std::runtime_error("Error in CalcLambdaOut::Initialize : no lambda method specified, should be constant, spheres or dielectric");
@@ -128,6 +142,10 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
                                 
                 if (bk->getMolecule()->getUserData<QMCrgUnit>()->getId() == crg1->getId()) continue;
                 if (bk->getMolecule()->getUserData<QMCrgUnit>()->getId() == crg2->getId()) continue;
+                vec bc = atop.BCShortestConnection(bk->getMolecule()->getUserData<CrgUnit > ()->GetCom(), crg1->GetCom());
+                if ( abs(bc)> _lambda_cutoff) continue;
+                bc = atop.BCShortestConnection(bk->getMolecule()->getUserData<CrgUnit > ()->GetCom(), crg2->GetCom());
+                if ( abs(bc)> _lambda_cutoff) continue;
                 //cout << "chosen bead number:" << bk->getMolecule()->getUserData<QMCrgUnit>()->getId() << endl;
 
                 double Dx = 0.0;
