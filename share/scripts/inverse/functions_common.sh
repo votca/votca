@@ -119,7 +119,7 @@ do_external() { #takes two tags, find the according script and excute it
   tags="$1 $2"
   shift 2
 
-  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
+  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*' (from tags $tags) dir ${script%/*}"
   if [[ -n $CSGDEBUG && -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
     bash -x $script "$@"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
@@ -458,14 +458,25 @@ check_path_variable() { #check if a variable contains only valid paths
 export -f check_path_variable
 
 add_to_csgshare() { #added an directory to the csg internal search directories
-  local dir
-  for dir in "$@"; do
+  local dir end="no"
+  [[ $1 = "--at-the-end" ]] && end="yes" && shift
+  for dirlist in "$@"; do
     [[ -z $dir ]] && die "add_to_csgshare: Missing argument"
-    #dir maybe contains $PWD or something
-    eval dir="$dir"
-    dir="$(globalize_dir "$dir")"
-    export CSGSHARE="$dir${CSGSHARE:+:}$CSGSHARE"
-    export PERL5LIB="$dir${PERL5LIB:+:}$PERL5LIB"
+    old_IFS="$IFS"
+    IFS=":"
+    for dir in $dirlist; do
+      #dir maybe contains $PWD or something
+      eval dir="$dir"
+      dir="$(globalize_dir "$dir")"
+      if [[ $end = "yes" ]]; then
+        export CSGSHARE="${CSGSHARE}${CSGSHARE:+:}$dir"
+        export PERL5LIB="${PERL5LIB}${PERL5LIB:+:}$dir"
+      else
+        export CSGSHARE="$dir${CSGSHARE:+:}$CSGSHARE"
+        export PERL5LIB="$dir${PERL5LIB:+:}$PERL5LIB"
+      fi
+    done
+    IFS="$old_IFS"
   done
   check_path_variable CSGSHARE PERL5LIB
 }
@@ -564,6 +575,7 @@ show_csg_tables() { #show all concatinated csg tables
   old_IFS="$IFS"
   IFS=":"
   echo "#The order in which scripts get called"
+  echo "#CSGSHARE is $CSGSHARE"
   for dir in ${CSGSHARE}; do
     [[ -f $dir/csg_table ]] || continue
     echo "#From: $dir/csg_table"

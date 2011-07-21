@@ -39,4 +39,5 @@ export CSG_MASTER_PID="$$"
 
 export CSG_MAINDIR="$PWD"
 
-add_to_csgshare "${VOTCASHARE}/scripts/inverse"
+#do no overwrite CSGSHARE stuff set by user from the outside
+add_to_csgshare --at-the-end "${VOTCASHARE}/scripts/inverse"
