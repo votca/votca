@@ -49,19 +49,21 @@ inline void JortnerRates::EvaluatePair(QMTopology *top, QMPair* pair){
     double rate_12 = 0.0;
     double rate_21 = 0.0;
     double Jeff2 = pair->calcJeff2();
-    double lambda_outer = pair->getLambdaOuter();
-    CrgUnit *crg1 = pair->first;
-    CrgUnit *crg2 = pair->second;
+    double lambda_outer = pair->getDouble("lambda_outer");
+    QMCrgUnit *crg1 = pair->first;
+    QMCrgUnit *crg2 = pair->second;
     /// prefactor for future modifications
     double prefactor = 1.0;
     /// reorganization energy in eV as given in list_charges.xml
-    double reorg = 0.5 * (crg1->getType()->getReorg()+crg2->getType()->getReorg());
+    double reorg12 = crg1->getDouble("lambda_intra_discharging")+crg2->getDouble("lambda_intra_charging");
+    double reorg21 = crg2->getDouble("lambda_intra_discharging")+crg1->getDouble("lambda_intra_charging");
     ///Huang Rhys
-    double huang_rhys = reorg/_omegavib;
+    double huang_rhys12 = reorg12/_omegavib;
+    double huang_rhys21 = reorg21/_omegavib;
     /// free energy difference due to electric field, i.e. E*r_ij
     double dG_field = -_E * unit<nm,m>::to(pair->r());
     /// free energy difference due to different energy levels of molecules
-    double dG_en = crg2->getEnergy() - crg1->getEnergy();
+    double dG_en = crg2->getTotalEnergy() - crg1->getTotalEnergy();
     /// electrostatics are taken into account in qmtopology and are contained in Energy
     /// total free energy difference
     double dG = dG_field + dG_en;
@@ -70,11 +72,11 @@ inline void JortnerRates::EvaluatePair(QMTopology *top, QMPair* pair){
     for (nn = 0; nn<=_nmaxvib; nn++) {
         /// Jortner rate from first to second
     dG = dG_field + dG_en;
-    rate_12 = rate_12 + prefactor * sqrt(M_PI/(lambda_outer * _kT)) * Jeff2 * exp(-huang_rhys) * pow(huang_rhys,nn) / Factorial(nn) *
+    rate_12 = rate_12 + prefactor * sqrt(M_PI/(lambda_outer * _kT)) * Jeff2 * exp(-huang_rhys12) * pow(huang_rhys12,nn) / Factorial(nn) *
             exp (-(dG + nn*_omegavib + lambda_outer)*(dG + nn*_omegavib +lambda_outer)/(4*_kT*lambda_outer))/hbar_eV;
     /// Jortner rate from second to first (dG_field -> -dG_field)
     dG = -dG_field - dG_en;
-    rate_21 = rate_21 + prefactor * sqrt(M_PI/(lambda_outer * _kT)) * Jeff2 * exp(-huang_rhys) * pow(huang_rhys,nn) / Factorial(nn) *
+    rate_21 = rate_21 + prefactor * sqrt(M_PI/(lambda_outer * _kT)) * Jeff2 * exp(-huang_rhys21) * pow(huang_rhys21,nn) / Factorial(nn) *
             exp (-(dG + nn*_omegavib +lambda_outer)*(dG + nn*_omegavib +lambda_outer)/(4*_kT*lambda_outer))/hbar_eV;
     }
     pair->setRate12(rate_12);

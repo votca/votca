@@ -44,8 +44,8 @@ inline void CalcHistEnergeticDisorder::EndEvaluate(QMTopology *top){
 }
 
 inline void CalcHistEnergeticDisorder::EvaluatePair(QMTopology *top, QMPair *pair){
-    double energy1 = pair->Crg1()->getEnergy();
-    double energy2 = pair->Crg2()->getEnergy();
+    double energy1 = pair->Crg1()->getTotalEnergy();
+    double energy2 = pair->Crg2()->getTotalEnergy();
     histogram.Process( energy1-energy2 );
 }
 

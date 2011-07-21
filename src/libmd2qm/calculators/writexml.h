@@ -108,7 +108,7 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
         if(_write_rij)
             out << " rij=\"" <<(*iter)->r()<< "\"";
         if(_write_lambdaout)
-            out << " lambdaout=\"" <<(*iter)->getLambdaOuter() << "\"";
+            out << " lambdaout=\"" <<(*iter)->getDouble("lambda_outer") << "\"";
         if(_write_jeff)
             out << " Jeff=\"" <<(*iter)->calcJeff2()<< "\"";
         out <<  "/>" << endl;
@@ -120,7 +120,7 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
                 out << " pos=\"" << (*lch_iter)->GetCom() << "\"";
             }
             if (_write_en) {
-                out << " energy=\"" << (*lch_iter)->getEnergy() << "\"";
+                out << " energy=\"" << (*lch_iter)->getTotalEnergy() << "\"";
             }
             if (_write_occ) {
                     out << " occupation=\"" << (*lch_iter)->getOccupationProbability() << "\"";

@@ -80,18 +80,6 @@ public:
      */
     void setRate21(double rate) {_rate_21=rate;}
 
-     /**
-     * \brief set outer sphere lambda
-     */
-    void setLambdaOuter(double lambda) {_lambda_outer=lambda;}
-
-    /**
-     * \brief outer sphere lambda
-     * @return outer sphere lambda
-     */
-    const double &getLambdaOuter() const {return _lambda_outer;}
-    //double &getLambdaOuter() {return _lambda_outer;}
-
     /**
      * \brief first crg unit (might be ghost copy for pbc image)
      *

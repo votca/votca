@@ -77,8 +77,8 @@ bool PolymerRates::EvaluateFrame(QMTopology *top)
 // adiabatic rate expression
 double PolymerRates::CalcRate(QMCrgUnit *crg1, QMCrgUnit *crg2, vec dist, double J)
 {    
-    double dE_nofield = crg2->getEnergy() - crg1->getEnergy();
-    double reorg = 0.5*(crg1->getType()->getReorg() + crg2->getType()->getReorg());
+    double dE_nofield = crg2->getTotalEnergy() - crg1->getTotalEnergy();
+    double reorg = 0.5*(crg1->getDouble("lambda_intra_discharging") + crg2->getDouble("lambda_charging")+crg2->getDouble("lambda_intra_discharging") + crg1->getDouble("lambda_charging"));
     
     double dE =  dE_nofield - unit<nm,m>::to(dist) * _E;
     double DG_star = ( dE + reorg)*(dE + reorg)/(4*reorg);

@@ -48,6 +48,12 @@ public:
         return e;
     }*/
 
+    double getTotalEnergy() { // TODO: add label + wildcard
+        
+        return getDouble("energy_intra")+getDouble("energy_coulomb");
+    }
+
+    
     // use pair<double, double> for lambdea. pair.first = charging, pair.second = discharging
     // setReorg(string label, double charging, double discharging) { _reorg[label] = makepair(charging, discharging); }
     // pair<double,double> &getReorg(string label) { return _reorg[label]; }

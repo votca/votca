@@ -32,6 +32,7 @@
       <itemPath>../../src/libmd2qm/calculators/shufflenrg.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/sqlitewriter.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/tdump.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/writexml.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -42,6 +43,14 @@
       <itemPath>../../include/votca/ctp/qmapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/qmbead.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmcrgunit.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmtopology.h</itemPath>
+      <itemPath>../../include/votca/ctp/sitecalculator.h</itemPath>
+      <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
+      <itemPath>../../include/votca/ctp/version.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -51,6 +60,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../src/libmd2qm/calculatorfactory.cc</itemPath>
+      <itemPath>../../src/libmd2qm/hgversion.h</itemPath>
       <itemPath>../../src/libmd2qm/qmapplication.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmdatabase.cc</itemPath>
       <itemPath>../../src/libmd2qm/qmnblist.cc</itemPath>
@@ -58,6 +68,7 @@
       <itemPath>../../src/libmd2qm/qmtopology.cc</itemPath>
       <itemPath>../../src/libmd2qm/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libmd2qm/version_nb.cc</itemPath>
+      <itemPath>../../src/libmd2qm/votca_config.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

@@ -57,7 +57,7 @@ bool EnergyCorr::EvaluateFrame(QMTopology* top) {
     // 2) for every charge unit of real topology make a bead for a working topology
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
         // Process data to get the average
-        energy_av.Process ( (*itl)->getEnergy() );
+        energy_av.Process ( (*itl)->getTotalEnergy() );
 
         // make a simple spherical bead for a new topology
         BeadType *tmptype = mytop.GetOrCreateBeadType("no");
@@ -100,8 +100,8 @@ bool EnergyCorr::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, con
     QMCrgUnit *crg1 = bead1->getUserData<QMCrgUnit>();
     QMCrgUnit *crg2 = bead2->getUserData<QMCrgUnit>();
 
-    double e1 = crg1->getEnergy();
-    double e2 = crg2->getEnergy();
+    double e1 = crg1->getTotalEnergy();
+    double e2 = crg2->getTotalEnergy();
     double dist = abs(r);
 //    cout << "e1= " << e1 << "  e2= " << e2 << " dist = " << dist;
 

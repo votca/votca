@@ -54,7 +54,7 @@ bool CalcEstatics::EvaluateFrame(QMTopology *top) {
     MoleculeContainer::iterator imol;
     for (imol = atop.Molecules().begin(); imol != atop.Molecules().end(); imol++) {
         Molecule *mol = *imol;
-        CrgUnit *crg = mol->getUserData<CrgUnit > ();
+        QMCrgUnit *crg = mol->getUserData<QMCrgUnit > ();
             //Compute the EstaticPotentialEnergy for molecule mol if it is neutral
             neutr = CalcPot(&atop, mol);
             //Change the charges on the molecule mol to the occupied=charged state
@@ -66,7 +66,7 @@ bool CalcEstatics::EvaluateFrame(QMTopology *top) {
         //If the site energy is large and positive (crged >> neutr) molecule mol wants to stay neutral
         //This is consistent with marcus_rates.h since w_12 (from 1 to 2) contains (dG_12 + \lambda)^2 and dG_12=e_2-e_1
         //Attention not to overwrite the site energies from list_charges.xml
-            crg->setEnergy(crged - neutr);
+            crg->setDouble("energy_coulomb",crged - neutr);
         //cout << "Estatic energy [eV] for charged / neutral / crg-neutr=espilon: " << crged << " " << neutr << " " << crged - neutr << "\n";
         cout << "Ecoulomb for crgunit " << crg->getId() << " at pos " << crg->GetCom() << " is " << crged - neutr << " eV\n";
     }

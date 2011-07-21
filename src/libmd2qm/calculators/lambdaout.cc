@@ -89,7 +89,7 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
         QMCrgUnit *crg1 = pair->Crg1();
         QMCrgUnit *crg2 = pair->Crg2();
         double lambda = _lambda_const;
-        pair->setLambdaOuter(lambda);
+        pair->setDouble("lambda_outer",lambda);
         cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() << " is " << lambda << "\n";
    }
     }
@@ -109,7 +109,7 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
             double epsilon_zero = 8.85418782e-12;
             double nanometer = 1.0e-09;
             double lambda = _pekar * e / (4.0 * M_PI * epsilon_zero)*(1.0 / (2.0 * R_one * nanometer) + 1.0 / (2.0 * R_two * nanometer) - 1.0 / (distance * nanometer));
-        pair->setLambdaOuter(lambda);
+        pair->setDouble("lambda_outer",lambda);
         cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() << " at distance "<< distance << " is " << lambda << "\n";
     }
      }
@@ -203,7 +203,7 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
                 //cout << "box volume:"<<atop.BoxVolume()<< " and beads:"<<atop.BeadCount()<<endl;
                 lambda = lambda + (Dx*Dx+Dy*Dy+Dz*Dz)  * _pekar * atop.BoxVolume()*nanometer3/atop.BeadCount()  * 1.0/(2.0 * epsilon_zero * elementary_charge);
             }
-        pair->setLambdaOuter(lambda);
+        pair->setDouble("lambda_outer",lambda);
         cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() <<" at distance "<< distance << " is " << lambda << "\n";
        }
     }

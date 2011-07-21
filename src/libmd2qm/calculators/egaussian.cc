@@ -72,7 +72,7 @@ void GenerateNrgs::AssignGaussian(QMTopology *top) {
     vector<QMCrgUnit *>::iterator itl;
 
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
-        (*itl)->setEnergy( Random::rand_gaussian(_sigma) );
+        (*itl)->setDouble("energy_coulomb", Random::rand_gaussian(_sigma) );
     }
 
 }
@@ -109,19 +109,19 @@ void GenerateNrgs::AssignCorrelated(QMTopology *top) {
 
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
         // e1+e2+...+eN/ sqrt(N) looks weird, but should be done to get the same sigma
-        (*itl)->setEnergy( _tmp_energy[(*itl)].getAvg() * sqrt( _tmp_energy[(*itl)].getN() ) );
+        (*itl)->setDouble("energy_coulomb", _tmp_energy[(*itl)].getAvg() * sqrt( _tmp_energy[(*itl)].getN() ) );
     }
 
 }
 
 bool GenerateNrgs::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused) {
 
-    CrgUnit *crg1 = bead1->getUserData<CrgUnit>();
-    CrgUnit *crg2 = bead2->getUserData<CrgUnit>();
+    QMCrgUnit *crg1 = bead1->getUserData<QMCrgUnit>();
+    QMCrgUnit *crg2 = bead2->getUserData<QMCrgUnit>();
 
 
-    double e1 = crg1->getEnergy();
-    double e2 = crg2->getEnergy();
+    double e1 = crg1->getTotalEnergy();
+    double e2 = crg2->getTotalEnergy();
 
     _tmp_energy[crg1].Process(e2);
     _tmp_energy[crg2].Process(e1);

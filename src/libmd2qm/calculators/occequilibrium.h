@@ -30,8 +30,8 @@ inline bool OccEquilibrium::EvaluateFrame(QMTopology *top)
 
 
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
-        double reorg = (*itl)->getType()->getReorg();
-        double p = exp(-((*itl)->getEnergy()) / _kT);
+        //double reorg = (*itl)->getType()->getReorg();
+        double p = exp(-((*itl)->getTotalEnergy()) / _kT);
         Ptot +=p;
         (*itl)->setOccupationProbability(p);
     }
