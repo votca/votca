@@ -172,6 +172,11 @@
 <desc>Radius of spherical molecule as used in  method **spheres**</desc>
 </item>
 
+<item>
+<name>lambdaout.cutoff</name>
+<desc>Cutoff radius in nm between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**</desc>
+</item>
+
 
 <item>
 <name>marcusrates</name>
