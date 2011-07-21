@@ -83,7 +83,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
 
         CrgUnitType* crgunittype = new CrgUnitType(namecoord.c_str(), nameorb.c_str(),
                 nameneutr.c_str(), namecrg.c_str(), namebasis,
-                reorg, energy, transorbs, _listCrgUnitType.size(),
+                transorbs, _listCrgUnitType.size(),
                 name, list_atoms_monomer, list_weights_monomer);
         crgunittype->setOptions(*iter);
         _mapCrgUnitByName.insert(make_pair(name, crgunittype));

@@ -44,8 +44,7 @@ CrgUnit::CrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes
     _id = id;
     _type = type;
 
-    // initialise variables derived from CrgUnitType
-    _energy = _type->getEnergy();
+   
 }
 
 void CrgUnit::copyCrgUnit(CrgUnit & acrg)
@@ -71,7 +70,7 @@ void CrgUnit::copyCrgUnit(CrgUnit & acrg)
     _type = acrg._type;
 
     // initialise variables derived from CrgUnitType
-    _energy = acrg._energy;
+   
 
     _name = acrg._name;
 }

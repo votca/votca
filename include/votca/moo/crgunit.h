@@ -27,7 +27,7 @@ class CrgUnit {
 public:
 
     CrgUnit() :
-        _id(-1), _energy(0.), _type(NULL), _molid(-1)  {};
+        _id(-1), _type(NULL), _molid(-1)  {};
 
     virtual ~CrgUnit();
 
@@ -56,12 +56,6 @@ public:
     // set the name of the charge unit
     void setName(const string &name) { _name = name; }
 
-    /////////////////////////////////////////////
-    // in principle this is libmd2qm stuff!
-    /// get the site energy
-    const double& getEnergy() const;
-    /// set the site energy
-    void setEnergy(const double& a);
     // get the molecule ID
     const unsigned int& getMolId() const;
     //////////////////////////////////////////////
@@ -103,15 +97,13 @@ private:
     vector < vec > _planes;
     /// a reference to the crgunittype
     CrgUnitType * _type;
-    /// the energy at this site
-    double _energy;
 
     vector <vec> shift_pos(const vec & a);
 };
 
 inline CrgUnit::CrgUnit(const unsigned int & id, CrgUnitType * type,
                  const unsigned int & molId)
-    : _id(id), _type(type), _molid(molId), _energy(0)
+    : _id(id), _type(type), _molid(molId)
 {}
 
 
@@ -120,13 +112,6 @@ inline void CrgUnit::copyCrgUnit(CrgUnit & acrg, const int & id) {
     _id = id;
 }
 
-inline const double& CrgUnit::getEnergy() const {
-    return _energy;
-}
-
-inline void CrgUnit::setEnergy(const double& a) {
-    _energy = a;
-}
 
 inline const unsigned int& CrgUnit::getId() const {
     return _id;

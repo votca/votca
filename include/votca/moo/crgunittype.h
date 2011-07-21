@@ -33,14 +33,7 @@ public:
     ///specifications
     
     ~CrgUnitType();
-   
-    /// reorganization energy of the crg unit type
-    const double & getReorg () const { return _reorg; }
-    /// radius of chrgunit as sphere for lambda out
-
-    /// site energy of the crg unit type
-    const double & getEnergy () const { return _energy; }
-    
+       
     const vector <unsigned int>& GetTransOrbs() const;
     
     const unsigned int & getId() const { return _id; }
@@ -65,8 +58,6 @@ private:
     basis_set         _bs;
     mol_and_orb       _intcoords;
     orb               _orbitals; 
-    double            _reorg;
-    double            _energy;
 
     Property *_options;
     
@@ -89,13 +80,13 @@ private:
             vector <vec >::iterator it_plan, mol_and_orb * rotated_molecule );
 
     // can only be created by JCalc
-    CrgUnitType(): _reorg(0.), _energy(0.), _id(-1) {};
+    CrgUnitType(): _id(-1) {};
     
     // can only be created by JCalc
     CrgUnitType(
             const char * namecoord, const char * nameorb, const char * nameneutr,
-            const char * namecrg, string & basisset, const double & reorg,
-            const double & energy, const vector < int>& transorbs,
+            const char * namecrg, string & basisset, 
+            const vector < int>& transorbs,
             const unsigned int &id,  string name,
             vector < vector < int > > list_atoms_monomer,
             vector < vector < double > > list_weights_monomer);
