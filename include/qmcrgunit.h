@@ -8,13 +8,14 @@
 #ifndef __VOTCA_MD2QM_QMCRGUNIT_H
 #define	__VOTCA_MD2QM_QMCRGUNIT_H
 
+#include"customfields.h"
 #include <votca/moo/crgunit.h>
 #include <string>
 #include <map>
 
 using namespace std;
 
-class QMCrgUnit : public CrgUnit
+class QMCrgUnit : public CrgUnit, public CustomFields
 {
 public:
     QMCrgUnit() : _occupation_probability(0.), _in_database(false) {}
@@ -47,19 +48,12 @@ public:
         return e;
     }*/
 
-    void setDouble(string key, double value) { _double_values[key] = value; }
-    double getDouble(string key) { return _double_values[key]; }
-    map<string, double> &DoubleValues() { return _double_values; }
-
-
     // use pair<double, double> for lambdea. pair.first = charging, pair.second = discharging
     // setReorg(string label, double charging, double discharging) { _reorg[label] = makepair(charging, discharging); }
     // pair<double,double> &getReorg(string label) { return _reorg[label]; }
 protected:
     double _occupation_probability;
     bool _in_database;
-
-    map<string, double> _double_values;
 };
 
 inline QMCrgUnit::QMCrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,

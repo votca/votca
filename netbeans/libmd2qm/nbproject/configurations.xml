@@ -37,6 +37,7 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/calculatorfactory.h</itemPath>
+      <itemPath>../../include/customfields.h</itemPath>
       <itemPath>../../include/paircalculator.h</itemPath>
       <itemPath>../../include/qmapplication.h</itemPath>
       <itemPath>../../include/qmbead.h</itemPath>

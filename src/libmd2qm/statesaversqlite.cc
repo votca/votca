@@ -341,6 +341,7 @@ QMNBList &nblist = _qmtop->nblist();
         stmt->Reset();
 
         WriteIntegrals(pair);
+        WriteCustomProperties(pair->getId(), pair->DoubleValues(), "pair_properties", "pair");
     }
     // cout << "written pairs: " << i << endl;
     _db.Exec("DELETE FROM pairs WHERE deleted=1");
@@ -372,6 +373,7 @@ void StateSaverSQLite::ReadPairs(void)
             cerr << "WARNING: pair (" << id1 << ", " << id2 << ") distance differs by more than 1e-6 from the value in the database\nread: " << r1 << " calculated: " << r2 << endl ;
         pair->setInDatabase(true);
         pair->setId(stmt->Column<int>(0));
+        ReadCustomProperties(pair->getId(), pair->DoubleValues(), "pair_properties", "pair");
         // cout << stmt->Column<int>(0) << "foo" << endl;
     }
     // cout << "read pairs: " + _qmtop->nblist().size() << endl;

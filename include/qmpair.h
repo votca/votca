@@ -9,12 +9,13 @@
 #define	_QMPAIR_H
 
 #include "qmcrgunit.h"
+#include "customfields.h"
 #include <utility>
 
 class QMTopology;
 
 class QMPair :
-    public std::pair<QMCrgUnit *, QMCrgUnit *>
+    public std::pair<QMCrgUnit *, QMCrgUnit *>, public CustomFields
 {
 public:
     QMPair(): _r(0.,0.,0.), _rate_12(0.),_rate_21(0.),_lambda_outer(0.),_ghost(NULL),_crg2(NULL), _in_database(false) {}
