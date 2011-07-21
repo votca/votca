@@ -9,9 +9,9 @@
 #define	_MD2QM_OBSERVER_H
 
 #include <votca/csg/cgobserver.h>
-#include "qmtopology.h"
+#include <votca/ctp/qmtopology.h>
 #include <votca/tools/property.h>
-#include "statesaver.h"
+#include <votca/ctp/statesaversqlite.h>
 #include <votca/moo/units.h>
 
 class MD2QMObserver
@@ -51,7 +51,7 @@ protected:
     ofstream _out_cont;
     ofstream _out_diff;
     string _out;
-    StateSaver _save;
+    StateSaverSQLite _save;
 };
 
 #endif	/* _MD2QM_OBSERVER_H */

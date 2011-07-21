@@ -2,7 +2,7 @@
 #define	JORTNERRATES_H
 
 
-#include "paircalculator.h"
+#include <votca/ctp/paircalculator.h>
 #include <math.h>
 
 /**

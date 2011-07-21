@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-#include "qmtopology.h"
+#include <votca/ctp/qmtopology.h>
 #include "md2qm_observer.h"
 #include <votca/csg/csgapplication.h>
 
@@ -42,7 +42,7 @@ void CtpMapApp::Initialize()
     CsgApplication::Initialize();
     AddProgramOptions("Mapping options")
             ("listcharges,l", po::value<string>(), "  conjugated segment definitions")
-            ("out", po::value<string>()->default_value("state.dat"), " state file")
+            ("out", po::value<string>()->default_value("state.db"), " state file")
             ("cutoff,c", po::value<double>()-> default_value(1.0), "  cutoff radius for nearest neighbours");
 }
 

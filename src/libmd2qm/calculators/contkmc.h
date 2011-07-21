@@ -8,7 +8,7 @@
 #ifndef _CONT_KMC_H
 #define	_CONT_KMC_H
 
-#include "qmcalculator.h"
+#include <votca/ctp/qmcalculator.h>
 #include <votca/kmcold/vertex.h>
 #include <votca/kmcold/hoppers.h>
 #include <votca/kmcold/kmc.h>

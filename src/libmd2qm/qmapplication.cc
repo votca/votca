@@ -1,9 +1,9 @@
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
 #include <votca/csg/topologyreader.h>
-#include "calculatorfactory.h"
-#include "qmapplication.h"
-#include "version.h"
+#include <votca/ctp/calculatorfactory.h>
+#include <votca/ctp/qmapplication.h>
+#include <votca/ctp/version.h>
 
 QMApplication::QMApplication()
 {
@@ -24,8 +24,7 @@ void QMApplication::Initialize(void)
     AddProgramOptions()
         ("crg", boost::program_options::value<string>(), "  description of conjugated segments")
         ("opt", boost::program_options::value<string>(), "  program options")
-        ("out", boost::program_options::value<string>()->default_value("stateOut.dat"), "  write new state file with this name")
-        ("in", boost::program_options::value<string>(), "  input state file name")
+        ("db", boost::program_options::value<string>()->default_value("state.db"), "  the state file")
         ("first-frame", boost::program_options::value<int>()->default_value(1), "  start with this frame (first frame is 1)")
         ("nframes", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
         //  this is shit, move it out!
@@ -37,7 +36,7 @@ bool QMApplication::EvaluateOptions(void)
 {
     CheckRequired("crg", "no chargeunit file specified");
     CheckRequired("opt", "no option file specified");
-    CheckRequired("in", "no input state file specified");
+    CheckRequired("db", "no state databse specified");
     return true;
 }
 
@@ -57,20 +56,17 @@ void QMApplication::Run()
 
     /// load qmtop from state saver
     cout << "Loading qmtopology via state saver." << endl;
-    string statefile = OptionsMap()["in"].as<string>();
-    StateSaver loader(_qmtop, statefile,'r');
-    string stateout=OptionsMap()["out"].as<string>();
-    StateSaver saver(_qmtop, stateout, 'w');
+    string statefile = OptionsMap()["db"].as<string>();
+    StateSaverSQLite loader;
+    loader.Open(_qmtop, statefile);
+    if(loader.FramesInDatabase() != 1)
+        throw std::runtime_error("database contains none or more than one frame which is not supported yet.");
 
-    loader.Seek(first_frame);
-    for (int i=0;(i<nframes) || (nframes < 0);i++){
-        if (!loader.Load()) break;
-        cout << "Read frame " << i+first_frame+1 << endl;
+    while(loader.NextFrame()) {
         EvaluateFrame();
-        saver.Save();
+        loader.WriteFrame();
     }
     loader.Close();
-    saver.Close();
     EndEvaluate();
 }
 

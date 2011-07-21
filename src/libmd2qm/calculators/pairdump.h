@@ -8,8 +8,8 @@
 #ifndef _PAIR_DUMP_H
 #define	_PAIR_DUMP_H
 
-#include "qmpair.h"
-#include "paircalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/paircalculator.h>
 #include <sys/stat.h>
 #include <votca/csg/trajectorywriter.h>
 

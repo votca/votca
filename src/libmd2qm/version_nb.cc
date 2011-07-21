@@ -18,7 +18,7 @@
 #include <votca/tools/version.h>
 #include <iostream>
 #include <votca/csg/version.h>
-#include <version.h>
+#include <votca/ctp/version.h>
 
 namespace votca { namespace md2qm {
 

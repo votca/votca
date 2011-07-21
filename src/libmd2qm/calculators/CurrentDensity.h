@@ -8,8 +8,8 @@
 #ifndef CURRENTDENSITY_H
 #define	CURRENTDENSITY_H
 
-#include "qmpair.h"
-#include "paircalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/paircalculator.h>
 
 class CurrentDensity : public PairCalculator
 {

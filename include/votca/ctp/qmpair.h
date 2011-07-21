@@ -9,15 +9,16 @@
 #define	_QMPAIR_H
 
 #include "qmcrgunit.h"
+#include "customfields.h"
 #include <utility>
 
 class QMTopology;
 
 class QMPair :
-    public std::pair<QMCrgUnit *, QMCrgUnit *>
+    public std::pair<QMCrgUnit *, QMCrgUnit *>, public CustomFields
 {
 public:
-    QMPair(): _r(0.,0.,0.), _rate_12(0.),_rate_21(0.),_lambda_outer(0.),_ghost(NULL),_crg2(NULL) {}
+    QMPair(): _r(0.,0.,0.), _rate_12(0.),_rate_21(0.),_lambda_outer(0.),_ghost(NULL),_crg2(NULL), _in_database(false) {}
 
     QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top);
 
@@ -109,6 +110,12 @@ public:
      */
     QMCrgUnit *Crg2() {return _crg2;}
 
+    void setInDatabase(bool indb) { _in_database = indb; }
+    bool getInDatabase() { return _in_database; }
+
+    int getId() { return _id; }
+    void setId(int id) { _id = id; }
+
 protected:
     /// vector connecting the two beads
     vec _r;
@@ -124,6 +131,9 @@ protected:
     QMCrgUnit * _ghost;
 
     QMCrgUnit *_crg2;
+
+    bool _in_database;
+    int _id;
 };
 
 #endif	/* _QMBEADPAIR_H */

@@ -1,8 +1,8 @@
 #ifndef _HIST_INTEGRALS_H
 #define	_HIST_INTEGRALS_H
 
-#include "qmpair.h"
-#include "paircalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/paircalculator.h>
 #include <votca/tools/histogramnew.h>
 
 /**

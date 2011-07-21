@@ -1,8 +1,8 @@
 #ifndef ENERGYCORR_H
 #define	ENERGYCORR_H
 
-#include "qmpair.h"
-#include "qmcalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
 #include <votca/tools/histogramnew.h>
 /**
     \brief Normalized site energy correlation function

@@ -40,16 +40,18 @@ public:
         return _nblist;
     }
     /// List of charge units [Bohr]
-    vector < QMCrgUnit *>& CrgUnits(){
+    vector <QMCrgUnit *>& CrgUnits(){
         return _crgunits;
     }
 
     void Cleanup();
     /// update the topology based on cg positons
-    void Initialize(Topology &cg_top);
-    /// update the topology based on cg positons
     void Update(Topology &cg_top);
-
+    /// update the topology based on cg positons
+    void Initialize(Topology &cg_top);
+    ///Initialises the charge units
+    void InitChargeUnits();
+    
     /// \brief Cretae a new bead
     /// We overload CreateBead to create QMBead, this is needed to make
     /// CopyTopologyData work
@@ -71,31 +73,36 @@ public:
     /// find a crg unit by name
     QMCrgUnit *GetCrgUnitByName(const string &name);
 
-    QMCrgUnit *GetCrgUnit(int index);
+    QMCrgUnit *getCrgUnit(int id);
 
     QMCrgUnit *CreateCrgUnit(const string &name, const string &type_name, int molid);
+    QMCrgUnit *CreateCrgUnit(int id, const string &name, const string &type_name, int molid);
 
 
     //Copy charges to either charged or neutral case
     void CopyCharges(CrgUnit *crg, Molecule *mol);
     void CopyChargesOccupied(CrgUnit *crg, Molecule *mol);
 
+    int getDatabaseId() { return _db_id; };
+    void setDatabaseId(int id) { _db_id = id; }
 protected:
 
     QMNBList _nblist;
     JCalc _jcalc;
     map <string, QMCrgUnit*> _mcharges;
     vector < QMCrgUnit *> _crgunits;
-    
-    ///Initialises the charge units
-    void InitChargeUnits();
+    map <int, QMCrgUnit *> _crgunits_by_id;
+
+    int _db_id;
 };
 
-inline QMCrgUnit *QMTopology::GetCrgUnit(int index)
+inline QMCrgUnit *QMTopology::getCrgUnit(int id)
 {
-    if(index >= _crgunits.size())
-        throw std::runtime_error("error, crgunit index out of bounds");
-    return _crgunits[index];
+    map<int, QMCrgUnit*>::iterator iter;
+    iter = _crgunits_by_id.find(id);
+    if(iter == _crgunits_by_id.end())
+        throw std::runtime_error("did not find crgunit with id " + lexical_cast<string>(id));
+    return iter->second;
 }
 
 
@@ -106,24 +113,6 @@ inline QMCrgUnit *QMTopology::GetCrgUnitByName(const string &name)
     if(iter!=_mcharges.end())
         return iter->second;
     return NULL;
-}
-
-inline QMCrgUnit *QMTopology::CreateCrgUnit(const string &name, const string &type_name, int molid)
-{
-    if(GetCrgUnitByName(name))
-        throw std::runtime_error("charge unit with name " + name + " already exists");
-    QMCrgUnit *crg;
-
-    CrgUnitType *type = _jcalc.GetCrgUnitTypeByName(type_name);
-    if(!type)
-        throw runtime_error("Charge unit type not found: " + type_name);
-       
-    crg = new QMCrgUnit(_crgunits.size(), type, molid);
-
-    _mcharges.insert(make_pair(name, crg));
-    _crgunits.push_back(crg);
-    crg->setName(name);
-    return crg;
 }
 
 #endif	/* _CRGTOPOLOGY_H */

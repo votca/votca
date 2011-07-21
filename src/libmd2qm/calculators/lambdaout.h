@@ -11,8 +11,8 @@
 
 
 
-#include "qmpair.h"
-#include "qmcalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
 
 
 class CalcLambdaOut : public QMCalculator

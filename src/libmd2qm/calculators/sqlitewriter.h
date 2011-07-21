@@ -1,8 +1,8 @@
 #ifndef __VOTCA_MD2QM_SQLITEWRITE_H
 #define __VOTCA_MD2QM_SQLITEWRITE_H
 
-#include "qmcalculator.h"
-#include "statesaversqlite.h"
+#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/statesaversqlite.h>
 
 /** \brief Writes out data to sqlite3 format
 
@@ -39,7 +39,7 @@ private:
 
 inline void SQLiteWriter::Initialize(QMTopology *top, Property *options)
 {
-    _saver.Open(*top, "state.db");
+    _saver.Open(*top, "state_calculator.db");
 }
 
 inline bool SQLiteWriter::EvaluateFrame(QMTopology *top)

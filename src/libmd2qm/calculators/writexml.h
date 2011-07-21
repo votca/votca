@@ -1,8 +1,8 @@
 #ifndef _WRITE_XML_H
 #define	_WRITE_XML_H
 
-#include "qmcalculator.h"
-#include "qmpair.h"
+#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/qmpair.h>
 
 /** \brief Writes out data to xml format
 
@@ -95,8 +95,8 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
     out << "  <frame>"  << endl;
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter) {
         out << "    <pair "
-            << " first=\"" << (*iter)->first->getId()+1 << "\""
-            << " second=\"" << (*iter)->second->getId()+1 << "\""
+            << " first=\"" << (*iter)->first->getId() << "\""
+            << " second=\"" << (*iter)->second->getId() << "\""
             << " J=\"";
         for(int i=0; i< (*iter)->Js().size(); ++i)
             out << (*iter)->Js()[i] << " ";
@@ -115,7 +115,7 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
     }
         for (vector < QMCrgUnit *>::iterator lch_iter = lcharges.begin();lch_iter!=lcharges.end();++lch_iter) {
             out << "    <site "
-                << " number=\"" << (*lch_iter)->getId()+1 << "\"";
+                << " number=\"" << (*lch_iter)->getId() << "\"";
             if (_write_coords) {
                 out << " pos=\"" << (*lch_iter)->GetCom() << "\"";
             }

@@ -40,16 +40,15 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/76882303/lambdaout.o \
 	${OBJECTDIR}/_ext/1716269789/statesaversqlite.o \
 	${OBJECTDIR}/_ext/76882303/polymerrates.o \
-	${OBJECTDIR}/_ext/76882303/readxml.o \
 	${OBJECTDIR}/_ext/1716269789/qmpair.o \
 	${OBJECTDIR}/_ext/1716269789/calculatorfactory.o \
 	${OBJECTDIR}/_ext/1716269789/version_nb.o \
 	${OBJECTDIR}/_ext/1716269789/qmnblist.o \
 	${OBJECTDIR}/_ext/76882303/ecoulomb.o \
 	${OBJECTDIR}/_ext/1716269789/qmtopology.o \
+	${OBJECTDIR}/_ext/1716269789/qmdatabase.o \
 	${OBJECTDIR}/_ext/76882303/egaussian.o \
-	${OBJECTDIR}/_ext/1716269789/qmapplication.o \
-	${OBJECTDIR}/_ext/1716269789/statesaver.o
+	${OBJECTDIR}/_ext/1716269789/qmapplication.o
 
 
 # C Compiler Flags
@@ -113,11 +112,6 @@ ${OBJECTDIR}/_ext/76882303/polymerrates.o: ../../src/libmd2qm/calculators/polyme
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/polymerrates.o ../../src/libmd2qm/calculators/polymerrates.cc
 
-${OBJECTDIR}/_ext/76882303/readxml.o: ../../src/libmd2qm/calculators/readxml.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/76882303/readxml.o ../../src/libmd2qm/calculators/readxml.cc
-
 ${OBJECTDIR}/_ext/1716269789/qmpair.o: ../../src/libmd2qm/qmpair.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
@@ -148,6 +142,11 @@ ${OBJECTDIR}/_ext/1716269789/qmtopology.o: ../../src/libmd2qm/qmtopology.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmtopology.o ../../src/libmd2qm/qmtopology.cc
 
+${OBJECTDIR}/_ext/1716269789/qmdatabase.o: ../../src/libmd2qm/qmdatabase.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmdatabase.o ../../src/libmd2qm/qmdatabase.cc
+
 ${OBJECTDIR}/_ext/76882303/egaussian.o: ../../src/libmd2qm/calculators/egaussian.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/76882303
 	${RM} $@.d
@@ -157,11 +156,6 @@ ${OBJECTDIR}/_ext/1716269789/qmapplication.o: ../../src/libmd2qm/qmapplication.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/qmapplication.o ../../src/libmd2qm/qmapplication.cc
-
-${OBJECTDIR}/_ext/1716269789/statesaver.o: ../../src/libmd2qm/statesaver.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1716269789
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1716269789/statesaver.o ../../src/libmd2qm/statesaver.cc
 
 # Subprojects
 .build-subprojects:

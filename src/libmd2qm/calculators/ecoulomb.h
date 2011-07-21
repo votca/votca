@@ -1,8 +1,8 @@
 #ifndef _CALC_ESTATICS_H
 #define	_CALC_ESTATICS_H
 
-#include "qmpair.h"
-#include "qmcalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
 
 /**
     \brief Coulomb contribution to site energies

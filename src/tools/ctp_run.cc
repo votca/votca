@@ -6,8 +6,8 @@
  */
 
 #include <stdlib.h>
-#include "qmapplication.h"
-#include <calculatorfactory.h>
+#include <votca/ctp/qmapplication.h>
+#include <votca/ctp/calculatorfactory.h>
 /*
  *
  */

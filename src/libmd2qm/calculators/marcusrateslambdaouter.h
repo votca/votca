@@ -15,7 +15,7 @@
 #ifndef _MARCUS_RATES_LAMBDA_OUTER_H
 #define	_MARCUS_RATES_LAMBDA_OUTER_H
 
-#include "paircalculator.h"
+#include <votca/ctp/paircalculator.h>
 
 class MarcusRatesLambdaOuter : public PairCalculator
 {

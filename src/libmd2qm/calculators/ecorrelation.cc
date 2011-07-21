@@ -2,8 +2,8 @@
 #include "ecorrelation.h"
 #include <math.h>
 #include <list>
-#include "votca/tools/average.h"
-#include "votca/csg/nblistgrid.h"
+#include <votca/tools/average.h>
+#include <votca/csg/nblistgrid.h>
 
 void EnergyCorr::Initialize(QMTopology* top, Property* options) {
 

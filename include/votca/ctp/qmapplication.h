@@ -9,7 +9,7 @@
 #define	_QMAPPLICATION_H
 
 #include <votca/tools/application.h>
-#include "statesaver.h"
+#include "statesaversqlite.h"
 #include "qmcalculator.h"
 #include "qmtopology.h"
 

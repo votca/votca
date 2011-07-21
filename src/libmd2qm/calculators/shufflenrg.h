@@ -1,8 +1,8 @@
 #ifndef _SHUFFLENRG_H
 #define	_SHUFFLENRG_H
 
-#include "qmpair.h"
-#include "qmcalculator.h"
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
 
 /** \brief Shuffle site energies to get rid of spatial correlations, while preserving the distribution width 
 

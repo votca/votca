@@ -1,7 +1,8 @@
 #ifndef __VOTCA_MD2QM_AVGVELOCITY_H
 #define	__VOTCA_MD2QM_AVGVELOCITY_H
 
-#include <paircalculator.h>
+#include <votca/ctp/paircalculator.h>
+
 class AvgVelocity : public PairCalculator
 {
 public:
