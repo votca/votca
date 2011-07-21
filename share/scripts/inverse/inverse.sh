@@ -129,8 +129,8 @@ filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [[ -z $cleanlist ]] || echo "We extra clean '$cleanlist' after a step is done"
 
-scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-[[ -n $scriptdir ]] && echo "Adding $scriptdir to csgshare" && add_to_csgshare "$scriptdir"
+scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)"
+[[ -n $scriptpath ]] && echo "Adding $scriptpath to csgshare" && add_to_csgshare "$scriptpath"
 
 show_csg_tables
 

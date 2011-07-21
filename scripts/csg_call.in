@@ -50,7 +50,7 @@ Allowed options:
     --show           Show the path to the script
     --show-share     Shows the used VOTCASHARE dir and exits
     --scriptdir DIR  Set the user script dir
-                     (Used if no optins xml file is given)
+                     (Used if no options xml file is given)
                      Default: empty
     --simprog PROG   Set the simprog
                      (Used if no options xml file is given)
@@ -160,8 +160,8 @@ else
   die "Could not find start_framework.sh"
 fi
 
-[[ -n ${CSGXMLFILE} ]] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir "$scriptdir")"
-[[ -n ${scriptdir} ]] && add_to_csgshare "$scriptdir"
+[[ -n ${CSGXMLFILE} ]] && scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath "$scriptdir")"
+[[ -n ${scriptpath} ]] && add_to_csgshare "$scriptpath"
 
 [[ -n ${CSGXMLFILE} ]] && simprog="$(csg_get_property --allow-empty cg.inverse.program "$simprog")"
 [[ -n ${simprog} ]] && source_function $simprog

@@ -83,7 +83,7 @@
   <item><name>cg.inverse.convergence_check_options.limit</name><desc>lower limit to stop</desc></item>
   <item><name>cg.inverse.convergence_check_options.name_glob</name><desc>files to check for number (default *.conv)</desc></item>
   <item><name>cg.inverse.method</name><desc> ibi: inverse boltzmann imc: inverse monte carlo </desc></item>
-  <item><name>cg.inverse.scriptdir</name><desc> list of directories for user scripts (e.g. $PWD) separated by a collon (like PATH)</desc></item>
+  <item><name>cg.inverse.scriptpath</name><desc> list of directories for user scripts (e.g. $PWD) separated by a colon (like PATH)</desc></item>
   <item><name>cg.inverse.log_file</name><desc> write log to this file </desc></item>
   <item><name>cg.inverse.simulation</name><desc>simulation options </desc></item>
   <item><name>cg.inverse.simulation.tasks</name><desc>number of tasks (0/auto = automatic detect on linux)</desc></item>
