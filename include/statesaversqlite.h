@@ -50,9 +50,13 @@ private:
     void ReadIntegrals();
 
     template<typename T>
-    void WriteCustomProperties(string table, std::map<string, T> &properties,
-        const string field_key, const string field_value);
-    
+    void WriteCustomProperties(int object_id, std::map<string, T> &properties,
+        string table, const string field_objectid, const string field_key="key", const string field_value="value");
+
+    template<typename T>
+    void ReadCustomProperties(int object_id, std::map<string, T> &properties,
+        string table, const string field_objectid, const string field_key="key", const string field_value="value");
+
     QMTopology *_qmtop;
 
     vector<int> _frames;

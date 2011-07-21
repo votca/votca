@@ -36,7 +36,7 @@ void QMDatabase::onCreate()
     // additional properties of conjugated segments
     Exec("CREATE TABLE conjseg_properties ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "segment INTEGER NOT NULL,"
+        "conjseg INTEGER NOT NULL,"
         "key TEXT NOT NULL,"
         "value REAL NOT NULL)");
 

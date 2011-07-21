@@ -36,7 +36,7 @@ public:
     bool getInDatabase() { return _in_database; }
     
     // for Falk: clean out the old SetEnergy / getEnergy and then rename these functions
-    void setEnergy_(string label, double value) { _energies[label] = value; }
+    /*void setEnergy_(string label, double value) { _energies[label] = value; }
     double getEnergy_(string label) { return _energies[label]; }
     map<string, double> &getEnergies() { return _energies; }
     
@@ -45,7 +45,12 @@ public:
         for(map<string, double>::iterator iter = _energies.begin();
             iter!= _energies.end(); ++iter) e+= iter->second;
         return e;
-    }
+    }*/
+
+    void setDouble(string key, double value) { _double_values[key] = value; }
+    double getDouble(string key) { return _double_values[key]; }
+    map<string, double> &DoubleValues() { return _double_values; }
+
 
     // use pair<double, double> for lambdea. pair.first = charging, pair.second = discharging
     // setReorg(string label, double charging, double discharging) { _reorg[label] = makepair(charging, discharging); }
@@ -54,7 +59,7 @@ protected:
     double _occupation_probability;
     bool _in_database;
 
-    map<string, double> _energies;
+    map<string, double> _double_values;
 };
 
 inline QMCrgUnit::QMCrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,

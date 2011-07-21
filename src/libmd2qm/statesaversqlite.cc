@@ -188,7 +188,8 @@ void StateSaverSQLite::WriteConjugatedSegments(int frameid) {
             _conjseg_id_map[crg->getId()] = crg->getId();
         else
             _conjseg_id_map[crg->getId()] = _db.LastInsertRowId();
-        
+
+        WriteCustomProperties(_conjseg_id_map[crg->getId()], crg->DoubleValues(), "conjseg_properties", "conjseg");
     }
     delete insert_stmt;
     delete update_stmt;
@@ -204,6 +205,7 @@ void StateSaverSQLite::ReadConjugatedSegments(void)
         QMCrgUnit *acrg = _qmtop->CreateCrgUnit(stmt->Column<int>(0),
                 stmt->Column<string>(1), stmt->Column<string>(2), stmt->Column<int>(3));
         acrg->setInDatabase(true);
+        ReadCustomProperties(acrg->getId(), acrg->DoubleValues(), "conjseg_properties", "conjseg");
     }
     delete stmt;
 }
@@ -411,7 +413,7 @@ void StateSaverSQLite::ReadIntegrals()
 
 
 template<typename T>
-void StateSaver::WriteCustomProperties(int object_id, std::map<string, T> &properties,
+void StateSaverSQLite::WriteCustomProperties(int object_id, std::map<string, T> &properties,
         string table, const string field_objectid, const string field_key, const string field_value)
 {
     _db.Exec("DELETE FROM " + table + " WHERE " + field_objectid + " = " 
@@ -420,13 +422,31 @@ void StateSaver::WriteCustomProperties(int object_id, std::map<string, T> &prope
     Statement *stmt =
     _db.Prepare("INSERT INTO " + table + "(" + field_objectid + ", " + field_key + ", " + field_value
             + ") VALUES (?, ?, ?)");
-
-    for(map<string, T>::iterator i = properties.begin(); i!=properties.end(); ++i) {
+    cout << "costom\n";
+    for(typename std::map<string, T>::iterator i = properties.begin();
+            i!=properties.end(); ++i) {
+        cout << i->first << " " << i->second;
         stmt->Bind(1, object_id);
         stmt->Bind(2, i->first);
         stmt->Bind(3, i->second);
         stmt->Step();
         stmt->Reset();
+    }
+
+    delete stmt;
+}
+
+template<typename T>
+void StateSaverSQLite::ReadCustomProperties(int object_id, std::map<string, T> &properties,
+        string table, const string field_objectid, const string field_key, const string field_value)
+{
+    Statement *stmt =
+    _db.Prepare("SELECT " + field_key + ", " + field_value
+            + " FROM " + table + " WHERE " + field_objectid + " = ?");
+
+    stmt->Bind(1, object_id);
+    while (stmt->Step() != SQLITE_DONE) {
+        properties[stmt->Column<string>(0)] = stmt->Column<T>(1);
     }
 
     delete stmt;
