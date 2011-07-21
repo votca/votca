@@ -80,11 +80,11 @@ extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
 tshift="$(critical mktemp ${name}.pot.shift.XXXXX)"
 if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
   extrapol1="$(critical mktemp ${name}.pot.extrapol2.XXXXX)"
-  do_external table extrapolate --function exponential --avgpoints 1 --region left "${smooth}" "${extrapol1}"
+  do_external table extrapolate --function exponential --avgpoints 5 --region left "${smooth}" "${extrapol1}"
   do_external table extrapolate --function constant --avgpoints 1 --region right "${extrapol1}" "${extrapol}"
   do_external pot shift_nonbonded "${extrapol}" "${tshift}"
 else
-  do_external table extrapolate --function exponential --avgpoints 1 --region leftright "${smooth}" "${extrapol}"
+  do_external table extrapolate --function exponential --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
   do_external pot shift_bonded "${extrapol}" "${tshift}"
 fi
 
