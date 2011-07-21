@@ -157,10 +157,10 @@ void StateSaverSQLite::ReadMolecules(void)
 
 void StateSaverSQLite::WriteConjugatedSegments(int frameid) {
     Statement *update_stmt = _db.Prepare(
-            "UPDATE conjsegs SET name = ?, type = ?, molecule = ?, frame = ? WHERE _id = ?"
+            "UPDATE conjsegs SET name = ?, type = ?, molecule = ?, frame = ?, pos_x=?, pos_y=?, pos_z=? WHERE _id = ?"
     );
     Statement *insert_stmt = _db.Prepare(
-            "INSERT INTO conjsegs (name, type, molecule, frame) VALUES (?,?,?,?)"
+            "INSERT INTO conjsegs (name, type, molecule, frame, pos_x, pos_y, pos_z) VALUES (?,?,?,?,?,?,?)"
     );
 
 
@@ -170,7 +170,7 @@ void StateSaverSQLite::WriteConjugatedSegments(int frameid) {
         Statement *stmt;
         if(crg->getInDatabase()) {
             stmt = update_stmt;
-            stmt->Bind(5, (int)crg->getId());
+            stmt->Bind(8, (int)crg->getId());
         }
         else
             stmt = insert_stmt;
@@ -181,6 +181,9 @@ void StateSaverSQLite::WriteConjugatedSegments(int frameid) {
         stmt->Bind(2, crg->getType()->GetName());;
         stmt->Bind<int>(3, crg->getMolId());;
         stmt->Bind(4, frameid);;
+        stmt->Bind(5, crg->GetCom().getX());;
+        stmt->Bind(6, crg->GetCom().getY());;
+        stmt->Bind(7, crg->GetCom().getZ());;
         stmt->Step();
         stmt->Reset();
 

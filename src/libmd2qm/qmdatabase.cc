@@ -31,6 +31,9 @@ void QMDatabase::onCreate()
         "type TEXT NOT NULL,"
         "molecule INT NOT NULL,"
         "frame INT NOT NULL," // TODO: this is bad
+        "pos_x real NOT NULL,"
+        "pos_y real NOT NULL,"
+        "pos_z real NOT NULL,"
         "occ REAL)"); 
 
     // additional properties of conjugated segments
