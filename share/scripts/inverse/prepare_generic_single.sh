@@ -43,11 +43,11 @@ if [[ -f ${main_dir}/${name}.pot.in ]]; then
   extrapol="$(critical mktemp ${name}.pot.in.extrapol.XXXXX)"
   if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
     extrapol2="$(critical mktemp ${name}.pot.in.extrapol2.XXXXX)"
-    do_external table extrapolate --function exponential --avgpoints 1 --region left "${smooth}" "${extrapol2}"
+    do_external table extrapolate --function exponential --avgpoints 5 --region left "${smooth}" "${extrapol2}"
     do_external table extrapolate --function constant --avgpoints 1 --region right "${extrapol2}" "${extrapol}"
     do_external pot shift_nonbonded "${extrapol}" "${output}"
   else
-    do_external table extrapolate --function exponential --avgpoints 1 --region leftright "${smooth}" "${extrapol}"
+    do_external table extrapolate --function exponential --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
     do_external pot shift_bonded "${extrapol}" "${output}"
   fi
 else
