@@ -22,8 +22,6 @@ void JCalc::ParseCrgUnitTypes(Property &options){
     string nameorb;
     string namecrg;
     string nameneutr;
-    double reorg;
-    double energy;
     vector <int> transorbs;
    
     string name;
@@ -43,8 +41,6 @@ void JCalc::ParseCrgUnitTypes(Property &options){
             nameneutr = (*iter)->get("qneutral").as<string>();
             namecrg = (*iter)->get("qcharged").as<string>();
         }
-        reorg = (*iter)->get("reorganization").as<double>();
-        energy = (*iter)->get("energy").as<double>();
         
         if((*iter)->exists("torbital")) transorbs = (*iter)->get("torbital").as<vector <int> >();
         if(transorbs.size() > 0) nameorb = (*iter)->get("orbitals").as<string>();
