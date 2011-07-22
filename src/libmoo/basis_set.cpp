@@ -152,9 +152,9 @@ void basis_set::set_basis_set(const string & a){
 
 void basis_set::parse_xml_basisset_info(const string & filename){
     load_property_from_xml(_options, filename.c_str());
-    _nel_at = new int [18];
-    _nbasis_at = new int [18];
-    _basis_lbl_at = new string *[18];
+    _nel_at = new int [55];
+    _nbasis_at = new int [55];
+    _basis_lbl_at = new string *[55];
     list<Property *> atoms = (_options.get("basis")).Select("ATOM");
     list<Property *>::iterator iter;
     for (iter = atoms.begin();iter != atoms.end(); ++iter){
