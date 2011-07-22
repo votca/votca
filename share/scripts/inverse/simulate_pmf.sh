@@ -29,23 +29,25 @@ EOF
   exit 0
 fi
 
-conf_start="start"
-pullgroup0=$(get_from_mdp cg.non-bonded.pmf.pullgroup0)
-pullgroup1=$(get_from_mdp cg.non-bonded.pmf.pullgroup1)
+# Get grompp file
+mdp_sim=$(csg_get_property cg.non-bonded.pmf.mdp_sim)
+cp_from_main_dir $mdp_sim
+mv $mdp_sim grompp.mdp
+
+pullgroup0=$(get_simulation_setting cg.non-bonded.pmf.pullgroup0)
+pullgroup1=$(get_simulation_setting cg.non-bonded.pmf.pullgroup1)
 min=$(csg_get_property cg.non-bonded.pmf.min)
 max=$(csg_get_property cg.non-bonded.pmf.max)
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
-mdp_sim=$(csg_get_property cg.non-bonded.pmf.mdp_sim)
+index=$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")
+[ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
 traj="traj.${ext}"
 
-# Generate start_in.mdp
-cp_from_main_dir $mdp_sim
-mv $mdp_sim grompp.mdp
-
+# Prepare and submit simulations
 echo "#dist.xvg grofile delta" > dist_comp.d
-for i in conf_start*.gro; do
+for i in 'conf.start*.gro'; do
   number=${i#conf_start}
   number=${number%.gro}
   [ -z "$number" ] && die "${0##*/}: Could not fetch number"
@@ -58,12 +60,12 @@ for i in conf_start*.gro; do
   cp grompp.mdp > $dir/grompp.mdp
   cd $dir
   cp_from_main_dir $filelist
-  grompp -n index.ndx ${mdp_opts}
-  echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -f conf.gro -s topol.tpr -n index.ndx -o dist.xvg
+  grompp -n ${index} ${mdp_opts}
+  echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -f conf.gro -s topol.tpr -n ${index} -o dist.xvg
   dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
   [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
   msg "Doing $dir with dist $dist"
-  grompp -n index.ndx ${mdp_opts}
+  grompp -n ${index} ${mdp_opts}
   do_external run gromacs_pmf
   sleep 5
   cd ..

@@ -41,31 +41,6 @@ opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 tasks=$(get_number_tasks)
 mpicmd=$(csg_get_property --allow-empty cg.inverse.simulation.cmd)
 
-# If in step_002, do mdrun -noappend
-this_dir=$(get_current_step_dir --no-check)
-pmf_step=$(basename $this_dir)
-if [[ "$pmf_step" == "step_002" ]]; then
-  # Rerun traj
-  if [ -f "sim_done" ]; then
-    rm sim_done
-    traj=$(basename $(find . -maxdepth 1 -name traj.part*) )
-    mpicmd="q2start -8tn rerun -f rerun_done --nompi"
-    mdrun="mdrun -rerun ${traj} -noappend -cpi state.cpt -maxh 36 -e ener2.edr"
-    opts="-pf pullf2.xvg"
-  # Start/Continue run
-  elif [ -f "rerun_done" ] || [ -f "prep_done" ]; then
-    if [ -f "rerun_done" ]; then
-      rm rerun_done
-    elif [ -f "prep_done" ]; then
-      rm prep_done
-    fi
-    traj=$(basename $(find . -maxdepth 1 -name traj.part*) )
-    mpicmd="q2start -8tn run -f sim_done --nompi"
-    mdrun="mdrun -noappend -cpi state.cpt -maxh 36 -e ener.edr"
-    opts="-pf pullf.xvg"
-  fi
-fi
-
 # Run gromacs
 if [ $tasks -gt 1 ]; then
   critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" ${opts}

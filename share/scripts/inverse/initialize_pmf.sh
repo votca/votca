@@ -26,47 +26,54 @@ EOF
   exit 0
 fi
 
-#if user gave us a conf_in we use this one
-conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
-name=$(csg_get_interaction_property name)
-ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
-mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
-traj="traj.${ext}"
+mdp_init=$(csg_get_property --allow-empty cg.non-bonded.pmf.mdp_init)
+mdp_prep=$(csg_get_property --allow-empty cg.non-bonded.pmf.mdp_prep)
+
+# Get grompp file
+if [[ -z "$mdp_init" ]]; then  
+  cp_from_main_dir conf.gro
+  cp_from_main_dir ${mdp_prep}
+  mv ${mdp_prep} grompp.mdp
+else
+  cp_from_main_dir conf.gro
+  cp_from_main_dir ${mdp_init}
+  mv ${mdp_init} grompp.mdp
+fi
+
+pullgroup0=$(get_simulation_setting pull_group0)
+pullgroup1=$(get_simulation_setting pull_group1)
+steps=$(get_simulation_setting nsteps)
+rate=$(get_simulation_setting pull_rate1)
+dt=$(get_simulation_setting dt)
+
 min=$(csg_get_property cg.non-bonded.pmf.min)
-mdp_init="$(csg_get_property --allow-empty cg.non-bonded.pmf.mdp_init)"
-mdp_prep="$(csg_get_property cg.non-bonded.pmf.mdp_prep)"
-
-cp_from_main_dir "${mdp_prep}"
-mv "${mdp_prep}" grompp.mdp
-
-critical cp_from_main_dir ${conf}
-
-#
-#Test distance 1st time:
-#
-# Run grompp to generate tpr, then calculate distance
-do_external run gromacs --prepare-only
-# Then calcualte the distance
-pullgroup0=$(get_from_mdp pull_group0)
-pullgroup1=$(get_from_mdp pull_group1)
-echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -n index.ndx -f ${conf}
-dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
-echo "Initial distance is $dist; the expected ditance is $min"
-
-#if the distance between the 2 molecule is not equal to the minumum distance do: 
-if `csg_calc ${dist} == ${min}`=="1" do  
-echo "Since the 2 distances are not similar the molecules will pe pulled toghether"
-critical cp_from_main_dir "${mdp_initi}"
-mv "${mdp_prep}" grompp.mdp
-
-index="$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")"
+mdp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
+index=$(csg_get_property cg.inverse.gromacs.grompp.index "index.ndx")
 [ -f "$index" ] || die "${0##*/}: grompp index file '$index' not found"
+ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+traj="traj.${ext}"
 
-# Run simulation to generate initial setup
-grompp -n index.ndx ${mdp_opts}
-# Create traj so "run gromacs" does not die
-touch "$traj"
-do_external run gromacs_pmf
+# Check if distance between pullgroups is at min
+do_external run gromacs --prepare-only
+echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -n ${index} -f conf.gro
+dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
+msg "Initial distance between pullgroups is $dist"
 
-done
-
+if [[ `csg_calc ${dist} == ${min}`=="1" ]]; then
+  msg "Now pulling to distance $min"
+  [ -n "$mdp_init" ] || die "${0##*/}: initialization grompp file is not provided"
+  steps="$(awk "BEGIN{print int(($min-$dist)/$rate/$dt)}")"
+  # Determine whether to pull apart or together
+  if [ $steps -le 0 ]; then
+    steps="${steps#-}"
+    rate="-$rate"
+  fi
+  ((steps++))
+  sed -i -e "s/nsteps.*$/nsteps                   = $steps/" \
+         -e "s/pull_rate1.*$/pull_rate1               = $rate/" \
+         -e "s/pull_init1.*$/pull_init1               = $dist/" grompp.mdp
+  grompp -n ${index} ${mdp_opts}
+  do_external run gromacs_pmf
+else
+  msg "Pullgrous are already at $min distance"
+fi
