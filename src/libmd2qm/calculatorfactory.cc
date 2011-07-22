@@ -1,16 +1,21 @@
 #include <votca/ctp/calculatorfactory.h>
 
 #include "votca_config.h"
+#include "calculators/ecoulomb.h"
+#include "calculators/ehistogram.h"
+#include "calculators/egaussian.h"
+#include "calculators/ecorrelation.h"
+#include "calculators/eshuffle.h"
+
 #include "calculators/izindo.h"
+#include "calculators/ihistogram.h"
+
+#include "calculators/tdump.h"
+
 #include "calculators/marcusrates.h"
 //#include "calculators/readxml.h"
 #include "calculators/writexml.h"
-#include "calculators/ecoulomb.h"
-#include "calculators/ihistogram.h"
-#include "calculators/ehistogram.h"
-#include "calculators/shufflenrg.h"
-#include "calculators/egaussian.h"
-#include "calculators/ecorrelation.h"
+#include "calculators/eshuffle.h"
 #include "calculators/polymerrates.h"
 #include "calculators/pairdump.h"
 #include "calculators/CurrentDensity.h"
@@ -22,7 +27,6 @@
 #include "calculators/avgvelocity.h"
 #include "calculators/lambdaout.h"
 #include "calculators/dump_atoms.h"
-#include "calculators/tdump.h"
 #include "calculators/dump_atoms_bj.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
@@ -31,7 +35,7 @@
 
 void CalculatorFactory::RegisterAll(void)
 {
-Calculators().Register<CalcIntegrals>("izindo");
+	Calculators().Register<CalcIntegrals>("izindo");
         Calculators().Register<WriteXML>("writexml");
 //        Calculators().Register<ReadXML>("readxml");
         Calculators().Register<CalcEstatics>("ecoulomb");
@@ -39,7 +43,7 @@ Calculators().Register<CalcIntegrals>("izindo");
         Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<CalcHistIntegrals>("ihistogram");
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
-        Calculators().Register<ShuffleNrg>("shufflenrg");
+        Calculators().Register<Eshuffle>("eshuffle");
         Calculators().Register<GenerateNrgs>("egaussian");
         Calculators().Register<EnergyCorr>("ecorrelation");
         Calculators().Register<PolymerRates>("polymerrates");

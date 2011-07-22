@@ -91,6 +91,12 @@
 <desc>Correlation of site energies.</desc>
 </item>
 
+<!-- eshuffle calculator -->
+<item>
+<name>eshuffle</name>
+<desc>Shuffles site energies in order to remove spatial correlations.</desc>
+</item>
+
 
 <!-- zintegrals calculator -->
 <item>
@@ -147,6 +153,7 @@
 <desc>Name of the atomistic trajectory with back-substituted rigid fragments.</desc>
 </item>
 
+<!-- lambdaout calculator -->
 <item>
 <name>lambdaout</name>
 <desc>Outer sphere reorganization energy for all pairs</desc>
@@ -180,11 +187,6 @@
 
 <item>
 <name>marcusrates</name>
-<desc></desc>
-</item>
-
-<item>
-<name>shufflenrg</name>
 <desc></desc>
 </item>
 
