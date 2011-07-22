@@ -214,7 +214,7 @@ else {
 if ($do_left) {
   # find beginning
   my $first;
-  for ($first=1;$first<=$#r;$first++) {
+  for ($first=0;$first<=$#r;$first++) {
      last if($flag[$first] eq "i");
   }
 
