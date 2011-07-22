@@ -47,7 +47,10 @@ void fock::set_zindo_s() {
     }
          * */
 void fock::SetParameters(){
-    string nameParameter = string(getenv("MOOSHARE"))+string("INDOParameters.xml");
+    char * votca_share = getenv("VOTCASHARE");
+    if(votca_share == NULL)
+        throw std::runtime_error("VOTCASHARE not set, cannot open INDO parameters.");
+    string nameParameter = string(getenv("VOTCASHARE"))+string("/INDOParameters.xml");
     Property Options;
     load_property_from_xml(Options,nameParameter);
     
