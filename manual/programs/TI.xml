@@ -1,0 +1,54 @@
+ <pair name="pair_100_151">
+    <parameters>
+       <HOMO_A>358</HOMO_A>
+       <NoccA>1</NoccA>
+       <LUMO_A>361</LUMO_A>
+       <NvirtA>1</NvirtA>
+       <HOMO_B>360</HOMO_B>
+       <NoccB>2</NoccB>
+       <LUMO_B>362</LUMO_B>
+       <NvirtB>1</NvirtB>
+    </parameters>
+     <transport name="hole">
+         <channel name="single">
+             <J>4.72097740763935370E-004</J>
+             <e_A>-5.7583181430572221</e_A>
+             <e_B>-5.5664451039980891</e_B>
+         </channel>
+         <channel name="multi">
+            <molecule name="A">
+                <e_HOMOm0>-5.7583181430572221</e_HOMOm0>
+            </molecule>
+            <molecule name="B">
+                <e_HOMOm0>-5.5664451039980891</e_HOMOm0>
+                <e_HOMOm1>-5.5891086197576518</e_HOMOm1>
+            </molecule>
+                <dimer name="integrals">
+                     <T_00>4.72097740763935370E-004</T_00>
+                     <T_01>1.89674974309693152E-003</T_01>
+                     <J_sq_degen>1.91026793238634388E-006</J_sq_degen>
+                     <J_sq_boltz>7.13803723656337142E-007</J_sq_boltz>
+                </dimer>
+         </channel>
+     </transport>
+     <transport name="electron">
+         <channel name="single">
+             <J>-4.96673234053983739E-003</J>
+             <e_A>-2.1800810079406876</e_A>
+             <e_B>-1.9791139545873897</e_B>
+         </channel>
+         <channel name="multi">
+                <molecule name="A">
+                     <e_LUMOp0>-2.1800810079406876</e_LUMOp0>
+                </molecule>
+                <molecule name="B">
+                     <e_LUMOp0>-1.9791139545873897</e_LUMOp0>
+                </molecule>
+                <dimer name="integrals">
+                     <T_00>-4.96673234053983739E-003</T_00>
+                     <J_sq_degen>2.46684301425643301E-005</J_sq_degen>
+                     <J_sq_boltz>2.46684301425643301E-005</J_sq_boltz>
+                </dimer>
+         </channel>
+     </transport>
+ </pair>
