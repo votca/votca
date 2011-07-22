@@ -34,29 +34,20 @@ public:
     void  setOccupationProbability(double prob) { _occupation_probability = prob; }
 
     void setInDatabase(bool indb) { _in_database = indb; }
-    bool getInDatabase() { return _in_database; }
-    
-    // for Falk: clean out the old SetEnergy / getEnergy and then rename these functions
-    /*void setEnergy_(string label, double value) { _energies[label] = value; }
-    double getEnergy_(string label) { return _energies[label]; }
-    map<string, double> &getEnergies() { return _energies; }
-    
-    double SumEnergies() { // TODO: add label + wildcard
+    bool getInDatabase() { return _in_database; }       
+
+    double getTotalEnergy(const char *match="energy_*", const char *nomatch="") {        
+        //return getDouble("energy_intra")+getDouble("energy_coulomb");
         double e=0;
-        for(map<string, double>::iterator iter = _energies.begin();
-            iter!= _energies.end(); ++iter) e+= iter->second;
+        for(map<string, double>::iterator iter = DoubleValues().begin();
+            iter!= DoubleValues().end(); ++iter) {
+            if(wildcmp(match, iter->first.c_str()))
+                if(!wildcmp(nomatch, iter->first.c_str()))
+                    e+= iter->second;
+        }
         return e;
-    }*/
-
-    double getTotalEnergy() { // TODO: add label + wildcard
-        
-        return getDouble("energy_intra")+getDouble("energy_coulomb");
     }
-
     
-    // use pair<double, double> for lambdea. pair.first = charging, pair.second = discharging
-    // setReorg(string label, double charging, double discharging) { _reorg[label] = makepair(charging, discharging); }
-    // pair<double,double> &getReorg(string label) { return _reorg[label]; }
 protected:
     double _occupation_probability;
     bool _in_database;
