@@ -184,10 +184,30 @@
 <desc>Cutoff radius in nm between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**</desc>
 </item>
 
-
 <item>
 <name>marcusrates</name>
 <desc></desc>
+</item>
+
+
+<item>
+<name>rates</name>
+<desc>Computes hopping rates between molecules in the neighborlist</desc>
+</item>
+
+<item>
+<name>rates.method</name>
+<desc>Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second fallows the derivation by Jortner and Bixon</desc>
+</item>
+
+<item>
+<name>rates.nmaxvib</name>
+<desc>If the method of choice is **jortner**, the maximal number of excited vibrations on the molecules has to be specified as an integer for the summation. The default value is 20</desc>
+</item>
+
+<item>
+<name>rates.omegavib</name>
+<desc>If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV</desc>
 </item>
 
 <item>

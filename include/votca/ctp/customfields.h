@@ -17,7 +17,9 @@ public:
     void setDouble(std::string key, double value) { _double_values[key] = value; }
     double getDouble(std::string key) { return _double_values[key]; }
     std::map<std::string, double> &DoubleValues() { return _double_values; }
-
+    bool DoubleExists(std::string key) {
+   return _double_values.find(key) != _double_values.end();
+} 
 protected:
     std::map<std::string, double> _double_values;
 };

@@ -31,6 +31,7 @@
 #include "calculators/sqlitewriter.h"
 #include "calculators/lambdaout.h"
 #include "calculators/dump_atoms_bj.h"
+#include "calculators/rates.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
     #include "calculators/contkmc.h"
@@ -63,8 +64,8 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<SQLiteWriter>("sqlitewriter");
         Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
         Calculators().Register<DumpTrajectory>("tdump");
+        Calculators().Register<Rates>("rates");
         Calculators().Register<WriteXML>("writexml");
-
 	#ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");
         #endif
