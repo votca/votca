@@ -50,7 +50,7 @@ bool CtpMapApp::EvaluateOptions()
     CsgApplication::EvaluateOptions();
     CheckRequired("listcharges");
 
-    _observer.setOut(OptionsMap()["out"].as<string>());
+    _observer.setOut(OptionsMap()["db"].as<string>());
     _observer.Initialize(_qmtopol, _options);
 
     // add our observer that it gets called to analyze frames
