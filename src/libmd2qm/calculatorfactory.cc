@@ -12,10 +12,13 @@
 
 #include "calculators/tdump.h"
 
+#include "calculators/vaverage.h"
+
+#include "calculators/oboltzmann.h"
+
 #include "calculators/marcusrates.h"
 //#include "calculators/readxml.h"
 #include "calculators/writexml.h"
-#include "calculators/eshuffle.h"
 #include "calculators/polymerrates.h"
 #include "calculators/pairdump.h"
 #include "calculators/CurrentDensity.h"
@@ -23,8 +26,6 @@
 #include "calculators/marcusrateslambdaouter.h"
 #include "calculators/sqlitewriter.h"
 #include "calculators/nbgen.h"
-#include "calculators/occequilibrium.h"
-#include "calculators/avgvelocity.h"
 #include "calculators/lambdaout.h"
 #include "calculators/dump_atoms.h"
 #include "calculators/dump_atoms_bj.h"
@@ -53,8 +54,8 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<MarcusRatesLambdaOuter>("marcusrateslambdaouter");
         Calculators().Register<SQLiteWriter>("sqlitewriter");
         Calculators().Register<NBGen>("nbgen");
-        Calculators().Register<OccEquilibrium>("occequilibrium");
-        Calculators().Register<AvgVelocity>("avgvelocity");
+        Calculators().Register<Oboltzmann>("oboltzmann");
+        Calculators().Register<Vaverage>("vaverage");
         Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
         Calculators().Register<DumpTrajectory>("tdump");
         Calculators().Register<DumpTrajectory>("dumpatomsbj");

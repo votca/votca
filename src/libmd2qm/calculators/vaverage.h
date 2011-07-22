@@ -1,15 +1,24 @@
-#ifndef __VOTCA_MD2QM_AVGVELOCITY_H
-#define	__VOTCA_MD2QM_AVGVELOCITY_H
+#ifndef __VAVERAGE_H
+#define	__VAVERAGE_H
 
 #include <votca/ctp/paircalculator.h>
+/**
+        \brief Average velocity vector and mobility (along the field) of a single charge carrier.
 
-class AvgVelocity : public PairCalculator
+The average velocity is calculated from occupation probabilities and charge trajectory, 
+\f[ \langle \vec{v} \rangle =  \sum_{i,j}  p_j  \omega_{ji}  (\vec{r}_i - \vec{r}_j) = \hat{\mu} \vec{F} \f].
+
+Callname: vaverage
+
+*/
+
+class Vaverage : public PairCalculator
 {
 public:
-    AvgVelocity() {}
-    ~AvgVelocity() {}
+    Vaverage() {}
+    ~Vaverage() {}
 
-    const char *Description() { return "TODO"; }
+    const char *Description() { return "Average velocity vector and mobility (along the field) of a single charge carrier"; }
 
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);
@@ -21,17 +30,17 @@ protected:
     vec _v;
 };
 
-inline void AvgVelocity::Initialize(QMTopology *top, Property *options) {
+inline void Vaverage::Initialize(QMTopology *top, Property *options) {
     _do_mobility = false;
-    if (options->exists("options.avgvelocity.mobility"))
-        _do_mobility = options->get("options.avgvelocity.mobility").as<bool > ();
+    if (options->exists("options.vaverage.mobility"))
+        _do_mobility = options->get("options.vaverage.mobility").as<bool > ();
 
     if (_do_mobility)
         _E = options->get("options.calc_rates.e_field").as<vec > ();
     _v = vec(0,0,0);
 }
 
-inline void AvgVelocity::EvaluatePair(QMTopology *top, QMPair *pair)
+inline void Vaverage::EvaluatePair(QMTopology *top, QMPair *pair)
 {
     QMCrgUnit *crg1 = pair->first;
     QMCrgUnit *crg2 = pair->second;
@@ -39,12 +48,12 @@ inline void AvgVelocity::EvaluatePair(QMTopology *top, QMPair *pair)
     //cout << crg1->getOccupationProbability() << "\t" << crg2->getOccupationProbability() << "\t" << pair->rate12() <<  "\t" << pair->rate21() << "\t" <<(pair->rate12()*crg1->getOccupationProbability() - pair->rate21()*crg2->getOccupationProbability())*pair->r() << endl;
 }
 
-void AvgVelocity::EndEvaluate(QMTopology *top)
+void Vaverage::EndEvaluate(QMTopology *top)
 {
     cout << "Average velocity [m/s]: " << _v << endl;
     if(_do_mobility)
        cout << "Average mobility [cm^2/Vs]: " << _v*_E/(_E*_E)*1E4 << endl;
 }
 
-#endif	/* AVGVELOCITY_H */
+#endif	/* VAVERAGE_H */
 

@@ -1,15 +1,23 @@
-#ifndef __VOTCA_MD2QM_OCCEQUILIBRIUM_H
-#define	__VOTCA_MD2QM_OCCEQUILIBRIUM_H
+#ifndef OBOLTZMANN_H
+#define OBOLTZMANN_H
 
 #include <votca/ctp/qmcalculator.h>
+/**
+        \brief Site occupations as a Boltzmann distribution of site energies.
 
-class OccEquilibrium : public QMCalculator
+For an ergodic system in equilibrium the site occupation can be calculated from the site energy using the Boltzmann distribution
+\f[ p_i = \exp \left(- \frac{E_i}{k_\textrm{B} T} \right) / \sum_i  \exp \left(- \frac{E_i}{k_\textrm{B} T} \right) \f].
+
+Callname: oboltzmann
+
+*/
+class Oboltzmann : public QMCalculator
 {
 public:
-    OccEquilibrium() {}
-    ~OccEquilibrium() {}
+    Oboltzmann() {}
+    ~Oboltzmann() {}
 
-    const char *Description() { return "TODO"; }
+    const char *Description() { return "Site occupations as a Boltzmann distribution of site energies"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
@@ -17,12 +25,12 @@ private:
     double _kT;
 };
 
-inline void OccEquilibrium::Initialize(QMTopology *top, Property *options)
+inline void Oboltzmann::Initialize(QMTopology *top, Property *options)
 {
     _kT = options->get("options.calc_rates.thermal_energy").as<double>();
 }
 
-inline bool OccEquilibrium::EvaluateFrame(QMTopology *top)
+inline bool Oboltzmann::EvaluateFrame(QMTopology *top)
 {
     double Ptot = 0;
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
@@ -30,7 +38,6 @@ inline bool OccEquilibrium::EvaluateFrame(QMTopology *top)
 
 
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
-        //double reorg = (*itl)->getType()->getReorg();
         double p = exp(-((*itl)->getTotalEnergy()) / _kT);
         Ptot +=p;
         (*itl)->setOccupationProbability(p);
@@ -42,5 +49,5 @@ inline bool OccEquilibrium::EvaluateFrame(QMTopology *top)
 }
 
 
-#endif	/* OCCEQUILIBRIUM_H */
+#endif	/* OBOLTZMANN_H */
 
