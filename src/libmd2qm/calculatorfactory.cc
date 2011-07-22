@@ -17,6 +17,7 @@
 #include "calculators/oboltzmann.h"
 
 #include "calculators/neighborlist.h"
+#include "calculators/tinker.h"
 
 
 #include "calculators/marcusrates.h"
@@ -29,7 +30,6 @@
 #include "calculators/marcusrateslambdaouter.h"
 #include "calculators/sqlitewriter.h"
 #include "calculators/lambdaout.h"
-#include "calculators/dump_atoms.h"
 #include "calculators/dump_atoms_bj.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
@@ -47,17 +47,18 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<CalcHistIntegrals>("ihistogram");
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
         Calculators().Register<Eshuffle>("eshuffle");
+        Calculators().Register<Neighborlist>("neighborlist");
+        Calculators().Register<Oboltzmann>("oboltzmann");
+        Calculators().Register<Vaverage>("vaverage"); // average charge velocities
         Calculators().Register<GenerateNrgs>("egaussian");
         Calculators().Register<EnergyCorr>("ecorrelation");
+        Calculators().Register<Tinker>("tinker");
         Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
         Calculators().Register<CurrentDensity>("currden");
         Calculators().Register<JortnerRates>("jortnerrates");
         Calculators().Register<MarcusRatesLambdaOuter>("marcusrateslambdaouter");
         Calculators().Register<SQLiteWriter>("sqlitewriter");
-        Calculators().Register<Neighborlist>("neighborlist");
-        Calculators().Register<Oboltzmann>("oboltzmann");
-        Calculators().Register<Vaverage>("vaverage"); // average charge velocities
         Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
         Calculators().Register<DumpTrajectory>("tdump");
 

@@ -1,15 +1,46 @@
+#ifndef _TINKER_H
+#define	_TINKER_H
+
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
+
 #include <stdlib.h>
-#include "dump_atoms.h"
 #include <math.h>
 #include <list>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <fstream>
 
-void DumpAtoms::Initialize(QMTopology *top, Property *options) {
+/**
+    \brief Tinker input: xyz coordinates [Angstroem] with a given molecule centered in the box.
+
+Callname: tinker
+
+Part of the input of the TINKER program, which is used to evaluate the polarization contribution to site energies (self-consistently). Dumps the coordinates [xyz, Angstroem] of all atoms in the snapshot or atom within a cutoff (nm, default 50nm) based on centers of mass of molecules. Files are named xyz_N, where N (starts at 0, first molecule in the file) is the number of the molecule whose site energy is computed. This molecule is placed in the center of the box and the nearest image convention is used for the rest of molecules.
+
+*/
+
+class Tinker : public QMCalculator
+{
+public:
+    Tinker() {};
+    ~Tinker() {};
+
+    const char *Description() { return "Tinker input: xyz coordinates [Angstroem] with a given molecule centered in the box."; }
+
+    void Initialize(QMTopology *top, Property *options);
+    bool EvaluateFrame(QMTopology *top);
+    void WriteAtoms(Topology *atop, Molecule *mol);
+   
+private:
+    double _dump_cutoff;
+    Property * _options;
+};
+
+inline void Tinker::Initialize(QMTopology *top, Property *options) {
     _options = options;
-    if (options->exists("options.dump_atoms_params.cutoff")) {
-        _dump_cutoff = options->get("options.dump_atoms_params.cutoff").as<double>();
+    if (options->exists("options.tinker.cutoff")) {
+        _dump_cutoff = options->get("options.tinker.cutoff").as<double>();
         cout << "Writing out atomic XYZ coordinates for molecular cutoff: " << _dump_cutoff <<" nm"<<endl;
     } else {
         _dump_cutoff=50.0;
@@ -18,7 +49,7 @@ void DumpAtoms::Initialize(QMTopology *top, Property *options) {
 
 }
 
-bool DumpAtoms::EvaluateFrame(QMTopology *top) {
+inline bool Tinker::EvaluateFrame(QMTopology *top) {
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
     Topology atop;
     atop.setBox(top->getBox());
@@ -41,7 +72,7 @@ bool DumpAtoms::EvaluateFrame(QMTopology *top) {
 }
 
 
-void DumpAtoms::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
+inline void Tinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
 {
     MoleculeContainer::iterator cmol;
     int nr = mol->getId();
@@ -75,4 +106,6 @@ void DumpAtoms::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe per 
     fclose(data);
     //data.close();
 }
+
+#endif	/* _TINKER_H */
 
