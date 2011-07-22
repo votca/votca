@@ -17,7 +17,7 @@
 #include "calculators/oboltzmann.h"
 
 #include "calculators/neighborlist.h"
-#include "calculators/tinker.h"
+#include "calculators/etinker.h"
 
 
 #include "calculators/marcusrates.h"
@@ -39,20 +39,22 @@
 void CalculatorFactory::RegisterAll(void)
 {
 	Calculators().Register<CalcIntegrals>("izindo");
-        Calculators().Register<WriteXML>("writexml");
-//        Calculators().Register<ReadXML>("readxml");
-        Calculators().Register<CalcEstatics>("ecoulomb");
-        Calculators().Register<CalcLambdaOut>("lambdaout");
-        Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<CalcHistIntegrals>("ihistogram");
-        Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
-        Calculators().Register<Eshuffle>("eshuffle");
-        Calculators().Register<Neighborlist>("neighborlist");
-        Calculators().Register<Oboltzmann>("oboltzmann");
-        Calculators().Register<Vaverage>("vaverage"); // average charge velocities
+//        Calculators().Register<ReadXML>("readxml");
+
+	Calculators().Register<CalcEstatics>("ecoulomb");
         Calculators().Register<GenerateNrgs>("egaussian");
         Calculators().Register<EnergyCorr>("ecorrelation");
-        Calculators().Register<Tinker>("tinker");
+        Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
+        Calculators().Register<Eshuffle>("eshuffle");
+        Calculators().Register<Etinker>("etinker");
+	
+        Calculators().Register<Neighborlist>("neighborlist");
+        Calculators().Register<Oboltzmann>("oboltzmann");
+	Calculators().Register<Vaverage>("vaverage"); // average charge velocities
+
+	Calculators().Register<CalcLambdaOut>("lambdaout");
+        Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
         Calculators().Register<CurrentDensity>("currden");
@@ -61,6 +63,7 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<SQLiteWriter>("sqlitewriter");
         Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
         Calculators().Register<DumpTrajectory>("tdump");
+        Calculators().Register<WriteXML>("writexml");
 
 	#ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");

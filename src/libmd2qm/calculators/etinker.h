@@ -1,5 +1,5 @@
-#ifndef _TINKER_H
-#define	_TINKER_H
+#ifndef _ETINKER_H
+#define	_ETINKER_H
 
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/qmcalculator.h>
@@ -20,11 +20,11 @@ Part of the input of the TINKER program, which is used to evaluate the polarizat
 
 */
 
-class Tinker : public QMCalculator
+class Etinker : public QMCalculator
 {
 public:
-    Tinker() {};
-    ~Tinker() {};
+    Etinker() {};
+    ~Etinker() {};
 
     const char *Description() { return "Tinker input: xyz coordinates [Angstroem] with a given molecule centered in the box."; }
 
@@ -37,7 +37,7 @@ private:
     Property * _options;
 };
 
-inline void Tinker::Initialize(QMTopology *top, Property *options) {
+inline void Etinker::Initialize(QMTopology *top, Property *options) {
     _options = options;
     if (options->exists("options.tinker.cutoff")) {
         _dump_cutoff = options->get("options.tinker.cutoff").as<double>();
@@ -49,7 +49,7 @@ inline void Tinker::Initialize(QMTopology *top, Property *options) {
 
 }
 
-inline bool Tinker::EvaluateFrame(QMTopology *top) {
+inline bool Etinker::EvaluateFrame(QMTopology *top) {
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
     Topology atop;
     atop.setBox(top->getBox());
@@ -72,7 +72,7 @@ inline bool Tinker::EvaluateFrame(QMTopology *top) {
 }
 
 
-inline void Tinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
+inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
 {
     MoleculeContainer::iterator cmol;
     int nr = mol->getId();
@@ -107,5 +107,5 @@ inline void Tinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe 
     //data.close();
 }
 
-#endif	/* _TINKER_H */
+#endif	/* _ETINKER_H */
 
