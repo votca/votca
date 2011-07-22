@@ -55,7 +55,7 @@ else
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
   #resample all target dist in $this_dir
-  critical csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
+  do_external resample target
   if [[ $method = "tf" ]]; then
     #initial guess from density
     do_external calc thermforce ${name}.dist.tgt ${output}
