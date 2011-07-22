@@ -195,7 +195,22 @@
 
 <item>
 <name>pairdump</name>
-<desc></desc>
+<desc>Dumps the coordinates of pairs of atoms from the neighbor list. Used as input in DFT-based calculations of electronic couplings.</desc>
+</item>
+
+<item>
+<name>pairdump.format</name>
+<desc>*xyz* or *pdb* formats.</desc>
+</item>
+
+<item>
+<name>pairdump.subfolders</name>
+<desc>If **true** creates the required by ctp_dipro directory structure. Otherwise dumps all neighbor list pairs into the current folder.</desc>
+</item>
+
+<item>
+<name>pairdump.molecules</name>
+<desc>If **true** outputs single molecules, otherwise only pairs. **THIS HAS TO BE CHANGED**</desc>
 </item>
 
 <item>
