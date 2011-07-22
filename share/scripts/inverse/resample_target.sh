@@ -34,7 +34,7 @@ output="${name}.dist.tgt"
 
 comment="$(get_table_comment)"
 smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
-critical csg_resample --type linear --in ${main_dir}/${target} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+critical csg_resample --in ${main_dir}/${target} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
 
 tabtype="$(csg_get_interaction_property bondtype)"
 extrapol="$(critical mktemp ${name}.dist.tgt_extrapol.XXXXX)"
