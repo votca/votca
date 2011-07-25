@@ -1,14 +1,12 @@
 
 /*
- * File:   lambdaout.cc
  * Author: mayfalk
- *
  * Created on May 20, 2011, 12:21 PM
  */
 
 
 #include <stdlib.h>
-#include "lambdaout.h"
+#include "eoutersphere.h"
 #include <math.h>
 #include <list>
 #include <boost/lexical_cast.hpp>

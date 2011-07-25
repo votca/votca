@@ -153,43 +153,38 @@
 <desc>Name of the atomistic trajectory with back-substituted rigid fragments.</desc>
 </item>
 
-<!-- lambdaout calculator -->
+<!-- eoutersphere calculator -->
 <item>
-<name>lambdaout</name>
+<name>eoutersphere</name>
 <desc>Outer sphere reorganization energy for all pairs</desc>
 </item>
 
 <item>
-<name>lambdaout.method</name>
+<name>eoutersphere.method</name>
 <desc>Type of method used. Can be **constant**(all pairs have the same value **lambdaconst** set in options file), **spheres**(molecules are treated as spheres with radii **R_lambda** given in the segments file and Pekar factor **pekar** set in options file) or **dielectric** (with Pekar factor **pekar** set in options file and partial charges and resulting dielectric fields) </desc>
 </item>
 
 <item>
-<name>lambdaout.lambdaconst</name>
+<name>eoutersphere.lambdaconst</name>
 <desc>Constant value for all pairs used in method **constant**</desc>
 </item>
 
 <item>
-<name>lambdaout.pekar</name>
+<name>eoutersphere.pekar</name>
 <desc>Pekar factor used for methods **spheres** and **dielectric**</desc>
 </item>
 
 <item>
-<name>lambdaout.R_lambda</name>
+<name>eoutersphere.R_lambda</name>
 <desc>Radius of spherical molecule as used in  method **spheres**</desc>
 </item>
 
 <item>
-<name>lambdaout.cutoff</name>
+<name>eoutersphere.cutoff</name>
 <desc>Cutoff radius in nm between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**</desc>
 </item>
 
-<item>
-<name>marcusrates</name>
-<desc></desc>
-</item>
-
-
+<!-- rates calculator -->
 <item>
 <name>rates</name>
 <desc>Computes hopping rates between molecules in the neighborlist</desc>
@@ -210,6 +205,7 @@
 <desc>If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV</desc>
 </item>
 
+<!-- polymerrates calculator -->
 <item>
 <name>polymerrates</name>
 <desc>kick it out ?</desc>
@@ -262,7 +258,7 @@
 
 
 <item>
-<name>dumpatoms</name>
+<name>tinker</name>
 <desc></desc>
 </item>
 
