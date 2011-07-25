@@ -25,13 +25,8 @@
 #include "calculators/writexml.h"
 #include "calculators/polymerrates.h"
 #include "calculators/pairdump.h"
-#include "calculators/CurrentDensity.h"
+#include "calculators/caverage.h"
 #include "calculators/sqlitewriter.h"
-
-//#include "calculators/readxml.h"
-//#include "calculators/marcusrates.h"
-//#include "calculators/jortnerrates.h"
-//#include "calculators/marcusrateslambdaouter.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
     #include "calculators/contkmc.h"
@@ -43,7 +38,7 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<CalcHistIntegrals>("ihistogram"); // histogram of transfer integrals
 
 	Calculators().Register<CalcEstatics>("ecoulomb"); // Coulomb part of site energies
-	Calculators().Register<CalcLambdaOut>("eoutersphere"); // Outersphere reorganization energy
+	Calculators().Register<Eoutersphere>("eoutersphere"); // Outersphere reorganization energy
         Calculators().Register<Eshuffle>("eshuffle"); // removes spatial energy correlations
         Calculators().Register<GenerateNrgs>("egaussian"); // gaussian distribution of site energies
         Calculators().Register<EnergyCorr>("ecorrelation"); // site energy correlation function
@@ -56,7 +51,7 @@ void CalculatorFactory::RegisterAll(void)
 
         Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
-        Calculators().Register<CurrentDensity>("currden");
+        Calculators().Register<Caverage>("caverage");
         Calculators().Register<SQLiteWriter>("sqlitewriter");
 
 	Calculators().Register<DumpTrajectory>("tdump"); // coarse-grained and based on rigid segments trajectories

@@ -13,7 +13,7 @@
 #include <iostream>
 #include <fstream>
 
-void CalcLambdaOut::Initialize(QMTopology *top, Property *options) {
+void Eoutersphere::Initialize(QMTopology *top, Property *options) {
     _options = options;
 
     if (options->exists("options.lambdaout.method")) {
@@ -66,7 +66,7 @@ void CalcLambdaOut::Initialize(QMTopology *top, Property *options) {
     } else throw std::runtime_error("Error in CalcLambdaOut::Initialize : no lambda method specified, should be constant, spheres or dielectric");
 }
 
-bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
+bool Eoutersphere::EvaluateFrame(QMTopology *top) {
         if (_options->get("options.lambdaout.method").as<string > () == "constant") {
             const_lambda(top);
            }
@@ -80,7 +80,7 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
 }
 
 
-    void CalcLambdaOut::const_lambda(QMTopology *top) {
+    void Eoutersphere::const_lambda(QMTopology *top) {
         QMNBList& nblist=top->nblist();
         for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
         QMPair *pair = *ipair;
@@ -92,7 +92,7 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
    }
     }
 
-    void CalcLambdaOut::spheres_lambda(QMTopology *top) {
+    void Eoutersphere::spheres_lambda(QMTopology *top) {
         QMNBList& nblist=top->nblist();
         for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
 
@@ -112,7 +112,7 @@ bool CalcLambdaOut::EvaluateFrame(QMTopology *top) {
     }
      }
 
-    void CalcLambdaOut::dielectric_lambda(QMTopology *top) {
+    void Eoutersphere::dielectric_lambda(QMTopology *top) {
         QMNBList& nblist=top->nblist();
         for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
         QMPair *pair = *ipair;

@@ -1,5 +1,5 @@
 /* 
- * File:   lambdaout.h
+ * File:   eoutersphere.h
  * Author: mayfalk
  *
  * Created on May 20, 2011, 12:36 PM
@@ -26,8 +26,8 @@ where \f$ q^n_{a_i} \f$ (\f$ q^c_{a_i} \f$) is the partial charge of atom \f$ a 
 
 */                                         
 
-#ifndef _LAMBDAOUT_H
-#define	_LAMBDAOUT_H
+#ifndef _EOUTERSPHERE_H
+#define	_EOUTERSPHERE_H
 
 
 
@@ -36,11 +36,11 @@ where \f$ q^n_{a_i} \f$ (\f$ q^c_{a_i} \f$) is the partial charge of atom \f$ a 
 #include <votca/ctp/qmcalculator.h>
 
 
-class CalcLambdaOut : public QMCalculator
+class Eoutersphere : public QMCalculator
 {
 public:
-    CalcLambdaOut() {};
-    ~CalcLambdaOut() {};
+    Eoutersphere() {};
+    ~Eoutersphere() {};
 
     const char *Description() { return "Outer-sphere reorganization energy"; }
 
@@ -61,10 +61,10 @@ private:
     double _lambda_cutoff;
     Property * _options;
     // function pointer
-    double (CalcLambdaOut::*_lambda_method)(const double &);
+    double (Eoutersphere::*_lambda_method)(const double &);
 
 };
 
 
-#endif	/* _LAMBDAOUT_H */
+#endif	/* _EOUTERSPHERE_H */
 
