@@ -184,10 +184,30 @@
 <desc>Cutoff radius in nm between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**</desc>
 </item>
 
-
 <item>
 <name>marcusrates</name>
 <desc></desc>
+</item>
+
+
+<item>
+<name>rates</name>
+<desc>Computes hopping rates between molecules in the neighborlist</desc>
+</item>
+
+<item>
+<name>rates.method</name>
+<desc>Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second fallows the derivation by Jortner and Bixon</desc>
+</item>
+
+<item>
+<name>rates.nmaxvib</name>
+<desc>If the method of choice is **jortner**, the maximal number of excited vibrations on the molecules has to be specified as an integer for the summation. The default value is 20</desc>
+</item>
+
+<item>
+<name>rates.omegavib</name>
+<desc>If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV</desc>
 </item>
 
 <item>
@@ -231,13 +251,21 @@
 </item>
 
 <item>
-<name>avgvelocity</name>
-<desc></desc>
+<name>vaverage</name>
+<desc>Average velocity vector and mobility (along the field) of a single charge carrier.</desc>
 </item>
+
+<item>
+<name>vaverage.mobility</name>
+<desc>If **TRUE** outputs also charge mobility along the field. In this case the field should be specified in calc_rates.e_field. </desc>
+</item>
+
 
 <item>
 <name>dumpatoms</name>
 <desc></desc>
 </item>
+
+
 
 </tags>

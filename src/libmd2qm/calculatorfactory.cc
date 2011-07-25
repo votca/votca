@@ -12,21 +12,26 @@
 
 #include "calculators/tdump.h"
 
-#include "calculators/marcusrates.h"
+#include "calculators/vaverage.h"
+
+#include "calculators/oboltzmann.h"
+
+#include "calculators/neighborlist.h"
+#include "calculators/etinker.h"
+
+#include "calculators/rates.h"
+
 //#include "calculators/readxml.h"
+//#include "calculators/marcusrates.h"
+//#include "calculators/jortnerrates.h"
+//#include "calculators/marcusrateslambdaouter.h"
+
 #include "calculators/writexml.h"
-#include "calculators/eshuffle.h"
 #include "calculators/polymerrates.h"
 #include "calculators/pairdump.h"
 #include "calculators/CurrentDensity.h"
-#include "calculators/jortnerrates.h"
-#include "calculators/marcusrateslambdaouter.h"
 #include "calculators/sqlitewriter.h"
-#include "calculators/nbgen.h"
-#include "calculators/occequilibrium.h"
-#include "calculators/avgvelocity.h"
 #include "calculators/lambdaout.h"
-#include "calculators/dump_atoms.h"
 #include "calculators/dump_atoms_bj.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
@@ -35,31 +40,35 @@
 
 void CalculatorFactory::RegisterAll(void)
 {
-	Calculators().Register<CalcIntegrals>("izindo");
-        Calculators().Register<WriteXML>("writexml");
-//        Calculators().Register<ReadXML>("readxml");
-        Calculators().Register<CalcEstatics>("ecoulomb");
-        Calculators().Register<CalcLambdaOut>("lambdaout");
-        Calculators().Register<MarcusRates>("marcusrates");
-        Calculators().Register<CalcHistIntegrals>("ihistogram");
-        Calculators().Register<CalcHistEnergeticDisorder>("ehistogram");
-        Calculators().Register<Eshuffle>("eshuffle");
-        Calculators().Register<GenerateNrgs>("egaussian");
-        Calculators().Register<EnergyCorr>("ecorrelation");
+	Calculators().Register<CalcIntegrals>("izindo"); // ZINDO-based transfer integrals
+        Calculators().Register<CalcHistIntegrals>("ihistogram"); // histogram of transfer integrals
+
+	Calculators().Register<CalcEstatics>("ecoulomb"); // Coulomb part of site energies
+        Calculators().Register<GenerateNrgs>("egaussian"); // gaussian distribution of site energies
+        Calculators().Register<EnergyCorr>("ecorrelation"); // site energy correlation function
+        Calculators().Register<CalcHistEnergeticDisorder>("ehistogram"); // site energy histogram
+        Calculators().Register<Eshuffle>("eshuffle"); // removes spatial energy correlations
+        Calculators().Register<Etinker>("etinker"); // input for the TINKER package (site energies)
+	
+        Calculators().Register<Neighborlist>("neighborlist"); // fragment-based neighbor list
+        Calculators().Register<Oboltzmann>("oboltzmann"); // Boltzmann distribution of site energies
+	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (requires site occupations)
+
+	Calculators().Register<CalcLambdaOut>("lambdaout");
+//        Calculators().Register<MarcusRates>("marcusrates");
         Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
         Calculators().Register<CurrentDensity>("currden");
-        Calculators().Register<JortnerRates>("jortnerrates");
-        Calculators().Register<MarcusRatesLambdaOuter>("marcusrateslambdaouter");
+//        Calculators().Register<JortnerRates>("jortnerrates");
+//        Calculators().Register<MarcusRatesLambdaOuter>("marcusrateslambdaouter");
         Calculators().Register<SQLiteWriter>("sqlitewriter");
-        Calculators().Register<NBGen>("nbgen");
-        Calculators().Register<OccEquilibrium>("occequilibrium");
-        Calculators().Register<AvgVelocity>("avgvelocity");
         Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
         Calculators().Register<DumpTrajectory>("tdump");
-        Calculators().Register<DumpTrajectory>("dumpatomsbj");
-#ifdef WITH_VOTCA_KMCOLD        
+        Calculators().Register<Rates>("rates");
+        Calculators().Register<WriteXML>("writexml");
+//        Calculators().Register<ReadXML>("readxml");
+	#ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");
-#endif
+        #endif
 
 }
