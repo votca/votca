@@ -7,25 +7,25 @@
 #include "calculators/ecorrelation.h"
 #include "calculators/eshuffle.h"
 #include "calculators/eoutersphere.h"
+#include "calculators/etinker.h"
 
 #include "calculators/izindo.h"
 #include "calculators/ihistogram.h"
 
 #include "calculators/tdump.h"
+#include "calculators/pairdump.h"
 
-#include "calculators/vaverage.h"
+#include "calculators/vaverage.h" //average velocity
+#include "calculators/caverage.h" // average current
 
 #include "calculators/oboltzmann.h"
 
 #include "calculators/neighborlist.h"
-#include "calculators/etinker.h"
 
 #include "calculators/rates.h"
 
 #include "calculators/writexml.h"
-#include "calculators/polymerrates.h"
-#include "calculators/pairdump.h"
-#include "calculators/caverage.h"
+
 #include "calculators/sqlitewriter.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
@@ -47,11 +47,10 @@ void CalculatorFactory::RegisterAll(void)
 	
         Calculators().Register<Neighborlist>("neighborlist"); // fragment-based neighbor list
         Calculators().Register<Oboltzmann>("oboltzmann"); // Boltzmann distribution of site energies
-	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (requires site occupations)
 
-        Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
-        Calculators().Register<Caverage>("caverage");
+	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (via site occupations)
+        Calculators().Register<Caverage>("caverage"); // average site current (via site occupations)
         Calculators().Register<SQLiteWriter>("sqlitewriter");
 
 	Calculators().Register<DumpTrajectory>("tdump"); // coarse-grained and based on rigid segments trajectories
