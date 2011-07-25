@@ -116,6 +116,12 @@ if ("$with_entropie" eq "yes"){
   }
 }
 
+if ("$spherical" eq "yes"){
+  for (my $i=0;$i<=$#r;$i++){
+     $force[$i] *= ($r[$i])**2;
+  }
+}
+
 my $outfile="$ARGV[1]";
 my @pot;
 my @pot_errors;
@@ -132,9 +138,7 @@ if ("$from" eq "right") {
   for (my $i=$#r-1;$i>=0;$i--){
     #hh = delta x /2
     my $hh=0.5*($r[$i+1]-$r[$i]);
-    my $vol=1;
-    $vol=($r[$i])**2 if ("$spherical" eq "yes");
-    $pot[$i]=$pot[$i+1] - $hh*$vol*($force[$i+1]+$force[$i]);
+    $pot[$i]=$pot[$i+1] - $hh*($force[$i+1]+$force[$i]);
     $ww[$i]+= $hh;
     $ww[$i+1]+= $hh;
   }
@@ -158,9 +162,7 @@ if ("$from" eq "right") {
   for (my $i=1;$i<=$#r;$i++){
     #hh = delta x /2
     my $hh=0.5*($r[$i]-$r[$i-1]);
-    my $vol=1;
-    $vol=($r[$i])**2 if ("$spherical" eq "yes");
-    $pot[$i]=$pot[$i-1] + $hh*$vol*($force[$i]+$force[$i-1]);
+    $pot[$i]=$pot[$i-1] + $hh*($force[$i]+$force[$i-1]);
     $ww[$i]+= $hh;
     $ww[$i+1]+= $hh;
   }
