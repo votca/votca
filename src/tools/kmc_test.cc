@@ -96,7 +96,7 @@ void KMCApplication::LoadGraph()
     Database db;
 	db.Open(OptionsMap()["graph"].as<string>());
 	
-	Statement *stmt = db.Prepare("SELECT id FROM crgunits;");
+	Statement *stmt = db.Prepare("SELECT _id FROM conjsegs;");
 	
 	while(stmt->Step() != SQLITE_DONE) {
 		int id = stmt->Column<int>(0);
@@ -107,7 +107,7 @@ void KMCApplication::LoadGraph()
 	cout << "Nodes: " << _nodes.size() << endl;
 	
 	int links=0;
-	stmt = db.Prepare("SELECT crgunit1, crgunit2, rate12, rate21, r_x, r_y, r_z FROM pairs;");
+	stmt = db.Prepare("SELECT conjseg1, conjseg2, rate12, rate21, r_x, r_y, r_z FROM pairs;");
 	while(stmt->Step() != SQLITE_DONE) {
 	  node_t *n1 = _nodes_lookup[stmt->Column<int>(0)];
 	  node_t *n2 = _nodes_lookup[stmt->Column<int>(1)];
@@ -146,7 +146,7 @@ void KMCApplication::WriteOcc()
     Database db;
 	db.Open(OptionsMap()["graph"].as<string>());
 	db.Exec("BEGIN;");
-	Statement *stmt = db.Prepare("UPDATE crgunits SET occ = ? WHERE id = ?;");
+	Statement *stmt = db.Prepare("UPDATE conjsegs SET occ = ? WHERE _id = ?;");
 	for(int i=0; i<_nodes.size(); ++i) {
 		stmt->Reset();
 		stmt->Bind(1, _nodes[i]->_occ/_runtime);
