@@ -9,7 +9,7 @@
 
 Callname: caverage 
 
-Average value of the microscopic current. A local current through site $i$ is defined as
+A local current through site \f$ i \f$ is defined as
 \f[
  \vec{J}_i = \frac{1}{2} e \sum_{ j} \left( p_{j}  \omega_{ji} - p_{i} \omega_{ij} \right) \vec{r}_{ij} .
 \f]
