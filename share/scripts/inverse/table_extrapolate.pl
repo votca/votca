@@ -78,6 +78,7 @@ my $usage="Usage: $progname [OPTIONS] <in> <out>";
 my $avgpoints = 3;
 my $function="quadratic";
 my $region = "leftright";
+my $flag_update ="yes";
 our $curv = 10000.0; # curvature for quadratic extrapolation
 
 # read program arguments
@@ -113,6 +114,10 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
         shift(@ARGV);
         shift(@ARGV);
     }
+    elsif($ARGV[0] eq "--no-flagupdate") {
+        shift(@ARGV);
+	$flag_update="no";
+    }
     elsif (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
@@ -124,6 +129,7 @@ $usage
 Allowed options:
 --avgpoints A         average over the given number of points to extrapolate: default is 3
 --function            constant, linear, quadratic or exponential, sasha: default is quadratic
+--no-flagupdate       do not update the flag of the extrapolated values
 --region              left, right, or leftright: default is leftright
 --curvature C         curvature of the quadratic function: default is 10000,
                       makes sense only for quadratic extrapolation, ignored for other cases
@@ -208,7 +214,7 @@ else {
 if ($do_left) {
   # find beginning
   my $first;
-  for ($first=1;$first<=$#r;$first++) {
+  for ($first=0;$first<=$#r;$first++) {
      last if($flag[$first] eq "i");
   }
 
@@ -224,6 +230,7 @@ if ($do_left) {
   # now extrapolate beginning
   for(my $i=$first-1; $i >= 0; $i--) {
       $val[$i] = &{$extrap_method}($r[$first], $val[$first], $grad_beg, $r[$i]);
+      $flag[$i]="i" if ($flag_update eq "yes");
   }
 }
 
@@ -247,6 +254,7 @@ if ($do_right) {
   # now extrapolate ends
   for(my $i=$last+1; $i <= $#r; $i++) {
       $val[$i] = &{$extrap_method}($r[$last], $val[$last], $grad_end, $r[$i]);
+      $flag[$i]="i" if ($flag_update eq "yes");
   }
 }
 #==============

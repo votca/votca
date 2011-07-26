@@ -17,13 +17,14 @@
 
 version='@PROJECT_VERSION@ #CSG_HG_ID#'
 
-if [ -n "$(type -p csg_call)" ]; then
-  CSGSHARE="$(csg_call --show-share)" || exit 1
-  export CSGSHARE
+if [ -n "$(type -p csg_call 2> /dev/null)" ]; then
+  #in case we have an old version of csg_call without --show-share
+  tmp="$(csg_call --show-share 2> /dev/null)" && export VOTCASHARE="$tmp"
+  unset tmp
 fi
 
 #we leave --help here to have it even when
-#CSGSHARE is not defined
+#VOTCASHARE is not defined
 if [[ $1 = "--help" || $1 = "-h" ]]; then
   cat << eof
 ==================================================
@@ -33,8 +34,8 @@ if [[ $1 = "--help" || $1 = "-h" ]]; then
 please submit bugs to bugs@votca.org
 
 eof
-  if [[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
-    exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | \
+  if [[ -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]]; then
+    exec ${VOTCASHARE}/scripts/inverse/inverse.sh --help | \
       sed -e "s/inverse\.sh/${0##*/}/g" -e "s/%version%/${version}/"
     exit 0
   fi
@@ -49,24 +50,26 @@ Allowed options:
 -h, --help     Show this help
 
 NOTE: this is a short help, please source VOTCARC.bash or VOTCARC.csh
-      or export CSGSHARE to get the full help.
+      or export VOTCASHARE to get the full help.
 eof
 exit 0
 fi
 
 #we don't know if it was done above
 if [[ -n "$(type -p csg_call)" ]]; then
-  CSGSHARE="$(csg_call --show-share)" || exit 1
-  export CSGSHARE
+  VOTCASHARE="$(csg_call --show-share)" || exit 1
+  export VOTCASHARE
 else
   echo "Could not find csg_call" >&2
   exit 1
 fi
 
-if [[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
-   exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
-   exit 0
+if [[ -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]]; then
+  pre="$*"
+  [[ -n $pre && -z ${pre//*--debug*} ]] && pre="bash -x " || pre=""
+  exec ${pre} ${VOTCASHARE}/scripts/inverse/inverse.sh "$@"
+  exit 0
 else
-   echo "${0##*/}: Could not run \${CSGSHARE}/scripts/inverse/inverse.sh $@" >&2
-   exit 1
+  echo "${0##*/}: Could not run \${VOTCASHARE}/scripts/inverse/inverse.sh $@" >&2
+  exit 1
 fi

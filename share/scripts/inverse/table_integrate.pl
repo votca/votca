@@ -25,6 +25,7 @@ my $with_errors="no";
 my $with_entropie="no";
 my $kbT=undef;
 my $from="right";
+my $spherical="no";
 
 # read program arguments
 
@@ -54,6 +55,7 @@ Allowed options:
     --kbT NUMBER      use NUMBER as ''\$k_B*T\$'' for the entropic part
     --from            Integrate from left or right (to define the zero point)
                       Default: $from
+    --sphere          Add spherical volume term (''\$r^2\$'')		   
 -h, --help            Show this help message
 
 Examples:
@@ -64,6 +66,10 @@ END
 	elsif ($ARGV[0] eq "--with-errors"){
           shift(@ARGV);
 	  $with_errors="yes";
+	}
+	elsif ($ARGV[0] eq "--sphere"){
+          shift(@ARGV);
+	  $spherical="yes";
 	}
 	elsif ($ARGV[0] eq "--with-S"){
           shift(@ARGV);
@@ -107,6 +113,12 @@ if ("$with_entropie" eq "yes"){
     if ($r[$i]>0) {
       $force[$i] += 2*$kbT/$r[$i];
     }
+  }
+}
+
+if ("$spherical" eq "yes"){
+  for (my $i=0;$i<=$#r;$i++){
+     $force[$i] *= ($r[$i])**2;
   }
 }
 

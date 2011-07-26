@@ -50,7 +50,7 @@ msg() { #echos a msg on the screen and send it to the logfile if logging is enab
   if [[ $1 = "--to-stderr" ]]; then
     shift
     [[ -z $* ]] && return
-    if [[ -n ${CSGLOG} &&  -t 4 ]]; then
+    if [[ -n ${CSGLOG} ]]; then
       echo -e "${color}$*${off}" >&4
       echo -e "$*" >&2
     else
@@ -58,7 +58,7 @@ msg() { #echos a msg on the screen and send it to the logfile if logging is enab
     fi
   else
     [[ -z $* ]] && return
-    if [[ -n ${CSGLOG} && -t 3 ]]; then
+    if [[ -n ${CSGLOG} ]]; then
       echo -e "${color}$*${off}" >&3
       echo -e "$*"
     else
@@ -119,7 +119,7 @@ do_external() { #takes two tags, find the according script and excute it
   tags="$1 $2"
   shift 2
 
-  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*'(from tags $tags)"
+  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*' (from tags $tags) dir ${script%/*}"
   if [[ -n $CSGDEBUG && -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
     bash -x $script "$@"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
@@ -356,7 +356,7 @@ cp_from_main_dir() { #copy something from the main directory
     [[ $# -eq 2 && -n $1 && -n $2 ]] || die "cp_from_main_dir: with --rename option has to be called with exactly 2 (non-empty) arguments"
     echo "cp_from_main_dir: '$1' to '$2'"
     critical pushd "$(get_main_dir)"
-    critical cp "$1" "$(dirs -l +1)/$2"
+    critical cp $1 "$(dirs -l +1)/$2"
     critical popd
   else
     echo "cp_from_main_dir: '$@'"
@@ -373,7 +373,7 @@ cp_from_last_step() { #copy something from the last step
     [[ $# -eq 2 && -n $1 && -n $2 ]] || die "cp_from_last_step: with --rename option has to be called with exactly 2 (non-empty) arguments"
     echo "cp_from_last_step: '$1' to '$2'"
     critical pushd "$(get_last_step_dir)"
-    critical cp "$1" "$(dirs -l +1)/$2"
+    critical cp $1 "$(dirs -l +1)/$2"
     critical popd
   else
     echo "cp_from_last_step: '$@'"
@@ -420,7 +420,8 @@ get_table_comment() { #get comment lines from a table and add common information
 export -f get_table_comment
 
 csg_inverse_clean() { #clean out the main directory 
-  local i files log
+  local i files log t
+  [[ -n $1 ]] && t="$1" || t="30"
   log="$(csg_get_property cg.inverse.log_file "inverse.log")"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
@@ -430,7 +431,7 @@ csg_inverse_clean() { #clean out the main directory
   else
     msg --color red $files
     msg --color blue "\nCTRL-C to stop it"
-    for ((i=10;i>0;i--)); do
+    for ((i=$t;i>0;i--)); do
       echo -n "$i "
       sleep 1
     done
@@ -440,16 +441,45 @@ csg_inverse_clean() { #clean out the main directory
 }
 export -f csg_inverse_clean
 
-add_to_csgshare() { #added an directory to the csg internal search directories
-  local dir
-  for dir in "$@"; do
-    [[ -z $dir ]] && die "add_to_csgshare: Missing argument"
-    #dir maybe contains $PWD or something
-    eval dir="$dir"
-    dir="$(globalize_dir "$dir")"
-    export CSGSHARE="$dir${CSGSHARE:+:}$CSGSHARE"
-    export PERL5LIB="$dir${PERL5LIB:+:}$PERL5LIB"
+check_path_variable() { #check if a variable contains only valid paths
+  local old_IFS dir
+  [[ -z $1 ]] && die "check_path_variable: Missing argument"
+  for var in "$@"; do
+    [[ -z $var ]] && continue
+    old_IFS="$IFS"
+    IFS=":"
+    for dir in ${!var}; do
+      [[ -z $dir ]] && continue
+      [[ -d $dir ]] || die "check_path_variable: $dir from variable $var is not a directory"
+    done
+    IFS="$old_IFS"
   done
+}
+export -f check_path_variable
+
+add_to_csgshare() { #added an directory to the csg internal search directories
+  local dir end="no"
+  [[ $1 = "--at-the-end" ]] && end="yes" && shift
+  [[ -z $1 ]] && die "add_to_csgshare: Missing argument"
+  for dirlist in "$@"; do
+    old_IFS="$IFS"
+    IFS=":"
+    for dir in $dirlist; do
+      #dir maybe contains $PWD or something
+      eval dir="$dir"
+      [[ -d $dir ]] || die "add_to_csgshare: Could not find scriptdir $dir"
+      dir="$(globalize_dir "$dir")"
+      if [[ $end = "yes" ]]; then
+        export CSGSHARE="${CSGSHARE}${CSGSHARE:+:}$dir"
+        export PERL5LIB="${PERL5LIB}${PERL5LIB:+:}$dir"
+      else
+        export CSGSHARE="$dir${CSGSHARE:+:}$CSGSHARE"
+        export PERL5LIB="$dir${PERL5LIB:+:}$PERL5LIB"
+      fi
+    done
+    IFS="$old_IFS"
+  done
+  check_path_variable CSGSHARE PERL5LIB
 }
 export -f add_to_csgshare
 
@@ -546,6 +576,7 @@ show_csg_tables() { #show all concatinated csg tables
   old_IFS="$IFS"
   IFS=":"
   echo "#The order in which scripts get called"
+  echo "#CSGSHARE is $CSGSHARE"
   for dir in ${CSGSHARE}; do
     [[ -f $dir/csg_table ]] || continue
     echo "#From: $dir/csg_table"
@@ -651,7 +682,7 @@ export -f get_restart_file
 check_for_obsolete_xml_options() { #check xml file for obsolete options
   local i
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
-    cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin; do
+    cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
@@ -660,11 +691,13 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="cg.inverse.simulation.tasks";;
       cg.inverse.gromacs.mdrun.bin|cg.inverse.espresso.bin)
         new="${i/bin/command}";;
+      cg.inverse.scriptdir)
+        new="${i/dir/path}";;
       *)
         die "check_for_obsolete_xml_options: Unknown new name for obsolete xml option '$i'";;
     esac
     [[ -n $new ]] && new="has been renamed to $new" || new="has been removed"
-    die "The xml option $i has been renamed to $new\nPlease remove the obsolete options from the xmlfile"
+    die "The xml option $i $new\nPlease remove the obsolete options from the xmlfile"
   done
 }
 export -f check_for_obsolete_xml_options

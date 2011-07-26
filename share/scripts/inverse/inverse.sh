@@ -48,6 +48,7 @@ source "${0%/*}/start_framework.sh"  || exit 1
 
 #defaults for options
 do_iterations=""
+waittime=10
 
 #unset stuff from enviorment
 unset CSGXMLFILE CSGENDING CSGDEBUG
@@ -83,6 +84,9 @@ while [[ ${1#-} != $1 ]]; do
    --nocolor)
     export CSGNOCOLOR="yes"
     shift;; 
+   --nowait)
+    waittime=0
+    shift;;
    --debug)
     export CSGDEBUG="yes"
     shift;; 
@@ -98,7 +102,7 @@ done
 #old style, inform user
 [[ -z ${CSGXMLFILE} ]] && die "Please add your setting xml file behind the --options option (like for all other votca programs) !"
 
-[[ $1 = "clean" ]] && { csg_inverse_clean; exit $?; }
+[[ $1 = "clean" ]] && { csg_inverse_clean "$waittime"; exit $?; }
 
 enable_logging
 [[ -n $CSGDEBUG ]] && set -x
@@ -125,13 +129,13 @@ filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 [[ -z $cleanlist ]] || echo "We extra clean '$cleanlist' after a step is done"
 
-scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-[[ -n $scriptdir ]] && add_to_csgshare "$scriptdir"
+scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)"
+[[ -n $scriptpath ]] && echo "Adding $scriptpath to csgshare" && add_to_csgshare "$scriptpath"
 
 show_csg_tables
 
 #main script
-[[ -f done ]] && { msg "Job is already done"; exit 0; }
+[[ -f done ]] && { msg "Job is already done (remove the file named 'done' if you want to go on)"; exit 0; }
 
 ######## BEGIN STEP 0 ############
 update_stepnames 0
@@ -268,6 +272,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
+    [[ -f stop ]] && rm -f stop
     do_external convergence_check "$convergence_check"
     if [[ -f stop ]]; then
       msg "Iterations are converged, stopping"
