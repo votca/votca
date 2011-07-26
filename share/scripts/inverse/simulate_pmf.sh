@@ -29,13 +29,19 @@ EOF
   exit 0
 fi
 
-# Get grompp file
+# Read previous grompp file to define pullgroups
+mdp_prep=$(csg_get_property cg.non-bonded.pmf.mdp_prep)
+cp_from_main_dir $mdp_prep
+mv $mdp_prep grompp.mdp
+
+pullgroup0=$(get_simulation_setting pull_group0)
+pullgroup1=$(get_simulation_setting pull_group1)
+
+# Overwrite with new grompp file
 mdp_sim=$(csg_get_property cg.non-bonded.pmf.mdp_sim)
 cp_from_main_dir $mdp_sim
 mv $mdp_sim grompp.mdp
 
-pullgroup0=$(get_simulation_setting cg.non-bonded.pmf.pullgroup0)
-pullgroup1=$(get_simulation_setting cg.non-bonded.pmf.pullgroup1)
 min=$(csg_get_property cg.non-bonded.pmf.min)
 max=$(csg_get_property cg.non-bonded.pmf.max)
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
@@ -47,7 +53,7 @@ traj="traj.${ext}"
 
 # Prepare and submit simulations
 echo "#dist.xvg grofile delta" > dist_comp.d
-for i in 'conf.start*.gro'; do
+for i in conf_start*.gro; do
   number=${i#conf_start}
   number=${number%.gro}
   [ -z "$number" ] && die "${0##*/}: Could not fetch number"

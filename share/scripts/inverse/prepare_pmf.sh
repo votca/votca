@@ -26,7 +26,7 @@ EOF
   exit 0
 fi
 
-conf_start="conf.start"
+conf_start="conf_start"
 min=$(csg_get_property cg.non-bonded.pmf.min)
 max=$(csg_get_property cg.non-bonded.pmf.max)
 mdp_prep=$(csg_get_property cg.non-bonded.pmf.mdp_prep)

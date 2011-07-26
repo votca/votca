@@ -361,7 +361,7 @@ cp_from_main_dir() { #copy something from the main directory
   else
     echo "cp_from_main_dir: '$@'"
     critical pushd "$(get_main_dir)"
-    critical cp "$@" "$(dirs -l +1)"
+    critical cp $@ "$(dirs -l +1)"
     critical popd
   fi
 }
@@ -378,7 +378,7 @@ cp_from_last_step() { #copy something from the last step
   else
     echo "cp_from_last_step: '$@'"
     critical pushd "$(get_last_step_dir)"
-    critical cp "$@" "$(dirs -l +1)"
+    critical cp $@ "$(dirs -l +1)"
     critical popd
   fi
 }
@@ -650,13 +650,13 @@ export -f get_restart_file
 
 check_for_obsolete_xml_options() { #check xml file for obsolete options
   local i
-  for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.simulation.tasks cg.inverse.simulation.cmd \
+  for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
-      cg.inverse.simulation.cmd|cg.inverse.mpi.cmd)
+      cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
         new="";;
-      cg.inverse.mpi.tasks|cg.inverse.simulation.tasks)
+      cg.inverse.mpi.tasks|cg.inverse.parallel.tasks)
         new="cg.inverse.simulation.tasks";;
       cg.inverse.gromacs.mdrun.bin|cg.inverse.espresso.bin)
         new="${i/bin/command}";;

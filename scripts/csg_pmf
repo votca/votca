@@ -161,7 +161,7 @@ else
   mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   cd $this_dir || die "cd $this_dir failed"
   cp_from_main_dir $filelist
-  if [ -f $last_dir/done ]; then
+  if [ -f $last_dir/confout.gro ]; then
     cp_from_last_step confout.gro 
     critical mv confout.gro conf.gro
   else
@@ -175,7 +175,7 @@ else
   cd $main_dir
 fi
 
-# Step 3 - Run simulations
+# Step 2 - Run simulations
 update_stepnames 2
 this_dir=$(get_current_step_dir --no-check)
 last_dir=$(get_last_step_dir)
@@ -190,7 +190,7 @@ else
   mkdir -p $this_dir || die "mkdir -p $this_dir failed"
   cd $this_dir || die "cd $this_dir failed"
   cp_from_main_dir $filelist
-  cp_from_last_step 'conf.start*.gro' 
+  cp_from_last_step conf_start*.gro
 
   do_external simulate pmf
 
@@ -199,7 +199,7 @@ else
   cd $main_dir
 fi
 
-# Step 4 - Calculate pmf
+# Step 3 - Calculate pmf
 update_stepnames 3
 this_dir=$(get_current_step_dir --no-check)
 
