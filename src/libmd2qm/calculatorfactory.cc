@@ -6,33 +6,27 @@
 #include "calculators/egaussian.h"
 #include "calculators/ecorrelation.h"
 #include "calculators/eshuffle.h"
+#include "calculators/eoutersphere.h"
+#include "calculators/etinker.h"
 
 #include "calculators/izindo.h"
 #include "calculators/ihistogram.h"
 
 #include "calculators/tdump.h"
+#include "calculators/pairdump.h"
 
-#include "calculators/vaverage.h"
+#include "calculators/vaverage.h" //average velocity
+#include "calculators/caverage.h" // average current
 
 #include "calculators/oboltzmann.h"
 
 #include "calculators/neighborlist.h"
-#include "calculators/etinker.h"
 
 #include "calculators/rates.h"
 
-//#include "calculators/readxml.h"
-//#include "calculators/marcusrates.h"
-//#include "calculators/jortnerrates.h"
-//#include "calculators/marcusrateslambdaouter.h"
-
 #include "calculators/writexml.h"
-#include "calculators/polymerrates.h"
-#include "calculators/pairdump.h"
-#include "calculators/CurrentDensity.h"
+
 #include "calculators/sqlitewriter.h"
-#include "calculators/lambdaout.h"
-#include "calculators/dump_atoms_bj.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
     #include "calculators/contkmc.h"
@@ -44,29 +38,25 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<CalcHistIntegrals>("ihistogram"); // histogram of transfer integrals
 
 	Calculators().Register<Ecoulomb>("ecoulomb"); // Coulomb part of site energies
+	Calculators().Register<Eoutersphere>("eoutersphere"); // Outersphere reorganization energy
+        Calculators().Register<Eshuffle>("eshuffle"); // removes spatial energy correlations
         Calculators().Register<GenerateNrgs>("egaussian"); // gaussian distribution of site energies
         Calculators().Register<EnergyCorr>("ecorrelation"); // site energy correlation function
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram"); // site energy histogram
-        Calculators().Register<Eshuffle>("eshuffle"); // removes spatial energy correlations
         Calculators().Register<Etinker>("etinker"); // input for the TINKER package (site energies)
 	
         Calculators().Register<Neighborlist>("neighborlist"); // fragment-based neighbor list
         Calculators().Register<Oboltzmann>("oboltzmann"); // Boltzmann distribution of site energies
-	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (requires site occupations)
 
-	Calculators().Register<CalcLambdaOut>("lambdaout");
-//        Calculators().Register<MarcusRates>("marcusrates");
-        Calculators().Register<PolymerRates>("polymerrates");
         Calculators().Register<PairDump>("pairdump");
-        Calculators().Register<CurrentDensity>("currden");
-//        Calculators().Register<JortnerRates>("jortnerrates");
-//        Calculators().Register<MarcusRatesLambdaOuter>("marcusrateslambdaouter");
+	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (via site occupations)
+        Calculators().Register<Caverage>("caverage"); // average site current (via site occupations)
         Calculators().Register<SQLiteWriter>("sqlitewriter");
-        Calculators().Register<DumpAtomsBJ>("dumpatomsbj");
-        Calculators().Register<DumpTrajectory>("tdump");
-        Calculators().Register<Rates>("rates");
-        Calculators().Register<WriteXML>("writexml");
-//        Calculators().Register<ReadXML>("readxml");
+
+	Calculators().Register<DumpTrajectory>("tdump"); // coarse-grained and based on rigid segments trajectories
+        Calculators().Register<Rates>("rates"); // Marcus, Jortner rates
+        Calculators().Register<WriteXML>("writexml");  // obsolete
+
 	#ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");
         #endif

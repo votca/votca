@@ -1,23 +1,28 @@
-/* 
- * File:   CurrentDensity.h
- * Author: lukyanov
- *
- * Created on March 2, 2011, 1:06 PM
- */
-
-#ifndef CURRENTDENSITY_H
-#define	CURRENTDENSITY_H
+#ifndef CAVERAGE_H
+#define CAVERAGE_H
 
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/paircalculator.h>
 
-class CurrentDensity : public PairCalculator
+/**                                  
+    \brief Average microscopic current.         
+
+Callname: caverage 
+
+A local current through site \f$ i \f$ is defined as
+\f[
+ \vec{J}_i = \frac{1}{2} e \sum_{ j} \left( p_{j}  \omega_{ji} - p_{i} \omega_{ij} \right) \vec{r}_{ij} .
+\f]
+
+*/                                         
+
+class Caverage : public PairCalculator
 {
 public:
-    CurrentDensity() {};
-    ~CurrentDensity() {};
+    Caverage() {};
+    ~Caverage() {};
 
-    const char *Description() { return "TODO"; }
+    const char *Description() { return "Average microscopic current."; }
 
     void EvaluatePair(QMTopology *top, QMPair *pair);
     void Initialize(QMTopology *top, Property *options);
@@ -32,21 +37,21 @@ private:
 };
 
 
-void CurrentDensity::Initialize(QMTopology *top, Property *options){
+void Caverage::Initialize(QMTopology *top, Property *options){
     _nframes = 0;
     
 }
 
 
-bool CurrentDensity::EvaluateFrame(QMTopology *top)
+bool Caverage::EvaluateFrame(QMTopology *top)
 {
-    // do shit
+    // evaluate frame
     PairCalculator::EvaluateFrame(top);
     _nframes++;
     return true;
 }
 
-inline void CurrentDensity::EvaluatePair(QMTopology *top, QMPair *pair){
+inline void Caverage::EvaluatePair(QMTopology *top, QMPair *pair){
     QMCrgUnit *crg1 = pair->Crg1();
     QMCrgUnit *crg2 = pair->Crg2();
 
@@ -85,7 +90,7 @@ inline void CurrentDensity::EvaluatePair(QMTopology *top, QMPair *pair){
 }
 
 
-void CurrentDensity::EndEvaluate(QMTopology* top) {
+void Caverage::EndEvaluate(QMTopology* top) {
     // normalize
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
     vector<QMCrgUnit *>::iterator itl;
@@ -95,5 +100,5 @@ void CurrentDensity::EndEvaluate(QMTopology* top) {
     }
 }
 
-#endif	/* CURRENTDENSITY_H */
+#endif	/* CAVERAGE_H */
 

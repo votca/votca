@@ -14,9 +14,9 @@
 /**
     \brief Tinker input: xyz coordinates [Angstroem] with a given molecule centered in the box.
 
-Callname: tinker
+Callname: etinker
 
-Part of the input of the TINKER program, which is used to evaluate the polarization contribution to site energies (self-consistently). Dumps the coordinates [xyz, Angstroem] of all atoms in the snapshot or atom within a cutoff (nm, default 50nm) based on centers of mass of molecules. Files are named xyz_N, where N (starts at 0, first molecule in the file) is the number of the molecule whose site energy is computed. This molecule is placed in the center of the box and the nearest image convention is used for the rest of molecules.
+Part of the input of the TINKER program which is used to evaluate the polarization contribution to site energies (self-consistently). Dumps the coordinates [xyz, Angstroem] of all atoms in the snapshot or atom within a cutoff (nm, default 50nm) based on centers of mass of molecules. Files are named xyz_N, where N (starts at 0, first molecule in the file) is the number of the molecule whose site energy is computed. This molecule is placed in the center of the box and the nearest image convention is used for the rest of molecules.
 
 */
 

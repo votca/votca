@@ -22,7 +22,7 @@ void QMApplication::Initialize(void)
     CalculatorFactory::RegisterAll();
 
     AddProgramOptions()
-        ("crg", boost::program_options::value<string>(), "  description of conjugated segments")
+        ("segments,s", boost::program_options::value<string>(), "  description of conjugated segments")
         ("opt", boost::program_options::value<string>(), "  program options")
         ("db", boost::program_options::value<string>()->default_value("state.db"), "  the state file")
         ("first-frame", boost::program_options::value<int>()->default_value(1), "  start with this frame (first frame is 1)")
@@ -34,7 +34,7 @@ void QMApplication::Initialize(void)
 
 bool QMApplication::EvaluateOptions(void)
 {
-    CheckRequired("crg", "no chargeunit file specified");
+    CheckRequired("segments", "no chargeunit file specified");
     CheckRequired("opt", "no option file specified");
     CheckRequired("db", "no state databse specified");
     return true;
@@ -42,7 +42,7 @@ bool QMApplication::EvaluateOptions(void)
 
 void QMApplication::Run()
 {
-    _qmtop.LoadListCharges(_op_vm["crg"].as<string>());
+    _qmtop.LoadListCharges(_op_vm["segments"].as<string>());
     // read in program options from main.xml
     load_property_from_xml(_options, _op_vm["opt"].as<string>());
 

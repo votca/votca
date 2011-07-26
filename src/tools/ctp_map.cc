@@ -41,14 +41,14 @@ void CtpMapApp::Initialize()
 {
     CsgApplication::Initialize();
     AddProgramOptions("Mapping options")
-            ("listcharges,l", po::value<string>(), "  conjugated segment definitions")
+            ("segments,s", po::value<string>(), "  conjugated segment definitions")
             ("db", po::value<string>()->default_value("state.db"), " state file");
 }
 
 bool CtpMapApp::EvaluateOptions()
 {
     CsgApplication::EvaluateOptions();
-    CheckRequired("listcharges");
+    CheckRequired("segments");
 
     _observer.setOut(OptionsMap()["db"].as<string>());
     _observer.Initialize(_qmtopol, _options);
@@ -60,7 +60,7 @@ bool CtpMapApp::EvaluateOptions()
 
 void CtpMapApp::BeginEvaluate(Topology *top, Topology *top_ref)
 {
-    _qmtopol.LoadListCharges(OptionsMap()["listcharges"].as<string>());
+    _qmtopol.LoadListCharges(OptionsMap()["segments"].as<string>());
     CsgApplication::BeginEvaluate(top, top_ref);
 }
 
