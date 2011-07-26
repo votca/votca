@@ -356,12 +356,12 @@ cp_from_main_dir() { #copy something from the main directory
     [[ $# -eq 2 && -n $1 && -n $2 ]] || die "cp_from_main_dir: with --rename option has to be called with exactly 2 (non-empty) arguments"
     echo "cp_from_main_dir: '$1' to '$2'"
     critical pushd "$(get_main_dir)"
-    critical cp "$1" "$(dirs -l +1)/$2"
+    critical cp $1 "$(dirs -l +1)/$2"
     critical popd
   else
     echo "cp_from_main_dir: '$@'"
     critical pushd "$(get_main_dir)"
-    critical cp "$@" "$(dirs -l +1)"
+    critical cp $@ "$(dirs -l +1)"
     critical popd
   fi
 }
@@ -373,12 +373,12 @@ cp_from_last_step() { #copy something from the last step
     [[ $# -eq 2 && -n $1 && -n $2 ]] || die "cp_from_last_step: with --rename option has to be called with exactly 2 (non-empty) arguments"
     echo "cp_from_last_step: '$1' to '$2'"
     critical pushd "$(get_last_step_dir)"
-    critical cp "$1" "$(dirs -l +1)/$2"
+    critical cp $1 "$(dirs -l +1)/$2"
     critical popd
   else
     echo "cp_from_last_step: '$@'"
     critical pushd "$(get_last_step_dir)"
-    critical cp "$@" "$(dirs -l +1)"
+    critical cp $@ "$(dirs -l +1)"
     critical popd
   fi
 }
@@ -664,7 +664,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         die "check_for_obsolete_xml_options: Unknown new name for obsolete xml option '$i'";;
     esac
     [[ -n $new ]] && new="has been renamed to $new" || new="has been removed"
-    die "The xml option $i has been renamed to $new\nPlease remove the obsolete options from the xmlfile"
+    die "The xml option $i $new\nPlease remove the obsolete options from the xmlfile"
   done
 }
 export -f check_for_obsolete_xml_options

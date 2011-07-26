@@ -17,7 +17,7 @@
 
 version='@PROJECT_VERSION@ #CSG_HG_ID#'
 
-if [ -n "$(type -p csg_call)" ]; the+  #in case we have an old version of csg_call without --show-share
+if [ -n "$(type -p csg_call 2> /dev/null)" ]; the+  #in case we have an old version of csg_call without --show-share
   tmp="$(csg_call --show-share 2> /dev/null)" && export CSGSHARE="$tmp"
   unset tmp
 fi
