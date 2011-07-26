@@ -6,41 +6,41 @@
 #include <fstream>
 #include "ecoulomb.h"
 
-void CalcEstatics::Initialize(QMTopology *top, Property *options) {
+void Ecoulomb::Initialize(QMTopology *top, Property *options) {
     _options = options;
-      if (options->exists("options.ecoulomb.method")) {
+    if (options->exists("options.ecoulomb.method")) {
         if (options->get("options.ecoulomb.method").as<string > () == "distdep") {
-            _estatic_method = &CalcEstatics::dist_dep_eps;
+            _estatic_method = &Ecoulomb::dist_dep_eps;
             if (options->exists("options.ecoulomb.epsilon")) {
                 _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
             } else {
-                _epsilon_dielectric = 3.0;
-                cout << "Warning: dielectric constant is not provided, using default 3.0" << endl;
+                //_epsilon_dielectric = 3.0;
+                std::runtime_error("Error in ecoulomb: dielectric constant is not provided");
             }
             if (options->exists("options.ecoulomb.screening")) {
                 _s_eps = options->get("options.ecoulomb.screening").as<double>();
             } else {
-                _s_eps = 3.0;
-                cout << "Warning: screening is not provided, using default 3.0" << endl;
+                //_s_eps = 3.0;
+                std::runtime_error("Error in ecoulomb: screening length is not provided.");
             }
-            cout << "Doing distance-dependent-eps estatic with eps " << _epsilon_dielectric << " and s_eps " << _s_eps << endl;
+            cout << "Doing distance-dependent screening with eps " << _epsilon_dielectric << " and screening " << _s_eps << endl;
         }
         else if (options->get("options.ecoulomb.method").as<string > () == "simple") {
-            _estatic_method = &CalcEstatics::constant_epsilon;
+            _estatic_method = &Ecoulomb::constant_epsilon;
              if (options->exists("options.ecoulomb.epsilon")) {
-        _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
-    } else {
-        _epsilon_dielectric = 3.0;
-        cout << "Warning: dielectric constant is not provided, using default 3.0" << endl;
-    }
-            cout << "Doing simple estatic with constant eps " << _epsilon_dielectric << endl;
+                 _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
+             } else {
+                  //_epsilon_dielectric = 3.0;
+                  std::runtime_error("Error in ecoulomb: dielectric constant is not provided.");
+             }
+             cout << "Doing simple estatic with constant eps " << _epsilon_dielectric << endl;
         }
 
-        else throw std::runtime_error("Error in CalcEstatics::Initialize : no such estatic method, should be simple or distdep");
-    } else throw std::runtime_error("Error in CalcEstatics:Initialize : no estatic_method specified");
+        else throw std::runtime_error("Error in ecoulomb: the method (simple or distdep) is not specified.");
+    } else throw std::runtime_error("Error in ecoulomb: the method (simple or distdep) is not specified.");
 }
 
-bool CalcEstatics::EvaluateFrame(QMTopology *top) {
+bool Ecoulomb::EvaluateFrame(QMTopology *top) {
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
     Topology atop;
     atop.setBox(top->getBox());
@@ -77,7 +77,7 @@ bool CalcEstatics::EvaluateFrame(QMTopology *top) {
 
 //Calculate Estatics
 
-double CalcEstatics::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
+double Ecoulomb::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
 {
     //estatic energy including contributions from all other molecules in eV
     double pot = 0.0;
@@ -111,10 +111,10 @@ double CalcEstatics::CalcPot(Topology *atop, Molecule *mol) //wegen Übergabe pe
 
 }
 
-double CalcEstatics::dist_dep_eps(const double &dist) {
+double Ecoulomb::dist_dep_eps(const double &dist) {
     return _epsilon_dielectric - (_epsilon_dielectric - 1.0) * exp(-_s_eps * dist)*(1.0 + _s_eps * dist + 0.5 * _s_eps * dist * _s_eps * dist);
 }
 
-double CalcEstatics::constant_epsilon(const double &dist) {
+double Ecoulomb::constant_epsilon(const double &dist) {
     return _epsilon_dielectric;
 }

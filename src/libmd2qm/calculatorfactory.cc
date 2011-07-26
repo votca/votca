@@ -43,7 +43,7 @@ void CalculatorFactory::RegisterAll(void)
 	Calculators().Register<CalcIntegrals>("izindo"); // ZINDO-based transfer integrals
         Calculators().Register<CalcHistIntegrals>("ihistogram"); // histogram of transfer integrals
 
-	Calculators().Register<CalcEstatics>("ecoulomb"); // Coulomb part of site energies
+	Calculators().Register<Ecoulomb>("ecoulomb"); // Coulomb part of site energies
         Calculators().Register<GenerateNrgs>("egaussian"); // gaussian distribution of site energies
         Calculators().Register<EnergyCorr>("ecorrelation"); // site energy correlation function
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram"); // site energy histogram

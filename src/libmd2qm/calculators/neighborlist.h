@@ -3,11 +3,11 @@
 
 #include <votca/ctp/qmcalculator.h>
 
-/** \brief Generates the neighbor list with a specified cutoff
+/** \brief Constructs a list of neighboring conjugated segments.
 
 Callname: neighborlist
 
-Constructs a list of neighboring conjugated segments. Two segments are added to this list if the distance between centers of mass of any their rigid fragments is below a certain cutoﬀ. This allows neighbors to be selected on a criterion of minimum distance of approach rather than center of mass distance, which is useful for molecules with anisotropic shapes.
+Two segments are added to this list if the distance between centers of mass of any their rigid fragments is below a certain cutoﬀ. This allows neighbors to be selected on a criterion of minimum distance of approach rather than center of mass distance, which is useful for molecules with anisotropic shapes.
 
 */
 
@@ -17,7 +17,7 @@ public:
     Neighborlist() {}
     ~Neighborlist() {}
 
-    const char *Description() { return "Generateis the neigbour list with based on a cutoff"; }
+    const char *Description() { return "Constructs a list of neighboring conjugated segments"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
