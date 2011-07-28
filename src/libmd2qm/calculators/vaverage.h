@@ -3,14 +3,19 @@
 
 #include <votca/ctp/paircalculator.h>
 /**
-        \brief Average charge velocity, mobility along the field and site current.
+        \brief Average charge velocity, mobility along the field, and site current.
 
 The average velocity is calculated from occupation probabilities and charge trajectory, 
-\f[ \langle \vec{v} \rangle =  \sum_{i,j}  p_j  \omega_{ji}  (\vec{r}_i - \vec{r}_j) = \hat{\mu} \vec{F} \f].
-A local current through site \f$ i \f$ is defined as
+\f[ \langle \vec{v} \rangle =  \sum_{i,j}  p_j  \omega_{ji}  (\vec{r}_i - \vec{r}_j) = \hat{\mu} \vec{F}. \f]
+A symmetrized local current through site \f$ i \f$ is defined as
 \f[
  \vec{J}_i = \frac{1}{2} e \sum_{ j} \left( p_{j}  \omega_{ji} - p_{i} \omega_{ij} \right) \vec{r}_{ij} .
 \f]
+A forward local current through site \f$ i \f$ is defined as (Phys. Rev. B 79, 085203, 2009)
+\f[
+ \vec{J}_{i} = e \sum_{ j, r_{i, \alpha} > r_{j, \alpha} } \left( p_{j}  \omega_{ji} - p_{i} \omega_{ij} \right) \vec{r}_{ij} .
+\f]
+where \f$ \alpha = x,y,z \f$.
 
 Callname: vaverage
 
@@ -22,7 +27,7 @@ public:
     Vaverage() {}
     ~Vaverage() {}
 
-    const char *Description() { return "Average charge velocity, mobility along the field and site current"; }
+    const char *Description() { return "Average charge velocity, mobility along the field, and site current"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
