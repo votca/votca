@@ -15,7 +15,7 @@
 #include "calculators/tdump.h"
 #include "calculators/pairdump.h"
 
-#include "calculators/vaverage.h" //average velocity and cite current
+#include "calculators/vaverage.h" //average velocity, cite current, and mobility
 
 #include "calculators/oboltzmann.h"
 

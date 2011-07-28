@@ -36,7 +36,7 @@ public:
 private:
     // dielectric constant
     double _epsilon_dielectric;
-    // parameter describing the decay of eps
+    // screening length of the dielctirc constant
     double _s_eps;
     Property * _options;
     // function pointer 

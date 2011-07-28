@@ -9,7 +9,7 @@
 
 Callname: egaussian
 
-If a gaussian method is selected, site energies are generated from a Gaussian distribution of width sigma. If a correlation and a cutoff parameters are provided then a new site energy is computed for every site by averaging energies of the neighboring, up to a cutoff, sites. The new site energies are then uniformly scaled in order to reproduce the initial width (sigma) of the site energy distribution. If the shuffle method is selected, the (existing) site energies are randomly shuffled between the sites. This preserves the distribution of site energies but destroys spatial correlations.
+If a gaussian method is selected, site energies are generated from a Gaussian distribution of width sigma. If a correlation and a cutoff parameters are provided then a new site energy is computed for every site by averaging energies of the neighboring (up to a cutoff) sites. The new site energies are then uniformly scaled in order to reproduce the initial width (sigma) of the site energy distribution. If the shuffle method is selected, the (existing) site energies are randomly shuffled between the sites. This preserves the distribution of site energies but destroys spatial correlations.
 
 */
 
