@@ -12,11 +12,11 @@ Callname: egaussian
 Site energies of a gaussian distribution with width sigma are constructed. Then for every site a new energy is computed from the average of neighboring sites up to a cutoffradius. Then the new site energies are uniformly scaled in order to reproduce the intial sigma of the site energy distribution.
 
 */
-class GenerateNrgs : public QMCalculator
+class Egaussian : public QMCalculator
 {
 public:
-    GenerateNrgs() {};
-    ~GenerateNrgs() {};
+    Egaussian() {};
+    ~Egaussian() {};
 
     const char *Description() { return "Gaussian-distributed site energies with or without spatial correlations"; }
 

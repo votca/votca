@@ -7,16 +7,15 @@
 #include <votca/tools/average.h>
 #include <votca/csg/nblistgrid.h>
 
-void GenerateNrgs::Initialize(QMTopology *top, Property *options) {
+void Egaussian::Initialize(QMTopology *top, Property *options) {
 
    // read in _sigma
    if (options->exists("options.egaussian.sigma")) {
    	_sigma = options->get("options.egaussian.sigma").as<double>();
    }
    else {
-	_sigma = 1.0;
-	cout << "Warning: sigma of site energy distribution is not provided, using default "
-             << "sigma = " << _sigma << endl;
+	//_sigma = 1.0;
+	std::runtime_error("Error in egaussian: variance (sigma) of site energy distribution is not provided");
    }
 
    // read in _correl
@@ -35,8 +34,8 @@ void GenerateNrgs::Initialize(QMTopology *top, Property *options) {
                 _cutoff = options->get("options.generate_energies.cutoff").as<double>();
             }
             else {
-                _cutoff = 1.5;
-                cout << "Warning: cutoff for correlations is not specified, using default" << endl;
+                //_cutoff = 1.5;
+                std::runtime_error("Error in egaussian: cutoff for correlations is not specified, using default");
             }
         cout << "Generating correlated site energies with sigma = " << _sigma << " and cutoff = " << _cutoff << endl;
    }
@@ -51,7 +50,7 @@ void GenerateNrgs::Initialize(QMTopology *top, Property *options) {
 
 
 
-bool GenerateNrgs::EvaluateFrame(QMTopology *top) {
+bool Egaussian::EvaluateFrame(QMTopology *top) {
 
     if (_correl) {
         // clear _tmp_energy to avoid accumulation of stuff
@@ -66,7 +65,7 @@ bool GenerateNrgs::EvaluateFrame(QMTopology *top) {
     return true;
 }
 
-void GenerateNrgs::AssignGaussian(QMTopology *top) {
+void Egaussian::AssignGaussian(QMTopology *top) {
 
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
     vector<QMCrgUnit *>::iterator itl;
@@ -74,10 +73,9 @@ void GenerateNrgs::AssignGaussian(QMTopology *top) {
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
         (*itl)->setDouble("energy_coulomb", Random::rand_gaussian(_sigma) );
     }
-
 }
 
-void GenerateNrgs::AssignCorrelated(QMTopology *top) {
+void Egaussian::AssignCorrelated(QMTopology *top) {
     // First assign gaussian energies
     AssignGaussian( top );
 
@@ -103,18 +101,18 @@ void GenerateNrgs::AssignCorrelated(QMTopology *top) {
     }
 
     list1.Generate(mytop, "*");
-    mynbl.SetMatchFunction(this, &GenerateNrgs::MyMatchingFunction);
+    mynbl.SetMatchFunction(this, &Egaussian::MyMatchingFunction);
     mynbl.setCutoff(_cutoff);
     mynbl.Generate( list1, false );
 
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
-        // e1+e2+...+eN/ sqrt(N) looks weird, but should be done to get the same sigma
+        // e1+e2+...+eN/ sqrt(N) - normalization to get the same sigma
         (*itl)->setDouble("energy_coulomb", _tmp_energy[(*itl)].getAvg() * sqrt( _tmp_energy[(*itl)].getN() ) );
     }
 
 }
 
-bool GenerateNrgs::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused) {
+bool Egaussian::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused) {
 
     QMCrgUnit *crg1 = bead1->getUserData<QMCrgUnit>();
     QMCrgUnit *crg2 = bead2->getUserData<QMCrgUnit>();

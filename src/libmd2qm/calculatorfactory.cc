@@ -1,6 +1,10 @@
 #include <votca/ctp/calculatorfactory.h>
 
 #include "votca_config.h"
+
+#include "calculators/izindo.h"
+#include "calculators/ihistogram.h"
+
 #include "calculators/ecoulomb.h"
 #include "calculators/ehistogram.h"
 #include "calculators/egaussian.h"
@@ -8,9 +12,6 @@
 #include "calculators/eshuffle.h"
 #include "calculators/eoutersphere.h"
 #include "calculators/etinker.h"
-
-#include "calculators/izindo.h"
-#include "calculators/ihistogram.h"
 
 #include "calculators/tdump.h"
 #include "calculators/pairdump.h"
@@ -33,13 +34,13 @@
 
 void CalculatorFactory::RegisterAll(void)
 {
-	Calculators().Register<CalcIntegrals>("izindo"); // ZINDO-based transfer integrals
+	Calculators().Register<Izindo>("izindo"); // ZINDO-based transfer integrals
         Calculators().Register<CalcHistIntegrals>("ihistogram"); // histogram of transfer integrals
 
 	Calculators().Register<Ecoulomb>("ecoulomb"); // Coulomb part of site energies
 	Calculators().Register<Eoutersphere>("eoutersphere"); // Outersphere reorganization energy
         Calculators().Register<Eshuffle>("eshuffle"); // removes spatial energy correlations
-        Calculators().Register<GenerateNrgs>("egaussian"); // gaussian distribution of site energies
+        Calculators().Register<Egaussian>("egaussian"); // gaussian distribution of site energies
         Calculators().Register<EnergyCorr>("ecorrelation"); // site energy correlation function
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram"); // site energy histogram
         Calculators().Register<Etinker>("etinker"); // input for the TINKER package (site energies)
