@@ -1,24 +1,25 @@
-#ifndef _GENERATE_NRGS_H
-#define	_GENERATE_NRGS_H
+#ifndef _EGAUSSIAN_H
+#define	_EGAUSSIAN_H
 
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/qmcalculator.h>
 #include <votca/tools/average.h>
 
-/** \brief Gaussian-distributed site energies with or without spatial correlations
+/** \brief Generates or modifies Coulomb contribution to site energies.
 
 Callname: egaussian
 
-Site energies of a gaussian distribution with width sigma are constructed. Then for every site a new energy is computed from the average of neighboring sites up to a cutoffradius. Then the new site energies are uniformly scaled in order to reproduce the intial sigma of the site energy distribution.
+If the **gaussian** method is selected, site energies are generated from a Gaussian distribution of width sigma. If **correlation** and **cutoff** are given then a new site energy is computed for every site by averaging site energies of neighboring sites up to a cutoff radius. The new site energies are then uniformly scaled in order to reproduce the intial width (sigma) of the site energy distribution. If the **shuffle** method is selected, the (existing) site energies are randomly shuffled between the sites. This preservs the distribution of site energies but destroys spatial correlations.
 
 */
+
 class Egaussian : public QMCalculator
 {
 public:
     Egaussian() {};
     ~Egaussian() {};
 
-    const char *Description() { return "Gaussian-distributed site energies with or without spatial correlations"; }
+    const char *Description() { return "Generates or modifies Coulomb site energies."; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
@@ -36,11 +37,13 @@ private:
     /// temporary object to store energies
     std::map<CrgUnit *, Average<double> > _tmp_energy;
 
+    bool (Egaussian::*_method)(QMTopology *top);
 
-    void AssignGaussian(QMTopology *top);
-    void AssignCorrelated(QMTopology *top);
+    bool AssignGaussian(QMTopology *top);
+    bool AssignCorrelated(QMTopology *top);
+    bool _shuffle(QMTopology *top);
 
 };
 
-#endif	/* _GENERATE_NRGS_H */
+#endif	/* _EGAUSSIAN_H */
 

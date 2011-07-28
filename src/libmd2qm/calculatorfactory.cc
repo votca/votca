@@ -9,7 +9,6 @@
 #include "calculators/ehistogram.h"
 #include "calculators/egaussian.h"
 #include "calculators/ecorrelation.h"
-#include "calculators/eshuffle.h"
 #include "calculators/eoutersphere.h"
 #include "calculators/etinker.h"
 
@@ -39,8 +38,7 @@ void CalculatorFactory::RegisterAll(void)
 
 	Calculators().Register<Ecoulomb>("ecoulomb"); // Coulomb part of site energies
 	Calculators().Register<Eoutersphere>("eoutersphere"); // Outersphere reorganization energy
-        Calculators().Register<Eshuffle>("eshuffle"); // removes spatial energy correlations
-        Calculators().Register<Egaussian>("egaussian"); // gaussian distribution of site energies
+	Calculators().Register<Egaussian>("egaussian"); // gaussian (also correlated) distribution of site energies
         Calculators().Register<EnergyCorr>("ecorrelation"); // site energy correlation function
         Calculators().Register<CalcHistEnergeticDisorder>("ehistogram"); // site energy histogram
         Calculators().Register<Etinker>("etinker"); // input for the TINKER package (site energies)

@@ -9,40 +9,49 @@
 
 void Egaussian::Initialize(QMTopology *top, Property *options) {
 
-   // read in _sigma
-   if (options->exists("options.egaussian.sigma")) {
-   	_sigma = options->get("options.egaussian.sigma").as<double>();
-   }
-   else {
-	//_sigma = 1.0;
-	std::runtime_error("Error in egaussian: variance (sigma) of site energy distribution is not provided");
-   }
+if (options->exists("options.egaussian.method")) {
+    if (options->get("options.egaussian.method").as<string > () == "gaussian") {
+	if (options->exists("options.egaussian.sigma")) {
+	    _sigma = options->get("options.egaussian.sigma").as<double>();
+	}
+	else {
+	    std::runtime_error("Error in egaussian: variance (sigma) of site energy distribution is not provided");
+	 }
 
-   // read in _correl
-   if (options->exists("options.egaussian.correlation")) {
-   	_correl = options->get("options.generate_energies.correl").as<bool>();
-   }
-   else {
-	_correl = false;
-	cout << "Warning: correlation of site energies is not specified, using non-correlated" << endl;
-   }
+	if (options->exists("options.egaussian.correlation")) {
+	    _correl = options->get("options.generate_energies.correl").as<bool>();
+	}
+	else {
+	    _correl = false;
+	    cout << "Warning: correlation of site energies is not specified, using non-correlated" << endl;
+	}
 
-   // print info
-   if (_correl) {
-            // read in _cutoff
+	if (_correl) {
             if (options->exists("options.egaussian.cutoff")) {
                 _cutoff = options->get("options.generate_energies.cutoff").as<double>();
             }
             else {
                 //_cutoff = 1.5;
-                std::runtime_error("Error in egaussian: cutoff for correlations is not specified, using default");
+                std::runtime_error("Error in egaussian: cutoff for correlations is not specified");
             }
-        cout << "Generating correlated site energies with sigma = " << _sigma << " and cutoff = " << _cutoff << endl;
-   }
-   else {
-        cout << "Generating non-correlated site energies with sigma = " << _sigma << endl;
-   }
-
+	    cout << "Generating correlated site energies with sigma = " << _sigma << " and cutoff = " << _cutoff << endl;
+	    _method = &Egaussian::AssignCorrelated;
+	}
+	else {
+	    cout << "Generating non-correlated site energies with sigma = " << _sigma << endl;
+	    _method = &Egaussian::AssignGaussian;
+	}
+    }
+    else {
+	  if (options->get("options.egaussian.method").as<string > () == "shuffle") {
+	    cout << "Shuffling the Coulomb site energies" << endl;
+	    _method = &Egaussian::_shuffle;	    
+	  }
+    }
+}
+  else {
+      std::runtime_error("Error in egaussian: method is not specified (gaussian or shuffle)");
+}
     /// Initialize the random number generator
     Random::init(14, 122, 472, 1912);
 }
@@ -65,7 +74,7 @@ bool Egaussian::EvaluateFrame(QMTopology *top) {
     return true;
 }
 
-void Egaussian::AssignGaussian(QMTopology *top) {
+bool Egaussian::AssignGaussian(QMTopology *top) {
 
     vector<QMCrgUnit *> lcharges = top->CrgUnits();
     vector<QMCrgUnit *>::iterator itl;
@@ -73,9 +82,10 @@ void Egaussian::AssignGaussian(QMTopology *top) {
     for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
         (*itl)->setDouble("energy_coulomb", Random::rand_gaussian(_sigma) );
     }
+    return true;  
 }
 
-void Egaussian::AssignCorrelated(QMTopology *top) {
+bool Egaussian::AssignCorrelated(QMTopology *top) {
     // First assign gaussian energies
     AssignGaussian( top );
 
@@ -109,8 +119,30 @@ void Egaussian::AssignCorrelated(QMTopology *top) {
         // e1+e2+...+eN/ sqrt(N) - normalization to get the same sigma
         (*itl)->setDouble("energy_coulomb", _tmp_energy[(*itl)].getAvg() * sqrt( _tmp_energy[(*itl)].getN() ) );
     }
-
+    return true;
 }
+
+bool Egaussian::_shuffle(QMTopology *top) {
+
+    vector<QMCrgUnit *> lcharges = top->CrgUnits();
+    vector<QMCrgUnit *>::iterator itl;
+    vector<double> energies;
+    int i_en = 0;
+
+    for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
+        energies.push_back( (*itl)->getDouble("energy_coulomb") );
+    }
+    
+    random_shuffle ( energies.begin(), energies.end() );
+
+    for (itl = lcharges.begin(); itl!=lcharges.end(); ++itl) {
+        (*itl)->setDouble("energy_coulomb", energies[i_en] );
+        i_en++;
+    }
+
+    return true;
+}
+
 
 bool Egaussian::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused) {
 
@@ -126,3 +158,4 @@ bool Egaussian::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, cons
     
     return false;
 }
+
