@@ -22,7 +22,7 @@ public:
     Ecoulomb() {};
     ~Ecoulomb() {};
 
-    const char *Description() { return "Electrostatic contribution to site-energies"; }
+    const char *Description() { return "Coulomb contribution to site energies"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);

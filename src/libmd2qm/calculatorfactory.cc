@@ -15,8 +15,7 @@
 #include "calculators/tdump.h"
 #include "calculators/pairdump.h"
 
-#include "calculators/vaverage.h" //average velocity
-#include "calculators/caverage.h" // average current
+#include "calculators/vaverage.h" //average velocity and cite current
 
 #include "calculators/oboltzmann.h"
 
@@ -50,7 +49,6 @@ void CalculatorFactory::RegisterAll(void)
 
         Calculators().Register<PairDump>("pairdump");
 	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (via site occupations)
-        Calculators().Register<Caverage>("caverage"); // average site current (via site occupations)
         Calculators().Register<SQLiteWriter>("sqlitewriter");
 
 	Calculators().Register<DumpTrajectory>("tdump"); // coarse-grained and based on rigid segments trajectories
