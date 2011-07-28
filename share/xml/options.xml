@@ -160,7 +160,7 @@
 
 <item>
 <name>eoutersphere.method</name>
-<desc>Type of method used. Can be **constant**(all pairs have the same value **lambdaconst** set in options file), **spheres**(molecules are treated as spheres with radii **R_lambda** given in the segments file and Pekar factor **pekar** set in options file) or **dielectric** (with Pekar factor **pekar** set in options file and partial charges and resulting dielectric fields) </desc>
+<desc>Type of the method: **constant** - all pairs have the same value **lambdaconst** set in options file. **spheres**  - molecules are treated as spheres with radii **R_lambda** given in the segments file and Pekar factor **pekar** set in options file. **dielectric** - with Pekar factor **pekar** set in options file and partial charges and resulting dielectric fields. </desc>
 </item>
 
 <item>
@@ -241,9 +241,16 @@
 </item>
 
 <item>
-<name>nbgen</name>
-<desc></desc>
+<name>neighborlist</name>
+<desc>Constructs a list of neighboring conjugated segments.</desc>
 </item>
+
+<item>
+<name>neighborlist.cutoff</name>
+<desc>Two segments are added to this list if the distance between centers of mass of any their rigid fragments is below a certain cutoﬀ. This allows neighbors to be selected on a criterion of minimum distance of approach rather than center of mass distance, which is useful for molecules with anisotropic shapes.
+</desc>
+</item>
+
 
 <item>
 <name>vaverage</name>
@@ -255,16 +262,9 @@
 <desc>If **TRUE** outputs also charge mobility along the field. In this case the field should be specified in calc_rates.e_field. </desc>
 </item>
 
-
 <item>
 <name>etinker</name>
 <desc></desc>
 </item>
-
-<item>
-<name>caverage</name>
-<desc></desc>
-</item>
-
 
 </tags>
