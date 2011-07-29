@@ -1,5 +1,5 @@
-#ifndef ENERGYCORR_H
-#define	ENERGYCORR_H
+#ifndef ECORRELATION_H
+#define	ECORRELATION_H
 
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/qmcalculator.h>
@@ -9,20 +9,19 @@
 
 Callname: ecorrelation
 
-To quantify the degree of correlation in site energies due to electrostatics, one can calculate the spatial correlation function of \f$E_i\f$ and \f$E_j\f$ at a distance \f$r_{ij}\f$
+The spatial correlations in site energies can be quantified using the correlation function (J. Chem. Phys. 129, 034709, 2008)
 \f[C(r_{ij}) = \frac{  \langle \left( E_i-\langle E\rangle \right)
                    \left( E_j-\langle E\rangle \right)\rangle}
                    {\langle\left( E_i -\langle E\rangle \right)^2\rangle}\f]
-where \f$\langle E\rangle\f$ is the average site energy. \f$C(r_{ij})\f$ is zero if \f$E_i\f$ and \f$E_j\f$ are uncorrelated and 1 if they are fully correlated. For a system of randomly oriented point dipoles, the correlation function decays as \f$1/r\f$ at large distances
+where \f$E_i\f$ and \f$E_j\f$ are site energies, \f$ r_{ij} \f$ is the distance between the sites, \f$ \langle E\rangle \f$ is the average site energy. \f$ C(r_{ij}) \f$ is zero if \f$ E_i \f$ and \f$ E_j \f$ are uncorrelated and 1 if they are fully correlated. For a system of randomly oriented point dipoles, the correlation function decays as \f$ 1/r \f$ at large distances.
 
-Reference : J.Chem.Phys. 129, 034709 (2008)
 */
 
-class EnergyCorr : public QMCalculator
+class Ecorrelation : public QMCalculator
 {
 public:
-    EnergyCorr() {};
-    ~EnergyCorr() {};
+    Ecorrelation() {};
+    ~Ecorrelation() {};
 
     const char *Description() { return "Normalized site energy correlation function"; }
 
@@ -45,9 +44,7 @@ private:
     int _nbins;
     /// name of the output file
     string _outfile;
-
-
 };
 
-#endif	/* ENERGYCORR_H */
+#endif	/* ECORRELATION_H */
 

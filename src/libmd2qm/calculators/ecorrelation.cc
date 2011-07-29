@@ -5,11 +5,11 @@
 #include <votca/tools/average.h>
 #include <votca/csg/nblistgrid.h>
 
-void EnergyCorr::Initialize(QMTopology* top, Property* options) {
+void Ecorrelation::Initialize(QMTopology* top, Property* options) {
 
    // read in _nbins
-   if (options->exists("options.energy_corr.nbins")) {
-   	_nbins = options->get("options.energy_corr.nbins").as<int>();
+   if (options->exists("options.ecorrelation.nbins")) {
+   	_nbins = options->get("options.ecorrelation.nbins").as<int>();
    }
    else {
 	_nbins = 15;
@@ -23,7 +23,7 @@ void EnergyCorr::Initialize(QMTopology* top, Property* options) {
 
    // read in _outfile
    if (options->exists("options.ecorrelation.file")) {
-   	_outfile = options->get("options.energy_corr.file").as<string>();
+   	_outfile = options->get("options.ecorrelation.file").as<string>();
    }
    else {
 	_outfile = "ecorrelation.dat";
@@ -40,7 +40,7 @@ void EnergyCorr::Initialize(QMTopology* top, Property* options) {
    _hist_corr.data().SetHasYErr(true);
 }
 
-bool EnergyCorr::EvaluateFrame(QMTopology* top) {
+bool Ecorrelation::EvaluateFrame(QMTopology* top) {
 
     Average<double> energy_av;
 
@@ -73,14 +73,14 @@ bool EnergyCorr::EvaluateFrame(QMTopology* top) {
     _stdev_energy = energy_av.CalcSig2();
 
     list1.Generate(mytop, "*");
-    mynbl.SetMatchFunction(this, &EnergyCorr::MyMatchingFunction);
+    mynbl.SetMatchFunction(this, &Ecorrelation::MyMatchingFunction);
     mynbl.setCutoff(_max);
     mynbl.Generate( list1, false );
 
     return true;
 }
 
-void EnergyCorr::EndEvaluate(QMTopology* top) {
+void Ecorrelation::EndEvaluate(QMTopology* top) {
     // normalize
     _hist_corr.data().y() = element_div( _hist_corr.data().y(), _hist_count.data().y() );
     _hist_corr2.data().y() = element_div( _hist_corr2.data().y(), _hist_count.data().y() );
@@ -95,7 +95,7 @@ void EnergyCorr::EndEvaluate(QMTopology* top) {
     _hist_corr.data().Save(_outfile);
 }
 
-bool EnergyCorr::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused) {
+bool Ecorrelation::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, const double notused) {
 
     QMCrgUnit *crg1 = bead1->getUserData<QMCrgUnit>();
     QMCrgUnit *crg2 = bead2->getUserData<QMCrgUnit>();
