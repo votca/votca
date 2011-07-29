@@ -50,7 +50,7 @@ void CalculatorFactory::RegisterAll(void)
 	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (via site occupations)
         Calculators().Register<SQLiteWriter>("sqlitewriter");
 
-	Calculators().Register<DumpTrajectory>("tdump"); // coarse-grained and based on rigid segments trajectories
+	Calculators().Register<Tdump>("tdump"); // coarse-grained and based on rigid segments trajectories
         Calculators().Register<Rates>("rates"); // Marcus, Jortner rates
         Calculators().Register<WriteXML>("writexml");  // obsolete
 

@@ -1,5 +1,5 @@
-#ifndef _DUMP_TRAJECORY_H
-#define	_DUMP_TRAJECTORY_H
+#ifndef _TDUMP_H
+#define	_TDUMP_H
 
 #include <stdlib.h>
 #include <math.h>
@@ -22,11 +22,11 @@ Callname: tdump
 Useful for checking whether the mapping of the atomistic trajectory on conjugated segments and rigid fragments is correct. One can use VisualMolecularDnamics (vmd) to view the initial, coarse-grained, and back-mapped trajectories together.
 
 */
-class DumpTrajectory : public QMCalculator
+class Tdump : public QMCalculator
 {
 public:
-    DumpTrajectory() {};
-    ~DumpTrajectory() {};
+    Tdump() {};
+    ~Tdump() {};
 
     const char *Description() { return "Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories"; }
 
@@ -40,7 +40,7 @@ private:
     TrajectoryWriter *_writerCG, *_writerQM; 
 };
 
-inline void DumpTrajectory::Initialize(QMTopology *top, Property *options) {
+inline void Tdump::Initialize(QMTopology *top, Property *options) {
     _options = options;
     if ( options->exists("options.tdump.cg") && 
           options->exists("options.tdump.qm") ) {
@@ -69,7 +69,7 @@ inline void DumpTrajectory::Initialize(QMTopology *top, Property *options) {
 
 }
 
-inline bool DumpTrajectory::EvaluateFrame(QMTopology *top) {
+inline bool Tdump::EvaluateFrame(QMTopology *top) {
     
      // dumping the coarse-grained trajectory
     _writerCG->Write( top );
@@ -94,11 +94,11 @@ inline bool DumpTrajectory::EvaluateFrame(QMTopology *top) {
     return true;
 }
 
-inline void DumpTrajectory::EndEvaluate(QMTopology *top)
+inline void Tdump::EndEvaluate(QMTopology *top)
 {
     _writerCG->Close();
     _writerQM->Close();
 }
 
-#endif	/* _DUMP_TRAJECTORY_H */
+#endif	/* _TDUMP_H */
 
