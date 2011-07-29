@@ -40,7 +40,7 @@ void CalculatorFactory::RegisterAll(void)
 	Calculators().Register<Eoutersphere>("eoutersphere"); // Outersphere reorganization energy
 	Calculators().Register<Egaussian>("egaussian"); // gaussian (also correlated) distribution of site energies
         Calculators().Register<Ecorrelation>("ecorrelation"); // site energy correlation function
-        Calculators().Register<CalcHistEnergeticDisorder>("ehistogram"); // site energy histogram
+        Calculators().Register<Ehistogram>("ehistogram"); // site energy histogram
         Calculators().Register<Etinker>("etinker"); // input for the TINKER package (site energies)
 	
         Calculators().Register<Neighborlist>("neighborlist"); // fragment-based neighbor list

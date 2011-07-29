@@ -1,5 +1,5 @@
-#ifndef _HIST_ENERGETICDISORDER_H
-#define	_HIST_ENERGETICDISORDER_H
+#ifndef _EHISTOGRAM_H
+#define	_EHISTOGRAM_H
 
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/paircalculator.h>
@@ -10,11 +10,11 @@
 
 Callname: ehistogram
 */
-class CalcHistEnergeticDisorder : public PairCalculator
+class Ehistogram : public PairCalculator
 {
 public:
-    CalcHistEnergeticDisorder() {};
-    ~CalcHistEnergeticDisorder() {};
+    Ehistogram() {};
+    ~Ehistogram() {};
 
     const char *Description() { return "Histogram of site energy differences of neighbor list pairs"; }
 
@@ -29,7 +29,7 @@ private:
     string _outfile;
 };
 
-inline void CalcHistEnergeticDisorder::Initialize(QMTopology *top, Property *options){
+inline void Ehistogram::Initialize(QMTopology *top, Property *options){
     _min = options->get("options.ehistogram.min").as<double>();
     _max = options->get("options.ehistogram.max").as<double>();
     _nbins = options->get("options.ehistogram.nbins").as<int>();
@@ -38,15 +38,15 @@ inline void CalcHistEnergeticDisorder::Initialize(QMTopology *top, Property *opt
     histogram.Initialize(_min,_max,_nbins);
 }
 
-inline void CalcHistEnergeticDisorder::EndEvaluate(QMTopology *top){
+inline void Ehistogram::EndEvaluate(QMTopology *top){
     cout << "Writing Distribution of site energy differences to file " << _outfile << endl;
     histogram.data().Save(_outfile);
 }
 
-inline void CalcHistEnergeticDisorder::EvaluatePair(QMTopology *top, QMPair *pair){
+inline void Ehistogram::EvaluatePair(QMTopology *top, QMPair *pair){
     double energy1 = pair->first->getTotalEnergy();
     double energy2 = pair->second->getTotalEnergy();
     histogram.Process( energy1-energy2 );
 }
 
-#endif	/* _HIST_ENERGETICDISORDER_H */
+#endif	/* _EHISTOGRAM_H */
