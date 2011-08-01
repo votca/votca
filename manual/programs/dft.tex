@@ -4,13 +4,25 @@ Apart from semi-empirical methods, we also provide interfaces for a DFT-based ev
 \subsubsection{Generation of directory structure and input coordinates}
 First, hopping sites and a neighbor list need to be generated from the atomistic topology and trajectory. Rigid fragments are resubstituted into the molecular geometries and the neighbor list is defined based on a cutoff distance between such fragments. This can be achieved by running, e.g.  
 \begin{verbatim}
-ctp_map [required options] --cutoff 0.6 --nframes 1 --first-frame 10
+ctp_map [required options] --db state.db --nframes 1 --first-frame 10
 \end{verbatim}
-A state file is written for frame 10 of the trajectory and from that the full file and directory structure needed by {\tt ctp\_dipro} is written by 
+to generate a state file is for frame 10 of the trajectory. Then a neighbor list can be determined from the cutoff defined in {\tt main.xml} (see \ref{list:neighborcut_xml}).
+\lstinputlisting[
+  language=XML,
+  label=list:neighborcut_xml,
+  stringstyle=\ttfamily\footnotesize,
+  showstringspaces=false,
+  caption={\small Definition of neighborlist cutoff in {\tt main.xml}}.] {./programs/neighborcut.xml}
+by calling
+\begin{verbatim}
+ctp_run [required options] --db state.db --opt
+main.xml --exec neighborlist
+\end{verbatim}
+and from that the full file and directory structure needed by {\tt ctp\_dipro} is written by 
 \begin{verbatim}
 ctp_run --in STATEFILE --crg CRGFILE --exec pairdump
 \end{verbatim}
-This requires the specification of the content of listing \ref{list:benzene_xml} in {\tt main.xml}.
+This requires the specification of the content of listing \ref{list:pairdump_xml} in {\tt main.xml}.
 \lstinputlisting[
   language=XML,
   label=list:pairdump_xml,
@@ -81,5 +93,15 @@ This command automatically generates a dimer input guess from the converged mono
   stringstyle=\ttfamily\footnotesize,
   showstringspaces=false,
   caption={\small Example {\tt TI.xml} file created as the output of a DIPRO calculation. Due to slightly different implementations, the orbitals indices refer to monomer indices in a {\tt Gaussian} run but to indices in the merged dimer guess in a {\tt Turbomole} run.}] {./programs/TI.xml}
-\subsubsection{Generation of state file}
-TO BE DONE...
+
+\subsubsection{Writing transfer integrals to state file}
+After performing all transfer integral calculations, the resulting output files {\tt pair\_A\_B/TI.xml} have to be collected in the folder {\tt transfer\_integrals} as {\tt transfer\_integrals/pair\_A\_B.xml}. Then the transfer integrals are written into the state file using:
+\begin{verbatim}
+ctp_dipro --write TYPE ID FILE
+
+TYPE:   e - electrons
+        h - holes
+ID:     Number of frame
+FILE:   Name of state file 
+\end{verbatim}
+During the run, some sanity checks are performed, i.e., whether all transfer integrals are calculated, and whether a pair that is written exists in the state file. If there is an error, the tool aborts.
