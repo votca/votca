@@ -63,13 +63,15 @@ for i in conf_start*.gro; do
   cp_from_main_dir $filelist
   mv $i ./$dir/conf.gro
   dist=2
-  cp grompp.mdp > $dir/grompp.mdp
+  cp grompp.mdp $dir/grompp.mdp
   cd $dir
   cp_from_main_dir $filelist
   grompp -n ${index} ${mdp_opts}
   echo -e "${pullgroup0}\n${pullgroup1}" | g_dist -f conf.gro -s topol.tpr -n ${index} -o dist.xvg
   dist=$(sed '/^[#@]/d' dist.xvg | awk '{print $2}')
   [ -z "$dist" ] && die "${0##*/}: Could not fetch dist"
+  sed -i -e "s/pull_rate1.*$/pull_rate1               = 0/" \
+         -e "s/pull_init1.*$/pull_init1               = $dist/" grompp.mdp
   msg "Doing $dir with dist $dist"
   grompp -n ${index} ${mdp_opts}
   do_external run gromacs_pmf
@@ -77,7 +79,7 @@ for i in conf_start*.gro; do
   cd ..
 done
 
-[ -f "$dir/$confout" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"
+[ -f "$dir/confout.gro" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"
 
 cat dist_comp.d | sort -n > dist_comp.d
 awk '{if ($4>0.001){print "Oho in step",$1}}' dist_comp.d

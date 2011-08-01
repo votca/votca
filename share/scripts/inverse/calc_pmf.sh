@@ -27,19 +27,15 @@ EOF
   exit 0
 fi
 
-# To read the name of the 2 pull groups. 
-# If in the main folder there is not 
-# a file called grompp.mdp it is creates 
-# from the PMF simulation mdp file
-if ![ -f "grompp.mdp" ] do 
-	md_sim=$(csg_get_propdderty cg.non-bonded.pmf.mdp_sim)
-       	cp ${md_sim} gompp.mdp 
-done
+# Read previous grompp file to define pullgroups
+mdp_prep=$(csg_get_property cg.non-bonded.pmf.mdp_prep)
+cp_from_main_dir $mdp_prep
+mv $mdp_prep grompp.mdp
 
-last_dir=$(get_last_step_dir)
-pullgroup0=$(get_from_mdp pull_group0)
-pullgroup1=$(get_from_mdp pull_group1)
+pullgroup0=$(get_simulation_setting pull_group0)
+pullgroup1=$(get_simulation_setting pull_group1)
 kBT=$(csg_get_property cg.inverse.kBT)
+last_dir=$(get_last_step_dir)
 
 forcefile="forces_${pullgroup0}_${pullgroup1}.all.d"
 potfile="pmf_${pullgroup0}_${pullgroup1}.all.d"
@@ -48,14 +44,14 @@ echo "#dist <force> error flag" > ${forcefile}
 sims="$(find ${last_dir} -type d -name "sim_???*" | sort)"
 for sim in ${sims}; do
   echo "Doing ${sim}"
-  dist="$(get_from_mdp pull_init1 ${sim}/grompp.mdp)"
+  dist="$(get_simulation_setting --file ${sim}/grompp.mdp pull_init1)"
   [ -f "${sim}/pullf.xvg" ] || die "Could not find file ${sim}/pullf.xvg"
-  force="$(${CSGSHARE}/scripts/inverse/avg_bl.awk -v col=2 ${sim}/pullf.xvg | awk '/^[^#]/{print $1,$2}')"
+  force="$(${VOTCASHARE}/scripts/inverse/avg_bl.awk -v col=2 ${sim}/pullf.xvg | awk '/^[^#]/{print $1,$2}')"
   echo "dist: $dist force: $force"
   echo "$dist $force i" >>  ${forcefile}
 done
 
-# Copy grompp from last sim to current dir
+# Overwrite grompp with that of last sim
 cp ${sim}/grompp.mdp .
 
 echo "Calculating pmf"

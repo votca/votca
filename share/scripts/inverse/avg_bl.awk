@@ -69,7 +69,8 @@ BEGIN{
 	
 }
 
-END{
+END{    {if (c <= N_B && c>1); N_B=c;
+         if (c <= 1); die "Not enough data points"}
 	L_B=int(c/N_B);
 	sum=0;
 	sum2=0;
