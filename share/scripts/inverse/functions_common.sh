@@ -385,7 +385,7 @@ cp_from_last_step() { #copy something from the last step
 export -f cp_from_last_step
 
 get_time() {
-  date +%s || die "get_time:  time +%s failed"
+  date +%s || die "get_time:  date +%s failed"
 }
 export -f get_time
 

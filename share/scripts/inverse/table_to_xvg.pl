@@ -48,7 +48,7 @@ Allowed options:
 --max MAX             Replace all pot value bigger MAX by MAX 
 
 
-Possible types: non-bonded (=C12), bond, thermoforce, C12, C6
+Possible types: non-bonded (=C12), bond, thermforce, C12, C6
 
 Examples:
 * $progname --type bond table.in table_b0.xvg

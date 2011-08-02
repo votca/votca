@@ -215,7 +215,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     echo "Initialization already done"
   else
     #get need files
-    cp_from_main_dir $filelist
+    cp_from_main_dir "$filelist"
 
     #get files from last step, init sim_prog and ...
     do_external initstep $method
