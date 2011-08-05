@@ -98,7 +98,7 @@
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
     <!-- directory for user scripts -->
-    <scriptdir></scriptdir>
+    <scriptpath></scriptpath>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
