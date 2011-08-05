@@ -11,7 +11,7 @@ For example, \texttt{csg\_call update imc} calls the \texttt{update} script for 
   csg_call --list
 \end{verbatim}
 
-It is advised not to change already implemented scripts. To customize a script or add a new one, copy the script to your own directory (set by \cgopt{inverse.scriptdir}) and redirect its call by creating your own \texttt{csg\_table} file in this directory which looks like this
+It is advised not to change already implemented scripts. To customize a script or add a new one, copy the script to your own directory (set by \cgopt{inverse.scriptpath}) and redirect its call by creating your own \texttt{csg\_table} file in this directory which looks like this
 \begin{verbatim}
   key1 key2 script1 options
   key3 key4 script2
@@ -63,7 +63,7 @@ Now we change the last line of \texttt{my\_run\_gromacs.sh} to:
 \begin{verbatim}
   run_or_exit mpirun -np 8 mdrun
 \end{verbatim}
-This completes the customization. Do not forget to add \texttt{SCRIPTDIR} to \cgopt{inverse.scriptdir} in the setting \xml file (see \sect{sec:ref_options}).
+This completes the customization. Do not forget to add \texttt{SCRIPTDIR} to \cgopt{inverse.scriptpath} in the setting \xml file (see \sect{sec:ref_options}).
 
 You can check the new script by running:
 \begin{verbatim}
