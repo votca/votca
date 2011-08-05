@@ -35,8 +35,8 @@ espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
 n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 [ -z "$n_steps" ] && die "${0##*/}: Could not read espresso property n_steps"
 
-esp_bin="$(csg_get_property cg.inverse.espresso.command "Espresso_bin")"
-#no check for Espresso_bin, because Espresso_bin could maybe exist only computenodes
+esp_bin="$(csg_get_property cg.inverse.espresso.command "Espresso")"
+#no check for Espresso, because Espresso could maybe exist only computenodes
 
 exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"
