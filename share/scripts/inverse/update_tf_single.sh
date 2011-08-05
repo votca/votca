@@ -30,10 +30,10 @@ scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
 scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 
+sim_prog="$(csg_get_property cg.inverse.program)"
+do_external density $sim_prog
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
    echo "Update tf ${name} : yes"
-    sim_prog="$(csg_get_property cg.inverse.program)" 
-    do_external density $sim_prog
     do_external calc thermforce ${name}.dist.new ${name}.dpot.new
 else
    echo "Update tf ${name} : no"
