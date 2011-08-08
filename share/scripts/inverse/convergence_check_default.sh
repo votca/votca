@@ -18,7 +18,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-dummy script (does nothing), useful to overwrite default by nothing
+Calculated the sum of all convergence files and create a file 'stop' if the sum is bigger than a given limit
 
 Usage: ${0##*/}
 EOF
