@@ -19,7 +19,7 @@ It is advised not to change already implemented scripts. To customize a script o
 If the local keys are already in use, the existing call will be overloaded.
 
 As an example, we will illustrate how to overload the script which calls the sampling package. 
-ohe \prog{csg_inverse} script runs \progex{mdrun} from the \gromacs package only on one cpu. Our task will be to change the script so that \gromacs uses 8 cpus, which is basically the same as adding mpirun options in \cgopt{inverse.gromacs.mdrun.command}.
+The \prog{csg_inverse} script runs \progex{mdrun} from the \gromacs package only on one cpu. Our task will be to change the script so that \gromacs uses 8 cpus, which is basically the same as adding mpirun options in \cgopt{inverse.gromacs.mdrun.command}.
 
 First we find out which script calls \progex{mdrun}:
 \begin{verbatim}
@@ -45,11 +45,10 @@ Analyzing the output of
 \begin{verbatim}
   csg_call --cat run gromacs
 \end{verbatim}
-we can conclude that this is indeed the script we need:
+we can conclude that this is indeed the script we need as the content (in shorted form is):
 %
 \begin{verbatim}
-  USES: run_or_exit mdrun
-  run_or_exit mdrun
+  critical mdrun
 \end{verbatim}
 Now we can create our own \texttt{SCRIPTDIR}, add a new script there, make it executable and overload the call of the script:
 \begin{verbatim}
@@ -61,7 +60,7 @@ Now we can create our own \texttt{SCRIPTDIR}, add a new script there, make it ex
 Please note that \texttt{my\_run\_gromacs.sh} is the name of the script and \texttt{SCRIPTDIR} is the custom script directory, which can be a global or a local path.
 Now we change the last line of \texttt{my\_run\_gromacs.sh} to:
 \begin{verbatim}
-  run_or_exit mpirun -np 8 mdrun
+  critical mpirun -np 8 mdrun
 \end{verbatim}
 This completes the customization. Do not forget to add \texttt{SCRIPTDIR} to \cgopt{inverse.scriptpath} in the setting \xml file (see \sect{sec:ref_options}).
 
