@@ -32,6 +32,8 @@ fi
 do_external postadd dummy "$1" "$2"
 
 name=$(csg_get_interaction_property name)
+max=$(csg_get_interaction_property max)
+min=$(csg_get_interaction_property min)
 step=$(csg_get_interaction_property step)
 
 #these two are arrays
@@ -46,8 +48,9 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   dist=${what_to_do_list[$i]}
   weight=${weights[$i]}
   tmp1="$(critical mktemp ${name}.${dist}.tgt.XXX)"
-  tmp2="$(critical mktemp ${name}.${dist}.new.XXX)"
-  tmp3="$(critical mktemp ${name}.${dist}.cmb.XXX)"
+  tmp2="$(critical mktemp ${name}.${dist}.newcut.XXX)"
+  tmp3="$(critical mktemp ${name}.${dist}.new.XXX)"
+  tmp4="$(critical mktemp ${name}.${dist}.cmb.XXX)"
 
   if [ ! -f "${name}.${dist}.tgt" ]; then
     #if we need $name.dist.tgt we know how to create it
@@ -59,15 +62,16 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   fi
 
   critical sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
-  critical sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.new > $tmp2
+  critical csg_resample --in ${name}.${dist}.new --out $tmp2 --grid "$min:$step:$max"
+  critical sed -e '/^#/d' -e 's/nan/0.0/g' $tmp2 > $tmp3
 
-  [ $(sed -n '$=' $tmp1) -eq $(sed -n '$=' $tmp2) ] || \
+  [ $(sed -n '$=' $tmp1) -eq $(sed -n '$=' $tmp3) ] || \
     die "${0##*/}: linenumber of ${name}.${dist}.tgt differs from ${name}.${dist}.new"
 
-  critical paste $tmp1 $tmp2 > $tmp3
-  critical awk '{if ($4!=$1){print "differ in line NR";exit 1;}}' $tmp3
+  critical paste $tmp1 $tmp3 > $tmp4
+  critical awk '{if ($4!=$1){print "x column differs in line",NR;exit 1;}}' $tmp4
   echo "Calc convergence for ${name} with weight $weight"
-  critical awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)**2;}END{print dist,sqrt(sum*bin*w);}' $tmp3 >> $tmp
+  critical awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)**2;}END{print dist,sqrt(sum*bin*w);}' $tmp4 >> $tmp
 done
 
 critical awk '{sum+=$2;}END{print sum;}' $tmp > ${name}.conv

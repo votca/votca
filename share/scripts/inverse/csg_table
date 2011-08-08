@@ -17,6 +17,8 @@
 #general scripts
 tag file tag_file.sh
 dummy dummy dummy.sh
+
+#only here for building the manual (not actually used)
 function common functions_common.sh
 csg master inverse.sh
 
@@ -55,9 +57,10 @@ rdf pot RDF_to_POT.pl
 # post update
 post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
-post_update tf dummy.sh
+post_update tf post_update_generic.sh
 post_update_single ibi post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
+post_update_single tf post_update_generic_single.sh
 
 #post update scripts
 postupd scale postupd_scale.sh
@@ -104,6 +107,8 @@ imcsolver matlab solve_matlab.sh
 solve matlab linsolve.m
 imcsolver octave solve_octave.sh
 solve octave linsolve.octave
+imcsolver numpy solve_numpy.sh
+solve numpy linsolve.py
 
 imc purify imc_purify.sh
 

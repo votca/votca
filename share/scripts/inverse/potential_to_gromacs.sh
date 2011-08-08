@@ -46,11 +46,14 @@ echo "Convert $input to $output"
 
 zero=0
 tabtype="$(csg_get_interaction_property bondtype)"
+#do this with --allow-empty to avoid stoping if calling from csg_call
+[[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]] && tabtype="thermforce"
+
 if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
   tablend="$(csg_get_property --allow-empty cg.inverse.gromacs.table_end)"
   mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
   if [[ -f ${mdp} ]]; then
-    echo "Found setting file '$mdp' not trying to check options in there"
+    echo "Found setting file '$mdp' now trying to check options in there"
     rlist=$(get_simulation_setting rlist)
     tabext=$(get_simulation_setting table-extension)
     # if we have all 3 numbers do this checks
@@ -61,36 +64,37 @@ if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
   elif [[ -z $tablend ]]; then
     die "${0##*/}: cg.inverse.gromacs.table_end was not defined in xml seeting file"
   fi
-elif [[ $tabtype = "bonded" ]]; then
+elif [[ $tabtype = "bonded" || $tabtype = "thermforce" ]]; then
   tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
 elif [[ $tabtype = "angle" ]]; then
-  tableend=180
+  tablend=180
 elif [[ $tabtype = "dihedral" ]]; then
   zero="-180"
-  tableend=180
+  tablend=180
 fi
 
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 comment="$(get_table_comment $input)"
 
-smooth="$(critical mktemp smooth_${name}.XXXXX)"
+smooth="$(critical mktemp ${name}.pot.smooth.XXXXX)"
 critical csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
-extrapol="$(critical mktemp extrapol_${name}.XXXXX)"
+extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
 
-tshift="$(critical mktemp shift_${name}.XXXXX)"
+tshift="$(critical mktemp ${name}.pot.shift.XXXXX)"
 if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
-  extrapol1="$(critical mktemp extrapol1_${name}.XXXXX)"
-  do_external table extrapolate --function exponential --avgpoints 1 --region left "${smooth}" "${extrapol1}"
+  extrapol1="$(critical mktemp ${name}.pot.extrapol2.XXXXX)"
+  do_external table extrapolate --function exponential --avgpoints 5 --region left "${smooth}" "${extrapol1}"
   do_external table extrapolate --function constant --avgpoints 1 --region right "${extrapol1}" "${extrapol}"
   do_external pot shift_nonbonded "${extrapol}" "${tshift}"
+elif [[ $tabtype = "thermforce" ]]; then
+  do_external table extrapolate --function constant --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
+  do_external pot shift_bonded "${extrapol}" "${tshift}"
 else
-  do_external table extrapolate --function exponential --avgpoints 1 --region leftright "${smooth}" "${extrapol}"
+  do_external table extrapolate --function exponential --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
   do_external pot shift_bonded "${extrapol}" "${tshift}"
 fi
 
 potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
 [[ -n ${potmax} ]] && potmax="--max ${potmax}"
 
-#do this with --allow-empty to avoid stoping if calling from csg_call
-[[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]] && tabtype="thermforce"
 do_external convert_potential xvg ${potmax} --type "${tabtype}" "${tshift}" "${output}"

@@ -71,15 +71,17 @@ To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
 export -f check_cutoff
 
 check_temp() { #compares k_B T in xml with temp in mpd file
-  local kbt kbt2 temp
+  local kbt kbt2 temp t
   [[ "$(csg_get_property cg.inverse.gromacs.temp_check "yes")" = "no" ]] && return 0
   #kbt in energy unit
   kbt="$(csg_get_property cg.inverse.kBT)"
   temp="$(get_simulation_setting ref_t)"
-  #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
-  kbt2=$(csg_calc "$temp" "*" 0.00831451)
-  csg_calc "$kbt" "=" "$kbt2" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($temp) in $1\n\
+  for t in $temp; do
+    #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
+    kbt2=$(csg_calc "$t" "*" 0.00831451)
+    csg_calc "$kbt" "=" "$kbt2" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($t from $temp) in $1\n\
 To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
+  done
   return 0
 }
 export -f check_temp

@@ -9,8 +9,6 @@ libvotca*.a
 libvotca*.so
 libvotca*.so.*
 Makefile
-scripts/csg.rc.bash
-scripts/csg.rc.csh
 scripts/csg_call
 scripts/csg_inverse
 scripts/help2t2t
@@ -60,3 +58,4 @@ CMakeCache.txt
 install_manifest.txt
 
 CHANGELOG
+build*

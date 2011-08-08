@@ -83,7 +83,7 @@
   <item><name>cg.inverse.convergence_check_options.limit</name><desc>lower limit to stop</desc></item>
   <item><name>cg.inverse.convergence_check_options.name_glob</name><desc>files to check for number (default *.conv)</desc></item>
   <item><name>cg.inverse.method</name><desc> ibi: inverse boltzmann imc: inverse monte carlo </desc></item>
-  <item><name>cg.inverse.scriptdir</name><desc> directory for user scripts (e.g. $PWD)</desc></item>
+  <item><name>cg.inverse.scriptpath</name><desc> list of directories for user scripts (e.g. $PWD) separated by a colon (like PATH)</desc></item>
   <item><name>cg.inverse.log_file</name><desc> write log to this file </desc></item>
   <item><name>cg.inverse.simulation</name><desc>simulation options </desc></item>
   <item><name>cg.inverse.simulation.tasks</name><desc>number of tasks (0/auto = automatic detect on linux)</desc></item>
@@ -97,6 +97,7 @@
   <item><name>cg.inverse.imc</name><desc> general imc specific options </desc></item>
   <item><name>cg.inverse.imc.solver</name><desc> solver for solving a linear equation system, can be octave or matlab </desc></item>
   <item><name>cg.inverse.imc.octave.bin</name><desc> Name (or absolute path) of the octave binary </desc></item>
+  <item><name>cg.inverse.imc.numpy.bin</name><desc> Name (or absolute path) of the python binary used by the numpy solver</desc></item>
   <item><name>cg.inverse.imc.matlab.bin</name><desc> Name (or absolute path) of the matlab binary </desc></item>
   
   

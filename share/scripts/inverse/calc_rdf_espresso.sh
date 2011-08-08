@@ -37,7 +37,7 @@ equi_snapshots="$(csg_get_property cg.inverse.espresso.first_frame 0)"
 esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-esp_bin="$(csg_get_property cg.inverse.espresso.rdf_command "Espresso_bin")" 
+esp_bin="$(csg_get_property cg.inverse.espresso.rdf_command "Espresso")" 
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
 type1=$(csg_get_interaction_property type1)

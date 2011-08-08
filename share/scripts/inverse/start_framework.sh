@@ -23,23 +23,21 @@ EOF
   exit 0
 fi
 
-#no check deps $0 here
-#because this bootstrap everything
-
 #for now, we will replace this function later
 die(){ echo "$*" >&2; exit 1; }
 
-#check for CSGSHARE
-[[ -n $CSGSHARE ]] || die "Error: CSGSHARE not definded"
-[[ -d $CSGSHARE ]] || die "CSGSHARE '$CSGSHARE' is not a dir"
-[[ -d ${CSGSHARE}/scripts/inverse ]] || die "\$CSGSHARE/scripts/inverse is not found. Is CSGSHARE set corectly?"
-[[ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]] || die "Could not find inverse.sh, \$CSGSHARE/scripts/inverse seem to point to the wrong place!"
-[[ -f ${CSGSHARE}/scripts/inverse/functions_common.sh ]] || die "Could not find default common framework functions (functions_common.sh)"
-source "${CSGSHARE}/scripts/inverse/functions_common.sh" || exit 1 
+#check for VOTCASHARE
+[[ -n ${VOTCASHARE} ]] || die "Error: VOTCASHARE not definded"
+[[ -d ${VOTCASHARE} ]] || die "VOTCASHARE '$VOTCASHARE' is not a dir"
+[[ -d ${VOTCASHARE}/scripts/inverse ]] || die "\$VOTCASHARE/scripts/inverse is not found. Is VOTCASHARE set corectly?"
+[[ -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]] || die "Could not find inverse.sh, \$VOTCASHARE/scripts/inverse seem to point to the wrong place!"
+[[ -f ${VOTCASHARE}/scripts/inverse/functions_common.sh ]] || die "Could not find default common framework functions (functions_common.sh)"
+source "${VOTCASHARE}/scripts/inverse/functions_common.sh" || exit 1 
 
-#this is need by die later
+#this is needed by die later
 export CSG_MASTER_PID="$$"
 
 export CSG_MAINDIR="$PWD"
 
-add_to_csgshare "${CSGSHARE}/scripts/inverse"
+#do no overwrite CSGSHARE stuff set by user from the outside
+add_to_csgshare --at-the-end "${VOTCASHARE}/scripts/inverse"

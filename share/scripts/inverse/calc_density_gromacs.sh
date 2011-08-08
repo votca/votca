@@ -59,10 +59,10 @@ else
 fi
 
 msg "Calculating density for $name (molname $mol) on axis $axis"
-if is_done "density_analysis"; then
+if is_done "density_analysis-$name"; then
   echo "density analysis is already done"
 else
   critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" $opts
   critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
-  mark_done "density_analysis"
+  mark_done "density_analysis-$name"
 fi
