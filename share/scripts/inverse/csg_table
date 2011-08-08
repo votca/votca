@@ -17,6 +17,8 @@
 #general scripts
 tag file tag_file.sh
 dummy dummy dummy.sh
+
+#only here for building the manual (not actually used)
 function common functions_common.sh
 csg master inverse.sh
 
