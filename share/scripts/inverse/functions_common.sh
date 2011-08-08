@@ -267,15 +267,17 @@ is_int() { #checks if all arguments are integers
 }
 export -f is_int
 
-num_check() { #checks if 1st argument is a number or calls die with error message (2nd argument)
-  local res
-  [[ -n $1 || -n $2 ]] || die "num_check: Missing argument"
-  res=$(awk -v x="$1" 'BEGIN{ print x+0==x; }')
-  [[ $res -eq 1 ]] && return 0
-  shift
-  die "$*"
+is_num() { #checks if all arguments are numbers
+  local i res
+  [[ -z $1 ]] && die "is_num: Missing argument"
+  for i in "$@"; do
+    res=$(awk -v x="$i" 'BEGIN{ print x+0==x; }')
+    [[ $res -eq 1 ]] || return 1
+    unset res
+  done
+  return 0
 }
-export -f num_check
+export -f is_num
 
 get_stepname() { #get the dir name of a certain step number (1st argument)
   local name
@@ -543,8 +545,8 @@ export -f csg_banner
 csg_calc() { #simple calculator, a + b, ...
   local res ret=0 err="1e-2"
   [[ -z $1 || -z $2 || -z $3 ]] && die "csg_calc: Needs 3 arguments, but got '$*'"
-  num_check "$1" "csg_calc: First argument should be a number, but found '$1'"
-  num_check "$3" "csg_calc: Third argument should be a number, but found '$3'"
+  is_num "$1" || die "csg_calc: First argument of csg_calc should be a number, but got '$1'"
+  is_num "$3" || die "csg_calc: Third argument of csg_calc should be a number, but got '$3'"
   [[ -n "$(type -p awk)" ]] || die "csg_calc: Could not find awk"
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
