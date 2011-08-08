@@ -399,7 +399,7 @@ get_number_tasks() { #get the number of possible tasks from the xml file or dete
   local tasks
   tasks="$(csg_get_property cg.inverse.simulation.tasks "auto")"
   [[ $tasks = "auto" ]] && tasks=0
-  is_int "$tasks" || die "get_number_tasks: cg.inverse.parallel.tasks needs to be a number or 'auto', but I got $tasks"
+  is_int "$tasks" || die "get_number_tasks: cg.inverse.simulation.tasks needs to be a number or 'auto', but I got $tasks"
   #this only work for linux
   if [[ $tasks -eq 0 && -r /proc/cpuinfo ]]; then
     tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')
