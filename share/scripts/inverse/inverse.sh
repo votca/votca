@@ -44,7 +44,7 @@ if [[ $1 = "--help" ]]; then
 fi
 
 #do all start up checks option stuff
-source "${0%/*}/start_framework.sh"  || exit 1
+source "${VOTCASHARE}/scripts/inverse/start_framework.sh"  || exit 1
 
 #defaults for options
 do_iterations=""
