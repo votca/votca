@@ -257,13 +257,15 @@ is_done () { #checks if something is already do in the restart file
 }
 export -f is_done
 
-int_check() { #checks if 1st argument is a integer or calls die with error message (2nd argument)
-  [[ -n $2 ]] || die "int_check: Missing argument"
-  [[ -n $1 && -z ${1//[0-9]} ]] && return 0
-  shift
-  die "$*"
+is_int() { #checks if all arguments are integers
+  local i
+  [[ -z $1 ]] && die "is_int: Missing argument"
+  for i in "$@"; do
+    [[ -n $i && -z ${i//[0-9]} ]] || return 1
+  done
+  return 0
 }
-export -f int_check
+export -f is_int
 
 num_check() { #checks if 1st argument is a number or calls die with error message (2nd argument)
   local res
@@ -282,7 +284,7 @@ get_stepname() { #get the dir name of a certain step number (1st argument)
     echo "step_"
     return 0
   fi
-  int_check "${1#-}" "get_stepname: needs a int as argument, but was $1"
+  is_int "${1}" || die "get_stepname: needs a int as argument, but got $1"
   name="$(printf step_%03i "$1")"
   [[ -z $name ]] && die "get_stepname: Could not get stepname"
   echo "$name"
@@ -293,13 +295,15 @@ update_stepnames(){ #updated the current working step to a certain number (1st a
   local thisstep laststep nr
   [[ -n $1 ]] || die "update_stepnames: Missing argument"
   nr="$1"
-  int_check "$nr" "update_stepnames: needs a int as argument"
+  is_int "$nr" || die "update_stepnames: needs a int as argument, but got $nr"
   [[ -z $CSG_MAINDIR ]] && die "update_stepnames: CSG_MAINDIR is undefined"
   [[ -d $CSG_MAINDIR ]] || die "update_stepnames: $CSG_MAINDIR is not dir"
   thisstep="$(get_stepname $nr)"
-  laststep="$(get_stepname $((nr-1)) )"
   export CSG_THISSTEP="$CSG_MAINDIR/$thisstep"
-  export CSG_LASTSTEP="$CSG_MAINDIR/$laststep"
+  if [[ $nr -gt 0 ]]; then
+    laststep="$(get_stepname $((nr-1)) )"
+    export CSG_LASTSTEP="$CSG_MAINDIR/$laststep"
+  fi
 }
 export -f update_stepnames
 
@@ -345,7 +349,7 @@ get_step_nr() { #print the number of a certain step directory (1st argument)
   nr=${nr#$trunc}
   #convert to base 10 and cut leading zeros
   nr=$((10#$nr))
-  int_check "$nr" "get_step_nr: Could not fetch step nr"
+  is_int "$nr" || die "get_step_nr: Could not fetch step nr, got $nr"
   echo "$nr"
 }
 export -f get_step_nr
@@ -393,7 +397,7 @@ get_number_tasks() { #get the number of possible tasks from the xml file or dete
   local tasks
   tasks="$(csg_get_property cg.inverse.simulation.tasks "auto")"
   [[ $tasks = "auto" ]] && tasks=0
-  int_check "$tasks" "get_number_tasks: cg.inverse.parallel.tasks needs to be a number or 'auto'"
+  is_int "$tasks" || die "get_number_tasks: cg.inverse.parallel.tasks needs to be a number or 'auto', but I got $tasks"
   #this only work for linux
   if [[ $tasks -eq 0 && -r /proc/cpuinfo ]]; then
     tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')

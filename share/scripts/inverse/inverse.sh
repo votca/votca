@@ -67,14 +67,15 @@ while [[ ${1#-} != $1 ]]; do
  case $1 in
    --do-iterations)
     do_iterations="$2"
-    int_check "$do_iterations" "inverse.sh: --do-iterations need a number as agrument"
+    is_int "$do_iterations" || die "inverse.sh: --do-iterations need a number as argument, but I got $do_iterations"
     shift 2 ;;
    --wall-time)
-    int_check "$2" "inverse.sh: --wall-time need a number as agrument"
+    is_int "$2" || die "inverse.sh: --wall-time need a number as argument, but I got $2"
     export CSGENDING=$(( $(get_time) + $2 ))
     shift 2 ;;
    -[0-9]*)
     do_iterations=${1#-}
+    is_int "$do_iterations" || die "inverse.sh: $1 need a number in it argument, but I got $do_iterations"
     shift ;;
    --options)
     CSGXMLFILE="$2"
@@ -118,7 +119,7 @@ echo "We are using Sim Program: $sim_prog"
 source_function $sim_prog
 
 iterations_max="$(csg_get_property cg.inverse.iterations_max)"
-int_check "$iterations_max" "inverse.sh: cg.inverse.iterations_max needs to be a number"
+is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
 echo "We are doing $iterations_max iterations (0=inf)."
 convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
 [[ $convergence_check = none ]] || echo "After every iteration we will do the following check: $convergence_check"
