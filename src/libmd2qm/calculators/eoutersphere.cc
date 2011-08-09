@@ -24,8 +24,9 @@ void Eoutersphere::Initialize(QMTopology *top, Property *options) {
             _lambda_const = options->get("options.lambdaout.lambdaconst").as<double>();
             cout << "Using a constant lambda outer of " << _lambda_const << endl;
         } else {
-            _lambda_const = 0.0;
-            cout << "Warning: no lambdaconst defined in options file, using outer sphere lambda = 0." << endl;
+            //_lambda_const = 0.0;
+            //cout << "Warning: no lambdaconst defined in options file, using outer sphere lambda = 0." << endl;
+            std::runtime_error("Error in eoutersphere: method lambdaconst was chosen but no lambdaconst provided");
         }
     } else if (options->get("options.lambdaout.method").as<string > () == "spheres") {
         //_method = &CalcLambdaOut::spheres_lambda;
@@ -34,33 +35,37 @@ void Eoutersphere::Initialize(QMTopology *top, Property *options) {
             _pekar = options->get("options.lambdaout.pekar").as<double>();
             cout << "Using a Pekar factor of " << _pekar << endl;
         } else {
-            _pekar = 0.05;
-            cout << "Warning: no Pekar factor defined, using pekar =0.05" << endl;
+            //_pekar = 0.05;
+            //cout << "Warning: no Pekar factor defined, using pekar =0.05" << endl;
+          throw  std::runtime_error("Error in eoutersphere: no Pekar factor provided");
         }
-        if (options->exists("options.lambdaout.cutoff")) {
-            _lambda_cutoff = options->get("options.lambdaout.cutoff").as<double>();
-            cout << "Using a cutoff for lambda outer sphere of " << _lambda_cutoff << endl;
-        } else {
-            _lambda_cutoff = 50;
-            cout << "Warning: no cutoff defined, using 50nm" << endl;
-        }
+        //if (options->exists("options.lambdaout.cutoff")) {
+        //    _lambda_cutoff = options->get("options.lambdaout.cutoff").as<double>();
+        //    cout << "Using a cutoff for lambda outer sphere of " << _lambda_cutoff << endl;
+        //} else {
+            //_lambda_cutoff = 50;
+            //cout << "Warning: no cutoff defined, using 50nm" << endl;
+        //    std::runtime_error("Error in eoutersphere: no cutoff for interactions defined");
+       // }
       }
     else if (options->get("options.lambdaout.method").as<string > () == "dielectric") {
         //_method = &CalcLambdaOut::dielectric_lambda;
-        cout << "Thank you for choosing the dielectric lambda method"<<endl;
+        cout << "Thank you for choosing dielectric lambda method"<<endl;
         if (options->exists("options.lambdaout.pekar")) {
             _pekar = options->get("options.lambdaout.pekar").as<double>();
             cout << "Using a Pekar factor of " << _pekar << endl;
         } else {
-            _pekar = 0.05;
-            cout << "Warning: no Pekar factor defined, using pekar =0.05" << endl;
+            //_pekar = 0.05;
+            //cout << "Warning: no Pekar factor defined, using pekar =0.05" << endl;
+           throw std::runtime_error("Error in eoutersphere: no Pekar factor provided");
         }
         if (options->exists("options.lambdaout.cutoff")) {
             _lambda_cutoff = options->get("options.lambdaout.cutoff").as<double>();
             cout << "Using a cutoff for lambda outer sphere of " << _lambda_cutoff << endl;
         } else {
-            _lambda_cutoff = 50;
-            cout << "Warning: no cutoff defined, using 50nm" << endl;
+            //_lambda_cutoff = 50;
+            //cout << "Warning: no cutoff defined, using 50nm" << endl;
+          throw std::runtime_error("Error in eoutersphere: no cutoff for interactions defined");
         }
     } else throw std::runtime_error("Error in CalcLambdaOut::Initialize : no such lambda method, should be constant, spheres or dielectric");
     } else throw std::runtime_error("Error in CalcLambdaOut::Initialize : no lambda method specified, should be constant, spheres or dielectric");
