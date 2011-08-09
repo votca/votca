@@ -258,10 +258,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   do_external post add
 
   msg "Clean up"
-  for cleanfile in ${cleanlist}; do
-    rm -f $cleanfile
-  done
-  unset cleanfile
+  [[ -n ${cleanlist} ]] && rm -f ${cleanlist}
 
   step_time="$(( $(get_time) - $step_starttime ))"
   msg "\nstep $i done, needed $step_time secs"
