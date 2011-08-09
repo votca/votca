@@ -49,10 +49,6 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>7.1</table_end>
-      <!-- topology + trajectory. Be careful, do not change yet! -->
-      <topol>topol.tpr</topol>
-      <traj>traj.xtc</traj>
-	<cutoff_check>no</cutoff_check>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>adress_spce.itp grompp.mdp topol.top table.xvg index.ndx table_CG_CG.xvg</filelist>
@@ -66,7 +62,6 @@
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
     <restart_file>restart_points.log</restart_file>
-
   </inverse>
 </cg>
 
