@@ -58,6 +58,7 @@ public:
 public:
     Imc _imc;
     int _write_every;
+    string _extension;
 };
 
 void CsgStatApp::HelpText(ostream &out)
@@ -76,7 +77,8 @@ void CsgStatApp::Initialize()
             ("do-imc", "  write out Inverse Monte Carlo data")
             ("write-every", boost::program_options::value<int>(&_write_every), "  write after every block of this length, " \
                 "if --blocking   is set, the averages are cleared after every output")
-            ("do-blocks", "  write output for blocking analysis");
+            ("do-blocks", "  write output for blocking analysis")
+            ("ext", boost::program_options::value<string>(&_extension)->default_value("dist.new"), "Extension of the output");
 }
 
 bool CsgStatApp::EvaluateOptions()
@@ -92,6 +94,8 @@ bool CsgStatApp::EvaluateOptions()
         _imc.DoBlocks(true);
     if(OptionsMap().count("do-imc"))
     _imc.DoImc(true);
+
+    _imc.Extension(_extension);
 
     _imc.Initialize();
     return true;

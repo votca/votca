@@ -59,6 +59,7 @@ public:
     void WriteEvery(int write_every) { _write_every = write_every; }
     void DoBlocks(bool do_blocks) { _do_blocks = do_blocks; }
     void DoImc(bool do_imc) { _do_imc = do_imc; }
+    void Extension(string ext) { _extension = ext; }
     
 protected:
     Average<double> _avg_vol;
@@ -102,6 +103,9 @@ protected:
     bool _do_blocks;
     // calculate the inverse monte carlos parameters (cross correlations)
     bool _do_imc;
+
+    // extension fro the distributions
+    string _extension;
 
     // number of frames we processed
     int _nframes;

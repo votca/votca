@@ -140,7 +140,7 @@ void Imc::EndEvaluate()
 {
     if(_nframes > 0) {
         if(!_do_blocks) {
-            WriteDist();
+            WriteDist(_extension);
             if(_do_imc)
                 WriteIMCData();
         }
@@ -389,8 +389,8 @@ void Imc::WriteDist(const string &suffix)
             dist.y() = iter->second->_norm * dist.y();
         }
         
-        dist.Save((iter->first) + suffix + ".dist.new");
-        cout << "written " << (iter->first) + suffix + ".dist.new\n";            
+        dist.Save((iter->first) + suffix);
+        cout << "written " << (iter->first) + suffix << "\n";
     }
 }
 
@@ -651,7 +651,7 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
     if(_write_every != 0) {
         if((_nframes % _write_every)==0) {
             _nblock++;
-            string suffix = string("_") + boost::lexical_cast<string>(_nblock);
+            string suffix = string("_") + boost::lexical_cast<string>(_nblock) + string(".") + _extension;
             WriteDist(suffix);
             WriteIMCData(suffix);
             WriteIMCBlock(suffix);
