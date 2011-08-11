@@ -75,7 +75,7 @@ while [[ ${1#-} != $1 ]]; do
     shift 2 ;;
    -[0-9]*)
     do_iterations=${1#-}
-    is_int "$do_iterations" || die "inverse.sh: $1 need a number in it argument, but I got $do_iterations"
+    is_int "$do_iterations" || die "inverse.sh: $1 need a number in its argument, but I got $do_iterations"
     shift ;;
    --options)
     CSGXMLFILE="$2"
@@ -257,8 +257,10 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "Post add"
   do_external post add
 
-  msg "Clean up"
-  [[ -n ${cleanlist} ]] && rm -f ${cleanlist}
+  if [[ -n ${cleanlist} ]]; then
+    msg "Clean up"
+    rm -f ${cleanlist}
+  fi
 
   step_time="$(( $(get_time) - $step_starttime ))"
   msg "\nstep $i done, needed $step_time secs"
