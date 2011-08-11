@@ -140,7 +140,8 @@ void Imc::EndEvaluate()
 {
     if(_nframes > 0) {
         if(!_do_blocks) {
-            WriteDist(_extension);
+	    string suffix = string(".") + _extension;
+            WriteDist(suffix);
             if(_do_imc)
                 WriteIMCData();
         }
