@@ -20,9 +20,20 @@ cat <<EOF
 ${0##*/}, version %version%
 This script is a wrapper to convert a potential to gromacs
 
-Usage: ${0##*/} [input] [output]
+Usage: ${0##*/} [--clean] input output
+
+Allowed options:
+    --help                    show this help
+    --clean                   remove all intermediate temp files
 EOF
   exit 0
+fi
+
+if [[ $1 = "--clean" ]]; then
+  clean="yes"
+  shift
+else
+  clean="no"
 fi
 
 if [[ -n $1 ]]; then
@@ -98,3 +109,4 @@ potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
 [[ -n ${potmax} ]] && potmax="--max ${potmax}"
 
 do_external convert_potential xvg ${potmax} --type "${tabtype}" "${tshift}" "${output}"
+[[ $clean = "yes" ]] && rm -f "${smooth}" "${extrapol}" "${tshift}" "${extrapol1}"
