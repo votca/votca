@@ -14,13 +14,13 @@ void Ecoulomb::Initialize(QMTopology *top, Property *options) {
                 _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
             } else {
                 //_epsilon_dielectric = 3.0;
-                std::runtime_error("Error in ecoulomb: dielectric constant is not provided");
+               throw std::runtime_error("Error in ecoulomb: dielectric constant is not provided");
             }
             if (options->exists("options.ecoulomb.screening")) {
                 _s_eps = options->get("options.ecoulomb.screening").as<double>();
             } else {
                 //_s_eps = 3.0;
-                std::runtime_error("Error in ecoulomb: screening length is not provided.");
+               throw std::runtime_error("Error in ecoulomb: screening length is not provided.");
             }
             cout << "Doing distance-dependent screening with eps " << _epsilon_dielectric << " and screening " << _s_eps << endl;
 	    _estatic_method = &Ecoulomb::dist_dep_eps;
@@ -30,7 +30,7 @@ void Ecoulomb::Initialize(QMTopology *top, Property *options) {
                  _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
              } else {
                   //_epsilon_dielectric = 3.0;
-                  std::runtime_error("Error in ecoulomb: dielectric constant is not provided.");
+                throw  std::runtime_error("Error in ecoulomb: dielectric constant is not provided.");
              }
              cout << "Doing simple estatic with constant epsilon = " << _epsilon_dielectric << endl;
 	     _estatic_method = &Ecoulomb::constant_epsilon;
