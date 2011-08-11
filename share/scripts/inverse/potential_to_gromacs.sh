@@ -109,4 +109,6 @@ potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
 [[ -n ${potmax} ]] && potmax="--max ${potmax}"
 
 do_external convert_potential xvg ${potmax} --type "${tabtype}" "${tshift}" "${output}"
-[[ $clean = "yes" ]] && rm -f "${smooth}" "${extrapol}" "${tshift}" "${extrapol1}"
+if [[ $clean = "yes" ]]; then
+  rm -f "${smooth}" "${extrapol}" "${tshift}" "${extrapol1}"
+fi
