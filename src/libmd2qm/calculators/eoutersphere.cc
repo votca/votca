@@ -26,7 +26,7 @@ void Eoutersphere::Initialize(QMTopology *top, Property *options) {
         } else {
             //_lambda_const = 0.0;
             //cout << "Warning: no lambdaconst defined in options file, using outer sphere lambda = 0." << endl;
-            std::runtime_error("Error in eoutersphere: method lambdaconst was chosen but no lambdaconst provided");
+           throw std::runtime_error("Error in eoutersphere: method lambdaconst was chosen but no lambdaconst provided");
         }
     } else if (options->get("options.lambdaout.method").as<string > () == "spheres") {
         //_method = &CalcLambdaOut::spheres_lambda;
