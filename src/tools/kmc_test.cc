@@ -143,7 +143,7 @@ void KMCApplication::RunKMC(void)
 {
 	double t = 0;
 	current=_injection[Random::rand_uniform_int(_injection.size())];
-        cout <<"starting simulation at node:"<<current->_id<<endl;
+        cout <<"starting simulation at node: "<<current->_id-1<<endl;
 	double next_output = _dt;
     int i=0;
     while(t<_runtime) {
