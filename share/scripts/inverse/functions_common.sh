@@ -189,17 +189,22 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     allow_empty="no"
   fi
   [[ -n $1 ]] || die "csg_get_interaction_property: Missing argument"
-  [[ -n $bondtype ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
-  
-  #bondtype is special -> dirty hack - removed whenever issue 13 is fixed
-  #make these this case work even without name (called by csg_call)
-  [[ $1 = "bondtype" ]] && echo "$bondtype" && return 0
 
-  [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
-  #make these this case work even without xml file (called by csg_call)
-  [[ $1 = "name" ]] && echo "$bondname" && return 0
+  #make these this case work even without name or type (called by csg_call)
+  if [[ $1 = "name" ]]; then
+    [[ -n $bondname ]] && echo "$bondname" && return 0
+    die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
+  fi
+  if [[ $1 = "bondtype" ]]; then
+    #bondtype is special -> dirty hack - removed whenever issue 13 is fixed
+    [[ -n $bondtype ]] && echo "$bondtype" && return 0
+    die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
+  fi
 
   [[ -n $CSGXMLFILE ]] || die "csg_get_interaction_property: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n $bondtype ]] || die "csg_get_interaction_property: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
+  [[ -n $bondname ]] || die "csg_get_interaction_property: bondname is undefined (when calling from csg_call set it by --ia-name option)"
+
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_interaction_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
