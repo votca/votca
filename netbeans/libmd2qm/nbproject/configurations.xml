@@ -14,7 +14,9 @@
       <itemPath>../../src/libmd2qm/calculators/eoutersphere.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/ihistogram.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/izindo.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/oboltzmann.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/pairdump.h</itemPath>
+      <itemPath>../../src/libmd2qm/calculators/rates.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/sqlitewriter.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/tdump.h</itemPath>
       <itemPath>../../src/libmd2qm/calculators/writexml.h</itemPath>

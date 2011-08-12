@@ -27,7 +27,8 @@ private:
 
 inline void Oboltzmann::Initialize(QMTopology *top, Property *options)
 {
-    _kT = options->get("options.calc_rates.thermal_energy").as<double>();
+     double temp= options->get("options.calc_rates.temperature").as<double>();
+    _kT=temp*8.6173324e-5;
 }
 
 inline bool Oboltzmann::EvaluateFrame(QMTopology *top)

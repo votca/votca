@@ -190,6 +190,11 @@
 </item>
 
 <item>
+<name>rates.temperature</name>
+<desc>Temperature for rates given in Kelvin</desc>
+</item>
+
+<item>
 <name>rates.method</name>
 <desc>Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second fallows the derivation by Jortner and Bixon</desc>
 </item>
