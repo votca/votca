@@ -42,22 +42,20 @@
   <item><name>cg.inverse.gromacs.grompp.topol</name><desc> Text Gromacs toplogy file to use, default topol.top</desc></item>
   <item><name>cg.inverse.gromacs.grompp.bin</name><desc> Name (or absolute path) of the grompp binary</desc></item>
   <item><name>cg.inverse.gromacs.grompp.opts</name><desc> Additional options to Gromacs grompp (e.g. -maxwarn 1)</desc></item>
-  <item><name>cg.inverse.gromacs.g_rdf.index</name><desc> Gromacs g_rdf index file to use, default index.ndx</desc></item>
-  <item><name>cg.inverse.gromacs.g_rdf.topol</name><desc> Gromacs g_rdf topol file to use, default topol.tpr</desc></item>
-  <item><name>cg.inverse.gromacs.g_rdf.bin</name><desc> Name (or absolute path) of the g_rdf binary</desc></item>
-  <item><name>cg.inverse.gromacs.g_rdf.opts</name><desc> Additional options for Gromacs g_rdf (e.g. -nopbc)</desc></item>
   <item><name>cg.inverse.gromacs.mdrun.command</name><desc>Command to run mdrun (name or absolute path or mpirun mdrun..)</desc></item>
   <item><name>cg.inverse.gromacs.mdrun.opts</name><desc> Additional options to Gromacs mdrun (e.g. -nosum)</desc></item>
   <item><name>cg.inverse.gromacs.mdrun.checkpoint</name><desc>Name of the checkpint to use in case of restarted simulation (default state.cpt)</desc></item>
-  <item><name>cg.inverse.gromacs.g_energy.topol</name><desc> Gromacs g_rdf topol file to use, default topol.tpr</desc></item>
+  <item><name>cg.inverse.gromacs.g_energy.topol</name><desc> Gromacs g_energy topol file to use, default topol.tpr</desc></item>
   <item><name>cg.inverse.gromacs.g_energy.bin</name><desc> Name (or absolute path) of the g_energy binary</desc></item>
-  <item><name>cg.inverse.gromacs.g_energy.opts</name><desc> Additional options to Gromacs g_rdf (e.g. -P 1)</desc></item>
+  <item><name>cg.inverse.gromacs.g_energy.opts</name><desc> Additional options to Gromacs g_energy (e.g. -P 1)</desc></item>
   <item><name>cg.inverse.gromacs.table_bins</name><desc> grid for table*.xvg !</desc></item>
   <item><name>cg.inverse.gromacs.pot_max</name><desc> cut the potential at this value (gromacs bug) </desc></item>
   <item><name>cg.inverse.gromacs.table_end</name><desc> extend the tables to this value </desc></item>
   <item><name>cg.inverse.gromacs.cutoff_check</name><desc> check interaction cutoffs against rvdw in mdp file: yes/no (default yes)</desc></item>
   <item><name>cg.inverse.gromacs.temp_check</name><desc> check temperture against t_ref in mdp file: yes/no (default yes)</desc></item>
   <item><name>cg.inverse.gromacs.rdf.topol</name><desc> Gromacs topol file to be used for csg_stat default topol.tpr</desc></item>
+  <item><name>cg.inverse.gromacs.rdf.with_errors</name><desc> Also calculate error on the rdf</desc></item>
+  <item><name>cg.inverse.gromacs.rdf.block_length</name><desc> Length of the block for the error analysis</desc></item>
   <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso (default conf.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.blockfile_out</name><desc>Name of the original outcome blockfile written by Espresso (default confout.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.command</name><desc>Command to run espresso (name or absolute path or mpirun espresso..)</desc></item>
