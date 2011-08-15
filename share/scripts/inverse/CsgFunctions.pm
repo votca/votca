@@ -78,6 +78,8 @@ sub csg_get_interaction_property($;$){
 sub readin_table($\@\@\@;\$) {
   defined($_[3]) || die "readin_table: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table: could not open file $_[0]\n";
+  my $sloppy= $ENV{'VOTCA_TABLES_WITHOUT_FLAG'};
+  $sloppy="no" unless defined($sloppy);
   my $line=0;
   while (<TAB>){
     $line++;
@@ -87,8 +89,13 @@ sub readin_table($\@\@\@;\$) {
     $_ =~ s/^\s*//;
     next if /^\s*$/;
     my @parts=split(/\s+/);
-    defined($parts[2]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
-    ($parts[$#parts] =~ /[iou]/) || die "readin_table: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0]\n";
+    if ( $sloppy eq "yes" ) {
+      defined($parts[1]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
+      $parts[$#parts+1] = "i";
+    } else {
+      defined($parts[2]) || die "readin_table: Not enought columns in line $line in file $_[0], if you don't have flags in your table add --sloppy-tables option to csg_call\n";
+      ($parts[$#parts] =~ /[iou]/) || die "readin_table: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0], if you don't have flags in your table add --sloppy-tables option to csg_call\n";
+    }
     #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
     push(@{$_[1]},$parts[0]);
     push(@{$_[2]},$parts[1]);
@@ -101,6 +108,8 @@ sub readin_table($\@\@\@;\$) {
 sub readin_table_err($\@\@\@\@;\$) {
   defined($_[4]) || die "readin_table_err: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table_err: could not open file $_[0]\n";
+  my $sloppy= $ENV{'VOTCA_TABLES_WITHOUT_FLAG'};
+  $sloppy="no" unless defined($sloppy);
   my $line=0;
   while (<TAB>){
     $line++;
@@ -110,8 +119,13 @@ sub readin_table_err($\@\@\@\@;\$) {
     next if /^[#@]/;
     next if /^\s*$/;
     my @parts=split(/\s+/);
-    defined($parts[3]) || die "readin_table_err: Not enought columns in line $line in file $_[0]\n";
-    ($parts[$#parts] =~ /[iou]/) || die "readin_table_err: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0]\n";
+    if ( $sloppy eq "yes" ) {
+      defined($parts[2]) || die "readin_table_err: Not enought columns in line $line in file $_[0]\n";
+      $parts[$#parts+1] = "i";
+    }else{
+      defined($parts[3]) || die "readin_table_err: Not enought columns in line $line in file $_[0], if you don't have flags in your table add --sloppy-tables option to csg_call\n";
+      ($parts[$#parts] =~ /[iou]/) || die "readin_table_err: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0], if you don't have flags in your table add --sloppy-tables option to csg_call\n";
+    }
     #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
     push(@{$_[1]},$parts[0]);
     push(@{$_[2]},$parts[1]);
