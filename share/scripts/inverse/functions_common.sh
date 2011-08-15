@@ -70,9 +70,9 @@ export -f msg
 
 unset -f die
 die () { #make the iterative frame work stopp
-  local pid pids c
-  msg --color red --to-stderr "$(csg_banner "ERROR:" "$@")"
-  [[ -z $CSGLOG ]] || msg --color blue "For details see $CSGLOG"
+  local pid pids c place
+  [[ -z $CSGLOG ]] && place="Details can be found above" || place="For details see the logfile $CSGLOG"
+  msg --color red --to-stderr "$(csg_banner "ERROR:" "$@" "$place")"
   if [[ -n ${CSG_MASTER_PID} ]]; then
     #grabbing the pid group would be easier, but it would not work on AIX
     pid="$$"
