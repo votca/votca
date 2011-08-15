@@ -5,5 +5,6 @@ List of programs:
 radii: calculate gyration radius + hydrodynamik radius of a molecule or a set of molecules
 sphericalorder: calculates a spherical order parameter i.e. the distribution of e_r*u where e_r is the unit vector from a refernce molecule to the solvent molecules and u is the principle axis of inertia of the solvent molecule
 fluctuations: calculate the number density fluctuations in subvolumes. Subvolumes are either cubic slabs along one of the sim box axis or speherical subvolumes around a solute
-ocor: calculates the distance dependent orientational correlation function of a polymer melt
+orientcorr: calculates the distance dependent orientational correlation function of a polymer melt
+part_dist: outputs the time-averaged number of particles, listed by particle types (was a part of csg before)
 
