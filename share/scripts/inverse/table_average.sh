@@ -25,9 +25,8 @@ Usage: ${0##*/} table1 table2 table3 ....
 Allowed options:
 -h, --help                    show this help
 -o, --output NANE             output file name
-                              Default: stdout
-    --skip NUM                Stride between the data columns
-                              Default: $skip
+    --cols NUM                Number of columns per file
+                              Default: $cols
     --col-y NUM               y-data column
                               Default: $coly
     --col-x NUM               x-data column
@@ -42,7 +41,7 @@ EOF
 
 #default
 out=""
-skip=3
+cols=3
 colx=1
 coly=2
 clean="no"
@@ -51,7 +50,7 @@ shopt -s extglob
 while [[ ${1#-} != $1 ]]; do
  if [[ ${1#--} = $1 && -n ${1:2} ]]; then
     #short opt with arguments here: o
-    if [[ ${1#-[fc]} != ${1} ]]; then
+    if [[ ${1#-[o]} != ${1} ]]; then
        set -- "${1:0:2}" "${1:2}" "${@:2}"
     else
        set -- "${1:0:2}" "-${1:2}" "${@:2}"
@@ -61,9 +60,9 @@ while [[ ${1#-} != $1 ]]; do
    -o | --output)
     out="$2"
     shift 2;;
-   --skip)
-    is_int "$2" || die "${0##*/}: argument after --skip should be an integer"
-    skip="$2"
+   --cols)
+    is_int "$2" || die "${0##*/}: argument after --cols should be an integer"
+    cols="$2"
     shift 2;;
    --col-x)
     is_int "$2" || die "${0##*/}: argument after --col-x should be an integer"
@@ -102,7 +101,7 @@ for f in "$@"; do
 done
 t=$(critical mktemp "table_all.XXXX")
 paste "${tables[@]}" > "${t}"
-awk -v c1="$colx" -v c2="$coly" -v s="$skip" '
+awk -v c1="$colx" -v c2="$coly" -v s="$cols" '
 func isnum(x){return(x==x+0)}
 {
   sum=0;
@@ -114,12 +113,13 @@ func isnum(x){return(x==x+0)}
     c++;
     if ($(c1) != $(c1+i)) {
       print "x-value missmatch",$(c1),"vs. ", $(c1+i), " in line",NR > /dev/stderr;
+      exit 1;
     }
   }
   flag="u"
   if (isnum(sum)&&isnum(sum2)) { flag="i" }
   print $1,sum/c,sqrt((sum2-sum*sum/c)/(c*(c-1))),flag;
-}' $t > $out
+}' $t > $out || die "${0##*/}: averaging with awk failed"
 
 if [[ $clean = "yes" ]]; then
   rm -f "${tables[@]}" "$t"
