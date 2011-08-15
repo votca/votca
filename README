@@ -7,4 +7,5 @@ sphericalorder: calculates a spherical order parameter i.e. the distribution of 
 fluctuations: calculate the number density fluctuations in subvolumes. Subvolumes are either cubic slabs along one of the sim box axis or speherical subvolumes around a solute
 orientcorr: calculates the distance dependent orientational correlation function of a polymer melt
 part_dist: outputs the time-averaged number of particles, listed by particle types (was a part of csg before)
+partial_rdf: calculates the rdf in a spherical subvolume 
 
