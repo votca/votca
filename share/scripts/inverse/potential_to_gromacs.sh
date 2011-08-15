@@ -15,26 +15,49 @@
 # limitations under the License.
 #
 
-if [[ $1 = "--help" ]]; then
-cat <<EOF
+show_help () {
+  cat <<EOF
 ${0##*/}, version %version%
 This script is a wrapper to convert a potential to gromacs
 
-Usage: ${0##*/} [--clean] input output
+Usage: ${0##*/} [options] input output
 
 Allowed options:
     --help                    show this help
     --clean                   remove all intermediate temp files
+    --no-shift                do not shift the potential
 EOF
-  exit 0
-fi
+}
 
-if [[ $1 = "--clean" ]]; then
-  clean="yes"
-  shift
-else
-  clean="no"
-fi
+clean="no"
+do_shift="yes"
+
+### begin parsing options
+shopt -s extglob
+while [[ ${1#-} != $1 ]]; do
+ if [[ ${1#--} = $1 && -n ${1:2} ]]; then
+    #short opt with arguments here: o
+    if [[ ${1#-[o]} != ${1} ]]; then
+       set -- "${1:0:2}" "${1:2}" "${@:2}"
+    else
+       set -- "${1:0:2}" "-${1:2}" "${@:2}"
+    fi
+ fi
+ case $1 in
+   --clean)
+    clean="yes"
+    shift ;;
+   --no-shift)
+    do_shift="no"
+    shift ;;
+   -h | --help)
+    show_help
+    exit 0;;
+  *)
+   die "Unknown option '$1'";;
+ esac
+done
+### end parsing options
 
 if [[ -n $1 ]]; then
   name="${1%%.*}"
@@ -89,20 +112,27 @@ comment="$(get_table_comment $input)"
 
 smooth="$(critical mktemp ${name}.pot.smooth.XXXXX)"
 critical csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
-extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
 
-tshift="$(critical mktemp ${name}.pot.shift.XXXXX)"
+extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
 if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
   extrapol1="$(critical mktemp ${name}.pot.extrapol2.XXXXX)"
   do_external table extrapolate --function exponential --avgpoints 5 --region left "${smooth}" "${extrapol1}"
   do_external table extrapolate --function constant --avgpoints 1 --region right "${extrapol1}" "${extrapol}"
-  do_external pot shift_nonbonded "${extrapol}" "${tshift}"
 elif [[ $tabtype = "thermforce" ]]; then
   do_external table extrapolate --function constant --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
-  do_external pot shift_bonded "${extrapol}" "${tshift}"
 else
   do_external table extrapolate --function exponential --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
-  do_external pot shift_bonded "${extrapol}" "${tshift}"
+fi
+
+if [[ $do_shift = "yes" ]]; then
+  tshift="$(critical mktemp ${name}.pot.shift.XXXXX)"
+  if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" || $tabtype = "thermforce" ]]; then
+    do_external pot shift_nonbonded "${extrapol}" "${tshift}"
+  else
+    do_external pot shift_bonded "${extrapol}" "${tshift}"
+  fi
+else
+  tshift="$extrapol"
 fi
 
 potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
