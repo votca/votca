@@ -42,7 +42,7 @@ ${0##*/}, version ${version}
 
 This script calls scripts for the iterative framework
 
-Usage: ${0##*/} [OPTIONS] key1 key2
+Usage: ${0##*/} [OPTIONS] key1 key2 [SCRIPT OPTIONS]
 
 Allowed options:
 -l, --list           Show list of all script
@@ -187,8 +187,9 @@ cat <<EOF
 please submit bugs to bugs@votca.org
 
 EOF
-  do_external -q $1 $2 --help | sed "s/%version%/${version}/"
-  exit 0
+  scriptname=$(source_wrapper $1 $2)
+  do_external -q $1 $2 --help | sed -e "s/%version%/${version}/" -e "/^Usage/s@${scriptname##*/}@${0##*/} [OPTIONS] $1 $2@g"
+  exit $?
 fi
 
 [[ -n ${log} ]] && enable_logging "$log"
