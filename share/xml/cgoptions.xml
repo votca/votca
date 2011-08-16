@@ -56,6 +56,8 @@
   <item><name>cg.inverse.gromacs.rdf.topol</name><desc> Gromacs topol file to be used for csg_stat default topol.tpr</desc></item>
   <item><name>cg.inverse.gromacs.rdf.with_errors</name><desc> Also calculate error on the rdf</desc></item>
   <item><name>cg.inverse.gromacs.rdf.block_length</name><desc> Length of the block for the error analysis</desc></item>
+  <item><name>cg.inverse.gromacs.density.with_errors</name><desc> Also calculate error on the density</desc></item>
+  <item><name>cg.inverse.gromacs.density.block_length</name><desc> Length of the block for the error analysis</desc></item>
   <item><name>cg.inverse.espresso.blockfile</name><desc>Name of the original blockfile read by Espresso (default conf.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.blockfile_out</name><desc>Name of the original outcome blockfile written by Espresso (default confout.esp.gz)</desc></item>
   <item><name>cg.inverse.espresso.command</name><desc>Command to run espresso (name or absolute path or mpirun espresso..)</desc></item>

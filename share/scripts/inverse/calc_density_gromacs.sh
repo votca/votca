@@ -58,11 +58,32 @@ else
   axis="x"
 fi
 
-msg "Calculating density for $name (molname $mol) on axis $axis"
-if is_done "density_analysis-$name"; then
-  echo "density analysis is already done"
+with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
+if [[ ${with_errors} = "yes" ]]; then
+  error_opts="--block-length ${block_length}"
+  suffix="_with_errors"
+  output="$name.dist.block"
 else
+  suffix=""
+  output="$name.dist.new"
+fi
+
+if is_done "${name}_density_analysis${suffix}"; then
+  echo "density analysis is already done"
+  exit 0
+fi
+
+with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
+if [[ ${with_errors} = "yes" ]]; then
+  msg "Calculating density for $name (molname $mol) on axis $axis with errors"
+  block_length=$(csg_get_property cg.inverse.gromacs.density.block_length)
+  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.block" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" --block-length $block_length $opts
+  #mind the --clean option to avoid ${name}.dist.block_* to fail on the second run
+  do_external table average --clean --output ${name}.dist.new ${name}.dist.block_*
+else
+  msg "Calculating density for $name (molname $mol) on axis $axis"
   critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" $opts
   critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
-  mark_done "density_analysis-$name"
 fi
+mark_done "${name}_density_analysis"
+
