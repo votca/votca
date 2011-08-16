@@ -56,8 +56,7 @@ public:
     /// end coarse graining a trajectory
     void EndEvaluate();
     
-    void WriteEvery(int write_every) { _write_every = write_every; }
-    void DoBlocks(bool do_blocks) { _do_blocks = do_blocks; }
+    void BlockLength(int length) { _block_length = length; }
     void DoImc(bool do_imc) { _do_imc = do_imc; }
     void Extension(string ext) { _extension = ext; }
     
@@ -97,14 +96,12 @@ protected:
     
     /// the options parsed from cg definition file
     Property _options;
-    // we want to write out every so many frames
-    int _write_every;
-    // we want do do block averaging -> clear averagings every write out
-    bool _do_blocks;
+    // length of the block to write out and averages are clear after every write
+    int _block_length;
     // calculate the inverse monte carlos parameters (cross correlations)
     bool _do_imc;
 
-    // extension fro the distributions
+    // file extension for the distributions
     string _extension;
 
     // number of frames we processed

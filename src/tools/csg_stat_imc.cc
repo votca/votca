@@ -28,7 +28,7 @@
 namespace votca { namespace csg {
 
 Imc::Imc()
-   : _write_every(0), _do_blocks(false), _do_imc(false), _processed_some_frames(false)
+   : _block_length(0), _do_imc(false), _processed_some_frames(false)
 {
 }
 
@@ -139,7 +139,7 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
 void Imc::EndEvaluate()
 {
     if(_nframes > 0) {
-        if(!_do_blocks) {
+        if(_block_length == 0) {
 	    string suffix = string(".") + _extension;
             WriteDist(suffix);
             if(_do_imc)
@@ -649,15 +649,14 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
     if(_do_imc)
         DoCorrelations(worker);
 
-    if(_write_every != 0) {
-        if((_nframes % _write_every)==0) {
+    if(_block_length != 0) {
+        if((_nframes % _block_length)==0) {
             _nblock++;
             string suffix = string("_") + boost::lexical_cast<string>(_nblock) + string(".") + _extension;
             WriteDist(suffix);
             WriteIMCData(suffix);
             WriteIMCBlock(suffix);
-            if(_do_blocks)
-                ClearAverages();
+            ClearAverages();
         }
     }
 

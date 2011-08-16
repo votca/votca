@@ -46,7 +46,7 @@ with_errors=$(csg_get_property cg.inverse.gromacs.rdf.with_errors "no")
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
   block_length=$(csg_get_property cg.inverse.gromacs.rdf.block_length)
-  error_opts="--do-blocks --write-every ${block_length} --ext dist.block"
+  error_opts="--block-length ${block_length} --ext dist.block"
 else
   suffix=""
 fi

@@ -31,8 +31,6 @@ class CsgStatApp
     : public CsgApplication
 {
 public:
-    CsgStatApp() : _write_every(0) {}
-    
     string ProgramName() { return "csg_stat"; }
     void HelpText(ostream &out);
 
@@ -57,7 +55,7 @@ public:
 
 public:
     Imc _imc;
-    int _write_every;
+    int _block_length;
     string _extension;
 };
 
@@ -74,10 +72,8 @@ void CsgStatApp::Initialize()
     CsgApplication::Initialize();
     AddProgramOptions("Specific options")
             ("options", boost::program_options::value<string>(), "  options file for coarse graining")
-            ("do-imc", "  write out Inverse Monte Carlo data")
-            ("write-every", boost::program_options::value<int>(&_write_every), "  write after every block of this length, " \
-                "if --blocking   is set, the averages are cleared after every output")
-            ("do-blocks", "  write output for blocking analysis")
+            ("do-imc", "  write out additional Inverse Monte Carlo data")
+            ("block-length", boost::program_options::value<int>(), "  write blocks of this length, the averages are cleared after every write")
             ("ext", boost::program_options::value<string>(&_extension)->default_value("dist.new"), "Extension of the output");
 }
 
@@ -89,9 +85,12 @@ bool CsgStatApp::EvaluateOptions()
     
     _imc.LoadOptions(OptionsMap()["options"].as<string>());
 
-    _imc.WriteEvery(_write_every);
-    if(OptionsMap().count("do-blocks"))
-        _imc.DoBlocks(true);
+    if(OptionsMap().count("block-length")){
+       _imc.BlockLength(OptionsMap()["block-length"].as<int>());
+    } else {
+      _imc.BlockLength(0);
+    }
+
     if(OptionsMap().count("do-imc"))
     _imc.DoImc(true);
 
