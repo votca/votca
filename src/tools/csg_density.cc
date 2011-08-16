@@ -68,7 +68,7 @@ protected:
     string _axisname;
     string _molname;
     double _area;
-    void WriteDensity(const string &suffix="");
+    void WriteDensity(int nframes,const string &suffix="");
 };
 
 
@@ -166,7 +166,7 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref)
         if((_nframes % _block_length)==0) {
             _nblock++;
 	    string suffix = string("_") + boost::lexical_cast<string>(_nblock);
-	    WriteDensity(suffix);
+	    WriteDensity(_block_length,suffix);
 	    _dist.Clear();
 	}
     }
@@ -174,13 +174,13 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref)
 
 
 // output everything when processing frames is done
-void CsgDensityApp::WriteDensity(const string &suffix)
+void CsgDensityApp::WriteDensity(int nframes, const string &suffix)
 {
   if (_axisname=="r") {
-    _dist.data().y() = _scale/(_frames*_rmax/(double)_nbin *4*M_PI) * element_div( _dist.data().y(),
+    _dist.data().y() = _scale/(nframes*_rmax/(double)_nbin *4*M_PI) * element_div( _dist.data().y(),
                    element_prod(_dist.data().x(), _dist.data().x()));
   } else {
-    _dist.data().y() = _scale/((double)_frames * _area * _rmax/ (double)_nbin ) *_dist.data().y();
+    _dist.data().y() = _scale/((double)nframes * _area * _rmax/ (double)_nbin ) *_dist.data().y();
   }
   _dist.data().Save(_out + suffix);    
 }
@@ -188,7 +188,7 @@ void CsgDensityApp::WriteDensity(const string &suffix)
 void CsgDensityApp::EndEvaluate()
 {
   if(_block_length == 0) 
-    WriteDensity();
+    WriteDensity(_frames);
 }
 
 // add our user program options
