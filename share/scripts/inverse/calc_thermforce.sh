@@ -65,7 +65,7 @@ bigger="${name}.extended.dens"
 critical csg_resample --type cubic --in "$infile" --out "$bigger" --grid "$sp_min:$step:$sp_max" --comment "$comment"
 
 #calculate derivative of the density using csg_resample on a spline grid
-forcefile="tf_${name}"
+forcefile="${name}.tf"
 smooth="${name}.smooth.dens"
 critical csg_resample --type cubic --in "$bigger" --out "$smooth" --grid "$sp_min:$step:$sp_max" --derivative "$forcefile" --fitgrid "$sp_min:$sp_step:$sp_max" --comment "$comment"
 
