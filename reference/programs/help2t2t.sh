@@ -42,5 +42,5 @@ echo -e "$helpmsg" | sed \
    -e '/^\* /s/\( \{2\}\|$\)/`` /' \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
    -e 's/^\(Examples\|Usage\):/\n&/' \
-   -e 's/^\(Allowed\|Trajectory\|Specific\) options:/\n&/'
+   -e 's/^\(Threading\|Allowed\|Trajectory\|Specific\) options:/\n&/'
 
