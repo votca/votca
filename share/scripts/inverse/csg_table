@@ -116,7 +116,6 @@ imc purify imc_purify.sh
 update tf update_tf.sh
 update tf_single update_tf_single.sh
 calc thermforce calc_thermforce.sh
-tf apply_prefactor apply_prefactor.pl
 
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl
@@ -138,6 +137,7 @@ table getsubset table_getsubset.py
 table smooth_borders table_smooth_borders.py
 table compare table_compare.pl 
 table average table_average.sh
+table scal table_scale.pl
 
 # error analysis
 tables jackknife tables_jackknife.pl

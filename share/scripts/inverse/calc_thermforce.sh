@@ -71,13 +71,18 @@ critical csg_resample --type cubic --in "$bigger" --out "$smooth" --grid "$sp_mi
 
 #multiply the prefactor on
 prefactor="$(csg_get_interaction_property tf.prefactor)"
+forcefile_pref="${name}.tf_with_prefactor"
 cg_prefactor="$(csg_get_interaction_property --allow-empty tf.cg_prefactor)"
-[ -z "$cg_prefactor" ] && echo "Using fixed prefactor $prefactor" || echo "Using linear interpolation of prefactors. Ex. pref: $prefactor CG. pref : $cg_prefactor"
-forcefile_pref="tf_with_prefactor_${name}"
-do_external tf apply_prefactor $forcefile $forcefile_pref $prefactor $cg_prefactor
+if [[ -z $cg_prefactor ]]; then 
+  echo "Using fixed prefactor $prefactor" 
+  do_external table linop "$forcefile" "${forcefile_pref}" "${prefactor}" 0.0
+else
+  echo "Using linear interpolation of prefactors between $prefactor and $cg_prefactor"
+  do_external table scale "$forcefile" "$forcefile_pref" "$prefactor" "$cg_prefactor"
+fi
 
 #cut it down to the range min to max
-forcefile_smooth="tf_smooth_${name}"
+forcefile_smooth="${name}.tf_smooth"
 do_external table smooth_borders --infile "$forcefile_pref" --outfile "$forcefile_smooth" --xstart "$min" --xstop "$max"
 
 #integrate the force table
