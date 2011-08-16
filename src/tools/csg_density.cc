@@ -53,6 +53,7 @@ class CsgDensityApp
         return true;
     };
 
+
 protected:
     string _filter, _out;
     HistogramNew _dist;
@@ -60,12 +61,16 @@ protected:
     int _nbin;
     double _scale;
     int _frames;
+    int _nblock;
+    int _block_length;
     vec _ref;
     vec _axis;
     string _axisname;
     string _molname;
     double _area;
+    void WriteDensity(const string &suffix="");
 };
+
 
 int main(int argc, char** argv)
 {
@@ -107,6 +112,13 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
 
     if(OptionsMap().count("rmax"))
       _rmax = OptionsMap()["rmax"].as<double>();
+    
+    if(OptionsMap().count("block-length")){
+       _block_length=OptionsMap()["block-length"].as<int>();
+    } else {
+      _block_length=0;
+    }
+
 
     if (_axisname=="r") {
       if(!OptionsMap().count("ref"))
@@ -122,7 +134,7 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
     cout << "axis: " << _axisname << endl;
     cout << "Bins: " << _nbin << endl;
     _frames=0;
-
+    _nblock=0;
 }  
 
 void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref)
@@ -150,11 +162,19 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref)
     }
     _frames++;
     if (!did_something) throw std::runtime_error("No molecule in selection");
+    if(_block_length != 0) {
+        if((_nframes % _block_length)==0) {
+            _nblock++;
+	    string suffix = string("_") + boost::lexical_cast<string>(_nblock);
+	    WriteDensity(suffix);
+	    _dist.Clear();
+	}
+    }
 }
 
 
 // output everything when processing frames is done
-void CsgDensityApp::EndEvaluate()
+void CsgDensityApp::WriteDensity(const string &suffix)
 {
   if (_axisname=="r") {
     _dist.data().y() = _scale/(_frames*_rmax/(double)_nbin *4*M_PI) * element_div( _dist.data().y(),
@@ -162,7 +182,13 @@ void CsgDensityApp::EndEvaluate()
   } else {
     _dist.data().y() = _scale/((double)_frames * _area * _rmax/ (double)_nbin ) *_dist.data().y();
   }
-  _dist.data().Save(_out);    
+  _dist.data().Save(_out + suffix);    
+}
+
+void CsgDensityApp::EndEvaluate()
+{
+  if(_block_length == 0) 
+    WriteDensity();
 }
 
 // add our user program options
@@ -173,6 +199,7 @@ void CsgDensityApp::Initialize()
     AddProgramOptions("Specific options:")
              ("axis", boost::program_options::value<string>(&_axisname)->default_value("r"), "[x|y|z|r] density axis (r=spherical)")
              ("bins", boost::program_options::value<int>(&_nbin)->default_value(50), "bins")
+             ("block-length", boost::program_options::value<int>(), "  write blocks of this length, the averages are cleared after every write")
              ("out", boost::program_options::value<string>(&_out), "Output file")
              ("rmax", boost::program_options::value<double>(), "rmax (default for [r] =min of all box vectors/2, else l )")
              ("scale", boost::program_options::value<double>(&_scale)->default_value(1.0), "scale factor for the density")
