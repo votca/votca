@@ -160,16 +160,16 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)
     for(iter=cell._beads.begin(); iter!=cell._beads.end(); ++iter) {
 
         vec v = (*iter)->getPos();
-        vec r = _top->BCShortestConnection(u, v);
+        vec r = _top->BCShortestConnection(v, u);
         double d = abs(r);
         if(d < _cutoff){
         if(_do_exclusions)
-            if(_top->getExclusions().IsExcluded(bead->getId(), (*iter)->getId())) {
+            if(_top->getExclusions().IsExcluded((*iter)->getId(), bead->getId())) {
                 continue;
             }
-            if((*_match_function)(bead, *iter, r, d))
-               if(!FindPair(bead, *iter))
-                    AddPair(_pair_creator(bead, *iter, r));
+            if((*_match_function)(*iter, bead, r, d))
+               if(!FindPair(*iter, bead))
+                    AddPair(_pair_creator(*iter, bead, r));
         }
     }
 }
