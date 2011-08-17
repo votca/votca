@@ -118,10 +118,6 @@ void NBListGrid::InitializeGrid(const matrix &box)
                             );
                         }
             }
-            
-    for(int i=0; i<_grid.size(); ++i) {
-      if(_grid[i]._neighbours.size() != 26) cout << i << " " << _grid[i]._neighbours.size() <<  " " << endl;
-    }
 }
 
 NBListGrid::cell_t &NBListGrid::getCell(const vec &r)
