@@ -118,18 +118,23 @@ void NBListGrid::InitializeGrid(const matrix &box)
                             );
                         }
             }
+            
+    for(int i=0; i<_grid.size(); ++i) {
+      if(_grid[i]._neighbours.size() != 26) cout << i << " " << _grid[i]._neighbours.size() <<  " " << endl;
+    }
 }
 
 NBListGrid::cell_t &NBListGrid::getCell(const vec &r)
 {
-    int a = (int)(r*_norm_a);
-    int b = (int)(r*_norm_b);
-    int c = (int)(r*_norm_c);
+    int a = (int)floor(r*_norm_a);
+    int b = (int)floor(r*_norm_b);
+    int c = (int)floor(r*_norm_c);
 
     if(a<0) a = _box_Na + a%_box_Na;
     a %= _box_Na;
 
-    if(b<0) b = _box_Nb + b%_box_Nb;
+    if(b<0)
+      b = _box_Nb + b%_box_Nb;
     b %= _box_Nb;
 
     if(c<0) c = _box_Nc + c%_box_Nc;
