@@ -55,6 +55,15 @@ critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${gr
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command "mdrun")"
 #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
 
+ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+if [[ $ext == "xtc" ]]; then
+  [[ $(get_simulation_setting nstxtcout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj_type) is $ext, but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
+elif [[ $ext == "trr" ]]; then
+  [[ $(get_simulation_setting nstxout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj_type) is $ext, but nstxout is 0 in $mdp. Please check the setting again and remove the current step."
+else
+  die "functions_gromacs: error trajectory type $ext is not supported"
+fi
+
 if [ -n "$CSGENDING" ]; then
   #seconds left for the run
   wall_h=$(( $CSGENDING - $(get_time) ))
