@@ -55,6 +55,7 @@ while [[ ${1#-} != $1 ]]; do
     shift ;;
    --type)
     pot_type="$2"
+    shift 2;;
   --avg-point)
     avg_points=$2;
     is_int "$2" || die "${0##*/}: argument of --avg-point should be int"
@@ -76,19 +77,19 @@ done
 input="$1"
 [[ -f $input ]] || die "${0##*/}: Could not find input file '$input'"
 
-output="$1"
+output="$2"
 
 echo "Extrapolate $input to $output"
 
 extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
 if [[ $pot_type = "non-bonded"  ]]; then
   intermediate="$(critical mktemp ${input}.onlyleft.XXXXX)"
-  do_external table outputate --function exponential --avgpoints $avg_points --region left "${input}" "${intermediate}"
-  do_external table outputate --function constant --avgpoints 1 --region right "${intermediate}" "${output}"
+  do_external table extrapolate --function exponential --avgpoints $avg_points --region left "${input}" "${intermediate}"
+  do_external table extrapolate --function constant --avgpoints 1 --region right "${intermediate}" "${output}"
 elif [[ $pot_type = "thermforce" ]]; then
-  do_external table outputate --function constant --avgpoints $avg_points --region leftright "${input}" "${output}"
+  do_external table extrapolate --function constant --avgpoints $avg_points --region leftright "${input}" "${output}"
 elif [[ $pot_type = "bonded"  || $pot_type = "angle" || $pot_type = "dihedral" ]]; then
-  do_external table outputate --function exponential --avgpoints $avg_points --region leftright "${input}" "${output}"
+  do_external table extrapolate --function exponential --avgpoints $avg_points --region leftright "${input}" "${output}"
 else
   [[ -n ${pot_types//* $pot_type *} ]] && die "${0##*/}: given potential type is not in list${pot_types}"
 fi
