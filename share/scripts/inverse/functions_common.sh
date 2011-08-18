@@ -237,7 +237,8 @@ csg_get_property () { #get an property from the xml file
   [[ -n "$(type -p csg_property)" ]] || die "csg_get_property: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
-  ret="$(critical $cmd)"
+  #leave the -q here to avoid flooding with messages
+  ret="$(critical -q $cmd)"
   ret="${ret%%[[:space:]]}"
   ret="${ret##[[:space:]]}"
   [[ -z $ret && -n $2 ]] && ret="$2"
