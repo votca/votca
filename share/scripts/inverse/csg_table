@@ -139,6 +139,7 @@ table smooth_borders table_smooth_borders.py
 table compare table_compare.pl 
 table average table_average.sh
 table scale table_scale.pl
+table change_flag table_change_flag.sh
 
 # generic potential manipulation
 potential extrapolate potential_extrapolate.sh
