@@ -64,7 +64,8 @@ my @dpot;
 my @flag;
 my $value=0.0;
 
-for (my $i=0;$i<=$#r_aim;$i++){
+#start from the end to make the begining have the last value
+for (my $i=$#r_aim;$i>=0;$i--){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
     $dpot[$i]=log($rdf_cur[$i]/$rdf_aim[$i])*$pref;
     $flag[$i]="i";
