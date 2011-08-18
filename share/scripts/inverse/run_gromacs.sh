@@ -73,7 +73,7 @@ if [ -n "$CSGENDING" ]; then
   checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
   mdrun_opts="-cpi $checkpoint -maxh $wall_h ${mdrun_opts}"
 else
-  echo "${0##*/}: No walltime defined, so time limitation given to $mdrun"
+  echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
 fi
 
 critical $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}

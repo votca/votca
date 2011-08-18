@@ -78,12 +78,16 @@ fi
 
 echo "Convert $input to $output"
 
-zero=0
-tabtype="$(csg_get_interaction_property bondtype)"
-#do this with --allow-empty to avoid stoping if calling from csg_call
-[[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]] && tabtype="thermforce"
 
-if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
+#special if calling from csg_call
+xvgtype="$(csg_get_interaction_property bondtype)"
+#do this with --allow-empty to avoid stoping if calling from csg_call
+[[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]] && xvgtype="thermforce"
+[[ $xvgtype = "C6" || $xvgtype = "C12" || $xvgtype = "CB" ]] && tabtype="non-bonded" || tabtype="$xvgtype"
+
+
+zero=0
+if [[ $tabtype = "non-bonded" ]]; then
   tablend="$(csg_get_property --allow-empty cg.inverse.gromacs.table_end)"
   mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
   if [[ -f ${mdp} ]]; then
@@ -105,6 +109,8 @@ elif [[ $tabtype = "angle" ]]; then
 elif [[ $tabtype = "dihedral" ]]; then
   zero="-180"
   tablend=180
+else
+  die "${0##*/}: Unknown interaction type $tabtype"
 fi
 
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
@@ -114,19 +120,11 @@ smooth="$(critical mktemp ${name}.pot.smooth.XXXXX)"
 critical csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 
 extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
-if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
-  extrapol1="$(critical mktemp ${name}.pot.extrapol2.XXXXX)"
-  do_external table extrapolate --function exponential --avgpoints 5 --region left "${smooth}" "${extrapol1}"
-  do_external table extrapolate --function constant --avgpoints 1 --region right "${extrapol1}" "${extrapol}"
-elif [[ $tabtype = "thermforce" ]]; then
-  do_external table extrapolate --function constant --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
-else
-  do_external table extrapolate --function exponential --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
-fi
+do_external potential extrapolate --type "$tabtype" "${smooth}" "${extrapol}"
 
 if [[ $do_shift = "yes" ]]; then
   tshift="$(critical mktemp ${name}.pot.shift.XXXXX)"
-  if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" || $tabtype = "thermforce" ]]; then
+  if [[ $tabtype = "non-bonded" || $tabtype = "thermforce" ]]; then
     do_external pot shift_nonbonded "${extrapol}" "${tshift}"
   else
     do_external pot shift_bonded "${extrapol}" "${tshift}"
@@ -138,7 +136,7 @@ fi
 potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
 [[ -n ${potmax} ]] && potmax="--max ${potmax}"
 
-do_external convert_potential xvg ${potmax} --type "${tabtype}" "${tshift}" "${output}"
+do_external convert_potential xvg ${potmax} --type "${xvgtype}" "${tshift}" "${output}"
 if [[ $clean = "yes" ]]; then
   rm -f "${smooth}" "${extrapol}" "${tshift}" "${extrapol1}"
 fi

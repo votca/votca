@@ -35,8 +35,8 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
    echo "Update potential ${name} : yes"
    #update ibi
    do_external resample target
-   do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.tmp
-   do_external dpot shift_nonbonded ${name}.dpot.tmp ${name}.dpot.new
+   do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_ibi
+   do_external dpot shift_nonbonded ${name}.dpot.pure_ibi ${name}.dpot.new
 else
    echo "Update potential ${name} : no"
    min=$(csg_get_interaction_property min)

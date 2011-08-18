@@ -102,6 +102,7 @@ sub readin_table($\@\@\@;\$) {
     push(@{$_[3]},$parts[$#parts]);
   }
   close(TAB) || die "readin_table: could not close file $_[0]\n";
+  die "readin_table: 0 lines were read from $_[0]\n" if ($line==0);
   return $line;
 }
 
@@ -133,6 +134,7 @@ sub readin_table_err($\@\@\@\@;\$) {
     push(@{$_[4]},$parts[$#parts]);
   }
   close(TAB) || die "readin_table_err: could not close file $_[0]\n";
+  die "readin_table_err: 0 lines were read from $_[0]\n" if ($line==0);
   return $line;
 }
 

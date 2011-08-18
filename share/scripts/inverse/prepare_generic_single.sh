@@ -33,6 +33,7 @@ comment="$(get_table_comment)"
 main_dir=$(get_main_dir)
 method="$(csg_get_property cg.inverse.method)"
 tabtype="$(csg_get_interaction_property bondtype)"
+[[ ${method} = "tf" ]] && tabtype="thermforce"
 output="${name}.pot.new"
 
 if [[ -f ${main_dir}/${name}.pot.in ]]; then
@@ -40,16 +41,9 @@ if [[ -f ${main_dir}/${name}.pot.in ]]; then
   smooth="$(critical mktemp ${name}.pot.in.smooth.XXX)"
   echo "Converting ${main_dir}/${name}.pot.in to ${output}"
   critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${smooth} --grid ${min}:${step}:${max} --comment "$comment"
-  extrapol="$(critical mktemp ${name}.pot.in.extrapol.XXXXX)"
-  if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
-    extrapol2="$(critical mktemp ${name}.pot.in.extrapol2.XXXXX)"
-    do_external table extrapolate --function exponential --avgpoints 5 --region left "${smooth}" "${extrapol2}"
-    do_external table extrapolate --function constant --avgpoints 1 --region right "${extrapol2}" "${extrapol}"
-    do_external pot shift_nonbonded "${extrapol}" "${output}"
-  else
-    do_external table extrapolate --function exponential --avgpoints 5 --region leftright "${smooth}" "${extrapol}"
-    do_external pot shift_bonded "${extrapol}" "${output}"
-  fi
+  extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
+  do_external potential extrapolate --type "$tabtype" "${smooth}" "${extrapolate}"
+  do_external table change_flag "${extrapolate}" "${output}"
 else
   [[ ${tabtype} = "bonded" ]] && die "${0##*/}: Not implemented yet, implement it or provide ${name}.pot.in!"
   target=$(csg_get_interaction_property inverse.target)
@@ -58,14 +52,18 @@ else
   do_external resample target
   if [[ $method = "tf" ]]; then
     #initial guess from density
-    do_external calc thermforce ${name}.dist.tgt ${output}
+    raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
+    do_external calc thermforce ${name}.dist.tgt ${raw}
+    do_external table change_flag "${raw}" "${output}"
   else
     # initial guess from rdf
     raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
     do_external rdf pot ${name}.dist.tgt ${raw}
     smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
     critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
-    do_external pot shift_nonbonded ${smooth} ${output}
+    extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
+    do_external pot shift_nonbonded ${smooth} ${extrapolate}
+    do_external table change_flag "${extrapolate}" "${output}"
   fi
 fi
 
