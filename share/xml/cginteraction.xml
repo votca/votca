@@ -99,6 +99,8 @@
     </desc>
   </item>
   <item><name>inverse.post_update_options</name><desc>Contains all options of post update scripts</desc></item>
+  <item><name>inverse.post_update_options.extrapolate</name><desc>Contains all options of the post update extrapolate script</desc></item>
+  <item><name>inverse.post_update_options.extrapolate.points</name><desc>Number of point to calculate the average from for the extrapolation</desc></item>
   <item><name>inverse.post_update_options.pressure</name><desc>Contains all options of the pressure correction scripts</desc></item>
   <item>
     <name>inverse.post_update_options.pressure.do</name>

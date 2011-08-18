@@ -70,6 +70,7 @@ postupd smooth postupd_smooth.sh
 postupd shift dpot_shift_nb.pl
 postupd dummy postadd_dummy.sh
 postupd tag tag_file.sh
+postupd extrapolate postupd_extrapolate.sh
 
 # post add
 post add post_add.sh
