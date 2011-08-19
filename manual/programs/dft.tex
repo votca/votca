@@ -4,9 +4,9 @@ Apart from semi-empirical methods, we also provide interfaces for a DFT-based ev
 \subsubsection{Generation of directory structure and input coordinates}
 First, hopping sites and a neighbor list need to be generated from the atomistic topology and trajectory. Rigid fragments are resubstituted into the molecular geometries and the neighbor list is defined based on a cutoff distance between such fragments. This can be achieved by running, e.g.  
 \begin{verbatim}
-ctp_map [required options] --db state.db --nframes 1 --first-frame 10
+ctp_map [required options] --db state.db --nframes 1 --first-frame 1
 \end{verbatim}
-to generate a state file is for frame 10 of the trajectory. Then a neighbor list can be determined from the cutoff defined in {\tt main.xml} (see \ref{list:neighborcut_xml}).
+to generate a state file is for first frame of the trajectory. Then a neighbor list can be determined from the cutoff defined in {\tt main.xml} (see \ref{list:neighborcut_xml}).
 \lstinputlisting[
   language=XML,
   label=list:neighborcut_xml,
@@ -15,12 +15,11 @@ to generate a state file is for frame 10 of the trajectory. Then a neighbor list
   caption={\small Definition of neighborlist cutoff in {\tt main.xml}}.] {./programs/neighborcut.xml}
 by calling
 \begin{verbatim}
-ctp_run [required options] --db state.db --opt
-main.xml --exec neighborlist
+ctp_run --opt main.xml --s segments.xml --db state.db --exec neighborlist
 \end{verbatim}
 and from that the full file and directory structure needed by {\tt ctp\_dipro} is written by 
 \begin{verbatim}
-ctp_run --in STATEFILE --crg CRGFILE --exec pairdump
+ctp_run --opt main.xml --s segments.xml --db state.db --exec pairdump
 \end{verbatim}
 This requires the specification of the content of listing \ref{list:pairdump_xml} in {\tt main.xml}.
 \lstinputlisting[
@@ -31,7 +30,7 @@ This requires the specification of the content of listing \ref{list:pairdump_xml
   caption={\small Block of pairdump options required in {\tt main.xml} for generating the directory structure and coordinate files for {\tt ctp\_dipro}.}] {./programs/pairdump.xml}
 After this, the following directories and files have been created:
 \begin{verbatim}
-|----frame10/
+|----frame1/
 | |----mol_1/
 | | |----mol_1.xyz
 | | [...]
@@ -99,8 +98,10 @@ After performing all transfer integral calculations, the resulting output files 
 \begin{verbatim}
 ctp_dipro --write TYPE ID FILE
 
-TYPE:   e - electrons
-        h - holes
+TYPE:   e    - electrons
+        h    - holes
+        edeg - (pseudo-)degenerate electrons (Boltzmann-weighted)
+        hdeg - (pseudo-)degenerate holes (Boltzmann-weighted)
 ID:     Number of frame
 FILE:   Name of state file 
 \end{verbatim}
