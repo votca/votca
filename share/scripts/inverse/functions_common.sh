@@ -70,7 +70,14 @@ export -f msg
 
 unset -f die
 die () { #make the iterative frame work stopp
-  local pid pids c place
+  local pid pids c place space
+  echo
+  echo "Callstack:"
+  for ((c=${#FUNCNAME[*]}-1;c>0;c--)); do
+    echo "${space}${FUNCNAME[$c]}: line $(( ${BASH_LINENO[ $(( $c - 1 )) ]} + 1 ))"
+    space+="  "
+  done
+  echo "${space}${FUNCNAME[0]}"
   [[ -z $CSGLOG ]] && place="Details can be found above" || place="For details see the logfile $CSGLOG"
   msg --color red --to-stderr "$(csg_banner "ERROR:" "$@" "$place")"
   if [[ -n ${CSG_MASTER_PID} ]]; then
