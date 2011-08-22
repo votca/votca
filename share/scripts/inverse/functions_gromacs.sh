@@ -31,9 +31,9 @@ fi
 #check performed when this file is sourced
 gmxrc="$(csg_get_property --allow-empty cg.inverse.gromacs.gmxrc)"
 if [ -n "${gmxrc}" ]; then
-  [ -f "$gmxrc" ] || die "functions_gromacs: Could not find gmxrc from xml file '$gmxrc'"
+  [ -f "$gmxrc" ] || die "${BASH_SOURCE[0]##*/}: Could not find gmxrc from xml file '$gmxrc'"
   msg "sourcing gromacs setting file: $gmxrc"
-  source $gmxrc || die "functions_gromacs: error when 'source $gmxrc'"
+  source $gmxrc || die "${BASH_SOURCE[0]##*/}: error when 'source $gmxrc'"
 fi
 unset gmxrc
 
@@ -45,16 +45,16 @@ get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp fil
   else
     mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
   fi
-  [[ -z $1 ]] && die "get_simulation_setting: Missing argument (property)"
-  [[ -f $mdp ]] || die "get_simulation_setting: Could not read setting file '$mdp'"
+  [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument (property)"
+  [[ -f $mdp ]] || die "${FUNCNAME[0]}: Could not read setting file '$mdp'"
   #1. strip comments
   #2. get important line
   #3. remove leading and tailing spaces
   res="$(sed -e '/^[[:space:]]*;/d' -e 's#;.*$##' "$mdp" | \
         sed -n -e "s#^[[:space:]]*$1[[:space:]]*=\(.*\)\$#\1#p" | \
 	sed -e 's#^[[:space:]]*##' -e 's#[[:space:]]*$##')" || \
-    die "get_simulation_setting: sed failed"
-  [[ -z $res && -z $2 ]] && die "get_simulation_setting: could not fetch $1 from $mdp and no default given, please add it in there"
+    die "${FUNCNAME[0]}: sed failed"
+  [[ -z $res && -z $2 ]] && die "${FUNCNAME[0]}: could not fetch $1 from $mdp and no default given, please add it in there"
   [[ -n $res ]] && echo "$res" || echo "$2"
 }
 export -f get_simulation_setting
@@ -64,7 +64,7 @@ check_cutoff() { #compared current interactions cutoff vs rvdw,
   [[ "$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")" = "no" ]] && return 0
   max="$(csg_get_interaction_property max)"
   rvdw="$(get_simulation_setting rvdw)"
-  csg_calc "$max" ">" "$rvdw" && die "Error in interaction '$bondname': rvdw ($rvdw) in $1 is smaller than max ($max)\n\
+  csg_calc "$max" ">" "$rvdw" && die "${FUNCNAME[0]}: rvdw ($rvdw) in $1 is smaller than max ($max)\n\
 To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
   return 0
 }
@@ -79,7 +79,7 @@ check_temp() { #compares k_B T in xml with temp in mpd file
   for t in $temp; do
     #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
     kbt2=$(csg_calc "$t" "*" 0.00831451)
-    csg_calc "$kbt" "=" "$kbt2" || die "Error:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($t from $temp) in $1\n\
+    csg_calc "$kbt" "=" "$kbt2" || die "${FUNCNAME[0]}:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($t from $temp) in $1\n\
 To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
   done
   return 0
