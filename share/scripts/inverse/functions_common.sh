@@ -29,7 +29,7 @@ exit 0
 fi
 
 msg() { #echos a msg on the screen and send it to the logfile if logging is enabled
-  local color colors=" blue cyan cyann green red purp "
+  local color colors="blue cyan cyann green red purp"
   if [[ -z ${CSGNOCOLOR} ]]; then
     local blue="[34;01m"
     local cyan="[36;01m"
@@ -43,7 +43,7 @@ msg() { #echos a msg on the screen and send it to the logfile if logging is enab
   fi
   if [[ $1 = "--color" ]]; then
     [[ -z $2 ]] && die "${FUNCNAME[0]}: missing argument after --color"
-    [[ -n ${colors//* $2 *} ]] && die "${FUNCNAME[0]}: Unknown color ($colors allowed)"
+    is_part "$2" "${colors}" || die "${FUNCNAME[0]}: Unknown color ($colors allowed)"
     color="${!2}"
     shift 2
   fi
@@ -274,6 +274,12 @@ is_int() { #checks if all arguments are integers
   return 0
 }
 export -f is_int
+
+is_part() {
+  [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: Missing argument"
+  [[ " ${@:2} " = *" $1 "* ]]
+}
+export -f is_part
 
 is_num() { #checks if all arguments are numbers
   local i res
