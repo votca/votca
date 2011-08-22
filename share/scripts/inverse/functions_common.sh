@@ -70,12 +70,13 @@ export -f msg
 
 unset -f die
 die () { #make the iterative frame work stopp
-  local pid pids c place space
-  echo
-  echo "Callstack:"
-  for ((c=${#FUNCNAME[*]}-1;c>0;c--)); do
+  local pid pids c place space="    "
+  echo -e "\nCallstack:"
+  echo "${0}: line ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
+  for ((c=${#FUNCNAME[*]}-2;c>0;c--)); do
+    #in functions line number has to be increased
     echo "${space}${FUNCNAME[$c]}: line $(( ${BASH_LINENO[ $(( $c - 1 )) ]} + 1 ))"
-    space+="  "
+    space+="    "
   done
   echo "${space}${FUNCNAME[0]}"
   [[ -z $CSGLOG ]] && place="Details can be found above" || place="For details see the logfile $CSGLOG"
