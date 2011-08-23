@@ -57,7 +57,7 @@
     <!-- ibi: inverse biltzmann imc: inverse monte carlo tf: thermody force -->
     <method>tf</method>
     <!-- directory for user scripts -->
-    <scriptpath></scriptpath>
+    <scriptdir></scriptdir>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
