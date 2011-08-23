@@ -51,8 +51,8 @@ my @flag2;
 $#r1 == $#r2 || die "$progname: error, tables have different length";
 
 for (my $i=0;$i<=$#r1; $i++) {
-  abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first row different at position $i\n";
+  abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first column different at position $i\n";
   #check relative error!
-  abs($pot1[$i] - $pot2[$i])/(($pot1[$i] == 0.0) ? 1.0 : $pot1[$i]) < $epsilon || die "$progname: second row different at position $i\n";
+  abs($pot1[$i] - $pot2[$i])/(($pot1[$i] == 0.0) ? 1.0 : $pot1[$i]) < $epsilon || die "$progname: second column different at position $i\n";
   $flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
 }
