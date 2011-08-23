@@ -40,7 +40,8 @@ please submit bugs to bugs@votca.org
 
 ${0##*/}, version ${version}
 
-This script calls scripts for the iterative framework
+This script calls scripts and functions for the iterative framework.
+Function can be executed or shows if key1='function'.
 
 Usage: ${0##*/} [OPTIONS] key1 key2 [SCRIPT OPTIONS]
 
@@ -177,7 +178,12 @@ fi
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
 
 if [[ -n $ext_cmd ]]; then
-  $ext_cmd $1 $2
+  if [[ $1 = function ]]; then
+    [[ $(type -t "$2") = "function" ]] || die "'$2' does not seem to be a function (you might need to add --simprog option or set cg.inverse.program in the xml file)"
+    type $2
+  else
+    $ext_cmd $1 $2
+  fi
   exit $?
 fi
 
@@ -198,5 +204,9 @@ fi
 
 [[ -n ${log} ]] && enable_logging "$log"
 [[ -n $CSGDEBUG ]] && set -x
-do_external $@
+if [[ $1 = "function" ]]; then
+  "${@:2}"
+else
+  do_external $@
+fi
 exit $?

@@ -75,7 +75,7 @@ die () { #make the iterative frame work stopp
   echo "${0}: line ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
   for ((c=${#FUNCNAME[*]}-2;c>0;c--)); do
     #in functions line number has to be increased
-    echo "${space}${FUNCNAME[$c]}: line $(( ${BASH_LINENO[ $(( $c - 1 )) ]} + 1 ))"
+    echo "${space}${FUNCNAME[$c]}: line ${BASH_LINENO[ $(( $c - 1 )) ]} (see 'csg_call --cat function ${FUNCNAME[$c]}' for details)"
     space+="    "
   done
   echo "${space}${FUNCNAME[0]}"
