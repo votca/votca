@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 #the next line is used by the buildutil !
 VER=1.2
-HGID:=\newcommand{\hgid}{${VER}}
+HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
 LATEXMK=scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
