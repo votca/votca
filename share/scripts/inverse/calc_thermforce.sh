@@ -75,7 +75,7 @@ forcefile_pref="${name}.tf_with_prefactor"
 cg_prefactor="$(csg_get_interaction_property --allow-empty tf.cg_prefactor)"
 if [[ -z $cg_prefactor ]]; then 
   echo "Using fixed prefactor $prefactor" 
-  do_external table linop "$forcefile" "${forcefile_pref}" "${prefactor}" 0.0
+  do_external table linearop "$forcefile" "${forcefile_pref}" "${prefactor}" 0.0
 else
   echo "Using linear interpolation of prefactors between $prefactor and $cg_prefactor"
   do_external table scale "$forcefile" "$forcefile_pref" "$prefactor" "$cg_prefactor"
