@@ -116,29 +116,31 @@ export -f die
 cat_external() { #takes a two tags and shows content of the according script
   local script
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
-  cat "${script/ *}"
+  if [[ $1 = "function" ]]; then
+    type $2 | sed '1d'
+  else
+    cat "${script/ *}"
+  fi
 }
 export -f cat_external
 
 do_external() { #takes two tags, find the according script and excute it
-  local script tags quiet="no" 
+  local script tags quiet="no" function="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
-  shift 2
-
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*' (from tags $tags) dir ${script%/*}"
-  if [[ -n $CSGDEBUG && -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
-    bash -x $script "$@"
+  if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
+    bash -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
     local perl_debug="$(mktemp perl_debug.XXX)" ret
-    PERLDB_OPTS="NonStop=1 AutoTrace=1 frame=2 LineInfo=$perl_debug" perl -dS $script "$@"
+    PERLDB_OPTS="NonStop=1 AutoTrace=1 frame=2 LineInfo=$perl_debug" perl -dS $script "${@:3}"
     ret=$?
     cat "$perl_debug" 2>&1
     [[ $ret -eq 0 ]]
   else
-    $script "$@"
-  fi || die "${FUNCNAME[0]}: subscript $script $* (from tags $tags) failed"
+    $script "${@:3}"
+  fi || die "${FUNCNAME[0]}: subscript $script ${@:3} (from tags $tags) failed"
 }
 export -f do_external
 
@@ -627,11 +629,16 @@ export -f get_command_from_csg_tables
 source_wrapper() { #print the full name of a script belonging to two tags (1st, 2nd argument)
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: Needs two tags"
   local cmd script
-  cmd=$(get_command_from_csg_tables "$1" "$2") || die "${FUNCNAME[0]}: get_command_from_csg_tables '$1' '$2' failed"
-  [[ -z $cmd ]] && die "${FUNCNAME[0]}: Could not get any script from tags '$1' '$2'"
-  script="${cmd/* }"
-  real_script="$(find_in_csgshare "$script")"
-  echo "${cmd/${script}/${real_script}}"
+  if [[ $1 = "function" ]]; then
+    [[ $(type -t "$2") = "function" ]] || die "${FUNCNAME[0]}: could not find any function called '$2' (when calling from csg_call you might need to add --simprog option or set cg.inverse.program in the xml file)"
+    echo "$2"
+  else
+    cmd=$(get_command_from_csg_tables "$1" "$2") || die "${FUNCNAME[0]}: get_command_from_csg_tables '$1' '$2' failed"
+    [[ -z $cmd ]] && die "${FUNCNAME[0]}: Could not get any script from tags '$1' '$2'"
+    script="${cmd/* }"
+    real_script="$(find_in_csgshare "$script")"
+    echo "${cmd/${script}/${real_script}}"
+  fi
 }
 export -f source_wrapper
 

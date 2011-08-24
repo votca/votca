@@ -178,12 +178,7 @@ fi
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
 
 if [[ -n $ext_cmd ]]; then
-  if [[ $1 = function ]]; then
-    [[ $(type -t "$2") = "function" ]] || die "'$2' does not seem to be a function (you might need to add --simprog option or set cg.inverse.program in the xml file)"
-    type $2
-  else
-    $ext_cmd $1 $2
-  fi
+  $ext_cmd $1 $2
   exit $?
 fi
 
@@ -204,9 +199,5 @@ fi
 
 [[ -n ${log} ]] && enable_logging "$log"
 [[ -n $CSGDEBUG ]] && set -x
-if [[ $1 = "function" ]]; then
-  "${@:2}"
-else
-  do_external $@
-fi
+do_external $@
 exit $?
