@@ -1,4 +1,4 @@
-#include "/people/thnfs/homes/lukyanov/gmx/share/gromacs/top/ffoplsaa.itp"
+#include "ffoplsaa.itp"
 
 [ moleculetype ]
 ; Name            nrexcl
