@@ -44,8 +44,7 @@ public:
         AddProgramOptions()
             ("out", boost::program_options::value<string>(),
                 "  output file for coarse-grained trajectory")
-                ("hybrid", boost::program_options::value<string>(&_hybrid_string)->default_value(""),
-                " [yes/no] Create hybrid topology containing both atomistic and coarse-grained");
+                ("hybrid", "Create hybrid trajectory containing both atomistic and coarse-grained");
     }
 
     bool EvaluateOptions() {
@@ -145,7 +144,7 @@ void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
         throw runtime_error("output format not supported: " + out);
 
     _do_hybrid = false;
-    if (hybrid == "yes") {
+    if(OptionsMap().count("hybrid")){
         if (!_do_mapping)
             throw runtime_error("options hybrid and no-map not compatible");
         cout << "Doing hybrid mapping..." << endl;
