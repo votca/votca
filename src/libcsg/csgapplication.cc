@@ -50,7 +50,8 @@ namespace votca {
                 } else {
                     AddProgramOptions("Mapping options")
                             ("cg", boost::program_options::value<string > (), "  [OPTIONAL] coarse graining mapping definitions\n"
-                            "  (xml-file). If no file is given, program acts on original trajectory");
+                            "  (xml-file). If no file is given, program acts on original trajectory")
+                            ("map-ignore", boost::program_options::value<string >(), "  list of molecules to ignore if mapping is done separated by ;");
                 }
             }
 
