@@ -283,7 +283,7 @@ is_int() { #checks if all arguments are integers
 }
 export -f is_int
 
-is_part() {
+is_part() { #checks if 1st argument is part of the set given by other arguments
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: Missing argument"
   [[ " ${@:2} " = *" $1 "* ]]
 }
@@ -412,7 +412,7 @@ cp_from_last_step() { #copy something from the last step
 }
 export -f cp_from_last_step
 
-get_time() {
+get_time() { #gives back current time in sec from 1970
   date +%s || die "${FUNCNAME[0]}:  date +%s failed"
 }
 export -f get_time
