@@ -76,11 +76,14 @@ show_callstack() { #show the current callstack
   else
     space=""
   fi
-  [[ $0 = *csg_call || $0 = *inverse.sh ]] && line="linenr(absolute)" || line="linenr(relative)"
-  [[ $0 = "bash" ]] || echo "${space}${0} - linenr(absolute) ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
+  [[ $0 = "bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
   for ((c=${#FUNCNAME[*]}-2;c>0;c--)); do
     space+="    "
-    echo "${space}${FUNCNAME[$c]} - $line ${BASH_LINENO[ $(( $c - 1 )) ]} (see 'csg_call --cat function ${FUNCNAME[$c]}' for details)"
+    if [[ $0 = *csg_call || $0 = *inverse.sh ]]; then
+      echo "${space}${FUNCNAME[$c]} - linenumber ${BASH_LINENO[ $(( $c - 1 )) ]} in ${BASH_SOURCE[$c]}"
+    else
+      echo "${space}${FUNCNAME[$c]} - linenumber ${BASH_LINENO[ $(( $c - 1 )) ]} (see 'csg_call --cat function ${FUNCNAME[$c]}')"
+    fi
   done
 }
 export -f show_callstack
