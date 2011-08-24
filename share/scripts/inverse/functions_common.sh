@@ -68,17 +68,28 @@ msg() { #echos a msg on the screen and send it to the logfile if logging is enab
 }
 export -f msg
 
+show_callstack() { #show the current callstack
+  local space line
+  if [[ -n $CSG_CALLSTACK ]]; then
+    echo "$CSG_CALLSTACK"
+    space="$(echo "$CSG_CALLSTACK" | sed -n '$s/[^[:space:]].*$/    /p')"
+  else
+    space=""
+  fi
+  [[ $0 = *csg_call || $0 = *inverse.sh ]] && line="linenr(absolute)" || line="linenr(relative)"
+  [[ $0 = "bash" ]] || echo "${space}${0} - linenr(absolute) ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
+  for ((c=${#FUNCNAME[*]}-2;c>0;c--)); do
+    space+="    "
+    echo "${space}${FUNCNAME[$c]} - $line ${BASH_LINENO[ $(( $c - 1 )) ]} (see 'csg_call --cat function ${FUNCNAME[$c]}' for details)"
+  done
+}
+export -f show_callstack
+
 unset -f die
 die () { #make the iterative frame work stopp
-  local pid pids c place space="    "
+  local pid pids c place
   echo -e "\nCallstack:"
-  echo "${0}: line ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
-  for ((c=${#FUNCNAME[*]}-2;c>0;c--)); do
-    #in functions line number has to be increased
-    echo "${space}${FUNCNAME[$c]}: line ${BASH_LINENO[ $(( $c - 1 )) ]} (see 'csg_call --cat function ${FUNCNAME[$c]}' for details)"
-    space+="    "
-  done
-  echo "${space}${FUNCNAME[0]}"
+  show_callstack
   [[ -z $CSGLOG ]] && place="Details can be found above" || place="For details see the logfile $CSGLOG"
   msg --color red --to-stderr "$(csg_banner "ERROR:" "$@" "$place")"
   if [[ -n ${CSG_MASTER_PID} ]]; then
@@ -131,7 +142,7 @@ do_external() { #takes two tags, find the according script and excute it
   tags="$1 $2"
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*' (from tags $tags) dir ${script%/*}"
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
-    bash -x $script "${@:3}"
+    CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
     local perl_debug="$(mktemp perl_debug.XXX)" ret
     PERLDB_OPTS="NonStop=1 AutoTrace=1 frame=2 LineInfo=$perl_debug" perl -dS $script "${@:3}"
@@ -139,7 +150,7 @@ do_external() { #takes two tags, find the according script and excute it
     cat "$perl_debug" 2>&1
     [[ $ret -eq 0 ]]
   else
-    $script "${@:3}"
+    CSG_CALLSTACK="$(show_callstack)" $script "${@:3}"
   fi || die "${FUNCNAME[0]}: subscript $script ${@:3} (from tags $tags) failed"
 }
 export -f do_external
@@ -175,6 +186,7 @@ for_all (){ #do something for all interactions (1st argument)
     #no need to run unset afterwards
     bondtype="$bondtype" \
     bondname="$name" \
+    CSG_CALLSTACK="$(show_callstack)" \
     bash -c "$*" || die "${FUNCNAME[0]}: bash -c '$*' failed for bondname '$name'"
   done
 }
