@@ -15,7 +15,7 @@
  *
  */
 
-#include <malloc.h>
+#include <cstdlib>
 #include <iostream>
 #include <votca/csg/topology.h>
 #include "gmxtrajectoryreader.h"
