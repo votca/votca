@@ -83,7 +83,7 @@ foreach(HEADER assert.h)
 endforeach(HEADER)
 
 include(CheckIncludeFileCXX)
-foreach(HEADER algorithm fstream iomanip iostream list map numeric sstream stdexcept string vector)
+foreach(HEADER algorithm fstream iomanip iostream list map numeric sstream stdexcept string vector cstdlib)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
