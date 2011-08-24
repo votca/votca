@@ -104,6 +104,15 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
         else
             i._norm = 1. / (beads1.size() * beads2.size());
     }
+
+    for (list<Property*>::iterator iter = _bonded.begin();
+            iter != _bonded.end(); ++iter) {
+        string name = (*iter)->get("name").value();
+
+        std::list<Interaction *> list = top->InteractionsInGroup(name);
+        if (list.begin() == list.end() )
+            throw std::runtime_error("Bonded interaction '" + name + "' defined in options xml-file, but not in topology - check name definition in the mapping file again");
+    }
 }
 
 // create an entry for interactions
@@ -270,8 +279,6 @@ void Imc::Worker::DoBonded(Topology *top)
         // now fill with new data
         std::list<Interaction *> list = top->InteractionsInGroup(name);
 
-        if (list.begin() == list.end() )
-            throw std::runtime_error("Bonded interaction '" + name + "' defined in options xml-file, but not in topology - check definition in the mapping file again");
         std::list<Interaction *>::iterator ic_iter;
         for(ic_iter=list.begin(); ic_iter!=list.end(); ++ic_iter) {
             Interaction *ic = *ic_iter;
