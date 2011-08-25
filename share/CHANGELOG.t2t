@@ -6,6 +6,9 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=csg&r=stable]
 
 == Version in hg ==
+
+
+== Version 1.2.1 ==
 * fixed lib soname
 * csg_inverse: improve initial guess of the potential
 * csg_inverse: fixes for min!=0
