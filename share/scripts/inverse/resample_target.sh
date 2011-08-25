@@ -32,12 +32,16 @@ name=$(csg_get_interaction_property name)
 main_dir=$(get_main_dir)
 output="${name}.dist.tgt"
 
-comment="$(get_table_comment)"
-smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
-critical csg_resample --in ${main_dir}/${target} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
-
 tabtype="$(csg_get_interaction_property bondtype)"
-if [[ $tabtype = "non-bonded" || $tabtype = "C6" || $tabtype = "C12" ]]; then
+[[ ${method} = "tf" ]] && tabtype="thermforce"
+
+if [[ $tabtype = "thermforce" ]]; then
+  #therm force is resampled later
+  cp_from_main_dir --rename "${target}" "${output}"
+elif [[ $tabtype = "non-bonded" ]]; then
+  comment="$(get_table_comment)"
+  smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
+  critical csg_resample --in ${main_dir}/${target} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
   #the left side is usually not a problem, but still we do it
   do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
 else
