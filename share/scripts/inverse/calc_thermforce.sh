@@ -45,7 +45,7 @@ if [ $adress_type = "sphere" ]; then
 else
   outfile="${name}.sym.dens"
   adressc="$(get_simulation_setting adress_reference_coords "0")"
-  ref="$(echo "$adressc" | awk '{if (NF<1) exit 1; print "$1";}')" || die "${0##*/}: we need at least one number in adress_reference_coords, but got '$adressc'"
+  ref="$(echo "$adressc" | awk '{if (NF<1) exit 1; print $1;}')" || die "${0##*/}: we need at least one number in adress_reference_coords, but got '$adressc'"
   critical do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$ref"
   infile="${outfile}"
 fi
