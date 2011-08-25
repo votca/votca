@@ -37,5 +37,5 @@ echo "extrapolate potential for interaction $name"
 tabtype="$(csg_get_interaction_property bondtype)"
 [[ $(csg_get_property cg.inverse.method) = "tf" ]] && tabtype="thermforce"
 
-do_external table extrapolate --type "$tabtype" --avg-points "$avg_points" "$1" "$2"
+do_external potential extrapolate --type "$tabtype" --avg-points "$avg_points" "$1" "$2"
 
