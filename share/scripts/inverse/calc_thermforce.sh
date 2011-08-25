@@ -27,7 +27,7 @@ fi
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-[[ -f $2 ]] && die "${0##*/}: $2 is already there"
+[[ -f $2 && -s $2 ]] && die "${0##*/}: $2 is already there and has content"
 
 name=$(csg_get_interaction_property name)
 
