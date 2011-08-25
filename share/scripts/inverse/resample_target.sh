@@ -31,9 +31,11 @@ target=$(csg_get_interaction_property inverse.target)
 name=$(csg_get_interaction_property name)
 main_dir=$(get_main_dir)
 output="${name}.dist.tgt"
-
+method="$(csg_get_property cg.inverse.method)"
 tabtype="$(csg_get_interaction_property bondtype)"
 [[ ${method} = "tf" ]] && tabtype="thermforce"
+
+
 
 if [[ $tabtype = "thermforce" ]]; then
   #therm force is resampled later
