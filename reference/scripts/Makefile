@@ -46,7 +46,7 @@ config.t2t: ../config.t2t
 	$(TXT2TAGS) -t html --no-header --infile $< --outfile $@
 
 upload: html
-	googlesites_upload.py  -d "/Documentation/reference-scripts"  -f all.html
+	googlesites_upload.py  -d "/Documentation/coarse-graining/reference-scripts"  -f all.html
 
 
 clean: 

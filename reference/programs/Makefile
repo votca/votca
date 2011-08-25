@@ -35,7 +35,7 @@ all.html: $(BINSHTML)
 	$(TXT2TAGS) -t html --no-header --infile $< --outfile $@
 
 upload: html
-	googlesites_upload.py  -d "/Documentation/reference-programs"  -f all.html
+	googlesites_upload.py  -d "/Documentation/coarse-graining/reference-programs"  -f all.html
 
 
 clean: 
