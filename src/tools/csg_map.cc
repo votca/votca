@@ -131,13 +131,11 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
 protected:
     TrajectoryWriter *_writer;
     bool _do_hybrid;
-    string _hybrid_string;
 
 };
 
 void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
     string out = OptionsMap()["out"].as<string > ();
-    string hybrid = OptionsMap()["hybrid"].as<string > ();
     cout << "writing coarse-grained trajectory to " << out << endl;
     _writer = TrjWriterFactory().Create(out);
     if (_writer == NULL)
