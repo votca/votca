@@ -49,13 +49,15 @@ echo "Adress type: $adress_type"
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 mol="$(csg_get_interaction_property tf.molname "*")"
+opts="--rmax $max"
 if [ "$adress_type" = "sphere" ]; then
   adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
   ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
   axis="r"
-  opts="--ref $ref"
+  opts="$opts --ref $ref"
 else
   axis="x"
+  opts=""
 fi
 
 with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
@@ -77,12 +79,12 @@ with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
 if [[ ${with_errors} = "yes" ]]; then
   msg "Calculating density for $name (molname $mol) on axis $axis with errors"
   block_length=$(csg_get_property cg.inverse.gromacs.density.block_length)
-  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.block" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" --block-length $block_length $opts
+  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.block" --begin "$equi_time" --first-frame "$first_frame" --bins "$bins" --axis "$axis" --molname "$mol" --block-length $block_length $opts
   #mind the --clean option to avoid ${name}.dist.block_* to fail on the second run
   do_external table average --clean --output ${name}.dist.new ${name}.dist.block_*
 else
   msg "Calculating density for $name (molname $mol) on axis $axis"
-  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" $opts
+  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --bins "$bins" --axis "$axis" --molname "$mol" $opts
   critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
 fi
 mark_done "${name}_density_analysis"
