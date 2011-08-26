@@ -30,7 +30,7 @@ echo -e "++$script++"
 echo -e "label($script)"
 
 
-helpmsg="$(csg_call $tags --help 2>/dev/null)" || { echo "\nThis script has no help"; exit 0; }
+helpmsg="$(csg_call $tags --help 2>/dev/null)" || { echo -e "\nThis script has no help"; exit 0; }
 
 #Here comes the magic:
 #-header in trash
