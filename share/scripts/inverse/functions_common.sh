@@ -46,6 +46,8 @@ msg() { #echos a msg on the screen and send it to the logfile if logging is enab
     is_part "$2" "${colors}" || die "${FUNCNAME[0]}: Unknown color ($colors allowed)"
     color="${!2}"
     shift 2
+  else
+    off=""
   fi
   if [[ $1 = "--to-stderr" ]]; then
     shift
