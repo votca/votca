@@ -31,9 +31,10 @@ find_package_handle_standard_args(CBLAS DEFAULT_MSG CBLAS_LIBRARY )
 
 if (CBLAS_FOUND)
   include(CheckLibraryExists)
-  check_library_exists("${CBLAS_LIBRARY}" cblas_dsyrk "" FOUND_DSYRK)
+  #adding MATH_LIBRARIES here to allow static libs, this does not harm us as we are anyway using it
+  check_library_exists("${CBLAS_LIBRARY};${MATH_LIBRARIES}" cblas_dsyrk "" FOUND_DSYRK)
   if(NOT FOUND_DSYRK)
-    message(FATAL_ERROR "Could not find cblas_dsyrk in ${CBLAS_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set CBLAS_LIBRARY by hand (i.e. -DCBLAS_LIBRARY='/path/to/libcblas.so') !")
+    message(FATAL_ERROR "Could not find cblas_dsyrk in ${CBLAS_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you are using a static lib (.a) make sure you have specified all dependencies of libcblas in CBLAS_LIBRARY by hand (i.e. -DCBLAS_LIBRARY='/path/to/libcblas.so;/path/to/libm.so') !")
   endif(NOT FOUND_DSYRK)
 endif (CBLAS_FOUND)
 
