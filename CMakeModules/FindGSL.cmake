@@ -39,9 +39,10 @@ set(GSL_INCLUDE_DIRS ${GSL_INCLUDE_DIR} )
 
 if (GSL_FOUND)
   include(CheckLibraryExists)
-  check_library_exists("${GSL_LIBRARIES}" gsl_linalg_QR_decomp "" FOUND_QR_DECOMP)
+  #adding MATH_LIBRARIES here to allow static libs, this does not harm us as we are anyway using it
+  check_library_exists("${GSL_LIBRARIES};${MATH_LIBRARIES}" gsl_linalg_QR_decomp "" FOUND_QR_DECOMP)
   if(NOT FOUND_QR_DECOMP)
-    message(FATAL_ERROR "Could not find gsl_linalg_QR_decompx in ${GSL_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GSL_LIBRARY by hand (i.e. -DGSL_LIBRARY='/path/to/libgsl.so') !")
+    message(FATAL_ERROR "Could not find gsl_linalg_QR_decompx in ${GSL_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong.  If you are using a static lib (.a) make sure you have specified all dependencies of libgsl in GSL_LIBRARY by hand (i.e. -DGSL_LIBRARY='/path/to/libgsl.so;/path/to/libm.so') !")
   endif(NOT FOUND_QR_DECOMP)
 endif (GSL_FOUND)
 

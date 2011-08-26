@@ -6,6 +6,9 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=tools&r=stable]
 
 == Version in hg ==
+
+
+== Version 1.2.1 ==
 * fixed soname of libs
 * improved cmake checks and error messages
 * fixed pkg-config file
