@@ -51,8 +51,7 @@ checkpoint_exist() { #check if a checkpoint exists
 }
 export -f checkpoint_exist
 
-get_simulation_setting() { #check if a checkpoint exists
-  #espresso has not support for checkpoints, yet !
+get_simulation_setting() { #gets parameter a parameter from the settings file (1st argument) from simulation setting file
   die "${FUNCNAME[0]}: Not implemented for Espresso yet"
   return 1
 }

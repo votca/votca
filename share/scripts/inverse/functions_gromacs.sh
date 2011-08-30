@@ -37,7 +37,7 @@ if [ -n "${gmxrc}" ]; then
 fi
 unset gmxrc
 
-get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp file (2nd parameter)
+get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp file (default 2nd parameter)
   local res
   if [[ $1 = "--file" ]]; then
     mdp="$2"
@@ -64,7 +64,7 @@ check_cutoff() { #compared current interactions cutoff vs rvdw,
   [[ "$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")" = "no" ]] && return 0
   max="$(csg_get_interaction_property max)"
   rvdw="$(get_simulation_setting rvdw)"
-  csg_calc "$max" ">" "$rvdw" && die "${FUNCNAME[0]}: rvdw ($rvdw) in $1 is smaller than max ($max)\n\
+  csg_calc "$max" ">" "$rvdw" && die "${FUNCNAME[0]}: rvdw ($rvdw) is smaller than max ($max)\n\
 To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
   return 0
 }
@@ -79,8 +79,8 @@ check_temp() { #compares k_B T in xml with temp in mpd file
   for t in $temp; do
     #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
     kbt2=$(csg_calc "$t" "*" 0.00831451)
-    csg_calc "$kbt" "=" "$kbt2" || die "${FUNCNAME[0]}:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($t from $temp) in $1\n\
-To ignore this check set cg.inverse.gromacs.temp_check to 'no'"
+    csg_calc "$kbt" "=" "$kbt2" || die "${FUNCNAME[0]}:  cg.inverse.kBT ($kbt) in xml seetings file differs from 0.00831451*ref_t ($t from $temp)\n\
+To disable this check set cg.inverse.gromacs.temp_check to 'no'"
   done
   return 0
 }
