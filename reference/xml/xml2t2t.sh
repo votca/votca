@@ -5,6 +5,8 @@ die () {
   exit 1
 }
 
+#add head node to items
+#e.g. add cg.inverse if cg.inverse.xxx is in items
 add_heads() {
   local i head pattern again="no"
   for i in $items; do
@@ -12,7 +14,7 @@ add_heads() {
     #for main node
     [ "$head" = "$i" ] && continue
     pattern=${head//$/\\$}
-    #if head node is note there
+    #if head node is not there
     if [ -z "$(echo -e "$items" | grep -Ee "$pattern([[:space:]]+|\$)")" ]; then
       items="$(echo -e "$items\n$head")"
       again="yes"
@@ -65,6 +67,10 @@ echo
 
 #get all items
 items="$(csg_property --file ${VOTCASHARE}/xml/$xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
+
+#replace above command by:
+#perl -ne 'while (/<([^!].*?)>/g) {print "$1\n";}' settings.xml | perl -ne 'chomp;if (/^\/(.*)/) {print "$line\n";$line =~ s/\.$1$//;}else{$line.=".$_";};'
+
 #check if a head node is missing
 add_heads
 #sort them
