@@ -87,7 +87,7 @@ To obtain a bonded table, run
 \end{verbatim}
 It is also possible to use \texttt{angle} and \texttt{dihedral} as type as well.
 
-Internally \progopt{convert_potential gromacs} will do the following steps:
+Internally \progopt{convert\_potential gromacs} will do the following steps:
 \begin{itemize}
 \item Resampling of the potential from 0 (or -180 for dihedrals) to \texttt{table\_end} (or 180 for angles and dihedrals) with step size \texttt{table\_bins}. This is needed for gromacs the table must start with 0 or -180.
 \item Extrapolate the left side (to 0 or -180) expontially
