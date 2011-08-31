@@ -35,7 +35,7 @@ EOF
 
 clean="no"
 pot_type="$2"
-pot_types=" non-bonded bonded thermforce "
+pot_types="non-bonded bonded thermforce angle dihedral"
 avg_points=5
 
 ### begin parsing options
@@ -69,8 +69,8 @@ while [[ ${1#-} != $1 ]]; do
 done
 ### end parsing options
 
-[[ -z $pot_type ]] && die "${0##*/}: please specify add potential type (--type options) from:${pot_types}"
-[[ -n ${pot_types//* $pot_type *} ]] && die "${0##*/}: given potential type is not in list${pot_types}"
+[[ -z $pot_type ]] && die "${0##*/}: please specify add potential type (--type options) from: ${pot_types}"
+is is_part "${pot_type}" "${pot_types}" || die "${0##*/}: given potential type is not in the listof types (${pot_types})"
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
