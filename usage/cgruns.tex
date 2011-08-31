@@ -44,6 +44,8 @@ to resample the potential given in file --\progopt{table.pot} from \progopt{min}
 
 It is important to note that the values \progopt{min} and \progopt{max} \textit{don't} correspond to the minimum and maximum value in the input file, but to the range of values the potential is desired to cover after extrapolation. Therefore, values in $[ \min,\max ]$ that are not covered in the file are automatically marked by a flag \texttt{o} (for \texttt{out of range}) for extrapolation in the next step.
 
+The potential \textit{don't} have to start at 0, this is done by the export script (to xvg) automatically.
+
 \subsection*{Extrapolation}
 The following line
 \begin{verbatim}
@@ -57,7 +59,7 @@ After resampling, all values in the potential file that should be used as a basi
 The output \progopt{table\_extrapolate.pot} of the extrapolation step can now be used for the coarse-grained run. If \gromacs is used as a molecule dynamics package, the potential has to be converted and exported to a suitable \gromacs format as described in the final step.
 
 \subsection*{Exporting the table}
-Finally, the table is exported to \progopt{xvg}. The conversion procedure requires a small script \progopt{table.xml} as shown below:
+Finally, the table is exported to \progopt{xvg}. The conversion procedure requires a small xml file \progopt{table.xml} as shown below:
 \begin{verbatim}
   <cg>
     <inverse>
@@ -73,29 +75,38 @@ where \progopt{<table\_end>} is the \gromacs \progopt{rvdw+table\_extension} and
 
 Using the \progopt{xml} file above, call
 \begin{verbatim}
-  csg_call --options table.xml convert_potential gromacs \
-           table_extrapolate.pot table.xvg
+  csg_call --options table.xml --ia-type non-bonded \
+    convert_potential gromacs table_extrapolate.pot table.xvg
 \end{verbatim}
-to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (The file will contain \gromacs C12 parts only which are stored in the sixth und seventh column, this can be changed by adding the \progopt{--ia-type C6} option after \prog{csg_call}. Ensure compatibility with the \gromacs topology. See the \gromacs manual for further information).
+to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (The file will contain the \gromacs C12 parts only which are stored in the sixth und seventh column, this can be changed by adding the \progopt{--ia-type C6} option (for the fourth and fiveth column) or \progopt{--ia-type CB} option (for the second and third column) after \prog{csg_call}. Ensure compatibility with the \gromacs topology. See the \gromacs manual for further information).
 
 To obtain a bonded table, run
 \begin{verbatim}
   csg_call --ia-type bonded --options table.xml convert_potential gromacs \
            table_extrapolate.pot table.xvg
 \end{verbatim}
+It is also possible to use \texttt{angle} and \texttt{dihedral} as type as well.
+
+Internally \progopt{convert_potential gromacs} will do the following steps:
+\begin{itemize}
+\item Resampling of the potential from 0 (or -180 for dihedrals) to \texttt{table\_end} (or 180 for angles and dihedrals) with step size \texttt{table\_bins}. This is needed for gromacs the table must start with 0 or -180.
+\item Extrapolate the left side (to 0 or -180) expontially
+\item Extrapolate the right side (to \texttt{table\_end} or 180) expontially (or constant for non-bonded interactions)
+\item Shift it so that the potential is zero at \texttt{table\_end} for non-bonded interactions or zero at the minium for bonded interaction
+\item Calculate the force (assume periodicity for dihedral potentials)
+\item Write to the format needed by gromacs
+\end{itemize}
 
 \subsection*{An example on non-bonded interactions}
 \begin{verbatim}
-  csg_call pot shift_nb table.pot table.pot.refined
-  csg_resample --grid 0:0.002:2 --in table.pot.refined \
+  csg_call pot shift_nonbonded table.pot table.pot.refined
+  csg_resample --grid 0.3:0.05:2 --in table.pot.refined \
            --out table.pot.refined
   csg_call table extrapolate --function quadratic --region left \
            table.pot.refined table.pot.refined
   csg_call table extrapolate --function constant --region right \
            table.pot.refined table.pot.refined
 \end{verbatim}
-
-%csg_call table integrate table.force table.pot (diese zeile nur bei force-matching)
 
 \section{Alternatives}
 Additionally to the two methods described above, namely (a) providing the MD package directly with a functional form fitted with a program of choice or (b) using \progopt{csg\_resample}, \progopt{csg\_call table extrapolate} and \progopt{csg\_call convert\_potential}, another method would be suitable. This is integrating the force table as follows
