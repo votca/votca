@@ -120,7 +120,11 @@ smooth="$(critical mktemp ${name}.pot.smooth.XXXXX)"
 critical csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 
 extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
-do_external potential extrapolate --type "$tabtype" "${smooth}" "${extrapol}"
+if [[ $clean = "yes" ]]; then
+  do_external potential extrapolate --clean --type "$tabtype" "${smooth}" "${extrapol}"
+else
+  do_external potential extrapolate --type "$tabtype" "${smooth}" "${extrapol}"
+fi
 
 if [[ $do_shift = "yes" ]]; then
   tshift="$(critical mktemp ${name}.pot.shift.XXXXX)"
