@@ -83,6 +83,7 @@ int main(int argc, char** argv)
     if(vm.count("with-path"))
         with_path = true;
     
+    try {
     Property p;
     load_property_from_xml(p, file);
     
@@ -115,6 +116,10 @@ int main(int argc, char** argv)
         if(!p->HasChilds())
             cout << p->value();
         cout << endl;
+    }
+    } catch(std::exception &error) {
+        cerr << "an error occurred:\n" << error.what() << endl;
+        return -1;
     }
     return 0;
 }
