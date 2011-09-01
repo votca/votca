@@ -70,7 +70,7 @@ done
 ### end parsing options
 
 [[ -z $pot_type ]] && die "${0##*/}: please specify add potential type (--type options) from: ${pot_types}"
-is is_part "${pot_type}" "${pot_types}" || die "${0##*/}: given potential type is not in the listof types (${pot_types})"
+is_part "${pot_type}" "${pot_types}" || die "${0##*/}: given potential type is not in the listof types (${pot_types})"
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
