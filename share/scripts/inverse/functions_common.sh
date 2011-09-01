@@ -236,8 +236,6 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
   if ! ret="$($cmd)"; then
-    #workaround for issue #114
-    rm -f core core.*
     [[ $allow_empty = "no" && -z $2 ]] && \
       die "${FUNCNAME[0]}:\n'$cmd'\nfailed geting '$1' for interaction '$bondname' with error msg:\n $ret\n and no default for $1"
     #ret has error message
