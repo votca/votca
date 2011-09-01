@@ -17,19 +17,20 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Debug
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile_nb
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -90,7 +91,7 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/libcsg/libcsg.a
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/libcsg/libcsg.a
 
 ../../src/libcsg/libcsg.a: ${OBJECTFILES}
 	${MKDIR} -p ../../src/libcsg
@@ -288,7 +289,7 @@ ${OBJECTDIR}/_ext/484457853/beadlist.o: ../../src/libcsg/beadlist.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Debug
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} ../../src/libcsg/libcsg.a
 
 # Subprojects

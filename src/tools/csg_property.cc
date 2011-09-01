@@ -112,7 +112,7 @@ int main(int argc, char** argv)
             cout << p->path() << ".";
         if(!short_output)
             cout << p->name() << " = ";
-        if(!p->HasChilds())
+        //if(!p->HasChilds())
             cout << p->value();
         cout << endl;
     }
