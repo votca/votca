@@ -303,6 +303,17 @@ is_int() { #checks if all arguments are integers
 }
 export -f is_int
 
+to_int() { #convert all given numbers to int using awk's int function
+  local i
+  [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
+  for i in "$@"; do
+    is_num "$i" || die "${FUNCNAME[0]}: $i is not a number"
+    awk -v x="$i" 'BEGIN{ print int(x); }' || die "${FUNCNAME[0]}: awk failed"
+  done
+  return 0
+}
+export -f to_int
+
 is_part() { #checks if 1st argument is part of the set given by other arguments
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: Missing argument"
   [[ " ${@:2} " = *" $1 "* ]]
@@ -313,7 +324,7 @@ is_num() { #checks if all arguments are numbers
   local i res
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for i in "$@"; do
-    res=$(awk -v x="$i" 'BEGIN{ print x+0==x; }')
+    res=$(awk -v x="$i" 'BEGIN{ print x+0==x; }') || die "${FUNCNAME[0]}: awk failed"
     [[ $res -eq 1 ]] || return 1
     unset res
   done
