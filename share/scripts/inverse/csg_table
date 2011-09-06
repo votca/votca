@@ -140,6 +140,7 @@ table compare table_compare.pl
 table average table_average.sh
 table scale table_scale.pl
 table change_flag table_change_flag.sh
+table functional table_functional.sh
 
 # generic potential manipulation
 potential extrapolate potential_extrapolate.sh
