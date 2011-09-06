@@ -167,10 +167,6 @@
     <desc>list for what to calc the convergence: dist pot, .. (default dist)</desc>
   </item>
   <item>
-    <name>inverse.post_add_options.plot.gnuplot_bin</name>
-    <desc>gnuplot binary to use (default gnuplot)</desc>
-  </item>
-  <item>
     <name>inverse.post_add_options.plot.gnuplot_opts</name>
     <desc>extra options to give to gnuplot_bin (e.g. -persist, if one uses kill)</desc>
   </item>

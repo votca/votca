@@ -94,6 +94,10 @@
       Name of the restart file in case a step has to be resumed
     </desc>
   </item>
+  <item>
+    <name>cg.inverse..gnuplot_bin</name>
+    <desc>gnuplot binary to use (default gnuplot)</desc>
+  </item>
   <item><name>cg.inverse.imc</name><desc> general imc specific options </desc></item>
   <item><name>cg.inverse.imc.solver</name><desc> solver for solving a linear equation system, can be octave or matlab </desc></item>
   <item><name>cg.inverse.imc.octave.bin</name><desc> Name (or absolute path) of the octave binary </desc></item>
