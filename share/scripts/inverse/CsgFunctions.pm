@@ -43,10 +43,15 @@ sub csg_get_property($;$){
   open(CSG,"csg_property --file $xmlfile --path $_[0] --short --print . |") ||
     die "csg_get_property: Could not open pipe\n";
   my $value=<CSG>;
+  while(<CSG>){
+    $value.=$_;
+  }
   $value="$_[1]" if ((not defined($value)) and defined($_[1]));
   defined($value) || die "csg_get_property: Could not get value $_[0] and no default given\n";
   close(CSG) || die "csg_get_property: error from csg_property\n";
-  chomp($value);
+  $value =~ s/\n/ /mg;
+  $value =~ s/^\s*//;
+  $value =~ s/\s*$//;
   return undef if ($value =~ /^\s*$/);
   return $value;
 }
@@ -59,6 +64,9 @@ sub csg_get_interaction_property($;$){
   open(CSG,"csg_property --file $xmlfile --short --path cg.$bondtype --filter \"name=$bondname\" --print $_[0] 2>&1 |") ||
     die "csg_get_interaction_property: Could not open pipe\n";
   my $value=<CSG>;
+  while(<CSG>){
+    $value.=$_;
+  }
   if (close(CSG)){
     #we do not have a return errors
     $value="$_[1]" if (($value =~ /^\s*$/) and (defined($_[1])));
@@ -70,7 +78,9 @@ sub csg_get_interaction_property($;$){
       die "csg_get_interaction_property: csg_property failed on getting value $_[0] and no default given\n";
     }
   }
-  chomp($value);
+  $value =~ s/\n/ /mg;
+  $value =~ s/^\s*//;
+  $value =~ s/\s*$//;
   return undef if ($value =~ /^\s*$/);
   return $value;
 }
