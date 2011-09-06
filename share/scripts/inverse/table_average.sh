@@ -20,7 +20,7 @@ show_help () {
 ${0##*/}, version %version%
 This script creates averages tables and also calculates the error. 
 
-Usage: ${0##*/} table1 table2 table3 ....
+Usage: ${0##*/} [options] table1 table2 table3 ....
 
 Allowed options:
 -h, --help                    show this help
@@ -34,7 +34,6 @@ Allowed options:
     --clean		      Clean intermediate files
 
 Examples:
-* ${0##*/} table*.d
 * ${0##*/} --output CG-CG.dist.new CG-CG*.dist.new 
 EOF
 }
