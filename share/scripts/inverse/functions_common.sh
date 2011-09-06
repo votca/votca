@@ -241,8 +241,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     #ret has error message
     ret=""
   fi
-  ret="${ret%%[[:space:]]}"
-  ret="${ret##[[:space:]]}"
+  ret="$(echo "$ret" | trim_all)"
   [[ $allow_empty = no && -z $ret && -n $2 ]] && ret="$2"
   [[ $allow_empty = no && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction '$bondname'\nResult of '$cmd' was empty"
   echo "${ret}"
@@ -264,13 +263,17 @@ csg_get_property () { #get an property from the xml file
   #csg_property only fails if xml file is bad otherwise result is empty
   #leave the -q here to avoid flooding with messages
   ret="$(critical -q $cmd)"
-  ret="${ret%%[[:space:]]}"
-  ret="${ret##[[:space:]]}"
+  ret="$(echo "$ret" | trim_all)"
   [[ -z $ret && -n $2 ]] && ret="$2"
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1'\nResult of '$cmd' was empty"
   echo "${ret}"
 }
 export -f csg_get_property
+
+trim_all() { #strips white space from beginning and the end of all args
+  tr '\n' ' ' | sed -e s'/^[[:space:]]*//' -e s'/[[:space:]]*$//' || die "${FUNCNAME[0]}: sed of argument $i failed"
+}
+export -f trim_all
 
 mark_done () { #mark a task (1st argument) as done in the restart file
   local file
