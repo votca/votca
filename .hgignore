@@ -5,11 +5,15 @@ libvotca*.pc
 libvotca*.a
 libvotca*.so
 src/libmd2qm/votca_config.h
+src/libmd2qm/hgversion.h
 Makefile
 src/tools/ctp_map
 src/tools/ctp_polymer
 src/tools/ctp_printqmattop
 src/tools/ctp_run
+
+src/dipro/*.mod
+src/dipro/*.x
 
 netbeans/*/build
 */nbproject/private
@@ -23,5 +27,8 @@ cmake_install.cmake
 CMakeCache.txt
 install_manifest.txt
 
+src/libmd2qm/calculators/Doxyfile
+src/libmd2qm/calculators/Doxyfile.bak
+src/libmd2qm/calculators/doxygen.log
 src/libmd2qm/calculators/html
 src/libmd2qm/calculators/latex

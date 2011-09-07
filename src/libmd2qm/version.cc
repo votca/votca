@@ -21,6 +21,11 @@
 #include <iostream>
 #include <votca/ctp/version.h>
 
+extern "C" {
+   void VotcaMd2QmFromC(){
+     //do nothing - this is just that we have a c function for autotools
+   }
+}
 
 namespace votca { namespace md2qm {
 
