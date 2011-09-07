@@ -36,6 +36,12 @@
 #undef bool
 #endif
 
+extern "C" {
+   void VotcaCsgFromC(){
+     //do nothing - this is just that we have a c function for autotools
+   }
+}
+
 namespace votca { namespace csg {
 
 //defines hgversion
