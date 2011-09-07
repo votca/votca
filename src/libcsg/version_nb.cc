@@ -17,7 +17,7 @@
 
 #include <votca/tools/version.h>
 #include <iostream>
-#include "version.h"
+#include <votca/csg/version.h>
 
 namespace votca { namespace csg {
 

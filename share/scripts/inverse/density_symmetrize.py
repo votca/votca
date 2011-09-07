@@ -17,6 +17,7 @@
 
 import sys
 import getopt
+import os
 import math
 
 firstx = []
@@ -42,10 +43,10 @@ This script symmetrizes the density around --adressc for thermodynamic force ite
 
 Usage: %(name)s 
 Allowed options:
-    --adressc    X.X  center of the adress zone (x-value)
-    --infile    FILE  input file
-    --outfile   FILE  output file
-""" % {'name': sys.argv[0],'ver': '%version%'}
+    --adressc X.X     center of the adress zone (x-value)
+    --infile FILE     input file
+    --outfile FILE    output file
+""" % {'name': os.path.basename(sys.argv[0]),'ver': '%version%'}
       sys.exit(0)
     elif o == "-v":
         verbose = True
@@ -66,12 +67,12 @@ for line in open(infile,"r").readlines():
 			firstx.append(float(values[0]))
 			firsty.append(float(values[1]))
                         if float(values[0]) == adressc:
-                            secondx.append(float(values[0]))
+                            secondx.append(float(values[0])-adressc)
                             secondy.append(float(values[1]))
                 else:
                        
                         if len(firstx)-1-len(secondx) >= 0 and (len(firstx)-1-len(secondx)) < len (firsty):
-                            secondx.append(float(values[0])) 
+                            secondx.append(float(values[0])-adressc) 
 			    secondy.append( 0.5*(firsty[len(firstx)-len(secondx)]+(float(values[1]))) )
                         else:
                             print "Warning: symmetrize_density.pl : adressc not in center of data", line

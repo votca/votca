@@ -25,7 +25,7 @@ EOF
    exit 0
 fi
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 name=$(csg_get_interaction_property name)
 lastdir=$(get_last_step_dir)

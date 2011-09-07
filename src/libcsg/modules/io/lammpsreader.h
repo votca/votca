@@ -21,8 +21,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <topologyreader.h>
-#include <trajectoryreader.h>
+#include <votca/csg/topologyreader.h>
+#include <votca/csg/trajectoryreader.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;

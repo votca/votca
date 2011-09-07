@@ -20,8 +20,8 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script calls the pressure corrections dU=A*(1-r/r_c), where
-A=-0.1k_B T * max(1,|p_cur-p_target|*scale) * sign(p_cur-p_target)
+This script calls the pressure corrections ''\$dU=A*(1-r/r_c)\$'', where
+''\$A=-0.1k_B T * \\\\max(1,|p_cur-p_target|*scale) * \\\\sign(p_cur-p_target)\$''
 
 Usage: $progname p_cur outfile
 EOF
@@ -34,6 +34,7 @@ use CsgFunctions;
 
 my $kBT=csg_get_property("cg.inverse.kBT");
 my $max=csg_get_interaction_property("max");
+my $min=csg_get_interaction_property("min");
 my $delta_r=csg_get_interaction_property("step");
 my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.simple.scale");
 my $p_target=csg_get_interaction_property("inverse.p_target");
@@ -59,10 +60,11 @@ my @r;
 my @pot;
 my @flag;
 my $outfile="$ARGV[1]";
-for(my $i=0;$i<=$max/$delta_r;$i++){
+my $comment="#$progname: p_now=$p_now, p_target=$p_target, prefactor=$pref\n";
+for(my $i=$min/$delta_r;$i<=$max/$delta_r;$i++){
   $r[$i]=$i*$delta_r;
   $pot[$i]=$pref*(1-$r[$i]/$max);
   $flag[$i]="i";
 }
-saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@pot,@flag,$comment) || die "$progname: error at save table\n";
 

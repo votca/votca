@@ -70,9 +70,25 @@ public:
     
         
     CGMoleculeDef *getMoleculeDef(string name);
-        
+
+    /**
+     * \brief ignores molecule in mapping process
+     * \param pattern glob pattern for molecule ident
+     */
+    void AddIgnore(string pattern) { _ignores.push_back(pattern); }
+
+
+    /**
+     * \brief checks whether molecule is ignored
+     * \param ident identifyier of molecule
+     * \return true if is ignored
+     */
+    bool IsIgnored(string ident);
+
 private:
     map<string, CGMoleculeDef *> _molecule_defs;
+
+    std::list<string> _ignores;
 };
 
 inline CGMoleculeDef *CGEngine::getMoleculeDef(string name)
@@ -87,6 +103,15 @@ inline CGMoleculeDef *CGEngine::getMoleculeDef(string name)
     iter = _molecule_defs.find(name);        
     if(iter == _molecule_defs.end()) return NULL;
     return (*iter).second;
+}
+
+inline bool CGEngine::IsIgnored(string ident)
+{
+    for(std::list<string>::iterator iter=_ignores.begin(); iter!=_ignores.end(); ++iter) {
+        if(wildcmp(iter->c_str(), ident.c_str()))
+            return true;
+    }
+    return false;
 }
 
 }}

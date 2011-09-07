@@ -24,7 +24,7 @@ end=""
 np=8
 index="index.ndx"
 out="${fbase}.xvg"
-version="@PROJECT_VERSION@ @CSG_HG_ID@"
+version="@PROJECT_VERSION@ #CSG_HG_ID#"
 single="no"
 debug="no"
 
@@ -60,20 +60,20 @@ Usage: ${0##*/} [OPTIONS] -- [${g_cmd}_options]
 Allowed options:
 -N, --NN            Number of tasks
                     Default: $np
--b         TIME     Begin time
+-b TIME             Begin time
                     Default: $begin
--e         TIME     End time
--n         FILE     Name of the index file
+-e TIME             End time
+-n FILE             Name of the index file
                     Default: $index
--o        FILE.xvg  Name of the total output file
+-o FILE.xvg         Name of the total output file
                     Default: $out
 --soutput FILE.xvg  Name of the single output files
                     Default: ${out%.xvg}_NP.xvg (used trunc of name given by -o)
 		    (where NP is replaced later by the number of the process)
-    --log  FILE     Name of logfile
+    --log FILE      Name of logfile
                     Default: ${out%.xvg}_NP.log" (used trunc of name given by -o)
 		    (where NP is replaced later by the number of the process)
-    --cmd  CMD      Change the gromacs command to run
+    --cmd CMD       Change the gromacs command to run
                     Default: ${g_cmd}
     --single        Run only one task at the time
     --debug         Enable debug output
@@ -83,10 +83,6 @@ Allowed options:
 Examples:
 * ${0##*/} -e 1
 * ${0##*/} -e 1 -- -bin 0.05
-
-USES:
-
-NEEDS:
 eof
 }
 

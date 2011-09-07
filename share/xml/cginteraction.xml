@@ -77,6 +77,14 @@
       scripts separated by spaces which are called. See section on iterative framework for details.
     </desc>
   </item>
+  <item><name>inverse.post_add_options</name><desc>Contains all options of post add scripts</desc></item>
+  <item><name>inverse.post_add_options.overwrite</name><desc>Contains all options of the overwrite postadd scripts</desc></item>
+  <item>
+    <name>inverse.post_add_options.overwrite.do</name>
+    <desc>
+      pattern for overwrite postadd script (1 do, 0 do not).
+    </desc>
+  </item>
   <item>
     <name>inverse.p_target</name>
     <desc>
@@ -91,6 +99,8 @@
     </desc>
   </item>
   <item><name>inverse.post_update_options</name><desc>Contains all options of post update scripts</desc></item>
+  <item><name>inverse.post_update_options.extrapolate</name><desc>Contains all options of the post update extrapolate script</desc></item>
+  <item><name>inverse.post_update_options.extrapolate.points</name><desc>Number of point to calculate the average from for the extrapolation</desc></item>
   <item><name>inverse.post_update_options.pressure</name><desc>Contains all options of the pressure correction scripts</desc></item>
   <item>
     <name>inverse.post_update_options.pressure.do</name>
@@ -155,10 +165,6 @@
   <item>
     <name>inverse.post_add_options.convergence.what</name>
     <desc>list for what to calc the convergence: dist pot, .. (default dist)</desc>
-  </item>
-  <item>
-    <name>inverse.post_add_options.plot.gnuplot_bin</name>
-    <desc>gnuplot binary to use (default gnuplot)</desc>
   </item>
   <item>
     <name>inverse.post_add_options.plot.gnuplot_opts</name>
@@ -300,7 +306,7 @@ particles that is contained in the espresso blockfile.
   <item><name>tf.spline_end</name><desc>End of the spline used to smooth the density</desc></item>
   <item><name>tf.spline_step</name><desc>Grid of the spline used to smooth the density</desc></item>
   <item><name>tf.molname</name><desc>Molecule name of this gropu used in gromacs topology</desc></item>
-  <item><name>tf.prefactor</name><desc>Prefactor for the thermoforce (f=prefactor * grad density)</desc></item>
+  <item><name>tf.prefactor</name><desc>Prefactor for the thermoforce (f=-prefactor * grad density)</desc></item>
   <item><name>tf.cg_prefactor</name><desc>Second Prefactor for the thermoforce will be linear interpolated with tf.prefactor</desc></item>
 
 </tags> 

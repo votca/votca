@@ -15,9 +15,9 @@
  *
  */
 
-#include <malloc.h>
+#include <cstdlib>
 #include <iostream>
-#include "topology.h"
+#include <votca/csg/topology.h>
 #include "gmxtrajectoryreader.h"
 
 namespace votca { namespace csg {

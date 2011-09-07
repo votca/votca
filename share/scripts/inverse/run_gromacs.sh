@@ -52,14 +52,28 @@ grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
 critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${grompp_opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
 
-mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.bin "mdrun")"
+mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command "mdrun")"
 #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
 
-mpicmd=$(csg_get_property --allow-empty cg.inverse.parallel.cmd)
-critical $mpicmd $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}
-
 ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
-traj="traj.${ext}"
-[ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found after running mdrun"
+if [[ $ext == "xtc" ]]; then
+  [[ $(get_simulation_setting nstxtcout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj_type) is $ext, but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
+elif [[ $ext == "trr" ]]; then
+  [[ $(get_simulation_setting nstxout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj_type) is $ext, but nstxout is 0 in $mdp. Please check the setting again and remove the current step."
+else
+  die "functions_gromacs: error trajectory type $ext is not supported"
+fi
 
-[ -f "$confout" ] || die "${0##*/}: Gromacs end coordinate '$confout' not found after running mdrun"
+if [ -n "$CSGENDING" ]; then
+  #seconds left for the run
+  wall_h=$(( $CSGENDING - $(get_time) ))
+  #convert to hours
+  wall_h=$(csg_calc $wall_h / 3600 )
+  echo "${0##*/}: Setting $mdrun maxh option to $wall_h (hours)"
+  checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
+  mdrun_opts="-cpi $checkpoint -maxh $wall_h ${mdrun_opts}"
+else
+  echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
+fi
+
+critical $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}

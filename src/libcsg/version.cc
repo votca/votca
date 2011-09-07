@@ -18,7 +18,7 @@
 #include <votca_config.h>
 #include <votca/tools/version.h>
 #include <iostream>
-#include "version.h"
+#include <votca/csg/version.h>
 
 #if GMX == 50
 #include <gromacs/legacyheaders/copyrite.h>
@@ -35,6 +35,12 @@
 // this one is needed because of bool is defined in one of the headers included by gmx
 #undef bool
 #endif
+
+extern "C" {
+   void VotcaCsgFromC(){
+     //do nothing - this is just that we have a c function for autotools
+   }
+}
 
 namespace votca { namespace csg {
 

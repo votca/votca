@@ -25,13 +25,16 @@ EOF
    exit 0
 fi
 
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-[ -f "$2" ] && die "${0##*/}: $2 is already there"
+[[ -f $2 ]] && die "${0##*/}: $2 is already there"
 
 step_nr="$(get_current_step_nr)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 name=$(csg_get_interaction_property name)
+min=$(csg_get_interaction_property min)
+max=$(csg_get_interaction_property max)
+step=$(csg_get_interaction_property step)
 
 p_file="${name}.pressure"
 do_external pressure "$sim_prog" "$p_file" 
@@ -45,8 +48,11 @@ pscheme_nr=$(( ( $step_nr - 1 ) % ${#pscheme[@]} ))
 
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then
    echo "Apply ${ptype} pressure correction for interaction ${name}"
-   do_external pressure_cor $ptype $p_now pressure_cor.d
-   do_external table add pressure_cor.d "$1" "$2"
+   do_external pressure_cor $ptype $p_now ${name}.pressure_correction
+   comment="$(get_table_comment ${name}.pressure_correction)"
+   tmpfile=$(critical mktemp ${name}.pressure_correction_cut.XXX)
+   critical csg_resample --in ${name}.pressure_correction --out ${tmpfile} --grid $min:$step:$max --comment "$comment"
+   do_external table add ${tmpfile} "$1" "$2"
 else
    echo "NO pressure correction for interaction ${name}"
    do_external postupd dummy "$1" "$2"

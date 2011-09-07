@@ -15,22 +15,34 @@
  *
  */
 
-#ifdef CHECK_FUNCTION_EXISTS
+#ifndef __VOTCA_CSG_XYZWRITER_H
+#define	__VOTCA_CSG_XYZWRITER_H
 
-namespace votca { namespace tools {
-      char & CHECK_FUNCTION_EXISTS();
+#include <stdio.h>
+#include <votca/csg/topology.h>
+#include <votca/csg/trajectorywriter.h>
+
+namespace votca { namespace csg {
+using namespace votca::tools;
+
+using namespace std;
+
+class XYZWriter
+: public TrajectoryWriter
+{
+public:
+    
+    void Open(string file, bool bAppend = false);
+    void Close();
+    
+    void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}    
+
+    void Write(Topology *conf);
+
+private:
+    FILE *_out;
+};
+
 }}
 
-int main(int ac, char*av[]){
-	votca::tools::CHECK_FUNCTION_EXISTS();
-        if(ac > 1000)
-	{
-		return *av[0];
-	}
-	return 0;
-}
-#else  /* CHECK_FUNCTION_EXISTS */
-
-#  error "CHECK_FUNCTION_EXISTS has to specify the function"
-
-#endif /* CHECK_FUNCTION_EXISTS */
+#endif

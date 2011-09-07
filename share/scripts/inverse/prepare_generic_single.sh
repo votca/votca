@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implements the prepares the potential in step 0, using pot.in or by resampling the target distribution
@@ -32,24 +32,38 @@ step=$(csg_get_interaction_property step )
 comment="$(get_table_comment)"
 main_dir=$(get_main_dir)
 method="$(csg_get_property cg.inverse.method)"
+tabtype="$(csg_get_interaction_property bondtype)"
+[[ ${method} = "tf" ]] && tabtype="thermforce"
+output="${name}.pot.new"
 
-if [ -f "${main_dir}/${name}.pot.in" ]; then
+if [[ -f ${main_dir}/${name}.pot.in ]]; then
   msg "Using given table ${name}.pot.in for ${name}"
-  tmp="$(critical mktemp ${name}.pot.in.smooth.XXX)"
-  echo "Converting ${main_dir}/${name}.pot.in to ${name}.pot.new through $tmp"
-  critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${tmp} --grid ${min}:${step}:${max} --comment "$comment"
-  do_external pot shift_nb ${tmp} ${name}.pot.new
+  smooth="$(critical mktemp ${name}.pot.in.smooth.XXX)"
+  echo "Converting ${main_dir}/${name}.pot.in to ${output}"
+  critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${smooth} --grid ${min}:${step}:${max} --comment "$comment"
+  extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
+  do_external potential extrapolate --type "$tabtype" "${smooth}" "${extrapolate}"
+  do_external table change_flag "${extrapolate}" "${output}"
 else
+  [[ ${tabtype} = "bonded" ]] && die "${0##*/}: Not implemented yet, implement it or provide ${name}.pot.in!"
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
-  #copy+resample all target dist in $this_dir
-  critical csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
-  if [ "$method" = "tf" ]; then
+  #resample all target dist in $this_dir
+  do_external resample target
+  if [[ $method = "tf" ]]; then
     #initial guess from density
-    do_external calc thermforce ${name}.dist.tgt ${name}.pot.new
+    raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
+    do_external calc thermforce ${name}.dist.tgt ${raw}
+    do_external table change_flag "${raw}" "${output}"
   else
     # initial guess from rdf
-    do_external rdf pot ${name}.dist.tgt ${name}.pot.new
+    raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
+    do_external rdf pot ${name}.dist.tgt ${raw}
+    smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
+    critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+    extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
+    do_external pot shift_nonbonded ${smooth} ${extrapolate}
+    do_external table change_flag "${extrapolate}" "${output}"
   fi
 fi
 

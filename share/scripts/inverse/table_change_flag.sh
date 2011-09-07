@@ -1,3 +1,4 @@
+#! /bin/bash
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
@@ -13,8 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+if [ "$1" = "--help" ]; then
+cat <<EOF
+${0##*/}, version %version%
+This script changes the flags (col 3) of a table
 
-#Make it simple so that sh can also understand it
-CSGSHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
+Usage: ${0##*/} input outfile
+EOF
+   exit 0
+fi
 
-export CSGSHARE
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
+
+[[ -f $1 ]] || die "${0##*/}: Cannot find input file $1"
+
+critical sed -e 's/o$/i/' $1 > $2

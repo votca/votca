@@ -18,7 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/format.hpp>
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace votca::csg;
 using namespace std;

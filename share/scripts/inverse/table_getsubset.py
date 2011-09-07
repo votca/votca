@@ -16,6 +16,7 @@
 #
 
 import sys
+import os
 
 #import pygsl.sf
 import getopt
@@ -48,7 +49,7 @@ Allowed options:
     --xstop      X.X  x value where the subset stops
     --infile    FILE  input file
     --outfile   FILE  output file
-""" % {'name': sys.argv[0],'ver': '%version%'}
+""" % {'name': os.path.basename(sys.argv[0]),'ver': '%version%'}
       sys.exit(0)
     elif o == "-v":
         verbose = True

@@ -30,6 +30,24 @@ step=$(csg_get_interaction_property step )
 target=$(csg_get_interaction_property inverse.target)
 name=$(csg_get_interaction_property name)
 main_dir=$(get_main_dir)
+output="${name}.dist.tgt"
+method="$(csg_get_property cg.inverse.method)"
+tabtype="$(csg_get_interaction_property bondtype)"
+[[ ${method} = "tf" ]] && tabtype="thermforce"
 
-comment="$(get_table_comment)"
-critical csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
+
+
+if [[ $tabtype = "thermforce" ]]; then
+  #therm force is resampled later
+  cp_from_main_dir --rename "${target}" "${output}"
+elif [[ $tabtype = "non-bonded" ]]; then
+  comment="$(get_table_comment)"
+  smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
+  critical csg_resample --in ${main_dir}/${target} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+  #the left side is usually not a problem, but still we do it
+  do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
+else
+  die "${0##*/}: Resample of bonded distribution is not implemented yet"
+  #exponential can lead to values smaller 0, needs to be checked again
+  do_external table extrapolate --function exponential --avgpoints 1 --region leftright "${smooth}" "${output}"
+fi

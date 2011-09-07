@@ -23,7 +23,7 @@
 #include <boost/lexical_cast.hpp>
 #include "analysistool.h"
 #include <votca/tools/histogram.h>
-#include "version.h"
+#include <votca/csg/version.h>
 #include "bondedstatistics.h"
 #include "tabulatedpotential.h"
 

@@ -20,15 +20,15 @@
 #include <iomanip>
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/rangeparser.h>
-#include "beadlist.h"
-#include "nblistgrid.h"
+#include <votca/csg/beadlist.h>
+#include <votca/csg/nblistgrid.h>
 #include "csg_stat_imc.h"
-#include "imcio.h"
+#include <votca/csg/imcio.h>
 
 namespace votca { namespace csg {
 
 Imc::Imc()
-   : _write_every(0), _do_blocks(false), _do_imc(false), _processed_some_frames(false)
+   : _block_length(0), _do_imc(false), _processed_some_frames(false)
 {
 }
 
@@ -100,9 +100,18 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
         // calculate normalization factor for rdf
 
         if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            i._norm = 1. / (4. * M_PI * i._step * beads1.size()*(beads2.size() - 1.) / 2.);
+            i._norm = 1. / (beads1.size()*(beads2.size()) / 2.);
         else
-            i._norm = 1. / (4. * M_PI * i._step * beads1.size() * beads2.size());
+            i._norm = 1. / (beads1.size() * beads2.size());
+    }
+
+    for (list<Property*>::iterator iter = _bonded.begin();
+            iter != _bonded.end(); ++iter) {
+        string name = (*iter)->get("name").value();
+
+        std::list<Interaction *> list = top->InteractionsInGroup(name);
+        if (list.empty() )
+            throw std::runtime_error("Bonded interaction '" + name + "' defined in options xml-file, but not in topology - check name definition in the mapping file again");
     }
 }
 
@@ -139,8 +148,9 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
 void Imc::EndEvaluate()
 {
     if(_nframes > 0) {
-        if(!_do_blocks) {
-            WriteDist();
+        if(_block_length == 0) {
+	    string suffix = string(".") + _extension;
+            WriteDist(suffix);
             if(_do_imc)
                 WriteIMCData();
         }
@@ -372,17 +382,25 @@ void Imc::WriteDist(const string &suffix)
         Table &t = iter->second->_average.data();            
         Table dist(t);
         if(!iter->second->_is_bonded) {
-            dist.y() = _avg_vol.getAvg()*iter->second->_norm *
-                element_div(dist.y(),
-                    element_prod(dist.x(), dist.x())
-                );
+            // normalization is calculated using exact shell volume (difference of spheres)
+            for(int i=0; i<dist.y().size(); ++i) {
+                double x1 = dist.x()[i] - 0.5*iter->second->_step;
+                double x2 = x1 + iter->second->_step;
+                if(x1<0) {
+                    dist.y()[i]=0;
+                }
+                else {
+                    dist.y()[i] = _avg_vol.getAvg()*iter->second->_norm *
+                        dist.y()[i]/(4./3.*M_PI*(x2*x2*x2 - x1*x1*x1));                
+                }
+            }
         }
         else {
             dist.y() = iter->second->_norm * dist.y();
         }
         
-        dist.Save((iter->first) + suffix + ".dist.new");
-        cout << "written " << (iter->first) + suffix + ".dist.new\n";            
+        dist.Save((iter->first) + suffix);
+        cout << "written " << (iter->first) + suffix << "\n";
     }
 }
 
@@ -494,11 +512,16 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
                 
     Table target;
     target.Load(name + ".dist.tgt");
-                      
+
     if(!interaction->_is_bonded) {
-        target.y() = (1.0 / (_avg_vol.getAvg()*interaction->_norm))*ub::element_prod(target.y(),
-            (ub::element_prod(target.x(), target.x()))
-            ) ;
+        for(int i=0; i<target.y().size(); ++i) {
+            double x1 = target.x()[i] - 0.5*interaction->_step;
+            double x2 = x1 + interaction->_step;
+            if(x1<0)
+                x1=x2=0;
+            target.y()[i] = 1./(_avg_vol.getAvg()*interaction->_norm) *
+                target.y()[i] * (4./3.*M_PI*(x2*x2*x2 - x1*x1*x1));                
+        }        
     }
     else {
             target.y() = (1.0 / interaction->_norm)*target.y();
@@ -635,15 +658,14 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
     if(_do_imc)
         DoCorrelations(worker);
 
-    if(_write_every != 0) {
-        if((_nframes % _write_every)==0) {
+    if(_block_length != 0) {
+        if((_nframes % _block_length)==0) {
             _nblock++;
-            string suffix = string("_") + boost::lexical_cast<string>(_nblock);
+            string suffix = string("_") + boost::lexical_cast<string>(_nblock) + string(".") + _extension;
             WriteDist(suffix);
             WriteIMCData(suffix);
             WriteIMCBlock(suffix);
-            if(_do_blocks)
-                ClearAverages();
+            ClearAverages();
         }
     }
 

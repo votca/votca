@@ -43,29 +43,49 @@ max=$(csg_get_interaction_property tf.spline_end)
 step=$(csg_get_interaction_property step)
 bins=$(csg_calc $max / $step )
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
-[ -f "$mdp" ] || die "${0##*/}: gromacs mdp file '$mdp' not found"
-adress_type=$(get_from_mdp adress_type "$mdp")
-
+adress_type=$(get_simulation_setting adress_type)
 echo "Adress type: $adress_type"
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 mol="$(csg_get_interaction_property tf.molname "*")"
+opts="--rmax $max"
 if [ "$adress_type" = "sphere" ]; then
-  adressc="$(get_from_mdp adress_reference_coords "$mdp" "0 0 0")"
+  adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
   ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
   axis="r"
-  opts="--ref $ref"
+  opts="$opts --ref $ref"
 else
   axis="x"
+  opts=""
 fi
 
-msg "Calculating density for $name (molname $mol) on axis $axis"
-if is_done "density_analysis"; then
-  echo "density analysis is already done"
+with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
+if [[ ${with_errors} = "yes" ]]; then
+  error_opts="--block-length ${block_length}"
+  suffix="_with_errors"
+  output="$name.dist.block"
 else
-  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" $opts
-  critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
-  mark_done "density_analysis"
+  suffix=""
+  output="$name.dist.new"
 fi
+
+if is_done "${name}_density_analysis${suffix}"; then
+  echo "density analysis is already done"
+  exit 0
+fi
+
+with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
+if [[ ${with_errors} = "yes" ]]; then
+  msg "Calculating density for $name (molname $mol) on axis $axis with errors"
+  block_length=$(csg_get_property cg.inverse.gromacs.density.block_length)
+  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.block" --begin "$equi_time" --first-frame "$first_frame" --bins "$bins" --axis "$axis" --molname "$mol" --block-length $block_length $opts
+  #mind the --clean option to avoid ${name}.dist.block_* to fail on the second run
+  do_external table average --clean --output ${name}.dist.new ${name}.dist.block_*
+else
+  msg "Calculating density for $name (molname $mol) on axis $axis"
+  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --bins "$bins" --axis "$axis" --molname "$mol" $opts
+  critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
+fi
+mark_done "${name}_density_analysis"
+
