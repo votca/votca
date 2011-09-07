@@ -105,7 +105,7 @@ inline bool ContKmc::EvaluateFrame(QMTopology *top){
     vector<vertex*>::iterator it = kmc_grid.getFirstVertex();
 
     for (; it != kmc_grid.getLastVertex(); ++it) {
-        QMCrgUnit *crg = top->GetCrgUnit((*it)->getCrgUnitId());
+        QMCrgUnit *crg = top->getCrgUnit((*it)->getCrgUnitId());
         if(crg == NULL)
             throw std::runtime_error("did not find crgunit id given in kmc graph");
         crg->setOccupationProbability(charges.getOccProbability(*it));
