@@ -30,19 +30,25 @@ fi
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 do_external postadd dummy "$1" "$2"
+if [[ $(csg_get_property cg.inverse.method) = "simplex" ]]; then
+  msg "postadd convergency make no sense for simplex as convergency is calculated anyway - skipping"
+  exit 0
+fi
 
 name=$(csg_get_interaction_property name)
 max=$(csg_get_interaction_property max)
 min=$(csg_get_interaction_property min)
 step=$(csg_get_interaction_property step)
 
+
+
 #these two are arrays
 weights=( $(csg_get_interaction_property inverse.post_add_options.convergence.weight 1) )
 what_to_do_list=( $(csg_get_interaction_property inverse.post_add_options.convergence.what "dist") )
 
 [ ${#weights[@]} -ne ${#what_to_do_list[@]} ] && die "${0##*/}: number of weights does not match number of 'what' to calc convergence from"
-tmp="$(critical mktemp ${name}.conv.XXX)"
 
+sum=0
 #we allow multiple thing per interaction to be checked
 for ((i=0;i<${#what_to_do_list[@]};i++)); do
   dist=${what_to_do_list[$i]}
@@ -61,17 +67,16 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
     fi
   fi
 
-  critical sed -e '/^#/d' -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
+  critical sed -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
+  #resample this a density dist maybe has the wrong grid
   critical csg_resample --in ${name}.${dist}.new --out $tmp2 --grid "$min:$step:$max"
-  critical sed -e '/^#/d' -e 's/nan/0.0/g' $tmp2 > $tmp3
+  critical sed -e 's/nan/0.0/g' $tmp2 > $tmp3
 
-  [ $(sed -n '$=' $tmp1) -eq $(sed -n '$=' $tmp3) ] || \
-    die "${0##*/}: linenumber of ${name}.${dist}.tgt differs from ${name}.${dist}.new"
-
-  critical paste $tmp1 $tmp3 > $tmp4
-  critical awk '{if ($4!=$1){print "x column differs in line",NR;exit 1;}}' $tmp4
-  echo "Calc convergence for ${name} with weight $weight"
-  critical awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)**2;}END{print dist,sqrt(sum*bin*w);}' $tmp4 >> $tmp
+  do_external table difference --output "$tmp4" "$tmp1" "$tmp3"
+  
+  diff=$(csg_calc "$weight" "*" "$(<$tmp4)")
+  echo "Convergence of $dist for ${name} was $(<tmp4) and has weight $weight, so difference is $diff"
+  sum=$(csg_calc $sum + $diff)
 done
 
-critical awk '{sum+=$2;}END{print sum;}' $tmp > ${name}.conv
+echo "$sum" > ${name}.conv

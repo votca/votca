@@ -665,7 +665,7 @@ source_wrapper() { #print the full name of a script belonging to two tags (1st, 
   else
     cmd=$(get_command_from_csg_tables "$1" "$2") || die "${FUNCNAME[0]}: get_command_from_csg_tables '$1' '$2' failed"
     [[ -z $cmd ]] && die "${FUNCNAME[0]}: Could not get any script from tags '$1' '$2'"
-    script="${cmd/* }"
+    script="${cmd%% *}"
     real_script="$(find_in_csgshare "$script")"
     echo "${cmd/${script}/${real_script}}"
   fi

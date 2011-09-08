@@ -43,8 +43,6 @@ prepare ibm prepare_ibm.sh
 update ibm update_ibm.sh
 
 # the update step
-update ibi update_ibi.sh
-update imc update_imc.sh
 
 # add up the potential
 # TODO: think about name add_pot, is other name maybe better
@@ -101,12 +99,14 @@ dpot crop dpot_crop.pl
 
 # ibi specific stuff
 # TODO: rename to ibi single
+update ibi update_ibi.sh
 update ibi_single update_ibi_single.sh
 # TODO: rename to ibi pot
 update ibi_pot update_ibi_pot.pl
 
 # imc specific stuff
 # TODO: rename to imc single
+update imc update_imc.sh
 imcsolver matlab solve_matlab.sh
 solve matlab linsolve.m
 imcsolver octave solve_octave.sh
@@ -122,9 +122,14 @@ update tf_single update_tf_single.sh
 calc thermforce calc_thermforce.sh
 
 # simplex specific stuff
+update simplex update_simplex.sh
+update simplex_single update_simplex_single.sh
 simplex parameters_to_potential simplex_parameters_to_potential.sh
 simplex prepare_state simplex_prepare_state.sh
 simplex state_to_potentials simplex_state_to_potentials.sh
+
+simplex_target rdf simplex_target_rdf.sh
+simplex_target density simplex_target_density.sh
 
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl
@@ -145,6 +150,7 @@ table get_value table_get_value.pl
 table getsubset table_getsubset.py
 table smooth_borders table_smooth_borders.py
 table compare table_compare.pl 
+table difference table_compare.pl --weak
 table average table_average.sh
 table scale table_scale.pl
 table change_flag table_change_flag.sh

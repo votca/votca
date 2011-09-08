@@ -28,7 +28,7 @@ fi
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: missing argument"
 input="$1"
-ouput="$2"
+output="$2"
 [[ -f $input ]] || die "${0##*/}: Could not read $input"
 
 line="$(critical sed -n '/pending$/{=;q}' "$input")"

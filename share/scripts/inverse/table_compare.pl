@@ -18,22 +18,57 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
+my $usage="Usage: $progname [OPTIONS] <in> <out>";
+my $epsilon=1e-5;
+my $output=undef;
+my $weak=undef;
 
-if (defined($ARGV[0]) && ( ("$ARGV[0]" eq "-h" ) || ("$ARGV[0]" eq "--help") )){
-  print <<EOF;
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
+{
+        if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
+           $_=shift(@ARGV);
+           #short opt having agruments examples fo
+           if ( $_ =~ /^-[fo]/ ) {
+              unshift(@ARGV,substr($_,0,2),substr($_,2));
+           }
+           else{
+              unshift(@ARGV,substr($_,0,2),"-".substr($_,2));
+           }
+        }
+    if($ARGV[0] eq "--output") {
+        shift(@ARGV);
+        $output = shift(@ARGV);
+    }
+    elsif($ARGV[0] eq "--epsilon") {
+        shift(@ARGV);
+        $epsilon = shift(@ARGV);
+    }
+    elsif($ARGV[0] eq "--weak") {
+        shift(@ARGV);
+	$weak="yes";
+    }
+    elsif (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
+	{
+            print <<EOF;
 $progname, version %version%
 This script compares two tables
 
-Usage: $progname infile1 infile2
+$usage
+
+Allowed options:
+    --output FILE     Output differnce to a file (used if --weak)
+    --weak            Do not die, if y values or flags differ, just print sqrt difference.
+    --error  ERR      Relative error
+                      Default: $epsilon 
+-h, --help            Show this help message
 EOF
   exit 0;
+    }
 }
 
 die "2 parameters are nessary\n" if ($#ARGV<1);
 
 use CsgFunctions;
-
-my $epsilon=1e-5;
 
 my $file1="$ARGV[0]";
 my $file2="$ARGV[1]";
@@ -50,9 +85,23 @@ my @flag2;
 
 $#r1 == $#r2 || die "$progname: error, tables have different length";
 
+my $sum=0;
 for (my $i=0;$i<=$#r1; $i++) {
   abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first column different at position $i\n";
   #check relative error!
-  abs($pot1[$i] - $pot2[$i])/(($pot1[$i] == 0.0) ? 1.0 : $pot1[$i]) < $epsilon || die "$progname: second column different at position $i\n";
-  $flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
+  my $diff=abs($pot1[$i] - $pot2[$i])/(($pot1[$i] == 0.0) ? 1.0 : $pot1[$i]);
+  if ($weak) {
+    $sum+=$diff;
+  } else {
+    die "$progname: second column different at position $i\n" if ($diff > $epsilon);
+    $flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
+  }
 }
+if ($output) {
+  open(FILE,"> $output") or die "Could not open $output for write\n";
+  print FILE "$sum";
+  close(FILE) or die "Error at closing $output\n";
+} else {
+  print "$sum";
+}
+
