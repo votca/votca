@@ -93,8 +93,9 @@ export -f show_callstack
 unset -f die
 die () { #make the iterative frame work stopp
   local pid pids c place
-  echo -e "\nCallstack:"
-  show_callstack
+  #Output callstack to stderr in case die was executed in $( )
+  echo -e "\nCallstack:" >&2
+  show_callstack >&2
   [[ -z $CSGLOG ]] && place="Details can be found above" || place="For details see the logfile $CSGLOG"
   msg --color red --to-stderr "$(csg_banner "ERROR:" "$@" "$place")"
   if [[ -n ${CSG_MASTER_PID} ]]; then
@@ -145,7 +146,7 @@ do_external() { #takes two tags, find the according script and excute it
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
-  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*' (from tags $tags) dir ${script%/*}"
+  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} ${@:3}' (from tags $tags) dir ${script%/*}"
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
     CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then

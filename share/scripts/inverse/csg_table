@@ -28,9 +28,11 @@ prepare ibi prepare_generic.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare tf prepare_generic.sh
+prepare simplex prepare_simplex.sh
 prepare_single ibi prepare_generic_single.sh
 prepare_single imc prepare_generic_single.sh
 prepare_single tf prepare_generic_single.sh
+prepare_single simplex prepare_simplex_single.sh
 initstep ibi initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 initstep tf initialize_step_generic.sh
@@ -117,6 +119,11 @@ imc purify imc_purify.sh
 update tf update_tf.sh
 update tf_single update_tf_single.sh
 calc thermforce calc_thermforce.sh
+
+# simplex specific stuff
+simplex parameters_to_potential simplex_parameters_to_potential.sh
+simplex prepare_state simplex_prepare_state.sh
+simplex state_to_potentials simplex_state_to_potentials.sh
 
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl
