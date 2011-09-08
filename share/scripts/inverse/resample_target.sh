@@ -17,33 +17,29 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script resamples target distribution to grid spacing of the setting xml file
+This script resamples distribution to grid spacing of the setting xml file and extrapolates if needed
 
-Usage: ${0##*/}
+Usage: ${0##*/} input output
 EOF
    exit 0
 fi
 
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
+input="$1"
+main_dir=$(get_main_dir)
+[[ -f ${main_dir}/$input ]] || die "${0##*/}: Could not find input file '$input' in maindir ($main_dir)"
+output="$2"
+
 min=$(csg_get_interaction_property min )
 max=$(csg_get_interaction_property max )
 step=$(csg_get_interaction_property step )
-target=$(csg_get_interaction_property inverse.target)
 name=$(csg_get_interaction_property name)
-main_dir=$(get_main_dir)
-output="${name}.dist.tgt"
-method="$(csg_get_property cg.inverse.method)"
 tabtype="$(csg_get_interaction_property bondtype)"
-[[ ${method} = "tf" ]] && tabtype="thermforce"
 
-
-
-if [[ $tabtype = "thermforce" ]]; then
-  #therm force is resampled later
-  cp_from_main_dir --rename "${target}" "${output}"
-elif [[ $tabtype = "non-bonded" ]]; then
+if [[ $tabtype = "non-bonded" ]]; then
   comment="$(get_table_comment)"
   smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
-  critical csg_resample --in ${main_dir}/${target} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+  critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
   #the left side is usually not a problem, but still we do it
   do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
 else

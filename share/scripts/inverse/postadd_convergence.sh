@@ -55,7 +55,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   if [ ! -f "${name}.${dist}.tgt" ]; then
     #if we need $name.dist.tgt we know how to create it
     if [ "${dist}" = "dist" ]; then
-      do_external resample target
+      do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
     else
       die "${0##*/}: file '${name}.${dist}.tgt' was not found, add the script to create this file to the postadd routine of interaction $name"
     fi

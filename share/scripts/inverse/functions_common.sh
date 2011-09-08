@@ -694,6 +694,7 @@ export -f find_in_csgshare
 if [ -z "$(type -p mktemp)" ]; then
   #do not document this
   mktemp() {
+    [[ $1 = "-u" ]] && shift
     [[ -z $1 ]] && die "${FUNCNAME[0]}: missing argument"
     [[ -z ${1##*X} ]] || die "${FUNCNAME[0]}: argument has to end at least with X"
     local end trunc i l tmp newend

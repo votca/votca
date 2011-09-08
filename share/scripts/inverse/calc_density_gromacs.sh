@@ -39,30 +39,31 @@ else
 fi
 
 name=$(csg_get_interaction_property name)
-max=$(csg_get_interaction_property tf.spline_end)
-step=$(csg_get_interaction_property step)
-bins=$(csg_calc $max / $step )
 
 adress_type=$(get_simulation_setting adress_type)
-echo "Adress type: $adress_type"
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
 mol="$(csg_get_interaction_property tf.molname "*")"
-opts="--rmax $max"
-if [ "$adress_type" = "sphere" ]; then
+if [[ $adress_type = "sphere" ]]; then
+  echo "Adress type: $adress_type"
+  max=$(csg_get_interaction_property tf.spline_end)
+  step=$(csg_get_interaction_property step)
+  bins=$(csg_calc $max / $step )
   adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
   ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
   axis="r"
-  opts="$opts --ref $ref"
-else
+  opts="--rmax $max --ref $ref"
+#elif [[ $adress_type = "Xsplit" ]]
+  else
+  echo "Adress type: $adress_type"
   axis="x"
   opts=""
+  bins="$(csg_get_interaction_property tf.density.bins)"
 fi
 
 with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
 if [[ ${with_errors} = "yes" ]]; then
-  error_opts="--block-length ${block_length}"
   suffix="_with_errors"
   output="$name.dist.block"
 else
@@ -87,5 +88,5 @@ else
   critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --bins "$bins" --axis "$axis" --molname "$mol" $opts
   critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
 fi
-mark_done "${name}_density_analysis"
+mark_done "${name}_density_analysis${suffix}"
 

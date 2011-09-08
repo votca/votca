@@ -36,6 +36,7 @@ prepare_single simplex prepare_simplex_single.sh
 initstep ibi initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 initstep tf initialize_step_generic.sh
+initstep simplex initialize_step_simplex.sh
 
 #this is just to warn users from old versions
 prepare ibm prepare_ibm.sh
