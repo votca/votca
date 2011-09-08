@@ -29,8 +29,8 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 name="$(csg_get_interaction_property name)"
 mol="$(csg_get_interaction_property inverse.simplex.density.molname "*")"
 axis="$(csg_get_interaction_property inverse.simplex.density.axis "x")"
-bins="$(csg_get_interaction_property inverse.simplex.density.bins)"
-opts=( "--molname" "$mol" "--axis" "$axis" "--bins" "$bins" )
+step="$(csg_get_interaction_property inverse.simplex.density.step)"
+opts=( "--molname" "$mol" "--axis" "$axis" "--step" "$step" )
 do_external density ${sim_prog} "${name}.density.new" "${opts[@]}"
 
 [[ -f ${name}.density.new ]] || die "${0##*/}: Could not calculate ${name}.density.new"

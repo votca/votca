@@ -34,12 +34,11 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 
 mol="$(csg_get_interaction_property tf.molname "*")"
 adress_type=$(get_simulation_setting adress_type)
+step=$(csg_get_interaction_property step)
 opts=()
 if [[ $adress_type = "sphere" ]]; then
   echo "Adress type: $adress_type"
   max=$(csg_get_interaction_property tf.spline_end)
-  step=$(csg_get_interaction_property step)
-  bins=$(csg_calc $max / $step )
   adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
   ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
   axis="r"
@@ -47,9 +46,8 @@ if [[ $adress_type = "sphere" ]]; then
 else
   echo "Adress type: $adress_type"
   axis="x"
-  bins="$(csg_get_interaction_property tf.density.bins)"
 fi
-opts=( "${opts[@]}" "--molname" "$mol" "--axis" "$axis" "--bins" "$bins" )
+opts=( "${opts[@]}" "--molname" "$mol" "--axis" "$axis" "--step" "$step" )
 do_external density $sim_prog "$name.dist.new" "${opts[@]}"
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
    echo "Update tf ${name} : yes"
