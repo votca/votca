@@ -245,13 +245,10 @@ for ((i=$begin;i<$iterations+1;i++)); do
     die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
   fi
 
-  msg "Make update"
+  msg "Make update for $method"
   do_external update $method
 
-  msg "Post update"
   do_external post_update $method
-
-  msg "Adding up potential"
   do_external add_pot $method
 
   msg "Post add"

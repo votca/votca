@@ -53,10 +53,7 @@ sum=0
 for ((i=0;i<${#what_to_do_list[@]};i++)); do
   dist=${what_to_do_list[$i]}
   weight=${weights[$i]}
-  tmp1="$(critical mktemp ${name}.${dist}.tgt.XXX)"
-  tmp2="$(critical mktemp ${name}.${dist}.newcut.XXX)"
-  tmp3="$(critical mktemp ${name}.${dist}.new.XXX)"
-  tmp4="$(critical mktemp ${name}.${dist}.cmb.XXX)"
+  tmp1="$(critical mktemp ${name}.${dist}.new.resample.XXX)"
 
   if [ ! -f "${name}.${dist}.tgt" ]; then
     #if we need $name.dist.tgt we know how to create it
@@ -67,16 +64,14 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
     fi
   fi
 
-  critical sed -e 's/nan/0.0/g' ${name}.${dist}.tgt > $tmp1
-  #resample this a density dist maybe has the wrong grid
-  critical csg_resample --in ${name}.${dist}.new --out $tmp2 --grid "$min:$step:$max"
-  critical sed -e 's/nan/0.0/g' $tmp2 > $tmp3
+  #resample this, as density dist maybe has the wrong grid
+  critical csg_resample --in ${name}.${dist}.new --out $tmp1 --grid "$min:$step:$max"
 
-  do_external table difference --output "$tmp4" "$tmp1" "$tmp3"
-  
-  diff=$(csg_calc "$weight" "*" "$(<$tmp4)")
-  echo "Convergence of $dist for ${name} was $(<tmp4) and has weight $weight, so difference is $diff"
-  sum=$(csg_calc $sum + $diff)
+  diff=$(do_external table difference "$tmp1" "${name}.${dist}.tgt")
+  is_num "$diff" || die "${0##*/}: strange - result of do_external table difference '$tmp1' '$tmp3' was not a number" 
+  wdiff=$(csg_calc "$weight" "*" "${diff}")
+  echo "Convergence of $dist for ${name} was ${diff} and has weight $weight, so difference is $wdiff"
+  sum=$(csg_calc $sum + $wdiff)
 done
 
 echo "$sum" > ${name}.conv

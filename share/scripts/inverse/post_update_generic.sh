@@ -27,5 +27,6 @@ fi
 
 method="$(csg_get_property cg.inverse.method)"
 
+msg "Doing post-update for $method"
 for_all "non-bonded" do_external post_update_single $method
 

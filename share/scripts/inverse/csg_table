@@ -49,6 +49,7 @@ update ibm update_ibm.sh
 add_pot ibi add_pot_generic.sh
 add_pot imc add_pot_generic.sh
 add_pot tf add_pot_generic.sh
+add_pot simplex dummy.sh
 
 # END: these scripts have to be defined for each method
 
@@ -59,6 +60,7 @@ rdf pot RDF_to_POT.pl
 post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
 post_update tf post_update_generic.sh
+post_update simplex dummy.sh
 post_update_single ibi post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 post_update_single tf post_update_generic_single.sh

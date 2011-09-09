@@ -142,7 +142,7 @@ cat_external() { #takes a two tags and shows content of the according script
 export -f cat_external
 
 do_external() { #takes two tags, find the according script and excute it
-  local script tags quiet="no" function="no"
+  local script tags quiet="no" function="no" ret
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
@@ -615,8 +615,10 @@ csg_calc() { #simple calculator, a + b, ...
        res=""
        true;;
     "="|"==")
-       #we expect that x and y are close together
-       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( sqrt(((x-y)/x)**2) < $err )}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( sqrt(((x-y)/x)**2) < $err )}' failed"
+       #this is really tricky... case x=0,y=0 is catched by (x==y) after that |x-y|/max(|x|,|y|) will work expect for x,y beginng close to zero
+       res="$(awk -v x="$1" -v y="$3" -v e="$err" \
+       'func max(x,y){return (x>y)?x:y;} func abs(x){return (x<0)?-x:x;} BEGIN{if (x==y){print 1;}else{if (abs(x-y)<e){print 1;}else{ print ( abs(x-y)/max(abs(x),abs(y)) < e );}}}')" \
+	 || die "${FUNCNAME[0]}: awk for =/== failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
        #return value matters

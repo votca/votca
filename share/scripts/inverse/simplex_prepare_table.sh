@@ -39,6 +39,6 @@ done
 get_table_comment | sed 's/^/#/' > "$1"
 echo "#Interactions: ${names}" >> "$1"
 echo "#Paramters: $parameters" >> "$1"
-echo "#Format parameter ftar flag"
-#added ftar=0 and flag=pending to all lines
+echo "#Format parameter conv flag"
+#added conv=0 and flag=pending to all lines
 critical paste -d '#' "${liste[@]}" | critical sed 's/$/#0 pending/' >> "$1"

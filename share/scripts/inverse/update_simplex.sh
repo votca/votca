@@ -30,21 +30,29 @@ fi
 
 for_all non-bonded do_external update simplex_single
 
-die "Stop - to be rewritten"
-p_nr=$(grep -c 'pending$' simplex_$name.tmp);
-name=$(for_all non-bonded csg_get_interaction_property name)
-function=$(for_all non-bonded csg_get_interaction_property inverse.simplex.function);
-property=$(csg_get_property cg.inverse.simplex.property)
-param_N=$(do_external pot $function --nparams)
-ndim=$(($param_N+1))
+names="$(csg_get_property cg.non-bonded.name)"
+conv=0
+for name in ${names}; do
+  [[ -f ${name}.conv ]] || die "${0##*/}: could not find '${name}.conv'"
+  x=$(<${name}.conv)
+  is_num "$x" || die "${0##*/}: content of '${name}.conv' was not a number"
+  conv=$(csg_calc "$conv" + "$x")
+done
 
+[[ -f simplex.table.cur ]] || die "${0##*/}: Could not find simplex.table.cur"
+line="$(critical sed -n '/active$/{=;q}' "simplex.table.cur")"
+[[ -z $line ]] && die "${0##*/}: not could find a active line in simplex.table.cur"
+is_int "$line" || die "${0##*/}: Strange - $line should be a number"
+critical sed "${line}s/[^#]*$/$conv complete/" "simplex.table.cur" > "simplex.table.done"
 
-if [ $p_nr == "0" ]; then
-  # Generate new parameter set
-  msg "Calculating new parameter set"
-  do_external update simplex_step simplex_$name.tmp simplex_$name.new $param_N
-else 
-   msg "Continuing with next parameter set"
-   run_or_exit cp simplex_$name.tmp simplex_$name.new
-   run_or_exit cp state_$name.cur state_$name.new
+#check if there are still pending simulations
+line="$(critical sed -n '/pending/p' "simplex.table.done")"
+if [[ -z $line ]]; then
+  do_external simplex precede_state "simplex.state.cur" "simplex.state.new" "simplex.table.done" "simplex.table.next"
+  do_external simplex table_to_potentials "simplex.table.next" "simplex.table.new"
+else
+  line="$(echo "$line" | critical sed -n '$=')"
+  msg "There are still $line simulations to be performed before the next simplex state change"
+  critical cp "simplex.state.cur" "simplex.state.new"
+  do_external simplex table_to_potentials "simplex.table.done" "simplex.table.new"
 fi

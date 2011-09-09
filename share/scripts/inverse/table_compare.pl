@@ -85,11 +85,24 @@ my @flag2;
 
 $#r1 == $#r2 || die "$progname: error, tables have different length";
 
+sub difference($$$) {
+  defined($_[2]) || die "difference: Missing argument\n";
+  my $x=$_[0];
+  my $y=$_[1];
+  $x=0 if ($x =~ /nan/i);
+  $y=0 if ($y =~ /nan/i);
+  my $error=$_[2];
+  return 0 if $x == $y; #fetch the case that both are zero
+  return abs($x-$y) if (abs($x-$y) < $error);
+  return abs($x-$y)/abs($x) if (abs($x) > abs($y));
+  return abs($x-$y)/abs($y);
+}
+
 my $sum=0;
 for (my $i=0;$i<=$#r1; $i++) {
   abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first column different at position $i\n";
   #check relative error!
-  my $diff=abs($pot1[$i] - $pot2[$i])/(($pot1[$i] == 0.0) ? 1.0 : $pot1[$i]);
+  my $diff=&difference($pot1[$i],$pot2[$i],$epsilon);
   if ($weak) {
     $sum+=$diff;
   } else {
