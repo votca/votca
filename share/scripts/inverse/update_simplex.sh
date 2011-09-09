@@ -40,19 +40,21 @@ for name in ${names}; do
 done
 
 [[ -f simplex.table.cur ]] || die "${0##*/}: Could not find simplex.table.cur"
-line="$(critical sed -n '/active$/{=;q}' "simplex.table.cur")"
-[[ -z $line ]] && die "${0##*/}: not could find a active line in simplex.table.cur"
-is_int "$line" || die "${0##*/}: Strange - $line should be a number"
-critical sed "${line}s/[^#]*$/$conv complete/" "simplex.table.cur" > "simplex.table.done"
+active="$(critical sed -n '/active$/{=;q}' "simplex.table.cur")"
+[[ -z $active ]] && die "${0##*/}: not could find an active simulation in simplex.table.cur"
+is_int "$active" || die "${0##*/}: Strange - $active should be a number"
 
 #check if there are still pending simulations
-line="$(critical sed -n '/pending/p' "simplex.table.done")"
-if [[ -z $line ]]; then
-  do_external simplex precede_state "simplex.state.cur" "simplex.state.new" "simplex.table.done" "simplex.table.next"
-  do_external simplex table_to_potentials "simplex.table.next" "simplex.table.new"
+pending="$(critical sed -n '/pending/p' "simplex.table.done")"
+if [[ -z $pending ]]; then
+  #simplex needs to know which one was the try guess
+  critical sed "${active}s/[^#]*$/$conv try/" "simplex.table.cur" > "simplex.table.try"
+  do_external simplex precede_state "simplex.state.cur" "simplex.table.try" "simplex.state.new"
+  do_external simplex update_table "simplex.state.new" "simplex.table.try" "simplex.table.done"
 else
-  line="$(echo "$line" | critical sed -n '$=')"
-  msg "There are still $line simulations to be performed before the next simplex state change"
+  critical sed "${active}s/[^#]*$/$conv complete/" "simplex.table.cur" > "simplex.table.done"
+  pending="$(echo "$pending" | critical sed -n '$=')"
+  msg "There are still $pending simulations to be performed before the next simplex state change"
   critical cp "simplex.state.cur" "simplex.state.new"
-  do_external simplex table_to_potentials "simplex.table.done" "simplex.table.new"
 fi
+do_external simplex table_to_potentials "simplex.table.done" "simplex.table.new"

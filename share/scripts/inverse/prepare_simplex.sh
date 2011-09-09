@@ -32,7 +32,7 @@ parameters=( $(csg_get_property cg.non-bonded.inverse.simplex.parameters) )
 for_all non-bonded do_external prepare_single simplex "${#parameters[@]}"
 
 do_external simplex prepare_table "simplex.table.cur"
-echo "Transformation=None" > "simplex.state.new"
+echo "State: None" > "simplex.state.new"
 do_external simplex table_to_potentials "simplex.table.cur" "simplex.table.new"
 
 # cp confout.gro and so on
