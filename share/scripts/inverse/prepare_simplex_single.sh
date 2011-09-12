@@ -42,7 +42,7 @@ main_dir=$(get_main_dir)
 input="$name.simplex.in"
 
 if [[ -f $main_dir/$input ]]; then
-  msg "Using table ${input} for interaction ${name}"
+  msg "Using simplex parameter input ${input} for interaction ${name}"
   cp_from_main_dir $input
   critical sed -i '/^[#@]/d' "$input"
   n=( $(critical awk '{print NF}' "$input") )

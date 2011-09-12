@@ -19,9 +19,9 @@ if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 
-This script generates potential (.pot.new) for all interactions out the first pending line in the input table file and flags this line active in output table
+This script generates potential (.pot.new) for all interactions out the first pending line in the input state file and flags this line active in output state
 
-Usage: ${0##*/} inputtable outputtable
+Usage: ${0##*/} input output
 EOF
   exit 0
 fi

@@ -127,9 +127,9 @@ calc thermforce calc_thermforce.sh
 update simplex update_simplex.sh
 update simplex_single update_simplex_single.sh
 simplex parameters_to_potential simplex_parameters_to_potential.sh
-simplex prepare_table simplex_prepare_table.sh
-simplex table_to_potentials simplex_table_to_potentials.sh
-simplex precede_state simplex_downhill_processor.sh
+simplex prepare_state simplex_prepare_state.sh
+simplex state_to_potentials simplex_state_to_potentials.sh
+simplex precede_state simplex_downhill_processor.pl
 
 simplex_target rdf simplex_target_rdf.sh
 simplex_target density simplex_target_density.sh

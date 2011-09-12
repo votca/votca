@@ -17,7 +17,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script puts all simplex.in file next to each other
+This script generates the initial state file and puts all simplex.in this file
 
 Usage: ${0##*/} outputfile
 EOF
@@ -39,6 +39,7 @@ done
 get_table_comment | sed 's/^/#/' > "$1"
 echo "#Interactions: ${names}" >> "$1"
 echo "#Paramters: $parameters" >> "$1"
-echo "#Format parameter conv flag"
+echo "#State = Initialization" >> $1
+echo "#Format parameter conv flag" >> $1
 #added conv=0 and flag=pending to all lines
 critical paste -d '#' "${liste[@]}" | critical sed 's/$/#0 pending/' >> "$1"

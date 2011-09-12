@@ -39,22 +39,20 @@ for name in ${names}; do
   conv=$(csg_calc "$conv" + "$x")
 done
 
-[[ -f simplex.table.cur ]] || die "${0##*/}: Could not find simplex.table.cur"
-active="$(critical sed -n '/active$/{=;q}' "simplex.table.cur")"
-[[ -z $active ]] && die "${0##*/}: not could find an active simulation in simplex.table.cur"
+[[ -f simplex.state.cur ]] || die "${0##*/}: Could not find simplex.state.cur"
+active="$(critical sed -n '/active$/{=;q}' "simplex.state.cur")"
+[[ -z $active ]] && die "${0##*/}: not could find an active simulation in simplex.state.cur"
 is_int "$active" || die "${0##*/}: Strange - $active should be a number"
 
 #check if there are still pending simulations
-pending="$(critical sed -n '/pending/p' "simplex.table.done")"
+pending="$(critical sed -n '/pending/p' "simplex.state.cur")"
 if [[ -z $pending ]]; then
-  #simplex needs to know which one was the try guess
-  critical sed "${active}s/[^#]*$/$conv try/" "simplex.table.cur" > "simplex.table.try"
-  do_external simplex precede_state "simplex.state.cur" "simplex.table.try" "simplex.state.new"
-  do_external simplex update_table "simplex.state.new" "simplex.table.try" "simplex.table.done"
+  #simplex needs to know which one was the last try guess and it need $conv
+  critical sed "${active}s/[^#]*$/$conv try/" "simplex.state.cur" > "simplex.state.try"
+  do_external simplex precede_state "simplex.state.try" "simplex.state.done"
 else
-  critical sed "${active}s/[^#]*$/$conv complete/" "simplex.table.cur" > "simplex.table.done"
   pending="$(echo "$pending" | critical sed -n '$=')"
   msg "There are still $pending simulations to be performed before the next simplex state change"
-  critical cp "simplex.state.cur" "simplex.state.new"
+  critical sed "${active}s/[^#]*$/$conv complete/" "simplex.state.cur" > "simplex.state.done"
 fi
-do_external simplex table_to_potentials "simplex.table.done" "simplex.table.new"
+do_external simplex state_to_potentials "simplex.state.done" "simplex.state.new"
