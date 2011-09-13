@@ -106,7 +106,7 @@ sub replace_parameter_flag(\@$$) {
   defined($_[2]) || die "replace_parameter_flag: Missing argument\n";
   my @simplex_table=@{$_[0]};
   for (my $i=0;$i<=$#simplex_table;$i++){
-    $simplex_table[$i][$#{$simplex_table[$i]}] =~ s/$_[1]/$_[2]/;
+    $simplex_table[$i][$#{$simplex_table[$i]}] =~ s/^$_[1]$/$_[2]/;
   }
 }
 
@@ -132,10 +132,10 @@ sub get_convergence_value(\@$) {
     case "lowest" { return $simplex_table[0][-2]; }
     case "highest" { return $simplex_table[$#simplex_table][-2]; }
     case "second" { return $simplex_table[$#simplex_table-1][-2]; }
-    case /^(try|tryold$)/ { 
+    case /^(try|tryold)$/ { 
       my $value=undef;
       for (my $i=0;$i<=$#simplex_table;$i++) {
-	if ( $simplex_table[$i][-1] =~ /$_[1]$/ ) {
+	if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
 	  die "get_convergence_value: Found two $_[1] value in parameter set\n" if ($value);
 	  $value=$simplex_table[$i][-2];
 	}
@@ -154,7 +154,7 @@ sub remove_parameter_set(\@$) {
   my $value=undef;
   my @new_table;
   for (my $i=0;$i<=$#simplex_table;$i++) {
-    if ( $simplex_table[$i][-1] =~ /$_[1]$/ ) {
+    if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
       die "remove_parameter_set: Found two parameter set with flag '$_[1]'" if ($value);
       $value=$i;
     } else {

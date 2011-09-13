@@ -54,20 +54,25 @@ my $try=get_convergence_value(@simplex_table,"try");
 my $next_state;
 switch($state){
   case "Initialization" {
-    replace_parameter_flag(@simplex_table,"try\$","complete");
+    replace_parameter_flag(@simplex_table,"try","complete");
     $next_state="Reflection"; 
   }
   case "Reflection" {
     if ($try < $lowest) {
       $next_state="Expansion";
       #we need to remember this value
-      replace_parameter_flag(@simplex_table,"try\$","tryold");
+      replace_parameter_flag(@simplex_table,"try","tryold");
     } elsif ( $try > $second_highest ) {
       $next_state="Contraction";
-      remove_parameter_set(@simplex_table,"try");
+      if ($try > $highest ) {
+        remove_parameter_set(@simplex_table,"try");
+      } else {
+        pop(@simplex_table); #remove highest
+        replace_parameter_flag(@simplex_table,"try","complete");
+      }
     } else { #$try is between $lowest and $second_highest
       $next_state="Reflection";
-      replace_parameter_flag(@simplex_table,"try\$","complete");
+      replace_parameter_flag(@simplex_table,"try","complete");
       pop(@simplex_table); #remove highest
     }
   }
