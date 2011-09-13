@@ -168,6 +168,7 @@ tables jackknife tables_jackknife.pl
 # BEGIN: these scripts have to be defined for each simulation program
 # interface to gromacs
 run gromacs run_gromacs.sh
+presimulation gromacs run_gromacs.sh --pre
 pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_generic.sh
 imc_stat gromacs imc_stat_generic.sh

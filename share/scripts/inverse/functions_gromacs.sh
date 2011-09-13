@@ -100,6 +100,7 @@ checkpoint_exist() { #check if a checkpoint exists
   local checkpoint
   checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
   [ -f "$checkpoint" ] && return 0
+  [[ $(csg_get_property cg.inverse.simulation.pre_simulation "no") = "yes" && -f pre_simulation/$checkpoint ]] && return 0
   return 1
 }
 export -f checkpoint_exist
