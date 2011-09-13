@@ -30,32 +30,30 @@ EOF
 die "2 parameter are nessary\n" if ($#ARGV<1);
 
 use CsgSimplex;
+use Switch;
+
+my $alpha=1; #Reflection constant
+my $gamma=2; #Expansion constant
+my $rho=0.5; #Contraction constant
+my $sigma=0.5; #Reduction constant
 
 my @simplex_table;
 my $state;
 my $comments;
 (readin_simplex_state($ARGV[0],$state,@simplex_table,$comments)) || die "$progname: error at readin_simplex_table\n";
-
-for (my $i=0;$i<=$#simplex_table;$i++){
-  print "@{$simplex_table[$i]}\n";
-}
 sort_simplex_table(@simplex_table); #this is assumed below
+print "We are in state $state with parameters:\n";
 for (my $i=0;$i<=$#simplex_table;$i++){
   print "@{$simplex_table[$i]}\n";
 }
 
-use Switch;
-my $new_state;
 my $highest=get_convergence_value(@simplex_table,"highest");
 my $second_highest=get_convergence_value(@simplex_table,"second");
 my $lowest=get_convergence_value(@simplex_table,"lowest");
 my $try=get_convergence_value(@simplex_table,"try");
-print "$highest $second_highest $lowest\n";
-my @center_parameter=parameter_center(@simplex_table);
 my $next_state;
 switch($state){
   case "Initialization" {
-
     replace_parameter_flag(@simplex_table,"try\$","complete");
     $next_state="Reflection"; 
   }
@@ -97,6 +95,7 @@ switch($state){
     }
   }
   case "Reduction" {
+    replace_parameter_flag(@simplex_table,"try","complete");
     $next_state="Reflection";
   }
   else { 
@@ -104,20 +103,41 @@ switch($state){
   }
 }
 
+sort_simplex_table(@simplex_table);
 switch($next_state) {
   case "Reflection" {
+    my @center_parameter=calc_parameter_center(@simplex_table);
+    my @highest_parameter=@{$simplex_table[$#simplex_table]};
+    my @try_paramter=linop_parameter(@center_parameter,$alpha,@center_parameter,@highest_parameter);
+    push(@simplex_table,\@try_paramter);
   }
   case "Expansion" {
+    my @tryold_parameter=remove_parameter_set(@simplex_table,"tryold"); #this should not go into the center
+    my @center_parameter=calc_parameter_center(@simplex_table);
+    my @highest_parameter=@{$simplex_table[$#simplex_table]};
+    my @try_paramter=linop_parameter(@center_parameter,$gamma,@center_parameter,@highest_parameter);
+    push(@simplex_table,\@try_paramter,\@tryold_parameter);
+  }
+  case "Contraction" {
+    my @center_parameter=calc_parameter_center(@simplex_table);
+    my @highest_parameter=@{$simplex_table[$#simplex_table]};
+    my @try_paramter=linop_parameter(@highest_parameter,$rho,@center_parameter,@highest_parameter);
+    push(@simplex_table,\@try_paramter);
+  }
+  case "Reduction" {
+    my @lowest_parameter=@{$simplex_table[0]};
+    for (my $i=1; $i<=$#simplex_table;$i++) {
+      my @try_paramter=linop_parameter(@lowest_parameter,$sigma,@{$simplex_table[$i]},@lowest_parameter);
+      $simplex_table[$i]=\@try_paramter;
+    }
   }
   else { 
-    die "$progname: Unknown state '$state'\n"; 
+    die "$progname: Unknown state '$next_state'\n"; 
   }
 }
 
+print "Preparing $next_state with parameters:\n";
 for (my $i=0;$i<=$#simplex_table;$i++){
   print "@{$simplex_table[$i]}\n";
 }
 (saveto_simplex_state($ARGV[1],$next_state,@simplex_table,$comments)) || die "$progname: error at readin_simplex_table\n";
-
-
-

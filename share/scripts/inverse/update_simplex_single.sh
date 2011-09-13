@@ -44,3 +44,6 @@ for ((i=0;i<${#targets[@]};i++)); do
   sum=$(csg_calc "$sum" + "$x")
 done
 echo "$sum" > "${name}.conv"
+
+tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
+[[ -z $tasklist ]] || die "Postupd tasks for $name found, this is not allowed in simplex"

@@ -28,7 +28,7 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: missing argument"
 [[ $(echo "$@" | sed -n '$=') -ne 1 ]] && die "${0##*/}: arguments are longer than one line"
-n_p="$(echo "$@" | critical awk -F '#' '{print NF}')"
+n_p="$(echo "$@" | critical awk -F '@' '{print NF}')"
 
 names=( $(csg_get_property cg.non-bonded.name) )
 [[ $(( $n_p - 1 )) -ne ${#names[@]} ]] && die "${0##*/}: length of parameter string ($n_p) does not match number of interactions (${#names[@]})"
@@ -39,7 +39,7 @@ for ((i=0;i<${#names[@]};i++)); do
 done
 [[ $name = ${names[$i]} ]] || die "${0##*/}: Could not find interaction $nane in list of all interactions ${names[@]}"
 
-values=( $(echo "$@" | critical awk -v x=$(($i+1)) -F '#' '{print $x}') )
+values=( $(echo "$@" | critical awk -v x=$(($i+1)) -F '@' '{print $x}') )
 parameters=( $(csg_get_interaction_property inverse.simplex.parameters) )
 [[ ${#values[@]} -ne ${#parameters[@]} ]] && die "${0##*/}: Number of values(${#values[@]}) mismatch number of parameters given in xml file (${#parameters[@]})"
 

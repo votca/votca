@@ -21,7 +21,7 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(csg_simplex_function_help readin_simplex_state saveto_simplex_state sort_simplex_table is_num replace_parameter_flag get_convergence_value remove_parameter_set);
+@EXPORT      = qw(csg_simplex_function_help readin_simplex_state saveto_simplex_state sort_simplex_table is_num replace_parameter_flag get_convergence_value remove_parameter_set calc_parameter_center linop_parameter);
 
 sub csg_simplex_function_help() {
   print <<EOF; 
@@ -49,7 +49,7 @@ sub readin_simplex_state($\$\@;\$) {
     }
     ${$_[3]}.=$_ if (defined($_[3]) and (/^[#@]/));
     next if ($_ =~ /^[#@]/);
-    $_ =~ s/#/ # /; #just in case we have #1.2 in the table, make # a real column
+    $_ =~ s/@/ @ /; #just in case we have #1.2 in the table, make # a real column
     $_ =~ s/^\s*//; # remove leading spacees for split
     next if /^\s*$/;
     my @parts=split(/\s+/);
@@ -148,7 +148,7 @@ sub get_convergence_value(\@$) {
   }
 }
 
-sub remove_parameter_set() (\@} {
+sub remove_parameter_set(\@$) {
   defined($_[1]) || die "remove_parameter_set: Missing argument\n";
   my @simplex_table=@{$_[0]};
   my $value=undef;
@@ -156,16 +156,58 @@ sub remove_parameter_set() (\@} {
   for (my $i=0;$i<=$#simplex_table;$i++) {
     if ( $simplex_table[$i][-1] =~ /$_[1]$/ ) {
       die "remove_parameter_set: Found two parameter set with flag '$_[1]'" if ($value);
-      $value=$1;
+      $value=$i;
     } else {
       push(@new_table,$simplex_table[$i]);
     }
   }
   die "remove_parameter_set: Could not find a parameter set with flag '$_[1]'" unless ($value);
   @{$_[0]}=@new_table;
+  return @{$simplex_table[$value]};
 }
 
-sub calc_simplex_center() (\@){
+sub calc_parameter_center(\@){
+  defined($_[0]) || die "calc_parameter_center: Missing argument\n";
+  my @simplex_table=@{$_[0]};
+  my @center;
+  sort_simplex_table(@simplex_table);
+  for (my $j=0;$j<=$#{$simplex_table[0]};$j++) {
+    if (is_num("$simplex_table[0][$j]")) {
+      $center[$j]=0;
+    } else {
+      $center[$j]=$simplex_table[0][$j];
+    }
+  }
+  #mind the $i<$#simplex_table to skip the highest value
+  for (my $i=0;$i<$#simplex_table;$i++) {
+    for (my $j=0;$j<=$#{$simplex_table[$i]};$j++) {
+      if (is_num("$simplex_table[$i][$j]")) {
+	$center[$j]+=$simplex_table[$i][$j]/$#simplex_table;
+      } 
+    }
+  }
+  return @center;
+}
+
+sub linop_parameter(\@$\@\@) {
+  defined($_[3]) || die "linop_parameter: Missing argument\n";
+  my @vec1=@{$_[0]};
+  my $scale=$_[1];
+  my @vec2=@{$_[2]};
+  die "linop_parameter: 1st ($#vec1) and 2nd vector ($#vec2) have different length\n" unless ($#vec1 = $#vec2);
+  my @vec3=@{$_[3]};
+  my @vec4;
+  die "linop_parameter: 1st ($#vec1) and 3rd vector ($#vec3) have different length\n" unless ($#vec1 = $#vec3);
+  for (my $i=0;$i<=$#vec1;$i++) {
+    if (is_num($vec1[$i])) {
+      $vec4[$i]=$vec1[$i]+$scale*($vec2[$i]-$vec3[$i]);
+    } else {
+      $vec4[$i]=$vec1[$i];
+    }
+  }
+  $vec4[-1]="pending";
+  $vec4[-2]=0;
+  return @vec4;
 }
 
 #important

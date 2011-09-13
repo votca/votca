@@ -48,11 +48,13 @@ is_int "$active" || die "${0##*/}: Strange - $active should be a number"
 pending="$(critical sed -n '/pending/p' "simplex.state.cur")"
 if [[ -z $pending ]]; then
   #simplex needs to know which one was the last try guess and it need $conv
-  critical sed "${active}s/[^#]*$/$conv try/" "simplex.state.cur" > "simplex.state.try"
+  critical sed "${active}s/[^@]*$/ $conv try/" "simplex.state.cur" > "simplex.state.try"
   do_external simplex precede_state "simplex.state.try" "simplex.state.done"
+  state="$(critical sed -n 's/#State = \(.*\)$/\1/p' simplex.state.done)"
+  msg "Simplex state changed to $state"
 else
   pending="$(echo "$pending" | critical sed -n '$=')"
   msg "There are still $pending simulations to be performed before the next simplex state change"
-  critical sed "${active}s/[^#]*$/$conv complete/" "simplex.state.cur" > "simplex.state.done"
+  critical sed "${active}s/[^@]*$/ $conv complete/" "simplex.state.cur" > "simplex.state.done"
 fi
 do_external simplex state_to_potentials "simplex.state.done" "simplex.state.new"
