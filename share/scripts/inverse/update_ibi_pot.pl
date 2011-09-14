@@ -31,7 +31,7 @@ EOF
   exit 0;
 }
 
-die "4 parameters are nessary\n" if ($#ARGV<3);
+die "4 parameters are necessary\n" if ($#ARGV<3);
 
 use CsgFunctions;
 

@@ -27,7 +27,7 @@ EOF
   exit 0;
 }
 
-die "2 parameter are nessary\n" if ($#ARGV<1);
+die "2 parameter are necessary\n" if ($#ARGV<1);
 
 use CsgSimplex;
 use Switch;

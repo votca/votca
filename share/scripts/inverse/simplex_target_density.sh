@@ -44,5 +44,5 @@ step="$(csg_get_interaction_property inverse.simplex.density.step)"
 critical csg_resample --in "${main_dir}/${target}" --out "${name}.density.tgt" --grid "$min:$step:$max"
 t1=$(critical mktemp "${name}.density.new.cut.XXXX")
 critical csg_resample --in ${name}.density.new --out "$t1" --grid "$min:$step:$max"
-do_external table difference --output "${name}.density.conv" "${t1}" "${name}.density.tgt" 
+do_external table combine --sum --no-flags --op d "${t1}" "${name}.density.tgt" > "${name}.density.conv"
 

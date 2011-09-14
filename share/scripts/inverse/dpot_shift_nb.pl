@@ -28,7 +28,7 @@ EOF
   exit 0;
 }
 
-die "2 parameters are nessary, <infile> <outfile>\n" if ($#ARGV<1);
+die "2 parameters are necessary, <infile> <outfile>\n" if ($#ARGV<1);
 
 use CsgFunctions;
 

@@ -152,8 +152,8 @@ table dummy table_dummy.sh
 table get_value table_get_value.pl
 table getsubset table_getsubset.py
 table smooth_borders table_smooth_borders.py
-table compare table_compare.pl 
-table difference table_compare.pl --weak
+table compare table_combine.pl --die --op =
+table combine table_combine.pl
 table average table_average.sh
 table scale table_scale.pl
 table change_flag table_change_flag.sh

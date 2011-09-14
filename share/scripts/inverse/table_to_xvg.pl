@@ -64,11 +64,11 @@ EOF
       $gmx_max = shift(@ARGV);
   }
   else{
-    die "Unknow option '".$ARGV[0]."' !\n";
+    die "Unknown option '".$ARGV[0]."' !\n";
   }
 }
 
-die "2 parameters are nessary\n" if ($#ARGV<1);
+die "2 parameters are necessary\n" if ($#ARGV<1);
 
 use CsgFunctions;
 

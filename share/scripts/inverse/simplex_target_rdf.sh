@@ -31,5 +31,5 @@ name="$(csg_get_interaction_property name)"
 [[ -f ${name}.dist.new ]] || die "${0##*/}: Could not calculate ${name}.dist.new"
 target="$(csg_get_interaction_property inverse.simplex.rdf.target)"
 do_external resample target ${target} ${name}.dist.tgt
-do_external table difference --output ${name}.rdf.conv ${name}.dist.tgt ${name}.dist.new 
+do_external table combine --sum --op d ${name}.dist.tgt ${name}.dist.new > ${name}.rdf.conv 
 

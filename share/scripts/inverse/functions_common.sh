@@ -146,7 +146,8 @@ do_external() { #takes two tags, find the according script and excute it
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
-  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} ${@:3}' (from tags $tags) dir ${script%/*}"
+  #print this message to stderr to allow $(do_external ) and do_external XX > 
+  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} ${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
     CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
