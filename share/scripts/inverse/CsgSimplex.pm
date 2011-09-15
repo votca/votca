@@ -35,7 +35,7 @@ EOF
   exit 0;
 }
 
-sub readin_simplex_state($\$\@;\$) {
+sub readin_simplex_state($\$\@;\$\$) {
   defined($_[2]) || die "readin_simplex_state: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_simplex_state: could not open file $_[0]\n";
   my $line=0;
@@ -48,6 +48,9 @@ sub readin_simplex_state($\$\@;\$) {
       next;
     }
     ${$_[3]}.=$_ if (defined($_[3]) and (/^[#@]/));
+    if (/^#Format\s*(.*)$/) {
+      ${$_[4]}="$1" if defined($_[4]);
+    }
     next if ($_ =~ /^[#@]/);
     $_ =~ s/^\s*//; # remove leading spacees for split
     next if /^\s*$/;
@@ -179,6 +182,7 @@ sub calc_parameter_center(\@){
   }
   #mind the $i<$#simplex_table to skip the highest value
   for (my $i=0;$i<$#simplex_table;$i++) {
+    die "calc_parameter_center: parameter center can only be calculated out of ".($#simplex_table-1)." parameter sets if number of paramters is ".($#{$simplex_table[$i]}-2)."\n" if (($#simplex_table+1) != $#{$simplex_table[$i]});
     for (my $j=0;$j<=$#{$simplex_table[$i]};$j++) {
       if (is_num("$simplex_table[$i][$j]")) {
 	$center[$j]+=$simplex_table[$i][$j]/$#simplex_table;

@@ -315,7 +315,7 @@ export -f is_part
 has_duplicate() { #check if one of the argument is double
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for ((i=1;i<$#;i++)); do
-    for ((j=i+1;i<$#;j++)); do
+    for ((j=i+1;j<$#;j++)); do
       [[ ${!i} = ${!j} ]] && echo ${!i} && return 0
     done
   done

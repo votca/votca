@@ -41,7 +41,6 @@ done
 get_table_comment | sed 's/^/#/' > "$1"
 echo "#Interactions: ${names}" >> "$1"
 echo "#State = Initialization" >> $1
-echo "#Paramters: $parameters" >> "$1"
-echo "#Format parameter conv flag" >> $1
+echo "#Format $parameters conv flag" >> "$1"
 #added conv=0 and flag=pending to all lines
 critical paste "${liste[@]}" | critical sed -e 's/$/ 0 pending/' >> "$1"

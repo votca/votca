@@ -40,9 +40,10 @@ my $sigma=0.5; #Reduction constant
 my @simplex_table;
 my $state;
 my $comments;
-(readin_simplex_state($ARGV[0],$state,@simplex_table,$comments)) || die "$progname: error at readin_simplex_table\n";
+my $parameter_names="not in state file";
+(readin_simplex_state($ARGV[0],$state,@simplex_table,$comments,$parameter_names)) || die "$progname: error at readin_simplex_table\n";
 sort_simplex_table(@simplex_table); #this is assumed below
-print "We are in state $state with parameters:\n";
+print "We are in state $state with parameters ($parameter_names):\n";
 for (my $i=0;$i<=$#simplex_table;$i++){
   print "@{$simplex_table[$i]}\n";
 }
@@ -141,7 +142,7 @@ switch($next_state) {
   }
 }
 
-print "Preparing $next_state with parameters:\n";
+print "Preparing $next_state with parameters ($parameter_names):\n";
 for (my $i=0;$i<=$#simplex_table;$i++){
   print "@{$simplex_table[$i]}\n";
 }
