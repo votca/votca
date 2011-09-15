@@ -106,7 +106,6 @@
       <table_bins>0.002</table_bins>
       <!-- extend the tables to this value -->
       <table_end>1.36</table_end>
-      <!-- topology + trajectory. Be careful, do not change yet! -->
       <blockfile>conf.esp.gz</blockfile>
       <!-- Number of steps to integrate between each snapshot -->
       <n_steps>1000</n_steps>

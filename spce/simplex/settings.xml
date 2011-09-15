@@ -8,68 +8,68 @@
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
     <min>0</min>
-    <max>0.9</max>
-    <step>0.01</step>
-    
+    <max>1.4</max>
+    <step>0.002</step>
     <inverse>
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
       <target>rdf_CG_CG_aim.xvg</target>
       <!-- update cycles -->
       <do_potential>1</do_potential>
       <!-- additional post processing of dU before added to potential -->
-      <post_update>smooth</post_update>
-      <!-- some options for the post update scripts -->
-      <post_update_options>
-        <smooth>
-          <iterations>2</iterations>
-        </smooth>
-      </post_update_options>
+      <post_update></post_update>
       <!-- additional post processing of U after dU added to potential -->
       <post_add></post_add>
-      <!-- inverse monte carlo specific stuff -->
-      <imc>
-        <group>CG-CG</group>
-      </imc>
       <!-- name of the table for gromacs run -->
       <gromacs>
-        <table>table_CG_CG.xvg</table>
+      <table>table_CG_CG.xvg</table>
       </gromacs>
+      <simplex>
+        <target_weights>1 0</target_weights>
+	<function>4*eps*((sig/x)**12-(sig/x)**6)</function>
+	<parameters>eps sig</parameters>
+	<targets>rdf density</targets>
+	 <rdf>
+	   <target>rdf_CG_CG_aim.xvg</target>
+	 </rdf>
+         <density>
+           <target>dens_CG_CG_aim.xvg</target>
+           <min>0</min>
+           <max>10.6</max>
+           <step>0.2</step>
+           <axis>z</axis>
+         </density>
+      </simplex>
     </inverse>
   </non-bonded>
-  
-  <!-- general options for inverse script -->
-  <inverse>
-    <!-- 300*0.00831451 gromacs units -->
+
+<inverse>  
+<!-- general options for inverse script -->
+     <!-- 300*0.00831451 gromacs units -->
     <kBT>2.49435</kBT>
     <!-- use gromacs as simulation program -->
     <program>gromacs</program>
     <!-- gromacs specific options -->
     <gromacs>
+      <pre_simulation>yes
+	  <mdp>grompp.prep.mdp</mdp>
+      </pre_simulation>
       <!-- trash so many frames at the beginning -->
-      <equi_time>20</equi_time>
+      <equi_time>0</equi_time>
       <!-- grid for table*.xvg !-->
       <table_bins>0.002</table_bins>
       <!-- cut the potential at this value (gromacs bug) -->
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
-      <table_end>2.0</table_end>
+      <table_end>3.0</table_end>
     </gromacs>
     <!-- these files are copied for each new run -->
-    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <filelist>grompp.prep.mdp grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
-    <iterations_max>20</iterations_max>
-    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
-    <method>imc</method>
-    <!-- directory for user scripts -->
-    <scriptpath>$PWD</scriptpath>
+    <iterations_max>300</iterations_max>
+    <!-- ibm: inverse boltzmann imc: inverse monte carlo -->
+    <method>simplex</method>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->
-    <restart_file>restart_points.log</restart_file>
-    <!-- imc specific stuff -->
-    <imc>
-      <!-- solver to solve linear equation system, can be octave or matlab -->
-      <solver>octave</solver>
-    </imc>
   </inverse>
 </cg>
