@@ -15,10 +15,10 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the initialization for every step in a generic way
+This script initizalizes potentials for simplex method 
 
 Usage: ${0##*/}
 EOF
@@ -26,9 +26,15 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
+#list of all parameters
+parameters=( $(csg_get_property cg.non-bonded.inverse.simplex.parameters) )
+what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
 
-#get new pot from last step and make it current potential
-for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
+for_all non-bonded do_external prepare_single simplex "${#parameters[@]}"
 
-#initialize sim_prog
-do_external initstep_generic $sim_prog
+do_external simplex prepare_state "simplex.state.cur"
+do_external simplex state_to_potentials "simplex.state.cur" "simplex.state.new"
+
+# cp confout.gro and so on
+do_external prepare_generic $sim_prog
+

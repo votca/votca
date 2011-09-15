@@ -34,7 +34,7 @@ name=$(csg_get_interaction_property name)
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
    echo "Update potential ${name} : yes"
    #update ibi
-   do_external resample target
+   do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
    do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_ibi
    do_external dpot shift_nonbonded ${name}.dpot.pure_ibi ${name}.dpot.new
 else

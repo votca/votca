@@ -91,7 +91,8 @@ simulation_finish() { #checks if simulation is finished
   ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
   traj="traj.${ext}"
   confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
-  [ -f "$traj" ] && [ -f "$confout" ] && return 0
+  [[ $1 = "--no-traj" ]] && [[ -f $confout ]] && return 0
+  [[ -f $traj ]] && [[ -f $confout ]] && return 0
   return 1
 }
 export -f simulation_finish
@@ -100,6 +101,7 @@ checkpoint_exist() { #check if a checkpoint exists
   local checkpoint
   checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
   [ -f "$checkpoint" ] && return 0
+  [[ $(csg_get_property cg.inverse.gromacs.pre_simulation "no") = "yes" && -f pre_simulation/$checkpoint ]] && return 0
   return 1
 }
 export -f checkpoint_exist

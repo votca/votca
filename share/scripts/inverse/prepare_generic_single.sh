@@ -48,14 +48,16 @@ else
   [[ ${tabtype} = "bonded" ]] && die "${0##*/}: Not implemented yet, implement it or provide ${name}.pot.in!"
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
-  #resample all target dist in $this_dir
-  do_external resample target
   if [[ $method = "tf" ]]; then
+    #therm force is resampled later and as one want to symetrize 1d density
+    cp_from_main_dir --rename "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
     #initial guess from density
-    raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
+    raw="$(critical mktemp -u ${name}.pot.new.raw.XXX)"
     do_external calc thermforce ${name}.dist.tgt ${raw}
     do_external table change_flag "${raw}" "${output}"
   else
+    #resample target dist
+    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
     # initial guess from rdf
     raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
     do_external rdf pot ${name}.dist.tgt ${raw}

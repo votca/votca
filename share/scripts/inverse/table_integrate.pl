@@ -86,7 +86,7 @@ END
 	}
 	else
 	{
-		die "Unknow option '".$ARGV[0]."' !\n";
+		die "Unknown option '".$ARGV[0]."' !\n";
 	}
 }
 

@@ -15,10 +15,10 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the initialization for every step in a generic way
+Calculated the difference between rdf
 
 Usage: ${0##*/}
 EOF
@@ -26,9 +26,10 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
+do_external rdf ${sim_prog}
+name="$(csg_get_interaction_property name)"
+[[ -f ${name}.dist.new ]] || die "${0##*/}: Could not calculate ${name}.dist.new"
+target="$(csg_get_interaction_property inverse.simplex.rdf.target)"
+do_external resample target ${target} ${name}.dist.tgt
+do_external table combine --sum --op d ${name}.dist.tgt ${name}.dist.new > ${name}.rdf.conv 
 
-#get new pot from last step and make it current potential
-for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
-
-#initialize sim_prog
-do_external initstep_generic $sim_prog

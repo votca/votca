@@ -28,7 +28,8 @@ Allowed options:
     --grid  XX:XX:XX          Output grid of the table
     --var X=Y                 Set a variable used in the function
     --fct FCT                 functional form of the table
-    --header XXX              Extra headerlines
+    --headerfile XXX          Extra headerfile for the plot script
+                              (useful for complicated functions)
     --gnuplot CMD             Gnuplot command to use
                               Default: $gnuplot
     --clean		      Clean intermediate files
@@ -48,7 +49,7 @@ grid=()
 fct=""
 gnuplot=gnuplot
 clean="no"
-header="$(get_table_comment | sed -e 's/^/#/')\n#\n#Plot script:"
+headers=( )
 
 # parse arguments
 shopt -s extglob
@@ -72,8 +73,9 @@ while [[ ${1} = -* ]]; do
    --fct)
     fct="$2"
     shift 2;;
-   --header)
-    header+="$header\n$2"
+   --headerfile)
+    [[ -f $2 ]] || die "${0##*/}: Could not find headerfile '$2'"
+    headers[${#headers[@]}]="$2"
     shift 2;;
    --grid)
     grid[0]="$2"
@@ -89,7 +91,7 @@ while [[ ${1} = -* ]]; do
     shift;;
    --var)
     [[ ${2//[^=]} = "=" ]] || die "${0##*/}: Agrument after --var should have the form XX=YY"
-    [[ -n $vars ]] && vars+="$vars\n$2" || vars="$2"
+    [[ -n $vars ]] && vars+="\n$2" || vars="$2"
     shift 2;;
    --debug)
     set -x
@@ -113,7 +115,11 @@ samples="$(to_int "$samples")"
 
 tmpfile="$(critical mktemp table.gp.XXX)"
 tmpfile2="$(critical mktemp table.plot.XXX)"
-echo -e "$header" > "$tmpfile"
+get_table_comment | sed -e 's/^/#/' > "$tmpfile"
+echo -e "#\n#Plot script:" >> "$tmpfile"
+for i in "${headers[@]}"; do
+  echo "load '$i'" >> "$tmpfile"
+done
 [[ -n $vars ]] && echo -e "$vars" >> "$tmpfile"
 echo "set samples $samples" >> "$tmpfile"
 echo "set table '$tmpfile2'" >> "$tmpfile"

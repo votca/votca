@@ -25,8 +25,8 @@ use vars qw(@ISA @EXPORT);
 
 sub csg_function_help() {
   print <<EOF;
-CsgFunctions, version %version%
-Provides useful function for perl:
+CsgSimplexFunctions, version %version%
+Provides useful function for VOTCA's iterative framework written in perl:
 csg_get_property(\$;\$):             get a value from xml file
 csg_get_interaction_property(\$;\$): get a interaction property from xmlfile
 readin_table(\$\\@\\@\\@;\\\$):           reads in csg table

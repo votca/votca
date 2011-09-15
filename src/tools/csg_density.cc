@@ -60,6 +60,7 @@ protected:
     double _rmax;
     int _nbin;
     double _scale;
+    double _step;
     int _frames;
     int _nblock;
     int _block_length;
@@ -127,7 +128,8 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
     } 
     else if(OptionsMap().count("ref"))
         throw std::runtime_error("reference center can only be used in case of spherical density");
-       
+    
+    _nbin=(int)floor(_rmax/_step);
     _dist.Initialize(0, _rmax, _nbin);
     
     cout << "rmax: " << _rmax << endl;
@@ -198,7 +200,7 @@ void CsgDensityApp::Initialize()
     // add program option to pick molecule
     AddProgramOptions("Specific options:")
              ("axis", boost::program_options::value<string>(&_axisname)->default_value("r"), "[x|y|z|r] density axis (r=spherical)")
-             ("bins", boost::program_options::value<int>(&_nbin)->default_value(50), "bins")
+             ("step", boost::program_options::value<double>(&_step)->default_value(0.01), "spacing of density")
              ("block-length", boost::program_options::value<int>(), "  write blocks of this length, the averages are cleared after every write")
              ("out", boost::program_options::value<string>(&_out), "Output file")
              ("rmax", boost::program_options::value<double>(), "rmax (default for [r] =min of all box vectors/2, else l )")

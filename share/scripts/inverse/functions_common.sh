@@ -93,8 +93,9 @@ export -f show_callstack
 unset -f die
 die () { #make the iterative frame work stopp
   local pid pids c place
-  echo -e "\nCallstack:"
-  show_callstack
+  #Output callstack to stderr in case die was executed in $( )
+  echo -e "\nCallstack:" >&2
+  show_callstack >&2
   [[ -z $CSGLOG ]] && place="Details can be found above" || place="For details see the logfile $CSGLOG"
   msg --color red --to-stderr "$(csg_banner "ERROR:" "$@" "$place")"
   if [[ -n ${CSG_MASTER_PID} ]]; then
@@ -141,11 +142,12 @@ cat_external() { #takes a two tags and shows content of the according script
 export -f cat_external
 
 do_external() { #takes two tags, find the according script and excute it
-  local script tags quiet="no" function="no"
+  local script tags quiet="no" function="no" ret
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
-  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} $*' (from tags $tags) dir ${script%/*}"
+  #print this message to stderr to allow $(do_external ) and do_external XX > 
+  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} ${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
     CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
@@ -181,9 +183,9 @@ for_all (){ #do something for all interactions (1st argument)
     die "${FUNCNAME[0]}: Argmuent 1 '$bondtype' is not non-bonded"
   fi
   [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
-  check_for_duplicated_interactions
-  interactions="$(csg_get_property cg.non-bonded.name)"
-  for name in $interactions; do
+  interactions=( $(csg_get_property cg.non-bonded.name) )
+  name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
+  for name in "${interactions[@]}"; do
     #print this message to stderr to avoid problem with $(for_all something)
     [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
     #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
@@ -196,16 +198,6 @@ for_all (){ #do something for all interactions (1st argument)
   done
 }
 export -f for_all
-
-check_for_duplicated_interactions() { #checks for duplicated interactions
-  local i j names=( $(csg_get_property cg.non-bonded.name) ) 
-  for ((i=0;i<${#names[@]};i++)); do
-    for ((j=i+1;j<${#names[@]};j++)); do
-      [[ ${names[$i]} = ${names[$j]} ]] && die "${FUNCNAME[0]}: the interaction name '${names[$i]}' appeared twice, this is not allowed"
-    done
-  done
-}
-export -f check_for_duplicated_interactions
 
 csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop
   local ret allow_empty cmd
@@ -319,6 +311,18 @@ is_part() { #checks if 1st argument is part of the set given by other arguments
   [[ " ${@:2} " = *" $1 "* ]]
 }
 export -f is_part
+
+has_duplicate() { #check if one of the argument is double
+  [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
+  for ((i=1;i<$#;i++)); do
+    for ((j=i+1;j<$#;j++)); do
+      [[ ${!i} = ${!j} ]] && echo ${!i} && return 0
+    done
+  done
+  return 1
+}
+export -f has_duplicate
+
 
 is_num() { #checks if all arguments are numbers
   local i res
@@ -614,8 +618,10 @@ csg_calc() { #simple calculator, a + b, ...
        res=""
        true;;
     "="|"==")
-       #we expect that x and y are close together
-       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( sqrt(((x-y)/x)**2) < $err )}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( sqrt(((x-y)/x)**2) < $err )}' failed"
+       #this is really tricky... case x=0,y=0 is catched by (x==y) after that |x-y|/max(|x|,|y|) will work expect for x,y beginng close to zero
+       res="$(awk -v x="$1" -v y="$3" -v e="$err" \
+       'func max(x,y){return (x>y)?x:y;} func abs(x){return (x<0)?-x:x;} BEGIN{if (x==y){print 1;}else{if (abs(x-y)<e){print 1;}else{ print ( abs(x-y)/max(abs(x),abs(y)) < e );}}}')" \
+	 || die "${FUNCNAME[0]}: awk for =/== failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
        #return value matters
@@ -664,7 +670,7 @@ source_wrapper() { #print the full name of a script belonging to two tags (1st, 
   else
     cmd=$(get_command_from_csg_tables "$1" "$2") || die "${FUNCNAME[0]}: get_command_from_csg_tables '$1' '$2' failed"
     [[ -z $cmd ]] && die "${FUNCNAME[0]}: Could not get any script from tags '$1' '$2'"
-    script="${cmd/* }"
+    script="${cmd%% *}"
     real_script="$(find_in_csgshare "$script")"
     echo "${cmd/${script}/${real_script}}"
   fi
@@ -693,6 +699,7 @@ export -f find_in_csgshare
 if [ -z "$(type -p mktemp)" ]; then
   #do not document this
   mktemp() {
+    [[ $1 = "-u" ]] && shift
     [[ -z $1 ]] && die "${FUNCNAME[0]}: missing argument"
     [[ -z ${1##*X} ]] || die "${FUNCNAME[0]}: argument has to end at least with X"
     local end trunc i l tmp newend

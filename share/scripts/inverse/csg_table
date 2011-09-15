@@ -28,26 +28,28 @@ prepare ibi prepare_generic.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare tf prepare_generic.sh
+prepare simplex prepare_simplex.sh
 prepare_single ibi prepare_generic_single.sh
 prepare_single imc prepare_generic_single.sh
 prepare_single tf prepare_generic_single.sh
+prepare_single simplex prepare_simplex_single.sh
 initstep ibi initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 initstep tf initialize_step_generic.sh
+initstep simplex initialize_step_simplex.sh
 
 #this is just to warn users from old versions
 prepare ibm prepare_ibm.sh
 update ibm update_ibm.sh
 
 # the update step
-update ibi update_ibi.sh
-update imc update_imc.sh
 
 # add up the potential
 # TODO: think about name add_pot, is other name maybe better
 add_pot ibi add_pot_generic.sh
 add_pot imc add_pot_generic.sh
 add_pot tf add_pot_generic.sh
+add_pot simplex dummy.sh
 
 # END: these scripts have to be defined for each method
 
@@ -58,6 +60,7 @@ rdf pot RDF_to_POT.pl
 post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
 post_update tf post_update_generic.sh
+post_update simplex dummy.sh
 post_update_single ibi post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 post_update_single tf post_update_generic_single.sh
@@ -98,12 +101,14 @@ dpot crop dpot_crop.pl
 
 # ibi specific stuff
 # TODO: rename to ibi single
+update ibi update_ibi.sh
 update ibi_single update_ibi_single.sh
 # TODO: rename to ibi pot
 update ibi_pot update_ibi_pot.pl
 
 # imc specific stuff
 # TODO: rename to imc single
+update imc update_imc.sh
 imcsolver matlab solve_matlab.sh
 solve matlab linsolve.m
 imcsolver octave solve_octave.sh
@@ -117,6 +122,17 @@ imc purify imc_purify.sh
 update tf update_tf.sh
 update tf_single update_tf_single.sh
 calc thermforce calc_thermforce.sh
+
+# simplex specific stuff
+update simplex update_simplex.sh
+update simplex_single update_simplex_single.sh
+simplex parameters_to_potential simplex_parameters_to_potential.sh
+simplex prepare_state simplex_prepare_state.sh
+simplex state_to_potentials simplex_state_to_potentials.sh
+simplex precede_state simplex_downhill_processor.pl
+
+simplex_target rdf simplex_target_rdf.sh
+simplex_target density simplex_target_density.sh
 
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl
@@ -136,7 +152,8 @@ table dummy table_dummy.sh
 table get_value table_get_value.pl
 table getsubset table_getsubset.py
 table smooth_borders table_smooth_borders.py
-table compare table_compare.pl 
+table compare table_combine.pl --die --op =
+table combine table_combine.pl
 table average table_average.sh
 table scale table_scale.pl
 table change_flag table_change_flag.sh
@@ -151,6 +168,7 @@ tables jackknife tables_jackknife.pl
 # BEGIN: these scripts have to be defined for each simulation program
 # interface to gromacs
 run gromacs run_gromacs.sh
+presimulation gromacs run_gromacs.sh --pre
 pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_generic.sh
 imc_stat gromacs imc_stat_generic.sh
