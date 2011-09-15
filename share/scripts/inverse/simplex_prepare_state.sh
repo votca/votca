@@ -28,19 +28,20 @@ fi
 
 names="$(csg_get_property cg.non-bonded.name)"
 parameters="$(csg_get_property cg.non-bonded.inverse.simplex.parameters)"
+what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
+
 liste=()
 for name in $names; do
   input="$name.simplex.in"
   [[ -f $input ]] || die "${0##*/}: Could not find $input"
   [[ -n $(sed -n '/^[#@]/p' "$input") ]] && die "${0##*/}: $input has commentlines"
-  [[ -n $(sed -n '/@/p' "$input") ]] && die "${0##*/}: $input has @ inside"
   liste[${#liste[@]}]="$input"
 done
 
 get_table_comment | sed 's/^/#/' > "$1"
 echo "#Interactions: ${names}" >> "$1"
-echo "#Paramters: $parameters" >> "$1"
 echo "#State = Initialization" >> $1
+echo "#Paramters: $parameters" >> "$1"
 echo "#Format parameter conv flag" >> $1
 #added conv=0 and flag=pending to all lines
-critical paste -d '@' "${liste[@]}" | critical sed -e 's/$/@0 pending/' -e 's/@/ @ /' >> "$1"
+critical paste "${liste[@]}" | critical sed -e 's/$/ 0 pending/' >> "$1"

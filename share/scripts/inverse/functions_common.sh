@@ -183,9 +183,9 @@ for_all (){ #do something for all interactions (1st argument)
     die "${FUNCNAME[0]}: Argmuent 1 '$bondtype' is not non-bonded"
   fi
   [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
-  check_for_duplicated_interactions
-  interactions="$(csg_get_property cg.non-bonded.name)"
-  for name in $interactions; do
+  interactions=( $(csg_get_property cg.non-bonded.name) )
+  name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
+  for name in "${interactions[@]}"; do
     #print this message to stderr to avoid problem with $(for_all something)
     [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
     #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
@@ -198,16 +198,6 @@ for_all (){ #do something for all interactions (1st argument)
   done
 }
 export -f for_all
-
-check_for_duplicated_interactions() { #checks for duplicated interactions
-  local i j names=( $(csg_get_property cg.non-bonded.name) ) 
-  for ((i=0;i<${#names[@]};i++)); do
-    for ((j=i+1;j<${#names[@]};j++)); do
-      [[ ${names[$i]} = ${names[$j]} ]] && die "${FUNCNAME[0]}: the interaction name '${names[$i]}' appeared twice, this is not allowed"
-    done
-  done
-}
-export -f check_for_duplicated_interactions
 
 csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop
   local ret allow_empty cmd
@@ -321,6 +311,18 @@ is_part() { #checks if 1st argument is part of the set given by other arguments
   [[ " ${@:2} " = *" $1 "* ]]
 }
 export -f is_part
+
+has_duplicate() { #check if one of the argument is double
+  [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
+  for ((i=1;i<$#;i++)); do
+    for ((j=i+1;i<$#;j++)); do
+      [[ ${!i} = ${!j} ]] && echo ${!i} && return 0
+    done
+  done
+  return 1
+}
+export -f has_duplicate
+
 
 is_num() { #checks if all arguments are numbers
   local i res

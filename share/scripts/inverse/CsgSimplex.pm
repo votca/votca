@@ -49,7 +49,6 @@ sub readin_simplex_state($\$\@;\$) {
     }
     ${$_[3]}.=$_ if (defined($_[3]) and (/^[#@]/));
     next if ($_ =~ /^[#@]/);
-    $_ =~ s/@/ @ /; #just in case we have #1.2 in the table, make # a real column
     $_ =~ s/^\s*//; # remove leading spacees for split
     next if /^\s*$/;
     my @parts=split(/\s+/);

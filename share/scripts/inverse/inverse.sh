@@ -160,6 +160,9 @@ else
   if is_done "Prepare"; then
     msg "Prepare of potentials already done"
   else
+    #get need files
+    cp_from_main_dir "$filelist"
+
     do_external prepare $method
     mark_done "Prepare"
   fi

@@ -27,26 +27,16 @@ EOF
 fi
 
 [[ -z $1 ]] && die "${0##*/}: missing argument"
-[[ $(echo "$@" | sed -n '$=') -ne 1 ]] && die "${0##*/}: arguments are longer than one line"
-n_p="$(echo "$@" | critical awk -F '@' '{print NF}')"
 
-names=( $(csg_get_property cg.non-bonded.name) )
-[[ $(( $n_p - 1 )) -ne ${#names[@]} ]] && die "${0##*/}: length of parameter string ($n_p) does not match number of interactions (${#names[@]})"
-
-name="$(csg_get_interaction_property name)"
-for ((i=0;i<${#names[@]};i++)); do
-  [[ $name = ${names[$i]} ]] && break
-done
-[[ $name = ${names[$i]} ]] || die "${0##*/}: Could not find interaction $nane in list of all interactions ${names[@]}"
-
-values=( $(echo "$@" | critical awk -v x=$(($i+1)) -F '@' '{print $x}') )
-parameters=( $(csg_get_interaction_property inverse.simplex.parameters) )
-[[ ${#values[@]} -ne ${#parameters[@]} ]] && die "${0##*/}: Number of values(${#values[@]}) mismatch number of parameters given in xml file (${#parameters[@]})"
+name=$(csg_get_interaction_property name)
+parameters=( $(csg_get_property cg.non-bonded.inverse.simplex.parameters) )
+[[ $(( $# - 2 )) -ne ${#parameters[@]} ]] && die "${0##*/}: length of parameter string ($#) does not match number of interactions (${#parameters[@]})"
+what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
 
 para=()
-for ((i=0;i<${#values[@]};i++)); do
+for ((i=1;i<=${#parameters[@]};i++)); do
   para[${#para[@]}]="--var"
-  para[${#para[@]}]="${parameters[$i]}=${values[$i]}"
+  para[${#para[@]}]="${parameters[$i-1]}=${!i}"
 done
 
 fct=$(csg_get_interaction_property inverse.simplex.function)
@@ -60,6 +50,3 @@ if [[ -z $header ]]; then
 else
   do_external table functional --output "${name}.pot.new" "${para[@]}" --fct "${fct}" --grid "${min}:${step}:${max}" --headerfile "${header}"
 fi
-
-
-
