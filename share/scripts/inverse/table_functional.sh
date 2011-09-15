@@ -49,7 +49,7 @@ grid=()
 fct=""
 gnuplot=gnuplot
 clean="no"
-header=""
+headers=( )
 
 # parse arguments
 shopt -s extglob
@@ -75,8 +75,7 @@ while [[ ${1} = -* ]]; do
     shift 2;;
    --headerfile)
     [[ -f $2 ]] || die "${0##*/}: Could not find headerfile '$2'"
-    header+="#headerfile $2"
-    header+="$(<$2)"
+    headers[${#headers[@]}]="$2"
     shift 2;;
    --grid)
     grid[0]="$2"
@@ -117,8 +116,10 @@ samples="$(to_int "$samples")"
 tmpfile="$(critical mktemp table.gp.XXX)"
 tmpfile2="$(critical mktemp table.plot.XXX)"
 get_table_comment | sed -e 's/^/#/' > "$tmpfile"
-[[ -n $header ]] && echo -e "$header" > "$tmpfile"
-echo "#\n#Plot script:" >> "$tmpfile"
+echo -e "#\n#Plot script:" >> "$tmpfile"
+for i in "${headers[@]}"; do
+  echo "load '$i'" >> "$tmpfile"
+done
 [[ -n $vars ]] && echo -e "$vars" >> "$tmpfile"
 echo "set samples $samples" >> "$tmpfile"
 echo "set table '$tmpfile2'" >> "$tmpfile"
