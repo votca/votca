@@ -38,7 +38,7 @@
 	    <filelist>${name}.pot.new ${name}.dpot.new ${name}.dist.new</filelist>
           </copyback>
 	  <convergence>
-	    <weight>100</weight>
+	    <weight>0.2</weight>
 	    <what>dist</what>
 	  </convergence>
 	  <plot>
