@@ -67,7 +67,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   #resample this, as density dist maybe has the wrong grid
   critical csg_resample --in ${name}.${dist}.new --out $tmp1 --grid "$min:$step:$max"
 
-  diff=$(do_external table difference "$tmp1" "${name}.${dist}.tgt")
+  diff=$(do_external table combine --sum --no-flags --op d "$tmp1" "${name}.${dist}.tgt")
   is_num "$diff" || die "${0##*/}: strange - result of do_external table difference '$tmp1' '$tmp3' was not a number" 
   wdiff=$(csg_calc "$weight" "*" "${diff}")
   echo "Convergence of $dist for ${name} was ${diff} and has weight $weight, so difference is $wdiff"
