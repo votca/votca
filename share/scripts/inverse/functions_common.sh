@@ -753,7 +753,8 @@ export -f get_restart_file
 check_for_obsolete_xml_options() { #check xml file for obsolete options
   local i
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
-    cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir; do
+    cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
+    cg.inverse.gromacs.grompp.index; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
@@ -764,6 +765,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/bin/command}";;
       cg.inverse.scriptdir)
         new="${i/dir/path}";;
+      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.grompp.index)
+        new="${i/.grompp}";;
       *)
         die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac

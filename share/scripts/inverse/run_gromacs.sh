@@ -41,8 +41,8 @@ mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
 index="$(csg_get_property cg.inverse.gromacs.index "index.ndx")"
 [[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found"
-top="$(csg_get_property cg.inverse.gromacs.topol "topol.top")"
-[[ -f $top ]] || die "${0##*/}: grompp topol file '$top' not found"
+topol="$(csg_get_property cg.inverse.gromacs.topol "topol.top")"
+[[ -f $topol ]] || die "${0##*/}: grompp topol file '$topol' not found"
 
 grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
@@ -63,7 +63,7 @@ checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
 
 #we want to do a presimulation and we are not currently performing it
 if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation "no") = "yes" && $1 != "--pre" ]]; then
-  for i in tpr mdp conf confout index top checkpoint; do
+  for i in tpr mdp conf confout index topol checkpoint; do
     f=${!i}
     [[ $f = */* ]] && die "${0##*/}: presimulation feature only work with local file (without /) in $i variable. Just try to copy $f to the maindir and add it to cg.inverse.filelist."
   done
@@ -73,12 +73,12 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation "no") = "yes" && $1 !
     # a bit hacky but we have no better solution yet
     critical cp table*.xvg ./pre_simulation
     cp=0
-    for i in mdp top index; do
+    for i in mdp topol index; do
       f="$(csg_get_property "cg.inverse.gromacs.pre_simulation.$i" "${!i}")"
       [[ $f != ${!i} ]] && ((cp++))
       critical cp "${f}" "./pre_simulation/${!i}"
     done
-    [[ $cp -eq 0 ]] && die "${0##*/}: mdp, top and index of the presimulation are the same as for the main simulation, that does not make sense - at least one has to be different!"
+    [[ $cp -eq 0 ]] && die "${0##*/}: mdp, topol and index of the presimulation are the same as for the main simulation, that does not make sense - at least one has to be different!"
     cd pre_simulation || die "${0##*/}: cd pre_simulation failed"
     msg "Doing pre simulation"
     do_external presimulation gromacs #easy to overwrite
@@ -90,7 +90,7 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation "no") = "yes" && $1 !
   msg "Doing main simulation"
 fi
 
-critical $grompp -n "${index}" -f "${mdp}" -p "$top" -o "$tpr" -c "${conf}" ${grompp_opts}
+critical $grompp -n "${index}" -f "${mdp}" -p "$topol" -o "$tpr" -c "${conf}" ${grompp_opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
 
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command "mdrun")"
