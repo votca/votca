@@ -30,6 +30,7 @@
 	<targets>rdf density</targets>
 	 <rdf>
 	   <target>rdf_CG_CG_aim.xvg</target>
+	   <weight>(x>0.6)?0:1</weight>
 	 </rdf>
          <density>
            <target>dens_CG_CG_aim.xvg</target>
