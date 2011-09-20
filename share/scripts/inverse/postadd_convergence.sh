@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 postadd convergence script, calcs int of (\${name}.DIST.tgt-\${name}.DIST.new)**2
 and saves it to \${name}.conv.
-DIST is dist, but changed by onvergence.what option
+DIST stands for 'dist', but can be changed by onvergence.what option
 
 usage: ${0##*/} infile outfile
 EOF
@@ -46,7 +46,7 @@ step=$(csg_get_interaction_property step)
 weights=( $(csg_get_interaction_property inverse.post_add_options.convergence.weight 1) )
 what_to_do_list=( $(csg_get_interaction_property inverse.post_add_options.convergence.what "dist") )
 
-[ ${#weights[@]} -ne ${#what_to_do_list[@]} ] && die "${0##*/}: number of weights does not match number of 'what' to calc convergence from"
+[[ ${#weights[@]} -ne ${#what_to_do_list[@]} ]] && die "${0##*/}: number of weights does not match number of 'what' to calc convergence from"
 
 sum=0
 #we allow multiple thing per interaction to be checked
@@ -55,20 +55,21 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   weight=${weights[$i]}
   tmp1="$(critical mktemp ${name}.${dist}.new.resample.XXX)"
 
-  if [ ! -f "${name}.${dist}.tgt" ]; then
+  if [[ ! -f "${name}.${dist}.tgt" ]]; then
     #if we need $name.dist.tgt we know how to create it
-    if [ "${dist}" = "dist" ]; then
+    if [[ ${dist} = "dist" ]]; then
       do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
     else
-      die "${0##*/}: file '${name}.${dist}.tgt' was not found, add the script to create this file to the postadd routine of interaction $name"
+      die "${0##*/}: file '${name}.${dist}.tgt' was not found. Add the script to create this file to the postadd routine of interaction $name or put it in the maindir and add it to cg.inverse.filelist."
     fi
   fi
 
+  [[ -f ${name}.${dist}.new ]] || die "${0##*/}: file '${name}.${dist}.new' was not found, add a postadd routine of interaction $name to calculate it."
   #resample this, as density dist maybe has the wrong grid
   critical csg_resample --in ${name}.${dist}.new --out $tmp1 --grid "$min:$step:$max"
 
   diff=$(do_external table combine --sum --no-flags --op d "$tmp1" "${name}.${dist}.tgt")
-  is_num "$diff" || die "${0##*/}: strange - result of do_external table difference '$tmp1' '$tmp3' was not a number" 
+  is_num "$diff" || die "${0##*/}: strange - result of do_external table difference '$tmp1' and '${name}.${dist}.tgt' was not a number" 
   wdiff=$(csg_calc "$weight" "*" "${diff}")
   echo "Convergence of $dist for ${name} was ${diff} and has weight $weight, so difference is $wdiff"
   sum=$(csg_calc $sum + $wdiff)
