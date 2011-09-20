@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script calcs the density for gromacs
@@ -31,21 +31,21 @@ shift
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
-  [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
+if [[ $sim_prog = "gromacs" ]]; then
+  topol=$(csg_get_property cg.inverse.gromacs.topol_out "topol.tpr")
+  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
 
   ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
   traj="traj.${ext}"
-  [ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
+  [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
 
 name=$(csg_get_interaction_property name)
 
-equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
-first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
+first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
 if [[ ${with_errors} = "yes" ]]; then
