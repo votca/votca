@@ -20,11 +20,10 @@ show_help () {
 ${0##*/}, version %version%
 This script creates a table with grid min:step:max for the a functional form
 
-Usage: ${0##*/} [options] outfile
+Usage: ${0##*/} [options] output
 
 Allowed options:
 -h, --help                    show this help
--o, --output NANE             Output file name
     --grid  XX:XX:XX          Output grid of the table
     --var X=Y                 Set a variable used in the function
     --fct FCT                 functional form of the table
@@ -37,7 +36,7 @@ Allowed options:
 Used external packages: gnuplot
 
 Examples:
-* ${0##*/} --output CG-CG.dist.new CG-CG*.dist.new 
+* ${0##*/} --grid 0:0.1:1 --fct x**2 CG-CG.tab.new
 EOF
 }
 
@@ -67,9 +66,6 @@ while [[ ${1} = -* ]]; do
    -h | --help)
     show_help
     exit 0;;
-   -o | --output)
-    output="$2"
-    shift 2;;
    --fct)
     fct="$2"
     shift 2;;
@@ -102,7 +98,11 @@ while [[ ${1} = -* ]]; do
  esac
 done
 
-for i in grid output fct; do
+[[ -z $1 ]] && die "${0##*/}: Missing arguments"
+output="$1"
+shift
+
+for i in grid fct; do
  [[ -z ${!i} ]] && die "${0##*/}: Missing arguments --$i"
 done
 

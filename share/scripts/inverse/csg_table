@@ -148,6 +148,7 @@ table extrapolate table_extrapolate.pl
 table merge merge_tables.pl
 table smooth table_smooth.pl
 table linearop table_linearop.pl
+#do not use table functional here as it needs gnuplot
 table dummy table_dummy.sh
 table get_value table_get_value.pl
 table getsubset table_getsubset.py
