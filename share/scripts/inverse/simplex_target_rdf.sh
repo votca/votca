@@ -31,5 +31,16 @@ name="$(csg_get_interaction_property name)"
 [[ -f ${name}.dist.new ]] || die "${0##*/}: Could not calculate ${name}.dist.new"
 target="$(csg_get_interaction_property inverse.simplex.rdf.target)"
 do_external resample target ${target} ${name}.dist.tgt
-do_external table combine --sum --op d ${name}.dist.tgt ${name}.dist.new > ${name}.rdf.conv 
+weight=$(csg_get_interaction_property --allow-empty inverse.simplex.rdf.weight)
+if [[ -n $weight ]]; then
+  min=$(csg_get_interaction_property min)
+  step=$(csg_get_interaction_property step)
+  max=$(csg_get_interaction_property max)
+  do_external table functional --fct "$weight" --grid "${min}:${step}:${max}" "${name}.rdf.weight"
+  do_external table combine --op x "${name}.dist.tgt" "${name}.rdf.weight" "${name}.dist.tgt.weighted"
+  do_external table combine --op x "${name}.dist.new" "${name}.rdf.weight" "${name}.dist.new.weighted"
+  do_external table combine --sum --op d "${name}.dist.tgt.weighted" "${name}.dist.new.weighted" > "${name}.rdf.conv"
+else
+  do_external table combine --sum --op d "${name}.dist.tgt" "${name}.dist.new" > "${name}.rdf.conv"
+fi
 

@@ -160,7 +160,7 @@ else
   if is_done "Prepare"; then
     msg "Prepare of potentials already done"
   else
-    #get need files
+    #get need files (leave the " " unglob happens inside the function)
     cp_from_main_dir "$filelist"
 
     do_external prepare $method
@@ -218,7 +218,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   if is_done "Initialize"; then
     echo "Initialization already done"
   else
-    #get need files
+    #get need files (leave the " " unglob happens inside the function)
     cp_from_main_dir "$filelist"
 
     #get files from last step, init sim_prog and ...

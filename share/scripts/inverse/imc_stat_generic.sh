@@ -39,8 +39,8 @@ else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
 
-equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
-first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
+first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
 
 tasks=$(get_number_tasks)
 msg "Calculating IMC statistics using $tasks tasks"

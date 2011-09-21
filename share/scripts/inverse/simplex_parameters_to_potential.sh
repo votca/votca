@@ -46,7 +46,7 @@ step="$(csg_get_interaction_property step)"
 max="$(csg_get_interaction_property max)"
 
 if [[ -z $header ]]; then
-  do_external table functional --output "${name}.pot.new" "${para[@]}" --fct "${fct}" --grid "${min}:${step}:${max}"
+  do_external table functional "${para[@]}" --fct "${fct}" --grid "${min}:${step}:${max}" "${name}.pot.new"
 else
-  do_external table functional --output "${name}.pot.new" "${para[@]}" --fct "${fct}" --grid "${min}:${step}:${max}" --headerfile "${header}"
+  do_external table functional "${para[@]}" --fct "${fct}" --grid "${min}:${step}:${max}" --headerfile "${header}" "${name}.pot.new"
 fi

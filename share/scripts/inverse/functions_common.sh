@@ -262,7 +262,8 @@ csg_get_property () { #get an property from the xml file
 }
 export -f csg_get_property
 
-trim_all() { #strips white space from beginning and the end of all args
+trim_all() { #make multiple lines into one and strip white space from beginning and the end, reads from stdin
+  [[ -n "$(type -p tr)" ]] || die "${FUNCNAME[0]}: Could not find tr"
   tr '\n' ' ' | sed -e s'/^[[:space:]]*//' -e s'/[[:space:]]*$//' || die "${FUNCNAME[0]}: sed of argument $i failed"
 }
 export -f trim_all
@@ -469,7 +470,7 @@ export -f get_number_tasks
 
 get_table_comment() { #get comment lines from a table and add common information, which include the hgid and other information
   local version co
-  [[ -n "$(type -p csg_call)" ]] || die "${FUNCNAME[0]}: Could not find csg_version"
+  [[ -n "$(type -p csg_call)" ]] || die "${FUNCNAME[0]}: Could not find csg_call"
   version="$(csg_call --version)" || die "${FUNCNAME[0]}: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
@@ -753,7 +754,8 @@ export -f get_restart_file
 check_for_obsolete_xml_options() { #check xml file for obsolete options
   local i
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
-    cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir; do
+    cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
+    cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
@@ -764,6 +766,10 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/bin/command}";;
       cg.inverse.scriptdir)
         new="${i/dir/path}";;
+      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.grompp.index)
+        new="${i/.grompp}";;
+      cg.inverse.gromacs.g_rdf.topol)
+        new="${i/g_}";;
       *)
         die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac
