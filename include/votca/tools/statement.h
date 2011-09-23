@@ -18,24 +18,60 @@
 #define __VOTCA_TOOLS_STATEMENT_H
 
 #include <sqlite3.h>
+#include <stdexcept>
 
 namespace votca { namespace tools {
 
 class Database;
 
+/**
+ * \brief Wrapper for sqlite prepared statements
+ *
+ * The Statement class wraps the interface to sqlite_stmt. It checks
+ * for some of the basic errors and throws an exception in case
+ * one occurs.
+ */
 class Statement
 {
 public:
 	~Statement();
 
-	template<typename T>
+	/**
+         * \brief bind a value to prepared statement
+         * @param col column number, sqlite starts counting with 1
+         * @param value value
+         */
+        template<typename T>
 		void Bind(int col, const T &value);
 
+	/**
+         * \brief read a column after a select statement was executed
+         * @param col column number, sqlite starts counting with 0 here
+         */
 	template<typename T>
 	T Column(int col);
 
-	int Step();
-	void Reset();
+
+        /**
+         * \brief perform a step
+         * @return sqlite return code, see sqlite manual for details
+         */
+        int Step();
+
+
+        /**
+         * \brief perform an insert step
+         *
+         * This is basically just a call to Step and does an additional
+         * error check if SQLITE_DONE was returned (= insert successful).
+         * If not an exception is thrown.
+         */
+        int InsertStep();
+
+	/**
+         * \brief reset the statment to perform another insert or query
+         */
+        void Reset();
 
 	sqlite3_stmt *getSQLiteStatement() { return _stmt; }
 protected:
@@ -45,6 +81,13 @@ protected:
 
 	friend class Database;
 };
+
+inline int Statement::InsertStep()
+{
+    if(Step() != SQLITE_DONE)
+        throw std::runtime_error("Statment::Step did not return SQLITE_DONE.\n"
+                "This might be caused be a failed insert statement to the database.");
+}
 
 }}
 
