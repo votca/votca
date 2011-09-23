@@ -31,7 +31,7 @@ fi
 
 do_external postadd dummy "$1" "$2"
 if [[ $(csg_get_property cg.inverse.method) = "simplex" ]]; then
-  msg "postadd convergency make no sense for simplex as convergency is calculated anyway - skipping"
+  msg "WARNING: postadd convergency make no sense for simplex as convergency is calculated anyway - skipping"
   exit 0
 fi
 

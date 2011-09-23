@@ -28,28 +28,28 @@ EOF
    exit 0
 fi
 
-tpr="$(csg_get_property cg.inverse.gromacs.topol_out "topol.tpr")"
+tpr="$(csg_get_property cg.inverse.gromacs.topol_out)"
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
 [[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found"
 
-conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
+conf="$(csg_get_property cg.inverse.gromacs.conf)"
 [[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found"
 
-confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
 mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
-index="$(csg_get_property cg.inverse.gromacs.index "index.ndx")"
+index="$(csg_get_property cg.inverse.gromacs.index)"
 [[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found"
-topol="$(csg_get_property cg.inverse.gromacs.topol "topol.top")"
+topol="$(csg_get_property cg.inverse.gromacs.topol)"
 [[ -f $topol ]] || die "${0##*/}: grompp topol file '$topol' not found"
 
 grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
-grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin "grompp")"
+grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin)"
 [ -n "$(type -p $grompp)" ] || die "${0##*/}: grompp binary '$grompp' not found"
 
-ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+ext=$(csg_get_property cg.inverse.gromacs.traj_type)
 [[ $ext = "xtc" || $ext = "trr" ]] || die "${0##*/}: error trajectory type $ext is not supported"
 if [[ $1 = "--pre" ]]; then
   : #in a presimulation usually do care about traj
@@ -59,10 +59,10 @@ elif [[ $ext == "trr" ]]; then
   [[ $(get_simulation_setting nstxout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj_type) is $ext, but nstxout is 0 in $mdp. Please check the setting again and remove the current step."
 fi
 
-checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
+checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint)"
 
 #we want to do a presimulation and we are not currently performing it
-if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation "no") = "yes" && $1 != "--pre" ]]; then
+if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--pre" ]]; then
   for i in tpr mdp conf confout index topol checkpoint; do
     f=${!i}
     [[ $f = */* ]] && die "${0##*/}: presimulation feature only work with local file (without /) in $i variable. Just try to copy $f to the maindir and add it to cg.inverse.filelist."
@@ -93,7 +93,7 @@ fi
 critical $grompp -n "${index}" -f "${mdp}" -p "$topol" -o "$tpr" -c "${conf}" ${grompp_opts}
 [ -f "$tpr" ] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
 
-mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command "mdrun")"
+mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command)"
 #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
 
 if [ -n "$CSGENDING" ]; then

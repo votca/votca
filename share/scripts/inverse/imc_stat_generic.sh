@@ -29,18 +29,18 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
+  topol=$(csg_get_property cg.inverse.gromacs.topol)
   [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
 
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
   [ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
 
-equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
-first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
+first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
 
 tasks=$(get_number_tasks)
 msg "Calculating IMC statistics using $tasks tasks"

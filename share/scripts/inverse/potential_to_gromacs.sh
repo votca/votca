@@ -89,7 +89,7 @@ xvgtype="$(csg_get_interaction_property bondtype)"
 zero=0
 if [[ $tabtype = "non-bonded" ]]; then
   tablend="$(csg_get_property --allow-empty cg.inverse.gromacs.table_end)"
-  mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+  mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
   if [[ -f ${mdp} ]]; then
     echo "Found setting file '$mdp' now trying to check options in there"
     rlist=$(get_simulation_setting rlist)

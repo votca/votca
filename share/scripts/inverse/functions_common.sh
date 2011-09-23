@@ -264,9 +264,15 @@ csg_get_property () { #get an property from the xml file
   #csg_property only fails if xml file is bad otherwise result is empty
   #leave the -q here to avoid flooding with messages
   ret="$(critical -q $cmd)"
-  ret="$(echo "$ret" | trim_all)"
+  #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
-  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1'\nResult of '$cmd' was empty"
+  #if still empty fetch it from defaults file
+  if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print .)"
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: 'csg_get_property $1' was called with --allow-empty, but a default was found in '$VOTCASAHRE/xml/csg_defaults.xml'"
+  fi
+  ret="$(echo "$ret" | trim_all)"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1'\nResult of '$cmd' was empty and no default was found in $VOTCASAHRE/xml/csg_defaults.xml"
   echo "${ret}"
 }
 export -f csg_get_property
@@ -464,7 +470,7 @@ export -f get_time
 
 get_number_tasks() { #get the number of possible tasks from the xml file or determine it automatically under linux
   local tasks
-  tasks="$(csg_get_property cg.inverse.simulation.tasks "auto")"
+  tasks="$(csg_get_property cg.inverse.simulation.tasks)"
   [[ $tasks = "auto" ]] && tasks=0
   is_int "$tasks" || die "${FUNCNAME[0]}: cg.inverse.simulation.tasks needs to be a number or 'auto', but I got $tasks"
   #this only work for linux
@@ -495,7 +501,7 @@ export -f get_table_comment
 csg_inverse_clean() { #clean out the main directory 
   local i files log t
   [[ -n $1 ]] && t="$1" || t="30"
-  log="$(csg_get_property cg.inverse.log_file "inverse.log")"
+  log="$(csg_get_property cg.inverse.log_file)"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
   files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
@@ -733,7 +739,7 @@ fi
 enable_logging() { #enables the logging to a certain file (1st argument) or the logfile taken from the xml file
   local log
   if [[ -z $1 ]]; then
-    log="$(csg_get_property cg.inverse.log_file "inverse.log")" 2> /dev/null
+    log="$(csg_get_property cg.inverse.log_file)"
   else
     log="$1"
   fi
@@ -754,7 +760,7 @@ export -f enable_logging
 
 get_restart_file() { #print the name of the restart file to use
   local file
-  file="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
+  file="$(csg_get_property cg.inverse.restart_file)"
   [[ -z ${file/*\/*} ]] && die "${FUNCNAME[0]}: cg.inverse.restart_file has to be a local file with slash '/'"
   echo "$file"
 }
@@ -764,7 +770,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   local i
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
-    cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol; do
+    cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol cg.inverse.convergence_check \
+    cg.inverse.convergence_check_options.name_glob; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
@@ -779,6 +786,10 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/.grompp}";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;
+      cg.inverse.convergence_check)
+	new="${i}.type";;
+      cg.inverse.convergence_check_options.name_glob)
+	new="";;
       *)
         die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac

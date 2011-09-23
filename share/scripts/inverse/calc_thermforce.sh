@@ -31,7 +31,7 @@ fi
 
 name=$(csg_get_interaction_property name)
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
 #this needs to done in step_000
 [ -f "$mdp" ] || cp_from_main_dir "$mdp"
 

@@ -27,24 +27,24 @@ EOF
     exit 0
 fi
 
-esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
+esp="$(csg_get_property cg.inverse.espresso.blockfile)"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
+espout="$(csg_get_property cg.inverse.espresso.blockfile_out)"
 
 n_steps="$(csg_get_property cg.inverse.espresso.n_steps)"
 [ -z "$n_steps" ] && die "${0##*/}: Could not read espresso property n_steps"
 
-esp_bin="$(csg_get_property cg.inverse.espresso.command "Espresso")"
+esp_bin="$(csg_get_property cg.inverse.espresso.command)"
 #no check for Espresso, because Espresso could maybe exist only computenodes
 
-exclusions="$(csg_get_property cg.inverse.espresso.exclusions 0)"
+exclusions="$(csg_get_property cg.inverse.espresso.exclusions)"
 [ -z "$exclusions" ] && die "${0##*/}: Could not read espresso property exclusions"
 
-debug="$(csg_get_property cg.inverse.espresso.debug "no")"
+debug="$(csg_get_property cg.inverse.espresso.debug)"
 
 # Topology+trajectory file
-traj_esp="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
+traj_esp="$(csg_get_property cg.inverse.espresso.traj)"
 
 if [ -n "$CSGENDING" ]; then
   echo "${0##*/} does not support wallclock time yet (go here and implement it). Per step wallclock time check is still performed!"
@@ -70,7 +70,7 @@ done
 
 # load blockfile into Espresso, then integrate for $n_steps steps, then save blockfile
 esp_script="$(critical mktemp esp.run.tcl.XXXXX)"
-esp_success="$(csg_get_property cg.inverse.espresso.success "success.esp")"
+esp_success="$(csg_get_property cg.inverse.espresso.success)"
 cat > $esp_script <<EOF
 set in [open "|gzip -cd $esp" r]
 while { [blockfile \$in read auto] != "eof" } {}
