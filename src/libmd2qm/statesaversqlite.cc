@@ -103,7 +103,7 @@ void StateSaverSQLite::WriteFrame()
         for(int j=0; j<3; ++j)
             stmt->Bind(3+i*3+j, _qmtop->getBox().get(i,j));
 
-    stmt->Step();
+    stmt->InsertStep();
     if(_qmtop->getDatabaseId() == 0)
         _qmtop->setDatabaseId(_db.LastInsertRowId());
 
@@ -135,7 +135,7 @@ void StateSaverSQLite::WriteMolecules(int frameid)
         Molecule *mol=*iter;
         stmt->Bind(2, mol->getId());
         stmt->Bind(3, mol->getName());
-        stmt->Step();
+        stmt->InsertStep();
         stmt->Reset();
         //mol->setDBId(_db.LastInsertRowId());
     }
@@ -184,7 +184,7 @@ void StateSaverSQLite::WriteConjugatedSegments(int frameid) {
         stmt->Bind(5, crg->GetCom().getX());;
         stmt->Bind(6, crg->GetCom().getY());;
         stmt->Bind(7, crg->GetCom().getZ());;
-        stmt->Step();
+        stmt->InsertStep();
         stmt->Reset();
 
         if(crg->getInDatabase())
@@ -246,7 +246,7 @@ void StateSaverSQLite::WriteBeads(int frameid) {
         stmt->Bind(19, bi->getMolecule()->getId());
         stmt->Bind(20, frameid);
         
-        stmt->Step();
+        stmt->InsertStep();
         stmt->Reset();
     }
 }
@@ -337,7 +337,7 @@ QMNBList &nblist = _qmtop->nblist();
         if(pair->getInDatabase())
             stmt->Bind(8, pair->getId());
         ++i;
-        stmt->Step();
+        stmt->InsertStep();
         if(!pair->getInDatabase())
             pair->setId(_db.LastInsertRowId());
         pair->setInDatabase(true);
@@ -398,7 +398,7 @@ void StateSaverSQLite::WriteIntegrals(QMPair *pair)
         stmt->Bind(1, pair->getId());
         stmt->Bind(2, i);
         stmt->Bind(3, pair->Js()[i]);
-        stmt->Step();
+        stmt->InsertStep();
         stmt->Reset();
     }
 
@@ -435,7 +435,7 @@ void StateSaverSQLite::WriteCustomProperties(int object_id, std::map<string, T> 
         stmt->Bind(1, object_id);
         stmt->Bind(2, i->first);
         stmt->Bind(3, i->second);
-        stmt->Step();
+        stmt->InsertStep();
         stmt->Reset();
     }
 
