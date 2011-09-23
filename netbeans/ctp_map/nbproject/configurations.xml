@@ -46,15 +46,15 @@
           <output>../../src/tools/ctp_map</output>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../libmd2qm"
+              <makeArtifact PL="../libctp"
                             CT="3"
                             CN="Debug"
                             AC="true"
                             BL="true"
-                            WD="../libmd2qm"
+                            WD="../libctp"
                             BC="${MAKE}  -f Makefile CONF=Debug"
                             CC="${MAKE}  -f Makefile CONF=Debug clean"
-                            OP="dist/Debug/GNU-Linux-x86/liblibmd2qm.a">
+                            OP="dist/Debug/GNU-Linux-x86/liblibctp.a">
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibProjectItem>

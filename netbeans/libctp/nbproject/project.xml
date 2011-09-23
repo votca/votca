@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.cnd.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>libmd2qm</name>
+            <name>libctp</name>
             <make-project-type>0</make-project-type>
             <c-extensions/>
             <cpp-extensions>cc</cpp-extensions>
@@ -12,7 +12,7 @@
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>../../include</sourceRootElem>
-                <sourceRootElem>../../src/libmd2qm</sourceRootElem>
+                <sourceRootElem>../../src/libctp</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>Debug</confElem>

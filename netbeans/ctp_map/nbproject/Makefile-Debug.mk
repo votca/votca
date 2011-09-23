@@ -51,13 +51,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=../libmd2qm/dist/Debug/GNU-Linux-x86/liblibmd2qm.a ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lexpat -lxml2 -lboost_program_options -lsqlite3 -lpthread -lm
+LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lexpat -lxml2 -lboost_program_options -lsqlite3 -lpthread -lm
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/ctp_map
 
-../../src/tools/ctp_map: ../libmd2qm/dist/Debug/GNU-Linux-x86/liblibmd2qm.a
+../../src/tools/ctp_map: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
 
 ../../src/tools/ctp_map: ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a
 
@@ -81,7 +81,7 @@ ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc
 
 # Subprojects
 .build-subprojects:
-	cd ../libmd2qm && ${MAKE}  -f Makefile CONF=Debug
+	cd ../libctp && ${MAKE}  -f Makefile CONF=Debug
 	cd ../../../csg/netbeans/libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
 	cd ../../../moo/netbeans/libmoo && ${MAKE}  -f Makefile_nb CONF=Debug
 	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug
@@ -93,7 +93,7 @@ ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc
 
 # Subprojects
 .clean-subprojects:
-	cd ../libmd2qm && ${MAKE}  -f Makefile CONF=Debug clean
+	cd ../libctp && ${MAKE}  -f Makefile CONF=Debug clean
 	cd ../../../csg/netbeans/libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
 	cd ../../../moo/netbeans/libmoo && ${MAKE}  -f Makefile_nb CONF=Debug clean
 	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug clean

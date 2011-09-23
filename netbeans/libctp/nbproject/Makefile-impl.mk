@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=libmd2qm
+PROJECTNAME=libctp
 
 # Active Configuration
 DEFAULTCONF=Debug

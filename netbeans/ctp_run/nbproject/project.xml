@@ -12,8 +12,8 @@
             <make-dep-projects>
                 <make-dep-project>../../../csg/netbeans/libcsg</make-dep-project>
                 <make-dep-project>../../../moo/netbeans/libmoo</make-dep-project>
-                <make-dep-project>../libmd2qm</make-dep-project>
                 <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
+                <make-dep-project>../libctp</make-dep-project>
             </make-dep-projects>
             <sourceRootList>
                 <sourceRootElem>../../src/tools</sourceRootElem>
