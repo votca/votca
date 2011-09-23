@@ -19,6 +19,8 @@
 
 #include <sqlite3.h>
 #include <stdexcept>
+#include <string>
+#include "lexical_cast.h"
 
 namespace votca { namespace tools {
 
@@ -84,8 +86,9 @@ protected:
 
 inline int Statement::InsertStep()
 {
-    if(Step() != SQLITE_DONE)
-        throw std::runtime_error("Statment::Step did not return SQLITE_DONE.\n"
+    int ret = Step();
+    if(ret != SQLITE_DONE)
+        throw std::runtime_error("Statment::Step did not return SQLITE_DONE. Return code was " + boost::lexical_cast<std::string>(ret) + "\n"
                 "This might be caused be a failed insert statement to the database.");
 }
 
