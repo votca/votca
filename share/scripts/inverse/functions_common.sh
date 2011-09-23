@@ -79,7 +79,8 @@ show_callstack() { #show the current callstack
     space=""
   fi
   [[ $0 = "bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
-  for ((c=${#FUNCNAME[*]}-2;c>0;c--)); do
+  for ((c=${#FUNCNAME[*]}-1;c>0;c--)); do
+    [[ ${FUNCNAME[$c]} = main ]] && continue #main is useless as the info was printed 2 lines above
     space+="    "
     if [[ $0 = *csg_call || $0 = *inverse.sh ]]; then
       echo "${space}${FUNCNAME[$c]} - linenumber ${BASH_LINENO[ $(( $c - 1 )) ]} in ${BASH_SOURCE[$c]}"
