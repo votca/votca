@@ -339,7 +339,16 @@ QMNBList &nblist = _qmtop->nblist();
         if(pair->getInDatabase())
             stmt->Bind(8, pair->getId());
         ++i;
-        stmt->InsertStep();
+//        cout << "Writing pair " << pair->rate12() << " " << pair->rate21()
+//                << " " << _conjseg_id_map[crg1->getId()] << " " << _conjseg_id_map[crg2->getId()]
+//                << " " << pair->r() << endl;
+        if(stmt->Step() != SQLITE_DONE) {
+            throw std::runtime_error("Could not write pair "
+                    + boost::lexical_cast<string>(_conjseg_id_map[crg1->getId()]) + ", "
+                    + boost::lexical_cast<string>(_conjseg_id_map[crg2->getId()]) + " to database\n"
+                    + "rate12=" + boost::lexical_cast<string>(pair->rate12())
+                    + " rate21=" + boost::lexical_cast<string>(pair->rate21()));
+        };
         if(!pair->getInDatabase())
             pair->setId(_db.LastInsertRowId());
         pair->setInDatabase(true);
