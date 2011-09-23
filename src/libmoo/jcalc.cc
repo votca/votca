@@ -45,6 +45,9 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         }
         
         if((*iter)->exists("torbital")) transorbs = (*iter)->get("torbital").as<vector <int> >();
+        for(int i=0; i<transorbs.size(); ++i)
+            transorbs[i]--;
+        
         if(transorbs.size() > 0) nameorb = (*iter)->get("orbitals").as<string>();
 
         name = (*iter)->get("name").as<string>();
@@ -63,6 +66,12 @@ void JCalc::ParseCrgUnitTypes(Property &options){
             vector <int> list_atoms;
             Tokenizer tok2(*it_mon, " ");
             tok2.ConvertToVector<int>(list_atoms);
+            for(int i=0; i<list_atoms.size(); ++i) {
+                if(list_atoms[i] == 0)
+                    throw std::runtime_error("An atom with index=0 was specified in listcharges. Counting starts at 1!");
+
+                list_atoms[i]--;
+            }
             list_atoms_monomer.push_back(list_atoms);
         }
 
