@@ -52,7 +52,7 @@ void fock::SetParameters(){
     char * votca_share = getenv("VOTCASHARE");
     if(votca_share == NULL)
         throw std::runtime_error("VOTCASHARE not set, cannot open INDO parameters.");
-    string nameParameter = string(getenv("VOTCASHARE"))+string("/INDOParameters.xml");
+    string nameParameter = string(getenv("VOTCASHARE"))+string("/xml/INDOParameters.xml");
     Property Options;
     load_property_from_xml(Options,nameParameter);
     
