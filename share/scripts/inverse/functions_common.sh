@@ -87,6 +87,12 @@ show_callstack() { #show the current callstack
       echo "${space}${FUNCNAME[$c]} - linenumber ${BASH_LINENO[ $(( $c - 1 )) ]} (see 'csg_call --cat function ${FUNCNAME[$c]}')"
     fi
   done
+  [[ $1 = "--extra" ]] || return 0
+  shift
+  for i in "$@"; do
+    space+="    "
+    echo "${space}${i} - linenumber ???"
+  done
 }
 export -f show_callstack
 
@@ -156,6 +162,8 @@ do_external() { #takes two tags, find the according script and excute it
     ret=$?
     cat "$perl_debug" 2>&1
     [[ $ret -eq 0 ]]
+  elif [[ -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
+    CSG_CALLSTACK="$(show_callstack --extra "$script")" $script "${@:3}"
   else
     CSG_CALLSTACK="$(show_callstack)" $script "${@:3}"
   fi || die "${FUNCNAME[0]}: subscript $script ${@:3} (from tags $tags) failed"
