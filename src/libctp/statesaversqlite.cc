@@ -1,6 +1,8 @@
 #include <votca/ctp/statesaversqlite.h>
 #include <votca/tools/statement.h>
 
+namespace votca { namespace ctp {
+
 StateSaverSQLite::StateSaverSQLite()
 {}
 
@@ -304,7 +306,7 @@ void StateSaverSQLite::WritePairs(int frameid) {
     Statement *stmt;
 
     _db.Exec("UPDATE pairs SET deleted=1 WHERE conjseg1 IN (SELECT _id from conjsegs WHERE frame = " 
-        + lexical_cast<string>(frameid) +  ")");
+        + boost::lexical_cast<string>(frameid) +  ")");
     //Statement *update_stmt = _db.Prepare(
     //        "UPDATE pairs SET rate12 = ?, rate21 = ?, r_x = ?, r_y = ?,r_z = ?, deleted = 0 WHERE conjseg1 = ? AND conjseg2 = ?");
     Statement *update_stmt = _db.Prepare(
@@ -389,7 +391,7 @@ void StateSaverSQLite::ReadPairs(void)
 
 void StateSaverSQLite::WriteIntegrals(QMPair *pair)
 {
-    _db.Exec("DELETE FROM pair_integrals WHERE pair = " + lexical_cast<string>(pair->getId()));
+    _db.Exec("DELETE FROM pair_integrals WHERE pair = " + boost::lexical_cast<string>(pair->getId()));
 
     Statement *stmt =
     _db.Prepare("INSERT INTO pair_integrals (pair, num, J) VALUES (?, ?, ?)");
@@ -425,7 +427,7 @@ void StateSaverSQLite::WriteCustomProperties(int object_id, std::map<string, T> 
         string table, const string field_objectid, const string field_key, const string field_value)
 {
     _db.Exec("DELETE FROM " + table + " WHERE " + field_objectid + " = " 
-        + lexical_cast<string>(object_id));
+        + boost::lexical_cast<string>(object_id));
 
     Statement *stmt =
     _db.Prepare("INSERT INTO " + table + "(" + field_objectid + ", " + field_key + ", " + field_value
@@ -458,3 +460,4 @@ void StateSaverSQLite::ReadCustomProperties(int object_id, std::map<string, T> &
     delete stmt;
 }
 
+}}

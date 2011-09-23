@@ -14,6 +14,8 @@
 #include <votca/ctp/statesaversqlite.h>
 #include <votca/moo/units.h>
 
+using namespace votca::ctp;
+
 class MD2QMObserver
     : public CGObserver
 {

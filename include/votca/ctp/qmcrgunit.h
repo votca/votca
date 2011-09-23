@@ -13,6 +13,8 @@
 #include <string>
 #include <map>
 
+namespace votca { namespace ctp {
+
 using namespace std;
 
 class QMCrgUnit : public CrgUnit, public CustomFields
@@ -66,6 +68,7 @@ inline QMCrgUnit::QMCrgUnit(const unsigned int & id, CrgUnitType * type,
     
 }
 
+}}
 
 #endif	/* QMCRGUNIT_H */
 

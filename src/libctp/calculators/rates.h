@@ -5,6 +5,7 @@
 #include <votca/ctp/paircalculator.h>
 #include <math.h>
 
+namespace votca { namespace ctp {
 /**
     \brief Calculates hopping rates using either Marcu's or Jortner's derivation
 
@@ -235,6 +236,7 @@ double PolymerRates::CalcRate(QMCrgUnit *crg1, QMCrgUnit *crg2, vec dist, double
     double rate = _nu * exp ( -DG_star  / _kT  ) ;
 }
 */
+}}
 
 #endif	/* RATES_H */
 

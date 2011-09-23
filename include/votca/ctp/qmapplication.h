@@ -13,6 +13,8 @@
 #include "qmcalculator.h"
 #include "qmtopology.h"
 
+namespace votca { namespace ctp {
+
 class QMApplication : public Application
 {
 public:
@@ -60,6 +62,8 @@ protected:
     void LoadOptions();
 
 };
+
+}}
 
 #endif	/* _QMAPPLICATION_H */
 

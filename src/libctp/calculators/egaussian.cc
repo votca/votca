@@ -7,6 +7,8 @@
 #include <votca/tools/average.h>
 #include <votca/csg/nblistgrid.h>
 
+namespace votca { namespace ctp {
+
 void Egaussian::Initialize(QMTopology *top, Property *options) {
 
 if (options->exists("options.egaussian.method")) {
@@ -159,3 +161,4 @@ bool Egaussian::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, cons
     return false;
 }
 
+}}

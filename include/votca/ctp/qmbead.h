@@ -13,6 +13,8 @@
 #include <votca/moo/crgunit.h>
 #include "qmtopology.h"
 
+namespace votca { namespace ctp {
+
 using namespace votca::csg;
 
 /**
@@ -67,6 +69,8 @@ inline QMBead::QMBead(Topology *owner, int id, BeadType *type, byte_t symmetry,
     : Bead(owner, id, type, symmetry, name, resnr, m, q), _crg(NULL), _ipos(-1)
 {
 }
+
+}}
 
 #endif	/* _QMBEAD_H */
 

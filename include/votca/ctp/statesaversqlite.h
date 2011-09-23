@@ -16,6 +16,8 @@
 #include "qmnblist.h"
 #include "qmdatabase.h"
 
+namespace votca { namespace ctp {
+
 using namespace votca::tools;
 
 class StateSaverSQLite
@@ -65,6 +67,8 @@ private:
     map<int,int> _conjseg_id_map;
     bool _was_read;
 };
+
+}}
 
 #endif	/* __VOTCA_MD2QM_StateSaverSQLite_H */
 

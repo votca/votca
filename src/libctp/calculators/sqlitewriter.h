@@ -4,6 +4,8 @@
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/statesaversqlite.h>
 
+namespace votca { namespace ctp {
+
 /** \brief Writes out data to sqlite3 format
 
 Callname: sqlitewriter
@@ -20,8 +22,6 @@ Writes out the following site properties to sqlite3 format:
  - Site occupation probability
  - Coordinates x,y,z of the center of mass in nm
 */
-
-
 class SQLiteWriter : public QMCalculator {
 public:
     SQLiteWriter() {};
@@ -52,6 +52,8 @@ inline void SQLiteWriter::EndEvaluate(QMTopology *top)
 {
     _saver.Close();
 }
+
+}}
 
 #endif
 

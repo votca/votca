@@ -4,6 +4,8 @@
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/qmcalculator.h>
 
+namespace votca { namespace ctp {
+
 /**
     \brief Coulomb contribution to site energies
 
@@ -42,6 +44,7 @@ private:
     // function pointer 
     double (Ecoulomb::*_estatic_method)(const double &);
 };
+}}
 
 #endif	/* _ECOULOMB_H */
 

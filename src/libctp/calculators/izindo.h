@@ -13,6 +13,8 @@ Callname: izindo
 
 */
 
+namespace votca { namespace ctp {
+
 class Izindo : public PairCalculator
 {
 public:
@@ -30,6 +32,8 @@ inline void Izindo::EvaluatePair(QMTopology *top, QMPair *pair){
     vector <double> Js = top->GetJCalc().CalcJ(*crg1, *crg2);
     pair->setJs(Js);
 }
+
+}}
 
 #endif	/* _CALC_INTEGRALS_H */
 

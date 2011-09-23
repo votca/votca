@@ -5,6 +5,9 @@
 #include <votca/ctp/paircalculator.h>
 #include <votca/tools/histogramnew.h>
 
+namespace votca { namespace ctp {
+
+
 /**
 	\brief Histogram of transfer integrals of neighbor list pairs
 
@@ -47,5 +50,7 @@ inline void CalcHistIntegrals::EvaluatePair(QMTopology *top, QMPair *pair){
     double logJ2eff = log10(pair->calcJeff2());
     histogram.Process( logJ2eff );
 }
+
+}}
 
 #endif	/* _HIST_INTEGRALS_H */

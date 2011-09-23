@@ -5,7 +5,9 @@
 #include <votca/ctp/qmapplication.h>
 #include <votca/ctp/version.h>
 
-QMApplication::QMApplication()
+namespace votca { namespace ctp {
+
+    QMApplication::QMApplication()
 {
     CalculatorFactory::RegisterAll();
 }
@@ -125,3 +127,4 @@ void QMApplication::EndEvaluate(){
         (*iter)->EndEvaluate(&_qmtop);
     }
 }
+}}

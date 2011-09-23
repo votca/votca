@@ -11,6 +11,8 @@
 #include <votca/tools/objectfactory.h>
 #include "qmcalculator.h"
 
+namespace votca { namespace ctp {
+
 using namespace std;
 
 class CalculatorFactory
@@ -30,6 +32,8 @@ inline CalculatorFactory &Calculators()
     static CalculatorFactory _instance;
     return _instance;
 }
+
+}}
 
 #endif	/* _CALCULATORFACTORY_H */
 

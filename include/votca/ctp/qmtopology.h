@@ -18,6 +18,8 @@
 #include "qmbead.h"
 #include "qmnblist.h"
 
+namespace votca { namespace ctp {
+
 
 /**
     \brief topology of qmbeads
@@ -27,8 +29,6 @@
     it should update the position of the crg unit. Crg units should be associated to
     these qm beads and not to any other.
 */
-
-
 class QMTopology : public Topology
 {
 public:
@@ -101,7 +101,7 @@ inline QMCrgUnit *QMTopology::getCrgUnit(int id)
     map<int, QMCrgUnit*>::iterator iter;
     iter = _crgunits_by_id.find(id);
     if(iter == _crgunits_by_id.end())
-        throw std::runtime_error("did not find crgunit with id " + lexical_cast<string>(id));
+        throw std::runtime_error("did not find crgunit with id " + boost::lexical_cast<string>(id));
     return iter->second;
 }
 
@@ -114,6 +114,8 @@ inline QMCrgUnit *QMTopology::GetCrgUnitByName(const string &name)
         return iter->second;
     return NULL;
 }
+
+}}
 
 #endif	/* _CRGTOPOLOGY_H */
 

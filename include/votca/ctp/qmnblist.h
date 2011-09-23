@@ -6,6 +6,9 @@
 #include <votca/csg/beadlist.h>
 #include <votca/moo/crgunit.h>
 
+namespace votca { namespace ctp {
+
+
 using namespace votca::csg;
 
 class QMTopology;
@@ -42,6 +45,8 @@ protected:
     QMTopology *_father;
 
 };
+
+}}
 
 #endif	/* _QMNBList_H */
 

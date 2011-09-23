@@ -31,6 +31,8 @@
     #include "calculators/contkmc.h"
 #endif
 
+namespace votca { namespace ctp {
+
 void CalculatorFactory::RegisterAll(void)
 {
 	Calculators().Register<Izindo>("izindo"); // ZINDO-based transfer integrals
@@ -59,3 +61,5 @@ void CalculatorFactory::RegisterAll(void)
         #endif
 
 }
+
+}}

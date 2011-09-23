@@ -10,6 +10,8 @@
 
 #include "qmtopology.h"
 
+namespace votca { namespace ctp {
+
 /// the idea of this class is to make QMApplications more flexible
 
 class QMCalculator{
@@ -24,6 +26,8 @@ public:
     virtual void EndEvaluate(QMTopology *top) {}
 protected:
 };
+
+}}
 
 #endif	/* _QMCALCULATOR_H */
 

@@ -5,6 +5,8 @@
 
 using namespace votca::tools;
 
+namespace votca { namespace ctp {
+
 /**
  * \brief the state database
  *
@@ -25,6 +27,7 @@ public:
     void onCreate();
 };
 
+}}
 
 #endif	/* QMDATABASE_H */
 

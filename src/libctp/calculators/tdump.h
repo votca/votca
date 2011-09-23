@@ -13,6 +13,8 @@
 
 #include <votca/csg/trajectorywriter.h>
 
+namespace votca { namespace ctp {
+
 /**
     \brief Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories
 
@@ -99,6 +101,8 @@ inline void Tdump::EndEvaluate(QMTopology *top)
     _writerCG->Close();
     _writerQM->Close();
 }
+
+}}
 
 #endif	/* _TDUMP_H */
 

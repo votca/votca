@@ -10,6 +10,8 @@
 
 #include "qmcalculator.h"
 
+namespace votca { namespace ctp {
+
 class SiteCalculator : public QMCalculator{
 public:
     SiteCalculator();
@@ -25,6 +27,8 @@ inline bool SiteCalculator::EvaluateFrame(QMTopology *top){
         EvaluateSite(*iter);
     return true;
 }
+
+}}
 
 #endif	/* _SITECALCULATOR_H */
 

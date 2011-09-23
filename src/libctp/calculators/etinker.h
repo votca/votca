@@ -11,6 +11,8 @@
 #include <iostream>
 #include <fstream>
 
+namespace votca { namespace ctp {
+
 /**
     \brief Tinker input: xyz coordinates [Angstroem] with a given molecule centered in the box.
 
@@ -106,6 +108,8 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
     fclose(data);
     //data.close();
 }
+
+}}
 
 #endif	/* _ETINKER_H */
 

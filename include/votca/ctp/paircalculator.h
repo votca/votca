@@ -10,6 +10,8 @@
 
 #include "qmcalculator.h"
 
+namespace votca { namespace ctp {
+
 class PairCalculator : public QMCalculator{
 public:
     PairCalculator() {};
@@ -25,6 +27,8 @@ inline bool PairCalculator::EvaluateFrame(QMTopology *top){
         EvaluatePair(top, *iter);
     return true;
 }
+
+}}
 
 #endif	/* _PAIRCALCULATOR_H */
 

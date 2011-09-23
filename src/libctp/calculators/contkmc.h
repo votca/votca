@@ -15,6 +15,8 @@
 #include <votca/kmcold/graph.h>
 #include <time.h>
 
+namespace votca { namespace ctp {
+
 class ContKmc : public QMCalculator{
 public:
     ContKmc() {};
@@ -133,6 +135,8 @@ inline void ContKmc::make_kmc_graph(QMTopology *top, graph *a, QMNBList &nblist)
     }
     cout << " Done." << endl;
 }
+
+}}
 
 #endif	/* _CONT_KMC_H */
 

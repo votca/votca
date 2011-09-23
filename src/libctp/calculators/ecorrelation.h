@@ -4,6 +4,9 @@
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/qmcalculator.h>
 #include <votca/tools/histogramnew.h>
+
+namespace votca { namespace ctp {
+
 /**
     \brief Normalized site energy correlation function
 
@@ -16,7 +19,6 @@ The spatial correlations in site energies can be quantified using the correlatio
 where \f$E_i\f$ and \f$E_j\f$ are site energies, \f$ r_{ij} \f$ is the distance between the sites, \f$ \langle E\rangle \f$ is the average site energy. \f$ C(r_{ij}) \f$ is zero if \f$ E_i \f$ and \f$ E_j \f$ are uncorrelated and 1 if they are fully correlated. For a system of randomly oriented point dipoles, the correlation function decays as \f$ 1/r \f$ at large distances.
 
 */
-
 class Ecorrelation : public QMCalculator
 {
 public:
@@ -45,6 +47,8 @@ private:
     /// name of the output file
     string _outfile;
 };
+
+}}
 
 #endif	/* ECORRELATION_H */
 

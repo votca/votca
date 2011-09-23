@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 #include <votca/csg/trajectorywriter.h>
 
+namespace votca { namespace ctp {
+
 class PairDump : public PairCalculator
 {
 public:
@@ -58,7 +60,7 @@ inline bool PairDump::EvaluateFrame(QMTopology *top) {
     _writer = TrjWriterFactory().Create("." + _format);
     if(_writer == NULL)
         throw runtime_error(string("output format not supported: ") + _format);
-    _framedir=string("frame")+lexical_cast<string>(top->getStep()+1) +string("/") ;
+    _framedir=string("frame")+boost::lexical_cast<string>(top->getStep()+1) +string("/") ;
     mkdir(_framedir.c_str(),0755);
     
     if(_pairs)
@@ -120,5 +122,7 @@ inline void PairDump::EvaluatePair(QMTopology *top, QMPair *pair){
     _writer->Write(&atop);
     _writer->Close();
 }
+
+}}
 
 #endif	

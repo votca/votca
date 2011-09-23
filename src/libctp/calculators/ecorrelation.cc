@@ -5,6 +5,8 @@
 #include <votca/tools/average.h>
 #include <votca/csg/nblistgrid.h>
 
+namespace votca { namespace ctp {
+
 void Ecorrelation::Initialize(QMTopology* top, Property* options) {
 
    // read in _nbins
@@ -113,3 +115,5 @@ bool Ecorrelation::MyMatchingFunction(Bead *bead1, Bead *bead2, const vec & r, c
 
     return false;
 }
+
+}}

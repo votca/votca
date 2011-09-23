@@ -1,5 +1,7 @@
 #include <votca/ctp/qmdatabase.h>
 
+namespace votca { namespace ctp {
+
 void QMDatabase::onCreate()
 {
    // table for frames
@@ -129,3 +131,5 @@ void QMDatabase::onCreate()
 
 */
 }
+
+}}

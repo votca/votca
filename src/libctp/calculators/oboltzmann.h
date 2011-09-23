@@ -2,6 +2,9 @@
 #define OBOLTZMANN_H
 
 #include <votca/ctp/qmcalculator.h>
+
+namespace votca { namespace ctp {
+
 /**
         \brief Site occupations as a Boltzmann distribution of site energies.
 
@@ -49,6 +52,7 @@ inline bool Oboltzmann::EvaluateFrame(QMTopology *top)
     }
 }
 
+}}
 
 #endif	/* OBOLTZMANN_H */
 

@@ -5,6 +5,8 @@
 #include <votca/ctp/qmcalculator.h>
 #include <votca/tools/average.h>
 
+namespace votca { namespace ctp {
+
 /** \brief Generates or modifies the Coulomb contribution to site energies.
 
 Callname: egaussian
@@ -44,6 +46,8 @@ private:
     bool _shuffle(QMTopology *top);
 
 };
+
+}}
 
 #endif	/* _EGAUSSIAN_H */
 

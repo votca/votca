@@ -11,6 +11,8 @@
 #include <map>
 #include <string>
 
+namespace votca { namespace ctp {
+
 class CustomFields
 {
 public:
@@ -24,6 +26,7 @@ protected:
     std::map<std::string, double> _double_values;
 };
 
+}}
 
 #endif	/* CUSTOMFIELDS_H */
 

@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <votca/ctp/qmapplication.h>
 #include <votca/ctp/calculatorfactory.h>
+
+using namespace votca::ctp;
+
 /*
  *
  */

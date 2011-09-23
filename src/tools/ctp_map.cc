@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace votca::csg;
+using namespace votca::ctp;
 
 class CtpMapApp
     : public CsgApplication

@@ -3,6 +3,8 @@
 
 #include <votca/ctp/qmcalculator.h>
 
+namespace votca { namespace ctp {
+
 /** \brief Constructs a list of neighboring conjugated segments.
 
 Callname: neighborlist
@@ -10,7 +12,6 @@ Callname: neighborlist
 Two segments are added to this list if the distance between centers of mass of any their rigid fragments is below a certain cutoﬀ. This allows neighbors to be selected on a criterion of minimum distance of approach rather than center of mass distance, which is useful for molecules with anisotropic shapes.
 
 */
-
 class Neighborlist : public QMCalculator
 {
 public:
@@ -39,6 +40,7 @@ inline bool Neighborlist::EvaluateFrame(QMTopology *top)
     top->nblist().Generate(list);
 }
 
+}}
 
 #endif	/* __NEIGHBORLIST_H */
 

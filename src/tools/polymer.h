@@ -13,6 +13,9 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_eigen.h>
 
+using namespace votca::ctp;
+
+
 class Polymer : public QMApplication
 {
 public:

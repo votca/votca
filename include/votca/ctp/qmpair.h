@@ -12,6 +12,8 @@
 #include "customfields.h"
 #include <utility>
 
+namespace votca { namespace ctp {
+
 class QMTopology;
 
 class QMPair :
@@ -128,6 +130,8 @@ protected:
     bool _in_database;
     int _id;
 };
+
+}}
 
 #endif	/* _QMBEADPAIR_H */
 

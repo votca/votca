@@ -4,6 +4,8 @@
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/qmpair.h>
 
+namespace votca { namespace ctp {
+
 /** \brief Writes out data to xml format
 
 Callname: writexml
@@ -131,6 +133,8 @@ inline bool WriteXML::EvaluateFrame(QMTopology *top){
 
     out.close();
 }
+
+}}
 
 #endif	/* _WRITE_XML_H */
 

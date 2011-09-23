@@ -12,6 +12,17 @@
       <itemPath>../../src/libctp/calculators/ehistogram.h</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
+      <itemPath>../../src/libctp/calculators/etinker.h</itemPath>
+      <itemPath>../../src/libctp/calculators/ihistogram.h</itemPath>
+      <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
+      <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
+      <itemPath>../../src/libctp/calculators/oboltzmann.h</itemPath>
+      <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
+      <itemPath>../../src/libctp/calculators/rates.h</itemPath>
+      <itemPath>../../src/libctp/calculators/sqlitewriter.h</itemPath>
+      <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
+      <itemPath>../../src/libctp/calculators/vaverage.h</itemPath>
+      <itemPath>../../src/libctp/calculators/writexml.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"

@@ -13,6 +13,8 @@
 #include <iostream>
 #include <fstream>
 
+namespace votca { namespace ctp {
+
 void Eoutersphere::Initialize(QMTopology *top, Property *options) {
     _options = options;
 
@@ -211,6 +213,7 @@ bool Eoutersphere::EvaluateFrame(QMTopology *top) {
        }
     }
 
+}}
 
 
 

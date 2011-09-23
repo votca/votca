@@ -1,6 +1,8 @@
 #include <votca/ctp/qmtopology.h>
 #include <votca/ctp/qmnblist.h>
 
+namespace votca { namespace ctp {
+
 QMTopology::QMTopology()
     : _db_id(0)
 {}
@@ -38,7 +40,7 @@ void QMTopology::InitChargeUnits(){
 
             //determine whether it  has been created already
             int molid= bead->getMolecule()->getId();
-            string molandtype = lexical_cast<string>(molid)+":"+namecrgunit;
+            string molandtype = boost::lexical_cast<string>(molid)+":"+namecrgunit;
 
             QMCrgUnit * acrg = GetCrgUnitByName(molandtype);
             if(acrg == NULL)
@@ -187,7 +189,7 @@ QMCrgUnit *QMTopology::CreateCrgUnit(int id, const string &name, const string &t
     map<int, QMCrgUnit*>::iterator iter;
     iter = _crgunits_by_id.find(id);
     if(iter != _crgunits_by_id.end())
-        throw std::runtime_error("charge unit with id " + lexical_cast<string>(id) + " already exists");
+        throw std::runtime_error("charge unit with id " + boost::lexical_cast<string>(id) + " already exists");
 
     if(GetCrgUnitByName(name))
         throw std::runtime_error("charge unit with name " + name + " already exists");
@@ -206,3 +208,5 @@ QMCrgUnit *QMTopology::CreateCrgUnit(int id, const string &name, const string &t
     crg->setName(name);
     return crg;
 }
+
+}}

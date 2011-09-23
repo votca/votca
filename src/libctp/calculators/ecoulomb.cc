@@ -6,6 +6,8 @@
 #include <fstream>
 #include "ecoulomb.h"
 
+namespace votca { namespace ctp {
+
 void Ecoulomb::Initialize(QMTopology *top, Property *options) {
     _options = options;
     if (options->exists("options.ecoulomb.method")) {
@@ -111,3 +113,5 @@ double Ecoulomb::dist_dep_eps(const double &dist) {
 double Ecoulomb::constant_epsilon(const double &dist) {
     return _epsilon_dielectric;
 }
+
+}}

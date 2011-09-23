@@ -4,6 +4,8 @@
 #include <votca/csg/nblistgrid.h>
 #include <votca/ctp/qmtopology.h>
 
+namespace votca { namespace ctp {
+
 void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
 {
     Cleanup();
@@ -38,3 +40,4 @@ bool QMNBList::Match(Bead *ab1, Bead *ab2, const vec &r, const double notused)
     return false;
 }
 
+}}

@@ -5,6 +5,8 @@
 #include <votca/ctp/paircalculator.h>
 #include <votca/tools/histogramnew.h>
 
+namespace votca { namespace ctp {
+
 /**
 	\brief Histogram of site energy differences of neighbor list pairs
 
@@ -48,5 +50,7 @@ inline void Ehistogram::EvaluatePair(QMTopology *top, QMPair *pair){
     double energy2 = pair->second->getTotalEnergy();
     histogram.Process( energy1-energy2 );
 }
+
+}}
 
 #endif	/* _EHISTOGRAM_H */

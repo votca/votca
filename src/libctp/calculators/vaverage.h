@@ -2,6 +2,9 @@
 #define	__VAVERAGE_H
 
 #include <votca/ctp/paircalculator.h>
+
+namespace votca { namespace ctp {
+
 /**
         \brief Average charge velocity, mobility along the field, and site current.
 
@@ -20,7 +23,6 @@ where \f$ \alpha = x,y,z \f$.
 Callname: vaverage
 
 */
-
 class Vaverage : public PairCalculator
 {
 public:
@@ -122,6 +124,8 @@ void Vaverage::EndEvaluate(QMTopology *top)
        cout << "Average mobility [cm^2/Vs]: " << _v*_E/(_E*_E)*1E4 / _nframes << endl;
     
 }
+
+}}
 
 #endif	/* VAVERAGE_H */
 
