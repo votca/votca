@@ -9,6 +9,8 @@
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/property.h>
 
+namespace votca { namespace moo {
+
 using namespace std;
 using namespace boost;
 using namespace votca::tools;
@@ -112,5 +114,6 @@ class basis_set{
 	void print_all_primitive_info(ostream &out);
 };
 
+}}
 
 #endif

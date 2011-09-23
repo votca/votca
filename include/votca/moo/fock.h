@@ -11,7 +11,7 @@
 #include "global.h"
 #include "mol_and_orb.h"
 
-
+namespace votca { namespace moo {
 
 /// this class will contain the fock matrix and pointers to the molecules involved in calculating it
 class fock {
@@ -114,5 +114,7 @@ class fock {
 	int init_HASH();
 
 };
+
+}}
 
 #endif

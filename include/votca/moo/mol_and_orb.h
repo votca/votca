@@ -16,6 +16,7 @@
 #include <votca/tools/vec.h>
 
 ////#define DEBUG
+namespace votca { namespace moo {
 
 using namespace std;
 
@@ -350,4 +351,7 @@ public:
     }
             
 };
+
+}}
+
 #endif //FILE_MOLECULES_EL

@@ -13,6 +13,8 @@
 #include "basis_set.h"
 #include "global.h"
 
+namespace votca { namespace moo {
+
 using namespace std;
 using std::runtime_error;
 using namespace boost;
@@ -167,5 +169,7 @@ public:
     
     void init_orbitals_stripped(const orb & orb1, const int& nrorbs );
 };
+
+}}
 
 #endif 

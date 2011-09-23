@@ -7,6 +7,8 @@
 
 #include <votca/moo/crgunit.h>
 
+namespace votca { namespace moo {
+
 CrgUnit::~CrgUnit()
 {
     //   cout << "[crgunit.h]: Calling the crgunit destructor." << endl;
@@ -178,3 +180,5 @@ void CrgUnit::rotate(matrix mat)
         }
     }*/
 }
+
+}}

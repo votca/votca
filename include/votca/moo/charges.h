@@ -7,6 +7,8 @@
 #include <vector>
 #include <stdlib.h>
 
+namespace votca { namespace moo {
+
 using namespace std;
 
 class multipoles
@@ -29,6 +31,8 @@ public:
     }
 
 };
+
+}}
 
 #endif //FILE_CHARGES
 

@@ -7,6 +7,8 @@
 
 #include <votca/moo/crgunittype.h>
 
+namespace votca { namespace moo {
+
 inline void get_orient(const vec & a, const vec & b, const vec & c, matrix & cg) {
 
     cg.set(0, 0, a.getX());
@@ -248,3 +250,5 @@ void CrgUnitType::rotate_each_bead(vector < vec >::iterator it_pos, vector < vec
         count++;
     }
 }
+
+}}

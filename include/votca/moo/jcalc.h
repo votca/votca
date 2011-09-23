@@ -18,6 +18,8 @@
 #include "fock.h"
 #include <votca/tools/property.h>
 
+namespace votca { namespace moo {
+
 using namespace boost;
 
 class JCalc{
@@ -89,6 +91,8 @@ inline CrgUnit *JCalc::CreateCrgUnit(int id, const string &type_name, int molid)
 
     return new CrgUnit(id, type, molid);
 }
+
+}}
 
 #endif	/* _JCALC_H */
 

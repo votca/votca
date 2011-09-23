@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+namespace votca { namespace moo {
+
 using namespace std;
 
 template<typename T>
@@ -28,5 +30,7 @@ inline void safe_delete(T& obj)
         obj.clear();
   //      cout << "Cleared safedelete" <<endl;
 }
+
+}}
 
 #endif //FILE_GLOB

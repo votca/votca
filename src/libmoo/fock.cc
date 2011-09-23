@@ -1,6 +1,8 @@
 #include <votca/moo/fock.h>
 #include <votca/tools/property.h>
 
+namespace votca { namespace moo {
+
 //ZINDO/S parameters for first three rows
 //Slater exponenets are assumed to be the same for s/p.  This is only the case up to row 3.  Including transition metals would require copious
 //rewriting.
@@ -68,12 +70,12 @@ void fock::SetParameters(){
     vector<string>::iterator it= Mutok.begin();
     for (; it != Mutok.end();++it)
     {
-        Mu.push_back(lexical_cast<double>(*it));
+        Mu.push_back(boost::lexical_cast<double>(*it));
     }
      it= Betatok.begin();
     for (; it != Betatok.end();++it)
     {
-        Beta.push_back(lexical_cast<double>(*it));
+        Beta.push_back(boost::lexical_cast<double>(*it));
     }
 }
 
@@ -88,10 +90,10 @@ void fock::CheckParameters(const mol_and_orb & A ){
             throw runtime_error("not enough specifications for beta ");
         }
         if (Mu[lbl] ==0){
-            throw runtime_error("atom with lbl "+lexical_cast<string>(lbl)+ " has no mu param");
+            throw runtime_error("atom with lbl "+boost::lexical_cast<string>(lbl)+ " has no mu param");
         }
         if (Beta[lbl] ==0){
-            throw runtime_error("atom with lbl "+lexical_cast<string>(lbl)+ " has no beta param");
+            throw runtime_error("atom with lbl "+boost::lexical_cast<string>(lbl)+ " has no beta param");
         }
     }
     
@@ -926,3 +928,5 @@ double fock::calcJ ( pair <int, int> input) const {
 	
 	return J;
 }
+
+}}

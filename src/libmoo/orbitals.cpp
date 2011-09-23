@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+namespace votca { namespace moo {
 
 int (orb::*orb::read_orb)(const char *)=&orb::read_orb_gauss;
 
@@ -301,8 +302,8 @@ int orb::read_orb_gauss( const char * nameorbs)
         k++;
    }
    if (file.size() != NBasis*NBasis ){
-       throw runtime_error(string("I expect so many basis on this molecule ") + lexical_cast<string>(NBasis*NBasis) +
-               string(" but i read so many: " ) + lexical_cast<string>(file.size()));
+       throw runtime_error(string("I expect so many basis on this molecule ") + boost::lexical_cast<string>(NBasis*NBasis) +
+               string(" but i read so many: " ) + boost::lexical_cast<string>(file.size()));
    }
    for(i=0,j=0,k=0;i<file.size();i++,k++)
    {
@@ -559,3 +560,5 @@ double orb::parsenrg(string & line){
 
     return r;
 }
+
+}}

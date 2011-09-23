@@ -1,5 +1,7 @@
 #include <votca/moo/jcalc.h>
 
+namespace votca { namespace moo {
+
 JCalc::~JCalc()
 {
     safe_delete(_listCrgUnitType);
@@ -200,12 +202,12 @@ int JCalc::WriteProJ(CrgUnit & one, CrgUnit & two,string namedir)
 
     ofstream out;
     string name1, nameorb1, name2, nameorb2, namedim;
-    name1 =namedir + lexical_cast<string>(one.getId()) + ".xyz";
-    name2 = namedir +lexical_cast<string>(two.getId()) + ".xyz";
-    nameorb1 =namedir + lexical_cast<string>(one.getId()) + ".fort.7";
-    nameorb2 = namedir +lexical_cast<string>(two.getId()) + ".fort.7";
-    namedim = namedir +lexical_cast<string>(one.getId())+"and"+
-            lexical_cast<string>(two.getId()) +".com";
+    name1 =namedir + boost::lexical_cast<string>(one.getId()) + ".xyz";
+    name2 = namedir +boost::lexical_cast<string>(two.getId()) + ".xyz";
+    nameorb1 =namedir + boost::lexical_cast<string>(one.getId()) + ".fort.7";
+    nameorb2 = namedir +boost::lexical_cast<string>(two.getId()) + ".fort.7";
+    namedim = namedir +boost::lexical_cast<string>(one.getId())+"and"+
+            boost::lexical_cast<string>(two.getId()) +".com";
 
     
     //write the info for molecule1
@@ -252,3 +254,5 @@ CrgUnitType * JCalc::GetCrgUnitTypeByName(string name)
     CrgUnitType *type = ittype->second;
     return type;
 }
+
+}}

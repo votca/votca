@@ -13,6 +13,7 @@
 #include <votca/tools/application.h>
 
 using namespace std;
+using namespace votca::moo;
 
 class MOOApplication
 	: public Application

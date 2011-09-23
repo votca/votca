@@ -14,6 +14,8 @@
 #include "crgunittype.h"
 #include "units.h"
 
+namespace votca { namespace moo {
+
 using namespace std;
 
 /**
@@ -200,6 +202,8 @@ inline vector <vec> CrgUnit::shift_pos(const vec & a) {
     }
     return res;
 }
+
+}}
 
 #endif	/* _CRGUNIT_H */
 

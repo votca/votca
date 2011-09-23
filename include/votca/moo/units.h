@@ -8,6 +8,8 @@
 #ifndef _UNITS_H
 #define	_UNITS_H
 
+namespace votca { namespace moo {
+
 /// defines all constants necessary to convert from MD to QM units and back
 static const double RA=0.529189379; /// the Bohr radius in [Ang]
 static const double hbar_eV=6.58211899e-16; /// Planck constant in [eV*s]
@@ -66,5 +68,7 @@ DEFINE_CONVERSION(m, nm, value*1E+9);
 DEFINE_CONVERSION(nm, m, value*1E-9);
 DEFINE_CONVERSION(A, bohr, value/RA);
 DEFINE_CONVERSION(bohr, A, value*RA);
+
+}}
 
 #endif /* _UNITS_H */

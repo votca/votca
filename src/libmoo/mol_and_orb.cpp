@@ -1,5 +1,7 @@
 #include <votca/moo/mol_and_orb.h>
 
+namespace votca { namespace moo {
+
 map <string, int> MakePeriodicTable(){
     map <string, int> m;
     m.insert(pair<string, int>("H",0));
@@ -266,6 +268,4 @@ int mol_and_orb::init_orbitals(orb & a, const char * namefile){
     return 0;
 }
 
-
-
-
+}}

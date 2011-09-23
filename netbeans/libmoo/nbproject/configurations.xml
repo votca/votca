@@ -9,6 +9,11 @@
       <itemPath>../../include/votca/moo/crgunit.h</itemPath>
       <itemPath>../../include/votca/moo/crgunittype.h</itemPath>
       <itemPath>../../include/votca/moo/fock.h</itemPath>
+      <itemPath>../../include/votca/moo/global.h</itemPath>
+      <itemPath>../../include/votca/moo/jcalc.h</itemPath>
+      <itemPath>../../include/votca/moo/mol_and_orb.h</itemPath>
+      <itemPath>../../include/votca/moo/orbitals.h</itemPath>
+      <itemPath>../../include/votca/moo/units.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"

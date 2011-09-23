@@ -1,5 +1,7 @@
 #include <votca/moo/charges.h>
 
+namespace votca { namespace moo {
+
 int multipoles::read_crg_eps(const char * namefile ){
         ifstream in(namefile);
         int i=0;
@@ -19,5 +21,4 @@ int multipoles::read_crg_eps(const char * namefile ){
         return 0;
 }
 
-
-
+}}

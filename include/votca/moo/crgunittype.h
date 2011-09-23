@@ -24,6 +24,8 @@
 #include <string>
 #include <stdexcept>
 
+namespace votca { namespace moo {
+
 class CrgUnit;
 
 class CrgUnitType{
@@ -108,6 +110,8 @@ inline mol_and_orb & CrgUnitType::GetCrgUnit() {
 inline const orb & CrgUnitType::GetOrb() const {
     return _orbitals;
 }
+
+}}
 
 #endif	/* _CRGUNITTYPE_H */
 
