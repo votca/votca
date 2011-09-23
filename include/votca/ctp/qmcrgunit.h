@@ -16,6 +16,7 @@
 namespace votca { namespace ctp {
 
 using namespace std;
+using namespace votca::moo;
 
 class QMCrgUnit : public CrgUnit, public CustomFields
 {
