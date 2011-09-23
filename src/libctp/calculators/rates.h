@@ -94,13 +94,26 @@ inline void Rates::EvaluatePair(QMTopology *top, QMPair* pair){
     double rate_12 = 0.0;
     double rate_21 = 0.0;
     double Jeff2 = pair->calcJeff2();
-    if (pair->DoubleExists("lambda_outer")){
-    double lambda_outer = pair->getDouble("lambda_outer");
-}else {if (_rate_type=='J')  throw std::runtime_error("Error in CalcRates::EvaluatePair : this pair has not outer sphere reorganization energy necessary to compute Jortner rates. Compute lambdaouter or use Marcus rates.");
-}
-
     QMCrgUnit *crg1 = pair->first;
     QMCrgUnit *crg2 = pair->second;
+            if (pair->DoubleExists("lambda_outer")) {
+                double lambda_outer = pair->getDouble("lambda_outer");
+                if ((_rate_type == 'J') && (lambda_outer < 0.0)) {
+                    cout << "Pair" << crg1->getId() << " : " << crg2->getId() << " has negative outer sphere reorganization energy preventing computation  of Jortner rates." << endl;
+                    throw std::runtime_error("Error in CalcRates::EvaluatePair: negative outer sphere reorganization");
+                }
+                if ((_rate_type == 'J') && (lambda_outer < 0.01)) 
+                    cout << "Warning: in CalcRates::EvaluatePair : pair " << crg1->getId() << " : " << crg2->getId() << " has very small outer sphere reorganization energy (< 0.01eV) which might produce too high Jortner rates."<<endl;
+           
+            }
+            else {
+                if (_rate_type == 'J') {
+                    cout << "Pair" << crg1->getId() << " : " << crg2->getId() << ": has not outer sphere reorganization energy necessary to compute Jortner rates. Compute lambdaouter or use Marcus rates."<<endl;
+                            throw std::runtime_error("Error in CalcRates::EvaluatePair: no outer sphere reorganization");
+                }
+            }
+
+    
     /// prefactor for future modifications
     double prefactor = 1.0;
     /// reorganization energy in eV as given in list_charges.xml
