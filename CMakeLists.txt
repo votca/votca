@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(votca-md2qm)
+project(votca-ctp)
 
 set(PROJECT_VERSION "0.0-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
@@ -102,7 +102,7 @@ endforeach(FUNC)
 ######################################
 add_subdirectory(include/votca/ctp)
 add_subdirectory(scripts)
-add_subdirectory(src/libmd2qm)
+add_subdirectory(src/libctp)
 add_subdirectory(src/tools)
 add_subdirectory(src/dipro)
 add_subdirectory(share/scripts/dipro)   
