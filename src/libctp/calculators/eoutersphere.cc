@@ -89,8 +89,8 @@ bool Eoutersphere::EvaluateFrame(QMTopology *top) {
         QMNBList& nblist=top->nblist();
         for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
         QMPair *pair = *ipair;
-        QMCrgUnit *crg1 = pair->Crg1();
-        QMCrgUnit *crg2 = pair->Crg2();
+        QMCrgUnit *crg1 = pair->Crg1PBCCopy();
+        QMCrgUnit *crg2 = pair->Crg2PBCCopy();
         double lambda = _lambda_const;
         pair->setDouble("lambda_outer",lambda);
         cout << "lambda out [eV] for pair " << crg1->getId() << " and " << crg2->getId() << " is " << lambda << "\n";
@@ -102,8 +102,8 @@ bool Eoutersphere::EvaluateFrame(QMTopology *top) {
         for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
 
         QMPair *pair = *ipair;
-        QMCrgUnit *crg1 = pair->Crg1();
-        QMCrgUnit *crg2 = pair->Crg2();
+        QMCrgUnit *crg1 = pair->Crg1PBCCopy();
+        QMCrgUnit *crg2 = pair->Crg2PBCCopy();
             double R_one = crg1->getType()->getOptions()->get("R_lambda").as<double>();
             double R_two = crg2->getType()->getOptions()->get("R_lambda").as<double>();
 
@@ -122,8 +122,8 @@ bool Eoutersphere::EvaluateFrame(QMTopology *top) {
         for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
         QMPair *pair = *ipair;
         double distance = pair->dist();
-        QMCrgUnit *crg1 = pair->Crg1();
-        QMCrgUnit *crg2 = pair->Crg2();
+        QMCrgUnit *crg1 = pair->Crg1PBCCopy();
+        QMCrgUnit *crg2 = pair->Crg2PBCCopy();
         double lambda = 0.0;
            
             vector<QMCrgUnit *> lcharges = top->CrgUnits();

@@ -38,8 +38,8 @@ void Polymer::UpdatePolTop(){
     // 2) create new neighbour list
     QMNBList &nblist = _qmtop.nblist();
     for(QMNBList::iterator iter = nblist.begin();iter!=nblist.end();++iter){
-        CrgUnit * one = (*iter)->Crg1();
-        CrgUnit * two = (*iter)->Crg2();
+        CrgUnit * one = (*iter)->Crg1PBCCopy();
+        CrgUnit * two = (*iter)->Crg2PBCCopy();
         //insert check for size of Js
         double J = ((*iter)->Js())[0];
         UpdateJs (one, two,J); // hard code that

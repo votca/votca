@@ -84,19 +84,25 @@ public:
      * \brief first crg unit (might be ghost copy for pbc image)
      *
      * first and second are original crg units, crg1 and crg2 take into account
-     * pbc and might be ghost copies
+     * pbc and might be ghost copies. If you don't need the PBC corrected
+     * positions, never (!!) use this function, especially if properties of
+     * a charge unit are changed. Use pair.first instead!
+
      * @return crg unit 1
      */
-    QMCrgUnit *Crg1() {return first;}
+    QMCrgUnit *Crg1PBCCopy() {return first;}
 
     /**
      * \brief second crg unit (might be ghost copy for pbc image)
      *
      * first and second are original crg units, crg1 and crg2 take into account
-     * pbc and might be ghost copies
+     * pbc and might be ghost copies. If you don't need the PBC corrected
+     * positions, never (!!) use this function, especially if properties of
+     * a charge unit are changed. Use pair.second instead!
+     *
      * @return crg unit 2
      */
-    QMCrgUnit *Crg2() {return _crg2;}
+    QMCrgUnit *Crg2PBCCopy() {return _crg2;}
 
     void setInDatabase(bool indb) { _in_database = indb; }
     bool getInDatabase() { return _in_database; }

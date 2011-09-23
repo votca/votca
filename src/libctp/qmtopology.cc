@@ -128,8 +128,8 @@ Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int r
 void QMTopology::ComputeAllTransferIntegrals(){
     for(QMNBList::iterator iter = _nblist.begin();
         iter!=_nblist.end();++iter) {
-        CrgUnit *crg1 = (*iter)->Crg1();
-        CrgUnit *crg2 = (*iter)->Crg2();
+        CrgUnit *crg1 = (*iter)->Crg1PBCCopy();
+        CrgUnit *crg2 = (*iter)->Crg2PBCCopy();
         vector <double> Js = GetJCalc().CalcJ(*crg1, *crg2);
         (*iter)->setJs(Js);
     }

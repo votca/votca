@@ -25,8 +25,8 @@ public:
 };
 
 inline void Izindo::EvaluatePair(QMTopology *top, QMPair *pair){
-    CrgUnit *crg1 = pair->Crg1();
-    CrgUnit *crg2 = pair->Crg2();
+    CrgUnit *crg1 = pair->Crg1PBCCopy();
+    CrgUnit *crg2 = pair->Crg2PBCCopy();
     vector <double> Js = top->GetJCalc().CalcJ(*crg1, *crg2);
     pair->setJs(Js);
 }

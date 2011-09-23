@@ -97,8 +97,8 @@ inline void PairDump::EvaluateSite(QMTopology *top, QMCrgUnit *crg)
 inline void PairDump::EvaluatePair(QMTopology *top, QMPair *pair){
     Topology atop;
 
-    CrgUnit *crg1 = pair->Crg1();
-    CrgUnit *crg2 = pair->Crg2();
+    CrgUnit *crg1 = pair->Crg1PBCCopy();
+    CrgUnit *crg2 = pair->Crg2PBCCopy();
 
     top->AddAtomisticBeads(crg1,&atop);
     top->AddAtomisticBeads(crg2,&atop);
