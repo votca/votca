@@ -46,7 +46,7 @@ start_gnuplot_pipe() {
 [[ -f $2 ]] && die "${0##*/}: $2 is already there"
 do_external postadd dummy "$1" "$2"
 
-fd=$(csg_get_interaction_property inverse.post_add_options.plot.fd "8")
+fd=$(csg_get_interaction_property inverse.post_add_options.plot.fd)
 is_int "$fd" || die "${0##*/}: inverse.post_add_options.plot.fd should be a number, but I got $fd"
 
 gnuplot=$(csg_get_property cg.inverse.gnuplot.bin)

@@ -235,16 +235,18 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
-  #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
-  if ! ret="$($cmd)"; then
-    [[ $allow_empty = "no" && -z $2 ]] && \
-      die "${FUNCNAME[0]}:\n'$cmd'\nfailed getting '$1' for interaction '$bondname' and no default for '$1'"
-    #ret has error message
-    ret=""
+  #the --filter/--path(!=.) option will make csg_property fail if $1 does not exist
+  #so no critical here
+  ret="$($cmd)"
+  #overwrite with function call value
+  [[ -z $ret && -n $2 ]] && ret="$2"
+  # if still empty fetch it from defaults file
+  if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path . --print cg.${bondtype}.$1)"
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASAHRE/xml/csg_defaults.xml'"
   fi
   ret="$(echo "$ret" | trim_all)"
-  [[ $allow_empty = no && -z $ret && -n $2 ]] && ret="$2"
-  [[ $allow_empty = no && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction '$bondname'\nResult of '$cmd' was empty"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASAHRE/xml/csg_defaults.xml"
   echo "${ret}"
 }
 export -f csg_get_interaction_property
@@ -269,10 +271,10 @@ csg_get_property () { #get an property from the xml file
   #if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print .)"
-    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: 'csg_get_property $1' was called with --allow-empty, but a default was found in '$VOTCASAHRE/xml/csg_defaults.xml'"
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASAHRE/xml/csg_defaults.xml'"
   fi
   ret="$(echo "$ret" | trim_all)"
-  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1'\nResult of '$cmd' was empty and no default was found in $VOTCASAHRE/xml/csg_defaults.xml"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASAHRE/xml/csg_defaults.xml"
   echo "${ret}"
 }
 export -f csg_get_property

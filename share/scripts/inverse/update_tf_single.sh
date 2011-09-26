@@ -26,13 +26,13 @@ EOF
 fi
 
 step_nr=$(get_current_step_nr)
-scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
+scheme=( $(csg_get_interaction_property inverse.do_potential) )
 scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-mol="$(csg_get_interaction_property tf.molname "*")"
+mol="$(csg_get_interaction_property tf.molname)"
 adress_type=$(get_simulation_setting adress_type)
 step=$(csg_get_interaction_property step)
 opts=()

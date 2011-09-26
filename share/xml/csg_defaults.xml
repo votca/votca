@@ -67,4 +67,43 @@
       <tasks>auto</tasks>
     </simulation>
   </inverse>
+  <non-bonded>
+    <inverse>
+      <do_potential>1</do_potential>
+      <post_add_options>
+	<convergence>
+	  <weight>1</weight>
+	  <what>dist</what>
+	</convergence>
+	<extrapolate>
+	  <points>5</points>
+	</extrapolate>
+	<overwrite>
+	  <do>1</do>
+	</overwrite>
+	<plot>
+	  <fd>8</fd>
+	</plot>
+	<pressure>
+	  <do>1</do>
+	  <type>simple</type>
+	</pressure>
+	<scale>1.0</scale>
+	<smooth>
+	  <iterations>1</iterations>
+	</smooth>
+      </post_add_options>
+      <simplex>
+	<density>
+	  <axis>x</axis>
+	  <molname>*</molname>
+	</density>
+	<targets>rdf</targets>
+	<target_weights>1</target_weights>
+      </simplex>
+      <tf>
+	<molname>*</molname>
+      </tf>
+    </inverse>
+  </non-bonded>
 </cg>

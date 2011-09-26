@@ -35,7 +35,7 @@ echo "purifying dpot for $name"
 
 comment="$(get_table_comment)"
 critical csg_resample --in ${name}.dpot.imc --out ${name}.dpot.impure --grid ${min}:${step}:${max} --comment "$comment"
-scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
+scheme=( $(csg_get_interaction_property inverse.do_potential) )
 scheme_nr=$(( ( $1 - 1 ) % ${#scheme[@]} ))
 
 if [ "${scheme[$scheme_nr]}" = 1 ]; then

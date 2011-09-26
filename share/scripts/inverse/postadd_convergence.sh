@@ -43,8 +43,8 @@ step=$(csg_get_interaction_property step)
 
 
 #these two are arrays
-weights=( $(csg_get_interaction_property inverse.post_add_options.convergence.weight 1) )
-what_to_do_list=( $(csg_get_interaction_property inverse.post_add_options.convergence.what "dist") )
+weights=( $(csg_get_interaction_property inverse.post_add_options.convergence.weight) )
+what_to_do_list=( $(csg_get_interaction_property inverse.post_add_options.convergence.what) )
 
 [[ ${#weights[@]} -ne ${#what_to_do_list[@]} ]] && die "${0##*/}: number of weights does not match number of 'what' to calc convergence from"
 

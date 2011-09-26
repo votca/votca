@@ -39,7 +39,7 @@ tasklist=$(csg_get_interaction_property inverse.post_add)
 [[ $tasklist =~ overwrite[[:space:]]*$ ]] || die "${0##*/}: Overwrite has to be called the last action in inverse.post_add"
 
 step_nr=$(get_current_step_nr)
-scheme=( $(csg_get_interaction_property inverse.post_add_options.overwrite.do 1) )
+scheme=( $(csg_get_interaction_property inverse.post_add_options.overwrite.do) )
 scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 
 #this interaction will overwrite the others

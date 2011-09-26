@@ -30,7 +30,7 @@ fi
 [[ -f $2 ]] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
-avg_points=$(csg_get_interaction_property inverse.post_update_options.extrapolate.points 5)
+avg_points=$(csg_get_interaction_property inverse.post_update_options.extrapolate.points)
 
 echo "extrapolate potential for interaction $name"
 

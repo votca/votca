@@ -29,7 +29,7 @@ fi
 
 name=$(csg_get_interaction_property name)
 targets=( $(csg_get_interaction_property inverse.simplex.targets) )
-weights=( $(csg_get_interaction_property inverse.simplex.target_weights 1) )
+weights=( $(csg_get_interaction_property inverse.simplex.target_weights) )
 [[ ${#targets[@]} -eq ${#weights[@]} ]] || die "${0##*/}: Number of targets (${#targets[@]}) differ from number of weights (${#weights[@]})"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
