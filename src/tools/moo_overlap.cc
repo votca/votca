@@ -47,21 +47,23 @@ protected:
 
 void MOOApplication::Initialize()
 {
+	// read in program options
+	namespace po = boost::program_options;
 	AddProgramOptions("MOO Options")
-		("conjseg", boost::program_options::value<string>(), " xml file describing two conjugated segments")
-		("pos1", boost::program_options::value<string>(), " position and orientation of molecule 1")
-		("pos2", boost::program_options::value<string>(), " position and orientation of molecule 2")		
-		("pdb", boost::program_options::value<string>()->default_value("geometry.pdb"), " pdb file of two molecules")		
-		;
+		("conjseg", po::value<string>(), " xml file describing two conjugated segments")
+		("pos1", po::value<string>(), " position and orientation of molecule 1")
+		("pos2", po::value<string>(), " position and orientation of molecule 2")		
+		("pdb", po::value<string>()->default_value("geometry.pdb"), " pdb file of two molecules")		
+		; 
 }
 
 bool MOOApplication::EvaluateOptions()
 {
 	CheckRequired("conjseg");
-	_conjseg = OptionsMap()["conjseg"].as<string>();
-	_pos1 = OptionsMap()["pos1"].as<string>();
-	_pos2 = OptionsMap()["pos2"].as<string>();
-	_pdbfile = OptionsMap()["pdb"].as<string>();
+	 _conjseg = OptionsMap()["conjseg"].as<string>();
+	 _pos1 = OptionsMap()["pos1"].as<string>();
+	 _pos2 = OptionsMap()["pos2"].as<string>();
+	 _pdbfile = OptionsMap()["pdb"].as<string>();
 	return true;
 }
 
