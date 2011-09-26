@@ -1,0 +1,11 @@
+\section{Neighbor list}
+
+A list of neigboring molecules (neighbor list) containes all pairs of molecules for which rates (coupling elements, reorganization energies, and site energy differences are evaluated).
+
+Two segments are added to this list if the distance between centers of mass of any of their rigid fragments is below
+a certain cutoff. This allows neighbors to be selected on a criterion of minimum distance of approach rather than center of
+mass distance, which is useful for molecules with anisotropic shapes.
+
+The neighbor list can be generated from the atomistic trajectory by using the \calc{neighborlist} \calculator. This calculator requires a cutoff, which can be specified in the \xmloptions file. The list is saved to the \sqlstate file:
+
+\small \verb* ctp_run \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe  \calc{neighborlist}
