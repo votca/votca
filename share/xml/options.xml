@@ -20,6 +20,10 @@
 <desc>Screening length used in the distance-dependent screening.</desc>
 </item>
 
+<item>
+<name>ecoulomb.cutoff</name>
+<desc>Cutoff in nm for coulomb interactions based on molecular centers of mass. If ommited, the whole box is taken.</desc>
+</item>
 
 <!-- ehistogram calculator -->
 <item>
