@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-CALCULATOR_SRC="../../../md2qm/src/libmd2qm/calculators"
+CALCULATOR_SRC="../../../ctp/src/libctp/calculators"
 OUT="$PWD/all.tex"
 
 if [ ! -d $CALCULATOR_SRC ]; then

@@ -14,12 +14,13 @@ dvi: $(NAME).dvi
 ps: $(NAME).ps
 
 
-$(NAME).tex: reference_submake fig_submake programs_submake theory_submake reference_submake input_submake titlepage.tex            
+$(NAME).tex: reference_submake fig_submake programs_submake theory_submake reference_submake input_submake titlepage.tex manual.bib           
 
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi
 
-%.dvi: %.tex dummy 
+%.dvi: %.tex dummy
+	./abbreviate_journals.pl 
 	$(LATEXMK) $(LATEXMKOPTS) -dvi $<
 
 %.pdf: %.dvi
@@ -44,7 +45,7 @@ qclean:
 	$(LATEXMK) -C $(NAME).tex
 
 clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean input_subclean
-	rm -f $(NAME).fdb_latexmk $(NAME).brf
+	rm -f $(NAME).fdb_latexmk $(NAME).brf literature_short.bib literature.bib
 	rm -f hgid.tex
 	rm -f *~
 
