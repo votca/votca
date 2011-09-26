@@ -29,6 +29,14 @@ void Ecoulomb::Initialize(QMTopology *top, Property *options) {
     _options = options;
     if (options->exists("options.ecoulomb.method")) {
         if (options->get("options.ecoulomb.method").as<string > () == "distdep") {
+               if (options->exists("options.ecoulomb.cutoff")) {
+            _ecoulomb_cutoff = options->get("options.ecoulomb.cutoff").as<double>();
+            _has_cutoff=true;
+            cout << "Using a cutoff for distance-dependent screening of " << _ecoulomb_cutoff << " nm" << endl;
+        } else {
+            cout << "Warning: no cutoff defined, using the whole box" << endl;
+             _has_cutoff=false;
+                }
             if (options->exists("options.ecoulomb.epsilon")) {
                 _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
             } else {
@@ -41,17 +49,28 @@ void Ecoulomb::Initialize(QMTopology *top, Property *options) {
                 //_s_eps = 3.0;
                throw std::runtime_error("Error in ecoulomb: screening length is not provided.");
             }
-            cout << "Doing distance-dependent screening with eps " << _epsilon_dielectric << " and screening " << _s_eps << endl;
+            cout << "Doing distance-dependent screening with bulk relative dielectric constant " << _epsilon_dielectric << " and screening " << _s_eps <<" nm^-1" << endl;
 	    _estatic_method = &Ecoulomb::dist_dep_eps;
         }
+
         else if (options->get("options.ecoulomb.method").as<string > () == "simple") {
-             if (options->exists("options.ecoulomb.epsilon")) {
+
+             if (options->exists("options.ecoulomb.cutoff")) {
+            _ecoulomb_cutoff = options->get("options.ecoulomb.cutoff").as<double>();
+            _has_cutoff=true;
+            cout << "Using a cutoff for simple estatic of " << _ecoulomb_cutoff << " nm" << endl;
+        } else {
+            cout << "Warning: no cutoff defined, using the whole box" << endl;
+             _has_cutoff=false;
+                }
+
+             if (options->exists("options.ecoulomb.epsilon")) {             
                  _epsilon_dielectric = options->get("options.ecoulomb.epsilon").as<double>();
              } else {
                   //_epsilon_dielectric = 3.0;
-                throw  std::runtime_error("Error in ecoulomb: dielectric constant is not provided.");
+                throw  std::runtime_error("Error in ecoulomb: relative dielectric constant is not provided.");
              }
-             cout << "Doing simple estatic with constant epsilon = " << _epsilon_dielectric << endl;
+             cout << "Doing simple estatic with constant relative dielectric constant of = " << _epsilon_dielectric << endl;
 	     _estatic_method = &Ecoulomb::constant_epsilon;
         }
 
@@ -107,7 +126,12 @@ double Ecoulomb::CalcPot(Topology *atop, Molecule *mol)
         // periodic boundary-corrected distance between the ceneters of mass
 	// used for the distance-dependent screening (we should replace getUserData by a funtion GetCom for molecules)
 	vec bcs = atop->BCShortestConnection(mol->getUserData<CrgUnit > ()->GetCom(), (*imol)->getUserData<CrgUnit > ()->GetCom());
+        //cutoff check
+        if (_has_cutoff){
+
         vec dist = (*imol)->getUserData<CrgUnit > ()->GetCom() - mol->getUserData<CrgUnit > ()->GetCom();
+      
+        if ( abs(dist)> _ecoulomb_cutoff) continue;
         vec diff = bcs - dist;
 
 	for (int i = 0; i < mol->BeadCount(); i++)
@@ -118,6 +142,21 @@ double Ecoulomb::CalcPot(Topology *atop, Molecule *mol)
                 vec r_v = bi->getPos()-(bj->getPos() + diff);
                 pot += k_c * bi->getQ() * bj->getQ() / ( (this->*_estatic_method)(abs(bcs)) * abs(r_v) ); //in eV
             }
+        }
+        //if no cutoff is specified use the whole box
+        else {
+            vec dist = (*imol)->getUserData<CrgUnit > ()->GetCom() - mol->getUserData<CrgUnit > ()->GetCom();
+            vec diff = bcs - dist;
+
+	for (int i = 0; i < mol->BeadCount(); i++)
+            for (int j = 0; j != (*imol)->BeadCount(); j++) {
+                Bead *bi = mol->getBead(i);
+                Bead *bj = (*imol)->getBead(j);
+                // distance between two charges taking into account periodic boundary conditions
+                vec r_v = bi->getPos()-(bj->getPos() + diff);
+                pot += k_c * bi->getQ() * bj->getQ() / ( (this->*_estatic_method)(abs(bcs)) * abs(r_v) ); //in eV
+            }
+        }
     }
     return pot;
 
