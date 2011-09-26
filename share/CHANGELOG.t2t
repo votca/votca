@@ -3,9 +3,13 @@ Votca Developer Team
 %%mtime(%m/%d/%Y)
 
 For more detailed information about the changes see the
-history of the [repository http://code.google.com/p/votca/source/list?repo=tools]
+history of the [repository http://code.google.com/p/votca/source/list?repo=tools&r=stable]
 
 == Version in hg ==
+* fixed soname of libs
+* improved cmake checks and error messages
+* fixed pkg-config file
+
 
 == Version 1.2 (SuperDoris) ==
 * changed buildsystem to cmake
