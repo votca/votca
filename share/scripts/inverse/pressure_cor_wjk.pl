@@ -42,7 +42,7 @@ my $delta_r=csg_get_interaction_property("step");
 
 my $partDens=csg_get_interaction_property("inverse.particle_dens");
 my $name=csg_get_interaction_property("name");
-my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale","1.0");
+my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale");
 
 my $pi= 3.14159265;
 my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
