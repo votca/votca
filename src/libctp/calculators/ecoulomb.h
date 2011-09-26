@@ -58,6 +58,11 @@ private:
     // screening length of the dielctirc constant
     double _s_eps;
     Property * _options;
+    //if you want to compute estatics using a cutoff
+    bool _has_cutoff;
+    //cutoff in nm
+    double _ecoulomb_cutoff;
+
     // function pointer 
     double (Ecoulomb::*_estatic_method)(const double &);
 };
