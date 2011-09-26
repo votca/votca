@@ -11,6 +11,13 @@ history of the [repository http://code.google.com/p/votca/source/list?repo=tools
 * fixed pkg-config file
 
 
+
+== Version 1.2.1 ==
+* fixed soname of libs
+* improved cmake checks and error messages
+* fixed pkg-config file
+
+
 == Version 1.2 (SuperDoris) ==
 * changed buildsystem to cmake
 * added database class through sqlite3
