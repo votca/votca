@@ -75,17 +75,26 @@ pdfpagemode=UseNone]{hyperref}
 %\cleardoublepage
 \mainmatter
 \include{theory/introduction}
-\include{theory/theory}
-\include{input/input}
 
-\chapter{Calculators}
-\label{sec:prog_interf}
-\input{programs/calculators}
+\chapter{Theoretical background}
+\label{sec:theory}
+\input{theory/workflow}
+\input{theory/morphology}
+\input{theory/fragments}
+\input{theory/neighborlist}
+\input{theory/reorganization_energy}
+\input{theory/energetic_disorder}
+\input{theory/electronic_couplings}
+\input{theory/rate}
+\input{theory/kmc}
+
+\include{input/input}
 
 \include{reference/reference}
 
 \appendix
-\include{theory/derivation_jortner}
+\input{appendix/derivation_jortner}
+\input{appendix/calculators}
 
 \bibliographystyle{achemso}
 \bibliography{literature_short}
