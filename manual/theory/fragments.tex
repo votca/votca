@@ -18,3 +18,9 @@ In the case of a conjugated polymer, one molecule can consist of several conjuga
 
 After partitioning, an additional step is often required to remove bond length fluctuations introduced by molecular dynamics simulations, since they are already integrated out in the derivation of the rate expression. This is achieved by substituting respective molecular fragments with  rigid, planar $\pi$-systems optimized using first-principles methods. Centers of mass and gyration tensors are used to align rigid fragments, though a custom definition of local axes is also possible. Such a procedure also minimizes discrepancies between the force-field and first-principles-based ground state geometries of conjugated segments, which might be important for calculations of electronic couplings, reorganization energies, and intramolecular driving forces. 
 
+To partition the system on hopping sites \ctpmap program is used
+\vskip 0.1cm
+{\noindent \small \ctpmap \tpl \topology \trj \trajectory \csg \xmlcsg \seg \xmlsegments  \sql \sqlstate}
+\vskip 0.1cm
+It reads in the \gromacs topology (\topology) and trajectory (\trajectory) files, definitions of coarse-grained beads (\xmlcsg) and conjugated segments (\xmlsegments) and outputs coordinates of hopping sites and orientations of rigid fragments to the  state file (\sqlstate).
+

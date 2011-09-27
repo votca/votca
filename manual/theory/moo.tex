@@ -3,5 +3,9 @@
 
 \newcommand{\moo}{MOO\xspace}
 
+An approximate method based on Zerner's Independent Neglect of Differential Overlap (ZINDO) has been described in Ref.~\cite{kirkpatrick_approximate_2008}. This semiempirical method is substantially faster than first-principles approaches, since it avoids the self-consistent calculations on each individual monomer and dimer. This allows to construct the matrix elements of the ZINDO Hamiltonian of the dimer from
+the weighted overlap of molecular orbitals of the two monomers. Together with the introduction of rigid segments, only a single self-consistent calculation on one isolated conjugated segment is required. All relevant molecular overlaps can then be constructed from the obtained molecular orbitals. This Molecular Orbital Overlap (MOO) method has been applied successfully to study charge transport, for instance, in discotic liquid crystals~\cite{kirkpatrick_columnar_2008,marcon_understanding_2009,feng_towards_2009},
+polymers~\cite{ruehle_multiscale_2010}, or partially disordered organic crystals~\cite{vehoff_charge_2010-1,vehoff_charge_2010-2,vehoff_charge_2010}.
+
 The main advantage of the molecular orbital overlap \moo library is {\em fast} evaluation of electronic coupling elements. A detailed description of the method is provided in ref.~\cite{kirkpatrick_approximate_2008}. Please site this paper if you are using the method. Note that \moo is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of the \moo method to the DFT-based calculations. 
 
