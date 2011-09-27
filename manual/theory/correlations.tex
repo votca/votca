@@ -1,0 +1,17 @@
+\subsection{Spatial correlations of energetic disorder}
+Long-range, e.g. electrostatic and polarization, interactions often result in spatially correlated disorder~\cite{dunlap_charge-dipole_1996}, which affects the onset of the mobility-field (Poole-Frenkel) dependence~\cite{derrida_velocity_1983,novikov_essential_1998,nagata_atomistic_2008}.    
+
+To quantify the degree of correlation, one can calculate the spatial correlation function of $E_i$ and $E_j$ at a distance $r_{ij}$
+\begin{equation}
+\label{equ:cf}
+C(r_{ij}) = \frac{  \langle \left( E_i-\langle E\rangle \right)
+                   \left( E_j-\langle E\rangle \right)\rangle}
+                   {\langle\left( E_i -\langle E\rangle \right)^2\rangle},
+\end{equation}
+where $\langle E\rangle$ is the average site energy. $C(r_{ij})$ is zero if $E_i$ and $E_j$ are uncorrelated and $1$ if they are fully correlated. For a system of randomly oriented point dipoles, the correlation function decays as $1/r$ at large distances~\cite{novikov_cluster_1995}.
+
+For systems with spatial correlations, variations in site energy differences, $\Delta E_{ij}$, of pairs of molecules from the neighbor list are smaller than variations in site energies, $E_i$, of all individual molecules. Since only neighbor list pairs affect transport, the distribution of $\Delta E_{ij}$ rather than that of individual site energies, $E_i$, should be used to characterize energetic disorder.
+
+For \Alq, the spatial correlation function of the electrostatic contribution to site energies, which is calculated for 512 molecules, is shown in \fig{correlations}. It qualitatively reveals strong correlations due to the large dipole moment of the meridional isomer of \Alq of $\sim 4\, \unit{Debye}$. Quantitatively, this result is not converged with respect to the system size and bigger systems will exhibit even longer-ranged correlations.
+%
+The inset of \fig{correlations} shows that distributions of $\Delta E_{ij}$ for all and neighbor list only pairs are clearly different. Note that respective distributions of {\it internal} site energies are identical, indicating that this type of disorder is spatially uncorrelated.
