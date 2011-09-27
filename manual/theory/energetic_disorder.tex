@@ -25,3 +25,13 @@ The contribution to $E_i^\text{el}$ from the first coordination shell is then un
 where the parameter $s$ is the inverse screening length. For a monovalent ion in water, for example, $\epsilon_{\text{s}}=80$ and $s=3\,\textrm{nm}^{-1}$~\cite{daggett_molecular_1991}. This screening function ensures that neighboring atoms interact via an unscreened Coulomb potential ($\epsilon \sim 1$) while the electrostatic interaction between atoms at large separations is screened as in the bulk. 
 
 Evaluation of the electrostatic contribution is provided by the \calc{ecoulomb} \calculator.
+Atomistic partial charges for charged an neutral molecule are taken from files specified in \xmlsegments and there are two screening methods for computing $E_{i}^\text{el}$.
+Coulomb interactions can be screened by a constant relative dielectric constant $\epsilon_s$ as indicated in \equ{estatic}.
+In this case only $\epsilon_s$ has to be specified in \xmloptions.
+
+Alternatively the screening can be made distance-dependent by using \equ{epss}. In this case the relative dielectric constant $\epsilon_s$ and the inverse screening length $s$ have to be provided in the \xmloptions.
+A cutoff radius based on molecular centers of mass can be given in  \xmloptions to speed up calculations for both methods.
+
+The electrostatic site-energies are saved to the \sqlstate file.
+
+\small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe  \calc{ecoulomb}
