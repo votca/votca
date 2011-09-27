@@ -21,7 +21,6 @@
 \usepackage[toc,page]{appendix}
 \usepackage{lineno}
 \usepackage{makeidx}
-\usepackage{showidx}
 
 \definecolor{webgreen}{rgb}{0,.5,0}
 \definecolor{webbrown}{rgb}{.6,0,0}
@@ -46,6 +45,7 @@ pdfpagemode=UseNone]{hyperref}
 \usepackage[T1]{fontenc}
 %\usepackage{times}
 \usepackage{type1cm}
+%\usepackage{showidx}
 
 \def\bibsection{%
     \chapter*{Bibliography}%
@@ -85,8 +85,8 @@ pdfpagemode=UseNone]{hyperref}
 %\cleardoublepage
 \mainmatter
 
+\printindex
 \linenumbers
-
 
 \include{theory/introduction}
 
@@ -114,7 +114,6 @@ pdfpagemode=UseNone]{hyperref}
 \input{appendix/derivation_jortner}
 \input{appendix/calculators}
 
-%\printindex
 
 
 \bibliographystyle{achemso}

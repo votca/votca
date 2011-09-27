@@ -1,10 +1,11 @@
 \section{Reorganization energy}
 \label{sec:reorganization}
 
-The reorganization energy $\lambda_{ij}$ takes into account the change in  nuclear (and dielectric) degrees of freedom as the charge moves from donor $i$ to acceptor $j$. It has two contributions: intramolecular, $\lambda^\text{int}_{ij}$, which is due to reorganization of nuclear coordinates of the two molecules forming the charge transfer complex, and intermolecular (outer-sphere), $\lambda^\text{out}_{ij}$, which is due to the relaxation of the nuclear coordinates of the environment. In what follows we discuss how these contributions can be calculated.
+The reorganization energy\index{reorganization energy} $\lambda_{ij}$ takes into account the change in  nuclear (and dielectric) degrees of freedom as the charge moves from donor $i$ to acceptor $j$. It has two contributions: intramolecular, $\lambda^\text{int}_{ij}$, which is due to reorganization of nuclear coordinates of the two molecules forming the charge transfer complex, and intermolecular (outer-sphere), $\lambda^\text{out}_{ij}$, which is due to the relaxation of the nuclear coordinates of the environment. In what follows we discuss how these contributions can be calculated.
 
 \subsection{Intramolecular reorganization energy}
 \label{sec:inner_reorganization}
+\index{reorganization energy!intramolecular}
 If intramolecular vibrational modes of the two molecules are treated classically, the rearrangement of their nuclear coordinates after charge transfer results in the dissipation of the internal reorganization energy, $\lambda_{ij}^\text{int}$. It can be computed from four points on the potential energy surfaces (PES) of both molecules in neutral and charged states, as indicated in \fig{parabolas}. 
 
 \begin{figure}
@@ -26,7 +27,8 @@ Note that the PES of the donor and acceptor are not identical for chemically dif
 
 Intra molecular reorganization energies for discharging ($\lambda^{cn}$) and charging ($\lambda^{nc}$) a molecule as explained in \fig{parabolas} have to be entered into the \xmlsegments file. Intramolecular reorganization energies are written to the the \sqlstate file by \ctpmap.
 
-\subsection{Outer-sphere reorganization energy}
+\subsection{Outersphere reorganization energy}
+\index{reorganization energy!outersphere}
 \label{sec:outer_reorganization}
 During the charge transfer reaction, also the molecules outside the charge transfer complex reorient and polarize in order to adjust for changes in electric potential, resulting in the outer-sphere contribution to the reorganization energy. $\lambda_{ij}^\text{out}$ is particularly important if charge transfer occurs in a polarizable environment. Assuming that charge transfer is much slower than electronic polarization but much faster than nuclear rearrangement of the environment, $\lambda_{ij}^\text{out}$ can be calculated from the electric displacement fields created by the charge transfer complex~\cite{may_charge_2011}
 \begin{equation}
@@ -68,4 +70,4 @@ The dielectric method uses the atomistic partial charges of neutral and charged 
 If this method is too time consuming $\lambda_{ij}^\text{out}$ can be computed from \equ{lambda_outer2} assuming spherical charge distributions on the molecules. Then the radii of these spheres are specified in \xmlsegments, while the Pekar factor $c_p$ is given in the \xmloptions file and no cutoff radius is needed.
 The outer sphere reorganization energies are saved to the \sqlstate file.
 
-\small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe  \calc{eoutersphere}
+{\small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe  \calc{eoutersphere}}
