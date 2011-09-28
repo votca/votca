@@ -125,8 +125,9 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
                 Bead *bj = (*dmol)->getBead(j);
                 //distance vector may have to be shifted by s
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos() + diff);
-               // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
-                 fprintf(data, "%d %d %.6f %.6f %.6f\n",mol->getId(),(*dmol)->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+                string ss = (*dmol) ->getName();
+                               // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
+                 fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId(),(*dmol)->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
         }
 
     }
@@ -138,7 +139,8 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
             for (int j = 0; j != mol->BeadCount(); j++) {
                 Bead *bj = mol->getBead(j);
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos());
-                fprintf(data, "%d %d %.6f %.6f %.6f\n",mol->getId(),mol->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+                string ss = mol ->getName();
+                fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId(),mol->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
         }
      MoleculeContainer::iterator dmol;
          for (dmol = atop->Molecules().begin(); dmol != atop->Molecules().end(); dmol++) {
@@ -153,8 +155,9 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
                 Bead *bj = (*dmol)->getBead(j);
                 //distance vector may have to be shifted by s
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos() + diff);
-               // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
-                 fprintf(data, "%d %d %.6f %.6f %.6f\n",mol->getId(),(*dmol)->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+                string ss = (*dmol) ->getName();
+                // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
+                 fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId(),(*dmol)->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
         }
         
     }
