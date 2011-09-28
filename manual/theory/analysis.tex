@@ -72,21 +72,16 @@ splitting between neighboring sites and absence of local average fluxes in equil
   \vec{J_i} = \frac{1}{2} e \sum_{ j} \left( p_{j}  \omega_{ji} - p_{i} \omega_{ij} \right) \vec{r}_{ij} .
  \label{equ:site_current}
 \end{equation}
-A large value of the local current indicates that the site contributes considerably to the total current. A collection of such sites thus represents most favorable charge pathways.
-
-\Fig{currents} illustrates site currents for amorphous \Alq for a system of 512 molecules. The distribution of currents is very inhomogeneous and some pathways are sampled more frequently than the others, which is a direct consequence
-of a rough and correlated energy landscape~\cite{van_der_holst_modeling_2009}.
+A large value of the local current indicates that the site contributes considerably to the total current. A collection of such sites thus represents most favorable charge pathways~\cite{van_der_holst_modeling_2009}.
 
 \subsection{Mobility and diffusion constant}
 For a single particle, e.g. a charge or an exciton, a zero-field mobility can be determined by studying particle diffusion in the absence of external fields. Using the particle displacement squared, $\Delta {\bm r}_i^2$, as an observable  we obtain
  \begin{equation}
 \begin{split}
-2d D_{\gamma \delta} &=  \frac{d \left<  \Delta{r}_{i, \gamma} \Delta{r}_{i, \delta} \right>}{dt} 
-  \\
-%
-&= \sum_{\substack{i,j \\ i\ne j}} p_j\omega_{ji} 
- \left( \Delta r_{i,\gamma}\Delta r_{i,\delta} - \Delta r_{j,\gamma}\Delta r_{j,\delta} \right)  \\
- &= \sum_{\substack{i,j\\ i\ne j}} p_j \omega_{ji} \left( r_{i,\gamma} r_{i,\delta} - r_{j,\gamma} r_{j,\delta} \right) \, .
+2d D_{\gamma \delta} =  \frac{d \left<  \Delta{r}_{i, \gamma} \Delta{r}_{i, \delta} \right>}{dt} 
+= \sum_{\substack{i,j \\ i\ne j}} p_j\omega_{ji} 
+ \left( \Delta r_{i,\gamma}\Delta r_{i,\delta} - \Delta r_{j,\gamma}\Delta r_{j,\delta} \right)  
+= \sum_{\substack{i,j\\ i\ne j}} p_j \omega_{ji} \left( r_{i,\gamma} r_{i,\delta} - r_{j,\gamma} r_{j,\delta} \right) \, .
 \end{split}
 \label{equ:diffusion}
 \end{equation}
@@ -106,21 +101,3 @@ The charge carrier mobility tensor, $\hat{\mu}$, for any value of the external f
 %\end{split}
 \end{equation}
 or directly from the KMC trajectory. In the latter case the velocity is calculated from the unwrapped (if periodic boundary conditions are used) charge displacement vector divided by the total simulation time. Projecting this velocity on the direction of the field $\vec{F}$ yields the charge carrier mobility in this particular direction. In order to improve statistics, mobilities can be averaged over several KMC trajectories and MD snapshots.
-
-For \Alq, the field dependence of the mobility (Poole-Frenkel plot) is shown in \fig{poole-frenkel} for a system of 4096 molecules. To illustrate the role of disorder and correlations, we also show the field dependence for a system without energetic disorder (top panel) and without correlated energetic disorder (randomly shuffled site energies). Energetic disorder reduces the value of mobilty by six orders of magnitude. The Poole-Frenkel behavior for small fields can only be observed if correlated disorder is taken into account. Note that for a system with such large energetic disorder the absolute values of (non-dispersive) mobility are  systematically overestimated due to  significant finite size effects (see~\sect{nondispersive} and ref.~\cite{lukyanov_extracting_2010}). 
-%
-The experimentally measured value of the hole mobility at small fields lies between $10^{-9}$ and $10^{-8}\, \unit{cm^2\, V^{-1}\, s^{-1}}$~\cite{fong_hole_2006}.
-
-%\noindent
-%Missing data\\
-%1. What transfer integrals were used.\\
-%2. What neighbor list was used.\\
-%3. How energetic disorder was calculated.\\
-%4. How averaging was done (MD snapshots, KMC runs, field directions)\\
-%5. How error bars were estimated\\
-%\noindent
-%We need to illustrate\\
-%1. The role of energetic disorder (systems with and without it)\\
-%2. The role of correlations (shuffled energies)\\
-%3. The role of the system size\\
-%4. The effect of "fitted e(r)" as compared to the Thole model\\

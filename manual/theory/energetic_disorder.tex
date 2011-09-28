@@ -1,8 +1,15 @@
 \section{Site energies}
 \label{sec:site_energies}
+A charge transfer reaction between molecules $i$ and $j$ is driven by the site energy\index{site energy} difference, $\Delta E_{ij} = E_i - E_j$. Since the  transfer rate, $\omega_{ij}$, depends exponentially on $\Delta E_{ij}$ (see~\equ{marcus}) it is important to compute its distribution as accurately as possible.  The total site energy difference has contributions due to \slink{ext_field}{externally applied electric field}, \slink{electrostatic}{electrostatic interactions}, polarization effects, and \slink{internal_energy}{internal energy} differences. In what follows we discuss how to estimate these contributions by making use of first-principles calculations and polarizable force-fields.
+
+\subsection{Externally applied electric field}
+\label{sec:ext_field}
+The contribution to the total site energy\index{site energy!external field} difference due to an external electric field $\vec{F}$ is given by $\Delta E_{ij}^\text{ext} = q {\vec{F} \cdot \vec{r}_{ij}}$, where $q=\pm e$ is the charge and $\vec{r}_{ij} = \vec{r}_i  - \vec{r}_j $ is a vector connecting molecules $i$ and $j$. For typical distances between small molecules, which are of the order  of $1\,\unit{nm}$, and moderate fields of $F<10^8\,\unit{V/m}$ this term is always smaller than $0.1\, \unit{eV}$.
 
 \subsection{Electrostatic energy}
 \label{sec:electrostatic}
+\index{site energy!electrostatic}
+
 Variations of the local electric field can result in large electrostatic contributions to the energetic disorder. Using the atomic partial charges of charged and neutral molecules, $\Delta E_{ij}^\text{el}$ can be computed from the site energies~\cite{kirkpatrick_columnar_2008}
 \begin{equation}
 E_{i}^\text{el}  = \frac{1}{4 \pi \epsilon_0} \sum_{a_i} \sum_{\substack{b_k   \\ k\neq i }}
@@ -24,14 +31,19 @@ The contribution to $E_i^\text{el}$ from the first coordination shell is then un
 \end{equation}
 where the parameter $s$ is the inverse screening length. For a monovalent ion in water, for example, $\epsilon_{\text{s}}=80$ and $s=3\,\textrm{nm}^{-1}$~\cite{daggett_molecular_1991}. This screening function ensures that neighboring atoms interact via an unscreened Coulomb potential ($\epsilon \sim 1$) while the electrostatic interaction between atoms at large separations is screened as in the bulk. 
 
-Evaluation of the electrostatic contribution is provided by the \calc{ecoulomb} \calculator.
-Atomistic partial charges for charged an neutral molecule are taken from files specified in \xmlsegments and there are two screening methods for computing $E_{i}^\text{el}$.
-Coulomb interactions can be screened by a constant relative dielectric constant $\epsilon_s$ as indicated in \equ{estatic}.
-In this case only $\epsilon_s$ has to be specified in \xmloptions.
+Evaluation of the electrostatic contribution is provided by the \calc{ecoulomb} \calculator. Atomistic partial charges for charged an neutral molecule are taken from files specified in the \xmlsegments files. Note that, in order to speed up calculations for both methods, a cutoff radius (for the molecular centers of mass) can be given in  \xmloptions.
 
-Alternatively the screening can be made distance-dependent by using \equ{epss}. In this case the relative dielectric constant $\epsilon_s$ and the inverse screening length $s$ have to be provided in the \xmloptions.
-A cutoff radius based on molecular centers of mass can be given in  \xmloptions to speed up calculations for both methods.
+The electrostatic site energies are saved to the \sqlstate file:
 
-The electrostatic site-energies are saved to the \sqlstate file.
+{\noindent \small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe  \calc{ecoulomb} }
 
-\small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe  \calc{ecoulomb}
+\subsection{Internal energy difference}
+\label{sec:internal_energy}
+
+The contribution to the site energy difference due to different internal energies\index{site energy!internal} (see \fig{parabolas}) can be written as
+\begin{equation}
+ \Delta E_{ij}^\text{int}=
+\Delta U_i - \Delta U_j = \left( U_{i}^{cC}-U_{i}^{nN}\right) - \left( U_{j}^{cC}-U_{j}^{nN}\right) \, ,
+\label{equ:conformational}
+\end{equation}
+where $U_{i}^{cC(nN)}$ is the total energy of molecule $i$ in the charged (neutral) state and geometry.  $\Delta U_{i}$ corresponds to the adiabatic ionization potential (or electron affinity) of molecule $i$, as shown in~\fig{parabolas}. For one-component systems and negligible conformational changes $ \Delta E_{ij}^\text{int}=0$, while it is significant for donor-acceptor systems.

@@ -29,6 +29,7 @@
 \usepackage
 [dvips, %dvipdf, %or dvips or pdftex 
 pagebackref, %or backref
+breaklinks,
 colorlinks=true,
 linkcolor=webgreen, %defined below
 filecolor=webbrown, %defined below
@@ -46,6 +47,7 @@ pdfpagemode=UseNone]{hyperref}
 %\usepackage{times}
 \usepackage{type1cm}
 %\usepackage{showidx}
+\usepackage[draft,color,notref,notcite]{showkeys}
 
 \def\bibsection{%
     \chapter*{Bibliography}%
@@ -54,10 +56,14 @@ pdfpagemode=UseNone]{hyperref}
 
 \makeindex
 
+\renewcommand*{\showkeyslabelformat}[1]{{\normalfont\tiny\sffamily#1}}
+\definecolor{refkey}{rgb}{1,0,0}
+\definecolor{labelkey}{rgb}{1,0,0}
+
 \begin{document}
 
-\addtolength{\oddsidemargin}{-2cm}
-\addtolength{\evensidemargin}{-2cm}
+\addtolength{\oddsidemargin}{0cm}
+\addtolength{\evensidemargin}{0cm}
 \addtolength{\textwidth}{0cm}
 \addtolength{\topmargin}{0cm}
 \addtolength{\textheight}{0cm}
@@ -70,8 +76,7 @@ pdfpagemode=UseNone]{hyperref}
   identifierstyle=\color{red},
   keywordstyle=\color{blue},
   commentstyle=\color{gray}\rmfamily\itshape,
-  mathescape=true,
-  morekeywords={estatic_params,estatic_method,epsilon_dielectric,s_eps}
+  mathescape=true
 }
 
 \input{newcommands}
@@ -111,10 +116,11 @@ pdfpagemode=UseNone]{hyperref}
 \include{reference/reference}
 
 \appendix
-\input{appendix/derivation_jortner}
-\input{appendix/calculators}
+%\input{appendix/derivation_jortner}
+\input{appendix/statefile}
+\input{appendix/moo_standalone}
 
-
+\nolinenumbers
 
 \bibliographystyle{achemso}
 \bibliography{literature_short}

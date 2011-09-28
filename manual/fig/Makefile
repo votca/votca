@@ -4,7 +4,7 @@ FIGPICS :=
 AGRPICS :=
 GPPICS  := 
 SVGPICS :=
-SUBDIRS := workflow 
+SUBDIRS := workflow reorganization_energy
 LOCALCLEAN :=
 
 include ../Makefile.incl

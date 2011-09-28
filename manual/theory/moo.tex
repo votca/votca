@@ -1,40 +1,17 @@
-\subsection{Semi-empirical methods}
+\subsection{Semiempirical methods}
 \label{sec:moo}
 
 \newcommand{\moo}{MOO\xspace}
 \index{electronic coupling!ZINDO}
 
-An approximate method based on Zerner's Independent Neglect of Differential Overlap (ZINDO) has been described in Ref.~\cite{kirkpatrick_approximate_2008}. This semiempirical method is substantially faster than first-principles approaches, since it avoids the self-consistent calculations on each individual monomer and dimer. This allows to construct the matrix elements of the ZINDO Hamiltonian of the dimer from the weighted overlap of molecular orbitals of the two monomers. Together with the introduction of rigid segments, only a single self-consistent calculation on one isolated conjugated segment is required. All relevant molecular overlaps can then be constructed from the obtained molecular orbitals. This Molecular Orbital Overlap (MOO) method has been applied successfully to study charge transport, for instance, in discotic liquid crystals~\cite{kirkpatrick_columnar_2008,marcon_understanding_2009,feng_towards_2009},
-polymers~\cite{ruehle_multiscale_2010}, or partially disordered organic crystals~\cite{vehoff_charge_2010-1,vehoff_charge_2010-2,vehoff_charge_2010}.
+An approximate method based on Zerner's Independent Neglect of Differential Overlap (ZINDO) has been described in Ref.~\cite{kirkpatrick_approximate_2008}. This semiempirical method is substantially faster than first-principles approaches, since it avoids the self-consistent calculations on each individual monomer and dimer. This allows to construct the matrix elements of the ZINDO Hamiltonian of the dimer from the weighted overlap of molecular orbitals of the two monomers. Together with the introduction of rigid segments, only a single self-consistent calculation on one isolated conjugated segment is required. All relevant molecular overlaps can then be constructed from the obtained molecular orbitals.
 
-The main advantage of the molecular orbital overlap \moo library is {\em fast} evaluation of electronic coupling elements. A detailed description of the method is provided in ref.~\cite{kirkpatrick_approximate_2008}. Please site this paper if you are using the method. Note that \moo is based on the semi-empirical ZINDO Hamiltonian and therefore has limited applicability. The general advice is to first compare the accuracy of the \moo method to the DFT-based calculations. 
+The main advantage of the molecular orbital overlap (\moo) library is {\em fast} evaluation of electronic coupling elements. Note that \moo is based on the ZINDO Hamiltonian which has limited applicability. The general advice is to first compare the accuracy of the \moo method to the DFT-based calculations. 
 
-\moo can be used both in a sandalone mode and as a \calculator of the \votcactp. \moo constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals and therefore requires the optimized geometry of the molecule and the projection coefficients of the molecular on atomic orbitals. 
+\moo can be used both in a \slink{moo_standalone}{sandalone mode} and as an \integrals \calculator of the \votcactp. 
 
+Since \moo constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals of \slink{segments}{rigid fragments}, the optimized geometry of all \slink{segment}{conjugated segments} and the coefficients of the molecular orbitals are required as its input in addition to the state file (\sqlstate) with the \slink{neighborlist}{neighbor list}. Coordinates are stored in \xyz files with four columns, first being the atom type and the next three atom coordinates. This is a standard \texttt{xyz} format without a header. Note that the atom order in the \xyz files can be different from that of the mapping files. The correspondence between the two is established in the \xmlsegments file.
 
-\subsubsection{Standalone mode}
-For a standalone mode program \overlap is provided 
-\begin{verbatim}
- moo_overlap --conjseg benzene.xml --pos1 benzene1.pos --pos2 benzene2.pos
-\end{verbatim}
-Its input requires a description of two conjugated segments (\texttt{benzene.xml}, positions and orientations of the molecules and the files with molecular coordinates and orbitals. The structure of the files is shown in listings \ref{list:benzene_xml} and  \ref{list:benzene_pos}.
-\vskip 0.1cm
-\lstinputlisting[
-  language=XML,
-  label=list:benzene_xml,
-  stringstyle=\ttfamily\footnotesize,
-  showstringspaces=false,
-  caption={\small \texttt{benzene.xml} file with the description of the benzene molecule, which is also a single conjugated segment and a rigid fragment.}] {./programs/benzene.xml}
+The transfer intergals are saved to the \sqlstate file:
 
-\vskip 0.1cm
-
-\lstinputlisting[
-  language=XML,
-  label=list:benzene_pos, 
-  stringstyle=\ttfamily\footnotesize,
-  showstringspaces=false,
-  caption={\small \texttt{benzene1.pos} file which describes the position and orientation of the molecule. The name of the molecule is followed by three coordinates (relative to the center of mass of the supplied \texttt{xyz} file and then by nine elements of the rotation matrix $a_{ij} = e_i e^\text{mol}_j $. The reference coordinate frame is determined from the provided \texttt{xyz} file.}] {./fig/moo/moo_overlap/benzene1.pos}
-
-
-\subsubsection{Calculator of \votcactp}
-Semi-empirical method of evaluation of electronic couplings in a morphology is provided by the \integrals \calculator. In addition to definitions of conjugated segments, atomistic trajectory, and state file, the program needs coordinates and orbitals of conjugated segments. Coordinates are stored in \xyz files with four columns, first being the atom type and the next three atom coordinates. This is a standard \texttt{xyz} format without a header. Note that the atom order in \xyz files can be different from that of the mapping files. The correspondence between the two is established in the file which defines conjugated segments.
+{\noindent \small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe  \calc{intergals} }

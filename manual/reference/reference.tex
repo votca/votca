@@ -9,6 +9,19 @@
 
 \section{Calculators}
 \label{ref:calculators}
+\label{sec:calculators}
+
+Calculator is a piece of code which computes specific system properties, such as site energies, transfer integrals, etc. \ctprun is a wrapper program which executes all calculators. The generic syntax is 
+
+  \ctprun \exe \texttt{"calc1, calc2, ..."} \opt \xmloptions
+\vskip 0.2cm
+%
+File \xmloptions lists all options needed to run a specific calculator. The format of this file is explained in listing~\ref{list:calc}. A complete list of calculators is given in the \refcalc reference section.
+%
+\lstinputlisting[label=list:calc, 
+ caption={\small A part of the \xmloptions file with options for the \texttt{calculator\_name\{1,2\}} \refcalc.
+}]{./reference/calculators.xml}
+
 \input{reference/calculators/all}
 \vfill
 
