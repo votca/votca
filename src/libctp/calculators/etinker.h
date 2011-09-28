@@ -109,7 +109,7 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
     int nr = mol->getId();
             string filename = "xyz_" + boost::lexical_cast<string > (nr);
             FILE * data;
-
+            int countmol=0;
             if (_order) {//keep the order of the molecules
                  data=fopen(filename.c_str(),"w");
          MoleculeContainer::iterator dmol;
@@ -118,7 +118,7 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
         //We should replace getUserData by a funtion GetCom for molecules
         vec bcs = atop->BCShortestConnection(mol->getUserData<CrgUnit > ()->GetCom(), (*dmol)->getUserData<CrgUnit > ()->GetCom());
          if ( abs(bcs)> _dump_cutoff) continue;
-
+        countmol=countmol+1;
         vec dist = (*dmol)->getUserData<CrgUnit > ()->GetCom() - mol->getUserData<CrgUnit > ()->GetCom();
         vec diff = bcs - dist;
         for (int j = 0; j != (*dmol)->BeadCount(); j++) {
@@ -136,6 +136,7 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
             else{
             //First write out the xyz coordinates of atoms belonging to molecule N which is in the center of the box in file xyz_N
             data=fopen(filename.c_str(),"w");
+             countmol=countmol+1;
             for (int j = 0; j != mol->BeadCount(); j++) {
                 Bead *bj = mol->getBead(j);
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos());
@@ -148,7 +149,7 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
         //We should replace getUserData by a funtion GetCom for molecules
         vec bcs = atop->BCShortestConnection(mol->getUserData<CrgUnit > ()->GetCom(), (*dmol)->getUserData<CrgUnit > ()->GetCom());
          if ( abs(bcs)> _dump_cutoff) continue;
-
+        countmol=countmol+1;
         vec dist = (*dmol)->getUserData<CrgUnit > ()->GetCom() - mol->getUserData<CrgUnit > ()->GetCom();
         vec diff = bcs - dist;
         for (int j = 0; j != (*dmol)->BeadCount(); j++) {
@@ -162,6 +163,7 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
         
     }
             }
+            fprintf(data, "%d\n",countmol);
     fclose(data);
     //data.close();
 }
