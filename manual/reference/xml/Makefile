@@ -34,7 +34,7 @@ clean:
 	rm -f $(XMLST2T) config.t2t
 	rm -f $(XMLSTEX)
 	rm -f $(XMLSHTML)
-	rm -f *~
+	rm -f *~ *.backup
 	$(MAKE) -f Makefile.XMLS clean
 
 Makefile.incl:

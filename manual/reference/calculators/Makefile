@@ -6,5 +6,5 @@ ref_calculators.tex: dummy
 dummy: ;
 
 clean:                                 
-	rm -f *~ all.tex
+	rm -f *~ all.tex *.backup
 
