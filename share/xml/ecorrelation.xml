@@ -1,9 +1,9 @@
-<!-- ecorrelation calculator -->
+<!-- ecorrelation: Normalized site energy correlation function -->
 <tags>
 
 <item>
-<name>ecorrelation</name>
-<desc>Normalized site energy correlation function.</desc>
+<name>sectionlink</name>
+<desc>ecorrelation</desc>
 </item>
 
 <item>
