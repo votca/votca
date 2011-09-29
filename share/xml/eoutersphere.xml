@@ -1,0 +1,35 @@
+<!-- eoutersphere calculator -->
+
+<tags>
+
+<item>
+<name>eoutersphere</name>
+<desc>Outer sphere reorganization energy for all pairs</desc>
+</item>
+
+<item>
+<name>eoutersphere.method</name>
+<desc>Type of the method: **constant** - all pairs have the same value **lambdaconst** set in options file. **spheres**  - molecules are treated as spheres with radii **R_lambda** given in the segments file and Pekar factor **pekar** set in options file. **dielectric** - with Pekar factor **pekar** set in options file and partial charges and resulting dielectric fields. </desc>
+</item>
+
+<item>
+<name>eoutersphere.lambdaconst</name>
+<desc>Constant value for all pairs used in method **constant**</desc>
+</item>
+
+<item>
+<name>eoutersphere.pekar</name>
+<desc>Pekar factor used for methods **spheres** and **dielectric**</desc>
+</item>
+
+<item>
+<name>eoutersphere.R_lambda</name>
+<desc>Radius of spherical molecule as used in  method **spheres**</desc>
+</item>
+
+<item>
+<name>eoutersphere.cutoff</name>
+<desc>Cutoff radius in nm between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**</desc>
+</item>
+
+</tags>

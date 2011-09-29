@@ -1,0 +1,13 @@
+<tags>
+
+<item>
+<name>vaverage</name>
+<desc>Average velocity vector and mobility (along the field) of a single charge carrier.</desc>
+</item>
+
+<item>
+<name>vaverage.mobility</name>
+<desc>If **TRUE** outputs also charge mobility along the field. In this case the field should be specified in calc_rates.e_field. </desc>
+</item>
+
+</tags>

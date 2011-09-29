@@ -1,0 +1,20 @@
+<!-- tdump calculator -->
+
+<tags>
+
+<item>
+<name>tdump</name>
+<desc>Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories</desc>
+</item>
+
+<item>
+<name>tdump.cg</name>
+<desc>Name of the coarse-grained trajectory.</desc>
+</item>
+
+<item>
+<name>tdump.qm</name>
+<desc>Name of the atomistic trajectory with back-substituted rigid fragments.</desc>
+</item>
+
+</tags>

@@ -24,7 +24,13 @@
 #include <votca/csg/trajectorywriter.h>
 
 namespace votca { namespace ctp {
+/**
+    \brief Pairs of molecules from the neigbor list
 
+Callname: pairdump    
+
+Dumps the coordinates of pairs of atoms from the neighbor list. Used as an input in DFT-based calculations of electronic couplings. Understands xyz and pdb file formats. 
+*/
 class PairDump : public PairCalculator
 {
 public:
