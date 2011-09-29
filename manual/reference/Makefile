@@ -26,4 +26,4 @@ hgid.tex: check dummy
 dummy: ;
 
 clean: programs_subclean xml_subclean calculators_subclean
-	rm -f *~ hgid.tex
+	rm -f *~ hgid.tex *.log *.backup *.aux
