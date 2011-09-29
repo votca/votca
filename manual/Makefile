@@ -30,7 +30,7 @@ ifeq ($(OSTYPE),darwin)
 	mkdir -p $(ND)
 	cp $(NAME).pdf $(ND)
 else
-	dvipdfmx $*
+	dvipdf $*
 endif
 
 

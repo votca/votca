@@ -32,7 +32,7 @@
 
 % nicer --
 %!postproc(tex): '--' '{-}{-}'
-%!postproc(tex): '{ll}' '{m{4cm}|m{9cm}}'
+%!postproc(tex): '{ll}' '{m{3cm}|m{11cm}}'
 %!postproc(tex): '{tabular}' '{longtable}'
 
 %For other target is replaced by nothing.
@@ -43,7 +43,7 @@
 %%%%%%%%%%%%%%%%
 
 %empty line to noindent
-%!postproc(tex): '^\s*$' '\n\\noindent '
+%%!postproc(tex): '^\s*$' '\n\\noindent '
 
 %we do not like the default item marks, so we make them empty
 %!postproc(tex): '\\item' '\item[ ]'

@@ -78,10 +78,10 @@ add_heads
 for name in ${items}; do
   #cut the first 3 heads of the item
   cut_heads "$name"
-  head="$(echo $name | sed -e 's/'${item}'//' -e 's/\.//' )"
+  head="$(echo $name | sed -e 's/'${item}'//')"
   #echo $head $name $item
   desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
-  echo " | hspace($hspace) target(${trunc}${name})(**${item}**)  | ${desc}"
+  echo " | hspace($hspace) target(${trunc}${name})(${item})  | ${desc}"
 done
 
 

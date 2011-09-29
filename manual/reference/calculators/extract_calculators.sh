@@ -22,7 +22,7 @@ for file in latex/*.tex; do
   name=$(sed -ne '/\\subsection{Detailed Description}/,/\\subsection/p' $file | awk '/Callname/{print $2}')
   if [ ! -z "$name" ]; then
     echo "Generating documentation for calculator $name from $file"
-    echo "\subsection{$name}" >> $OUT
+    echo "\subsection*{$name}" >> $OUT
     echo "\label{calc:$name}" >> $OUT
     sed -ne '/\\subsection{Detailed Description}/,/\\subsection/p' $file | \
       sed -e '1d' -e '$d' \
@@ -30,7 +30,11 @@ for file in latex/*.tex; do
       -e '/Callname/d' \
       -e 's/DoxyItemize/itemize/' >> $OUT
     echo "" >> $OUT
-    echo "Required options: see \calcopt{$name}." >> $OUT
+    #echo "Required options: see \calcopt{$name}." >> $OUT
+
+    echo "\rowcolors{1}{invisiblegray}{white}" >> $OUT
+    echo "{\footnotesize \input{reference/xml/$name.xml} }" >> $OUT
+    echo "" >> $OUT
 
   fi
 done
