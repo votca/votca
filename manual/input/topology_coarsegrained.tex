@@ -24,7 +24,7 @@ An example of the input file for a \dcvt molecule is shown in listing~\ref{list:
 The input are the gromacs topology and trajectory files, a mapping file, a cutoff distance for defining nearest neighbours and a file describing the charge unit types. The output includes a neighbour list, labelled by the gromacs step number, and a binary 
 file and a state file with the mapped onto conjugated segments system. 
 
-In order to check the mapping one can use the \dumptraj calculator
+In order to check the mapping one can use the \calc{tdump} \calculator
 \begin{verbatim}
   ctp_run --exec  "dumptraj" -cg map.xml 
 \end{verbatim}

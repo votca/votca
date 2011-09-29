@@ -59,7 +59,7 @@ CSGSHARE="../../../ctp/share" # "$(csg_call --show-share)"
 trunc=""
 [ "$xmlfile" = "segments.xml" ] && trunc="segments."
 [ "$xmlfile" = "mapping.xml" ] && trunc="mapping."
-[ "$xmlfile" = "cginteraction.xml" ] && trunc="cg.non-bonded."
+[ "$xmlfile" = "options.xml" ] && trunc="options."
 
 #header lines
 echo $xmlfile 
@@ -78,7 +78,7 @@ add_heads
 for name in ${items}; do
   #cut the first 3 heads of the item
   cut_heads "$name"
-  head="$(echo $name | sed -e 's/'${item}'//' )"
+  head="$(echo $name | sed -e 's/'${item}'//' -e 's/\.//' )"
   #echo $head $name $item
   desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
   echo " | hspace($hspace) target(${trunc}${name})(**${item}**)  | ${desc}"
