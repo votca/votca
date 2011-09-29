@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
 CALCULATOR_SRC="../../../ctp/src/libctp/calculators"
+REFERENCE_SRC="reference/xml"
+
 OUT="$PWD/all.tex"
 
 if [ ! -d $CALCULATOR_SRC ]; then
@@ -22,7 +24,7 @@ for file in latex/*.tex; do
   name=$(sed -ne '/\\subsection{Detailed Description}/,/\\subsection/p' $file | awk '/Callname/{print $2}')
   if [ ! -z "$name" ]; then
     echo "Generating documentation for calculator $name from $file"
-    echo "\subsection*{$name}" >> $OUT
+    echo "\subsection{$name}" >> $OUT
     echo "\label{calc:$name}" >> $OUT
     sed -ne '/\\subsection{Detailed Description}/,/\\subsection/p' $file | \
       sed -e '1d' -e '$d' \
@@ -32,8 +34,12 @@ for file in latex/*.tex; do
     echo "" >> $OUT
     #echo "Required options: see \calcopt{$name}." >> $OUT
 
+    # including XML files from the reference section.
+    
+    pwd
+
     echo "\rowcolors{1}{invisiblegray}{white}" >> $OUT
-    echo "{\footnotesize \input{reference/xml/$name.xml} }" >> $OUT
+    echo "\input{$REFERENCE_SRC/$name.xml}" >> $OUT
     echo "" >> $OUT
 
   fi

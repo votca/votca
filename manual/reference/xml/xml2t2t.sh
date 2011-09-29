@@ -75,13 +75,23 @@ items="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --print n
 #sort them
 #items="$(echo -e "$items" | sort -u)"
 #echo "$items"
+
 for name in ${items}; do
   #cut the first 3 heads of the item
   cut_heads "$name"
   head="$(echo $name | sed -e 's/'${item}'//')"
   #echo $head $name $item
   desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
-  echo " | hspace($hspace) target(${trunc}${name})(${item})  | ${desc}"
+
+  if [ "$name" = "sectionlink" ]; then
+     link="$name($desc)"
+  else
+     echo " | hspace($hspace) target(${trunc}${name})(${item})  | ${desc}"
+  fi
 done
 
+  echo  $link 
+  if  [ -z "$link" ]; then 
+     echo  $link 
+  fi
 
