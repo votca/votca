@@ -106,7 +106,7 @@ inline bool Etinker::EvaluateFrame(QMTopology *top) {
 inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
 {
     MoleculeContainer::iterator cmol;
-    int nr = mol->getId();
+    int nr = mol->getId()+1;
             string filename = "xyz_" + boost::lexical_cast<string > (nr);
             FILE * data;
             int countmol=0;
@@ -127,7 +127,7 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos() + diff);
                 string ss = (*dmol) ->getName();
                                // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
-                 fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId(),(*dmol)->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+                 fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId()+1,(*dmol)->getId()+1,r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
         }
 
     }
@@ -141,7 +141,7 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
                 Bead *bj = mol->getBead(j);
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos());
                 string ss = mol ->getName();
-                fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId(),mol->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+                fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId()+1,mol->getId()+1,r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
         }
      MoleculeContainer::iterator dmol;
          for (dmol = atop->Molecules().begin(); dmol != atop->Molecules().end(); dmol++) {
@@ -158,7 +158,7 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos() + diff);
                 string ss = (*dmol) ->getName();
                 // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
-                 fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId(),(*dmol)->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+                 fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId()+1,(*dmol)->getId()+1,r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
         }
         
     }
