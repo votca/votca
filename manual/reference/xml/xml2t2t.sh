@@ -71,7 +71,7 @@ echo
 #get all items
 items="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
 #check if a head node is missing
-add_heads
+#add_heads
 #sort them
 #items="$(echo -e "$items" | sort -u)"
 #echo "$items"
