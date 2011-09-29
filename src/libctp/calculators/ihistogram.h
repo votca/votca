@@ -28,7 +28,10 @@ namespace votca { namespace ctp {
 /**
 	\brief Histogram of transfer integrals of neighbor list pairs
 
+Histogram for all molecules from the neighbor list.
+
 Callname: ihistogram   
+
 */
 class CalcHistIntegrals : public PairCalculator
 {

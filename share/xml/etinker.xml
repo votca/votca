@@ -1,18 +1,18 @@
 <tags>
 
 <item>
-<name>etinker</name>
-<desc></desc>
+<name>sectionlink</name>
+<desc>etinker</desc>
 </item>
 
 <item>
 <name>etinker.cutoff</name>
-<desc>In the xyz_N file for the charged molecule N only neighboring molecules up to the cutoff (in nm) are written out. If no cutoff is provided 50nm is assumed</desc>
+<desc>In the xyz-N file for the charged molecule N only neighboring molecules up to the cutoff (in nm) are written out. If no cutoff is provided 50nm is assumed</desc>
 </item>
 
 <item>
 <name>etinker.order</name>
-<desc>If order is "keep" the ordering of the molecules is not affected. If "top" is chosen, the charged molecule N will be on top of the xyz_N file.</desc>
+<desc>If order is "keep" the ordering of the molecules is not affected. If "top" is chosen, the charged molecule N will be on top of the xyz-N file.</desc>
 </item>
 
 </tags>

@@ -27,13 +27,13 @@ namespace votca { namespace ctp {
 /**
     \brief Normalized site energy correlation function
 
-Callname: ecorrelation
-
 The spatial correlations in site energies can be quantified using the correlation function (J. Chem. Phys. 129, 034709, 2008)
 \f[C(r_{ij}) = \frac{  \langle \left( E_i-\langle E\rangle \right)
                    \left( E_j-\langle E\rangle \right)\rangle}
                    {\langle\left( E_i -\langle E\rangle \right)^2\rangle}\f]
 where \f$E_i\f$ and \f$E_j\f$ are site energies, \f$ r_{ij} \f$ is the distance between the sites, \f$ \langle E\rangle \f$ is the average site energy. \f$ C(r_{ij}) \f$ is zero if \f$ E_i \f$ and \f$ E_j \f$ are uncorrelated and 1 if they are fully correlated. For a system of randomly oriented point dipoles, the correlation function decays as \f$ 1/r \f$ at large distances.
+
+Callname: ecorrelation
 
 */
 class Ecorrelation : public QMCalculator
