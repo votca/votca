@@ -54,18 +54,31 @@ public:
 private:
     double _dump_cutoff;
     Property * _options;
+    bool _order; //if false then then first mol in the xyz file is the charged molecule
+                     //if true then the ordering of the molecules stays the same
 };
 
 inline void Etinker::Initialize(QMTopology *top, Property *options) {
     _options = options;
-    if (options->exists("options.tinker.cutoff")) {
-        _dump_cutoff = options->get("options.tinker.cutoff").as<double>();
+    if (options->exists("options.etinker.cutoff")) {
+        _dump_cutoff = options->get("options.etinker.cutoff").as<double>();
         cout << "Writing out atomic XYZ coordinates for molecular cutoff: " << _dump_cutoff <<" nm"<<endl;
     } else {
         _dump_cutoff=50.0;
-        cout << "Warning: No cutoff for molecules has been provided, using default cutoff of 50nm." << endl;
+        cout << "Warning: No cutoff for molecules has been provided, using default cutoff of 50nm" << endl;
 }
 
+    if (options->exists("options.etinker.order")) {
+    if (options->get("options.etinker.order").as<string > () == "top") {
+        _order = false;
+        cout << "Producing xyz file in Angstroem and placing the charged molecule on top of this file and its coordinates at center of the box"<<endl;
+    }
+    else if  (options->get("options.etinker.order").as<string > () == "keep") {
+        _order = true;
+        cout << "Producing xyz file in Angstroem and keeping order of molecules while putting the charged molecule in center of the box"<<endl;
+            }
+}
+    else throw std::runtime_error("Error in tinker: specify if you want to keep the order of the molecules (keep) or if the charged molecule should be on top of the file (top).");
 }
 
 inline bool Etinker::EvaluateFrame(QMTopology *top) {
@@ -84,7 +97,6 @@ inline bool Etinker::EvaluateFrame(QMTopology *top) {
         Molecule *mol = *imol;
         CrgUnit *crg = mol->getUserData<CrgUnit > ();
         WriteAtoms(&atop, mol);
-        //cout << "Estatic energy [eV] for charged / neutral / crg-neutr=espilon: " << crged << " " << neutr << " " << crged - neutr << "\n";
         cout << "writing out coordinats in Angstroem for crgunit " << crg->getId()<<"\n";
     }
     return true;
@@ -94,15 +106,42 @@ inline bool Etinker::EvaluateFrame(QMTopology *top) {
 inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe per * unten ->
 {
     MoleculeContainer::iterator cmol;
-    int nr = mol->getId();
+    int nr = mol->getId()+1;
             string filename = "xyz_" + boost::lexical_cast<string > (nr);
             FILE * data;
+            int countmol=0;
+            if (_order) {//keep the order of the molecules
+                 data=fopen(filename.c_str(),"w");
+         MoleculeContainer::iterator dmol;
+         for (dmol = atop->Molecules().begin(); dmol != atop->Molecules().end(); dmol++) {
+        //   if (*dmol == mol) continue;
+        //We should replace getUserData by a funtion GetCom for molecules
+        vec bcs = atop->BCShortestConnection(mol->getUserData<CrgUnit > ()->GetCom(), (*dmol)->getUserData<CrgUnit > ()->GetCom());
+         if ( abs(bcs)> _dump_cutoff) continue;
+        countmol=countmol+1;
+        vec dist = (*dmol)->getUserData<CrgUnit > ()->GetCom() - mol->getUserData<CrgUnit > ()->GetCom();
+        vec diff = bcs - dist;
+        for (int j = 0; j != (*dmol)->BeadCount(); j++) {
+                Bead *bj = (*dmol)->getBead(j);
+                //distance vector may have to be shifted by s
+                vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos() + diff);
+                string ss = (*dmol) ->getName();
+                               // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
+                 fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId()+1,(*dmol)->getId()+1,r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+        }
+
+    }
+
+            }
+            else{
             //First write out the xyz coordinates of atoms belonging to molecule N which is in the center of the box in file xyz_N
             data=fopen(filename.c_str(),"w");
+             countmol=countmol+1;
             for (int j = 0; j != mol->BeadCount(); j++) {
                 Bead *bj = mol->getBead(j);
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos());
-                fprintf(data, "%d %d %.6f %.6f %.6f\n",mol->getId(),mol->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+                string ss = mol ->getName();
+                fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId()+1,mol->getId()+1,r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
         }
      MoleculeContainer::iterator dmol;
          for (dmol = atop->Molecules().begin(); dmol != atop->Molecules().end(); dmol++) {
@@ -110,18 +149,21 @@ inline void Etinker::WriteAtoms(Topology *atop, Molecule *mol) //wegen Übergabe
         //We should replace getUserData by a funtion GetCom for molecules
         vec bcs = atop->BCShortestConnection(mol->getUserData<CrgUnit > ()->GetCom(), (*dmol)->getUserData<CrgUnit > ()->GetCom());
          if ( abs(bcs)> _dump_cutoff) continue;
-
+        countmol=countmol+1;
         vec dist = (*dmol)->getUserData<CrgUnit > ()->GetCom() - mol->getUserData<CrgUnit > ()->GetCom();
         vec diff = bcs - dist;
         for (int j = 0; j != (*dmol)->BeadCount(); j++) {
                 Bead *bj = (*dmol)->getBead(j);
                 //distance vector may have to be shifted by s
                 vec r_v = mol->getUserData<CrgUnit > ()->GetCom()-(bj->getPos() + diff);
-               // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
-                 fprintf(data, "%d %d %.6f %.6f %.6f\n",mol->getId(),(*dmol)->getId(),r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
+                string ss = (*dmol) ->getName();
+                // data << mol->getId()<<" "<<(*dmol)->getId()<<" "<< r_v.getX()*10.0 <<" "<< r_v.getY()*10.0 <<" "<< r_v.getZ()*10.0 <<"\n";
+                 fprintf(data, "%s %d %d %.6f %.6f %.6f\n",ss.c_str(),mol->getId()+1,(*dmol)->getId()+1,r_v.getX()*10.0,r_v.getY()*10.0,r_v.getZ()*10.0);
         }
         
     }
+            }
+            fprintf(data, "%d\n",countmol);
     fclose(data);
     //data.close();
 }
