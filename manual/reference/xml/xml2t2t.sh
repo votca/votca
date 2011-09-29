@@ -53,7 +53,7 @@ fi
 xmlfile="$1"
 
 # TODO: this is hacked
-CSGSHARE="../../../ctp/share" # "$(csg_call --show-share)"
+CSGSHARE="$(csg_call --show-share)/ctp"
 [ -f "${CSGSHARE}/xml/$xmlfile" ] || die "${0##*/}: Error, did not find ${CSGSHARE}/xml/$xmlfile"
 
 trunc=""
