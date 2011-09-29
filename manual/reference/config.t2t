@@ -36,7 +36,7 @@
 %!postproc: '(target|link|ref)\(.*?\)\((.*?)\)' '\2'
 %!postproc: 'label\(.*?\)' ''
 
-%!postproc(tex): 'sectionlink\((.*?)\)' 'Return to the detailed descritpion of the \slink{\1}{\\texttt{\1}} \calculator.'
+%!postproc(tex): 'sectionlink\((.*?)\)' '\slink{\1}{\\texttt{\1}}'
 
 %Linebreak
 %%%%%%%%%%%%%%%%

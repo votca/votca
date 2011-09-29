@@ -90,8 +90,7 @@ for name in ${items}; do
   fi
 done
 
-  echo  $link 
-  if  [ -z "$link" ]; then 
-     echo  $link 
-  fi
+if  [ ! -z "$link" ]; then 
+  echo  "Return to the descritpion of $link." 
+fi
 

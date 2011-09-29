@@ -13,3 +13,8 @@ C(r_{ij}) = \frac{  \langle \left( E_i-\langle E\rangle \right)
 where $\langle E\rangle$ is the average site energy. $C(r_{ij})$ is zero if $E_i$ and $E_j$ are uncorrelated and $1$ if they are fully correlated. For a system of randomly oriented point dipoles, the correlation function decays as $1/r$ at large distances~\cite{novikov_cluster_1995}.
 
 For systems with spatial correlations, variations in site energy differences, $\Delta E_{ij}$, of pairs of molecules from the neighbor list are smaller than variations in site energies, $E_i$, of all individual molecules. Since only neighbor list pairs affect transport, the distribution of $\Delta E_{ij}$ rather than that of individual site energies, $E_i$, should be used to characterize energetic disorder.
+
+calc{ecorrelation} takes into account all contributions to the site energy disorder 
+\vskip 0.2cm
+{\noindent \small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe \calc{ecorrelation} }
+
