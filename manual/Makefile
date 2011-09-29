@@ -1,5 +1,6 @@
 SHELL=/bin/bash
-HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{&}/')
+VER=1.3-dev
+HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
 LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
@@ -13,8 +14,7 @@ all: $(NAME).pdf
 dvi: $(NAME).dvi
 ps: $(NAME).ps
 
-
-$(NAME).tex: reference_submake fig_submake programs_submake theory_submake reference_submake input_submake appendix_submake titlepage.tex manual.bib           
+$(NAME).tex: hgid.tex reference_submake fig_submake programs_submake theory_submake reference_submake input_submake appendix_submake titlepage.tex manual.bib           
 
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi

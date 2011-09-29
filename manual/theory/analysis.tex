@@ -37,6 +37,8 @@ For ergodic systems and sufficient sampling times, ensemble and time averages sh
 In many cases, the averaging procedure reflects a specific experimental technique. For example, an ensemble average over several KMC trajectories with different starting conditions corresponds to averaging over injected charge carriers in a time-of-flight experiment.  In what follows, we focus on the single charge carrier (low concentration of charges) case. 
 
 \subsection{Charge density}
+\label{sec:occupation}
+
 For a specific type of particles, the microscopic charge density of a site $i$ is proportional to the occupation probability of the site, $p_i$
 \begin{equation}
  \rho_i = e p_i / V_i\, ,
@@ -54,7 +56,7 @@ It can be used to test whether the system is ergodic or not by correlating $\log
 
 \subsection{Current}
 \label{sec:vaverage}
-
+\index{current}
 If the position of the charge, $\vec{r}$, is an observable, the time evolution of its average $\left<\vec{r}\right>$ is the total current in the system
 \begin{equation}
  \vec{J} = e \left< \vec{v} \right> = e \frac{d \left< \vec{r}
@@ -69,7 +71,7 @@ Symmetrizing this expression we obtain
  \label{equ:current}
 \end{equation}
 where $\vec{r}_{ij} = \vec{r}_{i} - \vec{r}_{j}$. Symmetrization ensures equal flux
-splitting between neighboring sites and absence of local average fluxes in equilibrium. It allows to define a local current through site $i$ as
+splitting between neighboring sites and absence of local average fluxes in equilibrium. It allows to define a local current through site $i$ as\index{current!local}
 \begin{equation}
   \vec{J_i} = \frac{1}{2} e \sum_{ j} \left( p_{j}  \omega_{ji} - p_{i} \omega_{ij} \right) \vec{r}_{ij} .
  \label{equ:site_current}
@@ -77,6 +79,8 @@ splitting between neighboring sites and absence of local average fluxes in equil
 A large value of the local current indicates that the site contributes considerably to the total current. A collection of such sites thus represents most favorable charge pathways~\cite{van_der_holst_modeling_2009}.
 
 \subsection{Mobility and diffusion constant}
+\label{sec:mobility}
+\index{mobility}
 For a single particle, e.g. a charge or an exciton, a zero-field mobility can be determined by studying particle diffusion in the absence of external fields. Using the particle displacement squared, $\Delta {\bm r}_i^2$, as an observable  we obtain
  \begin{equation}
 \begin{split}
