@@ -35,9 +35,6 @@ for file in latex/*.tex; do
     #echo "Required options: see \calcopt{$name}." >> $OUT
 
     # including XML files from the reference section.
-    
-    pwd
-
     echo "\rowcolors{1}{invisiblegray}{white}" >> $OUT
     echo "\input{$REFERENCE_SRC/$name.xml}" >> $OUT
     echo "" >> $OUT
