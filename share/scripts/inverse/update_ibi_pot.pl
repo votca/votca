@@ -57,7 +57,8 @@ my @pot_flags_cur;
 
 #should never happen due to resample, but better check
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
-die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
+die "Different start potential point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
+die "Different end potential point \n" if ( $#r_aim != $#r_cur );
 
 my $outfile="$ARGV[3]";
 my @dpot;
