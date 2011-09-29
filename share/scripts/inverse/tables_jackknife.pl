@@ -64,7 +64,8 @@ while (@ARGV > 0) {
   (readin_table($file_cur,@r_cur,@val_cur,@flag_cur)) || die "$progname: error at readin_table\n";
   #should never happen, but ....
   die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
-  die "Different start point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
+  die "Different start potential point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
+  die "Different end potential point \n" if ( $#r_cur != $#r_delta );
 
   for (my $i=0;$i<=$#r_cur;$i++) {
       $err[$i] += ($val_cur[$i] - $val_full[$i])**2;  # is already nan or we don't change
