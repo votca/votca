@@ -1,10 +1,15 @@
-<!-- rates calculator -->
+<!-- rates calculator: computes hopping rates for all pairs in the neighborlist-->
 
 <tags>
 
 <item>
-<name>rates</name>
-<desc>Computes hopping rates between molecules in the neighborlis</desc>
+<name>sectionlink</name>
+<desc>rates</desc>
+</item>
+
+<item>
+<name>calculatorname</name>
+<desc>rates</desc>
 </item>
 
 <item>

@@ -1,9 +1,14 @@
-<!-- ecoulomb calculator -->
+<!-- ecoulomb calculator: computes electrostatic contributions to site-energies -->
 <tags>
 
 <item>
-<name>ecoulomb</name>
-<desc>Electrostatic contribution to site energies.</desc>
+<name>sectionlink</name>
+<desc>ecoulomb</desc>
+</item>
+
+<item>
+<name>calculatorname</name>
+<desc>ecoulomb</desc>
 </item>
 
 <item>

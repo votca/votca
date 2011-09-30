@@ -1,10 +1,15 @@
-<!-- eoutersphere calculator -->
+<!-- eoutersphere calculator: computes outer sphere reorganization energy for all pairs in the neighborlist-->
 
 <tags>
 
 <item>
-<name>eoutersphere</name>
-<desc>Outer sphere reorganization energy for all pairs</desc>
+<name>sectionlink</name>
+<desc>eoutersphere</desc>
+</item>
+
+<item>
+<name>calculatorname</name>
+<desc>eoutersphere</desc>
 </item>
 
 <item>

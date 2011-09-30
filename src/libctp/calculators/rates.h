@@ -24,22 +24,10 @@
 
 namespace votca { namespace ctp {
 /**
-    \brief Calculates hopping rates using either Marcu's or Jortner's derivation
+    \brief Calculates hopping rates using derivations from Marcus or Jortner
 
 Callname: rates
 
-Hopping rates between all pairs i,j are computed.
-This can be done using the high temperature limit of Marcus theory
-    \f[\omega_{ij}  = \frac{2 \pi}{\hbar}  \frac{ J_{ij}^2 }{\sqrt{ 4 \pi \lambda_{ij} k_B T}} \exp \left[-\frac{\left(\Delta E_{ij}-\lambda_{ij}\right)^2}{4 \lambda_{ij}k_B T} \right]
-    \f]
-where \f$T\f$ is the temperature, \f$\lambda_{ij} = \lambda_{ij}^{int} + \lambda_{ij}^{out}\f$ is the reorganization energy, which is a sum of intra- and inter-molecular (outer-sphere) contributions, \f$\Delta E_{ij}\f$ is the site-energy difference, or driving force, and \f$J_{ij}\f$ is the electronic coupling element, or transfer integral. You should have computed transfer integrals and site energies before.   
-
-Alternatively, Jortner's approach can used by treating both molecules quantum mechanically in presence of a classical outer sphere mode 
-    \f[\omega_{ij}  = \frac{2 \pi}{\hbar}  \frac{ J_{ij}^2 }{\sqrt{ 4 \pi \lambda_{ij}^{out} k_B T}} \sum_{N=0}^\infty \frac{1}{N!} \left( \frac{\lambda_{ij}^{int}}{\hbar\omega^{int}} \right)^{N} \exp \left( - \frac{\lambda_{ij}^{int}}{\hbar\omega^{int}}\right) 
-\exp \left\{ -\frac{ \left[ \Delta E_{ij}-\hbar N\omega^{int} -\lambda_{ij}^{out} \right]^2}{4\lambda_{ij}^{out} k_B T}\right\}\f]
-where \f$T\f$ is the temperature, \f$\lambda_{ij}^{int} , \lambda_{ij}^{out}\f$ are the intramolecular and outer sphere reorganization energies,\f$\omega^{int}\f$ is the averaged vibrational frequency of the intramolecular modes (usuallay assumed to be close to the C-C bond stretch at 0.2eV). \f$\Delta E_{ij}\f$ is the site-energy difference, or driving force, and \f$J_{ij}\f$ is the electronic coupling element, or transfer integral. You should have computed transfer integrals, site energies and outer sphere reorganization energies before.  
-
-Reference: V. May and O. Kuhn, Charge and Energy Transfer Dynamics in Molecular Systems. 
 */
 
 

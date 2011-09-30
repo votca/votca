@@ -12,7 +12,7 @@
 
 <item>
 <name>etinker.order</name>
-<desc>If order is "keep" the ordering of the molecules is not affected. If "top" is chosen, the charged molecule N will be on top of the xyz-N file.</desc>
+<desc>If order is "keep" the ordering of the molecules is not affected. If "top" is chosen, the charged molecule N will be on top of the xyz_N file.</desc>
 </item>
 
 </tags>
