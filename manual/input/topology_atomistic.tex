@@ -1,7 +1,7 @@
 \section{Atomistic topology}
 \label{sec:atomistic}
 
-If you are using \gromacs for generating atomistic configurations, it is possible to directly use the topology file provided by \gromacs (\texttt{topology.tpr}). In this case the \gromacs residue and atom names should be used to specify the \slink{mapping}{coarse-grained topology} and \slink{xmlsegments}{conjugated segments}. 
+If you are using \gromacs for generating atomistic configurations, it is possible to directly use the topology file provided by \gromacs (\texttt{topology.tpr}). In this case the \gromacs residue and atom names should be used to specify the \slink{xmlmap}{coarse-grained topology} and \slink{xmlsegments}{conjugated segments}. 
 
 A custom topology can also be defined using an \xml file. Moreover, it s possible to partially overwrite the information provided in, for example, \gromacs topology file. We will illustrate how to create a custom topology file using \dcvt. The structure of \dcvt, together with atom type definitions, is shown in fig.~\ref{fig:dcv2t}. \dcvt has two thiophene (THI) and two dicyanovinyl (NIT) residues. The pdb file which contains residue types, residue numbering, atom names, atom types, and atom coordinates is shown in listing~\ref{list:pdb}.
 
@@ -22,4 +22,4 @@ A custom topology can also be defined using an \xml file. Moreover, it s possibl
   label=list:pdb, 
   morekeywords={HETATM,THI,NIT},
   caption={\small pdb file of \dcvt.}]%
-{./fig/chemical_structure/dcv2t.pdb}
+{./input/dcv2t/dcv2t.pdb}
