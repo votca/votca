@@ -56,3 +56,11 @@
 
 \newcommand{\calc}[1]{\hyperref[calc:#1]{\texttt{#1}}\xspace}
 
+\def\bibsection{%
+    \chapter*{Bibliography}%
+    \addcontentsline{toc}{chapter}{Bibliography}
+}
+
+\renewcommand*{\showkeyslabelformat}[1]{{\normalfont\tiny\sffamily#1}}
+\definecolor{refkey}{rgb}{1,0,0}
+\definecolor{labelkey}{rgb}{1,0,0}

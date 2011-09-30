@@ -51,16 +51,9 @@ pdfpagemode=UseNone]{hyperref}
 %\usepackage{showidx}
 \usepackage[draft,color,notref,notcite]{showkeys}
 
-\def\bibsection{%
-    \chapter*{Bibliography}%
-    \addcontentsline{toc}{chapter}{Bibliography}
-}
-
 \makeindex
 
-\renewcommand*{\showkeyslabelformat}[1]{{\normalfont\tiny\sffamily#1}}
-\definecolor{refkey}{rgb}{1,0,0}
-\definecolor{labelkey}{rgb}{1,0,0}
+\input{newcommands}
 
 \begin{document}
 
@@ -81,7 +74,6 @@ pdfpagemode=UseNone]{hyperref}
   mathescape=true
 }
 
-\input{newcommands}
 
 \frontmatter
 \include{titlepage}
@@ -97,7 +89,7 @@ pdfpagemode=UseNone]{hyperref}
 
 \linenumbers
 
-\include{theory/introduction}
+\input{theory/introduction}
 
 \chapter{Theoretical background}
 \label{sec:theory}
@@ -111,7 +103,7 @@ pdfpagemode=UseNone]{hyperref}
 \input{theory/rate}
 \input{theory/kmc}
 
-%\input{theory/nondispersive}
+\input{theory/nondispersive}
 \input{theory/analysis}
 \input{theory/correlations}
 
@@ -125,16 +117,15 @@ pdfpagemode=UseNone]{hyperref}
 \input{input/output_dft}
 \input{input/statefile}
 
-\include{reference/reference}
+\input{reference/reference}
 
 \appendix
-%\input{appendix/derivation_jortner}
 \input{appendix/moo_standalone}
 
 \nolinenumbers
 
-\bibliographystyle{achemso}
-\bibliography{literature_short}
+\bibliographystyle{long}
+{\footnotesize \bibliography{literature_short} }
 
 
 \end{document} 
