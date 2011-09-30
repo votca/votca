@@ -68,6 +68,7 @@
     </simulation>
   </inverse>
   <non-bonded>
+    <desc>Interaction specific option for non-bonded AND bonded interactions</desc>
     <name>
       <desc>Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</desc>
     </name>
@@ -89,6 +90,21 @@
     <step>
       <desc>Step size of interval for potential table in which calculations are performed. If step site is too small, lots of statistics is needed ( long runs ). If it's too big, features in the distribtuion/potentials might get lost.</desc>
     </step>
+    <fmatch>
+      <desc>Force matching options</desc>
+      <min>
+	<desc>Minimum value of interval for distribution sampled in atomistic MD simulation. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the distance to the rdf start. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).</desc>
+      </min>
+      <max>
+	<desc>Maximum value of interval for distribution sampled in atomistic MD simulation. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the cut-off of the interaction.</desc>
+      </max>
+      <step>
+	<desc>grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small either, otherwise you will have unsampled bins which result in an ill-defined equation system and NaNs in the output.</desc>
+      </step>
+      <out_step>
+	<desc>Grid spacing for the output grid. Normally, one wants to have this parameter smaller than fmatch.step, to have a smooth curve, without additional spline interpolation. As a rule of thumb we normally use fmatch.out_step which is approximately 5 times smaller than fmatch.step.</desc>
+      </out_step>
+    </fmatch>
     <inverse>
       <desc>Contains all information relevant to iterative process</desc>
       <target>
@@ -103,15 +119,49 @@
       <do_potential>1
         <desc>Update cycle for the potential update. 1 means update, 0 don't update. 1 1 0 means update 2 iterations, then don't one iteration update, then repeat.</desc>
       </do_potential>
+      <espresso>
+	<desc>Espresso specific options for this interations</desc>
+        <table>
+	  <desc>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso blockfile needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</desc>
+	</table>
+	<index1>
+	  <desc>Index list of type1 -- Name of the Tcl variable containing all index1 particles that is contained in the espresso blockfile.</desc>
+	</index1>
+	<index2>
+	  <desc>Index list of type2 -- Name of the Tcl variable containing all index1 particles that is contained in the espresso blockfile.</desc>
+	</index2>
+      </espresso>
+      <gromacs>
+	<desc>Gromacs specific options for this interations</desc>
+        <table>
+	  <desc>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step.</desc>
+	</table>
+      </gromacs>
+      <imc>
+        <desc>ection containing inverse monte carlo specific options.</desc>
+	<group>
+	  <desc>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups.</desc>
+	</group>
+      </imc>
       <post_add>
 	<desc>Additional post processing of U after dU added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</desc>
       </post_add>
       <post_add_options>
 	<desc>Contains all options of post add scripts</desc>
 	<convergence>
-	  <weight>1</weight>
-	  <what>dist</what>
+	  <weight>1
+	    <desc>weight factors for the convergence of this interaction, should be a list of same length as inverse.post_add_options.convergence.what</desc>
+	  </weight>
+	  <what>dist
+	    <desc>list from what to calc the convergence: dist pot, ..</desc>
+	  </what>
 	</convergence>
+	<copyback>
+	  <desc>Contains all options of the postadd copyback sripts</desc>
+	  <filelist>
+	    <desc>File to be copied to back to maindir</desc>
+	  </filelist>
+	</copyback>
 	<overwrite>
 	  <desc>Contains all options of the overwrite postadd scripts</desc>
 	  <do>1
@@ -119,7 +169,19 @@
 	  </do>
 	</overwrite>
 	<plot>
-	  <fd>8</fd>
+	  <desc>Contains all options of the plot postadd scripts</desc>
+	  <fd>8
+	    <equi>file descriptor to use, make it unique if you want to plot multiple things</equi>
+	  </fd>
+	  <gnuplot_opts>
+	    <desc>extra options to give to gnuplot_bin like  -persist or -geometry</desc>
+	  </gnuplot_opts>
+	  <kill>
+	    <desc>kill all processes with that name before ploting (e.g. gnuplot_x11), this is more reliable than using named pipes</desc>
+	  </kill>
+	  <script>
+	    <desc>plot script to give to gnuplot</desc>
+	  </script>
 	</plot>
       </post_add_options>
       <post_update>
@@ -134,16 +196,40 @@
 	</extrapolate>
 	<pressure>
 	  <desc>Contains all options of the pressure correction scripts</desc>
-	  <do>1</do>
-	  <type>simple</type>
+	  <do>1
+	    <desc>Update cycle for the pressure correction (1 do, 0 do not). To do pressure correction every third step specify "0 0 1", similar to do_potential</desc>
+	  </do>
+	  <simple>
+	    <desc>Contains all options of the simple pressure correction</desc>
+	    <scale>
+	      <desc>slope of the simple pressure correction</desc>
+	    </scale>
+	  </simple>
+	  <type>simple
+	    <desc>Pressure correction type, can be simple or wjk</desc>
+	  </type>
 	  <wjk>
-	    <scale>1.0</scale>
+	    <desc>Contains all options of the wjk pressure correction</desc>
+	    <scale>1.0
+	      <desc>extra scaling factor of pressure wjk correction</desc>
+	    </scale>
 	  </wjk>
 	</pressure>
-	<scale>1.0</scale>
+	<scale>1.0
+	  <desc>scale factor for the update</desc>
+	</scale>
 	<smooth>
-	  <iterations>1</iterations>
+	  <desc>Contains all options of the post_update smooth script</desc>
+	  <iterations>1
+	    <desc>number of triangular smooth to be performed</desc>
+	  </iterations>
 	</smooth>
+	<splinesmooth>
+	  <desc>Contains all options of the post_update spline smooth script</desc>
+	  <step>
+	    <desc>grid spacing for spline fit when doing spline smoothing</desc>
+	  </step>
+	</splinesmooth>
       </post_update_options>
       <simplex>
 	<density>
@@ -154,7 +240,25 @@
 	<target_weights>1</target_weights>
       </simplex>
       <tf>
-	<molname>*</molname>
+	<desc>Contains all information relevant to thermoforce iteration</desc>
+	<spline_start>
+	  <desc>Start of the spline used to smooth the density</desc>
+	</spline_start>
+	<spline_end>
+	  <desc>End of the spline used to smooth the density</desc>
+	</spline_end>
+	<spline_step>
+	  <desc>Grid of the spline used to smooth the density</desc>
+	</spline_step>
+	<molname>*
+	  <desc>Molecule name of this interaction used in gromacs topology</desc>
+	</molname>
+	<prefactor>
+	  <desc>Prefactor for the thermoforce (f=-prefactor * grad density)</desc>
+	</prefactor>
+	<cg_prefactor>
+	  <desc>Prefactor for the thermoforce will be linear interpolated with tf.prefactor</desc>
+	</cg_prefactor>
       </tf>
     </inverse>
   </non-bonded>
