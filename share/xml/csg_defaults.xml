@@ -1,5 +1,6 @@
 <cg>
   <inverse>
+    <desc>general options for inverse script</desc>
     <convergence_check>
       <type>none</type>
     </convergence_check>
@@ -19,22 +20,43 @@
       <bin>gnuplot</bin>
     </gnuplot>
     <gromacs>
-      <conf>conf.gro</conf>
-      <conf_out>confout.gro</conf_out>
+      <desc>gromacs specific options </desc>
+      <conf>conf.gro
+	<desc>Name of the coordinate file read by grompp</desc>
+      </conf>
+      <conf_out>confout.gro
+	<desc>Name of the original outcome coordinate written by mdrun</desc>
+      </conf_out>
       <cutoff_check>yes</cutoff_check>
       <density>
 	<with_errors>no</with_errors>
       </density>
-      <equi_time>0</equi_time>
-      <first_frame>0</first_frame>
+      <equi_time>0
+	<desc>begin analysis after this time when using gromacs (max of this and first_frame is used)</desc>
+      </equi_time>
+      <first_frame>0
+	<desc> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</desc>
+      </first_frame>
       <g_energy>
 	<bin>g_energy</bin>
       </g_energy>
+      <gmxrc>
+	<desc>GMXRC to source at the startup</desc>
+      </gmxrc>
       <grompp>
-	<bin>grompp</bin>
+	<bin>grompp
+	  <desc> Name (or absolute path) of the grompp binary</desc>
+	</bin>
+	<opts>
+	  <desc> Additional options to Gromacs grompp (e.g. -maxwarn 1)</desc>
+	</opts>
       </grompp>
-      <index>index.ndx</index>
-      <mdp>grompp.mdp</mdp>
+      <index>index.ndx
+	<desc> Gromacs grompp index file to used by grompp</desc>
+      </index>
+      <mdp>grompp.mdp
+	<desc> Gromacs mdp fie to be used by grompp</desc>
+      </mdp>
       <mdrun>
 	<checkpoint>state.cpt</checkpoint>
 	<command>mdrun</command>
@@ -44,9 +66,15 @@
 	<with_errors>no</with_errors>
       </rdf>
       <temp_check>yes</temp_check>
-      <topol>topol.top</topol>
-      <topol_out>topol.tpr</topol_out>
-      <traj_type>xtc</traj_type>
+      <topol>topol.top
+	<desc> Gromacs topology file read by grompp</desc>
+      </topol>
+      <topol_out>topol.tpr
+	<desc> Gromacs binary topology file to be written by grompp</desc>
+      </topol_out>
+      <traj_type>xtc
+	<desc> Gromacs trajectory type (xtc/trr) file to use</desc>
+      </traj_type>
     </gromacs>
     <imc>
       <matlab>
@@ -59,16 +87,30 @@
 	<bin>octave</bin>
       </octave>
     </imc>
-    <initial_configuration>laststep</initial_configuration>
+    <initial_configuration>laststep
+      <desc>what initial configuration to use in every step: maindir/laststep</desc>
+    </initial_configuration>
+    <kBT>
+      <desc> kBT in simulation progam units (XXX K *0.00831451 for gromacs)</desc>
+    </kBT>
     <log_file>inverse.log</log_file>
+    <program>gromacs
+      <desc>simulation package to be used (gromacs/espresso)</desc>
+    </program>
     <restart_file>restart_points.log</restart_file>
     <simulation>
       <background>no</background>
       <tasks>auto</tasks>
     </simulation>
   </inverse>
+  <nbsearch>grid
+    <desc>Grid search algorithm, simple (N square search) or grid</desc>
+  </nbsearch>
+  <bonded>
+    <desc>Interaction specific option for bonded interactions, for now see the cg.non-bonded section</desc>
+  </bonded>
   <non-bonded>
-    <desc>Interaction specific option for non-bonded AND bonded interactions</desc>
+    <desc>Interaction specific option for non-bonded interactions</desc>
     <name>
       <desc>Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</desc>
     </name>
