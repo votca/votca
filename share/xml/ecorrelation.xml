@@ -7,6 +7,11 @@
 </item>
 
 <item>
+<name>calculatorname</name>
+<desc>ecorrelation</desc>
+</item>
+
+<item>
 <name>ecorrelation.min</name>
 <desc>Minimum of the energy interval, eV.</desc>
 </item>
