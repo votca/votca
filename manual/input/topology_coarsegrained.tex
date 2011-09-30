@@ -1,11 +1,15 @@
-\section{Coarse-grained topology}
-\label{sec:coarsegrained}
+\section{Mapping file}
+\label{sec:xmlmap}
 
-Definitions of rigid fragments are stored in a separate \xml file. This file is used by the program \ctpmap which converts a supplied atomistic trajectory to a coarse-grained one. The coarse-grained trajectory contains positions, names, types, and orientations of rigid fragments. It is used to construct a neighbor list. This list comprises of pairs of molecules with a direct link in a graph used for kinetic Monte Carlo simulations. Backward and forward rates must be calculated for all neighbor list pairs.  
+The mapping file (referred here as \xmlcsg) is used by the program \ctpmap to convert an atomistic trajectory to a coarse-grained one. The coarse-grained trajectory contains positions, names, types, and orientations of rigid fragments. \xmlcsg contains definitions of rigid fragments (coarse-grained beads) and identifies to what conjugated segment a particular rigid fragment belongs. The description of the mapping options is given in table \ref{tab:map}. An example of \xmlcsg for a \dcvt molecule is shown in listing~\ref{list:map}. 
 
-An example of the input file for a \dcvt molecule is shown in listing~\ref{list:map}. 
+\begin{table}[ht]
+\caption{Description of the \xml mapping file.}
+\label{tab:map}
+\rowcolors{1}{invisiblegray}{white} {\small \input{reference/xml/map.xml}}
+\end{table}
 
-\clearpage
+\vfill
 
 \lstinputlisting[
  language=XML,
@@ -13,27 +17,7 @@ An example of the input file for a \dcvt molecule is shown in listing~\ref{list:
  commentstyle=\color{gray}\ttfamily,
  label=list:map, 
  morekeywords={cg_molecule,cg_beads,cg_bead,crgunitname,bead,beads,type,topology,name,ident,maps,map,mapping,weights,position,qm,symmetry},
- caption={\small Partitioning of DCV2T on rigid fragments. Each fragment is defined by a list of atoms.}]%
+ caption={Examle of \xmlcsg for \dcvt. Each rigid fragment (coarse-grained bead) is defined by a list of atoms. Atom numbers, names, and residue names should correspond to those used in \gromacs topology (see the corresponing listing \ref{list:pdb} of the pdb file).}]%
 {./input/map.xml}
 
-
-\ctpmap partitions the system on conjugated segments and rigid fragments:
-\begin{verbatim}
-  ctp_map --top topology.tpr -c 15 -cg cgmap.xml --trj traj.trr
-\end{verbatim}
-The input are the gromacs topology and trajectory files, a mapping file, a cutoff distance for defining nearest neighbours and a file describing the charge unit types. The output includes a neighbour list, labelled by the gromacs step number, and a binary 
-file and a state file with the mapped onto conjugated segments system. 
-
-In order to check the mapping one can use the \calc{tdump} \calculator
-\begin{verbatim}
-  ctp_run --exec  "dumptraj" -cg map.xml 
-\end{verbatim}
-
-This program will read in the state file created by \ctpmap together with a conjugated segment definitions and will create two output trajectory files corresponding to the coarse-grained and back-mapped topologies. The back-maping of the coase-grained topology is performed using stored rigid fragment positions and orientations. It is suggested to view all three trajectories (atomistic, coarse grained, and quantum) on top of each other to check the mapping.
-
-
-%\begin{table}
-%{\small 
-%\begin{tabular}{p{3cm} p{10cm}}
-% 
-%\end{tabular}
+\vfill

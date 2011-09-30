@@ -1,16 +1,13 @@
-\section{Conjugated segments and rigid fragments}
+\section{Conjugated segments}
+\label{sec:xmlsegments}
 
-Conjugated segments are described in a separate \xml file. An example for \dcvt is shown in listing~\ref{list:conjugated_segments}.
+The file describing hopping sites, or conjugated segments, is used by practically all programs and calculators. It links the coarse-grained trajectory (positions and orientations of rigid fragments) and quantum-mechanical descriptions of all conjugated segments. The description of this \xml file (\xmlsegments) is given in table \ref{tab:segments}. An example for \dcvt is shown in listing~\ref{list:segments}.
 
-
-
-\clearpage
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\textwidth]{./fig/chemical_structure/dcv2t_gaussian} 
-\caption{\small Atom order of \dcvt in the atomistic topology (MD) and qunatum chemical calculations (QM). The  link between two is established in the description of a conjugated segment shown in listing~\ref{list:conjugated_segments}.}
-\label{fig:dcv2t_qm}
-\end{figure}
+\begin{table}[h]
+\caption{Description of conjugated segments (\xmlsegments).} 
+\label{tab:segments}
+\rowcolors{1}{invisiblegray}{white} {\small \input{reference/xml/segments.xml} }
+\end{table}
 
 \lstset{
   language=XML,
@@ -25,9 +22,9 @@ Conjugated segments are described in a separate \xml file. An example for \dcvt 
 }
 
 \lstinputlisting[
- label=list:conjugated_segments, 
- caption={\small \xml file describing conjugated segments. Note that  the mapping and weights for each segment are separated by '':''. 
+ label=list:segments, 
+ caption={\small \xml file describing \slink{segments}{conjugated segments}. Note that the mapping and weights for each segment are separated by a colon. 
 }]%
 {./input/segments.xml}
-\clearpage
+
 

@@ -1,6 +1,5 @@
-
 \section{Conjugated segments and rigid fragments}
-\label{sec:conjugated_segments}
+\label{sec:segments}
 
 \begin{figure}
 \includegraphics[width=\linewidth]{fig/conjugated_segment/fragment_segment}
@@ -24,3 +23,8 @@ To partition the system on hopping sites \ctpmap program is used
 \vskip 0.1cm
 It reads in the \gromacs topology (\topology) and trajectory (\trajectory) files, definitions of coarse-grained beads (\xmlcsg) and conjugated segments (\xmlsegments) and outputs coordinates of hopping sites and orientations of rigid fragments to the  state file (\sqlstate).
 
+In order to check the mapping one can use the \calc{tdump} \calculator
+\vskip 0.1cm
+{\noindent \small \ctprun \csg \xmlcsg \exe \calc{tdump} }
+\vskip 0.1cm
+It reads in the state file created by \ctpmap together with a conjugated segment definitions and creates two output trajectory files corresponding to the coarse-grained and back-mapped topologies. The back-maping of the coase-grained topology is performed using stored rigid fragment positions and orientations. To check the mapping, it is useful to superimpose all three (atomistic, coarse grained, and quantum) trajectories.

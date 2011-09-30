@@ -1,27 +1,25 @@
 \section{Atomistic topology}
 \label{sec:atomistic}
-\subsection{\gromacs topology}
-If you are using \gromacs for generating atomistic configurations, it is possible to directly use the topology file provided by \gromacs (\texttt{topology.tpr}). In this case the residue and atom names should match those used  in the coarse-grained topology and conjugated segment definitions. 
 
-\subsection{Custom topology}
-The custom topology can also be defined using an \xml file. Moreover, it s possible to partially overwrite the information provided in, for example, \gromacs topology file. We will illustrate how to create a custom topology file using \dcvt. The structure of \dcvt, together with atom type definitions, is shown in fig.~\ref{fig:dcv2t_at}. \dcvt has two thiophene (THI) and two dicyanovinyl (NIT) residues. The pdb file which contains residue types, residue numbering, atom names, atom types, and atom coordinates is shown in listing~\ref{list:pdb}.
+If you are using \gromacs for generating atomistic configurations, it is possible to directly use the topology file provided by \gromacs (\texttt{topology.tpr}). In this case the \gromacs residue and atom names should be used to specify the \slink{mapping}{coarse-grained topology} and \slink{xmlsegments}{conjugated segments}. 
 
-\clearpage
+A custom topology can also be defined using an \xml file. Moreover, it s possible to partially overwrite the information provided in, for example, \gromacs topology file. We will illustrate how to create a custom topology file using \dcvt. The structure of \dcvt, together with atom type definitions, is shown in fig.~\ref{fig:dcv2t}. \dcvt has two thiophene (THI) and two dicyanovinyl (NIT) residues. The pdb file which contains residue types, residue numbering, atom names, atom types, and atom coordinates is shown in listing~\ref{list:pdb}.
+
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.8\textwidth]{./fig/chemical_structure/dcv2t_atom_types}
-\caption{\small \dcvt with atoms labelled according to \texttt{residue\_number:residue\_name:atom\_name}. There are four residues and two residue types: thiophene (THI) and dicyanovinyl (NIT). The corresponding pdb file is shown in listing~\ref{list:pdb}.}
-\label{fig:dcv2t_at}
+\includegraphics[width=0.45\textwidth]{./fig/chemical_structure/dcv2t_atom_types}\,
+\includegraphics[width=0.45\textwidth]{./fig/chemical_structure/dcv2t_gaussian}
+\caption{\small (a) \dcvt with atoms labelled according to \texttt{residue\_number:residue\_name:atom\_name}. There are four residues and two residue types: thiophene (THI) and dicyanovinyl (NIT). The corresponding pdb file is shown in listing~\ref{list:pdb}. (b) Atom numbering is used to split conjugated segments on rigid fragments and to link atomistic and quantum descriptions.}
+\label{fig:dcv2t}
 \end{figure}
 
 \lstinputlisting[
   language=XML,
-  basicstyle=\ttfamily\small,
-  stringstyle=\ttfamily\small,
+  basicstyle=\ttfamily\footnotesize,
+  stringstyle=\ttfamily\footnotesize,
   showstringspaces=false,
   frame=lines,
   label=list:pdb, 
   morekeywords={HETATM,THI,NIT},
   caption={\small pdb file of \dcvt.}]%
 {./fig/chemical_structure/dcv2t.pdb}
-\clearpage

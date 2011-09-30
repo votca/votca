@@ -42,7 +42,8 @@
 %%%%%%%%%%%%%%%%
 
 %empty line to noindent
-%!postproc(tex): '^\s*$' '\n\\noindent '
+%%!postproc(tex): '^\s*$' '\n\\noindent '
+%!postproc(tex): '^\s*$' '%'
 
 %we do not like the default item marks, so we make them empty
 %!postproc(tex): '\\item' '\item[ ]'

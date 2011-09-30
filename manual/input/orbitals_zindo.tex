@@ -1,12 +1,9 @@
 \section{Molecular orbitals}
 If semi-empirical method is used to calculate electronic coupling elements, molecular orbitals of all molecules shall be supplied. They can be generated using \gaussian program. The \gaussian input file for \dcvt is shown in listing~\ref{list:zindo_orbitals}. Provided with this input, \gaussian will generate \texttt{fort.7} file which contains the molecular orbitals of a \dcvt. This file can be renamed to \texttt{\dcvt.orb}. Note that the order of the atoms in the input file and the order of coefficients should always match. Therefore, the coordinate part of the input file must be supplied together with the orbitals. We will assume the coordinates, in the format \texttt{atom\_type: x y z}, is saved to the \texttt{\dcvt.xyz} file.
 
-\clearpage
-\vskip 0.1cm
-\noindent
 \lstinputlisting[
  label=list:zindo_orbitals, 
- basicstyle=\ttfamily\small,
+ basicstyle=\ttfamily\footnotesize,
  morekeywords={chk,mem,punch,int,S,C,S,N,H},
  showstringspaces=false,
  keepspaces=true,
