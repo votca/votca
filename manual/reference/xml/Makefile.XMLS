@@ -1,7 +1,7 @@
 SHELL=/bin/bash
-CTP_SHARE=../../../ctp/share
+VOTCASHARE=$(csg_call --show-share)               
 #XMLS:=$(shell ls `csg_call --show-share`/xml/*.xml | xargs -n1 basename )
-XMLS:=$(shell ls '$(CTP_SHARE)'/xml/*.xml | xargs -n1 basename )
+XMLS:="map.xml options.xml segments.xml"
 
 all: Makefile.incl
 
