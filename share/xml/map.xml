@@ -7,7 +7,7 @@
 
 <item>
 <name>cg_molecule.name</name>
-<desc>Name of the molecule in the coarse-grained model. Useful for multicomponent systems.</desc>
+<desc>Name of the molecule in the coarse-grained model.</desc>
 </item>  
 
 <item>
@@ -17,7 +17,7 @@
 
 <item>
 <name>cg_molecule.topology</name>
-<desc>Section describing the partitioning of the molecule on rigid fragments. Atom and residue names/types must correspond to those used in the atomistic representation.</desc>
+<desc>Partitioning of the molecule on rigid fragments. Atom and residue names/types must correspond to the atomistic representation.</desc>
 </item>  
 
 <item>

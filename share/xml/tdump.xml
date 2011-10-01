@@ -3,6 +3,11 @@
 <tags>
 
 <item>
+<name>sectionlink</name>
+<desc>segments</desc>
+</item>
+
+<item>
 <name>tdump</name>
 <desc>Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories</desc>
 </item>
