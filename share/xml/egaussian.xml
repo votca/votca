@@ -1,24 +1,23 @@
-<!-- egaussian calculator -->
-<tags>
+<egaussian>
+	
+	<description>Generates or modifies Coulomb site energies</description>
+	
+	<sectionlabel></sectionlabel>
 
-<item>
-<name>egaussian</name>
-<desc>Modifies the Coulomb contribution to site energies.</desc>
-</item>
+	<item>
+		<name>method</name>
+		<description>**gaussian** - generates a gaussian distribution of width sigma. If a correlation and a cutoff parameters are provided then a new site energy is computed for every site by averaging energies of the neighboring, up to a cutoff, sites. The new site energies are then uniformly scaled in order to reproduce the initial width (sigma) of the site energy distribution. **shuffle** - randomly shuffles the (existing) site energies in order to remove spatial correlations.</description>
+	</item>
 
-<item>
-<name>egaussian.method</name>
-<desc>**gaussian** - generates a gaussian distribution of width sigma. If a correlation and a cutoff parameters are provided then a new site energy is computed for every site by averaging energies of the neighboring, up to a cutoff, sites. The new site energies are then uniformly scaled in order to reproduce the initial width (sigma) of the site energy distribution. **shuffle** - randomly shuffles the (existing) site energies in order to remove spatial correlations.</desc>
-</item>
+	<item>
+		<name>sigma</name>
+		<description>Variance of site energies.</description>
+	</item>
 
-<item>
-<name>egaussian.sigma</name>
-<desc>Variance of site energies.</desc>
-</item>
+	<item>
+		<name>correlation</name>
+		<description>Correlation of site energies.</description>
+	</item>
 
-<item>
-<name>egaussian.correlation</name>
-<desc>Correlation of site energies.</desc>
-</item>
+</egaussian>
 
-</tags>

@@ -1,29 +1,28 @@
-<!-- ihistogram calculator -->
-<tags>
+<ihistogram>
 
-<item>
-<name>ihistogram</name>
-<desc>Histogram of transfer integrals for all pairs from neighbour list.</desc>
-</item>
+	<description>Histogram of transfer integrals for all pairs from neighbour list.</description>
 
-<item>
-<name>ihistogram.min</name>
-<desc>Minimum of the energy interval, eV.</desc>
-</item>
+	<sectionlabel></sectionlabel>
 
-<item>
-<name>ihistogram.max</name>
-<desc>Maximum of the energy interval, eV.</desc>
-</item>
+	<item>
+		<name>min</name>
+		<description>Minimum of the energy interval, eV.</description>
+	</item>
 
-<item>
-<name>ihistogram.nbins</name>
-<desc>Number of bins.</desc>
-</item>
+	<item>
+		<name>max</name>
+		<description>Maximum of the energy interval, eV.</description>
+	</item>
 
-<item>
-<name>ihistogram.file</name>
-<desc>Output file.</desc>
-</item>
+	<item>
+		<name>nbins</name>
+		<description>Number of bins.</description>
+	</item>
 
-</tags>
+	<item>
+		<name>file</name>
+		<description>Output file.</description>
+	</item>
+
+
+</ihistogram>

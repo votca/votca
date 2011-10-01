@@ -42,8 +42,6 @@ public:
     Ecorrelation() {};
     ~Ecorrelation() {};
 
-    const char *Description() { return "Normalized site energy correlation function"; }
-
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
     void EndEvaluate(QMTopology *top);

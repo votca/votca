@@ -1,8 +1,12 @@
-<tags>
+<oboltzmann>
 
-<item>
-<name>oboltzmann</name>
-<desc></desc>
-</item>
+	<description>Site occupations as a Boltzmann distribution of site energies</description>
 
-</tags>
+	<sectionlabel>oboltzmann</sectionlabel>
+
+	<item>
+		<name></name>
+		<description></description>
+	</item>
+
+</oboltzmann>

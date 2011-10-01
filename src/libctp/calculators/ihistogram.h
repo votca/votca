@@ -39,7 +39,7 @@ public:
     CalcHistIntegrals() {};
     ~CalcHistIntegrals() {};
 
-    const char *Description() { return "Histogram of transfer integrals of neighbor list pairs"; }
+//    const char *Description() { return "Histogram of transfer integrals of neighbor list pairs"; }
 
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);

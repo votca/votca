@@ -38,20 +38,24 @@ public:
         QMApplication::Initialize();
         AddProgramOptions("calculator execution")
             ("exec", boost::program_options::value<string>(), "list of calculators separated by commas or spaces")
-            ("list", "show available calculators");
+	    ("list", "lists available calculators");
+            //("list", boost::program_options::value<string>(), "lists available calculators or their long descritions");
     }
 
     //TODO: Support for XML-File based options
     bool EvaluateOptions() {
         if(OptionsMap().count("list")) {
-            cout << "Available calculators:\n\n";
+            cout << "Available calculators. Options: ctp_run --list <calculator> \n";
             for(CalculatorFactory::assoc_map::const_iterator iter=Calculators().getObjects().begin();
                     iter != Calculators().getObjects().end(); ++iter) {
                 QMCalculator *tmp = iter->second();                
-                cout << " * " << iter->first << ", " << tmp->Description() << endl;
+                cout << "  " << setw(15) << setiosflags(ios::left) << iter->first << "\t" << tmp->Description( (iter->first).c_str() ) << endl;
                 delete tmp;
             }
-            cout << "\n";
+            /*cout << "\n ctp_run --list name1, name2, ... provides longer descriptions \n";
+ 	    /Tokenizer tl(OptionsMap()["list"].as<string>(), " ,\n\t");
+            for (Tokenizer::iterator n = tl.begin(); n != tl.end(); ++n) 
+		  cout << *n << endl; */
             StopExecution();
             return true;
         }

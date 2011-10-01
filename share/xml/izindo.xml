@@ -1,14 +1,12 @@
-<!-- izindo calculator -->
-<tags>
+<izindo>
+  
+	<description>Semi-empirical electronic coupling elements for all neighbor list pairs</description>
 
-<item>
-<name>izindo</name>
-<desc>Semi-empirical electronic coupling elements for all neighbor list pairs</desc>
-</item>
+	<sectionlabel>izindo</sectionlabel>
 
-<item>
-<name>izindo.basisset</name>
-<desc>Basis set used to generate monomer orbitals. Default is **ZINDO**. **Shall be moved from the charge unit description to the calculator options**</desc>
-</item>
+	<item>
+		<name>basisset</name>
+		<description>Basis set used to generate monomer orbitals. Default is **ZINDO**. **Shall be moved from the charge unit description to the calculator options**</description>
+	</item>
 
-</tags>
+</izindo>

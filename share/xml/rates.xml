@@ -1,35 +1,27 @@
-<!-- rates calculator: computes hopping rates for all pairs in the neighborlist-->
+<rates>
+  
+	<description>Hopping rates using classical or semi-classical expression</description>
 
-<tags>
+	<sectionlabel>rates</sectionlabel>
 
-<item>
-<name>sectionlink</name>
-<desc>rates</desc>
-</item>
+	<item>
+		<name>temperature</name>
+		<description>Temperature for rates given in Kelvin</description>
+	</item>
 
-<item>
-<name>calculatorname</name>
-<desc>rates</desc>
-</item>
+	<item>
+		<name>method</name>
+		<description>Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second fallows the derivation by Jortner and Bixon</description>
+	</item>
 
-<item>
-<name>rates.temperature</name>
-<desc>Temperature for rates given in Kelvin</desc>
-</item>
+	<item>
+		<name>nmaxvib</name>
+		<description>If the method of choice is **jortner**, the maximal number of excited vibrations on the molecules has to be specified as an integer for the summation. The default value is 20</description>
+	</item>
 
-<item>
-<name>rates.method</name>
-<desc>Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second fallows the derivation by Jortner and Bixon</desc>
-</item>
+	<item>
+		<name>omegavib</name>
+		<description>If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV</description>
+	</item>
 
-<item>
-<name>rates.nmaxvib</name>
-<desc>If the method of choice is **jortner**, the maximal number of excited vibrations on the molecules has to be specified as an integer for the summation. The default value is 20</desc>
-</item>
-
-<item>
-<name>rates.omegavib</name>
-<desc>If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV</desc>
-</item>
-
-</tags>
+</rates>

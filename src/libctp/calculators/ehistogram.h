@@ -35,7 +35,7 @@ public:
     Ehistogram() {};
     ~Ehistogram() {};
 
-    const char *Description() { return "Histogram of site energy differences of neighbor list pairs"; }
+//    const char *Description() { return "Histogram of site energy differences of neighbor list pairs"; }
 
     void Initialize(QMTopology *top, Property *options);
     void EvaluatePair(QMTopology *top, QMPair *pair);

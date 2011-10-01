@@ -29,7 +29,20 @@ public:
     QMCalculator() {};
     virtual ~QMCalculator() {};
 
-    virtual const char *Description() = 0;
+    //virtual const char *Description() = 0;
+    const char *Description( const char *name ) {
+        // loading the documentation xml file from VOTCASHARE
+        char *votca_share = getenv("VOTCASHARE");
+        if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+        string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/")+name+string(".xml");
+        try {
+            Property options;
+            load_property_from_xml(options, xmlFile);
+            return (options.get(name+string(".description")).as<string>()).c_str();
+        } catch(std::exception &error) {
+            return (string("XML file or description tag missing: ")+xmlFile).c_str();
+        }
+    }
 
     virtual void Initialize(QMTopology *top, Property *options) {}
     virtual bool EvaluateFrame(QMTopology *top) { return true; }

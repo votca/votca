@@ -38,7 +38,7 @@ public:
     Egaussian() {};
     ~Egaussian() {};
 
-    const char *Description() { return "Generates or modifies Coulomb site energies."; }
+//    const char *Description() { return "Generates or modifies Coulomb site energies."; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);

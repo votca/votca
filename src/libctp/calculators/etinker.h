@@ -45,7 +45,7 @@ public:
     Etinker() {};
     ~Etinker() {};
 
-    const char *Description() { return "Tinker input: xyz coordinates [Angstroem] with a given molecule centered in the box."; }
+//    const char *Description() { return "Tinker input: xyz coordinates [Angstroem] with a given molecule centered in the box."; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);

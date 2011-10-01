@@ -35,7 +35,7 @@ public:
     Eoutersphere() {};
     ~Eoutersphere() {};
 
-    const char *Description() { return "Outer-sphere reorganization energy"; }
+//    const char *Description() { return "Outer-sphere reorganization energy"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);

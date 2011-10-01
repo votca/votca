@@ -1,34 +1,29 @@
-<!-- ecorrelation: Normalized site energy correlation function -->
-<tags>
+<ecorrelation>
+  
+	<description>Normalized site energy correlation function</description>
+	
+	<sectionlabel>ecorrelation</sectionlabel>
+	
+	<item>
+		<name>min</name>
+		<default></default>
+		<description>Minimum of the energy interval, eV</description>
+	</item>
 
-<item>
-<name>sectionlink</name>
-<desc>ecorrelation</desc>
-</item>
+	<item>
+		<name>max</name>
+		<default></default>
+		<description>Maximum of the energy interval, eV</description>
+	</item>
 
-<item>
-<name>calculatorname</name>
-<desc>ecorrelation</desc>
-</item>
+	<item>
+		<name>nbins</name>
+		<description>Number of bins</description>
+	</item>
 
-<item>
-<name>ecorrelation.min</name>
-<desc>Minimum of the energy interval, eV.</desc>
-</item>
+	<item>
+		<name>file</name>
+		<description>Output file</description>
+	</item>
 
-<item>
-<name>ecorrelation.max</name>
-<desc>Maximum of the energy interval, eV.</desc>
-</item>
-
-<item>
-<name>ecorrelation.nbins</name>
-<desc>Number of bins.</desc>
-</item>
-
-<item>
-<name>ecorrelation.file</name>
-<desc>Output file.</desc>
-</item>
-
-</tags>
+</ecorrelation>

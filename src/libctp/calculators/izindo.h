@@ -37,7 +37,7 @@ public:
     Izindo() {};
     ~Izindo() {};
 
-    const char *Description() { return "Semi-empirical electronic coupling elements for all neighbor list pairs"; }
+    //const char *Description() { return "Semi-empirical electronic coupling elements for all neighbor list pairs"; }
 
     void EvaluatePair(QMTopology *top, QMPair *pair);
 };
