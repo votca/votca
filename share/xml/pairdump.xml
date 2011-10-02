@@ -1,23 +1,22 @@
-<tags>
+<pairdump>
 
-<item>
-<name>pairdump</name>
-<desc>Dumps the coordinates of pairs of atoms from the neighbor list. Used as input in DFT-based calculations of electronic couplings.</desc>
-</item>
+	<description>Coordinates of molecules and pairs from the neighbor list</description>
 
-<item>
-<name>pairdump.format</name>
-<desc>**xyz** or **pdb** formats.</desc>
-</item>
+	<sectionlabel>pairdump</sectionlabel>
 
-<item>
-<name>pairdump.subfolders</name>
-<desc>If **true** creates the required by ctp_dipro directory structure. Otherwise dumps all neighbor list pairs into the current folder.</desc>
-</item>
+	<item>
+		<name>format</name>
+		<description>**xyz** or **pdb** formats</description>
+	</item>
 
-<item>
-<name>pairdump.molecules</name>
-<desc>If **true** outputs single molecules, otherwise only pairs.</desc>
-</item>
+	<item>
+		<name>subfolders</name>
+		<description>If **true** creates the required by \ctpdipro directory structure. Otherwise dumps all neighbor list pairs into the current folder</description>
+	</item>
 
-</tags>
+	<item>
+		<name>molecules</name>
+		<description>If **true** outputs single molecules, otherwise only pairs</description>
+	</item>
+
+</pairdump>

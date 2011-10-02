@@ -1,8 +1,7 @@
-<tags>
+<sqlitewriter>
 
-<item>
-<name>sqlitewriter</name>
-<desc></desc>
-</item>
+	<description>Writes out data using sqlite3 format</description>
 
-</tags>
+	<sectionlabel>statefile</sectionlabel>
+
+</sqlitewriter>

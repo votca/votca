@@ -1,6 +1,6 @@
 <etinker>
 
-	<description>Tinker input: xyz coordinates [Angstroem] with a given molecule centered in the box</description>
+	<description>Tinker input: xyz [Angstroem] with a given molecule centered in the box</description>
 	
 	<sectionlabel></sectionlabel>
 

@@ -1,6 +1,6 @@
 <oboltzmann>
 
-	<description>Site occupations as a Boltzmann distribution of site energies</description>
+	<description>Boltzmann distributed site occupations</description>
 
 	<sectionlabel>oboltzmann</sectionlabel>
 

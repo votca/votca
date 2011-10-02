@@ -1,27 +1,27 @@
 <ihistogram>
 
-	<description>Histogram of transfer integrals for all pairs from neighbour list.</description>
+	<description>Histogram of transfer integrals of neighbor list pairs</description>
 
-	<sectionlabel></sectionlabel>
+	<sectionlabel>transfer_integrals</sectionlabel>
 
 	<item>
 		<name>min</name>
-		<description>Minimum of the energy interval, eV.</description>
+		<description>Minimum of the energy interval, eV</description>
 	</item>
 
 	<item>
 		<name>max</name>
-		<description>Maximum of the energy interval, eV.</description>
+		<description>Maximum of the energy interval, eV</description>
 	</item>
 
 	<item>
 		<name>nbins</name>
-		<description>Number of bins.</description>
+		<description>Number of bins</description>
 	</item>
 
 	<item>
 		<name>file</name>
-		<description>Output file.</description>
+		<description>Output file</description>
 	</item>
 
 

@@ -1,8 +1,7 @@
-<tags>
+<writexml>
 
-<item>
-<name>writexml</name>
-<desc></desc>
-</item>
+	<description>Writes out data using xml format</description>
 
-</tags>
+	<sectionlabel>statefile</sectionlabel>
+
+</writexml>

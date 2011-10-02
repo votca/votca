@@ -1,13 +1,12 @@
-<tags>
+<vaverage>
 
-<item>
-<name>sectionlink</name>
-<desc>vaverage</desc>
-</item>
+	<description>Average charge velocity, mobility along the field, and site current</description>
 
-<item>
-<name>vaverage.mobility</name>
-<desc>If **TRUE** outputs also charge mobility along the field. In this case the field should be specified in calc_rates.e_field. </desc>
-</item>
+	<sectionlabel>vaverage</sectionlabel>
 
-</tags>
+	<item>
+		<name>mobility</name>
+		<description>If **true** outputs charge mobility along the field. The field should be specified in the options file using the rates.field tag</description>
+	</item>
+
+</vaverage>

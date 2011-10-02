@@ -2,7 +2,7 @@
 	
 	<description>Histogram of site energy differences of neighbor list pairs</description>
 
-	<sectionlabel></sectionlabel>
+	<sectionlabel>site_energies</sectionlabel>
 	
 	<item>
 		<name>min</name>
