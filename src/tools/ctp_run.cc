@@ -50,7 +50,7 @@ public:
             cout << "Available calculators: \n";
             for(CalculatorFactory::assoc_map::const_iterator iter=Calculators().getObjects().begin();
                     iter != Calculators().getObjects().end(); ++iter) {
-                cout << Description( (iter->first).c_str(), _short );
+                PrintDescription( (iter->first).c_str(), _short );
             }
             StopExecution();
             return true;
@@ -68,9 +68,9 @@ public:
                         iter != Calculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                         cout << Description( (iter->first).c_str(), _long );
+                         PrintDescription( (iter->first).c_str(), _long );
                         printerror = false;
-                        //break;
+                        break;
                     }
                  }
                  if ( printerror ) cout << "Calculator " << *n << " does not exist\n";
@@ -89,7 +89,7 @@ public:
     }
 
     
-    const char *Description(const char *name, const bool length) {
+    void PrintDescription(const char *name, const bool length) {
         // loading the documentation xml file from VOTCASHARE
         char *votca_share = getenv("VOTCASHARE");
         if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
@@ -98,15 +98,14 @@ public:
             Property options;
             load_property_from_xml(options, xmlFile);
 
-           string description = string(" ");
            if ( length ) { // short description of the calculator
                
-                 description += string("  ") + _fwstring(string(name),18);
-                 description += options.get(name+string(".description")).as<string>();
+                 cout << string("  ") << _fwstring(string(name),12);
+                 cout << options.get(name+string(".description"));
 
             } else { // long description of the calculator
-                description += _fwstring(string(name),18);
-                description += options.get(name+string(".description")).as<string>()+string("\n");
+                cout << _fwstring(string(name),18);
+                cout << options.get(name+string(".description")).as<string>() << endl;
  
                 list<Property *> items = options.Select(name+string(".item"));
 
@@ -116,19 +115,14 @@ public:
                     Property *pdesc=&( (*iter)->get( string("description") ) );
                     //Property *pdflt=&( (*iter)->get( string("default") ) );
 
-                    description += string("  -") + _fwstring(pname->value(), 12) +
-                                   string(" [") +
-                                   //(*iter)->path() + string(".") +
-                                   //(*iter)->name() + string(".") +
-                                    string("] ");
-                    description += pdesc->value() +string("\n");
+                    cout << string("  -") << _fwstring(pname->value(), 14);
+                    cout << pdesc->value() << endl;
                  }
+                 cout << endl;
             }
-            description += string("\n");
-            return description.c_str();
 
         } catch(std::exception &error) {
-            return (string("XML file or description tag missing: ")+xmlFile).c_str();
+            cout << string("XML file or description tag missing: ") << xmlFile;
         }
     }
 
