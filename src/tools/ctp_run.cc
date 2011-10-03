@@ -104,7 +104,7 @@ public:
                  cout << options.get(name+string(".description"));
 
             } else { // long description of the calculator
-                cout << _fwstring(string(name),18);
+                cout << " " << _fwstring(string(name),18);
                 cout << options.get(name+string(".description")).as<string>() << endl;
  
                 list<Property *> items = options.Select(name+string(".item"));
@@ -114,9 +114,10 @@ public:
                     Property *pname=&( (*iter)->get( string("name") ) );
                     Property *pdesc=&( (*iter)->get( string("description") ) );
                     //Property *pdflt=&( (*iter)->get( string("default") ) );
-
-                    cout << string("  -") << _fwstring(pname->value(), 14);
-                    cout << pdesc->value() << endl;
+                    if ( ! (pname->value()).empty() ) {
+                        cout << string("  -") << _fwstring(pname->value(), 14);
+                        cout << pdesc->value() << endl;
+                    }
                  }
                  cout << endl;
             }
