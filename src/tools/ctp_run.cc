@@ -100,7 +100,7 @@ public:
 
            if ( length ) { // short description of the calculator
                
-                 cout << string("  ") << _fwstring(string(name),12);
+                 cout << string("  ") << _fwstring(string(name),14);
                  cout << options.get(name+string(".description"));
 
             } else { // long description of the calculator
