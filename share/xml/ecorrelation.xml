@@ -6,7 +6,6 @@
 	
 	<item>
 		<name>min</name>
-		<default></default>
 		<description>Minimum of the energy interval, eV</description>
 	</item>
 

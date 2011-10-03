@@ -37,7 +37,7 @@ public:
     Oboltzmann() {}
     ~Oboltzmann() {}
 
-    const char *Description() { return "Site occupations as a Boltzmann distribution of site energies"; }
+    //const char *Description() { return "Site occupations as a Boltzmann distribution of site energies"; }
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);

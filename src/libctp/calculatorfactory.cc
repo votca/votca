@@ -58,7 +58,7 @@ void CalculatorFactory::RegisterAll(void)
 	Calculators().Register<Ecoulomb>("ecoulomb"); // Coulomb part of site energies
 	Calculators().Register<Eoutersphere>("eoutersphere"); // Outersphere reorganization energy
 	Calculators().Register<Egaussian>("egaussian"); // gaussian (also correlated) distribution of site energies
-        Calculators().Register<Ecorrelation>("ecorrelation"); // site energy correlation function
+       Calculators().Register<Ecorrelation>("ecorrelation"); // site energy correlation function
         Calculators().Register<Ehistogram>("ehistogram"); // site energy histogram
         Calculators().Register<Etinker>("etinker"); // input for the TINKER package (site energies)
 	
@@ -72,7 +72,7 @@ void CalculatorFactory::RegisterAll(void)
 	Calculators().Register<Tdump>("tdump"); // coarse-grained and based on rigid segments trajectories
         Calculators().Register<Rates>("rates"); // Marcus, Jortner rates
         Calculators().Register<WriteXML>("writexml");  // obsolete
-
+ 
 	#ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");
         #endif
