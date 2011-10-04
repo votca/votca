@@ -52,31 +52,31 @@ for calculator in ${calculators}; do
   echo "\subsection{$calculator}" >> $texfile
   echo "\label{calc:$calculator}" >> $texfile
   echo "%" >> $texfile
-  echo $calculator_description >> $texfile
-  echo "%" >> $texfile
-  echo "\rowcolors{1}{invisiblegray}{white}" >> $texfile
-  echo "\begin{longtable}{m{3cm}|m{11cm}}" >> $texfile
-
-  # including XML files from the reference section.
-  #echo "\input{$calculator.xml}" >> $texfile
-
-  echo; echo " "$calculator [sec:$calculator_sectionlabel]: $calculator_description
+  echo $calculator_description"." >> $texfile
 
   items="$(csg_property --file $xmlfile --path $calculator.item --print name --short)" || die "parsing xml failed"
-  echo "   "properties: $items
 
-  for name in ${items}; do  
-    cut_heads "$name"
-    head="$(echo $name | sed -e 's/'${item}'//')"
-    description="$(csg_property --file $xmlfile --path $calculator.item --filter "name=$name" --print description --short)" || die "${0##*/}: Could not get desc for $name"
-    echo "      "$head $name $item $description
-    echo " \hspace{${hspace}pt} \hypertarget{$calculator.${trunc}${name}}{${item}}  & ${description} \\\\" >> $texfile
-  done
+  if [ -n "$items" ]; then
+    echo % >> $texfile; 
+    echo "\rowcolors{1}{invisiblegray}{white}" >> $texfile
+    echo -e "\n "$calculator [sec:$calculator_sectionlabel]: $calculator_description"\n   properties: "$items
+    echo "{ \small" >> $texfile
+    echo "\begin{longtable}{m{3cm}|m{11cm}}" >> $texfile
 
-  echo "\end{longtable}" >> $texfile
-  echo "%" >> $texfile 
+    for name in ${items}; do  
+      cut_heads "$name"
+      head="$(echo $name | sed -e 's/'${item}'//')"
+      description="$(csg_property --file $xmlfile --path $calculator.item --filter "name=$name" --print description --short)" || die "${0##*/}: Could not get desc for $name"
+      #echo "      "$head $name $item $description
+      echo " \hspace{${hspace}pt} \hypertarget{$calculator.${trunc}${name}}{${item}}  & ${description} \\\\" >> $texfile
+    done
+
+    echo  \\end{longtable} >> $texfile
+    echo "}" >> $texfile
+    echo "%" >> $texfile 
+  fi
   if [ -n "$calculator_sectionlabel" ]; then
-    echo "Return to the descritpion of \slink{$calculator_sectionlabel}{\texttt{$calculator}}" >> $texfile
+    echo "\noindent Return to the descritpion of \slink{$calculator_sectionlabel}{\texttt{$calculator}}." >> $texfile
   fi
   echo >> $texfile
 

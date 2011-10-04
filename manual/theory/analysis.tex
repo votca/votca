@@ -54,6 +54,11 @@ If the system is in thermodynamic equilibrium, that is without sources or sinks 
 %
 It can be used to test whether the system is ergodic or not by correlating $\log p_i$ and the site energy $E_i$. Indeed, if $\lambda_{ij} = \lambda_{ji}$ the ratios of forward and backward rates are determined solely by the energetic disorder, $\omega_{ji} / \omega_{ij} = \exp(-\Delta E_{ij} / k_\text{B} T)$ (see \equ{marcus}).
 
+Boltzmann-distributed occupations, $p_i \sim \exp(-\Delta E_{ij} / k_\text{B} T)$, can be generated using the \calc{oboltzmann} calculator
+\vskip 0.2cm
+\label{sec:oboltzmann}
+{\noindent \small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe \calc{oboltzmann} }
+
 \subsection{Current}
 \label{sec:vaverage}
 \index{current}
@@ -77,6 +82,11 @@ splitting between neighboring sites and absence of local average fluxes in equil
  \label{equ:site_current}
 \end{equation}
 A large value of the local current indicates that the site contributes considerably to the total current. A collection of such sites thus represents most favorable charge pathways~\cite{van_der_holst_modeling_2009}.
+
+Site currents and mobility can be obtained using the \calc{vaverage} calculator
+\vskip 0.2cm
+{\noindent \small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe \calc{vaverage} }
+
 
 \subsection{Mobility and diffusion constant}
 \label{sec:mobility}

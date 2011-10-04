@@ -4,8 +4,8 @@
 		<orbitals>DCV2T.fort.7</orbitals> <!-- ZINDO orbitals [GAUSSIAN] -->
                 <basisset>INDO</basisset> 
                 <torbital>50</torbital> <!-- HOMO for hole conduction -->
-                <reorg_discharging>0.084</reorg_discharging> <!-- reorganization energy -->
-                <reorg_charging>0.086</reorg_charging> <!-- reorganization energy -->
+                <edischarging>0.084</edischarging> <!-- reorganization energy -->
+                <echarging>0.086</echarging> <!-- reorganization energy -->
                 <qneutral>DCV2T_neutr.esp</qneutral> <!-- partial charges of a neutral molecule -->
                 <qcharged>DCV2T_catio.esp</qcharged> <!-- partial charges of a cation -->
                 <energy>0.0</energy> <!-- cite energy -->
