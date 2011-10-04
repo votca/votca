@@ -61,7 +61,7 @@
 </item>  
 
 <item>
-<name>cg_molecule.topology.cg_beads.cg_bead.qm.crgunitname</name>
+<name>cg_molecule.topology.cg_beads.cg_bead.qm.name</name>
 <desc>The name of the conjugated segment the fragment is associated with.</desc>
 </item>  
 

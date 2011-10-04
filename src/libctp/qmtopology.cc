@@ -50,10 +50,10 @@ void QMTopology::InitChargeUnits(){
     for (itb = _beads.begin() ; itb< _beads.end(); ++itb){
         QMBead * bead = dynamic_cast<QMBead *>(*itb);
         //initialise the crgunit * only if appropriate extra info is in the cg.xml file
-        if ( (bead->Options()).exists("qm.crgunitname")){
+        if ( (bead->Options()).exists("qm.name")){
             string namecrgunittype = bead->getType()->getName();
             int intpos = (bead->Options()).get("qm.position").as<int>();
-            string namecrgunit = (bead->Options()).get("qm.crgunitname").as<string>();
+            string namecrgunit = (bead->Options()).get("qm.name").as<string>();
 
             //determine whether it  has been created already
             int molid= bead->getMolecule()->getId();
@@ -62,8 +62,8 @@ void QMTopology::InitChargeUnits(){
             QMCrgUnit * acrg = GetCrgUnitByName(molandtype);
             if(acrg == NULL)
                 acrg = CreateCrgUnit(molandtype, namecrgunittype, molid);
-            acrg->setDouble("lambda_intra_charging", acrg->getType()->getOptions()->get("reorg_charging").as<double>());
-            acrg->setDouble("lambda_intra_discharging", acrg->getType()->getOptions()->get("reorg_discharging").as<double>());
+            acrg->setDouble("lambda_intra_charging", acrg->getType()->getOptions()->get("echarging").as<double>());
+            acrg->setDouble("lambda_intra_discharging", acrg->getType()->getOptions()->get("edischarging").as<double>());
             acrg->setDouble("energy_intra", acrg->getType()->getOptions()->get("energy").as<double>());
 	    bead->setCrg(acrg);
             bead->setiPos(intpos);

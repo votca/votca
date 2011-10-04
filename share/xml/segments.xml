@@ -1,6 +1,6 @@
 <tags>
   
- <item>
+<item>
 <name>segments</name>
 <desc>Container for all types of conjugated segments</desc>
 </item>  
@@ -36,12 +36,12 @@
 </item>  
 
 <item>
-<name>segments.segment.reorg_charging</name>
+<name>segments.segment.echarging</name>
 <desc>Reorganization energy for charging the conjugated segment. If only the total reorganization energy is known, use half of that.</desc>
 </item>  
 
 <item>
-<name>segments.segment.reorg_discharging</name>
+<name>segments.segment.edischarging</name>
 <desc>Reorganization energy for discharging the conjugated in eV. If only the total reorganization energy is known, use half of that.</desc>
 </item>
 

@@ -42,7 +42,7 @@
 
 //#include "calculators/writexml.h"
 
-#include "calculators/sqlitewriter.h"
+//#include "calculators/sqlitewriter.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
     #include "calculators/contkmc.h"
@@ -67,7 +67,7 @@ void CalculatorFactory::RegisterAll(void)
 
         Calculators().Register<PairDump>("pairdump"); // Dumps pair coordinates for DFT coupling elements
 	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (via site occupations)
-        Calculators().Register<SQLiteWriter>("sqlitewriter");
+        //Calculators().Register<SQLiteWriter>("sqlitewriter");
 
 	Calculators().Register<Tdump>("tdump"); // coarse-grained and based on rigid segments trajectories
         Calculators().Register<Rates>("rates"); // Marcus, Jortner rates
