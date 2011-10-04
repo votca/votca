@@ -47,7 +47,7 @@ void QMApplication::Initialize(void)
         ("first-frame", boost::program_options::value<int>()->default_value(1), "  start with this frame (first frame is 1)")
         ("nframes", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
         //  this is shit, move it out!
-        ("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
+        //("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
         ;
 }
 

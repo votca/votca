@@ -32,7 +32,7 @@
 #include "calculators/tdump.h"
 #include "calculators/pairdump.h"
 
-#include "calculators/vaverage.h" //average velocity, cite current, and mobility
+#include "calculators/vaverage.h" 
 
 #include "calculators/oboltzmann.h"
 
@@ -40,7 +40,7 @@
 
 #include "calculators/rates.h"
 
-#include "calculators/writexml.h"
+//#include "calculators/writexml.h"
 
 #include "calculators/sqlitewriter.h"
 
@@ -65,13 +65,14 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<Neighborlist>("neighborlist"); // fragment-based neighbor list
         Calculators().Register<Oboltzmann>("oboltzmann"); // Boltzmann distribution of site energies
 
-        Calculators().Register<PairDump>("pairdump");
+        Calculators().Register<PairDump>("pairdump"); // Dumps pair coordinates for DFT coupling elements
 	Calculators().Register<Vaverage>("vaverage"); // average charge velocities (via site occupations)
         Calculators().Register<SQLiteWriter>("sqlitewriter");
 
 	Calculators().Register<Tdump>("tdump"); // coarse-grained and based on rigid segments trajectories
         Calculators().Register<Rates>("rates"); // Marcus, Jortner rates
-        Calculators().Register<WriteXML>("writexml");  // obsolete
+        
+        //Calculators().Register<WriteXML>("writexml");  // obsolete
  
 	#ifdef WITH_VOTCA_KMCOLD        
         Calculators().Register<ContKmc>("kmc");

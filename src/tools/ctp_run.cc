@@ -101,7 +101,7 @@ public:
            if ( length ) { // short description of the calculator
                
                  cout << string("  ") << _fwstring(string(name),14);
-                 cout << options.get(name+string(".description"));
+                 cout << options.get(name+string(".description")).as<string>();
 
             } else { // long description of the calculator
                 cout << " " << _fwstring(string(name),18);
@@ -119,9 +119,8 @@ public:
                         cout << pdesc->value() << endl;
                     }
                  }
-                 cout << endl;
             }
-
+            cout << endl;
         } catch(std::exception &error) {
             cout << string("XML file or description tag missing: ") << xmlFile;
         }
