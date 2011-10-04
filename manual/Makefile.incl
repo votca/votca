@@ -1,6 +1,8 @@
 all:  $(AGRPICS) $(GPPICS) $(FIGPICS) $(PNGPICS) $(JPGPICS) $(SVGPICS) $(SUBDIRS)
 
 SHELL=/bin/bash
+ROOTDIR=$(shell hg root)
+SCRIPTDIR=$(ROOTDIR)/scripts
 
 ifeq ($(OSTYPE),darwin)
 	INKSCAPE=/Applications/Inkscape.app/Contents/Resources/bin/inkscape
@@ -15,25 +17,25 @@ endif
 
 # pattern rule for making .eps from .fig (not used at the moment)
 %.eps: %.fig
-	$(ROOTDIR)/figtex2eps $<
+	$(SCRIPTDIR)/figtex2eps $<
 #fig2dev -L eps -m 1.00 -c $< $@
 
 # pattern rule for making .eps from .gp
 %.eps: %.gp
 	gnuplot $< && \
-	$(ROOTDIR)/tex2eps $* && \
+	$(SCRIPTDIR)/tex2eps $* && \
 	$(RM) $*-inc.eps $*.tex &&\
-	$(ROOTDIR)/fixbb $@
+	$(SCRIPTDIR)/fixbb $@
 
 # gnuplot dependency files
 %.d: %.gp
-	$(ROOTDIR)/gp2eps --deps $< > $@.$$$$;                                   \
+	$(SCRIPTDIR)/gp2eps --deps $< > $@.$$$$;                                   \
 	sed 's,\(.*/\)\($*\)\.eps[ :]*,\2.eps: ,g' < $@.$$$$ > $@;      \
 	$(RM) $@.$$$$
 
 # .fig dependency files
 %.fd: %.fig
-	$(ROOTDIR)/figdeps.sh $< > $@
+	$(SCRIPTDIR)/figdeps.sh $< > $@
 
 # pattern rule for making .eps from .png
 %.eps: %.png

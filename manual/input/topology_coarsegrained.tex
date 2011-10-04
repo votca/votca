@@ -1,14 +1,13 @@
 \section{Mapping file}
 \label{sec:xmlmap}
-
 The mapping file (referred here as \xmlcsg) is used by the program \ctpmap to convert an atomistic trajectory to a coarse-grained one. The coarse-grained trajectory contains positions, names, types, and orientations of rigid fragments. \xmlcsg contains definitions of rigid fragments (coarse-grained beads) and identifies to what conjugated segment a particular rigid fragment belongs. The description of the mapping options is given in table \ref{tab:map}. An example of \xmlcsg for a \dcvt molecule is shown in listing~\ref{list:map}. 
-
-\begin{table}[ht]
+%
+\begin{table}[h]
 \label{tab:map}
 \caption{Description of the \xml mapping file (\xmlcsg).}
 \rowcolors{1}{invisiblegray}{white} {\footnotesize \input{reference/xml/map.xml}}
 \end{table}
-\vfill
+
 % Define new language for listings.
 \lstdefinelanguage{MXML} {
    basicstyle=\ttfamily\scriptsize,
@@ -25,10 +24,9 @@ The mapping file (referred here as \xmlcsg) is used by the program \ctpmap to co
    { name,cg_molecule,cg_beads,cg_bead,crgunitname,bead,beads,type,topology,name,ident,maps,map,mapping,weights,position,qm,symmetry },
    keywordstyle={[1]\color{blue}},
 }
+
 \lstinputlisting[
  language=MXML,
  label=list:map,
  caption={Examle of \xmlcsg for \dcvt. Each rigid fragment (coarse-grained bead) is defined by a list of atoms. Atom numbers, names, and residue names should correspond to those used in \gromacs topology (see the corresponing listing \ref{list:pdb} of the pdb file).}]%
 {./input/dcv2t/map.xml}
-
-\clearpage
