@@ -4,4 +4,4 @@ all:
 dummy: ;
 
 clean: 
-	rm -f *~ *.log *.backup
+	rm -f *~ *.log *.backup *.aux

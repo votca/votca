@@ -7,7 +7,7 @@ AGRPICS :=
 GPPICS  := 
 SVGPICS := dcv2t.eps
 SUBDIRS :=
-LOCALCLEAN :=
+LOCALCLEAN := *.tex
 
 include ../../Makefile.incl
 
