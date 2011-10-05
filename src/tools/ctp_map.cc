@@ -56,7 +56,7 @@ void CtpMapApp::Initialize()
     CsgApplication::Initialize();
     AddProgramOptions("Mapping options")
             ("segments,s", po::value<string>(), "  conjugated segment definitions")
-            ("db", po::value<string>()->default_value("state.db"), " state file");
+            ("file,f", po::value<string>(), " sqlite state file");
 }
 
 bool CtpMapApp::EvaluateOptions()
@@ -64,7 +64,7 @@ bool CtpMapApp::EvaluateOptions()
     CsgApplication::EvaluateOptions();
     CheckRequired("segments");
 
-    _observer.setOut(OptionsMap()["db"].as<string>());
+    _observer.setOut(OptionsMap()["file"].as<string>());
     _observer.Initialize(_qmtopol, _options);
 
     // add our observer that it gets called to analyze frames
