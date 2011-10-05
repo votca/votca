@@ -42,10 +42,10 @@ void QMApplication::Initialize(void)
 
     AddProgramOptions()
         ("segments,s", boost::program_options::value<string>(), "  description of conjugated segments")
-        ("opt", boost::program_options::value<string>(), "  program options")
-        ("db", boost::program_options::value<string>()->default_value("state.db"), "  the state file")
-        ("first-frame", boost::program_options::value<int>()->default_value(1), "  start with this frame (first frame is 1)")
-        ("nframes", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
+        ("options,o", boost::program_options::value<string>(), "  program and calculator options")
+        ("file,f", boost::program_options::value<string>(), "  sqlite state file")
+        ("first-frame,i", boost::program_options::value<int>()->default_value(1), "  start frame (first frame is 1)")
+        ("nframes,n", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
         //  this is shit, move it out!
         //("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
         ;
@@ -53,17 +53,17 @@ void QMApplication::Initialize(void)
 
 bool QMApplication::EvaluateOptions(void)
 {
-    CheckRequired("segments", "no chargeunit file specified");
-    CheckRequired("opt", "no option file specified");
-    CheckRequired("db", "no state databse specified");
+    CheckRequired("segments", "please provide an xml file with the description of segments.");
+    CheckRequired("options", "please provide an xml file with the program options");
+    CheckRequired("file", "no database file specified");
     return true;
 }
 
 void QMApplication::Run()
 {
     _qmtop.LoadListCharges(_op_vm["segments"].as<string>());
-    // read in program options from main.xml
-    load_property_from_xml(_options, _op_vm["opt"].as<string>());
+    // read in program options from options.xml
+    load_property_from_xml(_options, _op_vm["options"].as<string>());
 
     int first_frame = OptionsMap()["first-frame"].as<int>(); /// starting frame
     if(first_frame == 0) throw std::runtime_error("error, first frame is 0 but we start counting with 1");
@@ -75,7 +75,7 @@ void QMApplication::Run()
 
     /// load qmtop from state saver
     cout << "Loading qmtopology via state saver." << endl;
-    string statefile = OptionsMap()["db"].as<string>();
+    string statefile = OptionsMap()["file"].as<string>();
     StateSaverSQLite loader;
     loader.Open(_qmtop, statefile);
     if(loader.FramesInDatabase() != 1)

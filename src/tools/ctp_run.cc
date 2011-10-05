@@ -39,12 +39,12 @@ public:
     void Initialize() {
         QMApplication::Initialize();
         AddProgramOptions("Calculators")
-            ("exec", boost::program_options::value<string>(), "list of calculators separated by commas or spaces")
-	    ("list", "lists all available calculators")
-            ("desc", boost::program_options::value<string>(), "detailed description of a calculator");
+            ("execute,e", boost::program_options::value<string>(), "list of calculators separated by commas or spaces")
+	    ("list,l", "lists all available calculators")
+            ("description,d", boost::program_options::value<string>(), "detailed description of a calculator");
     }
 
-    //TODO: Support for XML-File based options
+    // outputs options from the XML file
     bool EvaluateOptions() {
         if(OptionsMap().count("list")) {
             cout << "Available calculators: \n";
@@ -57,9 +57,9 @@ public:
         }
 
 
-         if(OptionsMap().count("desc")) {
-            CheckRequired("desc", "no calculator is given");
- 	    Tokenizer tok(OptionsMap()["desc"].as<string>(), " ,\n\t");
+         if(OptionsMap().count("description")) {
+            CheckRequired("description", "no calculator is given");
+ 	    Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
             // loop over the names in the description string
             for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
                 // loop over calculators
