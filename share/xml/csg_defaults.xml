@@ -1,21 +1,73 @@
 <cg>
   <inverse>
     <desc>general options for inverse script</desc>
+    <cleanlist>
+      <desc> these files are removed after each iteration</desc>
+    </cleanlist>
     <convergence_check>
-      <type>none</type>
+      <limit>0
+	<desc>lower convergency limit to stop</desc>
+      </limit>
+      <type>none
+	<desc>type of convergence check to do</desc>
+      </type>
     </convergence_check>
     <espresso>
-      <blockfile>conf.esp.gz</blockfile>
-      <blockfile_out>confout.esp.gz</blockfile_out>
-      <command>Espresso</command>
-      <debug>no</debug>
-      <exclusions>0</exclusions>
-      <first_frame>0</first_frame>
-      <pressure_command>Espresso</pressure_command>
-      <rdf_command>Espresso</rdf_command>
-      <success>success.esp</success>
-      <traj>top_traj.esp</traj>
+      <blockfile>conf.esp.gz
+	<desc>Name of the original blockfile read by Espresso</desc>
+      </blockfile>
+      <blockfile_out>confout.esp.gz
+	<desc>Name of the original outcome blockfile written by Espresso</desc>
+      </blockfile_out>
+      <command>Espresso
+	<desc>Command to run espresso (name or absolute path or mpirun espresso..)</desc>
+      </command>
+      <debug>no
+	<desc> debug Espresso (yes/no)</desc>
+      </debug>
+      <exclusions>0
+	<desc>Espresso bond partners to exclude</desc>
+      </exclusions>
+      <first_frame>0
+	<desc>trash the given number of frames at the beginning of trajectory</desc>
+      </first_frame>
+      <meta_cmd>
+	<desc>Espresso metadynamics command to call [experimental]</desc>
+      </meta_cmd>
+      <meta_min_sampling>
+	<desc>Espresso metadynamics minimal number of sampling [experimental]</desc>
+      </meta_min_sampling>
+      <n_snapshots>
+	<desc>number of snapshots. Total time = n_steps * n_snapshots</desc>
+      </n_snapshots>
+      <n_steps>
+	<desc>Number of steps to integrate before a snapshot</desc>
+      </n_steps>
+      <pressure_command>Espresso
+	<desc>Espresso command to run when calculating the pressure (name or absolute path or mpirun espresso..)</desc>
+      </pressure_command>
+      <rdf_command>Espresso
+	<desc>Espresso command to run when calculating the rdf (name or absolute path or mpirun espresso..)</desc>
+      </rdf_command>
+      <scriptdir>
+	<desc>overwrite ESPRESSO_SCRIPTS from environment with this dir</desc>
+      </scriptdir>
+      <success>success.esp
+	<desc>File to create if Espresso simulation was successfull</desc>
+      </success>
+      <table_bins>
+	<desc>espresso internal grid for tabulated potentials</desc>
+      </table_bins>
+      <table_end>
+	<desc>end of espresso internal table</desc>
+      </table_end>
+      <traj>top_traj.esp
+	<desc> Name of the output Espresso trajectory file</desc>
+      </traj>
     </espresso>
+    <filelist>
+      <desc>these files are copied to each iteration step</desc>
+    </filelist>
     <gnuplot>
       <bin>gnuplot</bin>
     </gnuplot>
@@ -27,9 +79,16 @@
       <conf_out>confout.gro
 	<desc>Name of the original outcome coordinate written by mdrun</desc>
       </conf_out>
-      <cutoff_check>yes</cutoff_check>
+      <cutoff_check>yes
+	<desc>check non-bonded interaction cutoffs against rvdw in mdp file: yes/no</desc>
+      </cutoff_check>
       <density>
-	<with_errors>no</with_errors>
+	<block_length>
+	  <desc>Length of the block for the error analysis</desc>
+	</block_length>
+	<with_errors>no
+	  <desc>calculate error on the density: yes/no</desc>
+	</with_errors>
       </density>
       <equi_time>0
 	<desc>begin analysis after this time when using gromacs (max of this and first_frame is used)</desc>
@@ -38,7 +97,15 @@
 	<desc> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</desc>
       </first_frame>
       <g_energy>
-	<bin>g_energy</bin>
+	<bin>g_energy
+	  <desc> Name (or absolute path) of the g_energy binary</desc>
+	</bin>
+	<opts>
+	  <desc> Additional options to Gromacs g_energy (e.g. -P 1)</desc>
+	</opts>
+	<topol>
+	  <desc> Gromacs g_energy topol file to use</desc>
+	</topol>
       </g_energy>
       <gmxrc>
 	<desc>GMXRC to source at the startup</desc>
@@ -58,14 +125,40 @@
 	<desc> Gromacs mdp fie to be used by grompp</desc>
       </mdp>
       <mdrun>
-	<checkpoint>state.cpt</checkpoint>
-	<command>mdrun</command>
+	<checkpoint>state.cpt
+	  <desc>Name of the checkpint to use in case of restarted simulation</desc>
+	</checkpoint>
+	<command>mdrun
+	  <desc>Command to run mdrun (name or absolute path or mpirun mdrun..)</desc>
+	</command>
+	<opts>
+	  <desc> Additional options to Gromacs mdrun (e.g. -nosum)</desc>
+	</opts>
       </mdrun>
+      <pot_max>1000000
+	<desc> cut the potential at this value (gromacs bug) </desc>
+      </pot_max>
       <pre_simulation>no</pre_simulation>
       <rdf>
-	<with_errors>no</with_errors>
+	<block_length>
+	  <desc>Length of the block for the error analysis</desc>
+	</block_length>
+	<topol>
+	  <desc> Gromacs topol file to be used for csg_stat</desc>
+	</topol>
+	<with_errors>no
+	  <desc>calculate error on the rdf: yes/no</desc>
+	</with_errors>
       </rdf>
-      <temp_check>yes</temp_check>
+      <table_bins>0.002
+	<desc> grid for gromacs xvg table</desc>
+      </table_bins>
+      <table_end>
+	<desc>extend the gromacs xvg tables to this value</desc>
+      </table_end>
+      <temp_check>yes
+	<desc>check kBT against t_ref in mdp file: yes/no</desc>
+      </temp_check>
       <topol>topol.top
 	<desc> Gromacs topology file read by grompp</desc>
       </topol>
@@ -90,6 +183,9 @@
     <initial_configuration>laststep
       <desc>what initial configuration to use in every step: maindir/laststep</desc>
     </initial_configuration>
+    <iterations_max>
+      <desc>do the given number of iterations (0=inf)</desc>
+    </iterations_max>
     <kBT>
       <desc> kBT in simulation progam units (XXX K *0.00831451 for gromacs)</desc>
     </kBT>

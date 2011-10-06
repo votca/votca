@@ -773,7 +773,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
     cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol cg.inverse.convergence_check \
-    cg.inverse.convergence_check_options.name_glob; do
+    cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
@@ -792,6 +792,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
 	new="${i}.type";;
       cg.inverse.convergence_check_options.name_glob)
 	new="";;
+      cg.inverse.convergence_check_options.limit)
+        new="cg.inverse.convergence_check.limit";;
       *)
         die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac

@@ -25,7 +25,7 @@ EOF
    exit 0
 fi
 
-limit="$(csg_get_property cg.inverse.convergence_check_options.limit)"
+limit="$(csg_get_property cg.inverse.convergence_check.limit)"
 
 sum=0
 names="$(csg_get_property cg.non-bonded.name)"
