@@ -117,10 +117,10 @@ tmpfile="$(critical mktemp table.gp.XXX)"
 tmpfile2="$(critical mktemp table.plot.XXX)"
 get_table_comment | sed -e 's/^/#/' > "$tmpfile"
 echo -e "#\n#Plot script:" >> "$tmpfile"
+[[ -n $vars ]] && echo -e "$vars" >> "$tmpfile"
 for i in "${headers[@]}"; do
   echo "load '$i'" >> "$tmpfile"
 done
-[[ -n $vars ]] && echo -e "$vars" >> "$tmpfile"
 echo "set samples $samples" >> "$tmpfile"
 echo "set table '$tmpfile2'" >> "$tmpfile"
 echo "plot [${grid[1]}:${grid[3]}] $fct" >> "$tmpfile"
