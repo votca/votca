@@ -80,9 +80,9 @@ public:
          }
 
         QMApplication::EvaluateOptions();
-        CheckRequired("exec", "no calculator is given");
+        CheckRequired("execute", "no calculator is given");
         
-        Tokenizer tok(OptionsMap()["exec"].as<string>(), " ,\n\t");
+        Tokenizer tok(OptionsMap()["execute"].as<string>(), " ,\n\t");
         for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n)
             AddCalculator(Calculators().Create((*n).c_str()));
         return true;

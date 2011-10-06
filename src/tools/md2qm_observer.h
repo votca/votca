@@ -51,7 +51,7 @@ public:
     void setOut(const string &  out){
         _out=out;
     }
-    void setNNnames(string  nnnames);
+    //void setNNnames(string  nnnames);
 
     void print_nbs_to_file(QMNBList &nblist);
 
