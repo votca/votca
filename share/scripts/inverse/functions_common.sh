@@ -242,7 +242,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   [[ -z $ret && -n $2 ]] && ret="$2"
   # if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
-    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path . --print cg.${bondtype}.$1)"
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${bondtype}.$1 --print .)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
   ret="$(echo "$ret" | trim_all)"
