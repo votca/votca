@@ -287,10 +287,10 @@ for ((i=$begin;i<$iterations+1;i++)); do
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
     echo "New average steptime $avg_steptime"
     if [[ $(( $(get_time) + $avg_steptime )) -gt ${CSGENDING} ]]; then
-      msg "We will not manage another step, stopping"
+      msg "We will not manage another step due to walltime, stopping"
       exit 0
     else
-      msg "We can go for another $(( ( ${CSGENDING} - $(get_time) ) / $avg_steptime - 1 )) steps"
+      msg "We can go for another $(( ( ${CSGENDING} - $(get_time) ) / $avg_steptime - 1 )) steps until walltime is up."
     fi
   fi
 
