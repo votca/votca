@@ -2,8 +2,9 @@ SHELL=/bin/bash
 TRUNC=$(shell hg root)
 TXT2TAGS=$(TRUNC)/scripts/txt2tags
 
+all: 
 #this is a hack to generate Makefile.incl
-HAKE:=$(shell $(MAKE) -f Makefile.XMLS Makefile.incl)
+HACK:=$(shell $(MAKE) -f Makefile.XMLS Makefile.incl)
 include Makefile.incl
 
 all: $(XMLSTEX) 
