@@ -63,6 +63,7 @@ bool CtpMapApp::EvaluateOptions()
 {
     CsgApplication::EvaluateOptions();
     CheckRequired("segments");
+    CheckRequired("file");
 
     _observer.setOut(OptionsMap()["file"].as<string>());
     _observer.Initialize(_qmtopol, _options);
