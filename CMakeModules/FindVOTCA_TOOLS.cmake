@@ -30,6 +30,9 @@ find_path(VOTCA_TOOLS_HAS_SQLITE3 votca/tools/database.h HINTS ${PC_VOTCA_TOOLS_
 if (VOTCA_TOOLS_HAS_SQLITE3)
   #due to include <sqlite3.h> in database.h
   find_package(SQLITE3 REQUIRED)
+  set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR};${SQLITE3_INCLUDE_DIR}" )
+else(VOTCA_TOOLS_HAS_SQLITE3)
+  set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR}" )
 endif (VOTCA_TOOLS_HAS_SQLITE3)
 
 
@@ -48,7 +51,6 @@ if("${VOTCA_TOOLS_LIBRARY}" MATCHES "libvotca_tools[^;]*\\.a")
 endif("${VOTCA_TOOLS_LIBRARY}" MATCHES "libvotca_tools[^;]*\\.a")
 
 set(VOTCA_TOOLS_LIBRARIES "${VOTCA_TOOLS_LIBRARY};${VOTCA_TOOLS_DEP_LIBRARIES}" )
-set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR}" )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set VOTCA_TOOLS_FOUND to TRUE
