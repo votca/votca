@@ -79,13 +79,20 @@ show_callstack() { #show the current callstack
     space=""
   fi
   [[ $0 = "bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
-  for ((c=${#FUNCNAME[*]}-2;c>0;c--)); do
+  for ((c=${#FUNCNAME[*]}-1;c>0;c--)); do
+    [[ ${FUNCNAME[$c]} = main ]] && continue #main is useless as the info was printed 2 lines above
     space+="    "
     if [[ $0 = *csg_call || $0 = *inverse.sh ]]; then
       echo "${space}${FUNCNAME[$c]} - linenumber ${BASH_LINENO[ $(( $c - 1 )) ]} in ${BASH_SOURCE[$c]}"
     else
       echo "${space}${FUNCNAME[$c]} - linenumber ${BASH_LINENO[ $(( $c - 1 )) ]} (see 'csg_call --cat function ${FUNCNAME[$c]}')"
     fi
+  done
+  [[ $1 = "--extra" ]] || return 0
+  shift
+  for i in "$@"; do
+    space+="    "
+    echo "${space}${i} - linenumber ???"
   done
 }
 export -f show_callstack
@@ -156,6 +163,8 @@ do_external() { #takes two tags, find the according script and excute it
     ret=$?
     cat "$perl_debug" 2>&1
     [[ $ret -eq 0 ]]
+  elif [[ -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
+    CSG_CALLSTACK="$(show_callstack --extra "$script")" $script "${@:3}"
   else
     CSG_CALLSTACK="$(show_callstack)" $script "${@:3}"
   fi || die "${FUNCNAME[0]}: subscript $script ${@:3} (from tags $tags) failed"
@@ -226,16 +235,18 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
   cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
-  #the --filter option will make csg_property fail if $1 does not exist, don't stop if we have an default
-  if ! ret="$($cmd)"; then
-    [[ $allow_empty = "no" && -z $2 ]] && \
-      die "${FUNCNAME[0]}:\n'$cmd'\nfailed geting '$1' for interaction '$bondname' with error msg:\n $ret\n and no default for $1"
-    #ret has error message
-    ret=""
+  #the --filter/--path(!=.) option will make csg_property fail if $1 does not exist
+  #so no critical here
+  ret="$($cmd)"
+  #overwrite with function call value
+  [[ -z $ret && -n $2 ]] && ret="$2"
+  # if still empty fetch it from defaults file
+  if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${bondtype}.$1 --print .)"
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
   ret="$(echo "$ret" | trim_all)"
-  [[ $allow_empty = no && -z $ret && -n $2 ]] && ret="$2"
-  [[ $allow_empty = no && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction '$bondname'\nResult of '$cmd' was empty"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
   echo "${ret}"
 }
 export -f csg_get_interaction_property
@@ -255,9 +266,15 @@ csg_get_property () { #get an property from the xml file
   #csg_property only fails if xml file is bad otherwise result is empty
   #leave the -q here to avoid flooding with messages
   ret="$(critical -q $cmd)"
-  ret="$(echo "$ret" | trim_all)"
+  #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
-  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1'\nResult of '$cmd' was empty"
+  #if still empty fetch it from defaults file
+  if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print .)"
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+  fi
+  ret="$(echo "$ret" | trim_all)"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
   echo "${ret}"
 }
 export -f csg_get_property
@@ -455,7 +472,7 @@ export -f get_time
 
 get_number_tasks() { #get the number of possible tasks from the xml file or determine it automatically under linux
   local tasks
-  tasks="$(csg_get_property cg.inverse.simulation.tasks "auto")"
+  tasks="$(csg_get_property cg.inverse.simulation.tasks)"
   [[ $tasks = "auto" ]] && tasks=0
   is_int "$tasks" || die "${FUNCNAME[0]}: cg.inverse.simulation.tasks needs to be a number or 'auto', but I got $tasks"
   #this only work for linux
@@ -486,7 +503,7 @@ export -f get_table_comment
 csg_inverse_clean() { #clean out the main directory 
   local i files log t
   [[ -n $1 ]] && t="$1" || t="30"
-  log="$(csg_get_property cg.inverse.log_file "inverse.log")"
+  log="$(csg_get_property cg.inverse.log_file)"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
   files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
@@ -724,7 +741,7 @@ fi
 enable_logging() { #enables the logging to a certain file (1st argument) or the logfile taken from the xml file
   local log
   if [[ -z $1 ]]; then
-    log="$(csg_get_property cg.inverse.log_file "inverse.log")" 2> /dev/null
+    log="$(csg_get_property cg.inverse.log_file)"
   else
     log="$1"
   fi
@@ -745,7 +762,7 @@ export -f enable_logging
 
 get_restart_file() { #print the name of the restart file to use
   local file
-  file="$(csg_get_property cg.inverse.restart_file "restart_points.log")"
+  file="$(csg_get_property cg.inverse.restart_file)"
   [[ -z ${file/*\/*} ]] && die "${FUNCNAME[0]}: cg.inverse.restart_file has to be a local file with slash '/'"
   echo "$file"
 }
@@ -755,7 +772,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   local i
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
-    cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol; do
+    cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol cg.inverse.convergence_check \
+    cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
@@ -770,6 +788,12 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/.grompp}";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;
+      cg.inverse.convergence_check)
+	new="${i}.type";;
+      cg.inverse.convergence_check_options.name_glob)
+	new="";;
+      cg.inverse.convergence_check_options.limit)
+        new="cg.inverse.convergence_check.limit";;
       *)
         die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac

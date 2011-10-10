@@ -32,7 +32,7 @@ fi
 # initialize & run the matlab file
 cat_external solve matlab | sed -e "s/\$name_out/$2/" -e "s/\$name/$1/" > solve_$1.m || die "${0##*/}: sed failed"
 
-matlab="$(csg_get_property cg.inverse.imc.matlab.bin "matlab")"
+matlab="$(csg_get_property cg.inverse.imc.matlab.bin)"
 [ -n "$(type -p $matlab)" ] || die "${0##*/}: matlab binary '$matlab' not found"
 
 #matlab does not like -_. etc in filenames

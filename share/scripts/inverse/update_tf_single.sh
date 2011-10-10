@@ -26,19 +26,19 @@ EOF
 fi
 
 step_nr=$(get_current_step_nr)
-scheme=( $(csg_get_interaction_property inverse.do_potential 1) )
+scheme=( $(csg_get_interaction_property inverse.do_potential) )
 scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-mol="$(csg_get_interaction_property tf.molname "*")"
+mol="$(csg_get_interaction_property inverse.tf.molname)"
 adress_type=$(get_simulation_setting adress_type)
 step=$(csg_get_interaction_property step)
 opts=()
 if [[ $adress_type = "sphere" ]]; then
   echo "Adress type: $adress_type"
-  max=$(csg_get_interaction_property tf.spline_end)
+  max=$(csg_get_interaction_property inverse.tf.spline_end)
   adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
   ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
   axis="r"

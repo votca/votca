@@ -27,10 +27,10 @@ EOF
   exit 0
 fi
 
-from="$(csg_get_property cg.inverse.initial_configuration "laststep")"
-conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
+from="$(csg_get_property cg.inverse.initial_configuration)"
+conf="$(csg_get_property cg.inverse.gromacs.conf)"
 if [[ $from = "laststep" ]]; then
-  confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+  confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
   #avoid overwriting $confout
   cp_from_last_step --rename "${confout}" "${conf}"
 elif [[ $from = "maindir" ]]; then

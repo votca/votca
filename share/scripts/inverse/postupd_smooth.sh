@@ -31,7 +31,7 @@ fi
 
 name=$(csg_get_interaction_property name)
 tmpfile=$(critical mktemp ${name}.XXX)
-iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)
+iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations)
 
 critical cp "$1" $tmpfile
 echo "doing $iterations smoothing iterations for interaction $name"

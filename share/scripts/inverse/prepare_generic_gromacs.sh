@@ -25,7 +25,7 @@ EOF
    exit 0
 fi
 
-conf="$(csg_get_property cg.inverse.gromacs.conf "conf.gro")"
-confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+conf="$(csg_get_property cg.inverse.gromacs.conf)"
+confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
 cp_from_main_dir $conf
 critical cp $conf $confout

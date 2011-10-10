@@ -42,8 +42,8 @@ p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of P
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
 echo "New pressure $p_now"
 
-ptype="$(csg_get_interaction_property inverse.post_update_options.pressure.type simple)"
-pscheme=( $(csg_get_interaction_property inverse.post_update_options.pressure.do 1 ) )
+ptype="$(csg_get_interaction_property inverse.post_update_options.pressure.type)"
+pscheme=( $(csg_get_interaction_property inverse.post_update_options.pressure.do ) )
 pscheme_nr=$(( ( $step_nr - 1 ) % ${#pscheme[@]} ))
 
 if [ "${pscheme[$pscheme_nr]}" = 1 ]; then

@@ -121,7 +121,7 @@ source_function $sim_prog
 iterations_max="$(csg_get_property cg.inverse.iterations_max)"
 is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
 echo "We are doing $iterations_max iterations (0=inf)."
-convergence_check="$(csg_get_property cg.inverse.convergence_check "none")"
+convergence_check="$(csg_get_property cg.inverse.convergence_check.type)"
 [[ $convergence_check = none ]] || echo "After every iteration we will do the following check: $convergence_check"
 
 filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
@@ -236,7 +236,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
 
   if simulation_finish; then
     mark_done "Simulation"
-  elif [ "$(csg_get_property cg.inverse.simulation.background "no")" = "yes" ]; then
+  elif [ "$(csg_get_property cg.inverse.simulation.background)" = "yes" ]; then
     msg "Simulation is suppose to run in background, which we cannot check."
     msg "Stopping now, resume csg_inverse whenever the simulation is done."
     exit 0
@@ -287,10 +287,10 @@ for ((i=$begin;i<$iterations+1;i++)); do
     avg_steptime="$(( ( ( $steps_done-1 ) * $avg_steptime + $step_time ) / $steps_done + 1 ))"
     echo "New average steptime $avg_steptime"
     if [[ $(( $(get_time) + $avg_steptime )) -gt ${CSGENDING} ]]; then
-      msg "We will not manage another step, stopping"
+      msg "We will not manage another step due to walltime, stopping"
       exit 0
     else
-      msg "We can go for another $(( ( ${CSGENDING} - $(get_time) ) / $avg_steptime - 1 )) steps"
+      msg "We can go for another $(( ( ${CSGENDING} - $(get_time) ) / $avg_steptime - 1 )) steps until walltime is up."
     fi
   fi
 

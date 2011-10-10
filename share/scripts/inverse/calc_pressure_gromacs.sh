@@ -29,10 +29,10 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-tpr="$(csg_get_property cg.inverse.gromacs.g_energy.topol "topol.tpr")"
+tpr="$(csg_get_property cg.inverse.gromacs.g_energy.topol)"
 [[ -f $tpr ]] || die "${0##*/}: Gromacs tpr file '$tpr' not found"
 
-g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin "g_energy")"
+g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin)"
 [[ -n "$(type -p ${g_energy})" ]] || die "${0##*/}: g_energy binary '$g_energy' not found"
 
 

@@ -31,7 +31,7 @@ fi
 
 name=$(csg_get_interaction_property name)
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
 #this needs to done in step_000
 [ -f "$mdp" ] || cp_from_main_dir "$mdp"
 
@@ -56,9 +56,9 @@ min=$(csg_get_interaction_property min )
 max=$(csg_get_interaction_property max )
 step="$(csg_get_interaction_property step)"
 
-sp_min=$(csg_get_interaction_property tf.spline_start )
-sp_max=$(csg_get_interaction_property tf.spline_end )
-sp_step="$(csg_get_interaction_property tf.spline_step)"
+sp_min=$(csg_get_interaction_property inverse.tf.spline_start )
+sp_max=$(csg_get_interaction_property inverse.tf.spline_end )
+sp_step="$(csg_get_interaction_property inverse.tf.spline_step)"
 
 #resample to a bigger grid
 bigger="${name}.extended.dens"
@@ -70,9 +70,9 @@ smooth="${name}.smooth.dens"
 critical csg_resample --type cubic --in "$bigger" --out "$smooth" --grid "$sp_min:$step:$sp_max" --derivative "$forcefile" --fitgrid "$sp_min:$sp_step:$sp_max" --comment "$comment"
 
 #multiply the prefactor on
-prefactor="$(csg_get_interaction_property tf.prefactor)"
+prefactor="$(csg_get_interaction_property inverse.tf.prefactor)"
 forcefile_pref="${name}.tf_with_prefactor"
-cg_prefactor="$(csg_get_interaction_property --allow-empty tf.cg_prefactor)"
+cg_prefactor="$(csg_get_interaction_property --allow-empty inverse.tf.cg_prefactor)"
 if [[ -z $cg_prefactor ]]; then 
   echo "Using fixed prefactor $prefactor" 
   do_external table linearop "$forcefile" "${forcefile_pref}" "${prefactor}" 0.0

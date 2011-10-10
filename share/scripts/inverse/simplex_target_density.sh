@@ -27,8 +27,8 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 name="$(csg_get_interaction_property name)"
-mol="$(csg_get_interaction_property inverse.simplex.density.molname "*")"
-axis="$(csg_get_interaction_property inverse.simplex.density.axis "x")"
+mol="$(csg_get_interaction_property inverse.simplex.density.molname)"
+axis="$(csg_get_interaction_property inverse.simplex.density.axis)"
 step="$(csg_get_interaction_property inverse.simplex.density.step)"
 opts=( "--molname" "$mol" "--axis" "$axis" "--step" "$step" )
 do_external density ${sim_prog} "${name}.density.new" "${opts[@]}"

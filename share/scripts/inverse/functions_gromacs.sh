@@ -43,7 +43,7 @@ get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp fil
     mdp="$2"
     shift 2
   else
-    mdp="$(csg_get_property cg.inverse.gromacs.mdp "grompp.mdp")"
+    mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
   fi
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument (property)"
   [[ -f $mdp ]] || die "${FUNCNAME[0]}: Could not read setting file '$mdp'"
@@ -61,7 +61,7 @@ export -f get_simulation_setting
 
 check_cutoff() { #compared current interactions cutoff vs rvdw, 
   local max rvdw
-  [[ "$(csg_get_property cg.inverse.gromacs.cutoff_check "yes")" = "no" ]] && return 0
+  [[ "$(csg_get_property cg.inverse.gromacs.cutoff_check)" = "no" ]] && return 0
   max="$(csg_get_interaction_property max)"
   rvdw="$(get_simulation_setting rvdw)"
   csg_calc "$max" ">" "$rvdw" && die "${FUNCNAME[0]}: rvdw ($rvdw) is smaller than max ($max)\n\
@@ -72,7 +72,7 @@ export -f check_cutoff
 
 check_temp() { #compares k_B T in xml with temp in mpd file
   local kbt kbt2 temp t
-  [[ "$(csg_get_property cg.inverse.gromacs.temp_check "yes")" = "no" ]] && return 0
+  [[ "$(csg_get_property cg.inverse.gromacs.temp_check)" = "no" ]] && return 0
   #kbt in energy unit
   kbt="$(csg_get_property cg.inverse.kBT)"
   temp="$(get_simulation_setting ref_t)"
@@ -88,9 +88,9 @@ export -f check_temp
 
 simulation_finish() { #checks if simulation is finished
   local ext traj confout
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
-  confout="$(csg_get_property cg.inverse.gromacs.conf_out "confout.gro")"
+  confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
   [[ $1 = "--no-traj" ]] && [[ -f $confout ]] && return 0
   [[ -f $traj ]] && [[ -f $confout ]] && return 0
   return 1
@@ -99,9 +99,9 @@ export -f simulation_finish
 
 checkpoint_exist() { #check if a checkpoint exists
   local checkpoint
-  checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint "state.cpt")"
+  checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint)"
   [ -f "$checkpoint" ] && return 0
-  [[ $(csg_get_property cg.inverse.gromacs.pre_simulation "no") = "yes" && -f pre_simulation/$checkpoint ]] && return 0
+  [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && -f pre_simulation/$checkpoint ]] && return 0
   return 1
 }
 export -f checkpoint_exist
@@ -109,8 +109,8 @@ export -f checkpoint_exist
 calc_begin_time() { #return the max of dt*frames and eqtime
   local dt equi_time first_frame
   dt=$(get_simulation_setting dt)
-  first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
-  equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
+  first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
+  equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
   t1=$(csg_calc "$dt" "*" "$first_frame")
   csg_calc "$t1" '>' "$equi_time" && echo "$t1" || echo "$equi_time"
 }

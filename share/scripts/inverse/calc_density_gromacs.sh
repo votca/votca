@@ -32,10 +32,10 @@ shift
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [[ $sim_prog = "gromacs" ]]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol_out "topol.tpr")
+  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
   [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
 
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
   [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
@@ -44,10 +44,10 @@ fi
 
 name=$(csg_get_interaction_property name)
 
-equi_time="$(csg_get_property cg.inverse.gromacs.equi_time 0)"
-first_frame="$(csg_get_property cg.inverse.gromacs.first_frame 0)"
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
+first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
 
-with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
+with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors)
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
   output="${output}.block"
@@ -60,7 +60,6 @@ if is_done "${name}_density_analysis${suffix}"; then
   exit 0
 fi
 
-with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors "no")
 if [[ ${with_errors} = "yes" ]]; then
   msg "Calculating density for $name with errors"
   block_length=$(csg_get_property cg.inverse.gromacs.density.block_length)

@@ -38,50 +38,22 @@ EOF
 }
 
 sub csg_get_property($;$){
-  ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
   defined($_[0]) || die "csg_get_property: Missing argument\n";
-  open(CSG,"csg_property --file $xmlfile --path $_[0] --short --print . |") ||
-    die "csg_get_property: Could not open pipe\n";
-  my $value=<CSG>;
-  while(<CSG>){
-    $value.=$_;
-  }
-  $value="$_[1]" if ((not defined($value)) and defined($_[1]));
-  defined($value) || die "csg_get_property: Could not get value $_[0] and no default given\n";
-  close(CSG) || die "csg_get_property: error from csg_property\n";
-  $value =~ s/\n/ /mg;
-  $value =~ s/^\s*//;
-  $value =~ s/\s*$//;
-  return undef if ($value =~ /^\s*$/);
+  my $cmd="csg_get_property '$_[0]'";
+  $cmd="csg_get_property $_[0]' '$_[1]'" if (defined($_[1]));
+  my $value=`bash -c "$cmd"`;
+  die "csg_get_property: error in perl from bash function csg_get_property\n" if ($? != 0);
+  chmod($value);
   return $value;
 }
 
 sub csg_get_interaction_property($;$){
-  ( my $bondname=$ENV{'bondname'} ) || die "bondname: ENV{'bondname'} was undefined\n";
-  ( my $bondtype=$ENV{'bondtype'} ) || die "bondtype: ENV{'bondtype'} was undefined\n";
-  ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
   defined($_[0]) || die "csg_get_interaction_property: Missing argument\n";
-  open(CSG,"csg_property --file $xmlfile --short --path cg.$bondtype --filter \"name=$bondname\" --print $_[0] 2>&1 |") ||
-    die "csg_get_interaction_property: Could not open pipe\n";
-  my $value=<CSG>;
-  while(<CSG>){
-    $value.=$_;
-  }
-  if (close(CSG)){
-    #we do not have a return errors
-    $value="$_[1]" if (($value =~ /^\s*$/) and (defined($_[1])));
-  } else {
-    #we do have a return errors
-    if (defined($_[1])) {
-      $value="$_[1]";
-    } else {
-      die "csg_get_interaction_property: csg_property failed on getting value $_[0] and no default given\n";
-    }
-  }
-  $value =~ s/\n/ /mg;
-  $value =~ s/^\s*//;
-  $value =~ s/\s*$//;
-  return undef if ($value =~ /^\s*$/);
+  my $cmd="csg_get_interaction_property '$_[0]'";
+  $cmd="csg_get_interaction_property '$_[0]' '$_[1]'" if (defined($_[1]));
+  my $value=`bash -c "$cmd"`;
+  die "csg_get_interaction_property: error in perl from bash function csg_get_interaction_property\n" if ($? != 0);
+  chmod($value);
   return $value;
 }
 

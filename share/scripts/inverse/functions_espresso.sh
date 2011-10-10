@@ -37,9 +37,9 @@ unset esp_dir
 
 simulation_finish() { #checks if simulation is finished
   local esp_success traj_esp espout
-  esp_success="$(csg_get_property cg.inverse.espresso.success "success.esp")"
-  traj_esp="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
-  espout="$(csg_get_property cg.inverse.espresso.blockfile_out "confout.esp.gz")"
+  esp_success="$(csg_get_property cg.inverse.espresso.success)"
+  traj_esp="$(csg_get_property cg.inverse.espresso.traj)"
+  espout="$(csg_get_property cg.inverse.espresso.blockfile_out)"
   [[ -f $esp_success && -f $traj_esp && -f $espout ]] && return 0 
   return 1
 }
