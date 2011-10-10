@@ -8,10 +8,10 @@ HACK:=$(shell $(MAKE) -f Makefile.XMLS Makefile.incl)
 include Makefile.incl
 
 all: $(XMLSTEX) 
+t2t: $(XMLST2T)
 html: $(XMLSHTML)
 
 .PHONY: clean upload
-.SECONDARY:
 
 $(XMLST2T): xml2t2t.sh
 %.t2t: 

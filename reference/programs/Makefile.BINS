@@ -1,6 +1,7 @@
 SHELL=/bin/bash
-BINS:=$(shell ls `dirname \`which csg_call\``/csg_* | xargs -n1 basename )
-BINS2:=$(shell ls `dirname \`which csg_call\``/multi_g_* | xargs -n1 basename )
+CSG_PATH:=$(shell dirname `which csg_call`)
+BINS:=$(shell ls $(CSG_PATH)/csg_* | xargs -n1 basename )
+BINS2:=$(shell ls $(CSG_PATH)/multi_g_* | xargs -n1 basename )
 
 all: Makefile.incl
 
@@ -18,6 +19,7 @@ Makefile.incl: dummy
 	echo >> $@
 	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.html\\/' -e '1i BINSHTML=\\' >> $@
 	echo >> $@
+	echo $(BINS) $(BINS2) | sed 's/[[:space:]]\+/\n/g' | sed 's@.*@&.t2t: $(CSG_PATH)/&\n@' >> $@
 	@#just added to avoid clock screw
 	sleep 0.5
 

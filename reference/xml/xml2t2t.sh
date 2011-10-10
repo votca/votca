@@ -47,7 +47,7 @@ echo
 #-delete desc tags themself
 items="$(perl -ne 'while (/<([^!].*?)>/g) {print "$1\n";}' ${xmlfile} | \
   perl -ne 'chomp;if (/^\/(.*)/) {print "$line\n";$line =~ s/\.$1$//;}else{$line.=".$_";};' | \
-  sed -e 's/^\.//' -e '/desc$/d')"
+  sed -e 's/^\.//' -e '/\.DESC$/d')"
 
 #sort them
 items="$(echo -e "$items" | sort -u)"
@@ -55,7 +55,7 @@ items="$(echo -e "$items" | sort -u)"
 for name in ${items}; do
   #cut the first 3 heads of the item, as maximum deepth of latex itemize is 3
   cut_heads "$name" #returns $item and $spaces
-  desc="$(csg_property --file $xmlfile --path $name.desc --print . --short)"
+  desc="$(csg_property --file $xmlfile --path $name.DESC --print . --short)"
   [[ -z $desc ]] && continue
   echo -n "${spaces}- target(${name})(**${item}**) "
   default="$(csg_property --file $xmlfile --path $name --print . --short | \

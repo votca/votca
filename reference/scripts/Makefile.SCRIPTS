@@ -1,6 +1,6 @@
 SHELL=/bin/bash
+SHARE:=$(shell csg_call --show-share)
 SCRIPTS:=$(shell csg_call -l | awk '/^[^\#]/{print $$3}' | sort -u )
-#SCRIPTS:=$(shell csg_call -l | awk '/^[^#]/{print $$3}' | sort -u )
 
 all: Makefile.incl
 
@@ -18,6 +18,7 @@ Makefile.incl: dummy
 	echo >> $@
 	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.html\\/' -e '1i SCRIPTSHTML=\\' >> $@
 	echo >> $@
+	echo $(SCRIPTS) | sed 's/[[:space:]]\+/\n/g' | sed 's@.*@&.t2t: $(SHARE)/scripts/inverse/&\n@' >> $@
 	@#just added to avoid clock screw
 	sleep 0.5
 

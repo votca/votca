@@ -6,10 +6,9 @@ TRUNC=$(shell hg root)
 TXT2TAGS=$(TRUNC)/scripts/txt2tags
 
 .PHONY: clean
-.SECONDARY:
-.DELETE_ON_ERROR: %.t2t
 
 all: Makefile.incl all.tex csg_table.tex 
+t2t: $(SCRIPTST2T)
 
 html: all.html
 

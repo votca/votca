@@ -4,10 +4,10 @@ TRUNC=$(shell hg root)
 TXT2TAGS=$(TRUNC)/scripts/txt2tags
 
 .PHONY: clean bootstrap
-.SECONDARY:
 
 all: all.tex
 html: all.html
+t2t: $(BINST2T)
 
 #this is a hack to generate Makefile.incl
 HAKE:=$(shell $(MAKE) -f Makefile.BINS Makefile.incl)
