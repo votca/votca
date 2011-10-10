@@ -56,7 +56,7 @@ void CtpMapApp::Initialize()
     CsgApplication::Initialize();
     AddProgramOptions("Mapping options")
             ("segments,s", po::value<string>(), "  conjugated segment definitions")
-            ("file,f", po::value<string>(), " sqlite state file");
+            ("file,f", po::value<string>(), "  sqlite state file");
 }
 
 bool CtpMapApp::EvaluateOptions()
