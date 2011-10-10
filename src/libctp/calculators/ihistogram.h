@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _HIST_INTEGRALS_H
-#define	_HIST_INTEGRALS_H
+#ifndef _IHISTOGRAM_H
+#define	_IHISTOGRAM_H
 
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/paircalculator.h>
@@ -28,16 +28,16 @@ namespace votca { namespace ctp {
 /**
 	\brief Histogram of transfer integrals of neighbor list pairs
 
-Histogram for all molecules from the neighbor list.
+Histogram of transfer for all molecules from the neighbor list.
 
 Callname: ihistogram   
 
 */
-class CalcHistIntegrals : public PairCalculator
+class Ihistogram : public PairCalculator
 {
 public:
-    CalcHistIntegrals() {};
-    ~CalcHistIntegrals() {};
+    Ihistogram() {};
+    ~Ihistogram() {};
 
 //    const char *Description() { return "Histogram of transfer integrals of neighbor list pairs"; }
 
@@ -52,7 +52,7 @@ private:
     string _outfile;
 };
 
-inline void CalcHistIntegrals::Initialize(QMTopology *top, Property *options){
+inline void Ihistogram::Initialize(QMTopology *top, Property *options){
     _min = options->get("options.ihistogram.min").as<double>();
     _max = options->get("options.ihistogram.max").as<double>();
     _nbins = options->get("options.ihistogram.nbins").as<int>();
@@ -61,16 +61,16 @@ inline void CalcHistIntegrals::Initialize(QMTopology *top, Property *options){
     histogram.Initialize(_min,_max,_nbins);
 }
 
-inline void CalcHistIntegrals::EndEvaluate(QMTopology *top){
+inline void Ihistogram::EndEvaluate(QMTopology *top){
     cout << "Writing Distribution of Log10(J_eff^2) to file " << _outfile << endl;
     histogram.data().Save(_outfile);
 }
 
-inline void CalcHistIntegrals::EvaluatePair(QMTopology *top, QMPair *pair){
+inline void Ihistogram::EvaluatePair(QMTopology *top, QMPair *pair){
     double logJ2eff = log10(pair->calcJeff2());
     histogram.Process( logJ2eff );
 }
 
 }}
 
-#endif	/* _HIST_INTEGRALS_H */
+#endif	/* _IHISTOGRAM_H */

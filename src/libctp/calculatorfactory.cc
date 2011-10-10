@@ -53,7 +53,7 @@ namespace votca { namespace ctp {
 void CalculatorFactory::RegisterAll(void)
 {
 	Calculators().Register<Izindo>("izindo"); // ZINDO-based transfer integrals
-        Calculators().Register<CalcHistIntegrals>("ihistogram"); // histogram of transfer integrals
+        Calculators().Register<Ihistogram>("ihistogram"); // histogram of transfer integrals
 
 	Calculators().Register<Ecoulomb>("ecoulomb"); // Coulomb part of site energies
 	Calculators().Register<Eoutersphere>("eoutersphere"); // Outersphere reorganization energy

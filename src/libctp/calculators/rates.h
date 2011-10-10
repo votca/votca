@@ -62,26 +62,26 @@ private:
 
 inline void Rates::Initialize(QMTopology *top, Property *options){
 	
-    double temp= options->get("options.calc_rates.temperature").as<double>();
+    double temp= options->get("options.rates.temperature").as<double>();
     _kT=temp*8.6173324e-5;
-    _E = options->get("options.calc_rates.e_field").as<vec>();
+    _E = options->get("options.rates.field").as<vec>();
    // _omegavib=0.2;
    // _nmaxvib=10;
-      if (options->exists("options.calc_rates.method")) {
-        if (options->get("options.calc_rates.method").as<string > () == "marcus") {
+      if (options->exists("options.rates.method")) {
+        if (options->get("options.rates.method").as<string > () == "marcus") {
 		_rate_type='M';
             cout << "Computing rates from Marcus theory"<< endl;
         }
-        else if (options->get("options.calc_rates.method").as<string > () == "jortner") {
+        else if (options->get("options.rates.method").as<string > () == "jortner") {
 		_rate_type='J';
-        if (options->exists("options.calc_rates.nmaxvib")) {
+        if (options->exists("options.rates.nmaxvib")) {
         _nmaxvib = options->get("options.calc_rates.nmaxvib").as<double>();
     } else {
         _nmaxvib = 20;
         cout << "Warning: no cutoff number for qm vibrations  provided, using default 20" << endl;
     }
-        if (options->exists("options.calc_rates.omegavib")) {
-        _omegavib = options->get("options.calc_rates.omegavib").as<double>();
+        if (options->exists("options.rates.omegavib")) {
+        _omegavib = options->get("options.rates.omegavib").as<double>();
     } else {
         _omegavib = 0.2;
         cout << "Warning: no qm vibration frequency  provided, using default 0.2eV" << endl;
