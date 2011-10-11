@@ -187,13 +187,13 @@ for_all (){ #do something for all interactions (1st argument)
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: need at least two arguments"
   bondtypes="$1"
   shift
-  interactions=( $(csg_get_property cg.non-bonded.name) $(csg_get_property cg.bonded.name) )
+  interactions=( $(csg_get_property --allow-empty cg.non-bonded.name) $(csg_get_property --allow-empty cg.bonded.name) )
   name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
   for bondtype in $bondtypes; do
     #check that type is bonded or non-bonded
     [[ $bondtype = "non-bonded" || $bondtype = "bonded" ]] || die  "for_all: Argument 1 is not non-bonded or bonded"
     [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
-    interactions=( $(csg_get_property cg.$bondtype.name) )
+    interactions=( $(csg_get_property --allow-empty cg.$bondtype.name) )
     for name in "${interactions[@]}"; do
       #print this message to stderr to avoid problem with $(for_all something)
       [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
