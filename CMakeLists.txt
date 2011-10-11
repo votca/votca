@@ -49,7 +49,13 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(TXT2TAGS)
+option(BUILD_MANPAGES "Build manpages" ON)
+if (BUILD_MANPAGES)
+  find_package(TXT2TAGS)
+else (BUILD_MANPAGES)
+  set(TXT2TAGS_FOUND)
+endif (BUILD_MANPAGES)
+
 option(EXTERNAL_BOOST "Use external boost" ON)
 if (EXTERNAL_BOOST)
   find_package(Boost 1.39.0 COMPONENTS program_options )
