@@ -53,7 +53,14 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 find_package(Mercurial)
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-find_package(TXT2TAGS)
+
+option(BUILD_MANPAGES "Build manpages" ON)
+if (BUILD_MANPAGES)
+  find_package(TXT2TAGS)
+else (BUILD_MANPAGES)
+  set(TXT2TAGS_FOUND)
+endif (BUILD_MANPAGES)
+
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
