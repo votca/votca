@@ -44,8 +44,7 @@ public:
         AddProgramOptions()
             ("out", boost::program_options::value<string>(),
                 "  output file for coarse-grained trajectory")
-                ("hybrid", boost::program_options::value<string>(&_hybrid_string)->default_value(""),
-                " [yes/no] Create hybrid topology containing both atomistic and coarse-grained");
+                ("hybrid", "Create hybrid trajectory containing both atomistic and coarse-grained");
     }
 
     bool EvaluateOptions() {
@@ -132,20 +131,18 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
 protected:
     TrajectoryWriter *_writer;
     bool _do_hybrid;
-    string _hybrid_string;
 
 };
 
 void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
     string out = OptionsMap()["out"].as<string > ();
-    string hybrid = OptionsMap()["hybrid"].as<string > ();
     cout << "writing coarse-grained trajectory to " << out << endl;
     _writer = TrjWriterFactory().Create(out);
     if (_writer == NULL)
         throw runtime_error("output format not supported: " + out);
 
     _do_hybrid = false;
-    if (hybrid == "yes") {
+    if(OptionsMap().count("hybrid")){
         if (!_do_mapping)
             throw runtime_error("options hybrid and no-map not compatible");
         cout << "Doing hybrid mapping..." << endl;

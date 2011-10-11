@@ -24,7 +24,7 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
 $progname, version %version%
 This script adds up two potentials
 In addition, it does some magic tricks:
-+ order of infiles MATTER !!!!
++ order of infiles MATTERS !!!!
 + if infile2 contains an undefined value, it uses the value from infile1
 + if value for infile1 and infile2 are both invalid, the result is also invalid
 
@@ -33,7 +33,7 @@ EOF
   exit 0;
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "3 parameters are necessary\n" if ($#ARGV<2);
 
 use CsgFunctions;
 
@@ -52,7 +52,8 @@ my @flag_delta;
 
 #should never happen, but ....
 die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
-die "Different start point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
+die "Different start potential point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
+die "Different end potential point \n" if ( $#r_cur != $#r_delta );
 
 my $outfile="$ARGV[2]";
 my @pot;

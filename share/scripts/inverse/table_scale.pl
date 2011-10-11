@@ -20,7 +20,7 @@ use strict;
 $_=$0;
 s#^.*/##;
 my $progname=$_;
-my $usage="Usage: $progname [OPTIONS] <in> <out>";
+my $usage="Usage: $progname [OPTIONS] infile outfile prefactor1 prefactor2";
 
 # read program arguments
 
@@ -39,7 +39,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 	if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
 		print <<END;
-This script calculates the integral of a table
+This script applies a prefactor to infile. The prefactor is is interpolated lines between the prefactor1 and prefactor2.
 $usage
 Allowed options:
 -h, --help            Show this help message
@@ -48,17 +48,14 @@ END
 	}
 	else
 	{
-		die "Unknow option '".$ARGV[0]."' !\n";
+		die "Unknown option '".$ARGV[0]."' !\n";
 	}
 }
 
 #Print usage
-die "no files given\n$usage\n" unless $#ARGV > 0;
+die "no files given\n$usage\n" unless $#ARGV >=3 ;
 
 use CsgFunctions;
-
-
-my $do_interpolate = 0;
 
 my $infile="$ARGV[0]";
 my @r;
@@ -71,35 +68,11 @@ my $outfile="$ARGV[1]";
 my @out;
 
 my $prefactor="$ARGV[2]";
-my $prefactor_cg = 0;
+my $prefactor_cg = "$ARGV[3]";
 
-
-if (defined $ARGV[3]){
-    $prefactor_cg = "$ARGV[3]";
-    $do_interpolate = 1;
-}
-
-my $min = 0;
-my $i=0;
-
-for (;$i<=$#r;$i++){
-  $out[$i]=$val[$i]; 
-}
-
-if (!$do_interpolate){
-    for ($i=0;$i<=$#r;$i++){
-    # just multiply
-      $out[$i]=$out[$i]*$prefactor;
-    }
-}
-else
-{
-    for ($i=0;$i<=$#r;$i++){
-    # do a linear interpoltation between the prefactors
-    
-        $out[$i]=$i/$#r*$out[$i]*$prefactor_cg+(1-$i/$#r)*$out[$i]*$prefactor;
-
-    }   
+for ($i=0;$i<=$#r;$i++){
+# do a linear interpoltation between the prefactors
+   $out[$i]=$i/$#r*$val[$i]*$prefactor_cg+(1-$i/$#r)*$val[$i]*$prefactor;
 }
 
 saveto_table($outfile,@r,@out,@flag,$comments) || die "$progname: error at save table\n";

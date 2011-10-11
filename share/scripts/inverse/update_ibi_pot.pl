@@ -31,7 +31,7 @@ EOF
   exit 0;
 }
 
-die "4 parameters are nessary\n" if ($#ARGV<3);
+die "4 parameters are necessary\n" if ($#ARGV<3);
 
 use CsgFunctions;
 
@@ -57,14 +57,16 @@ my @pot_flags_cur;
 
 #should never happen due to resample, but better check
 die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
-die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
+die "Different start potential point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
+die "Different end potential point \n" if ( $#r_aim != $#r_cur );
 
 my $outfile="$ARGV[3]";
 my @dpot;
 my @flag;
 my $value=0.0;
 
-for (my $i=0;$i<=$#r_aim;$i++){
+#start from the end to make the begining have the last value
+for (my $i=$#r_aim;$i>=0;$i--){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
     $dpot[$i]=log($rdf_cur[$i]/$rdf_aim[$i])*$pref;
     $flag[$i]="i";

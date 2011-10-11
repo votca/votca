@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 dummy script (does nothing), useful to overwrite default by nothing

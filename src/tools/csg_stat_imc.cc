@@ -28,7 +28,7 @@
 namespace votca { namespace csg {
 
 Imc::Imc()
-   : _write_every(0), _do_blocks(false), _do_imc(false), _processed_some_frames(false)
+   : _block_length(0), _do_imc(false), _processed_some_frames(false)
 {
 }
 
@@ -104,6 +104,15 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
         else
             i._norm = 1. / (beads1.size() * beads2.size());
     }
+
+    for (list<Property*>::iterator iter = _bonded.begin();
+            iter != _bonded.end(); ++iter) {
+        string name = (*iter)->get("name").value();
+
+        std::list<Interaction *> list = top->InteractionsInGroup(name);
+        if (list.empty() )
+            throw std::runtime_error("Bonded interaction '" + name + "' defined in options xml-file, but not in topology - check name definition in the mapping file again");
+    }
 }
 
 // create an entry for interactions
@@ -139,8 +148,9 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
 void Imc::EndEvaluate()
 {
     if(_nframes > 0) {
-        if(!_do_blocks) {
-            WriteDist();
+        if(_block_length == 0) {
+	    string suffix = string(".") + _extension;
+            WriteDist(suffix);
             if(_do_imc)
                 WriteIMCData();
         }
@@ -389,8 +399,8 @@ void Imc::WriteDist(const string &suffix)
             dist.y() = iter->second->_norm * dist.y();
         }
         
-        dist.Save((iter->first) + suffix + ".dist.new");
-        cout << "written " << (iter->first) + suffix + ".dist.new\n";            
+        dist.Save((iter->first) + suffix);
+        cout << "written " << (iter->first) + suffix << "\n";
     }
 }
 
@@ -648,15 +658,14 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
     if(_do_imc)
         DoCorrelations(worker);
 
-    if(_write_every != 0) {
-        if((_nframes % _write_every)==0) {
+    if(_block_length != 0) {
+        if((_nframes % _block_length)==0) {
             _nblock++;
-            string suffix = string("_") + boost::lexical_cast<string>(_nblock);
+            string suffix = string("_") + boost::lexical_cast<string>(_nblock) + string(".") + _extension;
             WriteDist(suffix);
             WriteIMCData(suffix);
             WriteIMCBlock(suffix);
-            if(_do_blocks)
-                ClearAverages();
+            ClearAverages();
         }
     }
 

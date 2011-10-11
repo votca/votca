@@ -15,54 +15,61 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the density for gromacs for the AdResS therm force
+This script calcs the density for gromacs
 
-Usage: ${0##*/}
+Usage: ${0##*/} outputfile csg_density_options
 EOF
    exit 0
 fi
 
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
+output="$1"
+shift
+
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
-  [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
+if [[ $sim_prog = "gromacs" ]]; then
+  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
+  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
 
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
-  [ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
+  [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
 
 name=$(csg_get_interaction_property name)
-max=$(csg_get_interaction_property tf.spline_end)
-step=$(csg_get_interaction_property step)
-bins=$(csg_calc $max / $step )
 
-adress_type=$(get_simulation_setting adress_type)
-echo "Adress type: $adress_type"
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
+first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
 
-equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
-first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
-mol="$(csg_get_interaction_property tf.molname "*")"
-if [ "$adress_type" = "sphere" ]; then
-  adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
-  ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
-  axis="r"
-  opts="--ref $ref"
+with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors)
+if [[ ${with_errors} = "yes" ]]; then
+  suffix="_with_errors"
+  output="${output}.block"
 else
-  axis="x"
+  suffix=""
 fi
 
-msg "Calculating density for $name (molname $mol) on axis $axis"
-if is_done "density_analysis-$name"; then
+if is_done "${name}_density_analysis${suffix}"; then
   echo "density analysis is already done"
-else
-  critical csg_density --trj "$traj" --top "$topol" --out "$name.dist.new" --begin "$equi_time" --first-frame "$first_frame" --rmax "$max" --bins "$bins" --axis "$axis" --molname "$mol" $opts
-  critical sed -i -e '/nan/d' -e '/inf/d' "$name.dist.new"
-  mark_done "density_analysis-$name"
+  exit 0
 fi
+
+if [[ ${with_errors} = "yes" ]]; then
+  msg "Calculating density for $name with errors"
+  block_length=$(csg_get_property cg.inverse.gromacs.density.block_length)
+  critical csg_density --trj "$traj" --top "$topol" --out "$output" --begin "$equi_time" --first-frame "$first_frame" --block-length $block_length "$@"
+  #mind the --clean option to avoid ${name}.dist.block_* to fail on the second run
+  do_external table average --clean --output "${output}" ${output}.block_*
+else
+  msg "Calculating density for $name"
+  critical csg_density --trj "$traj" --top "$topol" --out "$output" --begin "$equi_time" --first-frame "$first_frame" "$@"
+  critical sed -i -e '/nan/d' -e '/inf/d' "$output"
+fi
+mark_done "${name}_density_analysis${suffix}"
+

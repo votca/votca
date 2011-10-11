@@ -40,9 +40,10 @@ please submit bugs to bugs@votca.org
 
 ${0##*/}, version ${version}
 
-This script calls scripts for the iterative framework
+This script calls scripts and functions for the iterative framework.
+Function can be executed or shows if key1='function'.
 
-Usage: ${0##*/} [OPTIONS] key1 key2
+Usage: ${0##*/} [OPTIONS] key1 key2 [SCRIPT OPTIONS]
 
 Allowed options:
 -l, --list           Show list of all script
@@ -61,6 +62,7 @@ Allowed options:
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
     --nocolor        Disable colors
+    --sloppy-tables  Allow tables without flags
     --debug          Enable debug mode with a lot of information
 -h, --help           Show this help
 
@@ -94,6 +96,9 @@ while [[ ${1#-} != $1 ]]; do
     export CSGXMLFILE="$2"
     [ -f "$CSGXMLFILE" ] || die "options xml file '$CSGXMLFILE' not found"
     shift 2;;
+   --sloppy-tables)
+    export VOTCA_TABLES_WITHOUT_FLAG="yes"
+    shift ;;
    --log)
     log="$2"
     shift 2;;
@@ -187,8 +192,9 @@ cat <<EOF
 please submit bugs to bugs@votca.org
 
 EOF
-  do_external -q $1 $2 --help | sed "s/%version%/${version}/"
-  exit 0
+  scriptname=$(source_wrapper $1 $2)
+  do_external -q $1 $2 --help | sed -e "s/%version%/${version}/" -e "/^Usage/s@${scriptname##*/}@${0##*/} [OPTIONS] $1 $2@g"
+  exit $?
 fi
 
 [[ -n ${log} ]] && enable_logging "$log"

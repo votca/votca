@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents statistical analysis for the iterative Boltzmann inversion 
@@ -28,25 +28,45 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.rdf.topol "topol.tpr")
-  [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
+if [[ $sim_prog = "gromacs" ]]; then
+  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
+  topol=$(csg_get_property cg.inverse.gromacs.rdf.topol "$topol")
+  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
 
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
-  [ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
+  [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
 
-equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
-first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
+first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
+
+with_errors=$(csg_get_property cg.inverse.gromacs.rdf.with_errors)
+if [[ ${with_errors} = "yes" ]]; then
+  suffix="_with_errors"
+  block_length=$(csg_get_property cg.inverse.gromacs.rdf.block_length)
+  error_opts="--block-length ${block_length} --ext dist.block"
+else
+  suffix=""
+fi
 
 tasks=$(get_number_tasks)
-if is_done "rdf_analysis"; then
-  echo "rdf analysis is already done"
+#rdf calculation is maybe done already in a different interaction
+if is_done "rdf_calculation${suffix}"; then
+  echo "rdf calculation is already done"
 else
   msg "Calculating rdfs with csg_stat using $tasks tasks"
-  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame
-  mark_done "rdf_analysis"
+  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts}
+  mark_done "rdf_calculation${suffix}"
+fi
+
+if [[ ${with_errors} = "yes" ]]; then
+  name="$(csg_get_interaction_property name)"
+  if ! is_done "${name}_rdf_average"; then
+    msg "Calculating average rdfs and its errors for interaction $name"
+    do_external table average --output ${name}.dist.new ${name}_*.dist.block
+    mark_done "${name}_rdf_average"
+  fi
 fi

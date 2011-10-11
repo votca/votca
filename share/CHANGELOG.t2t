@@ -6,6 +6,25 @@ For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=csg]
 
 == Version in hg ==
+* csg_map: added hybrid mapping
+* added numpy as imc solver
+* xyz reader/writer
+* csg_inverse: cg.inverse.scriptdir -> cg.inverse.scriptpath
+* csg_call: added --sloppy-tables options
+* csg_inverse: added error calculations for rdfs and density
+* csg_inverse: added clastack in die
+
+
+
+== Version 1.2.1 ==
+* fixed lib soname
+* csg_inverse: improve initial guess of the potential
+* csg_inverse: fixes for min!=0
+* table_extrapolate.pl: fixed flags and first point
+* fixed tf iteration for multiple components
+* fixed round-off error in grid search and csg_calc
+* csg_inverse: typo fixed and additional checks
+
 
 == Version 1.2 (SuperDoris) ==
 * changed buildsystem to cmake

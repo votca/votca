@@ -27,7 +27,7 @@ EOF
   exit 0;
 }
 
-die "1 parameter are nessary\n" if ($#ARGV<0);
+die "1 parameter are necessary\n" if ($#ARGV<0);
 
 use CsgFunctions;
 

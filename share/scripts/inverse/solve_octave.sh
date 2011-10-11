@@ -32,7 +32,7 @@ fi
 # initialize & run the octave file
 cat_external solve octave | sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" > solve_$1.octave || die "${0##*/}: sed failed"
 
-octave="$(csg_get_property cg.inverse.imc.octave.bin "octave")"
+octave="$(csg_get_property cg.inverse.imc.octave.bin)"
 [ -n "$(type -p $octave)" ] || die "${0##*/}: octave binary '$octave' not found"
 
 critical $octave solve_$1.octave

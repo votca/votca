@@ -48,7 +48,7 @@ Allowed options:
 --max MAX             Replace all pot value bigger MAX by MAX 
 
 
-Possible types: non-bonded (=C12), bond, thermforce, C12, C6
+Possible types: non-bonded (=C12), bond, thermforce, C12, C6, CB
 
 Examples:
 * $progname --type bond table.in table_b0.xvg
@@ -64,11 +64,11 @@ EOF
       $gmx_max = shift(@ARGV);
   }
   else{
-    die "Unknow option '".$ARGV[0]."' !\n";
+    die "Unknown option '".$ARGV[0]."' !\n";
   }
 }
 
-die "2 parameters are nessary\n" if ($#ARGV<1);
+die "2 parameters are necessary\n" if ($#ARGV<1);
 
 use CsgFunctions;
 
@@ -113,6 +113,9 @@ if (( "$type" eq "non-bonded" ) or ("$type" eq "C12" )) {
 }
 elsif ( "$type" eq "C6" ){
   $fmt=sprintf("%%15.10e   %15.10e %15.10e   %%15.10e %%15.10e   %15.10e %15.10e\n",0,0,0,0);
+}
+elsif ( "$type" eq "CB" ){
+  $fmt=sprintf("%%15.10e   %%15.10e %%15.10e   %15.10e %15.10e   %15.10e %15.10e\n",0,0,0,0);
 }
 elsif ( "$type" eq "bonded" ){
   $fmt="%15.10e   %15.10e %15.10e\n";
