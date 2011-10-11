@@ -65,7 +65,7 @@ class KMCApplication
 	: public Application
 {
 public:
-	    virtual string ProgramName() { return "kmc_test"; }
+	    virtual string ProgramName() { return "kmc_run"; }
 	    virtual void HelpText(std::ostream &out) { };
 	    void Initialize();
 	    bool EvaluateOptions();
