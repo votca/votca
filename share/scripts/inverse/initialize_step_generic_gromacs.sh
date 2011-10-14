@@ -40,7 +40,7 @@ else
 fi
 
 #convert potential in format for sim_prog
-for_all non-bonded do_external convert_potential gromacs
+for_all "non-bonded bonded" do_external convert_potential gromacs
 
 check_temp || die "${0##*/}: check of tempertures failed"
 

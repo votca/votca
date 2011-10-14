@@ -40,4 +40,4 @@ for group in $imc_groups; do
   critical csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
 done
 
-for_all non-bonded do_external imc purify
+for_all "non-bonded bonded" do_external imc purify

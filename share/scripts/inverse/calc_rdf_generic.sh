@@ -31,13 +31,22 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 if [[ $sim_prog = "gromacs" ]]; then
   topol=$(csg_get_property cg.inverse.gromacs.topol_out)
   topol=$(csg_get_property cg.inverse.gromacs.rdf.topol "$topol")
-  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
-
+  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist" 
   ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
   [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
+fi
+
+if [[ -n $(csg_get_property cg.bonded.name) ]]; then
+  die "We still need to convert angle potentials..."
+  mapping="$(csg_get_property cg.inverse.map)"
+  mapping="$(csg_get_property cg.inverse.gromacs.rdf.map "$map")"
+  [[ -f "$(get_main_dir)/$mapping" ]] || die "${0##*/}: Mapping file '$mapping' for bonded interaction not found in maindir"
+  mapping="--cg $(get_main_dir)/$mapping"
+else
+  mapping=""
 fi
 
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
@@ -58,7 +67,7 @@ if is_done "rdf_calculation${suffix}"; then
   echo "rdf calculation is already done"
 else
   msg "Calculating rdfs with csg_stat using $tasks tasks"
-  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts}
+  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts} ${mapping}
   mark_done "rdf_calculation${suffix}"
 fi
 

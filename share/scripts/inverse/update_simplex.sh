@@ -28,7 +28,7 @@ EOF
    exit 0
 fi
 
-for_all non-bonded do_external update simplex_single
+for_all "non-bonded bonded" do_external update simplex_single
 
 names="$(csg_get_interaction_property --all name)"
 conv=0

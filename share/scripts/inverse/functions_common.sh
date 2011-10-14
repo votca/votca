@@ -220,13 +220,14 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
       *)
 	die "${FUNCNAME[0]}: Unknow option '$1'";;
     esac
+    shift
   done
   [[ -n $1 ]] || die "${FUNCNAME[0]}: Missing argument"
 
   if [[ $for_all = "yes" ]]; then
     local t p
     for t in non-bonded bonded; do
-      ret+=" $(csg_get_interaction_property --allow-empty cg.$t.$1)"
+      ret+=" $(csg_get_property --allow-empty "cg.$t.$1")"
     done
     ret="$(echo "$ret" | trim_all)"
     [[ -z $ret ]] && die "${FUNCNAME[0]}: Not a single interaction has a value for the property $1"
@@ -259,6 +260,8 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${bondtype}.$1 --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+    #from time to time the default is only given in the non-bonded section
+    [[ -z $ret ]] && ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.non-bonded.$1 --print . | trim_all)"
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction with name '$bondname' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
   echo "${ret}"

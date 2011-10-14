@@ -104,6 +104,9 @@ if [[ $tabtype = "non-bonded" ]]; then
   fi
 elif [[ $tabtype = "bonded" || $tabtype = "thermforce" ]]; then
   tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
+  #todo unhack this...
+  max=$(csg_get_interaction_property max)
+  csg_calc "$max" ">" "$tablend" && tablend="$max"
 elif [[ $tabtype = "angle" ]]; then
   tablend=180
 elif [[ $tabtype = "dihedral" ]]; then
