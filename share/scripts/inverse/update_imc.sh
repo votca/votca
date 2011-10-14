@@ -30,7 +30,7 @@ solver=$(csg_get_property cg.inverse.imc.solver)
 sim_prog="$(csg_get_property cg.inverse.program)"
 do_external imc_stat $sim_prog
 
-imc_groups=$(csg_get_property cg.non-bonded.inverse.imc.group)
+imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(echo "$imc_groups" | sort -u)
 for group in $imc_groups; do
   # currently this is a hack! need to create combined array

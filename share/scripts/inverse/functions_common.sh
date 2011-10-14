@@ -187,7 +187,7 @@ for_all (){ #do something for all interactions (1st argument)
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: need at least two arguments"
   bondtypes="$1"
   shift
-  interactions=( $(csg_get_property --allow-empty cg.non-bonded.name) $(csg_get_property --allow-empty cg.bonded.name) )
+  interactions=( $(csg_get_interaction_property --all name) )
   name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
   for bondtype in $bondtypes; do
     #check that type is bonded or non-bonded
@@ -209,15 +209,30 @@ for_all (){ #do something for all interactions (1st argument)
 }
 export -f for_all
 
-csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop
-  local ret allow_empty cmd
-  if [[ $1 = "--allow-empty" ]]; then
-    shift
-    allow_empty="yes"
-  else
-    allow_empty="no"
-  fi
+csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop or with --all option
+  local ret allow_empty="no" for_all="no"
+  while [[ $1 = --* ]]; do
+    case $1 in
+      --allow-empty)
+        allow_empty="yes";;
+      --all)
+        for_all="yes";;
+      *)
+	die "${FUNCNAME[0]}: Unknow option '$1'";;
+    esac
+  done
   [[ -n $1 ]] || die "${FUNCNAME[0]}: Missing argument"
+
+  if [[ $for_all = "yes" ]]; then
+    local t p
+    for t in non-bonded bonded; do
+      ret+=" $(csg_get_interaction_property --allow-empty cg.$t.$1)"
+    done
+    ret="$(echo "$ret" | trim_all)"
+    [[ -z $ret ]] && die "${FUNCNAME[0]}: Not a single interaction has a value for the property $1"
+    echo "$ret"
+    return 0
+  fi
 
   #make these this case work even without name or type (called by csg_call)
   if [[ $1 = "name" ]]; then
@@ -235,25 +250,23 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
 
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
-  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter/--path(!=.) option will make csg_property fail if $1 does not exist
   #so no critical here
-  ret="$($cmd)"
+  ret="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1 | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
   # if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
-    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${bondtype}.$1 --print .)"
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${bondtype}.$1 --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
-  ret="$(echo "$ret" | trim_all)"
-  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction with name '$bondname' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
   echo "${ret}"
 }
 export -f csg_get_interaction_property
 
 csg_get_property () { #get an property from the xml file
-  local ret allow_empty cmd
+  local ret allow_empty
   if [[ $1 = "--allow-empty" ]]; then
     shift
     allow_empty="yes"
@@ -263,18 +276,16 @@ csg_get_property () { #get an property from the xml file
   [[ -n $1 ]] || die "${FUNCNAME[0]}: Missing argument"
   [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
-  cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
   #leave the -q here to avoid flooding with messages
-  ret="$(critical -q $cmd)"
+  ret="$(critical -q csg_property --file $CSGXMLFILE --path ${1} --short --print . | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
   #if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
-    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print .)"
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
-  ret="$(echo "$ret" | trim_all)"
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
   echo "${ret}"
 }

@@ -27,7 +27,7 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 #list of all parameters
-parameters=( $(csg_get_property cg.non-bonded.inverse.simplex.parameters) )
+parameters=( $(csg_get_interaction_property --all inverse.simplex.parameters) )
 what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
 
 for_all non-bonded do_external prepare_single simplex "${#parameters[@]}"

@@ -29,7 +29,7 @@ fi
 [[ -z $1 ]] && die "${0##*/}: missing argument"
 
 name=$(csg_get_interaction_property name)
-parameters=( $(csg_get_property cg.non-bonded.inverse.simplex.parameters) )
+parameters=( $(csg_get_interaction_property --all inverse.simplex.parameters) )
 [[ $(( $# - 2 )) -ne ${#parameters[@]} ]] && die "${0##*/}: length of parameter string ($#) does not match number of interactions (${#parameters[@]})"
 what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
 
