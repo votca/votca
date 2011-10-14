@@ -1,9 +1,34 @@
 <cg>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>bond</name>
+    <!-- fmatch specific stuff -->
+    <min>0.0</min>
+    <max>1.0</max>
+    <step>0.001</step>
+    <inverse>
+      <gromacs>
+        <table>table_b1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>angle</name>
+    <!-- fmatch specific stuff -->
+    <min>0.0</min>
+    <max>180</max>
+    <step>0.05</step>
+    <inverse>
+      <gromacs>
+        <table>table_a1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
   <!-- example for a non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->
-    <name>
-    </name>
+    <name>A-A</name>
     <!-- types involved in this interaction -->
     <type1>A</type1>
     <type2>A</type2>
@@ -91,23 +116,25 @@
     <!-- gromacs specific options -->
     <gromacs>
       <!-- trash so many frames at the beginning -->
-      <equi_time>10</equi_time>
+      <equi_time>0</equi_time>
       <!-- grid for table*.xvg !-->
       <table_bins>0.002</table_bins>
       <!-- cut the potential at this value (gromacs bug) -->
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.5</table_end>
+      <rdf>
+	<map>hexane_cg.xml</map>
+      </rdf>
     </gromacs>
     <!-- these files are copied for each new run -->
-    <filelist>grompp.mdp topol.top table.xvg table_a1.xvg table_b1.xvg index.ndx</filelist>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>500</iterations_max>
-    <convergence_check>default</convergence_check>
-    <convergence_check_options>
+    <convergence_check>
+      <type>default</type>
       <limit>0.001</limit>
-      <name_glob>*.conv</name_glob>
-    </convergence_check_options>
+    </convergence_check>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
     <!-- write log to this file -->

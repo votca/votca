@@ -1,67 +1,75 @@
+; VARIOUS PREPROCESSING OPTIONS
+; Preprocessor - specify a full path if necessary.
+include                  = 
+define                   = 
+
 ; RUN CONTROL PARAMETERS
-integrator               = sd
+integrator               = sd 
 ; Start time and timestep in ps
 tinit                    = 0
-dt                       = 0.002
-nsteps                   = 5000
+dt                       = 0.001
+nsteps                   = 500
 ; For exact run continuation or redoing part of a run
 init_step                = 0
 ; mode for center of mass motion removal
 comm-mode                = Linear
 ; number of steps for center of mass motion removal
-nstcomm                  = 1
+nstcomm                  = 10
 ; group(s) for center of mass motion removal
-comm-grps                = 
+comm_grps                = 
+;system
+
+; LANGEVIN DYNAMICS OPTIONS
+; Friction coefficient (amu/ps) and random seed
+ld-seed                  = 1993
 
 ; OUTPUT CONTROL OPTIONS
 ; Output frequency for coords (x), velocities (v) and forces (f)
 nstxout                  = 0
 nstvout                  = 0
 nstfout                  = 0
-; Checkpointing helps you continue after crashes
-nstcheckpoint            = 1000
 ; Output frequency for energies to log file and energy file
-nstlog                   = 0
-nstenergy                = 50
+nstlog                   = 2500
+nstenergy                = 2500
 ; Output frequency and precision for xtc file
 nstxtcout                = 50
 xtc-precision            = 1000
 ; This selects the subset of atoms for the xtc file. You can
 ; select multiple groups. By default all atoms will be written.
-xtc-grps                 = 
+xtc_grps                 = System ;Protein 
 ; Selection of energy groups
-energygrps               = CG 
+energygrps               = A B
 
 ; NEIGHBORSEARCHING PARAMETERS
 ; nblist update frequency
 nstlist                  = 10
 ; ns algorithm (simple or grid)
-ns-type                  = Grid
-; Periodic boundary conditions: xyz, no, xy
+ns_type                  = grid
+; Periodic boundary conditions: xyz (default), no (vacuum)
+; or full (infinite systems only)
 pbc                      = xyz
-periodic_molecules       = no
 ; nblist cut-off        
-rlist                    = 1
+rlist                    = 1.5
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics
-coulombtype              = User
+coulombtype              = Cut-off 
 rcoulomb-switch          = 0
-rcoulomb                 = 0.9
+rcoulomb                 = 1.5
 ; Relative dielectric constant for the medium and the reaction field
 epsilon_r                = 1
-epsilon_rf               = 80
+epsilon_rf               = 1
 ; Method for doing Van der Waals
-vdw-type                 = User
+vdwtype                  = user
 ; cut-off lengths       
 rvdw-switch              = 0
-rvdw                     = 0.9
+rvdw                     = 1.5
 ; Apply long range dispersion corrections for Energy and Pressure
-DispCorr                 = EnerPres
+DispCorr                 = No 
 ; Extension of the potential lookup tables beyond the cut-off
-table-extension          = 1
+table-extension          = 1.0
 ; Seperate tables between energy group pairs
-energygrp_table          = CG CG
+energygrp_table          = A A B B A B 
 ; Spacing for the PME/PPPM FFT grid
 fourierspacing           = 0.12
 ; FFT grid size, when a value is 0 fourierspacing will be used
@@ -75,51 +83,51 @@ ewald_geometry           = 3d
 epsilon_surface          = 0
 optimize_fft             = no
 
-; IMPLICIT SOLVENT ALGORITHM
-implicit_solvent         = No
-
-; GENERALIZED BORN ELECTROSTATICS
-; Algorithm for calculating Born radii
-gb_algorithm             = Still
-; Frequency of calculating the Born radii inside rlist
-nstgbradii               = 1
-; Cutoff for Born radii calculation; the contribution from atoms
-; between rlist and rgbradii is updated every nstlist steps
-rgbradii                 = 2
-; Dielectric coefficient of the implicit solvent
-gb_epsilon_solvent       = 80
-; Salt concentration in M for Generalized Born models
-gb_saltconc              = 0
-; Scaling factors used in the OBC GB model. Default values are OBC(II)
-gb_obc_alpha             = 1
-gb_obc_beta              = 0.8
-gb_obc_gamma             = 4.85
-; Surface tension (kJ/mol/nm^2) for the SA (nonpolar surface) part of GBSA
-; The default value (2.092) corresponds to 0.005 kcal/mol/Angstrom^2.
-sa_surface_tension       = 2.092
-
 ; OPTIONS FOR WEAK COUPLING ALGORITHMS
 ; Temperature coupling  
-Tcoupl                   = no
+tcoupl                   = no
 ; Groups to couple separately
 tc-grps                  = System
 ; Time constant (ps) and reference temperature (K)
-tau_t                    = 0.2
+tau_t                    = 1.0
 ref_t                    = 300
 ; Pressure coupling     
 Pcoupl                   = no
-Pcoupltype               = isotropic
+pcoupltype               = isotropic
 ; Time constant (ps), compressibility (1/bar) and reference P (bar)
 tau_p                    = 0.5
 compressibility          = 4.5e-5
 ref_p                    = 1.0
-; Scaling of reference coordinates, No, All or COM
-refcoord_scaling         = No
 ; Random seed for Andersen thermostat
 andersen_seed            = 815131
 
+
 ; GENERATE VELOCITIES FOR STARTUP RUN
-gen-vel                  = no
+gen_vel                  = yes
+gen_temp                 = 300
+gen_seed                 = -1
 
 ; OPTIONS FOR BONDS    
 constraints              = none
+; Type of constraint algorithm
+constraint_algorithm     = LINCS
+; Use successive overrelaxation to reduce the number of shake iterations
+Shake-SOR                = no
+; Relative tolerance of shake
+shake-tol                = 1e-04
+; Highest order in the expansion of the constraint coupling matrix
+lincs-order              = 4
+; Number of iterations in the final step of LINCS. 1 is fine for
+; normal simulations, but use 2 to conserve energy in NVE runs.
+; For energy minimization with constraints it should be 4 to 8.
+lincs_iter               = 2
+; Lincs will write a warning to the stderr if in one step a bond
+; rotates over more degrees than
+lincs-warnangle          = 30
+; Convert harmonic bonds to morse potentials
+morse                    = no
+
+; ENERGY GROUP EXCLUSIONS
+; Pairs of energy groups for which all non-bonded interactions are excluded
+energygrp_excl           = 
+
