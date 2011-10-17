@@ -31,9 +31,7 @@ max=$(csg_get_interaction_property max )
 step=$(csg_get_interaction_property step )
 comment="$(get_table_comment)"
 main_dir=$(get_main_dir)
-method="$(csg_get_property cg.inverse.method)"
 tabtype="$(csg_get_interaction_property bondtype)"
-[[ ${method} = "tf" ]] && tabtype="thermforce"
 output="${name}.pot.new"
 
 if [[ -f ${main_dir}/${name}.pot.in ]]; then
@@ -47,7 +45,7 @@ if [[ -f ${main_dir}/${name}.pot.in ]]; then
 else
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
-  if [[ $method = "tf" ]]; then
+  if [[ $tabtype = "thermforce" ]]; then
     #therm force is resampled later and as one want to symetrize 1d density
     cp_from_main_dir --rename "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
     #initial guess from density

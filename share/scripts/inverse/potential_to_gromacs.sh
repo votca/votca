@@ -81,10 +81,7 @@ echo "Convert $input to $output"
 
 #special if calling from csg_call
 xvgtype="$(csg_get_interaction_property bondtype)"
-#do this with --allow-empty to avoid stoping if calling from csg_call
-[[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]] && xvgtype="thermforce"
 [[ $xvgtype = "C6" || $xvgtype = "C12" || $xvgtype = "CB" ]] && tabtype="non-bonded" || tabtype="$xvgtype"
-
 
 zero=0
 if [[ $tabtype = "non-bonded" ]]; then
@@ -102,11 +99,8 @@ if [[ $tabtype = "non-bonded" ]]; then
   elif [[ -z $tablend ]]; then
     die "${0##*/}: cg.inverse.gromacs.table_end was not defined in xml seeting file"
   fi
-elif [[ $tabtype = "bonded" || $tabtype = "thermforce" ]]; then
+elif [[ $tabtype = "bond" || $tabtype = "thermforce" ]]; then
   tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
-  #todo unhack this...
-  max=$(csg_get_interaction_property max)
-  csg_calc "$max" ">" "$tablend" && tablend="$max"
 elif [[ $tabtype = "angle" ]]; then
   tablend=180
 elif [[ $tabtype = "dihedral" ]]; then

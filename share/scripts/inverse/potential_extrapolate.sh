@@ -26,7 +26,7 @@ Allowed options:
     --help                    show this help
     --clean                   remove all intermediate temp files
     --type TYPE               type of the potential
-                              possible:${pot_types}
+                              possible: ${pot_types}
     --avg-point INT           number of average points
                               default: $avg_points
 
@@ -35,7 +35,7 @@ EOF
 
 clean="no"
 pot_type="$2"
-pot_types="non-bonded bonded thermforce angle dihedral"
+pot_types="non-bonded bond thermforce angle dihedral"
 avg_points=5
 
 ### begin parsing options
@@ -88,7 +88,7 @@ if [[ $pot_type = "non-bonded"  ]]; then
   do_external table extrapolate --function constant --avgpoints 1 --region right "${intermediate}" "${output}"
 elif [[ $pot_type = "thermforce" ]]; then
   do_external table extrapolate --function constant --avgpoints $avg_points --region leftright "${input}" "${output}"
-elif [[ $pot_type = "bonded"  || $pot_type = "angle" || $pot_type = "dihedral" ]]; then
+elif [[ $pot_type = "bond"  || $pot_type = "angle" || $pot_type = "dihedral" ]]; then
   do_external table extrapolate --function exponential --avgpoints $avg_points --region leftright "${input}" "${output}"
 else
   [[ -n ${pot_types//* $pot_type *} ]] && die "${0##*/}: given potential type is not in list${pot_types}"
