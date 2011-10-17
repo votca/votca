@@ -1,34 +1,32 @@
 syntax: glob
 
-*~
+Makefile
+
 libvotca*.pc
 libvotca*.a
 libvotca*.so
-src/libmd2qm/votca_config.h
-src/libmd2qm/hgversion.h
-Makefile
-src/tools/ctp_map
-src/tools/ctp_polymer
-src/tools/ctp_printqmattop
-src/tools/ctp_run
+
+src/libctp/votca_config.h
+src/libctp/hgversion.h
 
 src/dipro/*.mod
 src/dipro/*.x
 
 netbeans/*/build
-*/nbproject/private
 .dep.inc
-netbeans/libmoo/nbproject/Makefile-variables.mk
-netbeans/libmoo/nbproject/Package-Debug.bash
-netbeans/libmoo/nbproject/Package-Release.bash
+*/nbproject/private
+netbeans/libctp/dist/Debug/*
+netbeans/libctp/nbproject/Package-Debug.bash
+netbeans/libctp/nbproject/Package-Release.bash
+
+netbeans/ctp_map/nbproject/Package-Debug.bash
+netbeans/ctp_map/nbproject/Package-Release.bash
+
+netbeans/ctp_run/nbproject/Package-Debug.bash
+netbeans/ctp_run/nbproject/Package-Release.bash
 
 CMakeFiles/*
 cmake_install.cmake
 CMakeCache.txt
 install_manifest.txt
 
-src/libmd2qm/calculators/Doxyfile
-src/libmd2qm/calculators/Doxyfile.bak
-src/libmd2qm/calculators/doxygen.log
-src/libmd2qm/calculators/html
-src/libmd2qm/calculators/latex
