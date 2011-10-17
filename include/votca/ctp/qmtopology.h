@@ -63,7 +63,7 @@ public:
     void Initialize(Topology &cg_top);
 
     ///Initialises the charge units
-    void InitChargeUnits();
+    //void InitChargeUnits();
     
     /// \brief Create a new bead
     /// We overload CreateBead to create QMBead, this is needed to make

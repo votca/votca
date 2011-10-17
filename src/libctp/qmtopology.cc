@@ -43,11 +43,10 @@ void QMTopology::Cleanup()
 void QMTopology::Initialize(Topology& cg_top)
 {
     CopyTopologyData(&cg_top);
-    this->InitChargeUnits();
-}
+//    this->InitChargeUnits();
+//}
 
-// This is a mess 
-void QMTopology::InitChargeUnits(){
+//void QMTopology::InitChargeUnits(){
 
     if ( tools::globals::verbose ) {
         cout << "Initializing conjugated segments" << endl;
@@ -57,36 +56,45 @@ void QMTopology::InitChargeUnits(){
     for (itb = _beads.begin() ; itb< _beads.end(); ++itb){
 	
         QMBead * bead = dynamic_cast<QMBead *>(*itb);
+        string bead_name = bead->getName();
+        string molecule_name = bead->getMolecule()->getName();
 	
-        //initialise the crgunit * only if appropriate info is in the cg.xml file
+        // check if the bead (rigid fragment) is in any conjugated segment
         if ( (bead->Options()).exists("qm.name")){
-	    // get the name of the segment from the xml file
-            string segment_type = bead->getType()->getName();
-            int intpos = (bead->Options()).get("qm.position").as<int>();
-            string namecrgunit = (bead->Options()).get("qm.name").as<string>();
 
-            //determine whether it  has been created already
-            int molid= bead->getMolecule()->getId();
-            string molandtype = boost::lexical_cast<string>(molid)+":"+namecrgunit;
+	    // type of the conjugated segment to which this bead belongs
+            string segment_type = (bead->getType())->getName();
 
-            QMCrgUnit * acrg = GetCrgUnitByName(molandtype);
+            // position of the bead in the conjugated segment
+            int bead_position = (bead->Options()).get("qm.position").as<int>();
 
-	    if(acrg == NULL) acrg = CreateCrgUnit(molandtype, segment_type, molid);
-	    
-            acrg->setDouble("lambda_intra_charging", acrg->getType()->getOptions()->get("echarging").as<double>());
-            acrg->setDouble("lambda_intra_discharging", acrg->getType()->getOptions()->get("edischarging").as<double>());
-            acrg->setDouble("energy_intra", acrg->getType()->getOptions()->get("energy").as<double>());
-	    bead->setCrg(acrg);
-            bead->setiPos(intpos);
+            // name of the conjugated segment in a molecule - used to group beads (fragments)
+            string segment_name = (bead->Options()).get("qm.name").as<string>();
+
+            // check if the segment has already been created by another bead
+            int molecule_id = bead->getMolecule()->getId();
+            string segment_id = boost::lexical_cast<string>(molecule_id)+":" + segment_name;
+            QMCrgUnit * segment = GetCrgUnitByName(segment_id);
+
+            // if not, create a new segment
+	    if(segment == NULL) segment = CreateCrgUnit(segment_id, segment_type, molecule_id);
+
+            /// TODO: move this to a calculator
+            segment->setDouble("lambda_intra_charging", segment->getType()->getOptions()->get("echarging").as<double>());
+            segment->setDouble("lambda_intra_discharging", segment->getType()->getOptions()->get("edischarging").as<double>());
+            segment->setDouble("energy_intra", segment->getType()->getOptions()->get("energy").as<double>());
+            
+	    bead->setCrg(segment);
+            bead->setiPos(bead_position);
 	    
 	    if ( tools::globals::verbose ) {
-              cout << " [type:segment:mol:fragment] [" << segment_type << ":"
-                                                     << namecrgunit  << ":"
-                                                     << molid        << ":"
-                                                     << bead->getName() << "] " << endl;
+              cout << " segment[type:name] fragment[name:position] molecule[name:id] "
+                   << "[" << segment_type  << ":" << segment_name  << "] "
+                   << "[" << bead_name  << ":" << bead_position  << "] "
+                   << "[" << molecule_name  << ":" << molecule_id  << "] " << endl;
 	    }
         }
-        else{
+        else{ // remove the bead from the CG trajectory
             bead->setCrg(NULL);
         }
     }
