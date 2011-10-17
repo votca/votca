@@ -48,21 +48,16 @@ my $outfile="$ARGV[1]";
 # --------------------- DEFINE PARAMETERS HERE ---------------------
 my $sig="$ARGV[2]";
 my $eps="$ARGV[3]";
-my $w_cut="$ARGV[4]";
-my $x1="$ARGV[5]";
-my $y1="$ARGV[6]";
-my $x2="$ARGV[7]";
-my $y2="$ARGV[8]";
+my $x1="$ARGV[4]";
+my $y1="$ARGV[5]";
+my $x2="$ARGV[6]";
+my $y2="$ARGV[7]";
 
 # Read in empty potential table
 my @r;
 my $r_cut_rep=(2**(1/6))*$sig;
-my $r_cut_tot=$x2+$w_cut;
-my $max=csg_get_property("cg.non-bonded.max");
+my $r_cut_tot=csg_get_property("cg.non-bonded.max");
 my $pi=3.14159265;
-
-# Die if total cutoff is exceeded by range.
-if ($r_cut_tot>$max) {die "$progname: Cutoff $max exceeded!\n";}
 
 my @pot;
 my @pot_rep;
@@ -96,7 +91,7 @@ for (my $i=0;$i<=$#r;$i++){
         $pot_att[$i]=($y1-$y2)*(cos($pi*($r[$i]-$x1)/(2*($x2-$x1))))**2+$y2;
       }
       elsif ($r[$i]>=$x2 && $r[$i]<= $r_cut_tot) {
-        $pot_att[$i]=$y2*(cos($pi*($r[$i]-$x2)/(2*$w_cut)))**2;
+        $pot_att[$i]=$y2*(cos($pi*($r[$i]-$x2)/(2*($r_cut_tot-$x2))))**2;
       }
       else {
         $pot_att[$i]=0;

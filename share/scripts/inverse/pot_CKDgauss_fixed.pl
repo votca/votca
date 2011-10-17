@@ -47,9 +47,10 @@ my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 # --------------------- DEFINE PARAMETERS HERE ---------------------
 # For attractive part (cosine)
-my $sig=0.263;
-my $eps=3.62;
-my $w_cut=0.276;
+# Parameters taken from 1st optimized Simplex run, tuning all params
+my $sig=0.260777447956293;
+my $eps=4.44157811845323;
+my $w_cut=0.360967630842099;
 # For attractive part (gaussian)
 my $height="$ARGV[2]";
 my $shift="$ARGV[3]";

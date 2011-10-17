@@ -39,7 +39,7 @@ sub readin_init_simplex_table($$) {
     next if /^[#@]/;
     next if /^\s*$/;
     my @values=split(/\s+/);
-    defined($values[1]) || die "readin_table: Not enough columns in line $line in file $_[0]\n";
+    defined($values[0]) || die "readin_table: Not enough columns in line $line in file $_[0]\n";
     foreach (1..$param_N) {
       push @{$hash{"p_$_"}}, $values[$_-1];
     }
@@ -63,7 +63,7 @@ sub readin_simplex_table($$) {
     next if /^[#@]/;
     next if /^\s*$/;
     my @values=split(/\s+/);
-    defined($values[1]) || die "readin_table: Not enough columns in line $line in file $_[0]\n";
+    defined($values[0]) || die "readin_table: Not enough columns in line $line in file $_[0]\n";
     foreach (0..$ndim) {
       push @{$hash{"p_$_"}}, $values[$_];
     }

@@ -71,9 +71,9 @@ my @ftar;
 my @flag;
 # Read in temporary simplex table
 (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readin_simplex_table\n";
+
 # Define table columns
 @ftar=@{$hash{p_0}};
-
 @flag=@{$hash{"p_$ndim"}};
 
 $ftar[$a_line_nr]=$ftar_new;

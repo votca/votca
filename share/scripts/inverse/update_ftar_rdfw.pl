@@ -108,7 +108,8 @@ my $max=csg_get_interaction_property("max");
 
 # Numerical integration via trapezoidal rule
 for(my $i=1;$i<($max-$min)/$dr;$i++) {
-       $w[$i]=exp(-$r_cur[$i]/(2*$sig_cur[$a_line_nr]));
+       if ($r_cur[$i] <= 0.6) { $w[$i]=1; }
+                         else { $w[$i]=0; }
        $drdf[$i]=abs($rdf_cur[$i]-$rdf_aim[$i]);
        $ftar+=$dr*$w[$i]*$drdf[$i];
        $ftar_aim+=$dr*$rdf_aim[$i];

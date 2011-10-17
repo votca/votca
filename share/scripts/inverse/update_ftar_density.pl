@@ -98,17 +98,12 @@ my $dr=csg_get_interaction_property("inverse.simplex.density.step");
 my $min=csg_get_interaction_property("inverse.simplex.density.min");
 my $max=csg_get_interaction_property("inverse.simplex.density.max");
 
-# Numerical integration via trapezoidal rule
+# Get absolute value
 for(my $i=1;$i<($max-$min)/$dr;$i++) {
        $ddens[$i]=abs($dens_cur[$i]-$dens_aim[$i]);
-       $ftar+=$dr*$ddens[$i];
-       $ftar_aim+=$dr*$dens_aim[$i];
+       $ftar+=$ddens[$i];
+       $ftar_aim+=$dens_aim[$i];
 }
-$ftar+=(0.5*$dr*abs($dens_cur[0]-$dens_aim[0]))+(0.5*$dr*abs($dens_cur[$max/$dr]-$dens_aim[$max/$dr]));
-$ftar_aim+=(0.5*$dr*$dens_aim[0])+(0.5*$dr*$dens_aim[$max/$dr]);
-
-# Normalizing
-$ftar=($ftar/$ftar_aim)*100;
 
 my $mdim;
 if ($prop_N == 1) {

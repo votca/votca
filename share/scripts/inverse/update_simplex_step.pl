@@ -71,25 +71,24 @@ my (%hash)=readin_simplex_table($infile,$ndim) or die "$progname: error at readi
 my @ftar=@{$hash{p_0}};
 my @flag=@{$hash{"p_$ndim"}};
 
-# Generate matrix of parameters p[m-1][n-1] and take their
-# squareroot, thus allowing simplex parameters to be negative.
+# Generate matrix of parameters p[m-1][n-1]
 my @p_trans;
 my @p;
 foreach (1 .. $param_N) {
   push (@p_trans, [@{$hash{"p_$_"}}]);
 }
-# Transpose and take sqrt to get matrix p
+# Transpose to get matrix p
 for(my $i=0; $i<$ndim; $i++) {
   for(my $j=0; $j<$param_N; $j++) {
-    $p[$i][$j]=sqrt($p_trans[$j][$i]);
+    $p[$i][$j]=$p_trans[$j][$i];
   }
 }
 
 my @psum;
 my @ptry;
 foreach (1 .. $param_N) {
-# Take squareroot for simplex params
-  push(@ptry, sqrt(${$hash{"p_$_"}}[-1]));
+# Define simplex try params
+  push(@ptry, ${$hash{"p_$_"}}[-1]);
 }
 
 # Generate and arrays according to y[ilo]<...<y[inhi]<y[ihi]
@@ -244,9 +243,11 @@ close(STATE_NEW);
 
 for (my $i=0;$i<=$#y_asc;$i++) {
   for (my $j=1;$j<=$param_N;$j++){
-    ${$hash{"p_$j"}}[$i]=($p_asc[$i][$j-1])**2;
+    ${$hash{"p_$j"}}[$i]=$p_asc[$i][$j-1];
   }
 }
 
 # Update simplex table
 saveto_simplex_table($outfile,$mdim,$param_N,@y_asc,%hash,@flag) or die "$progname: error at saveto_simplex_table\n";
+
+
