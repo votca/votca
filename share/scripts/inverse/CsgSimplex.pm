@@ -24,7 +24,7 @@ use vars qw(@ISA @EXPORT);
 @EXPORT      = qw(csg_simplex_function_help readin_simplex_state saveto_simplex_state sort_simplex_table is_num replace_parameter_flag get_convergence_value remove_parameter_set calc_parameter_center linop_parameter);
 
 sub csg_simplex_function_help() {
-  print <<EOF; 
+  print <<EOF;
 CsgFunctions, version %version%
 Provides useful simplex function for VOTCA's iterative framework in perl:
 readin_simplex_state(\$\\\$\\@;\\\$):  reads in simplex state
@@ -94,6 +94,7 @@ sub sort_simplex_table(\@) {
     die "sort_simplex_table: Number of parameters ($#{$simplex_table[$i]}) differ in set $i from previous lines ($parameters)"  if ($parameters != $#{$simplex_table[$i]});
     push(@index,$i);
     is_num("$simplex_table[$i][-2]") || die "sort_simplex_table: second last value of parameter set $i is not a number\n";
+    die "sort_simplex_table: try set found!\n" if ($simplex_table[$i][-1] =~ /^try$/);
   }
   @index=sort { $simplex_table[$a][-2] <=> $simplex_table[$b][-2] } @index;
   my @sorted_table;
@@ -125,20 +126,50 @@ sub is_num($) {
   return 1;
 }
 
+sub get_convergence_value(\@$);
 sub get_convergence_value(\@$) {
   defined($_[1]) || die "get_convergence_value: Missing argument\n";
   my @simplex_table=@{$_[0]};
-  sort_simplex_table(@simplex_table);
   use Switch;
   switch($_[1]) {
-    case "lowest" { return $simplex_table[0][-2]; }
-    case "highest" { return $simplex_table[$#simplex_table][-2]; }
-    case "second" { return $simplex_table[$#simplex_table-1][-2]; }
-    case /^(try|tryold)$/ { 
+    case "lowest" {
+      my $value=undef;
+      for (my $i=0;$i<=$#simplex_table;$i++) {
+	next if ($simplex_table[$i][-1] =~ /^try/);
+	$value=$simplex_table[$i][-2] unless defined($value);
+	$value=$simplex_table[$i][-2] if $value>$simplex_table[$i][-2]
+      }
+      return $value;
+    }
+    case "ihighest" {
+      my $ivalue=undef;
+      for (my $i=0;$i<=$#simplex_table;$i++) {
+	next if ($simplex_table[$i][-1] =~ /^(try|tryold)$/);
+	$ivalue=$i unless defined($ivalue);
+	$ivalue=$i if $simplex_table[$ivalue][-2]<$simplex_table[$i][-2];
+      }
+      return $ivalue;
+    }
+    case "highest" {
+      my $i=get_convergence_value(@simplex_table,"ihighest");
+      return $simplex_table[$i][-2];
+    }
+    case "second" {
+      my $ivalue=get_convergence_value(@simplex_table,"ihighest");
+      my $value=undef;
+      for (my $i=0;$i<=$#simplex_table;$i++) {
+	next if ($simplex_table[$i][-1] =~ /^(try|tryold)$/);
+	next if ($i==$ivalue);
+	$value=$simplex_table[$i][-2] unless defined($value);
+	$value=$simplex_table[$i][-2] if $value<$simplex_table[$i][-2];
+      }
+      return $value;
+    }
+    case /^(try|tryold)$/ {
       my $value=undef;
       for (my $i=0;$i<=$#simplex_table;$i++) {
 	if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
-	  die "get_convergence_value: Found two $_[1] value in parameter set\n" if ($value);
+	  die "get_convergence_value: Found two $_[1] value in parameter set\n" if defined($value);
 	  $value=$simplex_table[$i][-2];
 	}
       }
@@ -155,12 +186,26 @@ sub remove_parameter_set(\@$) {
   my @simplex_table=@{$_[0]};
   my $value=undef;
   my @new_table;
-  for (my $i=0;$i<=$#simplex_table;$i++) {
-    if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
-      die "remove_parameter_set: Found two parameter set with flag '$_[1]'" if ($value);
-      $value=$i;
-    } else {
-      push(@new_table,$simplex_table[$i]);
+  use Switch;
+  switch($_[1]) {
+    case /^(try|tryold)$/ {
+      for (my $i=0;$i<=$#simplex_table;$i++) {
+        if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
+          die "remove_parameter_set: Found two parameter set with flag '$_[1]'" if ($value);
+          $value=$i;
+        } else {
+          push(@new_table,$simplex_table[$i]);
+        }
+      }
+    }
+    case "highest" {
+      my $high=get_convergence_value(@simplex_table,"ihighest");
+      for (my $i=0;$i<=$#simplex_table;$i++) {
+        push(@new_table,$simplex_table[$i]) unless ($i == $high);
+      }
+    }
+    else {
+      die "remove_parameter_set: I don't know how to remove value '$_[1]'\n";
     }
   }
   die "remove_parameter_set: Could not find a parameter set with flag '$_[1]'" unless ($value);
@@ -186,7 +231,7 @@ sub calc_parameter_center(\@){
     for (my $j=0;$j<=$#{$simplex_table[$i]};$j++) {
       if (is_num("$simplex_table[$i][$j]")) {
 	$center[$j]+=$simplex_table[$i][$j]/$#simplex_table;
-      } 
+      }
     }
   }
   return @center;
