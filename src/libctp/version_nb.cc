@@ -20,7 +20,7 @@
 #include <votca/csg/version.h>
 #include <votca/ctp/version.h>
 
-namespace votca { namespace md2qm {
+namespace votca { namespace ctp {
 
 static const std::string version_str = "VERSION NOT SET (compiled " __DATE__ ", " __TIME__ ")";
 
@@ -34,7 +34,7 @@ void HelpTextHeader(const std::string &tool_name)
 {
     std::cout 
          << "\t------ VOTCA ( http://www.votca.org ) ------\n"
-         << tool_name << ", version " << votca::md2qm::CtpVersionStr()
+         << tool_name << ", version " << votca::ctp::CtpVersionStr()
          << "\nvotca_csg, version " << votca::csg::CsgVersionStr() 
          << "\n\n";
 }

@@ -95,7 +95,7 @@ void QMApplication::ShowHelpText(std::ostream &out)
     if(VersionString() != "")
          name = name + ", version " + VersionString();
 
-    votca::md2qm::HelpTextHeader(name);
+    votca::ctp::HelpTextHeader(name);
     HelpText(out);
     out << "\n\n" << OptionsDesc() << endl;
 }

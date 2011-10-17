@@ -27,7 +27,7 @@ extern "C" {
    }
 }
 
-namespace votca { namespace md2qm {
+namespace votca { namespace ctp {
 
 //defines hgversion
 #include "hgversion.h"
@@ -45,7 +45,7 @@ void HelpTextHeader(const std::string &tool_name)
          << "========   VOTCA (http://www.votca.org)   ========\n"
          << "==================================================\n\n"
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
-	 << tool_name << ", version " << votca::md2qm::CtpVersionStr() 
+	 << tool_name << ", version " << votca::ctp::CtpVersionStr() 
          << "\nvotca_csg, version " << votca::csg::CsgVersionStr()
          << "\n\n";
 }

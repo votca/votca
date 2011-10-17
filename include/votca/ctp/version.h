@@ -20,7 +20,7 @@
 
 #include <string>
 
-namespace votca { namespace md2qm {
+namespace votca { namespace ctp {
     const std::string & CtpVersionStr();
     void HelpTextHeader(const std::string &tool_name);
 }}
