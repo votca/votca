@@ -45,20 +45,23 @@ public:
     /// evaluate current conformation
     void EvalConfiguration(Topology *top, Topology *top_atom = 0);
 
-    void setCutoff(const double & cutoff){
-        _cutoff = cutoff;
-    }
+    //void setCutoff(const double & cutoff){
+    //    _cutoff = cutoff;
+    //}
+    
     void setOut(const string &  out){
         _out=out;
     }
     //void setNNnames(string  nnnames);
 
-    void print_nbs_to_file(QMNBList &nblist);
+    //void print_nbs_to_file(QMNBList &nblist);
 
 protected:
     QMTopology *_qmtop;
-    /// nearest neighbor cut-off radius
-    double _cutoff;
+    
+    // nearest neighbor cut-off radius
+    //double _cutoff;
+
     ///  output streams for velocity averaging & diffusion
     ofstream _out_cont;
     ofstream _out_diff;

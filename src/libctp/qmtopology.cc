@@ -17,6 +17,7 @@
 
 #include <votca/ctp/qmtopology.h>
 #include <votca/ctp/qmnblist.h>
+#include <votca/tools/globals.h>
 
 namespace votca { namespace ctp {
 
@@ -45,13 +46,22 @@ void QMTopology::Initialize(Topology& cg_top)
     this->InitChargeUnits();
 }
 
+// This is a mess 
 void QMTopology::InitChargeUnits(){
+
+    if ( tools::globals::verbose ) {
+        cout << "Initializing conjugated segments" << endl;
+    }
+    
     BeadContainer::iterator itb;
     for (itb = _beads.begin() ; itb< _beads.end(); ++itb){
+	
         QMBead * bead = dynamic_cast<QMBead *>(*itb);
-        //initialise the crgunit * only if appropriate extra info is in the cg.xml file
+	
+        //initialise the crgunit * only if appropriate info is in the cg.xml file
         if ( (bead->Options()).exists("qm.name")){
-            string namecrgunittype = bead->getType()->getName();
+	    // get the name of the segment from the xml file
+            string segment_type = bead->getType()->getName();
             int intpos = (bead->Options()).get("qm.position").as<int>();
             string namecrgunit = (bead->Options()).get("qm.name").as<string>();
 
@@ -60,13 +70,21 @@ void QMTopology::InitChargeUnits(){
             string molandtype = boost::lexical_cast<string>(molid)+":"+namecrgunit;
 
             QMCrgUnit * acrg = GetCrgUnitByName(molandtype);
-            if(acrg == NULL)
-                acrg = CreateCrgUnit(molandtype, namecrgunittype, molid);
+
+	    if(acrg == NULL) acrg = CreateCrgUnit(molandtype, segment_type, molid);
+	    
             acrg->setDouble("lambda_intra_charging", acrg->getType()->getOptions()->get("echarging").as<double>());
             acrg->setDouble("lambda_intra_discharging", acrg->getType()->getOptions()->get("edischarging").as<double>());
             acrg->setDouble("energy_intra", acrg->getType()->getOptions()->get("energy").as<double>());
 	    bead->setCrg(acrg);
             bead->setiPos(intpos);
+	    
+	    if ( tools::globals::verbose ) {
+              cout << " [type:segment:mol:fragment] [" << segment_type << ":"
+                                                     << namecrgunit  << ":"
+                                                     << molid        << ":"
+                                                     << bead->getName() << "] " << endl;
+	    }
         }
         else{
             bead->setCrg(NULL);
@@ -143,6 +161,7 @@ Bead *QMTopology::CreateBead(byte_t symmetry, string name, BeadType *type, int r
     return bead;
 }
 
+/*
 // TODO: this function should not be in qmtopology!
 void QMTopology::ComputeAllTransferIntegrals(){
     for(QMNBList::iterator iter = _nblist.begin();
@@ -153,7 +172,7 @@ void QMTopology::ComputeAllTransferIntegrals(){
         (*iter)->setJs(Js);
     }
 }
-
+*/
    // In topology.cc???
 //Copy charges to either charged or neutral case
 

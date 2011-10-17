@@ -20,7 +20,7 @@ netbeans/*/build
 .dep.inc
 netbeans/libmoo/nbproject/Makefile-variables.mk
 netbeans/libmoo/nbproject/Package-Debug.bash
-netbeans/libmoo/nbproject/Package-Release.bas
+netbeans/libmoo/nbproject/Package-Release.bash
 
 CMakeFiles/*
 cmake_install.cmake

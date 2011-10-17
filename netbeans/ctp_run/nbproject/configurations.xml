@@ -93,8 +93,6 @@
             </linkerLibProjectItem>
             <linkerLibLibItem>gmx</linkerLibLibItem>
             <linkerLibLibItem>expat</linkerLibLibItem>
-            <linkerLibLibItem>hdf5_hl</linkerLibLibItem>
-            <linkerLibLibItem>hdf5</linkerLibLibItem>
             <linkerLibLibItem>sqlite3</linkerLibLibItem>
             <linkerLibLibItem>boost_program_options</linkerLibLibItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>

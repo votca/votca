@@ -32,11 +32,11 @@ namespace votca { namespace ctp {
 
 
 /**
-    \brief topology of qmbeads
+    \brief topology of conjugated segments and rigid fragments
 
-    contains the beads describing the c.o.m. of each cahrge unit
-    given a CG toplogy, it should be apply the mapping for the cg beads -> qm beads and
-    it should update the position of the crg unit. Crg units should be associated to
+    contains rigid fragments (centers of mass and orientations).
+    Given a CG toplogy, it adds orientations to CG beads onto and
+    updates positions of rigid fragments. Crg units should be associated to
     these qm beads and not to any other.
 */
 class QMTopology : public Topology
@@ -55,14 +55,17 @@ public:
     }
 
     void Cleanup();
+
     /// update the topology based on cg positons
     void Update(Topology &cg_top);
+
     /// update the topology based on cg positons
     void Initialize(Topology &cg_top);
+
     ///Initialises the charge units
     void InitChargeUnits();
     
-    /// \brief Cretae a new bead
+    /// \brief Create a new bead
     /// We overload CreateBead to create QMBead, this is needed to make
     /// CopyTopologyData work
     Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
@@ -78,7 +81,7 @@ public:
 
     /// computes all transfer integrals (note that the nblist must be initialised by the user!)
     // TODO: this function should not be in qmtopology!
-    void ComputeAllTransferIntegrals();
+    //void ComputeAllTransferIntegrals();
 
     /// find a crg unit by name
     QMCrgUnit *GetCrgUnitByName(const string &name);
@@ -95,6 +98,7 @@ public:
 
     int getDatabaseId() { return _db_id; };
     void setDatabaseId(int id) { _db_id = id; }
+
 protected:
 
     QMNBList _nblist;

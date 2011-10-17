@@ -40,12 +40,13 @@ public:
         QMApplication::Initialize();
         AddProgramOptions("Calculators")
             ("execute,e", boost::program_options::value<string>(), "list of calculators separated by commas or spaces")
-	    ("list,l", "lists all available calculators")
+	    ("list,l", "lists all available calculators")	    
             ("description,d", boost::program_options::value<string>(), "detailed description of a calculator");
     }
 
     // outputs options from the XML file
     bool EvaluateOptions() {
+	
         if(OptionsMap().count("list")) {
             cout << "Available calculators: \n";
             for(CalculatorFactory::assoc_map::const_iterator iter=Calculators().getObjects().begin();
