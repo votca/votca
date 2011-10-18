@@ -17,7 +17,7 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 AS=as
 
 # Macros
@@ -33,10 +33,8 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/1723120609/version_nb.o \
 	${OBJECTDIR}/_ext/1723120609/cubicspline.o \
 	${OBJECTDIR}/_ext/1723120609/application.o \
-	${OBJECTDIR}/_ext/1723120609/tokenizer.o \
 	${OBJECTDIR}/_ext/1723120609/table.o \
 	${OBJECTDIR}/_ext/1723120609/parcer.o \
 	${OBJECTDIR}/_ext/1723120609/random.o \
@@ -51,7 +49,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1723120609/database.o \
 	${OBJECTDIR}/_ext/1723120609/matrix.o \
 	${OBJECTDIR}/_ext/1723120609/datacollection.o \
-	${OBJECTDIR}/_ext/1723120609/version.o \
 	${OBJECTDIR}/_ext/1723120609/correlate.o \
 	${OBJECTDIR}/_ext/1723120609/histogram.o \
 	${OBJECTDIR}/_ext/1723120609/thread.o \
@@ -87,11 +84,6 @@ LDLIBSOPTIONS=
 	${AR} -rv ../../src/libtools/libtools.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libtools/libtools.a
 
-${OBJECTDIR}/_ext/1723120609/version_nb.o: ../../src/libtools/version_nb.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/version_nb.o ../../src/libtools/version_nb.cc
-
 ${OBJECTDIR}/_ext/1723120609/cubicspline.o: ../../src/libtools/cubicspline.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
@@ -101,11 +93,6 @@ ${OBJECTDIR}/_ext/1723120609/application.o: ../../src/libtools/application.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/application.o ../../src/libtools/application.cc
-
-${OBJECTDIR}/_ext/1723120609/tokenizer.o: ../../src/libtools/tokenizer.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/tokenizer.o ../../src/libtools/tokenizer.cc
 
 ${OBJECTDIR}/_ext/1723120609/table.o: ../../src/libtools/table.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
@@ -176,11 +163,6 @@ ${OBJECTDIR}/_ext/1723120609/datacollection.o: ../../src/libtools/datacollection
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/datacollection.o ../../src/libtools/datacollection.cc
-
-${OBJECTDIR}/_ext/1723120609/version.o: ../../src/libtools/version.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/version.o ../../src/libtools/version.cc
 
 ${OBJECTDIR}/_ext/1723120609/correlate.o: ../../src/libtools/correlate.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609

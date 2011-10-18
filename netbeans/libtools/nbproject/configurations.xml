@@ -12,6 +12,7 @@
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
       <itemPath>../../include/votca/tools/database.h</itemPath>
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
+      <itemPath>../../include/votca/tools/globals.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
       <itemPath>../../include/votca/tools/histogramnew.h</itemPath>
       <itemPath>../../include/votca/tools/lexical_cast.h</itemPath>

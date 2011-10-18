@@ -169,4 +169,13 @@ bool load_property_from_xml(Property &p, string filename)
   return true;
 }
 
+void Property::PrintT2T() {
+
+    map<string, Property*>::iterator iter;
+
+    for(iter = _map.begin(); iter!=_map.end(); ++iter) {
+             PrintNode(cout, (*iter).first, *(*iter).second);
+    }
+}
+
 }}

@@ -3,11 +3,22 @@
     <type>org.netbeans.modules.cnd.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>property_test</name>
+            <name>votca_property</name>
             <make-project-type>0</make-project-type>
+            <c-extensions/>
+            <cpp-extensions>cc</cpp-extensions>
+            <header-extensions/>
+            <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
                 <make-dep-project>../libtools</make-dep-project>
             </make-dep-projects>
+            <sourceRootList>
+                <sourceRootElem>../../src/tools</sourceRootElem>
+            </sourceRootList>
+            <confList>
+                <confElem>Debug</confElem>
+                <confElem>Release</confElem>
+            </confList>
         </data>
     </configuration>
 </project>

@@ -92,6 +92,7 @@ add_subdirectory(include/votca/tools)
 add_subdirectory(scripts)
 add_subdirectory(share/man)
 add_subdirectory(share/doc)
+add_subdirectory(src/tools)
 
 if (TXT2TAGS_FOUND)
   add_custom_command(OUTPUT CHANGELOG

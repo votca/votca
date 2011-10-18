@@ -135,6 +135,9 @@ public:
     // throw error and comment (with filename+code line)
     void throwRuntimeError(string message);
 
+    /// \brief output the content in the t2t format
+    void PrintT2T();
+
 private:        
     map<string,Property*> _map;
     list<Property> _properties;
@@ -155,6 +158,9 @@ private:
 stack<Property *> -> stack< Propertz_stack_entry_t>
 */
 };
+
+
+
 
 inline Property &Property::set(const string &key, const string &value)
 {

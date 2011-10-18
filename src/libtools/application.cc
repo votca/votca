@@ -18,8 +18,11 @@
 #include <iostream>
 #include <votca/tools/application.h>
 #include <votca/tools/version.h>
+#include <votca/tools/globals.h>
 
 namespace votca { namespace tools {
+
+bool tools::globals::verbose = false;
 
 Application::Application()
     : _op_desc("Allowed options"), _continue_execution(true)
@@ -57,8 +60,10 @@ int Application::Exec(int argc, char **argv)
 {
     try {
         //_continue_execution = true;
-	AddProgramOptions()("help,h", "  produce this help message");
-        Initialize(); // initialize program-specific parameters
+	AddProgramOptions()("help,h", "  display this help and exit");
+	AddProgramOptions()("verbose,v", "  be loud and noisy");
+	
+	Initialize(); // initialize program-specific parameters
 
         ParseCommandLine(argc, argv); // initialize general parameters & read input file
 
@@ -70,6 +75,10 @@ int Application::Exec(int argc, char **argv)
         if(!EvaluateOptions()) {
             ShowHelpText(cout);
             return -1;
+        }
+
+        if (_op_vm.count("verbose")) {
+	  globals::verbose = true;
         }
 
         if(_continue_execution)
