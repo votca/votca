@@ -199,9 +199,9 @@ sub remove_parameter_set(\@$) {
       }
     }
     case "highest" {
-      my $high=get_convergence_value(@simplex_table,"ihighest");
+      $value=get_convergence_value(@simplex_table,"ihighest");
       for (my $i=0;$i<=$#simplex_table;$i++) {
-        push(@new_table,$simplex_table[$i]) unless ($i == $high);
+        push(@new_table,$simplex_table[$i]) unless ($i == $value);
       }
     }
     else {

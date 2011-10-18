@@ -51,7 +51,7 @@ my $highest=get_convergence_value(@simplex_table,"highest");
 my $second_highest=get_convergence_value(@simplex_table,"second");
 my $lowest=get_convergence_value(@simplex_table,"lowest");
 my $try=get_convergence_value(@simplex_table,"try");
-print "values: ($highest) highest, $second_highest (2nd highest), $lowest (lowest), $try (try)\n";
+print "values: $highest (highest), $second_highest (2nd highest), $lowest (lowest), $try (try)\n";
 my $next_state;
 switch($state){
   case "Initialization" {
