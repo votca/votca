@@ -83,7 +83,7 @@ public:
     // TODO: this function should not be in qmtopology!
     //void ComputeAllTransferIntegrals();
 
-    /// find a crg unit by name
+    /// find a conjugated segment by name
     QMCrgUnit *GetCrgUnitByName(const string &name);
 
     QMCrgUnit *getCrgUnit(int id);

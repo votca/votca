@@ -50,6 +50,7 @@ void QMTopology::Initialize(Topology& cg_top)
 
     if ( tools::globals::verbose ) {
         cout << "Initializing conjugated segments" << endl;
+        cout << " segment[name:type] fragment[name:type:position] molecule[name:id] " << endl;
     }
     
     BeadContainer::iterator itb;
@@ -57,21 +58,22 @@ void QMTopology::Initialize(Topology& cg_top)
 	
         QMBead * bead = dynamic_cast<QMBead *>(*itb);
         string bead_name = bead->getName();
+        string bead_type = bead->getType()->getName();
         string molecule_name = bead->getMolecule()->getName();
-	
-        // check if the bead (rigid fragment) is in any conjugated segment
-        if ( (bead->Options()).exists("qm.name")){
 
-	    // type of the conjugated segment to which this bead belongs
-            string segment_type = (bead->getType())->getName();
+        // check if the bead (rigid fragment) is in any defined conjugated segment
+        if ( (bead->Options()).exists("segment.name")){
+
+	    // type of the conjugated segment to which this fragment belongs
+            string segment_type = (bead->Options()).get("segment.type").as<string>();
 
             // position of the bead in the conjugated segment
-            int bead_position = (bead->Options()).get("qm.position").as<int>();
+            int bead_position = (bead->Options()).get("segment.position").as<int>();
 
             // name of the conjugated segment in a molecule - used to group beads (fragments)
-            string segment_name = (bead->Options()).get("qm.name").as<string>();
+            string segment_name = (bead->Options()).get("segment.name").as<string>();
 
-            // check if the segment has already been created by another bead
+            // check if the segment has already been created by another fragment
             int molecule_id = bead->getMolecule()->getId();
             string segment_id = boost::lexical_cast<string>(molecule_id)+":" + segment_name;
             QMCrgUnit * segment = GetCrgUnitByName(segment_id);
@@ -86,18 +88,24 @@ void QMTopology::Initialize(Topology& cg_top)
             
 	    bead->setCrg(segment);
             bead->setiPos(bead_position);
-	    
+
+
 	    if ( tools::globals::verbose ) {
-              cout << " segment[type:name] fragment[name:position] molecule[name:id] "
-                   << "[" << segment_type  << ":" << segment_name  << "] "
-                   << "[" << bead_name  << ":" << bead_position  << "] "
-                   << "[" << molecule_name  << ":" << molecule_id  << "] " << endl;
+              cout << " segment[" << segment_name  << ":" << segment_type  << "] "
+                   << "fragment[" << bead_name  << ":" << bead_type << ":" << bead_position  << "] "
+                   << "molecule[" << molecule_name  << ":" << molecule_id  << "] " << endl;
 	    }
         }
         else{ // remove the bead from the CG trajectory
             bead->setCrg(NULL);
         }
     }
+
+    if ( tools::globals::verbose ) {
+        cout << " segment[name:type] fragment[name:type:position] molecule[name:id] " << endl;
+        cout << "Done with initializing conjugated segments" << endl;
+    }
+
 }
 
 void QMTopology::Update(Topology& cg_top)

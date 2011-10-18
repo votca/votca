@@ -22,7 +22,7 @@
 
 <item>
 <name>cg_molecule.topology.cg_beads</name>
-<desc>Section describing all rigid fragments of a molecule.</desc>
+<desc>Section describing all rigid fragments (beads) of a molecule.</desc>
 </item>  
 
 <item>
@@ -32,12 +32,12 @@
 
 <item>
 <name>cg_molecule.topology.cg_beads.cg_bead.name</name>
-<desc>The name of the bead. This must be unique for each rigid fragment in a molecule, for example a polymer made of ten repeat units needs ten different name identifiers if each repeat unit is a rigid fragment. </desc>
+<desc>The name of the bead. This field is used only in VOTCA-CSG.</desc>
 </item>  
 
 <item>
 <name>cg_molecule.topology.cg_beads.cg_bead.type</name>
-<desc>The type of the rigid fragment. This may be the same for beads which only differ by a hydrogen atom or two to simplify the calculations, while the mapping must take these differences into account.</desc>
+<desc>The type of the rigid fragment. This field is used only in VOTCA-CSG.</desc>
 </item>  
 
 <item>
@@ -56,14 +56,19 @@
 </item>  
 
 <item>
-<name>cg_molecule.topology.cg_beads.cg_bead.qm</name>
-<desc>This section associates rigid fragments (beads) with a particular type of a conjugated segment. </desc>
+<name>cg_molecule.topology.cg_beads.cg_bead.segment</name>
+<desc>This section associates rigid fragments (beads) with a particular conjugated segment and its type. </desc>
 </item>  
 
 <item>
-<name>cg_molecule.topology.cg_beads.cg_bead.qm.name</name>
-<desc>The name of the conjugated segment the fragment is associated with.</desc>
+<name>cg_molecule.topology.cg_beads.cg_bead.segment.name</name>
+<desc>Name of the conjugated segment (in a molecule) the fragment belongs to. Used only for sorting the fragments into conjugated segments.</desc>
 </item>  
+
+<item>
+<name>cg_molecule.topology.cg_beads.cg_bead.segment.type</name>
+<desc>Type of the conjugated segment the fragment belongs to. Should correspond to the type provided in the description of a conjugated segment.</desc>
+</item>
 
 <item>
 <name>cg_molecule.topology.cg_beads.cg_bead.qm.position</name>
