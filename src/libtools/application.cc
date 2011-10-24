@@ -22,7 +22,7 @@
 
 namespace votca { namespace tools {
 
-bool tools::globals::verbose = false;
+bool globals::verbose = false;
 
 Application::Application()
     : _op_desc("Allowed options"), _continue_execution(true)
