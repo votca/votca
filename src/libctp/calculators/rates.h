@@ -75,7 +75,7 @@ inline void Rates::Initialize(QMTopology *top, Property *options){
         else if (options->get("options.rates.method").as<string > () == "jortner") {
 		_rate_type='J';
         if (options->exists("options.rates.nmaxvib")) {
-        _nmaxvib = options->get("options.calc_rates.nmaxvib").as<double>();
+        _nmaxvib = options->get("options.rates.nmaxvib").as<double>();
     } else {
         _nmaxvib = 20;
         cout << "Warning: no cutoff number for qm vibrations  provided, using default 20" << endl;
