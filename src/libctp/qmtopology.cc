@@ -67,8 +67,9 @@ void QMTopology::Initialize(Topology& cg_top)
 	    // type of the conjugated segment to which this fragment belongs
             string segment_type = (bead->Options()).get("segment.type").as<string>();
 
-            // position of the bead in the conjugated segment
+            // position of the bead in the conjugated segment (starts with zero internally)
             int bead_position = (bead->Options()).get("segment.position").as<int>();
+            bead_position--;
 
             // name of the conjugated segment in a molecule - used to group beads (fragments)
             string segment_name = (bead->Options()).get("segment.name").as<string>();

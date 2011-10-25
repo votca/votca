@@ -26,7 +26,7 @@ namespace votca { namespace ctp {
 /**
 	\brief Semi-empirical electronic coupling elements for all neighbor list pairs
 
-Semi-emprirical (ZINDO) electronic coupling elements for all conjuageted segments from the neighbout list (J. Int. J. Quantum Chem. 2008, 108, 51-56.). Requires molecular orbitals in GAUSSIAN format.
+Semi-emprirical (ZINDO) electronic coupling elements for all conjuageted segments from the neighbout list. Requires molecular orbitals in GAUSSIAN format.
 
 Callname: izindo
 

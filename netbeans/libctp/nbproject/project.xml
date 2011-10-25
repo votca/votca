@@ -11,8 +11,7 @@
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>../../include</sourceRootElem>
-                <sourceRootElem>../../src/libctp</sourceRootElem>
+                <sourceRootElem>../../../../include</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>Debug</confElem>

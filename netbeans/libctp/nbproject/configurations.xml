@@ -67,8 +67,7 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../../include</Elem>
-    <Elem>../../src/libctp</Elem>
+    <Elem>../../../../include</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
