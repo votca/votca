@@ -117,7 +117,7 @@ my $comments2;
 
 $#r1 == $#r2 || die "$progname: error, tables have different length";
 
-sub difference_reference($$$) {
+sub difference_relative($$$) {
   defined($_[2]) || die "difference: Missing argument\n";
   my $x=$_[0];
   my $y=$_[1];
