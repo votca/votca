@@ -1,25 +1,37 @@
-def readOrb(path,whichMonomer,nsaosOfOtherMolecule):
-  """-"path" specifies the location of the orbital file
-  -"whichMonomer" (either 1 or 2) specifies where to put the zeros into the orbital file
-  -"nsaosOfOtherMolecule" number of zeros to be put as placeholders for the other molecule
-  -the function returns the field vec_mo
-  """
+#
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 
-  c_mo=[]
-  c_fill_mo=[]
-  vec_mo=[]
+
+def readOrb(path,molIdx,nsaos_comp):
+
+  molcoef=[]
+  molcoef_add=[]
+  coefs_full=[]
   LastLine=[]
 
 
-  if whichMonomer!=1 and whichMonomer!=2:
-     print "whichMonomer has to be either 1 or 2!"
+  if molIdx!=1 and molIdx!=2:
+     print "molIdx can only be 1 or 2!"
      sys.exit()
   
 
-  moFile=open(path,'r')
+  molFile=open(path,'r')
   readMo='false'
-  for line in moFile:
+  for line in molFile:
 	  #skip comment lines
           if line.find('#') == 0:
 	    continue
@@ -53,40 +65,40 @@ def readOrb(path,whichMonomer,nsaosOfOtherMolecule):
   	  #read mo-coefficients    
 	  if readMo == 'true':     
   	    CoeffString=line
-  	    #put the mo-coefficients into c_mo1 
+  	    #put the mo-coefficients into molcoef1 
   	    if lineCounter < NumberOfLines:
   	      for j in range(4):
-  		c_mo.append(  CoeffString[0+j*20:20+j*20] )
+  		molcoef.append(  CoeffString[0+j*20:20+j*20] )
   	      lineCounter+=1
   	    elif lineCounter == NumberOfLines and not 'nsaos' in line:
   	     #take care for non-complete lines
 	     if ElementsInLastLine != 0:
   	       for k in range(ElementsInLastLine):
-  	          c_mo.append(  CoeffString[0+k*20:20+k*20] )
+  	          molcoef.append(  CoeffString[0+k*20:20+k*20] )
 	     else:	
   	       for k in range(4):
-  	          c_mo.append(  CoeffString[0+k*20:20+k*20] )
+  	          molcoef.append(  CoeffString[0+k*20:20+k*20] )
 
-	     for j in range(nsaosOfOtherMolecule):
+	     for j in range(nsaos_comp):
   	     #generate field with zeros for the other molecule
-  		c_fill_mo.append( '0.00000000000000D-00' )
+  		molcoef_add.append( '0.00000000000000D-00' )
   	     #now glue eigenvalue, coefficients and zeros together
-             if whichMonomer == 1:
-  	        eigenvalue.extend(c_mo)	      
-  	        eigenvalue.extend(c_fill_mo)
+             if molIdx == 1:
+  	        eigenvalue.extend(molcoef)	      
+  	        eigenvalue.extend(molcoef_add)
 	     else:
-  	        eigenvalue.extend(c_fill_mo)
-  	        eigenvalue.extend(c_mo)	      
+  	        eigenvalue.extend(molcoef_add)
+  	        eigenvalue.extend(molcoef)	      
   	     #store complete mo into the mo-vector list	      
-  	     vec_mo.append( eigenvalue )
+  	     coefs_full.append( eigenvalue )
   	     #re-initialize for next pass
-  	     c_mo=[]
-  	     c_fill_mo=[]
+  	     molcoef=[]
+  	     molcoef_add=[]
   	     eigenvalue=[]
 	     readMo='false'
-  moFile.close()
+  molFile.close()
 
-  return vec_mo
+  return coefs_full
 
 
 
@@ -95,8 +107,8 @@ def getOrbDim(path):
      
 
 
-  moFile=open(path,'r')
-  for line in moFile:
+  molFile=open(path,'r')
+  for line in molFile:
 	  #skip comment lines
           if line.find('#') == 0:
 	    continue
@@ -120,13 +132,13 @@ def getOrbDim(path):
 	      nsaos=int(cols[2])
 	      break
 
-  moFile.close()
+  molFile.close()
 
   return scfconv,nsaos	      
 	      
 	      
-def writeMo(scfconv,nsaos,vec_mo,name):
-  """vec_mo is the mo vector field obtained by readOrb, name should be alpha,beta or mos"""
+def writeMo(scfconv,nsaos,coefs_full,name):
+  """coefs_full is the mo vector field obtained by readOrb, name should be alpha,beta or mos"""
  
   import sys
    
@@ -144,15 +156,15 @@ def writeMo(scfconv,nsaos,vec_mo,name):
   ElementsInLastLineNew=nsaos % 4
   for i in range(nsaos):
   #loop over mos
-     outFile.write("%6d  a      eigenvalue=%19.14lfD+00   nsaos=%d\n" % (i+1,vec_mo[i][0],nsaos))
+     outFile.write("%6d  a      eigenvalue=%19.14lfD+00   nsaos=%d\n" % (i+1,coefs_full[i][0],nsaos))
      for j in range(nsaos/4):
      #loop over lines
-  	outFile.write("%s%s%s%s\n" % (vec_mo[i][1+j*4],vec_mo[i][2+j*4],vec_mo[i][3+j*4],vec_mo[i][4+j*4]))
+  	outFile.write("%s%s%s%s\n" % (coefs_full[i][1+j*4],coefs_full[i][2+j*4],coefs_full[i][3+j*4],coefs_full[i][4+j*4]))
      if ElementsInLastLineNew > 0:
   	LastLine=[]
   	for k in range(ElementsInLastLineNew):
   	   #loop for elements in last line
-  	   LastLine.append(vec_mo[i][k+1+(j+1)*4])
+  	   LastLine.append(coefs_full[i][k+1+(j+1)*4])
   	str3=''.join(LastLine)
   	outFile.write("%s\n" % (str3))
   outFile.write('$end\n')
