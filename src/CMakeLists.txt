@@ -18,3 +18,5 @@ else(EXTERNAL_BOOST)
   set (BOOST_CFLAGS_PKG)
 endif(EXTERNAL_BOOST)
 add_subdirectory(libtools)
+add_subdirectory(tools)
+
