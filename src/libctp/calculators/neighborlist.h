@@ -16,7 +16,7 @@
  */
 
 #ifndef __NEIGHBORLIST_H
-#define	__NEIGHBORLIST_H
+#define __NEIGHBORLIST_H
 
 #include <votca/ctp/qmcalculator.h>
 
@@ -39,7 +39,7 @@ public:
 
     void Initialize(QMTopology *top, Property *options);
     bool EvaluateFrame(QMTopology *top);
-    
+
 //protected:
 private:
     vector<double> _cutoff;
@@ -53,7 +53,7 @@ inline void Neighborlist::Initialize(QMTopology *top, Property *options){
     _cutoff.push_back(0.7);
     _typeA.push_back("B1295");
     _typeB.push_back("B1295");
-    
+
 }
 
 inline bool Neighborlist::EvaluateFrame(QMTopology *top)
@@ -70,7 +70,7 @@ inline bool Neighborlist::EvaluateFrame(QMTopology *top)
     BeadList list1, list2;
     list1.Generate(*top, _typeA[pairtype]);
     list2.Generate(*top, _typeB[pairtype]);
-     
+
       // is it same types or different types?
         if(_typeA[pairtype]== _typeB[pairtype])
             top->nblist().Generate(list1);
@@ -81,5 +81,4 @@ inline bool Neighborlist::EvaluateFrame(QMTopology *top)
 
 }}
 
-#endif	/* __NEIGHBORLIST_H */
-
+#endif  /* __NEIGHBORLIST_H */
