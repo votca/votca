@@ -25,7 +25,7 @@ namespace votca { namespace ctp {
 
 void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
 {
-    Cleanup();
+    //Cleanup();
     
     _father = dynamic_cast<QMTopology*> (list1.getTopology());
     
