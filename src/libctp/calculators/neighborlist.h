@@ -19,6 +19,8 @@
 #define __NEIGHBORLIST_H
 
 #include <votca/ctp/qmcalculator.h>
+#include <votca/tools/globals.h>
+#include <votca/ctp/qmpair.h>
 
 namespace votca { namespace ctp {
 
@@ -66,7 +68,7 @@ inline void Neighborlist::Initialize(QMTopology *top, Property *options){
         tok.ToVector(segment_types);
 
         // check if user provided two segment types
-        if ( segment_types.size() != 2) std::runtime_error("error, two segment types are needed for each cutoff");
+        if ( segment_types.size() != 2) std::runtime_error("error, two segment types separated by a space are needed for each cutoff");
 
         // sanity check is needed here to insure that segment type exists
         top->GetCrgUnitTypeByName(segment_types[0]);
@@ -91,6 +93,7 @@ inline bool Neighborlist::EvaluateFrame(QMTopology *top)
     int pairtype;
 
     for (pairtype = 0; pairtype< _cutoff.size(); pairtype++) {
+
     //cout <<"TypeA:"<< _typeA[pairtype].c_str() << " TypeB:"<< _typeB[pairtype].c_str()<< " Cutoff:"<<_cutoff[pairtype]<<endl;
     top->nblist().setCutoff(_cutoff[pairtype]);
     BeadList list1, list2;
@@ -102,6 +105,17 @@ inline bool Neighborlist::EvaluateFrame(QMTopology *top)
             top->nblist().Generate(list1);
         else
         top->nblist().Generate(list1, list2);
+    }
+       if (tools::globals::verbose) {
+       QMNBList& nblist=top->nblist();
+        for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
+
+        QMPair *pair = *ipair;
+        QMCrgUnit *crg1 = pair->Crg1PBCCopy();
+        QMCrgUnit *crg2 = pair->Crg2PBCCopy();
+        cout<<" id segment A:" << crg1->getId() <<"    id segment B:" << crg2->getId()<< "    distance:"<< pair->dist()<< endl;
+        //cout<<"type A:" << crg1->getType().GetName() <<" name A:" << crg1->getName() << " id A:" << crg1->getId()<< endl;
+    }
     }
 }
 
