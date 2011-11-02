@@ -113,7 +113,7 @@ inline bool Neighborlist::EvaluateFrame(QMTopology *top)
         QMPair *pair = *ipair;
         QMCrgUnit *crg1 = pair->Crg1PBCCopy();
         QMCrgUnit *crg2 = pair->Crg2PBCCopy();
-        cout<<" id segment A:" << crg1->getId() <<"    id segment B:" << crg2->getId()<< "    distance:"<< pair->dist()<< endl;
+        cout<<" id segment A:" << crg1->getId() <<"    id segment B:" << crg2->getId()<< "   com distance:"<< pair->dist()<< endl;
         //cout<<"type A:" << crg1->getType().GetName() <<" name A:" << crg1->getName() << " id A:" << crg1->getId()<< endl;
     }
     }
