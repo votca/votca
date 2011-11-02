@@ -49,12 +49,40 @@ private:
 };
 
 inline void Neighborlist::Initialize(QMTopology *top, Property *options){
-    //DENIS ??? _cutoff = options->get("options.neighborlist.cutoff").as<double>();
-    _cutoff.push_back(0.7);
-    _typeA.push_back("B1295");
-    _typeB.push_back("B1295");
 
-}
+    // list of all sub-properties of options.neighborlist.segments
+    list<Property *> segments = options->Select("options.neighborlist.segments");
+    list<Property *>::iterator property_iterator;
+
+    cout << "Neighbor list is based on the following cutoffs [type:type:cutoff]" << endl;
+
+    // loop over these subproperites
+    for (property_iterator = segments.begin(); property_iterator != segments.end(); ++property_iterator){
+        string types = (*property_iterator)->get("type").as<string>();
+        double  cutoff = (*property_iterator)->get("cutoff").as<double>();
+
+        Tokenizer tok(types, " ");
+        vector <string> segment_types;
+        tok.ToVector(segment_types);
+
+        // check if user provided two segment types
+        if ( segment_types.size() != 2) std::runtime_error("error, two segment types are needed for each cutoff");
+
+        // sanity check is needed here to insure that segment type exists
+        top->GetCrgUnitTypeByName(segment_types[0]);
+        top->GetCrgUnitTypeByName(segment_types[1]);
+
+        cout << " " << segment_types[0] << ":" << segment_types[1] << ":" << cutoff << "" << endl;
+
+        _cutoff.push_back(cutoff);
+        _typeA.push_back(segment_types[0]);
+        _typeB.push_back(segment_types[1]);
+
+    }
+    
+    cout <<"Using "<<_cutoff.size()<< " different types of pairs."<<endl;
+
+  }
 
 inline bool Neighborlist::EvaluateFrame(QMTopology *top)
 {
@@ -62,10 +90,8 @@ inline bool Neighborlist::EvaluateFrame(QMTopology *top)
 
     int pairtype;
 
-    cout <<"There are "<<_cutoff.size()<< " different types of pairs for the neighborlist cutoff"<<endl;
-
     for (pairtype = 0; pairtype< _cutoff.size(); pairtype++) {
-    cout <<"TypeA:"<< _typeA[pairtype].c_str() << " TypeB:"<< _typeB[pairtype].c_str()<< " Cutoff:"<<_cutoff[pairtype]<<endl;
+    //cout <<"TypeA:"<< _typeA[pairtype].c_str() << " TypeB:"<< _typeB[pairtype].c_str()<< " Cutoff:"<<_cutoff[pairtype]<<endl;
     top->nblist().setCutoff(_cutoff[pairtype]);
     BeadList list1, list2;
     list1.Generate(*top, _typeA[pairtype]);

@@ -91,6 +91,8 @@ public:
     QMCrgUnit *CreateCrgUnit(const string &name, const string &type_name, int molid);
     QMCrgUnit *CreateCrgUnit(int id, const string &name, const string &type_name, int molid);
 
+    /// find a charge unit type by name
+    CrgUnitType *GetCrgUnitTypeByName(const string &type_name);
 
     //Copy charges to either charged or neutral case
     void CopyCharges(CrgUnit *crg, Molecule *mol);
@@ -127,6 +129,11 @@ inline QMCrgUnit *QMTopology::GetCrgUnitByName(const string &name)
     if(iter!=_mcharges.end())
         return iter->second;
     return NULL;
+}
+
+inline CrgUnitType *QMTopology::GetCrgUnitTypeByName(const string &type_name)
+{
+    return _jcalc.GetCrgUnitTypeByName(type_name);
 }
 
 }}
