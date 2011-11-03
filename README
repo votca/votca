@@ -8,6 +8,12 @@ If you use this package, please cite the VOTCA paper:
   V.Ruehle, C. Junghans, A. Lukyanov, K. Kremer, D. Andrienko,
   J. Chem. Theo. Comp. 5 (12), 3211 (2009) 
 
+In case you are using (hybrid) force-matching approaches, please cite:
+
+* Hybrid approaches to coarse-graining using the VOTCA package: liquid hexane,
+  V. Ruehle and C. Junghans,
+  Macromol. Theory Simul. 20, 472 (2011). 
+
 In case of questions, please post them in the google discussion group
 for votca at http://groups.google.com/group/votca
 
