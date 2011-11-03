@@ -75,7 +75,6 @@ map <string, int> MakePeriodicTable(){
     m.insert(pair<string, int>("Te",51));
     m.insert(pair<string, int>("I",52));
     m.insert(pair<string, int>("Xe",53));
-    m.insert(pair<string, int>("Xe",53));
     m.insert(pair<string, int>("Cs",54));
     m.insert(pair<string, int>("Ba",55));
     m.insert(pair<string, int>("La",56));
