@@ -123,10 +123,8 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.5</table_end>
-      <rdf>
-	<map>hexane_cg.xml</map>
-      </rdf>
     </gromacs>
+    <map>hexane_cg.xml</map>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
