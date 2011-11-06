@@ -1,4 +1,3 @@
-option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 if(WITH_DIPRO)
   enable_language(Fortran)
   find_package(LAPACK REQUIRED) 

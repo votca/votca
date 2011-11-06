@@ -1,5 +1,6 @@
 syntax: glob
 
+*~
 Makefile
 
 libvotca*.pc
@@ -9,8 +10,14 @@ libvotca*.so
 src/libctp/votca_config.h
 src/libctp/hgversion.h
 
+src/tools/ctp_run
+src/tools/ctp_map
+
 src/dipro/*.mod
 src/dipro/*.x
+
+scripts/ctp_dipro.out
+scripts/ctp_dipro
 
 netbeans/*/build
 .dep.inc

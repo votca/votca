@@ -23,10 +23,6 @@ include(CheckCXXCompilerFlag)
 ########################################################################
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 if (NOT DEFINED LIB)
-#  if (CMAKE_SIZEOF_VOID_P MATCHES "8")
-#    set( LIB_SUFFIX "64" )
-#  endif(CMAKE_SIZEOF_VOID_P MATCHES "8")
-#  set(LIB "lib${LIB_SUFFIX}")
   set(LIB "lib")
 endif(NOT DEFINED LIB)
 if (NOT DEFINED MAN)
@@ -35,6 +31,7 @@ endif(NOT DEFINED MAN)
 if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
+option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
