@@ -18,6 +18,12 @@
 #include <votca/tools/version.h>
 #include "votca_config.h"
 
+extern "C" {
+   void VotcaToolsFromC(){
+     //do nothing - this just that we have a c function for autotools
+   }
+}
+
 namespace votca { namespace tools {
 
 //defines hgversion
