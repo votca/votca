@@ -76,7 +76,7 @@ for calculator in ${calculators}; do
     echo "%" >> $texfile 
   fi
   if [ -n "$calculator_sectionlabel" ]; then
-    echo "\noindent Return to the descritpion of \slink{$calculator_sectionlabel}{\texttt{$calculator}}." >> $texfile
+    echo "\noindent Return to the description of \slink{$calculator_sectionlabel}{\texttt{$calculator}}." >> $texfile
   fi
   echo >> $texfile
 
