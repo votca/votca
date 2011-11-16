@@ -113,15 +113,17 @@ else
 fi
 
 [[ -z $cmd ]] && die "Specify at least one option out of [--monomer|--check|--dimer|--write]"
-args=2
+args=1
 case $cmd in
   --write)
      src="write_state.sh"
+     ((args++))
      ((args++));;
    --monomer|--dimer)
      src="calc_${cmd#--}.sh";;
    --check)
      src="check_mols.sh"
+     ((args++))
      ((args++));;
    *)
      die "Unknown command $cmd";;

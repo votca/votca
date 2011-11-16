@@ -270,7 +270,7 @@ if [ "$1" == "T" ]; then
 
     run_define $basis $func
     # dimer run orthogonalization (merge tool by A. Fuchs, BASF)
-    $CSGSHARE/scripts/dipro/merge_orbitals.py  ../molA  ../molB
+    $VOTCASHARE/scripts/dipro/merge_orbitals.py  ../molA  ../molB
     adapt_mem
     kdg scfiterlimit
     sed '1i\
