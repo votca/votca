@@ -23,9 +23,17 @@ do
     #holes
     if [ "$1" = "h" ]; then
 	J=`cat transfer_integrals/$pair.xml | grep "<J>" | head -n 1 | sed -e 's/<J>//g' | sed -e 's,</J>,,g'`
+    elif [ "$1" = "hdeg" ]; then
+	Jsq=`cat transfer_integrals/$pair.xml | grep "<J_sq_boltz>" | head -n 1 | sed -e 's/<J_sq_boltz>//g' | sed -e 's,</J_sq_boltz>,,g'`
+	J=`echo $Jsq | awk '{print sqrt($1)}'`
     elif [  "$1" = "e" ]; then
     #electrons
 	J=`cat transfer_integrals/$pair.xml | grep "<J>" | tail -n 1 | sed -e 's/<J>//g' | sed -e 's,</J>,,g'`
+    elif [ "$1" = "edeg" ]; then
+	Jsq=`cat transfer_integrals/$pair.xml | grep "<J_sq_boltz>" | tail -n 1 | sed -e 's/<J_sq_boltz>//g' | sed -e 's,</J_sq_boltz>,,g'`
+	J=`echo $Jsq | awk '{print sqrt($1)}'`
+    else
+	echo "Invalid option for charge carrier TYPE specified. Aborting!"
     fi
 
     #get segment IDs
