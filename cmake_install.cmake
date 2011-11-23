@@ -1,8 +1,8 @@
-# Install script for directory: /home/mashaya1/Research/My_Votca/src/csg
+# Install script for directory: /home/mashaya1/Research/RE_Votca/src/csg
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  SET(CMAKE_INSTALL_PREFIX "/home/mashaya1/Research/My_Votca")
+  SET(CMAKE_INSTALL_PREFIX "/home/mashaya1/Research/RE_Votca")
 ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -34,10 +34,10 @@ ENDIF(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
 
 IF(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  INCLUDE("/home/mashaya1/Research/My_Votca/src/csg/scripts/cmake_install.cmake")
-  INCLUDE("/home/mashaya1/Research/My_Votca/src/csg/src/cmake_install.cmake")
-  INCLUDE("/home/mashaya1/Research/My_Votca/src/csg/include/votca/csg/cmake_install.cmake")
-  INCLUDE("/home/mashaya1/Research/My_Votca/src/csg/share/cmake_install.cmake")
+  INCLUDE("/home/mashaya1/Research/RE_Votca/src/csg/scripts/cmake_install.cmake")
+  INCLUDE("/home/mashaya1/Research/RE_Votca/src/csg/src/cmake_install.cmake")
+  INCLUDE("/home/mashaya1/Research/RE_Votca/src/csg/include/votca/csg/cmake_install.cmake")
+  INCLUDE("/home/mashaya1/Research/RE_Votca/src/csg/share/cmake_install.cmake")
 
 ENDIF(NOT CMAKE_INSTALL_LOCAL_ONLY)
 
@@ -47,7 +47,7 @@ ELSE(CMAKE_INSTALL_COMPONENT)
   SET(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 ENDIF(CMAKE_INSTALL_COMPONENT)
 
-FILE(WRITE "/home/mashaya1/Research/My_Votca/src/csg/${CMAKE_INSTALL_MANIFEST}" "")
+FILE(WRITE "/home/mashaya1/Research/RE_Votca/src/csg/${CMAKE_INSTALL_MANIFEST}" "")
 FOREACH(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  FILE(APPEND "/home/mashaya1/Research/My_Votca/src/csg/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  FILE(APPEND "/home/mashaya1/Research/RE_Votca/src/csg/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 ENDFOREACH(file)

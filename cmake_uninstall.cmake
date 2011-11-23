@@ -1,8 +1,8 @@
-IF(NOT EXISTS "/home/mashaya1/Research/My_Votca/src/csg/install_manifest.txt")
-  MESSAGE(FATAL_ERROR "Cannot find install manifest: \"/home/mashaya1/Research/My_Votca/src/csg/install_manifest.txt\"")
-ENDIF(NOT EXISTS "/home/mashaya1/Research/My_Votca/src/csg/install_manifest.txt")
+IF(NOT EXISTS "/home/mashaya1/Research/RE_Votca/src/csg/install_manifest.txt")
+  MESSAGE(FATAL_ERROR "Cannot find install manifest: \"/home/mashaya1/Research/RE_Votca/src/csg/install_manifest.txt\"")
+ENDIF(NOT EXISTS "/home/mashaya1/Research/RE_Votca/src/csg/install_manifest.txt")
 
-FILE(READ "/home/mashaya1/Research/My_Votca/src/csg/install_manifest.txt" files)
+FILE(READ "/home/mashaya1/Research/RE_Votca/src/csg/install_manifest.txt" files)
 STRING(REGEX REPLACE "\n" ";" files "${files}")
 FOREACH(file ${files})
   MESSAGE(STATUS "Uninstalling \"$ENV{DESTDIR}${file}\"")
