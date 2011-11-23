@@ -29,6 +29,7 @@ prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare tf prepare_generic.sh
 prepare simplex prepare_simplex.sh
+prepare re prepare_re.sh
 prepare_single ibi prepare_generic_single.sh
 prepare_single imc prepare_generic_single.sh
 prepare_single tf prepare_generic_single.sh
@@ -37,6 +38,7 @@ initstep ibi initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 initstep tf initialize_step_generic.sh
 initstep simplex initialize_step_simplex.sh
+initstep re initialize_step_re.sh
 
 #this is just to warn users from old versions
 prepare ibm prepare_ibm.sh
@@ -50,6 +52,7 @@ add_pot ibi add_pot_generic.sh
 add_pot imc add_pot_generic.sh
 add_pot tf add_pot_generic.sh
 add_pot simplex dummy.sh
+add_pot re dummy.sh
 
 # END: these scripts have to be defined for each method
 
@@ -61,6 +64,7 @@ post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
 post_update tf post_update_generic.sh
 post_update simplex dummy.sh
+post_update re dummy.sh
 post_update_single ibi post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 post_update_single tf post_update_generic_single.sh
@@ -91,6 +95,7 @@ postadd plot postadd_plot.sh
 
 #convergence checks
 convergence_check default convergence_check_default.sh
+convergence_check re convergence_check_re.sh
 
 # table preparation
 dpot shift_nonbonded dpot_shift_nb.pl
@@ -133,6 +138,9 @@ simplex precede_state simplex_downhill_processor.pl
 
 simplex_target rdf simplex_target_rdf.sh
 simplex_target density simplex_target_density.sh
+
+# relative entroy (re) specific stuff
+update re update_re.sh
 
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl
