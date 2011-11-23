@@ -21,6 +21,7 @@
 
 #ifndef NOGSL
 #include <gsl/gsl_linalg.h>
+#include<gsl/gsl_errno.h>
 #endif
 
 
@@ -28,6 +29,40 @@ namespace votca { namespace tools {
 
 using namespace std;
 
+void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b){
+
+#ifdef NOGSL
+    throw std::runtime_error("linalg_qrsolve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
+#else
+    /* calling program should catch the error error code GSL_EDOM
+     * thrown by gsl_linalg_cholesky_decomp and take
+     * necessary steps
+     */
+    
+    gsl_matrix_view m
+        = gsl_matrix_view_array (&A(0,0), A.size1(), A.size2());
+
+    gsl_vector_view gb
+        = gsl_vector_view_array (&b(0), b.size());
+
+    gsl_vector *gsl_x = gsl_vector_alloc (x.size());
+
+    gsl_set_error_handler_off();
+    int status = gsl_linalg_cholesky_decomp(&m.matrix);
+
+    if( status == GSL_EDOM)
+        throw NOT_SYM_POS_DEF();
+
+    
+    gsl_linalg_cholesky_solve(&m.matrix, &gb.vector, gsl_x);
+
+    for (size_t i =0 ; i < x.size(); i++)
+        x(i) = gsl_vector_get(gsl_x, i);
+
+    gsl_vector_free (gsl_x);
+
+#endif
+}
 void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual)
 {
 #ifdef NOGSL
