@@ -1,4 +1,4 @@
-foreach(PROG kmc_run)
+foreach(PROG kmc_run kmc_test)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} ${VOTCA_TOOLS_LIBRARIES}  ${BOOST_LIBRARIES})
