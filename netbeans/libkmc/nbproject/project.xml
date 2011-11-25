@@ -12,6 +12,7 @@
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>../../../src/libkmc/calculators</sourceRootElem>
+                <sourceRootElem>../../src/libkmc/calculators</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>Debug</confElem>

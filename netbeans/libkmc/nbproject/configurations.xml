@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="calculators" displayName="calculators" projectFiles="true">
+      <itemPath>../../src/libkmc/calculators/kmcsingle.h</itemPath>
+    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
-      <logicalFolder name="calculators" displayName="calculators" projectFiles="true">
-        <itemPath>../../../src/libkmc/calculators/kmcsingle.h</itemPath>
-      </logicalFolder>
+      <itemPath>../../include/votca/kmc/kmcapplication.h</itemPath>
+      <itemPath>../../include/votca/kmc/kmccalculator.h</itemPath>
+      <itemPath>../../include/votca/kmc/kmccalculatorfactory.h</itemPath>
+      <itemPath>../../include/votca/kmc/vssmgroup.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -18,8 +22,8 @@
                    displayName="Source Files"
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
-      <itemPath>../../../src/libkmc/kmcapplication.cc</itemPath>
-      <itemPath>../../../src/libkmc/kmccalculatorfactory.cc</itemPath>
+      <itemPath>../../src/libkmc/kmcapplication.cc</itemPath>
+      <itemPath>../../src/libkmc/kmccalculatorfactory.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -30,11 +34,11 @@
                    displayName="Important Files"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
-      <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../../src/libkmc/calculators</Elem>
+    <Elem>../../src/libkmc/calculators</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
