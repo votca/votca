@@ -30,7 +30,7 @@ class KMCCalculatorFactory
 : public ObjectFactory<std::string, KMCCalculator>
 {
 private:
-    CalculatorFactory() {}
+    KMCCalculatorFactory() {}
 public:
     
     static void RegisterAll(void);

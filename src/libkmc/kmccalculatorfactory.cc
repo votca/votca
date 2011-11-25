@@ -15,17 +15,16 @@
  *
  */
 
-#include <votca/ctp/calculatorfactory.h>
-
-#include "votca_config.h"
-
-#include "calculators/single.h"
+#include <votca/kmc/kmccalculatorfactory.h>
+//#include "votca_config.h"
+#include "calculators/kmcsingle.h"
 
 namespace votca { namespace kmc {
 
-void CalculatorFactory::RegisterAll(void)
+void KMCCalculatorFactory::RegisterAll(void)
 {
-	Calculators().Register<Izindo>("single"); // single charge carrier in PBC  
+    cout << "Registering calculators " << endl;
+    Calculators().Register<KMCSingle>("kmcsingle"); // single charge carrier in PBC
 }
 
 }}

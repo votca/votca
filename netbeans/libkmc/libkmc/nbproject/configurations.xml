@@ -6,7 +6,7 @@
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
       <logicalFolder name="calculators" displayName="calculators" projectFiles="true">
-        <itemPath>../../../src/libkmc/calculators/single.h</itemPath>
+        <itemPath>../../../src/libkmc/calculators/kmcsingle.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -18,6 +18,8 @@
                    displayName="Source Files"
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
+      <itemPath>../../../src/libkmc/kmcapplication.cc</itemPath>
+      <itemPath>../../../src/libkmc/kmccalculatorfactory.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"

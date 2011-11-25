@@ -32,7 +32,9 @@ include Makefile
 OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
-OBJECTFILES=
+OBJECTFILES= \
+	${OBJECTDIR}/_ext/853823286/kmcapplication.o \
+	${OBJECTDIR}/_ext/853823286/kmccalculatorfactory.o
 
 
 # C Compiler Flags
@@ -60,6 +62,16 @@ dist/Release/GNU-Linux-x86/liblibkmc.a: ${OBJECTFILES}
 	${RM} dist/Release/GNU-Linux-x86/liblibkmc.a
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a ${OBJECTFILES} 
 	$(RANLIB) dist/Release/GNU-Linux-x86/liblibkmc.a
+
+${OBJECTDIR}/_ext/853823286/kmcapplication.o: ../../../src/libkmc/kmcapplication.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/853823286
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/853823286/kmcapplication.o ../../../src/libkmc/kmcapplication.cc
+
+${OBJECTDIR}/_ext/853823286/kmccalculatorfactory.o: ../../../src/libkmc/kmccalculatorfactory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/853823286
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/853823286/kmccalculatorfactory.o ../../../src/libkmc/kmccalculatorfactory.cc
 
 # Subprojects
 .build-subprojects:

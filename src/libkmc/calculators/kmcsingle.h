@@ -68,38 +68,38 @@ class KMCSingle
 	: public KMCCalculator
 {
 public:
-	    virtual string ProgramName() { return "kmc_run"; }
-	    virtual void HelpText(std::ostream &out) { };
-	    void Initialize();
-	    bool EvaluateOptions();
-	    void Run(void);
+    KMCSingle() {};
+    ~KMCSingle() {};
+
+    void Initialize( Property *options );
+    void Run(void);
+
 protected:
 	    void LoadGraph(void);
-		void RunKMC(void);
-		void WriteOcc(void);
+            void RunKMC(void);
+            void WriteOcc(void);
 
-		map<int , node_t *> _nodes_lookup;
-		vector<node_t *> _nodes;
-                map<int , node_t *> _injection_lookup;
-		vector<node_t *> _injection;
-                string _injection_name;
-		double _runtime;
-		double _dt;
+            map<int , node_t *> _nodes_lookup;
+            vector<node_t *> _nodes;
+            map<int , node_t *> _injection_lookup;
+            vector<node_t *> _injection;
+            string _injection_name;
+            double _runtime;
+            double _dt;
 };
 
-void KMCSingle::Initialize()
+void KMCSingle::Initialize( Property *options )
 {
-	AddProgramOptions("KMC Options")
+	/*AddProgramOptions("KMC Options")
 		("graph,g", boost::program_options::value<string>(), "file which contains graph")
 		("time,t", boost::program_options::value<double>(), "time to run")
 	    ("seed,s", boost::program_options::value<int>(), "seed for kmc")
 		("dt", boost::program_options::value<double>()->default_value(1e-4), "output frequency during run")
           ("injection,i", boost::program_options::value<string>()->default_value("*"), "name pattern for conjugated segments as injection points");
-}
+         */
 
-bool KMCSingle::EvaluateOptions()
-{
-	CheckRequired("graph");
+    /*
+    	CheckRequired("graph");
 	CheckRequired("seed");
 	CheckRequired("time");
 	_runtime = OptionsMap()["time"].as<double>();
@@ -107,12 +107,14 @@ bool KMCSingle::EvaluateOptions()
         _injection_name=OptionsMap()["injection"].as<string>();
         //cout <<_injection_name<<endl;
         //_injection_name=OptionsMap()["i"].as<string>();
-	return true;
+     */
+	//return true;
+
 }
 
 void KMCSingle::Run(void)
 {
-    srand(OptionsMap()["seed"].as<int>());
+    ///srand(OptionsMap()["seed"].as<int>());
     Random::init(rand(), rand(), rand(), rand());
     LoadGraph();
     RunKMC();
@@ -121,7 +123,7 @@ void KMCSingle::Run(void)
 void KMCSingle::LoadGraph() {
 
     Database db;
-    db.Open(OptionsMap()["graph"].as<string > ());
+    ///db.Open(OptionsMap()["graph"].as<string > ());
 
     Statement *stmt = db.Prepare("SELECT _id,name FROM conjsegs;");
 
@@ -182,7 +184,7 @@ void KMCSingle::RunKMC(void)
 void KMCSingle::WriteOcc()
 {
     Database db;
-	db.Open(OptionsMap()["graph"].as<string>());
+	///db.Open(OptionsMap()["graph"].as<string>());
 	db.Exec("BEGIN;");
 	Statement *stmt = db.Prepare("UPDATE conjsegs SET occ = ? WHERE _id = ?;");
 	for(int i=0; i<_nodes.size(); ++i) {
