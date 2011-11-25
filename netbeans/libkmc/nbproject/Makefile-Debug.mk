@@ -66,12 +66,12 @@ dist/Debug/GNU-Linux-x86/liblibkmc.a: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o: ../../src/libkmc/kmccalculatorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
 	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
+	$(COMPILE.cc) -g -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
 
 ${OBJECTDIR}/_ext/484465351/kmcapplication.o: ../../src/libkmc/kmcapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
 	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmcapplication.o ../../src/libkmc/kmcapplication.cc
+	$(COMPILE.cc) -g -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmcapplication.o ../../src/libkmc/kmcapplication.cc
 
 # Subprojects
 .build-subprojects:

@@ -7,7 +7,7 @@
             <make-project-type>0</make-project-type>
             <c-extensions/>
             <cpp-extensions>cc</cpp-extensions>
-            <header-extensions>h</header-extensions>
+            <header-extensions/>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList/>

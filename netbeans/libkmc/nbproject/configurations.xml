@@ -37,8 +37,8 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../../../src/libkmc/calculators</Elem>
-    <Elem>../../src/libkmc/calculators</Elem>
+    <Elem>../../../include</Elem>
+    <Elem>../../src/libkmc</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -49,6 +49,13 @@
         <platform>2</platform>
       </toolsSet>
       <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../../../include</pElem>
+            <pElem>../../include</pElem>
+            <pElem>../../include/votca/kmc</pElem>
+          </incDir>
+        </ccTool>
         <archiverTool>
         </archiverTool>
       </compileType>
@@ -65,6 +72,11 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>../../../include</pElem>
+            <pElem>../../include</pElem>
+            <pElem>../../include/votca/kmc</pElem>
+          </incDir>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>

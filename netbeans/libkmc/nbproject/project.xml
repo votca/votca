@@ -11,8 +11,8 @@
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>../../../src/libkmc/calculators</sourceRootElem>
-                <sourceRootElem>../../src/libkmc/calculators</sourceRootElem>
+                <sourceRootElem>../../../include</sourceRootElem>
+                <sourceRootElem>../../src/libkmc</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>Debug</confElem>

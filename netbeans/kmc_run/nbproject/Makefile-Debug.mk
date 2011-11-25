@@ -64,12 +64,12 @@ dist/Debug/GNU-Linux-x86/kmc_run: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/715944016/kmc_run.o: ../../src/tools/kmc_run.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/kmc_run.o ../../src/tools/kmc_run.cc
+	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/kmc_run.o ../../src/tools/kmc_run.cc
 
 ${OBJECTDIR}/_ext/715944016/kmc_test.o: ../../src/tools/kmc_test.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/kmc_test.o ../../src/tools/kmc_test.cc
+	$(COMPILE.cc) -g -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/kmc_test.o ../../src/tools/kmc_test.cc
 
 # Subprojects
 .build-subprojects:

@@ -24,14 +24,14 @@ namespace votca { namespace kmc {
 
 KMCApplication::KMCApplication()
 {
-        //KMCCalculatorFactory::RegisterAll();
+    //KMCCalculatorFactory::RegisterAll();
 }
 
 KMCApplication::~KMCApplication()
-{
-}
+{}
 
-void KMCApplication::Initialize() {
+void KMCApplication::Initialize(void)
+{
     Application::Initialize();
     //KMCCalculatorFactory::RegisterAll();
     AddProgramOptions()
