@@ -69,11 +69,11 @@ public:
     KMCSingle() {};
    ~KMCSingle() {};
 
-    void Initialize( Property *options );
-    bool EvaluateFrame(void);
+    void Initialize(const char *filename, Property *options );
+    bool EvaluateFrame();
 
 protected:
-	    void LoadGraph(void);
+	    void LoadGraph();
             void RunKMC(void);
             void WriteOcc(void);
 
@@ -85,9 +85,10 @@ protected:
             double _runtime;
             double _dt;
             int _seed;
+            string _filename; // HACK
 };
 
-void KMCSingle::Initialize( Property *options )
+void KMCSingle::Initialize(const char *filename, Property *options )
 {
     	if (options->exists("options.kmcsingle.runtime")) {
 	    _runtime = options->get("options.kmcsingle.runtime").as<double>();
@@ -116,9 +117,11 @@ void KMCSingle::Initialize( Property *options )
 	else {
 	    std::runtime_error("Error in kmcsingle: injection pattern is not provided");
         }
+        
+        _filename = filename;
 }
 
-bool KMCSingle::EvaluateFrame(void)
+bool KMCSingle::EvaluateFrame()
 {
     srand(_seed);
     Random::init(rand(), rand(), rand(), rand());
@@ -130,8 +133,8 @@ bool KMCSingle::EvaluateFrame(void)
 void KMCSingle::LoadGraph() {
 
     Database db;
-    ///db.Open(OptionsMap()["graph"].as<string > ());
-
+    db.Open( _filename );
+    cout << " Loading graph from " << _filename << endl;
     Statement *stmt = db.Prepare("SELECT _id,name FROM conjsegs;");
 
     while (stmt->Step() != SQLITE_DONE) {
@@ -146,8 +149,8 @@ void KMCSingle::LoadGraph() {
         }
     }
     //delete stmt;
-    cout << "Nodes: " << _nodes.size() << endl;
-    cout << "Injection Points: " << _injection.size() << endl;
+    cout << "  -Nodes: " << _nodes.size() << endl;
+    cout << "  -Injection Points: " << _injection.size() << endl;
 
     delete stmt;
 
@@ -165,14 +168,14 @@ void KMCSingle::LoadGraph() {
         links += 2;
     }
     delete stmt;
-    cout << "Links: " << links << endl;
+    cout << "  -Links: " << links << endl;
 }
 
 void KMCSingle::RunKMC(void)
 {
 	double t = 0;
 	current=_injection[Random::rand_uniform_int(_injection.size())];
-        cout <<"starting simulation at node: "<<current->_id-1<<endl;
+        cout <<" Starting simulation at node: "<<current->_id-1<<endl;
 	double next_output = _dt;
     int i=0;
     while(t<_runtime) {
@@ -191,7 +194,7 @@ void KMCSingle::RunKMC(void)
 void KMCSingle::WriteOcc()
 {
     Database db;
-	///db.Open(OptionsMap()["graph"].as<string>());
+	db.Open(_filename);
 	db.Exec("BEGIN;");
 	Statement *stmt = db.Prepare("UPDATE conjsegs SET occ = ? WHERE _id = ?;");
 	for(int i=0; i<_nodes.size(); ++i) {

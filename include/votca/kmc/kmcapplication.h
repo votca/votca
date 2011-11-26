@@ -45,6 +45,7 @@ public:
      /// return true if evaluation should be continued, abort only if something important is missing
     virtual void BeginEvaluate();
     /// called for each frame, return true if evaluation should be continued
+    // TO DO - having filename here is a hack. Shall be changed to a pointer to a GRAPH object
     virtual bool EvaluateFrame();
     /// stop evaluation & do final analysis if necessary
     virtual void EndEvaluate();

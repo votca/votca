@@ -132,10 +132,18 @@ bool KMCApplication::EvaluateOptions() {
          }
 
         Application::EvaluateOptions();
+
         CheckRequired("execute", "no calculator is given");
+        Tokenizer tok(OptionsMap()["execute"].as<string>(), " ,\n\t");
+        for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n)
+            AddCalculator(Calculators().Create((*n).c_str()));    
+        
         CheckRequired("options", "please provide an xml file with program options");
         CheckRequired("file", "no database file specified");
         
+        _filename = OptionsMap()["file"].as<string > ();
+        cout << " Database file: " << _filename << endl;
+        return true;
 }
         
 
@@ -156,12 +164,13 @@ void KMCApplication::Run()
 void KMCApplication::BeginEvaluate(){
     list<KMCCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->Initialize(&_options);
+        (*iter)->Initialize(_filename.c_str(), &_options);
     }
 }
 
 bool KMCApplication::EvaluateFrame(){
     list<KMCCalculator *>::iterator iter;
+    int i=0;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->EvaluateFrame();
     }
