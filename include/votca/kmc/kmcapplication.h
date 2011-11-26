@@ -37,10 +37,10 @@ public:
     /// print help 
     void ShowHelpText(std::ostream &out);
     /// print the description of a specific calculator
-    //void PrintDescription(const char *name, const bool length);
+    void PrintDescription(const char *name, const bool length);
     /// add a calculator to the list
     void AddCalculator(KMCCalculator* calculator);
-    ///
+    /// run all calculators
     void Run(void);
      /// return true if evaluation should be continued, abort only if something important is missing
     virtual void BeginEvaluate();

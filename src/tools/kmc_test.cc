@@ -28,7 +28,7 @@ class KMCRun : public KMCApplication {
         string ProgramName() { return "kmc_test"; }
 
         void HelpText(std::ostream &out) {
-             out << "Runs specified calculators." << endl;
+             out << "Runs specified calculators" << endl;
         }
 
 };
