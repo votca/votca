@@ -21,6 +21,8 @@
 
 using namespace votca::kmc;
 
+//using namespace votca::kmc;
+
 class KMCRun : public KMCApplication {
     public:
         string ProgramName() { return "kmc_test"; }
