@@ -1,0 +1,2 @@
+file(GLOB_RECURSE VOTCA_KMC_XML *.xml)
+install(FILES ${VOTCA_KMC_XML} DESTINATION ${DATA}/kmc/xml)
