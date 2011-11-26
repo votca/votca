@@ -60,8 +60,10 @@ protected:
 
     /// List of calculators
     list<KMCCalculator *> _calculators;
-    /// Property object to parse xml files elegantly
+    /// program options from the xml file
     Property _options;
+    /// sql database file
+    string _filename;
 
     /// load system information from statesaver
     void ReadData();

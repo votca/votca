@@ -133,8 +133,9 @@ bool KMCApplication::EvaluateOptions() {
 
         Application::EvaluateOptions();
         CheckRequired("execute", "no calculator is given");
-        CheckRequired("options", "please provide an xml file with the program options");
+        CheckRequired("options", "please provide an xml file with program options");
         CheckRequired("file", "no database file specified");
+        
 }
         
 
