@@ -25,7 +25,6 @@
 #include <votca/tools/vec.h>
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
-#include <votca/tools/application.h>
 #include <votca/tools/tokenizer.h>
 using namespace std;
 using namespace votca::kmc;

@@ -51,9 +51,10 @@
       <compileType>
         <ccTool>
           <incDir>
-            <pElem>../../../include</pElem>
             <pElem>../../include</pElem>
             <pElem>../../include/votca/kmc</pElem>
+            <pElem>../../../include/votca/tools</pElem>
+            <pElem>../../../include</pElem>
           </incDir>
         </ccTool>
         <archiverTool>

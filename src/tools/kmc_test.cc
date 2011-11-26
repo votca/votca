@@ -28,6 +28,7 @@ class KMCRun : public KMCApplication {
         void HelpText(std::ostream &out) {
              out << "Runs specified calculators." << endl;
         }
+
 };
 
 

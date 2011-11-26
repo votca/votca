@@ -19,27 +19,37 @@
 #define	__VOTCA_KMC_APPLICATION_H
 
 #include <votca/tools/application.h>
-#include <votca/kmc/kmccalculator.h>
+#include "kmccalculator.h"
 
 namespace votca { namespace kmc {
 
 class KMCApplication : public Application
 {
 public:
+    /// constructor
     KMCApplication();
+    /// destructor
    ~KMCApplication();
-
-    void Initialize();
-    /// 
-    void ShowHelpText(std::ostream &out);
+    /// adds program options
+    void Initialize(void);
     /// print options from the XML file
     bool EvaluateOptions();
+    /// print help 
+    void ShowHelpText(std::ostream &out);
     /// print the description of a specific calculator
-    void PrintDescription(const char *name, const bool length);
+    //void PrintDescription(const char *name, const bool length);
     /// add a calculator to the list
     void AddCalculator(KMCCalculator* calculator);
-
-private:
+    ///
+    void Run(void);
+     /// return true if evaluation should be continued, abort only if something important is missing
+    virtual void BeginEvaluate();
+    /// called for each frame, return true if evaluation should be continued
+    virtual bool EvaluateFrame();
+    /// stop evaluation & do final analysis if necessary
+    virtual void EndEvaluate();
+   
+protected:
     static const bool _short = true;
     static const bool _long = false;
 
@@ -50,7 +60,15 @@ private:
 
     /// List of calculators
     list<KMCCalculator *> _calculators;
+    /// Property object to parse xml files elegantly
+    Property _options;
 
+    /// load system information from statesaver
+    void ReadData();
+    /// write information to statesaver
+    void WriteData();
+    /// loads the options in from the options file
+    void LoadOptions();
 
 };
 
