@@ -55,11 +55,28 @@ void KMCApplication::ShowHelpText(std::ostream &out)
     out << "\n\n" << OptionsDesc() << endl;
 }
 
+/*
+void KMCApplication::PrintDescription(const char *name, const bool length)
+{
+}
+*/
 
 // check if required options are provided
 bool KMCApplication::EvaluateOptions() {
+
+    if(OptionsMap().count("list")) {
+        cout << "Available calculators: \n";
+        for(KMCCalculatorFactory::assoc_map::const_iterator iter=Calculators().getObjects().begin();
+            iter != Calculators().getObjects().end(); ++iter) {
+            //PrintDescription( (iter->first).c_str(), _short );
+        }
+        StopExecution();
+        return true;
+    }
+
     CheckRequired("options", "please provide an xml file with the program options");
     CheckRequired("file", "no database file specified");
+
     return true;
 }
 
