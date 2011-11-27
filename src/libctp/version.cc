@@ -47,6 +47,7 @@ void HelpTextHeader(const std::string &tool_name)
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
 	 << tool_name << ", version " << votca::ctp::CtpVersionStr() 
          << "\nvotca_csg, version " << votca::csg::CsgVersionStr()
+         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
          << "\n\n";
 }
 
