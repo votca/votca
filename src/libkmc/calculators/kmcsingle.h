@@ -194,6 +194,7 @@ void KMCSingle::RunKMC(void)
 void KMCSingle::WriteOcc()
 {
     Database db;
+    cout << "Opening for writing " << _filename << endl;
 	db.Open(_filename);
 	db.Exec("BEGIN;");
 	Statement *stmt = db.Prepare("UPDATE conjsegs SET occ = ? WHERE _id = ?;");
