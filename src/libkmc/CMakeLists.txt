@@ -1,6 +1,7 @@
 file(GLOB VOTCA_SOURCES *.cc *.cpp)
 #file(GLOB NOT_VOTCA_SOURCES xxx.cc)
 #list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
+
 add_library(votca_kmc  ${VOTCA_SOURCES})
 target_link_libraries(votca_kmc ${VOTCA_TOOLS_LIBRARIES})
 install(TARGETS votca_kmc LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})

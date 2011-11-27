@@ -11,11 +11,18 @@
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>../../../src/libkmc/calculators</sourceRootElem>
+                <sourceRootElem>../../../include</sourceRootElem>
+                <sourceRootElem>../../src/libkmc</sourceRootElem>
             </sourceRootList>
             <confList>
-                <confElem>Debug</confElem>
-                <confElem>Release</confElem>
+                <confElem>
+                    <name>Debug</name>
+                    <type>3</type>
+                </confElem>
+                <confElem>
+                    <name>Release</name>
+                    <type>3</type>
+                </confElem>
             </confList>
         </data>
     </configuration>

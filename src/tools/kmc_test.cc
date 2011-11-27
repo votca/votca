@@ -21,13 +21,16 @@
 
 using namespace votca::kmc;
 
+//using namespace votca::kmc;
+
 class KMCRun : public KMCApplication {
     public:
         string ProgramName() { return "kmc_test"; }
 
         void HelpText(std::ostream &out) {
-             out << "Runs specified calculators." << endl;
+             out << "Runs specified calculators" << endl;
         }
+
 };
 
 

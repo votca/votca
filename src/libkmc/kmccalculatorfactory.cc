@@ -23,7 +23,6 @@ namespace votca { namespace kmc {
 
 void KMCCalculatorFactory::RegisterAll(void)
 {
-    cout << "Registering calculators " << endl;
     Calculators().Register<KMCSingle>("kmcsingle"); // single charge carrier in PBC
 }
 
