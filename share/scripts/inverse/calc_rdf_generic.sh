@@ -26,6 +26,7 @@ EOF
    exit 0
 fi
 
+name="$(csg_get_interaction_property name)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [[ $sim_prog = "gromacs" ]]; then
@@ -71,16 +72,9 @@ else
 fi
 
 if [[ ${with_errors} = "yes" ]]; then
-  name="$(csg_get_interaction_property name)"
   if ! is_done "${name}_rdf_average"; then
     msg "Calculating average rdfs and its errors for interaction $name"
     do_external table average --output ${name}.dist.new ${name}_*.dist.block
     mark_done "${name}_rdf_average"
   fi
-fi
-
-#work-a-round for issue XXX
-if [[ "$(csg_get_interaction_property bondtype)" = "angle" ]]; then
-  critical mv ${name}.dist.new ${name}.dist.new.rad
-  critical awk '{print $1/3.1415*180,$2,$3,$4}' ${name}.dist.new.rad > ${name}.dist.new
 fi
