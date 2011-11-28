@@ -3,10 +3,12 @@
     <!-- name of the interaction -->
     <name>bond</name>
     <!-- fmatch specific stuff -->
-    <min>0.0</min>
-    <max>1.0</max>
+    <min>0.21</min>
+    <max>0.285</max>
     <step>0.001</step>
     <inverse>
+      <!-- target distribution -->
+      <target>bond.dist.tgt</target>
       <gromacs>
         <table>table_b1.xvg</table>
       </gromacs>
@@ -16,10 +18,12 @@
     <!-- name of the interaction -->
     <name>angle</name>
     <!-- fmatch specific stuff -->
-    <min>0.0</min>
-    <max>180</max>
-    <step>0.05</step>
+    <min>1.4</min>
+    <max>3.1</max>
+    <step>0.01</step>
     <inverse>
+      <!-- target distribution -->
+      <target>angle.dist.tgt</target>
       <gromacs>
         <table>table_a1.xvg</table>
       </gromacs>
