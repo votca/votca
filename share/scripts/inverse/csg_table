@@ -166,6 +166,10 @@ potential extrapolate potential_extrapolate.sh
 # tools needed for (atom/molecule) configuration handling
 configuration compare configuration_compare.py
 
+#generic data comparison
+cols compare data_compare.py 
+cols compareLessPrec data_compare.py --eps 1e-3
+
 # error analysis
 tables jackknife tables_jackknife.pl
 
