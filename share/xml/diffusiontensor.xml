@@ -1,0 +1,27 @@
+<diffusiontensor>
+
+	<description>Kinetic Monte Carlo simulations and diffusion tensor calculation</description>
+
+	<sectionlabel>kmc</sectionlabel>
+
+	<item>
+		<name>runtime</name>
+		<description>Total time of the KMC run</description>
+	</item>
+
+	<item>
+		<name>seed</name>
+		<description>Seed to use</description>
+	</item>
+
+        <item>
+                <name>outputtime</name>
+                <description>output frequency</description>
+        </item>
+
+        <item>
+                <name>injection</name>
+                <description>name pattern for conjugated segments</description>
+        </item>
+
+</diffusiontensor>
