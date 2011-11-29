@@ -26,10 +26,12 @@
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/tokenizer.h>
+#include <votca/tools/matrix.h>
 #include "node.h"
 
 using namespace std;
 using namespace votca::kmc;
+using namespace votca::tools;
 
 
 
@@ -56,6 +58,9 @@ protected:
             double _dt;
             int _seed;
             string _filename; // HACK
+            matrix diffusion; //matrix for diffusion tensor
+            int    number_of_points; // number of vectors in diffusion tensor calculation
+            matrix::eigensystem_t diff_tensor_eigensystem;
 };
 
 void DiffusionTensor::Initialize(const char *filename, Property *options )
@@ -144,6 +149,10 @@ void DiffusionTensor::LoadGraph() {
 void DiffusionTensor::RunKMC(void)
 {
 	double t = 0;
+        number_of_points = 0;
+        //put zeros in diffusion tensor matrix
+        diffusion.ZeroMatrix();
+        
 	current=_injection[Random::rand_uniform_int(_injection.size())];
         cout <<" Starting simulation at node: "<<current->_id-1<<endl;
 	double next_output = _dt;
@@ -153,12 +162,38 @@ void DiffusionTensor::RunKMC(void)
 		current->onExecute();
     	if(t > next_output) {
     		next_output = t + _dt;
+                number_of_points++;
+
+                
+                // calculation of diffusion tensor
+                diffusion += r|r;
+
     		cout << t << ": " << r << endl;
     	}
     }
     _runtime = t;
     WriteOcc();
     cout << std::scientific << "\nKMC run finished\nAverage velocity (m/s): " << r/t*1e-9 << endl;
+    
+    // calculating diffusion and printing matrix
+    diffusion /= number_of_points*2*t;
+    diffusion *= 1e-18;
+    cout<<endl<<"Diffusion tensor:"<<endl<<diffusion<<endl;
+
+
+    //solve eigensystem
+    diffusion.SolveEigensystem(diff_tensor_eigensystem);
+    //cout<<diff_tensor_eigensystem<<endl;
+
+
+    cout<<endl<<"Eigenvalues:"<<endl;
+    for(int i=0; i<=2; i++)
+        cout<<diff_tensor_eigensystem.eigenvalues[i]<<"   ";
+    cout<<endl;
+
+
+
+
 }
 
 void DiffusionTensor::WriteOcc()

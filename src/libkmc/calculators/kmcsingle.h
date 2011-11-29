@@ -56,6 +56,7 @@ protected:
             double _dt;
             int _seed;
             string _filename; // HACK
+            
 };
 
 void KMCSingle::Initialize(const char *filename, Property *options )
