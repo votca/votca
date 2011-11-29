@@ -211,8 +211,10 @@ int mol_and_orb::init(const char * nameinput){
                         if (itp != periodic_table.end() ){
                             lbl = itp->second;
                             n_el += _bs->get_nel_at(lbl);
+                            //cout << " Reading atom type " << type << ":" << itp->second << ":" << n_el << endl;
                         }
                         else {
+                            cout << " Problem with atom type " << type << ":" << itp->second << ":" << n_el << endl;
                             throw runtime_error(string("Bad atom type, "));
                         }
 			/*switch (chtype ){
@@ -290,6 +292,7 @@ int mol_and_orb::init(const char * nameinput){
         centre.setX(0.); centre.setY(0.) ; centre.setZ(0.);
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
+        cout << " Finished loading atoms" << endl; 
 	return 0;
 }
 
