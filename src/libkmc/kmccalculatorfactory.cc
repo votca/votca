@@ -18,12 +18,14 @@
 #include <votca/kmc/kmccalculatorfactory.h>
 //#include "votca_config.h"
 #include "calculators/kmcsingle.h"
+#include "calculators/diffusiontensor.h"
 
 namespace votca { namespace kmc {
 
 void KMCCalculatorFactory::RegisterAll(void)
 {
     Calculators().Register<KMCSingle>("kmcsingle"); // single charge carrier in PBC
+    Calculators().Register<DiffusionTensor>("diffusiontensor"); // single charge carrier in PBC
 }
 
 }}

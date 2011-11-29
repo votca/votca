@@ -36,8 +36,8 @@ using namespace votca::kmc;
 class DiffusionTensor : public KMCCalculator
 {
 public:
-    KMCSingle() {};
-   ~KMCSingle() {};
+    DiffusionTensor() {};
+   ~DiffusionTensor() {};
 
     void Initialize(const char *filename, Property *options );
     bool EvaluateFrame();
