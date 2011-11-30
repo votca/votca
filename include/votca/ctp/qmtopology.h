@@ -62,7 +62,7 @@ public:
     /// update the topology based on cg positons
     void Initialize(Topology &cg_top);
 
-    ///Initialises the charge units
+    ///Initializes the charge units
     //void InitChargeUnits();
     
     /// \brief Create a new bead

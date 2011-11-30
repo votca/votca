@@ -23,7 +23,12 @@
 #include <vector>
 
 namespace votca { namespace ctp {
+/**
+    \brief Conjugated segment. One conjugated segment contains several rigid fragments.
 
+ * Apart from the position it has a vector with pointers to all fragments 
+ * which belong to it
+ */
 class Segment
 {
 public:
