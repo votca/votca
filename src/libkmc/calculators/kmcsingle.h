@@ -119,12 +119,16 @@ void KMCSingle::Initialize(const char *filename, Property *options )
         }
         
         _filename = filename;
+
+       //cout << _seed << endl;
+       srand(_seed);
+       votca::tools::Random::init(rand(), rand(), rand(), rand());
+
 }
 
 bool KMCSingle::EvaluateFrame()
 {
-    srand(_seed);
-    Random::init(rand(), rand(), rand(), rand());
+
     LoadGraph();
     RunKMC();
     return true;
@@ -154,7 +158,6 @@ void KMCSingle::LoadGraph() {
 
     delete stmt;
 
-
     int links = 0;
     stmt = db.Prepare("SELECT conjseg1, conjseg2, rate12, rate21, r_x, r_y, r_z FROM pairs;");
     while (stmt->Step() != SQLITE_DONE) {
@@ -169,11 +172,18 @@ void KMCSingle::LoadGraph() {
     }
     delete stmt;
     cout << "  -Links: " << links << endl;
+
 }
 
 void KMCSingle::RunKMC(void)
 {
+
 	double t = 0;
+
+        srand(_seed);
+        votca::tools::Random::init(rand(), rand(), rand(), rand());
+
+        // cout << " seed:size:site " << _seed << ":" << _injection.size() << ":" << Random::rand_uniform_int(_injection.size()) << endl;
 	current=_injection[Random::rand_uniform_int(_injection.size())];
         cout <<" Starting simulation at node: "<<current->_id-1<<endl;
 	double next_output = _dt;
