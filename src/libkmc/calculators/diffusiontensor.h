@@ -38,12 +38,12 @@ using namespace votca::tools;
 class DiffusionTensor : public KMCCalculator
 {
 public:
-    DiffusionTensor() {};
+    DiffusionTensor() {zero_border=0.01;};
    ~DiffusionTensor() {};
 
     void Initialize(const char *filename, Property *options );
     bool EvaluateFrame();
-
+    double zero_border;
 protected:
 	    void LoadGraph();
             void RunKMC(void);
@@ -61,6 +61,7 @@ protected:
             matrix diffusion; //matrix for diffusion tensor
             int    number_of_points; // number of vectors in diffusion tensor calculation
             matrix::eigensystem_t diff_tensor_eigensystem;
+            
 };
 
 void DiffusionTensor::Initialize(const char *filename, Property *options )
@@ -92,6 +93,36 @@ void DiffusionTensor::Initialize(const char *filename, Property *options )
 	else {
 	    std::runtime_error("Error in kmcsingle: injection pattern is not provided");
         }
+
+        if(options->exists("options.rates.field"))
+        {
+            
+            bool  field_is_zero;
+            field_is_zero = true;
+
+            if( options->get("options.rates.field").as<vec>().x()> zero_border )
+                {
+                field_is_zero = false;
+                }
+            if( options->get("options.rates.field").as<vec>().y()> zero_border )
+                {
+                field_is_zero = false;
+                }
+            if( options->get("options.rates.field").as<vec>().z()> zero_border )
+                {
+                field_is_zero = false;
+                }
+
+            if(!field_is_zero)
+                {
+                cout<<"WARNING: Electric fiels is not zero!"<<endl;
+                }
+        }else
+        {
+               cout<<"WARNING: Can't find electric fiels in options file"<<endl;
+               cout<<"check wether it equals zero"<<endl;
+        }
+
         
         _filename = filename;
 }
@@ -186,10 +217,16 @@ void DiffusionTensor::RunKMC(void)
     //cout<<diff_tensor_eigensystem<<endl;
 
 
-    cout<<endl<<"Eigenvalues:"<<endl;
+    cout<<endl<<"Eigenvalues: "<<endl<<endl;
     for(int i=0; i<=2; i++)
-        cout<<diff_tensor_eigensystem.eigenvalues[i]<<"   ";
-    cout<<endl;
+    {
+        cout<<"Eigenvalue: "<<diff_tensor_eigensystem.eigenvalues[i]<<endl<<"Eigenvector: ";
+               
+        cout<<diff_tensor_eigensystem.eigenvecs[i].x()<<"   ";
+        cout<<diff_tensor_eigensystem.eigenvecs[i].y()<<"   ";
+        cout<<diff_tensor_eigensystem.eigenvecs[i].z()<<endl<<endl;
+    }
+    cout<<endl<<endl<<endl;
 
 
 
