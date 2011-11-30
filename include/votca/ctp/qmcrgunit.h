@@ -67,14 +67,14 @@ protected:
 };
 
 inline QMCrgUnit::QMCrgUnit(vector <vec> positions, vector <vec> norms, vector <vec> planes,
-            const unsigned int & id, CrgUnitType * type,
-            const unsigned int & molId) : CrgUnit(positions, norms, planes, id, type, molId), _occupation_probability(0.)
+                const unsigned int & id, CrgUnitType * type, const unsigned int & molId) : 
+                CrgUnit(positions, norms, planes, id, type, molId), _occupation_probability(0.)
 {
     
 }
 
-inline QMCrgUnit::QMCrgUnit(const unsigned int & id, CrgUnitType * type,
-            const unsigned int & molId) : CrgUnit(id, type, molId), _occupation_probability(0), _in_database(false)
+inline QMCrgUnit::QMCrgUnit(const unsigned int & id, CrgUnitType * type, const unsigned int & molId) : 
+                CrgUnit(id, type, molId), _occupation_probability(0), _in_database(false)
 {
     
 }

@@ -201,9 +201,9 @@ void QMTopology::CopyCharges(CrgUnit *crg, Molecule *mol)
     if(!crg->getType()->GetCrgUnit().getChargesNeutr())
         throw std::runtime_error("QMTopology::CopyCharges: no charges defined");
 
-    //loop over all beads in that molecule
+    // loop over all beads in that molecule
     for (int i = 0; i < mol->BeadCount(); i++) {
-        //get charge
+        // get charge
         double charge_of_bead_i_neutral = crg->getType()->GetCrgUnit().getChargesNeutr()->mpls[i];
         //set charge
         mol->getBead(i)->setQ(charge_of_bead_i_neutral);
