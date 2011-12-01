@@ -183,7 +183,11 @@ void DiffusionTensor::RunKMC(void)
         number_of_points = 0;
         //put zeros in diffusion tensor matrix
         diffusion.ZeroMatrix();
-        
+
+        srand(_seed);
+        Random::init(rand(), rand(), rand(), rand());
+
+
 	current=_injection[Random::rand_uniform_int(_injection.size())];
         cout <<" Starting simulation at node: "<<current->_id-1<<endl;
 	double next_output = _dt;

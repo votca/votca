@@ -144,6 +144,10 @@ void KMCSingle::LoadGraph() {
 
 void KMCSingle::RunKMC(void)
 {
+
+        srand(_seed);
+        Random::init(rand(), rand(), rand(), rand());
+
 	double t = 0;
 	current=_injection[Random::rand_uniform_int(_injection.size())];
         cout <<" Starting simulation at node: "<<current->_id-1<<endl;
