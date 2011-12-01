@@ -66,32 +66,32 @@ protected:
 
 void DiffusionTensor::Initialize(const char *filename, Property *options )
 {
-    	if (options->exists("options.kmcsingle.runtime")) {
-	    _runtime = options->get("options.kmcsingle.runtime").as<double>();
+    	if (options->exists("options.diffusiontensor.runtime")) {
+	    _runtime = options->get("options.diffusiontensor.runtime").as<double>();
 	}
 	else {
-	    std::runtime_error("Error in kmcsingle: total run time is not provided");
+	    std::runtime_error("Error in diffusiontensor: total run time is not provided");
         }
 
-    	if (options->exists("options.kmcsingle.outputtime")) {
-	    _dt = options->get("options.kmcsingle.outputtime").as<double>();
+    	if (options->exists("options.diffusiontensor.outputtime")) {
+	    _dt = options->get("options.diffusiontensor.outputtime").as<double>();
 	}
 	else {
-	    std::runtime_error("Error in kmcsingle: output frequency is not provided");
+	    std::runtime_error("Error in diffusiontensor: output frequency is not provided");
         }
 
-    	if (options->exists("options.kmcsingle.seed")) {
-	    _seed = options->get("options.kmcsingle.seed").as<int>();
+    	if (options->exists("options.diffusiontensor.seed")) {
+	    _seed = options->get("options.diffusiontensor.seed").as<int>();
 	}
 	else {
-	    std::runtime_error("Error in kmcsingle: seed is not provided");
+	    std::runtime_error("Error in diffusiontensor: seed is not provided");
         }
         
-   	if (options->exists("options.kmcsingle.injection")) {
-	    _injection_name = options->get("options.kmcsingle.injection").as<string>();
+   	if (options->exists("options.diffusiontensor.injection")) {
+	    _injection_name = options->get("options.diffusiontensor.injection").as<string>();
 	}
 	else {
-	    std::runtime_error("Error in kmcsingle: injection pattern is not provided");
+	    std::runtime_error("Error in diffusiontensor: injection pattern is not provided");
         }
 
         if(options->exists("options.rates.field"))
