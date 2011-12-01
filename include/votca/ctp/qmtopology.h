@@ -23,7 +23,7 @@
 #include <votca/moo/crgunittype.h>
 #include "qmcrgunit.h"
 #include <votca/moo/jcalc.h>
-#include <votca/moo/units.h>
+//#include <votca/moo/units.h>
 
 #include "qmbead.h"
 #include "qmnblist.h"
@@ -78,10 +78,6 @@ public:
 
     ///Loads the atomistic beads (from mol_and_orb) into totop from the CrgUnit defined by namecrgunit and molid
     Molecule *AddAtomisticBeads(CrgUnit * crg, Topology * totop);
-
-    /// computes all transfer integrals (note that the nblist must be initialised by the user!)
-    // TODO: this function should not be in qmtopology!
-    //void ComputeAllTransferIntegrals();
 
     /// find a conjugated segment by name
     QMCrgUnit *GetCrgUnitByName(const string &name);

@@ -27,8 +27,10 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/customfields.h</itemPath>
+      <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/qmbead.h</itemPath>
@@ -38,6 +40,7 @@
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
       <itemPath>../../include/votca/ctp/qmtopology.h</itemPath>
+      <itemPath>../../include/votca/ctp/segment.h</itemPath>
       <itemPath>../../include/votca/ctp/sitecalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/ctp/version.h</itemPath>
