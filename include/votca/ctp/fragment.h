@@ -72,8 +72,6 @@ private:
     /// Weights used to calculate fragment center
     vector< double > _weights;
     
-    friend class Segment;
-    friend class Molecule;
 };
 
 }}

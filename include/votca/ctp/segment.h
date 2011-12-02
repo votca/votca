@@ -49,7 +49,6 @@ private:
     /// Conjugated segment ID
     int _id;  
     
-    friend class Molecule;
 };
 
 }}

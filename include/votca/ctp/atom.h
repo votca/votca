@@ -133,7 +133,6 @@ protected:
     vec _pos;
     bool _bPos;
         
-    friend class Molecule;
 };
 
 inline void Atom::setPos(const vec &r)
