@@ -37,6 +37,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/qmapplication.o \
 	${OBJECTDIR}/_ext/238600121/egaussian.o \
 	${OBJECTDIR}/_ext/484457893/qmpair.o \
+	${OBJECTDIR}/_ext/484457893/segmenttype.o \
 	${OBJECTDIR}/_ext/238600121/ecorrelation.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
 	${OBJECTDIR}/_ext/484457893/version_nb.o \
@@ -88,6 +89,11 @@ ${OBJECTDIR}/_ext/484457893/qmpair.o: ../../src/libctp/qmpair.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmpair.o ../../src/libctp/qmpair.cc
+
+${OBJECTDIR}/_ext/484457893/segmenttype.o: ../../src/libctp/segmenttype.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/segmenttype.o ../../src/libctp/segmenttype.cc
 
 ${OBJECTDIR}/_ext/238600121/ecorrelation.o: ../../src/libctp/calculators/ecorrelation.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121

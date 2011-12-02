@@ -18,11 +18,13 @@
 #ifndef __VOTCA_CTP_FRAGMENT_H
 #define	__VOTCA_CTP_FRAGMENT_H
 
-
-#include <votca/ctp/segment.h>
+#include <votca/ctp/atom.h>
 
 namespace votca { namespace ctp {
 
+class Segment;
+class Molecule;
+    
 /**
     \brief Rigid fragment. One conjugated segment contains several rigid fragments.
 
@@ -33,25 +35,45 @@ namespace votca { namespace ctp {
 
 class Fragment {
 public:
-     Fragment(){}
-     
+     /// Constructor
+     Fragment(Segment *segment){}
+     /// Destructor
     ~Fragment(){}
-      
-    /// Sets a pointer to a conjugated segment this fragment belongs to
-    void setSegment(Segment * segment){
-        _segment = segment;
-    }
-
     /// Returns a pointer to a segment this fragment belongs to 
-    Segment* GetSegment(){
+    Segment* getSegment(){
         return _segment;
     }
+    /// Returns a pointer to a segment this fragment belongs to 
+    Molecule* getMolecule(){
+        return _molecule;
+    }
+    /// Rotates the fragment with respect to the center defined by the Map
+    void Rotate (){ 
+        throw runtime_error( string("Not implemented") ); 
+    }
+    /// Translates the fragment by a specified vector
+    void Translate(){ 
+        throw runtime_error( string("Not implemented") ); 
+    }
+    
 
 private:
 
+    /// List of pointers to atoms belonging to this fragment
+    vector < Atom* > _atoms;
     /// Conjugated segment this fragment belongs to
-    Segment * _segment;
+    Segment *_segment;
+    /// Molecule this Fragment belongs to
+    Molecule *_molecule;
+   /// Name of the rigid fragment 
+    string _name;
+    /// Rigid fragment ID
+    int _id;
+    /// Weights used to calculate fragment center
+    vector< double > _weights;
     
+    friend class Segment;
+    friend class Molecule;
 };
 
 }}

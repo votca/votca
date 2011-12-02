@@ -19,6 +19,8 @@
 #include <string>
 #include <votca/tools/application.h>
 #include <votca/ctp/atom.h>
+#include <votca/ctp/fragment.h>
+#include <votca/ctp/segment.h>
 #include <votca/ctp/molecule.h>
 
 using namespace std;

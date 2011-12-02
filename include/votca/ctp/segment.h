@@ -18,27 +18,38 @@
 #ifndef __VOTCA_CTP_SEGMENT_H
 #define	__VOTCA_CTP_SEGMENT_H
 
-#include <string>
-#include <map>
-#include <vector>
+#include<votca/ctp/fragment.h>
 
 namespace votca { namespace ctp {
+
+class Molecule;   
+    
 /**
     \brief Conjugated segment. One conjugated segment contains several rigid fragments.
 
  * Apart from the position it has a vector with pointers to all fragments 
- * which belong to it
+ * which belong to it. Substitutes QMBead of ctp and crgunittype of moo
  */
 class Segment
 {
 public:
     /// Default constructor
     Segment(){}
-    
     /// Default destructor
    ~Segment(){}
+   ///
       
-protected:
+private:
+    /// List of pointers to rigid fragments which belong to this segment
+    vector < Fragment* > _fragments;
+   /// Molecule this Segment belongs to
+    Molecule *_molecule;
+    /// Name of the conjugated segment   
+    string _name;
+    /// Conjugated segment ID
+    int _id;  
+    
+    friend class Molecule;
 };
 
 }}
