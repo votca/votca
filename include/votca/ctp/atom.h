@@ -23,7 +23,6 @@
 #include <votca/tools/types.h>
 #include <votca/tools/vec.h>
 #include <votca/tools/property.h>
-#include <fragment.h>
 
 
 namespace votca { namespace ctp {
@@ -41,15 +40,22 @@ class Molecule;
 class Atom
 {
 public:   
-
+    /**
+     * constructor
+     */
+    Atom(Molecule *owner, int id, string name, int resnr, double m, double q)
+        : _mol(owner), _id(id), _name(name), _resnr(resnr), _m(m), _q(q)
+    {
+            _bPos=false;
+    }
     /**
      * destructor
      */
-    virtual ~Atom() {}
+    ~Atom() {
+    }
 
     /**
      * get the id of the atom
-     *
      * \return bead id
      */
     const int &getId() const { return _id; }
@@ -64,8 +70,7 @@ public:
      * get the atom type
      * \return atom type 
      */
-    const char *getType() const { return _type; }
-
+    const string &getType() const { return _type; }
 
     /**
      * get the residue number of the atom
@@ -87,19 +92,18 @@ public:
 
     /**
      * set the position of the atom
-     * \param r bead position
+     * \param r atom position
      */
     void setPos(const vec &r);
 
     /**
      * get the position of the atom
-     * \return bead position
+     * \return atom position
      */
     const vec &getPos() const;
-
       
     /**
-     * direct access (read/write) to the position of the bead
+     * direct access (read/write) to the position of the atom
      * \return reference to position 
      */
     vec &Pos() { return _pos; }
@@ -117,7 +121,6 @@ public:
      */
     Molecule *getMolecule() { return _mol; }
 
- 
 protected:
     int _id;
     Molecule *_mol;
@@ -129,31 +132,23 @@ protected:
     double _q;
     vec _pos;
     bool _bPos;
-     
-    /// constructor
-    Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name, int resnr, double m, double q)
-        : TopologyItem(owner), _id(id), _type(type), _name(name), _resnr(resnr), _m(m), _q(q)
-    {_bPos=false;
-    }
-
-    
-    friend class Fragment;
+        
     friend class Molecule;
 };
 
-inline void Bead::setPos(const vec &r)
+inline void Atom::setPos(const vec &r)
 {
     _bPos=true;
     _pos = r;
 }
 
-inline const vec &Bead::getPos() const
+inline const vec &Atom::getPos() const
 {
     assert(_bPos);
     return _pos;
 }
 
-inline void Bead::HasPos(bool b)
+inline void Atom::HasPos(bool b)
 {
     _bPos=b;
 }

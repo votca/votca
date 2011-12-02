@@ -20,30 +20,27 @@
 
 #include <string>
 #include <vector>
-#include <atom.h>
+#include <votca/ctp/atom.h>
 
 namespace votca { namespace ctp {
 /**
     \brief Molecule is a container for atoms
 
-    The Molecule class stores atoms.
+    The Molecule class stores atoms. It substitutes mol_and_orbs object of libmoo.
 
 */
-
 class Molecule {
 public:
-    // Constructor
-    Molecule() {}
-    // Destructor
-    ~Molecule() {}
+    /// Constructor
+    Molecule(int id, string name) 
+        : _id(id), _name(name)
+    {}
+    /// Destructor
+    ~Molecule();
     /// Returns molecule ID
-    int getId() const {
-        return _id;
-    }
+    const int &getId();
     /// Returns the name of the molecule
-    const string &getName() const {
-        return _name;
-    }
+    const string &getName();
     /// Returns a pointer to the atom
     Atom *getAtom(const int &id);
     /// Returns atom type
@@ -51,12 +48,15 @@ public:
     /// Returns atom position
     const vec getAtomPosition(const int &id);
     /// Returns number of atoms in the molecule
-    int NumberOfAtoms();
-    /// Adds an atom the molecule
-    void AddAtom(Atom *getAtom);
+    const int &NumberOfAtoms();
+    /// Adds an atom to the molecule
+    void AddAtom(Atom *atom);
     /// Writes a PDB file
-    void WritePDB();
-
+    void WritePDB( ostream & out );
+    /// Load molecule coordinates from a file
+    void Init ( const char *filename );
+    
+    
 private:
     // map of atom names and their IDs
     map<string, int> _names;

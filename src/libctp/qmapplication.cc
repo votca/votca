@@ -24,7 +24,7 @@
 
 namespace votca { namespace ctp {
 
-    QMApplication::QMApplication()
+QMApplication::QMApplication()
 {
     CalculatorFactory::RegisterAll();
 }
