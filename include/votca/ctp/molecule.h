@@ -54,7 +54,7 @@ public:
     /// Writes a PDB file
     void WritePDB( ostream & out );
     /// Load molecule coordinates from a file
-    void Init ( const char *filename );
+    void Initialize ( string filename );
     
     
 private:

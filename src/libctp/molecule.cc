@@ -25,7 +25,7 @@ using namespace std;
 
 namespace votca { namespace ctp {
 
-    /// Destructor
+/// Destructor
 Molecule::~Molecule() {
     // clean up the list of atoms 
     cout << "  molecule destructor: deleting " << NumberOfAtoms() << " atoms" << endl;
@@ -77,7 +77,7 @@ void Molecule::AddAtom(Atom *atom) {
 }
 
 /// Read atom types and coordinates from a file
-void Molecule::Init(const char *filename)
+void Molecule::Initialize(string filename)
 {
     ifstream in;
     double x,y,z;
@@ -86,9 +86,9 @@ void Molecule::Init(const char *filename)
     vec pos;
     
     cout << " Reading molecular coordinates from " << filename << endl;
-    in.open(filename, ios::in );
+    in.open(filename.c_str(), ios::in );
     if ( !in ) throw runtime_error( string("Error reading coordinates from: ") 
-                                        + string(filename)); 
+                                        + filename); 
     
     id = 1;
     while ( in.good() ) { // keep reading until end-of-file

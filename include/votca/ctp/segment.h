@@ -34,10 +34,20 @@ class Segment
 {
 public:
     /// Default constructor
-    Segment(){}
+    Segment(int id, string name);
     /// Default destructor
-   ~Segment(){}
-   ///
+   ~Segment();
+   /**
+     * get the id of the segment
+     * \return segment id
+     */
+    const int &getId();
+     /**
+     * get the name of the segment
+     * \return segment name
+     */
+    const string &getName();
+   /// 
       
 private:
     /// List of pointers to rigid fragments which belong to this segment
@@ -48,6 +58,8 @@ private:
     string _name;
     /// Conjugated segment ID
     int _id;  
+    /// position of a segment
+    vec _pos;
     
 };
 

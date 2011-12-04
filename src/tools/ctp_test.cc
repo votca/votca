@@ -22,6 +22,7 @@
 #include <votca/ctp/fragment.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/molecule.h>
+#include <votca/ctp/topology.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -46,14 +47,19 @@ class CTPTest : public Application
         void Run()
         {
             cout << "Start of the test" << endl;
-
+/*
             cout << " Molecule object" << endl;         
             Molecule molecule(1, "DCV2T");
-            cout << "  name: " << molecule.getName() << endl;          
-            
-            molecule.Init( "coordinates.dat" );            
+            cout << "  name: " << molecule.getName() << endl;                      
+            molecule.Initialize( "coordinates.dat" );            
             cout << "  number of atoms: " << molecule.NumberOfAtoms() << endl;
             molecule.WritePDB( cout );
+ */           
+            Property property;
+            load_property_from_xml(property, "topology.xml");
+            Topology topology;
+            topology.Initialize(property);
+            
             
         }
         

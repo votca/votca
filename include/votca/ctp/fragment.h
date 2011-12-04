@@ -36,9 +36,22 @@ class Molecule;
 class Fragment {
 public:
      /// Constructor
-     Fragment(Segment *segment){}
+     Fragment(int id, string name)
+     {
+         _id = id; _name = name; 
+     }
      /// Destructor
     ~Fragment(){}
+   /**
+     * get the id of the segment
+     * \return bead id
+     */
+    const int &getId() const { return _id; }
+     /**
+     * get the id of the segment
+     * \return bead id
+     */
+    const string getName() const { return _name; }
     /// Returns a pointer to a segment this fragment belongs to 
     Segment* getSegment(){
         return _segment;
