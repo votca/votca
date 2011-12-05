@@ -12,16 +12,40 @@
 #include <votca/tools/table.h>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <votca/csg/trajectorywriter.h>
 #include <votca/tools/property.h>
 #include <votca/tools/histogramnew.h>
-
-#include "potentials.h"
+#include "functionform.h"
+#include "functionform_lj126.h"
+#include "functionform_ljg.h"
+#include "functionform_bspl.h"
 
 using namespace votca::csg;
 using namespace votca::tools;
 using namespace std;
 
+struct PotentialInfo {
+
+        PotentialInfo(int index,
+                        bool bonded_, bool genref,
+                        int vec_pos_, Property *options);
+        int potentialIndex;
+        bool bonded;
+        FunctionForm *ucg;
+        int vec_pos;
+        pair<int, int> beadTypes;
+
+        string potentialName;
+        string potentialFunction;
+        string type1, type2;
+
+        HistogramNew aahist;
+
+        double rmin,rcut,step;
+        ub::vector<double> pottblgrid;
+
+
+        Property *_options;
+};
 
 class CsgREupdate
 : public CsgApplication
@@ -43,42 +67,22 @@ public:
         
     }
 
+    bool DoThreaded() { return true; }
+    bool SynchronizeThreads() { return false; }
+
     void Initialize();
     bool EvaluateOptions();
     void BeginEvaluate(Topology *top, Topology *top_atom);
-    void EndEvaluate();
-    void EvalConfiguration(Topology *conf, Topology *conf_atom);
     void LoadOptions(const string &file);
+    void EndEvaluate();
+
+    CsgApplication::Worker *ForkWorker(void);
+    void MergeWorker(Worker *worker);
     
 private:
 
 protected:
-    // define what functional form to use for CG potential
-    // defined in typedefpotfun.h
-    //typedef FunctionLJ126 PotFunction;
-    
-    struct PotentialInfo {
-        PotentialInfo(Topology *top, int index,
-                        bool bonded_, bool genref,
-                        int vec_pos_, Property *options);
-        int potentialIndex;
-        bool bonded;
-        FunctionForm *ucg;
-        int vec_pos;
-        pair<int, int> beadTypes;
-        
-        string potentialName;
-        string potentialFunction;
-        string type1, type2;
-        int nbeads1, nbeads2;
-        
-        HistogramNew aahist;
-
-        ub::vector<double> pottblgrid;
-
-
-        Property *_options;
-    };
+   
     Property _options;
     list<Property *> _nonbonded;
 
@@ -91,7 +95,6 @@ protected:
     ub::matrix<double> _HS;
     ub::vector<double> _DS;
     ub::vector<double> _dUFrame;
-    double _HS_Scale;
     
     double _UavgAA;
     double _UavgCG;
@@ -100,11 +103,10 @@ protected:
     int _nframes;
 
     /*if true then program only computes reference all atom
-     * trajectory CG-CG neighborlist histograms and init. CG run configuration
+     * trajectory CG-CG neighborlist histograms
      * this is done in step_0 of inverse script
      */
     bool _genref;
-    TrajectoryWriter *_writer;
     
     void WriteOutFiles();
     void EvalBonded(Topology *conf, PotentialInfo *potinfo);
@@ -114,7 +116,7 @@ protected:
     void AAavgBonded(PotentialInfo *potinfo);
     void AAavgNonbonded(PotentialInfo *potinfo);
 
-    // Compute refence AA ensemble CG-CG pair neibhor distances histogram
+    // Compute refence AA ensemble CG-CG pair neighbor distances histogram
     void AAavgHist();
 
     // Formulates _HS dlamda = - _DS system of Lin Eq.
@@ -123,10 +125,46 @@ protected:
     // Solve _HS dlamda = - _DS and update _lamda
     void REUpdateLamda();
 
-    // Checks whether solution is converged using relative error 2-norm
+    // Checks whether solution is converged using relative error infinity-norm
     void CheckConvergence();
-
-
-    
+   
 };
+
+
+class CsgREupdateWorker
+: public CsgApplication::Worker
+{
+public:
+
+    ~CsgREupdateWorker(){};
+
+    Property _options;
+    list<Property *> _nonbonded;
+    
+    typedef vector<PotentialInfo *> PotentialContainer;
+    PotentialContainer _potentials;
+
+    int _nlamda;
+    ub::vector<double> _lamda;
+    ub::matrix<double> _HS;
+    ub::vector<double> _DS;
+    ub::vector<double> _dUFrame;
+
+    double _UavgAA;
+    double _UavgCG;
+    double _beta;
+    int _nframes;
+
+    /*if true then program only computes reference all atom
+     * trajectory CG-CG neighborlist histograms
+     * this is done in step_0 of inverse script
+     */
+    bool _genref;
+
+    void EvalConfiguration(Topology *conf, Topology *conf_atom);
+    void EvalBonded(Topology *conf, PotentialInfo *potinfo);
+    void EvalNonbonded(Topology *conf, PotentialInfo *potinfo);
+
+};
+
 #endif	/* CSG_REUPDATE_H */

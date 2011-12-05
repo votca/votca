@@ -39,10 +39,10 @@ RM = /usr/bin/cmake -E remove -f
 CMAKE_EDIT_COMMAND = /usr/bin/cmake-gui
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/mashaya1/Research/RE_Votca/src/csg
+CMAKE_SOURCE_DIR = /home/mashaya1/Research/Votca_Push_Source/csg_reupdate_threaded
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/mashaya1/Research/RE_Votca/src/csg
+CMAKE_BINARY_DIR = /home/mashaya1/Research/Votca_Push_Source/csg_reupdate_threaded
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -110,9 +110,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/mashaya1/Research/RE_Votca/src/csg/CMakeFiles /home/mashaya1/Research/RE_Votca/src/csg/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/mashaya1/Research/Votca_Push_Source/csg_reupdate_threaded/CMakeFiles /home/mashaya1/Research/Votca_Push_Source/csg_reupdate_threaded/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/mashaya1/Research/RE_Votca/src/csg/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/mashaya1/Research/Votca_Push_Source/csg_reupdate_threaded/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
