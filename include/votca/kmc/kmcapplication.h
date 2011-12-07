@@ -20,6 +20,7 @@
 
 #include <votca/tools/application.h>
 #include "kmccalculator.h"
+#include <votca/kmc/version.h>
 
 namespace votca { namespace kmc {
 

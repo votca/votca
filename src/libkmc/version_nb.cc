@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +15,29 @@
  *
  */
 
-#include <votca/kmc/kmccalculatorfactory.h>
-//#include "votca_config.h"
-#include "calculators/kmcsingle.h"
-#include "calculators/diffusion.h"
+#include <votca/tools/version.h>
+#include <iostream>
+#include <votca/kmc/version.h>
+#include <votca/tools/version.h>
 
 namespace votca { namespace kmc {
 
-void KMCCalculatorFactory::RegisterAll(void)
+static const std::string version_str = "VERSION NOT SET (compiled " __DATE__ ", " __TIME__ ")";
+
+
+const std::string &KmcVersionStr()
 {
-    Calculators().Register<KMCSingle>("kmcsingle"); // single charge carrier in PBC
-    Calculators().Register<Diffusion>("diffusion"); // single charge carrier in PBC
+    return version_str;
+}
+
+void HelpTextHeader(const std::string &tool_name)
+{
+    std::cout 
+         << "\t------ VOTCA ( http://www.votca.org ) ------\n"
+         << tool_name << ", version " << votca::kmc::KmcVersionStr()
+         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr() 
+         << "\n\n";
 }
 
 }}
+

@@ -51,7 +51,7 @@ void KMCApplication::ShowHelpText(std::ostream &out)
     if(VersionString() != "")
          name = name + ", version " + VersionString();
 
-    ///votca::ctp::HelpTextHeader(name);
+    votca::kmc::HelpTextHeader(name);
     HelpText(out);
     out << "\n\n" << OptionsDesc() << endl;
 }

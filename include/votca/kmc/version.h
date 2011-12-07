@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +15,15 @@
  *
  */
 
-#include <votca/kmc/kmccalculatorfactory.h>
-//#include "votca_config.h"
-#include "calculators/kmcsingle.h"
-#include "calculators/diffusion.h"
+#ifndef __VOTCA_KMC_VERSION_H
+#define	__VOTCA_KMC_VERSION_H
+
+#include <string>
 
 namespace votca { namespace kmc {
-
-void KMCCalculatorFactory::RegisterAll(void)
-{
-    Calculators().Register<KMCSingle>("kmcsingle"); // single charge carrier in PBC
-    Calculators().Register<Diffusion>("diffusion"); // single charge carrier in PBC
-}
-
+    const std::string & KmcVersionStr();
+    void HelpTextHeader(const std::string &tool_name);
 }}
+
+#endif
+
