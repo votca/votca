@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_KMC_SINGLE_H
-#define	__VOTCA_KMC_SINGLE_H
+#ifndef __VOTCA_DIFFUSION_H
+#define	__VOTCA_DIFFUSION_H
 
 #include <votca/kmc/vssmgroup.h>
 #include <vector>
@@ -26,22 +26,24 @@
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/tokenizer.h>
+#include <votca/tools/matrix.h>
 #include "node.h"
 
 using namespace std;
 using namespace votca::kmc;
+using namespace votca::tools;
 
 
 
-class KMCSingle : public KMCCalculator 
+class Diffusion : public KMCCalculator
 {
 public:
-    KMCSingle() {};
-   ~KMCSingle() {};
+    Diffusion() {zero_border=0.0;};
+   ~Diffusion() {};
 
     void Initialize(const char *filename, Property *options );
     bool EvaluateFrame();
-
+    double zero_border;
 protected:
 	    void LoadGraph();
             void RunKMC(void);
@@ -56,56 +58,85 @@ protected:
             double _dt;
             int _seed;
             string _filename; // HACK
+            matrix diffusion; //matrix for diffusion tensor
+            int    number_of_points; // number of vectors in diffusion tensor calculation
+            matrix::eigensystem_t diff_tensor_eigensystem;
             
 };
 
-void KMCSingle::Initialize(const char *filename, Property *options )
+void Diffusion::Initialize(const char *filename, Property *options )
 {
-    	if (options->exists("options.kmcsingle.runtime")) {
-	    _runtime = options->get("options.kmcsingle.runtime").as<double>();
+    	if (options->exists("options.diffusion.runtime")) {
+	    _runtime = options->get("options.diffusion.runtime").as<double>();
 	}
 	else {
-	    std::runtime_error("Error in kmcsingle: total run time is not provided");
+	    std::runtime_error("Error in diffusion: total run time is not provided");
         }
 
-    	if (options->exists("options.kmcsingle.outputtime")) {
-	    _dt = options->get("options.kmcsingle.outputtime").as<double>();
+    	if (options->exists("options.diffusion.outputtime")) {
+	    _dt = options->get("options.diffusion.outputtime").as<double>();
 	}
 	else {
-	    std::runtime_error("Error in kmcsingle: output frequency is not provided");
+	    std::runtime_error("Error in diffusion: output frequency is not provided");
         }
 
-    	if (options->exists("options.kmcsingle.seed")) {
-	    _seed = options->get("options.kmcsingle.seed").as<int>();
+    	if (options->exists("options.diffusion.seed")) {
+	    _seed = options->get("options.diffusion.seed").as<int>();
 	}
 	else {
-	    std::runtime_error("Error in kmcsingle: seed is not provided");
+	    std::runtime_error("Error in diffusion: seed is not provided");
         }
         
-   	if (options->exists("options.kmcsingle.injection")) {
-	    _injection_name = options->get("options.kmcsingle.injection").as<string>();
+   	if (options->exists("options.diffusion.injection")) {
+	    _injection_name = options->get("options.diffusion.injection").as<string>();
 	}
 	else {
-	    std::runtime_error("Error in kmcsingle: injection pattern is not provided");
+	    std::runtime_error("Error in diffusion: injection pattern is not provided");
         }
+
+        if(options->exists("options.rates.field"))
+        {
+            
+            bool  field_is_zero;
+            field_is_zero = true;
+
+            if( options->get("options.rates.field").as<vec>().x()>= zero_border )
+                {
+                field_is_zero = false;
+                }
+            if( options->get("options.rates.field").as<vec>().y()>= zero_border )
+                {
+                field_is_zero = false;
+                }
+            if( options->get("options.rates.field").as<vec>().z()>= zero_border )
+                {
+                field_is_zero = false;
+                }
+
+            if(!field_is_zero)
+                {
+                cout<<"WARNING: Electric field is not zero!"<<endl;
+                }
+        }else
+        {
+               cout<<"WARNING: Can't find electric field in the option file"<<endl;
+               cout<<"check whether it is zero"<<endl;
+        }
+
         
         _filename = filename;
-
-       //cout << _seed << endl;
-       srand(_seed);
-       votca::tools::Random::init(rand(), rand(), rand(), rand());
-
 }
 
-bool KMCSingle::EvaluateFrame()
+bool Diffusion::EvaluateFrame()
 {
-
+    srand(_seed);
+    Random::init(rand(), rand(), rand(), rand());
     LoadGraph();
     RunKMC();
     return true;
 }
 
-void KMCSingle::LoadGraph() {
+void Diffusion::LoadGraph() {
 
     Database db;
     db.Open( _filename );
@@ -129,6 +160,7 @@ void KMCSingle::LoadGraph() {
 
     delete stmt;
 
+
     int links = 0;
     stmt = db.Prepare("SELECT conjseg1, conjseg2, rate12, rate21, r_x, r_y, r_z FROM pairs;");
     while (stmt->Step() != SQLITE_DONE) {
@@ -143,18 +175,19 @@ void KMCSingle::LoadGraph() {
     }
     delete stmt;
     cout << "  -Links: " << links << endl;
-
 }
 
-void KMCSingle::RunKMC(void)
+void Diffusion::RunKMC(void)
 {
-
 	double t = 0;
+        number_of_points = 0;
+        //put zeros in diffusion tensor matrix
+        diffusion.ZeroMatrix();
 
         srand(_seed);
-        votca::tools::Random::init(rand(), rand(), rand(), rand());
+        Random::init(rand(), rand(), rand(), rand());
 
-        // cout << " seed:size:site " << _seed << ":" << _injection.size() << ":" << Random::rand_uniform_int(_injection.size()) << endl;
+
 	current=_injection[Random::rand_uniform_int(_injection.size())];
         cout <<" Starting simulation at node: "<<current->_id-1<<endl;
 	double next_output = _dt;
@@ -164,15 +197,47 @@ void KMCSingle::RunKMC(void)
 		current->onExecute();
     	if(t > next_output) {
     		next_output = t + _dt;
+                number_of_points++;
+
+                
+                // calculation of diffusion tensor
+                diffusion += r|r;
+
     		cout << t << ": " << r << endl;
     	}
     }
     _runtime = t;
     WriteOcc();
     cout << std::scientific << "\nKMC run finished\nAverage velocity (m/s): " << r/t*1e-9 << endl;
+    
+    // calculating diffusion and printing matrix
+    diffusion /= number_of_points*2*t;
+    diffusion *= 1e-18;
+    cout<<endl<<"Diffusion tensor:"<<endl<<diffusion<<endl;
+
+
+    //solve eigensystem
+    diffusion.SolveEigensystem(diff_tensor_eigensystem);
+    //cout<<diff_tensor_eigensystem<<endl;
+
+
+    cout<<endl<<"Eigenvalues: "<<endl<<endl;
+    for(int i=0; i<=2; i++)
+    {
+        cout<<"Eigenvalue: "<<diff_tensor_eigensystem.eigenvalues[i]<<endl<<"Eigenvector: ";
+               
+        cout<<diff_tensor_eigensystem.eigenvecs[i].x()<<"   ";
+        cout<<diff_tensor_eigensystem.eigenvecs[i].y()<<"   ";
+        cout<<diff_tensor_eigensystem.eigenvecs[i].z()<<endl<<endl;
+    }
+    cout<<endl<<endl<<endl;
+
+
+
+
 }
 
-void KMCSingle::WriteOcc()
+void Diffusion::WriteOcc()
 {
     Database db;
     cout << "Opening for writing " << _filename << endl;
@@ -189,4 +254,4 @@ void KMCSingle::WriteOcc()
 	delete stmt;
 }
 
-#endif	/* __VOTCA_KMC_SINGLE_H */
+#endif	/* __VOTCA_DIFFUSION_H */

@@ -29,12 +29,16 @@ using namespace votca::tools;
 /***
  * \brief groups events based on variable step size method
  *
- * This class groups the events based on the variable step size method. The waiting time is calculated
- * from the total rate. The probability to choose an event is P_i = \omega_i / \omega_tot
- *
- * The template argument is a class which has to implement the functions Rate, which should return the rate of the event
- * and onExecute, which is called if the event occurs. VSSMGroup implements these methods it's own and therefore
- * can be used as an event itself. This allows hierarchical grouping of events.
+ * This class groups the events based on the variable step size method. 
+ * The waiting time is calculated from the total rate. The probability to 
+ * choose an event is P_i = \omega_i / \omega_tot 
+ * 
+ * The template argument is a class which has to implement the functions 
+ * Rate, which should return the rate of the event and 
+ * onExecute, which is called if the event occurs. 
+ * VSSMGroup implements these methods it's own and therefore
+ * can be used as an event itself. This allows hierarchical grouping 
+ * of events.
  *
  * \todo add a refresh function if rates have changed
  */
@@ -139,4 +143,4 @@ event_t *VSSMGroup<event_t>::SelectEvent_BinarySearch()
 
 }}
 
-#endif
+#endif /* __VOTCA_KMC_VSSMGROUP_H_ */
