@@ -75,7 +75,38 @@ map <string, int> MakePeriodicTable(){
     m.insert(pair<string, int>("Te",51));
     m.insert(pair<string, int>("I",52));
     m.insert(pair<string, int>("Xe",53));
-    m.insert(pair<string, int>("Bq",54));
+    m.insert(pair<string, int>("Cs",54));
+    m.insert(pair<string, int>("Ba",55));
+    m.insert(pair<string, int>("La",56));
+    m.insert(pair<string, int>("Ce",57));
+    m.insert(pair<string, int>("Pr",58));
+    m.insert(pair<string, int>("Nd",59));
+    m.insert(pair<string, int>("Pm",60));
+    m.insert(pair<string, int>("Sm",61));
+    m.insert(pair<string, int>("Eu",62));
+    m.insert(pair<string, int>("Gd",63));
+    m.insert(pair<string, int>("Tb",64));
+    m.insert(pair<string, int>("Dy",65));
+    m.insert(pair<string, int>("Ho",66));
+    m.insert(pair<string, int>("Er",67));
+    m.insert(pair<string, int>("Tm",68));
+    m.insert(pair<string, int>("Yb",69));
+    m.insert(pair<string, int>("Lu",70));
+    m.insert(pair<string, int>("Hf",71));
+    m.insert(pair<string, int>("Ta",72));
+    m.insert(pair<string, int>("W",73));
+    m.insert(pair<string, int>("Re",74));
+    m.insert(pair<string, int>("Os",75));
+    m.insert(pair<string, int>("Ir",76));
+    m.insert(pair<string, int>("Pt",77));
+    m.insert(pair<string, int>("Au",78));
+    m.insert(pair<string, int>("Hg",79));
+    m.insert(pair<string, int>("Tl",80));
+    m.insert(pair<string, int>("Pb",81));
+    m.insert(pair<string, int>("Bi",82));
+    m.insert(pair<string, int>("Po",83));
+    m.insert(pair<string, int>("At",84));
+    m.insert(pair<string, int>("Rn",85));
     return m ;
 }
 
@@ -180,8 +211,10 @@ int mol_and_orb::init(const char * nameinput){
                         if (itp != periodic_table.end() ){
                             lbl = itp->second;
                             n_el += _bs->get_nel_at(lbl);
+                            //cout << " Reading atom type " << type << ":" << itp->second << ":" << n_el << endl;
                         }
                         else {
+                            cout << " Problem with atom type " << type << ":" << itp->second << ":" << n_el << endl;
                             throw runtime_error(string("Bad atom type, "));
                         }
 			/*switch (chtype ){
@@ -259,6 +292,7 @@ int mol_and_orb::init(const char * nameinput){
         centre.setX(0.); centre.setY(0.) ; centre.setZ(0.);
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
+        cout << " Finished loading atoms" << endl; 
 	return 0;
 }
 

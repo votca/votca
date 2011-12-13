@@ -124,6 +124,7 @@ void basis_set::set_basis_set(const string & a){
 	_nel_at      = INDO_nel_at;
 	_nbasis_at   = INDO_nbasis_at;
 	_basis_lbl_at= INDO_basis_lbl_at;
+        cout << "INDO basis set will be used " << endl;
     }
     else if ( a == "STO" ){
 	_nel_at      = STO_nel_at;
