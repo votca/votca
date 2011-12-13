@@ -24,12 +24,13 @@ AS=as
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Release
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile_nb
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -62,7 +63,7 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Release.mk ../../src/libmoo/libmoo.a
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/libmoo.a
 
 ../../src/libmoo/libmoo.a: ${OBJECTFILES}
 	${MKDIR} -p ../../src/libmoo
@@ -120,7 +121,7 @@ ${OBJECTDIR}/_ext/484467347/jcalc.o: ../../src/libmoo/jcalc.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Release
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} ../../src/libmoo/libmoo.a
 
 # Subprojects
