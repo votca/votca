@@ -15,7 +15,9 @@
  *
  */
 
+#include <iostream>
 #include <votca/moo/jcalc.h>
+#include <votca/tools/globals.h>
 
 namespace votca { namespace moo {
 
@@ -201,6 +203,10 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
 
     // calculating orbitals for all pairs
 
+      if (tools::globals::verbose) {
+           cout << "  ID1:ID2 J " << one.getType()->getId() << ":" << two.getType()->getId();
+       }    
+    
     vector < double > Js; // vector with all Js
     vector < pair <int, int> > _pois; // vector with all pairs of interest
     pair <int, int> poi; // pair of interest
@@ -210,8 +216,17 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
             poi.second = jdata->_orblabels.second[j];
             Js.push_back(jdata->_fock.calcJ(poi));
             _pois.push_back(poi);
+            if (tools::globals::verbose) { cout << jdata->_fock.calcJ(poi) << " " ; }
         }
+        if (tools::globals::verbose) { cout << endl; }
     }
+    
+    
+     
+    
+    int my = one.getType()->getId();
+    cout << my << endl;
+    
     return Js;
 }
 
@@ -275,7 +290,7 @@ CrgUnitType * JCalc::GetCrgUnitTypeByName(string name)
 {
     map <string, CrgUnitType *>::iterator ittype = this->_mapCrgUnitByName.find(name);
     if (ittype == _mapCrgUnitByName.end()) {
-        throw runtime_error("Cannot find Crg unit type with name" + name);
+        throw runtime_error("Cannot find segment type with name: " + name);
     }
     CrgUnitType *type = ittype->second;
     return type;
