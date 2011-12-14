@@ -42,7 +42,7 @@ if [[ $tabtype = "non-bonded" ]]; then
   critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
   #the left side is usually not a problem, but still we do it
   do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
-elif [[ $tabtype = bond || $tabtype = bond || $tabtype = dihedral ]]; then
+elif [[ $tabtype = bond || $tabtype = angle || $tabtype = dihedral ]]; then
   comment="$(get_table_comment)"
   smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
   critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"

@@ -114,6 +114,7 @@ die () { #make the iterative frame work stopp
     until [[ ${CSG_MASTER_PID} -eq $pid ]]; do
       #get the parent pid using BSD style due to AIX
       pid=$(ps -o ppid= -p "$pid" 2>/dev/null)
+      [[ -z $pid ]] && pids="0" && break
       #store them in inverse order to kill parents before the child
       pids="$pid $pids"
       ((c++))
@@ -154,7 +155,7 @@ do_external() { #takes two tags, find the according script and excute it
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
   #print this message to stderr to allow $(do_external ) and do_external XX > 
-  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} ${@:3}' (from tags $tags) dir ${script%/*}" >&2
+  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
     CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
@@ -188,6 +189,8 @@ for_all (){ #do something for all interactions (1st argument)
   bondtypes="$1"
   shift
   interactions=( $(csg_get_interaction_property --all name) )
+  min=( $(csg_get_interaction_property --all min) )
+  [[ ${#min[@]} -ne ${#interactions[@]} ]] && die "${FUNCNAME[0]}: one interaction has no name or min"
   name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
   for bondtype in $bondtypes; do
     #check that type is bonded or non-bonded
@@ -210,7 +213,7 @@ for_all (){ #do something for all interactions (1st argument)
 export -f for_all
 
 csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop or with --all option
-  local ret allow_empty="no" for_all="no"
+  local ret allow_empty="no" for_all="no" xmltype
   while [[ $1 = --* ]]; do
     case $1 in
       --allow-empty)
@@ -265,17 +268,28 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
-  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
+  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"i
+
+  #mapp bondtype back to tags in xml file (for csg_call)
+  case "$bondtype" in
+    "non-bonded"|"thermoforce")
+      xmltype="non-bonded";;
+    "bonded"|"bond"|"angle"|"dihedral")
+      xmltype="bonded";;
+    *)
+      msg "Unknown bondtype '$bondtype' - assume non-bonded"
+      xmltype="non-bonded";;
+  esac
 
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
   #the --filter/--path(!=.) option will make csg_property fail if $1 does not exist
   #so no critical here
-  ret="$(csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1 | trim_all)"
+  ret="$(csg_property --file $CSGXMLFILE --short --path cg.${xmltype} --filter name=$bondname --print $1 | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
   # if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
-    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${bondtype}.$1 --print . | trim_all)"
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${xmltype}.$1 --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
     #from time to time the default is only given in the non-bonded section
     [[ -z $ret ]] && ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.non-bonded.$1 --print . | trim_all)"

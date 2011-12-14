@@ -40,7 +40,7 @@ else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
 
-if [[ -n $(csg_get_property cg.bonded.name) ]]; then
+if [[ -n $(csg_get_property --allow-empty cg.bonded.name) ]]; then
   mapping="$(csg_get_property cg.inverse.map)"
   mapping="$(csg_get_property cg.inverse.gromacs.rdf.map "$mapping")"
   [[ -f "$(get_main_dir)/$mapping" ]] || die "${0##*/}: Mapping file '$mapping' for bonded interaction not found in maindir"
