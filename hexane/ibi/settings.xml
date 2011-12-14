@@ -2,8 +2,7 @@
   <!-- example for a non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->
-    <name>
-    </name>
+    <name>A-A</name>
     <!-- types involved in this interaction -->
     <type1>A</type1>
     <type2>A</type2>
@@ -103,11 +102,10 @@
     <filelist>grompp.mdp topol.top table.xvg table_a1.xvg table_b1.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>500</iterations_max>
-    <convergence_check>default</convergence_check>
-    <convergence_check_options>
+    <convergence_check>
+      <type>default</type>
       <limit>0.001</limit>
-      <name_glob>*.conv</name_glob>
-    </convergence_check_options>
+    </convergence_check>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
     <!-- write log to this file -->
