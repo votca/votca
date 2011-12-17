@@ -20,17 +20,17 @@
 using namespace std;
 
 namespace votca { namespace ctp {
-    
+   
 /// Default constructor
 Segment::Segment(int id, string name) { 
-    _id = id; 
-    _name = name; 
+    _id = id; _name = name; 
 }
 
 /// Destructor
 Segment::~Segment() {
     // clean up the list of pointers to fragments without deleting them
-    _fragments.clear();    
+    _fragments.clear(); 
+    _atoms.clear();
 }
 
 /// Returns the ID of the molecule
@@ -41,6 +41,14 @@ const int &Segment::getId() {
 /// Returns the name of the molecule
 const string &Segment::getName() {
     return _name;
+}
+
+void Segment::AddFragment( Fragment* fragment ) {
+    _fragments.push_back( fragment );
+}
+
+void Segment::AddAtom( Atom* atom ) {
+    _atoms.push_back( atom );
 }
 
 }}

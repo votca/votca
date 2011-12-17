@@ -43,8 +43,8 @@ public:
     /**
      * constructor
      */
-    Atom(Molecule *owner, int id, string name, int resnr, double m, double q)
-        : _mol(owner), _id(id), _name(name), _resnr(resnr), _m(m), _q(q)
+    Atom(Molecule *owner, int id, string name, int resnr, double weight)
+        : _mol(owner), _id(id), _name(name), _resnr(resnr), _weight(weight)
     {
             _bPos=false;
     }
@@ -77,18 +77,6 @@ public:
      * \return residue id
      */
     const int &getResnr() const { return _resnr; }
-
-    /**
-     * get the charge of the atom
-     * \return atom charge
-     */
-    const double &getQ() const { return _q; }
-    
-    /**
-     * set the charge of the bead
-     * \param q bead charge
-     */
-    void setQ(const double &q) { _q=q; }
 
     /**
      * set the position of the atom
@@ -128,8 +116,7 @@ protected:
     string _name;
     string _type;
     int _resnr;
-    double _m;
-    double _q;
+    double _weight;
     vec _pos;
     bool _bPos;
         

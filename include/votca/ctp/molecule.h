@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <votca/ctp/atom.h>
+#include <votca/ctp/segment.h>
 
 namespace votca { namespace ctp {
 /**
@@ -41,6 +42,8 @@ public:
     const int &getId();
     /// Returns the name of the molecule
     const string &getName();
+    /// Adds a pointer to a segment to this molecule
+    void AddSegment( Segment* segment );
     /// Returns a pointer to the atom
     Atom *getAtom(const int &id);
     /// Returns atom type
@@ -49,23 +52,23 @@ public:
     const vec getAtomPosition(const int &id);
     /// Returns number of atoms in the molecule
     const int &NumberOfAtoms();
-    /// Adds an atom to the molecule
-    void AddAtom(Atom *atom);
     /// Writes a PDB file
     void WritePDB( ostream & out );
     /// Load molecule coordinates from a file
-    void Initialize ( string filename );
+    void ReadXYZ ( string filename );
     
     
 private:
-    // map of atom names and their IDs
-    map<string, int> _names;
-    // list of atoms
-    vector < Atom* > _atoms ;
     // molecule name
     string _name ;
     // molecule ID
     int    _id;
+    // map of atom names and their IDs
+    map<string, Atom* > _map_AtomName_Atom;
+    // list of atoms
+    vector < Atom* > _atoms ;
+    // list of segments
+    vector < Segment* > _segments;
 };
 
 }}

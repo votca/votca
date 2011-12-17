@@ -23,7 +23,6 @@
 namespace votca { namespace ctp {
 
 class Segment;
-class Molecule;
     
 /**
     \brief Rigid fragment. One conjugated segment contains several rigid fragments.
@@ -38,10 +37,14 @@ public:
      /// Constructor
      Fragment(int id, string name)
      {
-         _id = id; _name = name; 
+         _id = id; _name = name;
      }
      /// Destructor
-    ~Fragment(){}
+    ~Fragment()
+    {
+        _weights.clear();
+        _atoms.clear();
+    }
    /**
      * get the id of the segment
      * \return bead id
@@ -52,13 +55,14 @@ public:
      * \return bead id
      */
     const string getName() const { return _name; }
+
+    void AddAtom( Atom* atom ) {
+        _atoms.push_back( atom );
+    }
+
     /// Returns a pointer to a segment this fragment belongs to 
     Segment* getSegment(){
-        return _segment;
-    }
-    /// Returns a pointer to a segment this fragment belongs to 
-    Molecule* getMolecule(){
-        return _molecule;
+        throw runtime_error( string("Not implemented") ); 
     }
     /// Rotates the fragment with respect to the center defined by the Map
     void Rotate (){ 
@@ -72,19 +76,16 @@ public:
 
 private:
 
-    /// List of pointers to atoms belonging to this fragment
-    vector < Atom* > _atoms;
     /// Conjugated segment this fragment belongs to
     Segment *_segment;
-    /// Molecule this Fragment belongs to
-    Molecule *_molecule;
    /// Name of the rigid fragment 
     string _name;
     /// Rigid fragment ID
     int _id;
     /// Weights used to calculate fragment center
     vector< double > _weights;
-    
+    /// List of atoms belonging to this fragment
+    vector < Atom* > _atoms;
 };
 
 }}

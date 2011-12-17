@@ -58,7 +58,7 @@ class CTPTest : public Application
             Property property;
             load_property_from_xml(property, "topology.xml");
             Topology topology;
-            topology.Initialize(property);
+            topology.ParseSegmentDefinitions(property);
             
             
         }

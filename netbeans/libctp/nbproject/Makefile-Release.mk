@@ -34,14 +34,18 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/484457893/segment.o \
 	${OBJECTDIR}/_ext/484457893/qmapplication.o \
 	${OBJECTDIR}/_ext/238600121/egaussian.o \
 	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/484457893/segmenttype.o \
 	${OBJECTDIR}/_ext/238600121/ecorrelation.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
+	${OBJECTDIR}/_ext/484457893/topology.o \
 	${OBJECTDIR}/_ext/484457893/version_nb.o \
 	${OBJECTDIR}/_ext/484457893/qmtopology.o \
+	${OBJECTDIR}/_ext/715944016/ctp_test.o \
+	${OBJECTDIR}/_ext/484457893/molecule.o \
 	${OBJECTDIR}/_ext/238600121/ecoulomb.o \
 	${OBJECTDIR}/_ext/484457893/statesaversqlite.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist.o \
@@ -75,6 +79,11 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a: ${OBJECTFILES}
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a ${OBJECTFILES} 
 	$(RANLIB) ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a
 
+${OBJECTDIR}/_ext/484457893/segment.o: ../../src/libctp/segment.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/segment.o ../../src/libctp/segment.cc
+
 ${OBJECTDIR}/_ext/484457893/qmapplication.o: ../../src/libctp/qmapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -105,6 +114,11 @@ ${OBJECTDIR}/_ext/484457893/qmdatabase.o: ../../src/libctp/qmdatabase.cc
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmdatabase.o ../../src/libctp/qmdatabase.cc
 
+${OBJECTDIR}/_ext/484457893/topology.o: ../../src/libctp/topology.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/topology.o ../../src/libctp/topology.cc
+
 ${OBJECTDIR}/_ext/484457893/version_nb.o: ../../src/libctp/version_nb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -114,6 +128,16 @@ ${OBJECTDIR}/_ext/484457893/qmtopology.o: ../../src/libctp/qmtopology.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmtopology.o ../../src/libctp/qmtopology.cc
+
+${OBJECTDIR}/_ext/715944016/ctp_test.o: ../../src/tools/ctp_test.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_test.o ../../src/tools/ctp_test.cc
+
+${OBJECTDIR}/_ext/484457893/molecule.o: ../../src/libctp/molecule.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/molecule.o ../../src/libctp/molecule.cc
 
 ${OBJECTDIR}/_ext/238600121/ecoulomb.o: ../../src/libctp/calculators/ecoulomb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121

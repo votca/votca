@@ -27,6 +27,10 @@ namespace votca { namespace ctp {
 
 /// Destructor
 Molecule::~Molecule() {
+    
+    // cleanup list of segments
+    _segments.clear();
+    
     // clean up the list of atoms 
     cout << "  molecule destructor: deleting " << NumberOfAtoms() << " atoms" << endl;
     
@@ -51,6 +55,10 @@ const string &Molecule::getName() {
         return _name;
 }
 
+void Molecule::AddSegment( Segment* segment ) {
+    _segments.push_back( segment );
+}
+
 /// Returns a pointer to the atom
 Atom *Molecule::getAtom(const int &id) {
     throw runtime_error( string("Not implemented") ); 
@@ -71,13 +79,8 @@ const int &Molecule::NumberOfAtoms() {
     return _atoms.size(); 
 }
 
-/// Adds an atom the molecule
-void Molecule::AddAtom(Atom *atom) {
-    _atoms.push_back( atom );
-}
-
 /// Read atom types and coordinates from a file
-void Molecule::Initialize(string filename)
+void Molecule::ReadXYZ(string filename)
 {
     ifstream in;
     double x,y,z;
@@ -100,10 +103,10 @@ void Molecule::Initialize(string filename)
         //cout << type << ":" << x << ":" << y << ":" << z << endl;
         
         // creating atoms and adding them to the molecule
-        Atom *pAtom = new Atom( this, id++, type, 1, 0.12, 0.12);
-        vec position(x,y,z);
-        pAtom->setPos( position );                       
-        AddAtom( pAtom );  
+        //Atom *pAtom = new Atom( this, id++, type, 1, 0.12, 0.12);
+        //vec position(x,y,z);
+        //pAtom->setPos( position );                       
+        //AddAtom( pAtom );  
 
     }      
     in.close();        

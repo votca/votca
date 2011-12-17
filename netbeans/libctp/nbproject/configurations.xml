@@ -45,6 +45,7 @@
       <itemPath>../../include/votca/ctp/segmenttype.h</itemPath>
       <itemPath>../../include/votca/ctp/sitecalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
+      <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../include/votca/ctp/version.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -55,14 +56,18 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
+      <itemPath>../../src/tools/ctp_test.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
+      <itemPath>../../src/libctp/molecule.cc</itemPath>
       <itemPath>../../src/libctp/qmapplication.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libctp/qmnblist.cc</itemPath>
       <itemPath>../../src/libctp/qmpair.cc</itemPath>
       <itemPath>../../src/libctp/qmtopology.cc</itemPath>
+      <itemPath>../../src/libctp/segment.cc</itemPath>
       <itemPath>../../src/libctp/segmenttype.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
+      <itemPath>../../src/libctp/topology.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
     </logicalFolder>

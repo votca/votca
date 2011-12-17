@@ -27,9 +27,8 @@
 namespace votca { namespace ctp {
 
 /**
-    \brief Container for all types of conjugated segments and rigid fragments
-
-    Given a coarse-grained topology, it re-orients the and shifts rigid fragments. 
+ * \brief Container for molecules, conjugated segments, rigid fragments,
+ * and atoms.
 */
 class Topology 
 {
@@ -38,22 +37,52 @@ public:
    ~Topology();
 
     /// Load the topology based on definitions of conjugated segments
-    void Initialize( Property &topology );
+    void ParseSegmentDefinitions( Property &topology );
 
+     /// Creates a fragment and adds it to the topology
+    Fragment *AddFragment (int fragment_id, string fragment_name, Segment* segment);
+    /// Creates a segment and adds it to the topology
+    Segment *AddSegment (int segment_id, string segment_name);   
+    /// Creates an atom and adds it to the topology
+    Atom *AddAtom (int atom_id, string atom_name);   
+    /// Creates a molecule and adds it to the topology
+    Molecule *AddMolecule (int molecule_id, string molecule_name);
+   
     int getDatabaseId() { return _db_id; };
     void setDatabaseId(int id) { _db_id = id; }
 
+   
 protected:
 
-    vector < Atom* > _atoms;
-    vector < Fragment* > _fragments;
-    vector < Segment* > _segments;
     vector < Molecule* > _molecules;
+    vector < Segment* > _segments;
+    vector < Fragment* > _fragments;
+    vector < Atom* > _atoms;
+    
+    vector < Molecule* > _molecule_types;
+    vector < Segment* > _segment_types;
+    vector < Fragment* > _fragment_types;
+    vector < Atom* > _atom_types;
+    
+    map < string, Molecule* > _map_MoleculeName_MoleculeType;
+    map < string, string > _map_MoleculeMDName_MoleculeName;
     
     map < int, Segment* > _map_id_segment;
-    map < string, Segment* > _map_name_segment;
+
 
     int _db_id;
+    /// Adds an atom type when parsing segment/fragment definitions
+    Atom *AddAtomType(Molecule *owner, int atom_id, string atom_name, 
+        int residue_number, double weight);   
+    /// Adds a fragment type for internal use (when loading segments.xml) 
+    Fragment *AddFragmentType(int fragment_id, Property *property);
+    /// Adds a segment type (when loading segments.xml)
+    Segment *AddSegmentType(int segment_id, Property *property);
+    /// Adds a molecule type (when loading segments.xml)
+    Molecule *AddMoleculeType (int molecule_id, Property *property);
+    /// Returns a pointer to a molecule type with a specified name 
+    Molecule *getMoleculeType(string name);
+   
 };
 
 }}

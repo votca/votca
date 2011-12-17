@@ -23,6 +23,7 @@
 namespace votca { namespace ctp {
 
 class Molecule;   
+class Atom;   
     
 /**
     \brief Conjugated segment. One conjugated segment contains several rigid fragments.
@@ -47,20 +48,24 @@ public:
      * \return segment name
      */
     const string &getName();
-   /// 
-      
+    /// Adds a pointer to a fragment belonging to this segment
+    void AddFragment( Fragment* fragment );
+    /// Adds a pointer to an atom belonging to this segment
+    void AddAtom( Atom* atom );
+
 private:
-    /// List of pointers to rigid fragments which belong to this segment
-    vector < Fragment* > _fragments;
-   /// Molecule this Segment belongs to
-    Molecule *_molecule;
-    /// Name of the conjugated segment   
     string _name;
     /// Conjugated segment ID
     int _id;  
     /// position of a segment
     vec _pos;
-    
+    /// List of rigid fragments which belong to this segment
+    vector < Fragment* > _fragments;
+    /// List of atoms which belong to this segment
+    vector < Atom* > _atoms;
+   /// Molecule this Segment belongs to
+    Molecule *_molecule;
+    /// Name of the conjugated segment       
 };
 
 }}
