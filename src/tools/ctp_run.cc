@@ -22,9 +22,6 @@
 
 using namespace votca::ctp;
 
-/*
- *
- */
 class QMAppRun : public QMApplication {
 public:
     void HelpText() {}

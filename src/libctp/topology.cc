@@ -17,6 +17,7 @@
 
 #include <votca/ctp/topology.h>
 #include <votca/tools/globals.h>
+#include <boost/lexical_cast.hpp>
 
 namespace votca { namespace ctp {
 
@@ -118,8 +119,8 @@ Molecule *Topology::AddMolecule(int molecule_id, string molecule_name)
 Atom *Topology::AddAtomType(Molecule *owner, int atom_id, string atom_name, 
         int residue_number, double weight)
 {
-     Atom* atom = new Atom(owner, atom_id, atom_name, residue_number, weight);
-     _atom_types.push_back(atom);  
+    Atom* atom = new Atom(owner, atom_id, atom_name, residue_number, weight);
+    _atom_types.push_back(atom); 
     return atom;
 }
 
@@ -127,7 +128,7 @@ Fragment *Topology::AddFragmentType(int fragment_id, Property *property)
 {
     string fragment_name = property->get("name").as<string>();    
     Fragment* fragment = new Fragment(fragment_id, fragment_name);
-     _fragment_types.push_back(fragment);  
+    _fragment_types.push_back(fragment);  
     return fragment;
 }
 
@@ -161,8 +162,6 @@ Molecule *Topology::getMoleculeType(string name)
    
 void Topology::ParseSegmentDefinitions( Property &topology )
 {
-
-    string fragment_name;
    
     if ( tools::globals::verbose ) {
         cout << "Topology: Parsing the partitioning on segments and fragments" << endl;
@@ -173,9 +172,9 @@ void Topology::ParseSegmentDefinitions( Property &topology )
     list<Property *> molecules = topology.Select("topology.molecules.molecule"); 
     list<Property *>::iterator it_molecule;
 
-    cout << " Found " << molecules.size() << " molecule types" << endl;
+    cout << " Found " << molecules.size() << " molecule" << endl;
             
-    // load all coordinates of atoms in molecules, create fragments and segments
+    // load molecules, create fragments and segments
     int molecule_id = 1;
     for ( it_molecule = molecules.begin(); it_molecule != molecules.end(); ++it_molecule ){
         
@@ -195,7 +194,7 @@ void Topology::ParseSegmentDefinitions( Property &topology )
                 // load the fragments
                 list<Property *> fragments = (*it_segment)->Select("fragments.fragment"); 
                 list<Property *>::iterator it_fragment;
-                cout << "    - Found " << fragments.size() << " fragments in this segment" << endl;
+                cout << "    - Found " << fragments.size() << " fragments in segment " << segment->getName() << endl;
                 
                 int fragment_id = 1;
                 for ( it_fragment = fragments.begin(); it_fragment != fragments.end(); ++it_fragment ){
@@ -204,17 +203,50 @@ void Topology::ParseSegmentDefinitions( Property &topology )
                     
                     string mdatoms = (*it_fragment)->get("mdatoms").as<string>();
                     string qmatoms = (*it_fragment)->get("qmatoms").as<string>();
-                    string weights = (*it_fragment)->get("weights").as<string>();
-                    
-                    Atom *atom = AddAtomType(molecule, atom_id, atom_name, residue_number, weight);
-                    fragment->AddAtom( atom );
-                    segment->AddAtom( atom );
-                    
+                    string weights = (*it_fragment)->get("weights").as<string>();                    
 
+                    Tokenizer tok_md_atoms(mdatoms, " ");
+                    Tokenizer tok_qm_atoms(qmatoms, " ");
+                    Tokenizer tok_weights(weights, " ");
+                    vector <string> md_atom_names;
+                    vector <string> qm_atom_names;
+                    tok_md_atoms.ToVector(md_atom_names);
                     
+                    vector<string>::iterator it_md_atom_name;
+                    for ( it_md_atom_name = md_atom_names.begin(); 
+                          it_md_atom_name != md_atom_names.end(); 
+                            ++it_md_atom_name ) 
+                    {
+                        //cout << (*it_md_atom_name).c_str() << endl;
+                        Tokenizer tok_md((*it_md_atom_name), ":");
+                        vector<string> md_atom_info;
+                        tok_md.ToVector( md_atom_info );
+                        int residue_number = boost::lexical_cast<int>(md_atom_info[0]);
+                        string residue_name = md_atom_info[1];
+                        string md_atom_name =  md_atom_info[2];
+                        
+                        // TODO
+                        double weight = 0.0;
+                        int atom_id = 0;
+                        
+                        Atom *atom = AddAtomType(molecule, atom_id, md_atom_name, residue_number, weight);
+                        fragment->AddAtom( atom );
+                        segment->AddAtom( atom );
+                      
+                    }         
+                    cout << "      - Found " // TO DO << fragment->NumberOfAtoms(); 
+                         << " atoms in the fragment " 
+                         <<  fragment->getName() << endl;
                 }
+                cout <<  "    - Total of " // TO DO << segment->NumberOfAtoms() 
+                     << " atoms in the segment " 
+                     << segment->getName() << endl; 
+ 
         }
-       
+        cout <<  "  - Total of " << molecule->NumberOfAtoms() 
+             << " atoms in the molecule " 
+             << molecule->getName() << endl; 
+
     }
     
     /*
