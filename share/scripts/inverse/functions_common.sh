@@ -228,7 +228,8 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   [[ -n $1 ]] || die "${FUNCNAME[0]}: Missing argument"
 
   if [[ $for_all = "yes" ]]; then
-    local t p
+    [[ $1 = "bondtype" ]] && die "${FUNCNAME[0]}: --all + bondtype not implemented yet"
+    local t
     for t in non-bonded bonded; do
       ret+=" $(csg_get_property --allow-empty "cg.$t.$1")"
     done

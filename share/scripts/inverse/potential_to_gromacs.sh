@@ -23,14 +23,17 @@ This script is a wrapper to convert a potential to gromacs
 Usage: ${0##*/} [options] input output
 
 Allowed options:
-    --help                    show this help
-    --clean                   remove all intermediate temp files
-    --no-shift                do not shift the potential
+    --help       show this help
+    --clean      remove all intermediate temp files
+    --r2d        converts rad to degree (scale x axis with 180/3.1415)
+                 Note: VOTCA calcs in rad, but gromacs in degree
+    --no-shift   do not shift the potential
 EOF
 }
 
 clean="no"
 do_shift="yes"
+xscale=1
 
 ### begin parsing options
 shopt -s extglob
@@ -44,6 +47,9 @@ while [[ ${1#-} != $1 ]]; do
     fi
  fi
  case $1 in
+   --r2d)
+    xscale="57.2957795"
+    shift ;;
    --clean)
     clean="yes"
     shift ;;
@@ -113,8 +119,15 @@ fi
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 comment="$(get_table_comment $input)"
 
+if [[ $tabtype = "angle" || $tabtype = "dihedral" ]] && [[ $xscale != 1 ]]; then
+  scale="$(critical mktemp ${name}.pot.scale.XXXXX)"
+  do_external table linearop --on-x "${input}" "${scale}" "$xscale" "0"
+else
+  scale="${input}"
+fi
+
 smooth="$(critical mktemp ${name}.pot.smooth.XXXXX)"
-critical csg_resample --in ${input} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
+critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 
 extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
 if [[ $clean = "yes" ]]; then
