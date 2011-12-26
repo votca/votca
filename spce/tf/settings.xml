@@ -9,8 +9,15 @@
     <min>1.4</min>
     <max>3.1</max>
     <step>0.01</step>
-    <!--spline:offset beyond the hyrbid zone to take into account for fitting the spline-->
     <inverse>
+      <tf>
+        <!--spline:offset beyond the hyrbid zone to take into account for fitting the spline-->
+        <spline_start>0.9</spline_start>
+        <spline_end>3.6</spline_end>
+        <spline_step>0.4</spline_step>
+        <molname>SOL</molname>
+        <prefactor>0.01382</prefactor>
+      </tf>
       <!-- target distribution -->
       <target>dens.SOL.xvg</target>
       <!-- update cycles -->
