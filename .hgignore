@@ -57,5 +57,4 @@ cmake_uninstall.cmake
 CMakeCache.txt
 install_manifest.txt
 
-CHANGELOG
 build*

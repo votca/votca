@@ -156,16 +156,16 @@ do_external() { #takes two tags, find the according script and excute it
   tags="$1 $2"
   #print this message to stderr to allow $(do_external ) and do_external XX > 
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
-  if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "$script")" ]]; then
+  if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
     CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
-  elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
+  elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
     local perl_debug="$(mktemp perl_debug.XXX)" ret
     PERLDB_OPTS="NonStop=1 AutoTrace=1 frame=2 LineInfo=$perl_debug" perl -dS $script "${@:3}"
     ret=$?
     cat "$perl_debug" 2>&1
     [[ $ret -eq 0 ]]
-  elif [[ -n "$(sed -n '1s@perl@XXX@p' "$script")" ]]; then
-    CSG_CALLSTACK="$(show_callstack --extra "$script")" $script "${@:3}"
+  elif [[ -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
+    CSG_CALLSTACK="$(show_callstack --extra "${script/ *}")" $script "${@:3}"
   else
     CSG_CALLSTACK="$(show_callstack)" $script "${@:3}"
   fi || die "${FUNCNAME[0]}: subscript $script ${@:3} (from tags $tags) failed"

@@ -29,6 +29,7 @@ fi
 
 from="$(csg_get_property cg.inverse.initial_configuration)"
 conf="$(csg_get_property cg.inverse.gromacs.conf)"
+echo "Using intial configuration from $from"
 if [[ $from = "laststep" ]]; then
   confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
   #avoid overwriting $confout

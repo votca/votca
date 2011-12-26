@@ -52,7 +52,7 @@ my @flag_delta;
 
 #should never happen, but ....
 die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
-die "Different start potential point \n" if (($r_delta[0]-$r_cur[0]) > 0.0);
+die "Different start potential point  $r_delta[0] $r_cur[0]\n" if (($r_delta[0]-$r_cur[0]) > 0.0001);
 die "Different end potential point \n" if ( $#r_cur != $#r_delta );
 
 my $outfile="$ARGV[2]";

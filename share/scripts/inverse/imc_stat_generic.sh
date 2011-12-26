@@ -29,7 +29,7 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol)
+  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
   [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
 
   ext=$(csg_get_property cg.inverse.gromacs.traj_type)
