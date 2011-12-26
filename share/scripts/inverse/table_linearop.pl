@@ -24,6 +24,7 @@ my $usage="Usage: $progname [OPTIONS] <in> <out> <a> <b>";
 #Defaults
 my $withflag=undef;
 my $with_errors="no";
+my $col="y";
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -48,8 +49,9 @@ $usage
 
 Allowed options:
 -h, --help            Show this help message
-    --withflag        only change entries with specific flag in src
+    --withflag  FL    only change entries with specific flag in src
     --with-errors     also read and calculate errors
+    --on-x            work on x values instead of y values
 
 Examples:
 * $progname tmp.dpot.cur tmp.dpot.new 1.0 0.0
@@ -64,6 +66,10 @@ END
     elsif ($ARGV[0] eq "--with-errors"){
           shift(@ARGV);
 	  $with_errors="yes";
+    }	
+    elsif ($ARGV[0] eq "--on-x"){
+          shift(@ARGV);
+	  $col="x";
     }	
     else
 	{
@@ -82,7 +88,7 @@ use CsgFunctions;
 my $file="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-print "$progname: $file to $outfile with y' = $a*y + $b \n";
+print "$progname: $file to $outfile with $col' = $a*$col + $b \n";
 
 my @r;
 my @val;
@@ -102,13 +108,17 @@ for(my $i=0; $i<=$#r; $i++) {
       next;
     }
   }
-  $val[$i] = $a*$val[$i] + $b;
-  if ("$with_errors" eq "yes") {
-    $errors[$i] = $a*$errors[$i];
+  if ("$col" eq "x") {
+    $r[$i]=$a*$r[$i]+$b;
+  } else {
+    $val[$i] = $a*$val[$i] + $b;
+    if ("$with_errors" eq "yes") {
+      $errors[$i] = $a*$errors[$i];
+    }
   }
 }
 
-$comments.="# $progname: $file -> $outfile y' = $a*y + $b\n";
+$comments.="# $progname: $file -> $outfile $col' = $a*$col + $b\n";
 if ("$with_errors" eq "yes") {
   saveto_table_err($outfile,@r,@val,@errors,@flag,$comments) || die "$progname: error at save table\n";
 }else {

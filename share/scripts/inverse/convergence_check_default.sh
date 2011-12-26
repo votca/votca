@@ -28,7 +28,7 @@ fi
 limit="$(csg_get_property cg.inverse.convergence_check.limit)"
 
 sum=0
-names="$(csg_get_property cg.non-bonded.name)"
+names="$(csg_get_interaction_property --all name)"
 found=0
 for name in $names; do
   out="${name}.conv"

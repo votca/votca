@@ -26,8 +26,8 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-names="$(csg_get_property cg.non-bonded.name)"
-parameters="$(csg_get_property cg.non-bonded.inverse.simplex.parameters)"
+names="$(csg_get_interaction_property --all name)"
+parameters="$(csg_get_interaction_property --all inverse.simplex.parameters)"
 what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
 
 liste=()
