@@ -56,7 +56,6 @@ for name in ${items}; do
   #cut the first 3 heads of the item, as maximum deepth of latex itemize is 3
   cut_heads "$name" #returns $item and $spaces
   desc="$(csg_property --file $xmlfile --path $name.DESC --print . --short)"
-  [[ -z $desc ]] && continue
   echo -n "${spaces}- target(${name})(**${item}**) "
   default="$(csg_property --file $xmlfile --path $name --print . --short | \
     sed -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]$//')"
