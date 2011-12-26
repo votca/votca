@@ -196,7 +196,7 @@ for_all (){ #do something for all interactions (1st argument)
     #check that type is bonded or non-bonded
     [[ $bondtype = "non-bonded" || $bondtype = "bonded" ]] || die  "for_all: Argument 1 is not non-bonded or bonded"
     [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
-    interactions=( $(csg_get_property --allow-empty cg.$bondtype.name) )
+    interactions=( $(csg_get_property --allow-empty cg.$bondtype.name) ) #filter me away
     for name in "${interactions[@]}"; do
       #print this message to stderr to avoid problem with $(for_all something)
       [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
@@ -231,7 +231,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     [[ $1 = "bondtype" ]] && die "${FUNCNAME[0]}: --all + bondtype not implemented yet"
     local t
     for t in non-bonded bonded; do
-      ret+=" $(csg_get_property --allow-empty "cg.$t.$1")"
+      ret+=" $(csg_get_property --allow-empty "cg.$t.$1")" #filter me away
     done
     ret="$(echo "$ret" | trim_all)"
     [[ -z $ret ]] && die "${FUNCNAME[0]}: Not a single interaction has a value for the property $1"
