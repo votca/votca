@@ -61,7 +61,6 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>3.0</table_end>
-      <!-- topology + trajectory. Be careful, do not change yet! -->
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.prep.mdp grompp.mdp topol.top table.xvg index.ndx</filelist>
