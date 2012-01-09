@@ -20,8 +20,8 @@
 
 #include "boundarycondition.h"
 
-using namespace std;
 namespace votca { namespace csg {
+using namespace std;
 using namespace votca::tools;
 
 class OpenBox : public BoundaryCondition {
