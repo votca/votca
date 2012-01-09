@@ -24,8 +24,6 @@ typedef unsigned char byte_t;
 typedef unsigned short word_t;
 typedef unsigned long dword_t;
 
-typedef double real;
-
 }}
 
 #endif	/* _types_H */
