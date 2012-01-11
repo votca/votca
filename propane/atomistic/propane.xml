@@ -1,0 +1,63 @@
+<cg_molecule>
+  <name>ppn</name>
+	<ident>ppn</ident>
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>b1</name>
+        <type>CH3</type>
+        <symmetry>1</symmetry>
+        <mapping>A</mapping>
+        <beads> 1:ppn:C1 1:ppn:H4 1:ppn:H5 1:ppn:H6 </beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>b2</name>
+        <type>CH2</type>
+        <symmetry>1</symmetry>
+        <mapping>B</mapping>
+        <beads> 1:ppn:C2 1:ppn:H7 1:ppn:H8  </beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>b3</name>
+        <type>CH3</type>
+        <symmetry>1</symmetry>
+        <mapping>A</mapping>
+        <beads> 1:ppn:C3 1:ppn:H9 1:ppn:H10 1:ppn:H11 </beads>
+      </cg_bead>
+
+    </cg_beads>
+
+    <cg_bonded>
+
+      <bond>
+        <name>bond</name>
+        <beads>
+        b1 b2
+        b3 b2
+        </beads>
+      </bond>
+
+      <angle>
+        <name>angle</name>
+        <beads>
+        b1 b2 b3
+        </beads>
+      </angle>
+
+    </cg_bonded>
+  </topology>
+
+  <maps>
+    <map>
+      <name>A</name>
+      <weights> 12 1 1 1 </weights>
+    </map>
+    
+        <map>
+      <name>B</name>
+      <weights> 12 1 1 </weights>
+    </map>
+  </maps>
+</cg_molecule>

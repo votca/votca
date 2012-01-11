@@ -30,6 +30,7 @@ methanol/ibi               boltzmann inversion for methanol
 methanol/ibi_espresso      boltzmann inversion for methanol using ESPResSo
 methanol/imc               inverse monte carlo for methanol
 
+propane/atomistic          atomistic simulations for liquid propane
 propane/ibi                iterative inverse boltzmann for nonbonded
                            interactions of liquid propane
 propante/ibi_espresso      iterative inverse boltzmann for nonbonded
