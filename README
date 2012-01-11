@@ -23,6 +23,7 @@ spce/ibi                   boltzmann inversion for SPC/E water
 spce/imc                   inverse monte carlo for SPC/E water
 spce/realtime              boltzmann inversion realtime tutorial for SPC/E water
 spce/tf                    thermodynamic force example for SPC/E water
+spce/simplex               simplex optimization for SPC/E water
 
 methanol/atomistic         atomistic simulations for methanol
 methanol/ibi               boltzmann inversion for methanol
@@ -39,7 +40,10 @@ propane/single_chain       atomistic simulations, boltzmann inversion
 hexane/atomistic           atomistic simulations for liquid hexane
 hexane/ibi                 iterative inverse boltzmann for nonbonded
                            interactions of liquid hexane
+hexane/ibi_bonded          iterative inverse boltzmann for bonded & 
+                           nonbonded interactions of liquid hexane
 
 each of the tutorials contains a run.sh which lists all commands
 needed to execute the tutorial. 
+
 
