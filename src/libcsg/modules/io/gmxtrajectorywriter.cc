@@ -40,6 +40,7 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     int N = conf->BeadCount();
     t_trxframe frame;
     rvec *x = new rvec[N];
+    rvec *v = new rvec[N];
     matrix box = conf->getBox();
     
     frame.natoms = N;
@@ -53,9 +54,9 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     frame.bAtoms=false;
     frame.bPrec=false;
     frame.bX = true;
-    frame.bV=false;
     frame.bF=false;
     frame.bBox=true;
+    frame.bV=conf->HasVel();
 
     for(int i=0; i<3; i++)
         for(int j=0; j<3; j++)
@@ -63,11 +64,21 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     
     
 for(int i=0; i<N; ++i) {
-        vec v = conf->getBead(i)->getPos();
-        x[i][0] = v.getX();
-        x[i][1] = v.getY();
-        x[i][2] = v.getZ(); 
+        vec pos = conf->getBead(i)->getPos();
+        x[i][0] = pos.getX();
+        x[i][1] = pos.getY();
+        x[i][2] = pos.getZ();
     }
+
+if (frame.bV){
+    for(int i=0; i<N; ++i) {
+        frame.v = v;
+        vec vel = conf->getBead(i)->getVel();
+        v[i][0] = vel.getX();
+        v[i][1] = vel.getY();
+        v[i][2] = vel.getZ();
+    }
+}
         
 #if GMX == 50
     write_trxframe(_file, &frame, NULL);
