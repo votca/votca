@@ -1,0 +1,71 @@
+<cg>
+  <!--fmatch section -->
+  <fmatch>
+    <constrainedLS>0</constrainedLS>
+    <!--Number of frames for block averaging -->
+    <frames_per_block>6</frames_per_block>
+  </fmatch>
+  <!-- example for a non-bonded interaction entry -->
+  <bonded>
+    <!-- name of the interaction -->
+    <name>bond</name>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.152</min>
+      <max>0.181</max>
+      <step>0.003</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </bonded>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>angle</name>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>1.627</min>
+      <max>2.134</max>
+      <step>0.06</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </bonded>
+
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CH2-CH2</name>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.298</min>
+      <max>1.19</max>
+      <step>0.05</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </non-bonded>
+
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CH3-CH3</name>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.283</min>
+      <max>1.19</max>
+      <step>0.05</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </non-bonded>
+
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CH2-CH3</name>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.291</min>
+      <max>1.19</max>
+      <step>0.05</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </non-bonded>
+
+</cg>
