@@ -38,6 +38,7 @@ foreach(DIR ${DIRS})
   string(REGEX MATCH ^[^/]* DIR ${DIR})
   file(GLOB SRC ${DIR}/*.cc)
   add_executable(${DIR} ${SRC})
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${DIR}) #needed for out-of-source build
   target_link_libraries(${DIR} ${VOTCA_CSG_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES})
   install(TARGETS ${DIR} RUNTIME DESTINATION bin)
   set_target_properties(${DIR} PROPERTIES OUTPUT_NAME ${DIR}/csg_${DIR})
