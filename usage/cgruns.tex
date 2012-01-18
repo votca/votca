@@ -80,9 +80,9 @@ Using the \progopt{xml} file above, call
 \end{verbatim}
 to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (The file will contain the \gromacs C12 parts only which are stored in the sixth und seventh column, this can be changed by adding the \progopt{--ia-type C6} option (for the fourth and fiveth column) or \progopt{--ia-type CB} option (for the second and third column) after \prog{csg_call}. Ensure compatibility with the \gromacs topology. See the \gromacs manual for further information).
 
-To obtain a bonded table, run
+To obtain a bond table, run
 \begin{verbatim}
-  csg_call --ia-type bonded --options table.xml convert_potential gromacs \
+  csg_call --ia-type bond --options table.xml convert_potential gromacs \
            table_extrapolate.pot table.xvg
 \end{verbatim}
 It is also possible to use \texttt{angle} and \texttt{dihedral} as type as well.
