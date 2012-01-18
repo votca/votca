@@ -578,6 +578,7 @@ check_path_variable() { #check if a variable contains only valid paths
     IFS=":"
     for dir in ${!var}; do
       [[ -z $dir ]] && continue
+      [[ $dir = *votca* ]] || continue #to many error otherwise
       [[ -d $dir ]] || die "${FUNCNAME[0]}: $dir from variable $var is not a directory"
     done
     IFS="$old_IFS"
