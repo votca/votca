@@ -249,9 +249,10 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     [[ -z "$bondtype" ]] && die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
     #for_all notation for any kind of bonded interaction, find the real type
     if [[ $bondtype = "bonded" ]]; then
-      [[ -z "${bondname}" ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a bondname (when calling from csg_call set it by --ia-name option) or change type to angle, bond or ..." 
-      mapping="$(csg_get_property cg.inverse.map)"
-      [[ -f "$(get_main_dir)/$mapping" ]] || die "${0##*/}: Mapping file '$mapping' for bonded interaction not found in maindir"
+      mapping="$(csg_get_property --allow-empty cg.inverse.map)" #make error message more useful
+      [[ -z ${mapping} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a mapping file to determine the actual bond type (when calling from csg_call better use --ia-type bond, angle or dihedral)"
+      [[ -f "$(get_main_dir)/$mapping" ]] || die "${FUNCNAME[0]}: Mapping file '$mapping' for bonded interaction not found in maindir"
+      [[ -z ${bondname} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a bondname (when calling from csg_call set it by --ia-name option) or change type to angle, bond or dihedral"
       [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
       local names=()
       names=$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.*.name --print . --short)
