@@ -74,6 +74,7 @@ is_part "${pot_type}" "${pot_types}" || die "${0##*/}: given potential type is n
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
+name="${1%%.*}"
 input="$1"
 [[ -f $input ]] || die "${0##*/}: Could not find input file '$input'"
 
