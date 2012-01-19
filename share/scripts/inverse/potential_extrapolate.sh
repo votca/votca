@@ -40,15 +40,7 @@ avg_points=5
 
 ### begin parsing options
 shopt -s extglob
-while [[ ${1#-} != $1 ]]; do
- if [[ ${1#--} = $1 && -n ${1:2} ]]; then
-    #short opt with arguments here: o
-    if [[ ${1#-[o]} != ${1} ]]; then
-       set -- "${1:0:2}" "${1:2}" "${@:2}"
-    else
-       set -- "${1:0:2}" "-${1:2}" "${@:2}"
-    fi
- fi
+while [[ ${1} = --* ]]; do
  case $1 in
    --clean)
     clean="yes"
@@ -57,10 +49,10 @@ while [[ ${1#-} != $1 ]]; do
     pot_type="$2"
     shift 2;;
   --avg-point)
-    avg_points=$2;
+    avg_points="$2";
     is_int "$2" || die "${0##*/}: argument of --avg-point should be int"
     shift 2;;
-   -h | --help)
+  --help)
     show_help
     exit 0;;
   *)
@@ -74,7 +66,6 @@ is_part "${pot_type}" "${pot_types}" || die "${0##*/}: given potential type is n
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-name="${1%%.*}"
 input="$1"
 [[ -f $input ]] || die "${0##*/}: Could not find input file '$input'"
 
@@ -82,9 +73,8 @@ output="$2"
 
 echo "Extrapolate $input to $output"
 
-extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
 if [[ $pot_type = "non-bonded"  ]]; then
-  intermediate="$(critical mktemp ${input}.onlyleft.XXXXX)"
+  intermediate="$(critical mktemp "${input}.onlyleft.XXXXX")"
   do_external table extrapolate --function exponential --avgpoints $avg_points --region left "${input}" "${intermediate}"
   do_external table extrapolate --function constant --avgpoints 1 --region right "${intermediate}" "${output}"
 elif [[ $pot_type = "thermforce" ]]; then
@@ -92,7 +82,7 @@ elif [[ $pot_type = "thermforce" ]]; then
 elif [[ $pot_type = "bond"  || $pot_type = "angle" || $pot_type = "dihedral" ]]; then
   do_external table extrapolate --function exponential --avgpoints $avg_points --region leftright "${input}" "${output}"
 else
-  [[ -n ${pot_types//* $pot_type *} ]] && die "${0##*/}: given potential type is not in list${pot_types}"
+  die "${0##*/}: I don't know how to extraploate potential type '$pot_type', go and implement it!"
 fi
 
 if [[ $clean = "yes" ]]; then
