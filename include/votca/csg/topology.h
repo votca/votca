@@ -342,6 +342,9 @@ public:
     bool HasVel(){return _has_vel;}
     void SetHasVel(const bool v){ _has_vel=v;}
 
+    bool HasForce(){return _has_force;}
+    void SetHasForce(const bool v){ _has_force=v;}
+
 protected:
     BoundaryCondition *_bc;
 
@@ -372,6 +375,7 @@ protected:
     double _time;
     int _step;
     bool _has_vel;
+    bool _has_force;
 };
 
 inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
