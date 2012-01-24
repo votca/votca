@@ -1,0 +1,12 @@
+<sandbox>
+	
+	<description>Sandbox to test ctp classes</description>
+
+	<sectionlabel>sandbox</sectionlabel>
+	
+	<item>
+		<name>ID</name>
+		<description>Not in use</description>
+	</item>
+
+</sandbox>

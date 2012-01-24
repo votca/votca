@@ -30,6 +30,7 @@ inline void get_orient(const vec & a, const vec & b, const vec & c, matrix & cg)
     cg.set(2, 0, a.getZ());
     cg.set(2, 1, b.getZ());
     cg.set(2, 2, c.getZ());
+    
 }
 
 SegmentType::~SegmentType() {
@@ -63,7 +64,6 @@ SegmentType::SegmentType(const char * namecoord, const char * nameorb,
 
     _id = id;
     _name = name;
-
     vector < vector < int > > ::iterator it_mon;
     vector < vector < double > > ::iterator it_mon_weights;
 
