@@ -48,10 +48,15 @@ public:
      * \return segment name
      */
     const string &getName();
+
+
     /// Adds a pointer to a fragment belonging to this segment
     void AddFragment( Fragment* fragment );
+    vector< Fragment* > &Fragments() { return _fragments; }
+
     /// Adds a pointer to an atom belonging to this segment
     void AddAtom( Atom* atom );
+    int NumberOfAtoms() { return _atoms.size(); }
 
 private:
     string _name;

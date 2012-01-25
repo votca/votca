@@ -56,9 +56,9 @@ public:
      */
     const string getName() const { return _name; }
 
-    void AddAtom( Atom* atom ) {
-        _atoms.push_back( atom );
-    }
+    void AddAtom( Atom* atom ) { _atoms.push_back( atom ); }
+    vector< Atom* > &Atoms() { return _atoms; }
+    int NumberOfAtoms() { return _atoms.size(); }
 
     /// Returns a pointer to a segment this fragment belongs to 
     Segment* getSegment(){

@@ -11,10 +11,9 @@
 #include "Md2QmEngine.h"
 
 using namespace std;
-using namespace votca::csg;
-using namespace votca::ctp;
-using namespace votca::tools;
 
+namespace CSG = votca::csg;
+namespace CTP = votca::ctp;
 
 
 class CtpMapExp : public Application
@@ -25,19 +24,20 @@ public:
     void   HelpText(ostream &out) {out << "Generates QM|MD topology" << endl;}
 
     void Initialize();
-    void Run();
     bool EvaluateOptions();
+    void Run();
+
     void BeginEvaluate() { ; }
     bool DoTrajectory() { return 0; }
     bool DoMapping() { return 0; }
 
 
 protected:
-    Property       _options;
-    Topology       _mdtopol;
-    Topology       _qmtopol;
+    Property            _options;
+    CSG::Topology       _mdtopol;
+    CTP::Topology       _qmtopol;
 
-    Md2QmEngine    _md2qm;
+    Md2QmEngine         _md2qm;
 
 };
 
@@ -45,9 +45,9 @@ namespace propt = boost::program_options;
 
 void CtpMapExp::Initialize() {
 
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
+    CSG::TrajectoryWriter::RegisterPlugins();
+    CSG::TrajectoryReader::RegisterPlugins();
+    CSG::TopologyReader::RegisterPlugins();
 
     AddProgramOptions() ("top", propt::value<string> (),
                          "  Atomistic topology file ");
@@ -76,8 +76,8 @@ void CtpMapExp::Run() {
 
     // Create topology reader
     string topfile = _op_vm["top"].as<string> ();
-    TopologyReader *topread;
-    topread = TopReaderFactory().Create(topfile);
+    CSG::TopologyReader *topread;
+    topread = CSG::TopReaderFactory().Create(topfile);
 
     if (topread == NULL) {
         throw runtime_error( string("Input format not supported: ")
@@ -96,8 +96,8 @@ void CtpMapExp::Run() {
 
     // Create trajectory reader and initialize
     string trjfile =  _op_vm["trj"].as<string> ();
-    TrajectoryReader *trjread;
-    trjread = TrjReaderFactory().Create(trjfile);
+    CSG::TrajectoryReader *trjread;
+    trjread = CSG::TrjReaderFactory().Create(trjfile);
 
     if (trjread == NULL) {
         throw runtime_error( string("Input format not supproated: ")
@@ -140,15 +140,15 @@ void CtpMapExp::Run() {
 
         throw runtime_error("Time or frame number exceeds trajectory length");
     }
-    
-    MoleculeContainer::iterator mit;
+    /*
+    CSG::MoleculeContainer::iterator mit;
     for (mit = _mdtopol.Molecules().begin();
          mit != _mdtopol.Molecules().end();
          mit++ ) {
 
-        Molecule *mol = *mit;
+        CSG::Molecule *mol = *mit;
         for (int i = 0; i < mol->BeadCount(); i++) {
-            Bead* btm = mol->getBead(i);
+            CSG::Bead* btm = mol->getBead(i);
             cout << "ATOM getId  " << btm->getId();
             cout << " | getName  " << btm->getName();
             cout << " | getMol   " << btm->getMolecule()->getId();
@@ -158,7 +158,7 @@ void CtpMapExp::Run() {
             cout << " | getPos   " << btm->getPos();
             cout << endl;
         }    
-    } 
+    }  */
     
     // ++++++++++++++++++++++++++ //
     // Convert MD- to QM Topology //
@@ -166,10 +166,12 @@ void CtpMapExp::Run() {
     
     string cgfile = _op_vm["cg"].as<string> ();
     _md2qm.Initialize(cgfile);
+    _md2qm.PrintInfo();
+    _md2qm.Md2Qm(&_mdtopol, &_qmtopol);
+
     
+
     
-    
-    cout << " +++++++ CTPMAP FINISH +++++++ " << endl;
 }
 
 

@@ -42,8 +42,17 @@ public:
     const int &getId();
     /// Returns the name of the molecule
     const string &getName();
+
+
+
     /// Adds a pointer to a segment to this molecule
-    void AddSegment( Segment* segment );
+    void AddSegment( Segment* segment );    
+    vector< Segment* > &Segments() { return _segments; }
+
+
+
+    //  Add atom to internal container
+    void AddAtom( Atom* atom);
     /// Returns a pointer to the atom
     Atom *getAtom(const int &id);
     /// Returns atom type
@@ -51,8 +60,10 @@ public:
     /// Returns atom position
     const vec getAtomPosition(const int &id);
     /// Returns number of atoms in the molecule
-    const int &NumberOfAtoms();
+    int NumberOfAtoms();
     /// Writes a PDB file
+
+
     void WritePDB( ostream & out );
     /// Load molecule coordinates from a file
     void ReadXYZ ( string filename );

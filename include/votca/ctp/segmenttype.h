@@ -65,7 +65,7 @@ private:
     /// this willA take each bead and move it to positions[i] rotating by the
     /// orientation corresponding to norm and rotate we assume that the pointer
     /// is to a suitable molecule...
-    void SegmentType(
+    SegmentType(
             vector < vec >::iterator it_pos , vector < vec >::iterator it_norm,
             vector <vec >::iterator it_plan, Segment *segment );
 

@@ -36,53 +36,25 @@ public:
     Topology();
    ~Topology();
 
-    /// Load the topology based on definitions of conjugated segments
-    void ParseSegmentDefinitions( Property &topology );
-
-     /// Creates a fragment and adds it to the topology
-    Fragment *AddFragment (int fragment_id, string fragment_name, Segment* segment);
-    /// Creates a segment and adds it to the topology
-    Segment *AddSegment (int segment_id, string segment_name);   
-    /// Creates an atom and adds it to the topology
-    Atom *AddAtom (int atom_id, string atom_name);   
-    /// Creates a molecule and adds it to the topology
     Molecule *AddMolecule (int molecule_id, string molecule_name);
-   
+    Segment  *AddSegment (int segment_id, string segment_name);
+    Atom     *AddAtom (int atom_id, string atom_name);
+    Fragment *AddFragment (int fragment_id, string fragment_name,
+                           Segment* segment);
+
     int getDatabaseId() { return _db_id; };
     void setDatabaseId(int id) { _db_id = id; }
 
    
 protected:
 
-    vector < Molecule* > _molecules;
-    vector < Segment* > _segments;
-    vector < Fragment* > _fragments;
-    vector < Atom* > _atoms;
-    
-    vector < Molecule* > _molecule_types;
-    vector < Segment* > _segment_types;
-    vector < Fragment* > _fragment_types;
-    vector < Atom* > _atom_types;
-    
-    map < string, Molecule* > _map_MoleculeName_MoleculeType;
-    map < string, string > _map_MoleculeMDName_MoleculeName;
-    
-    map < int, Segment* > _map_id_segment;
-
+    vector < Molecule* >    _molecules;
+    vector < Segment* >     _segments;
+    vector < Fragment* >    _fragments;
+    vector < Atom* >        _atoms;
 
     int _db_id;
-    /// Adds an atom type when parsing segment/fragment definitions
-    Atom *AddAtomType(Molecule *owner, int atom_id, string atom_name, 
-        int residue_number, double weight);   
-    /// Adds a fragment type for internal use (when loading segments.xml) 
-    Fragment *AddFragmentType(int fragment_id, Property *property);
-    /// Adds a segment type (when loading segments.xml)
-    Segment *AddSegmentType(int segment_id, Property *property);
-    /// Adds a molecule type (when loading segments.xml)
-    Molecule *AddMoleculeType (int molecule_id, Property *property);
-    /// Returns a pointer to a molecule type with a specified name 
-    Molecule *getMoleculeType(string name);
-   
+
 };
 
 }}

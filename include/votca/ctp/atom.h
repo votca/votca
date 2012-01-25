@@ -44,61 +44,55 @@ public:
      * constructor
      */
     Atom(Molecule *owner, int id, string name, int resnr, double weight)
-        : _mol(owner), _id(id), _name(name), _resnr(resnr), _weight(weight)
-    {
-            _bPos=false;
-    }
+        : _mol(owner), _id(id), _name(name), 
+          _resnr(resnr), _weight(weight) , _bPos(false) { }
+    
+    Atom() { }
     /**
      * destructor
      */
-    ~Atom() {
-    }
+   ~Atom() { }
 
     /**
      * get the id of the atom
      * \return bead id
      */
-    const int &getId() const { return _id; }
-    
+    const int &getId() const { return _id; }    
     /**
      * get atom name
      * \return atom name
      */
-    const string &getName() const { return _name; }
-    
+    const string &getName() const { return _name; }    
     /**
      * get the atom type
      * \return atom type 
      */
     const string &getType() const { return _type; }
-
     /**
      * get the residue number of the atom
      * \return residue id
      */
     const int &getResnr() const { return _resnr; }
 
+
+
     /**
      * set the position of the atom
      * \param r atom position
      */
     void setPos(const vec &r);
-
     /**
      * get the position of the atom
      * \return atom position
      */
-    const vec &getPos() const;
-      
+    const vec &getPos() const;      
     /**
      * direct access (read/write) to the position of the atom
      * \return reference to position 
      */
     vec &Pos() { return _pos; }
-
     /** does this configuration store positions? */
-    bool HasPos() {return _bPos; }
-           
+    bool HasPos() {return _bPos; }           
     /** dose the bead store a position */
     void HasPos(bool b);
 

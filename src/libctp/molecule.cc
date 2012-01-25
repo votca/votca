@@ -32,7 +32,8 @@ Molecule::~Molecule() {
     _segments.clear();
     
     // clean up the list of atoms 
-    cout << "  molecule destructor: deleting " << NumberOfAtoms() << " atoms" << endl;
+    //cout << "  molecule destructor: deleting "
+    //     << NumberOfAtoms() << " atoms" << endl;
     
     //cout << "   deleting atom: ";
     vector < Atom* > :: iterator atom;
@@ -59,6 +60,10 @@ void Molecule::AddSegment( Segment* segment ) {
     _segments.push_back( segment );
 }
 
+void Molecule::AddAtom(Atom *atom ) {
+    _atoms.push_back(atom);
+}
+
 /// Returns a pointer to the atom
 Atom *Molecule::getAtom(const int &id) {
     throw runtime_error( string("Not implemented") ); 
@@ -75,7 +80,7 @@ const vec Molecule::getAtomPosition(const int &id) {
 }
 
 /// Returns number of atoms in the molecule
-const int &Molecule::NumberOfAtoms() {
+int Molecule::NumberOfAtoms() {
     return _atoms.size(); 
 }
 
