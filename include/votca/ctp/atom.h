@@ -43,9 +43,14 @@ public:
     /**
      * constructor
      */
-    Atom(Molecule *owner, int id, string name, int resnr, double weight)
-        : _mol(owner), _id(id), _name(name), 
-          _resnr(resnr), _weight(weight) , _bPos(false) { }
+    Atom(Molecule *owner,       int resnr,
+         string md_atom_name,   int md_atom_id,
+         bool hasQMPart,        int qm_atom_id,
+         double weight)
+       : _mol(owner),          _resnr(resnr),
+         _name(md_atom_name),  _id(md_atom_id),
+         _hasQM(hasQMPart),    _qmId(qm_atom_id),
+         _weight(weight),      _bPos(false) { }
     
     Atom() { }
     /**
@@ -96,7 +101,9 @@ public:
     /** dose the bead store a position */
     void HasPos(bool b);
 
-  
+
+    bool HasQMPart() { return _hasQM; }
+    const int &getQMId() { return _qmId; }
     /**
      * molecule the bead belongs to
      * \return Molecule object
@@ -104,32 +111,32 @@ public:
     Molecule *getMolecule() { return _mol; }
 
 protected:
-    int _id;
-    Molecule *_mol;
+    int         _id;
+    Molecule   *_mol;
     
-    string _name;
-    string _type;
-    int _resnr;
-    double _weight;
-    vec _pos;
-    bool _bPos;
+    string      _name;
+    string      _type;
+    int         _resnr;
+    double      _weight;
+    vec         _pos;
+    bool        _bPos;
+
+    bool        _hasQM;
+    int         _qmId;
         
 };
 
-inline void Atom::setPos(const vec &r)
-{
+inline void Atom::setPos(const vec &r) {
     _bPos=true;
     _pos = r;
 }
 
-inline const vec &Atom::getPos() const
-{
+inline const vec &Atom::getPos() const {
     assert(_bPos);
     return _pos;
 }
 
-inline void Atom::HasPos(bool b)
-{
+inline void Atom::HasPos(bool b) {
     _bPos=b;
 }
 

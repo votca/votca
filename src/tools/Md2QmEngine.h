@@ -44,20 +44,26 @@ private:
     vector < CTP::Atom* >     _atom_types;
 
     // MD <-> QM Maps
-    map < string, CTP::Molecule* > _map_MoleculeName_MoleculeType;
-    map < string, string >         _map_MoleculeMDName_MoleculeName;
-    map < int, CTP::Segment* >     _map_id_segment;
+    map < string, map < int, map < string, CTP::Atom* > > >
+                                            _map_mol_resNr_atm_atmType;
+    map < string, CTP::Molecule* >          _map_MoleculeName_MoleculeType;
+    map < string, string >                  _map_MoleculeMDName_MoleculeName;
+    map < int, CTP::Segment* >              _map_id_segment;
+
 
     // Type Creators
     CTP::Molecule  *AddMoleculeType(int molecule_id, Property *property);
     CTP::Segment   *AddSegmentType(int segment_id, Property *property);
     CTP::Fragment  *AddFragmentType(int fragment_id, Property *property);
-    CTP::Atom      *AddAtomType(CTP::Molecule *owner, int atom_id,
-                                string atom_name, int residue_number,
+    CTP::Atom      *AddAtomType(CTP::Molecule *owner,   int residue_number,
+                                string md_atom_name,    int md_atom_id,
+                                bool hasQMPart,         int qm_atom_id,
                                 double weight);
 
     const string   &getMoleculeName(const string &mdname);
     CTP::Molecule  *getMoleculeType(const string &name);
+    CTP::Atom      *getAtomType(const string &molMdName,
+                                int resNr, const string &mdAtomName);
     
 };
 

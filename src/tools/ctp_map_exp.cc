@@ -160,9 +160,9 @@ void CtpMapExp::Run() {
         }    
     }  */
     
-    // ++++++++++++++++++++++++++ //
-    // Convert MD- to QM Topology //
-    // ++++++++++++++++++++++++++ //
+    // +++++++++++++++++++++++++ //
+    // Convert MD to QM Topology //
+    // +++++++++++++++++++++++++ //
     
     string cgfile = _op_vm["cg"].as<string> ();
     _md2qm.Initialize(cgfile);
