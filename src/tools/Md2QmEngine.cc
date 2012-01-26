@@ -192,7 +192,8 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                }
 
                // Create atom
-               CTP::Atom *atom = AddAtomType(molecule,     residue_number,
+               CTP::Atom *atom = AddAtomType(molecule,
+                                             residue_name, residue_number,
                                              md_atom_name, md_atom_id++,
                                              hasQMPart,    qm_atom_id,
                                              weight);
@@ -340,6 +341,7 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
 
                 newAtom->setWeight(refAtom->getWeight());
                 newAtom->setResnr(refAtom->getResnr());
+                newAtom->setResname(refAtom->getResname());
                 if (refAtom->HasQMPart()) {
                     newAtom->setQMPart(refAtom->getQMId());
                 }
@@ -359,11 +361,13 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
 
 
 
-CTP::Atom *Md2QmEngine::AddAtomType(CTP::Molecule *owner, int residue_number,
+CTP::Atom *Md2QmEngine::AddAtomType(CTP::Molecule *owner,
+                                    string residue_name,  int residue_number,
                                     string md_atom_name,  int md_atom_id,
                                     bool hasQMPart,       int qm_atom_id,
                                     double weight) {
-    CTP::Atom* atom = new CTP::Atom(owner,                residue_number,
+    CTP::Atom* atom = new CTP::Atom(owner,
+                                    residue_name,         residue_number,
                                     md_atom_name,         md_atom_id,
                                     hasQMPart,            qm_atom_id,
                                     weight);
@@ -449,6 +453,14 @@ void Md2QmEngine::PrintInfo() {
          << _fragment_types.size() << " fragments, "
          << _atom_types.size() << " atoms. \n" << endl;
 
+    map < string, string > ::iterator mssit;
+    for (mssit = this->_map_MoleculeMDName_MoleculeName.begin();
+         mssit != this->_map_MoleculeMDName_MoleculeName.end();
+         mssit ++) {
+         cout << "MD [ " << mssit->first << " ] mapped to "
+              << "QM [ " << mssit->second << " ] \n" << endl;
+    }
+
     for (mit = _molecule_types.begin();
          mit != _molecule_types.end();
          mit++) {
@@ -473,14 +485,7 @@ void Md2QmEngine::PrintInfo() {
          }
     }
 
-    map < string, string > ::iterator mssit;
-    for (mssit = this->_map_MoleculeMDName_MoleculeName.begin();
-         mssit != this->_map_MoleculeMDName_MoleculeName.end();
-         mssit ++) {
-         cout << "MD [ " << mssit->first << " ] mapped to "
-              << "QM [ " << mssit->second << " ] " << endl;
-    }
-
+    cout << endl << "Mapping table" << endl;
     map < string, map < int, map < string, CTP::Atom* > > > ::iterator it0;
     for (it0 = this->_map_mol_resNr_atm_atmType.begin();
          it0 != this->_map_mol_resNr_atm_atmType.end();
@@ -493,44 +498,45 @@ void Md2QmEngine::PrintInfo() {
               for (it2 = it1->second.begin();
                    it2 != it1->second.end();
                    it2++) {
-                  cout << "MD mol.name " << it0->first
-                       << " | MD res.number " << it1->first
-                       << " | MD atm.name " << it2->first
-                       << " | MD id " << it2->second->getId()
-                       << " => QM atm.id " << it2->second->getQMId()
-                       << endl;
+
+       printf( "MD Molecule %4s | Residue %2d | Atom %3s "
+                               "| ID %3d => QM ID %3d \n",
+               it0->first.c_str(),
+               it2->second->getResnr(),
+               it2->first.c_str(),
+               it2->second->getId(),
+               it2->second->getQMId());
              }
          }
     }
-
-
 }
 
+void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
 
-
-void Md2QmEngine::CheckProduct(CTP::Topology *outtop) {
+    FILE *outPDB = fopen(pdbfile.c_str(), "w");
 
     vector<CTP::Molecule*> ::iterator molIt;
-
     for (molIt = outtop->Molecules().begin();
          molIt < outtop->Molecules().end();
          molIt++) {
         CTP::Molecule *mol = *molIt;
-
-        string molName = mol->getName();
-        int molId = mol->getId();
-        int atmCount = mol->Atoms().size();
-        int segCount = mol->Segments().size();
-        int fragCount = mol->Fragments().size();
-
-
-        cout << "MD/QM MOL '" << molName << "' ID " << molId << ": "
-             << " # Seg.s " << segCount
-             << " # Frag.s " << fragCount
-             << " # Atoms " << atmCount
-             << endl;
+        mol->WritePDB(outPDB);
     }
 
+    fprintf(outPDB, "\n");
+    fclose(outPDB);
 
+    if (true) {
+
+        cout << endl;
+        this->PrintInfo();
+        cout << endl;
+        cout << "Topology info" << endl;
+        cout << "Database ID:         " << outtop->getDatabaseId() << endl;
+        cout << "Mol.s in topology:   " << outtop->Molecules().size() << endl;
+        cout << "Seg.s in topology:   " << outtop->Segments().size() << endl;
+        cout << "Frag.s in topology:  " << outtop->Fragments().size() << endl;
+        cout << "Atoms in topology:   " << outtop->Atoms().size() << endl;
+    }
 }
 

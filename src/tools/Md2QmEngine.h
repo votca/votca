@@ -25,7 +25,7 @@ public:
     CTP::Molecule  *MoleculeFactory(CSG::Molecule *molMDTemplate);
     CTP::Molecule  *ExportMolecule(CTP::Molecule *molQM, CTP::Topology *qmtop);
 
-    void CheckProduct(CTP::Topology *outtop);
+    void CheckProduct(CTP::Topology *outtop, const string &pdbfile);
 
 
 private:
@@ -50,7 +50,8 @@ private:
     CTP::Molecule  *AddMoleculeType(int molecule_id, Property *property);
     CTP::Segment   *AddSegmentType(int segment_id, Property *property);
     CTP::Fragment  *AddFragmentType(int fragment_id, Property *property);
-    CTP::Atom      *AddAtomType(CTP::Molecule *owner,   int residue_number,
+    CTP::Atom      *AddAtomType(CTP::Molecule *owner,
+                                string residue_name,    int residue_number,
                                 string md_atom_name,    int md_atom_id,
                                 bool hasQMPart,         int qm_atom_id,
                                 double weight);

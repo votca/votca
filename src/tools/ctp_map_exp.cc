@@ -55,6 +55,8 @@ void CtpMapExp::Initialize() {
                          "  Coarse-Graining definitions ");
     AddProgramOptions() ("file,f", propt::value<string> (),
                          "  SQLite state file ");
+    AddProgramOptions() ("check", propt::value<string> (),
+                         "  Extra info + PDB output ");
 }
 
 bool CtpMapExp::EvaluateOptions() {
@@ -138,25 +140,6 @@ void CtpMapExp::Run() {
 
         throw runtime_error("Time or frame number exceeds trajectory length");
     }
-    /*
-    CSG::MoleculeContainer::iterator mit;
-    for (mit = _mdtopol.Molecules().begin();
-         mit != _mdtopol.Molecules().end();
-         mit++ ) {
-
-        CSG::Molecule *mol = *mit;
-        for (int i = 0; i < mol->BeadCount(); i++) {
-            CSG::Bead* btm = mol->getBead(i);
-            cout << "ATOM getId  " << btm->getId();
-            cout << " | getName  " << btm->getName();
-            cout << " | getMol   " << btm->getMolecule()->getId();
-            cout << " | MolName  " << btm->getMolecule()->getName();
-            cout << " | getResnr " << btm->getResnr();
-            cout << " | getType  " << btm->getType()->getName();
-            cout << " | getPos   " << btm->getPos();
-            cout << endl;
-        }    
-    }  */
     
     // +++++++++++++++++++++++++ //
     // Convert MD to QM Topology //
@@ -164,13 +147,11 @@ void CtpMapExp::Run() {
     
     string cgfile = _op_vm["cg"].as<string> ();
     _md2qm.Initialize(cgfile);
-    //_md2qm.PrintInfo();
     _md2qm.Md2Qm(&_mdtopol, &_qmtopol);
-    _md2qm.CheckProduct(&_qmtopol);
-
-    
-
-    
+    if (_op_vm.count("check")) {
+        string pdbfile = _op_vm["check"].as<string> ();
+        _md2qm.CheckProduct(&_qmtopol, pdbfile);
+    }    
 }
 
 

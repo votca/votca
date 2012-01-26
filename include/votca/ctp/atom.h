@@ -49,14 +49,16 @@ public:
     /**
      * constructor
      */
-    Atom(Molecule *owner,       int resnr,
+    Atom(Molecule *owner,
+         string residue_name,   int resnr,
          string md_atom_name,   int md_atom_id,
          bool hasQMPart,        int qm_atom_id,
          double weight)
-       : _mol(owner),          _resnr(resnr),
-         _name(md_atom_name),  _id(md_atom_id),
-         _hasQM(hasQMPart),    _qmId(qm_atom_id),
-         _weight(weight),      _bPos(false) { }
+       : _mol(owner),
+         _resname(residue_name), _resnr(resnr),
+         _name(md_atom_name),    _id(md_atom_id),
+         _hasQM(hasQMPart),      _qmId(qm_atom_id),
+         _weight(weight),        _bPos(false) { }
     
     Atom(int atom_id,   string atom_name)
        : _id(atom_id),  _name(atom_name),
@@ -98,12 +100,14 @@ public:
     inline void setFragment(Fragment *container) { _frag = container; }
 
     inline void setResnr(const int &resnr) { _resnr = resnr; }
+    inline void setResname(const string &resname) { _resname = resname; }
     inline void setWeight(const double &weight) { _weight = weight; }
     inline void setQMPart(const int &qmid) { _hasQM = true; _qmId = qmid; }
-
-    inline const int &getResnr() { return _resnr; }
+    
+    inline const int    &getResnr() { return _resnr; }
+    inline const string &getResname() { return _resname; }
     inline const double &getWeight() { return _weight; }
-    inline const int &getQMId() { return _qmId; }
+    inline const int    &getQMId() { return _qmId; }
 
 
 
@@ -152,6 +156,7 @@ protected:
 
     string      _type;
     int         _resnr;
+    string      _resname;
     double      _weight;
     vec         _pos;
     bool        _bPos;

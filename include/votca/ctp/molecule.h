@@ -74,7 +74,7 @@ public:
     /// Writes a PDB file
 
 
-    void WritePDB( ostream & out );
+    void WritePDB( FILE *out );
     /// Load molecule coordinates from a file
     void ReadXYZ ( string filename );
 
