@@ -53,28 +53,35 @@ Topology::~Topology() {
 }
 
 
-Fragment *Topology::AddFragment(int fragment_id, string fragment_name,
-                                Segment* segment) {
+Fragment *Topology::AddFragment(string fragment_name) {
+    int fragment_id = _fragments.size() + 1;
     Fragment* fragment = new Fragment(fragment_id, fragment_name);
     _fragments.push_back(fragment);
+    fragment->setTopology(this);
     return fragment;
 }
 
-Segment *Topology::AddSegment(int segment_id, string segment_name) {
+Segment *Topology::AddSegment(string segment_name) {
+    int segment_id = _segments.size() + 1;
     Segment* segment = new Segment(segment_id, segment_name);
     _segments.push_back(segment);
+    segment->setTopology(this);
     return segment;
 }
 
-Atom *Topology::AddAtom(int atom_id, string atom_name) {
-    Atom *atom = new Atom;
+Atom *Topology::AddAtom(string atom_name) {
+    int atom_id = _atoms.size() + 1;
+    Atom *atom = new Atom(atom_id, atom_name);
     _atoms.push_back(atom);
+    atom->setTopology(this);
     return atom;
 }
 
-Molecule *Topology::AddMolecule(int molecule_id, string molecule_name) {
-    Molecule *molecule = new Molecule(molecule_id++, molecule_name);
+Molecule *Topology::AddMolecule(string molecule_name) {
+    int molecule_id = _molecules.size() + 1;
+    Molecule *molecule = new Molecule(molecule_id, molecule_name);
     _molecules.push_back(molecule);
+    molecule->setTopology(this);
     return molecule;
 }
 

@@ -36,11 +36,17 @@ public:
     Topology();
    ~Topology();
 
-    Molecule *AddMolecule (int molecule_id, string molecule_name);
-    Segment  *AddSegment (int segment_id, string segment_name);
-    Atom     *AddAtom (int atom_id, string atom_name);
-    Fragment *AddFragment (int fragment_id, string fragment_name,
-                           Segment* segment);
+    Molecule *AddMolecule (string molecule_name);
+    Segment  *AddSegment  (string segment_name);
+    Atom     *AddAtom     (string atom_name);
+    Fragment *AddFragment (string fragment_name);
+
+
+    vector< Atom* >         &Atoms() { return _atoms; }
+    vector< Fragment* >     &Fragments() { return _fragments; }
+    vector< Segment* >      &Segments() { return _segments; }
+    vector< Molecule * >    &Molecules() { return _molecules; }
+
 
     int getDatabaseId() { return _db_id; };
     void setDatabaseId(int id) { _db_id = id; }

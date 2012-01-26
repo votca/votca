@@ -25,11 +25,17 @@
 #include <votca/tools/property.h>
 
 
+
+
 namespace votca { namespace ctp {
 using namespace votca::tools;
 
 using namespace std;
+
+class Topology;
 class Molecule;
+class Segment;
+class Fragment;
 
 /**
     \brief information about an atom
@@ -52,7 +58,11 @@ public:
          _hasQM(hasQMPart),    _qmId(qm_atom_id),
          _weight(weight),      _bPos(false) { }
     
-    Atom() { }
+    Atom(int atom_id,   string atom_name)
+       : _id(atom_id),  _name(atom_name),
+         _hasQM(false), _qmId(-1) { }
+
+
     /**
      * destructor
      */
@@ -81,16 +91,32 @@ public:
 
 
 
+
+    inline void setTopology(Topology *container) { _top = container; }
+    inline void setMolecule(Molecule *container) { _mol = container; }
+    inline void setSegment(Segment *container)   { _seg = container; }
+    inline void setFragment(Fragment *container) { _frag = container; }
+
+    inline void setResnr(const int &resnr) { _resnr = resnr; }
+    inline void setWeight(const double &weight) { _weight = weight; }
+    inline void setQMPart(const int &qmid) { _hasQM = true; _qmId = qmid; }
+
+    inline const int &getResnr() { return _resnr; }
+    inline const double &getWeight() { return _weight; }
+    inline const int &getQMId() { return _qmId; }
+
+
+
+    /**
+     * get the position of the atom
+     * \return atom position
+     */
+    const vec &getPos() const;
     /**
      * set the position of the atom
      * \param r atom position
      */
     void setPos(const vec &r);
-    /**
-     * get the position of the atom
-     * \return atom position
-     */
-    const vec &getPos() const;      
     /**
      * direct access (read/write) to the position of the atom
      * \return reference to position 
@@ -103,18 +129,27 @@ public:
 
 
     bool HasQMPart() { return _hasQM; }
-    const int &getQMId() { return _qmId; }
     /**
      * molecule the bead belongs to
      * \return Molecule object
      */
     Molecule *getMolecule() { return _mol; }
 
+
+
+
+
+
+
 protected:
     int         _id;
-    Molecule   *_mol;
-    
     string      _name;
+
+    Topology   *_top;
+    Molecule   *_mol;
+    Segment    *_seg;
+    Fragment   *_frag;    
+
     string      _type;
     int         _resnr;
     double      _weight;

@@ -19,11 +19,16 @@
 #define	__VOTCA_CTP_SEGMENT_H
 
 #include<votca/ctp/fragment.h>
+#include<votca/ctp/atom.h>
+
+class Topology;
 
 namespace votca { namespace ctp {
 
-class Molecule;   
-class Atom;   
+
+class Molecule;  
+
+ 
     
 /**
     \brief Conjugated segment. One conjugated segment contains several rigid fragments.
@@ -50,27 +55,32 @@ public:
     const string &getName();
 
 
-    /// Adds a pointer to a fragment belonging to this segment
-    void AddFragment( Fragment* fragment );
-    vector< Fragment* > &Fragments() { return _fragments; }
 
-    /// Adds a pointer to an atom belonging to this segment
+    void AddFragment( Fragment* fragment );
     void AddAtom( Atom* atom );
+
+    vector< Fragment* > &Fragments() { return _fragments; }
+    vector < Atom* > &Atoms() { return _atoms; }
+    
     int NumberOfAtoms() { return _atoms.size(); }
 
+
+    inline void setTopology(Topology *container) { _top = container; }
+    inline void setMolecule(Molecule *container) { _mol = container; }
+
 private:
-    string _name;
-    /// Conjugated segment ID
-    int _id;  
-    /// position of a segment
-    vec _pos;
-    /// List of rigid fragments which belong to this segment
-    vector < Fragment* > _fragments;
-    /// List of atoms which belong to this segment
-    vector < Atom* > _atoms;
-   /// Molecule this Segment belongs to
-    Molecule *_molecule;
-    /// Name of the conjugated segment       
+
+    Topology    *_top;
+    Molecule    *_mol;
+
+    vector < Fragment* >    _fragments;
+    vector < Atom* >        _atoms;
+
+    string      _name;
+    int         _id;
+    vec         _pos;
+    
+
 };
 
 }}

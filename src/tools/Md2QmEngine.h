@@ -5,7 +5,7 @@
 #include <votca/tools/property.h>
 #include <votca/ctp/statesaversqlite.h>
 #include <votca/moo/units.h>
-#include <votca/ctp/molecule.h>
+#include <votca/ctp/topology.h>
 
 
 namespace CTP = votca::ctp;
@@ -18,20 +18,15 @@ public:
     Md2QmEngine() { };
    ~Md2QmEngine();
 
-    /**
-     * Load properties from --cg xmlfile
-     */
     void Initialize(const string &xmlfile);
-
-    /**
-     * Map mdtop to qmtop using typology
-     */
-    void Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop);
-
-    /**
-     * Print info on types
-     */
     void PrintInfo();
+
+    void            Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop);
+    CTP::Molecule  *MoleculeFactory(CSG::Molecule *molMDTemplate);
+    CTP::Molecule  *ExportMolecule(CTP::Molecule *molQM, CTP::Topology *qmtop);
+
+    void CheckProduct(CTP::Topology *outtop);
+
 
 private:
 
@@ -64,7 +59,8 @@ private:
     CTP::Molecule  *getMoleculeType(const string &name);
     CTP::Atom      *getAtomType(const string &molMdName,
                                 int resNr, const string &mdAtomName);
-    
+
+
 };
 
 #endif /* _MD2QMENGINE_H */

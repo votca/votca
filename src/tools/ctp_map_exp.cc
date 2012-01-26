@@ -2,8 +2,6 @@
 #include <fstream>
 #include <stdexcept>
 
-#include <votca/ctp/qmtopology.h>
-#include <votca/csg/csgapplication.h>
 #include "votca/tools/application.h"
 #include <votca/csg/trajectorywriter.h>
 #include <votca/csg/trajectoryreader.h>
@@ -166,8 +164,9 @@ void CtpMapExp::Run() {
     
     string cgfile = _op_vm["cg"].as<string> ();
     _md2qm.Initialize(cgfile);
-    _md2qm.PrintInfo();
+    //_md2qm.PrintInfo();
     _md2qm.Md2Qm(&_mdtopol, &_qmtopol);
+    _md2qm.CheckProduct(&_qmtopol);
 
     
 

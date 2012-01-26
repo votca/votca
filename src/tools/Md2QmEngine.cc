@@ -1,7 +1,9 @@
 #include "Md2QmEngine.h"
 
 
-
+/**
+ * Clears all engine template ('type') containers.
+ */
 Md2QmEngine::~Md2QmEngine() {
 
     vector < CTP::Fragment* > :: iterator fragment;
@@ -9,47 +11,41 @@ Md2QmEngine::~Md2QmEngine() {
     vector < CTP::Molecule* > :: iterator molecule;
 
     // Clean up list of fragment types
-    // cout << " * Typology: deleting fragment types: ";
     for (fragment = _fragment_types.begin();
          fragment < _fragment_types.end();
          ++fragment) {
-         //cout << (*fragment)->getId() << ":"
-         //     << (*fragment)->getName() << " ";
          delete *fragment;
     }
-    //cout << endl;
     _fragment_types.clear();
 
     // Clean up list of segment types
-    // cout << " * Typology: deleting segment types: ";
     for (segment = _segment_types.begin();
          segment < _segment_types.end();
          ++segment) {
-         //cout << (*segment)->getId() << ":"
-         //     << (*segment)->getName() << " ";
          delete *segment;
     }
-    //cout << endl;
     _segment_types.clear();
 
-    // Clean up list of molecule types; this also deletes atoms
-    // cout << " * Typology: deleting molecule types: ";
+    // Clean up list of molecule types (also deletes atoms)
     for (molecule = _molecule_types.begin();
          molecule < _molecule_types.end(); ++molecule){
-         //cout << (*molecule)->getId() << ":"
-         //     << (*molecule)->getName() << " ";
          delete *molecule;
     }
-    //cout << endl;
     _molecule_types.clear();
 
-    // clean up the map of the molecule md name : pointer to molecule type
+    // clean up maps
     _map_MoleculeName_MoleculeType.clear();
     _map_MoleculeMDName_MoleculeName.clear();
-
 }
 
 
+
+/**
+ * Reads in mapping .xml file to generate molecule, segment, fragment and
+ * atom templates ('types') that contain all necessary information to
+ * start mapping, except coordinates.
+ * @param xmlfile
+ */
 void Md2QmEngine::Initialize(const string &xmlfile) {
 
     Property typology;
@@ -79,6 +75,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
        list<Property *> segments = (*it_molecule)->Select(key);
        list<Property *>::iterator it_segment;
        int segment_id = 1;
+       int md_atom_id = 1; // <- atom id count with respect to molecule
 
        for ( it_segment = segments.begin();
              it_segment != segments.end();
@@ -101,9 +98,9 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                it_fragment != fragments.end();
                ++it_fragment ) {
 
-             // Create new fragment
-             CTP::Fragment* fragment=AddFragmentType(fragment_id,*it_fragment);
-             segment->AddFragment( fragment );
+            // Create new fragment
+            CTP::Fragment* fragment=AddFragmentType(fragment_id++,*it_fragment);
+            segment->AddFragment( fragment );
 
              // ++++++++++ //
              // Load atoms //
@@ -147,7 +144,6 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
              vector<string> ::iterator it_md_atom_name;
              vector<string> ::iterator it_qm_atom_name;
              vector<string> ::iterator it_atom_weight;
-             int md_atom_id = 1;
 
              for ( it_md_atom_name = md_atoms_info.begin(),
                    it_qm_atom_name = qm_atoms_info.begin(),
@@ -197,7 +193,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
 
                // Create atom
                CTP::Atom *atom = AddAtomType(molecule,     residue_number,
-                                             md_atom_name, md_atom_id,
+                                             md_atom_name, md_atom_id++,
                                              hasQMPart,    qm_atom_id,
                                              weight);
 
@@ -231,15 +227,17 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
        } /* exit loop over segments */
 
     } /* exit loop over molecules */
-
 }
 
 
 
-
-
-
-
+/**
+ * Using the templates for molecules, segments, ... generated in
+ * ::Initialize, Md2Qm maps the MD topology to the initially empty
+ * MD/QM Topology. Calls ::MoleculeFactory and ::ExportMolecule.
+ * @param mdtop
+ * @param qmtop
+ */
 void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
 
     int globalMolID = 0;
@@ -257,47 +255,107 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
          string nameMolMD = molMD->getName();
 
          // Find QM counterpart
-         string nameMolQM = this->getMoleculeName(nameMolMD);
-         CTP::Molecule *MolQM = this->getMoleculeType(nameMolQM);
+         CTP::Molecule *molQM = this->MoleculeFactory(molMD);
+         string nameMolQM = molQM->getName();
 
-         int resnrOffset = molMD->getBead(0)->getResnr();
-
-
-
-
-        for (int i = 0; i < molMD->BeadCount(); i++) {
-             CSG::Bead* atomMD = molMD->getBead(i);
-
-
-
-
-
-
-
-/*
-            cout << "ATOM getId  " << atomMD->getId();
-            cout << " | getName  " << atomMD->getName();
-            cout << " | getMol   " << atomMD->getMolecule()->getId();
-            cout << " | MolName  " << atomMD->getMolecule()->getName();
-            cout << " | getResnr " << atomMD->getResnr();
-            cout << " | getType  " << atomMD->getType()->getName();
-            cout << " | getPos   " << atomMD->getPos();
-            cout << endl;*/
-        }
+         CTP::Molecule *product = this->ExportMolecule(molQM, qmtop);
     }
 }
 
 
 
+/**
+ * Takes MD molecule, finds QM counterpart, fills out atom positions.
+ * @param molMDTemplate
+ * @return molQMTemplate
+ */
+CTP::Molecule *Md2QmEngine::MoleculeFactory(CSG::Molecule *molMDTemplate) {
+
+    string nameMolQM = this->getMoleculeName(molMDTemplate->getName());
+    CTP::Molecule *molQMTemplate = this->getMoleculeType(nameMolQM);
+
+    int resnrOffset = molMDTemplate->getBead(0)->getResnr();
+
+    for (int i = 0; i < molMDTemplate->BeadCount(); i++) {
+        CSG::Bead *atomMD = molMDTemplate->getBead(i);
+        try {
+            CTP::Atom *counterpart =
+                 this->getAtomType(molMDTemplate->getName(),
+                                   atomMD->getResnr()-resnrOffset+1,
+                                   atomMD->getName());
+            counterpart->setPos(atomMD->getPos());
+        }
+        catch (out_of_range) {
+            cout << "WARNING: No mapping instruction found for atom "
+                 << atomMD->getName() << " in residue number "
+                 << atomMD->getResnr() << " in molecule "
+                 << molMDTemplate->getName() << ". Skipping..."
+                 << endl;
+        }
+    }
+    return molQMTemplate;
+}
 
 
 
+/**
+ * Takes QM molecule template as reference, and step by step adds 'new'
+ * copies of all segments, fragments, atoms within that molecule to
+ * the target topology.
+ * @param refMol
+ * @param qmtop
+ * @return
+ */
+CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
+                                           CTP::Topology *qmtop) {
 
+    CTP::Molecule *newMol = qmtop->AddMolecule(refMol->getName());
 
+    // Note: The topology is responsible for allocating IDs to
+    //       molecules, segments, ...
+    
+    vector<CTP::Segment *> ::iterator segIt;
+    for (segIt = refMol->Segments().begin();
+         segIt < refMol->Segments().end();
+         segIt++) {
 
+        CTP::Segment *refSeg = *segIt;
+        CTP::Segment *newSeg = qmtop->AddSegment(refSeg->getName());
 
+        vector<CTP::Fragment *> ::iterator fragIt;
+        for (fragIt = refSeg->Fragments().begin();
+             fragIt < refSeg->Fragments().end();
+             fragIt++) {
 
+            CTP::Fragment *refFrag = *fragIt;
+            CTP::Fragment *newFrag = qmtop->AddFragment(refFrag->getName());
 
+            vector<CTP::Atom *> ::iterator atomIt;
+            for (atomIt = refFrag->Atoms().begin();
+                 atomIt < refFrag->Atoms().end();
+                 atomIt++) {
+
+                CTP::Atom *refAtom = *atomIt;
+                CTP::Atom *newAtom = qmtop->AddAtom(refAtom->getName());
+
+                newAtom->setWeight(refAtom->getWeight());
+                newAtom->setResnr(refAtom->getResnr());
+                if (refAtom->HasQMPart()) {
+                    newAtom->setQMPart(refAtom->getQMId());
+                }
+                newAtom->setPos(refAtom->getPos());
+
+                newFrag->AddAtom(newAtom);
+                newSeg->AddAtom(newAtom);
+                newMol->AddAtom(newAtom);
+            } /* exit loop over template atoms */
+            newSeg->AddFragment(newFrag);
+            newMol->AddFragment(newFrag);
+        } /* exit loop over template fragments */
+        newMol->AddSegment(newSeg);
+    } /* exit loop over template molecules */
+
+}
 
 
 
@@ -321,7 +379,8 @@ CTP::Fragment *Md2QmEngine::AddFragmentType(int fragment_id,
     return fragment;
 }
 
-CTP::Segment *Md2QmEngine::AddSegmentType(int segment_id, Property *property) {
+CTP::Segment  *Md2QmEngine::AddSegmentType(int segment_id,
+                                           Property *property) {
     string segment_name = property->get("name").as<string>();
     CTP::Segment* segment = new CTP::Segment(segment_id, segment_name);
     _segment_types.push_back(segment);
@@ -400,14 +459,16 @@ void Md2QmEngine::PrintInfo() {
               sit != mol->Segments().end();
               sit++) {
               CTP::Segment *seg = *sit;
-              cout << " - Segment [ " << seg->getName() << " ]" << endl;
+              cout << " - Segment [ " << seg->getName() << " ]"
+                   << " ID " << seg->getId() << endl;
 
               for (fit = seg->Fragments().begin();
                    fit != seg->Fragments().end();
                    fit++ ) {
                    CTP::Fragment *frag = *fit;
-                   cout << "   - Fragment [ " << frag->getName() << " ]: "
-                      << frag->Atoms().size() << " atoms " << endl;
+                   cout << "   - Fragment [ " << frag->getName() << " ]"
+                        << " ID " << frag->getId() << ": "
+                        << frag->Atoms().size() << " atoms " << endl;
               }
          }
     }
@@ -435,6 +496,7 @@ void Md2QmEngine::PrintInfo() {
                   cout << "MD mol.name " << it0->first
                        << " | MD res.number " << it1->first
                        << " | MD atm.name " << it2->first
+                       << " | MD id " << it2->second->getId()
                        << " => QM atm.id " << it2->second->getQMId()
                        << endl;
              }
@@ -445,4 +507,30 @@ void Md2QmEngine::PrintInfo() {
 }
 
 
+
+void Md2QmEngine::CheckProduct(CTP::Topology *outtop) {
+
+    vector<CTP::Molecule*> ::iterator molIt;
+
+    for (molIt = outtop->Molecules().begin();
+         molIt < outtop->Molecules().end();
+         molIt++) {
+        CTP::Molecule *mol = *molIt;
+
+        string molName = mol->getName();
+        int molId = mol->getId();
+        int atmCount = mol->Atoms().size();
+        int segCount = mol->Segments().size();
+        int fragCount = mol->Fragments().size();
+
+
+        cout << "MD/QM MOL '" << molName << "' ID " << molId << ": "
+             << " # Seg.s " << segCount
+             << " # Frag.s " << fragCount
+             << " # Atoms " << atmCount
+             << endl;
+    }
+
+
+}
 

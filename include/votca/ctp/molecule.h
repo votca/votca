@@ -22,8 +22,15 @@
 #include <vector>
 #include <votca/ctp/atom.h>
 #include <votca/ctp/segment.h>
+#include <votca/ctp/fragment.h>
+
+class Topology;
 
 namespace votca { namespace ctp {
+
+
+
+
 /**
     \brief Molecule is a container for atoms
 
@@ -34,8 +41,8 @@ class Molecule {
 public:
     /// Constructor
     Molecule(int id, string name) 
-        : _id(id), _name(name)
-    {}
+        : _id(id), _name(name) {}
+
     /// Destructor
     ~Molecule();
     /// Returns molecule ID
@@ -46,13 +53,16 @@ public:
 
 
     /// Adds a pointer to a segment to this molecule
-    void AddSegment( Segment* segment );    
-    vector< Segment* > &Segments() { return _segments; }
-
-
-
-    //  Add atom to internal container
+    void AddSegment( Segment* segment );
+    void AddFragment( Fragment* fragment);
     void AddAtom( Atom* atom);
+
+    vector< Atom* > &Atoms() { return _atoms; }
+    vector< Fragment* > &Fragments() { return _fragments; }
+    vector< Segment* > &Segments() { return _segments; }
+   
+    
+    
     /// Returns a pointer to the atom
     Atom *getAtom(const int &id);
     /// Returns atom type
@@ -67,19 +77,25 @@ public:
     void WritePDB( ostream & out );
     /// Load molecule coordinates from a file
     void ReadXYZ ( string filename );
-    
+
+
+    inline void setTopology(Topology *container) { _top = container; }
+
+
     
 private:
-    // molecule name
-    string _name ;
-    // molecule ID
-    int    _id;
-    // map of atom names and their IDs
+
+    Topology *_top;
+
+    vector < Segment* >   _segments;
+    vector < Fragment* >  _fragments;
+    vector < Atom* >      _atoms ;
+
+    string  _name ;
+    int     _id;
+
     map<string, Atom* > _map_AtomName_Atom;
-    // list of atoms
-    vector < Atom* > _atoms ;
-    // list of segments
-    vector < Segment* > _segments;
+
 };
 
 }}

@@ -45,10 +45,12 @@ const string &Segment::getName() {
 
 void Segment::AddFragment( Fragment* fragment ) {
     _fragments.push_back( fragment );
+    fragment->setSegment(this);
 }
 
 void Segment::AddAtom( Atom* atom ) {
     _atoms.push_back( atom );
+    atom->setSegment(this);
 }
 
 }}

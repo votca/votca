@@ -20,8 +20,12 @@
 
 #include <votca/ctp/atom.h>
 
+
+
 namespace votca { namespace ctp {
 
+class Topology;
+class Molecule;
 class Segment;
     
 /**
@@ -56,7 +60,11 @@ public:
      */
     const string getName() const { return _name; }
 
-    void AddAtom( Atom* atom ) { _atoms.push_back( atom ); }
+    void AddAtom( Atom* atom ) {
+        _atoms.push_back( atom );
+        atom->setFragment(this);
+        _weights.push_back( atom->getWeight() );
+    }
     vector< Atom* > &Atoms() { return _atoms; }
     int NumberOfAtoms() { return _atoms.size(); }
 
@@ -73,19 +81,23 @@ public:
         throw runtime_error( string("Not implemented") ); 
     }
     
-
+    inline void setTopology(Topology *container) { _top = container; }
+    inline void setMolecule(Molecule *container) { _mol = container; }
+    inline void setSegment(Segment *container)   { _seg = container; }
+    
 private:
 
-    /// Conjugated segment this fragment belongs to
-    Segment *_segment;
-   /// Name of the rigid fragment 
-    string _name;
-    /// Rigid fragment ID
-    int _id;
-    /// Weights used to calculate fragment center
-    vector< double > _weights;
-    /// List of atoms belonging to this fragment
+    Topology    *_top;
+    Molecule    *_mol;
+    Segment     *_seg;
+
     vector < Atom* > _atoms;
+    vector< double > _weights;
+
+    string      _name;
+    int         _id;
+
+
 };
 
 }}

@@ -30,7 +30,8 @@ Molecule::~Molecule() {
     
     // cleanup list of segments
     _segments.clear();
-    
+
+    _fragments.clear();
     // clean up the list of atoms 
     //cout << "  molecule destructor: deleting "
     //     << NumberOfAtoms() << " atoms" << endl;
@@ -58,10 +59,17 @@ const string &Molecule::getName() {
 
 void Molecule::AddSegment( Segment* segment ) {
     _segments.push_back( segment );
+    segment->setMolecule(this);
+}
+
+void Molecule::AddFragment(Fragment* fragment ) {
+    _fragments.push_back( fragment );
+    fragment->setMolecule(this);
 }
 
 void Molecule::AddAtom(Atom *atom ) {
     _atoms.push_back(atom);
+    atom->setMolecule(this);
 }
 
 /// Returns a pointer to the atom
