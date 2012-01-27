@@ -38,10 +38,8 @@ public:
    ~StateSaverSQLite2() { _db.Close(); }
 
     void Open(Topology &qmtop, const string &file);
-    void Close() { _db.Close(); }    
+    void Close() { _db.Close(); }
     bool NextFrame();
-
-    int  FramesInDatabase() { return _frames.size(); }
 
     void WriteFrame();
     void WriteMeta();
@@ -54,8 +52,11 @@ public:
     void ReadMeta(int topId);
     void ReadMolecules(int topId);
     void ReadSegments(int topId);
-    void ReadFragments();
-    void ReadAtoms();
+    void ReadFragments(int topId);
+    void ReadAtoms(int topId);
+
+    int  FramesInDatabase() { return _frames.size(); }
+    Topology *getTopology() { return _qmtop; }
     
 private:
     Topology       *_qmtop;

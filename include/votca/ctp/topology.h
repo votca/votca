@@ -54,10 +54,10 @@ public:
     Atom     *AddAtom     (string atom_name);
     Fragment *AddFragment (string fragment_name);
 
-    Molecule *getMolecule(int id) { return _molecules[id]; }
-    Segment  *getSegment(int id)  { return _segments[id]; }
-    Fragment *getFragment(int id) { return _fragments[id]; }
-    Atom     *getAtom(int id)     { return _atoms[id]; }
+    Molecule *getMolecule(int id) { return _molecules[id-1]; }
+    Segment  *getSegment(int id)  { return _segments[id-1]; }
+    Fragment *getFragment(int id) { return _fragments[id-1]; }
+    Atom     *getAtom(int id)     { return _atoms[id-1]; }
 
     vector< Atom* >         &Atoms() { return _atoms; }
     vector< Fragment* >     &Fragments() { return _fragments; }

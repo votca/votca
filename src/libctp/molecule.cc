@@ -27,22 +27,15 @@ namespace votca { namespace ctp {
 
 /// Destructor
 Molecule::~Molecule() {
-    
-    // cleanup list of segments
-    _segments.clear();
 
-    _fragments.clear();
-    // clean up the list of atoms 
-    //cout << "  molecule destructor: deleting "
-    //     << NumberOfAtoms() << " atoms" << endl;
-    
-    //cout << "   deleting atom: ";
-    vector < Atom* > :: iterator atom;
-    for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
-         //cout << (*atom)->_id << " ";      
-        delete *atom;
+    vector < Segment* > ::iterator segit;
+    for (segit = this->Segments().begin();
+            segit < this->Segments().end();
+            segit ++) {
+        delete *segit;
     }
-    //cout << endl;
+    _segments.clear();
+    _fragments.clear();
     _atoms.clear();
     
 }

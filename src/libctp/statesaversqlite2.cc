@@ -65,7 +65,7 @@ void StateSaverSQLite2::WriteFrame() {
 
     _db.EndTransaction();
 
-    _qmtop->CleanUp();
+    cout << ". " << endl;
 }
 
 
@@ -218,7 +218,7 @@ void StateSaverSQLite2::WriteFragments() {
 
 void StateSaverSQLite2::WriteAtoms() {
 
-    cout << ", atoms. ";
+    cout << ", atoms";
 
     Statement *stmt;
     stmt = _db.Prepare("INSERT INTO atoms ("
@@ -261,21 +261,27 @@ void StateSaverSQLite2::WriteAtoms() {
     }
     delete stmt;
     stmt = NULL;
-    cout << endl;
 }
+
+
+
 
 
 void StateSaverSQLite2::ReadFrame(int topId) {
 
-    cout << "Reading MD|QM Topology ID " << topId << ": ";
+    cout << "Import MD|QM Topology ID " << topId << ": ";
 
     _qmtop->CleanUp();
 
     this->ReadMeta(topId);
     this->ReadMolecules(topId);
+    this->ReadSegments(topId);
+    this->ReadFragments(topId);
+    this->ReadAtoms(topId);
 
-
+    cout << ". " << endl;
 }
+
 
 void StateSaverSQLite2::ReadMeta(int topId) {
 
@@ -312,32 +318,106 @@ void StateSaverSQLite2::ReadMolecules(int topId) {
     cout << " Molecules";
 
     Statement *stmt = _db.Prepare("SELECT name "
-                                  "FROM molecules"
+                                  "FROM molecules "
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
     while (stmt->Step() != SQLITE_DONE) {
         Molecule *mol = _qmtop->AddMolecule(stmt->Column<string>(0));
-        cout << mol->getId() << ", ";
     }
     delete stmt;
     stmt = NULL;
 }
 
+
 void StateSaverSQLite2::ReadSegments(int topId) {
 
     cout << ", segments";
 
-    Statement *stmt = _db.Prepare("SELECT id, name, mol "
+    Statement *stmt = _db.Prepare("SELECT name, mol "
                                   "FROM segments "
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
+
+    while (stmt->Step() != SQLITE_DONE) {
+
+        string  name = stmt->Column<string>(0);
+        int     id   = stmt->Column<int>(1);
+
+        Segment *seg = _qmtop->AddSegment(name);
+        seg->setMolecule(_qmtop->getMolecule(id));
+    }
+    delete stmt;
+    stmt = NULL;
 }
 
 
+void StateSaverSQLite2::ReadFragments(int topId) {
+
+    cout << ", fragments";
+
+    Statement *stmt = _db.Prepare("SELECT name, mol, seg, symmetry "
+                                  "FROM fragments "
+                                  "WHERE top = ?;");
+
+    stmt->Bind(1, topId);
+
+    while (stmt->Step() != SQLITE_DONE) {
+
+        string  name = stmt->Column<string>(0);
+        int     molid = stmt->Column<int>(1);
+        int     segid = stmt->Column<int>(2);
+        int     symm = stmt->Column<int>(3);
+
+        Fragment *frag = _qmtop->AddFragment(name);
+        frag->setSegment(_qmtop->getSegment(segid));
+        frag->setMolecule(_qmtop->getMolecule(molid));
+        frag->setSymmetry(symm);
+    }
+    delete stmt;
+    stmt = NULL;
+}
 
 
+void StateSaverSQLite2::ReadAtoms(int topId) {
 
+    cout << ", atoms";
 
+    Statement *stmt = _db.Prepare("SELECT "
+                                  "name, mol, seg, frag, "
+                                  "resnr, resname, "
+                                  "posX, posY, posZ, "
+                                  "weight "
+                                  "FROM atoms "
+                                  "WHERE top = ?;");
 
+    stmt->Bind(1, topId);
+
+    while (stmt->Step() != SQLITE_DONE) {
+
+        string  name = stmt->Column<string>(0);
+        int     molid = stmt->Column<int>(1);
+        int     segid = stmt->Column<int>(2);
+        int     fragid = stmt->Column<int>(3);
+        int     resnr = stmt->Column<int>(4);
+        string  resname = stmt->Column<string>(5);
+        double  posX = stmt->Column<double>(6);
+        double  posY = stmt->Column<double>(7);
+        double  posZ = stmt->Column<double>(8);
+        double  weight = stmt->Column<double>(9);
+
+        Atom *atm = _qmtop->AddAtom(name);
+        atm->setWeight(weight);
+        atm->setPos( vec(posX, posY, posZ) );
+        
+        atm->setFragment(_qmtop->getFragment(fragid));
+        atm->setSegment(_qmtop->getSegment(segid));
+        atm->setMolecule(_qmtop->getMolecule(molid));
+
+        atm->setResnr(resnr);
+        atm->setResname(resname);  
+    }
+    delete stmt;
+    stmt = NULL;
+}
 
 }}

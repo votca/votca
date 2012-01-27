@@ -176,7 +176,16 @@ void CtpMapExp::Save(string mode) {
 
     _statsav.WriteFrame();
 
+    if (_op_vm.count("check")) {
+        CTP::Topology *TopSQL = NULL;
+        TopSQL = _statsav.getTopology();
+        cout << endl << "Checking topology read from SQL file." << endl;
+        string pdbfile = _op_vm["check"].as<string> ();
+        _md2qm.CheckProduct(TopSQL, "sql_" + pdbfile);
+    }
+
     _statsav.Close();
+
 }
 
 

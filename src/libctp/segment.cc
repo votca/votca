@@ -28,8 +28,14 @@ Segment::Segment(int id, string name) {
 
 /// Destructor
 Segment::~Segment() {
-    // clean up the list of pointers to fragments without deleting them
-    _fragments.clear(); 
+
+    vector < Fragment* > ::iterator fragit;
+    for (fragit = this->Fragments().begin();
+            fragit < this->Fragments().end();
+            fragit++) {
+        delete *fragit;
+    }
+    _fragments.clear();
     _atoms.clear();
 }
 

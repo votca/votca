@@ -7,27 +7,9 @@
  */
 Md2QmEngine::~Md2QmEngine() {
 
-    vector < CTP::Fragment* > :: iterator fragment;
-    vector < CTP::Segment* > :: iterator segment;
     vector < CTP::Molecule* > :: iterator molecule;
 
-    // Clean up list of fragment types
-    for (fragment = _fragment_types.begin();
-         fragment < _fragment_types.end();
-         ++fragment) {
-         delete *fragment;
-    }
-    _fragment_types.clear();
-
-    // Clean up list of segment types
-    for (segment = _segment_types.begin();
-         segment < _segment_types.end();
-         ++segment) {
-         delete *segment;
-    }
-    _segment_types.clear();
-
-    // Clean up list of molecule types (also deletes atoms)
+    // Clean up list of molecule types
     for (molecule = _molecule_types.begin();
          molecule < _molecule_types.end(); ++molecule){
          delete *molecule;

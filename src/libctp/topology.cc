@@ -30,21 +30,12 @@ Topology::Topology() : _db_id(0), _hasPb(0) { }
 void Topology::CleanUp() {
 
     vector < Molecule* > ::iterator mit;
-    vector < Segment* > ::iterator sit;
-    vector < Fragment* > ::iterator fit;
-    vector < Atom* > ::iterator ait;
-
-    for (ait = _atoms.begin(); ait < _atoms.end(); ait++) delete *ait;
-    _atoms.clear();
-
-    for (fit = _fragments.begin(); fit < _fragments.end(); fit++) delete *fit;
-    _fragments.clear();
-
-    for (sit = _segments.begin(); sit < _segments.end(); sit++) delete *sit;
-    _segments.clear();
 
     for (mit = _molecules.begin(); mit < _molecules.end(); mit++) delete *mit;
     _molecules.clear();
+    _segments.clear();
+    _fragments.clear();
+    _atoms.clear();
 
     if (_bc) delete(_bc);
     _bc = new CSG::OpenBox;
@@ -52,24 +43,7 @@ void Topology::CleanUp() {
 
 
 Topology::~Topology() {
-    // clean up the list of fragments 
-    vector < Fragment* > :: iterator fragment;
-    for (fragment = _fragments.begin();
-         fragment < _fragments.end();
-         ++fragment) {
-         delete *fragment;
-    }
-    _fragments.clear();
 
-    // clean up the list of segments 
-    vector < Segment* > :: iterator segment;
-    for (segment = _segments.begin();
-         segment < _segments.end();
-         ++segment) {
-         delete *segment;
-    }
-    _segments.clear();
-    
     // clean up the list of molecules; this also deletes atoms
     vector < Molecule* > :: iterator molecule;
     for (molecule = _molecules.begin();
@@ -77,7 +51,10 @@ Topology::~Topology() {
          ++molecule) {
          delete *molecule;
     }
-    _molecules.clear();   
+    _molecules.clear();
+    _segments.clear();
+    _fragments.clear();
+    _atoms.clear();
 }
 
 
@@ -131,8 +108,10 @@ void Topology::setBox(const matrix &box,
         boxtype = AutoDetectBoxType(box);
     }
 
-    if(_hasPb) { 
-        cout << "Removing periodic box. Creating new... " << endl;
+    if(_hasPb) {
+        if (votca::tools::globals::verbose) {
+            cout << "Removing periodic box. Creating new... " << endl;
+        }
         delete _bc;
     }
 

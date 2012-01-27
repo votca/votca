@@ -46,6 +46,12 @@ public:
      /// Destructor
     ~Fragment()
     {
+        vector < Atom* > ::iterator atmit;
+        for (atmit = this->Atoms().begin();
+                atmit < this->Atoms().end();
+                atmit++) {
+            delete *atmit;
+        }
         _weights.clear();
         _atoms.clear();
     }
@@ -85,7 +91,7 @@ public:
     Molecule *getMolecule() { return _mol; }
     Segment  *getSegment()  { return _seg; }
 
-    void    setSymmetry(byte_t symmetry) { _symmetry = symmetry; }
+    void    setSymmetry(int symmetry) { _symmetry = symmetry; }
     int     getSymmetry() { return _symmetry; }
 
     
