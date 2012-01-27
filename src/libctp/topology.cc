@@ -21,7 +21,35 @@
 
 namespace votca { namespace ctp {
 
-Topology::Topology() : _db_id(0) { }
+Topology::Topology() : _db_id(0), _hasPb(0) { }
+
+// +++++++++++++++++++++ //
+// Clean-Up, Destruct    //
+// +++++++++++++++++++++ //
+
+void Topology::CleanUp() {
+
+    vector < Molecule* > ::iterator mit;
+    vector < Segment* > ::iterator sit;
+    vector < Fragment* > ::iterator fit;
+    vector < Atom* > ::iterator ait;
+
+    for (ait = _atoms.begin(); ait < _atoms.end(); ait++) delete *ait;
+    _atoms.clear();
+
+    for (fit = _fragments.begin(); fit < _fragments.end(); fit++) delete *fit;
+    _fragments.clear();
+
+    for (sit = _segments.begin(); sit < _segments.end(); sit++) delete *sit;
+    _segments.clear();
+
+    for (mit = _molecules.begin(); mit < _molecules.end(); mit++) delete *mit;
+    _molecules.clear();
+
+    if (_bc) delete(_bc);
+    _bc = new CSG::OpenBox;
+}
+
 
 Topology::~Topology() {
     // clean up the list of fragments 
@@ -53,6 +81,10 @@ Topology::~Topology() {
 }
 
 
+// ++++++++ //
+// Populate //
+// ++++++++ //
+
 Fragment *Topology::AddFragment(string fragment_name) {
     int fragment_id = _fragments.size() + 1;
     Fragment* fragment = new Fragment(fragment_id, fragment_name);
@@ -83,6 +115,76 @@ Molecule *Topology::AddMolecule(string molecule_name) {
     _molecules.push_back(molecule);
     molecule->setTopology(this);
     return molecule;
+}
+
+
+
+// +++++++++++++++++ //
+// Periodic Boundary //
+// +++++++++++++++++ //
+
+void Topology::setBox(const matrix &box,
+                      CSG::BoundaryCondition::eBoxtype boxtype) {
+
+    // Determine box type automatically in case boxtype == typeAuto
+    if(boxtype == CSG::BoundaryCondition::typeAuto) {
+        boxtype = AutoDetectBoxType(box);
+    }
+
+    if(_hasPb) { 
+        cout << "Removing periodic box. Creating new... " << endl;
+        delete _bc;
+    }
+
+    switch(boxtype) {
+       case CSG::BoundaryCondition::typeTriclinic:
+            _bc = new CSG::TriclinicBox();
+            break;
+       case CSG::BoundaryCondition::typeOrthorhombic:
+            _bc = new CSG::OrthorhombicBox();
+            break;
+       default:
+            _bc = new CSG::OpenBox();
+            break;
+       }
+
+    _bc->setBox(box);
+    _hasPb = true;
+}
+
+
+CSG::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(const matrix &box){
+
+    // Set box type to OpenBox in case "box" is the zero matrix,
+    // to OrthorhombicBox in case "box" is a diagonal matrix,
+    // or to TriclinicBox otherwise
+
+    if(box.get(0,0)==0 && box.get(0,1)==0 && box.get(0,2)==0 &&
+       box.get(1,0)==0 && box.get(1,1)==0 && box.get(1,2)==0 &&
+       box.get(2,0)==0 && box.get(2,1)==0 && box.get(2,2)==0) {
+
+            cout << "WARNING: No box vectors specified in trajectory."
+               "Using open-box boundary conditions. " << endl;
+            return CSG::BoundaryCondition::typeOpen;
+    }
+
+    else if(box.get(0,1)==0 && box.get(0,2)==0 &&
+            box.get(1,0)==0 && box.get(1,2)==0 &&
+            box.get(2,0)==0 && box.get(2,1)==0) {
+
+            return CSG::BoundaryCondition::typeOrthorhombic;
+    }
+
+    else {
+        return CSG::BoundaryCondition::typeTriclinic;
+    }
+
+    return CSG::BoundaryCondition::typeOpen;
+}
+
+
+vec Topology::PbShortestConnect(const vec &r1, const vec &r2) const {
+    return _bc->BCShortestConnection(r1, r2);
 }
 
 }}

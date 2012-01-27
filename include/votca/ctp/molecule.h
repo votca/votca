@@ -43,6 +43,7 @@ public:
     Molecule(int id, string name) 
         : _id(id), _name(name) {}
 
+    Molecule() { }
     /// Destructor
     ~Molecule();
     /// Returns molecule ID

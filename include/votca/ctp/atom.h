@@ -64,7 +64,7 @@ public:
        : _id(atom_id),  _name(atom_name),
          _hasQM(false), _qmId(-1) { }
 
-
+    Atom() { };
     /**
      * destructor
      */

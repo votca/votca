@@ -1,5 +1,6 @@
 #include "Md2QmEngine.h"
-
+#include <votca/csg/boundarycondition.h>
+#include <votca/tools/globals.h>
 
 /**
  * Clears all engine template ('type') containers.
@@ -241,11 +242,15 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
  */
 void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
 
-    int globalMolID = 0;
-    int globalSegID = 0;
-    int globalFrgID = 0;
-    int globalAtmID = 0;
+    // Create periodic box
+    qmtop->setBox(mdtop->getBox());
 
+    // Set trajectory meta data
+    qmtop->setStep(mdtop->getStep());
+    qmtop->setTime(mdtop->getTime());
+
+    // Populate topology in a trickle-down manner
+    // (i.e. molecules => ... ... => atoms)
     CSG::MoleculeContainer::iterator mit;
     for (mit = mdtop->Molecules().begin();
          mit != mdtop->Molecules().end();
@@ -259,6 +264,7 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
          CTP::Molecule *molQM = this->MoleculeFactory(molMD);
          string nameMolQM = molQM->getName();
 
+         // Generate and export
          CTP::Molecule *product = this->ExportMolecule(molQM, qmtop);
     }
 }
@@ -441,6 +447,8 @@ void Md2QmEngine::PrintInfo() {
     vector<CTP::Fragment*>::iterator fit;
     vector<CTP::Atom*>::iterator ait;
 
+    cout << "Summary ~~~~~"
+            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
     cout << "Created "
          << _molecule_types.size() << " molecule type(s): ";
     for (mit = _molecule_types.begin();
@@ -485,7 +493,11 @@ void Md2QmEngine::PrintInfo() {
          }
     }
 
-    cout << endl << "Mapping table" << endl;
+    if (! votca::tools::globals::verbose ) { return; }
+
+    cout << endl << "Mapping table"
+                    " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                 << endl;
     map < string, map < int, map < string, CTP::Atom* > > > ::iterator it0;
     for (it0 = this->_map_mol_resNr_atm_atmType.begin();
          it0 != this->_map_mol_resNr_atm_atmType.end();
@@ -531,12 +543,26 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
         cout << endl;
         this->PrintInfo();
         cout << endl;
-        cout << "Topology info" << endl;
+
+        cout << "MD|QM Topology info "
+                "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+        cout << "Periodic Box:        "  << outtop->getBox().get(0,0)
+                                << " "   << outtop->getBox().get(0,1)
+                                << " "   << outtop->getBox().get(0,2)
+                                << " | " << outtop->getBox().get(1,0)
+                                << " "   << outtop->getBox().get(1,1)
+                                << " "   << outtop->getBox().get(1,2)
+                                << " | " << outtop->getBox().get(2,0)
+                                << " "   << outtop->getBox().get(2,1)
+                                << " "   << outtop->getBox().get(2,2)
+                                << endl;
         cout << "Database ID:         " << outtop->getDatabaseId() << endl;
-        cout << "Mol.s in topology:   " << outtop->Molecules().size() << endl;
-        cout << "Seg.s in topology:   " << outtop->Segments().size() << endl;
-        cout << "Frag.s in topology:  " << outtop->Fragments().size() << endl;
-        cout << "Atoms in topology:   " << outtop->Atoms().size() << endl;
+        cout << "Step number:         " << outtop->getStep() << endl;
+        cout << "Time:                " << outtop->getTime() << endl;
+        cout << "# Molecules          " << outtop->Molecules().size() << endl;
+        cout << "# Segments           " << outtop->Segments().size() << endl;
+        cout << "# Fragments          " << outtop->Fragments().size() << endl;
+        cout << "# Atoms              " << outtop->Atoms().size() << endl;         
     }
 }
 
