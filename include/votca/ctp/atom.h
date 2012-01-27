@@ -99,6 +99,11 @@ public:
     inline void setSegment(Segment *container)   { _seg = container; }
     inline void setFragment(Fragment *container) { _frag = container; }
 
+    Topology *getTopology() { return _top; }
+    Molecule *getMolecule() { return _mol; }
+    Segment  *getSegment() { return _seg; }
+    Fragment *getFragment() { return _frag; }
+
     inline void setResnr(const int &resnr) { _resnr = resnr; }
     inline void setResname(const string &resname) { _resname = resname; }
     inline void setWeight(const double &weight) { _weight = weight; }
@@ -137,7 +142,6 @@ public:
      * molecule the bead belongs to
      * \return Molecule object
      */
-    Molecule *getMolecule() { return _mol; }
 
 
 

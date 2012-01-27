@@ -68,6 +68,9 @@ public:
     inline void setTopology(Topology *container) { _top = container; }
     inline void setMolecule(Molecule *container) { _mol = container; }
 
+    Topology *getTopology() { return _top; }
+    Molecule *getMolecule() { return _mol; }
+
 private:
 
     Topology    *_top;

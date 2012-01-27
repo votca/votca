@@ -562,7 +562,8 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
         cout << "# Molecules          " << outtop->Molecules().size() << endl;
         cout << "# Segments           " << outtop->Segments().size() << endl;
         cout << "# Fragments          " << outtop->Fragments().size() << endl;
-        cout << "# Atoms              " << outtop->Atoms().size() << endl;         
+        cout << "# Atoms              " << outtop->Atoms().size() << endl;
+        cout << endl;
     }
 }
 

@@ -6,6 +6,7 @@
 #include <votca/csg/trajectorywriter.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/topologyreader.h>
+#include <votca/ctp/statesaversqlite2.h>
 #include "Md2QmEngine.h"
 
 using namespace std;
@@ -24,6 +25,7 @@ public:
     void Initialize();
     bool EvaluateOptions();
     void Run();
+    void Save(string mode);
 
     void BeginEvaluate() { ; }
     bool DoTrajectory() { return 0; }
@@ -31,11 +33,13 @@ public:
 
 
 protected:
-    Property            _options;
-    CSG::Topology       _mdtopol;
-    CTP::Topology       _qmtopol;
+    Property               _options;
+    CSG::Topology          _mdtopol;
+    CTP::Topology          _qmtopol;
 
-    Md2QmEngine         _md2qm;
+    Md2QmEngine            _md2qm;
+    CTP::StateSaverSQLite2 _statsav;
+    string                 _outdb;
 
 };
 
@@ -151,7 +155,28 @@ void CtpMapExp::Run() {
     if (_op_vm.count("check")) {
         string pdbfile = _op_vm["check"].as<string> ();
         _md2qm.CheckProduct(&_qmtopol, pdbfile);
-    }    
+    }
+
+    // +++++++++++++++++++++++++ //
+    // Save to SQLite State File //
+    // +++++++++++++++++++++++++ //
+
+    _outdb = _op_vm["file"].as<string> ();
+    this->Save("a");
+
+}
+
+void CtpMapExp::Save(string mode) {    
+    
+    _statsav.Open(_qmtopol, _outdb);
+    if (_statsav.FramesInDatabase() > 0) {
+        throw runtime_error("SQLite database already contains frames. "
+                            "Appending not yet supported. ");
+    }
+
+    _statsav.WriteFrame();
+
+    _statsav.Close();
 }
 
 

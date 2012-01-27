@@ -81,6 +81,7 @@ public:
 
 
     inline void setTopology(Topology *container) { _top = container; }
+    Topology   *getTopology() { return _top; }
 
 
     

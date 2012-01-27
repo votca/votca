@@ -1,0 +1,343 @@
+/*
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#include <votca/ctp/statesaversqlite2.h>
+#include <votca/tools/statement.h>
+
+namespace votca { namespace ctp {
+
+void StateSaverSQLite2::Open(Topology& qmtop, const string &file) {
+
+    _db.OpenHelper(file.c_str());
+    _frame = 0;
+    _qmtop = &qmtop;
+
+    // Query available frames in database
+    Statement *stmt = _db.Prepare("SELECT _id FROM frames;");
+    while(stmt->Step() != SQLITE_DONE) {
+        _frames.push_back(stmt->Column<int>(0));
+    }
+    delete stmt;
+
+    // cout << "Found " << _frames.size() << " in database\n";
+    _current_frame = -1;
+    _was_read=false;
+}
+
+
+bool StateSaverSQLite2::NextFrame() {
+
+    _qmtop->CleanUp();
+    _current_frame++;
+
+    if(_current_frame >= _frames.size())
+        return false;
+
+    _was_read=true;
+    return true;
+}
+
+
+void StateSaverSQLite2::WriteFrame() {
+
+    cout << "Saving MD|QM topology ID " << _qmtop->getDatabaseId() << ": ";
+    _db.BeginTransaction();    
+
+    this->WriteMeta();
+    this->WriteMolecules();
+    this->WriteSegments();
+    this->WriteFragments();
+    this->WriteAtoms();
+
+    _db.EndTransaction();
+
+    _qmtop->CleanUp();
+}
+
+
+void StateSaverSQLite2::WriteMeta() {
+    
+    Statement *stmt;
+    if (_qmtop->getDatabaseId() > 0) {
+        throw runtime_error("Multiple frames not yet implemented.");
+        stmt = _db.Prepare( "UPDATE frames SET"
+                            "id = ?,    time = ?,  step = ?,  "
+                            "box11 = ?, box12 = ?, box13 = ?, "
+                            "box21 = ?, box22 = ?, box23 = ?, "
+                            "box31 = ?, box32 = ?, box33 = ?  "
+                            "WHERE _id = ?");
+    }
+    if (_qmtop->getDatabaseId() == 0) {
+        stmt = _db.Prepare( "INSERT INTO frames ("
+                            "id,    time,  step,  "
+                            "box11, box12, box13, "
+                            "box21, box22, box23, "
+                            "box31, box32, box33 )"
+                            "VALUES ("
+                            "?,     ?,     ?,"
+                            "?,     ?,     ?,"
+                            "?,     ?,     ?,"
+                            "?,     ?,     ?)");
+    }
+
+    stmt->Bind(1, _qmtop->getDatabaseId());
+    stmt->Bind(2, _qmtop->getTime());
+    stmt->Bind(3, _qmtop->getStep());
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            stmt->Bind(4+3*i+j, _qmtop->getBox().get(i,j));
+        }
+    }
+    stmt->InsertStep();
+    delete stmt;
+    stmt = NULL;
+}
+
+
+void StateSaverSQLite2::WriteMolecules() {
+    cout << "Molecules";
+    Statement *stmt;
+
+    stmt = _db.Prepare("INSERT INTO molecules ("
+                        "frame, top, id,"
+                        "name, type    )"
+                        "VALUES ("
+                        "?,     ?,      ?,"
+                        "?,     ?)");
+
+    stmt->Bind(1, _qmtop->getDatabaseId());
+
+    vector < Molecule* > ::iterator mit;
+    for (mit = _qmtop->Molecules().begin();
+            mit < _qmtop->Molecules().end();
+            mit++) {
+
+        Molecule *mol = *mit;
+
+        stmt->Bind(2, mol->getTopology()->getDatabaseId());
+        stmt->Bind(3, mol->getId());
+        stmt->Bind(4, mol->getName());
+        stmt->Bind(5, mol->getName());
+
+        stmt->InsertStep();
+        stmt->Reset();
+    }
+
+    delete stmt;
+    stmt = NULL;
+}
+
+
+void StateSaverSQLite2::WriteSegments() {
+    cout << ", segments";
+    Statement *stmt;
+
+    stmt = _db.Prepare("INSERT INTO segments ("
+                        "frame, top, id,"
+                        "name, type, mol)"
+                        "VALUES ("
+                        "?,     ?,  ?,"
+                        "?,     ?,  ?)");
+
+    stmt->Bind(1, _qmtop->getDatabaseId());
+
+    vector < Segment* > ::iterator sit;
+    for (sit = _qmtop->Segments().begin();
+            sit < _qmtop->Segments().end();
+            sit++) {
+        Segment *seg = *sit;
+
+        stmt->Bind(2, seg->getTopology()->getDatabaseId());
+        stmt->Bind(3, seg->getId());
+        stmt->Bind(4, seg->getName());
+        stmt->Bind(5, seg->getName());
+        stmt->Bind(6, seg->getMolecule()->getId());
+
+        stmt->InsertStep();
+        stmt->Reset();
+    }
+
+    delete stmt;
+    stmt = NULL;
+}
+
+
+void StateSaverSQLite2::WriteFragments() {
+    cout << ", fragments";
+
+    Statement *stmt;
+
+    stmt = _db.Prepare("INSERT INTO fragments ("
+                        "frame, top, id,"
+                        "name, type, mol,"
+                        "seg, symmetry )"
+                        "VALUES ("
+                        "?,     ?,  ?,"
+                        "?,     ?,  ?,"
+                        "?,     ?    )");
+
+    stmt->Bind(1, _qmtop->getDatabaseId());
+
+    vector < Fragment* > ::iterator fit;
+    for (fit = _qmtop->Fragments().begin();
+            fit < _qmtop->Fragments().end();
+            fit++) {
+        Fragment *frag = *fit;
+
+        stmt->Bind(2, frag->getTopology()->getDatabaseId());
+        stmt->Bind(3, frag->getId());
+        stmt->Bind(4, frag->getName());
+        stmt->Bind(5, frag->getName());
+        stmt->Bind(6, frag->getMolecule()->getId());
+        stmt->Bind(7, frag->getSegment()->getId());
+        stmt->Bind(8, frag->getSymmetry());
+
+        stmt->InsertStep();
+        stmt->Reset();
+    }
+
+    delete stmt;
+    stmt = NULL;
+}
+
+
+void StateSaverSQLite2::WriteAtoms() {
+
+    cout << ", atoms. ";
+
+    Statement *stmt;
+    stmt = _db.Prepare("INSERT INTO atoms ("
+                        "frame, top, id,"
+                        "name, type, mol,"
+                        "seg, frag,  resnr,"
+                        "resname, posX, posY,"
+                        "posZ, weight)"
+                        "VALUES ("
+                        "?,     ?,  ?,"
+                        "?,     ?,  ?,"
+                        "?,     ?,  ?,"
+                        "?,     ?,  ?,"
+                        "?,     ?    )");
+
+    stmt->Bind(1, _qmtop->getDatabaseId());
+
+    vector < Atom* > ::iterator ait;
+    for (ait = _qmtop->Atoms().begin();
+            ait < _qmtop->Atoms().end();
+            ait++) {
+        Atom *atm = *ait;
+        
+        stmt->Bind(2, atm->getTopology()->getDatabaseId());
+        stmt->Bind(3, atm->getId());
+        stmt->Bind(4, atm->getName());
+        stmt->Bind(5, atm->getName());
+        stmt->Bind(6, atm->getMolecule()->getId());
+        stmt->Bind(7, atm->getSegment()->getId());
+        stmt->Bind(8, atm->getFragment()->getId());
+        stmt->Bind(9, atm->getResnr());
+        stmt->Bind(10, atm->getResname());
+        stmt->Bind(11, atm->getPos().getX());
+        stmt->Bind(12, atm->getPos().getY());
+        stmt->Bind(13, atm->getPos().getZ());
+        stmt->Bind(14, atm->getWeight());
+
+        stmt->InsertStep();
+        stmt->Reset();
+    }
+    delete stmt;
+    stmt = NULL;
+    cout << endl;
+}
+
+
+void StateSaverSQLite2::ReadFrame(int topId) {
+
+    cout << "Reading MD|QM Topology ID " << topId << ": ";
+
+    _qmtop->CleanUp();
+
+    this->ReadMeta(topId);
+    this->ReadMolecules(topId);
+
+
+}
+
+void StateSaverSQLite2::ReadMeta(int topId) {
+
+    Statement *stmt = _db.Prepare("SELECT "
+                                  "time, step, "
+                                  "box11, box12, box13, "
+                                  "box21, box22, box23, "
+                                  "box31, box32, box33 "
+                                  "FROM frames WHERE "
+                                  "id = ?;");
+    stmt->Bind(1, topId);
+
+    if (stmt->Step() == SQLITE_DONE) {
+        throw runtime_error("Database appears to be empty. Abort...");
+    }
+
+    _qmtop->setTime(stmt->Column<double>(0));
+    _qmtop->setStep(stmt->Column<int>(1));
+    matrix boxv;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            boxv.set(i, j, stmt->Column<double>(2+3*i+j));
+        }
+    }
+    _qmtop->setBox(boxv);
+    _qmtop->setDatabaseId(topId);
+    delete stmt;
+    stmt = NULL;
+}
+
+
+void StateSaverSQLite2::ReadMolecules(int topId) {
+
+    cout << " Molecules";
+
+    Statement *stmt = _db.Prepare("SELECT name "
+                                  "FROM molecules"
+                                  "WHERE top = ?;");
+    stmt->Bind(1, topId);
+    while (stmt->Step() != SQLITE_DONE) {
+        Molecule *mol = _qmtop->AddMolecule(stmt->Column<string>(0));
+        cout << mol->getId() << ", ";
+    }
+    delete stmt;
+    stmt = NULL;
+}
+
+void StateSaverSQLite2::ReadSegments(int topId) {
+
+    cout << ", segments";
+
+    Statement *stmt = _db.Prepare("SELECT id, name, mol "
+                                  "FROM segments "
+                                  "WHERE top = ?;");
+    stmt->Bind(1, topId);
+}
+
+
+
+
+
+
+
+
+}}

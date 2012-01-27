@@ -41,7 +41,7 @@ public:
      /// Constructor
      Fragment(int id, string name)
      {
-         _id = id; _name = name;
+         _id = id; _name = name; _symmetry = 0;
      }
      /// Destructor
     ~Fragment()
@@ -68,10 +68,6 @@ public:
     vector< Atom* > &Atoms() { return _atoms; }
     int NumberOfAtoms() { return _atoms.size(); }
 
-    /// Returns a pointer to a segment this fragment belongs to 
-    Segment* getSegment(){
-        throw runtime_error( string("Not implemented") ); 
-    }
     /// Rotates the fragment with respect to the center defined by the Map
     void Rotate (){ 
         throw runtime_error( string("Not implemented") ); 
@@ -84,6 +80,14 @@ public:
     inline void setTopology(Topology *container) { _top = container; }
     inline void setMolecule(Molecule *container) { _mol = container; }
     inline void setSegment(Segment *container)   { _seg = container; }
+
+    Topology *getTopology() { return _top; }
+    Molecule *getMolecule() { return _mol; }
+    Segment  *getSegment()  { return _seg; }
+
+    void    setSymmetry(byte_t symmetry) { _symmetry = symmetry; }
+    int     getSymmetry() { return _symmetry; }
+
     
 private:
 
@@ -96,6 +100,8 @@ private:
 
     string      _name;
     int         _id;
+
+    int         _symmetry;
 
 
 };
