@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-set(PROJECT_VERSION "1.3.0-dev")
+set(PROJECT_VERSION "1.3-dev")
 
 project(csgapps)
 
