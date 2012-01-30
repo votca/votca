@@ -185,8 +185,10 @@ void StateSaverSQLite2::WriteFragments() {
     stmt = _db.Prepare("INSERT INTO fragments ("
                         "frame, top, id,"
                         "name, type, mol,"
-                        "seg, symmetry )"
+                        "seg, posX, posY,"
+                        "posZ, symmetry )"
                         "VALUES ("
+                        "?,     ?,  ?,"
                         "?,     ?,  ?,"
                         "?,     ?,  ?,"
                         "?,     ?    )");
@@ -205,7 +207,10 @@ void StateSaverSQLite2::WriteFragments() {
         stmt->Bind(5, frag->getName());
         stmt->Bind(6, frag->getMolecule()->getId());
         stmt->Bind(7, frag->getSegment()->getId());
-        stmt->Bind(8, frag->getSymmetry());
+        stmt->Bind(8, frag->getPos().getX());
+        stmt->Bind(9, frag->getPos().getY());
+        stmt->Bind(10,frag->getPos().getZ());
+        stmt->Bind(11, frag->getSymmetry());
 
         stmt->InsertStep();
         stmt->Reset();
@@ -355,7 +360,10 @@ void StateSaverSQLite2::ReadFragments(int topId) {
 
     cout << ", fragments";
 
-    Statement *stmt = _db.Prepare("SELECT name, mol, seg, symmetry "
+    Statement *stmt = _db.Prepare("SELECT "
+                                  "name, mol, seg, "
+                                  "posX, posY, posZ, "
+                                  "symmetry "
                                   "FROM fragments "
                                   "WHERE top = ?;");
 
@@ -363,14 +371,18 @@ void StateSaverSQLite2::ReadFragments(int topId) {
 
     while (stmt->Step() != SQLITE_DONE) {
 
-        string  name = stmt->Column<string>(0);
-        int     molid = stmt->Column<int>(1);
-        int     segid = stmt->Column<int>(2);
-        int     symm = stmt->Column<int>(3);
+        string  name    = stmt->Column<string>(0);
+        int     molid   = stmt->Column<int>(1);
+        int     segid   = stmt->Column<int>(2);
+        double  posX    = stmt->Column<double>(3);
+        double  posY    = stmt->Column<double>(4);
+        double  posZ    = stmt->Column<double>(5);
+        int     symm    = stmt->Column<int>(3);
 
         Fragment *frag = _qmtop->AddFragment(name);
         frag->setSegment(_qmtop->getSegment(segid));
         frag->setMolecule(_qmtop->getMolecule(molid));
+        frag->setPos(vec(posX, posY, posZ));
         frag->setSymmetry(symm);
     }
     delete stmt;

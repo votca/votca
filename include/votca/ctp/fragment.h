@@ -39,62 +39,32 @@ class Segment;
 class Fragment {
 public:
      /// Constructor
-     Fragment(int id, string name)
-     {
-         _id = id; _name = name; _symmetry = 0;
-     }
-     /// Destructor
-    ~Fragment()
-    {
-        vector < Atom* > ::iterator atmit;
-        for (atmit = this->Atoms().begin();
-                atmit < this->Atoms().end();
-                atmit++) {
-            delete *atmit;
-        }
-        _weights.clear();
-        _atoms.clear();
-    }
-   /**
-     * get the id of the segment
-     * \return bead id
-     */
-    const int &getId() const { return _id; }
-     /**
-     * get the id of the segment
-     * \return bead id
-     */
-    const string getName() const { return _name; }
-
-    void AddAtom( Atom* atom ) {
-        _atoms.push_back( atom );
-        atom->setFragment(this);
-        _weights.push_back( atom->getWeight() );
-    }
-    vector< Atom* > &Atoms() { return _atoms; }
-    int NumberOfAtoms() { return _atoms.size(); }
-
-    /// Rotates the fragment with respect to the center defined by the Map
-    void Rotate (){ 
-        throw runtime_error( string("Not implemented") ); 
-    }
-    /// Translates the fragment by a specified vector
-    void Translate(){ 
-        throw runtime_error( string("Not implemented") ); 
-    }
+     Fragment(int id, string name) : _id(id), _name(name), _symmetry(0) { }
+    ~Fragment();
     
+    void Rotate();    // rotates w.r.t. center of map
+    void Translate();    
+
     inline void setTopology(Topology *container) { _top = container; }
     inline void setMolecule(Molecule *container) { _mol = container; }
     inline void setSegment(Segment *container)   { _seg = container; }
+    void        AddAtom( Atom* atom );
 
-    Topology *getTopology() { return _top; }
-    Molecule *getMolecule() { return _mol; }
-    Segment  *getSegment()  { return _seg; }
+    Topology   *getTopology() { return _top; }
+    Molecule   *getMolecule() { return _mol; }
+    Segment    *getSegment()  { return _seg; }    
+    vector< Atom* > &Atoms() { return _atoms; }
 
-    void    setSymmetry(int symmetry) { _symmetry = symmetry; }
-    int     getSymmetry() { return _symmetry; }
+    const int    &getId() const { return _id; }
+    const string &getName() const { return _name; }
 
-    
+    void         setSymmetry(int symmetry) { _symmetry = symmetry; }
+    int          getSymmetry() { return _symmetry; }
+
+    void         calcPos();
+    void         setPos(vec pos) { _CoMap = pos; }
+    const vec   &getPos() const { return _CoMap; }
+
 private:
 
     Topology    *_top;
@@ -108,6 +78,7 @@ private:
     int         _id;
 
     int         _symmetry;
+    vec         _CoMap;    // Center of mapping
 
 
 };

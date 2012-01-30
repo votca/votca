@@ -339,6 +339,7 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
                 newSeg->AddAtom(newAtom);
                 newMol->AddAtom(newAtom);
             } /* exit loop over template atoms */
+            newFrag->calcPos();
             newSeg->AddFragment(newFrag);
             newMol->AddFragment(newFrag);
         } /* exit loop over template fragments */

@@ -75,6 +75,9 @@ void QMDatabase2::onCreate()
         "mol    INT NOT NULL,"
         "seg    INT NOT NULL,"
 
+        "posX   REAL NOT NULL,"
+        "posY   REAL NOT NULL,"
+        "posZ   REAL NOT NULL,"
         "symmetry INT NOT NULL)");
 
     // Table format atoms
