@@ -29,9 +29,9 @@ class matrix
 public:
         
     matrix() {};
-    matrix(const real &v) { *this=v; }
+    matrix(const double &v) { *this=v; }
     matrix(const matrix &m) { *this=m; }
-    matrix(real  arr[9]) {*this=arr; }
+    matrix(double  arr[9]) {*this=arr; }
     matrix(const vec& a, const vec& b, const vec& c){
         _m[0]=a.getX(); _m[1]=b.getX(); _m[2]=c.getX();
         _m[3]=a.getY(); _m[4]=b.getY(); _m[5]=c.getY();
@@ -40,9 +40,9 @@ public:
     
     void Invert();
     
-    matrix &operator=(const real &v);
+    matrix &operator=(const double &v);
     matrix &operator=(const matrix &v);
-    matrix &operator=(real [9]);
+    matrix &operator=(double [9]);
     //vec &operator+=(const vec &v);
     //vec &operator-=(const vec &v);
     matrix &operator*=(const double &d){
@@ -80,11 +80,11 @@ public:
      * @param j column
      * @param v value
      */
-    void set(const byte_t &i, const byte_t &j, const real &v) { _m[i*3+j] = v; }
+    void set(const byte_t &i, const byte_t &j, const double &v) { _m[i*3+j] = v; }
     /**
      * \brief get an element of the matrix
      */
-    const real &get(const byte_t &i, const byte_t &j) const { return _m[i*3+j]; }
+    const double &get(const byte_t &i, const byte_t &j) const { return _m[i*3+j]; }
 
     /**
      * \brief get a row vector
@@ -105,10 +105,10 @@ public:
      * @return pointer to beginning of row i
      * use it as matrix[a][b]
      */
-    real *operator[](size_t i) { return &_m[i*3]; }
+    double *operator[](size_t i) { return &_m[i*3]; }
     
     struct eigensystem_t {
-        real eigenvalues[3];
+        double eigenvalues[3];
         vec eigenvecs[3];
         
         eigensystem_t operator+=(const eigensystem_t &e) {
@@ -200,10 +200,10 @@ public:
     friend matrix operator*(const double &, const matrix &);
     friend vec operator*(const vec &, const matrix &);
 	  private:
-    real _m[9];
+    double _m[9];
 };
 
-inline matrix &matrix::operator=(const real &v)
+inline matrix &matrix::operator=(const double &v)
 {
     for(size_t i=0; i<9; ++i)
         _m[i] = v;
@@ -217,7 +217,7 @@ inline matrix &matrix::operator=(const matrix &m)
     return *this;
 }
 
-inline matrix &matrix::operator=(real arr[9])
+inline matrix &matrix::operator=(double arr[9])
 {
     for(size_t i=0; i<9; ++i)
         _m[i] = arr[i];
