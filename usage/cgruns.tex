@@ -29,12 +29,12 @@ The post-processing roughly consists of the following steps (see further explana
   \item exporting the table to xvg (\prog{csg_call} convert\_potential gromacs)
 \end{itemize}
 
-\subsection*{Clipping of poorly sampled regions}
+\subsection{Clipping of poorly sampled regions}
 Regions with an irregular distribution of samples should be deleted first. This is simply done by editing the \progopt{.pot} file and by deleting those values.
 
 Alternatively, manually check the range where the potential still looks good and is not to noisy and set the flags in the potential file of the bad parts by hand to \texttt{o} (for \texttt{out of range}). Those values will later be extrapolated and overwritten.
 
-\subsection*{Resampling}
+\subsection{Resampling}
 Use the command
 \begin{verbatim}
   csg_resample --in table.pot --out table_resample.pot \
@@ -46,7 +46,7 @@ It is important to note that the values \progopt{min} and \progopt{max} \textit{
 
 The potential \textit{don't} have to start at 0, this is done by the export script (to xvg) automatically.
 
-\subsection*{Extrapolation}
+\subsection{Extrapolation}
 The following line
 \begin{verbatim}
   csg_call table extrapolate [options] table_resample.pot \
@@ -58,7 +58,7 @@ After resampling, all values in the potential file that should be used as a basi
 
 The output \progopt{table\_extrapolate.pot} of the extrapolation step can now be used for the coarse-grained run. If \gromacs is used as a molecule dynamics package, the potential has to be converted and exported to a suitable \gromacs format as described in the final step.
 
-\subsection*{Exporting the table}
+\subsection{Exporting the table}
 Finally, the table is exported to \progopt{xvg}. The conversion procedure requires a small xml file \progopt{table.xml} as shown below:
 \begin{verbatim}
   <cg>
@@ -97,7 +97,7 @@ Internally \progopt{convert\_potential gromacs} will do the following steps:
 \item Write to the format needed by gromacs
 \end{itemize}
 
-\subsection*{An example on non-bonded interactions}
+\subsection{An example on non-bonded interactions}
 \begin{verbatim}
   csg_call pot shift_nonbonded table.pot table.pot.refined
   csg_resample --grid 0.3:0.05:2 --in table.pot.refined \
