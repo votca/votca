@@ -114,6 +114,7 @@ die () { #make the iterative frame work stopp
     until [[ ${CSG_MASTER_PID} -eq $pid ]]; do
       #get the parent pid using BSD style due to AIX
       pid=$(ps -o ppid= -p "$pid" 2>/dev/null)
+      [[ -z $pid ]] && pids="0" && break
       #store them in inverse order to kill parents before the child
       pids="$pid $pids"
       ((c++))
@@ -154,7 +155,7 @@ do_external() { #takes two tags, find the according script and excute it
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
   #print this message to stderr to allow $(do_external ) and do_external XX > 
-  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/} ${@:3}' (from tags $tags) dir ${script%/*}" >&2
+  [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
     CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
@@ -182,41 +183,61 @@ critical() { #executes arguments as command and calls die if not succesful
 export -f critical
 
 for_all (){ #do something for all interactions (1st argument)
-  local bondtype name interactions quiet="no"
+  local bondtypes type name interactions quiet="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: need at least two arguments"
-  bondtype="$1"
+  bondtypes="$1"
   shift
-  #check that type is bonded or non-bonded
-  if [[ $bondtype != "non-bonded" ]]; then
-    die "${FUNCNAME[0]}: Argmuent 1 '$bondtype' is not non-bonded"
-  fi
-  [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
-  interactions=( $(csg_get_property cg.non-bonded.name) )
+  interactions=( $(csg_get_interaction_property --all name) )
+  min=( $(csg_get_interaction_property --all min) )
+  [[ ${#min[@]} -ne ${#interactions[@]} ]] && die "${FUNCNAME[0]}: one interaction has no name or min"
   name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
-  for name in "${interactions[@]}"; do
-    #print this message to stderr to avoid problem with $(for_all something)
-    [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
-    #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
-    #write variable defines in the front is better, that export
-    #no need to run unset afterwards
-    bondtype="$bondtype" \
-    bondname="$name" \
-    CSG_CALLSTACK="$(show_callstack)" \
-    bash -c "$*" || die "${FUNCNAME[0]}: bash -c '$*' failed for bondname '$name'"
+  for bondtype in $bondtypes; do
+    #check that type is bonded or non-bonded
+    [[ $bondtype = "non-bonded" || $bondtype = "bonded" ]] || die  "for_all: Argument 1 is not non-bonded or bonded"
+    [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
+    interactions=( $(csg_get_property --allow-empty cg.$bondtype.name) ) #filter me away
+    for name in "${interactions[@]}"; do
+      #print this message to stderr to avoid problem with $(for_all something)
+      [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
+      #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
+      #write variable defines in the front is better, that export
+      #no need to run unset afterwards
+      bondtype="$bondtype" \
+      bondname="$name" \
+      CSG_CALLSTACK="$(show_callstack)" \
+      bash -c "$*" || die "${FUNCNAME[0]}: bash -c '$*' failed for bondname '$name'"
+    done
   done
 }
 export -f for_all
 
-csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop
-  local ret allow_empty cmd
-  if [[ $1 = "--allow-empty" ]]; then
+csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop or with --all option
+  local ret allow_empty="no" for_all="no" xmltype
+  while [[ $1 = --* ]]; do
+    case $1 in
+      --allow-empty)
+        allow_empty="yes";;
+      --all)
+        for_all="yes";;
+      *)
+	die "${FUNCNAME[0]}: Unknow option '$1'";;
+    esac
     shift
-    allow_empty="yes"
-  else
-    allow_empty="no"
-  fi
+  done
   [[ -n $1 ]] || die "${FUNCNAME[0]}: Missing argument"
+
+  if [[ $for_all = "yes" ]]; then
+    [[ $1 = "bondtype" ]] && die "${FUNCNAME[0]}: --all + bondtype not implemented yet"
+    local t
+    for t in non-bonded bonded; do
+      ret+=" $(csg_get_property --allow-empty "cg.$t.$1")" #filter me away
+    done
+    ret="$(echo "$ret" | trim_all)"
+    [[ -z $ret ]] && die "${FUNCNAME[0]}: Not a single interaction has a value for the property $1"
+    echo "$ret"
+    return 0
+  fi
 
   #make these this case work even without name or type (called by csg_call)
   if [[ $1 = "name" ]]; then
@@ -225,34 +246,63 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   fi
   if [[ $1 = "bondtype" ]]; then
     #bondtype is special -> dirty hack - removed whenever issue 13 is fixed
-    [[ -n $bondtype ]] && echo "$bondtype" && return 0
-    die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
+    [[ -z "$bondtype" ]] && die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
+    #for_all notation for any kind of bonded interaction, find the real type
+    if [[ $bondtype = "bonded" ]]; then
+      mapping="$(csg_get_property --allow-empty cg.inverse.map)" #make error message more useful
+      [[ -z ${mapping} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a mapping file to determine the actual bond type (when calling from csg_call better use --ia-type bond, angle or dihedral)"
+      [[ -f "$(get_main_dir)/$mapping" ]] || die "${FUNCNAME[0]}: Mapping file '$mapping' for bonded interaction not found in maindir"
+      [[ -z ${bondname} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a bondname (when calling from csg_call set it by --ia-name option) or change type to angle, bond or dihedral"
+      [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
+      local names=()
+      names=$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.*.name --print . --short)
+      ret=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$ret' in $mapping appears twice"
+      ret="$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
+      ret="$(echo "$ret" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
+      echo "$ret"
+    elif [[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
+      echo "thermforce"
+    else
+      echo "$bondtype"
+    fi
+    return 0
   fi
 
   [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
-  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
+  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"i
+
+  #mapp bondtype back to tags in xml file (for csg_call)
+  case "$bondtype" in
+    "non-bonded"|"thermoforce")
+      xmltype="non-bonded";;
+    "bonded"|"bond"|"angle"|"dihedral")
+      xmltype="bonded";;
+    *)
+      msg "Unknown bondtype '$bondtype' - assume non-bonded"
+      xmltype="non-bonded";;
+  esac
 
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
-  cmd="csg_property --file $CSGXMLFILE --short --path cg.${bondtype} --filter name=$bondname --print $1"
   #the --filter/--path(!=.) option will make csg_property fail if $1 does not exist
   #so no critical here
-  ret="$($cmd)"
+  ret="$(csg_property --file $CSGXMLFILE --short --path cg.${xmltype} --filter name=$bondname --print $1 | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
   # if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
-    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${bondtype}.$1 --print .)"
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${xmltype}.$1 --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+    #from time to time the default is only given in the non-bonded section
+    [[ -z $ret ]] && ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.non-bonded.$1 --print . | trim_all)"
   fi
-  ret="$(echo "$ret" | trim_all)"
-  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction with name '$bondname' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
   echo "${ret}"
 }
 export -f csg_get_interaction_property
 
 csg_get_property () { #get an property from the xml file
-  local ret allow_empty cmd
+  local ret allow_empty
   if [[ $1 = "--allow-empty" ]]; then
     shift
     allow_empty="yes"
@@ -262,18 +312,16 @@ csg_get_property () { #get an property from the xml file
   [[ -n $1 ]] || die "${FUNCNAME[0]}: Missing argument"
   [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
-  cmd="csg_property --file $CSGXMLFILE --path ${1} --short --print ."
   #csg_property only fails if xml file is bad otherwise result is empty
   #leave the -q here to avoid flooding with messages
-  ret="$(critical -q $cmd)"
+  ret="$(critical -q csg_property --file $CSGXMLFILE --path ${1} --short --print . | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
   #if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
-    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print .)"
+    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
-  ret="$(echo "$ret" | trim_all)"
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
   echo "${ret}"
 }
@@ -531,6 +579,7 @@ check_path_variable() { #check if a variable contains only valid paths
     IFS=":"
     for dir in ${!var}; do
       [[ -z $dir ]] && continue
+      [[ $dir = *votca* ]] || continue #to many error otherwise
       [[ -d $dir ]] || die "${FUNCNAME[0]}: $dir from variable $var is not a directory"
     done
     IFS="$old_IFS"

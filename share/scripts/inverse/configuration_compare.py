@@ -68,7 +68,7 @@ for i in range(len(conf1)):
     if abs(float(vals1[j]) - float(vals2[j])) > options.eps: 
       die("mismatch in line "+str(i+3)+" col "+str(j+1)+", "+str(vals1[j])+"!="+str(vals2[j]))
 
-#compare last line with tolerance
+#compare last line without tolerance
 for j in range(3):
   if vals1[j] != vals2[j]: 
     die("mismatch in line "+str(i+3)+" col "+str(j+1)+", "+str(vals1[j])+"!="+str(vals2[j]))

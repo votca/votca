@@ -44,12 +44,12 @@ namespace votca {
             if (DoMapping()) {
                 if (DoMappingDefault()) {
                     AddProgramOptions("Mapping options")
-                            ("cg", boost::program_options::value<string > (), "  coarse graining mapping definitions (xml-file)")
+                            ("cg", boost::program_options::value<string > (), "  coarse graining mapping and bond definitions (xml-file)")
                             ("map-ignore", boost::program_options::value<string >(), "  list of molecules to ignore separated by ;")
                             ("no-map", "  disable mapping and act on original trajectory");
                 } else {
                     AddProgramOptions("Mapping options")
-                            ("cg", boost::program_options::value<string > (), "  [OPTIONAL] coarse graining mapping definitions\n"
+                            ("cg", boost::program_options::value<string > (), "  [OPTIONAL] coarse graining mapping and bond definitions\n"
                             "  (xml-file). If no file is given, program acts on original trajectory")
                             ("map-ignore", boost::program_options::value<string >(), "  list of molecules to ignore if mapping is done separated by ;");
                 }

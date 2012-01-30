@@ -28,7 +28,7 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
 
-for_all non-bonded do_external prepare_single $method
+for_all "bonded non-bonded" do_external prepare_single $method
 
 #cp confout.gro and so on
 do_external prepare_generic $sim_prog

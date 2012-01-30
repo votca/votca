@@ -100,6 +100,7 @@ convergence_check re convergence_check_re.sh
 # table preparation
 dpot shift_nonbonded dpot_shift_nb.pl
 pot shift_nonbonded dpot_shift_nb.pl
+dpot shift_bonded dpot_shift_bo.pl
 pot shift_bonded dpot_shift_bo.pl
 resample target resample_target.sh
 dpot crop dpot_crop.pl

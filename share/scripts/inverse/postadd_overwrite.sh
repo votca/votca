@@ -44,7 +44,7 @@ scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 
 #this interaction will overwrite the others
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
-  names="$(csg_get_property cg.non-bonded.name)"
+  names="$(csg_get_interaction_property --all name)"
   for i in $names; do
     [[ $i = $name ]] && continue
     echo "Overwriting $i.pot.new with $1"

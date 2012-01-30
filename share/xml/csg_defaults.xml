@@ -152,9 +152,6 @@
       </pot_max>
       <pre_simulation>no
 	<DESC>A pre simulation (e.g. minimization / equilibration ) is a simulation with a different mdp/topol/index</DESC>
-	<i>
-	  <DESC>Virtual for mdp topol index, see description below</DESC>
-	</i>
 	<index>
 	  <DESC> Gromacs grompp index file to used by grompp in the pre simulation</DESC>
 	</index>
@@ -169,6 +166,9 @@
 	<block_length>
 	  <DESC>Length of the block for the error analysis</DESC>
 	</block_length>
+	<map>
+	  <DESC>Special mapping file for rdf calculations needed for bonded interactions</DESC>
+	</map>
 	<topol>
 	  <DESC> Gromacs topol file to be used for csg_stat</DESC>
 	</topol>
@@ -228,6 +228,9 @@
     <log_file>inverse.log
       <DESC>name of the log file</DESC>
     </log_file>
+    <map>
+      <DESC>Special mapping file for rdf calculations needed for bonded interactions</DESC>
+    </map>
     <method>
       <DESC>method to be performed: ibi/imc/ft/simplex</DESC>
     </method>
@@ -254,7 +257,10 @@
     <DESC>Grid search algorithm, simple (N square search) or grid</DESC>
   </nbsearch>
   <bonded>
-    <DESC>Interaction specific option for bonded interactions, for now see the cg.non-bonded section</DESC>
+    <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
+    <name>
+      <DESC>Name of the bonded interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
+    </name>
   </bonded>
   <non-bonded>
     <DESC>Interaction specific option for non-bonded interactions</DESC>
