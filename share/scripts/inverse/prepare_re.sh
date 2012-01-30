@@ -47,20 +47,14 @@ tpr="$(get_main_dir)/$(csg_get_property cg.ref.top)"
 trr="$(get_main_dir)/$(csg_get_property cg.ref.trj)"
 [[ -f $trr ]] || die "${0##*/}: please provide ref AA trajectory file '$trr' "
 
-CGMAPFILE="$(csg_get_property cg.map)"
+ext=$(csg_get_property cg.inverse.gromacs.traj_type)
+[[ $ext = trr ]] || die "Method re needs a trr trajetory (to read forces)"
 
-csg_reupdate="$(csg_get_property cg.inverse.re.csg_reupdate.command)"
-
+mapping="$(csg_get_property cg.inverse.map)"
 opts="$(csg_get_property cg.inverse.re.csg_reupdate.opts)"
 
 # for now I am providing initial step cg conf
 # this wont be needed if i could find better way to do this
 # working on it
 
-
-critical $csg_reupdate --top ${tpr} --trj ${trr} --options $CSGXMLFILE --genref true --cg $(csg_get_property cg.map) ${opts}
-
-
-
-
-
+critical csg_reupdate --top ${tpr} --trj ${trr} --options $CSGXMLFILE --genref true --cg $(csg_get_property cg.map) ${opts}
