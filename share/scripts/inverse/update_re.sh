@@ -25,19 +25,16 @@ EOF
    exit 0
 fi
 
-tpr="$(csg_get_property cg.inverse.gromacs.topol_out)"
-
-#traj="$(csg_get_property cg.inverse.gromacs.traj_out)"
-#gromacs run produces both xtc and trr
-#use trr 
+topol="$(csg_get_property cg.inverse.gromacs.topol_out)"
+topol=$(csg_get_property cg.inverse.gromacs.re.topol "$topol")
+[[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist" 
+ext=$(csg_get_property cg.inverse.gromacs.traj_type)
+traj="traj.${ext}"
+[[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 
 csg_reupdate_opts="$(csg_get_property --allow-empty cg.inverse.re.csg_reupdate.opts)"
 
-csg_reupdate="$(csg_get_property cg.inverse.re.csg_reupdate.command)"
-
-msg --color green "Running csg_reupdate"
-
-critical $csg_reupdate --top ${tpr} --trj traj.trr --options $CSGXMLFILE ${csg_reupdate_opts}
+critical csg_reupdate --top ${topol} --trj $traj --options $CSGXMLFILE ${csg_reupdate_opts}
 
 
 
