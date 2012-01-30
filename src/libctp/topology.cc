@@ -21,7 +21,7 @@
 
 namespace votca { namespace ctp {
 
-Topology::Topology() : _db_id(0), _hasPb(0) { }
+Topology::Topology() : _db_id(-1), _hasPb(0), _bc(NULL) { }
 
 // +++++++++++++++++++++ //
 // Clean-Up, Destruct    //
@@ -30,14 +30,12 @@ Topology::Topology() : _db_id(0), _hasPb(0) { }
 void Topology::CleanUp() {
 
     vector < Molecule* > ::iterator mit;
-
     for (mit = _molecules.begin(); mit < _molecules.end(); mit++) delete *mit;
     _molecules.clear();
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
-
-    if (_bc) delete(_bc);
+    if (_bc) { delete(_bc); _bc = NULL; }
     _bc = new CSG::OpenBox;
 }
 
@@ -165,5 +163,45 @@ CSG::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(const matrix &box){
 vec Topology::PbShortestConnect(const vec &r1, const vec &r2) const {
     return _bc->BCShortestConnection(r1, r2);
 }
+
+
+
+
+
+
+
+
+
+void Topology::PrintInfo(ostream &out) {
+        cout << endl;
+
+        cout << "MD|QM Topology info "
+                "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+        if (_bc) {
+        cout << "Periodic Box:        "  << this->getBox().get(0,0)
+                                << " "   << this->getBox().get(0,1)
+                                << " "   << this->getBox().get(0,2)
+                                << " | " << this->getBox().get(1,0)
+                                << " "   << this->getBox().get(1,1)
+                                << " "   << this->getBox().get(1,2)
+                                << " | " << this->getBox().get(2,0)
+                                << " "   << this->getBox().get(2,1)
+                                << " "   << this->getBox().get(2,2)
+                                << endl;
+        }
+        else {
+        cout << "No periodic boundary specified. " << endl;
+        }
+        cout << "Database ID:         " << this->getDatabaseId() << endl;
+        cout << "Step number:         " << this->getStep() << endl;
+        cout << "Time:                " << this->getTime() << endl;
+        cout << "# Molecules          " << this->Molecules().size() << endl;
+        cout << "# Segments           " << this->Segments().size() << endl;
+        cout << "# Fragments          " << this->Fragments().size() << endl;
+        cout << "# Atoms              " << this->Atoms().size() << endl;
+        cout << endl;
+}
+
+
 
 }}

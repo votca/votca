@@ -526,27 +526,7 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
         cout << endl;
         this->PrintInfo();
         cout << endl;
-
-        cout << "MD|QM Topology info "
-                "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
-        cout << "Periodic Box:        "  << outtop->getBox().get(0,0)
-                                << " "   << outtop->getBox().get(0,1)
-                                << " "   << outtop->getBox().get(0,2)
-                                << " | " << outtop->getBox().get(1,0)
-                                << " "   << outtop->getBox().get(1,1)
-                                << " "   << outtop->getBox().get(1,2)
-                                << " | " << outtop->getBox().get(2,0)
-                                << " "   << outtop->getBox().get(2,1)
-                                << " "   << outtop->getBox().get(2,2)
-                                << endl;
-        cout << "Database ID:         " << outtop->getDatabaseId() << endl;
-        cout << "Step number:         " << outtop->getStep() << endl;
-        cout << "Time:                " << outtop->getTime() << endl;
-        cout << "# Molecules          " << outtop->Molecules().size() << endl;
-        cout << "# Segments           " << outtop->Segments().size() << endl;
-        cout << "# Fragments          " << outtop->Fragments().size() << endl;
-        cout << "# Atoms              " << outtop->Atoms().size() << endl;
-        cout << endl;
+        outtop->PrintInfo(cout);
     }
 }
 

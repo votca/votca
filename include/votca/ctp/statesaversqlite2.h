@@ -20,10 +20,10 @@
 
 #include <stdio.h>
 #include <map>
-#include "qmbead.h"
-#include "qmtopology.h"
-#include "qmpair.h"
-#include "qmnblist.h"
+// #include "qmbead.h"
+//#include "qmtopology.h"
+// #include "qmpair.h"
+// #include "qmnblist.h"
 #include "qmdatabase2.h"
 #include "topology.h"
 
@@ -68,6 +68,7 @@ private:
 
     map<int,int>    _conjseg_id_map;
     bool            _was_read;
+    string          _sqlfile;
 };
 
 }}

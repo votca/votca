@@ -22,6 +22,7 @@ namespace votca { namespace ctp {
 
 void StateSaverSQLite2::Open(Topology& qmtop, const string &file) {
 
+    _sqlfile = file;
     _db.OpenHelper(file.c_str());
     _frame = 0;
     _qmtop = &qmtop;
@@ -41,20 +42,31 @@ void StateSaverSQLite2::Open(Topology& qmtop, const string &file) {
 
 bool StateSaverSQLite2::NextFrame() {
 
-    _qmtop->CleanUp();
     _current_frame++;
 
-    if(_current_frame >= _frames.size())
+    if(_current_frame >= _frames.size()) { 
         return false;
+    }
+    else {
+        this->ReadFrame(_current_frame);
+        _was_read=true;
+        return true;
+    }
 
-    _was_read=true;
-    return true;
 }
 
 
 void StateSaverSQLite2::WriteFrame() {
 
-    cout << "Saving MD|QM topology ID " << _qmtop->getDatabaseId() << ": ";
+    if ( _qmtop->getDatabaseId() < 0 ) {
+        _qmtop->setDatabaseId(_frames.size());
+        _current_frame = _frames.size();
+    }
+
+    cout << "Saving MD|QM topology ID " << _qmtop->getDatabaseId()
+         << " (i.e. frame " << _current_frame << ")"
+         << " to " << _sqlfile << endl;
+    cout << "... ";
     _db.BeginTransaction();    
 
     this->WriteMeta();
@@ -210,7 +222,7 @@ void StateSaverSQLite2::WriteFragments() {
         stmt->Bind(8, frag->getPos().getX());
         stmt->Bind(9, frag->getPos().getY());
         stmt->Bind(10,frag->getPos().getZ());
-        stmt->Bind(11, frag->getSymmetry());
+        stmt->Bind(11,frag->getSymmetry());
 
         stmt->InsertStep();
         stmt->Reset();
@@ -274,9 +286,13 @@ void StateSaverSQLite2::WriteAtoms() {
 
 void StateSaverSQLite2::ReadFrame(int topId) {
 
-    cout << "Import MD|QM Topology ID " << topId << ": ";
+    cout << "Import MD|QM Topology ID " << topId 
+         << " (i.e. frame " << _current_frame << ")"
+         << " from " << _sqlfile << endl;
+    cout << "...";
 
     _qmtop->CleanUp();
+    _qmtop->setDatabaseId(_current_frame);
 
     this->ReadMeta(topId);
     this->ReadMolecules(topId);
@@ -297,10 +313,11 @@ void StateSaverSQLite2::ReadMeta(int topId) {
                                   "box31, box32, box33 "
                                   "FROM frames WHERE "
                                   "id = ?;");
-    stmt->Bind(1, topId);
+    stmt->Bind(1, _current_frame);
 
     if (stmt->Step() == SQLITE_DONE) {
-        throw runtime_error("Database appears to be empty. Abort...");
+        // ReadFrame should not have been called in the first place:
+        throw runtime_error("Database appears to be broken. Abort...");
     }
 
     _qmtop->setTime(stmt->Column<double>(0));

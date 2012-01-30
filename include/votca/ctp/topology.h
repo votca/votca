@@ -85,6 +85,7 @@ public:
     int              getDatabaseId() { return _db_id; };
     void             setDatabaseId(int id) { _db_id = id; }
     void             CleanUp();
+    void             PrintInfo(ostream &out);
 
    
 protected:

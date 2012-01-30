@@ -26,7 +26,7 @@
 namespace votca { namespace ctp {
 
 using namespace votca::csg;
-
+namespace CSG = votca::csg;
 /**
     \brief contains the bead associated to a crg unit.
 
@@ -62,7 +62,7 @@ public:
 
 private:
     /// constructor if bead is created with no rerference bead (e.g. when reading from file)
-    QMBead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name,
+    QMBead(CSG::Topology *owner, int id, BeadType *type, byte_t symmetry, string name,
             int resnr, double m, double q);
 
     ///the charge unit
@@ -74,7 +74,7 @@ private:
 };
 
 
-inline QMBead::QMBead(Topology *owner, int id, BeadType *type, byte_t symmetry,
+inline QMBead::QMBead(CSG::Topology *owner, int id, BeadType *type, byte_t symmetry,
     string name, int resnr, double m, double q)
     : Bead(owner, id, type, symmetry, name, resnr, m, q), _crg(NULL), _ipos(-1)
 {
