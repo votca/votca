@@ -57,7 +57,6 @@ void HistogramNew::Initialize(string filename)
     _max   = _data.x(_nbins-1);
     _step = (_max - _min)/_nbins;
     _weight = 1.;
-
 }
 
 void HistogramNew::Process(const double &v, double scale)

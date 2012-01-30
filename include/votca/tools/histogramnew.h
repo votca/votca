@@ -22,7 +22,7 @@
 #include <vector>
 #include <limits>
 #include <cmath>
-#include <votca/tools/table.h>
+#include "table.h"
 
 namespace votca { namespace tools {
 

@@ -32,7 +32,7 @@ using namespace std;
 void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b){
 
 #ifdef NOGSL
-    throw std::runtime_error("linalg_qrsolve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
+    throw std::runtime_error("linalg_cholesky_solve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
 #else
     /* calling program should catch the error error code GSL_EDOM
      * thrown by gsl_linalg_cholesky_decomp and take
@@ -60,9 +60,9 @@ void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vec
         x(i) = gsl_vector_get(gsl_x, i);
 
     gsl_vector_free (gsl_x);
-
 #endif
 }
+
 void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual)
 {
 #ifdef NOGSL
