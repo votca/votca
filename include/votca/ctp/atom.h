@@ -43,7 +43,7 @@ class Fragment;
     The Atom class stores atom id, name, type, mass, charge, residue number
     
 */
-class Atom
+class Atom 
 {
 public:   
     /**
