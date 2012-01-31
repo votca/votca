@@ -63,6 +63,10 @@ public:
     Topology *getTopology() { return _top; }
     Molecule *getMolecule() { return _mol; }
 
+    void         calcPos();
+    void         setPos(vec pos) { _CoM = pos; }
+    const vec   &getPos() const { return _CoM; }
+
     void WritePDB(FILE *out);
 
 private:
@@ -75,7 +79,7 @@ private:
 
     string      _name;
     int         _id;
-    vec         _pos;
+    vec         _CoM;
     double      _occ;
     
 

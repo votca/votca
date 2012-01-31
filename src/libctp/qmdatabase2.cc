@@ -55,6 +55,10 @@ void QMDatabase2::onCreate()
         "name   TEXT NOT NULL,"
         "type   TEXT NOT NULL,"
         "mol    INT NOT NULL,"
+            
+        "posX   REAL NOT NULL,"
+        "posY   REAL NOT NULL,"
+        "posZ   REAL NOT NULL,"
 
         "enerA  REAL,"
         "enerN  REAL,"

@@ -163,8 +163,10 @@ void StateSaverSQLite2::WriteSegments(bool update) {
     if (!update) {
         stmt = _db.Prepare("INSERT INTO segments ("
                             "frame, top, id,"
-                            "name, type, mol)"
+                            "name, type, mol,"
+                            "posX, posY, posZ) "
                             "VALUES ("
+                            "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?)");
     }
@@ -190,6 +192,9 @@ void StateSaverSQLite2::WriteSegments(bool update) {
             stmt->Bind(4, seg->getName());
             stmt->Bind(5, seg->getName());
             stmt->Bind(6, seg->getMolecule()->getId());
+            stmt->Bind(7, seg->getPos().getX());
+            stmt->Bind(8, seg->getPos().getY());
+            stmt->Bind(9, seg->getPos().getZ());
         }
 
         else {
@@ -399,7 +404,9 @@ void StateSaverSQLite2::ReadSegments(int topId) {
 
     cout << ", segments";
 
-    Statement *stmt = _db.Prepare("SELECT name, mol, occ "
+    Statement *stmt = _db.Prepare("SELECT name, mol, "
+                                  "posX, posY, posZ, "
+                                  "occ "
                                   "FROM segments "
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
@@ -408,11 +415,17 @@ void StateSaverSQLite2::ReadSegments(int topId) {
 
         string  name = stmt->Column<string>(0);
         int     id   = stmt->Column<int>(1);
-        double  occ  = stmt->Column<double>(2);
+        double  X    = stmt->Column<double>(2);
+        double  Y    = stmt->Column<double>(3);
+        double  Z    = stmt->Column<double>(4);
+        double  occ  = stmt->Column<double>(5);
 
         Segment *seg = _qmtop->AddSegment(name);
-        seg->setOcc(occ);
         seg->setMolecule(_qmtop->getMolecule(id));
+        seg->setPos(vec(X, Y, Z));
+        seg->setOcc(occ);
+
+        seg->getMolecule()->AddSegment(seg);
     }
     delete stmt;
     stmt = NULL;
@@ -447,6 +460,10 @@ void StateSaverSQLite2::ReadFragments(int topId) {
         frag->setMolecule(_qmtop->getMolecule(molid));
         frag->setPos(vec(posX, posY, posZ));
         frag->setSymmetry(symm);
+
+        frag->getSegment()->AddFragment(frag);
+        frag->getMolecule()->AddFragment(frag);
+
     }
     delete stmt;
     stmt = NULL;
@@ -487,6 +504,10 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
         atm->setFragment(_qmtop->getFragment(fragid));
         atm->setSegment(_qmtop->getSegment(segid));
         atm->setMolecule(_qmtop->getMolecule(molid));
+
+        atm->getFragment()->AddAtom(atm);
+        atm->getSegment()->AddAtom(atm);
+        atm->getMolecule()->AddAtom(atm);
 
         atm->setResnr(resnr);
         atm->setResname(resname);  

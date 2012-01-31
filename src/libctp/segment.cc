@@ -60,14 +60,29 @@ void Segment::AddAtom( Atom* atom ) {
 }
 
 
+void Segment::calcPos() {
+    vec pos = vec(0,0,0);
+    double totWeight = 0.0;
+
+    for (int i = 0; i< _atoms.size(); i++) {
+        pos += _atoms[i]->getPos() * _atoms[i]->getWeight();
+        totWeight += _atoms[i]->getWeight();
+    }
+
+    _CoM = pos / totWeight;
+}
+
+
 void Segment::WritePDB(FILE *out) {
 
     vector < Fragment* > :: iterator frag;
     for (frag = _fragments.begin(); frag < _fragments.end(); ++frag){
          int id = (*frag)->getId();
          string name =  (*frag)->getName();
-         string resname = "RSD";
-         int resnr = (*frag)->getId();
+         name.resize(3);
+         string resname = (*frag)->getSegment()->getName();
+         resname.resize(3);
+         int resnr = (*frag)->getSegment()->getId();
          vec position = (*frag)->getPos();  
 
          fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",

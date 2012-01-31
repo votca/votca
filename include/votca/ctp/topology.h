@@ -31,6 +31,7 @@
 #include <votca/ctp/molecule.h>
 
 #include <votca/ctp/qmpair2.h>
+#include <votca/ctp/qmnblist2.h>
 
 namespace CSG = votca::csg;
 
@@ -75,7 +76,7 @@ public:
                             CSG::BoundaryCondition::eBoxtype boxtype =
                             CSG::BoundaryCondition::typeAuto);
 
-
+    QMNBList2       &NBList() { return _nblist; }
 
     // Trajectory meta data: step number, time, frame (= Db ID)
 
@@ -87,7 +88,9 @@ public:
     int              getDatabaseId() { return _db_id; };
     void             setDatabaseId(int id) { _db_id = id; }
     void             CleanUp();
+
     void             PrintInfo(ostream &out);
+    void             WritePDB(FILE *out, string tag = "segments");
 
    
 protected:
@@ -96,6 +99,8 @@ protected:
     vector < Segment* >     _segments;
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
+
+    QMNBList2               _nblist;
 
     CSG::BoundaryCondition *_bc;
     bool                    _hasPb;

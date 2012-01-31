@@ -345,6 +345,7 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
             newSeg->AddFragment(newFrag);
             newMol->AddFragment(newFrag);
         } /* exit loop over template fragments */
+        newSeg->calcPos();
         newMol->AddSegment(newSeg);
     } /* exit loop over template molecules */
 
@@ -511,9 +512,11 @@ void Md2QmEngine::PrintInfo() {
 void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
 
     string md_pdb = "md_" + pdbfile;
-    string qm_pdb = "qm_" + pdbfile;
+    string qm1_pdb = "qm_rigid_" + pdbfile;
+    string qm2_pdb = "qm_conjg_" + pdbfile;
     FILE *outPDB = NULL;
 
+    // Atomistic PDB
     outPDB = fopen(md_pdb.c_str(), "w");
 
     vector<CTP::Molecule*> ::iterator molIt;
@@ -528,7 +531,8 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
     fclose(outPDB);
 
 
-    outPDB = fopen(qm_pdb.c_str(), "w");
+    // Fragment PDB
+    outPDB = fopen(qm1_pdb.c_str(), "w");
 
     vector<CTP::Segment*> ::iterator segIt;
     for (segIt = outtop->Segments().begin();
@@ -538,6 +542,13 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
         seg->WritePDB(outPDB);
     }
 
+    fprintf(outPDB, "\n");
+    fclose(outPDB);
+
+
+    // Segment PDB
+    outPDB = fopen(qm2_pdb.c_str(), "w");
+    outtop->WritePDB(outPDB);
     fprintf(outPDB, "\n");
     fclose(outPDB);
 

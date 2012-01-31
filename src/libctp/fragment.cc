@@ -38,7 +38,7 @@ void Fragment::calcPos() {
         totWeight += _atoms[i]->getWeight();
     }
 
-    _CoMap = pos / totWeight;
+    _CoM = pos / totWeight;
 
 }
 

@@ -63,8 +63,8 @@ public:
     int          getSymmetry() { return _symmetry; }
 
     void         calcPos();
-    void         setPos(vec pos) { _CoMap = pos; }
-    const vec   &getPos() const { return _CoMap; }
+    void         setPos(vec pos) { _CoM = pos; }
+    const vec   &getPos() const { return _CoM; }
 
 private:
 
@@ -79,7 +79,7 @@ private:
     int         _id;
 
     int         _symmetry;
-    vec         _CoMap;    // Center of mapping
+    vec         _CoM;    // Center of mapping
 
 
 };

@@ -89,6 +89,7 @@ bool QMApplication2::EvaluateFrame() {
         cout << (*it)->Identify() << " ";
         (*it)->EvaluateFrame(&_top);
     }
+    cout << endl;
 }
 
 void QMApplication2::EndEvaluate() {

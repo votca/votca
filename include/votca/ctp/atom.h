@@ -46,9 +46,7 @@ class Fragment;
 class Atom 
 {
 public:   
-    /**
-     * constructor
-     */
+
     Atom(Molecule *owner,
          string residue_name,   int resnr,
          string md_atom_name,   int md_atom_id,
@@ -65,34 +63,12 @@ public:
          _hasQM(false), _qmId(-1) { }
 
     Atom() { };
-    /**
-     * destructor
-     */
    ~Atom() { }
 
-    /**
-     * get the id of the atom
-     * \return bead id
-     */
-    const int &getId() const { return _id; }    
-    /**
-     * get atom name
-     * \return atom name
-     */
-    const string &getName() const { return _name; }    
-    /**
-     * get the atom type
-     * \return atom type 
-     */
-    const string &getType() const { return _type; }
-    /**
-     * get the residue number of the atom
-     * \return residue id
-     */
-    const int &getResnr() const { return _resnr; }
-
-
-
+    const int     &getId() const { return _id; }
+    const string  &getName() const { return _name; }
+    const string  &getType() const { return _type; }
+    const int     &getResnr() const { return _resnr; }
 
     inline void setTopology(Topology *container) { _top = container; }
     inline void setMolecule(Molecule *container) { _mol = container; }
