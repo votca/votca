@@ -42,21 +42,22 @@ public:
     bool NextFrame();
 
     void WriteFrame();
-    void WriteMeta();
-    void WriteMolecules();
-    void WriteSegments();
-    void WriteFragments();
-    void WriteAtoms();
+    void WriteMeta(bool update);
+    void WriteMolecules(bool update);
+    void WriteSegments(bool update);
+    void WriteFragments(bool update);
+    void WriteAtoms(bool update);
 
-    void ReadFrame(int topId);
+    void ReadFrame();
     void ReadMeta(int topId);
     void ReadMolecules(int topId);
     void ReadSegments(int topId);
     void ReadFragments(int topId);
     void ReadAtoms(int topId);
 
-    int  FramesInDatabase() { return _frames.size(); }
+    int  FramesInDatabase();
     Topology *getTopology() { return _qmtop; }
+    bool HasTopology(Topology *top);
     
 private:
     Topology       *_qmtop;
@@ -65,10 +66,10 @@ private:
     int             _frame;
     int             _current_frame;
     vector<int>     _frames;
+    vector<int>     _topIds;
 
-    map<int,int>    _conjseg_id_map;
-    bool            _was_read;
     string          _sqlfile;
+    bool            _was_read;
 };
 
 }}

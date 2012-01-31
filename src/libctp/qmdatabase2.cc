@@ -27,7 +27,6 @@ void QMDatabase2::onCreate()
         "id     INT NOT NULL,"
         "time   REAL NOT NULL,"
         "step   INT NOT NULL,"
-
         "box11  REAL NOT NULL,"
         "box12  REAL NOT NULL,"
         "box13  REAL NOT NULL,"
@@ -55,7 +54,6 @@ void QMDatabase2::onCreate()
         "id     INT NOT NULL,"
         "name   TEXT NOT NULL,"
         "type   TEXT NOT NULL,"
-
         "mol    INT NOT NULL,"
 
         "enerA  REAL,"
@@ -71,7 +69,6 @@ void QMDatabase2::onCreate()
         "id     INT NOT NULL,"
         "name   TEXT NOT NULL,"
         "type   TEXT NOT NULL,"
-
         "mol    INT NOT NULL,"
         "seg    INT NOT NULL,"
 

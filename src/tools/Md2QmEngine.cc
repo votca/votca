@@ -224,6 +224,8 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
  */
 void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
 
+    qmtop->CleanUp();
+
     // Create periodic box
     qmtop->setBox(mdtop->getBox());
 
@@ -508,7 +510,11 @@ void Md2QmEngine::PrintInfo() {
 
 void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
 
-    FILE *outPDB = fopen(pdbfile.c_str(), "w");
+    string md_pdb = "md_" + pdbfile;
+    string qm_pdb = "qm_" + pdbfile;
+    FILE *outPDB = NULL;
+
+    outPDB = fopen(md_pdb.c_str(), "w");
 
     vector<CTP::Molecule*> ::iterator molIt;
     for (molIt = outtop->Molecules().begin();
@@ -521,8 +527,22 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
     fprintf(outPDB, "\n");
     fclose(outPDB);
 
-    if (true) {
 
+    outPDB = fopen(qm_pdb.c_str(), "w");
+
+    vector<CTP::Segment*> ::iterator segIt;
+    for (segIt = outtop->Segments().begin();
+         segIt < outtop->Segments().end();
+         segIt++) {
+        CTP::Segment *seg = *segIt;
+        seg->WritePDB(outPDB);
+    }
+
+    fprintf(outPDB, "\n");
+    fclose(outPDB);
+
+
+    if (votca::tools::globals::verbose) {
         cout << endl;
         this->PrintInfo();
         cout << endl;

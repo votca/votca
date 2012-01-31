@@ -43,16 +43,11 @@ public:
     Segment(int id, string name);
     /// Default destructor
    ~Segment();
-   /**
-     * get the id of the segment
-     * \return segment id
-     */
-    const int &getId();
-     /**
-     * get the name of the segment
-     * \return segment name
-     */
-    const string &getName();
+
+    const int       &getId();
+    const string    &getName();
+    const double    &getOcc() { return _occ; }
+    void             setOcc(double occ) { _occ = occ; }
 
 
 
@@ -61,15 +56,14 @@ public:
 
     vector< Fragment* > &Fragments() { return _fragments; }
     vector < Atom* > &Atoms() { return _atoms; }
-    
-    int NumberOfAtoms() { return _atoms.size(); }
-
 
     inline void setTopology(Topology *container) { _top = container; }
     inline void setMolecule(Molecule *container) { _mol = container; }
 
     Topology *getTopology() { return _top; }
     Molecule *getMolecule() { return _mol; }
+
+    void WritePDB(FILE *out);
 
 private:
 
@@ -82,6 +76,7 @@ private:
     string      _name;
     int         _id;
     vec         _pos;
+    double      _occ;
     
 
 };

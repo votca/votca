@@ -74,6 +74,19 @@ bool CtpMapExp::EvaluateOptions() {
 
 void CtpMapExp::Run() {
 
+    // +++++++++++++++++++++++++++++++++++++ //
+    // Initialize MD2QM Engine and SQLite Db //
+    // +++++++++++++++++++++++++++++++++++++ //
+
+    _outdb = _op_vm["file"].as<string> ();
+    _statsav.Open(_qmtopol, _outdb);
+    _statsav.FramesInDatabase();
+    _statsav.Close();
+
+    string cgfile = _op_vm["cg"].as<string> ();
+    _md2qm.Initialize(cgfile);
+
+
     // ++++++++++++++++++++++++++++ //
     // Create MD topology from file //
     // ++++++++++++++++++++++++++++ //
@@ -89,10 +102,12 @@ void CtpMapExp::Run() {
     }
 
     topread->ReadTopology(topfile, this->_mdtopol);
-    cout << "MD Topology from " << topfile << ": Found "
-         << _mdtopol.BeadCount() << " atoms in "
-         << _mdtopol.MoleculeCount() << " molecules. "
-         << endl;
+    //cout << "MD Topology from " << topfile << ": Found "
+    //     << _mdtopol.BeadCount() << " atoms in "
+    //     << _mdtopol.MoleculeCount() << " molecules. "
+    //     << endl;
+
+
 
     // ++++++++++++++++++++++++++++++ //
     // Create MD trajectory from file //
@@ -104,19 +119,19 @@ void CtpMapExp::Run() {
     trjread = CSG::TrjReaderFactory().Create(trjfile);
 
     if (trjread == NULL) {
-        throw runtime_error( string("Input format not supproated: ")
+        throw runtime_error( string("Input format not supported: ")
                            + _op_vm["trj"].as<string> () );
     }
     trjread->Open(trjfile);
     trjread->FirstFrame(this->_mdtopol);
 
     int    firstFrame = 1;
-    int    frameNo    = 0;
+    int    nFrames    = 1;
     bool   beginAt    = 0;
     double startTime  = _mdtopol.getTime();
 
     if (_op_vm.count("nframes")) {
-        frameNo = _op_vm["nframes"].as<int> ();
+        nFrames = _op_vm["nframes"].as<int> ();
     }
     if (_op_vm.count("first-frame")) {
         firstFrame = _op_vm["first-frame"].as<int> ();
@@ -148,31 +163,32 @@ void CtpMapExp::Run() {
     // +++++++++++++++++++++++++ //
     // Convert MD to QM Topology //
     // +++++++++++++++++++++++++ //
-    
-    string cgfile = _op_vm["cg"].as<string> ();
-    _md2qm.Initialize(cgfile);
-    _md2qm.Md2Qm(&_mdtopol, &_qmtopol);
-    if (_op_vm.count("check")) {
-        string pdbfile = _op_vm["check"].as<string> ();
-        _md2qm.CheckProduct(&_qmtopol, pdbfile);
-    }
+
+    for (int saved = 0; hasFrame && saved < nFrames;
+         hasFrame = trjread->NextFrame(this->_mdtopol), saved++) {
+
+        _md2qm.Md2Qm(&_mdtopol, &_qmtopol);
+
+        //if (_op_vm.count("check")) {
+        //    string pdbfile = _op_vm["check"].as<string> ();
+        //    _md2qm.CheckProduct(&_qmtopol, "md_" + pdbfile);
+        //}
 
     // +++++++++++++++++++++++++ //
     // Save to SQLite State File //
     // +++++++++++++++++++++++++ //
 
-    _outdb = _op_vm["file"].as<string> ();
-    this->Save("a");
+        this->Save("");
+    }
+
+    // trjread->Close();
+    // delete trjread;
 
 }
 
 void CtpMapExp::Save(string mode) {    
     
     _statsav.Open(_qmtopol, _outdb);
-    if (_statsav.FramesInDatabase() > 0) {
-        throw runtime_error("SQLite database already contains frames. "
-                            "Appending not yet supported. ");
-    }
 
     _statsav.WriteFrame();
 
@@ -181,7 +197,7 @@ void CtpMapExp::Save(string mode) {
         TopSQL = _statsav.getTopology();
         cout << endl << "Checking topology read from SQL file." << endl;
         string pdbfile = _op_vm["check"].as<string> ();
-        _md2qm.CheckProduct(TopSQL, "sql_" + pdbfile);
+        _md2qm.CheckProduct(TopSQL, pdbfile);
     }
 
     _statsav.Close();

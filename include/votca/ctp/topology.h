@@ -30,6 +30,8 @@
 #include <votca/ctp/segment.h>
 #include <votca/ctp/molecule.h>
 
+#include <votca/ctp/qmpair2.h>
+
 namespace CSG = votca::csg;
 
 

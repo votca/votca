@@ -33,6 +33,10 @@ namespace votca { namespace ctp {
 
         cout << "Calculate (Sandbox2)... " << endl;
 
+        Segment* seg1 = top->getSegment(1);
+        cout << "Segment 1: occ. = " << seg1->getOcc() << endl;
+        seg1->setOcc(0.5);
+
         top->PrintInfo(cout);
 
     }

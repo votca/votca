@@ -53,9 +53,9 @@ void QMApplication2::Run() {
     string statefile = OptionsMap()["file"].as<string>();
     StateSaverSQLite2 statsav;
     statsav.Open(_top, statefile);
-    if (statsav.FramesInDatabase() != 1) {
-        throw runtime_error("ERROR: Database contains more than one frame.");
-    }
+    //if (statsav.FramesInDatabase() != 1) {
+    //    throw runtime_error("ERROR: Database contains more than one frame.");
+    //}
 
     while (statsav.NextFrame()) {
         cout << "Evaluating frame " << _top.getDatabaseId() << endl;

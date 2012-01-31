@@ -67,12 +67,6 @@ void CtpRun::PrintDescription() {
 
 
 
-
-
-
-
-
-
 int main(int argc, char** argv) {
 
     std::cout << "CTP_RUN new version..." << std::endl;

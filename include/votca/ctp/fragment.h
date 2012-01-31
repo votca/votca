@@ -19,6 +19,7 @@
 #define	__VOTCA_CTP_FRAGMENT_H
 
 #include <votca/ctp/atom.h>
+#include <fstream>
 
 
 

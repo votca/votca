@@ -23,7 +23,7 @@ namespace votca { namespace ctp {
    
 /// Default constructor
 Segment::Segment(int id, string name) { 
-    _id = id; _name = name; 
+    _id = id; _name = name; _occ = -1;
 }
 
 /// Destructor
@@ -58,5 +58,39 @@ void Segment::AddAtom( Atom* atom ) {
     _atoms.push_back( atom );
     atom->setSegment(this);
 }
+
+
+void Segment::WritePDB(FILE *out) {
+
+    vector < Fragment* > :: iterator frag;
+    for (frag = _fragments.begin(); frag < _fragments.end(); ++frag){
+         int id = (*frag)->getId();
+         string name =  (*frag)->getName();
+         string resname = "RSD";
+         int resnr = (*frag)->getId();
+         vec position = (*frag)->getPos();  
+
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
+                 id,                    // Atom serial number           %5d
+                 name.c_str(),          // Atom name                    %4s
+                 " ",                   // alternate location indicator.%1s
+                 resname.c_str(),       // Residue name.                %3s
+                 "A",                   // Chain identifier             %1s
+                 resnr,                 // Residue sequence number      %4d
+                 " ",                   // Insertion of residues.       %1s
+                 position.getX()*10,    // X in Angstroms               %8.3f
+                 position.getY()*10,    // Y in Angstroms               %8.3f
+                 position.getZ()*10,    // Z in Angstroms               %8.3f
+                 1.0,                   // Occupancy                    %6.2f
+                 0.0,                   // Temperature factor           %6.2f
+                 " ",                   // Segment identifier           %4s
+                 name.c_str(),          // Element symbol               %2s
+                 " "                    // Charge on the atom.          %2s
+                 );
+
+    }
+
+}
+
 
 }}
