@@ -44,6 +44,7 @@ public:
         AddProgramOptions()
             ("out", boost::program_options::value<string>(),
                 "  output file for coarse-grained trajectory")
+                ("vel", "Write mapped velocities (if available)")
                 ("hybrid", "Create hybrid trajectory containing both atomistic and coarse-grained");
     }
 
@@ -58,6 +59,7 @@ public:
 void EvalConfiguration(Topology *top, Topology *top_ref) {
         if (!_do_hybrid) {
             // simply write the topology mapped by csgapplication classe
+            if (_do_vel) top->SetHasVel(true);
             _writer->Write(top);
         } else {
             // we want to combinge atomistic and coarse-grained into one topology
@@ -131,6 +133,7 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
 protected:
     TrajectoryWriter *_writer;
     bool _do_hybrid;
+    bool _do_vel;
 
 };
 
@@ -149,6 +152,10 @@ void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
         _do_hybrid = true;
     }
 
+    _do_vel = false;
+    if(OptionsMap().count("vel")){
+        _do_vel = true;
+    }
 
     _writer->Open(out);
 };
