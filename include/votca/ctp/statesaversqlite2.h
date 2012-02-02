@@ -47,6 +47,7 @@ public:
     void WriteSegments(bool update);
     void WriteFragments(bool update);
     void WriteAtoms(bool update);
+    void WritePairs(bool update);
 
     void ReadFrame();
     void ReadMeta(int topId);
@@ -54,6 +55,7 @@ public:
     void ReadSegments(int topId);
     void ReadFragments(int topId);
     void ReadAtoms(int topId);
+    void ReadPairs(int topId);
 
     int  FramesInDatabase();
     Topology *getTopology() { return _qmtop; }

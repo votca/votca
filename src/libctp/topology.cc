@@ -38,7 +38,7 @@ void Topology::CleanUp() {
 
     if (_bc) { delete(_bc); _bc = NULL; }
     _bc = new CSG::OpenBox;
-
+    
     _nblist.Cleanup();
 }
 
@@ -202,8 +202,35 @@ void Topology::PrintInfo(ostream &out) {
         cout << "# Segments           " << this->Segments().size() << endl;
         cout << "# Fragments          " << this->Fragments().size() << endl;
         cout << "# Atoms              " << this->Atoms().size() << endl;
+        cout << "# Pairs              " << this->NBList().size() << endl;
         cout << endl;
 }
+
+
+
+void Topology::PrintInfo(FILE *out) {
+
+    fprintf(out, "Topology Database ID %3d \n", this->getDatabaseId());
+    fprintf(out, "Periodic Box: %2.4f %2.4f %2.4f | %2.4f %2.4f %2.4f | %2.4f %2.4f %2.4f \n",
+            this->getBox().get(0,0),
+            this->getBox().get(0,1),
+            this->getBox().get(0,2),
+            this->getBox().get(1,0),
+            this->getBox().get(1,1),
+            this->getBox().get(1,2),
+            this->getBox().get(2,0),
+            this->getBox().get(2,1),
+            this->getBox().get(2,2) );
+
+    fprintf(out, "\tStep number %2.4f \n", this->getStep());
+    fprintf(out, "\tTime        %7d \n", this->getTime());
+    fprintf(out, "\t# Molecules %7d \n", this->Molecules().size());
+    fprintf(out, "\t# Segments  %7d \n", this->Segments().size());
+    fprintf(out, "\t# Atoms     %7d \n", this->Atoms().size());
+    fprintf(out, "\t# Pairs     %7d \n", this->NBList().size());
+
+}
+
 
 void Topology::WritePDB(FILE *out, string tag) {
 

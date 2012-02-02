@@ -1,0 +1,16 @@
+<stateserver>
+	
+	<description>Calculator to export SQLite input to readable format</description>
+
+	<sectionlabel>stateserver</sectionlabel>
+	
+	<item>
+		<name>out</name>
+		<description>Output-file name</description>
+	</item>
+	<item>
+		<name>keys</name>
+		<description>Sections to write to readable format (topology, segments, pairs)</description>
+	</item>
+
+</stateserver>

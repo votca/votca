@@ -59,7 +59,6 @@ void QMApplication2::Run() {
 
     while (statsav.NextFrame()) {
         cout << "Evaluating frame " << _top.getDatabaseId() << endl;
-        cout << "... ";
         EvaluateFrame();
         statsav.WriteFrame();
     }
@@ -86,10 +85,10 @@ void QMApplication2::BeginEvaluate() {
 bool QMApplication2::EvaluateFrame() {
     list< QMCalculator2* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << (*it)->Identify() << " ";
+        cout << "... " << (*it)->Identify() << " ";
         (*it)->EvaluateFrame(&_top);
+        cout << endl;
     }
-    cout << endl;
 }
 
 void QMApplication2::EndEvaluate() {

@@ -61,29 +61,6 @@ void Neighborlist2::Initialize(Topology* top, Property *options) {
 
 bool Neighborlist2::EvaluateFrame(Topology *top) {
 
-
-    /*
-    map< string, map<string, double> > ::iterator mit1;
-    map< string, double > ::iterator mit2;
-
-    for (mit1 = _cutoffs.begin();
-            mit1 != _cutoffs.end();
-            mit1++) {
-        cout << endl;
-        for (mit2 = mit1->second.begin();
-                mit2 != mit1->second.end();
-                mit2++) {
-            cout << "   SEG1 " << mit1->first
-                 << " | SEG2 " << mit2->first
-                 << ": Cutoff " << mit2->second
-                 << endl;
-        }
-
-    }
-    */
-
-
-
     top->NBList().Cleanup();
 
     vector< Segment* > ::iterator segit1;
@@ -146,10 +123,8 @@ bool Neighborlist2::EvaluateFrame(Topology *top) {
         } /* exit loop seg2 */
     } /* exit loop seg1 */
 
-    if (tools::globals::verbose) {
-        top->NBList().PrintInfo(cout);
-        top->PrintInfo(cout);
-    }
+    cout << ": Created " << top->NBList().size() << " pairs.";
+
 }
 
 

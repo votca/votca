@@ -90,6 +90,7 @@ public:
     void             CleanUp();
 
     void             PrintInfo(ostream &out);
+    void             PrintInfo(FILE *out);
     void             WritePDB(FILE *out, string tag = "segments");
 
    

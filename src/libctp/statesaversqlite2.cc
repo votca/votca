@@ -41,7 +41,6 @@ void StateSaverSQLite2::Open(Topology& qmtop, const string &file) {
     }
     delete stmt;
     
-    
 }
 
 
@@ -75,6 +74,7 @@ void StateSaverSQLite2::WriteFrame() {
     this->WriteSegments(hasAlready);
     this->WriteFragments(hasAlready);
     this->WriteAtoms(hasAlready);
+    this->WritePairs(hasAlready);
 
     _db.EndTransaction();
 
@@ -172,12 +172,13 @@ void StateSaverSQLite2::WriteSegments(bool update) {
     }
     else {
         stmt = _db.Prepare("UPDATE segments "
-                           "SET occ = ? "
+                           "SET "
+                           "lI_AN = ?, lI_NA = ?, lI_CN = ?,"
+                           "lI_NC = ?, eI_A = ?, eI_C = ?,"
+                           "eAnion = ?, eNeutral = ?, eCation = ?, "
+                           "occPe = ?, occPh = ? "
                            "WHERE top = ? AND id = ?");
     }
-    
-    if (! update) { stmt->Bind(1, _qmtop->getDatabaseId()); }
-    else { stmt->Bind(2, _qmtop->getDatabaseId()); }
 
     vector < Segment* > ::iterator sit;
     for (sit = _qmtop->Segments().begin();
@@ -187,6 +188,7 @@ void StateSaverSQLite2::WriteSegments(bool update) {
 
         if (!update) {
 
+            stmt->Bind(1, _qmtop->getDatabaseId());
             stmt->Bind(2, seg->getTopology()->getDatabaseId());
             stmt->Bind(3, seg->getId());
             stmt->Bind(4, seg->getName());
@@ -198,8 +200,19 @@ void StateSaverSQLite2::WriteSegments(bool update) {
         }
 
         else {
-            stmt->Bind(1, seg->getOcc());
-            stmt->Bind(3, seg->getId());
+            stmt->Bind(1, seg->getLambdaIntra(1,0));
+            stmt->Bind(2, seg->getLambdaIntra(0,1));
+            stmt->Bind(3, seg->getLambdaIntra(-1,0));
+            stmt->Bind(4, seg->getLambdaIntra(0,-1));
+            stmt->Bind(5, seg->getESiteIntra(-1)); // -1 <=> Anionic state
+            stmt->Bind(6, seg->getESiteIntra(1));  // +1 <=> Cationic state
+            stmt->Bind(7, seg->getEMpoles(-1));
+            stmt->Bind(8, seg->getEMpoles(0));
+            stmt->Bind(9, seg->getEMpoles(1));
+            stmt->Bind(10,seg->getOcc(-1));
+            stmt->Bind(11,seg->getOcc(1));
+            stmt->Bind(12, _qmtop->getDatabaseId());
+            stmt->Bind(13, seg->getId());
         }
 
         stmt->InsertStep();
@@ -314,6 +327,81 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
 }
 
 
+void StateSaverSQLite2::WritePairs(bool update) {
+    if ( ! _qmtop->NBList().size() ) { return; }
+    
+    cout << " , pairs";
+
+    Statement *stmt;
+    
+    // Find out whether pairs for this topology have already been created
+    stmt = _db.Prepare("SELECT id FROM pairs WHERE top = ?;");
+    stmt->Bind(1, _qmtop->getDatabaseId());
+    if (stmt->Step() == SQLITE_DONE) { 
+        update = false;        
+        cout << " (create)";        
+    }
+    else { update = true; }
+    delete stmt;
+    stmt = NULL;
+
+    if (!update) {
+        stmt = _db.Prepare("INSERT INTO pairs ("
+                           "frame, top, id, "
+                           "seg1, seg2 "
+                           ") VALUES ("
+                           "?, ?, ?, "
+                           "?, ? "
+                           ")");
+    }
+    else {
+        stmt = _db.Prepare("UPDATE pairs "
+                           "SET "
+                           "lOe = ?, lOh = ?, rate12e = ?, "
+                           "rate21e = ?, rate12h = ?, rate21h = ? "
+                           "WHERE top = ? AND id = ?");
+    }
+
+    QMNBList2::iterator nit;
+
+    for (nit = _qmtop->NBList().begin();
+         nit != _qmtop->NBList().end();
+         nit++) {
+
+        QMPair2 *pair = *nit;
+        if (!update) {
+            stmt->Bind(1, _qmtop->getDatabaseId());
+            stmt->Bind(2, pair->getTopology()->getDatabaseId());
+            stmt->Bind(3, pair->getId());
+            stmt->Bind(4, pair->Seg1PbCopy()->getId());
+            stmt->Bind(5, pair->Seg2PbCopy()->getId());
+        }
+        else {
+                stmt->Bind(1, pair->getLambdaO());
+                stmt->Bind(2, 0);
+                stmt->Bind(3, pair->getRate12());
+                stmt->Bind(4, 0);
+                stmt->Bind(5, pair->getRate21());
+                stmt->Bind(6, 0);
+
+                // If both hole + electron
+                // stmt->Bind(1, pair->getLambdaO(-1));
+                // stmt->Bind(2, pair->getLambdaO(1));
+                // stmt->Bind(3, pair->getRate12(-1));
+                // stmt->Bind(4, pair->getRate12(1));
+                // stmt->Bind(5, pair->getRate21(-1));
+                // stmt->Bind(6, pair->getRate21(1));
+
+        }
+        stmt->InsertStep();
+        stmt->Reset();
+    }
+
+    delete stmt;
+    stmt = NULL;
+}
+
+
 
 
 bool StateSaverSQLite2::NextFrame() {
@@ -336,20 +424,23 @@ void StateSaverSQLite2::ReadFrame() {
 
     int topId = _topIds[_current_frame];
 
-    cout << "Import MD+QM Topology ID " << topId
+    cout << endl
+         << "Import MD+QM Topology ID " << topId
          << " (i.e. frame " << _current_frame << ")"
          << " from " << _sqlfile << endl;
     cout << "...";
 
-    _qmtop->CleanUp();
+    _qmtop->CleanUp();    
     _qmtop->setDatabaseId(topId);
-
+    
+    
     this->ReadMeta(topId);
     this->ReadMolecules(topId);
     this->ReadSegments(topId);
     this->ReadFragments(topId);
-    this->ReadAtoms(topId);
-
+    this->ReadAtoms(topId);    
+    this->ReadPairs(topId);
+    
     cout << ". " << endl;
 }
 
@@ -406,7 +497,10 @@ void StateSaverSQLite2::ReadSegments(int topId) {
 
     Statement *stmt = _db.Prepare("SELECT name, mol, "
                                   "posX, posY, posZ, "
-                                  "occ "
+                                  "lI_AN, lI_NA, lI_CN,"
+                                  "lI_NC, eI_A, eI_C,"
+                                  "eAnion, eNeutral, eCation, "
+                                  "occPe, occPh "
                                   "FROM segments "
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
@@ -418,12 +512,32 @@ void StateSaverSQLite2::ReadSegments(int topId) {
         double  X    = stmt->Column<double>(2);
         double  Y    = stmt->Column<double>(3);
         double  Z    = stmt->Column<double>(4);
-        double  occ  = stmt->Column<double>(5);
+        double  l1   = stmt->Column<double>(5);
+        double  l2   = stmt->Column<double>(6);
+        double  l3   = stmt->Column<double>(7);
+        double  l4   = stmt->Column<double>(8);
+        double  e1   = stmt->Column<double>(9);
+        double  e2   = stmt->Column<double>(10);
+        double  e3   = stmt->Column<double>(11);
+        double  e4   = stmt->Column<double>(12);
+        double  e5   = stmt->Column<double>(13);
+        double  o1   = stmt->Column<double>(14);
+        double  o2   = stmt->Column<double>(15);
 
         Segment *seg = _qmtop->AddSegment(name);
         seg->setMolecule(_qmtop->getMolecule(id));
         seg->setPos(vec(X, Y, Z));
-        seg->setOcc(occ);
+        seg->setLambdaIntra(-1, 0, l1);
+        seg->setLambdaIntra(0, -1, l2);
+        seg->setLambdaIntra(1, 0, l3);
+        seg->setLambdaIntra(0, 1, l4);
+        seg->setESiteIntra(-1, e1);
+        seg->setESiteIntra(1, e2);
+        seg->setEMpoles(-1, e3);
+        seg->setEMpoles(0, e4);
+        seg->setEMpoles(1, e5);
+        seg->setOcc(-1, o1);
+        seg->setOcc( 1, o2);
 
         seg->getMolecule()->AddSegment(seg);
     }
@@ -517,6 +631,46 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
 }
 
 
+void StateSaverSQLite2::ReadPairs(int topId) {
+
+    cout << ", pairs";
+
+    Statement *stmt = _db.Prepare("SELECT "
+                                  "seg1, seg2, lOe, "
+                                  "lOh, rate12e, rate21e, "
+                                  "rate12h, rate21h "
+                                  "FROM pairs "
+                                  "WHERE top = ?;");
+
+    stmt->Bind(1, topId);
+    
+    while (stmt->Step() != SQLITE_DONE) {
+        int     s1  = stmt->Column<int>(0);
+        int     s2  = stmt->Column<int>(1);
+        double  l1  = stmt->Column<double>(2);
+        double  l2  = stmt->Column<double>(3);
+        double  r1  = stmt->Column<double>(4);
+        double  r2  = stmt->Column<double>(5);
+        double  r3  = stmt->Column<double>(6);
+        double  r4  = stmt->Column<double>(7);
+        QMPair2 *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
+                                                _qmtop->getSegment(s2));
+
+        newPair->setLambdaO(l1);
+        newPair->setRate12(r1);
+        newPair->setRate21(r2);
+
+        // If both electron + hole
+        // newPair->setLambdaO(-1, l1);
+        // newPair->setLambdaO(1, l2);
+        // newPair->setRate12(-1, r1);
+        // newPair->setRate12(1, r3);
+        // newPair->setRate21(-1, r2);
+        // newPair->setRate21(1, r4);
+    }
+    delete stmt;
+    stmt = NULL;
+}
 
 
 

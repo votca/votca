@@ -26,7 +26,7 @@ public:
 
     QMPair2 *Add(Segment* seg1, Segment* seg2);
 
-    void PrintInfo(ostream &out);
+    void PrintInfo(FILE *out);
 
 protected:
     

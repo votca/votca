@@ -3,9 +3,20 @@
 
 namespace votca { namespace ctp {
 
+QMPair2::~QMPair2() {
+    if (_ghost != NULL) {
+        delete _ghost; _ghost = NULL;
+    }
+    _lambdasO.clear();
+    _rates12.clear();
+    _rates21.clear();
+    _hasCarrier.clear();
+}
+
+
 QMPair2::QMPair2(int id, Segment *seg1, Segment *seg2)
         : _id(id), std::pair<Segment*, Segment*>(seg1, seg2),
-          _rate_12(0), _rate_21(0), _hasGhost(0) {
+          _hasGhost(0), _lambdaO(0), _rate12(0), _rate21(0) {
 
     _top = seg1->getTopology();
 
@@ -26,6 +37,40 @@ QMPair2::QMPair2(int id, Segment *seg1, Segment *seg2)
         _ghost = NULL;
     }
 }
+
+
+double &QMPair2::getLambdaO(int carrier) {
+    return _lambdasO.at(carrier);
+}
+
+double &QMPair2::getRate12(int carrier) {
+    return _rates12.at(carrier);
+}
+
+double &QMPair2::getRate21(int carrier) {
+    return _rates21.at(carrier);
+}
+
+void QMPair2::setLambdaO(int carrier, double lbd) {
+    _lambdasO[carrier] = lbd;
+    _hasLambdaO = true;
+}
+
+void QMPair2::setRate12(int carrier, double rate) {
+    _rates12[carrier] = rate;
+    _hasRates = true;
+}
+
+void QMPair2::setRate21(int carrier, double rate) {
+    _rates21[carrier] = rate;
+    _hasRates = true;
+}
+
+
+
+
+
+
 
 
 double QMPair2::calcJeff2() {

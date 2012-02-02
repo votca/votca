@@ -60,10 +60,18 @@ void QMDatabase2::onCreate()
         "posY   REAL NOT NULL,"
         "posZ   REAL NOT NULL,"
 
-        "enerA  REAL,"
-        "enerN  REAL,"
-        "enerC  REAL,"
-        "occ    REAL)");
+        "lI_AN      REAL DEFAULT 0,"
+        "lI_NA      REAL DEFAULT 0,"
+        "lI_CN      REAL DEFAULT 0,"
+        "lI_NC      REAL DEFAULT 0,"
+        "eI_A       REAL DEFAULT 0,"
+        "eI_C       REAL DEFAULT 0,"
+        "eAnion     REAL DEFAULT 0,"
+        "eNeutral   REAL DEFAULT 0,"
+        "eCation    REAL DEFAULT 0,"
+
+        "occPe      REAL DEFAULT -1,"
+        "occPh      REAL DEFAULT -1)");
 
     // Table format fragments
     Exec("CREATE TABLE fragments ("
@@ -105,14 +113,20 @@ void QMDatabase2::onCreate()
     // Table format pairs
     Exec("CREATE TABLE pairs ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "conjseg1 INT NOT NULL,"
-        "conjseg2 INT NOT NULL,"
-        "rate12 REAL NOT NULL,"
-        "rate21 REAL NOT NULL,"
-        "r_x REAL NOT NULL,"
-        "r_y REAL NOT NULL,"
-        "r_z REAL NOT NULL,"
-        "deleted INT DEFAULT 0)");
+        "frame      INT NOT NULL,"
+        "top        INT NOT NULL,"
+        "id         INT NOT NULL,"
+
+        "seg1       INT NOT NULL,"
+        "seg2       INT NOT NULL,"
+
+        "lOe        REAL DEFAULT 0,"
+        "lOh        REAL DEFAULT 0,"
+
+        "rate12e    REAL DEFAULT 0,"
+        "rate21e    REAL DEFAULT 0,"
+        "rate12h    REAL DEFAULT 0,"
+        "rate21h    REAL DEFAULT 0)");
 
     // Additional pair properties
     Exec("CREATE TABLE pair_properties ("

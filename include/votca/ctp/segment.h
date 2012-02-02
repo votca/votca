@@ -44,28 +44,38 @@ public:
     /// Default destructor
    ~Segment();
 
-    const int       &getId();
-    const string    &getName();
-    const double    &getOcc() { return _occ; }
-    void             setOcc(double occ) { _occ = occ; }
+    const int       &getId() { return _id; }
+    const string    &getName() { return _name; }
 
+    const vec       &getPos() const { return _CoM; }
+    void             setPos(vec pos) { _CoM = pos; }
+    void             calcPos();
 
+    const double    &getOcc(int carrier);
+    void             setOcc(int carrier, double occ);
+    bool             hasOccProb() { return _hasOccProb; }
 
-    void AddFragment( Fragment* fragment );
-    void AddAtom( Atom* atom );
+    const double    &getESiteIntra(int carrier);
+    void             setESiteIntra(int carrier, double energy);
+    bool             hasEIntra() { return _hasESiteIntra; }
 
+    const double    &getLambdaIntra(int state0, int state1);
+    void             setLambdaIntra(int state0, int state1, double lambda);
+    bool             hasLambda() { return _hasLambdas; }
+
+    const double    &getEMpoles(int state);
+    void             setEMpoles(int state, double energy);
+    bool             hasEMpoles() { return _hasEMpoles; }
+
+    inline void      setTopology(Topology *container) { _top = container; }
+    Topology        *getTopology() { return _top; }
+    inline void      setMolecule(Molecule *container) { _mol = container; }
+    Molecule        *getMolecule() { return _mol; }
+
+    void             AddFragment( Fragment* fragment );
+    void             AddAtom( Atom* atom );
     vector< Fragment* > &Fragments() { return _fragments; }
-    vector < Atom* > &Atoms() { return _atoms; }
-
-    inline void setTopology(Topology *container) { _top = container; }
-    inline void setMolecule(Molecule *container) { _mol = container; }
-
-    Topology *getTopology() { return _top; }
-    Molecule *getMolecule() { return _mol; }
-
-    void         calcPos();
-    void         setPos(vec pos) { _CoM = pos; }
-    const vec   &getPos() const { return _CoM; }
+    vector < Atom* >    &Atoms() { return _atoms; }
 
     void WritePDB(FILE *out);
 
@@ -80,7 +90,30 @@ private:
     string      _name;
     int         _id;
     vec         _CoM;
-    double      _occ;
+
+
+
+    map< int, double > _eSiteIntra;
+    //   +1(=> h)     E(CAtion) - E(Neutral)
+    //   -1(=> e)     E(Anion)  - E(Neutral)
+    bool _hasESiteIntra;
+
+    map< int, map < int, double > > _lambdasIntra;
+    //   +1(=> h)    0   lambdaCN = UnC - UnN (dischrg)
+    //   -1(=> e)    0   lambdaAN = UnA - UnN (dischrg)
+    //    0         +1   lambdaNC = UcN - UcC (chrg)
+    //    0         -1   lambdaNA = UaN - UaA (chrg)
+    bool _hasLambdas;
+
+    map< int,       double >      _eMpoles;
+    //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
+    //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
+    bool _hasEMpoles;
+
+    map< int,       double >      _occProb;
+    //   +1(=> h)   occ.prob. for hole
+    //   -1(=> e)   occ.prob. for electron
+    bool _hasOccProb;
     
 
 };

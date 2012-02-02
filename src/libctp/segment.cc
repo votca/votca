@@ -22,9 +22,9 @@ using namespace std;
 namespace votca { namespace ctp {
    
 /// Default constructor
-Segment::Segment(int id, string name) { 
-    _id = id; _name = name; _occ = -1;
-}
+Segment::Segment(int id, string name)
+        : _id(id), _name(name), _hasOccProb(0),
+          _hasLambdas(0), _hasEMpoles(0) { }
 
 /// Destructor
 Segment::~Segment() {
@@ -37,17 +37,49 @@ Segment::~Segment() {
     }
     _fragments.clear();
     _atoms.clear();
+
+    _lambdasIntra.clear();
+    _eMpoles.clear();
+    _occProb.clear();
+
 }
 
-/// Returns the ID of the molecule
-const int &Segment::getId() {
-    return _id;
+
+void Segment::setOcc(int carrier, double occ) {
+    _hasOccProb = true;
+    _occProb[carrier] = occ;
+}
+const double &Segment::getOcc(int carrier) {
+    return _occProb.at(carrier);
 }
 
-/// Returns the name of the molecule
-const string &Segment::getName() {
-    return _name;
+void Segment::setESiteIntra(int carrier, double energy) {
+    _eSiteIntra[carrier] = energy;
+    _hasESiteIntra = true;
 }
+const double &Segment::getESiteIntra(int carrier) {
+    return _eSiteIntra[carrier];
+}
+
+void Segment::setLambdaIntra(int state0, int state1, double lambda) {
+    _hasLambdas = true;
+    _lambdasIntra[state0][state1] = lambda;
+}
+const double &Segment::getLambdaIntra(int state0, int state1) {
+    return _lambdasIntra.at(state0).at(state1); 
+}
+
+void Segment::setEMpoles(int state, double energy) {
+    _hasEMpoles = true;
+    _eMpoles[state] = energy;
+}
+const double &Segment::getEMpoles(int state) {
+    return _eMpoles.at(state); 
+}
+
+
+
+
 
 void Segment::AddFragment( Fragment* fragment ) {
     _fragments.push_back( fragment );
@@ -58,7 +90,6 @@ void Segment::AddAtom( Atom* atom ) {
     _atoms.push_back( atom );
     atom->setSegment(this);
 }
-
 
 void Segment::calcPos() {
     vec pos = vec(0,0,0);
@@ -71,7 +102,6 @@ void Segment::calcPos() {
 
     _CoM = pos / totWeight;
 }
-
 
 void Segment::WritePDB(FILE *out) {
 
@@ -102,9 +132,7 @@ void Segment::WritePDB(FILE *out) {
                  name.c_str(),          // Element symbol               %2s
                  " "                    // Charge on the atom.          %2s
                  );
-
     }
-
 }
 
 
