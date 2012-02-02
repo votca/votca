@@ -1,0 +1,9 @@
+# initial guess for CG-CG LJG CG potential 
+# order C12, C6, B, k, r0
+# third column is for the error in the relative entropy update
+# i.e. dlamda value obtained from newtons iteration 
+0 3.43173e-06 1.049e-09 i
+1 0.0165965 8.91312e-06 i
+2 23.0936 0.0195744 i
+3 85.487 -0.0323188 i
+4 0.24782 -3.98097e-05 i
