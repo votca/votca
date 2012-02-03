@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../src/tools/Md2QmEngine.h</itemPath>
       <itemPath>../../src/tools/md2qm_observer.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -13,7 +14,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>../../src/tools/Md2QmEngine.cc</itemPath>
       <itemPath>../../src/tools/ctp_map.cc</itemPath>
+      <itemPath>../../src/tools/ctp_map_exp.cc</itemPath>
       <itemPath>../../src/tools/md2qm_observer.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"

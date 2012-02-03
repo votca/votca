@@ -48,6 +48,8 @@ public:
 
    Segment* Seg1PbCopy() { return first; }
    Segment* Seg2PbCopy();
+   Segment* Seg1() { return first; }
+   Segment* Seg2() { return second; }
 
    bool     HasGhost() { return _hasGhost; }
 

@@ -29,19 +29,32 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
+      <itemPath>../../include/votca/ctp/calculatorfactory2.h</itemPath>
       <itemPath>../../include/votca/ctp/customfields.h</itemPath>
+      <itemPath>../../include/votca/ctp/fragment.h</itemPath>
+      <itemPath>../../include/votca/ctp/molecule.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmapplication.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmapplication2.h</itemPath>
       <itemPath>../../include/votca/ctp/qmbead.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmcalculator2.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcrgunit.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmdatabase2.h</itemPath>
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmnblist2.h</itemPath>
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpair2.h</itemPath>
       <itemPath>../../include/votca/ctp/qmtopology.h</itemPath>
+      <itemPath>../../include/votca/ctp/segment.h</itemPath>
+      <itemPath>../../include/votca/ctp/segmenttype.h</itemPath>
       <itemPath>../../include/votca/ctp/sitecalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
+      <itemPath>../../include/votca/ctp/statesaversqlite2.h</itemPath>
+      <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../include/votca/ctp/version.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -52,12 +65,21 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
+      <itemPath>../../src/libctp/calculatorfactory2.cc</itemPath>
+      <itemPath>../../src/libctp/fragment.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
+      <itemPath>../../src/libctp/molecule.cc</itemPath>
       <itemPath>../../src/libctp/qmapplication.cc</itemPath>
+      <itemPath>../../src/libctp/qmapplication2.cc</itemPath>
+      <itemPath>../../src/libctp/qmcalculcator2.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
+      <itemPath>../../src/libctp/qmdatabase2.cc</itemPath>
       <itemPath>../../src/libctp/qmnblist.cc</itemPath>
+      <itemPath>../../src/libctp/qmnblist2.cc</itemPath>
       <itemPath>../../src/libctp/qmpair.cc</itemPath>
+      <itemPath>../../src/libctp/qmpair2.cc</itemPath>
       <itemPath>../../src/libctp/qmtopology.cc</itemPath>
+      <itemPath>../../src/libctp/segment.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>

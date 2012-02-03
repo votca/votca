@@ -72,6 +72,7 @@ public:
 
     vec              PbShortestConnect(const vec &r1, const vec &r2) const;
     const matrix    &getBox() { return _bc->getBox(); }
+    double           BoxVolume() { _bc->BoxVolume(); }
     void             setBox(const matrix &box,
                             CSG::BoundaryCondition::eBoxtype boxtype =
                             CSG::BoundaryCondition::typeAuto);
