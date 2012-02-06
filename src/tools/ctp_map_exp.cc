@@ -7,6 +7,7 @@
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/topologyreader.h>
 #include <votca/ctp/statesaversqlite2.h>
+#include <votca/tools/globals.h>
 #include "Md2QmEngine.h"
 
 using namespace std;
@@ -51,22 +52,21 @@ void CtpMapExp::Initialize() {
     CSG::TrajectoryReader::RegisterPlugins();
     CSG::TopologyReader::RegisterPlugins();
 
-    AddProgramOptions() ("top", propt::value<string> (),
+    AddProgramOptions() ("top,t", propt::value<string> (),
                          "  Atomistic topology file ");
-    AddProgramOptions() ("trj", propt::value<string> (),
+    AddProgramOptions() ("trj,c", propt::value<string> (),
                          "  Atomistic trajetory file ");
-    AddProgramOptions() ("cg",  propt::value<string> (),
+    AddProgramOptions() ("segments,s",  propt::value<string> (),
                          "  Coarse-Graining definitions ");
     AddProgramOptions() ("file,f", propt::value<string> (),
                          "  SQLite state file ");
-    AddProgramOptions() ("check", propt::value<string> (),
-                         "  Extra info + PDB output ");
 }
 
 bool CtpMapExp::EvaluateOptions() {
 
     CheckRequired("top", "Missing topology file");
-    CheckRequired("cg", "Missing CG definition file");
+    CheckRequired("segments", "Missing segment definition file");
+    CheckRequired("trj", "Missing trajectory input");
     CheckRequired("file");
 
     return 1;
@@ -83,7 +83,7 @@ void CtpMapExp::Run() {
     _statsav.FramesInDatabase();
     _statsav.Close();
 
-    string cgfile = _op_vm["cg"].as<string> ();
+    string cgfile = _op_vm["segments"].as<string> ();
     _md2qm.Initialize(cgfile);
 
 
@@ -169,11 +169,6 @@ void CtpMapExp::Run() {
 
         _md2qm.Md2Qm(&_mdtopol, &_qmtopol);
 
-        //if (_op_vm.count("check")) {
-        //    string pdbfile = _op_vm["check"].as<string> ();
-        //    _md2qm.CheckProduct(&_qmtopol, "md_" + pdbfile);
-        //}
-
     // +++++++++++++++++++++++++ //
     // Save to SQLite State File //
     // +++++++++++++++++++++++++ //
@@ -192,11 +187,11 @@ void CtpMapExp::Save(string mode) {
 
     _statsav.WriteFrame();
 
-    if (_op_vm.count("check")) {
+    if (votca::tools::globals::verbose) {
         CTP::Topology *TopSQL = NULL;
         TopSQL = _statsav.getTopology();
         cout << endl << "Checking topology read from SQL file." << endl;
-        string pdbfile = _op_vm["check"].as<string> ();
+        string pdbfile = "system.pdb";
         _md2qm.CheckProduct(TopSQL, pdbfile);
     }
 
