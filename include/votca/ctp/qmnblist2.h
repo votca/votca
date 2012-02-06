@@ -2,7 +2,7 @@
 #define	_QMNBLIST2_H
 
 
-
+#include <stdlib.h>
 #include <votca/csg/pairlist.h>
 #include <votca/ctp/qmpair2.h>
 
