@@ -86,13 +86,13 @@ void CtpMap::Run() {
     string cgfile = _op_vm["segments"].as<string> ();
     _md2qm.Initialize(cgfile);
 
-
+    
     // ++++++++++++++++++++++++++++ //
     // Create MD topology from file //
     // ++++++++++++++++++++++++++++ //
 
     // Create topology reader
-    string topfile = _op_vm["top"].as<string> ();
+    string topfile = _op_vm["topology"].as<string> ();
     CSG::TopologyReader *topread;
     topread = CSG::TopReaderFactory().Create(topfile);
 
@@ -114,13 +114,13 @@ void CtpMap::Run() {
     // ++++++++++++++++++++++++++++++ //
 
     // Create trajectory reader and initialize
-    string trjfile =  _op_vm["trj"].as<string> ();
+    string trjfile =  _op_vm["coordinates"].as<string> ();
     CSG::TrajectoryReader *trjread;
     trjread = CSG::TrjReaderFactory().Create(trjfile);
 
     if (trjread == NULL) {
         throw runtime_error( string("Input format not supported: ")
-                           + _op_vm["trj"].as<string> () );
+                           + _op_vm["coordinates"].as<string> () );
     }
     trjread->Open(trjfile);
     trjread->FirstFrame(this->_mdtopol);
