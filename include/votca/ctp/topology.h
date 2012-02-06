@@ -19,10 +19,22 @@
 #define	__VOTCA_CTP_TOPOLOGY_H
 
 #include <votca/tools/property.h>
+
+#include <votca/csg/boundarycondition.h>
+#include <votca/csg/openbox.h>
+#include <votca/csg/orthorhombicbox.h>
+#include <votca/csg/triclinicbox.h>
+
 #include <votca/ctp/atom.h>
 #include <votca/ctp/fragment.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/molecule.h>
+
+#include <votca/ctp/qmpair2.h>
+#include <votca/ctp/qmnblist2.h>
+
+namespace CSG = votca::csg;
+
 
 namespace votca { namespace ctp {
 
@@ -33,56 +45,76 @@ namespace votca { namespace ctp {
 class Topology 
 {
 public:
+
     Topology();
    ~Topology();
 
-    /// Load the topology based on definitions of conjugated segments
-    void ParseSegmentDefinitions( Property &topology );
 
-     /// Creates a fragment and adds it to the topology
-    Fragment *AddFragment (int fragment_id, string fragment_name, Segment* segment);
-    /// Creates a segment and adds it to the topology
-    Segment *AddSegment (int segment_id, string segment_name);   
-    /// Creates an atom and adds it to the topology
-    Atom *AddAtom (int atom_id, string atom_name);   
-    /// Creates a molecule and adds it to the topology
-    Molecule *AddMolecule (int molecule_id, string molecule_name);
-   
-    int getDatabaseId() { return _db_id; };
-    void setDatabaseId(int id) { _db_id = id; }
+    // Population: Molecules, segments, fragments, atoms
+
+    Molecule *AddMolecule (string molecule_name);
+    Segment  *AddSegment  (string segment_name);
+    Atom     *AddAtom     (string atom_name);
+    Fragment *AddFragment (string fragment_name);
+
+    Molecule *getMolecule(int id) { return _molecules[id-1]; }
+    Segment  *getSegment(int id)  { return _segments[id-1]; }
+    Fragment *getFragment(int id) { return _fragments[id-1]; }
+    Atom     *getAtom(int id)     { return _atoms[id-1]; }
+
+    vector< Atom* >         &Atoms() { return _atoms; }
+    vector< Fragment* >     &Fragments() { return _fragments; }
+    vector< Segment* >      &Segments() { return _segments; }
+    vector< Molecule* >     &Molecules() { return _molecules; }
+
+
+    // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
+
+    vec              PbShortestConnect(const vec &r1, const vec &r2) const;
+    const matrix    &getBox() { return _bc->getBox(); }
+    double           BoxVolume() { _bc->BoxVolume(); }
+    void             setBox(const matrix &box,
+                            CSG::BoundaryCondition::eBoxtype boxtype =
+                            CSG::BoundaryCondition::typeAuto);
+
+    QMNBList2       &NBList() { return _nblist; }
+
+    // Trajectory meta data: step number, time, frame (= Db ID)
+
+    const int        getStep() { return _step; }
+    void             setStep(int step) { _step = step; }
+    const double     getTime() { return _time; }
+    void             setTime(double time) { _time = time; }
+
+    int              getDatabaseId() { return _db_id; };
+    void             setDatabaseId(int id) { _db_id = id; }
+    void             CleanUp();
+
+    void             PrintInfo(ostream &out);
+    void             PrintInfo(FILE *out);
+    void             WritePDB(FILE *out, string tag = "segments");
 
    
 protected:
 
-    vector < Molecule* > _molecules;
-    vector < Segment* > _segments;
-    vector < Fragment* > _fragments;
-    vector < Atom* > _atoms;
-    
-    vector < Molecule* > _molecule_types;
-    vector < Segment* > _segment_types;
-    vector < Fragment* > _fragment_types;
-    vector < Atom* > _atom_types;
-    
-    map < string, Molecule* > _map_MoleculeName_MoleculeType;
-    map < string, string > _map_MoleculeMDName_MoleculeName;
-    
-    map < int, Segment* > _map_id_segment;
+    vector < Molecule* >    _molecules;
+    vector < Segment* >     _segments;
+    vector < Fragment* >    _fragments;
+    vector < Atom* >        _atoms;
+
+    QMNBList2               _nblist;
+
+    CSG::BoundaryCondition *_bc;
+    bool                    _hasPb;
+
+    double _time;
+    int    _step;
+    int    _db_id;
 
 
-    int _db_id;
-    /// Adds an atom type when parsing segment/fragment definitions
-    Atom *AddAtomType(Molecule *owner, int atom_id, string atom_name, 
-        int residue_number, double weight);   
-    /// Adds a fragment type for internal use (when loading segments.xml) 
-    Fragment *AddFragmentType(int fragment_id, Property *property);
-    /// Adds a segment type (when loading segments.xml)
-    Segment *AddSegmentType(int segment_id, Property *property);
-    /// Adds a molecule type (when loading segments.xml)
-    Molecule *AddMoleculeType (int molecule_id, Property *property);
-    /// Returns a pointer to a molecule type with a specified name 
-    Molecule *getMoleculeType(string name);
-   
+    CSG::BoundaryCondition::eBoxtype
+    AutoDetectBoxType(const matrix &box);
+
 };
 
 }}

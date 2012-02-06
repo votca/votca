@@ -27,20 +27,15 @@ namespace votca { namespace ctp {
 
 /// Destructor
 Molecule::~Molecule() {
-    
-    // cleanup list of segments
-    _segments.clear();
-    
-    // clean up the list of atoms 
-    cout << "  molecule destructor: deleting " << NumberOfAtoms() << " atoms" << endl;
-    
-    //cout << "   deleting atom: ";
-    vector < Atom* > :: iterator atom;
-    for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
-         //cout << (*atom)->_id << " ";      
-        delete *atom;
+
+    vector < Segment* > ::iterator segit;
+    for (segit = this->Segments().begin();
+            segit < this->Segments().end();
+            segit ++) {
+        delete *segit;
     }
-    //cout << endl;
+    _segments.clear();
+    _fragments.clear();
     _atoms.clear();
     
 }
@@ -57,6 +52,17 @@ const string &Molecule::getName() {
 
 void Molecule::AddSegment( Segment* segment ) {
     _segments.push_back( segment );
+    segment->setMolecule(this);
+}
+
+void Molecule::AddFragment(Fragment* fragment ) {
+    _fragments.push_back( fragment );
+    fragment->setMolecule(this);
+}
+
+void Molecule::AddAtom(Atom *atom ) {
+    _atoms.push_back(atom);
+    atom->setMolecule(this);
 }
 
 /// Returns a pointer to the atom
@@ -75,7 +81,7 @@ const vec Molecule::getAtomPosition(const int &id) {
 }
 
 /// Returns number of atoms in the molecule
-const int &Molecule::NumberOfAtoms() {
+int Molecule::NumberOfAtoms() {
     return _atoms.size(); 
 }
 
@@ -113,27 +119,28 @@ void Molecule::ReadXYZ(string filename)
 }
 
 /// Writes a PDB file
-void Molecule::WritePDB( ostream & out ) {
-    out.setf(ios::fixed);
+void Molecule::WritePDB( FILE *out ) {
+    // out.setf(ios::fixed);
     
     vector < Atom* > :: iterator atom;
     for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
          int id = (*atom)->getId();      
          string name =  (*atom)->getName();
-         
+         string resname = (*atom)->getResname();
+         int resnr = (*atom)->getResnr();
          vec position = (*atom)->getPos();  
          
-         printf("ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
                  id,                    // Atom serial number           %5d 
                  name.c_str(),          // Atom name                    %4s
                  " ",                   // alternate location indicator.%1s
-                 "MPI",                 // Residue name.                %3s
+                 resname.c_str(),       // Residue name.                %3s
                  "A",                   // Chain identifier             %1s
-                 0,                     // Residue sequence number      %4d
+                 resnr,                 // Residue sequence number      %4d
                  " ",                   // Insertion of residues.       %1s
-                 position.getX(),       // X in Angstroms               %8.3f
-                 position.getY(),       // Y in Angstroms               %8.3f
-                 position.getZ(),       // Z in Angstroms               %8.3f
+                 position.getX()*10,    // X in Angstroms               %8.3f
+                 position.getY()*10,    // Y in Angstroms               %8.3f
+                 position.getZ()*10,    // Z in Angstroms               %8.3f
                  1.0,                   // Occupancy                    %6.2f
                  0.0,                   // Temperature factor           %6.2f
                  " ",                   // Segment identifier           %4s

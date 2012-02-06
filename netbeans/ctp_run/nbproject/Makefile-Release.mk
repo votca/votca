@@ -24,17 +24,17 @@ AS=as
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Release
 CND_DISTDIR=dist
-CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/ctp_run.o
+	${OBJECTDIR}/_ext/715944016/ctp_run.o \
+	${OBJECTDIR}/_ext/715944016/ctp_run2.o
 
 
 # C Compiler Flags
@@ -55,10 +55,10 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_run
+	"${MAKE}"  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/ctp_run
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_run: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
+dist/Release/GNU-Linux-x86/ctp_run: ${OBJECTFILES}
+	${MKDIR} -p dist/Release/GNU-Linux-x86
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_run ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc 
@@ -66,13 +66,18 @@ ${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
 
+${OBJECTDIR}/_ext/715944016/ctp_run2.o: ../../src/tools/ctp_run2.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run2.o ../../src/tools/ctp_run2.cc
+
 # Subprojects
 .build-subprojects:
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_run
+	${RM} -r build/Release
+	${RM} dist/Release/GNU-Linux-x86/ctp_run
 
 # Subprojects
 .clean-subprojects:

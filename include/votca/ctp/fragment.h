@@ -19,9 +19,14 @@
 #define	__VOTCA_CTP_FRAGMENT_H
 
 #include <votca/ctp/atom.h>
+#include <fstream>
+
+
 
 namespace votca { namespace ctp {
 
+class Topology;
+class Molecule;
 class Segment;
     
 /**
@@ -35,57 +40,48 @@ class Segment;
 class Fragment {
 public:
      /// Constructor
-     Fragment(int id, string name)
-     {
-         _id = id; _name = name;
-     }
-     /// Destructor
-    ~Fragment()
-    {
-        _weights.clear();
-        _atoms.clear();
-    }
-   /**
-     * get the id of the segment
-     * \return bead id
-     */
-    const int &getId() const { return _id; }
-     /**
-     * get the id of the segment
-     * \return bead id
-     */
-    const string getName() const { return _name; }
-
-    void AddAtom( Atom* atom ) {
-        _atoms.push_back( atom );
-    }
-
-    /// Returns a pointer to a segment this fragment belongs to 
-    Segment* getSegment(){
-        throw runtime_error( string("Not implemented") ); 
-    }
-    /// Rotates the fragment with respect to the center defined by the Map
-    void Rotate (){ 
-        throw runtime_error( string("Not implemented") ); 
-    }
-    /// Translates the fragment by a specified vector
-    void Translate(){ 
-        throw runtime_error( string("Not implemented") ); 
-    }
+     Fragment(int id, string name) : _id(id), _name(name), _symmetry(0) { }
+    ~Fragment();
     
+    void Rotate();    // rotates w.r.t. center of map
+    void Translate();    
+
+    inline void setTopology(Topology *container) { _top = container; }
+    inline void setMolecule(Molecule *container) { _mol = container; }
+    inline void setSegment(Segment *container)   { _seg = container; }
+    void        AddAtom( Atom* atom );
+
+    Topology   *getTopology() { return _top; }
+    Molecule   *getMolecule() { return _mol; }
+    Segment    *getSegment()  { return _seg; }    
+    vector< Atom* > &Atoms() { return _atoms; }
+
+    const int    &getId() const { return _id; }
+    const string &getName() const { return _name; }
+
+    void         setSymmetry(int symmetry) { _symmetry = symmetry; }
+    int          getSymmetry() { return _symmetry; }
+
+    void         calcPos();
+    void         setPos(vec pos) { _CoM = pos; }
+    const vec   &getPos() const { return _CoM; }
 
 private:
 
-    /// Conjugated segment this fragment belongs to
-    Segment *_segment;
-   /// Name of the rigid fragment 
-    string _name;
-    /// Rigid fragment ID
-    int _id;
-    /// Weights used to calculate fragment center
-    vector< double > _weights;
-    /// List of atoms belonging to this fragment
+    Topology    *_top;
+    Molecule    *_mol;
+    Segment     *_seg;
+
     vector < Atom* > _atoms;
+    vector< double > _weights;
+
+    string      _name;
+    int         _id;
+
+    int         _symmetry;
+    vec         _CoM;    // Center of mapping
+
+
 };
 
 }}

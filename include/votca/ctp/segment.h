@@ -19,11 +19,16 @@
 #define	__VOTCA_CTP_SEGMENT_H
 
 #include<votca/ctp/fragment.h>
+#include<votca/ctp/atom.h>
+
+class Topology;
 
 namespace votca { namespace ctp {
 
-class Molecule;   
-class Atom;   
+
+class Molecule;  
+
+ 
     
 /**
     \brief Conjugated segment. One conjugated segment contains several rigid fragments.
@@ -38,34 +43,79 @@ public:
     Segment(int id, string name);
     /// Default destructor
    ~Segment();
-   /**
-     * get the id of the segment
-     * \return segment id
-     */
-    const int &getId();
-     /**
-     * get the name of the segment
-     * \return segment name
-     */
-    const string &getName();
-    /// Adds a pointer to a fragment belonging to this segment
-    void AddFragment( Fragment* fragment );
-    /// Adds a pointer to an atom belonging to this segment
-    void AddAtom( Atom* atom );
+
+    const int       &getId() { return _id; }
+    const string    &getName() { return _name; }
+
+    const vec       &getPos() const { return _CoM; }
+    void             setPos(vec pos) { _CoM = pos; }
+    void             calcPos();
+
+    const double    &getOcc(int carrier);
+    void             setOcc(int carrier, double occ);
+    bool             hasOccProb() { return _hasOccProb; }
+
+    const double    &getESiteIntra(int carrier);
+    void             setESiteIntra(int carrier, double energy);
+    bool             hasEIntra() { return _hasESiteIntra; }
+
+    const double    &getLambdaIntra(int state0, int state1);
+    void             setLambdaIntra(int state0, int state1, double lambda);
+    bool             hasLambda() { return _hasLambdas; }
+
+    const double    &getEMpoles(int state);
+    void             setEMpoles(int state, double energy);
+    bool             hasEMpoles() { return _hasEMpoles; }
+
+    inline void      setTopology(Topology *container) { _top = container; }
+    Topology        *getTopology() { return _top; }
+    inline void      setMolecule(Molecule *container) { _mol = container; }
+    Molecule        *getMolecule() { return _mol; }
+
+    void             AddFragment( Fragment* fragment );
+    void             AddAtom( Atom* atom );
+    vector< Fragment* > &Fragments() { return _fragments; }
+    vector < Atom* >    &Atoms() { return _atoms; }
+
+    void WritePDB(FILE *out);
 
 private:
-    string _name;
-    /// Conjugated segment ID
-    int _id;  
-    /// position of a segment
-    vec _pos;
-    /// List of rigid fragments which belong to this segment
-    vector < Fragment* > _fragments;
-    /// List of atoms which belong to this segment
-    vector < Atom* > _atoms;
-   /// Molecule this Segment belongs to
-    Molecule *_molecule;
-    /// Name of the conjugated segment       
+
+    Topology    *_top;
+    Molecule    *_mol;
+
+    vector < Fragment* >    _fragments;
+    vector < Atom* >        _atoms;
+
+    string      _name;
+    int         _id;
+    vec         _CoM;
+
+
+
+    map< int, double > _eSiteIntra;
+    //   +1(=> h)     E(CAtion) - E(Neutral)
+    //   -1(=> e)     E(Anion)  - E(Neutral)
+    bool _hasESiteIntra;
+
+    map< int, map < int, double > > _lambdasIntra;
+    //   +1(=> h)    0   lambdaCN = UnC - UnN (dischrg)
+    //   -1(=> e)    0   lambdaAN = UnA - UnN (dischrg)
+    //    0         +1   lambdaNC = UcN - UcC (chrg)
+    //    0         -1   lambdaNA = UaN - UaA (chrg)
+    bool _hasLambdas;
+
+    map< int,       double >      _eMpoles;
+    //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
+    //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
+    bool _hasEMpoles;
+
+    map< int,       double >      _occProb;
+    //   +1(=> h)   occ.prob. for hole
+    //   -1(=> e)   occ.prob. for electron
+    bool _hasOccProb;
+    
+
 };
 
 }}

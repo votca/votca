@@ -21,248 +21,257 @@
 
 namespace votca { namespace ctp {
 
-Topology::Topology()
-    : _db_id(0)
-{}
+Topology::Topology() : _db_id(-1), _hasPb(0), _bc(NULL), _nblist(this) { }
 
-Topology::~Topology()
-{    
-    // clean up the list of fragments 
-    cout << "  topology: deleting fragments: ";
-    vector < Fragment* > :: iterator fragment;
-    for (fragment = _fragments.begin(); fragment < _fragments.end(); ++fragment){
-         cout << (*fragment)->getId() << ":" << (*fragment)->getName() << " ";      
-        delete *fragment;
-    }
-    cout << endl;
-    _fragments.clear();
+// +++++++++++++++++++++ //
+// Clean-Up, Destruct    //
+// +++++++++++++++++++++ //
 
-    // clean up the list of segments 
-    cout << "  topology: deleting segments: ";
-    vector < Segment* > :: iterator segment;
-    for (segment = _segments.begin(); segment < _segments.end(); ++segment){
-         cout << (*segment)->getId() << ":" << (*segment)->getName() << " ";      
-        delete *segment;
-    }
-    cout << endl;
-    _segments.clear();
-    
-    // clean up the list of molecules; this also deletes atoms
-    cout << "  topology: deleting molecules: ";
-    vector < Molecule* > :: iterator molecule;
-    for (molecule = _molecules.begin(); molecule < _molecules.end(); ++molecule){
-         cout << (*molecule)->getId() << ":" << (*molecule)->getName() << " " ;      
-        delete *molecule;
-    }
-    cout << endl;
+void Topology::CleanUp() {
+
+    vector < Molecule* > ::iterator mit;
+    for (mit = _molecules.begin(); mit < _molecules.end(); mit++) delete *mit;
     _molecules.clear();
+    _segments.clear();
+    _fragments.clear();
+    _atoms.clear();
 
-     // clean up the list of fragment types 
-    cout << "  topology: deleting fragment types: ";
-    for (fragment = _fragment_types.begin(); fragment < _fragment_types.end(); ++fragment){
-         cout << (*fragment)->getId() << ":" << (*fragment)->getName() << " ";      
-        delete *fragment;
-    }
-    cout << endl;
-    _fragment_types.clear();
-
-    // clean up the list of segment types 
-    cout << "  topology: deleting segment types: ";
-    for (segment = _segment_types.begin(); segment < _segment_types.end(); ++segment){
-         cout << (*segment)->getId() << ":" << (*segment)->getName() << " ";      
-        delete *segment;
-    }
-    cout << endl;
-    _segment_types.clear();
-   
-      // clean up the list of molecule types; this also deletes atoms
-    cout << "  topology: deleting molecule types: ";
-    for (molecule = _molecule_types.begin(); molecule < _molecule_types.end(); ++molecule){
-         cout << (*molecule)->getId() << ":" << (*molecule)->getName() << " " ;      
-        delete *molecule;
-    }
-    cout << endl;
-    _molecule_types.clear();
-  
-    // clean up the map of the molecule md name : pointer to molecule type
-    _map_MoleculeName_MoleculeType.clear();
-    _map_MoleculeMDName_MoleculeName.clear();
+    if (_bc) { delete(_bc); _bc = NULL; }
+    _bc = new CSG::OpenBox;
+    
+    _nblist.Cleanup();
 }
 
 
-Fragment *Topology::AddFragment(int fragment_id, string fragment_name, Segment* segment)
-{
+Topology::~Topology() {
+
+    // clean up the list of molecules; this also deletes atoms
+    vector < Molecule* > :: iterator molecule;
+    for (molecule = _molecules.begin();
+         molecule < _molecules.end();
+         ++molecule) {
+         delete *molecule;
+    }
+    _molecules.clear();
+    _segments.clear();
+    _fragments.clear();
+    _atoms.clear();
+}
+
+
+// ++++++++ //
+// Populate //
+// ++++++++ //
+
+Fragment *Topology::AddFragment(string fragment_name) {
+    int fragment_id = _fragments.size() + 1;
     Fragment* fragment = new Fragment(fragment_id, fragment_name);
     _fragments.push_back(fragment);
-}
-
-Segment *Topology::AddSegment(int segment_id, string segment_name)
-{
-    Segment* segment = new Segment(segment_id, segment_name);
-    _segments.push_back(segment);
-
-}
-
-Atom *Topology::AddAtom(int atom_id, string atom_name)
-{
-    //_atoms.push_back( atom );
-}
-
-Molecule *Topology::AddMolecule(int molecule_id, string molecule_name)
-{
-    Molecule *molecule = new Molecule(molecule_id++, molecule_name);
-    _molecules.push_back(molecule);
-    return molecule;
-}
-
-
-Atom *Topology::AddAtomType(Molecule *owner, int atom_id, string atom_name, 
-        int residue_number, double weight)
-{
-    Atom* atom = new Atom(owner, atom_id, atom_name, residue_number, weight);
-    _atom_types.push_back(atom); 
-    return atom;
-}
-
-Fragment *Topology::AddFragmentType(int fragment_id, Property *property)
-{
-    string fragment_name = property->get("name").as<string>();    
-    Fragment* fragment = new Fragment(fragment_id, fragment_name);
-    _fragment_types.push_back(fragment);  
+    fragment->setTopology(this);
     return fragment;
 }
 
-Segment *Topology::AddSegmentType(int segment_id, Property *property)
-{
-    string segment_name = property->get("name").as<string>();
+Segment *Topology::AddSegment(string segment_name) {
+    int segment_id = _segments.size() + 1;
     Segment* segment = new Segment(segment_id, segment_name);
-    _segment_types.push_back(segment);
+    _segments.push_back(segment);
+    segment->setTopology(this);
     return segment;
-
 }
 
-Molecule *Topology::AddMoleculeType(int molecule_id, Property *property)
-{
-    string molecule_name = property->get("name").as<string>();
-    string molecule_mdname = property->get("mdname").as<string>();
+Atom *Topology::AddAtom(string atom_name) {
+    int atom_id = _atoms.size() + 1;
+    Atom *atom = new Atom(atom_id, atom_name);
+    _atoms.push_back(atom);
+    atom->setTopology(this);
+    return atom;
+}
 
+Molecule *Topology::AddMolecule(string molecule_name) {
+    int molecule_id = _molecules.size() + 1;
     Molecule *molecule = new Molecule(molecule_id, molecule_name);
-    _molecule_types.push_back(molecule);
-    // TODO check if the name is already there
-    _map_MoleculeMDName_MoleculeName[molecule_name] = molecule_mdname;
-    _map_MoleculeName_MoleculeType[molecule_name] = molecule;
+    _molecules.push_back(molecule);
+    molecule->setTopology(this);
     return molecule;
 }
 
-Molecule *Topology::getMoleculeType(string name)
-{
-    return _map_MoleculeName_MoleculeType.at(name);
-}
-   
-   
-void Topology::ParseSegmentDefinitions( Property &topology )
-{
-   
-    if ( tools::globals::verbose ) {
-        cout << "Topology: Parsing the partitioning on segments and fragments" << endl;
-        //cout << " molecule[name:id] segment[name:type] fragment[name:type:position] " << endl;
+
+
+// +++++++++++++++++ //
+// Periodic Boundary //
+// +++++++++++++++++ //
+
+void Topology::setBox(const matrix &box,
+                      CSG::BoundaryCondition::eBoxtype boxtype) {
+
+    // Determine box type automatically in case boxtype == typeAuto
+    if(boxtype == CSG::BoundaryCondition::typeAuto) {
+        boxtype = AutoDetectBoxType(box);
     }
-    
-    
-    list<Property *> molecules = topology.Select("topology.molecules.molecule"); 
-    list<Property *>::iterator it_molecule;
 
-    cout << " Found " << molecules.size() << " molecule" << endl;
-            
-    // load molecules, create fragments and segments
-    int molecule_id = 1;
-    for ( it_molecule = molecules.begin(); it_molecule != molecules.end(); ++it_molecule ){
-        
-        Molecule *molecule = AddMoleculeType(molecule_id++, *it_molecule );
-        
-        // load the segments
-        list<Property *> segments = (*it_molecule)->Select("segments.segment"); 
-        list<Property *>::iterator it_segment;
-        cout << "  - Found " << segments.size() << " segments in this molecule type" << endl;
-        
-        int segment_id = 1;
-        for ( it_segment = segments.begin(); it_segment != segments.end(); ++it_segment ){
-                // Create a new segment
-                Segment *segment = AddSegmentType(segment_id++, *it_segment );
-                molecule->AddSegment( segment );
-                
-                // load the fragments
-                list<Property *> fragments = (*it_segment)->Select("fragments.fragment"); 
-                list<Property *>::iterator it_fragment;
-                cout << "    - Found " << fragments.size() << " fragments in segment " << segment->getName() << endl;
-                
-                int fragment_id = 1;
-                for ( it_fragment = fragments.begin(); it_fragment != fragments.end(); ++it_fragment ){
-                    Fragment* fragment = AddFragmentType(fragment_id, *it_fragment);
-                    segment->AddFragment( fragment );
-                    
-                    string mdatoms = (*it_fragment)->get("mdatoms").as<string>();
-                    string qmatoms = (*it_fragment)->get("qmatoms").as<string>();
-                    string weights = (*it_fragment)->get("weights").as<string>();                    
-
-                    Tokenizer tok_md_atoms(mdatoms, " ");
-                    Tokenizer tok_qm_atoms(qmatoms, " ");
-                    Tokenizer tok_weights(weights, " ");
-                    vector <string> md_atom_names;
-                    vector <string> qm_atom_names;
-                    tok_md_atoms.ToVector(md_atom_names);
-                    
-                    vector<string>::iterator it_md_atom_name;
-                    for ( it_md_atom_name = md_atom_names.begin(); 
-                          it_md_atom_name != md_atom_names.end(); 
-                            ++it_md_atom_name ) 
-                    {
-                        //cout << (*it_md_atom_name).c_str() << endl;
-                        Tokenizer tok_md((*it_md_atom_name), ":");
-                        vector<string> md_atom_info;
-                        tok_md.ToVector( md_atom_info );
-                        int residue_number = boost::lexical_cast<int>(md_atom_info[0]);
-                        string residue_name = md_atom_info[1];
-                        string md_atom_name =  md_atom_info[2];
-                        
-                        // TODO
-                        double weight = 0.0;
-                        int atom_id = 0;
-                        
-                        Atom *atom = AddAtomType(molecule, atom_id, md_atom_name, residue_number, weight);
-                        fragment->AddAtom( atom );
-                        segment->AddAtom( atom );
-                      
-                    }         
-                    cout << "      - Found " // TO DO << fragment->NumberOfAtoms(); 
-                         << " atoms in the fragment " 
-                         <<  fragment->getName() << endl;
-                }
-                cout <<  "    - Total of " // TO DO << segment->NumberOfAtoms() 
-                     << " atoms in the segment " 
-                     << segment->getName() << endl; 
- 
+    if(_hasPb) {
+        if (votca::tools::globals::verbose) {
+            cout << "Removing periodic box. Creating new... " << endl;
         }
-        cout <<  "  - Total of " << molecule->NumberOfAtoms() 
-             << " atoms in the molecule " 
-             << molecule->getName() << endl; 
+        delete _bc;
+    }
 
+    switch(boxtype) {
+       case CSG::BoundaryCondition::typeTriclinic:
+            _bc = new CSG::TriclinicBox();
+            break;
+       case CSG::BoundaryCondition::typeOrthorhombic:
+            _bc = new CSG::OrthorhombicBox();
+            break;
+       default:
+            _bc = new CSG::OpenBox();
+            break;
+       }
+
+    _bc->setBox(box);
+    _hasPb = true;
+}
+
+
+CSG::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(const matrix &box){
+
+    // Set box type to OpenBox in case "box" is the zero matrix,
+    // to OrthorhombicBox in case "box" is a diagonal matrix,
+    // or to TriclinicBox otherwise
+
+    if(box.get(0,0)==0 && box.get(0,1)==0 && box.get(0,2)==0 &&
+       box.get(1,0)==0 && box.get(1,1)==0 && box.get(1,2)==0 &&
+       box.get(2,0)==0 && box.get(2,1)==0 && box.get(2,2)==0) {
+
+            cout << "WARNING: No box vectors specified in trajectory."
+               "Using open-box boundary conditions. " << endl;
+            return CSG::BoundaryCondition::typeOpen;
     }
-    
-    /*
-    if ( tools::globals::verbose ) {
-        cout << " segment[" << segment_name  << ":" << segment_type  << "] "
-             << "fragment[" << bead_name  << ":" << bead_type << ":" << bead_position  << "] "
-            << "molecule[" << molecule_name  << ":" << molecule_id  << "] " << endl;
+
+    else if(box.get(0,1)==0 && box.get(0,2)==0 &&
+            box.get(1,0)==0 && box.get(1,2)==0 &&
+            box.get(2,0)==0 && box.get(2,1)==0) {
+
+            return CSG::BoundaryCondition::typeOrthorhombic;
     }
-     */
- 
-    if ( tools::globals::verbose ) {
-        //cout << " segment[name:type] fragment[name:type:position] molecule[name:id] " << endl;
-        cout << "Topology: Done with parsing the partitioning" << endl;
+
+    else {
+        return CSG::BoundaryCondition::typeTriclinic;
     }
+
+    return CSG::BoundaryCondition::typeOpen;
+}
+
+
+vec Topology::PbShortestConnect(const vec &r1, const vec &r2) const {
+    return _bc->BCShortestConnection(r1, r2);
+}
+
+
+
+
+
+
+
+
+
+void Topology::PrintInfo(ostream &out) {
+        cout << endl;
+
+        cout << "MD|QM Topology info "
+                "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+        if (_bc) {
+        cout << "Periodic Box:        "  << this->getBox().get(0,0)
+                                << " "   << this->getBox().get(0,1)
+                                << " "   << this->getBox().get(0,2)
+                                << " | " << this->getBox().get(1,0)
+                                << " "   << this->getBox().get(1,1)
+                                << " "   << this->getBox().get(1,2)
+                                << " | " << this->getBox().get(2,0)
+                                << " "   << this->getBox().get(2,1)
+                                << " "   << this->getBox().get(2,2)
+                                << endl;
+        }
+        else {
+        cout << "No periodic boundary specified. " << endl;
+        }
+        cout << "Database ID:         " << this->getDatabaseId() << endl;
+        cout << "Step number:         " << this->getStep() << endl;
+        cout << "Time:                " << this->getTime() << endl;
+        cout << "# Molecules          " << this->Molecules().size() << endl;
+        cout << "# Segments           " << this->Segments().size() << endl;
+        cout << "# Fragments          " << this->Fragments().size() << endl;
+        cout << "# Atoms              " << this->Atoms().size() << endl;
+        cout << "# Pairs              " << this->NBList().size() << endl;
+        cout << endl;
+}
+
+
+
+void Topology::PrintInfo(FILE *out) {
+
+    fprintf(out, "Topology Database ID %3d \n", this->getDatabaseId());
+    fprintf(out, "Periodic Box: %2.4f %2.4f %2.4f | %2.4f %2.4f %2.4f | %2.4f %2.4f %2.4f \n",
+            this->getBox().get(0,0),
+            this->getBox().get(0,1),
+            this->getBox().get(0,2),
+            this->getBox().get(1,0),
+            this->getBox().get(1,1),
+            this->getBox().get(1,2),
+            this->getBox().get(2,0),
+            this->getBox().get(2,1),
+            this->getBox().get(2,2) );
+
+    fprintf(out, "\tStep number %2.4f \n", this->getStep());
+    fprintf(out, "\tTime        %7d \n", this->getTime());
+    fprintf(out, "\t# Molecules %7d \n", this->Molecules().size());
+    fprintf(out, "\t# Segments  %7d \n", this->Segments().size());
+    fprintf(out, "\t# Atoms     %7d \n", this->Atoms().size());
+    fprintf(out, "\t# Pairs     %7d \n", this->NBList().size());
 
 }
+
+
+void Topology::WritePDB(FILE *out, string tag) {
+
+    if (tag == "segments") {
+
+    vector < Segment* > :: iterator seg;
+    for (seg = _segments.begin(); seg < _segments.end(); ++seg){
+         int id = (*seg)->getId();
+         string name =  (*seg)->getName();
+         name.resize(3);
+         string resname = (*seg)->getMolecule()->getName();
+         resname.resize(3);
+         int resnr = (*seg)->getMolecule()->getId();
+         vec position = (*seg)->getPos();
+
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
+                 id,                    // Atom serial number           %5d
+                 name.c_str(),          // Atom name                    %4s
+                 " ",                   // alternate location indicator.%1s
+                 resname.c_str(),       // Residue name.                %3s
+                 "A",                   // Chain identifier             %1s
+                 resnr,                 // Residue sequence number      %4d
+                 " ",                   // Insertion of residues.       %1s
+                 position.getX()*10,    // X in Angstroms               %8.3f
+                 position.getY()*10,    // Y in Angstroms               %8.3f
+                 position.getZ()*10,    // Z in Angstroms               %8.3f
+                 1.0,                   // Occupancy                    %6.2f
+                 0.0,                   // Temperature factor           %6.2f
+                 " ",                   // Segment identifier           %4s
+                 name.c_str(),          // Element symbol               %2s
+                 " "                    // Charge on the atom.          %2s
+                 );
+
+    }
+    } /* exit tag segments */
+
+    else {
+        ;
+    }
+}
+
 
 
 }}
