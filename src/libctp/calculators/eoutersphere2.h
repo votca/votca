@@ -38,16 +38,16 @@ public:
     void Initialize(Topology *top, Property *options);
     bool EvaluateFrame(Topology *top);
 
-    void ConstLambda(QMTopology *top);
-    void SpheresLambda(QMTopology *top);
-    void DielectricLambda(QMTopology *top);
+    void ConstLambda(Topology *top);
+    void SpheresLambda(Topology *top);
+    void DielectricLambda(Topology *top);
 
 private:
     string      _method;
     double      _pekarFactor;
     double      _lambdaConstant;
     double      _lambdaCutoff;
-    double (Eoutersphere::*_lambda_method)(const double &);
+    double (Eoutersphere2::*_lambda_method)(const double &);
 
 };
 

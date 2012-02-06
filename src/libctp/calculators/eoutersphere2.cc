@@ -137,7 +137,10 @@ void Eoutersphere2::DielectricLambda(Topology *top) {
                      throw std::runtime_error("Decide how to access charges"
                                               " to cover anionic and cationic "
                                               "state");
-                     double dQ = Int->getQ(-1) - Int->getQ(0);
+                     
+                     //double dQ = Int->getQ(-1) - Int->getQ(0); HACK
+                     double dQ = 0;
+                     
                      vec R = Ext->getPos() - Int->getPos() - shift1;
                      double dr = abs(R);
                      double dr3 = dr*dr*dr;
@@ -152,7 +155,9 @@ void Eoutersphere2::DielectricLambda(Topology *top) {
                      Atom *Int = *bit;
                      throw std::runtime_error("Decide how to acces charges");
 
-                     double dQ = Int->getQ(0) - Int->getQ(-1);
+                     // double dQ = Int->getQ(0) - Int->getQ(-1); HACK
+                     double dQ = 0;
+                     
                      vec R = Ext->getPos() - Int->getPos() - shift2;
                      double dr = abs(R);
                      double dr3 = dr*dr*dr;
