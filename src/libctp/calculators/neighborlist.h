@@ -108,13 +108,14 @@ inline bool Neighborlist::EvaluateFrame(QMTopology *top)
     }
        if (tools::globals::verbose) {
        QMNBList& nblist=top->nblist();
-        for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
+       cout << "[idA:idB] com distance" << endl;
+       for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
 
-        QMPair *pair = *ipair;
-        QMCrgUnit *crg1 = pair->Crg1PBCCopy();
-        QMCrgUnit *crg2 = pair->Crg2PBCCopy();
-        cout<<" id segment A:" << crg1->getId() <<"    id segment B:" << crg2->getId()<< "   com distance:"<< pair->dist()<< endl;
-        //cout<<"type A:" << crg1->getType().GetName() <<" name A:" << crg1->getName() << " id A:" << crg1->getId()<< endl;
+       QMPair *pair = *ipair;
+       QMCrgUnit *crg1 = pair->Crg1PBCCopy();
+       QMCrgUnit *crg2 = pair->Crg2PBCCopy();
+       cout << " [" << crg1->getId() << ":" << crg2->getId()<< "] " << pair->dist()<< endl;
+       //cout<<"type A:" << crg1->getType().GetName() <<" name A:" << crg1->getName() << " id A:" << crg1->getId()<< endl;
     }
     }
 }

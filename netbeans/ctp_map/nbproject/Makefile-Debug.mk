@@ -24,12 +24,13 @@ AS=as
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Debug
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -57,7 +58,7 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/ctp_map
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_map
 
 ../../src/tools/ctp_map: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
 
@@ -100,7 +101,7 @@ ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Debug
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} ../../src/tools/ctp_map
 
 # Subprojects

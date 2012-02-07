@@ -5,9 +5,9 @@
 #include <votca/ctp/qmcalculator2.h>
 #include <votca/ctp/qmpair2.h>
 
+namespace TOOLS = votca::tools;
+
 namespace votca { namespace ctp {
-
-
 
 
 class Neighborlist2 : public QMCalculator2
@@ -123,8 +123,20 @@ bool Neighborlist2::EvaluateFrame(Topology *top) {
         } /* exit loop seg2 */
     } /* exit loop seg1 */
 
-    cout << ": Created " << top->NBList().size() << " pairs.";
+    cout << ": Created " << top->NBList().size() << " pairs." << endl;
 
+    cout << "[idA:idB] com distance" << endl;
+    if (TOOLS::globals::verbose) {
+        QMNBList2& nblist = top->NBList();       
+        for (QMNBList2::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
+                QMPair2 *pair = *ipair;
+                Segment* segment1 = pair->Seg1PbCopy();
+                Segment* segment2 = pair->Seg2PbCopy();
+                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist()<< endl;
+        }
+    }
+
+    
 }
 
 

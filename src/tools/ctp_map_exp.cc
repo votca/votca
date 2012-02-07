@@ -14,9 +14,9 @@ using namespace std;
 
 namespace CSG = votca::csg;
 namespace CTP = votca::ctp;
+namespace TOOLS = votca::tools;
 
-
-class CtpMapExp : public Application
+class CtpMap : public Application
 {
 
 public:
@@ -46,33 +46,33 @@ protected:
 
 namespace propt = boost::program_options;
 
-void CtpMapExp::Initialize() {
+void CtpMap::Initialize() {
 
     CSG::TrajectoryWriter::RegisterPlugins();
     CSG::TrajectoryReader::RegisterPlugins();
     CSG::TopologyReader::RegisterPlugins();
 
-    AddProgramOptions() ("top,t", propt::value<string> (),
-                         "  Atomistic topology file ");
-    AddProgramOptions() ("trj,c", propt::value<string> (),
-                         "  Atomistic trajetory file ");
+    AddProgramOptions() ("topology,t", propt::value<string> (),
+                         "  topology");
+    AddProgramOptions() ("coordinates,c", propt::value<string> (),
+                         "  coordinates or trajectory");
     AddProgramOptions() ("segments,s",  propt::value<string> (),
-                         "  Coarse-Graining definitions ");
+                         "  definition of segments and fragments");
     AddProgramOptions() ("file,f", propt::value<string> (),
-                         "  SQLite state file ");
+                         "  state file");
 }
 
-bool CtpMapExp::EvaluateOptions() {
+bool CtpMap::EvaluateOptions() {
 
-    CheckRequired("top", "Missing topology file");
+    CheckRequired("topology", "Missing topology file");
     CheckRequired("segments", "Missing segment definition file");
-    CheckRequired("trj", "Missing trajectory input");
-    CheckRequired("file");
+    CheckRequired("coordinates", "Missing trajectory input");
+    CheckRequired("file", "Missing state file");
 
     return 1;
 }
 
-void CtpMapExp::Run() {
+void CtpMap::Run() {
 
     // +++++++++++++++++++++++++++++++++++++ //
     // Initialize MD2QM Engine and SQLite Db //
@@ -86,13 +86,13 @@ void CtpMapExp::Run() {
     string cgfile = _op_vm["segments"].as<string> ();
     _md2qm.Initialize(cgfile);
 
-
+    
     // ++++++++++++++++++++++++++++ //
     // Create MD topology from file //
     // ++++++++++++++++++++++++++++ //
 
     // Create topology reader
-    string topfile = _op_vm["top"].as<string> ();
+    string topfile = _op_vm["topology"].as<string> ();
     CSG::TopologyReader *topread;
     topread = CSG::TopReaderFactory().Create(topfile);
 
@@ -102,25 +102,25 @@ void CtpMapExp::Run() {
     }
 
     topread->ReadTopology(topfile, this->_mdtopol);
-    //cout << "MD Topology from " << topfile << ": Found "
-    //     << _mdtopol.BeadCount() << " atoms in "
-    //     << _mdtopol.MoleculeCount() << " molecules. "
-    //     << endl;
-
-
+    if (TOOLS::globals::verbose) {
+        cout << "Read MD topology from " << topfile << ": Found "
+             << _mdtopol.BeadCount() << " atoms in "
+             << _mdtopol.MoleculeCount() << " molecules. "
+             << endl;
+    }
 
     // ++++++++++++++++++++++++++++++ //
     // Create MD trajectory from file //
     // ++++++++++++++++++++++++++++++ //
 
     // Create trajectory reader and initialize
-    string trjfile =  _op_vm["trj"].as<string> ();
+    string trjfile =  _op_vm["coordinates"].as<string> ();
     CSG::TrajectoryReader *trjread;
     trjread = CSG::TrjReaderFactory().Create(trjfile);
 
     if (trjread == NULL) {
         throw runtime_error( string("Input format not supported: ")
-                           + _op_vm["trj"].as<string> () );
+                           + _op_vm["coordinates"].as<string> () );
     }
     trjread->Open(trjfile);
     trjread->FirstFrame(this->_mdtopol);
@@ -181,13 +181,13 @@ void CtpMapExp::Run() {
 
 }
 
-void CtpMapExp::Save(string mode) {    
+void CtpMap::Save(string mode) {    
     
     _statsav.Open(_qmtopol, _outdb);
 
     _statsav.WriteFrame();
 
-    if (votca::tools::globals::verbose) {
+    if (TOOLS::globals::verbose) {
         CTP::Topology *TopSQL = NULL;
         TopSQL = _statsav.getTopology();
         cout << endl << "Checking topology read from SQL file." << endl;
@@ -202,6 +202,6 @@ void CtpMapExp::Save(string mode) {
 
 int main(int argc, char** argv)
 {
-    CtpMapExp ctpmap;
+    CtpMap ctpmap;
     return ctpmap.Exec(argc, argv);
 }

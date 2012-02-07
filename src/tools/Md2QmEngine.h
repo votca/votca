@@ -10,6 +10,7 @@
 
 namespace CTP = votca::ctp;
 namespace CSG = votca::csg;
+namespace TOOLS = votca::tools;
 
 class Md2QmEngine
 {
@@ -21,10 +22,13 @@ public:
     void Initialize(const string &xmlfile);
     void PrintInfo();
 
+    // Converts atomistic to QM topology
     void            Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop);
+    // Creates an QM molecule container based on MD molecule and the xml map 
     CTP::Molecule  *MoleculeFactory(CSG::Molecule *molMDTemplate);
+    // Partitions the QM molecule on segments and fragments
     CTP::Molecule  *ExportMolecule(CTP::Molecule *molQM, CTP::Topology *qmtop);
-
+    // outputs the mapping, and other useful info
     void CheckProduct(CTP::Topology *outtop, const string &pdbfile);
 
 

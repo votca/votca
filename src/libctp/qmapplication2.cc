@@ -16,22 +16,21 @@ void QMApplication2::Initialize(void) {
     CalculatorFactory2::RegisterAll();
 
     namespace propt = boost::program_options;
-    AddProgramOptions() ("segments,s", propt::value<string>(),
-                         " segment & fragment definitions");
+
     AddProgramOptions() ("options,o", propt::value<string>(),
-                         " program and calculator options");
+                         "  calculator options");
     AddProgramOptions() ("file,f", propt::value<string>(),
-                         " SQLite state file");
+                         "  state file");
     AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
-                         " start from this frame");
+                         "  start from this frame");
     AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(-1),
-                         " number of frames to process");    
+                         "  number of frames to process");    
 }
 
 
 bool QMApplication2::EvaluateOptions(void) {
-    CheckRequired("options", "Please provide calculator options xml file");
-    CheckRequired("file", "Please provide SQLite database file");
+    CheckRequired("options", "Please provide an xml file with calculator options");
+    CheckRequired("file", "Please provide the state file");
     return true;
 }
 

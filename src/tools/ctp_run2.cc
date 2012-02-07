@@ -18,10 +18,20 @@ public:
 
     void    HelpText(ostream &out) { out <<"Runs CTP calculators"<< endl; }
     void    HelpText() { };
-    void    PrintDescription();
+    void    PrintDescription(const char *name, const bool length);
 
     void    Initialize();
     bool    EvaluateOptions();
+    
+private:
+    static const bool _short = true;
+    static const bool _long = false;
+
+    string _fwstring(string original, size_t charCount ) {
+        original.resize( charCount, ' ' );
+        return original;
+    }
+
 
 };
 
@@ -42,12 +52,40 @@ void CtpRun::Initialize() {
 bool CtpRun::EvaluateOptions() {
 
     if (OptionsMap().count("list")) {
-        cout << "Sorry... Not implemented." << endl;
-        Application::StopExecution();
+            cout << "Available calculators: \n";
+            for(CalculatorFactory2::assoc_map::const_iterator iter=
+                    Calculators().getObjects().begin();
+                    iter != Calculators().getObjects().end(); ++iter) {
+                PrintDescription( (iter->first).c_str(), _short );
+            }
+            StopExecution();
+            return true;
+       //Application::StopExecution();
     }
+ 
+    
     if (OptionsMap().count("description")) {
-        cout << "Sorry... Note implemented." << endl;
-        Application::StopExecution();
+            CheckRequired("description", "no calculator is given");
+ 	    Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
+            // loop over the names in the description string
+            for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
+                // loop over calculators
+                bool printerror = true;
+                for(CalculatorFactory2::assoc_map::const_iterator iter=Calculators().getObjects().begin(); 
+                        iter != Calculators().getObjects().end(); ++iter) {
+
+                    if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
+                         PrintDescription( (iter->first).c_str(), _long );
+                        printerror = false;
+                        break;
+                    }
+                 }
+                 if ( printerror ) cout << "Calculator " << *n << " does not exist\n";
+            }
+            StopExecution();
+            return true;     
+        //cout << "Sorry... Note implemented." << endl;
+        //Application::StopExecution();
     }
 
     QMApplication2::EvaluateOptions();
@@ -61,8 +99,41 @@ bool CtpRun::EvaluateOptions() {
     return 1;
 }
 
-void CtpRun::PrintDescription() {
-    cout << "Sorry... Not implemented." << endl;
+void CtpRun::PrintDescription(const char *name, const bool length) {
+        // loading the documentation xml file from VOTCASHARE
+        char *votca_share = getenv("VOTCASHARE");
+        if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+        string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/")+name+string(".xml");
+        try {
+            Property options;
+            load_property_from_xml(options, xmlFile);
+
+           if ( length ) { // short description of the calculator
+               
+                 cout << string("  ") << _fwstring(string(name),14);
+                 cout << options.get(name+string(".description")).as<string>();
+
+            } else { // long description of the calculator
+                cout << " " << _fwstring(string(name),18);
+                cout << options.get(name+string(".description")).as<string>() << endl;
+ 
+                list<Property *> items = options.Select(name+string(".item"));
+
+                for(list<Property*>::iterator iter = items.begin(); iter!=items.end(); ++iter) {
+                    //cout << "Long description" << endl;
+                    Property *pname=&( (*iter)->get( string("name") ) );
+                    Property *pdesc=&( (*iter)->get( string("description") ) );
+                    //Property *pdflt=&( (*iter)->get( string("default") ) );
+                    if ( ! (pname->value()).empty() ) {
+                        cout << string("  -") << _fwstring(pname->value(), 14);
+                        cout << pdesc->value() << endl;
+                    }
+                 }
+            }
+            cout << endl;
+        } catch(std::exception &error) {
+            cout << string("XML file or description tag missing: ") << xmlFile;
+        }
 }
 
 

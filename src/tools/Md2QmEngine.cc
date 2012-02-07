@@ -553,7 +553,7 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
     fclose(outPDB);
 
 
-    if (votca::tools::globals::verbose) {
+    if (TOOLS::globals::verbose) {
         cout << endl;
         this->PrintInfo();
         cout << endl;

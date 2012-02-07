@@ -11,8 +11,9 @@ src/libctp/votca_config.h
 src/libctp/hgversion.h
 
 src/tools/ctp_run
+src/tools/ctp_run2
 src/tools/ctp_map
-
+src/tools/ctp_map_exp
 src/dipro/*.mod
 src/dipro/*.x
 
