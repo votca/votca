@@ -8,32 +8,34 @@
 #ifndef EMULTIPOLE_H
 #define	EMULTIPOLE_H
 
-#include <votca/ctp/qmcalculator.h>
-
+#include <votca/ctp/qmcalculator2.h>
+#include <votca/ctp/topology.h>
 
 namespace votca { namespace ctp {
 
 
-class EMultipole : public QMCalculator
+class EMultipole : public QMCalculator2
 {
 public:
 
     EMultipole() { };
    ~EMultipole() { };
 
-    void Initialize(QMTopology *top, Property *opt);
+    void Initialize(Topology *top, Property *opt);
     void GetMPoles(string &xmlfile);
-    void EquipTop(QMTopology *top);
+    void EquipTop(Topology *top);
 
-    bool EvaluateFrame(QMTopology *top);
+    bool EvaluateFrame(Topology *top);
     void ChargeMol(Molecule *mol, int state);
-    void Induce(QMTopology *top);
-    void Depolarize(QMTopology *top);
+    void Induce(Topology *top);
+    void Depolarize(Topology *top);
 
-    void CalcIntEnergy(QMTopology *top, int &state);
-    double PairIntEnergy(Bead *atm, Bead *btm);
+    void CalcIntEnergy(Topology *top, int &state);
+    double PairIntEnergy(Atom *atm, Atom *btm);
 
+    string Identify() { return "Thole Calculator"; }
     void PrintInfo(const string &key);
+    void PrintProgBar(int percent);
 
 
 
@@ -57,10 +59,11 @@ private:
     // keys are atom identifiers "atmname_rsdname_molname"
     // TODO Move to atom.h or similar to get rid
     // TODO of map structure and increase look-up speed
-    map < string, matrix >           _polTs;
-    map < string, matrix >::iterator _polit;
+    map < string, matrix >           _ptensors;
+    map < string, matrix >::iterator _ptit;
     map < string, map<int, double> >           _chrgs;
     map < string, map<int, double> >::iterator _chrgit;
+    map < string, map<int, bool > >            _hasChrg;
 
     // occupations for which to calculate site energies;
     // neutral assumed as precondition
@@ -116,7 +119,9 @@ private:
 
 };
 
-}} /* exit namespaces votca, ctp */
 
+
+
+}} /* exit namespaces votca, ctp */
 
 #endif /* EMULTIPOLE_H */

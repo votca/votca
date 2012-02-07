@@ -23,6 +23,7 @@
 #include <votca/tools/types.h>
 #include <votca/tools/vec.h>
 #include <votca/tools/property.h>
+#include <votca/tools/matrix.h>
 
 
 
@@ -63,7 +64,7 @@ public:
          _hasQM(false), _qmId(-1) { }
 
     Atom() { };
-   ~Atom() { }
+   ~Atom() { _Q.clear(); }
 
     const int     &getId() const { return _id; }
     const string  &getName() const { return _name; }
@@ -90,7 +91,13 @@ public:
     inline const double &getWeight() { return _weight; }
     inline const int    &getQMId() { return _qmId; }
 
+    inline const double &getQ(int state) { return _Q.at(state); }
+    inline const double &getQ() { return _q->second; }
+    inline void          setQ( map<int, double> Q) { _Q = Q; }
+    void                 chrg(int state) { _q = _Q.find(state); }
 
+    inline void          setPTensor(matrix &ptensor) { _ptensor = ptensor; }
+    const matrix        &getPTensor() { return _ptensor; }
 
     /**
      * get the position of the atom
@@ -143,6 +150,11 @@ protected:
 
     bool        _hasQM;
     int         _qmId;
+
+    // charge state of segment => partial charge
+    map<int, double> _Q;    
+    map<int, double> ::iterator _q;
+    matrix _ptensor;
         
 };
 

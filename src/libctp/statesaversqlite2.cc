@@ -330,7 +330,7 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
 void StateSaverSQLite2::WritePairs(bool update) {
     if ( ! _qmtop->NBList().size() ) { return; }
     
-    cout << " , pairs";
+    cout << ", pairs";
 
     Statement *stmt;
     
@@ -424,8 +424,7 @@ void StateSaverSQLite2::ReadFrame() {
 
     int topId = _topIds[_current_frame];
 
-    cout << endl
-         << "Import MD+QM Topology ID " << topId
+    cout << "Import MD+QM Topology ID " << topId
          << " (i.e. frame " << _current_frame << ")"
          << " from " << _sqlfile << endl;
     cout << "...";

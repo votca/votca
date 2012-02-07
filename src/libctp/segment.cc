@@ -24,7 +24,7 @@ namespace votca { namespace ctp {
 /// Default constructor
 Segment::Segment(int id, string name)
         : _id(id), _name(name), _hasOccProb(0),
-          _hasLambdas(0), _hasEMpoles(0) { }
+          _hasLambdas(0) { }
 
 /// Destructor
 Segment::~Segment() {
@@ -70,7 +70,7 @@ const double &Segment::getLambdaIntra(int state0, int state1) {
 }
 
 void Segment::setEMpoles(int state, double energy) {
-    _hasEMpoles = true;
+    _hasChrgState[state] = true;
     _eMpoles[state] = energy;
 }
 const double &Segment::getEMpoles(int state) {
@@ -78,6 +78,18 @@ const double &Segment::getEMpoles(int state) {
 }
 
 
+void Segment::AddChrgState(int state, bool yesno) {
+    this->_hasChrgState[state] = yesno;
+}
+
+void Segment::chrg(int state) {
+    vector < Atom* > ::iterator ait;
+    for (ait = this->Atoms().begin();
+            ait < this->Atoms().end();
+            ait++) {
+        (*ait)->chrg(state);
+    }
+}
 
 
 
@@ -115,7 +127,8 @@ void Segment::WritePDB(FILE *out) {
          int resnr = (*frag)->getSegment()->getId();
          vec position = (*frag)->getPos();  
 
-         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+                      "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
                  id,                    // Atom serial number           %5d
                  name.c_str(),          // Atom name                    %4s
                  " ",                   // alternate location indicator.%1s
