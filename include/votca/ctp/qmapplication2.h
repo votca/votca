@@ -46,7 +46,6 @@ protected:
     void WriteData() {};
     void LoadOptions() {};
 
-
 };
 
 }}
