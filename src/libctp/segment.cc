@@ -24,7 +24,7 @@ namespace votca { namespace ctp {
 /// Default constructor
 Segment::Segment(int id, string name)
         : _id(id), _name(name), _hasOccProb(0),
-          _hasLambdas(0), _hasEMpoles(0) { }
+          _hasLambdas(0) { }
 
 /// Destructor
 Segment::~Segment() {
@@ -70,7 +70,7 @@ const double &Segment::getLambdaIntra(int state0, int state1) {
 }
 
 void Segment::setEMpoles(int state, double energy) {
-    _hasEMpoles = true;
+    _hasChrgState[state] = true;
     _eMpoles[state] = energy;
 }
 const double &Segment::getEMpoles(int state) {
@@ -78,6 +78,18 @@ const double &Segment::getEMpoles(int state) {
 }
 
 
+void Segment::AddChrgState(int state, bool yesno) {
+    this->_hasChrgState[state] = yesno;
+}
+
+void Segment::chrg(int state) {
+    vector < Atom* > ::iterator ait;
+    for (ait = this->Atoms().begin();
+            ait < this->Atoms().end();
+            ait++) {
+        (*ait)->chrg(state);
+    }
+}
 
 
 
@@ -103,8 +115,38 @@ void Segment::calcPos() {
     _CoM = pos / totWeight;
 }
 
-void Segment::WritePDB(FILE *out) {
 
+
+
+void Segment::Rigidify() {
+
+    // Establish which atoms to use to define local frame
+    vector<Fragment*> ::iterator fit;
+
+    for (fit = this->Fragments().begin();
+            fit < this->Fragments().end();
+            fit++) {    
+            (*fit)->Rigidify();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Segment::WritePDB(FILE *out, string tag1, string tag2) {
+
+  if (tag1 == "Fragments") {
     vector < Fragment* > :: iterator frag;
     for (frag = _fragments.begin(); frag < _fragments.end(); ++frag){
          int id = (*frag)->getId();
@@ -115,7 +157,8 @@ void Segment::WritePDB(FILE *out) {
          int resnr = (*frag)->getSegment()->getId();
          vec position = (*frag)->getPos();  
 
-         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+                      "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
                  id,                    // Atom serial number           %5d
                  name.c_str(),          // Atom name                    %4s
                  " ",                   // alternate location indicator.%1s
@@ -133,6 +176,40 @@ void Segment::WritePDB(FILE *out) {
                  " "                    // Charge on the atom.          %2s
                  );
     }
+  }
+  if ( tag1 == "Atoms") {
+    vector < Atom* > :: iterator atm;
+    for (atm = _atoms.begin(); atm < _atoms.end(); ++atm) {
+         int id = (*atm)->getId();
+         string name =  (*atm)->getName();
+         name.resize(3);
+         string resname = (*atm)->getResname();
+         resname.resize(3);
+         int resnr = (*atm)->getResnr();
+         vec position;
+         if (tag2 == "MD")      { position = (*atm)->getPos(); }
+         else if (tag2 == "QM") { position = (*atm)->getQMPos(); }
+
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+                      "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
+                 id,                    // Atom serial number           %5d
+                 name.c_str(),          // Atom name                    %4s
+                 " ",                   // alternate location indicator.%1s
+                 resname.c_str(),       // Residue name.                %3s
+                 "A",                   // Chain identifier             %1s
+                 resnr,                 // Residue sequence number      %4d
+                 " ",                   // Insertion of residues.       %1s
+                 position.getX()*10,    // X in Angstroms               %8.3f
+                 position.getY()*10,    // Y in Angstroms               %8.3f
+                 position.getZ()*10,    // Z in Angstroms               %8.3f
+                 1.0,                   // Occupancy                    %6.2f
+                 0.0,                   // Temperature factor           %6.2f
+                 " ",                   // Segment identifier           %4s
+                 name.c_str(),          // Element symbol               %2s
+                 " "                    // Charge on the atom.          %2s
+                 );
+    }
+  }
 }
 
 

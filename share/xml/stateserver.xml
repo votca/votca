@@ -6,11 +6,15 @@
 	
 	<item>
 		<name>out</name>
-		<description>Output-file name</description>
+		<description>Output file name</description>
+	</item>
+	<item>
+		<name>pdb</name>
+		<description>PDB coordinate file name</description>
 	</item>
 	<item>
 		<name>keys</name>
-		<description>Sections to write to readable format (topology, segments, pairs)</description>
+		<description>Sections to write to readable format (topology, segments, pairs, coordinates)</description>
 	</item>
 
 </stateserver>

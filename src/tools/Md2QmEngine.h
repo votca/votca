@@ -58,12 +58,14 @@ private:
                                 string residue_name,    int residue_number,
                                 string md_atom_name,    int md_atom_id,
                                 bool hasQMPart,         int qm_atom_id,
-                                double weight);
+                                vec qmpos,              double weight);
 
     const string   &getMoleculeName(const string &mdname);
     CTP::Molecule  *getMoleculeType(const string &name);
     CTP::Atom      *getAtomType(const string &molMdName,
                                 int resNr, const string &mdAtomName);
+    void            getIntCoords(string &file,
+                                 map<int, pair<string,vec> > &intCoords);
 
 
 };

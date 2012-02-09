@@ -235,8 +235,10 @@ void StateSaverSQLite2::WriteFragments(bool update) {
                             "frame, top, id,"
                             "name, type, mol,"
                             "seg, posX, posY,"
-                            "posZ, symmetry )"
+                            "posZ, symmetry, leg1,"
+                            "leg2, leg3 )"
                             "VALUES ("
+                            "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
@@ -264,6 +266,9 @@ void StateSaverSQLite2::WriteFragments(bool update) {
         stmt->Bind(9, frag->getPos().getY());
         stmt->Bind(10,frag->getPos().getZ());
         stmt->Bind(11,frag->getSymmetry());
+        stmt->Bind(12,frag->getTrihedron()[0]);
+        stmt->Bind(13,frag->getTrihedron()[1]);
+        stmt->Bind(14,frag->getTrihedron()[2]);
 
         stmt->InsertStep();
         stmt->Reset();
@@ -285,13 +290,15 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
                             "name, type, mol,"
                             "seg, frag,  resnr,"
                             "resname, posX, posY,"
-                            "posZ, weight)"
+                            "posZ, weight, qmid,"
+                            "qmPosX, qmPosY, qmPosZ)"
                             "VALUES ("
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
-                            "?,     ?    )");
+                            "?,     ?,  ?,"
+                            "?,     ?,  ?)");
     }
     else {
         return; // nothing to do here
@@ -318,6 +325,10 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
         stmt->Bind(12, atm->getPos().getY());
         stmt->Bind(13, atm->getPos().getZ());
         stmt->Bind(14, atm->getWeight());
+        stmt->Bind(15, atm->getQMId());
+        stmt->Bind(16, atm->getQMPos().getX());
+        stmt->Bind(17, atm->getQMPos().getY());
+        stmt->Bind(18, atm->getQMPos().getZ());
 
         stmt->InsertStep();
         stmt->Reset();
@@ -330,7 +341,7 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
 void StateSaverSQLite2::WritePairs(bool update) {
     if ( ! _qmtop->NBList().size() ) { return; }
     
-    cout << " , pairs";
+    cout << ", pairs";
 
     Statement *stmt;
     
@@ -424,8 +435,7 @@ void StateSaverSQLite2::ReadFrame() {
 
     int topId = _topIds[_current_frame];
 
-    cout << endl
-         << "Import MD+QM Topology ID " << topId
+    cout << "Import MD+QM Topology ID " << topId
          << " (i.e. frame " << _current_frame << ")"
          << " from " << _sqlfile << endl;
     cout << "...";
@@ -553,7 +563,7 @@ void StateSaverSQLite2::ReadFragments(int topId) {
     Statement *stmt = _db.Prepare("SELECT "
                                   "name, mol, seg, "
                                   "posX, posY, posZ, "
-                                  "symmetry "
+                                  "symmetry, leg1, leg2, leg3 "
                                   "FROM fragments "
                                   "WHERE top = ?;");
 
@@ -567,13 +577,22 @@ void StateSaverSQLite2::ReadFragments(int topId) {
         double  posX    = stmt->Column<double>(3);
         double  posY    = stmt->Column<double>(4);
         double  posZ    = stmt->Column<double>(5);
-        int     symm    = stmt->Column<int>(3);
+        int     symm    = stmt->Column<int>(6);
+        int     leg1    = stmt->Column<int>(7);
+        int     leg2    = stmt->Column<int>(8);
+        int     leg3    = stmt->Column<int>(9);
+
+        vector<int> trihedron;
+        trihedron.push_back(leg1);
+        if (leg2 >= 0) {trihedron.push_back(leg2);}
+        if (leg3 >= 0) {trihedron.push_back(leg3);}
 
         Fragment *frag = _qmtop->AddFragment(name);
         frag->setSegment(_qmtop->getSegment(segid));
         frag->setMolecule(_qmtop->getMolecule(molid));
         frag->setPos(vec(posX, posY, posZ));
         frag->setSymmetry(symm);
+        frag->setTrihedron(trihedron);
 
         frag->getSegment()->AddFragment(frag);
         frag->getMolecule()->AddFragment(frag);
@@ -592,7 +611,8 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
                                   "name, mol, seg, frag, "
                                   "resnr, resname, "
                                   "posX, posY, posZ, "
-                                  "weight "
+                                  "weight, qmid, qmPosX, "
+                                  "qmPosY, qmPosZ "
                                   "FROM atoms "
                                   "WHERE top = ?;");
 
@@ -610,9 +630,14 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
         double  posY = stmt->Column<double>(7);
         double  posZ = stmt->Column<double>(8);
         double  weight = stmt->Column<double>(9);
+        int     qmid = stmt->Column<double>(10);
+        double  qmPosX = stmt->Column<double>(11);
+        double  qmPosY = stmt->Column<double>(12);
+        double  qmPosZ = stmt->Column<double>(13);
 
         Atom *atm = _qmtop->AddAtom(name);
         atm->setWeight(weight);
+        atm->setQMPart(qmid, vec(qmPosX,qmPosY,qmPosZ));
         atm->setPos( vec(posX, posY, posZ) );
         
         atm->setFragment(_qmtop->getFragment(fragid));

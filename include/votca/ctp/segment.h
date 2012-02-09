@@ -65,7 +65,9 @@ public:
 
     const double    &getEMpoles(int state);
     void             setEMpoles(int state, double energy);
-    bool             hasEMpoles() { return _hasEMpoles; }
+    bool             hasChrgState(int state) { return _hasChrgState[state]; }
+    void             AddChrgState(int state, bool yesno);
+    void             chrg(int state);
 
     inline void      setTopology(Topology *container) { _top = container; }
     Topology        *getTopology() { return _top; }
@@ -77,7 +79,10 @@ public:
     vector< Fragment* > &Fragments() { return _fragments; }
     vector < Atom* >    &Atoms() { return _atoms; }
 
-    void WritePDB(FILE *out);
+
+    void Rigidify();
+
+    void WritePDB(FILE *out, string tag1 = "Fragments", string tag2 = "MD");
 
 private:
 
@@ -108,12 +113,16 @@ private:
     map< int,       double >      _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
-    bool _hasEMpoles;
+    map< int, bool > _hasChrgState;
 
     map< int,       double >      _occProb;
     //   +1(=> h)   occ.prob. for hole
     //   -1(=> e)   occ.prob. for electron
     bool _hasOccProb;
+
+
+    map<int, vec> _intCoords;
+    // qmid => position
     
 
 };

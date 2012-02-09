@@ -4,6 +4,7 @@ namespace votca { namespace ctp {
 
     void Sandbox2::Initialize(Topology *top, Property *opt) {
 
+        /*
         cout << "Initialize (Sandbox2)..." << endl;
 
         string key;
@@ -26,18 +27,17 @@ namespace votca { namespace ctp {
         cout << "P1     " << _p1 << endl;
         cout << "P2     " << _p2 << endl;
         cout << "ID     " << _ID << endl;
+        */
+
+        ;
 
     }
 
-    bool Sandbox2::EvaluateFrame(Topology *top) {
+bool Sandbox2::EvaluateFrame(Topology *top) {
 
-        cout << "Calculate (Sandbox2)... " << endl;
+        Segment *seg = top->getSegment(1);
+        seg->Rigidify();
 
-        // Segment* seg1 = top->getSegment(1);
-        // cout << "Segment 1: occ. = " << seg1->getOcc() << endl;
-        // seg1->setOcc(0.5);
-
-        top->PrintInfo(cout);
 
     }
 

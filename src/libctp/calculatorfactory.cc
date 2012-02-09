@@ -40,7 +40,6 @@
 
 #include "calculators/rates.h"
 
-#include "calculators/emultipole.h"
 #include "calculators/sandbox.h"
 
 #ifdef WITH_VOTCA_KMCOLD        
@@ -60,7 +59,6 @@ void CalculatorFactory::RegisterAll(void)
         Calculators().Register<Ecorrelation>("ecorrelation"); // site energy correlation function
         Calculators().Register<Ehistogram>("ehistogram"); // site energy histogram
         Calculators().Register<Etinker>("etinker"); // input for the TINKER package (site energies)
-        Calculators().Register<EMultipole>("emultipole"); // Electrostatic contribution to site energies with polarization included
         Calculators().Register<Sandbox>("sandbox"); // Test calculator
         Calculators().Register<Neighborlist>("neighborlist"); // fragment-based neighbor list
         Calculators().Register<Oboltzmann>("oboltzmann"); // Boltzmann distribution of site energies

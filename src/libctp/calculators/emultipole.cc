@@ -6,7 +6,7 @@
  */
 
 #include "emultipole.h"
-#include <vector>
+#include <votca/tools/globals.h>
 
 namespace votca { namespace ctp {
 
@@ -15,7 +15,9 @@ namespace votca { namespace ctp {
  * @param top
  * @param opt
  */
-void EMultipole::Initialize(QMTopology *top, Property *opt) {
+void EMultipole::Initialize(Topology *top, Property *opt) {
+
+    cout << endl <<  "... ... Parametrizing Thole model";
 
     string key;
     string xmlfile;
@@ -83,12 +85,10 @@ void EMultipole::Initialize(QMTopology *top, Property *opt) {
     // Import charges from XML source
     this->GetMPoles(xmlfile);
 
-    // Equip topology with charges
-    this->EquipTop(top);
-
     // Restate input data to screen
-    this->PrintInfo("Thole"); this->PrintInfo("MPoles");
-
+    if (true) { // OVERRIDE verbose
+        this->PrintInfo("Thole"); this->PrintInfo("MPoles");
+    }
 }
 
 /**
@@ -96,92 +96,96 @@ void EMultipole::Initialize(QMTopology *top, Property *opt) {
  * @param xmlfile
  */
 void EMultipole::GetMPoles(string &xmlfile) {
-     cout << "Import multipoles from " << xmlfile << endl;
 
-     // TODO Replace rsdno with rsdname; also affects ::EquipTop
-     // TODO and ::ChargeMol; teach topology about  residue names
+     cout << endl << "... ... Import multipoles from " << xmlfile;
 
      // map to store polarizability tensors
      //     string -> atom identifier
      //     matrix -> polarizability tensor
-     map < string, matrix >           polTs;
-     map < string, matrix >::iterator polit;
+     map < string, matrix >           ptensors;
+     map < string, matrix >::iterator ptit;
 
      // map to store charges [ anion, neutral, cation ]
      //     string -> atom identifier
-     //     int    -> charge state (-1, 1, 1)
+     //     int    -> charge state (-1, 0, 1)
      //     double -> charge
      map < string, map<int, double> >           chrgs;
      map < string, map<int, double> >::iterator chrgit;
 
+     // map to keep track of which segments allow for which charge states
+     //    string -> segment identifier
+     //    int    -> charge state
+     //    bool   -> has charge state?
+     map < string, map<int, bool> > hasChrg;
 
-     // state sfor which data is available;
-     // neutral assumed as precondition
-     bool anion;
-     bool cation;
 
     /* ---- MULTIPOLES.XML Structure ----
-     *  <molecule>
-     *      <molname></molname>
+     *  <segment>
+     *      <name></name>
      * 
-     *      <residue>   
-     *          <rsdno></rsdno>
+     *      <fragment>
+     *          <name></name>
      *   
      *          <atom>
-     *              <atmname></atmname>
+     *              <name></name>
      *              <chrgA></chrgA>
      *              <chrgN></chrgN>
      *              <chrgC></chrgC>
-     *              <polTensor></polTensor>
+     *              <ptensor></ptensor>
      *          </atom>  
      *     
-     *      </residue>     
-     *  </molecule>
+     *      </fragment>
+     *  </segment>
      */
 
     // Load options from specified xml file
     Property opt;
-    load_property_from_xml( opt, xmlfile.c_str() );
+    load_property_from_xml(opt, xmlfile.c_str());
 
     // Loop through molecules
-    list< Property * > mols = opt.Select("molecules.molecule");
-    list< Property * >::iterator mit;
-    for ( mit = mols.begin();
-          mit != mols.end();
-          mit++ ) {
+    list< Property * > segs = opt.Select("segments.segment");
+    list< Property * >::iterator sit;
+    for ( sit = segs.begin();
+          sit != segs.end();
+          sit++ ) {
 
-          string molname = (*mit)->get("molname").as< string >();
+          string segname = (*sit)->get("name").as< string >();
 
-          anion = true;
-          cation = true;
+          bool anion = true;
+          bool cation = true;
+          bool neutral = true;
 
           // Loop through residues
-          list< Property * > rsds = (*mit)->Select("residue");
-          list< Property * >::iterator rit;
-          for ( rit = rsds.begin();
-                rit != rsds.end();
-                rit++ ) {
+          list< Property * > frags = (*sit)->Select("fragment");
+          list< Property * >::iterator fit;
+          for ( fit = frags.begin();
+                fit != frags.end();
+                fit++ ) {
 
-                string rsdno = (*rit)->get("rsdno").as< string >();
+                string fragname = (*fit)->get("name").as< string >();
 
                 // Loop through atoms
-                list< Property * > atms = (*rit)->Select("atom");
+                list< Property * > atms = (*fit)->Select("atom");
                 list< Property * >::iterator ait;
                 for ( ait = atms.begin();
                       ait != atms.end();
                       ait++ ) {
 
-                      string atmname = (*ait)->get("atmname").as< string >();
+                      string atmname = (*ait)->get("name").as< string >();
 
                       // Putting atmname first should speed up look-up process
-                      // later on in ::Induce, ::...
-                      string namekey = atmname+"_"+rsdno+"_"+molname;
+                      // later on in ::EquipTop, ::...
+                      string namekey = atmname+"_"+fragname+"_"+segname;
 
                       // Check whether data already stored. If so, continue.
-                      polit = polTs.find(namekey);
+                      ptit = ptensors.find(namekey);
                       chrgit = chrgs.find(namekey);
-                      if ( polit != polTs.end() &&
-                           chrgit != chrgs.end() ) { continue; }
+                      if ( ptit != ptensors.end() &&
+                           chrgit != chrgs.end() ) {
+                          cout << "... ... WARNING: multiple charge def.s for "
+                                  "(ATOM_FRAG_SEG) " << namekey << endl;
+                          continue;
+                      }
 
                       // Retrieve charges (anion, neutral, cation)                      
                       map< int, double > chrg;
@@ -192,28 +196,30 @@ void EMultipole::GetMPoles(string &xmlfile) {
                       try { chrgA = (*ait)->get("chrgA").as< double >();}
                       catch ( std::runtime_error ) { anion = false; }
 
+                      try { chrgN = (*ait)->get("chrgN").as< double >(); }
+                      catch ( std::runtime_error ) { neutral = false; }
                       chrgN = (*ait)->get("chrgN").as< double >();
 
                       try { chrgC = (*ait)->get("chrgC").as< double >();}
                       catch ( std::runtime_error ) { cation = false; }
 
                       if (anion) { chrg[-1] = chrgA; }
-                      chrg[0] = chrgN;
+                      if (neutral) { chrg[0] = chrgN; }
                       if (cation) { chrg[1] = chrgC; }
 
                       // Retrieve dipole polarizability tensor
                       vector<double> polV =
-                         (*ait)->get("polTensor").as< vector<double> >();
+                         (*ait)->get("ptensor").as< vector<double> >();
 
                       if ( polV.size() != 9 ) {
-                          cout << "Invalid input for polarizability tensor of "
-                               << "atom " << atmname
-                               << "in residue " << rsdno
-                               << "in molecule " << molname
-                               << "." << endl;
-                          cout << "Format is: xx yx zx xy yy zy xz yz zz"
-                               << "." << endl;
-                          throw std::runtime_error("Redo tensor input.");
+                         cout << "... ... Invalid input for polarizability of "
+                              << "atom " << atmname
+                              << "in fragment " << fragname
+                              << "in segment " << segname
+                              << "." << endl;
+                         cout << "... ... Format is: xx yx zx xy yy zy xz yz zz"
+                              << "." << endl;
+                         throw std::runtime_error("Error in xml file");
                       }
 
                       matrix polT = matrix( vec(polV[0], polV[3], polV[6]),
@@ -221,36 +227,41 @@ void EMultipole::GetMPoles(string &xmlfile) {
                                             vec(polV[2], polV[5], polV[8]) );
                       
                       // Add data to tensor and charge maps
-                      polTs[ namekey ] = polT;
+                      ptensors[ namekey ] = polT;
                       chrgs[ namekey ] = chrg;
 
                 } /* exit loop over atoms */
           } /* exit loop over residues */
 
-          cout << "Molecule " << molname << ": "
-               << " Found data for";
-          if (anion)  { cout <<  " negative"; }
-                        cout << ", neutral";
-          if (cation) { cout << ", positive"; }
-          cout << " state. " << endl;
+          // Log charge states processed for this segment
+          hasChrg[segname][-1] = anion;
+          hasChrg[segname][0]  = neutral;
+          hasChrg[segname][+1] = cation;
+
+          cout << endl << "... ... Segment " << segname << ": "
+               << "Found data for ";
+          if (anion)  { cout << "negative "; }
+          if (neutral){ cout << "neutral "; }
+          if (cation) { cout << "positive "; }
+          cout << "state. ";
 
     } /* exit loop over molecules */
 
-    if ( polTs.size() != chrgs.size() ) {
-         cout << "Inconsistent data set size "
-              << "for charges and polarizabilities"
-              << "." << endl;
-         throw std::runtime_error("Check " + xmlfile + ".");
+    if ( ptensors.size() != chrgs.size() ) {
+         cout << "Inconsistent data set size for charges and polarizabilities."
+              << endl;
+         throw std::runtime_error("Error in xml file.");
     }
 
-    cout << "Found multipole data for "
-         << polTs.size() << " atom types." << endl;
+    cout << endl << "... ... Found multipole data for "
+         << ptensors.size() << " atom types.";
 
     // TODO Move out to atom class
-    _polTs  = polTs;
-    _polit  = _polTs.begin();
+    _ptensors  = ptensors;
+    _ptit  = _ptensors.begin();
     _chrgs  = chrgs;
     _chrgit = _chrgs.begin();
+    _hasChrg = hasChrg;
 }
 
 /**
@@ -258,31 +269,82 @@ void EMultipole::GetMPoles(string &xmlfile) {
  * @param top
  * @return
  */
-void EMultipole::EquipTop(QMTopology *top) {
-    cout << "EMultipole::EquipTop *** RETURN ***" << endl;
-    return;
-    // NOTE Starting here, substitute <Molecule>
-    // NOTE with QMCrgunit
-    // NOTE top->CrgUnits() instead of top->Molecules()
-    // NOTE Also iterate over atoms instead of beads
-    vector < Bead * >::iterator atmit;
+void EMultipole::EquipTop(Topology *top) {
+    cout << endl << "... ... Equip topology.";
 
-    for ( atmit = top->Beads().begin();
-          atmit != top->Beads().end();
-          atmit++ ) {
+    map< string, bool > skip;
 
-          string keyname =  (*atmit)->getName()+ "_" +
-                            boost::lexical_cast< string, int > 
-                                   ((*atmit)->getResnr()) + "_" +
-                            (*atmit)->getMolecule()->getName();
+    // Explore charge states for each segment
+    vector < Segment * > ::iterator segit;
+    for (segit = top->Segments().begin();
+            segit < top->Segments().end();
+            segit++) {
+        try {
+            bool anion = _hasChrg.at((*segit)->getName()).at(-1);
+            bool neutral = _hasChrg.at((*segit)->getName()).at(0);
+            bool cation = _hasChrg.at((*segit)->getName()).at(+1);
+            (*segit)->AddChrgState(-1, anion);
+            (*segit)->AddChrgState(0, neutral);
+            (*segit)->AddChrgState(+1, cation);
+            /*
+            cout << endl << "... ... " << (*segit)->getId() << " "
+                    << (*segit)->getName() << " " << anion << " "
+                    << neutral << " " << cation << ".";
+            */
+        }
+        catch (out_of_range) {
+            if ( ! skip.count((*segit)->getName())) {
+                 cout << endl << "... ... WARNING No charge input for segment "
+                     << (*segit)->getName() << ". Skipping all ... ";
+                 skip[(*segit)->getName()] = true;
+            }
+            (*segit)->AddChrgState(-1, false);
+            (*segit)->AddChrgState(0, false);
+            (*segit)->AddChrgState(+1, false);  
+        }
+    }
 
-          // UPDATE HERE
-          (*atmit)->setQ( _chrgs[keyname][-1] ); //>>>
-          (*atmit)->setQ( _chrgs[keyname][1] );  //>>>
-          (*atmit)->setQ( _chrgs[keyname][0] );  //>>>
-          //<<< (*atmit)->setQs( _chrgs[keyname] );
-          //<<< (*atmit)->setPolT( _poliTs[keyname] );
-      }
+    // Equip atoms with charges
+    for (segit = top->Segments().begin();
+            segit < top->Segments().end();
+            segit++) {
+
+        bool anion = (*segit)->hasChrgState(-1);
+        bool neutral = (*segit)->hasChrgState(0);
+        bool cation = (*segit)->hasChrgState(+1);
+
+        vector < Atom * >::iterator atmit;
+        for ( atmit = (*segit)->Atoms().begin();
+              atmit != (*segit)->Atoms().end();
+              atmit++ ) {             
+
+              if ( anion || neutral || cation) {
+                   string keyname =  (*atmit)->getName()
+                                   + "_" + (*atmit)->getFragment()->getName()
+                                   + "_" + (*atmit)->getSegment()->getName();
+                   (*atmit)->setQ(_chrgs.at(keyname));
+                   (*atmit)->setPTensor(_ptensors.at(keyname));
+              }
+              else {
+                  map< int, double > zero;
+                  zero[-1] = zero[0] = zero[1] = 0;
+                  matrix zeroes;
+                  zeroes.ZeroMatrix();
+                  (*atmit)->setQ(zero);
+                  (*atmit)->setPTensor(zeroes);
+              }
+
+              /*
+              cout << endl << "... ... " << (*atmit)->getId() << " "
+                      << (*atmit)->getQ(-1) << " "
+                      << (*atmit)->getQ(0) << " "
+                      << (*atmit)->getQ(1);
+              cout << endl << (*atmit)->getPTensor().getCol(0);
+              cout << endl << (*atmit)->getPTensor().getCol(1);
+              cout << endl << (*atmit)->getPTensor().getCol(2);
+              */
+        }
+    }
 }
 
 /**
@@ -290,9 +352,13 @@ void EMultipole::EquipTop(QMTopology *top) {
  * @param top
  * @return
  */
-bool EMultipole::EvaluateFrame(QMTopology *top) {
-    cout << "EMultipole::EvalFrame *** RETURN ***" << endl;
-    return 0;
+bool EMultipole::EvaluateFrame(Topology *top) {
+    cout << endl << "... ... EvaluateFrame ";
+
+    // Equip topology with charges; have to do this here, because
+    // on the '::Initialize' stage the topology was not yet populated
+    this->EquipTop(top);
+
     // Site energies are attributes of charge units (= segments);
     // hence, first charge each segment appropriately,
     // then compute energy of that configuration
@@ -307,30 +373,38 @@ bool EMultipole::EvaluateFrame(QMTopology *top) {
     double _r4PiEps0 = 1.602176487e-19 * 1.000e9 * 1/(4*M_PI*8.854187817e-12);
 
     // If polarizabilites are given in A°**3, this already includes 1/ 4PiEps0;
-    // Hence multiply all energies calculated via multipole interaction tensors
+    // Hence multiply all moments calculated via multipole interaction tensors
     // by this factor => yields ind. dpl. moments in C*nm
     double _A3toNM3 = 1.000e-3;
     
-    // Initialize vector to store induced dipole moments
+    // Initialize vector to store induced dipole moments,
+    // primary field (from permanent multipoles) and secondary field
     if ( !_muInd.size() ) {
-         vector < Bead *>::iterator ait;
-         for ( ait = top->Beads().begin();
-               ait != top->Beads().end();
+         vector < Atom *>::iterator ait;
+         for ( ait = top->Atoms().begin();
+               ait != top->Atoms().end();
                ait++ ) {
                _muInd.push_back( vec(0,0,0) );
                _pField.push_back( vec(0,0,0) );
                _iField.push_back( vec(0,0,0) );
+               (*ait)->chrg(0);
         }
     }
 
     // TODO Starting here, substitute <Molecule> with QMCrgunit;
     // TODO top->CrgUnits() instead of top->Molecules()
-    // TODO Also change from bead to atom class.
+    // TODO Also change from Atom to atom class.
 
-    vector < Molecule * >::iterator chuit;
-    for ( chuit = top->Molecules().begin();
-          chuit != top->Molecules().end();
-          chuit++ ) {
+    // TODO Parallelise starting here
+
+    vector < Segment * >::iterator sit;
+    for ( sit = top->Segments().begin();
+          sit != top->Segments().end();
+          sit++ ) {
+
+          Segment *seg = *sit;
+
+          cout << endl << "... ... Segment " << seg->getName() << seg->getId();
 
           // Zero out energy contributions for all states
           _pInter[-1] = _pInter[0] = _pInter[1] = 0.0;
@@ -342,52 +416,62 @@ bool EMultipole::EvaluateFrame(QMTopology *top) {
           // state -1 <=> anion
           // ...
 
-          // TODD Add function here to determine which charge states
-          // TODO to investigate for this molecule
-
-          if (_anion) { 
+          if (seg->hasChrgState(-1)) {
               state = -1;
-              ChargeMol(*chuit, state);
+              seg->chrg(state);
               Induce(top);
               CalcIntEnergy(top, state);
               Depolarize(top);
           }          
-          if (_cation) {
+          if (seg->hasChrgState(1)) {
               state = 1;
-              ChargeMol(*chuit, state);
+              seg->chrg(state);
               Induce(top);
               CalcIntEnergy(top, state);
               Depolarize(top);
           }          
-          if (true) {
+          if (seg->hasChrgState(0)) {
               state = 0;
-              ChargeMol(*chuit, state);
+              seg->chrg(state);
               Induce(top);
               CalcIntEnergy(top, state);
               Depolarize(top);
           }
           
           // Output results
-          cout << "Segment " << (*chuit)->getName()
-               << (*chuit)->getId() << endl;
-          
-          if (_cation) {
+
+          if (seg->hasChrgState(+1)) {
               double eNC = (_pInter[+1] + _iInter[+1])
                          - (_pInter[0] + _iInter[0]);
               
-              cout << "E(\"Cation\") - E(\"Neutral\"): " << eNC << endl;
+              cout << endl 
+                   << "... ... ... E(\"Cation\") - E(\"Neutral\"): " << eNC;
                    
               // TODO Call members of charge unit to set energies
           }
           
-          if (_anion) {
+          if (seg->hasChrgState(-1)) {
               double eNA = (_pInter[-1] + _iInter[-1])
                          - (_pInter[0] + _iInter[0]); 
-              
-              cout << "E(\"Anion\")  - E(\"Neutral\"): " << eNA << endl;
+
+              cout << endl
+                   << "... ... ... E(\"Anion\")  - E(\"Neutral\"): " << eNA;
                    
               // TODO Call members of charge unit to set energies
           }
+
+          cout << endl
+               << "... ... ... e_P_Inter " << _pInter[-1] << " | " << _pInter[0] << " | " << _pInter[1];
+          cout << endl
+               << "... ... ... e_I_Inter " << _iInter[-1] << " | " << _iInter[0] << " | " << _iInter[1];
+          cout << endl
+               << "... ... ... e_P_Intra " << _pIntra[-1] << " | " << _pIntra[0] << " | " << _pIntra[1];
+          cout << endl
+               << "... ... ... e_I_Intra " << _iIntra[-1] << " | " << _iIntra[0] << " | " << _iIntra[1];
+
+
+
+          return 1; // OVERRIDE
 
     } /* exit loop over segments */
 
@@ -405,14 +489,9 @@ void EMultipole::ChargeMol(Molecule *mol, int state) {
     // TODO Move this to Molecule.h such that
     // TODO mol->setChrgStat(state) suffices in ::EvaluateFrame
 
-    for ( int i = 0; i < mol->BeadCount(); i++ ) {
-        Bead *atm = mol->getBead(i);
-        string key = atm->getName()+ "_" +                  //>>>
-                     boost::lexical_cast< string, int >     //>>>
-                            (atm->getResnr()) + "_" +       //>>>
-                     mol->getName();                        //>>>
-        mol->getBead(i)->setQ(_chrgs[key][state]);          //>>>
-        //<<< atm->setQStat(state);
+    for ( int i = 0; i < mol->Atoms().size(); i++ ) {
+        Atom *atm = mol->getAtom(i);
+        atm->chrg(state);
 
     }
 }
@@ -423,27 +502,31 @@ void EMultipole::ChargeMol(Molecule *mol, int state) {
  *        interaction model
  * @param top
  */
-void EMultipole::Induce(QMTopology *top) {
+void EMultipole::Induce(Topology *top) {
 
+    cout << endl
+         << "... ... ... Induce *** RETURN ***";
+    return;
+    
     // Calculate field generated by charges, perm. multipoles
 
-    vector < Bead *>::iterator ait;
-    vector < Bead *>::iterator bit;
-    for ( ait = top->Beads().begin();
-          ait != top->Beads().end();
+    vector < Atom *>::iterator ait;
+    vector < Atom *>::iterator bit;
+    for ( ait = top->Atoms().begin();
+          ait != top->Atoms().end();
           ait++ ) {
-          Bead *atm = *ait;
+          Atom *atm = *ait;
           
           for ( bit = ait+1;
-                bit != top->Beads().end();
+                bit != top->Atoms().end();
                 bit++ ) {
-                Bead *btm = *bit;
+                Atom *btm = *bit;
 
-                if (btm->getMolecule() == atm->getMolecule()) { continue; }
+                if (btm->getSegment() == atm->getSegment()) { continue; }
 
                 // Add field seen by a due to b (and vice versa) to field vector
                 // Pay attention to directionality: R_ab != R_ba
-                vec R = top->BCShortestConnection(
+                vec R = top->PbShortestConnect(
                         atm->getPos(), btm->getPos());
 
                 _pField[atm->getId()] += - T1(R)*btm->getQ();
@@ -472,24 +555,24 @@ void EMultipole::Induce(QMTopology *top) {
     }
 
     // Update induction field
-    for ( ait = top->Beads().begin();
-          ait != top->Beads().end();
+    for ( ait = top->Atoms().begin();
+          ait != top->Atoms().end();
           ait++ ) {
 
-          Bead *atm = *ait;
+          Atom *atm = *ait;
 
           for ( bit = ait+1;
-                bit != top->Beads().end();
+                bit != top->Atoms().end();
                 bit++ ) {
 
-                Bead *btm = *bit;
+                Atom *btm = *bit;
 
                 if (btm == atm) { continue; }
 
                 int a = atm->getId();
                 int b = btm->getId();
 
-                vec R = top->BCShortestConnection(
+                vec R = top->PbShortestConnect(
                         atm->getPos(), btm->getPos());
                         // => R_b - R_a
 
@@ -511,11 +594,11 @@ void EMultipole::Induce(QMTopology *top) {
     // Update induced moments using induction field
     converged = true;
 
-    for ( ait = top->Beads().begin();
-          ait != top->Beads().end();
+    for ( ait = top->Atoms().begin();
+          ait != top->Atoms().end();
           ait++ ) {
 
-          Bead *atm = *ait;
+          Atom *atm = *ait;
           int a = atm->getId();
 
           vec muIndNew = _dpolT[a] * (_pField[a] + _iField[a]);
@@ -540,13 +623,15 @@ void EMultipole::Induce(QMTopology *top) {
  * \brief Zero out induced dipoles moment
  * @param top
  */
-void EMultipole::Depolarize(QMTopology *top) {
+void EMultipole::Depolarize(Topology *top) {
+    cout << endl
+         << "... ... ... Depolarize";
 
-    vector < Bead *>::iterator ait;
-    for ( ait = top->Beads().begin();
-          ait != top->Beads().end();
-          ait++ ) {
-          _muInd.push_back( vec(0,0,0) );
+    vector < vec >::iterator vit;
+    for ( vit = _muInd.begin();
+          vit < _muInd.end();
+          vit++ ) {
+          (*vit) = vec(0,0,0);
     }
 }
 
@@ -556,53 +641,78 @@ void EMultipole::Depolarize(QMTopology *top) {
  * @param top
  * @param state
  */
-void EMultipole::CalcIntEnergy(QMTopology *top, int &state) {
+void EMultipole::CalcIntEnergy(Topology *top, int &state) {
 
-    // pick bead from molecule, pick bead from topology
+    cout << endl
+         << "... ... ... Interaction energy ";
+
+
+    // Progress bar
+    int full = top->Atoms().size();
+    int cent = int(full / 100);
+    cout << endl;
+
+    // pick Atom from molecule, pick Atom from topology
     // check: intra- or inter- ?
     // if intra: apply 1-n scaling
-    vector < Bead *>::iterator ait;
-    for ( ait = top->Beads().begin();
-          ait != top->Beads().end();
+    vector < Atom *>::iterator ait;
+    for ( ait = top->Atoms().begin();
+          ait != top->Atoms().end();
           ait++ ) {
 
-          Bead *atm = *ait;
+          Atom *atm = *ait;
 
-          vector < Bead *>::iterator bit;
+          if (atm->getId() % cent == 0) {
+              this->PrintProgBar( int(atm->getId() / cent) ) ;
+          }
+
+          vector < Atom *>::iterator bit;
           for ( bit = ait+1;
-                bit != top->Beads().end();
+                bit != top->Atoms().end();
                 bit++ ) {
 
-                Bead *btm = *bit;
 
+                Atom *btm = *bit;
+
+               //cout << endl
+                    //<< atm->getId() << " | " << btm->getId() << ": ";
+               
                 // In principal, intramolecular interactions are already
                 // included in QM energies. Hence, focus on intermolecular
                 // energy and keep track of intramolecular contributions just
                 // to document. Accordingly:
 
-                // "intra-action" or interaction ?
-                bool intra = false;
-                if ( atm->getMolecule() == btm->getMolecule() ) {intra = true;}
-                
                 // It matters whether R = R_ba or = R_ab;
                 // to work with equations further below, R = R_b - R_a.
-                vec R = top->BCShortestConnection(atm->getPos(), btm->getPos());
+                vec R = top->PbShortestConnect(atm->getPos(), btm->getPos());
+                double absR = abs(R);
+                if (_useCutoff && absR > _cutoff) { continue; }
 
-                double u = abs(R) / pow(
-                    _dpolT[atm->getId()].get(0,0) *
-                    _dpolT[btm->getId()].get(0,0) , 1/6);
+                // "intra-action" or interaction ?
+                bool intra = false;
+                if ( atm->getSegment() == btm->getSegment() ) { intra = true; }
+                
+                //cout << "Intra " << intra << "; ";
 
+                double u = absR / pow(
+                    atm->getPTensor().get(0,0) *
+                    btm->getPTensor().get(0,0) , 1/6);
+                
                 double ePerm = btm->getQ() * this->T0(R) * atm->getQ();
 
+                //cout << "ePerm " << ePerm << "; ";
+                
                 // Note the factor 1/2, which accounts for the work necessary
                 // to induce multipoles.
                 double eInd = 0.5*(
-                    _muInd[btm->getId()] *   this->T1(R,u) * atm->getQ() +
-                    _muInd[atm->getId()] * - this->T1(R,u) * btm->getQ() );
+                    _muInd[btm->getId()-1] *   this->T1(R,u) * atm->getQ() +
+                    _muInd[atm->getId()-1] * - this->T1(R,u) * btm->getQ() );
+
+                //cout << "eInd " << eInd << "; ";
 
                 // TODO Apply 1-n scaling to intramolecular interactions.
-                // TODO This scaling, however, is in this context only
-                // TODO important for the induction process in ::Induce.
+                //      This scaling, however, is in this context only
+                //      important for the induction process in ::Induce.
 
                 if (intra) {
                     _pIntra[state] += ePerm;
@@ -611,8 +721,10 @@ void EMultipole::CalcIntEnergy(QMTopology *top, int &state) {
                 else {
                     _pInter[state] += ePerm;
                     _iInter[state] += eInd;
-                }
-          } /* exit loop over atom b */
+                }               
+                
+          } /* exit loop over atom b */          
+
     } /* exit loop over atom a */
 }
 
@@ -623,7 +735,9 @@ void EMultipole::CalcIntEnergy(QMTopology *top, int &state) {
 void EMultipole::PrintInfo(const string &key) {
 
   if (key == "Thole") {
-	cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++ " << endl;
+
+    cout << endl
+	 << "++++++++++++++++++++++++++++++++++++++++++++++++++++++ " << endl;
     cout << endl;
     cout << "Thole Model Parameters ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ " << endl;
     cout << "Use cutoff?        " << _useCutoff << endl;
@@ -658,13 +772,48 @@ void EMultipole::PrintInfo(const string &key) {
           cout << " | +1:" << tmp[1] << endl;
     }
     cout << "Polarizability Tensors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ " << endl;
-    for ( _polit = _polTs.begin(); _polit != _polTs.end(); _polit ++ ) {
-          cout << _polit->first << endl;
-          cout << _polit->second;
+    for ( _ptit = _ptensors.begin(); _ptit != _ptensors.end(); _ptit ++ ) {
+          cout << _ptit->first << endl;
+          cout << _ptit->second;
     }
     cout << endl;
   }
 }
 
+/**
+ * \brief Progress bar with percent indicator
+ * @param percent
+ */
+void EMultipole::PrintProgBar(int percent) {
+      string bar;
+
+      for (int i = 0; i < 25; i++) {
+           if( i < (percent/4)) {
+               bar.replace(i,1,"=");
+           }
+           else if ( i == (percent/4)) {
+               bar.replace(i,1,">");
+           }
+           else {
+               bar.replace(i,1," ");
+           }
+      }
+
+      cout<< "\r" "... ... ... |" << bar << "| ";
+      cout.width(3);
+      cout<< percent << "%     " << flush;
+}
+
+
+
+
 }} /* exit namespaces votca, ctp */
+
+
+
+
+
+
+
+
 

@@ -16,8 +16,7 @@ void QMApplication2::Initialize(void) {
     CalculatorFactory2::RegisterAll();
 
     namespace propt = boost::program_options;
-//    AddProgramOptions() ("cg", propt::value<string>(),
-//                         " segment & fragment definitions");
+
     AddProgramOptions() ("options,o", propt::value<string>(),
                          "  calculator options");
     AddProgramOptions() ("file,f", propt::value<string>(),
@@ -30,7 +29,6 @@ void QMApplication2::Initialize(void) {
 
 
 bool QMApplication2::EvaluateOptions(void) {
-    //CheckRequired("cg", "Please provide segment & fragment def. xml file");
     CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("file", "Please provide the state file");
     return true;
@@ -46,6 +44,7 @@ void QMApplication2::Run() {
     if (fframe-- == 0) throw runtime_error("ERROR: First frame is 0, counting "
                                            "in VOTCA::CTP starts from 1.");
 
+    cout << "Initializing calculators " << endl;
     BeginEvaluate();
 
 
@@ -78,7 +77,9 @@ void QMApplication2::AddCalculator(QMCalculator2* calculator) {
 void QMApplication2::BeginEvaluate() {
     list< QMCalculator2* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
+        cout << "... " << (*it)->Identify() << " ";
         (*it)->Initialize(&_top, &_options);
+        cout << endl;
     }
 }
 

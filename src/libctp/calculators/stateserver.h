@@ -24,10 +24,13 @@ public:
     void DownloadTopology(FILE *out, Topology *top);
     void DownloadSegments(FILE *out, Topology *top);
     void DownloadPairs(FILE *out, Topology *top);
+    // TODO Extend trajectory writers to work with ctp Topology object
+    void DownloadCoords(FILE *out, Topology *top) { };
 
 private:
 
     string _outfile;
+    string _pdbfile;
     vector< string > _keys;
 
 };
@@ -36,12 +39,20 @@ private:
 void StateServer::Initialize(Topology *top, Property *opt) {
     
     string tag = "options.stateserver";
-    
+
+    // Tabular output
     if ( opt->exists(tag+".out") ) {
         _outfile = opt->get(tag+".out").as< string > ();
     }
     else {
-        throw runtime_error("State server: ERROR No output file specified.");
+        _outfile = "stateinfo.out";
+    }
+    // PDB output
+    if ( opt->exists(tag+".pdb") ) {
+        _pdbfile = opt->get(tag+".pdb").as< string > ();
+    }
+    else {
+        _pdbfile = "system.pdb";
     }
 
     string keys = "";
@@ -56,16 +67,20 @@ void StateServer::Initialize(Topology *top, Property *opt) {
 
 bool StateServer::EvaluateFrame(Topology *top) {
 
+    // ++++++++++++++++++++++++ //
+    // Topology - Sites - Pairs //
+    // ++++++++++++++++++++++++ //
 
-    vector< string > ::iterator key;
-    FILE *out = NULL;
-
+    vector< string > ::iterator key;    
+    bool writeTrajectory = false;
+    
     string outfile = boost::lexical_cast<string>(top->getDatabaseId())+ "_"
                      + _outfile;
 
-    out = fopen(outfile.c_str(), "w");
 
-    cout << ": Exporting ";
+    FILE *out = NULL;
+    out = fopen(outfile.c_str(), "w");
+    cout << ": Printing ";
     for (key = _keys.begin(); key < _keys.end(); key++ ) {
 
         if (*key == "topology") {
@@ -101,16 +116,54 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         }
 
+        else if (*key == "trajectory") {
+
+            cout << "trajectory";
+            writeTrajectory = true;
+        }
+
         else {
-                cout << "State server: ERROR Unidentified key " << *key;
+                cout << "ERROR (Invalid key " << *key << ") ";
         }
         
 
         fprintf(out, "\n\n");
     }
+    fclose(out);
+
+
+    if (writeTrajectory) {
+
+    // ++++++++++++++++++ //
+    // MD, QM Coordinates //
+    // ++++++++++++++++++ //
+        // Segments
+        string pdbfile = boost::lexical_cast<string>(top->getDatabaseId())
+                         + "_conjg_" + _pdbfile;
+
+        out = fopen(pdbfile.c_str(), "w");
+        top->WritePDB(out);
+        fclose(out); 
+
+
+        // Fragments
+        pdbfile = boost::lexical_cast<string>(top->getDatabaseId())
+                         + "_rigid_" + _pdbfile;
+
+        out = fopen(pdbfile.c_str(), "w");
+        vector<Segment*> ::iterator segIt;
+        for (segIt = top->Segments().begin();
+             segIt < top->Segments().end();
+             segIt++) {
+            Segment *seg = *segIt;
+            seg->WritePDB(out);
+        }
+        fclose(out);
+
+    }
 
     cout << ". ";
-    fclose(out);
+
 }
 
 void StateServer::DownloadTopology(FILE *out, Topology *top) {
@@ -146,10 +199,10 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
             segit++) {
 
         Segment *seg = *segit;
-        fprintf(out, "SegID %5d %5s | pos %8.3f %8.3f %8.3f "
+        fprintf(out, "SiteID %5d %5s | xyz %8.3f %8.3f %8.3f "
                      "| SiteE(intra) C %2.4f A %2.4f "
                      "| Lambdas: NC %2.4f CN %2.4f NA %2.4f AN %2.4f "
-                     "| SiteE(pol+estat) C %2.4f N %2.4f A %2.4f\n",
+                     "| SiteE(pol+estat) C %2.4f N %2.4f A %2.4f     \n",
                 seg->getId(),
                 seg->getName().c_str(),
                 seg->getPos().getX(),
