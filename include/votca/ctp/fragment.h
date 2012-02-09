@@ -59,9 +59,11 @@ public:
     const int    &getId() const { return _id; }
     const string &getName() const { return _name; }
 
-    void         Rigidify();
+    void         Rigidify(bool Auto = 0);
     void         setSymmetry(int sym) { _symmetry = sym; }
     const int   &getSymmetry() { return _symmetry; }
+    void         setTrihedron(vector<int> trihedron) { _trihedron = trihedron; }
+    const vector< int > &getTrihedron() { return _trihedron; }
 
 
     void         calcPos(string tag = "MD");
@@ -78,6 +80,7 @@ private:
     vector < Atom* > _atoms;
     vector< double > _weights;
     int              _symmetry;
+    vector< int >    _trihedron;
 
     string      _name;
     int         _id;

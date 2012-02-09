@@ -1,7 +1,6 @@
 #include "Md2QmEngine.h"
 #include <votca/csg/boundarycondition.h>
 #include <votca/tools/globals.h>
-#include <votca/tools/txtfeed.h>
 
 /**
  * Clears all engine template ('type') containers.
@@ -91,6 +90,15 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
             // Create new fragment
             CTP::Fragment* fragment=AddFragmentType(fragment_id++,*it_fragment);
             segment->AddFragment( fragment );
+
+            // Load local-frame definition
+            vector<int> trihedron = (*it_fragment)->get("localframe")
+                                                .as< vector<int> >();
+            while (trihedron.size() < 3) {
+                trihedron.push_back(-1);
+            }
+            fragment->setTrihedron(trihedron);
+
 
              // ++++++++++ //
              // Load atoms //
@@ -341,6 +349,7 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
 
             CTP::Fragment *refFrag = *fragIt;
             CTP::Fragment *newFrag = qmtop->AddFragment(refFrag->getName());
+            newFrag->setTrihedron(refFrag->getTrihedron());
 
             vector<CTP::Atom *> ::iterator atomIt;
             for (atomIt = refFrag->Atoms().begin();
@@ -449,30 +458,36 @@ CTP::Atom *Md2QmEngine::getAtomType(const string &molMdName,
 
 void Md2QmEngine::getIntCoords(string &file,
                                map<int, pair<string,vec> > &intCoords) {
-    
-    TxtFeed intt = TxtFeed(file);
+
+
     int atomCount = 0;
-    
-    while ( ! intt.eof() ) {
-       
-        string temp = intt.Next();
 
-        // Is this line at all relevant? CHeck for comments...
-        vector<string> line = votca::tools::splitString(temp) ;
-        if ( !line.size()    ||
-              line[0] == "#" ||
-              line[0].substr(0,1) == "#" ) { continue; }
+    std::string line;
+    std::ifstream intt;
+    intt.open(file.c_str());
 
-        // Interesting information written here: e.g.  'C 0.000 0.000 0.000'
-        atomCount++;
-        string element = line[0];
-        double x = boost::lexical_cast<double>( line[1] ) / 10.; // °A to NM
-        double y = boost::lexical_cast<double>( line[2] ) / 10.;
-        double z = boost::lexical_cast<double>( line[3] ) / 10.;
-        vec qmPos = vec(x,y,z);
+    if (intt.is_open() ) {
+        while ( intt.good() ) {
+            std::getline(intt, line);
 
-        pair<string, vec> qmTypePos(element.substr(0,1), qmPos);
-        intCoords[atomCount] = qmTypePos;
+            vector< string > split;
+            Tokenizer toker(line, " ");
+            toker.ToVector(split);
+            if ( !split.size()    ||
+                  split[0] == "#" ||
+                  split[0].substr(0,1) == "#" ) { continue; }
+
+            // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
+            atomCount++;
+            string element = split[0];
+            double x = boost::lexical_cast<double>( split[1] ) / 10.; //°A to NM
+            double y = boost::lexical_cast<double>( split[2] ) / 10.;
+            double z = boost::lexical_cast<double>( split[3] ) / 10.;
+            vec qmPos = vec(x,y,z);
+
+            pair<string, vec> qmTypePos(element.substr(0,1), qmPos);
+            intCoords[atomCount] = qmTypePos;
+        }
     }
 }
 

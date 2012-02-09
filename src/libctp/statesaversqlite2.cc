@@ -235,8 +235,10 @@ void StateSaverSQLite2::WriteFragments(bool update) {
                             "frame, top, id,"
                             "name, type, mol,"
                             "seg, posX, posY,"
-                            "posZ, symmetry )"
+                            "posZ, symmetry, leg1,"
+                            "leg2, leg3 )"
                             "VALUES ("
+                            "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
@@ -264,6 +266,9 @@ void StateSaverSQLite2::WriteFragments(bool update) {
         stmt->Bind(9, frag->getPos().getY());
         stmt->Bind(10,frag->getPos().getZ());
         stmt->Bind(11,frag->getSymmetry());
+        stmt->Bind(12,frag->getTrihedron()[0]);
+        stmt->Bind(13,frag->getTrihedron()[1]);
+        stmt->Bind(14,frag->getTrihedron()[2]);
 
         stmt->InsertStep();
         stmt->Reset();
@@ -558,7 +563,7 @@ void StateSaverSQLite2::ReadFragments(int topId) {
     Statement *stmt = _db.Prepare("SELECT "
                                   "name, mol, seg, "
                                   "posX, posY, posZ, "
-                                  "symmetry "
+                                  "symmetry, leg1, leg2, leg3 "
                                   "FROM fragments "
                                   "WHERE top = ?;");
 
@@ -572,13 +577,22 @@ void StateSaverSQLite2::ReadFragments(int topId) {
         double  posX    = stmt->Column<double>(3);
         double  posY    = stmt->Column<double>(4);
         double  posZ    = stmt->Column<double>(5);
-        int     symm    = stmt->Column<int>(3);
+        int     symm    = stmt->Column<int>(6);
+        int     leg1    = stmt->Column<int>(7);
+        int     leg2    = stmt->Column<int>(8);
+        int     leg3    = stmt->Column<int>(9);
+
+        vector<int> trihedron;
+        trihedron.push_back(leg1);
+        if (leg2 >= 0) {trihedron.push_back(leg2);}
+        if (leg3 >= 0) {trihedron.push_back(leg3);}
 
         Fragment *frag = _qmtop->AddFragment(name);
         frag->setSegment(_qmtop->getSegment(segid));
         frag->setMolecule(_qmtop->getMolecule(molid));
         frag->setPos(vec(posX, posY, posZ));
         frag->setSymmetry(symm);
+        frag->setTrihedron(trihedron);
 
         frag->getSegment()->AddFragment(frag);
         frag->getMolecule()->AddFragment(frag);

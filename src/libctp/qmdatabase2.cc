@@ -87,7 +87,10 @@ void QMDatabase2::onCreate()
         "posX   REAL NOT NULL,"
         "posY   REAL NOT NULL,"
         "posZ   REAL NOT NULL,"
-        "symmetry INT NOT NULL)");
+        "symmetry INT NOT NULL,"
+        "leg1   INT NOT NULL,"
+        "leg2   INT NOT NULL,"
+        "leg3   INT NOT NULL)");
 
     // Table format atoms
     Exec("CREATE TABLE atoms ("

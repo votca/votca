@@ -66,34 +66,54 @@ void Fragment::calcPos(string tag) {
 
 
 
-void Fragment::Rigidify() {
+void Fragment::Rigidify(bool Auto) {
 
 
     // +++++++++++++++++++++++++++++++++++++++++ //
     // Establish reference atoms for local frame //
     // +++++++++++++++++++++++++++++++++++++++++ //
-
+    
     vector<Atom*> trihedron;
-    bool enough = false;
-    vector< Atom* > ::iterator ait = this->Atoms().begin();
+    
+    if (Auto) {
 
-    while (!enough) {
+        // Automated search for suitable atoms
+        bool enough = false;
+        vector< Atom* > ::iterator ait = this->Atoms().begin();
 
-        if (ait == this->Atoms().end()) { break; }
-        Atom *atm = *ait;
-        ait++;
+        while (!enough) {
 
-        // When specifying mapping weights for rigid fragments,
-        // mobile atoms (whose position can vary significantly with
-        // respect to the rigid plane, for instance) should have a weight 0.
-        // We do not want to pick those to establish the local frame.
-        if (atm->getWeight() == 0.0) { continue; }
-        else {
-            trihedron.push_back(atm);
-            if (trihedron.size() == 3) { enough = true; }
+            if (ait == this->Atoms().end()) { break; }
+            Atom *atm = *ait;
+            ait++;
+
+            // When specifying mapping weights for rigid fragments,
+            // mobile atoms (whose position can vary significantly with
+            // respect to the rigid plane, for instance) should have a weight 0.
+            // We do not want to pick those to establish the local frame.
+            if (atm->getWeight() == 0.0) { continue; }
+            else {
+                trihedron.push_back(atm);
+                if (trihedron.size() == 3) { enough = true; }
+            }
         }
     }
-    
+    else {
+
+        // Take atoms specified in mapping file <= DEFAULT
+        vector<Atom*> ::iterator ait;
+        for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
+            if ( ! (*ait)->HasQMPart() ) { continue; }
+
+            if ( (*ait)->getQMId() == _trihedron[0] ||
+                 (*ait)->getQMId() == _trihedron[1] ||
+                 (*ait)->getQMId() == _trihedron[2] ) {
+                Atom *atm = *ait;
+                trihedron.push_back(atm);
+            }
+        }
+    }
+
     int _symmetry = trihedron.size();
 
     // +++++++++++++++++++++++ //
