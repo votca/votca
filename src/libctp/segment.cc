@@ -120,10 +120,6 @@ void Segment::calcPos() {
 
 void Segment::Rigidify() {
 
-    cout << endl 
-         << "... ... Rigidify segment " << this->getName() << this->getId();
-
-
     // Establish which atoms to use to define local frame
     vector<Fragment*> ::iterator fit;
 
@@ -132,23 +128,6 @@ void Segment::Rigidify() {
             fit++) {    
             (*fit)->Rigidify();
     }
-
-    
-    string md_pdb = "md.pdb";
-    string qm_pdb = "qm.pdb";
-
-    FILE *outPDB = NULL;
-
-    // Md Picture
-    outPDB = fopen(md_pdb.c_str(), "w");
-    this->WritePDB(outPDB, "Atoms", "MD");
-    fclose(outPDB);
-
-    // QM Picture
-    outPDB = fopen(qm_pdb.c_str(), "w");
-    this->WritePDB(outPDB, "Atoms", "QM");
-    fclose(outPDB);
-
 }
 
 

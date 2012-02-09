@@ -13,5 +13,10 @@
 		<name>qm</name>
 		<description>Name of the trajectory with back-substituted rigid fragments.</description>
 	</item>
+	
+	<item>
+		<name>frames</name>
+		<description>Number of frames for which to output PDBs for mapped system.</description>
+	</item>
 
 </tdump>

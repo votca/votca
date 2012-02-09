@@ -24,13 +24,12 @@ AS=as
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Debug
 CND_DISTDIR=dist
-CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -55,7 +54,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/statesaversqlite.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist.o \
 	${OBJECTDIR}/_ext/484457893/qmapplication2.o \
-	${OBJECTDIR}/_ext/238600121/eoutersphere2.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory.o \
 	${OBJECTDIR}/_ext/238600121/eoutersphere.o
 
@@ -78,13 +76,13 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a
+	"${MAKE}"  -f nbproject/Makefile-Debug.mk dist/Debug/GNU-Linux-x86/liblibctp.a
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a
+dist/Debug/GNU-Linux-x86/liblibctp.a: ${OBJECTFILES}
+	${MKDIR} -p dist/Debug/GNU-Linux-x86
+	${RM} dist/Debug/GNU-Linux-x86/liblibctp.a
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a ${OBJECTFILES} 
-	$(RANLIB) ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a
+	$(RANLIB) dist/Debug/GNU-Linux-x86/liblibctp.a
 
 ${OBJECTDIR}/_ext/484457893/qmcalculcator2.o: ../../src/libctp/qmcalculcator2.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
@@ -191,11 +189,6 @@ ${OBJECTDIR}/_ext/484457893/qmapplication2.o: ../../src/libctp/qmapplication2.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmapplication2.o ../../src/libctp/qmapplication2.cc
 
-${OBJECTDIR}/_ext/238600121/eoutersphere2.o: ../../src/libctp/calculators/eoutersphere2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/eoutersphere2.o ../../src/libctp/calculators/eoutersphere2.cc
-
 ${OBJECTDIR}/_ext/484457893/calculatorfactory.o: ../../src/libctp/calculatorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -211,8 +204,8 @@ ${OBJECTDIR}/_ext/238600121/eoutersphere.o: ../../src/libctp/calculators/eouters
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a
+	${RM} -r build/Debug
+	${RM} dist/Debug/GNU-Linux-x86/liblibctp.a
 
 # Subprojects
 .clean-subprojects:
