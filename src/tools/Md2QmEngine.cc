@@ -1,6 +1,7 @@
 #include "Md2QmEngine.h"
 #include <votca/csg/boundarycondition.h>
 #include <votca/tools/globals.h>
+#include <votca/tools/txtfeed.h>
 
 /**
  * Clears all engine template ('type') containers.
@@ -67,6 +68,12 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          // Create a new segment
          CTP::Segment *segment = AddSegmentType(segment_id++, *it_segment );
          molecule->AddSegment( segment );
+
+         // Load internal (i.e. QM-) coord.s
+         key = "qmcoords";
+         string qmcoords = (*it_segment)->get("qmcoords").as<string>();
+         map<int, pair<string, vec> > intCoords;
+         this->getIntCoords(qmcoords, intCoords);
 
          // ++++++++++++++ //
          // Load fragments //
@@ -157,11 +164,25 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                // QM atom information
                bool hasQMPart = false;
                int qm_atom_id = -1;
+               vec qmPos;
                // Check whether MD atom has QM counterpart
                if (qm_atom_specs.size() == 2) {
                    hasQMPart = true;
                    qm_atom_id = boost::lexical_cast<int>(qm_atom_specs[0]);
-               }              
+
+                   // Look up qm coordinates in table created from xyz file
+                   qmPos = intCoords.at(qm_atom_id).second;
+                   // Check whether elements of md and qm match
+                   if (intCoords.at(qm_atom_id).first
+                       != md_atom_name.substr(0,1) ) {
+                       cout << "WARNING: Atom " << md_atom_name << "in mol. "
+                            << molMdName << " appears to have element type "
+                            << md_atom_name.substr(0,1)
+                            << ", but QM partner " << qm_atom_id
+                            << " has element type "
+                            << intCoords.at(qm_atom_id).first << endl;
+                   }
+               }
                
                // Mapping weight
                double weight = boost::lexical_cast<double>(*it_atom_weight);
@@ -179,7 +200,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                                              residue_name, residue_number,
                                              md_atom_name, md_atom_id++,
                                              hasQMPart,    qm_atom_id,
-                                             weight);
+                                             qmPos,        weight);
 
                try {
                    this->_map_mol_resNr_atm_atmType.at(molMdName)
@@ -333,7 +354,8 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
                 newAtom->setResnr(refAtom->getResnr());
                 newAtom->setResname(refAtom->getResname());
                 if (refAtom->HasQMPart()) {
-                    newAtom->setQMPart(refAtom->getQMId());
+                    newAtom->setQMPart(refAtom->getQMId(),
+                                       refAtom->getQMPos());
                 }
                 newAtom->setPos(refAtom->getPos());
 
@@ -357,12 +379,12 @@ CTP::Atom *Md2QmEngine::AddAtomType(CTP::Molecule *owner,
                                     string residue_name,  int residue_number,
                                     string md_atom_name,  int md_atom_id,
                                     bool hasQMPart,       int qm_atom_id,
-                                    double weight) {
+                                    vec qmPos,            double weight) {
     CTP::Atom* atom = new CTP::Atom(owner,
                                     residue_name,         residue_number,
                                     md_atom_name,         md_atom_id,
                                     hasQMPart,            qm_atom_id,
-                                    weight);
+                                    qmPos,                weight);
     _atom_types.push_back(atom);
     return atom;
 }
@@ -423,6 +445,35 @@ CTP::Atom *Md2QmEngine::getAtomType(const string &molMdName,
     return this->_map_mol_resNr_atm_atmType.at(molMdName)
                                            .at(resNr)
                                            .at(mdAtomName);
+}
+
+void Md2QmEngine::getIntCoords(string &file,
+                               map<int, pair<string,vec> > &intCoords) {
+    
+    TxtFeed intt = TxtFeed(file);
+    int atomCount = 0;
+    
+    while ( ! intt.eof() ) {
+       
+        string temp = intt.Next();
+
+        // Is this line at all relevant? CHeck for comments...
+        vector<string> line = votca::tools::splitString(temp) ;
+        if ( !line.size()    ||
+              line[0] == "#" ||
+              line[0].substr(0,1) == "#" ) { continue; }
+
+        // Interesting information written here: e.g.  'C 0.000 0.000 0.000'
+        atomCount++;
+        string element = line[0];
+        double x = boost::lexical_cast<double>( line[1] ) / 10.; // °A to NM
+        double y = boost::lexical_cast<double>( line[2] ) / 10.;
+        double z = boost::lexical_cast<double>( line[3] ) / 10.;
+        vec qmPos = vec(x,y,z);
+
+        pair<string, vec> qmTypePos(element.substr(0,1), qmPos);
+        intCoords[atomCount] = qmTypePos;
+    }
 }
 
 

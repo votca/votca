@@ -285,13 +285,15 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
                             "name, type, mol,"
                             "seg, frag,  resnr,"
                             "resname, posX, posY,"
-                            "posZ, weight)"
+                            "posZ, weight, qmid,"
+                            "qmPosX, qmPosY, qmPosZ)"
                             "VALUES ("
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
-                            "?,     ?    )");
+                            "?,     ?,  ?,"
+                            "?,     ?,  ?)");
     }
     else {
         return; // nothing to do here
@@ -318,6 +320,10 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
         stmt->Bind(12, atm->getPos().getY());
         stmt->Bind(13, atm->getPos().getZ());
         stmt->Bind(14, atm->getWeight());
+        stmt->Bind(15, atm->getQMId());
+        stmt->Bind(16, atm->getQMPos().getX());
+        stmt->Bind(17, atm->getQMPos().getY());
+        stmt->Bind(18, atm->getQMPos().getZ());
 
         stmt->InsertStep();
         stmt->Reset();
@@ -591,7 +597,8 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
                                   "name, mol, seg, frag, "
                                   "resnr, resname, "
                                   "posX, posY, posZ, "
-                                  "weight "
+                                  "weight, qmid, qmPosX, "
+                                  "qmPosY, qmPosZ "
                                   "FROM atoms "
                                   "WHERE top = ?;");
 
@@ -609,9 +616,14 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
         double  posY = stmt->Column<double>(7);
         double  posZ = stmt->Column<double>(8);
         double  weight = stmt->Column<double>(9);
+        int     qmid = stmt->Column<double>(10);
+        double  qmPosX = stmt->Column<double>(11);
+        double  qmPosY = stmt->Column<double>(12);
+        double  qmPosZ = stmt->Column<double>(13);
 
         Atom *atm = _qmtop->AddAtom(name);
         atm->setWeight(weight);
+        atm->setQMPart(qmid, vec(qmPosX,qmPosY,qmPosZ));
         atm->setPos( vec(posX, posY, posZ) );
         
         atm->setFragment(_qmtop->getFragment(fragid));

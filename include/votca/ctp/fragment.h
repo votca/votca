@@ -40,11 +40,11 @@ class Segment;
 class Fragment {
 public:
      /// Constructor
-     Fragment(int id, string name) : _id(id), _name(name), _symmetry(0) { }
+     Fragment(int id, string name) : _id(id), _name(name), _symmetry(-1) { }
     ~Fragment();
     
-    void Rotate();    // rotates w.r.t. center of map
-    void Translate();    
+    void Rotate(matrix spin, vec refPos);    // rotates w.r.t. center of map
+    void Translate(vec shift);
 
     inline void setTopology(Topology *container) { _top = container; }
     inline void setMolecule(Molecule *container) { _mol = container; }
@@ -59,12 +59,15 @@ public:
     const int    &getId() const { return _id; }
     const string &getName() const { return _name; }
 
-    void         setSymmetry(int symmetry) { _symmetry = symmetry; }
-    int          getSymmetry() { return _symmetry; }
+    void         Rigidify();
+    void         setSymmetry(int sym) { _symmetry = sym; }
+    const int   &getSymmetry() { return _symmetry; }
 
-    void         calcPos();
-    void         setPos(vec pos) { _CoM = pos; }
-    const vec   &getPos() const { return _CoM; }
+
+    void         calcPos(string tag = "MD");
+    void         setPos(vec pos) { _CoMD = pos; }
+    const vec   &getPos() const { return _CoMD; }
+    
 
 private:
 
@@ -74,12 +77,15 @@ private:
 
     vector < Atom* > _atoms;
     vector< double > _weights;
+    int              _symmetry;
 
     string      _name;
     int         _id;
 
-    int         _symmetry;
-    vec         _CoM;    // Center of mapping
+    vec         _CoMD;              // Center of map (MD)
+    vec         _CoQM;              // Center of map (QM)
+    vec         _translateQM2MD;    // Set via ::Rigidify()
+    matrix      _rotateQM2MD;       // Set via ::Rigidify()
 
 
 };

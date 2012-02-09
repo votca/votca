@@ -52,12 +52,13 @@ public:
          string residue_name,   int resnr,
          string md_atom_name,   int md_atom_id,
          bool hasQMPart,        int qm_atom_id,
-         double weight)
-       : _mol(owner),
+         vec qmPos,             double weight)
+       : _mol(owner),            
          _resname(residue_name), _resnr(resnr),
          _name(md_atom_name),    _id(md_atom_id),
          _hasQM(hasQMPart),      _qmId(qm_atom_id),
-         _weight(weight),        _bPos(false) { }
+         _weight(weight),        _bPos(false),
+         _qmPos(qmPos)           { }
     
     Atom(int atom_id,   string atom_name)
        : _id(atom_id),  _name(atom_name),
@@ -84,12 +85,14 @@ public:
     inline void setResnr(const int &resnr) { _resnr = resnr; }
     inline void setResname(const string &resname) { _resname = resname; }
     inline void setWeight(const double &weight) { _weight = weight; }
-    inline void setQMPart(const int &qmid) { _hasQM = true; _qmId = qmid; }
+    inline void setQMPart(const int &qmid, vec qmPos);
+    inline void setQMPos(const vec &qmPos) { _qmPos = qmPos; }
     
     inline const int    &getResnr() { return _resnr; }
     inline const string &getResname() { return _resname; }
     inline const double &getWeight() { return _weight; }
     inline const int    &getQMId() { return _qmId; }
+    inline const vec    &getQMPos() { return _qmPos; }
 
     inline const double &getQ(int state) { return _Q.at(state); }
     inline const double &getQ() { return _q->second; }
@@ -150,6 +153,7 @@ protected:
 
     bool        _hasQM;
     int         _qmId;
+    vec         _qmPos;
 
     // charge state of segment => partial charge
     map<int, double> _Q;    
@@ -170,6 +174,18 @@ inline const vec &Atom::getPos() const {
 
 inline void Atom::HasPos(bool b) {
     _bPos=b;
+}
+
+inline void Atom::setQMPart(const int &qmid, vec qmPos) {
+    if (qmid > -1) {
+        _hasQM = true;
+        _qmId = qmid;
+        _qmPos = qmPos;
+    }
+    else {
+        _hasQM = false;
+        _qmId = -1;
+    }
 }
 
 }}

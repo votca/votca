@@ -79,7 +79,10 @@ public:
     vector< Fragment* > &Fragments() { return _fragments; }
     vector < Atom* >    &Atoms() { return _atoms; }
 
-    void WritePDB(FILE *out);
+
+    void Rigidify();
+
+    void WritePDB(FILE *out, string tag1 = "Fragments", string tag2 = "MD");
 
 private:
 
@@ -116,6 +119,10 @@ private:
     //   +1(=> h)   occ.prob. for hole
     //   -1(=> e)   occ.prob. for electron
     bool _hasOccProb;
+
+
+    map<int, vec> _intCoords;
+    // qmid => position
     
 
 };
