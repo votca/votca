@@ -123,10 +123,11 @@ bool Neighborlist2::EvaluateFrame(Topology *top) {
         } /* exit loop seg2 */
     } /* exit loop seg1 */
 
-    cout << ": Created " << top->NBList().size() << " pairs." << endl;
+    cout << endl << "... ... Created " << top->NBList().size() << " pairs.";
 
-    cout << "[idA:idB] com distance" << endl;
+    
     if (TOOLS::globals::verbose) {
+        cout << "[idA:idB] com distance" << endl;
         QMNBList2& nblist = top->NBList();       
         for (QMNBList2::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
                 QMPair2 *pair = *ipair;

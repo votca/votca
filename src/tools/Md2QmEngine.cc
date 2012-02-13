@@ -58,22 +58,28 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
        list<Property *> segments = (*it_molecule)->Select(key);
        list<Property *>::iterator it_segment;
        int segment_id = 1;
+       int qmunit_id  = 1;
        int md_atom_id = 1; // <- atom id count with respect to molecule
 
        for ( it_segment = segments.begin();
              it_segment != segments.end();
              ++it_segment ) {
 
-         // Create a new segment
+         // Create new segment + associated type (QM Unit)
          CTP::Segment *segment = AddSegmentType(segment_id++, *it_segment );
-         molecule->AddSegment( segment );
+         CTP::SegmentType *qmUnit = AddQMUnit(qmunit_id, *it_segment );
+         segment->setType(qmUnit);
+         molecule->AddSegment(segment);
 
-         // Load internal (i.e. QM-) coord.s
-         key = "qmcoords";
-         string qmcoords = (*it_segment)->get("qmcoords").as<string>();
+         // Load internal (i.e. QM-) coord.s and MOO-related properties
+         string qmcoordsFile = "";
          map<int, pair<string, vec> > intCoords;
-         this->getIntCoords(qmcoords, intCoords);
-
+         if ( (*it_segment)->exists("qmcoords") ) {
+            qmcoordsFile = (*it_segment)->get("qmcoords").as<string>();            
+            //  QM ID    Element   Position
+            this->getIntCoords(qmcoordsFile, intCoords);
+         }
+         
          // ++++++++++++++ //
          // Load fragments //
          // ++++++++++++++ //
@@ -172,23 +178,33 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                // QM atom information
                bool hasQMPart = false;
                int qm_atom_id = -1;
-               vec qmPos;
+               vec qmPos = vec(0,0,0);
+               // The atomic element is first taken as first character of
+               // the MD name; for atoms with QM counterpart, the element
+               // is read from the coordinates file
+               string element = md_atom_name.substr(0,1);
                // Check whether MD atom has QM counterpart
                if (qm_atom_specs.size() == 2) {
                    hasQMPart = true;
                    qm_atom_id = boost::lexical_cast<int>(qm_atom_specs[0]);
 
                    // Look up qm coordinates in table created from xyz file
-                   qmPos = intCoords.at(qm_atom_id).second;
-                   // Check whether elements of md and qm match
-                   if (intCoords.at(qm_atom_id).first
-                       != md_atom_name.substr(0,1) ) {
-                       cout << "WARNING: Atom " << md_atom_name << "in mol. "
-                            << molMdName << " appears to have element type "
-                            << md_atom_name.substr(0,1)
-                            << ", but QM partner " << qm_atom_id
-                            << " has element type "
-                            << intCoords.at(qm_atom_id).first << endl;
+                   try {
+                       qmPos = intCoords.at(qm_atom_id).second;
+                       element = intCoords.at(qm_atom_id).first;
+                       // Check whether elements of md and qm match
+                       if (intCoords.at(qm_atom_id).first
+                           != md_atom_name.substr(0,1) ) {
+                           cout << "WARNING: Atom " <<md_atom_name << "in mol. "
+                                << molMdName << " appears to have element type "
+                                << md_atom_name.substr(0,1)
+                                << ", but QM partner (ID " << qm_atom_id
+                                << ") has element type "
+                                << intCoords.at(qm_atom_id).first << endl;
+                       }
+                   }
+                   catch (out_of_range) {
+                       ; // No QM coordinates specified
                    }
                }
                
@@ -208,7 +224,8 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                                              residue_name, residue_number,
                                              md_atom_name, md_atom_id++,
                                              hasQMPart,    qm_atom_id,
-                                             qmPos,        weight);
+                                             qmPos,        element,
+                                             weight);
 
                try {
                    this->_map_mol_resNr_atm_atmType.at(molMdName)
@@ -261,6 +278,24 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
     // Set trajectory meta data
     qmtop->setStep(mdtop->getStep());
     qmtop->setTime(mdtop->getTime());
+
+    // Add types (=> Segment types / QM units)
+    vector< CTP::SegmentType* > ::iterator typeit;
+    for (typeit = this->_qmUnits.begin();
+         typeit != this->_qmUnits.end();
+         typeit++) {
+
+        string name = (*typeit)->getName();
+        string basis = (*typeit)->getBasisName();
+        string orbitals = (*typeit)->getOrbitalsFile();
+        string qmcoords = (*typeit)->getQMCoordsFile();
+        vector<int> torbNrs = (*typeit)->getTOrbNrs();
+        CTP::SegmentType *segType = qmtop->AddSegmentType(name);
+        segType->setBasisName(basis);
+        segType->setTOrbNrs(torbNrs);
+        segType->setOrbitalsFile(orbitals);
+        segType->setQMCoordsFile(qmcoords);
+    }
 
     // Populate topology in a trickle-down manner
     // (i.e. molecules => ... ... => atoms)
@@ -341,6 +376,7 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
 
         CTP::Segment *refSeg = *segIt;
         CTP::Segment *newSeg = qmtop->AddSegment(refSeg->getName());
+        newSeg->setType( qmtop->getSegmentType(refSeg->getType()->getId()) );
 
         vector<CTP::Fragment *> ::iterator fragIt;
         for (fragIt = refSeg->Fragments().begin();
@@ -362,6 +398,7 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
                 newAtom->setWeight(refAtom->getWeight());
                 newAtom->setResnr(refAtom->getResnr());
                 newAtom->setResname(refAtom->getResname());
+                newAtom->setElement(refAtom->getElement());
                 if (refAtom->HasQMPart()) {
                     newAtom->setQMPart(refAtom->getQMId(),
                                        refAtom->getQMPos());
@@ -388,12 +425,14 @@ CTP::Atom *Md2QmEngine::AddAtomType(CTP::Molecule *owner,
                                     string residue_name,  int residue_number,
                                     string md_atom_name,  int md_atom_id,
                                     bool hasQMPart,       int qm_atom_id,
-                                    vec qmPos,            double weight) {
+                                    vec qmPos,            string element,
+                                    double weight) {
     CTP::Atom* atom = new CTP::Atom(owner,
                                     residue_name,         residue_number,
                                     md_atom_name,         md_atom_id,
                                     hasQMPart,            qm_atom_id,
-                                    qmPos,                weight);
+                                    qmPos,                element,
+                                    weight);
     _atom_types.push_back(atom);
     return atom;
 }
@@ -425,6 +464,38 @@ CTP::Molecule *Md2QmEngine::AddMoleculeType(int molecule_id,
     _map_MoleculeMDName_MoleculeName[molecule_mdname] = molecule_name;
     _map_MoleculeName_MoleculeType[molecule_name] = molecule;
     return molecule;
+}
+
+CTP::SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
+    string qmCoordsFile = "nofile";
+    string orbitalsFile = "nofile";
+    string basisSetName = "noname";
+    vector<int> torbNrs;
+
+    bool canRigidify = false;
+        
+    string qmunit_name = property->get("name").as<string>();
+    
+    if (property->exists("qmcoords")) {
+        qmCoordsFile = property->get("qmcoords").as<string>();
+        canRigidify = true;
+    }
+    if (property->exists("orbitals")) {
+        orbitalsFile = property->get("orbitals").as<string>();
+    }
+    if (property->exists("basisset")) {
+        basisSetName = property->get("basisset").as<string>();
+    }
+    if (property->exists("torbital")) {
+        torbNrs = property->get("torbital").as< vector<int> >();
+    }
+
+    CTP::SegmentType* qmUnit = new CTP::SegmentType(qmunit_id, qmunit_name,
+                                                    basisSetName, orbitalsFile,
+                                                    qmCoordsFile, torbNrs,
+                                                    canRigidify);
+    _qmUnits.push_back(qmUnit);
+    return qmUnit;
 }
 
 

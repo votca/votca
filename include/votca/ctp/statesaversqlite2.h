@@ -44,6 +44,7 @@ public:
     void WriteFrame();
     void WriteMeta(bool update);
     void WriteMolecules(bool update);
+    void WriteSegTypes(bool update);
     void WriteSegments(bool update);
     void WriteFragments(bool update);
     void WriteAtoms(bool update);
@@ -52,6 +53,7 @@ public:
     void ReadFrame();
     void ReadMeta(int topId);
     void ReadMolecules(int topId);
+    void ReadSegTypes(int topId);
     void ReadSegments(int topId);
     void ReadFragments(int topId);
     void ReadAtoms(int topId);

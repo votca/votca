@@ -27,6 +27,7 @@
 
 #include <votca/ctp/atom.h>
 #include <votca/ctp/fragment.h>
+#include <votca/ctp/segmenttype.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/molecule.h>
 
@@ -56,16 +57,21 @@ public:
     Segment  *AddSegment  (string segment_name);
     Atom     *AddAtom     (string atom_name);
     Fragment *AddFragment (string fragment_name);
+    SegmentType *AddSegmentType (string typeName);
 
     Molecule *getMolecule(int id) { return _molecules[id-1]; }
     Segment  *getSegment(int id)  { return _segments[id-1]; }
     Fragment *getFragment(int id) { return _fragments[id-1]; }
     Atom     *getAtom(int id)     { return _atoms[id-1]; }
+    SegmentType *getSegmentType(int id) { return _segmentTypes[id-1]; }
 
     vector< Atom* >         &Atoms() { return _atoms; }
     vector< Fragment* >     &Fragments() { return _fragments; }
     vector< Segment* >      &Segments() { return _segments; }
     vector< Molecule* >     &Molecules() { return _molecules; }
+    vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
+
+    void Rigidify();
 
 
     // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
@@ -101,11 +107,13 @@ protected:
     vector < Segment* >     _segments;
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
+    vector < SegmentType* > _segmentTypes;
 
     QMNBList2               _nblist;
 
     CSG::BoundaryCondition *_bc;
     bool                    _hasPb;
+    bool                    _isRigid;
 
     double _time;
     int    _step;

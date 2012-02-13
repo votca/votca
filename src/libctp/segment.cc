@@ -120,14 +120,17 @@ void Segment::calcPos() {
 
 void Segment::Rigidify() {
 
-    // Establish which atoms to use to define local frame
-    vector<Fragment*> ::iterator fit;
+    if (this->getType()->canRigidify()) {
+        // Establish which atoms to use to define local frame
+        vector<Fragment*> ::iterator fit;
 
-    for (fit = this->Fragments().begin();
-            fit < this->Fragments().end();
-            fit++) {    
-            (*fit)->Rigidify();
+        for (fit = this->Fragments().begin();
+                fit < this->Fragments().end();
+                fit++) {
+                (*fit)->Rigidify();
+        }
     }
+    else { return; }
 }
 
 

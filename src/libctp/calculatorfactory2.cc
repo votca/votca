@@ -5,7 +5,9 @@
 #include "calculators/neighborlist2.h"
 #include "calculators/stateserver.h"
 #include "calculators/tdump2.h"
+#include "calculators/izindo.h"
 #include "calculators/emultipole.h"
+
 
 
 namespace votca { namespace ctp {
@@ -16,6 +18,7 @@ void CalculatorFactory2::RegisterAll(void)
         Calculators().Register<Neighborlist2>("neighborlist");
         Calculators().Register<StateServer>("stateserver");
         Calculators().Register<TDump>("tdump");
+        Calculators().Register<IZindo>("izindo");
         Calculators().Register<EMultipole>("emultipole");
 }
 

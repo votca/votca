@@ -18,6 +18,7 @@
 #ifndef __VOTCA_CTP_SEGMENT_H
 #define	__VOTCA_CTP_SEGMENT_H
 
+#include <votca/ctp/segmenttype.h>
 #include<votca/ctp/fragment.h>
 #include<votca/ctp/atom.h>
 
@@ -73,6 +74,8 @@ public:
     Topology        *getTopology() { return _top; }
     inline void      setMolecule(Molecule *container) { _mol = container; }
     Molecule        *getMolecule() { return _mol; }
+    inline void      setType(SegmentType *type) { _typ = type; }
+    SegmentType     *getType() { return _typ; }
 
     void             AddFragment( Fragment* fragment );
     void             AddAtom( Atom* atom );
@@ -88,6 +91,7 @@ private:
 
     Topology    *_top;
     Molecule    *_mol;
+    SegmentType *_typ;
 
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
