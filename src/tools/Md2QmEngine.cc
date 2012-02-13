@@ -278,6 +278,7 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
     // Set trajectory meta data
     qmtop->setStep(mdtop->getStep());
     qmtop->setTime(mdtop->getTime());
+    qmtop->setCanRigidify(true);
 
     // Add types (=> Segment types / QM units)
     vector< CTP::SegmentType* > ::iterator typeit;
@@ -290,11 +291,14 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
         string orbitals = (*typeit)->getOrbitalsFile();
         string qmcoords = (*typeit)->getQMCoordsFile();
         vector<int> torbNrs = (*typeit)->getTOrbNrs();
+        bool canRigidify = (*typeit)->canRigidify();
         CTP::SegmentType *segType = qmtop->AddSegmentType(name);
         segType->setBasisName(basis);
         segType->setTOrbNrs(torbNrs);
         segType->setOrbitalsFile(orbitals);
         segType->setQMCoordsFile(qmcoords);
+        segType->setCanRigidify(canRigidify);
+        if (!canRigidify) { qmtop->setCanRigidify(false); }
     }
 
     // Populate topology in a trickle-down manner

@@ -71,7 +71,9 @@ public:
     vector< Molecule* >     &Molecules() { return _molecules; }
     vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
 
-    void Rigidify();
+    bool        Rigidify();
+    void        setCanRigidify(bool yesno) { _canRigidify = yesno; }
+    const bool  canRigidify() { return _canRigidify; }
 
 
     // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
@@ -113,7 +115,8 @@ protected:
 
     CSG::BoundaryCondition *_bc;
     bool                    _hasPb;
-    bool                    _isRigid;
+
+    bool                    _canRigidify;
 
     double _time;
     int    _step;

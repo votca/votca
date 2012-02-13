@@ -193,16 +193,31 @@ vec Topology::PbShortestConnect(const vec &r1, const vec &r2) const {
 
 
 
-void Topology::Rigidify() {
+bool Topology::Rigidify() {
 
-    vector<Segment*> ::iterator sit;
-    for (sit = _segments.begin();
-         sit < _segments.end();
-         sit++) {
+    if (!_canRigidify) {
+        cout << endl
+             << "... ... ABORT: Request to rigidify system, but no QM "
+                "coordinates provided. ";
+        return 0;
+    }
+    else {
+        cout << endl;
+        vector<Segment*> ::iterator sit;
+        for (sit = _segments.begin();
+             sit < _segments.end();
+             sit++) {
 
-         (*sit)->Rigidify();
+             cout << "\r... ... Rigidified " << (*sit)->getId() << " segments. "
+             << flush;
+
+             (*sit)->Rigidify();
+        }
+        return 1;
     }
 }
+
+
 
 
 

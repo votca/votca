@@ -18,6 +18,8 @@ public:
 
 bool PairCalculator2::EvaluateFrame(Topology *top) {
 
+    bool isRigid = top->Rigidify();
+    if (!isRigid) { return 0; }
     cout << endl;
     
     QMNBList2 &nblist = top->NBList();

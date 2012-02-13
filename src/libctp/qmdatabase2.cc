@@ -24,18 +24,19 @@ void QMDatabase2::onCreate()
     // Table format frames
     Exec("CREATE TABLE frames ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "id     INT NOT NULL,"
-        "time   REAL NOT NULL,"
-        "step   INT NOT NULL,"
-        "box11  REAL NOT NULL,"
-        "box12  REAL NOT NULL,"
-        "box13  REAL NOT NULL,"
-        "box21  REAL NOT NULL,"
-        "box22  REAL NOT NULL,"
-        "box23  REAL NOT NULL,"
-        "box31  REAL NOT NULL,"
-        "box32  REAL NOT NULL,"
-        "box33  REAL NOT NULL)");
+        "id       INT NOT NULL,"
+        "time     REAL NOT NULL,"
+        "step     INT NOT NULL,"
+        "box11    REAL NOT NULL,"
+        "box12    REAL NOT NULL,"
+        "box13    REAL NOT NULL,"
+        "box21    REAL NOT NULL,"
+        "box22    REAL NOT NULL,"
+        "box23    REAL NOT NULL,"
+        "box31    REAL NOT NULL,"
+        "box32    REAL NOT NULL,"
+        "box33    REAL NOT NULL,"
+        "canRigid INT NOT NULL)");
    
     // Table format molecules
     Exec("CREATE TABLE molecules ("
