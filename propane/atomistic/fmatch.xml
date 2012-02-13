@@ -9,6 +9,9 @@
   <bonded>
     <!-- name of the interaction -->
     <name>bond</name>
+    <min>0.</min>
+    <max>0.180</max>
+    <step>0.001</step>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.152</min>
@@ -20,6 +23,9 @@
   <bonded>
     <!-- name of the interaction -->
     <name>angle</name>
+    <min>0</min>
+    <max>3.144</max>
+    <step>0.001</step>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>1.627</min>
@@ -33,6 +39,11 @@
   <non-bonded>
     <!-- name of the interaction -->
     <name>CH2-CH2</name>
+    <min>0.0</min>
+    <max>1.36</max>
+    <step>0.01</step>
+    <type1>CH2</type1>
+    <type2>CH2</type2>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.298</min>
@@ -46,6 +57,11 @@
   <non-bonded>
     <!-- name of the interaction -->
     <name>CH3-CH3</name>
+    <min>0</min>
+    <max>1.38</max>
+    <step>0.01</step>
+    <type1>CH3</type1>
+    <type2>CH3</type2>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.283</min>
@@ -59,6 +75,11 @@
   <non-bonded>
     <!-- name of the interaction -->
     <name>CH2-CH3</name>
+    <min>0</min>
+    <max>1.36</max>
+    <step>0.01</step>
+    <type1>CH2</type1>
+    <type2>CH3</type2>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.291</min>
