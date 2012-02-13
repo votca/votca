@@ -80,12 +80,11 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
     FILE *out = NULL;
     out = fopen(outfile.c_str(), "w");
-    cout << ": Printing ";
     for (key = _keys.begin(); key < _keys.end(); key++ ) {
 
         if (*key == "topology") {
 
-                cout << "topology ";
+                cout << endl << "... ... Write topology ";
 
                 fprintf(out, "           // +++++++++++++++++++ // \n");
                 fprintf(out, "           // MD|QM Topology Info // \n");
@@ -95,7 +94,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
         }
         else if (*key == "sites") {
 
-                cout<< "sites ";
+                cout << endl << "... ... Write sites ";
 
                 fprintf(out, "           // ++++++++++++++++++++ // \n");
                 fprintf(out, "           // Segments in Database // \n");
@@ -106,7 +105,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         else if (*key == "pairs") {
 
-                cout << "pairs ";
+                cout << endl << "... ... Write pairs ";
 
                 fprintf(out, "           // +++++++++++++++++ // \n");
                 fprintf(out, "           // Pairs in Database // \n");
@@ -118,7 +117,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         else if (*key == "trajectory") {
 
-            cout << "trajectory";
+            cout << endl << "... ... Write trajectory";
             writeTrajectory = true;
         }
 

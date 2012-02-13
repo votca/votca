@@ -21,7 +21,9 @@
 
 namespace votca { namespace ctp {
 
-Topology::Topology() : _db_id(-1), _hasPb(0), _bc(NULL), _nblist(this) { }
+Topology::Topology() : _db_id(-1), _hasPb(0), 
+                       _bc(NULL), _nblist(this),
+                       _isRigid(false)  { }
 
 // +++++++++++++++++++++ //
 // Clean-Up, Destruct    //
@@ -46,6 +48,7 @@ void Topology::CleanUp() {
     _bc = new CSG::OpenBox;
     
     _nblist.Cleanup();
+    _isRigid = false;
 }
 
 
@@ -213,6 +216,7 @@ bool Topology::Rigidify() {
 
              (*sit)->Rigidify();
         }
+        _isRigid = true;
         return 1;
     }
 }

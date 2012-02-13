@@ -45,6 +45,7 @@ public:
     
     void Rotate(matrix spin, vec refPos);    // rotates w.r.t. center of map
     void Translate(vec shift);
+    void RotTransQM2MD();
 
     inline void setTopology(Topology *container) { _top = container; }
     inline void setMolecule(Molecule *container) { _mol = container; }
@@ -66,9 +67,15 @@ public:
     const vector< int > &getTrihedron() { return _trihedron; }
 
 
-    void         calcPos(string tag = "MD");
-    void         setPos(vec pos) { _CoMD = pos; }
-    const vec   &getPos() const { return _CoMD; }
+    void          calcPos(string tag = "MD");
+    void          setPos(vec pos) { _CoMD = pos; }
+    const vec    &getPos() const { return _CoMD; }
+    const vec    &getCoMD() { return _CoMD; }
+    const vec    &getCoQM() { return _CoQM; }
+    const vec    &getCoQM0() { return _CoQM0; }
+    const matrix &getRotQM2MD() { return _rotateQM2MD; }
+    
+    
     
 
 private:
@@ -87,6 +94,7 @@ private:
 
     vec         _CoMD;              // Center of map (MD)
     vec         _CoQM;              // Center of map (QM)
+    vec         _CoQM0;             // Center of map (QM) original (for IZindo)
     vec         _translateQM2MD;    // Set via ::Rigidify()
     matrix      _rotateQM2MD;       // Set via ::Rigidify()
 

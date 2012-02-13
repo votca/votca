@@ -40,6 +40,16 @@ void Fragment::Translate(vec shift) {
     this->calcPos("QM");
 }
 
+
+void Fragment::RotTransQM2MD() {
+    vector <Atom*> ::iterator ait;
+    for (ait= _atoms.begin(); ait < _atoms.end(); ait++) {
+        vec newQMPos = _rotateQM2MD*( (*ait)->getQMPos() - this->_CoQM )
+                      + this->_CoMD;
+        (*ait)->setQMPos(newQMPos);
+    }
+}
+
 void Fragment::calcPos(string tag) {
     vec pos = vec(0,0,0);
     double totWeight = 0.0;
@@ -231,17 +241,13 @@ void Fragment::Rigidify(bool Auto) {
     matrix rotateQM2MD = rotMD * rotQM.Transpose();
     _rotateQM2MD = rotateQM2MD;
 
+
     // ++++++++++++++++++ //
-    // Translation vector //
+    // Transform fragment //
     // ++++++++++++++++++ //
 
-    this->calcPos("QM");    
-    vec translateQM2MD = _CoMD - _CoQM;
-    _translateQM2MD = translateQM2MD;
-
-    // Update QM positions
-    this->Translate(translateQM2MD);
-    this->Rotate(rotateQM2MD, _CoQM);
+    this->calcPos("QM");
+    this->RotTransQM2MD();
 
 }
 

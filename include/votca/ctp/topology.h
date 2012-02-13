@@ -74,6 +74,7 @@ public:
     bool        Rigidify();
     void        setCanRigidify(bool yesno) { _canRigidify = yesno; }
     const bool  canRigidify() { return _canRigidify; }
+    const bool  isRigid() { return _isRigid; }
 
 
     // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
@@ -117,6 +118,7 @@ protected:
     bool                    _hasPb;
 
     bool                    _canRigidify;
+    bool                    _isRigid;
 
     double _time;
     int    _step;
