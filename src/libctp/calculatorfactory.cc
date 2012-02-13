@@ -19,7 +19,7 @@
 
 #include "votca_config.h"
 
-#include "calculators/izindo.h"
+// #include "calculators/izindo.h"
 #include "calculators/ihistogram.h"
 
 #include "calculators/ecoulomb.h"
@@ -50,7 +50,7 @@ namespace votca { namespace ctp {
 
 void CalculatorFactory::RegisterAll(void)
 {
-	Calculators().Register<Izindo>("izindo"); // ZINDO-based transfer integrals
+	// Calculators().Register<Izindo>("izindo"); // ZINDO-based transfer integrals
         Calculators().Register<Ihistogram>("ihistogram"); // histogram of transfer integrals
 
 	Calculators().Register<Ecoulomb>("ecoulomb"); // Coulomb part of site energies

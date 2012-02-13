@@ -19,6 +19,14 @@
 
 namespace votca { namespace ctp {
 
+
+
+
+
+
+
+    /**
+
 inline void get_orient(const vec & a, const vec & b, const vec & c, matrix & cg) {
 
     cg.set(0, 0, a.getX());
@@ -208,5 +216,6 @@ void SegmentType::rotate_fragments(vector < vec >::iterator it_pos, vector < vec
         count++;
     }
 }
+**/
 
 }}

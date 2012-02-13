@@ -18,17 +18,72 @@
 #ifndef __VOTCA_SEGMENT_TYPE_H
 #define	__VOTCA_SEGMENT_TYPE_H
 
+#include <cstdlib>
 #include <string>
-#include <votca/ctp/segment.h>
+#include <vector>
 
 namespace votca { namespace ctp {
 
-/**
-    \brief Type of a conjugated segment
+using namespace std;
 
-    Stores the ID, reorganization energy, and internal coordinates.
+class Topology;
+class Segment;
 
-*/
+
+class SegmentType
+{
+public:
+    
+    SegmentType() { }
+   ~SegmentType() { _torbNrs.clear(); }
+
+    SegmentType(int typeId,           string name,
+                string basis,         string orbFile,
+                string qmCoordsFile,  vector<int> torbNrs,
+                bool canRigidify)
+              : _id(typeId),          _name(name),
+                _basisSetName(basis), _orbitalsFile(orbFile),
+                _qmCoordsFile(qmCoordsFile), _torbNrs(torbNrs),
+                _canRigidify(canRigidify)  { };
+
+    SegmentType(int typeId, string name) : _id(typeId), _name(name) { };
+
+    void setTopology(Topology *top) { _top = top; }
+    void setTOrbNrs(vector<int> &torbNrs) { _torbNrs = torbNrs; }
+    void setBasisName(const string &name) { _basisSetName = name; }
+    void setOrbitalsFile(const string &file) { _orbitalsFile = file; }
+    void setQMCoordsFile(const string &file) { _qmCoordsFile = file; }
+    void setCanRigidify(bool yesno) { _canRigidify = yesno; }
+
+    Topology     *getTopology() { return _top; }
+    const string &getName() { return _name; }
+    const int    &getId() { return _id; }
+    vector<int>  &getTOrbNrs() { return _torbNrs; }
+    const string &getBasisName() { return _basisSetName; }
+    const string &getOrbitalsFile() { return _orbitalsFile; }
+    const string &getQMCoordsFile() { return _qmCoordsFile; }
+    const bool    canRigidify() { return _canRigidify; }
+
+
+
+private:
+
+    Topology*   _top;
+
+    string      _name;
+    int         _id;
+
+    string          _qmCoordsFile;
+    string          _basisSetName;
+    string          _orbitalsFile;
+    vector<int>     _torbNrs;
+
+    bool            _canRigidify;
+
+
+};
+
+/*
 class SegmentType
 {
 public:
@@ -81,6 +136,9 @@ private:
 
     friend class Segment;
 };
+*/
+
+
 
 }}
 

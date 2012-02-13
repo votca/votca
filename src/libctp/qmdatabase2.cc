@@ -73,6 +73,19 @@ void QMDatabase2::onCreate()
         "occPe      REAL DEFAULT -1,"
         "occPh      REAL DEFAULT -1)");
 
+    // Table format segment types
+    Exec("CREATE TABLE segmentTypes ("
+         "_id       INTEGER PRIMARY KEY AUTOINCREMENT,"
+         "frame     INT NOT NULL,"
+         "top       INT NOT NULL,"
+         "id        INT NOT NULL,"
+         "name      TEXT NOT NULL,"
+         "basis     TEXT NOT NULL,"
+         "orbfile   TEXT NOT NULL,"
+         "torbnrs   TEXT NOT NULL,"
+         "coordfile TEXT NOT NULL,"
+         "canRigid  INT NOT NULL)");
+
     // Table format fragments
     Exec("CREATE TABLE fragments ("
         "_id    INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -99,7 +112,7 @@ void QMDatabase2::onCreate()
          "top   INT NOT NULL,"
          "id    INT NOT NULL,"
          "name  TEXT NOT NULL,"
-         "type  TEXT NOT NULL,"
+         "type  INT NOT NULL,"
 
          "mol   INT NOT NULL,"
          "seg   INT NOT NULL,"
@@ -112,6 +125,7 @@ void QMDatabase2::onCreate()
          "posY    REAL NOT NULL,"
          "posZ    REAL NOT NULL,"
          "weight  REAL NOT NULL,"
+         "element TEXT NOT NULL,"
          "qmid    INT NOT NULL,"
          "qmPosX  REAL NOT NULL,"
          "qmPosY  REAL NOT NULL,"

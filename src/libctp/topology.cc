@@ -36,6 +36,12 @@ void Topology::CleanUp() {
     _fragments.clear();
     _atoms.clear();
 
+    vector < SegmentType* > ::iterator sit;
+    for (sit = _segmentTypes.begin(); sit < _segmentTypes.end(); sit++) {
+        delete *sit;
+    }
+    _segmentTypes.clear();
+
     if (_bc) { delete(_bc); _bc = NULL; }
     _bc = new CSG::OpenBox;
     
@@ -56,6 +62,16 @@ Topology::~Topology() {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
+
+    vector < SegmentType* > ::iterator typeit;
+    for (typeit = _segmentTypes.begin();
+         typeit < _segmentTypes.end();
+         typeit++) {
+        delete *typeit;
+    }
+    _segmentTypes.clear();
+
+
 }
 
 
@@ -93,6 +109,14 @@ Molecule *Topology::AddMolecule(string molecule_name) {
     _molecules.push_back(molecule);
     molecule->setTopology(this);
     return molecule;
+}
+
+SegmentType *Topology::AddSegmentType(string typeName) {
+    int typeId = _segmentTypes.size() + 1;
+    SegmentType *segType = new SegmentType(typeId, typeName);
+    _segmentTypes.push_back(segType);
+    segType->setTopology(this);
+    return segType;
 }
 
 
@@ -169,7 +193,16 @@ vec Topology::PbShortestConnect(const vec &r1, const vec &r2) const {
 
 
 
+void Topology::Rigidify() {
 
+    vector<Segment*> ::iterator sit;
+    for (sit = _segments.begin();
+         sit < _segments.end();
+         sit++) {
+
+         (*sit)->Rigidify();
+    }
+}
 
 
 

@@ -74,8 +74,8 @@ bool TDump::EvaluateFrame(Topology *top) {
          sit++) {
 
 
-        cout << "\r... ... Rigidify segment " << (*sit)->getName()
-             << (*sit)->getId() << flush;
+        cout << "\r... ... Rigidified " << (*sit)->getId() << " segments. "
+             << flush;
 
         (*sit)->Rigidify();
         (*sit)->WritePDB(outPDBmd, "Atoms", "MD");

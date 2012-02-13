@@ -37,10 +37,11 @@ private:
     Property _typology;
     
     // Type vectors
-    vector < CTP::Molecule* > _molecule_types;
-    vector < CTP::Segment* >  _segment_types;
-    vector < CTP::Fragment* > _fragment_types;
-    vector < CTP::Atom* >     _atom_types;
+    vector < CTP::Molecule* >    _molecule_types;
+    vector < CTP::Segment* >     _segment_types;
+    vector < CTP::SegmentType* > _qmUnits;
+    vector < CTP::Fragment* >    _fragment_types;
+    vector < CTP::Atom* >        _atom_types;    
 
     // MD <-> QM Maps
     map < string, map < int, map < string, CTP::Atom* > > >
@@ -51,14 +52,18 @@ private:
 
 
     // Type Creators
-    CTP::Molecule  *AddMoleculeType(int molecule_id, Property *property);
-    CTP::Segment   *AddSegmentType(int segment_id, Property *property);
-    CTP::Fragment  *AddFragmentType(int fragment_id, Property *property);
-    CTP::Atom      *AddAtomType(CTP::Molecule *owner,
-                                string residue_name,    int residue_number,
-                                string md_atom_name,    int md_atom_id,
-                                bool hasQMPart,         int qm_atom_id,
-                                vec qmpos,              double weight);
+    CTP::Molecule    *AddMoleculeType(int molecule_id, Property *property);
+    CTP::Segment     *AddSegmentType(int segment_id, Property *property);
+    CTP::SegmentType *AddQMUnit(int unit_id, Property *property);
+    CTP::Fragment    *AddFragmentType(int fragment_id, Property *property);
+    CTP::Atom        *AddAtomType(CTP::Molecule *owner,
+                                  string residue_name,    int residue_number,
+                                  string md_atom_name,    int md_atom_id,
+                                  bool hasQMPart,         int qm_atom_id,
+                                  vec qmpos,              string element,
+                                  double weight);
+    
+    
 
     const string   &getMoleculeName(const string &mdname);
     CTP::Molecule  *getMoleculeType(const string &name);

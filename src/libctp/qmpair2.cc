@@ -31,6 +31,7 @@ QMPair2::QMPair2(int id, Segment *seg1, Segment *seg2)
         _ghost->setPos(r1 + _R);
         _ghost->setMolecule( second->getMolecule() );
         _ghost->setTopology( _top );
+        _ghost->setType(seg2->getType());
         _hasGhost = 1;
     }
     else {

@@ -171,12 +171,12 @@ void Fragment::Rigidify(bool Auto) {
 
         // ... this: Check whether one of the components is equal or close to
         // zero. If so, this easily gives a second leg for the trihedron.
-        if      ( xMD.getX()*xMD.getX() < 1e-3 ) { yMDtmp = vec(1,0,0); }
-        else if ( xMD.getY()*xMD.getY() < 1e-3 ) { yMDtmp = vec(0,1,0); }
-        else if ( xMD.getZ()*xMD.getZ() < 1e-3 ) { yMDtmp = vec(0,0,1); }
-        if      ( xQM.getX()*xQM.getX() < 1e-3 ) { yQMtmp = vec(1,0,0); }
-        else if ( xQM.getY()*xQM.getY() < 1e-3 ) { yQMtmp = vec(0,1,0); }
-        else if ( xQM.getZ()*xQM.getZ() < 1e-3 ) { yQMtmp = vec(0,0,1); }
+        if      ( xMD.getX()*xMD.getX() < 1e-6 ) { yMDtmp = vec(1,0,0); }
+        else if ( xMD.getY()*xMD.getY() < 1e-6 ) { yMDtmp = vec(0,1,0); }
+        else if ( xMD.getZ()*xMD.getZ() < 1e-6 ) { yMDtmp = vec(0,0,1); }
+        if      ( xQM.getX()*xQM.getX() < 1e-6 ) { yQMtmp = vec(1,0,0); }
+        else if ( xQM.getY()*xQM.getY() < 1e-6 ) { yQMtmp = vec(0,1,0); }
+        else if ( xQM.getZ()*xQM.getZ() < 1e-6 ) { yQMtmp = vec(0,0,1); }
 
         if ( abs(yMDtmp) < 0.5 ) {
            // All components of xMD are unequal to zero => division is safe.

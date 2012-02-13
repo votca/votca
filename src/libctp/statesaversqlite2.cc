@@ -71,6 +71,7 @@ void StateSaverSQLite2::WriteFrame() {
 
     this->WriteMeta(hasAlready);
     this->WriteMolecules(hasAlready);
+    this->WriteSegTypes(hasAlready);
     this->WriteSegments(hasAlready);
     this->WriteFragments(hasAlready);
     this->WriteAtoms(hasAlready);
@@ -156,6 +157,63 @@ void StateSaverSQLite2::WriteMolecules(bool update) {
 }
 
 
+void StateSaverSQLite2::WriteSegTypes(bool update) {
+    cout << ", types";
+    Statement *stmt;
+
+    if (!update) {
+        stmt = _db.Prepare("INSERT INTO segmentTypes ("
+                           "frame, top, id,"
+                           "name, basis, orbfile,"
+                           "torbnrs, coordfile, canRigid)"
+                           "VALUES ("
+                           "?,  ?,  ?,"
+                           "?,  ?,  ?,"
+                           "?, ?,   ?)");
+    }
+    else {
+        return; // nothing to do here
+    }
+
+    vector < SegmentType* > ::iterator typeit;
+    for (typeit = _qmtop->SegmentTypes().begin();
+            typeit < _qmtop->SegmentTypes().end();
+            typeit++) {
+
+        SegmentType *type = *typeit;
+
+        if (!update) {
+            stmt->Bind(1, _qmtop->getDatabaseId());
+            stmt->Bind(2, type->getTopology()->getDatabaseId());
+            stmt->Bind(3, type->getId());
+            stmt->Bind(4, type->getName());
+            stmt->Bind(5, type->getBasisName());
+            stmt->Bind(6, type->getOrbitalsFile());            
+
+            // Process transporting-orbital numbers
+            string torbNrs = "";
+            vector <int> ::iterator iit;
+            for (int i = 0; i < type->getTOrbNrs().size(); i++) {
+                int    nrInt = (type->getTOrbNrs())[i];
+                string nrStr = boost::lexical_cast<string>(nrInt);
+                torbNrs += ":" + nrStr;
+            }
+            stmt->Bind(7, torbNrs);
+            stmt->Bind(8, type->getQMCoordsFile());
+
+            int canRigid = 0;
+            if (type->canRigidify()) { canRigid = 1; }
+            stmt->Bind(9, canRigid);
+        }
+        stmt->InsertStep();
+        stmt->Reset();
+    }
+
+    delete stmt;
+    stmt = NULL;
+}
+
+
 void StateSaverSQLite2::WriteSegments(bool update) {
     cout << ", segments";
     Statement *stmt;
@@ -192,7 +250,7 @@ void StateSaverSQLite2::WriteSegments(bool update) {
             stmt->Bind(2, seg->getTopology()->getDatabaseId());
             stmt->Bind(3, seg->getId());
             stmt->Bind(4, seg->getName());
-            stmt->Bind(5, seg->getName());
+            stmt->Bind(5, seg->getType()->getId());
             stmt->Bind(6, seg->getMolecule()->getId());
             stmt->Bind(7, seg->getPos().getX());
             stmt->Bind(8, seg->getPos().getY());
@@ -291,14 +349,16 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
                             "seg, frag,  resnr,"
                             "resname, posX, posY,"
                             "posZ, weight, qmid,"
-                            "qmPosX, qmPosY, qmPosZ)"
+                            "qmPosX, qmPosY, qmPosZ,"
+                            "element )"
                             "VALUES ("
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
                             "?,     ?,  ?,"
-                            "?,     ?,  ?)");
+                            "?,     ?,  ?,"
+                            "? )");
     }
     else {
         return; // nothing to do here
@@ -311,7 +371,6 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
             ait < _qmtop->Atoms().end();
             ait++) {
         Atom *atm = *ait;
-        
         stmt->Bind(2, atm->getTopology()->getDatabaseId());
         stmt->Bind(3, atm->getId());
         stmt->Bind(4, atm->getName());
@@ -329,6 +388,7 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
         stmt->Bind(16, atm->getQMPos().getX());
         stmt->Bind(17, atm->getQMPos().getY());
         stmt->Bind(18, atm->getQMPos().getZ());
+        stmt->Bind(19, atm->getElement());
 
         stmt->InsertStep();
         stmt->Reset();
@@ -446,6 +506,7 @@ void StateSaverSQLite2::ReadFrame() {
     
     this->ReadMeta(topId);
     this->ReadMolecules(topId);
+    this->ReadSegTypes(topId);
     this->ReadSegments(topId);
     this->ReadFragments(topId);
     this->ReadAtoms(topId);    
@@ -501,11 +562,50 @@ void StateSaverSQLite2::ReadMolecules(int topId) {
 }
 
 
+void StateSaverSQLite2::ReadSegTypes(int topId) {
+
+    cout << ", types";
+
+    Statement *stmt = _db.Prepare("SELECT "
+                                  "name, basis, orbfile, "
+                                  "torbnrs, coordfile, canRigid "
+                                  "FROM segmentTypes "
+                                  "WHERE top = ?;");
+
+    stmt->Bind(1, topId);
+    while (stmt->Step() != SQLITE_DONE) {
+        SegmentType *type = _qmtop->AddSegmentType(stmt->Column<string>(0));
+        type->setBasisName(stmt->Column<string>(1));
+        type->setOrbitalsFile(stmt->Column<string>(2));
+        type->setQMCoordsFile(stmt->Column<string>(4));
+
+        // Transporting orbitals
+        Tokenizer toker(stmt->Column<string>(3), ":");
+        vector<string> orbNrsStrings;
+        toker.ToVector(orbNrsStrings);
+        vector<int> orbNrsInts;
+        for (int i = 0; i < orbNrsStrings.size(); i++) {
+            int nr = boost::lexical_cast<int>(orbNrsStrings[i]);
+            orbNrsInts.push_back(nr);
+        }
+        type->setTOrbNrs(orbNrsInts);
+
+        int canRigidify = stmt->Column<int>(5);
+        type->setCanRigidify(canRigidify);
+
+    }
+
+    delete stmt;
+    stmt = NULL;
+}
+
+
+
 void StateSaverSQLite2::ReadSegments(int topId) {
 
     cout << ", segments";
 
-    Statement *stmt = _db.Prepare("SELECT name, mol, "
+    Statement *stmt = _db.Prepare("SELECT name, type, mol, "
                                   "posX, posY, posZ, "
                                   "lI_AN, lI_NA, lI_CN,"
                                   "lI_NC, eI_A, eI_C,"
@@ -518,24 +618,26 @@ void StateSaverSQLite2::ReadSegments(int topId) {
     while (stmt->Step() != SQLITE_DONE) {
 
         string  name = stmt->Column<string>(0);
-        int     id   = stmt->Column<int>(1);
-        double  X    = stmt->Column<double>(2);
-        double  Y    = stmt->Column<double>(3);
-        double  Z    = stmt->Column<double>(4);
-        double  l1   = stmt->Column<double>(5);
-        double  l2   = stmt->Column<double>(6);
-        double  l3   = stmt->Column<double>(7);
-        double  l4   = stmt->Column<double>(8);
-        double  e1   = stmt->Column<double>(9);
-        double  e2   = stmt->Column<double>(10);
-        double  e3   = stmt->Column<double>(11);
-        double  e4   = stmt->Column<double>(12);
-        double  e5   = stmt->Column<double>(13);
-        double  o1   = stmt->Column<double>(14);
-        double  o2   = stmt->Column<double>(15);
+        int     type = stmt->Column<int>(1);
+        int     mId  = stmt->Column<int>(2);
+        double  X    = stmt->Column<double>(3);
+        double  Y    = stmt->Column<double>(4);
+        double  Z    = stmt->Column<double>(5);
+        double  l1   = stmt->Column<double>(6);
+        double  l2   = stmt->Column<double>(7);
+        double  l3   = stmt->Column<double>(8);
+        double  l4   = stmt->Column<double>(9);
+        double  e1   = stmt->Column<double>(10);
+        double  e2   = stmt->Column<double>(11);
+        double  e3   = stmt->Column<double>(12);
+        double  e4   = stmt->Column<double>(13);
+        double  e5   = stmt->Column<double>(14);
+        double  o1   = stmt->Column<double>(15);
+        double  o2   = stmt->Column<double>(16);
 
         Segment *seg = _qmtop->AddSegment(name);
-        seg->setMolecule(_qmtop->getMolecule(id));
+        seg->setMolecule(_qmtop->getMolecule(mId));
+        seg->setType(_qmtop->getSegmentType(type));
         seg->setPos(vec(X, Y, Z));
         seg->setLambdaIntra(-1, 0, l1);
         seg->setLambdaIntra(0, -1, l2);
@@ -612,7 +714,7 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
                                   "resnr, resname, "
                                   "posX, posY, posZ, "
                                   "weight, qmid, qmPosX, "
-                                  "qmPosY, qmPosZ "
+                                  "qmPosY, qmPosZ, element "
                                   "FROM atoms "
                                   "WHERE top = ?;");
 
@@ -634,10 +736,12 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
         double  qmPosX = stmt->Column<double>(11);
         double  qmPosY = stmt->Column<double>(12);
         double  qmPosZ = stmt->Column<double>(13);
+        string  element = stmt->Column<string>(14);
 
         Atom *atm = _qmtop->AddAtom(name);
         atm->setWeight(weight);
         atm->setQMPart(qmid, vec(qmPosX,qmPosY,qmPosZ));
+        atm->setElement(element);
         atm->setPos( vec(posX, posY, posZ) );
         
         atm->setFragment(_qmtop->getFragment(fragid));
