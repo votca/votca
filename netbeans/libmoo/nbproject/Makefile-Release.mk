@@ -24,13 +24,12 @@ AS=as
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Release
 CND_DISTDIR=dist
-CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile_nb
 
 # Object Directory
-OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -40,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484467347/charges.o \
 	${OBJECTDIR}/_ext/484467347/fock.o \
 	${OBJECTDIR}/_ext/484467347/basis_set.o \
+	${OBJECTDIR}/_ext/484467347/jcalc2.o \
 	${OBJECTDIR}/_ext/484467347/mol_and_orb.o \
 	${OBJECTDIR}/_ext/484467347/units.o \
 	${OBJECTDIR}/_ext/484467347/jcalc.o
@@ -63,7 +63,7 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/libmoo/libmoo.a
+	"${MAKE}"  -f nbproject/Makefile-Release.mk ../../src/libmoo/libmoo.a
 
 ../../src/libmoo/libmoo.a: ${OBJECTFILES}
 	${MKDIR} -p ../../src/libmoo
@@ -101,6 +101,11 @@ ${OBJECTDIR}/_ext/484467347/basis_set.o: ../../src/libmoo/basis_set.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/basis_set.o ../../src/libmoo/basis_set.cpp
 
+${OBJECTDIR}/_ext/484467347/jcalc2.o: ../../src/libmoo/jcalc2.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484467347/jcalc2.o ../../src/libmoo/jcalc2.cc
+
 ${OBJECTDIR}/_ext/484467347/mol_and_orb.o: ../../src/libmoo/mol_and_orb.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484467347
 	${RM} $@.d
@@ -121,7 +126,7 @@ ${OBJECTDIR}/_ext/484467347/jcalc.o: ../../src/libmoo/jcalc.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} -r build/Release
 	${RM} ../../src/libmoo/libmoo.a
 
 # Subprojects

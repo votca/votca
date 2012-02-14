@@ -11,6 +11,7 @@
       <itemPath>../../include/votca/moo/fock.h</itemPath>
       <itemPath>../../include/votca/moo/global.h</itemPath>
       <itemPath>../../include/votca/moo/jcalc.h</itemPath>
+      <itemPath>../../include/votca/moo/jcalc2.h</itemPath>
       <itemPath>../../include/votca/moo/mol_and_orb.h</itemPath>
       <itemPath>../../include/votca/moo/orbitals.h</itemPath>
       <itemPath>../../include/votca/moo/units.h</itemPath>
@@ -28,6 +29,7 @@
       <itemPath>../../src/libmoo/crgunittype.cc</itemPath>
       <itemPath>../../src/libmoo/fock.cc</itemPath>
       <itemPath>../../src/libmoo/jcalc.cc</itemPath>
+      <itemPath>../../src/libmoo/jcalc2.cc</itemPath>
       <itemPath>../../src/libmoo/mol_and_orb.cpp</itemPath>
       <itemPath>../../src/libmoo/orbitals.cpp</itemPath>
       <itemPath>../../src/libmoo/units.cc</itemPath>
