@@ -75,21 +75,7 @@ class basis_set{
 	basis_set & operator =(const basis_set a);
 
 	const int & get_nel_at(const int & i) const {
-            //if ( i <= sizeof(_nel_at) / sizeof(int) ) {
 		return _nel_at[i];
-<<<<<<< local
-            //} else
-           // {
-             //   cout << "WARNING: number of electrons is not known for this atom type: " << i << endl;
-            //}
-=======
-            } else
-            {
-                return _nel_at[i];                
-                //throw runtime_error(string("number of electrons is not known for this atom type: ")+
-                //        boost::lexical_cast<string>( i ));
-            }
->>>>>>> other
 	}
 
 	const int & get_nbasis_at(const int & i) const {

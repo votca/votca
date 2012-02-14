@@ -351,7 +351,6 @@ public:
                           const vec & com,
                           mol_and_orb * mol2) {
         vector <int>::iterator it_at ;
-<<<<<<< local
         
         if (globals::verbose) {
                 cout << "translating " << list_at.size() 
@@ -363,7 +362,7 @@ public:
         }
         
         for (it_at = list_at.begin(); it_at != list_at.end() ; ++it_at){
-=======
+
        #ifdef DEBUG
        cout << "about to rotate so many atoms: "
             << list_at.size() << " by this distance: "
@@ -372,9 +371,8 @@ public:
         for (it_at = list_at.begin();
              it_at != list_at.end();
              ++it_at) {
->>>>>>> other
-            #ifdef DEBUG
-            cout << "rotateing atom:" << *it_at <<endl;
+       #ifdef DEBUG
+       cout << "rotating atom:" << *it_at <<endl;
             #endif
 
 
