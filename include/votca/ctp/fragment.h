@@ -39,12 +39,13 @@ class Segment;
 
 class Fragment {
 public:
-     /// Constructor
+
      Fragment(int id, string name) : _id(id), _name(name), _symmetry(-1) { }
+     Fragment(Fragment *stencil);
     ~Fragment();
     
     void Rotate(matrix spin, vec refPos);    // rotates w.r.t. center of map
-    void Translate(vec shift);
+    void TranslateBy(const vec &shift);
     void RotTransQM2MD();
 
     inline void setTopology(Topology *container) { _top = container; }

@@ -27,12 +27,11 @@ QMPair2::QMPair2(int id, Segment *seg1, Segment *seg2)
 
     // Check whether pair formed across periodic boundary
     if ( abs(r2 - r1 - _R) > 1e-8 ) {
-        _ghost = new Segment( second->getId(), second->getName() );
-        _ghost->setPos(r1 + _R);
-        _ghost->setMolecule( second->getMolecule() );
-        _ghost->setTopology( _top );
-        _ghost->setType(seg2->getType());
-        _hasGhost = 1;
+
+        _ghost = new Segment(seg2);
+        _ghost->TranslateBy(r1 - r2 + _R);
+        _hasGhost = true;
+
     }
     else {
         _ghost = NULL;

@@ -31,7 +31,7 @@ bool PairCalculator2::EvaluateFrame(Topology *top) {
     QMNBList2::iterator pit;
     for (pit = nblist.begin(); pit != nblist.end(); pit++) {
         EvaluatePair(top, *pit);
-        // return 1; // OVERRIDE
+        return 1; // OVERRIDE
     }
     
     return 1;

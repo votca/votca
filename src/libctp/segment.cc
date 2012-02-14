@@ -26,7 +26,33 @@ Segment::Segment(int id, string name)
         : _id(id), _name(name), _hasOccProb(0),
           _hasLambdas(0) { }
 
-/// Destructor
+// This constructor creates a copy of the stencil segment, without
+// adding it to any containers further up in the hierarchy; i.e. the topology
+// and molecules will neither know about the existence of this segment, nor
+// be able to access it. Used for creating the ghost in PB corrected pairs.
+Segment::Segment(Segment *stencil)
+        : _id(stencil->getId()),    _name(stencil->getName()+"_ghost"),
+          _typ(stencil->getType()), _top(NULL), _mol(NULL),
+          _CoM(stencil->getPos()) {
+
+    vector<Fragment*> ::iterator fit;
+    for (fit = stencil->Fragments().begin();
+         fit < stencil->Fragments().end();
+            fit++) {
+
+        Fragment *newFrag = new Fragment(*fit);
+        this->AddFragment(newFrag);
+
+        vector<Atom*> ::iterator ait;
+        for (ait = newFrag->Atoms().begin();
+             ait < newFrag->Atoms().end();
+             ait++) {
+            this->AddAtom(*ait);
+        }
+    }
+}
+
+
 Segment::~Segment() {
 
     vector < Fragment* > ::iterator fragit;
@@ -41,7 +67,19 @@ Segment::~Segment() {
     _lambdasIntra.clear();
     _eMpoles.clear();
     _occProb.clear();
+}
 
+void Segment::TranslateBy(const vec &shift) {
+
+    _CoM = _CoM + shift;
+
+    vector < Fragment* > ::iterator fit;
+    for (fit = _fragments.begin();
+            fit < _fragments.end();
+            fit++) {
+
+        (*fit)->TranslateBy(shift);
+    }
 }
 
 

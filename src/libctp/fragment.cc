@@ -3,6 +3,24 @@
 using namespace std;
 namespace votca { namespace ctp {
 
+Fragment::Fragment(Fragment *stencil)
+         : _id(stencil->getId()), _name(stencil->getName()+"_ghost"),
+           _top(NULL), _mol(NULL), _rotateQM2MD(stencil->getRotQM2MD()),
+           _CoQM(stencil->getCoQM()), _CoMD(stencil->getCoMD()),
+           _trihedron(stencil->getTrihedron()) {
+
+    vector< Atom* > ::iterator ait;
+    for (ait = stencil->Atoms().begin();
+         ait < stencil->Atoms().end();
+         ait++) {
+
+        Atom *newAtom = new Atom(*ait);  
+        this->AddAtom(newAtom);
+    }
+}
+
+
+
 Fragment::~Fragment() {
     vector < Atom* > ::iterator atmit;
     for (atmit = this->Atoms().begin();
@@ -31,13 +49,14 @@ void Fragment::Rotate(matrix spin, vec refPos) {
     }
 }
 
-void Fragment::Translate(vec shift) {
+void Fragment::TranslateBy(const vec &shift) {
+
+    _CoMD = _CoMD + shift;
+
     vector <Atom*> ::iterator ait;
     for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
-        vec newQMPos = (*ait)->getQMPos() + shift;
-        (*ait)->setQMPos(newQMPos);
+        (*ait)->TranslateBy(shift);
     }
-    this->calcPos("QM");
 }
 
 
