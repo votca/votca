@@ -66,13 +66,6 @@ void QMPair2::setRate21(int carrier, double rate) {
     _hasRates = true;
 }
 
-
-
-
-
-
-
-
 double QMPair2::calcJeff2() {
     vector <double> ::iterator it;
     double Jeff2 = 0;
@@ -90,6 +83,18 @@ Segment *QMPair2::Seg2PbCopy() {
     else {
         return second;
     }
+}
+
+void QMPair2::WritePDB(string fileName) {
+
+    FILE *pdb = NULL;
+    pdb = fopen(fileName.c_str(), "w");
+
+    this->first->WritePDB(pdb, "Atoms", "MD");
+    this->second->WritePDB(pdb, "Atoms", "MD");
+    if (this->HasGhost()) { this->_ghost->WritePDB(pdb, "Atoms", "MD"); }
+
+    fclose(pdb);
 }
 
 }}

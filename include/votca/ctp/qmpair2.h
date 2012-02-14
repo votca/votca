@@ -52,6 +52,7 @@ public:
    Segment* Seg2() { return second; }
 
    bool     HasGhost() { return _hasGhost; }
+   void     WritePDB(string fileName);
 
 
 

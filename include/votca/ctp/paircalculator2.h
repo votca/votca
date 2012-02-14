@@ -30,8 +30,15 @@ bool PairCalculator2::EvaluateFrame(Topology *top) {
 
     QMNBList2::iterator pit;
     for (pit = nblist.begin(); pit != nblist.end(); pit++) {
+
         EvaluatePair(top, *pit);
-        return 1; // OVERRIDE
+
+        // return 1; // OVERRIDE
+        //if (count > 10) { return 1; }
+        //string pairId = boost::lexical_cast<string>((*pit)->getId());
+        //string pdbname = "Pair" + pairId + ".pdb";
+        //(*pit)->WritePDB(pdbname);
+
     }
     
     return 1;
