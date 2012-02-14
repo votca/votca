@@ -18,8 +18,14 @@ public:
 
 bool PairCalculator2::EvaluateFrame(Topology *top) {
 
+    // Rigidify if (a) not rigid yet (b) rigidification at all possible
+    if (!top->isRigid()) {
+        bool isRigid = top->Rigidify();
+        if (!isRigid) { return 0; }
+    }
+    else { cout << endl << "... ... System is already rigidified."; }
     cout << endl;
-    
+
     QMNBList2 &nblist = top->NBList();
 
     QMNBList2::iterator pit;
@@ -27,7 +33,7 @@ bool PairCalculator2::EvaluateFrame(Topology *top) {
         EvaluatePair(top, *pit);
         return 1; // OVERRIDE
     }
-
+    
     return 1;
 }
 

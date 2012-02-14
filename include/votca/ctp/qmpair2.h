@@ -42,7 +42,7 @@ public:
    double  &getRate21(int carrier);
    double  &getRate21() { return _rate21; }
 
-   void     setJs(const vector <double> &Js) { _Js = Js; }
+   void     setJs(const vector <double> Js) { _Js = Js; }
    double   calcJeff2();
    vector<double> &Js() { return _Js; }
 

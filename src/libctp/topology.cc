@@ -21,7 +21,9 @@
 
 namespace votca { namespace ctp {
 
-Topology::Topology() : _db_id(-1), _hasPb(0), _bc(NULL), _nblist(this) { }
+Topology::Topology() : _db_id(-1), _hasPb(0), 
+                       _bc(NULL), _nblist(this),
+                       _isRigid(false)  { }
 
 // +++++++++++++++++++++ //
 // Clean-Up, Destruct    //
@@ -46,6 +48,7 @@ void Topology::CleanUp() {
     _bc = new CSG::OpenBox;
     
     _nblist.Cleanup();
+    _isRigid = false;
 }
 
 
@@ -193,16 +196,70 @@ vec Topology::PbShortestConnect(const vec &r1, const vec &r2) const {
 
 
 
-void Topology::Rigidify() {
+bool Topology::Rigidify() {
 
-    vector<Segment*> ::iterator sit;
-    for (sit = _segments.begin();
-         sit < _segments.end();
-         sit++) {
+    if (!_canRigidify) {
+        cout << endl
+             << "... ... ABORT: Request to rigidify system, but no QM "
+                "coordinates provided. ";
+        return 0;
+    }
+    else {
+        cout << endl;
 
-         (*sit)->Rigidify();
+        // Rigidify segments
+        vector<Segment*> ::iterator sit;
+        for (sit = _segments.begin();
+             sit < _segments.end();
+             sit++) {
+
+             cout << "\r... ... Rigidified " << (*sit)->getId() << " segments. "
+             << flush;
+
+             (*sit)->Rigidify();
+        }
+
+        cout << endl;
+
+        // Rigidify pairs
+        // [ Why this is needed: Orientation matrices for fragments are not
+        //   not written to the state file, and hence lost whenever a frame
+        //   is saved and reloaded. When reading in a new frame from the
+        //   database, pairs are created from scratch based on two segment
+        //   IDs each. Then the pair constructor is called to check whether
+        //   the pair is formed across the periodic boundary. If so, it
+        //   creates a ghost from the second partner. This ghost is a new
+        //   segment which is just accessible from within the pair, but not
+        //   from the topology; i.e. it is not stored in any segment containers.
+        //   Since at this point, fragments do not store rotation matrices yet,
+        //   the ghost - very much deconnected from its originator - does not,
+        //   either. Therefore it should not be forgotten here. --- A way out
+        //   would be to rigidify the topology within StateSaver::ReadFrame,
+        //   after atoms have been created, but before pairs are created. ]
+        
+        QMNBList2 &nblist = this->NBList();
+
+        QMNBList2::iterator pit;
+        int count = 0;
+        for (pit = nblist.begin(); pit != nblist.end(); pit++) {
+
+            QMPair2 *qmpair = *pit;
+            if (qmpair->HasGhost()) {
+                count++;
+
+                cout << "\r... ... Rigidified " << count << " ghosts. "
+                     << flush;
+
+                qmpair->Seg2PbCopy()->Rigidify();
+            }      
+        }   
+
+        _isRigid = true;
+        return 1;
     }
 }
+
+
 
 
 

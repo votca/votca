@@ -40,9 +40,9 @@ class Molecule;
 class Segment
 {
 public:
-    /// Default constructor
+
     Segment(int id, string name);
-    /// Default destructor
+    Segment(Segment *stencil);
    ~Segment();
 
     const int       &getId() { return _id; }
@@ -51,6 +51,7 @@ public:
     const vec       &getPos() const { return _CoM; }
     void             setPos(vec pos) { _CoM = pos; }
     void             calcPos();
+    void             TranslateBy(const vec &shift);
 
     const double    &getOcc(int carrier);
     void             setOcc(int carrier, double occ);

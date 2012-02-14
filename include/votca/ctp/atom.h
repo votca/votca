@@ -65,6 +65,14 @@ public:
        : _id(atom_id),  _name(atom_name),
          _hasQM(false), _qmId(-1) { }
 
+    Atom(Atom *stencil)
+       : _id(stencil->getId()),              _top(NULL),
+         _element(stencil->getElement()),    _hasQM(stencil->HasQMPart()),
+         _weight(stencil->getWeight()),      _qmId(stencil->getQMId()),
+         _name(stencil->getName()+"_ghost"), _mol(NULL), 
+         _qmPos(stencil->getQMPos()),        _pos(stencil->getPos()),
+         _bPos(true)      { }
+
     Atom() { };
    ~Atom() { _Q.clear(); }
 
@@ -89,6 +97,7 @@ public:
     inline void setQMPart(const int &qmid, vec qmPos);
     inline void setQMPos(const vec &qmPos) { _qmPos = qmPos; }
     inline void setElement(const string &element) { _element = element; }
+    inline void TranslateBy(const vec &shift) { _pos = _pos + shift; }
     
     inline const int    &getResnr() { return _resnr; }
     inline const string &getResname() { return _resname; }

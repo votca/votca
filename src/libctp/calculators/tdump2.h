@@ -54,6 +54,13 @@ bool TDump::EvaluateFrame(Topology *top) {
 
     if (_framesWritten > _framesToWrite) { return 1; }
 
+    // Rigidify system (if possible)
+    bool isRigid = top->Rigidify();
+    if (!isRigid) {
+        return 0;
+    }
+
+    // Print coordinates
     FILE *outPDBmd = NULL;
     FILE *outPDBqm = NULL;
 
@@ -64,20 +71,13 @@ bool TDump::EvaluateFrame(Topology *top) {
     fprintf(outPDBmd, "Model %8d \n" , _framesWritten);
 
     fprintf(outPDBqm, "TITLE     VOT CAtastrophic title \n");
-    fprintf(outPDBqm, "Model %8d \n", _framesWritten);
-
-    cout << endl;
+    fprintf(outPDBqm, "Model %8d \n", _framesWritten);    
 
     vector< Segment* > ::iterator sit;
     for (sit = top->Segments().begin();
          sit < top->Segments().end();
          sit++) {
 
-
-        cout << "\r... ... Rigidified " << (*sit)->getId() << " segments. "
-             << flush;
-
-        (*sit)->Rigidify();
         (*sit)->WritePDB(outPDBmd, "Atoms", "MD");
         (*sit)->WritePDB(outPDBqm, "Atoms", "QM");
     }

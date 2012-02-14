@@ -94,12 +94,14 @@ void StateSaverSQLite2::WriteMeta(bool update) {
                             "id,    time,  step,  "
                             "box11, box12, box13, "
                             "box21, box22, box23, "
-                            "box31, box32, box33 )"
+                            "box31, box32, box33, "
+                            "canRigid )"
                             "VALUES ("
                             "?,     ?,     ?,"
                             "?,     ?,     ?,"
                             "?,     ?,     ?,"
-                            "?,     ?,     ?)");
+                            "?,     ?,     ?,"
+                            "?)");
     }
 
     stmt->Bind(1, _qmtop->getDatabaseId());
@@ -111,6 +113,11 @@ void StateSaverSQLite2::WriteMeta(bool update) {
             stmt->Bind(4+3*i+j, _qmtop->getBox().get(i,j));
         }
     }
+
+    int canRigid = 0;
+    if (_qmtop->canRigidify()) { canRigid = 1; }
+    stmt->Bind(13, canRigid);
+
     stmt->InsertStep();
     delete stmt;
     stmt = NULL;
@@ -522,7 +529,8 @@ void StateSaverSQLite2::ReadMeta(int topId) {
                                   "time, step, "
                                   "box11, box12, box13, "
                                   "box21, box22, box23, "
-                                  "box31, box32, box33 "
+                                  "box31, box32, box33, "
+                                  "canRigid "
                                   "FROM frames WHERE "
                                   "id = ?;");
     stmt->Bind(1, topId);
@@ -541,6 +549,7 @@ void StateSaverSQLite2::ReadMeta(int topId) {
         }
     }
     _qmtop->setBox(boxv);
+    _qmtop->setCanRigidify(stmt->Column<int>(11));
     delete stmt;
     stmt = NULL;
 }
