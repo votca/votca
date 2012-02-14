@@ -361,20 +361,17 @@ public:
                      << M.get(2,0) << " " << M.get(2,1) << " " << M.get(2,2)  << endl;   
         }
         
-        for (it_at = list_at.begin(); it_at != list_at.end() ; ++it_at){
-
-       #ifdef DEBUG
-       cout << "about to rotate so many atoms: "
-            << list_at.size() << " by this distance: "
-            << a << endl;
-       #endif
-        for (it_at = list_at.begin();
-             it_at != list_at.end();
-             ++it_at) {
-       #ifdef DEBUG
-       cout << "rotating atom:" << *it_at <<endl;
+            #ifdef DEBUG
+                 cout << "about to rotate so many atoms: "
+                 << list_at.size() << " by this distance: "
+                 << a << endl;
             #endif
 
+        for (it_at = list_at.begin(); it_at != list_at.end(); ++it_at) {
+
+            #ifdef DEBUG
+                 cout << "rotating atom:" << *it_at <<endl;
+            #endif
 
             mol2->atom_pos[*it_at] = M * ( mol2->atom_pos[*it_at] - com ) + a;
 
