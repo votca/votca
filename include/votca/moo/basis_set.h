@@ -79,8 +79,9 @@ class basis_set{
 		return _nel_at[i];
             } else
             {
-                throw runtime_error(string("number of electrons is not known for this atom type: ")+
-                        boost::lexical_cast<string>( i ));
+                return _nel_at[i];                
+                //throw runtime_error(string("number of electrons is not known for this atom type: ")+
+                //        boost::lexical_cast<string>( i ));
             }
 	}
 
