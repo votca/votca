@@ -1,28 +1,63 @@
 #ifndef SANDBOX2_H
 #define SANDBOX2_H
 
-#include <votca/ctp/qmcalculator2.h>
-#include <votca/tools/property.h>
+#include "parallelsitecalc.h"
 
-namespace TOOLS = votca::tools;
 namespace votca { namespace ctp {
 
-class Sandbox2 : public QMCalculator2
+class Sandbox2 : public ParallelSiteCalculator
 {
+
 public:
+    
     Sandbox2() { };
    ~Sandbox2() { };
 
     string  Identify() { return "Sandbox"; }
-    void    Initialize(Topology *top, TOOLS::Property *opt);
-    bool    EvaluateFrame(Topology *top);
+    void Initialize(Topology *top, Property *options);
+
 
 private:
-    int     _ID;
-    double  _p1;
-    double  _p2;
+
 
 };
+
+
+void Sandbox2::Initialize(Topology *top, Property *options) {
+
+    _nThreads = 4;
+
+    cout << endl << "... ... Initialize with " << _nThreads << " threads ";    
+
+}
+
+
+void Sandbox2::SiteOperator::EvalSite(Topology *top, Segment *seg) {
+
+    this->_master->LockCout();
+    cout << "\r... ... Overloading site " << seg->getId() << ". " << flush;
+    this->_master->UnlockCout();
+
+    int ij;
+    for (int i = 0; i < 2000; i++) {
+        for (int j = 0; j < 2000; j++) {
+            ij = i+j;
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 }} /* exit namespace votca::ctp */
 
