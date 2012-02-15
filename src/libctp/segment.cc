@@ -99,6 +99,12 @@ const double &Segment::getESiteIntra(int carrier) {
     return _eSiteIntra[carrier];
 }
 
+
+const double &Segment::getESite(int carrier) {
+    double E = _eSiteIntra[carrier] + _eMpoles[carrier];
+}
+
+
 void Segment::setLambdaIntra(int state0, int state1, double lambda) {
     _hasLambdas = true;
     _lambdasIntra[state0][state1] = lambda;
@@ -129,8 +135,6 @@ void Segment::chrg(int state) {
     }
 }
 
-
-
 void Segment::AddFragment( Fragment* fragment ) {
     _fragments.push_back( fragment );
     fragment->setSegment(this);
@@ -152,9 +156,6 @@ void Segment::calcPos() {
 
     _CoM = pos / totWeight;
 }
-
-
-
 
 void Segment::Rigidify() {
 

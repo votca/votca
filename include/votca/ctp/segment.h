@@ -57,6 +57,7 @@ public:
     void             setOcc(int carrier, double occ);
     bool             hasOccProb() { return _hasOccProb; }
 
+    const double    &getESite(int carrier);
     const double    &getESiteIntra(int carrier);
     void             setESiteIntra(int carrier, double energy);
     bool             hasEIntra() { return _hasESiteIntra; }

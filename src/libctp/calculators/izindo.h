@@ -66,8 +66,6 @@ void IZindo::EvaluatePair(Topology *top, QMPair2 *pair) {
 
     cout << "\r... ... Evaluating pair " << pair->getId()+1 << flush;
 
-    // TODO Ensure PB ghost initialised correctly: Shift vector
-
     this->TranslateCTP2MOO(pair);
     this->CalculateJ(pair);
     this->CleanUp();
@@ -175,7 +173,7 @@ void IZindo::CalculateJ(QMPair2 *pair) {
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  _morb1);
 
-        // TODO Check rotation of orbitals
+        // Rotate orbitals
         for (int i = 0; i < this->_torbNrs1.size(); i++) {
             _orb1->rotate_someatoms(atmIdcs, &rotQM2MD,
                                     _morb1->getorb(i), i);
@@ -217,7 +215,7 @@ void IZindo::CalculateJ(QMPair2 *pair) {
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  _morb2);
 
-        // TODO Check rotation of orbitals
+        // Rotate orbitals
         for (int i = 0; i < this->_torbNrs2.size(); i++) {
             _orb2->rotate_someatoms(atmIdcs, &rotQM2MD,
                                     _morb2->getorb(i), i);

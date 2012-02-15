@@ -33,11 +33,12 @@ bool PairCalculator2::EvaluateFrame(Topology *top) {
 
         EvaluatePair(top, *pit);
 
-        // return 1; // OVERRIDE
-        //if (count > 10) { return 1; }
-        //string pairId = boost::lexical_cast<string>((*pit)->getId());
-        //string pdbname = "Pair" + pairId + ".pdb";
-        //(*pit)->WritePDB(pdbname);
+        if ( (*pit)->getId() == -1 ) {
+            
+            string pairId = boost::lexical_cast<string>((*pit)->getId());
+            string pdbname = "Pair" + pairId + ".pdb";
+            (*pit)->WritePDB(pdbname);
+        }
 
     }
     
