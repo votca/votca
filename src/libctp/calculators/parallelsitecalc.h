@@ -14,20 +14,23 @@ class ParallelSiteCalculator : public QMCalculator2
 
 public:
 
-    ParallelSiteCalculator() : _nThreads(1), _nextSite(1) { };
+    ParallelSiteCalculator() : _nThreads(1), _nextSite(NULL) { };
    ~ParallelSiteCalculator() { };
 
-    string Identify() { return "Parallel Site Calculator"; }
+    string       Identify() { return "Parallel Site Calculator"; }
 
-    bool     EvaluateFrame(Topology *top);
-    Segment *RequestNextSite(int opId, Topology *top);
-    void     LockCout() { _coutMutex.Lock(); }
-    void     UnlockCout() { _coutMutex.Unlock(); }
+    bool         EvaluateFrame(Topology *top);
+    virtual void PrepareFrame(Topology *top) { ; }
+    virtual void FinishFrame(Topology *top) { ; }
+
+    Segment     *RequestNextSite(int opId, Topology *top);
+    void         LockCout() { _coutMutex.Lock(); }
+    void         UnlockCout() { _coutMutex.Unlock(); }
 
 
-    // +++++++++++++++++++++++++++++++++ //
-    // Threaded workers (site operators) //
-    // +++++++++++++++++++++++++++++++++ //
+    // ++++++++++++++++++++++++++++++++++++++ //
+    // Site workers (i.e. individual threads) //
+    // ++++++++++++++++++++++++++++++++++++++ //
 
     class SiteOperator : public Thread
     {
@@ -57,10 +60,10 @@ public:
 
 protected:
 
-    int       _nThreads;
-    int       _nextSite;
-    Mutex     _nextSiteMutex;
-    Mutex     _coutMutex;
+    int                         _nThreads;
+    vector<Segment*> ::iterator _nextSite;
+    Mutex                       _nextSiteMutex;
+    Mutex                       _coutMutex;
 
 
 };
@@ -68,6 +71,8 @@ protected:
 
 bool ParallelSiteCalculator::EvaluateFrame(Topology *top) {
 
+    
+    this->PrepareFrame(top);
     cout << endl;
 
     vector<SiteOperator*> siteOps;
@@ -91,6 +96,7 @@ bool ParallelSiteCalculator::EvaluateFrame(Topology *top) {
 
     siteOps.clear();
 
+    this->FinishFrame(top);
     return 1;
 }
 
@@ -105,15 +111,12 @@ Segment *ParallelSiteCalculator::RequestNextSite(int opId, Topology *top) {
 
     Segment *workOnThis;
 
-    if (_nextSite < 1) {        
+    if (_nextSite == top->Segments().end()) {
         workOnThis = NULL;
     }
     else {
-        workOnThis = top->getSegment(_nextSite);
+        *workOnThis = *_nextSite;
         _nextSite++;
-        if (_nextSite > top->Segments().size()) {
-            _nextSite = -1;
-        }
     }
 
     _nextSiteMutex.Unlock();
@@ -137,24 +140,6 @@ void ParallelSiteCalculator::SiteOperator::Run(void) {
         else { this->EvalSite(_top, seg); }
     }
 }
-
-/*
-virtual void ParallelSiteCalculator::SiteOperator::EvalSite(Topology *top, Segment *seg)
-{
-
-    this->_master->LockCout();
-    cout << "\r... ... Evaluating site " << seg->getId() << ". " << flush;
-    this->_master->UnlockCout();
-
-    int ij;
-    for (int i = 0; i < 2000; i++) {
-        for (int j = 0; j < 2000; j++) {
-            ij = i+j;
-        }
-    }
-}
-*/
-
 
 
 }}

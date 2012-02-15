@@ -7,7 +7,6 @@
 #include "calculators/tdump2.h"
 #include "calculators/rates2.h"
 #include "calculators/izindo.h"
-#include "calculators/parallelsitecalc.h"
 #include "calculators/emultipole.h"
 
 
@@ -22,7 +21,6 @@ void CalculatorFactory2::RegisterAll(void)
         Calculators().Register<TDump>("tdump");
         Calculators().Register<IZindo>("izindo");
         Calculators().Register<Rates2>("rates");
-        Calculators().Register<ParallelSiteCalculator>("parallelsite");
         Calculators().Register<EMultipole>("emultipole");
 }
 

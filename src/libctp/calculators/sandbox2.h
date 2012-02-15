@@ -1,11 +1,11 @@
 #ifndef SANDBOX2_H
 #define SANDBOX2_H
 
-#include "parallelsitecalc.h"
+#include "parallelpaircalc.h"
 
 namespace votca { namespace ctp {
 
-class Sandbox2 : public ParallelSiteCalculator
+class Sandbox2 : public ParallelPairCalculator
 {
 
 public:
@@ -14,11 +14,9 @@ public:
    ~Sandbox2() { };
 
     string  Identify() { return "Sandbox"; }
-    void Initialize(Topology *top, Property *options);
-
-
-private:
-
+    void    Initialize(Topology *top, Property *options);
+    void    PrepareFrame(Topology *top) { cout << endl << "... ... Preparing..."; }
+    void    FinishFrame(Topology *top) { cout << endl << "... ... Finished..."; }
 
 };
 
@@ -32,10 +30,10 @@ void Sandbox2::Initialize(Topology *top, Property *options) {
 }
 
 
-void Sandbox2::SiteOperator::EvalSite(Topology *top, Segment *seg) {
-
+void Sandbox2::PairOperator::EvalPair(Topology *top, QMPair2 *qmpair) {
+  
     this->_master->LockCout();
-    cout << "\r... ... Overloading site " << seg->getId() << ". " << flush;
+    cout << "... ... Overloading pair " << qmpair->getId() << ". " << flush;
     this->_master->UnlockCout();
 
     int ij;
