@@ -150,7 +150,7 @@ cat_external() { #takes a two tags and shows content of the according script
 export -f cat_external
 
 do_external() { #takes two tags, find the according script and excute it
-  local script tags quiet="no" function="no" ret
+  local script tags quiet="no" ret
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
@@ -164,7 +164,7 @@ do_external() { #takes two tags, find the according script and excute it
     ret=$?
     cat "$perl_debug" 2>&1
     [[ $ret -eq 0 ]]
-  elif [[ -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
+  elif [[ $1 != "function" && -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
     CSG_CALLSTACK="$(show_callstack --extra "${script/ *}")" $script "${@:3}"
   else
     CSG_CALLSTACK="$(show_callstack)" $script "${@:3}"
