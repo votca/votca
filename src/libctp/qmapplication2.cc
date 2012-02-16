@@ -24,7 +24,9 @@ void QMApplication2::Initialize(void) {
     AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
                          "  start from this frame");
     AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(-1),
-                         "  number of frames to process");    
+                         "  number of frames to process");
+    AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
+                         "  number of threads to create");
 }
 
 
@@ -39,22 +41,20 @@ void QMApplication2::Run() {
 
     load_property_from_xml(_options, _op_vm["options"].as<string>());
 
+    int nThreads = OptionsMap()["nthreads"].as<int>();
     int nframes = OptionsMap()["nframes"].as<int>();
     int fframe = OptionsMap()["first-frame"].as<int>();
     if (fframe-- == 0) throw runtime_error("ERROR: First frame is 0, counting "
                                            "in VOTCA::CTP starts from 1.");
 
     cout << "Initializing calculators " << endl;
-    BeginEvaluate();
+    BeginEvaluate(nThreads);
 
 
 
     string statefile = OptionsMap()["file"].as<string>();
     StateSaverSQLite2 statsav;
     statsav.Open(_top, statefile);
-    //if (statsav.FramesInDatabase() != 1) {
-    //    throw runtime_error("ERROR: Database contains more than one frame.");
-    //}
 
     while (statsav.NextFrame()) {
         cout << "Evaluating frame " << _top.getDatabaseId() << endl;
@@ -74,11 +74,12 @@ void QMApplication2::AddCalculator(QMCalculator2* calculator) {
 }
 
 
-void QMApplication2::BeginEvaluate() {
+void QMApplication2::BeginEvaluate(int nThreads = 1) {
     list< QMCalculator2* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
-        (*it)->Initialize(&_top, &_options);
+        (*it)->setnThreads(nThreads);
+        (*it)->Initialize(&_top, &_options);        
         cout << endl;
     }
 }

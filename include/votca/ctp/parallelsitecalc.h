@@ -14,7 +14,7 @@ class ParallelSiteCalculator : public QMCalculator2
 
 public:
 
-    ParallelSiteCalculator() : _nThreads(1), _nextSite(NULL) { };
+    ParallelSiteCalculator() : _nextSite(NULL) { };
    ~ParallelSiteCalculator() { };
 
     string       Identify() { return "Parallel Site Calculator"; }
@@ -60,11 +60,9 @@ public:
 
 protected:
 
-    int                         _nThreads;
     vector<Segment*> ::iterator _nextSite;
     Mutex                       _nextSiteMutex;
     Mutex                       _coutMutex;
-
 
 };
 

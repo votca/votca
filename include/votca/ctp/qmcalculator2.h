@@ -22,7 +22,11 @@ public:
     virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
     virtual void    EndEvaluate(CTP::Topology *top) { }
 
+    void            setnThreads(int nThreads) { _nThreads = nThreads; }
+
 protected:
+
+    int _nThreads;
 
 };
 

@@ -14,7 +14,7 @@ class ParallelPairCalculator : public QMCalculator2
 
 public:
 
-    ParallelPairCalculator() : _nThreads(1), _nextPair(NULL) {};
+    ParallelPairCalculator() : _nextPair(NULL) {};
    ~ParallelPairCalculator() {};
 
     string       Identify() { return "Parallel pair calculator"; }
@@ -61,7 +61,6 @@ public:
 
 protected:
 
-    int                   _nThreads;
     QMNBList2::iterator   _nextPair;
     Mutex                 _nextPairMutex;
     Mutex                 _coutMutex;
@@ -71,12 +70,18 @@ protected:
 
 bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
 
-    _nextPair = top->NBList().begin();
-
-    this->InitSlotData(top);
-    cout << endl;
+    // Rigidify if (a) not rigid yet (b) rigidification at all possible
+    if (!top->isRigid()) {
+        bool isRigid = top->Rigidify();
+        if (!isRigid) { return 0; }
+    }
+    else { cout << endl << "... ... System is already rigidified."; }
+    cout << endl;        
 
     vector<PairOperator*> pairOps;
+    this->InitSlotData(top);
+
+    _nextPair = top->NBList().begin();
 
     for (int id = 0; id < _nThreads; id++) {
         PairOperator *newOp = new PairOperator(id, top, this);
