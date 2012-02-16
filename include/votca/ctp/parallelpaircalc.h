@@ -20,8 +20,8 @@ public:
     string       Identify() { return "Parallel pair calculator"; }
 
     bool         EvaluateFrame(Topology *top);
-    virtual void PrepareFrame(Topology *top) { ; }
-    virtual void FinishFrame(Topology *top) { ; }
+    virtual void InitSlotData(Topology *top) { ; }
+    virtual void PostProcess(Topology *top) { ; }
     virtual void EvalPair(Topology *top, QMPair2 *qmpair, int slot) { ; }
 
     QMPair2     *RequestNextPair(int opId, Topology *top);
@@ -73,7 +73,7 @@ bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
 
     _nextPair = top->NBList().begin();
 
-    this->PrepareFrame(top);
+    this->InitSlotData(top);
     cout << endl;
 
     vector<PairOperator*> pairOps;
@@ -97,7 +97,7 @@ bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
 
     pairOps.clear();
 
-    this->FinishFrame(top);
+    this->PostProcess(top);
     return 1;
 }
 

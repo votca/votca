@@ -42,6 +42,26 @@ void Sandbox2::EvalPair(Topology *top, QMPair2 *qmpair, int slot) {
         }
     }
 
+    vector<Segment*> ::iterator sit;
+    for (sit = top->Segments().begin(); sit != top->Segments().end(); sit++) {
+        Segment *seg = *sit;
+
+        vector<Atom*> ::iterator ait;
+        for (ait= top->Atoms().begin(); ait != top->Atoms().end(); ait++) {
+            Atom *atm = *ait;
+
+            int id = atm->getId();
+
+        }
+
+        Atom *atm = seg->Atoms()[1];
+        atm = seg->Atoms()[2];
+        atm = seg->Atoms()[10000];
+        atm = seg->Atoms()[14300];
+
+    }
+
+
 }
 
 
