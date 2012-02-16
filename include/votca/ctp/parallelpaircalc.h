@@ -22,6 +22,7 @@ public:
     bool         EvaluateFrame(Topology *top);
     virtual void PrepareFrame(Topology *top) { ; }
     virtual void FinishFrame(Topology *top) { ; }
+    virtual void EvalPair(Topology *top, QMPair2 *qmpair, int slot) { ; }
 
     QMPair2     *RequestNextPair(int opId, Topology *top);
     void         LockCout() { _coutMutex.Lock(); }
@@ -47,7 +48,7 @@ public:
         void setId(int id) { _id = id; }
 
         void Run(void);
-        virtual void EvalPair(Topology *top, QMPair2 *qmpair);
+        
 
     protected:
 
@@ -133,13 +134,12 @@ void ParallelPairCalculator::PairOperator::Run(void) {
 
     while (true) {
 
-        QMPair2 *qmpair = _master->RequestNextPair(this->getId(), _top);
+        QMPair2 *qmpair = _master->RequestNextPair(_id, _top);
 
         if (qmpair == NULL) { break; }
-        else { this->EvalPair(_top, qmpair); }
+        else { this->_master->EvalPair(_top, qmpair, _id); }
     }
 }
-
 
 
 }}

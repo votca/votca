@@ -1,8 +1,7 @@
 #ifndef _CALC_INTEGRALS_H
 #define	_CALC_INTEGRALS_H
 
-#include <votca/ctp/qmpair2.h>
-#include <votca/ctp/paircalculator2.h>
+#include <votca/ctp/parallelpaircalc.h>
 #include <votca/moo/mol_and_orb.h>
 
 namespace votca { namespace ctp {
@@ -17,7 +16,7 @@ namespace votca { namespace ctp {
 * Callname: izindo
 */
 
-class IZindo : public PairCalculator2
+class IZindo : public ParallelPairCalculator
 {
 public:
 
@@ -25,57 +24,89 @@ public:
    ~IZindo() {};
 
     string  Identify() { return "IZindo"; }
-    void    EvaluatePair(Topology *top, QMPair2 *pair);
-    
-    void    TranslateCTP2MOO(QMPair2 *pair);
-    void    CalculateJ(QMPair2 *pair);
-    void    CleanUp();
+    void    Initialize(Topology *top, Property *options);
+    void    PrepareFrame(Topology *top);
+    void    EvalPair(Topology *top, QMPair2 *qmpair, int slot);
+
+    void    TranslateCTP2MOO(QMPair2 *pair, int slot);
+    void    CalculateJ(QMPair2 *pair, int slot);
+    void    CleanUp(int slot);
 
 
 private:
 
-    mol_and_orb *_morb1;
-    mol_and_orb *_morb2;
-    basis_set   *_basis1;
-    basis_set   *_basis2;
-    orb         *_orb1;
-    orb         *_orb2;
-    fock        *_fock;
+    vector <mol_and_orb *> _morb1;
+    vector <mol_and_orb *> _morb2;
+    vector <basis_set *>   _basis1;
+    vector <basis_set *>   _basis2;
+    vector <orb *>         _orb1;
+    vector <orb *>         _orb2;
+    vector <fock *>        _fock;
 
-    vector<int> _torbNrs1;
-    vector<int> _torbNrs2;
+    vector <vector<int> >  _torbNrs1;
+    vector <vector<int> >  _torbNrs2;
 
 };
 
-void IZindo::CleanUp() {
+void IZindo::CleanUp(int slot) {
 
-    delete _morb1;
-    delete _morb2;
-    delete _basis1;
-    delete _basis2;
-    delete _orb1;
-    delete _orb2;
-    delete _fock;
+    delete _morb1[slot];
+    delete _morb2[slot];
+    delete _basis1[slot];
+    delete _basis2[slot];
+    delete _orb1[slot];
+    delete _orb2[slot];
+    delete _fock[slot];
 
-    _torbNrs1.clear();
-    _torbNrs2.clear();
-
-}
-
-void IZindo::EvaluatePair(Topology *top, QMPair2 *pair) {
-
-    cout << "\r... ... Evaluating pair " << pair->getId()+1 << flush;
-
-    this->TranslateCTP2MOO(pair);
-    this->CalculateJ(pair);
-    this->CleanUp();
+    _torbNrs1[slot].clear();
+    _torbNrs2[slot].clear();
 
 }
 
+void IZindo::Initialize(Topology *top, Property *options) {
+
+    _nThreads = 4;
+    cout << endl << "... ... Initialize with " << _nThreads << " threads ";
+}
+
+
+void IZindo::PrepareFrame(Topology *top) {
+
+    for (int i = 0; i < _nThreads; i++) {
+
+        _morb1.push_back(NULL);
+        _morb2.push_back(NULL);
+        _basis1.push_back(NULL);
+        _basis2.push_back(NULL);
+        _orb1.push_back(NULL);
+        _orb2.push_back(NULL);
+        _fock.push_back(NULL);
+        
+        vector<int> torbNrs1;
+        vector<int> torbNrs2;
+
+        _torbNrs1.push_back(torbNrs1);
+        _torbNrs2.push_back(torbNrs2);
+    }
+}
+
+
+void IZindo::EvalPair(Topology *top, QMPair2 *qmpair, int slot) {
+
+    LockCout();
+    cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << flush;
+    UnlockCout();
+
+    TranslateCTP2MOO(qmpair, slot);
+    CalculateJ(qmpair, slot);
+    CleanUp(slot);
+
+}
 
 
 
-void IZindo::TranslateCTP2MOO(QMPair2 *pair) {
+
+void IZindo::TranslateCTP2MOO(QMPair2 *pair, int slot) {
 
     Segment *seg1 = pair->Seg1PbCopy();
     Segment *seg2 = pair->Seg2PbCopy();
@@ -92,49 +123,49 @@ void IZindo::TranslateCTP2MOO(QMPair2 *pair) {
     vector<int> torbs1 = type1->getTOrbNrs();
     vector<int> torbs2 = type2->getTOrbNrs();
 
-    _morb1 = new mol_and_orb();
-    _morb2 = new mol_and_orb();
-    _basis1 = new basis_set();
-    _basis2 = new basis_set();
-    _orb1   = new orb();
-    _orb2   = new orb();
-    _fock   = new fock();
+    _morb1[slot]  = new mol_and_orb();
+    _morb2[slot]  = new mol_and_orb();
+    _basis1[slot] = new basis_set();
+    _basis2[slot] = new basis_set();
+    _orb1[slot]   = new orb();
+    _orb2[slot]   = new orb();
+    _fock[slot]   = new fock();
 
 
     // Define basis set //
-    _basis1->set_basis_set(basisName1);
-    _morb1->define_bs(_basis1);
-    _basis2->set_basis_set(basisName2);
-    _morb2->define_bs(_basis2);
+    _basis1[slot]->set_basis_set(basisName1);
+    _morb1[slot]->define_bs(_basis1[slot]);
+    _basis2[slot]->set_basis_set(basisName2);
+    _morb2[slot]->define_bs(_basis2[slot]);
 
 
     // Load QM coordinates //
-    _morb1->init(coordsFile1.c_str());
-    _morb2->init(coordsFile2.c_str());    
+    _morb1[slot]->init(coordsFile1.c_str());
+    _morb2[slot]->init(coordsFile2.c_str());
 
     // Create orbitals //
-    _morb1->init_orbitals(*_orb1, orbFile1.c_str());
-    _morb2->init_orbitals(*_orb2, orbFile2.c_str());
+    _morb1[slot]->init_orbitals(*_orb1[slot], orbFile1.c_str());
+    _morb2[slot]->init_orbitals(*_orb2[slot], orbFile2.c_str());
 
-    _orb1->strip_orbitals(torbs1);
-    _orb2->strip_orbitals(torbs2);
+    _orb1[slot]->strip_orbitals(torbs1);
+    _orb2[slot]->strip_orbitals(torbs2);
     
     int frontier1 = torbs1.size();
     int frontier2 = torbs2.size();
-    for (int i = 0; i < frontier1; i++) { _torbNrs1.push_back(i); }
-    for (int j = 0; j < frontier2; j++) { _torbNrs2.push_back(j); }
+    for (int i = 0; i < frontier1; i++) { _torbNrs1[slot].push_back(i); }
+    for (int j = 0; j < frontier2; j++) { _torbNrs2[slot].push_back(j); }
 
-    _morb1->assign_orb(_orb1);
-    _morb2->assign_orb(_orb2);   
+    _morb1[slot]->assign_orb(_orb1[slot]);
+    _morb2[slot]->assign_orb(_orb2[slot]);
 
 
     // Initialise Fock matrix //
-    _fock->init(*_morb1, *_morb2);
+    _fock[slot]->init(*_morb1[slot], *_morb2[slot]);
 
 }
 
 
-void IZindo::CalculateJ(QMPair2 *pair) {
+void IZindo::CalculateJ(QMPair2 *pair, int slot) {
 
     Segment *seg1 = pair->Seg1PbCopy();
     Segment *seg2 = pair->Seg2PbCopy();    
@@ -169,14 +200,14 @@ void IZindo::CalculateJ(QMPair2 *pair) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        _morb1->rotate_someatoms(atmIdcs, rotQM2MD, 
+        _morb1[slot]->rotate_someatoms(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
-                                 _morb1);
+                                 _morb1[slot]);
 
         // Rotate orbitals
-        for (int i = 0; i < this->_torbNrs1.size(); i++) {
-            _orb1->rotate_someatoms(atmIdcs, &rotQM2MD,
-                                    _morb1->getorb(i), i);
+        for (int i = 0; i < this->_torbNrs1[slot].size(); i++) {
+            _orb1[slot]->rotate_someatoms(atmIdcs, &rotQM2MD,
+                                    _morb1[slot]->getorb(i), i);
         }        
     }
 
@@ -211,14 +242,14 @@ void IZindo::CalculateJ(QMPair2 *pair) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        _morb2->rotate_someatoms(atmIdcs, rotQM2MD,
+        _morb2[slot]->rotate_someatoms(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
-                                 _morb2);
+                                 _morb2[slot]);
 
         // Rotate orbitals
-        for (int i = 0; i < this->_torbNrs2.size(); i++) {
-            _orb2->rotate_someatoms(atmIdcs, &rotQM2MD,
-                                    _morb2->getorb(i), i);
+        for (int i = 0; i < this->_torbNrs2[slot].size(); i++) {
+            _orb2[slot]->rotate_someatoms(atmIdcs, &rotQM2MD,
+                                    _morb2[slot]->getorb(i), i);
         }        
     }
 
@@ -230,13 +261,13 @@ void IZindo::CalculateJ(QMPair2 *pair) {
     vector<double> Js;
     std::pair< int, int > torb2torb;
 
-    for (int i = 0; i < _torbNrs1.size(); i++) {
-    for (int j = 0; j < _torbNrs2.size(); j++) {
+    for (int i = 0; i < _torbNrs1[slot].size(); i++) {
+    for (int j = 0; j < _torbNrs2[slot].size(); j++) {
 
-        torb2torb.first  = _torbNrs1[i];
-        torb2torb.second = _torbNrs2[i];        
+        torb2torb.first  = _torbNrs1[slot][i];
+        torb2torb.second = _torbNrs2[slot][i];
 
-        double J = _fock->calcJ(torb2torb);
+        double J = _fock[slot]->calcJ(torb2torb);
         Js.push_back(J);
     }}
 

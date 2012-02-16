@@ -39,9 +39,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/qmapplication.o \
 	${OBJECTDIR}/_ext/238600121/egaussian.o \
 	${OBJECTDIR}/_ext/238600121/emultipole.o \
-	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/484457893/qmpair2.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory2.o \
+	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/238600121/ecorrelation.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist2.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
@@ -114,11 +114,6 @@ ${OBJECTDIR}/_ext/238600121/emultipole.o: ../../src/libctp/calculators/emultipol
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/emultipole.o ../../src/libctp/calculators/emultipole.cc
 
-${OBJECTDIR}/_ext/484457893/qmpair.o: ../../src/libctp/qmpair.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmpair.o ../../src/libctp/qmpair.cc
-
 ${OBJECTDIR}/_ext/484457893/qmpair2.o: ../../src/libctp/qmpair2.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -128,6 +123,11 @@ ${OBJECTDIR}/_ext/484457893/calculatorfactory2.o: ../../src/libctp/calculatorfac
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/calculatorfactory2.o ../../src/libctp/calculatorfactory2.cc
+
+${OBJECTDIR}/_ext/484457893/qmpair.o: ../../src/libctp/qmpair.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmpair.o ../../src/libctp/qmpair.cc
 
 ${OBJECTDIR}/_ext/238600121/ecorrelation.o: ../../src/libctp/calculators/ecorrelation.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121

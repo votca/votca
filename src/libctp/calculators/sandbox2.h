@@ -1,7 +1,7 @@
 #ifndef SANDBOX2_H
 #define SANDBOX2_H
 
-#include "parallelpaircalc.h"
+#include <votca/ctp/parallelpaircalc.h>
 
 namespace votca { namespace ctp {
 
@@ -15,26 +15,25 @@ public:
 
     string  Identify() { return "Sandbox"; }
     void    Initialize(Topology *top, Property *options);
-    void    PrepareFrame(Topology *top) { cout << endl << "... ... Preparing..."; }
-    void    FinishFrame(Topology *top) { cout << endl << "... ... Finished..."; }
+    void    EvalPair(Topology *top, QMPair2 *qmpair, int slot);
 
 };
 
 
 void Sandbox2::Initialize(Topology *top, Property *options) {
 
-    _nThreads = 4;
+    _nThreads = 1;
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads ";    
 
 }
 
 
-void Sandbox2::PairOperator::EvalPair(Topology *top, QMPair2 *qmpair) {
+void Sandbox2::EvalPair(Topology *top, QMPair2 *qmpair, int slot) {
   
-    this->_master->LockCout();
-    cout << "... ... Overloading pair " << qmpair->getId() << ". " << flush;
-    this->_master->UnlockCout();
+    this->LockCout();
+    cout << "\r... ... Overloading pair " << qmpair->getId() << ". " << flush;
+    this->UnlockCout();
 
     int ij;
     for (int i = 0; i < 2000; i++) {
