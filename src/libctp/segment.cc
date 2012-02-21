@@ -67,6 +67,7 @@ Segment::~Segment() {
     _lambdasIntra.clear();
     _eMpoles.clear();
     _occProb.clear();
+    _polarSites.clear();
 }
 
 void Segment::TranslateBy(const vec &shift) {
@@ -143,6 +144,13 @@ void Segment::AddFragment( Fragment* fragment ) {
 void Segment::AddAtom( Atom* atom ) {
     _atoms.push_back( atom );
     atom->setSegment(this);
+}
+
+void Segment::AddPolarSite( PolarSite *pole ) {
+
+    _polarSites.push_back(pole);
+    pole->setSegment(this);
+
 }
 
 void Segment::calcPos() {

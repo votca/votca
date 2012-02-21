@@ -23,7 +23,7 @@ namespace votca { namespace ctp {
 
 Topology::Topology() : _db_id(-1), _hasPb(0), 
                        _bc(NULL), _nblist(this),
-                       _isRigid(false)  { }
+                       _isRigid(false), _isEStatified(false)  { }
 
 // +++++++++++++++++++++ //
 // Clean-Up, Destruct    //
@@ -37,6 +37,7 @@ void Topology::CleanUp() {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
+    _polarSites.clear();
 
     vector < SegmentType* > ::iterator sit;
     for (sit = _segmentTypes.begin(); sit < _segmentTypes.end(); sit++) {
@@ -65,6 +66,7 @@ Topology::~Topology() {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
+    _polarSites.clear();
 
     vector < SegmentType* > ::iterator typeit;
     for (typeit = _segmentTypes.begin();
@@ -104,6 +106,14 @@ Atom *Topology::AddAtom(string atom_name) {
     _atoms.push_back(atom);
     atom->setTopology(this);
     return atom;
+}
+
+PolarSite *Topology::AddPolarSite(string siteName) {
+    int poleId = _polarSites.size() + 1;
+    PolarSite *pole = new PolarSite(poleId, siteName);
+    _polarSites.push_back(pole);
+    pole->setTopology(this);
+    return pole;
 }
 
 Molecule *Topology::AddMolecule(string molecule_name) {

@@ -19,24 +19,17 @@
 #define	__VOTCA_CTP_SEGMENT_H
 
 #include <votca/ctp/segmenttype.h>
-#include<votca/ctp/fragment.h>
-#include<votca/ctp/atom.h>
+#include <votca/ctp/fragment.h>
+#include <votca/ctp/atom.h>
+#include <votca/ctp/polarsite.h>
 
 class Topology;
 
 namespace votca { namespace ctp {
 
-
 class Molecule;  
 
  
-    
-/**
-    \brief Conjugated segment. One conjugated segment contains several rigid fragments.
-
- * Apart from the position it has a vector with pointers to all fragments 
- * which belong to it. Substitutes QMBead of ctp and crgunittype of moo
- */
 class Segment
 {
 public:
@@ -81,8 +74,10 @@ public:
 
     void             AddFragment( Fragment* fragment );
     void             AddAtom( Atom* atom );
+    void             AddPolarSite(PolarSite *pole);
     vector< Fragment* > &Fragments() { return _fragments; }
     vector < Atom* >    &Atoms() { return _atoms; }
+    vector<PolarSite*>  &PolarSites() { return _polarSites; }
 
 
     void Rigidify();
@@ -97,6 +92,7 @@ private:
 
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
+    vector < PolarSite* >   _polarSites;
 
     string      _name;
     int         _id;

@@ -8,6 +8,7 @@
 #include "calculators/rates2.h"
 #include "calculators/izindo.h"
 #include "calculators/emultipole.h"
+#include "calculators/emultipole2.h"
 
 
 
@@ -21,7 +22,8 @@ void CalculatorFactory2::RegisterAll(void)
         Calculators().Register<TDump>("tdump");
         Calculators().Register<IZindo>("izindo");
         Calculators().Register<Rates2>("rates");
-        Calculators().Register<EMultipole>("emultipole");
+        Calculators().Register<EMultipole>("emultipole_single");
+        Calculators().Register<EMultipole2>("emultipole");
 }
 
 }}

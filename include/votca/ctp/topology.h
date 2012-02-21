@@ -25,6 +25,7 @@
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/triclinicbox.h>
 
+#include <votca/ctp/polarsite.h>
 #include <votca/ctp/atom.h>
 #include <votca/ctp/fragment.h>
 #include <votca/ctp/segmenttype.h>
@@ -53,28 +54,34 @@ public:
 
     // Population: Molecules, segments, fragments, atoms
 
-    Molecule *AddMolecule (string molecule_name);
-    Segment  *AddSegment  (string segment_name);
-    Atom     *AddAtom     (string atom_name);
-    Fragment *AddFragment (string fragment_name);
+    Molecule    *AddMolecule (string molecule_name);
+    Segment     *AddSegment  (string segment_name);
+    Atom        *AddAtom     (string atom_name);
+    Fragment    *AddFragment (string fragment_name);
+    PolarSite   *AddPolarSite(string siteName);
     SegmentType *AddSegmentType (string typeName);
 
-    Molecule *getMolecule(int id) { return _molecules[id-1]; }
-    Segment  *getSegment(int id)  { return _segments[id-1]; }
-    Fragment *getFragment(int id) { return _fragments[id-1]; }
-    Atom     *getAtom(int id)     { return _atoms[id-1]; }
+    Molecule    *getMolecule(int id) { return _molecules[id-1]; }
+    Segment     *getSegment(int id)  { return _segments[id-1]; }
+    Fragment    *getFragment(int id) { return _fragments[id-1]; }
+    Atom        *getAtom(int id)     { return _atoms[id-1]; }
+    PolarSite   *getPolarSite(int id) { return _polarSites[id-1]; }
     SegmentType *getSegmentType(int id) { return _segmentTypes[id-1]; }
 
     vector< Atom* >         &Atoms() { return _atoms; }
     vector< Fragment* >     &Fragments() { return _fragments; }
     vector< Segment* >      &Segments() { return _segments; }
     vector< Molecule* >     &Molecules() { return _molecules; }
+    vector< PolarSite* >    &PolarSites() { return _polarSites; }
     vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
 
     bool        Rigidify();
     void        setCanRigidify(bool yesno) { _canRigidify = yesno; }
     const bool  canRigidify() { return _canRigidify; }
     const bool  isRigid() { return _isRigid; }
+    void        setIsEStatified(bool yesno) { _isEStatified = yesno; }
+    const bool  isEStatified() { return _isEStatified; }
+
 
 
     // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
@@ -110,6 +117,7 @@ protected:
     vector < Segment* >     _segments;
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
+    vector < PolarSite* >   _polarSites;
     vector < SegmentType* > _segmentTypes;
 
     QMNBList2               _nblist;
@@ -119,6 +127,7 @@ protected:
 
     bool                    _canRigidify;
     bool                    _isRigid;
+    bool                    _isEStatified;
 
     double _time;
     int    _step;

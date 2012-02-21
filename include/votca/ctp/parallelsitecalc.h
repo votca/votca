@@ -14,14 +14,15 @@ class ParallelSiteCalculator : public QMCalculator2
 
 public:
 
-    ParallelSiteCalculator() : _nextSite(NULL) { };
-   ~ParallelSiteCalculator() { };
+    ParallelSiteCalculator() : _nextSite(NULL) {};
+   ~ParallelSiteCalculator() {};
 
     string       Identify() { return "Parallel Site Calculator"; }
 
     bool         EvaluateFrame(Topology *top);
-    virtual void PrepareFrame(Topology *top) { ; }
-    virtual void FinishFrame(Topology *top) { ; }
+    virtual void InitSlotData(Topology *top) { ; }
+    virtual void PostProcess(Topology *top) { ; }
+    virtual void EvalSite(Topology *top, Segment *seg, int slot) { ; }
 
     Segment     *RequestNextSite(int opId, Topology *top);
     void         LockCout() { _coutMutex.Lock(); }
@@ -47,7 +48,7 @@ public:
         void setId(int id) { _id = id; }
 
         void Run(void);
-        virtual void EvalSite(Topology *top, Segment *seg);
+        
 
     protected:
 
@@ -63,17 +64,24 @@ protected:
     vector<Segment*> ::iterator _nextSite;
     Mutex                       _nextSiteMutex;
     Mutex                       _coutMutex;
+    
 
 };
 
-
 bool ParallelSiteCalculator::EvaluateFrame(Topology *top) {
 
-    
-    this->PrepareFrame(top);
-    cout << endl;
+    // Rigidify if (a) not rigid yet (b) rigidification at all possible
+    if (!top->isRigid()) {
+        bool isRigid = top->Rigidify();
+        if (!isRigid) { return 0; }
+    }
+    else { cout << endl << "... ... System is already rigidified."; }
+    cout << endl;    
 
     vector<SiteOperator*> siteOps;
+    this->InitSlotData(top);
+
+    _nextSite = top->Segments().begin();
 
     for (int id = 0; id < _nThreads; id++) {
         SiteOperator *newOp = new SiteOperator(id, top, this);
@@ -94,7 +102,7 @@ bool ParallelSiteCalculator::EvaluateFrame(Topology *top) {
 
     siteOps.clear();
 
-    this->FinishFrame(top);
+    this->PostProcess(top);
     return 1;
 }
 
@@ -113,7 +121,7 @@ Segment *ParallelSiteCalculator::RequestNextSite(int opId, Topology *top) {
         workOnThis = NULL;
     }
     else {
-        *workOnThis = *_nextSite;
+        workOnThis = *_nextSite;
         _nextSite++;
     }
 
@@ -132,10 +140,10 @@ void ParallelSiteCalculator::SiteOperator::Run(void) {
 
     while (true) {
 
-        Segment *seg = _master->RequestNextSite(this->getId(), _top);
+        Segment *seg = _master->RequestNextSite(_id, _top);
 
         if (seg == NULL) { break; }
-        else { this->EvalSite(_top, seg); }
+        else { this->_master->EvalSite(_top, seg, _id); }
     }
 }
 
