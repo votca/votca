@@ -14,10 +14,10 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/property.h>
 #include <votca/tools/histogramnew.h>
-#include "functionform.h"
-#include "functionform_lj126.h"
-#include "functionform_ljg.h"
-#include "functionform_bspl.h"
+#include "potentialfunctions/potentialfunction.h"
+#include "potentialfunctions/potentialfunctioncbspl.h"
+#include "potentialfunctions/potentialfunctionlj126.h"
+#include "potentialfunctions/potentialfunctionljg.h"
 
 using namespace votca::csg;
 using namespace votca::tools;
@@ -30,7 +30,7 @@ struct PotentialInfo {
                         int vec_pos_, Property *options);
         int potentialIndex;
         bool bonded;
-        FunctionForm *ucg;
+        PotentialFunction *ucg;
         int vec_pos;
         pair<int, int> beadTypes;
 
