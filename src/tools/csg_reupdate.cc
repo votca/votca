@@ -771,10 +771,10 @@ PotentialInfo::PotentialInfo(int index,
     pottblgrid(i) = rcut;
     // assign the user selected function form for this potential
     if( potentialFunction == "LJ126")
-        ucg = new FunctionLJ126(rmin, rcut);
+        ucg = new PotentialFunctionLJ126(rmin, rcut);
     else if (potentialFunction == "LJG")
-        ucg = new FunctionLJG(rmin, rcut);
-    else if (potentialFunction == "BSPL"){
+        ucg = new PotentialFunctionLJG(rmin, rcut);
+    else if (potentialFunction == "CBSPL"){
 
         // get number of B-splines coefficients which are to be optimized
         int nlam = options->get("n_bspl_coeff").as<int>();
@@ -782,14 +782,14 @@ PotentialInfo::PotentialInfo(int index,
         // fixed to zero to ensure potential and forces smoothly go to zero
         int ncut = options->get("n_bspl_cut_coeff").as<int>();
 
-        ucg = new FunctionBSPL(nlam, ncut, rmin, rcut);
+        ucg = new PotentialFunctionCBSPL(nlam, ncut, rmin, rcut);
 
     }
     else
         throw std::runtime_error("Function form \""
                         + potentialFunction + "\" selected for \""
                     + potentialName + "\" is not available yet.\n"
-                    + "Please specify either \"LJ126, LJG, LJ2G, LJGC7, or BSPL\" "
+                    + "Please specify either \"LJ126, LJG, or CBSPL\" "
                     + "in options file.");
 
     // initialize cg potential with old parameters
@@ -797,16 +797,7 @@ PotentialInfo::PotentialInfo(int index,
     string oldparam_file_extension = ".param.cur";
     string oldparam_file_name = potentialName + oldparam_file_extension;
 
-    // if function form is BSPL and this is step 0 it must be fitted to given potential
-    if( genref && potentialFunction == "BSPL" ){
-
-        ucg->fitParam(oldparam_file_name);
-
-    } else {
-
-        ucg->setParam(oldparam_file_name);
-
-    }
+    ucg->setParam(oldparam_file_name);
 
     /* read/load histogram if doing csg_reupdate
      * else program generates the histogram
