@@ -55,11 +55,11 @@ public:
     void        AddAtom( Atom* atom );
     void        AddPolarSite(PolarSite *pole);
 
-    Topology   *getTopology() { return _top; }
-    Molecule   *getMolecule() { return _mol; }
-    Segment    *getSegment()  { return _seg; }    
-    vector< Atom* > &Atoms() { return _atoms; }
-    vector<PolarSite*> &PolarSites() { return _polarSites; }
+    Topology            *getTopology() { return _top; }
+    Molecule            *getMolecule() { return _mol; }
+    Segment             *getSegment()  { return _seg; }
+    vector< Atom* >     &Atoms() { return _atoms; }
+    vector<PolarSite*>  &PolarSites() { return _polarSites; }
 
     const int    &getId() const { return _id; }
     const string &getName() const { return _name; }
@@ -78,6 +78,7 @@ public:
     const vec    &getCoQM() { return _CoQM; }
     const vec    &getCoQM0() { return _CoQM0; }
     const matrix &getRotQM2MD() { return _rotateQM2MD; }
+    const vec    &getTransQM2MD() { return _translateQM2MD; }
     
     
     

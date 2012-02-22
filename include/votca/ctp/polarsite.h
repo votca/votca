@@ -20,29 +20,44 @@ class PolarSite
 {
 
     friend class EMultipole2;
+    friend class Interactor;
 
 public:
 
-    PolarSite(int id, string name) : _id(id), _name(name) { _Qs.resize(3); };
+    PolarSite(int id, string name)
+            : _id(id), _name(name), _locX(vec(1,0,0)),
+              _locY(vec(0,1,0)),    _locZ(vec(0,0,1)) { _Qs.resize(3); };
+
+    PolarSite() 
+            : _id(-1),  _locX(vec(1,0,0)),
+              _locY(vec(0,1,0)), _locZ(vec(0,0,1))    { _Qs.resize(3); };
+
    ~PolarSite() {};
 
+    int             &getId() { return _id; }
+    string          &getName() { return _name; }
+    vec             &getPos() { return _pos; }
+    int             &getRank() { return _rank; }
+    Topology        *getTopology() { return _top; }
+    Segment         *getSegment() { return _seg; }
+    Fragment        *getFragment() { return _frag; }
 
-    vec &getPos() { return _pos; }
-    int &getRank() { return _rank; }
-    
+    void            setPos(vec &pos) { _pos = pos; }
+    void            setRank(int rank) { _rank = rank; }
+    void            setTopology(Topology *top) { _top = top; }
+    void            setSegment(Segment *seg) { _seg = seg; }
+    void            setFragment(Fragment *frag) { _frag = frag; }
 
-    void setPos(vec &pos) { _pos = pos; }
-    void setRank(int rank) { _rank = rank; }
-
-    // Multipole management of charge states
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
 
-    void setTopology(Topology *top) { _top = top; }
-    void setSegment(Segment *seg) { _seg = seg; }
-    void setFragment(Fragment *frag) { _frag = frag; }
+    void            ImportFrom(PolarSite *templ, string tag = "basic");
+    void            Translate(const vec &shift);
+    void            Rotate(const matrix &rot, const vec &refPos);
 
-    void ImportFrom(PolarSite *templ);
+    void            PrintInfo(std::ostream &out);
+
+
 
 
 private:
@@ -60,6 +75,7 @@ private:
 
     int     _rank;
     vector < vector<double> > _Qs;
+    vec     _muInd;
 
     
 

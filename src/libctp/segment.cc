@@ -227,7 +227,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
                  );
     }
   }
-  if ( tag1 == "Atoms") {
+  else if ( tag1 == "Atoms") {
     vector < Atom* > :: iterator atm;
     for (atm = _atoms.begin(); atm < _atoms.end(); ++atm) {
          int id = (*atm)->getId();
@@ -240,6 +240,37 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
          if (tag2 == "MD")      { position = (*atm)->getPos(); }
          else if (tag2 == "QM") { position = (*atm)->getQMPos(); }
 
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+                      "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
+                 id,                    // Atom serial number           %5d
+                 name.c_str(),          // Atom name                    %4s
+                 " ",                   // alternate location indicator.%1s
+                 resname.c_str(),       // Residue name.                %3s
+                 "A",                   // Chain identifier             %1s
+                 resnr,                 // Residue sequence number      %4d
+                 " ",                   // Insertion of residues.       %1s
+                 position.getX()*10,    // X in Angstroms               %8.3f
+                 position.getY()*10,    // Y in Angstroms               %8.3f
+                 position.getZ()*10,    // Z in Angstroms               %8.3f
+                 1.0,                   // Occupancy                    %6.2f
+                 0.0,                   // Temperature factor           %6.2f
+                 " ",                   // Segment identifier           %4s
+                 name.c_str(),          // Element symbol               %2s
+                 " "                    // Charge on the atom.          %2s
+                 );
+    }
+  }
+  else if ( tag1 == "Multipoles") {
+    vector < PolarSite* > :: iterator pol;
+    for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
+         int id = (*pol)->getId();
+         string name =  (*pol)->getName();
+         name.resize(3);
+         string resname = (*pol)->getFragment()->getName();
+         resname.resize(3);
+         int resnr = (*pol)->getFragment()->getId();
+         vec position = (*pol)->getPos();
+         
          fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
                       "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
                  id,                    // Atom serial number           %5d

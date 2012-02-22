@@ -281,6 +281,7 @@ void Fragment::Rigidify(bool Auto) {
 
     this->calcPos("QM");
     this->RotTransQM2MD();
+    _translateQM2MD = _CoMD - _CoQM;
 
 }
 
