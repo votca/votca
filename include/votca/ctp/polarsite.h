@@ -43,13 +43,14 @@ public:
     Fragment        *getFragment() { return _frag; }
 
     void            setPos(vec &pos) { _pos = pos; }
-    void            setRank(int rank) { _rank = rank; }
+    void            setRank(int rank) { _rank = 1; } // rank; } // OVERRIDE
     void            setTopology(Topology *top) { _top = top; }
     void            setSegment(Segment *seg) { _seg = seg; }
     void            setFragment(Fragment *frag) { _frag = frag; }
 
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
+    void            Charge(int state);
 
     void            ImportFrom(PolarSite *templ, string tag = "basic");
     void            Translate(const vec &shift);
@@ -72,10 +73,17 @@ private:
     Topology *_top;
     Segment  *_seg;
     Fragment *_frag;
-
-    int     _rank;
+    
     vector < vector<double> > _Qs;
-    vec     _muInd;
+    int     _rank;
+
+
+    double Q00;
+    double Q1x, Q1y, Q1z;
+    double U1x, U1y, U1z;
+    double Q20, Q21c, Q21s, Q22c, Q22s;
+
+
 
     
 

@@ -50,7 +50,10 @@ public:
 
     private:
 
-        vec    e12;
+        vec    e12;     //  |
+        double u3;      //  |-> NOTE: Only needed when using Thole model
+        double a;       //  |         (do not forget to init. though...)
+
         double R;       //  |
         double R2;      //  |
         double R3;      //  |-> NOTE: reciprocal, i.e. e.g. R3 = 1/(R*R*R)
@@ -88,10 +91,10 @@ public:
         inline double T1x_1z() { return R3 * (3 * rax*rbz + cxz); }
         inline double T1y_1x() { return R3 * (3 * ray*rbx + cyx); }
         inline double T1y_1y() { return R3 * (3 * ray*rby + cyy); }
-        inline double T1y_1z() { return R3 * (3 * ray*rbz * cyz); }
-        inline double T1z_1x() { return R3 * (3 * raz*rbx * czx); }
-        inline double T1z_1y() { return R3 * (3 * raz*rby * czy); }
-        inline double T1z_1z() { return R3 * (3 * raz*rbz * czz); }
+        inline double T1y_1z() { return R3 * (3 * ray*rbz + cyz); }
+        inline double T1z_1x() { return R3 * (3 * raz*rbx + czx); }
+        inline double T1z_1y() { return R3 * (3 * raz*rby + czy); }
+        inline double T1z_1z() { return R3 * (3 * raz*rbz + czz); }
 
         inline double T20_1x()  { return R4 * 0.5 * (15*raz*raz*rbx + 6*raz*czx - 3*rbx); }
         inline double T20_1y()  { return R4 * 0.5 * (15*raz*raz*rby + 6*raz*czy - 3*rby); }
@@ -106,8 +109,8 @@ public:
         inline double T22c_1y() { return R4 * 0.5 * sqrt(3) * ( 5*(rax*rax-ray*ray)*rby + 2*rax*cxy - 2*ray*cyy); }
         inline double T22c_1z() { return R4 * 0.5 * sqrt(3) * ( 5*(rax*rax-ray*ray)*rbz + 2*rax*cxz - 2*ray*cyz); }
         inline double T22s_1x() { return R4 * sqrt(3) * ( 5*rax*ray*rbx + rax*cyx + ray*cxx ); }
-        inline double T22s_1y() { return R4 * sqrt(3) * ( 5*rax*ray*rby + rax*cyy * ray*cxy ); }
-        inline double T22s_1z() { return R4 * sqrt(3) * ( 5*rax*ray*rbz + rax*cyz * ray*cxz ); }
+        inline double T22s_1y() { return R4 * sqrt(3) * ( 5*rax*ray*rby + rax*cyy + ray*cxy ); }
+        inline double T22s_1z() { return R4 * sqrt(3) * ( 5*rax*ray*rbz + rax*cyz + ray*cxz ); }
         
         inline double T1x_20()  { return R4 * 0.5 * (15*rbz*rbz*rax + 6*rbz*cxz - 3*rax); }
         inline double T1y_20()  { return R4 * 0.5 * (15*rbz*rbz*ray + 6*rbz*cyz - 3*ray); }
@@ -122,18 +125,18 @@ public:
         inline double T1y_22c() { return R4 * 0.5 * sqrt(3) * ( 5*(rbx*rbx-rby*rby)*ray + 2*rbx*cyx - 2*rby*cyy); }
         inline double T1z_22c() { return R4 * 0.5 * sqrt(3) * ( 5*(rbx*rbx-rby*rby)*raz + 2*rbx*czx - 2*rby*czy); }
         inline double T1x_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*rax + rbx*cxy + rby*cxx ); }
-        inline double T1y_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*ray + rbx*cyy * rby*cyx ); }
-        inline double T1z_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*raz + rbx*czy * rby*czx ); }
+        inline double T1y_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*ray + rbx*cyy + rby*cyx ); }
+        inline double T1z_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*raz + rbx*czy + rby*czx ); }
 
-        inline double T20_20()  { return R5 * 0.75 * (35*raz*raz*rbz*rbz - 5*raz*raz - 5*rbz*rbz + 20*raz*rbz*czz + 2*czz*czz + 1); }
-        inline double T20_21c() { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rbz - 5*rbx*rbz + 10*raz*rbx*czz + 10*raz*rbz*czx + 2*czx*czz); }
-        inline double T20_21s() { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rby*rbz - 5*rby*rbz + 10*raz*rby*czz + 10*raz*rbz*czy + 2*czy*czz); }
-        inline double T20_22c() { return R5 * 0.25 * sqrt(3) * (35*raz*raz*rbx*rbx - 35*raz*raz*rby*rby - 5*rbx*rbx - 5*rby*rby + 20*raz*rbx*czx - 20*raz*rby*czy + 2*czx*czx - 2*czy*czy); }
-        inline double T20_22s() { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rby - 5*rbx*rby + 10*raz*rbx*czy + 10*raz*rby*czx + 2*czx*czy); }
+        inline double T20_20()   { return R5 * 0.75 * (35*raz*raz*rbz*rbz - 5*raz*raz - 5*rbz*rbz + 20*raz*rbz*czz + 2*czz*czz + 1); }
+        inline double T20_21c()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rbz - 5*rbx*rbz + 10*raz*rbx*czz + 10*raz*rbz*czx + 2*czx*czz); }
+        inline double T20_21s()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rby*rbz - 5*rby*rbz + 10*raz*rby*czz + 10*raz*rbz*czy + 2*czy*czz); }
+        inline double T20_22c()  { return R5 * 0.25 * sqrt(3) * (35*raz*raz*rbx*rbx - 35*raz*raz*rby*rby - 5*rbx*rbx - 5*rby*rby + 20*raz*rbx*czx - 20*raz*rby*czy + 2*czx*czx - 2*czy*czy); }
+        inline double T20_22s()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rby - 5*rbx*rby + 10*raz*rbx*czy + 10*raz*rby*czx + 2*czx*czy); }
         inline double T21c_21c() { return R5 * (35*rax*raz*rbx*rbz + 5*rax*rbx*czz + 5*rax*rbz*czx + 5*raz*rbx*cxz + 5*raz*rbz*cxx + cxx*czz + cxz*czx); }
         inline double T21c_21s() { return R5 * (35*rax*raz*rby*rbx + 5*rax*rby*czz + 5*rax*rbz*czy + 5*raz*rby*cxz + 5*raz*rbz*cxy + cxy*czz + cxz*czy); }
         inline double T21c_22c() { return R5 * 0.5 * (35*rax*raz*rbx*rbx - 35*rax*raz*rby*rby + 10*rax*rbx*czx - 10*rax*rby*czy + 10*raz*rbx*cxx - 10*raz*rby*cxy + 2*cxx*czx - 2*cxy*czy); }
-        inline double T21c_22s() { return R5 * (35*rax*raz*rbx*rby * 5*rax*rbx*czy + 5*rax*rby*czx + 5*raz*rbx*cxy + 5*raz*rby*cxx + cxx*czy + cxy*czx); }
+        inline double T21c_22s() { return R5 * (35*rax*raz*rbx*rby + 5*rax*rbx*czy + 5*rax*rby*czx + 5*raz*rbx*cxy + 5*raz*rby*cxx + cxx*czy + cxy*czx); }
         inline double T21s_21s() { return R5 * (35*ray*raz*rby*rbz + 5*ray*rby*czz + 5*ray*rbz*czy + 5*raz*rby*cyz + 5*raz*rbz*cyy + cyy*czz + cyz*czy); }
         inline double T21s_22c() { return R5 * 0.5 * (35*ray*raz*rbx*rbx - 35*ray*raz*rby*rby + 10*ray*rbx*czx - 10*ray*rby*czy + 10*raz*rbx*cyx - 10*raz*rby*cyy + 2*cyx*czx - 2*cyy*czy); }
         inline double T21s_22s() { return R5 * (35*ray*raz*rbx*rby + 5*ray*rbx*czy + 5*ray*rby*czx + 5*raz*rbx*cyy + 5*raz*rby*cyx + cyx*czy + cyy*czx); }
@@ -141,17 +144,26 @@ public:
         inline double T22c_22s() { return R5 * 0.5 * (35*rax*rax*rbx*rby - 35*ray*ray*rbx*rby + 10*rax*rbx*cxy + 10*rax*rby*cxx - 10*ray*rbx*cyy - 10*ray*rby*cyx + 2*cxx*cxy - 2*cyx*cyy); }
         inline double T22s_22s() { return R5 * (35*rax*ray*rbx*rby + 5*rax*rbx*cyy + 5*rax*rby*cyx + 5*ray*rbx*cxy + 5*ray*rby*cxx + cxx*cyy + cxy*cyx); }
 
-        inline double T21c_20() { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*raz - 5*rax*raz + 10*rbz*rax*czz + 10*rbz*raz*czx + 2*czx*czz); }
-        inline double T21s_20() { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*ray*raz - 5*ray*raz + 10*rbz*ray*czz + 10*rbz*raz*cyz + 2*cyz*czz); }
-        inline double T22c_20() { return R5 * 0.25 * sqrt(3) * (35*rbz*rbz*rax*rax - 35*rbz*rbz*ray*ray - 5*rax*rax - 5*ray*ray + 20*rbz*rax*cxz - 20*rbz*ray*cyz + 2*cxz*cxz - 2*cyz*cyz); }
-        inline double T22s_20() { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*ray - 5*rax*ray + 10*rbz*rax*cyz + 10*rbz*ray*cxz + 2*cxz*cyz); }
+        inline double T21c_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*raz - 5*rax*raz + 10*rbz*rax*czz + 10*rbz*raz*czx + 2*czx*czz); }
+        inline double T21s_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*ray*raz - 5*ray*raz + 10*rbz*ray*czz + 10*rbz*raz*cyz + 2*cyz*czz); }
+        inline double T22c_20()  { return R5 * 0.25 * sqrt(3) * (35*rbz*rbz*rax*rax - 35*rbz*rbz*ray*ray - 5*rax*rax - 5*ray*ray + 20*rbz*rax*cxz - 20*rbz*ray*cyz + 2*cxz*cxz - 2*cyz*cyz); }
+        inline double T22s_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*ray - 5*rax*ray + 10*rbz*rax*cyz + 10*rbz*ray*cxz + 2*cxz*cyz); }
         inline double T21s_21c() { return R5 * (35*rbx*rbz*ray*rax + 5*rbx*ray*czz + 5*rbx*raz*cyz + 5*rbz*ray*czx + 5*rbz*raz*cyx + cyx*czz + czx*cyz); }
         inline double T22c_21c() { return R5 * 0.5 * (35*rbx*rbz*rax*rax - 35*rbx*rbz*ray*ray + 10*rbx*rax*cxz - 10*rbx*ray*cyz + 10*rbz*rax*cxx - 10*rbz*ray*cyx + 2*cxx*cxz - 2*cyx*cyz); }
-        inline double T22s_21c() { return R5 * (35*rbx*rbz*rax*ray * 5*rbx*rax*cyz + 5*rbx*ray*cxz + 5*rbz*rax*cyx + 5*rbz*ray*cxx + cxx*cyz + cyx*cxz); }
+        inline double T22s_21c() { return R5 * (35*rbx*rbz*rax*ray + 5*rbx*rax*cyz + 5*rbx*ray*cxz + 5*rbz*rax*cyx + 5*rbz*ray*cxx + cxx*cyz + cyx*cxz); }
         inline double T22c_21s() { return R5 * 0.5 * (35*rby*rbz*rax*rax - 35*rby*rbz*ray*ray + 10*rby*rax*cxz - 10*rby*ray*cyz + 10*rbz*rax*cxy - 10*rbz*ray*cyy + 2*cxy*cxz - 2*cyy*cyz); }
         inline double T22s_21s() { return R5 * (35*rby*rbz*rax*ray + 5*rby*rax*cyz + 5*rby*ray*cxz + 5*rbz*rax*cyy + 5*rbz*ray*cxy + cxy*cyz + cyy*cxz); }
         inline double T22s_22c() { return R5 * 0.5 * (35*rbx*rbx*rax*ray - 35*rby*rby*rax*ray + 10*rbx*rax*cyx + 10*rbx*ray*cxx - 10*rby*rax*cyy - 10*rby*ray*cxy + 2*cxx*cyx - 2*cxy*cyy); }
+
+        inline double lambda3() { return 1 - exp( -a*u3); }
+        inline double lambda5() { return 1 - (1 + a*u3) * exp( -a*u3); }
+        inline double lambda7() { return 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
+        inline double lambda9() { return 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
         
+
+
+
+
         Topology *_top;
 
     };
@@ -177,19 +189,18 @@ public:
 
         void InitSlotData(Topology *top);
         void Run(void);
-
-        vector<PolarSite*> &PolarSites() { return _polarSites; }
+        void EvalSite(Topology *top, Segment *seg);
 
 
     protected:
 
-        int                      _id;
-        Topology                *_top;
-        Segment                 *_seg;
-        EMultipole2             *_master;
+        int                           _id;
+        Topology                     *_top;
+        Segment                      *_seg;
+        EMultipole2                  *_master;
 
-        vector<PolarSite*>       _polarSites;
-        Interactor               _actor;
+        vector< vector<PolarSite*> > _polarSites;
+        Interactor                   _actor;
     };
 
 
@@ -217,9 +228,6 @@ private:
     float           _omegSOR;
     double          _epsTol;
     int             _maxIter;
-
-
-
 
 };
 
@@ -589,9 +597,16 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
             // multipole line
             else {
 
+                int lineRank = int( sqrt(thisPole->getQs(state).size()) );
+
                 for (int i = 0; i < split.size(); i++) {
 
                     double qXYZ = boost::lexical_cast<double>(split[i]);
+
+                    // Convert e*(a_0)^k to e*(nm)^k where k = rank
+                    double BOHR2NM = 0.0529189379;
+                    qXYZ *= pow(BOHR2NM, lineRank); // OVERRIDE
+
                     Qs.push_back(qXYZ);
 
                 }
@@ -653,15 +668,12 @@ void EMultipole2::DistributeMpoles(Topology *top) {
 }
 
 
-
-
-
-
-
-
-
-
 bool EMultipole2::EvaluateFrame(Topology *top) {
+
+    // ++++++++++++++++++++ //
+    // Ridigidfy + Estatify //
+    // ++++++++++++++++++++ //
+
 
     // Rigidify if (a) not rigid yet (b) rigidification at all possible
     if (!top->isRigid()) {
@@ -699,12 +711,28 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
     */
 
 
+    // ++++++++++++++++++++++++++++++++++ //
+    // Calculate energy of neutral system //
+    // ++++++++++++++++++++++++++++++++++ //
+
+
+    vector<PolarSite*> ::iterator pol;
+    for (pol = top->PolarSites().begin();
+         pol < top->PolarSites().end();
+         ++pol) {
+
+        (*pol)->Charge(0);
+    }
+
+    cout << "... ... Evaluating energy for neutral system " << endl;
+
+    double E = 0.0;
+
     vector<Segment*> ::iterator sit1;
     vector<Segment*> ::iterator sit2;
     vector<PolarSite*> ::iterator pol1;
     vector<PolarSite*> ::iterator pol2;
 
-    int count = 0;
     Interactor actor = Interactor(top);
 
     for (sit1 = top->Segments().begin();
@@ -717,21 +745,13 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
         Segment *seg1 = *sit1;
         Segment *seg2 = *sit2;
 
-
         if ( abs( top->PbShortestConnect(seg1->getPos(),
                                          seg2->getPos()) ) > _cutoff) {
             continue;
         }
 
-        ++count;
-        /*
-        cout << count << " " << seg1->getId() << " "<< seg2->getId() << " "
-             << abs( top->PbShortestConnect(seg1->getPos(),
-                                         seg2->getPos()) )
-             << endl; */
-
-
-
+        cout << "\r... ... Calculating interaction energy for pair "
+             << seg1->getId() << "|" << seg2->getId() << " "; 
         
         for (pol1 = seg1->PolarSites().begin();
              pol1 < seg1->PolarSites().end();
@@ -740,21 +760,28 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
              pol2 < seg2->PolarSites().end();
              ++pol2) {
 
-             double E = actor.Energy(*(*pol1), *(*pol2));
+            (*pol1)->PrintInfo(cout); // OVERRIDE
+            (*pol2)->PrintInfo(cout); // OVERRIDE
+
+             E += actor.Energy(*(*pol1), *(*pol2));
+             //cout << "ENERGY INTERM E = " << E << endl;
+
+             break;     // OVERRIDE
+        } break; }      // OVERRIDE
+
+         break;        // OVERRIDE
+    } break; }         // OVERRIDE
+
+    cout << ": E = " << E;
 
 
 
 
-        }} 
-    }}
+    // +++++++++++++++++++++++++++++++++ //
+    // Create + start threads (Site Ops) //
+    // +++++++++++++++++++++++++++++++++ //
 
-
-
-
-
-    // Create + start threads
-    vector<SiteOpMultipole*> siteOps;
-    
+    vector<SiteOpMultipole*> siteOps;    
 
     _nextSite = top->Segments().begin();
 
@@ -792,6 +819,8 @@ void EMultipole2::EvalSite(Topology *top, Segment *seg, int slot) {
     cout << "\r... ... Evaluate site " << seg->getId();
     this->UnlockCout();
 
+    throw runtime_error("EMultipole2::EvalSite should not have been called.");
+
 }
 
 
@@ -822,7 +851,7 @@ Segment *EMultipole2::RequestNextSite(int opId, Topology *top) {
 
 // +++++++++++++++++++++++++++++ //
 // SiteOperator Member Functions //
-// +++++++++++++++++++++++++++++ //
+// +++++++++++++++++++++++++++++ // 
 
 void EMultipole2::SiteOpMultipole::Run(void) {
 
@@ -831,56 +860,100 @@ void EMultipole2::SiteOpMultipole::Run(void) {
         Segment *seg = _master->RequestNextSite(_id, _top);
 
         if (seg == NULL) { break; }
-        else { this->_master->EvalSite(_top, seg, _id); }
+        else { this->EvalSite(_top, seg); }
     }
 }
 
 
-void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) {
+void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) { 
 
-    _polarSites.reserve(top->PolarSites().size());
+    vector< Segment* > ::iterator sitRef;
+    vector< vector<PolarSite*> > ::iterator sitNew;
+    vector< PolarSite* > ::iterator pitRef;
+    vector< PolarSite* > ::iterator pitNew;
+    
+    _polarSites.resize(top->Segments().size());
+    assert(top->Segments().size() == _polarSites.size());
 
-    vector<PolarSite*> ::iterator pol;
-    for (pol = top->PolarSites().begin();
-         pol < top->PolarSites().end();
-         ++pol) {
-        
-        PolarSite *threadPole = new PolarSite();
-        threadPole->ImportFrom(*pol, "full");
-        _polarSites.push_back(threadPole);
+    for (sitRef = top->Segments().begin(), sitNew = _polarSites.begin();
+         sitRef < top->Segments().end();
+         ++sitRef, ++sitNew) {
+
+        (*sitNew).resize((*sitRef)->PolarSites().size());
+
+        for (pitRef = (*sitRef)->PolarSites().begin(),
+             pitNew = (*sitNew).begin();
+             pitRef < (*sitRef)->PolarSites().end();
+             ++pitRef, ++ pitNew) {
+
+            *pitNew = new PolarSite();
+            (*pitNew)->ImportFrom(*pitRef, "full");
+        }
     }
 }
 
 
 EMultipole2::SiteOpMultipole::~SiteOpMultipole() {
 
+    vector< vector<PolarSite*> > ::iterator sit;
     vector<PolarSite*> ::iterator pol;
-    for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
-        delete *pol;
+
+    for (sit = _polarSites.begin(); sit < _polarSites.end(); ++sit) {
+        for (pol = (*sit).begin(); pol < (*sit).end(); ++pol) {
+            delete *pol;
+        }
+        (*sit).clear();
     }
-
     _polarSites.clear();
+}
 
+
+void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
+
+    if (seg->getId() == 9) {
+        ;
+        /*
+        vector< vector<PolarSite*> > ::iterator sit;
+        vector< PolarSite* > ::iterator pit;
+
+        for (sit = _polarSites.begin();
+                sit < _polarSites.end();
+                ++sit) {
+
+            cout << " ############## " << (*sit).size() << " ############### "
+                 << endl;
+
+            for (pit = (*sit).begin();
+                    pit < (*sit).end();
+                    ++pit) {
+
+                (*pit)->PrintInfo(cout);
+
+            }
+        }
+        */
+    }
 }
 
 // +++++++++++++++++++++++++++ //
 // Interactor Member Functions //
-// +++++++++++++++++++++++++++ /&/
+// +++++++++++++++++++++++++++ //
 
 inline double EMultipole2::Interactor::Energy(PolarSite &pol1,PolarSite &pol2) {
 
-    double E = 0.0;
-
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
     R    = 1/abs(e12);
     R2   = R*R;
     R3   = R2*R;
-    R4   = R2*R2;
-    R5   = R2*R3;
-    e12 /= R;
-    // NOTE >>> e12 points from pole 1 to pole 2 <<< NOTE
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
 
-    
+    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
+    //cout << "frag2 " << pol2.getFragment()->getId() << endl;
+    //cout << "seg1  " << pol1.getSegment()->getId() << endl;
+    //cout << "seg2  " << pol2.getSegment()->getId() << endl;    
 
     if (pol1._rank > 0 || pol2._rank > 0) {
         rax =   pol1._locX * e12;
@@ -901,12 +974,158 @@ inline double EMultipole2::Interactor::Energy(PolarSite &pol1,PolarSite &pol2) {
         czz = pol1._locZ * pol2._locZ;
     }
 
+    double E = 0.0;
+
+        //cout << "r1  " << pol1.getPos() << endl;
+        //cout << "r2  " << pol2.getPos() << endl;
+        //cout << "R   " << 1/R << endl;
+        //cout << "e12 " << e12 << endl;
+
+        E += pol1.Q00 * T00_00() * pol2.Q00;
+
+        //cout << "E up to q <-> q " << E << endl;
+
+    if (pol1._rank > 0) {
+        E += pol1.Q1x * T1x_00() * pol2.Q00;
+        //cout << "E1x_00 " << pol1.Q1x * T1x_00() * pol2.Q00 << endl;
+        E += pol1.Q1y * T1y_00() * pol2.Q00;
+        //cout << "E1y_00 " << pol1.Q1y * T1y_00() * pol2.Q00 << endl;
+        E += pol1.Q1z * T1z_00() * pol2.Q00;
+        //cout << "E1z_00 " << pol1.Q1z * T1z_00() * pol2.Q00 << endl;
+    }
+
+    if (pol2._rank > 0) {
+        E += pol1.Q00 * T00_1x() * pol2.Q1x;
+        //cout << "E00_1x " << pol1.Q00 * T00_1x() * pol2.Q1x << endl;
+        E += pol1.Q00 * T00_1y() * pol2.Q1y;
+        //cout << "E00_1y " << pol1.Q00 * T00_1y() * pol2.Q1y << endl;
+        E += pol1.Q00 * T00_1z() * pol2.Q1z;
+        //cout << "E00_1z " << pol1.Q00 * T00_1z() * pol2.Q1z << endl;
+    }
+        //cout << "E up to q <-> d " << E << endl;
+
+    if (pol1._rank > 1) {
+        E += pol1.Q20  * T20_00()  * pol2.Q00;
+        E += pol1.Q21c * T21c_00() * pol2.Q00;
+        E += pol1.Q21s * T21s_00() * pol2.Q00;
+        E += pol1.Q22c * T22c_00() * pol2.Q00;
+        E += pol1.Q22s * T22s_00() * pol2.Q00;
+    }
+
+    if (pol2._rank > 1) {
+        E += pol1.Q00 * T00_20()  * pol2.Q20;
+        E += pol1.Q00 * T00_21c() * pol2.Q21c;
+        E += pol1.Q00 * T00_21s() * pol2.Q21s;
+        E += pol1.Q00 * T00_22c() * pol2.Q22c;
+        E += pol1.Q00 * T00_22s() * pol2.Q22s;
+    }
+        //cout << "E up to q <-> Q " << E << endl;
+
+    if (pol1._rank > 0 && pol2._rank > 0) {
+        E += pol1.Q1x * T1x_1x() * pol2.Q1x;
+        //cout << "E1x_1x " << pol1.Q1x * T1x_1x() * pol2.Q1x << endl;
+        E += pol1.Q1x * T1x_1y() * pol2.Q1y;
+        //cout << "E1x_1y " << pol1.Q1x * T1x_1y() * pol2.Q1y << endl;
+        E += pol1.Q1x * T1x_1z() * pol2.Q1z;
+        //cout << "E1x_1z " << pol1.Q1x * T1x_1z() * pol2.Q1z << endl;
+
+        E += pol1.Q1y * T1y_1x() * pol2.Q1x;
+        //cout << "E1y_1x " << pol1.Q1y * T1y_1x() * pol2.Q1x << endl;
+        E += pol1.Q1y * T1y_1y() * pol2.Q1y;
+        //cout << "E1y_1y " << pol1.Q1y * T1y_1y() * pol2.Q1y << endl;
+        E += pol1.Q1y * T1y_1z() * pol2.Q1z;
+        //cout << "E1y_1z " << pol1.Q1y * T1y_1z() * pol2.Q1z << endl;
+
+        E += pol1.Q1z * T1z_1x() * pol2.Q1x;
+        //cout << "E1z_1x " << pol1.Q1z * T1z_1x() * pol2.Q1x << endl;
+        E += pol1.Q1z * T1z_1y() * pol2.Q1y;
+        //cout << "E1z_1y " << pol1.Q1z * T1z_1y() * pol2.Q1y << endl;
+        E += pol1.Q1z * T1z_1z() * pol2.Q1z;
+        //cout << "E1z_1z " << pol1.Q1z * T1z_1z() * pol2.Q1z << endl;
+    }
+        //cout << "E up to d <-> d " << E << endl;
+
+    if (pol1._rank > 1 && pol2._rank > 0) {
+        E += pol1.Q20 * T20_1x() * pol2.Q1x;
+        E += pol1.Q20 * T20_1y() * pol2.Q1y;
+        E += pol1.Q20 * T20_1z() * pol2.Q1z;
+
+        E += pol1.Q21c * T21c_1x() * pol2.Q1x;
+        E += pol1.Q21c * T21c_1y() * pol2.Q1y;
+        E += pol1.Q21c * T21c_1z() * pol2.Q1z;
+
+        E += pol1.Q21s * T21s_1x() * pol2.Q1x;
+        E += pol1.Q21s * T21s_1y() * pol2.Q1y;
+        E += pol1.Q21s * T21s_1z() * pol2.Q1z;
+
+        E += pol1.Q22c * T22c_1x() * pol2.Q1x;
+        E += pol1.Q22c * T22c_1y() * pol2.Q1y;
+        E += pol1.Q22c * T22c_1z() * pol2.Q1z;
+
+        E += pol1.Q22s * T22s_1x() * pol2.Q1x;
+        E += pol1.Q22s * T22s_1y() * pol2.Q1y;
+        E += pol1.Q22s * T22s_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 0 && pol2._rank > 1) {
+        E += pol1.Q1x * T1x_20() * pol2.Q20;
+        E += pol1.Q1y * T1y_20() * pol2.Q20;
+        E += pol1.Q1z * T1z_20() * pol2.Q20;
+
+        E += pol1.Q1x * T1x_21c() * pol2.Q21c;
+        E += pol1.Q1y * T1y_21c() * pol2.Q21c;
+        E += pol1.Q1z * T1z_21c() * pol2.Q21c;
+
+        E += pol1.Q1x * T1x_21s() * pol2.Q21s;
+        E += pol1.Q1y * T1y_21s() * pol2.Q21s;
+        E += pol1.Q1z * T1z_21s() * pol2.Q21s;
+
+        E += pol1.Q1x * T1x_22c() * pol2.Q22c;
+        E += pol1.Q1y * T1y_22c() * pol2.Q22c;
+        E += pol1.Q1z * T1z_22c() * pol2.Q22c;
+
+        E += pol1.Q1x * T1x_22s() * pol2.Q22s;
+        E += pol1.Q1y * T1y_22s() * pol2.Q22s;
+        E += pol1.Q1z * T1z_22s() * pol2.Q22s;
+    }
+
+        //cout << "E up to d <-> Q " << E << endl;
+
+    if (pol1._rank > 1 && pol2._rank > 1) {
+        E += pol1.Q20  * T20_20()   * pol2.Q20;
+        E += pol1.Q21c * T21c_21c() * pol2.Q21c;
+        E += pol1.Q21s * T21s_21s() * pol2.Q21s;
+        E += pol1.Q22c * T22c_22c() * pol2.Q22c;
+        E += pol1.Q22s * T22s_22s() * pol2.Q22s;
 
 
-    
+        E += pol1.Q20  * T20_21c() * pol2.Q21c;
+        E += pol1.Q20  * T20_21s() * pol2.Q21s;
+        E += pol1.Q20  * T20_22c() * pol2.Q22c;
+        E += pol1.Q20  * T20_22s() * pol2.Q22s;
+        E += pol1.Q21c * T21c_20() * pol2.Q20;
+        E += pol1.Q21s * T21s_20() * pol2.Q20;
+        E += pol1.Q22c * T22c_20() * pol2.Q20;
+        E += pol1.Q22s * T22s_20() * pol2.Q20;
 
-    
-    
+
+        E += pol1.Q21c * T21c_21s() * pol2.Q21s;
+        E += pol1.Q21c * T21c_22c() * pol2.Q22c;
+        E += pol1.Q21c * T21c_22s() * pol2.Q22s;
+        E += pol1.Q21s * T21s_21c() * pol2.Q21c;
+        E += pol1.Q22c * T22c_21c() * pol2.Q21c;
+        E += pol1.Q22s * T22s_21c() * pol2.Q21c;
+
+
+        E += pol1.Q21s * T21s_22c() * pol2.Q22c;
+        E += pol1.Q21s * T21s_22s() * pol2.Q22s;
+        E += pol1.Q22c * T22c_21s() * pol2.Q21s;
+        E += pol1.Q22s * T22s_21s() * pol2.Q21s;
+
+        E += pol1.Q22s * T22s_22c() * pol2.Q22c;
+        E += pol1.Q22c * T22c_22s() * pol2.Q22s;
+    }
+        //cout << "E up to Q <-> Q " << E << endl;
 
     return E;
 }

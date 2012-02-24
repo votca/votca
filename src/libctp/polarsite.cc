@@ -11,6 +11,7 @@ void PolarSite::ImportFrom(PolarSite *templ, string tag) {
         _Qs[0] = templ->getQs(-1);
         _Qs[1] = templ->getQs(0);
         _Qs[2] = templ->getQs(1);
+        _rank  = templ->_rank;
     }
 
     if (tag == "full") {
@@ -20,7 +21,7 @@ void PolarSite::ImportFrom(PolarSite *templ, string tag) {
         _top  = templ->_top;
         _seg  = templ->_seg;
         _frag = templ->_frag;
-        _rank = templ->_rank;
+        _rank = templ->_rank; 
         _Qs   = templ->_Qs;
         _id   = templ->_id;
         _name = templ->_name;
@@ -43,6 +44,26 @@ void PolarSite::Translate(const vec &shift) {
 
     _pos += shift;
 
+}
+
+void PolarSite::Charge(int state) {
+
+    int idx = state + 1;
+
+        Q00 = _Qs[idx][0];
+
+    if (_rank > 0) {
+        Q1z = _Qs[idx][1];   // |
+        Q1x = _Qs[idx][2];   // |-> NOTE: order z - x - y
+        Q1y = _Qs[idx][3];   // |
+    }
+    if (_rank > 1) {
+        Q20  = _Qs[idx][4];
+        Q21c = _Qs[idx][5];
+        Q21s = _Qs[idx][6];
+        Q22c = _Qs[idx][7];
+        Q22s = _Qs[idx][8];
+    }
 }
 
 
