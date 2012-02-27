@@ -42,10 +42,10 @@ public:
     {
     public:
 
-        Interactor(Topology *top) : _top(top) {};
-        Interactor() {};
+        Interactor(Topology *top, EMultipole2 *em) : _top(top), _em(em) {};
+        Interactor() : _top(NULL), _em(NULL) {};
        ~Interactor() {};
-
+        
         inline double Energy(PolarSite &pol1, PolarSite &pol2);
 
     private:
@@ -66,6 +66,11 @@ public:
         double cyx, cyy, cyz;
         double czx, czy, czz;
 
+        inline double lambda3() { return 1 - exp( -a*u3); }
+        inline double lambda5() { return 1 - (1 + a*u3) * exp( -a*u3); }
+        inline double lambda7() { return 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
+        inline double lambda9() { return 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
+
         inline double T00_00() { return R; }
 
         inline double T1x_00() { return R2 * rax; }
@@ -74,6 +79,13 @@ public:
         inline double T00_1x() { return R2 * rbx; }
         inline double T00_1y() { return R2 * rby; }
         inline double T00_1z() { return R2 * rbz; }
+
+        inline double TU1x_00() { return lambda3() * R2 * rax; }
+        inline double TU1y_00() { return lambda3() * R2 * ray; }
+        inline double TU1z_00() { return lambda3() * R2 * raz; }
+        inline double TU00_1x() { return lambda3() * R2 * rbx; }
+        inline double TU00_1y() { return lambda3() * R2 * rby; }
+        inline double TU00_1z() { return lambda3() * R2 * rbz; }
 
         inline double T20_00()  { return R3 * 0.5 * (3 * raz*raz - 1); }
         inline double T21c_00() { return R3 * sqrt(3) * rax * raz; }
@@ -96,6 +108,16 @@ public:
         inline double T1z_1y() { return R3 * (3 * raz*rby + czy); }
         inline double T1z_1z() { return R3 * (3 * raz*rbz + czz); }
 
+        inline double TU1x_1x() { return R3 * (lambda5()*3*rax*rbx + lambda3()*cxx); }
+        inline double TU1x_1y() { return R3 * (lambda5()*3*rax*rby + lambda3()*cxy); }
+        inline double TU1x_1z() { return R3 * (lambda5()*3*rax*rbz + lambda3()*cxz); }
+        inline double TU1y_1x() { return R3 * (lambda5()*3*ray*rbx + lambda3()*cyx); }
+        inline double TU1y_1y() { return R3 * (lambda5()*3*ray*rby + lambda3()*cyy); }
+        inline double TU1y_1z() { return R3 * (lambda5()*3*ray*rbz + lambda3()*cyz); }
+        inline double TU1z_1x() { return R3 * (lambda5()*3*raz*rbx + lambda3()*czx); }
+        inline double TU1z_1y() { return R3 * (lambda5()*3*raz*rby + lambda3()*czy); }
+        inline double TU1z_1z() { return R3 * (lambda5()*3*raz*rbz + lambda3()*czz); }
+
         inline double T20_1x()  { return R4 * 0.5 * (15*raz*raz*rbx + 6*raz*czx - 3*rbx); }
         inline double T20_1y()  { return R4 * 0.5 * (15*raz*raz*rby + 6*raz*czy - 3*rby); }
         inline double T20_1z()  { return R4 * 0.5 * (15*raz*raz*rbz + 6*raz*czz - 3*rbz); }
@@ -111,7 +133,7 @@ public:
         inline double T22s_1x() { return R4 * sqrt(3) * ( 5*rax*ray*rbx + rax*cyx + ray*cxx ); }
         inline double T22s_1y() { return R4 * sqrt(3) * ( 5*rax*ray*rby + rax*cyy + ray*cxy ); }
         inline double T22s_1z() { return R4 * sqrt(3) * ( 5*rax*ray*rbz + rax*cyz + ray*cxz ); }
-        
+
         inline double T1x_20()  { return R4 * 0.5 * (15*rbz*rbz*rax + 6*rbz*cxz - 3*rax); }
         inline double T1y_20()  { return R4 * 0.5 * (15*rbz*rbz*ray + 6*rbz*cyz - 3*ray); }
         inline double T1z_20()  { return R4 * 0.5 * (15*rbz*rbz*raz + 6*rbz*czz - 3*raz); }
@@ -127,6 +149,38 @@ public:
         inline double T1x_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*rax + rbx*cxy + rby*cxx ); }
         inline double T1y_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*ray + rbx*cyy + rby*cyx ); }
         inline double T1z_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*raz + rbx*czy + rby*czx ); }
+
+        inline double TU20_1x()  { return R4 * 0.5 * (lambda7()*15*raz*raz*rbx + lambda5()*(6*raz*czx - 3*rbx)); }
+        inline double TU20_1y()  { return R4 * 0.5 * (lambda7()*15*raz*raz*rby + lambda5()*(6*raz*czy - 3*rby)); }
+        inline double TU20_1z()  { return R4 * 0.5 * (lambda7()*15*raz*raz*rbz + lambda5()*(6*raz*czz - 3*rbz)); }
+        inline double TU21c_1x() { return R4 * sqrt(3) * (lambda5()*(rax*czx + cxx*raz) + lambda7()*5*rax*raz*rbx); }
+        inline double TU21c_1y() { return R4 * sqrt(3) * (lambda5()*(rax*czy + cxy*raz) + lambda7()*5*rax*raz*rby); }
+        inline double TU21c_1z() { return R4 * sqrt(3) * (lambda5()*(rax*czz + cxz*raz) + lambda7()*5*rax*raz*rbz); }
+        inline double TU21s_1x() { return R4 * sqrt(3) * (lambda5()*(ray*czx + cyx*raz) + lambda7()*5*ray*raz*rbx); }
+        inline double TU21s_1y() { return R4 * sqrt(3) * (lambda5()*(ray*czy + cyy*raz) + lambda7()*5*ray*raz*rby); }
+        inline double TU21s_1z() { return R4 * sqrt(3) * (lambda5()*(ray*czz + cyz*raz) + lambda7()*5*ray*raz*rbz); }
+        inline double TU22c_1x() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rax*rax-ray*ray)*rbx + lambda5()*(2*rax*cxx - 2*ray*cyx)); }
+        inline double TU22c_1y() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rax*rax-ray*ray)*rby + lambda5()*(2*rax*cxy - 2*ray*cyy)); }
+        inline double TU22c_1z() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rax*rax-ray*ray)*rbz + lambda5()*(2*rax*cxz - 2*ray*cyz)); }
+        inline double TU22s_1x() { return R4 * sqrt(3) * (lambda7()*5*rax*ray*rbx + lambda5()*(rax*cyx + ray*cxx) ); }
+        inline double TU22s_1y() { return R4 * sqrt(3) * (lambda7()*5*rax*ray*rby + lambda5()*(rax*cyy + ray*cxy) ); }
+        inline double TU22s_1z() { return R4 * sqrt(3) * (lambda7()*5*rax*ray*rbz + lambda5()*(rax*cyz + ray*cxz) ); }
+
+        inline double TU1x_20()  { return R4 * 0.5 * (lambda7()*15*rbz*rbz*rax + lambda5()*(6*rbz*cxz - 3*rax)); }
+        inline double TU1y_20()  { return R4 * 0.5 * (lambda7()*15*rbz*rbz*ray + lambda5()*(6*rbz*cyz - 3*ray)); }
+        inline double TU1z_20()  { return R4 * 0.5 * (lambda7()*15*rbz*rbz*raz + lambda5()*(6*rbz*czz - 3*raz)); }
+        inline double TU1x_21c() { return R4 * sqrt(3) * (lambda5()*(rbx*cxz + cxx*rbz) + lambda7()*5*rbx*rbz*rax); }
+        inline double TU1y_21c() { return R4 * sqrt(3) * (lambda5()*(rbx*cyz + cyx*rbz) + lambda7()*5*rbx*rbz*ray); }
+        inline double TU1z_21c() { return R4 * sqrt(3) * (lambda5()*(rbx*czz + czx*rbz) + lambda7()*5*rbx*rbz*raz); }
+        inline double TU1x_21s() { return R4 * sqrt(3) * (lambda5()*(rby*cxz + cxy*rbz) + lambda7()*5*rby*rbz*rax); }
+        inline double TU1y_21s() { return R4 * sqrt(3) * (lambda5()*(rby*cyz + cyy*rbz) + lambda7()*5*rby*rbz*ray); }
+        inline double TU1z_21s() { return R4 * sqrt(3) * (lambda5()*(rby*czz + czy*rbz) + lambda7()*5*rby*rbz*raz); }
+        inline double TU1x_22c() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rbx*rbx-rby*rby)*rax + lambda5()*(2*rbx*cxx - 2*rby*cxy)); }
+        inline double TU1y_22c() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rbx*rbx-rby*rby)*ray + lambda5()*(2*rbx*cyx - 2*rby*cyy)); }
+        inline double TU1z_22c() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rbx*rbx-rby*rby)*raz + lambda5()*(2*rbx*czx - 2*rby*czy)); }
+        inline double TU1x_22s() { return R4 * sqrt(3) * (lambda7()*5*rbx*rby*rax + lambda5()*(rbx*cxy + rby*cxx) ); }
+        inline double TU1y_22s() { return R4 * sqrt(3) * (lambda7()*5*rbx*rby*ray + lambda5()*(rbx*cyy + rby*cyx) ); }
+        inline double TU1z_22s() { return R4 * sqrt(3) * (lambda7()*5*rbx*rby*raz + lambda5()*(rbx*czy + rby*czx) ); }
 
         inline double T20_20()   { return R5 * 0.75 * (35*raz*raz*rbz*rbz - 5*raz*raz - 5*rbz*rbz + 20*raz*rbz*czz + 2*czz*czz + 1); }
         inline double T20_21c()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rbz - 5*rbx*rbz + 10*raz*rbx*czz + 10*raz*rbz*czx + 2*czx*czz); }
@@ -155,16 +209,8 @@ public:
         inline double T22s_21s() { return R5 * (35*rby*rbz*rax*ray + 5*rby*rax*cyz + 5*rby*ray*cxz + 5*rbz*rax*cyy + 5*rbz*ray*cxy + cxy*cyz + cyy*cxz); }
         inline double T22s_22c() { return R5 * 0.5 * (35*rbx*rbx*rax*ray - 35*rby*rby*rax*ray + 10*rbx*rax*cyx + 10*rbx*ray*cxx - 10*rby*rax*cyy - 10*rby*ray*cxy + 2*cxx*cyx - 2*cxy*cyy); }
 
-        inline double lambda3() { return 1 - exp( -a*u3); }
-        inline double lambda5() { return 1 - (1 + a*u3) * exp( -a*u3); }
-        inline double lambda7() { return 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
-        inline double lambda9() { return 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
-        
-
-
-
-
-        Topology *_top;
+        Topology        *_top;
+        EMultipole2     *_em;
 
     };
 
@@ -180,7 +226,7 @@ public:
         SiteOpMultipole(int id, Topology *top,
                      EMultipole2 *master)
                    : _id(id), _top(top), _seg(NULL),
-                     _master(master)      { _actor = Interactor(top); };
+                     _master(master)      { _actor = Interactor(top,_master); };
 
        ~SiteOpMultipole();
 
@@ -189,10 +235,15 @@ public:
 
         void InitSlotData(Topology *top);
         void Run(void);
-        void EvalSite(Topology *top, Segment *seg);
+
+        void   EvalSite(Topology *top, Segment *seg);
+        void   Charge(int state);
+        void   Induce();
+        double Energy();
+        void   Depolarize();
 
 
-    protected:
+    public:
 
         int                           _id;
         Topology                     *_top;
@@ -208,6 +259,7 @@ private:
 
     // Allocation of polar sites to fragments and segments
     map<string, vector<PolarSite*> >     _map_seg_polarSites;
+    map<string, vector<bool> >           _map_seg_chrgStates;
     map<string, vector<int> >            _alloc_frag_mpoleIdx;
     map<string, vector<string> >         _alloc_frag_mpoleName;
 
@@ -303,7 +355,7 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
         if ( opt->exists(key+".tolerance") ) {
             _epsTol = opt->get(key+".tolerance").as< double >();
         }
-        else { _epsTol = 0.001; }
+        else { _epsTol = 0.0001; }
     
 
 }
@@ -431,6 +483,7 @@ void EMultipole2::EStatify(Topology *top, Property *options) {
 
     // => Output to PolarSite Container (template container)
     map<string, vector<PolarSite*> > map_seg_polarSites;
+    map<string, vector<bool> >       map_seg_chrgStates;
 
 
     // Multipoles for neutral state
@@ -446,6 +499,10 @@ void EMultipole2::EStatify(Topology *top, Property *options) {
         vector< PolarSite* > poles = ParseGdmaFile(filename, state);
 
         map_seg_polarSites[segName] = poles;
+        map_seg_chrgStates[segName].resize(3);
+        map_seg_chrgStates[segName][0] = false; // <- negative
+        map_seg_chrgStates[segName][1] = true;  // <- neutral
+        map_seg_chrgStates[segName][2] = false; // <- positive
         poles.clear();
 
     }
@@ -460,9 +517,10 @@ void EMultipole2::EStatify(Topology *top, Property *options) {
             string filename = strit->second;
 
             vector< PolarSite* > polesAnion = ParseGdmaFile(filename, state);
+            map_seg_chrgStates[segName][state+1] = true;
 
             // Merge with polar sites for neutral state
-            vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];
+            vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];            
 
             assert(polesAnion.size() == polesNeutral.size());
             for (int i = 0; i < polesNeutral.size(); i++) {
@@ -484,9 +542,10 @@ void EMultipole2::EStatify(Topology *top, Property *options) {
             string filename = strit->second;
 
             vector< PolarSite* > polesCation = ParseGdmaFile(filename, state);
+            map_seg_chrgStates[segName][state+1] = true;
 
             // Merge with polar sites for neutral state
-            vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];
+            vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];            
 
             assert(polesCation.size() == polesNeutral.size());
             for (int i = 0; i < polesNeutral.size(); i++) {
@@ -518,6 +577,7 @@ void EMultipole2::EStatify(Topology *top, Property *options) {
     //             fragment
 
     _map_seg_polarSites = map_seg_polarSites;
+    _map_seg_chrgStates = map_seg_chrgStates;
     _alloc_frag_mpoleIdx =  alloc_frag_mpoleIdx;
     _alloc_frag_mpoleName = alloc_frag_mpoleName;
     
@@ -617,6 +677,23 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
     }
     else { cout << endl << "ERROR: No file " << filename << endl; }
 
+
+    vector< PolarSite* > ::iterator pol;
+    cout << endl << "... ... WARNING: Using default Thole polarizabilities "
+                 << "for charge state " << state << ". ";
+    for (pol = poles.begin(); pol < poles.end(); ++pol) {
+        string elem = (*pol)->getName();
+        double alpha = 0.0;
+        if      (elem == "C") { alpha = 1.75;  }
+        else if (elem == "H") { alpha = 0.696; }
+        else if (elem == "N") { alpha = 1.073; }
+        else if (elem == "O") { alpha = 0.837; }
+        else if (elem == "S") { alpha = 2.926; }
+        else { throw runtime_error("No polarizability given "
+                                   "for polar site type " + elem + ". "); }
+    }
+
+
     return poles;
     
 }
@@ -635,6 +712,7 @@ void EMultipole2::DistributeMpoles(Topology *top) {
 
         Segment *seg = *sit;
         vector<PolarSite*> poleSites = _map_seg_polarSites.at(seg->getName());
+        seg->setChrgStates(_map_seg_chrgStates[seg->getName()]);
 
         vector<Fragment*> ::iterator fit;
         for (fit = seg->Fragments().begin();
@@ -733,7 +811,7 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
     vector<PolarSite*> ::iterator pol1;
     vector<PolarSite*> ::iterator pol2;
 
-    Interactor actor = Interactor(top);
+    Interactor actor = Interactor(top, this);
 
     for (sit1 = top->Segments().begin();
          sit1 < top->Segments().end();
@@ -751,7 +829,7 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
         }
 
         cout << "\r... ... Calculating interaction energy for pair "
-             << seg1->getId() << "|" << seg2->getId() << " "; 
+             << seg1->getId() << "|" << seg2->getId() << "   " << flush;
         
         for (pol1 = seg1->PolarSites().begin();
              pol1 < seg1->PolarSites().end();
@@ -760,17 +838,17 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
              pol2 < seg2->PolarSites().end();
              ++pol2) {
 
-            (*pol1)->PrintInfo(cout); // OVERRIDE
-            (*pol2)->PrintInfo(cout); // OVERRIDE
+            //(*pol1)->PrintInfo(cout); // OVERRIDE
+            //(*pol2)->PrintInfo(cout); // OVERRIDE
 
              E += actor.Energy(*(*pol1), *(*pol2));
              //cout << "ENERGY INTERM E = " << E << endl;
 
-             break;     // OVERRIDE
-        } break; }      // OVERRIDE
+             //break;     // OVERRIDE
+        }  }      // OVERRIDE
 
-         break;        // OVERRIDE
-    } break; }         // OVERRIDE
+                 // OVERRIDE
+    }  }         // OVERRIDE
 
     cout << ": E = " << E;
 
@@ -857,15 +935,16 @@ void EMultipole2::SiteOpMultipole::Run(void) {
 
     while (true) {
 
-        Segment *seg = _master->RequestNextSite(_id, _top);
+        _seg = _master->RequestNextSite(_id, _top);
 
-        if (seg == NULL) { break; }
-        else { this->EvalSite(_top, seg); }
+        if (_seg == NULL) { break; }
+        else { this->EvalSite(_top, _seg); }
     }
 }
 
 
 void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) { 
+    
 
     vector< Segment* > ::iterator sitRef;
     vector< vector<PolarSite*> > ::iterator sitNew;
@@ -888,6 +967,7 @@ void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) {
 
             *pitNew = new PolarSite();
             (*pitNew)->ImportFrom(*pitRef, "full");
+            (*pitNew)->Charge(0);
         }
     }
 }
@@ -910,29 +990,94 @@ EMultipole2::SiteOpMultipole::~SiteOpMultipole() {
 
 void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
-    if (seg->getId() == 9) {
-        ;
-        /*
-        vector< vector<PolarSite*> > ::iterator sit;
-        vector< PolarSite* > ::iterator pit;
+    if (seg->getId() == 1) {
+        
+    cout << endl;
 
-        for (sit = _polarSites.begin();
-                sit < _polarSites.end();
-                ++sit) {
+    int state = -1;
+    if (_seg->hasChrgState(state)) {
 
-            cout << " ############## " << (*sit).size() << " ############### "
-                 << endl;
+        this->Charge(state);
+        this->Induce();
 
-            for (pit = (*sit).begin();
-                    pit < (*sit).end();
-                    ++pit) {
+        this->Depolarize();
 
-                (*pit)->PrintInfo(cout);
 
-            }
-        }
-        */
     }
+
+
+    state = +1;
+    if (_seg->hasChrgState(state)) {
+
+        this->Charge(state);
+        this->Induce();
+
+        this->Depolarize();
+    }
+
+    }
+}
+
+
+void EMultipole2::SiteOpMultipole::Charge(int state) {
+
+    vector< PolarSite* > ::iterator pit;
+    for (pit = _polarSites[_seg->getId()].begin();
+         pit < _polarSites[_seg->getId()].end();
+         ++pit) {
+
+        (*pit)->Charge(state);
+    }
+}
+
+void EMultipole2::SiteOpMultipole::Induce() {
+    ;
+}
+
+
+double EMultipole2::SiteOpMultipole::Energy() {
+
+    double E = 0.0;
+
+    vector< Segment* > ::iterator seg1;
+    vector< Segment* > ::iterator seg2;
+    vector< vector<PolarSite*> > ::iterator sit1;
+    vector< vector<PolarSite*> > ::iterator sit2;
+    vector< PolarSite* > ::iterator pit1;
+    vector< PolarSite* > ::iterator pit2;
+
+    for (sit1 = _polarSites.begin(), seg1 = _top->Segments().begin();
+         sit1 < _polarSites.end();
+         ++sit1, ++seg1) {
+    for (sit2 = sit1 + 1, seg2 = seg1 + 1;
+         sit2 < _polarSites.end();
+         ++sit2, ++seg2) {
+
+        if ( abs(_top->PbShortestConnect((*seg1)->getPos(),(*seg2)->getPos()))
+                > _master->_cutoff) { continue; }
+
+        cout << "\r... ... Calculating interaction energy for pair "
+             << (*seg1)->getId() << "|" << (*seg2)->getId() << "   " << flush;
+
+
+        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+        for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+
+            //(*pit1)->PrintInfo(cout);
+            //(*pit2)->PrintInfo(cout);
+
+            E += _actor.Energy(*(*pit1), *(*pit2));
+
+        }}
+
+    }}
+
+    cout << ": E = " << E;
+    return E;
+}
+
+void EMultipole2::SiteOpMultipole::Depolarize() {
+    ;
 }
 
 // +++++++++++++++++++++++++++ //
@@ -949,6 +1094,10 @@ inline double EMultipole2::Interactor::Energy(PolarSite &pol1,PolarSite &pol2) {
     R4   = R3*R;
     R5   = R4*R;
     e12 *= R;
+
+    // Thole damping init.
+    a    = _em->_aDamp;
+    u3   = R3 / sqrt(pol1.alpha * pol2.alpha);
 
     //cout << "frag1 " << pol1.getFragment()->getId() << endl;
     //cout << "frag2 " << pol2.getFragment()->getId() << endl;

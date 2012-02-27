@@ -51,6 +51,9 @@ public:
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
     void            Charge(int state);
+    void            setAlpha(double polarity) { alpha = polarity; }
+    double         &getAlpha() { return alpha; }
+
 
     void            ImportFrom(PolarSite *templ, string tag = "basic");
     void            Translate(const vec &shift);
@@ -77,11 +80,14 @@ private:
     vector < vector<double> > _Qs;
     int     _rank;
 
+    double alpha;                           // Polarizability
 
     double Q00;
     double Q1x, Q1y, Q1z;
-    double U1x, U1y, U1z;
+    double U1x, U1y, U1z;                   // Induced dipole
     double Q20, Q21c, Q21s, Q22c, Q22s;
+
+    double Fx, Fy, Fz;                      // Electric field
 
 
 

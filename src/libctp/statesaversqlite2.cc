@@ -557,7 +557,7 @@ void StateSaverSQLite2::ReadMeta(int topId) {
 
 void StateSaverSQLite2::ReadMolecules(int topId) {
 
-    cout << " Molecules";
+    cout << " Molecules" << flush;
 
     Statement *stmt = _db.Prepare("SELECT name "
                                   "FROM molecules "
@@ -612,7 +612,7 @@ void StateSaverSQLite2::ReadSegTypes(int topId) {
 
 void StateSaverSQLite2::ReadSegments(int topId) {
 
-    cout << ", segments";
+    cout << ", segments" << flush;
 
     Statement *stmt = _db.Prepare("SELECT name, type, mol, "
                                   "posX, posY, posZ, "
@@ -669,7 +669,7 @@ void StateSaverSQLite2::ReadSegments(int topId) {
 
 void StateSaverSQLite2::ReadFragments(int topId) {
 
-    cout << ", fragments";
+    cout << ", fragments" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
                                   "name, mol, seg, "
@@ -716,7 +716,7 @@ void StateSaverSQLite2::ReadFragments(int topId) {
 
 void StateSaverSQLite2::ReadAtoms(int topId) {
 
-    cout << ", atoms";
+    cout << ", atoms" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
                                   "name, mol, seg, frag, "
@@ -771,7 +771,7 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
 
 void StateSaverSQLite2::ReadPairs(int topId) {
 
-    cout << ", pairs";
+    cout << ", pairs" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
                                   "seg1, seg2, lOe, "

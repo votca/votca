@@ -115,7 +115,8 @@ const double &Segment::getLambdaIntra(int state0, int state1) {
 }
 
 void Segment::setEMpoles(int state, double energy) {
-    _hasChrgState[state] = true;
+    _hasChrgState.resize(3);
+    _hasChrgState[state+1] = true;
     _eMpoles[state] = energy;
 }
 const double &Segment::getEMpoles(int state) {
@@ -124,7 +125,8 @@ const double &Segment::getEMpoles(int state) {
 
 
 void Segment::AddChrgState(int state, bool yesno) {
-    this->_hasChrgState[state] = yesno;
+    _hasChrgState.resize(3);
+    _hasChrgState[state+1] = yesno;
 }
 
 void Segment::chrg(int state) {

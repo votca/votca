@@ -300,7 +300,7 @@ void EMultipole::EquipTop(Topology *top) {
             }
             (*segit)->AddChrgState(-1, false);
             (*segit)->AddChrgState(0, false);
-            (*segit)->AddChrgState(+1, false);  
+            (*segit)->AddChrgState(+1, false); 
         }
     }
 

@@ -229,7 +229,7 @@ bool Topology::Rigidify() {
              (*sit)->Rigidify();
         }
 
-        cout << endl;
+        if (this->NBList().size() > 0) {
 
         // Rigidify pairs
         // [ Why this is needed: Orientation matrices for fragments are not
@@ -246,23 +246,26 @@ bool Topology::Rigidify() {
         //   either. Therefore it should not be forgotten here. --- A way out
         //   would be to rigidify the topology within StateSaver::ReadFrame,
         //   after atoms have been created, but before pairs are created. ]
-        
-        QMNBList2 &nblist = this->NBList();
 
-        QMNBList2::iterator pit;
-        int count = 0;
-        for (pit = nblist.begin(); pit != nblist.end(); pit++) {
+            cout << endl;
 
-            QMPair2 *qmpair = *pit;
-            if (qmpair->HasGhost()) {
-                count++;
+            QMNBList2 &nblist = this->NBList();
 
-                cout << "\r... ... Rigidified " << count << " ghosts. "
-                     << flush;
+            QMNBList2::iterator pit;
+            int count = 0;
+            for (pit = nblist.begin(); pit != nblist.end(); pit++) {
 
-                qmpair->Seg2PbCopy()->Rigidify();
-            }      
-        }   
+                QMPair2 *qmpair = *pit;
+                if (qmpair->HasGhost()) {
+                    count++;
+
+                    cout << "\r... ... Rigidified " << count << " ghosts. "
+                         << flush;
+
+                    qmpair->Seg2PbCopy()->Rigidify();
+                }
+            }
+        }
 
         _isRigid = true;
         return 1;

@@ -61,7 +61,8 @@ public:
 
     const double    &getEMpoles(int state);
     void             setEMpoles(int state, double energy);
-    bool             hasChrgState(int state) { return _hasChrgState[state]; }
+    bool             hasChrgState(int state) { return _hasChrgState[state+1]; }
+    void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno; }
     void             AddChrgState(int state, bool yesno);
     void             chrg(int state);
 
@@ -115,7 +116,7 @@ private:
     map< int,       double >      _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
-    map< int, bool > _hasChrgState;
+    vector<bool> _hasChrgState;
 
     map< int,       double >      _occProb;
     //   +1(=> h)   occ.prob. for hole
