@@ -53,6 +53,8 @@ public:
     void            Charge(int state);
     void            setAlpha(double polarity) { alpha = polarity; }
     double         &getAlpha() { return alpha; }
+    void            Depolarize() { U1x = U1y = U1z = 0.0; U1_Hist.clear(); }
+    void            Add2IndHist(vec &u) { U1_Hist.push_back(u); }
 
 
     void            ImportFrom(PolarSite *templ, string tag = "basic");
@@ -88,6 +90,7 @@ private:
     double Q20, Q21c, Q21s, Q22c, Q22s;
 
     double Fx, Fy, Fz;                      // Electric field
+    vector< vec > U1_Hist;                  // Ind. u history
 
 
 

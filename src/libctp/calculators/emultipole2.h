@@ -239,7 +239,7 @@ public:
         void   EvalSite(Topology *top, Segment *seg);
         void   Charge(int state);
         void   Induce();
-        double Energy();
+        double Energy(int state);
         void   Depolarize();
 
 
@@ -250,8 +250,9 @@ public:
         Segment                      *_seg;
         EMultipole2                  *_master;
 
-        vector< vector<PolarSite*> > _polarSites;
-        Interactor                   _actor;
+        vector< vector<PolarSite* >  _polarSphere; // Segments within cutoff
+        vector< vector<PolarSite*> > _polarSites;  // Copy of top polar sites 
+        Interactor                   _actor;       
     };
 
 
@@ -850,7 +851,7 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
                  // OVERRIDE
     }  }         // OVERRIDE
 
-    cout << ": E = " << E;
+    cout << ": E(0) = " << E;
 
 
 
@@ -929,7 +930,7 @@ Segment *EMultipole2::RequestNextSite(int opId, Topology *top) {
 
 // +++++++++++++++++++++++++++++ //
 // SiteOperator Member Functions //
-// +++++++++++++++++++++++++++++ // 
+// +++++++++++++++++++++++++++++ //
 
 void EMultipole2::SiteOpMultipole::Run(void) {
 
@@ -992,16 +993,16 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
     if (seg->getId() == 1) {
         
-    cout << endl;
+    
 
     int state = -1;
     if (_seg->hasChrgState(state)) {
 
+        cout << endl;
         this->Charge(state);
         this->Induce();
-
+        this->Energy(state);
         this->Depolarize();
-
 
     }
 
@@ -1009,13 +1010,15 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     state = +1;
     if (_seg->hasChrgState(state)) {
 
+        cout << endl;
         this->Charge(state);
         this->Induce();
-
+        this->Energy(state);
         this->Depolarize();
     }
 
     }
+
 }
 
 
@@ -1030,12 +1033,13 @@ void EMultipole2::SiteOpMultipole::Charge(int state) {
     }
 }
 
+
 void EMultipole2::SiteOpMultipole::Induce() {
     ;
 }
 
 
-double EMultipole2::SiteOpMultipole::Energy() {
+double EMultipole2::SiteOpMultipole::Energy(int state) {
 
     double E = 0.0;
 
@@ -1072,12 +1076,23 @@ double EMultipole2::SiteOpMultipole::Energy() {
 
     }}
 
-    cout << ": E = " << E;
+    cout << ": E(" << state << ") = " << E;
     return E;
 }
 
+
 void EMultipole2::SiteOpMultipole::Depolarize() {
-    ;
+
+    vector< vector<PolarSite*> > ::iterator sit;
+    vector< PolarSite* > ::iterator pit;
+
+    for (sit = _polarSites.begin(); sit < _polarSites.end(); ++sit) {
+        for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+
+            (*pit)->Depolarize();
+
+        }
+    }
 }
 
 // +++++++++++++++++++++++++++ //
