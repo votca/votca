@@ -43,7 +43,7 @@ public:
     Fragment        *getFragment() { return _frag; }
 
     void            setPos(vec &pos) { _pos = pos; }
-    void            setRank(int rank) { _rank = 1; } // rank; } // OVERRIDE
+    void            setRank(int rank) { _rank = rank; } // rank; } // OVERRIDE
     void            setTopology(Topology *top) { _top = top; }
     void            setSegment(Segment *seg) { _seg = seg; }
     void            setFragment(Fragment *frag) { _frag = frag; }
@@ -53,8 +53,11 @@ public:
     void            Charge(int state);
     void            setAlpha(double polarity) { alpha = polarity; }
     double         &getAlpha() { return alpha; }
-    void            Depolarize() { U1x = U1y = U1z = 0.0; U1_Hist.clear(); }
-    void            Add2IndHist(vec &u) { U1_Hist.push_back(u); }
+    void            Induce(double wSOR = 0.25);
+    void            InduceDirect();
+    void            ResetFieldU() { FUx = FUy = FUz = 0.0; }
+    void            Depolarize();
+    double          HistdU();
 
 
     void            ImportFrom(PolarSite *templ, string tag = "basic");
@@ -62,6 +65,7 @@ public:
     void            Rotate(const matrix &rot, const vec &refPos);
 
     void            PrintInfo(std::ostream &out);
+    void            PrintInfoInduce(std::ostream &out);
 
 
 
@@ -85,11 +89,12 @@ private:
     double alpha;                           // Polarizability
 
     double Q00;
-    double Q1x, Q1y, Q1z;
-    double U1x, U1y, U1z;                   // Induced dipole
+    double Q1x, Q1y, Q1z;    
     double Q20, Q21c, Q21s, Q22c, Q22s;
 
-    double Fx, Fy, Fz;                      // Electric field
+    double U1x, U1y, U1z;                   // Induced dipole
+    double FPx, FPy, FPz;                   // Electric field (due to permanent)
+    double FUx, FUy, FUz;                   // Electric field (due to induced)
     vector< vec > U1_Hist;                  // Ind. u history
 
 
