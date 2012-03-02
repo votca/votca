@@ -35,6 +35,7 @@ class KMCRun : public KMCApplication {
 
 
 int main(int argc, char** argv) {
+    
     KMCRun kmcrun;
     return kmcrun.Exec(argc, argv);
 }

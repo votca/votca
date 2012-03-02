@@ -110,7 +110,7 @@ void KMCSingle::LoadGraph() {
     Database db;
     db.Open( _filename );
     cout << " Loading graph from " << _filename << endl;
-    Statement *stmt = db.Prepare("SELECT _id,name FROM conjsegs;");
+    Statement *stmt = db.Prepare("SELECT id, name FROM segments;");
 
     while (stmt->Step() != SQLITE_DONE) {
         int id = stmt->Column<int>(0);
@@ -130,7 +130,7 @@ void KMCSingle::LoadGraph() {
     delete stmt;
 
     int links = 0;
-    stmt = db.Prepare("SELECT conjseg1, conjseg2, rate12, rate21, r_x, r_y, r_z FROM pairs;");
+    stmt = db.Prepare("SELECT seg1, seg2, rate12e, rate21e, r_x, r_y, r_z FROM pairs;"); // electron rates, check (think about) this
     while (stmt->Step() != SQLITE_DONE) {
         node_t *n1 = _nodes_lookup[stmt->Column<int>(0)];
         node_t *n2 = _nodes_lookup[stmt->Column<int>(1)];
@@ -178,7 +178,7 @@ void KMCSingle::WriteOcc()
     cout << "Opening for writing " << _filename << endl;
 	db.Open(_filename);
 	db.Exec("BEGIN;");
-	Statement *stmt = db.Prepare("UPDATE conjsegs SET occ = ? WHERE _id = ?;");
+	Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
 	for(int i=0; i<_nodes.size(); ++i) {
 		stmt->Reset();
 		stmt->Bind(1, _nodes[i]->_occ/_runtime);
