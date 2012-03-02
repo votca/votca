@@ -130,7 +130,7 @@ void KMCSingle::LoadGraph() {
     delete stmt;
 
     int links = 0;
-    stmt = db.Prepare("SELECT seg1, seg2, rate12e, rate21e, r_x, r_y, r_z FROM pairs;"); // electron rates, check (think about) this
+    stmt = db.Prepare("SELECT seg1, seg2, rate12e, rate21e, drX, drY, drZ FROM pairs;"); // electron rates, check (think about) this
     while (stmt->Step() != SQLITE_DONE) {
         node_t *n1 = _nodes_lookup[stmt->Column<int>(0)];
         node_t *n2 = _nodes_lookup[stmt->Column<int>(1)];
