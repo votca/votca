@@ -426,8 +426,10 @@ void StateSaverSQLite2::WritePairs(bool update) {
     if (!update) {
         stmt = _db.Prepare("INSERT INTO pairs ("
                            "frame, top, id, "
-                           "seg1, seg2 "
+                           "seg1, seg2, drX, "
+                           "drY, drZ "
                            ") VALUES ("
+                           "?, ?, ?, "
                            "?, ?, ?, "
                            "?, ? "
                            ")");
@@ -453,13 +455,16 @@ void StateSaverSQLite2::WritePairs(bool update) {
             stmt->Bind(3, pair->getId());
             stmt->Bind(4, pair->Seg1PbCopy()->getId());
             stmt->Bind(5, pair->Seg2PbCopy()->getId());
+            stmt->Bind(6, pair->R().getX());
+            stmt->Bind(7, pair->R().getY());
+            stmt->Bind(8, pair->R().getZ());
         }
         else {
                 stmt->Bind(1, pair->getLambdaO());
                 stmt->Bind(2, 0);
                 stmt->Bind(3, pair->getRate12());
-                stmt->Bind(4, 0);
-                stmt->Bind(5, pair->getRate21());
+                stmt->Bind(4, pair->getRate21());
+                stmt->Bind(5, 0);
                 stmt->Bind(6, 0);
 
                 // If both hole + electron

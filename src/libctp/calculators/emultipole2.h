@@ -24,7 +24,7 @@ public:
     void     DistributeMpoles(Topology *top);
 
     bool     EvaluateFrame(Topology *top);
-    void     EvalSite(Topology *top, Segment *seg, int slot);
+    void     EvalSite(Topology *top, Segment *seg, int slot) { ; }
     void     Induce() { return; }
     void     CalcIntEnergy() { return; }
     
@@ -302,6 +302,15 @@ private:
     Mutex                       _nextSiteMutex;
     Mutex                       _coutMutex;
 
+    // control options
+    bool            _induce;
+    int             _firstSeg;
+    int             _lastSeg;
+
+    bool            _maverick;
+    string          _outFile;
+    bool            _energies2File;
+
     // interaction parameters
     bool            _useCutoff;
     double          _cutoff;
@@ -318,10 +327,16 @@ private:
 };
 
 
-
+/**
+ * Loads options and parameters from XML File including:
+ * ... Thole model parameters
+ * ... SOR parameters (convergence)
+ * ... Control options (first, last seg., ...)
+ */
 void EMultipole2::Initialize(Topology *top, Property *opt) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
+    _maverick = (_nThreads == 1) ? true : false;
 
     if (!top->isEStatified()) { this->EStatify(top, opt); }
 
@@ -335,6 +350,13 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
      * <emultipole>
      *
      *      <multipoles></multipoles>
+     *
+     *      <control>
+     *          <induce></induce>
+     *          <first></first>
+     *          <last></last>
+     *          <output></output>
+     *      </control>
      *
      *      <tholeparam>
      *          <cutoff></cutoff>
@@ -355,6 +377,30 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
             xmlfile = opt->get(key).as< string >();
         }
 
+    key = "options.emultipole.control";
+
+        if ( opt->exists(key+".induce") ) {
+            int induce = opt->get(key+".induce").as< int >();
+            _induce = (induce == 0) ? false : true;
+        }
+        else { _induce = true; }
+
+        if ( opt->exists(key+".first") ) {
+            _firstSeg = opt->get(key+".first").as< int >();
+        }
+        else { _firstSeg = 1; }
+
+        if ( opt->exists(key+".last") ) {
+            _lastSeg = opt->get(key+".last").as< int >();
+        }
+        else { _lastSeg = -1; }
+
+        if ( opt->exists(key+".output") ) {
+            _outFile = opt->get(key+".output").as< string >();
+            _energies2File = true;
+        }
+        else { _energies2File = false; }
+
     key = "options.emultipole.tholeparam";
 
         if ( opt->exists(key+".cutoff") ) {
@@ -371,7 +417,7 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
                 _useScaling = true; }
             else {
                 _useScaling = false;
-                cout << "WARNING: 1-N SCALING SWITCHED OFF" << endl; }
+                cout << endl << "... ... WARNING: 1-N SCALING SWITCHED OFF"; }
         }
 
     key = "options.emultipole.convparam";
@@ -389,12 +435,18 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
         if ( opt->exists(key+".tolerance") ) {
             _epsTol = opt->get(key+".tolerance").as< double >();
         }
-        else { _epsTol = 0.0001; }
-
+        else { _epsTol = 0.001; }
+    
 
 }
 
 
+/**
+ * Creates polar-site templates using mapping file
+ * ... Establishes allocation of polar sites to fragments
+ * ... Calls GDMA punch-file parser to load multipoles and polarizabilities
+ * ... In doing this, establishes which charge states are available (N, C, A)
+ */
 void EMultipole2::EStatify(Topology *top, Property *options) {
 
     cout << endl << "... ... Estatify system";
@@ -618,6 +670,13 @@ void EMultipole2::EStatify(Topology *top, Property *options) {
 }
 
 
+/**
+ * Parses GDMA punch file (for structure sample see below)
+ * ... Loads positions, rank, multipoles
+ * ... Converts from a.u. to internal units
+ * ... Determines polarizabilities from element type
+ * @return Yields polar-site template container
+ */
 vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
 
     int poleCount = 1;
@@ -734,6 +793,13 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
 }
 
 
+/**
+ * Equips segments with polar sites using polar-site template container
+ * ... Loops over segments + fragments in topology
+ * ... Looks up associated polar sites, creates 'new' instances
+ * ... Translates + rotates polar-site positions into global frame
+ * ... NOTE MULTIPOLES ARE NOT ROTATED BUT REMAIN IN LOCAL FRAME
+ */
 void EMultipole2::DistributeMpoles(Topology *top) {
 
     // +++++++++++++++++++++++++++++++++++++ //
@@ -781,12 +847,17 @@ void EMultipole2::DistributeMpoles(Topology *top) {
 }
 
 
+/**
+ * Creates threads to work on individual segments
+ * ... Rigidifies + equips topology with polar sites
+ * ... Creates, starts threads
+ * ... Waits for threads to finish
+ */
 bool EMultipole2::EvaluateFrame(Topology *top) {
 
     // ++++++++++++++++++++ //
     // Ridigidfy + Estatify //
     // ++++++++++++++++++++ //
-
 
     // Rigidify if (a) not rigid yet (b) rigidification at all possible
     if (!top->isRigid()) {
@@ -802,6 +873,8 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
                  << " multipole sites.";
 
     /*
+    // To check rotation into global frame
+    // NOTE Only applies to positions, multipoles remain in local frame
     string mpNAME = "mp_system.pdb";
     FILE *mpPDB = NULL;
     mpPDB = fopen(mpNAME.c_str(), "w");
@@ -812,87 +885,6 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
     fclose(mpPDB);
     */
 
-    /*
-    vector<PolarSite*>::iterator pol;
-    for (pol = top->PolarSites().begin();
-            pol < top->PolarSites().end();
-            ++pol) {
-
-        (*pol)->PrintInfo(cout);
-    }
-    cout << "SIZEOF " << sizeof(PolarSite) << endl;
-    */
-
-
-    // ++++++++++++++++++++++++++++++++++ //
-    // Calculate energy of neutral system //
-    // ++++++++++++++++++++++++++++++++++ //
-
-
-    
-
-    /**
-    cout << "... ... Evaluating energy for neutral system " << endl;
-
-    vector<PolarSite*> ::iterator pol;
-    for (pol = top->PolarSites().begin();
-         pol < top->PolarSites().end();
-         ++pol) {
-
-        (*pol)->Charge(0);
-    } 
-
-    double E = 0.0;
-
-    vector<Segment*> ::iterator sit1;
-    vector<Segment*> ::iterator sit2;
-    vector<PolarSite*> ::iterator pol1;
-    vector<PolarSite*> ::iterator pol2;
-
-    Interactor actor = Interactor(top, this);
-
-    for (sit1 = top->Segments().begin();
-         sit1 < top->Segments().end();
-         ++sit1) {
-    for (sit2 = sit1 + 1;
-         sit2 < top->Segments().end();
-         ++sit2) {
-
-        Segment *seg1 = *sit1;
-        Segment *seg2 = *sit2;
-
-        if ( abs( top->PbShortestConnect(seg1->getPos(),
-                                         seg2->getPos()) ) > _cutoff) {
-            continue;
-        }
-
-        cout << "\r... ... Calculating interaction energy for pair "
-             << seg1->getId() << "|" << seg2->getId() << "   " << flush;
-        
-        for (pol1 = seg1->PolarSites().begin();
-             pol1 < seg1->PolarSites().end();
-             ++pol1) {
-        for (pol2 = seg2->PolarSites().begin();
-             pol2 < seg2->PolarSites().end();
-             ++pol2) {
-
-            //(*pol1)->PrintInfo(cout); // OVERRIDE
-            //(*pol2)->PrintInfo(cout); // OVERRIDE
-
-             E += actor.Energy(*(*pol1), *(*pol2));
-             //cout << "ENERGY INTERM E = " << E << endl;
-
-                 // OVERRIDE
-        }}       // OVERRIDE
-
-                 // OVERRIDE
-    }}           // OVERRIDE
-
-    cout << ": E(0) = " << E;
-    */
-
-
-
     // +++++++++++++++++++++++++++++++++ //
     // Create + start threads (Site Ops) //
     // +++++++++++++++++++++++++++++++++ //
@@ -900,6 +892,10 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
     vector<SiteOpMultipole*> siteOps;    
 
     _nextSite = top->Segments().begin();
+
+    // Forward to first segment specified in options
+    for ( ; (*_nextSite)->getId() < this->_firstSeg ; ++_nextSite) { ; }
+
 
     for (int id = 0; id < _nThreads; id++) {
         SiteOpMultipole *newOp = new SiteOpMultipole(id, top, this);
@@ -924,27 +920,60 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
 
     siteOps.clear();
 
+
+    // +++++++++++++++++++++ //
+    // Print numbers to file //
+    // +++++++++++++++++++++ //
+
+    if (_energies2File) {
+
+        FILE *out;
+        string topOutFile = "Frame"
+                          + boost::lexical_cast<string>(top->getDatabaseId())
+                          + "_" + _outFile;
+        out = fopen(topOutFile.c_str(), "w");
+
+        vector< Segment* > ::iterator sit;
+        for (sit = top->Segments().begin();
+             sit < top->Segments().end();
+             ++sit) {
+
+            if ((*sit)->getId() < _firstSeg ) { continue; }
+
+            fprintf(out, "%4d ", (*sit)->getId() );
+            fprintf(out, "%4s ", (*sit)->getName().c_str() );
+
+            if ((*sit)->hasChrgState(0)) {
+                 fprintf(out, "   0 %3.8f   ", (*sit)->getEMpoles(0) );
+            }
+            if ((*sit)->hasChrgState(-1)) {
+                 fprintf(out, "  -1 %3.8f   ", (*sit)->getEMpoles(-1) );
+            }
+
+            if ((*sit)->hasChrgState(+1)) {
+                 fprintf(out, "  +1 %3.8f   ", (*sit)->getEMpoles(+1) );
+            }
+
+            fprintf(out, " \n");
+
+            if ( (*sit)->getId() == _lastSeg ) { break; }
+        }
+    }
+
     this->PostProcess(top);
     return 1;
 }
-
-
-void EMultipole2::EvalSite(Topology *top, Segment *seg, int slot) {
-
-    this->LockCout();
-    cout << "\r... ... Evaluate site " << seg->getId();
-    this->UnlockCout();
-
-    throw runtime_error("EMultipole2::EvalSite should not have been called.");
-
-}
-
 
 
 // +++++++++++++++++ //
 // Thread Management //
 // +++++++++++++++++ //
 
+
+/**
+ * Provides next segment for thread upon request
+ * @return Pointer to next segment
+ */
 Segment *EMultipole2::RequestNextSite(int opId, Topology *top) {
 
     _nextSiteMutex.Lock();
@@ -954,9 +983,15 @@ Segment *EMultipole2::RequestNextSite(int opId, Topology *top) {
     if (_nextSite == top->Segments().end()) {
         workOnThis = NULL;
     }
+    else if ((*_nextSite)->getId() > _lastSeg && _lastSeg > 0) {
+        workOnThis = NULL;
+    }
     else {
         workOnThis = *_nextSite;
         _nextSite++;
+        cout << endl << "... ... OP " << opId
+             << " evaluating energy for site "
+             << workOnThis->getId() << flush;
     }
 
     _nextSiteMutex.Unlock();
@@ -980,7 +1015,10 @@ void EMultipole2::SiteOpMultipole::Run(void) {
     }
 }
 
-
+/**
+ * Creates private copies of polar sites in topology and
+ * arranges them by segments so as to avoid mutexes.
+ */
 void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) { 
     
 
@@ -1010,7 +1048,9 @@ void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) {
     }
 }
 
-
+/**
+ * Deletes all private thread data, in particular copies of polar sites
+ */
 EMultipole2::SiteOpMultipole::~SiteOpMultipole() {
 
     vector< vector<PolarSite*> > ::iterator sit;
@@ -1026,7 +1066,15 @@ EMultipole2::SiteOpMultipole::~SiteOpMultipole() {
 }
 
 
+/**
+ * Calculate electrostatic + polarization energy for segment
+ * ... Determine polarization sphere via cut-off
+ * ... Check which charges states are available
+ * ... For each charge state: Charge, Induce, Energy, Depolarize
+ */
 void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
+
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     // ++++++++++++++++++++++++++ //
     // Define polarization sphere //
@@ -1050,50 +1098,111 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     // Investigate charge states //
     // +++++++++++++++++++++++++ //
 
-
-    if (seg->getId() == 1 || seg->getId() == 2) {
-        
-    cout << endl
-         << "... ... Segments in polarization sphere: "
-         << _segsPolSphere.size();
-
+    if (_master->_maverick) {
+        cout << endl
+             << "... ... Segments in polarization sphere: "
+             << _segsPolSphere.size() << flush;
+    }
+    
     this->Depolarize();
 
     int state = +1;
     if (_seg->hasChrgState(state)) {
 
-        cout << endl << "... ... Seg " << seg->getId() << " Charge " << state;
+        if (_master->_maverick) {
+            cout << endl << "... ... Seg " << seg->getId()
+                         << " Charge " << state << flush;
+        }
+
         this->Charge(state);
-        this->Induce(state);
-        this->Energy(state);
+        if (_master->_induce) this->Induce(state);
+        double EState = this->Energy(state);
+        _seg->setEMpoles(state, int2eV * EState);
+
+        /*
+        // For visual check of convergence
+        string mpNAME = "seg1_cation.dat";
+        FILE *mpDat = NULL;
+        mpDat = fopen(mpNAME.c_str(), "w");
+        vector<PolarSite*>::iterator pit;
+        for (pit = _polsPolSphere[0].begin();
+             pit < _polsPolSphere[0].end();
+             ++pit) {
+            (*pit)->PrintInfoVisual(mpDat);
+        }
+        fclose(mpDat);
+        */
+
         this->Depolarize();
     }
 
     state = -1;
     if (_seg->hasChrgState(state)) {
 
-        cout << endl << "... ... Seg " << seg->getId() << " Charge " << state;
+        if (_master->_maverick) {
+            cout << endl << "... ... Seg " << seg->getId()
+                         << " Charge " << state << flush;
+        }
+
         this->Charge(state);
-        this->Induce(state);
-        this->Energy(state);
+        if (_master->_induce) this->Induce(state);
+        double EState = this->Energy(state);
+        _seg->setEMpoles(state, int2eV * EState);
+
+        /*
+        // For visual check of convergence
+        string mpNAME = "seg1_cation.dat";
+        FILE *mpDat = NULL;
+        mpDat = fopen(mpNAME.c_str(), "w");
+        vector<PolarSite*>::iterator pit;
+        for (pit = _polsPolSphere[0].begin();
+             pit < _polsPolSphere[0].end();
+             ++pit) {
+            (*pit)->PrintInfoVisual(mpDat);
+        }
+        fclose(mpDat);
+        */
+
         this->Depolarize();
     }
 
     state = 0;
     if (_seg->hasChrgState(state)) {
 
-        cout << endl << "... ... Seg " << seg->getId() << " Charge " << state;
+        if (_master->_maverick) {
+            cout << endl << "... ... Seg " << seg->getId()
+                         << " Charge " << state << flush;
+        }
+        
         this->Charge(state);
-        this->Induce(state);
-        this->Energy(state);
-        this->Depolarize();
-    }
+        if (_master->_induce) this->Induce(state);
+        double EState = this->Energy(state);
+        _seg->setEMpoles(state, int2eV * EState);
 
+        /*
+        // For visual check of convergence
+        string mpNAME = "seg1_neutral.dat";
+        FILE *mpDat = NULL;
+        mpDat = fopen(mpNAME.c_str(), "w");
+        vector<PolarSite*>::iterator pit;
+        for (pit = _polsPolSphere[0].begin();
+             pit < _polsPolSphere[0].end();
+             ++pit) {
+            (*pit)->PrintInfoVisual(mpDat);
+        }
+        fclose(mpDat);
+        */
+        
+        this->Depolarize();
     }
 
 }
 
 
+/**
+ * Charges polar sites in segment to state specified
+ * @param state
+ */
 void EMultipole2::SiteOpMultipole::Charge(int state) {
 
     vector< PolarSite* > ::iterator pit;
@@ -1106,10 +1215,10 @@ void EMultipole2::SiteOpMultipole::Charge(int state) {
 }
 
 
+/**
+ * Calculates induced dipole moments using the Thole Model + SOR
+ */
 void EMultipole2::SiteOpMultipole::Induce(int state) {
-
-    // Make sure all fields and induced moments are zeroed out.
-    // -> Already happened in ::Depolarize()
 
     double wSOR = this->_master->_omegSOR;
     double eTOL = this->_master->_epsTol;
@@ -1124,7 +1233,7 @@ void EMultipole2::SiteOpMultipole::Induce(int state) {
     // Inter-site fields (arising from perm. m'poles) //
     // ++++++++++++++++++++++++++++++++++++++++++++++ //
 
-    cout << endl << "... ... ... 0th-order field" << flush;
+//    cout << endl << "... ... ... 0th-order field" << flush;
     for (sit1 = _polsPolSphere.begin();
          sit1 < _polsPolSphere.end();
          ++sit1) {
@@ -1139,13 +1248,11 @@ void EMultipole2::SiteOpMultipole::Induce(int state) {
          }}
     }}
 
-    //(_polsPolSphere[0])[0]->PrintInfoInduce(cout); // OVERRIDE
-
     // +++++++++++++++++++ //
     // 1st-order induction //
     // +++++++++++++++++++ //
 
-    cout << " | Induce " << endl;
+//    cout << " | Induce " << endl;
     for (sit1 = _polsPolSphere.begin();
          sit1 < _polsPolSphere.end();
          ++sit1) {
@@ -1174,7 +1281,6 @@ void EMultipole2::SiteOpMultipole::Induce(int state) {
             }
         }
 
-
         // Intra-site contribution to induction field
         cout << " | Intra-Site (" << iter << ")" << flush;
         for (sit1 = _polsPolSphere.begin();
@@ -1187,37 +1293,25 @@ void EMultipole2::SiteOpMultipole::Induce(int state) {
                 _actor.FieldIndu(*(*pit1),*(*pit2));
             }}
         }
+
         // Inter-site contribution to induction field
         cout << " | Inter-Site (" << iter << ")" << flush;
         //boost::progress_display show_progress( _polsPolSphere.size() );
         boost::progress_timer T;
-//        for (sit1 = _polsPolSphere.begin();
-//             sit1 < _polsPolSphere.end();
-//             ++sit1) {
-//        for (sit2 = sit1 + 1;
-//             sit2 < _polsPolSphere.end();
-//             ++sit2) {
-//
-//            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-//            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
-//
-//                _actor.FieldIndu(*(*pit1), *(*pit2));
-//            }}
-//        }}
-        for (int i = 0; i < _polsPolSphere.size(); ++i) {
-            for (int j = i + 1; j < _polsPolSphere.size(); ++j) {
-                for (int u = 0; u < _polsPolSphere[i].size(); ++u) {
-                    for (int v = 0; v < _polsPolSphere[j].size(); ++v) {
+        for (sit1 = _polsPolSphere.begin();
+             sit1 < _polsPolSphere.end();
+             ++sit1) {
+        for (sit2 = sit1 + 1;
+             sit2 < _polsPolSphere.end();
+             ++sit2) {
 
-                        _actor.FieldIndu( *(_polsPolSphere[i][u]), *(_polsPolSphere[j][v]));
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
 
-                    }
-                }
-            }
-        }
-
+                _actor.FieldIndu(*(*pit1), *(*pit2));
+            }}
+        }}
         cout << " | dt " << T.elapsed() << flush;
-
 
         // Induce again
         cout << " | Induce (" << iter << ")" << flush;
@@ -1234,48 +1328,51 @@ void EMultipole2::SiteOpMultipole::Induce(int state) {
         cout << " | Check (" << iter << ")" << flush;
         bool converged = true;
         double maxdU = -1;
+        double avgdU = 0.0;
+        int    baseN = 0;
         for (sit1 = _polsPolSphere.begin();
              sit1 < _polsPolSphere.end();
              ++sit1) {
 
              for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
                  double dU = (*pit1)->HistdU();
+                 avgdU += dU;
+                 ++baseN;
                  if ( dU > maxdU ) { maxdU = dU; }
                  if ( dU > eTOL ) { converged = false; }
              }
         }
-        cout << " | MAX dU " << maxdU << " | SOR " << wSOR << flush;
+        avgdU /= baseN;
+        if (avgdU < eTOL/10.) { converged = true; }
 
-        // Adapt SOR step length
-//        if      (maxdU < 0.001)  { wSOR = 0.50; }
-//        else if (maxdU < 0.10)   { wSOR = 0.50; }
-//        else if (maxdU < 0.25)   { wSOR = 0.50; }
-//        else if (maxdU < 0.50)   { wSOR = 0.50; }
-//        else if (maxdU < 2.00)   { wSOR = 0.50; }
-//        else if (maxdU > 4.50)   { wSOR = 0.15; }
-//        else if (maxdU < 0.5)   { wSOR = 0.50; }
-//        else if (maxdU < 1.0)   { wSOR = 0.85; }
-//        else if (maxdU < 1.5)   { wSOR = 0.80; }
-//        else if (maxdU < 2.0)   { wSOR = 0.75; }
-//        else if (maxdU < 2.5)   { wSOR = 0.50; }
-//        else if (maxdU < 3.0)   { wSOR = 0.25; }
-//        else if (maxdU < 4.0)   { wSOR = 0.15; }
-//        else if (maxdU < 5.0)   { wSOR = 0.10; }
-//        else                    { wSOR = 0.05; }
+        cout << " | MAX dU " << maxdU
+             << " | AVG dU " << avgdU
+             << " | SOR " << wSOR << flush;
 
-        //(_polsPolSphere[0])[0]->PrintInfoInduce(cout); // OVERRIDE
-        //cout << endl;         // OVERRIDE
-        //this->Energy(state);  // OVERRIDE
-        
-        if (converged || iter > maxI) break;  // OVERRIDE
+        // Break if converged
+        if      (converged) {
+            break;
+        }
+        else if (iter == maxI - 1) {
+            this->_master->LockCout();
+            cout << endl << "... ... ... WARNING Induced multipoles for site "
+                 << _seg->getId() << " - state " << state 
+                 << " did not converge to precision: "
+                 << " AVG dU:U " << avgdU << flush;
+            this->_master->UnlockCout();
+            break;
+        }
     }
     
-    cout << endl << "... ... ... State " << state
-         << " - wSOR " << wSOR
-         << " - Iterations " << iter << flush;
+//    cout << endl << "... ... ... State " << state
+//         << " - wSOR " << wSOR
+//         << " - Iterations " << iter << flush;
 }
 
 
+/**
+ * Calculates electrostatic energy of segment up to Q2-Q2
+ */
 double EMultipole2::SiteOpMultipole::Energy(int state) {
 
     _actor.ResetEnergy();
@@ -1333,15 +1430,21 @@ double EMultipole2::SiteOpMultipole::Energy(int state) {
         }}
     }
     
+    if (_master->_maverick) {
+        cout << endl << "... ... ... E(" << state << ") = " << E_Tot
+             << " = (P ~) " << _actor.getEP()
+             << " + (U ~) " << _actor.getEU_INTER()
+             << " + (U o) " << _actor.getEU_INTRA();
+    }
 
-    cout << endl << "... ... ... E(" << state << ") = " << E_Tot
-         << " = (P ~) " << _actor.getEP()
-         << " + (U ~) " << _actor.getEU_INTER()
-         << " + (U o) " << _actor.getEU_INTRA();
     return E_Tot;
 }
 
 
+/**
+ * Zeroes out induced moments and induction fields for all polar sites
+ * in polarizable sphere
+ */
 void EMultipole2::SiteOpMultipole::Depolarize() {
 
     vector< vector<PolarSite*> > ::iterator sit;
@@ -1394,6 +1497,7 @@ inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
         czy = pol1._locZ * pol2._locY;
         czz = pol1._locZ * pol2._locZ;
 
+
     // Fields generated by rank-1 induced m'poles
 
     if (a*u3 < 40.0) {
@@ -1417,7 +1521,6 @@ inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
         pol2.FUz += TU1y_1z() * pol1.U1y;
         pol2.FUz += TU1z_1z() * pol1.U1z;
     }
-
     else {
         pol1.FUx += T1x_1x() * pol2.U1x;
         pol1.FUx += T1x_1y() * pol2.U1y;
@@ -1439,7 +1542,6 @@ inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
         pol2.FUz += T1y_1z() * pol1.U1y;
         pol2.FUz += T1z_1z() * pol1.U1z;  
     }
-
 }
 
 
@@ -1588,6 +1690,7 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
     // NOTE Currently, ind. dipole <-> quadrupole energy neglected
     double U = 0.0; // <- Induction energy
 
+    if (a*u3 < 40.0) {
         U += pol1.U1x * TU1x_00() * pol2.Q00;
         U += pol1.U1y * TU1y_00() * pol2.Q00;
         U += pol1.U1z * TU1z_00() * pol2.Q00;
@@ -1595,28 +1698,62 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
         U += pol1.Q00 * TU00_1x() * pol2.U1x;
         U += pol1.Q00 * TU00_1y() * pol2.U1y;
         U += pol1.Q00 * TU00_1z() * pol2.U1z;
+    }
+    else {
+        U += pol1.U1x * T1x_00() * pol2.Q00;
+        U += pol1.U1y * T1y_00() * pol2.Q00;
+        U += pol1.U1z * T1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * T00_1x() * pol2.U1x;
+        U += pol1.Q00 * T00_1y() * pol2.U1y;
+        U += pol1.Q00 * T00_1z() * pol2.U1z;
+}
+
 
     if (pol1._rank > 0 && pol2._rank > 0) {
 
-        U += pol1.U1x * TU1x_1x() * pol2.Q1x;
-        U += pol1.U1x * TU1x_1y() * pol2.Q1y;
-        U += pol1.U1x * TU1x_1z() * pol2.Q1z;
-        U += pol1.U1y * TU1y_1x() * pol2.Q1x;
-        U += pol1.U1y * TU1y_1y() * pol2.Q1y;
-        U += pol1.U1y * TU1y_1z() * pol2.Q1z;
-        U += pol1.U1z * TU1z_1x() * pol2.Q1x;
-        U += pol1.U1z * TU1z_1y() * pol2.Q1y;
-        U += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
 
-        U += pol1.Q1x * TU1x_1x() * pol2.U1x;
-        U += pol1.Q1x * TU1x_1y() * pol2.U1y;
-        U += pol1.Q1x * TU1x_1z() * pol2.U1z;
-        U += pol1.Q1y * TU1y_1x() * pol2.U1x;
-        U += pol1.Q1y * TU1y_1y() * pol2.U1y;
-        U += pol1.Q1y * TU1y_1z() * pol2.U1z;
-        U += pol1.Q1z * TU1z_1x() * pol2.U1x;
-        U += pol1.Q1z * TU1z_1y() * pol2.U1y;
-        U += pol1.Q1z * TU1z_1z() * pol2.U1z;
+            U += pol1.Q1x * TU1x_1x() * pol2.U1x;
+            U += pol1.Q1x * TU1x_1y() * pol2.U1y;
+            U += pol1.Q1x * TU1x_1z() * pol2.U1z;
+            U += pol1.Q1y * TU1y_1x() * pol2.U1x;
+            U += pol1.Q1y * TU1y_1y() * pol2.U1y;
+            U += pol1.Q1y * TU1y_1z() * pol2.U1z;
+            U += pol1.Q1z * TU1z_1x() * pol2.U1x;
+            U += pol1.Q1z * TU1z_1y() * pol2.U1y;
+            U += pol1.Q1z * TU1z_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.U1x * T1x_1x() * pol2.Q1x;
+            U += pol1.U1x * T1x_1y() * pol2.Q1y;
+            U += pol1.U1x * T1x_1z() * pol2.Q1z;
+            U += pol1.U1y * T1y_1x() * pol2.Q1x;
+            U += pol1.U1y * T1y_1y() * pol2.Q1y;
+            U += pol1.U1y * T1y_1z() * pol2.Q1z;
+            U += pol1.U1z * T1z_1x() * pol2.Q1x;
+            U += pol1.U1z * T1z_1y() * pol2.Q1y;
+            U += pol1.U1z * T1z_1z() * pol2.Q1z;
+
+            U += pol1.Q1x * T1x_1x() * pol2.U1x;
+            U += pol1.Q1x * T1x_1y() * pol2.U1y;
+            U += pol1.Q1x * T1x_1z() * pol2.U1z;
+            U += pol1.Q1y * T1y_1x() * pol2.U1x;
+            U += pol1.Q1y * T1y_1y() * pol2.U1y;
+            U += pol1.Q1y * T1y_1z() * pol2.U1z;
+            U += pol1.Q1z * T1z_1x() * pol2.U1x;
+            U += pol1.Q1z * T1z_1y() * pol2.U1y;
+            U += pol1.Q1z * T1z_1z() * pol2.U1z;
+        }
     }
 
     EU_INTRA += U;
@@ -1678,6 +1815,7 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
 
         //cout << "E up to q <-> q " << E << endl;
 
+    if (a*u3 < 40) {
         U += pol1.U1x * TU1x_00() * pol2.Q00;
         U += pol1.U1y * TU1y_00() * pol2.Q00;
         U += pol1.U1z * TU1z_00() * pol2.Q00;
@@ -1685,6 +1823,17 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
         U += pol1.Q00 * TU00_1x() * pol2.U1x;
         U += pol1.Q00 * TU00_1y() * pol2.U1y;
         U += pol1.Q00 * TU00_1z() * pol2.U1z;
+    }
+    else {
+        U += pol1.U1x * T1x_00() * pol2.Q00;
+        U += pol1.U1y * T1y_00() * pol2.Q00;
+        U += pol1.U1z * T1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * T00_1x() * pol2.U1x;
+        U += pol1.Q00 * T00_1y() * pol2.U1y;
+        U += pol1.Q00 * T00_1z() * pol2.U1z;
+    }
+
 
 
     if (pol1._rank > 0) {
@@ -1745,25 +1894,49 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
         E += pol1.Q1z * T1z_1z() * pol2.Q1z;
         //cout << "E1z_1z " << pol1.Q1z * T1z_1z() * pol2.Q1z << endl;
 
-        U += pol1.U1x * TU1x_1x() * pol2.Q1x;
-        U += pol1.U1x * TU1x_1y() * pol2.Q1y;
-        U += pol1.U1x * TU1x_1z() * pol2.Q1z;
-        U += pol1.U1y * TU1y_1x() * pol2.Q1x;
-        U += pol1.U1y * TU1y_1y() * pol2.Q1y;
-        U += pol1.U1y * TU1y_1z() * pol2.Q1z;
-        U += pol1.U1z * TU1z_1x() * pol2.Q1x;
-        U += pol1.U1z * TU1z_1y() * pol2.Q1y;
-        U += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        if (a*u3 < 40) {
+            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
 
-        U += pol1.Q1x * TU1x_1x() * pol2.U1x;
-        U += pol1.Q1x * TU1x_1y() * pol2.U1y;
-        U += pol1.Q1x * TU1x_1z() * pol2.U1z;
-        U += pol1.Q1y * TU1y_1x() * pol2.U1x;
-        U += pol1.Q1y * TU1y_1y() * pol2.U1y;
-        U += pol1.Q1y * TU1y_1z() * pol2.U1z;
-        U += pol1.Q1z * TU1z_1x() * pol2.U1x;
-        U += pol1.Q1z * TU1z_1y() * pol2.U1y;
-        U += pol1.Q1z * TU1z_1z() * pol2.U1z;
+            U += pol1.Q1x * TU1x_1x() * pol2.U1x;
+            U += pol1.Q1x * TU1x_1y() * pol2.U1y;
+            U += pol1.Q1x * TU1x_1z() * pol2.U1z;
+            U += pol1.Q1y * TU1y_1x() * pol2.U1x;
+            U += pol1.Q1y * TU1y_1y() * pol2.U1y;
+            U += pol1.Q1y * TU1y_1z() * pol2.U1z;
+            U += pol1.Q1z * TU1z_1x() * pol2.U1x;
+            U += pol1.Q1z * TU1z_1y() * pol2.U1y;
+            U += pol1.Q1z * TU1z_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.U1x * T1x_1x() * pol2.Q1x;
+            U += pol1.U1x * T1x_1y() * pol2.Q1y;
+            U += pol1.U1x * T1x_1z() * pol2.Q1z;
+            U += pol1.U1y * T1y_1x() * pol2.Q1x;
+            U += pol1.U1y * T1y_1y() * pol2.Q1y;
+            U += pol1.U1y * T1y_1z() * pol2.Q1z;
+            U += pol1.U1z * T1z_1x() * pol2.Q1x;
+            U += pol1.U1z * T1z_1y() * pol2.Q1y;
+            U += pol1.U1z * T1z_1z() * pol2.Q1z;
+
+            U += pol1.Q1x * T1x_1x() * pol2.U1x;
+            U += pol1.Q1x * T1x_1y() * pol2.U1y;
+            U += pol1.Q1x * T1x_1z() * pol2.U1z;
+            U += pol1.Q1y * T1y_1x() * pol2.U1x;
+            U += pol1.Q1y * T1y_1y() * pol2.U1y;
+            U += pol1.Q1y * T1y_1z() * pol2.U1z;
+            U += pol1.Q1z * T1z_1x() * pol2.U1x;
+            U += pol1.Q1z * T1z_1y() * pol2.U1y;
+            U += pol1.Q1z * T1z_1z() * pol2.U1z;
+        }
+
     }
         //cout << "E up to d <-> d " << E << endl;
 

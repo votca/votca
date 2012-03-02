@@ -1,4 +1,6 @@
 #include <votca/ctp/polarsite.h>
+#include <fstream>
+
 
 namespace votca { namespace ctp {
 
@@ -140,6 +142,21 @@ void PolarSite::PrintInfoInduce(std::ostream &out) {
     cout << "    Q1 " << Q1x << " " << Q1y << " " << Q1z << endl;
     cout << "    Q2 " << Q20 << " " << Q21c << " " << Q21s << " " << Q22c << " " << Q22s << endl;
     cout << "    Alpha " << alpha << endl;
+}
+
+void PolarSite::PrintInfoVisual(FILE *out) {
+
+    int id = this->getId();
+    string el = this->getName();
+    vec position = this->getPos();
+    fprintf(out, "MPOLE %5d %4s %3.8f %3.8f %3.8f ", id, el.c_str(), position.getX(), position.getY(), position.getZ());
+
+    for (int i = 0; i < this->U1_Hist.size(); ++i) {
+        vec uInd = U1_Hist[i];
+        fprintf(out, " %3.8f %3.8f %3.8f ", uInd.getX(), uInd.getY(), uInd.getZ() );
+    }
+
+    fprintf(out, " \n");
 }
 
 

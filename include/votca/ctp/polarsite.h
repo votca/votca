@@ -66,6 +66,7 @@ public:
 
     void            PrintInfo(std::ostream &out);
     void            PrintInfoInduce(std::ostream &out);
+    void            PrintInfoVisual(FILE *out);
 
 
 

@@ -24,7 +24,7 @@ namespace votca { namespace ctp {
 /// Default constructor
 Segment::Segment(int id, string name)
         : _id(id), _name(name), _hasOccProb(0),
-          _hasLambdas(0) { }
+          _hasLambdas(0) { _eMpoles.resize(3); }
 
 // This constructor creates a copy of the stencil segment, without
 // adding it to any containers further up in the hierarchy; i.e. the topology
@@ -33,7 +33,7 @@ Segment::Segment(int id, string name)
 Segment::Segment(Segment *stencil)
         : _id(stencil->getId()),    _name(stencil->getName()+"_ghost"),
           _typ(stencil->getType()), _top(NULL), _mol(NULL),
-          _CoM(stencil->getPos()) {
+          _CoM(stencil->getPos()) { _eMpoles.resize(3);
 
     vector<Fragment*> ::iterator fit;
     for (fit = stencil->Fragments().begin();
@@ -117,10 +117,10 @@ const double &Segment::getLambdaIntra(int state0, int state1) {
 void Segment::setEMpoles(int state, double energy) {
     _hasChrgState.resize(3);
     _hasChrgState[state+1] = true;
-    _eMpoles[state] = energy;
+    _eMpoles[state+1] = energy;
 }
 const double &Segment::getEMpoles(int state) {
-    return _eMpoles.at(state); 
+    return _eMpoles[state+1];
 }
 
 

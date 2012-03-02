@@ -113,7 +113,7 @@ private:
     //    0         -1   lambdaNA = UaN - UaA (chrg)
     bool _hasLambdas;
 
-    map< int,       double >      _eMpoles;
+    vector< double > _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
     vector<bool> _hasChrgState;

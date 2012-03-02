@@ -142,6 +142,10 @@ void QMDatabase2::onCreate()
         "seg1       INT NOT NULL,"
         "seg2       INT NOT NULL,"
 
+        "drX        REAL NOT NULL,"
+        "drY        REAL NOT NULL,"
+        "drZ        REAL NOT NULL,"
+
         "lOe        REAL DEFAULT 0,"
         "lOh        REAL DEFAULT 0,"
 
