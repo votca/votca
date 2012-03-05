@@ -21,6 +21,7 @@ public:
     void     Initialize(Topology *top, Property *options);
     void     EStatify(Topology *top, Property *options);
     vector<PolarSite*> ParseGdmaFile(string filename, int state);
+    void     CalculateESP(Topology *top);
     void     DistributeMpoles(Topology *top);
 
     bool     EvaluateFrame(Topology *top);
@@ -63,12 +64,15 @@ public:
         // ... Electric field (N/C) = Electric field (int)
         //                          * 1/4PiEps0(SI) * e * 1e+18
         // ... Energy (eV) = Energy (int) * 1/4PiEps0(SI) * e * 1e+09
+        //
+        // ... Potential (V) = Potential(int) * 1/4PiEps0(SI) * e * 1e+0.9
 
 
         inline double EnergyInter(PolarSite &pol1, PolarSite &pol2);
         inline double EnergyIntra(PolarSite &pol1, PolarSite &pol2);
         inline void FieldPerm(PolarSite &pol1, PolarSite &pol2);
         inline void FieldIndu(PolarSite &pol1, PolarSite &pol2);
+        inline double PotentialPerm(vec r, PolarSite &pol);
         
         void ResetEnergy() { EP = EU_INTER = EU_INTRA = 0.0; }
         double &getEP() { return EP; }
@@ -301,13 +305,18 @@ private:
     vector<Segment*> ::iterator _nextSite;
     Mutex                       _nextSiteMutex;
     Mutex                       _coutMutex;
+    bool                        _maverick;
 
     // control options
     bool            _induce;
     int             _firstSeg;
     int             _lastSeg;
 
-    bool            _maverick;
+    bool            _calcESP;
+    string          _espGridFile;
+    string          _espOutFile;
+    vector<vec>     _espGrid;
+    
     string          _outFile;
     bool            _energies2File;
 
@@ -338,9 +347,6 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
 
-    if (!top->isEStatified()) { this->EStatify(top, opt); }
-
-
     cout << endl <<  "... ... Parametrizing Thole model";
 
     string key;
@@ -358,6 +364,12 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
      *          <output></output>
      *      </control>
      *
+     *      <esp>
+     *          <calcESP></calcESP>
+     *          <grid></grid>
+     *          <output></output>
+     *      <esp>
+     * 
      *      <tholeparam>
      *          <cutoff></cutoff>
      *          <expdamp></expdamp>
@@ -401,6 +413,18 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
         }
         else { _energies2File = false; }
 
+    key = "options.emultipole.esp";
+
+        if ( opt->exists(key+".calcESP") ) {
+            int calcESP = opt->get(key+".calcESP").as< int >();
+            _calcESP = (calcESP == 0) ? false : true;
+        }
+
+        if (_calcESP) {
+            _espGridFile = opt->get(key+".grid").as< string >();
+            _espOutFile = opt->get(key+".output").as< string >();
+        }
+
     key = "options.emultipole.tholeparam";
 
         if ( opt->exists(key+".cutoff") ) {
@@ -436,8 +460,12 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
             _epsTol = opt->get(key+".tolerance").as< double >();
         }
         else { _epsTol = 0.001; }
-    
 
+
+
+    if (!top->isEStatified()) { this->EStatify(top, opt); }
+
+    if (this->_calcESP) { this->CalculateESP(top); }
 }
 
 
@@ -450,6 +478,9 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
 void EMultipole2::EStatify(Topology *top, Property *options) {
 
     cout << endl << "... ... Estatify system";
+
+    cout << endl << "... ... NOTE Using default Thole polarizabilities "
+                 << "for all charge states. ";
 
     string key = "options.emultipole";
     string allocFile = options->get(key+".multipoles").as<string> ();
@@ -768,12 +799,10 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
 
         } /* Exit loop over lines */
     }
-    else { cout << endl << "ERROR: No file " << filename << endl; }
+    else { cout << endl << "ERROR: No such file " << filename << endl; }
 
 
     vector< PolarSite* > ::iterator pol;
-    cout << endl << "... ... WARNING: Using default Thole polarizabilities "
-                 << "for charge state " << state << ". ";
     for (pol = poles.begin(); pol < poles.end(); ++pol) {
         string elem = (*pol)->getName();
         double alpha = 0.0;
@@ -790,6 +819,150 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
 
     return poles;
     
+}
+
+
+/**
+ * Calculates electrostatic potential at selected grid points
+ * ... NOTE Calculation done for rigid coordinates (as found in GDMA file)
+ * ... NOTE Grid is currently loaded from xyz file
+ */
+void EMultipole2::CalculateESP(Topology *top) {
+
+    cout << endl << "... ... Calculating ESP";
+
+    double int2V = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+
+    // +++++++++++++++++++ //
+    // Load grid from file //
+    // +++++++++++++++++++ //
+
+    vector<vec> gridPoints;
+    double CONVERT2NM = 1;
+    
+    std::string line;
+    std::ifstream intt;
+    intt.open(this->_espGridFile.c_str());
+
+    if (intt.is_open() ) {
+
+        while ( intt.good() ) {
+
+
+            std::getline(intt, line);
+            vector<string> split;
+            Tokenizer toker(line, " ");
+            toker.ToVector(split);
+
+            if ( !split.size()      ||
+                  split[0] == "!"   ||
+                  split[0].substr(0,1) == "!" ) { continue; }
+
+            // ! Interesting information here, e.g.
+            // Units bohr
+
+            //  -0.3853409355   0.0004894995  -0.0003833545
+            //  -0.0002321905   0.2401559510   0.6602334308
+            // ! ...
+
+            // Units used
+            if ( split[0] == "Units") {
+                string units = split[1];
+
+                if      (units == "bohr") { CONVERT2NM = 0.0529189379; }
+                else if (units == "nm") { CONVERT2NM = 1.; }
+                else if (units == "A") { CONVERT2NM = 0.1; }
+                else {
+                    throw std::runtime_error( "Unit " + units + " in file "
+                                            + _espGridFile + " not supported.");
+                }
+            }
+
+            else {
+
+                double x = CONVERT2NM * boost::lexical_cast<double>(split[0]);
+                double y = CONVERT2NM * boost::lexical_cast<double>(split[1]);
+                double z = CONVERT2NM * boost::lexical_cast<double>(split[2]);
+
+                gridPoints.push_back(vec(x,y,z));
+            }
+        }
+    }
+    else { cout << endl << "ERROR: No such file " << _espGridFile << endl; }
+
+    this->_espGrid = gridPoints;
+
+
+    // +++++++++++++++++++++++++++++++++++++++++++ //
+    // Iterate over segment types (in GDMA config) //
+    // +++++++++++++++++++++++++++++++++++++++++++ //
+    
+    map< string, vector< PolarSite* > >::iterator sit;
+    for (sit = this->_map_seg_polarSites.begin();
+         sit != this->_map_seg_polarSites.end();
+         ++sit) {
+
+        cout << endl << "... ... ... ESP for segment " << sit->first << flush;
+
+
+
+        vector< PolarSite* > poles = sit->second;
+        vector< PolarSite* >::iterator pit;
+
+        for (int state = -1; state < 2; ++state) {
+
+            // Multipole data for this state?
+            bool hasState = _map_seg_chrgStates[sit->first][state+1];
+            if (!hasState) { continue; }
+
+            // Store the potential
+            vector< double > gridPointESP;
+
+            // Charge container appropriately
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                (*pit)->Charge(state);
+            }
+
+            // Calculate potential for each grid point, store in gridPointESP
+            Interactor actor = Interactor(top, this);
+            
+            vector< vec >::iterator grit;
+            for (grit = _espGrid.begin(); grit < _espGrid.end(); ++grit) {
+
+                double phi = 0.0;
+
+                for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                    phi += actor.PotentialPerm((*grit), *(*pit));
+                }
+                gridPointESP.push_back(phi);
+            }
+
+            cout << endl << "... ... ... ... State " << state << ": "
+                         << " Calculated potential at " << gridPointESP.size()
+                         << " grid points. " << flush;
+
+
+            // Write to file
+            FILE *out;
+            string espOutFile =  sit->first
+                            + "_" + boost::lexical_cast<string>(state)
+                            + "_" + _espOutFile;
+
+            out = fopen(espOutFile.c_str(), "w");
+
+            assert(_espGrid.size() == gridPointESP.size());
+            int g = 0;
+            int p = 0;
+            for ( ; p < gridPointESP.size(); ++g, ++p) {
+
+                fprintf(out, " %3.8f %3.8f %3.8f   %3.8f \n",
+                        _espGrid[g].getX(),
+                        _espGrid[g].getY(),
+                        _espGrid[g].getZ(),
+                        gridPointESP[p] );
+            }
+        }
+    }
 }
 
 
@@ -1015,6 +1188,7 @@ void EMultipole2::SiteOpMultipole::Run(void) {
     }
 }
 
+
 /**
  * Creates private copies of polar sites in topology and
  * arranges them by segments so as to avoid mutexes.
@@ -1047,6 +1221,7 @@ void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) {
         }
     }
 }
+
 
 /**
  * Deletes all private thread data, in particular copies of polar sites
@@ -1463,6 +1638,44 @@ void EMultipole2::SiteOpMultipole::Depolarize() {
 // +++++++++++++++++++++++++++ //
 // Interactor Member Functions //
 // +++++++++++++++++++++++++++ //
+
+inline double EMultipole2::Interactor::PotentialPerm(vec r,
+                                                     PolarSite &pol) {
+
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = pol.getPos() - r;
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    rbx = - pol._locX * e12;
+    rby = - pol._locY * e12;
+    rbz = - pol._locZ * e12;
+
+    double phi00 = 0.0;
+    
+        phi00 += T00_00() * pol.Q00;
+    
+    if (pol._rank > 0) {        
+        phi00 += T00_1x() * pol.Q1x;
+        phi00 += T00_1y() * pol.Q1y;
+        phi00 += T00_1z() * pol.Q1z;        
+    }
+        
+    if (pol._rank > 1) {
+        phi00 += T00_20()  * pol.Q20;
+        phi00 += T00_21c() * pol.Q21c;
+        phi00 += T00_21s() * pol.Q21s;
+        phi00 += T00_22c() * pol.Q22c;
+        phi00 += T00_22s() * pol.Q22s;
+    }
+
+    return phi00;
+}
+
 
 inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
                                                PolarSite &pol2) {
