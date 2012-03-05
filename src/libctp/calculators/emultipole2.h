@@ -221,10 +221,10 @@ public:
         inline double T20_20()   { return R5 * 0.75 * (35*raz*raz*rbz*rbz - 5*raz*raz - 5*rbz*rbz + 20*raz*rbz*czz + 2*czz*czz + 1); }
         inline double T20_21c()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rbz - 5*rbx*rbz + 10*raz*rbx*czz + 10*raz*rbz*czx + 2*czx*czz); }
         inline double T20_21s()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rby*rbz - 5*rby*rbz + 10*raz*rby*czz + 10*raz*rbz*czy + 2*czy*czz); }
-        inline double T20_22c()  { return R5 * 0.25 * sqrt(3) * (35*raz*raz*rbx*rbx - 35*raz*raz*rby*rby - 5*rbx*rbx - 5*rby*rby + 20*raz*rbx*czx - 20*raz*rby*czy + 2*czx*czx - 2*czy*czy); }
+        inline double T20_22c()  { return R5 * 0.25 * sqrt(3) * (35*raz*raz*rbx*rbx - 35*raz*raz*rby*rby - 5*rbx*rbx + 5*rby*rby + 20*raz*rbx*czx - 20*raz*rby*czy + 2*czx*czx - 2*czy*czy); }
         inline double T20_22s()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rby - 5*rbx*rby + 10*raz*rbx*czy + 10*raz*rby*czx + 2*czx*czy); }
         inline double T21c_21c() { return R5 * (35*rax*raz*rbx*rbz + 5*rax*rbx*czz + 5*rax*rbz*czx + 5*raz*rbx*cxz + 5*raz*rbz*cxx + cxx*czz + cxz*czx); }
-        inline double T21c_21s() { return R5 * (35*rax*raz*rby*rbx + 5*rax*rby*czz + 5*rax*rbz*czy + 5*raz*rby*cxz + 5*raz*rbz*cxy + cxy*czz + cxz*czy); }
+        inline double T21c_21s() { return R5 * (35*rax*raz*rby*rbz + 5*rax*rby*czz + 5*rax*rbz*czy + 5*raz*rby*cxz + 5*raz*rbz*cxy + cxy*czz + cxz*czy); }
         inline double T21c_22c() { return R5 * 0.5 * (35*rax*raz*rbx*rbx - 35*rax*raz*rby*rby + 10*rax*rbx*czx - 10*rax*rby*czy + 10*raz*rbx*cxx - 10*raz*rby*cxy + 2*cxx*czx - 2*cxy*czy); }
         inline double T21c_22s() { return R5 * (35*rax*raz*rbx*rby + 5*rax*rbx*czy + 5*rax*rby*czx + 5*raz*rbx*cxy + 5*raz*rby*cxx + cxx*czy + cxy*czx); }
         inline double T21s_21s() { return R5 * (35*ray*raz*rby*rbz + 5*ray*rby*czz + 5*ray*rbz*czy + 5*raz*rby*cyz + 5*raz*rbz*cyy + cyy*czz + cyz*czy); }
@@ -234,11 +234,11 @@ public:
         inline double T22c_22s() { return R5 * 0.5 * (35*rax*rax*rbx*rby - 35*ray*ray*rbx*rby + 10*rax*rbx*cxy + 10*rax*rby*cxx - 10*ray*rbx*cyy - 10*ray*rby*cyx + 2*cxx*cxy - 2*cyx*cyy); }
         inline double T22s_22s() { return R5 * (35*rax*ray*rbx*rby + 5*rax*rbx*cyy + 5*rax*rby*cyx + 5*ray*rbx*cxy + 5*ray*rby*cxx + cxx*cyy + cxy*cyx); }
 
-        inline double T21c_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*raz - 5*rax*raz + 10*rbz*rax*czz + 10*rbz*raz*czx + 2*czx*czz); }
+        inline double T21c_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*raz - 5*rax*raz + 10*rbz*rax*czz + 10*rbz*raz*cxz + 2*cxz*czz); }
         inline double T21s_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*ray*raz - 5*ray*raz + 10*rbz*ray*czz + 10*rbz*raz*cyz + 2*cyz*czz); }
-        inline double T22c_20()  { return R5 * 0.25 * sqrt(3) * (35*rbz*rbz*rax*rax - 35*rbz*rbz*ray*ray - 5*rax*rax - 5*ray*ray + 20*rbz*rax*cxz - 20*rbz*ray*cyz + 2*cxz*cxz - 2*cyz*cyz); }
+        inline double T22c_20()  { return R5 * 0.25 * sqrt(3) * (35*rbz*rbz*rax*rax - 35*rbz*rbz*ray*ray - 5*rax*rax + 5*ray*ray + 20*rbz*rax*cxz - 20*rbz*ray*cyz + 2*cxz*cxz - 2*cyz*cyz); }
         inline double T22s_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*ray - 5*rax*ray + 10*rbz*rax*cyz + 10*rbz*ray*cxz + 2*cxz*cyz); }
-        inline double T21s_21c() { return R5 * (35*rbx*rbz*ray*rax + 5*rbx*ray*czz + 5*rbx*raz*cyz + 5*rbz*ray*czx + 5*rbz*raz*cyx + cyx*czz + czx*cyz); }
+        inline double T21s_21c() { return R5 * (35*rbx*rbz*ray*raz + 5*rbx*ray*czz + 5*rbx*raz*cyz + 5*rbz*ray*czx + 5*rbz*raz*cyx + cyx*czz + czx*cyz); }
         inline double T22c_21c() { return R5 * 0.5 * (35*rbx*rbz*rax*rax - 35*rbx*rbz*ray*ray + 10*rbx*rax*cxz - 10*rbx*ray*cyz + 10*rbz*rax*cxx - 10*rbz*ray*cyx + 2*cxx*cxz - 2*cyx*cyz); }
         inline double T22s_21c() { return R5 * (35*rbx*rbz*rax*ray + 5*rbx*rax*cyz + 5*rbx*ray*cxz + 5*rbz*rax*cyx + 5*rbz*ray*cxx + cxx*cyz + cyx*cxz); }
         inline double T22c_21s() { return R5 * 0.5 * (35*rby*rbz*rax*rax - 35*rby*rbz*ray*ray + 10*rby*rax*cxz - 10*rby*ray*cyz + 10*rbz*rax*cxy - 10*rbz*ray*cyy + 2*cxy*cxz - 2*cyy*cyz); }
@@ -1275,7 +1275,7 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
     if (_master->_maverick) {
         cout << endl
-             << "... ... Segments in polarization sphere: "
+             << "... ... ... Segments in polarization sphere: "
              << _segsPolSphere.size() << flush;
     }
     
@@ -1285,7 +1285,7 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     if (_seg->hasChrgState(state)) {
 
         if (_master->_maverick) {
-            cout << endl << "... ... Seg " << seg->getId()
+            cout << endl << "... ... ... Seg " << seg->getId()
                          << " Charge " << state << flush;
         }
 
@@ -1315,7 +1315,7 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     if (_seg->hasChrgState(state)) {
 
         if (_master->_maverick) {
-            cout << endl << "... ... Seg " << seg->getId()
+            cout << endl << "... ... ... Seg " << seg->getId()
                          << " Charge " << state << flush;
         }
 
@@ -1345,7 +1345,7 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     if (_seg->hasChrgState(state)) {
 
         if (_master->_maverick) {
-            cout << endl << "... ... Seg " << seg->getId()
+            cout << endl << "... ... ... Seg " << seg->getId()
                          << " Charge " << state << flush;
         }
         
@@ -1607,7 +1607,7 @@ double EMultipole2::SiteOpMultipole::Energy(int state) {
     }
     
     if (_master->_maverick) {
-        cout << endl << "... ... ... E(" << state << ") = " << E_Tot
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot
              << " = (P ~) " << _actor.getEP()
              << " + (U ~) " << _actor.getEU_INTER()
              << " + (U o) " << _actor.getEU_INTRA();
@@ -1694,22 +1694,39 @@ inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
     a    = _em->_aDamp;
     u3   = 1 / (R3 * sqrt(pol1.alpha * pol2.alpha));
 
-        rax =   pol1._locX * e12;
-        ray =   pol1._locY * e12;
-        raz =   pol1._locZ * e12;
-        rbx = - pol2._locX * e12;
-        rby = - pol2._locY * e12;
-        rbz = - pol2._locZ * e12;
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
 
-        cxx = pol1._locX * pol2._locX;
-        cxy = pol1._locX * pol2._locY;
-        cxz = pol1._locX * pol2._locZ;
-        cyx = pol1._locY * pol2._locX;
-        cyy = pol1._locY * pol2._locY;
-        cyz = pol1._locY * pol2._locZ;
-        czx = pol1._locZ * pol2._locX;
-        czy = pol1._locZ * pol2._locY;
-        czz = pol1._locZ * pol2._locZ;
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
 
     // Fields generated by rank-1 induced m'poles
 
@@ -1771,23 +1788,40 @@ inline void EMultipole2::Interactor::FieldPerm(PolarSite &pol1,
     R5   = R4*R;
     e12 *= R;
 
-        rax =   pol1._locX * e12;
-        ray =   pol1._locY * e12;
-        raz =   pol1._locZ * e12;
-        rbx = - pol2._locX * e12;
-        rby = - pol2._locY * e12;
-        rbz = - pol2._locZ * e12;
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
 
     if (pol1._rank > 0 || pol2._rank > 0) {
-        cxx = pol1._locX * pol2._locX;
-        cxy = pol1._locX * pol2._locY;
-        cxz = pol1._locX * pol2._locZ;
-        cyx = pol1._locY * pol2._locX;
-        cyy = pol1._locY * pol2._locY;
-        cyz = pol1._locY * pol2._locZ;
-        czx = pol1._locZ * pol2._locX;
-        czy = pol1._locZ * pol2._locY;
-        czz = pol1._locZ * pol2._locZ;
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
     }
 
     // Fields generated by rank-0 m'poles
@@ -1881,26 +1915,42 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
     a    = _em->_aDamp;
     u3   = 1 / (R3 * sqrt(pol1.alpha * pol2.alpha));
 
-        rax =   pol1._locX * e12;
-        ray =   pol1._locY * e12;
-        raz =   pol1._locZ * e12;
-        rbx = - pol2._locX * e12;
-        rby = - pol2._locY * e12;
-        rbz = - pol2._locZ * e12;
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
 
     if (pol1._rank > 0 || pol2._rank > 0) {
-        cxx = pol1._locX * pol2._locX;
-        cxy = pol1._locX * pol2._locY;
-        cxz = pol1._locX * pol2._locZ;
-        cyx = pol1._locY * pol2._locX;
-        cyy = pol1._locY * pol2._locY;
-        cyz = pol1._locY * pol2._locZ;
-        czx = pol1._locZ * pol2._locX;
-        czy = pol1._locZ * pol2._locY;
-        czz = pol1._locZ * pol2._locZ;
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
     }
 
-    // NOTE Currently, ind. dipole <-> quadrupole energy neglected
     double U = 0.0; // <- Induction energy
 
     if (a*u3 < 40.0) {
@@ -1920,22 +1970,10 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
         U += pol1.Q00 * T00_1x() * pol2.U1x;
         U += pol1.Q00 * T00_1y() * pol2.U1y;
         U += pol1.Q00 * T00_1z() * pol2.U1z;
-}
+    }
 
-
-    if (pol1._rank > 0 && pol2._rank > 0) {
-
+    if (pol1._rank > 0) {
         if (a*u3 < 40.0) {
-            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
-            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
-            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
-            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
-            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
-            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
-            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
-            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
-            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
-
             U += pol1.Q1x * TU1x_1x() * pol2.U1x;
             U += pol1.Q1x * TU1x_1y() * pol2.U1y;
             U += pol1.Q1x * TU1x_1z() * pol2.U1z;
@@ -1947,16 +1985,6 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
             U += pol1.Q1z * TU1z_1z() * pol2.U1z;
         }
         else {
-            U += pol1.U1x * T1x_1x() * pol2.Q1x;
-            U += pol1.U1x * T1x_1y() * pol2.Q1y;
-            U += pol1.U1x * T1x_1z() * pol2.Q1z;
-            U += pol1.U1y * T1y_1x() * pol2.Q1x;
-            U += pol1.U1y * T1y_1y() * pol2.Q1y;
-            U += pol1.U1y * T1y_1z() * pol2.Q1z;
-            U += pol1.U1z * T1z_1x() * pol2.Q1x;
-            U += pol1.U1z * T1z_1y() * pol2.Q1y;
-            U += pol1.U1z * T1z_1z() * pol2.Q1z;
-
             U += pol1.Q1x * T1x_1x() * pol2.U1x;
             U += pol1.Q1x * T1x_1y() * pol2.U1y;
             U += pol1.Q1x * T1x_1z() * pol2.U1z;
@@ -1966,6 +1994,103 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
             U += pol1.Q1z * T1z_1x() * pol2.U1x;
             U += pol1.Q1z * T1z_1y() * pol2.U1y;
             U += pol1.Q1z * T1z_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 0) {
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        }
+        else {
+            U += pol1.U1x * T1x_1x() * pol2.Q1x;
+            U += pol1.U1x * T1x_1y() * pol2.Q1y;
+            U += pol1.U1x * T1x_1z() * pol2.Q1z;
+            U += pol1.U1y * T1y_1x() * pol2.Q1x;
+            U += pol1.U1y * T1y_1y() * pol2.Q1y;
+            U += pol1.U1y * T1y_1z() * pol2.Q1z;
+            U += pol1.U1z * T1z_1x() * pol2.Q1x;
+            U += pol1.U1z * T1z_1y() * pol2.Q1y;
+            U += pol1.U1z * T1z_1z() * pol2.Q1z;
+        }
+    }
+
+    if (pol1._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.Q20  * TU20_1x()  * pol2.U1x;
+            U += pol1.Q20  * TU20_1y()  * pol2.U1y;
+            U += pol1.Q20  * TU20_1z()  * pol2.U1z;
+            U += pol1.Q21c * TU21c_1x() * pol2.U1x;
+            U += pol1.Q21c * TU21c_1y() * pol2.U1y;
+            U += pol1.Q21c * TU21c_1z() * pol2.U1z;
+            U += pol1.Q21s * TU21s_1x() * pol2.U1x;
+            U += pol1.Q21s * TU21s_1y() * pol2.U1y;
+            U += pol1.Q21s * TU21s_1z() * pol2.U1z;
+            U += pol1.Q22c * TU22c_1x() * pol2.U1x;
+            U += pol1.Q22c * TU22c_1y() * pol2.U1y;
+            U += pol1.Q22c * TU22c_1z() * pol2.U1z;
+            U += pol1.Q22s * TU22s_1x() * pol2.U1x;
+            U += pol1.Q22s * TU22s_1y() * pol2.U1y;
+            U += pol1.Q22s * TU22s_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q20  * T20_1x()  * pol2.U1x;
+            U += pol1.Q20  * T20_1y()  * pol2.U1y;
+            U += pol1.Q20  * T20_1z()  * pol2.U1z;
+            U += pol1.Q21c * T21c_1x() * pol2.U1x;
+            U += pol1.Q21c * T21c_1y() * pol2.U1y;
+            U += pol1.Q21c * T21c_1z() * pol2.U1z;
+            U += pol1.Q21s * T21s_1x() * pol2.U1x;
+            U += pol1.Q21s * T21s_1y() * pol2.U1y;
+            U += pol1.Q21s * T21s_1z() * pol2.U1z;
+            U += pol1.Q22c * T22c_1x() * pol2.U1x;
+            U += pol1.Q22c * T22c_1y() * pol2.U1y;
+            U += pol1.Q22c * T22c_1z() * pol2.U1z;
+            U += pol1.Q22s * T22s_1x() * pol2.U1x;
+            U += pol1.Q22s * T22s_1y() * pol2.U1y;
+            U += pol1.Q22s * T22s_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_20()  * pol2.Q20;
+            U += pol1.U1x * TU1x_21c() * pol2.Q21c;
+            U += pol1.U1x * TU1x_21s() * pol2.Q21s;
+            U += pol1.U1x * TU1x_22c() * pol2.Q22c;
+            U += pol1.U1x * TU1x_22s() * pol2.Q22s;
+            U += pol1.U1y * TU1y_20()  * pol2.Q20;
+            U += pol1.U1y * TU1y_21c() * pol2.Q21c;
+            U += pol1.U1y * TU1y_21s() * pol2.Q21s;
+            U += pol1.U1y * TU1y_22c() * pol2.Q22c;
+            U += pol1.U1y * TU1y_22s() * pol2.Q22s;
+            U += pol1.U1z * TU1z_20()  * pol2.Q20;
+            U += pol1.U1z * TU1z_21c() * pol2.Q21c;
+            U += pol1.U1z * TU1z_21s() * pol2.Q21s;
+            U += pol1.U1z * TU1z_22c() * pol2.Q22c;
+            U += pol1.U1z * TU1z_22s() * pol2.Q22s;
+        }
+        else {
+            U += pol1.U1x * T1x_20()  * pol2.Q20;
+            U += pol1.U1x * T1x_21c() * pol2.Q21c;
+            U += pol1.U1x * T1x_21s() * pol2.Q21s;
+            U += pol1.U1x * T1x_22c() * pol2.Q22c;
+            U += pol1.U1x * T1x_22s() * pol2.Q22s;
+            U += pol1.U1y * T1y_20()  * pol2.Q20;
+            U += pol1.U1y * T1y_21c() * pol2.Q21c;
+            U += pol1.U1y * T1y_21s() * pol2.Q21s;
+            U += pol1.U1y * T1y_22c() * pol2.Q22c;
+            U += pol1.U1y * T1y_22s() * pol2.Q22s;
+            U += pol1.U1z * T1z_20()  * pol2.Q20;
+            U += pol1.U1z * T1z_21c() * pol2.Q21c;
+            U += pol1.U1z * T1z_21s() * pol2.Q21s;
+            U += pol1.U1z * T1z_22c() * pol2.Q22c;
+            U += pol1.U1z * T1z_22s() * pol2.Q22s;
         }
     }
 
@@ -1997,40 +2122,40 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
     //cout << "seg2  " << pol2.getSegment()->getId() << endl;    
 
     
-        rax =   pol1._locX * e12;
-        ray =   pol1._locY * e12;
-        raz =   pol1._locZ * e12;
-        rbx = - pol2._locX * e12;
-        rby = - pol2._locY * e12;
-        rbz = - pol2._locZ * e12;
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
 
-//        rax = e12.getX();
-//        ray = e12.getY();
-//        raz = e12.getZ();
-//        rbx = - e12.getX();
-//        rby = - e12.getY();
-//        rbz = - e12.getZ();
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
 
     if (pol1._rank > 0 || pol2._rank > 0) {
-        cxx = pol1._locX * pol2._locX;
-        cxy = pol1._locX * pol2._locY;
-        cxz = pol1._locX * pol2._locZ;
-        cyx = pol1._locY * pol2._locX;
-        cyy = pol1._locY * pol2._locY;
-        cyz = pol1._locY * pol2._locZ;
-        czx = pol1._locZ * pol2._locX;
-        czy = pol1._locZ * pol2._locY;
-        czz = pol1._locZ * pol2._locZ;
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
 
-//        cxx = 1;
-//        cxy = 0;
-//        cxz = 0;
-//        cyx = 0;
-//        cyy = 1;
-//        cyz = 0;
-//        czx = 0;
-//        czy = 0;
-//        czz = 1;
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
     }
 
     double E = 0.0; // <- Electrostatic energy
@@ -2123,18 +2248,10 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
         //cout << "E1z_1y " << pol1.Q1z * T1z_1y() * pol2.Q1y << endl;
         E += pol1.Q1z * T1z_1z() * pol2.Q1z;
         //cout << "E1z_1z " << pol1.Q1z * T1z_1z() * pol2.Q1z << endl;
+    }
 
+    if (pol1._rank > 0) {
         if (a*u3 < 40) {
-            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
-            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
-            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
-            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
-            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
-            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
-            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
-            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
-            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
-
             U += pol1.Q1x * TU1x_1x() * pol2.U1x;
             U += pol1.Q1x * TU1x_1y() * pol2.U1y;
             U += pol1.Q1x * TU1x_1z() * pol2.U1z;
@@ -2146,16 +2263,6 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
             U += pol1.Q1z * TU1z_1z() * pol2.U1z;
         }
         else {
-            U += pol1.U1x * T1x_1x() * pol2.Q1x;
-            U += pol1.U1x * T1x_1y() * pol2.Q1y;
-            U += pol1.U1x * T1x_1z() * pol2.Q1z;
-            U += pol1.U1y * T1y_1x() * pol2.Q1x;
-            U += pol1.U1y * T1y_1y() * pol2.Q1y;
-            U += pol1.U1y * T1y_1z() * pol2.Q1z;
-            U += pol1.U1z * T1z_1x() * pol2.Q1x;
-            U += pol1.U1z * T1z_1y() * pol2.Q1y;
-            U += pol1.U1z * T1z_1z() * pol2.Q1z;
-
             U += pol1.Q1x * T1x_1x() * pol2.U1x;
             U += pol1.Q1x * T1x_1y() * pol2.U1y;
             U += pol1.Q1x * T1x_1z() * pol2.U1z;
@@ -2166,8 +2273,31 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
             U += pol1.Q1z * T1z_1y() * pol2.U1y;
             U += pol1.Q1z * T1z_1z() * pol2.U1z;
         }
-
     }
+    if (pol2._rank > 0) {
+        if (a*u3 < 40) {
+            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        }
+        else {
+            U += pol1.U1x * T1x_1x() * pol2.Q1x;
+            U += pol1.U1x * T1x_1y() * pol2.Q1y;
+            U += pol1.U1x * T1x_1z() * pol2.Q1z;
+            U += pol1.U1y * T1y_1x() * pol2.Q1x;
+            U += pol1.U1y * T1y_1y() * pol2.Q1y;
+            U += pol1.U1y * T1y_1z() * pol2.Q1z;
+            U += pol1.U1z * T1z_1x() * pol2.Q1x;
+            U += pol1.U1z * T1z_1y() * pol2.Q1y;
+            U += pol1.U1z * T1z_1z() * pol2.Q1z;
+        }
+    }    
         //cout << "E up to d <-> d " << E << endl;
 
     if (pol1._rank > 1 && pol2._rank > 0) {
@@ -2214,6 +2344,78 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
         E += pol1.Q1z * T1z_22s() * pol2.Q22s;
     }
 
+    if (pol1._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.Q20  * TU20_1x()  * pol2.U1x;
+            U += pol1.Q20  * TU20_1y()  * pol2.U1y;
+            U += pol1.Q20  * TU20_1z()  * pol2.U1z;
+            U += pol1.Q21c * TU21c_1x() * pol2.U1x;
+            U += pol1.Q21c * TU21c_1y() * pol2.U1y;
+            U += pol1.Q21c * TU21c_1z() * pol2.U1z;
+            U += pol1.Q21s * TU21s_1x() * pol2.U1x;
+            U += pol1.Q21s * TU21s_1y() * pol2.U1y;
+            U += pol1.Q21s * TU21s_1z() * pol2.U1z;
+            U += pol1.Q22c * TU22c_1x() * pol2.U1x;
+            U += pol1.Q22c * TU22c_1y() * pol2.U1y;
+            U += pol1.Q22c * TU22c_1z() * pol2.U1z;
+            U += pol1.Q22s * TU22s_1x() * pol2.U1x;
+            U += pol1.Q22s * TU22s_1y() * pol2.U1y;
+            U += pol1.Q22s * TU22s_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q20  * T20_1x()  * pol2.U1x;
+            U += pol1.Q20  * T20_1y()  * pol2.U1y;
+            U += pol1.Q20  * T20_1z()  * pol2.U1z;
+            U += pol1.Q21c * T21c_1x() * pol2.U1x;
+            U += pol1.Q21c * T21c_1y() * pol2.U1y;
+            U += pol1.Q21c * T21c_1z() * pol2.U1z;
+            U += pol1.Q21s * T21s_1x() * pol2.U1x;
+            U += pol1.Q21s * T21s_1y() * pol2.U1y;
+            U += pol1.Q21s * T21s_1z() * pol2.U1z;
+            U += pol1.Q22c * T22c_1x() * pol2.U1x;
+            U += pol1.Q22c * T22c_1y() * pol2.U1y;
+            U += pol1.Q22c * T22c_1z() * pol2.U1z;
+            U += pol1.Q22s * T22s_1x() * pol2.U1x;
+            U += pol1.Q22s * T22s_1y() * pol2.U1y;
+            U += pol1.Q22s * T22s_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_20()  * pol2.Q20;
+            U += pol1.U1x * TU1x_21c() * pol2.Q21c;
+            U += pol1.U1x * TU1x_21s() * pol2.Q21s;
+            U += pol1.U1x * TU1x_22c() * pol2.Q22c;
+            U += pol1.U1x * TU1x_22s() * pol2.Q22s;
+            U += pol1.U1y * TU1y_20()  * pol2.Q20;
+            U += pol1.U1y * TU1y_21c() * pol2.Q21c;
+            U += pol1.U1y * TU1y_21s() * pol2.Q21s;
+            U += pol1.U1y * TU1y_22c() * pol2.Q22c;
+            U += pol1.U1y * TU1y_22s() * pol2.Q22s;
+            U += pol1.U1z * TU1z_20()  * pol2.Q20;
+            U += pol1.U1z * TU1z_21c() * pol2.Q21c;
+            U += pol1.U1z * TU1z_21s() * pol2.Q21s;
+            U += pol1.U1z * TU1z_22c() * pol2.Q22c;
+            U += pol1.U1z * TU1z_22s() * pol2.Q22s;
+        }
+        else {
+            U += pol1.U1x * T1x_20()  * pol2.Q20;
+            U += pol1.U1x * T1x_21c() * pol2.Q21c;
+            U += pol1.U1x * T1x_21s() * pol2.Q21s;
+            U += pol1.U1x * T1x_22c() * pol2.Q22c;
+            U += pol1.U1x * T1x_22s() * pol2.Q22s;
+            U += pol1.U1y * T1y_20()  * pol2.Q20;
+            U += pol1.U1y * T1y_21c() * pol2.Q21c;
+            U += pol1.U1y * T1y_21s() * pol2.Q21s;
+            U += pol1.U1y * T1y_22c() * pol2.Q22c;
+            U += pol1.U1y * T1y_22s() * pol2.Q22s;
+            U += pol1.U1z * T1z_20()  * pol2.Q20;
+            U += pol1.U1z * T1z_21c() * pol2.Q21c;
+            U += pol1.U1z * T1z_21s() * pol2.Q21s;
+            U += pol1.U1z * T1z_22c() * pol2.Q22c;
+            U += pol1.U1z * T1z_22s() * pol2.Q22s;
+        }
+    }
         //cout << "E up to d <-> Q " << E << endl;
 
     if (pol1._rank > 1 && pol2._rank > 1) {
@@ -2251,7 +2453,7 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
         E += pol1.Q22c * T22c_22s() * pol2.Q22s;
     }
         //cout << "E up to Q <-> Q " << E << endl;
-
+        
 
     EP += E;
     EU_INTER += U;
