@@ -226,6 +226,9 @@ void PolarSite::PrintInfoVisual(FILE *out) {
         vec uInd = U1_Hist[i];
         fprintf(out, " %3.8f %3.8f %3.8f ", uInd.getX(), uInd.getY(), uInd.getZ() );
     }
+    fprintf(out, " U1 %3.8f %3.8f %3.8f ", U1x, U1y, U1z );
+    fprintf(out, " FP %3.8f %3.8f %3.8f ", FPx, FPy, FPz );
+    fprintf(out, " FU %3.8f %3.8f %3.8f ", FUx, FUy, FUz );
 
     fprintf(out, " \n");
 }

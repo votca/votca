@@ -22,6 +22,7 @@ public:
     void     EStatify(Topology *top, Property *options);
     vector<PolarSite*> ParseGdmaFile(string filename, int state);
     void     CalculateESP(Topology *top);
+    void     CalculateESF(Topology *top);
     void     DistributeMpoles(Topology *top);
 
     bool     EvaluateFrame(Topology *top);
@@ -72,6 +73,7 @@ public:
         inline double EnergyIntra(PolarSite &pol1, PolarSite &pol2);
         inline void FieldPerm(PolarSite &pol1, PolarSite &pol2);
         inline void FieldIndu(PolarSite &pol1, PolarSite &pol2);
+        inline vec  FieldPermESF(vec r, PolarSite &pol);
         inline double PotentialPerm(vec r, PolarSite &pol);
         
         void ResetEnergy() { EP = EU_INTER = EU_INTRA = 0.0; }
@@ -316,6 +318,11 @@ private:
     string          _espGridFile;
     string          _espOutFile;
     vector<vec>     _espGrid;
+
+    bool            _calcESF;
+    string          _esfGridFile;
+    string          _esfOutFile;
+    vector<vec>     _esfGrid;
     
     string          _outFile;
     bool            _energies2File;
@@ -419,10 +426,26 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
             int calcESP = opt->get(key+".calcESP").as< int >();
             _calcESP = (calcESP == 0) ? false : true;
         }
-
+        else {
+            _calcESP = false;
+        }
         if (_calcESP) {
             _espGridFile = opt->get(key+".grid").as< string >();
             _espOutFile = opt->get(key+".output").as< string >();
+        }
+
+    key = "options.emultipole.esf";
+
+        if ( opt->exists(key+".calcESF") ) {
+            int calcESF = opt->get(key+".calcESF").as< int >();
+            _calcESF = (calcESF == 0) ? false : true;
+        }
+        else {
+            _calcESF = false;
+        }
+        if (_calcESF) {
+            _esfGridFile = opt->get(key+".grid").as< string >();
+            _esfOutFile = opt->get(key+".output").as< string >();
         }
 
     key = "options.emultipole.tholeparam";
@@ -466,6 +489,7 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
     if (!top->isEStatified()) { this->EStatify(top, opt); }
 
     if (this->_calcESP) { this->CalculateESP(top); }
+    if (this->_calcESF) { this->CalculateESF(top); }
 }
 
 
@@ -967,6 +991,150 @@ void EMultipole2::CalculateESP(Topology *top) {
 
 
 /**
+ * Calculates electrostatic field at selected grid points
+ * ... NOTE Calculation done for rigid coordinates (as found in GDMA file)
+ * ... NOTE Grid is currently loaded from xyz file
+ */
+void EMultipole2::CalculateESF(Topology *top) {
+
+    cout << endl << "... ... Calculating ESF";
+
+    double int2N_C = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 * 1.000e-18;
+
+    // +++++++++++++++++++ //
+    // Load grid from file //
+    // +++++++++++++++++++ //
+
+    vector<vec> gridPoints;
+    double CONVERT2NM = 1;
+
+    std::string line;
+    std::ifstream intt;
+    intt.open(this->_esfGridFile.c_str());
+
+    if (intt.is_open() ) {
+
+        while ( intt.good() ) {
+
+
+            std::getline(intt, line);
+            vector<string> split;
+            Tokenizer toker(line, " ");
+            toker.ToVector(split);
+
+            if ( !split.size()      ||
+                  split[0] == "!"   ||
+                  split[0].substr(0,1) == "!" ) { continue; }
+
+            // ! Interesting information here, e.g.
+            // Units bohr
+
+            //  -0.3853409355   0.0004894995  -0.0003833545
+            //  -0.0002321905   0.2401559510   0.6602334308
+            // ! ...
+
+            // Units used
+            if ( split[0] == "Units") {
+                string units = split[1];
+
+                if      (units == "bohr") { CONVERT2NM = 0.0529189379; }
+                else if (units == "nm") { CONVERT2NM = 1.; }
+                else if (units == "A") { CONVERT2NM = 0.1; }
+                else {
+                    throw std::runtime_error( "Unit " + units + " in file "
+                                            + _esfGridFile + " not supported.");
+                }
+            }
+
+            else {
+
+                double x = CONVERT2NM * boost::lexical_cast<double>(split[0]);
+                double y = CONVERT2NM * boost::lexical_cast<double>(split[1]);
+                double z = CONVERT2NM * boost::lexical_cast<double>(split[2]);
+
+                gridPoints.push_back(vec(x,y,z));
+            }
+        }
+    }
+    else { cout << endl << "ERROR: No such file " << _esfGridFile << endl; }
+
+    this->_esfGrid = gridPoints;
+
+    // +++++++++++++++++++++++++++++++++++++++++++ //
+    // Iterate over segment types (in GDMA config) //
+    // +++++++++++++++++++++++++++++++++++++++++++ //
+
+    map< string, vector< PolarSite* > >::iterator sit;
+    for (sit = this->_map_seg_polarSites.begin();
+         sit != this->_map_seg_polarSites.end();
+         ++sit) {
+
+        cout << endl << "... ... ... ESF for segment " << sit->first << flush;
+
+
+
+        vector< PolarSite* > poles = sit->second;
+        vector< PolarSite* >::iterator pit;
+
+        for (int state = -1; state < 2; ++state) {
+
+            // Multipole data for this state?
+            bool hasState = _map_seg_chrgStates[sit->first][state+1];
+            if (!hasState) { continue; }
+
+            // Store the field
+            vector< vec > gridPointESF;
+
+            // Charge container appropriately
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                (*pit)->Charge(state);
+            }
+
+            // Calculate field for each grid point, store in gridPointESF
+            Interactor actor = Interactor(top, this);
+
+            vector< vec >::iterator grit;
+            for (grit = _esfGrid.begin(); grit < _esfGrid.end(); ++grit) {
+
+                vec F = vec(0.0, 0.0, 0.0);
+
+                for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                    F += actor.FieldPermESF((*grit), *(*pit));
+                }
+                gridPointESF.push_back(F);
+            }
+
+            cout << endl << "... ... ... ... State " << state << ": "
+                         << " Calculated field at " << gridPointESF.size()
+                         << " grid points. " << flush;
+
+
+            // Write to file
+            FILE *out;
+            string esfOutFile =  sit->first
+                            + "_" + boost::lexical_cast<string>(state)
+                            + "_" + _esfOutFile;
+
+            out = fopen(esfOutFile.c_str(), "w");
+
+            assert(_esfGrid.size() == gridPointESF.size());
+            int g = 0;
+            int p = 0;
+            for ( ; p < gridPointESF.size(); ++g, ++p) {
+
+                fprintf(out, " %3.8f %3.8f %3.8f   %3.8f %3.8f %3.8f \n",
+                        _esfGrid[g].getX(),
+                        _esfGrid[g].getY(),
+                        _esfGrid[g].getZ(),
+                        gridPointESF[p].getX(),
+                        gridPointESF[p].getY(),
+                        gridPointESF[p].getZ() );
+            }
+        }
+    }
+}
+
+/**
  * Equips segments with polar sites using polar-site template container
  * ... Loops over segments + fragments in topology
  * ... Looks up associated polar sites, creates 'new' instances
@@ -1294,19 +1462,19 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         double EState = this->Energy(state);
         _seg->setEMpoles(state, int2eV * EState);
 
-        /*
-        // For visual check of convergence
-        string mpNAME = "seg1_cation.dat";
-        FILE *mpDat = NULL;
-        mpDat = fopen(mpNAME.c_str(), "w");
-        vector<PolarSite*>::iterator pit;
-        for (pit = _polsPolSphere[0].begin();
-             pit < _polsPolSphere[0].end();
-             ++pit) {
-            (*pit)->PrintInfoVisual(mpDat);
-        }
-        fclose(mpDat);
-        */
+        
+//        // For visual check of convergence
+//        string mpNAME = "seg1_cation.dat";
+//        FILE *mpDat = NULL;
+//        mpDat = fopen(mpNAME.c_str(), "w");
+//        vector<PolarSite*>::iterator pit;
+//        for (pit = _polsPolSphere[0].begin();
+//             pit < _polsPolSphere[0].end();
+//             ++pit) {
+//            (*pit)->PrintInfoVisual(mpDat);
+//        }
+//        fclose(mpDat);
+        
 
         this->Depolarize();
     }
@@ -1354,19 +1522,19 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         double EState = this->Energy(state);
         _seg->setEMpoles(state, int2eV * EState);
 
-        /*
-        // For visual check of convergence
-        string mpNAME = "seg1_neutral.dat";
-        FILE *mpDat = NULL;
-        mpDat = fopen(mpNAME.c_str(), "w");
-        vector<PolarSite*>::iterator pit;
-        for (pit = _polsPolSphere[0].begin();
-             pit < _polsPolSphere[0].end();
-             ++pit) {
-            (*pit)->PrintInfoVisual(mpDat);
-        }
-        fclose(mpDat);
-        */
+        
+//        // For visual check of convergence
+//        string mpNAME = "seg1_neutral.dat";
+//        FILE *mpDat = NULL;
+//        mpDat = fopen(mpNAME.c_str(), "w");
+//        vector<PolarSite*>::iterator pit;
+//        for (pit = _polsPolSphere[0].begin();
+//             pit < _polsPolSphere[0].end();
+//             ++pit) {
+//            (*pit)->PrintInfoVisual(mpDat);
+//        }
+//        fclose(mpDat);
+        
         
         this->Depolarize();
     }
@@ -1651,6 +1819,9 @@ inline double EMultipole2::Interactor::PotentialPerm(vec r,
     R5   = R4*R;
     e12 *= R;
 
+    
+
+
     rbx = - pol._locX * e12;
     rby = - pol._locY * e12;
     rbz = - pol._locZ * e12;
@@ -1674,6 +1845,83 @@ inline double EMultipole2::Interactor::PotentialPerm(vec r,
     }
 
     return phi00;
+}
+
+
+inline vec EMultipole2::Interactor::FieldPermESF(vec r,
+                                                 PolarSite &pol) {
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = pol.getPos() - r;
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+
+    double Fx = 0.0;
+    double Fy = 0.0;
+    double Fz = 0.0;
+
+    // Field generated by rank-0 m'pole
+        Fx += T1x_00() * pol.Q00;
+        Fy += T1y_00() * pol.Q00;
+        Fz += T1z_00() * pol.Q00;
+
+    // Field generated by rank-1 m'pole
+    if (pol._rank > 0) {
+        Fx += T1x_1x() * pol.Q1x;
+        Fx += T1x_1y() * pol.Q1y;
+        Fx += T1x_1z() * pol.Q1z;
+
+        Fy += T1y_1x() * pol.Q1x;
+        Fy += T1y_1y() * pol.Q1y;
+        Fy += T1y_1z() * pol.Q1z;
+
+        Fz += T1z_1x() * pol.Q1x;
+        Fz += T1z_1y() * pol.Q1y;
+        Fz += T1z_1z() * pol.Q1z;
+    }
+
+    // Field generated by rank-2 m'pole
+    if (pol._rank > 1) {
+        Fx += T1x_20()  * pol.Q20;
+        Fx += T1x_21c() * pol.Q21c;
+        Fx += T1x_21s() * pol.Q21s;
+        Fx += T1x_22c() * pol.Q22c;
+        Fx += T1x_22s() * pol.Q22s;
+
+        Fy += T1y_20()  * pol.Q20;
+        Fy += T1y_21c() * pol.Q21c;
+        Fy += T1y_21s() * pol.Q21s;
+        Fy += T1y_22c() * pol.Q22c;
+        Fy += T1y_22s() * pol.Q22s;
+
+        Fz += T1z_20()  * pol.Q20;
+        Fz += T1z_21c() * pol.Q21c;
+        Fz += T1z_21s() * pol.Q21s;
+        Fz += T1z_22c() * pol.Q22c;
+        Fz += T1z_22s() * pol.Q22s;
+    }
+
+    return vec(Fx, Fy, Fz);
 }
 
 
