@@ -118,6 +118,10 @@ static void start_hndl(void *data, const char *el, const char **attr)
 
     Property *cur = property_stack->top();
     Property &np = cur->add(el, "");
+    
+    for (int i = 0; attr[i]; i += 2)
+        cur->setAttribute(attr[i], attr[i + 1]);    
+    
     property_stack->push(&np);
 }
 
