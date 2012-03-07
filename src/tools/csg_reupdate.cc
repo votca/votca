@@ -33,9 +33,7 @@ void CsgREupdate::Initialize() {
     // add RE options
     AddProgramOptions("RE Specific options")
     ("options", boost::program_options::value<string>(), 
-            "  options file for coarse graining")
-    ("genref",boost::program_options::value<bool>(&_genref)->default_value(false),
-            "generate referece All-atom neigborlist histogram");
+            "  options file for coarse graining");
     
 }
 
@@ -53,17 +51,39 @@ bool CsgREupdate::EvaluateOptions() {
 void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
 
     //cout << "Beginning evaluate" << endl;
-    if(_genref)
-        cout << "NO RE update! only process reference AA trajectories" << endl;
     
     // initializing non-bonded interactions
     _nlamda = 0;
      for (list<Property*>::iterator iter = _nonbonded.begin();
              iter != _nonbonded.end(); ++iter) {
 
+         string name = (*iter)->get("name").value();
+         
          PotentialInfo *i = new PotentialInfo(_potentials.size(),
-                                              false, _genref,
+                                              false,
                                               _nlamda, *iter);
+
+        // generate the bead lists
+        BeadList beads1, beads2;
+
+        beads1.Generate(*top, (*iter)->get("type1").value());
+        beads2.Generate(*top, (*iter)->get("type2").value());
+
+        if (beads1.size() == 0)
+            throw std::runtime_error("Topology does not have beads of type \"" 
+                    + (*iter)->get("type1").value() + "\"\n"
+                "This was specified in type1 of interaction \"" + name + "\"");
+        if (beads2.size() == 0)
+            throw std::runtime_error("Topology does not have beads of type \"" 
+                    + (*iter)->get("type2").value() + "\"\n"
+                "This was specified in type2 of interaction \"" + name + "\"");
+        // calculate normalization factor for rdf
+
+        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+            i->hist_norm = (beads1.size()*(beads2.size()) / 2.) / 
+                    top->BoxVolume();
+        else
+            i->hist_norm = (beads1.size() * beads2.size()) / top->BoxVolume();
 
         // let user know the properties of CG potential he/she selected
         cout << "We have " << i->potentialName << " CG potential" << endl;
@@ -132,20 +152,15 @@ void CsgREupdate::EndEvaluate(){
     }
     /* formulate _HS dlamda = - _DS   
      */
-    if( !_genref ){
-    
-        REFormulateLinEq();
 
-        REUpdateLamda();
+    REFormulateLinEq();
 
-        cout << "AA Ensemble Avg Energy :: " << _UavgAA << endl;
-        cout << "CG Ensemble Avg Energy :: " << _UavgCG << endl;
-        
-    } else {
-        // compute reference aa avg histograms
-        AAavgHist();
-    }
-    
+    REUpdateLamda();
+
+    cout << "AA Ensemble Avg Energy :: " << _UavgAA << endl;
+    cout << "CG Ensemble Avg Energy :: " << _UavgCG << endl;
+
+
     WriteOutFiles();
     
     cout <<"Finished RE update!\n";
@@ -225,24 +240,6 @@ void CsgREupdate::WriteOutFiles() {
         param_tab.Save(file_name);
         // clear the table for the next potential
         param_tab.clear();
-
-        if(_genref){ // write ref aa ensemble cg-cg histograms
-
-            file_name = (*potiter)->potentialName;
-            file_name = file_name + aahistfile_extension;
-
-            // print output file names on stdout
-            cout << "Writing file: " << file_name << endl;
-            
-            // copy table from potential histogram
-            aahist_tab = (*potiter)->aahist.data();
-
-            // save table in the file
-            aahist_tab.Save(file_name);
-            // clear the table for the next potential
-            aahist_tab.clear();
-
-        }
         
     }
     
@@ -340,12 +337,6 @@ void CsgREupdate::REUpdateLamda() {
             _dlamda(row) = _dlamda(row)/_lamda(row);
         
     }
-    // check if user opted to do convergence check
-    if(_options.get("cg.inverse.convergence_check.type").as<string>() == "re"){
-
-        CheckConvergence();
-
-    }
 
     // now update parameters of individual cg potentials
     PotentialContainer::iterator potiter;
@@ -382,7 +373,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
     for(int bin = 0; bin < hist.size(); bin++) {
 
         double r_hist = hist.x(bin);
-        double n_hist = hist.y(bin);
+        double n_hist = hist.y(bin) * potinfo->hist_norm;
         U +=  n_hist *  potinfo->ucg->CalculateF(r_hist);
 
     }
@@ -433,48 +424,6 @@ void CsgREupdate::AAavgBonded(PotentialInfo* potinfo) {
 
 }
 
-// Compute refence AA ensemble CG-CG pair neibhor distances histogram
-void CsgREupdate::AAavgHist(){
-
-     PotentialContainer::iterator potiter;
-
-     for (potiter = _potentials.begin();
-             potiter != _potentials.end(); ++potiter){
-
-         (*potiter)->aahist.Normalize(_nframes);
-         
-     }
-
-}
-
-// Checks whether solution is converged using relative error 2-norm
-void CsgREupdate::CheckConvergence(){
-
-    /* if inf-norm of the relative error i.e. _dlamda/_lamda is less
-     * than user specified tolerance value
-     * program creates file "converged" in the current directory
-     * which then is detected by inverse script and iterations stop
-     */
-
-    double errnorm = ub::norm_inf(_dlamda);
-    double tol = _options.get("cg.inverse.convergence_check.tol").as<double>();
-
-    if( errnorm < tol ){
-        
-        ofstream out;
-        string filename = "converged";
-        out.open(filename.c_str());
-
-        if(!out)
-            throw runtime_error(string("error, cannot open file ") + filename);
-        
-        out << "Relative Entropy Converged!";
-
-        out.close();
-    }
-
-}
-
 CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
     CsgREupdateWorker *worker = new CsgREupdateWorker();
@@ -482,16 +431,13 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
     // initialize worker
     worker->_options = _options;
     worker->_nonbonded = _nonbonded;
-
-    worker->_genref = OptionsMap()["genref"].as<bool>();
-    
     worker->_nlamda = 0;
 
     for (list<Property*>::iterator iter = _nonbonded.begin();
              iter != _nonbonded.end(); ++iter) {
 
          PotentialInfo *i = new PotentialInfo(worker->_potentials.size(),
-                                              false, worker->_genref,
+                                              false,
                                               worker->_nlamda, *iter);
         // update parameter counter
         worker->_nlamda += i->ucg->getParamSize();
@@ -555,23 +501,6 @@ void CsgREupdate::MergeWorker(Worker* worker) {
             _HS(row,col) += myCsgREupdateWorker->_HS(row,col);
         }
     }
-
-    if(_genref){
-
-        PotentialContainer::iterator potiter;
-        size_t index = 0;
-        
-        for (potiter = _potentials.begin();
-            potiter != _potentials.end(); ++potiter) {
-
-            (*potiter)->aahist.data().y() +=
-                    myCsgREupdateWorker->_potentials[index]->aahist.data().y();
-            
-            index++;
-        }
-
-    }
-  
     
 }
 
@@ -607,22 +536,18 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom){
              EvalNonbonded(conf,potinfo);
          }
 
-     }
+    }
+    // update _DS and _HS
+    for (int row = 0; row < _nlamda; row++) {
 
-     if(!_genref) { // if not generating ref aa hist
-        // update _DS and _HS
-        for( int row = 0; row < _nlamda; row++ ){
+        _DS(row) += (-1.0 * _beta * _dUFrame(row));
 
-            _DS(row) += (-1.0 * _beta * _dUFrame(row));
+        for (int col = 0; col < _nlamda; col++) {
 
-            for( int col = 0; col < _nlamda; col++){
+            _HS(row, col) += (_beta * _beta * _dUFrame(row) * _dUFrame(col));
 
-                _HS(row,col) += (_beta * _beta * _dUFrame(row) * _dUFrame(col));
-
-            }
         }
-
-     }
+    }
 
      _nframes++;
 }
@@ -672,63 +597,54 @@ void CsgREupdateWorker::EvalNonbonded(Topology* conf, PotentialInfo* potinfo) {
     }
     NBList::iterator pair_iter;
 
-    if (!_genref){ // if not generating ref aa histograms
-        int pos_start = potinfo->vec_pos;
-        int pos_max   = pos_start + potinfo->ucg->getParamSize();
-        int lamda_i,lamda_j;
-        double dU_i, d2U_ij;
-        double U;
+    int pos_start = potinfo->vec_pos;
+    int pos_max = pos_start + potinfo->ucg->getParamSize();
+    int lamda_i, lamda_j;
+    double dU_i, d2U_ij;
+    double U;
 
-        // compute total energy
-        U = 0.0;
+    // compute total energy
+    U = 0.0;
+    for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
+        U += potinfo->ucg->CalculateF((*pair_iter)->dist());
+    }
+    _UavgCG += U;
+
+    // computing dU/dlamda and d2U/dlamda_i dlamda_j
+    for (int row = pos_start; row < pos_max; row++) {
+
+        // ith parameter of this potential
+        lamda_i = row - pos_start;
+
+        // compute dU/dlamda
+        // double sum by iterating over all pairs
+        dU_i = 0.0;
         for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-                U += potinfo->ucg->CalculateF((*pair_iter)->dist());
-            }
-        _UavgCG += U;
 
-        // computing dU/dlamda and d2U/dlamda_i dlamda_j
-        for( int row = pos_start; row < pos_max; row++){
+            dU_i += potinfo->ucg->CalculateDF(lamda_i, (*pair_iter)->dist());
 
-            // ith parameter of this potential
-            lamda_i = row - pos_start;
+        } // end loop pair_iter
 
-            // compute dU/dlamda
+        _dUFrame(row) = dU_i;
+
+        for (int col = pos_start; col < pos_max; col++) {
+
+            lamda_j = col - pos_start;
+
+            // compute d2U/dlamda_i dlamda_j and add to _HS
             // double sum by iterating over all pairs
-            dU_i = 0.0;
+            d2U_ij = 0.0;
             for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
 
-                dU_i += potinfo->ucg->CalculateDF(lamda_i,(*pair_iter)->dist());
+                d2U_ij += potinfo->ucg->CalculateD2F(lamda_i, lamda_j, (*pair_iter)->dist());
 
             } // end loop pair_iter
 
-            _dUFrame(row) = dU_i;
+            _HS(row, col) += (-1.0 * _beta * d2U_ij);
 
-            for( int col = pos_start; col < pos_max; col++){
+        } // end loop col
 
-                lamda_j = col - pos_start;
-
-                // compute d2U/dlamda_i dlamda_j and add to _HS
-                // double sum by iterating over all pairs
-                d2U_ij = 0.0;
-                for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-
-                    d2U_ij += potinfo->ucg->CalculateD2F(lamda_i,lamda_j,(*pair_iter)->dist());
-
-                } // end loop pair_iter
-
-                _HS(row,col) += (-1.0*_beta*d2U_ij);
-
-            } // end loop col
-
-        } // end loop row
-
-    } else { // gather aa histogram data
-
-        for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-                potinfo->aahist.Process((*pair_iter)->dist(),1);
-            }
-    }
-
+    } // end loop row
 
     delete nb;
 }
@@ -741,7 +657,7 @@ void CsgREupdateWorker::EvalBonded(Topology* conf, PotentialInfo* potinfo){
 }
 
 PotentialInfo::PotentialInfo(int index,
-                             bool bonded_, bool genref,
+                             bool bonded_,
                              int vec_pos_, Property* options) {
     
     potentialIndex = index;
@@ -805,10 +721,6 @@ PotentialInfo::PotentialInfo(int index,
     string aahist_file_extension = ".aa.nbhist";
     string aahist_file_name = potentialName + aahist_file_extension;
 
-    if(genref)
-        // aahist uses the same rmin,rmax, and grid points as pot tables
-        aahist.Initialize(rmin,rcut,ngrid);
-    else
-        aahist.Initialize(aahist_file_name);
+    aahist.Initialize(aahist_file_name);
 
 }
