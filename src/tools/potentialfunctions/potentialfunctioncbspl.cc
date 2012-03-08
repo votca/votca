@@ -86,7 +86,7 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
     double r0 = _rbreak(_nexcl);
     double m = ( _lam(_nexcl+1) - _lam(_nexcl) ) / 
                         ( _rbreak(_nexcl+1) - _rbreak(_nexcl) );
-    double a0 = u0 * exp ( - m * r0/u0 );
+    double a = u0 * exp ( - m * r0/u0 );
     double b = m/u0;
     
     
