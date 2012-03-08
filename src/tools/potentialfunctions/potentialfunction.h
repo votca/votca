@@ -23,13 +23,14 @@ using namespace votca::tools;
 
 class PotentialFunction {
 public:
-    PotentialFunction() {}
-
+    
     virtual ~PotentialFunction() {}
     // read parameters from the input file
-    void setParam(string filename);
+    virtual void setParam(string filename);
+    // save parameters to the file
+    virtual void SaveParam(const string& filename);
     // set all parameters
-    void setParam(const ub::vector<double> param) { _lam = param; _nlam = param.size(); }
+    void setParam(const ub::vector<double> param){ _lam = param; }
     // set ith parameter
     void setParam(const int i, const double val) { _lam(i) = val; }
     // set minimum r value to avoid large values
@@ -43,17 +44,22 @@ public:
     // calculate second derivative w.r.t. ith parameter
     virtual double CalculateD2F(const int i, const int j, const double r) const = 0;
     // return parameter
-    ub::vector<double> getParam() const { return _lam; }
+    ub::vector<double>& Params() { return _lam; }
     // return ith parameter
     double getParam(const int i) const { return _lam(i); }
     // return size of parameters
-    int getParamSize() const { return _nlam; }
+    int getParamSize() const { return _lam.size(); }
+    // return size of parameters to be optimized
+    virtual int getOptParamSize() const { return getParamSize();}
     // return cut-off value
     double getCutOff() const { return _cut_off; }
+    double getMinDist() const { return _min; }
 
 protected:
+    
+    PotentialFunction(const int nlam_,const double min_,const double max_);
+    
     ub::vector<double> _lam;
-    int _nlam;
     double _cut_off;
     double _min;
 };

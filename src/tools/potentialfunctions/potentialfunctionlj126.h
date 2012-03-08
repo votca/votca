@@ -19,8 +19,8 @@ using namespace votca::tools;
 // with c12,c6 parameters
 class PotentialFunctionLJ126 : public PotentialFunction {
 public:
-    PotentialFunctionLJ126();
-    PotentialFunctionLJ126(const double min_, const double max_);
+    PotentialFunctionLJ126(const double min_=0.0,
+	const double max_=10.0);
     ~PotentialFunctionLJ126(){};
     // calculate function value for given r
     double CalculateF (const double r) const;
