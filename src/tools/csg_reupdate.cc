@@ -411,29 +411,6 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
          PotentialInfo *i = new PotentialInfo(worker->_potentials.size(),
                                               false,
                                               worker->_nlamda, *iter);
-        // generate the bead lists
-        BeadList beads1, beads2;
-
-        beads1.Generate(*top, (*iter)->get("type1").value());
-        beads2.Generate(*top, (*iter)->get("type2").value());
-
-        /*
-        if (beads1.size() == 0)
-            throw std::runtime_error("Topology does not have beads of type \""
-                + (*iter)->get("type1").value() + "\"\n"
-                "This was specified in type1 of interaction \"" + name + "\"");
-        if (beads2.size() == 0)
-            throw std::runtime_error("Topology does not have beads of type \""
-                + (*iter)->get("type2").value() + "\"\n"
-                "This was specified in type2 of interaction \"" + name + "\"");
-        // calculate normalization factor for rdf
-         */
-        
-        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            i->rdf_norm = (beads1.size()*(beads2.size()) / 2.) /
-            top->BoxVolume();
-        else
-            i->rdf_norm = (beads1.size() * beads2.size()) / top->BoxVolume();
         
         // update parameter counter
         worker->_nlamda += i->ucg->getOptParamSize();
