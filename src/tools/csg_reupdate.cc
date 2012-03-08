@@ -80,10 +80,10 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
         // calculate normalization factor for rdf
 
         if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            i->hist_norm = (beads1.size()*(beads2.size()) / 2.) / 
+            i->rdf_norm = (beads1.size()*(beads2.size()) / 2.) / 
                     top->BoxVolume();
         else
-            i->hist_norm = (beads1.size() * beads2.size()) / top->BoxVolume();
+            i->rdf_norm = (beads1.size() * beads2.size()) / top->BoxVolume();
 
         // let user know the properties of CG potential he/she selected
         cout << "We have " << i->potentialName << " CG potential" << endl;
@@ -345,7 +345,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
     for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
         double r_hist = potinfo->aardf.x(bin);
-        double n_hist = potinfo->aardf.y(bin) * potinfo->hist_norm;
+        double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm;
         U +=  n_hist *  potinfo->ucg->CalculateF(r_hist);
 
     }
@@ -362,7 +362,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
         for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
             double r_hist = potinfo->aardf.x(bin);
-            double n_hist = potinfo->aardf.y(bin) * potinfo->hist_norm;
+            double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm;
             dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i,r_hist);
             
         } // end loop over hist
@@ -377,7 +377,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
             for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
                 double r_hist = potinfo->aardf.x(bin);
-                double n_hist = potinfo->aardf.y(bin) * potinfo->hist_norm;
+                double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm;
                 d2U_ij +=  n_hist *
                                 potinfo->ucg->CalculateD2F(lamda_i,lamda_j,r_hist);
 
@@ -430,10 +430,10 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
          */
         
         if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            i->hist_norm = (beads1.size()*(beads2.size()) / 2.) /
+            i->rdf_norm = (beads1.size()*(beads2.size()) / 2.) /
             top->BoxVolume();
         else
-            i->hist_norm = (beads1.size() * beads2.size()) / top->BoxVolume();
+            i->rdf_norm = (beads1.size() * beads2.size()) / top->BoxVolume();
         
         // update parameter counter
         worker->_nlamda += i->ucg->getOptParamSize();
