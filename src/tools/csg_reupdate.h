@@ -38,8 +38,8 @@ struct PotentialInfo {
         string potentialFunction;
         string type1, type2;
 
-        HistogramNew aahist;
-        double hist_norm;
+        Table aardf;
+        double rdf_norm;
 
         double rmin,rcut,step;
         ub::vector<double> pottblgrid;

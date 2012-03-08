@@ -89,14 +89,15 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
         cout << "We have " << i->potentialName << " CG potential" << endl;
         cout << "\t \t Between beads " << i->type1 << "-" << i->type2 << endl;
         cout << "\t \t With Function form " << i->potentialFunction << endl;
-        cout << "\t \t And " << i->ucg->getParamSize() << " parameters" << endl;
+        cout << "\t \t And " << i->ucg->getOptParamSize() << " parameters to "
+                "optimize" << endl;
         cout << "Potential range:" << endl;
         cout << "\t \t rmin    = " << i->rmin << " [nm]" << endl;
         cout << "\t \t rcutoff = " << i->rcut << " [nm]" << endl;
         cout << "\t \t step    = " << i->step   << " [nm]" << endl;
 
         // update parameter counter
-        _nlamda += i->ucg->getParamSize();
+        _nlamda += i->ucg->getOptParamSize();
         // add potential to container
         _potentials.push_back(i);
          
@@ -112,7 +113,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
             potiter != _potentials.end(); ++potiter){
 
         int pos_start = (*potiter)->vec_pos;
-        int pos_max  = pos_start + (*potiter)->ucg->getParamSize();
+        int pos_max  = pos_start + (*potiter)->ucg->getOptParamSize();
 
         for( int row = pos_start; row < pos_max; row++){
 
@@ -172,15 +173,10 @@ void CsgREupdate::WriteOutFiles() {
 
     string potfile_extension = ".pot.new";
     string paramfile_extension = ".param.new";
-    string aahistfile_extension = ".aa.nbhist";
     string file_name;
+
     Table pot_tab;
-    Table param_tab;
-    Table aahist_tab;
-    // table with error column or no error column
     pot_tab.SetHasYErr(false);
-    param_tab.SetHasYErr(true);
-    aahist_tab.SetHasYErr(false);
     
     PotentialContainer::iterator potiter;
 
@@ -217,29 +213,7 @@ void CsgREupdate::WriteOutFiles() {
         // construct meaningful outfile name
         file_name = (*potiter)->potentialName;
         file_name = file_name + paramfile_extension;
-
-        // resize table
-        int nparam = (*potiter)->ucg->getParamSize();
-        param_tab.resize(nparam, false);
-
-        // print output file names on stdout
-        cout << "Writing file: " << file_name << endl;
-
-        // loop over output paramaeters
-        for (int i = 0; i < nparam; i++) {
-
-            int out_indx  = i;
-            double out_param = (*potiter)->ucg->getParam(out_indx);
-            int row = (*potiter)->vec_pos + i;
-            // put point, result, flag and error at point out_x into the table
-            // error is absolute relative error in percentage
-            param_tab.set(i, out_indx, out_param, 'i', abs(_dlamda(row))*100.0);
-
-        }
-        // save table in the file
-        param_tab.Save(file_name);
-        // clear the table for the next potential
-        param_tab.clear();
+        (*potiter)->ucg->SaveParam(file_name);
         
     }
     
@@ -345,7 +319,7 @@ void CsgREupdate::REUpdateLamda() {
             potiter != _potentials.end(); ++potiter){
 
         int pos_start = (*potiter)->vec_pos;
-        int pos_max  = pos_start + (*potiter)->ucg->getParamSize();
+        int pos_max  = pos_start + (*potiter)->ucg->getOptParamSize();
 
         for( int row = pos_start; row < pos_max; row++){
 
@@ -362,18 +336,16 @@ void CsgREupdate::REUpdateLamda() {
 void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
 
     int pos_start = potinfo->vec_pos;
-    int pos_max   = pos_start + potinfo->ucg->getParamSize();
+    int pos_max   = pos_start + potinfo->ucg->getOptParamSize();
     int lamda_i,lamda_j;
     double dU_i,d2U_ij;
     double U;
-    Table hist;
-    hist = potinfo->aahist.data();
     // compute avg AA energy
     U = 0.0;
-    for(int bin = 0; bin < hist.size(); bin++) {
+    for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
-        double r_hist = hist.x(bin);
-        double n_hist = hist.y(bin) * potinfo->hist_norm;
+        double r_hist = potinfo->aardf.x(bin);
+        double n_hist = potinfo->aardf.y(bin) * potinfo->hist_norm;
         U +=  n_hist *  potinfo->ucg->CalculateF(r_hist);
 
     }
@@ -387,10 +359,10 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
 
         // compute dU/dlamda and add to _DS
         dU_i = 0.0;
-        for(int bin = 0; bin < hist.size(); bin++) {
+        for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
-            double r_hist = hist.x(bin);
-            double n_hist = hist.y(bin);
+            double r_hist = potinfo->aardf.x(bin);
+            double n_hist = potinfo->aardf.y(bin) * potinfo->hist_norm;
             dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i,r_hist);
             
         } // end loop over hist
@@ -402,10 +374,10 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
             
             // compute d2U/dlamda_i dlamda_j and add to _HS
             d2U_ij = 0.0;
-            for(int bin = 0; bin < hist.size(); bin++) {
+            for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
-                double r_hist = hist.x(bin);
-                double n_hist = hist.y(bin);
+                double r_hist = potinfo->aardf.x(bin);
+                double n_hist = potinfo->aardf.y(bin) * potinfo->hist_norm;
                 d2U_ij +=  n_hist *
                                 potinfo->ucg->CalculateD2F(lamda_i,lamda_j,r_hist);
 
@@ -439,8 +411,32 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
          PotentialInfo *i = new PotentialInfo(worker->_potentials.size(),
                                               false,
                                               worker->_nlamda, *iter);
+        // generate the bead lists
+        BeadList beads1, beads2;
+
+        beads1.Generate(*top, (*iter)->get("type1").value());
+        beads2.Generate(*top, (*iter)->get("type2").value());
+
+        /*
+        if (beads1.size() == 0)
+            throw std::runtime_error("Topology does not have beads of type \""
+                + (*iter)->get("type1").value() + "\"\n"
+                "This was specified in type1 of interaction \"" + name + "\"");
+        if (beads2.size() == 0)
+            throw std::runtime_error("Topology does not have beads of type \""
+                + (*iter)->get("type2").value() + "\"\n"
+                "This was specified in type2 of interaction \"" + name + "\"");
+        // calculate normalization factor for rdf
+         */
+        
+        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+            i->hist_norm = (beads1.size()*(beads2.size()) / 2.) /
+            top->BoxVolume();
+        else
+            i->hist_norm = (beads1.size() * beads2.size()) / top->BoxVolume();
+        
         // update parameter counter
-        worker->_nlamda += i->ucg->getParamSize();
+        worker->_nlamda += i->ucg->getOptParamSize();
         // add potential to container
         worker->_potentials.push_back(i);
 
@@ -454,7 +450,7 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
             potiter != worker->_potentials.end(); ++potiter){
 
         int pos_start = (*potiter)->vec_pos;
-        int pos_max  = pos_start + (*potiter)->ucg->getParamSize();
+        int pos_max  = pos_start + (*potiter)->ucg->getOptParamSize();
 
         for( int row = pos_start; row < pos_max; row++){
 
@@ -598,7 +594,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology* conf, PotentialInfo* potinfo) {
     NBList::iterator pair_iter;
 
     int pos_start = potinfo->vec_pos;
-    int pos_max = pos_start + potinfo->ucg->getParamSize();
+    int pos_max = pos_start + potinfo->ucg->getOptParamSize();
     int lamda_i, lamda_j;
     double dU_i, d2U_ij;
     double U;
@@ -715,12 +711,11 @@ PotentialInfo::PotentialInfo(int index,
 
     ucg->setParam(oldparam_file_name);
 
-    /* read/load histogram if doing csg_reupdate
-     * else program generates the histogram
+    /* read/load reference AA CG-CG distribution
      */
-    string aahist_file_extension = ".aa.nbhist";
-    string aahist_file_name = potentialName + aahist_file_extension;
+    string aardf_file_extension = ".aa.rdf";
+    string aardf_file_name = potentialName + aardf_file_extension;
 
-    aahist.Initialize(aahist_file_name);
+    aardf.Load(aardf_file_name);
 
 }

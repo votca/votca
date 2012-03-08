@@ -13,8 +13,8 @@
 // with c12,c6 parameters
 class PotentialFunctionLJG : public PotentialFunction {
 public:
-    PotentialFunctionLJG();
-    PotentialFunctionLJG(const double min_, const double max_);
+    PotentialFunctionLJG(const double min_ = 0.0,
+            const double max_ = 10.0);
     ~PotentialFunctionLJG() {};
     // calculate function value for given r
     double CalculateF (const double r) const;

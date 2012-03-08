@@ -1,24 +1,8 @@
 
 #include "potentialfunctionljg.h"
 
-PotentialFunctionLJG::PotentialFunctionLJG() {
-
-    _nlam = 5;
-    _lam.resize(_nlam);
-    _lam.clear();
-    _min = 0.0;
-    _cut_off = 100; // default cut-off 100 nm.
-}
-
 PotentialFunctionLJG::PotentialFunctionLJG(const double min_,
-                                            const double max_){
-
-   _nlam = 5;
-   _lam.resize(_nlam);
-   _lam.clear();
-   _min = min_;
-   _cut_off = max_;
-
+	const double max_) : PotentialFunction(5,min_,max_){
 }
 
 double PotentialFunctionLJG::CalculateF (const double r) const {
