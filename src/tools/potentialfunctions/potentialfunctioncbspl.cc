@@ -26,7 +26,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const int nlam_,
     _rbreak.resize(_lam.size(),false);
     _rbreak.clear();
     for( int i = 0; i < _lam.size(); i++)
-        _rbreak(i) = i*dr;
+        _rbreak(i) = i*_dr;
     
     _nexcl = min( int( ( _min )/_dr ), _nbreak - 2 );
     
@@ -147,13 +147,13 @@ double PotentialFunctionCBSPL::CalculateF (const double r) const {
 double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const{
     
     // since first _nexcl parameters are not optimized for stability reasons
-    i = i + _nexcl;
+    //i = i + _nexcl;
 
     if ( r >= _min && r <= _cut_off ) {
 
         int indx = min( int( ( r )/_dr ), _nbreak-2 );
 
-        if ( i >= indx && i <= indx+3 ){
+        if ( i + _nexcl >= indx && i + _nexcl <= indx+3 ){
 
             ub::vector<double> R;
 
@@ -167,7 +167,7 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const{
 
             ub::vector<double> RM = ub::prod(R,_M);
 
-            return RM(i-indx);
+            return RM(i + _nexcl-indx);
 
         }else{
 

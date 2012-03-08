@@ -24,6 +24,10 @@ public:
     double CalculateD2F(const int i, const int j, const double r) const;
     
     int getOptParamSize() const ;
+    
+    void setParam(string filename);
+    // save parameters to the file
+    void SaveParam(const string& filename);
 
 protected:
 
