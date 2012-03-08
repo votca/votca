@@ -145,17 +145,17 @@ void PolarSite::Induce(double wSOR) {
 
     U1_Hist.push_back( vec(U1x,U1y,U1z) );
     
-    U1x = (1 - wSOR) * U1x + wSOR * ( - alpha * (FPx + FUx) );
-    U1y = (1 - wSOR) * U1y + wSOR * ( - alpha * (FPy + FUy) );
-    U1z = (1 - wSOR) * U1z + wSOR * ( - alpha * (FPz + FUz) );    
+    U1x = (1 - wSOR) * U1x + wSOR * ( - alpha * (FPx + FUx) ); // OVERRIDE
+    U1y = (1 - wSOR) * U1y + wSOR * ( - alpha * (FPy + FUy) ); // OVERRIDE
+    U1z = (1 - wSOR) * U1z + wSOR * ( - alpha * (FPz + FUz) ); // OVERRIDE
 }
 
 void PolarSite::InduceDirect() {
 
     U1_Hist.push_back( vec(0.,0.,0.) );
-    U1x =  - alpha * FPx;
-    U1y =  - alpha * FPy;
-    U1z =  - alpha * FPz;
+    U1x =  - alpha * FPx; // OVERRIDE
+    U1y =  - alpha * FPy; // OVERRIDE
+    U1z =  - alpha * FPz; // OVERRIDE
 }
 
 double PolarSite::HistdU() {

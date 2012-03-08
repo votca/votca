@@ -21,9 +21,12 @@ public:
     void     Initialize(Topology *top, Property *options);
     void     EStatify(Topology *top, Property *options);
     vector<PolarSite*> ParseGdmaFile(string filename, int state);
+    void     DistributeMpoles(Topology *top);
+
     void     CalculateESP(Topology *top);
     void     CalculateESF(Topology *top);
-    void     DistributeMpoles(Topology *top);
+    void     CalculateAlphaMol(Topology *top);
+    void     SiteAlphaInduce(Topology *, vector< PolarSite* > &);
 
     bool     EvaluateFrame(Topology *top);
     void     EvalSite(Topology *top, Segment *seg, int slot) { ; }
@@ -73,6 +76,7 @@ public:
         inline double EnergyIntra(PolarSite &pol1, PolarSite &pol2);
         inline void FieldPerm(PolarSite &pol1, PolarSite &pol2);
         inline void FieldIndu(PolarSite &pol1, PolarSite &pol2);
+        inline void FieldInduAlpha(PolarSite &pol1, PolarSite &pol2);
         inline vec  FieldPermESF(vec r, PolarSite &pol);
         inline double PotentialPerm(vec r, PolarSite &pol);
         
@@ -323,6 +327,8 @@ private:
     string          _esfGridFile;
     string          _esfOutFile;
     vector<vec>     _esfGrid;
+
+    bool            _calcAlphaMol;
     
     string          _outFile;
     bool            _energies2File;
@@ -376,7 +382,17 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
      *          <grid></grid>
      *          <output></output>
      *      <esp>
-     * 
+     *
+     *      <esf>
+     *          <calcESF></calcESF>
+     *          <grid></grid>
+     *          <output></output>
+     *      <esf>
+     *
+     *      <alphamol>
+     *          <calcAlpha></calcAlpha>
+     *      </alphamol>
+     *
      *      <tholeparam>
      *          <cutoff></cutoff>
      *          <expdamp></expdamp>
@@ -448,6 +464,13 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
             _esfOutFile = opt->get(key+".output").as< string >();
         }
 
+    key = "options.emultipole.alphamol";
+
+        if ( opt->exists(key+".calcAlpha") ) {
+            int calcAlpha = opt->get(key+".calcAlpha").as< int >();
+            _calcAlphaMol = (calcAlpha == 0) ? false : true;
+        }
+
     key = "options.emultipole.tholeparam";
 
         if ( opt->exists(key+".cutoff") ) {
@@ -488,8 +511,9 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
 
     if (!top->isEStatified()) { this->EStatify(top, opt); }
 
-    if (this->_calcESP) { this->CalculateESP(top); }
-    if (this->_calcESF) { this->CalculateESF(top); }
+    if (this->_calcESP)      { this->CalculateESP(top); }
+    if (this->_calcESF)      { this->CalculateESF(top); }
+    if (this->_calcAlphaMol) { this->CalculateAlphaMol(top); }
 }
 
 
@@ -1134,12 +1158,225 @@ void EMultipole2::CalculateESF(Topology *top) {
     }
 }
 
+
+/**
+ * Calculates molecular polarizability tensor for GDMA coordinates
+ * ... Uses Thole SCF model with exponential damping function
+ */
+void EMultipole2::CalculateAlphaMol(Topology *top) {
+
+    cout << endl << "... ... Calculating site polarizabilities";
+
+    map< string, vector< PolarSite* > >::iterator sit;
+    for (sit = this->_map_seg_polarSites.begin();
+         sit != this->_map_seg_polarSites.end();
+         ++sit) {
+
+        cout << endl << "... ... ... Polarizability for segment "
+             << sit->first << flush;
+
+        vector< PolarSite* > poles = sit->second;
+        vector< PolarSite* > ::iterator pit;
+
+        double aSUM = 0.0;
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            aSUM += (*pit)->alpha;
+        }
+
+        cout << endl << "... ... ... ... Sum over atomic alphas: " << aSUM;
+
+        double axx, axy, axz;             // |
+        double ayx, ayy, ayz;             // |-> Polarizability tensor
+        double azx, azy, azz;             // |
+
+        double siteU1x, siteU1y, siteU1z; // |-> Molecular ind. dipole
+
+        double extFx, extFy, extFz;       // |-> External applied field
+
+        // +++++++++++++++++++++++++++++ //
+        // External field in x-direction //
+        // +++++++++++++++++++++++++++++ //
+
+        siteU1x = siteU1y = siteU1z = 0.0;
+
+        extFx = 0.1;
+        extFy = 0.0;
+        extFz = 0.0;
+
+        // Set permanent field
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            (*pit)->FPx = extFx;
+            (*pit)->FPy = extFy;
+            (*pit)->FPz = extFz;
+        }
+
+        // Calculate induction field
+        this->SiteAlphaInduce(top, poles);
+
+        // Add up ind. dpl.s to yield molecular U1
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            siteU1x += (*pit)->U1x;
+            siteU1y += (*pit)->U1y;
+            siteU1z += (*pit)->U1z;
+        }
+
+        // Calculate associated column of polarizability tensor
+        axx = - siteU1x / extFx;
+        ayx = - siteU1y / extFx;
+        azx = - siteU1z / extFx;
+
+
+        // +++++++++++++++++++++++++++++ //
+        // External field in y-direction //
+        // +++++++++++++++++++++++++++++ //
+
+        siteU1x = siteU1y = siteU1z = 0.0;
+
+        extFx = 0.0;
+        extFy = 0.1;
+        extFz = 0.0;
+
+        // Set permanent field
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            (*pit)->FPx = extFx;
+            (*pit)->FPy = extFy;
+            (*pit)->FPz = extFz;
+        }
+
+        // Calculate induction field
+        this->SiteAlphaInduce(top, poles);
+
+        // Add up ind. dpl.s to yield molecular U1
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            siteU1x += (*pit)->U1x;
+            siteU1y += (*pit)->U1y;
+            siteU1z += (*pit)->U1z;
+        }
+
+        // Calculate associated column of polarizability tensor
+        axy = - siteU1x / extFy;
+        ayy = - siteU1y / extFy;
+        azy = - siteU1z / extFy;
+
+
+        // +++++++++++++++++++++++++++++ //
+        // External field in z-direction //
+        // +++++++++++++++++++++++++++++ //
+
+        siteU1x = siteU1y = siteU1z = 0.0;
+
+        extFx = 0.0;
+        extFy = 0.0;
+        extFz = 0.1;
+
+        // Set permanent field
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            (*pit)->FPx = extFx;
+            (*pit)->FPy = extFy;
+            (*pit)->FPz = extFz;
+        }
+
+        // Calculate induction field
+        this->SiteAlphaInduce(top, poles);
+
+        // Add up ind. dpl.s to yield molecular U1
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            siteU1x += (*pit)->U1x;
+            siteU1y += (*pit)->U1y;
+            siteU1z += (*pit)->U1z;
+        }
+
+        // Calculate associated column of polarizability tensor
+        axz = - siteU1x / extFz;
+        ayz = - siteU1y / extFz;
+        azz = - siteU1z / extFz;
+
+        double AVG_alpha = (axx + ayy + azz) / 3.;
+
+        cout << endl << "... ... ... ... 1/3 trace of alpha tensor "
+             << AVG_alpha;
+    }
+}
+
+
+/**
+ * Induces dipoles on polar sites in self-consistent manner until converged
+ * ... NOTE Designed to be used in conjunction with ::CalculateAlphaMol()
+ */
+void EMultipole2::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles) {
+
+    int    maxIter = this->_maxIter;
+    double wSOR = 0.5;
+    double eTOL = 0.00001;
+
+    vector< PolarSite* >::iterator pit1;
+    vector< PolarSite* >::iterator pit2;
+
+    Interactor actor = Interactor(top, this);
+
+    // Induce to first order
+    for (pit1 = poles.begin(); pit1 < poles.end(); ++pit1) {
+        (*pit1)->InduceDirect();
+    }
+
+
+    int iter = 0;
+    for ( ; iter < maxIter; ++iter) {
+
+        // Reset induction field
+        for (pit1 = poles.begin(); pit1 < poles.end(); ++pit1) {
+            (*pit1)->ResetFieldU();
+        }
+
+        // Calculate higher-order induction field
+        for (pit1 = poles.begin(); pit1 < poles.end(); ++pit1) {
+            for (pit2 = pit1 + 1; pit2 < poles.end(); ++pit2) {
+                actor.FieldInduAlpha(*(*pit1),*(*pit2));
+            }
+        }
+
+        // Induce dipoles
+        for (pit1 = poles.begin(); pit1 < poles.end(); ++pit1) {
+            (*pit1)->Induce(wSOR);
+        }
+
+        // Check for convergence
+        bool converged = true;
+        double maxdU = -1;
+        double avgdU = 0.0;
+        int    baseN = 0;
+
+        for (pit1 = poles.begin(); pit1 < poles.end(); ++pit1) {
+             double dU = (*pit1)->HistdU();
+             avgdU += dU;
+             ++baseN;
+             if ( dU > maxdU ) { maxdU = dU; }
+             if ( dU > eTOL ) { converged = false; }
+        }
+
+        avgdU /= baseN;
+        if (avgdU < eTOL/10.) { converged = true; }
+
+        //cout << endl << "ITER" << iter << " | MAX dU " << maxdU
+        //     << " | AVG dU " << avgdU;
+
+        // Break if converged
+        if (converged) { break; }
+        else if (iter == maxIter - 1) {
+            cout << endl << "... ... ... "
+                 << "WARNING Induced multipoles did not converge to precision: "
+                 << " AVG dU:U " << avgdU << flush;
+            break;
+        }
+    }
+}
+
+
 /**
  * Equips segments with polar sites using polar-site template container
  * ... Loops over segments + fragments in topology
  * ... Looks up associated polar sites, creates 'new' instances
  * ... Translates + rotates polar-site positions into global frame
- * ... NOTE MULTIPOLES ARE NOT ROTATED BUT REMAIN IN LOCAL FRAME
  */
 void EMultipole2::DistributeMpoles(Topology *top) {
 
@@ -1195,6 +1432,12 @@ void EMultipole2::DistributeMpoles(Topology *top) {
  * ... Waits for threads to finish
  */
 bool EMultipole2::EvaluateFrame(Topology *top) {
+
+    if (this->_calcAlphaMol) {
+        cout << endl << "... ... Calculated site polarizability tensors. "
+             << "Return. ";
+        return 0;
+    }
 
     // ++++++++++++++++++++ //
     // Ridigidfy + Estatify //
@@ -1473,6 +1716,11 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 //             ++pit) {
 //            (*pit)->PrintInfoVisual(mpDat);
 //        }
+//        for (pit = _polsPolSphere[1].begin();
+//             pit < _polsPolSphere[1].end();
+//             ++pit) {
+//            (*pit)->PrintInfoVisual(mpDat);
+//        }
 //        fclose(mpDat);
         
 
@@ -1530,6 +1778,11 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 //        vector<PolarSite*>::iterator pit;
 //        for (pit = _polsPolSphere[0].begin();
 //             pit < _polsPolSphere[0].end();
+//             ++pit) {
+//            (*pit)->PrintInfoVisual(mpDat);
+//        }
+//        for (pit = _polsPolSphere[1].begin();
+//             pit < _polsPolSphere[1].end();
 //             ++pit) {
 //            (*pit)->PrintInfoVisual(mpDat);
 //        }
@@ -1769,7 +2022,7 @@ double EMultipole2::SiteOpMultipole::Energy(int state) {
         for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
         for (pit2 = pit1 + 1; pit2 < (*sit1).end(); ++pit2) {
 
-            E_Tot += _actor.EnergyIntra(*(*pit1), *(*pit2));
+//            E_Tot += _actor.EnergyIntra(*(*pit1), *(*pit2)); // OVERRIDE
 
         }}
     }
@@ -1922,6 +2175,102 @@ inline vec EMultipole2::Interactor::FieldPermESF(vec r,
     }
 
     return vec(Fx, Fy, Fz);
+}
+
+
+inline void EMultipole2::Interactor::FieldInduAlpha(PolarSite &pol1,
+                                                    PolarSite &pol2) {
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = pol2.getPos() - pol1.getPos();
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    a    = _em->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.alpha * pol2.alpha));
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+
+    // Fields generated by rank-1 induced m'poles
+
+    if (a*u3 < 40.0) {
+        pol1.FUx += TU1x_1x() * pol2.U1x;
+        pol1.FUx += TU1x_1y() * pol2.U1y;
+        pol1.FUx += TU1x_1z() * pol2.U1z;
+        pol1.FUy += TU1y_1x() * pol2.U1x;
+        pol1.FUy += TU1y_1y() * pol2.U1y;
+        pol1.FUy += TU1y_1z() * pol2.U1z;
+        pol1.FUz += TU1z_1x() * pol2.U1x;
+        pol1.FUz += TU1z_1y() * pol2.U1y;
+        pol1.FUz += TU1z_1z() * pol2.U1z;
+
+        pol2.FUx += TU1x_1x() * pol1.U1x;
+        pol2.FUx += TU1y_1x() * pol1.U1y;
+        pol2.FUx += TU1z_1x() * pol1.U1z;
+        pol2.FUy += TU1x_1y() * pol1.U1x;
+        pol2.FUy += TU1y_1y() * pol1.U1y;
+        pol2.FUy += TU1z_1y() * pol1.U1z;
+        pol2.FUz += TU1x_1z() * pol1.U1x;
+        pol2.FUz += TU1y_1z() * pol1.U1y;
+        pol2.FUz += TU1z_1z() * pol1.U1z;
+    }
+    else {
+        pol1.FUx += T1x_1x() * pol2.U1x;
+        pol1.FUx += T1x_1y() * pol2.U1y;
+        pol1.FUx += T1x_1z() * pol2.U1z;
+        pol1.FUy += T1y_1x() * pol2.U1x;
+        pol1.FUy += T1y_1y() * pol2.U1y;
+        pol1.FUy += T1y_1z() * pol2.U1z;
+        pol1.FUz += T1z_1x() * pol2.U1x;
+        pol1.FUz += T1z_1y() * pol2.U1y;
+        pol1.FUz += T1z_1z() * pol2.U1z;
+
+        pol2.FUx += T1x_1x() * pol1.U1x;
+        pol2.FUx += T1y_1x() * pol1.U1y;
+        pol2.FUx += T1z_1x() * pol1.U1z;
+        pol2.FUy += T1x_1y() * pol1.U1x;
+        pol2.FUy += T1y_1y() * pol1.U1y;
+        pol2.FUy += T1z_1y() * pol1.U1z;
+        pol2.FUz += T1x_1z() * pol1.U1x;
+        pol2.FUz += T1y_1z() * pol1.U1y;
+        pol2.FUz += T1z_1z() * pol1.U1z;
+    }
 }
 
 
@@ -2341,6 +2690,9 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
             U += pol1.U1z * T1z_22s() * pol2.Q22s;
         }
     }
+    
+    // Take into account work needed to induce multipoles
+    U *= 0.5;
 
     EU_INTRA += U;
     return U;
@@ -2702,6 +3054,9 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
     }
         //cout << "E up to Q <-> Q " << E << endl;
         
+
+    // Take into account work required to induce multipoles
+    U *= 0.5;
 
     EP += E;
     EU_INTER += U;
