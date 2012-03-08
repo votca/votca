@@ -73,11 +73,13 @@ public:
 
 
         inline double EnergyInter(PolarSite &pol1, PolarSite &pol2);
+        inline double EnergyInterESP(PolarSite &pol1, PolarSite &pol2);
         inline double EnergyIntra(PolarSite &pol1, PolarSite &pol2);
         inline void FieldPerm(PolarSite &pol1, PolarSite &pol2);
+        inline vec  FieldPermESF(vec r, PolarSite &pol);
         inline void FieldIndu(PolarSite &pol1, PolarSite &pol2);
         inline void FieldInduAlpha(PolarSite &pol1, PolarSite &pol2);
-        inline vec  FieldPermESF(vec r, PolarSite &pol);
+
         inline double PotentialPerm(vec r, PolarSite &pol);
         
         void ResetEnergy() { EP = EU_INTER = EU_INTRA = 0.0; }
@@ -329,6 +331,7 @@ private:
     vector<vec>     _esfGrid;
 
     bool            _calcAlphaMol;
+    string          _alphaOutFile;
     
     string          _outFile;
     bool            _energies2File;
@@ -391,6 +394,7 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
      *
      *      <alphamol>
      *          <calcAlpha></calcAlpha>
+     *          <output></output>
      *      </alphamol>
      *
      *      <tholeparam>
@@ -469,6 +473,13 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
         if ( opt->exists(key+".calcAlpha") ) {
             int calcAlpha = opt->get(key+".calcAlpha").as< int >();
             _calcAlphaMol = (calcAlpha == 0) ? false : true;
+        }
+        if ( opt->exists(key+".output") ) {
+            string alphaOutFile = opt->get(key+".output").as< string >();
+            _alphaOutFile = alphaOutFile;
+        }
+        else {
+            _alphaOutFile = "nofile";
         }
 
     key = "options.emultipole.tholeparam";
@@ -796,7 +807,7 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
             // Units used
             if ( split[0] == "Units") {
                 units = split[1];
-                if (units != "bohr") {
+                if (units != "bohr" && units != "angstrom") {
                     throw std::runtime_error( "Unit " + units + " in file "
                                             + filename + " not supported.");
                 }
@@ -811,9 +822,24 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
                 string name = split[0];
 
                 double BOHR2NM = 0.0529189379;
-                double x = BOHR2NM * boost::lexical_cast<double>(split[1]);
-                double y = BOHR2NM * boost::lexical_cast<double>(split[2]);
-                double z = BOHR2NM * boost::lexical_cast<double>(split[3]);
+                double ANGSTROM2NM = 0.1;
+                double x, y, z;
+
+                if (units == "bohr") {
+                    x = BOHR2NM * boost::lexical_cast<double>(split[1]);
+                    y = BOHR2NM * boost::lexical_cast<double>(split[2]);
+                    z = BOHR2NM * boost::lexical_cast<double>(split[3]);
+                }
+                else if (units == "angstrom") {
+                    x = ANGSTROM2NM * boost::lexical_cast<double>(split[1]);
+                    y = ANGSTROM2NM * boost::lexical_cast<double>(split[2]);
+                    z = ANGSTROM2NM * boost::lexical_cast<double>(split[3]);
+                }
+                else {
+                    throw std::runtime_error( "Unit " + units + " in file "
+                                            + filename + " not supported.");
+                }
+                
                 vec pos = vec(x,y,z);
 
                 int rank = boost::lexical_cast<int>(split[5]);
@@ -829,7 +855,7 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
             // multipole line
             else {
 
-                int lineRank = int( sqrt(thisPole->getQs(state).size()) );
+                int lineRank = int( sqrt(thisPole->getQs(state).size()) + 0.5 );
 
                 for (int i = 0; i < split.size(); i++) {
 
@@ -989,6 +1015,18 @@ void EMultipole2::CalculateESP(Topology *top) {
                          << " Calculated potential at " << gridPointESP.size()
                          << " grid points. " << flush;
 
+            // Calculate energy of configuration (just out of interest)
+            double E = 0.0;
+            vector< PolarSite* > ::iterator pit2;
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                for (pit2 = pit + 1; pit2 < poles.end(); ++pit2) {
+                    E += actor.EnergyInterESP(*(*pit), *(*pit2));
+                }
+            }
+            double E2eV = 1.602176487e-19 * 1e9 * 1/(4*M_PI*8.854187817e-12);
+            cout << endl << "... ... ... ... "
+                 << "Electrostatic self-energy of configuration: "
+                 << E*E2eV << " eV. ";
 
             // Write to file
             FILE *out;
@@ -1178,13 +1216,6 @@ void EMultipole2::CalculateAlphaMol(Topology *top) {
         vector< PolarSite* > poles = sit->second;
         vector< PolarSite* > ::iterator pit;
 
-        double aSUM = 0.0;
-        for (pit = poles.begin(); pit < poles.end(); ++pit) {
-            aSUM += (*pit)->alpha;
-        }
-
-        cout << endl << "... ... ... ... Sum over atomic alphas: " << aSUM;
-
         double axx, axy, axz;             // |
         double ayx, ayy, ayz;             // |-> Polarizability tensor
         double azx, azy, azz;             // |
@@ -1225,7 +1256,6 @@ void EMultipole2::CalculateAlphaMol(Topology *top) {
         ayx = - siteU1y / extFx;
         azx = - siteU1z / extFx;
 
-
         // +++++++++++++++++++++++++++++ //
         // External field in y-direction //
         // +++++++++++++++++++++++++++++ //
@@ -1257,7 +1287,6 @@ void EMultipole2::CalculateAlphaMol(Topology *top) {
         axy = - siteU1x / extFy;
         ayy = - siteU1y / extFy;
         azy = - siteU1z / extFy;
-
 
         // +++++++++++++++++++++++++++++ //
         // External field in z-direction //
@@ -1291,10 +1320,65 @@ void EMultipole2::CalculateAlphaMol(Topology *top) {
         ayz = - siteU1y / extFz;
         azz = - siteU1z / extFz;
 
-        double AVG_alpha = (axx + ayy + azz) / 3.;
+        // +++++++++++++++++++++++++++ //
+        // Sum, Trace, Diagonalization //
+        // +++++++++++++++++++++++++++ //
+        
+        // Sum over atomic polarizabilities
+        double aSUM = 0.0;
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            aSUM += (*pit)->alpha;
+        }
 
-        cout << endl << "... ... ... ... 1/3 trace of alpha tensor "
-             << AVG_alpha;
+        double NM3_2_A3 = 1000.;
+        aSUM *= NM3_2_A3;
+        cout << endl << "... ... ... ... Sum over atomic alphas:    "
+             << aSUM << " A**3.";
+
+        // TODO Diagonalize polarizability tensor
+        // For now, trace is enough
+        double ISO_alpha = (axx + ayy + azz) / 3.;
+
+        ISO_alpha *= NM3_2_A3;
+        cout << endl << "... ... ... ... 1/3 trace of alpha tensor: "
+             << ISO_alpha << " A**3.";
+
+        // Eigenvalues of polarizability tensor
+        matrix alpha = matrix( vec(axx,ayx,azx), 
+                               vec(axy,ayy,azy),
+                               vec(axz,ayz,azz) );
+        matrix::eigensystem_t EIGEN;
+        alpha.SolveEigensystem(EIGEN);
+
+        cout << endl << "... ... ... ... Eigenvalues: "
+             << EIGEN.eigenvalues[0]*NM3_2_A3 << " A**3, "
+             << EIGEN.eigenvalues[1]*NM3_2_A3 << " A**3, "
+             << EIGEN.eigenvalues[2]*NM3_2_A3 << " A**3. ";
+
+        if (_alphaOutFile != "noname" && _alphaOutFile != "") {
+            FILE *out;
+            string alphaOutFile = sit->first + "_" + _alphaOutFile;
+            out = fopen(alphaOutFile.c_str(), "w");
+
+            vec x = EIGEN.eigenvecs[0];
+            vec y = EIGEN.eigenvecs[1];
+            vec z = EIGEN.eigenvecs[2];
+
+            fprintf(out, "Polarizability tensor in global frame \n");
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", axx*NM3_2_A3, axy*NM3_2_A3, axz*NM3_2_A3);
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", ayx*NM3_2_A3, ayy*NM3_2_A3, ayz*NM3_2_A3);
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", azx*NM3_2_A3, azy*NM3_2_A3, azz*NM3_2_A3);
+            fprintf(out, "\n");
+            fprintf(out, "Polarizability tensor in eigenframe \n");
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", EIGEN.eigenvalues[0]*NM3_2_A3,0.,0.);
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", 0.,EIGEN.eigenvalues[1]*NM3_2_A3,0.);
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", 0.,0.,EIGEN.eigenvalues[2]*NM3_2_A3);
+            fprintf(out, "\n");
+            fprintf(out, "Polarizability tensor main axes \n");
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", x.getX(),x.getY(),x.getZ());
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", y.getX(),y.getY(),y.getZ());
+            fprintf(out, "%4.7f  %4.7f  %4.7f \n", z.getX(),z.getY(),z.getZ());
+        }
     }
 }
 
@@ -1306,8 +1390,8 @@ void EMultipole2::CalculateAlphaMol(Topology *top) {
 void EMultipole2::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles) {
 
     int    maxIter = this->_maxIter;
-    double wSOR = 0.5;
-    double eTOL = 0.00001;
+    double wSOR = this->_omegSOR;
+    double eTOL = this->_epsTol;
 
     vector< PolarSite* >::iterator pit1;
     vector< PolarSite* >::iterator pit2;
@@ -1376,7 +1460,7 @@ void EMultipole2::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles) {
  * Equips segments with polar sites using polar-site template container
  * ... Loops over segments + fragments in topology
  * ... Looks up associated polar sites, creates 'new' instances
- * ... Translates + rotates polar-site positions into global frame
+ * ... Translates + rotates polar-site into global frame
  */
 void EMultipole2::DistributeMpoles(Topology *top) {
 
@@ -1433,9 +1517,21 @@ void EMultipole2::DistributeMpoles(Topology *top) {
  */
 bool EMultipole2::EvaluateFrame(Topology *top) {
 
-    if (this->_calcAlphaMol) {
-        cout << endl << "... ... Calculated site polarizability tensors. "
-             << "Return. ";
+    // What has already been done? If anything, return 0.
+    if (_calcAlphaMol || _calcESP || _calcESF) {
+
+        cout << endl << "... ... Calculated ";
+
+        if (this->_calcAlphaMol) {
+            cout << "site polarizability tensors, ";
+        }
+        if (this->_calcESP) {
+            cout << "ESPs, ";
+        }
+        if (this->_calcESF) {
+            cout << "ESFs, ";
+        }
+        cout << "return. ";
         return 0;
     }
 
@@ -1458,7 +1554,6 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
 
     /*
     // To check rotation into global frame
-    // NOTE Only applies to positions, multipoles remain in local frame
     string mpNAME = "mp_system.pdb";
     FILE *mpPDB = NULL;
     mpPDB = fopen(mpNAME.c_str(), "w");
@@ -2060,6 +2155,9 @@ void EMultipole2::SiteOpMultipole::Depolarize() {
 // Interactor Member Functions //
 // +++++++++++++++++++++++++++ //
 
+/**
+ * Used in ESP calculator (initialize stage of EMultipole)
+ */
 inline double EMultipole2::Interactor::PotentialPerm(vec r,
                                                      PolarSite &pol) {
 
@@ -2100,7 +2198,9 @@ inline double EMultipole2::Interactor::PotentialPerm(vec r,
     return phi00;
 }
 
-
+/**
+ * Used in ESF calculator (initialize stage of EMultipole)
+ */
 inline vec EMultipole2::Interactor::FieldPermESF(vec r,
                                                  PolarSite &pol) {
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -2177,7 +2277,9 @@ inline vec EMultipole2::Interactor::FieldPermESF(vec r,
     return vec(Fx, Fy, Fz);
 }
 
-
+/**
+ * Used in molecular-polarizability calculator (initialize stage)
+ */
 inline void EMultipole2::Interactor::FieldInduAlpha(PolarSite &pol1,
                                                     PolarSite &pol2) {
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -2273,7 +2375,9 @@ inline void EMultipole2::Interactor::FieldInduAlpha(PolarSite &pol1,
     }
 }
 
-
+/**
+ * Used in self-consistent field calculation (evaluation stage)
+ */
 inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
                                                PolarSite &pol2) {
 
@@ -2371,7 +2475,9 @@ inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
     }
 }
 
-
+/**
+ * Used in self-consistent field calculation (evaluation stage)
+ */
 inline void EMultipole2::Interactor::FieldPerm(PolarSite &pol1,
                                                PolarSite &pol2) {
 
@@ -2495,7 +2601,9 @@ inline void EMultipole2::Interactor::FieldPerm(PolarSite &pol1,
     }
 }
 
-
+/**
+ * Used in energy evaluation of converged fields (evaluation stage)
+ */
 inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
                                                    PolarSite &pol2) {    
 
@@ -2698,7 +2806,9 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
     return U;
 }
 
-
+/**
+ * Used in energy evaluation of converged fields (evaluation stage)
+ */
 inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
                                                    PolarSite &pol2) {
 
@@ -3060,6 +3170,320 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
 
     EP += E;
     EU_INTER += U;
+    return E + U;
+}
+
+/**
+ * Designed for use in ESP calculator (init. stage). Only for error-checking.
+ */
+inline double EMultipole2::Interactor::EnergyInterESP(PolarSite &pol1,
+                                                      PolarSite &pol2) {
+    
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = pol2.getPos() - pol1.getPos();
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    a    = _em->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.alpha * pol2.alpha));
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+    if (pol1._rank > 0 || pol2._rank > 0) {
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+    }
+
+    double E = 0.0; // <- Electrostatic energy
+    double U = 0.0; // <- Induction energy
+
+        E += pol1.Q00 * T00_00() * pol2.Q00;
+
+    if (a*u3 < 40) {
+        U += pol1.U1x * TU1x_00() * pol2.Q00;
+        U += pol1.U1y * TU1y_00() * pol2.Q00;
+        U += pol1.U1z * TU1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * TU00_1x() * pol2.U1x;
+        U += pol1.Q00 * TU00_1y() * pol2.U1y;
+        U += pol1.Q00 * TU00_1z() * pol2.U1z;
+    }
+    else {
+        U += pol1.U1x * T1x_00() * pol2.Q00;
+        U += pol1.U1y * T1y_00() * pol2.Q00;
+        U += pol1.U1z * T1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * T00_1x() * pol2.U1x;
+        U += pol1.Q00 * T00_1y() * pol2.U1y;
+        U += pol1.Q00 * T00_1z() * pol2.U1z;
+    }
+
+
+
+    if (pol1._rank > 0) {
+        E += pol1.Q1x * T1x_00() * pol2.Q00;
+        E += pol1.Q1y * T1y_00() * pol2.Q00;
+        E += pol1.Q1z * T1z_00() * pol2.Q00;
+    }
+
+    if (pol2._rank > 0) {
+        E += pol1.Q00 * T00_1x() * pol2.Q1x;
+        E += pol1.Q00 * T00_1y() * pol2.Q1y;
+        E += pol1.Q00 * T00_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 1) {
+        E += pol1.Q20  * T20_00()  * pol2.Q00;
+        E += pol1.Q21c * T21c_00() * pol2.Q00;
+        E += pol1.Q21s * T21s_00() * pol2.Q00;
+        E += pol1.Q22c * T22c_00() * pol2.Q00;
+        E += pol1.Q22s * T22s_00() * pol2.Q00;
+    }
+
+    if (pol2._rank > 1) {
+        E += pol1.Q00 * T00_20()  * pol2.Q20;
+        E += pol1.Q00 * T00_21c() * pol2.Q21c;
+        E += pol1.Q00 * T00_21s() * pol2.Q21s;
+        E += pol1.Q00 * T00_22c() * pol2.Q22c;
+        E += pol1.Q00 * T00_22s() * pol2.Q22s;
+    }
+
+    if (pol1._rank > 0 && pol2._rank > 0) {
+        E += pol1.Q1x * T1x_1x() * pol2.Q1x;
+        E += pol1.Q1x * T1x_1y() * pol2.Q1y;
+        E += pol1.Q1x * T1x_1z() * pol2.Q1z;
+
+        E += pol1.Q1y * T1y_1x() * pol2.Q1x;
+        E += pol1.Q1y * T1y_1y() * pol2.Q1y;
+        E += pol1.Q1y * T1y_1z() * pol2.Q1z;
+
+        E += pol1.Q1z * T1z_1x() * pol2.Q1x;
+        E += pol1.Q1z * T1z_1y() * pol2.Q1y;
+        E += pol1.Q1z * T1z_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 0) {
+        if (a*u3 < 40) {
+            U += pol1.Q1x * TU1x_1x() * pol2.U1x;
+            U += pol1.Q1x * TU1x_1y() * pol2.U1y;
+            U += pol1.Q1x * TU1x_1z() * pol2.U1z;
+            U += pol1.Q1y * TU1y_1x() * pol2.U1x;
+            U += pol1.Q1y * TU1y_1y() * pol2.U1y;
+            U += pol1.Q1y * TU1y_1z() * pol2.U1z;
+            U += pol1.Q1z * TU1z_1x() * pol2.U1x;
+            U += pol1.Q1z * TU1z_1y() * pol2.U1y;
+            U += pol1.Q1z * TU1z_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q1x * T1x_1x() * pol2.U1x;
+            U += pol1.Q1x * T1x_1y() * pol2.U1y;
+            U += pol1.Q1x * T1x_1z() * pol2.U1z;
+            U += pol1.Q1y * T1y_1x() * pol2.U1x;
+            U += pol1.Q1y * T1y_1y() * pol2.U1y;
+            U += pol1.Q1y * T1y_1z() * pol2.U1z;
+            U += pol1.Q1z * T1z_1x() * pol2.U1x;
+            U += pol1.Q1z * T1z_1y() * pol2.U1y;
+            U += pol1.Q1z * T1z_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 0) {
+        if (a*u3 < 40) {
+            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        }
+        else {
+            U += pol1.U1x * T1x_1x() * pol2.Q1x;
+            U += pol1.U1x * T1x_1y() * pol2.Q1y;
+            U += pol1.U1x * T1x_1z() * pol2.Q1z;
+            U += pol1.U1y * T1y_1x() * pol2.Q1x;
+            U += pol1.U1y * T1y_1y() * pol2.Q1y;
+            U += pol1.U1y * T1y_1z() * pol2.Q1z;
+            U += pol1.U1z * T1z_1x() * pol2.Q1x;
+            U += pol1.U1z * T1z_1y() * pol2.Q1y;
+            U += pol1.U1z * T1z_1z() * pol2.Q1z;
+        }
+    }
+
+    if (pol1._rank > 1 && pol2._rank > 0) {
+        E += pol1.Q20 * T20_1x() * pol2.Q1x;
+        E += pol1.Q20 * T20_1y() * pol2.Q1y;
+        E += pol1.Q20 * T20_1z() * pol2.Q1z;
+
+        E += pol1.Q21c * T21c_1x() * pol2.Q1x;
+        E += pol1.Q21c * T21c_1y() * pol2.Q1y;
+        E += pol1.Q21c * T21c_1z() * pol2.Q1z;
+
+        E += pol1.Q21s * T21s_1x() * pol2.Q1x;
+        E += pol1.Q21s * T21s_1y() * pol2.Q1y;
+        E += pol1.Q21s * T21s_1z() * pol2.Q1z;
+
+        E += pol1.Q22c * T22c_1x() * pol2.Q1x;
+        E += pol1.Q22c * T22c_1y() * pol2.Q1y;
+        E += pol1.Q22c * T22c_1z() * pol2.Q1z;
+
+        E += pol1.Q22s * T22s_1x() * pol2.Q1x;
+        E += pol1.Q22s * T22s_1y() * pol2.Q1y;
+        E += pol1.Q22s * T22s_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 0 && pol2._rank > 1) {
+        E += pol1.Q1x * T1x_20() * pol2.Q20;
+        E += pol1.Q1y * T1y_20() * pol2.Q20;
+        E += pol1.Q1z * T1z_20() * pol2.Q20;
+
+        E += pol1.Q1x * T1x_21c() * pol2.Q21c;
+        E += pol1.Q1y * T1y_21c() * pol2.Q21c;
+        E += pol1.Q1z * T1z_21c() * pol2.Q21c;
+
+        E += pol1.Q1x * T1x_21s() * pol2.Q21s;
+        E += pol1.Q1y * T1y_21s() * pol2.Q21s;
+        E += pol1.Q1z * T1z_21s() * pol2.Q21s;
+
+        E += pol1.Q1x * T1x_22c() * pol2.Q22c;
+        E += pol1.Q1y * T1y_22c() * pol2.Q22c;
+        E += pol1.Q1z * T1z_22c() * pol2.Q22c;
+
+        E += pol1.Q1x * T1x_22s() * pol2.Q22s;
+        E += pol1.Q1y * T1y_22s() * pol2.Q22s;
+        E += pol1.Q1z * T1z_22s() * pol2.Q22s;
+    }
+
+    if (pol1._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.Q20  * TU20_1x()  * pol2.U1x;
+            U += pol1.Q20  * TU20_1y()  * pol2.U1y;
+            U += pol1.Q20  * TU20_1z()  * pol2.U1z;
+            U += pol1.Q21c * TU21c_1x() * pol2.U1x;
+            U += pol1.Q21c * TU21c_1y() * pol2.U1y;
+            U += pol1.Q21c * TU21c_1z() * pol2.U1z;
+            U += pol1.Q21s * TU21s_1x() * pol2.U1x;
+            U += pol1.Q21s * TU21s_1y() * pol2.U1y;
+            U += pol1.Q21s * TU21s_1z() * pol2.U1z;
+            U += pol1.Q22c * TU22c_1x() * pol2.U1x;
+            U += pol1.Q22c * TU22c_1y() * pol2.U1y;
+            U += pol1.Q22c * TU22c_1z() * pol2.U1z;
+            U += pol1.Q22s * TU22s_1x() * pol2.U1x;
+            U += pol1.Q22s * TU22s_1y() * pol2.U1y;
+            U += pol1.Q22s * TU22s_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q20  * T20_1x()  * pol2.U1x;
+            U += pol1.Q20  * T20_1y()  * pol2.U1y;
+            U += pol1.Q20  * T20_1z()  * pol2.U1z;
+            U += pol1.Q21c * T21c_1x() * pol2.U1x;
+            U += pol1.Q21c * T21c_1y() * pol2.U1y;
+            U += pol1.Q21c * T21c_1z() * pol2.U1z;
+            U += pol1.Q21s * T21s_1x() * pol2.U1x;
+            U += pol1.Q21s * T21s_1y() * pol2.U1y;
+            U += pol1.Q21s * T21s_1z() * pol2.U1z;
+            U += pol1.Q22c * T22c_1x() * pol2.U1x;
+            U += pol1.Q22c * T22c_1y() * pol2.U1y;
+            U += pol1.Q22c * T22c_1z() * pol2.U1z;
+            U += pol1.Q22s * T22s_1x() * pol2.U1x;
+            U += pol1.Q22s * T22s_1y() * pol2.U1y;
+            U += pol1.Q22s * T22s_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_20()  * pol2.Q20;
+            U += pol1.U1x * TU1x_21c() * pol2.Q21c;
+            U += pol1.U1x * TU1x_21s() * pol2.Q21s;
+            U += pol1.U1x * TU1x_22c() * pol2.Q22c;
+            U += pol1.U1x * TU1x_22s() * pol2.Q22s;
+            U += pol1.U1y * TU1y_20()  * pol2.Q20;
+            U += pol1.U1y * TU1y_21c() * pol2.Q21c;
+            U += pol1.U1y * TU1y_21s() * pol2.Q21s;
+            U += pol1.U1y * TU1y_22c() * pol2.Q22c;
+            U += pol1.U1y * TU1y_22s() * pol2.Q22s;
+            U += pol1.U1z * TU1z_20()  * pol2.Q20;
+            U += pol1.U1z * TU1z_21c() * pol2.Q21c;
+            U += pol1.U1z * TU1z_21s() * pol2.Q21s;
+            U += pol1.U1z * TU1z_22c() * pol2.Q22c;
+            U += pol1.U1z * TU1z_22s() * pol2.Q22s;
+        }
+        else {
+            U += pol1.U1x * T1x_20()  * pol2.Q20;
+            U += pol1.U1x * T1x_21c() * pol2.Q21c;
+            U += pol1.U1x * T1x_21s() * pol2.Q21s;
+            U += pol1.U1x * T1x_22c() * pol2.Q22c;
+            U += pol1.U1x * T1x_22s() * pol2.Q22s;
+            U += pol1.U1y * T1y_20()  * pol2.Q20;
+            U += pol1.U1y * T1y_21c() * pol2.Q21c;
+            U += pol1.U1y * T1y_21s() * pol2.Q21s;
+            U += pol1.U1y * T1y_22c() * pol2.Q22c;
+            U += pol1.U1y * T1y_22s() * pol2.Q22s;
+            U += pol1.U1z * T1z_20()  * pol2.Q20;
+            U += pol1.U1z * T1z_21c() * pol2.Q21c;
+            U += pol1.U1z * T1z_21s() * pol2.Q21s;
+            U += pol1.U1z * T1z_22c() * pol2.Q22c;
+            U += pol1.U1z * T1z_22s() * pol2.Q22s;
+        }
+    }
+
+    if (pol1._rank > 1 && pol2._rank > 1) {
+        E += pol1.Q20  * T20_20()   * pol2.Q20;
+        E += pol1.Q21c * T21c_21c() * pol2.Q21c;
+        E += pol1.Q21s * T21s_21s() * pol2.Q21s;
+        E += pol1.Q22c * T22c_22c() * pol2.Q22c;
+        E += pol1.Q22s * T22s_22s() * pol2.Q22s;
+
+
+        E += pol1.Q20  * T20_21c() * pol2.Q21c;
+        E += pol1.Q20  * T20_21s() * pol2.Q21s;
+        E += pol1.Q20  * T20_22c() * pol2.Q22c;
+        E += pol1.Q20  * T20_22s() * pol2.Q22s;
+        E += pol1.Q21c * T21c_20() * pol2.Q20;
+        E += pol1.Q21s * T21s_20() * pol2.Q20;
+        E += pol1.Q22c * T22c_20() * pol2.Q20;
+        E += pol1.Q22s * T22s_20() * pol2.Q20;
+
+
+        E += pol1.Q21c * T21c_21s() * pol2.Q21s;
+        E += pol1.Q21c * T21c_22c() * pol2.Q22c;
+        E += pol1.Q21c * T21c_22s() * pol2.Q22s;
+        E += pol1.Q21s * T21s_21c() * pol2.Q21c;
+        E += pol1.Q22c * T22c_21c() * pol2.Q21c;
+        E += pol1.Q22s * T22s_21c() * pol2.Q21c;
+
+
+        E += pol1.Q21s * T21s_22c() * pol2.Q22c;
+        E += pol1.Q21s * T21s_22s() * pol2.Q22s;
+        E += pol1.Q22c * T22c_21s() * pol2.Q21s;
+        E += pol1.Q22s * T22s_21s() * pol2.Q21s;
+
+        E += pol1.Q22s * T22s_22c() * pol2.Q22c;
+        E += pol1.Q22c * T22c_22s() * pol2.Q22s;
+    }
+
+    // Take into account work required to induce multipoles
+    U *= 0.5;
+
     return E + U;
 }
 
