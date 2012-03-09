@@ -29,10 +29,16 @@ public:
     virtual void setParam(string filename);
     // save parameters to the file
     virtual void SaveParam(const string& filename);
+    // write potential table
+    virtual void SavePotTab(const string& filename, const double step);
     // set all parameters
     void setParam(const ub::vector<double> param){ _lam = param; }
     // set ith parameter
     void setParam(const int i, const double val) { _lam(i) = val; }
+    // set ith parameter among those to be optimized
+    virtual void setOptParam(const int i, const double val) { 
+        setParam(i,val);
+    }
     // set minimum r value to avoid large values
     void setMinDist(const double min) { _min = min; }
     // set cut-off value
@@ -47,6 +53,10 @@ public:
     ub::vector<double>& Params() { return _lam; }
     // return ith parameter
     double getParam(const int i) const { return _lam(i); }
+    // return ith parameter among those to be optimized
+    virtual double getOptParam(const int i) const {
+        return getParam(i);
+    }
     // return size of parameters
     int getParamSize() const { return _lam.size(); }
     // return size of parameters to be optimized

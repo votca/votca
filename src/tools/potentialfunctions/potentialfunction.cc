@@ -42,3 +42,28 @@ void PotentialFunction::SaveParam(const string& filename){
     param.Save(filename);
 
 }
+
+void PotentialFunction::SavePotTab(const string& filename, 
+        const double step) {
+
+    int ngrid = (int) ((_cut_off - _min) / step + 1.00000001);
+    
+    Table pot_tab;
+    pot_tab.SetHasYErr(false);
+    pot_tab.resize(ngrid, false);
+
+    double r_init;
+    int i;
+    for (r_init = _min, i = 0; i < ngrid - 1; r_init += step) {
+
+        // put point, result, flag at point out_x into the table
+        pot_tab.set(i++, r_init, CalculateF(r_init), 'i');
+
+    }
+
+    pot_tab.set(i, _cut_off, CalculateF(_cut_off), 'i');
+
+    // save table in the file
+    pot_tab.Save(filename);
+    
+}

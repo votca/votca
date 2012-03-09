@@ -28,6 +28,14 @@ public:
     void setParam(string filename);
     // save parameters to the file
     void SaveParam(const string& filename);
+    
+    void SavePotTab(const string& filename, const double step);
+    
+    void setOptParam(const int i, const double val);
+    
+    double getOptParam(const int i) const;
+    
+    void extrapolExclParam();
 
 protected:
 

@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the initialization for every step in a generic way
+This script implements the initialization for every step of relative entropy method by csg_reupdate program
 
 Usage: ${0##*/}
 EOF
@@ -27,14 +27,14 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-#get new parameters from last step and make it current parameters
+# get new parameters from last step and make it current parameters
 for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).param.new $(csg_get_interaction_property name).param.cur'
 
-#get new potential tables from last step and make it current potential tables
+# get new potential tables from last step and make it current potential tables
 for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 
-#get AA histograms from last step
-for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).aa.nbhist $(csg_get_interaction_property name).aa.nbhist'
+# get AA RDFs from last step
+for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).aa.rdf $(csg_get_interaction_property name).aa.rdf'
 
-#initialize sim_prog
+# initialize sim_prog
 do_external initstep_generic $sim_prog

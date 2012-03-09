@@ -18,6 +18,7 @@
 #include "potentialfunctions/potentialfunctioncbspl.h"
 #include "potentialfunctions/potentialfunctionlj126.h"
 #include "potentialfunctions/potentialfunctionljg.h"
+#include <votca/csg/topologyreader.h>
 
 using namespace votca::csg;
 using namespace votca::tools;
@@ -42,8 +43,6 @@ struct PotentialInfo {
         double rdf_norm;
 
         double rmin,rcut,step;
-        ub::vector<double> pottblgrid;
-
 
         Property *_options;
 };
@@ -57,10 +56,8 @@ public:
         out << "computes relative entropy update.";
             }
 
-    bool DoTrajectory() {return true;}
-    /* we perform mapping only when generating ref all-atom
-     * CG-CG neighborlist histogram
-     */
+    bool DoTrajectory() { return true;}
+  
     bool DoMapping(){ return false; }
 
     bool DoThreaded() { return true; }
@@ -68,10 +65,12 @@ public:
 
     void Initialize();
     bool EvaluateOptions();
-    void BeginEvaluate(Topology *top, Topology *top_atom);
+    void BeginEvaluate(Topology *top, Topology *top_atom = 0);
     void LoadOptions(const string &file);
+    
+    void Run();
+    
     void EndEvaluate();
-
     CsgApplication::Worker *ForkWorker(void);
     void MergeWorker(Worker *worker);
     
@@ -97,6 +96,8 @@ protected:
     double _beta;
     double _relax;
     int _nframes;
+   
+    bool _gentable;
     
     void WriteOutFiles();
     void EvalBonded(Topology *conf, PotentialInfo *potinfo);
