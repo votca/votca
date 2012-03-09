@@ -33,7 +33,10 @@ void CsgREupdate::Initialize() {
     // add RE options
     AddProgramOptions("RE Specific options")
     ("options", boost::program_options::value<string>(), 
-            "  options file for coarse graining");
+            "  options file for coarse graining")
+    ("gentable", boost::program_options::value<bool>(&_gentable)->default_value(false),
+            "  only generate potential tables from given parameters, "
+            "  NO RE update!");
     
 }
 
@@ -42,7 +45,8 @@ bool CsgREupdate::EvaluateOptions() {
     
     CsgApplication::EvaluateOptions();
     CheckRequired("options", "need to specify options file");
-    CheckRequired("trj", "no trajectory file specified");
+    if(!_gentable)
+        CheckRequired("trj", "no trajectory file specified");
     LoadOptions(OptionsMap()["options"].as<string>());
 
     return true;
@@ -118,7 +122,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
         for( int row = pos_start; row < pos_max; row++){
 
             int lamda_i = row - pos_start;
-            _lamda(row) = (*potiter)->ucg->getParam(lamda_i);
+            _lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
 
         } // end row loop
 
@@ -144,6 +148,37 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
     
 }
 
+void CsgREupdate::Run(){
+    
+    if( !_gentable )
+    
+        CsgApplication::Run();
+    
+    else { // only write potential tables for given parameters
+
+        _nlamda = 0;
+        for (list<Property*>::iterator iter = _nonbonded.begin();
+                iter != _nonbonded.end(); ++iter) {
+
+            string name = (*iter)->get("name").value();
+
+            PotentialInfo *i = new PotentialInfo(_potentials.size(),
+                    false,
+                    _nlamda, *iter);
+
+            // update parameter counter
+            _nlamda += i->ucg->getOptParamSize();
+            // add potential to container
+            _potentials.push_back(i);
+
+        }
+
+        WriteOutFiles();
+
+    }
+    
+
+}
 void CsgREupdate::EndEvaluate(){
     
     //cout << "Ending RE Update" << endl;
@@ -175,8 +210,7 @@ void CsgREupdate::WriteOutFiles() {
     string paramfile_extension = ".param.new";
     string file_name;
 
-    Table pot_tab;
-    pot_tab.SetHasYErr(false);
+    
     
     PotentialContainer::iterator potiter;
 
@@ -187,39 +221,21 @@ void CsgREupdate::WriteOutFiles() {
         // construct meaningful outfile name
         file_name = (*potiter)->potentialName;
         file_name = file_name + potfile_extension;
-
-        // resize table
-        int ngrid = (*potiter)->pottblgrid.size();
-        pot_tab.resize(ngrid, false);
-
-        // print output file names on stdout
         cout << "Writing file: " << file_name << endl;
-
-        // loop over output grid points
-        for (int i = 0; i < ngrid; i++) {
-
-            double out_x = (*potiter)->pottblgrid(i);
-            double out_u = (*potiter)->ucg->CalculateF(out_x);
-            // put point, result, flag at point out_x into the table
-            pot_tab.set(i, out_x, out_u , 'i');
-
-        }
-        // save table in the file
-        pot_tab.Save(file_name);
-        // clear the table for the next potential
-        pot_tab.clear();
+        (*potiter)->ucg->SavePotTab(file_name,(*potiter)->step);
 
         //write parameter table
         // construct meaningful outfile name
         file_name = (*potiter)->potentialName;
         file_name = file_name + paramfile_extension;
+        cout << "Writing file: " << file_name << endl;
         (*potiter)->ucg->SaveParam(file_name);
         
     }
     
 }
 
-// load use provided .xml option file
+// load user provided .xml option file
 void CsgREupdate::LoadOptions(const string &file) {
     //cout << "Loading options" << endl;
 
@@ -304,14 +320,6 @@ void CsgREupdate::REUpdateLamda() {
 
     _lamda = _lamda + _relax * _dlamda ;
 
-    // computing relative error and storing in _dlamda
-    for( int row = 0; row < _nlamda; row++){
-
-        if( _lamda(row) != 0.0 )
-            _dlamda(row) = _dlamda(row)/_lamda(row);
-        
-    }
-
     // now update parameters of individual cg potentials
     PotentialContainer::iterator potiter;
 
@@ -324,7 +332,7 @@ void CsgREupdate::REUpdateLamda() {
         for( int row = pos_start; row < pos_max; row++){
 
             int lamda_i = row - pos_start;
-            (*potiter)->ucg->setParam(lamda_i,_lamda(row));
+            (*potiter)->ucg->setOptParam(lamda_i,_lamda(row));
             
         } // end row loop
 
@@ -342,10 +350,17 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
     double U;
     // compute avg AA energy
     U = 0.0;
+    
+    // assuming rdf bins are of same size
+    double step = potinfo->aardf.x(2) - potinfo->aardf.x(1);
+    
     for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
         double r_hist = potinfo->aardf.x(bin);
-        double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm;
+        double r1 = r_hist - 0.5 * step;
+        double r2 = r1 + step;
+        double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
+                (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
         U +=  n_hist *  potinfo->ucg->CalculateF(r_hist);
 
     }
@@ -362,7 +377,10 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
         for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
             double r_hist = potinfo->aardf.x(bin);
-            double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm;
+            double r1 = r_hist - 0.5 * step;
+            double r2 = r1 + step;
+            double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
+                    (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
             dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i,r_hist);
             
         } // end loop over hist
@@ -377,9 +395,12 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
             for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
 
                 double r_hist = potinfo->aardf.x(bin);
-                double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm;
-                d2U_ij +=  n_hist *
-                                potinfo->ucg->CalculateD2F(lamda_i,lamda_j,r_hist);
+                double r1 = r_hist - 0.5 * step;
+                double r2 = r1 + step;
+                double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
+                        (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
+                d2U_ij += n_hist *
+                        potinfo->ucg->CalculateD2F(lamda_i, lamda_j, r_hist);
 
             } // end loop pair_iter
 
@@ -432,7 +453,7 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
         for( int row = pos_start; row < pos_max; row++){
 
             int lamda_i = row - pos_start;
-            worker->_lamda(row) = (*potiter)->ucg->getParam(lamda_i);
+            worker->_lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
 
         } // end row loop
 
@@ -646,18 +667,7 @@ PotentialInfo::PotentialInfo(int index,
     rmin = options->get("min").as<double>();
     rcut = options->get("max").as<double>();
     step = options->get("step").as<double>();
-    int ngrid   = (int)( (rcut - rmin)/step + 1.00000001 );
-
-    pottblgrid.resize(ngrid,false);
-
-    double r_init;
-    int i;
-    for (r_init = rmin, i = 0; i < ngrid - 1; r_init += step) {
-
-        pottblgrid(i++) = r_init;
-
-    }
-    pottblgrid(i) = rcut;
+    
     // assign the user selected function form for this potential
     if( potentialFunction == "LJ126")
         ucg = new PotentialFunctionLJ126(rmin, rcut);

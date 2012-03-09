@@ -26,35 +26,24 @@ EOF
 fi
 
 
-#get initial parameters from main dir and make it current parameters
+# get initial parameters from main dir and make it current parameters
+
 for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property name).param.init $(csg_get_interaction_property name).param.cur'
 
-# copy all mapping xml file from the main directory
-# need to do this more elegantly
-cp_from_main_dir map*.xml 
+# copy AA reference RDFs from main dir
+
+for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property name).aa.rdf $(csg_get_interaction_property name).aa.rdf'
 
 # copy coarse-grained initial configurations
+
 cp_from_main_dir --rename conf.gro confout.gro
 
-# generate reference AA ensemble CG-CG histograms and 
-# also generate potential tables from the initial parameter guess
+# run csg_reupdate to generate intital potential tables
 
-msg --color green "Generating AA ref histograms, initial CG topology, and potential tables from the initial guess"
+# to generate potential tables topology is not required but for csgapplication topology is to be provided
+topol="$(csg_get_property cg.inverse.gromacs.conf_out)"
+[[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found" 
 
-tpr="$(get_main_dir)/$(csg_get_property cg.ref.top)"
-[[ -f $tpr ]] || die "${0##*/}: please provide ref AA topology file '$tpr' "
+msg --color green "Generating potential tables from the initial parameters"
 
-trr="$(get_main_dir)/$(csg_get_property cg.ref.trj)"
-[[ -f $trr ]] || die "${0##*/}: please provide ref AA trajectory file '$trr' "
-
-ext=$(csg_get_property cg.inverse.gromacs.traj_type)
-[[ $ext = trr ]] || die "Method re needs a trr trajetory (to read forces)"
-
-mapping="$(csg_get_property cg.inverse.map)"
-opts="$(csg_get_property cg.inverse.re.csg_reupdate.opts)"
-
-# for now I am providing initial step cg conf
-# this wont be needed if i could find better way to do this
-# working on it
-
-critical csg_reupdate --top ${tpr} --trj ${trr} --options $CSGXMLFILE --genref true --cg $(csg_get_property cg.map) ${opts}
+critical csg_reupdate --gentable true --top ${topol} --options $CSGXMLFILE 

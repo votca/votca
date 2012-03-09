@@ -18,13 +18,15 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const int nlam_,
     // number of break points = _lam.size() - 2
     _nbreak = _lam.size() - 2;
     
-    double _dr = ( _cut_off )/( double (_nbreak - 1) );
+     _dr = ( _cut_off )/( double (_nbreak - 1) );
 
     // break point locations 
     // since ncoeff = nbreak +2 , r values for last two coefficients are also 
     // computed
     _rbreak.resize(_lam.size(),false);
+    
     _rbreak.clear();
+    
     for( int i = 0; i < _lam.size(); i++)
         _rbreak(i) = i*_dr;
     
@@ -52,6 +54,8 @@ void PotentialFunctionCBSPL::setParam(string filename) {
         Table param;
         param.Load(filename);
 
+        _lam.clear();
+        
         if( param.size() != _lam.size()) {
 
             throw std::runtime_error("Potential parameters size mismatch!\n"
@@ -59,7 +63,8 @@ void PotentialFunctionCBSPL::setParam(string filename) {
                     + filename + "\" \nThere should be "
                     + boost::lexical_cast<string>( _lam.size() ) + " parameters");
         } else {
-            for( int i = 0; i < _lam.size(); i++){
+            // force last _ncutcoeff to be zero
+            for( int i = 0; i < _lam.size() - _ncutcoeff; i++){
                 
                 _rbreak(i) = param.x(i);
                 _lam(i) = param.y(i);
@@ -67,45 +72,70 @@ void PotentialFunctionCBSPL::setParam(string filename) {
             }
             
         }
-
+        
     }
 
 void PotentialFunctionCBSPL::SaveParam(const string& filename){
 
+    extrapolExclParam();
+    
     Table param;
     param.SetHasYErr(false);
     param.resize(_lam.size(), false);
-
-    // extrapolate first _nexcl knot values using exponential extrapolation
-    // u(r) = a * exp( b * r) 
-    // a = u0 * exp ( - m * r0/u0 )
-    // b = m/u0
-    // m = (u1-u0)/(r1-r0)
     
-    double u0 = _lam(_nexcl);
-    double r0 = _rbreak(_nexcl);
-    double m = ( _lam(_nexcl+1) - _lam(_nexcl) ) / 
-                        ( _rbreak(_nexcl+1) - _rbreak(_nexcl) );
-    double a = u0 * exp ( - m * r0/u0 );
-    double b = m/u0;
-    
-    
-    for (int i = 0; i < _nexcl; i++){
-        
-        double r = _rbreak(i);
-        double u = a * exp( b * r);
-        _lam(i) = u;
-        param.set(i, r, u, 'o');
-        
-    }
-    
-    for (int i = _nexcl; i < _lam.size(); i++){
+    for (int i = 0; i < _lam.size(); i++){
         
         param.set(i, _rbreak(i), _lam(i), 'i');
     }
         
     param.Save(filename);
 
+}
+
+void PotentialFunctionCBSPL::SavePotTab(const string& filename, 
+        const double step) {
+    
+    extrapolExclParam();
+    
+    PotentialFunction::SavePotTab(filename,step);
+    
+}
+
+void PotentialFunctionCBSPL::extrapolExclParam(){
+
+    // extrapolate first _nexcl knot values using exponential extrapolation
+    // u(r) = a * exp( b * r) 
+    // a = u0 * exp ( - m * r0/u0 )
+    // b = m/u0
+    // m = (u1-u0)/(r1-r0)
+
+    double u0 = _lam(_nexcl);
+    double r0 = _rbreak(_nexcl);
+    double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
+            (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
+    double a = u0 * exp(-m * r0 / u0);
+    double b = m / u0;
+
+    for (int i = 0; i < _nexcl; i++) {
+
+        double r = _rbreak(i);
+        double u = a * exp(b * r);
+        _lam(i) = u;
+
+    }
+    
+}
+
+void PotentialFunctionCBSPL::setOptParam(const int i, const double val){
+    
+    _lam( i + _nexcl ) = val;
+    
+}
+
+double PotentialFunctionCBSPL::getOptParam(const int i) const{
+    
+    return _lam( i + _nexcl );
+    
 }
 
 double PotentialFunctionCBSPL::CalculateF (const double r) const {
@@ -133,7 +163,7 @@ double PotentialFunctionCBSPL::CalculateF (const double r) const {
         B(3) = _lam(indx+3);
 
         double u = ub::inner_prod(B,RM);
-
+        
         return u;        
         
     } else {
