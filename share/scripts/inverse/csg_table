@@ -96,7 +96,6 @@ postadd plot postadd_plot.sh
 
 #convergence checks
 convergence_check default convergence_check_default.sh
-convergence_check re convergence_check_re.sh
 
 # table preparation
 dpot shift_nonbonded dpot_shift_nb.pl
