@@ -51,7 +51,7 @@ void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vec
     int status = gsl_linalg_cholesky_decomp(&m.matrix);
 
     if( status == GSL_EDOM)
-        throw NOT_SYM_POS_DEF();
+        throw std::runtime_error("Matrix not symmetric positive definite");
 
     
     gsl_linalg_cholesky_solve(&m.matrix, &gb.vector, gsl_x);

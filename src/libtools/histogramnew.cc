@@ -49,16 +49,6 @@ void HistogramNew::Initialize(double min, double max, int nbins)
     _data.flags()=ub::scalar_vector<char>(_nbins, 'i');    
 }
 
-void HistogramNew::Initialize(string filename)
-{
-    _data.Load(filename);
-    _nbins = _data.size();
-    _min   = _data.x(0);
-    _max   = _data.x(_nbins-1);
-    _step = (_max - _min)/_nbins;
-    _weight = 1.;
-}
-
 void HistogramNew::Process(const double &v, double scale)
 {
     int i = (int) ((v - _min) / _step + 0.5);
@@ -82,13 +72,6 @@ void HistogramNew::Normalize()
     double scale = 1./area;
     
     _data.y() *= scale;    
-}
-
-void HistogramNew::Normalize(double scale)
-{
-    scale = 1./scale;
-    
-   _data.y() *= scale;
 }
 
 void HistogramNew::Clear()

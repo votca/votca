@@ -53,11 +53,6 @@ class HistogramNew
          */void Initialize(double min, double max, int nbins);
 
         /**
-         * \brief Initialize the HistogramNew with input file
-         * @param filename
-         */void Initialize(string filename);
-        
-        /**
           * \brief process a data point
           * \param v value of this point
           * \scale scale weighting of this point, bin of v is increased by scale instead of 1
@@ -98,11 +93,6 @@ class HistogramNew
          */
         void Normalize();
 
-       /**
-         * \brief normalize the histogram with given scale
-         */
-        void Normalize(double scale);
-        
         /**
          * \brief clear all data
          */

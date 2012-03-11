@@ -16,11 +16,6 @@ namespace votca { namespace tools {
     namespace ub = boost::numeric::ublas;
 
     /**
-     *
-     * exception thrown by linalg_cholesky_solve when A is not Positive Definite
-     */
-    struct NOT_SYM_POS_DEF {};
-    /**
      * \brief solves A*x=b
      * @param x storage for x
      * @param A symmetric positive definite matrix for linear system
