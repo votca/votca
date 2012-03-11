@@ -298,7 +298,7 @@ void CsgREupdate::REUpdateLamda() {
     try {
         votca::tools::linalg_cholesky_solve(_dlamda, _HS, minusDS);
     }
-    catch (NOT_SYM_POS_DEF){
+    catch (std::runtime_error){
         /* then can not use Newton-Raphson
          * go along steepest descent i.e. _dlamda = -_DS
          */
@@ -676,10 +676,10 @@ PotentialInfo::PotentialInfo(int index,
     else if (potentialFunction == "CBSPL"){
 
         // get number of B-splines coefficients which are to be optimized
-        int nlam = options->get("n_bspl_coeff").as<int>();
+        int nlam = options->get("nknots").as<int>();
         // get number of B-splines coefficients near cut-off which must be
         // fixed to zero to ensure potential and forces smoothly go to zero
-        int ncut = options->get("n_bspl_cut_coeff").as<int>();
+        int ncut = options->get("nknots_cutoff").as<int>();
 
         ucg = new PotentialFunctionCBSPL(nlam, ncut, rmin, rcut);
 
