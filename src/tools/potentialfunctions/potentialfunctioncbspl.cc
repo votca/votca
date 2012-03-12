@@ -30,7 +30,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const int nlam_,
     for( int i = 0; i < _lam.size(); i++)
         _rbreak(i) = i*_dr;
     
-    _nexcl = min( int( ( _min )/_dr ), _nbreak - 2 );
+    _nexcl = min( int( ( _min )/_dr ), _nbreak - 2 ) + 1;
     
     _ncutcoeff = ncutcoeff_;
 
