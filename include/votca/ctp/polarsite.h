@@ -26,11 +26,13 @@ public:
 
     PolarSite(int id, string name)
             : _id(id), _name(name), _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)),    _locZ(vec(0,0,1)) { _Qs.resize(3); };
+              _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
+            { _Qs.resize(3); _Ps.resize(3); };
 
     PolarSite() 
             : _id(-1),  _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)), _locZ(vec(0,0,1))    { _Qs.resize(3); };
+              _locY(vec(0,1,0)), _locZ(vec(0,0,1))
+            { _Qs.resize(3); _Ps.resize(3); };
 
    ~PolarSite() {};
 
@@ -50,9 +52,11 @@ public:
 
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
+    void            setPs(double polar, int state) { _Ps[state+1] = polar; }
+    double         &getPs(int state) { return _Ps[state+1]; }
+    double         &getP1() { return P1; }
     void            Charge(int state);
-    void            setAlpha(double polarity) { alpha = polarity; }
-    double         &getAlpha() { return alpha; }
+
     void            Induce(double wSOR = 0.25);
     void            InduceDirect();
     void            ResetFieldU() { FUx = FUy = FUz = 0.0; }
@@ -86,8 +90,9 @@ private:
     
     vector < vector<double> > _Qs;
     int     _rank;
-
-    double alpha;                           // Polarizability
+                           
+    vector < double > _Ps;
+    double P1;                              // Dipole polarizability
 
     double Q00;
     double Q1x, Q1y, Q1z;    

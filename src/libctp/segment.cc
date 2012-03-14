@@ -232,7 +232,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
   else if ( tag1 == "Atoms") {
     vector < Atom* > :: iterator atm;
     for (atm = _atoms.begin(); atm < _atoms.end(); ++atm) {
-         int id = (*atm)->getId();
+         int id = (*atm)->getId() % 100000;
          string name =  (*atm)->getName();
          name.resize(3);
          string resname = (*atm)->getResname();
@@ -265,12 +265,12 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
   else if ( tag1 == "Multipoles") {
     vector < PolarSite* > :: iterator pol;
     for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
-         int id = (*pol)->getId();
+         int id = (*pol)->getId() % 100000;
          string name =  (*pol)->getName();
          name.resize(3);
          string resname = (*pol)->getFragment()->getName();
          resname.resize(3);
-         int resnr = (*pol)->getFragment()->getId();
+         int resnr = (*pol)->getFragment()->getId() % 10000;
          vec position = (*pol)->getPos();
          
          fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "

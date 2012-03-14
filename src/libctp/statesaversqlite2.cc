@@ -125,7 +125,7 @@ void StateSaverSQLite2::WriteMeta(bool update) {
 
 
 void StateSaverSQLite2::WriteMolecules(bool update) {
-    cout << "Molecules";
+    cout << "Molecules" << flush;
     Statement *stmt;
 
     if (!update) {
@@ -165,7 +165,7 @@ void StateSaverSQLite2::WriteMolecules(bool update) {
 
 
 void StateSaverSQLite2::WriteSegTypes(bool update) {
-    cout << ", types";
+    cout << ", types" << flush;
     Statement *stmt;
 
     if (!update) {
@@ -222,7 +222,7 @@ void StateSaverSQLite2::WriteSegTypes(bool update) {
 
 
 void StateSaverSQLite2::WriteSegments(bool update) {
-    cout << ", segments";
+    cout << ", segments" << flush;
     Statement *stmt;
 
     if (!update) {
@@ -291,7 +291,7 @@ void StateSaverSQLite2::WriteSegments(bool update) {
 
 
 void StateSaverSQLite2::WriteFragments(bool update) {
-    cout << ", fragments";
+    cout << ", fragments" << flush;
 
     Statement *stmt;
 
@@ -346,7 +346,7 @@ void StateSaverSQLite2::WriteFragments(bool update) {
 
 void StateSaverSQLite2::WriteAtoms(bool update) {
 
-    cout << ", atoms";
+    cout << ", atoms" << flush;
 
     Statement *stmt;
     if (! update) {
@@ -408,7 +408,7 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
 void StateSaverSQLite2::WritePairs(bool update) {
     if ( ! _qmtop->NBList().size() ) { return; }
     
-    cout << ", pairs";
+    cout << ", pairs" << flush;
 
     Statement *stmt;
     
@@ -417,7 +417,7 @@ void StateSaverSQLite2::WritePairs(bool update) {
     stmt->Bind(1, _qmtop->getDatabaseId());
     if (stmt->Step() == SQLITE_DONE) { 
         update = false;        
-        cout << " (create)";        
+        cout << " (create)" << flush;
     }
     else { update = true; }
     delete stmt;
@@ -460,6 +460,8 @@ void StateSaverSQLite2::WritePairs(bool update) {
             stmt->Bind(8, pair->R().getZ());
         }
         else {
+            cout << "\r " << pair->getId() << flush;
+
                 stmt->Bind(1, pair->getLambdaO());
                 stmt->Bind(2, 0);
                 stmt->Bind(3, pair->getRate12());

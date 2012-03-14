@@ -14,7 +14,7 @@ void PolarSite::ImportFrom(PolarSite *templ, string tag) {
         _Qs[1] = templ->getQs(0);
         _Qs[2] = templ->getQs(1);
         _rank  = templ->_rank;
-        alpha = templ->alpha;
+        _Ps    = templ->_Ps;
     }
 
     if (tag == "full") {
@@ -26,7 +26,7 @@ void PolarSite::ImportFrom(PolarSite *templ, string tag) {
         _frag = templ->_frag;
         _rank = templ->_rank; 
         _Qs   = templ->_Qs;
-        alpha = templ->alpha;
+        _Ps   = templ->_Ps;
         _id   = templ->_id;
         _name = templ->_name;
     }
@@ -125,6 +125,10 @@ void PolarSite::Charge(int state) {
 
     int idx = state + 1;
 
+    // Adjust polarizability to charge state
+        P1 = _Ps[idx];
+
+    // Adjust multipole moments to charge state
         Q00 = _Qs[idx][0];
 
     if (_rank > 0) {
@@ -145,17 +149,17 @@ void PolarSite::Induce(double wSOR) {
 
     U1_Hist.push_back( vec(U1x,U1y,U1z) );
     
-    U1x = (1 - wSOR) * U1x + wSOR * ( - alpha * (FPx + FUx) ); // OVERRIDE
-    U1y = (1 - wSOR) * U1y + wSOR * ( - alpha * (FPy + FUy) ); // OVERRIDE
-    U1z = (1 - wSOR) * U1z + wSOR * ( - alpha * (FPz + FUz) ); // OVERRIDE
+    U1x = (1 - wSOR) * U1x + wSOR * ( - P1 * (FPx + FUx) ); // OVERRIDE
+    U1y = (1 - wSOR) * U1y + wSOR * ( - P1 * (FPy + FUy) ); // OVERRIDE
+    U1z = (1 - wSOR) * U1z + wSOR * ( - P1 * (FPz + FUz) ); // OVERRIDE
 }
 
 void PolarSite::InduceDirect() {
 
     U1_Hist.push_back( vec(0.,0.,0.) );
-    U1x =  - alpha * FPx; // OVERRIDE
-    U1y =  - alpha * FPy; // OVERRIDE
-    U1z =  - alpha * FPz; // OVERRIDE
+    U1x =  - P1 * FPx; // OVERRIDE
+    U1y =  - P1 * FPy; // OVERRIDE
+    U1z =  - P1 * FPz; // OVERRIDE
 }
 
 double PolarSite::HistdU() {
@@ -212,7 +216,7 @@ void PolarSite::PrintInfoInduce(std::ostream &out) {
     cout << "    Q0 " << Q00 << endl;
     cout << "    Q1 " << Q1x << " " << Q1y << " " << Q1z << endl;
     cout << "    Q2 " << Q20 << " " << Q21c << " " << Q21s << " " << Q22c << " " << Q22s << endl;
-    cout << "    Alpha " << alpha << endl;
+    cout << "    Alpha " << P1 << endl;
 }
 
 void PolarSite::PrintInfoVisual(FILE *out) {
