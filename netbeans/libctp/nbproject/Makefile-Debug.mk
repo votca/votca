@@ -39,12 +39,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/qmapplication.o \
 	${OBJECTDIR}/_ext/238600121/egaussian.o \
 	${OBJECTDIR}/_ext/238600121/emultipole.o \
+	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/484457893/qmpair2.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory2.o \
-	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/238600121/ecorrelation.o \
-	${OBJECTDIR}/_ext/238600121/emultipole2.o \
-	${OBJECTDIR}/_ext/484457893/polarsite.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist2.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
 	${OBJECTDIR}/_ext/1125080670/sandbox.o \
@@ -116,6 +114,11 @@ ${OBJECTDIR}/_ext/238600121/emultipole.o: ../../src/libctp/calculators/emultipol
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/emultipole.o ../../src/libctp/calculators/emultipole.cc
 
+${OBJECTDIR}/_ext/484457893/qmpair.o: ../../src/libctp/qmpair.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmpair.o ../../src/libctp/qmpair.cc
+
 ${OBJECTDIR}/_ext/484457893/qmpair2.o: ../../src/libctp/qmpair2.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -126,25 +129,10 @@ ${OBJECTDIR}/_ext/484457893/calculatorfactory2.o: ../../src/libctp/calculatorfac
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/calculatorfactory2.o ../../src/libctp/calculatorfactory2.cc
 
-${OBJECTDIR}/_ext/484457893/qmpair.o: ../../src/libctp/qmpair.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmpair.o ../../src/libctp/qmpair.cc
-
 ${OBJECTDIR}/_ext/238600121/ecorrelation.o: ../../src/libctp/calculators/ecorrelation.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/ecorrelation.o ../../src/libctp/calculators/ecorrelation.cc
-
-${OBJECTDIR}/_ext/238600121/emultipole2.o: ../../src/libctp/calculators/emultipole2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/emultipole2.o ../../src/libctp/calculators/emultipole2.cc
-
-${OBJECTDIR}/_ext/484457893/polarsite.o: ../../src/libctp/polarsite.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/polarsite.o ../../src/libctp/polarsite.cc
 
 ${OBJECTDIR}/_ext/484457893/qmnblist2.o: ../../src/libctp/qmnblist2.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

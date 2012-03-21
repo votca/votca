@@ -20,7 +20,9 @@ class PolarSite
 {
 
     friend class EMultipole2;
+    friend class EMultipole3;
     friend class Interactor;
+    friend class Interactor3;
 
 public:
 

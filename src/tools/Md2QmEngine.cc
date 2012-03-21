@@ -114,9 +114,9 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
              string qmatoms = (*it_fragment)->get("qmatoms").as<string>();
              string weights = (*it_fragment)->get("weights").as<string>();
 
-             Tokenizer tok_md_atoms(mdatoms, " ");
-             Tokenizer tok_qm_atoms(qmatoms, " ");
-             Tokenizer tok_weights(weights, " ");
+             Tokenizer tok_md_atoms(mdatoms, " \t\n");
+             Tokenizer tok_qm_atoms(qmatoms, " \t\n");
+             Tokenizer tok_weights(weights, " \t\n");
 
              vector <string> md_atoms_info;
              vector <string> qm_atoms_info;

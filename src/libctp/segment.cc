@@ -241,6 +241,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
          vec position;
          if (tag2 == "MD")      { position = (*atm)->getPos(); }
          else if (tag2 == "QM") { position = (*atm)->getQMPos(); }
+         if (tag2 == "QM" && (*atm)->HasQMPart() == false) { continue; }
 
          fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
                       "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
