@@ -62,6 +62,8 @@ public:
     void            Induce(double wSOR = 0.25);
     void            InduceDirect();
     void            ResetFieldU() { FUx = FUy = FUz = 0.0; }
+    void            ResetFieldP() { FPx = FPy = FPz = 0.0; }
+    void            ResetU1Hist() { U1_Hist.clear(); }
     void            Depolarize();
     double          HistdU();
 
