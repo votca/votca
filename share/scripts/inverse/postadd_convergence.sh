@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd convergence script, calcs int of (\${name}.DIST.tgt-\${name}.DIST.new)**2
+postadd convergence script, calcs the sum of |\${name}.DIST.tgt-\${name}.DIST.new|
 and saves it to \${name}.conv.
 DIST stands for 'dist', but can be changed by onvergence.what option
 
