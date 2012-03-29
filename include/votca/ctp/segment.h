@@ -46,25 +46,25 @@ public:
     void             calcPos();
     void             TranslateBy(const vec &shift);
 
-    const double    &getOcc(int carrier);
-    void             setOcc(int carrier, double occ);
+    bool             hasState(int e_h);
+
+    const double    &getOcc(int e_h);
+    void             setOcc(int e_h, double occ);
     bool             hasOccProb() { return _hasOccProb; }
 
-    const double    &getESite(int carrier);
-    const double    &getESiteIntra(int carrier);
-    void             setESiteIntra(int carrier, double energy);
+    const double    &getESite(int e_h);
+    const double    &getESiteIntra(int e_h);
+    void             setESiteIntra(int e_h, double energy);
     bool             hasEIntra() { return _hasESiteIntra; }
 
     const double    &getLambdaIntra(int state0, int state1);
     void             setLambdaIntra(int state0, int state1, double lambda);
     bool             hasLambda() { return _hasLambdas; }
 
-    const double    &getEMpoles(int state);
-    void             setEMpoles(int state, double energy);
-    bool             hasChrgState(int state) { return _hasChrgState[state+1]; }
+    const double    &getEMpoles(int e_h);
+    void             setEMpoles(int e_h, double energy);
+    bool             hasChrgState(int e_h) { return _hasChrgState[e_h+1]; }
     void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno; }
-    void             AddChrgState(int state, bool yesno);
-    void             chrg(int state);
 
     inline void      setTopology(Topology *container) { _top = container; }
     Topology        *getTopology() { return _top; }
@@ -99,6 +99,21 @@ private:
     int         _id;
     vec         _CoM;
 
+
+    double _eSiteIntra_e;
+    double _eSiteIntra_h;
+
+    double _lambdaIntra_e;
+    double _lambdaIntra_h;
+
+    double _ePolar_e;
+    double _ePolar_h;
+
+    double _occ_e;
+    double _occ_h;
+
+    bool   _has_e;
+    bool   _has_h;
 
 
     map< int, double > _eSiteIntra;

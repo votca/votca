@@ -29,7 +29,7 @@ public:
    void     setLambdaO(int carrier, double lbd);
    void     setLambdaO(double lambda) { _lambdaO = lambda; }
    bool     hasLambdaO() { return _hasLambdaO; }
-   double  &getLambdaO(int carrier);
+   double  getLambdaO(int carrier);
    double  &getLambdaO() { return _lambdaO; }
 
    void     setRate12(int carrier, double rate);
@@ -37,9 +37,9 @@ public:
    void     setRate21(int carrier, double rate);
    void     setRate21(double rate) { _rate21 = rate; }
    bool     hasRates() { return _hasRates; }
-   double  &getRate12(int carrier);
+   double  getRate12(int carrier);
    double  &getRate12() { return _rate12; }
-   double  &getRate21(int carrier);
+   double  getRate21(int carrier);
    double  &getRate21() { return _rate21; }
 
    void     setJs(const vector <double> Js) { _Js = Js; }

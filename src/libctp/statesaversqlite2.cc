@@ -427,18 +427,25 @@ void StateSaverSQLite2::WritePairs(bool update) {
         stmt = _db.Prepare("INSERT INTO pairs ("
                            "frame, top, id, "
                            "seg1, seg2, drX, "
-                           "drY, drZ "
+                           "drY, drZ,   "
+                           "lOe, lOh, rate12e, "
+                           "rate21e, rate12h, rate21h, "
+                            " Jeff2 "
                            ") VALUES ("
                            "?, ?, ?, "
                            "?, ?, ?, "
-                           "?, ? "
+                           "?, ?, "
+                           "?, ?, ?, "
+                           "?, ?, ?, "
+                           "? "
                            ")");
     }
     else {
         stmt = _db.Prepare("UPDATE pairs "
                            "SET "
                            "lOe = ?, lOh = ?, rate12e = ?, "
-                           "rate21e = ?, rate12h = ?, rate21h = ? "
+                           "rate21e = ?, rate12h = ?, rate21h = ?, "
+                            " Jeff2 = ? "
                            "WHERE top = ? AND id = ?");
     }
 
@@ -458,6 +465,13 @@ void StateSaverSQLite2::WritePairs(bool update) {
             stmt->Bind(6, pair->R().getX());
             stmt->Bind(7, pair->R().getY());
             stmt->Bind(8, pair->R().getZ());
+            stmt->Bind(9, pair->getLambdaO(-1));
+            stmt->Bind(10, pair->getLambdaO(+1));
+            stmt->Bind(11, pair->getRate12(-1));
+            stmt->Bind(12, pair->getRate21(-1));
+            stmt->Bind(13, pair->getRate12(+1));
+            stmt->Bind(14, pair->getRate12(+1));
+            stmt->Bind(15, pair->calcJeff2());
         }
         else {
             cout << "\r " << pair->getId() << flush;
@@ -468,6 +482,7 @@ void StateSaverSQLite2::WritePairs(bool update) {
                 stmt->Bind(4, pair->getRate21());
                 stmt->Bind(5, 0);
                 stmt->Bind(6, 0);
+                stmt->Bind(7, pair->calcJeff2());
 
                 // If both hole + electron
                 // stmt->Bind(1, pair->getLambdaO(-1));

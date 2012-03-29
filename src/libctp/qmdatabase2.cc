@@ -152,7 +152,8 @@ void QMDatabase2::onCreate()
         "rate12e    REAL DEFAULT 0,"
         "rate21e    REAL DEFAULT 0,"
         "rate12h    REAL DEFAULT 0,"
-        "rate21h    REAL DEFAULT 0)");
+        "rate21h    REAL DEFAULT 0,"
+        "Jeff2      REAL DEFAULT 0)");
 
     // Additional pair properties
     Exec("CREATE TABLE pair_properties ("

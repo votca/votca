@@ -38,7 +38,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/segment.o \
 	${OBJECTDIR}/_ext/484457893/qmapplication.o \
 	${OBJECTDIR}/_ext/238600121/egaussian.o \
-	${OBJECTDIR}/_ext/238600121/emultipole.o \
 	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/484457893/qmpair2.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory2.o \
@@ -50,6 +49,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/qmtopology.o \
 	${OBJECTDIR}/_ext/484457893/fragment.o \
 	${OBJECTDIR}/_ext/484457893/molecule.o \
+	${OBJECTDIR}/_ext/238600121/stateserver.o \
 	${OBJECTDIR}/_ext/238600121/ecoulomb.o \
 	${OBJECTDIR}/_ext/484457893/statesaversqlite.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist.o \
@@ -109,11 +109,6 @@ ${OBJECTDIR}/_ext/238600121/egaussian.o: ../../src/libctp/calculators/egaussian.
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/egaussian.o ../../src/libctp/calculators/egaussian.cc
 
-${OBJECTDIR}/_ext/238600121/emultipole.o: ../../src/libctp/calculators/emultipole.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/emultipole.o ../../src/libctp/calculators/emultipole.cc
-
 ${OBJECTDIR}/_ext/484457893/qmpair.o: ../../src/libctp/qmpair.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -168,6 +163,11 @@ ${OBJECTDIR}/_ext/484457893/molecule.o: ../../src/libctp/molecule.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/molecule.o ../../src/libctp/molecule.cc
+
+${OBJECTDIR}/_ext/238600121/stateserver.o: ../../src/libctp/calculators/stateserver.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/stateserver.o ../../src/libctp/calculators/stateserver.cc
 
 ${OBJECTDIR}/_ext/238600121/ecoulomb.o: ../../src/libctp/calculators/ecoulomb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121

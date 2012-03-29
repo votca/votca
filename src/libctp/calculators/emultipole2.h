@@ -2365,7 +2365,16 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         fclose(mpDat);
         */
 
-        this->Depolarize();
+        // this->Depolarize(); // OVERRIDE
+        vector< vector<PolarSite*> > ::iterator sit1;
+        vector< PolarSite* > ::iterator pit1;
+        for (sit1 = _polsPolSphere.begin(); sit1 < _polsPolSphere.end(); ++sit1) {
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+                (*pit1)->ResetFieldU();
+                (*pit1)->ResetFieldP();
+                (*pit1)->ResetU1Hist();
+            }
+        }
     }
 
     state = +1;
