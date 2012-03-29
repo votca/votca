@@ -28,62 +28,35 @@ class Topology;
 
 namespace votca { namespace ctp {
 
-
-
-
-/**
-    \brief Molecule is a container for atoms
-
-    The Molecule class stores atoms. It substitutes mol_and_orbs object of libmoo.
-
-*/
 class Molecule {
 public:
-    /// Constructor
-    Molecule(int id, string name) 
-        : _id(id), _name(name) {}
 
+    Molecule(int id, string name) : _id(id), _name(name) {}
     Molecule() { }
-    /// Destructor
-    ~Molecule();
-    /// Returns molecule ID
-    const int &getId();
-    /// Returns the name of the molecule
-    const string &getName();
+   ~Molecule();
 
+    const int       &getId();
+    const string    &getName();
 
-
-    /// Adds a pointer to a segment to this molecule
     void AddSegment( Segment* segment );
     void AddFragment( Fragment* fragment);
     void AddAtom( Atom* atom);
 
-    vector< Atom* > &Atoms() { return _atoms; }
+    vector< Atom* >     &Atoms() { return _atoms; }
     vector< Fragment* > &Fragments() { return _fragments; }
-    vector< Segment* > &Segments() { return _segments; }
-   
-    
-    
-    /// Returns a pointer to the atom
-    Atom *getAtom(const int &id);
-    /// Returns atom type
-    const string &getAtomType(const int &id);
-    /// Returns atom position
-    const vec getAtomPosition(const int &id);
-    /// Returns number of atoms in the molecule
-    int NumberOfAtoms();
-    /// Writes a PDB file
+    vector< Segment* >  &Segments() { return _segments; }
 
-
-    void WritePDB( FILE *out );
-    /// Load molecule coordinates from a file
-    void ReadXYZ ( string filename );
-
+    Atom           *getAtom(const int &id);
+    const string   &getAtomType(const int &id);
+    const vec       getAtomPosition(const int &id);
+    int             NumberOfAtoms();
 
     inline void setTopology(Topology *container) { _top = container; }
     Topology   *getTopology() { return _top; }
 
-
+    /// Load molecule coordinates from a file
+    void ReadXYZ ( string filename );
+    void WritePDB( FILE *out );
     
 private:
 

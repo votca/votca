@@ -25,11 +25,19 @@ Fragment::~Fragment() {
     vector < Atom* > ::iterator atmit;
     for (atmit = this->Atoms().begin();
           atmit < this->Atoms().end();
-          atmit++) {
+          ++atmit) {
           delete *atmit;
     }
     _weights.clear();
     _atoms.clear();
+
+    vector < PolarSite* > ::iterator pit;
+    for (pit = this->PolarSites().begin();
+            pit < this->PolarSites().end();
+            ++pit) {
+        delete *pit;
+    }
+    _polarSites.clear();
 }
 
 
@@ -38,6 +46,12 @@ void Fragment::AddAtom(Atom* atom) {
     atom->setFragment(this);
     _weights.push_back( atom->getWeight() );
 }
+
+void Fragment::AddPolarSite(PolarSite *pole) {
+    _polarSites.push_back(pole);
+    pole->setFragment(this);
+}
+
 
 void Fragment::Rotate(matrix spin, vec refPos) {
     vector <Atom*> ::iterator ait;
@@ -267,6 +281,7 @@ void Fragment::Rigidify(bool Auto) {
 
     this->calcPos("QM");
     this->RotTransQM2MD();
+    _translateQM2MD = _CoMD - _CoQM;
 
 }
 

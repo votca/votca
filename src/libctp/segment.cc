@@ -24,7 +24,7 @@ namespace votca { namespace ctp {
 /// Default constructor
 Segment::Segment(int id, string name)
         : _id(id), _name(name), _hasOccProb(0),
-          _hasLambdas(0) { }
+          _hasLambdas(0) { _eMpoles.resize(3); }
 
 // This constructor creates a copy of the stencil segment, without
 // adding it to any containers further up in the hierarchy; i.e. the topology
@@ -33,7 +33,7 @@ Segment::Segment(int id, string name)
 Segment::Segment(Segment *stencil)
         : _id(stencil->getId()),    _name(stencil->getName()+"_ghost"),
           _typ(stencil->getType()), _top(NULL), _mol(NULL),
-          _CoM(stencil->getPos()) {
+          _CoM(stencil->getPos()) { _eMpoles.resize(3);
 
     vector<Fragment*> ::iterator fit;
     for (fit = stencil->Fragments().begin();
@@ -67,6 +67,7 @@ Segment::~Segment() {
     _lambdasIntra.clear();
     _eMpoles.clear();
     _occProb.clear();
+    _polarSites.clear();
 }
 
 void Segment::TranslateBy(const vec &shift) {
@@ -99,6 +100,12 @@ const double &Segment::getESiteIntra(int carrier) {
     return _eSiteIntra[carrier];
 }
 
+
+const double &Segment::getESite(int carrier) {
+    double E = _eSiteIntra[carrier] + _eMpoles[carrier];
+}
+
+
 void Segment::setLambdaIntra(int state0, int state1, double lambda) {
     _hasLambdas = true;
     _lambdasIntra[state0][state1] = lambda;
@@ -108,16 +115,18 @@ const double &Segment::getLambdaIntra(int state0, int state1) {
 }
 
 void Segment::setEMpoles(int state, double energy) {
-    _hasChrgState[state] = true;
-    _eMpoles[state] = energy;
+    _hasChrgState.resize(3);
+    _hasChrgState[state+1] = true;
+    _eMpoles[state+1] = energy;
 }
 const double &Segment::getEMpoles(int state) {
-    return _eMpoles.at(state); 
+    return _eMpoles[state+1];
 }
 
 
 void Segment::AddChrgState(int state, bool yesno) {
-    this->_hasChrgState[state] = yesno;
+    _hasChrgState.resize(3);
+    _hasChrgState[state+1] = yesno;
 }
 
 void Segment::chrg(int state) {
@@ -129,8 +138,6 @@ void Segment::chrg(int state) {
     }
 }
 
-
-
 void Segment::AddFragment( Fragment* fragment ) {
     _fragments.push_back( fragment );
     fragment->setSegment(this);
@@ -139,6 +146,13 @@ void Segment::AddFragment( Fragment* fragment ) {
 void Segment::AddAtom( Atom* atom ) {
     _atoms.push_back( atom );
     atom->setSegment(this);
+}
+
+void Segment::AddPolarSite( PolarSite *pole ) {
+
+    _polarSites.push_back(pole);
+    pole->setSegment(this);
+
 }
 
 void Segment::calcPos() {
@@ -152,9 +166,6 @@ void Segment::calcPos() {
 
     _CoM = pos / totWeight;
 }
-
-
-
 
 void Segment::Rigidify() {
 
@@ -218,10 +229,10 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
                  );
     }
   }
-  if ( tag1 == "Atoms") {
+  else if ( tag1 == "Atoms") {
     vector < Atom* > :: iterator atm;
     for (atm = _atoms.begin(); atm < _atoms.end(); ++atm) {
-         int id = (*atm)->getId();
+         int id = (*atm)->getId() % 100000;
          string name =  (*atm)->getName();
          name.resize(3);
          string resname = (*atm)->getResname();
@@ -230,7 +241,39 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
          vec position;
          if (tag2 == "MD")      { position = (*atm)->getPos(); }
          else if (tag2 == "QM") { position = (*atm)->getQMPos(); }
+         if (tag2 == "QM" && (*atm)->HasQMPart() == false) { continue; }
 
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+                      "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
+                 id,                    // Atom serial number           %5d
+                 name.c_str(),          // Atom name                    %4s
+                 " ",                   // alternate location indicator.%1s
+                 resname.c_str(),       // Residue name.                %3s
+                 "A",                   // Chain identifier             %1s
+                 resnr,                 // Residue sequence number      %4d
+                 " ",                   // Insertion of residues.       %1s
+                 position.getX()*10,    // X in Angstroms               %8.3f
+                 position.getY()*10,    // Y in Angstroms               %8.3f
+                 position.getZ()*10,    // Z in Angstroms               %8.3f
+                 1.0,                   // Occupancy                    %6.2f
+                 0.0,                   // Temperature factor           %6.2f
+                 " ",                   // Segment identifier           %4s
+                 name.c_str(),          // Element symbol               %2s
+                 " "                    // Charge on the atom.          %2s
+                 );
+    }
+  }
+  else if ( tag1 == "Multipoles") {
+    vector < PolarSite* > :: iterator pol;
+    for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
+         int id = (*pol)->getId() % 100000;
+         string name =  (*pol)->getName();
+         name.resize(3);
+         string resname = (*pol)->getFragment()->getName();
+         resname.resize(3);
+         int resnr = (*pol)->getFragment()->getId() % 10000;
+         vec position = (*pol)->getPos();
+         
          fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
                       "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
                  id,                    // Atom serial number           %5d

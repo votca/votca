@@ -30,7 +30,7 @@ public:
 
 
 
-   virtual void BeginEvaluate();
+   virtual void BeginEvaluate(int nThreads);
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
 

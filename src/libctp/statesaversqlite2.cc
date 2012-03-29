@@ -125,7 +125,7 @@ void StateSaverSQLite2::WriteMeta(bool update) {
 
 
 void StateSaverSQLite2::WriteMolecules(bool update) {
-    cout << "Molecules";
+    cout << "Molecules" << flush;
     Statement *stmt;
 
     if (!update) {
@@ -165,7 +165,7 @@ void StateSaverSQLite2::WriteMolecules(bool update) {
 
 
 void StateSaverSQLite2::WriteSegTypes(bool update) {
-    cout << ", types";
+    cout << ", types" << flush;
     Statement *stmt;
 
     if (!update) {
@@ -222,7 +222,7 @@ void StateSaverSQLite2::WriteSegTypes(bool update) {
 
 
 void StateSaverSQLite2::WriteSegments(bool update) {
-    cout << ", segments";
+    cout << ", segments" << flush;
     Statement *stmt;
 
     if (!update) {
@@ -291,7 +291,7 @@ void StateSaverSQLite2::WriteSegments(bool update) {
 
 
 void StateSaverSQLite2::WriteFragments(bool update) {
-    cout << ", fragments";
+    cout << ", fragments" << flush;
 
     Statement *stmt;
 
@@ -346,7 +346,7 @@ void StateSaverSQLite2::WriteFragments(bool update) {
 
 void StateSaverSQLite2::WriteAtoms(bool update) {
 
-    cout << ", atoms";
+    cout << ", atoms" << flush;
 
     Statement *stmt;
     if (! update) {
@@ -408,7 +408,7 @@ void StateSaverSQLite2::WriteAtoms(bool update) {
 void StateSaverSQLite2::WritePairs(bool update) {
     if ( ! _qmtop->NBList().size() ) { return; }
     
-    cout << ", pairs";
+    cout << ", pairs" << flush;
 
     Statement *stmt;
     
@@ -417,7 +417,7 @@ void StateSaverSQLite2::WritePairs(bool update) {
     stmt->Bind(1, _qmtop->getDatabaseId());
     if (stmt->Step() == SQLITE_DONE) { 
         update = false;        
-        cout << " (create)";        
+        cout << " (create)" << flush;
     }
     else { update = true; }
     delete stmt;
@@ -426,8 +426,10 @@ void StateSaverSQLite2::WritePairs(bool update) {
     if (!update) {
         stmt = _db.Prepare("INSERT INTO pairs ("
                            "frame, top, id, "
-                           "seg1, seg2 "
+                           "seg1, seg2, drX, "
+                           "drY, drZ "
                            ") VALUES ("
+                           "?, ?, ?, "
                            "?, ?, ?, "
                            "?, ? "
                            ")");
@@ -453,13 +455,18 @@ void StateSaverSQLite2::WritePairs(bool update) {
             stmt->Bind(3, pair->getId());
             stmt->Bind(4, pair->Seg1PbCopy()->getId());
             stmt->Bind(5, pair->Seg2PbCopy()->getId());
+            stmt->Bind(6, pair->R().getX());
+            stmt->Bind(7, pair->R().getY());
+            stmt->Bind(8, pair->R().getZ());
         }
         else {
+            cout << "\r " << pair->getId() << flush;
+
                 stmt->Bind(1, pair->getLambdaO());
                 stmt->Bind(2, 0);
                 stmt->Bind(3, pair->getRate12());
-                stmt->Bind(4, 0);
-                stmt->Bind(5, pair->getRate21());
+                stmt->Bind(4, pair->getRate21());
+                stmt->Bind(5, 0);
                 stmt->Bind(6, 0);
 
                 // If both hole + electron
@@ -557,7 +564,7 @@ void StateSaverSQLite2::ReadMeta(int topId) {
 
 void StateSaverSQLite2::ReadMolecules(int topId) {
 
-    cout << " Molecules";
+    cout << " Molecules" << flush;
 
     Statement *stmt = _db.Prepare("SELECT name "
                                   "FROM molecules "
@@ -612,7 +619,7 @@ void StateSaverSQLite2::ReadSegTypes(int topId) {
 
 void StateSaverSQLite2::ReadSegments(int topId) {
 
-    cout << ", segments";
+    cout << ", segments" << flush;
 
     Statement *stmt = _db.Prepare("SELECT name, type, mol, "
                                   "posX, posY, posZ, "
@@ -669,7 +676,7 @@ void StateSaverSQLite2::ReadSegments(int topId) {
 
 void StateSaverSQLite2::ReadFragments(int topId) {
 
-    cout << ", fragments";
+    cout << ", fragments" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
                                   "name, mol, seg, "
@@ -716,7 +723,7 @@ void StateSaverSQLite2::ReadFragments(int topId) {
 
 void StateSaverSQLite2::ReadAtoms(int topId) {
 
-    cout << ", atoms";
+    cout << ", atoms" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
                                   "name, mol, seg, frag, "
@@ -771,7 +778,7 @@ void StateSaverSQLite2::ReadAtoms(int topId) {
 
 void StateSaverSQLite2::ReadPairs(int topId) {
 
-    cout << ", pairs";
+    cout << ", pairs" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
                                   "seg1, seg2, lOe, "

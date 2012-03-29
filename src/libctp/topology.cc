@@ -23,7 +23,7 @@ namespace votca { namespace ctp {
 
 Topology::Topology() : _db_id(-1), _hasPb(0), 
                        _bc(NULL), _nblist(this),
-                       _isRigid(false)  { }
+                       _isRigid(false), _isEStatified(false)  { }
 
 // +++++++++++++++++++++ //
 // Clean-Up, Destruct    //
@@ -37,6 +37,7 @@ void Topology::CleanUp() {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
+    _polarSites.clear();
 
     vector < SegmentType* > ::iterator sit;
     for (sit = _segmentTypes.begin(); sit < _segmentTypes.end(); sit++) {
@@ -65,6 +66,7 @@ Topology::~Topology() {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
+    _polarSites.clear();
 
     vector < SegmentType* > ::iterator typeit;
     for (typeit = _segmentTypes.begin();
@@ -104,6 +106,14 @@ Atom *Topology::AddAtom(string atom_name) {
     _atoms.push_back(atom);
     atom->setTopology(this);
     return atom;
+}
+
+PolarSite *Topology::AddPolarSite(string siteName) {
+    int poleId = _polarSites.size() + 1;
+    PolarSite *pole = new PolarSite(poleId, siteName);
+    _polarSites.push_back(pole);
+    pole->setTopology(this);
+    return pole;
 }
 
 Molecule *Topology::AddMolecule(string molecule_name) {
@@ -219,7 +229,7 @@ bool Topology::Rigidify() {
              (*sit)->Rigidify();
         }
 
-        cout << endl;
+        if (this->NBList().size() > 0) {
 
         // Rigidify pairs
         // [ Why this is needed: Orientation matrices for fragments are not
@@ -236,23 +246,26 @@ bool Topology::Rigidify() {
         //   either. Therefore it should not be forgotten here. --- A way out
         //   would be to rigidify the topology within StateSaver::ReadFrame,
         //   after atoms have been created, but before pairs are created. ]
-        
-        QMNBList2 &nblist = this->NBList();
 
-        QMNBList2::iterator pit;
-        int count = 0;
-        for (pit = nblist.begin(); pit != nblist.end(); pit++) {
+            cout << endl;
 
-            QMPair2 *qmpair = *pit;
-            if (qmpair->HasGhost()) {
-                count++;
+            QMNBList2 &nblist = this->NBList();
 
-                cout << "\r... ... Rigidified " << count << " ghosts. "
-                     << flush;
+            QMNBList2::iterator pit;
+            int count = 0;
+            for (pit = nblist.begin(); pit != nblist.end(); pit++) {
 
-                qmpair->Seg2PbCopy()->Rigidify();
-            }      
-        }   
+                QMPair2 *qmpair = *pit;
+                if (qmpair->HasGhost()) {
+                    count++;
+
+                    cout << "\r... ... Rigidified " << count << " ghosts. "
+                         << flush;
+
+                    qmpair->Seg2PbCopy()->Rigidify();
+                }
+            }
+        }
 
         _isRigid = true;
         return 1;

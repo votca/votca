@@ -11,6 +11,7 @@
       <itemPath>../../src/libctp/calculators/egaussian.h</itemPath>
       <itemPath>../../src/libctp/calculators/ehistogram.h</itemPath>
       <itemPath>../../src/libctp/calculators/emultipole.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/emultipole2.h</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
       <itemPath>../../src/libctp/calculators/etinker.h</itemPath>

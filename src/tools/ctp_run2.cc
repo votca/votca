@@ -125,7 +125,7 @@ void CtpRun::PrintDescription(const char *name, const bool length) {
                     Property *pdesc=&( (*iter)->get( string("description") ) );
                     //Property *pdflt=&( (*iter)->get( string("default") ) );
                     if ( ! (pname->value()).empty() ) {
-                        cout << string("  -") << _fwstring(pname->value(), 14);
+                        cout << string("  -") << _fwstring(pname->value(), 20);
                         cout << pdesc->value() << endl;
                     }
                  }

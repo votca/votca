@@ -19,24 +19,17 @@
 #define	__VOTCA_CTP_SEGMENT_H
 
 #include <votca/ctp/segmenttype.h>
-#include<votca/ctp/fragment.h>
-#include<votca/ctp/atom.h>
+#include <votca/ctp/fragment.h>
+#include <votca/ctp/atom.h>
+#include <votca/ctp/polarsite.h>
 
 class Topology;
 
 namespace votca { namespace ctp {
 
-
 class Molecule;  
 
  
-    
-/**
-    \brief Conjugated segment. One conjugated segment contains several rigid fragments.
-
- * Apart from the position it has a vector with pointers to all fragments 
- * which belong to it. Substitutes QMBead of ctp and crgunittype of moo
- */
 class Segment
 {
 public:
@@ -57,6 +50,7 @@ public:
     void             setOcc(int carrier, double occ);
     bool             hasOccProb() { return _hasOccProb; }
 
+    const double    &getESite(int carrier);
     const double    &getESiteIntra(int carrier);
     void             setESiteIntra(int carrier, double energy);
     bool             hasEIntra() { return _hasESiteIntra; }
@@ -67,7 +61,8 @@ public:
 
     const double    &getEMpoles(int state);
     void             setEMpoles(int state, double energy);
-    bool             hasChrgState(int state) { return _hasChrgState[state]; }
+    bool             hasChrgState(int state) { return _hasChrgState[state+1]; }
+    void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno; }
     void             AddChrgState(int state, bool yesno);
     void             chrg(int state);
 
@@ -80,8 +75,10 @@ public:
 
     void             AddFragment( Fragment* fragment );
     void             AddAtom( Atom* atom );
+    void             AddPolarSite(PolarSite *pole);
     vector< Fragment* > &Fragments() { return _fragments; }
     vector < Atom* >    &Atoms() { return _atoms; }
+    vector<PolarSite*>  &PolarSites() { return _polarSites; }
 
 
     void Rigidify();
@@ -96,6 +93,7 @@ private:
 
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
+    vector < PolarSite* >   _polarSites;
 
     string      _name;
     int         _id;
@@ -115,10 +113,10 @@ private:
     //    0         -1   lambdaNA = UaN - UaA (chrg)
     bool _hasLambdas;
 
-    map< int,       double >      _eMpoles;
+    vector< double > _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
-    map< int, bool > _hasChrgState;
+    vector<bool> _hasChrgState;
 
     map< int,       double >      _occProb;
     //   +1(=> h)   occ.prob. for hole
