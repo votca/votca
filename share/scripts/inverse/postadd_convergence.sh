@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd convergence script, calcs int of (\${name}.DIST.tgt-\${name}.DIST.new)**2
+postadd convergence script, calcs norm of error (\${name}.DIST.BASE-\${name}.DIST.new)
 and saves it to \${name}.conv.
 DIST stands for 'dist', but can be changed by onvergence.what option
 
@@ -41,35 +41,30 @@ min=$(csg_get_interaction_property min)
 step=$(csg_get_interaction_property step)
 
 
-
 #these are arrays
 weights=( $(csg_get_interaction_property inverse.post_add_options.convergence.weight) )
 what_to_do_list=( $(csg_get_interaction_property inverse.post_add_options.convergence.what) )
-
 #base stands for the extension(s) of file(s) of data against which convergence is checked
-base=( $(csg_get_interaction_property inverse.post_add_options.convergence.base "none") )
-
-#default value for base is 'tgt' and for RE it is 'cur'
-if [[ ${base} = "none" ]]; then
-   base=tgt
-fi
+bases=( $(csg_get_interaction_property inverse.post_add_options.convergence.base) )
+#what error norm to use 1st or 2nd, 
+norms=( $(csg_get_interaction_property inverse.post_add_options.convergence.norm) ) 
 
 [[ ${#weights[@]} -ne ${#what_to_do_list[@]} ]] && die "${0##*/}: number of weights does not match number of 'what' to calc convergence from"
+[[ ${#bases[@]} -ne ${#what_to_do_list[@]} ]] && die "${0##*/}: number of bases does not match number of 'what' to calc convergence from"
+[[ ${#norms[@]} -ne ${#what_to_do_list[@]} ]] && die "${0##*/}: number of norms does not match number of 'what' to calc convergence from"
 
 sum=0
 #we allow multiple thing per interaction to be checked
 for ((i=0;i<${#what_to_do_list[@]};i++)); do
   dist=${what_to_do_list[$i]}
   weight=${weights[$i]}
+  base=${bases[$i]}
+  norm=${norms[$i]}
 
-  if [[ ${base} = "tgt" ]]; then
-
+  if [[ ${base} = "cur" ]]; then
+      tmp1=${name}.${dist}.new
+  else
    tmp1="$(critical mktemp ${name}.${dist}.new.resample.XXX)"
-
-  else 
-
-   tmp1=${name}.${dist}.new
-
   fi
 
   if [[ ! -f "${name}.${dist}.${base}" ]]; then
@@ -83,15 +78,27 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
 
   [[ -f ${name}.${dist}.new ]] || die "${0##*/}: file '${name}.${dist}.new' was not found, add a postadd routine of interaction $name to calculate it."
   #resample this, as density dist maybe has the wrong grid
-if [[ ${base} = "tgt" ]]; then
+  if [[ ! ${base} = "cur" ]]; then
+      critical csg_resample --in ${name}.${dist}.new --out $tmp1 --grid "$min:$step:$max"
+  fi
 
-  critical csg_resample --in ${name}.${dist}.new --out $tmp1 --grid "$min:$step:$max"
-
-fi
-
-
-  diff=$(do_external table combine --sum --no-flags --op d "$tmp1" "${name}.${dist}.${base}")
+  #choose operation based on the selected error norm
+  case ${norm} in 
+      1)
+	  opr=d ;;
+      2)
+	  opr=d2 ;;
+      *)
+	  die "${0##*/}: convergence check norm '${norm}' specified for '${name}.${dist}.${base}' not yet implemented."
+  esac 
+  diff=$(do_external table combine --sum --no-flags --op ${opr} "$tmp1" "${name}.${dist}.${base}")
   is_num "$diff" || die "${0##*/}: strange - result of do_external table difference '$tmp1' and '${name}.${dist}.${base}' was not a number" 
+  #for second norm we should take sqrt of diff
+  if [[ ${norm} = "2" ]]; then
+      diff=$(critical awk "BEGIN{print sqrt($diff)}")
+  fi
+  #store error norm for current interactions current DIST 
+  echo "$diff" > ${name}.${dist}.conv
   wdiff=$(csg_calc "$weight" "*" "${diff}")
   echo "Convergence of $dist for ${name} was ${diff} and has weight $weight, so difference is $wdiff"
   sum=$(csg_calc $sum + $wdiff)
