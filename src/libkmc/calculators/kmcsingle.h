@@ -26,6 +26,7 @@
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/tokenizer.h>
+#include <votca/tools/globals.h>
 #include "node.h"
 
 using namespace std;
@@ -85,7 +86,7 @@ void KMCSingle::Initialize(const char *filename, Property *options )
    	if (options->exists("options.kmcsingle.injection")) {
 	    _injection_name = options->get("options.kmcsingle.injection").as<string>();
 	}
-	else {
+        else { // !!! This doesn't seem to work, even for an empty option "injection" no error is thrown
 	    std::runtime_error("Error in kmcsingle: injection pattern is not provided");
         }
         
@@ -140,6 +141,12 @@ void KMCSingle::LoadGraph() {
         n1->AddEvent(new link_t(n2, rate12, r));
         n2->AddEvent(new link_t(n1, rate21, -r));
         links += 2;
+        
+        if ( votca::tools::globals::verbose ) {
+            cout << "rate12=" << rate12 << endl;
+            cout << "rate21=" << rate21 << endl;
+            cout << "r=" << r << endl;
+        }
     }
     delete stmt;
     cout << "  -Links: " << links << endl;
@@ -155,7 +162,7 @@ void KMCSingle::RunKMC(void)
         votca::tools::Random::init(rand(), rand(), rand(), rand());
 
         // cout << " seed:size:site " << _seed << ":" << _injection.size() << ":" << Random::rand_uniform_int(_injection.size()) << endl;
-	current=_injection[Random::rand_uniform_int(_injection.size())];
+	current=_injection[Random::rand_uniform_int(_injection.size())]; // !!! GIVES A SEGMENTATION FAULT in case _injection is empty
         cout <<" Starting simulation at node: "<<current->_id-1<<endl;
 	double next_output = _dt;
     int i=0;
@@ -164,7 +171,7 @@ void KMCSingle::RunKMC(void)
 		current->onExecute();
     	if(t > next_output) {
     		next_output = t + _dt;
-    		cout << t << ": " << r << endl;
+    		cout << t << ": " << r << endl; // !!! around here something goes wrong yielding the output t=inf
     	}
     }
     _runtime = t;
