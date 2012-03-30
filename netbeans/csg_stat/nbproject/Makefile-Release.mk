@@ -17,19 +17,20 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Release
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -55,7 +56,7 @@ LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtoo
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Release.mk ../../src/tools/csg_stat
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/csg_stat
 
 ../../src/tools/csg_stat: ../libcsg/../../src/libcsg/libcsg.a
 
@@ -82,7 +83,7 @@ ${OBJECTDIR}/_ext/715944016/csg_stat.o: ../../src/tools/csg_stat.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Release
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} ../../src/tools/csg_stat
 
 # Subprojects
