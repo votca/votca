@@ -29,7 +29,7 @@
 
 % nicer --
 %!postproc(tex): '--' '{-}{-}'
-%!postproc(tex): '{ll}' '{m{3cm}|m{11cm}}'
+%!postproc(tex): '{ll}' '{m{4cm}|m{10cm}}'
 %!postproc(tex): '{tabular}' '{longtable}'
 
 %For other target is replaced by nothing.

@@ -1,67 +1,49 @@
-<topology>
-    <molecules>
-	<molecule>
-	    <name>DCV2T-MOL</name>
-	    <mdname>Protein</mdname>
-	    <segments>
-	      
-		<segment>
-		    <name>DCV</name>
-		    
-		    <qmcoords>qcFiles/DCV2T.xyz</qmcoords>
-		    <orbitals>qcFiles/DCV2T.fort.7</orbitals>
-		    <basisset>INDO</basisset>		    
-		    <torbital>50</torbital>
-		    
-		    <torbital_h></torbital_h>
-		    <torbital_e></torbital_e>
-		    
-		    <lambdaNC_h></lambdaNC_h>	<!-- discharging cation to neutral U_nC - UnN -->
-		    <lambdaNC_e></lambdaNC_e> 	<!-- discharging anion to neutral -->
-		    <lambdaCN_h></lambdaCN_h> 	<!-- charging neutral to cation U_cN - U_cC -->
-		    <lambdaCN_e></lambdaCN_e> 	<!-- charging neutral to anion -->
-		    
-		    <energyCN_h></energyCN_h> 	<!-- site energy U_cC - U_nN -->
-		    <energyCN_e></energyCN_e>   <!-- site energy U_aA - U_nN -->
-		    
-		    <fragments>
+<topology> <!-- this file is used to conver an atomistic trajectory to conjugated segments -->
+<molecules>
+<molecule>
+   <name>DCV2T-MOL</name> <!-- name of the conjugated molecule -->
+   <mdname>Protein</mdname> <!-- corresponding name of this molecule in the MD trajectory -->
+   <segments>
+   <segment>
+      <name>DCV</name> <!-- name of the conjugated segment within the molecule --> 
+      <fragments>
+      <fragment> 
+         <name>NI1</name> <!-- name of the rigid fragment within the segment --> 
+         <!-- list of atoms in the fragment resnum:resname:atomname -->
+         <mdatoms>1:NIT:N1 1:NIT:CN1 1:NIT:N2  1:NIT:CN2 1:NIT:CC1 1:NIT:C1  1:NIT:HN1</mdatoms>
+         <!-- corresponding ground state geometry atomnumber:atomtype -->      
+         <qmatoms>   22:N     21:C      18:N      17:C      16:C      15:C      28:H  </qmatoms>
+         <!-- weights to determine the fragment center (here CoM is used) --> 
+         <weights>     14       12        14        12        12        12         1  </weights>	
+         <localframe> 22 21 18 </localframe> <!-- three atoms defining the local frame -->   
+      </fragment>
 
-			<fragment>
-			    <name>NI1</name>			    
-			    <mdatoms>1:NIT:N1 1:NIT:CN1 1:NIT:N2  1:NIT:CN2 1:NIT:CC1 1:NIT:C1  1:NIT:HN1</mdatoms>
-			    <qmatoms>   22:N     21:C      18:N      17:C      16:C      15:C      28:H  </qmatoms>
-			    <weights>     14       12        14        12        12        12         1  </weights>	
-			    <localframe> 22 21 18 </localframe>		    
-			</fragment>
+      <fragment>				
+         <name>TH1</name>			    
+         <mdatoms>2:THI:S1 2:THI:CA1 2:THI:CA2 2:THI:CB1 2:THI:CB2 2:THI:HC1 2:THI:HC2</mdatoms>
+         <qmatoms>    3:S      2:C       4:C       1:C       5:C       27:H     26:H  </qmatoms>
+         <weights>     32       12        12        12        12         1         1  </weights>
+         <localframe> 3 2 4 </localframe>	    
+      </fragment>
 
-			<fragment>				
-			    <name>TH1</name>			    
-			    <mdatoms>2:THI:S1 2:THI:CA1 2:THI:CA2 2:THI:CB1 2:THI:CB2 2:THI:HC1 2:THI:HC2</mdatoms>
-			    <qmatoms>    3:S      2:C       4:C       1:C       5:C       27:H     26:H  </qmatoms>
-			    <weights>     32       12        12        12        12         1         1  </weights>		
-			    <localframe> 3 2 4 </localframe>	    
-			</fragment>
+      <fragment>
+         <name>TH2</name>
+         <mdatoms>3:THI:S1 3:THI:CA1 3:THI:CA2 3:THI:CB1 3:THI:CB2 3:THI:HC1 3:THI:HC2</mdatoms>
+         <qmatoms>    7:S      6:C       8:C      10:C       9:C      25:H      24:H  </qmatoms>
+         <weights>     32       12        12        12        12         1         1  </weights>
+         <localframe> 7 6 8 </localframe>
+      </fragment>
 
-			<fragment>
-			    <name>TH2</name>
-			    <mdatoms>3:THI:S1 3:THI:CA1 3:THI:CA2 3:THI:CB1 3:THI:CB2 3:THI:HC1 3:THI:HC2</mdatoms>
-			    <qmatoms>    7:S      6:C       8:C      10:C       9:C      25:H      24:H  </qmatoms>
-			    <weights>     32       12        12        12        12         1         1  </weights>	
-			    <localframe> 7 6 8 </localframe> 
-			</fragment>
-
-			<fragment>
-			    <name>NI2</name>
-			    <mdatoms>4:NIT:N1 4:NIT:CN1 4:NIT:N2  4:NIT:CN2 4:NIT:CC1 4:NIT:C1  4:NIT:HN1</mdatoms>
-			    <qmatoms>   20:N     19:C      14:N      13:C      12:C      11:H      23:H  </qmatoms>
-			    <weights>     14       12        14       12         12        12         1  </weights>
-			    <localframe> 20 19 14 </localframe>	 
-			</fragment>
-
-		    </fragments>
-		</segment>
-		
-	    </segments>
-	</molecule>
-    </molecules>
+      <fragment>
+         <name>NI2</name>
+         <mdatoms>4:NIT:N1 4:NIT:CN1 4:NIT:N2  4:NIT:CN2 4:NIT:CC1 4:NIT:C1  4:NIT:HN1</mdatoms>
+         <qmatoms>   20:N     19:C      14:N      13:C      12:C      11:H      23:H  </qmatoms>
+         <weights>     14       12        14       12         12        12         1  </weights>
+         <localframe> 20 19 14 </localframe>
+      </fragment>
+      </fragments>
+   </segment>
+   </segments>
+</molecule>
+</molecules>
 </topology>
