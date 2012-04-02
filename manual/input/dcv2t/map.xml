@@ -4,56 +4,60 @@
 	<topology>
  		<cg_beads>
 			<cg_bead>
-				<name>NIT1</name> <!-- name of the first CG bead -->
-				<type>DCV2T</type> <!-- type of the bead -->
-				<mapping>NIT</mapping> <!-- mapping to determine the bead center -->
+				<name>NIT1</name> <!-- name of the rigid fragment (used by CSG only) -->
+				<type>NIT</type> <!-- type of the rigid fragment (used by CSG only) -->
+				<mapping>NIT</mapping> <!-- mapping to determine the fragment center -->
 				<beads> <!-- list of atoms resnum:resname:atomname -->
-				1:NIT:N1 1:NIT:CN1 1:NIT:N2 1:NIT:CN2 1:NIT:CC1 1:NIT:C1 1:NIT:HN1
+				  1:NIT:N1 1:NIT:CN1 1:NIT:N2 1:NIT:CN2 1:NIT:CC1 1:NIT:C1 1:NIT:HN1
 				</beads>
 				<symmetry>3</symmetry> <!-- gyration is used for orientation -->
-			<qm>
-				<name>DCV2T</name> <!-- type of the conjugated seg -->
-				<position>1</position> <!-- position in the conjugated segment -->
-			</qm>
+				<segment>
+                                  <type>DCV2T</type> <!-- type of the segment the fragment belongs to -->
+				  <name>DCVT</name> <!-- name of this segment in a molecule -->
+				  <position>1</position> <!-- position of the fragment in the segment -->
+				</segment>
 			</cg_bead>
 			<cg_bead>
-                                <name>THI2</name> <!-- name of the second CG bead -->
-				<type>DCV2T</type>
+                                <name>THI1</name> <!-- name of the second rigid fragment -->
+				<type>THI</type>
                                 <mapping>THI</mapping>
                                 <beads>
 				2:THI:S1 2:THI:CA1 2:THI:CA2 2:THI:CB1 2:THI:CB2 2:THI:HC1 2:THI:HC2
                                 </beads>
                                 <symmetry>3</symmetry>
-			<qm>
-				<name>DCV2T</name>
-                                <position>2</position>
-                        </qm>
+				<segment>
+				  <type>DCV2T</type>
+				  <name>DCVT</name>
+                                  <position>2</position>
+                        	</segment>
                         </cg_bead>
 			<cg_bead>
-				<name>THI3</name>
-				<type>DCV2T</type>
+				<name>THI2</name>
+				<type>THI</type>
 				<mapping>THI</mapping>
                                 <beads>
-				3:THI:S1 3:THI:CA1 3:THI:CA2 3:THI:CB1 3:THI:CB2 3:THI:HC1 3:THI:HC2
+				  3:THI:S1 3:THI:CA1 3:THI:CA2 3:THI:CB1 3:THI:CB2 3:THI:HC1 3:THI:HC2
                                 </beads>
                                 <symmetry>3</symmetry>
-			<qm>
-				<name>DCV2T</name>
-                                <position>3</position>
-                        </qm>
+				<segment>
+				  <type>DCV2T</type>
+				  <name>DCVT</name>
+                                  <position>3</position>
+                        	</segment>
                         </cg_bead>
 			<cg_bead>
-				<name>NIT4</name>
-				<type>DCV2T</type>
+				<name>NIT2</name>
+				<type>THI</type>
 				<mapping>NIT</mapping>
                                 <beads>
 				4:NIT:N1 4:NIT:CN1 4:NIT:N2 4:NIT:CN2 4:NIT:CC1 4:NIT:C1 4:NIT:HN1
 				</beads>
                                 <symmetry>3</symmetry>
-			<qm>
-				<name>DCV2T</name>
-                                <position>4</position>
-                        </qm>
+				<segment>
+				  <type>DCV2T</type>
+				  <name>DCVT</name>
+                                  <position>4</position>
+                        	</segment>
                         </cg_bead>
 		</cg_beads>
 	</topology>
