@@ -31,7 +31,7 @@ cut_heads() {
   item="$1"
   hspace=0
   spaces=""
-  for ((i=0;i<5;i++)); do
+  for ((i=0;i<7;i++)); do
     new="${item#*.}"
     [ "$new" = "$item" ] && break
     item="$new"
