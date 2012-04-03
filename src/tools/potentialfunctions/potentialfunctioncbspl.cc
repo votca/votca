@@ -82,8 +82,14 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
     Table param;
     param.SetHasYErr(false);
     param.resize(_lam.size(), false);
+
+    // write extrapolated knots with flat 'o'
+    for (int i = 0; i < _nexcl; i++){
+
+        param.set(i, _rbreak(i), _lam(i), 'o');
+    }
     
-    for (int i = 0; i < _lam.size(); i++){
+    for (int i = _nexcl; i < _lam.size(); i++){
         
         param.set(i, _rbreak(i), _lam(i), 'i');
     }
