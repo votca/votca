@@ -15,7 +15,12 @@ class QMPair2 : public std::pair< Segment*, Segment* >
 {
 public:
     QMPair2() : _R(0,0,0), _ghost(NULL), _top(NULL),
-                _id(-1), _hasGhost(0) { };
+                _id(-1),    _hasGhost(0),
+                _rate12_e(0), _rate21_e(0),
+                _rate12_h(0), _rate21_h(0),
+                _has_e(false), _has_h(false),
+                _lambdaO_e(0), _lambdaO_h(0),
+                _Jeff2_e(0),   _Jeff2_h(0) { };
     QMPair2(int id, Segment *seg1, Segment *seg2);
    ~QMPair2();
 
@@ -26,25 +31,22 @@ public:
    vec      &R() { return _R; }
    double    Dist() { return abs(_R); }
 
-   void     setLambdaO(int carrier, double lbd);
-   void     setLambdaO(double lambda) { _lambdaO = lambda; }
-   bool     hasLambdaO() { return _hasLambdaO; }
-   double  getLambdaO(int carrier);
-   double  &getLambdaO() { return _lambdaO; }
+   void     setIsPathCarrier(bool yesno, int carrier);
+   bool     isPathCarrier(int carrier);
 
-   void     setRate12(int carrier, double rate);
-   void     setRate12(double rate) { _rate12 = rate; }
-   void     setRate21(int carrier, double rate);
-   void     setRate21(double rate) { _rate21 = rate; }
-   bool     hasRates() { return _hasRates; }
-   double  getRate12(int carrier);
-   double  &getRate12() { return _rate12; }
-   double  getRate21(int carrier);
-   double  &getRate21() { return _rate21; }
+   void     setLambdaO(double lO, int carrier);
+   double   getLambdaO(int carrier);
 
-   void     setJs(const vector <double> Js) { _Js = Js; }
-   double   calcJeff2();
-   vector<double> &Js() { return _Js; }
+   void     setRate12(double rate, int state);
+   void     setRate21(double rate, int state);
+   double   getRate12(int state);
+   double   getRate21(int state);
+
+   void     setJs(const vector <double> Js, int state);
+   double   calcJeff2(int state);
+   double   getJeff2(int state) { return (state == -1) ? _Jeff2_e : _Jeff2_h; }
+   void     setJeff2(double Jeff2, int state);
+   vector<double> &Js(int state) { return (state==-1) ? _Js_e : _Js_h; }
 
    Segment* Seg1PbCopy() { return first; }
    Segment* Seg2PbCopy();
@@ -64,27 +66,20 @@ protected:
 
     Segment    *_ghost;
     bool        _hasGhost;
-
-    double _lambdaO;
-    double _rate12;
-    double _rate21;
-
-    map< int,       double > _lambdasO;
-    //   -1(=> e)   lambda for electrons
-    //   +1(=> h)   lambda for holes
-    bool _hasLambdaO;
-
-    map< int,       double > _rates12;
-    map< int,       double > _rates21;
-    //   -1(=> e)   rate for electrons
-    //   +1(=> h)   rate for holes
-    bool _hasRates;
-
-    map< int,       bool > _hasCarrier; // not used right now
-    //   -1(=> e)   true or false
-    //   +1(=> h)   true or false
     
-    vector <double> _Js;
+    double _lambdaO_e;   // from ::EOutersphere output    DEFAULT 0
+    double _lambdaO_h;
+    double _rate12_e;    // from ::Rates        output    DEFAULT 0
+    double _rate12_h;
+    double _rate21_e;    // from ::Rates        output    DEFAULT 0
+    double _rate21_h;
+    double _has_e;       // from ::Rates        input     DEFAULT 0
+    double _has_h;
+    
+    vector <double> _Js_e;
+    vector <double> _Js_h;
+    double          _Jeff2_e;
+    double          _Jeff2_h;
 
 
 

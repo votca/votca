@@ -16,13 +16,27 @@ public:
     string Identify() { return "Rates"; }
 
     void Initialize(Topology *top, Property *options);
+    void ParseEnergiesXML(Topology *top, Property *opt);
     void EvaluatePair(Topology *top, QMPair2 *pair);
+    void CalculateRate(Topology *top, QMPair2 *pair, int state);
 
 
 private:
 
+    map<string, double> _seg_U_cC_nN_e;
+    map<string, double> _seg_U_nC_nN_e;
+    map<string, double> _seg_U_cN_cC_e;
+
+    map<string, double> _seg_U_cC_nN_h;
+    map<string, double> _seg_U_nC_nN_h;
+    map<string, double> _seg_U_cN_cC_h;
+
+    map<string, bool>   _seg_has_e;
+    map<string, bool>   _seg_has_h;
+
+
     string _rateType;
-    vec    _E;
+    vec    _F;
     double _kT;
     double _omegaVib;
     int    _nMaxVib;
@@ -38,13 +52,29 @@ void Rates2::Initialize(Topology *top, Property *options) {
 
     string key = "options.rates";
 
+    /* ---- OPTIONS.XML Structure -----
+     *
+     * <rates>
+     *
+     *      <energiesXML>ENERGIES.XML</energiesXML>
+     *
+     *      <temperature></temperature>
+     *      <field></field>
+     *
+     *      <method></method>
+     *      <nmaxvib></nmaxvib>
+     *      <omegavib></omegavib>
+     *
+     * </rates>
+     *
+     */
 
     // Control parameters
     double T = options->get(key+".temperature").as<double> ();
     _kT = 8.6173324e-5 * T;
 
-    vec E = options->get(key+".field").as<vec>();
-    _E = E;
+    vec F = options->get(key+".field").as<vec>();
+    _F = F;
 
 
     // Method
@@ -82,43 +112,200 @@ void Rates2::Initialize(Topology *top, Property *options) {
         cout << endl << "... ... WARNING: No QM vibration frequency provided, "
                         "using default 0.2eV.";
     }
+
+
+    this->ParseEnergiesXML(top, options);
+
 }
+
+
+void Rates2::ParseEnergiesXML(Topology *top, Property *opt) {
+
+    string key = "options.rates";
+    string energiesXML = opt->get(key+".energiesXML").as<string> ();
+
+    cout << endl
+         << "... ... Site, reorg. energies from " << energiesXML << ". "
+         << flush;
+
+    Property alloc;
+    load_property_from_xml(alloc, energiesXML.c_str());
+
+    /* --- ENERGIES.XML Structure ---
+     *
+     * <topology>
+     *
+     *     <molecules>
+     *          <molecule>
+     *          <name></name>
+     *
+     *          <segments>
+     *
+     *              <segment>
+     *              <name></name>
+     *
+     *              <!-- U_sG_sG, s->state, G->geometry !-->
+     *
+     *              <U_cC_nN_e></U_cC_nN_e>
+     *              <U_cC_nN_h></U_cC_nN_h>
+     *
+     *              <U_nC_nN_e></U_nC_nN_e>
+     *              <U_nC_nN_h></U_nC_nN_h>
+     *
+     *              <U_cN_cC_e></U_cN_cC_e>
+     *              <U_cN_cC_h></U_cN_cC_h>
+     *
+     *              </segment>
+     *
+     *              <segment>
+     *                  ...
+     *
+     */
+
+    key = "topology.molecules.molecule";
+    list<Property*> mols = alloc.Select(key);
+    list<Property*> ::iterator molit;
+    for (molit = mols.begin(); molit != mols.end(); ++molit) {
+
+        key = "segments.segment";
+        list<Property*> segs = (*molit)->Select(key);
+        list<Property*> ::iterator segit;
+
+        for (segit = segs.begin(); segit != segs.end(); ++segit) {
+
+            string segName = (*segit)->get("name").as<string> ();
+
+            bool has_e = false;
+            bool has_h = false;
+
+            double U_cC_nN_e = 0.0;
+            double U_cC_nN_h = 0.0;
+            double U_nC_nN_e = 0.0;
+            double U_nC_nN_h = 0.0;
+            double U_cN_cC_e = 0.0;
+            double U_cN_cC_h = 0.0;
+
+            if ( (*segit)->exists("U_cC_nN_e") &&
+                 (*segit)->exists("U_nC_nN_e") &&
+                 (*segit)->exists("U_cN_cC_e")    ) {
+
+                U_cC_nN_e = (*segit)->get("U_cC_nN_e").as< double > ();
+                U_nC_nN_e = (*segit)->get("U_nC_nN_e").as< double > ();
+                U_cN_cC_e = (*segit)->get("U_cN_cC_e").as< double > ();
+
+                has_e = true;
+            }
+            
+            if ( (*segit)->exists("U_cC_nN_h") &&
+                 (*segit)->exists("U_nC_nN_h") &&
+                 (*segit)->exists("U_cN_cC_h")    ) {
+
+                U_cC_nN_h = (*segit)->get("U_cC_nN_h").as< double > ();
+                U_nC_nN_h = (*segit)->get("U_nC_nN_h").as< double > ();
+                U_cN_cC_h = (*segit)->get("U_cN_cC_h").as< double > ();
+
+                has_h = true;
+            }
+
+            _seg_U_cC_nN_e[segName] = U_cC_nN_e;
+            _seg_U_nC_nN_e[segName] = U_nC_nN_e;
+            _seg_U_cN_cC_e[segName] = U_cN_cC_e;
+            _seg_has_e[segName] = has_e;
+
+            _seg_U_cC_nN_h[segName] = U_cC_nN_h;
+            _seg_U_nC_nN_h[segName] = U_nC_nN_h;
+            _seg_U_cN_cC_h[segName] = U_cN_cC_h;
+            _seg_has_h[segName] = has_h;
+        }
+    }
+}
+
 
 void Rates2::EvaluatePair(Topology *top, QMPair2 *qmpair) {
 
     cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << flush;
 
-    double NM2M = 1.e-9;
+    bool pair_has_e = false;
+    bool pair_has_h = false;
+
+    string segName1 = qmpair->first->getName();
+    string segName2 = qmpair->second->getName();
+
+    try {
+        pair_has_e = _seg_has_e.at(segName1) && _seg_has_e.at(segName2);
+        pair_has_h = _seg_has_h.at(segName1) && _seg_has_h.at(segName2);
+    }
+    catch (out_of_range) {
+        cout << endl << "... ... WARNING: No energy information for pair ["
+                     << segName1 << ", " << segName2 << "]. "
+                     << "Skipping... " << endl;
+
+        return;
+    }
+
+    if (pair_has_e) {
+        this->CalculateRate(top, qmpair, -1);
+    }
+    if (pair_has_h) {
+        this->CalculateRate(top, qmpair, +1);
+    }
+}
+
+
+void Rates2::CalculateRate(Topology *top, QMPair2 *qmpair, int state) {
+
+    const double NM2M    = 1.e-9;
     const double hbar_eV = 6.58211899e-16;
-
-    // TODO Decide how to include different carrier types
-    int q = -1;
-
 
     Segment *seg1 = qmpair->first;
     Segment *seg2 = qmpair->second;
 
-    double rate12 = 0.;
-    double rate21 = 0.;
+    double rate12 = 0.;                                       // 1->2
+    double rate21 = 0.;                                       // 2->1
 
-    double J2 = qmpair->calcJeff2();
-    //cout << endl << "J2 " << J2;
+    double reorg12  = 0.0;                                    // 1->2
+    double reorg21  = 0.0;                                    // 2->1
+    double lOut     = qmpair->getLambdaO(state);              // 1->2 == + 2->1
+    double dG_Site  = 0.0;                                    // 1->2 == - 2->1
+    double dG_Field = - state * _F * qmpair->R() * NM2M;      // 1->2 == - 2->1
+    double J2 = qmpair->getJeff2(state);                      // 1->2 == + 2->1
 
-    double reorg12 = seg1->getLambdaIntra(q, 0) + seg2->getLambdaIntra(0, q);
-    double reorg21 = seg1->getLambdaIntra(0, q) + seg2->getLambdaIntra(q, 0);
+    if (state == -1) {
 
-    //cout << endl << "lambda " << reorg12 << " --- " << reorg21;
+        // Charge hops Seg1 -> Seg2
+        reorg12 = _seg_U_nC_nN_e[seg1->getName()]
+                + _seg_U_cN_cC_e[seg2->getName()];
 
-    
-    double dG_Field = - _E * qmpair->R() * NM2M;
-    //cout << endl << "dG Field" << dG_Field;
-    double dG_Site = seg2->getESite(q) - seg1->getESite(q);
-    //cout << endl << "dG Site " << dG_Site;
+        // Charge hops Seg2 -> Seg1
+        reorg21 = _seg_U_nC_nN_e[seg2->getName()]
+                + _seg_U_cN_cC_e[seg1->getName()];
+
+        // dG Seg1 -> Seg2
+        dG_Site = _seg_U_cC_nN_e[seg2->getName()] + seg2->getEMpoles(state)
+                - _seg_U_cC_nN_e[seg1->getName()] - seg1->getEMpoles(state);
+    }
+
+    else if (state == +1) {
+
+        // Charge hops Seg1 -> Seg2
+        reorg12 = _seg_U_nC_nN_h[seg1->getName()]
+                + _seg_U_cN_cC_h[seg2->getName()];
+
+        // Charge hops Seg2 -> Seg1
+        reorg21 = _seg_U_nC_nN_h[seg2->getName()]
+                + _seg_U_cN_cC_h[seg1->getName()];
+
+        // dG Seg1 -> Seg2
+        dG_Site = _seg_U_cC_nN_h[seg2->getName()] + seg2->getEMpoles(state)
+                - _seg_U_cC_nN_h[seg1->getName()] - seg1->getEMpoles(state);
+    }
+
     double dG = dG_Field + dG_Site;
 
-    double lOut = qmpair->getLambdaO();
-    //cout << endl << "lambda Outer" << lOut;
-    
+    // +++++++++++++ //
+    // JORTNER RATES //
+    // +++++++++++++ //
+
     if (_rateType == "jortner" && lOut < 0.) {
         cout << endl
              << "... ... ERROR: Pair " << qmpair->getId() << " has negative "
@@ -155,37 +342,36 @@ void Rates2::EvaluatePair(Topology *top, QMPair2 *qmpair) {
                     * J2 * exp(-huang_rhys21) * pow(huang_rhys21, nvib) /
                            Factorial(nvib)
                     * exp( -pow( (-dG + nvib*_omegaVib + lOut) , 2 ) /
-                           (4*_kT*lOut) );            
+                           (4*_kT*lOut) );
         }
     }
 
+    // ++++++++++++ //
+    // MARCUS RATES //
+    // ++++++++++++ //
 
-
-    if (_rateType == "marcus") {
+    else if (_rateType == "marcus") {
 
         reorg12 = reorg12 + lOut;
         reorg21 = reorg21 + lOut;
 
-        rate12 = 1 / hbar_eV * sqrt( M_PI / (reorg12*_kT) )
-                * J2 * exp( - pow( (dG + reorg12) , 2) /
-                              (4*_kT*reorg12) );
-        rate21 = 1 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
-                * J2 * exp( - pow( (-dG + reorg21) , 2) /
-                              (4*_kT*reorg21) );
+        rate12 = J2 / hbar_eV * sqrt( M_PI / (reorg12*_kT) )
+                * exp( - (+dG + reorg12)*(+dG + reorg12) / (4*_kT*reorg12) );
+
+        rate21 = J2 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
+                * exp( - (-dG + reorg21)*(-dG + reorg21) / (4*_kT*reorg21) );
     }
 
-    //cout << endl << "Rate12 " << rate12;
-    //cout << endl << "Rate21 " << rate21;
-
-    qmpair->setRate12(q, rate12);
-    qmpair->setRate21(q, rate21); 
+    qmpair->setRate12(rate12, state);
+    qmpair->setRate21(rate21, state);
+    qmpair->setIsPathCarrier(true, state);
 
 }
 
 int Rates2::Factorial(int i) {
     int k,j;
-    k=1;
-    for (j=1;j<i;j++) { k=k*(j+1); }
+    k = 1;
+    for (j=1; j<i; j++) { k = k*(j+1); }
     return k;
 }
 

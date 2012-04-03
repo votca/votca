@@ -123,8 +123,8 @@ void Segment::setEMpoles(int state, double energy) {
     _hasChrgState[state+1] = true;
     _eMpoles[state+1] = energy;
 }
-const double &Segment::getEMpoles(int state) {
-    return _eMpoles[state+1];
+const double Segment::getEMpoles(int state) {
+    return _eMpoles[state+1] - _eMpoles[1];
 }
 
 

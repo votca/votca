@@ -61,10 +61,10 @@ public:
     void             setLambdaIntra(int state0, int state1, double lambda);
     bool             hasLambda() { return _hasLambdas; }
 
-    const double    &getEMpoles(int e_h);
+    const double     getEMpoles(int e_h);
     void             setEMpoles(int e_h, double energy);
     bool             hasChrgState(int e_h) { return _hasChrgState[e_h+1]; }
-    void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno; }
+    void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno;}
 
     inline void      setTopology(Topology *container) { _top = container; }
     Topology        *getTopology() { return _top; }
@@ -100,16 +100,16 @@ private:
     vec         _CoM;
 
 
-    double _eSiteIntra_e;
+    double _eSiteIntra_e;    // from ::Rates      input     DEFAULT 0
     double _eSiteIntra_h;
 
-    double _lambdaIntra_e;
+    double _lambdaIntra_e;   // from ::Rates      input     DEFAULT 0
     double _lambdaIntra_h;
 
-    double _ePolar_e;
+    double _ePolar_e;        // from ::EMultipole output    DEFAULT 0
     double _ePolar_h;
 
-    double _occ_e;
+    double _occ_e;           // from ::KMC        output    DEFAULT 0
     double _occ_h;
 
     bool   _has_e;

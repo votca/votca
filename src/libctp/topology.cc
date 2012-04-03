@@ -215,7 +215,6 @@ bool Topology::Rigidify() {
         return 0;
     }
     else {
-        cout << endl;
 
         // Rigidify segments
         vector<Segment*> ::iterator sit;
@@ -223,11 +222,12 @@ bool Topology::Rigidify() {
              sit < _segments.end();
              sit++) {
 
-             cout << "\r... ... Rigidified " << (*sit)->getId() << " segments. "
-             << flush;
-
              (*sit)->Rigidify();
         }
+
+        cout << endl
+             << "... ... Rigidified " << _segments.size() << " segments. "
+             << flush;
 
         if (this->NBList().size() > 0) {
 
@@ -247,8 +247,6 @@ bool Topology::Rigidify() {
         //   would be to rigidify the topology within StateSaver::ReadFrame,
         //   after atoms have been created, but before pairs are created. ]
 
-            cout << endl;
-
             QMNBList2 &nblist = this->NBList();
 
             QMNBList2::iterator pit;
@@ -259,12 +257,15 @@ bool Topology::Rigidify() {
                 if (qmpair->HasGhost()) {
                     count++;
 
-                    cout << "\r... ... Rigidified " << count << " ghosts. "
-                         << flush;
+
 
                     qmpair->Seg2PbCopy()->Rigidify();
                 }
             }
+
+          cout << endl
+               << "... ... Rigidified " << this->NBList().size() << " ghosts. "
+               << flush;
         }
 
         _isRigid = true;

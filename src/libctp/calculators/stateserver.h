@@ -216,7 +216,6 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
                 seg->getEMpoles(1),
                 seg->getEMpoles(0),
                 seg->getEMpoles(-1) );
-
     }
 }
 
@@ -241,10 +240,10 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
                 pair->second->getId(),
                 pair->Dist(),
                 ghost,
-                pair->getLambdaO(),
-                pair->calcJeff2(),
-                pair->getRate12(),
-                pair->getRate21() );
+                0.0, // pair->getLambdaO(),
+                0.0, // pair->calcJeff2(),
+                0.0, // pair->getRate12(),
+                0.0 ); // pair->getRate21() );
     }
 }
 

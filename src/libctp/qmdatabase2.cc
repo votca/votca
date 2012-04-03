@@ -149,24 +149,16 @@ void QMDatabase2::onCreate()
         "lOe        REAL DEFAULT 0,"
         "lOh        REAL DEFAULT 0,"
 
+        "has_e      INT  DEFAULT 0,"
+        "has_h      INT  DEFAULT 0,"
         "rate12e    REAL DEFAULT 0,"
         "rate21e    REAL DEFAULT 0,"
         "rate12h    REAL DEFAULT 0,"
         "rate21h    REAL DEFAULT 0,"
-        "Jeff2      REAL DEFAULT 0)");
+        "Jeff2e     REAL DEFAULT 0,"
+        "Jeff2h     REAL DEFAULT 0)");
 
-    // Additional pair properties
-    Exec("CREATE TABLE pair_properties ("
-        "_id    INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "pair   INTEGER NOT NULL,"
-        "key    TEXT NOT NULL,"
-        "value  REAL NOT NULL)");
 
-    // Table format coupling elements
-    Exec("CREATE TABLE pair_integrals ("
-        "pair   INTEGER NOT NULL,"
-        "num    INTEGER NOT NULL,"
-        "J      REAL NOT NULL)");
 }
 
 }}
