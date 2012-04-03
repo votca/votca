@@ -61,15 +61,18 @@ void QMDatabase2::onCreate()
         "posY   REAL NOT NULL,"
         "posZ   REAL NOT NULL,"
 
-        "lI_AN      REAL DEFAULT 0,"
-        "lI_NA      REAL DEFAULT 0,"
-        "lI_CN      REAL DEFAULT 0,"
-        "lI_NC      REAL DEFAULT 0,"
-        "eI_A       REAL DEFAULT 0,"
-        "eI_C       REAL DEFAULT 0,"
+        "UnCnNe     REAL DEFAULT 0,"
+        "UnCnNh     REAL DEFAULT 0,"
+        "UcNcCe     REAL DEFAULT 0,"
+        "UcNcCh     REAL DEFAULT 0,"
+        "UcCnNe     REAL DEFAULT 0,"
+        "UcCnNh     REAL DEFAULT 0,"
         "eAnion     REAL DEFAULT 0,"
         "eNeutral   REAL DEFAULT 0,"
         "eCation    REAL DEFAULT 0,"
+
+        "has_e      INT  DEFAULT 0,"
+        "has_h      INT  DEFAULT 0,"
 
         "occPe      REAL DEFAULT -1,"
         "occPh      REAL DEFAULT -1)");

@@ -56,6 +56,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/qmnblist.o \
 	${OBJECTDIR}/_ext/484457893/qmapplication2.o \
 	${OBJECTDIR}/_ext/238600121/eoutersphere2.o \
+	${OBJECTDIR}/_ext/238600121/einternal.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory.o \
 	${OBJECTDIR}/_ext/238600121/eoutersphere.o
 
@@ -200,6 +201,11 @@ ${OBJECTDIR}/_ext/238600121/eoutersphere2.o: ../../src/libctp/calculators/eouter
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/eoutersphere2.o ../../src/libctp/calculators/eoutersphere2.cc
+
+${OBJECTDIR}/_ext/238600121/einternal.o: ../../src/libctp/calculators/einternal.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/einternal.o ../../src/libctp/calculators/einternal.cc
 
 ${OBJECTDIR}/_ext/484457893/calculatorfactory.o: ../../src/libctp/calculatorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

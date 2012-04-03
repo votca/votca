@@ -56,8 +56,6 @@ void Rates2::Initialize(Topology *top, Property *options) {
      *
      * <rates>
      *
-     *      <energiesXML>ENERGIES.XML</energiesXML>
-     *
      *      <temperature></temperature>
      *      <field></field>
      *
@@ -114,7 +112,7 @@ void Rates2::Initialize(Topology *top, Property *options) {
     }
 
 
-    this->ParseEnergiesXML(top, options);
+    // this->ParseEnergiesXML(top, options);
 
 }
 

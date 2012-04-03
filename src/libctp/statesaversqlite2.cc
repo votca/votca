@@ -240,10 +240,10 @@ void StateSaverSQLite2::WriteSegments(bool update) {
     else {
         stmt = _db.Prepare("UPDATE segments "
                            "SET "
-                           "lI_AN = ?, lI_NA = ?, lI_CN = ?,"
-                           "lI_NC = ?, eI_A = ?, eI_C = ?,"
+                           "UnCnNe = ?, UnCnNh = ?, UcNcCe = ?,"
+                           "UcNcCh = ?, UcCnNe = ?, UcCnNh = ?,"
                            "eAnion = ?, eNeutral = ?, eCation = ?, "
-                           "occPe = ?, occPh = ? "
+                           "occPe = ?, occPh = ?, has_e = ?, has_h = ? "
                            "WHERE top = ? AND id = ?");
     }
 
@@ -267,20 +267,26 @@ void StateSaverSQLite2::WriteSegments(bool update) {
         }
 
         else {
-            double not_used = 0.0;
-            stmt->Bind(1, not_used);
-            stmt->Bind(2, not_used);
-            stmt->Bind(3, not_used);
-            stmt->Bind(4, not_used);
-            stmt->Bind(5, seg->getESiteIntra(-1)); // -1 <=> Anionic state
-            stmt->Bind(6, seg->getESiteIntra(1));  // +1 <=> Cationic state
+
+            int has_e = (seg->hasState(-1)) ? 1 : 0;
+            int has_h = (seg->hasState(+1)) ? 1 : 0;
+
+            stmt->Bind(1, seg->getU_nC_nN(-1));
+            stmt->Bind(2, seg->getU_nC_nN(+1));
+            stmt->Bind(3, seg->getU_cN_cC(-1));
+            stmt->Bind(4, seg->getU_cN_cC(+1));
+            stmt->Bind(5, seg->getU_cC_nN(-1));
+            stmt->Bind(6, seg->getU_cC_nN(+1));
             stmt->Bind(7, seg->getEMpoles(-1));
             stmt->Bind(8, seg->getEMpoles(0));
             stmt->Bind(9, seg->getEMpoles(1));
             stmt->Bind(10,seg->getOcc(-1));
-            stmt->Bind(11,seg->getOcc(1));
-            stmt->Bind(12, _qmtop->getDatabaseId());
-            stmt->Bind(13, seg->getId());
+            stmt->Bind(11,seg->getOcc(+1));
+            stmt->Bind(12,has_e);
+            stmt->Bind(13,has_h);
+            
+            stmt->Bind(14, _qmtop->getDatabaseId());
+            stmt->Bind(15, seg->getId());
         }
 
         stmt->InsertStep();
@@ -654,10 +660,10 @@ void StateSaverSQLite2::ReadSegments(int topId) {
 
     Statement *stmt = _db.Prepare("SELECT name, type, mol, "
                                   "posX, posY, posZ, "
-                                  "lI_AN, lI_NA, lI_CN,"
-                                  "lI_NC, eI_A, eI_C,"
+                                  "UnCnNe, UnCnNh, UcNcCe,"
+                                  "UcNcCh, UcCnNe, UcCnNh,"
                                   "eAnion, eNeutral, eCation, "
-                                  "occPe, occPh "
+                                  "occPe, occPh, has_e, has_h "
                                   "FROM segments "
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
@@ -681,22 +687,30 @@ void StateSaverSQLite2::ReadSegments(int topId) {
         double  e5   = stmt->Column<double>(14);
         double  o1   = stmt->Column<double>(15);
         double  o2   = stmt->Column<double>(16);
+        int     he   = stmt->Column<int>(17);
+        int     hh   = stmt->Column<int>(18);
+
+        bool has_e = (he == 1) ? true : false;
+        bool has_h = (hh == 1) ? true : false;
 
         Segment *seg = _qmtop->AddSegment(name);
         seg->setMolecule(_qmtop->getMolecule(mId));
         seg->setType(_qmtop->getSegmentType(type));
         seg->setPos(vec(X, Y, Z));
-        seg->setLambdaIntra(-1, 0, l1);
-        seg->setLambdaIntra(0, -1, l2);
-        seg->setLambdaIntra(1, 0, l3);
-        seg->setLambdaIntra(0, 1, l4);
-        seg->setESiteIntra(-1, e1);
-        seg->setESiteIntra(1, e2);
+        seg->setU_nC_nN(l1, -1);
+        seg->setU_nC_nN(l2, +1);
+        seg->setU_cN_cC(l3, -1);
+        seg->setU_cN_cC(l4, +1);
+        seg->setU_cC_nN(e1, -1);
+        seg->setU_cC_nN(e2, +1);
         seg->setEMpoles(-1, e3);
         seg->setEMpoles(0, e4);
         seg->setEMpoles(1, e5);
-        seg->setOcc(-1, o1);
-        seg->setOcc( 1, o2);
+        seg->setOcc(o1, -1);
+        seg->setOcc(o2, +1);
+        seg->setHasState(has_e, -1);
+        seg->setHasState(has_h, +1);
+
 
         seg->getMolecule()->AddSegment(seg);
     }
