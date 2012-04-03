@@ -124,7 +124,6 @@ event_t *VSSMGroup<event_t>::SelectEvent_BinarySearch()
 {
 	double u = 1.-Random::rand_uniform();
 	u=u*Rate();
-        cout << "u=" << u << endl;
 	double max = Rate();
 	// to a binary search in accumulated events
 	int imin=0;
