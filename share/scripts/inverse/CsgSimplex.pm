@@ -156,6 +156,8 @@ sub get_convergence_value(\@$) {
     }
     case "second" {
       my $ivalue=get_convergence_value(@simplex_table,"ihighest");
+      # in case we do simplex on one parameter
+      return $simplex_table[$ivalue][-2] if ($#simplex_table == 2);
       my $value=undef;
       for (my $i=0;$i<=$#simplex_table;$i++) {
 	next if ($simplex_table[$i][-1] =~ /^(try|tryold)$/);
