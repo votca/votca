@@ -29,7 +29,7 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol)
+  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
   [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
 
   ext=$(csg_get_property cg.inverse.gromacs.traj_type)
@@ -48,7 +48,7 @@ if is_done "imc_analysis"; then
   echo "IMC analysis is already done"
 else
   #copy+resample all target dist in $this_dir
-  for_all non-bonded do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+  for_all "non-bonded bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
   critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
         --begin $equi_time --first-frame $first_frame --nt $tasks

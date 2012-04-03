@@ -36,7 +36,11 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
    #update ibi
    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
    do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_ibi
-   do_external dpot shift_nonbonded ${name}.dpot.pure_ibi ${name}.dpot.new
+   if [[ $(csg_get_interaction_property bondtype) = "non-bonded" ]]; then
+     do_external dpot shift_nonbonded ${name}.dpot.pure_ibi ${name}.dpot.new
+   else
+     do_external dpot shift_bonded ${name}.dpot.pure_ibi ${name}.dpot.new
+   fi
 else
    echo "Update potential ${name} : no"
    min=$(csg_get_interaction_property min)

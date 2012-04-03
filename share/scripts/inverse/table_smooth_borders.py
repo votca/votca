@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #

@@ -117,7 +117,7 @@ my $comments2;
 
 $#r1 == $#r2 || die "$progname: error, tables have different length";
 
-sub difference($$$) {
+sub difference_relative($$$) {
   defined($_[2]) || die "difference: Missing argument\n";
   my $x=$_[0];
   my $y=$_[1];
@@ -144,12 +144,12 @@ sub operation($$$) {
       return $val;
     }
     case "=" {
-      my $diff=&difference($x,$y,$epsilon);
+      my $diff=&difference_relative($x,$y,$epsilon);
       return 1 if ($diff > $epsilon);
       return 0;
     }
     case "d" {
-      return &difference($x,$y,$epsilon);
+      return abs($x-$y);
     } 
     else {
       die "operation: Unknown operation $op\n";

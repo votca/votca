@@ -15,3 +15,4 @@ foreach(PROG template_serial template_threaded)
 endforeach(PROG)
 
 install(FILES CMakeLists.txt.template DESTINATION ${DATA}/template RENAME CMakeLists.txt)
+install(FILES Makefile.template DESTINATION ${DATA}/template RENAME Makefile)

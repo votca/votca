@@ -25,4 +25,4 @@ EOF
    exit 0
 fi
 
-for_all non-bonded do_external update tf_single
+for_all "non-bonded bonded" do_external update tf_single

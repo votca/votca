@@ -29,8 +29,9 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-tpr="$(csg_get_property cg.inverse.gromacs.g_energy.topol)"
-[[ -f $tpr ]] || die "${0##*/}: Gromacs tpr file '$tpr' not found"
+topol=$(csg_get_property cg.inverse.gromacs.topol_out)
+topol="$(csg_get_property cg.inverse.gromacs.g_energy.topol "${topol}")"
+[[ -f $topol ]] || die "${0##*/}: Gromacs tpr file '$topol' not found"
 
 g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin)"
 [[ -n "$(type -p ${g_energy})" ]] || die "${0##*/}: g_energy binary '$g_energy' not found"
@@ -41,7 +42,7 @@ opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.opts)"
 begin="$(calc_begin_time)"
 
 echo "Running ${g_energy}"
-output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${tpr}" ${opts})
+output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${topol}" ${opts})
 echo "$output"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 p_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \

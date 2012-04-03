@@ -29,6 +29,7 @@ fi
 
 from="$(csg_get_property cg.inverse.initial_configuration)"
 conf="$(csg_get_property cg.inverse.gromacs.conf)"
+echo "Using intial configuration from $from"
 if [[ $from = "laststep" ]]; then
   confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
   #avoid overwriting $confout
@@ -40,7 +41,7 @@ else
 fi
 
 #convert potential in format for sim_prog
-for_all non-bonded do_external convert_potential gromacs
+for_all "non-bonded bonded" do_external convert_potential gromacs --r2d
 
 check_temp || die "${0##*/}: check of tempertures failed"
 

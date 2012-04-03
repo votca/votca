@@ -74,7 +74,7 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
     critical cp table*.xvg ./pre_simulation
     cp=0
     for i in mdp topol index; do
-      f="$(csg_get_property "cg.inverse.gromacs.pre_simulation.$i" "${!i}")"
+      f="$(csg_get_property "cg.inverse.gromacs.pre_simulation.$i" "${!i}")" #filter me away
       [[ $f != ${!i} ]] && ((cp++))
       critical cp "${f}" "./pre_simulation/${!i}"
     done

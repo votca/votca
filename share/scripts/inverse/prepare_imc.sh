@@ -29,4 +29,6 @@ msg --color blue "####################################################"
 msg --color blue "# WARNING multicomponent imc is still experimental #"
 msg --color blue "####################################################"
 
+[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && die "IMC does not support bonded interaction, go and implement it"
+
 do_external prepare generic

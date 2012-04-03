@@ -42,7 +42,6 @@ my $state;
 my $comments;
 my $parameter_names="not in state file";
 (readin_simplex_state($ARGV[0],$state,@simplex_table,$comments,$parameter_names)) || die "$progname: error at readin_simplex_table\n";
-sort_simplex_table(@simplex_table); #this is assumed below
 print "We are in state $state with parameters ($parameter_names):\n";
 for (my $i=0;$i<=$#simplex_table;$i++){
   print "@{$simplex_table[$i]}\n";
@@ -52,11 +51,12 @@ my $highest=get_convergence_value(@simplex_table,"highest");
 my $second_highest=get_convergence_value(@simplex_table,"second");
 my $lowest=get_convergence_value(@simplex_table,"lowest");
 my $try=get_convergence_value(@simplex_table,"try");
+print "values: $highest (highest), $second_highest (2nd highest), $lowest (lowest), $try (try)\n";
 my $next_state;
 switch($state){
   case "Initialization" {
     replace_parameter_flag(@simplex_table,"try","complete");
-    $next_state="Reflection"; 
+    $next_state="Reflection";
   }
   case "Reflection" {
     if ($try < $lowest) {
@@ -68,13 +68,13 @@ switch($state){
       if ($try > $highest ) {
         remove_parameter_set(@simplex_table,"try");
       } else {
-        pop(@simplex_table); #remove highest
         replace_parameter_flag(@simplex_table,"try","complete");
+        remove_parameter_set(@simplex_table,"highest");
       }
     } else { #$try is between $lowest and $second_highest
       $next_state="Reflection";
       replace_parameter_flag(@simplex_table,"try","complete");
-      pop(@simplex_table); #remove highest
+      remove_parameter_set(@simplex_table,"highest");
     }
   }
   case "Expansion" {
@@ -83,17 +83,17 @@ switch($state){
     if ($try < $tryold) { #tryold is the reflection point from before
       remove_parameter_set(@simplex_table,"tryold");
       replace_parameter_flag(@simplex_table,"try","complete");
-      pop(@simplex_table); #remove highest
+      remove_parameter_set(@simplex_table,"highest");
     } else {
       remove_parameter_set(@simplex_table,"try");
       replace_parameter_flag(@simplex_table,"tryold","complete");
-      pop(@simplex_table); #remove highest
+      remove_parameter_set(@simplex_table,"highest");
     }
   }
   case "Contraction" {
     if ($try < $highest) {
       replace_parameter_flag(@simplex_table,"try","complete");
-      pop(@simplex_table); #remove highest
+      remove_parameter_set(@simplex_table,"highest");
       $next_state="Reflection";
     } else {
       $next_state="Reduction";
@@ -104,14 +104,14 @@ switch($state){
     replace_parameter_flag(@simplex_table,"try","complete");
     $next_state="Reflection";
   }
-  else { 
-    die "$progname: Unknown state '$state'\n"; 
+  else {
+    die "$progname: Unknown state '$state'\n";
   }
 }
 
-sort_simplex_table(@simplex_table);
 switch($next_state) {
   case "Reflection" {
+    sort_simplex_table(@simplex_table);
     my @center_parameter=calc_parameter_center(@simplex_table);
     my @highest_parameter=@{$simplex_table[$#simplex_table]};
     my @try_paramter=linop_parameter(@center_parameter,$alpha,@center_parameter,@highest_parameter);
@@ -119,26 +119,29 @@ switch($next_state) {
   }
   case "Expansion" {
     my @tryold_parameter=remove_parameter_set(@simplex_table,"tryold"); #this should not go into the center
+    sort_simplex_table(@simplex_table);
     my @center_parameter=calc_parameter_center(@simplex_table);
     my @highest_parameter=@{$simplex_table[$#simplex_table]};
     my @try_paramter=linop_parameter(@center_parameter,$gamma,@center_parameter,@highest_parameter);
     push(@simplex_table,\@try_paramter,\@tryold_parameter);
   }
   case "Contraction" {
+    sort_simplex_table(@simplex_table);
     my @center_parameter=calc_parameter_center(@simplex_table);
     my @highest_parameter=@{$simplex_table[$#simplex_table]};
     my @try_paramter=linop_parameter(@highest_parameter,$rho,@center_parameter,@highest_parameter);
     push(@simplex_table,\@try_paramter);
   }
   case "Reduction" {
+    sort_simplex_table(@simplex_table);
     my @lowest_parameter=@{$simplex_table[0]};
     for (my $i=1; $i<=$#simplex_table;$i++) {
       my @try_paramter=linop_parameter(@lowest_parameter,$sigma,@{$simplex_table[$i]},@lowest_parameter);
       $simplex_table[$i]=\@try_paramter;
     }
   }
-  else { 
-    die "$progname: Unknown state '$next_state'\n"; 
+  else {
+    die "$progname: Unknown state '$next_state'\n";
   }
 }
 
