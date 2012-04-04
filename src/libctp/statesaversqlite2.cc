@@ -483,6 +483,8 @@ void StateSaverSQLite2::WritePairs(bool update) {
                 stmt->Bind(5, 0);
                 stmt->Bind(6, 0);
                 stmt->Bind(7, pair->calcJeff2());
+                stmt->Bind(8, pair->getTopology()->getDatabaseId());
+                stmt->Bind(9, pair->getId());
 
                 // If both hole + electron
                 // stmt->Bind(1, pair->getLambdaO(-1));

@@ -190,7 +190,7 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
         }
     }
     
-    //_morb1->write_pdb("morbs.pdb", "MOL", 1);
+    morb1->write_pdb("morbs.pdb", "MOL", 0);
 
     
     // ++++++++++++++++++++++++++++++++++++++++ //
@@ -231,6 +231,8 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
                                     morb2->getorb(i), i);
         }
     }
+    
+    morb2->write_pdb("morbs.pdb", "MOL", 1);
 
     // ++++++++++++++++++++++++++++ //
     // Calculate transfer integrals //
