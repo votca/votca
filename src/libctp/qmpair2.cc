@@ -39,16 +39,27 @@ QMPair2::QMPair2(int id, Segment *seg1, Segment *seg2)
 }
 
 
-double &QMPair2::getLambdaO(int carrier) {
-    return _lambdasO.at(carrier);
+double QMPair2::getLambdaO(int carrier) {
+    try { return _lambdasO.at(carrier); }
+    catch (out_of_range) {
+        return 0.0;
+    }
 }
 
-double &QMPair2::getRate12(int carrier) {
-    return _rates12.at(carrier);
+double QMPair2::getRate12(int carrier) {
+    try {
+        return _rates12.at(carrier);
+    }
+    catch (out_of_range) {
+        return 0.0;
+    }    
 }
 
-double &QMPair2::getRate21(int carrier) {
-    return _rates21.at(carrier);
+double QMPair2::getRate21(int carrier) {
+    try { return _rates21.at(carrier); }
+    catch (out_of_range) {
+        return 0.0; 
+    }
 }
 
 void QMPair2::setLambdaO(int carrier, double lbd) {
@@ -68,7 +79,7 @@ void QMPair2::setRate21(int carrier, double rate) {
 
 double QMPair2::calcJeff2() {
     vector <double> ::iterator it;
-    double Jeff2 = 0;
+    double Jeff2 = 0.;
     for (it = _Js.begin(); it < _Js.end(); it++) {
         Jeff2 += (*it)*(*it);
     }

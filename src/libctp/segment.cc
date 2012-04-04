@@ -84,12 +84,16 @@ void Segment::TranslateBy(const vec &shift) {
 }
 
 
-void Segment::setOcc(int carrier, double occ) {
-    _hasOccProb = true;
-    _occProb[carrier] = occ;
+void Segment::setOcc(int e_h, double occ) {
+    if (e_h == -1) {
+        _occ_e = occ;
+    }
+    else {
+        _occ_h = occ;
+    }
 }
-const double &Segment::getOcc(int carrier) {
-    return _occProb.at(carrier);
+const double &Segment::getOcc(int e_h) {
+    return (e_h == -1) ? _occ_e : _occ_h;
 }
 
 void Segment::setESiteIntra(int carrier, double energy) {
@@ -123,20 +127,6 @@ const double &Segment::getEMpoles(int state) {
     return _eMpoles[state+1];
 }
 
-
-void Segment::AddChrgState(int state, bool yesno) {
-    _hasChrgState.resize(3);
-    _hasChrgState[state+1] = yesno;
-}
-
-void Segment::chrg(int state) {
-    vector < Atom* > ::iterator ait;
-    for (ait = this->Atoms().begin();
-            ait < this->Atoms().end();
-            ait++) {
-        (*ait)->chrg(state);
-    }
-}
 
 void Segment::AddFragment( Fragment* fragment ) {
     _fragments.push_back( fragment );
