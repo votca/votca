@@ -7,6 +7,8 @@
 
 namespace votca { namespace ctp {
 
+namespace MOO = votca::moo;
+
 /**
 * \brief Semi-empirical electronic coupling elements for QM pairs
 *
@@ -36,13 +38,13 @@ public:
 
 private:
 
-    mol_and_orb *_morb1;
-    mol_and_orb *_morb2;
-    basis_set   *_basis1;
-    basis_set   *_basis2;
-    orb         *_orb1;
-    orb         *_orb2;
-    fock        *_fock;
+    MOO::mol_and_orb *_morb1;
+    MOO::mol_and_orb *_morb2;
+    MOO::basis_set   *_basis1;
+    MOO::basis_set   *_basis2;
+    MOO::orb         *_orb1;
+    MOO::orb         *_orb2;
+    MOO::fock        *_fock;
 
     vector<int> _torbNrs1;
     vector<int> _torbNrs2;
@@ -248,13 +250,13 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot, int state) {
     //vector<int> torbs1 = type1->getTOrbNrs();
     //vector<int> torbs2 = type2->getTOrbNrs();
     
-    mol_and_orb *morb1 = new mol_and_orb();
-    mol_and_orb *morb2 = new mol_and_orb();
-    basis_set *basis1 = new basis_set();
-    basis_set *basis2 = new basis_set();
-    orb *orb1   = new orb();
-    orb *orb2   = new orb();
-    fock *fock12   = new fock();
+    MOO::mol_and_orb *morb1 = new MOO::mol_and_orb();
+    MOO::mol_and_orb *morb2 = new MOO::mol_and_orb();
+    MOO::basis_set *basis1 = new MOO::basis_set();
+    MOO::basis_set *basis2 = new MOO::basis_set();
+    MOO::orb *orb1   = new MOO::orb();
+    MOO::orb *orb2   = new MOO::orb();
+    MOO::fock *fock12   = new MOO::fock();
 
     vector<int> torbNrs1;
     vector<int> torbNrs2;

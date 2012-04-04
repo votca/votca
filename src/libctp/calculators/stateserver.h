@@ -2,7 +2,7 @@
 #define __STATESERVER_H
 
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/qmcalculator2.h>
 
 
 
