@@ -498,20 +498,8 @@ void StateSaverSQLite2::WritePairs(bool update) {
 
             cout << "\r " << pair->getId() << flush;
 
-<<<<<<< local
-                stmt->Bind(1, pair->getLambdaO());
-                stmt->Bind(2, 0);
-                stmt->Bind(3, pair->getRate12());
-                stmt->Bind(4, pair->getRate21());
-                stmt->Bind(5, 0);
-                stmt->Bind(6, 0);
-                stmt->Bind(7, pair->calcJeff2());
-                stmt->Bind(8, pair->getTopology()->getDatabaseId());
-                stmt->Bind(9, pair->getId());
-=======
                 int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
                 int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
->>>>>>> other
 
                 stmt->Bind(1, has_e);
                 stmt->Bind(2, has_h);
