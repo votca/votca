@@ -67,12 +67,12 @@
 
 <item>
 <name>topology.molecules.molecule.segments.segment.fragments.fragment.weights</name>
-<desc>These weights are used to determine the fragment center. The order should be the same as in the mdatoms and qmatoms definitions. If the mass of a nucleus in atomic mass units is used, the center of the rigid fragment will be its center of mass. </desc>
+<desc>Weights are used to determine the fragment center. The order should be the same as in the mdatoms and qmatoms definitions. If the mass of a nucleus in atomic mass units is used, the center of the rigid fragment will be its center of mass. </desc>
 </item>  
 
 <item>
 <name>topology.molecules.molecule.segments.segment.fragments.fragment.localframe</name>
-<desc>Three atoms which define local frame for each rigid fragment. </desc>
+<desc>Three atoms which define a local frame for each rigid fragment. </desc>
 </item>
 
 </tags>
