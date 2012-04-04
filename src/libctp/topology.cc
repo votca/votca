@@ -264,7 +264,7 @@ bool Topology::Rigidify() {
             }
 
           cout << endl
-               << "... ... Rigidified " << this->NBList().size() << " ghosts. "
+               << "... ... Rigidified " << count << " ghosts. "
                << flush;
         }
 

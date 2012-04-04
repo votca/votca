@@ -180,8 +180,8 @@ void IZindo::EvalPair(Topology *top, QMPair2 *qmpair, int slot) {
     cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << flush;
     this->UnlockCout();
 
-    string segName1 = qmpair->Seg1PbCopy()->getName();
-    string segName2 = qmpair->Seg2PbCopy()->getName();
+    string segName1 = qmpair->Seg1()->getName();
+    string segName2 = qmpair->Seg2()->getName();
 
     bool pair_has_e = false;
     bool pair_has_h = false;
@@ -232,16 +232,16 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot, int state) {
     vector<int> torbs1;
     vector<int> torbs2;
         
-    basisName1 = _seg_basisName.at(seg1->getName());
-    basisName2 = _seg_basisName.at(seg2->getName());
+    basisName1 = _seg_basisName.at(type1->getName());
+    basisName2 = _seg_basisName.at(type2->getName());
 
-    orbFile1 = _seg_orbFile.at(seg1->getName());
-    orbFile2 = _seg_orbFile.at(seg2->getName());
+    orbFile1 = _seg_orbFile.at(type1->getName());
+    orbFile2 = _seg_orbFile.at(type2->getName());
 
-    torbs1 = (state == -1) ? _seg_torbs_e.at(seg1->getName()) :
-                             _seg_torbs_h.at(seg1->getName());
-    torbs2 = (state == -1) ? _seg_torbs_e.at(seg2->getName()) :
-                             _seg_torbs_h.at(seg2->getName());
+    torbs1 = (state == -1) ? _seg_torbs_e.at(type1->getName()) :
+                             _seg_torbs_h.at(type1->getName());
+    torbs2 = (state == -1) ? _seg_torbs_e.at(type2->getName()) :
+                             _seg_torbs_h.at(type2->getName());
     
     //string basisName1 = type1->getBasisName();
     //string basisName2 = type2->getBasisName();
@@ -392,9 +392,13 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot, int state) {
         _FockPath.Unlock();
 
         Js.push_back(J);
+        
     }}
 
     pair->setJs(Js, state);
+    pair->setIsPathCarrier(true, state);
+    //cout << endl << "Jeff2 " << pair->getJeff2(state) << " ___ state " << state << endl;
+    //cout << "path  " << pair->isPathCarrier(state) << endl;
 
     delete morb1;
     delete morb2;

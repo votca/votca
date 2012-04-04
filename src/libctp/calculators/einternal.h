@@ -13,7 +13,7 @@ public:
     EInternal() { };
    ~EInternal() { };
 
-
+    string Identify() { return "EInternal"; }
     void Initialize(Topology *top, Property *options);
     void ParseEnergiesXML(Topology *top, Property *options);
     bool EvaluateFrame(Topology *top);
@@ -158,7 +158,7 @@ void EInternal::ParseEnergiesXML(Topology *top, Property *opt) {
 bool EInternal::EvaluateFrame(Topology *top) {
 
     vector< Segment* > ::iterator sit;
-
+    int count = 0;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
         string segName = (*sit)->getName();
@@ -171,6 +171,8 @@ bool EInternal::EvaluateFrame(Topology *top) {
                          << segName << "]. Skipping... ";
             continue;
         }
+
+        ++count;
 
         if (_seg_has_e[segName]) {
 
@@ -198,6 +200,11 @@ bool EInternal::EvaluateFrame(Topology *top) {
             (*sit)->setHasState(has_h, +1);
         }
     }
+
+    cout << endl
+         << "... ... Read in site, reorg. energies for " 
+         << count << " segments. " << flush;
+
 
     return 1;
 }

@@ -221,7 +221,7 @@ void Rates2::ParseEnergiesXML(Topology *top, Property *opt) {
 
 void Rates2::EvaluatePair(Topology *top, QMPair2 *qmpair) {
 
-    cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << flush;
+    cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << ". " << flush;
 
     bool pair_has_e = false;
     bool pair_has_h = false;
@@ -229,17 +229,20 @@ void Rates2::EvaluatePair(Topology *top, QMPair2 *qmpair) {
     string segName1 = qmpair->first->getName();
     string segName2 = qmpair->second->getName();
 
-    try {
-        pair_has_e = _seg_has_e.at(segName1) && _seg_has_e.at(segName2);
-        pair_has_h = _seg_has_h.at(segName1) && _seg_has_h.at(segName2);
-    }
-    catch (out_of_range) {
-        cout << endl << "... ... WARNING: No energy information for pair ["
-                     << segName1 << ", " << segName2 << "]. "
-                     << "Skipping... " << endl;
+    pair_has_e = qmpair->isPathCarrier(-1);
+    pair_has_h = qmpair->isPathCarrier(+1);
 
-        return;
-    }
+//    try {
+//        pair_has_e = _seg_has_e.at(segName1) && _seg_has_e.at(segName2);
+//        pair_has_h = _seg_has_h.at(segName1) && _seg_has_h.at(segName2);
+//    }
+//    catch (out_of_range) {
+//        cout << endl << "... ... WARNING: No energy information for pair ["
+//                     << segName1 << ", " << segName2 << "]. "
+//                     << "Skipping... " << endl;
+//
+//        return;
+//    }
 
     if (pair_has_e) {
         this->CalculateRate(top, qmpair, -1);
@@ -259,15 +262,24 @@ void Rates2::CalculateRate(Topology *top, QMPair2 *qmpair, int state) {
     Segment *seg2 = qmpair->second;
 
     double rate12 = 0.;                                       // 1->2
+
     double rate21 = 0.;                                       // 2->1
 
-    double reorg12  = 0.0;                                    // 1->2
-    double reorg21  = 0.0;                                    // 2->1
+    double reorg12  = seg1->getU_nC_nN(state)                 // 1->2
+                    + seg2->getU_cN_cC(state);
+    double reorg21  = seg1->getU_cN_cC(state)                 // 2->1
+                    + seg2->getU_nC_nN(state);
     double lOut     = qmpair->getLambdaO(state);              // 1->2 == + 2->1
-    double dG_Site  = 0.0;                                    // 1->2 == - 2->1
+
+    double dG_Site  = seg2->getU_cC_nN(state)                 // 1->2 == - 2->1
+                    + seg2->getEMpoles(state)
+                    - seg1->getU_cC_nN(state)
+                    - seg1->getEMpoles(state);
     double dG_Field = - state * _F * qmpair->R() * NM2M;      // 1->2 == - 2->1
+
     double J2 = qmpair->getJeff2(state);                      // 1->2 == + 2->1
 
+    /*
     if (state == -1) {
 
         // Charge hops Seg1 -> Seg2
@@ -297,6 +309,7 @@ void Rates2::CalculateRate(Topology *top, QMPair2 *qmpair, int state) {
         dG_Site = _seg_U_cC_nN_h[seg2->getName()] + seg2->getEMpoles(state)
                 - _seg_U_cC_nN_h[seg1->getName()] - seg1->getEMpoles(state);
     }
+    */
 
     double dG = dG_Field + dG_Site;
 
@@ -354,10 +367,10 @@ void Rates2::CalculateRate(Topology *top, QMPair2 *qmpair, int state) {
         reorg21 = reorg21 + lOut;
 
         rate12 = J2 / hbar_eV * sqrt( M_PI / (reorg12*_kT) )
-                * exp( - (+dG + reorg12)*(+dG + reorg12) / (4*_kT*reorg12) );
+                * exp( - (+dG - reorg12)*(+dG - reorg12) / (4*_kT*reorg12) );
 
         rate21 = J2 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
-                * exp( - (-dG + reorg21)*(-dG + reorg21) / (4*_kT*reorg21) );
+                * exp( - (-dG - reorg21)*(-dG - reorg21) / (4*_kT*reorg21) );
     }
 
     qmpair->setRate12(rate12, state);

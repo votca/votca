@@ -595,7 +595,7 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
  */
 void EMultipole2::EStatify(Topology *top, Property *options) {
 
-    cout << endl << "... ... Estatify system";
+    cout << endl << "... ... Estatify system: ";
 
     string key = "options.emultipole";
     string allocFile = options->get(key+".multipoles").as<string> ();
@@ -960,9 +960,12 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
     }
     else { cout << endl << "ERROR: No such file " << filename << endl; }
 
+    cout << endl << "... ... ... Reading " << filename <<
+                    ": Q0(Total) = " << Q0_total << flush;
+
     if (useDefaultPs) {
 
-        cout << endl << "... ... NOTE Using default Thole polarizabilities "
+        cout << endl << "... ... ... NOTE Using default Thole polarizabilities "
              << "for charge state " << state << ". ";
 
         vector< PolarSite* > ::iterator pol;
@@ -986,9 +989,6 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
             (*pol)->setPs(alpha, state);
         }
     }
-
-    cout << endl << "... ... Reading " << filename <<
-                    ": Q0(Total) = " << Q0_total << flush;
 
     return poles;
     
