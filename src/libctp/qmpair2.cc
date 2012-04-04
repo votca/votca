@@ -7,16 +7,17 @@ QMPair2::~QMPair2() {
     if (_ghost != NULL) {
         delete _ghost; _ghost = NULL;
     }
-    _lambdasO.clear();
-    _rates12.clear();
-    _rates21.clear();
-    _hasCarrier.clear();
 }
 
 
 QMPair2::QMPair2(int id, Segment *seg1, Segment *seg2)
         : _id(id), std::pair<Segment*, Segment*>(seg1, seg2),
-          _hasGhost(0), _lambdaO(0), _rate12(0), _rate21(0) {
+          _hasGhost(0),
+          _rate12_e(0), _rate21_e(0),
+          _rate12_h(0), _rate21_h(0),
+          _has_e(false), _has_h(false),
+          _lambdaO_e(0), _lambdaO_h(0),
+          _Jeff2_e(0),   _Jeff2_h(0) {
 
     _top = seg1->getTopology();
 
@@ -39,52 +40,138 @@ QMPair2::QMPair2(int id, Segment *seg1, Segment *seg2)
 }
 
 
-double QMPair2::getLambdaO(int carrier) {
-    try { return _lambdasO.at(carrier); }
-    catch (out_of_range) {
-        return 0.0;
-    }
+double QMPair2::getLambdaO(int state) {
+
+    return (state == -1) ? _lambdaO_e : _lambdaO_h;
 }
 
 double QMPair2::getRate12(int carrier) {
-    try {
-        return _rates12.at(carrier);
-    }
-    catch (out_of_range) {
-        return 0.0;
-    }    
+
+    return (carrier == -1) ? _rate12_e : _rate12_h;
+
 }
 
 double QMPair2::getRate21(int carrier) {
-    try { return _rates21.at(carrier); }
-    catch (out_of_range) {
-        return 0.0; 
+
+    return (carrier == -1) ? _rate21_e : _rate21_h;
+
+}
+
+void QMPair2::setLambdaO(double lO, int state) {
+
+    if (state == -1) {
+        _lambdaO_e = lO;
+    }
+    else if (state == +1) {
+        _lambdaO_h = lO;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whx__01l1o__");
+    }
+    
+
+}
+
+void QMPair2::setRate12(double rate, int state) {
+
+    if (state == -1) {
+        _rate12_e = rate;
+    }
+    else if (state == +1) {
+        _rate12_h = rate;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whx__01v1s__");
     }
 }
 
-void QMPair2::setLambdaO(int carrier, double lbd) {
-    _lambdasO[carrier] = lbd;
-    _hasLambdaO = true;
+void QMPair2::setRate21(double rate, int state) {
+
+    if (state == -1) {
+        _rate21_e = rate;
+    }
+    else if (state == +1) {
+        _rate21_h = rate;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whx__01w1t__");
+    }
 }
 
-void QMPair2::setRate12(int carrier, double rate) {
-    _rates12[carrier] = rate;
-    _hasRates = true;
+void QMPair2::setIsPathCarrier(bool yesno, int carrier) {
+
+    if (carrier == -1) {
+        _has_e = yesno;
+    }
+    else if (carrier == +1) {
+        _has_h = yesno;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whx__01p1r__");
+    }
 }
 
-void QMPair2::setRate21(int carrier, double rate) {
-    _rates21[carrier] = rate;
-    _hasRates = true;
+bool QMPair2::isPathCarrier(int carrier) {
+
+    return (carrier == -1) ? _has_e : _has_h;
 }
 
-double QMPair2::calcJeff2() {
+
+void QMPair2::setJs(const vector<double> Js, int state) {
+
+    if (state == -1) {
+        this->_Js_e = Js;
+        this->calcJeff2(state);
+    }
+    else if (state == +1) {
+        this->_Js_h = Js;
+        this->calcJeff2(state);
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whx__01x1u__");
+    }
+}
+
+
+double QMPair2::calcJeff2(int state) {
+
     vector <double> ::iterator it;
-    double Jeff2 = 0.;
-    for (it = _Js.begin(); it < _Js.end(); it++) {
-        Jeff2 += (*it)*(*it);
+    double Jeff2 = 0.0;
+
+    if (state == -1) {
+        for (it = _Js_e.begin(); it < _Js_e.end(); it++) {
+            Jeff2 += (*it)*(*it);
+        }
+        Jeff2 /= double(_Js_e.size());
+        _Jeff2_e = Jeff2;
     }
-    Jeff2 /= double(_Js.size());
+
+    else if (state == +1) {
+        for (it = _Js_h.begin(); it < _Js_h.end(); it++) {
+            Jeff2 += (*it)*(*it);
+        }
+        Jeff2 /= double(_Js_h.size());
+        _Jeff2_h = Jeff2;
+    }
+
+    else {
+        throw std::runtime_error(" ERROR CODE whx__01y1v__");
+    }
+    
     return Jeff2;
+}
+
+void QMPair2::setJeff2(double Jeff2, int state) {
+
+    if (state == -1) {
+        _Jeff2_e = Jeff2;
+    }
+    else if (state == +1) {
+        _Jeff2_h = Jeff2;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whx__01s1j__");
+    }
 }
 
 Segment *QMPair2::Seg2PbCopy() {

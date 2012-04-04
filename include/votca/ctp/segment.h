@@ -46,25 +46,23 @@ public:
     void             calcPos();
     void             TranslateBy(const vec &shift);
 
+    void             setHasState(bool yesno, int e_h);
     bool             hasState(int e_h);
 
-    const double    &getOcc(int e_h);
-    void             setOcc(int e_h, double occ);
-    bool             hasOccProb() { return _hasOccProb; }
+    const double     getOcc(int e_h);
+    void             setOcc(double occ, int e_h);
 
-    const double    &getESite(int e_h);
-    const double    &getESiteIntra(int e_h);
-    void             setESiteIntra(int e_h, double energy);
-    bool             hasEIntra() { return _hasESiteIntra; }
+    void             setU_cC_nN(double dU, int state);
+    void             setU_nC_nN(double dU, int state);
+    void             setU_cN_cC(double dU, int state);
+    const double     getU_cC_nN(int state);
+    const double     getU_nC_nN(int state);
+    const double     getU_cN_cC(int state);
 
-    const double    &getLambdaIntra(int state0, int state1);
-    void             setLambdaIntra(int state0, int state1, double lambda);
-    bool             hasLambda() { return _hasLambdas; }
-
-    const double    &getEMpoles(int e_h);
+    const double     getEMpoles(int e_h);
     void             setEMpoles(int e_h, double energy);
     bool             hasChrgState(int e_h) { return _hasChrgState[e_h+1]; }
-    void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno; }
+    void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno;}
 
     inline void      setTopology(Topology *container) { _top = container; }
     Topology        *getTopology() { return _top; }
@@ -100,44 +98,29 @@ private:
     vec         _CoM;
 
 
-    double _eSiteIntra_e;
-    double _eSiteIntra_h;
+    double _U_cC_nN_e;   // from ::EInternal     input     DEFAULT 0
+    double _U_cC_nN_h;
 
-    double _lambdaIntra_e;
-    double _lambdaIntra_h;
+    double _U_nC_nN_e;   // from ::EInternal     input     DEFAULT 0
+    double _U_nC_nN_h;
 
-    double _ePolar_e;
+    double _U_cN_cC_e;   // from ::EInternal     input     DEFAULT 0
+    double _U_cN_cC_h;
+
+    double _ePolar_e;    // from ::EMultipole    output    DEFAULT 0
     double _ePolar_h;
 
-    double _occ_e;
+    double _occ_e;       // from ::KMC           output    DEFAULT 0
     double _occ_h;
 
-    bool   _has_e;
+    bool   _has_e;       // from ::EInternal     input     DEFAULT 0
     bool   _has_h;
 
-
-    map< int, double > _eSiteIntra;
-    //   +1(=> h)     E(CAtion) - E(Neutral)
-    //   -1(=> e)     E(Anion)  - E(Neutral)
-    bool _hasESiteIntra;
-
-    map< int, map < int, double > > _lambdasIntra;
-    //   +1(=> h)    0   lambdaCN = UnC - UnN (dischrg)
-    //   -1(=> e)    0   lambdaAN = UnA - UnN (dischrg)
-    //    0         +1   lambdaNC = UcN - UcC (chrg)
-    //    0         -1   lambdaNA = UaN - UaA (chrg)
-    bool _hasLambdas;
 
     vector< double > _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
     vector<bool> _hasChrgState;
-
-    map< int,       double >      _occProb;
-    //   +1(=> h)   occ.prob. for hole
-    //   -1(=> e)   occ.prob. for electron
-    bool _hasOccProb;
-
 
     map<int, vec> _intCoords;
     // qmid => position

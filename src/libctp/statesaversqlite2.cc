@@ -198,14 +198,16 @@ void StateSaverSQLite2::WriteSegTypes(bool update) {
             stmt->Bind(6, type->getOrbitalsFile());            
 
             // Process transporting-orbital numbers
-            string torbNrs = "";
-            vector <int> ::iterator iit;
-            for (int i = 0; i < type->getTOrbNrs().size(); i++) {
-                int    nrInt = (type->getTOrbNrs())[i];
-                string nrStr = boost::lexical_cast<string>(nrInt);
-                torbNrs += ":" + nrStr;
-            }
-            stmt->Bind(7, torbNrs);
+            // NOTE Obsolete, now read in only for IZindo calculator
+            // string torbNrs = "";
+            // vector <int> ::iterator iit;
+            // for (int i = 0; i < type->getTOrbNrs().size(); i++) {
+            //     int    nrInt = (type->getTOrbNrs())[i];
+            //     string nrStr = boost::lexical_cast<string>(nrInt);
+            //     torbNrs += ":" + nrStr;
+            // }
+            string torbStr = "NOT_USED";
+            stmt->Bind(7, torbStr);
             stmt->Bind(8, type->getQMCoordsFile());
 
             int canRigid = 0;
@@ -238,10 +240,10 @@ void StateSaverSQLite2::WriteSegments(bool update) {
     else {
         stmt = _db.Prepare("UPDATE segments "
                            "SET "
-                           "lI_AN = ?, lI_NA = ?, lI_CN = ?,"
-                           "lI_NC = ?, eI_A = ?, eI_C = ?,"
+                           "UnCnNe = ?, UnCnNh = ?, UcNcCe = ?,"
+                           "UcNcCh = ?, UcCnNe = ?, UcCnNh = ?,"
                            "eAnion = ?, eNeutral = ?, eCation = ?, "
-                           "occPe = ?, occPh = ? "
+                           "occPe = ?, occPh = ?, has_e = ?, has_h = ? "
                            "WHERE top = ? AND id = ?");
     }
 
@@ -265,19 +267,26 @@ void StateSaverSQLite2::WriteSegments(bool update) {
         }
 
         else {
-            stmt->Bind(1, seg->getLambdaIntra(1,0));
-            stmt->Bind(2, seg->getLambdaIntra(0,1));
-            stmt->Bind(3, seg->getLambdaIntra(-1,0));
-            stmt->Bind(4, seg->getLambdaIntra(0,-1));
-            stmt->Bind(5, seg->getESiteIntra(-1)); // -1 <=> Anionic state
-            stmt->Bind(6, seg->getESiteIntra(1));  // +1 <=> Cationic state
+
+            int has_e = (seg->hasState(-1)) ? 1 : 0;
+            int has_h = (seg->hasState(+1)) ? 1 : 0;
+
+            stmt->Bind(1, seg->getU_nC_nN(-1));
+            stmt->Bind(2, seg->getU_nC_nN(+1));
+            stmt->Bind(3, seg->getU_cN_cC(-1));
+            stmt->Bind(4, seg->getU_cN_cC(+1));
+            stmt->Bind(5, seg->getU_cC_nN(-1));
+            stmt->Bind(6, seg->getU_cC_nN(+1));
             stmt->Bind(7, seg->getEMpoles(-1));
             stmt->Bind(8, seg->getEMpoles(0));
             stmt->Bind(9, seg->getEMpoles(1));
             stmt->Bind(10,seg->getOcc(-1));
-            stmt->Bind(11,seg->getOcc(1));
-            stmt->Bind(12, _qmtop->getDatabaseId());
-            stmt->Bind(13, seg->getId());
+            stmt->Bind(11,seg->getOcc(+1));
+            stmt->Bind(12,has_e);
+            stmt->Bind(13,has_h);
+            
+            stmt->Bind(14, _qmtop->getDatabaseId());
+            stmt->Bind(15, seg->getId());
         }
 
         stmt->InsertStep();
@@ -428,24 +437,27 @@ void StateSaverSQLite2::WritePairs(bool update) {
                            "frame, top, id, "
                            "seg1, seg2, drX, "
                            "drY, drZ,   "
+                           "has_e, has_h, "
                            "lOe, lOh, rate12e, "
                            "rate21e, rate12h, rate21h, "
-                            " Jeff2 "
+                           "Jeff2e,  Jeff2h "
                            ") VALUES ("
                            "?, ?, ?, "
                            "?, ?, ?, "
                            "?, ?, "
+                           "?, ?, "
                            "?, ?, ?, "
                            "?, ?, ?, "
-                           "? "
+                           "?, ? "
                            ")");
     }
     else {
         stmt = _db.Prepare("UPDATE pairs "
                            "SET "
+                           "has_e = ?, has_h = ?, "
                            "lOe = ?, lOh = ?, rate12e = ?, "
                            "rate21e = ?, rate12h = ?, rate21h = ?, "
-                            " Jeff2 = ? "
+                           "Jeff2e = ?,  Jeff2h = ? "
                            "WHERE top = ? AND id = ?");
     }
 
@@ -456,7 +468,12 @@ void StateSaverSQLite2::WritePairs(bool update) {
          nit++) {
 
         QMPair2 *pair = *nit;
+
         if (!update) {
+
+            int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
+            int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
+
             stmt->Bind(1, _qmtop->getDatabaseId());
             stmt->Bind(2, pair->getTopology()->getDatabaseId());
             stmt->Bind(3, pair->getId());
@@ -465,17 +482,23 @@ void StateSaverSQLite2::WritePairs(bool update) {
             stmt->Bind(6, pair->R().getX());
             stmt->Bind(7, pair->R().getY());
             stmt->Bind(8, pair->R().getZ());
-            stmt->Bind(9, pair->getLambdaO(-1));
-            stmt->Bind(10, pair->getLambdaO(+1));
-            stmt->Bind(11, pair->getRate12(-1));
-            stmt->Bind(12, pair->getRate21(-1));
-            stmt->Bind(13, pair->getRate12(+1));
-            stmt->Bind(14, pair->getRate12(+1));
-            stmt->Bind(15, pair->calcJeff2());
+            stmt->Bind(9, has_e);
+            stmt->Bind(10, has_h);
+            stmt->Bind(11, pair->getLambdaO(-1));
+            stmt->Bind(12, pair->getLambdaO(+1));
+            stmt->Bind(13, pair->getRate12(-1));
+            stmt->Bind(14, pair->getRate21(-1));
+            stmt->Bind(15, pair->getRate12(+1));
+            stmt->Bind(16, pair->getRate21(+1));
+            stmt->Bind(17, pair->getJeff2(-1));
+            stmt->Bind(18, pair->getJeff2(+1));
         }
+        
         else {
+
             cout << "\r " << pair->getId() << flush;
 
+<<<<<<< local
                 stmt->Bind(1, pair->getLambdaO());
                 stmt->Bind(2, 0);
                 stmt->Bind(3, pair->getRate12());
@@ -485,16 +508,23 @@ void StateSaverSQLite2::WritePairs(bool update) {
                 stmt->Bind(7, pair->calcJeff2());
                 stmt->Bind(8, pair->getTopology()->getDatabaseId());
                 stmt->Bind(9, pair->getId());
+=======
+                int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
+                int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
+>>>>>>> other
 
-                // If both hole + electron
-                // stmt->Bind(1, pair->getLambdaO(-1));
-                // stmt->Bind(2, pair->getLambdaO(1));
-                // stmt->Bind(3, pair->getRate12(-1));
-                // stmt->Bind(4, pair->getRate12(1));
-                // stmt->Bind(5, pair->getRate21(-1));
-                // stmt->Bind(6, pair->getRate21(1));
-
+                stmt->Bind(1, has_e);
+                stmt->Bind(2, has_h);
+                stmt->Bind(3, pair->getLambdaO(-1));
+                stmt->Bind(4, pair->getLambdaO(+1));
+                stmt->Bind(5, pair->getRate12(-1));
+                stmt->Bind(6, pair->getRate21(-1));
+                stmt->Bind(7, pair->getRate12(+1));
+                stmt->Bind(8, pair->getRate21(+1));
+                stmt->Bind(9, pair->getJeff2(-1));
+                stmt->Bind(10, pair->getJeff2(+1));
         }
+
         stmt->InsertStep();
         stmt->Reset();
     }
@@ -612,16 +642,18 @@ void StateSaverSQLite2::ReadSegTypes(int topId) {
         type->setOrbitalsFile(stmt->Column<string>(2));
         type->setQMCoordsFile(stmt->Column<string>(4));
 
+        // NOTE v Not used v
         // Transporting orbitals
-        Tokenizer toker(stmt->Column<string>(3), ":");
-        vector<string> orbNrsStrings;
-        toker.ToVector(orbNrsStrings);
-        vector<int> orbNrsInts;
-        for (int i = 0; i < orbNrsStrings.size(); i++) {
-            int nr = boost::lexical_cast<int>(orbNrsStrings[i]);
-            orbNrsInts.push_back(nr);
-        }
-        type->setTOrbNrs(orbNrsInts);
+        // Tokenizer toker(stmt->Column<string>(3), ":");
+        // vector<string> orbNrsStrings;
+        // toker.ToVector(orbNrsStrings);
+        // vector<int> orbNrsInts;
+        // for (int i = 0; i < orbNrsStrings.size(); i++) {
+        //     int nr = boost::lexical_cast<int>(orbNrsStrings[i]);
+        //     orbNrsInts.push_back(nr);
+        // }
+        // type->setTOrbNrs(orbNrsInts);
+        // NOTE ^ Not used ^
 
         int canRigidify = stmt->Column<int>(5);
         type->setCanRigidify(canRigidify);
@@ -640,10 +672,10 @@ void StateSaverSQLite2::ReadSegments(int topId) {
 
     Statement *stmt = _db.Prepare("SELECT name, type, mol, "
                                   "posX, posY, posZ, "
-                                  "lI_AN, lI_NA, lI_CN,"
-                                  "lI_NC, eI_A, eI_C,"
+                                  "UnCnNe, UnCnNh, UcNcCe,"
+                                  "UcNcCh, UcCnNe, UcCnNh,"
                                   "eAnion, eNeutral, eCation, "
-                                  "occPe, occPh "
+                                  "occPe, occPh, has_e, has_h "
                                   "FROM segments "
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
@@ -667,22 +699,30 @@ void StateSaverSQLite2::ReadSegments(int topId) {
         double  e5   = stmt->Column<double>(14);
         double  o1   = stmt->Column<double>(15);
         double  o2   = stmt->Column<double>(16);
+        int     he   = stmt->Column<int>(17);
+        int     hh   = stmt->Column<int>(18);
+
+        bool has_e = (he == 1) ? true : false;
+        bool has_h = (hh == 1) ? true : false;
 
         Segment *seg = _qmtop->AddSegment(name);
         seg->setMolecule(_qmtop->getMolecule(mId));
         seg->setType(_qmtop->getSegmentType(type));
         seg->setPos(vec(X, Y, Z));
-        seg->setLambdaIntra(-1, 0, l1);
-        seg->setLambdaIntra(0, -1, l2);
-        seg->setLambdaIntra(1, 0, l3);
-        seg->setLambdaIntra(0, 1, l4);
-        seg->setESiteIntra(-1, e1);
-        seg->setESiteIntra(1, e2);
+        seg->setU_nC_nN(l1, -1);
+        seg->setU_nC_nN(l2, +1);
+        seg->setU_cN_cC(l3, -1);
+        seg->setU_cN_cC(l4, +1);
+        seg->setU_cC_nN(e1, -1);
+        seg->setU_cC_nN(e2, +1);
         seg->setEMpoles(-1, e3);
         seg->setEMpoles(0, e4);
         seg->setEMpoles(1, e5);
-        seg->setOcc(-1, o1);
-        seg->setOcc( 1, o2);
+        seg->setOcc(o1, -1);
+        seg->setOcc(o2, +1);
+        seg->setHasState(has_e, -1);
+        seg->setHasState(has_h, +1);
+
 
         seg->getMolecule()->AddSegment(seg);
     }
@@ -798,9 +838,11 @@ void StateSaverSQLite2::ReadPairs(int topId) {
     cout << ", pairs" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
-                                  "seg1, seg2, lOe, "
+                                  "seg1, seg2, has_e,"
+                                  "has_h, lOe, "
                                   "lOh, rate12e, rate21e, "
-                                  "rate12h, rate21h "
+                                  "rate12h, rate21h, "
+                                  "Jeff2e, Jeff2h "
                                   "FROM pairs "
                                   "WHERE top = ?;");
 
@@ -809,26 +851,34 @@ void StateSaverSQLite2::ReadPairs(int topId) {
     while (stmt->Step() != SQLITE_DONE) {
         int     s1  = stmt->Column<int>(0);
         int     s2  = stmt->Column<int>(1);
-        double  l1  = stmt->Column<double>(2);
-        double  l2  = stmt->Column<double>(3);
-        double  r1  = stmt->Column<double>(4);
-        double  r2  = stmt->Column<double>(5);
-        double  r3  = stmt->Column<double>(6);
-        double  r4  = stmt->Column<double>(7);
+        int     he  = stmt->Column<int>(2);
+        int     hh  = stmt->Column<int>(3);
+        double  l1  = stmt->Column<double>(4);
+        double  l2  = stmt->Column<double>(5);
+        double  r1  = stmt->Column<double>(6);
+        double  r2  = stmt->Column<double>(7);
+        double  r3  = stmt->Column<double>(8);
+        double  r4  = stmt->Column<double>(9);
+        double  je  = stmt->Column<double>(10);
+        double  jh  = stmt->Column<double>(11);
+        
         QMPair2 *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
                                                 _qmtop->getSegment(s2));
 
-        newPair->setLambdaO(l1);
-        newPair->setRate12(r1);
-        newPair->setRate21(r2);
+        bool has_e = (he == 0) ? false : true;
+        bool has_h = (hh == 0) ? false : true;
 
-        // If both electron + hole
-        // newPair->setLambdaO(-1, l1);
-        // newPair->setLambdaO(1, l2);
-        // newPair->setRate12(-1, r1);
-        // newPair->setRate12(1, r3);
-        // newPair->setRate21(-1, r2);
-        // newPair->setRate21(1, r4);
+        newPair->setIsPathCarrier(has_e, -1);
+        newPair->setIsPathCarrier(has_h, +1);
+        newPair->setLambdaO(l1, -1);
+        newPair->setLambdaO(l2, +1);
+        newPair->setRate12(r1, -1);
+        newPair->setRate21(r2, -1);
+        newPair->setRate12(r3, +1);
+        newPair->setRate21(r4, +1);
+        newPair->setJeff2(je, -1);
+        newPair->setJeff2(jh, +1);
+
     }
     delete stmt;
     stmt = NULL;

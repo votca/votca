@@ -23,8 +23,8 @@ namespace votca { namespace ctp {
    
 /// Default constructor
 Segment::Segment(int id, string name)
-        : _id(id), _name(name), _hasOccProb(0),
-          _hasLambdas(0) { _eMpoles.resize(3); }
+        : _id(id),        _name(name),
+          _has_e(false),  _has_h(false) { _eMpoles.resize(3); }
 
 // This constructor creates a copy of the stencil segment, without
 // adding it to any containers further up in the hierarchy; i.e. the topology
@@ -33,7 +33,8 @@ Segment::Segment(int id, string name)
 Segment::Segment(Segment *stencil)
         : _id(stencil->getId()),    _name(stencil->getName()+"_ghost"),
           _typ(stencil->getType()), _top(NULL), _mol(NULL),
-          _CoM(stencil->getPos()) { _eMpoles.resize(3);
+          _CoM(stencil->getPos()),
+          _has_e(false), _has_h(false) { _eMpoles.resize(3);
 
     vector<Fragment*> ::iterator fit;
     for (fit = stencil->Fragments().begin();
@@ -64,9 +65,7 @@ Segment::~Segment() {
     _fragments.clear();
     _atoms.clear();
 
-    _lambdasIntra.clear();
     _eMpoles.clear();
-    _occProb.clear();
     _polarSites.clear();
 }
 
@@ -84,47 +83,116 @@ void Segment::TranslateBy(const vec &shift) {
 }
 
 
-void Segment::setOcc(int e_h, double occ) {
+void Segment::setHasState(bool yesno, int state) {
+
+    if (state == -1) {
+        _has_e = yesno;
+    }
+    else if (state == +1) {
+        _has_h = yesno;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00e11h__");
+    }
+}
+
+bool Segment::hasState(int state) {
+
+    return (state == -1) ? _has_e : _has_h;
+}
+
+
+void Segment::setOcc(double occ, int e_h) {
+    
     if (e_h == -1) {
         _occ_e = occ;
     }
-    else {
+    else if (e_h == +1) {
         _occ_h = occ;
     }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00s11o__");
+    }
 }
-const double &Segment::getOcc(int e_h) {
+
+
+const double Segment::getOcc(int e_h) {
+    
     return (e_h == -1) ? _occ_e : _occ_h;
 }
 
-void Segment::setESiteIntra(int carrier, double energy) {
-    _eSiteIntra[carrier] = energy;
-    _hasESiteIntra = true;
-}
-const double &Segment::getESiteIntra(int carrier) {
-    return _eSiteIntra[carrier];
+
+void Segment::setU_cC_nN(double dU, int state) {
+
+    if (state == -1) {
+        _U_cC_nN_e = dU;
+    }
+    else if (state == +1) {
+        _U_cC_nN_h = dU;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00u11a__");
+    }
 }
 
 
-const double &Segment::getESite(int carrier) {
-    double E = _eSiteIntra[carrier] + _eMpoles[carrier];
+void Segment::setU_nC_nN(double dU, int state) {
+
+    if (state == -1) {
+        _U_nC_nN_e = dU;
+    }
+    else if (state == +1) {
+        _U_nC_nN_h = dU;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00u11b__");
+    }
 }
 
 
-void Segment::setLambdaIntra(int state0, int state1, double lambda) {
-    _hasLambdas = true;
-    _lambdasIntra[state0][state1] = lambda;
+void Segment::setU_cN_cC(double dU, int state) {
+
+    if (state == -1) {
+        _U_cN_cC_e = dU;
+    }
+    else if (state == +1) {
+        _U_cN_cC_h = dU;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00u11c__");
+    }
 }
-const double &Segment::getLambdaIntra(int state0, int state1) {
-    return _lambdasIntra.at(state0).at(state1); 
+
+
+const double Segment::getU_cC_nN(int state) {
+
+    return (state == -1) ? _U_cC_nN_e : _U_cC_nN_h;
 }
+
+
+const double Segment::getU_nC_nN(int state) {
+
+    return (state == -1) ? _U_nC_nN_e : _U_nC_nN_h;
+}
+
+
+const double Segment::getU_cN_cC(int state) {
+
+    return (state == -1) ? _U_cN_cC_e : _U_cN_cC_h;
+}
+
 
 void Segment::setEMpoles(int state, double energy) {
+
     _hasChrgState.resize(3);
     _hasChrgState[state+1] = true;
     _eMpoles[state+1] = energy;
 }
-const double &Segment::getEMpoles(int state) {
-    return _eMpoles[state+1];
+
+
+const double Segment::getEMpoles(int state) {
+
+    return _eMpoles[state+1] - _eMpoles[1];
 }
 
 
@@ -171,19 +239,6 @@ void Segment::Rigidify() {
     }
     else { return; }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void Segment::WritePDB(FILE *out, string tag1, string tag2) {

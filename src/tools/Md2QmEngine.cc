@@ -290,11 +290,9 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
         string basis = (*typeit)->getBasisName();
         string orbitals = (*typeit)->getOrbitalsFile();
         string qmcoords = (*typeit)->getQMCoordsFile();
-        vector<int> torbNrs = (*typeit)->getTOrbNrs();
         bool canRigidify = (*typeit)->canRigidify();
         CTP::SegmentType *segType = qmtop->AddSegmentType(name);
         segType->setBasisName(basis);
-        segType->setTOrbNrs(torbNrs);
         segType->setOrbitalsFile(orbitals);
         segType->setQMCoordsFile(qmcoords);
         segType->setCanRigidify(canRigidify);
@@ -490,14 +488,10 @@ CTP::SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
     if (property->exists("basisset")) {
         basisSetName = property->get("basisset").as<string>();
     }
-    if (property->exists("torbital")) {
-        torbNrs = property->get("torbital").as< vector<int> >();
-    }
 
-    CTP::SegmentType* qmUnit = new CTP::SegmentType(qmunit_id, qmunit_name,
+    CTP::SegmentType* qmUnit = new CTP::SegmentType(qmunit_id,    qmunit_name,
                                                     basisSetName, orbitalsFile,
-                                                    qmCoordsFile, torbNrs,
-                                                    canRigidify);
+                                                    qmCoordsFile, canRigidify);
     _qmUnits.push_back(qmUnit);
     return qmUnit;
 }

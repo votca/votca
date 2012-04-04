@@ -7,6 +7,7 @@
 #include "calculators/tdump2.h"
 #include "calculators/rates2.h"
 #include "calculators/izindo.h"
+#include "calculators/einternal.h"
 #include "calculators/emultipole2.h"
 #include "calculators/emultipole3.h"
 
@@ -22,6 +23,7 @@ void CalculatorFactory2::RegisterAll(void)
         Calculators().Register<TDump>("tdump");
         Calculators().Register<IZindo>("izindo");
         Calculators().Register<Rates2>("rates");
+        Calculators().Register<EInternal>("einternal");
         Calculators().Register<EMultipole2>("emultipole");
         Calculators().Register<EMultipole3>("emultipole3");
 }

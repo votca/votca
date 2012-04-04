@@ -41,10 +41,10 @@ void QMNBList2::PrintInfo(FILE *out) {
                 pair->second->getId(),
                 pair->Dist(),
                 ghost,
-                pair->getLambdaO(),
-                pair->calcJeff2(),
-                pair->getRate12(),
-                pair->getRate21() );
+                0.0, // pair->getLambdaO(),
+                0.0, // pair->calcJeff2(),
+                0.0, // pair->getRate12(),
+                0.0 ); // pair->getRate21() );
     }
 }
 

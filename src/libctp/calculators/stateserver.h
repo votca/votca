@@ -2,7 +2,7 @@
 #define __STATESERVER_H
 
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/qmcalculator2.h>
 
 
 
@@ -207,16 +207,15 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
                 seg->getPos().getX(),
                 seg->getPos().getY(),
                 seg->getPos().getZ(),
-                seg->getESiteIntra(1),
-                seg->getESiteIntra(-1),
-                seg->getLambdaIntra(0,1),
-                seg->getLambdaIntra(1,0),
-                seg->getLambdaIntra(0,-1),
-                seg->getLambdaIntra(-1,0),
+                seg->getU_cC_nN(1),
+                seg->getU_cC_nN(-1),
+                seg->getU_nC_nN(1),
+                seg->getU_cN_cC(1),
+                seg->getU_nC_nN(-1),
+                seg->getU_cN_cC(-1),
                 seg->getEMpoles(1),
                 seg->getEMpoles(0),
                 seg->getEMpoles(-1) );
-
     }
 }
 
@@ -241,10 +240,10 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
                 pair->second->getId(),
                 pair->Dist(),
                 ghost,
-                pair->getLambdaO(),
-                pair->calcJeff2(),
-                pair->getRate12(),
-                pair->getRate21() );
+                0.0, // pair->getLambdaO(),
+                0.0, // pair->calcJeff2(),
+                0.0, // pair->getRate12(),
+                0.0 ); // pair->getRate21() );
     }
 }
 

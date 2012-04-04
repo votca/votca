@@ -61,15 +61,18 @@ void QMDatabase2::onCreate()
         "posY   REAL NOT NULL,"
         "posZ   REAL NOT NULL,"
 
-        "lI_AN      REAL DEFAULT 0,"
-        "lI_NA      REAL DEFAULT 0,"
-        "lI_CN      REAL DEFAULT 0,"
-        "lI_NC      REAL DEFAULT 0,"
-        "eI_A       REAL DEFAULT 0,"
-        "eI_C       REAL DEFAULT 0,"
+        "UnCnNe     REAL DEFAULT 0,"
+        "UnCnNh     REAL DEFAULT 0,"
+        "UcNcCe     REAL DEFAULT 0,"
+        "UcNcCh     REAL DEFAULT 0,"
+        "UcCnNe     REAL DEFAULT 0,"
+        "UcCnNh     REAL DEFAULT 0,"
         "eAnion     REAL DEFAULT 0,"
         "eNeutral   REAL DEFAULT 0,"
         "eCation    REAL DEFAULT 0,"
+
+        "has_e      INT  DEFAULT 0,"
+        "has_h      INT  DEFAULT 0,"
 
         "occPe      REAL DEFAULT -1,"
         "occPh      REAL DEFAULT -1)");
@@ -149,24 +152,16 @@ void QMDatabase2::onCreate()
         "lOe        REAL DEFAULT 0,"
         "lOh        REAL DEFAULT 0,"
 
+        "has_e      INT  DEFAULT 0,"
+        "has_h      INT  DEFAULT 0,"
         "rate12e    REAL DEFAULT 0,"
         "rate21e    REAL DEFAULT 0,"
         "rate12h    REAL DEFAULT 0,"
         "rate21h    REAL DEFAULT 0,"
-        "Jeff2      REAL DEFAULT 0)");
+        "Jeff2e     REAL DEFAULT 0,"
+        "Jeff2h     REAL DEFAULT 0)");
 
-    // Additional pair properties
-    Exec("CREATE TABLE pair_properties ("
-        "_id    INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "pair   INTEGER NOT NULL,"
-        "key    TEXT NOT NULL,"
-        "value  REAL NOT NULL)");
 
-    // Table format coupling elements
-    Exec("CREATE TABLE pair_integrals ("
-        "pair   INTEGER NOT NULL,"
-        "num    INTEGER NOT NULL,"
-        "J      REAL NOT NULL)");
 }
 
 }}

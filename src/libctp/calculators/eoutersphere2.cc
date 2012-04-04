@@ -62,7 +62,7 @@ void Eoutersphere2::ConstLambda(Topology *top) {
     QMNBList2 ::iterator pit;
     for (pit = top->NBList().begin(); pit != top->NBList().end(); pit++) {
         QMPair2 *pair = *pit;
-        pair->setLambdaO(_lambdaConstant);
+        assert (false); // TODO e, h calc. // pair->setLambdaO(_lambdaConstant);
     }
 }
 
@@ -84,7 +84,7 @@ void Eoutersphere2::SpheresLambda(Topology *top) {
                                      (  1. / ( 2.*R1*NM )
                                       + 1. / ( 2.*R2*NM )
                                       - 1. / ( pair->Dist()*NM ));
-        pair->setLambdaO(lambda);
+        assert (false); // TODO e, h calc. // pair->setLambdaO(lambda);
     }
 }
 
@@ -165,7 +165,7 @@ void Eoutersphere2::DielectricLambda(Topology *top) {
              } /* exit loop over external atoms in segment */
         } /* exit loop over external segments */
 
-        pair->setLambdaO(lambda);
+        assert (false); // TODO e, h calculation // pair->setLambdaO(lambda);
 
     } /* exit loop over pairs */
 
