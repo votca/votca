@@ -91,12 +91,18 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
       *)
 	  die "${0##*/}: convergence check norm '${norm}' specified for '${name}.${dist}.${base}' not yet implemented."
   esac 
-  diff=$(do_external table combine --sum --no-flags --op ${opr} "$tmp1" "${name}.${dist}.${base}")
+  funform=( $(csg_get_interaction_property function "none") )
+  # for cubic bspline case we check flags
+  if [[ ${funform} = "CBSPL" ]]; then
+      diff=$(do_external table combine --sum --withflag 'i' --op ${opr} "$tmp1" "${name}.${dist}.${base}")
+  else
+      diff=$(do_external table combine --sum --no-flags --op ${opr} "$tmp1" "${name}.${dist}.${base}")
+  fi
   is_num "$diff" || die "${0##*/}: strange - result of do_external table difference '$tmp1' and '${name}.${dist}.${base}' was not a number" 
   #for second norm we should take sqrt of diff
-  if [[ ${norm} = "2" ]]; then
-      diff=$(critical awk "BEGIN{print sqrt($diff)}")
-  fi
+  #if [[ ${norm} = "2" ]]; then
+  #    diff=$(critical awk "BEGIN{print sqrt($diff)}")
+  #fi
   #store error norm for current interactions current DIST 
   echo "$diff" > ${name}.${dist}.conv
   wdiff=$(csg_calc "$weight" "*" "${diff}")

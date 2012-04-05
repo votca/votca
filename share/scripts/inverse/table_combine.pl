@@ -25,6 +25,7 @@ my $noflags=undef;
 my $dosum=undef;
 my $die=undef;
 my $scale=1.0;
+my $withflag=undef;
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -62,6 +63,11 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
         shift(@ARGV);
 	$dosum = "yes";
     }
+    elsif ($ARGV[0] eq "--withflag"){
+        shift(@ARGV);
+        die "nothing given for --withflag" unless $#ARGV > -1;
+        $withflag = shift(@ARGV);
+    }
     elsif (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
             print <<EOF;
@@ -81,6 +87,7 @@ Allowed options:
     --no-flags        Do not check for the flags
     --scale XXX       Scale output/sum with this number
                       Default $scale
+    --withflag  FL    only operate on entries with specific flag in src
 -h, --help            Show this help message
 EOF
   exit 0;
@@ -163,17 +170,27 @@ sub operation($$$) {
 my $sum=0;
 my @table;
 for (my $i=0;$i<=$#r1; $i++) {
-  abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first column different at position $i\n";
-  my $value=&operation($pot1[$i],$op,$pot2[$i]);
-  if (($die)&&($op eq "=")&&($value == 1)) {
-    die "progname: second column different at position $i\n";
-  }
-  $value*=$scale;
-  $sum+=$value;
-  $table[$i]=$value;
-  unless ($noflags){
-    $flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
-  }
+    # check for positions
+    abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first column different at position $i\n";
+    # check for flags
+    unless ($noflags){
+	$flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
+	# skip if flag does not match
+	if($withflag) {
+	    if(!($flag1[$i] =~ m/[$withflag]/)) {
+		next;
+	    }
+	}
+    }
+    # perform given operation
+    my $value=&operation($pot1[$i],$op,$pot2[$i]);
+    if (($die)&&($op eq "=")&&($value == 1)) {
+	die "progname: second column different at position $i\n";
+    }
+    $value*=$scale;
+    $sum+=$value;
+    $table[$i]=$value;
+
 }
 
 if ($die) {

@@ -7,7 +7,7 @@ PotentialFunctionLJ126::PotentialFunctionLJ126(const double min_,
 
 double PotentialFunctionLJ126::CalculateF (const double r) const {
 
-    if ( r >= _min && r <= _cut_off ) {
+    if ( r <= _cut_off ) {
 
         return _lam(0)/pow(r,12) - _lam(1)/pow(r,6) ;
 
@@ -21,7 +21,7 @@ double PotentialFunctionLJ126::CalculateF (const double r) const {
 // calculate first derivative w.r.t. ith parameter
 double PotentialFunctionLJ126::CalculateDF(const int i, const double r) const {
 
-    if ( r >= _min && r <= _cut_off ) {
+    if ( r <= _cut_off ) {
 
         switch(i) {
             case 0:
