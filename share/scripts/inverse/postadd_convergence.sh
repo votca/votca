@@ -94,7 +94,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   funform=( $(csg_get_interaction_property function "none") )
   # for cubic bspline case we check flags
   if [[ ${funform} = "CBSPL" ]]; then
-      diff=$(do_external table combine --sum --withflag 'i' --op ${opr} "$tmp1" "${name}.${dist}.${base}")
+      diff=$(do_external table combine --sum --withflag i --op ${opr} "$tmp1" "${name}.${dist}.${base}")
   else
       diff=$(do_external table combine --sum --no-flags --op ${opr} "$tmp1" "${name}.${dist}.${base}")
   fi
