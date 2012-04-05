@@ -19,6 +19,16 @@
 
 namespace votca { namespace csg {
 
+/*
+ This way of determining the shortest distance is only working for a set of 
+ triclinic boxes, in particular
+ a_y = a_z = b_z = 0
+ a_x > 0, b_y > 0, c_z > 0
+ b_x < 0.5 a_x, c_x < 0.5 a_x, c_y < 0.5 b_y
+ GROMACS checks if these conditions are satisfied.
+ If a simple search algorithm is used to determine if a particle
+ is a within cutoff r_c, make sure that r_c < 0.5 min(a_x, b_y, c_z)
+ */
 vec TriclinicBox::BCShortestConnection(const vec &r_i, const vec &r_j) const
 {
     vec r_tp, r_dp, r_sp, r_ij;
