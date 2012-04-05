@@ -156,6 +156,8 @@ sub get_convergence_value(\@$) {
     }
     case "second" {
       my $ivalue=get_convergence_value(@simplex_table,"ihighest");
+      # in case we do simplex on one parameter
+      return $simplex_table[$ivalue][-2] if ($#simplex_table == 2);
       my $value=undef;
       for (my $i=0;$i<=$#simplex_table;$i++) {
 	next if ($simplex_table[$i][-1] =~ /^(try|tryold)$/);
@@ -173,7 +175,7 @@ sub get_convergence_value(\@$) {
 	  $value=$simplex_table[$i][-2];
 	}
       }
-      die "get_convergence_value: Could not find any $_[1] value in paramter set\n" unless ($value);
+      die "get_convergence_value: Could not find any $_[1] value in paramter set\n" unless defined($value);
       return $value;
     }
     else { die "get_convergence_value: I don't know how to get value '$_[1]'\n";
@@ -191,7 +193,7 @@ sub remove_parameter_set(\@$) {
     case /^(try|tryold)$/ {
       for (my $i=0;$i<=$#simplex_table;$i++) {
         if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
-          die "remove_parameter_set: Found two parameter set with flag '$_[1]'" if ($value);
+          die "remove_parameter_set: Found two parameter set with flag '$_[1]'" if defined($value);
           $value=$i;
         } else {
           push(@new_table,$simplex_table[$i]);
@@ -208,7 +210,7 @@ sub remove_parameter_set(\@$) {
       die "remove_parameter_set: I don't know how to remove value '$_[1]'\n";
     }
   }
-  die "remove_parameter_set: Could not find a parameter set with flag '$_[1]'" unless ($value);
+  die "remove_parameter_set: Could not find a parameter set with flag '$_[1]'" unless defined($value);
   @{$_[0]}=@new_table;
   return @{$simplex_table[$value]};
 }

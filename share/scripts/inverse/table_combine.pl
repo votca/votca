@@ -142,28 +142,21 @@ sub operation($$$) {
   my $x=$_[0];
   my $op="$_[1]";
   my $y=$_[2];
-  use Switch;
-  switch($op) {
-    case /\+|-|\*|\/|x/ {
-      $op="*" if ($op eq "x");
-      my $val = eval "$x $op $y";
-      die "operation: Could not calculate '$x $op $y'\n" if $@;
-      return $val;
-    }
-    case "=" {
-      my $diff=&difference_relative($x,$y,$epsilon);
-      return 1 if ($diff > $epsilon);
-      return 0;
-    }
-    case "d" {
-      return abs($x-$y);
-    }
-    case "d2" {
-      return ($x-$y)*($x-$y);
-    } 
-    else {
-      die "operation: Unknown operation $op\n";
-    }
+  if ($op =~ /\+|-|\*|\/|x/) {
+     $op="*" if ($op eq "x");
+     my $val = eval "$x $op $y";
+     die "operation: Could not calculate '$x $op $y'\n" if $@;
+     return $val;
+  } elsif ($op eq "=") {
+     my $diff=&difference_relative($x,$y,$epsilon);
+     return 1 if ($diff > $epsilon);
+     return 0;
+  } elsif ($op eq "d") {
+     return abs($x-$y);
+  } elsif ($op eq "d2") {
+    return ($x-$y)*($x-$y);
+  } else {
+    die "operation: Unknown operation $op\n";
   }
 }
 
@@ -174,13 +167,11 @@ for (my $i=0;$i<=$#r1; $i++) {
     abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first column different at position $i\n";
     # check for flags
     unless ($noflags){
-	$flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
-	# skip if flag does not match
-	if($withflag) {
-	    if(!($flag1[$i] =~ m/[$withflag]/)) {
-		next;
-	    }
-	}
+      $flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
+      # skip if flag does not match
+      if (($withflag) and ($flag1[$i] !~ m/[$withflag]/)) {
+        next;
+      }
     }
     # perform given operation
     my $value=&operation($pot1[$i],$op,$pot2[$i]);
@@ -190,7 +181,6 @@ for (my $i=0;$i<=$#r1; $i++) {
     $value*=$scale;
     $sum+=$value;
     $table[$i]=$value;
-
 }
 
 if ($die) {
