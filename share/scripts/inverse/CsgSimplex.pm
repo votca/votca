@@ -130,56 +130,49 @@ sub get_convergence_value(\@$);
 sub get_convergence_value(\@$) {
   defined($_[1]) || die "get_convergence_value: Missing argument\n";
   my @simplex_table=@{$_[0]};
-  use Switch;
-  switch($_[1]) {
-    case "lowest" {
-      my $value=undef;
-      for (my $i=0;$i<=$#simplex_table;$i++) {
-	next if ($simplex_table[$i][-1] =~ /^try/);
-	$value=$simplex_table[$i][-2] unless defined($value);
-	$value=$simplex_table[$i][-2] if $value>$simplex_table[$i][-2]
+  if ($_[1] eq "lowest") {
+    my $value=undef;
+    for (my $i=0;$i<=$#simplex_table;$i++) {
+      next if ($simplex_table[$i][-1] =~ /^try/);
+      $value=$simplex_table[$i][-2] unless defined($value);
+      $value=$simplex_table[$i][-2] if $value>$simplex_table[$i][-2]
+    }
+    return $value;
+  } elsif ($_[1] eq "ihighest") {
+    my $ivalue=undef;
+    for (my $i=0;$i<=$#simplex_table;$i++) {
+      next if ($simplex_table[$i][-1] =~ /^(try|tryold)$/);
+      $ivalue=$i unless defined($ivalue);
+      $ivalue=$i if $simplex_table[$ivalue][-2]<$simplex_table[$i][-2];
+    }
+    return $ivalue;
+  } elsif ($_[1] eq "highest") {
+    my $i=get_convergence_value(@simplex_table,"ihighest");
+    return $simplex_table[$i][-2];
+  } elsif ($_[1] eq "second") {
+    my $ivalue=get_convergence_value(@simplex_table,"ihighest");
+    # in case we do simplex on one parameter
+    return $simplex_table[$ivalue][-2] if ($#simplex_table == 2);
+    my $value=undef;
+    for (my $i=0;$i<=$#simplex_table;$i++) {
+      next if ($simplex_table[$i][-1] =~ /^(try|tryold)$/);
+      next if ($i==$ivalue);
+      $value=$simplex_table[$i][-2] unless defined($value);
+      $value=$simplex_table[$i][-2] if $value<$simplex_table[$i][-2];
+    }
+    return $value;
+  } elsif ($_[1] =~ /^(try|tryold)$/) {
+    my $value=undef;
+    for (my $i=0;$i<=$#simplex_table;$i++) {
+      if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
+        die "get_convergence_value: Found two $_[1] value in parameter set\n" if defined($value);
+        $value=$simplex_table[$i][-2];
       }
-      return $value;
     }
-    case "ihighest" {
-      my $ivalue=undef;
-      for (my $i=0;$i<=$#simplex_table;$i++) {
-	next if ($simplex_table[$i][-1] =~ /^(try|tryold)$/);
-	$ivalue=$i unless defined($ivalue);
-	$ivalue=$i if $simplex_table[$ivalue][-2]<$simplex_table[$i][-2];
-      }
-      return $ivalue;
-    }
-    case "highest" {
-      my $i=get_convergence_value(@simplex_table,"ihighest");
-      return $simplex_table[$i][-2];
-    }
-    case "second" {
-      my $ivalue=get_convergence_value(@simplex_table,"ihighest");
-      # in case we do simplex on one parameter
-      return $simplex_table[$ivalue][-2] if ($#simplex_table == 2);
-      my $value=undef;
-      for (my $i=0;$i<=$#simplex_table;$i++) {
-	next if ($simplex_table[$i][-1] =~ /^(try|tryold)$/);
-	next if ($i==$ivalue);
-	$value=$simplex_table[$i][-2] unless defined($value);
-	$value=$simplex_table[$i][-2] if $value<$simplex_table[$i][-2];
-      }
-      return $value;
-    }
-    case /^(try|tryold)$/ {
-      my $value=undef;
-      for (my $i=0;$i<=$#simplex_table;$i++) {
-	if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
-	  die "get_convergence_value: Found two $_[1] value in parameter set\n" if defined($value);
-	  $value=$simplex_table[$i][-2];
-	}
-      }
-      die "get_convergence_value: Could not find any $_[1] value in paramter set\n" unless defined($value);
-      return $value;
-    }
-    else { die "get_convergence_value: I don't know how to get value '$_[1]'\n";
-    }
+    die "get_convergence_value: Could not find any $_[1] value in paramter set\n" unless defined($value);
+    return $value;
+  } else { 
+    die "get_convergence_value: I don't know how to get value '$_[1]'\n";
   }
 }
 
@@ -188,27 +181,22 @@ sub remove_parameter_set(\@$) {
   my @simplex_table=@{$_[0]};
   my $value=undef;
   my @new_table;
-  use Switch;
-  switch($_[1]) {
-    case /^(try|tryold)$/ {
-      for (my $i=0;$i<=$#simplex_table;$i++) {
-        if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
-          die "remove_parameter_set: Found two parameter set with flag '$_[1]'" if defined($value);
-          $value=$i;
-        } else {
-          push(@new_table,$simplex_table[$i]);
-        }
+  if ($_[1] =~ /^(try|tryold)$/) {
+    for (my $i=0;$i<=$#simplex_table;$i++) {
+      if ( $simplex_table[$i][-1] =~ /^$_[1]$/ ) {
+        die "remove_parameter_set: Found two parameter set with flag '$_[1]'" if defined($value);
+        $value=$i;
+      } else {
+        push(@new_table,$simplex_table[$i]);
       }
     }
-    case "highest" {
-      $value=get_convergence_value(@simplex_table,"ihighest");
-      for (my $i=0;$i<=$#simplex_table;$i++) {
-        push(@new_table,$simplex_table[$i]) unless ($i == $value);
-      }
+  } elsif ($_[1] eq "highest") {
+    $value=get_convergence_value(@simplex_table,"ihighest");
+    for (my $i=0;$i<=$#simplex_table;$i++) {
+      push(@new_table,$simplex_table[$i]) unless ($i == $value);
     }
-    else {
-      die "remove_parameter_set: I don't know how to remove value '$_[1]'\n";
-    }
+  } else {
+    die "remove_parameter_set: I don't know how to remove value '$_[1]'\n";
   }
   die "remove_parameter_set: Could not find a parameter set with flag '$_[1]'" unless defined($value);
   @{$_[0]}=@new_table;
@@ -229,7 +217,8 @@ sub calc_parameter_center(\@){
   }
   #mind the $i<$#simplex_table to skip the highest value
   for (my $i=0;$i<$#simplex_table;$i++) {
-    die "calc_parameter_center: parameter center can only be calculated out of ".($#simplex_table-1)." parameter sets if number of paramters is ".($#{$simplex_table[$i]}-2)."\n" if (($#simplex_table+1) != $#{$simplex_table[$i]});
+    die "calc_parameter_center: number of parameters (".($#{$simplex_table[$i]}-1).") of parameter set ".($i+1)." differs from the number of non-try sets - 1 (".($#simplex_table).")\n" if (($#simplex_table+1) != $#{$simplex_table[$i]});
+
     for (my $j=0;$j<=$#{$simplex_table[$i]};$j++) {
       if (is_num("$simplex_table[$i][$j]")) {
 	$center[$j]+=$simplex_table[$i][$j]/$#simplex_table;
