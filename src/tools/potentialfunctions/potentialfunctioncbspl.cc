@@ -83,7 +83,7 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
     param.SetHasYErr(false);
     param.resize(_lam.size(), false);
 
-    // write extrapolated knots with flat 'o'
+    // write extrapolated knots with flag 'o'
     for (int i = 0; i < _nexcl; i++){
 
         param.set(i, _rbreak(i), _lam(i), 'o');
@@ -102,9 +102,8 @@ void PotentialFunctionCBSPL::SavePotTab(const string& filename,
         const double step) {
     
     extrapolExclParam();
-    
-    PotentialFunction::SavePotTab(filename,step);
-    
+    PotentialFunction::SavePotTab(filename,step,0.0,_cut_off);
+ 
 }
 
 void PotentialFunctionCBSPL::extrapolExclParam(){
@@ -146,7 +145,7 @@ double PotentialFunctionCBSPL::getOptParam(const int i) const{
 
 double PotentialFunctionCBSPL::CalculateF (const double r) const {
 
-    if( r >= _min && r <= _cut_off){
+    if( r <= _cut_off){
         
         ub::vector<double> R;
         ub::vector<double> B;
@@ -185,7 +184,7 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const{
     // since first _nexcl parameters are not optimized for stability reasons
     //i = i + _nexcl;
 
-    if ( r >= _min && r <= _cut_off ) {
+    if ( r <= _cut_off ) {
 
         int indx = min( int( ( r )/_dr ), _nbreak-2 );
 

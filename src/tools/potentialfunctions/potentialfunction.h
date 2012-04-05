@@ -31,6 +31,9 @@ public:
     virtual void SaveParam(const string& filename);
     // write potential table
     virtual void SavePotTab(const string& filename, const double step);
+    // write potential table for specified interval
+    virtual void SavePotTab(const string& filename, const double step,
+			    const double rmin, const double rcut);
     // set all parameters
     void setParam(const ub::vector<double> param){ _lam = param; }
     // set ith parameter
