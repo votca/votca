@@ -19,21 +19,32 @@ The following tutorials (compare with paper above) are included. They all rely
 on Gromacs unless specified otherwise:
 
 spce/atomistic             atomistic reference simulations for SPC/E water
-spce/ibm                   boltzmann inversion for SPC/E water
+spce/ibi                   boltzmann inversion for SPC/E water
 spce/imc                   inverse monte carlo for SPC/E water
+spce/realtime              boltzmann inversion realtime tutorial for SPC/E water
+spce/tf                    thermodynamic force example for SPC/E water
+spce/simplex               simplex optimization for SPC/E water
 
 methanol/atomistic         atomistic simulations for methanol
-methanol/ibm               boltzmann inversion for methanol
-methanol/ibm_espresso      boltzmann inversion for methanol using ESPResSo
+methanol/ibi               boltzmann inversion for methanol
+methanol/ibi_espresso      boltzmann inversion for methanol using ESPResSo
 methanol/imc               inverse monte carlo for methanol
 
-propane/ibm                iterative inverse boltzmann for nonbonded
+propane/atomistic          atomistic simulations for liquid propane
+propane/ibi                iterative inverse boltzmann for nonbonded
                            interactions of liquid propane
-propante/ibm_espresso      iterative inverse boltzmann for nonbonded
+propante/ibi_espresso      iterative inverse boltzmann for nonbonded
                            interactions of liquid propane using ESPResSo
 propane/single_chain       atomistic simulations, boltzmann inversion 
                            and force matching for a single chain of propane
 
+hexane/atomistic           atomistic simulations for liquid hexane
+hexane/ibi                 iterative inverse boltzmann for nonbonded
+                           interactions of liquid hexane
+hexane/ibi_bonded          iterative inverse boltzmann for bonded & 
+                           nonbonded interactions of liquid hexane
+
 each of the tutorials contains a run.sh which lists all commands
 needed to execute the tutorial. 
+
 

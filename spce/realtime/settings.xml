@@ -38,7 +38,7 @@
 	    <filelist>${name}.pot.new ${name}.dpot.new ${name}.dist.new</filelist>
           </copyback>
 	  <convergence>
-	    <weight>100</weight>
+	    <weight>0.2</weight>
 	    <what>dist</what>
 	  </convergence>
 	  <plot>
@@ -76,18 +76,6 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.0</table_end>
-      <grompp>
-	<opts></opts>
-	<index>index.ndx</index>
-        <topol>topol.top</topol>
-      </grompp>
-      <g_rdf>
-	<opts></opts>
-	<index>index.ndx</index>
-        <topol>topol.tpr</topol>
-      </g_rdf>
-      <mdp>grompp.mdp</mdp>
-      <topol>topol.tpr</topol>
       <traj_type>xtc</traj_type>
       <cutoff_check>yes</cutoff_check>
     </gromacs>

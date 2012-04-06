@@ -105,6 +105,7 @@ gen-vel                  = no
 ; OPTIONS FOR BONDS    
 constraints              = none
 
+adress                  = yes
 adress_type 		= sphere
 adress_ex_width 	= 1.5
 adress_hy_width		= 1.5
