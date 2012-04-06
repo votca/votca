@@ -79,17 +79,17 @@ class state:
 try:
   import cma
 except:
-  exit("cma module could not be imported, please make sure to cma.py in your PYTHONPATH. The cma.py is available from http://www.lri.fr/~hansen/cma.py, get with 'csg_call cma get'")
+  exit("cma module could not be imported, please make sure to cma.py in your PYTHONPATH. The cma.py is available from http://www.lri.fr/~hansen/cmaes_inmatlab.html, get with 'csg_call cma get'")
 
 
 usage = "usage: %prog [options] statefile-in statefile-out"
 parser = OptionParser(usage=usage)
 parser.add_option("--eps", dest="eps", metavar="EPS",
-                  help="tolerance for initialization", default=1)
+                  help="tolerance for initialization", default=0.1)
 (options, args) = parser.parse_args()                  
 
 if len(args) != 2:
-  die("two statefile required as parameters")
+  exit("two statefile required as parameters")
 
 current_state=state()
 current_state.read(args[0])
@@ -100,7 +100,7 @@ if current_state.state == "Initialization":
     exit("In Initialization step the state file should contain only one set (line)")
   es=cma.CMAEvolutionStrategy(current_state.parameters[0],options.eps)
 else:
-  [es, X ] = pickle.load(open("cma.cur"))
+  [es, X ] = pickle.load(open("cma.internal_state.cur"))
   if not numpy.allclose(X,current_state.parameters):
     exit("Parameterfile mismatches with internally saved parameters")
   es.tell(X,current_state.solutions)
@@ -114,4 +114,4 @@ print "We going to State '",new_state.state, "' with parameters\n",new_state.par
 new_state.write(args[1])
 #we need to pickle parameters as well as they are saved in a dict (string compare)
 #and internal precission is float64
-pickle.dump([es,new_state.parameters],open("cma.new", 'w'))
+pickle.dump([es,new_state.parameters],open("cma.internal_state.new", 'w'))

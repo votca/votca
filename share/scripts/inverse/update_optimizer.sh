@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 This script:
 - implements the update function for each non-bonded interaction
-- performs downhill simplex algorithm if no pending parameter sets present
+- performs optimizer algorithm if no pending parameter sets present
 - continues with next parameter set in table if otherwise
 
 Usage: ${0##*/}
@@ -28,7 +28,9 @@ EOF
    exit 0
 fi
 
-for_all "non-bonded bonded" do_external update simplex_single
+otype="$(csg_get_property cg.inverse.optimizer.type)"
+
+for_all "non-bonded bonded" do_external update optimizer_single
 
 names="$(csg_get_interaction_property --all name)"
 conv=0
@@ -39,22 +41,25 @@ for name in ${names}; do
   conv=$(csg_calc "$conv" + "$x")
 done
 
-[[ -f simplex.state.cur ]] || die "${0##*/}: Could not find simplex.state.cur"
-active="$(critical sed -n '/0 active$/{=;q}' "simplex.state.cur")"
-[[ -z $active ]] && die "${0##*/}: not could find an active simulation in simplex.state.cur"
+[[ -f ${otype}.state.cur ]] || die "${0##*/}: Could not find ${otype}.state.cur"
+active="$(critical sed -n '/0 active$/{=;q}' "${otype}.state.cur")"
+[[ -z $active ]] && die "${0##*/}: not could find an active simulation in ${otype}.state.cur"
 is_int "$active" || die "${0##*/}: Strange - $active should be a number"
 
 #check if there are still pending simulations
-pending="$(critical sed -n '/pending/p' "simplex.state.cur")"
+pending="$(critical sed -n '/pending/p' "${otype}.state.cur")"
 if [[ -z $pending ]]; then
-  #simplex needs to know which one was the last try guess and it need $conv
-  critical sed "${active}s/0 active$/ $conv try/" "simplex.state.cur" > "simplex.state.try"
-  do_external simplex precede_state "simplex.state.try" "simplex.state.done"
-  state="$(critical sed -n 's/#State = \(.*\)$/\1/p' simplex.state.done)"
+  #simplex needs to know which one was the last try guess and it need $conv, cma does not care
+  critical sed "${active}s/0 active$/ $conv try/" "${otype}.state.cur" > "${otype}.state.try"
+  do_external ${otype} precede_state "${otype}.state.try" "${otype}.state.done"
+  state="$(critical sed -n 's/#State = \(.*\)$/\1/p' ${otype}.state.done)"
   msg "Simplex state changed to $state"
 else
   pending="$(echo "$pending" | critical sed -n '$=')"
-  msg "There are still $pending simulations to be performed before the next simplex state change"
-  critical sed "${active}s/0 active$/ $conv complete/" "simplex.state.cur" > "simplex.state.done"
+  msg "There are still $pending simulations to be performed before the next ${otype} state change"
+  critical sed "${active}s/0 active$/ $conv complete/" "${otype}.state.cur" > "${otype}.state.done"
+  if [[ ${otype} = cma ]]; then
+    critical cp "${otype}.internal_state.cur" "${otype}.internal_state.new"
+  fi
 fi
-do_external simplex state_to_potentials "simplex.state.done" "simplex.state.new"
+do_external optimizer state_to_potentials "${otype}.state.done" "${otype}.state.new"

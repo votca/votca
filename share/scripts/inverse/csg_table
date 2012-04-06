@@ -28,15 +28,15 @@ prepare ibi prepare_generic.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare tf prepare_generic.sh
-prepare simplex prepare_simplex.sh
+prepare optimizer prepare_optimizer.sh
 prepare_single ibi prepare_generic_single.sh
 prepare_single imc prepare_generic_single.sh
 prepare_single tf prepare_generic_single.sh
-prepare_single simplex prepare_simplex_single.sh
+prepare_single optimizer prepare_optimizer_single.sh
 initstep ibi initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 initstep tf initialize_step_generic.sh
-initstep simplex initialize_step_simplex.sh
+initstep optimizer initialize_step_optimizer.sh
 
 #this is just to warn users from old versions
 prepare ibm prepare_ibm.sh
@@ -49,7 +49,7 @@ update ibm update_ibm.sh
 add_pot ibi add_pot_generic.sh
 add_pot imc add_pot_generic.sh
 add_pot tf add_pot_generic.sh
-add_pot simplex dummy.sh
+add_pot optimizer dummy.sh
 
 # END: these scripts have to be defined for each method
 
@@ -60,7 +60,7 @@ rdf pot RDF_to_POT.pl
 post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
 post_update tf post_update_generic.sh
-post_update simplex dummy.sh
+post_update optimizer dummy.sh
 post_update_single ibi post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 post_update_single tf post_update_generic_single.sh
@@ -124,16 +124,22 @@ update tf update_tf.sh
 update tf_single update_tf_single.sh
 calc thermforce calc_thermforce.sh
 
+# optimzer(generic) stuff
+optimizer prepare_state optimizer_prepare_state.sh
+optimizer parameters_to_potential optimizer_parameters_to_potential.sh
+optimizer state_to_potentials optimizer_state_to_potentials.sh
+update optimizer update_optimizer.sh
+update optimizer_single update_optimizer_single.sh
+
+optimizer_target rdf optimizer_target_rdf.sh
+optimizer_target density optimizer_target_density.sh
+
 # simplex specific stuff
-update simplex update_simplex.sh
-update simplex_single update_simplex_single.sh
-simplex parameters_to_potential simplex_parameters_to_potential.sh
-simplex prepare_state simplex_prepare_state.sh
-simplex state_to_potentials simplex_state_to_potentials.sh
 simplex precede_state simplex_downhill_processor.pl
 
-simplex_target rdf simplex_target_rdf.sh
-simplex_target density simplex_target_density.sh
+# cma specific stuff
+cma get cma_get.sh
+cma precede_state cma_processor.py
 
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl

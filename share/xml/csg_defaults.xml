@@ -232,7 +232,7 @@
       <DESC>Special mapping file for rdf calculations needed for bonded interactions</DESC>
     </map>
     <method>
-      <DESC>method to be performed: ibi/imc/ft/simplex</DESC>
+      <DESC>method to be performed: ibi/imc/ft/optimizer</DESC>
     </method>
     <program>gromacs
       <DESC>simulation package to be used (gromacs/espresso)</DESC>
@@ -426,9 +426,9 @@
 	  </step>
 	</splinesmooth>
       </post_update_options>
-      <simplex>
+      <optimizer>
 	<density>
-	  <DESC>Contains all options for the density calculation of the simplex algorithm</DESC>
+	  <DESC>Contains all options for the density calculation of the optimizer</DESC>
 	  <axis>x
 	    <DESC>Axis along which the density is calculated</DESC>
 	  </axis>
@@ -455,10 +455,10 @@
 	  <DESC>If the function is very complicated it can be defined in this files, which is used as an header</DESC>
 	</functionfile>
 	<parameters>
-	  <DESC>Parameters to be fitted by the simplex algorithm for this interaction. Note that the parameter names are global</DESC>
+	  <DESC>Parameters to be fitted by the optimizer for this interaction. Note that the parameter names are global</DESC>
 	</parameters>
 	<rdf>
-	  <DESC>Contains all options for the rdf calculation of the simplex algorithm</DESC>
+	  <DESC>Contains all options for the rdf calculation of the optimizer</DESC>
 	  <target>
 	    <DESC>Filename of the target rdf in the maindir</DESC>
 	  </target>
@@ -467,12 +467,12 @@
 	  </weight>
 	</rdf>
 	<targets>rdf
-	  <DESC>Targets to be fitted by the simplex algorithm</DESC>
+	  <DESC>Targets to be fitted by the optimizer</DESC>
 	</targets>
 	<target_weights>1
 	  <DESC>Weight of the targets, amount has to be the same as of targets</DESC>
 	</target_weights>
-      </simplex>
+      </optimizer>
       <tf>
 	<DESC>Contains all information relevant to thermoforce iteration</DESC>
 	<spline_start>

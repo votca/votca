@@ -29,7 +29,7 @@ fi
 [[ -z $1 ]] && die "${0##*/}: missing argument"
 
 name=$(csg_get_interaction_property name)
-parameters=( $(csg_get_interaction_property --all inverse.simplex.parameters) )
+parameters=( $(csg_get_interaction_property --all inverse.optimizer.parameters) )
 [[ $(( $# - 2 )) -ne ${#parameters[@]} ]] && die "${0##*/}: length of parameter string ($#) does not match number of interactions (${#parameters[@]})"
 what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
 
@@ -39,8 +39,8 @@ for ((i=1;i<=${#parameters[@]};i++)); do
   para[${#para[@]}]="${parameters[$i-1]}=${!i}"
 done
 
-fct=$(csg_get_interaction_property inverse.simplex.function)
-header=$(csg_get_interaction_property --allow-empty inverse.simplex.functionfile)
+fct=$(csg_get_interaction_property inverse.optimizer.function)
+header=$(csg_get_interaction_property --allow-empty inverse.optimizer.functionfile)
 min="$(csg_get_interaction_property min)"
 step="$(csg_get_interaction_property step)"
 max="$(csg_get_interaction_property max)"
