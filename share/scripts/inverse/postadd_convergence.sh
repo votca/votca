@@ -91,13 +91,8 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
       *)
 	  die "${0##*/}: convergence check norm '${norm}' specified for '${name}.${dist}.${base}' not yet implemented."
   esac 
-  funform=( $(csg_get_interaction_property function "none") )
-  # for cubic bspline case we check flags
-  if [[ ${funform} = "CBSPL" ]]; then
-      diff=$(do_external table combine --sum --withflag 'i' --op ${opr} "$tmp1" "${name}.${dist}.${base}")
-  else
-      diff=$(do_external table combine --sum --no-flags --op ${opr} "$tmp1" "${name}.${dist}.${base}")
-  fi
+  # compute error only for 'i' flagged entries, neglect 'o' flagged entries
+  diff=$(do_external table combine --sum --withflag i --op ${opr} "$tmp1" "${name}.${dist}.${base}")
   is_num "$diff" || die "${0##*/}: strange - result of do_external table difference '$tmp1' and '${name}.${dist}.${base}' was not a number" 
   #for second norm we should take sqrt of diff
   #if [[ ${norm} = "2" ]]; then
