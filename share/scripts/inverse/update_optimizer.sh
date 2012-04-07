@@ -53,7 +53,7 @@ if [[ -z $pending ]]; then
   critical sed "${active}s/0 active$/ $conv try/" "${otype}.state.cur" > "${otype}.state.try"
   do_external ${otype} precede_state "${otype}.state.try" "${otype}.state.done"
   state="$(critical sed -n 's/#State = \(.*\)$/\1/p' ${otype}.state.done)"
-  msg "Simplex state changed to $state"
+  [[ ${otype} = simplex ]] && msg "Simplex state changed to $state"
 else
   pending="$(echo "$pending" | critical sed -n '$=')"
   msg "There are still $pending simulations to be performed before the next ${otype} state change"
