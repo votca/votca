@@ -518,17 +518,21 @@ get_time() { #gives back current time in sec from 1970
 }
 export -f get_time
 
-get_number_tasks() { #get the number of possible tasks from the xml file or determine it automatically under linux
+get_number_tasks() { #get the number of possible tasks from the xml file or determine it automatically under some systems
   local tasks
   tasks="$(csg_get_property cg.inverse.simulation.tasks)"
   [[ $tasks = "auto" ]] && tasks=0
-  is_int "$tasks" || die "${FUNCNAME[0]}: cg.inverse.simulation.tasks needs to be a number or 'auto', but I got $tasks"
-  #this only work for linux
-  if [[ $tasks -eq 0 && -r /proc/cpuinfo ]]; then
-    tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')
-    [[ -z ${tasks//[0-9]} ]] || tasks=1
+  is_int "$tasks" || die "${FUNCNAME[0]}: cg.inverse.simulation.tasks needs to be a number or 'auto', but I got $(csg_get_property cg.inverse.simulation.tasks)"
+  if [[ $tasks -eq 0 ]]; then #auto-detect
+    if [[ -r /proc/cpuinfo ]]; then #linux
+      tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')
+    elif [[ -x /usr/sbin/sysctl ]]; then #mac os
+      tasks=$(/usr/sbin/sysctl -n hw.ncpu)
+    elif [[ -x /usr/sbin/lsdev ]]; then #AIX
+      tasks=$(/usr/sbin/lsdev | sed -n '/Processor/p' | sed -n '$=')
+    fi
+    is_int "${tasks}" || tasks=1 #failback in case we got non-int
   fi
-  [[ $tasks -le 1 ]] && tasks=1
   echo "$tasks"
 }
 export -f get_number_tasks
