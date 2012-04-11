@@ -1,0 +1,23 @@
+<cg_molecule>
+  <name>UR</name> <!-- the name of the molecule after mapping -->
+  <ident>UR</ident> <!-- the name of the molecule in atomistic topology -->
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>UR</name>
+        <type>UR</type>
+        <mapping>A</mapping>
+        <beads>
+           1:UR:C 1:UR:O 1:UR:N1 1:UR:H1 1:UR:H2 1:UR:N2 1:UR:H3 1:UR:H4
+        </beads>
+      </cg_bead>
+    </cg_beads>
+  </topology>
+  <maps>
+    <map>
+      <name>A</name>
+      <weights>12 16 14 1 1 14 1 1</weights>
+    </map>
+  </maps>
+</cg_molecule>
+
