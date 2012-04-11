@@ -21,8 +21,10 @@ class PolarSite
 
     friend class EMultipole2;
     friend class EMultipole3;
+    friend class EOutersphere2;
     friend class Interactor;
     friend class Interactor3;
+    friend class InteractorMod;
 
 public:
 
@@ -58,6 +60,7 @@ public:
     double         &getPs(int state) { return _Ps[state+1]; }
     double         &getP1() { return P1; }
     void            Charge(int state);
+    void            ChargeDelta(int state1, int state2);
 
     void            Induce(double wSOR = 0.25);
     void            InduceDirect();

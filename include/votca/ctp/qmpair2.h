@@ -30,6 +30,7 @@ public:
    void      setTopology(Topology *top) { _top = top; }
    vec      &R() { return _R; }
    double    Dist() { return abs(_R); }
+   vec       getPos() { return 0.5*(first->getPos() + second->getPos()); }
 
    void     setIsPathCarrier(bool yesno, int carrier);
    bool     isPathCarrier(int carrier);

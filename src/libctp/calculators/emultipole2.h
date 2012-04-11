@@ -1911,6 +1911,9 @@ void EMultipole2::DistributeMpoles(Topology *top) {
             }
         }
     }
+
+    top->setIsEStatified(true);
+
 }
 
 
@@ -1934,10 +1937,12 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
     else { cout << endl << "... ... System is already rigidified."; }
 
     // Forward multipoles to topology
-    this->DistributeMpoles(top);
-
-    cout << endl << "... ... Created " << top->PolarSites().size()
+    if (top->isEStatified() == false) {
+        this->DistributeMpoles(top);
+        cout << endl << "... ... Created " << top->PolarSites().size()
                  << " multipole sites.";
+    }
+    else { cout << endl << "... ... System is already estatified."; }
 
     if (_checkPolesPDB != "") {
         cout << endl << "... ... Writing polar-site coordinates to "
@@ -2306,6 +2311,27 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         _seg->setEMpoles(state, int2eV * EState);
         iters[state+1] = iter;
 
+
+        /*
+        FILE *out;
+        string toFile = boost::lexical_cast<string>(_seg->getId())
+                      + "_R_absU_N.dat";
+        out = fopen(toFile.c_str(), "w");
+        vector< PolarSite* > ::iterator pit;
+        vector< vector< PolarSite* > > ::iterator sit;
+        vec CoM = _seg->getPos();
+        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
+            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+                vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
+                double R = abs(r);
+                vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
+                // double U = abs(u);
+                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f \n",
+                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ());
+            }
+        }
+        fclose(out);
+        */
         
 //        // For visual check of convergence
 //        string mpNAME = "seg1_cation.dat";
@@ -2392,6 +2418,27 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         _seg->setEMpoles(state, int2eV * EState);
         iters[state+1] = iter;
 
+
+        /*
+        FILE *out;
+        string toFile = boost::lexical_cast<string>(_seg->getId())
+                      + "_R_absU_C.dat";
+        out = fopen(toFile.c_str(), "w");
+        vector< PolarSite* > ::iterator pit;
+        vector< vector< PolarSite* > > ::iterator sit;
+        vec CoM = _seg->getPos();
+        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
+            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+                vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
+                double R = abs(r);
+                vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
+                // double U = abs(u);
+                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f \n",
+                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ());
+            }
+        }
+        fclose(out);
+        */
         
 //        // For visual check of convergence
 //        string mpNAME = "seg1_neutral.dat";
@@ -2413,12 +2460,13 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         
         this->Depolarize();
 
-        this->_master->_logMutex.Lock();
-        _master->_log_seg_iter[_seg->getId()] = iters;
-        _master->_log_seg_sphereSize[_seg->getId()] = _polsPolSphere.size();
-        _master->_log_seg_com[_seg->getId()] = _seg->getPos();
-        this->_master->_logMutex.Unlock();
     }
+
+    this->_master->_logMutex.Lock();
+    _master->_log_seg_iter[_seg->getId()] = iters;
+    _master->_log_seg_sphereSize[_seg->getId()] = _polsPolSphere.size();
+    _master->_log_seg_com[_seg->getId()] = _seg->getPos();
+    this->_master->_logMutex.Unlock();
 
     this->Charge(0);
 

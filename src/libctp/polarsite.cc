@@ -145,6 +145,31 @@ void PolarSite::Charge(int state) {
     }
 }
 
+void PolarSite::ChargeDelta(int state1, int state2) {
+
+    int idx1 = state1 + 1;
+    int idx2 = state2 + 1;
+
+    // Adjust polarizability to charge state
+        P1 = 0.0;
+
+    // Adjust multipole moments to charge state
+        Q00 = _Qs[idx2][0] - _Qs[idx1][0];
+
+    if (_rank > 0) {
+        Q1z = _Qs[idx2][1] - _Qs[idx1][1];   // |
+        Q1x = _Qs[idx2][2] - _Qs[idx1][2];   // |-> NOTE: order z - x - y
+        Q1y = _Qs[idx2][3] - _Qs[idx1][3];   // |
+    }
+    if (_rank > 1) {
+        Q20  = _Qs[idx2][4] - _Qs[idx1][4];
+        Q21c = _Qs[idx2][5] - _Qs[idx1][5];
+        Q21s = _Qs[idx2][6] - _Qs[idx1][6];
+        Q22c = _Qs[idx2][7] - _Qs[idx1][7];
+        Q22s = _Qs[idx2][8] - _Qs[idx1][8];
+    }
+}
+
 void PolarSite::Induce(double wSOR) {
 
     U1_Hist.push_back( vec(U1x,U1y,U1z) );
