@@ -100,9 +100,12 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   #fi
   #store error norm for current interactions current DIST 
   echo "$diff" > ${name}.${dist}.conv
+  #append the error to the main directory error file
+  cat  ${name}.${dist}.conv >> ../${name}.${dist}.conv
   wdiff=$(csg_calc "$weight" "*" "${diff}")
   echo "Convergence of $dist for ${name} was ${diff} and has weight $weight, so difference is $wdiff"
   sum=$(csg_calc $sum + $wdiff)
 done
 
 echo "$sum" > ${name}.conv
+cat  ${name}.conv >> ../${name}.conv
