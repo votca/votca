@@ -8,7 +8,7 @@ PotentialFunctionLJG::PotentialFunctionLJG(const double min_,
 double PotentialFunctionLJG::CalculateF (const double r) const {
 
 
-    if ( r <= _cut_off ) {
+    if ( r >= _min && r <= _cut_off ) {
 
         // lj 12-6 part + gaussian
         return _lam(0)/pow(r,12) - _lam(1)/pow(r,6)
@@ -24,7 +24,7 @@ double PotentialFunctionLJG::CalculateF (const double r) const {
     // calculate first derivative w.r.t. ith parameter
 double PotentialFunctionLJG::CalculateDF(const int i, const double r) const {
 
-    if ( r <= _cut_off ) {
+    if ( r >= _min && r <= _cut_off ) {
 
         switch(i) {
             case 0:
@@ -52,7 +52,7 @@ double PotentialFunctionLJG::CalculateDF(const int i, const double r) const {
 double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
                                             const double r) const {
 
-    if ( r <= _cut_off ) {
+    if ( r >= _min && r <= _cut_off ) {
 
         switch(i) {
             case 0:
