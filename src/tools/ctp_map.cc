@@ -6,7 +6,7 @@
 #include <votca/csg/trajectorywriter.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/topologyreader.h>
-#include <votca/ctp/statesaversqlite2.h>
+#include <votca/ctp/statesaversqlite.h>
 #include <votca/tools/globals.h>
 #include "Md2QmEngine.h"
 

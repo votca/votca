@@ -1,9 +1,9 @@
 #ifndef _MD2QMENGINE_H
 #define _MD2QMENGINE_H
 
-#include <votca/ctp/calculatorfactory2.h>
+#include <votca/ctp/calculatorfactory.h>
 #include <votca/tools/property.h>
-#include <votca/ctp/statesaversqlite2.h>
+#include <votca/ctp/statesaversqlite.h>
 #include <votca/moo/units.h>
 #include <votca/ctp/topology.h>
 #include <votca/csg/topology.h>

@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
-#include <votca/ctp/qmapplication2.h>
-#include <votca/ctp/calculatorfactory2.h>
+#include <votca/ctp/qmapplication.h>
+#include <votca/ctp/calculatorfactory.h>
 
 
 
