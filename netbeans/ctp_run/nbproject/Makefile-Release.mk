@@ -33,8 +33,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/ctp_run.o \
-	${OBJECTDIR}/_ext/715944016/ctp_run2.o
+	${OBJECTDIR}/_ext/715944016/ctp_run.o
 
 
 # C Compiler Flags
@@ -65,11 +64,6 @@ ${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
-
-${OBJECTDIR}/_ext/715944016/ctp_run2.o: ../../src/tools/ctp_run2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run2.o ../../src/tools/ctp_run2.cc
 
 # Subprojects
 .build-subprojects:

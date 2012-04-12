@@ -32,8 +32,8 @@
 #include <votca/ctp/segment.h>
 #include <votca/ctp/molecule.h>
 
-#include <votca/ctp/qmpair2.h>
-#include <votca/ctp/qmnblist2.h>
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmnblist.h>
 
 #include <votca/moo/jcalc.h>
 #include <votca/moo/mol_and_orb.h>
@@ -96,7 +96,7 @@ public:
                             CSG::BoundaryCondition::eBoxtype boxtype =
                             CSG::BoundaryCondition::typeAuto);
 
-    QMNBList2       &NBList() { return _nblist; }
+    QMNBList       &NBList() { return _nblist; }
 
     // Trajectory meta data: step number, time, frame (= Db ID)
 
@@ -123,7 +123,7 @@ protected:
     vector < PolarSite* >   _polarSites;
     vector < SegmentType* > _segmentTypes;
 
-    QMNBList2               _nblist;
+    QMNBList               _nblist;
 
     CSG::BoundaryCondition *_bc;
     bool                    _hasPb;

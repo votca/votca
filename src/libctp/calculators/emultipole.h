@@ -1,20 +1,20 @@
-#ifndef EMULTIPOLE2_H
-#define EMULTIPOLE2_H
+#ifndef EMULTIPOLE_H
+#define EMULTIPOLE_H
 
 
-#include <votca/ctp/qmcalculator2.h>
+#include <votca/ctp/qmcalculator.h>
 #include <boost/progress.hpp>
 
 namespace votca { namespace ctp {
 
 
-class EMultipole2 : public QMCalculator2
+class EMultipole : public QMCalculator
 {
 
 public:
 
-    EMultipole2() {};
-   ~EMultipole2() {};
+    EMultipole() {};
+   ~EMultipole() {};
 
     string   Identify() { return "EMultipole (Parallel)"; }
 
@@ -69,7 +69,7 @@ public:
     {
     public:
 
-        Interactor(Topology *top, EMultipole2 *em) : _top(top), _em(em) {};
+        Interactor(Topology *top, EMultipole *em) : _top(top), _em(em) {};
         Interactor() : _top(NULL), _em(NULL) {};
        ~Interactor() {};
                
@@ -275,7 +275,7 @@ public:
         inline double T22s_22c() { return R5 * 0.5 * (35*rbx*rbx*rax*ray - 35*rby*rby*rax*ray + 10*rbx*rax*cyx + 10*rbx*ray*cxx - 10*rby*rax*cyy - 10*rby*ray*cxy + 2*cxx*cyx - 2*cxy*cyy); }
 
         Topology        *_top;
-        EMultipole2     *_em;
+        EMultipole     *_em;
 
     };
 
@@ -289,7 +289,7 @@ public:
     public:
 
         SiteOpMultipole(int id, Topology *top,
-                     EMultipole2 *master)
+                     EMultipole *master)
                    : _id(id), _top(top), _seg(NULL),
                      _master(master)     
                    { _actor = Interactor(top,_master); };
@@ -314,7 +314,7 @@ public:
         int                           _id;
         Topology                     *_top;
         Segment                      *_seg;
-        EMultipole2                  *_master;
+        EMultipole                  *_master;
 
         vector< Segment* >           _segsPolSphere; // Segments within cutoff
         vector< vector<PolarSite*> > _polsPolSphere; // Polar sites within c/o
@@ -393,7 +393,7 @@ private:
  * ... SOR parameters (convergence)
  * ... Control options (first, last seg., ...)
  */
-void EMultipole2::Initialize(Topology *top, Property *opt) {
+void EMultipole::Initialize(Topology *top, Property *opt) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
@@ -593,7 +593,7 @@ void EMultipole2::Initialize(Topology *top, Property *opt) {
  * ... Calls GDMA punch-file parser to load multipoles and polarizabilities
  * ... In doing this, establishes which charge states are available (N, C, A)
  */
-void EMultipole2::EStatify(Topology *top, Property *options) {
+void EMultipole::EStatify(Topology *top, Property *options) {
 
     cout << endl << "... ... Estatify system: ";
 
@@ -836,7 +836,7 @@ void EMultipole2::EStatify(Topology *top, Property *options) {
  * ... Determines polarizabilities from element type
  * @return Yields polar-site template container
  */
-vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
+vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
 
     int poleCount = 1;
     double Q0_total = 0.0;
@@ -999,7 +999,7 @@ vector<PolarSite*> EMultipole2::ParseGdmaFile(string filename, int state) {
  * Parses GAUSSIAN cube file (for structure sample see below)
  * ... NOTE Only parses header to extract voxel vectors and repetition numbers
  */
-vector<vec> EMultipole2::ParseCubeFileHeader(string filename) {
+vector<vec> EMultipole::ParseCubeFileHeader(string filename) {
 
     vector< vec > cube;
     cube.resize(5);
@@ -1130,7 +1130,7 @@ vector<vec> EMultipole2::ParseCubeFileHeader(string filename) {
  * ... NOTE Calculation done for input coordinates (as found in GDMA file)
  * ... NOTE Grid is read in from file in Gaussian cube format
  */
-void EMultipole2::CalculateESPInput(Topology *top) {
+void EMultipole::CalculateESPInput(Topology *top) {
 
     cout << endl << "... ... Calculating ESP";
 
@@ -1201,7 +1201,7 @@ void EMultipole2::CalculateESPInput(Topology *top) {
  * ... NOTE Calculation done for rigid coordinates (as found in trajectory)
  * ... NOTE Grid is read in from file in Gaussian cube format
  */
-void EMultipole2::CalculateESPRigid(Topology *top) {
+void EMultipole::CalculateESPRigid(Topology *top) {
 
     cout << endl << "... ... Calculate ESP for segment ID: " << flush;
 
@@ -1264,7 +1264,7 @@ void EMultipole2::CalculateESPRigid(Topology *top) {
  * ... NOTE Writes output in cube-file format, two header lines should
  * ...      already have been written to FILE* out
  */
-void EMultipole2::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
+void EMultipole::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
 
     // Calculate potential for each voxel, write to output on the fly
     Interactor actor = Interactor(NULL, this);
@@ -1371,7 +1371,7 @@ void EMultipole2::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
  * ... NOTE Calculation done for rigid coordinates (as found in GDMA file)
  * ... NOTE Grid is currently loaded from xyz file
  */
-void EMultipole2::CalculateESF(Topology *top) {
+void EMultipole::CalculateESF(Topology *top) {
 
     cout << endl << "... ... Calculating ESF";
 
@@ -1515,7 +1515,7 @@ void EMultipole2::CalculateESF(Topology *top) {
  * Calculates molecular polarizability tensor for GDMA coordinates
  * ... Uses Thole SCF model with exponential damping function
  */
-void EMultipole2::CalculateAlphaInput(Topology *top) {
+void EMultipole::CalculateAlphaInput(Topology *top) {
 
     cout << endl << "... ... Calculating site polarizabilities";
 
@@ -1584,7 +1584,7 @@ void EMultipole2::CalculateAlphaInput(Topology *top) {
 /**
  * Calculates polarizability for arbitrary assembly of polar sites
  */
-void EMultipole2::CalculateAlphaRigid(vector< PolarSite* > &poles, 
+void EMultipole::CalculateAlphaRigid(vector< PolarSite* > &poles,
                                       FILE *out, bool system) {
 
     vector< PolarSite* > ::iterator pit;
@@ -1768,7 +1768,7 @@ void EMultipole2::CalculateAlphaRigid(vector< PolarSite* > &poles,
  * Induces dipoles on polar sites in self-consistent manner until converged
  * ... NOTE Designed to be used in conjunction with ::CalculateAlphaMol()
  */
-void EMultipole2::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles) {
+void EMultipole::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles) {
 
     int    maxIter = this->_maxIter;
     double wSOR = this->_wSOR_N;
@@ -1843,7 +1843,7 @@ void EMultipole2::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles) {
  * ... Looks up associated polar sites, creates 'new' instances
  * ... Translates + rotates polar-site into global frame
  */
-void EMultipole2::DistributeMpoles(Topology *top) {
+void EMultipole::DistributeMpoles(Topology *top) {
 
     // +++++++++++++++++++++++++++++++++++++ //
     // Equip TOP with distributed multipoles //
@@ -1923,7 +1923,7 @@ void EMultipole2::DistributeMpoles(Topology *top) {
  * ... Creates, starts threads
  * ... Waits for threads to finish
  */
-bool EMultipole2::EvaluateFrame(Topology *top) {
+bool EMultipole::EvaluateFrame(Topology *top) {
 
     // ++++++++++++++++++++ //
     // Ridigidfy + Estatify //
@@ -2158,7 +2158,7 @@ bool EMultipole2::EvaluateFrame(Topology *top) {
  * Provides next segment for thread upon request
  * @return Pointer to next segment
  */
-Segment *EMultipole2::RequestNextSite(int opId, Topology *top) {
+Segment *EMultipole::RequestNextSite(int opId, Topology *top) {
 
     _nextSiteMutex.Lock();
 
@@ -2188,7 +2188,7 @@ Segment *EMultipole2::RequestNextSite(int opId, Topology *top) {
 // SiteOperator Member Functions //
 // +++++++++++++++++++++++++++++ //
 
-void EMultipole2::SiteOpMultipole::Run(void) {
+void EMultipole::SiteOpMultipole::Run(void) {
 
     while (true) {
 
@@ -2204,7 +2204,7 @@ void EMultipole2::SiteOpMultipole::Run(void) {
  * Creates private copies of polar sites in topology and
  * arranges them by segments so as to avoid mutexes.
  */
-void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) { 
+void EMultipole::SiteOpMultipole::InitSlotData(Topology *top) {
     
 
     vector< Segment* > ::iterator sitRef;
@@ -2237,7 +2237,7 @@ void EMultipole2::SiteOpMultipole::InitSlotData(Topology *top) {
 /**
  * Deletes all private thread data, in particular copies of polar sites
  */
-EMultipole2::SiteOpMultipole::~SiteOpMultipole() {
+EMultipole::SiteOpMultipole::~SiteOpMultipole() {
 
     vector< vector<PolarSite*> > ::iterator sit;
     vector<PolarSite*> ::iterator pol;
@@ -2258,7 +2258,7 @@ EMultipole2::SiteOpMultipole::~SiteOpMultipole() {
  * ... Check which charges states are available
  * ... For each charge state: Charge, Induce, Energy, Depolarize
  */
-void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
+void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
     double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
@@ -2312,7 +2312,7 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         iters[state+1] = iter;
 
 
-        /*
+        
         FILE *out;
         string toFile = boost::lexical_cast<string>(_seg->getId())
                       + "_R_absU_N.dat";
@@ -2323,15 +2323,16 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
             for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
                 vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
+                int segId = (*pit)->getSegment()->getId();
                 double R = abs(r);
                 vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
                 // double U = abs(u);
-                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f \n",
-                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ());
+                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f %4d\n",
+                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ(), segId);
             }
         }
         fclose(out);
-        */
+        
         
 //        // For visual check of convergence
 //        string mpNAME = "seg1_cation.dat";
@@ -2419,7 +2420,7 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         iters[state+1] = iter;
 
 
-        /*
+        
         FILE *out;
         string toFile = boost::lexical_cast<string>(_seg->getId())
                       + "_R_absU_C.dat";
@@ -2430,15 +2431,16 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
             for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
                 vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
+                int segId = (*pit)->getSegment()->getId();
                 double R = abs(r);
                 vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
                 // double U = abs(u);
-                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f \n",
-                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ());
+                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f %4d \n",
+                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ(), segId);
             }
         }
         fclose(out);
-        */
+        
         
 //        // For visual check of convergence
 //        string mpNAME = "seg1_neutral.dat";
@@ -2477,7 +2479,7 @@ void EMultipole2::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
  * Charges polar sites in segment to state specified
  * @param state
  */
-void EMultipole2::SiteOpMultipole::Charge(int state) {
+void EMultipole::SiteOpMultipole::Charge(int state) {
 
     vector< PolarSite* > ::iterator pit;
     for (pit = _polarSites[_seg->getId()-1].begin();
@@ -2492,7 +2494,7 @@ void EMultipole2::SiteOpMultipole::Charge(int state) {
 /**
  * Calculates induced dipole moments using the Thole Model + SOR
  */
-int EMultipole2::SiteOpMultipole::Induce(int state) {
+int EMultipole::SiteOpMultipole::Induce(int state) {
 
     double wSOR = (state == 0) ? _master->_wSOR_N : _master->_wSOR_C;
     double eTOL = this->_master->_epsTol;
@@ -2653,7 +2655,7 @@ int EMultipole2::SiteOpMultipole::Induce(int state) {
 /**
  * Calculates electrostatic energy of segment up to Q2-Q2
  */
-double EMultipole2::SiteOpMultipole::Energy(int state) {
+double EMultipole::SiteOpMultipole::Energy(int state) {
 
     _actor.ResetEnergy();
     double E_Tot = 0.0;
@@ -2726,7 +2728,7 @@ double EMultipole2::SiteOpMultipole::Energy(int state) {
  * Zeroes out induced moments and induction fields for all polar sites
  * in polarizable sphere
  */
-void EMultipole2::SiteOpMultipole::Depolarize() {
+void EMultipole::SiteOpMultipole::Depolarize() {
 
     vector< vector<PolarSite*> > ::iterator sit;
     vector< PolarSite* > ::iterator pit;
@@ -2747,7 +2749,7 @@ void EMultipole2::SiteOpMultipole::Depolarize() {
 /**
  * Used in ESP calculator (initialize stage of EMultipole)
  */
-inline double EMultipole2::Interactor::PotentialPerm(vec r,
+inline double EMultipole::Interactor::PotentialPerm(vec r,
                                                      PolarSite &pol) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -2790,7 +2792,7 @@ inline double EMultipole2::Interactor::PotentialPerm(vec r,
 /**
  * Used in ESF calculator (initialize stage of EMultipole)
  */
-inline vec EMultipole2::Interactor::FieldPermESF(vec r,
+inline vec EMultipole::Interactor::FieldPermESF(vec r,
                                                  PolarSite &pol) {
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol.getPos() - r;
@@ -2869,7 +2871,7 @@ inline vec EMultipole2::Interactor::FieldPermESF(vec r,
 /**
  * Used in molecular-polarizability calculator (initialize stage)
  */
-inline void EMultipole2::Interactor::FieldInduAlpha(PolarSite &pol1,
+inline void EMultipole::Interactor::FieldInduAlpha(PolarSite &pol1,
                                                     PolarSite &pol2) {
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol2.getPos() - pol1.getPos();
@@ -2967,7 +2969,7 @@ inline void EMultipole2::Interactor::FieldInduAlpha(PolarSite &pol1,
 /**
  * Used in self-consistent field calculation (evaluation stage)
  */
-inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
+inline void EMultipole::Interactor::FieldIndu(PolarSite &pol1,
                                                PolarSite &pol2) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -3067,7 +3069,7 @@ inline void EMultipole2::Interactor::FieldIndu(PolarSite &pol1,
 /**
  * Used in self-consistent field calculation (evaluation stage)
  */
-inline void EMultipole2::Interactor::FieldPerm(PolarSite &pol1,
+inline void EMultipole::Interactor::FieldPerm(PolarSite &pol1,
                                                PolarSite &pol2) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -3193,7 +3195,7 @@ inline void EMultipole2::Interactor::FieldPerm(PolarSite &pol1,
 /**
  * Used in energy evaluation of converged fields (evaluation stage)
  */
-inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
+inline double EMultipole::Interactor::EnergyIntra(PolarSite &pol1,
                                                    PolarSite &pol2) {    
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -3398,7 +3400,7 @@ inline double EMultipole2::Interactor::EnergyIntra(PolarSite &pol1,
 /**
  * Used in energy evaluation of converged fields (evaluation stage)
  */
-inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
+inline double EMultipole::Interactor::EnergyInter(PolarSite &pol1,
                                                    PolarSite &pol2) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -3765,7 +3767,7 @@ inline double EMultipole2::Interactor::EnergyInter(PolarSite &pol1,
 /**
  * Designed for use in ESP calculator (init. stage). Only for error-checking.
  */
-inline double EMultipole2::Interactor::EnergyInterESP(PolarSite &pol1,
+inline double EMultipole::Interactor::EnergyInterESP(PolarSite &pol1,
                                                       PolarSite &pol2) {
     
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //

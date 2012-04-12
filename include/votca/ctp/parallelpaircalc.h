@@ -2,14 +2,14 @@
 #define PARALLELPAIRCALC_H
 
 
-#include <votca/ctp/qmcalculator2.h>
+#include <votca/ctp/qmcalculator.h>
 #include <votca/tools/thread.h>
 #include <votca/tools/mutex.h>
 
 
 namespace votca { namespace ctp {
 
-class ParallelPairCalculator : public QMCalculator2
+class ParallelPairCalculator : public QMCalculator
 {
 
 public:
@@ -22,9 +22,9 @@ public:
     bool         EvaluateFrame(Topology *top);
     virtual void InitSlotData(Topology *top) { ; }
     virtual void PostProcess(Topology *top) { ; }
-    virtual void EvalPair(Topology *top, QMPair2 *qmpair, int slot) { ; }
+    virtual void EvalPair(Topology *top, QMPair *qmpair, int slot) { ; }
 
-    QMPair2     *RequestNextPair(int opId, Topology *top);
+    QMPair     *RequestNextPair(int opId, Topology *top);
     void         LockCout() { _coutMutex.Lock(); }
     void         UnlockCout() { _coutMutex.Unlock(); }
 
@@ -54,14 +54,14 @@ public:
 
         int                      _id;
         Topology                *_top;
-        QMPair2                 *_pair;
+        QMPair                 *_pair;
         ParallelPairCalculator  *_master;
     };
 
 
 protected:
 
-    QMNBList2::iterator   _nextPair;
+    QMNBList::iterator   _nextPair;
     Mutex                 _nextPairMutex;
     Mutex                 _coutMutex;
 
@@ -111,17 +111,17 @@ bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
 // Thread Management //
 // +++++++++++++++++ //
 
-QMPair2 *ParallelPairCalculator::RequestNextPair(int opId, Topology *top) {
+QMPair *ParallelPairCalculator::RequestNextPair(int opId, Topology *top) {
 
     _nextPairMutex.Lock();
 
-    QMPair2 *workOnThis;
+    QMPair *workOnThis;
 
     if (_nextPair == top->NBList().end()) {
         workOnThis = NULL;
     }
     else {
-        QMPair2 *workOnThat = *_nextPair;
+        QMPair *workOnThat = *_nextPair;
         _nextPair++;
         workOnThis = workOnThat;
     }
@@ -139,7 +139,7 @@ void ParallelPairCalculator::PairOperator::Run(void) {
 
     while (true) {
 
-        QMPair2 *qmpair = _master->RequestNextPair(_id, _top);
+        QMPair *qmpair = _master->RequestNextPair(_id, _top);
 
         if (qmpair == NULL) { break; }
         else { this->_master->EvalPair(_top, qmpair, _id); }

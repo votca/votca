@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_CTP_QMDATABASE_H
-#define	__VOTCA_CTP_QMDATABASE_H
+#ifndef __VOTCA_CTP_QMDATABASE2_H
+#define	__VOTCA_CTP_QMDATABASE2_H
 
 #include <votca/tools/database.h>
 
@@ -30,8 +30,7 @@ namespace votca { namespace ctp {
  * This class contains management of state databases. It creates
  * new databases and opens or upgrades existing ones.
  */
-class QMDatabase :
-    public Database
+class QMDatabase : public Database
 {
 public:
     
@@ -46,5 +45,5 @@ public:
 
 }}
 
-#endif	/* QMDATABASE_H */
+#endif	/* QMDATABASE2_H */
 

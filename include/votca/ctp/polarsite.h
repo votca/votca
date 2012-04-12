@@ -19,9 +19,9 @@ class Fragment;
 class PolarSite
 {
 
-    friend class EMultipole2;
-    friend class EMultipole3;
-    friend class EOutersphere2;
+    friend class EMultipole;
+    friend class EMultipole_StdAl;
+    friend class EOutersphere;
     friend class Interactor;
     friend class Interactor3;
     friend class InteractorMod;

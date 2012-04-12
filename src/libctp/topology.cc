@@ -247,13 +247,13 @@ bool Topology::Rigidify() {
         //   would be to rigidify the topology within StateSaver::ReadFrame,
         //   after atoms have been created, but before pairs are created. ]
 
-            QMNBList2 &nblist = this->NBList();
+            QMNBList &nblist = this->NBList();
 
-            QMNBList2::iterator pit;
+            QMNBList::iterator pit;
             int count = 0;
             for (pit = nblist.begin(); pit != nblist.end(); pit++) {
 
-                QMPair2 *qmpair = *pit;
+                QMPair *qmpair = *pit;
                 if (qmpair->HasGhost()) {
                     count++;
 

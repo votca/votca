@@ -2,14 +2,14 @@
 #define PARALLELSITECALC_H
 
 
-#include <votca/ctp/qmcalculator2.h>
+#include <votca/ctp/qmcalculator.h>
 #include <votca/tools/thread.h>
 #include <votca/tools/mutex.h>
 
 
 namespace votca { namespace ctp {
 
-class ParallelSiteCalculator : public QMCalculator2
+class ParallelSiteCalculator : public QMCalculator
 {
 
 public:

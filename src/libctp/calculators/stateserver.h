@@ -2,14 +2,14 @@
 #define __STATESERVER_H
 
 
-#include <votca/ctp/qmcalculator2.h>
+#include <votca/ctp/qmcalculator.h>
 
 
 
 
 namespace votca { namespace ctp {
 
-class StateServer : public QMCalculator2
+class StateServer : public QMCalculator
 {
 public:
 
@@ -24,7 +24,8 @@ public:
     void DownloadTopology(FILE *out, Topology *top);
     void DownloadSegments(FILE *out, Topology *top);
     void DownloadPairs(FILE *out, Topology *top);
-    // TODO Extend trajectory writers to work with ctp Topology object
+    void DownloadEList(FILE *out, Topology *top);
+    void DownloadIList(FILE *out, Topology *top);
     void DownloadCoords(FILE *out, Topology *top) { };
 
 private:
@@ -82,49 +83,70 @@ bool StateServer::EvaluateFrame(Topology *top) {
     out = fopen(outfile.c_str(), "w");
     for (key = _keys.begin(); key < _keys.end(); key++ ) {
 
+        cout << endl << "... ... Write " << flush;
+
         if (*key == "topology") {
 
-                cout << endl << "... ... Write topology ";
+                cout << "topology, ";
 
-                fprintf(out, "           // +++++++++++++++++++ // \n");
-                fprintf(out, "           // MD|QM Topology Info // \n");
-                fprintf(out, "           // +++++++++++++++++++ // \n\n");
+                fprintf(out, "           # +++++++++++++++++++ # \n");
+                fprintf(out, "           # MD|QM Topology Info # \n");
+                fprintf(out, "           # +++++++++++++++++++ # \n\n");
 
                 DownloadTopology(out, top);
         }
         else if (*key == "sites") {
 
-                cout << endl << "... ... Write sites ";
+                cout << endl << "sites, ";
 
-                fprintf(out, "           // ++++++++++++++++++++ // \n");
-                fprintf(out, "           // Segments in Database // \n");
-                fprintf(out, "           // ++++++++++++++++++++ // \n\n");
+                fprintf(out, "           # ++++++++++++++++++++ # \n");
+                fprintf(out, "           # Segments in Database # \n");
+                fprintf(out, "           # ++++++++++++++++++++ # \n\n");
 
                 DownloadSegments(out, top);
         }
 
         else if (*key == "pairs") {
 
-                cout << endl << "... ... Write pairs ";
+                cout << endl << "pairs, ";
 
-                fprintf(out, "           // +++++++++++++++++ // \n");
-                fprintf(out, "           // Pairs in Database // \n");
-                fprintf(out, "           // +++++++++++++++++ // \n\n");
+                fprintf(out, "           # +++++++++++++++++ # \n");
+                fprintf(out, "           # Pairs in Database # \n");
+                fprintf(out, "           # +++++++++++++++++ # \n\n");
 
                 DownloadPairs(out, top);
 
         }
 
-        else if (*key == "trajectory") {
+        else if (*key == "ilist") {
 
-            cout << endl << "... ... Write trajectory";
-            writeTrajectory = true;
+                cout << endl << "integrals, ";
+
+                fprintf(out, "           # +++++++++++++++++++++ # \n");
+                fprintf(out, "           # Integrals in Database # \n");
+                fprintf(out, "           # +++++++++++++++++++++ # \n\n");
+
+                DownloadIList(out, top);
+
+        }
+
+        else if (*key == "elist") {
+
+                cout << endl << "energies, ";
+
+                fprintf(out, "           # +++++++++++++++++++++++++ # \n");
+                fprintf(out, "           # Site energies in Database # \n");
+                fprintf(out, "           # +++++++++++++++++++++++++ # \n\n");
+
+                DownloadEList(out, top);
+
         }
 
         else {
                 cout << "ERROR (Invalid key " << *key << ") ";
         }
-        
+
+        cout << "done. " << flush;
 
         fprintf(out, "\n\n");
     }
@@ -160,8 +182,6 @@ bool StateServer::EvaluateFrame(Topology *top) {
         fclose(out);
 
     }
-
-    cout << ". ";
 
 }
 
@@ -219,15 +239,14 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
     }
 }
 
-
 void StateServer::DownloadPairs(FILE *out, Topology *top) {
-    QMNBList2::iterator nit;
+    QMNBList::iterator nit;
 
     for (nit = top->NBList().begin();
          nit != top->NBList().end();
          nit++) {
 
-        QMPair2 *pair = *nit;
+        QMPair *pair = *nit;
 
         int ghost;
         if (pair->HasGhost()) { ghost = 1; }
@@ -245,6 +264,14 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
                 0.0, // pair->getRate12(),
                 0.0 ); // pair->getRate21() );
     }
+}
+
+void StateServer::DownloadIList(FILE *out, Topology *top) {
+    ;
+}
+
+void StateServer::DownloadEList(FILE *out, Topology *top) {
+    ;
 }
 
 }}

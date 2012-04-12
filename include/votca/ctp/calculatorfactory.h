@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _CALCULATORFACTORY_H
-#define	_CALCULATORFACTORY_H
+#ifndef _Calculatorfactory_H
+#define	_Calculatorfactory_H
 
 #include <votca/tools/objectfactory.h>
 #include "qmcalculator.h"
@@ -25,25 +25,25 @@ namespace votca { namespace ctp {
 
 using namespace std;
 
-class CalculatorFactory
+class Calculatorfactory
 : public ObjectFactory<std::string, QMCalculator>
 {
 private:
-    CalculatorFactory() {}
+    Calculatorfactory() {}
 public:
     
     static void RegisterAll(void);
 
-    friend CalculatorFactory &Calculators();
+    friend Calculatorfactory &Calculators();
 };
 
-inline CalculatorFactory &Calculators()
+inline Calculatorfactory &Calculators()
 {
-    static CalculatorFactory _instance;
+    static Calculatorfactory _instance;
     return _instance;
 }
 
 }}
 
-#endif	/* _CALCULATORFACTORY_H */
+#endif	/* _Calculatorfactory_H */
 

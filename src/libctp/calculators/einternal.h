@@ -1,12 +1,12 @@
 #ifndef __EINTERNAL_H
 #define __EINTERNAL_H
 
-#include <votca/ctp/qmcalculator2.h>
+#include <votca/ctp/qmcalculator.h>
 
 namespace votca { namespace ctp {
 
 
-class EInternal : public QMCalculator2
+class EInternal : public QMCalculator
 {
 public:
 

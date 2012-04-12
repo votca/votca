@@ -15,16 +15,13 @@
  *
  */
 
-#ifndef __VOTCA_MD2QM_STATESAVERSQLITE_H
-#define	__VOTCA_MD2QM_STATESAVERSQLITE_H
+#ifndef __VOTCA_MD2QM_StateSaverSQLite_H
+#define	__VOTCA_MD2QM_StateSaverSQLite_H
 
 #include <stdio.h>
 #include <map>
-#include "qmbead.h"
-#include "qmtopology.h"
-#include "qmpair.h"
-#include "qmnblist.h"
 #include "qmdatabase.h"
+#include "topology.h"
 
 namespace votca { namespace ctp {
 
@@ -33,52 +30,49 @@ using namespace votca::tools;
 class StateSaverSQLite
 {
 public:
-    StateSaverSQLite();
-    ~StateSaverSQLite();
+    StateSaverSQLite() { };
+   ~StateSaverSQLite() { _db.Close(); }
 
-    void Open(QMTopology & qmtop,const string &file);
-    void Close();
-    void WriteFrame();
-
+    void Open(Topology &qmtop, const string &file);
+    void Close() { _db.Close(); }
     bool NextFrame();
 
-    int FramesInDatabase() { return _frames.size(); }
+    void WriteFrame();
+    void WriteMeta(bool update);
+    void WriteMolecules(bool update);
+    void WriteSegTypes(bool update);
+    void WriteSegments(bool update);
+    void WriteFragments(bool update);
+    void WriteAtoms(bool update);
+    void WritePairs(bool update);
+
+    void ReadFrame();
+    void ReadMeta(int topId);
+    void ReadMolecules(int topId);
+    void ReadSegTypes(int topId);
+    void ReadSegments(int topId);
+    void ReadFragments(int topId);
+    void ReadAtoms(int topId);
+    void ReadPairs(int topId);
+
+    int  FramesInDatabase();
+    Topology *getTopology() { return _qmtop; }
+    bool HasTopology(Topology *top);
     
 private:
-    int _frame;
-    QMDatabase _db;
-    
-    void WriteMolecules(int frameid);
-    void WriteConjugatedSegments(int frameid);
-    void WriteBeads(int frameid);
-    void WritePairs(int frameid);
-    void WriteIntegrals(QMPair *pair);
+    Topology       *_qmtop;
+    QMDatabase      _db;
 
-    void ReadFrame(void);
-    void ReadMolecules(void);
-    void ReadConjugatedSegments(void);
-    void ReadBeads(void);
-    void ReadPairs(void);
-    void ReadIntegrals();
+    int             _frame;
+    int             _current_frame;
+    vector<int>     _frames;
+    vector<int>     _topIds;
 
-    template<typename T>
-    void WriteCustomProperties(int object_id, std::map<string, T> &properties,
-        string table, const string field_objectid, const string field_key="key", const string field_value="value");
-
-    template<typename T>
-    void ReadCustomProperties(int object_id, std::map<string, T> &properties,
-        string table, const string field_objectid, const string field_key="key", const string field_value="value");
-
-    QMTopology *_qmtop;
-
-    vector<int> _frames;
-    int _current_frame;
-
-    map<int,int> _conjseg_id_map;
-    bool _was_read;
+    string          _sqlfile;
+    bool            _was_read;
 };
 
 }}
 
-#endif	/* __VOTCA_MD2QM_StateSaverSQLite_H */
+#endif	/* __VOTCA_MD2QM_StateSaverSQLite2_H */
 

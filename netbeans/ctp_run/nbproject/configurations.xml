@@ -13,7 +13,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../src/tools/ctp_run.cc</itemPath>
-      <itemPath>../../src/tools/ctp_run2.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
