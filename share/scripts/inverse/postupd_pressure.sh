@@ -56,7 +56,7 @@ if [[ ${pscheme[$pscheme_nr]} = 1 ]]; then
    comment="$(get_table_comment ${name}.pressure_correction)"
    tmpfile=$(critical mktemp ${name}.pressure_correction_cut.XXX)
    critical csg_resample --in ${name}.pressure_correction --out ${tmpfile} --grid $min:$step:$max --comment "$comment"
-   do_external table add ${tmpfile} "$1" "$2"
+   do_external table add "$1" ${tmpfile} "$2"
 else
    echo "NO pressure correction for interaction ${name}"
    do_external postupd dummy "$1" "$2"

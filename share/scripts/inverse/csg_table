@@ -74,6 +74,7 @@ postupd shift dpot_shift_nb.pl
 postupd dummy postadd_dummy.sh
 postupd tag tag_file.sh
 postupd extrapolate postupd_extrapolate.sh
+postupd kbibi postupd_kbibi_correction.sh
 
 # post add
 post add post_add.sh
@@ -138,6 +139,9 @@ simplex_target density simplex_target_density.sh
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl
 pressure_cor wjk pressure_cor_wjk.pl
+
+# kirkwood-buff correction
+kbibi correction kbibi_correction.pl
 
 #density correction
 density symmetrize density_symmetrize.py 
