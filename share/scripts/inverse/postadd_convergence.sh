@@ -30,8 +30,8 @@ fi
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 do_external postadd dummy "$1" "$2"
-if [[ $(csg_get_property cg.inverse.method) = "simplex" ]]; then
-  msg "WARNING: postadd convergency make no sense for simplex as convergency is calculated anyway - skipping"
+if [[ $(csg_get_property cg.inverse.method) = "optimizer" ]]; then
+  msg "WARNING: postadd convergency make no sense for method optimizer as convergency is calculated anyway - skipping"
   exit 0
 fi
 

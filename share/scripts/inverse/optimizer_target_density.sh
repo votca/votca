@@ -27,18 +27,18 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 name="$(csg_get_interaction_property name)"
-mol="$(csg_get_interaction_property inverse.simplex.density.molname)"
-axis="$(csg_get_interaction_property inverse.simplex.density.axis)"
-step="$(csg_get_interaction_property inverse.simplex.density.step)"
+mol="$(csg_get_interaction_property inverse.optimizer.density.molname)"
+axis="$(csg_get_interaction_property inverse.optimizer.density.axis)"
+step="$(csg_get_interaction_property inverse.optimizer.density.step)"
 opts=( "--molname" "$mol" "--axis" "$axis" "--step" "$step" )
 do_external density ${sim_prog} "${name}.density.new" "${opts[@]}"
 
 [[ -f ${name}.density.new ]] || die "${0##*/}: Could not calculate ${name}.density.new"
-target="$(csg_get_interaction_property inverse.simplex.density.target)"
+target="$(csg_get_interaction_property inverse.optimizer.density.target)"
 main_dir=$(get_main_dir)
-min="$(csg_get_interaction_property inverse.simplex.density.min)"
-max="$(csg_get_interaction_property inverse.simplex.density.max)"
-step="$(csg_get_interaction_property inverse.simplex.density.step)"
+min="$(csg_get_interaction_property inverse.optimizer.density.min)"
+max="$(csg_get_interaction_property inverse.optimizer.density.max)"
+step="$(csg_get_interaction_property inverse.optimizer.density.step)"
 
 [[ -f ${main_dir}/$target ]] || die "${0##*/}: Not find density target '$target' in maindir"
 critical csg_resample --in "${main_dir}/${target}" --out "${name}.density.tgt" --grid "$min:$step:$max"
