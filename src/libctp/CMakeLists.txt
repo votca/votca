@@ -20,7 +20,7 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
 
 
 file(GLOB_RECURSE VOTCA_SOURCES *.cc)
-file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc)
+file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc segmenttype.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 add_library(votca_ctp  ${VOTCA_SOURCES})

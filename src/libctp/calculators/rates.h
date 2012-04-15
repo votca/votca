@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,246 +17,404 @@
  *
  */
 
-#ifndef RATES_H
-#define	RATES_H
 
+#ifndef Rates_H
+#define Rates_H
 
 #include <votca/ctp/paircalculator.h>
 #include <math.h>
 
 namespace votca { namespace ctp {
-/**
-    \brief Calculates hopping rates using derivations from Marcus or Jortner
 
-Callname: rates
-
-*/
-
-
-class Rates : public PairCalculator
+class Rates : public PairCalculator2
 {
 public:
-    Rates() {};
-    ~Rates() {};
 
-    //const char *Description() { return "Calculates hopping rates using Jortner's derivation"; }
+    Rates() { };
+   ~Rates() { };
 
-    void Initialize(QMTopology *top, Property *options);
-    void EvaluatePair(QMTopology *top, QMPair *pair);
+    string Identify() { return "Rates"; }
+
+    void Initialize(Topology *top, Property *options);
+    void ParseEnergiesXML(Topology *top, Property *opt);
+    void EvaluatePair(Topology *top, QMPair *pair);
+    void CalculateRate(Topology *top, QMPair *pair, int state);
+
 
 private:
-    char _rate_type; //M=Marcus J=Jortner
-    vec _E;
+
+    map<string, double> _seg_U_cC_nN_e;
+    map<string, double> _seg_U_nC_nN_e;
+    map<string, double> _seg_U_cN_cC_e;
+
+    map<string, double> _seg_U_cC_nN_h;
+    map<string, double> _seg_U_nC_nN_h;
+    map<string, double> _seg_U_cN_cC_h;
+
+    map<string, bool>   _seg_has_e;
+    map<string, bool>   _seg_has_h;
+
+
+    string _rateType;
+    vec    _F;
     double _kT;
-    double _omegavib;
-    int _nmaxvib;
+    double _omegaVib;
+    int    _nMaxVib;
+
     int Factorial(int i);
-
-/* polymer rates [development]
-private:
-    double _nu;
-    double _J;
-    double _kT;
-    vec _E;
-*/
 
 };
 
-inline void Rates::Initialize(QMTopology *top, Property *options){
-	
-    double temp= options->get("options.rates.temperature").as<double>();
-    _kT=temp*8.6173324e-5;
-    _E = options->get("options.rates.field").as<vec>();
-   // _omegavib=0.2;
-   // _nmaxvib=10;
-      if (options->exists("options.rates.method")) {
-        if (options->get("options.rates.method").as<string > () == "marcus") {
-		_rate_type='M';
-            cout << "Computing rates from Marcus theory"<< endl;
-        }
-        else if (options->get("options.rates.method").as<string > () == "jortner") {
-		_rate_type='J';
-        if (options->exists("options.rates.nmaxvib")) {
-        _nmaxvib = options->get("options.rates.nmaxvib").as<double>();
-    } else {
-        _nmaxvib = 20;
-        cout << "Warning: no cutoff number for qm vibrations  provided, using default 20" << endl;
+
+
+
+void Rates::Initialize(Topology *top, Property *options) {
+
+    string key = "options.rates";
+
+    /* ---- OPTIONS.XML Structure -----
+     *
+     * <rates>
+     *
+     *      <temperature></temperature>
+     *      <field></field>
+     *
+     *      <method></method>
+     *      <nmaxvib></nmaxvib>
+     *      <omegavib></omegavib>
+     *
+     * </rates>
+     *
+     */
+
+    // Control parameters
+    double T = options->get(key+".temperature").as<double> ();
+    _kT = 8.6173324e-5 * T;
+
+    vec F = options->get(key+".field").as<vec>();
+    _F = F;
+
+
+    // Method
+    if (options->exists(key+".method")) {
+        _rateType = options->get(key+".method").as<string> ();
     }
-        if (options->exists("options.rates.omegavib")) {
-        _omegavib = options->get("options.rates.omegavib").as<double>();
-    } else {
-        _omegavib = 0.2;
-        cout << "Warning: no qm vibration frequency  provided, using default 0.2eV" << endl;
+    else {
+        cout << endl 
+             << "... ... ERROR: No method to calculate rates specified. "
+             << endl;
+        throw std::runtime_error("Missing input in options file.");
+    }
+    if (_rateType != "marcus" && _rateType != "jortner") {
+        cout << endl
+             << "... ... ERROR: Unknown rate type '" << _rateType << "' "
+             << endl;
+        throw std::runtime_error("Faulty input in options file.");
     }
 
-            cout << "Computing rates from Jortner summing up to " <<_nmaxvib << " quanta using a frequency of "<<_omegavib << " eV" << endl;
-        }
 
-        else throw std::runtime_error("Error in CalcRates::Initialize : no such rates method, should be marcus  or jortner");
-    } else throw std::runtime_error("Error in Rates:Initialize : no rates_method specified");
+    // Vibrational quanta
+    if (options->exists(key+".nmaxvib")) {
+        _nMaxVib = options->get(key+".nmaxvib").as<double> ();
+    }
+    else {
+        _nMaxVib = 20;
+        cout << endl << "... ... WARNING: No cut-off number for QM vibrations "
+                        "provided, using default 20.";
+    }
+    if (options->exists(key+".omegavib")) {
+        _omegaVib = options->get(key+".omegavib").as<double> ();
+    }
+    else {
+        _omegaVib = 0.2;
+        cout << endl << "... ... WARNING: No QM vibration frequency provided, "
+                        "using default 0.2eV.";
+    }
+
+
+    // this->ParseEnergiesXML(top, options);
 
 }
 
-inline void Rates::EvaluatePair(QMTopology *top, QMPair* pair){
-    double rate_12 = 0.0;
-    double rate_21 = 0.0;
-    double Jeff2 = pair->calcJeff2();
-    QMCrgUnit *crg1 = pair->first;
-    QMCrgUnit *crg2 = pair->second;
-            if (pair->DoubleExists("lambda_outer")) {
-                double lambda_outer = pair->getDouble("lambda_outer");
-                if ((_rate_type == 'J') && (lambda_outer < 0.0)) {
-                    cout << "Pair" << crg1->getId() << " : " << crg2->getId() << " has negative outer sphere reorganization energy preventing computation  of Jortner rates." << endl;
-                    throw std::runtime_error("Error in CalcRates::EvaluatePair: negative outer sphere reorganization");
-                }
-                if ((_rate_type == 'J') && (lambda_outer < 0.01)) 
-                    cout << "Warning: in CalcRates::EvaluatePair : pair " << crg1->getId() << " : " << crg2->getId() << " has very small outer sphere reorganization energy (< 0.01eV) which might produce too high Jortner rates."<<endl;
-           
+
+void Rates::ParseEnergiesXML(Topology *top, Property *opt) {
+
+    string key = "options.rates";
+    string energiesXML = opt->get(key+".energiesXML").as<string> ();
+
+    cout << endl
+         << "... ... Site, reorg. energies from " << energiesXML << ". "
+         << flush;
+
+    Property alloc;
+    load_property_from_xml(alloc, energiesXML.c_str());
+
+    /* --- ENERGIES.XML Structure ---
+     *
+     * <topology>
+     *
+     *     <molecules>
+     *          <molecule>
+     *          <name></name>
+     *
+     *          <segments>
+     *
+     *              <segment>
+     *              <name></name>
+     *
+     *              <!-- U_sG_sG, s->state, G->geometry !-->
+     *
+     *              <U_cC_nN_e></U_cC_nN_e>
+     *              <U_cC_nN_h></U_cC_nN_h>
+     *
+     *              <U_nC_nN_e></U_nC_nN_e>
+     *              <U_nC_nN_h></U_nC_nN_h>
+     *
+     *              <U_cN_cC_e></U_cN_cC_e>
+     *              <U_cN_cC_h></U_cN_cC_h>
+     *
+     *              </segment>
+     *
+     *              <segment>
+     *                  ...
+     *
+     */
+
+    key = "topology.molecules.molecule";
+    list<Property*> mols = alloc.Select(key);
+    list<Property*> ::iterator molit;
+    for (molit = mols.begin(); molit != mols.end(); ++molit) {
+
+        key = "segments.segment";
+        list<Property*> segs = (*molit)->Select(key);
+        list<Property*> ::iterator segit;
+
+        for (segit = segs.begin(); segit != segs.end(); ++segit) {
+
+            string segName = (*segit)->get("name").as<string> ();
+
+            bool has_e = false;
+            bool has_h = false;
+
+            double U_cC_nN_e = 0.0;
+            double U_cC_nN_h = 0.0;
+            double U_nC_nN_e = 0.0;
+            double U_nC_nN_h = 0.0;
+            double U_cN_cC_e = 0.0;
+            double U_cN_cC_h = 0.0;
+
+            if ( (*segit)->exists("U_cC_nN_e") &&
+                 (*segit)->exists("U_nC_nN_e") &&
+                 (*segit)->exists("U_cN_cC_e")    ) {
+
+                U_cC_nN_e = (*segit)->get("U_cC_nN_e").as< double > ();
+                U_nC_nN_e = (*segit)->get("U_nC_nN_e").as< double > ();
+                U_cN_cC_e = (*segit)->get("U_cN_cC_e").as< double > ();
+
+                has_e = true;
             }
-            else {
-                if (_rate_type == 'J') {
-                    cout << "Pair" << crg1->getId() << " : " << crg2->getId() << ": has not outer sphere reorganization energy necessary to compute Jortner rates. Compute lambdaouter or use Marcus rates."<<endl;
-                            throw std::runtime_error("Error in CalcRates::EvaluatePair: no outer sphere reorganization");
-                }
+            
+            if ( (*segit)->exists("U_cC_nN_h") &&
+                 (*segit)->exists("U_nC_nN_h") &&
+                 (*segit)->exists("U_cN_cC_h")    ) {
+
+                U_cC_nN_h = (*segit)->get("U_cC_nN_h").as< double > ();
+                U_nC_nN_h = (*segit)->get("U_nC_nN_h").as< double > ();
+                U_cN_cC_h = (*segit)->get("U_cN_cC_h").as< double > ();
+
+                has_h = true;
             }
 
-    
-    /// prefactor for future modifications
-    double prefactor = 1.0;
-    /// reorganization energy in eV as given in list_charges.xml
-    double reorg12 = crg1->getDouble("lambda_intra_discharging")+crg2->getDouble("lambda_intra_charging");
-    double reorg21 = crg2->getDouble("lambda_intra_discharging")+crg1->getDouble("lambda_intra_charging");
-    /// free energy difference due to electric field, i.e. E*r_ij
-    double dG_field = -_E * unit<nm,m>::to(pair->r());
-    /// free energy difference due to different energy levels of molecules
-    double dG_en = crg2->getTotalEnergy() - crg1->getTotalEnergy();
-    /// electrostatics are taken into account in qmtopology and are contained in Energy
-    /// total free energy difference
-    double dG = dG_field + dG_en;
- 
-       if (_rate_type=='J'){ 
-    ///Huang Rhys
-    double huang_rhys12 = reorg12/_omegavib;
-    double huang_rhys21 = reorg21/_omegavib;
- 
-    int nn;
-    for (nn = 0; nn<=_nmaxvib; nn++) {
-        /// Jortner rate from first to second
-    dG = dG_field + dG_en;
-    rate_12 = rate_12 + prefactor * sqrt(M_PI/(pair->getDouble("lambda_outer") * _kT)) * Jeff2 * exp(-huang_rhys12) * pow(huang_rhys12,nn) / Factorial(nn) *
-            exp (-(dG + nn*_omegavib + pair->getDouble("lambda_outer"))*(dG + nn*_omegavib +pair->getDouble("lambda_outer"))/(4*_kT*pair->getDouble("lambda_outer")))/hbar_eV;
-    /// Jortner rate from second to first (dG_field -> -dG_field)
-    dG = -dG_field - dG_en;
-    rate_21 = rate_21 + prefactor * sqrt(M_PI/(pair->getDouble("lambda_outer") * _kT)) * Jeff2 * exp(-huang_rhys21) * pow(huang_rhys21,nn) / Factorial(nn) *
-            exp (-(dG + nn*_omegavib +pair->getDouble("lambda_outer"))*(dG + nn*_omegavib +pair->getDouble("lambda_outer"))/(4*_kT*pair->getDouble("lambda_outer")))/hbar_eV;
+            _seg_U_cC_nN_e[segName] = U_cC_nN_e;
+            _seg_U_nC_nN_e[segName] = U_nC_nN_e;
+            _seg_U_cN_cC_e[segName] = U_cN_cC_e;
+            _seg_has_e[segName] = has_e;
+
+            _seg_U_cC_nN_h[segName] = U_cC_nN_h;
+            _seg_U_nC_nN_h[segName] = U_nC_nN_h;
+            _seg_U_cN_cC_h[segName] = U_cN_cC_h;
+            _seg_has_h[segName] = has_h;
+        }
     }
-}//end J
+}
 
-if (_rate_type=='M'){
- if (pair->DoubleExists("lambda_outer")){
-reorg12=reorg12+ pair->getDouble("lambda_outer");
-reorg21=reorg21+ pair->getDouble("lambda_outer");}
-rate_12 = prefactor * sqrt(M_PI/(reorg12 * _kT)) * Jeff2 *
-            exp (-(dG + reorg12)*(dG + reorg12)/(4*_kT*reorg12))/hbar_eV;
-    /// Marcus rate from second to first (dG_field -> -dG_field)
-    dG = -dG_field - dG_en;
-    rate_21 = prefactor * sqrt(M_PI/(reorg21 * _kT)) * Jeff2 *
-            exp (-(dG + reorg21)*(dG + reorg21)/(4*_kT*reorg21))/hbar_eV;
-}//end M
-    pair->setRate12(rate_12);
-    //cout<<rate_12;
-    pair->setRate21(rate_21);
+
+void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
+
+    cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << ". " << flush;
+
+    bool pair_has_e = false;
+    bool pair_has_h = false;
+
+    string segName1 = qmpair->first->getName();
+    string segName2 = qmpair->second->getName();
+
+    pair_has_e = qmpair->isPathCarrier(-1);
+    pair_has_h = qmpair->isPathCarrier(+1);
+
+//    try {
+//        pair_has_e = _seg_has_e.at(segName1) && _seg_has_e.at(segName2);
+//        pair_has_h = _seg_has_h.at(segName1) && _seg_has_h.at(segName2);
+//    }
+//    catch (out_of_range) {
+//        cout << endl << "... ... WARNING: No energy information for pair ["
+//                     << segName1 << ", " << segName2 << "]. "
+//                     << "Skipping... " << endl;
+//
+//        return;
+//    }
+
+    if (pair_has_e) {
+        this->CalculateRate(top, qmpair, -1);
+    }
+    if (pair_has_h) {
+        this->CalculateRate(top, qmpair, +1);
+    }
+}
+
+
+void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
+
+    const double NM2M    = 1.e-9;
+    const double hbar_eV = 6.58211899e-16;
+
+    Segment *seg1 = qmpair->first;
+    Segment *seg2 = qmpair->second;
+
+    double rate12 = 0.;                                       // 1->2
+
+    double rate21 = 0.;                                       // 2->1
+
+    double reorg12  = seg1->getU_nC_nN(state)                 // 1->2
+                    + seg2->getU_cN_cC(state);
+    double reorg21  = seg1->getU_cN_cC(state)                 // 2->1
+                    + seg2->getU_nC_nN(state);
+    double lOut     = qmpair->getLambdaO(state);              // 1->2 == + 2->1
+
+    double dG_Site  = seg2->getU_cC_nN(state)                 // 1->2 == - 2->1
+                    + seg2->getEMpoles(state)
+                    - seg1->getU_cC_nN(state)
+                    - seg1->getEMpoles(state);
+    double dG_Field = - state * _F * qmpair->R() * NM2M;      // 1->2 == - 2->1
+
+    double J2 = qmpair->getJeff2(state);                      // 1->2 == + 2->1
+
+    /*
+    if (state == -1) {
+
+        // Charge hops Seg1 -> Seg2
+        reorg12 = _seg_U_nC_nN_e[seg1->getName()]
+                + _seg_U_cN_cC_e[seg2->getName()];
+
+        // Charge hops Seg2 -> Seg1
+        reorg21 = _seg_U_nC_nN_e[seg2->getName()]
+                + _seg_U_cN_cC_e[seg1->getName()];
+
+        // dG Seg1 -> Seg2
+        dG_Site = _seg_U_cC_nN_e[seg2->getName()] + seg2->getEMpoles(state)
+                - _seg_U_cC_nN_e[seg1->getName()] - seg1->getEMpoles(state);
+    }
+
+    else if (state == +1) {
+
+        // Charge hops Seg1 -> Seg2
+        reorg12 = _seg_U_nC_nN_h[seg1->getName()]
+                + _seg_U_cN_cC_h[seg2->getName()];
+
+        // Charge hops Seg2 -> Seg1
+        reorg21 = _seg_U_nC_nN_h[seg2->getName()]
+                + _seg_U_cN_cC_h[seg1->getName()];
+
+        // dG Seg1 -> Seg2
+        dG_Site = _seg_U_cC_nN_h[seg2->getName()] + seg2->getEMpoles(state)
+                - _seg_U_cC_nN_h[seg1->getName()] - seg1->getEMpoles(state);
+    }
+    */
+
+    double dG = dG_Field + dG_Site;
+
+    // +++++++++++++ //
+    // JORTNER RATES //
+    // +++++++++++++ //
+
+    if (_rateType == "jortner" && lOut < 0.) {
+        cout << endl
+             << "... ... ERROR: Pair " << qmpair->getId() << " has negative "
+                "outer-sphere reorganization energy. Cannot calculate Jortner "
+                "rates. "
+             << endl;
+        throw std::runtime_error("");
+    }
+    else if (_rateType == "jortner" && lOut < 0.01) {
+        cout << endl
+             << "... ... WARNING: Pair " << qmpair->getId() << " has small "
+                "outer-sphere reorganization energy (" << lOut << "eV). Could "
+                "lead to over-estimated Jortner rates."
+             << endl;
+    }
+
+    if (_rateType == "jortner") {
+
+        double huang_rhys12 = reorg12 / _omegaVib;
+        double huang_rhys21 = reorg21 / _omegaVib;
+
+        int nvib;
+        for (nvib = 0; nvib <= _nMaxVib; nvib++) {
+
+            // Hopping from Seg1 -> Seg2
+            rate12 += 1 / hbar_eV * sqrt( M_PI / (lOut*_kT) )
+                    * J2 * exp(-huang_rhys12) * pow(huang_rhys12, nvib) /
+                           Factorial(nvib)
+                    * exp( -pow( (dG + nvib*_omegaVib + lOut) , 2 ) /
+                           (4*_kT*lOut) );
+
+            // Hopping from Seg2 -> Seg1
+            rate21 += 1 / hbar_eV * sqrt( M_PI / (lOut*_kT) )
+                    * J2 * exp(-huang_rhys21) * pow(huang_rhys21, nvib) /
+                           Factorial(nvib)
+                    * exp( -pow( (-dG + nvib*_omegaVib + lOut) , 2 ) /
+                           (4*_kT*lOut) );
+        }
+    }
+
+    // ++++++++++++ //
+    // MARCUS RATES //
+    // ++++++++++++ //
+
+    else if (_rateType == "marcus") {
+
+        reorg12 = reorg12 + lOut;
+        reorg21 = reorg21 + lOut;
+
+        rate12 = J2 / hbar_eV * sqrt( M_PI / (reorg12*_kT) )
+                * exp( - (+dG - reorg12)*(+dG - reorg12) / (4*_kT*reorg12) );
+
+        rate21 = J2 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
+                * exp( - (-dG - reorg21)*(-dG - reorg21) / (4*_kT*reorg21) );
+    }
+
+    qmpair->setRate12(rate12, state);
+    qmpair->setRate21(rate21, state);
+    qmpair->setIsPathCarrier(true, state);
+
 }
 
 int Rates::Factorial(int i) {
     int k,j;
-k=1;
-for(j=1;j<i;j++)
-  {
-  k=k*(j+1);
-  }
-return k;
+    k = 1;
+    for (j=1; j<i; j++) { k = k*(j+1); }
+    return k;
 }
 
-
-/* polymer rates (adiabatic rates from polypyrrole paper)
-
-void PolymerRates::Initialize(QMTopology *top, Property *options)
-{   
-    // prefactor (something like a nuclear frequency)
-    _nu = options->get("options.calc_rates.polymer.nu").as<double>();;
-    
-    _J=0;
-    
-    // transfer integrals for J=J_0 * cos(phi)
-    if(options->exists("options.calc_rates.polymer.J0"))
-        _J = options->get("options.calc_rates.polymer.J0").as<double>();;
-    
-    // thermal energy in eV
-    _kT = options->get("options.calc_rates.thermal_energy").as<double>();
-    // electric field vector in V/m
-    _E = options->get("options.calc_rates.e_field").as<vec>();
-}
-
-bool PolymerRates::EvaluateFrame(QMTopology *top)
-{
-    InteractionContainer::iterator iter;
-
-    // iterator over all molecules
-    for(MoleculeContainer::iterator imol = top->Molecules().begin();
-          imol!=top->Molecules().end(); ++imol) {
-        // now go over all connections and check weather they connect two charge units
-        for(int i=0; i<(*imol)->BeadCount()-1; ++i) { // hack for linear molecules
-
-            QMBead *b1 = dynamic_cast<QMBead*>((*imol)->getBead(i));
-            QMBead *b2 = dynamic_cast<QMBead*>((*imol)->getBead(i+1));
-
-            QMCrgUnit *crg1 = b1->GetCrgUnit();
-            QMCrgUnit *crg2 = b2->GetCrgUnit();
-
-            // are the two beads on same crg unit or crgunit is null -> ignore
-            if((crg1 == crg2)
-                    || (crg1 == NULL )
-                    || (crg2 == NULL ))
-                continue;
-
-            // swap if ordering is mixed up
-            if(crg1->getId() > crg2->getId())
-                swap(crg1,crg2);
-
-            // is there already a pair for these two crgunits
-            QMPair *pair = top->nblist().FindPair(crg1, crg2);
-            if(!pair) { // if not create one
-                pair = new QMPair(crg1, crg2, top);
-                top->nblist().AddPair(pair);
-            }
-            
-            // calculate the transfer integral
-            double cos_u= b1->U() * b2->U() / (abs(b1->U())*abs(b2->U()));
-            double J = _J*cos_u;
-
-            // calculate rates for both directions
-            pair->setRate12(CalcRate(pair->first, pair->second, pair->r(), J));
-            pair->setRate21(CalcRate(pair->second, pair->first, -pair->r(), J));
-        }
-    }
-}
-
-// adiabatic rate expression
-double PolymerRates::CalcRate(QMCrgUnit *crg1, QMCrgUnit *crg2, vec dist, double J)
-{    
-    double dE_nofield = crg2->getTotalEnergy() - crg1->getTotalEnergy();
-    double reorg = 0.5*(crg1->getDouble("lambda_intra_discharging") + crg2->getDouble("lambda_charging")+crg2->getDouble("lambda_intra_discharging") + crg1->getDouble("lambda_charging"));
-    
-    double dE =  dE_nofield - unit<nm,m>::to(dist) * _E;
-    double DG_star = ( dE + reorg)*(dE + reorg)/(4*reorg);
-
-    // J lowers the barrier
-    DG_star -= fabs(J);
-    double rate = _nu * exp ( -DG_star  / _kT  ) ;
-}
-*/
 }}
 
-#endif	/* RATES_H */
 
+
+
+
+
+
+
+
+
+#endif

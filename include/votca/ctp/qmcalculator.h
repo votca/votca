@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,26 +17,39 @@
  *
  */
 
-#ifndef _QMCALCULATOR_H
-#define	_QMCALCULATOR_H
 
-#include "qmtopology.h"
+#ifndef _QMCALCULATOR2_H
+#define _QMCALCULATOR2_H
+
+
+#include <votca/tools/property.h>
+#include <votca/ctp/topology.h>
+
+namespace CTP = votca::ctp;
 
 namespace votca { namespace ctp {
 
-/// the idea of this class is to make QMApplications more flexible
-
-class QMCalculator{
+class QMCalculator
+{
 public:
-    QMCalculator() {};
-    virtual ~QMCalculator() {};
-    virtual void Initialize(QMTopology *top, Property *options) {}
-    virtual bool EvaluateFrame(QMTopology *top) { return true; }
-    virtual void EndEvaluate(QMTopology *top) {}
+
+                    QMCalculator() { };
+    virtual        ~QMCalculator() { };
+
+    virtual string  Identify() { return "Generic calculator"; }
+
+    virtual void    Initialize(CTP::Topology *top, Property *options) { }
+    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
+    virtual void    EndEvaluate(CTP::Topology *top) { }
+
+    void            setnThreads(int nThreads) { _nThreads = nThreads; }
+
 protected:
+
+    int _nThreads;
+
 };
 
 }}
 
-#endif	/* _QMCALCULATOR_H */
-
+#endif /* _QMCALCULATOR2_H */

@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,138 +17,154 @@
  *
  */
 
+
 #include <votca/ctp/qmdatabase.h>
 
 namespace votca { namespace ctp {
 
 void QMDatabase::onCreate()
 {
-   // table for frames
+    // Table format frames
     Exec("CREATE TABLE frames ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "time REAL NOT NULL,"
-        "step INT NOT NULL,"
-        "box11 REAL NOT NULL,"
-        "box12 REAL NOT NULL,"
-        "box13 REAL NOT NULL,"
-        "box21 REAL NOT NULL,"
-        "box22 REAL NOT NULL,"
-        "box23 REAL NOT NULL,"
-        "box31 REAL NOT NULL,"
-        "box32 REAL NOT NULL,"
-        "box33 REAL NOT NULL)");
+        "id       INT NOT NULL,"
+        "time     REAL NOT NULL,"
+        "step     INT NOT NULL,"
+        "box11    REAL NOT NULL,"
+        "box12    REAL NOT NULL,"
+        "box13    REAL NOT NULL,"
+        "box21    REAL NOT NULL,"
+        "box22    REAL NOT NULL,"
+        "box23    REAL NOT NULL,"
+        "box31    REAL NOT NULL,"
+        "box32    REAL NOT NULL,"
+        "box33    REAL NOT NULL,"
+        "canRigid INT NOT NULL)");
    
-    // table for molecules
+    // Table format molecules
     Exec("CREATE TABLE molecules ("
-        "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "id INT NOT NULL,"
-        "name TEXT NOT NULL,"
-        "frame INT NOT NULL)");
+        "_id    INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "frame  INT NOT NULL,"
+        "top    INT NOT NULL,"
+        "id     INT NOT NULL,"
+        "name   TEXT NOT NULL,"
+        "type   TEXT NOT NULL)");
       
-    // table for conjugated segments
-    Exec("CREATE TABLE conjsegs ("
-        "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT NOT NULL,"
-        "type TEXT NOT NULL,"
-        "molecule INT NOT NULL,"
-        "frame INT NOT NULL," // TODO: this is bad
-        "pos_x real NOT NULL,"
-        "pos_y real NOT NULL,"
-        "pos_z real NOT NULL,"
-        "occ REAL)"); 
+    // Table format segments
+    Exec("CREATE TABLE segments ("
+        "_id        INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "frame  INT NOT NULL,"
+        "top    INT NOT NULL,"
+        "id     INT NOT NULL,"
+        "name   TEXT NOT NULL,"
+        "type   TEXT NOT NULL,"
+        "mol    INT NOT NULL,"
+            
+        "posX   REAL NOT NULL,"
+        "posY   REAL NOT NULL,"
+        "posZ   REAL NOT NULL,"
 
-    // additional properties of conjugated segments
-    Exec("CREATE TABLE conjseg_properties ("
-        "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "conjseg INTEGER NOT NULL,"
-        "key TEXT NOT NULL,"
-        "value REAL NOT NULL)");
+        "UnCnNe     REAL DEFAULT 0,"
+        "UnCnNh     REAL DEFAULT 0,"
+        "UcNcCe     REAL DEFAULT 0,"
+        "UcNcCh     REAL DEFAULT 0,"
+        "UcCnNe     REAL DEFAULT 0,"
+        "UcCnNh     REAL DEFAULT 0,"
+        "eAnion     REAL DEFAULT 0,"
+        "eNeutral   REAL DEFAULT 0,"
+        "eCation    REAL DEFAULT 0,"
 
-    // table for rigid fragments
-    Exec("CREATE TABLE rigidfrags ("
-        "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "id INT NOT NULL,"
-        "frame INT NOT NULL,"
-        "name TEXT NOT NULL,"
+        "has_e      INT  DEFAULT 0,"
+        "has_h      INT  DEFAULT 0,"
+
+        "occPe      REAL DEFAULT -1,"
+        "occPh      REAL DEFAULT -1)");
+
+    // Table format segment types
+    Exec("CREATE TABLE segmentTypes ("
+         "_id       INTEGER PRIMARY KEY AUTOINCREMENT,"
+         "frame     INT NOT NULL,"
+         "top       INT NOT NULL,"
+         "id        INT NOT NULL,"
+         "name      TEXT NOT NULL,"
+         "basis     TEXT NOT NULL,"
+         "orbfile   TEXT NOT NULL,"
+         "torbnrs   TEXT NOT NULL,"
+         "coordfile TEXT NOT NULL,"
+         "canRigid  INT NOT NULL)");
+
+    // Table format fragments
+    Exec("CREATE TABLE fragments ("
+        "_id    INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "frame  INT NOT NULL,"
+        "top    INT NOT NULL,"
+        "id     INT NOT NULL,"
+        "name   TEXT NOT NULL,"
+        "type   TEXT NOT NULL,"
+        "mol    INT NOT NULL,"
+        "seg    INT NOT NULL,"
+
+        "posX   REAL NOT NULL,"
+        "posY   REAL NOT NULL,"
+        "posZ   REAL NOT NULL,"
         "symmetry INT NOT NULL,"
-        "type TEXT NOT NULL,"
-        "resnr INT NOT NULL,"
-        "mass REAL NOT NULL,"
-        "charge REAL NOT NULL,"
-        "molecule INT NOT NULL,"
-        "conjseg_id INT NOT NULL,"
-        "conjseg_index INT NOT NULL,"
-        "pos_x REAL NOT NULL,"
-        "pos_y REAL NOT NULL,"
-        "pos_z REAL NOT NULL,"
-        "u_x REAL NOT NULL,"
-        "u_y REAL NOT NULL,"
-        "u_z REAL NOT NULL,"
-        "v_x REAL NOT NULL,"
-        "v_y REAL NOT NULL,"
-        "v_z REAL NOT NULL)");
+        "leg1   INT NOT NULL,"
+        "leg2   INT NOT NULL,"
+        "leg3   INT NOT NULL)");
 
-    // additional properties of rigid fragments
-    Exec("CREATE TABLE rigidfrag_properties ("
-        "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "fragmenttid INTEGER NOT NULL,"
-        "key TEXT NOT NULL,"
-        "value REAL NOT NULL)");
+    // Table format atoms
+    Exec("CREATE TABLE atoms ("
+         "_id   INTEGER PRIMARY KEY AUTOINCREMENT,"
+         "frame INT NOT NULL,"
+         "top   INT NOT NULL,"
+         "id    INT NOT NULL,"
+         "name  TEXT NOT NULL,"
+         "type  INT NOT NULL,"
+
+         "mol   INT NOT NULL,"
+         "seg   INT NOT NULL,"
+         "frag  INT NOT NULL,"
+
+         "resnr   INT NOT NULL,"
+         "resname TEXT NOT NULL,"
+
+         "posX    REAL NOT NULL,"
+         "posY    REAL NOT NULL,"
+         "posZ    REAL NOT NULL,"
+         "weight  REAL NOT NULL,"
+         "element TEXT NOT NULL,"
+         "qmid    INT NOT NULL,"
+         "qmPosX  REAL NOT NULL,"
+         "qmPosY  REAL NOT NULL,"
+         "qmPosZ  REAL NOT NULL)");
                
-    // table for pairs
+    // Table format pairs
     Exec("CREATE TABLE pairs ("
         "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "conjseg1 INT NOT NULL,"
-        "conjseg2 INT NOT NULL,"
-        "rate12 REAL NOT NULL,"
-        "rate21 REAL NOT NULL,"
-        "r_x REAL NOT NULL,"
-        "r_y REAL NOT NULL,"
-        "r_z REAL NOT NULL,"
-        "deleted INT DEFAULT 0)");
+        "frame      INT NOT NULL,"
+        "top        INT NOT NULL,"
+        "id         INT NOT NULL,"
 
-    // additional properties of pairs
-    Exec("CREATE TABLE pair_properties ("
-        "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "pair INTEGER NOT NULL,"
-        "key TEXT NOT NULL,"
-        "value REAL NOT NULL)");
+        "seg1       INT NOT NULL,"
+        "seg2       INT NOT NULL,"
 
-    Exec("CREATE TABLE pair_integrals ("
-        "pair INTEGER NOT NULL,"
-        "num INTEGER NOT NULL,"
-        "J REAL NOT NULL)");
+        "drX        REAL NOT NULL,"
+        "drY        REAL NOT NULL,"
+        "drZ        REAL NOT NULL,"
+
+        "lOe        REAL DEFAULT 0,"
+        "lOh        REAL DEFAULT 0,"
+
+        "has_e      INT  DEFAULT 0,"
+        "has_h      INT  DEFAULT 0,"
+        "rate12e    REAL DEFAULT 0,"
+        "rate21e    REAL DEFAULT 0,"
+        "rate12h    REAL DEFAULT 0,"
+        "rate21h    REAL DEFAULT 0,"
+        "Jeff2e     REAL DEFAULT 0,"
+        "Jeff2h     REAL DEFAULT 0)");
 
 
-/*
-    // delete molecules if frame is deleted
-    Exec("CREATE TRIGGER trig_delete_frame BEFOR DELETE ON frames "
-            "FOR EACH ROW BEGIN "
-            "DELETE FROM molecules WHERE molecules.frame = OLD._id;"
-            " END");
-
-    // delete segment properties + fragments + pairs if segment is deleted
-    Exec("CREATE TRIGGER trig_delete_conjseg BEFOR DELETE ON conjseg "
-            "FOR EACH ROW BEGIN "
-            "DELETE FROM conjseg_properties WHERE conjseg_properties.conjsegment = OLD._id;"
-            "DELETE FROM rigidfrag WHERE conjseg_id= OLD._id;"
-            "DELETE FROM pairs WHERE pairs.conjseg1 = OLD._id OR pairs.conjseg2 = OLD._id;"
-            " END");
-
-    // delete fragment properties if fragment is deleted
-    Exec("CREATE TRIGGER trig_delete_fragment BEFOR DELETE ON rigidfrag "
-            "FOR EACH ROW BEGIN "
-            "DELETE FROM rigidfrag_properties WHERE fragment_properties.fragment = OLD._id;"
-            "DELETE FROM conjseg WHERE segment_id=segmentid.frame = OLD._id;"
-            " END");
-
-    // delete pair property if property is deleted
-    Exec("CREATE TRIGGER trig_delete_pair BEFOR DELETE ON pairs "
-            "FOR EACH ROW BEGIN "
-            "DELETE FROM pair_properties WHERE pair_properties.pair = OLD._id;"
-            " END");
-
-*/
 }
 
 }}

@@ -33,7 +33,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/md2qm_observer.o \
+	${OBJECTDIR}/_ext/715944016/Md2QmEngine.o \
 	${OBJECTDIR}/_ext/715944016/ctp_map.o
 
 
@@ -69,10 +69,10 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/ctp_map ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/715944016/md2qm_observer.o: ../../src/tools/md2qm_observer.cc 
+${OBJECTDIR}/_ext/715944016/Md2QmEngine.o: ../../src/tools/Md2QmEngine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../csg/include -I../../include -I../../../tools/include -I../../../moo/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/md2qm_observer.o ../../src/tools/md2qm_observer.cc
+	$(COMPILE.cc) -g -I../../../csg/include -I../../include -I../../../tools/include -I../../../moo/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/Md2QmEngine.o ../../src/tools/Md2QmEngine.cc
 
 ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016

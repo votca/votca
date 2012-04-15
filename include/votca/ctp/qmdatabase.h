@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +17,9 @@
  *
  */
 
-#ifndef __VOTCA_CTP_QMDATABASE_H
-#define	__VOTCA_CTP_QMDATABASE_H
+
+#ifndef __VOTCA_CTP_QMDATABASE2_H
+#define	__VOTCA_CTP_QMDATABASE2_H
 
 #include <votca/tools/database.h>
 
@@ -30,8 +33,7 @@ namespace votca { namespace ctp {
  * This class contains management of state databases. It creates
  * new databases and opens or upgrades existing ones.
  */
-class QMDatabase :
-    public Database
+class QMDatabase : public Database
 {
 public:
     
@@ -46,5 +48,5 @@ public:
 
 }}
 
-#endif	/* QMDATABASE_H */
+#endif	/* QMDATABASE2_H */
 
