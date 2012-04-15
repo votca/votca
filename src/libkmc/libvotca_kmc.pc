@@ -1,12 +1,12 @@
-prefix=@prefix@
-prefix=@CMAKE_INSTALL_PREFIX@
-libdir=${prefix}/@LIB@
+prefix=
+prefix=/people/thnfs/homes/kordt/votca
+libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: libvotca_kmc
 Description: kinetic monte carlo of the votca package
 URL: http://www.votca.org
-Version: @VERSION@
+Version: 
 Requires: libvotca_tools 
 Libs: -L${libdir} -lvotca_kmc
 Libs.private: -lm
