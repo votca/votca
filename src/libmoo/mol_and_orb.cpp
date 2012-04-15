@@ -270,6 +270,8 @@ int mol_and_orb::init(const char * nameinput){
 			a_type._type = type;
 			a_type._lbl  = lbl;
 
+                        // cout << endl << "typ " << type << " lbl " << lbl << " " << x << " " << y << " " << z << endl;
+
 			atom_labels.push_back(a_type);
 			atom_pos.push_back(pos);
 			
@@ -292,7 +294,7 @@ int mol_and_orb::init(const char * nameinput){
         centre.setX(0.); centre.setY(0.) ; centre.setZ(0.);
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
-        cout << " Finished loading atoms" << endl; 
+        // cout << " Finished loading atoms" << endl;
 	return 0;
 }
 
@@ -318,5 +320,46 @@ int mol_and_orb::init_orbitals(orb & a, const char * namefile){
     delete [] basis;
     return 0;
 }
+
+
+
+
+
+void mol_and_orb::setAtomLabels(vector<string> types, vector<int> labels) {
+
+    assert(types.size() == labels.size());
+
+    for (int i = 0; i < types.size(); i++) {
+        atom_type atom;
+        atom._type = types[i];
+        atom._lbl = labels[i];
+
+        atom_labels.push_back(atom);
+
+
+        map<string, int>::iterator itp = periodic_table.find(atom._type);
+        if (itp != periodic_table.end() ){
+            int lbl = itp->second;
+            n_el += _bs->get_nel_at(lbl);
+        }
+        else {
+            throw std::runtime_error("Unkown atom type " + atom._type);
+        }
+    }
+
+
+    cout << "Number e-" << n_el << " --- Number atoms " << atom_labels.size() << endl;
+
+}
+
+
+
+
+
+
+
+
+
+
 
 }}
