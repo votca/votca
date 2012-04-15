@@ -35,7 +35,9 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o \
-	${OBJECTDIR}/_ext/484465351/kmcapplication.o
+	${OBJECTDIR}/_ext/484465351/version_nb.o \
+	${OBJECTDIR}/_ext/484465351/kmcapplication.o \
+	${OBJECTDIR}/_ext/484465351/version.o
 
 
 # C Compiler Flags
@@ -69,10 +71,20 @@ ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o: ../../src/libkmc/kmccalculat
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
 
+${OBJECTDIR}/_ext/484465351/version_nb.o: ../../src/libkmc/version_nb.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/version_nb.o ../../src/libkmc/version_nb.cc
+
 ${OBJECTDIR}/_ext/484465351/kmcapplication.o: ../../src/libkmc/kmcapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmcapplication.o ../../src/libkmc/kmcapplication.cc
+
+${OBJECTDIR}/_ext/484465351/version.o: ../../src/libkmc/version.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/version.o ../../src/libkmc/version.cc
 
 # Subprojects
 .build-subprojects:
