@@ -26,7 +26,6 @@
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/tokenizer.h>
-#include <votca/tools/globals.h>
 #include "node.h"
 
 using namespace std;
@@ -66,28 +65,28 @@ void KMCSingle::Initialize(const char *filename, Property *options )
 	    _runtime = options->get("options.kmcsingle.runtime").as<double>();
 	}
 	else {
-	    throw invalid_argument("Error in kmcsingle: total run time is not provided");
+	    std::runtime_error("Error in kmcsingle: total run time is not provided");
         }
 
     	if (options->exists("options.kmcsingle.outputtime")) {
 	    _dt = options->get("options.kmcsingle.outputtime").as<double>();
 	}
 	else {
-	    throw invalid_argument("Error in kmcsingle: output frequency is not provided");
+	    std::runtime_error("Error in kmcsingle: output frequency is not provided");
         }
 
     	if (options->exists("options.kmcsingle.seed")) {
 	    _seed = options->get("options.kmcsingle.seed").as<int>();
 	}
 	else {
-	    throw invalid_argument("Error in kmcsingle: seed is not provided");
+	    std::runtime_error("Error in kmcsingle: seed is not provided");
         }
         
    	if (options->exists("options.kmcsingle.injection")) {
 	    _injection_name = options->get("options.kmcsingle.injection").as<string>();
 	}
-        else {
-	    throw invalid_argument("Error in kmcsingle: injection pattern is not provided");
+	else {
+	    std::runtime_error("Error in kmcsingle: injection pattern is not provided");
         }
         
         _filename = filename;
@@ -126,8 +125,6 @@ void KMCSingle::LoadGraph() {
     }
     //delete stmt;
     cout << "  -Nodes: " << _nodes.size() << endl;
-    cout << "seed:" << _seed << endl;
-    if(_seed > _nodes.size()){ throw invalid_argument ("Seed is bigger than number of nodes. Please specify a smaller seed in your input file."); }
     cout << "  -Injection Points: " << _injection.size() << endl;
 
     delete stmt;
@@ -143,12 +140,6 @@ void KMCSingle::LoadGraph() {
         n1->AddEvent(new link_t(n2, rate12, r));
         n2->AddEvent(new link_t(n1, rate21, -r));
         links += 2;
-        
-        if ( votca::tools::globals::verbose ) {
-            cout << "rate12=" << rate12 << endl;
-            cout << "rate21=" << rate21 << endl;
-            cout << "r=" << r << endl;
-        }
     }
     delete stmt;
     cout << "  -Links: " << links << endl;
@@ -170,7 +161,7 @@ void KMCSingle::RunKMC(void)
     int i=0;
     while(t<_runtime) {
     	t+=current->WaitingTime();
-		current->onExecute(); // this line causes a Segmentation fault
+		current->onExecute(); // THIS LINE GIVES A SEGMENTATION FAULT
     	if(t > next_output) {
     		next_output = t + _dt;
     		cout << t << ": " << r << endl;
@@ -190,7 +181,7 @@ void KMCSingle::WriteOcc()
 	Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
 	for(int i=0; i<_nodes.size(); ++i) {
 		stmt->Reset();
-                stmt->Bind(1, _nodes[i]->_occ/_runtime);
+		stmt->Bind(1, _nodes[i]->_occ/_runtime);
 		stmt->Bind(2, _nodes[i]->_id);
 		stmt->Step();
 	}

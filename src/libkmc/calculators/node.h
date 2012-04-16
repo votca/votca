@@ -21,7 +21,7 @@ class node_t : public VSSMGroup<link_t> {
 	int _id;
 
 	void onExecute() {
-		_occ+=WaitingTime();
+                _occ+=WaitingTime();
 		VSSMGroup<link_t>::onExecute();
 	}
 };
