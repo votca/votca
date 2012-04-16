@@ -286,10 +286,18 @@ void Fragment::Rigidify(bool Auto) {
 
     else {
         cout << endl
-             << "ERROR: Invalid definition of local frame in fragment "
-             << this->getName()
+             << "NOTE: Invalid definition of local frame in fragment "
+             << this->getName();
+        cout << ". Assuming point particle for mapping. "
              << endl;
-        throw std::runtime_error( "Error in system mapping definition. ");
+
+        xMD = vec(1,0,0);
+        yMD = vec(0,1,0);
+        zMD = vec(0,0,1);
+        xQM = vec(1,0,0);
+        yQM = vec(0,1,0);
+        zQM = vec(0,0,1);
+        
     }
     
     // +++++++++++++++++ //
