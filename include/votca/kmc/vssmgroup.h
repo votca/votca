@@ -128,7 +128,6 @@ event_t *VSSMGroup<event_t>::SelectEvent_BinarySearch()
 	// to a binary search in accumulated events
 	int imin=0;
 	int imax=_acc_rate.size();
-
 	while(imax - imin > 1) {
 		int imid=(int)((imin+imax)*0.5);
 		//std::cout << u << " " << _acc_rate[imid] << std::endl;
