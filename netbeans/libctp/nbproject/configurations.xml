@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="69">
-  <logicalFolder name="root" displayName="root" projectFiles="true">
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libctp/calculators/contkmc.h</itemPath>
       <itemPath>../../src/libctp/calculators/ecorrelation.cc</itemPath>
@@ -82,6 +82,7 @@
       <itemPath>../../src/libctp/qmtopology.cc</itemPath>
       <itemPath>../../src/libctp/segment.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
+      <itemPath>../../src/libctp/statesaversqlite2.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
     </logicalFolder>
@@ -98,9 +99,8 @@
   <confs>
     <conf name="Debug" type="3">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -118,9 +118,8 @@
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
