@@ -283,6 +283,14 @@ void Fragment::Rigidify(bool Auto) {
         zQM = vec(0,0,1);
 
     }
+
+    else {
+        cout << endl
+             << "ERROR: Invalid definition of local frame in fragment "
+             << this->getName()
+             << endl;
+        throw std::runtime_error( "Error in system mapping definition. ");
+    }
     
     // +++++++++++++++++ //
     // Rotation matrices //

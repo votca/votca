@@ -336,8 +336,10 @@ public:
         Segment                      *_seg;
         EMultipole                  *_master;
 
-        vector< Segment* >           _segsPolSphere; // Segments within cutoff
-        vector< vector<PolarSite*> > _polsPolSphere; // Polar sites within c/o
+        vector< Segment* >           _segsPolSphere; // Segments    in c/o 0-1
+        vector< Segment* >           _segsOutSphere; // Segments    in c/0 1-2
+        vector< vector<PolarSite*> > _polsPolSphere; // Polar sites in c/o 0-1
+        vector< vector<PolarSite*> > _polsOutSphere; // Polar sites in c/o 1-2
         vector< vector<PolarSite*> > _polarSites;    // Copy of top polar sites
         Interactor                   _actor;
     };
@@ -393,6 +395,7 @@ private:
     // Interaction parameters
     bool            _useCutoff;
     double          _cutoff;
+    double          _cutoff2;
     bool            _useExp;
     double          _aDamp;
     bool            _useScaling;
@@ -457,6 +460,7 @@ void EMultipole::Initialize(Topology *top, Property *opt) {
      *
      *      <tholeparam>
      *          <cutoff></cutoff>
+     *          <cutoff2></cutoff2>
      *          <expdamp></expdamp>
      *          <scaling></scaling>
      *      </tholeparam>
@@ -564,6 +568,12 @@ void EMultipole::Initialize(Topology *top, Property *opt) {
         if ( opt->exists(key+".cutoff") ) {
             _cutoff = opt->get(key+".cutoff").as< double >();
             if (_cutoff) { _useCutoff = true; }
+        }
+        if ( opt->exists(key+".cutoff2") ) {
+            _cutoff2 = opt->get(key+".cutoff2").as< double >();
+        }
+        else {
+            _cutoff2 = _cutoff;
         }
         if ( opt->exists(key+".expdamp") ) {
             _aDamp = opt->get(key+".expdamp").as< double >();
@@ -2288,17 +2298,36 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
     this->_segsPolSphere.clear(); // <- Segments within cutoff
     this->_polsPolSphere.clear(); // <- Polar sites within cutoff
+    this->_polsOutSphere.clear(); // <- Polar sites within cutoff1, cutoff2
 
     vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
-        if ( abs(_top->PbShortestConnect((*sit)->getPos(),seg->getPos()))
-                > _master->_cutoff) { continue; }
+        double r12 = abs(_top->PbShortestConnect((*sit)->getPos(),
+                                                    seg->getPos()));
+
+        if      ( r12 > _master->_cutoff2) { continue; }
+
+        else if ( r12 > _master->_cutoff ) {
+            _segsOutSphere.push_back(*sit);
+            _polsOutSphere.push_back( _polarSites[(*sit)->getId() - 1] );
+        }
         else {
             _segsPolSphere.push_back(*sit);
             _polsPolSphere.push_back( _polarSites[(*sit)->getId() - 1] );
         }
     }
+
+
+    FILE *out;
+    string shellFile = "OuterShell.pdb";
+    out = fopen(shellFile.c_str(), "w");
+    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+        (*sit)->WritePDB(out, "Multipoles", "");
+    }
+    fclose(out);
+
+
 
     // +++++++++++++++++++++++++ //
     // Investigate charge states //
@@ -2311,6 +2340,15 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     }
     
     this->Depolarize();
+
+    // Make sure, outer shell also depolarized, according to strategy
+    vector< vector<PolarSite*> > ::iterator sit1;
+    vector<PolarSite*> ::iterator pit;
+    for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
+        for (pit = (*sit1).begin(); pit < (*sit1).end(); ++pit) {
+            (*pit)->Depolarize();
+        }
+    }
 
     // Keep track of number of iterations needed until converged
     vector<int> iters;
@@ -2333,25 +2371,25 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
 
         
-        FILE *out;
-        string toFile = boost::lexical_cast<string>(_seg->getId())
-                      + "_R_absU_N.dat";
-        out = fopen(toFile.c_str(), "w");
-        vector< PolarSite* > ::iterator pit;
-        vector< vector< PolarSite* > > ::iterator sit;
-        vec CoM = _seg->getPos();
-        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
-            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
-                vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
-                int segId = (*pit)->getSegment()->getId();
-                double R = abs(r);
-                vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
-                // double U = abs(u);
-                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f %4d\n",
-                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ(), segId);
-            }
-        }
-        fclose(out);
+//        FILE *out;
+//        string toFile = boost::lexical_cast<string>(_seg->getId())
+//                      + "_R_absU_N.dat";
+//        out = fopen(toFile.c_str(), "w");
+//        vector< PolarSite* > ::iterator pit;
+//        vector< vector< PolarSite* > > ::iterator sit;
+//        vec CoM = _seg->getPos();
+//        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
+//            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+//                vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
+//                int segId = (*pit)->getSegment()->getId();
+//                double R = abs(r);
+//                vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
+//                // double U = abs(u);
+//                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f %4d\n",
+//                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ(), segId);
+//            }
+//        }
+//        fclose(out);
         
         
 //        // For visual check of convergence
@@ -2441,25 +2479,25 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
 
         
-        FILE *out;
-        string toFile = boost::lexical_cast<string>(_seg->getId())
-                      + "_R_absU_C.dat";
-        out = fopen(toFile.c_str(), "w");
-        vector< PolarSite* > ::iterator pit;
-        vector< vector< PolarSite* > > ::iterator sit;
-        vec CoM = _seg->getPos();
-        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
-            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
-                vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
-                int segId = (*pit)->getSegment()->getId();
-                double R = abs(r);
-                vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
-                // double U = abs(u);
-                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f %4d \n",
-                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ(), segId);
-            }
-        }
-        fclose(out);
+//        FILE *out;
+//        string toFile = boost::lexical_cast<string>(_seg->getId())
+//                      + "_R_absU_C.dat";
+//        out = fopen(toFile.c_str(), "w");
+//        vector< PolarSite* > ::iterator pit;
+//        vector< vector< PolarSite* > > ::iterator sit;
+//        vec CoM = _seg->getPos();
+//        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
+//            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+//                vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
+//                int segId = (*pit)->getSegment()->getId();
+//                double R = abs(r);
+//                vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
+//                // double U = abs(u);
+//                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f %4d \n",
+//                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ(), segId);
+//            }
+//        }
+//        fclose(out);
         
         
 //        // For visual check of convergence
@@ -2731,12 +2769,31 @@ double EMultipole::SiteOpMultipole::Energy(int state) {
 
         }}
     }
-    
+
+    // ++++++++++++++++++ //
+    // Outer-Shell energy //
+    // ++++++++++++++++++ //
+
+    double E_Out = 0.0;
+
+    vector< PolarSite* > central = _polarSites[ _seg->getId() - 1 ];
+
+    for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
+        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = central.begin(); pit2 < central.end(); ++pit2) {
+                E_Out += _actor.EnergyInter(*(*pit1), *(*pit2));
+            }
+        }
+    }
+    E_Tot += E_Out;
+
+
     if (_master->_maverick) {
         cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot
              << " = (P ~) " << _actor.getEP()
              << " + (U ~) " << _actor.getEU_INTER()
              << " + (U o) " << _actor.getEU_INTRA()
+             << " , (O ~) " << E_Out
              << flush;
     }
 

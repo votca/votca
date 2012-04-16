@@ -31,6 +31,7 @@
 #include "calculators/eoutersphere.h"
 #include "calculators/emultipole.h"
 #include "calculators/emultipole_stdal.h"
+#include "calculators/eanalyze.h"
 
 
 
@@ -49,6 +50,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EOutersphere>("eoutersphere");
         Calculators().Register<EMultipole>("emultipole");
         Calculators().Register<EMultipole_StdAl>("emultipole2");
+        Calculators().Register<EAnalyze>("eanalyze");
 }
 
 }}
