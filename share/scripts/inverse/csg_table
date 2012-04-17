@@ -54,6 +54,13 @@ add_pot tf add_pot_generic.sh
 add_pot simplex dummy.sh
 add_pot re dummy.sh
 
+# post done scripts
+post_done ibi dummy.sh
+post_done imc dummy.sh
+post_done tf dummy.sh
+post_done simplex dummy.sh
+post_done re post_done_re.sh
+
 # END: these scripts have to be defined for each method
 
 # initial guesses
