@@ -24,7 +24,6 @@ share/doc/html/*
 share/man/*.man
 share/template/template_serial
 share/template/template_threaded
-share/template/votca/csg
 src/csg_boltzmann/csg_boltzmann
 src/libcsg/version.cc
 src/libcsg/gmx_print_version
