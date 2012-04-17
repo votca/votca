@@ -326,6 +326,7 @@ public:
         void   Charge(int state);
         int    Induce(int state);
         double Energy(int state);
+        double EnergyStatic(int state);
         void   Depolarize();
 
 
@@ -1970,7 +1971,7 @@ bool EMultipole::EvaluateFrame(Topology *top) {
     if (top->isEStatified() == false) {
         this->DistributeMpoles(top);
         cout << endl << "... ... Created " << top->PolarSites().size()
-                 << " multipole sites.";
+                 << " multipole sites." << flush;
     }
     else { cout << endl << "... ... System is already estatified."; }
 
@@ -2319,13 +2320,13 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     }
 
 
-    FILE *out;
-    string shellFile = "OuterShell.pdb";
-    out = fopen(shellFile.c_str(), "w");
-    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
-        (*sit)->WritePDB(out, "Multipoles", "");
-    }
-    fclose(out);
+//    FILE *out;
+//    string shellFile = "OuterShell.pdb";
+//    out = fopen(shellFile.c_str(), "w");
+//    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+//        (*sit)->WritePDB(out, "Multipoles", "");
+//    }
+//    fclose(out);
 
 
 
@@ -2365,7 +2366,9 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         this->Charge(state);
         int iter = 0;
         if (_master->_induce) iter = this->Induce(state);
-        double EState = this->Energy(state);
+        double EState = 0.0;
+        if (_master->_induce) EState = this->Energy(state);
+        else                 EState = this->EnergyStatic(state);
         _seg->setEMpoles(state, int2eV * EState);
         iters[state+1] = iter;
 
@@ -2432,7 +2435,9 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         this->Charge(state);
         int iter = 0;
         if (_master->_induce) iter = this->Induce(state);
-        double EState = this->Energy(state);
+        double EState = 0.0;
+        if (_master->_induce) EState = this->Energy(state);
+        else                 EState = this->EnergyStatic(state);
         _seg->setEMpoles(state, int2eV * EState);
         iters[state+1] = iter;
 
@@ -2473,7 +2478,9 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         this->Charge(state);
         int iter = 0;
         if (_master->_induce) iter = this->Induce(state);
-        double EState = this->Energy(state);
+        double EState = 0.0;
+        if (_master->_induce) EState = this->Energy(state);
+        else                 EState = this->EnergyStatic(state);
         _seg->setEMpoles(state, int2eV * EState);
         iters[state+1] = iter;
 
@@ -2710,8 +2717,55 @@ int EMultipole::SiteOpMultipole::Induce(int state) {
 }
 
 
+double EMultipole::SiteOpMultipole::EnergyStatic(int state) {
+
+    _actor.ResetEnergy();
+    double E_Tot = 0.0;
+
+    vector< Segment* > ::iterator seg1;
+    vector< Segment* > ::iterator seg2;
+    vector< vector<PolarSite*> > ::iterator sit1;
+    vector< vector<PolarSite*> > ::iterator sit2;
+    vector< PolarSite* > ::iterator pit1;
+    vector< PolarSite* > ::iterator pit2;
+
+    vector< PolarSite* > central = _polarSites[ _seg->getId() - 1 ];
+
+
+    for (seg1 = _segsPolSphere.begin(); seg1 < _segsPolSphere.end(); ++seg1) {
+
+        int id = (*seg1)->getId();
+
+        if (id == _seg->getId()) {
+            continue;
+        }
+
+        for (pit1 = _polarSites[id-1].begin();
+             pit1 < _polarSites[id-1].end();
+             ++pit1) {
+        for (pit2 = central.begin();
+             pit2 < central.end();
+             ++pit2) {
+
+             E_Tot += _actor.EnergyInter(*(*pit1), *(*pit2));
+        }}
+    }
+
+    if (_master->_maverick) {
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot
+             << " = (P ~) " << _actor.getEP()
+             << " + (U ~) " << _actor.getEU_INTER()
+             << " + (U o) " << _actor.getEU_INTRA()
+             << " , statics only. "
+             << flush;
+    }
+
+    return E_Tot;
+}
+
+
 /**
- * Calculates electrostatic energy of segment up to Q2-Q2
+ * Calculates electrostatic + induction energy of segment up to Q2-Q2
  */
 double EMultipole::SiteOpMultipole::Energy(int state) {
 
@@ -2758,17 +2812,18 @@ double EMultipole::SiteOpMultipole::Energy(int state) {
     // Intra-site energy //
     // +++++++++++++++++ //
 
-    for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
-         sit1 < _polsPolSphere.end();
-         ++sit1, ++seg1) {
-
-        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-        for (pit2 = pit1 + 1; pit2 < (*sit1).end(); ++pit2) {
-
+//    // Not needed here
+//    for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
+//         sit1 < _polsPolSphere.end();
+//         ++sit1, ++seg1) {
+//
+//        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+//        for (pit2 = pit1 + 1; pit2 < (*sit1).end(); ++pit2) {
+//
 //            E_Tot += _actor.EnergyIntra(*(*pit1), *(*pit2)); // OVERRIDE
-
-        }}
-    }
+//
+//        }}
+//    }
 
     // ++++++++++++++++++ //
     // Outer-Shell energy //

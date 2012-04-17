@@ -131,7 +131,6 @@ void Fragment::calcPos(string tag) {
 
 void Fragment::Rigidify(bool Auto) {
 
-
     // +++++++++++++++++++++++++++++++++++++++++ //
     // Establish reference atoms for local frame //
     // +++++++++++++++++++++++++++++++++++++++++ //
