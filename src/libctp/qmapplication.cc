@@ -107,7 +107,7 @@ void QMApplication::BeginEvaluate(int nThreads = 1) {
 bool QMApplication::EvaluateFrame() {
     list< QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " ";
+        cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->EvaluateFrame(&_top);
         cout << endl;
     }

@@ -2297,7 +2297,8 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     // Define polarization sphere //
     // ++++++++++++++++++++++++++ //
 
-    this->_segsPolSphere.clear(); // <- Segments within cutoff
+    this->_segsPolSphere.clear(); // <- Segments    within cutoff
+    this->_segsOutSphere.clear(); // <- Segments    within cutoff1, cutoff2
     this->_polsPolSphere.clear(); // <- Polar sites within cutoff
     this->_polsOutSphere.clear(); // <- Polar sites within cutoff1, cutoff2
 
@@ -2337,7 +2338,10 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     if (_master->_maverick) {
         cout << endl
              << "... ... ... Segments in polarization sphere: "
-             << _segsPolSphere.size() << flush;
+             << _segsPolSphere.size()
+             << "; segments in static shell: "
+             << _segsOutSphere.size()
+             << flush;
     }
     
     this->Depolarize();

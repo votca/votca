@@ -43,11 +43,12 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/qmpair2.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory2.o \
 	${OBJECTDIR}/_ext/484457893/qmpair.o \
+	${OBJECTDIR}/_ext/238600121/eimport.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist2.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
 	${OBJECTDIR}/_ext/484457893/version_nb.o \
-	${OBJECTDIR}/_ext/484457893/qmtopology.o \
 	${OBJECTDIR}/_ext/484457893/fragment.o \
+	${OBJECTDIR}/_ext/484457893/qmtopology.o \
 	${OBJECTDIR}/_ext/238600121/rates.o \
 	${OBJECTDIR}/_ext/238600121/emultipole_stdal.o \
 	${OBJECTDIR}/_ext/484457893/molecule.o \
@@ -138,6 +139,11 @@ ${OBJECTDIR}/_ext/484457893/qmpair.o: ../../src/libctp/qmpair.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmpair.o ../../src/libctp/qmpair.cc
 
+${OBJECTDIR}/_ext/238600121/eimport.o: ../../src/libctp/calculators/eimport.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/eimport.o ../../src/libctp/calculators/eimport.cc
+
 ${OBJECTDIR}/_ext/484457893/qmnblist2.o: ../../src/libctp/qmnblist2.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -153,15 +159,15 @@ ${OBJECTDIR}/_ext/484457893/version_nb.o: ../../src/libctp/version_nb.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/version_nb.o ../../src/libctp/version_nb.cc
 
-${OBJECTDIR}/_ext/484457893/qmtopology.o: ../../src/libctp/qmtopology.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmtopology.o ../../src/libctp/qmtopology.cc
-
 ${OBJECTDIR}/_ext/484457893/fragment.o: ../../src/libctp/fragment.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/fragment.o ../../src/libctp/fragment.cc
+
+${OBJECTDIR}/_ext/484457893/qmtopology.o: ../../src/libctp/qmtopology.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmtopology.o ../../src/libctp/qmtopology.cc
 
 ${OBJECTDIR}/_ext/238600121/rates.o: ../../src/libctp/calculators/rates.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121

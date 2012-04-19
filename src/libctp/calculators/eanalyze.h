@@ -176,6 +176,11 @@ void EAnalyze::PairHist(Topology *top, int state) {
     double VAR = 0.0;
     double STD = 0.0;
 
+    FILE *out_dEs;
+    string tag_dEs = boost::lexical_cast<string>(top->getDatabaseId())
+               + "_PAIRSLIST_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    out_dEs = fopen(tag_dEs.c_str(), "w");
+
     // Collect site-energy differences from neighbourlist
     vector< double > dEs;    
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
@@ -193,7 +198,10 @@ void EAnalyze::PairHist(Topology *top, int state) {
         
         dEs.push_back(dE);
         dEs.push_back(-dE);
+
+        fprintf(out_dEs, "%5d %5d %4.7f \n", seg1->getId(), seg2->getId(), dE);
     }
+    fclose(out_dEs);
     
     // Prepare bins
     int BIN = int( (MAX-MIN)/_resolution_pairs + 0.5 ) + 1;
