@@ -277,7 +277,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     if [[ -f stop ]]; then
       msg "Iterations are converged, stopping"
       touch "done"
-      exit 0
+      break
     else
       msg "Iterations are not converged, going on"
     fi
