@@ -15,6 +15,7 @@ scripts/VOTCARC.csh
 share/doc/Doxyfile
 share/doc/html/*
 share/man/*.man
+src/tools/votca_property
 netbeans/*/build
 */nbproject/private
 CMakeFiles/*
