@@ -211,7 +211,7 @@ This factor requires the particle density $ \rho $ as additional input parameter
 \section{Kirkwood-Buff correction}
 In order to reproduce the exact Kirkwood-Buff ingetrals (KBIs), an correction term can be added into the coarse-grained potential~\cite{Ganguly:2012},
 \begin{equation}
-  \Delta U_{ij}^{(n)}(r) = \frac{k_{B}T}{4\pi} A (G_{ij}^{(n)} - G_{ij}^\text{ref})\left(1- \frac{r}{r_\text{cut}}\right),
+  \Delta U_{ij}^{(n)}(r) = \frac{k_{B}T}\;A\;(G_{ij}^{(n)} - G_{ij}^\text{ref})\left(1- \frac{r}{r_\text{ramp}}\right),
 \end{equation}
 where $G_{ij}^{(ref)}$ is the KBI calculated from the reference all-atom simulation and $G_{ij}^{(n)}$ is the KBI 
 after the $n^{th}$ iteration.
@@ -239,6 +239,7 @@ As an example for a block doing Kirkwood-Buff correction, every iteraction witho
     <start>1.0</start>
     <stop>1.4</stop>
     <factor>0.05</factor>
+    <r_ramp>1.4</r_ramp>
   </kbibi>
 </post_update_options>
 \end{lstlisting}
