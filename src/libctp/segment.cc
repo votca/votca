@@ -344,4 +344,35 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
 }
 
 
+void Segment::WriteXYZ(FILE *out) {
+
+    vector< Atom* > ::iterator ait;
+
+    int qmatoms = 0;
+
+    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+        if ((*ait)->HasQMPart() == true) { ++qmatoms; }
+    }
+
+    fprintf(out, "%6d \n", qmatoms);
+    fprintf(out, "\n");
+
+    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+
+        if ((*ait)->HasQMPart() == false) { continue; }
+
+        vec     pos = (*ait)->getQMPos();
+        string  name = (*ait)->getElement();
+
+        fprintf(out, "%2s %4.7f %4.7f %4.7f \n",
+                        name.c_str(),
+                        pos.getX()*10,
+                        pos.getY()*10,
+                        pos.getZ()*10);
+    }
+
+
+}
+
+
 }}

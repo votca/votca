@@ -33,6 +33,7 @@
 #include "calculators/emultipole_stdal.h"
 #include "calculators/eanalyze.h"
 #include "calculators/eimport.h"
+#include "calculators/pairdump.h"
 
 
 
@@ -53,6 +54,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EMultipole_StdAl>("emultipole2");
         Calculators().Register<EAnalyze>        ("eanalyze");
         Calculators().Register<EImport>         ("eimport");
+        Calculators().Register<PairDump>        ("pairdump");
 }
 
 }}

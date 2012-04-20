@@ -85,6 +85,7 @@ public:
     void Rigidify();
 
     void WritePDB(FILE *out, string tag1 = "Fragments", string tag2 = "MD");
+    void WriteXYZ(FILE *out);
 
 private:
 
