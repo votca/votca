@@ -29,6 +29,8 @@ fi
 
 [[ -f $2 ]] && die "${0##*/}: $2 is already there"
 
+[[ $(csg_get_interaction_property bondtype) = "tf" ]] && die "${0##*/}: pressure correction for thermoforce makes no sense!"
+
 step_nr="$(get_current_step_nr)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 name=$(csg_get_interaction_property name)
