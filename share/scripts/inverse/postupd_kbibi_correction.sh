@@ -32,7 +32,7 @@ min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
 
-ramp=( $(csg_get_interaction_property inverse.post_update_options.kbibi.do 0) )
+ramp=( $(csg_get_interaction_property inverse.post_update_options.kbibi.do) )
 ramp_nr=$(( ($step_nr - 1 ) % ${#ramp[@]} ))
 if [ "${ramp[$ramp_nr]}" = 1 ]; then
    echo "Apply kbibi correction for interaction ${name}"

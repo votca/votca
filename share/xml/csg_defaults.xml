@@ -234,6 +234,17 @@
     <method>
       <DESC>method to be performed: ibi/imc/ft/optimizer</DESC>
     </method>
+    <optimizer>
+      <cma>
+        <DESC>general options for the cma optimizer</DESC>
+        <eps>
+          <DESC>standard epsilon, in which the best solution is searched</DESC>
+        </eps>
+      </cma>
+      <type>
+        <DESC>Type of optimizer to be used</DESC>
+      </type>
+    </optimizer>
     <program>gromacs
       <DESC>simulation package to be used (gromacs/espresso)</DESC>
     </program>
@@ -389,6 +400,21 @@
 	    <DESC>Number of point to calculate the average from for the extrapolation</DESC>
 	  </points>
 	</extrapolate>
+	<kbibi>
+	  <DESC>Contains all options of the Kirkwood-Buff correction scripts</DESC>
+	  <do>1
+	    <DESC>Update cycle for the Kirkwood-Buff correction (1 do, 0 do not). To do the correction every third step specify "0 0 1", similar to do_potential</DESC>
+	  </do>
+	  <factor>
+	    <DESC>scaling factor for the correction</DESC>
+	  </factor>
+	  <start>0
+	    <DESC>Where to start integrating the Kirkwood-Buff integral</DESC>
+	  </start>
+	  <stop>
+	    <DESC>Where to stop integrating the Kirkwood-Buff integral</DESC>
+	  </stop>
+	</kbibi>
 	<pressure>
 	  <DESC>Contains all options of the pressure correction scripts</DESC>
 	  <do>1
