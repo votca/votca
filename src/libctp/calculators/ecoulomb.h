@@ -58,6 +58,7 @@ bool ECoulomb::EvaluateFrame(Topology *top) {
          sit < top->Segments().end();
          ++sit) {
     for (int state = -1; state < 2; ++state) {
+         cout << endl << "... ... Evaluating site " << (*sit)->getId() << flush;
          this->EvaluateSegment(top, *sit, state);                 
     }}
 
@@ -68,11 +69,9 @@ bool ECoulomb::EvaluateFrame(Topology *top) {
 }
 
 
-void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {
+void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {    
 
-    cout << endl << "... ... Evaluating site " << seg->getId() << flush;
-
-    if (seg->hasChrgState(state)) {
+    if (seg->hasChrgState(state)) {        
 
         vector< Segment*   > ::iterator ext;
         vector< PolarSite* > ::iterator pit1;
