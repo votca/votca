@@ -16,6 +16,8 @@
 #
 
 use strict;
+use Math::Trig;
+
 ( my $progname = $0 ) =~ s#^.*/##;
 my $usage="Usage: $progname [OPTIONS] new_rdf target_rdf outfile";
 
@@ -33,6 +35,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
   if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help")){
      print <<END;
 $progname, version %version%
+
 This script calculates Kirkwood-Buff correction as described in
 P. Ganguly, D. Mukherji, C. Junghans, N. F. A. van der Vegt,
 Kirkwood-Buff coarse-grained force fields for aqueous solutions,
@@ -63,6 +66,9 @@ my $ramp_factor=csg_get_interaction_property("inverse.post_update_options.kbibi.
 
 my $r_min=csg_get_interaction_property("min");
 my $r_max=csg_get_interaction_property("max");
+my $delta_r=csg_get_interaction_property("step");
+my $r_ramp=csg_get_interaction_property("--allow-empty","inverse.post_update_options.kbibi.r_ramp");
+$r_ramp=$r_max if ("$r_ramp" eq "");
 
 my $aim_rdf_file="$ARGV[0]";
 my @r_aim;
@@ -101,12 +107,13 @@ for (my $i=0;$i<=$#r_aim;$i++){
   }
 }
 $avg_int=$avg_int/$j;
+$avg_int*=$delta_r*4*pi;
 
 my @dpot;
 my @flag;
 for (my $i=0;$i<=$#r_aim;$i++){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
-      $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_max)))*$pref;
+      $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_ramp)))*$pref;
       $flag[$i]="i";
   } else {
     $dpot[$i]=$value;

@@ -408,6 +408,9 @@
 	  <factor>
 	    <DESC>scaling factor for the correction</DESC>
 	  </factor>
+	  <r_ramp>
+	    <DESC>cutoff of the ramp</DESC>
+	  </r_ramp>
 	  <start>
 	    <DESC>Where to start averaging the Kirkwood-Buff integral</DESC>
 	  </start>
