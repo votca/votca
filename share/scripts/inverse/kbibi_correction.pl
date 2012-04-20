@@ -33,7 +33,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
   if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help")){
      print <<END;
 $progname, version %version%
-This script calcs Kirkwood-Buff correction as described in 
+This script calculates Kirkwood-Buff correction as described in
 P. Ganguly, D. Mukherji, C. Junghans, N. F. A. van der Vegt,
 Kirkwood-Buff coarse-grained force fields for aqueous solutions,
 J. Chem. Theo. Comp., in press (2012), doi:10.1021/ct3000958
@@ -61,6 +61,9 @@ my $int_start=csg_get_interaction_property("inverse.post_update_options.kbibi.st
 my $int_stop=csg_get_interaction_property("inverse.post_update_options.kbibi.stop");
 my $ramp_factor=csg_get_interaction_property("inverse.post_update_options.kbibi.factor");
 
+my $r_min=csg_get_interaction_property("min");
+my $r_max=csg_get_interaction_property("max");
+
 my $aim_rdf_file="$ARGV[0]";
 my @r_aim;
 my @rdf_aim;
@@ -78,6 +81,9 @@ die "Different grids \n" if (($r_aim[1]-$r_aim[0]-$r_cur[1]+$r_cur[0])>0.0001);
 die "Different start potential point \n" if (($r_aim[0]-$r_cur[0]) > 0.0001);
 die "Different end potential point \n" if ( $#r_aim != $#r_cur );
 
+die "kbibi.start is smaller than r_min\n" if ($int_start < $r_min);
+die "kbibi.stop is bigger than r_max\n" if ($int_stop > $r_max);
+
 my $value=0.0;
 my $j=0;
 my @intdist;
@@ -89,19 +95,19 @@ for (my $i=1;$i<=$#r_aim;$i++){
 }
 
 for (my $i=0;$i<=$#r_aim;$i++){
-  if (($r_aim[$i]>$int_start) && ($r_aim[$i]<$int_stop)) {
+  if (($r_aim[$i]>=$int_start) && ($r_aim[$i]<=$int_stop)) {
      $avg_int+=$intdist[$i];
      $j++;
-  } 
+  }
 }
 $avg_int=$avg_int/$j;
 
 my @dpot;
 my @flag;
-for (my $i=0;$i<=$#r_aim;$i++){  
+for (my $i=0;$i<=$#r_aim;$i++){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
-    $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$int_stop)))*$pref;
-    $flag[$i]="i";
+      $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_max)))*$pref;
+      $flag[$i]="i";
   } else {
     $dpot[$i]=$value;
     $flag[$i]="o";

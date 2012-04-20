@@ -32,6 +32,8 @@ min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
 
+[[ $(csg_get_interaction_property bondtype) = "non-bonded" ]] || die "${0##*/}: kbibi correction only makes sense for non-bonded interactions!"
+
 ramp=( $(csg_get_interaction_property inverse.post_update_options.kbibi.do) )
 ramp_nr=$(( ($step_nr - 1 ) % ${#ramp[@]} ))
 if [ "${ramp[$ramp_nr]}" = 1 ]; then

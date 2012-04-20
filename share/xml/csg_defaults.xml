@@ -408,11 +408,11 @@
 	  <factor>
 	    <DESC>scaling factor for the correction</DESC>
 	  </factor>
-	  <start>0
-	    <DESC>Where to start integrating the Kirkwood-Buff integral</DESC>
+	  <start>
+	    <DESC>Where to start averaging the Kirkwood-Buff integral</DESC>
 	  </start>
 	  <stop>
-	    <DESC>Where to stop integrating the Kirkwood-Buff integral</DESC>
+	    <DESC>Where to stop averaging the Kirkwood-Buff integral</DESC>
 	  </stop>
 	</kbibi>
 	<pressure>
