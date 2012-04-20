@@ -208,7 +208,37 @@ In \cite{Wang:2009} a pressure correction based on the virial expression of the 
 \end{equation}
 This factor requires the particle density $ \rho $ as additional input parameter, which is added as  \interopt{inverse.particle_dens} in the input file.
 
-\subsection{Runtime optimization}
+\section{Kirkwood-Buff correction}
+In order to reproduce the exact Kirkwood-Buff ingetrals (KBIs), an correction term can be added into the coarse-grained potential~\cite{Ganguly:2012},
+\begin{equation}
+\Delta U_{ij}^{(n)}(r) = A(G_{ij}^{(n)} - G_{ij}^{(ref)})\left(1- \frac{r}{r_{\rm cut}}\right),
+\label{eq:correction}
+\end{equation}
+where $G_{ij}^{(ref)}$ is the KBI calculated from the reference all-atom simulation and $G_{ij}^{(n)}$ is the KBI 
+after the $n^{th}$ iteration.
+
+The Kirkwood-Buff integrals are calculated from the radial distribution functions as follows:
+\begin{equation}
+G_{ij} = 4\pi \int_0^\infty \left[ g_{ij}(r) - 1\right] r^2 dr,
+\label{eq:kbi}
+\end{equation}
+
+As an example for a block doing Kirkwood-Buff correction, every iteraction without doing potential update
+\begin{lstlisting}
+<do_potential>0</do_potential>
+<post_update>kbibi</post_update>
+<post_update_options>
+  <kbibi>
+    <do>1</do>
+    <start>1.0</start>
+    <stop>1.4</stop>
+    <factor>0.05</factor>
+  </kbibi>
+</post_update_options>
+\end{lstlisting}
+Here, \interopt{inverse.post_update_options.kbibi.factor} is the scaling factor $A$. 
+
+\section{Runtime optimization}
 \label{ref:ibi:optimize}
 Most time per iteration is spent on running the coarse-grained system and on calculating the statistics. To get a feeling on how much statistics is needed, it is recommended to plot the distribution functions and check whether they are sufficiently smooth. Bad statistics lead to rough potential updates which might cause the iterative refinement to fail. All runs should be long enough to produce distributions/rdfs of reasonable quality.
 

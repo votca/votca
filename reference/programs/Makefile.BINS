@@ -25,3 +25,5 @@ Makefile.incl: dummy
 
 clean:
 	rm -f Makefile.incl
+	@[ -z "$(shell ls *.tex *.t2t 2> /dev/null)" ] || echo "There are files left: $(shell ls *.tex *.t2t)" 
+	@[ -z "$(shell ls *.tex *.t2t 2> /dev/null)" ] 
