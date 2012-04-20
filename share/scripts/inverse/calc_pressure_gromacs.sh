@@ -29,8 +29,8 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-topol="$(csg_get_property cg.inverse.gromacs.g_energy.topol "${topol}")"
+topol="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.topol)"
+[[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
 [[ -f $topol ]] || die "${0##*/}: Gromacs tpr file '$topol' not found"
 
 g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin)"
