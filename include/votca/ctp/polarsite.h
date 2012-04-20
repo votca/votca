@@ -42,6 +42,7 @@ class PolarSite
     friend class EMultipole;
     friend class EMultipole_StdAl;
     friend class EOutersphere;
+    friend class ECoulomb;
     friend class Interactor;
     friend class Interactor3;
     friend class InteractorMod;

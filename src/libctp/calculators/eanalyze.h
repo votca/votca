@@ -28,6 +28,8 @@ private:
     double _resolution_sites;
     double _resolution_space;
 
+    double _site_avg;
+
 };
 
 
@@ -123,6 +125,8 @@ void EAnalyze::SiteHist(Topology *top, int state) {
         
         Es.push_back(E);
     }
+
+    _site_avg = AVG;
 
     // Prepare bins
     int BIN = int( (MAX-MIN)/_resolution_sites + 0.5 ) + 1;
