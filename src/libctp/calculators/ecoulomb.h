@@ -31,8 +31,8 @@ void ECoulomb::Initialize(Topology *top, Property *options) {
 
     string key = "options.ecoulomb";
 
-    cout << endl << "... ... Init" << flush;
-
+    cout << endl << "... ... Init" << flush;    
+    
     _cutoff = options->get(key+".cutoff").as< double >();
     _outFile = options->get(key+".output").as< string >();
 }
@@ -86,7 +86,7 @@ void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {
              pit1 < seg->PolarSites().end();
              ++pit1) {
 
-             (*pit1)->Charge(state);            
+             (*pit1)->Charge(state);
         }
 
         double E_INTER   = 0.0;
@@ -103,7 +103,7 @@ void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {
              ++ext) {
 
              // Segment different from central one?
-             if ((*ext)->getId() == seg->getId()) { continue; }            
+             if ((*ext)->getId() == seg->getId()) { continue; }     
 
              // Segment within cutoff?
              double r12 = abs(top->PbShortestConnect((*ext)->getPos(),
@@ -134,7 +134,7 @@ void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {
         _log_seg_sphere[seg->getId()] = COUNT_EXT;
         cout << endl << "... ... ... STATE " << state << ": "
              << " EP(~) = " << E_INTER*INT2eV << " eV"
-             << " SPH(upd) = " << COUNT_EXT << flush;
+             << " SPH(o) = " << COUNT_EXT+1 << flush;
 
         for (pit1 = seg->PolarSites().begin();
              pit1 < seg->PolarSites().end();
