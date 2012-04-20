@@ -211,18 +211,24 @@ This factor requires the particle density $ \rho $ as additional input parameter
 \section{Kirkwood-Buff correction}
 In order to reproduce the exact Kirkwood-Buff ingetrals (KBIs), an correction term can be added into the coarse-grained potential~\cite{Ganguly:2012},
 \begin{equation}
-\Delta U_{ij}^{(n)}(r) = A(G_{ij}^{(n)} - G_{ij}^{(ref)})\left(1- \frac{r}{r_{\rm cut}}\right),
-\label{eq:correction}
+  \Delta U_{ij}^{(n)}(r) = \frac{k_{B}T}{4\pi} A (G_{ij}^{(n)} - G_{ij}^\text{ref})\left(1- \frac{r}{r_\text{cut}}\right),
 \end{equation}
 where $G_{ij}^{(ref)}$ is the KBI calculated from the reference all-atom simulation and $G_{ij}^{(n)}$ is the KBI 
 after the $n^{th}$ iteration.
 
 The Kirkwood-Buff integrals are calculated from the radial distribution functions as follows:
 \begin{equation}
-G_{ij} = 4\pi \int_0^\infty \left[ g_{ij}(r) - 1\right] r^2 dr,
+G_{ij} = 4\pi \int_0^\infty \left[ g_{ij}(r) - 1\right] r^2 dr~.
 \label{eq:kbi}
 \end{equation}
-
+For simulations of finite box size we calculate the running integral up to distance $R$
+\begin{equation}
+  G_{ij}(R) = 4\pi \int_0^R \left[ g_{ij}(r) - 1\right] r^2 dr~.
+\end{equation}
+The average of those running integrals in the interval, where $G_{ij}(R)$ gets flat, gives a good estimate for $G_{ij}$:
+\begin{equation}
+  G_{ij}\approx<G_{ij}(R)>|_{R=r_1}^{R=r_2}
+\end{equation}
 As an example for a block doing Kirkwood-Buff correction, every iteraction without doing potential update
 \begin{lstlisting}
 <do_potential>0</do_potential>
@@ -236,8 +242,7 @@ As an example for a block doing Kirkwood-Buff correction, every iteraction witho
   </kbibi>
 </post_update_options>
 \end{lstlisting}
-Here, \interopt{inverse.post_update_options.kbibi.factor} is the scaling factor $A$. 
-
+Here, \interopt{inverse.post_update_options.kbibi.factor} is the scaling factor $A$. \interopt{inverse.post_update_options.kbibi.start} is $r_1$ and \interopt{inverse.post_update_options.kbibi.stop} is $r_2$ used to calculate the average of $G_{ij}(R)$.
 \section{Runtime optimization}
 \label{ref:ibi:optimize}
 Most time per iteration is spent on running the coarse-grained system and on calculating the statistics. To get a feeling on how much statistics is needed, it is recommended to plot the distribution functions and check whether they are sufficiently smooth. Bad statistics lead to rough potential updates which might cause the iterative refinement to fail. All runs should be long enough to produce distributions/rdfs of reasonable quality.
