@@ -22,7 +22,7 @@
        <do>1</do>
        <start>1.0</start>
        <stop>1.4</stop>
-       <factor>0.497374</factor>
+       <factor>0.0994748</factor>
      </kbibi>
    <smooth>
      <iterations>2</iterations>
@@ -66,7 +66,7 @@
        <do>1</do>
        <start>1.0</start>
        <stop>1.4</stop>
-       <factor>0.0125</factor>
+       <factor>0.0994748</factor>
      </kbibi>
     <smooth>
      <iterations>2</iterations>
@@ -109,7 +109,7 @@
        <do>1</do>
        <start>1.0</start>
        <stop>1.4</stop>
-       <factor>0.0125</factor>
+       <factor>0.0994748</factor>
      </kbibi>
      <smooth>
        <iterations>2</iterations>
