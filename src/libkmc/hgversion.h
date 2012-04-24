@@ -1,1 +1,1 @@
-static const std::string hgversion = "hgid: c4f81e31c267+";
+static const std::string hgversion = "hgid: 482564b00749+";

@@ -301,6 +301,11 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     cout << "number of charges: " << numberofcharges << endl;
     cout << "number of nodes: " << node.size() << endl;
     
+    if(numberofcharges > node.size())
+    {
+        throw runtime_error("ERROR in kmcmultiple: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
+    }
+    
     double outputfrequency = runtime/100;
     vector<double> occP(node.size(),0.);
 
@@ -473,7 +478,7 @@ bool KMCMultiple::EvaluateFrame()
     unsigned int numberofthreads = 1;
     if(_allowparallel == 1)
     {
-        int numberofthreads = OMPinfo();
+        numberofthreads = OMPinfo();
     }
     
 
