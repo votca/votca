@@ -217,7 +217,7 @@ sub calc_parameter_center(\@){
   }
   #mind the $i<$#simplex_table to skip the highest value
   for (my $i=0;$i<$#simplex_table;$i++) {
-    die "calc_parameter_center: number of parameters (".($#{$simplex_table[$i]}-1).") of parameter set ".($i+1)." differs from the number of non-try sets - 1 (".($#simplex_table).")\n" if (($#simplex_table+1) != $#{$simplex_table[$i]});
+    die "calc_parameter_center: number of parameters (".($#{$simplex_table[$i]}-1).") of parameter set #".($i+1)." differs from the number of non-try sets - 1 (=".($#simplex_table)."). Expected $#{$simplex_table[$i]} non-try sets.\n" if (($#simplex_table+1) != $#{$simplex_table[$i]});
 
     for (my $j=0;$j<=$#{$simplex_table[$i]};$j++) {
       if (is_num("$simplex_table[$i][$j]")) {
