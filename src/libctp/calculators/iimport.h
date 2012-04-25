@@ -105,6 +105,8 @@ void IImport::XML2PairTI(QMPair *qmpair, string &xmlDirFile) {
                 << flush;
     }
 
+    intt.close();
+
 }
 
 }}
