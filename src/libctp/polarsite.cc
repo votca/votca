@@ -282,6 +282,37 @@ void PolarSite::PrintInfoVisual(FILE *out) {
     fprintf(out, " \n");
 }
 
+void PolarSite::PrintPDB(FILE *out, vec shift) {
+
+    int id = this->getId() % 100000;
+    string name =  this->getName();
+    name.resize(3);
+    string resname = "RSD";
+    resname.resize(3);
+    int resnr = 0;
+    vec position = this->getPos() + shift;
+
+    fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+              "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s%4.7f\n",
+         id,                    // Atom serial number           %5d
+         name.c_str(),          // Atom name                    %4s
+         " ",                   // alternate location indicator.%1s
+         resname.c_str(),       // Residue name.                %3s
+         "A",                   // Chain identifier             %1s
+         resnr,                 // Residue sequence number      %4d
+         " ",                   // Insertion of residues.       %1s
+         position.getX()*10,    // X in Angstroms               %8.3f
+         position.getY()*10,    // Y in Angstroms               %8.3f
+         position.getZ()*10,    // Z in Angstroms               %8.3f
+         1.0,                   // Occupancy                    %6.2f
+         0.0,                   // Temperature factor           %6.2f
+         " ",                   // Segment identifier           %4s
+         name.c_str(),          // Element symbol               %2s
+         " ",                   // Charge on the atom.          %2s
+         this->getQ00()
+         );    
+}
+
 
 }}
 

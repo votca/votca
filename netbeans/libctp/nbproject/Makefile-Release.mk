@@ -59,6 +59,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/qmapplication2.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist.o \
 	${OBJECTDIR}/_ext/238600121/sandbox.o \
+	${OBJECTDIR}/_ext/238600121/iimport.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory.o \
 	${OBJECTDIR}/_ext/238600121/einternal.o \
 	${OBJECTDIR}/_ext/238600121/eoutersphere.o
@@ -219,6 +220,11 @@ ${OBJECTDIR}/_ext/238600121/sandbox.o: ../../src/libctp/calculators/sandbox.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/sandbox.o ../../src/libctp/calculators/sandbox.cc
+
+${OBJECTDIR}/_ext/238600121/iimport.o: ../../src/libctp/calculators/iimport.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/iimport.o ../../src/libctp/calculators/iimport.cc
 
 ${OBJECTDIR}/_ext/484457893/calculatorfactory.o: ../../src/libctp/calculatorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

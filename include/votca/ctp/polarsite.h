@@ -80,6 +80,7 @@ public:
     void            setPs(double polar, int state) { _Ps[state+1] = polar; }
     double         &getPs(int state) { return _Ps[state+1]; }
     double         &getP1() { return P1; }
+    double         &getQ00() { return Q00; }
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
 
@@ -99,6 +100,7 @@ public:
     void            PrintInfo(std::ostream &out);
     void            PrintInfoInduce(std::ostream &out);
     void            PrintInfoVisual(FILE *out);
+    void            PrintPDB(FILE *out, vec shift);
 
 
 

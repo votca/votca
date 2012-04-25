@@ -35,6 +35,7 @@
 #include "calculators/eimport.h"
 #include "calculators/pairdump.h"
 #include "calculators/ecoulomb.h"
+#include "calculators/iimport.h"
 
 
 
@@ -57,6 +58,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EImport>         ("eimport");
         Calculators().Register<PairDump>        ("pairdump");
         Calculators().Register<ECoulomb>        ("ecoulomb");
+        Calculators().Register<IImport>         ("iimport");
 }
 
 }}

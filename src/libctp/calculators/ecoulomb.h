@@ -23,6 +23,9 @@ private:
     double          _cutoff;
     string          _outFile;
     map< int, int > _log_seg_sphere; // <- # segs within cut-off
+
+    int             _first;
+    int             _last;
     
 };
 
@@ -35,10 +38,31 @@ void ECoulomb::Initialize(Topology *top, Property *options) {
     
     _cutoff = options->get(key+".cutoff").as< double >();
     _outFile = options->get(key+".output").as< string >();
+    if (options->exists(key+".first")) {
+        _first = options->get(key+".first").as< int >();
+    }
+    else {
+        _first = 1;
+    }
+    if (options->exists(key+".last")) {
+        _last = options->get(key+".last").as< int >();
+    }
+    else {
+        _last = -1;
+    }
 }
 
 
 bool ECoulomb::EvaluateFrame(Topology *top) {
+
+    // Polar sites generated?
+    if (top->isEStatified() == false) {
+        cout << endl << "... ... ERROR: Estatify first. Return. " << flush;
+        return 0;
+    }
+    else { 
+        cout << endl << "... ... System is estatified. Proceed. " << flush;
+    }
 
     vector< Segment* > ::iterator sit;
     vector< PolarSite* > ::iterator pit;
@@ -57,8 +81,14 @@ bool ECoulomb::EvaluateFrame(Topology *top) {
     for (sit = top->Segments().begin();
          sit < top->Segments().end();
          ++sit) {
-    for (int state = -1; state < 2; ++state) {
+
+         if ((*sit)->getId() < _first) { continue; }
+         if ((*sit)->getId() == _last+1)  { break; }
+
          cout << endl << "... ... Evaluating site " << (*sit)->getId() << flush;
+
+    for (int state = -1; state < 2; ++state) {
+         
          this->EvaluateSegment(top, *sit, state);                 
     }}
 
@@ -97,23 +127,48 @@ void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {
         // Calculate interaction energy //
         // ++++++++++++++++++++++++++++ //
 
+        FILE *out;
+        string sphpdb = boost::lexical_cast<string>(seg->getId())
+                      + "_" + boost::lexical_cast<string>(state)
+                      + "_check.pdb";
+        out = fopen(sphpdb.c_str(), "w");
+        vec com_shift = -1 * seg->getPos();
+        for (pit1 = seg->PolarSites().begin();
+             pit1 < seg->PolarSites().end();
+             ++pit1) {
+             (*pit1)->PrintPDB(out, com_shift);
+        }
+
         for (ext = top->Segments().begin();
              ext < top->Segments().end();
              ++ext) {
 
              // Segment different from central one?
-             if ((*ext)->getId() == seg->getId()) { continue; }     
-
+             if ((*ext)->getId() == seg->getId()) { continue; }             
+             
              // Segment within cutoff?
              double r12 = abs(top->PbShortestConnect((*ext)->getPos(),
                                                        seg->getPos()));
              if (r12 > _cutoff) { continue; }
+
+             // Check polar sites
+             // (*ext)->WritePDB(out, "Multipoles", "Charges");
 
              ++COUNT_EXT;
 
              for (pit1 = (*ext)->PolarSites().begin();
                   pit1 < (*ext)->PolarSites().end();
                   ++pit1) {
+
+                  vec dr_pbc = top->PbShortestConnect((*pit1)->getPos(),
+                                                        seg->getPos());
+                  vec dr_dir = seg->getPos() - (*pit1)->getPos();
+                  vec pol_shift = vec(0,0,0);
+                  if (abs(dr_pbc - dr_dir) > 1e-8) {
+                      pol_shift = dr_dir - dr_pbc;
+                  }
+                  (*pit1)->PrintPDB(out, com_shift + pol_shift);
+
              for (pit2 = seg->PolarSites().begin();
                   pit2 < seg->PolarSites().end();
                   ++pit2) {
@@ -124,6 +179,8 @@ void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {
                   E_INTER += (*pit1)->Q00 * 1/R * (*pit2)->Q00;
              }}
         }
+
+        fclose(out);
 
         // ++++++++++++++++++++++++++++++ //
         // Store result, reset to neutral //
@@ -157,6 +214,9 @@ void ECoulomb::Output2File(Topology *top) {
          sit < top->Segments().end();
          ++sit) {
 
+         if ((*sit)->getId() < _first) { continue; }
+         else if ((*sit)->getId() == _last+1)  { break; }
+
         fprintf(out, "%4d ", (*sit)->getId() );
         fprintf(out, "%4s ", (*sit)->getName().c_str() );
 
@@ -185,7 +245,7 @@ void ECoulomb::Output2File(Topology *top) {
         }
 
         // Polarizable sphere
-        fprintf(out, "   SPH %4d   ",
+        fprintf(out, "   EXT %4d   ",
                 _log_seg_sphere[(*sit)->getId()]);
 
         fprintf(out, "   %4.7f %4.7f %4.7f   ",
