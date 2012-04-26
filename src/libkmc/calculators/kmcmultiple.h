@@ -95,6 +95,7 @@ double Node::EscapeRate()
     return escaperate;
 }
 
+
 class Chargecarrier
 {
     public:
@@ -103,7 +104,6 @@ class Chargecarrier
         Node *node;
         votca::tools::vec::vec dr_travelled;
 };
-
 
 
 void progressbar(double fraction)
@@ -129,6 +129,7 @@ void progressbar(double fraction)
     }
 }
 
+
 int OMPinfo() 
 {
     int nthreads=1, tid=0, procs, inpar=0;
@@ -151,7 +152,7 @@ int OMPinfo()
         {
             printf("|| In parallel? = %d\n||\n", inpar);
         }
-}
+    }
     return nthreads;
 }
 
@@ -183,6 +184,7 @@ protected:
             string _filename; // HACK
             
 };
+
 
 void KMCMultiple::Initialize(const char *filename, Property *options )
 {
@@ -234,7 +236,6 @@ void KMCMultiple::Initialize(const char *filename, Property *options )
        //cout << _seed << endl;
        //srand(_seed);
        //votca::tools::Random::init(rand(), rand(), rand(), rand());
-
 }
 
 vector<Node*> KMCMultiple::LoadGraph()
@@ -246,7 +247,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     // Load nodes
     votca::tools::Database db;
     db.Open( _filename );
-    if(verbose == 1) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
+    if(verbose >= 1) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
     votca::tools::Statement *stmt = db.Prepare("SELECT id-1, name FROM segments;");
 
     int i=0;
@@ -269,7 +270,7 @@ vector<Node*> KMCMultiple::LoadGraph()
         i++;
     }
     delete stmt;
-    if(verbose == 1) { cout << "segments: " << node.size() << endl; }
+    if(verbose >= 1) { cout << "segments: " << node.size() << endl; }
     
     // Load pairs and rates
     int numberofpairs = 0;
@@ -285,7 +286,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     }    
     delete stmt;
 
-    if(verbose == 1) { cout << "pairs: " << numberofpairs/2 << endl; }
+    if(verbose >= 1) { cout << "pairs: " << numberofpairs/2 << endl; }
     
     // Calculate initial escape rates
     for(unsigned int i=0; i<node.size(); i++)
@@ -297,22 +298,25 @@ vector<Node*> KMCMultiple::LoadGraph()
 
 vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable)
 {
-    cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
-    cout << "number of charges: " << numberofcharges << endl;
-    cout << "number of nodes: " << node.size() << endl;
+    int tid = 0;
+    # ifdef _OPENMP
+    tid = omp_get_thread_num();
+    # endif
+
+    if(tid == 0)
+    {
+        cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
+        cout << "number of charges: " << numberofcharges << endl;
+        cout << "number of nodes: " << node.size() << endl;
+    }
     
     if(numberofcharges > node.size())
     {
         throw runtime_error("ERROR in kmcmultiple: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
     }
-    
+
     double outputfrequency = runtime/100;
     vector<double> occP(node.size(),0.);
-
-    if(numberofcharges>node.size())
-    {
-        throw runtime_error("Error in kmcstandalone: Your number of charges is larger than the number of nodes. This conflicts with single occupation.");
-    }
 
     // Injection
     vector< Chargecarrier* > carrier;
@@ -327,7 +331,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         }
         newCharge->node->occupied = 1;
         newCharge->dr_travelled = votca::tools::vec::vec(0,0,0);
-        cout << "starting position for charge " << i+1 << ": segment " << newCharge->node->id+1 << endl;
+        if(tid == 0) {cout << "starting position for charge " << i+1 << ": segment " << newCharge->node->id+1 << endl; }
         carrier.push_back(newCharge);
     }    
 
@@ -338,7 +342,6 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     progressbar(0.);
     while(time < runtime)
     {
-        
         // determine which electron will escape
         Node* do_oldnode;
         Node* do_newnode;
@@ -356,14 +359,14 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                 do_affectedcarrier = carrier[i];
             }
         }
-        if(verbose >= 1) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
+        if(verbose >= 1 && tid == 0) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
         
         // determine where it will jump to
-        if(verbose >= 1) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
+        if(verbose >= 1 && tid == 0) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
         maxprob = 0;
         for(unsigned int j=0; j<do_oldnode->event.size(); j++)
         {
-            if(verbose >= 1) { cout << " " << do_oldnode->event[j].destination ; }
+            if(verbose >= 1 && tid == 0) { cout << " " << do_oldnode->event[j].destination ; }
             newprob = do_oldnode->event[j].rate * (1-RandomVariable->rand_uniform());
             if(newprob > maxprob)
             {
@@ -373,7 +376,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             }
         }
         
-        if(verbose >= 1) {cout << "." << endl;}
+        if(verbose >= 1 && tid == 0) {cout << "." << endl;}
 
         // go forward in time
         double accumulatedrate = 0;
@@ -384,19 +387,16 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         double dt = 0;
         if(accumulatedrate == 0)
         {   // this should not happen: no possible jumps defined for a node
-            throw runtime_error("Error in kmcsingle: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
+            throw runtime_error("ERROR in kmcmultiple: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
         }
         else
         {
-
             double rand_u = 1-RandomVariable->rand_uniform();
             while(rand_u == 0)
             {
                 cout << "WARNING: encountered 0 as a random variable! New try." << endl;
                 rand_u = 1-RandomVariable->rand_uniform();
             }
-
-                
             dt = -1 / accumulatedrate * log(rand_u);
         }
         time += dt;
@@ -415,14 +415,14 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             do_oldnode->occupied = 0;
             do_affectedcarrier->node = do_newnode;
             do_affectedcarrier->dr_travelled += dr;
-            if(verbose >= 1) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl << endl;}
+            if(verbose >= 1 && tid == 0) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl << endl;}
         }
         else
         {
-            if(verbose >= 1) {cout << "Selected segment: " << do_newnode->id+1 << " is alread occupied. No jump." << endl << endl;}
+            if(verbose >= 1 && tid == 0) {cout << "Selected segment: " << do_newnode->id+1 << " is alread occupied. No jump." << endl << endl;}
         }
         
-        if(time > nextoutput)
+        if(time > nextoutput && tid == 0)
         {
             nextoutput = time + outputfrequency;
             progressbar(time/runtime);
@@ -437,16 +437,19 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         occP[j] = node[j]->occupationtime / time;
     }
 
-    cout << endl << "finished KMC simulation after " << step << " steps." << endl;
-    votca::tools::vec::vec dr_travelled = votca::tools::vec::vec (0,0,0);
-    cout << endl << "Average velocities: " << endl;
-    for(unsigned int i=0; i<numberofcharges; i++)
+    if (tid == 0)
     {
-        cout << std::scientific << "    charge " << i+1 << ": " << carrier[i]->dr_travelled/time*1e-9 << endl;
-        dr_travelled += carrier[i]->dr_travelled;
+        cout << endl << "finished KMC simulation after " << step << " steps." << endl;
+        votca::tools::vec::vec dr_travelled = votca::tools::vec::vec (0,0,0);
+        cout << endl << "Average velocities: " << endl;
+        for(unsigned int i=0; i<numberofcharges; i++)
+        {
+            cout << std::scientific << "    charge " << i+1 << ": " << carrier[i]->dr_travelled/time*1e-9 << endl;
+            dr_travelled += carrier[i]->dr_travelled;
+        }
+        dr_travelled /= numberofcharges;
+        cout << std::scientific << "  Overall average velocity (m/s): " << dr_travelled/time*1e-9 << endl << endl;
     }
-    dr_travelled /= numberofcharges;
-    cout << std::scientific << "  Overall average velocity (m/s): " << dr_travelled/time*1e-9 << endl << endl;
     return occP;
 }
 
@@ -471,26 +474,19 @@ void KMCMultiple::WriteOcc(vector<double> occP, vector<Node*> node)
 
 bool KMCMultiple::EvaluateFrame()
 {
-    // double runtime = 1E6;
-    // int seed  = 23;
-    // unsigned int numberofcharges = 2;
-    
+    std::cout << "-----------------------------------" << std::endl;      
+    std::cout << "      KMC FOR MULTIPLE CHARGES" << std::endl;
+    std::cout << "-----------------------------------" << std::endl << std::endl;      
+ 
     unsigned int numberofthreads = 1;
     if(_allowparallel == 1)
     {
         numberofthreads = OMPinfo();
     }
     
-
-    std::cout << "-----------------------------------" << std::endl;      
-    std::cout << "      KMC FOR MULTIPLE CHARGES" << std::endl;
-    std::cout << "-----------------------------------" << std::endl << std::endl;      
- 
-    
-    
     // Initialise random number generator
     // each thread i in a parallel computation needs is own set RandomVariable[i]
-    if(verbose == 1) { cout << endl << "Initialising random number generator" << endl; }
+    if(verbose >= 1) { cout << endl << "Initialising random number generator" << endl; }
     srand(_seed); // srand expects any integer in order to initialise the random number generator
     vector< votca::tools::Random2* > RandomVariable;
     for (unsigned int i = 0; i < numberofthreads; i++)
@@ -545,6 +541,7 @@ bool KMCMultiple::EvaluateFrame()
         }
     }
     // output occupation probabilites
+    cout << endl;
     for(unsigned int j=0; j<occP.size();j++) 
     {
         if(occP[j] > 0)
