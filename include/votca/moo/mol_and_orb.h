@@ -360,19 +360,28 @@ public:
              ++it_at) {
             #ifdef DEBUG
             cout << "rotateing atom:" << *it_at <<endl;
-            #endif
+            #endif           
 
 
-            mol2->atom_pos[*it_at] = M * ( mol2->atom_pos[*it_at] - com ) + a;
-
-
-// BUG: DO NOT UNCOMMENT
-//            mol2->atom_pos[*it_at].setX( a.getX() + M.get(0,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(0,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(0,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
-//            mol2->atom_pos[*it_at].setY( a.getY() + M.get(1,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(1,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(1,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
-//            mol2->atom_pos[*it_at].setZ( a.getZ() + M.get(2,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(2,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(2,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
+            mol2->atom_pos[*it_at].setX( a.getX() + M.get(0,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(0,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(0,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
+            mol2->atom_pos[*it_at].setY( a.getY() + M.get(1,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(1,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(1,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
+            mol2->atom_pos[*it_at].setZ( a.getZ() + M.get(2,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(2,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(2,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
         }
     }
-            
+
+
+    void rotate_someatoms_ctp(vector <int> list_at,
+                              const matrix  & M,
+                              const vec & a,
+                              const vec & com,
+                              mol_and_orb * mol2) {
+        vector <int>::iterator it_at ;
+
+        for (it_at = list_at.begin(); it_at != list_at.end(); ++it_at) {
+
+            mol2->atom_pos[*it_at] = M * ( mol2->atom_pos[*it_at] - com ) + a;
+        }
+    }
 };
 
 }}
