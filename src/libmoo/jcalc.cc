@@ -204,7 +204,9 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
     // calculating orbitals for all pairs
 
       if (tools::globals::verbose) {
-           cout << "  ID1:ID2 J " << one.getType()->getId() << ":" << two.getType()->getId();
+           cout << "  id1:id2 [J] " << endl;
+           cout << one.getType()->getId() << ":" 
+                << two.getType()->getId() << " [";
        }    
     
     vector < double > Js; // vector with all Js
@@ -218,7 +220,7 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
             _pois.push_back(poi);
             if (tools::globals::verbose) { cout << jdata->_fock.calcJ(poi) << " " ; }
         }
-        if (tools::globals::verbose) { cout << endl; }
+        if (tools::globals::verbose) { cout << "]" << endl; }
     }
     
     

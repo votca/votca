@@ -16,18 +16,18 @@
  */
 
 //
-// File:   moo_oeralp.cc
 // calculates overlap integrals for molecular orbitals using libmoo
-// moo_overlap --pos1 <coordinate file for mol1>
-//			--pos2 <coordinate file for mol2>
-//			--conjseg <xml file defining conjugated segments>
-//			--pdb geometry in which electronic coupling si calculated
+// moo_overlap  --pos1 <coordinate file for mol1>
+//              --pos2 <coordinate file for mol2>
+//		--conjseg <xml file defining conjugated segments>
+//		--pdb geometry in which electronic coupling si calculated
 
 #include <boost/program_options.hpp>
 #include <string>
 #include <votca/moo/jcalc.h>
 #include <votca/moo/crgunit.h>
 #include <votca/tools/application.h>
+#include <votca/tools/globals.h>
 
 using namespace std;
 using namespace votca::moo;
@@ -92,20 +92,42 @@ void MOOApplication::Run(void)
                     or2[2][0] >> or2[2][1] >> or2[2][2];
 
             if (!in1 || !in2) break;
-            //	cout << "mol1: " << name1 << com1 << or1<<endl;
-            //	cout << "mol2: " << name2 << com2 << or2<<endl;
 
+            if (globals::verbose) {
+             	cout << "molecule A: " << name1 << endl
+                     << " translated by: " << com1 << endl 
+                     << " rotated by: " << endl << or1 << endl;
+                
+            	cout << "molecule B: " << name2 << endl 
+                     << "translated by: " << com2 << endl 
+                     << "rotated by: " << endl << or2 << endl;
+            }
 
             CrgUnit * A = jcalc.CreateCrgUnit(0, name1);
             CrgUnit * B = jcalc.CreateCrgUnit(1, name2);
-            A->SetPos(0, com1);
-            B->SetPos(0, com2);
+            
+            A->SetPos(0, com1);           
             A->SetNorm(0, or1[2]);
             A->SetPlane(0, or1[1]);
+            
+            if (globals::verbose) {
+                cout << "molecule A: " << A->getName()  
+                 << " position: " <<  A->GetPos(0) 
+                 << " norm: " << A->GetNorm(0) 
+                 << " plane: " << A->GetPlane(0) << endl;
+            }
+            
+            B->SetPos(0, com2);
             B->SetNorm(0, or2[2]);
             B->SetPlane(0, or2[1]);
-
-
+            
+            if (globals::verbose) {
+                cout << "molecule B: " << B->getName()  
+                 << " position: " <<  B->GetPos(0) 
+                 << " norm: " << B->GetNorm(0) 
+                 << " plane: " << B->GetPlane(0) << endl;
+            }
+            
            //write pdb file
            mol_and_orb *molecule = ( A -> rotate_translate_beads() );
            (*molecule).write_pdb(_pdbfile, "m1", written);
