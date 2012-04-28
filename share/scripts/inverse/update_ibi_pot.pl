@@ -26,7 +26,7 @@ This script calcs dU out of two rdfs with the rules of inverse boltzmann
 In addition, it does some magic tricks:
 - do not update if one of the two rdf is undefined
 
-Usage: $progname new_rdf target_rdf cur_pot outfile
+Usage: $progname target_rdf new_rdf cur_pot outfile
 EOF
   exit 0;
 }

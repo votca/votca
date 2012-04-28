@@ -18,7 +18,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials for simplex method 
+This script initizalizes potentials for optimizer methods
 
 Usage: ${0##*/}
 EOF
@@ -27,13 +27,14 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 #list of all parameters
-parameters=( $(csg_get_interaction_property --all inverse.simplex.parameters) )
+parameters=( $(csg_get_interaction_property --all inverse.optimizer.parameters) )
 what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
+otype="$(csg_get_property cg.inverse.optimizer.type)"
 
-for_all "non-bonded bonded" do_external prepare_single simplex "${#parameters[@]}"
+for_all "non-bonded bonded" do_external prepare_single optimizer "${#parameters[@]}"
 
-do_external simplex prepare_state "simplex.state.cur"
-do_external simplex state_to_potentials "simplex.state.cur" "simplex.state.new"
+do_external optimizer prepare_state "${otype}.state.cur"
+do_external optimizer state_to_potentials "${otype}.state.cur" "${otype}.state.new"
 
 # cp confout.gro and so on
 do_external prepare_generic $sim_prog

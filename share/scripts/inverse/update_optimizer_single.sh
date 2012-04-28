@@ -28,14 +28,14 @@ EOF
 fi
 
 name=$(csg_get_interaction_property name)
-targets=( $(csg_get_interaction_property inverse.simplex.targets) )
-weights=( $(csg_get_interaction_property inverse.simplex.target_weights) )
+targets=( $(csg_get_interaction_property inverse.optimizer.targets) )
+weights=( $(csg_get_interaction_property inverse.optimizer.target_weights) )
 [[ ${#targets[@]} -eq ${#weights[@]} ]] || die "${0##*/}: Number of targets (${#targets[@]}) differ from number of weights (${#weights[@]})"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 sum=0
 for ((i=0;i<${#targets[@]};i++)); do
-  do_external simplex_target "${targets[$i]}"
+  do_external optimizer_target "${targets[$i]}"
   out="${name}.${targets[$i]}.conv"
   [[ -f "${out}" ]] || die "${0##*/}: Could not find '${out}'"
   val="$(<$out)"
@@ -46,4 +46,4 @@ done
 echo "$sum" > "${name}.conv"
 
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
-[[ -z $tasklist ]] || die "Postupd tasks for $name found, this is not allowed in simplex"
+[[ -z $tasklist ]] || die "Postupd tasks for $name found, this is not allowed in optimizer"

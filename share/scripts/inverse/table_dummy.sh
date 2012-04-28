@@ -17,7 +17,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script creates a dummy table with grid min:step:max
+This script creates a zero table with grid min:step:max
 
 Usage: ${0##*/} min:step:max outfile
 EOF
@@ -26,7 +26,7 @@ fi
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-if [ "${1//[^:]}" = "::" ]; then
+if [[ ${1//[^:]} = "::" ]]; then
   min=${1%%:*}
   max=${1##*:}
 else

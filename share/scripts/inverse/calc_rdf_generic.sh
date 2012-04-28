@@ -30,8 +30,8 @@ name="$(csg_get_interaction_property name)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [[ $sim_prog = "gromacs" ]]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-  topol=$(csg_get_property cg.inverse.gromacs.rdf.topol "$topol")
+  topol=$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.topol)
+  [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
   [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist" 
   ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
@@ -41,8 +41,9 @@ else
 fi
 
 if [[ -n $(csg_get_property --allow-empty cg.bonded.name) ]]; then
-  mapping="$(csg_get_property cg.inverse.map)"
-  mapping="$(csg_get_property cg.inverse.gromacs.rdf.map "$mapping")"
+  mapping="$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.map)"
+  [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
+  [[ -z $mapping ]] && die "Mapping file for bonded interaction needed"
   [[ -f "$(get_main_dir)/$mapping" ]] || die "${0##*/}: Mapping file '$mapping' for bonded interaction not found in maindir"
   mapping="--cg $(get_main_dir)/$mapping"
 else

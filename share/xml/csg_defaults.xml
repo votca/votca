@@ -232,8 +232,19 @@
       <DESC>Special mapping file for rdf calculations needed for bonded interactions</DESC>
     </map>
     <method>
-      <DESC>method to be performed: ibi/imc/ft/simplex</DESC>
+      <DESC>method to be performed: ibi/imc/ft/optimizer</DESC>
     </method>
+    <optimizer>
+      <cma>
+        <DESC>general options for the cma optimizer</DESC>
+        <eps>
+          <DESC>standard epsilon, in which the best solution is searched</DESC>
+        </eps>
+      </cma>
+      <type>
+        <DESC>Type of optimizer to be used</DESC>
+      </type>
+    </optimizer>
     <program>gromacs
       <DESC>simulation package to be used (gromacs/espresso)</DESC>
     </program>
@@ -389,6 +400,24 @@
 	    <DESC>Number of point to calculate the average from for the extrapolation</DESC>
 	  </points>
 	</extrapolate>
+	<kbibi>
+	  <DESC>Contains all options of the Kirkwood-Buff correction scripts</DESC>
+	  <do>1
+	    <DESC>Update cycle for the Kirkwood-Buff correction (1 do, 0 do not). To do the correction every third step specify "0 0 1", similar to do_potential</DESC>
+	  </do>
+	  <factor>
+	    <DESC>scaling factor for the correction</DESC>
+	  </factor>
+	  <r_ramp>
+	    <DESC>cutoff of the ramp</DESC>
+	  </r_ramp>
+	  <start>
+	    <DESC>Where to start averaging the Kirkwood-Buff integral</DESC>
+	  </start>
+	  <stop>
+	    <DESC>Where to stop averaging the Kirkwood-Buff integral</DESC>
+	  </stop>
+	</kbibi>
 	<pressure>
 	  <DESC>Contains all options of the pressure correction scripts</DESC>
 	  <do>1
@@ -426,9 +455,9 @@
 	  </step>
 	</splinesmooth>
       </post_update_options>
-      <simplex>
+      <optimizer>
 	<density>
-	  <DESC>Contains all options for the density calculation of the simplex algorithm</DESC>
+	  <DESC>Contains all options for the density calculation of the optimizer</DESC>
 	  <axis>x
 	    <DESC>Axis along which the density is calculated</DESC>
 	  </axis>
@@ -455,10 +484,10 @@
 	  <DESC>If the function is very complicated it can be defined in this files, which is used as an header</DESC>
 	</functionfile>
 	<parameters>
-	  <DESC>Parameters to be fitted by the simplex algorithm for this interaction. Note that the parameter names are global</DESC>
+	  <DESC>Parameters to be fitted by the optimizer for this interaction. Note that the parameter names are global</DESC>
 	</parameters>
 	<rdf>
-	  <DESC>Contains all options for the rdf calculation of the simplex algorithm</DESC>
+	  <DESC>Contains all options for the rdf calculation of the optimizer</DESC>
 	  <target>
 	    <DESC>Filename of the target rdf in the maindir</DESC>
 	  </target>
@@ -467,12 +496,12 @@
 	  </weight>
 	</rdf>
 	<targets>rdf
-	  <DESC>Targets to be fitted by the simplex algorithm</DESC>
+	  <DESC>Targets to be fitted by the optimizer</DESC>
 	</targets>
 	<target_weights>1
 	  <DESC>Weight of the targets, amount has to be the same as of targets</DESC>
 	</target_weights>
-      </simplex>
+      </optimizer>
       <tf>
 	<DESC>Contains all information relevant to thermoforce iteration</DESC>
 	<spline_start>
