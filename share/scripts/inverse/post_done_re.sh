@@ -29,7 +29,7 @@ fi
 names="$(csg_get_interaction_property --all name)"
 
 # go to main directory
-cd $CSG_MAINDIR
+cd $(get_main_dir)
 
 # get the last iteration directory  
 step_dir="$(get_current_step_dir)"
@@ -38,7 +38,6 @@ step_nr=$(get_step_nr $step_dir)
 
 # copy all parameters table in the last step to the main directory
 for name in $names; do
-  out="${name}.conv"
   critical cp $step_dir/${name}.param.cur .
 done
 

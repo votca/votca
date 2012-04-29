@@ -31,7 +31,6 @@ fi
 for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property name).param.init $(csg_get_interaction_property name).param.cur'
 
 # copy AA reference RDFs from main dir
-
 for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property name).aa.rdf $(csg_get_interaction_property name).aa.rdf'
 
 # copy coarse-grained initial configurations

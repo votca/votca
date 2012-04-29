@@ -25,8 +25,8 @@ EOF
    exit 0
 fi
 
-topol="$(csg_get_property cg.inverse.gromacs.topol_out)"
-topol=$(csg_get_property cg.inverse.gromacs.re.topol "$topol")
+topol=$(csg_get_property --allow-empty cg.inverse.gromacs.re.topol)
+[[ -z ${topol} ]] && topol="$(csg_get_property cg.inverse.gromacs.topol_out)"
 [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist" 
 ext=$(csg_get_property cg.inverse.gromacs.traj_type)
 traj="traj.${ext}"
@@ -35,6 +35,3 @@ traj="traj.${ext}"
 csg_reupdate_opts="$(csg_get_property --allow-empty cg.inverse.re.csg_reupdate.opts)"
 
 critical csg_reupdate --top ${topol} --trj $traj --options $CSGXMLFILE ${csg_reupdate_opts}
-
-
-

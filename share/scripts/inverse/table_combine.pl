@@ -80,7 +80,7 @@ Allowed options:
     --error  ERR      Relative error
                       Default: $epsilon
     --op OP           Operation to perform
-                      Possible: =,+,-,,/,d,d2,x
+                      Possible: =,+,-,*,/,d,d2,x
 		      d = |y1-y2|, d2 = (y1-y2)^2, x=* (to avoid shell trouble)
     --sum             Output the sum instead of a new table
     --die             Die if op '=' fails
