@@ -37,4 +37,4 @@ is_int "$line" || die "${0##*/}: Strange - $line should be a number"
 critical sed "${line}s/pending$/active/" "$input" > "$output"
 
 parameters="$(sed -n "${line}p" "$input")"
-for_all non-bonded do_external simplex parameters_to_potential "$parameters" 
+for_all "non-bonded bonded" do_external optimizer parameters_to_potential "$parameters" 

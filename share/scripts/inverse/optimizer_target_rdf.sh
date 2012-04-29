@@ -29,9 +29,9 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 do_external rdf ${sim_prog}
 name="$(csg_get_interaction_property name)"
 [[ -f ${name}.dist.new ]] || die "${0##*/}: Could not calculate ${name}.dist.new"
-target="$(csg_get_interaction_property inverse.simplex.rdf.target)"
+target="$(csg_get_interaction_property inverse.optimizer.rdf.target)"
 do_external resample target ${target} ${name}.dist.tgt
-weight=$(csg_get_interaction_property --allow-empty inverse.simplex.rdf.weight)
+weight=$(csg_get_interaction_property --allow-empty inverse.optimizer.rdf.weight)
 if [[ -n $weight ]]; then
   min=$(csg_get_interaction_property min)
   step=$(csg_get_interaction_property step)

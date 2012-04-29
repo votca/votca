@@ -26,18 +26,28 @@ EOF
    exit 0
 fi
 
+name="$(csg_get_interaction_property name)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [[ $sim_prog = "gromacs" ]]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-  topol=$(csg_get_property cg.inverse.gromacs.rdf.topol "$topol")
-  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
-
+  topol=$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.topol)
+  [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
+  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist" 
   ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
   [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
+fi
+
+if [[ -n $(csg_get_property --allow-empty cg.bonded.name) ]]; then
+  mapping="$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.map)"
+  [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
+  [[ -z $mapping ]] && die "Mapping file for bonded interaction needed"
+  [[ -f "$(get_main_dir)/$mapping" ]] || die "${0##*/}: Mapping file '$mapping' for bonded interaction not found in maindir"
+  mapping="--cg $(get_main_dir)/$mapping"
+else
+  mapping=""
 fi
 
 equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
@@ -58,12 +68,11 @@ if is_done "rdf_calculation${suffix}"; then
   echo "rdf calculation is already done"
 else
   msg "Calculating rdfs with csg_stat using $tasks tasks"
-  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts}
+  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts} ${mapping}
   mark_done "rdf_calculation${suffix}"
 fi
 
 if [[ ${with_errors} = "yes" ]]; then
-  name="$(csg_get_interaction_property name)"
   if ! is_done "${name}_rdf_average"; then
     msg "Calculating average rdfs and its errors for interaction $name"
     do_external table average --output ${name}.dist.new ${name}_*.dist.block

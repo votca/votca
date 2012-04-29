@@ -17,7 +17,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script generates the initial state file and puts all simplex.in this file
+This script generates the initial state file and puts all in-file together
 
 Usage: ${0##*/} outputfile
 EOF
@@ -26,13 +26,14 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-names="$(csg_get_property cg.non-bonded.name)"
-parameters="$(csg_get_property cg.non-bonded.inverse.simplex.parameters)"
+names="$(csg_get_interaction_property --all name)"
+parameters="$(csg_get_interaction_property --all inverse.optimizer.parameters)"
 what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
+otype="$(csg_get_property cg.inverse.optimizer.type)"
 
 liste=()
 for name in $names; do
-  input="$name.simplex.in"
+  input="$name.${otype}.in"
   [[ -f $input ]] || die "${0##*/}: Could not find $input"
   [[ -n $(sed -n '/^[#@]/p' "$input") ]] && die "${0##*/}: $input has commentlines"
   liste[${#liste[@]}]="$input"
@@ -40,7 +41,17 @@ done
 
 get_table_comment | sed 's/^/#/' > "$1"
 echo "#Interactions: ${names}" >> "$1"
+echo "#Method: ${otype}" >> "$1"
 echo "#State = Initialization" >> $1
 echo "#Format $parameters conv flag" >> "$1"
 #added conv=0 and flag=pending to all lines
 critical paste "${liste[@]}" | critical sed -e 's/$/ 0 pending/' >> "$1"
+
+#cma converts initial values to first population
+if [[ $otype = cma ]]; then
+  tmpfile="$(critical mktemp "$1.XXX")"
+  eps="$(csg_get_property cg.inverse.optimizer.cma.eps)"
+  critical mv "$1" "$tmpfile"
+  do_external cma precede_state --eps "$eps" "$tmpfile" "$1"
+fi
+

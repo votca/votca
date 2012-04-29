@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd convergence script, calcs int of (\${name}.DIST.tgt-\${name}.DIST.new)**2
+postadd convergence script, calcs the sum of |\${name}.DIST.tgt-\${name}.DIST.new|
 and saves it to \${name}.conv.
 DIST stands for 'dist', but can be changed by onvergence.what option
 
@@ -30,8 +30,8 @@ fi
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 do_external postadd dummy "$1" "$2"
-if [[ $(csg_get_property cg.inverse.method) = "simplex" ]]; then
-  msg "WARNING: postadd convergency make no sense for simplex as convergency is calculated anyway - skipping"
+if [[ $(csg_get_property cg.inverse.method) = "optimizer" ]]; then
+  msg "WARNING: postadd convergency make no sense for method optimizer as convergency is calculated anyway - skipping"
   exit 0
 fi
 

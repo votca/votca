@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2012 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,24 +18,18 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initializes an espresso simulation
+Will download cma python module and put it in CSGSHARE
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-from=$(csg_get_property cg.inverse.initial_configuration)
-esp="$(csg_get_property cg.inverse.espresso.blockfile)"
-if [[ $from = "laststep" ]]; then
-  espout="$(csg_get_property cg.inverse.espresso.blockfile_out)"
-  #avoid overwriting $espout
-  cp_from_last_step --rename "$espout" "$esp"
-elif [[ $from = "maindir" ]]; then
-  cp_from_main_dir $esp
-else
-  die "${0##*/}: initial_configuration '$from' not implemented"
-fi
-
-#convert potential in format for sim_prog
-for_all "non-bonded bonded" do_external convert_potential espresso
+[[ -n "$(type -p wget)" ]] || die "${0##*/}: Could not find wget"
+msg "We will now go to http://www.lri.fr/~hansen/cmaes_inmatlab.html and get the cma python module"
+msg "Please consider sending Nikolaus Hansen an email telling him that you are using his code"
+msg "within VOTCA. hansen@lri.fr, it will only take seconds!"
+sleep 10
+critical wget -O "${CSGSHARE}/cma.py" "http://www.lri.fr/~hansen/cma.py"
+critical chmod 755 "${CSGSHARE}/cma.py"
+msg "Done"

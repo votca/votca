@@ -25,6 +25,7 @@ my $noflags=undef;
 my $dosum=undef;
 my $die=undef;
 my $scale=1.0;
+my $withflag=undef;
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -62,6 +63,11 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
         shift(@ARGV);
 	$dosum = "yes";
     }
+    elsif ($ARGV[0] eq "--withflag"){
+        shift(@ARGV);
+        die "nothing given for --withflag" unless $#ARGV > -1;
+        $withflag = shift(@ARGV);
+    }
     elsif (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
 	{
             print <<EOF;
@@ -74,13 +80,14 @@ Allowed options:
     --error  ERR      Relative error
                       Default: $epsilon
     --op OP           Operation to perform
-                      Possible: =,+,-,,/,d,x
-		      d = |y1-y2|, x=* (to avoid shell trouble)
+                      Possible: =,+,-,,/,d,d2,x
+		      d = |y1-y2|, d2 = (y1-y2)^2, x=* (to avoid shell trouble)
     --sum             Output the sum instead of a new table
     --die             Die if op '=' fails
     --no-flags        Do not check for the flags
     --scale XXX       Scale output/sum with this number
                       Default $scale
+    --withflag  FL    only operate on entries with specific flag in src
 -h, --help            Show this help message
 EOF
   exit 0;
@@ -135,42 +142,45 @@ sub operation($$$) {
   my $x=$_[0];
   my $op="$_[1]";
   my $y=$_[2];
-  use Switch;
-  switch($op) {
-    case /\+|-|\*|\/|x/ {
-      $op="*" if ($op eq "x");
-      my $val = eval "$x $op $y";
-      die "operation: Could not calculate '$x $op $y'\n" if $@;
-      return $val;
-    }
-    case "=" {
-      my $diff=&difference_relative($x,$y,$epsilon);
-      return 1 if ($diff > $epsilon);
-      return 0;
-    }
-    case "d" {
-      return abs($x-$y);
-    } 
-    else {
-      die "operation: Unknown operation $op\n";
-    }
+  if ($op =~ /\+|-|\*|\/|x/) {
+     $op="*" if ($op eq "x");
+     my $val = eval "$x $op $y";
+     die "operation: Could not calculate '$x $op $y'\n" if $@;
+     return $val;
+  } elsif ($op eq "=") {
+     my $diff=&difference_relative($x,$y,$epsilon);
+     return 1 if ($diff > $epsilon);
+     return 0;
+  } elsif ($op eq "d") {
+     return abs($x-$y);
+  } elsif ($op eq "d2") {
+    return ($x-$y)*($x-$y);
+  } else {
+    die "operation: Unknown operation $op\n";
   }
 }
 
 my $sum=0;
 my @table;
 for (my $i=0;$i<=$#r1; $i++) {
-  abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first column different at position $i\n";
-  my $value=&operation($pot1[$i],$op,$pot2[$i]);
-  if (($die)&&($op eq "=")&&($value == 1)) {
-    die "progname: second column different at position $i\n";
-  }
-  $value*=$scale;
-  $sum+=$value;
-  $table[$i]=$value;
-  unless ($noflags){
-    $flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
-  }
+    # check for positions
+    abs($r1[$i] - $r2[$i]) < $epsilon || die "$progname: first column different at position $i\n";
+    # check for flags
+    unless ($noflags){
+      $flag1[$i] eq $flag2[$i] || die "$progname: flag different at position $i\n";
+      # skip if flag does not match
+      if (($withflag) and ($flag1[$i] !~ m/[$withflag]/)) {
+        next;
+      }
+    }
+    # perform given operation
+    my $value=&operation($pot1[$i],$op,$pot2[$i]);
+    if (($die)&&($op eq "=")&&($value == 1)) {
+	die "progname: second column different at position $i\n";
+    }
+    $value*=$scale;
+    $sum+=$value;
+    $table[$i]=$value;
 }
 
 if ($die) {

@@ -68,11 +68,11 @@ my $outfile="$ARGV[1]";
 my @out;
 
 my $prefactor="$ARGV[2]";
-my $prefactor_cg = "$ARGV[3]";
+my $prefactor2 = "$ARGV[3]";
 
-for ($i=0;$i<=$#r;$i++){
+for (my $i=0;$i<=$#r;$i++){
 # do a linear interpoltation between the prefactors
-   $out[$i]=$i/$#r*$val[$i]*$prefactor_cg+(1-$i/$#r)*$val[$i]*$prefactor;
+   $out[$i]=$i/$#r*$val[$i]*$prefactor2+(1-$i/$#r)*$val[$i]*$prefactor;
 }
 
 saveto_table($outfile,@r,@out,@flag,$comments) || die "$progname: error at save table\n";

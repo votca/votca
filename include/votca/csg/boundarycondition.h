@@ -20,8 +20,8 @@
 
 #include <votca/tools/matrix.h>
 
-using namespace std;
 namespace votca { namespace csg {
+using namespace std;
 using namespace votca::tools;
 
 class BoundaryCondition {

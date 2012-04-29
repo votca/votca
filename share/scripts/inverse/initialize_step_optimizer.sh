@@ -26,11 +26,15 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
+otype="$(csg_get_property cg.inverse.optimizer.type)"
 
 #get new pot from last step and make it current potential
-for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
+for_all "non-bonded bonded" 'cp_from_last_step --rename $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 
-cp_from_last_step --rename "simplex.state.new" "simplex.state.cur"
+cp_from_last_step --rename "${otype}.state.new" "${otype}.state.cur"
+if [[ $otype = cma ]]; then
+  cp_from_last_step --rename "${otype}.internal_state.new" "${otype}.internal_state.cur"
+fi
 
 #initialize sim_prog
 do_external initstep_generic $sim_prog
