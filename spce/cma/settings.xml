@@ -70,7 +70,10 @@
     <!-- ibm: inverse boltzmann imc: inverse monte carlo -->
     <method>optimizer</method>
     <optimizer>
-      <type>simplex</type>
+      <type>cma</type>
+      <cma>
+	<eps>0.1</eps>
+      </cma>
     </optimizer>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>

@@ -9,17 +9,23 @@
   <bonded>
     <!-- name of the interaction -->
     <name>bond</name>
+    <min>0.</min>
+    <max>0.180</max>
+    <step>0.001</step>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.152</min>
       <max>0.181</max>
-      <step>0.003</step>
+      <step>0.001</step>
       <res_output_coeff>5</res_output_coeff>
     </fmatch>
   </bonded>
   <bonded>
     <!-- name of the interaction -->
     <name>angle</name>
+    <min>0</min>
+    <max>3.144</max>
+    <step>0.001</step>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>1.627</min>
@@ -32,7 +38,12 @@
   <!-- example for a non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->
-    <name>CH2-CH2</name>
+    <name>B-B</name>
+    <min>0.0</min>
+    <max>2.23</max>
+    <step>0.01</step>
+    <type1>CH2</type1>
+    <type2>CH2</type2>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.298</min>
@@ -45,7 +56,12 @@
   <!-- example for a non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->
-    <name>CH3-CH3</name>
+    <name>A-A</name>
+    <min>0</min>
+    <max>2.23</max>
+    <step>0.01</step>
+    <type1>CH3</type1>
+    <type2>CH3</type2>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.283</min>
@@ -58,7 +74,12 @@
   <!-- example for a non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->
-    <name>CH2-CH3</name>
+    <name>A-B</name>
+    <min>0</min>
+    <max>2.23</max>
+    <step>0.01</step>
+    <type1>CH2</type1>
+    <type2>CH3</type2>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>0.291</min>

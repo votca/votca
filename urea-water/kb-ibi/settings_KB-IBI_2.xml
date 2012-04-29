@@ -1,0 +1,166 @@
+<cg>
+ <!-- example for a non-bonded interaction entry -->
+ <non-bonded>
+  <!-- name of the interaction -->
+  <name>UR-UR</name>
+  <!-- types involved in this interaction -->
+  <type1>UR</type1>
+  <type2>UR</type2>
+  <!-- dimension + grid spacing of tables for calculations -->
+  <min>0</min>
+  <max>1.4</max>
+  <step>0.01</step>
+  <inverse>
+   <!-- target distribution (rdf), just give gromas rdf.xvg -->
+   <target>UR-UR.dist.tgt</target>
+   <!-- update cycles -->
+   <do_potential>0</do_potential>
+   <!-- additional post processing of dU before added to potential -->
+   <post_update>kbibi smooth</post_update>
+   <post_update_options>
+     <kbibi>
+       <do>1</do>
+       <start>1.0</start>
+       <stop>1.4</stop>
+       <factor>0.0994748</factor>
+     </kbibi>
+   <smooth>
+     <iterations>2</iterations>
+   </smooth>
+   </post_update_options>
+   <!-- additional post processing of U after dU added to potential -->
+   <post_add>acc_convergence</post_add>
+   <post_add_options>
+     <convergence>
+       <weight>1</weight>
+       <what>dist</what>
+     </convergence> 
+   </post_add_options>
+   <!-- name of the table for gromacs run -->
+   <gromacs>
+    <table>table_UR_UR.xvg</table>
+   </gromacs>
+  </inverse>
+ </non-bonded>
+   
+ <non-bonded>
+  <!-- name of the interaction -->
+  <name>SOL-SOL</name>
+  <!-- types involved in this interaction -->
+  <type1>SOL</type1>
+  <type2>SOL</type2>
+  <!-- dimension + grid spacing of tables for calculations -->
+  <min>0</min>
+  <max>1.4</max>
+  <step>0.01</step>
+      
+  <inverse>
+   <!-- target distribution (rdf), just give gromas rdf.xvg -->
+   <target>SOL-SOL.dist.tgt</target>
+   <!-- update cycles -->
+   <do_potential>0</do_potential>
+   <!-- additional post processing of dU before added to potential -->
+   <post_update>kbibi smooth</post_update>
+   <post_update_options>
+     <kbibi>
+       <do>1</do>
+       <start>1.0</start>
+       <stop>1.4</stop>
+       <factor>0.0994748</factor>
+     </kbibi>
+    <smooth>
+     <iterations>2</iterations>
+    </smooth>
+   </post_update_options>
+   <!-- additional post processing of U after dU added to potential -->
+   <post_add>acc_convergence</post_add>
+   <post_add_options>
+     <convergence>
+       <weight>1</weight>
+       <what>dist</what>
+     </convergence>
+   </post_add_options>
+   <!-- name of the table for gromacs run -->
+   <gromacs>
+    <table>table_SOL_SOL.xvg</table>
+   </gromacs>
+  </inverse>
+ </non-bonded>
+
+ <non-bonded>
+  <!-- name of the interaction -->
+  <name>UR-SOL</name>
+  <!-- types involved in this interaction -->
+  <type1>UR</type1>
+  <type2>SOL</type2>
+  <!-- dimension + grid spacing of tables for calculations -->
+  <min>0</min>
+  <max>1.4</max>
+  <step>0.01</step>
+  <inverse>
+   <!-- target distribution (rdf), just give gromas rdf.xvg -->
+   <target>UR-SOL.dist.tgt</target>
+   <!-- update cycles -->
+   <do_potential>0</do_potential>
+   <!-- additional post processing of dU before added to potential -->
+   <post_update>kbibi smooth</post_update>
+   <post_update_options>
+     <kbibi>
+       <do>1</do>
+       <start>1.0</start>
+       <stop>1.4</stop>
+       <factor>0.0994748</factor>
+     </kbibi>
+     <smooth>
+       <iterations>2</iterations>
+     </smooth>
+   </post_update_options>
+   <!-- additional post processing of U after dU added to potential -->
+   <post_add>acc_convergence</post_add>
+   <post_add_options>
+     <convergence>
+       <weight>1</weight>
+       <what>dist</what>
+     </convergence>
+   </post_add_options>
+   <!-- name of the table for gromacs run -->
+   <gromacs>
+    <table>table_UR_SOL.xvg</table>
+   </gromacs>
+  </inverse>
+ </non-bonded>
+
+   
+ <!-- general options for inverse script -->
+ <inverse>
+  <!-- 300*0.00831451 gromacs units -->
+  <kBT>2.49435300</kBT>
+  <initial_configuration>maindir</initial_configuration>
+  <!-- use gromacs as simulation program -->
+  <program>gromacs</program>
+  <!-- gromacs specific options -->
+  <gromacs>
+    <!-- trash so many frames at the beginning -->
+    <equi_time>500</equi_time>
+    <!-- grid for table*.xvg !-->
+    <table_bins>0.002</table_bins>
+    <!-- cut the potential at this value (gromacs bug) -->
+    <pot_max>1000000</pot_max>
+    <!-- extend the tables to this value -->
+    <table_end>5.0</table_end>
+  </gromacs>
+  <!-- these files are copied for each new run -->
+  <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+  <!-- do so many iterations -->
+  <iterations_max>35</iterations_max>
+  <!-- Try to clean a bit -->
+  <cleanlist>traj.xtc</cleanlist>
+  <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
+  <method>ibi</method>
+  <!-- write log to this file -->
+  <log_file>inverse.log</log_file>
+  <!-- write restart step to this file -->
+  <restart_file>restart_points.log</restart_file>
+  <!-- imc specific stuff -->
+ </inverse>
+</cg>
