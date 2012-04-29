@@ -35,3 +35,13 @@ stp='stop'
 if [[ -f $out ]]; then
    mv $out $stp
 fi
+
+if [[ -f notsympos ]]; then
+   msg --color red "Hessian not a positive definite"
+   if [ "$(csg_get_property cg.inverse.re.dosteepest)" = "no" ]; then
+    msg --color red "User decided not to take steepest descent"
+    touch $stp
+   else
+    msg --color red "User is ok with taking steepest descent"
+   fi  
+fi

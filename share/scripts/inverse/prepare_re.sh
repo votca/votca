@@ -33,6 +33,9 @@ for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property nam
 # need to do this more elegantly
 cp_from_main_dir map*.xml 
 
+# copy coarse-grained initial configurations
+cp_from_main_dir --rename conf.gro confout.gro
+
 # generate reference AA ensemble CG-CG histograms and 
 # also generate potential tables from the initial parameter guess
 
@@ -48,12 +51,14 @@ CGMAPFILE="$(csg_get_property cg.map)"
 
 csg_reupdate="$(csg_get_property cg.inverse.re.csg_reupdate.command)"
 
+opts="$(csg_get_property cg.inverse.re.csg_reupdate.opts)"
+
 # for now I am providing initial step cg conf
 # this wont be needed if i could find better way to do this
 # working on it
 
 
-critical $csg_reupdate --top ${tpr} --trj ${trr} --options $CSGXMLFILE --genref true --cg $(csg_get_property cg.map)
+critical $csg_reupdate --top ${tpr} --trj ${trr} --options $CSGXMLFILE --genref true --cg $(csg_get_property cg.map) ${opts}
 
 
 
