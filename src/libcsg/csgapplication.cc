@@ -39,8 +39,10 @@ namespace votca {
             TrajectoryReader::RegisterPlugins();
             TopologyReader::RegisterPlugins();
 
-            AddProgramOptions()
+	    if (NeedsTopology()) {
+                AddProgramOptions()
                     ("top", boost::program_options::value<string > (), "  atomistic topology file");
+	    }
             if (DoMapping()) {
                 if (DoMappingDefault()) {
                     AddProgramOptions("Mapping options")
@@ -76,7 +78,9 @@ namespace votca {
 
         bool CsgApplication::EvaluateOptions(void) {
             _do_mapping = false;
-            CheckRequired("top", "no topology file specified");
+	    if (NeedsTopology()) {
+                CheckRequired("top", "no topology file specified");
+	    }
 
             // check for mapping options
             if (DoMapping()) {

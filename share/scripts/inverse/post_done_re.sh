@@ -59,14 +59,9 @@ for name in $names; do
   do_external table linearop ${name}.param.cur ${name}.param.cur $inv_avg_steps_nr 0
 done
 
-# generate potential tables from final parameters
-# to generate potential tables topology is not required but for csgapplication topology is to be provided
-topol=conf.gro
-[[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found" 
-
 msg --color green "Generating potential tables from the initial parameters"
 
-critical csg_reupdate --gentable true --top ${topol} --options $CSGXMLFILE
+critical csg_reupdate --gentable true --options $CSGXMLFILE
 
 # rename potential tables from *.new to *.final
 for name in $names; do

@@ -63,6 +63,8 @@ public:
     bool DoThreaded() { return true; }
     bool SynchronizeThreads() { return false; }
 
+    bool NeedsTopology() { return false; }
+
     void Initialize();
     bool EvaluateOptions();
     void BeginEvaluate(Topology *top, Topology *top_atom = 0);

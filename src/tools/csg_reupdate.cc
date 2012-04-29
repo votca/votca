@@ -38,6 +38,8 @@ void CsgREupdate::Initialize() {
             "  only generate potential tables from given parameters, "
             "  NO RE update!");
     
+    AddProgramOptions()
+      ("top", boost::program_options::value<string > (), "  atomistic topology file (only needed for RE update)");
 }
 
 bool CsgREupdate::EvaluateOptions() {
@@ -45,8 +47,10 @@ bool CsgREupdate::EvaluateOptions() {
     
     CsgApplication::EvaluateOptions();
     CheckRequired("options", "need to specify options file");
-    if(!_gentable)
+    if(!_gentable) {
         CheckRequired("trj", "no trajectory file specified");
+        CheckRequired("top", "no topology file specified");
+    }
     LoadOptions(OptionsMap()["options"].as<string>());
 
     return true;

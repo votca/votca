@@ -72,6 +72,11 @@ namespace votca {
                     return false;
             }
 
+	    /// \brief if topology is always needed
+	    virtual bool NeedsTopology(void) {
+	      return true;
+	    }
+
             /// \brief called after topology was loaded
 
             virtual bool EvaluateTopology(Topology *top, Topology *top_ref = 0) {
