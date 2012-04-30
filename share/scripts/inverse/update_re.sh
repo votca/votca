@@ -34,4 +34,10 @@ traj="traj.${ext}"
 
 csg_reupdate_opts="$(csg_get_property --allow-empty cg.inverse.re.csg_reupdate.opts)"
 
-critical csg_reupdate --top ${topol} --trj $traj --options $CSGXMLFILE ${csg_reupdate_opts}
+if is_done "re_update"; then
+  echo "re update is already done"
+else
+  critical csg_reupdate --top ${topol} --trj $traj --options $CSGXMLFILE ${csg_reupdate_opts}
+  mark_done "re_update"
+fi
+
