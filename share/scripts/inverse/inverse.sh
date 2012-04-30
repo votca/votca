@@ -304,11 +304,6 @@ for ((i=$begin;i<$iterations+1;i++)); do
   cd $(get_main_dir) || die "cd $(get_main_dir) failed"
 done
 
-# make sure we are in the maindir (in case of break)
-cd $(get_main_dir) || die "cd $(get_main_dir) failed"
-msg "Post done"
-do_external post_done $method
-
 touch "done"
 echo "All done at $(date)"
 exit 0

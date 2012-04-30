@@ -27,8 +27,11 @@ using namespace std;
 struct PotentialInfo {
 
         PotentialInfo(int index,
-                        bool bonded_,
-                        int vec_pos_, Property *options);
+		      bool bonded_,
+		      int vec_pos_, 
+		      string& param_in_ext_, string& rdf_ext_,
+		      Property *options);
+
         int potentialIndex;
         bool bonded;
         PotentialFunction *ucg;
@@ -100,7 +103,12 @@ protected:
     int _nframes;
    
     bool _gentable;
-    
+
+    // file extension for the inputs/outputs
+    string _param_in_ext, _param_out_ext;
+    string _pot_out_ext;
+    string _rdf_ext;
+
     void WriteOutFiles();
     void EvalBonded(Topology *conf, PotentialInfo *potinfo);
     void EvalNonbonded(Topology *conf, PotentialInfo *potinfo);

@@ -54,12 +54,12 @@ add_pot tf add_pot_generic.sh
 add_pot optimizer dummy.sh
 add_pot re dummy.sh
 
-# post done scripts
-post_done ibi dummy.sh
-post_done imc dummy.sh
-post_done tf dummy.sh
-post_done simplex dummy.sh
-post_done re post_done_re.sh
+# postadd average scripts
+postadd_average ibi dummy.sh
+postadd_average imc dummy.sh
+postadd_average tf dummy.sh
+postadd_average optimizer dummy.sh
+postadd_average re postadd_average_re.sh
 
 # END: these scripts have to be defined for each method
 
@@ -100,6 +100,7 @@ postadd acc_convergence postadd_acc_convergence.sh
 postadd shift dpot_shift_nb.pl
 postadd overwrite postadd_overwrite.sh
 postadd plot postadd_plot.sh
+postadd average postadd_average.sh
 
 #convergence checks
 convergence_check default convergence_check_default.sh

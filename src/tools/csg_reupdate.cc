@@ -32,14 +32,25 @@ void CsgREupdate::Initialize() {
      CsgApplication::Initialize();
     // add RE options
     AddProgramOptions("RE Specific options")
-    ("options", boost::program_options::value<string>(), 
+      ("options", boost::program_options::value<string>(), 
             "  options file for coarse graining")
-    ("gentable", boost::program_options::value<bool>(&_gentable)->default_value(false),
+      ("gentable", boost::program_options::value<bool>(&_gentable)->default_value(false),
             "  only generate potential tables from given parameters, "
-            "  NO RE update!");
+            "  NO RE update!")
+      ("param-in-ext", boost::program_options::value<string>(&_param_in_ext)->default_value("param.cur"), 
+       "  Extension of the input parameter tables")
+      ("param-out-ext", boost::program_options::value<string>(&_param_out_ext)->default_value("param.new"), 
+       "  Extension of the output parameter tables")
+      ("pot-out-ext", boost::program_options::value<string>(&_pot_out_ext)->default_value("pot.new"), 
+       "  Extension of the output potential tables")
+      ("rdf-ext", boost::program_options::value<string>(&_rdf_ext)->default_value("aa.rdf"), 
+       "  Extension of the reference rdf");
     
     AddProgramOptions()
-      ("top", boost::program_options::value<string > (), "  atomistic topology file (only needed for RE update)");
+      ("top", boost::program_options::value<string > (), 
+       "  atomistic topology file (only needed for RE update)");
+     
+
 }
 
 bool CsgREupdate::EvaluateOptions() {
@@ -69,7 +80,9 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
          
          PotentialInfo *i = new PotentialInfo(_potentials.size(),
                                               false,
-                                              _nlamda, *iter);
+                                              _nlamda, 
+					      _param_in_ext, 
+					      _rdf_ext, *iter);
 
         // generate the bead lists
         BeadList beads1, beads2;
@@ -167,8 +180,10 @@ void CsgREupdate::Run(){
             string name = (*iter)->get("name").value();
 
             PotentialInfo *i = new PotentialInfo(_potentials.size(),
-                    false,
-                    _nlamda, *iter);
+						 false,
+						 _nlamda, 
+						 _param_in_ext, _rdf_ext, 
+						 *iter);
 
             // update parameter counter
             _nlamda += i->ucg->getOptParamSize();
@@ -210,11 +225,7 @@ void CsgREupdate::WriteOutFiles() {
 
     cout<< "Writing CG parameters and potential(s)\n";
 
-    string potfile_extension = ".pot.new";
-    string paramfile_extension = ".param.new";
     string file_name;
-
-    
     
     PotentialContainer::iterator potiter;
 
@@ -224,14 +235,14 @@ void CsgREupdate::WriteOutFiles() {
         //write potential table
         // construct meaningful outfile name
         file_name = (*potiter)->potentialName;
-        file_name = file_name + potfile_extension;
+        file_name = file_name + "." + _pot_out_ext;
         cout << "Writing file: " << file_name << endl;
         (*potiter)->ucg->SavePotTab(file_name,(*potiter)->step);
 
         //write parameter table
         // construct meaningful outfile name
         file_name = (*potiter)->potentialName;
-        file_name = file_name + paramfile_extension;
+        file_name = file_name + "." + _param_out_ext;
         cout << "Writing file: " << file_name << endl;
         (*potiter)->ucg->SaveParam(file_name);
         
@@ -435,7 +446,8 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
          PotentialInfo *i = new PotentialInfo(worker->_potentials.size(),
                                               false,
-                                              worker->_nlamda, *iter);
+                                              worker->_nlamda, 
+					      _param_in_ext, _rdf_ext, *iter);
         
         // update parameter counter
         worker->_nlamda += i->ucg->getOptParamSize();
@@ -656,7 +668,9 @@ void CsgREupdateWorker::EvalBonded(Topology* conf, PotentialInfo* potinfo){
 
 PotentialInfo::PotentialInfo(int index,
                              bool bonded_,
-                             int vec_pos_, Property* options) {
+                             int vec_pos_, 
+			     string& param_in_ext_, string& rdf_ext_, 
+			     Property* options) {
     
     potentialIndex = index;
     _options = options;
@@ -697,15 +711,13 @@ PotentialInfo::PotentialInfo(int index,
 
     // initialize cg potential with old parameters
 
-    string oldparam_file_extension = ".param.cur";
-    string oldparam_file_name = potentialName + oldparam_file_extension;
+    string oldparam_file_name = potentialName + "." + param_in_ext_;
 
     ucg->setParam(oldparam_file_name);
 
     /* read/load reference AA CG-CG distribution
      */
-    string aardf_file_extension = ".aa.rdf";
-    string aardf_file_name = potentialName + aardf_file_extension;
+    string aardf_file_name = potentialName + "." + rdf_ext_;
 
     aardf.Load(aardf_file_name);
 
