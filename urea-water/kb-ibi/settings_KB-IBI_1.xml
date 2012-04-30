@@ -23,6 +23,9 @@
        <start>1.0</start>
        <stop>1.4</stop>
        <factor>0.397899</factor>
+       <kbint>yes
+	 <with_errors>yes</with_errors>
+       </kbint>
      </kbibi>
    <smooth>
      <iterations>2</iterations>
@@ -67,6 +70,9 @@
        <start>1.0</start>
        <stop>1.4</stop>
        <factor>0.397899</factor>
+       <kbint>yes
+	 <with_errors>yes</with_errors>
+       </kbint>
      </kbibi>
     <smooth>
      <iterations>2</iterations>
@@ -110,6 +116,9 @@
        <start>1.0</start>
        <stop>1.4</stop>
        <factor>0.397899</factor>
+       <kbint>yes
+	 <with_errors>yes</with_errors>
+       </kbint>
      </kbibi>
      <smooth>
        <iterations>2</iterations>
@@ -146,6 +155,10 @@
     <table_bins>0.002</table_bins>
     <!-- cut the potential at this value (gromacs bug) -->
     <pot_max>1000000</pot_max>
+    <rdf>
+      <block_length>200</block_length>
+      <with_errors>yes</with_errors>
+    </rdf>
     <!-- extend the tables to this value -->
     <table_end>5.0</table_end>
   </gromacs>
