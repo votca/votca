@@ -21,6 +21,8 @@
 
 namespace votca { namespace tools {
 
+using namespace std;
+
 double  *Random::MARSarray, Random::MARSc, Random::MARScd, Random::MARScm ;
 int     Random::MARSi, Random::MARSj ;
 

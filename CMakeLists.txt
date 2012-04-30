@@ -55,6 +55,8 @@ option(BUILD_MANPAGES "Build manpages" ON)
 if (BUILD_MANPAGES)
   find_package(TXT2TAGS)
 else (BUILD_MANPAGES)
+  #we use TXT2TAGS_FOUND conditionals in other CMakeLists.txt
+  #so that TXT2TAGS is never required
   set(TXT2TAGS_FOUND)
 endif (BUILD_MANPAGES)
 
