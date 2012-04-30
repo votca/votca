@@ -55,6 +55,8 @@
 	  
 	  <base>cur</base>
 
+	  <norm>d2</norm>
+
 	</convergence>
 
       </post_add_options>
@@ -133,8 +135,6 @@
       <!-- relative entropy program name and options-->
       <!-- default path is votcadir/bin -->
       <csg_reupdate>
-
-        <command>csg_reupdate</command>
 
         <opts>--nt 4</opts>
 
