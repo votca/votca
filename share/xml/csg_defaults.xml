@@ -408,6 +408,12 @@
 	  <factor>
 	    <DESC>scaling factor for the correction</DESC>
 	  </factor>
+	  <kbint>no
+	    <DESC>also calculate the Kirkwood-Buff integral: yes/no</DESC>
+	    <with_errors>no
+	      <DESC>also calculate errors on the Kirkwood-Buff integral: yes/no</DESC>
+	    </with_errors>
+	  </kbint>  
 	  <r_ramp>
 	    <DESC>cutoff of the ramp</DESC>
 	  </r_ramp>

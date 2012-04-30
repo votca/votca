@@ -148,6 +148,7 @@ pressure_cor wjk pressure_cor_wjk.pl
 
 # kirkwood-buff correction
 kbibi correction kbibi_correction.pl
+calc kbint calc_kbint.sh
 
 #density correction
 density symmetrize density_symmetrize.py 

@@ -36,7 +36,7 @@ step=$(csg_get_interaction_property step)
 
 ramp=( $(csg_get_interaction_property inverse.post_update_options.kbibi.do) )
 ramp_nr=$(( ($step_nr - 1 ) % ${#ramp[@]} ))
-if [ "${ramp[$ramp_nr]}" = 1 ]; then
+if [[ ${ramp[$ramp_nr]} = 1 ]]; then
    echo "Apply kbibi correction for interaction ${name}"
    # needs current rdf and target rdf
    if [[ ! -f ${name}.dist.new ]]; then
@@ -44,6 +44,17 @@ if [ "${ramp[$ramp_nr]}" = 1 ]; then
    fi
    if [[ ! -f ${name}.dist.tgt ]]; then
      do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
+   fi
+   if [[ $(csg_get_interaction_property inverse.post_update_options.kbibi.kbint) = "yes" ]]; then
+     do_external calc kbint ${name}.dist.tgt ${name}.kbint.tgt
+     if [[ $(csg_get_interaction_property inverse.post_update_options.kbibi.kbint.with_errors) = "yes" ]]; then
+       sim_prog="$(csg_get_property cg.inverse.program)"
+       [[ $(csg_get_property cg.inverse.${sim_prog}.rdf.with_errors) != "yes" ]] && \
+	 die "${0##*/}: kb integrals with errors need cg.inverse.${sim_prog}.rdf.with_errors to be yes"
+       do_external calc kbint --with-errors ${name}.dist.new ${name}.kbint.new
+     else
+       do_external calc kbint ${name}.dist.new ${name}.kbint.new
+     fi
    fi
    tmpfile=$(critical mktemp ${name}.kbibi.XXX)
    do_external kbibi correction ${name}.dist.tgt ${name}.dist.new ${tmpfile}
