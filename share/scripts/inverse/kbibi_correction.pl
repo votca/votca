@@ -113,7 +113,11 @@ my @dpot;
 my @flag;
 for (my $i=0;$i<=$#r_aim;$i++){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
-      $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_ramp)))*$pref;
+      if ($r_aim[$i]> $r_ramp) {
+	$dpot[$i]=0; #beyond r_ramp correction is 0
+      } else {
+        $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_ramp)))*$pref;
+      }
       $flag[$i]="i";
   } else {
     $dpot[$i]=$value;
