@@ -191,7 +191,7 @@ avg_steptime=0
 steps_done=0
 [[ $iterations_max -eq 0 ]] && iterations=$begin || iterations=$iterations_max
 for ((i=$begin;i<$iterations+1;i++)); do
-  [ $iterations_max -eq 0 ] && ((iterations++))
+  [[ $iterations_max -eq 0 ]] && ((iterations++))
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
@@ -272,11 +272,10 @@ for ((i=$begin;i<$iterations+1;i++)); do
     echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
-    [[ -f stop ]] && rm -f stop
+    [[ -f stop ]] && rm -f stop #just in case a script created a stop file
     do_external convergence_check "$convergence_check"
     if [[ -f stop ]]; then
       msg "Iterations are converged, stopping"
-      touch "done"
       break
     else
       msg "Iterations are not converged, going on"
@@ -305,6 +304,8 @@ for ((i=$begin;i<$iterations+1;i++)); do
   cd $(get_main_dir) || die "cd $(get_main_dir) failed"
 done
 
+# make sure we are in the maindir (in case of break)
+cd $(get_main_dir) || die "cd $(get_main_dir) failed"
 msg "Post done"
 do_external post_done $method
 
