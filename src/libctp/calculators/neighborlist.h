@@ -45,6 +45,8 @@ public:
 private:
 
     map< string, map<string,double> > _cutoffs;
+    bool                              _useConstantCutoff;
+    double                            _constantCutoff;
 
 };
     
@@ -77,6 +79,14 @@ void Neighborlist::Initialize(Topology* top, Property *options) {
         _cutoffs[names[1]][names[0]] = cutoff;
 
     }
+
+    if (options->exists(key+".constant")) {
+        _useConstantCutoff = true;
+        _constantCutoff = options->get(key+".constant").as< double >();
+    }
+    else {
+        _useConstantCutoff = false;
+    }
 }
 
 bool Neighborlist::EvaluateFrame(Topology *top) {
@@ -104,16 +114,21 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
             
             Segment *seg2 = *segit2;
 
-            // Find cut-off
-            try {
-                cutoff = _cutoffs.at(seg1->getName()).at(seg2->getName());
+            if (!_useConstantCutoff) {
+                // Find cut-off
+                try {
+                    cutoff = _cutoffs.at(seg1->getName()).at(seg2->getName());
+                }
+                catch (out_of_range) {
+                    cout << "ERROR: No cut-off specified for segment pair "
+                         << seg1->getName() << " | " << seg2->getName() << ". "
+                         << endl;
+                    throw std::runtime_error("Missing input in options file.");
+                }
             }
-            catch (out_of_range) {
-                cout << "ERROR: No cut-off specified for segment pair "
-                     << seg1->getName() << " | " << seg2->getName() << ". "
-                     << endl;
-                throw std::runtime_error("Missing input in options file.");
-            }
+
+            else { cutoff = _constantCutoff; }
+
 
             bool stopLoop = false;
             for (fragit1 = seg1->Fragments().begin();

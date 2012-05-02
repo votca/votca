@@ -62,6 +62,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/238600121/iimport.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory.o \
 	${OBJECTDIR}/_ext/238600121/einternal.o \
+	${OBJECTDIR}/_ext/238600121/ianalyze.o \
 	${OBJECTDIR}/_ext/238600121/eoutersphere.o
 
 
@@ -235,6 +236,11 @@ ${OBJECTDIR}/_ext/238600121/einternal.o: ../../src/libctp/calculators/einternal.
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/einternal.o ../../src/libctp/calculators/einternal.cc
+
+${OBJECTDIR}/_ext/238600121/ianalyze.o: ../../src/libctp/calculators/ianalyze.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/ianalyze.o ../../src/libctp/calculators/ianalyze.cc
 
 ${OBJECTDIR}/_ext/238600121/eoutersphere.o: ../../src/libctp/calculators/eoutersphere.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121

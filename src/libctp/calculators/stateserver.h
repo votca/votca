@@ -287,7 +287,19 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
 }
 
 void StateServer::DownloadIList(FILE *out, Topology *top) {
-    ;
+    QMNBList::iterator nit;
+    for (nit = top->NBList().begin();
+         nit != top->NBList().end();
+         ++nit) {
+        QMPair *pair = *nit;
+
+        fprintf(out, "%5d %5d %5d e %4.7e h %4.7e \n",
+        pair->getId(), 
+        pair->Seg1()->getId(),
+        pair->Seg2()->getId(),
+        pair->getJeff2(-1),
+        pair->getJeff2(+1));
+    }
 }
 
 void StateServer::DownloadEList(FILE *out, Topology *top) {
