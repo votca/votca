@@ -149,7 +149,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
     _dlamda.clear();
     _DS.resize(_nlamda,false);
     _DS.clear();
-    _HS.resize(_nlamda,_nlamda,false);
+    _HS.resize(_nlamda,false);
     _HS.clear();
     _dUFrame.resize(_nlamda,false);
     _dUFrame.clear();
@@ -210,6 +210,8 @@ void CsgREupdate::EndEvaluate(){
 
     REFormulateLinEq();
 
+    cout << "Updating parameters" << endl;
+    
     REUpdateLamda();
 
     cout << "AA Ensemble Avg Energy :: " << _UavgAA << endl;
@@ -275,7 +277,7 @@ void CsgREupdate::REFormulateLinEq() {
      */
     for( int row = 0; row < _nlamda; row++) {
 
-        for( int col = 0; col < _nlamda; col++){
+        for( int col = row; col < _nlamda; col++){
 
             _HS(row,col) += (-1.0*_DS(row)*_DS(col));
             // since at this step _DS(i) = -beta*<dU/dlamda_i>
@@ -308,10 +310,17 @@ void CsgREupdate::REUpdateLamda() {
     ub::vector<double> residual(_nlamda);
     ub::vector<double> minusDS(_nlamda);
 
+    // since linalg_cholesky_solve takes only matrix 
+    // copy symmetric _HS to matrix HS_
+    ub::matrix<double> HS_(_nlamda,_nlamda);
+    for(int row = 0; row < _nlamda; row++)
+        for(int col = 0; col<_nlamda; col++)
+            HS_(row,col) = _HS(row,col);
+    
     minusDS = -_DS;
 
     try {
-        votca::tools::linalg_cholesky_solve(_dlamda, _HS, minusDS);
+        votca::tools::linalg_cholesky_solve(_dlamda, HS_, minusDS);
     }
     catch (std::runtime_error){
         /* then can not use Newton-Raphson
@@ -401,7 +410,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
         } // end loop over hist
         _DS(row) += _beta * dU_i;
         
-        for( int col = pos_start; col < pos_max; col++){
+        for( int col = row; col < pos_max; col++){
 
             lamda_j = col - pos_start;
             
@@ -477,7 +486,7 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
     worker->_DS.resize(worker->_nlamda,false);
     worker->_DS.clear();
-    worker->_HS.resize(worker->_nlamda,worker->_nlamda,false);
+    worker->_HS.resize(worker->_nlamda,false);
     worker->_HS.clear();
     worker->_dUFrame.resize(worker->_nlamda,false);
     worker->_dUFrame.clear();
@@ -507,7 +516,7 @@ void CsgREupdate::MergeWorker(Worker* worker) {
     
         _DS(row) += myCsgREupdateWorker->_DS(row);
         
-        for( int col = 0; col < _nlamda; col++){
+        for( int col = row; col < _nlamda; col++){
             _HS(row,col) += myCsgREupdateWorker->_HS(row,col);
         }
     }
@@ -552,7 +561,7 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom){
 
         _DS(row) += (-1.0 * _beta * _dUFrame(row));
 
-        for (int col = 0; col < _nlamda; col++) {
+        for (int col = row; col < _nlamda; col++) {
 
             _HS(row, col) += (_beta * _beta * _dUFrame(row) * _dUFrame(col));
 
@@ -637,7 +646,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology* conf, PotentialInfo* potinfo) {
 
         _dUFrame(row) = dU_i;
 
-        for (int col = pos_start; col < pos_max; col++) {
+        for (int col = row; col < pos_max; col++) {
 
             lamda_j = col - pos_start;
 

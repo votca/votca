@@ -24,12 +24,13 @@ AS=as
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Release
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -54,10 +55,10 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/csg_reupdate
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_reupdate
 
-dist/Release/GNU-Linux-x86/csg_reupdate: ${OBJECTFILES}
-	${MKDIR} -p dist/Release/GNU-Linux-x86
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_reupdate: ${OBJECTFILES}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_reupdate ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/_ext/715944016/csg_reupdate.o: ../../src/tools/csg_reupdate.cc 
@@ -70,8 +71,8 @@ ${OBJECTDIR}/_ext/715944016/csg_reupdate.o: ../../src/tools/csg_reupdate.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Release
-	${RM} dist/Release/GNU-Linux-x86/csg_reupdate
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_reupdate
 
 # Subprojects
 .clean-subprojects:

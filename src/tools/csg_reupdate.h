@@ -11,7 +11,7 @@
 #include <votca/csg/csgapplication.h>
 #include <votca/tools/table.h>
 #include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/property.h>
 #include <votca/tools/histogramnew.h>
 #include "potentialfunctions/potentialfunction.h"
@@ -92,7 +92,8 @@ protected:
     int _nlamda;
     ub::vector<double> _lamda;
     ub::vector<double> _dlamda;
-    ub::matrix<double> _HS;
+    // _HS is a symmetric matrix
+    ub::symmetric_matrix<double, ub::upper> _HS;
     ub::vector<double> _DS;
     ub::vector<double> _dUFrame;
     
@@ -141,7 +142,7 @@ public:
 
     int _nlamda;
     ub::vector<double> _lamda;
-    ub::matrix<double> _HS;
+    ub::symmetric_matrix<double, ub::upper> _HS;
     ub::vector<double> _DS;
     ub::vector<double> _dUFrame;
 
