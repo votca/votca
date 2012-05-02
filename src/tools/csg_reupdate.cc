@@ -37,6 +37,9 @@ void CsgREupdate::Initialize() {
       ("gentable", boost::program_options::value<bool>(&_gentable)->default_value(false),
             "  only generate potential tables from given parameters, "
             "  NO RE update!")
+      ("interaction", boost::program_options::value<string > (), 
+            " [OPTIONAL] generate potential tables only for the specified interactions, \n"
+            " only valid when 'gentable' is true")
       ("param-in-ext", boost::program_options::value<string>(&_param_in_ext)->default_value("param.cur"), 
        "  Extension of the input parameter tables")
       ("param-out-ext", boost::program_options::value<string>(&_param_out_ext)->default_value("param.new"), 
@@ -178,6 +181,17 @@ void CsgREupdate::Run(){
                 iter != _nonbonded.end(); ++iter) {
 
             string name = (*iter)->get("name").value();
+
+            if (OptionsMap().count("interaction")) {
+
+              // TODO :: check if specified interactions exist in the option file
+	       Tokenizer tok(_op_vm["interaction"].as<string>(), ";");
+               vector<string> vtok;
+               tok.ToVector(vtok);
+               vector<string>::iterator vtok_iter = find(vtok.begin(),vtok.end(),name);
+               if(vtok_iter == vtok.end())
+                 continue;	               
+            } 
 
             PotentialInfo *i = new PotentialInfo(_potentials.size(),
 						 false,

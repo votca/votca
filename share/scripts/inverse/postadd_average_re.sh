@@ -65,7 +65,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   else 
     # for dist = pot check if avg parameters have been computed or not
     if [[ -f ${name}.param.avg ]]; then
-      critical csg_reupdate --gentable true --param-in-ext param.avg --param-out-ext param.avg --pot-out-ext pot.avg --options $CSGXMLFILE
+      critical csg_reupdate --gentable true --interaction "${name}" --param-in-ext param.avg --param-out-ext param.avg --pot-out-ext pot.avg --options $CSGXMLFILE
     else
       die "${0##*/}: file '${name}.param.avg' was not found. Make sure 'param' is specified before 'pot' in the what-do list at '$name.inverse.post_add_options.average.what'."
     fi
