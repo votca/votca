@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-errors=""
 clean=no
 
 show_help () {
@@ -27,7 +26,6 @@ Usage: ${0##*/} [options] infile outfile
 Allowed options:
     --help                    show this help
     --clean                   remove all intermediate temp files
-    --with-errors             calculate errors using errors of the rdf
 EOF
 }
 
@@ -37,9 +35,6 @@ while [[ ${1} = --* ]]; do
  case $1 in
    --clean)
     clean="yes"
-    shift ;;
-   --with-errors)
-    errors="--with-errors"
     shift ;;
   --help)
     show_help
@@ -56,8 +51,8 @@ done
 tmpfile=$(critical mktemp "$1".preint.XXX)
 four_pi="12.5663706"
 
-do_external table linearop $errors "$1" "$tmpfile" "${four_pi}" "-${four_pi}"
-do_external table integrate $errors --from left --sphere "$tmpfile" "$2"
+do_external table linearop "$1" "$tmpfile" "${four_pi}" "-${four_pi}"
+do_external table integrate --from left --sphere "$tmpfile" "$2"
 
 if [[ $clean = "yes" ]]; then
   rm -f "${tmpfile}"

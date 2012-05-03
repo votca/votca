@@ -45,16 +45,18 @@ if [[ ${ramp[$ramp_nr]} = 1 ]]; then
    if [[ ! -f ${name}.dist.tgt ]]; then
      do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
    fi
-   if [[ $(csg_get_interaction_property inverse.post_update_options.kbibi.kbint) = "yes" ]]; then
-     do_external calc kbint ${name}.dist.tgt ${name}.kbint.tgt
-     if [[ $(csg_get_interaction_property inverse.post_update_options.kbibi.kbint.with_errors) = "yes" ]]; then
-       sim_prog="$(csg_get_property cg.inverse.program)"
-       [[ $(csg_get_property cg.inverse.${sim_prog}.rdf.with_errors) != "yes" ]] && \
-	 die "${0##*/}: kb integrals with errors need cg.inverse.${sim_prog}.rdf.with_errors to be yes"
-       do_external calc kbint --with-errors ${name}.dist.new ${name}.kbint.new
-     else
-       do_external calc kbint ${name}.dist.new ${name}.kbint.new
-     fi
+   do_external calc kbint ${name}.dist.tgt ${name}.kbint.tgt
+   if [[ $(csg_get_interaction_property inverse.post_update_options.kbibi.kbint_with_errors) = "yes" ]]; then
+     sim_prog="$(csg_get_property cg.inverse.program)"
+     [[ $(csg_get_property cg.inverse.${sim_prog}.rdf.with_errors) != "yes" ]] && \
+       die "${0##*/}: kb integrals with errors need cg.inverse.${sim_prog}.rdf.with_errors to be yes"
+     for f in ${name}_*.dist.block; do
+       [[ -f $f ]] || die "${0##*/}: rdf block (${name}_*.dist.block) files not found"
+       do_external calc kbint ${f} ${f%.dist.block}.kbint.block
+     done
+     do_external table average --output ${name}.kbint.new ${name}_*.kbint.block
+   else
+     do_external calc kbint ${name}.dist.new ${name}.kbint.new
    fi
    tmpfile=$(critical mktemp ${name}.kbibi.XXX)
    do_external kbibi correction ${name}.dist.tgt ${name}.dist.new ${tmpfile}
