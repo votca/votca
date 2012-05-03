@@ -182,6 +182,7 @@ protected:
             int _numberofcharges;
             int _allowparallel;
             string _filename; // HACK
+            int _channel; // -1 <=> electron, +1 <=> hole
             
 };
 
@@ -230,6 +231,15 @@ void KMCMultiple::Initialize(const char *filename, Property *options )
 	    cout << "WARNING in kmcmultiple: You did not specify if parallel computation is allowed. It will be disabled." << endl;
             _allowparallel = 0;
         }
+        
+        if (options->exists("options.kmcmultiple.channel")) {
+        _channel = options->get("options.kmcmultiple.channel").as<int>();
+    }
+        else {
+        cout << "WARNING in kmcmultipole: Transport channel (hole, electron) undefined. Using default electron." << endl;
+        _channel = -1;
+        throw runtime_error("Error in kmcmultiple: No transport channel specified.");
+        }
 
         _filename = filename;
 
@@ -274,7 +284,13 @@ vector<Node*> KMCMultiple::LoadGraph()
     
     // Load pairs and rates
     int numberofpairs = 0;
-    stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', rate12e AS 'rate', drX, drY, drZ FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', rate21e AS 'rate', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ' FROM pairs ORDER BY segment1;");
+    if (_channel = -1) {
+        stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', rate12e AS 'rate', drX, drY, drZ FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', rate21e AS 'rate', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ' FROM pairs ORDER BY segment1;");
+    }
+    else {
+        stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', rate12h AS 'rate', drX, drY, drZ FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', rate21h AS 'rate', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ' FROM pairs ORDER BY segment1;");
+    }
+    
     while (stmt->Step() != SQLITE_DONE)
     {
         int seg1 = stmt->Column<int>(0);
@@ -460,7 +476,14 @@ void KMCMultiple::WriteOcc(vector<double> occP, vector<Node*> node)
     cout << "Opening for writing " << _filename << endl;
 	db.Open(_filename);
 	db.Exec("BEGIN;");
-	votca::tools::Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
+	votca::tools::Statement *stmt;
+	if (_channel = -1) {
+	    stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
+	}
+	else {
+	    stmt = db.Prepare("UPDATE segments SET occPh = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
+	}
+	
 	for(unsigned int i=0; i<node.size(); ++i)
         {
 	    stmt->Reset();
