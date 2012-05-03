@@ -51,7 +51,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   # compute it from the avg parameters
   if [[ ! ${dist} = "pot" ]]; then
     # store the tables from last max_steps_nr steps
-    for ((step_i=0;step_i<$max_steps_nr;step_i++)); do
+    for ((step_i=0;step_i<$max_steps_nr && $step_nr>=0;step_i++)); do
       step_dir="$(get_stepname $step_nr)"	
       if [[ -d $CSG_MAINDIR/$step_dir ]]; then
         tables[$step_i]="$CSG_MAINDIR/$step_dir/${name}.${dist}.cur"
@@ -59,6 +59,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
         break
       fi
       ((step_nr--))
+      
     done
     # compute the average 
     do_external table average --output ${name}.${dist}.avg "${tables[@]}"
