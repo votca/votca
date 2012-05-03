@@ -359,6 +359,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                 do_affectedcarrier = carrier[i];
             }
         }
+        if(maxprob == 0) {throw runtime_error("ERROR in kmcmultiple: all rates are 0") ;}
         if(verbose >= 1 && tid == 0) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
         
         // determine where it will jump to
@@ -431,7 +432,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     progressbar(1.);
 
     
-    // calculate occupation probabilites from occupation times    
+    // calculate occupation probabilities from occupation times    
     for(unsigned int j=0; j<node.size(); j++)
     {   
         occP[j] = node[j]->occupationtime / time;
