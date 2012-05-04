@@ -54,13 +54,6 @@ add_pot tf add_pot_generic.sh
 add_pot optimizer dummy.sh
 add_pot re dummy.sh
 
-# postadd average scripts
-postadd_average ibi dummy.sh
-postadd_average imc dummy.sh
-postadd_average tf dummy.sh
-postadd_average optimizer dummy.sh
-postadd_average re postadd_average_re.sh
-
 # END: these scripts have to be defined for each method
 
 # initial guesses
