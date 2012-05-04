@@ -147,7 +147,7 @@ pressure_cor simple pressure_cor_simple.pl
 pressure_cor wjk pressure_cor_wjk.pl
 
 # kirkwood-buff correction
-kbibi correction kbibi_correction.pl
+kbibi ramp_correction kbibi_ramp_correction.pl
 calc kbint calc_kbint.sh
 
 #density correction

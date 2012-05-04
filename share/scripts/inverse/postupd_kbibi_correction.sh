@@ -18,8 +18,8 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function update for a single pair
-for the Inverse Boltzmann Method
+This script implemtents the post update routine for
+the various Kirkwood-Buff corrections
 
 Usage: ${0##*/}
 EOF
@@ -34,9 +34,9 @@ step=$(csg_get_interaction_property step)
 
 [[ $(csg_get_interaction_property bondtype) = "non-bonded" ]] || die "${0##*/}: kbibi correction only makes sense for non-bonded interactions!"
 
-ramp=( $(csg_get_interaction_property inverse.post_update_options.kbibi.do) )
-ramp_nr=$(( ($step_nr - 1 ) % ${#ramp[@]} ))
-if [[ ${ramp[$ramp_nr]} = 1 ]]; then
+kbibi=( $(csg_get_interaction_property inverse.post_update_options.kbibi.do) )
+kbibi_nr=$(( ($step_nr - 1 ) % ${#kbibi[@]} ))
+if [[ ${kbibi[$kbibi_nr]} = 1 ]]; then
    echo "Apply kbibi correction for interaction ${name}"
    # needs current rdf and target rdf
    if [[ ! -f ${name}.dist.new ]]; then
@@ -58,12 +58,21 @@ if [[ ${ramp[$ramp_nr]} = 1 ]]; then
    else
      do_external calc kbint ${name}.dist.new ${name}.kbint.new
    fi
+   kbibi_type="$(csg_get_interaction_property inverse.post_update_options.kbibi.type)"
    tmpfile=$(critical mktemp ${name}.kbibi.XXX)
-   do_external kbibi correction ${name}.dist.tgt ${name}.dist.new ${tmpfile}
+   if [[ ${kbibi_type} = "ramp" ]]; then
+     do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}"
+   elif [[ ${kbibi_type} = "integral" ]]; then
+     do_external table integrate --sphere --from left "${name}.dist.tgt" "${name}.dist.tgt.int"
+     do_external table integrate --sphere --from left "${name}.dist.new" "${name}.dist.new.int"
+     do_external update ibi_pot "${name}.dist.tgt.int" "${name}.dist.new.int" "${name}.pot.cur" "${tmpfile}"
+   else
+     die "${0##*/}: kbibi type $kbibi_type not implemented yet"
+   fi
+   comment="$(get_table_comment ${tmpfile})"
    tmpfile2=$(critical mktemp ${name}.kbibi.resample.XXX)
-   comment="$(get_table_comment ${name}.pressure_correction)"
-   critical csg_resample --in ${tmpfile} --out ${tmpfile2} --grid $min:$step:$max --comment "$comment"
-   do_external table add "$1" ${tmpfile2} "$2"
+   critical csg_resample --in "${tmpfile}" --out "${tmpfile2}" --grid $min:$step:$max --comment "$comment"
+   do_external table add "$1" "${tmpfile2}" "$2"
 else
    echo "NO kbibi correction for interaction ${name}"
    do_external postupd dummy "$1" "$2"

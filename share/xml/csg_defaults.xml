@@ -401,12 +401,12 @@
 	  </points>
 	</extrapolate>
 	<kbibi>
-	  <DESC>Contains all options of the Kirkwood-Buff correction scripts</DESC>
+	  <DESC>Contains all options of the Kirkwood-Buff corrections scripts</DESC>
 	  <do>1
 	    <DESC>Update cycle for the Kirkwood-Buff correction (1 do, 0 do not). To do the correction every third step specify "0 0 1", similar to do_potential</DESC>
 	  </do>
 	  <factor>
-	    <DESC>scaling factor for the correction</DESC>
+	    <DESC>scaling factor for the ramp correction</DESC>
 	  </factor>
 	  <kbint_with_errors>no
 	    <DESC>calculate errors on the Kirkwood-Buff integral: yes/no</DESC>
@@ -415,11 +415,14 @@
 	    <DESC>cutoff of the ramp</DESC>
 	  </r_ramp>
 	  <start>
-	    <DESC>Where to start averaging the Kirkwood-Buff integral</DESC>
+	    <DESC>Where to start averaging the Kirkwood-Buff integral for the ramp</DESC>
 	  </start>
 	  <stop>
-	    <DESC>Where to stop averaging the Kirkwood-Buff integral</DESC>
+	    <DESC>Where to stop averaging the Kirkwood-Buff integral for the ramp</DESC>
 	  </stop>
+	  <type>ramp
+	    <DESC>Type of correction to be done: ramp/integral</DESC>
+	  </type>
 	</kbibi>
 	<pressure>
 	  <DESC>Contains all options of the pressure correction scripts</DESC>

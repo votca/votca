@@ -55,7 +55,7 @@ die "3 parameters are nessary\n" if ($#ARGV<2);
 
 use CsgFunctions;
 
-my $pref=csg_get_property("cg.inverse.kBT");
+my $kbt=csg_get_property("cg.inverse.kBT");
 my $int_start=csg_get_interaction_property("inverse.post_update_options.kbibi.start");
 my $int_stop=csg_get_interaction_property("inverse.post_update_options.kbibi.stop");
 my $ramp_factor=csg_get_interaction_property("inverse.post_update_options.kbibi.factor");
@@ -96,16 +96,17 @@ for (my $i=0;$i<=$#r_aim;$i++){
 }
 $avg_int/=$j;
 
+my $comment="#$progname: avg_int($int_start:$int_stop)=$avg_int ramp_factor=$ramp_factor r_ramp=$r_ramp\n";
 my @dpot;
 my @flag;
 for (my $i=0;$i<=$#r_aim;$i++){
   if ($r_aim[$i]> $r_ramp) {
     $dpot[$i]=0; #beyond r_ramp correction is 0
   } else {
-    $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_ramp)))*$pref;
+    $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_ramp)))*$kbt;
   }
   $flag[$i]="i";
 }
 
 my $outfile="$ARGV[2]";
-saveto_table($outfile,@r_aim,@dpot,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r_aim,@dpot,@flag,$comment) || die "$progname: error at save table\n";
