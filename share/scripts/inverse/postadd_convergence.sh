@@ -106,7 +106,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
 
   #TODO: better use postadd_acc_convergence ? 
   #append the error to the main directory error file
-  cat  ${name}.${dist}.conv >> ../${name}.${dist}.conv
+  cat  ${name}.${dist}.conv >> $(get_main_dir)/${name}.${dist}.conv
 
   wdiff=$(csg_calc "$weight" "*" "${diff}")
   echo "Convergence of $dist for ${name} was ${diff} and has weight $weight, so difference is $wdiff"
@@ -115,5 +115,5 @@ done
 
 echo "$sum" > ${name}.conv
 
-#TODO: better use postadd_acc_convergence ?
-cat  ${name}.conv >> ../${name}.conv
+#TODO: why do we need that in the maindir?
+cat  ${name}.conv >> $(get_main_dir)/${name}.conv

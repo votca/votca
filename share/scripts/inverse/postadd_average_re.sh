@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd average script for relative entropy, 
+postadd average script,
 calcs averages of (\${name}.DIST.cur) for the past few steps
 and saves it to \${name}.DIST.avg
 DIST can be specified by average.what option
@@ -36,6 +36,7 @@ name=$(csg_get_interaction_property name)
 
 # these are arrays
 what_to_do_list=( $(csg_get_interaction_property inverse.post_add_options.average.what) )
+method="$(csg_get_property cg.inverse.method)"
 
 # get current step directory name and number
 step_dir="$(get_current_step_dir)"
@@ -47,28 +48,30 @@ max_steps_nr=$(csg_get_property cg.inverse.average.steps '1')
 # we allow multiple things per interaction to be averaged
 for ((i=0;i<${#what_to_do_list[@]};i++)); do
   dist=${what_to_do_list[$i]}
+  # pot in case of re is special
   # do not compute potential averages directly
   # compute it from the avg parameters
-  if [[ ! ${dist} = "pot" ]]; then
-    # store the tables from last max_steps_nr steps
-    for ((step_i=0;step_i<$max_steps_nr && $step_nr>=0;step_i++)); do
-      step_dir="$(get_stepname $step_nr)"	
-      if [[ -d $CSG_MAINDIR/$step_dir ]]; then
-        tables[$step_i]="$CSG_MAINDIR/$step_dir/${name}.${dist}.cur"
-      else
-        break
-      fi
-      ((step_nr--))
-      
-    done
-    # compute the average 
-    do_external table average --output ${name}.${dist}.avg "${tables[@]}"
-  else 
+  if [[ ${method} = "re" && ${dist} = "pot" ]]; then
     # for dist = pot check if avg parameters have been computed or not
     if [[ -f ${name}.param.avg ]]; then
+      #TODO do we need to specify --param-out-ext explicitly ? Is not need here, right ?
       critical csg_reupdate --gentable true --interaction "${name}" --param-in-ext param.avg --param-out-ext param.avg --pot-out-ext pot.avg --options $CSGXMLFILE
     else
       die "${0##*/}: file '${name}.param.avg' was not found. Make sure 'param' is specified before 'pot' in the what-do list at '$name.inverse.post_add_options.average.what'."
     fi
+  else
+    # store the tables from last max_steps_nr steps
+    for ((step_i=0;step_i<$max_steps_nr && $step_nr>=0;step_i++)); do
+      step_dir="$(get_stepname $step_nr)"	
+      if [[ -d $(get_main_dir)/$step_dir ]]; then
+        tables[$step_i]="$(get_main_dir}/$step_dir/${name}.${dist}.cur"
+      else
+	#TODO why break and not [[ -f $tables[$step_i] ]] ?
+        break
+      fi
+      ((step_nr--))
+    done
+    # compute the average 
+    do_external table average --output ${name}.${dist}.avg "${tables[@]}"
   fi
 done
