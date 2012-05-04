@@ -16,10 +16,9 @@
 #
 
 use strict;
-use Math::Trig;
 
 ( my $progname = $0 ) =~ s#^.*/##;
-my $usage="Usage: $progname [OPTIONS] new_rdf target_rdf outfile";
+my $usage="Usage: $progname [OPTIONS] kbint target_kbint outfile";
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -41,9 +40,6 @@ P. Ganguly, D. Mukherji, C. Junghans, N. F. A. van der Vegt,
 Kirkwood-Buff coarse-grained force fields for aqueous solutions,
 J. Chem. Theo. Comp., in press (2012), doi:10.1021/ct3000958
 
-In addition, it does some magic tricks:
-- do not update if one of the two rdf is undefined
-
 $usage
 
 Allowed options:
@@ -59,7 +55,7 @@ die "3 parameters are nessary\n" if ($#ARGV<2);
 
 use CsgFunctions;
 
-my $pref=csg_get_property("cg.inverse.kBT");
+my $kbt=csg_get_property("cg.inverse.kBT");
 my $int_start=csg_get_interaction_property("inverse.post_update_options.kbibi.start");
 my $int_stop=csg_get_interaction_property("inverse.post_update_options.kbibi.stop");
 my $ramp_factor=csg_get_interaction_property("inverse.post_update_options.kbibi.factor");
@@ -70,17 +66,17 @@ my $delta_r=csg_get_interaction_property("step");
 my $r_ramp=csg_get_interaction_property("--allow-empty","inverse.post_update_options.kbibi.r_ramp");
 $r_ramp=$r_max if ("$r_ramp" eq "");
 
-my $aim_rdf_file="$ARGV[0]";
+my $aim_kbint_file="$ARGV[0]";
 my @r_aim;
-my @rdf_aim;
+my @kbint_aim;
 my @flags_aim;
-(readin_table($aim_rdf_file,@r_aim,@rdf_aim,@flags_aim)) || die "$progname: error at readin_table\n";
+(readin_table($aim_kbint_file,@r_aim,@kbint_aim,@flags_aim)) || die "$progname: error at readin_table\n";
 
-my $cur_rdf_file="$ARGV[1]";
+my $cur_kbint_file="$ARGV[1]";
 my @r_cur;
-my @rdf_cur;
+my @kbint_cur;
 my @flags_cur;
-(readin_table($cur_rdf_file,@r_cur,@rdf_cur,@flags_cur)) || die "$progname: error at readin_table\n";
+(readin_table($cur_kbint_file,@r_cur,@kbint_cur,@flags_cur)) || die "$progname: error at readin_table\n";
 
 #should never happen due to resample, but better check
 die "Different grids \n" if (($r_aim[1]-$r_aim[0]-$r_cur[1]+$r_cur[0])>0.0001);
@@ -90,38 +86,27 @@ die "Different end potential point \n" if ( $#r_aim != $#r_cur );
 die "kbibi.start is smaller than r_min\n" if ($int_start < $r_min);
 die "kbibi.stop is bigger than r_max\n" if ($int_stop > $r_max);
 
-my $value=0.0;
 my $j=0;
-my @intdist;
 my $avg_int=0;
-$intdist[0]=0;
-
-for (my $i=1;$i<=$#r_aim;$i++){
-  $intdist[$i]=$intdist[$i-1]+($rdf_cur[$i]-$rdf_aim[$i])*$r_aim[$i]*$r_aim[$i];
-}
-
 for (my $i=0;$i<=$#r_aim;$i++){
   if (($r_aim[$i]>=$int_start) && ($r_aim[$i]<=$int_stop)) {
-     $avg_int+=$intdist[$i];
+     $avg_int+=$kbint_cur[$i]-$kbint_aim[$i];
      $j++;
   }
 }
-$avg_int=$avg_int/$j;
-$avg_int*=$delta_r*4*pi;
+$avg_int/=$j;
 
+my $comment="#$progname: avg_int($int_start:$int_stop)=$avg_int ramp_factor=$ramp_factor r_ramp=$r_ramp\n";
 my @dpot;
 my @flag;
 for (my $i=0;$i<=$#r_aim;$i++){
-  if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
-      $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_ramp)))*$pref;
-      $flag[$i]="i";
+  if ($r_aim[$i]> $r_ramp) {
+    $dpot[$i]=0; #beyond r_ramp correction is 0
   } else {
-    $dpot[$i]=$value;
-    $flag[$i]="o";
+    $dpot[$i]=($avg_int*$ramp_factor*(1.0-($r_aim[$i]/$r_ramp)))*$kbt;
   }
-  $value=$dpot[$i];
+  $flag[$i]="i";
 }
 
 my $outfile="$ARGV[2]";
-saveto_table($outfile,@r_aim,@dpot,@flag) || die "$progname: error at save table\n";
-
+saveto_table($outfile,@r_aim,@dpot,@flag,$comment) || die "$progname: error at save table\n";

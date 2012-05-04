@@ -49,7 +49,10 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 option(BUILD_MANPAGES "Build manpages" ON)
 if (BUILD_MANPAGES)
   find_package(TXT2TAGS)
+  find_package(UnixCommands)
 else (BUILD_MANPAGES)
+  #we use TXT2TAGS_FOUND conditionals in other CMakeLists.txt
+  #so that TXT2TAGS is never required
   set(TXT2TAGS_FOUND)
 endif (BUILD_MANPAGES)
 
@@ -75,7 +78,6 @@ else(EXTERNAL_BOOST)
 endif(EXTERNAL_BOOST)
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
-find_package(UnixCommands)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

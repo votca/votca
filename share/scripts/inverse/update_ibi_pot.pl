@@ -83,5 +83,6 @@ for (my $i=$#r_aim;$i>=0;$i--){
   }
 }
 
-saveto_table($outfile,@r_aim,@dpot,@flag) || die "$progname: error at save table\n";
+my $comment="#progname: aim_rdf=$aim_rdf_file cur_rdf=$cur_rdf_file cur_pot=$cur_rdf_file\n";
+saveto_table($outfile,@r_aim,@dpot,@flag,$comment) || die "$progname: error at save table\n";
 
