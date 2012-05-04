@@ -23,9 +23,7 @@
        <start>1.0</start>
        <stop>1.4</stop>
        <factor>0.397899</factor>
-       <kbint>yes
-	 <with_errors>yes</with_errors>
-       </kbint>
+       <kbint_with_errors>yes</kbint_with_errors>
      </kbibi>
    <smooth>
      <iterations>2</iterations>
@@ -70,9 +68,7 @@
        <start>1.0</start>
        <stop>1.4</stop>
        <factor>0.397899</factor>
-       <kbint>yes
-	 <with_errors>yes</with_errors>
-       </kbint>
+       <kbint_with_errors>yes</kbint_with_errors>
      </kbibi>
     <smooth>
      <iterations>2</iterations>
@@ -116,9 +112,7 @@
        <start>1.0</start>
        <stop>1.4</stop>
        <factor>0.397899</factor>
-       <kbint>yes
-	 <with_errors>yes</with_errors>
-       </kbint>
+       <kbint_with_errors>yes</kbint_with_errors>
      </kbibi>
      <smooth>
        <iterations>2</iterations>
