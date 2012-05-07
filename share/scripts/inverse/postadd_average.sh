@@ -64,8 +64,6 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
       step_dir="$(get_stepname $step_nr)"	
       if [[ -f $(get_main_dir)/$step_dir/${name}.${dist}.cur ]]; then
         tables[$step_i]="$(get_main_dir)/$step_dir/${name}.${dist}.cur"
-      else
-        break
       fi
       ((step_nr--))
     done
