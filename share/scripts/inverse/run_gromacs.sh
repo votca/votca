@@ -31,17 +31,23 @@ fi
 tpr="$(csg_get_property cg.inverse.gromacs.topol_out)"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
-[[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found"
+[[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"
 
 conf="$(csg_get_property cg.inverse.gromacs.conf)"
-[[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found"
+[[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found (make sure it is in cg.inverse.filelist)"
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
 mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
 index="$(csg_get_property cg.inverse.gromacs.index)"
-[[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found"
+[[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found (make sure it is in cg.inverse.filelist)"
+
 topol="$(csg_get_property cg.inverse.gromacs.topol)"
+if [[ $topol = *.tpr ]]; then
+  msg --color blue "WARNING prior votca 1.3 cg.inverse.gromacs.topol was used for the binary topology file (tpr) but now this option is used for the text topology file (top)"
+  msg --color blue "        so please update your xml settings file if you get an error later by removing cg.inverse.gromacs.topol from your xml settings file if you are using"
+  msg --color blue "        the default top file or specify the correct top file in cg.inverse.gromacs.topol and make sure it is in cg.inverse.filelist."
+fi
 [[ -f $topol ]] || die "${0##*/}: grompp topol file '$topol' not found"
 
 grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
