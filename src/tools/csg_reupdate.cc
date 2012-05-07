@@ -255,13 +255,15 @@ void CsgREupdate::WriteOutFiles() {
         cout << "Writing file: " << file_name << endl;
         (*potiter)->ucg->SavePotTab(file_name,(*potiter)->step);
 
-        //write parameter table
-        // construct meaningful outfile name
-        file_name = (*potiter)->potentialName;
-        file_name = file_name + "." + _param_out_ext;
-        cout << "Writing file: " << file_name << endl;
-        (*potiter)->ucg->SaveParam(file_name);
-        
+        // for gentable with no RE update no need to write-out parameters
+        if(!_gentable){
+                // write updated parameters
+                // construct meaningful outfile name
+                file_name = (*potiter)->potentialName;
+                file_name = file_name + "." + _param_out_ext;
+                cout << "Writing file: " << file_name << endl;
+                (*potiter)->ucg->SaveParam(file_name);
+        }
     }
     
 }

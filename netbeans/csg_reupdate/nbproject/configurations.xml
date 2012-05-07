@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="69">
-  <logicalFolder name="root" displayName="root" projectFiles="true">
+<configurationDescriptor version="80">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
-                   projectFiles="true"
-                   kind="SOURCE_LOGICAL_FOLDER">
+                   projectFiles="true">
       <itemPath>../../src/tools/csg_reupdate.h</itemPath>
-      <itemPath>../../src/tools/doublesum_f.h</itemPath>
-      <itemPath>../../src/tools/potfunctions.h</itemPath>
-      <itemPath>../../src/tools/typedefpotfun.h</itemPath>
+      <itemPath>../../src/tools/potentialfunctions/potentialfunction.h</itemPath>
+      <itemPath>../../src/tools/potentialfunctions/potentialfunctioncbspl.h</itemPath>
+      <itemPath>../../src/tools/potentialfunctions/potentialfunctionlj126.h</itemPath>
+      <itemPath>../../src/tools/potentialfunctions/potentialfunctionljg.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
-                   projectFiles="true"
-                   kind="SOURCE_LOGICAL_FOLDER">
+                   projectFiles="true">
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
-                   projectFiles="true"
-                   kind="SOURCE_LOGICAL_FOLDER">
+                   projectFiles="true">
       <itemPath>../../src/tools/csg_reupdate.cc</itemPath>
+      <itemPath>../../src/tools/potentialfunctions/potentialfunction.cc</itemPath>
+      <itemPath>../../src/tools/potentialfunctions/potentialfunctioncbspl.cc</itemPath>
+      <itemPath>../../src/tools/potentialfunctions/potentialfunctionlj126.cc</itemPath>
+      <itemPath>../../src/tools/potentialfunctions/potentialfunctionljg.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -33,13 +35,16 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>../../include</Elem>
+    <Elem>../../src/tools/potentialfunctions</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -87,9 +92,8 @@
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>

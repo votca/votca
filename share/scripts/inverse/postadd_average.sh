@@ -54,8 +54,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   if [[ ${method} = "re" && ${dist} = "pot" ]]; then
     # for dist = pot check if avg parameters have been computed or not
     if [[ -f ${name}.param.avg ]]; then
-      #TODO do we need to specify --param-out-ext explicitly ? Is not need here, right ?
-      critical csg_reupdate --gentable true --interaction "${name}" --param-in-ext param.avg --param-out-ext param.avg --pot-out-ext pot.avg --options $CSGXMLFILE
+      critical csg_reupdate --gentable true --interaction "${name}" --param-in-ext param.avg --pot-out-ext pot.avg --options $CSGXMLFILE
     else
       die "${0##*/}: file '${name}.param.avg' was not found. Make sure 'param' is specified before 'pot' in the what-do list at '$name.inverse.post_add_options.average.what'."
     fi
@@ -63,10 +62,9 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
     # store the tables from last max_steps_nr steps
     for ((step_i=0;step_i<$max_steps_nr && $step_nr>=0;step_i++)); do
       step_dir="$(get_stepname $step_nr)"	
-      if [[ -d $(get_main_dir)/$step_dir ]]; then
-        tables[$step_i]="$(get_main_dir}/$step_dir/${name}.${dist}.cur"
+      if [[ -f $(get_main_dir)/$step_dir/${name}.${dist}.cur ]]; then
+        tables[$step_i]="$(get_main_dir)/$step_dir/${name}.${dist}.cur"
       else
-	#TODO why break and not [[ -f $tables[$step_i] ]] ?
         break
       fi
       ((step_nr--))

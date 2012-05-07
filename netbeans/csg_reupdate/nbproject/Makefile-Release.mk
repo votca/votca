@@ -34,7 +34,11 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/csg_reupdate.o
+	${OBJECTDIR}/_ext/715944016/csg_reupdate.o \
+	${OBJECTDIR}/_ext/312014500/potentialfunctioncbspl.o \
+	${OBJECTDIR}/_ext/312014500/potentialfunction.o \
+	${OBJECTDIR}/_ext/312014500/potentialfunctionlj126.o \
+	${OBJECTDIR}/_ext/312014500/potentialfunctionljg.o
 
 
 # C Compiler Flags
@@ -65,6 +69,26 @@ ${OBJECTDIR}/_ext/715944016/csg_reupdate.o: ../../src/tools/csg_reupdate.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_reupdate.o ../../src/tools/csg_reupdate.cc
+
+${OBJECTDIR}/_ext/312014500/potentialfunctioncbspl.o: ../../src/tools/potentialfunctions/potentialfunctioncbspl.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/312014500
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/312014500/potentialfunctioncbspl.o ../../src/tools/potentialfunctions/potentialfunctioncbspl.cc
+
+${OBJECTDIR}/_ext/312014500/potentialfunction.o: ../../src/tools/potentialfunctions/potentialfunction.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/312014500
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/312014500/potentialfunction.o ../../src/tools/potentialfunctions/potentialfunction.cc
+
+${OBJECTDIR}/_ext/312014500/potentialfunctionlj126.o: ../../src/tools/potentialfunctions/potentialfunctionlj126.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/312014500
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/312014500/potentialfunctionlj126.o ../../src/tools/potentialfunctions/potentialfunctionlj126.cc
+
+${OBJECTDIR}/_ext/312014500/potentialfunctionljg.o: ../../src/tools/potentialfunctions/potentialfunctionljg.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/312014500
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/312014500/potentialfunctionljg.o ../../src/tools/potentialfunctions/potentialfunctionljg.cc
 
 # Subprojects
 .build-subprojects:
