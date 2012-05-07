@@ -387,10 +387,10 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         reorg21 = reorg21 + lOut;
 
         rate12 = J2 / hbar_eV * sqrt( M_PI / (reorg12*_kT) )
-                * exp( - (+dG - reorg12)*(+dG - reorg12) / (4*_kT*reorg12) );
+                * exp( - (+dG + reorg12)*(+dG + reorg12) / (4*_kT*reorg12) );
 
         rate21 = J2 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
-                * exp( - (-dG - reorg21)*(-dG - reorg21) / (4*_kT*reorg21) );
+                * exp( - (-dG + reorg21)*(-dG + reorg21) / (4*_kT*reorg21) );
     }
 
     qmpair->setRate12(rate12, state);
