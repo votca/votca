@@ -133,6 +133,9 @@
       <index>index.ndx
 	<DESC> Gromacs grompp index file to used by grompp</DESC>
       </index>
+      <log>
+	<DESC> Separate log file for gromacs programs (useful with mdrun -v)</DESC>
+      </log>
       <mdp>grompp.mdp
 	<DESC> Gromacs mdp file to be used by grompp</DESC>
       </mdp>

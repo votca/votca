@@ -30,8 +30,8 @@ fi
 
 #check performed when this file is sourced
 gmxrc="$(csg_get_property --allow-empty cg.inverse.gromacs.gmxrc)"
-if [ -n "${gmxrc}" ]; then
-  [ -f "$gmxrc" ] || die "${BASH_SOURCE[0]##*/}: Could not find gmxrc from xml file '$gmxrc'"
+if [[ -n ${gmxrc} ]]; then
+  [[ -f $gmxrc ]] || die "${BASH_SOURCE[0]##*/}: Could not find gmxrc from xml file '$gmxrc'"
   msg "sourcing gromacs setting file: $gmxrc"
   source $gmxrc || die "${BASH_SOURCE[0]##*/}: error when 'source $gmxrc'"
 fi
@@ -123,3 +123,20 @@ calc_end_time() { #return dt * nsteps
   csg_calc "$dt" "*" "$steps"
 }
 export -f calc_end_time
+
+gromacs_log() { #redirect stdin to a separate gromacs log file, 1st argument can be the name of the command to echo if redirection takes place
+  local log log2
+  log="$(csg_get_property --allow-empty cg.inverse.gromacs.log)"
+  if [[ -z $log ]]; then
+    cat
+    return $?
+  fi
+  log="${log##*/}"
+  log2="$(csg_get_property cg.inverse.log_file)"
+  log2="${log2##*/}"
+  [[ $log = $log2 ]] && die "${FUNCNAME}: cg.inverse.gromacs.log is equal cg.inverse.log_file"
+  [[ -n $* ]] && echo "Sending output of '$*' to $log (also look for errors there)" || echo "Sending stdin to $log (also look for errors there)"
+  cat >> "$log"
+  return $?
+}
+export -f gromacs_log
