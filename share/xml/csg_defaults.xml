@@ -116,7 +116,7 @@
 	  <DESC> Additional options to Gromacs g_energy (e.g. -P 1)</DESC>
 	</opts>
 	<topol>
-	  <DESC> Gromacs g_energy topol file to use</DESC>
+	  <DESC> Gromacs binary topol (tpr) file to use by g_energy </DESC>
 	</topol>
       </g_energy>
       <gmxrc>
@@ -133,6 +133,9 @@
       <index>index.ndx
 	<DESC> Gromacs grompp index file to used by grompp</DESC>
       </index>
+      <log>
+	<DESC> Separate log file for gromacs programs (useful with mdrun -v)</DESC>
+      </log>
       <mdp>grompp.mdp
 	<DESC> Gromacs mdp file to be used by grompp</DESC>
       </mdp>
@@ -158,9 +161,9 @@
 	<mdp>
 	  <DESC> Gromacs mdp file to be used by grompp in the pre simulation</DESC>
 	</mdp>
-	<topol>
-	  <DESC> Gromacs g_energy topol file to use ead by grompp in the pre simulation</DESC>
-	</topol>
+	<topol_in>
+	  <DESC> Gromacs text topol (top) file to use by grompp in the pre simulation</DESC>
+	</topol_in>
       </pre_simulation>
       <rdf>
 	<block_length>
@@ -170,7 +173,7 @@
 	  <DESC>Special mapping file for rdf calculations needed for bonded interactions</DESC>
 	</map>
 	<topol>
-	  <DESC> Gromacs topol file to be used for csg_stat</DESC>
+	  <DESC> Gromacs binary topol (tpr) file to be used for csg_stat</DESC>
 	</topol>
 	<with_errors>no
 	  <DESC>calculate error on the rdf: yes/no</DESC>
@@ -185,11 +188,11 @@
       <temp_check>yes
 	<DESC>check kBT against t_ref in mdp file: yes/no</DESC>
       </temp_check>
-      <topol>topol.top
-	<DESC> Gromacs topology file read by grompp</DESC>
-      </topol>
+      <topol_in>topol.top
+	<DESC> Gromacs text topology (top) file read by grompp</DESC>
+      </topol_in>
       <topol_out>topol.tpr
-	<DESC> Gromacs binary topology file to be written by grompp</DESC>
+	<DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
       </topol_out>
       <traj_type>xtc
 	<DESC> Gromacs trajectory type (xtc/trr) file to use</DESC>
