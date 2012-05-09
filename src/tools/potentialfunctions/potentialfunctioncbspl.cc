@@ -119,9 +119,11 @@ void PotentialFunctionCBSPL::extrapolExclParam(){
 	// b = m/u0
 	// m = (u1-u0)/(r1-r0)
 	double u0 = _lam(_nexcl);
-        if( u0 < 0.0 ) {
-		throw std::runtime_error("min r value for cbspl is too large.\n"
-                    "reference value for exponential extrapolation can not be negative");
+        if( u0 <= 0.0 ) {
+		throw std::runtime_error("min r value for cbspl is too large,\n"
+                    "choose min r such that knot value at (rmin+dr) > 0,\n" 
+                    "else exponentially extrapolated knot values in "
+ 		    "the repulsive core would be negative or zero.\n");
 	}
 	double r0 = _rbreak(_nexcl);
 	double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
