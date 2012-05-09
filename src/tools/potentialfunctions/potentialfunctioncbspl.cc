@@ -29,9 +29,14 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const int nlam_,
     
     for( int i = 0; i < _lam.size(); i++)
         _rbreak(i) = i*_dr;
-    
+ 
+   // exclude knots corresponding to r <= _min
     _nexcl = min( int( ( _min )/_dr ), _nbreak - 2 ) + 1;
-    
+   
+    // account for finite numerical division of _min/_dr
+    // e.g. 0.24/0.02 may result in 11.99999999999999
+    if( _rbreak(_nexcl) == _min ) _nexcl++;
+ 
     _ncutcoeff = ncutcoeff_;
 
     _M.resize(4,4,false);
@@ -108,27 +113,26 @@ void PotentialFunctionCBSPL::SavePotTab(const string& filename,
 
 void PotentialFunctionCBSPL::extrapolExclParam(){
 
-    // extrapolate first _nexcl knot values using exponential extrapolation
-    // u(r) = a * exp( b * r) 
-    // a = u0 * exp ( - m * r0/u0 )
-    // b = m/u0
-    // m = (u1-u0)/(r1-r0)
-
-    double u0 = _lam(_nexcl);
-    double r0 = _rbreak(_nexcl);
-    double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
-            (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
-    double a = u0 * exp(-m * r0 / u0);
-    double b = m / u0;
-
-    for (int i = 0; i < _nexcl; i++) {
-
-        double r = _rbreak(i);
-        double u = a * exp(b * r);
-        _lam(i) = u;
-
-    }
-    
+	// extrapolate first _nexcl knot values using exponential extrapolation
+	// u(r) = a * exp( b * r)
+	// a = u0 * exp ( - m * r0/u0 )
+	// b = m/u0
+	// m = (u1-u0)/(r1-r0)
+	double u0 = _lam(_nexcl);
+        if( u0 < 0.0 ) {
+		throw std::runtime_error("min r value for cbspl is too large.\n"
+                    "reference value for exponential extrapolation can not be negative");
+	}
+	double r0 = _rbreak(_nexcl);
+	double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
+	(_rbreak(_nexcl + 1) - _rbreak(_nexcl));
+	double a = u0 * exp(-m * r0 / u0);
+	double b = m / u0;
+	for (int i = 0; i < _nexcl; i++) {
+		double r = _rbreak(i);
+		double u = a * exp(b * r);
+		_lam(i) = u;
+	}     
 }
 
 void PotentialFunctionCBSPL::setOptParam(const int i, const double val){

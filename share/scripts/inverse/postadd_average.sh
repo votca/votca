@@ -42,39 +42,37 @@ method="$(csg_get_property cg.inverse.method)"
 step_dir="$(get_current_step_dir)"
 step_nr=$(get_step_nr $step_dir)
 
-# perform averaging from step_002 onwards
-if [[ $step_nr>1 ]]; then
-  # maximum number of steps to be averaged for
-  max_steps_nr=$(csg_get_property cg.inverse.average.steps '2')
+# maximum number of steps to be averaged for
+max_steps_nr=$(csg_get_property cg.inverse.average.steps '2')
 
-  # we allow multiple things per interaction to be averaged
-  for ((i=0;i<${#what_to_do_list[@]};i++)); do
-    dist=${what_to_do_list[$i]}
-    # pot in case of re is special
-    # do not compute potential averages directly
-    # compute it from the avg parameters
-    if [[ ${method} = "re" && ${dist} = "pot" ]]; then
-      # for dist = pot check if avg parameters have been computed or not
-      if [[ -f ${name}.param.avg ]]; then
-        critical csg_reupdate --gentable true --interaction "${name}" --param-in-ext param.avg --pot-out-ext pot.avg --options $CSGXMLFILE
-      else
-        die "${0##*/}: file '${name}.param.avg' was not found. Make sure 'param' is specified before 'pot' in the what-do list at '$name.inverse.post_add_options.average.what'."
-      fi
+# we allow multiple things per interaction to be averaged
+for ((i=0;i<${#what_to_do_list[@]};i++)); do
+  dist=${what_to_do_list[$i]}
+  # pot in case of re is special
+  # do not compute potential averages directly
+  # compute it from the avg parameters
+  if [[ ${method} = "re" && ${dist} = "pot" ]]; then
+    # for dist = pot check if avg parameters have been computed or not
+    if [[ -f ${name}.param.avg ]]; then
+      critical csg_reupdate --gentable true --interaction "${name}" --param-in-ext param.avg --pot-out-ext pot.avg --options $CSGXMLFILE
     else
-      # store the tables from last max_steps_nr steps
-      for ((step_i=0;step_i<$max_steps_nr && $step_nr>=0;step_i++)); do
-        step_dir="$(get_stepname $step_nr)"	
-        if [[ -f $(get_main_dir)/$step_dir/${name}.${dist}.cur ]]; then
-          tables[$step_i]="$(get_main_dir)/$step_dir/${name}.${dist}.cur"
-        fi
-        ((step_nr--))
-      done
-      # compute the average if more than tables found
-      if [[ ${#tables[@]}>1 ]]; then  
-        do_external table average --output ${name}.${dist}.avg "${tables[@]}"
-      else 
-        die "${0##*/}: Can not compute average for ${name}.${dist} Less than 2 tables found, make sure cg.inverse.average.steps is at least 2"
-      fi
+      die "${0##*/}: file '${name}.param.avg' was not found. Make sure 'param' is specified before 'pot' in the what-do list at '$name.inverse.post_add_options.average.what'."
     fi
-  done
-fi
+  else
+    # store the tables from last max_steps_nr steps
+    for ((step_i=0;step_i<$max_steps_nr && $step_nr>=0;step_i++)); do
+      step_dir="$(get_stepname $step_nr)"	
+      if [[ -f $(get_main_dir)/$step_dir/${name}.${dist}.cur ]]; then
+        tables[$step_i]="$(get_main_dir)/$step_dir/${name}.${dist}.cur"
+      fi
+      ((step_nr--))
+    done
+    # compute the average if more than one tables found
+    if [[ ${#tables[@]}>1 ]]; then  
+      do_external table average --output ${name}.${dist}.avg "${tables[@]}"
+    else
+      # copy the single table to *.avg
+      critical cp ${tables[0]} ${name}.${dist}.avg 
+    fi
+  fi
+done
