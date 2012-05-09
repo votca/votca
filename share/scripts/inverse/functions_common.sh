@@ -839,8 +839,10 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/bin/command}";;
       cg.inverse.scriptdir)
         new="${i/dir/path}";;
-      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.grompp.index)
+      cg.inverse.gromacs.grompp.index)
         new="${i/.grompp}";;
+      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.topol)
+        new="cg.inverse.gromacs.topol_in";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;
       cg.inverse.convergence_check)

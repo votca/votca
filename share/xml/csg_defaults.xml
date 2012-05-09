@@ -158,9 +158,9 @@
 	<mdp>
 	  <DESC> Gromacs mdp file to be used by grompp in the pre simulation</DESC>
 	</mdp>
-	<topol>
+	<topol_in>
 	  <DESC> Gromacs text topol (top) file to use by grompp in the pre simulation</DESC>
-	</topol>
+	</topol_in>
       </pre_simulation>
       <rdf>
 	<block_length>
@@ -185,9 +185,9 @@
       <temp_check>yes
 	<DESC>check kBT against t_ref in mdp file: yes/no</DESC>
       </temp_check>
-      <topol>topol.top
+      <topol_in>topol.top
 	<DESC> Gromacs text topology (top) file read by grompp</DESC>
-      </topol>
+      </topol_in>
       <topol_out>topol.tpr
 	<DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
       </topol_out>

@@ -236,7 +236,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
 
   if simulation_finish; then
     mark_done "Simulation"
-  elif [ "$(csg_get_property cg.inverse.simulation.background)" = "yes" ]; then
+  elif [[ "$(csg_get_property cg.inverse.simulation.background)" = "yes" ]]; then
     msg "Simulation is suppose to run in background, which we cannot check."
     msg "Stopping now, resume csg_inverse whenever the simulation is done."
     exit 0
