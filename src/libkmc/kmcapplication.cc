@@ -43,6 +43,8 @@ void KMCApplication::Initialize()
             ("execute,e", boost::program_options::value<string>(), "list of calculators separated by commas or spaces")
             ("list,l", "lists all available calculators")
             ("description,d", boost::program_options::value<string>(), "detailed description of a calculator");
+    AddProgramOptions() ("nthreads,t", boost::program_options::value<int>()->default_value(1),
+                         "  number of threads to create");
 }
 
 void KMCApplication::ShowHelpText(std::ostream &out)
@@ -142,7 +144,9 @@ bool KMCApplication::EvaluateOptions() {
         CheckRequired("file", "no database file specified");
         
         _filename = OptionsMap()["file"].as<string > ();
-        cout << " Database file: " << _filename << endl;
+        _nThreads = OptionsMap()["nthreads"].as<int>();
+        
+        //cout << " Database file: " << _filename << endl;
         return true;
 }
         
@@ -164,7 +168,9 @@ void KMCApplication::Run()
 void KMCApplication::BeginEvaluate(){
     list<KMCCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
+        (*iter)->setnThreads(_nThreads);
         (*iter)->Initialize(_filename.c_str(), &_options);
+        
     }
 }
 
