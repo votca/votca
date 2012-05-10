@@ -1,169 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!-- options to perform relative entropy iterations -->
-
 <cg>
-
   <!-- neighbor search method "simple" or "grid" -->
   <nbsearch>grid</nbsearch> 
-
   <!-- non-bonded interaction entry -->
   <non-bonded>
-
     <!-- name of the interaction -->
     <name>CG-CG</name>
-
     <!-- specify type of CG pair -->
     <type1>CG</type1>
-
     <type2>CG</type2>
-
-    <!-- function form for the potential (LJ126 or LJG or CBSPL-->
-    <function>CBSPL</function>
-
-    <!-- no. of knots for CBSPL function -->
-    <nknots>53</nknots>
-
-    <!-- no. of knots near cut off to be set to zero for smoothness -->
-    <nknots_cutoff>4</nknots_cutoff>
-
     <!-- min, max and step size distance for pot (max=cutoff) -->
     <min>0.24</min>
-
-    <max>1.15</max>
-
+    <max>0.9</max>
     <step>0.002</step>
-
+    <re>
+      <!-- function form for the potential (lj126 or ljg or cbspl)-->
+      <function>cbspl</function>
+      <cbspl>
+	<!-- no. of knots for cbspl function -->
+	<nknots>48</nknots>
+	<!-- no. of knots near cut off to be set to zero for smoothness -->
+	<nknots_cutoff>4</nknots_cutoff>
+      </cbspl>
+      <!-- distance range for the potential -->
+      <min>0.24</min>
+      <max>0.9</max>
+    </re>
     <inverse>
-
       <gromacs>
 	<!-- name of the table for gromacs run -->
         <table>table_CG_CG.xvg</table>
-
       </gromacs>
-
       <!-- do convergence -->
-      <post_add>convergence</post_add>
-
+      <post_add>acc_convergence average</post_add>
       <post_add_options>
-
 	<!-- convergence check options -->
 	<convergence>
-
-	  <!-- for RE we check change in parameters (new-cur) -->
-	  <what>pot</what>
-	  
-	  <weight>1.0</weight>
-	  
-	  <base>cur</base>
-
+          <!-- for RE we check change in potentials/parameters (new-cur) -->
+          <what>param pot</what>
+          <weight>1.0 1.0</weight>
+          <base>cur cur</base>
+          <norm>2 2</norm>
 	</convergence>
-
+        <average>
+          <what>param pot</what>
+        </average>
       </post_add_options>
-
    </inverse>
-
   </non-bonded>
-
   <inverse>
-
     <!-- System T = 300*0.00831451 kBT units -->
     <kBT>2.4942</kBT>
-
     <!-- use gromacs as simulation program -->
     <program>gromacs</program>
-
     <!-- gromacs specific options -->
     <gromacs>
-
       <!-- trash so many frames at the beginning -->
       <equi_time>0</equi_time>
-
       <!-- grid for table*.xvg !-->
       <table_bins>0.002</table_bins>
-
       <!-- cut the potential at this value (gromacs bug) -->
       <pot_max>1000000</pot_max>
-
       <!-- extend the tables to this value -->
       <table_end>2.5</table_end>
-
       <!-- topology + trajectory. Be careful, do not change yet! -->
       <index>index.ndx</index>
-
       <topol>topol.top</topol>
-
       <!-- other gromacs in/out files -->
       <mdp>grompp.mdp</mdp>
-
       <topol_out>topol.tpr</topol_out>
-
-      <traj_type>trr</traj_type>
-
+      <traj_type>xtc</traj_type>
       <conf_out>confout.gro</conf_out>
-
       <cutoff_check>yes</cutoff_check>
-
       <!-- grompp options -->
       <grompp>
-
         <opts></opts>
-
       </grompp>
-
       <!-- mdrun options -->
       <mdrun>
-
+	<command>mdrun</command>
 	<opts></opts>
-
       </mdrun>
-
     </gromacs>
-
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
-
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
-
     <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
-
     <!-- relative entropy specific options -->
     <re>
-
       <!-- relative entropy program name and options-->
       <!-- default path is votcadir/bin -->
       <csg_reupdate>
-
         <command>csg_reupdate</command>
-
-        <opts>--nt 4</opts>
-
+        <opts>--begin 50</opts>
       </csg_reupdate>
-
       <!-- relaxation parameter in Newton-Raphson update -->
       <relax>0.7</relax>
-
+      <do_steep>false</do_steep>
     </re>
-
     <!-- convergence check options -->
     <convergence_check>
-
       <type>default</type>
-
-      <limit>1.0e-1</limit>
-
+      <limit>0.0001</limit>
     </convergence_check>
-
+    <average>
+      <steps>10</steps>
+    </average>
     <!-- directory for user scripts -->
     <scriptdir></scriptdir>
-
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
-
     <!-- write restart step to this file -->
     <restart_file>restart_points.log</restart_file>
-
   </inverse>
-
 </cg>
 

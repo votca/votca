@@ -1,44 +1,21 @@
-#define _FF_GROMACS
-#define _FF_GROMACS1
-
 [ defaults ]
-; nbfunc        comb-rule       gen-pairs       fudgeLJ fudgeQQ
-  1             1               no              1.0     1.0
-
-; Let first define some atoms we are going to use
+; nbfunc	comb-rule	gen-pairs	fudgeLJ	fudgeQQ
+  1		1		no		1.0	1.0
 
 [ atomtypes ]
-;name        mass      charge     ptype            c6           c12
-   CG    15.99940       0.0000    A     0.0   1.0
-   WW    28.08000       0.0000    A     0.0   1.0
+;name  at.num      mass        charge   ptype     c6          c12
+   CG    8 	18.01540       0.000       A   0.00000E+00   1.00000E+00 
 
-; this is the LJ interactions between atoms
+[ moleculetype ]
+; molname	nrexcl
+SOL		1
 
-[ nonbond_params ]
-
-   WW   WW    1 0.0   1.0
-   WW   CG    1 0.0   1.0
-
-   CG   CG    1 0.0   1.0
-   CG   WW    1 0.0   1.0
-
-; define water molecule
-
-[moleculetype]
-SOL     1
-
-[atoms]
-1     CG      1    SOL                  CG       1      0.0000
-
-; define wall molecule
-
-[moleculetype]
-WBT     1
-
- [atoms]
-    1    WW    1  WBT   WW   1  0.0000
+[ atoms ]
+; id	at type	res nr 	residu name	at name
+1	CG	1	SOL		 CG		1	 0.000
 
 [ system ]
-Bulk Water @ 300 K
+CG water
+
 [ molecules ]
- SOL           2180
+SOL     2180
