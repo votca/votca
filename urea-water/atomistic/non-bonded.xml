@@ -1,0 +1,38 @@
+<cg>
+ <!-- example for a non-bonded interaction entry -->
+ <non-bonded>
+  <!-- name of the interaction -->
+  <name>UR-UR</name>
+  <!-- types involved in this interaction -->
+  <type1>UR</type1>
+  <type2>UR</type2>
+  <!-- dimension + grid spacing of tables for calculations -->
+  <min>0</min>
+  <max>1.4</max>
+  <step>0.01</step>
+ </non-bonded>
+   
+ <non-bonded>
+  <!-- name of the interaction -->
+  <name>SOL-SOL</name>
+  <!-- types involved in this interaction -->
+  <type1>SOL</type1>
+  <type2>SOL</type2>
+  <!-- dimension + grid spacing of tables for calculations -->
+  <min>0</min>
+  <max>1.4</max>
+  <step>0.01</step>
+ </non-bonded>
+
+ <non-bonded>
+  <!-- name of the interaction -->
+  <name>UR-SOL</name>
+  <!-- types involved in this interaction -->
+  <type1>UR</type1>
+  <type2>SOL</type2>
+  <!-- dimension + grid spacing of tables for calculations -->
+  <min>0</min>
+  <max>1.4</max>
+  <step>0.01</step>
+ </non-bonded>
+</cg>

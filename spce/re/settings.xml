@@ -38,10 +38,10 @@
 	<!-- convergence check options -->
 	<convergence>
           <!-- for RE we check change in potentials/parameters (new-cur) -->
-          <what>param pot</what>
-          <weight>1.0 1.0</weight>
-          <base>cur cur</base>
-          <norm>2 2</norm>
+          <what>pot</what>
+          <weight>1.0</weight>
+          <base>cur</base>
+          <norm>2</norm>
 	</convergence>
         <average>
           <what>param pot</what>
