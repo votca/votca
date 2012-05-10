@@ -41,3 +41,6 @@ else
   mark_done "re_update"
 fi
 
+if [[ -f "notsympos" ]]; then
+  msg "re updated using the steepest descent"
+fi

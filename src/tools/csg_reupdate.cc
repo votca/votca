@@ -118,7 +118,6 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
         cout << "Potential range:" << endl;
         cout << "\t \t rmin    = " << i->rmin << " [nm]" << endl;
         cout << "\t \t rcutoff = " << i->rcut << " [nm]" << endl;
-        cout << "\t \t step    = " << i->step   << " [nm]" << endl;
 
         // update parameter counter
         _nlamda += i->ucg->getOptParamSize();
@@ -162,6 +161,8 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
     _beta = _options.get("cg.inverse.kBT").as<double>();
     // relaxation parameter for update
     _relax = _options.get("cg.inverse.re.relax").as<double>();
+    // whether to take steepest descent in case of non-symmetric positive H
+    _dosteep = _options.get("cg.inverse.re.do_steep").as<bool>();
      
     _UavgAA = 0.0;
     _UavgCG = 0.0;
@@ -253,7 +254,9 @@ void CsgREupdate::WriteOutFiles() {
         file_name = (*potiter)->potentialName;
         file_name = file_name + "." + _pot_out_ext;
         cout << "Writing file: " << file_name << endl;
-        (*potiter)->ucg->SavePotTab(file_name,(*potiter)->step);
+        (*potiter)->ucg->SavePotTab(file_name,(*potiter)->_options->get("step").as<double>(),
+                                   (*potiter)->_options->get("min").as<double>(),
+                                   (*potiter)->_options->get("max").as<double>());
 
         // for gentable with no RE update no need to write-out parameters
         if(!_gentable){
@@ -342,20 +345,28 @@ void CsgREupdate::REUpdateLamda() {
         /* then can not use Newton-Raphson
          * go along steepest descent i.e. _dlamda = -_DS
          */
-        ofstream out;
-        string filename = "notsympos";
-        out.open(filename.c_str());
+        if(!_dosteep){
+            throw runtime_error("Hessian NOT a positive definite!\n"
+                    "This can be a result of poor initial guess or "
+                    "ill-suited CG potential settings or poor CG sampling.\n"           
+                    "If you are confident about settings, "
+                    "enable steepest descent by setting the option "
+                    "cg.inverse.re.do_steep to be 'true'");
+        } else {
+                ofstream out;
+                string filename = "notsympos";
+                out.open(filename.c_str());
 
-        if(!out)
-            throw runtime_error(string("error, cannot open file ") + filename);
+                if(!out)
+                throw runtime_error(string("error, cannot open file ") + filename);
 
-        out << "**** Hessian NOT a positive definite! ****" << endl;
-        out << "**** Taking steepest descent ****!" << endl;
+                out << "**** Hessian NOT a positive definite! ****" << endl;
+                out << "**** Taking steepest descent ****!" << endl;
 
-        out.close();
+                out.close();
         
-        _dlamda = minusDS;
-        
+                _dlamda = minusDS;
+        }
     }
 
     _lamda = _lamda + _relax * _dlamda ;
@@ -701,37 +712,36 @@ PotentialInfo::PotentialInfo(int index,
     _options = options;
     bonded   = bonded_;
     vec_pos  = vec_pos_;
-    potentialName = options->get("name").value();
-    type1 = options->get("type1").value();
-    type2 = options->get("type2").value();
-    potentialFunction = options->get("function").value();
+    potentialName = _options->get("name").value();
+    type1 = _options->get("type1").value();
+    type2 = _options->get("type2").value();
+    potentialFunction = _options->get("re.function").value();
     
     // compute output table grid points
-    rmin = options->get("min").as<double>();
-    rcut = options->get("max").as<double>();
-    step = options->get("step").as<double>();
+    rmin = _options->get("re.min").as<double>();
+    rcut = _options->get("re.max").as<double>();
     
     // assign the user selected function form for this potential
-    if( potentialFunction == "LJ126")
-        ucg = new PotentialFunctionLJ126(rmin, rcut);
-    else if (potentialFunction == "LJG")
-        ucg = new PotentialFunctionLJG(rmin, rcut);
-    else if (potentialFunction == "CBSPL"){
+    if( potentialFunction == "lj126")
+        ucg = new PotentialFunctionLJ126(potentialName,rmin, rcut);
+    else if (potentialFunction == "ljg")
+        ucg = new PotentialFunctionLJG(potentialName,rmin, rcut);
+    else if (potentialFunction == "cbspl"){
 
         // get number of B-splines coefficients which are to be optimized
-        int nlam = options->get("nknots").as<int>();
+        int nlam = _options->get("re.cbspl.nknots").as<int>();
         // get number of B-splines coefficients near cut-off which must be
         // fixed to zero to ensure potential and forces smoothly go to zero
-        int ncut = options->get("nknots_cutoff").as<int>();
+        int ncut = _options->get("re.cbspl.nknots_cutoff").as<int>();
 
-        ucg = new PotentialFunctionCBSPL(nlam, ncut, rmin, rcut);
+        ucg = new PotentialFunctionCBSPL(potentialName,nlam, ncut, rmin, rcut);
 
     }
     else
         throw std::runtime_error("Function form \""
                         + potentialFunction + "\" selected for \""
                     + potentialName + "\" is not available yet.\n"
-                    + "Please specify either \"LJ126, LJG, or CBSPL\" "
+                    + "Please specify either \"lj126, ljg, or cbspl\" "
                     + "in options file.");
 
     // initialize cg potential with old parameters

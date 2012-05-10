@@ -1,9 +1,9 @@
 
 #include "potentialfunctioncbspl.h"
 
-PotentialFunctionCBSPL::PotentialFunctionCBSPL(const int nlam_, 
+PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nlam_, 
         const int ncutcoeff_, const double min_, const double max_) : 
-                        PotentialFunction(nlam_,min_,max_) {
+                        PotentialFunction(name_,nlam_,min_,max_) {
 
     /* Here nlam_ is the total number of coeff values that are to be optimized
      * To ensure that potential and force go to zero smoothly near cut-off,
@@ -63,7 +63,7 @@ void PotentialFunctionCBSPL::setParam(string filename) {
         
         if( param.size() != _lam.size()) {
 
-            throw std::runtime_error("Potential parameters size mismatch!\n"
+            throw std::runtime_error("In potential "+_name+": parameters size mismatch!\n"
                     "Check input parameter file \""
                     + filename + "\" \nThere should be "
                     + boost::lexical_cast<string>( _lam.size() ) + " parameters");
@@ -103,11 +103,19 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
 
 }
 
+void PotentialFunctionCBSPL::SavePotTab(const string& filename,
+        const double step, const double rmin, const double rcut) {
+
+    extrapolExclParam();
+    PotentialFunction::SavePotTab(filename,step,rmin,rcut);
+
+}
+
 void PotentialFunctionCBSPL::SavePotTab(const string& filename, 
         const double step) {
     
     extrapolExclParam();
-    PotentialFunction::SavePotTab(filename,step,0.0,_cut_off);
+    PotentialFunction::SavePotTab(filename,step);
  
 }
 
@@ -120,7 +128,7 @@ void PotentialFunctionCBSPL::extrapolExclParam(){
 	// m = (u1-u0)/(r1-r0)
 	double u0 = _lam(_nexcl);
         if( u0 <= 0.0 ) {
-		throw std::runtime_error("min r value for cbspl is too large,\n"
+		throw std::runtime_error("In potential "+_name+": min r value for cbspl is too large,\n"
                     "choose min r such that knot value at (rmin+dr) > 0,\n" 
                     "else exponentially extrapolated knot values in "
  		    "the repulsive core would be negative or zero.\n");

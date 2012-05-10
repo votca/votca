@@ -1,8 +1,8 @@
 
 #include "potentialfunctionlj126.h"
 
-PotentialFunctionLJ126::PotentialFunctionLJ126(const double min_,
-	const double max_) : PotentialFunction(2,min_,max_){
+PotentialFunctionLJ126::PotentialFunctionLJ126(const string& name_,const double min_,
+	const double max_) : PotentialFunction(name_,2,min_,max_){
 }
 
 double PotentialFunctionLJ126::CalculateF (const double r) const {

@@ -13,7 +13,7 @@ using namespace votca::tools;
 
 class PotentialFunctionCBSPL : public PotentialFunction {
 public:
-    PotentialFunctionCBSPL(const int nlam_,const int ncutcoeff_,
+    PotentialFunctionCBSPL(const string& name_,const int nlam_,const int ncutcoeff_,
      const double min_=0.0, const double max_=10.0);
     ~PotentialFunctionCBSPL(){}
     // calculate function value for given r
@@ -30,7 +30,8 @@ public:
     void SaveParam(const string& filename);
     
     void SavePotTab(const string& filename, const double step);
-    
+
+    void SavePotTab(const string& filename, const double step, const double rmin, const double rcut);    
     void setOptParam(const int i, const double val);
     
     double getOptParam(const int i) const;

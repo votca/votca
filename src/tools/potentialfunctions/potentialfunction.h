@@ -70,8 +70,9 @@ public:
 
 protected:
     
-    PotentialFunction(const int nlam_,const double min_,const double max_);
+    PotentialFunction(const string& name_,const int nlam_,const double min_,const double max_);
     
+    string _name;
     ub::vector<double> _lam;
     double _cut_off;
     double _min;

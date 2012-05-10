@@ -219,6 +219,25 @@
 	<DESC> solver for solving a linear equation system: octave/numpy/matlab </DESC>
       </solver>
     </imc>
+    <re>
+      <DESC>general options for realtive entropy method</DESC>
+      <csg_reupdate>
+	<opts>
+	  <DESC>options for the csg_reupdate command</DESC>
+	</opts>
+      </csg_reupdate>
+      <relax>
+	<DESC>relaxation parameter value for the relative entropy update</DESC>
+      </relax>
+      <do_steep>
+        <DESC>choose to take or not to take steepest descent when Hessian is not symmetric positive definite</DESC>
+      </do_steep>
+    </re>
+    <average>
+      <steps>1
+      <DESC>number of steps to be used for average computation</DESC>
+      </steps>
+    </average>
     <initial_configuration>laststep
       <DESC>what initial configuration to use in every step: maindir/laststep</DESC>
     </initial_configuration>
@@ -314,6 +333,27 @@
 	<DESC>Grid spacing for the output grid. Normally, one wants to have this parameter smaller than fmatch.step, to have a smooth curve, without additional spline interpolation. As a rule of thumb we normally use fmatch.out_step which is approximately 5 times smaller than fmatch.step.</DESC>
       </out_step>
     </fmatch>
+    <re>
+      <DESC>Relative entropy options</DESC>
+      <function>
+	<DESC>Functional form for the potential. Available functional forms: lj126 (Lennard-Jones 12-6), ljg (Lennard-Jones 12-6 plus Gaussian), and cbspl (uniform cubic B-splines).</DESC> 
+      </function>
+      <cbspl>
+	<DESC>options specific to cbspl function form</DESC>
+	<nknots>
+	  <DESC>Number of knot values to be used for the cbspl functional form. Uniform grid size of the CBSPL depends on this parameter; for fixed potential range more the nknots smaller the grid spacing. Make sure grid spacing is sufficiently large and enough CG simulation steps are performed such that the bins at distance greater than the minimum distance are sampled sufficiently otherwise ill-defined system of equation would give NaNs in the output.</DESC>
+	</nknots>
+	<nknots_cutoff>
+	  <DESC>Number of knot values of cbspl functional form near the cut-off distance to be forced to zero. Required to smoothly bring potential to zero near cut-off</DESC>
+	</nknots_cutoff>
+      </cbspl>
+      <min>
+	<DESC>Minimum value of the potential function range. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the distance to the rdf start. For CBSPL form, knot values corresponding to the distances smaller than this paramter are exponentially extrapolated.</DESC>
+      </min>
+      <max> 
+	<DESC>Cut-off distance for the potential function. For minimization stability, it should be sufficiently smaller than the half of the CG system box-size.</DESC>
+      </max>
+    </re>
     <inverse>
       <DESC>Contains all information relevant to iterative process</DESC>
       <target>
@@ -364,6 +404,12 @@
 	  <what>dist
 	    <DESC>list from what to calc the convergence: dist pot, ..</DESC>
 	  </what>
+	  <base>tgt
+	    <DESC>what base values to be used to compute convergene error: tgt, cur, ..</DESC>
+	  </base>
+	  <norm>1
+	    <DESC>which norm to use to compute error: 1 first norm, 2 second norm</DESC>
+	  </norm>
 	</convergence>
 	<copyback>
 	  <DESC>Contains all options of the postadd copyback sripts</DESC>
@@ -392,6 +438,11 @@
 	    <DESC>plot script to give to gnuplot</DESC>
 	  </script>
 	</plot>
+	<average>
+	  <what>
+	    <DESC>list for which averages of last few steps are to computed: param, pot, ... For relative entropy method, specify param before pot.</DESC>
+	  </what>
+	</average>
       </post_add_options>
       <post_update>
 	<DESC>Additional post-processing of dU before added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</DESC>

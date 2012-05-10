@@ -1,8 +1,8 @@
 
 #include "potentialfunctionljg.h"
 
-PotentialFunctionLJG::PotentialFunctionLJG(const double min_,
-	const double max_) : PotentialFunction(5,min_,max_){
+PotentialFunctionLJG::PotentialFunctionLJG(const string& name_,const double min_,
+	const double max_) : PotentialFunction(name_,5,min_,max_){
 }
 
 double PotentialFunctionLJG::CalculateF (const double r) const {

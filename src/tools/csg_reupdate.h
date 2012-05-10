@@ -45,7 +45,7 @@ struct PotentialInfo {
         Table aardf;
         double rdf_norm;
 
-        double rmin,rcut,step;
+        double rmin,rcut;
 
         Property *_options;
 };
@@ -104,7 +104,8 @@ protected:
     int _nframes;
    
     bool _gentable;
-
+    bool _dosteep;
+    
     // file extension for the inputs/outputs
     string _param_in_ext, _param_out_ext;
     string _pot_out_ext;
