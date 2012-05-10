@@ -94,7 +94,6 @@
       <!-- relative entropy program name and options-->
       <!-- default path is votcadir/bin -->
       <csg_reupdate>
-        <command>csg_reupdate</command>
         <opts>--begin 50</opts>
       </csg_reupdate>
       <!-- relaxation parameter in Newton-Raphson update -->
