@@ -46,6 +46,6 @@ output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${topol}" ${opts
 echo "$output" | gromacs_log "${g_energy} -b "${begin}" -s "${topol}" ${opts}"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 p_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
-  die "${0##*/}: awk failed"
+  die "${0##*/}: sed grep of Pressure failed"
 [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
 echo "Pressure=${p_now}" > "$1"
