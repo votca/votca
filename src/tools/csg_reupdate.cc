@@ -733,8 +733,9 @@ PotentialInfo::PotentialInfo(int index,
         // get number of B-splines coefficients near cut-off which must be
         // fixed to zero to ensure potential and forces smoothly go to zero
         int ncut = _options->get("re.cbspl.nknots_cutoff").as<int>();
-
-        ucg = new PotentialFunctionCBSPL(potentialName,nlam, ncut, rmin, rcut);
+        // get which method to use to extrapolate knot values in the repulsive core
+        string extrapol_type = _options->get("re.cbspl.extrapolate").as<string>();
+        ucg = new PotentialFunctionCBSPL(potentialName,nlam, ncut, extrapol_type, rmin, rcut);
 
     }
     else

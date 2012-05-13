@@ -346,9 +346,12 @@
 	<nknots_cutoff>
 	  <DESC>Number of knot values of cbspl functional form near the cut-off distance to be forced to zero. Required to smoothly bring potential to zero near cut-off</DESC>
 	</nknots_cutoff>
+        <extrapolate>
+          <DESC>Method to extrapolate knots values in the repulsive core: linear or exponential.</DESC>
+        </extrapolate>
       </cbspl>
       <min>
-	<DESC>Minimum value of the potential function range. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the distance to the rdf start. For CBSPL form, knot values corresponding to the distances smaller than this paramter are exponentially extrapolated.</DESC>
+       <DESC>Minimum value of the potential function range.  This value can not be too small, it can result in ill-conditioned system due to poor sampling of the repulsive core. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it is the distance to the rdf start.  For cbspl form,  knot values corresponding to the distances smaller than this paramter are extrapolated and too large min value may result in negative knot values in the repulsive core region due to attractive potential/force near the large min distance. </DESC>
       </min>
       <max> 
 	<DESC>Cut-off distance for the potential function. For minimization stability, it should be sufficiently smaller than the half of the CG system box-size.</DESC>

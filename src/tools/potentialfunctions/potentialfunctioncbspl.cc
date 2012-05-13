@@ -2,7 +2,7 @@
 #include "potentialfunctioncbspl.h"
 
 PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nlam_, 
-        const int ncutcoeff_, const double min_, const double max_) : 
+        const int ncutcoeff_, const string& extrapol_type_,const double min_, const double max_) : 
                         PotentialFunction(name_,nlam_,min_,max_) {
 
     /* Here nlam_ is the total number of coeff values that are to be optimized
@@ -15,6 +15,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
      * extrapolated from first statistically significant knot values near rmin
      */
 
+    _extrapol_type = extrapol_type_;
     // number of break points = _lam.size() - 2
     _nbreak = _lam.size() - 2;
     
@@ -121,28 +122,58 @@ void PotentialFunctionCBSPL::SavePotTab(const string& filename,
 
 void PotentialFunctionCBSPL::extrapolExclParam(){
 
-	// extrapolate first _nexcl knot values using exponential extrapolation
-	// u(r) = a * exp( b * r)
-	// a = u0 * exp ( - m * r0/u0 )
-	// b = m/u0
-	// m = (u1-u0)/(r1-r0)
-	double u0 = _lam(_nexcl);
+if( _extrapol_type == "linear") {
+        // extrapolate first _nexcl knot values using linear extrapolation
+        // u(r) = ar + b
+        // a = m
+        // b = - m*r0 + u0
+        // m = (u1-u0)/(r1-r0)
+        double u0 = _lam(_nexcl);
+        double r0 = _rbreak(_nexcl);
+        double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
+        (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
+       // check for positive slope
+        if( m >= 0.0 ) {
+                throw std::runtime_error("In potential "+_name+": min r value for cbspl is too large,\n"
+                    "for linear extrapolation, choose min r such that potential slope at min < 0,\n"
+                    "else extrapolated knot values in "
+                    "the repulsive core would be negative or zero.\n");
+        }
+        double a = m;
+        double b = -1.0*m*r0 + u0;
+        for (int i = 0; i < _nexcl; i++) {
+                _lam(i) = a*_rbreak(i) + b;
+        }
+} else if (_extrapol_type=="exponential"){
+        // extrapolate first _nexcl knot values using exponential extrapolation
+        // u(r) = a * exp( b * r)
+        // a = u0 * exp ( - m * r0/u0 )
+        // b = m/u0
+        // m = (u1-u0)/(r1-r0)
+        double u0 = _lam(_nexcl);
         if( u0 <= 0.0 ) {
-		throw std::runtime_error("In potential "+_name+": min r value for cbspl is too large,\n"
-                    "choose min r such that knot value at (rmin+dr) > 0,\n" 
-                    "else exponentially extrapolated knot values in "
- 		    "the repulsive core would be negative or zero.\n");
-	}
-	double r0 = _rbreak(_nexcl);
-	double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
-	(_rbreak(_nexcl + 1) - _rbreak(_nexcl));
-	double a = u0 * exp(-m * r0 / u0);
-	double b = m / u0;
-	for (int i = 0; i < _nexcl; i++) {
-		double r = _rbreak(i);
-		double u = a * exp(b * r);
-		_lam(i) = u;
-	}     
+                throw std::runtime_error("In potential "+_name+": min r value for cbspl is too large,\n"
+                    "for exponential extrapolation, choose min r such that knot value at (rmin+dr) > 0,\n"
+                    "else extrapolated knot values in "
+                    "the repulsive core would be negative or zero.\n");
+        }
+        double r0 = _rbreak(_nexcl);
+        double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
+        (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
+        double a = u0 * exp(-m * r0 / u0);
+        double b = m / u0;
+        for (int i = 0; i < _nexcl; i++) {
+                _lam(i)  = a * exp(b * _rbreak(i));
+        }
+} else {
+	throw std::runtime_error("Extrapolation method  \""
+                        + _extrapol_type + "\" selected for \""
+                    + _name + "\" is not available yet.\n"
+                    + "Please specify either \"linear or exponential\" "
+                    + " in options file.");
+
+}
+
 }
 
 void PotentialFunctionCBSPL::setOptParam(const int i, const double val){

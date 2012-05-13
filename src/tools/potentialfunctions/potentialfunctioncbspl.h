@@ -14,7 +14,7 @@ using namespace votca::tools;
 class PotentialFunctionCBSPL : public PotentialFunction {
 public:
     PotentialFunctionCBSPL(const string& name_,const int nlam_,const int ncutcoeff_,
-     const double min_=0.0, const double max_=10.0);
+     const string& extrapol_type_,const double min_=0.0, const double max_=10.0);
     ~PotentialFunctionCBSPL(){}
     // calculate function value for given r
     double CalculateF (const double r) const;
@@ -54,7 +54,7 @@ protected:
     
     ub::matrix<double> _M;
     
-    
+    string _extrapol_type;    
 
 };
 
