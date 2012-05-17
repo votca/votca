@@ -32,11 +32,17 @@ name="$(csg_get_interaction_property name)"
 target="$(csg_get_interaction_property inverse.optimizer.rdf.target)"
 do_external resample target ${target} ${name}.dist.tgt
 weight=$(csg_get_interaction_property --allow-empty inverse.optimizer.rdf.weight)
+weightfile=$(csg_get_interaction_property --allow-empty inverse.optimizer.rdf.weightfile)
 if [[ -n $weight ]]; then
   min=$(csg_get_interaction_property min)
   step=$(csg_get_interaction_property step)
   max=$(csg_get_interaction_property max)
-  do_external table functional --fct "$weight" --grid "${min}:${step}:${max}" "${name}.rdf.weight"
+  if [[ -z ${weightfile} ]]; then
+    do_external table functional --fct "$weight" --grid "${min}:${step}:${max}" "${name}.rdf.weight"
+  else
+    [[ -f ${weightfile} ]] || die "${0##*/}: Could not find function weightfile '$weightfile'. did you forget to add it to cg.inverse.filelist?"
+    do_external table functional --fct "$weight" --grid "${min}:${step}:${max}" --headerfile "${weightfile}" "${name}.rdf.weight"
+  fi
   do_external table combine --op x "${name}.dist.tgt" "${name}.rdf.weight" "${name}.dist.tgt.weighted"
   do_external table combine --op x "${name}.dist.new" "${name}.rdf.weight" "${name}.dist.new.weighted"
   do_external table combine --sum --op d "${name}.dist.tgt.weighted" "${name}.dist.new.weighted" > "${name}.rdf.conv"

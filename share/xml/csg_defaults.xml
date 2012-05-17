@@ -503,6 +503,9 @@
 	  <weight>
 	    <DESC>Weighting function for calculating the convergency of the rdf</DESC>
 	  </weight>
+	  <weightfile>
+	    <DESC>File with the weighting function definition calculating the rdf</DESC>
+	  </weightfile>
 	</rdf>
 	<targets>rdf
 	  <DESC>Targets to be fitted by the optimizer</DESC>
