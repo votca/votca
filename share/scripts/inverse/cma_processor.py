@@ -73,7 +73,9 @@ class state:
     statefile.write("#State = "+self.state+"\n")
     statefile.write(self.comments+"\n")
     for i in range(len(self.parameters)):
-      statefile.write(str(self.parameters[i]).strip('[]')+" "+str(self.solutions[i])+" pending\n")
+      for j in range(len(self.parameters[i])):
+	statefile.write('%e'%self.parameters[i][j]+" ")
+      statefile.write(str(self.solutions[i])+" pending\n")
     statefile.close()
 
 try:
