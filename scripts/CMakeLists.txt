@@ -6,7 +6,7 @@ if (WITH_RC_FILES)
     include(CheckCSourceCompiles)
     check_c_source_compiles(
       "int main(void) {
-      #ifndef __AIX__
+      #ifndef _AIX
       #error
       #endif
       return 0;
