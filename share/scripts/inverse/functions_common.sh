@@ -680,7 +680,7 @@ csg_calc() { #simple calculator, a + b, ...
   [[ -n "$(type -p awk)" ]] || die "${FUNCNAME[0]}: Could not find awk"
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
-    "+"|"-"|'*'|"/"|"**")
+    "+"|"-"|'*'|"/"|"^")
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print x $2 y}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print x $2 y}' failed"
        true;;
     '>'|'<' )
