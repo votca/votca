@@ -18,7 +18,7 @@ scripts/multi_g_*.help
 scripts/multi_g_*.t2t
 scripts/csg_inverse.t2t
 scripts/*.out
-share/scripts/inverse/MD5SUM
+share/scripts/inverse/cma.py*
 share/doc/Doxyfile
 share/doc/html/*
 share/man/*.man
