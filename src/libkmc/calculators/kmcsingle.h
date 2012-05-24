@@ -95,6 +95,7 @@ void KMCSingle::Initialize(const char *filename, Property *options )
        srand(_seed);
        //votca::tools::Random::init(rand() % 178 + 1, rand() % 178 + 1, rand() % 178 + 1, rand() % 169 );
        votca::tools::Random::init(rand(), rand(), rand(), rand());
+       
 }
 
 bool KMCSingle::EvaluateFrame()
