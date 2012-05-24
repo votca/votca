@@ -16,6 +16,7 @@
  */
 
 #include <votca/tools/thread.h>
+#include <votca/tools/lexical_cast.h>
 #include <stdexcept>
 
 namespace votca {
@@ -55,7 +56,7 @@ namespace votca {
             int rc = pthread_create(&_thread, &attr, runwrapper, (void *) this);
             if (rc) {
                 throw std::runtime_error("ERROR; return code from pthread_create() is "
-                        + rc);
+                        + boost::lexical_cast<std::string>(rc));
             }
 
         }
@@ -65,7 +66,7 @@ namespace votca {
             int rc = pthread_join(_thread, &status);
             if (rc) {
                 throw std::runtime_error("ERROR; return code from pthread_join() is "
-                        + rc);
+                        + boost::lexical_cast<std::string>(rc));
             }
             _finished = true;
         }

@@ -90,6 +90,7 @@ inline int Statement::InsertStep()
     if(ret != SQLITE_DONE)
         throw std::runtime_error("Statment::Step did not return SQLITE_DONE. Return code was " + boost::lexical_cast<std::string>(ret) + "\n"
                 "This might be caused be a failed insert statement to the database.");
+    return ret;
 }
 
 }}
