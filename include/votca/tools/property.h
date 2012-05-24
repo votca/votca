@@ -145,7 +145,7 @@ public:
      * p.getAttribute<int>() returns an integer
      */
     template<typename T>
-    T getAttribute(const string &attribute) const;
+    T getAttribute(const string &attribute);
 
     /**
      * \brief set an attribute
@@ -261,7 +261,7 @@ inline vector<double> Property::as<vector <double> >() const {
 }
 
 template<typename T>
-inline T Property::getAttribute(const string &attribute) const
+inline T Property::getAttribute(const string &attribute)
 {
     return lexical_cast<T>(_attributes[attribute], "wrong type in attribute " + attribute + " of element " + _path + "."  + _name + "\n");
 }
