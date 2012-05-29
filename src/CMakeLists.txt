@@ -1,8 +1,15 @@
 option(EXTERNAL_BOOST "Use external boost" ON)
+option(FORCE_INTERNAL_BOOST "Force use of internal replacement" OFF)
+if (NOT EXTERNAL_BOOST AND NOT FORCE_INTERNAL_BOOST)
+  message("Switching to external boost, use -DFORCE_INTERNAL_BOOST=ON to force using the internal replacement")
+  set(EXTERNAL_BOOST ON FORCE)
+endif (NOT EXTERNAL_BOOST AND NOT FORCE_INTERNAL_BOOST)
+
 if (EXTERNAL_BOOST)
   find_package(Boost 1.39.0 COMPONENTS program_options )
   if(NOT Boost_FOUND)
-    message(FATAL_ERROR "Boost not found,  make sure you have also installed boost and it's dev package or use our internal replacement set -DEXTERNAL_BOOST=OFF")
+    message(FATAL_ERROR "Boost not found,  make sure you have also installed
+    boost and it's dev package or use our internal replacement set -DEXTERNAL_BOOST=OFF -DFORCE_INTERNAL_BOOST=ON")
   endif(NOT Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   set (BOOST_LIBRARIES ${Boost_PROGRAM_OPTIONS_LIBRARY})
