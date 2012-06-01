@@ -115,6 +115,12 @@
 	<opts>
 	  <DESC> Additional options to Gromacs g_energy (e.g. -P 1)</DESC>
 	</opts>
+	<pressure>
+	  <DESC> options for pressure calculation using g_energy</DESC>
+	  <allow_nan>no
+	    <DESC> is nan an allowed result: yes/no</DESC>
+	  </allow_nan>
+	</pressure>
 	<topol>
 	  <DESC> Gromacs binary topol (tpr) file to use by g_energy </DESC>
 	</topol>
