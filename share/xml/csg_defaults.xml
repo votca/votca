@@ -115,6 +115,12 @@
 	<opts>
 	  <DESC> Additional options to Gromacs g_energy (e.g. -P 1)</DESC>
 	</opts>
+	<pressure>
+	  <DESC> options for pressure calculation using g_energy</DESC>
+	  <allow_nan>no
+	    <DESC> is nan an allowed result: yes/no</DESC>
+	  </allow_nan>
+	</pressure>
 	<topol>
 	  <DESC> Gromacs binary topol (tpr) file to use by g_energy </DESC>
 	</topol>
@@ -549,6 +555,12 @@
 	<parameters>
 	  <DESC>Parameters to be fitted by the optimizer for this interaction. Note that the parameter names are global</DESC>
 	</parameters>
+	<pressure>
+	  <DESC>Contains all options for the pressure calculation of the optimizer</DESC>
+	  <undef>
+	    <DESC>Pressure to use if pressure from the simulation was nan (use a big number)</DESC>
+	  </undef>
+	</pressure>
 	<rdf>
 	  <DESC>Contains all options for the rdf calculation of the optimizer</DESC>
 	  <target>
@@ -557,6 +569,9 @@
 	  <weight>
 	    <DESC>Weighting function for calculating the convergency of the rdf</DESC>
 	  </weight>
+	  <weightfile>
+	    <DESC>File with the weighting function definition calculating the rdf</DESC>
+	  </weightfile>
 	</rdf>
 	<targets>rdf
 	  <DESC>Targets to be fitted by the optimizer</DESC>

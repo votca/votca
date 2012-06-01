@@ -680,7 +680,7 @@ csg_calc() { #simple calculator, a + b, ...
   [[ -n "$(type -p awk)" ]] || die "${FUNCNAME[0]}: Could not find awk"
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
-    "+"|"-"|'*'|"/"|"**")
+    "+"|"-"|'*'|"/"|"^")
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print x $2 y}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print x $2 y}' failed"
        true;;
     '>'|'<' )
@@ -693,7 +693,7 @@ csg_calc() { #simple calculator, a + b, ...
     "="|"==")
        #this is really tricky... case x=0,y=0 is catched by (x==y) after that |x-y|/max(|x|,|y|) will work expect for x,y beginng close to zero
        res="$(awk -v x="$1" -v y="$3" -v e="$err" \
-       'func max(x,y){return (x>y)?x:y;} func abs(x){return (x<0)?-x:x;} BEGIN{if (x==y){print 1;}else{if (abs(x-y)<e){print 1;}else{ print ( abs(x-y)/max(abs(x),abs(y)) < e );}}}')" \
+       'function max(x,y){return (x>y)?x:y;} function abs(x){return (x<0)?-x:x;} BEGIN{if (x==y){print 1;}else{if (abs(x-y)<e){print 1;}else{ print ( abs(x-y)/max(abs(x),abs(y)) < e );}}}')" \
 	 || die "${FUNCNAME[0]}: awk for =/== failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"

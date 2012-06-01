@@ -139,6 +139,7 @@ update optimizer_single update_optimizer_single.sh
 
 optimizer_target rdf optimizer_target_rdf.sh
 optimizer_target density optimizer_target_density.sh
+optimizer_target pressure optimizer_target_pressure.sh
 
 # simplex specific stuff
 simplex precede_state simplex_downhill_processor.pl

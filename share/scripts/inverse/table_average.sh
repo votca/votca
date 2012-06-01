@@ -101,7 +101,7 @@ done
 t=$(critical mktemp "table_all.XXXX")
 paste "${tables[@]}" > "${t}"
 awk -v c1="$colx" -v c2="$coly" -v s="$cols" '
-func isnum(x){return(x==x+0)}
+function isnum(x){return(x==x+0)}
 {
   sum=0;
   sum2=0;
