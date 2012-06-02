@@ -34,17 +34,17 @@ topol=$(csg_get_property cg.inverse.gromacs.ref.topol)
 traj="$(csg_get_property cg.inverse.gromacs.ref.traj)"
 [[ $traj = /* ]] || traj=$(get_main_dir)/$traj 
 [[ -f $traj ]] ||  die "${0##*/}: Reference trajectory '$traj' not found"
-mapping="$(csg_get_interaction_property inverse.optimizer.mapping.output)"
-[[ -f $mapping ]] || die "${0##*/}: Mapping '$mapping' not found"
+mapping="$(csg_get_property cg.inverse.gromacs.ref.mapping)"
+# no mapping check as this could be 1.xml;2.xml
 equi_time="$(csg_get_property cg.inverse.gromacs.ref.equi_time)"
 first_frame="$(csg_get_property cg.inverse.gromacs.ref.first_frame)"
 
 tasks=$(get_number_tasks)
 #refrdf calculation is maybe done already in a different interaction
 if is_done "refrdf_calculation"; then
-  echo "rdf calculation is already done"
+  echo "reference rdf calculation is already done"
 else
-  msg "Calculating refrdfs with csg_stat using $tasks tasks"
-  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame --cg ${mapping} --ext "dist.tgt"
+  msg "Calculating reference rdfs with csg_stat using $tasks tasks"
+  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame --cg "${mapping}" --ext "dist.tgt"
   mark_done "refrdf_calculation"
 fi

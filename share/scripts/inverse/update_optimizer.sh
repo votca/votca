@@ -30,6 +30,9 @@ fi
 
 otype="$(csg_get_property cg.inverse.optimizer.type)"
 
+#generate mappings to calculate reference rdf, which depend on all of them
+for_all "non-bonded bonded" do_external optimizer state_to_mapping "${otype}.state.cur"
+
 for_all "non-bonded bonded" do_external update optimizer_single
 
 names="$(csg_get_interaction_property --all name)"

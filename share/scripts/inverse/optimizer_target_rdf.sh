@@ -34,7 +34,6 @@ if [[ $(csg_get_interaction_property inverse.optimizer.mapping.change) = no ]]; 
   do_external resample target ${target} ${name}.dist.tgt
 else
   otype="$(csg_get_property cg.inverse.optimizer.type)"
-  do_external optimizer state_to_mapping "${otype}.state.cur" 
   do_external calc target_rdf
 fi
 weight=$(csg_get_interaction_property --allow-empty inverse.optimizer.rdf.weight)

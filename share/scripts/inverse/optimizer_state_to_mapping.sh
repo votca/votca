@@ -30,6 +30,12 @@ fi
 input="$1"
 [[ -f $input ]] || die "${0##*/}: Could not read $input"
 
+name="$(csg_get_interaction_property name)"
+if [[ $(csg_get_interaction_property inverse.optimizer.mapping.change) = no ]]; then
+  echo "Interaction $name does not change the reference mapping"
+  exit 0
+fi
+
 line="$(critical sed -n '/active$/{=;q}' "$input")"
 [[ -z $line ]] && die "${0##*/}: not could find a active line in $input"
 is_int "$line" || die "${0##*/}: Strange - $line should be a number"
