@@ -46,7 +46,6 @@ done
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 [[ -f $1 ]] || die "${0##*/}: $1 not found"
-[[ -f $2 ]] && die "${0##*/}: $2 is already there"
 
 tmpfile=$(critical mktemp "$1".preint.XXX)
 four_pi="12.5663706"
