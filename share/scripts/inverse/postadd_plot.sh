@@ -55,12 +55,12 @@ gnuplot=$(csg_get_property cg.inverse.gnuplot.bin)
 opts=$(csg_get_interaction_property --allow-empty inverse.post_add_options.plot.gnuplot_opts)
 
 script=$(csg_get_interaction_property inverse.post_add_options.plot.script)
-[ -f "$script" ] || die "${0##*/}: plot script '$script' is not there, did you forget to add it to cg.inverse.filelist?"
+[[ -f $(get_main_dir)/$script ]] || die "${0##*/}: plot script '$script' is not in maindir"
 
 what_to_kill="$(csg_get_interaction_property --allow-empty inverse.post_add_options.plot.kill)"
 
 msg "Plotting '$script' using $gnuplot"
-if [ -z "${what_to_kill}" ]; then
+if [[ -z ${what_to_kill} ]]; then
   cd $(get_main_dir)
   start_gnuplot_pipe &
   #wait for gnuplot_pipe
@@ -70,8 +70,8 @@ if [ -z "${what_to_kill}" ]; then
   #gnuplot is in laststep_dir
   echo "cd '$PWD'" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
 
-  cat $script > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
+  cat "$(get_main_dir)/$script" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
 else
   killall $what_to_kill
-  $gnuplot $opts $script
+  $gnuplot $opts "$(get_main_dir)/$script"
 fi
