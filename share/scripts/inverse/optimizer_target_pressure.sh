@@ -34,7 +34,7 @@ p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of P
 [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
 echo "New pressure $p_now"
 
-if [[ $p_now = nan ]];
+if [[ $p_now = nan ]]; then
   p_undef=$(csg_get_interaction_property --allow-empty cg.inverse.optimizer.pressure.undef)
   [[ -z $p_undef ]] && die "${0##*/}: Pressure was nan, check your simulation (this usually means system has blow up -> use pre simulation)"
   p_now="${p_undef}"
