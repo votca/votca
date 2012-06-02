@@ -27,8 +27,6 @@ fi
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-[[ -f $2 ]] && die "${0##*/}: $2 is already there"
-
 name=$(csg_get_interaction_property name)
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
