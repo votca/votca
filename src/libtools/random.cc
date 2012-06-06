@@ -18,6 +18,7 @@
 #include <votca/tools/random.h>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 namespace votca { namespace tools {
 
@@ -28,6 +29,26 @@ int     Random::MARSi, Random::MARSj ;
 
 void Random::init( int nA1, int nA2, int nA3, int nB1 )
 {
+
+    nA1 = nA1 % 178 + 1;
+    nA2 = nA2 % 178 + 1;
+    nA3 = nA3 % 178 + 1;
+    nB1 = nB1 % 169;
+
+    if (nA1 == nA2 == nA3 == 1) {
+        // Should not all be unity
+        cout << "WARNING: MARSAGLIA RNG INITIALISED INCORRECTLY. "
+             << "ADAPTING SEEDS APPROPRIATELY."
+             << endl;
+        nA1 += nB1;
+    }
+
+    cout << "INITIALIZED MARSFIELD WITH "
+         << nA1 << " " << nA2 << " " << nA3 << " " << nB1
+         << endl;
+
+
+
   /*
      initializes the global data of the
      MARSAGLIA pseudo random number generator
