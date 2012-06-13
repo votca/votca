@@ -158,7 +158,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
 
     _nframes = 0.0; // no frames processed yet!
      // set Temperature
-    _beta = 1.0/_options.get("cg.inverse.kBT").as<double>();
+    _beta = (1.0/_options.get("cg.inverse.kBT").as<double>());
     // relaxation parameter for update
     _relax = _options.get("cg.inverse.re.relax").as<double>();
     // whether to take steepest descent in case of non-symmetric positive H
@@ -319,7 +319,7 @@ void CsgREupdate::REFormulateLinEq() {
          }
 
      }
-     
+
 }
 
 // update lamda = lamda + relax*dlamda
@@ -412,7 +412,8 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
         double r2 = r1 + step;
         double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
                 (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
-        U +=  n_hist *  potinfo->ucg->CalculateF(r_hist);
+	if( n_hist > 0.0 )
+	  U +=  n_hist *  potinfo->ucg->CalculateF(r_hist);
 
     }
     _UavgAA += U;
@@ -432,7 +433,8 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
             double r2 = r1 + step;
             double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
                     (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
-            dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i,r_hist);
+	    if( n_hist > 0.0 )
+	      dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i,r_hist);
             
         } // end loop over hist
         _DS(row) += _beta * dU_i;
@@ -450,8 +452,9 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
                 double r2 = r1 + step;
                 double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
                         (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
-                d2U_ij += n_hist *
-                        potinfo->ucg->CalculateD2F(lamda_i, lamda_j, r_hist);
+		if ( n_hist > 0.0 )
+		  d2U_ij += n_hist *
+		    potinfo->ucg->CalculateD2F(lamda_i, lamda_j, r_hist);
 
             } // end loop pair_iter
 
@@ -520,7 +523,7 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
     worker->_nframes = 0.0; // no frames processed yet!
      // set Temperature
-    worker->_beta = 1.0/worker->_options.get("cg.inverse.kBT").as<double>();
+    worker->_beta = (1.0/worker->_options.get("cg.inverse.kBT").as<double>());
 
     worker->_UavgAA = 0.0;
     worker->_UavgCG = 0.0;
