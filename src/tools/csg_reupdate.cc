@@ -158,7 +158,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
 
     _nframes = 0.0; // no frames processed yet!
      // set Temperature
-    _beta = _options.get("cg.inverse.kBT").as<double>();
+    _beta = 1.0/_options.get("cg.inverse.kBT").as<double>();
     // relaxation parameter for update
     _relax = _options.get("cg.inverse.re.relax").as<double>();
     // whether to take steepest descent in case of non-symmetric positive H
@@ -520,7 +520,7 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
     worker->_nframes = 0.0; // no frames processed yet!
      // set Temperature
-    worker->_beta = worker->_options.get("cg.inverse.kBT").as<double>();
+    worker->_beta = 1.0/worker->_options.get("cg.inverse.kBT").as<double>();
 
     worker->_UavgAA = 0.0;
     worker->_UavgCG = 0.0;
