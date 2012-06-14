@@ -133,7 +133,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
     // relaxation parameter for update
     _relax = _options.get("cg.inverse.re.relax").as<double>();
     // whether to take steepest descent in case of non-symmetric positive H
-    _dosteep = _options.get("cg.inverse.re.do_steep").as<bool>();
+    //_dosteep = _options.get("cg.inverse.re.do_steep").as<bool>();
     _UavgAA = 0.0;
     _UavgCG = 0.0;
 }
