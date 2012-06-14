@@ -42,7 +42,7 @@ void CsgREupdate::Initialize() {
       ("pot-out-ext", boost::program_options::value<string>(&_pot_out_ext)->default_value("pot.new"), 
        "  Extension of the output potential tables")
       ("rdf-ext", boost::program_options::value<string>(&_rdf_ext)->default_value("aa.rdf"), 
-       "  Extension of the reference rdf");
+       "  Extension of the reference rdf(s)");
     AddProgramOptions()
       ("top", boost::program_options::value<string > (), 
        "  atomistic topology file (only needed for RE update)");
@@ -57,6 +57,12 @@ bool CsgREupdate::EvaluateOptions() {
     }
     LoadOptions(OptionsMap()["options"].as<string>());
     return true;
+}
+// load user provided .xml option file
+void CsgREupdate::LoadOptions(const string &file) {
+    //cout << "Loading options" << endl;
+    load_property_from_xml(_options, file);
+    _nonbonded = _options.Select("cg.non-bonded");
 }
 void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
     //cout << "Beginning evaluate" << endl;
@@ -115,8 +121,6 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
             _lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
         } // end row loop
     }// end potiter loop
-    _dlamda.resize(_nlamda,false);
-    _dlamda.clear();
     _DS.resize(_nlamda,false);
     _DS.clear();
     _HS.resize(_nlamda,false);
@@ -203,12 +207,6 @@ void CsgREupdate::WriteOutFiles() {
         }
     }
 }
-// load user provided .xml option file
-void CsgREupdate::LoadOptions(const string &file) {
-    //cout << "Loading options" << endl;
-    load_property_from_xml(_options, file);
-    _nonbonded = _options.Select("cg.non-bonded");
-}
 // formulate _HS x = -_DS
 void CsgREupdate::REFormulateLinEq() {
     /* compute CG ensemble avges of dU,d2U by dividing its
@@ -243,30 +241,38 @@ void CsgREupdate::REFormulateLinEq() {
 // update lamda = lamda + relax*dlamda
 void CsgREupdate::REUpdateLamda() {
     // first solve _HS dx = -_DS
-    ub::vector<double> residual(_nlamda);
+    ub::vector<double> dlamda(_nlamda);
+    dlamda.clear();
     ub::vector<double> minusDS(_nlamda);
     // since linalg_cholesky_solve takes full matrix 
-    // copy symmetric _HS to matrix HS_
+    // copy symmetric _HS to full matrix HS_
     ub::matrix<double> HS_(_nlamda,_nlamda);
-    for(int row = 0; row < _nlamda; row++)
-        for(int col = 0; col<_nlamda; col++)
+    for(int row = 0; row < _nlamda; row++){
+        for(int col = 0; col<_nlamda; col++){
             HS_(row,col) = _HS(row,col);
+            //cout << _HS(row,col) << "\t";
+        }
+        //cout << endl;
+    }
+    //for(int row=0; row < _nlamda; row++)
+    //   cout << -_DS(row) << endl;
     minusDS = -_DS;
     try {
-        votca::tools::linalg_cholesky_solve(_dlamda, HS_, minusDS);
+        votca::tools::linalg_cholesky_solve(dlamda, HS_, minusDS);
     }
     catch (std::runtime_error){
         /* then can not use Newton-Raphson
-         * go along steepest descent i.e. _dlamda = -_DS
+         * steepest descent with line-search may be helpful
+         * not implemented yet!
          */
-        if(!_dosteep){
+        //if(!_dosteep){
             throw runtime_error("Hessian NOT a positive definite!\n"
                     "This can be a result of poor initial guess or "
-                    "ill-suited CG potential settings or poor CG sampling.\n"           
-                    "If you are confident about settings, "
-                    "enable steepest descent by setting the option "
-                    "cg.inverse.re.do_steep to be 'true'");
-        } else {
+                    "ill-suited CG potential settings or poor CG sampling.\n");           
+                    //"If you are confident about settings, "
+                    //"enable steepest descent by setting the option "
+                    //"cg.inverse.re.do_steep to be 'true'");
+        /*} else {
                 ofstream out;
                 string filename = "notsympos";
                 out.open(filename.c_str());
@@ -276,9 +282,9 @@ void CsgREupdate::REUpdateLamda() {
                 out << "**** Taking steepest descent ****!" << endl;
                 out.close();
                 _dlamda = minusDS;
-        }
+        }*/
     }
-    _lamda = _lamda + _relax * _dlamda ;
+    _lamda = _lamda + _relax * dlamda ;
     // now update parameters of individual cg potentials
     PotentialContainer::iterator potiter;
     for (potiter = _potentials.begin();
@@ -388,22 +394,16 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
     worker->_nframes = 0.0; // no frames processed yet!
      // set Temperature
     worker->_beta = (1.0/worker->_options.get("cg.inverse.kBT").as<double>());
-    worker->_UavgAA = 0.0;
     worker->_UavgCG = 0.0;
     return worker;
 }
 void CsgREupdate::MergeWorker(Worker* worker) {
     CsgREupdateWorker *myCsgREupdateWorker;
     myCsgREupdateWorker = dynamic_cast<CsgREupdateWorker*> (worker);
-    _UavgAA += myCsgREupdateWorker->_UavgAA;
     _UavgCG += myCsgREupdateWorker->_UavgCG;
     _nframes += myCsgREupdateWorker->_nframes;
-    for(int row=0 ; row < _nlamda ; row++){
-        _DS(row) += myCsgREupdateWorker->_DS(row);
-        for( int col = row; col < _nlamda; col++){
-            _HS(row,col) += myCsgREupdateWorker->_HS(row,col);
-        }
-    }
+    _DS += myCsgREupdateWorker->_DS;
+    _HS += myCsgREupdateWorker->_HS;
 }
 void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom){
     /* as per Relative Entropy Ref.  J. Chem. Phys. 134, 094112, 2011
@@ -456,7 +456,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology* conf, PotentialInfo* potinfo) {
                         + potinfo->type2 + "\"\n"
                     "This was specified in type2 of interaction \""
                     + potinfo->potentialName + "\"");
-    // generate the neighbour list
+    // generate the neighbor list
     NBList *nb;
     bool gridsearch=false;
     if(_options.exists("cg.nbsearch")) {
@@ -530,7 +530,7 @@ PotentialInfo::PotentialInfo(int index,
     type1 = _options->get("type1").value();
     type2 = _options->get("type2").value();
     potentialFunction = _options->get("re.function").value();
-    // compute output table grid points
+    // potential range
     rmin = _options->get("re.min").as<double>();
     rcut = _options->get("re.max").as<double>();
     // assign the user selected function form for this potential
@@ -557,8 +557,7 @@ PotentialInfo::PotentialInfo(int index,
     // initialize cg potential with old parameters
     string oldparam_file_name = potentialName + "." + param_in_ext_;
     ucg->setParam(oldparam_file_name);
-    /* read/load reference AA CG-CG distribution
-     */
+    // read/load reference AA CG-CG distribution
     string aardf_file_name = potentialName + "." + rdf_ext_;
     aardf.Load(aardf_file_name);
 }

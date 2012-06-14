@@ -100,11 +100,11 @@ double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
                         return 0.0;
                     case 2:
                         return 2.0*_lam(3)*(r-_lam(4)) *
-                                exp( -1.0*_lam(3)*(r-_lam(4))*(r-_lam(4)) );
+                               exp( -1.0*_lam(3)*(r-_lam(4))*(r-_lam(4)) );
                     case 3:
                         return 2.0*_lam(2)*(r-_lam(4)) *
-                                ( 1.0 - _lam(3)*pow((r-_lam(4)),2) ) *
-                                exp( -1.0*_lam(3)*(r-_lam(4))*(r-_lam(4)) );
+                               ( 1.0 - _lam(3)*pow((r-_lam(4)),2) ) *
+                               exp( -1.0*_lam(3)*(r-_lam(4))*(r-_lam(4)) );
 
                     case 4:
                         return 2.0*_lam(2)*_lam(3)*

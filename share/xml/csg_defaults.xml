@@ -235,9 +235,6 @@
       <relax>
 	<DESC>relaxation parameter value for the relative entropy update</DESC>
       </relax>
-      <do_steep>
-        <DESC>choose to take or not to take steepest descent when Hessian is not symmetric positive definite</DESC>
-      </do_steep>
     </re>
     <average>
       <steps>1

@@ -91,7 +91,6 @@ protected:
 
     int _nlamda;
     ub::vector<double> _lamda;
-    ub::vector<double> _dlamda;
     // _HS is a symmetric matrix
     ub::symmetric_matrix<double, ub::upper> _HS;
     ub::vector<double> _DS;
@@ -147,7 +146,6 @@ public:
     ub::vector<double> _DS;
     ub::vector<double> _dUFrame;
 
-    double _UavgAA;
     double _UavgCG;
     double _beta;
     int _nframes;
