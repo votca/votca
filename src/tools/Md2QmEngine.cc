@@ -133,9 +133,13 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                   (md_atoms_info.size() != atom_weights.size() ) ) {
                  cout << "ERROR: "
                       << "Could not allocate MD atoms to QM atoms or weights"
+                      << " in fragment " << fragment->getName()
                       << " in segment " << segment->getName()
                       << " in molecule " << molMdName
-                      << " due to inconsistent number of columns."
+                      << " due to inconsistent number of columns"
+                      << " (MD: " << md_atoms_info.size() << ","
+                      << " QM: " << qm_atoms_info.size() << ")"
+                      << " Weights: " << atom_weights.size() << ")."
                       << endl;
                  cout << "NOTE: "
                       << "To define an MD atom without QM counterpart, insert "

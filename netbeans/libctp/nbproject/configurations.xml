@@ -2,6 +2,8 @@
 <configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
+      <itemPath>../../src/libctp/calculators/density.h</itemPath>
+      <itemPath>../../src/libctp/calculators/eanalyze.h</itemPath>
       <itemPath>../../src/libctp/calculators/einternal.cc</itemPath>
       <itemPath>../../src/libctp/calculators/einternal.h</itemPath>
       <itemPath>../../src/libctp/calculators/emultipole.h</itemPath>

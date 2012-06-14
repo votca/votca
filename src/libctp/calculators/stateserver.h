@@ -222,10 +222,16 @@ void StateServer::DownloadTopology(FILE *out, Topology *top) {
 
     fprintf(out, "  Step number %7d \n", top->getStep());
     fprintf(out, "  Time          %2.3f \n", top->getTime());
-    fprintf(out, "  # Molecules %7d \n", top->Molecules().size());
-    fprintf(out, "  # Segments  %7d \n", top->Segments().size());
-    fprintf(out, "  # Atoms     %7d \n", top->Atoms().size());
-    fprintf(out, "  # Pairs     %7d \n", top->NBList().size());
+
+    int N_mol = top->Molecules().size();
+    int N_seg = top->Segments().size();
+    int N_atm = top->Atoms().size();
+    int N_nbs = top->NBList().size();
+
+    fprintf(out, "  # Molecules %7d \n", N_mol);
+    fprintf(out, "  # Segments  %7d \n", N_seg);
+    fprintf(out, "  # Atoms     %7d \n", N_atm);
+    fprintf(out, "  # Pairs     %7d \n", N_nbs);
     
 }
 
