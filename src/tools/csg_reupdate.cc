@@ -558,6 +558,9 @@ PotentialInfo::PotentialInfo(int index,
     string oldparam_file_name = potentialName + "." + param_in_ext_;
     ucg->setParam(oldparam_file_name);
     // read/load reference AA CG-CG distribution
-    string aardf_file_name = potentialName + "." + rdf_ext_;
-    aardf.Load(aardf_file_name);
+    // TODO: do not read rdf for generating tables
+    //if(!_gentable){
+       string aardf_file_name = potentialName + "." + rdf_ext_;
+       aardf.Load(aardf_file_name);
+    //}
 }
