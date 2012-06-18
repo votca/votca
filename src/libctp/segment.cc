@@ -184,6 +184,13 @@ const double Segment::getU_cN_cC(int state) {
 }
 
 
+const double Segment::getSiteEnergy(int state) {
+
+    return (state == -1) ? this->getEMpoles(state) + _U_cC_nN_e :
+                           this->getEMpoles(state) + _U_cC_nN_h;
+}
+
+
 void Segment::setEMpoles(int state, double energy) {
 
     _hasChrgState.resize(3);

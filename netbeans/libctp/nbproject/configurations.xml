@@ -23,14 +23,14 @@
       <itemPath>../../src/libctp/calculators/stateserver.h</itemPath>
       <itemPath>../../src/libctp/calculators/tdump.cc</itemPath>
       <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
+      <itemPath>../../src/libctp/calculators/xmultipole.h</itemPath>
+      <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../include/votca/ctp/CMakeLists.txt</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
-      <itemPath>../../include/votca/ctp/cmake_install.cmake</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
@@ -41,6 +41,7 @@
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
+      <itemPath>../../include/votca/ctp/segment.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"

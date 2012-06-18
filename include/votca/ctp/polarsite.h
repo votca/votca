@@ -47,6 +47,9 @@ class PolarSite
     friend class Interactor3;
     friend class InteractorMod;
 
+    friend class XMultipole;
+    friend class XInteractor;
+
 public:
 
     PolarSite(int id, string name)

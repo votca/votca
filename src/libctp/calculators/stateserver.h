@@ -48,11 +48,20 @@ public:
     void DownloadIList(FILE *out, Topology *top);
     void DownloadCoords(FILE *out, Topology *top) { };
 
+
+    void WriteXMP(FILE *out, Topology *top);
+    void WriteEMP(FILE *out, Topology *top);
+
 private:
 
     string _outfile;
     string _pdbfile;
     vector< string > _keys;
+
+
+
+    string _xmp_alloc_file;
+    string _emp_alloc_file;
 
 };
 
@@ -117,7 +126,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
         }
         else if (*key == "sites") {
 
-                cout << endl << "sites, ";
+                cout << "sites, ";
 
                 fprintf(out, "           # ++++++++++++++++++++ # \n");
                 fprintf(out, "           # Segments in Database # \n");
@@ -128,7 +137,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         else if (*key == "pairs") {
 
-                cout << endl << "pairs, ";
+                cout << "pairs, ";
 
                 fprintf(out, "           # +++++++++++++++++ # \n");
                 fprintf(out, "           # Pairs in Database # \n");
@@ -140,7 +149,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         else if (*key == "ilist") {
 
-                cout << endl << "integrals, ";
+                cout << "integrals, ";
 
                 fprintf(out, "           # +++++++++++++++++++++ # \n");
                 fprintf(out, "           # Integrals in Database # \n");
@@ -152,7 +161,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         else if (*key == "elist") {
 
-                cout << endl << "energies, ";
+                cout << "energies, ";
 
                 fprintf(out, "           # +++++++++++++++++++++++++ # \n");
                 fprintf(out, "           # Site energies in Database # \n");
@@ -160,6 +169,32 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
                 DownloadEList(out, top);
 
+        }
+
+        else if (*key == "xmp") {
+
+                cout << "XMP input, ";
+
+                FILE *out_xmp;
+                string xmp_file = "xmp.table";
+                out_xmp = fopen(xmp_file.c_str(), "w");
+
+                WriteXMP(out_xmp, top);
+
+                fclose(out_xmp);
+        }
+
+        else if (*key == "emp") {
+
+                cout << "EMP input, ";
+
+                FILE *out_emp;
+                string emp_file = "emp.table";
+                out_emp = fopen(emp_file.c_str(), "w");
+
+                WriteXMP(out_emp, top);
+
+                fclose(out_emp);
         }
 
         else {
@@ -313,6 +348,57 @@ void StateServer::DownloadIList(FILE *out, Topology *top) {
 void StateServer::DownloadEList(FILE *out, Topology *top) {
     ;
 }
+
+
+
+void StateServer::WriteEMP(FILE *out, Topology *top) {
+
+    fprintf(out, "# ID   TYPE    _n.mps    _e.mps    _h.mps \n");
+
+    vector< Segment* > ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {        
+
+        fprintf(out, "%4d %5s %11s %11s %11s \n",
+                     (*sit)->getId(),
+                     (*sit)->getName().c_str(),
+                     ((*sit)->getName()+"_n.mps").c_str(),
+                     ((*sit)->getName()+"_e.mps").c_str(),
+                     ((*sit)->getName()+"_h.mps").c_str());
+    }
+}
+
+void StateServer::WriteXMP(FILE *out, Topology *top) {
+
+    fprintf(out, "# ID Seg1 Type1 Seg2 Typ2 "
+            "_f1.mps _ct1.mps _f2.mps _ct2.mps \n");
+
+    QMNBList::iterator nit;
+    for (nit = top->NBList().begin();
+         nit != top->NBList().end();
+         nit++) {
+
+        QMPair *qmpair = *nit;
+
+        string prefix = "pair_"+boost::lexical_cast<string>(qmpair->getId())
+                   +"_"+boost::lexical_cast<string>(qmpair->Seg1()->getId())
+                   +"_"+boost::lexical_cast<string>(qmpair->Seg2()->getId());
+
+
+
+        fprintf(out, "%5d %4d %5s %4d %5s %12s %12s %12s %12s \n",
+                     qmpair->getId(),
+                     qmpair->first->getId(),
+                     qmpair->first->getName().c_str(),
+                     qmpair->second->getId(),
+                     qmpair->second->getName().c_str(),
+                     (prefix+"_f1.mps").c_str(),
+                     (prefix+"_ct1.mps").c_str(),
+                     (prefix+"_f2.mps").c_str(),
+                     (prefix+"_ct2.mps").c_str());
+
+}
+
+
 
 }}
 

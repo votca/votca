@@ -61,6 +61,7 @@ public:
     const double     getU_cC_nN(int state);
     const double     getU_nC_nN(int state);
     const double     getU_cN_cC(int state);
+    const double     getSiteEnergy(int state);
 
     const double     getEMpoles(int e_h);
     void             setEMpoles(int e_h, double energy);
