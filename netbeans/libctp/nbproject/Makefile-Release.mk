@@ -33,20 +33,16 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/484457893/qmcalculcator2.o \
-	${OBJECTDIR}/_ext/484457893/qmdatabase2.o \
 	${OBJECTDIR}/_ext/484457893/segment.o \
 	${OBJECTDIR}/_ext/484457893/qmapplication.o \
 	${OBJECTDIR}/_ext/238600121/neighborlist.o \
 	${OBJECTDIR}/_ext/238600121/tdump.o \
 	${OBJECTDIR}/_ext/238600121/izindo.o \
-	${OBJECTDIR}/_ext/484457893/qmpair2.o \
-	${OBJECTDIR}/_ext/484457893/calculatorfactory2.o \
 	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist2.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
+	${OBJECTDIR}/_ext/484457893/topology.o \
 	${OBJECTDIR}/_ext/484457893/version_nb.o \
-	${OBJECTDIR}/_ext/484457893/qmtopology.o \
 	${OBJECTDIR}/_ext/484457893/fragment.o \
 	${OBJECTDIR}/_ext/238600121/rates.o \
 	${OBJECTDIR}/_ext/238600121/emultipole_stdal.o \
@@ -54,7 +50,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/238600121/stateserver.o \
 	${OBJECTDIR}/_ext/484457893/statesaversqlite.o \
 	${OBJECTDIR}/_ext/484457893/qmnblist.o \
-	${OBJECTDIR}/_ext/484457893/qmapplication2.o \
 	${OBJECTDIR}/_ext/238600121/sandbox.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory.o \
 	${OBJECTDIR}/_ext/238600121/einternal.o \
@@ -87,16 +82,6 @@ dist/Release/GNU-Linux-x86/liblibctp.a: ${OBJECTFILES}
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a ${OBJECTFILES} 
 	$(RANLIB) dist/Release/GNU-Linux-x86/liblibctp.a
 
-${OBJECTDIR}/_ext/484457893/qmcalculcator2.o: ../../src/libctp/qmcalculcator2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmcalculcator2.o ../../src/libctp/qmcalculcator2.cc
-
-${OBJECTDIR}/_ext/484457893/qmdatabase2.o: ../../src/libctp/qmdatabase2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmdatabase2.o ../../src/libctp/qmdatabase2.cc
-
 ${OBJECTDIR}/_ext/484457893/segment.o: ../../src/libctp/segment.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -122,16 +107,6 @@ ${OBJECTDIR}/_ext/238600121/izindo.o: ../../src/libctp/calculators/izindo.cc
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/izindo.o ../../src/libctp/calculators/izindo.cc
 
-${OBJECTDIR}/_ext/484457893/qmpair2.o: ../../src/libctp/qmpair2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmpair2.o ../../src/libctp/qmpair2.cc
-
-${OBJECTDIR}/_ext/484457893/calculatorfactory2.o: ../../src/libctp/calculatorfactory2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/calculatorfactory2.o ../../src/libctp/calculatorfactory2.cc
-
 ${OBJECTDIR}/_ext/484457893/qmpair.o: ../../src/libctp/qmpair.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -147,15 +122,15 @@ ${OBJECTDIR}/_ext/484457893/qmdatabase.o: ../../src/libctp/qmdatabase.cc
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmdatabase.o ../../src/libctp/qmdatabase.cc
 
+${OBJECTDIR}/_ext/484457893/topology.o: ../../src/libctp/topology.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/topology.o ../../src/libctp/topology.cc
+
 ${OBJECTDIR}/_ext/484457893/version_nb.o: ../../src/libctp/version_nb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/version_nb.o ../../src/libctp/version_nb.cc
-
-${OBJECTDIR}/_ext/484457893/qmtopology.o: ../../src/libctp/qmtopology.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmtopology.o ../../src/libctp/qmtopology.cc
 
 ${OBJECTDIR}/_ext/484457893/fragment.o: ../../src/libctp/fragment.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
@@ -191,11 +166,6 @@ ${OBJECTDIR}/_ext/484457893/qmnblist.o: ../../src/libctp/qmnblist.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmnblist.o ../../src/libctp/qmnblist.cc
-
-${OBJECTDIR}/_ext/484457893/qmapplication2.o: ../../src/libctp/qmapplication2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmapplication2.o ../../src/libctp/qmapplication2.cc
 
 ${OBJECTDIR}/_ext/238600121/sandbox.o: ../../src/libctp/calculators/sandbox.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
