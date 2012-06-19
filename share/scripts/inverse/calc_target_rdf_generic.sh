@@ -39,12 +39,14 @@ mapping="$(csg_get_property cg.inverse.gromacs.ref.mapping)"
 equi_time="$(csg_get_property cg.inverse.gromacs.ref.equi_time)"
 first_frame="$(csg_get_property cg.inverse.gromacs.ref.first_frame)"
 
+opts="$(csg_get_property --allow-empty cg.inverse.gromacs.ref.rdf.opts)"
+
 tasks=$(get_number_tasks)
 #refrdf calculation is maybe done already in a different interaction
 if is_done "refrdf_calculation"; then
   echo "reference rdf calculation is already done"
 else
   msg "Calculating reference rdfs with csg_stat using $tasks tasks"
-  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame --cg "${mapping}" --ext "dist.tgt"
+  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame --cg "${mapping}" --ext "dist.tgt" ${opts}
   mark_done "refrdf_calculation"
 fi
