@@ -38,6 +38,7 @@
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
 #include "calculators/density.h"
+#include "calculators/xmultipole2.h"
 
 
 
@@ -63,6 +64,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<IImport>         ("iimport");
         Calculators().Register<IAnalyze>        ("ianalyze");
         Calculators().Register<Density>         ("density");
+        Calculators().Register<XMP>             ("xmultipole");
 }
 
 }}

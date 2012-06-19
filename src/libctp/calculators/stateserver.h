@@ -192,7 +192,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
                 string emp_file = "emp.table";
                 out_emp = fopen(emp_file.c_str(), "w");
 
-                WriteXMP(out_emp, top);
+                WriteEMP(out_emp, top);
 
                 fclose(out_emp);
         }
@@ -358,7 +358,7 @@ void StateServer::WriteEMP(FILE *out, Topology *top) {
     vector< Segment* > ::iterator sit;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {        
 
-        fprintf(out, "%4d %5s %11s %11s %11s \n",
+        fprintf(out, "%4d %5s %-30s %-30s %-30s \n",
                      (*sit)->getId(),
                      (*sit)->getName().c_str(),
                      ((*sit)->getName()+"_n.mps").c_str(),
@@ -369,8 +369,8 @@ void StateServer::WriteEMP(FILE *out, Topology *top) {
 
 void StateServer::WriteXMP(FILE *out, Topology *top) {
 
-    fprintf(out, "# ID Seg1 Type1 Seg2 Typ2 "
-            "_f1.mps _ct1.mps _f2.mps _ct2.mps \n");
+    fprintf(out, "# JOB_ID JOB_TAG    PAIR_ID    SEG1_ID SEG1_NAME SEG1_MPS  "
+            " SEG2_ID SEG2_NAME SEG2_MPS \n");
 
     QMNBList::iterator nit;
     for (nit = top->NBList().begin();
@@ -379,23 +379,22 @@ void StateServer::WriteXMP(FILE *out, Topology *top) {
 
         QMPair *qmpair = *nit;
 
-        string prefix = "pair_"+boost::lexical_cast<string>(qmpair->getId())
+       string prefix = "pair_"+boost::lexical_cast<string>(qmpair->getId())
                    +"_"+boost::lexical_cast<string>(qmpair->Seg1()->getId())
                    +"_"+boost::lexical_cast<string>(qmpair->Seg2()->getId());
+       string tag = "tag_xxx";
 
-
-
-        fprintf(out, "%5d %4d %5s %4d %5s %12s %12s %12s %12s \n",
+        fprintf(out, "%5d %5s   %5d    %4d %5s %-30s   %4d %5s %-30s \n",
+                     qmpair->getId(),
+                     "tag_xxx",
                      qmpair->getId(),
                      qmpair->first->getId(),
                      qmpair->first->getName().c_str(),
+                     (prefix+"_1.mps").c_str(),
                      qmpair->second->getId(),
                      qmpair->second->getName().c_str(),
-                     (prefix+"_f1.mps").c_str(),
-                     (prefix+"_ct1.mps").c_str(),
-                     (prefix+"_f2.mps").c_str(),
-                     (prefix+"_ct2.mps").c_str());
-
+                     (prefix+"_2.mps").c_str());
+    }
 }
 
 
