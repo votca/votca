@@ -39,8 +39,8 @@ public:
     {
     public:
 
-        XInteractor(Topology *top, EMultipole *em) : _top(top), _em(em) {};
-        XInteractor() : _top(NULL), _em(NULL) {};
+        XInteractor(Topology *top, XMP *xm) : _top(top), _xm(xm) {};
+        XInteractor() : _top(NULL), _xm(NULL) {};
        ~XInteractor() {};
 
         // UNITS IN INPUT FILES
@@ -245,10 +245,46 @@ public:
         inline double T22s_22c() { return R5 * 0.5 * (35*rbx*rbx*rax*ray - 35*rby*rby*rax*ray + 10*rbx*rax*cyx + 10*rbx*ray*cxx - 10*rby*rax*cyy - 10*rby*ray*cxy + 2*cxx*cyx - 2*cxy*cyy); }
 
         Topology        *_top;
-        EMultipole     *_em;
+        XMP             *_xm;
 
     };
 
+    // +++++++++++++++++++++++++++ //
+    // Job Operator (Thread class) //
+    // +++++++++++++++++++++++++++ //
+
+    class JobXMP : public Thread
+    {
+    public:
+
+        JobXMP(int id,     Topology *top,        XMP *master)
+                : _id(id),      _top(top),    _master(master)
+                   { _actor = XInteractor(top,_master); };
+
+       ~JobXMP();
+
+        int  getId() { return _id; }
+        void setId(int id) { _id = id; }
+
+        void InitSlotData(Topology *top) { ; }
+        void Run(void) { ; }
+        void EvalSite(Topology *top, Segment *seg) { ; }
+
+
+
+    public:
+
+        int                           _id;
+        Topology                     *_top;
+        XMP                          *_master;
+
+        vector< Segment* >           _segsPolSphere; // Segments    in c/o 0-1
+        vector< Segment* >           _segsOutSphere; // Segments    in c/0 1-2
+        vector< vector<PolarSite*> > _polsPolSphere; // Polar sites in c/o 0-1
+        vector< vector<PolarSite*> > _polsOutSphere; // Polar sites in c/o 1-2
+        vector< vector<PolarSite*> > _polarSites;    // Copy of top polar sites
+        XInteractor                  _actor;
+    };
 
 
 private:
