@@ -1,3 +1,23 @@
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+
 #include <votca/ctp/fragment.h>
 
 using namespace std;
@@ -110,7 +130,6 @@ void Fragment::calcPos(string tag) {
 
 
 void Fragment::Rigidify(bool Auto) {
-
 
     // +++++++++++++++++++++++++++++++++++++++++ //
     // Establish reference atoms for local frame //
@@ -262,6 +281,22 @@ void Fragment::Rigidify(bool Auto) {
         yQM = vec(0,1,0);
         zQM = vec(0,0,1);
 
+    }
+
+    else {
+        cout << endl
+             << "NOTE: Invalid definition of local frame in fragment "
+             << this->getName();
+        cout << ". Assuming point particle for mapping. "
+             << endl;
+
+        xMD = vec(1,0,0);
+        yMD = vec(0,1,0);
+        zMD = vec(0,0,1);
+        xQM = vec(1,0,0);
+        yQM = vec(0,1,0);
+        zQM = vec(0,0,1);
+        
     }
     
     // +++++++++++++++++ //

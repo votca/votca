@@ -1,15 +1,35 @@
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+
 #ifndef __STATESERVER_H
 #define __STATESERVER_H
 
 
-#include <votca/ctp/qmcalculator2.h>
+#include <votca/ctp/qmcalculator.h>
 
 
 
 
 namespace votca { namespace ctp {
 
-class StateServer : public QMCalculator2
+class StateServer : public QMCalculator
 {
 public:
 
@@ -24,14 +44,24 @@ public:
     void DownloadTopology(FILE *out, Topology *top);
     void DownloadSegments(FILE *out, Topology *top);
     void DownloadPairs(FILE *out, Topology *top);
-    // TODO Extend trajectory writers to work with ctp Topology object
+    void DownloadEList(FILE *out, Topology *top);
+    void DownloadIList(FILE *out, Topology *top);
     void DownloadCoords(FILE *out, Topology *top) { };
+
+
+    void WriteXMP(FILE *out, Topology *top);
+    void WriteEMP(FILE *out, Topology *top);
 
 private:
 
     string _outfile;
     string _pdbfile;
     vector< string > _keys;
+
+
+
+    string _xmp_alloc_file;
+    string _emp_alloc_file;
 
 };
 
@@ -82,49 +112,96 @@ bool StateServer::EvaluateFrame(Topology *top) {
     out = fopen(outfile.c_str(), "w");
     for (key = _keys.begin(); key < _keys.end(); key++ ) {
 
+        cout << endl << "... ... Write " << flush;
+
         if (*key == "topology") {
 
-                cout << endl << "... ... Write topology ";
+                cout << "topology, ";
 
-                fprintf(out, "           // +++++++++++++++++++ // \n");
-                fprintf(out, "           // MD|QM Topology Info // \n");
-                fprintf(out, "           // +++++++++++++++++++ // \n\n");
+                fprintf(out, "           # +++++++++++++++++++ # \n");
+                fprintf(out, "           # MD|QM Topology Info # \n");
+                fprintf(out, "           # +++++++++++++++++++ # \n\n");
 
                 DownloadTopology(out, top);
         }
         else if (*key == "sites") {
 
-                cout << endl << "... ... Write sites ";
+                cout << "sites, ";
 
-                fprintf(out, "           // ++++++++++++++++++++ // \n");
-                fprintf(out, "           // Segments in Database // \n");
-                fprintf(out, "           // ++++++++++++++++++++ // \n\n");
+                fprintf(out, "           # ++++++++++++++++++++ # \n");
+                fprintf(out, "           # Segments in Database # \n");
+                fprintf(out, "           # ++++++++++++++++++++ # \n\n");
 
                 DownloadSegments(out, top);
         }
 
         else if (*key == "pairs") {
 
-                cout << endl << "... ... Write pairs ";
+                cout << "pairs, ";
 
-                fprintf(out, "           // +++++++++++++++++ // \n");
-                fprintf(out, "           // Pairs in Database // \n");
-                fprintf(out, "           // +++++++++++++++++ // \n\n");
+                fprintf(out, "           # +++++++++++++++++ # \n");
+                fprintf(out, "           # Pairs in Database # \n");
+                fprintf(out, "           # +++++++++++++++++ # \n\n");
 
                 DownloadPairs(out, top);
 
         }
 
-        else if (*key == "trajectory") {
+        else if (*key == "ilist") {
 
-            cout << endl << "... ... Write trajectory";
-            writeTrajectory = true;
+                cout << "integrals, ";
+
+                fprintf(out, "           # +++++++++++++++++++++ # \n");
+                fprintf(out, "           # Integrals in Database # \n");
+                fprintf(out, "           # +++++++++++++++++++++ # \n\n");
+
+                DownloadIList(out, top);
+
+        }
+
+        else if (*key == "elist") {
+
+                cout << "energies, ";
+
+                fprintf(out, "           # +++++++++++++++++++++++++ # \n");
+                fprintf(out, "           # Site energies in Database # \n");
+                fprintf(out, "           # +++++++++++++++++++++++++ # \n\n");
+
+                DownloadEList(out, top);
+
+        }
+
+        else if (*key == "xmp") {
+
+                cout << "XMP input, ";
+
+                FILE *out_xmp;
+                string xmp_file = "xmp.table";
+                out_xmp = fopen(xmp_file.c_str(), "w");
+
+                WriteXMP(out_xmp, top);
+
+                fclose(out_xmp);
+        }
+
+        else if (*key == "emp") {
+
+                cout << "EMP input, ";
+
+                FILE *out_emp;
+                string emp_file = "emp.table";
+                out_emp = fopen(emp_file.c_str(), "w");
+
+                WriteEMP(out_emp, top);
+
+                fclose(out_emp);
         }
 
         else {
                 cout << "ERROR (Invalid key " << *key << ") ";
         }
-        
+
+        cout << "done. " << flush;
 
         fprintf(out, "\n\n");
     }
@@ -161,8 +238,6 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
     }
 
-    cout << ". ";
-
 }
 
 void StateServer::DownloadTopology(FILE *out, Topology *top) {
@@ -182,10 +257,16 @@ void StateServer::DownloadTopology(FILE *out, Topology *top) {
 
     fprintf(out, "  Step number %7d \n", top->getStep());
     fprintf(out, "  Time          %2.3f \n", top->getTime());
-    fprintf(out, "  # Molecules %7d \n", top->Molecules().size());
-    fprintf(out, "  # Segments  %7d \n", top->Segments().size());
-    fprintf(out, "  # Atoms     %7d \n", top->Atoms().size());
-    fprintf(out, "  # Pairs     %7d \n", top->NBList().size());
+
+    int N_mol = top->Molecules().size();
+    int N_seg = top->Segments().size();
+    int N_atm = top->Atoms().size();
+    int N_nbs = top->NBList().size();
+
+    fprintf(out, "  # Molecules %7d \n", N_mol);
+    fprintf(out, "  # Segments  %7d \n", N_seg);
+    fprintf(out, "  # Atoms     %7d \n", N_atm);
+    fprintf(out, "  # Pairs     %7d \n", N_nbs);
     
 }
 
@@ -219,15 +300,14 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
     }
 }
 
-
 void StateServer::DownloadPairs(FILE *out, Topology *top) {
-    QMNBList2::iterator nit;
+    QMNBList::iterator nit;
 
     for (nit = top->NBList().begin();
          nit != top->NBList().end();
          nit++) {
 
-        QMPair2 *pair = *nit;
+        QMPair *pair = *nit;
 
         int ghost;
         if (pair->HasGhost()) { ghost = 1; }
@@ -246,6 +326,78 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
                 0.0 ); // pair->getRate21() );
     }
 }
+
+void StateServer::DownloadIList(FILE *out, Topology *top) {
+    QMNBList::iterator nit;
+    for (nit = top->NBList().begin();
+         nit != top->NBList().end();
+         ++nit) {
+        QMPair *pair = *nit;
+
+        fprintf(out, "%5d %5d %5d e %4.7e h %4.7e dr %4.7f pbc %1d\n",
+        pair->getId(), 
+        pair->Seg1()->getId(),
+        pair->Seg2()->getId(),
+        pair->getJeff2(-1),
+        pair->getJeff2(+1),
+        pair->Dist(),
+        (pair->HasGhost()) ? 1 : 0);
+    }
+}
+
+void StateServer::DownloadEList(FILE *out, Topology *top) {
+    ;
+}
+
+
+
+void StateServer::WriteEMP(FILE *out, Topology *top) {
+
+    fprintf(out, "# ID   TYPE    _n.mps    _e.mps    _h.mps \n");
+
+    vector< Segment* > ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {        
+
+        fprintf(out, "%4d %5s %-30s %-30s %-30s \n",
+                     (*sit)->getId(),
+                     (*sit)->getName().c_str(),
+                     ((*sit)->getName()+"_n.mps").c_str(),
+                     ((*sit)->getName()+"_e.mps").c_str(),
+                     ((*sit)->getName()+"_h.mps").c_str());
+    }
+}
+
+void StateServer::WriteXMP(FILE *out, Topology *top) {
+
+    fprintf(out, "# JOB_ID JOB_TAG    PAIR_ID    SEG1_ID SEG1_NAME SEG1_MPS  "
+            " SEG2_ID SEG2_NAME SEG2_MPS \n");
+
+    QMNBList::iterator nit;
+    for (nit = top->NBList().begin();
+         nit != top->NBList().end();
+         nit++) {
+
+        QMPair *qmpair = *nit;
+
+       string prefix = "pair_"+boost::lexical_cast<string>(qmpair->getId())
+                   +"_"+boost::lexical_cast<string>(qmpair->Seg1()->getId())
+                   +"_"+boost::lexical_cast<string>(qmpair->Seg2()->getId());
+       string tag = "tag_xxx";
+
+        fprintf(out, "%5d %5s   %5d    %4d %5s %-30s   %4d %5s %-30s \n",
+                     qmpair->getId(),
+                     "tag_xxx",
+                     qmpair->getId(),
+                     qmpair->first->getId(),
+                     qmpair->first->getName().c_str(),
+                     (prefix+"_1.mps").c_str(),
+                     qmpair->second->getId(),
+                     qmpair->second->getName().c_str(),
+                     (prefix+"_2.mps").c_str());
+    }
+}
+
+
 
 }}
 

@@ -1,8 +1,28 @@
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+
 #ifndef _CALC_INTEGRALS_H
 #define	_CALC_INTEGRALS_H
 
-#include <votca/ctp/qmpair2.h>
-#include <votca/ctp/paircalculator2.h>
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/paircalculator.h>
 #include <votca/moo/mol_and_orb.h>
 
 namespace votca { namespace ctp {
@@ -29,10 +49,10 @@ public:
     string  Identify() { return "IZindo"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    EvalPair(Topology *top, QMPair2 *pair, int slot);
+    void    EvalPair(Topology *top, QMPair *pair, int slot);
 
-    void    CTP2MOO2CTP(QMPair2 *pair, int slot, int state);
-    void    CalculateJ(QMPair2 *pair);
+    void    CTP2MOO2CTP(QMPair *pair, int slot, int state);
+    void    CalculateJ(QMPair *pair);
     void    CleanUp();
 
 
@@ -174,7 +194,7 @@ void IZindo::ParseOrbitalsXML(Topology *top, Property *opt) {
 }
 
 
-void IZindo::EvalPair(Topology *top, QMPair2 *qmpair, int slot) {
+void IZindo::EvalPair(Topology *top, QMPair *qmpair, int slot) {
 
     this->LockCout();
     cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << flush;
@@ -210,7 +230,7 @@ void IZindo::EvalPair(Topology *top, QMPair2 *qmpair, int slot) {
 
 
 
-void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot, int state) {
+void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
 
     // ++++++++++++++++++++++ //
     // Initialize MOO Objects //
@@ -320,7 +340,7 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot, int state) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        morb1->rotate_someatoms(atmIdcs, rotQM2MD,
+        morb1->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  morb1);
 
@@ -362,7 +382,7 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot, int state) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        morb2->rotate_someatoms(atmIdcs, rotQM2MD,
+        morb2->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  morb2);
 
@@ -416,7 +436,7 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot, int state) {
 }
 
 
-void IZindo::CalculateJ(QMPair2 *pair) {
+void IZindo::CalculateJ(QMPair *pair) {
 
     Segment *seg1 = pair->Seg1PbCopy();
     Segment *seg2 = pair->Seg2PbCopy();
@@ -451,7 +471,7 @@ void IZindo::CalculateJ(QMPair2 *pair) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        _morb1->rotate_someatoms(atmIdcs, rotQM2MD,
+        _morb1->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  _morb1);
 
@@ -493,7 +513,7 @@ void IZindo::CalculateJ(QMPair2 *pair) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        _morb2->rotate_someatoms(atmIdcs, rotQM2MD,
+        _morb2->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  _morb2);
 

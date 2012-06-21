@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,111 +17,167 @@
  *
  */
 
-#ifndef __NEIGHBORLIST_H
-#define __NEIGHBORLIST_H
 
-#include <votca/ctp/qmcalculator.h>
+#ifndef __NEIGHBORLIST2_H
+#define __NEIGHBORLIST2_H
+
 #include <votca/tools/globals.h>
+#include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/qmpair.h>
+
+namespace TOOLS = votca::tools;
 
 namespace votca { namespace ctp {
 
-/** \brief Constructs a list of neighboring conjugated segments.
 
-Callname: neighborlist
-
-Two segments are added to this list if the distance between centers of mass of any their rigid fragments is below a certain cutoﬀ. This allows neighbors to be selected on a criterion of minimum distance of approach rather than center of mass distance, which is useful for molecules with anisotropic shapes.
-
-*/
 class Neighborlist : public QMCalculator
 {
 public:
-    Neighborlist() {}
-    ~Neighborlist() {}
 
-    const char *Description() { return "Constructs a list of neighboring conjugated segments"; }
+    Neighborlist() { };
+   ~Neighborlist() { };
 
-    void Initialize(QMTopology *top, Property *options);
-    bool EvaluateFrame(QMTopology *top);
+    string Identify() { return "Neighborlist"; }
+    
+    void Initialize(Topology *top, Property *options);
+    bool EvaluateFrame(Topology *top);
 
-//protected:
 private:
-    vector<double> _cutoff;
-    vector<string> _typeA;
-    vector<string> _typeB;
+
+    map< string, map<string,double> > _cutoffs;
+    bool                              _useConstantCutoff;
+    double                            _constantCutoff;
 
 };
+    
 
-inline void Neighborlist::Initialize(QMTopology *top, Property *options){
+void Neighborlist::Initialize(Topology* top, Property *options) {
 
-    // list of all sub-properties of options.neighborlist.segments
-    list<Property *> segments = options->Select("options.neighborlist.segments");
-    list<Property *>::iterator property_iterator;
+    string key = "options.neighborlist";
 
-    cout << "Neighbor list is based on the following cutoffs [type:type:cutoff]" << endl;
+    list< Property* > segs = options->Select(key+".segments");
+    list< Property* > ::iterator segsIt;
 
-    // loop over these subproperites
-    for (property_iterator = segments.begin(); property_iterator != segments.end(); ++property_iterator){
-        string types = (*property_iterator)->get("type").as<string>();
-        double  cutoff = (*property_iterator)->get("cutoff").as<double>();
+    for (segsIt = segs.begin();
+         segsIt != segs.end();
+         segsIt++) {
+
+        string types = (*segsIt)->get("type").as<string>();
+        double cutoff = (*segsIt)->get("cutoff").as<double>();
 
         Tokenizer tok(types, " ");
-        vector <string> segment_types;
-        tok.ToVector(segment_types);
+        vector< string > names;
+        tok.ToVector(names);
 
-        // check if user provided two segment types
-        if ( segment_types.size() != 2) std::runtime_error("error, two segment types separated by a space are needed for each cutoff");
+        if (names.size() != 2) {
+            cout << "ERROR: Faulty pair definition for cut-off's: "
+                 << "Need two segment names separated by a ' '" << endl;
+            throw std::runtime_error("Error in options file.");
+        }
 
-        // sanity check is needed here to insure that segment type exists
-        top->GetCrgUnitTypeByName(segment_types[0]);
-        top->GetCrgUnitTypeByName(segment_types[1]);
-
-        cout << " " << segment_types[0] << ":" << segment_types[1] << ":" << cutoff << "" << endl;
-
-        _cutoff.push_back(cutoff);
-        _typeA.push_back(segment_types[0]);
-        _typeB.push_back(segment_types[1]);
+        _cutoffs[names[0]][names[1]] = cutoff;
+        _cutoffs[names[1]][names[0]] = cutoff;
 
     }
-    
-    cout <<"Using "<<_cutoff.size()<< " different types of pairs."<<endl;
 
-  }
-
-inline bool Neighborlist::EvaluateFrame(QMTopology *top)
-{
-    top->nblist().Cleanup();
-
-    int pairtype;
-
-    for (pairtype = 0; pairtype< _cutoff.size(); pairtype++) {
-
-    //cout <<"TypeA:"<< _typeA[pairtype].c_str() << " TypeB:"<< _typeB[pairtype].c_str()<< " Cutoff:"<<_cutoff[pairtype]<<endl;
-    top->nblist().setCutoff(_cutoff[pairtype]);
-    BeadList list1, list2;
-    list1.Generate(*top, _typeA[pairtype]);
-    list2.Generate(*top, _typeB[pairtype]);
-
-      // is it same types or different types?
-        if(_typeA[pairtype]== _typeB[pairtype])
-            top->nblist().Generate(list1);
-        else
-        top->nblist().Generate(list1, list2);
+    if (options->exists(key+".constant")) {
+        _useConstantCutoff = true;
+        _constantCutoff = options->get(key+".constant").as< double >();
     }
-       if (tools::globals::verbose) {
-       QMNBList& nblist=top->nblist();
-       cout << "[idA:idB] com distance" << endl;
-       for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
-
-       QMPair *pair = *ipair;
-       QMCrgUnit *crg1 = pair->Crg1PBCCopy();
-       QMCrgUnit *crg2 = pair->Crg2PBCCopy();
-       cout << " [" << crg1->getId() << ":" << crg2->getId()<< "] " << pair->dist()<< endl;
-       //cout<<"type A:" << crg1->getType().GetName() <<" name A:" << crg1->getName() << " id A:" << crg1->getId()<< endl;
-    }
+    else {
+        _useConstantCutoff = false;
     }
 }
 
+bool Neighborlist::EvaluateFrame(Topology *top) {
+
+    top->NBList().Cleanup();
+
+    vector< Segment* > ::iterator segit1;
+    vector< Segment* > ::iterator segit2;
+    vector< Fragment* > ::iterator fragit1;
+    vector< Fragment* > ::iterator fragit2;
+
+    double cutoff;
+    vec r1;
+    vec r2;
+
+    for (segit1 = top->Segments().begin();
+            segit1 < top->Segments().end();
+            segit1++) {
+        
+            Segment *seg1 = *segit1;
+
+        for (segit2 = segit1 + 1;
+                segit2 < top->Segments().end();
+                segit2++) {
+            
+            Segment *seg2 = *segit2;
+
+            if (!_useConstantCutoff) {
+                // Find cut-off
+                try {
+                    cutoff = _cutoffs.at(seg1->getName()).at(seg2->getName());
+                }
+                catch (out_of_range) {
+                    cout << "ERROR: No cut-off specified for segment pair "
+                         << seg1->getName() << " | " << seg2->getName() << ". "
+                         << endl;
+                    throw std::runtime_error("Missing input in options file.");
+                }
+            }
+
+            else { cutoff = _constantCutoff; }
+
+
+            bool stopLoop = false;
+            for (fragit1 = seg1->Fragments().begin();
+                    fragit1 < seg1->Fragments().end();
+                    fragit1 ++) {
+
+                if (stopLoop) { break; }
+
+                for (fragit2 = seg2->Fragments().begin();
+                        fragit2 < seg2->Fragments().end();
+                        fragit2++) {
+
+
+                    r1 = (*fragit1)->getPos();
+                    r2 = (*fragit2)->getPos();
+                    if( abs( top->PbShortestConnect(r1, r2) ) > cutoff ) {
+                        continue;
+                    }
+                    else {
+                        top->NBList().Add(seg1, seg2);
+                        stopLoop = true;
+                        break;
+                    }                
+
+                } /* exit loop frag2 */
+            } /* exit loop frag1 */
+        } /* exit loop seg2 */
+    } /* exit loop seg1 */
+
+    cout << endl << "... ... Created " << top->NBList().size() << " pairs.";
+
+    
+    if (TOOLS::globals::verbose) {
+        cout << "[idA:idB] com distance" << endl;
+        QMNBList& nblist = top->NBList();
+        for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
+                QMPair *pair = *ipair;
+                Segment* segment1 = pair->Seg1PbCopy();
+                Segment* segment2 = pair->Seg2PbCopy();
+                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist()<< endl;
+        }
+    }
+
+    
+}
+
+
+
+
 }}
 
-#endif  /* __NEIGHBORLIST_H */
+#endif  /* __NEIGHBORLIST2_H */

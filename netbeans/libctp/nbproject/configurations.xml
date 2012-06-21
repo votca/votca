@@ -2,61 +2,46 @@
 <configurationDescriptor version="79">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
-      <itemPath>../../src/libctp/calculators/contkmc.h</itemPath>
-      <itemPath>../../src/libctp/calculators/ecorrelation.cc</itemPath>
-      <itemPath>../../src/libctp/calculators/ecorrelation.h</itemPath>
-      <itemPath>../../src/libctp/calculators/ecoulomb.cc</itemPath>
-      <itemPath>../../src/libctp/calculators/ecoulomb.h</itemPath>
-      <itemPath>../../src/libctp/calculators/egaussian.cc</itemPath>
-      <itemPath>../../src/libctp/calculators/egaussian.h</itemPath>
-      <itemPath>../../src/libctp/calculators/ehistogram.h</itemPath>
-      <itemPath>../../src/libctp/calculators/emultipole.cc</itemPath>
-      <itemPath>../../src/libctp/calculators/emultipole2.h</itemPath>
+      <itemPath>../../src/libctp/calculators/density.h</itemPath>
+      <itemPath>../../src/libctp/calculators/eanalyze.h</itemPath>
+      <itemPath>../../src/libctp/calculators/einternal.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/einternal.h</itemPath>
+      <itemPath>../../src/libctp/calculators/emultipole.h</itemPath>
+      <itemPath>../../src/libctp/calculators/emultipole_stdal.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/emultipole_stdal.h</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
-      <itemPath>../../src/libctp/calculators/etinker.h</itemPath>
-      <itemPath>../../src/libctp/calculators/ihistogram.h</itemPath>
+      <itemPath>../../src/libctp/calculators/izindo.cc</itemPath>
       <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
+      <itemPath>../../src/libctp/calculators/neighborlist.cc</itemPath>
       <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
-      <itemPath>../../src/libctp/calculators/oboltzmann.h</itemPath>
-      <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
+      <itemPath>../../src/libctp/calculators/rates.cc</itemPath>
       <itemPath>../../src/libctp/calculators/rates.h</itemPath>
-      <itemPath>../../../../include/votca/ctp/sandbox.cc</itemPath>
-      <itemPath>../../src/libctp/calculators/sqlitewriter.h</itemPath>
+      <itemPath>../../src/libctp/calculators/sandbox.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/sandbox.h</itemPath>
+      <itemPath>../../src/libctp/calculators/stateserver.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/stateserver.h</itemPath>
+      <itemPath>../../src/libctp/calculators/tdump.cc</itemPath>
       <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
-      <itemPath>../../src/libctp/calculators/vaverage.h</itemPath>
-      <itemPath>../../src/libctp/calculators/writexml.h</itemPath>
+      <itemPath>../../src/libctp/calculators/xmultipole.h</itemPath>
+      <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
-      <itemPath>../../include/votca/ctp/calculatorfactory2.h</itemPath>
-      <itemPath>../../include/votca/ctp/customfields.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
+      <itemPath>../../include/votca/ctp/parallelpaircalc.h</itemPath>
+      <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
+      <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/qmapplication.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmapplication2.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmbead.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmcalculator2.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmcrgunit.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmdatabase2.h</itemPath>
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmnblist2.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmpair2.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmtopology.h</itemPath>
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
-      <itemPath>../../include/votca/ctp/segmenttype.h</itemPath>
-      <itemPath>../../include/votca/ctp/sitecalculator.h</itemPath>
-      <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
-      <itemPath>../../include/votca/ctp/statesaversqlite2.h</itemPath>
-      <itemPath>../../include/votca/ctp/topology.h</itemPath>
-      <itemPath>../../include/votca/ctp/version.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
