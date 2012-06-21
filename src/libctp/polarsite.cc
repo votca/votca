@@ -227,6 +227,85 @@ void PolarSite::Depolarize() {
 }
 
 
+void PolarSite::WriteChkLine(FILE *out, bool split_dpl, string format, double spacing) {
+
+    string unit = "";
+
+    if (format == "xyz") {
+        unit = "angstrom";
+    }
+    else if (format == "gaussian") {
+        unit = "angstrom";
+    }
+
+    // Take care of unit conversion
+    double int2ext;
+
+    if (unit == "nanometer") {
+        int2ext = 1.;
+    }
+    else if (unit == "angstrom") {
+        int2ext = 10.;
+    }
+    else if (unit == "bohr") {
+        assert(false);
+    }
+
+    if (format == "xyz") {
+        fprintf(out, "%2s ", _name.c_str());
+    }
+
+    // Print charge line
+    fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+            _pos.getX()*int2ext,
+            _pos.getY()*int2ext,
+            _pos.getZ()*int2ext,
+            Q00);
+    
+
+    // Split dipole moment onto charges (if desired)
+    if (split_dpl) {
+
+        vec tot_dpl = vec(U1x,U1y,U1z);
+
+        if (_rank > 0) { tot_dpl += vec(Q1x,Q1y,Q1z); }
+
+        if (_rank == 2) {
+            cout << endl
+                 << "WARNING: Quadrupoles are not split onto point charges."
+                 << endl;
+        }
+
+        double a        = spacing;
+        double mag_d    = abs(tot_dpl);
+        vec    dir_d_0  = tot_dpl.normalize();
+        vec    dir_d    = dir_d_0.normalize();
+        vec    A        = _pos + 0.5 * a * dir_d;
+        vec    B        = _pos - 0.5 * a * dir_d;
+        double qA       = mag_d / a;
+        double qB       = - qA;
+
+        if (format == "xyz") {
+            fprintf(out, " A ");
+        }
+        fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+                A.getX()*int2ext,
+                A.getY()*int2ext,
+                A.getZ()*int2ext,
+                qA);
+
+        if (format == "xyz") {
+            fprintf(out, " A ");
+        }
+        fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+                B.getX()*int2ext,
+                B.getY()*int2ext,
+                B.getZ()*int2ext,
+                qB);
+    }
+
+}
+
 void PolarSite::PrintInfo(std::ostream &out) {
 
     cout << "MPOLE " << this->getId() << " " << this->getName()

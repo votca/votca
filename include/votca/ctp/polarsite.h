@@ -47,7 +47,7 @@ class PolarSite
     friend class Interactor3;
     friend class InteractorMod;
 
-    friend class XMultipole;
+    friend class XMP;
     friend class XInteractor;
 
 public:
@@ -104,6 +104,7 @@ public:
     void            PrintInfoInduce(std::ostream &out);
     void            PrintInfoVisual(FILE *out);
     void            PrintPDB(FILE *out, vec shift);
+    void            WriteChkLine(FILE *, bool, string, double);
 
 
 

@@ -250,6 +250,101 @@ public:
     };
 
     // +++++++++++++++++++++++++++ //
+    // XJob (distr. among threads) //
+    // +++++++++++++++++++++++++++ //
+
+    class XJob
+    {
+    public:
+
+        XJob(int id,     string tag, int pairId,
+             int seg1Id, int seg2Id, string mps1,
+             string mps2, Topology *top) :
+
+             _id(id),         _tag(tag),       _pairId(pairId),
+             _seg1Id(seg1Id), _seg2Id(seg2Id), _mps1(mps1),
+             _mps2(mps2),     _start_from_cpt(false) {
+
+             _seg1 = top->getSegment(seg1Id);
+             _seg2 = top->getSegment(seg2Id);
+             _pair = top->NBList().FindPair(_seg1,_seg2);
+
+             if (_pair == NULL) {
+                cout << endl
+                     << "ERROR: No such pair " << pairId
+                     << "(SEG1 " << seg1Id << ", SEG2 " << seg2Id << "). "
+                     << flush;
+                throw runtime_error("Pair specs do not match topology.");
+             }
+             assert ( pairId == _pair->getId() );
+
+             // Watch out for periodic-boundary correction
+             _center = ( _pair->Seg1PbCopy()->Atoms().size()
+                       * _pair->Seg1PbCopy()->getPos()
+
+                       + _pair->Seg2PbCopy()->Atoms().size()
+                       * _pair->Seg2PbCopy()->getPos() )
+
+                       / (_pair->Seg1PbCopy()->Atoms().size()
+                       +  _pair->Seg2PbCopy()->Atoms().size() );
+       }
+
+       ~XJob() {};
+
+       int      getId()                     { return _id; }
+       string   getTag()                    { return _tag; }
+       int      getPairId()                 { return _pairId; }
+       int      getSeg1Id()                 { return _seg1Id; }
+       int      getSeg2Id()                 { return _seg2Id; }
+       string   getMPS1()                   { return _mps1; }
+       string   getMPS2()                   { return _mps2; }
+
+       void     setIter(int iter)           { _iter = iter; }
+       void     setSizePol(int size)        { _sizePol = size; }
+       void     setSizeShell(int size)      { _sizeShell = size; }
+       void     setEnergy(double energy)    { _energy = energy; }
+
+       void     WriteInfoLine(FILE *out) {
+
+           fprintf(out, "%5d %-20s  ENER %+4.7f ITER %3d SPHERE %4d SHELL %4d"
+                        " CENTER %4.7f %4.7f %4.7f \n",
+                        _id, _tag.c_str(), _energy, _iter, _sizePol, _sizeShell,
+                        _center.getX(), _center.getY(), _center.getZ() );
+       }
+
+       bool     StartFromCPT()  { return _start_from_cpt; }
+
+       Segment *Seg1()          { return _seg1; }
+       Segment *Seg2()          { return _seg2; }
+       QMPair  *Pair()          { return _pair; }
+       vec     &Center()        { return _center; }
+
+    private:
+
+       int          _id;
+       string       _tag;
+       int          _pairId;
+       int          _seg1Id;
+       int          _seg2Id;
+       string       _mps1;
+       string       _mps2;
+
+       bool         _start_from_cpt;
+
+       QMPair      *_pair;
+       Segment     *_seg1;
+       Segment     *_seg2;
+       vec          _center;
+
+
+       int          _iter;
+       int          _sizePol;
+       int          _sizeShell;
+       double       _energy;
+
+    };
+
+    // +++++++++++++++++++++++++++ //
     // Job Operator (Thread class) //
     // +++++++++++++++++++++++++++ //
 
@@ -258,17 +353,23 @@ public:
     public:
 
         JobXMP(int id,     Topology *top,        XMP *master)
-                : _id(id),      _top(top),    _master(master)
+                : _id(id),          _top(top),       _master(master)
                    { _actor = XInteractor(top,_master); };
 
-       ~JobXMP();
+       ~JobXMP() {};
 
-        int  getId() { return _id; }
-        void setId(int id) { _id = id; }
+        int         getId() { return _id; }
+        void        setId(int id) { _id = id; }
 
-        void InitSlotData(Topology *top) { ; }
-        void Run(void) { ; }
-        void EvalSite(Topology *top, Segment *seg) { ; }
+        void        InitSlotData(Topology *top);
+        void        Run(void);
+        void        EvalJob(Topology *top, XJob *job);
+
+        int         Induce(int state, XJob *job);
+        double      Energy(int state, XJob *job);
+        double      EnergyStatic(int state, XJob *job);
+
+        
 
 
 
@@ -277,15 +378,20 @@ public:
         int                           _id;
         Topology                     *_top;
         XMP                          *_master;
+        XJob                         *_job;
 
-        vector< Segment* >           _segsPolSphere; // Segments    in c/o 0-1
-        vector< Segment* >           _segsOutSphere; // Segments    in c/0 1-2
-        vector< vector<PolarSite*> > _polsPolSphere; // Polar sites in c/o 0-1
-        vector< vector<PolarSite*> > _polsOutSphere; // Polar sites in c/o 1-2
-        vector< vector<PolarSite*> > _polarSites;    // Copy of top polar sites
+        vector< Segment* >           _segsPolSphere;  // Segments    in c/o 0-1
+        vector< Segment* >           _segsOutSphere;  // Segments    in c/0 1-2
+        vector< vector<PolarSite*> > _polsPolSphere;  // Polar sites in c/o 0-1
+        vector< vector<PolarSite*> > _polsOutSphere;  // Polar sites in c/o 1-2
+        vector< vector<PolarSite*> > _polarSites;     // Copy of top polar sites
+        vector< vector<PolarSite*> > _polarSites_job; // Adapted to job specs
         XInteractor                  _actor;
     };
 
+    XJob               *RequestNextJob(int id, Topology *top);
+    void                LockCout() { _coutMutex.Lock(); }
+    void                UnlockCout() { _coutMutex.Unlock(); }
 
 private:
 
@@ -298,19 +404,29 @@ private:
     string                         _xml_file;
 
     // Job info : JOB_ID PAIR_ID MPS_1 MPS_2 TAG
+    vector<XJob*>                  _XJobs;
+    vector<XJob*>::iterator        _nextXJob;
+    Mutex                          _nextJobMutex;
+    Mutex                          _coutMutex;
+    Mutex                          _logMutex;
+    bool                           _maverick;
+
+    vector<int>                    _jobIds;
     map<int,string>                _jobId_jobTag;
     map<int,int>                   _jobId_pairId;
     map<int,string>                _jobId_mpsFile1;
     map<int,string>                _jobId_mpsFile2;
     map<int, pair<int,int> >       _pairId_seg1Id_seg2Id;
+    vector<int>::iterator          _nextJob;
 
-    // Allocate .mps files to segments (neutral, electron, hole)
-    map<int,string>                 _segId_mpsFile_n;   // <=> charge state  0
-    map<int,string>                 _segId_mpsFile_e;   // <=> charge state -1
-    map<int,string>                 _segId_mpsFile_h;   // <=> charge state +1  
+    // Allocate .mps files to segments (n 0, e -1, h +1)
+    map<int,string>                 _segId_mpsFile_n;
+    map<int,string>                 _segId_mpsFile_e;
+    map<int,string>                 _segId_mpsFile_h;
 
-    // Store polar site containers, one for each GDMA (= .mps) file
+    // Store polar site containers, one for each .mps file
     map<string,vector<PolarSite*> > _mpsFile_pSites;
+    map<string,vector<PolarSite*> > _mpsFile_pSites_job;
 
     // Allocate polar sites to fragments in segments
     map<string, bool>               _map2md;
@@ -320,29 +436,177 @@ private:
     map<string, vector<double> >    _alloc_frag_weights;
 
     string                          _pdb_check;
+    bool                            _write_chk;
+    string                          _write_chk_suffix;
+    bool                            _chk_split_dpl;
+    double                          _chk_dpl_spacing;
+    string                          _chk_format;
+
+
+    // ++++++++++++++++++++++++++++++++++++++++ //
+    // INDUCTION + ENERGY EVALUATION            //
+    // ++++++++++++++++++++++++++++++++++++++++ //
+
+    // Control options
+    bool                            _induce;
+
+    // Interaction parameters
+    bool                            _useCutoff;
+    double                          _cutoff;
+    double                          _cutoff2;
+    bool                            _useExp;
+    double                          _aDamp;
+    bool                            _useScaling;
+    vector<double>                  _scale1;
+
+    // Convergence parameters
+    float                           _wSOR_N;
+    float                           _wSOR_C;
+    double                          _epsTol;
+    int                             _maxIter;
+
+    // Logging
+    string                          _outFile;
+    bool                            _energies2File;
+    map<int,vector<int> >           _log_seg_iter;
+    map<int,int>                    _log_seg_sphereSize;
+    map<int,vec>                    _log_seg_com;
+
 
 };
 
-void XMP::Initialize(Topology *top, Property *options) {
+// ========================================================================== //
+//                        XMULTIPOLE MEMBER FUNCTIONS                         //
+// ========================================================================== //
 
-    string key  = "options.xmultipole.control";
-    _job_file   = options->get(key+".job_file").as<string>();
-    _emp_file   = options->get(key+".emp_file").as<string>();
 
-    if (options->exists(key+".pdb_check")) {
-        _pdb_check = options->get(key+".pdb_check").as<string>();
-    }
-    else { _pdb_check = ""; }
+void XMP::Initialize(Topology *top, Property *opt) {
 
-    key         = "options.xmultipole.multipoles";
-    _xml_file   = options->get(key).as<string>();
+    cout << endl
+         << "... ... Initialized with " << _nThreads << " threads. "
+         << flush;
+
+    _maverick = (_nThreads == 1) ? true : false;
+    
+
+    string key = "options.xmultipole.multipoles";
+
+        if ( opt->exists(key) ) {
+            _xml_file = opt->get(key).as< string >();
+        }
+
+    key = "options.xmultipole.control";
+
+        if ( opt->exists(key+".job_file")) {
+            _job_file   = opt->get(key+".job_file").as<string>();
+        }
+        else {
+            _job_file   = opt->get(key+".job_file").as<string>();
+        }
+
+        if ( opt->exists(key+".emp_file")) {
+            _emp_file   = opt->get(key+".emp_file").as<string>();
+        }
+        else {
+            _emp_file   = opt->get(key+".emp_file").as<string>();
+        }
+
+        if ( opt->exists(key+".output") ) {
+            _outFile = opt->get(key+".output").as< string >();
+            _energies2File = true;
+        }
+        else { _energies2File = false; }
+
+        if (opt->exists(key+".pdb_check")) {
+            _pdb_check = opt->get(key+".pdb_check").as<string>();
+        }
+        else { _pdb_check = ""; }
+
+        if (opt->exists(key+".write_chk")) {
+            _write_chk_suffix = opt->get(key+".write_chk").as<string>();
+            _write_chk = true;
+        }
+        else { _write_chk = false; }
+
+        if (opt->exists(key+".format_chk")) {
+            _chk_format = opt->get(key+".format_chk").as<string>();
+        }
+        else { _chk_format = "xyz"; }
+
+        if (opt->exists(key+".split_dpl")) {
+            _chk_split_dpl = (opt->get(key+".split_dpl").as<int>() == 1) ?
+                         true : false;
+        }
+        else { _chk_split_dpl = true; }
+
+        if (opt->exists(key+".dpl_spacing")) {
+            _chk_dpl_spacing = opt->get(key+".dpl_spacing").as<double>();
+        }
+        else {
+            _chk_dpl_spacing = 1.0e-6;
+        }
+
+
+    key = "options.xmultipole.tholemodel";
+
+        if ( opt->exists(key+".induce") ) {
+            int induce = opt->get(key+".induce").as< int >();
+            _induce = (induce == 0) ? false : true;
+        }
+        else { _induce = true; }
+
+        if ( opt->exists(key+".cutoff1") ) {
+            _cutoff = opt->get(key+".cutoff1").as< double >();
+            if (_cutoff) { _useCutoff = true; }
+        }
+        if ( opt->exists(key+".cutoff2") ) {
+            _cutoff2 = opt->get(key+".cutoff2").as< double >();
+        }
+        else {
+            _cutoff2 = _cutoff;
+        }
+        if ( opt->exists(key+".exp_damp") ) {
+            _aDamp = opt->get(key+".exp_damp").as< double >();
+            if (_aDamp) { _useExp = true; }
+        }
+        if ( opt->exists(key+".scaling") ) {
+            _scale1 = opt->get(key+".scaling").as< vector<double> >();
+            if (0 < _scale1.size() && _scale1.size() < 4) {
+                _useScaling = true; }
+            else {
+                _useScaling = false;
+                cout << endl << "... ... WARNING: 1-N SCALING SWITCHED OFF"; }
+        }
+
+    key = "options.xmultipole.convergence";
+
+        if ( opt->exists(key+".wSOR_N") ) {
+            _wSOR_N = opt->get(key+".wSOR_N").as< float >();
+        }
+        else { _wSOR_N = 0.75; }
+        if ( opt->exists(key+".wSOR_C") ) {
+            _wSOR_C = opt->get(key+".wSOR_C").as< float >();
+        }
+        else { _wSOR_C = 0.75; }
+
+        if ( opt->exists(key+".max_iter") ) {
+            _maxIter = opt->get(key+".max_iter").as< int >();
+        }
+        else { _maxIter = 512; }
+
+        if ( opt->exists(key+".tolerance") ) {
+            _epsTol = opt->get(key+".tolerance").as< double >();
+        }
+        else { _epsTol = 0.001; }    
 
 }
 
 
 void XMP::Collect_XML(string xml_file, Topology *top) {
 
-    cout << endl << "... ... Allocate polar sites to fragments. " << flush;
+    cout << endl 
+         << "... ... ... Allocate polar sites to fragments. "
+         << flush;
 
     string allocFile = xml_file;
 
@@ -504,34 +768,17 @@ void XMP::Collect_JOB(string job_file, Topology *top) {
             Segment *seg2   = top->getSegment(seg2Id);
             QMPair  *qmp    = nblist.FindPair(seg1,seg2);
 
-            if (qmp == NULL) {
-                cout << endl << "ERROR: '" << job_file
-                     << "': No such pair "
-                     << pairId << " " << seg1Name << " " << seg2Name << ". "
-                     << flush;
-                throw runtime_error("Pair specs do not match topology.");
-            }
-
-            if ( _jobId_jobTag.count(jobId) ) {
-                cout << endl << "ERROR: '" << job_file
-                     << "': Job-ID " << jobId << " exists more "
-                        "than once. Abort." << endl;
-                throw runtime_error("Rework job file.");
-            }
-
-            _jobId_jobTag[jobId]            = tag;
-            _jobId_pairId[jobId]            = pairId;
-            _jobId_mpsFile1[jobId]          = seg1mps;
-            _jobId_mpsFile2[jobId]          = seg2mps;
-            _pairId_seg1Id_seg2Id[pairId]   = pair<int,int>(seg1Id,seg2Id);
-
+            _XJobs.push_back(new XJob(jobId,  tag,     pairId,
+                                      seg1Id, seg2Id, seg1mps, 
+                                      seg2mps, top));
 
         } /* Exit loop over lines */
     }
     else { cout << endl << "ERROR: No such file " << job_file << endl;
            throw runtime_error("Please supply input file.");           }
 
-    cout << endl << "... ... Registered " << _jobId_jobTag.size() << " jobs. "
+    cout << endl 
+         << "... ... ... Registered " << _XJobs.size() << " jobs. "
          << flush;
 
 }
@@ -569,24 +816,38 @@ void XMP::Collect_MPS(Topology *top) {
         else { _mpsFile_pSites[misit->second] = Parse_GDMA(misit->second, +1); }
     }
 
-    // Job Seg1
-    for (misit = _jobId_mpsFile1.begin();
-         misit != _jobId_mpsFile1.end();
-         ++misit) {
-        if (_mpsFile_pSites.count(misit->second) > 0 ) { continue; }
-        else { _mpsFile_pSites[misit->second] = Parse_GDMA(misit->second, +1); }
+
+    // Job Seg1 Seg2
+    vector<XJob*> :: iterator jit;
+    for (jit = _XJobs.begin();
+         jit < _XJobs.end();
+         ++jit) {
+
+        string mpsfile1 = (*jit)->getMPS1();
+        string mpsfile2 = (*jit)->getMPS2();
+
+        if (_mpsFile_pSites_job.count(mpsfile1) > 0 ) { ; }
+        else { _mpsFile_pSites_job[mpsfile1] = Parse_GDMA(mpsfile1, 0); }
+
+        if (_mpsFile_pSites_job.count(mpsfile2) > 0 ) { ; }
+        else { _mpsFile_pSites_job[mpsfile2] = Parse_GDMA(mpsfile2, 0); }
+
     }
 
-    // Job Seg2
-    for (misit = _jobId_mpsFile2.begin();
-         misit != _jobId_mpsFile2.end();
-         ++misit) {
-        if (_mpsFile_pSites.count(misit->second) > 0 ) { continue; }
-        else { _mpsFile_pSites[misit->second] = Parse_GDMA(misit->second, +1); }
-    }
+//    map<string, vector<PolarSite*> > ::iterator it;
+//    for (it = _mpsFile_pSites_job.begin();
+//         it != _mpsFile_pSites_job.end();
+//         ++it) {
+//         cout << endl << "KEY_" << it->first << flush;
+//    }
 
-    cout << endl << "... ... Parsed a total of " << _mpsFile_pSites.size()
-            << " multipole-definition (.mps) files. " << flush;
+
+    cout << endl
+         << "... ... ... Parsed " << _mpsFile_pSites.size()
+         << " .mps files from " << _emp_file
+         << ", " << _mpsFile_pSites_job.size()
+         << " .mps files from " << _job_file
+         << flush;
 }
 
 
@@ -632,6 +893,8 @@ void XMP::Collect_EMP(string emp_file, Topology *top) {
 
 
 void XMP::Create_MPOLS(Topology *top) {
+
+    bool print_huge_map2md_warning = false;
 
     // +++++++++++++++++++++++++++++++++++++ //
     // Equip TOP with distributed multipoles //
@@ -893,15 +1156,22 @@ void XMP::Create_MPOLS(Topology *top) {
                     vec mdpos = frag->Atoms()[i]->getPos();
                     newSite->setPos(mdpos);
                     if (newSite->getRank() > 0) {
-                        cout << endl 
-                             << "ERROR: MAP2MD = TRUE prevents use of "
-                             << "higher-rank multipoles. "
-                             << endl;
-                        throw runtime_error("User not paying attention. ");
+                        print_huge_map2md_warning = true;
                     }
                 }
             }
         }
+    }
+
+    if (print_huge_map2md_warning) {
+        cout << endl << endl
+             << "**************************************************************"
+             << "WARNING: MAP2MD = TRUE while using higher-rank multipoles can "
+             << "mess up the orientation of those multipoles if the coordinate "
+             << "frame used in the .mps file does not agree with the global MD "
+             << "frame. If you know what you are doing - proceed ... "
+             << "**************************************************************"
+             << endl;
     }
 
     top->setIsEStatified(true);
@@ -912,7 +1182,7 @@ void XMP::Create_MPOLS(Topology *top) {
 vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *seg) {
 
     vector<PolarSite*> return_pols;
-    return_pols.resize(pols_n.size());
+    return_pols.reserve(pols_n.size());
 
     int segId                   = seg->getId();
     bool map2md                 = _map2md[seg->getName()];
@@ -1148,6 +1418,8 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
                 }
             }
 
+            newSite->Charge(0);
+            
             return_pols.push_back(newSite);
 
         }
@@ -1282,8 +1554,9 @@ vector<PolarSite*> XMP::Parse_GDMA(string filename, int state) {
     else { cout << endl << "ERROR: No such file " << filename << endl;
            throw runtime_error("Please supply input file.");           }
 
-    cout << endl << "... ... Reading " << filename <<
-                    ": Q0(Total) = " << Q0_total << flush;
+
+    printf("\n... ... ... Reading %-25s -> Q0(Sum) = %+1.3f ",
+                          filename.c_str(),       Q0_total);
 
     if (useDefaultPs) {
 
@@ -1317,6 +1590,10 @@ vector<PolarSite*> XMP::Parse_GDMA(string filename, int state) {
 
 
 bool XMP::EvaluateFrame(Topology *top) {
+
+    cout << endl
+         << "... ... Load multipole definition, collect jobs: "
+         << flush;
 
     Collect_XML(_xml_file, top); // <- Allocate polar sites to fragments    
     Collect_EMP(_emp_file, top); // <- Collect segs .mps => Background .mps
@@ -1373,8 +1650,1960 @@ bool XMP::EvaluateFrame(Topology *top) {
         fclose(mpPDB);
     }
 
+    
+    // +++++++++++++++++++++++++++++++++ //
+    // Create + start threads (Job Ops)  //
+    // +++++++++++++++++++++++++++++++++ //
+
+    vector<JobXMP*> jobOps;    
+
+    _nextXJob = _XJobs.begin();
+
+    for (int id = 0; id < _nThreads; id++) {
+        JobXMP *newOp = new JobXMP(id, top, this);
+        jobOps.push_back(newOp);
+    }
+
+    for (int id = 0; id < _nThreads; id++) {
+        jobOps[id]->InitSlotData(top);
+    }
+
+    for (int id = 0; id < _nThreads; id++) {
+        jobOps[id]->Start();
+    }
+
+    for (int id = 0; id < _nThreads; id++) {
+        jobOps[id]->WaitDone();
+    }
+
+    for (int id = 0; id < _nThreads; id++) {
+        delete jobOps[id];
+    }
+
+    jobOps.clear();
+
+
+    FILE *out;
+    out = fopen(this->_outFile.c_str(), "w");
+    vector<XJob*> :: iterator jit;
+    for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
+        (*jit)->WriteInfoLine(out);
+    }
+    fclose(out);
 
 }
+
+
+
+// ========================================================================== //
+//                            JOBXMP MEMBER FUNCTIONS                         //
+// ========================================================================== //
+
+
+void XMP::JobXMP::InitSlotData(Topology *top) {
+
+    vector< Segment* > ::iterator sitRef;
+    vector< vector<PolarSite*> > ::iterator sitNew;
+    vector< PolarSite* > ::iterator pitRef;
+    vector< PolarSite* > ::iterator pitNew;
+
+    _polarSites.resize(top->Segments().size());
+    assert(top->Segments().size() == _polarSites.size());
+
+    for (sitRef = top->Segments().begin(), sitNew = _polarSites.begin();
+         sitRef < top->Segments().end();
+         ++sitRef, ++sitNew) {
+
+        (*sitNew).resize((*sitRef)->PolarSites().size());
+
+        for (pitRef = (*sitRef)->PolarSites().begin(),
+             pitNew = (*sitNew).begin();
+             pitRef < (*sitRef)->PolarSites().end();
+             ++pitRef, ++ pitNew) {
+
+            *pitNew = new PolarSite();
+            (*pitNew)->ImportFrom(*pitRef, "full");
+            (*pitNew)->Charge(0);
+        }
+    }
+}
+
+
+void XMP::JobXMP::Run(void) {
+
+    while (true) {
+        _job = _master->RequestNextJob(_id, _top);
+
+        if (_job == NULL) { break; }
+        else { this->EvalJob(_top, _job); }
+    }
+}
+
+
+void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
+
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+
+    // ++++++++++++++++++++++++++ //
+    // Adapt polar sites          //
+    // ++++++++++++++++++++++++++ //
+    _polarSites_job = _polarSites;
+
+    int subs_here1 = job->getSeg1Id();
+    int subs_here2 = job->getSeg2Id();
+
+    vector<PolarSite*> subs1_raw = _master->_mpsFile_pSites_job[job->getMPS1()];
+    vector<PolarSite*> subs2_raw = _master->_mpsFile_pSites_job[job->getMPS2()];
+    vector<PolarSite*> subs1 = _master->Map_MPols_To_Seg(subs1_raw,job->Seg1());
+    vector<PolarSite*> subs2 = _master->Map_MPols_To_Seg(subs2_raw,job->Seg2());
+
+    _polarSites_job[subs_here1-1] = subs1;
+    _polarSites_job[subs_here2-1] = subs2;
+    
+    
+
+    // ++++++++++++++++++++++++++ //
+    // Define polarization sphere //
+    // ++++++++++++++++++++++++++ //
+
+    vec center = job->Center(); 
+    // vec center = job->Seg1()->getPos(); // UNCOMMENT TO COMPARE TO EMULTIPOLE
+
+    this->_segsPolSphere.clear(); // <- Segments    within cutoff
+    this->_segsOutSphere.clear(); // <- Segments    within cutoff1, cutoff2
+    this->_polsPolSphere.clear(); // <- Polar sites within cutoff
+    this->_polsOutSphere.clear(); // <- Polar sites within cutoff1, cutoff2
+
+    vector<Segment*> ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+
+        double r12 = abs(_top->PbShortestConnect((*sit)->getPos(), center));
+
+        if      ( r12 > _master->_cutoff2) { continue; }
+
+        else if ( r12 > _master->_cutoff ) {
+            _segsOutSphere.push_back(*sit);
+            _polsOutSphere.push_back( _polarSites_job[(*sit)->getId() - 1] );
+        }
+        else {
+            _segsPolSphere.push_back(*sit);
+            _polsPolSphere.push_back( _polarSites_job[(*sit)->getId() - 1] );
+        }
+    }
+
+    if (_master->_maverick) {
+        cout << endl
+             << "... ... ... Segments in polarization sphere: "
+             << _segsPolSphere.size()
+             << "; segments in static shell: "
+             << _segsOutSphere.size()
+             << flush;
+    }
+
+    job->setSizePol(_polsPolSphere.size());
+    job->setSizeShell(_polsOutSphere.size());
+
+//    FILE *out;
+//    string shellFile = "OuterShell.pdb";
+//    out = fopen(shellFile.c_str(), "w");
+//    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+//        (*sit)->WritePDB(out, "Multipoles", "");
+//    }
+//    fclose(out);
+//
+//    shellFile = "InnerShell.pdb";
+//    out = fopen(shellFile.c_str(), "w");
+//    for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
+//        (*sit)->WritePDB(out, "Multipoles", "");
+//    }
+//    fclose(out);
+//
+//    shellFile = "Pair.pdb";
+//    out = fopen(shellFile.c_str(), "w");
+//    job->Seg1()->WritePDB(out, "Multipoles", "");
+//    job->Seg2()->WritePDB(out, "Multipoles", "");
+//    fclose(out);
+
+
+    // ++++++++++++++++++++++++++ //
+    // (De-)polarize, charge to N //
+    // ++++++++++++++++++++++++++ //
+
+    if (job->StartFromCPT()) {
+
+        if (_master->_maverick) {
+            cout << endl
+                 << "... ... ... Loading induced dipoles from .cpt file. "
+                 << flush;
+        }
+        assert(false); // Load induced dipole moments from file
+    }
+
+    else {
+
+        vector< vector<PolarSite*> > ::iterator sit;
+        vector< PolarSite* >         ::iterator pit;
+
+        // Depolarize inner sphere
+        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
+        for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+            (*pit)->Depolarize();
+            (*pit)->Charge(0); // <- Not necessarily neutral state
+        }}
+
+        // Depolarize outer shell
+        for (sit = _polsOutSphere.begin(); sit < _polsOutSphere.end(); ++sit) {
+        for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+            (*pit)->Depolarize();
+            (*pit)->Charge(0); // <- Not necessarily neutral state
+        }}
+    }
+
+    // ++++++++++++++++++++++++++ //
+    // Compute state energy       //
+    // ++++++++++++++++++++++++++ //
+
+    double  E_state  = 0.0;
+    int     iter     = 0;
+    int     state    = 0;
+
+    if (_master->_induce) iter      = this->Induce(state, job);
+    if (_master->_induce) E_state   = this->Energy(state, job);
+    else                  E_state   = this->EnergyStatic(state, job);
+
+    job->setEnergy(E_state*int2eV);
+
+
+
+    // ++++++++++++++++++++++++++ //
+    // Write Checkpoint File      //
+    // ++++++++++++++++++++++++++ //
+
+    if (_master->_write_chk) {
+
+        FILE *out;
+        string chk_file = job->getTag()+_master->_write_chk_suffix+".chk";
+        out = fopen(chk_file.c_str(), "w");
+
+        vector< PolarSite* >         ::iterator pit;
+
+        // Save induction state of polarization sphere
+        for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
+
+            int segId = (*sit)->getId();
+
+            if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
+                continue;
+            }
+
+            for (pit = _polarSites_job[segId-1].begin();
+                 pit < _polarSites_job[segId-1].end();
+                 ++pit) {
+                 (*pit)->WriteChkLine(out, _master->_chk_split_dpl,
+                                           _master->_chk_format,
+                                           _master->_chk_dpl_spacing);
+            }
+        }
+
+        // Write point charges of outer sphere
+        for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+
+            int segId = (*sit)->getId();
+
+            if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
+                assert(false); // Central pair in outer shell? No!
+            }
+            for (pit = _polarSites_job[segId-1].begin();
+                 pit < _polarSites_job[segId-1].end();
+                 ++pit) {
+                 (*pit)->WriteChkLine(out, false,
+                                           _master->_chk_format,
+                                           _master->_chk_dpl_spacing);
+            }
+        }
+
+        fclose(out);
+    }
+
+    // ++++++++++++++++++++++++++ //
+    // Clean up polar sites       //
+    // ++++++++++++++++++++++++++ //
+
+    vector< PolarSite* > ::iterator cleanit;
+    for (cleanit = subs1.begin(); cleanit < subs1.end(); ++cleanit) {
+        delete *cleanit;
+    }
+    for (cleanit = subs2.begin(); cleanit < subs2.end(); ++cleanit) {
+        delete *cleanit;
+    }
+    subs1.clear();
+    subs2.clear();
+
+}
+
+
+int XMP::JobXMP::Induce(int state, XJob *job) {
+
+    double wSOR = (state == 0) ? _master->_wSOR_N : _master->_wSOR_C;
+    double eTOL = this->_master->_epsTol;
+    int    maxI = this->_master->_maxIter;
+
+    vector< vector<PolarSite*> > ::iterator sit1;
+    vector< vector<PolarSite*> > ::iterator sit2;
+    vector< PolarSite* > ::iterator pit1;
+    vector< PolarSite* > ::iterator pit2;
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Inter-site fields (arising from perm. m'poles) //
+    // ++++++++++++++++++++++++++++++++++++++++++++++ //
+
+//    cout << endl << "... ... ... 0th-order field" << flush;
+    for (sit1 = _polsPolSphere.begin();
+         sit1 < _polsPolSphere.end();
+         ++sit1) {
+    for (sit2 = sit1 + 1;
+         sit2 < _polsPolSphere.end();
+         ++sit2) {
+
+         for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+         for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+
+             _actor.FieldPerm(*(*pit1), *(*pit2));
+         }}
+    }}
+
+    // +++++++++++++++++++ //
+    // 1st-order induction //
+    // +++++++++++++++++++ //
+
+//    cout << " | Induce " << endl;
+    if (!job->StartFromCPT()) { // OVERRIDE
+        for (sit1 = _polsPolSphere.begin();
+             sit1 < _polsPolSphere.end();
+             ++sit1) {
+
+             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+                 (*pit1)->InduceDirect();
+             }
+        }
+    }
+    else {
+        assert(false); // Load induced dipole moments from file
+    }
+
+
+
+    // ++++++++++++++++++++++ //
+    // Higher-order induction //
+    // ++++++++++++++++++++++ //
+
+    int iter = 0;
+//    boost::progress_timer T;
+    for ( ; iter < maxI; ++iter) {
+
+        // Reset fields FUx, FUy, FUz
+//        cout << "\r... ... ... Reset (" << iter << ")" << flush;
+        for (sit1 = _polsPolSphere.begin();
+             sit1 < _polsPolSphere.end();
+             ++sit1) {
+
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+                (*pit1)->ResetFieldU();
+            }
+        }
+
+        // Intra-site contribution to induction field
+//        cout << " | Intra-Site (" << iter << ")" << flush;
+        for (sit1 = _polsPolSphere.begin();
+             sit1 < _polsPolSphere.end();
+             ++sit1) {
+
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = pit1 + 1;        pit2 < (*sit1).end(); ++pit2) {
+
+                _actor.FieldIndu(*(*pit1),*(*pit2));                            // <- Intra-pair => zero out
+            }}
+        }
+
+        // Inter-site contribution to induction field
+//        cout << " | Inter-Site (" << iter << ")" << flush;
+        //boost::progress_display show_progress( _polsPolSphere.size() );
+//        T.restart();
+        for (sit1 = _polsPolSphere.begin();
+             sit1 < _polsPolSphere.end();
+             ++sit1) {
+        for (sit2 = sit1 + 1;
+             sit2 < _polsPolSphere.end();
+             ++sit2) {
+
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+
+                _actor.FieldIndu(*(*pit1), *(*pit2));                           // <- Pair-environment => figure sth out
+            }}
+        }}
+//        cout << " | dt " << T.elapsed() << flush;
+
+        // Induce again
+//        cout << " | Induce (" << iter << ")" << flush;
+        for (sit1 = _polsPolSphere.begin();
+             sit1 < _polsPolSphere.end();
+             ++sit1) {
+
+             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+                 (*pit1)->Induce(wSOR);                                         // <- Okay if alpha = 0
+             }
+        }
+
+        // Check for convergence
+//        cout << " | Check (" << iter << ")" << flush;
+        bool converged = true;
+        double maxdU = -1;
+        double avgdU = 0.0;
+        int    baseN = 0;
+        for (sit1 = _polsPolSphere.begin();
+             sit1 < _polsPolSphere.end();
+             ++sit1) {
+
+             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+                 double dU = (*pit1)->HistdU();
+                 avgdU += dU;
+                 ++baseN;
+                 if ( dU > maxdU ) { maxdU = dU; }
+                 if ( dU > eTOL ) { converged = false; }
+             }
+        }
+        avgdU /= baseN;
+        if (avgdU < eTOL/10.) { converged = true; }
+
+//        cout << " | MAX dU " << maxdU
+//             << " | AVG dU " << avgdU
+//             << " | SOR " << wSOR << flush;
+
+        // Break if converged
+        if      (converged) {
+            break;
+        }
+        else if (iter == maxI - 1) {
+            this->_master->LockCout();
+            cout << endl << "... ... ... WARNING Induced multipoles for job "
+                 << job->getId() << " did not converge to precision: "
+                 << " AVG dU:U " << avgdU << flush;
+            this->_master->UnlockCout();
+            break;
+        }
+    }
+
+    return iter;
+
+//    cout << endl << "... ... ... State " << state
+//         << " - wSOR " << wSOR
+//         << " - Iterations " << iter << flush;
+}
+
+
+double XMP::JobXMP::Energy(int state, XJob *job) {
+
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+
+    _actor.ResetEnergy();
+    double E_Tot = 0.0;
+
+    vector< Segment* >              ::iterator      seg1;
+    vector< Segment* >              ::iterator      seg2;
+    vector< vector<PolarSite*> >    ::iterator      sit1;
+    vector< vector<PolarSite*> >    ::iterator      sit2;
+    vector< PolarSite* >            ::iterator      pit1;
+    vector< PolarSite* >            ::iterator      pit2;
+
+    // +++++++++++++++++ //
+    // Inter-site energy //
+    // +++++++++++++++++ //
+
+    for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
+         sit1 < _polsPolSphere.end();
+         ++sit1, ++seg1) {
+    for (sit2 = sit1 + 1, seg2 = seg1 + 1;
+         sit2 < _polsPolSphere.end();
+         ++sit2, ++seg2) {
+
+        //if ( abs(_top->PbShortestConnect((*seg1)->getPos(),_seg->getPos()))
+        //        > _master->_cutoff) { throw runtime_error("Not this."); }
+
+        //cout << "\r... ... Calculating interaction energy for pair "
+        //     << (*seg1)->getId() << "|" << (*seg2)->getId() << "   " << flush;
+
+
+        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+        for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+
+            //(*pit1)->PrintInfo(cout);
+            //(*pit2)->PrintInfo(cout);
+
+            E_Tot += _actor.EnergyInter(*(*pit1), *(*pit2));                    // <- Change here
+
+        }}
+    }}
+
+    // ++++++++++++++++++ //
+    // Outer-Shell energy //
+    // ++++++++++++++++++ //
+
+    double E_Out = 0.0;
+
+    vector< PolarSite* > central1 = _polarSites_job[ job->getSeg1Id() - 1 ];
+    vector< PolarSite* > central2 = _polarSites_job[ job->getSeg2Id() - 1 ];
+
+    for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
+        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = central1.begin(); pit2 < central1.end(); ++pit2) {
+                E_Out += _actor.EnergyInter(*(*pit1), *(*pit2));                // <- Change here
+            }
+        }
+    }
+    for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
+        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = central2.begin(); pit2 < central2.end(); ++pit2) {
+                E_Out += _actor.EnergyInter(*(*pit1), *(*pit2));                // <- Change here
+            }
+        }
+    }
+    E_Tot += E_Out;
+
+
+    if (_master->_maverick) {
+        cout << endl 
+             << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " eV = (P ~) " << _actor.getEP()       * int2eV
+             << " + (U ~) " << _actor.getEU_INTER() * int2eV
+             << " + (U o) " << _actor.getEU_INTRA() * int2eV
+             << " , (O ~) " << E_Out << " eV"
+             << flush;
+    }
+
+    return E_Tot;
+}
+
+
+double XMP::JobXMP::EnergyStatic(int state, XJob *job) {
+
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+
+    _actor.ResetEnergy();
+    double E_Tot = 0.0;
+
+    vector< Segment* >              ::iterator      seg1;
+    vector< Segment* >              ::iterator      seg2;
+    vector< vector<PolarSite*> >    ::iterator      sit1;
+    vector< vector<PolarSite*> >    ::iterator      sit2;
+    vector< PolarSite* >            ::iterator      pit1;
+    vector< PolarSite* >            ::iterator      pit2;
+
+    vector< PolarSite* > central1 = _polarSites_job[ job->getSeg1Id() - 1 ];
+    vector< PolarSite* > central2 = _polarSites_job[ job->getSeg2Id() - 1 ];
+
+    for (seg1 = _segsPolSphere.begin(); seg1 < _segsPolSphere.end(); ++seg1) {
+
+        int id = (*seg1)->getId();
+
+        if (id == job->getSeg1Id() || id == job->getSeg2Id() ) {
+            continue;
+        }
+
+        for (pit1 = _polarSites_job[id-1].begin();
+             pit1 < _polarSites_job[id-1].end();
+             ++pit1) {
+            for (pit2 = central1.begin();
+                 pit2 < central1.end();
+                 ++pit2) {
+
+                 E_Tot += _actor.EnergyInter(*(*pit1), *(*pit2));               // <- Check here
+            }
+            for (pit2 = central2.begin();
+                 pit2 < central2.end();
+                 ++pit2) {
+
+                 E_Tot += _actor.EnergyInter(*(*pit1), *(*pit2));               // <- Check here
+            }
+        }
+    }
+
+    if (_master->_maverick) {
+        cout << endl 
+             << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " eV = (P ~) " << _actor.getEP()       * int2eV
+             << " + (U ~) " << _actor.getEU_INTER() * int2eV
+             << " + (U o) " << _actor.getEU_INTRA() * int2eV << " eV"
+             << ", statics only. "
+             << flush;
+    }
+
+    return E_Tot;
+}
+
+
+XMP::XJob *XMP::RequestNextJob(int id, Topology *top) {
+
+    _nextJobMutex.Lock();
+
+    XJob *workOnThis;
+
+    if (_nextXJob == _XJobs.end()) {
+        workOnThis = NULL;
+    }
+    else {
+        workOnThis = *_nextXJob;
+        _nextXJob++;
+        cout << endl 
+             << "... ... Thread " << id << " evaluating job "
+             << workOnThis->getId() << " " << workOnThis->getTag()
+             << flush;
+    }
+
+    _nextJobMutex.Unlock();
+
+    return workOnThis;
+}
+
+
+
+// ========================================================================== //
+//                         XINTERACTOR MEMBER FUNCTIONS                       //
+// ========================================================================== //
+
+
+/**
+ * Used in ESP calculator (initialize stage of XMP)
+ */
+inline double XMP::XInteractor::PotentialPerm(vec r,
+                                                     PolarSite &pol) {
+
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = pol.getPos() - r;
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    
+
+
+    rbx = - pol._locX * e12;
+    rby = - pol._locY * e12;
+    rbz = - pol._locZ * e12;
+
+    double phi00 = 0.0;
+    
+        phi00 += T00_00() * pol.Q00;
+    
+    if (pol._rank > 0) {        
+        phi00 += T00_1x() * pol.Q1x;
+        phi00 += T00_1y() * pol.Q1y;
+        phi00 += T00_1z() * pol.Q1z;        
+    }
+        
+    if (pol._rank > 1) {
+        phi00 += T00_20()  * pol.Q20;
+        phi00 += T00_21c() * pol.Q21c;
+        phi00 += T00_21s() * pol.Q21s;
+        phi00 += T00_22c() * pol.Q22c;
+        phi00 += T00_22s() * pol.Q22s;
+    }
+
+    return phi00;
+}
+
+/**
+ * Used in ESF calculator (initialize stage of XMP)
+ */
+inline vec XMP::XInteractor::FieldPermESF(vec r,
+                                                 PolarSite &pol) {
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = pol.getPos() - r;
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+
+    double Fx = 0.0;
+    double Fy = 0.0;
+    double Fz = 0.0;
+
+    // Field generated by rank-0 m'pole
+        Fx += T1x_00() * pol.Q00;
+        Fy += T1y_00() * pol.Q00;
+        Fz += T1z_00() * pol.Q00;
+
+    // Field generated by rank-1 m'pole
+    if (pol._rank > 0) {
+        Fx += T1x_1x() * pol.Q1x;
+        Fx += T1x_1y() * pol.Q1y;
+        Fx += T1x_1z() * pol.Q1z;
+
+        Fy += T1y_1x() * pol.Q1x;
+        Fy += T1y_1y() * pol.Q1y;
+        Fy += T1y_1z() * pol.Q1z;
+
+        Fz += T1z_1x() * pol.Q1x;
+        Fz += T1z_1y() * pol.Q1y;
+        Fz += T1z_1z() * pol.Q1z;
+    }
+
+    // Field generated by rank-2 m'pole
+    if (pol._rank > 1) {
+        Fx += T1x_20()  * pol.Q20;
+        Fx += T1x_21c() * pol.Q21c;
+        Fx += T1x_21s() * pol.Q21s;
+        Fx += T1x_22c() * pol.Q22c;
+        Fx += T1x_22s() * pol.Q22s;
+
+        Fy += T1y_20()  * pol.Q20;
+        Fy += T1y_21c() * pol.Q21c;
+        Fy += T1y_21s() * pol.Q21s;
+        Fy += T1y_22c() * pol.Q22c;
+        Fy += T1y_22s() * pol.Q22s;
+
+        Fz += T1z_20()  * pol.Q20;
+        Fz += T1z_21c() * pol.Q21c;
+        Fz += T1z_21s() * pol.Q21s;
+        Fz += T1z_22c() * pol.Q22c;
+        Fz += T1z_22s() * pol.Q22s;
+    }
+
+    return vec(Fx, Fy, Fz);
+}
+
+/**
+ * Used in molecular-polarizability calculator (initialize stage)
+ */
+inline void XMP::XInteractor::FieldInduAlpha(PolarSite &pol1,
+                                                    PolarSite &pol2) {
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = pol2.getPos() - pol1.getPos();
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    a    = _xm->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+
+    // Fields generated by rank-1 induced m'poles
+
+    if (a*u3 < 40.0) {
+        pol1.FUx += TU1x_1x() * pol2.U1x;
+        pol1.FUx += TU1x_1y() * pol2.U1y;
+        pol1.FUx += TU1x_1z() * pol2.U1z;
+        pol1.FUy += TU1y_1x() * pol2.U1x;
+        pol1.FUy += TU1y_1y() * pol2.U1y;
+        pol1.FUy += TU1y_1z() * pol2.U1z;
+        pol1.FUz += TU1z_1x() * pol2.U1x;
+        pol1.FUz += TU1z_1y() * pol2.U1y;
+        pol1.FUz += TU1z_1z() * pol2.U1z;
+
+        pol2.FUx += TU1x_1x() * pol1.U1x;
+        pol2.FUx += TU1y_1x() * pol1.U1y;
+        pol2.FUx += TU1z_1x() * pol1.U1z;
+        pol2.FUy += TU1x_1y() * pol1.U1x;
+        pol2.FUy += TU1y_1y() * pol1.U1y;
+        pol2.FUy += TU1z_1y() * pol1.U1z;
+        pol2.FUz += TU1x_1z() * pol1.U1x;
+        pol2.FUz += TU1y_1z() * pol1.U1y;
+        pol2.FUz += TU1z_1z() * pol1.U1z;
+    }
+    else {
+        pol1.FUx += T1x_1x() * pol2.U1x;
+        pol1.FUx += T1x_1y() * pol2.U1y;
+        pol1.FUx += T1x_1z() * pol2.U1z;
+        pol1.FUy += T1y_1x() * pol2.U1x;
+        pol1.FUy += T1y_1y() * pol2.U1y;
+        pol1.FUy += T1y_1z() * pol2.U1z;
+        pol1.FUz += T1z_1x() * pol2.U1x;
+        pol1.FUz += T1z_1y() * pol2.U1y;
+        pol1.FUz += T1z_1z() * pol2.U1z;
+
+        pol2.FUx += T1x_1x() * pol1.U1x;
+        pol2.FUx += T1y_1x() * pol1.U1y;
+        pol2.FUx += T1z_1x() * pol1.U1z;
+        pol2.FUy += T1x_1y() * pol1.U1x;
+        pol2.FUy += T1y_1y() * pol1.U1y;
+        pol2.FUy += T1z_1y() * pol1.U1z;
+        pol2.FUz += T1x_1z() * pol1.U1x;
+        pol2.FUz += T1y_1z() * pol1.U1y;
+        pol2.FUz += T1z_1z() * pol1.U1z;
+    }
+}
+
+/**
+ * Used in self-consistent field calculation (evaluation stage)
+ */
+inline void XMP::XInteractor::FieldIndu(PolarSite &pol1,
+                                               PolarSite &pol2) {
+
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    //          This implies that induced = - alpha * field
+    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    a    = _xm->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+
+    // Fields generated by rank-1 induced m'poles
+
+    if (a*u3 < 40.0) {
+        pol1.FUx += TU1x_1x() * pol2.U1x;
+        pol1.FUx += TU1x_1y() * pol2.U1y;
+        pol1.FUx += TU1x_1z() * pol2.U1z;
+        pol1.FUy += TU1y_1x() * pol2.U1x;
+        pol1.FUy += TU1y_1y() * pol2.U1y;
+        pol1.FUy += TU1y_1z() * pol2.U1z;
+        pol1.FUz += TU1z_1x() * pol2.U1x;
+        pol1.FUz += TU1z_1y() * pol2.U1y;
+        pol1.FUz += TU1z_1z() * pol2.U1z;
+
+        pol2.FUx += TU1x_1x() * pol1.U1x;
+        pol2.FUx += TU1y_1x() * pol1.U1y;
+        pol2.FUx += TU1z_1x() * pol1.U1z;
+        pol2.FUy += TU1x_1y() * pol1.U1x;
+        pol2.FUy += TU1y_1y() * pol1.U1y;
+        pol2.FUy += TU1z_1y() * pol1.U1z;
+        pol2.FUz += TU1x_1z() * pol1.U1x;
+        pol2.FUz += TU1y_1z() * pol1.U1y;
+        pol2.FUz += TU1z_1z() * pol1.U1z;
+    }
+    else {
+        pol1.FUx += T1x_1x() * pol2.U1x;
+        pol1.FUx += T1x_1y() * pol2.U1y;
+        pol1.FUx += T1x_1z() * pol2.U1z;
+        pol1.FUy += T1y_1x() * pol2.U1x;
+        pol1.FUy += T1y_1y() * pol2.U1y;
+        pol1.FUy += T1y_1z() * pol2.U1z;
+        pol1.FUz += T1z_1x() * pol2.U1x;
+        pol1.FUz += T1z_1y() * pol2.U1y;
+        pol1.FUz += T1z_1z() * pol2.U1z;
+
+        pol2.FUx += T1x_1x() * pol1.U1x;
+        pol2.FUx += T1y_1x() * pol1.U1y;
+        pol2.FUx += T1z_1x() * pol1.U1z;
+        pol2.FUy += T1x_1y() * pol1.U1x;
+        pol2.FUy += T1y_1y() * pol1.U1y;
+        pol2.FUy += T1z_1y() * pol1.U1z;
+        pol2.FUz += T1x_1z() * pol1.U1x;
+        pol2.FUz += T1y_1z() * pol1.U1y;
+        pol2.FUz += T1z_1z() * pol1.U1z;  
+    }
+}
+
+/**
+ * Used in self-consistent field calculation (evaluation stage)
+ */
+inline void XMP::XInteractor::FieldPerm(PolarSite &pol1,
+                                               PolarSite &pol2) {
+
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    //          This implies that induced = - alpha * field
+    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+    if (pol1._rank > 0 || pol2._rank > 0) {
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+    }
+
+    // Fields generated by rank-0 m'poles
+        pol1.FPx += T1x_00() * pol2.Q00;
+        pol1.FPy += T1y_00() * pol2.Q00;
+        pol1.FPz += T1z_00() * pol2.Q00;
+
+        pol2.FPx += T00_1x() * pol1.Q00;
+        pol2.FPy += T00_1y() * pol1.Q00;
+        pol2.FPz += T00_1z() * pol1.Q00;
+
+    // Fields generated by rank-1 m'poles
+    if (pol2._rank > 0) {
+        pol1.FPx += T1x_1x() * pol2.Q1x;
+        pol1.FPx += T1x_1y() * pol2.Q1y;
+        pol1.FPx += T1x_1z() * pol2.Q1z;
+        pol1.FPy += T1y_1x() * pol2.Q1x;
+        pol1.FPy += T1y_1y() * pol2.Q1y;
+        pol1.FPy += T1y_1z() * pol2.Q1z;
+        pol1.FPz += T1z_1x() * pol2.Q1x;
+        pol1.FPz += T1z_1y() * pol2.Q1y;
+        pol1.FPz += T1z_1z() * pol2.Q1z;
+    }
+    if (pol1._rank > 0) {
+        pol2.FPx += T1x_1x() * pol1.Q1x;
+        pol2.FPx += T1y_1x() * pol1.Q1y;
+        pol2.FPx += T1z_1x() * pol1.Q1z;
+        pol2.FPy += T1x_1y() * pol1.Q1x;
+        pol2.FPy += T1y_1y() * pol1.Q1y;
+        pol2.FPy += T1z_1y() * pol1.Q1z;
+        pol2.FPz += T1x_1z() * pol1.Q1x;
+        pol2.FPz += T1y_1z() * pol1.Q1y;
+        pol2.FPz += T1z_1z() * pol1.Q1z;
+    }
+
+    // Fields generated by rank-2 m'poles
+    if (pol2._rank > 1) {
+        pol1.FPx += T1x_20()  * pol2.Q20;
+        pol1.FPx += T1x_21c() * pol2.Q21c;
+        pol1.FPx += T1x_21s() * pol2.Q21s;
+        pol1.FPx += T1x_22c() * pol2.Q22c;
+        pol1.FPx += T1x_22s() * pol2.Q22s;
+
+        pol1.FPy += T1y_20()  * pol2.Q20;
+        pol1.FPy += T1y_21c() * pol2.Q21c;
+        pol1.FPy += T1y_21s() * pol2.Q21s;
+        pol1.FPy += T1y_22c() * pol2.Q22c;
+        pol1.FPy += T1y_22s() * pol2.Q22s;
+
+        pol1.FPz += T1z_20()  * pol2.Q20;
+        pol1.FPz += T1z_21c() * pol2.Q21c;
+        pol1.FPz += T1z_21s() * pol2.Q21s;
+        pol1.FPz += T1z_22c() * pol2.Q22c;
+        pol1.FPz += T1z_22s() * pol2.Q22s;
+    }
+    if (pol1._rank > 1) {
+        pol2.FPx += T20_1x()  * pol1.Q20;
+        pol2.FPx += T21c_1x() * pol1.Q21c;
+        pol2.FPx += T21s_1x() * pol1.Q21s;
+        pol2.FPx += T22c_1x() * pol1.Q22c;
+        pol2.FPx += T22s_1x() * pol1.Q22s;
+
+        pol2.FPy += T20_1y()  * pol1.Q20;
+        pol2.FPy += T21c_1y() * pol1.Q21c;
+        pol2.FPy += T21s_1y() * pol1.Q21s;
+        pol2.FPy += T22c_1y() * pol1.Q22c;
+        pol2.FPy += T22s_1y() * pol1.Q22s;
+
+        pol2.FPz += T20_1z()  * pol1.Q20;
+        pol2.FPz += T21c_1z() * pol1.Q21c;
+        pol2.FPz += T21s_1z() * pol1.Q21s;
+        pol2.FPz += T22c_1z() * pol1.Q22c;
+        pol2.FPz += T22s_1z() * pol1.Q22s;        
+    }
+}
+
+/**
+ * Used in energy evaluation of converged fields (evaluation stage)
+ */
+inline double XMP::XInteractor::EnergyIntra(PolarSite &pol1,
+                                                   PolarSite &pol2) {    
+
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+    
+    // Thole damping init.
+    a    = _xm->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+    if (pol1._rank > 0 || pol2._rank > 0) {
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+    }
+
+    double U = 0.0; // <- Induction energy
+
+    if (a*u3 < 40.0) {
+        U += pol1.U1x * TU1x_00() * pol2.Q00;
+        U += pol1.U1y * TU1y_00() * pol2.Q00;
+        U += pol1.U1z * TU1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * TU00_1x() * pol2.U1x;
+        U += pol1.Q00 * TU00_1y() * pol2.U1y;
+        U += pol1.Q00 * TU00_1z() * pol2.U1z;
+    }
+    else {
+        U += pol1.U1x * T1x_00() * pol2.Q00;
+        U += pol1.U1y * T1y_00() * pol2.Q00;
+        U += pol1.U1z * T1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * T00_1x() * pol2.U1x;
+        U += pol1.Q00 * T00_1y() * pol2.U1y;
+        U += pol1.Q00 * T00_1z() * pol2.U1z;
+    }
+
+    if (pol1._rank > 0) {
+        if (a*u3 < 40.0) {
+            U += pol1.Q1x * TU1x_1x() * pol2.U1x;
+            U += pol1.Q1x * TU1x_1y() * pol2.U1y;
+            U += pol1.Q1x * TU1x_1z() * pol2.U1z;
+            U += pol1.Q1y * TU1y_1x() * pol2.U1x;
+            U += pol1.Q1y * TU1y_1y() * pol2.U1y;
+            U += pol1.Q1y * TU1y_1z() * pol2.U1z;
+            U += pol1.Q1z * TU1z_1x() * pol2.U1x;
+            U += pol1.Q1z * TU1z_1y() * pol2.U1y;
+            U += pol1.Q1z * TU1z_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q1x * T1x_1x() * pol2.U1x;
+            U += pol1.Q1x * T1x_1y() * pol2.U1y;
+            U += pol1.Q1x * T1x_1z() * pol2.U1z;
+            U += pol1.Q1y * T1y_1x() * pol2.U1x;
+            U += pol1.Q1y * T1y_1y() * pol2.U1y;
+            U += pol1.Q1y * T1y_1z() * pol2.U1z;
+            U += pol1.Q1z * T1z_1x() * pol2.U1x;
+            U += pol1.Q1z * T1z_1y() * pol2.U1y;
+            U += pol1.Q1z * T1z_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 0) {
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        }
+        else {
+            U += pol1.U1x * T1x_1x() * pol2.Q1x;
+            U += pol1.U1x * T1x_1y() * pol2.Q1y;
+            U += pol1.U1x * T1x_1z() * pol2.Q1z;
+            U += pol1.U1y * T1y_1x() * pol2.Q1x;
+            U += pol1.U1y * T1y_1y() * pol2.Q1y;
+            U += pol1.U1y * T1y_1z() * pol2.Q1z;
+            U += pol1.U1z * T1z_1x() * pol2.Q1x;
+            U += pol1.U1z * T1z_1y() * pol2.Q1y;
+            U += pol1.U1z * T1z_1z() * pol2.Q1z;
+        }
+    }
+
+    if (pol1._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.Q20  * TU20_1x()  * pol2.U1x;
+            U += pol1.Q20  * TU20_1y()  * pol2.U1y;
+            U += pol1.Q20  * TU20_1z()  * pol2.U1z;
+            U += pol1.Q21c * TU21c_1x() * pol2.U1x;
+            U += pol1.Q21c * TU21c_1y() * pol2.U1y;
+            U += pol1.Q21c * TU21c_1z() * pol2.U1z;
+            U += pol1.Q21s * TU21s_1x() * pol2.U1x;
+            U += pol1.Q21s * TU21s_1y() * pol2.U1y;
+            U += pol1.Q21s * TU21s_1z() * pol2.U1z;
+            U += pol1.Q22c * TU22c_1x() * pol2.U1x;
+            U += pol1.Q22c * TU22c_1y() * pol2.U1y;
+            U += pol1.Q22c * TU22c_1z() * pol2.U1z;
+            U += pol1.Q22s * TU22s_1x() * pol2.U1x;
+            U += pol1.Q22s * TU22s_1y() * pol2.U1y;
+            U += pol1.Q22s * TU22s_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q20  * T20_1x()  * pol2.U1x;
+            U += pol1.Q20  * T20_1y()  * pol2.U1y;
+            U += pol1.Q20  * T20_1z()  * pol2.U1z;
+            U += pol1.Q21c * T21c_1x() * pol2.U1x;
+            U += pol1.Q21c * T21c_1y() * pol2.U1y;
+            U += pol1.Q21c * T21c_1z() * pol2.U1z;
+            U += pol1.Q21s * T21s_1x() * pol2.U1x;
+            U += pol1.Q21s * T21s_1y() * pol2.U1y;
+            U += pol1.Q21s * T21s_1z() * pol2.U1z;
+            U += pol1.Q22c * T22c_1x() * pol2.U1x;
+            U += pol1.Q22c * T22c_1y() * pol2.U1y;
+            U += pol1.Q22c * T22c_1z() * pol2.U1z;
+            U += pol1.Q22s * T22s_1x() * pol2.U1x;
+            U += pol1.Q22s * T22s_1y() * pol2.U1y;
+            U += pol1.Q22s * T22s_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_20()  * pol2.Q20;
+            U += pol1.U1x * TU1x_21c() * pol2.Q21c;
+            U += pol1.U1x * TU1x_21s() * pol2.Q21s;
+            U += pol1.U1x * TU1x_22c() * pol2.Q22c;
+            U += pol1.U1x * TU1x_22s() * pol2.Q22s;
+            U += pol1.U1y * TU1y_20()  * pol2.Q20;
+            U += pol1.U1y * TU1y_21c() * pol2.Q21c;
+            U += pol1.U1y * TU1y_21s() * pol2.Q21s;
+            U += pol1.U1y * TU1y_22c() * pol2.Q22c;
+            U += pol1.U1y * TU1y_22s() * pol2.Q22s;
+            U += pol1.U1z * TU1z_20()  * pol2.Q20;
+            U += pol1.U1z * TU1z_21c() * pol2.Q21c;
+            U += pol1.U1z * TU1z_21s() * pol2.Q21s;
+            U += pol1.U1z * TU1z_22c() * pol2.Q22c;
+            U += pol1.U1z * TU1z_22s() * pol2.Q22s;
+        }
+        else {
+            U += pol1.U1x * T1x_20()  * pol2.Q20;
+            U += pol1.U1x * T1x_21c() * pol2.Q21c;
+            U += pol1.U1x * T1x_21s() * pol2.Q21s;
+            U += pol1.U1x * T1x_22c() * pol2.Q22c;
+            U += pol1.U1x * T1x_22s() * pol2.Q22s;
+            U += pol1.U1y * T1y_20()  * pol2.Q20;
+            U += pol1.U1y * T1y_21c() * pol2.Q21c;
+            U += pol1.U1y * T1y_21s() * pol2.Q21s;
+            U += pol1.U1y * T1y_22c() * pol2.Q22c;
+            U += pol1.U1y * T1y_22s() * pol2.Q22s;
+            U += pol1.U1z * T1z_20()  * pol2.Q20;
+            U += pol1.U1z * T1z_21c() * pol2.Q21c;
+            U += pol1.U1z * T1z_21s() * pol2.Q21s;
+            U += pol1.U1z * T1z_22c() * pol2.Q22c;
+            U += pol1.U1z * T1z_22s() * pol2.Q22s;
+        }
+    }
+    
+    // Take into account work needed to induce multipoles
+    U *= 0.5;
+
+    EU_INTRA += U;
+    return U;
+}
+
+/**
+ * Used in energy evaluation of converged fields (evaluation stage)
+ */
+inline double XMP::XInteractor::EnergyInter(PolarSite &pol1,
+                                                   PolarSite &pol2) {
+
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    a    = _xm->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+
+
+    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
+    //cout << "frag2 " << pol2.getFragment()->getId() << endl;
+    //cout << "seg1  " << pol1.getSegment()->getId() << endl;
+    //cout << "seg2  " << pol2.getSegment()->getId() << endl;    
+
+    
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+    if (pol1._rank > 0 || pol2._rank > 0) {
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+    }
+
+    double E = 0.0; // <- Electrostatic energy
+    double U = 0.0; // <- Induction energy
+
+        //cout << "r1  " << pol1.getPos() << endl;
+        //cout << "r2  " << pol2.getPos() << endl;
+        //cout << "R   " << 1/R << endl;
+        //cout << "e12 " << e12 << endl;
+
+        E += pol1.Q00 * T00_00() * pol2.Q00;
+
+        //cout << "E up to q <-> q " << E << endl;
+
+    if (a*u3 < 40) {
+        U += pol1.U1x * TU1x_00() * pol2.Q00;
+        U += pol1.U1y * TU1y_00() * pol2.Q00;
+        U += pol1.U1z * TU1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * TU00_1x() * pol2.U1x;
+        U += pol1.Q00 * TU00_1y() * pol2.U1y;
+        U += pol1.Q00 * TU00_1z() * pol2.U1z;
+    }
+    else {
+        U += pol1.U1x * T1x_00() * pol2.Q00;
+        U += pol1.U1y * T1y_00() * pol2.Q00;
+        U += pol1.U1z * T1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * T00_1x() * pol2.U1x;
+        U += pol1.Q00 * T00_1y() * pol2.U1y;
+        U += pol1.Q00 * T00_1z() * pol2.U1z;
+    }
+
+
+
+    if (pol1._rank > 0) {
+        E += pol1.Q1x * T1x_00() * pol2.Q00;
+        //cout << "E1x_00 " << pol1.Q1x * T1x_00() * pol2.Q00 << endl;
+        E += pol1.Q1y * T1y_00() * pol2.Q00;
+        //cout << "E1y_00 " << pol1.Q1y * T1y_00() * pol2.Q00 << endl;
+        E += pol1.Q1z * T1z_00() * pol2.Q00;
+        //cout << "E1z_00 " << pol1.Q1z * T1z_00() * pol2.Q00 << endl;
+    }
+
+    if (pol2._rank > 0) {
+        E += pol1.Q00 * T00_1x() * pol2.Q1x;
+        //cout << "E00_1x " << pol1.Q00 * T00_1x() * pol2.Q1x << endl;
+        E += pol1.Q00 * T00_1y() * pol2.Q1y;
+        //cout << "E00_1y " << pol1.Q00 * T00_1y() * pol2.Q1y << endl;
+        E += pol1.Q00 * T00_1z() * pol2.Q1z;
+        //cout << "E00_1z " << pol1.Q00 * T00_1z() * pol2.Q1z << endl;
+    }
+        //cout << "E up to q <-> d " << E << endl;
+
+    if (pol1._rank > 1) {
+        E += pol1.Q20  * T20_00()  * pol2.Q00;
+        E += pol1.Q21c * T21c_00() * pol2.Q00;
+        E += pol1.Q21s * T21s_00() * pol2.Q00;
+        E += pol1.Q22c * T22c_00() * pol2.Q00;
+        E += pol1.Q22s * T22s_00() * pol2.Q00;
+    }
+
+    if (pol2._rank > 1) {
+        E += pol1.Q00 * T00_20()  * pol2.Q20;
+        E += pol1.Q00 * T00_21c() * pol2.Q21c;
+        E += pol1.Q00 * T00_21s() * pol2.Q21s;
+        E += pol1.Q00 * T00_22c() * pol2.Q22c;
+        E += pol1.Q00 * T00_22s() * pol2.Q22s;
+    }
+        //cout << "E up to q <-> Q " << E << endl;
+
+    if (pol1._rank > 0 && pol2._rank > 0) {
+        E += pol1.Q1x * T1x_1x() * pol2.Q1x;
+        //cout << "E1x_1x " << pol1.Q1x * T1x_1x() * pol2.Q1x << endl;
+        E += pol1.Q1x * T1x_1y() * pol2.Q1y;
+        //cout << "E1x_1y " << pol1.Q1x * T1x_1y() * pol2.Q1y << endl;
+        E += pol1.Q1x * T1x_1z() * pol2.Q1z;
+        //cout << "E1x_1z " << pol1.Q1x * T1x_1z() * pol2.Q1z << endl;
+
+        E += pol1.Q1y * T1y_1x() * pol2.Q1x;
+        //cout << "E1y_1x " << pol1.Q1y * T1y_1x() * pol2.Q1x << endl;
+        E += pol1.Q1y * T1y_1y() * pol2.Q1y;
+        //cout << "E1y_1y " << pol1.Q1y * T1y_1y() * pol2.Q1y << endl;
+        E += pol1.Q1y * T1y_1z() * pol2.Q1z;
+        //cout << "E1y_1z " << pol1.Q1y * T1y_1z() * pol2.Q1z << endl;
+
+        E += pol1.Q1z * T1z_1x() * pol2.Q1x;
+        //cout << "E1z_1x " << pol1.Q1z * T1z_1x() * pol2.Q1x << endl;
+        E += pol1.Q1z * T1z_1y() * pol2.Q1y;
+        //cout << "E1z_1y " << pol1.Q1z * T1z_1y() * pol2.Q1y << endl;
+        E += pol1.Q1z * T1z_1z() * pol2.Q1z;
+        //cout << "E1z_1z " << pol1.Q1z * T1z_1z() * pol2.Q1z << endl;
+    }
+
+    if (pol1._rank > 0) {
+        if (a*u3 < 40) {
+            U += pol1.Q1x * TU1x_1x() * pol2.U1x;
+            U += pol1.Q1x * TU1x_1y() * pol2.U1y;
+            U += pol1.Q1x * TU1x_1z() * pol2.U1z;
+            U += pol1.Q1y * TU1y_1x() * pol2.U1x;
+            U += pol1.Q1y * TU1y_1y() * pol2.U1y;
+            U += pol1.Q1y * TU1y_1z() * pol2.U1z;
+            U += pol1.Q1z * TU1z_1x() * pol2.U1x;
+            U += pol1.Q1z * TU1z_1y() * pol2.U1y;
+            U += pol1.Q1z * TU1z_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q1x * T1x_1x() * pol2.U1x;
+            U += pol1.Q1x * T1x_1y() * pol2.U1y;
+            U += pol1.Q1x * T1x_1z() * pol2.U1z;
+            U += pol1.Q1y * T1y_1x() * pol2.U1x;
+            U += pol1.Q1y * T1y_1y() * pol2.U1y;
+            U += pol1.Q1y * T1y_1z() * pol2.U1z;
+            U += pol1.Q1z * T1z_1x() * pol2.U1x;
+            U += pol1.Q1z * T1z_1y() * pol2.U1y;
+            U += pol1.Q1z * T1z_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 0) {
+        if (a*u3 < 40) {
+            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        }
+        else {
+            U += pol1.U1x * T1x_1x() * pol2.Q1x;
+            U += pol1.U1x * T1x_1y() * pol2.Q1y;
+            U += pol1.U1x * T1x_1z() * pol2.Q1z;
+            U += pol1.U1y * T1y_1x() * pol2.Q1x;
+            U += pol1.U1y * T1y_1y() * pol2.Q1y;
+            U += pol1.U1y * T1y_1z() * pol2.Q1z;
+            U += pol1.U1z * T1z_1x() * pol2.Q1x;
+            U += pol1.U1z * T1z_1y() * pol2.Q1y;
+            U += pol1.U1z * T1z_1z() * pol2.Q1z;
+        }
+    }    
+        //cout << "E up to d <-> d " << E << endl;
+
+    if (pol1._rank > 1 && pol2._rank > 0) {
+        E += pol1.Q20 * T20_1x() * pol2.Q1x;
+        E += pol1.Q20 * T20_1y() * pol2.Q1y;
+        E += pol1.Q20 * T20_1z() * pol2.Q1z;
+
+        E += pol1.Q21c * T21c_1x() * pol2.Q1x;
+        E += pol1.Q21c * T21c_1y() * pol2.Q1y;
+        E += pol1.Q21c * T21c_1z() * pol2.Q1z;
+
+        E += pol1.Q21s * T21s_1x() * pol2.Q1x;
+        E += pol1.Q21s * T21s_1y() * pol2.Q1y;
+        E += pol1.Q21s * T21s_1z() * pol2.Q1z;
+
+        E += pol1.Q22c * T22c_1x() * pol2.Q1x;
+        E += pol1.Q22c * T22c_1y() * pol2.Q1y;
+        E += pol1.Q22c * T22c_1z() * pol2.Q1z;
+
+        E += pol1.Q22s * T22s_1x() * pol2.Q1x;
+        E += pol1.Q22s * T22s_1y() * pol2.Q1y;
+        E += pol1.Q22s * T22s_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 0 && pol2._rank > 1) {
+        E += pol1.Q1x * T1x_20() * pol2.Q20;
+        E += pol1.Q1y * T1y_20() * pol2.Q20;
+        E += pol1.Q1z * T1z_20() * pol2.Q20;
+
+        E += pol1.Q1x * T1x_21c() * pol2.Q21c;
+        E += pol1.Q1y * T1y_21c() * pol2.Q21c;
+        E += pol1.Q1z * T1z_21c() * pol2.Q21c;
+
+        E += pol1.Q1x * T1x_21s() * pol2.Q21s;
+        E += pol1.Q1y * T1y_21s() * pol2.Q21s;
+        E += pol1.Q1z * T1z_21s() * pol2.Q21s;
+
+        E += pol1.Q1x * T1x_22c() * pol2.Q22c;
+        E += pol1.Q1y * T1y_22c() * pol2.Q22c;
+        E += pol1.Q1z * T1z_22c() * pol2.Q22c;
+
+        E += pol1.Q1x * T1x_22s() * pol2.Q22s;
+        E += pol1.Q1y * T1y_22s() * pol2.Q22s;
+        E += pol1.Q1z * T1z_22s() * pol2.Q22s;
+    }
+
+    if (pol1._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.Q20  * TU20_1x()  * pol2.U1x;
+            U += pol1.Q20  * TU20_1y()  * pol2.U1y;
+            U += pol1.Q20  * TU20_1z()  * pol2.U1z;
+            U += pol1.Q21c * TU21c_1x() * pol2.U1x;
+            U += pol1.Q21c * TU21c_1y() * pol2.U1y;
+            U += pol1.Q21c * TU21c_1z() * pol2.U1z;
+            U += pol1.Q21s * TU21s_1x() * pol2.U1x;
+            U += pol1.Q21s * TU21s_1y() * pol2.U1y;
+            U += pol1.Q21s * TU21s_1z() * pol2.U1z;
+            U += pol1.Q22c * TU22c_1x() * pol2.U1x;
+            U += pol1.Q22c * TU22c_1y() * pol2.U1y;
+            U += pol1.Q22c * TU22c_1z() * pol2.U1z;
+            U += pol1.Q22s * TU22s_1x() * pol2.U1x;
+            U += pol1.Q22s * TU22s_1y() * pol2.U1y;
+            U += pol1.Q22s * TU22s_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q20  * T20_1x()  * pol2.U1x;
+            U += pol1.Q20  * T20_1y()  * pol2.U1y;
+            U += pol1.Q20  * T20_1z()  * pol2.U1z;
+            U += pol1.Q21c * T21c_1x() * pol2.U1x;
+            U += pol1.Q21c * T21c_1y() * pol2.U1y;
+            U += pol1.Q21c * T21c_1z() * pol2.U1z;
+            U += pol1.Q21s * T21s_1x() * pol2.U1x;
+            U += pol1.Q21s * T21s_1y() * pol2.U1y;
+            U += pol1.Q21s * T21s_1z() * pol2.U1z;
+            U += pol1.Q22c * T22c_1x() * pol2.U1x;
+            U += pol1.Q22c * T22c_1y() * pol2.U1y;
+            U += pol1.Q22c * T22c_1z() * pol2.U1z;
+            U += pol1.Q22s * T22s_1x() * pol2.U1x;
+            U += pol1.Q22s * T22s_1y() * pol2.U1y;
+            U += pol1.Q22s * T22s_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_20()  * pol2.Q20;
+            U += pol1.U1x * TU1x_21c() * pol2.Q21c;
+            U += pol1.U1x * TU1x_21s() * pol2.Q21s;
+            U += pol1.U1x * TU1x_22c() * pol2.Q22c;
+            U += pol1.U1x * TU1x_22s() * pol2.Q22s;
+            U += pol1.U1y * TU1y_20()  * pol2.Q20;
+            U += pol1.U1y * TU1y_21c() * pol2.Q21c;
+            U += pol1.U1y * TU1y_21s() * pol2.Q21s;
+            U += pol1.U1y * TU1y_22c() * pol2.Q22c;
+            U += pol1.U1y * TU1y_22s() * pol2.Q22s;
+            U += pol1.U1z * TU1z_20()  * pol2.Q20;
+            U += pol1.U1z * TU1z_21c() * pol2.Q21c;
+            U += pol1.U1z * TU1z_21s() * pol2.Q21s;
+            U += pol1.U1z * TU1z_22c() * pol2.Q22c;
+            U += pol1.U1z * TU1z_22s() * pol2.Q22s;
+        }
+        else {
+            U += pol1.U1x * T1x_20()  * pol2.Q20;
+            U += pol1.U1x * T1x_21c() * pol2.Q21c;
+            U += pol1.U1x * T1x_21s() * pol2.Q21s;
+            U += pol1.U1x * T1x_22c() * pol2.Q22c;
+            U += pol1.U1x * T1x_22s() * pol2.Q22s;
+            U += pol1.U1y * T1y_20()  * pol2.Q20;
+            U += pol1.U1y * T1y_21c() * pol2.Q21c;
+            U += pol1.U1y * T1y_21s() * pol2.Q21s;
+            U += pol1.U1y * T1y_22c() * pol2.Q22c;
+            U += pol1.U1y * T1y_22s() * pol2.Q22s;
+            U += pol1.U1z * T1z_20()  * pol2.Q20;
+            U += pol1.U1z * T1z_21c() * pol2.Q21c;
+            U += pol1.U1z * T1z_21s() * pol2.Q21s;
+            U += pol1.U1z * T1z_22c() * pol2.Q22c;
+            U += pol1.U1z * T1z_22s() * pol2.Q22s;
+        }
+    }
+        //cout << "E up to d <-> Q " << E << endl;
+
+    if (pol1._rank > 1 && pol2._rank > 1) {
+        E += pol1.Q20  * T20_20()   * pol2.Q20;
+        E += pol1.Q21c * T21c_21c() * pol2.Q21c;
+        E += pol1.Q21s * T21s_21s() * pol2.Q21s;
+        E += pol1.Q22c * T22c_22c() * pol2.Q22c;
+        E += pol1.Q22s * T22s_22s() * pol2.Q22s;
+
+
+        E += pol1.Q20  * T20_21c() * pol2.Q21c;
+        E += pol1.Q20  * T20_21s() * pol2.Q21s;
+        E += pol1.Q20  * T20_22c() * pol2.Q22c;
+        E += pol1.Q20  * T20_22s() * pol2.Q22s;
+        E += pol1.Q21c * T21c_20() * pol2.Q20;
+        E += pol1.Q21s * T21s_20() * pol2.Q20;
+        E += pol1.Q22c * T22c_20() * pol2.Q20;
+        E += pol1.Q22s * T22s_20() * pol2.Q20;
+
+
+        E += pol1.Q21c * T21c_21s() * pol2.Q21s;
+        E += pol1.Q21c * T21c_22c() * pol2.Q22c;
+        E += pol1.Q21c * T21c_22s() * pol2.Q22s;
+        E += pol1.Q21s * T21s_21c() * pol2.Q21c;
+        E += pol1.Q22c * T22c_21c() * pol2.Q21c;
+        E += pol1.Q22s * T22s_21c() * pol2.Q21c;
+
+
+        E += pol1.Q21s * T21s_22c() * pol2.Q22c;
+        E += pol1.Q21s * T21s_22s() * pol2.Q22s;
+        E += pol1.Q22c * T22c_21s() * pol2.Q21s;
+        E += pol1.Q22s * T22s_21s() * pol2.Q21s;
+
+        E += pol1.Q22s * T22s_22c() * pol2.Q22c;
+        E += pol1.Q22c * T22c_22s() * pol2.Q22s;
+    }
+        //cout << "E up to Q <-> Q " << E << endl;
+        
+
+    // Take into account work required to induce multipoles
+    U *= 0.5;
+
+    EP += E;
+    EU_INTER += U;
+    return E + U;
+}
+
+/**
+ * Designed for use in ESP calculator (init. stage). Only for error-checking.
+ */
+inline double XMP::XInteractor::EnergyInterESP(PolarSite &pol1,
+                                                      PolarSite &pol2) {
+    
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = pol2.getPos() - pol1.getPos();
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    a    = _xm->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+    if (pol1._rank > 0 || pol2._rank > 0) {
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+    }
+
+    double E = 0.0; // <- Electrostatic energy
+    double U = 0.0; // <- Induction energy
+
+        E += pol1.Q00 * T00_00() * pol2.Q00;
+
+    if (a*u3 < 40) {
+        U += pol1.U1x * TU1x_00() * pol2.Q00;
+        U += pol1.U1y * TU1y_00() * pol2.Q00;
+        U += pol1.U1z * TU1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * TU00_1x() * pol2.U1x;
+        U += pol1.Q00 * TU00_1y() * pol2.U1y;
+        U += pol1.Q00 * TU00_1z() * pol2.U1z;
+    }
+    else {
+        U += pol1.U1x * T1x_00() * pol2.Q00;
+        U += pol1.U1y * T1y_00() * pol2.Q00;
+        U += pol1.U1z * T1z_00() * pol2.Q00;
+
+        U += pol1.Q00 * T00_1x() * pol2.U1x;
+        U += pol1.Q00 * T00_1y() * pol2.U1y;
+        U += pol1.Q00 * T00_1z() * pol2.U1z;
+    }
+
+
+
+    if (pol1._rank > 0) {
+        E += pol1.Q1x * T1x_00() * pol2.Q00;
+        E += pol1.Q1y * T1y_00() * pol2.Q00;
+        E += pol1.Q1z * T1z_00() * pol2.Q00;
+    }
+
+    if (pol2._rank > 0) {
+        E += pol1.Q00 * T00_1x() * pol2.Q1x;
+        E += pol1.Q00 * T00_1y() * pol2.Q1y;
+        E += pol1.Q00 * T00_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 1) {
+        E += pol1.Q20  * T20_00()  * pol2.Q00;
+        E += pol1.Q21c * T21c_00() * pol2.Q00;
+        E += pol1.Q21s * T21s_00() * pol2.Q00;
+        E += pol1.Q22c * T22c_00() * pol2.Q00;
+        E += pol1.Q22s * T22s_00() * pol2.Q00;
+    }
+
+    if (pol2._rank > 1) {
+        E += pol1.Q00 * T00_20()  * pol2.Q20;
+        E += pol1.Q00 * T00_21c() * pol2.Q21c;
+        E += pol1.Q00 * T00_21s() * pol2.Q21s;
+        E += pol1.Q00 * T00_22c() * pol2.Q22c;
+        E += pol1.Q00 * T00_22s() * pol2.Q22s;
+    }
+
+    if (pol1._rank > 0 && pol2._rank > 0) {
+        E += pol1.Q1x * T1x_1x() * pol2.Q1x;
+        E += pol1.Q1x * T1x_1y() * pol2.Q1y;
+        E += pol1.Q1x * T1x_1z() * pol2.Q1z;
+
+        E += pol1.Q1y * T1y_1x() * pol2.Q1x;
+        E += pol1.Q1y * T1y_1y() * pol2.Q1y;
+        E += pol1.Q1y * T1y_1z() * pol2.Q1z;
+
+        E += pol1.Q1z * T1z_1x() * pol2.Q1x;
+        E += pol1.Q1z * T1z_1y() * pol2.Q1y;
+        E += pol1.Q1z * T1z_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 0) {
+        if (a*u3 < 40) {
+            U += pol1.Q1x * TU1x_1x() * pol2.U1x;
+            U += pol1.Q1x * TU1x_1y() * pol2.U1y;
+            U += pol1.Q1x * TU1x_1z() * pol2.U1z;
+            U += pol1.Q1y * TU1y_1x() * pol2.U1x;
+            U += pol1.Q1y * TU1y_1y() * pol2.U1y;
+            U += pol1.Q1y * TU1y_1z() * pol2.U1z;
+            U += pol1.Q1z * TU1z_1x() * pol2.U1x;
+            U += pol1.Q1z * TU1z_1y() * pol2.U1y;
+            U += pol1.Q1z * TU1z_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q1x * T1x_1x() * pol2.U1x;
+            U += pol1.Q1x * T1x_1y() * pol2.U1y;
+            U += pol1.Q1x * T1x_1z() * pol2.U1z;
+            U += pol1.Q1y * T1y_1x() * pol2.U1x;
+            U += pol1.Q1y * T1y_1y() * pol2.U1y;
+            U += pol1.Q1y * T1y_1z() * pol2.U1z;
+            U += pol1.Q1z * T1z_1x() * pol2.U1x;
+            U += pol1.Q1z * T1z_1y() * pol2.U1y;
+            U += pol1.Q1z * T1z_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 0) {
+        if (a*u3 < 40) {
+            U += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            U += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            U += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            U += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            U += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            U += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            U += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            U += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            U += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        }
+        else {
+            U += pol1.U1x * T1x_1x() * pol2.Q1x;
+            U += pol1.U1x * T1x_1y() * pol2.Q1y;
+            U += pol1.U1x * T1x_1z() * pol2.Q1z;
+            U += pol1.U1y * T1y_1x() * pol2.Q1x;
+            U += pol1.U1y * T1y_1y() * pol2.Q1y;
+            U += pol1.U1y * T1y_1z() * pol2.Q1z;
+            U += pol1.U1z * T1z_1x() * pol2.Q1x;
+            U += pol1.U1z * T1z_1y() * pol2.Q1y;
+            U += pol1.U1z * T1z_1z() * pol2.Q1z;
+        }
+    }
+
+    if (pol1._rank > 1 && pol2._rank > 0) {
+        E += pol1.Q20 * T20_1x() * pol2.Q1x;
+        E += pol1.Q20 * T20_1y() * pol2.Q1y;
+        E += pol1.Q20 * T20_1z() * pol2.Q1z;
+
+        E += pol1.Q21c * T21c_1x() * pol2.Q1x;
+        E += pol1.Q21c * T21c_1y() * pol2.Q1y;
+        E += pol1.Q21c * T21c_1z() * pol2.Q1z;
+
+        E += pol1.Q21s * T21s_1x() * pol2.Q1x;
+        E += pol1.Q21s * T21s_1y() * pol2.Q1y;
+        E += pol1.Q21s * T21s_1z() * pol2.Q1z;
+
+        E += pol1.Q22c * T22c_1x() * pol2.Q1x;
+        E += pol1.Q22c * T22c_1y() * pol2.Q1y;
+        E += pol1.Q22c * T22c_1z() * pol2.Q1z;
+
+        E += pol1.Q22s * T22s_1x() * pol2.Q1x;
+        E += pol1.Q22s * T22s_1y() * pol2.Q1y;
+        E += pol1.Q22s * T22s_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 0 && pol2._rank > 1) {
+        E += pol1.Q1x * T1x_20() * pol2.Q20;
+        E += pol1.Q1y * T1y_20() * pol2.Q20;
+        E += pol1.Q1z * T1z_20() * pol2.Q20;
+
+        E += pol1.Q1x * T1x_21c() * pol2.Q21c;
+        E += pol1.Q1y * T1y_21c() * pol2.Q21c;
+        E += pol1.Q1z * T1z_21c() * pol2.Q21c;
+
+        E += pol1.Q1x * T1x_21s() * pol2.Q21s;
+        E += pol1.Q1y * T1y_21s() * pol2.Q21s;
+        E += pol1.Q1z * T1z_21s() * pol2.Q21s;
+
+        E += pol1.Q1x * T1x_22c() * pol2.Q22c;
+        E += pol1.Q1y * T1y_22c() * pol2.Q22c;
+        E += pol1.Q1z * T1z_22c() * pol2.Q22c;
+
+        E += pol1.Q1x * T1x_22s() * pol2.Q22s;
+        E += pol1.Q1y * T1y_22s() * pol2.Q22s;
+        E += pol1.Q1z * T1z_22s() * pol2.Q22s;
+    }
+
+    if (pol1._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.Q20  * TU20_1x()  * pol2.U1x;
+            U += pol1.Q20  * TU20_1y()  * pol2.U1y;
+            U += pol1.Q20  * TU20_1z()  * pol2.U1z;
+            U += pol1.Q21c * TU21c_1x() * pol2.U1x;
+            U += pol1.Q21c * TU21c_1y() * pol2.U1y;
+            U += pol1.Q21c * TU21c_1z() * pol2.U1z;
+            U += pol1.Q21s * TU21s_1x() * pol2.U1x;
+            U += pol1.Q21s * TU21s_1y() * pol2.U1y;
+            U += pol1.Q21s * TU21s_1z() * pol2.U1z;
+            U += pol1.Q22c * TU22c_1x() * pol2.U1x;
+            U += pol1.Q22c * TU22c_1y() * pol2.U1y;
+            U += pol1.Q22c * TU22c_1z() * pol2.U1z;
+            U += pol1.Q22s * TU22s_1x() * pol2.U1x;
+            U += pol1.Q22s * TU22s_1y() * pol2.U1y;
+            U += pol1.Q22s * TU22s_1z() * pol2.U1z;
+        }
+        else {
+            U += pol1.Q20  * T20_1x()  * pol2.U1x;
+            U += pol1.Q20  * T20_1y()  * pol2.U1y;
+            U += pol1.Q20  * T20_1z()  * pol2.U1z;
+            U += pol1.Q21c * T21c_1x() * pol2.U1x;
+            U += pol1.Q21c * T21c_1y() * pol2.U1y;
+            U += pol1.Q21c * T21c_1z() * pol2.U1z;
+            U += pol1.Q21s * T21s_1x() * pol2.U1x;
+            U += pol1.Q21s * T21s_1y() * pol2.U1y;
+            U += pol1.Q21s * T21s_1z() * pol2.U1z;
+            U += pol1.Q22c * T22c_1x() * pol2.U1x;
+            U += pol1.Q22c * T22c_1y() * pol2.U1y;
+            U += pol1.Q22c * T22c_1z() * pol2.U1z;
+            U += pol1.Q22s * T22s_1x() * pol2.U1x;
+            U += pol1.Q22s * T22s_1y() * pol2.U1y;
+            U += pol1.Q22s * T22s_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 1) {
+        if (a*u3 < 40.0) {
+            U += pol1.U1x * TU1x_20()  * pol2.Q20;
+            U += pol1.U1x * TU1x_21c() * pol2.Q21c;
+            U += pol1.U1x * TU1x_21s() * pol2.Q21s;
+            U += pol1.U1x * TU1x_22c() * pol2.Q22c;
+            U += pol1.U1x * TU1x_22s() * pol2.Q22s;
+            U += pol1.U1y * TU1y_20()  * pol2.Q20;
+            U += pol1.U1y * TU1y_21c() * pol2.Q21c;
+            U += pol1.U1y * TU1y_21s() * pol2.Q21s;
+            U += pol1.U1y * TU1y_22c() * pol2.Q22c;
+            U += pol1.U1y * TU1y_22s() * pol2.Q22s;
+            U += pol1.U1z * TU1z_20()  * pol2.Q20;
+            U += pol1.U1z * TU1z_21c() * pol2.Q21c;
+            U += pol1.U1z * TU1z_21s() * pol2.Q21s;
+            U += pol1.U1z * TU1z_22c() * pol2.Q22c;
+            U += pol1.U1z * TU1z_22s() * pol2.Q22s;
+        }
+        else {
+            U += pol1.U1x * T1x_20()  * pol2.Q20;
+            U += pol1.U1x * T1x_21c() * pol2.Q21c;
+            U += pol1.U1x * T1x_21s() * pol2.Q21s;
+            U += pol1.U1x * T1x_22c() * pol2.Q22c;
+            U += pol1.U1x * T1x_22s() * pol2.Q22s;
+            U += pol1.U1y * T1y_20()  * pol2.Q20;
+            U += pol1.U1y * T1y_21c() * pol2.Q21c;
+            U += pol1.U1y * T1y_21s() * pol2.Q21s;
+            U += pol1.U1y * T1y_22c() * pol2.Q22c;
+            U += pol1.U1y * T1y_22s() * pol2.Q22s;
+            U += pol1.U1z * T1z_20()  * pol2.Q20;
+            U += pol1.U1z * T1z_21c() * pol2.Q21c;
+            U += pol1.U1z * T1z_21s() * pol2.Q21s;
+            U += pol1.U1z * T1z_22c() * pol2.Q22c;
+            U += pol1.U1z * T1z_22s() * pol2.Q22s;
+        }
+    }
+
+    if (pol1._rank > 1 && pol2._rank > 1) {
+        E += pol1.Q20  * T20_20()   * pol2.Q20;
+        E += pol1.Q21c * T21c_21c() * pol2.Q21c;
+        E += pol1.Q21s * T21s_21s() * pol2.Q21s;
+        E += pol1.Q22c * T22c_22c() * pol2.Q22c;
+        E += pol1.Q22s * T22s_22s() * pol2.Q22s;
+
+
+        E += pol1.Q20  * T20_21c() * pol2.Q21c;
+        E += pol1.Q20  * T20_21s() * pol2.Q21s;
+        E += pol1.Q20  * T20_22c() * pol2.Q22c;
+        E += pol1.Q20  * T20_22s() * pol2.Q22s;
+        E += pol1.Q21c * T21c_20() * pol2.Q20;
+        E += pol1.Q21s * T21s_20() * pol2.Q20;
+        E += pol1.Q22c * T22c_20() * pol2.Q20;
+        E += pol1.Q22s * T22s_20() * pol2.Q20;
+
+
+        E += pol1.Q21c * T21c_21s() * pol2.Q21s;
+        E += pol1.Q21c * T21c_22c() * pol2.Q22c;
+        E += pol1.Q21c * T21c_22s() * pol2.Q22s;
+        E += pol1.Q21s * T21s_21c() * pol2.Q21c;
+        E += pol1.Q22c * T22c_21c() * pol2.Q21c;
+        E += pol1.Q22s * T22s_21c() * pol2.Q21c;
+
+
+        E += pol1.Q21s * T21s_22c() * pol2.Q22c;
+        E += pol1.Q21s * T21s_22s() * pol2.Q22s;
+        E += pol1.Q22c * T22c_21s() * pol2.Q21s;
+        E += pol1.Q22s * T22s_21s() * pol2.Q21s;
+
+        E += pol1.Q22s * T22s_22c() * pol2.Q22c;
+        E += pol1.Q22c * T22c_22s() * pol2.Q22s;
+    }
+
+    // Take into account work required to induce multipoles
+    U *= 0.5;
+
+    return E + U;
+}
+
 
 
 }}
