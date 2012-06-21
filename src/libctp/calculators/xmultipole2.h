@@ -1181,6 +1181,8 @@ void XMP::Create_MPOLS(Topology *top) {
 
 vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *seg) {
 
+    bool print_huge_map2md_warning = false;
+
     vector<PolarSite*> return_pols;
     return_pols.reserve(pols_n.size());
 
@@ -1410,11 +1412,7 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
                 vec mdpos = frag->Atoms()[i]->getPos();
                 newSite->setPos(mdpos);
                 if (newSite->getRank() > 0) {
-                    cout << endl
-                         << "ERROR: MAP2MD = TRUE prevents use of "
-                         << "higher-rank multipoles. "
-                         << endl;
-                    throw runtime_error("User not paying attention. ");
+                    print_huge_map2md_warning = true;
                 }
             }
 
@@ -1424,6 +1422,17 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
 
         }
     } // End loop over fragments
+
+    if (print_huge_map2md_warning) {
+        cout << endl << endl
+             << "**************************************************************"
+             << "WARNING: MAP2MD = TRUE while using higher-rank multipoles can "
+             << "mess up the orientation of those multipoles if the coordinate "
+             << "frame used in the .mps file does not agree with the global MD "
+             << "frame. If you know what you are doing - proceed ... "
+             << "**************************************************************"
+             << endl;
+    }
 
     return return_pols;
 }
