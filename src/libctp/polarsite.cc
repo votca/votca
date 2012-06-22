@@ -227,7 +227,29 @@ void PolarSite::Depolarize() {
 }
 
 
-void PolarSite::WriteChkLine(FILE *out, bool split_dpl, string format, double spacing) {
+void PolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
+
+    double int2ext = 1.0;
+
+    vec pos = _pos + shift;
+
+    if (format == "gaussian") {
+        int2ext = 10.;
+    }
+    else {
+        int2ext = 10.;
+    }
+
+    fprintf(out, "%-2s %+4.9f %+4.9f %+4.9f \n",
+            _name.c_str(),
+            pos.getX()*10, pos.getY()*10, pos.getZ()*10);
+}
+
+
+void PolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
+                             string format, double spacing) {
+
+    vec pos = _pos + shift;
 
     string unit = "";
 
@@ -257,9 +279,9 @@ void PolarSite::WriteChkLine(FILE *out, bool split_dpl, string format, double sp
 
     // Print charge line
     fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
-            _pos.getX()*int2ext,
-            _pos.getY()*int2ext,
-            _pos.getZ()*int2ext,
+            pos.getX()*int2ext,
+            pos.getY()*int2ext,
+            pos.getZ()*int2ext,
             Q00);
     
 
@@ -280,8 +302,8 @@ void PolarSite::WriteChkLine(FILE *out, bool split_dpl, string format, double sp
         double mag_d    = abs(tot_dpl);
         vec    dir_d_0  = tot_dpl.normalize();
         vec    dir_d    = dir_d_0.normalize();
-        vec    A        = _pos + 0.5 * a * dir_d;
-        vec    B        = _pos - 0.5 * a * dir_d;
+        vec    A        = pos + 0.5 * a * dir_d;
+        vec    B        = pos - 0.5 * a * dir_d;
         double qA       = mag_d / a;
         double qB       = - qA;
 

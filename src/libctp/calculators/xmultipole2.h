@@ -1880,6 +1880,7 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
     if (_master->_induce) E_state   = this->Energy(state, job);
     else                  E_state   = this->EnergyStatic(state, job);
 
+    job->setIter(iter);
     job->setEnergy(E_state*int2eV);
 
 
@@ -1890,11 +1891,43 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
 
     if (_master->_write_chk) {
 
+        string dotsuffix = "";
+
+        if (_master->_chk_format == "gaussian") {
+            dotsuffix = ".com";
+        }
+        else if (_master->_chk_format == "xyz") {
+            dotsuffix = ".xyz";
+        }
+
         FILE *out;
-        string chk_file = job->getTag()+_master->_write_chk_suffix+".chk";
+        string chk_file = job->getTag()+_master->_write_chk_suffix+dotsuffix;
         out = fopen(chk_file.c_str(), "w");
 
         vector< PolarSite* >         ::iterator pit;
+        int pcount = 0;
+
+        // Save coordinates of central pair
+        for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
+
+            int segId = (*sit)->getId();
+
+            if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
+
+                vec pb_shift = job->Center() - (*sit)->getPos()
+                     - top->PbShortestConnect((*sit)->getPos(), job->Center());
+
+                for (pit = _polarSites_job[segId-1].begin();
+                     pit < _polarSites_job[segId-1].end();
+                     ++pit, ++pcount) {
+                    (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);
+                }
+            }
+        }
+
+        if (_master->_chk_format == "gaussian") {
+            fprintf(out, "\n");
+        }
 
         // Save induction state of polarization sphere
         for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
@@ -1905,10 +1938,15 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
                 continue;
             }
 
+            vec pb_shift = job->Center() - (*sit)->getPos()
+                     - top->PbShortestConnect((*sit)->getPos(), job->Center());
+
+
             for (pit = _polarSites_job[segId-1].begin();
                  pit < _polarSites_job[segId-1].end();
-                 ++pit) {
-                 (*pit)->WriteChkLine(out, _master->_chk_split_dpl,
+                 ++pit, ++pcount) {
+                 (*pit)->WriteChkLine(out, pb_shift,
+                                           _master->_chk_split_dpl,
                                            _master->_chk_format,
                                            _master->_chk_dpl_spacing);
             }
@@ -1922,10 +1960,15 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
             if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
                 assert(false); // Central pair in outer shell? No!
             }
+
+            vec pb_shift = job->Center() - (*sit)->getPos()
+                     - top->PbShortestConnect((*sit)->getPos(), job->Center());
+
             for (pit = _polarSites_job[segId-1].begin();
                  pit < _polarSites_job[segId-1].end();
-                 ++pit) {
-                 (*pit)->WriteChkLine(out, false,
+                 ++pit, ++pcount) {
+                 (*pit)->WriteChkLine(out, pb_shift,
+                                           false,
                                            _master->_chk_format,
                                            _master->_chk_dpl_spacing);
             }

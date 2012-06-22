@@ -104,7 +104,8 @@ public:
     void            PrintInfoInduce(std::ostream &out);
     void            PrintInfoVisual(FILE *out);
     void            PrintPDB(FILE *out, vec shift);
-    void            WriteChkLine(FILE *, bool, string, double);
+    void            WriteChkLine(FILE *, vec &, bool, string, double);
+    void            WriteXyzLine(FILE *, vec &, string);
 
 
 
