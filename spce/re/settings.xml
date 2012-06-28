@@ -11,7 +11,7 @@
     <type1>CG</type1>
     <type2>CG</type2>
     <!-- min, max and step size distance for pot (max=cutoff) -->
-    <min>0.24</min>
+    <min>0.0</min>
     <max>0.9</max>
     <step>0.002</step>
     <re>
@@ -22,9 +22,10 @@
 	<nknots>48</nknots>
 	<!-- no. of knots near cut off to be set to zero for smoothness -->
 	<nknots_cutoff>4</nknots_cutoff>
+        <extrapolate>exponential</extrapolate>
       </cbspl>
       <!-- distance range for the potential -->
-      <min>0.24</min>
+      <min>0.22</min>
       <max>0.9</max>
     </re>
     <inverse>
@@ -80,7 +81,7 @@
       <!-- mdrun options -->
       <mdrun>
 	<command>mdrun</command>
-	<opts></opts>
+	<opts>-nt 4</opts>
       </mdrun>
     </gromacs>
     <!-- these files are copied for each new run -->
@@ -94,11 +95,10 @@
       <!-- relative entropy program name and options-->
       <!-- default path is votcadir/bin -->
       <csg_reupdate>
-        <opts>--begin 50</opts>
+        <opts>--begin 50 --nt 4</opts>
       </csg_reupdate>
       <!-- relaxation parameter in Newton-Raphson update -->
       <relax>0.7</relax>
-      <do_steep>false</do_steep>
     </re>
     <!-- convergence check options -->
     <convergence_check>
@@ -106,7 +106,7 @@
       <limit>0.0001</limit>
     </convergence_check>
     <average>
-      <steps>10</steps>
+      <steps>50</steps>
     </average>
     <!-- directory for user scripts -->
     <scriptdir></scriptdir>
