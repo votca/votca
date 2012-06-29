@@ -26,13 +26,10 @@ HistogramNew::HistogramNew()
     _periodic=false;
 }
 
-/// \todo implement this correctly
 HistogramNew::HistogramNew(const HistogramNew &hist)
-{
-    _min=_max=_step=0;
-    _weight = 1.;
-    _periodic=false;
-}
+    : _min(hist._min), _max(hist._max), _step(hist._step), 
+      _weight(hist._weight), _periodic(hist._periodic)
+{}
 
 void HistogramNew::Initialize(double min, double max, int nbins)
 {
