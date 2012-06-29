@@ -27,7 +27,7 @@ Histogram::Histogram()
 {}
 
 Histogram::Histogram(options_t op)
-    : _options(op)
+    : _options(op), _min(0), _max(0)
 {    
 }
 
