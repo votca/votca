@@ -134,6 +134,7 @@ calc thermforce calc_thermforce.sh
 optimizer prepare_state optimizer_prepare_state.sh
 optimizer parameters_to_potential optimizer_parameters_to_potential.sh
 optimizer state_to_potentials optimizer_state_to_potentials.sh
+optimizer state_to_mapping  optimizer_state_to_mapping.sh
 update optimizer update_optimizer.sh
 update optimizer_single update_optimizer_single.sh
 
@@ -150,6 +151,9 @@ cma precede_state cma_processor.py
 
 # relative entroy (re) specific stuff
 update re update_re.sh
+
+# recalculate reference
+calc target_rdf calc_target_rdf_generic.sh
 
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl

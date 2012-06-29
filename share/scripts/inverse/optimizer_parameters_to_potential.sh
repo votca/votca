@@ -48,6 +48,6 @@ max="$(csg_get_interaction_property max)"
 if [[ -z $header ]]; then
   do_external table functional "${para[@]}" --fct "${fct}" --grid "${min}:${step}:${max}" "${name}.pot.new"
 else
-  [[ -f ${header} ]] || die "${0##*/}: Could not find function headerfile '$header'. did you forget to add it to cg.inverse.filelist?" 
-  do_external table functional "${para[@]}" --fct "${fct}" --grid "${min}:${step}:${max}" --headerfile "${header}" "${name}.pot.new"
+  [[ -f $(get_main_dir)/${header} ]] || die "${0##*/}: Could not find function headerfile '$header' in maindir" 
+  do_external table functional "${para[@]}" --fct "${fct}" --grid "${min}:${step}:${max}" --headerfile "$(get_main_dir)/${header}" "${name}.pot.new"
 fi
