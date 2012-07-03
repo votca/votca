@@ -16,23 +16,50 @@ public:
     void        Initialize(Topology *top, Property *options);
     bool        EvaluateFrame(Topology *top);
     void        XML2PairTI(QMPair *qmpair, string &xmlDirFile);
+    void        List2PairsTI(Topology *top, string &ti_file);
 
 private:
 
+    bool        _importFromDirs;
+    bool        _importFromList;
+
     string      _TI_tag;
+    string      _TI_file;
 };
 
 
 void IImport::Initialize(Topology *top, Property *options) {
 
-    string key = "options.iimport";
-    _TI_tag = options->get(key+".TI_tag").as< string >();
+    _importFromDirs = false;
+    _importFromList = false;
 
-    cout << endl << "... ... Using TI XML tag '" << _TI_tag << "'" << flush;
+    string key = "options.iimport";
+
+    if (options->exists(key+".TI_tag")) {
+        _TI_tag = options->get(key+".TI_tag").as< string >();
+        _importFromDirs = true;
+        cout << endl << "... ... Using TI XML tag '" << _TI_tag << "'" << flush;
+    }
+
+    else if (options->exists(key+".TI_file")) {
+        _TI_file = options->get(key+".TI_file").as< string >();
+        _importFromList = true;
+        cout << endl << "... ... Using TI table '" << _TI_file << "'" << flush;
+    }
+    
+
+    
 }
 
 bool IImport::EvaluateFrame(Topology *top) {
 
+  // Import from file
+  if (_importFromList) {
+      this->List2PairsTI(top, _TI_file);
+  }
+
+  // Import from DiPro folders
+  else if (_importFromDirs) {
     string PARDIR = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
     string SUBDIR = PARDIR + "/pair_0000_0000";
 
@@ -46,7 +73,82 @@ bool IImport::EvaluateFrame(Topology *top) {
         SUBDIR = PARDIR + "/pair_" + ID1 + "_" + ID2 + "/TI.xml";
         this->XML2PairTI(*nit, SUBDIR);
     }
+  }
+
 }
+
+
+void IImport::List2PairsTI(Topology *top, string &ti_file) {
+
+    QMNBList &nblist = top->NBList();
+    int pair_count = 0;
+
+    std::string line;
+    std::ifstream intt;
+    intt.open(ti_file.c_str());
+
+    if (intt.is_open()) {
+        while (intt.good()) {
+
+            std::getline(intt, line);
+            vector<string> split;
+            Tokenizer toker(line, " \t");
+            toker.ToVector(split);
+
+            if (split.size() != 4 && split.size() != 6) {
+                cout << endl << "... ... Invalid line: " << line << flush;
+                continue;
+            }
+
+            int seg1id = boost::lexical_cast<int>(split[0]);
+            int seg2id = boost::lexical_cast<int>(split[1]);
+
+            Segment *seg1 = top->getSegment(seg1id);
+            Segment *seg2 = top->getSegment(seg2id);
+
+            QMPair *qmp = nblist.FindPair(seg1,seg2);
+            if (qmp == NULL) {
+                cout << endl
+                     << "... ... ERROR: " << line
+                     << flush;
+                cout << endl
+                     << "... ... Line is not compatible with neighborlist. "
+                     << flush;
+                throw std::runtime_error("Forgot to run -e neighborlist?");
+            }            
+
+            int e_h_1 = (split[2] == "e") ? -1 : +1;
+            double j2_1 = boost::lexical_cast<double>(split[3]);
+
+            if (split.size() == 6) {
+
+                int e_h_2 = (split[4] == "e") ? -1 : +1;
+                if (e_h_1 == e_h_2) {
+                    cout << endl << "... ... Invalid line: " << line << flush;
+                    continue;
+                }
+                double j2_2 = boost::lexical_cast<double>(split[5]);
+
+                qmp->setJeff2(j2_2, e_h_2);
+            }
+
+            qmp->setJeff2(j2_1, e_h_1);
+            ++pair_count;
+            
+        }
+    }
+    else {
+        cout << endl
+             << "ERROR: No such file" << ti_file << ". "
+             << flush;
+        throw std::runtime_error("Missing input file in IImport calculator.");
+    }
+
+    cout << endl
+         << "... ... Set transfer integrals for " << pair_count << " pairs. "
+         << flush;
+}
+
 
 void IImport::XML2PairTI(QMPair *qmpair, string &xmlDirFile) {
 

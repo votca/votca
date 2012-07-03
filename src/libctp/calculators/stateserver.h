@@ -51,6 +51,7 @@ public:
 
     void WriteXMP(FILE *out, Topology *top);
     void WriteEMP(FILE *out, Topology *top);
+    void WriteULM(Topology *top);
 
 private:
 
@@ -195,6 +196,11 @@ bool StateServer::EvaluateFrame(Topology *top) {
                 WriteEMP(out_emp, top);
 
                 fclose(out_emp);
+        }
+
+        else if (*key == "ulm") {
+                cout << "ULM input, ";
+                WriteULM(top);
         }
 
         else {
@@ -395,6 +401,83 @@ void StateServer::WriteXMP(FILE *out, Topology *top) {
                      qmpair->second->getName().c_str(),
                      (prefix+"_2.mps").c_str());
     }
+}
+
+void StateServer::WriteULM(Topology *top) {
+
+    FILE *out_ulm;
+    string ulm_file = "vertices_channel_e.dat";
+    out_ulm = fopen(ulm_file.c_str(), "w");
+
+    vector< Segment* > ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        fprintf(out_ulm, "%4d %+4.5f %+4.5f %+4.5f %+4.5f %-1s \n",
+                (*sit)->getId(),
+                (*sit)->getPos().getX(),
+                (*sit)->getPos().getY(),
+                (*sit)->getPos().getZ(),
+                (*sit)->getSiteEnergy(-1),
+                (*sit)->getName().c_str());
+    }
+    fclose(out_ulm);
+
+
+    ulm_file = "vertices_channel_h.dat";
+    out_ulm = fopen(ulm_file.c_str(), "w");
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        fprintf(out_ulm, "%4d %+4.5f %+4.5f %+4.5f %+4.5f %-1s \n",
+                (*sit)->getId(),
+                (*sit)->getPos().getX(),
+                (*sit)->getPos().getY(),
+                (*sit)->getPos().getZ(),
+                (*sit)->getSiteEnergy(+1),
+                (*sit)->getName().c_str());
+    }
+    fclose(out_ulm);
+
+
+    ulm_file = "edges_channel_e.dat";
+    out_ulm = fopen(ulm_file.c_str(), "w");
+    QMNBList::iterator nit;
+    for (nit = top->NBList().begin();
+         nit != top->NBList().end();
+         nit++) {
+
+        QMPair *qmpair = *nit;
+
+        fprintf(out_ulm, "%4d %4d %+4.7e %+4.7e %+4.7e %+4.7f %+4.7f %+4.7f \n",
+                     qmpair->Seg1()->getId(),
+                     qmpair->Seg2()->getId(),
+                     qmpair->getJeff2(-1),
+                     qmpair->getRate12(-1),
+                     qmpair->getRate21(-1),
+                     qmpair->R().getX(),
+                     qmpair->R().getY(),
+                     qmpair->R().getZ());
+    }
+    fclose(out_ulm);
+
+
+    ulm_file = "edges_channel_h.dat";
+    out_ulm = fopen(ulm_file.c_str(), "w");
+    for (nit = top->NBList().begin();
+         nit != top->NBList().end();
+         nit++) {
+
+        QMPair *qmpair = *nit;
+
+        fprintf(out_ulm, "%4d %4d %+4.7e %+4.7e %+4.7e %+4.7f %+4.7f %+4.7f \n",
+                     qmpair->Seg1()->getId(),
+                     qmpair->Seg2()->getId(),
+                     qmpair->getJeff2(+1),
+                     qmpair->getRate12(+1),
+                     qmpair->getRate21(+1),
+                     qmpair->R().getX(),
+                     qmpair->R().getY(),
+                     qmpair->R().getZ());
+    }
+    fclose(out_ulm);
+
 }
 
 

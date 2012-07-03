@@ -271,7 +271,7 @@ public:
 
              if (_pair == NULL) {
                 cout << endl
-                     << "ERROR: No such pair " << pairId
+                     << "WARNING: No such pair " << pairId
                      << "(SEG1 " << seg1Id << ", SEG2 " << seg2Id << "). "
                      << flush;
                 throw runtime_error("Pair specs do not match topology.");
