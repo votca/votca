@@ -2723,6 +2723,8 @@ int EMultipole::SiteOpMultipole::Induce(int state) {
 
 double EMultipole::SiteOpMultipole::EnergyStatic(int state) {
 
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+
     _actor.ResetEnergy();
     double E_Tot = 0.0;
 
@@ -2756,10 +2758,10 @@ double EMultipole::SiteOpMultipole::EnergyStatic(int state) {
     }
 
     if (_master->_maverick) {
-        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot
-             << " = (P ~) " << _actor.getEP()
-             << " + (U ~) " << _actor.getEU_INTER()
-             << " + (U o) " << _actor.getEU_INTRA()
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " = (P ~) " << _actor.getEP() * int2eV
+             << " + (U ~) " << _actor.getEU_INTER() * int2eV
+             << " + (U o) " << _actor.getEU_INTRA() * int2eV
              << " , statics only. "
              << flush;
     }
@@ -2772,6 +2774,8 @@ double EMultipole::SiteOpMultipole::EnergyStatic(int state) {
  * Calculates electrostatic + induction energy of segment up to Q2-Q2
  */
 double EMultipole::SiteOpMultipole::Energy(int state) {
+
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     _actor.ResetEnergy();
     double E_Tot = 0.0;
@@ -2848,11 +2852,11 @@ double EMultipole::SiteOpMultipole::Energy(int state) {
 
 
     if (_master->_maverick) {
-        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot
-             << " = (P ~) " << _actor.getEP()
-             << " + (U ~) " << _actor.getEU_INTER()
-             << " + (U o) " << _actor.getEU_INTRA()
-             << " , (O ~) " << E_Out
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " = (P ~) " << _actor.getEP()       * int2eV
+             << " + (U ~) " << _actor.getEU_INTER() * int2eV
+             << " + (U o) " << _actor.getEU_INTRA() * int2eV
+             << " , (O ~) " << E_Out * int2eV
              << flush;
     }
 

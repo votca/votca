@@ -298,7 +298,10 @@ public:
        int      getSeg2Id()                 { return _seg2Id; }
        string   getMPS1()                   { return _mps1; }
        string   getMPS2()                   { return _mps2; }
+       int      getSiteId()                 { return _site_id; }
+       string   getType()                   { return _type; }
 
+       void     setType(string typ, int id) { _type = typ; _site_id = id; }
        void     setIter(int iter)           { _iter = iter; }
        void     setSizePol(int size)        { _sizePol = size; }
        void     setSizeShell(int size)      { _sizeShell = size; }
@@ -331,6 +334,8 @@ public:
 
        int          _id;
        string       _tag;
+       string       _type;
+       int          _site_id; // only relevant if type == "site"
        int          _pairId;
        int          _seg1Id;
        int          _seg2Id;
@@ -760,8 +765,8 @@ void XMP::Collect_JOB(string job_file, Topology *top) {
                   split[0].substr(0,1) == "#" ) { continue; }
 
 // Sample line
-// # JOB_ID TAG  PAIR_ID SEG1_ID SEG1_NAME SEG1_MPS SEG2_ID SEG2_NAME SEG2_MPS
-//   1      E_CT 3819    182     C60       c60.mps  392     DCV       dcv.mps
+// # JOB_ID TAG  PAIR_ID SEG1_ID SEG1_NAME SEG1_MPS SEG2_ID SEG2_NAME SEG2_MPS  (TYPE  SITE)
+//   1      E_CT 3819    182     C60       c60.mps  392     DCV       dcv.mps   (site  392)
 
             int jobId       = boost::lexical_cast<int>(split[0]);
             string tag      = split[1];
@@ -775,6 +780,14 @@ void XMP::Collect_JOB(string job_file, Topology *top) {
             string seg2Name = split[7];
             string seg2mps  = split[8];
 
+            string job_type = "pair";
+            int    energy_site_id = -1;
+            if (split.size() == 11) {
+                job_type = split[9];
+                energy_site_id = boost::lexical_cast<int>(split[10]);
+            }
+
+
             Segment *seg1   = top->getSegment(seg1Id);
             Segment *seg2   = top->getSegment(seg2Id);
             QMPair  *qmp    = nblist.FindPair(seg1,seg2);
@@ -782,6 +795,8 @@ void XMP::Collect_JOB(string job_file, Topology *top) {
             _XJobs.push_back(new XJob(jobId,  tag,     pairId,
                                       seg1Id, seg2Id, seg1mps, 
                                       seg2mps, top));
+
+            _XJobs.back()->setType(job_type, energy_site_id);
 
         } /* Exit loop over lines */
     }
@@ -1786,7 +1801,7 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
     // Define polarization sphere //
     // ++++++++++++++++++++++++++ //
 
-    vec center = job->Center(); 
+    vec center = job->Center();
     // vec center = job->Seg1()->getPos(); // UNCOMMENT TO COMPARE TO EMULTIPOLE
 
     this->_segsPolSphere.clear(); // <- Segments    within cutoff
@@ -1924,22 +1939,88 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
         int pcount = 0;
 
         // Save coordinates of central pair
-        for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
+        if (job->getType() == "pair") {
+            for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
 
-            int segId = (*sit)->getId();
+                int segId = (*sit)->getId();
 
-            if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
+                if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
 
-                vec pb_shift = job->Center() - (*sit)->getPos()
-                     - top->PbShortestConnect((*sit)->getPos(), job->Center());
+                    vec pb_shift = job->Center() - (*sit)->getPos()
+                         - top->PbShortestConnect((*sit)->getPos(), job->Center());
 
-                for (pit = _polarSites_job[segId-1].begin();
-                     pit < _polarSites_job[segId-1].end();
-                     ++pit, ++pcount) {
-                    (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);
+                    for (pit = _polarSites_job[segId-1].begin();
+                         pit < _polarSites_job[segId-1].end();
+                         ++pit, ++pcount) {
+                        (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);
+                    }
                 }
             }
         }
+        else {
+
+            if (job->getSiteId() == job->getSeg2Id()) {
+                // Reverse order
+                for (sit = _segsPolSphere.end() - 1; sit > _segsPolSphere.begin(); --sit) {
+
+                    int segId = (*sit)->getId();
+
+                    if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
+
+                        vec pb_shift = job->Center() - (*sit)->getPos()
+                             - top->PbShortestConnect((*sit)->getPos(), job->Center());
+
+                        for (pit = _polarSites_job[segId-1].begin();
+                             pit < _polarSites_job[segId-1].end();
+                             ++pit, ++pcount) {
+                            if (segId == job->getSiteId()) {
+                                (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);
+                            }
+                            else {
+                                (*pit)->WriteChkLine(out, pb_shift,
+                                               _master->_chk_split_dpl,
+                                               _master->_chk_format,
+                                               _master->_chk_dpl_spacing);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (job->getSiteId() == job->getSeg1Id()) {
+                for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
+
+                    int segId = (*sit)->getId();
+
+                    if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
+
+                        vec pb_shift = job->Center() - (*sit)->getPos()
+                             - top->PbShortestConnect((*sit)->getPos(), job->Center());
+
+                        for (pit = _polarSites_job[segId-1].begin();
+                             pit < _polarSites_job[segId-1].end();
+                             ++pit, ++pcount) {
+                            if (segId == job->getSiteId()) {
+                                (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);
+                            }
+                            else {
+                                (*pit)->WriteChkLine(out, pb_shift,
+                                               _master->_chk_split_dpl,
+                                               _master->_chk_format,
+                                               _master->_chk_dpl_spacing);
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                printf("\nERROR: No such segment ID %1d in job ID %1d.",
+                        job->getSiteId(), job->getId());
+                throw std::runtime_error("Redo job input.");
+            }
+
+
+        }
+
 
         if (_master->_chk_format == "gaussian") {
             fprintf(out, "\n");
@@ -2206,20 +2287,18 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
         //     << (*seg1)->getId() << "|" << (*seg2)->getId() << "   " << flush;
 
         // Intra-pair interaction?
-        if ((*seg1)->getId() == job->getSeg1Id()
-         || (*seg1)->getId() == job->getSeg2Id() ) {
-            if ((*seg2)->getId() == job->getSeg1Id()
-             || (*seg2)->getId() == job->getSeg2Id()) {
-                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+        if ( ((*seg1)->getId() == job->getSeg1Id() || (*seg1)->getId() == job->getSeg2Id())
+          && ((*seg2)->getId() == job->getSeg1Id() || (*seg2)->getId() == job->getSeg2Id()) ) {
 
-                    //(*pit1)->PrintInfo(cout);
-                    //(*pit2)->PrintInfo(cout);
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
 
-                    E_Pair_Intra += _actor.EnergyInter(*(*pit1), *(*pit2));
+                //(*pit1)->PrintInfo(cout);
+                //(*pit2)->PrintInfo(cout);
 
-                }}
-            }
+                E_Pair_Intra += _actor.EnergyInter(*(*pit1), *(*pit2));
+
+            }}
         }
 
         // Pair-non-pair interaction?
