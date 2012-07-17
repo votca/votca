@@ -133,9 +133,13 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                   (md_atoms_info.size() != atom_weights.size() ) ) {
                  cout << "ERROR: "
                       << "Could not allocate MD atoms to QM atoms or weights"
+                      << " in fragment " << fragment->getName()
                       << " in segment " << segment->getName()
                       << " in molecule " << molMdName
-                      << " due to inconsistent number of columns."
+                      << " due to inconsistent number of columns"
+                      << " (MD: " << md_atoms_info.size() << ","
+                      << " QM: " << qm_atoms_info.size() << ")"
+                      << " Weights: " << atom_weights.size() << ")."
                       << endl;
                  cout << "NOTE: "
                       << "To define an MD atom without QM counterpart, insert "
@@ -193,7 +197,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                        qmPos = intCoords.at(qm_atom_id).second;
                        element = intCoords.at(qm_atom_id).first;
                        // Check whether elements of md and qm match
-                       if (intCoords.at(qm_atom_id).first
+                       if (intCoords.at(qm_atom_id).first.substr(0,1)
                            != md_atom_name.substr(0,1) ) {
                            cout << "WARNING: Atom " <<md_atom_name << "in mol. "
                                 << molMdName << " appears to have element type "
@@ -554,7 +558,7 @@ void Md2QmEngine::getIntCoords(string &file,
             double z = boost::lexical_cast<double>( split[3] ) / 10.;
             vec qmPos = vec(x,y,z);
 
-            pair<string, vec> qmTypePos(element.substr(0,1), qmPos);
+            pair<string, vec> qmTypePos(element, qmPos);
             intCoords[atomCount] = qmTypePos;
         }
     }

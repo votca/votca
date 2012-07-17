@@ -184,6 +184,13 @@ const double Segment::getU_cN_cC(int state) {
 }
 
 
+const double Segment::getSiteEnergy(int state) {
+
+    return (state == -1) ? this->getEMpoles(state) + _U_cC_nN_e :
+                           this->getEMpoles(state) + _U_cC_nN_h;
+}
+
+
 void Segment::setEMpoles(int state, double energy) {
 
     _hasChrgState.resize(3);
@@ -310,7 +317,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
                  );
     }
   }
-  else if ( tag1 == "Multipoles") {
+  else if ( tag1 == "Multipoles" && tag2 != "Charges") {
     vector < PolarSite* > :: iterator pol;
     for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
          int id = (*pol)->getId() % 100000;
@@ -341,6 +348,69 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
                  );
     }
   }
+    else if ( tag1 == "Multipoles" && tag2 == "Charges") {
+    vector < PolarSite* > :: iterator pol;
+    for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
+         int id = (*pol)->getId() % 100000;
+         string name =  (*pol)->getName();
+         name.resize(3);
+         string resname = (*pol)->getFragment()->getName();
+         resname.resize(3);
+         int resnr = (*pol)->getFragment()->getId() % 10000;
+         vec position = (*pol)->getPos();
+
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+                      "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s%4.7f\n",
+                 id,                    // Atom serial number           %5d
+                 name.c_str(),          // Atom name                    %4s
+                 " ",                   // alternate location indicator.%1s
+                 resname.c_str(),       // Residue name.                %3s
+                 "A",                   // Chain identifier             %1s
+                 resnr,                 // Residue sequence number      %4d
+                 " ",                   // Insertion of residues.       %1s
+                 position.getX()*10,    // X in Angstroms               %8.3f
+                 position.getY()*10,    // Y in Angstroms               %8.3f
+                 position.getZ()*10,    // Z in Angstroms               %8.3f
+                 1.0,                   // Occupancy                    %6.2f
+                 0.0,                   // Temperature factor           %6.2f
+                 " ",                   // Segment identifier           %4s
+                 name.c_str(),          // Element symbol               %2s
+                 " ",                   // Charge on the atom.          %2s
+                 (*pol)->getQ00()
+                 );
+    }
+  }
+}
+
+
+void Segment::WriteXYZ(FILE *out) {
+
+    vector< Atom* > ::iterator ait;
+
+    int qmatoms = 0;
+
+    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+        if ((*ait)->HasQMPart() == true) { ++qmatoms; }
+    }
+
+    fprintf(out, "%6d \n", qmatoms);
+    fprintf(out, "\n");
+
+    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+
+        if ((*ait)->HasQMPart() == false) { continue; }
+
+        vec     pos = (*ait)->getQMPos();
+        string  name = (*ait)->getElement();
+
+        fprintf(out, "%2s %4.7f %4.7f %4.7f \n",
+                        name.c_str(),
+                        pos.getX()*10,
+                        pos.getY()*10,
+                        pos.getZ()*10);
+    }
+
+
 }
 
 

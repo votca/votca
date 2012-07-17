@@ -215,4 +215,69 @@ void QMPair::WritePDB(string fileName) {
     fclose(pdb);
 }
 
+void QMPair::WriteXYZ(FILE *out) {
+
+    int qmatoms = 0;
+
+    vector< Atom* > ::iterator ait;
+
+    for (ait = Seg1PbCopy()->Atoms().begin();
+         ait < Seg1PbCopy()->Atoms().end();
+         ++ait) {
+
+        if ((*ait)->HasQMPart()) {
+            ++qmatoms;
+        }
+    }
+
+    for (ait = Seg2PbCopy()->Atoms().begin();
+         ait < Seg2PbCopy()->Atoms().end();
+         ++ait) {
+
+        if ((*ait)->HasQMPart()) {
+            ++qmatoms;
+        }
+    }
+
+    fprintf(out, "%6d \n", qmatoms);
+    fprintf(out, "\n");
+
+    for (ait = Seg1PbCopy()->Atoms().begin();
+         ait < Seg1PbCopy()->Atoms().end();
+         ++ait) {
+
+        if (!(*ait)->HasQMPart()) {
+            continue;
+        }
+
+        vec     pos = (*ait)->getQMPos();
+        string  name = (*ait)->getElement();
+
+        fprintf(out, "%2s %4.7f %4.7f %4.7f \n",
+                        name.c_str(),
+                        pos.getX()*10,
+                        pos.getY()*10,
+                        pos.getZ()*10);
+    }
+
+    for (ait = Seg2PbCopy()->Atoms().begin();
+         ait < Seg2PbCopy()->Atoms().end();
+         ++ait) {
+
+        if (!(*ait)->HasQMPart()) {
+            continue;
+        }
+
+        vec     pos = (*ait)->getQMPos();
+        string  name = (*ait)->getElement();
+
+        fprintf(out, "%2s %4.7f %4.7f %4.7f \n",
+                        name.c_str(),
+                        pos.getX()*10,
+                        pos.getY()*10,
+                        pos.getZ()*10);
+    }
+}
+
+
 }}

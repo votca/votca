@@ -340,7 +340,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        morb1->rotate_someatoms(atmIdcs, rotQM2MD,
+        morb1->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  morb1);
 
@@ -351,7 +351,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
         }
     }
     
-    //_morb1->write_pdb("morbs.pdb", "MOL", 1);
+    morb1->write_pdb("morbs.pdb", "MOL", 0);
 
     
     // ++++++++++++++++++++++++++++++++++++++++ //
@@ -382,7 +382,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        morb2->rotate_someatoms(atmIdcs, rotQM2MD,
+        morb2->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  morb2);
 
@@ -392,6 +392,8 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
                                     morb2->getorb(i), i);
         }
     }
+    
+    morb2->write_pdb("morbs.pdb", "MOL", 1);
 
     // ++++++++++++++++++++++++++++ //
     // Calculate transfer integrals //
@@ -469,7 +471,7 @@ void IZindo::CalculateJ(QMPair *pair) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        _morb1->rotate_someatoms(atmIdcs, rotQM2MD,
+        _morb1->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  _morb1);
 
@@ -511,7 +513,7 @@ void IZindo::CalculateJ(QMPair *pair) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        _morb2->rotate_someatoms(atmIdcs, rotQM2MD,
+        _morb2->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  _morb2);
 

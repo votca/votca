@@ -76,6 +76,7 @@ public:
 
    bool     HasGhost() { return _hasGhost; }
    void     WritePDB(string fileName);
+   void     WriteXYZ(FILE *out);
 
 
 

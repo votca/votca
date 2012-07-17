@@ -227,6 +227,85 @@ void PolarSite::Depolarize() {
 }
 
 
+void PolarSite::WriteChkLine(FILE *out, bool split_dpl, string format, double spacing) {
+
+    string unit = "";
+
+    if (format == "xyz") {
+        unit = "angstrom";
+    }
+    else if (format == "gaussian") {
+        unit = "angstrom";
+    }
+
+    // Take care of unit conversion
+    double int2ext;
+
+    if (unit == "nanometer") {
+        int2ext = 1.;
+    }
+    else if (unit == "angstrom") {
+        int2ext = 10.;
+    }
+    else if (unit == "bohr") {
+        assert(false);
+    }
+
+    if (format == "xyz") {
+        fprintf(out, "%2s ", _name.c_str());
+    }
+
+    // Print charge line
+    fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+            _pos.getX()*int2ext,
+            _pos.getY()*int2ext,
+            _pos.getZ()*int2ext,
+            Q00);
+    
+
+    // Split dipole moment onto charges (if desired)
+    if (split_dpl) {
+
+        vec tot_dpl = vec(U1x,U1y,U1z);
+
+        if (_rank > 0) { tot_dpl += vec(Q1x,Q1y,Q1z); }
+
+        if (_rank == 2) {
+            cout << endl
+                 << "WARNING: Quadrupoles are not split onto point charges."
+                 << endl;
+        }
+
+        double a        = spacing;
+        double mag_d    = abs(tot_dpl);
+        vec    dir_d_0  = tot_dpl.normalize();
+        vec    dir_d    = dir_d_0.normalize();
+        vec    A        = _pos + 0.5 * a * dir_d;
+        vec    B        = _pos - 0.5 * a * dir_d;
+        double qA       = mag_d / a;
+        double qB       = - qA;
+
+        if (format == "xyz") {
+            fprintf(out, " A ");
+        }
+        fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+                A.getX()*int2ext,
+                A.getY()*int2ext,
+                A.getZ()*int2ext,
+                qA);
+
+        if (format == "xyz") {
+            fprintf(out, " A ");
+        }
+        fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+                B.getX()*int2ext,
+                B.getY()*int2ext,
+                B.getZ()*int2ext,
+                qB);
+    }
+
+}
+
 void PolarSite::PrintInfo(std::ostream &out) {
 
     cout << "MPOLE " << this->getId() << " " << this->getName()
@@ -280,6 +359,37 @@ void PolarSite::PrintInfoVisual(FILE *out) {
     fprintf(out, " FU %3.8f %3.8f %3.8f ", FUx, FUy, FUz );
 
     fprintf(out, " \n");
+}
+
+void PolarSite::PrintPDB(FILE *out, vec shift) {
+
+    int id = this->getId() % 100000;
+    string name =  this->getName();
+    name.resize(3);
+    string resname = "RSD";
+    resname.resize(3);
+    int resnr = 0;
+    vec position = this->getPos() + shift;
+
+    fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+              "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s%4.7f\n",
+         id,                    // Atom serial number           %5d
+         name.c_str(),          // Atom name                    %4s
+         " ",                   // alternate location indicator.%1s
+         resname.c_str(),       // Residue name.                %3s
+         "A",                   // Chain identifier             %1s
+         resnr,                 // Residue sequence number      %4d
+         " ",                   // Insertion of residues.       %1s
+         position.getX()*10,    // X in Angstroms               %8.3f
+         position.getY()*10,    // Y in Angstroms               %8.3f
+         position.getZ()*10,    // Z in Angstroms               %8.3f
+         1.0,                   // Occupancy                    %6.2f
+         0.0,                   // Temperature factor           %6.2f
+         " ",                   // Segment identifier           %4s
+         name.c_str(),          // Element symbol               %2s
+         " ",                   // Charge on the atom.          %2s
+         this->getQ00()
+         );    
 }
 
 

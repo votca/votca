@@ -47,6 +47,8 @@ void QMApplication::Initialize(void) {
                          "  number of frames to process");
     AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
                          "  number of threads to create");
+    AddProgramOptions() ("save,s", propt::value<int>()->default_value(1),
+                         "  whether or not to save changes to state file");
 }
 
 
@@ -66,6 +68,7 @@ void QMApplication::Run() {
     int fframe = OptionsMap()["first-frame"].as<int>();
     if (fframe-- == 0) throw runtime_error("ERROR: First frame is 0, counting "
                                            "in VOTCA::CTP starts from 1.");
+    int  save = OptionsMap()["save"].as<int>();
 
     cout << "Initializing calculators " << endl;
     BeginEvaluate(nThreads);
@@ -79,7 +82,8 @@ void QMApplication::Run() {
     while (statsav.NextFrame()) {
         cout << "Evaluating frame " << _top.getDatabaseId() << endl;
         EvaluateFrame();
-        statsav.WriteFrame();
+        if (save == 1) { statsav.WriteFrame(); }
+        else { cout << "Changes have not been written to state file." << endl; }
     }
     statsav.Close();
     EndEvaluate();
@@ -107,7 +111,7 @@ void QMApplication::BeginEvaluate(int nThreads = 1) {
 bool QMApplication::EvaluateFrame() {
     list< QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " ";
+        cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->EvaluateFrame(&_top);
         cout << endl;
     }
