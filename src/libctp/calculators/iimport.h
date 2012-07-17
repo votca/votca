@@ -190,12 +190,14 @@ void IImport::XML2PairTI(QMPair *qmpair, string &xmlDirFile) {
                 if (_TI_tag == "J" || _TI_tag == "T_00") {
                     double J = boost::lexical_cast<double>(split[1]);
                     qmpair->setJeff2(J*J, STATE);
+                    qmpair->setIsPathCarrier(1, STATE);
                     printf("\n... ... ... J2(State = %+1d) = %4.7e",
                             STATE, qmpair->getJeff2(STATE));
                 }
                 else if (_TI_tag == "J_sq_degen" || _TI_tag == "J_sq_boltz") {
                     double J2 = boost::lexical_cast<double>(split[1]);
                     qmpair->setJeff2(J2, STATE);
+                    qmpair->setIsPathCarrier(1, STATE);
                     printf("\n... ... ... J2(State = %+1d) = %4.7e",
                             STATE, qmpair->getJeff2(STATE));
                 }
