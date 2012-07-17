@@ -21,6 +21,8 @@
                    projectFiles="true">
       <itemPath>../../src/libkmc/kmcapplication.cc</itemPath>
       <itemPath>../../src/libkmc/kmccalculatorfactory.cc</itemPath>
+      <itemPath>../../src/libkmc/version.cc</itemPath>
+      <itemPath>../../src/libkmc/version_nb.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="f1" displayName="XML" projectFiles="true">
     </logicalFolder>
