@@ -40,9 +40,7 @@ void CsgREupdate::Initialize() {
       ("param-out-ext", boost::program_options::value<string>(&_param_out_ext)->default_value("param.new"), 
        "  Extension of the output parameter tables")
       ("pot-out-ext", boost::program_options::value<string>(&_pot_out_ext)->default_value("pot.new"), 
-       "  Extension of the output potential tables")
-      ("rdf-ext", boost::program_options::value<string>(&_rdf_ext)->default_value("aa.rdf"), 
-       "  Extension of the reference rdf(s)");
+       "  Extension of the output potential tables");
     AddProgramOptions()
       ("top", boost::program_options::value<string > (), 
        "  atomistic topology file (only needed for RE update)");
@@ -67,75 +65,83 @@ void CsgREupdate::LoadOptions(const string &file) {
 void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
     //cout << "Beginning evaluate" << endl;
     // initializing non-bonded interactions
-    _nlamda = 0;
-     for (list<Property*>::iterator iter = _nonbonded.begin();
-             iter != _nonbonded.end(); ++iter) {
-         string name = (*iter)->get("name").value();
-         PotentialInfo *i = new PotentialInfo(_potentials.size(),
-                                              false,
-                                              _nlamda, 
-					      _param_in_ext, 
-					      _rdf_ext, *iter);
-        // generate the bead lists
-        BeadList beads1, beads2;
-        beads1.Generate(*top, (*iter)->get("type1").value());
-        beads2.Generate(*top, (*iter)->get("type2").value());
-        if (beads1.size() == 0)
-            throw std::runtime_error("Topology does not have beads of type \"" 
-                    + (*iter)->get("type1").value() + "\"\n"
-                "This was specified in type1 of interaction \"" + name + "\"");
-        if (beads2.size() == 0)
-            throw std::runtime_error("Topology does not have beads of type \"" 
-                    + (*iter)->get("type2").value() + "\"\n"
-                "This was specified in type2 of interaction \"" + name + "\"");
-        // calculate normalization factor for rdf
-        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            i->rdf_norm = (beads1.size()*(beads2.size()) / 2.) / 
-                    top->BoxVolume();
-        else
-            i->rdf_norm = (beads1.size() * beads2.size()) / top->BoxVolume();
-        // let user know the properties of CG potential he/she selected
-        cout << "We have " << i->potentialName << " CG potential" << endl;
-        cout << "\t \t Between beads " << i->type1 << "-" << i->type2 << endl;
-        cout << "\t \t With Function form " << i->potentialFunction << endl;
-        cout << "\t \t And " << i->ucg->getOptParamSize() << " parameters to "
-                "optimize" << endl;
-        cout << "Potential range:" << endl;
-        cout << "\t \t rmin    = " << i->rmin << " [nm]" << endl;
-        cout << "\t \t rcutoff = " << i->rcut << " [nm]" << endl;
-        // update parameter counter
-        _nlamda += i->ucg->getOptParamSize();
-        // add potential to container
-        _potentials.push_back(i);
-     }
-     cout << "Total number of parameters to optimize: " << _nlamda << endl;
-     _lamda.resize(_nlamda,false);
-     // need to store initial guess of parameters in _lamda
-    PotentialContainer::iterator potiter;
-    for (potiter = _potentials.begin();
-            potiter != _potentials.end(); ++potiter){
-        int pos_start = (*potiter)->vec_pos;
-        int pos_max  = pos_start + (*potiter)->ucg->getOptParamSize();
-        for( int row = pos_start; row < pos_max; row++){
-            int lamda_i = row - pos_start;
-            _lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
-        } // end row loop
-    }// end potiter loop
-    _DS.resize(_nlamda,false);
-    _DS.clear();
-    _HS.resize(_nlamda,false);
-    _HS.clear();
-    _dUFrame.resize(_nlamda,false);
-    _dUFrame.clear();
-    _nframes = 0.0; // no frames processed yet!
-     // set Temperature
-    _beta = (1.0/_options.get("cg.inverse.kBT").as<double>());
-    // relaxation parameter for update
-    _relax = _options.get("cg.inverse.re.relax").as<double>();
-    // whether to take steepest descent in case of non-symmetric positive H
-    //_dosteep = _options.get("cg.inverse.re.do_steep").as<bool>();
-    _UavgAA = 0.0;
-    _UavgCG = 0.0;
+  _nlamda = 0;
+  for (list<Property*>::iterator iter = _nonbonded.begin();
+       iter != _nonbonded.end(); ++iter) {
+    string name = (*iter)->get("name").value();
+    int id = _potentials.size();
+
+    PotentialInfo *i = new PotentialInfo(id,false,_nlamda,_param_in_ext,*iter);
+
+    // load the AA ensemble rdf corresponding to this interaction
+    string filename = (*iter)->get("inverse.target").value();
+    Table *aardf = new Table();
+    aardf->Load(filename);
+    _aardfs.push_back(aardf);
+
+    // generate the bead lists
+    BeadList beads1, beads2;
+    beads1.Generate(*top, (*iter)->get("type1").value());
+    beads2.Generate(*top, (*iter)->get("type2").value());
+    if (beads1.size() == 0)
+      throw std::runtime_error("Topology does not have beads of type \"" 
+			       + (*iter)->get("type1").value() + "\"\n"
+			       "This was specified in type1 of interaction \"" + name + "\"");
+    if (beads2.size() == 0)
+      throw std::runtime_error("Topology does not have beads of type \"" 
+			       + (*iter)->get("type2").value() + "\"\n"
+			       "This was specified in type2 of interaction \"" + name + "\"");
+    double *rdfnorm = new double();
+    // calculate normalization factor for rdf
+    if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+      *rdfnorm = (beads1.size()*(beads2.size()) / 2.) / 
+	top->BoxVolume();
+    else
+      *rdfnorm = (beads1.size() * beads2.size()) / top->BoxVolume();
+    _aardfnorms.push_back(rdfnorm);
+
+    // let user know the properties of CG potential he/she selected
+    cout << "We have " << i->potentialName << " CG potential" << endl;
+    cout << "\t \t Between beads " << i->type1 << "-" << i->type2 << endl;
+    cout << "\t \t With Function form " << i->potentialFunction << endl;
+    cout << "\t \t And " << i->ucg->getOptParamSize() << " parameters to "
+      "optimize" << endl;
+    cout << "Potential range:" << endl;
+    cout << "\t \t rmin    = " << i->rmin << " [nm]" << endl;
+    cout << "\t \t rcutoff = " << i->rcut << " [nm]" << endl;
+    // update parameter counter
+    _nlamda += i->ucg->getOptParamSize();
+    // add potential to container
+    _potentials.push_back(i);
+  }
+  cout << "Total number of parameters to optimize: " << _nlamda << endl;
+  _lamda.resize(_nlamda,false);
+  // need to store initial guess of parameters in _lamda
+  PotentialContainer::iterator potiter;
+  for (potiter = _potentials.begin();
+       potiter != _potentials.end(); ++potiter){
+    int pos_start = (*potiter)->vec_pos;
+    int pos_max  = pos_start + (*potiter)->ucg->getOptParamSize();
+    for( int row = pos_start; row < pos_max; row++){
+      int lamda_i = row - pos_start;
+      _lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
+    } // end row loop
+  }// end potiter loop
+  _DS.resize(_nlamda,false);
+  _DS.clear();
+  _HS.resize(_nlamda,false);
+  _HS.clear();
+  _dUFrame.resize(_nlamda,false);
+  _dUFrame.clear();
+  _nframes = 0.0; // no frames processed yet!
+  // set Temperature
+  _beta = (1.0/_options.get("cg.inverse.kBT").as<double>());
+  // relaxation parameter for update
+  _relax = _options.get("cg.inverse.re.relax").as<double>();
+  // whether to take steepest descent in case of non-symmetric positive H
+  //_dosteep = _options.get("cg.inverse.re.do_steep").as<bool>();
+  _UavgAA = 0.0;
+  _UavgCG = 0.0;
 }
 void CsgREupdate::Run(){
     if( !_gentable )
@@ -154,11 +160,7 @@ void CsgREupdate::Run(){
                if(vtok_iter == vtok.end())
                  continue;	               
             } 
-            PotentialInfo *i = new PotentialInfo(_potentials.size(),
-						 false,
-						 _nlamda, 
-						 _param_in_ext, _rdf_ext, 
-						 *iter);
+            PotentialInfo *i = new PotentialInfo(_potentials.size(),false,_nlamda,_param_in_ext,*iter);
             // update parameter counter
             _nlamda += i->ucg->getOptParamSize();
             // add potential to container
@@ -299,111 +301,110 @@ void CsgREupdate::REUpdateLamda() {
 }
 // do non bonded potential AA ensemble avg energy computations
 void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
-    int pos_start = potinfo->vec_pos;
-    int pos_max   = pos_start + potinfo->ucg->getOptParamSize();
-    int lamda_i,lamda_j;
-    double dU_i,d2U_ij;
-    double U;
-    // compute avg AA energy
-    U = 0.0;
-    // assuming rdf bins are of same size
-    double step = potinfo->aardf.x(2) - potinfo->aardf.x(1);
-    for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
-        double r_hist = potinfo->aardf.x(bin);
-        double r1 = r_hist - 0.5 * step;
-        double r2 = r1 + step;
-        double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
-                (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
-	if( n_hist > 0.0 )
-	  U +=  n_hist *  potinfo->ucg->CalculateF(r_hist);
-    }
-    _UavgAA += U;
-    // computing dU/dlamda and d2U/dlamda_i dlamda_j
-    for( int row = pos_start; row < pos_max; row++){
-        // ith parameter of this potential
-        lamda_i = row - pos_start;
-        // compute dU/dlamda and add to _DS
-        dU_i = 0.0;
-        for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
-            double r_hist = potinfo->aardf.x(bin);
-            double r1 = r_hist - 0.5 * step;
-            double r2 = r1 + step;
-            double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
-                    (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
-	    if( n_hist > 0.0 )
-	      dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i,r_hist);
-            
-        } // end loop over hist
-        _DS(row) += ( _beta * dU_i );
-        for( int col = row; col < pos_max; col++){
-            lamda_j = col - pos_start;
-            // compute d2U/dlamda_i dlamda_j and add to _HS
-            d2U_ij = 0.0;
-            for(int bin = 0; bin < potinfo->aardf.size(); bin++) {
-                double r_hist = potinfo->aardf.x(bin);
-                double r1 = r_hist - 0.5 * step;
-                double r2 = r1 + step;
-                double n_hist = potinfo->aardf.y(bin) * potinfo->rdf_norm *
-                        (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
-		if ( n_hist > 0.0 )
-		  d2U_ij += n_hist *
-		    potinfo->ucg->CalculateD2F(lamda_i, lamda_j, r_hist);
-            } // end loop pair_iter
-            _HS(row,col) += (_beta * d2U_ij);
-        } // end loop col
-    } // end loop row
+  int pos_start = potinfo->vec_pos;
+  int pos_max   = pos_start + potinfo->ucg->getOptParamSize();
+  int lamda_i,lamda_j;
+  double dU_i,d2U_ij;
+  double U;
+  int indx = potinfo->potentialIndex;
+
+  // compute avg AA energy
+  U = 0.0;
+  // assuming rdf bins are of same size
+  double step = _aardfs[indx]->x(2) - _aardfs[indx]->x(1);
+  for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+    double r_hist = _aardfs[indx]->x(bin);
+    double r1 = r_hist - 0.5 * step;
+    double r2 = r1 + step;
+    double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
+      (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
+    if( n_hist > 0.0 )
+      U +=  n_hist *  potinfo->ucg->CalculateF(r_hist);
+  }
+  _UavgAA += U;
+  // computing dU/dlamda and d2U/dlamda_i dlamda_j
+  for( int row = pos_start; row < pos_max; row++){
+    // ith parameter of this potential
+    lamda_i = row - pos_start;
+    // compute dU/dlamda and add to _DS
+    dU_i = 0.0;
+    for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+      double r_hist = _aardfs[indx]->x(bin);
+      double r1 = r_hist - 0.5 * step;
+      double r2 = r1 + step;
+      double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
+	(4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
+      if( n_hist > 0.0 )
+	dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i,r_hist);
+      
+    } // end loop over hist
+    _DS(row) += ( _beta * dU_i );
+    for( int col = row; col < pos_max; col++){
+      lamda_j = col - pos_start;
+      // compute d2U/dlamda_i dlamda_j and add to _HS
+      d2U_ij = 0.0;
+      for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+	double r_hist = _aardfs[indx]->x(bin);
+	double r1 = r_hist - 0.5 * step;
+	double r2 = r1 + step;
+	double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
+	  (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
+	if ( n_hist > 0.0 )
+	  d2U_ij += n_hist *
+	    potinfo->ucg->CalculateD2F(lamda_i, lamda_j, r_hist);
+      } // end loop pair_iter
+      _HS(row,col) += (_beta * d2U_ij);
+    } // end loop col
+  } // end loop row
 }
 // do bonded potential AA ensemble avg energy computations
 void CsgREupdate::AAavgBonded(PotentialInfo* potinfo) {
 }
 CsgApplication::Worker * CsgREupdate::ForkWorker(){
-    CsgREupdateWorker *worker = new CsgREupdateWorker();
-    // initialize worker
-    worker->_options = _options;
-    worker->_nonbonded = _nonbonded;
-    worker->_nlamda = 0;
-    for (list<Property*>::iterator iter = _nonbonded.begin();
-             iter != _nonbonded.end(); ++iter) {
-         PotentialInfo *i = new PotentialInfo(worker->_potentials.size(),
-                                              false,
-                                              worker->_nlamda, 
-					      _param_in_ext, _rdf_ext, *iter);
-        // update parameter counter
-        worker->_nlamda += i->ucg->getOptParamSize();
-        // add potential to container
-        worker->_potentials.push_back(i);
-     }
-    worker->_lamda.resize(worker->_nlamda,false);
-     // need to store initial guess of parameters in _lamda
-    PotentialContainer::iterator potiter;
-    for (potiter = worker->_potentials.begin();
-            potiter != worker->_potentials.end(); ++potiter){
-        int pos_start = (*potiter)->vec_pos;
-        int pos_max  = pos_start + (*potiter)->ucg->getOptParamSize();
-        for( int row = pos_start; row < pos_max; row++){
-            int lamda_i = row - pos_start;
-            worker->_lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
-        } // end row loop
-    }// end potiter loop
-    worker->_DS.resize(worker->_nlamda,false);
-    worker->_DS.clear();
-    worker->_HS.resize(worker->_nlamda,false);
-    worker->_HS.clear();
-    worker->_dUFrame.resize(worker->_nlamda,false);
-    worker->_dUFrame.clear();
-    worker->_nframes = 0.0; // no frames processed yet!
-     // set Temperature
-    worker->_beta = (1.0/worker->_options.get("cg.inverse.kBT").as<double>());
-    worker->_UavgCG = 0.0;
-    return worker;
+  CsgREupdateWorker *worker = new CsgREupdateWorker();
+  // initialize worker
+  worker->_options = _options;
+  worker->_nonbonded = _nonbonded;
+  worker->_nlamda = 0;
+  for (list<Property*>::iterator iter = _nonbonded.begin();
+       iter != _nonbonded.end(); ++iter) {
+    PotentialInfo *i = new PotentialInfo(worker->_potentials.size(),false,worker->_nlamda,_param_in_ext, *iter);
+    // update parameter counter
+    worker->_nlamda += i->ucg->getOptParamSize();
+    // add potential to container
+    worker->_potentials.push_back(i);
+  }
+  worker->_lamda.resize(worker->_nlamda,false);
+  // need to store initial guess of parameters in _lamda
+  PotentialContainer::iterator potiter;
+  for (potiter = worker->_potentials.begin();
+       potiter != worker->_potentials.end(); ++potiter){
+    int pos_start = (*potiter)->vec_pos;
+    int pos_max  = pos_start + (*potiter)->ucg->getOptParamSize();
+    for( int row = pos_start; row < pos_max; row++){
+      int lamda_i = row - pos_start;
+      worker->_lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
+    } // end row loop
+  }// end potiter loop
+  worker->_DS.resize(worker->_nlamda,false);
+  worker->_DS.clear();
+  worker->_HS.resize(worker->_nlamda,false);
+  worker->_HS.clear();
+  worker->_dUFrame.resize(worker->_nlamda,false);
+  worker->_dUFrame.clear();
+  worker->_nframes = 0.0; // no frames processed yet!
+  // set Temperature
+  worker->_beta = (1.0/worker->_options.get("cg.inverse.kBT").as<double>());
+  worker->_UavgCG = 0.0;
+  return worker;
 }
 void CsgREupdate::MergeWorker(Worker* worker) {
-    CsgREupdateWorker *myCsgREupdateWorker;
-    myCsgREupdateWorker = dynamic_cast<CsgREupdateWorker*> (worker);
-    _UavgCG += myCsgREupdateWorker->_UavgCG;
-    _nframes += myCsgREupdateWorker->_nframes;
-    _DS += myCsgREupdateWorker->_DS;
-    _HS += myCsgREupdateWorker->_HS;
+  CsgREupdateWorker *myCsgREupdateWorker;
+  myCsgREupdateWorker = dynamic_cast<CsgREupdateWorker*> (worker);
+  _UavgCG += myCsgREupdateWorker->_UavgCG;
+  _nframes += myCsgREupdateWorker->_nframes;
+  _DS += myCsgREupdateWorker->_DS;
+  _HS += myCsgREupdateWorker->_HS;
 }
 void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom){
     /* as per Relative Entropy Ref.  J. Chem. Phys. 134, 094112, 2011
@@ -517,11 +518,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology* conf, PotentialInfo* potinfo) {
 void CsgREupdateWorker::EvalBonded(Topology* conf, PotentialInfo* potinfo){
     // coming soon!
 }
-PotentialInfo::PotentialInfo(int index,
-                             bool bonded_,
-                             int vec_pos_, 
-			     string& param_in_ext_, string& rdf_ext_, 
-			     Property* options) {
+PotentialInfo::PotentialInfo(int index,bool bonded_,int vec_pos_,string& param_in_ext_,Property* options) {
     potentialIndex = index;
     _options = options;
     bonded   = bonded_;
@@ -557,10 +554,5 @@ PotentialInfo::PotentialInfo(int index,
     // initialize cg potential with old parameters
     string oldparam_file_name = potentialName + "." + param_in_ext_;
     ucg->setParam(oldparam_file_name);
-    // read/load reference AA CG-CG distribution
-    // TODO: do not read rdf for generating tables
-    //if(!_gentable){
-       string aardf_file_name = potentialName + "." + rdf_ext_;
-       aardf.Load(aardf_file_name);
-    //}
+
 }
