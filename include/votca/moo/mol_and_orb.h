@@ -31,6 +31,7 @@
 #include "global.h"
 #include "units.h"
 #include <votca/tools/vec.h>
+#include <votca/tools/globals.h>
 
 ////#define DEBUG
 namespace votca { namespace moo {
@@ -350,29 +351,47 @@ public:
                           const vec & com,
                           mol_and_orb * mol2) {
         vector <int>::iterator it_at ;
-       #ifdef DEBUG
-       cout << "about to rotate so many atoms: "
-            << list_at.size() << " by this distance: "
-            << a << endl;
-       #endif
-        for (it_at = list_at.begin();
-             it_at != list_at.end();
-             ++it_at) {
+        
+        if (globals::verbose) {
+                cout << "translating " << list_at.size() 
+                     << " atoms by distance: " << a << endl <<
+                        " rotating by " << endl 
+                     << M.get(0,0) << " " << M.get(0,1) << " " << M.get(0,2)  << endl
+                     << M.get(1,0) << " " << M.get(1,1) << " " << M.get(1,2)  << endl
+                     << M.get(2,0) << " " << M.get(2,1) << " " << M.get(2,2)  << endl;   
+        }
+        
             #ifdef DEBUG
-            cout << "rotateing atom:" << *it_at <<endl;
+                 cout << "about to rotate so many atoms: "
+                 << list_at.size() << " by this distance: "
+                 << a << endl;
             #endif
 
+        for (it_at = list_at.begin(); it_at != list_at.end(); ++it_at) {
 
-            mol2->atom_pos[*it_at] = M * ( mol2->atom_pos[*it_at] - com ) + a;
+            #ifdef DEBUG
+                 cout << "rotating atom:" << *it_at <<endl;
+            #endif           
 
-
-// BUG: DO NOT UNCOMMENT
-//            mol2->atom_pos[*it_at].setX( a.getX() + M.get(0,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(0,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(0,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
-//            mol2->atom_pos[*it_at].setY( a.getY() + M.get(1,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(1,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(1,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
-//            mol2->atom_pos[*it_at].setZ( a.getZ() + M.get(2,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(2,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(2,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
+            mol2->atom_pos[*it_at].setX( a.getX() + M.get(0,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(0,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(0,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
+            mol2->atom_pos[*it_at].setY( a.getY() + M.get(1,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(1,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(1,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
+            mol2->atom_pos[*it_at].setZ( a.getZ() + M.get(2,0) * (atom_pos[*it_at].getX() - com.getX() ) + M.get(2,1) * (atom_pos[*it_at].getY() - com.getY() ) + M.get(2,2) * (atom_pos[*it_at].getZ() - com.getZ() ));
         }
     }
-            
+
+
+    void rotate_someatoms_ctp(vector <int> list_at,
+                              const matrix  & M,
+                              const vec & a,
+                              const vec & com,
+                              mol_and_orb * mol2) {
+        vector <int>::iterator it_at ;
+
+        for (it_at = list_at.begin(); it_at != list_at.end(); ++it_at) {
+
+            mol2->atom_pos[*it_at] = M * ( mol2->atom_pos[*it_at] - com ) + a;
+        }
+    }
 };
 
 }}
