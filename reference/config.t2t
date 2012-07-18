@@ -20,7 +20,8 @@
 %!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
 %!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
 
-%replace \_ back to _ three times
+%replace \_ back to _ four times
+%!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
 %!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
 %!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
 %!postproc(tex): '(\\hyperref|\\hypertarget|\\label|\\hyperlink)(\{[^}]*)\\_' '\1\2_'
