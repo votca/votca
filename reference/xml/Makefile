@@ -27,8 +27,7 @@ config.t2t: ../config.t2t
 	$(TXT2TAGS) -t html --no-header --infile $< --outfile $@
 
 upload: html
-	googlesites_upload.py  -d "/Documentation/coarse-graining/reference-cgoptions"  -f cgoptions.xml.html
-	googlesites_upload.py  -d "/Documentation/coarse-graining/reference-cginteraction"  -f cginteraction.xml.html
+	googlesites_upload.py  -d "/Documentation/coarse-graining/reference-cgoptions"  -f csg_defaults.xml.html
 	googlesites_upload.py  -d "/Documentation/coarse-graining/reference-mapping"  -f mapping.xml.html
 
 clean:
