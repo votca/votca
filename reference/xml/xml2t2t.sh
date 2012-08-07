@@ -38,6 +38,8 @@ echo ${0##*/}
 date
 echo '%!includeconf: config.t2t'
 echo
+echo **Please mind that dots in xml tags have to replaced by subtags, e.g. x.y has to be converted to x with subtag y.**
+echo
 
 #get all items
 #perl does this:
