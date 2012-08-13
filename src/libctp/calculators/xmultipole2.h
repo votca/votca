@@ -2022,7 +2022,7 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
         }
 
 
-        if (_master->_chk_format == "gaussian") {
+        if (_master->_chk_format == "gaussian" && job->getType() == "pair") {
             fprintf(out, "\n");
         }
 
