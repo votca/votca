@@ -305,20 +305,23 @@ public:
        void     setIter(int iter)           { _iter = iter; }
        void     setSizePol(int size)        { _sizePol = size; }
        void     setSizeShell(int size)      { _sizeShell = size; }
-       void     setEnergy(double E_T, double E_i, double E_I, double E_O) {
+       void     setEnergy(double E_T, double E_i_i, 
+                          double E_i_I, double E_I_I, double E_i_O) {
            _E_Tot = E_T;
-           _E_Pair_Intra = E_i;
-           _E_Pair_Inner = E_I;
-           _E_Pair_Outer = E_O;
+           _E_Pair_Pair = E_i_i;
+           _E_Pair_Sph1 = E_i_I;
+           _E_Sph1_Sph1 = E_I_I;
+           _E_Pair_Sph2 = E_i_O;
        }
 
        void     WriteInfoLine(FILE *out) {
 
-           fprintf(out, "%5d %-20s  E_TOT %+4.7f E_PAIR %+4.7f"
-                        " E_INNER %+4.7f E_OUTER %+4.7f ITER %3d"
+           fprintf(out, "%5d %-20s  E_TOT %+4.7f E_PAIR_PAIR %+4.7f"
+                        " E_PAIR_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f"
+                        " E_PAIR_CUT2 %+4.7f ITER %3d"
                         " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f \n",
-                        _id, _tag.c_str(), _E_Tot, _E_Pair_Intra,
-                        _E_Pair_Inner, _E_Pair_Outer, _iter,
+                        _id, _tag.c_str(), _E_Tot, _E_Pair_Pair, _E_Pair_Sph1,
+                        _E_Sph1_Sph1, _E_Pair_Sph2, _iter,
                         _sizePol, _sizeShell, _center.getX(), _center.getY(),
                         _center.getZ() );
        }
@@ -354,9 +357,10 @@ public:
        int          _sizePol;
        int          _sizeShell;
        double       _E_Tot;
-       double       _E_Pair_Intra;
-       double       _E_Pair_Inner;
-       double       _E_Pair_Outer;
+       double       _E_Pair_Pair;
+       double       _E_Pair_Sph1;
+       double       _E_Sph1_Sph1;
+       double       _E_Pair_Sph2;
 
     };
 
@@ -465,6 +469,7 @@ private:
 
     // Control options
     bool                            _induce;
+    bool                            _induce_intra_pair;
 
     // Interaction parameters
     bool                            _useCutoff;
@@ -570,6 +575,12 @@ void XMP::Initialize(Topology *top, Property *opt) {
             _induce = (induce == 0) ? false : true;
         }
         else { _induce = true; }
+
+        if ( opt->exists(key+".induce_intra_pair") ) {
+            int induce = opt->get(key+".induce_intra_pair").as< int >();
+            _induce_intra_pair = (induce == 0) ? false : true;
+        }
+        else { _induce_intra_pair = true; }
 
         if ( opt->exists(key+".cutoff1") ) {
             _cutoff = opt->get(key+".cutoff1").as< double >();
@@ -2101,18 +2112,30 @@ int XMP::JobXMP::Induce(int state, XJob *job) {
     vector< vector<PolarSite*> > ::iterator sit2;
     vector< PolarSite* > ::iterator pit1;
     vector< PolarSite* > ::iterator pit2;
-
+    vector< Segment* > ::iterator seg1;
+    vector< Segment* > ::iterator seg2;
     // ++++++++++++++++++++++++++++++++++++++++++++++ //
     // Inter-site fields (arising from perm. m'poles) //
     // ++++++++++++++++++++++++++++++++++++++++++++++ //
 
 //    cout << endl << "... ... ... 0th-order field" << flush;
-    for (sit1 = _polsPolSphere.begin();
+    for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
          sit1 < _polsPolSphere.end();
-         ++sit1) {
-    for (sit2 = sit1 + 1;
+         ++sit1, ++seg1) {
+    for (sit2 = sit1 + 1, seg2 = seg1 + 1;
          sit2 < _polsPolSphere.end();
-         ++sit2) {
+         ++sit2, ++seg2) {
+
+        // Intra-pair permanent induction field?
+         if ( !this->_master->_induce_intra_pair ) {
+             if ( (  (*seg1)->getId() == job->getSeg1Id()
+                  || (*seg1)->getId() == job->getSeg2Id() )
+               && (  (*seg2)->getId() == job->getSeg1Id()
+                  || (*seg2)->getId() == job->getSeg2Id() )) {
+                 cout << endl << "Skipping int" << (*seg1)->getId() << " " << (*seg2)->getId() << flush;
+                 continue;
+             }
+         }
 
          for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
          for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
@@ -2255,11 +2278,14 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
 
     double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
+    //       PAIR     <->     SPH1      <->       SPH2        //
+
     _actor.ResetEnergy();
     double E_Tot = 0.0;
-    double E_Pair_Intra = 0.0;
-    double E_Pair_Inner = 0.0;
-    double E_Pair_Outer = 0.0;
+    double E_Pair_Pair = 0.0;   // <- Pair-Pair interaction permanent + induced
+    double E_Pair_Sph1 = 0.0;   // <- Pair-Sph1 interaction permanent + induced
+    double E_Sph1_Sph1 = 0.0;   // <- Sph1-Sph1 interaction permanent + induced
+    double E_Pair_Sph2 = 0.0;   // <- Pair-Sph2 interaction permanent + induced
 
 
     vector< Segment* >              ::iterator      seg1;
@@ -2296,12 +2322,25 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
                 //(*pit1)->PrintInfo(cout);
                 //(*pit2)->PrintInfo(cout);
 
-                E_Pair_Intra += _actor.EnergyInter(*(*pit1), *(*pit2));
-
+                E_Pair_Pair += _actor.EnergyInter(*(*pit1), *(*pit2));
             }}
         }
 
-        // Pair-non-pair interaction?
+        // Pair-non-pair interaction
+        else if ( ((*seg1)->getId() == job->getSeg1Id() || (*seg1)->getId() == job->getSeg2Id())
+                ^ ((*seg2)->getId() == job->getSeg1Id() || (*seg2)->getId() == job->getSeg2Id()) ) {
+
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+
+                //(*pit1)->PrintInfo(cout);
+                //(*pit2)->PrintInfo(cout);
+
+                E_Pair_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
+            }}
+        }
+
+        // Non-pair-non-pair interaction?
         else {
             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
             for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
@@ -2309,8 +2348,7 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
                 //(*pit1)->PrintInfo(cout);
                 //(*pit2)->PrintInfo(cout);
 
-                E_Pair_Inner += _actor.EnergyInter(*(*pit1), *(*pit2));
-
+                E_Sph1_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
             }}
         }
 
@@ -2326,27 +2364,28 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
     for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
         for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
             for (pit2 = central1.begin(); pit2 < central1.end(); ++pit2) {
-                E_Pair_Outer += _actor.EnergyInter(*(*pit1), *(*pit2));                // <- Change here
+                E_Pair_Sph2 += _actor.EnergyInter(*(*pit1), *(*pit2));                // <- Change here
             }
         }
     }
     for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
         for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
             for (pit2 = central2.begin(); pit2 < central2.end(); ++pit2) {
-                E_Pair_Outer += _actor.EnergyInter(*(*pit1), *(*pit2));                // <- Change here
+                E_Pair_Sph2 += _actor.EnergyInter(*(*pit1), *(*pit2));                // <- Change here
             }
         }
     }
 
 
-    E_Tot = E_Pair_Intra + E_Pair_Inner + E_Pair_Outer;
+    E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2;
 
     if (_master->_maverick) {
         cout << endl << "... ... ... ... "
              << "E(" << state << ") = " << E_Tot * int2eV << " eV "
-             << " = (Pair, intra) " << E_Pair_Intra * int2eV
-             << " + (Pair, inner) " << E_Pair_Inner * int2eV
-             << " + (Pair, outer) " << E_Pair_Outer * int2eV
+             << " = (Pair, pair) " << E_Pair_Pair * int2eV
+             << " + (Pair, Sph1) " << E_Pair_Sph1 * int2eV
+             << " + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
+             << " + (Pair, sph2) " << E_Pair_Sph2 * int2eV
              << flush;
     }
 
@@ -2357,12 +2396,12 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
              << " eV = (P ~) " << _actor.getEP()    * int2eV
              << " + (U ~) " << _actor.getEU_INTER() * int2eV
              << " + (U o) " << _actor.getEU_INTRA() * int2eV
-             << " , with (O ~) " << E_Pair_Outer * int2eV << " eV"
+             << " , with (O ~) " << E_Pair_Sph2 * int2eV << " eV"
              << flush;
     }
 
-    job->setEnergy(E_Tot*int2eV, E_Pair_Intra*int2eV,
-                   E_Pair_Inner*int2eV, E_Pair_Outer*int2eV);
+    job->setEnergy(E_Tot*int2eV, E_Pair_Pair*int2eV,
+                   E_Pair_Sph1*int2eV, E_Sph1_Sph1*int2eV, E_Pair_Sph2*int2eV);
 
     return E_Tot;
 }
@@ -2374,9 +2413,10 @@ double XMP::JobXMP::EnergyStatic(int state, XJob *job) {
 
     _actor.ResetEnergy();
     double E_Tot = 0.0;
-    double E_Pair_Intra = 0.0;
-    double E_Pair_Inner = 0.0;
-    double E_Pair_Outer = 0.0;
+    double E_Pair_Pair = 0.0;
+    double E_Pair_Sph1 = 0.0;
+    double E_Sph1_Sph1 = 0.0;
+    double E_Pair_Sph2 = 0.0;
 
     vector< Segment* >              ::iterator      seg1;
     vector< Segment* >              ::iterator      seg2;
@@ -2407,13 +2447,13 @@ double XMP::JobXMP::EnergyStatic(int state, XJob *job) {
                  pit2 < central1.end();
                  ++pit2) {
 
-                 E_Pair_Inner += _actor.EnergyInter(*(*pit1), *(*pit2));               
+                 E_Pair_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
             }
             for (pit2 = central2.begin();
                  pit2 < central2.end();
                  ++pit2) {
 
-                 E_Pair_Inner += _actor.EnergyInter(*(*pit1), *(*pit2));               
+                 E_Pair_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
             }
         }
     }
@@ -2438,13 +2478,13 @@ double XMP::JobXMP::EnergyStatic(int state, XJob *job) {
                  pit2 < central1.end();
                  ++pit2) {
 
-                 E_Pair_Outer += _actor.EnergyInter(*(*pit1), *(*pit2));
+                 E_Pair_Sph2 += _actor.EnergyInter(*(*pit1), *(*pit2));
             }
             for (pit2 = central2.begin();
                  pit2 < central2.end();
                  ++pit2) {
 
-                 E_Pair_Outer += _actor.EnergyInter(*(*pit1), *(*pit2));
+                 E_Pair_Sph2 += _actor.EnergyInter(*(*pit1), *(*pit2));
             }
         }
     }
@@ -2461,17 +2501,17 @@ double XMP::JobXMP::EnergyStatic(int state, XJob *job) {
          pit2 < central2.end();
          ++pit2) {
 
-        E_Pair_Intra += _actor.EnergyInter(*(*pit1), *(*pit2));
+        E_Pair_Pair += _actor.EnergyInter(*(*pit1), *(*pit2));
     }}
 
-    E_Tot = E_Pair_Intra + E_Pair_Inner + E_Pair_Outer;
+    E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Pair_Sph2;
 
     if (_master->_maverick) {
         cout << endl << "... ... ... ... "
              << "E(" << state << ") = " << E_Tot * int2eV << " eV "
-             << " = (Pair, intra) " << E_Pair_Intra * int2eV
-             << " + (Pair, inner) " << E_Pair_Inner * int2eV
-             << " + (Pair, outer) " << E_Pair_Outer * int2eV
+             << " = (Pair, intra) " << E_Pair_Pair * int2eV
+             << " + (Pair, inner) " << E_Pair_Sph1 * int2eV
+             << " + (Pair, outer) " << E_Pair_Sph2 * int2eV
              << flush;
     }
 
@@ -2485,8 +2525,8 @@ double XMP::JobXMP::EnergyStatic(int state, XJob *job) {
              << flush;
     }
 
-    job->setEnergy(E_Tot*int2eV, E_Pair_Intra*int2eV,
-                   E_Pair_Inner*int2eV, E_Pair_Outer*int2eV);
+    job->setEnergy(E_Tot*int2eV, E_Pair_Pair*int2eV, E_Pair_Sph1*int2eV,
+                   E_Sph1_Sph1*int2eV, E_Pair_Sph2*int2eV);
 
     return E_Tot;
 }

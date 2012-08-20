@@ -147,9 +147,14 @@ void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {
              if ((*ext)->getId() == seg->getId()) { continue; }             
              
              // Segment within cutoff?
-             double r12 = abs(top->PbShortestConnect((*ext)->getPos(),
-                                                       seg->getPos()));
-             if (r12 > _cutoff) { continue; }
+             vec R_pbc = top->PbShortestConnect((*ext)->getPos(), seg->getPos());
+             if (abs(R_pbc) > _cutoff) { continue; }
+             vec R_dir = seg->getPos() - (*ext)->getPos();
+             vec shift = R_dir - R_pbc;
+
+//             double r12 = abs(top->PbShortestConnect((*ext)->getPos(),
+//                                                       seg->getPos()));
+//             if (r12 > _cutoff) { continue; }
 
              // Check polar sites
              // (*ext)->WritePDB(out, "Multipoles", "Charges");
@@ -160,21 +165,23 @@ void ECoulomb::EvaluateSegment(Topology *top, Segment *seg, int state) {
                   pit1 < (*ext)->PolarSites().end();
                   ++pit1) {
 
-                  vec dr_pbc = top->PbShortestConnect((*pit1)->getPos(),
-                                                        seg->getPos());
-                  vec dr_dir = seg->getPos() - (*pit1)->getPos();
-                  vec pol_shift = vec(0,0,0);
-                  if (abs(dr_pbc - dr_dir) > 1e-8) {
-                      pol_shift = dr_dir - dr_pbc;
-                  }
-                  (*pit1)->PrintPDB(out, com_shift + pol_shift);
+//                  vec dr_pbc = top->PbShortestConnect((*pit1)->getPos(),
+//                                                        seg->getPos());
+//                  vec dr_dir = seg->getPos() - (*pit1)->getPos();
+//                  vec pol_shift = vec(0,0,0);
+//                  if (abs(dr_pbc - dr_dir) > 1e-8) {
+//                      pol_shift = dr_dir - dr_pbc;
+//                  }
+                  (*pit1)->PrintPDB(out, com_shift + shift);
 
              for (pit2 = seg->PolarSites().begin();
                   pit2 < seg->PolarSites().end();
                   ++pit2) {
 
-                  double R = abs(top->PbShortestConnect((*pit1)->getPos(),
-                                                        (*pit2)->getPos()));
+//                  double R = abs(top->PbShortestConnect((*pit1)->getPos(),
+//                                                        (*pit2)->getPos()));
+
+                 double R = abs((*pit1)->getPos() + shift - (*pit2)->getPos());
 
                   E_INTER += (*pit1)->Q00 * 1/R * (*pit2)->Q00;
              }}

@@ -25,6 +25,9 @@ private:
     bool        _auto_bin;
     double      _min;
     double      _max;
+
+    int         _firstSegId;
+    int         _lastSegId;
 };
 
 
@@ -44,6 +47,15 @@ void Density::Initialize(Topology *top, Property *options) {
         _min            = options->get(key+".min").as< double >();
         _max            = options->get(key+".max").as< double >();
     }
+
+    if (options->exists(key+".first")) {
+        _firstSegId = options->get(key+".first").as<int>();
+    }
+    else { _firstSegId = 1; }
+    if (options->exists(key+".last")) {
+        _lastSegId = options->get(key+".last").as<int>();
+    }
+    else { _lastSegId = -1; }
     
     // Normalize axis
     _axis           = _axis / sqrt(_axis*_axis);
@@ -74,6 +86,11 @@ bool Density::EvaluateFrame(Topology *top) {
          ++sit) {
 
         Segment *seg = *sit;
+
+        // Within specified segment range?
+        if (seg->getId() < _firstSegId) { continue; }
+        if (seg->getId() == _lastSegId+1) { break; }
+
         if (!set_seg.count(seg->getName())) { set_seg[seg->getName()] = true; }
 
         double z_com = seg->getPos() * _axis;
@@ -115,6 +132,8 @@ bool Density::EvaluateFrame(Topology *top) {
     vector< vector< int > > com_hist_Ns;
     vector< vector< double > > com_profile_ea;
     vector< vector< double > > com_profile_ec;
+    vector< vector< double > > com_profile_ea_std;
+    vector< vector< double > > com_profile_ec_std;
     map< string, bool > ::iterator setit;
 
     for (setit = set_seg.begin(); setit != set_seg.end(); ++setit) {
@@ -157,10 +176,14 @@ bool Density::EvaluateFrame(Topology *top) {
         vector< int > hist_Ns_com;
         vector< double > binned_avg_ea;
         vector< double > binned_avg_ec;
+        vector< double > binned_std_ea;
+        vector< double > binned_std_ec;
         hist_Ns.resize(BIN);
         hist_Ns_com.resize(BIN);
         binned_avg_ea.resize(BIN);
         binned_avg_ec.resize(BIN);
+        binned_std_ea.resize(BIN);
+        binned_std_ec.resize(BIN);        
         // Atomistic number density
         for (int bin = 0; bin < BIN; ++bin) {
             hist_Ns[bin] = hist_zs[bin].size();
@@ -184,11 +207,34 @@ bool Density::EvaluateFrame(Topology *top) {
             binned_avg_ea[bin] = avg_ea;
             binned_avg_ec[bin] = avg_ec;
         }
+
+        // STD DEVIATION WITHIN LAYERS ( = LOCAL WIDTH DOS)
+        for (int bin = 0; bin < BIN; ++bin) {
+            double std_ea = 0.0;
+            double std_ec = 0.0;
+            for (int entry = 0; entry < binned_ea[bin].size(); ++entry) {
+                double avg_ea = binned_avg_ea[bin];
+                double avg_ec = binned_avg_ec[bin];
+                std_ea += (binned_ea[bin][entry] - avg_ea)
+                         *(binned_ea[bin][entry] - avg_ea);
+                std_ec += (binned_ec[bin][entry] - avg_ec)
+                         *(binned_ec[bin][entry] - avg_ec);
+            }
+            std_ea /= binned_ea[bin].size();
+            std_ec /= binned_ec[bin].size();
+            std_ea = sqrt(std_ea);
+            std_ec = sqrt(std_ec);
+
+            binned_std_ea[bin] = std_ea;
+            binned_std_ec[bin] = std_ec;
+        }
         
         seg_hist_Ns.push_back(hist_Ns);
         com_hist_Ns.push_back(hist_Ns_com);
         com_profile_ea.push_back(binned_avg_ea);
         com_profile_ec.push_back(binned_avg_ec);
+        com_profile_ea_std.push_back(binned_std_ea);
+        com_profile_ec_std.push_back(binned_std_ec);
     }
 
 
@@ -251,8 +297,8 @@ bool Density::EvaluateFrame(Topology *top) {
 
     fprintf(out, "# z");
     for (setit = set_seg.begin(); setit != set_seg.end(); ++setit) {
-        fprintf(out, " EA(%1s,z) ", setit->first.c_str());
-        fprintf(out, " IP(%1s,z) ", setit->first.c_str());
+        fprintf(out, " EA(%1s,z) +/- ", setit->first.c_str());
+        fprintf(out, " IP(%1s,z) +/- ", setit->first.c_str());
     }
     fprintf(out, " \n");
 
@@ -264,6 +310,8 @@ bool Density::EvaluateFrame(Topology *top) {
         for (int s = 0; s < SEG; ++s) {
             fprintf(out, " %4.7f ", com_profile_ea[s][bin]);
             fprintf(out, " %4.7f ", com_profile_ec[s][bin]);
+            fprintf(out, " %4.7f ", com_profile_ea_std[s][bin]);
+            fprintf(out, " %4.7f ", com_profile_ec_std[s][bin]);
         }
 
         fprintf(out, " \n");
