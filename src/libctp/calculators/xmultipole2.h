@@ -2132,7 +2132,6 @@ int XMP::JobXMP::Induce(int state, XJob *job) {
                   || (*seg1)->getId() == job->getSeg2Id() )
                && (  (*seg2)->getId() == job->getSeg1Id()
                   || (*seg2)->getId() == job->getSeg2Id() )) {
-                 cout << endl << "Skipping int" << (*seg1)->getId() << " " << (*seg2)->getId() << flush;
                  continue;
              }
          }
