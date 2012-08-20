@@ -53,7 +53,7 @@ ${0##*/}, version ${version}
 
 
 
-This is a multiplexed version of $g_cmd
+This is a multiplexed version of $g_cmd. (Obsolete will be removed in the next version)
 
 Usage: ${0##*/} [OPTIONS] -- [${g_cmd}_options]
 
@@ -154,6 +154,38 @@ dt="$(awk -v b="$begin" -v e="$end" -v np="$np" 'BEGIN{print (e-b)/np}')"
 [ -z "$dt" ] && die "Could not calculate dt"
 
 [ -f "$index" ] || die "Indexfile $index not found"
+
+cat <<EOF
+${0##*/} is obsolete. Please use csg_stat instead. We will remove ${0##*/}
+in the next version of VOTCA. csg_stat is parallel as well (--nt option)
+and uses a smarter neighbor search algrithm (grid search), which speeds
+the caluclation up a lot. Additionally it supports calculations for
+multiple interaction (incl. bonded) at once. The only thing you have
+to do, is to create as xml file like this:
+
+<cg>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>A-A</name>
+    <min>0.0</min>
+    <max>2.23</max>
+    <step>0.01</step>
+    <!-- these are atom TYPES not energy groups, * (e.g. A*) is allowed. -->
+    <type1>A1</type1>
+    <type2>A1</type2>
+  </non-bonded>
+  <!-- another non-bonded block for another interaction -->
+  <non-bonded>
+    ..
+  </non-bonded>
+</cg>
+
+and execute:
+csg_stat -top topol.tpr --trj traj.trr --nt XXX --options FILE.xml
+EOF
+sleep 30
+
 echo "Select a reference group and 1 group"
 sed -n 's/.*\[\(.*\)\].*/\1/p' $index | awk '{print "Group",NR-1,"(",$0,")"}'
 echo -n "Select a group: "
