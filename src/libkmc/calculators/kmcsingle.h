@@ -92,10 +92,10 @@ void KMCSingle::Initialize(const char *filename, Property *options )
         
         _filename = filename;
 
-       //cout << _seed << endl;
        srand(_seed);
+       //votca::tools::Random::init(rand() % 178 + 1, rand() % 178 + 1, rand() % 178 + 1, rand() % 169 );
        votca::tools::Random::init(rand(), rand(), rand(), rand());
-
+       
 }
 
 bool KMCSingle::EvaluateFrame()
@@ -127,13 +127,13 @@ void KMCSingle::LoadGraph() {
     //delete stmt;
     cout << "  -Nodes: " << _nodes.size() << endl;
     cout << "seed:" << _seed << endl;
-    if(_seed > _nodes.size()){ throw invalid_argument ("Seed is bigger than number of nodes. Please specify a smaller seed in your input file."); }
+    //if(_seed > _nodes.size()){ throw invalid_argument ("Seed is bigger than number of nodes. Please specify a smaller seed in your input file."); }
     cout << "  -Injection Points: " << _injection.size() << endl;
 
     delete stmt;
 
     int links = 0;
-    stmt = db.Prepare("SELECT seg1, seg2, rate12e, rate21e, drX, drY, drZ FROM pairs;"); // electron rates, check (think about) this
+    stmt = db.Prepare("SELECT seg1, seg2, rate12h, rate21h, drX, drY, drZ FROM pairs;"); // electron rates, check (think about) this
     while (stmt->Step() != SQLITE_DONE) {
         node_t *n1 = _nodes_lookup[stmt->Column<int>(0)];
         node_t *n2 = _nodes_lookup[stmt->Column<int>(1)];
@@ -160,12 +160,37 @@ void KMCSingle::RunKMC(void)
 
 	double t = 0;
 
-        srand(_seed);
-        votca::tools::Random::init(rand(), rand(), rand(), rand());
+        //srand(_seed);
+        //votca::tools::Random::init(rand(), rand(), rand(), rand());
 
         // cout << " seed:size:site " << _seed << ":" << _injection.size() << ":" << Random::rand_uniform_int(_injection.size()) << endl;
-	current=_injection[Random::rand_uniform_int(_injection.size())];
-        cout <<" Starting simulation at node: "<<current->_id-1<<endl;
+	
+//        cout << endl;
+//        int run_in = rand() % 100;
+//        cout << "RUN IN " << run_in << endl;
+//        for (int i = 0; i < run_in; ++i) {
+//            cout << i << " --- " << Random::rand_uniform_int(_injection.size()) << endl;
+//        }
+        
+//        FILE *out;
+//        string marsout = "mars111.out";
+//        out = fopen(marsout.c_str(),"a");
+//        
+//        for (int i = 0; i < 100000 + _seed; ++i) {
+//            
+//            int rnd = Random::rand_uniform_int(_injection.size());
+//            if (i == 40) {
+//                fprintf(out, "%6d \n", rnd);
+//            }
+//            //fprintf(out, "%6d \n", rnd);
+//        }
+//        fclose(out);
+        
+        int inj = Random::rand_uniform_int(_injection.size());
+        current=_injection[inj];
+        //current = _injection[_seed];
+        
+        cout <<" Starting simulation at node: "<<current->_id-1<< " (inj " << inj << "). " << endl;
 	double next_output = _dt;
     int i=0;
     while(t<_runtime) {
@@ -187,7 +212,7 @@ void KMCSingle::WriteOcc()
     cout << "Opening for writing " << _filename << endl;
 	db.Open(_filename);
 	db.Exec("BEGIN;");
-	Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
+	Statement *stmt = db.Prepare("UPDATE segments SET occPh = ? WHERE id = ?;");  // site occ. prob., 
 	for(int i=0; i<_nodes.size(); ++i) {
 		stmt->Reset();
                 stmt->Bind(1, _nodes[i]->_occ/_runtime);
