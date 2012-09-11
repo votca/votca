@@ -190,7 +190,7 @@ void KMCSingle::WriteOcc()
 	Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
 	for(int i=0; i<_nodes.size(); ++i) {
 		stmt->Reset();
-		stmt->Bind(1, _nodes[i]->_occ);
+		stmt->Bind(1, _nodes[i]->_occ/_runtime);
 		stmt->Bind(2, _nodes[i]->_id);
 		stmt->Step();
 	}
