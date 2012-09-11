@@ -1,5 +1,5 @@
 prefix=
-prefix=/people/thnfs/homes/kordt/votca
+prefix=/usr/local
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
