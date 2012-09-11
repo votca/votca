@@ -26,6 +26,7 @@
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <votca/tools/vec.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/database.h>
@@ -181,6 +182,9 @@ protected:
             int _seed;
             int _numberofcharges;
             int _allowparallel;
+            double _fieldX;
+            double _fieldY;
+            double _fieldZ;
             string _filename; // HACK
             
 };
@@ -230,6 +234,24 @@ void KMCMultiple::Initialize(const char *filename, Property *options )
 	    cout << "WARNING in kmcmultiple: You did not specify if parallel computation is allowed. It will be disabled." << endl;
             _allowparallel = 0;
         }
+        if (options->exists("options.kmcmultiple.fieldX")) {
+	    _fieldX = options->get("options.kmcmultiple.fieldX").as<double>();
+	}
+        else {
+            _fieldX = 0;
+        }
+        if (options->exists("options.kmcmultiple.fieldY")) {
+	    _fieldY = options->get("options.kmcmultiple.fieldY").as<double>();
+	}
+        else {
+            _fieldY = 0;
+        }
+        if (options->exists("options.kmcmultiple.fieldZ")) {
+	    _fieldZ = options->get("options.kmcmultiple.fieldZ").as<double>();
+	}
+        else {
+            _fieldZ = 0;
+        }
 
         _filename = filename;
 
@@ -274,7 +296,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     
     // Load pairs and rates
     int numberofpairs = 0;
-    stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', rate12h AS 'rate', drX, drY, drZ FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', rate21h AS 'rate', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ' FROM pairs ORDER BY segment1;");
+    stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', rate12e AS 'rate', drX, drY, drZ FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', rate21e AS 'rate', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ' FROM pairs ORDER BY segment1;");
     while (stmt->Step() != SQLITE_DONE)
     {
         int seg1 = stmt->Column<int>(0);
@@ -296,6 +318,84 @@ vector<Node*> KMCMultiple::LoadGraph()
     return node;
 }
 
+void ResetForbidden(vector<int> &forbiddenid)
+{
+    forbiddenid.clear();
+}
+
+void AddForbidden(int id, vector<int> &forbiddenid)
+{
+    forbiddenid.push_back(id);
+}
+
+int Forbidden(int id, vector<int> forbiddenlist)
+{
+    // cout << "forbidden list has " << forbiddenlist.size() << " entries" << endl;
+    int forbidden = 0;
+    for (unsigned int i=0; i< forbiddenlist.size(); i++)
+    {
+        if(id == forbiddenlist[i])
+        {
+            forbidden = 1;
+            // cout << "ID " << id << " has been found as element " << i << " (" << forbiddenlist[i]+1<< ") in the forbidden list." << endl;
+            break;
+        }
+    }
+    return forbidden;
+}
+
+int Surrounded(Node* node, vector<int> forbiddendests)
+{
+    //if(node->event.size() == forbiddendests.size())
+    //{
+    //    return 1;
+    //}
+    //else
+    //{
+    //    return 0;
+    //}
+    int surrounded = 1;
+    for(unsigned int i=0; i<node->event.size(); i++)
+    {
+        int thisevent_possible = 1;
+        for(unsigned int j=0; j<forbiddendests.size(); j++)
+        {
+            if(node->event[i].destination == forbiddendests[j])
+            {
+                thisevent_possible = 0;
+                break;
+            }
+        }
+        if(thisevent_possible == 1)
+        {
+            surrounded = 0;
+            // cout << "NOT SURROUNDED, POSSIBLE EVENT: " << node->id+1 << "->" << node->event[i].destination+1 << endl;
+            break;
+        }
+    }
+    return surrounded;
+}
+
+void printtime(int seconds_t)
+{
+    int seconds = seconds_t;
+    int minutes = 0;
+    int hours = 0;
+    while(seconds / 60 >= 1)
+    {
+        seconds -= 60;
+        minutes +=  1;
+    }
+    while(minutes / 60 >= 1)
+    {
+        minutes -= 60;
+        hours +=  1;
+    }
+    char buffer [50];
+    int n = sprintf(buffer, "%d:%02d:%02d",hours,minutes,seconds);
+    printf("%s",buffer,n);
+}
+
 vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable)
 {
     int tid = 0;
@@ -303,6 +403,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     tid = omp_get_thread_num();
     # endif
 
+    int realtime_start = time(NULL);
     if(tid == 0)
     {
         cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
@@ -335,99 +436,152 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         carrier.push_back(newCharge);
     }    
 
-    double time = 0.;
+    double simtime = 0.;
     int step = 0;
     double nextoutput = outputfrequency;
     
     progressbar(0.);
-    while(time < runtime)
+    vector<int> forbiddennodes;
+    vector<int> forbiddendests;
+    while(simtime < runtime)
     {
-        // determine which electron will escape
-        Node* do_oldnode;
-        Node* do_newnode;
-        Chargecarrier* do_affectedcarrier;
-        double maxprob = 0.;
-        double newprob = 0.;
-        votca::tools::vec::vec dr;
+        double cumulated_rate = 0;
         for(unsigned int i=0; i<numberofcharges; i++)
         {
-            newprob = carrier[i]->node->EscapeRate() * (1-RandomVariable->rand_uniform());
-            if(newprob > maxprob)
-            {
-                maxprob = newprob;
-                do_oldnode = carrier[i]->node;
-                do_affectedcarrier = carrier[i];
-            }
+            cumulated_rate += carrier[i]->node->EscapeRate();
         }
-        if(maxprob == 0) {throw runtime_error("ERROR in kmcmultiple: all rates are 0") ;}
-        if(verbose >= 1 && tid == 0) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
-        
-        // determine where it will jump to
-        if(verbose >= 1 && tid == 0) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
-        maxprob = 0;
-        for(unsigned int j=0; j<do_oldnode->event.size(); j++)
-        {
-            if(verbose >= 1 && tid == 0) { cout << " " << do_oldnode->event[j].destination ; }
-            newprob = do_oldnode->event[j].rate * (1-RandomVariable->rand_uniform());
-            if(newprob > maxprob)
-            {
-                maxprob = newprob;
-                do_newnode = node[do_oldnode->event[j].destination];
-                dr = do_oldnode->event[j].dr;
-            }
-        }
-        
-        if(verbose >= 1 && tid == 0) {cout << "." << endl;}
-
-        // go forward in time
-        double accumulatedrate = 0;
-        for(unsigned int i=0; i<numberofcharges; i++)
-        {
-            accumulatedrate += carrier[i]->node->EscapeRate();
-        }
-        double dt = 0;
-        if(accumulatedrate == 0)
+        if(cumulated_rate == 0)
         {   // this should not happen: no possible jumps defined for a node
             throw runtime_error("ERROR in kmcmultiple: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
         }
-        else
+        // go forward in time
+        double dt = 0;
+        double rand_u = 1-RandomVariable->rand_uniform();
+        while(rand_u == 0)
         {
-            double rand_u = 1-RandomVariable->rand_uniform();
-            while(rand_u == 0)
-            {
-                cout << "WARNING: encountered 0 as a random variable! New try." << endl;
-                rand_u = 1-RandomVariable->rand_uniform();
-            }
-            dt = -1 / accumulatedrate * log(rand_u);
+            cout << "WARNING: encountered 0 as a random variable! New try." << endl;
+            rand_u = 1-RandomVariable->rand_uniform();
         }
-        time += dt;
+        dt = -1 / cumulated_rate * log(rand_u);
+        simtime += dt;
+        if(verbose >= 1 && tid == 0) {cout << "simtime += " << dt << endl << endl;}
         step += 1;
         
         for(unsigned int i=0; i<numberofcharges; i++)
         {
             carrier[i]->node->occupationtime += dt;
         }
-        
-        
-        // if the new segment is unoccupied: jump; if not: nothing??
-        if(do_newnode->occupied == 0)
+
+        ResetForbidden(forbiddennodes);
+        int level1step = 0;
+        while(level1step == 0)
+        // LEVEL 1
         {
-            do_newnode->occupied = 1;
-            do_oldnode->occupied = 0;
-            do_affectedcarrier->node = do_newnode;
-            do_affectedcarrier->dr_travelled += dr;
-            if(verbose >= 1 && tid == 0) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl << endl;}
-        }
-        else
-        {
-            if(verbose >= 1 && tid == 0) {cout << "Selected segment: " << do_newnode->id+1 << " is alread occupied. No jump." << endl << endl;}
-        }
+            // determine which electron will escape
+            Node* do_oldnode;
+            Node* do_newnode;
+            Chargecarrier* do_affectedcarrier;
+            
+            double u = 1 - RandomVariable->rand_uniform();
+            for(unsigned int i=0; i<numberofcharges; i++)
+            {
+                u -= carrier[i]->node->EscapeRate()/cumulated_rate;
+                if(u <= 0)
+                {
+                    do_oldnode = carrier[i]->node;
+                    do_affectedcarrier = carrier[i];
+                    break;
+                }
+               do_oldnode = carrier[i]->node;
+               do_affectedcarrier = carrier[i];
+            }
+                
+            double maxprob = 0.;
+            double newprob = 0.;
+            votca::tools::vec::vec dr;
+            if(verbose >= 1 && tid == 0) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
+            if(Forbidden(do_oldnode->id, forbiddennodes) == 1) {continue;}
+            
+            // determine where it will jump to
+            ResetForbidden(forbiddendests);
+            while(true)
+            {
+            // LEVEL 2
+                if(verbose >= 1 && tid == 0) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
+
+                do_newnode = NULL;
+                u = 1 - RandomVariable->rand_uniform();
+                for(unsigned int j=0; j<do_oldnode->event.size(); j++)
+                {
+                    if(Forbidden(do_oldnode->event[j].destination, forbiddendests) == 1)
+                    {   // directly skip forbidden events
+                        if(verbose >= 1 && tid == 0) { cout << " [" << do_oldnode->event[j].destination+1 << " FORBIDDEN]" ; }                         
+                        continue;
+                    }
+                    if(verbose >= 1 && tid == 0) { cout << " " << do_oldnode->event[j].destination+1 ; }
+                    u -= do_oldnode->event[j].rate/do_oldnode->EscapeRate();
+                    if(u <= 0)
+                    {
+                        do_newnode = node[do_oldnode->event[j].destination];
+                        dr = do_oldnode->event[j].dr;
+                        break;
+                    }
+                    do_newnode = node[do_oldnode->event[j].destination];
+                    dr = do_oldnode->event[j].dr;
+                }
+
+                if(do_newnode == NULL)
+                {
+                    if(verbose >= 1 && tid == 0) {cout << endl << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
+                    AddForbidden(do_oldnode->id, forbiddennodes);
+                    int nothing=0;
+                    cin >> nothing;
+                    break; // select new escape node (ends level 2 but without setting level1step to 1)
+                }
+                if(verbose >= 1 && tid == 0) {cout << endl << "Selected jump: " << do_newnode->id+1 << endl; }
+
+                // if the new segment is unoccupied: jump; if not: nothing??
+                if(do_newnode->occupied == 1)
+                {
+                    if(Surrounded(do_oldnode, forbiddendests) == 1)
+                    {
+                        if(verbose >= 1 && tid == 0) {cout << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
+                        AddForbidden(do_oldnode->id, forbiddennodes);
+                        break; // select new escape node (ends level 2 but without setting level1step to 1)
+                    }
+                    if(verbose >= 1 && tid == 0) {cout << "Selected segment: " << do_newnode->id+1 << " is already OCCUPIED. Added to forbidden list." << endl << endl;}
+                    AddForbidden(do_newnode->id, forbiddendests);
+                    if(verbose >= 1 && tid == 0) {cout << "Now choosing different hopping destination." << endl; }
+                    continue; // select new destination
+                }
+                else
+                {
+                    do_newnode->occupied = 1;
+                    do_oldnode->occupied = 0;
+                    do_affectedcarrier->node = do_newnode;
+                    do_affectedcarrier->dr_travelled += dr;
+                    level1step = 1;
+                    if(verbose >= 1 && tid == 0) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl;}
+                    // cout << "old node: " << do_oldnode->id+1 << ", occupation: " << do_oldnode->occupied << endl;
+                    // cout << "new node: " << do_newnode->id+1 << ", occupation: " << do_newnode->occupied << endl;
+                    break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
+                }
+
+                if(verbose >= 1 && tid == 0) {cout << "." << endl;}
+            // END LEVEL 2
+            }
+        // END LEVEL 1
+        }    
         
-        if(time > nextoutput && tid == 0)
+               
+        if(simtime > nextoutput && tid == 0)
         {
-            nextoutput = time + outputfrequency;
-            progressbar(time/runtime);
+            nextoutput = simtime + outputfrequency;
+            progressbar(simtime/runtime);
+            cout << " remaining: ";
+            printtime(int((runtime/simtime-1) * (int(time(NULL)) - realtime_start))); 
         }
+        // cout << "step " << step << endl;
     }
     progressbar(1.);
 
@@ -435,21 +589,54 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     // calculate occupation probabilities from occupation times    
     for(unsigned int j=0; j<node.size(); j++)
     {   
-        occP[j] = node[j]->occupationtime / time;
+        occP[j] = node[j]->occupationtime / simtime;
     }
+    
 
     if (tid == 0)
     {
         cout << endl << "finished KMC simulation after " << step << " steps." << endl;
+        cout << "runtime: ";
+        printtime(time(NULL) - realtime_start); 
         votca::tools::vec::vec dr_travelled = votca::tools::vec::vec (0,0,0);
-        cout << endl << "Average velocities: " << endl;
+        cout << endl << "Average velocities (m/s): " << endl;
         for(unsigned int i=0; i<numberofcharges; i++)
         {
-            cout << std::scientific << "    charge " << i+1 << ": " << carrier[i]->dr_travelled/time*1e-9 << endl;
+            //cout << std::scientific << "    charge " << i+1 << ": " << carrier[i]->dr_travelled/simtime*1e-9 << endl;
+            cout << std::scientific << "    charge " << i+1 << ": " << carrier[i]->dr_travelled/simtime << endl;
             dr_travelled += carrier[i]->dr_travelled;
         }
         dr_travelled /= numberofcharges;
-        cout << std::scientific << "  Overall average velocity (m/s): " << dr_travelled/time*1e-9 << endl << endl;
+        //cout << std::scientific << "  Overall average velocity (m/s): " << dr_travelled/simtime*1e-9 << endl;
+        cout << std::scientific << "  Overall average velocity (m/s): " << dr_travelled/simtime << endl;
+
+        cout << endl << "Distances travelled (m): " << endl;
+        for(unsigned int i=0; i<numberofcharges; i++)
+        {
+            cout << std::scientific << "    charge " << i+1 << ": " << carrier[i]->dr_travelled << endl;
+        }
+        
+        // calculate mobilities
+        double absolute_field = sqrt(_fieldX*_fieldX + _fieldY*_fieldY + _fieldZ*_fieldZ);
+        double average_mobilityZ = 0;
+        if (absolute_field != 0)
+        {
+            cout << endl << "Mobilities (cm^2/Vs): " << endl;
+            for(unsigned int i=0; i<numberofcharges; i++)
+            {
+                //votca::tools::vec::vec velocity = carrier[i]->dr_travelled/simtime*1e-9;
+                votca::tools::vec::vec velocity = carrier[i]->dr_travelled/simtime;
+                double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
+                //cout << std::scientific << "    charge " << i+1 << ": mu=" << absolute_velocity/absolute_field*1E4 << endl;
+                cout << std::scientific << "    charge " << i+1 << ": muZ=" << velocity.z()/_fieldZ*1E4 << endl;
+                average_mobilityZ += velocity.z()/_fieldZ*1E4;
+            }
+            average_mobilityZ /= numberofcharges;
+            cout << std::scientific << "  Overall average z-mobility <muZ>=" << average_mobilityZ << endl;
+        }
+        cout << endl;
+
+    
     }
     return occP;
 }
@@ -461,7 +648,7 @@ void KMCMultiple::WriteOcc(vector<double> occP, vector<Node*> node)
     cout << "Opening for writing " << _filename << endl;
 	db.Open(_filename);
 	db.Exec("BEGIN;");
-	votca::tools::Statement *stmt = db.Prepare("UPDATE segments SET occPh = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
+	votca::tools::Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
 	for(unsigned int i=0; i<node.size(); ++i)
         {
 	    stmt->Reset();
@@ -537,7 +724,7 @@ bool KMCMultiple::EvaluateFrame()
         {
             if(occPOneRun[thread][j] > 0)
             {
-                cout << "[thread " << thread+1 << "] "<<"occupation probability " << node[j]->id+1 << ": " << occPOneRun[thread][j] << endl;
+                // cout << "[thread " << thread+1 << "] "<<"occupation probability " << node[j]->id+1 << ": " << occPOneRun[thread][j] << endl;
             }
         }
     }
@@ -547,7 +734,7 @@ bool KMCMultiple::EvaluateFrame()
     {
         if(occP[j] > 0)
         {
-            cout << "occupation probability " << node[j]->id+1 << ": " << occP[j] << endl;
+            // cout << "occupation probability " << node[j]->id+1 << ": " << occP[j] << endl;
         }
     }
     
