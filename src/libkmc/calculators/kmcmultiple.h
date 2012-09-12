@@ -41,13 +41,14 @@ using namespace std;
 namespace votca { namespace kmc {
 
 static int verbose = 0; // 0=minimal output, 1=verbose output
+typedef votca::tools::vec myvec;
 
 struct Event
 {
     // Event() : dr(3) {}
     int destination;
     double rate;
-    votca::tools::vec::vec dr;
+    votca::tools::vec dr;
 };
 
 
@@ -64,12 +65,12 @@ class Node
         double EscapeRate();
         // double CurrentEscapeRate(Node node2);
         // void Jump(Node node2);
-        void AddEvent(int seg2, double rate12, votca::tools::vec::vec dr);
+        void AddEvent(int seg2, double rate12, myvec dr);
         void InitEscapeRate();
 };
 
 
-void Node::AddEvent(int seg2, double rate12, votca::tools::vec::vec dr)
+void Node::AddEvent(int seg2, double rate12, myvec dr)
 {
     Event newEvent;
     newEvent.destination = seg2;
@@ -103,7 +104,7 @@ class Chargecarrier
         int position;
         int id;
         Node *node;
-        votca::tools::vec::vec dr_travelled;
+        myvec dr_travelled;
 };
 
 
@@ -302,7 +303,7 @@ vector<Node*> KMCMultiple::LoadGraph()
         int seg1 = stmt->Column<int>(0);
         int seg2 = stmt->Column<int>(1);
         double rate12 = stmt->Column<double>(2);
-        votca::tools::vec::vec dr = votca::tools::vec::vec(stmt->Column<double>(3), stmt->Column<double>(4), stmt->Column<double>(5));
+        myvec dr = myvec(stmt->Column<double>(3), stmt->Column<double>(4), stmt->Column<double>(5));
         node[seg1]->AddEvent(seg2,rate12,dr);
         numberofpairs ++;
     }    
@@ -431,7 +432,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];
         }
         newCharge->node->occupied = 1;
-        newCharge->dr_travelled = votca::tools::vec::vec(0,0,0);
+        newCharge->dr_travelled = myvec(0,0,0);
         if(tid == 0) {cout << "starting position for charge " << i+1 << ": segment " << newCharge->node->id+1 << endl; }
         carrier.push_back(newCharge);
     }    
@@ -498,7 +499,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                 
             double maxprob = 0.;
             double newprob = 0.;
-            votca::tools::vec::vec dr;
+            myvec dr;
             if(verbose >= 1 && tid == 0) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
             if(Forbidden(do_oldnode->id, forbiddennodes) == 1) {continue;}
             
@@ -598,7 +599,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         cout << endl << "finished KMC simulation after " << step << " steps." << endl;
         cout << "runtime: ";
         printtime(time(NULL) - realtime_start); 
-        votca::tools::vec::vec dr_travelled = votca::tools::vec::vec (0,0,0);
+        myvec dr_travelled = myvec (0,0,0);
         cout << endl << "Average velocities (m/s): " << endl;
         for(unsigned int i=0; i<numberofcharges; i++)
         {
@@ -624,8 +625,8 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             cout << endl << "Mobilities (cm^2/Vs): " << endl;
             for(unsigned int i=0; i<numberofcharges; i++)
             {
-                //votca::tools::vec::vec velocity = carrier[i]->dr_travelled/simtime*1e-9;
-                votca::tools::vec::vec velocity = carrier[i]->dr_travelled/simtime;
+                //myvec velocity = carrier[i]->dr_travelled/simtime*1e-9;
+                myvec velocity = carrier[i]->dr_travelled/simtime;
                 double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
                 //cout << std::scientific << "    charge " << i+1 << ": mu=" << absolute_velocity/absolute_field*1E4 << endl;
                 cout << std::scientific << "    charge " << i+1 << ": muZ=" << velocity.z()/_fieldZ*1E4 << endl;

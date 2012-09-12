@@ -2,7 +2,6 @@
 <configurationDescriptor version="79">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="calculators" displayName="calculators" projectFiles="true">
-      <itemPath>../../src/libkmc/calculators/kmcmultiple.h</itemPath>
       <itemPath>../../src/libkmc/calculators/kmcsingle.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
