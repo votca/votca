@@ -315,21 +315,29 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
 
         QMPair *pair = *nit;
 
-        int ghost;
-        if (pair->HasGhost()) { ghost = 1; }
-        else { ghost = 0; }
+        int ghost = (pair->HasGhost()) ? 1 : 0;
 
-        fprintf(out, "PairID %5d  | Seg1 %4d Seg2 %4d dR %2.4f PBC? %1d | "
-                     "lOuter %1.4f J2 %1.8f r12 %2.4f r21 %2.4f \n",
+        fprintf(out, "ID %5d SEG1 %4d %1s SEG2 %4d %1s dR %2.4f PBC %1d "
+                     "dE(-1) %4.7f dE(+1) %4.7f "
+                     "L(-1) %1.4f L(+1) %1.4f J2(-1) %1.8e J2(+1) %1.8e "
+                     "R12(-1) %2.4e R12(+1) %2.4e R21(-1) %2.4e R21(-1) %2.4e\n",
                 pair->getId(),
                 pair->first->getId(),
+                pair->first->getName().c_str(),
                 pair->second->getId(),
+                pair->second->getName().c_str(),
                 pair->Dist(),
                 ghost,
-                0.0, // pair->getLambdaO(),
-                0.0, // pair->calcJeff2(),
-                0.0, // pair->getRate12(),
-                0.0 ); // pair->getRate21() );
+                pair->getdE12(-1),
+                pair->getdE12(+1),
+                pair->getLambdaO(-1),
+                pair->getLambdaO(+1),
+                pair->getJeff2(-1),
+                pair->getJeff2(+1),
+                pair->getRate12(-1),
+                pair->getRate12(+1),
+                pair->getRate21(-1),
+                pair->getRate21(+1) );
     }
 }
 
