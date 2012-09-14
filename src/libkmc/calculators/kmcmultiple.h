@@ -22,6 +22,7 @@
 #include <vector>
 // #include <map>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <omp.h>
 #include <stdio.h>
@@ -60,6 +61,7 @@ class Node
         int injectable;
         double escaperate;
         double occupationtime;
+        myvec position;
         vector<Event> event;
     
         double EscapeRate();
@@ -186,6 +188,8 @@ protected:
             double _fieldX;
             double _fieldY;
             double _fieldZ;
+            double _outputtime;
+            string _trajectoryfile;
             string _filename; // HACK
             
 };
@@ -253,6 +257,18 @@ void KMCMultiple::Initialize(const char *filename, Property *options )
         else {
             _fieldZ = 0;
         }
+        if (options->exists("options.kmcmultiple.outputtime")) {
+	    _outputtime = options->get("options.kmcmultiple.outputtime").as<double>();
+	}
+        else {
+            _outputtime = 0;
+        }
+        if (options->exists("options.kmcmultiple.trajectoryfile")) {
+	    _trajectoryfile = options->get("options.kmcmultiple.trajectoryfile").as<string>();
+	}
+        else {
+            _trajectoryfile = "trajectory.csv";
+        }
 
         _filename = filename;
 
@@ -271,7 +287,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     votca::tools::Database db;
     db.Open( _filename );
     if(verbose >= 1) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
-    votca::tools::Statement *stmt = db.Prepare("SELECT id-1, name FROM segments;");
+    votca::tools::Statement *stmt = db.Prepare("SELECT id-1, name, posX, posY, posZ FROM segments;");
 
     int i=0;
     while (stmt->Step() != SQLITE_DONE)
@@ -282,6 +298,8 @@ vector<Node*> KMCMultiple::LoadGraph()
         int newid = stmt->Column<int>(0);
         string name = stmt->Column<string>(1);
         node[i]->id = newid;
+        myvec nodeposition = myvec(stmt->Column<double>(2), stmt->Column<double>(3), stmt->Column<double>(4));
+        node[i]->position = nodeposition;
         if (votca::tools::wildcmp(injectionpattern.c_str(), name.c_str()))
         {
             node[i]->injectable = 1;
@@ -416,12 +434,30 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     {
         throw runtime_error("ERROR in kmcmultiple: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
     }
-
+    
+    fstream traj;
+    char trajfile[100];
+    strcpy(trajfile, _trajectoryfile.c_str());
+    cout << "Writing trajectory to " << trajfile << "." << endl; 
+    traj.open (trajfile, fstream::out);
+    if(_outputtime != 0)
+    {   
+        cout << endl << "writing trajectory into file " << trajfile << endl;
+        for(unsigned int i=0; i<numberofcharges; i++)
+        {
+            traj << "'carrier" << i+1 << "_x'\t";    
+            traj << "'carrier" << i+1 << "_y'\t";    
+            traj << "'carrier" << i+1 << "_z'\t";    
+        }
+        traj << endl;
+        
+    }
     double outputfrequency = runtime/100;
     vector<double> occP(node.size(),0.);
 
     // Injection
     vector< Chargecarrier* > carrier;
+    vector<myvec> startposition(numberofcharges,myvec(0,0,0));
     for (unsigned int i = 0; i < numberofcharges; i++)
     {
         Chargecarrier *newCharge = new Chargecarrier;      
@@ -433,13 +469,16 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         }
         newCharge->node->occupied = 1;
         newCharge->dr_travelled = myvec(0,0,0);
+        startposition[i] = newCharge->node->position;
         if(tid == 0) {cout << "starting position for charge " << i+1 << ": segment " << newCharge->node->id+1 << endl; }
         carrier.push_back(newCharge);
-    }    
+    }
+    
 
     double simtime = 0.;
     int step = 0;
     double nextoutput = outputfrequency;
+    double nexttrajoutput = _outputtime;
     
     progressbar(0.);
     vector<int> forbiddennodes;
@@ -574,7 +613,25 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         // END LEVEL 1
         }    
         
-               
+        if(_outputtime != 0 && simtime > nexttrajoutput && tid ==0)       
+        {
+            nexttrajoutput = simtime + _outputtime;
+            for(unsigned int i=0; i<numberofcharges; i++) 
+            {
+                traj << startposition[i].getX() + carrier[i]->dr_travelled.getX() << "\t";
+                traj << startposition[i].getY() + carrier[i]->dr_travelled.getY() << "\t";
+                traj << startposition[i].getZ() + carrier[i]->dr_travelled.getZ();
+                if (i<numberofcharges-1) 
+                {
+                    traj << "\t";
+                }
+                else
+                {
+                    traj << endl;
+                }
+            }
+            
+        }
         if(simtime > nextoutput && tid == 0)
         {
             nextoutput = simtime + outputfrequency;
@@ -585,6 +642,12 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         // cout << "step " << step << endl;
     }
     progressbar(1.);
+    
+    if(_outputtime != 0)
+    {   
+        traj.close();
+    }
+
 
     
     // calculate occupation probabilities from occupation times    
