@@ -442,12 +442,15 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     traj.open (trajfile, fstream::out);
     if(_outputtime != 0)
     {   
-        cout << endl << "writing trajectory into file " << trajfile << endl;
         for(unsigned int i=0; i<numberofcharges; i++)
         {
             traj << "'carrier" << i+1 << "_x'\t";    
             traj << "'carrier" << i+1 << "_y'\t";    
-            traj << "'carrier" << i+1 << "_z'\t";    
+            traj << "'carrier" << i+1 << "_z";    
+            if(i<numberofcharges-1)
+            {
+                traj << "'\t";
+            }
         }
         traj << endl;
         
@@ -476,7 +479,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     
 
     double simtime = 0.;
-    int step = 0;
+    unsigned long step = 0;
     double nextoutput = outputfrequency;
     double nexttrajoutput = _outputtime;
     
@@ -512,11 +515,23 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             carrier[i]->node->occupationtime += dt;
         }
 
+        //if(verbose >=1 && tid == 0)
+        //{
+        //    cout << "positions:" << endl;
+        //    for(unsigned int i=0; i<numberofcharges; i++)
+        //    {
+        //        cout << i+1 << " -->  seg " << carrier[i]->node->id+1 << "  ("<< carrier[i]->node->position.getX()*1E9 << "," << carrier[i]->node->position.getY()*1E9 << "," << carrier[i]->node->position.getZ()*1E9 << ")"<<endl;
+        //    }
+        //    cout << endl;
+        //}
+
+        
         ResetForbidden(forbiddennodes);
         int level1step = 0;
         while(level1step == 0)
         // LEVEL 1
         {
+            
             // determine which electron will escape
             Node* do_oldnode;
             Node* do_newnode;
@@ -553,11 +568,14 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                 u = 1 - RandomVariable->rand_uniform();
                 for(unsigned int j=0; j<do_oldnode->event.size(); j++)
                 {
-                    if(Forbidden(do_oldnode->event[j].destination, forbiddendests) == 1)
-                    {   // directly skip forbidden events
-                        if(verbose >= 1 && tid == 0) { cout << " [" << do_oldnode->event[j].destination+1 << " FORBIDDEN]" ; }                         
-                        continue;
-                    }
+                    // BEGIN OBSOLETE CODE
+                    // THIS YIELDS WRONG STATISTICS AND HAS THUS BEEN REPLACED BY THE CHECK AFTER SELECTION
+                    //if(Forbidden(do_oldnode->event[j].destination, forbiddendests) == 1)
+                    //{   // directly skip forbidden events
+                    //    if(verbose >= 1 && tid == 0) { cout << " [" << do_oldnode->event[j].destination+1 << " FORBIDDEN]" ; }                         
+                    //    continue;
+                    //}
+                    // END OBSOLETE CODE
                     if(verbose >= 1 && tid == 0) { cout << " " << do_oldnode->event[j].destination+1 ; }
                     u -= do_oldnode->event[j].rate/do_oldnode->EscapeRate();
                     if(u <= 0)
@@ -575,10 +593,16 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                     if(verbose >= 1 && tid == 0) {cout << endl << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
                     AddForbidden(do_oldnode->id, forbiddennodes);
                     int nothing=0;
-                    cin >> nothing;
                     break; // select new escape node (ends level 2 but without setting level1step to 1)
                 }
                 if(verbose >= 1 && tid == 0) {cout << endl << "Selected jump: " << do_newnode->id+1 << endl; }
+                
+                // check after the event if this was allowed
+                if(Forbidden(do_newnode->id, forbiddendests) == 1)
+                {
+                    if(verbose >= 1 && tid == 0) {cout << "Node " << do_oldnode->id+1  << " is FORBIDDEN. Now selection new hopping destination." << endl; }
+                    continue;
+                }
 
                 // if the new segment is unoccupied: jump; if not: nothing??
                 if(do_newnode->occupied == 1)
@@ -618,9 +642,12 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             nexttrajoutput = simtime + _outputtime;
             for(unsigned int i=0; i<numberofcharges; i++) 
             {
-                traj << startposition[i].getX() + carrier[i]->dr_travelled.getX() << "\t";
-                traj << startposition[i].getY() + carrier[i]->dr_travelled.getY() << "\t";
-                traj << startposition[i].getZ() + carrier[i]->dr_travelled.getZ();
+                traj << carrier[i]->dr_travelled.getX() << "\t";
+                traj << carrier[i]->dr_travelled.getY() << "\t";
+                traj << carrier[i]->dr_travelled.getZ();
+                //traj << startposition[i].getX() + carrier[i]->dr_travelled.getX() << "\t";
+                //traj << startposition[i].getY() + carrier[i]->dr_travelled.getY() << "\t";
+                //traj << startposition[i].getZ() + carrier[i]->dr_travelled.getZ();
                 if (i<numberofcharges-1) 
                 {
                     traj << "\t";
