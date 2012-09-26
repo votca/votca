@@ -642,12 +642,9 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             nexttrajoutput = simtime + _outputtime;
             for(unsigned int i=0; i<numberofcharges; i++) 
             {
-                traj << carrier[i]->dr_travelled.getX() << "\t";
-                traj << carrier[i]->dr_travelled.getY() << "\t";
-                traj << carrier[i]->dr_travelled.getZ();
-                //traj << startposition[i].getX() + carrier[i]->dr_travelled.getX() << "\t";
-                //traj << startposition[i].getY() + carrier[i]->dr_travelled.getY() << "\t";
-                //traj << startposition[i].getZ() + carrier[i]->dr_travelled.getZ();
+                traj << startposition[i].getX() + carrier[i]->dr_travelled.getX() << "\t";
+                traj << startposition[i].getY() + carrier[i]->dr_travelled.getY() << "\t";
+                traj << startposition[i].getZ() + carrier[i]->dr_travelled.getZ();
                 if (i<numberofcharges-1) 
                 {
                     traj << "\t";
