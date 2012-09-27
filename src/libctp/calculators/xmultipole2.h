@@ -333,33 +333,37 @@ public:
        void     setSizePol(int size)        { _sizePol = size; }
        void     setSizeShell(int size)      { _sizeShell = size; }
        void     setEnergy(double E_T, double E_i_i, 
-                          double E_i_I, double E_I_I, double E_i_O) {
+                          double E_i_I, double E_I_I, double E_i_O,
+                          double E_P, double E_U) {
            _E_Tot = E_T;
            _E_Pair_Pair = E_i_i;
            _E_Pair_Sph1 = E_i_I;
            _E_Sph1_Sph1 = E_I_I;
            _E_Pair_Sph2 = E_i_O;
+
+           _E_PERM      = E_P;
+           _E_INDU      = E_U;
        }
 
        void     WriteInfoLine(FILE *out) {
 
          if (_type == "pair") {
            fprintf(out, "%5d %-20s  E_TOT %+4.7f E_PAIR_PAIR %+4.7f"
-                        " E_PAIR_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f"
-                        " E_PAIR_CUT2 %+4.7f ITER %3d"
+                        " E_PAIR_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f E_PAIR_CUT2 "
+                        "%+4.7f E_PERM %+4.7f E_INDU %+4.7f ITER %3d"
                         " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f \n",
                         _id, _tag.c_str(), _E_Tot, _E_Pair_Pair, _E_Pair_Sph1,
-                        _E_Sph1_Sph1, _E_Pair_Sph2, _iter,
+                        _E_Sph1_Sph1, _E_Pair_Sph2, _E_PERM, _E_INDU, _iter,
                         _sizePol, _sizeShell, _center.getX(), _center.getY(),
                         _center.getZ() );
          }
          else if (_type == "site") {
            fprintf(out, "%5d %-20s  E_TOT %+4.7f E_SITE_SITE %+4.7f"
-                        " E_SITE_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f"
-                        " E_SITE_CUT2 %+4.7f ITER %3d"
+                        " E_SITE_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f E_SITE_CUT2 "
+                        "%+4.7f E_PERM %+4.7f E_INDU %+4.7f ITER %3d"
                         " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f \n",
                         _id, _tag.c_str(), _E_Tot, _E_Pair_Pair, _E_Pair_Sph1,
-                        _E_Sph1_Sph1, _E_Pair_Sph2, _iter,
+                        _E_Sph1_Sph1, _E_Pair_Sph2, _E_PERM, _E_INDU, _iter,
                         _sizePol, _sizeShell, _center.getX(), _center.getY(),
                         _center.getZ() );
          }
@@ -397,11 +401,15 @@ public:
        int          _iter;
        int          _sizePol;
        int          _sizeShell;
+
        double       _E_Tot;
        double       _E_Pair_Pair;
        double       _E_Pair_Sph1;
        double       _E_Sph1_Sph1;
        double       _E_Pair_Sph2;
+
+       double       _E_PERM;
+       double       _E_INDU;
 
     };
 
@@ -2451,9 +2459,10 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
                  << flush;
         }
 
-        job->setEnergy(E_Tot*int2eV,       E_Pair_Pair*int2eV,
-                       E_Pair_Sph1*int2eV, E_Sph1_Sph1*int2eV,
-                       E_Pair_Sph2*int2eV);
+        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
+                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
+                       E_Pair_Sph2*int2eV,
+                       _actor.getEP()*int2eV, _actor.getEU_INTER() * int2eV);
     }
 
     else if (job->getType() == "site") {
@@ -2538,9 +2547,10 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
                  << flush;
         }
 
-        job->setEnergy(E_Tot*int2eV,       E_Pair_Pair*int2eV,
-                       E_Pair_Sph1*int2eV, E_Sph1_Sph1*int2eV,
-                       E_Pair_Sph2*int2eV);
+        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
+                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
+                       E_Pair_Sph2*int2eV, 
+                       _actor.getEP()*int2eV, _actor.getEU_INTER() * int2eV);
 
 
         
@@ -2675,8 +2685,10 @@ double XMP::JobXMP::EnergyStatic(int state, XJob *job) {
                  << flush;
         }
 
-        job->setEnergy(E_Tot*int2eV, E_Pair_Pair*int2eV, E_Pair_Sph1*int2eV,
-                       E_Sph1_Sph1*int2eV, E_Pair_Sph2*int2eV);
+        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
+                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
+                       E_Pair_Sph2*int2eV,
+                       _actor.getEP()*int2eV, _actor.getEU_INTER() * int2eV);
     }
 
 
@@ -2762,8 +2774,10 @@ double XMP::JobXMP::EnergyStatic(int state, XJob *job) {
                  << flush;
         }
 
-        job->setEnergy(E_Tot*int2eV, E_Pair_Pair*int2eV, E_Pair_Sph1*int2eV,
-                       E_Sph1_Sph1*int2eV, E_Pair_Sph2*int2eV);
+        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
+                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
+                       E_Pair_Sph2*int2eV,
+                       _actor.getEP()*int2eV, _actor.getEU_INTER() * int2eV);
     }
 
     return E_Tot;
