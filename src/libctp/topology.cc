@@ -119,6 +119,14 @@ PolarSite *Topology::AddPolarSite(string siteName) {
     return pole;
 }
 
+APolarSite *Topology::AddAPolarSite(string siteName) {
+    int poleId = _apolarSites.size() + 1;
+    APolarSite *pole = new APolarSite(poleId, siteName);
+    _apolarSites.push_back(pole);
+    pole->setTopology(this);
+    return pole;
+}
+
 Molecule *Topology::AddMolecule(string molecule_name) {
     int molecule_id = _molecules.size() + 1;
     Molecule *molecule = new Molecule(molecule_id, molecule_name);

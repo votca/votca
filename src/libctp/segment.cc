@@ -222,6 +222,13 @@ void Segment::AddPolarSite( PolarSite *pole ) {
 
 }
 
+void Segment::AddAPolarSite( APolarSite *pole ) {
+
+    _apolarSites.push_back(pole);
+    pole->setSegment(this);
+
+}
+
 void Segment::calcPos() {
     vec pos = vec(0,0,0);
     double totWeight = 0.0;
@@ -349,8 +356,8 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
     }
   }
     else if ( tag1 == "Multipoles" && tag2 == "Charges") {
-    vector < PolarSite* > :: iterator pol;
-    for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
+    vector < APolarSite* > :: iterator pol;
+    for (pol = _apolarSites.begin(); pol < _apolarSites.end(); ++pol) {
          int id = (*pol)->getId() % 100000;
          string name =  (*pol)->getName();
          name.resize(3);

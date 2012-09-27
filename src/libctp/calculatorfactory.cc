@@ -40,6 +40,8 @@
 #include "calculators/density.h"
 #include "calculators/xmultipole2.h"
 #include "calculators/velocity.h"
+#include "calculators/molpol.h"
+#include "calculators/zmultipole.h"
 
 
 
@@ -67,6 +69,8 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<Density>         ("density");
         Calculators().Register<XMP>             ("xmultipole");
         Calculators().Register<Velocity>        ("velocity");
+        Calculators().Register<MolPol>          ("molpol");
+        Calculators().Register<ZMultipole>      ("zmultipole");
 }
 
 }}
