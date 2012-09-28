@@ -580,7 +580,10 @@
           </change>
           <output>no
             <DESC>Output file name for mapping</DESC>
-          </output>change
+	  </output>
+	  <template>
+            <DESC>template for the mapping optimization</DESC>
+	  </template>
         </mapping>
 	<parameters>
 	  <DESC>Parameters to be fitted by the optimizer for this interaction. Note that the parameter names are global</DESC>
