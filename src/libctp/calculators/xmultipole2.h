@@ -414,6 +414,81 @@ public:
     };
 
     // +++++++++++++++++++++++++++ //
+    // Induction Op    (Subthread) //
+    // +++++++++++++++++++++++++++ //
+
+    class InduWorker : public Thread
+    {
+      public:
+
+        InduWorker(int id, Topology *top, XMP *master,
+                   vector< vector<PolarSite*> > &vvpoles)
+                    : _id(id), _top(top), _master(master),
+                      _vvpoles(vvpoles)
+                  { _actor = XInteractor(top,_master); };
+
+       ~InduWorker() {};
+
+        void Run(void) { this->InterInduce(); }
+
+        void Setnx12ny12(int nx1, int nx2, int ny1, int ny2) {
+            _nx1 = nx1;
+            _nx2 = nx2;
+            _ny1 = ny1;
+            _ny2 = ny2;
+        }
+
+        void PrintInfo() {
+            printf("%1d : nx1 %2d nx2 %2d ny1 %2d ny2 %2d\n",
+                    _id, _nx1, _nx2, _ny1, _ny2);
+        }
+
+        void InterInduce() {
+
+            //this->_master->_coutMutex.Lock();
+
+            //cout << endl << "=============================== ID " << _id << flush;
+
+
+            for (int i = _nx1;                     i < _nx2; ++i) {
+            for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
+
+
+                //cout << endl << i << " <> " << j << flush;
+
+
+                for (pit1 = _vvpoles[i].begin(); pit1 < _vvpoles[i].end(); ++pit1) {
+                for (pit2 = _vvpoles[j].begin(); pit2 < _vvpoles[j].end(); ++pit2) {
+
+                    _actor.FieldIndu(*(*pit1), *(*pit2));
+                }}
+            }}
+
+            //this->_master->_coutMutex.Unlock();
+        }
+
+      private:
+
+          int                                   _id;
+          Topology                             *_top;
+          XMP                                  *_master;
+          XInteractor                           _actor;
+          vector< vector<PolarSite*> >         &_vvpoles;
+
+          vector< Segment* >                   &_vsegs_cut1;
+          vector< Segment* >                   &_vsegs_cut2;
+          vector< vector<PolarSite*> >         &_vvpoles_cut1;
+          vector< vector<PolarSite*> >         &_vvpoles_cut2;
+
+          int _nx1, _nx2;
+          int _ny1, _ny2;
+
+          vector<PolarSite*> ::iterator         pit1;
+          vector<PolarSite*> ::iterator         pit2;
+
+    };
+
+    // +++++++++++++++++++++++++++ //
     // Job Operator (Thread class) //
     // +++++++++++++++++++++++++++ //
 
@@ -456,11 +531,18 @@ public:
         vector< vector<PolarSite*> > _polarSites;     // Copy of top polar sites
         vector< vector<PolarSite*> > _polarSites_job; // Adapted to job specs
         XInteractor                  _actor;
+
+        vector< InduWorker* >        _indus;
+
     };
 
     XJob               *RequestNextJob(int id, Topology *top);
     void                LockCout() { _coutMutex.Lock(); }
     void                UnlockCout() { _coutMutex.Unlock(); }
+
+
+
+
 
 private:
 
@@ -519,6 +601,7 @@ private:
     // Control options
     bool                            _induce;
     bool                            _induce_intra_pair;
+    int                             _subthreads;
 
     // Interaction parameters
     bool                            _useCutoff;
@@ -640,6 +723,12 @@ void XMP::Initialize(Topology *top, Property *opt) {
         }
         else {
             _cutoff2 = _cutoff;
+        }
+        if ( opt->exists(key+".subthreads") ) {
+            _subthreads = opt->get(key+".subthreads").as< double >();
+        }
+        else {
+            _subthreads = 1;
         }
         if ( opt->exists(key+".exp_damp") ) {
             _aDamp = opt->get(key+".exp_damp").as< double >();
@@ -1819,6 +1908,12 @@ void XMP::JobXMP::InitSlotData(Topology *top) {
             (*pitNew)->Charge(0);
         }
     }
+
+
+//    for (int id = 0; id < this->_master->_subthreads; ++id) {
+//        InduWorker *newIndu = new InduWorker(id, this->_top, this->_master);
+//        _indus.push_back(newIndu);
+//    }
 }
 
 
@@ -2226,6 +2321,167 @@ int XMP::JobXMP::Induce(int state, XJob *job) {
     // Higher-order induction //
     // ++++++++++++++++++++++ //
 
+
+
+
+
+    vector< InduWorker* > indus;
+
+    int T   = this->_master->_subthreads;
+    int N   = _polsPolSphere.size();
+    int nr  = N % T;
+    int nt  = (N-nr) / T;
+    int R   = 0;
+
+    assert (N = T*nt + nr);
+
+    vector< vector<int> > nx1;
+    vector< vector<int> > nx2;
+    vector< vector<int> > ny1;
+    vector< vector<int> > ny2;
+
+    vector< vector<int> > ijs;
+    ijs.resize(T);
+
+    for (int id = 0; id < T; ++id) {
+        InduWorker *newIndu = new InduWorker(id, this->_top, this->_master,
+                                             this->_polsPolSphere);
+        indus.push_back(newIndu);
+
+        nx1.push_back( vector<int> (T+1,0) );
+        nx2.push_back( vector<int> (T+1,0) );
+        ny1.push_back( vector<int> (T+1,0) );
+        ny2.push_back( vector<int> (T+1,0) );
+    }
+
+    for (int id = 0; id < T; ++id) {
+        for (int run = 0; run < T+1; ++run) {
+
+
+            if (run == T) {
+                // Rectangles of height nt, width nr
+                nx1[id][run] = nt * id;
+                nx2[id][run] = nt * (id+1);
+                ny1[id][run] = nt * T;
+                ny2[id][run] = nt * T + nr;
+
+                // Last thread takes care of diagonal nr x nr square
+                if (id == T-1) {
+                    nx2[id][run] = nt * T + nr;
+                }
+            }
+
+            else if (run >= id) {
+
+                nx1[id][run] = nt * id;
+                nx2[id][run] = nt * (id+1);
+                ny1[id][run] = nt * (run);
+                ny2[id][run] = nt * (run+1);
+            }
+
+            else {
+
+                nx1[id][run] = 0;
+                nx2[id][run] = 0;
+                ny1[id][run] = 0;
+                ny2[id][run] = 0;
+            }
+        }
+    }
+
+    printf("\n\nGRID DECOMPOSITION: N %1d T %1d nt %1d nr %1d\n", N, T, nt, nr);
+    for (int id = 0; id < T; ++id) {
+        for (int run = 0; run < T+1; ++run) {
+            printf("---------");
+        }
+        printf("\n");
+        for (int run = 0; run < T+1; ++run) {
+            printf("%3d %3d |", nx1[id][run], ny1[id][run]);
+        }
+        printf("\n");
+        for (int run = 0; run < T+1; ++run) {
+            printf("%3d %3d |", nx2[id][run], ny2[id][run]);
+        }
+        printf("\n");
+        for (int run = 0; run < T+1; ++run) {
+            printf("---------");
+        }        
+        printf("\n");
+    }
+
+
+    //
+    if (T == 1) {
+        R = 1;
+        int j0[] = { 0 };
+        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
+    }
+
+    else if (T == 2) {
+        R = 4;
+        int j0[] = { 0, 1, 2,-1 };
+        int j1[] = { 1,-1,-1, 2 };
+        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
+        ijs[1] = vector<int>(j1, j1 + sizeof(j1) / sizeof(int) );
+    }
+
+    else if (T == 3) {
+        R = 4;
+        int j0[] = { 0, 1, 3, 2 };
+        int j1[] = { 1,-1, 2, 3 };
+        int j2[] = { 2, 3,-1,-1 };
+        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
+        ijs[1] = vector<int>(j1, j1 + sizeof(j1) / sizeof(int) );
+        ijs[2] = vector<int>(j2, j2 + sizeof(j2) / sizeof(int) );
+    }
+
+    else if (T == 4) {
+        R = 7;
+        int j0[] = { 0, 1,-1, 2, 3, 4,-1 };
+        int j1[] = { 1,-1, 2, 3, 4,-1,-1 };
+        int j2[] = { 2, 3,-1,-1,-1,-1, 4 };
+        int j3[] = { 3,-1, 4,-1,-1,-1,-1 };
+        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
+        ijs[1] = vector<int>(j1, j1 + sizeof(j1) / sizeof(int) );
+        ijs[2] = vector<int>(j2, j2 + sizeof(j2) / sizeof(int) );
+        ijs[3] = vector<int>(j3, j3 + sizeof(j3) / sizeof(int) );
+    }
+
+    else if (T == 5) {
+        R = 6;
+        int j0[] = { 0, 1, 4, 2, 3, 5 };
+        int j1[] = { 1,-1, 2, 5, 4, 3 };
+        int j2[] = { 2, 3,-1,-1, 5, 4 };
+        int j3[] = { 3,-1, 5, 4,-1,-1 };
+        int j4[] = { 4, 5,-1,-1,-1,-1 };
+        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
+        ijs[1] = vector<int>(j1, j1 + sizeof(j1) / sizeof(int) );
+        ijs[2] = vector<int>(j2, j2 + sizeof(j2) / sizeof(int) );
+        ijs[3] = vector<int>(j3, j3 + sizeof(j3) / sizeof(int) );
+        ijs[4] = vector<int>(j4, j4 + sizeof(j4) / sizeof(int) );
+    }
+
+    else if (T == 8) {
+
+        
+
+
+    }
+
+
+
+    
+
+
+    
+
+    
+
+
+
+
+
+
     int iter = 0;
 //    boost::progress_timer T;
     for ( ; iter < maxI; ++iter) {
@@ -2258,19 +2514,57 @@ int XMP::JobXMP::Induce(int state, XJob *job) {
 //        cout << " | Inter-Site (" << iter << ")" << flush;
         //boost::progress_display show_progress( _polsPolSphere.size() );
 //        T.restart();
-        for (sit1 = _polsPolSphere.begin();
-             sit1 < _polsPolSphere.end();
-             ++sit1) {
-        for (sit2 = sit1 + 1;
-             sit2 < _polsPolSphere.end();
-             ++sit2) {
 
-            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                _actor.FieldIndu(*(*pit1), *(*pit2));                           // <- Pair-environment => figure sth out
-            }}
-        }}
+//        for (sit1 = _polsPolSphere.begin();
+//             sit1 < _polsPolSphere.end();
+//             ++sit1) {
+//        for (sit2 = sit1 + 1;
+//             sit2 < _polsPolSphere.end();
+//             ++sit2) {
+//
+//            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+//            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+//
+//                _actor.FieldIndu(*(*pit1), *(*pit2));                           // <- Pair-environment => figure sth out
+//            }}
+//        }}
+
+        for (int r = 0; r < R; ++r) {
+
+            //printf("r = %1d / %1d ----------------------------\n", r, R);
+
+            for (int id = 0; id < T; ++id) {
+
+                int slot_x = id;
+                int slot_y = ijs[id][r];
+
+                if (slot_y < 0) {
+                    indus[id]->Setnx12ny12( 0, 0, 0, 0 );
+                }
+                else {
+                    indus[id]->Setnx12ny12( nx1[slot_x][slot_y],
+                                            nx2[slot_x][slot_y],
+                                            ny1[slot_x][slot_y],
+                                            ny2[slot_x][slot_y]);
+                }
+                //indus[id]->PrintInfo();
+            }
+
+            for (int id = 0; id < T; ++id) {
+                indus[id]->Start();
+            }
+
+            for (int id = 0; id < T; ++id) {
+                indus[id]->WaitDone();
+            }
+        }
+
+
+
+
+        // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //        cout << " | dt " << T.elapsed() << flush;
 
         // Induce again
