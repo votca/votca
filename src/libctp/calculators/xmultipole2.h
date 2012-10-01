@@ -417,19 +417,66 @@ public:
     // Induction Op    (Subthread) //
     // +++++++++++++++++++++++++++ //
 
+    class JobXMP;
+
     class InduWorker : public Thread
     {
       public:
 
-        InduWorker(int id, Topology *top, XMP *master,
-                   vector< vector<PolarSite*> > &vvpoles)
-                    : _id(id), _top(top), _master(master),
-                      _vvpoles(vvpoles)
+        InduWorker(int id, Topology *top, XMP *master, JobXMP *forker)
+                    : _id(id), _top(top), _master(master), _forker(forker)
                   { _actor = XInteractor(top,_master); };
 
        ~InduWorker() {};
 
-        void Run(void) { this->InterInduce(); }
+        void Run(void) {
+
+            if (_switch_energy_induce == 1) {
+                while (_forker->NextChunkTodo(_id,1)) {
+                    this->InterInduce();
+                    _forker->OpenChunks(_chunk1, _chunk2);
+                }
+            }
+            else if (_switch_energy_induce == 0) {
+                while (_forker->NextChunkTodo(_id,0)) {
+                    this->InterEnergy();
+                    _forker->OpenChunks(_chunk1, _chunk2);
+                }
+            }
+            else {
+                assert(false);
+            }
+
+
+        }
+
+        void InitSpheres(vector< Segment* > *vsegs_cut1,
+                         vector< Segment* > *vsegs_cut2,
+                         vector< vector<PolarSite*> > *vvpoles_cut1,
+                         vector< vector<PolarSite*> > *vvpoles_cut2) {
+            _vsegs_cut1 = vsegs_cut1;
+            _vsegs_cut2 = vsegs_cut2;
+            _vvpoles_cut1 = vvpoles_cut1;
+            _vvpoles_cut2 = vvpoles_cut2;
+
+            _vvpoles = vvpoles_cut1;
+        }
+
+        void SetSwitch(int energy_induce) {
+            _switch_energy_induce = energy_induce;
+            if (energy_induce == 0) {
+                _actor.ResetEnergy();
+                _E_Pair_Pair = 0.0;
+                _E_Pair_Sph1 = 0.0;
+                _E_Sph1_Sph1 = 0.0;
+            }
+            
+        }
+
+        void Setc1c2(int c1, int c2) {
+            _chunk1 = c1;
+            _chunk2 = c2;
+        }
 
         void Setnx12ny12(int nx1, int nx2, int ny1, int ny2) {
             _nx1 = nx1;
@@ -445,46 +492,88 @@ public:
 
         void InterInduce() {
 
-            //this->_master->_coutMutex.Lock();
-
-            //cout << endl << "=============================== ID " << _id << flush;
-
-
             for (int i = _nx1;                     i < _nx2; ++i) {
             for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
 
-
-                //cout << endl << i << " <> " << j << flush;
-
-
-                for (pit1 = _vvpoles[i].begin(); pit1 < _vvpoles[i].end(); ++pit1) {
-                for (pit2 = _vvpoles[j].begin(); pit2 < _vvpoles[j].end(); ++pit2) {
+                for (pit1 = (*_vvpoles)[i].begin(); pit1 < (*_vvpoles)[i].end(); ++pit1) {
+                for (pit2 = (*_vvpoles)[j].begin(); pit2 < (*_vvpoles)[j].end(); ++pit2) {
 
                     _actor.FieldIndu(*(*pit1), *(*pit2));
                 }}
             }}
-
-            //this->_master->_coutMutex.Unlock();
         }
+
+        double       GetEPairPair() { return _E_Pair_Pair; }
+        double       GetEPairSph1() { return _E_Pair_Sph1; }
+        double       GetESph1Sph1() { return _E_Sph1_Sph1; }
+        XInteractor &GetActor()     { return _actor; }
+
+        void InterEnergy() {
+
+            for (int i = _nx1;                     i < _nx2; ++i) {
+            for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
+
+                // Site-non-site interaction
+                if (this->_forker->_job->getSiteId() == (*_vsegs_cut1)[i]->getId()
+                 || this->_forker->_job->getSiteId() == (*_vsegs_cut1)[j]->getId()) {
+
+                    for (pit1 = (*_vvpoles_cut1)[i].begin();
+                         pit1 < (*_vvpoles_cut1)[i].end();
+                         ++pit1) {
+                    for (pit2 = (*_vvpoles_cut1)[j].begin();
+                         pit2 < (*_vvpoles_cut1)[j].end();
+                         ++pit2) {
+
+                        _E_Pair_Sph1 += _actor.EnergyInter(*(*pit1),*(*pit2));
+                    }}
+                }
+
+                // Non-site-non-site interaction
+                else {
+                    for (pit1 = (*_vvpoles_cut1)[i].begin();
+                         pit1 < (*_vvpoles_cut1)[i].end();
+                         ++pit1) {
+                    for (pit2 = (*_vvpoles_cut1)[j].begin();
+                         pit2 < (*_vvpoles_cut1)[j].end();
+                         ++pit2) {
+
+                        _E_Sph1_Sph1 += _actor.EnergyInter(*(*pit1),*(*pit2));
+                    }}
+                }
+            }}
+        }
+
 
       private:
 
           int                                   _id;
           Topology                             *_top;
           XMP                                  *_master;
+          JobXMP                               *_forker;
           XInteractor                           _actor;
-          vector< vector<PolarSite*> >         &_vvpoles;
+          vector< vector<PolarSite*> >         *_vvpoles;
 
-          vector< Segment* >                   &_vsegs_cut1;
-          vector< Segment* >                   &_vsegs_cut2;
-          vector< vector<PolarSite*> >         &_vvpoles_cut1;
-          vector< vector<PolarSite*> >         &_vvpoles_cut2;
+          vector< Segment* >                   *_vsegs_cut1;
+          vector< Segment* >                   *_vsegs_cut2;
+          vector< vector<PolarSite*> >         *_vvpoles_cut1;
+          vector< vector<PolarSite*> >         *_vvpoles_cut2;
 
           int _nx1, _nx2;
           int _ny1, _ny2;
+          int _chunk1, _chunk2;
 
-          vector<PolarSite*> ::iterator         pit1;
-          vector<PolarSite*> ::iterator         pit2;
+          int _switch_energy_induce;
+
+          vector< Segment* >              ::iterator      seg1;
+          vector< Segment* >              ::iterator      seg2;
+          vector< vector<PolarSite*> >    ::iterator      sit1;
+          vector< vector<PolarSite*> >    ::iterator      sit2;
+          vector< PolarSite* >            ::iterator      pit1;
+          vector< PolarSite* >            ::iterator      pit2;
+
+          double _E_Pair_Pair;
+          double _E_Pair_Sph1;
+          double _E_Sph1_Sph1;
 
     };
 
@@ -513,6 +602,140 @@ public:
         double      Energy(int state, XJob *job);
         double      EnergyStatic(int state, XJob *job);
 
+
+        void        ClearTodoTable() {
+            for (int i = 0; i < _xy_done.size(); ++i) {
+            for (int j = 0; j < _xy_done[i].size(); ++j) {
+                    _xy_done[i][j] = false;
+            }}
+        }
+
+        void        InitChunks() {
+
+            _nx1.clear();
+            _nx2.clear();
+            _ny1.clear();
+            _ny2.clear();
+
+            _xy_done.clear();
+            _chunks_avail.clear();
+
+
+            int T = this->_master->_subthreads;         // Threads
+            int C = T * 2;                              // Chunks
+            int N = _polsPolSphere.size();              // Elements
+            int nr = N % C;                             // Rest size
+            int nt = (N-nr) / C;                        // Chunk size
+
+            assert (N == C*nt + nr);
+
+            for (int id = 0; id < C+1; ++id) {
+                _nx1.push_back( vector<int>(C+1,0) );
+                _nx2.push_back( vector<int>(C+1,0) );
+                _ny1.push_back( vector<int>(C+1,0) );
+                _ny2.push_back( vector<int>(C+1,0) );
+
+                _xy_done.push_back( vector<bool>(C+1,false) );
+                _chunks_avail.push_back(true);
+            }
+
+            for (int col = 0; col < C+1; ++col) {
+                for (int row = 0; row < C+1; ++row) {
+
+                    if (col < row) {
+                        _nx1[row][col] = 0; _ny1[row][col] = 0;
+                        _nx2[row][col] = 0; _ny2[row][col] = 0;
+                    }
+                    else if (col == C && row == C) {
+                        _nx1[row][col] = C*nt;
+                        _nx2[row][col] = C*nt + nr;
+                        _ny1[row][col] = C*nt;
+                        _ny2[row][col] = C*nt + nr;
+                    }
+                    else if (col == C && row < C) {
+                        _nx1[row][col] = row*nt;
+                        _nx2[row][col] = (row+1)*nt;
+                        _ny1[row][col] = C*nt;
+                        _ny2[row][col] = C*nt + nr;
+                    }
+                    else {
+                        _nx1[row][col] = row*nt;
+                        _nx2[row][col] = (row+1)*nt;
+                        _ny1[row][col] = col*nt;
+                        _ny2[row][col] = (col+1)*nt;
+                    }
+                }
+            }
+
+
+            printf("\n\nGRID DECOMPOSITION: "
+                   "T %1d C %1d N %1d nt %1d nr %1d\n", T, C, N, nt, nr);
+            for (int id = 0; id < C+1; ++id) {
+                for (int run = 0; run < C+1; ++run) {
+                    printf("---------");
+                }
+                printf("\n");
+                for (int run = 0; run < C+1; ++run) {
+                    printf("%3d %3d |", _nx1[id][run], _ny1[id][run]);
+                }
+                printf("\n");
+                for (int run = 0; run < C+1; ++run) {
+                    printf("%3d %3d |", _nx2[id][run], _ny2[id][run]);
+                }
+                printf("\n");
+                for (int run = 0; run < C+1; ++run) {
+                    printf("---------");
+                }
+                printf("\n");
+            }
+        }
+
+
+        void        OpenChunks(int c1, int c2) {
+            _chunks_avail[c1] = true;
+            _chunks_avail[c2] = true;            
+        }
+
+        bool        NextChunkTodo(int indu_id, int switch_energy_induce) {
+
+            _alloc_chunk.Lock();
+
+            bool todo = false;
+
+            while (true) {
+
+                for (int i = 0; i < _xy_done.size(); ++i) {
+                for (int j = i; j < _xy_done[i].size(); ++j) {
+                    if (!_xy_done[i][j]) {
+                        todo = true;
+                        if (_chunks_avail[i] && _chunks_avail[j]) {
+
+                            if (switch_energy_induce == 1) {
+                                _chunks_avail[i] = false;
+                                _chunks_avail[j] = false;
+                            }
+
+                            _xy_done[i][j] = true;
+                            _indus[indu_id]->Setc1c2(i,j);
+                            _indus[indu_id]->Setnx12ny12(_nx1[i][j],
+                                                         _nx2[i][j],
+                                                         _ny1[i][j],
+                                                         _ny2[i][j]);
+
+                            _alloc_chunk.Unlock();
+                            return todo;
+                        }
+                        else { ; }
+                    }
+                }}
+
+                if (!todo) { break; }
+
+            }
+
+            _alloc_chunk.Unlock();
+            return todo;
+        }
         
 
 
@@ -532,7 +755,19 @@ public:
         vector< vector<PolarSite*> > _polarSites_job; // Adapted to job specs
         XInteractor                  _actor;
 
+        // Manage induction workers
         vector< InduWorker* >        _indus;
+
+        Mutex                        _alloc_chunk;
+        vector< bool >               _chunks_avail;
+
+        vector< vector<bool> >       _xy_done;
+        
+        vector< vector<int> >        _nx1;
+        vector< vector<int> >        _nx2;
+        vector< vector<int> >        _ny1;
+        vector< vector<int> >        _ny2;
+
 
     };
 
@@ -1908,12 +2143,6 @@ void XMP::JobXMP::InitSlotData(Topology *top) {
             (*pitNew)->Charge(0);
         }
     }
-
-
-//    for (int id = 0; id < this->_master->_subthreads; ++id) {
-//        InduWorker *newIndu = new InduWorker(id, this->_top, this->_master);
-//        _indus.push_back(newIndu);
-//    }
 }
 
 
@@ -2053,6 +2282,20 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
             (*pit)->Charge(0); // <- Not necessarily neutral state
         }}
     }
+
+    // +++++++++++++++++ //
+    // Induction workers //
+    // +++++++++++++++++ //
+
+    for (int id = 0; id < this->_master->_subthreads; ++id) {
+        InduWorker *newIndu = new InduWorker(id,this->_top,this->_master,this);
+        _indus.push_back(newIndu);
+        newIndu->InitSpheres(&_segsPolSphere,&_segsOutSphere,
+                             &_polsPolSphere,&_polsOutSphere);
+        newIndu->SetSwitch(1);
+    }
+
+    this->InitChunks();
 
     // ++++++++++++++++++++++++++ //
     // Compute state energy       //
@@ -2252,6 +2495,10 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
 
 int XMP::JobXMP::Induce(int state, XJob *job) {
 
+    for (int id = 0; id < _master->_subthreads; ++id) {
+        _indus[id]->SetSwitch(1);
+    }
+
     double wSOR = (state == 0) ? _master->_wSOR_N : _master->_wSOR_C;
     double eTOL = this->_master->_epsTol;
     int    maxI = this->_master->_maxIter;
@@ -2267,6 +2514,7 @@ int XMP::JobXMP::Induce(int state, XJob *job) {
     vector< PolarSite* > ::iterator pit2;
     vector< Segment* > ::iterator seg1;
     vector< Segment* > ::iterator seg2;
+    
     // ++++++++++++++++++++++++++++++++++++++++++++++ //
     // Inter-site fields (arising from perm. m'poles) //
     // ++++++++++++++++++++++++++++++++++++++++++++++ //
@@ -2321,167 +2569,7 @@ int XMP::JobXMP::Induce(int state, XJob *job) {
     // Higher-order induction //
     // ++++++++++++++++++++++ //
 
-
-
-
-
-    vector< InduWorker* > indus;
-
-    int T   = this->_master->_subthreads;
-    int N   = _polsPolSphere.size();
-    int nr  = N % T;
-    int nt  = (N-nr) / T;
-    int R   = 0;
-
-    assert (N = T*nt + nr);
-
-    vector< vector<int> > nx1;
-    vector< vector<int> > nx2;
-    vector< vector<int> > ny1;
-    vector< vector<int> > ny2;
-
-    vector< vector<int> > ijs;
-    ijs.resize(T);
-
-    for (int id = 0; id < T; ++id) {
-        InduWorker *newIndu = new InduWorker(id, this->_top, this->_master,
-                                             this->_polsPolSphere);
-        indus.push_back(newIndu);
-
-        nx1.push_back( vector<int> (T+1,0) );
-        nx2.push_back( vector<int> (T+1,0) );
-        ny1.push_back( vector<int> (T+1,0) );
-        ny2.push_back( vector<int> (T+1,0) );
-    }
-
-    for (int id = 0; id < T; ++id) {
-        for (int run = 0; run < T+1; ++run) {
-
-
-            if (run == T) {
-                // Rectangles of height nt, width nr
-                nx1[id][run] = nt * id;
-                nx2[id][run] = nt * (id+1);
-                ny1[id][run] = nt * T;
-                ny2[id][run] = nt * T + nr;
-
-                // Last thread takes care of diagonal nr x nr square
-                if (id == T-1) {
-                    nx2[id][run] = nt * T + nr;
-                }
-            }
-
-            else if (run >= id) {
-
-                nx1[id][run] = nt * id;
-                nx2[id][run] = nt * (id+1);
-                ny1[id][run] = nt * (run);
-                ny2[id][run] = nt * (run+1);
-            }
-
-            else {
-
-                nx1[id][run] = 0;
-                nx2[id][run] = 0;
-                ny1[id][run] = 0;
-                ny2[id][run] = 0;
-            }
-        }
-    }
-
-    printf("\n\nGRID DECOMPOSITION: N %1d T %1d nt %1d nr %1d\n", N, T, nt, nr);
-    for (int id = 0; id < T; ++id) {
-        for (int run = 0; run < T+1; ++run) {
-            printf("---------");
-        }
-        printf("\n");
-        for (int run = 0; run < T+1; ++run) {
-            printf("%3d %3d |", nx1[id][run], ny1[id][run]);
-        }
-        printf("\n");
-        for (int run = 0; run < T+1; ++run) {
-            printf("%3d %3d |", nx2[id][run], ny2[id][run]);
-        }
-        printf("\n");
-        for (int run = 0; run < T+1; ++run) {
-            printf("---------");
-        }        
-        printf("\n");
-    }
-
-
-    //
-    if (T == 1) {
-        R = 1;
-        int j0[] = { 0 };
-        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
-    }
-
-    else if (T == 2) {
-        R = 4;
-        int j0[] = { 0, 1, 2,-1 };
-        int j1[] = { 1,-1,-1, 2 };
-        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
-        ijs[1] = vector<int>(j1, j1 + sizeof(j1) / sizeof(int) );
-    }
-
-    else if (T == 3) {
-        R = 4;
-        int j0[] = { 0, 1, 3, 2 };
-        int j1[] = { 1,-1, 2, 3 };
-        int j2[] = { 2, 3,-1,-1 };
-        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
-        ijs[1] = vector<int>(j1, j1 + sizeof(j1) / sizeof(int) );
-        ijs[2] = vector<int>(j2, j2 + sizeof(j2) / sizeof(int) );
-    }
-
-    else if (T == 4) {
-        R = 7;
-        int j0[] = { 0, 1,-1, 2, 3, 4,-1 };
-        int j1[] = { 1,-1, 2, 3, 4,-1,-1 };
-        int j2[] = { 2, 3,-1,-1,-1,-1, 4 };
-        int j3[] = { 3,-1, 4,-1,-1,-1,-1 };
-        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
-        ijs[1] = vector<int>(j1, j1 + sizeof(j1) / sizeof(int) );
-        ijs[2] = vector<int>(j2, j2 + sizeof(j2) / sizeof(int) );
-        ijs[3] = vector<int>(j3, j3 + sizeof(j3) / sizeof(int) );
-    }
-
-    else if (T == 5) {
-        R = 6;
-        int j0[] = { 0, 1, 4, 2, 3, 5 };
-        int j1[] = { 1,-1, 2, 5, 4, 3 };
-        int j2[] = { 2, 3,-1,-1, 5, 4 };
-        int j3[] = { 3,-1, 5, 4,-1,-1 };
-        int j4[] = { 4, 5,-1,-1,-1,-1 };
-        ijs[0] = vector<int>(j0, j0 + sizeof(j0) / sizeof(int) );
-        ijs[1] = vector<int>(j1, j1 + sizeof(j1) / sizeof(int) );
-        ijs[2] = vector<int>(j2, j2 + sizeof(j2) / sizeof(int) );
-        ijs[3] = vector<int>(j3, j3 + sizeof(j3) / sizeof(int) );
-        ijs[4] = vector<int>(j4, j4 + sizeof(j4) / sizeof(int) );
-    }
-
-    else if (T == 8) {
-
-        
-
-
-    }
-
-
-
     
-
-
-    
-
-    
-
-
-
-
-
-
     int iter = 0;
 //    boost::progress_timer T;
     for ( ; iter < maxI; ++iter) {
@@ -2531,38 +2619,15 @@ int XMP::JobXMP::Induce(int state, XJob *job) {
 //            }}
 //        }}
 
-        for (int r = 0; r < R; ++r) {
-
-            //printf("r = %1d / %1d ----------------------------\n", r, R);
-
-            for (int id = 0; id < T; ++id) {
-
-                int slot_x = id;
-                int slot_y = ijs[id][r];
-
-                if (slot_y < 0) {
-                    indus[id]->Setnx12ny12( 0, 0, 0, 0 );
-                }
-                else {
-                    indus[id]->Setnx12ny12( nx1[slot_x][slot_y],
-                                            nx2[slot_x][slot_y],
-                                            ny1[slot_x][slot_y],
-                                            ny2[slot_x][slot_y]);
-                }
-                //indus[id]->PrintInfo();
-            }
-
-            for (int id = 0; id < T; ++id) {
-                indus[id]->Start();
-            }
-
-            for (int id = 0; id < T; ++id) {
-                indus[id]->WaitDone();
-            }
+        for (int id = 0; id < this->_master->_subthreads; ++id) {
+            _indus[id]->Start();
         }
 
+        for (int id = 0; id < this->_master->_subthreads; ++id) {
+            _indus[id]->WaitDone();
+        }
 
-
+        this->ClearTodoTable();
 
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //        cout << " | dt " << T.elapsed() << flush;
@@ -2761,47 +2826,83 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
 
     else if (job->getType() == "site") {
 
+
+        for (int id = 0; id < _master->_subthreads; ++id) {
+            _indus[id]->SetSwitch(0);
+        }
+
         // +++++++++++++++++ //
         // Inter-site energy //
         // +++++++++++++++++ //
 
-        for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
-             sit1 < _polsPolSphere.end();
-             ++sit1, ++seg1) {
-        for (sit2 = sit1 + 1, seg2 = seg1 + 1;
-             sit2 < _polsPolSphere.end();
-             ++sit2, ++seg2) {
+//        for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
+//             sit1 < _polsPolSphere.end();
+//             ++sit1, ++seg1) {
+//        for (sit2 = sit1 + 1, seg2 = seg1 + 1;
+//             sit2 < _polsPolSphere.end();
+//             ++sit2, ++seg2) {
+//
+//            // Intra-site interaction?
+//            // ... not counted.
+//
+//            // Site-non-site interaction
+//            if ( job->getSiteId() == (*seg1)->getId()
+//              || job->getSiteId() == (*seg2)->getId() ) {
+//
+//                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+//                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+//
+//                    //(*pit1)->PrintInfo(cout);
+//                    //(*pit2)->PrintInfo(cout);
+//
+//                    E_Pair_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
+//                }}
+//            }
+//
+//            // Non-pair-non-pair interaction?
+//            else {
+//                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+//                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+//
+//                    //(*pit1)->PrintInfo(cout);
+//                    //(*pit2)->PrintInfo(cout);
+//
+//                    E_Sph1_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
+//                }}
+//            }
+//
+//        }}
 
-            // Intra-site interaction?
-            // ... not counted.
+        double eu_inter = 0.0;
+        double eu_intra = 0.0;
+        double e_perm   = 0.0;
 
-            // Site-non-site interaction
-            if ( job->getSiteId() == (*seg1)->getId()
-              || job->getSiteId() == (*seg2)->getId() ) {
+        for (int id = 0; id < this->_master->_subthreads; ++id) {
+            _indus[id]->Start();
+        }
 
-                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+        for (int id = 0; id < this->_master->_subthreads; ++id) {
+            _indus[id]->WaitDone();
+        }
 
-                    //(*pit1)->PrintInfo(cout);
-                    //(*pit2)->PrintInfo(cout);
 
-                    E_Pair_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
-                }}
-            }
 
-            // Non-pair-non-pair interaction?
-            else {
-                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+        for (int id = 0; id < this->_master->_subthreads; ++id) {
+            E_Pair_Pair += _indus[id]->GetEPairPair();
+            E_Pair_Sph1 += _indus[id]->GetEPairSph1();
+            E_Sph1_Sph1 += _indus[id]->GetESph1Sph1();
 
-                    //(*pit1)->PrintInfo(cout);
-                    //(*pit2)->PrintInfo(cout);
+            eu_inter += _indus[id]->GetActor().getEU_INTER();
+            eu_intra += _indus[id]->GetActor().getEU_INTRA();
+            e_perm   += _indus[id]->GetActor().getEP();
+        }
 
-                    E_Sph1_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
-                }}
-            }
+        this->ClearTodoTable();
 
-        }}
+
+
+
+
 
         // ++++++++++++++++++ //
         // Outer-Shell energy //
@@ -2834,9 +2935,9 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
         if (_master->_maverick) {
             cout << endl
                  << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
-                 << " eV = (P ~) " << _actor.getEP()    * int2eV
-                 << " + (U ~) " << _actor.getEU_INTER() * int2eV
-                 << " + (U o) " << _actor.getEU_INTRA() * int2eV
+                 << " eV = (P ~) " << e_perm    * int2eV
+                 << " + (U ~) "    << eu_inter  * int2eV
+                 << " + (U o) "    << eu_intra  * int2eV
                  << " , with (O ~) " << E_Pair_Sph2 * int2eV << " eV"
                  << flush;
         }
@@ -2844,7 +2945,7 @@ double XMP::JobXMP::Energy(int state, XJob *job) {
         job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
                        E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
                        E_Pair_Sph2*int2eV, 
-                       _actor.getEP()*int2eV, _actor.getEU_INTER() * int2eV);
+                       e_perm, eu_inter * int2eV);
 
 
         
