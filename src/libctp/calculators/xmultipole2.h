@@ -667,26 +667,29 @@ public:
                 }
             }
 
-
-            printf("\n\nGRID DECOMPOSITION: "
-                   "T %1d C %1d N %1d nt %1d nr %1d\n", T, C, N, nt, nr);
-            for (int id = 0; id < C+1; ++id) {
+            if (T > 1) {
+                this->_master->_coutMutex.Lock();
+                printf("\n\nTHREAD %1d MESH LOAD: "
+                       "NST%1d C%1d N%1d nt%1d nr%1d\n", _id, T, C, N, nt, nr);
+                for (int id = 0; id < C+1; ++id) {
+                    for (int run = 0; run < C+1; ++run) {
+                        printf("--------+");
+                    }
+                    printf("\n");
+                    for (int run = 0; run < C+1; ++run) {
+                        printf("%3d %3d |", _nx1[id][run], _ny1[id][run]);
+                    }
+                    printf("\n");
+                    for (int run = 0; run < C+1; ++run) {
+                        printf("%3d %3d |", _nx2[id][run], _ny2[id][run]);
+                    }
+                    printf("\n");
+                }
                 for (int run = 0; run < C+1; ++run) {
-                    printf("---------");
+                    printf("--------+");
                 }
                 printf("\n");
-                for (int run = 0; run < C+1; ++run) {
-                    printf("%3d %3d |", _nx1[id][run], _ny1[id][run]);
-                }
-                printf("\n");
-                for (int run = 0; run < C+1; ++run) {
-                    printf("%3d %3d |", _nx2[id][run], _ny2[id][run]);
-                }
-                printf("\n");
-                for (int run = 0; run < C+1; ++run) {
-                    printf("---------");
-                }
-                printf("\n");
+                this->_master->_coutMutex.Unlock();
             }
         }
 
@@ -2071,6 +2074,17 @@ bool XMP::EvaluateFrame(Topology *top) {
     // +++++++++++++++++++++++++++++++++ //
     // Create + start threads (Job Ops)  //
     // +++++++++++++++++++++++++++++++++ //
+
+    // Convert threads into subthreads if beneficial
+    if (_XJobs.size() < _nThreads) {
+        _subthreads = (_nThreads - _XJobs.size()) / _XJobs.size() + 1;
+        _nThreads   = _XJobs.size();
+
+        cout << endl << "... ... "
+             << "Converted threads into subthreads to increase efficiency: "
+             << "NT = " << _nThreads << ", NST = " << _subthreads
+             << flush;
+    }
 
     vector<JobXMP*> jobOps;    
 
