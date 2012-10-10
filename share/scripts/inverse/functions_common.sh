@@ -273,7 +273,7 @@ export -f int_check
 num_check() { #checks if 1st argument is a number or calls die with error message (2nd argument)
   local res
   [[ -n $1 || -n $2 ]] || die "num_check: Missing argument"
-  res=$(awk -v x="$1" 'BEGIN{ print x+0==x; }')
+  res=$(awk -v x="$1" 'BEGIN{ print ( x+0==x ) }')
   [[ $res -eq 1 ]] && return 0
   shift
   die "$*"
@@ -520,7 +520,7 @@ csg_calc() { #simple calculator, a + b, ...
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
     "+"|"-"|'*'|"/"|"**")
-       res="$(awk -v x="$1" -v y="$3" "BEGIN{print x $2 y}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print x $2 y}' failed"
+      res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
        true;;
     '>'|'<' )
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
