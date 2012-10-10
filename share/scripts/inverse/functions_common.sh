@@ -366,7 +366,7 @@ to_int() { #convert all given numbers to int using awk's int function
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for i in "$@"; do
     is_num "$i" || die "${FUNCNAME[0]}: $i is not a number"
-    awk -v x="$i" 'BEGIN{ print int(x); }' || die "${FUNCNAME[0]}: awk failed"
+    awk -v x="$i" 'BEGIN{ print ( int(x) ) }' || die "${FUNCNAME[0]}: awk failed"
   done
   return 0
 }
@@ -389,12 +389,11 @@ has_duplicate() { #check if one of the argument is double
 }
 export -f has_duplicate
 
-
 is_num() { #checks if all arguments are numbers
   local i res
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for i in "$@"; do
-    res=$(awk -v x="$i" 'BEGIN{ print x+0==x; }') || die "${FUNCNAME[0]}: awk failed"
+    res=$(awk -v x="$i" 'BEGIN{ print ( x+0==x ) }') || die "${FUNCNAME[0]}: awk failed"
     [[ $res -eq 1 ]] || return 1
     unset res
   done
@@ -681,7 +680,7 @@ csg_calc() { #simple calculator, a + b, ...
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
     "+"|"-"|'*'|"/"|"^")
-       res="$(awk -v x="$1" -v y="$3" "BEGIN{print x $2 y}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print x $2 y}' failed"
+      res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
        true;;
     '>'|'<' )
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
