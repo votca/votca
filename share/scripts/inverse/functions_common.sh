@@ -259,6 +259,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
       ret=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$ret' in $mapping appears twice"
       ret="$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
       ret="$(echo "$ret" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
+      [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
       echo "$ret"
     elif [[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
       echo "thermforce"
