@@ -28,6 +28,8 @@ private:
     double _resolution_sites;
     double _resolution_space;
 
+    vector<int> _states;
+
     double _site_avg;
 
 };
@@ -41,6 +43,15 @@ void EAnalyze::Initialize(Topology *top, Property *opt) {
     _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();
     _resolution_sites = opt->get(key+".resolution_sites").as< double >();
     _resolution_space = opt->get(key+".resolution_space").as< double >();
+
+    if (opt->exists(key+".states")) {
+        _states = opt->get(key+".states").as< vector<int> >();
+    }
+    else {
+        _states.push_back(-1);
+        _states.push_back(+1);
+    }
+
 }
 
 bool EAnalyze::EvaluateFrame(Topology *top) {
@@ -52,52 +63,28 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
 
     QMNBList &nblist = top->NBList();
 
-    int state = -1;
+    for (int i = 0; i < _states.size(); ++i) {
 
-    if (!top->Segments().size()) {
-        cout << endl << "... ... Charge state " << state;
-        cout << endl << "... ... ... No segments in topology. Skip ... "
-             << flush;
-    }
-    else {
-        SiteHist(top, state);
-        SiteCorr(top, state);
-    }
+        int state = _states[i];
+        cout << endl << "... ... Charge state " << state << flush;
 
-    
+        if (!top->Segments().size()) {            
+            cout << endl << "... ... ... No segments in topology. Skip ... "
+                 << flush;
+        }
+        else {
+            SiteHist(top, state);
+            SiteCorr(top, state);
+        }
 
-    if (!nblist.size()) {
-        cout << endl << "... ... Charge state " << state;
-        cout << endl << "... ... ... No pairs in topology. Skip ... "
-             << flush;
+        if (!nblist.size()) {
+            cout << endl << "... ... ... No pairs in topology. Skip ... "
+                 << flush;
+        }
+        else {
+            PairHist(top, state);
+        }
     }
-    else {
-        PairHist(top, state);
-    }
-
-    
-
-    state = +1;
-
-    if (!top->Segments().size()) {
-        cout << endl << "... ... Charge state " << state;
-        cout << endl << "... ... ... No segments in topology. Skip ... "
-             << flush;
-    }
-    else {
-        SiteHist(top, state);
-        SiteCorr(top, state);
-    }
-
-    if (!nblist.size()) {
-        cout << endl << "... ... Charge state " << state;
-        cout << endl << "... ... ... No pairs in topology. Skip ... "
-             << flush;
-    }
-    else {
-        PairHist(top, state);
-    }
-
 }
 
 void EAnalyze::SiteHist(Topology *top, int state) {
@@ -105,8 +92,8 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     vector< double > Es;
     Es.reserve(top->Segments().size());
 
-    double MIN = top->Segments()[0]->getEMpoles(state);
-    double MAX = top->Segments()[0]->getEMpoles(state);
+    double MIN = top->Segments()[0]->getSiteEnergy(state);
+    double MAX = top->Segments()[0]->getSiteEnergy(state);
     double AVG = 0.0;
     double VAR = 0.0;
     double STD = 0.0;
@@ -117,7 +104,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
          sit < top->Segments().end();
          ++sit) {
 
-        double E = (*sit)->getEMpoles(state);
+        double E = (*sit)->getSiteEnergy(state);
 
         MIN = (E < MIN) ? E : MIN;
         MAX = (E > MAX) ? E : MAX;
@@ -172,10 +159,10 @@ void EAnalyze::PairHist(Topology *top, int state) {
     QMNBList &nblist = top->NBList();
     QMNBList::iterator pit;
 
-    double MIN = nblist.front()->Seg1()->getEMpoles(state)
-               - nblist.front()->Seg2()->getEMpoles(state);
-    double MAX = nblist.front()->Seg1()->getEMpoles(state)
-               - nblist.front()->Seg2()->getEMpoles(state);
+    double MIN = nblist.front()->Seg1()->getSiteEnergy(state)
+               - nblist.front()->Seg2()->getSiteEnergy(state);
+    double MAX = nblist.front()->Seg1()->getSiteEnergy(state)
+               - nblist.front()->Seg2()->getSiteEnergy(state);
     double AVG = 0.0;
     double VAR = 0.0;
     double STD = 0.0;
@@ -192,7 +179,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
         Segment *seg1 = (*pit)->Seg1();
         Segment *seg2 = (*pit)->Seg2();
 
-        double dE = seg2->getEMpoles(state) - seg1->getEMpoles(state);
+        double dE = seg2->getSiteEnergy(state) - seg1->getSiteEnergy(state);
 
         MIN = (dE < MIN) ? dE : MIN;
         MIN = (-dE < MIN) ? -dE : MIN;
@@ -264,7 +251,7 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
          sit < top->Segments().end();
          ++sit) {
 
-        double E = (*sit)->getEMpoles(state);
+        double E = (*sit)->getSiteEnergy(state);
         AVG += E / top->Segments().size();
 
         Es.push_back(E);
@@ -283,18 +270,42 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
     double MIN = +1e15;
     double MAX = -1e15;
-    
+
+    vector< Atom* > ::iterator fit1;
+    vector< Atom* > ::iterator fit2;
+
+    cout << endl;
+
     for (sit1 = top->Segments().begin(); sit1 < top->Segments().end(); ++sit1) {
+
+        cout << "\r... ... ..." << " Correlating segment ID = "
+             << (*sit1)->getId() << flush;
+
     for (sit2 = sit1 + 1;                sit2 < top->Segments().end(); ++sit2) {
 
         double R = abs(top->PbShortestConnect((*sit1)->getPos(),
                                               (*sit2)->getPos()));
 
+        for (fit1 = (*sit1)->Atoms().begin();
+             fit1 < (*sit1)->Atoms().end();
+             ++fit1) {
+        for (fit2 = (*sit2)->Atoms().begin();
+             fit2 < (*sit2)->Atoms().end();
+             ++fit2) {
+
+            double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),
+                                                     (*fit2)->getPos()));
+
+            if (R_FF < R) { R = R_FF; }
+
+        }}
+
+
         MIN = (R < MIN) ? R : MIN;
         MAX = (R > MAX) ? R : MAX;
 
-        double C = ((*sit1)->getEMpoles(state) - AVG)
-                 * ((*sit2)->getEMpoles(state) - AVG);
+        double C = ((*sit1)->getSiteEnergy(state) - AVG)
+                 * ((*sit2)->getSiteEnergy(state) - AVG);
 
         Rs.push_back(R);
         Cs.push_back(C);
@@ -314,14 +325,27 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
     // Calculate spatial correlation
     vector< double > histC;
+    vector< double > histC_error;
     histC.resize(BIN);
+    histC_error.resize(BIN);
     for (int bin = 0; bin < BIN; ++bin) {
 
         double corr = 0.0;
+        double dcorr2 = 0.0;
         for (int i = 0; i < histCs[bin].size(); ++i) {
-            corr += histCs[bin][i] / VAR / histCs[bin].size();
+            corr += histCs[bin][i] / VAR;
+            //corr2 += (histCs[bin][i] / VAR)*(histCs[bin][i] / VAR);
         }
+        corr  = corr / histCs[bin].size();
+        //corr2 = corr2 / histCs[bin].size();
+
+        for (int i = 0; i < histCs[bin].size(); ++i) {
+            dcorr2 += (histCs[bin][i]/VAR - corr)*(histCs[bin][i]/VAR - corr);
+        }
+        dcorr2 = dcorr2 / histCs[bin].size();
+        
         histC[bin] = corr;
+        histC_error[bin] = sqrt(dcorr2);
     }
 
     FILE *out;
@@ -335,7 +359,7 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
     for (int bin = 0; bin < BIN; ++bin) {
         double R = MIN + bin*_resolution_space;
-        fprintf(out, "%4.7f %4.7f \n", R, histC[bin]);
+        fprintf(out, "%4.7f %4.7f %4.7f\n", R, histC[bin], histC_error[bin]);
     }
     fclose(out);
 }

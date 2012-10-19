@@ -3241,9 +3241,9 @@ inline double XMP::XInteractor::PotentialPerm(vec r,
     
 
 
-    rbx = - pol._locX * e12;
-    rby = - pol._locY * e12;
-    rbz = - pol._locZ * e12;
+    rbx = - e12.getX();
+    rby = - e12.getX();
+    rbz = - e12.getX();
 
     double phi00 = 0.0;
     

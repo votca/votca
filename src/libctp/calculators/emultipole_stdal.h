@@ -294,9 +294,10 @@ public:
 
         SiteOpMultipole3(int id, Topology *top,
                      EMultipole_StdAl *master)
-                   : _id(id), _top(top), _seg(NULL),
-                     _master(master)     
-                   { _actor = Interactor3(top,_master); };
+                   : _id(id), _top(top), _seg(NULL)     
+                   { _actor = Interactor3(top,_master);
+                     if (master != NULL) { _master(master); }
+                   };
 
        ~SiteOpMultipole3();
 

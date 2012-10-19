@@ -292,10 +292,32 @@ void PolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
 
         if (_rank > 0) { tot_dpl += vec(Q1x,Q1y,Q1z); }
 
+        matrix::eigensystem_t EIGEN;
+
         if (_rank == 2) {
+            tot_dpl += vec(Q1x,Q1y,Q1z);
             cout << endl
                  << "WARNING: Quadrupoles are not split onto point charges."
                  << endl;
+
+            int state = 0;
+
+            double Qzz =      _Qs[state+1][4];
+            double Qxx = -0.5*_Qs[state+1][4] + 0.5*sqrt(3)*_Qs[state+1][7];
+            double Qyy = -0.5*_Qs[state+1][4] - 0.5*sqrt(3)*_Qs[state+1][7];
+
+            double Qxy =  0.5*sqrt(3)*_Qs[state+1][8];
+            double Qxz =  0.5*sqrt(3)*_Qs[state+1][5];
+            double Qyz =  0.5*sqrt(3)*_Qs[state+1][6];
+
+            matrix Q = matrix(vec(Qxx,Qxy,Qxz),
+                              vec(Qxy,Qyy,Qyz),
+                              vec(Qxz,Qyz,Qzz));
+
+            
+            Q.SolveEigensystem(EIGEN);
+
+
         }
 
         double a        = spacing;
@@ -317,13 +339,49 @@ void PolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
                 qA);
 
         if (format == "xyz") {
-            fprintf(out, " A ");
+            fprintf(out, " B ");
         }
         fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
                 B.getX()*int2ext,
                 B.getY()*int2ext,
                 B.getZ()*int2ext,
                 qB);
+
+        if (format == "xyz" && _rank == 2) {
+            vec D1 = pos + 0.5 * a * EIGEN.eigenvecs[0];
+            vec D2 = pos - 0.5 * a * EIGEN.eigenvecs[0];
+            vec E1 = pos + 0.5 * a * EIGEN.eigenvecs[1];
+            vec E2 = pos - 0.5 * a * EIGEN.eigenvecs[1];
+            vec F1 = pos + 0.5 * a * EIGEN.eigenvecs[2];
+            vec F2 = pos - 0.5 * a * EIGEN.eigenvecs[2];
+            fprintf(out, " D %+4.9f %+4.9f %+4.9f \n",
+                    D1.getX()*int2ext,
+                    D1.getY()*int2ext,
+                    D1.getZ()*int2ext);
+            fprintf(out, " D %+4.9f %+4.9f %+4.9f \n",
+                    D2.getX()*int2ext,
+                    D2.getY()*int2ext,
+                    D2.getZ()*int2ext);
+            fprintf(out, " E %+4.9f %+4.9f %+4.9f \n",
+                    E1.getX()*int2ext,
+                    E1.getY()*int2ext,
+                    E1.getZ()*int2ext);
+            fprintf(out, " E %+4.9f %+4.9f %+4.9f \n",
+                    E2.getX()*int2ext,
+                    E2.getY()*int2ext,
+                    E2.getZ()*int2ext);
+            fprintf(out, " F %+4.9f %+4.9f %+4.9f \n",
+                    F1.getX()*int2ext,
+                    F1.getY()*int2ext,
+                    F1.getZ()*int2ext);
+            fprintf(out, " F %+4.9f %+4.9f %+4.9f \n",
+                    F2.getX()*int2ext,
+                    F2.getY()*int2ext,
+                    F2.getZ()*int2ext);
+        }
+
+
+
     }
 
 }
