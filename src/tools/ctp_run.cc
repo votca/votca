@@ -16,7 +16,7 @@ public:
 
     string  ProgramName() { return "ctp_run"; }    
 
-    void    HelpText(ostream &out) { out <<"Runs CTP calculators"<< endl; }
+    void    HelpText(ostream &out) { out <<"Runs charge transport calculators"<< endl; }
     void    HelpText() { };
     void    PrintDescription(const char *name, const bool length);
 
