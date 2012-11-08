@@ -190,6 +190,7 @@ protected:
             double _fieldZ;
             double _outputtime;
             string _trajectoryfile;
+            string _carriertype;
             string _filename; // HACK
             
 };
@@ -269,6 +270,30 @@ void KMCMultiple::Initialize(const char *filename, Property *options )
         else {
             _trajectoryfile = "trajectory.csv";
         }
+        if (_trajectoryfile == "") {
+            _trajectoryfile = "trajectory.csv";
+        }
+        if (options->exists("options.kmcmultiple.carriertype")) {
+	    _carriertype = options->get("options.kmcmultiple.carriertype").as<string>();
+	}
+        else {
+	    cout << "WARNING in kmcmultiple: You did not specify a charge carrier type. It will be set to electrons." << endl;
+            _carriertype = "e";
+        }
+        if(_carriertype == "electron" || _carriertype == "electrons" || _carriertype == "e"){
+            _carriertype = "e";
+            cout << "carrier type: electrons" << endl;
+            
+        }
+        else if(_carriertype == "hole" || _carriertype == "holes" || _carriertype == "h"){
+            _carriertype = "h";
+            cout << "carrier type: holes" << endl;
+            
+        }
+        else {
+            _carriertype = "e";
+            cout << "Carrier type specification invalid. Setting type to electrons." << endl;
+        }
 
         _filename = filename;
 
@@ -315,7 +340,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     
     // Load pairs and rates
     int numberofpairs = 0;
-    stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', rate12e AS 'rate', drX, drY, drZ FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', rate21e AS 'rate', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ' FROM pairs ORDER BY segment1;");
+    stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', rate12"+_carriertype+" AS 'rate', drX, drY, drZ FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', rate21"+_carriertype+" AS 'rate', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ' FROM pairs ORDER BY segment1;");
     while (stmt->Step() != SQLITE_DONE)
     {
         int seg1 = stmt->Column<int>(0);
@@ -736,7 +761,7 @@ void KMCMultiple::WriteOcc(vector<double> occP, vector<Node*> node)
     cout << "Opening for writing " << _filename << endl;
 	db.Open(_filename);
 	db.Exec("BEGIN;");
-	votca::tools::Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
+	votca::tools::Statement *stmt = db.Prepare("UPDATE segments SET occP"+_carriertype+" = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
 	for(unsigned int i=0; i<node.size(); ++i)
         {
 	    stmt->Reset();
