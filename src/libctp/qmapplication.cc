@@ -40,7 +40,7 @@ void QMApplication::Initialize(void) {
     AddProgramOptions() ("options,o", propt::value<string>(),
                          "  calculator options");
     AddProgramOptions() ("file,f", propt::value<string>(),
-                         "  state file");
+                         "  sqlight state file, *.sql");
     AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
                          "  start from this frame");
     AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(-1),

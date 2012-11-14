@@ -4,4 +4,26 @@
 
 	<sectionlabel>eanalyze</sectionlabel>
 
+        <item>
+                <name>min</name>
+                <description>Minimum of the energy interval, eV</description>
+        </item>
+
+        <item>
+                <name>max</name>
+                <default></default>
+                <description>Maximum of the energy interval, eV</description>
+        </item>
+
+        <item>
+                <name>nbins</name>
+                <description>Number of bins</description>
+        </item>
+
+        <item>
+                <name>file</name>
+                <description>Output file</description>
+        </item>
+
+
 </eanalyze>
