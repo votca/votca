@@ -33,15 +33,14 @@ echo -e "label(prog:$prog)"
 #-add cg.interaction in links
 echo -e "$helpmsg" | sed \
    -e '1,/^please submit/d' \
-   -e "/^\($prog\|votca_tools\|gromacs\)/d" \
+   -e "/^\($prog\|votca_tools\|gromacs\|votca_csg\)/d" \
    -e 's/^[[:space:]]*//' \
    -e 's/[[:space:]]*$//' \
    -e '/^-[^ ]/s/\( \|)\) /\1`` /' \
    -e 's/ ``/``/' \
    -e '/^-[^ ].*``/s/^/- ``/' \
-   -e 's/^\(Usage:[[:space:]]*\)\(.*\)$/\1``\2``/' \
    -e '/^\* /s/\( \{2\}\|$\)/`` /' \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
-   -e 's/^\(Examples\|Usage\):/\n&/' \
-   -e 's/^\(Allowed\|Trajectory\|Specific\) options:/\n&/'
+   -e '/^\(Examples\|Usage\):/d' \
+   -e "/^\(Allowed\|Calculators\|Specific\)/d"
 
