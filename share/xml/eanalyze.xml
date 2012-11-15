@@ -4,11 +4,10 @@
 
 	<sectionlabel>eanalyze</sectionlabel>
 
-	<item>
-		<name>min</name>
-		<description>Minimum of the energy interval, eV</description>
-	</item>
-
+        <item>
+                <name>min</name>
+                <description>Minimum of the energy interval, eV</description>
+        </item>
 	<item>
 		<name>max</name>
 		<default></default>
@@ -25,5 +24,4 @@
 		<description>Output file</description>
 	</item>
 
-</ecorrelation>
 </eanalyze>
