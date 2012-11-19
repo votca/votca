@@ -1,7 +1,11 @@
 <iimport>
   
-	<description>Undocumented</description>
+	<description>Reads in electronic coupling from file.xml, made by ctp_dipro, and writes data to state.sql</description>
 
 	<sectionlabel>iimport</sectionlabel>
-
+	
+	<item>
+		<name>TI_TAG</name>
+		<description>Name/tag of transfer integral</description>
+	</item>
 </iimport>
