@@ -1,6 +1,6 @@
 <eimport>
   
-	<description>Import energy?</description>
+	<description>Import site energy for segments. Takes output file from emultipole and writes site energy to the state file state.sql</description>
 
 	<sectionlabel>eimport</sectionlabel>
 

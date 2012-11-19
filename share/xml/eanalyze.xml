@@ -5,23 +5,18 @@
 	<sectionlabel>eanalyze</sectionlabel>
 
         <item>
-                <name>min</name>
-                <description>Minimum of the energy interval, eV</description>
+                <name>RESOLUTION_SITES</name>
+                <description>Bin size for site energy histogram</description>
         </item>
 	<item>
-		<name>max</name>
-		<default></default>
-		<description>Maximum of the energy interval, eV</description>
+		<name>RESOLUTION_PAIRS</name>
+		<description>Bin size for pair energy histogram</description>
 	</item>
 
 	<item>
-		<name>nbins</name>
-		<description>Number of bins</description>
+		<name>RESOLUTION_SPACE</name>
+		<description>Bin size for site energy correlation</description>
 	</item>
 
-	<item>
-		<name>file</name>
-		<description>Output file</description>
-	</item>
 
 </eanalyze>
