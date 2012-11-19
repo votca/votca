@@ -1,7 +1,37 @@
 <density>
   
-	<description>Undocumented</description>
+	<description>Density and energy profiles</description>
 
 	<sectionlabel>density</sectionlabel>
+	
+	<item>
+		<name>axis</name>
+		<description>...</description>
+	</item>
+	<item>
+		<name>resolution</name>
+		<description>...</description>
+	</item>
+	<item>
+		<name>output</name>
+		<description>Output file for dencity profile, density_profile.dat</description>
+	</item>
+	<item>
+		<name>output_e</name>
+		<description>Output file for energy profile, energy_profile.dat</description>
+	</item>
+	
+	<item>
+		<name>density_type</name>
+		<description>Concerns density profile: 'segments' or 'atoms'</description>
+	</item>
+	<item>
+		<name>max</name>
+		<description>For manual binning: max distance along axis</description>
+	</item>
+	<item>
+		<name>min</name>
+		<description>For manual binning: min distance along axis</description>
+	</item>
 
 </density>
