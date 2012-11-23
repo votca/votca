@@ -6,21 +6,22 @@
 	
 	<item>
 		<name>axis</name>
-		<description>...</description>
+		<description>Axis along which to calculate density and energy profile. Example: 0.0 0.0 1.0</description>
 	</item>
 	<item>
 		<name>resolution</name>
-		<description>...</description>
+		<description>Spatial resolution of profile</description>
 	</item>
 	<item>
 		<name>output</name>
-		<description>Output file for dencity profile, density_profile.dat</description>
+		<description>Output file for dencity profile Density_Profile.dat</description>
 	</item>
 	<item>
 		<name>output_e</name>
-		<description>Output file for energy profile, energy_profile.dat</description>
+		<description>Output file for energy profile Energy_Profile.dat</description>
 	</item>
 	
+
 	<item>
 		<name>density_type</name>
 		<description>Concerns density profile: 'segments' or 'atoms'</description>

@@ -2,7 +2,7 @@
   
 	<description>Reads in site and reorganosation energy and writes it to state.sql</description>
 	<item>
-		<name>SYSTEM_XML</name>
+		<name>SYSTEMXML</name>
 		<description>Input file.xml</description>
 	</item>
 
