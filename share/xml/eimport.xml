@@ -4,4 +4,9 @@
 
 	<sectionlabel>eimport</sectionlabel>
 
+	<item>
+		<name>energies</name>
+		<description>Read in site energies from file (formatted as output in emultipole.control.output)</description>
+	</item>
+
 </eimport>

@@ -5,16 +5,16 @@
 	<sectionlabel>eanalyze</sectionlabel>
 
         <item>
-                <name>RESOLUTION_SITES</name>
+                <name>resolution_sites</name>
                 <description>Bin size for site energy histogram</description>
         </item>
 	<item>
-		<name>RESOLUTION_PAIRS</name>
+		<name>resolution_pairs</name>
 		<description>Bin size for pair energy histogram</description>
 	</item>
 
 	<item>
-		<name>RESOLUTION_SPACE</name>
+		<name>resolution_space</name>
 		<description>Bin size for site energy correlation</description>
 	</item>
 
