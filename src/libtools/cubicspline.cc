@@ -32,6 +32,9 @@ void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
     if(x.size() != y.size())
         throw std::invalid_argument("error in CubicSpline::Interpolate : sizes of vectors x and y do not match");
     
+    if(x.size()<3)
+        throw std::invalid_argument("error in CubicSpline::Interpolate : vectors x and y have to contain at least 3 points");
+
     const int N = x.size();
     
     // adjust the grid

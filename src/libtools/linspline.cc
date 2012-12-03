@@ -31,6 +31,9 @@ void LinSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
     if(x.size() != y.size())
         throw std::invalid_argument("error in LinSpline::Interpolate : sizes of vectors x and y do not match");
 
+    if(x.size()<2)
+        throw std::invalid_argument("error in LinSpline::Interpolate : vectors x and y have to contain at least 2 points");
+
     const int N = x.size();
 
     // adjust the grid
@@ -98,5 +101,4 @@ void LinSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
         b(i) = -a(i)*_r(i) + sol(i);
     }
 }
-
 }}
