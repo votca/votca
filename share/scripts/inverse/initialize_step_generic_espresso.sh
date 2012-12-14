@@ -38,4 +38,4 @@ else
 fi
 
 #convert potential in format for sim_prog
-for_all "non-bonded bonded" do_external convert_potential espresso
+for_all "non-bonded bonded" do_external convert_potential espresso '$(csg_get_interaction_property name).pot.cur $(csg_get_interaction_property inverse.espresso.table)'

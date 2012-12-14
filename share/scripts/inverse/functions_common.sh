@@ -259,6 +259,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
       ret=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$ret' in $mapping appears twice"
       ret="$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
       ret="$(echo "$ret" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
+      [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
       echo "$ret"
     elif [[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
       echo "thermforce"
@@ -366,7 +367,7 @@ to_int() { #convert all given numbers to int using awk's int function
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for i in "$@"; do
     is_num "$i" || die "${FUNCNAME[0]}: $i is not a number"
-    awk -v x="$i" 'BEGIN{ print int(x); }' || die "${FUNCNAME[0]}: awk failed"
+    awk -v x="$i" 'BEGIN{ print ( int(x) ) }' || die "${FUNCNAME[0]}: awk failed"
   done
   return 0
 }
@@ -389,12 +390,11 @@ has_duplicate() { #check if one of the argument is double
 }
 export -f has_duplicate
 
-
 is_num() { #checks if all arguments are numbers
   local i res
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for i in "$@"; do
-    res=$(awk -v x="$i" 'BEGIN{ print x+0==x; }') || die "${FUNCNAME[0]}: awk failed"
+    res=$(awk -v x="$i" 'BEGIN{ print ( x+0==x ) }') || die "${FUNCNAME[0]}: awk failed"
     [[ $res -eq 1 ]] || return 1
     unset res
   done
@@ -681,7 +681,7 @@ csg_calc() { #simple calculator, a + b, ...
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
     "+"|"-"|'*'|"/"|"^")
-       res="$(awk -v x="$1" -v y="$3" "BEGIN{print x $2 y}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print x $2 y}' failed"
+      res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
        true;;
     '>'|'<' )
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
