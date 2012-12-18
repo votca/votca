@@ -2867,7 +2867,7 @@ int EMultipole::SiteOpMultipole::Induce(int state) {
     // +++++++++++++++++++ //
 
 //    cout << " | Induce " << endl;
-    if (state == 0) { // OVERRIDE
+    if (state == 0 || maxI <= 0) { // OVERRIDE
         for (sit1 = _polsPolSphere.begin();
              sit1 < _polsPolSphere.end();
              ++sit1) {
@@ -2878,7 +2878,7 @@ int EMultipole::SiteOpMultipole::Induce(int state) {
         }
     }
 
-
+    if (maxI < 0) { maxI = - maxI; }
 
     // ++++++++++++++++++++++ //
     // Higher-order induction //

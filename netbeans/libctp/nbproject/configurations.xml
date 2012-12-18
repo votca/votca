@@ -12,11 +12,13 @@
       <itemPath>../../src/libctp/calculators/emultipole_stdal.h</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
+      <itemPath>../../src/libctp/calculators/iimport.h</itemPath>
       <itemPath>../../src/libctp/calculators/izindo.cc</itemPath>
       <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
       <itemPath>../../src/libctp/calculators/molpol.h</itemPath>
       <itemPath>../../src/libctp/calculators/neighborlist.cc</itemPath>
       <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
+      <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libctp/calculators/rates.cc</itemPath>
       <itemPath>../../src/libctp/calculators/rates.h</itemPath>
       <itemPath>../../src/libctp/calculators/sandbox.cc</itemPath>

@@ -42,6 +42,7 @@
 #include "calculators/velocity.h"
 #include "calculators/molpol.h"
 #include "calculators/zmultipole.h"
+#include "calculators/qmultipole.h"
 
 
 
@@ -71,6 +72,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<Velocity>        ("velocity");
         Calculators().Register<MolPol>          ("molpol");
         Calculators().Register<ZMultipole>      ("zmultipole");
+        Calculators().Register<QMultipole>      ("qmultipole");
 }
 
 }}

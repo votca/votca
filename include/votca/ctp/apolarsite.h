@@ -26,6 +26,7 @@ class APolarSite
     friend class BasicInteractor;
     friend class MolPol;
     friend class ZMultipole;
+    friend class QMultipole;
 
 
 public:

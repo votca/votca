@@ -160,7 +160,7 @@ void APolarSite::Charge(int state) {
                          ((eigenpxx > eigenpzz) ? eigenpxx : eigenpzz)
                        : ((eigenpyy > eigenpzz) ? eigenpyy : eigenpzz);
 
-        eigendamp = 10.;
+        // eigendamp = 10.;
 
         //cout << endl << "eigensystem ...";
         //cout << endl << pax << " --- " << eigenpxx;
