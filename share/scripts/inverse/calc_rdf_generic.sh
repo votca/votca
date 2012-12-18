@@ -18,7 +18,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents statistical analysis for the iterative Boltzmann inversion 
+This script implemtents statistical analysis for the iterative Boltzmann inversion
 using generic csg tools (csg_stat)
 
 Usage: ${0##*/}
@@ -32,7 +32,7 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 if [[ $sim_prog = "gromacs" ]]; then
   topol=$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.topol)
   [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist" 
+  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
   ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
   [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"

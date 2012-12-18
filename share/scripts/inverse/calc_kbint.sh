@@ -20,7 +20,7 @@ clean=no
 show_help () {
   cat <<EOF
 ${0##*/}, version %version%
-This script calculates the Kirkwood-Buff integral out of the rdf 
+This script calculates the Kirkwood-Buff integral out of the rdf
 
 Usage: ${0##*/} [options] infile outfile
 Allowed options:

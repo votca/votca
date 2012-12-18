@@ -71,8 +71,8 @@ critical csg_resample --type cubic --in "$bigger" --out "$smooth" --grid "$sp_mi
 prefactor="$(csg_get_interaction_property inverse.tf.prefactor)"
 forcefile_pref="${name}.tf_with_prefactor"
 cg_prefactor="$(csg_get_interaction_property --allow-empty inverse.tf.cg_prefactor)"
-if [[ -z $cg_prefactor ]]; then 
-  echo "Using fixed prefactor $prefactor" 
+if [[ -z $cg_prefactor ]]; then
+  echo "Using fixed prefactor $prefactor"
   do_external table linearop "$forcefile" "${forcefile_pref}" "${prefactor}" 0.0
 else
   echo "Using linear interpolation of prefactors between $prefactor and $cg_prefactor"

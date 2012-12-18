@@ -29,10 +29,10 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 [[ $sim_prog = "gromacs" ]] || die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 
 topol=$(csg_get_property cg.inverse.gromacs.ref.topol)
-[[ $topol = /* ]] || topol=$(get_main_dir)/$topol 
+[[ $topol = /* ]] || topol=$(get_main_dir)/$topol
 [[ -f $topol ]] ||  die "${0##*/}: Reference toplogy '$topol' not found"
 traj="$(csg_get_property cg.inverse.gromacs.ref.traj)"
-[[ $traj = /* ]] || traj=$(get_main_dir)/$traj 
+[[ $traj = /* ]] || traj=$(get_main_dir)/$traj
 [[ -f $traj ]] ||  die "${0##*/}: Reference trajectory '$traj' not found"
 mapping="$(csg_get_property cg.inverse.gromacs.ref.mapping)"
 # no mapping check as this could be 1.xml;2.xml
