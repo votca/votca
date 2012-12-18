@@ -68,7 +68,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
       ((step_nr--))
     done
     # compute the average if more than one tables found
-    if [[ ${#tables[@]}>1 ]]; then  
+    if [[ ${#tables[@]} gt 1 ]]; then  
       do_external table average --output ${name}.${dist}.avg "${tables[@]}"
     else
       # copy the single table to *.avg
