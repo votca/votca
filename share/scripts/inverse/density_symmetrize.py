@@ -79,7 +79,7 @@ for line in open(infile,"r").readlines():
                             print "index", len(firstx)-len(secondx)
 
 if len(secondx) < 4:
-  exit("symmetrize_density.py: symmetrize density has less than points, that usually means the range of the input density ("+infile+") does not overlap with AdResS center ("+str(adressc)+"). Try increase your target density.")
+  exit("symmetrize_density.py: symmetrize density has less than 4 points, that usually means the range of the input density ("+infile+") does not overlap with AdResS center ("+str(adressc)+") or it don't have enough intermidiate points (>8). Try increase and interpolate your target density.")
 
 f = open(outfile,"w")
 i=0
