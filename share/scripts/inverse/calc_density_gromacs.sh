@@ -68,7 +68,7 @@ if [[ ${with_errors} = "yes" ]]; then
 else
   msg "Calculating density for $name"
   critical csg_density --trj "$traj" --top "$topol" --out "$output" --begin "$equi_time" --first-frame "$first_frame" "$@"
-  critical sed -i -e '/nan/d' -e '/inf/d' "$output"
 fi
+critical sed -i -e '/nan/d' -e '/inf/d' "$output"
 mark_done "${name}_density_analysis${suffix}"
 
