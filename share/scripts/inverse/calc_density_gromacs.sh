@@ -63,6 +63,9 @@ if [[ ${with_errors} = "yes" ]]; then
   msg "Calculating density for $name with errors"
   block_length=$(csg_get_property cg.inverse.gromacs.density.block_length)
   critical csg_density --trj "$traj" --top "$topol" --out "${output}.block" --begin "$equi_time" --first-frame "$first_frame" --block-length $block_length "$@"
+  for i in ${output}.block_*; do
+    [[ -f $i ]] || die "${0##*/}: Could not find ${output}.block_* after running csg_density, that usually means the blocksize (cg.inverse.gromacs.density.block_length) is too big."
+  done
   #mind the --clean option to avoid ${name}.dist.block_* to fail on the second run
   do_external table average --clean --output "${output}" ${output}.block_*
 else

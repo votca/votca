@@ -74,6 +74,9 @@ fi
 
 if [[ ${with_errors} = "yes" ]]; then
   if ! is_done "${name}_rdf_average"; then
+    for i in ${name}_*.dist.block; do
+      [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.gromacs.rdf.block_length) is too big."
+    done
     msg "Calculating average rdfs and its errors for interaction $name"
     do_external table average --output ${name}.dist.new ${name}_*.dist.block
     mark_done "${name}_rdf_average"
