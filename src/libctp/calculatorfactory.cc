@@ -43,6 +43,7 @@
 #include "calculators/molpol.h"
 #include "calculators/zmultipole.h"
 #include "calculators/qmultipole.h"
+#include "calculators/xqmultipole.h"
 
 
 
@@ -73,6 +74,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<MolPol>          ("molpol");
         Calculators().Register<ZMultipole>      ("zmultipole");
         Calculators().Register<QMultipole>      ("qmultipole");
+        Calculators().Register<XQMP>            ("xqmultipole");
 }
 
 }}

@@ -340,6 +340,165 @@ void APolarSite::PrintTensorPDB(FILE *out, int state) {
 }
 
 
+void APolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
+
+    double int2ext = 1.0;
+
+    vec pos = _pos + shift;
+
+    if (format == "gaussian") {
+        int2ext = 10.;
+    }
+    else {
+        int2ext = 10.;
+    }
+
+    fprintf(out, "%-2s %+4.9f %+4.9f %+4.9f \n",
+            _name.c_str(),
+            pos.getX()*10, pos.getY()*10, pos.getZ()*10);
+}
+
+
+void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
+                             string format, double spacing) {
+
+    vec pos = _pos + shift;
+
+    string unit = "";
+
+    if (format == "xyz") {
+        unit = "angstrom";
+    }
+    else if (format == "gaussian") {
+        unit = "angstrom";
+    }
+
+    // Take care of unit conversion
+    double int2ext;
+
+    if (unit == "nanometer") {
+        int2ext = 1.;
+    }
+    else if (unit == "angstrom") {
+        int2ext = 10.;
+    }
+    else if (unit == "bohr") {
+        assert(false);
+    }
+
+    if (format == "xyz") {
+        fprintf(out, "%2s ", _name.c_str());
+    }
+
+    // Print charge line
+    fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+            pos.getX()*int2ext,
+            pos.getY()*int2ext,
+            pos.getZ()*int2ext,
+            Q00);
+    
+
+    // Split dipole moment onto charges (if desired)
+    if (split_dpl) {
+
+        vec tot_dpl = vec(U1x,U1y,U1z);
+
+        if (_rank > 0) { tot_dpl += vec(Q1x,Q1y,Q1z); }
+
+        matrix::eigensystem_t EIGEN;
+
+        if (_rank == 2) {
+            tot_dpl += vec(Q1x,Q1y,Q1z);
+            cout << endl
+                 << "WARNING: Quadrupoles are not split onto point charges."
+                 << endl;
+
+            int state = 0;
+
+            double Qzz =      _Qs[state+1][4];
+            double Qxx = -0.5*_Qs[state+1][4] + 0.5*sqrt(3)*_Qs[state+1][7];
+            double Qyy = -0.5*_Qs[state+1][4] - 0.5*sqrt(3)*_Qs[state+1][7];
+
+            double Qxy =  0.5*sqrt(3)*_Qs[state+1][8];
+            double Qxz =  0.5*sqrt(3)*_Qs[state+1][5];
+            double Qyz =  0.5*sqrt(3)*_Qs[state+1][6];
+
+            matrix Q = matrix(vec(Qxx,Qxy,Qxz),
+                              vec(Qxy,Qyy,Qyz),
+                              vec(Qxz,Qyz,Qzz));
+
+            
+            Q.SolveEigensystem(EIGEN);
+
+
+        }
+
+        double a        = spacing;
+        double mag_d    = abs(tot_dpl);
+        vec    dir_d_0  = tot_dpl.normalize();
+        vec    dir_d    = dir_d_0.normalize();
+        vec    A        = pos + 0.5 * a * dir_d;
+        vec    B        = pos - 0.5 * a * dir_d;
+        double qA       = mag_d / a;
+        double qB       = - qA;
+
+        if (format == "xyz") {
+            fprintf(out, " A ");
+        }
+        fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+                A.getX()*int2ext,
+                A.getY()*int2ext,
+                A.getZ()*int2ext,
+                qA);
+
+        if (format == "xyz") {
+            fprintf(out, " B ");
+        }
+        fprintf(out, "%+4.9f %+4.9f %+4.9f %+4.7f \n",
+                B.getX()*int2ext,
+                B.getY()*int2ext,
+                B.getZ()*int2ext,
+                qB);
+
+        if (format == "xyz" && _rank == 2) {
+            vec D1 = pos + 0.5 * a * EIGEN.eigenvecs[0];
+            vec D2 = pos - 0.5 * a * EIGEN.eigenvecs[0];
+            vec E1 = pos + 0.5 * a * EIGEN.eigenvecs[1];
+            vec E2 = pos - 0.5 * a * EIGEN.eigenvecs[1];
+            vec F1 = pos + 0.5 * a * EIGEN.eigenvecs[2];
+            vec F2 = pos - 0.5 * a * EIGEN.eigenvecs[2];
+            fprintf(out, " D %+4.9f %+4.9f %+4.9f \n",
+                    D1.getX()*int2ext,
+                    D1.getY()*int2ext,
+                    D1.getZ()*int2ext);
+            fprintf(out, " D %+4.9f %+4.9f %+4.9f \n",
+                    D2.getX()*int2ext,
+                    D2.getY()*int2ext,
+                    D2.getZ()*int2ext);
+            fprintf(out, " E %+4.9f %+4.9f %+4.9f \n",
+                    E1.getX()*int2ext,
+                    E1.getY()*int2ext,
+                    E1.getZ()*int2ext);
+            fprintf(out, " E %+4.9f %+4.9f %+4.9f \n",
+                    E2.getX()*int2ext,
+                    E2.getY()*int2ext,
+                    E2.getZ()*int2ext);
+            fprintf(out, " F %+4.9f %+4.9f %+4.9f \n",
+                    F1.getX()*int2ext,
+                    F1.getY()*int2ext,
+                    F1.getZ()*int2ext);
+            fprintf(out, " F %+4.9f %+4.9f %+4.9f \n",
+                    F2.getX()*int2ext,
+                    F2.getY()*int2ext,
+                    F2.getZ()*int2ext);
+        }
+
+
+
+    }
+
+}
+
 
 vector<APolarSite*> APS_FROM_MPS(string filename, int state) {
 
