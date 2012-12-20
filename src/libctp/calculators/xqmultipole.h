@@ -344,9 +344,9 @@ public:
        void     setIter(int iter)           { _iter = iter; }
        void     setSizePol(int size)        { _sizePol = size; }
        void     setSizeShell(int size)      { _sizeShell = size; }
-       void     setEnergy(double E_T, double E_i_i, 
+       void     setEnergy(double E_T,   double E_i_i, 
                           double E_i_I, double E_I_I, double E_i_O,
-                          double E_P, double E_U) {
+                          double E_P,   double E_U) {
            _E_Tot = E_T;
            _E_Pair_Pair = E_i_i;
            _E_Pair_Sph1 = E_i_I;
@@ -355,6 +355,25 @@ public:
 
            _E_PERM      = E_P;
            _E_INDU      = E_U;
+       }
+       
+       void setEnergy_PPUU(double epp, double epu, double euu) {
+           
+           _EPP = epp;
+           _EPU = epu;
+           _EUU = euu;           
+       }
+        
+       void setEenergy_f_m(double e_f_c_non_c, double e_f_non_c_non_c,
+                           double e_m_c,       double e_m_non_c,
+                           double e_f_c_out,   double e_m_c_out) {
+           
+           _EF_PAIR_SPH1   = e_f_c_non_c;
+           _EF_SPH1_SPH1   = e_f_non_c_non_c;
+           _EM_PAIR        = e_m_c;
+           _EM_SPH1        = e_m_non_c;
+           _EF_PAIR_SPH2   = e_f_c_out;
+           _EM_PAIR_SPH2   = e_m_c_out;
        }
 
        void     WriteInfoLine(FILE *out) {
@@ -373,11 +392,19 @@ public:
            fprintf(out, "%5d %-20s  E_TOT %+4.7f E_SITE_SITE %+4.7f"
                         " E_SITE_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f E_SITE_CUT2 "
                         "%+4.7f E_PERM %+4.7f E_INDU %+4.7f ITER %3d"
-                        " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f \n",
+                        " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f ",
                         _id, _tag.c_str(), _E_Tot, _E_Pair_Pair, _E_Pair_Sph1,
                         _E_Sph1_Sph1, _E_Pair_Sph2, _E_PERM, _E_INDU, _iter,
                         _sizePol, _sizeShell, _center.getX(), _center.getY(),
                         _center.getZ() );
+           fprintf(out, "EPP %+4.7f EPU %+4.7f EUU %+4.7f ",
+                        _EPP, _EPU, _EUU);
+           fprintf(out, "EF_SITE_CUT1 %+4.7f EF_CUT1_CUT1 %+4.7f "
+                        "EF_SITE_CUT2 %+4.7f "
+                        "EM_SITE %+4.7f EM_CUT1 %+4.7f "
+                        "EM_SITE_CUT2 %+4.7f \n",
+                        _EF_PAIR_SPH1, _EF_SPH1_SPH1, _EF_PAIR_SPH2,
+                        _EM_PAIR,      _EM_SPH1,      _EM_PAIR_SPH2);
          }
 
        }
@@ -419,6 +446,17 @@ public:
        double       _E_Pair_Sph1;
        double       _E_Sph1_Sph1;
        double       _E_Pair_Sph2;
+       
+       double       _EPP;
+       double       _EPU;
+       double       _EUU;
+       
+       double       _EF_PAIR_SPH1;
+       double       _EF_SPH1_SPH1;
+       double       _EF_PAIR_SPH2;
+       double       _EM_PAIR;
+       double       _EM_SPH1;
+       double       _EM_PAIR_SPH2;
 
        double       _E_PERM;
        double       _E_INDU;
@@ -2861,6 +2899,8 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
         }
         
         E_Pair_Sph2 += e_f_c_out + e_m_c_out;
+        e_perm      += _actor.getEP();
+        eu_inter    += _actor.getEU_INTER();
         
         epp += _actor.getEPP();
         epu += _actor.getEPU();
@@ -2873,10 +2913,10 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
         if (_master->_maverick) {
             cout << endl << "... ... ... ... "
                  << "E(" << state << ") = " << E_Tot * int2eV << " eV "
-                 << " = (Site, Site) " << E_Pair_Pair * int2eV
-                 << " + (Site, Sph1) " << E_Pair_Sph1 * int2eV
-                 << " + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-                 << " + (Site, Sph2) " << E_Pair_Sph2 * int2eV
+                 << endl << "                     = (Site, Site) " << E_Pair_Pair * int2eV
+                 << endl << "                     + (Site, Sph1) " << E_Pair_Sph1 * int2eV
+                 << endl << "                     + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
+                 << endl << "                     + (Site, Sph2) " << E_Pair_Sph2 * int2eV
                  << flush;
         }
 
@@ -2885,10 +2925,10 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
         if (_master->_maverick) {
             cout << endl
                  << "... ... ... ... E(" << state << ") = " << E_PPUU * int2eV
-                 << " eV = (PP) " << epp  * int2eV
-                 << " + (PU) "    << epu  * int2eV
-                 << " + (UU) "    << euu  * int2eV
-                 << " , with (O ~) " << E_Pair_Sph2 * int2eV << " eV"
+                 << " eV " 
+                 << endl << "                     = (PP) "    << epp  * int2eV
+                 << endl << "                     + (PU) "    << epu  * int2eV
+                 << endl << "                     + (UU) "    << euu  * int2eV
                  << flush;
         }
         
@@ -2900,19 +2940,26 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
         if (_master->_maverick) {
             cout << endl
                  << "... ... ... ... E(" << state << ") = " << E_f_m * int2eV
-                 << " eV = (f,C-nC) " << e_f_c_non_c            * int2eV
-                 << " + (f,nC-nC) "   << e_f_non_c_non_c        * int2eV
-                 << " + (m,C) "       << e_m_c                  * int2eV
-                 << " + (m,nC) "      << e_m_non_c              * int2eV
-                 << " + (f,C-O)"      << e_f_c_out              * int2eV
-                 << " + (m,C-O)"      << e_m_c_out              * int2eV
+                 << " eV " 
+                 << endl << "                     = (f,C-nC)  " << e_f_c_non_c      * int2eV
+                 << endl << "                     + (f,nC-nC) " << e_f_non_c_non_c  * int2eV
+                 << endl << "                     + (m,C)     " << e_m_c            * int2eV
+                 << endl << "                     + (m,nC)    " << e_m_non_c        * int2eV
+                 << endl << "                     + (f,C-O)   " << e_f_c_out        * int2eV
+                 << endl << "                     + (m,C-O)   " << e_m_c_out        * int2eV
                  << flush;
         }
 
         job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
                        E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
                        E_Pair_Sph2*int2eV, 
-                       e_perm, eu_inter * int2eV);
+                       e_perm*int2eV, eu_inter * int2eV);
+        
+        job->setEnergy_PPUU(epp*int2eV, epu*int2eV, euu*int2eV);
+        
+        job->setEenergy_f_m(e_f_c_non_c*int2eV, e_f_non_c_non_c*int2eV,
+                            e_m_c*int2eV, e_m_non_c*int2eV,
+                            e_f_c_out*int2eV, e_m_c_out*int2eV);
 
 
         
@@ -3833,6 +3880,8 @@ inline double XQMP::XInteractor::EnergyIntra(APolarSite &pol1,
 inline double XQMP::XInteractor::EnergyInter(APolarSite &pol1,
                                                    APolarSite &pol2) {
 
+    assert(false);
+    
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
     R    = 1/abs(e12);
@@ -4864,8 +4913,7 @@ inline double XQMP::XInteractor::E_f(APolarSite &pol1,
     }
         //cout << "E up to Q <-> Q " << E << endl;      
         
-    EP += epp;
-    EU_INTER += 0.5 * epu;
+    
         
     // Induced <> induced interaction
     // ... Note that this contribution is canceled by the induction work.        
@@ -4892,10 +4940,13 @@ inline double XQMP::XInteractor::E_f(APolarSite &pol1,
         euu += pol1.U1z * T1z_1z() * pol2.U1z;
     }
     
-
+    EP += epp;
+    EU_INTER += 0.5 * epu;
+    
     EPP += epp;
     EPU += epu;
     EUU += euu;
+    
     return epp + epu + euu;
 }
 
@@ -4956,7 +5007,7 @@ inline double XQMP::XInteractor::E_m(APolarSite &pol1,
         czy = 0;
         czz = 1;
 
-    double epp = 0.0; // <- Interaction perm. <> perm.
+        
     double epu = 0.0; // <- Interaction perm. <> induced
     double euu = 0.0; // <- Interaction induced <> induced>
 
@@ -5059,13 +5110,12 @@ inline double XQMP::XInteractor::E_m(APolarSite &pol1,
     }
     
     euu *= -0.5;
-    epp *= -0.5;
     epu *= -0.5;
 
-    EPP += epp;
     EPU += epu;
     EUU += euu;
-    return epp + epu + euu;
+    
+    return epu + euu;
 }
 
 
