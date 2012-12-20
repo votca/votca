@@ -6,13 +6,37 @@
    <segments>
    <segment>
       <name>DCV</name> <!-- name of the conjugated segment within the molecule --> 
+	 <qmcoords>QC_FILES/DCV2T.xyz</qmcoords>		
+		        		    
+		    
+		    <!-- IZINDO INPUT -->		    	   
+            <basisset>INDO</basisset>
+            <orbitals>QC_FILES/DCV2T.fort.7</orbitals>     
+            <torbital_h>50</torbital_h>
+                   
+		    
+		    <!-- EMULTIPOLE INPUT -->		           
+		    <multipoles_n>MP_FILES/DCV2T.punch</multipoles_n>
+		    <multipoles_h>MP_FILES/DCV2T_h.punch</multipoles_h>	           	    
+		    <map2md>0</map2md>
+		    
+		    
+			<!-- EINTERNAL INPUT -->
+            <U_cC_nN_h>0.0</U_cC_nN_h> <!-- Site energy      -->     		
+            <U_nC_nN_h>0.1</U_nC_nN_h> <!-- Reorg. discharge -->     		
+            <U_cN_cC_h>0.1</U_cN_cC_h> <!-- Reorg. charge    -->
+            
+                   		    
+		    <!-- MD QM MP Mapping -->
       <fragments>
       <fragment> 
          <name>NI1</name> <!-- name of the rigid fragment within the segment --> 
          <!-- list of atoms in the fragment resnum:resname:atomname -->
          <mdatoms>1:NIT:N1 1:NIT:CN1 1:NIT:N2  1:NIT:CN2 1:NIT:CC1 1:NIT:C1  1:NIT:HN1</mdatoms>
          <!-- corresponding ground state geometry atomnumber:atomtype -->      
-         <qmatoms>   22:N     21:C      18:N      17:C      16:C      15:C      28:H  </qmatoms>
+         <qmatoms>   20:N     19:C      14:N      13:C      12:C      11:C      23:H  </qmatoms>
+         <!-- corresponding group state geometry multipoles --> 
+         <mpoles>   20:N     19:C      14:N      13:C      12:C      11:C      23:H  </mpoles>
          <!-- weights to determine the fragment center (here CoM is used) --> 
          <weights>     14       12        14        12        12        12         1  </weights>	
          <localframe> 22 21 18 </localframe> <!-- three atoms defining the local frame -->   
@@ -21,7 +45,8 @@
       <fragment>				
          <name>TH1</name>			    
          <mdatoms>2:THI:S1 2:THI:CA1 2:THI:CA2 2:THI:CB1 2:THI:CB2 2:THI:HC1 2:THI:HC2</mdatoms>
-         <qmatoms>    3:S      2:C       4:C       1:C       5:C       27:H     26:H  </qmatoms>
+         <qmatoms>    7:S      8:C       6:C       9:C       10:C       24:H     25:H  </qmatoms>
+         <mpoles>    7:S      8:C       6:C       9:C       10:C       24:H     25:H  </mpoles>
          <weights>     32       12        12        12        12         1         1  </weights>
          <localframe> 3 2 4 </localframe>	    
       </fragment>
@@ -29,7 +54,7 @@
       <fragment>
          <name>TH2</name>
          <mdatoms>3:THI:S1 3:THI:CA1 3:THI:CA2 3:THI:CB1 3:THI:CB2 3:THI:HC1 3:THI:HC2</mdatoms>
-         <qmatoms>    7:S      6:C       8:C      10:C       9:C      25:H      24:H  </qmatoms>
+         <qmatoms>    3:S      4:C       2:C       5:C       1:C      26:H      27:H  </qmatoms>
          <weights>     32       12        12        12        12         1         1  </weights>
          <localframe> 7 6 8 </localframe>
       </fragment>
@@ -37,7 +62,8 @@
       <fragment>
          <name>NI2</name>
          <mdatoms>4:NIT:N1 4:NIT:CN1 4:NIT:N2  4:NIT:CN2 4:NIT:CC1 4:NIT:C1  4:NIT:HN1</mdatoms>
-         <qmatoms>   20:N     19:C      14:N      13:C      12:C      11:H      23:H  </qmatoms>
+         <qmatoms>   22:N     21:C      18:N      17:C      16:C      15:C      28:H  </qmatoms>
+         <mpoles>   22:N     21:C      18:N      17:C      16:C      15:C      28:H  </mpoles>
          <weights>     14       12        14       12         12        12         1  </weights>
          <localframe> 20 19 14 </localframe>
       </fragment>

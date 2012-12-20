@@ -50,9 +50,9 @@ for calculator in ${calculators}; do
   calculator_sectionlabel="$(csg_property --file $xmlfile --path $calculator --print sectionlabel --short)"
 
   echo "\subsection{$calculator}" >> $texfile
-  echo "\label{calc:$calculator}" >> $texfile
+  echo "\label{calc:$calculator}" | sed  -e 's/\_/\\_/g' >> $texfile
   echo "%" >> $texfile
-  echo $calculator_description"." >> $texfile
+  echo $calculator_description"." | sed -e 's/\_/\\_/g' >> $texfile
 
   items="$(csg_property --file $xmlfile --path $calculator.item --print name --short)" || die "parsing xml failed"
 
@@ -67,6 +67,9 @@ for calculator in ${calculators}; do
       cut_heads "$name"
       head="$(echo $name | sed -e 's/'${item}'//')"
       description="$(csg_property --file $xmlfile --path $calculator.item --filter "name=$name" --print description --short)" || die "${0##*/}: Could not get desc for $name"
+      item="$(echo $item | sed -e 's/\_/\\_/g')"
+      description="$(echo $description | sed -e 's/\_/\\_/g')"
+      #echo ITEM $item
       #echo "      "$head $name $item $description
       echo " \hspace{${hspace}pt} \hypertarget{$calculator.${trunc}${name}}{${item}}  & ${description} \\\\" >> $texfile
     done
