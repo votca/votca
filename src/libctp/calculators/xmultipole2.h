@@ -823,6 +823,8 @@ private:
     map<string, vector<string> >    _alloc_frag_mpoleName;
     map<string, vector<int> >       _alloc_frag_trihedron;
     map<string, vector<double> >    _alloc_frag_weights;
+    //map<string, vector<int> >       _alloc_frag_trihedron_mps;
+    //map<string, vector<double> >    _alloc_frag_weights_mps;
 
     string                          _pdb_check;
     bool                            _write_chk;
@@ -1088,11 +1090,35 @@ void XMP::Collect_XML(string xml_file, Topology *top) {
 
                 string mpoles = (*fragit)->get("mpoles").as<string> ();
 
-                vector<int> trihedron = (*fragit)->get("localframe")
-                                                .as< vector<int> >();
-
-                vector<double> weights = (*fragit)->get("weights")
-                                                .as< vector<double> >();
+                // Local frame for polar sites
+                vector<int> trihedron_mps;
+                if ((*fragit)->exists("localframe_mps")) {
+                   cout << endl
+                         << "... ... ... ... " << segName << ": "
+                         << "Defining distinct local frame for polar sites."
+                         << flush;
+                   trihedron_mps = (*fragit)->get("localframe_mps")
+                                         .as< vector<int> >();
+                }
+                else {
+                   trihedron_mps = (*fragit)->get("localframe")
+                                         .as< vector<int> >();
+                }
+                
+                // Mapping weights for polar sites
+                vector<double> weights_mps;
+                if ((*fragit)->exists("weights_mps")) {
+                    cout << endl
+                         << "... ... ... ... " << segName << ": "
+                         << "Using distinct weights for polar sites."
+                         << flush;
+                   weights_mps = (*fragit)->get("weights_mps")
+                                       .as< vector<double> >();
+                }
+                else {
+                   weights_mps = (*fragit)->get("weights")
+                                       .as< vector<double> >();
+                }
 
                 Tokenizer tokPoles(mpoles, " \t\n");
                 vector<string> mpoleInfo;
@@ -1118,16 +1144,20 @@ void XMP::Collect_XML(string xml_file, Topology *top) {
 
                 alloc_frag_mpoleIdx[mapKeyName] = mpoleIdcs;
                 alloc_frag_mpoleName[mapKeyName] = mpoleNames;
-                alloc_frag_trihedron[mapKeyName] = trihedron;
-                alloc_frag_weights[mapKeyName] = weights;
+                //alloc_frag_trihedron_mps[mapKeyName] = trihedron_mps;
+                //alloc_frag_weights_mps[mapKeyName] = weights_mps;
+                alloc_frag_trihedron[mapKeyName] = trihedron_mps;
+                alloc_frag_weights[mapKeyName] = weights_mps;
             }
         }
     }
 
-    _alloc_frag_mpoleIdx    = alloc_frag_mpoleIdx;
-    _alloc_frag_mpoleName   = alloc_frag_mpoleName;
-    _alloc_frag_trihedron   = alloc_frag_trihedron;
-    _alloc_frag_weights     = alloc_frag_weights;
+    _alloc_frag_mpoleIdx        = alloc_frag_mpoleIdx;
+    _alloc_frag_mpoleName       = alloc_frag_mpoleName;
+    //_alloc_frag_trihedron_mps   = alloc_frag_trihedron_mps;
+    //_alloc_frag_weights_mps     = alloc_frag_weights_mps;
+    _alloc_frag_trihedron       = alloc_frag_trihedron;
+    _alloc_frag_weights         = alloc_frag_weights;
 }
 
 
@@ -1304,13 +1334,17 @@ void XMP::Collect_EMP(string emp_file, Topology *top) {
 
 
 void XMP::Create_MPOLS(Topology *top) {
-
+    
+    // Warning: Direct mapping of k > 0 multipoles to MD coordinates
     bool print_huge_map2md_warning = false;
-
+    
+    // Log warning: Symmetry = 1 and k > 0 multipoles.
+    map<string,bool> warned_symm_idkey;  
+    
     // +++++++++++++++++++++++++++++++++++++ //
     // Equip TOP with distributed multipoles //
-    // +++++++++++++++++++++++++++++++++++++ //
-
+    // +++++++++++++++++++++++++++++++++++++ //      
+    
     vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin();
          sit < top->Segments().end();
@@ -1350,11 +1384,11 @@ void XMP::Create_MPOLS(Topology *top) {
             Fragment *frag = *fit;
 
             // Retrieve polar-site data for this fragment
-            string idkey                = frag->getName() + seg->getName()
-                                        + seg->getMolecule()->getName();
-            vector<int> polesInFrag     = _alloc_frag_mpoleIdx.at(idkey);
-            vector<string> namesInFrag  = _alloc_frag_mpoleName.at(idkey);
-            vector<double> weightsInFrag= _alloc_frag_weights.at(idkey);
+            string idkey                     = frag->getName() + seg->getName()
+                                             + seg->getMolecule()->getName();
+            vector<int> polesInFrag          = _alloc_frag_mpoleIdx.at(idkey);
+            vector<string> namesInFrag       = _alloc_frag_mpoleName.at(idkey);
+            vector<double> weightsInFrag     = _alloc_frag_weights.at(idkey);
 
             if (map2md && polesInFrag.size() != frag->Atoms().size()) {
                 cout << endl
@@ -1373,30 +1407,37 @@ void XMP::Create_MPOLS(Topology *top) {
             if (!map2md) {
 
                 vector<PolarSite*> trihedron_pol;
-                vector<Atom*>      trihedron_atm;
-
+                vector<Atom*>      trihedron_atm;                
+                
                 vector<int> trihedron_ints  = _alloc_frag_trihedron.at(idkey);
                 vector<int> ::iterator iit;
                 for (iit = trihedron_ints.begin();
                      iit < trihedron_ints.end();
                      ++iit) {
                     trihedron_pol.push_back(pols_n[(*iit)-1]);
-
-                    // Find fragment-internal position = id of leg
-                    for (int i = 0; i < polesInFrag.size(); ++i) {
-                        if (polesInFrag[i] == (*iit)) {
-                            trihedron_atm.push_back(frag->Atoms()[i]);                            
+                }
+                
+                trihedron_ints  = frag->getTrihedron();
+                for (iit = trihedron_ints.begin();
+                     iit < trihedron_ints.end();
+                     ++iit) {
+                    vector< Atom* > ::iterator ait;
+                    for (ait = frag->Atoms().begin();
+                         ait < frag->Atoms().end();
+                         ++ait) {
+                        if ((*ait)->getQMId() == (*iit)) {
+                            trihedron_atm.push_back(*ait);
                         }
                     }
                 }
 
 
                 int symmetry = trihedron_pol.size();
-                assert (trihedron_pol.size() == trihedron_atm.size() );                
+                assert (trihedron_pol.size() <= trihedron_atm.size() );                
 
                 vec xMD, yMD, zMD;
                 vec xQM, yQM, zQM;
-
+                
                 if (symmetry == 3) {
                     vec r1MD = trihedron_atm[0]->getPos();
                     vec r2MD = trihedron_atm[1]->getPos();
@@ -1424,7 +1465,7 @@ void XMP::Create_MPOLS(Topology *top) {
                     zQM = zQM.normalize();
                 }
 
-                else if (symmetry = 2) {
+                else if (symmetry == 2) {
 
                     vec r1MD = trihedron_atm[0]->getPos();
                     vec r2MD = trihedron_atm[1]->getPos();
@@ -1481,13 +1522,16 @@ void XMP::Create_MPOLS(Topology *top) {
                     zQM.normalize();
                 }
 
-                else if (symmetry = 1) {
-
-                    cout << endl
+                else if (symmetry == 1) {
+                    
+                    if (!warned_symm_idkey[idkey]) {
+                        cout << endl << "... ... ... "
                          << "WARNING: Symmetry = 1 for fragment "
                          << frag->getName() << ": This will generate artifacts "
                          << "when mapping higher-rank multipoles (dipoles, ..)."
-                         << endl;
+                         << flush;
+                        warned_symm_idkey[idkey] = true;
+                    }
 
                     xMD = vec(1,0,0);
                     yMD = vec(0,1,0);
@@ -1639,18 +1683,24 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
                  iit < trihedron_ints.end();
                  ++iit) {
                 trihedron_pol.push_back(pols_n[(*iit)-1]);
+            }
 
-                // Find fragment-internal position = id of leg
-                for (int i = 0; i < polesInFrag.size(); ++i) {
-                    if (polesInFrag[i] == (*iit)) {
-                        trihedron_atm.push_back(frag->Atoms()[i]);
+            trihedron_ints  = frag->getTrihedron();
+            for (iit = trihedron_ints.begin();
+                 iit < trihedron_ints.end();
+                 ++iit) {
+                vector< Atom* > ::iterator ait;
+                for (ait = frag->Atoms().begin();
+                     ait < frag->Atoms().end();
+                     ++ait) {
+                    if ((*ait)->getQMId() == (*iit)) {
+                        trihedron_atm.push_back(*ait);
                     }
                 }
             }
 
-
             int symmetry = trihedron_pol.size();
-            assert (trihedron_pol.size() == trihedron_atm.size() );
+            assert (trihedron_pol.size() <= trihedron_atm.size() );
 
             vec xMD, yMD, zMD;
             vec xQM, yQM, zQM;
@@ -1682,7 +1732,7 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
                 zQM = zQM.normalize();
             }
 
-            else if (symmetry = 2) {
+            else if (symmetry == 2) {
 
                 vec r1MD = trihedron_atm[0]->getPos();
                 vec r2MD = trihedron_atm[1]->getPos();
@@ -1739,13 +1789,13 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
                 zQM.normalize();
             }
 
-            else if (symmetry = 1) {
+            else if (symmetry == 1) {
 
-                cout << endl
-                     << "WARNING: Symmetry = 1 for fragment "
-                     << frag->getName() << ": This will generate artifacts "
-                     << "when mapping higher-rank multipoles (dipoles, ..)."
-                     << endl;
+                //cout << endl
+                //     << "WARNING: Symmetry = 1 for fragment "
+                //     << frag->getName() << ": This will generate artifacts "
+                //     << "when mapping higher-rank multipoles (dipoles, ..)."
+                //     << endl;
 
                 xMD = vec(1,0,0);
                 yMD = vec(0,1,0);
@@ -2587,7 +2637,7 @@ int XMP::JobXMP::Induce(int state, XJob *job) {
     int iter = 0;
 //    boost::progress_timer T;
     for ( ; iter < maxI; ++iter) {
-
+        
         // Reset fields FUx, FUy, FUz
 //        cout << "\r... ... ... Reset (" << iter << ")" << flush;
         for (sit1 = _polsPolSphere.begin();
