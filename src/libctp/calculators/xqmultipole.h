@@ -383,11 +383,21 @@ public:
            fprintf(out, "%5d %-20s  E_TOT %+4.7f E_PAIR_PAIR %+4.7f"
                         " E_PAIR_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f E_PAIR_CUT2 "
                         "%+4.7f E_PERM %+4.7f E_INDU %+4.7f ITER %3d"
-                        " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f \n",
+                        " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f ",
                         _id, _tag.c_str(), _E_Tot, _E_Pair_Pair, _E_Pair_Sph1,
                         _E_Sph1_Sph1, _E_Pair_Sph2, _E_PERM, _E_INDU, _iter,
                         _sizePol, _sizeShell, _center.getX(), _center.getY(),
                         _center.getZ() );
+           fprintf(out, "EPP %+4.7f EPU %+4.7f EUU %+4.7f ",
+                        _EPP, _EPU, _EUU);
+           fprintf(out, "EF_PAIR_CUT1 %+4.7f EF_CUT1_CUT1 %+4.7f "
+                        "EF_PAIR_CUT2 %+4.7f EF_PAIR_PAIR %+4.7f "
+                        "EM_PAIR %+4.7f EM_CUT1 %+4.7f "
+                        "EM_PAIR_CUT2 %+4.7f \n",
+                        _EF_PAIR_SPH1, _EF_SPH1_SPH1, 
+                        _EF_PAIR_SPH2, _EF_PAIR_PAIR,
+                        _EM_PAIR,      _EM_SPH1,      
+                        _EM_PAIR_SPH2);
          }
          else if (_type == "site") {
            fprintf(out, "%5d %-20s  E_TOT %+4.7f E_SITE_SITE %+4.7f"
@@ -527,6 +537,7 @@ public:
                 
                 _E_f_C_non_C      = 0.0;
                 _E_f_non_C_non_C  = 0.0;
+                _E_f_C_C          = 0.0;
                 _E_m_C            = 0.0;
                 _E_m_non_C        = 0.0;
             }            
@@ -662,7 +673,8 @@ public:
                             _E_Pair_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
 
                             _E_f_C_non_C += e_f_12_21;
-                            if (this->_forker->_job->getSiteId() == (*_vsegs_cut1)[i]->getId()) {
+                            if (  this->_forker->_job->getSeg1Id() == (*_vsegs_cut1)[i]->getId()
+                               || this->_forker->_job->getSeg2Id() == (*_vsegs_cut1)[i]->getId() ) {
                                 _E_m_C += e_m_12;
                                 _E_m_non_C += e_m_21;
                             }
