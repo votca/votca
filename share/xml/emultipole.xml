@@ -1,8 +1,8 @@
 <emultipole>
 	
 	<description>Polarization contribution based on the Thole model</description>	
-
-        <sectionlabel>emultipole</sectionlabel>
+	 
+	<sectionlabel>emultipol</sectionlabel>
 	
 	<item>
 		<name>multipoles</name>

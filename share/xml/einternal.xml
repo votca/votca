@@ -1,6 +1,10 @@
 <einternal>
   
-	<description>Undocumented</description>
+	<description>Reads in site and reorganosation energy and writes it to state.sql</description>
+	<item>
+		<name>energiesXML</name>
+		<description>Input file.xml includedvacuum site, reorg. (charge, discharge) energies</description>
+	</item>
 
 	<sectionlabel>einternal</sectionlabel>
 
