@@ -72,6 +72,11 @@ void Fragment::AddPolarSite(PolarSite *pole) {
     pole->setFragment(this);
 }
 
+void Fragment::AddAPolarSite(APolarSite *pole) {
+    _apolarSites.push_back(pole);
+    pole->setFragment(this);
+}
+
 
 void Fragment::Rotate(matrix spin, vec refPos) {
     vector <Atom*> ::iterator ait;
@@ -176,7 +181,7 @@ void Fragment::Rigidify(bool Auto) {
         }
     }
 
-    int _symmetry = trihedron.size();
+    _symmetry = trihedron.size();
 
     // +++++++++++++++++++++++ //
     // Construct trihedra axes //
@@ -214,7 +219,7 @@ void Fragment::Rigidify(bool Auto) {
 
     }
 
-    else if (_symmetry = 2) {
+    else if (_symmetry == 2) {
 
         vec r1MD = trihedron[0]->getPos();
         vec r2MD = trihedron[1]->getPos();
@@ -272,7 +277,7 @@ void Fragment::Rigidify(bool Auto) {
 
     }
 
-    else if (_symmetry = 1) {
+    else if (_symmetry == 1) {
 
         xMD = vec(1,0,0);
         yMD = vec(0,1,0);

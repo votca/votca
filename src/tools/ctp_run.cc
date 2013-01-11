@@ -134,7 +134,10 @@ void CtpRun::PrintDescription(const char *name, const bool length) {
             }
             cout << endl;
         } catch(std::exception &error) {
-            cout << string("XML file or description tag missing: ") << xmlFile;
+            // cout << string("XML file or description tag missing: ") << xmlFile;
+            cout << string("  ") << _fwstring(string(name),14);
+            cout << "Undocumented" << endl;
+            
         }
 }
 

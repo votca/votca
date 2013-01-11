@@ -69,6 +69,9 @@ public:
    void     setJeff2(double Jeff2, int state);
    vector<double> &Js(int state) { return (state==-1) ? _Js_e : _Js_h; }
 
+   double   getdE12(int state) { return second->getSiteEnergy(state)
+                                       -first->getSiteEnergy(state); }
+
    Segment* Seg1PbCopy() { return first; }
    Segment* Seg2PbCopy();
    Segment* Seg1() { return first; }

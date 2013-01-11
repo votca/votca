@@ -39,6 +39,11 @@
 #include "calculators/ianalyze.h"
 #include "calculators/density.h"
 #include "calculators/xmultipole2.h"
+#include "calculators/velocity.h"
+#include "calculators/molpol.h"
+#include "calculators/zmultipole.h"
+#include "calculators/qmultipole.h"
+#include "calculators/xqmultipole.h"
 
 
 
@@ -65,6 +70,11 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<IAnalyze>        ("ianalyze");
         Calculators().Register<Density>         ("density");
         Calculators().Register<XMP>             ("xmultipole");
+        Calculators().Register<Velocity>        ("velocity");
+        Calculators().Register<MolPol>          ("molpol");
+        Calculators().Register<ZMultipole>      ("zmultipole");
+        Calculators().Register<QMultipole>      ("qmultipole");
+        Calculators().Register<XQMP>            ("xqmultipole");
 }
 
 }}

@@ -51,6 +51,7 @@ public:
 
     void WriteXMP(FILE *out, Topology *top);
     void WriteEMP(FILE *out, Topology *top);
+    void WriteULM(Topology *top);
 
 private:
 
@@ -197,6 +198,11 @@ bool StateServer::EvaluateFrame(Topology *top) {
                 fclose(out_emp);
         }
 
+        else if (*key == "ulm") {
+                cout << "ULM input, ";
+                WriteULM(top);
+        }
+
         else {
                 cout << "ERROR (Invalid key " << *key << ") ";
         }
@@ -309,21 +315,29 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
 
         QMPair *pair = *nit;
 
-        int ghost;
-        if (pair->HasGhost()) { ghost = 1; }
-        else { ghost = 0; }
+        int ghost = (pair->HasGhost()) ? 1 : 0;
 
-        fprintf(out, "PairID %5d  | Seg1 %4d Seg2 %4d dR %2.4f PBC? %1d | "
-                     "lOuter %1.4f J2 %1.8f r12 %2.4f r21 %2.4f \n",
+        fprintf(out, "ID %5d SEG1 %4d %1s SEG2 %4d %1s dR %2.4f PBC %1d "
+                     "dE(-1) %4.7f dE(+1) %4.7f "
+                     "L(-1) %1.4f L(+1) %1.4f J2(-1) %1.8e J2(+1) %1.8e "
+                     "R12(-1) %2.4e R12(+1) %2.4e R21(-1) %2.4e R21(-1) %2.4e\n",
                 pair->getId(),
                 pair->first->getId(),
+                pair->first->getName().c_str(),
                 pair->second->getId(),
+                pair->second->getName().c_str(),
                 pair->Dist(),
                 ghost,
-                0.0, // pair->getLambdaO(),
-                0.0, // pair->calcJeff2(),
-                0.0, // pair->getRate12(),
-                0.0 ); // pair->getRate21() );
+                pair->getdE12(-1),
+                pair->getdE12(+1),
+                pair->getLambdaO(-1),
+                pair->getLambdaO(+1),
+                pair->getJeff2(-1),
+                pair->getJeff2(+1),
+                pair->getRate12(-1),
+                pair->getRate12(+1),
+                pair->getRate21(-1),
+                pair->getRate21(+1) );
     }
 }
 
@@ -395,6 +409,83 @@ void StateServer::WriteXMP(FILE *out, Topology *top) {
                      qmpair->second->getName().c_str(),
                      (prefix+"_2.mps").c_str());
     }
+}
+
+void StateServer::WriteULM(Topology *top) {
+
+    FILE *out_ulm;
+    string ulm_file = "vertices_channel_e.dat";
+    out_ulm = fopen(ulm_file.c_str(), "w");
+
+    vector< Segment* > ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        fprintf(out_ulm, "%4d %+4.5f %+4.5f %+4.5f %+4.5f %-1s \n",
+                (*sit)->getId(),
+                (*sit)->getPos().getX(),
+                (*sit)->getPos().getY(),
+                (*sit)->getPos().getZ(),
+                (*sit)->getSiteEnergy(-1),
+                (*sit)->getName().c_str());
+    }
+    fclose(out_ulm);
+
+
+    ulm_file = "vertices_channel_h.dat";
+    out_ulm = fopen(ulm_file.c_str(), "w");
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        fprintf(out_ulm, "%4d %+4.5f %+4.5f %+4.5f %+4.5f %-1s \n",
+                (*sit)->getId(),
+                (*sit)->getPos().getX(),
+                (*sit)->getPos().getY(),
+                (*sit)->getPos().getZ(),
+                (*sit)->getSiteEnergy(+1),
+                (*sit)->getName().c_str());
+    }
+    fclose(out_ulm);
+
+
+    ulm_file = "edges_channel_e.dat";
+    out_ulm = fopen(ulm_file.c_str(), "w");
+    QMNBList::iterator nit;
+    for (nit = top->NBList().begin();
+         nit != top->NBList().end();
+         nit++) {
+
+        QMPair *qmpair = *nit;
+
+        fprintf(out_ulm, "%4d %4d %+4.7e %+4.7e %+4.7e %+4.7f %+4.7f %+4.7f \n",
+                     qmpair->Seg1()->getId(),
+                     qmpair->Seg2()->getId(),
+                     qmpair->getJeff2(-1),
+                     qmpair->getRate12(-1),
+                     qmpair->getRate21(-1),
+                     qmpair->R().getX(),
+                     qmpair->R().getY(),
+                     qmpair->R().getZ());
+    }
+    fclose(out_ulm);
+
+
+    ulm_file = "edges_channel_h.dat";
+    out_ulm = fopen(ulm_file.c_str(), "w");
+    for (nit = top->NBList().begin();
+         nit != top->NBList().end();
+         nit++) {
+
+        QMPair *qmpair = *nit;
+
+        fprintf(out_ulm, "%4d %4d %+4.7e %+4.7e %+4.7e %+4.7f %+4.7f %+4.7f \n",
+                     qmpair->Seg1()->getId(),
+                     qmpair->Seg2()->getId(),
+                     qmpair->getJeff2(+1),
+                     qmpair->getRate12(+1),
+                     qmpair->getRate21(+1),
+                     qmpair->R().getX(),
+                     qmpair->R().getY(),
+                     qmpair->R().getZ());
+    }
+    fclose(out_ulm);
+
 }
 
 

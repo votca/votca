@@ -18,71 +18,87 @@
  */
 
 
-#ifndef EMultipole_StdAl_H
-#define EMultipole_StdAl_H
+#ifndef QMULTIPOLE_H
+#define QMULTIPOLE_H
 
 
 #include <votca/ctp/qmcalculator.h>
-#include <boost/progress.hpp>
+
 
 namespace votca { namespace ctp {
 
 
-class EMultipole_StdAl : public QMCalculator
+class QMultipole : public QMCalculator
 {
 
 public:
 
-    EMultipole_StdAl() {};
-   ~EMultipole_StdAl() {};
+    QMultipole() {};
+   ~QMultipole() {};
 
-    string   Identify() { return "EMultipole (Parallel; Stand-Alone)"; }
+    string   Identify() { return "ZMultipole - Anisotropic Polarizabilities"; }
 
     // ++++++++++++++++++++++ //
     // Multipole Distribution //
     // ++++++++++++++++++++++ //
 
-    void                Initialize(Topology *top, Property *options);
-    void                DistributeMpoles(Topology *top);
-    vector<PolarSite*>  ParseGdmaFile(string filename, int state);
-    vector< vec >       ParseCubeFileHeader(string filename);
+    void     Initialize(Topology *top, Property *options);
+    void     EStatify(Topology *top, Property *options);
+    void     DistributeMpoles(Topology *top);
+
+    vector<APolarSite*> ParseGdmaFile(string filename, int state);
+    vector< vec >      ParseCubeFileHeader(string filename);
+
 
     // ++++++++++++++++++++++++++++++++ //
     // Sub-Calculators ESP, ESF, MolPol //
     // ++++++++++++++++++++++++++++++++ //
 
-    void                CalculateESP(vector< PolarSite* > &, FILE *);
-    void                CalculateAlpha(vector< PolarSite* > &, FILE *, bool);
-    void                SiteAlphaInduce(Topology *, vector< PolarSite* > &);
-    
+    void     CalculateESP(vector< APolarSite* > &, FILE *);
+    void     CalculateESPInput(Topology *top);
+    void     CalculateESPRigid(Topology *top);
+    void     CalculateESF(Topology *top);
+
+    void     CalculateAlpha(Topology *top);
+    void     CalculateAlphaInput(Topology *top);
+    void     CalculateAlphaRigid(vector< APolarSite* > &, FILE *, bool);
+    void     SiteAlphaInduce(Topology *, vector< APolarSite* > &);
+
+
     // ++++++++++++++++++++++++++++++++ //
     // Main Calculator => Site Operator //
     // ++++++++++++++++++++++++++++++++ //
 
-    bool                EvaluateFrame(Topology *top);
-    int                 RequestNextSite(int opId, Topology *top);
-    void                LockCout() { _coutMutex.Lock(); }
-    void                UnlockCout() { _coutMutex.Unlock(); }
+    bool     EvaluateFrame(Topology *top);
+    void     EvalSite(Topology *top, Segment *seg, int slot) { ; }
+    void     Induce() { return; }
+    void     CalcIntEnergy() { return; }
+
+    void     InitSlotData(Topology *top) { ; }
+    void     PostProcess(Topology *top) { ; }
+    Segment *RequestNextSite(int opId, Topology *top);
+    void     LockCout() { _coutMutex.Lock(); }
+    void     UnlockCout() { _coutMutex.Unlock(); }
 
 
     // +++++++++++++++++++++++++++ //
     // Multipole Interaction Class //
     // +++++++++++++++++++++++++++ //
 
-    class Interactor3
+    class Interactor
     {
     public:
 
-        Interactor3(Topology *top, EMultipole_StdAl *em) : _top(top), _em(em) {};
-        Interactor3() : _top(NULL), _em(NULL) {};
-       ~Interactor3() {};
-               
+        Interactor(Topology *top, QMultipole *em) : _top(top), _em(em) {};
+        Interactor() : _top(NULL), _em(NULL) {};
+       ~Interactor() {};
+
         // UNITS IN INPUT FILES
         // ... Always use atomic units
         // ... ... Positions in a0 (bohr)
         // ... ... Multipole moment of rank k in e(a0)**k
         // ... ... Dipole polarizability in A³ (Angstrom cubed)
-       
+
         // UNITS USED INTERNALLY
         // ... Use nm instead of a0 and A
         // ... ... Positions in nm
@@ -97,26 +113,39 @@ public:
         // ... Potential (V) = Potential(int) * 1/4PiEps0(SI) * e * 1e+0.9
 
 
-        inline double EnergyInter(PolarSite &pol1, PolarSite &pol2);
-        inline double EnergyInterESP(PolarSite &pol1, PolarSite &pol2);
-        inline double EnergyIntra(PolarSite &pol1, PolarSite &pol2);
-        inline void FieldPerm(PolarSite &pol1, PolarSite &pol2);
-        inline vec  FieldPermESF(vec r, PolarSite &pol);
-        inline void FieldIndu(PolarSite &pol1, PolarSite &pol2);
-        inline void FieldInduAlpha(PolarSite &pol1, PolarSite &pol2);
+        inline double EnergyInter(APolarSite &pol1, APolarSite &pol2);
+        inline double EnergyInterESP(APolarSite &pol1, APolarSite &pol2);
+        inline double EnergyIntra(APolarSite &pol1, APolarSite &pol2);
+        inline void FieldPerm(APolarSite &pol1, APolarSite &pol2);
+        inline vec  FieldPermESF(vec r, APolarSite &pol);
+        inline void FieldIndu(APolarSite &pol1, APolarSite &pol2);
+        inline void FieldInduAlpha(APolarSite &pol1, APolarSite &pol2);
 
-        inline double PotentialPerm(vec r, PolarSite &pol);
+        inline double PotentialPerm(vec r, APolarSite &pol);
         
-        void ResetEnergy() { EP = EU_INTER = EU_INTRA = 0.0; }
+        inline double E_f(APolarSite &pol1, APolarSite &pol2);
+        inline double E_m(APolarSite &pol1, APolarSite &pol2);
+
+        void ResetEnergy() { EP = EU_INTER = EU_INTRA = 0.0; 
+                             EPP = EPU = EUU = 0.0;  }
         double &getEP() { return EP; }
         double &getEU_INTER() { return EU_INTER; }
         double &getEU_INTRA() { return EU_INTRA; }
+        
+        double &getEPP() { return EPP; }
+        double &getEPU() { return EPU; }
+        double &getEUU() { return EUU; }
 
     private:
 
         double EP;       //   <- Interaction permanent multipoles (inter-site)
         double EU_INTRA; //   <- Interaction induction multipoles (intra-site)
         double EU_INTER; //   <- Interaction induction multipoles (inter-site)
+        
+        
+        double EPP;
+        double EPU;
+        double EUU;
 
 
         vec    e12;     //  |
@@ -279,7 +308,7 @@ public:
         inline double T22s_22c() { return R5 * 0.5 * (35*rbx*rbx*rax*ray - 35*rby*rby*rax*ray + 10*rbx*rax*cyx + 10*rbx*ray*cxx - 10*rby*rax*cyy - 10*rby*ray*cxy + 2*cxx*cyx - 2*cxy*cyy); }
 
         Topology        *_top;
-        EMultipole_StdAl     *_em;
+        QMultipole     *_em;
 
     };
 
@@ -288,18 +317,17 @@ public:
     // Site workers (i.e. individual threads) //
     // ++++++++++++++++++++++++++++++++++++++ //
 
-    class SiteOpMultipole3 : public Thread
+    class SiteOpQMultipole : public Thread
     {
     public:
 
-        SiteOpMultipole3(int id, Topology *top,
-                     EMultipole_StdAl *master)
-                   : _id(id), _top(top), _seg(0)    
-                   { _actor = Interactor3(top,_master);
-                     if (master != NULL) { _master = master; }
-                   };
+        SiteOpQMultipole(int id, Topology *top,
+                     QMultipole *master)
+                   : _id(id), _top(top), _seg(NULL),
+                     _master(master)
+                   { _actor = Interactor(top,_master); };
 
-       ~SiteOpMultipole3();
+       ~SiteOpQMultipole();
 
         int  getId() { return _id; }
         void setId(int id) { _id = id; }
@@ -307,68 +335,53 @@ public:
         void InitSlotData(Topology *top);
         void Run(void);
 
-        void   EvalSite(Topology *top, int seg);
+        void   EvalSite(Topology *top, Segment *seg);
         void   Charge(int state);
-        void   Induce(int state);
+        int    Induce(int state);
         double Energy(int state);
+        double EnergyStatic(int state);
         void   Depolarize();
-        void   CheckPolarSphere();
-
-
 
 
     public:
 
         int                           _id;
         Topology                     *_top;
-        int                           _seg;
-        EMultipole_StdAl                  *_master;
+        Segment                      *_seg;
+        QMultipole                  *_master;
 
-        vector< Segment* >           _segsPolSphere; // Segments within cutoff
-        vector< vector<PolarSite*> > _polsPolSphere; // Polar sites within c/o
-        vector< vector<PolarSite*> > _polarSites;    // Copy of top polar sites
-        vector< vec >                _chunkCoMs;
-        Interactor3                  _actor;
+        vector< Segment* >           _segsPolSphere; // Segments    in c/o 0-1
+        vector< Segment* >           _segsOutSphere; // Segments    in c/0 1-2
+        vector< vector<APolarSite*> > _polsPolSphere; // Polar sites in c/o 0-1
+        vector< vector<APolarSite*> > _polsOutSphere; // Polar sites in c/o 1-2
+        vector< vector<APolarSite*> > _APolarSites;    // Copy of top polar sites
+        Interactor                   _actor;
     };
 
 
 private:
 
     // Allocation of polar sites to fragments and segments
-    map<string, vector<PolarSite*> >     _map_seg_polarSites;
+    map<string, vector<APolarSite*> >     _map_seg_APolarSites;
     map<string, vector<bool> >           _map_seg_chrgStates;
     map<string, vector<int> >            _alloc_frag_mpoleIdx;
     map<string, vector<string> >         _alloc_frag_mpoleName;
     map<string, bool>                    _map2md;
 
     // Thread management
-    int                         _nextSite;
+    vector<Segment*> ::iterator _nextSite;
+    vector<Segment*>            _listSegs;
     Mutex                       _nextSiteMutex;
     Mutex                       _coutMutex;
     Mutex                       _logMutex;
     bool                        _maverick;
 
-    // Stand-Alone Multipoles
-    string                      _polarSites_N;
-    string                      _polarSites_C;
-    string                      _polarSites_A;
-    int                         _period;
-    
-    vector< PolarSite* >         _poles;
-    vector< vector<PolarSite*> > _chunks;
-
-    map< int, double >           _chunkEnergiesN;
-    map< int, double >           _chunkEnergiesC;
-    map< int, double >           _chunkEnergiesA;
-
-    vector< vec >                _chunkCoMs;
-    map< int, int >              _chunkIters;
-    map< int, int >              _chunkPolSphereSize;
-
     // Control options
     bool            _induce;
     int             _firstSeg;
     int             _lastSeg;
+    vector<int>     _listSegIds;
+    
     string          _checkPolesPDB;
 
     // ESP
@@ -378,6 +391,12 @@ private:
     string          _espOutFile;
     vector<vec>     _cube;
 
+    // ESF
+    bool            _calcESF;
+    string          _esfGridFile;
+    string          _esfOutFile;
+    vector<vec>     _esfGrid;
+
     // MolPol
     bool            _calcAlphaMol;
     bool            _doSystem;
@@ -386,13 +405,15 @@ private:
     // Logging
     string          _outFile;
     bool            _energies2File;
-    map<int,int>    _log_seg_iter;
+    map<int,vector<int> > _log_seg_iter;
     map<int,int>    _log_seg_sphereSize;
     map<int,vec>    _log_seg_com;
+    vector<Segment*> _log_evaluated_segs;
 
     // Interaction parameters
     bool            _useCutoff;
     double          _cutoff;
+    double          _cutoff2;
     bool            _useExp;
     double          _aDamp;
     bool            _useScaling;
@@ -413,7 +434,7 @@ private:
  * ... SOR parameters (convergence)
  * ... Control options (first, last seg., ...)
  */
-void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
+void QMultipole::Initialize(Topology *top, Property *opt) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
@@ -424,12 +445,9 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
     string xmlfile;
 
     /* ---- OPTIONS.XML Structure ----
-     * <emultipole>
+     * <qmultipole>
      *
      *      <multipoles></multipoles>
-     *      <polarsites_N></polarsites_N>
-     *      <polarsites_C></polarsites_C>
-     *      <period></period>
      *
      *      <control>
      *          <induce></induce>
@@ -460,6 +478,7 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
      *
      *      <tholeparam>
      *          <cutoff></cutoff>
+     *          <cutoff2></cutoff2>
      *          <expdamp></expdamp>
      *          <scaling></scaling>
      *      </tholeparam>
@@ -473,23 +492,13 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
      *      </convparam>
      */
 
-
-    key = "options.EMultipole_StdAl.polarsites_N";
-    _polarSites_N = opt->get(key).as< string >();
-    key = "options.EMultipole_StdAl.polarsites_C";
-    _polarSites_C = opt->get(key).as< string >();
-    key = "options.EMultipole_StdAl.period";
-    _period = opt->get(key).as< int >();
-
-
-
-    key = "options.EMultipole_StdAl.multipoles";
+    key = "options.qmultipole.multipoles";
 
         if ( opt->exists(key) ) {
             xmlfile = opt->get(key).as< string >();
         }
 
-    key = "options.EMultipole_StdAl.control";
+    key = "options.qmultipole.control";
 
         if ( opt->exists(key+".induce") ) {
             int induce = opt->get(key+".induce").as< int >();
@@ -518,7 +527,12 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
         }
         else { _checkPolesPDB = ""; }
 
-    key = "options.EMultipole_StdAl.esp";
+        if ( opt->exists(key+".list") ) {
+            _listSegIds = opt->get(key+".list").as< vector<int> >();
+        }
+        else { ; }
+
+    key = "options.qmultipole.esp";
 
         if ( opt->exists(key+".calcESP") ) {
             int calcESP = opt->get(key+".calcESP").as< int >();
@@ -537,7 +551,21 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
             else { _ESPdoSystem = false; }
         }
 
-    key = "options.EMultipole_StdAl.alphamol";
+    key = "options.qmultipole.esf";
+
+        if ( opt->exists(key+".calcESF") ) {
+            int calcESF = opt->get(key+".calcESF").as< int >();
+            _calcESF = (calcESF == 0) ? false : true;
+        }
+        else {
+            _calcESF = false;
+        }
+        if (_calcESF) {
+            _esfGridFile = opt->get(key+".grid").as< string >();
+            _esfOutFile = opt->get(key+".output").as< string >();
+        }
+
+    key = "options.qmultipole.alphamol";
 
         if ( opt->exists(key+".calcAlpha") ) {
             int calcAlpha = opt->get(key+".calcAlpha").as< int >();
@@ -558,11 +586,17 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
             _alphaOutFile = "nofile";
         }
 
-    key = "options.EMultipole_StdAl.tholeparam";
+    key = "options.qmultipole.tholeparam";
 
         if ( opt->exists(key+".cutoff") ) {
             _cutoff = opt->get(key+".cutoff").as< double >();
             if (_cutoff) { _useCutoff = true; }
+        }
+        if ( opt->exists(key+".cutoff2") ) {
+            _cutoff2 = opt->get(key+".cutoff2").as< double >();
+        }
+        else {
+            _cutoff2 = _cutoff;
         }
         if ( opt->exists(key+".expdamp") ) {
             _aDamp = opt->get(key+".expdamp").as< double >();
@@ -577,7 +611,7 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
                 cout << endl << "... ... WARNING: 1-N SCALING SWITCHED OFF"; }
         }
 
-    key = "options.EMultipole_StdAl.convparam";
+    key = "options.qmultipole.convparam";
 
         if ( opt->exists(key+".wSOR_N") ) {
             _wSOR_N = opt->get(key+".wSOR_N").as< float >();
@@ -598,6 +632,253 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
         }
         else { _epsTol = 0.001; }
 
+    if (!top->isEStatified()) { this->EStatify(top, opt); }
+
+    if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(top); }
+    if (this->_calcESF)                   { this->CalculateESF(top); }
+    if (this->_calcAlphaMol)              { this->CalculateAlphaInput(top); }
+}
+
+
+/**
+ * Creates polar-site templates using mapping file
+ * ... Establishes allocation of polar sites to fragments
+ * ... Calls GDMA punch-file parser to load multipoles and polarizabilities
+ * ... In doing this, establishes which charge states are available (N, C, A)
+ */
+void QMultipole::EStatify(Topology *top, Property *options) {
+
+    cout << endl << "... ... Estatify system: ";
+
+    string key = "options.qmultipole";
+    string allocFile = options->get(key+".multipoles").as<string> ();
+
+    // ++++++++++++++++++++++++++++++++ //
+    // Load polar-site indices from XML //
+    // ++++++++++++++++++++++++++++++++ //
+
+    // => Output to maps:
+    map<string, vector<int> > alloc_frag_mpoleIdx;
+    map<string, vector<string> > alloc_frag_mpoleName;
+    map<string, string > alloc_seg_mpoleFiles_n;
+    map<string, string > alloc_seg_mpoleFiles_e;
+    map<string, string > alloc_seg_mpoleFiles_h;
+
+    Property allocation; // <- Which polar sites are part of which fragment?
+    load_property_from_xml(allocation, allocFile.c_str());
+
+
+    /* --- MULTIPOLES.XML Structure ---
+     *
+     * <topology>
+     *
+     *     <molecules>
+     *          <molecule>
+     *          <name></name>
+     *
+     *          <segments>
+     *
+     *              <segment>
+     *              <name>DCV</name>
+     *
+     *              <multipoles_n></multipoles_n>
+     *              <multipoles_e></multipoles_e>
+     *              <multipoles_h></multipoles_h>
+     *
+     *              <map2md></map2md>
+     *
+     *              <fragments>
+     *                  <fragment>
+     *                  <name></name>
+     *                  <mpoles></mpoles>
+     *                  </fragment>
+     *              </fragments>
+     *              ...
+     *              ...
+     */
+
+
+    key = "topology.molecules.molecule";
+    list<Property *> mols = allocation.Select(key);
+    list<Property *>::iterator molit;
+    for (molit = mols.begin(); molit != mols.end(); molit++) {
+
+        string molName = (*molit)->get("name").as<string> ();
+
+        key = "segments.segment";
+        list<Property *> segs = (*molit)->Select(key);
+        list<Property *>::iterator segit;
+
+        for (segit = segs.begin(); segit != segs.end(); segit++) {
+
+            string segName = (*segit)->get("name").as<string> ();
+
+            // GDMA filenames for cation (h), neutral (n), anion (e) state
+            string mpoleFile_n = (*segit)->get("multipoles_n").as<string> ();
+            alloc_seg_mpoleFiles_n[segName] = mpoleFile_n;
+            if ( (*segit)->exists("multipoles_e")) {
+                string mpoleFile_e = (*segit)->get("multipoles_e").as<string>();
+                alloc_seg_mpoleFiles_e[segName] = mpoleFile_e;
+            }
+            if ( (*segit)->exists("multipoles_h")) {
+                string mpoleFile_h = (*segit)->get("multipoles_h").as<string>();
+                alloc_seg_mpoleFiles_h[segName] = mpoleFile_h;
+            }
+
+            // Default: Project multipoles onto rigidified coordinates
+            if ( (*segit)->exists("map2md")) {
+                int map2md = (*segit)->get("map2md").as<int>();
+                _map2md[segName] = (map2md == 0) ? false : true;
+            }
+            else {
+                _map2md[segName] = false; // i.e. map to rigidified coordinates
+            }
+
+            key = "fragments.fragment";
+            list<Property *> frags = (*segit)->Select(key);
+            list<Property *>::iterator fragit;
+
+            for (fragit = frags.begin(); fragit != frags.end(); fragit++) {
+
+                string fragName = (*fragit)->get("name").as<string> ();
+                string mapKeyName = fragName + segName + molName;
+
+                string mpoles = (*fragit)->get("mpoles").as<string> ();
+
+                Tokenizer tokPoles(mpoles, " \t\n");
+                vector<string> mpoleInfo;
+                tokPoles.ToVector(mpoleInfo);
+
+                vector<int> mpoleIdcs;
+                vector<string> mpoleNames;
+
+                vector<string> ::iterator strit;
+                for (strit=mpoleInfo.begin(); strit<mpoleInfo.end(); strit++) {
+
+                    Tokenizer tokPoleInfo( (*strit), " :");
+                    vector<string> poleInfo;
+                    tokPoleInfo.ToVector(poleInfo);
+
+                    int mpoleIdx = boost::lexical_cast<int>(poleInfo[0]);
+                    string mpoleName = poleInfo[1];
+
+                    mpoleIdcs.push_back(mpoleIdx);
+                    mpoleNames.push_back(mpoleName);
+
+                }
+
+                alloc_frag_mpoleIdx[mapKeyName] = mpoleIdcs;
+                alloc_frag_mpoleName[mapKeyName] = mpoleNames;
+            }
+        }
+    }
+
+    // ++++++++++++++++++++++ //
+    // Parse GDMA punch files //
+    // ++++++++++++++++++++++ //
+
+    // => Output to APolarSite Container (template container)
+    map<string, vector<APolarSite*> > map_seg_APolarSites;
+    map<string, vector<bool> >       map_seg_chrgStates;
+
+
+    // Multipoles for neutral state
+    int state = 0;
+    map<string, string > ::iterator strit;
+    for (strit = alloc_seg_mpoleFiles_n.begin();
+         strit != alloc_seg_mpoleFiles_n.end();
+         strit++) {
+
+        string segName = strit->first;
+        string filename = strit->second;
+
+        vector< APolarSite* > poles = ParseGdmaFile(filename, state);
+
+        map_seg_APolarSites[segName] = poles;
+        map_seg_chrgStates[segName].resize(3);
+        map_seg_chrgStates[segName][0] = false; // <- negative
+        map_seg_chrgStates[segName][1] = true;  // <- neutral
+        map_seg_chrgStates[segName][2] = false; // <- positive
+        poles.clear();
+
+    }
+
+    // Multipoles for negative state
+    state = -1;
+    if ( alloc_seg_mpoleFiles_e.size() ) {
+        for (strit = alloc_seg_mpoleFiles_e.begin();
+             strit != alloc_seg_mpoleFiles_e.end();
+             strit++) {
+            string segName = strit->first;
+            string filename = strit->second;
+
+            vector< APolarSite* > polesAnion = ParseGdmaFile(filename, state);
+            map_seg_chrgStates[segName][state+1] = true;
+
+            // Merge with polar sites for neutral state
+            vector< APolarSite* > polesNeutral = map_seg_APolarSites[segName];
+
+            assert(polesAnion.size() == polesNeutral.size());
+            for (int i = 0; i < polesNeutral.size(); i++) {
+
+                polesNeutral[i]->setQs( polesAnion[i]->getQs(state), state );
+                polesNeutral[i]->setPs( polesAnion[i]->getPs(state), state );
+                delete polesAnion[i];
+            }
+            polesAnion.clear();
+        }
+    }
+
+    // Multipoles for positive state
+    state = +1;
+    if ( alloc_seg_mpoleFiles_h.size() ) {
+        for (strit = alloc_seg_mpoleFiles_h.begin();
+             strit != alloc_seg_mpoleFiles_h.end();
+             strit++) {
+            string segName = strit->first;
+            string filename = strit->second;
+
+            vector< APolarSite* > polesCation = ParseGdmaFile(filename, state);
+            map_seg_chrgStates[segName][state+1] = true;
+
+            // Merge with polar sites for neutral state
+            vector< APolarSite* > polesNeutral = map_seg_APolarSites[segName];
+
+            assert(polesCation.size() == polesNeutral.size());
+            for (int i = 0; i < polesNeutral.size(); i++) {
+
+                polesNeutral[i]->setQs( polesCation[i]->getQs(state), state );
+                polesNeutral[i]->setPs( polesCation[i]->getPs(state), state );
+                delete polesCation[i];
+            }
+            polesCation.clear();
+        }
+    }
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Forward information on polar-site templates to topology //
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+
+    // Containers to use for mapping
+    // map<string, vector<APolarSite*> >     map_seg_APolarSites;
+    // map<string, vector<int> >            alloc_frag_mpoleIdx;
+    // map<string, vector<string> >         alloc_frag_mpoleName;
+
+    // TO CONTINUE FROM HERE ...
+    // Loop over segments, loop over fragments in segments.
+    // => For each segment, look up associated polar sites using map 1;
+    //      => For each fragment, look up associated
+    //         polar sites idcs. using map 2;
+    //          => For each index in retrieved container, create new polar site,
+    //             importing information from polar site container of segment
+    //          => Translate positions to MD frame, copy local frame from
+    //             fragment
+
+    _map_seg_APolarSites = map_seg_APolarSites;
+    _map_seg_chrgStates = map_seg_chrgStates;
+    _alloc_frag_mpoleIdx =  alloc_frag_mpoleIdx;
+    _alloc_frag_mpoleName = alloc_frag_mpoleName;
+
 }
 
 
@@ -608,161 +889,9 @@ void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
  * ... Determines polarizabilities from element type
  * @return Yields polar-site template container
  */
-vector<PolarSite*> EMultipole_StdAl::ParseGdmaFile(string filename, int state) {
+vector<APolarSite*> QMultipole::ParseGdmaFile(string filename, int state) {
 
-    int poleCount = 1;
-    double Q0_total = 0.0;
-    string units = "";
-    bool useDefaultPs = true;
-
-    vector<PolarSite*> poles;
-    PolarSite *thisPole = NULL;
-
-    vector<double> Qs; // <- multipole moments
-    double         P1; // <- dipole polarizability
-
-    std::string line;
-    std::ifstream intt;
-    intt.open(filename.c_str());
-
-    if (intt.is_open() ) {
-        while ( intt.good() ) {
-
-            std::getline(intt, line);
-            vector<string> split;
-            Tokenizer toker(line, " ");
-            toker.ToVector(split);
-
-            if ( !split.size()      ||
-                  split[0] == "!"   ||
-                  split[0].substr(0,1) == "!" ) { continue; }
-
-    // ! Interesting information here, e.g.
-    // ! DCV2T opt
-    // ! SP        RB3LYP          6-311+G(d,p)
-    // Units bohr
-    //
-    // C          -4.2414603400   -3.8124751600    0.0017575736    Rank  2
-    //  -0.3853409355
-    //  -0.0002321905   0.2401559510   0.6602334308
-    //  -0.7220625314   0.0004894995  -0.0003833545   0.4526409813  -0.50937399
-    //  P 1.75
-
-
-            // Units used
-            if ( split[0] == "Units") {
-                units = split[1];
-                if (units != "bohr" && units != "angstrom") {
-                    throw std::runtime_error( "Unit " + units + " in file "
-                                            + filename + " not supported.");
-                }
-            }
-
-            // element,  position,  rank limit
-            else if ( split.size() == 6 ) {
-
-                Qs.clear();
-                P1 = -1.;
-
-                int id = poleCount++;  // <- starts from 1
-                string name = split[0];
-
-                double BOHR2NM = 0.0529189379;
-                double ANGSTROM2NM = 0.1;
-                double x, y, z;
-
-                if (units == "bohr") {
-                    x = BOHR2NM * boost::lexical_cast<double>(split[1]);
-                    y = BOHR2NM * boost::lexical_cast<double>(split[2]);
-                    z = BOHR2NM * boost::lexical_cast<double>(split[3]);
-                }
-                else if (units == "angstrom") {
-                    x = ANGSTROM2NM * boost::lexical_cast<double>(split[1]);
-                    y = ANGSTROM2NM * boost::lexical_cast<double>(split[2]);
-                    z = ANGSTROM2NM * boost::lexical_cast<double>(split[3]);
-                }
-                else {
-                    throw std::runtime_error( "Unit " + units + " in file "
-                                            + filename + " not supported.");
-                }
-                
-                vec pos = vec(x,y,z);
-
-                int rank = boost::lexical_cast<int>(split[5]);
-
-                PolarSite *newPole = new PolarSite(id, name);
-                newPole->setRank(rank);
-                newPole->setPos(pos);
-                poles.push_back(newPole);
-                thisPole = newPole;
-
-            }
-
-            // 'P', dipole polarizability
-            else if ( split[0] == "P" && split.size() == 2 ) {
-                P1 = 1e-3 * boost::lexical_cast<double>(split[1]);
-                thisPole->setPs(P1, state);
-                useDefaultPs = false;
-            }
-
-            // multipole line
-            else {
-
-                int lineRank = int( sqrt(thisPole->getQs(state).size()) + 0.5 );
-
-                if (lineRank == 0) {
-                    Q0_total += boost::lexical_cast<double>(split[0]);
-                }
-
-                for (int i = 0; i < split.size(); i++) {
-
-                    double qXYZ = boost::lexical_cast<double>(split[i]);
-
-                    // Convert e*(a_0)^k to e*(nm)^k where k = rank
-                    double BOHR2NM = 0.0529189379;
-                    qXYZ *= pow(BOHR2NM, lineRank); // OVERRIDE
-
-                    Qs.push_back(qXYZ);
-
-                }
-                thisPole->setQs(Qs, state);
-            }
-
-        } /* Exit loop over lines */
-    }
-    else { cout << endl << "ERROR: No such file " << filename << endl; }
-
-    if (useDefaultPs) {
-
-        cout << endl << "... ... NOTE Using default Thole polarizabilities "
-             << "for charge state " << state << ". ";
-
-        vector< PolarSite* > ::iterator pol;
-        for (pol = poles.begin(); pol < poles.end(); ++pol) {
-            string elem = (*pol)->getName();
-            double alpha = 0.0;
-            // Original set of Thole polarizabilites
-            if      (elem == "C") { alpha = 1.75e-3;  } // <- conversion from
-            else if (elem == "H") { alpha = 0.696e-3; } //    A³ to nm³ = 10⁻³
-            else if (elem == "N") { alpha = 1.073e-3; }
-            else if (elem == "O") { alpha = 0.837e-3; }
-            else if (elem == "S") { alpha = 2.926e-3; }
-            // Different set of Thole polarizabilities
-            //if      (elem == "C") { alpha = 1.334e-3; } // <- conversion from
-            //else if (elem == "H") { alpha = 0.496e-3; } //    A³ to nm³ = 10⁻³
-            //else if (elem == "N") { alpha = 1.073e-3; }
-            //else if (elem == "O") { alpha = 0.837e-3; }
-            //else if (elem == "S") { alpha = 3.300e-3; }
-            else { throw runtime_error("No polarizability given "
-                                       "for polar site type " + elem + ". "); }
-            (*pol)->setPs(alpha, state);
-        }
-    }
-
-    cout << endl << "... ... Reading " << filename <<
-                    ": Q0(Total) = " << Q0_total << flush;
-
-    return poles;
+    return APS_FROM_MPS(filename,state);    
     
 }
 
@@ -771,7 +900,7 @@ vector<PolarSite*> EMultipole_StdAl::ParseGdmaFile(string filename, int state) {
  * Parses GAUSSIAN cube file (for structure sample see below)
  * ... NOTE Only parses header to extract voxel vectors and repetition numbers
  */
-vector<vec> EMultipole_StdAl::ParseCubeFileHeader(string filename) {
+vector<vec> QMultipole::ParseCubeFileHeader(string filename) {
 
     vector< vec > cube;
     cube.resize(5);
@@ -805,7 +934,7 @@ vector<vec> EMultipole_StdAl::ParseCubeFileHeader(string filename) {
             toker.ToVector(split);
 
             // First two lines are comment lines
-            if (lineCount == 1 || lineCount == 2) { continue; }            
+            if (lineCount == 1 || lineCount == 2) { continue; }
 
 
 
@@ -852,7 +981,7 @@ vector<vec> EMultipole_StdAl::ParseCubeFileHeader(string filename) {
                 double xy = ext2nm * boost::lexical_cast<double>( split[2] );
                 double xz = ext2nm * boost::lexical_cast<double>( split[3] );
 
-                cube[2] = vec(xx, xy, xz);                
+                cube[2] = vec(xx, xy, xz);
             }
 
             if (lineCount == 5) {
@@ -898,15 +1027,149 @@ vector<vec> EMultipole_StdAl::ParseCubeFileHeader(string filename) {
 
 
 /**
+ * Calculates electrostatic potential at selected grid points
+ * ... NOTE Calculation done for input coordinates (as found in GDMA file)
+ * ... NOTE Grid is read in from file in Gaussian cube format
+ */
+void QMultipole::CalculateESPInput(Topology *top) {
+
+    cout << endl << "... ... Calculating ESP";
+
+    // Load grid from cube file
+    _cube = ParseCubeFileHeader(_espCubeFile);
+
+    // +++++++++++++++++++++++++++++++++++++++++++ //
+    // Iterate over segment types (in GDMA config) //
+    // +++++++++++++++++++++++++++++++++++++++++++ //
+
+    map< string, vector< APolarSite* > >::iterator sit;
+    for (sit = this->_map_seg_APolarSites.begin();
+         sit != this->_map_seg_APolarSites.end();
+         ++sit) {
+
+        cout << endl << "... ... ... ESP for segment type " << sit->first
+             << flush;
+
+        vector< APolarSite* > poles = sit->second;
+        vector< APolarSite* >::iterator pit;
+
+        // Translate CoM to origin
+        vec CoM = vec(0.,0.,0.);
+        int N = poles.size();
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            CoM += (*pit)->getPos();
+        }
+        CoM /= N;
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            vec newpos = (*pit)->getPos() - CoM;
+            (*pit)->setPos( newpos );
+        }
+
+        for (int state = -1; state < 2; ++state) {
+
+            // Multipole data for this state?
+            bool hasState = _map_seg_chrgStates[sit->first][state+1];
+            if (!hasState) { continue; }
+
+            // Charge container appropriately
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                (*pit)->Depolarize();
+                (*pit)->Charge(state);
+            }
+
+            // Prepare cube file, for structure sample see cube-file parser
+            FILE *out;
+            string espOutFile =  sit->first
+                            + "_" + boost::lexical_cast<string>(state)
+                            + "_" + _espOutFile;
+            out = fopen(espOutFile.c_str(), "w");
+
+            fprintf(out, "CUBE FILE GENERATED BY VOTCA CTP \n");
+            fprintf(out, "ESP %4s CHARGE %1d \n", (sit->first).c_str(), state);
+
+            cout << endl << "... ... ... ... State " << state << ": " << flush;
+
+            this->CalculateESP(poles, out);
+
+            fclose(out);
+        }
+    }
+}
+
+
+/**
+ * Calculates electrostatic potential at selected grid points
+ * ... NOTE Calculation done for rigid coordinates (as found in trajectory)
+ * ... NOTE Grid is read in from file in Gaussian cube format
+ */
+void QMultipole::CalculateESPRigid(Topology *top) {
+
+    cout << endl << "... ... Calculate ESP for segment ID: " << flush;
+
+    // Cube volumetric grid
+    _cube = ParseCubeFileHeader(_espCubeFile);
+
+    int segId;
+    cin >> segId;
+
+    Segment *seg = top->getSegment(segId);
+
+    cout << "... ... ... Selected segment type " << seg->getName() << flush;
+
+    vector< APolarSite* > poles = seg->APolarSites();
+    vector< APolarSite* > ::iterator pit;
+
+    // Translate CoM to origin
+    vec CoM = vec(0.,0.,0.);
+    int N = poles.size();
+    for (pit = poles.begin(); pit < poles.end(); ++pit) {
+        CoM += (*pit)->getPos();
+    }
+    CoM /= N;
+    for (pit = poles.begin(); pit < poles.end(); ++pit) {
+        vec newpos = (*pit)->getPos() - CoM;
+        (*pit)->setPos( newpos );
+    }
+
+    // Investigate charge states
+    for (int state = -1; state < 2; ++state) {
+        bool hasState = _map_seg_chrgStates[seg->getName()][state+1];
+        if (!hasState) { continue; }
+
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            (*pit)->Charge(state);
+        }
+
+        FILE *out;
+        string espOutFile = seg->getName()
+                        + "_ID" + boost::lexical_cast<string>(seg->getId())
+                        + "_" + boost::lexical_cast<string>(state)
+                        + "_" + _espOutFile;
+        out = fopen(espOutFile.c_str(), "w");
+
+        fprintf(out, "CUBE FILE GENERATED BY VOTCA CTP \n");
+        fprintf(out, "ESP %4s ID %4d CHARGE %1d \n",
+                      seg->getName().c_str(), seg->getId(), state);
+
+        cout << endl << "... ... ... State " << state << ": " << flush;
+
+        this->CalculateESP(poles, out);
+
+        fclose(out);
+    }
+}
+
+
+/**
  * Calculates ESP for arbitrary assembly of polar sites
  * ... NOTE Writes output in cube-file format, two header lines should
  * ...      already have been written to FILE* out
  */
-void EMultipole_StdAl::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
+void QMultipole::CalculateESP(vector< APolarSite* > &poles, FILE *out) {
 
     // Calculate potential for each voxel, write to output on the fly
-    Interactor3 actor = Interactor3(NULL, this);
-    vector< PolarSite* >::iterator pit;
+    Interactor actor = Interactor(NULL, this);
+    vector< APolarSite* >::iterator pit;
 
     vec Cxyz = _cube[0];
 
@@ -984,13 +1247,13 @@ void EMultipole_StdAl::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
             }
         }
     }
-    
+
     cout << " Calculated potential at " << Nx*Ny*Nz
          << " grid points. " << flush;
 
     // Calculate self-energy of configuration (just out of interest)
     double E = 0.0;
-    vector< PolarSite* > ::iterator pit2;
+    vector< APolarSite* > ::iterator pit2;
     for (pit = poles.begin(); pit < poles.end(); ++pit) {
         for (pit2 = pit + 1; pit2 < poles.end(); ++pit2) {
             E += actor.EnergyInterESP(*(*pit), *(*pit2));
@@ -1000,18 +1263,232 @@ void EMultipole_StdAl::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
     cout << endl << "... ... ... ... "
          << "Electrostatic self-energy of configuration: "
          << E*E2eV << " eV. ";
-    
+
+}
+
+
+/**
+ * Calculates electrostatic field at selected grid points
+ * ... NOTE Calculation done for rigid coordinates (as found in GDMA file)
+ * ... NOTE Grid is currently loaded from xyz file
+ */
+void QMultipole::CalculateESF(Topology *top) {
+
+    cout << endl << "... ... Calculating ESF";
+
+    double int2N_C = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 * 1.000e-18;
+
+    // +++++++++++++++++++ //
+    // Load grid from file //
+    // +++++++++++++++++++ //
+
+    vector<vec> gridPoints;
+    double CONVERT2NM = 1;
+
+    std::string line;
+    std::ifstream intt;
+    intt.open(this->_esfGridFile.c_str());
+
+    if (intt.is_open() ) {
+
+        while ( intt.good() ) {
+
+
+            std::getline(intt, line);
+            vector<string> split;
+            Tokenizer toker(line, " ");
+            toker.ToVector(split);
+
+            if ( !split.size()      ||
+                  split[0] == "!"   ||
+                  split[0].substr(0,1) == "!" ) { continue; }
+
+            // ! Interesting information here, e.g.
+            // Units bohr
+
+            //  -0.3853409355   0.0004894995  -0.0003833545
+            //  -0.0002321905   0.2401559510   0.6602334308
+            // ! ...
+
+            // Units used
+            if ( split[0] == "Units") {
+                string units = split[1];
+
+                if      (units == "bohr") { CONVERT2NM = 0.0529189379; }
+                else if (units == "nm") { CONVERT2NM = 1.; }
+                else if (units == "A") { CONVERT2NM = 0.1; }
+                else {
+                    throw std::runtime_error( "Unit " + units + " in file "
+                                            + _esfGridFile + " not supported.");
+                }
+            }
+
+            else {
+
+                double x = CONVERT2NM * boost::lexical_cast<double>(split[0]);
+                double y = CONVERT2NM * boost::lexical_cast<double>(split[1]);
+                double z = CONVERT2NM * boost::lexical_cast<double>(split[2]);
+
+                gridPoints.push_back(vec(x,y,z));
+            }
+        }
+    }
+    else { cout << endl << "ERROR: No such file " << _esfGridFile << endl; }
+
+    this->_esfGrid = gridPoints;
+
+    // +++++++++++++++++++++++++++++++++++++++++++ //
+    // Iterate over segment types (in GDMA config) //
+    // +++++++++++++++++++++++++++++++++++++++++++ //
+
+    map< string, vector< APolarSite* > >::iterator sit;
+    for (sit = this->_map_seg_APolarSites.begin();
+         sit != this->_map_seg_APolarSites.end();
+         ++sit) {
+
+        cout << endl << "... ... ... ESF for segment " << sit->first << flush;
+
+
+
+        vector< APolarSite* > poles = sit->second;
+        vector< APolarSite* >::iterator pit;
+
+        for (int state = -1; state < 2; ++state) {
+
+            // Multipole data for this state?
+            bool hasState = _map_seg_chrgStates[sit->first][state+1];
+            if (!hasState) { continue; }
+
+            // Store the field
+            vector< vec > gridPointESF;
+
+            // Charge container appropriately
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                (*pit)->Charge(state);
+            }
+
+            // Calculate field for each grid point, store in gridPointESF
+            Interactor actor = Interactor(top, this);
+
+            vector< vec >::iterator grit;
+            for (grit = _esfGrid.begin(); grit < _esfGrid.end(); ++grit) {
+
+                vec F = vec(0.0, 0.0, 0.0);
+
+                for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                    F += actor.FieldPermESF((*grit), *(*pit));
+                }
+                gridPointESF.push_back(F);
+            }
+
+            cout << endl << "... ... ... ... State " << state << ": "
+                         << " Calculated field at " << gridPointESF.size()
+                         << " grid points. " << flush;
+
+
+            // Write to file
+            FILE *out;
+            string esfOutFile =  sit->first
+                            + "_" + boost::lexical_cast<string>(state)
+                            + "_" + _esfOutFile;
+
+            out = fopen(esfOutFile.c_str(), "w");
+
+            assert(_esfGrid.size() == gridPointESF.size());
+            int g = 0;
+            int p = 0;
+            for ( ; p < gridPointESF.size(); ++g, ++p) {
+
+                fprintf(out, " %3.8f %3.8f %3.8f   %3.8f %3.8f %3.8f \n",
+                        _esfGrid[g].getX(),
+                        _esfGrid[g].getY(),
+                        _esfGrid[g].getZ(),
+                        gridPointESF[p].getX(),
+                        gridPointESF[p].getY(),
+                        gridPointESF[p].getZ() );
+            }
+        }
+    }
+}
+
+
+/**
+ * Calculates molecular polarizability tensor for GDMA coordinates
+ * ... Uses Thole SCF model with exponential damping function
+ */
+void QMultipole::CalculateAlphaInput(Topology *top) {
+
+    cout << endl << "... ... Calculating site polarizabilities";
+
+    map< string, vector< APolarSite* > >::iterator sit;
+    for (sit = _map_seg_APolarSites.begin();
+         sit != _map_seg_APolarSites.end();
+         ++sit) {
+
+        cout << endl << "... ... ... Polarizability for segment "
+             << sit->first << flush;
+
+        FILE *out;
+        string alphaOutFile = sit->first + "_" + _alphaOutFile;
+        out = fopen(alphaOutFile.c_str(), "w");
+
+        vector< APolarSite* > ::iterator pit;
+
+        // Neutral state
+        int state = 0;
+        if (_map_seg_chrgStates[sit->first][state+1]) {
+
+            for (pit = sit->second.begin(); pit < sit->second.end(); ++pit) {
+                (*pit)->Charge(state);
+            }
+
+            cout << endl << "... ... ... ... NEUTRAL " << state;
+            fprintf(out, "[ NEUTRAL ] \n");
+            this->CalculateAlphaRigid(sit->second, out, false);
+        }
+
+        // Cationic state
+        state = +1;
+        if (_map_seg_chrgStates[sit->first][state+1]) {
+
+            for (pit = sit->second.begin(); pit < sit->second.end(); ++pit) {
+                (*pit)->Charge(state);
+            }
+
+            cout << endl << "... ... ... ... CATION " << state;
+            fprintf(out, "\n\n[ CATION ] \n");
+            this->CalculateAlphaRigid(sit->second, out, false);
+        }
+
+        // Anionic state
+        state = -1;
+        if (_map_seg_chrgStates[sit->first][state+1]) {
+
+            for (pit = sit->second.begin(); pit < sit->second.end(); ++pit) {
+                (*pit)->Charge(state);
+            }
+
+            cout << endl << "... ... ... ... ANION " << state;
+            fprintf(out, "\n\n[ ANION ] \n");
+            this->CalculateAlphaRigid(sit->second, out, false);
+        }
+
+        // Not necessary, still: Charge back to neutral state
+        for (pit = sit->second.begin(); pit < sit->second.end(); ++pit) {
+                (*pit)->Charge(0);
+        }
+
+    }
 }
 
 
 /**
  * Calculates polarizability for arbitrary assembly of polar sites
- * ... NOTE Boolian 'system' only determines how output is formatted
  */
-void EMultipole_StdAl::CalculateAlpha(vector< PolarSite* > &poles,
+void QMultipole::CalculateAlphaRigid(vector< APolarSite* > &poles,
                                       FILE *out, bool system) {
 
-    vector< PolarSite* > ::iterator pit;
+    vector< APolarSite* > ::iterator pit;
 
     double axx, axy, axz;             // |
     double ayx, ayy, ayz;             // |-> Polarizability tensor
@@ -1124,7 +1601,7 @@ void EMultipole_StdAl::CalculateAlpha(vector< PolarSite* > &poles,
     // Sum over atomic polarizabilities
     double SUM_alpha = 0.0;
     for (pit = poles.begin(); pit < poles.end(); ++pit) {
-        SUM_alpha += (*pit)->P1;
+        SUM_alpha += (*pit)->getIsoP();
     }
 
     double NM3_2_A3 = 1000.;
@@ -1178,7 +1655,7 @@ void EMultipole_StdAl::CalculateAlpha(vector< PolarSite* > &poles,
             fprintf(out, "%4.7f  %4.7f  %4.7f \n", z.getX(),z.getY(),z.getZ());
         }
         else {
-            fprintf(out, "%4.7f  %4.7f  %4.7f  %4.7f  %4.7f  \n",
+            fprintf(out, "%4.7f  %4.7f  %4.7f  %4.7f  %4.7f ",
                          ISO_alpha, SUM_alpha,
                          EIGEN.eigenvalues[0]*NM3_2_A3,
                          EIGEN.eigenvalues[1]*NM3_2_A3,
@@ -1190,18 +1667,18 @@ void EMultipole_StdAl::CalculateAlpha(vector< PolarSite* > &poles,
 
 /**
  * Induces dipoles on polar sites in self-consistent manner until converged
- * ... NOTE Designed to be used in conjunction with ::CalculateAlpha()
+ * ... NOTE Designed to be used in conjunction with ::CalculateAlphaMol()
  */
-void EMultipole_StdAl::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles) {
+void QMultipole::SiteAlphaInduce(Topology *top, vector<APolarSite*> &poles) {
 
     int    maxIter = this->_maxIter;
     double wSOR = this->_wSOR_N;
     double eTOL = this->_epsTol;
 
-    vector< PolarSite* >::iterator pit1;
-    vector< PolarSite* >::iterator pit2;
+    vector< APolarSite* >::iterator pit1;
+    vector< APolarSite* >::iterator pit2;
 
-    Interactor3 actor = Interactor3(top, this);
+    Interactor actor = Interactor(top, this);
 
     // Induce to first order
     for (pit1 = poles.begin(); pit1 < poles.end(); ++pit1) {
@@ -1267,67 +1744,77 @@ void EMultipole_StdAl::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles)
  * ... Looks up associated polar sites, creates 'new' instances
  * ... Translates + rotates polar-site into global frame
  */
-void EMultipole_StdAl::DistributeMpoles(Topology *top) {
+void QMultipole::DistributeMpoles(Topology *top) {
 
-    // Hole conductor
-    int state = 1;
+    // +++++++++++++++++++++++++++++++++++++ //
+    // Equip TOP with distributed multipoles //
+    // +++++++++++++++++++++++++++++++++++++ //
 
-    vector< PolarSite* > poles = this->ParseGdmaFile(_polarSites_N, 0);
-    vector< PolarSite* > poles_C = this->ParseGdmaFile(_polarSites_C, state);
+    vector<Segment*> ::iterator sit;
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         ++sit) {
 
+        Segment *seg = *sit;
+        vector<APolarSite*> poleSites = _map_seg_APolarSites.at(seg->getName());
+        seg->setChrgStates(_map_seg_chrgStates[seg->getName()]);
 
-    assert (poles.size() == poles_C.size() );
-    for (int i = 0; i < poles.size(); i++) {
+        bool map2md = _map2md[seg->getName()];
 
-        poles[i]->setQs( poles_C[i]->getQs(state), state );
-        poles[i]->setPs( poles_C[i]->getPs(state), state );
-        delete poles_C[i];
-    }
+        vector<Fragment*> ::iterator fit;
+        for (fit = seg->Fragments().begin();
+             fit < seg->Fragments().end();
+             ++fit) {
 
-    poles_C.clear();
+            Fragment *frag = *fit;
 
-    // Partition onto chunks (segments)
-    vector< vector<PolarSite*> > chunks;
-    chunks.resize( int( poles.size()/_period + 0.5) );
+            string idkey = frag->getName() + seg->getName()
+                         + seg->getMolecule()->getName();
+            vector<int> polesInFrag = _alloc_frag_mpoleIdx.at(idkey);
+            vector<string> namesInFrag = _alloc_frag_mpoleName.at(idkey);
 
-    int count = 0;
-    int chunkId = -1;
-    for (int i = 0; i < poles.size(); i++) {
-
-        ++count;
-        count = count % _period;
-        if (count == 1) {
-            ++chunkId;
-        }
-
-        chunks[chunkId].push_back(poles[i]);
-    }
-
-    // Chunk CoMs
-    vector< vec > CoMs;
-    for (int i = 0; i < chunks.size(); ++i) {
-
-        vec CoM = vec(0.,0.,0.);
-        int base = 0;
-        for (int p = 0; p < chunks[i].size(); ++p) {
-            if (chunks[i][p]->getName() != "S") {
-                continue;
+            if (map2md) {
+                if (polesInFrag.size() != frag->Atoms().size()) {
+                    cout << endl << "ERROR: Segment " << seg->getName() <<
+                            " Fragment " << frag->getName() <<
+                            ": MAP2MD = TRUE requires same number of polar sites "
+                            " as there are atoms to perform mapping. " << endl;
+                    throw runtime_error("User not paying attention. ");
+                }
             }
-            else {
-                ++base;
-                CoM += (chunks[i][p])->getPos();
+
+
+            for (int i = 0; i < polesInFrag.size(); i++) {
+
+                string name = namesInFrag[i];
+                int poleId = polesInFrag[i];
+
+                APolarSite *templ = poleSites[poleId-1];
+                APolarSite *newSite = top->AddAPolarSite(name);
+                newSite->ImportFrom(templ);
+                seg->AddAPolarSite(newSite);
+                frag->AddAPolarSite(newSite);
+
+                // Shift + rotate
+                if (!map2md) {
+                    newSite->Translate(frag->getTransQM2MD());
+                    newSite->Rotate(frag->getRotQM2MD(), frag->getCoMD());
+                }
+                else {
+                    vec mdpos = frag->Atoms()[i]->getPos();
+                    newSite->setPos(mdpos);
+                    if (newSite->getRank() > 0) {
+                        cout << endl << "ERROR: MAP2MD = TRUE "
+                        " prevents use of higher-rank multipoles. " << endl;
+                        throw runtime_error("User not paying attention. ");
+                    }
+                }
             }
         }
-
-        assert(base == 4);
-        CoM /= base;
-        CoMs.push_back(CoM);
-
     }
 
-    _poles = poles;
-    _chunks = chunks;
-    _chunkCoMs = CoMs;
+    top->setIsEStatified(true);
+
 }
 
 
@@ -1337,19 +1824,26 @@ void EMultipole_StdAl::DistributeMpoles(Topology *top) {
  * ... Creates, starts threads
  * ... Waits for threads to finish
  */
-bool EMultipole_StdAl::EvaluateFrame(Topology *top) {
+bool QMultipole::EvaluateFrame(Topology *top) {
 
     // ++++++++++++++++++++ //
     // Ridigidfy + Estatify //
     // ++++++++++++++++++++ //
 
-    // Load multipoles from file
-    this->DistributeMpoles(top);
+    // Rigidify if (a) not rigid yet (b) rigidification at all possible
+    if (!top->isRigid()) {
+        bool isRigid = top->Rigidify();
+        if (!isRigid) { return 0; }
+    }
+    else { cout << endl << "... ... System is already rigidified."; }
 
-    cout << endl << "... ... Created " << _poles.size()
-                 << " multipole sites. ";
-    cout << endl << "... ... Created " << _chunks.size()
-                 << " chunks. ";
+    // Forward multipoles to topology
+    if (top->isEStatified() == false) {
+        this->DistributeMpoles(top);
+        cout << endl << "... ... Created " << top->APolarSites().size()
+                 << " multipole sites." << flush;
+    }
+    else { cout << endl << "... ... System is already estatified."; }
 
     if (_checkPolesPDB != "") {
         cout << endl << "... ... Writing polar-site coordinates to "
@@ -1358,53 +1852,40 @@ bool EMultipole_StdAl::EvaluateFrame(Topology *top) {
         string mpNAME = _checkPolesPDB;
         FILE *mpPDB = NULL;
         mpPDB = fopen(mpNAME.c_str(), "w");
-        int chunkId = 0;
-        vector< vector<PolarSite*> >::iterator sit;
-        for (sit = _chunks.begin();
-             sit < _chunks.end();
+        vector<Segment*>::iterator sit;
+        for (sit = top->Segments().begin();
+             sit < top->Segments().end();
              ++sit) {
-            
-            ++chunkId;
-
-            vector < PolarSite* > :: iterator pol;
-            for (pol = (*sit).begin(); pol < (*sit).end(); ++pol) {
-                 int id = (*pol)->getId() % 100000;
-                 string name =  (*pol)->getName();
-                 name.resize(3);
-                 string resname = "RSD";
-                 resname.resize(3);
-                 int resnr = chunkId % 10000;
-                 vec position = (*pol)->getPos();
-
-                 fprintf(mpPDB, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
-                              "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
-                         id,                    // Atom serial number           %5d
-                         name.c_str(),          // Atom name                    %4s
-                         " ",                   // alternate location indicator.%1s
-                         resname.c_str(),       // Residue name.                %3s
-                         "A",                   // Chain identifier             %1s
-                         resnr,                 // Residue sequence number      %4d
-                         " ",                   // Insertion of residues.       %1s
-                         position.getX()*10,    // X in Angstroms               %8.3f
-                         position.getY()*10,    // Y in Angstroms               %8.3f
-                         position.getZ()*10,    // Z in Angstroms               %8.3f
-                         1.0,                   // Occupancy                    %6.2f
-                         0.0,                   // Temperature factor           %6.2f
-                         " ",                   // Segment identifier           %4s
-                         name.c_str(),          // Element symbol               %2s
-                         " "                    // Charge on the atom.          %2s
-                         );
-            }
+            (*sit)->WritePDB(mpPDB, "Multipoles", "Charges");
         }
         fclose(mpPDB);
+
+        string paNAME = "pa_check.xyz";
+        FILE *paXYZ = NULL;
+        paXYZ = fopen(paNAME.c_str(), "w");
+        fprintf(paXYZ, "%6d\n\n", 
+                    4*top->getSegment(1)->APolarSites().size()
+                   +4*top->getSegment(2)->APolarSites().size());
+        vector<APolarSite*>::iterator pit;
+        for (pit = top->getSegment(1)->APolarSites().begin();
+             pit < top->getSegment(1)->APolarSites().end();
+             ++pit) {
+            (*pit)->PrintTensorPDB(paXYZ, -1);
+        }
+        for (pit = top->getSegment(2)->APolarSites().begin();
+             pit < top->getSegment(2)->APolarSites().end();
+             ++pit) {
+            (*pit)->PrintTensorPDB(paXYZ, -1);
+        }
+        fclose(paXYZ);
     }
 
     if (_calcESP && _ESPdoSystem) {
-        ;
+        this->CalculateESPRigid(top);
     }
 
     // What has already been done? If anything at all, return 0.
-    if ( (_calcAlphaMol && !_doSystem) || _calcESP) {
+    if ( (_calcAlphaMol && !_doSystem) || _calcESP || _calcESF) {
 
         cout << endl << "... ... Calculated ";
 
@@ -1413,6 +1894,9 @@ bool EMultipole_StdAl::EvaluateFrame(Topology *top) {
         }
         if (this->_calcESP) {
             cout << "ESPs, ";
+        }
+        if (this->_calcESF) {
+            cout << "ESFs, ";
         }
         cout << "return. ";
         return 0;
@@ -1433,14 +1917,50 @@ bool EMultipole_StdAl::EvaluateFrame(Topology *top) {
         out = fopen(alphaOutFile.c_str(), "w");
 
         vector< Segment* > ::iterator sit;
+        vector< APolarSite* > ::iterator pit;
         for (sit = top->Segments().begin();
              sit < top->Segments().end();
              ++sit) {
 
-            vector< PolarSite* > poles = (*sit)->PolarSites();
+            vector< APolarSite* > poles = (*sit)->APolarSites();
 
-            cout << "\r... ... ... Segment " << (*sit)->getId() << "   ";
-            this->CalculateAlpha(poles, out, true);
+
+            cout << "\r... ... ... Segment " << (*sit)->getId() << " " << flush;
+
+            fprintf(out, "%4d %4s ", (*sit)->getId(),(*sit)->getName().c_str());
+
+            int state = 0;
+            if ( (*sit)->hasChrgState(state) ) {
+                fprintf(out, "N ");
+                for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                    (*pit)->Charge(state);
+                }
+                this->CalculateAlphaRigid(poles, out, true);
+            }
+
+            state = -1;
+            if ( (*sit)->hasChrgState(state) ) {
+                fprintf(out, "A ");
+                for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                    (*pit)->Charge(state);
+                }
+                this->CalculateAlphaRigid(poles, out, true);
+            }
+
+            state = +1;
+            if ( (*sit)->hasChrgState(state) ) {
+                fprintf(out, "C ");
+                for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                    (*pit)->Charge(state);
+                }
+                this->CalculateAlphaRigid(poles, out, true);
+            }
+
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                (*pit)->Charge(0);
+            }
+
+            fprintf(out, " \n");
         }
 
         return 0;
@@ -1451,27 +1971,34 @@ bool EMultipole_StdAl::EvaluateFrame(Topology *top) {
     // Create + start threads (Site Ops) //
     // +++++++++++++++++++++++++++++++++ //
 
-    vector<SiteOpMultipole3*> siteOps;    
+    vector<SiteOpQMultipole*> siteOps;
 
-    _nextSite = 1;
+    // Evaluate energies for range of sites?
+    if (_listSegIds.size() < 1) {
+        _nextSite = top->Segments().begin();
 
-    // Forward to first segment specified in options
-    for ( ; _nextSite < this->_firstSeg; ++_nextSite) { ; }
-
-    cout << endl << "... ... Begin with site " << _nextSite << flush;
-
-    for (int id = 0; id < _nThreads; id++) {
-        SiteOpMultipole3 *newOp = new SiteOpMultipole3(id, top, this);
-        siteOps.push_back(newOp);
+        // Forward to first segment specified in options
+        for ( ; (*_nextSite)->getId() != this->_firstSeg &&
+                  _nextSite < top->Segments().end(); ++_nextSite) { ; }
+    }
+    // Evaluate energies for list of sites?
+    else {
+        for (int i = 0; i < _listSegIds.size(); ++i) {
+            int segId = _listSegIds[i];
+            _listSegs.push_back(top->getSegment(segId));
+        }
+        _nextSite = _listSegs.begin();
     }
 
-    cout << endl << "... ... Created threads. " << flush;
+
+    for (int id = 0; id < _nThreads; id++) {
+        SiteOpQMultipole *newOp = new SiteOpQMultipole(id, top, this);
+        siteOps.push_back(newOp);
+    }
 
     for (int id = 0; id < _nThreads; id++) {
         siteOps[id]->InitSlotData(top);
     }
-
-    cout << endl << "... ... Init. slot data. " << flush;
 
     for (int id = 0; id < _nThreads; id++) {
         siteOps[id]->Start();
@@ -1500,56 +2027,106 @@ bool EMultipole_StdAl::EvaluateFrame(Topology *top) {
                           + "_" + _outFile;
         out = fopen(topOutFile.c_str(), "w");
 
+        vector< Segment* > ::iterator sit;
+        for (sit = _log_evaluated_segs.begin();
+             sit < _log_evaluated_segs.end();
+             ++sit) {
 
-        map< int, double > ::iterator mit_N;
-        map< int, double > ::iterator mit_C;
-        for (mit_N = this->_chunkEnergiesN.begin(), mit_C = _chunkEnergiesC.begin();
-             mit_N != _chunkEnergiesN.end(), mit_C != _chunkEnergiesC.end();
-             ++mit_N, ++mit_C) {
+            fprintf(out, "%4d ", (*sit)->getId() );
+            fprintf(out, "%4s ", (*sit)->getName().c_str() );
 
-            assert(mit_N->first == mit_C->first);
+            // Energies
+            if ((*sit)->hasChrgState(0)) {
+                fprintf(out, "   0 %3.8f   ", (*sit)->getEMpoles(0) );
+            }
+            if ((*sit)->hasChrgState(-1)) {
+                fprintf(out, "  -1 %3.8f   ", (*sit)->getEMpoles(-1) );
+            }
 
-            fprintf(out, "%4d ", mit_N->first );
-            fprintf(out, "SEG ");
+            if ((*sit)->hasChrgState(+1)) {
+                fprintf(out, "  +1 %3.8f   ", (*sit)->getEMpoles(+1) );
+            }
 
-            fprintf(out, "   0 %3.8f   ", mit_N->second );
-            fprintf(out, "  +1 %3.8f   ", mit_C->second );
+            // Iterations
+            if ((*sit)->hasChrgState(0)) {
+                fprintf(out, "   0 %3d   ", _log_seg_iter[(*sit)->getId()][1]);
+            }
+            if ((*sit)->hasChrgState(-1)) {
+                fprintf(out, "  -1 %3d   ", _log_seg_iter[(*sit)->getId()][0]);
+            }
+
+            if ((*sit)->hasChrgState(+1)) {
+                fprintf(out, "  +1 %3d   ", _log_seg_iter[(*sit)->getId()][2]);
+            }
+
+            // Polarizable sphere
+            fprintf(out, "   SPH %4d   ",
+                    _log_seg_sphereSize[(*sit)->getId()]);
+
+            fprintf(out, "   %4.7f %4.7f %4.7f   ",
+                    _log_seg_com[(*sit)->getId()].getX(),
+                    _log_seg_com[(*sit)->getId()].getY(),
+                    _log_seg_com[(*sit)->getId()].getZ());
 
             fprintf(out, " \n");
 
         }
-
-        fclose(out);
-
     }
 
+    this->PostProcess(top);
     return 1;
 }
+
+
+// +++++++++++++++++ //
+// Thread Management //
+// +++++++++++++++++ //
 
 
 /**
  * Provides next segment for thread upon request
  * @return Pointer to next segment
  */
-int EMultipole_StdAl::RequestNextSite(int opId, Topology *top) {
+Segment *QMultipole::RequestNextSite(int opId, Topology *top) {
 
     _nextSiteMutex.Lock();
 
-    int workOnThis;
+    Segment *workOnThis;
 
-    if (_nextSite > _chunks.size()) {
-        workOnThis = -1;
+
+    // Evaluate energies for range of sites?
+    if (_listSegs.size() < 1) {
+        if (_nextSite == top->Segments().end()) {
+            workOnThis = NULL;
+        }
+        else if ((*_nextSite)->getId() > _lastSeg && _lastSeg > 0) {
+            workOnThis = NULL;
+        }
+        else {
+            workOnThis = *_nextSite;
+            _nextSite++;
+            cout << endl << "... ... Thread " << opId
+                 << " evaluating energy for site "
+                 << workOnThis->getId() << flush;
+        }
     }
-    else if (_nextSite > _lastSeg && _lastSeg > 0) {
-        workOnThis = -1;
-    }
+
+    // Evaluate energies for list of sites?
     else {
-        workOnThis = _nextSite;
-        _nextSite++;
-        cout << endl << "... ... OP " << opId
-             << " evaluating energy for site "
-             << workOnThis << flush;
+        if (_nextSite == _listSegs.end()) {
+            workOnThis = NULL;
+        }
+        else {
+            workOnThis = *_nextSite;
+            _nextSite++;
+            cout << endl << "... ... Thread " << opId
+                 << " evaluating energy for site "
+                 << workOnThis->getId() << flush;
+        }
     }
+
+
+
 
     _nextSiteMutex.Unlock();
 
@@ -1561,35 +2138,13 @@ int EMultipole_StdAl::RequestNextSite(int opId, Topology *top) {
 // SiteOperator Member Functions //
 // +++++++++++++++++++++++++++++ //
 
-
-/**
- * Deletes all private thread data, in particular copies of polar sites
- */
-EMultipole_StdAl::SiteOpMultipole3::~SiteOpMultipole3() {
-
-    vector< vector<PolarSite*> > ::iterator sit;
-    vector<PolarSite*> ::iterator pol;
-
-    for (sit = _polarSites.begin(); sit < _polarSites.end(); ++sit) {
-        for (pol = (*sit).begin(); pol < (*sit).end(); ++pol) {
-            delete *pol;
-        }
-        (*sit).clear();
-    }
-    _polarSites.clear();
-}
-
-
-/**
- * Thread execution function (overloaded, called in ::EvaluateFrame()
- */
-void EMultipole_StdAl::SiteOpMultipole3::Run(void) {
+void QMultipole::SiteOpQMultipole::Run(void) {
 
     while (true) {
 
         _seg = _master->RequestNextSite(_id, _top);
 
-        if (_seg == -1) { break; }
+        if (_seg == NULL) { break; }
         else { this->EvalSite(_top, _seg); }
     }
 }
@@ -1599,34 +2154,51 @@ void EMultipole_StdAl::SiteOpMultipole3::Run(void) {
  * Creates private copies of polar sites in topology and
  * arranges them by segments so as to avoid mutexes.
  */
-void EMultipole_StdAl::SiteOpMultipole3::InitSlotData(Topology *top) {
-    
+void QMultipole::SiteOpQMultipole::InitSlotData(Topology *top) {
 
-    vector< vector<PolarSite*> > ::iterator sitRef;
-    vector< vector<PolarSite*> > ::iterator sitNew;
-    vector< PolarSite* > ::iterator pitRef;
-    vector< PolarSite* > ::iterator pitNew;
-    
-    _polarSites.resize(_master->_chunks.size());
-    _chunkCoMs = _master->_chunkCoMs;
-    assert(_master->_chunks.size() == _polarSites.size());
 
-    for (sitRef = _master->_chunks.begin(), sitNew = _polarSites.begin();
-         sitRef < _master->_chunks.end();
+    vector< Segment* > ::iterator sitRef;
+    vector< vector<APolarSite*> > ::iterator sitNew;
+    vector< APolarSite* > ::iterator pitRef;
+    vector< APolarSite* > ::iterator pitNew;
+
+    _APolarSites.resize(top->Segments().size());
+    assert(top->Segments().size() == _APolarSites.size());
+
+    for (sitRef = top->Segments().begin(), sitNew = _APolarSites.begin();
+         sitRef < top->Segments().end();
          ++sitRef, ++sitNew) {
 
-        (*sitNew).resize((*sitRef).size());
+        (*sitNew).resize((*sitRef)->APolarSites().size());
 
-        for (pitRef = (*sitRef).begin(),
+        for (pitRef = (*sitRef)->APolarSites().begin(),
              pitNew = (*sitNew).begin();
-             pitRef < (*sitRef).end();
+             pitRef < (*sitRef)->APolarSites().end();
              ++pitRef, ++ pitNew) {
 
-            *pitNew = new PolarSite();
+            *pitNew = new APolarSite();
             (*pitNew)->ImportFrom(*pitRef, "full");
             (*pitNew)->Charge(0);
         }
     }
+}
+
+
+/**
+ * Deletes all private thread data, in particular copies of polar sites
+ */
+QMultipole::SiteOpQMultipole::~SiteOpQMultipole() {
+
+    vector< vector<APolarSite*> > ::iterator sit;
+    vector<APolarSite*> ::iterator pol;
+
+    for (sit = _APolarSites.begin(); sit < _APolarSites.end(); ++sit) {
+        for (pol = (*sit).begin(); pol < (*sit).end(); ++pol) {
+            delete *pol;
+        }
+        (*sit).clear();
+    }
+    _APolarSites.clear();
 }
 
 
@@ -1636,7 +2208,7 @@ void EMultipole_StdAl::SiteOpMultipole3::InitSlotData(Topology *top) {
  * ... Check which charges states are available
  * ... For each charge state: Charge, Induce, Energy, Depolarize
  */
-void EMultipole_StdAl::SiteOpMultipole3::EvalSite(Topology *top, int seg) {
+void QMultipole::SiteOpQMultipole::EvalSite(Topology *top, Segment *seg) {
 
     double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
@@ -1644,21 +2216,39 @@ void EMultipole_StdAl::SiteOpMultipole3::EvalSite(Topology *top, int seg) {
     // Define polarization sphere //
     // ++++++++++++++++++++++++++ //
 
-    this->_segsPolSphere.clear(); // <- Segments within cutoff
+    this->_segsPolSphere.clear(); // <- Segments    within cutoff
+    this->_segsOutSphere.clear(); // <- Segments    within cutoff1, cutoff2
     this->_polsPolSphere.clear(); // <- Polar sites within cutoff
+    this->_polsOutSphere.clear(); // <- Polar sites within cutoff1, cutoff2
 
-    vec thisCoM = _chunkCoMs[seg-1];
-    for (int i = 0; i < this->_chunkCoMs.size(); ++i) {
-        if ( abs(_top->PbShortestConnect(thisCoM,_chunkCoMs[i]))
-                > _master->_cutoff) { continue; }
+    vector<Segment*> ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+
+        double r12 = abs(_top->PbShortestConnect((*sit)->getPos(),
+                                                    seg->getPos()));
+
+        if      ( r12 > _master->_cutoff2) { continue; }
+
+        else if ( r12 > _master->_cutoff ) {
+            _segsOutSphere.push_back(*sit);
+            _polsOutSphere.push_back( _APolarSites[(*sit)->getId() - 1] );
+        }
         else {
-            _polsPolSphere.push_back( this->_polarSites[i] );
+            _segsPolSphere.push_back(*sit);
+            _polsPolSphere.push_back( _APolarSites[(*sit)->getId() - 1] );
         }
     }
 
-    if (this->_master->_maverick) {
-        this->CheckPolarSphere();
-    }
+
+//    FILE *out;
+//    string shellFile = "OuterShell.pdb";
+//    out = fopen(shellFile.c_str(), "w");
+//    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+//        (*sit)->WritePDB(out, "Multipoles", "");
+//    }
+//    fclose(out);
+
+
 
     // +++++++++++++++++++++++++ //
     // Investigate charge states //
@@ -1667,32 +2257,72 @@ void EMultipole_StdAl::SiteOpMultipole3::EvalSite(Topology *top, int seg) {
     if (_master->_maverick) {
         cout << endl
              << "... ... ... Segments in polarization sphere: "
-             << _polsPolSphere.size() << flush;
+             << _segsPolSphere.size()
+             << "; segments in static shell: "
+             << _segsOutSphere.size()
+             << flush;
     }
-    
+
     this->Depolarize();
 
-    int state = +1;
-    if (true) { // OVERRIDE
+    // Make sure, outer shell also depolarized, according to strategy
+    vector< vector<APolarSite*> > ::iterator sit1;
+    vector<APolarSite*> ::iterator pit;
+    for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
+        for (pit = (*sit1).begin(); pit < (*sit1).end(); ++pit) {
+            (*pit)->Depolarize();
+        }
+    }
+
+    // Keep track of number of iterations needed until converged
+    vector<int> iters;
+    iters.resize(3);
+
+    int state = 0;
+    if (_seg->hasChrgState(state)) {
 
         if (_master->_maverick) {
-            cout << endl << "... ... ... Seg " << seg
+            cout << endl << "... ... ... Seg " << seg->getId()
                          << " Charge " << state << flush;
         }
 
         this->Charge(state);
-        if (_master->_induce) this->Induce(state);
-        double EState = this->Energy(state);
-        _master->LockCout();
-        _master->_chunkEnergiesC[seg] = int2eV * EState;
-        _master->UnlockCout();
+        int iter = 0;
+        if (_master->_induce) iter = this->Induce(state);
+        double EState = 0.0;
+        if (_master->_induce) EState = this->Energy(state);
+        else                 EState = this->EnergyStatic(state);
+        _seg->setEMpoles(state, int2eV * EState);
+        iters[state+1] = iter;
 
-        
+
+
+//        FILE *out;
+//        string toFile = boost::lexical_cast<string>(_seg->getId())
+//                      + "_R_absU_N.dat";
+//        out = fopen(toFile.c_str(), "w");
+//        vector< APolarSite* > ::iterator pit;
+//        vector< vector< APolarSite* > > ::iterator sit;
+//        vec CoM = _seg->getPos();
+//        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
+//            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+//                vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
+//                int segId = (*pit)->getSegment()->getId();
+//                double R = abs(r);
+//                vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
+//                // double U = abs(u);
+//                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f %4d\n",
+//                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ(), segId);
+//            }
+//        }
+//        fclose(out);
+
+
 //        // For visual check of convergence
 //        string mpNAME = "seg1_cation.dat";
 //        FILE *mpDat = NULL;
 //        mpDat = fopen(mpNAME.c_str(), "w");
-//        vector<PolarSite*>::iterator pit;
+//        vector<APolarSite*>::iterator pit;
 //        for (pit = _polsPolSphere[0].begin();
 //             pit < _polsPolSphere[0].end();
 //             ++pit) {
@@ -1704,30 +2334,42 @@ void EMultipole_StdAl::SiteOpMultipole3::EvalSite(Topology *top, int seg) {
 //            (*pit)->PrintInfoVisual(mpDat);
 //        }
 //        fclose(mpDat);
-        
 
-        this->Depolarize();
+        // this->Depolarize(); // OVERRIDE
+        vector< vector<APolarSite*> > ::iterator sit1;
+        vector< APolarSite* > ::iterator pit1;
+        for (sit1 = _polsPolSphere.begin(); sit1 < _polsPolSphere.end(); ++sit1) {
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+                (*pit1)->ResetFieldU();
+                (*pit1)->ResetFieldP();
+                (*pit1)->ResetU1Hist();
+            }
+        }
     }
 
     state = -1;
-    if (false) { // OVERRIDE
+    if (_seg->hasChrgState(state)) {
 
         if (_master->_maverick) {
-            cout << endl << "... ... ... Seg " << seg
+            cout << endl << "... ... ... Seg " << seg->getId()
                          << " Charge " << state << flush;
         }
 
         this->Charge(state);
-        if (_master->_induce) this->Induce(state);
-        double EState = this->Energy(state);
-        assert(false);
+        int iter = 0;
+        if (_master->_induce) iter = this->Induce(state);
+        double EState = 0.0;
+        if (_master->_induce) EState = this->Energy(state);
+        else                 EState = this->EnergyStatic(state);
+        _seg->setEMpoles(state, int2eV * EState);
+        iters[state+1] = iter;
 
         /*
         // For visual check of convergence
         string mpNAME = "seg1_cation.dat";
         FILE *mpDat = NULL;
         mpDat = fopen(mpNAME.c_str(), "w");
-        vector<PolarSite*>::iterator pit;
+        vector<APolarSite*>::iterator pit;
         for (pit = _polsPolSphere[0].begin();
              pit < _polsPolSphere[0].end();
              ++pit) {
@@ -1736,30 +2378,63 @@ void EMultipole_StdAl::SiteOpMultipole3::EvalSite(Topology *top, int seg) {
         fclose(mpDat);
         */
 
-        this->Depolarize();
+        // this->Depolarize(); // OVERRIDE
+        vector< vector<APolarSite*> > ::iterator sit1;
+        vector< APolarSite* > ::iterator pit1;
+        for (sit1 = _polsPolSphere.begin(); sit1 < _polsPolSphere.end(); ++sit1) {
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+                (*pit1)->ResetFieldU();
+                (*pit1)->ResetFieldP();
+                (*pit1)->ResetU1Hist();
+            }
+        }
     }
 
-    state = 0;
-    if (true) { // OVERRIDE
+    state = +1;
+    if (_seg->hasChrgState(state)) {
 
         if (_master->_maverick) {
-            cout << endl << "... ... ... Seg " << seg
+            cout << endl << "... ... ... Seg " << seg->getId()
                          << " Charge " << state << flush;
         }
-        
-        this->Charge(state);
-        if (_master->_induce) this->Induce(state);
-        double EState = this->Energy(state);
-        _master->LockCout();
-        _master->_chunkEnergiesN[seg] = int2eV * EState;
-        _master->UnlockCout();
 
-        
+        this->Charge(state);
+        int iter = 0;
+        if (_master->_induce) iter = this->Induce(state);
+        double EState = 0.0;
+        if (_master->_induce) EState = this->Energy(state);
+        else                  EState = this->EnergyStatic(state);
+        _seg->setEMpoles(state, int2eV * EState);
+        iters[state+1] = iter;
+
+
+
+//        FILE *out;
+//        string toFile = boost::lexical_cast<string>(_seg->getId())
+//                      + "_R_absU_C.dat";
+//        out = fopen(toFile.c_str(), "w");
+//        vector< APolarSite* > ::iterator pit;
+//        vector< vector< APolarSite* > > ::iterator sit;
+//        vec CoM = _seg->getPos();
+//        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
+//            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
+//                vec r  = _top->PbShortestConnect((*pit)->getPos(), CoM);
+//                int segId = (*pit)->getSegment()->getId();
+//                double R = abs(r);
+//                vec u = vec( (*pit)->U1x, (*pit)->U1y, (*pit)->U1z );
+//                // double U = abs(u);
+//                fprintf(out, "%4.7f %4.7f %4.7f %4.7f  %4.7f %4.7f %4.7f %4d \n",
+//                              R, r.getX(), r.getY(), r.getZ(), u.getX(), u.getY(), u.getZ(), segId);
+//            }
+//        }
+//        fclose(out);
+
+
 //        // For visual check of convergence
 //        string mpNAME = "seg1_neutral.dat";
 //        FILE *mpDat = NULL;
 //        mpDat = fopen(mpNAME.c_str(), "w");
-//        vector<PolarSite*>::iterator pit;
+//        vector<APolarSite*>::iterator pit;
 //        for (pit = _polsPolSphere[0].begin();
 //             pit < _polsPolSphere[0].end();
 //             ++pit) {
@@ -1771,74 +2446,21 @@ void EMultipole_StdAl::SiteOpMultipole3::EvalSite(Topology *top, int seg) {
 //            (*pit)->PrintInfoVisual(mpDat);
 //        }
 //        fclose(mpDat);
-        
-        
+
+
         this->Depolarize();
+
     }
 
-}
+    this->_master->_logMutex.Lock();
+    _master->_log_seg_iter[_seg->getId()] = iters;
+    _master->_log_seg_sphereSize[_seg->getId()] = _polsPolSphere.size();
+    _master->_log_seg_com[_seg->getId()] = _seg->getPos();
+    _master->_log_evaluated_segs.push_back(_seg);
+    this->_master->_logMutex.Unlock();
 
+    this->Charge(0);
 
-/**
- * Writes PDB listing coordinates of all polar sites in polarizable sphere
- */
-void EMultipole_StdAl::SiteOpMultipole3::CheckPolarSphere() {
-
-    string mpNAME = "PolarSphere.pdb";
-    FILE *mpPDB = NULL;
-    mpPDB = fopen(mpNAME.c_str(), "w");
-    int chunkId = 0;
-    vector< vector<PolarSite*> >::iterator sit;
-    for (sit = _polsPolSphere.begin();
-         sit < _polsPolSphere.end();
-         ++sit) {
-
-        ++chunkId;
-
-        vector < PolarSite* > :: iterator pol;
-        for (pol = (*sit).begin(); pol < (*sit).end(); ++pol) {
-             int id = (*pol)->getId() % 100000;
-             string name =  (*pol)->getName();
-             name.resize(3);
-             string resname = "RSD";
-             resname.resize(3);
-             int resnr = chunkId % 10000;
-             vec position = (*pol)->getPos();
-
-             fprintf(mpPDB, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
-                          "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s\n",
-                     id,                    // Atom serial number         %5d
-                     name.c_str(),          // Atom name                  %4s
-                     " ",                   //                            %1s
-                     resname.c_str(),       // Residue name.              %3s
-                     "A",                   // Chain identifier           %1s
-                     resnr,                 // Residue sequence number    %4d
-                     " ",                   // Insertion of residues.     %1s
-                     position.getX()*10,    // X in Angstroms             %8.3f
-                     position.getY()*10,    // Y in Angstroms             %8.3f
-                     position.getZ()*10,    // Z in Angstroms             %8.3f
-                     1.0,                   // Occupancy                  %6.2f
-                     0.0,                   // Temperature factor         %6.2f
-                     " ",                   // Segment identifier         %4s
-                     name.c_str(),          // Element symbol             %2s
-                     " "                    // Charge on the atom.        %2s
-                     );
-        }
-    }
-    fclose(mpPDB);
-
-    mpNAME = "chunk_coms.xyz";
-    mpPDB = fopen(mpNAME.c_str(), "w");
-    chunkId = 0;
-    fprintf(mpPDB, "%5d \n\n", _master->_chunkCoMs.size());
-
-    for ( ; chunkId < _master->_chunkCoMs.size(); ++chunkId) {
-        fprintf(mpPDB, "C %3.8f %3.8f %3.8f \n",
-                _master->_chunkCoMs[chunkId].getX()*10,
-                _master->_chunkCoMs[chunkId].getY()*10,
-                _master->_chunkCoMs[chunkId].getZ()*10);
-    }
-    fclose(mpPDB);
 }
 
 
@@ -1846,11 +2468,11 @@ void EMultipole_StdAl::SiteOpMultipole3::CheckPolarSphere() {
  * Charges polar sites in segment to state specified
  * @param state
  */
-void EMultipole_StdAl::SiteOpMultipole3::Charge(int state) {
+void QMultipole::SiteOpQMultipole::Charge(int state) {
 
-    vector< PolarSite* > ::iterator pit;
-    for (pit = _polarSites[_seg-1].begin();
-         pit < _polarSites[_seg-1].end();
+    vector< APolarSite* > ::iterator pit;
+    for (pit = _APolarSites[_seg->getId()-1].begin();
+         pit < _APolarSites[_seg->getId()-1].end();
          ++pit) {
 
         (*pit)->Charge(state);
@@ -1861,16 +2483,16 @@ void EMultipole_StdAl::SiteOpMultipole3::Charge(int state) {
 /**
  * Calculates induced dipole moments using the Thole Model + SOR
  */
-void EMultipole_StdAl::SiteOpMultipole3::Induce(int state) {
+int QMultipole::SiteOpQMultipole::Induce(int state) {
 
     double wSOR = (state == 0) ? _master->_wSOR_N : _master->_wSOR_C;
     double eTOL = this->_master->_epsTol;
     int    maxI = this->_master->_maxIter;
 
-    vector< vector<PolarSite*> > ::iterator sit1;
-    vector< vector<PolarSite*> > ::iterator sit2;
-    vector< PolarSite* > ::iterator pit1;
-    vector< PolarSite* > ::iterator pit2;
+    vector< vector<APolarSite*> > ::iterator sit1;
+    vector< vector<APolarSite*> > ::iterator sit2;
+    vector< APolarSite* > ::iterator pit1;
+    vector< APolarSite* > ::iterator pit2;
 
     // ++++++++++++++++++++++++++++++++++++++++++++++ //
     // Inter-site fields (arising from perm. m'poles) //
@@ -1896,14 +2518,17 @@ void EMultipole_StdAl::SiteOpMultipole3::Induce(int state) {
     // +++++++++++++++++++ //
 
 //    cout << " | Induce " << endl;
-    for (sit1 = _polsPolSphere.begin();
-         sit1 < _polsPolSphere.end();
-         ++sit1) {
+    if (state == 0) { // OVERRIDE
+        for (sit1 = _polsPolSphere.begin();
+             sit1 < _polsPolSphere.end();
+             ++sit1) {
 
-         for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-             (*pit1)->InduceDirect();
-         }
+             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+                 (*pit1)->InduceDirect();
+             }
+        }
     }
+
 
 
     // ++++++++++++++++++++++ //
@@ -1966,7 +2591,7 @@ void EMultipole_StdAl::SiteOpMultipole3::Induce(int state) {
              for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
                  (*pit1)->Induce(wSOR);
              }
-        }        
+        }
 
         // Check for convergence
 //        cout << " | Check (" << iter << ")" << flush;
@@ -2000,58 +2625,105 @@ void EMultipole_StdAl::SiteOpMultipole3::Induce(int state) {
         else if (iter == maxI - 1) {
             this->_master->LockCout();
             cout << endl << "... ... ... WARNING Induced multipoles for site "
-                 << _seg << " - state " << state 
+                 << _seg->getId() << " - state " << state
                  << " did not converge to precision: "
                  << " AVG dU:U " << avgdU << flush;
             this->_master->UnlockCout();
             break;
         }
     }
-    
+
+    return iter;
+
 //    cout << endl << "... ... ... State " << state
 //         << " - wSOR " << wSOR
 //         << " - Iterations " << iter << flush;
 }
 
 
-/**
- * Calculates electrostatic energy of segment up to Q2-Q2
- */
-double EMultipole_StdAl::SiteOpMultipole3::Energy(int state) {
+double QMultipole::SiteOpQMultipole::EnergyStatic(int state) {
+
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     _actor.ResetEnergy();
     double E_Tot = 0.0;
 
-    vector< vector<PolarSite*> > ::iterator sit1;
-    vector< vector<PolarSite*> > ::iterator sit2;
-    vector< PolarSite* > ::iterator pit1;
-    vector< PolarSite* > ::iterator pit2;
+    vector< Segment* > ::iterator seg1;
+    vector< Segment* > ::iterator seg2;
+    vector< vector<APolarSite*> > ::iterator sit1;
+    vector< vector<APolarSite*> > ::iterator sit2;
+    vector< APolarSite* > ::iterator pit1;
+    vector< APolarSite* > ::iterator pit2;
+
+    vector< APolarSite* > central = _APolarSites[ _seg->getId() - 1 ];
+
+
+    for (seg1 = _segsPolSphere.begin(); seg1 < _segsPolSphere.end(); ++seg1) {
+
+        int id = (*seg1)->getId();
+
+        if (id == _seg->getId()) {
+            continue;
+        }
+
+        for (pit1 = _APolarSites[id-1].begin();
+             pit1 < _APolarSites[id-1].end();
+             ++pit1) {
+        for (pit2 = central.begin();
+             pit2 < central.end();
+             ++pit2) {
+
+             E_Tot += _actor.EnergyInter(*(*pit1), *(*pit2));
+        }}
+    }
+
+    if (_master->_maverick) {
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " = (P ~) " << _actor.getEP() * int2eV
+             << " + (U ~) " << _actor.getEU_INTER() * int2eV
+             << " + (U o) " << _actor.getEU_INTRA() * int2eV
+             << " , statics only. "
+             << flush;
+    }
+
+    return E_Tot;
+}
+
+
+/**
+ * Calculates electrostatic + induction energy of segment up to Q2-Q2
+ */
+double QMultipole::SiteOpQMultipole::Energy(int state) {
+
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+
+    _actor.ResetEnergy();
+    double E_Tot = 0.0;
+
+    vector< Segment* > ::iterator seg1;
+    vector< Segment* > ::iterator seg2;
+    vector< vector<APolarSite*> > ::iterator sit1;
+    vector< vector<APolarSite*> > ::iterator sit2;
+    vector< APolarSite* > ::iterator pit1;
+    vector< APolarSite* > ::iterator pit2;
 
     // +++++++++++++++++ //
     // Inter-site energy //
     // +++++++++++++++++ //
 
-    for (sit1 = _polsPolSphere.begin();
+    for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
          sit1 < _polsPolSphere.end();
-         ++sit1) {
-    for (sit2 = sit1 + 1;
+         ++sit1, ++seg1) {
+    for (sit2 = sit1 + 1, seg2 = seg1 + 1;
          sit2 < _polsPolSphere.end();
-         ++sit2) {
-
-        //if ( abs(_top->PbShortestConnect((*seg1)->getPos(),_seg->getPos()))
-        //        > _master->_cutoff) { throw runtime_error("Not this."); }
-
-        //cout << "\r... ... Calculating interaction energy for pair "
-        //     << (*seg1)->getId() << "|" << (*seg2)->getId() << "   " << flush;
-
+         ++sit2, ++seg2) {
 
         for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
         for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
 
-            //(*pit1)->PrintInfo(cout);
-            //(*pit2)->PrintInfo(cout);
-
-            E_Tot += _actor.EnergyInter(*(*pit1), *(*pit2));
+            E_Tot += _actor.E_f(*(*pit1), *(*pit2));
+            E_Tot += _actor.E_m(*(*pit1), *(*pit2));
+            E_Tot += _actor.E_m(*(*pit2), *(*pit1));
 
         }}
     }}
@@ -2060,23 +2732,53 @@ double EMultipole_StdAl::SiteOpMultipole3::Energy(int state) {
     // Intra-site energy //
     // +++++++++++++++++ //
 
-    for (sit1 = _polsPolSphere.begin();
-         sit1 < _polsPolSphere.end();
-         ++sit1) {
-
-        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-        for (pit2 = pit1 + 1; pit2 < (*sit1).end(); ++pit2) {
-
+//    // Not needed here
+//    for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
+//         sit1 < _polsPolSphere.end();
+//         ++sit1, ++seg1) {
+//
+//        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+//        for (pit2 = pit1 + 1; pit2 < (*sit1).end(); ++pit2) {
+//
 //            E_Tot += _actor.EnergyIntra(*(*pit1), *(*pit2)); // OVERRIDE
+//
+//        }}
+//    }
 
-        }}
+    // ++++++++++++++++++ //
+    // Outer-Shell energy //
+    // ++++++++++++++++++ //
+
+    double E_Out = 0.0;
+
+    vector< APolarSite* > central = _APolarSites[ _seg->getId() - 1 ];
+
+    for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
+        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = central.begin(); pit2 < central.end(); ++pit2) {
+                E_Out += _actor.E_f(*(*pit1), *(*pit2));
+                E_Out += _actor.E_m(*(*pit2), *(*pit1));
+            }
+        }
+    }
+    E_Tot += E_Out;
+
+
+    if (_master->_maverick) {
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " = (P ~) " << _actor.getEP()       * int2eV
+             << " + (U ~) " << _actor.getEU_INTER() * int2eV
+             << " + (U o) " << _actor.getEU_INTRA() * int2eV
+             << " , (O ~) " << E_Out * int2eV
+             << flush;
     }
     
     if (_master->_maverick) {
-        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot
-             << " = (P ~) " << _actor.getEP()
-             << " + (U ~) " << _actor.getEU_INTER()
-             << " + (U o) " << _actor.getEU_INTRA();
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " = (PP ~) " << _actor.getEPP() * int2eV
+             << " + (PU ~) " << _actor.getEPU() * int2eV
+             << " + (UU ~) " << _actor.getEUU() * int2eV
+             << flush;
     }
 
     return E_Tot;
@@ -2087,10 +2789,10 @@ double EMultipole_StdAl::SiteOpMultipole3::Energy(int state) {
  * Zeroes out induced moments and induction fields for all polar sites
  * in polarizable sphere
  */
-void EMultipole_StdAl::SiteOpMultipole3::Depolarize() {
+void QMultipole::SiteOpQMultipole::Depolarize() {
 
-    vector< vector<PolarSite*> > ::iterator sit;
-    vector< PolarSite* > ::iterator pit;
+    vector< vector<APolarSite*> > ::iterator sit;
+    vector< APolarSite* > ::iterator pit;
 
     for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
         for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
@@ -2102,14 +2804,14 @@ void EMultipole_StdAl::SiteOpMultipole3::Depolarize() {
 
 
 // +++++++++++++++++++++++++++ //
-// Interactor3 Member Functions //
+// Interactor Member Functions //
 // +++++++++++++++++++++++++++ //
 
 /**
  * Used in ESP calculator (initialize stage of EMultipole)
  */
-inline double EMultipole_StdAl::Interactor3::PotentialPerm(vec r,
-                                                     PolarSite &pol) {
+inline double QMultipole::Interactor::PotentialPerm(vec r,
+                                                     APolarSite &pol) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol.getPos() - r;
@@ -2120,7 +2822,7 @@ inline double EMultipole_StdAl::Interactor3::PotentialPerm(vec r,
     R5   = R4*R;
     e12 *= R;
 
-    
+
 
 
     rbx = - pol._locX * e12;
@@ -2128,15 +2830,15 @@ inline double EMultipole_StdAl::Interactor3::PotentialPerm(vec r,
     rbz = - pol._locZ * e12;
 
     double phi00 = 0.0;
-    
+
         phi00 += T00_00() * pol.Q00;
-    
-    if (pol._rank > 0) {        
+
+    if (pol._rank > 0) {
         phi00 += T00_1x() * pol.Q1x;
         phi00 += T00_1y() * pol.Q1y;
-        phi00 += T00_1z() * pol.Q1z;        
+        phi00 += T00_1z() * pol.Q1z;
     }
-        
+
     if (pol._rank > 1) {
         phi00 += T00_20()  * pol.Q20;
         phi00 += T00_21c() * pol.Q21c;
@@ -2151,8 +2853,8 @@ inline double EMultipole_StdAl::Interactor3::PotentialPerm(vec r,
 /**
  * Used in ESF calculator (initialize stage of EMultipole)
  */
-inline vec EMultipole_StdAl::Interactor3::FieldPermESF(vec r,
-                                                 PolarSite &pol) {
+inline vec QMultipole::Interactor::FieldPermESF(vec r,
+                                                 APolarSite &pol) {
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol.getPos() - r;
     R    = 1/abs(e12);
@@ -2230,8 +2932,8 @@ inline vec EMultipole_StdAl::Interactor3::FieldPermESF(vec r,
 /**
  * Used in molecular-polarizability calculator (initialize stage)
  */
-inline void EMultipole_StdAl::Interactor3::FieldInduAlpha(PolarSite &pol1,
-                                                    PolarSite &pol2) {
+inline void QMultipole::Interactor::FieldInduAlpha(APolarSite &pol1,
+                                                    APolarSite &pol2) {
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol2.getPos() - pol1.getPos();
     R    = 1/abs(e12);
@@ -2243,7 +2945,7 @@ inline void EMultipole_StdAl::Interactor3::FieldInduAlpha(PolarSite &pol1,
 
     // Thole damping init.
     a    = _em->_aDamp;
-    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;
@@ -2328,8 +3030,8 @@ inline void EMultipole_StdAl::Interactor3::FieldInduAlpha(PolarSite &pol1,
 /**
  * Used in self-consistent field calculation (evaluation stage)
  */
-inline void EMultipole_StdAl::Interactor3::FieldIndu(PolarSite &pol1,
-                                               PolarSite &pol2) {
+inline void QMultipole::Interactor::FieldIndu(APolarSite &pol1,
+                                               APolarSite &pol2) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     //          This implies that induced = - alpha * field
@@ -2343,7 +3045,7 @@ inline void EMultipole_StdAl::Interactor3::FieldIndu(PolarSite &pol1,
 
     // Thole damping init.
     a    = _em->_aDamp;
-    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;
@@ -2421,15 +3123,15 @@ inline void EMultipole_StdAl::Interactor3::FieldIndu(PolarSite &pol1,
         pol2.FUy += T1z_1y() * pol1.U1z;
         pol2.FUz += T1x_1z() * pol1.U1x;
         pol2.FUz += T1y_1z() * pol1.U1y;
-        pol2.FUz += T1z_1z() * pol1.U1z;  
+        pol2.FUz += T1z_1z() * pol1.U1z;
     }
 }
 
 /**
  * Used in self-consistent field calculation (evaluation stage)
  */
-inline void EMultipole_StdAl::Interactor3::FieldPerm(PolarSite &pol1,
-                                               PolarSite &pol2) {
+inline void QMultipole::Interactor::FieldPerm(APolarSite &pol1,
+                                               APolarSite &pol2) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     //          This implies that induced = - alpha * field
@@ -2547,15 +3249,15 @@ inline void EMultipole_StdAl::Interactor3::FieldPerm(PolarSite &pol1,
         pol2.FPz += T21c_1z() * pol1.Q21c;
         pol2.FPz += T21s_1z() * pol1.Q21s;
         pol2.FPz += T22c_1z() * pol1.Q22c;
-        pol2.FPz += T22s_1z() * pol1.Q22s;        
+        pol2.FPz += T22s_1z() * pol1.Q22s;
     }
 }
 
 /**
  * Used in energy evaluation of converged fields (evaluation stage)
  */
-inline double EMultipole_StdAl::Interactor3::EnergyIntra(PolarSite &pol1,
-                                                   PolarSite &pol2) {    
+inline double QMultipole::Interactor::EnergyIntra(APolarSite &pol1,
+                                                   APolarSite &pol2) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
@@ -2565,10 +3267,10 @@ inline double EMultipole_StdAl::Interactor3::EnergyIntra(PolarSite &pol1,
     R4   = R3*R;
     R5   = R4*R;
     e12 *= R;
-    
+
     // Thole damping init.
     a    = _em->_aDamp;
-    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;
@@ -2748,7 +3450,7 @@ inline double EMultipole_StdAl::Interactor3::EnergyIntra(PolarSite &pol1,
             U += pol1.U1z * T1z_22s() * pol2.Q22s;
         }
     }
-    
+
     // Take into account work needed to induce multipoles
     U *= 0.5;
 
@@ -2759,8 +3461,8 @@ inline double EMultipole_StdAl::Interactor3::EnergyIntra(PolarSite &pol1,
 /**
  * Used in energy evaluation of converged fields (evaluation stage)
  */
-inline double EMultipole_StdAl::Interactor3::EnergyInter(PolarSite &pol1,
-                                                   PolarSite &pol2) {
+inline double QMultipole::Interactor::EnergyInter(APolarSite &pol1,
+                                                   APolarSite &pol2) {
 
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
@@ -2773,15 +3475,15 @@ inline double EMultipole_StdAl::Interactor3::EnergyInter(PolarSite &pol1,
 
     // Thole damping init.
     a    = _em->_aDamp;
-    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 
     //cout << "frag1 " << pol1.getFragment()->getId() << endl;
     //cout << "frag2 " << pol2.getFragment()->getId() << endl;
     //cout << "seg1  " << pol1.getSegment()->getId() << endl;
-    //cout << "seg2  " << pol2.getSegment()->getId() << endl;    
+    //cout << "seg2  " << pol2.getSegment()->getId() << endl;
 
-    
+
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;
 //        raz =   pol1._locZ * e12;
@@ -2957,7 +3659,7 @@ inline double EMultipole_StdAl::Interactor3::EnergyInter(PolarSite &pol1,
             U += pol1.U1z * T1z_1y() * pol2.Q1y;
             U += pol1.U1z * T1z_1z() * pol2.Q1z;
         }
-    }    
+    }
         //cout << "E up to d <-> d " << E << endl;
 
     if (pol1._rank > 1 && pol2._rank > 0) {
@@ -3113,7 +3815,7 @@ inline double EMultipole_StdAl::Interactor3::EnergyInter(PolarSite &pol1,
         E += pol1.Q22c * T22c_22s() * pol2.Q22s;
     }
         //cout << "E up to Q <-> Q " << E << endl;
-        
+
 
     // Take into account work required to induce multipoles
     U *= 0.5;
@@ -3126,9 +3828,9 @@ inline double EMultipole_StdAl::Interactor3::EnergyInter(PolarSite &pol1,
 /**
  * Designed for use in ESP calculator (init. stage). Only for error-checking.
  */
-inline double EMultipole_StdAl::Interactor3::EnergyInterESP(PolarSite &pol1,
-                                                      PolarSite &pol2) {
-    
+inline double QMultipole::Interactor::EnergyInterESP(APolarSite &pol1,
+                                                      APolarSite &pol2) {
+
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol2.getPos() - pol1.getPos();
     R    = 1/abs(e12);
@@ -3140,7 +3842,7 @@ inline double EMultipole_StdAl::Interactor3::EnergyInterESP(PolarSite &pol1,
 
     // Thole damping init.
     a    = _em->_aDamp;
-    u3   = 1 / (R3 * sqrt(pol1.P1 * pol2.P1));
+    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
         rax = e12.getX();
         ray = e12.getY();
@@ -3436,6 +4138,566 @@ inline double EMultipole_StdAl::Interactor3::EnergyInterESP(PolarSite &pol1,
 
     return E + U;
 }
+
+
+inline double QMultipole::Interactor::E_f(APolarSite &pol1,
+                                          APolarSite &pol2) {
+
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    a    = _em->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+
+
+    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
+    //cout << "frag2 " << pol2.getFragment()->getId() << endl;
+    //cout << "seg1  " << pol1.getSegment()->getId() << endl;
+    //cout << "seg2  " << pol2.getSegment()->getId() << endl;
+
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+
+    double epp = 0.0; // <- Interaction perm. <> perm.
+    double epu = 0.0; // <- Interaction perm. <> induced
+    double euu = 0.0; // <- Interaction induced <> induced>
+    
+    
+        //cout << "r1  " << pol1.getPos() << endl;
+        //cout << "r2  " << pol2.getPos() << endl;
+        //cout << "R   " << 1/R << endl;
+        //cout << "e12 " << e12 << endl;
+
+        epp += pol1.Q00 * T00_00() * pol2.Q00;
+
+        //cout << "E up to q <-> q " << E << endl;
+
+    if (a*u3 < 40) {
+        epu += pol1.U1x * TU1x_00() * pol2.Q00;
+        epu += pol1.U1y * TU1y_00() * pol2.Q00;
+        epu += pol1.U1z * TU1z_00() * pol2.Q00;
+
+        epu += pol1.Q00 * TU00_1x() * pol2.U1x;
+        epu += pol1.Q00 * TU00_1y() * pol2.U1y;
+        epu += pol1.Q00 * TU00_1z() * pol2.U1z;
+    }
+    else {
+        epu += pol1.U1x * T1x_00() * pol2.Q00;
+        epu += pol1.U1y * T1y_00() * pol2.Q00;
+        epu += pol1.U1z * T1z_00() * pol2.Q00;
+
+        epu += pol1.Q00 * T00_1x() * pol2.U1x;
+        epu += pol1.Q00 * T00_1y() * pol2.U1y;
+        epu += pol1.Q00 * T00_1z() * pol2.U1z;
+    }
+
+
+
+    if (pol1._rank > 0) {
+        epp += pol1.Q1x * T1x_00() * pol2.Q00;
+        //cout << "E1x_00 " << pol1.Q1x * T1x_00() * pol2.Q00 << endl;
+        epp += pol1.Q1y * T1y_00() * pol2.Q00;
+        //cout << "E1y_00 " << pol1.Q1y * T1y_00() * pol2.Q00 << endl;
+        epp += pol1.Q1z * T1z_00() * pol2.Q00;
+        //cout << "E1z_00 " << pol1.Q1z * T1z_00() * pol2.Q00 << endl;
+    }
+
+    if (pol2._rank > 0) {
+        epp += pol1.Q00 * T00_1x() * pol2.Q1x;
+        //cout << "E00_1x " << pol1.Q00 * T00_1x() * pol2.Q1x << endl;
+        epp += pol1.Q00 * T00_1y() * pol2.Q1y;
+        //cout << "E00_1y " << pol1.Q00 * T00_1y() * pol2.Q1y << endl;
+        epp += pol1.Q00 * T00_1z() * pol2.Q1z;
+        //cout << "E00_1z " << pol1.Q00 * T00_1z() * pol2.Q1z << endl;
+    }
+        //cout << "E up to q <-> d " << E << endl;
+
+    if (pol1._rank > 1) {
+        epp += pol1.Q20  * T20_00()  * pol2.Q00;
+        epp += pol1.Q21c * T21c_00() * pol2.Q00;
+        epp += pol1.Q21s * T21s_00() * pol2.Q00;
+        epp += pol1.Q22c * T22c_00() * pol2.Q00;
+        epp += pol1.Q22s * T22s_00() * pol2.Q00;
+    }
+
+    if (pol2._rank > 1) {
+        epp += pol1.Q00 * T00_20()  * pol2.Q20;
+        epp += pol1.Q00 * T00_21c() * pol2.Q21c;
+        epp += pol1.Q00 * T00_21s() * pol2.Q21s;
+        epp += pol1.Q00 * T00_22c() * pol2.Q22c;
+        epp += pol1.Q00 * T00_22s() * pol2.Q22s;
+    }
+        //cout << "E up to q <-> Q " << E << endl;
+
+    if (pol1._rank > 0 && pol2._rank > 0) {
+        epp += pol1.Q1x * T1x_1x() * pol2.Q1x;
+        //cout << "E1x_1x " << pol1.Q1x * T1x_1x() * pol2.Q1x << endl;
+        epp += pol1.Q1x * T1x_1y() * pol2.Q1y;
+        //cout << "E1x_1y " << pol1.Q1x * T1x_1y() * pol2.Q1y << endl;
+        epp += pol1.Q1x * T1x_1z() * pol2.Q1z;
+        //cout << "E1x_1z " << pol1.Q1x * T1x_1z() * pol2.Q1z << endl;
+
+        epp += pol1.Q1y * T1y_1x() * pol2.Q1x;
+        //cout << "E1y_1x " << pol1.Q1y * T1y_1x() * pol2.Q1x << endl;
+        epp += pol1.Q1y * T1y_1y() * pol2.Q1y;
+        //cout << "E1y_1y " << pol1.Q1y * T1y_1y() * pol2.Q1y << endl;
+        epp += pol1.Q1y * T1y_1z() * pol2.Q1z;
+        //cout << "E1y_1z " << pol1.Q1y * T1y_1z() * pol2.Q1z << endl;
+
+        epp += pol1.Q1z * T1z_1x() * pol2.Q1x;
+        //cout << "E1z_1x " << pol1.Q1z * T1z_1x() * pol2.Q1x << endl;
+        epp += pol1.Q1z * T1z_1y() * pol2.Q1y;
+        //cout << "E1z_1y " << pol1.Q1z * T1z_1y() * pol2.Q1y << endl;
+        epp += pol1.Q1z * T1z_1z() * pol2.Q1z;
+        //cout << "E1z_1z " << pol1.Q1z * T1z_1z() * pol2.Q1z << endl;
+    }
+
+    if (pol1._rank > 0) {
+        if (a*u3 < 40) {
+            epu += pol1.Q1x * TU1x_1x() * pol2.U1x;
+            epu += pol1.Q1x * TU1x_1y() * pol2.U1y;
+            epu += pol1.Q1x * TU1x_1z() * pol2.U1z;
+            epu += pol1.Q1y * TU1y_1x() * pol2.U1x;
+            epu += pol1.Q1y * TU1y_1y() * pol2.U1y;
+            epu += pol1.Q1y * TU1y_1z() * pol2.U1z;
+            epu += pol1.Q1z * TU1z_1x() * pol2.U1x;
+            epu += pol1.Q1z * TU1z_1y() * pol2.U1y;
+            epu += pol1.Q1z * TU1z_1z() * pol2.U1z;
+        }
+        else {
+            epu += pol1.Q1x * T1x_1x() * pol2.U1x;
+            epu += pol1.Q1x * T1x_1y() * pol2.U1y;
+            epu += pol1.Q1x * T1x_1z() * pol2.U1z;
+            epu += pol1.Q1y * T1y_1x() * pol2.U1x;
+            epu += pol1.Q1y * T1y_1y() * pol2.U1y;
+            epu += pol1.Q1y * T1y_1z() * pol2.U1z;
+            epu += pol1.Q1z * T1z_1x() * pol2.U1x;
+            epu += pol1.Q1z * T1z_1y() * pol2.U1y;
+            epu += pol1.Q1z * T1z_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 0) {
+        if (a*u3 < 40) {
+            epu += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            epu += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            epu += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            epu += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            epu += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            epu += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            epu += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            epu += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            epu += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        }
+        else {
+            epu += pol1.U1x * T1x_1x() * pol2.Q1x;
+            epu += pol1.U1x * T1x_1y() * pol2.Q1y;
+            epu += pol1.U1x * T1x_1z() * pol2.Q1z;
+            epu += pol1.U1y * T1y_1x() * pol2.Q1x;
+            epu += pol1.U1y * T1y_1y() * pol2.Q1y;
+            epu += pol1.U1y * T1y_1z() * pol2.Q1z;
+            epu += pol1.U1z * T1z_1x() * pol2.Q1x;
+            epu += pol1.U1z * T1z_1y() * pol2.Q1y;
+            epu += pol1.U1z * T1z_1z() * pol2.Q1z;
+        }
+    }
+        //cout << "E up to d <-> d " << E << endl;
+
+    if (pol1._rank > 1 && pol2._rank > 0) {
+        epp += pol1.Q20 * T20_1x() * pol2.Q1x;
+        epp += pol1.Q20 * T20_1y() * pol2.Q1y;
+        epp += pol1.Q20 * T20_1z() * pol2.Q1z;
+
+        epp += pol1.Q21c * T21c_1x() * pol2.Q1x;
+        epp += pol1.Q21c * T21c_1y() * pol2.Q1y;
+        epp += pol1.Q21c * T21c_1z() * pol2.Q1z;
+
+        epp += pol1.Q21s * T21s_1x() * pol2.Q1x;
+        epp += pol1.Q21s * T21s_1y() * pol2.Q1y;
+        epp += pol1.Q21s * T21s_1z() * pol2.Q1z;
+
+        epp += pol1.Q22c * T22c_1x() * pol2.Q1x;
+        epp += pol1.Q22c * T22c_1y() * pol2.Q1y;
+        epp += pol1.Q22c * T22c_1z() * pol2.Q1z;
+
+        epp += pol1.Q22s * T22s_1x() * pol2.Q1x;
+        epp += pol1.Q22s * T22s_1y() * pol2.Q1y;
+        epp += pol1.Q22s * T22s_1z() * pol2.Q1z;
+    }
+
+    if (pol1._rank > 0 && pol2._rank > 1) {
+        epp += pol1.Q1x * T1x_20() * pol2.Q20;
+        epp += pol1.Q1y * T1y_20() * pol2.Q20;
+        epp += pol1.Q1z * T1z_20() * pol2.Q20;
+
+        epp += pol1.Q1x * T1x_21c() * pol2.Q21c;
+        epp += pol1.Q1y * T1y_21c() * pol2.Q21c;
+        epp += pol1.Q1z * T1z_21c() * pol2.Q21c;
+
+        epp += pol1.Q1x * T1x_21s() * pol2.Q21s;
+        epp += pol1.Q1y * T1y_21s() * pol2.Q21s;
+        epp += pol1.Q1z * T1z_21s() * pol2.Q21s;
+
+        epp += pol1.Q1x * T1x_22c() * pol2.Q22c;
+        epp += pol1.Q1y * T1y_22c() * pol2.Q22c;
+        epp += pol1.Q1z * T1z_22c() * pol2.Q22c;
+
+        epp += pol1.Q1x * T1x_22s() * pol2.Q22s;
+        epp += pol1.Q1y * T1y_22s() * pol2.Q22s;
+        epp += pol1.Q1z * T1z_22s() * pol2.Q22s;
+    }
+
+    if (pol1._rank > 1) {
+        if (a*u3 < 40.0) {
+            epu += pol1.Q20  * TU20_1x()  * pol2.U1x;
+            epu += pol1.Q20  * TU20_1y()  * pol2.U1y;
+            epu += pol1.Q20  * TU20_1z()  * pol2.U1z;
+            epu += pol1.Q21c * TU21c_1x() * pol2.U1x;
+            epu += pol1.Q21c * TU21c_1y() * pol2.U1y;
+            epu += pol1.Q21c * TU21c_1z() * pol2.U1z;
+            epu += pol1.Q21s * TU21s_1x() * pol2.U1x;
+            epu += pol1.Q21s * TU21s_1y() * pol2.U1y;
+            epu += pol1.Q21s * TU21s_1z() * pol2.U1z;
+            epu += pol1.Q22c * TU22c_1x() * pol2.U1x;
+            epu += pol1.Q22c * TU22c_1y() * pol2.U1y;
+            epu += pol1.Q22c * TU22c_1z() * pol2.U1z;
+            epu += pol1.Q22s * TU22s_1x() * pol2.U1x;
+            epu += pol1.Q22s * TU22s_1y() * pol2.U1y;
+            epu += pol1.Q22s * TU22s_1z() * pol2.U1z;
+        }
+        else {
+            epu += pol1.Q20  * T20_1x()  * pol2.U1x;
+            epu += pol1.Q20  * T20_1y()  * pol2.U1y;
+            epu += pol1.Q20  * T20_1z()  * pol2.U1z;
+            epu += pol1.Q21c * T21c_1x() * pol2.U1x;
+            epu += pol1.Q21c * T21c_1y() * pol2.U1y;
+            epu += pol1.Q21c * T21c_1z() * pol2.U1z;
+            epu += pol1.Q21s * T21s_1x() * pol2.U1x;
+            epu += pol1.Q21s * T21s_1y() * pol2.U1y;
+            epu += pol1.Q21s * T21s_1z() * pol2.U1z;
+            epu += pol1.Q22c * T22c_1x() * pol2.U1x;
+            epu += pol1.Q22c * T22c_1y() * pol2.U1y;
+            epu += pol1.Q22c * T22c_1z() * pol2.U1z;
+            epu += pol1.Q22s * T22s_1x() * pol2.U1x;
+            epu += pol1.Q22s * T22s_1y() * pol2.U1y;
+            epu += pol1.Q22s * T22s_1z() * pol2.U1z;
+        }
+    }
+    if (pol2._rank > 1) {
+        if (a*u3 < 40.0) {
+            epu += pol1.U1x * TU1x_20()  * pol2.Q20;
+            epu += pol1.U1x * TU1x_21c() * pol2.Q21c;
+            epu += pol1.U1x * TU1x_21s() * pol2.Q21s;
+            epu += pol1.U1x * TU1x_22c() * pol2.Q22c;
+            epu += pol1.U1x * TU1x_22s() * pol2.Q22s;
+            epu += pol1.U1y * TU1y_20()  * pol2.Q20;
+            epu += pol1.U1y * TU1y_21c() * pol2.Q21c;
+            epu += pol1.U1y * TU1y_21s() * pol2.Q21s;
+            epu += pol1.U1y * TU1y_22c() * pol2.Q22c;
+            epu += pol1.U1y * TU1y_22s() * pol2.Q22s;
+            epu += pol1.U1z * TU1z_20()  * pol2.Q20;
+            epu += pol1.U1z * TU1z_21c() * pol2.Q21c;
+            epu += pol1.U1z * TU1z_21s() * pol2.Q21s;
+            epu += pol1.U1z * TU1z_22c() * pol2.Q22c;
+            epu += pol1.U1z * TU1z_22s() * pol2.Q22s;
+        }
+        else {
+            epu += pol1.U1x * T1x_20()  * pol2.Q20;
+            epu += pol1.U1x * T1x_21c() * pol2.Q21c;
+            epu += pol1.U1x * T1x_21s() * pol2.Q21s;
+            epu += pol1.U1x * T1x_22c() * pol2.Q22c;
+            epu += pol1.U1x * T1x_22s() * pol2.Q22s;
+            epu += pol1.U1y * T1y_20()  * pol2.Q20;
+            epu += pol1.U1y * T1y_21c() * pol2.Q21c;
+            epu += pol1.U1y * T1y_21s() * pol2.Q21s;
+            epu += pol1.U1y * T1y_22c() * pol2.Q22c;
+            epu += pol1.U1y * T1y_22s() * pol2.Q22s;
+            epu += pol1.U1z * T1z_20()  * pol2.Q20;
+            epu += pol1.U1z * T1z_21c() * pol2.Q21c;
+            epu += pol1.U1z * T1z_21s() * pol2.Q21s;
+            epu += pol1.U1z * T1z_22c() * pol2.Q22c;
+            epu += pol1.U1z * T1z_22s() * pol2.Q22s;
+        }
+    }
+        //cout << "E up to d <-> Q " << E << endl;
+
+    if (pol1._rank > 1 && pol2._rank > 1) {
+        epp += pol1.Q20  * T20_20()   * pol2.Q20;
+        epp += pol1.Q21c * T21c_21c() * pol2.Q21c;
+        epp += pol1.Q21s * T21s_21s() * pol2.Q21s;
+        epp += pol1.Q22c * T22c_22c() * pol2.Q22c;
+        epp += pol1.Q22s * T22s_22s() * pol2.Q22s;
+
+
+        epp += pol1.Q20  * T20_21c() * pol2.Q21c;
+        epp += pol1.Q20  * T20_21s() * pol2.Q21s;
+        epp += pol1.Q20  * T20_22c() * pol2.Q22c;
+        epp += pol1.Q20  * T20_22s() * pol2.Q22s;
+        epp += pol1.Q21c * T21c_20() * pol2.Q20;
+        epp += pol1.Q21s * T21s_20() * pol2.Q20;
+        epp += pol1.Q22c * T22c_20() * pol2.Q20;
+        epp += pol1.Q22s * T22s_20() * pol2.Q20;
+
+
+        epp += pol1.Q21c * T21c_21s() * pol2.Q21s;
+        epp += pol1.Q21c * T21c_22c() * pol2.Q22c;
+        epp += pol1.Q21c * T21c_22s() * pol2.Q22s;
+        epp += pol1.Q21s * T21s_21c() * pol2.Q21c;
+        epp += pol1.Q22c * T22c_21c() * pol2.Q21c;
+        epp += pol1.Q22s * T22s_21c() * pol2.Q21c;
+
+
+        epp += pol1.Q21s * T21s_22c() * pol2.Q22c;
+        epp += pol1.Q21s * T21s_22s() * pol2.Q22s;
+        epp += pol1.Q22c * T22c_21s() * pol2.Q21s;
+        epp += pol1.Q22s * T22s_21s() * pol2.Q21s;
+
+        epp += pol1.Q22s * T22s_22c() * pol2.Q22c;
+        epp += pol1.Q22c * T22c_22s() * pol2.Q22s;
+    }
+        //cout << "E up to Q <-> Q " << E << endl;      
+        
+    EP += epp;
+    EU_INTER += 0.5 * epu;
+        
+    // Induced <> induced interaction
+    // ... Note that this contribution is canceled by the induction work.        
+    if (a*u3 < 40) {
+        euu += pol1.U1x * TU1x_1x() * pol2.U1x;
+        euu += pol1.U1x * TU1x_1y() * pol2.U1y;
+        euu += pol1.U1x * TU1x_1z() * pol2.U1z;
+        euu += pol1.U1y * TU1y_1x() * pol2.U1x;
+        euu += pol1.U1y * TU1y_1y() * pol2.U1y;
+        euu += pol1.U1y * TU1y_1z() * pol2.U1z;
+        euu += pol1.U1z * TU1z_1x() * pol2.U1x;
+        euu += pol1.U1z * TU1z_1y() * pol2.U1y;
+        euu += pol1.U1z * TU1z_1z() * pol2.U1z;
+    }
+    else {
+        euu += pol1.U1x * T1x_1x() * pol2.U1x;
+        euu += pol1.U1x * T1x_1y() * pol2.U1y;
+        euu += pol1.U1x * T1x_1z() * pol2.U1z;
+        euu += pol1.U1y * T1y_1x() * pol2.U1x;
+        euu += pol1.U1y * T1y_1y() * pol2.U1y;
+        euu += pol1.U1y * T1y_1z() * pol2.U1z;
+        euu += pol1.U1z * T1z_1x() * pol2.U1x;
+        euu += pol1.U1z * T1z_1y() * pol2.U1y;
+        euu += pol1.U1z * T1z_1z() * pol2.U1z;
+    }
+    
+
+    EPP += epp;
+    EPU += epu;
+    EUU += euu;
+    return epp + epu + euu;
+}
+
+inline double QMultipole::Interactor::E_m(APolarSite &pol1,
+                                          APolarSite &pol2) {
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    a    = _em->_aDamp;
+    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+
+
+    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
+    //cout << "frag2 " << pol2.getFragment()->getId() << endl;
+    //cout << "seg1  " << pol1.getSegment()->getId() << endl;
+    //cout << "seg2  " << pol2.getSegment()->getId() << endl;
+
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX();
+        ray = e12.getY();
+        raz = e12.getZ();
+        rbx = - rax;
+        rby = - ray;
+        rbz = - raz;
+
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;
+        cxy = 0;
+        cxz = 0;
+        cyx = 0;
+        cyy = 1;
+        cyz = 0;
+        czx = 0;
+        czy = 0;
+        czz = 1;
+
+    double epp = 0.0; // <- Interaction perm. <> perm.
+    double epu = 0.0; // <- Interaction perm. <> induced
+    double euu = 0.0; // <- Interaction induced <> induced>
+
+
+    if (a*u3 < 40) {
+        epu += pol1.U1x * TU1x_00() * pol2.Q00;
+        epu += pol1.U1y * TU1y_00() * pol2.Q00;
+        epu += pol1.U1z * TU1z_00() * pol2.Q00;
+
+    }
+    else {
+        epu += pol1.U1x * T1x_00() * pol2.Q00;
+        epu += pol1.U1y * T1y_00() * pol2.Q00;
+        epu += pol1.U1z * T1z_00() * pol2.Q00;
+    }
+
+    if (pol2._rank > 0) {
+        if (a*u3 < 40) {
+            epu += pol1.U1x * TU1x_1x() * pol2.Q1x;
+            epu += pol1.U1x * TU1x_1y() * pol2.Q1y;
+            epu += pol1.U1x * TU1x_1z() * pol2.Q1z;
+            epu += pol1.U1y * TU1y_1x() * pol2.Q1x;
+            epu += pol1.U1y * TU1y_1y() * pol2.Q1y;
+            epu += pol1.U1y * TU1y_1z() * pol2.Q1z;
+            epu += pol1.U1z * TU1z_1x() * pol2.Q1x;
+            epu += pol1.U1z * TU1z_1y() * pol2.Q1y;
+            epu += pol1.U1z * TU1z_1z() * pol2.Q1z;
+        }
+        else {
+            epu += pol1.U1x * T1x_1x() * pol2.Q1x;
+            epu += pol1.U1x * T1x_1y() * pol2.Q1y;
+            epu += pol1.U1x * T1x_1z() * pol2.Q1z;
+            epu += pol1.U1y * T1y_1x() * pol2.Q1x;
+            epu += pol1.U1y * T1y_1y() * pol2.Q1y;
+            epu += pol1.U1y * T1y_1z() * pol2.Q1z;
+            epu += pol1.U1z * T1z_1x() * pol2.Q1x;
+            epu += pol1.U1z * T1z_1y() * pol2.Q1y;
+            epu += pol1.U1z * T1z_1z() * pol2.Q1z;
+        }
+    }
+
+    if (pol2._rank > 1) {
+        if (a*u3 < 40.0) {
+            epu += pol1.U1x * TU1x_20()  * pol2.Q20;
+            epu += pol1.U1x * TU1x_21c() * pol2.Q21c;
+            epu += pol1.U1x * TU1x_21s() * pol2.Q21s;
+            epu += pol1.U1x * TU1x_22c() * pol2.Q22c;
+            epu += pol1.U1x * TU1x_22s() * pol2.Q22s;
+            epu += pol1.U1y * TU1y_20()  * pol2.Q20;
+            epu += pol1.U1y * TU1y_21c() * pol2.Q21c;
+            epu += pol1.U1y * TU1y_21s() * pol2.Q21s;
+            epu += pol1.U1y * TU1y_22c() * pol2.Q22c;
+            epu += pol1.U1y * TU1y_22s() * pol2.Q22s;
+            epu += pol1.U1z * TU1z_20()  * pol2.Q20;
+            epu += pol1.U1z * TU1z_21c() * pol2.Q21c;
+            epu += pol1.U1z * TU1z_21s() * pol2.Q21s;
+            epu += pol1.U1z * TU1z_22c() * pol2.Q22c;
+            epu += pol1.U1z * TU1z_22s() * pol2.Q22s;
+        }
+        else {
+            epu += pol1.U1x * T1x_20()  * pol2.Q20;
+            epu += pol1.U1x * T1x_21c() * pol2.Q21c;
+            epu += pol1.U1x * T1x_21s() * pol2.Q21s;
+            epu += pol1.U1x * T1x_22c() * pol2.Q22c;
+            epu += pol1.U1x * T1x_22s() * pol2.Q22s;
+            epu += pol1.U1y * T1y_20()  * pol2.Q20;
+            epu += pol1.U1y * T1y_21c() * pol2.Q21c;
+            epu += pol1.U1y * T1y_21s() * pol2.Q21s;
+            epu += pol1.U1y * T1y_22c() * pol2.Q22c;
+            epu += pol1.U1y * T1y_22s() * pol2.Q22s;
+            epu += pol1.U1z * T1z_20()  * pol2.Q20;
+            epu += pol1.U1z * T1z_21c() * pol2.Q21c;
+            epu += pol1.U1z * T1z_21s() * pol2.Q21s;
+            epu += pol1.U1z * T1z_22c() * pol2.Q22c;
+            epu += pol1.U1z * T1z_22s() * pol2.Q22s;
+        }
+    }
+               
+    if (a*u3 < 40) {
+        euu += pol1.U1x * TU1x_1x() * pol2.U1x;
+        euu += pol1.U1x * TU1x_1y() * pol2.U1y;
+        euu += pol1.U1x * TU1x_1z() * pol2.U1z;
+        euu += pol1.U1y * TU1y_1x() * pol2.U1x;
+        euu += pol1.U1y * TU1y_1y() * pol2.U1y;
+        euu += pol1.U1y * TU1y_1z() * pol2.U1z;
+        euu += pol1.U1z * TU1z_1x() * pol2.U1x;
+        euu += pol1.U1z * TU1z_1y() * pol2.U1y;
+        euu += pol1.U1z * TU1z_1z() * pol2.U1z;
+    }
+    else {
+        euu += pol1.U1x * T1x_1x() * pol2.U1x;
+        euu += pol1.U1x * T1x_1y() * pol2.U1y;
+        euu += pol1.U1x * T1x_1z() * pol2.U1z;
+        euu += pol1.U1y * T1y_1x() * pol2.U1x;
+        euu += pol1.U1y * T1y_1y() * pol2.U1y;
+        euu += pol1.U1y * T1y_1z() * pol2.U1z;
+        euu += pol1.U1z * T1z_1x() * pol2.U1x;
+        euu += pol1.U1z * T1z_1y() * pol2.U1y;
+        euu += pol1.U1z * T1z_1z() * pol2.U1z;
+    }
+    
+    euu *= -0.5;
+    epp *= -0.5;
+    epu *= -0.5;
+
+    EPP += epp;
+    EPU += epu;
+    EUU += euu;
+    return epp + epu + euu;
+}
+
 
 
 }}

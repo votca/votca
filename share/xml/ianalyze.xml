@@ -1,7 +1,15 @@
 <ianalyze>
   
-	<description>Undocumented</description>
+	<description>Electronic coupling histogram in log-scale</description>
 
 	<sectionlabel>ianalyze</sectionlabel>
+	<item>
+	<name>resolution_logJ2</name>
+		<description>Bin size of histogram log(J2)</description>
+	</item>
+	<item>
+	<name>states</name>
+	<description>States for which to calculate histogram. Example: 1 -1</description>
+	</item>
 
 </ianalyze>

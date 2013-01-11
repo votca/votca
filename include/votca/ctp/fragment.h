@@ -22,6 +22,7 @@
 
 #include <votca/ctp/atom.h>
 #include <votca/ctp/polarsite.h>
+#include <votca/ctp/apolarsite.h>
 #include <fstream>
 
 
@@ -56,12 +57,14 @@ public:
     inline void setSegment(Segment *container)   { _seg = container; }
     void        AddAtom( Atom* atom );
     void        AddPolarSite(PolarSite *pole);
+    void        AddAPolarSite(APolarSite *pole);
 
     Topology            *getTopology() { return _top; }
     Molecule            *getMolecule() { return _mol; }
     Segment             *getSegment()  { return _seg; }
     vector< Atom* >     &Atoms() { return _atoms; }
     vector<PolarSite*>  &PolarSites() { return _polarSites; }
+    vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
     const int    &getId() const { return _id; }
     const string &getName() const { return _name; }
@@ -93,6 +96,7 @@ private:
 
     vector < Atom* > _atoms;
     vector <PolarSite*> _polarSites;
+    vector <APolarSite*> _apolarSites;
     vector< double > _weights;
     int              _symmetry;
     vector< int >    _trihedron;
