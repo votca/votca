@@ -29,6 +29,7 @@
 #include <votca/csg/triclinicbox.h>
 
 #include <votca/ctp/polarsite.h>
+#include <votca/ctp/apolarsite.h>
 #include <votca/ctp/atom.h>
 #include <votca/ctp/fragment.h>
 #include <votca/ctp/segmenttype.h>
@@ -65,6 +66,7 @@ public:
     Atom        *AddAtom     (string atom_name);
     Fragment    *AddFragment (string fragment_name);
     PolarSite   *AddPolarSite(string siteName);
+    APolarSite  *AddAPolarSite(string siteName);
     SegmentType *AddSegmentType (string typeName);
 
     Molecule    *getMolecule(int id) { return _molecules[id-1]; }
@@ -72,6 +74,7 @@ public:
     Fragment    *getFragment(int id) { return _fragments[id-1]; }
     Atom        *getAtom(int id)     { return _atoms[id-1]; }
     PolarSite   *getPolarSite(int id) { return _polarSites[id-1]; }
+    APolarSite  *getAPolarSite(int id) { return _apolarSites[id-1]; }
     SegmentType *getSegmentType(int id) { return _segmentTypes[id-1]; }
 
     vector< Atom* >         &Atoms() { return _atoms; }
@@ -79,6 +82,7 @@ public:
     vector< Segment* >      &Segments() { return _segments; }
     vector< Molecule* >     &Molecules() { return _molecules; }
     vector< PolarSite* >    &PolarSites() { return _polarSites; }
+    vector< APolarSite* >   &APolarSites() { return _apolarSites; }
     vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
 
     bool        Rigidify();
@@ -124,6 +128,7 @@ protected:
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
     vector < PolarSite* >   _polarSites;
+    vector < APolarSite* >   _apolarSites;
     vector < SegmentType* > _segmentTypes;
 
     QMNBList               _nblist;

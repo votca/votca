@@ -42,6 +42,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
     list<Property *> molecules = typology.Select(key);
     list<Property *>::iterator it_molecule;
     int molecule_id = 1;
+    int qmunit_id  = 1; // Counts segment types
 
     for ( it_molecule = molecules.begin();
           it_molecule != molecules.end();
@@ -57,8 +58,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
        key = "segments.segment";
        list<Property *> segments = (*it_molecule)->Select(key);
        list<Property *>::iterator it_segment;
-       int segment_id = 1;
-       int qmunit_id  = 1;
+       int segment_id = 1;       
        int md_atom_id = 1; // <- atom id count with respect to molecule
 
        for ( it_segment = segments.begin();
@@ -68,6 +68,8 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          // Create new segment + associated type (QM Unit)
          CTP::Segment *segment = AddSegmentType(segment_id++, *it_segment );
          CTP::SegmentType *qmUnit = AddQMUnit(qmunit_id, *it_segment );
+         ++qmunit_id;
+
          segment->setType(qmUnit);
          molecule->AddSegment(segment);
 
@@ -561,6 +563,9 @@ void Md2QmEngine::getIntCoords(string &file,
             pair<string, vec> qmTypePos(element, qmPos);
             intCoords[atomCount] = qmTypePos;
         }
+    }
+    else {
+        throw std::runtime_error("No such file: '"+file+"'.");
     }
 }
 

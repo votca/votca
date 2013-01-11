@@ -73,6 +73,7 @@ private:
     // thread-unsafe containers and / or
     // (hidden) malloc()s. Restrict...
     Mutex       _FockPath;
+    bool        _maverick;
 
 
     // Information on orbitals for segments
@@ -103,6 +104,7 @@ void IZindo::CleanUp() {
 void IZindo::Initialize(Topology *top, Property *options) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
+    _maverick = (_nThreads == 1) ? true : false;
 
     /* ---- OPTIONS.XML Structure -----
      *
@@ -351,13 +353,11 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
         }
     }
     
-    morb1->write_pdb("morbs.pdb", "MOL", 0);
+    //_morb1->write_pdb("morbs.pdb", "MOL", 0);
 
-    
     // ++++++++++++++++++++++++++++++++++++++++ //
     // Rotate + Translate to MD Frame: Mol&Orb2 //
     // ++++++++++++++++++++++++++++++++++++++++ //
-
     for (fit = seg2->Fragments().begin();
             fit < seg2->Fragments().end();
             fit++) {
@@ -367,7 +367,6 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
         vec CoMD = frag->getCoMD();
         vec CoQM = frag->getCoQM();
         matrix rotQM2MD = frag->getRotQM2MD();
-
         // Fill container with atom QM indices
         vector<int> atmIdcs;
         vector< Atom* > ::iterator ait;
@@ -379,13 +378,11 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
              }
         }
 
-
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
         morb2->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  morb2);
-
         // Rotate orbitals
         for (int i = 0; i < torbNrs2.size(); i++) {
             orb2->rotate_someatoms(atmIdcs, &rotQM2MD,
@@ -395,6 +392,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
     
     morb2->write_pdb("morbs.pdb", "MOL", 1);
 
+    //_morb2->write_pdb("morbs.pdb", "MOL", 1);
     // ++++++++++++++++++++++++++++ //
     // Calculate transfer integrals //
     // ++++++++++++++++++++++++++++ //

@@ -119,6 +119,14 @@ PolarSite *Topology::AddPolarSite(string siteName) {
     return pole;
 }
 
+APolarSite *Topology::AddAPolarSite(string siteName) {
+    int poleId = _apolarSites.size() + 1;
+    APolarSite *pole = new APolarSite(poleId, siteName);
+    _apolarSites.push_back(pole);
+    pole->setTopology(this);
+    return pole;
+}
+
 Molecule *Topology::AddMolecule(string molecule_name) {
     int molecule_id = _molecules.size() + 1;
     Molecule *molecule = new Molecule(molecule_id, molecule_name);
@@ -329,8 +337,8 @@ void Topology::PrintInfo(FILE *out) {
             this->getBox().get(2,1),
             this->getBox().get(2,2) );
 
-    fprintf(out, "\tStep number %2.4f \n", this->getStep());
-    fprintf(out, "\tTime        %7d \n", this->getTime());
+    fprintf(out, "\tStep number %7d \n", this->getStep());
+    fprintf(out, "\tTime        %2.4f \n", this->getTime());
     fprintf(out, "\t# Molecules %7d \n", this->Molecules().size());
     fprintf(out, "\t# Segments  %7d \n", this->Segments().size());
     fprintf(out, "\t# Atoms     %7d \n", this->Atoms().size());

@@ -25,6 +25,7 @@
 #include <votca/ctp/fragment.h>
 #include <votca/ctp/atom.h>
 #include <votca/ctp/polarsite.h>
+#include <votca/ctp/apolarsite.h>
 
 class Topology;
 
@@ -78,9 +79,11 @@ public:
     void             AddFragment( Fragment* fragment );
     void             AddAtom( Atom* atom );
     void             AddPolarSite(PolarSite *pole);
+    void             AddAPolarSite(APolarSite *pole);
     vector< Fragment* > &Fragments() { return _fragments; }
     vector < Atom* >    &Atoms() { return _atoms; }
     vector<PolarSite*>  &PolarSites() { return _polarSites; }
+    vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
 
     void Rigidify();
@@ -97,6 +100,7 @@ private:
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
     vector < PolarSite* >   _polarSites;
+    vector < APolarSite* >  _apolarSites;
 
     string      _name;
     int         _id;

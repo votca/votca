@@ -64,6 +64,7 @@ public:
     void     CalculateAlphaRigid(vector< PolarSite* > &, FILE *, bool);
     void     SiteAlphaInduce(Topology *, vector< PolarSite* > &);
 
+    void     CalculateGSPInput(Topology *top);
     
     // ++++++++++++++++++++++++++++++++ //
     // Main Calculator => Site Operator //
@@ -381,6 +382,13 @@ private:
     string          _esfOutFile;
     vector<vec>     _esfGrid;
 
+    // GSP
+    bool            _calcGSP;
+    bool            _dma_input;
+    int             _gsp_first;
+    int             _gsp_last;
+    vec             _gsp_normal;
+
     // MolPol
     bool            _calcAlphaMol;
     bool            _doSystem;
@@ -564,6 +572,41 @@ void EMultipole::Initialize(Topology *top, Property *opt) {
             _alphaOutFile = "nofile";
         }
 
+    key = "options.emultipole.gsp";
+
+        if ( opt->exists(key+".calcGSP") ) {
+            int calcGSP = opt->get(key+".calcGSP").as< int >();
+            _calcGSP = (calcGSP == 0) ? false : true;
+        }
+        else {
+            _calcGSP = false;
+        }
+        if ( opt->exists(key+".dma_input") ) {
+            int dma_input = opt->get(key+".dma_input").as< int >();
+            _dma_input = (dma_input == 0) ? false : true;
+        }
+        else {
+            _dma_input = false;
+        }
+        if ( opt->exists(key+".first") ) {
+            _gsp_first = opt->get(key+".first").as< int >();
+        }
+        else {
+            _gsp_first = _firstSeg;
+        }
+        if ( opt->exists(key+".last") ) {
+            _gsp_last = opt->get(key+".last").as< int >();
+        }
+        else {
+            _gsp_last = _lastSeg;
+        }
+        if ( opt->exists(key+".normal") ) {
+            _gsp_normal = opt->get(key+".normal").as< vec >();
+        }
+        else {
+            _gsp_normal = vec(0,0,1);
+        }
+
     key = "options.emultipole.tholeparam";
 
         if ( opt->exists(key+".cutoff") ) {
@@ -615,6 +658,7 @@ void EMultipole::Initialize(Topology *top, Property *opt) {
     if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(top); }
     if (this->_calcESF)                   { this->CalculateESF(top); }
     if (this->_calcAlphaMol)              { this->CalculateAlphaInput(top); }
+    if (_calcGSP && _dma_input)           { this->CalculateGSPInput(top); }
 }
 
 
@@ -1157,6 +1201,105 @@ vector<vec> EMultipole::ParseCubeFileHeader(string filename) {
 
 
 /**
+ * Calculates monopole, dipole, quadrupole moment of input polar sites
+ * ... NOTE Multipole moments are referred to center of geometry
+ */
+void EMultipole::CalculateGSPInput(Topology *top) {
+
+    cout << endl << "... ... Multipole analysis for input structures." << flush;
+
+    map< string, vector< PolarSite* > >::iterator sit;
+    for (sit = this->_map_seg_polarSites.begin();
+         sit != this->_map_seg_polarSites.end();
+         ++sit) {
+
+        vector< PolarSite* > poles = sit->second;
+        vector< PolarSite* > ::iterator pit;
+
+        // Translate CoM to origin
+        vec CoM = vec(0.,0.,0.);
+        int N = poles.size();
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            CoM += (*pit)->getPos();
+        }
+        CoM /= N;
+        for (pit = poles.begin(); pit < poles.end(); ++pit) {
+            vec newpos = (*pit)->getPos() - CoM;
+            (*pit)->setPos( newpos );
+        }
+
+        for (int state = -1; state < 2; ++state) {
+
+            // Multipole data for this state?
+            bool hasState = _map_seg_chrgStates[sit->first][state+1];
+            if (!hasState) { continue; }
+
+            // Charge container appropriately
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                (*pit)->Depolarize();
+                (*pit)->Charge(state);
+            }
+
+            double ENM_TO_DEBYE = 10. / 0.20822678;
+            double ENM_TO_EA    = 10.;
+            double NM_TO_A     = 10.;
+            double D_INT_TO_EXT = ENM_TO_DEBYE;
+            double Q_INT_TO_EXT = ENM_TO_DEBYE*NM_TO_A;
+
+            FILE *out;
+            string filename = "dma_" + sit->first 
+                            + "_" + boost::lexical_cast<string>(state)
+                            + ".dat";
+            
+            out = fopen(filename.c_str(),"w");
+
+            fprintf(out, "# Q00    \n"
+                         "# DX      DY      DZ     \n"
+                         "# QXX     QXY     QXZ     QYY     QYZ     QZZ    \n");
+
+            double q   = 0.0;
+            double dx  = 0.0; double dy  = 0.0; double dz  = 0.0;
+            double Qxx = 0.0; double Qxy = 0.0; double Qxz = 0.0;
+                              double Qyy = 0.0; double Qyz = 0.0;
+                                                double Qzz = 0.0;
+
+            vec    d = vec(0,0,0);
+
+            for (pit = poles.begin();
+                 pit < poles.end();
+                 ++pit) {
+
+                q += (*pit)->Q00;
+
+                d += (*pit)->Q00 * (*pit)->getPos();
+
+                Qxx += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getX()*(*pit)->getPos().getX()
+                                     -0.5*(*pit)->getPos()*(*pit)->getPos() );
+                Qyy += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getY()*(*pit)->getPos().getY()
+                                     -0.5*(*pit)->getPos()*(*pit)->getPos() );
+                Qzz += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getZ()*(*pit)->getPos().getZ()
+                                     -0.5*(*pit)->getPos()*(*pit)->getPos() );
+                Qxy += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getX()*(*pit)->getPos().getY() );
+                Qxz += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getX()*(*pit)->getPos().getZ() );
+                Qyz += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getY()*(*pit)->getPos().getZ() );
+
+                if ((*pit)->getRank() > 0) {
+                    d += vec((*pit)->Q1x,(*pit)->Q1y,(*pit)->Q1z);
+                }
+            }
+
+            fprintf(out, "%+4.7f \n"
+                         "%+4.7f %+4.7f %+4.7f \n"
+                         "%+4.7f %+4.7f %+4.7f %+4.7f %+4.7f %+4.7f \n",
+                          q,
+                          d.getX()*D_INT_TO_EXT,d.getY()*D_INT_TO_EXT,d.getZ()*D_INT_TO_EXT,
+                          Qxx*Q_INT_TO_EXT,Qxy*Q_INT_TO_EXT,Qxz*Q_INT_TO_EXT,Qyy*Q_INT_TO_EXT,Qyz*Q_INT_TO_EXT,Qzz*Q_INT_TO_EXT);
+            fclose(out);
+        }
+    }
+}
+
+/**
  * Calculates electrostatic potential at selected grid points
  * ... NOTE Calculation done for input coordinates (as found in GDMA file)
  * ... NOTE Grid is read in from file in Gaussian cube format
@@ -1205,6 +1348,21 @@ void EMultipole::CalculateESPInput(Topology *top) {
             for (pit = poles.begin(); pit < poles.end(); ++pit) {
                 (*pit)->Depolarize();
                 (*pit)->Charge(state);
+            }
+
+            if (state == 0) {
+                FILE *out;
+                string chkOutfile = sit->first
+                            + "_input"
+                            + "_" + boost::lexical_cast<string>(state)
+                            + ".xyz";
+                out = fopen(chkOutfile.c_str(),"w");
+                fprintf(out, "%1d\n\n", poles.size()*9);
+                for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                    vec shift = vec(0,0,0);
+                    (*pit)->WriteChkLine(out, shift, true,"xyz", 0.04);
+                }
+                fclose(out);
             }
 
             // Prepare cube file, for structure sample see cube-file parser
@@ -1268,6 +1426,21 @@ void EMultipole::CalculateESPRigid(Topology *top) {
 
         for (pit = poles.begin(); pit < poles.end(); ++pit) {
             (*pit)->Charge(state);
+        }
+
+        if (state == 0) {
+            FILE *out;
+            string chkOutfile = seg->getName()
+                        + "_rigid_id" + boost::lexical_cast<string>(seg->getId())
+                        + "_" + boost::lexical_cast<string>(state)
+                        + ".xyz";
+            out = fopen(chkOutfile.c_str(),"w");
+            fprintf(out, "%1d\n\n", poles.size()*9);
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                vec shift = vec(0,0,0);
+                (*pit)->WriteChkLine(out, shift, true,"xyz", 0.04);
+            }
+            fclose(out);
         }
 
         FILE *out;
@@ -1996,7 +2169,7 @@ bool EMultipole::EvaluateFrame(Topology *top) {
     }
 
     // What has already been done? If anything at all, return 0.
-    if ( (_calcAlphaMol && !_doSystem) || _calcESP || _calcESF) {
+    if ( (_calcAlphaMol && !_doSystem) || _calcESP || _calcESF || _dma_input) {
 
         cout << endl << "... ... Calculated ";
 
@@ -2008,6 +2181,9 @@ bool EMultipole::EvaluateFrame(Topology *top) {
         }
         if (this->_calcESF) {
             cout << "ESFs, ";
+        }
+        if (this->_dma_input) {
+            cout << "multipole moments, ";
         }
         cout << "return. ";
         return 0;
@@ -2076,6 +2252,99 @@ bool EMultipole::EvaluateFrame(Topology *top) {
 
         return 0;
     }
+
+
+    // ++++++++++++++++++++++++++++++++++++++++ //
+    // Giant Surface Potential in D/Q Exp.      //
+    // ++++++++++++++++++++++++++++++++++++++++ //
+
+    if (this->_calcGSP) {
+        vector< Segment* > ::iterator sit;
+        vector< PolarSite* > ::iterator pit;
+
+        vec gsp_n   = _gsp_normal;
+        int id1     = _gsp_first;
+        int id2     = _gsp_last;
+
+        double ENM_TO_DEBYE = 10. / 0.20822678;
+        double ENM_TO_EA    = 10.;
+        double NM_TO_A     = 10.;
+        double D_INT_TO_EXT = ENM_TO_DEBYE;
+        double Q_INT_TO_EXT = ENM_TO_DEBYE*NM_TO_A;
+
+        FILE *out;
+        string filename = "gsp.dat";
+        out = fopen(filename.c_str(),"w");
+
+        fprintf(out, "# PRJR   "
+                     "Q00    "
+                     "DX      DY      DZ    "
+                     "QXX     QXY     QXZ     QYY     QYZ     QZZ\n");
+
+        for (int i = id1; i < id2 + 1; ++i) {
+
+            double q   = 0.0;
+            double dx  = 0.0; double dy  = 0.0; double dz  = 0.0;
+            double Qxx = 0.0; double Qxy = 0.0; double Qxz = 0.0;
+                              double Qyy = 0.0; double Qyz = 0.0;
+                                                double Qzz = 0.0;
+
+            vec    d = vec(0,0,0);
+
+            Segment *seg = top->getSegment(i);
+            for (pit = seg->PolarSites().begin(); 
+                 pit < seg->PolarSites().end();
+                 ++pit) {
+
+                // Charge and shift by segment center of geometry
+                (*pit)->Charge(0);
+                (*pit)->Translate(-1*seg->getPos());
+
+                q += (*pit)->Q00;
+
+                d += (*pit)->Q00 * (*pit)->getPos();
+
+                Qxx += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getX()*(*pit)->getPos().getX()
+                                     -0.5*(*pit)->getPos()*(*pit)->getPos() );
+                Qyy += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getY()*(*pit)->getPos().getY()
+                                     -0.5*(*pit)->getPos()*(*pit)->getPos() );
+                Qzz += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getZ()*(*pit)->getPos().getZ()
+                                     -0.5*(*pit)->getPos()*(*pit)->getPos() );
+                Qxy += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getX()*(*pit)->getPos().getY() );
+                Qxz += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getX()*(*pit)->getPos().getZ() );
+                Qyz += (*pit)->Q00 * ( 1.5*(*pit)->getPos().getY()*(*pit)->getPos().getZ() );
+
+                if ((*pit)->getRank() > 0) {
+                    d += vec((*pit)->Q1x,(*pit)->Q1y,(*pit)->Q1z);
+                }
+
+                // Undo shift
+                (*pit)->Translate(+1*seg->getPos());
+            }
+
+            double prj_r = gsp_n * seg->getPos();
+            double prj_d = gsp_n * d;
+
+            fprintf(out, "%+4.7f "
+                         "%+4.7f "
+                         "%+4.7f %+4.7f %+4.7f "
+                         "%+4.7f %+4.7f %+4.7f %+4.7f %+4.7f %+4.7f \n",
+                          prj_r,
+                          q,
+                          d.getX()*D_INT_TO_EXT,d.getY()*D_INT_TO_EXT,d.getZ()*D_INT_TO_EXT,
+                          Qxx*Q_INT_TO_EXT,Qxy*Q_INT_TO_EXT,Qxz*Q_INT_TO_EXT,Qyy*Q_INT_TO_EXT,Qyz*Q_INT_TO_EXT,Qzz*Q_INT_TO_EXT);
+
+        }
+        fclose(out);
+
+        cout << endl << "... ... Calculated GSP, return." << flush;
+
+        return 0;
+    }
+
+
+
+
 
 
     // +++++++++++++++++++++++++++++++++ //
@@ -2598,7 +2867,7 @@ int EMultipole::SiteOpMultipole::Induce(int state) {
     // +++++++++++++++++++ //
 
 //    cout << " | Induce " << endl;
-    if (state == 0) { // OVERRIDE
+    if (state == 0 || maxI <= 0) { // OVERRIDE
         for (sit1 = _polsPolSphere.begin();
              sit1 < _polsPolSphere.end();
              ++sit1) {
@@ -2609,7 +2878,7 @@ int EMultipole::SiteOpMultipole::Induce(int state) {
         }
     }
 
-
+    if (maxI < 0) { maxI = - maxI; }
 
     // ++++++++++++++++++++++ //
     // Higher-order induction //
@@ -2723,6 +2992,8 @@ int EMultipole::SiteOpMultipole::Induce(int state) {
 
 double EMultipole::SiteOpMultipole::EnergyStatic(int state) {
 
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+
     _actor.ResetEnergy();
     double E_Tot = 0.0;
 
@@ -2756,10 +3027,10 @@ double EMultipole::SiteOpMultipole::EnergyStatic(int state) {
     }
 
     if (_master->_maverick) {
-        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot
-             << " = (P ~) " << _actor.getEP()
-             << " + (U ~) " << _actor.getEU_INTER()
-             << " + (U o) " << _actor.getEU_INTRA()
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " = (P ~) " << _actor.getEP() * int2eV
+             << " + (U ~) " << _actor.getEU_INTER() * int2eV
+             << " + (U o) " << _actor.getEU_INTRA() * int2eV
              << " , statics only. "
              << flush;
     }
@@ -2772,6 +3043,8 @@ double EMultipole::SiteOpMultipole::EnergyStatic(int state) {
  * Calculates electrostatic + induction energy of segment up to Q2-Q2
  */
 double EMultipole::SiteOpMultipole::Energy(int state) {
+
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     _actor.ResetEnergy();
     double E_Tot = 0.0;
@@ -2848,11 +3121,11 @@ double EMultipole::SiteOpMultipole::Energy(int state) {
 
 
     if (_master->_maverick) {
-        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot
-             << " = (P ~) " << _actor.getEP()
-             << " + (U ~) " << _actor.getEU_INTER()
-             << " + (U o) " << _actor.getEU_INTRA()
-             << " , (O ~) " << E_Out
+        cout << endl << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
+             << " = (P ~) " << _actor.getEP()       * int2eV
+             << " + (U ~) " << _actor.getEU_INTER() * int2eV
+             << " + (U o) " << _actor.getEU_INTRA() * int2eV
+             << " , (O ~) " << E_Out * int2eV
              << flush;
     }
 
@@ -2900,9 +3173,9 @@ inline double EMultipole::Interactor::PotentialPerm(vec r,
     
 
 
-    rbx = - pol._locX * e12;
-    rby = - pol._locY * e12;
-    rbz = - pol._locZ * e12;
+    rbx = - e12.getX();
+    rby = - e12.getY();
+    rbz = - e12.getZ();
 
     double phi00 = 0.0;
     

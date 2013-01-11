@@ -55,7 +55,7 @@ void QMNBList::PrintInfo(FILE *out) {
         if (pair->HasGhost()) { ghost = 1; }
         else { ghost = 0; }
 
-        fprintf(out, "PairID %5d  | Seg1 %4d Seg2 %4d dR %2.4f Ghost? %1d | lOuter %1.4 J %2.4f r12 %2.4f r21 %2.4f \n",
+        fprintf(out, "PairID %5d  | Seg1 %4d Seg2 %4d dR %2.4f Ghost? %1d | lOuter %1.4f J %2.4f r12 %2.4f r21 %2.4f \n",
                 pair->getId(),
                 pair->first->getId(),
                 pair->second->getId(),
