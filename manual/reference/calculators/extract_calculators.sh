@@ -46,6 +46,12 @@ rm -f $texfile
 
 for calculator in ${calculators}; do
   xmlfile=${VOTCASHARE}/ctp/xml/$calculator.xml
+
+
+  if [ ! -f "$xmlfile" ]; then 
+    continue
+  fi
+
   calculator_description="$(csg_property --file $xmlfile --path $calculator --print description --short)"
   calculator_sectionlabel="$(csg_property --file $xmlfile --path $calculator --print sectionlabel --short)"
 

@@ -9,7 +9,7 @@ Within the dimer projection method~\cite{valeev_effect_2006,baumeier_density-fun
 First, \slink{segments}{hopping sites} and a \slink{neighborlist}{neighbor list} need to be generated from the atomistic topology and trajectory and written to the \sqlstate file. The directory structure, and coordinate files of monomers and dimers are then generated using the \calc{pairdump} \calculator
 \label{sec:pairdump}
 \vskip 0.1cm
-{\noindent \small \ctprun \opt \xmloptions \seg \xmlsegments \ \sqlstate \exe \calc{pairdump} }
+{\noindent \small \ctprun \opt \xmloptions \sqlstate \exe \calc{pairdump} }
 \vskip 0.1cm
 \calc{pairdump} creates the following directories and files:
 \begin{verbatim}
