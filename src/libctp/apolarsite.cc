@@ -409,9 +409,9 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
 
         if (_rank == 2) {
             tot_dpl += vec(Q1x,Q1y,Q1z);
-            cout << endl
-                 << "WARNING: Quadrupoles are not split onto point charges."
-                 << endl;
+            //cout << endl
+            //     << "WARNING: Quadrupoles are not split onto point charges."
+            //     << endl;
 
             int state = 0;
 
@@ -441,6 +441,13 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
         vec    B        = pos - 0.5 * a * dir_d;
         double qA       = mag_d / a;
         double qB       = - qA;
+        
+        if (this->eigendamp == 0) {
+            A = pos;
+            B = pos;
+            qA = 0;
+            qB = 0;
+        }
 
         if (format == "xyz") {
             fprintf(out, " A ");
