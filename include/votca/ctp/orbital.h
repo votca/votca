@@ -41,7 +41,7 @@ public:
     const int     &getId() const { return _id; }
     const double  &getEnergy() const { return _energy; }
 
-    inline const double setEnergy( const double &energy ) { _energy = energy }
+    inline const double setEnergy( const double &energy ) { _energy = energy; }
 
 protected:
     int                 _id;

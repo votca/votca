@@ -19,6 +19,7 @@
 
 
 #include "idft.h"
+#include <votca/ctp/orbital.h>
 #include <boost/algorithm/string.hpp>
 
 
