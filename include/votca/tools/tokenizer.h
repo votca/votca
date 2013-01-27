@@ -93,8 +93,10 @@ public:
         std::vector<std::string> tmp;
         ToVector(tmp);
         v.resize(tmp.size());
-        transform(tmp.begin(), tmp.end(), v.begin(),
-            boost::lexical_cast<T, std::string>);
+        typename std::vector<T>::iterator viter = v.begin();
+        typename std::vector<std::string>::iterator iter;
+        for(iter = tmp.begin(); iter!=tmp.end(); ++iter, ++viter)
+            *viter = boost::lexical_cast<T, std::string>(*iter);
     }
     
 private:
