@@ -30,87 +30,82 @@ using namespace std;
 
 namespace votca { namespace ctp {
 
- /* 
- * Reads in the MO coefficients from a GAUSSIAN fcheck file  
+ /*
+ * Reads in the MO coefficients from a GAUSSIAN fcheck file
  */
 bool Orbitals::ReadOrbitalsGaussian( const char * filename )
 {
- 
- map <int, vector<double> > _coefficients;
- string line;
- 
- ifstream _input_file ( filename ); 
- if ( _input_file.fail() ){
-     cerr << "File "<< filename << " with molecular orbitals is not found " << endl;
-     return 1;
- };
+    map <int, vector<double> > _coefficients;
+    string _line;
+    unsigned _levels = 0;
+    unsigned _level;
+    unsigned _basis_size = 0;
 
- std::vector <string> file;
-  
-// number of coefficients per line is  given by the first line of the file (e.g. 5D15.8)
- getline ( _input_file, line );
- std::vector<string> strs;
- boost::algorithm::split(strs, line, boost::is_any_of("(D)"));
- //cout << strs.at(1) << endl;
- int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
- string format = strs.at(2);
- 
- cout    << "Orbital file: " 
-         <<  nrecords_in_line << " records per line, in D" 
-         << format << " format." << endl;;
+    ifstream _input_file(filename);
+    if (_input_file.fail()) {
+        cerr << "File " << filename << " with molecular orbitals is not found " << endl;
+        return 1;
+    };
 
- unsigned _levels = 0;
- unsigned _level;
- unsigned _basis_size = 0;
- 
- while (_input_file){
-	getline (_input_file, line);
-        
-        //cout << line << endl ;
-        
-        // if line has an equality sign, must be energy
-        std::string::size_type energy_pos = line.find("=");
-        
-        if ( energy_pos != std::string::npos ) {
-            
+    // number of coefficients per line is  in the first line of the file (5D15.8)
+    getline(_input_file, _line);
+    std::vector<string> strs;
+    boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
+    //cout << strs.at(1) << endl;
+    int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
+    string format = strs.at(2);
+
+    cout << "Orbital file: "
+            << nrecords_in_line << " records per line, in D"
+            << format << " format." << endl;
+
+    while (_input_file) {
+
+        getline(_input_file, _line);
+        // if a line has an equality sign, must be energy
+        std::string::size_type energy_pos = _line.find("=");
+
+        if (energy_pos != std::string::npos) {
+
             vector<string> results;
-            boost::algorithm::split(results, line, boost::is_any_of("\t ="), boost::algorithm::token_compress_on);
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+                    boost::algorithm::token_compress_on);
             //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
-            
-            _level = boost::lexical_cast<int>( results[1] );
-            boost::replace_first( results[4], "D", "e"  );
-            double _energy = boost::lexical_cast<double>( results[4]);  
+
+            _level = boost::lexical_cast<int>(results[1]);
+            boost::replace_first(results[4], "D", "e");
+            double _energy = boost::lexical_cast<double>(results[4]);
             _levels++;
-            
+
         } else {
-                while (line.size() > 1 )
-                {
-                         string _coefficient;
-                        _coefficient.assign(line,0,15);
-                        boost::trim(_coefficient);
-                        boost::replace_first( _coefficient, "D", "e");
-                        double coefficient = boost::lexical_cast<double>( _coefficient );
-                        _coefficients[_level].push_back(coefficient);
-                        line.erase(0,15);
-                }
+            
+            while (_line.size() > 1) {
+                string _coefficient;
+                _coefficient.assign(_line, 0, 15);
+                boost::trim(_coefficient);
+                boost::replace_first(_coefficient, "D", "e");
+                double coefficient = boost::lexical_cast<double>(_coefficient);
+                _coefficients[_level].push_back(coefficient);
+                _line.erase(0, 15);
+            }
         }
-   }
- 
-   // some sanity checks 
- cout << "Read in " << _levels << " levels. ";
- 
- std::map< int, vector<double> >::iterator iter = _coefficients.begin();
- _basis_size = iter->second.size();
- 
- for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
-     if ( iter->second.size() != _basis_size ) {
-         cerr << "Error reading "<< filename << ". Basis set size change from level to level.";
-         
-     }
- }
- cout << "Basis set size: " << _basis_size << "." << endl;
- 
- return 0;
+    }
+
+    // some sanity checks
+    cout << "Read in " << _levels << " levels. ";
+
+    std::map< int, vector<double> >::iterator iter = _coefficients.begin();
+    _basis_size = iter->second.size();
+
+    for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
+        if (iter->second.size() != _basis_size) {
+            cerr << "Error reading " << filename << ". Basis set size change from level to level.";
+
+        }
+    }
+    cout << "Basis set size: " << _basis_size << "." << endl;
+
+    return 0;
 }
 
 
