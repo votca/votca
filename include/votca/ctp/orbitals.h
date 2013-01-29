@@ -23,8 +23,6 @@
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace votca { namespace ctp {
-using namespace std;
-using namespace boost::numeric::ublas;
 
 /**
     \brief information about an orbital
@@ -41,7 +39,9 @@ public:
 
     const int     &getBasisSetSize() const { return _basis_set_size; }
     const double  &getEnergy(const int level ) const { return _energy[level]; }
-
+    
+    bool ReadOrbitalsGaussian( const char * filename );
+    
     inline void setEnergy( const int &level, const double &energy ) { _energy[level] = energy; }
 
 protected:

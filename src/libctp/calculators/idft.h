@@ -21,9 +21,8 @@
 #ifndef _CALC_INTEGRALS_DFT_H
 #define	_CALC_INTEGRALS_DFT_H
 
-#include <votca/ctp/qmpair.h>
 #include <votca/ctp/qmcalculator.h>
-#include <string>
+#include <votca/ctp/orbitals.h>
 
 namespace votca { namespace ctp {
 
@@ -42,12 +41,10 @@ class IDFT : public QMCalculator
 public:
 
     IDFT() {
-        ReadOrbitalsGaussian( "alq3.orb" );
+        _orbitalsA.ReadOrbitalsGaussian( "fort.7" );
     };
    ~IDFT() {};
-   
-    bool ReadOrbitalsGaussian( const char * filename );
-    
+      
 /*    string  Identify() { return "IDFT"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
@@ -58,11 +55,9 @@ public:
 
 private:
     
-    vector<double> evl;
-    double **psi;
-    
-    double parsenrg(string & line);
-    
+    Orbitals _orbitalsA;
+    //Orbitals _orbitalsB;
+    //Orbitals _orbitalsAB;
    
 };
 

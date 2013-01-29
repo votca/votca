@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="80">
+<configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libctp/calculators/density.h</itemPath>
@@ -40,7 +40,7 @@
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
-      <itemPath>../../include/votca/ctp/orbital.h</itemPath>
+      <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelpaircalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
@@ -64,6 +64,7 @@
       <itemPath>../../src/libctp/fragment.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/molecule.cc</itemPath>
+      <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/qmapplication.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
