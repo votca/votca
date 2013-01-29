@@ -23,6 +23,7 @@
 
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/qmcalculator.h>
+#include <string>
 
 namespace votca { namespace ctp {
 
@@ -41,7 +42,7 @@ class IDFT : public QMCalculator
 public:
 
     IDFT() {
-        ReadOrbitalsGaussian( "dcv2t.orbitals.gaussian" );
+        ReadOrbitalsGaussian( "alq3.orb" );
     };
    ~IDFT() {};
    

@@ -17,13 +17,14 @@
  *
  */
 
-#ifndef __VOTCA_CTP_ORBITAL_H
-#define	__VOTCA_CTP_ORBITAL_H
+#ifndef __VOTCA_CTP_ORBITALS_H
+#define	__VOTCA_CTP_ORBITALS_H
+
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace votca { namespace ctp {
-using namespace votca::tools;
-
 using namespace std;
+using namespace boost::numeric::ublas;
 
 /**
     \brief information about an orbital
@@ -31,22 +32,22 @@ using namespace std;
     The Orbital class stores orbital id, energy, MO coefficients
     
 */
-class Orbital 
+class Orbitals 
 {
 public:   
 
-    Orbital() { };
-   ~Orbital() { };
+    Orbitals() { };
+   ~Orbitals() { };
 
-    const int     &getId() const { return _id; }
-    const double  &getEnergy() const { return _energy; }
+    const int     &getBasisSetSize() const { return _basis_set_size; }
+    const double  &getEnergy(const int level ) const { return _energy[level]; }
 
-    inline const double setEnergy( const double &energy ) { _energy = energy; }
+    inline void setEnergy( const int &level, const double &energy ) { _energy[level] = energy; }
 
 protected:
-    int                 _id;
-    double              _energy;
-    vector<double>      _coefficients;
+    int                                         _basis_set_size;
+    boost::numeric::ublas::vector<double>       _energy;
+    boost::numeric::ublas::matrix<double>       _coefficients ();
         
 };
 

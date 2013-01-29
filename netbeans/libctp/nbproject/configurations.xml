@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="79">
+<configurationDescriptor version="80">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libctp/calculators/density.h</itemPath>
@@ -12,6 +12,8 @@
       <itemPath>../../src/libctp/calculators/emultipole_stdal.h</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
+      <itemPath>../../src/libctp/calculators/idft.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/idft.h</itemPath>
       <itemPath>../../src/libctp/calculators/iimport.h</itemPath>
       <itemPath>../../src/libctp/calculators/izindo.cc</itemPath>
       <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
@@ -38,6 +40,7 @@
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
+      <itemPath>../../include/votca/ctp/orbital.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelpaircalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
