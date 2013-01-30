@@ -188,7 +188,7 @@ public:
     KMCMultiple() {};
    ~KMCMultiple() {};
 
-    void Initialize(const char *filename, Property *options );
+    void Initialize(const char *filename, Property *options, const char *outputfile );
     bool EvaluateFrame();
 
 protected:
@@ -216,6 +216,7 @@ protected:
             int _explicitcoulomb;
             double _temperature;
             string _filename;
+            string _outputfile;
             double _q;
             double _boxsizeX;
             double _boxsizeY;
@@ -223,7 +224,7 @@ protected:
 };
 
 
-void KMCMultiple::Initialize(const char *filename, Property *options )
+void KMCMultiple::Initialize(const char *filename, Property *options, const char *outputfile )
 {
     	if (options->exists("options.kmcmultiple.runtime")) {
 	    _runtime = options->get("options.kmcmultiple.runtime").as<double>();
@@ -329,6 +330,7 @@ void KMCMultiple::Initialize(const char *filename, Property *options )
         }
 
         _filename = filename;
+        _outputfile = outputfile;
 
 }
 
