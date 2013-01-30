@@ -23,6 +23,7 @@
 
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/orbitals.h>
+#include <votca/tools/property.h>
 
 namespace votca { namespace ctp {
 
@@ -40,13 +41,13 @@ class IDFT : public QMCalculator
 {
 public:
 
-    IDFT() {
-        _orbitalsA.ReadOrbitalsGaussian( "fort.7" );
-    };
+    IDFT() {};
    ~IDFT() {};
-      
-/*    string  Identify() { return "IDFT"; }
-    void    Initialize(Topology *top, Property *options);
+   
+    void    Initialize( tools::Property *options );
+    void    ParseOrbitalsXML( tools::Property *opt);
+
+    /*    string  Identify() { return "IDFT"; }
     void    ParseOrbitalsXML(Topology *top, Property *options);
     void    EvalPair(Topology *top, QMPair *pair, int slot);
     void    CalculateJ(QMPair *pair);

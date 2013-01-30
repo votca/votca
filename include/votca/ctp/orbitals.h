@@ -21,6 +21,8 @@
 #define	__VOTCA_CTP_ORBITALS_H
 
 #include <boost/numeric/ublas/matrix.hpp>
+#include <votca/tools/globals.h>
+#include <votca/tools/property.h>
 
 namespace votca { namespace ctp {
 
@@ -34,20 +36,22 @@ class Orbitals
 {
 public:   
 
-    Orbitals() { };
-   ~Orbitals() { };
+    Orbitals();
+   ~Orbitals();
+
+    void Initialize( tools::Property *options );
 
     const int     &getBasisSetSize() const { return _basis_set_size; }
-    const double  &getEnergy(const int level ) const { return _energy[level]; }
+    const double  &getEnergy(const int level ) const { return _mo_energies[level]; }
     
     bool ReadOrbitalsGaussian( const char * filename );
     
-    inline void setEnergy( const int &level, const double &energy ) { _energy[level] = energy; }
+    inline void setEnergy( const int &level, const double &energy ) { _mo_energies[level] = energy; }
 
 protected:
     int                                         _basis_set_size;
-    boost::numeric::ublas::vector<double>       _energy;
-    boost::numeric::ublas::matrix<double>       _coefficients ();
+    boost::numeric::ublas::vector<double>       _mo_energies;
+    boost::numeric::ublas::matrix<double>       _mo_coefficients;
         
 };
 

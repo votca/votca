@@ -19,13 +19,38 @@
 
 
 #include "idft.h"
+#include "votca/ctp/qmcalculator.h"
 
 namespace votca { namespace ctp {
     
 // +++++++++++++++++++++++++++++ //
 // IDFT MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
-   
+
+void IDFT::Initialize( tools::Property* options ) {
+        ParseOrbitalsXML( options );
+        _orbitalsA.ReadOrbitalsGaussian( "fort.7" );
+}
+
+    
+void IDFT::ParseOrbitalsXML( tools::Property *opt ) {
+
+    string key = "options.orbitals";
+    string orbitalsXML = opt->get(key+".orbitalsXML").as<string> ();
+    cout << endl << "... ... Orbital data from " << orbitalsXML << ". ";
+
+    Property alloc;
+    load_property_from_xml(alloc, orbitalsXML.c_str());    
+
+    /* --- ORBITALS.XML Structure ---
+     */
+ 
+    key = "topology.molecules.molecule";
+    list<Property*> mols = alloc.Select(key);
+    list<Property*> ::iterator molit;
+
+}
+
 /*
 void IDFT::CleanUp() {
 

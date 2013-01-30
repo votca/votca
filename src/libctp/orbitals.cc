@@ -25,10 +25,26 @@
 #include <map>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/vector.hpp>
 
 using namespace std;
 
 namespace votca { namespace ctp {
+
+Orbitals::Orbitals() { 
+     
+};   
+    
+Orbitals::~Orbitals() { 
+    _mo_energies.clear();
+    _mo_coefficients.clear();
+};   
+
+void Orbitals::Initialize( tools::Property *options )
+{
+    //this->ParseOrbitalsXML( options );
+}
 
  /*
  * Reads in the MO coefficients from a GAUSSIAN fcheck file
@@ -36,6 +52,8 @@ namespace votca { namespace ctp {
 bool Orbitals::ReadOrbitalsGaussian( const char * filename )
 {
     map <int, vector<double> > _coefficients;
+    map <int, double> _energies;
+    
     string _line;
     unsigned _levels = 0;
     unsigned _level;
@@ -70,22 +88,22 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
             vector<string> results;
             boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
                     boost::algorithm::token_compress_on);
-            //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
+            //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << ":" << results[5] << endl;
 
             _level = boost::lexical_cast<int>(results[1]);
-            boost::replace_first(results[4], "D", "e");
-            double _energy = boost::lexical_cast<double>(results[4]);
+            boost::replace_first(results[5], "D", "e");
+            _energies[ _level ] = boost::lexical_cast<double>(results[5]);            
             _levels++;
 
         } else {
             
             while (_line.size() > 1) {
                 string _coefficient;
-                _coefficient.assign(_line, 0, 15);
-                boost::trim(_coefficient);
-                boost::replace_first(_coefficient, "D", "e");
-                double coefficient = boost::lexical_cast<double>(_coefficient);
-                _coefficients[_level].push_back(coefficient);
+                _coefficient.assign( _line, 0, 15 );
+                boost::trim( _coefficient );
+                boost::replace_first( _coefficient, "D", "e" );
+                double coefficient = boost::lexical_cast<double>( _coefficient );
+                _coefficients[ _level ].push_back( coefficient );
                 _line.erase(0, 15);
             }
         }
@@ -105,8 +123,33 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     }
     cout << "Basis set size: " << _basis_size << "." << endl;
 
-    return 0;
+    // copying energies to a matrix
+    _mo_energies.resize( _levels );
+    _level = 1;
+    for(size_t i=0; i<_mo_energies.size(); i++) {
+        _mo_energies[i] = _energies[ _level++ ];
+    }
+   
+    // copying orbitals to the matrix
+   _mo_coefficients.resize( _levels, _basis_size );     
+    for(size_t i = 0; i < _mo_coefficients.size1(); i++) {
+      for(size_t j = 0 ; j<_mo_coefficients.size2(); j++) {
+         _mo_coefficients(i,j) = _coefficients[i+1][j];
+         //cout << i << " " << j << endl;
+      }
+   }
+   
+   //cout << _mo_energies << endl;   
+   //cout << _mo_coefficients << endl; 
+   
+   // cleanup
+   _coefficients.clear();
+   _energies.clear();
+   
+   return 0;
 }
+
+
 
 
 }}
