@@ -44,10 +44,13 @@ public:
     IDFT() {};
    ~IDFT() {};
    
-    void    Initialize( tools::Property *options );
-    void    ParseOrbitalsXML( tools::Property *opt);
+    // Topology is not needed; shall removed later with a different Apllication class
+    void    Initialize(ctp::Topology *top, tools::Property *options );
+    
+    string  Identify() { return "IDFT"; }
+    void    ParseOptionsXML( tools::Property *opt);
 
-    /*    string  Identify() { return "IDFT"; }
+    /*  
     void    ParseOrbitalsXML(Topology *top, Property *options);
     void    EvalPair(Topology *top, QMPair *pair, int slot);
     void    CalculateJ(QMPair *pair);
@@ -55,10 +58,14 @@ public:
 */
 
 private:
-    
+
+    string _orbitalsA_file;
+    string _orbitalsB_file;
+    string _orbitalsAB_file;
+
     Orbitals _orbitalsA;
-    //Orbitals _orbitalsB;
-    //Orbitals _orbitalsAB;
+    Orbitals _orbitalsB;
+    Orbitals _orbitalsAB;
    
 };
 

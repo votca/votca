@@ -27,27 +27,31 @@ namespace votca { namespace ctp {
 // IDFT MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IDFT::Initialize( tools::Property* options ) {
-        ParseOrbitalsXML( options );
-        _orbitalsA.ReadOrbitalsGaussian( "fort.7" );
+void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
+    
+    ParseOptionsXML( options );
+    _orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
 }
 
     
-void IDFT::ParseOrbitalsXML( tools::Property *opt ) {
+void IDFT::ParseOptionsXML( tools::Property *opt ) {
 
-    string key = "options.orbitals";
-    string orbitalsXML = opt->get(key+".orbitalsXML").as<string> ();
-    cout << endl << "... ... Orbital data from " << orbitalsXML << ". ";
-
-    Property alloc;
-    load_property_from_xml(alloc, orbitalsXML.c_str());    
-
+    string key = "options.idft";
+    
+    if ( opt->exists(key+".orbitals_A") ) {
+        _orbitalsA_file = opt->get(key + ".orbitals_A").as< string > ();
+    }
+    else {
+        throw std::runtime_error("Error in options: molecule A orbitals filename is missing.");
+    }
+    
     /* --- ORBITALS.XML Structure ---
+     * <options>
+     *   <idft>
+     *     <orbitals_A>fort.7</orbitals_A>
+     *   </idft>
+     * </options>
      */
- 
-    key = "topology.molecules.molecule";
-    list<Property*> mols = alloc.Select(key);
-    list<Property*> ::iterator molit;
 
 }
 
@@ -57,29 +61,6 @@ void IDFT::CleanUp() {
 }
 */
 
-/*
-void IDFT::Initialize(Topology *top, Property *options) {
-
-     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
-    _maverick = (_nThreads == 1) ? true : false;
-
-    this->ParseOrbitalsXML(top, options);
-
-    
-}
-*/
-
-/*
-void IDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
-
-}
-*/
-
-/*
-void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
-
-}
-*/
 
 /*
 void IDFT::CalculateJ(QMPair *pair) {

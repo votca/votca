@@ -41,11 +41,6 @@ Orbitals::~Orbitals() {
     _mo_coefficients.clear();
 };   
 
-void Orbitals::Initialize( tools::Property *options )
-{
-    //this->ParseOrbitalsXML( options );
-}
-
  /*
  * Reads in the MO coefficients from a GAUSSIAN fcheck file
  */
@@ -73,7 +68,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
     string format = strs.at(2);
 
-    cout << "Orbital file: "
+    cout << "Orbital file " << filename << " has " 
             << nrecords_in_line << " records per line, in D"
             << format << " format." << endl;
 
@@ -86,13 +81,14 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
         if (energy_pos != std::string::npos) {
 
             vector<string> results;
+            boost::trim( results );
             boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
-                    boost::algorithm::token_compress_on);
-            //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << ":" << results[5] << endl;
+                    boost::algorithm::token_compress_on); 
+            //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
 
             _level = boost::lexical_cast<int>(results[1]);
-            boost::replace_first(results[5], "D", "e");
-            _energies[ _level ] = boost::lexical_cast<double>(results[5]);            
+            boost::replace_first(results[4], "D", "e");
+            _energies[ _level ] = boost::lexical_cast<double>(results[4]);            
             _levels++;
 
         } else {

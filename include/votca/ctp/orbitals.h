@@ -39,8 +39,6 @@ public:
     Orbitals();
    ~Orbitals();
 
-    void Initialize( tools::Property *options );
-
     const int     &getBasisSetSize() const { return _basis_set_size; }
     const double  &getEnergy(const int level ) const { return _mo_energies[level]; }
     
