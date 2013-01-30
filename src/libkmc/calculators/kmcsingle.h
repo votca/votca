@@ -40,7 +40,7 @@ public:
     KMCSingle() {};
    ~KMCSingle() {};
 
-    void Initialize(const char *filename, Property *options );
+    void Initialize(const char *filename, Property *options , const char *outputfile);
     bool EvaluateFrame();
 
 protected:
@@ -57,10 +57,11 @@ protected:
             double _dt;
             int _seed;
             string _filename; // HACK
+            string _outputfile;
             
 };
 
-void KMCSingle::Initialize(const char *filename, Property *options )
+void KMCSingle::Initialize(const char *filename, Property *options , const char *outputfile)
 {
     	if (options->exists("options.kmcsingle.runtime")) {
 	    _runtime = options->get("options.kmcsingle.runtime").as<double>();
@@ -91,6 +92,7 @@ void KMCSingle::Initialize(const char *filename, Property *options )
         }
         
         _filename = filename;
+        _outputfile = outputfile;
 
        //cout << _seed << endl;
        srand(_seed);
@@ -111,7 +113,7 @@ void KMCSingle::LoadGraph() {
     Database db;
     db.Open( _filename );
     cout << " Loading graph from " << _filename << endl;
-    Statement *stmt = db.Prepare("SELECT id, name FROM segments;");
+    Statement *stmt = db.Prepare("SELECT _id, name FROM segments;");
 
     while (stmt->Step() != SQLITE_DONE) {
         int id = stmt->Column<int>(0);
@@ -187,7 +189,7 @@ void KMCSingle::WriteOcc()
     cout << "Opening for writing " << _filename << endl;
 	db.Open(_filename);
 	db.Exec("BEGIN;");
-	Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE id = ?;");  // electron occ. prob., check (think about) this
+	Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE _id = ?;");  // electron occ. prob., check (think about) this
 	for(int i=0; i<_nodes.size(); ++i) {
 		stmt->Reset();
 		stmt->Bind(1, _nodes[i]->_occ/_runtime);
