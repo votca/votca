@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- options to perform relative entropy iterations -->
 <cg>
-  <!-- neighbor search method "simple" or "grid" -->
-  <nbsearch>grid</nbsearch> 
   <!-- non-bonded interaction entry -->
   <non-bonded>
     <!-- name of the interaction -->
@@ -65,24 +63,7 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.5</table_end>
-      <!-- topology + trajectory. Be careful, do not change yet! -->
-      <index>index.ndx</index>
-      <topol>topol.top</topol>
-      <!-- other gromacs in/out files -->
-      <mdp>grompp.mdp</mdp>
-      <topol_out>topol.tpr</topol_out>
       <traj_type>xtc</traj_type>
-      <conf_out>confout.gro</conf_out>
-      <cutoff_check>yes</cutoff_check>
-      <!-- grompp options -->
-      <grompp>
-        <opts></opts>
-      </grompp>
-      <!-- mdrun options -->
-      <mdrun>
-	<command>mdrun</command>
-	<opts>-nt 4</opts>
-      </mdrun>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
@@ -92,11 +73,6 @@
     <method>re</method>
     <!-- relative entropy specific options -->
     <re>
-      <!-- relative entropy program name and options-->
-      <!-- default path is votcadir/bin -->
-      <csg_reupdate>
-        <opts>--begin 50 --nt 4</opts>
-      </csg_reupdate>
       <!-- relaxation parameter in Newton-Raphson update -->
       <relax>0.7</relax>
     </re>
@@ -110,10 +86,6 @@
     </average>
     <!-- directory for user scripts -->
     <scriptdir></scriptdir>
-    <!-- write log to this file -->
-    <log_file>inverse.log</log_file>
-    <!-- write restart step to this file -->
-    <restart_file>restart_points.log</restart_file>
   </inverse>
 </cg>
 
