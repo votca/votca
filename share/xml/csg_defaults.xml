@@ -171,6 +171,11 @@
 	  <DESC> Gromacs text topol (top) file to use by grompp in the pre simulation</DESC>
 	</topol_in>
       </pre_simulation>
+      <re>
+	<topol>
+	  <DESC> Gromacs binary topol (tpr) file to be used for csg_reupdate</DESC>
+	</topol>
+      </re>
       <ref>
 	<DESC> Options for the case that calculation of reference system is needed</DESC>
         <equi_time>0
