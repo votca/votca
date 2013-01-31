@@ -32,12 +32,15 @@ ext=$(csg_get_property cg.inverse.gromacs.traj_type)
 traj="traj.${ext}"
 [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
+first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
 csg_reupdate_opts="$(csg_get_property --allow-empty cg.inverse.re.csg_reupdate.opts)"
 
+tasks=$(get_number_tasks)
 if is_done "re_update"; then
   echo "re update is already done"
 else
-  critical csg_reupdate --top ${topol} --trj $traj --options $CSGXMLFILE ${csg_reupdate_opts}
+  critical csg_reupdate --nt $tasks --top ${topol} --trj $traj --options $CSGXMLFILE --begin $equi_time --first-frame $first_frame ${csg_reupdate_opts}
   mark_done "re_update"
 fi
 
