@@ -27,6 +27,8 @@
       <max>0.9</max>
     </re>
     <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>CG-CG.aa.rdf</target>
       <gromacs>
 	<!-- name of the table for gromacs run -->
         <table>table_CG_CG.xvg</table>
