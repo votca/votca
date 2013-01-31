@@ -27,18 +27,11 @@ fi
 
 
 # get initial parameters from main dir and make it current parameters
-
 for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property name).param.init $(csg_get_interaction_property name).param.new'
 
-# copy AA reference RDFs from main dir
-for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property name).aa.rdf $(csg_get_interaction_property name).aa.rdf'
-
 # copy coarse-grained initial configurations
-
 cp_from_main_dir --rename conf.gro confout.gro
 
 # run csg_reupdate to generate intital potential tables
-
 msg --color green "Generating potential tables from the initial parameters"
-
 critical csg_reupdate --gentable true --param-in-ext param.new --options $CSGXMLFILE 

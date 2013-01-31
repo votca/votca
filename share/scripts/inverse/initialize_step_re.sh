@@ -33,8 +33,5 @@ for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property na
 # get new potential tables from last step and make it current potential tables
 for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 
-# get AA RDFs from last step
-for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).aa.rdf $(csg_get_interaction_property name).aa.rdf'
-
 # initialize sim_prog
 do_external initstep_generic $sim_prog

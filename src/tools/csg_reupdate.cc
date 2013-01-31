@@ -73,10 +73,8 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
 
     PotentialInfo *i = new PotentialInfo(id,false,_nlamda,_param_in_ext,*iter);
 
-    // load the AA ensemble rdf corresponding to this interaction
-    string filename = (*iter)->get("inverse.target").value();
     Table *aardf = new Table();
-    aardf->Load(filename);
+    aardf->Load(name + ".dist.tgt");
     _aardfs.push_back(aardf);
 
     // generate the bead lists
