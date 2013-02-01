@@ -20,7 +20,8 @@
 
 #include "idft.h"
 #include "votca/ctp/qmcalculator.h"
-#include <votca/tools/linalg.h>
+#include <votca/ctp/eigenvalues.h>
+#include <boost/numeric/ublas/io.hpp>
 
 namespace votca { namespace ctp {
     
@@ -31,8 +32,9 @@ namespace votca { namespace ctp {
 void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
     ParseOptionsXML( options );
-    _orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
-    _orbitalsAB.ReadOverlapGaussian( _overlapAB_file.c_str() );
+    //_orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
+    //_orbitalsAB.ReadOverlapGaussian( _overlapAB_file.c_str() );
+    SQRTOverlap();
 }
 
     
@@ -79,6 +81,32 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
  */
 void IDFT::SQRTOverlap() {
     
+    boost::numeric::ublas::vector<double>       _eigenvalues;
+    boost::numeric::ublas::matrix<double>       _eigenvectors;
+    boost::numeric::ublas::matrix<double>       _overlap;
+ 
+    //_overlap = _orbitalsAB._overlap;
+    
+    int _basis_size = _orbitalsAB.getBasisSetSize(); 
+    
+    _overlap.resize( _basis_size, _basis_size ); 
+    _eigenvalues.resize( _basis_size );
+    _eigenvectors.resize( _basis_size, _basis_size ); 
+    
+/* test case 
+    eigenvalues 3, 6, 9
+    eigenvectors (1,2,2), (-2,-1,2), (2,-2,1)
+
+    _overlap(0,0) = 7;  _overlap(0,1) =-2; _overlap(0,2) = 0; 
+    _overlap(1,0) =-2;  _overlap(1,1) = 6; _overlap(1,2) =-2; 
+    _overlap(2,0) = 0;  _overlap(2,1) =-2; _overlap(2,2) = 5;
+    
+*/
+    
+    EigenvaluesSymmetric(_overlap, _eigenvalues, _eigenvectors);
+    
+    cout << _eigenvalues << endl;
+    cout << _eigenvectors << endl;
 }
 
 /*
