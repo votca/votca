@@ -20,6 +20,7 @@
 
 #include "idft.h"
 #include "votca/ctp/qmcalculator.h"
+#include <votca/tools/linalg.h>
 
 namespace votca { namespace ctp {
     
@@ -31,6 +32,7 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
     ParseOptionsXML( options );
     _orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
+    _orbitalsAB.ReadOverlapGaussian( _overlapAB_file.c_str() );
 }
 
     
@@ -45,14 +47,38 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
         throw std::runtime_error("Error in options: molecule A orbitals filename is missing.");
     }
     
+    if ( opt->exists(key+".orbitals_B") ) {
+        _orbitalsB_file = opt->get(key + ".orbitals_B").as< string > ();
+    }
+    else {
+        throw std::runtime_error("Error in options: molecule B orbitals filename is missing.");
+    }
+   
+    if ( opt->exists(key+".orbitals_AB") ) {
+        _overlapAB_file = opt->get(key + ".overlap_AB").as< string > ();
+    }
+    else {
+        throw std::runtime_error("Error in options: dimer orbitals filename is missing.");
+    }
+   
     /* --- ORBITALS.XML Structure ---
      * <options>
      *   <idft>
      *     <orbitals_A>fort.7</orbitals_A>
+     *     <orbitals_B>fort.7</orbitals_B>
+     *     <orbitals_AB>fort.7</orbitals_AB>
+     *     <overlap_AB>dimer.log</overlap_AB>
      *   </idft>
      * </options>
      */
 
+}
+
+/*
+ * Calculates S^{-1/2}
+ */
+void IDFT::SQRTOverlap() {
+    
 }
 
 /*

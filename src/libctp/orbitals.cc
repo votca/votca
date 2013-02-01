@@ -39,6 +39,7 @@ Orbitals::Orbitals() {
 Orbitals::~Orbitals() { 
     _mo_energies.clear();
     _mo_coefficients.clear();
+    _overlap.clear();
 };   
 
  /*
@@ -56,7 +57,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
 
     ifstream _input_file(filename);
     if (_input_file.fail()) {
-        cerr << "File " << filename << " with molecular orbitals is not found " << endl;
+        cerr << endl << "File " << filename << " with molecular orbitals is not found " << endl;
         return 1;
     };
 
@@ -68,7 +69,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
     string format = strs.at(2);
 
-    cout << "Orbital file " << filename << " has " 
+    cout << endl << "Orbital file " << filename << " has " 
             << nrecords_in_line << " records per line, in D"
             << format << " format." << endl;
 
@@ -81,14 +82,15 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
         if (energy_pos != std::string::npos) {
 
             vector<string> results;
-            boost::trim( results );
+            boost::trim( _line );
+            
             boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
                     boost::algorithm::token_compress_on); 
             //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
-
-            _level = boost::lexical_cast<int>(results[1]);
-            boost::replace_first(results[4], "D", "e");
-            _energies[ _level ] = boost::lexical_cast<double>(results[4]);            
+            
+            _level = boost::lexical_cast<int>(results.front());
+            boost::replace_first(results.back(), "D", "e");
+            _energies[ _level ] = boost::lexical_cast<double>( results.back() );            
             _levels++;
 
         } else {
@@ -119,16 +121,16 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     }
     cout << "Basis set size: " << _basis_size << "." << endl;
 
-    // copying energies to a matrix
-    _mo_energies.resize( _levels );
-    _level = 1;
-    for(size_t i=0; i<_mo_energies.size(); i++) {
-        _mo_energies[i] = _energies[ _level++ ];
-    }
+   // copying energies to a matrix
+   _mo_energies.resize( _levels );
+   _level = 1;
+   for(size_t i=0; i<_mo_energies.size(); i++) {
+         _mo_energies[i] = _energies[ _level++ ];
+   }
    
-    // copying orbitals to the matrix
+   // copying orbitals to the matrix
    _mo_coefficients.resize( _levels, _basis_size );     
-    for(size_t i = 0; i < _mo_coefficients.size1(); i++) {
+   for(size_t i = 0; i < _mo_coefficients.size1(); i++) {
       for(size_t j = 0 ; j<_mo_coefficients.size2(); j++) {
          _mo_coefficients(i,j) = _coefficients[i+1][j];
          //cout << i << " " << j << endl;
@@ -142,10 +144,114 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
    _coefficients.clear();
    _energies.clear();
    
+   cout << "Done reading orbital files from " << filename << endl;
    return 0;
 }
 
 
+ /*
+ * Reads in the Orbital Overlap matrix from a GAUSSIAN log file
+ */
+bool Orbitals::ReadOverlapGaussian( const char * filename )
+{
+    string _line;
+    unsigned _basis_size = 0;
+    
+    cout << "Reading the overlap matrix from " << filename << endl;
+    
+    ifstream _input_file(filename);
+    if (_input_file.fail()) {
+        cerr << endl << "File " << filename << " with overlap matrix is not found " << endl;
+        return 1;
+    };
+    
+    while (_input_file) {
 
+        getline(_input_file, _line);
+        // if a line has an equality sign, must be energy
+        std::string::size_type energy_pos = _line.find("Overlap");
+        std::string::size_type nbasis_pos = _line.find("NBasis");
+ 
+        if (nbasis_pos != std::string::npos && _basis_size == 0 ) {
+          
+            vector<string> results;
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+                    boost::algorithm::token_compress_on); 
+            //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
+            
+            _basis_size = boost::lexical_cast<int>(results[1]);
+            cout << "Number of basis functions: " << _basis_size << endl;
+            // preparing the matrix container
+            _overlap.resize( _basis_size );  
+ 
+        }
+
+        if (energy_pos != std::string::npos) {
+            cout << "Found the overlap matrix!" << endl;   
+            vector<int> _j_indeces;
+            
+            int _n_blocks = 1 + (( _basis_size - 1 ) / 5);
+            //cout << _n_blocks;
+            
+            getline(_input_file, _line); boost::trim( _line );
+
+            for (int _block = 0; _block < _n_blocks; _block++ ) {
+                
+                // first line gives the j index in the matrix
+                //cout << _line << endl;
+                
+                boost::tokenizer<> tok( _line );
+                std::transform( tok.begin(), tok.end(), std::back_inserter( _j_indeces ), 
+                  &boost::lexical_cast<int,std::string> );
+                //std::copy( _j_indeces.begin(), _j_indeces.end(), std::ostream_iterator<int>(std::cout,"\n") );
+            
+                // read the block of max _basis_size lines + the following header
+                for (int i = 0; i <= _basis_size; i++ ) {
+                    getline (_input_file, _line); 
+                    //cout << _line << endl;
+                    if ( std::string::npos == _line.find("D") ) break;
+                    
+                    // split the line on the i index and the rest
+                    
+                    vector<string> _row;
+                    boost::trim( _line );
+                    boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
+                   
+                            
+                    int _i_index = boost::lexical_cast<int>(  _row.front()  ); 
+                    _row.erase( _row.begin() );
+                    
+                    //cout << _i_index << ":" << _line << endl ;
+                    
+                    std::vector<int>::iterator _j_iter = _j_indeces.begin();
+                    
+                    for (std::vector<string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
+                        string  _coefficient = *iter;
+                       
+                        boost::replace_first( _coefficient, "D", "e" );
+                        //cout << boost::lexical_cast<double>( _coefficient ) << endl;
+                        
+                        int _j_index = *_j_iter;                                
+                        _overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
+                        _j_iter++;
+                        
+                    }
+ 
+                    
+                }
+                
+                // clear the index for the next block
+                _j_indeces.clear();        
+            }  
+ 
+        }
+        
+ 
+    }
+    
+    //cout << _overlap << endl;
+   
+}
 
 }}

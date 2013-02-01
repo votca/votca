@@ -50,8 +50,9 @@ public:
     string  Identify() { return "IDFT"; }
     void    ParseOptionsXML( tools::Property *opt);
 
+    void    SQRTOverlap();
+    
     /*  
-    void    ParseOrbitalsXML(Topology *top, Property *options);
     void    EvalPair(Topology *top, QMPair *pair, int slot);
     void    CalculateJ(QMPair *pair);
     void    CleanUp();
@@ -62,6 +63,7 @@ private:
     string _orbitalsA_file;
     string _orbitalsB_file;
     string _orbitalsAB_file;
+    string _overlapAB_file;
 
     Orbitals _orbitalsA;
     Orbitals _orbitalsB;

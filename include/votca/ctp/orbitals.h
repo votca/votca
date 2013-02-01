@@ -21,6 +21,7 @@
 #define	__VOTCA_CTP_ORBITALS_H
 
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 
@@ -43,14 +44,16 @@ public:
     const double  &getEnergy(const int level ) const { return _mo_energies[level]; }
     
     bool ReadOrbitalsGaussian( const char * filename );
-    
+    bool ReadOverlapGaussian( const char * filename );
+
     inline void setEnergy( const int &level, const double &energy ) { _mo_energies[level] = energy; }
 
 protected:
     int                                         _basis_set_size;
     boost::numeric::ublas::vector<double>       _mo_energies;
     boost::numeric::ublas::matrix<double>       _mo_coefficients;
-        
+    boost::numeric::ublas::symmetric_matrix<double>      _overlap;
+       
 };
 
 
