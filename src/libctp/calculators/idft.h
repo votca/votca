@@ -26,9 +26,9 @@
 #include <votca/tools/property.h>
 
 namespace votca { namespace ctp {
-
+    
 /**
-* \brief Density-functional based electronic coupling elements
+* \brief Density-functional-based electronic coupling elements
 *
 * DFT-based electronic coupling elements for all conjugated
 * segments from the neighbor list. Requires molecular orbitals in GAUSSIAN
@@ -51,10 +51,10 @@ public:
     void    ParseOptionsXML( tools::Property *opt);
 
     void    SQRTOverlap();
+    void    CalculateJ();
     
-    /*  
+/*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
-    void    CalculateJ(QMPair *pair);
     void    CleanUp();
 */
 

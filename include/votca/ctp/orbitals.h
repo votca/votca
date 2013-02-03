@@ -26,7 +26,7 @@
 #include <votca/tools/property.h>
 
 namespace votca { namespace ctp {
-
+    namespace ub = boost::numeric::ublas;
 /**
     \brief information about an orbital
  
@@ -42,6 +42,7 @@ public:
 
     const int     &getBasisSetSize() const { return _basis_set_size; }
     const double  &getEnergy(const int level ) const { return _mo_energies[level]; }
+    ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
     
     bool ReadOrbitalsGaussian( const char * filename );
     bool ReadOverlapGaussian( const char * filename );
@@ -49,10 +50,10 @@ public:
     inline void setEnergy( const int &level, const double &energy ) { _mo_energies[level] = energy; }
 
 protected:
-    int                                         _basis_set_size;
-    boost::numeric::ublas::vector<double>       _mo_energies;
-    boost::numeric::ublas::matrix<double>       _mo_coefficients;
-    boost::numeric::ublas::symmetric_matrix<double>      _overlap;
+    int                                 _basis_set_size;
+    ub::vector<double>                  _mo_energies;
+    ub::matrix<double>                  _mo_coefficients;
+    ub::symmetric_matrix<double>        _overlap;
        
 };
 

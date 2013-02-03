@@ -156,6 +156,7 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
 {
     string _line;
     unsigned _basis_size = 0;
+    bool _read_overlap = false;
     
     cout << "Reading the overlap matrix from " << filename << endl;
     
@@ -165,7 +166,7 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
         return 1;
     };
     
-    while (_input_file) {
+    while (_input_file && !_read_overlap ) {
 
         getline(_input_file, _line);
         // if a line has an equality sign, must be energy
@@ -187,8 +188,10 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
  
         }
 
-        if (energy_pos != std::string::npos) {
-            cout << "Found the overlap matrix!" << endl;   
+        if (energy_pos != std::string::npos ) {
+            
+            _read_overlap = true;
+            //cout << "Found the overlap matrix!" << endl;   
             vector<int> _j_indeces;
             
             int _n_blocks = 1 + (( _basis_size - 1 ) / 5);
@@ -243,13 +246,9 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
                 
                 // clear the index for the next block
                 _j_indeces.clear();        
-            }  
- 
-        }
-        
- 
-    }
-    
+            } // end of the blocks
+        } // end of the if "Overlap" found       
+    } // end of the loop over the file
     //cout << _overlap << endl;
    
 }
