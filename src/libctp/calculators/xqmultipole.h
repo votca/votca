@@ -344,14 +344,22 @@ public:
        void     setIter(int iter)           { _iter = iter; }
        void     setSizePol(int size)        { _sizePol = size; }
        void     setSizeShell(int size)      { _sizeShell = size; }
-       void     setEnergy(double E_T,   double E_i_i, 
-                          double E_i_I, double E_I_I, double E_i_O,
-                          double E_P,   double E_U) {
-           _E_Tot = E_T;
-           _E_Pair_Pair = E_i_i;
-           _E_Pair_Sph1 = E_i_I;
-           _E_Sph1_Sph1 = E_I_I;
-           _E_Pair_Sph2 = E_i_O;
+       
+       void     setEnergy(double E_Tot,   
+                          double E_Pair_Pair, 
+                          double E_Pair_Sph1, 
+                          double E_Pair_Sph2,
+                          double E_Sph1_Sph1,
+                          double E_Sph1_Sph2,
+                          double E_P,   
+                          double E_U) {
+           
+           _E_Tot       = E_Tot;
+           _E_Pair_Pair = E_Pair_Pair;
+           _E_Pair_Sph1 = E_Pair_Sph1;
+           _E_Pair_Sph2 = E_Pair_Sph2;
+           _E_Sph1_Sph1 = E_Sph1_Sph1;
+           _E_Sph1_Sph2 = E_Sph1_Sph2;          
 
            _E_PERM      = E_P;
            _E_INDU      = E_U;
@@ -364,61 +372,73 @@ public:
            _EUU = euu;           
        }
         
-       void  setEnergy_f_m(double e_f_c_non_c, double e_f_non_c_non_c, double e_f_c_c,
-                           double e_m_c,       double e_m_non_c,
-                           double e_f_c_out,   double e_m_c_out) {
+       void  setEnergy_f_m(double e_f_c_c,
+                           double e_f_c_non_c,
+                           double e_f_c_out,
+                           double e_f_non_c_non_c, 
+                           double e_f_non_c_out,
+                           double e_m_c,       
+                           double e_m_non_c,                              
+                           double e_m_out) {
            
-           _EF_PAIR_SPH1   = e_f_c_non_c;
-           _EF_SPH1_SPH1   = e_f_non_c_non_c;
            _EF_PAIR_PAIR   = e_f_c_c;
+           _EF_PAIR_SPH1   = e_f_c_non_c;
+           _EF_PAIR_SPH2   = e_f_c_out;
+           _EF_SPH1_SPH1   = e_f_non_c_non_c;
+           _EF_SPH1_SPH2   = e_f_non_c_out;
+           
            _EM_PAIR        = e_m_c;
            _EM_SPH1        = e_m_non_c;
-           _EF_PAIR_SPH2   = e_f_c_out;
-           _EM_PAIR_SPH2   = e_m_c_out;
+           _EM_SPH2        = e_m_out;
        }
 
        void     WriteInfoLine(FILE *out) {
 
-         if (_type == "pair") {
-           fprintf(out, "%5d %-20s  E_TOT %+4.7f E_PAIR_PAIR %+4.7f"
-                        " E_PAIR_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f E_PAIR_CUT2 "
-                        "%+4.7f E_PERM %+4.7f E_INDU %+4.7f ITER %3d"
-                        " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f ",
-                        _id, _tag.c_str(), _E_Tot, _E_Pair_Pair, _E_Pair_Sph1,
-                        _E_Sph1_Sph1, _E_Pair_Sph2, _E_PERM, _E_INDU, _iter,
-                        _sizePol, _sizeShell, _center.getX(), _center.getY(),
-                        _center.getZ() );
-           fprintf(out, "EPP %+4.7f EPU %+4.7f EUU %+4.7f ",
-                        _EPP, _EPU, _EUU);
-           fprintf(out, "EF_PAIR_CUT1 %+4.7f EF_CUT1_CUT1 %+4.7f "
-                        "EF_PAIR_CUT2 %+4.7f EF_PAIR_PAIR %+4.7f "
-                        "EM_PAIR %+4.7f EM_CUT1 %+4.7f "
-                        "EM_PAIR_CUT2 %+4.7f \n",
-                        _EF_PAIR_SPH1, _EF_SPH1_SPH1, 
-                        _EF_PAIR_SPH2, _EF_PAIR_PAIR,
-                        _EM_PAIR,      _EM_SPH1,      
-                        _EM_PAIR_SPH2);
-         }
-         else if (_type == "site") {
-           fprintf(out, "%5d %-20s  E_TOT %+4.7f E_SITE_SITE %+4.7f"
-                        " E_SITE_CUT1 %+4.7f E_CUT1_CUT1 %+4.7f E_SITE_CUT2 "
-                        "%+4.7f E_PERM %+4.7f E_INDU %+4.7f ITER %3d"
-                        " SPHERE %4d SHELL %4d CENTER %4.7f %4.7f %4.7f ",
-                        _id, _tag.c_str(), _E_Tot, _E_Pair_Pair, _E_Pair_Sph1,
-                        _E_Sph1_Sph1, _E_Pair_Sph2, _E_PERM, _E_INDU, _iter,
-                        _sizePol, _sizeShell, _center.getX(), _center.getY(),
-                        _center.getZ() );
-           fprintf(out, "EPP %+4.7f EPU %+4.7f EUU %+4.7f ",
-                        _EPP, _EPU, _EUU);
-           fprintf(out, "EF_SITE_CUT1 %+4.7f EF_CUT1_CUT1 %+4.7f "
-                        "EF_SITE_CUT2 %+4.7f EF_SITE_SITE %+4.7f "
-                        "EM_SITE %+4.7f EM_CUT1 %+4.7f "
-                        "EM_SITE_CUT2 %+4.7f \n",
-                        _EF_PAIR_SPH1, _EF_SPH1_SPH1, 
-                        _EF_PAIR_SPH2, _EF_PAIR_PAIR,
-                        _EM_PAIR,      _EM_SPH1,      
-                        _EM_PAIR_SPH2);
-         }
+           fprintf(out, "%5d %-20s  ",
+                        _id, _tag.c_str() );
+           fprintf(out, "E_TOT %+4.7f ",
+                        _E_Tot );
+           fprintf(out, "EPP %+4.7f "
+                        "EPU %+4.7f "
+                        "EUU %+4.7f ",
+                        _EPP,
+                        _EPU,
+                        _EUU);
+           fprintf(out, "EF0_0 %+4.7f "
+                        "EF0_1 %+4.7f "
+                        "EF0_2 %+4.7f "
+                        "EF1_1 %+4.7f "
+                        "EF1_2 %+4.7f "
+                        "EM_0_ %+4.7f "
+                        "EM_1_ %+4.7f "
+                        "EM_2_ %+4.7f ",
+                        _EF_PAIR_PAIR,
+                        _EF_PAIR_SPH1,
+                        _EF_PAIR_SPH2,
+                        _EF_SPH1_SPH1, 
+                        _EF_SPH1_SPH2,
+                        _EM_PAIR,
+                        _EM_SPH1,      
+                        _EM_SPH2);
+           fprintf(out, "ITER %3d SPHERE %4d SHELL %4d "
+                        "CENTER %4.7f %4.7f %4.7f ",
+                        _iter, _sizePol, _sizeShell, 
+                        _center.getX(), _center.getY(), _center.getZ() );
+           fprintf(out, "E_CUT0_CUT0 %+4.7f "
+                        "E_CUT0_CUT1 %+4.7f "
+                        "E_CUT0_CUT2 %+4.7f "
+                        "E_CUT1_CUT1 %+4.7f "
+                        "E_CUT1_CUT2 %+4.7f "
+                        "E_PERM %+4.7f "
+                        "E_INDU %+4.7f ",
+                        _E_Pair_Pair,
+                        _E_Pair_Sph1,
+                        _E_Pair_Sph2,
+                        _E_Sph1_Sph1,  
+                        _E_Sph1_Sph2,
+                        _E_PERM,
+                        _E_INDU );
+           fprintf(out, "\n");
 
        }
 
@@ -454,26 +474,30 @@ public:
        int          _sizePol;
        int          _sizeShell;
 
+       // Energy splittings:
        double       _E_Tot;
+       // ... 0th kind
        double       _E_Pair_Pair;
        double       _E_Pair_Sph1;
-       double       _E_Sph1_Sph1;
        double       _E_Pair_Sph2;
-       
+       double       _E_Sph1_Sph1;
+       double       _E_Sph1_Sph2;
+       // ... 1st kind
+       double       _E_PERM;
+       double       _E_INDU;
+       // ... 2nd kind
        double       _EPP;
        double       _EPU;
        double       _EUU;
-       
-       double       _EF_PAIR_SPH1;
+       // ... 3rd kind
        double       _EF_PAIR_PAIR;
-       double       _EF_SPH1_SPH1;
+       double       _EF_PAIR_SPH1;
        double       _EF_PAIR_SPH2;
+       double       _EF_SPH1_SPH1;
+       double       _EF_SPH1_SPH2;
        double       _EM_PAIR;
        double       _EM_SPH1;
-       double       _EM_PAIR_SPH2;
-
-       double       _E_PERM;
-       double       _E_INDU;
+       double       _EM_SPH2;       
 
     };
 
@@ -646,7 +670,7 @@ public:
                         }}
                     }
                 }}
-            } // end loop - job type "site"
+            } // end procedure - job type "site"
             
             else if (_forker->_job->getType() == "pair") {
                 
@@ -731,7 +755,7 @@ public:
                         }}
                     }
                 }}         
-            } // end loop - job type "pair"
+            } // end procedure - job type "pair"
             
             else { assert(false); }
             
@@ -895,7 +919,6 @@ public:
                 this->_master->_coutMutex.Unlock();
             }
         }
-
 
         void        OpenChunks(int c1, int c2) {
             _chunks_avail[c1] = true;
@@ -2663,7 +2686,7 @@ int XQMP::JobXQMP::Induce(int state, XJob *job) {
     
     
     // Permanent fields generated by outer shell    
-    // (Outer shell itself is not treated as non-polarizable)
+    // (Outer shell itself is treated as non-polarizable)
     for (sit1 = _polsPolSphere.begin();
          sit1 < _polsPolSphere.end();
          ++sit1) {
@@ -2813,17 +2836,39 @@ int XQMP::JobXQMP::Induce(int state, XJob *job) {
 
 double XQMP::JobXQMP::Energy(int state, XJob *job) {
 
-    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-
-    //       PAIR/SITE     <->     SPH1      <->       SPH2        //
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;    
 
     _actor.ResetEnergy();
+    
+    // Energy splittings =======================================================
+    // PAIR/SITE        <->        SPH1         <->          SPH2 = OUT       //
     double E_Tot = 0.0;
-    double E_Pair_Pair = 0.0;   // <- Pair-Pair interaction permanent + induced
-    double E_Pair_Sph1 = 0.0;   // <- Pair-Sph1 interaction permanent + induced
-    double E_Sph1_Sph1 = 0.0;   // <- Sph1-Sph1 interaction permanent + induced
-    double E_Pair_Sph2 = 0.0;   // <- Pair-Sph2 interaction permanent + induced
-
+    // ... 0th kind    
+    double E_Pair_Pair = 0.0;    
+    double E_Pair_Sph1 = 0.0;
+    double E_Sph1_Sph1 = 0.0;    
+    double E_Pair_Sph2 = 0.0;
+    double E_Sph1_Sph2 = 0.0;
+    // ... 1st kind
+    double eu_inter = 0.0;
+    double eu_intra = 0.0;
+    double e_perm   = 0.0;
+    // ... 2nd kind
+    double epp      = 0.0;
+    double epu      = 0.0;
+    double euu      = 0.0;
+    // ... 3rd kind
+    double e_f_c_c          = 0.0;
+    double e_f_c_non_c      = 0.0;
+    double e_f_c_out        = 0.0;
+    double e_f_non_c_non_c  = 0.0;   
+    double e_f_non_c_out    = 0.0;
+    double e_m_c            = 0.0;
+    double e_m_c_out        = 0.0;
+    double e_m_non_c        = 0.0;
+    double e_m_non_c_out    = 0.0;
+    double e_m_out          = 0.0;
+    // =========================================================================
 
     vector< Segment* >               ::iterator      seg1;
     vector< Segment* >               ::iterator      seg2;
@@ -2832,32 +2877,20 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
     vector< APolarSite* >            ::iterator      pit1;
     vector< APolarSite* >            ::iterator      pit2;
 
+    
+    // =============================================================== //
+    // Job-Type 'pair'                                                 //
+    // =============================================================== //
+    
     if (job->getType() == "pair") {
 
         for (int id = 0; id < _master->_subthreads; ++id) {
             _indus[id]->SetSwitch(0);
         }
         
-        // +++++++++++++++++ //
-        // Inter-site energy //
-        // +++++++++++++++++ //
-
-        double eu_inter = 0.0;
-        double eu_intra = 0.0;
-        double e_perm   = 0.0;
-        
-        double epp      = 0.0;
-        double epu      = 0.0;
-        double euu      = 0.0;
-        
-        double e_f_c_non_c      = 0.0;
-        double e_f_non_c_non_c  = 0.0;
-        double e_f_c_c          = 0.0;
-        double e_m_c            = 0.0;
-        double e_m_non_c        = 0.0;
-        
-        double e_f_c_out        = 0.0;
-        double e_m_c_out        = 0.0;        
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+        // Inter-site energy comprising central + first polarization shell //
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
         
         
         for (int id = 0; id < this->_master->_subthreads; ++id) {
@@ -2881,89 +2914,31 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
             epu += _indus[id]->GetActor().getEPU();
             euu += _indus[id]->GetActor().getEUU();
             
-            e_f_c_non_c         += _indus[id]->GetE_f_C_non_C();
-            e_f_non_c_non_c     += _indus[id]->GetE_f_non_C_non_C();
             e_f_c_c             += _indus[id]->GetE_f_C_C();
+            e_f_c_non_c         += _indus[id]->GetE_f_C_non_C();
+            e_f_non_c_non_c     += _indus[id]->GetE_f_non_C_non_C();            
             e_m_c               += _indus[id]->GetE_m_C();
             e_m_non_c           += _indus[id]->GetE_m_non_C();
         }
 
         this->ClearTodoTable();
         
-        
-        
-//        for (sit1 = _polsPolSphere.begin(), seg1 = _segsPolSphere.begin();
-//             sit1 < _polsPolSphere.end();
-//             ++sit1, ++seg1) {
-//        for (sit2 = sit1 + 1, seg2 = seg1 + 1;
-//             sit2 < _polsPolSphere.end();
-//             ++sit2, ++seg2) {
-//
-//            //if ( abs(_top->PbShortestConnect((*seg1)->getPos(),_seg->getPos()))
-//            //        > _master->_cutoff) { throw runtime_error("Not this."); }
-//
-//            //cout << "\r... ... Calculating interaction energy for pair "
-//            //     << (*seg1)->getId() << "|" << (*seg2)->getId() << "   " << flush;
-//
-//            // Intra-pair interaction?
-//            if ( ((*seg1)->getId() == job->getSeg1Id() || (*seg1)->getId() == job->getSeg2Id())
-//              && ((*seg2)->getId() == job->getSeg1Id() || (*seg2)->getId() == job->getSeg2Id()) ) {
-//
-//                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-//                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
-//
-//                    //(*pit1)->PrintInfo(cout);
-//                    //(*pit2)->PrintInfo(cout);
-//
-//                    E_Pair_Pair += _actor.EnergyInter(*(*pit1), *(*pit2));
-//                }}
-//            }
-//
-//            // Pair-non-pair interaction
-//            else if ( ((*seg1)->getId() == job->getSeg1Id() || (*seg1)->getId() == job->getSeg2Id())
-//                    ^ ((*seg2)->getId() == job->getSeg1Id() || (*seg2)->getId() == job->getSeg2Id()) ) {
-//
-//                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-//                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
-//
-//                    //(*pit1)->PrintInfo(cout);
-//                    //(*pit2)->PrintInfo(cout);
-//
-//                    E_Pair_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
-//                }}
-//            }
-//
-//            // Non-pair-non-pair interaction?
-//            else {
-//                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-//                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
-//
-//                    //(*pit1)->PrintInfo(cout);
-//                    //(*pit2)->PrintInfo(cout);
-//
-//                    E_Sph1_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
-//                }}
-//            }
-//
-//        }}
 
-        // ++++++++++++++++++ //
-        // Outer-Shell energy //
-        // ++++++++++++++++++ //
+
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+        // Inter-site energy resulting from interaction with static shell  //
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
         vector< APolarSite* > central1 = _polarSites_job[ job->getSeg1Id() - 1 ];
-        vector< APolarSite* > central2 = _polarSites_job[ job->getSeg2Id() - 1 ];
-
+        vector< APolarSite* > central2 = _polarSites_job[ job->getSeg2Id() - 1 ];        
+        
+        // Interaction between central and static shell
         for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
                 for (pit2 = central1.begin(); pit2 < central1.end(); ++pit2) {
                     e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
                     e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
                 }
-            }
-        }
-        for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
-            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
                 for (pit2 = central2.begin(); pit2 < central2.end(); ++pit2) {
                     e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
                     e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
@@ -2971,100 +2946,50 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
             }
         }
 
+        // Interaction between polarizable and static shell
+        for (sit1 = this->_polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
+        for (sit2 = this->_polsPolSphere.begin(), seg2 = this->_segsPolSphere.begin(); sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
+            
+            // Continue when hitting one of the central sites (already covered)
+            if (   (*seg2)->getId() == job->getSeg1Id() 
+                || (*seg2)->getId() == job->getSeg2Id() ) {
+                continue;
+            }
+            
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+                e_f_non_c_out += _actor.E_f(*(*pit1), *(*pit2));
+                e_m_non_c_out += _actor.E_m(*(*pit2), *(*pit1));
+            }}
+        }}
+        
+        
+        // Increment energies
+        // ... 0th kind        
         E_Pair_Sph2 += e_f_c_out + e_m_c_out;
+        E_Sph1_Sph2 += e_f_non_c_out + e_m_non_c_out;
+        // ... 1st kind
         e_perm      += _actor.getEP();
         eu_inter    += _actor.getEU_INTER();
-        
+        // ... 2nd kind
         epp += _actor.getEPP();
         epu += _actor.getEPU();
         euu += _actor.getEUU();
+        // ... 3rd kind
+        // ... ... -> done in loop above, but need to summarize e_m_*
+        e_m_c      += e_m_c_out;
+        e_m_non_c  += e_m_non_c_out;
         
         
-        
-        E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2;
-
-        if (_master->_maverick) {
-            cout << endl << "... ... ... ... "
-                 << "E(" << state << ") = " << E_Tot * int2eV << " eV "
-                 << endl << "                     = (Pair, Pair) " << E_Pair_Pair * int2eV
-                 << endl << "                     + (Pair, Sph1) " << E_Pair_Sph1 * int2eV
-                 << endl << "                     + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-                 << endl << "                     + (Pair, Sph2) " << E_Pair_Sph2 * int2eV
-                 << flush;
-        }
-
-        double E_PPUU = epp + epu + euu;
-        
-        if (_master->_maverick) {
-            cout << endl
-                 << "... ... ... ... E(" << state << ") = " << E_PPUU * int2eV
-                 << " eV " 
-                 << endl << "                     = (PP) "    << epp  * int2eV
-                 << endl << "                     + (PU) "    << epu  * int2eV
-                 << endl << "                     + (UU) "    << euu  * int2eV
-                 << flush;
-        }
-        
-        
-        double E_f_m =  e_f_c_non_c + e_f_non_c_non_c + e_f_c_c
-                      + e_m_c + e_m_non_c         
-                      + e_f_c_out + e_m_c_out;
-        
-        if (_master->_maverick) {
-            cout << endl
-                 << "... ... ... ... E(" << state << ") = " << E_f_m * int2eV
-                 << " eV " 
-                 << endl << "                     = (f,C-nC)  " << e_f_c_non_c      * int2eV
-                 << endl << "                     + (f,nC-nC) " << e_f_non_c_non_c  * int2eV
-                 << endl << "                     + (f,C-C)   " << e_f_c_c          * int2eV
-                 << endl << "                     + (m,C)     " << e_m_c            * int2eV
-                 << endl << "                     + (m,nC)    " << e_m_non_c        * int2eV
-                 << endl << "                     + (f,C-O)   " << e_f_c_out        * int2eV
-                 << endl << "                     + (m,C-O)   " << e_m_c_out        * int2eV
-                 << flush;
-        }
-
-        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
-                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
-                       E_Pair_Sph2*int2eV, 
-                       e_perm*int2eV, eu_inter * int2eV);
-        
-        job->setEnergy_PPUU(epp*int2eV, epu*int2eV, euu*int2eV);
-        
-        job->setEnergy_f_m(e_f_c_non_c*int2eV, e_f_non_c_non_c*int2eV, e_f_c_c*int2eV,
-                           e_m_c*int2eV, e_m_non_c*int2eV,
-                           e_f_c_out*int2eV, e_m_c_out*int2eV);
-        
-//        E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2;
-//
-//        if (_master->_maverick) {
-//            cout << endl << "... ... ... ... "
-//                 << "E(" << state << ") = " << E_Tot * int2eV << " eV "
-//                 << " = (Pair, pair) " << E_Pair_Pair * int2eV
-//                 << " + (Pair, Sph1) " << E_Pair_Sph1 * int2eV
-//                 << " + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-//                 << " + (Pair, sph2) " << E_Pair_Sph2 * int2eV
-//                 << flush;
-//        }
-//
-//
-//        if (_master->_maverick) {
-//            cout << endl
-//                 << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
-//                 << " eV = (P ~) " << _actor.getEP()    * int2eV
-//                 << " + (U ~) " << _actor.getEU_INTER() * int2eV
-//                 << " + (U o) " << _actor.getEU_INTRA() * int2eV
-//                 << " , with (O ~) " << E_Pair_Sph2 * int2eV << " eV"
-//                 << flush;
-//        }
-//
-//        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
-//                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
-//                       E_Pair_Sph2*int2eV,
-//                       _actor.getEP()*int2eV, _actor.getEU_INTER() * int2eV);
+        E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2;       
         
     }
 
+    
+    // =============================================================== //
+    // Job-Type 'site'                                                 //
+    // =============================================================== //
+    
     else if (job->getType() == "site") {
 
 
@@ -3072,26 +2997,9 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
             _indus[id]->SetSwitch(0);
         }
 
-        // +++++++++++++++++ //
-        // Inter-site energy //
-        // +++++++++++++++++ //
-
-        double eu_inter = 0.0;
-        double eu_intra = 0.0;
-        double e_perm   = 0.0;
-        
-        double epp      = 0.0;
-        double epu      = 0.0;
-        double euu      = 0.0;
-        
-        double e_f_c_non_c      = 0.0;
-        double e_f_non_c_non_c  = 0.0;
-        double e_f_c_c          = 0.0;
-        double e_m_c            = 0.0;
-        double e_m_non_c        = 0.0;
-        
-        double e_f_c_out        = 0.0;
-        double e_m_c_out        = 0.0;
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+        // Inter-site energy comprising central + first polarization shell //
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
         for (int id = 0; id < this->_master->_subthreads; ++id) {
             _indus[id]->Start();
@@ -3123,19 +3031,13 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
         this->ClearTodoTable();
 
 
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+        // Inter-site energy resulting from interaction with static shell  //
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
-
-
-
-        // ++++++++++++++++++ //
-        // Outer-Shell energy //
-        // ++++++++++++++++++ //
-
-        vector< APolarSite* > central1 = _polarSites_job[ job->getSeg1Id() - 1 ];
+        vector< APolarSite* > central1 = _polarSites_job[ job->getSiteId() - 1 ];        
         
-        double e_f_tmp = 0.0;
-        double e_m_tmp = 0.0;
-        
+        // Interaction between central and static shell
         for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
                 for (pit2 = central1.begin(); pit2 < central1.end(); ++pit2) {
@@ -3143,103 +3045,129 @@ double XQMP::JobXQMP::Energy(int state, XJob *job) {
                     e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
                 }
             }
-        }
+        }        
         
-        
-        double e_f_non_c_out = 0.0;
-        double e_m_non_c_out = 0.0;
-        
+        // Interaction between polarizable and static shell
         for (sit1 = this->_polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
         for (sit2 = this->_polsPolSphere.begin(), seg2 = this->_segsPolSphere.begin(); sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
             
+            // Continue when hitting central site (already covered above)
             if ((*seg2)->getId() == job->getSiteId()) {
                 continue;
             }
             
-            
-                for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-                for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
-                    e_f_non_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                    e_m_non_c_out += _actor.E_m(*(*pit2), *(*pit1));
-                }}
+            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+                e_f_non_c_out += _actor.E_f(*(*pit1), *(*pit2));
+                e_m_non_c_out += _actor.E_m(*(*pit2), *(*pit1));
+            }}
         }}
         
         
-        double E_Sph1_Sph2 = e_f_non_c_out + e_m_non_c_out;
-        E_Pair_Sph2 += e_f_c_out + e_m_c_out;
-        e_perm      += _actor.getEP();
-        eu_inter    += _actor.getEU_INTER();
-        
-        epp += _actor.getEPP();
-        epu += _actor.getEPU();
-        euu += _actor.getEUU();        
-        
-        e_f_non_c_non_c += e_f_non_c_out;
+        // Increment energies
+        // ... 0th kind
+        E_Pair_Sph2     += e_f_c_out + e_m_c_out;
+        E_Sph1_Sph2     += e_f_non_c_out + e_m_non_c_out;
+        // ... 1st kind
+        e_perm          += _actor.getEP();
+        eu_inter        += _actor.getEU_INTER();
+        // ... 2nd kind
+        epp             += _actor.getEPP();
+        epu             += _actor.getEPU();
+        euu             += _actor.getEUU();        
+        // ... 3rd kind 
+        // ... ... -> done in loop above, but need to summarize e_m_*
+        e_m_c           += e_m_c_out;
         e_m_non_c       += e_m_non_c_out;
 
-        E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2 + E_Sph1_Sph2;
-
-        if (_master->_maverick) {
-            cout << endl << "... ... ... ... "
-                 << "E(" << state << ") = " << E_Tot * int2eV << " eV "
-                 << endl << "                     = (Site, Site) " << E_Pair_Pair * int2eV
-                 << endl << "                     + (Site, Sph1) " << E_Pair_Sph1 * int2eV
-                 << endl << "                     + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-                 << endl << "                     + (Site, Sph2) " << E_Pair_Sph2 * int2eV
-                 << endl << "                     + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
-                 << flush;
-        }
-
-        double E_PPUU = epp + epu + euu;
-        
-        if (_master->_maverick) {
-            cout << endl
-                 << "... ... ... ... E(" << state << ") = " << E_PPUU * int2eV
-                 << " eV " 
-                 << endl << "                     = (PP) "    << epp  * int2eV
-                 << endl << "                     + (PU) "    << epu  * int2eV
-                 << endl << "                     + (UU) "    << euu  * int2eV
-                 << flush;
-        }
-        
-        
-        double E_f_m =  e_f_c_non_c + e_f_non_c_non_c + e_f_c_c
-                      + e_m_c + e_m_non_c         
-                      + e_f_c_out + e_m_c_out;
-        
-        if (_master->_maverick) {
-            cout << endl
-                 << "... ... ... ... E(" << state << ") = " << E_f_m * int2eV
-                 << " eV " 
-                 << endl << "                     = (f,C-nC)  " << e_f_c_non_c      * int2eV
-                 << endl << "                     + (f,nC-nC) " << e_f_non_c_non_c  * int2eV
-                 << endl << "                     + (f,C-C)   " << e_f_c_c          * int2eV
-                 << endl << "                     + (m,C)     " << e_m_c            * int2eV
-                 << endl << "                     + (m,nC)    " << e_m_non_c        * int2eV
-                 << endl << "                     + (f,C-O)   " << e_f_c_out        * int2eV
-                 << endl << "                     + (m,C-O)   " << e_m_c_out        * int2eV
-                 << flush;
-        }
-
-        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
-                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
-                       E_Pair_Sph2*int2eV, 
-                       e_perm*int2eV, eu_inter * int2eV);
-        
-        job->setEnergy_PPUU(epp*int2eV, epu*int2eV, euu*int2eV);
-        
-        job->setEnergy_f_m(e_f_c_non_c*int2eV, e_f_non_c_non_c*int2eV, e_f_c_c*int2eV,
-                            e_m_c*int2eV, e_m_non_c*int2eV,
-                            e_f_c_out*int2eV, e_m_c_out*int2eV);
-
-
-        
     }
 
     else { assert(false); }
 
+    // =============================================================== //
+    // Energy Output                                                   //
+    // =============================================================== //
 
+    // ... 0th kind
+    E_Tot = E_Pair_Pair
+          + E_Pair_Sph1
+          + E_Sph1_Sph1
+          + E_Pair_Sph2
+          + E_Sph1_Sph2;
 
+    if (_master->_maverick) {
+        cout << endl << "... ... ... ... "
+             << "E(" << state << ") = " << E_Tot * int2eV << " eV "
+             << endl << "                     = (Site, Site) " << E_Pair_Pair * int2eV
+             << endl << "                     + (Site, Sph1) " << E_Pair_Sph1 * int2eV
+             << endl << "                     + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
+             << endl << "                     + (Site, Sph2) " << E_Pair_Sph2 * int2eV
+             << endl << "                     + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
+             << flush;
+    }
+
+    // ... 1st kind
+    double E_PPUU = epp 
+                  + epu 
+                  + euu;
+
+    if (_master->_maverick) {
+        cout << endl
+             << "... ... ... ... E(" << state << ") = " << E_PPUU * int2eV
+             << " eV " 
+             << endl << "                     = (PP) "    << epp  * int2eV
+             << endl << "                     + (PU) "    << epu  * int2eV
+             << endl << "                     + (UU) "    << euu  * int2eV
+             << flush;
+    }
+
+    // ... 2nd kind
+    double E_f_m = e_f_c_c 
+                 + e_f_c_non_c
+                 + e_f_c_out 
+                 + e_f_non_c_non_c 
+                 + e_f_non_c_out
+                 + e_m_c 
+                 + e_m_non_c
+                 + e_m_out;
+
+    if (_master->_maverick) {
+        cout << endl
+             << "... ... ... ... E(" << state << ") = " << E_f_m * int2eV
+             << " eV " 
+             << endl << "                     = (f,0-0) " << e_f_c_c          * int2eV
+             << endl << "                     + (f,0-1) " << e_f_c_non_c      * int2eV
+             << endl << "                     + (f,0-2) " << e_f_c_out        * int2eV
+             << endl << "                     + (f,1-1) " << e_f_non_c_non_c  * int2eV
+             << endl << "                     + (f,1-2) " << e_f_non_c_out    * int2eV
+             << endl << "                     + (m,-0-) " << e_m_c            * int2eV
+             << endl << "                     + (m,-1-) " << e_m_non_c        * int2eV
+             << endl << "                     + (m,-2-) " << e_m_out          * int2eV
+             << flush;
+    }
+
+    // Forward results to job
+    job->setEnergy(E_Tot            *int2eV,           
+                   E_Pair_Pair      *int2eV,
+                   E_Pair_Sph1      *int2eV,
+                   E_Pair_Sph2      *int2eV, 
+                   E_Sph1_Sph1      *int2eV,
+                   E_Sph1_Sph2      *int2eV,                       
+                   e_perm           *int2eV,
+                   eu_inter         *int2eV);
+
+    job->setEnergy_PPUU(epp         *int2eV,
+                        epu         *int2eV,
+                        euu         *int2eV);
+
+    job->setEnergy_f_m(e_f_c_c         *int2eV,
+                       e_f_c_non_c     *int2eV,
+                       e_f_c_out       *int2eV,
+                       e_f_non_c_non_c *int2eV, 
+                       e_f_non_c_out   *int2eV,
+                       e_m_c           *int2eV, 
+                       e_m_non_c       *int2eV,
+                       e_m_out         *int2eV);
 
     return E_Tot;
 }
@@ -3250,14 +3178,39 @@ double XQMP::JobXQMP::EnergyStatic(int state, XJob *job) {
     double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     _actor.ResetEnergy();
+    
+    // Energy splittings =======================================================
+    // PAIR/SITE        <->        SPH1         <->          SPH2 = OUT       //
     double E_Tot = 0.0;
-    double E_Pair_Pair = 0.0;
+    // ... 0th kind    
+    double E_Pair_Pair = 0.0;    
     double E_Pair_Sph1 = 0.0;
-    double E_Sph1_Sph1 = 0.0;
+    double E_Sph1_Sph1 = 0.0;    
     double E_Pair_Sph2 = 0.0;
+    double E_Sph1_Sph2 = 0.0;
+    // ... 1st kind
+    double eu_inter = 0.0;
+    double eu_intra = 0.0;
+    double e_perm   = 0.0;
+    // ... 2nd kind
+    double epp      = 0.0;
+    double epu      = 0.0;
+    double euu      = 0.0;
+    // ... 3rd kind
+    double e_f_c_c          = 0.0;
+    double e_f_c_non_c      = 0.0;
+    double e_f_c_out        = 0.0;
+    double e_f_non_c_non_c  = 0.0;   
+    double e_f_non_c_out    = 0.0;
+    double e_m_c            = 0.0;
+    double e_m_c_out        = 0.0;
+    double e_m_non_c        = 0.0;
+    double e_m_non_c_out    = 0.0;
+    double e_m_out          = 0.0;
+    // =========================================================================
 
-    vector< Segment* >              ::iterator      seg1;
-    vector< Segment* >              ::iterator      seg2;
+    vector< Segment* >               ::iterator      seg1;
+    vector< Segment* >               ::iterator      seg2;
     vector< vector<APolarSite*> >    ::iterator      sit1;
     vector< vector<APolarSite*> >    ::iterator      sit2;
     vector< APolarSite* >            ::iterator      pit1;
@@ -3289,13 +3242,13 @@ double XQMP::JobXQMP::EnergyStatic(int state, XJob *job) {
                      pit2 < central1.end();
                      ++pit2) {
 
-                     E_Pair_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
+                     e_f_c_non_c += _actor.E_f(*(*pit1), *(*pit2));
                 }
                 for (pit2 = central2.begin();
                      pit2 < central2.end();
                      ++pit2) {
 
-                     E_Pair_Sph1 += _actor.EnergyInter(*(*pit1), *(*pit2));
+                     e_f_c_non_c += _actor.E_f(*(*pit1), *(*pit2));
                 }
             }
         }
@@ -3320,13 +3273,13 @@ double XQMP::JobXQMP::EnergyStatic(int state, XJob *job) {
                      pit2 < central1.end();
                      ++pit2) {
 
-                     E_Pair_Sph2 += _actor.EnergyInter(*(*pit1), *(*pit2));
+                     e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
                 }
                 for (pit2 = central2.begin();
                      pit2 < central2.end();
                      ++pit2) {
 
-                     E_Pair_Sph2 += _actor.EnergyInter(*(*pit1), *(*pit2));
+                     e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
                 }
             }
         }
@@ -3343,55 +3296,31 @@ double XQMP::JobXQMP::EnergyStatic(int state, XJob *job) {
              pit2 < central2.end();
              ++pit2) {
 
-            E_Pair_Pair += _actor.EnergyInter(*(*pit1), *(*pit2));
+             e_f_c_c += _actor.EnergyInter(*(*pit1), *(*pit2));
         }}
-
-        E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Pair_Sph2;
-
-        if (_master->_maverick) {
-            cout << endl << "... ... ... ... "
-                 << "E(" << state << ") = " << E_Tot * int2eV << " eV "
-                 << " = (Pair, intra) " << E_Pair_Pair * int2eV
-                 << " + (Pair, inner) " << E_Pair_Sph1 * int2eV
-                 << " + (Pair, outer) " << E_Pair_Sph2 * int2eV
-                 << flush;
-        }
-
-        if (_master->_maverick) {
-            cout << endl
-                 << "... ... ... ... E(" << state << ") = " << E_Tot * int2eV
-                 << " eV = (P ~) " << _actor.getEP()       * int2eV
-                 << " + (U ~) " << _actor.getEU_INTER() * int2eV
-                 << " + (U o) " << _actor.getEU_INTRA() * int2eV << " eV"
-                 << ", statics only. "
-                 << flush;
-        }
-
-        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
-                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
-                       E_Pair_Sph2*int2eV,
-                       _actor.getEP()*int2eV, _actor.getEU_INTER() * int2eV);
+        
+        
+        
+        
+        // Increment energies
+        // ... 0th kind
+        E_Pair_Pair     += e_f_c_c;
+        E_Pair_Sph1     += e_f_c_non_c;
+        E_Pair_Sph2     += e_f_c_out;
+        // ... 1st kind
+        e_perm          += _actor.getEP();
+        eu_inter        += _actor.getEU_INTER();
+        // ... 2nd kind
+        epp             += _actor.getEPP();
+        epu             += _actor.getEPU();
+        euu             += _actor.getEUU();
+        // ... 3rd kind
+        // ... ... -> done in loops above
+        
     }
 
 
     else if (job->getType() == "site") {
-        
-        double eu_inter = 0.0;
-        double eu_intra = 0.0;
-        double e_perm   = 0.0;
-        
-        double epp      = 0.0;
-        double epu      = 0.0;
-        double euu      = 0.0;
-        
-        double e_f_c_non_c      = 0.0;
-        double e_f_non_c_non_c  = 0.0;
-        double e_f_c_c          = 0.0;
-        double e_m_c            = 0.0;
-        double e_m_non_c        = 0.0;
-        
-        double e_f_c_out        = 0.0;
-        double e_m_c_out        = 0.0;
         
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
         // Interaction site <-> inner cut-off, without intra-pair interaction //
@@ -3419,7 +3348,7 @@ double XQMP::JobXQMP::EnergyStatic(int state, XJob *job) {
             }
         }
         
-        E_Pair_Sph1 = e_f_c_non_c;
+
 
 
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
@@ -3446,16 +3375,6 @@ double XQMP::JobXQMP::EnergyStatic(int state, XJob *job) {
             }
         }
         
-        E_Pair_Sph2 = e_f_c_out;
-
-        
-        e_perm      += _actor.getEP();
-        eu_inter    += _actor.getEU_INTER();
-        
-        epp += _actor.getEPP();
-        epu += _actor.getEPU();
-        euu += _actor.getEUU();
-        
         
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
         // Intra-site interaction                                             //
@@ -3463,62 +3382,112 @@ double XQMP::JobXQMP::EnergyStatic(int state, XJob *job) {
 
         // Intra-site energy ...
         // ... not counted.
+        
+        
+        
+        // Increment energies
+        // ... 0th kind
+        E_Pair_Sph1     += e_f_c_non_c;
+        E_Pair_Sph2     += e_f_c_out;
+        // ... 1st kind
+        e_perm          += _actor.getEP();
+        eu_inter        += _actor.getEU_INTER();
+        // ... 2nd kind
+        epp             += _actor.getEPP();
+        epu             += _actor.getEPU();
+        euu             += _actor.getEUU();
+        // ... 3rd kind
+        // ... ... -> done in loops above
 
-        E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2;
+    }
+    
+    else { assert(false); }
 
-        if (_master->_maverick) {
-            cout << endl << "... ... ... ... "
-                 << "E(" << state << ") = " << E_Tot * int2eV << " eV "
-                 << endl << "                     = (Site, Site) " << E_Pair_Pair * int2eV
-                 << endl << "                     + (Site, Sph1) " << E_Pair_Sph1 * int2eV
-                 << endl << "                     + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-                 << endl << "                     + (Site, Sph2) " << E_Pair_Sph2 * int2eV
-                 << flush;
-        }
+    // =============================================================== //
+    // Energy Output                                                   //
+    // =============================================================== //
 
-        double E_PPUU = epp + epu + euu;
-        
-        if (_master->_maverick) {
-            cout << endl
-                 << "... ... ... ... E(" << state << ") = " << E_PPUU * int2eV
-                 << " eV " 
-                 << endl << "                     = (PP) "    << epp  * int2eV
-                 << endl << "                     + (PU) "    << epu  * int2eV
-                 << endl << "                     + (UU) "    << euu  * int2eV
-                 << flush;
-        }
-        
-        
-        double E_f_m =  e_f_c_non_c + e_f_non_c_non_c + e_f_c_c
-                      + e_m_c + e_m_non_c         
-                      + e_f_c_out + e_m_c_out;
-        
-        if (_master->_maverick) {
-            cout << endl
-                 << "... ... ... ... E(" << state << ") = " << E_f_m * int2eV
-                 << " eV " 
-                 << endl << "                     = (f,C-nC)  " << e_f_c_non_c      * int2eV
-                 << endl << "                     + (f,nC-nC) " << e_f_non_c_non_c  * int2eV
-                 << endl << "                     + (f,C-C)   " << e_f_c_c          * int2eV
-                 << endl << "                     + (m,C)     " << e_m_c            * int2eV
-                 << endl << "                     + (m,nC)    " << e_m_non_c        * int2eV
-                 << endl << "                     + (f,C-O)   " << e_f_c_out        * int2eV
-                 << endl << "                     + (m,C-O)   " << e_m_c_out        * int2eV
-                 << flush;
-        }
+    // ... 0th kind
+    E_Tot = E_Pair_Pair
+          + E_Pair_Sph1
+          + E_Sph1_Sph1
+          + E_Pair_Sph2
+          + E_Sph1_Sph2;
 
-        job->setEnergy(E_Tot*int2eV,           E_Pair_Pair*int2eV,
-                       E_Pair_Sph1*int2eV,     E_Sph1_Sph1*int2eV,
-                       E_Pair_Sph2*int2eV, 
-                       e_perm*int2eV, eu_inter * int2eV);
-        
-        job->setEnergy_PPUU(epp*int2eV, epu*int2eV, euu*int2eV);
-        
-        job->setEnergy_f_m(e_f_c_non_c*int2eV, e_f_non_c_non_c*int2eV, e_f_c_c*int2eV,
-                            e_m_c*int2eV, e_m_non_c*int2eV,
-                            e_f_c_out*int2eV, e_m_c_out*int2eV);
+    if (_master->_maverick) {
+        cout << endl << "... ... ... ... "
+             << "E(" << state << ") = " << E_Tot * int2eV << " eV "
+             << endl << "                     = (Site, Site) " << E_Pair_Pair * int2eV
+             << endl << "                     + (Site, Sph1) " << E_Pair_Sph1 * int2eV
+             << endl << "                     + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
+             << endl << "                     + (Site, Sph2) " << E_Pair_Sph2 * int2eV
+             << endl << "                     + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
+             << flush;
     }
 
+    // ... 1st kind
+    double E_PPUU = epp 
+                  + epu 
+                  + euu;
+
+    if (_master->_maverick) {
+        cout << endl
+             << "... ... ... ... E(" << state << ") = " << E_PPUU * int2eV
+             << " eV " 
+             << endl << "                     = (PP) "    << epp  * int2eV
+             << endl << "                     + (PU) "    << epu  * int2eV
+             << endl << "                     + (UU) "    << euu  * int2eV
+             << flush;
+    }
+
+    // ... 2nd kind
+    double E_f_m = e_f_c_c 
+                 + e_f_c_non_c
+                 + e_f_c_out 
+                 + e_f_non_c_non_c 
+                 + e_f_non_c_out
+                 + e_m_c 
+                 + e_m_non_c
+                 + e_m_out;
+
+    if (_master->_maverick) {
+        cout << endl
+             << "... ... ... ... E(" << state << ") = " << E_f_m * int2eV
+             << " eV " 
+             << endl << "                     = (f,0-0) " << e_f_c_c          * int2eV
+             << endl << "                     + (f,0-1) " << e_f_c_non_c      * int2eV
+             << endl << "                     + (f,0-2) " << e_f_c_out        * int2eV
+             << endl << "                     + (f,1-1) " << e_f_non_c_non_c  * int2eV
+             << endl << "                     + (f,1-2) " << e_f_non_c_out    * int2eV
+             << endl << "                     + (m,-0-) " << e_m_c            * int2eV
+             << endl << "                     + (m,-1-) " << e_m_non_c        * int2eV
+             << endl << "                     + (m,-2-) " << e_m_out          * int2eV
+             << flush;
+    }
+
+    // Forward results to job
+    job->setEnergy(E_Tot            *int2eV,           
+                   E_Pair_Pair      *int2eV,
+                   E_Pair_Sph1      *int2eV,
+                   E_Pair_Sph2      *int2eV, 
+                   E_Sph1_Sph1      *int2eV,
+                   E_Sph1_Sph2      *int2eV,                       
+                   e_perm           *int2eV,
+                   eu_inter         *int2eV);
+
+    job->setEnergy_PPUU(epp         *int2eV,
+                        epu         *int2eV,
+                        euu         *int2eV);
+
+    job->setEnergy_f_m(e_f_c_c         *int2eV,
+                       e_f_c_non_c     *int2eV,
+                       e_f_c_out       *int2eV,
+                       e_f_non_c_non_c *int2eV, 
+                       e_f_non_c_out   *int2eV,
+                       e_m_c           *int2eV, 
+                       e_m_non_c       *int2eV,
+                       e_m_out         *int2eV);    
+    
     return E_Tot;
 }
 
