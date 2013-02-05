@@ -548,8 +548,9 @@ void Md2QmEngine::getIntCoords(string &file,
             vector< string > split;
             Tokenizer toker(line, " ");
             toker.ToVector(split);
-            if ( !split.size()    ||
-                  split[0] == "#" ||
+            if ( !split.size()      ||
+                  split.size() != 4 ||
+                  split[0] == "#"   ||
                   split[0].substr(0,1) == "#" ) { continue; }
 
             // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
