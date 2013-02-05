@@ -35,38 +35,74 @@ namespace votca { namespace ctp {
 void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
     ParseOptionsXML( options );
-    //_orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
-    //_orbitalsAB.ReadOverlapGaussian( _overlapAB_file.c_str() );
+    _orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
+    _orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
     //SQRTOverlap();
     CalculateJ();
 }
 
     
 void IDFT::ParseOptionsXML( tools::Property *opt ) {
-
-    string key = "options.idft";
+   
+    // Orbitals are in fort.7 file; number of electrons in .log file
     
-    if ( opt->exists(key+".orbitals_A") ) {
-        _orbitalsA_file = opt->get(key + ".orbitals_A").as< string > ();
+    // Molecule A
+    string key = "options.idft.moleculeA";
+
+    cout << key + ".orbitals" << endl;
+    
+    if ( opt->exists( key + ".orbitals" ) ) {
+        _orbitalsA_file = opt->get( key + ".orbitals" ).as< string > ();
     }
     else {
+        cout << key + ".orbitals" << endl;
+        exit(0);
         throw std::runtime_error("Error in options: molecule A orbitals filename is missing.");
     }
     
-    if ( opt->exists(key+".orbitals_B") ) {
-        _orbitalsB_file = opt->get(key + ".orbitals_B").as< string > ();
+    if ( opt->exists( key + ".log" ) ) {
+        _logA_file = opt->get( key + ".log" ).as< string > ();
+    }
+    else {
+        cout << key + ".orbitals" << endl;
+        exit(0);
+        throw std::runtime_error("Error in options: molecule A log filename is missing.");
+    }
+    
+    // Molecule B
+    key = "options.idft.moleculeB";
+
+    if ( opt->exists( key+".orbitals" ) ) {
+        _orbitalsB_file = opt->get( key + ".orbitals" ).as< string > ();
     }
     else {
         throw std::runtime_error("Error in options: molecule B orbitals filename is missing.");
     }
-   
-    if ( opt->exists(key+".orbitals_AB") ) {
-        _overlapAB_file = opt->get(key + ".overlap_AB").as< string > ();
+
+    if ( opt->exists( key + ".log" ) ) {
+        _logB_file = opt->get( key + ".log" ).as< string > ();
+    }
+    else {
+        throw std::runtime_error("Error in options: molecule B log filename is missing.");
+    }
+    
+    // Dimer 
+    key = "options.idft.moleculeAB";
+    
+    if ( opt->exists(key + ".orbitals") ) {
+        _orbitalsAB_file = opt->get(key + ".orbitals").as< string > ();
     }
     else {
         throw std::runtime_error("Error in options: dimer orbitals filename is missing.");
     }
-   
+
+    if ( opt->exists( key + ".log") ) {
+        _logAB_file = opt->get(key + ".log").as< string > ();
+    }
+    else {
+        throw std::runtime_error("Error in options: dimer log filename is missing.");
+    }
+
     /* --- ORBITALS.XML Structure ---
      * <options>
      *   <idft>

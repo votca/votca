@@ -63,8 +63,11 @@ private:
     string _orbitalsA_file;
     string _orbitalsB_file;
     string _orbitalsAB_file;
-    string _overlapAB_file;
-
+    
+    string _logA_file;
+    string _logB_file;
+    string _logAB_file;
+    
     Orbitals _orbitalsA;
     Orbitals _orbitalsB;
     Orbitals _orbitalsAB;
