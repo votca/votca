@@ -41,17 +41,21 @@ public:
    ~Orbitals();
 
     const int     &getBasisSetSize() const { return _basis_set_size; }
+     
     const double  &getEnergy(const int level ) const { return _mo_energies[level]; }
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
     
     bool ReadOrbitalsGaussian( const char * filename );
     bool ReadOverlapGaussian( const char * filename );
+    bool ParseGaussianLog( const char * filename );
 
     inline void setEnergy( const int &level, const double &energy ) { _mo_energies[level] = energy; }
 
 protected:
     int                                 _basis_set_size;
-    ub::vector<double>                  _mo_energies;
+    int                                 _electrons;
+    
+    ub::vector<double>                  _mo_energies;    
     ub::matrix<double>                  _mo_coefficients;
     ub::symmetric_matrix<double>        _overlap;
        

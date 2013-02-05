@@ -35,9 +35,18 @@ namespace votca { namespace ctp {
 void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
     ParseOptionsXML( options );
+    
     _orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
+    _orbitalsB.ReadOrbitalsGaussian( _orbitalsB_file.c_str() );
+    _orbitalsAB.ReadOrbitalsGaussian( _orbitalsAB_file.c_str() );
+    
     _orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
+    
     //SQRTOverlap();
+    _orbitalsA.ParseGaussianLog(_logA_file.c_str());
+    _orbitalsB.ParseGaussianLog(_logB_file.c_str());
+    _orbitalsAB.ParseGaussianLog(_logAB_file.c_str());    
+    
     CalculateJ();
 }
 
@@ -214,26 +223,46 @@ void IDFT::CalculateJ() {
 
     // building the outer product of the dimer   
     ub::matrix<double> _monomersAB (4, 4);
-    ub::matrix_range< ub::matrix<double> > mr (_monomersAB, ub::range (0, 2), ub::range (0, 2));
-    for (unsigned i = 0; i < mr.size1 (); ++ i)
-        for (unsigned j = 0; j < mr.size2 (); ++ j)
-            mr (i, j) = 1;
-    
-    ub::matrix_range< ub::matrix<double> > mr1 (_monomersAB, ub::range (2, 4), ub::range (2, 4));
-    for (unsigned i = 0; i < mr1.size1 (); ++ i)
-        for (unsigned j = 0; j < mr1.size2 (); ++ j)
-            mr1 (i, j) = 2;
+    ub::zero_matrix<double> _AB (4, 4);
 
+    _monomersAB = _AB;
+    
     std::cout << _monomersAB << std::endl;
     
     ub::matrix<double> C(2, 2);
     C(0,0) = 3; C(0,1) = 3;
     C(1,0) = 3; C(1,1) = 3;
-    project(_monomersAB, ub::range (2, 4), ub::range (2, 4)) = C;
+    
+    
+    ub::project(_monomersAB, ub::range (2, 4), ub::range (2, 4)) = C;
  
     std::cout << _monomersAB << std::endl;
+
+    
+    
+    // constructing the direct product orbA x orbB
+    int _basisA = _orbitalsA.getBasisSetSize();
+    int _basisB = _orbitalsB.getBasisSetSize();
+    
+    cout << "basis [A:B] " << _basisA << ":" << _basisB << endl;
+    
+    int _levelsA = 1;
+    int _levelsB = 3;
+    
+    ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
+    ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
+    
+    
+    cout << zeroB << endl;
+    cout << zeroA << endl;
+    
+    ub::matrix<double> orbAB ( _levelsA + _levelsB, _basisA + _basisB  );
+    
+    
+   // need to figure out this range shit 
+    ub::project( orbAB, ub::range (0, _basisA+1 ), ub::range ( _levelsA-1, _basisA+_basisB ) ) = zeroB;
         
-       // what I really need is this:  project(A, r1, r2) = C; 
+    
     
 
 }

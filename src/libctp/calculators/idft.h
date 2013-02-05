@@ -44,7 +44,7 @@ public:
     IDFT() {};
    ~IDFT() {};
    
-    // Topology is not needed; shall removed later with a different Apllication class
+    // Topology is not needed; shall removed later with a different Application class
     void    Initialize(ctp::Topology *top, tools::Property *options );
     
     string  Identify() { return "IDFT"; }

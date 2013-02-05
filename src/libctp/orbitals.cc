@@ -121,6 +121,8 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     }
     cout << "Basis set size: " << _basis_size << "." << endl;
 
+    _basis_set_size = _basis_size;
+    
    // copying energies to a matrix
    _mo_energies.resize( _levels );
    _level = 1;
@@ -144,6 +146,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
    _coefficients.clear();
    _energies.clear();
    
+     
    cout << "Done reading orbital files from " << filename << endl;
    return 0;
 }
@@ -252,5 +255,48 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
     //cout << _overlap << endl;
    
 }
+
+
+bool Orbitals::ParseGaussianLog( const char * filename ){
+    
+    string _line;
+    unsigned _basis_size = 0;
+    bool _read_overlap = false;
+    
+    cout << "..getting the number of electrons from " << filename << endl;
+    _electrons = 0;
+    
+    ifstream _input_file(filename);
+    if (_input_file.fail()) {
+        cerr << endl << "File " << filename << " is not found " << endl;
+        return 1;
+    };
+    
+    while ( _input_file  ) {
+
+        getline(_input_file, _line);
+        //cout << _line << endl;
+        // if a line has "electrons", must be the one we need
+        std::string::size_type electrons_pos = _line.find("alpha electrons");
+ 
+        if (electrons_pos != std::string::npos && ( _electrons == 0 ) ) {          
+            vector<string> results;
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t "),
+                    boost::algorithm::token_compress_on); 
+            
+            _electrons = boost::lexical_cast<int>( results.front() );
+            cout << "....number of electrons: " << _electrons << endl;
+ 
+        }
+        
+        // check if all information has bee accumulated
+        if ( _electrons != 0 ) break;
+    }
+    
+    cout << "..done parsing " << filename << " file" << endl;
+}
+
+
 
 }}
