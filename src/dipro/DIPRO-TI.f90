@@ -217,10 +217,33 @@ else if ( (QCP .eq. "G") ) then
    allocate( dimer_Pro(nD,nDt) )
    dimer_Pro = transpose(matmul(dimcoef,S))
 
+  !  DIPRO.x 8 8 7 6 5 4 3 2 1 8 8 7 6 5 4 3 2 1 6 9 10 11 12 13 14 6 9 10 11 12 13 14 G ma
+  ! SMatrix of a dimer
+  do i = 1, nD
+  do j = 1, nD
+    write(100,*) i,j, S(i,j)
+  end do	
+  end do
+
+
    ! Determine orbitals of monomers in the basis set of the dimer
    allocate( PsiA_DimBS(nAt,nDt), PsiB_DimBS(nBt,nDt) )
    PsiA_DimBS = matmul(molAcoef, dimer_Pro)
    PsiB_DimBS = matmul(molBcoef, dimer_Pro)
+
+
+  do i = 1, nD
+  do j = 1, nDt
+    write(102,*) i,j, dimer_Pro(i,j)
+  end do	
+  end do
+
+  do i = 1, nAt
+  do j = 1, nDt
+    write(101,*) i,j, PsiA_DimBS(i,j)
+  end do	
+  end do
+
 
    allocate(helpmat(nBt,nDt))
    helpmat=matmul( PsiB_DimBS, fock_diag)
@@ -232,12 +255,24 @@ else if ( (QCP .eq. "G") ) then
    JMAT(1:nAt,nAt+1:nAt+nBt) = transpose( JMAT(nAt+1:nAt+nBt,1:nAt))
    JMAT(nAt+1:nAt+nBt,nAt+1:nAt+nBt) = matmul(helpmat , transpose(PsiB_DimBS) )
 
+
+  do i = 1, nAt+nbT
+  do j = 1, nAt+nbT
+    write(122,*) i,j, JMAT(i,j)
+  end do	
+  end do
+
    ! Determine overlap analogous to J
    SMAT(1:nAt,1:nAt) = matmul(PsiA_DimBS , transpose(PsiA_DimBS) )
    SMAT(nAt+1:nAt+nBt,nAt+1:nAt+nBt)= matmul(PsiB_DimBS , transpose(PsiB_DimBS) )
    SMAT(nAt+1:nAt+nBt,1:nAt) = matmul(PsiB_DimBS , transpose(PsiA_DimBS) )
    SMAT(1:nAt,nAt+1:nAt+nBt) = transpose( SMAT(nAt+1:nAt+nBt,1:nAt))
 
+  do i = 1, nAt+nbT
+  do j = 1, nAt+nbT
+    write(120,*) i,j, SMAT(i,j)
+  end do
+  end do
 
    ! Determine eigenvales (evalu) and eigenvectors (evec) of overlap matrix
    lwork=3*(nAt+nBt)

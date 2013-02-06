@@ -41,9 +41,14 @@ public:
    ~Orbitals();
 
     const int     &getBasisSetSize() const { return _basis_set_size; }
-     
+    const int     &getNumberOfLevels() const {return  _mo_energies.size(); }
+    const int     &getNumberOfElectrons() const {return  _electrons; }
+    
     const double  &getEnergy(const int level ) const { return _mo_energies[level]; }
+    
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
+    ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
+    ub::vector<double>* getEnergies() { return &_mo_energies; }
     
     bool ReadOrbitalsGaussian( const char * filename );
     bool ReadOverlapGaussian( const char * filename );

@@ -43,6 +43,7 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     _orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
     
     //SQRTOverlap();
+    
     _orbitalsA.ParseGaussianLog(_logA_file.c_str());
     _orbitalsB.ParseGaussianLog(_logB_file.c_str());
     _orbitalsAB.ParseGaussianLog(_logAB_file.c_str());    
@@ -203,8 +204,8 @@ void IDFT::SQRTOverlap() {
     _diagS2.clear();
     _temp.clear();
 
-    //cout << S2 << endl;
-    //cout << _overlap << endl;
+    cout << "S2: " << S2 << endl;
+    cout << "Overlap: " << _overlap << endl;
     
     cout << "Done with the overlap matrix" << endl;
     
@@ -220,10 +221,12 @@ void IDFT::CleanUp() {
 
 
 void IDFT::CalculateJ() {
-
-    // building the outer product of the dimer   
-    ub::matrix<double> _monomersAB (4, 4);
-    ub::zero_matrix<double> _AB (4, 4);
+ 
+    double conv_Hrt_eV=27.21138386;
+            
+    /* test case
+    ub::matrix<double> _monomersAB (4, 5);
+    ub::zero_matrix<double> _AB (4, 5);
 
     _monomersAB = _AB;
     
@@ -233,11 +236,15 @@ void IDFT::CalculateJ() {
     C(0,0) = 3; C(0,1) = 3;
     C(1,0) = 3; C(1,1) = 3;
     
+    ub::matrix<double> B(2, 2);
+    B(0,0) = 5; B(0,1) = 5;
+    B(1,0) = 5; B(1,1) = 5;
     
-    ub::project(_monomersAB, ub::range (2, 4), ub::range (2, 4)) = C;
- 
-    std::cout << _monomersAB << std::endl;
+    ub::project(_monomersAB, ub::range (2, 4), ub::range (3, 5)) = C;
+    ub::project(_monomersAB, ub::range (0, 2), ub::range (0, 2)) = B;
 
+    std::cout << _monomersAB << std::endl;
+    */
     
     
     // constructing the direct product orbA x orbB
@@ -246,25 +253,74 @@ void IDFT::CalculateJ() {
     
     cout << "basis [A:B] " << _basisA << ":" << _basisB << endl;
     
-    int _levelsA = 1;
-    int _levelsB = 3;
+    int _levelsA = _orbitalsA.getNumberOfLevels();
+    int _levelsB = _orbitalsB.getNumberOfLevels();
     
     ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
-    
-    
-    cout << zeroB << endl;
-    cout << zeroA << endl;
-    
-    ub::matrix<double> orbAB ( _levelsA + _levelsB, _basisA + _basisB  );
-    
-    
-   // need to figure out this range shit 
-    ub::project( orbAB, ub::range (0, _basisA+1 ), ub::range ( _levelsA-1, _basisA+_basisB ) ) = zeroB;
         
+    //cout << zeroB << endl;
+    //cout << zeroA << endl;
     
+    ub::matrix<double> _psi_AxB ( _levelsA + _levelsB, _basisA + _basisB  );
     
+    // AxB = | A 0 |  //
+    //       | 0 B |  //      
+    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
+    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;
+    
+    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA.getOrbitals();
+    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB.getOrbitals();    
+    //cout << "_psi_AxB: " << _psi_AxB << endl;
+    
+    // Fock matrix of a dimer   
+    ub::diagonal_matrix<double> _fock_AB( _orbitalsAB.getNumberOfLevels(), (*_orbitalsAB.getEnergies()).data() ); 
+    //cout << "_fock_AxB: " << _psi_AxB << endl;
+    
+    //cout << "Overlap: "  << *_orbitalsAB.getOverlap();
+    //cout << "OrbitalsAB: "  << *_orbitalsAB.getOrbitals();
+    
+    // psi_AxB * SAB * psi_AB
+    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB.getOverlap(), ub::trans( *_orbitalsAB.getOrbitals() ) );   
+         
+    ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
 
+    //cout << (*_orbitalsAB.getOverlap()).at_element(0,0) << endl;
+    //cout << (*_orbitalsAB.getOrbitals()).at_element(0,0) << endl;
+    //cout << _psi_AB.at_element(0,0) << endl;
+    
+    /*
+    for (int i = 0; i < _psi_AxB_dimer_basis.size1(); i++ ) {
+        for (int j = 0; j < _psi_AxB_dimer_basis.size2(); j++ ) {
+            cout << i << " " << j << " " << _psi_AxB_dimer_basis.at_element(i, j) << endl;
+            
+        }
+    }
+    exit(0);
+     */
+    
+    //cout << "_psi_AxB_dimer_basis: " << _psi_AxB_dimer_basis << endl;
+    _psi_AB.clear();
+    
+    // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
+    ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
+    //cout << "_temp: " << _temp << endl;
+    ub::matrix<double> JAB = ub::prod( _psi_AxB_dimer_basis, _temp);
+    _temp.clear();
+    _fock_AB.clear();
+    
+    // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
+    ub::matrix<double> _S = ub::prod( _psi_AxB_dimer_basis, ub::trans( _psi_AxB_dimer_basis ));
+    cout << "SAxB: " << _S << endl;
+    
+    
+    //cout << "JAB: " << JAB << endl;
+    int HOMO_A = _orbitalsA.getNumberOfElectrons() - 1 ;
+    int HOMO_B = _orbitalsB.getNumberOfElectrons() - 1 ;
+    
+    cout << JAB.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
+    cout << JAB.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
+    
 }
 
 }};
