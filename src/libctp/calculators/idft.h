@@ -24,6 +24,9 @@
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/tools/property.h>
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/banded.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 
 namespace votca { namespace ctp {
     
@@ -50,7 +53,6 @@ public:
     string  Identify() { return "IDFT"; }
     void    ParseOptionsXML( tools::Property *opt);
 
-    void    SQRTOverlap();
     void    CalculateJ();
     
 /*  
@@ -71,6 +73,8 @@ private:
     Orbitals _orbitalsA;
     Orbitals _orbitalsB;
     Orbitals _orbitalsAB;
+
+    void    SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
    
 };
 

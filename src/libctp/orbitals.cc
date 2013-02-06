@@ -59,7 +59,9 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     if (_input_file.fail()) {
         cerr << endl << "File " << filename << " with molecular orbitals is not found " << endl;
         return 1;
-    };
+    } else {
+        cout << endl << "..reading molecular orbitals from " << filename << endl;
+    }
 
     // number of coefficients per line is  in the first line of the file (5D15.8)
     getline(_input_file, _line);
@@ -69,9 +71,9 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
     string format = strs.at(2);
 
-    cout << endl << "Orbital file " << filename << " has " 
-            << nrecords_in_line << " records per line, in D"
-            << format << " format." << endl;
+    //cout << endl << "Orbital file " << filename << " has " 
+    //        << nrecords_in_line << " records per line, in D"
+    //        << format << " format." << endl;
 
     while (_input_file) {
 
@@ -108,7 +110,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     }
 
     // some sanity checks
-    cout << "Read in " << _levels << " levels. ";
+    cout << "....energy levels: " << _levels << endl;
 
     std::map< int, vector<double> >::iterator iter = _coefficients.begin();
     _basis_size = iter->second.size();
@@ -119,7 +121,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
 
         }
     }
-    cout << "Basis set size: " << _basis_size << "." << endl;
+    cout << "....basis set size: " << _basis_size << endl;
 
     _basis_set_size = _basis_size;
     
@@ -147,7 +149,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
    _energies.clear();
    
      
-   cout << "Done reading orbital files from " << filename << endl;
+   cout << "..done reading orbital files from " << filename << endl;
    return 0;
 }
 
@@ -160,20 +162,20 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
     string _line;
     unsigned _basis_size = 0;
     bool _read_overlap = false;
-    
-    cout << "Reading the overlap matrix from " << filename << endl;
-    
+      
     ifstream _input_file(filename);
     if (_input_file.fail()) {
         cerr << endl << "File " << filename << " with overlap matrix is not found " << endl;
         return 1;
-    };
+    } else {
+        cout << endl << "..reading the overlap matrix from " << filename << endl;
+    }
     
-    while (_input_file && !_read_overlap ) {
+    while (_input_file ) {
 
         getline(_input_file, _line);
         // if a line has an equality sign, must be energy
-        std::string::size_type energy_pos = _line.find("Overlap");
+        std::string::size_type overlap_pos = _line.find("Overlap");
         std::string::size_type nbasis_pos = _line.find("NBasis");
  
         if (nbasis_pos != std::string::npos && _basis_size == 0 ) {
@@ -185,13 +187,15 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
             //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
             
             _basis_size = boost::lexical_cast<int>(results[1]);
-            cout << "Number of basis functions: " << _basis_size << endl;
+            cout << "....number of basis functions: " << _basis_size << endl;
             // preparing the matrix container
             _overlap.resize( _basis_size );  
  
         }
-
-        if (energy_pos != std::string::npos ) {
+        
+        if ( _read_overlap ) { break; }
+                    
+        if (overlap_pos != std::string::npos ) {
             
             _read_overlap = true;
             //cout << "Found the overlap matrix!" << endl;   
@@ -250,10 +254,9 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
                 // clear the index for the next block
                 _j_indeces.clear();        
             } // end of the blocks
-        } // end of the if "Overlap" found       
+            cout << "..finished reading the overlap matrix from " << filename << endl;
+        } // end of the if "Overlap" found   
     } // end of the loop over the file
-    //cout << _overlap << endl;
-   
 }
 
 
@@ -263,7 +266,7 @@ bool Orbitals::ParseGaussianLog( const char * filename ){
     unsigned _basis_size = 0;
     bool _read_overlap = false;
     
-    cout << "..getting the number of electrons from " << filename << endl;
+    cout << endl << "..getting the number of electrons from " << filename << endl;
     _electrons = 0;
     
     ifstream _input_file(filename);

@@ -21,9 +21,7 @@
 #include "idft.h"
 #include "votca/ctp/qmcalculator.h"
 #include <votca/ctp/eigenvalues.h>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
+
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -40,14 +38,12 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     _orbitalsB.ReadOrbitalsGaussian( _orbitalsB_file.c_str() );
     _orbitalsAB.ReadOrbitalsGaussian( _orbitalsAB_file.c_str() );
     
-    _orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
-    
-    //SQRTOverlap();
-    
     _orbitalsA.ParseGaussianLog(_logA_file.c_str());
     _orbitalsB.ParseGaussianLog(_logB_file.c_str());
     _orbitalsAB.ParseGaussianLog(_logAB_file.c_str());    
-    
+
+    _orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
+        
     CalculateJ();
 }
 
@@ -59,7 +55,7 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     // Molecule A
     string key = "options.idft.moleculeA";
 
-    cout << key + ".orbitals" << endl;
+    //cout << key + ".orbitals" << endl;
     
     if ( opt->exists( key + ".orbitals" ) ) {
         _orbitalsA_file = opt->get( key + ".orbitals" ).as< string > ();
@@ -138,22 +134,20 @@ double inv_sqrt(double x) { return 1./sqrt(x); }
 /*
  * Calculates S^{-1/2}
  */
-void IDFT::SQRTOverlap() {
+void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 ) {
        
     double (*_inv_sqrt)(double);
     _inv_sqrt = &inv_sqrt;
 
     ub::vector<double>                  _eigenvalues;
     ub::matrix<double>                  _eigenvectors;
-    ub::symmetric_matrix<double>        _overlap;
 
-    _overlap = *_orbitalsAB.getOverlap();
-    int _basis_size = _overlap.size1(); 
+    int _size = S.size1(); 
 
-    cout << "Calculating SQRT of the " << _basis_size << "x" << _basis_size  << " overlap matrix" << endl;
+    cout << "....calculating SQRT of the " << _size << "x" << _size  << " overlap matrix" << endl;
 
-    _eigenvalues.resize( _basis_size );
-    _eigenvectors.resize( _basis_size, _basis_size ); 
+    _eigenvalues.resize( _size );
+    _eigenvectors.resize( _size, _size ); 
     
     
 //  test case  
@@ -173,8 +167,8 @@ void IDFT::SQRTOverlap() {
 
 */
     
-    EigenvaluesSymmetric(_overlap, _eigenvalues, _eigenvectors);
-    cout << "..eigenvalue problem solved " << endl;
+    EigenvaluesSymmetric(S, _eigenvalues, _eigenvectors);
+    cout << "....eigenvalue problem solved " << endl;
     //cout << _eigenvalues << endl;
     //cout << _eigenvectors << endl;
      
@@ -189,11 +183,9 @@ void IDFT::SQRTOverlap() {
     
     // multiply from the right on the transpose U
     ub::trans(_eigenvectors);
-    ub::matrix<double> S2 = ub::prod( _temp, _eigenvectors);
-    cout << "..projection matrix constructed  " << endl;
-    
-    
-    
+    S2 = ub::prod( _temp, _eigenvectors);
+    cout << "....projection matrix constructed  " << endl;
+       
     /* for the test case above S2 has the following form 
     * [[0.3937418627,0.07087375404,0.0209304492],
     *  [0.07087375404,0.4501091889,0.0918042032],
@@ -204,21 +196,13 @@ void IDFT::SQRTOverlap() {
     _diagS2.clear();
     _temp.clear();
 
-    cout << "S2: " << S2 << endl;
-    cout << "Overlap: " << _overlap << endl;
+    //cout << "S2: " << S2 << endl;
+    //cout << "Overlap: " << _overlap << endl;
     
-    cout << "Done with the overlap matrix" << endl;
+    cout << "....done with the sqrt of a matrix" << endl;
     
     
  }
-
-/*
-void IDFT::CleanUp() {
-
-}
-*/
-
-
 
 void IDFT::CalculateJ() {
  
@@ -246,12 +230,14 @@ void IDFT::CalculateJ() {
     std::cout << _monomersAB << std::endl;
     */
     
+    cout << endl << "..calculating electronic couplings " << endl;
     
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA.getBasisSetSize();
     int _basisB = _orbitalsB.getBasisSetSize();
     
-    cout << "basis [A:B] " << _basisA << ":" << _basisB << endl;
+    
+    cout << "....basis [molA:molB] " << _basisA << ":" << _basisB << endl;
     
     int _levelsA = _orbitalsA.getNumberOfLevels();
     int _levelsB = _orbitalsB.getNumberOfLevels();
@@ -267,28 +253,19 @@ void IDFT::CalculateJ() {
     // AxB = | A 0 |  //
     //       | 0 B |  //      
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
-    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;
-    
+    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA.getOrbitals();
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB.getOrbitals();    
     //cout << "_psi_AxB: " << _psi_AxB << endl;
     
     // Fock matrix of a dimer   
     ub::diagonal_matrix<double> _fock_AB( _orbitalsAB.getNumberOfLevels(), (*_orbitalsAB.getEnergies()).data() ); 
-    //cout << "_fock_AxB: " << _psi_AxB << endl;
-    
-    //cout << "Overlap: "  << *_orbitalsAB.getOverlap();
-    //cout << "OrbitalsAB: "  << *_orbitalsAB.getOrbitals();
-    
-    // psi_AxB * SAB * psi_AB
-    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB.getOverlap(), ub::trans( *_orbitalsAB.getOrbitals() ) );   
-         
-    ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
 
-    //cout << (*_orbitalsAB.getOverlap()).at_element(0,0) << endl;
-    //cout << (*_orbitalsAB.getOrbitals()).at_element(0,0) << endl;
-    //cout << _psi_AB.at_element(0,0) << endl;
-    
+    // psi_AxB * S_AB * psi_AB
+    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB.getOverlap(), ub::trans( *_orbitalsAB.getOrbitals() ) );          
+    ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
+    _psi_AB.clear();
+   
     /*
     for (int i = 0; i < _psi_AxB_dimer_basis.size1(); i++ ) {
         for (int j = 0; j < _psi_AxB_dimer_basis.size2(); j++ ) {
@@ -299,28 +276,65 @@ void IDFT::CalculateJ() {
     exit(0);
      */
     
-    //cout << "_psi_AxB_dimer_basis: " << _psi_AxB_dimer_basis << endl;
-    _psi_AB.clear();
-    
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
     ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
-    //cout << "_temp: " << _temp << endl;
-    ub::matrix<double> JAB = ub::prod( _psi_AxB_dimer_basis, _temp);
-    _temp.clear();
-    _fock_AB.clear();
+    ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
+    _temp.clear(); _fock_AB.clear();
     
     // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
-    ub::matrix<double> _S = ub::prod( _psi_AxB_dimer_basis, ub::trans( _psi_AxB_dimer_basis ));
-    cout << "SAxB: " << _S << endl;
+    ub::symmetric_matrix<double> _S_AxB = ub::prod( _psi_AxB_dimer_basis, ub::trans( _psi_AxB_dimer_basis ));
+    //cout << "SAxB: " << _S_AxB << endl;
+
+    /* test of an assignment 
+    ub::matrix<double> C(2,2);
+    C(0,0) = 1; C(0,1) = 2;
+    C(1,0) = 2; C(1,1) = 3;
     
+    ub::symmetric_matrix<double> B = C;
+    cout << C << endl; 
+    cout << B << endl; 
+    */
+       
+    ub::matrix<double> _S_AxB_2(_S_AxB.size1(), _S_AxB.size1() );
     
-    //cout << "JAB: " << JAB << endl;
+    /* test of the SQRT routine
+    ub::symmetric_matrix<double> _test(3,3);
+    ub::matrix<double> _test2(3,3); 
+    _test(0,0) = 7;   
+    _test(1,0) =-2;  _test(1,1) = 6;  
+    _test(2,0) = 0;  _test(2,1) =-2; _test(2,2) = 5; 
+    SQRTOverlap(_test, _test2 );
+    cout << _test2;
+    exit(0);
+    */
+    
+    SQRTOverlap(_S_AxB, _S_AxB_2 );        
+            
+    cout << "....calculating the effective overlap"<< endl;
+    ub::matrix<double> JAB_temp = prod( JAB_dimer, _S_AxB_2 );
+    ub::matrix<double> JAB = prod( _S_AxB_2, JAB_temp );
+    //JAB_dimer.clear(); JAB_temp.clear();
+    
     int HOMO_A = _orbitalsA.getNumberOfElectrons() - 1 ;
     int HOMO_B = _orbitalsB.getNumberOfElectrons() - 1 ;
-    
+
+    //cout << _S_AxB << endl;
+    cout << "..done calculating electronic couplings"<< endl;
+       
+    cout << JAB_dimer.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
+    cout << JAB_dimer.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
+   
     cout << JAB.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
     cout << JAB.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
-    
+ 
+
 }
+
+
+/*
+void IDFT::CleanUp() {
+
+}
+*/
 
 }};
