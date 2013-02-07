@@ -62,6 +62,9 @@ public:
 
 private:
 
+    int _max_occupied_levels;
+    int _max_unoccupied_levels;
+    
     string _orbitalsA_file;
     string _orbitalsB_file;
     string _orbitalsAB_file;

@@ -33,7 +33,17 @@ using namespace std;
 namespace votca { namespace ctp {
 
 Orbitals::Orbitals() { 
-     
+    
+    _basis_set_size = 0;
+    _occupied_levels = 0;
+    _unoccupied_levels = 0;
+    _electrons = 0;
+    
+    _has_basis_set_size = false;
+    _has_occupied_levels = false;
+    _has_unoccupied_levels = false;
+    _has_electrons = false;   
+    
 };   
     
 Orbitals::~Orbitals() { 
@@ -161,7 +171,7 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
 {
     string _line;
     unsigned _basis_size = 0;
-    bool _read_overlap = false;
+    bool _has_overlap = false;
       
     ifstream _input_file(filename);
     if (_input_file.fail()) {
@@ -193,11 +203,12 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
  
         }
         
-        if ( _read_overlap ) { break; }
+        // get out of this loop if we already have the overlap matrix
+        if ( _has_overlap ) { break; }
                     
         if (overlap_pos != std::string::npos ) {
             
-            _read_overlap = true;
+            _has_overlap = true;
             //cout << "Found the overlap matrix!" << endl;   
             vector<int> _j_indeces;
             
@@ -266,12 +277,11 @@ bool Orbitals::ParseGaussianLog( const char * filename ){
     unsigned _basis_size = 0;
     bool _read_overlap = false;
     
-    cout << endl << "..getting the number of electrons from " << filename << endl;
-    _electrons = 0;
+    cout << endl << "..parsing " << filename << endl;
     
     ifstream _input_file(filename);
     if (_input_file.fail()) {
-        cerr << endl << "File " << filename << " is not found " << endl;
+        throw std::runtime_error("File filename is not found." );
         return 1;
     };
     
@@ -279,27 +289,112 @@ bool Orbitals::ParseGaussianLog( const char * filename ){
 
         getline(_input_file, _line);
         //cout << _line << endl;
+        
         // if a line has "electrons", must be the one we need
         std::string::size_type electrons_pos = _line.find("alpha electrons");
  
-        if (electrons_pos != std::string::npos && ( _electrons == 0 ) ) {          
+        if (electrons_pos != std::string::npos && !_has_electrons ) {          
             vector<string> results;
             boost::trim( _line );
             boost::algorithm::split(results, _line, boost::is_any_of("\t "),
                     boost::algorithm::token_compress_on); 
             
             _electrons = boost::lexical_cast<int>( results.front() );
+            _has_electrons = true;
             cout << "....number of electrons: " << _electrons << endl;
  
         }
         
-        // check if all information has bee accumulated
-        if ( _electrons != 0 ) break;
+        std::string::size_type basis_pos = _line.find("basis functions");
+
+        if (basis_pos != std::string::npos && !_has_basis_set_size ) {          
+            vector<string> results;
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t "),
+                    boost::algorithm::token_compress_on); 
+            
+            _basis_set_size = boost::lexical_cast<int>( results.front() );
+            _has_basis_set_size = true;
+            cout << "....basis set size: " << _basis_set_size << endl;
+ 
+        }        
+        
+        // count occupied and unoccupied orbitals
+        std::string::size_type eigenvalues_pos = _line.find("Alpha");
+
+        while (eigenvalues_pos != std::string::npos && !_has_occupied_levels && !_has_unoccupied_levels) {    
+
+            boost::trim( _line );            
+            std::list<std::string> stringList;
+            boost::iter_split(stringList, _line, boost::first_finder("--"));
+            
+            vector<string> energies; 
+            boost::trim( stringList.back() );
+            
+            //cout << stringList.back() << endl;
+                    
+            boost::algorithm::split(energies, stringList.back(), boost::is_any_of("\t "),
+            boost::algorithm::token_compress_on);            
+            
+            if  ( stringList.front().find("virt.") != std::string::npos ) {
+                _unoccupied_levels += energies.size();
+                //cout << energies.size() << endl;
+                energies.clear();
+            }
+            
+            if  ( stringList.front().find("occ.") != std::string::npos ) {
+                _occupied_levels += energies.size();
+                energies.clear();
+            }
+            
+            getline(_input_file, _line);
+            eigenvalues_pos = _line.find("Alpha");
+            
+            boost::iter_split(stringList, _line, boost::first_finder("--"));
+            
+            if ( eigenvalues_pos == std::string::npos ) {
+                _has_occupied_levels = true;
+                _has_unoccupied_levels = true;
+                cout << "....occupied levels: " << _occupied_levels << endl;
+                cout << "....unoccupied levels: " << _unoccupied_levels << endl;
+            }
+            
+        }        
+        
+        
+        // check if all information has been accumulated
+        if ( _has_electrons && _has_basis_set_size && _has_occupied_levels ) break;
     }
     
     cout << "..done parsing " << filename << " file" << endl;
 }
 
+const int    &Orbitals::getBasisSetSize() const { 
+    if ( _has_basis_set_size ) {
+        return _basis_set_size; 
+    } else {
+        throw std::runtime_error(" Basis set size is unknown. Parse a log file first. " );
+    }
+}
 
+const int     &Orbitals::getNumberOfLevels() const {
+    if ( _has_occupied_levels && _has_unoccupied_levels ) {
+        return  _occupied_levels + _unoccupied_levels; 
+    } else {
+        throw std::runtime_error(" Number of levels is unknown. Parse a log file first. " );
+    }
+}
+
+const int     &Orbitals::getNumberOfElectrons() const {
+    if ( _has_electrons ) {
+        return  _electrons; 
+    } else {
+        throw std::runtime_error(" Number of electrons is unknown. Parse a log file first. " );
+    }
+}
+
+bool Orbitals::CheckDegeneracy() {
+    
+}    
 
 }}

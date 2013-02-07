@@ -289,10 +289,28 @@ else if ( (QCP .eq. "G") ) then
    eigvec_t = transpose(SMAT)
    transmat = matmul(SMAT, matmul(diagS,eigvec_t))
 
+ do i = 1, nAt+nBT
+    write(140,*) i, eigval(i)
+  end do
+
+
+  do i = 1, nAt+nbT
+  do j = 1, nAt+nbT
+    write(130,*) i,j, transmat(i,j)
+  end do
+  end do
+
 
    ! Calculate effective JMAT
    allocate(JMAT_eff(nAt+nBt,nAt+nBt))
    JMAT_eff = matmul( transmat, matmul(JMAT,transmat) )
+
+  do i = 1, nAt+nBt
+  do j = 1, nAt+nBT
+    write(125,*) i,j, JMAT_eff(i,j)/27.21138386
+  end do
+  end do
+
    
    allocate(J_hole(homoAsub,homoBsub),J_elec(lumoAsub,lumoBsub))
 

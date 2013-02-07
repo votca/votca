@@ -53,38 +53,53 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     // Orbitals are in fort.7 file; number of electrons in .log file
     
     // Molecule A
-    string key = "options.idft.moleculeA";
+    string key = "options.idft.moleculeA.orbitals";
 
     //cout << key + ".orbitals" << endl;
     
-    if ( opt->exists( key + ".orbitals" ) ) {
-        _orbitalsA_file = opt->get( key + ".orbitals" ).as< string > ();
+    if ( opt->exists( key + ".file" ) ) {
+        _orbitalsA_file = opt->get( key + ".file" ).as< string > ();
     }
     else {
-        cout << key + ".orbitals" << endl;
-        exit(0);
         throw std::runtime_error("Error in options: molecule A orbitals filename is missing.");
     }
     
+    if ( opt->exists( key + ".occupied" ) ) {
+        _max_occupied_levels = opt->get( key + ".occupied" ).as< int > ();
+    }
+    else {
+        throw std::runtime_error("Maximum of occupied levels for molecule A is not provided");
+    }
+    
+    key = "options.idft.moleculeA";
+
     if ( opt->exists( key + ".log" ) ) {
         _logA_file = opt->get( key + ".log" ).as< string > ();
     }
     else {
-        cout << key + ".orbitals" << endl;
-        exit(0);
         throw std::runtime_error("Error in options: molecule A log filename is missing.");
     }
     
     // Molecule B
-    key = "options.idft.moleculeB";
+    key = "options.idft.moleculeB.orbitals";
 
-    if ( opt->exists( key+".orbitals" ) ) {
-        _orbitalsB_file = opt->get( key + ".orbitals" ).as< string > ();
+    if ( opt->exists( key+".file" ) ) {
+        _orbitalsB_file = opt->get( key + ".file" ).as< string > ();
     }
     else {
         throw std::runtime_error("Error in options: molecule B orbitals filename is missing.");
     }
 
+
+    if ( opt->exists( key + ".occupied" ) ) {
+        _max_occupied_levels = opt->get( key + ".occupied" ).as< int > ();
+    }
+    else {
+        throw std::runtime_error("Maximum of occupied levels for molecule B is not provided");
+    }
+
+    key = "options.idft.moleculeB.";
+    
     if ( opt->exists( key + ".log" ) ) {
         _logB_file = opt->get( key + ".log" ).as< string > ();
     }
@@ -93,22 +108,23 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     }
     
     // Dimer 
-    key = "options.idft.moleculeAB";
+    key = "options.idft.moleculeAB.orbitals";
     
-    if ( opt->exists(key + ".orbitals") ) {
-        _orbitalsAB_file = opt->get(key + ".orbitals").as< string > ();
+    if ( opt->exists(key + ".file") ) {
+        _orbitalsAB_file = opt->get(key + ".file").as< string > ();
     }
     else {
         throw std::runtime_error("Error in options: dimer orbitals filename is missing.");
     }
-
+    
+    key = "options.idft.moleculeAB";
     if ( opt->exists( key + ".log") ) {
         _logAB_file = opt->get(key + ".log").as< string > ();
     }
     else {
         throw std::runtime_error("Error in options: dimer log filename is missing.");
-    }
-
+    }    
+    
     /* --- ORBITALS.XML Structure ---
      * <options>
      *   <idft>
@@ -152,8 +168,9 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
 //  test case  
 
-/*
+/*  test of the eigendecomposition code
     int _basis_size = 3;
+    ub::symmetric_matrix<double> _overlap(_basis_size);
     _overlap.resize( _basis_size ); 
     _eigenvalues.resize( _basis_size );
     _eigenvectors.resize( _basis_size, _basis_size ); 
@@ -165,13 +182,31 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     _overlap(1,0) =-2;  _overlap(1,1) = 6;  
     _overlap(2,0) = 0;  _overlap(2,1) =-2; _overlap(2,2) = 5;
 
-*/
+    EigenvaluesSymmetric(_overlap, _eigenvalues, _eigenvectors);
+    cout << "....eigenvalue problem solved " << endl;
+    
+    cout << "eigenvalues" << _eigenvalues << endl;
+    cout << "eigenvectors" << _eigenvectors << endl;
+    
+    ub::diagonal_matrix<double> _diag( _eigenvalues.size(), _eigenvalues.data() );
+    ub::matrix<double> _left = ub::prod( _eigenvectors, _diag );
+    cout <<  ub::prod( _left, ub::trans( _eigenvectors ) );
+    
+    exit(0);
+*/    
+    /* for the test case above S2 has the following form 
+    * [[0.3937418627,0.07087375404,0.0209304492],
+    *  [0.07087375404,0.4501091889,0.0918042032],
+    *  [0.0209304492,0.0918042032,0.4750808413]]
+    */
+    
     
     EigenvaluesSymmetric(S, _eigenvalues, _eigenvectors);
     cout << "....eigenvalue problem solved " << endl;
-    //cout << _eigenvalues << endl;
-    //cout << _eigenvectors << endl;
-     
+    
+    //cout << "eigenvalues" << _eigenvalues << endl;
+    //cout << _eigenvectors << endl;     
+    
     // compute inverse sqrt of all eigenvalues
     std::transform(_eigenvalues.begin(), _eigenvalues.end(), _eigenvalues.begin(),  _inv_sqrt );
 
@@ -182,15 +217,10 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     ub::matrix<double> _temp = ub::prod( _eigenvectors, _diagS2 );
     
     // multiply from the right on the transpose U
-    ub::trans(_eigenvectors);
-    S2 = ub::prod( _temp, _eigenvectors);
+    S2 = ub::prod( _temp, ub::trans( _eigenvectors ) );
     cout << "....projection matrix constructed  " << endl;
        
-    /* for the test case above S2 has the following form 
-    * [[0.3937418627,0.07087375404,0.0209304492],
-    *  [0.07087375404,0.4501091889,0.0918042032],
-    *  [0.0209304492,0.0918042032,0.4750808413]]
-    */
+
 
     // cleanup
     _diagS2.clear();
@@ -307,13 +337,19 @@ void IDFT::CalculateJ() {
     cout << _test2;
     exit(0);
     */
+    ub::trans( _S_AxB );
+    SQRTOverlap( _S_AxB , _S_AxB_2 );        
+ 
+    // _S_AxB is correct!
+    // cout <<  _S_AxB << endl; 
+    //cout << _S_AxB_2 << endl;
     
-    SQRTOverlap(_S_AxB, _S_AxB_2 );        
-            
     cout << "....calculating the effective overlap"<< endl;
     ub::matrix<double> JAB_temp = prod( JAB_dimer, _S_AxB_2 );
     ub::matrix<double> JAB = prod( _S_AxB_2, JAB_temp );
     //JAB_dimer.clear(); JAB_temp.clear();
+    
+    //cout << JAB << endl;
     
     int HOMO_A = _orbitalsA.getNumberOfElectrons() - 1 ;
     int HOMO_B = _orbitalsB.getNumberOfElectrons() - 1 ;

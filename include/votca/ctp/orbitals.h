@@ -40,9 +40,9 @@ public:
     Orbitals();
    ~Orbitals();
 
-    const int     &getBasisSetSize() const { return _basis_set_size; }
-    const int     &getNumberOfLevels() const {return  _mo_energies.size(); }
-    const int     &getNumberOfElectrons() const {return  _electrons; }
+    const int     &getBasisSetSize() const;
+    const int     &getNumberOfLevels() const;
+    const int     &getNumberOfElectrons() const;
         
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
@@ -51,11 +51,21 @@ public:
     bool ReadOrbitalsGaussian( const char * filename );
     bool ReadOverlapGaussian( const char * filename );
     bool ParseGaussianLog( const char * filename );
-
+    bool CheckDegeneracy();
+    
 protected:
     int                                 _basis_set_size;
+    int                                 _occupied_levels;
+    int                                 _unoccupied_levels;
     int                                 _electrons;
     
+    bool                                _has_basis_set_size;
+    bool                                _has_occupied_levels;
+    bool                                _has_unoccupied_levels;
+    bool                                _has_electrons;
+
+    std::vector<int>                    _active_levels;
+     
     ub::vector<double>                  _mo_energies;    
     ub::matrix<double>                  _mo_coefficients;
     ub::symmetric_matrix<double>        _overlap;
