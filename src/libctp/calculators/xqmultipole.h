@@ -325,6 +325,7 @@ public:
                      << "ERROR: Job " << _id << ": Invalid job type "
                      << job_type << ": Should be either 'pair' or 'site'"
                      << endl;
+                throw runtime_error("ERROR: Faulty input in job list.");
              }
        }
 
@@ -344,6 +345,36 @@ public:
        void     setIter(int iter)           { _iter = iter; }
        void     setSizePol(int size)        { _sizePol = size; }
        void     setSizeShell(int size)      { _sizeShell = size; }
+       
+       bool     isInCenter(int segId) {
+           
+           bool inCenter = false;
+           
+           // Job type 'pair'
+           if (this->_type == "pair") {               
+               if (segId == this->_seg1Id || this->_seg2Id) {
+                   inCenter = true;
+               }
+               else {
+                   inCenter = false;
+               }               
+           }
+           // Job type 'site'
+           else if (this->_type == "site") {
+               if (segId == this->_site_id) {
+                   inCenter = true;
+               }
+               else {
+                   inCenter = false;
+               }
+           }
+           // Unrecognised job type
+           else {
+               assert(false);
+           }
+           
+           return inCenter;
+       }
        
        void     setEnergy(double E_Tot,   
                           double E_Pair_Pair, 
@@ -365,7 +396,9 @@ public:
            _E_INDU      = E_U;
        }
        
-       void setEnergy_PPUU(double epp, double epu, double euu) {
+       void setEnergy_PPUU(double epp, 
+                           double epu, 
+                           double euu) {
            
            _EPP = epp;
            _EPU = epu;
@@ -2467,118 +2500,78 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
         vector< APolarSite* >         ::iterator pit;
         int pcount = 0;
 
-        // Save coordinates of central pair
-        if (job->getType() == "pair") {
-            for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
+        // Count polar sites for header line in xyz
+        if (_master->_chk_format == "xyz") {
+            for (sit = _segsPolSphere.begin(); 
+                 sit < _segsPolSphere.end();
+                 ++sit) {
 
                 int segId = (*sit)->getId();
 
-                if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
-
-                    vec pb_shift = job->Center() - (*sit)->getPos()
-                         - top->PbShortestConnect((*sit)->getPos(), job->Center());
-
-                    for (pit = _polarSites_job[segId-1].begin();
-                         pit < _polarSites_job[segId-1].end();
-                         ++pit, ++pcount) {
-                        (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);
-                    }
+                if (job->isInCenter(segId)) {
+                    pcount += _polarSites_job[segId-1].size();
+                }
+                else {
+                    pcount += 3*_polarSites_job[segId-1].size();
                 }
             }
-        }
-        else {
+            for (sit = _segsOutSphere.begin(); 
+                 sit < _segsOutSphere.end();
+                 ++sit) {
 
-            if (job->getSiteId() == job->getSeg2Id()) {
-                // Reverse order
-                for (sit = _segsPolSphere.end() - 1; sit > _segsPolSphere.begin(); --sit) {
+                int segId = (*sit)->getId();
 
-                    int segId = (*sit)->getId();
-
-                    if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
-
-                        vec pb_shift = job->Center() - (*sit)->getPos()
-                             - top->PbShortestConnect((*sit)->getPos(), job->Center());
-
-                        for (pit = _polarSites_job[segId-1].begin();
-                             pit < _polarSites_job[segId-1].end();
-                             ++pit, ++pcount) {
-                            if (segId == job->getSiteId()) {
-                                // (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);    TEST
-                                (*pit)->WriteChkLine(out, pb_shift,
-                                                    _master->_chk_split_dpl,
-                                                    _master->_chk_format,
-                                                    _master->_chk_dpl_spacing);
-                            }
-                            else {
-                                (*pit)->WriteChkLine(out, pb_shift,
-                                               _master->_chk_split_dpl,
-                                               _master->_chk_format,
-                                               _master->_chk_dpl_spacing);
-                            }
-                        }
-                    }
+                if (job->isInCenter(segId)) {
+                    assert(false); // Central region in outer shell!? Error.
+                }
+                else {
+                    pcount += _polarSites_job[segId-1].size();
                 }
             }
-            else if (job->getSiteId() == job->getSeg1Id()) {
-                for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
-
-                    int segId = (*sit)->getId();
-
-                    if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
-
-                        vec pb_shift = job->Center() - (*sit)->getPos()
-                             - top->PbShortestConnect((*sit)->getPos(), job->Center());
-
-                        for (pit = _polarSites_job[segId-1].begin();
-                             pit < _polarSites_job[segId-1].end();
-                             ++pit, ++pcount) {
-                            if (segId == job->getSiteId()) {
-                                // (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);    TEST
-                                (*pit)->WriteChkLine(out, pb_shift,
-                                                    _master->_chk_split_dpl,
-                                                    _master->_chk_format,
-                                                    _master->_chk_dpl_spacing);
-                            }
-                            else {
-                                (*pit)->WriteChkLine(out, pb_shift,
-                                               _master->_chk_split_dpl,
-                                               _master->_chk_format,
-                                               _master->_chk_dpl_spacing);
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                printf("\nERROR: No such segment ID %1d in job ID %1d.",
-                        job->getSiteId(), job->getId());
-                throw std::runtime_error("Redo job input.");
-            }
-
-
+            
+            fprintf(out, "%1d\n"
+                         "XYZ WITH DIPOLES IN POLARIZABLE "
+                         "SHELL SPLIT ONTO POINT CHARGES\n", pcount);
         }
 
-
-        if (_master->_chk_format == "gaussian" && job->getType() == "pair") {
-            fprintf(out, "\n");
-        }
-
-        // Save induction state of polarization sphere
-        for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
+        
+        // Save coordinates of central region            
+        for (sit = _segsPolSphere.begin(); 
+             sit < _segsPolSphere.end(); ++sit) {
 
             int segId = (*sit)->getId();
 
-            if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
-                continue;
+            if (job->isInCenter(segId)) {
+
+                vec pb_shift = job->Center() - (*sit)->getPos()
+                     - top->PbShortestConnect((*sit)->getPos(), job->Center());
+
+                for (pit = _polarSites_job[segId-1].begin();
+                     pit < _polarSites_job[segId-1].end();
+                     ++pit) {
+                    (*pit)->WriteXyzLine(out, pb_shift, _master->_chk_format);
+                }
             }
+        }
+
+        if (_master->_chk_format == "gaussian") {
+            fprintf(out, "\n");
+        }
+
+        // Save induction state of polarizable sphere
+        for (sit = _segsPolSphere.begin(); 
+             sit < _segsPolSphere.end(); ++sit) {
+
+            int segId = (*sit)->getId();
+
+            if (job->isInCenter(segId)) { continue; }
 
             vec pb_shift = job->Center() - (*sit)->getPos()
                      - top->PbShortestConnect((*sit)->getPos(), job->Center());
 
-
             for (pit = _polarSites_job[segId-1].begin();
                  pit < _polarSites_job[segId-1].end();
-                 ++pit, ++pcount) {
+                 ++pit) {
                  (*pit)->WriteChkLine(out, pb_shift,
                                            _master->_chk_split_dpl,
                                            _master->_chk_format,
@@ -2587,17 +2580,13 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
         }
 
         // Write point charges of outer sphere
-        for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+        for (sit = _segsOutSphere.begin();
+             sit < _segsOutSphere.end(); ++sit) {
 
             int segId = (*sit)->getId();
 
-            if (segId == job->getSeg1Id() || segId == job->getSeg2Id()) {
-                if (job->getType() == "pair") {
-                    assert(false);                                              // Central pair in outer shell? No!
-                }
-                else if (job->getType() == "site") {
-                    assert(segId != job->getSiteId());                          // Central site in outer shell? No!
-                }                
+            if (job->isInCenter(segId)) {
+                    assert(false); // Central region in outer shell!? Error.             
             }
 
             vec pb_shift = job->Center() - (*sit)->getPos()
@@ -2605,7 +2594,7 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
 
             for (pit = _polarSites_job[segId-1].begin();
                  pit < _polarSites_job[segId-1].end();
-                 ++pit, ++pcount) {
+                 ++pit) {
                  (*pit)->WriteChkLine(out, pb_shift,
                                            false,
                                            _master->_chk_format,
