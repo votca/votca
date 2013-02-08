@@ -352,12 +352,12 @@ public:
            
            // Job type 'pair'
            if (this->_type == "pair") {               
-               if (segId == this->_seg1Id || this->_seg2Id) {
+               if (segId == this->_seg1Id || segId == this->_seg2Id) {
                    inCenter = true;
                }
                else {
                    inCenter = false;
-               }               
+               }
            }
            // Job type 'site'
            else if (this->_type == "site") {
