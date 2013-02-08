@@ -442,7 +442,7 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
                 ++it) {
             // output only degenerate levels
             if ( (it->second).size() > 1 ) {
-                std::cout << "....  "<< it->first << " : ";
+                std::cout << "....level  "<< it->first << " : ";
                 std::vector<int> level_list;
                 for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
                         cout << *lev << " ";
@@ -462,8 +462,20 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
 
 std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference ) {
     if ( !_has_degeneracy ) {
+        
         CheckDegeneracy( _energy_difference );       
-    }
+        /* 
+
+        int _ld = _level_degeneracy.at(level).size();       
+        if ( _ld > 1 ) {
+                cout << "....level " << level << " degeneracy is: " <<  _ld << endl;
+        } else {
+                cout << "....level " << level << " is not degenerate" << endl;
+        }
+        */
+        
+    }        
+    
     return &_level_degeneracy.at(level);
 }
 
