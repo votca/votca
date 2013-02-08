@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <fstream>
 #include <map>
+#include <iterator>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -43,6 +44,7 @@ Orbitals::Orbitals() {
     _has_occupied_levels = false;
     _has_unoccupied_levels = false;
     _has_electrons = false;   
+    _has_degeneracy = false;
     
 };   
     
@@ -393,7 +395,52 @@ const int     &Orbitals::getNumberOfElectrons() const {
     }
 }
 
-bool Orbitals::CheckDegeneracy() {
+bool Orbitals::CheckDegeneracy( double _min_energy_difference ) {
+    
+    ub::vector<double>::iterator it1 = _mo_energies.begin();
+    
+    cout << endl <<"..checking level degeneracy " << endl;
+    
+    while ( it1 !=_mo_energies.end() ) {
+
+        ub::vector<double>::iterator it2 = it1;
+        it2++;
+        
+        while (  it2 !=_mo_energies.end() ) {
+            //cout << _level1 << ":" << *it1 << ":" << *it2 << endl;
+            double energy1 = *it1;
+            double energy2 = *it2;
+            
+            // in all containers counters start with 0; real life - with 1
+            int _level1 = std::distance(_mo_energies.begin(), it1) + 1;
+            int _level2 = std::distance(_mo_energies.begin(), it2) + 1;
+            
+            if ( abs(energy1 - energy2) < _min_energy_difference ) {
+                _level_degeneracy[_level1].push_back( _level2 );
+                _level_degeneracy[_level2].push_back( _level1 );
+                _has_degeneracy = true;
+            }
+            it2++;
+        }
+        it1++;
+    }
+
+    if (_has_degeneracy) {
+        cout << "....some levels are degenerate" << endl; 
+        for (std::map<int, std::vector<int> >::iterator it = _level_degeneracy.begin();
+                it != _level_degeneracy.end();
+                ++it) {
+            std::cout << "....  "<< it->first << " : ";
+            std::vector<int> level_list;
+            for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
+                cout << *lev << " ";
+            cout << endl;
+        }
+    } else {
+        cout << "....no degeneracy found";  
+    }
+     
+    cout << "..done checking level degeneracy" << endl;   
     
 }    
 

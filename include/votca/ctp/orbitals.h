@@ -51,7 +51,7 @@ public:
     bool ReadOrbitalsGaussian( const char * filename );
     bool ReadOverlapGaussian( const char * filename );
     bool ParseGaussianLog( const char * filename );
-    bool CheckDegeneracy();
+    bool CheckDegeneracy( double _min_energy_difference );
     
 protected:
     int                                 _basis_set_size;
@@ -63,8 +63,10 @@ protected:
     bool                                _has_occupied_levels;
     bool                                _has_unoccupied_levels;
     bool                                _has_electrons;
+    bool                                _has_degeneracy;
 
     std::vector<int>                    _active_levels;
+    std::map<int, std::vector<int> >    _level_degeneracy;
      
     ub::vector<double>                  _mo_energies;    
     ub::matrix<double>                  _mo_coefficients;

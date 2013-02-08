@@ -43,6 +43,7 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     _orbitalsAB.ParseGaussianLog(_logAB_file.c_str());    
 
     _orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
+    _orbitalsAB.CheckDegeneracy( 0.0001 );
         
     CalculateJ();
 }
