@@ -54,20 +54,20 @@ Orbitals::~Orbitals() {
     _overlap.clear();
 };   
 
- /*
+/**
  * Reads in the MO coefficients from a GAUSSIAN fcheck file
  */
 bool Orbitals::ReadOrbitalsGaussian( const char * filename )
 {
-    map <int, vector<double> > _coefficients;
-    map <int, double> _energies;
+    std::map <int, std::vector<double> > _coefficients;
+    std::map <int, double> _energies;
     
-    string _line;
+    std::string _line;
     unsigned _levels = 0;
     unsigned _level;
     unsigned _basis_size = 0;
 
-    ifstream _input_file(filename);
+    std::ifstream _input_file(filename);
     if (_input_file.fail()) {
         cerr << endl << "File " << filename << " with molecular orbitals is not found " << endl;
         return 1;
@@ -166,7 +166,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
 }
 
 
- /*
+/**
  * Reads in the Orbital Overlap matrix from a GAUSSIAN log file
  */
 bool Orbitals::ReadOverlapGaussian( const char * filename )
@@ -360,10 +360,7 @@ bool Orbitals::ParseGaussianLog( const char * filename ){
                 cout << "....occupied levels: " << _occupied_levels << endl;
                 cout << "....unoccupied levels: " << _unoccupied_levels << endl;
             }
-            
-        }        
-        
-        
+        }               
         // check if all information has been accumulated
         if ( _has_electrons && _has_basis_set_size && _has_occupied_levels ) break;
     }
@@ -395,14 +392,28 @@ const int     &Orbitals::getNumberOfElectrons() const {
     }
 }
 
-bool Orbitals::CheckDegeneracy( double _min_energy_difference ) {
+/**
+ * 
+ * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
+ * @return A map with key as a level and a vector which is a list of close lying orbitals
+ */
+bool Orbitals::CheckDegeneracy( double _energy_difference ) {
     
     ub::vector<double>::iterator it1 = _mo_energies.begin();
+    bool _degenerate = false;
     
     cout << endl <<"..checking level degeneracy " << endl;
     
+    _level_degeneracy.clear();
+            
     while ( it1 !=_mo_energies.end() ) {
-
+        
+        // in all containers counters start with 0; real life - with 1
+        int _level1 = std::distance(_mo_energies.begin(), it1) + 1;
+        
+        // add the level itself - it is easier to loo over all levels later
+        _level_degeneracy[_level1].push_back( _level1 );        
+        
         ub::vector<double>::iterator it2 = it1;
         it2++;
         
@@ -412,36 +423,48 @@ bool Orbitals::CheckDegeneracy( double _min_energy_difference ) {
             double energy2 = *it2;
             
             // in all containers counters start with 0; real life - with 1
-            int _level1 = std::distance(_mo_energies.begin(), it1) + 1;
             int _level2 = std::distance(_mo_energies.begin(), it2) + 1;
             
-            if ( abs(energy1 - energy2) < _min_energy_difference ) {
+            if ( abs(energy1 - energy2)*_conv_Hrt_eV < _energy_difference ) {
                 _level_degeneracy[_level1].push_back( _level2 );
                 _level_degeneracy[_level2].push_back( _level1 );
-                _has_degeneracy = true;
+                _degenerate = true;
             }
             it2++;
         }
         it1++;
     }
 
-    if (_has_degeneracy) {
+    if ( _degenerate ) {
         cout << "....some levels are degenerate" << endl; 
         for (std::map<int, std::vector<int> >::iterator it = _level_degeneracy.begin();
                 it != _level_degeneracy.end();
                 ++it) {
-            std::cout << "....  "<< it->first << " : ";
-            std::vector<int> level_list;
-            for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
-                cout << *lev << " ";
-            cout << endl;
+            // output only degenerate levels
+            if ( (it->second).size() > 1 ) {
+                std::cout << "....  "<< it->first << " : ";
+                std::vector<int> level_list;
+                for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
+                        cout << *lev << " ";
+                cout << endl;
+            }
         }
     } else {
-        cout << "....no degeneracy found";  
+        cout << "....no degeneracy found" << endl;  
     }
      
     cout << "..done checking level degeneracy" << endl;   
     
+    _has_degeneracy = true;
+    return _degenerate;
+    
 }    
+
+std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference ) {
+    if ( !_has_degeneracy ) {
+        CheckDegeneracy( _energy_difference );       
+    }
+    return &_level_degeneracy.at(level);
+}
 
 }}

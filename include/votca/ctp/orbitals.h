@@ -28,7 +28,7 @@
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
 /**
-    \brief information about an orbital
+    \brief container for molecular orbitals
  
     The Orbital class stores orbital id, energy, MO coefficients
     
@@ -48,12 +48,17 @@ public:
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
     
+    std::vector<int>* getDegeneracy( int level, double _energy_difference );
+    
     bool ReadOrbitalsGaussian( const char * filename );
     bool ReadOverlapGaussian( const char * filename );
     bool ParseGaussianLog( const char * filename );
-    bool CheckDegeneracy( double _min_energy_difference );
+
     
 protected:
+    
+    static const double                 _conv_Hrt_eV = 27.21138386;
+    
     int                                 _basis_set_size;
     int                                 _occupied_levels;
     int                                 _unoccupied_levels;
@@ -64,14 +69,23 @@ protected:
     bool                                _has_unoccupied_levels;
     bool                                _has_electrons;
     bool                                _has_degeneracy;
-
+    
     std::vector<int>                    _active_levels;
     std::map<int, std::vector<int> >    _level_degeneracy;
      
     ub::vector<double>                  _mo_energies;    
     ub::matrix<double>                  _mo_coefficients;
     ub::symmetric_matrix<double>        _overlap;
-       
+
+private:
+
+    /**
+    * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
+    * @return A map with key as a level and a vector which is a list of close lying orbitals
+    */    
+    bool CheckDegeneracy( double _energy_difference );
+        
+
 };
 
 

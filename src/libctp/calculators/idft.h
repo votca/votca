@@ -51,9 +51,8 @@ public:
     void    Initialize(ctp::Topology *top, tools::Property *options );
     
     string  Identify() { return "IDFT"; }
-    void    ParseOptionsXML( tools::Property *opt);
-
-    void    CalculateJ();
+    
+    double getCouplingElement( int level1, int level2 );   
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
@@ -62,23 +61,34 @@ public:
 
 private:
 
-    int _max_occupied_levels;
-    int _max_unoccupied_levels;
-    
-    string _orbitalsA_file;
-    string _orbitalsB_file;
-    string _orbitalsAB_file;
-    
-    string _logA_file;
-    string _logB_file;
-    string _logAB_file;
-    
-    Orbitals _orbitalsA;
-    Orbitals _orbitalsB;
-    Orbitals _orbitalsAB;
+    static const double _conv_Hrt_eV = 27.21138386;
 
-    void    SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
-   
+    bool                _has_integrals;
+    bool                _has_degeneracy;
+    
+    int                 _max_occupied_levels;
+    int                 _max_unoccupied_levels;
+    
+    double              _energy_difference;    
+    
+    string              _orbitalsA_file;
+    string              _orbitalsB_file;
+    string              _orbitalsAB_file;
+    
+    string              _logA_file;
+    string              _logB_file;
+    string              _logAB_file;
+    
+    Orbitals            _orbitalsA;
+    Orbitals            _orbitalsB;
+    Orbitals            _orbitalsAB;
+
+    ub::matrix<double>  _JAB;     
+    
+    void        SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
+    void        CalculateIntegrals();   
+    void        ParseOptionsXML( tools::Property *opt);    
+    
 };
 
 }}

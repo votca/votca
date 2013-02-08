@@ -32,6 +32,9 @@ namespace votca { namespace ctp {
 
 void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
+    _has_integrals = false;
+    _has_degeneracy = false;
+    
     ParseOptionsXML( options );
     
     _orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
@@ -43,9 +46,16 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     _orbitalsAB.ParseGaussianLog(_logAB_file.c_str());    
 
     _orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
-    _orbitalsAB.CheckDegeneracy( 0.0001 );
-        
-    CalculateJ();
+    
+    int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
+    int HOMO_B = _orbitalsB.getNumberOfElectrons() ;
+    
+    int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
+    int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
+    
+    cout << getCouplingElement( HOMO_A , HOMO_B ) << endl; 
+    cout << getCouplingElement( LUMO_A , LUMO_B ) << endl; 
+
 }
 
     
@@ -53,8 +63,17 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
    
     // Orbitals are in fort.7 file; number of electrons in .log file
     
+    string key = "options.idft.";   
+    if ( opt->exists( key + ".degeneracy" ) ) {
+        _has_degeneracy = true;
+        _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
+    }
+    else {
+        cout << "....not treating degenerate orbitals" << endl ;
+    }    
+    
     // Molecule A
-    string key = "options.idft.moleculeA.orbitals";
+    key = "options.idft.moleculeA.orbitals";
 
     //cout << key + ".orbitals" << endl;
     
@@ -235,9 +254,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
  }
 
-void IDFT::CalculateJ() {
- 
-    double conv_Hrt_eV=27.21138386;
+void IDFT::CalculateIntegrals() {
             
     /* test case
     ub::matrix<double> _monomersAB (4, 5);
@@ -340,34 +357,58 @@ void IDFT::CalculateJ() {
     */
     ub::trans( _S_AxB );
     SQRTOverlap( _S_AxB , _S_AxB_2 );        
- 
-    // _S_AxB is correct!
-    // cout <<  _S_AxB << endl; 
-    //cout << _S_AxB_2 << endl;
-    
+    _S_AxB.clear(); 
+     
     cout << "....calculating the effective overlap"<< endl;
     ub::matrix<double> JAB_temp = prod( JAB_dimer, _S_AxB_2 );
-    ub::matrix<double> JAB = prod( _S_AxB_2, JAB_temp );
-    //JAB_dimer.clear(); JAB_temp.clear();
+    _JAB = ub::prod( _S_AxB_2, JAB_temp );
+    
+    // cleanup
+    JAB_dimer.clear(); JAB_temp.clear(); _S_AxB_2.clear();
     
     //cout << JAB << endl;
     
-    int HOMO_A = _orbitalsA.getNumberOfElectrons() - 1 ;
-    int HOMO_B = _orbitalsB.getNumberOfElectrons() - 1 ;
-
     //cout << _S_AxB << endl;
+    _has_integrals = true;
     cout << "..done calculating electronic couplings"<< endl;
        
-    cout << JAB_dimer.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
-    cout << JAB_dimer.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
-   
-    cout << JAB.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
-    cout << JAB.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
- 
+    //cout << JAB_dimer.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
+    //cout << JAB_dimer.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
 
 }
 
-
+double IDFT::getCouplingElement( int levelA, int levelB ) {
+    
+    int _levelsA = _orbitalsA.getNumberOfLevels();
+    int _levelsB = _orbitalsB.getNumberOfLevels();
+    
+    if ( !_has_integrals ) {
+         CalculateIntegrals();       
+    }
+    
+    if ( _has_degeneracy ) {
+        std::vector<int> list_levelsA = *_orbitalsA.getDegeneracy( levelA, _energy_difference );
+        std::vector<int> list_levelsB = *_orbitalsA.getDegeneracy( levelB, _energy_difference );
+        
+        double _JAB_sq = 0; double _JAB_one_level;
+        
+        for (std::vector<int>::iterator iA = list_levelsA.begin()++; iA != list_levelsA.end(); iA++) {
+                for (std::vector<int>::iterator iB = list_levelsB.begin()++; iB != list_levelsB.end(); iB++) { 
+                    //cout << *iA << ':' << *iB << endl;
+                    _JAB_one_level = _JAB.at_element( *iA - 1  , *iB -1 + _levelsA );
+                    _JAB_sq +=  _JAB_one_level*_JAB_one_level ;
+                }
+        }
+        
+        return sqrt(_JAB_sq / ( list_levelsA.size() * list_levelsB.size() ) ) * _conv_Hrt_eV ;
+        
+    } else {
+        return _JAB.at_element( levelA - 1  , levelB -1 + _levelsA ) * _conv_Hrt_eV;
+    }
+    // the  matrix should be symmetric, could also return this element
+    // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
+}
+    
 /*
 void IDFT::CleanUp() {
 
