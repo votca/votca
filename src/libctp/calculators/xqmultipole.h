@@ -1510,7 +1510,7 @@ void XQMP::Collect_MPS(Topology *top) {
         else { _mpsFile_pSites[misit->second] = Parse_GDMA(misit->second, +1); }
     }
 
-
+    
     // Job Seg1 Seg2
     vector<XJob*> :: iterator jit;
     for (jit = _XJobs.begin();
@@ -1534,7 +1534,7 @@ void XQMP::Collect_MPS(Topology *top) {
 //         ++it) {
 //         cout << endl << "KEY_" << it->first << flush;
 //    }
-
+    
 
     cout << endl
          << "... ... ... Parsed " << _mpsFile_pSites.size()

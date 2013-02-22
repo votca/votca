@@ -151,6 +151,34 @@ void EAnalyze::SiteHist(Topology *top, int state) {
         fprintf(out, "%4.7f %4d \n", E, histN[bin]);
     }
     fclose(out);
+    
+    
+    tag = "x_y_z_e";
+    out = fopen(tag.c_str(), "w");
+    
+    for (sit = top->Segments().begin(); 
+         sit < top->Segments().end();
+         ++sit) {
+
+        double E = (*sit)->getSiteEnergy(state);
+        
+        vector< Atom* > ::iterator ait;
+        for (ait = (*sit)->Atoms().begin();
+             ait < (*sit)->Atoms().end();
+             ++ait) {
+            
+            Atom *atm = *ait;
+            
+            fprintf(out, "%4.7f %4.7f %4.7f %4.7f\n",
+                          atm->getPos().getX(),
+                          atm->getPos().getY(),
+                          atm->getPos().getZ(),
+                          E);            
+        }
+    }
+    
+    fclose(out);
+    
 }
 
 
@@ -271,8 +299,8 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     double MIN = +1e15;
     double MAX = -1e15;
 
-    vector< Atom* > ::iterator fit1;
-    vector< Atom* > ::iterator fit2;
+    vector< Fragment* > ::iterator fit1;
+    vector< Fragment* > ::iterator fit2;
 
     cout << endl;
 
@@ -286,11 +314,11 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
         double R = abs(top->PbShortestConnect((*sit1)->getPos(),
                                               (*sit2)->getPos()));
 
-        for (fit1 = (*sit1)->Atoms().begin();
-             fit1 < (*sit1)->Atoms().end();
+        for (fit1 = (*sit1)->Fragments().begin();
+             fit1 < (*sit1)->Fragments().end();
              ++fit1) {
-        for (fit2 = (*sit2)->Atoms().begin();
-             fit2 < (*sit2)->Atoms().end();
+        for (fit2 = (*sit2)->Fragments().begin();
+             fit2 < (*sit2)->Fragments().end();
              ++fit2) {
 
             double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),

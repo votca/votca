@@ -1040,6 +1040,7 @@ void ZMultipole::CalculateESPInput(Topology *top) {
         vector< APolarSite* > poles = sit->second;
         vector< APolarSite* >::iterator pit;
 
+        /*
         // Translate CoM to origin
         vec CoM = vec(0.,0.,0.);
         int N = poles.size();
@@ -1051,6 +1052,7 @@ void ZMultipole::CalculateESPInput(Topology *top) {
             vec newpos = (*pit)->getPos() - CoM;
             (*pit)->setPos( newpos );
         }
+        */
 
         for (int state = -1; state < 2; ++state) {
 
@@ -1106,6 +1108,7 @@ void ZMultipole::CalculateESPRigid(Topology *top) {
     vector< APolarSite* > poles = seg->APolarSites();
     vector< APolarSite* > ::iterator pit;
 
+    /*
     // Translate CoM to origin
     vec CoM = vec(0.,0.,0.);
     int N = poles.size();
@@ -1117,7 +1120,8 @@ void ZMultipole::CalculateESPRigid(Topology *top) {
         vec newpos = (*pit)->getPos() - CoM;
         (*pit)->setPos( newpos );
     }
-
+    */
+    
     // Investigate charge states
     for (int state = -1; state < 2; ++state) {
         bool hasState = _map_seg_chrgStates[seg->getName()][state+1];

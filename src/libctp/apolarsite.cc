@@ -529,9 +529,9 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state) {
 
             std::getline(intt, line);
             vector<string> split;
-            Tokenizer toker(line, " ");
+            Tokenizer toker(line, " \t");
             toker.ToVector(split);
-
+            
             if ( !split.size()      ||
                   split[0] == "!"   ||
                   split[0].substr(0,1) == "!" ) { continue; }
@@ -664,7 +664,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state) {
                 }
                 thisPole->setQs(Qs, state);
             }
-
+            
         } /* Exit loop over lines */
     }
     else { cout << endl << "ERROR: No such file " << filename << endl;
