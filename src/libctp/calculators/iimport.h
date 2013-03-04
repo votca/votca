@@ -95,6 +95,8 @@ void IImport::List2PairsTI(Topology *top, string &ti_file) {
             Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
+            if (split.size() == 0) { continue; }
+            
             if (split.size() != 4 && split.size() != 6) {
                 cout << endl << "... ... Invalid line: " << line << flush;
                 continue;

@@ -159,7 +159,8 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     for (sit = top->Segments().begin(); 
          sit < top->Segments().end();
          ++sit) {
-
+        
+        if ((*sit)->getId() > 1792) { continue; }
         double E = (*sit)->getSiteEnergy(state);
         
         vector< Atom* > ::iterator ait;
@@ -169,7 +170,8 @@ void EAnalyze::SiteHist(Topology *top, int state) {
             
             Atom *atm = *ait;
             
-            fprintf(out, "%4.7f %4.7f %4.7f %4.7f\n",
+            fprintf(out, "%3s %4.7f %4.7f %4.7f %4.7f\n",
+                          (*sit)->getName().c_str(),
                           atm->getPos().getX(),
                           atm->getPos().getY(),
                           atm->getPos().getZ(),
