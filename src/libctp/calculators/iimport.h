@@ -132,9 +132,11 @@ void IImport::List2PairsTI(Topology *top, string &ti_file) {
                 double j2_2 = boost::lexical_cast<double>(split[5]);
 
                 qmp->setJeff2(j2_2, e_h_2);
+                qmp->setIsPathCarrier(true, e_h_2);
             }
 
             qmp->setJeff2(j2_1, e_h_1);
+            qmp->setIsPathCarrier(true, e_h_1);
             ++pair_count;
             
         }
