@@ -202,6 +202,8 @@ protected:
 
 
             string _injection_name;
+            string _injectionmethod;
+            int _injectionfree;
             double _runtime;
             // double _dt;
             int _seed;
@@ -221,6 +223,7 @@ protected:
             double _boxsizeX;
             double _boxsizeY;
             double _boxsizeZ;
+            string _rates;
 };
 
 
@@ -252,7 +255,30 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
         else {
 	    throw runtime_error("Error in kmcmultiple: injection pattern is not provided");
         }
+        
+        if (options->exists("options.kmcmultiple.injectionmethod")) {
+	    _injectionmethod = options->get("options.kmcmultiple.injectionmethod").as<string>();
+	}
+        else {
+	    cout << "WARNING in kmcmultiple: You did not specify an injection method. It will be set to random injection." << endl;
+            _injectionmethod = "random";
+        }
+        if (_injectionmethod != "random" && _injectionmethod != "equilibrated")
+        {
+	    cout << "WARNING in kmcmultiple: Unknown injection method. It will be set to random injection." << endl;
+            _injectionmethod = "random";
+            
+        }
 
+        if (options->exists("options.kmcmultiple.injectionfree")) {
+	    _injectionfree = options->get("options.kmcmultiple.injectionfree").as<int>();
+	}
+        else {
+	    cout << "WARNING in kmcmultiple: Number of additional free nodes in the injection interval unspecified. It will be set to 10." << endl;
+            _injectionfree = 10;
+        }
+
+        
         if (options->exists("options.kmcmultiple.allowparallel")) {
 	    _allowparallel = options->get("options.kmcmultiple.allowparallel").as<int>();
 	}
@@ -328,6 +354,18 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 	    cout << "WARNING in kmcmultiple: You did not specify a temperature. If no explicit Coulomb interaction is used, this is not a problem, as the rates are read from the state file and temperature is not needed explicitly in the KMC simulation. Otherwise a default value of 300 K is used." << endl;
             _temperature = 0;
         }
+        if (options->exists("options.kmcmultiple.rates")) {
+	    _rates = options->get("options.kmcmultiple.rates").as<string>();
+	}
+        else {
+	    cout << "Using rates from statefile." << endl;
+            _rates = "statefile";
+        }
+        if(_rates != "statefile" && _rates != "calculate"){
+	    cout << "WARNING in kmcmultiple: Invalid option rates. Valid options are 'statefile' or 'calculate'. Setting it to 'statefile'." << endl;
+            _rates = "statefile";
+        }
+        
 
         _filename = filename;
         _outputfile = outputfile;
@@ -540,13 +578,14 @@ void KMCMultiple::InitBoxSize(vector<Node*> node)
     _boxsizeZ = maxZ-minZ + mindZ;
     cout << "lattice constants (X,Y,Z): " << mindX << ", " << mindY << ", " << mindZ << endl;
     cout << "cell dimensions: " << _boxsizeX << " x " << _boxsizeY << " x " << _boxsizeZ << endl;
-    
+    cout << "spatial electron density: " << _numberofcharges/_boxsizeX/_boxsizeY/_boxsizeZ << " m^-3" << endl;
 }
 
 void KMCMultiple::InitialRates(vector<Node*> node)
 {
     cout << endl <<"Calculating initial Marcus rates." << endl;
     cout << "    Temperature T = " << _temperature << " K." << endl;
+    cout << "    Field: (" << _fieldX << ", " << _fieldY << ", " << _fieldZ << ") V/m" << endl;
     if (_carriertype == "e")
     {
         _q = -1.0;
@@ -798,6 +837,21 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
     cout << "number of charges: " << numberofcharges << endl;
     cout << "number of nodes: " << node.size() << endl;
+    string stopcondition;
+    unsigned long maxsteps;
+    if(runtime > 100)
+    {
+        stopcondition = "steps";
+        maxsteps = runtime;
+        cout << "stop condition: " << maxsteps << " steps." << endl;
+    }
+    else
+    {
+        stopcondition = "runtime";
+        cout << "stop condition: " << runtime << " seconds runtime." << endl;
+        cout << "(If you specify runtimes larger than 100 kmcmultiple assumes that you are specifying the number of steps.)" << endl;
+    }
+    
  
     
     if(numberofcharges > node.size())
@@ -812,6 +866,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     traj.open (trajfile, fstream::out);
     if(_outputtime != 0)
     {   
+        traj << "'time[s]'\t";
         for(unsigned int i=0; i<numberofcharges; i++)
         {
             traj << "'carrier" << i+1 << "_x'\t";    
@@ -826,20 +881,109 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         
     }
     double outputfrequency = runtime/100;
+    double outputstepfrequency = maxsteps/100;
     vector<double> occP(node.size(),0.);
 
     // Injection
+    cout << endl << "injection method: " << _injectionmethod << endl;
+    double deltaE = 0;
+    double energypercarrier;
+    double totalenergy;
+    if(_injectionmethod == "equilibrated")
+    {
+        vector< double > energy;
+        for(unsigned int i=0; i<node.size(); i++)
+        {
+            energy.push_back(node[i]->siteenergy);
+        }
+        std::sort (energy.begin(), energy.end());
+        double fermienergy = 0.5*(energy[_numberofcharges-1]+energy[_numberofcharges]);
+                cout << "Energy range in morphology data: [" << energy[0] << ", " << energy[energy.size()-1] << "] eV." << endl;
+        cout << "first guess Fermi energy: " << fermienergy << " eV."<< endl;
+
+        cout << "improving guess for fermi energy ";
+        
+        double probsum;
+        double fstepwidth = std::abs(0.01 * fermienergy);
+        while(std::abs(probsum - numberofcharges) > 0.1)
+        {
+            cout << ".";
+            totalenergy = 0;
+            probsum = 0;
+            for(unsigned int i=0; i<energy.size(); i++)
+            {
+                totalenergy += energy[i] * 1/(exp((energy[i]-fermienergy)/kB/_temperature)+1);
+                probsum += 1/(exp((energy[i]-fermienergy)/kB/_temperature)+1);
+                //cout << "energy " << energy[i] << " has probability " << 1/(exp((energy[i]-fermienergy)/kB/_temperature)+1) << endl;
+            }
+            if(std::abs(probsum) > numberofcharges)
+            {   // Fermi energy estimate too high
+                fermienergy -= fstepwidth;
+            }
+            else
+            {   // Fermi energy estimate too low
+                fermienergy += fstepwidth;
+            }
+            fstepwidth = 0.95 * fstepwidth; // increase precision
+        }
+        cout << endl << "probsum=" << probsum << "(should be equal to number of charges)." << endl;
+        cout << "fermienergy=" << fermienergy << endl;
+        cout << "totalenergy=" << totalenergy << endl;
+        energypercarrier = totalenergy / probsum; // in theory: probsum=_numberofcharges, but in small systems it can differ significantly
+        cout << "Average energy per charge carrier: " << energypercarrier << " eV."<< endl;
+        
+        double stepwidth = std::abs(fermienergy)/1000;
+        int inside = 0;
+        while(inside < _numberofcharges)
+        {
+            inside = 0;
+            deltaE += stepwidth;
+            for(unsigned int i=0; i<energy.size(); i++)
+            {
+                if(energy[i] >= energypercarrier-deltaE && energy[i] <= energypercarrier+deltaE)
+                {
+                    inside += 1;
+                }
+            }
+        }
+//        while(inside < _numberofcharges + _injectionfree)
+//        {
+//            inside = 0;
+//            deltaE += stepwidth;
+//            for(unsigned int i=0; i<energy.size(); i++)
+//            {
+//                if(energy[i] >= energypercarrier-0*deltaE && energy[i] <= energypercarrier+2*deltaE)
+//                {
+//                    inside += 1;
+//                }
+//            }
+//        }
+        cout << inside << " charges in acceptance interval " << energypercarrier << " +/- " << deltaE << "." << endl;
+        
+    }
     vector< Chargecarrier* > carrier;
     vector<myvec> startposition(numberofcharges,myvec(0,0,0));
+    cout << "looking for injectable nodes..." << endl;
     for (unsigned int i = 0; i < numberofcharges; i++)
     {
         Chargecarrier *newCharge = new Chargecarrier;      
         newCharge->id = i;
         newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];
-        while(newCharge->node->occupied == 1 || newCharge->node->injectable != 1)
+        int ininterval = 1;
+        if (_injectionmethod == "equilibrated") {ininterval = 0;}
+        while(newCharge->node->occupied == 1 || newCharge->node->injectable != 1 || ininterval != 1)
         {   // maybe already occupied? or maybe not injectable?
             newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];
+            if(_injectionmethod == "equilibrated")
+            { // check if charge is in the acceptance interval
+                if(newCharge->node->siteenergy >= energypercarrier-0*deltaE && newCharge->node->siteenergy <= energypercarrier+2*deltaE && newCharge->node->occupied == 0 && newCharge->node->injectable == 1)
+                {
+                    ininterval = 1;
+                }
+                
+            }
         }
+        // cout << "selected segment " << newCharge->node->id+1 << " which has energy " << newCharge->node->siteenergy << " within the interval [" << energypercarrier-0*deltaE << ", " << energypercarrier+2*deltaE << "]" << endl;
         newCharge->node->occupied = 1;
         newCharge->dr_travelled = myvec(0,0,0);
         startposition[i] = newCharge->node->position;
@@ -847,16 +991,52 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         carrier.push_back(newCharge);
     }
     
+    if(_injectionmethod == "equilibrated")
+    {
+        cout << "repositioning charges to obtain an equilibrium configuration..." << endl;
+        double realisedenergy = 0;
+        //while(std::abs(realisedenergy - totalenergy) > 0.01*(std::abs(realisedenergy)+std::abs(totalenergy)))
+        //{
+            realisedenergy = 0;
+            for (unsigned int j = 0; j < numberofcharges; j++)
+            {
+                realisedenergy += carrier[j]->node->siteenergy;
+            }
+
+            for(unsigned int i=0; i<numberofcharges; i++)
+            {
+                for(unsigned int k=0; k<node.size(); k++)
+                {
+                    if(std::abs(realisedenergy-carrier[i]->node->siteenergy+node[k]->siteenergy - totalenergy) < std::abs(realisedenergy - totalenergy) && node[k]->occupied == 0)
+                    {    //move charge
+                         carrier[i]->node->occupied = 0;
+                         realisedenergy = realisedenergy-carrier[i]->node->siteenergy+node[k]->siteenergy;
+                         carrier[i]->node = node[k];
+                         node[k]->occupied = 1;
+                    }        
+                }
+                
+            }
+        //}    
+        cout << "realised energy: " << realisedenergy/numberofcharges << " eV (aimed for " << energypercarrier << " eV)"<<  endl;
+        for(unsigned int i=0; i<numberofcharges; i++)
+        {
+            startposition[i] = carrier[i]->node->position;
+            cout << "starting position for charge " << i+1 << ": segment " << carrier[i]->node->id+1 << endl;
+        }
+    }
+    
 
     double simtime = 0.;
     unsigned long step = 0;
     double nextoutput = outputfrequency;
+    unsigned long nextstepoutput = outputstepfrequency;
     double nexttrajoutput = _outputtime;
     
     progressbar(0.);
     vector<int> forbiddennodes;
     vector<int> forbiddendests;
-    while(simtime < runtime)
+    while((stopcondition == "runtime" && simtime < runtime) || (stopcondition == "steps" && step < maxsteps))
     {
         double cumulated_rate = 0;
         if(_explicitcoulomb >= 1)
@@ -995,6 +1175,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         if(_outputtime != 0 && simtime > nexttrajoutput)       
         {
             nexttrajoutput = simtime + _outputtime;
+            traj << simtime << "\t";
             for(unsigned int i=0; i<numberofcharges; i++) 
             {
                 traj << startposition[i].getX() + carrier[i]->dr_travelled.getX() << "\t";
@@ -1011,12 +1192,19 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             }
             
         }
-        if(simtime > nextoutput)
+        if(stopcondition == "runtime" && simtime > nextoutput)
         {
             nextoutput = simtime + outputfrequency;
             progressbar(simtime/runtime);
             cout << " remaining: ";
             printtime(int((runtime/simtime-1) * (int(time(NULL)) - realtime_start))); 
+        }
+        else if(stopcondition == "steps" && step > nextstepoutput)
+        {
+            nextstepoutput = step + outputstepfrequency;
+            progressbar(double(step)/double(maxsteps));
+            cout << " remaining: ";
+            printtime(int((double(maxsteps)/double(step)-1) * (int(time(NULL)) - realtime_start))); 
         }
     }
     progressbar(1.);
@@ -1035,6 +1223,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     
 
     cout << endl << "finished KMC simulation after " << step << " steps." << endl;
+    cout << "simulated time " << simtime << " seconds." << endl;
     cout << "runtime: ";
     printtime(time(NULL) - realtime_start); 
     myvec dr_travelled = myvec (0,0,0);
@@ -1128,6 +1317,15 @@ bool KMCMultiple::EvaluateFrame()
     else
     {
         cout << endl << "Explicit Coulomb Interaction: OFF." << endl;
+        if(_rates == "calculate")
+        {
+            cout << "Calculating rates (i.e. rates from state file are not used)." << endl;
+            KMCMultiple::InitialRates(node);
+        }
+        else
+        {
+            cout << "Using rates from state file." << endl;
+        }
     }
     vector<double> occP(node.size(),0.);
 
