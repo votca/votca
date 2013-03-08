@@ -264,11 +264,11 @@ to the inverse section of an interaction in the settings \xml file.
 The thermodynamic force method is an iterative procedure to determine an external field that can correct for density variations. This has been prooven to be usefull for multi-scale simulations where all-atom and coarse-grained representations are simulated concurrently in one simulation. The AdresS simulation scheme provides a protocol for such simulations.\\
 The thermodynamic force is updated from the density profile in each simulation step as:
 \begin{equation}
-{\bf f}_\text{th}^{i+1}({\bf r}) = {\bf f}_\text{th}^i({\bf r}) - \frac{1}{\rho_0^2 \kappa_T^\text{at}}\nabla \rho_i({\bf r})
+  {\bf F}_\text{th}^{i+1}({\bf r}) = {\bf F}_\text{th}^i({\bf r}) - \frac{m_\text{mol}}{\rho_0^2 \kappa_T^\text{at}}\nabla \rho_i({\bf r})
 \label{iterative_force_grad_dens}
 \end{equation}
 where $\rho_i({\bf r})$ can be either a density along one of the box axis or a radial density, this is specified by the adress paramater adress\_type in the gromacs mdp file.
-In order to use the thermodynamic force iteration, VOTCA must be used together with the 'adress' branch of gromacs. To check whether your gromacs version support this type \begin{verbatim}mdrun -h \end{verbatim} and look for the -tabletf option.
+In order to use the thermodynamic force iteration, VOTCA must be used together with the gromacs-4.6.1 or later. To check whether your gromacs version support this type \begin{verbatim}mdrun -h \end{verbatim} and look for the -tabletf option.
 A tutorial simulation set can be found in the tutorials (spce/tf) which performs the thermodynamic force iteration for spc/e water coupled to a coarse-grained spc/e water.\\
 The method is selected by specifying
 \begin{lstlisting}
@@ -299,5 +299,5 @@ Additonally a 'tf' section is needed for each interaction type
 \end{lstlisting}
 Usually the density profile fluctuates too much to obtain a force directly from the gradient. Thus spline interpolation is used to smooth the force. To specify the spline interpolation range the spline\_start and spline\_end parameters are used. These can define a larger region than between min and max as it is sometimes usefull to extend the spline fit for numerical stability. The parameter spline\_step sepcifies the bin width of the fit grid (see \prog{csg_resample} for more). 
 The field 'molname' specifies the molecule (as defined in the gromacs topology) used for calculating the density. 
-The prefactor $\frac{1}{\rho_0^2 \kappa_T^\text{at}}$ appearing in eq \ref{iterative_force_grad_dens} is specified in the 'prefactor' field.
+The prefactor $\frac{m_\text{mol}}{\rho_0^2 \kappa_T^\text{at}}$ appearing in eq \ref{iterative_force_grad_dens} is specified in the 'prefactor' field.
 A target density file has to be specified for each interaction type, in most cases this will containt a flat density profile at the equilibrium density $\rho_0$. \\
