@@ -46,6 +46,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
+find_package(Threads REQUIRED)
+set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 option(BUILD_MANPAGES "Build manpages" ON)
 if (BUILD_MANPAGES)
   find_package(TXT2TAGS)
