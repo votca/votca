@@ -2,7 +2,6 @@
   <bonded>
     <!-- name of the interaction -->
     <name>bond</name>
-    <!-- fmatch specific stuff -->
     <min>0.21</min>
     <max>0.285</max>
     <step>0.005</step>
@@ -17,7 +16,6 @@
   <bonded>
     <!-- name of the interaction -->
     <name>angle</name>
-    <!-- fmatch specific stuff -->
     <min>1.4</min>
     <max>3.1</max>
     <step>0.05</step>
