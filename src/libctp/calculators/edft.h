@@ -23,6 +23,8 @@
 
 #include <votca/ctp/segment.h>
 #include <votca/ctp/parallelsitecalc.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 namespace votca { namespace ctp {
 
@@ -52,8 +54,9 @@ public:
 
 private:
 
-    bool        _maverick;
-
+    bool   _maverick;
+    string _outParent;
+    string _outMonDir;
 };
 
 void EDFT::CleanUp() {
@@ -95,7 +98,25 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 
 void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
 
-    exit(0);
+
+    FILE *out;
+    _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
+    mkdir(_outParent.c_str(), 0755);
+
+    string ID   = boost::lexical_cast<string>( seg->getId() );
+    string DIR  = _outParent + "/mol_" + ID;
+    string FILE = _outParent + "/mol_" + ID + "/mol_" + ID + ".xyz";
+
+    mkdir(DIR.c_str(), 0755);        
+    out = fopen(FILE.c_str(),"w");
+    seg->WriteXYZ(out);
+    fclose(out);
+ 
+    //string mk_dir = "mkdir";
+    //string dir =  "mol_";
+    //dir += boost::lexical_cast<string>( seg->getId() );
+    //execlp( mk_dir.c_str(), "mkdir", dir.c_str(), NULL ); 
+    
     this->LockCout();
     //cout << "\r... ... Evaluating site " << seg->getId()+1 << flush;   
     //string SiteName = seg->getName();
