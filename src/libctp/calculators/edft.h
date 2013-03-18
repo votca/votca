@@ -22,6 +22,7 @@
 #define	_CALC_DFT_ENERGIES_H
 
 #include <votca/ctp/segment.h>
+#include <votca/ctp/gaussian.h>
 #include <votca/ctp/parallelsitecalc.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -57,6 +58,9 @@ private:
     bool   _maverick;
     string _outParent;
     string _outMonDir;
+    
+    string _package;
+    Property _package_options;    
 };
 
 void EDFT::CleanUp() {
@@ -67,7 +71,7 @@ void EDFT::Initialize(Topology *top, Property *options) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
-    cout << endl <<  "... ... Reading the input ";
+    //cout << endl <<  "... ... Reading the input ";
     
     /* ---- OPTIONS.XML Structure -----
      *
@@ -79,7 +83,7 @@ void EDFT::Initialize(Topology *top, Property *options) {
      *
      */
 
-    //this->ParseOrbitalsXML(top, options);
+    this->ParseOrbitalsXML(top, options);
 
 }
 
@@ -87,11 +91,15 @@ void EDFT::Initialize(Topology *top, Property *options) {
 void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 
     string key = "options.edft";
-    string program = opt->get(key+".method").as<string> ();
-    cout << endl << "... ... Using " << program << ". ";
+    string _package_xml = opt->get(key+".package").as<string> ();
+    cout << endl << "... ... Parsing " << _package_xml << endl ;
 
-    Property alloc;
-    load_property_from_xml(alloc, program.c_str());    
+    load_property_from_xml( _package_options, _package_xml.c_str() );    
+    
+    key = "package";
+    _package = _package_options.get(key+".name").as<string> ();
+    
+    cout << endl << "... ... Using " << _package << " package" << endl ;    
 
 }
 
@@ -112,6 +120,13 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
     seg->WriteXYZ(out);
     fclose(out);
  
+   if ( _package == "gaussian" ) {
+        cout << endl << "... ... Using " << _package << endl ;   
+        
+        Gaussian _gaussian( &_package_options );
+        //_gaussian.Run();
+   }    
+    
     //string mk_dir = "mkdir";
     //string dir =  "mol_";
     //dir += boost::lexical_cast<string>( seg->getId() );

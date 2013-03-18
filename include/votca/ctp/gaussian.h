@@ -22,23 +22,30 @@
 
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
+#include <votca/ctp/segment.h>
+#include <string> 
+
+using namespace std;
 
 namespace votca { namespace ctp {
 /**
-    \brief wrapper for the Gaussian program
+    \brief Wrapper for the Gaussian program
  
     The Gaussian class executes the Gaussian package 
     and extracts information from its log and io files
     
 */
-class Gaussian 
+class Gaussian
 {
 public:   
 
-    Gaussian( Property *opt );
-   ~Gaussian();     
+    Gaussian( tools::Property *opt );
+   ~Gaussian();
 
-protected:
+   bool WriteInputFile( Segment *seg, FILE *out );
+   bool Run();
+   
+//protected:
              
 private:  
     
