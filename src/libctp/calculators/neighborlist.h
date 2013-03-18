@@ -119,12 +119,19 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
         double cutoff;
         vec r1;
         vec r2;
-
+        
+        if (TOOLS::globals::verbose) {
+            cout << endl <<  "... ..." << flush;
+        }        
+        
         for (segit1 = top->Segments().begin();
                 segit1 < top->Segments().end();
                 segit1++) {
 
                 Segment *seg1 = *segit1;
+                if (TOOLS::globals::verbose) {
+                    cout << "\r ... ... NB List Seg " << seg1->getId() << flush;
+                }
 
             for (segit2 = segit1 + 1;
                     segit2 < top->Segments().end();

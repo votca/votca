@@ -31,6 +31,10 @@ private:
     vector<int> _states;
 
     double _site_avg;
+    
+    bool _skip_corr;
+    bool _skip_sites;
+    bool _skip_pairs;
 
 };
 
@@ -51,6 +55,10 @@ void EAnalyze::Initialize(Topology *top, Property *opt) {
         _states.push_back(-1);
         _states.push_back(+1);
     }
+    
+    _skip_corr = opt->exists(key+".skip_correlation");
+    _skip_sites = opt->exists(key+".skip_sites");
+    _skip_pairs = opt->exists(key+".skip_pairs");
 
 }
 
@@ -73,8 +81,21 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
                  << flush;
         }
         else {
-            SiteHist(top, state);
-            SiteCorr(top, state);
+            // Site-energy histogram <> DOS
+            if (_skip_sites) {
+                cout << endl << "... ... ... Skip site-energy hist." << flush;
+            }
+            else {
+                SiteHist(top, state);
+            }
+            
+            // Site-energy correlation function
+            if (_skip_corr) {
+                cout << endl << "... ... ... Skip correlation ..." << flush;
+            }
+            else {
+                SiteCorr(top, state);
+            }
         }
 
         if (!nblist.size()) {
@@ -82,7 +103,13 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
                  << flush;
         }
         else {
-            PairHist(top, state);
+            // Site-energy-difference histogram <> Pair DOS
+            if (_skip_pairs) {
+                cout << endl << "... ... ... Skip pair-energy hist." << flush;
+            }
+            else {
+                PairHist(top, state);
+            }
         }
     }
 }
