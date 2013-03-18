@@ -400,7 +400,7 @@ vector<Node*> KMCMultiple::LoadGraph()
         double eAnion = stmt->Column<double>(7);
         double eNeutral = stmt->Column<double>(8);
         double eCation = stmt->Column<double>(9);
-        double internalenergy = stmt->Column<double>(10);
+        double internalenergy = stmt->Column<double>(10); // UcCnN
         double siteenergy = 0;
         if(_carriertype == "e")
         {
@@ -431,7 +431,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     {
         int seg1 = stmt->Column<int>(0);
         int seg2 = stmt->Column<int>(1);
-        double rate12 = stmt->Column<double>(2);
+        double rate12 = stmt->Column<double>(2); // !!! CHANGE BACK AFTER DEBUGGING
         myvec dr = myvec(stmt->Column<double>(3)*1E-9, stmt->Column<double>(4)*1E-9, stmt->Column<double>(5)*1E-9); // converted from nm to m
         double Jeff2 = stmt->Column<double>(6);
         double reorg_out = stmt->Column<double>(7); 
@@ -598,6 +598,7 @@ void KMCMultiple::InitialRates(vector<Node*> node)
     int numberofsites = node.size();
     cout << "    Rates for "<< numberofsites << " sites are computed." << endl;
     double maxreldiff = 0;
+    int totalnumberofrates = 0;
     for(unsigned int i=0; i<numberofsites; i++)
     {
         int numberofneighbours = node[i]->event.size();
@@ -628,9 +629,19 @@ void KMCMultiple::InitialRates(vector<Node*> node)
             // set rates to calculated values
             node[i]->event[j].rate = rate;
             node[i]->event[j].initialrate = rate;
+            
+            totalnumberofrates ++;
 
         }
+        
+        // Initialise escape rates
+        for(unsigned int i=0; i<node.size(); i++)
+        {
+            node[i]->InitEscapeRate();
+        }
+
     }
+    cout << "    " << totalnumberofrates << " rates have been calculated." << endl;
     if(maxreldiff < 0.01)
     {
         cout << "    Good agreement with rates in the state file. Maximal relative difference: " << maxreldiff*100 << " %"<< endl;
