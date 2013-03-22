@@ -113,10 +113,11 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
 
     string ID   = boost::lexical_cast<string>( seg->getId() );
     string DIR  = _outParent + "/mol_" + ID;
-    string FILE = _outParent + "/mol_" + ID + "/mol_" + ID + ".xyz";
-
+    string XYZ_FILE = DIR + "/mol_" + ID + ".xyz";
+    string COM_FILE = DIR + "/mol_" + ID + ".com";
+    
     mkdir(DIR.c_str(), 0755);        
-    out = fopen(FILE.c_str(),"w");
+    out = fopen(XYZ_FILE.c_str(),"w");
     seg->WriteXYZ(out);
     fclose(out);
  
@@ -124,13 +125,10 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         cout << endl << "... ... Using " << _package << endl ;   
         
         Gaussian _gaussian( &_package_options );
+        _gaussian.WriteInputFile (seg, COM_FILE);
         //_gaussian.Run();
    }    
     
-    //string mk_dir = "mkdir";
-    //string dir =  "mol_";
-    //dir += boost::lexical_cast<string>( seg->getId() );
-    //execlp( mk_dir.c_str(), "mkdir", dir.c_str(), NULL ); 
     
     this->LockCout();
     //cout << "\r... ... Evaluating site " << seg->getId()+1 << flush;   

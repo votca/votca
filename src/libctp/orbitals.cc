@@ -479,4 +479,13 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
     return &_level_degeneracy.at(level);
 }
 
+ bool Orbitals::Serialize( ) {
+     
+ }
+
+template<typename Archive> 
+void Orbitals::serialize(Archive& ar, const unsigned version) {
+    
+}
+
 }}

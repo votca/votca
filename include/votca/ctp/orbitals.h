@@ -24,6 +24,8 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -53,6 +55,7 @@ public:
     bool ReadOrbitalsGaussian( const char * filename );
     bool ReadOverlapGaussian( const char * filename );
     bool ParseGaussianLog( const char * filename );
+    bool Serialize();
 
     
 protected:
@@ -84,7 +87,13 @@ private:
     * @return A map with key as a level and a vector which is a list of close lying orbitals
     */    
     bool CheckDegeneracy( double _energy_difference );
-        
+    
+    // Allow serialization to access non-public data members
+    friend class boost::serialization::access;
+    template<typename Archive> 
+    void serialize(Archive& ar, const unsigned version);
+    
+    // 
 
 };
 

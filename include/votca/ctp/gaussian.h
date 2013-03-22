@@ -42,8 +42,8 @@ public:
     Gaussian( tools::Property *opt );
    ~Gaussian();
 
-   bool WriteInputFile( Segment *seg, FILE *out );
-   bool Run();
+   bool WriteInputFile( Segment *seg, string filename );
+   bool Run( string filename );
    
 //protected:
              
@@ -51,10 +51,13 @@ private:
     
     string                              _functional;
     string                              _basis_set;
+    int                                 _charge;
+    int                                 _spin; // 2S+1
     string                              _options;
     
+    string                              _executable;
     string                              _memory;
-    string                              _threads;
+    int                                 _threads;
     string                              _checkpointfile;
     
 };
