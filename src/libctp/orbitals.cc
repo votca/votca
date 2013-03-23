@@ -479,13 +479,36 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
     return &_level_degeneracy.at(level);
 }
 
- bool Orbitals::Serialize( ) {
-     
+ bool Orbitals::Save( const char * filename ) {
+        // create and open an archive for input
+        std::ifstream ifs( filename );
+        boost::archive::text_iarchive ia(ifs);
+        //ia << this;
  }
 
 template<typename Archive> 
 void Orbitals::serialize(Archive& ar, const unsigned version) {
-    
-}
 
+    //ar & _has_basis_set_size;
+    //ar & _has_occupied_levels;
+    //ar & _has_unoccupied_levels;
+    //ar & _has_electrons;
+    //ar & _has_degeneracy;
+    
+    //ar & _basis_set_size;
+    //ar & _occupied_levels;
+    //ar & _unoccupied_levels;
+    //ar & _electrons;
+       
+    if ( _has_degeneracy ) {
+        //ar & _level_degeneracy;
+    }
+    
+    //std::vector<int>                    _active_levels;
+    //ub::vector<double>                  _mo_energies;    
+    //ub::matrix<double>                  _mo_coefficients;
+    //ub::symmetric_matrix<double>        _overlap;
+
+}
+        
 }}

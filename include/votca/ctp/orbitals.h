@@ -26,6 +26,7 @@
 #include <votca/tools/property.h>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/version.hpp>
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -55,7 +56,7 @@ public:
     bool ReadOrbitalsGaussian( const char * filename );
     bool ReadOverlapGaussian( const char * filename );
     bool ParseGaussianLog( const char * filename );
-    bool Serialize();
+    bool Save( const char * filename );
 
     
 protected:
@@ -90,6 +91,8 @@ private:
     
     // Allow serialization to access non-public data members
     friend class boost::serialization::access;
+    
+    // serialization itself
     template<typename Archive> 
     void serialize(Archive& ar, const unsigned version);
     
@@ -97,8 +100,9 @@ private:
 
 };
 
-
+//BOOST_CLASS_VERSION(Orbitals, 1)
+        
 }}
 
-#endif	/* __VOTCA_CTP_ORBITAL_H */
+#endif	/* __VOTCA_CTP_ORBITALS_H */
 
