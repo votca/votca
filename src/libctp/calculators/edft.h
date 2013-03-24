@@ -23,9 +23,13 @@
 
 #include <votca/ctp/segment.h>
 #include <votca/ctp/gaussian.h>
+#include <votca/ctp/orbitals.h>
 #include <votca/ctp/parallelsitecalc.h>
 #include <unistd.h>
+#include <fstream>
 #include <sys/stat.h>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 
 namespace votca { namespace ctp {
 
@@ -61,6 +65,8 @@ private:
     
     string _package;
     Property _package_options;    
+    
+    Orbitals _orbitals;
 };
 
 void EDFT::CleanUp() {
@@ -115,6 +121,9 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
     string DIR  = _outParent + "/mol_" + ID;
     string XYZ_FILE = DIR + "/mol_" + ID + ".xyz";
     string COM_FILE = DIR + "/mol_" + ID + ".com";
+    string ORB_FILE = DIR + "/mol_" + ID + ".orb";
+
+    string GAUSSIAN_ORB_FILE = DIR + "/fort.7" ;
     
     mkdir(DIR.c_str(), 0755);        
     out = fopen(XYZ_FILE.c_str(),"w");
@@ -127,8 +136,16 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         Gaussian _gaussian( &_package_options );
         _gaussian.WriteInputFile (seg, COM_FILE);
         //_gaussian.Run();
+        
+        // parse the output files and save the information into a single file
+        _orbitals.ReadOrbitalsGaussian( GAUSSIAN_ORB_FILE.c_str() );
+        std::ofstream ofs( ORB_FILE.c_str() );
+        boost::archive::binary_oarchive oa( ofs );
+        oa << _orbitals;
+        
    }    
-    
+   
+    exit(0);
     
     this->LockCout();
     //cout << "\r... ... Evaluating site " << seg->getId()+1 << flush;   

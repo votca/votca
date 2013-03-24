@@ -24,9 +24,31 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
+
+// Text archive that defines boost::archive::text_oarchive
+// and boost::archive::text_iarchive
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+
+// XML archive that defines boost::archive::xml_oarchive
+// and boost::archive::xml_iarchive
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+
+// XML archive which uses wide characters (use for UTF-8 output ),
+// defines boost::archive::xml_woarchive
+// and boost::archive::xml_wiarchive
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+
+// Binary archive that defines boost::archive::binary_oarchive
+// and boost::archive::binary_iarchive
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
 #include <boost/serialization/version.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/vector.hpp>
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -73,6 +95,9 @@ protected:
     bool                                _has_unoccupied_levels;
     bool                                _has_electrons;
     bool                                _has_degeneracy;
+    bool                                _has_mo_energies;
+    bool                                _has_mo_coefficients;
+    bool                                _has_overlap;
     
     std::vector<int>                    _active_levels;
     std::map<int, std::vector<int> >    _level_degeneracy;
@@ -92,9 +117,30 @@ private:
     // Allow serialization to access non-public data members
     friend class boost::serialization::access;
     
-    // serialization itself
+    // serialization itself (template implementation stays in the header)
     template<typename Archive> 
-    void serialize(Archive& ar, const unsigned version);
+    void serialize(Archive& ar, const unsigned version) {
+       ar & _has_basis_set_size;
+       ar & _has_occupied_levels;
+       ar & _has_unoccupied_levels;
+       ar & _has_electrons;
+       ar & _has_degeneracy;
+       ar & _has_mo_energies;
+       ar & _has_mo_coefficients;
+       ar & _has_overlap;
+
+       if ( _has_basis_set_size ) { ar & _basis_set_size; }
+       if ( _has_occupied_levels ) { ar & _occupied_levels; }
+       if ( _has_unoccupied_levels ) { ar & _unoccupied_levels; }
+       if ( _has_electrons ) { ar & _electrons; }
+       if ( _has_degeneracy ) { ar & _level_degeneracy; }
+       if ( _has_mo_energies ) { ar & _mo_energies; }
+       if ( _has_mo_coefficients ) { ar & _mo_coefficients; }
+       //if ( _has_overlap ) { ar & _overlap; }
+
+                //std::vector<int>                    _active_levels;
+ 
+    }
     
     // 
 
