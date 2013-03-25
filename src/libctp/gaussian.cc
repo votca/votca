@@ -21,6 +21,8 @@
 #include "votca/ctp/segment.h"
 #include <stdio.h>
 #include <iomanip>
+#include <boost/filesystem.hpp>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -114,7 +116,26 @@ bool Gaussian::WriteInputFile( Segment *seg, string filename ) {
  */
 bool Gaussian::Run( string filename )
 {
-    execlp( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL ); 
+    //boost::filesystem::path _current_path = boost::filesystem::current_path();
+    
+    //boost::filesystem::path p( filename );
+    //boost::filesystem::path dir = p.parent_path();
+    //boost::filesystem::path file = p.filename();
+            
+    //chdir( (dir.string()).c_str() );
+    //mkdir ( "temp", S_IRWXU|S_IRGRP|S_IXGRP ) ;
+
+    //cout << endl << "... ... Running " << _executable << " package." << endl ;  
+    //execlp( _executable.c_str(), _executable.c_str(), (file.string()).c_str(), NULL ); 
+    //cout << filename << endl ;
+    
+    execlp( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL );
+    
+    //execlp( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL ); 
+    cout << filename << endl ;
+    //rmdir ( "temp" );
+    
+    //chdir( (_current_path.string()).c_str() );
 }
 
 

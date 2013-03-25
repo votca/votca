@@ -120,6 +120,9 @@ private:
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 
     void serialize(Archive& ar, const unsigned version) {
+
+       std::cout << "... ... Serializing the Orbitals." << std::endl ;
+               
        ar & _has_basis_set_size;
        ar & _has_occupied_levels;
        ar & _has_unoccupied_levels;
@@ -137,9 +140,7 @@ private:
        if ( _has_mo_energies ) { ar & _mo_energies; }
        if ( _has_mo_coefficients ) { ar & _mo_coefficients; }
        //if ( _has_overlap ) { ar & _overlap; }
-
-                //std::vector<int>                    _active_levels;
- 
+       //std::vector<int>      _active_levels;
     }
     
     // 

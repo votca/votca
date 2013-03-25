@@ -105,7 +105,7 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
     
-    cout << endl << "... ... Using " << _package << " package" << endl ;    
+    //cout << endl << "... ... Using " << _package << " package" << endl ;    
 
 }
 
@@ -130,29 +130,28 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
     seg->WriteXYZ(out);
     fclose(out);
  
-   if ( _package == "gaussian" ) {
-        cout << endl << "... ... Using " << _package << endl ;   
+   if ( _package == "gaussian" ) { 
         
         Gaussian _gaussian( &_package_options );
         _gaussian.WriteInputFile (seg, COM_FILE);
-        //_gaussian.Run();
+        _gaussian.Run( COM_FILE );
         
         // parse the output files and save the information into a single file
-        _orbitals.ReadOrbitalsGaussian( GAUSSIAN_ORB_FILE.c_str() );
-        std::ofstream ofs( ORB_FILE.c_str() );
-        boost::archive::binary_oarchive oa( ofs );
-        oa << _orbitals;
+        //_orbitals.ReadOrbitalsGaussian( GAUSSIAN_ORB_FILE.c_str() );
+        //std::ofstream ofs( ORB_FILE.c_str() );
+        //boost::archive::binary_oarchive oa( ofs );
+        //oa << _orbitals;
         
    }    
    
-    exit(0);
+    //exit(0);
     
-    this->LockCout();
+    //this->LockCout();
     //cout << "\r... ... Evaluating site " << seg->getId()+1 << flush;   
     //string SiteName = seg->getName();
     //cout << "... ... ... Site name " << SiteName << endl; 
     //cout << "... ... ... slot " << slot << endl;    
-    this->UnlockCout();
+    //this->UnlockCout();
 
 }
 
