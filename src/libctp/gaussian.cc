@@ -58,7 +58,7 @@ Gaussian::~Gaussian() {
 /**
  * Prepares the com file from a vector of segments
  */
-bool Gaussian::WriteInputFile( Segment *seg, string filename ) {
+bool Gaussian::WriteInputFile( Segment *seg ) {
 
     vector< Atom* > ::iterator ait;
 
@@ -68,7 +68,10 @@ bool Gaussian::WriteInputFile( Segment *seg, string filename ) {
     _atoms  = seg-> Atoms();
 
     ofstream _com_file;
-    _com_file.open ( filename.c_str() );
+    
+    string _com_file_name_full = _run_dir + "/" + _com_file_name;
+    
+    _com_file.open ( _com_file_name_full.c_str() );
     // header 
     if ( _checkpointfile.size() != 0 ) {
         _com_file << "%chk = " << _checkpointfile << endl;
@@ -112,22 +115,25 @@ bool Gaussian::WriteInputFile( Segment *seg, string filename ) {
     _com_file.close();
 }
 
-bool Gaussian::WriteShellScript( string filename ) {
-    
-
+bool Gaussian::WriteShellScript() {
     ofstream _shell_file;
-    _shell_file.open ( filename.c_str() );
+    
+    string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
+            
+    _shell_file.open ( _shell_file_name_full.c_str() );
 
     _shell_file << "#!/bin/tcsh" << endl ;
+    _shell_file << "mkdir -p " << _scratch << endl;
     _shell_file << "setenv GAUSS_SCRDIR " << _scratch << endl;
-    _shell_file << "mkdir -p " << _scratch << endl;    
-
+    _shell_file << "cd " << _run_dir << endl;
+    _shell_file << _executable << " " << _com_file_name << endl;
+    _shell_file.close();
 }
 
 /**
  * Runs the Gaussian job
  */
-bool Gaussian::Run( string filename )
+bool Gaussian::Run()
 {
     //boost::filesystem::path _current_path = boost::filesystem::current_path();
     
@@ -145,12 +151,11 @@ bool Gaussian::Run( string filename )
     //system( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL );
     
     //execlp( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL ); 
-    cout << filename << endl ;
     
     printf ("... ... Checking if processor is available ... ");
     if (system(NULL)) puts ("Ok"); else exit (EXIT_FAILURE);
     
-    string _command  = _executable + " " + filename.c_str();
+    string _command  = _executable + " " + _com_file_name.c_str();
     printf ( _command.c_str() );
     int i = system ( _command.c_str() );
     printf ("The value returned was: %d.\n",i);

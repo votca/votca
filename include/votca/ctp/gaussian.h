@@ -42,11 +42,14 @@ public:
     Gaussian( tools::Property *opt );
    ~Gaussian();
 
-   bool WriteInputFile( Segment *seg, string filename );
-   bool WriteShellScript( string filename );
-   bool Run( string filename );
+   bool WriteInputFile( Segment *seg );
+   bool WriteShellScript();
+   bool Run();
    
    void setScratchDir( string scratch ) { _scratch = scratch; }
+   void setRunDir( string run_dir ) { _run_dir = run_dir; }
+   void setInputFile( string com_file ) { _com_file_name = com_file; }
+   void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
    string getScratchDir( ) { return _scratch; }
    
 //protected:
@@ -64,6 +67,10 @@ private:
     int                                 _threads;
     string                              _checkpointfile;
     string                              _scratch;
+    
+    string                              _shell_file_name;
+    string                              _com_file_name;
+    string                              _run_dir;
     
 };
 

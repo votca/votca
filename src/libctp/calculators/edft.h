@@ -120,10 +120,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
     string ID   = boost::lexical_cast<string>( seg->getId() );
     string DIR  = _outParent + "/mol_" + ID;
     string XYZ_FILE = DIR + "/mol_" + ID + ".xyz";
-    string COM_FILE = DIR + "/mol_" + ID + ".com";
-    string ORB_FILE = DIR + "/mol_" + ID + ".orb";
-    string SHL_FILE = DIR + "/mol_" + ID + ".sh";
-
+    
     string GAUSSIAN_ORB_FILE = DIR + "/fort.7" ;
     
     mkdir(DIR.c_str(), 0755);        
@@ -133,10 +130,21 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
  
    if ( _package == "gaussian" ) { 
         
+        string COM_FILE = "mol_" + ID + ".com";
+        string ORB_FILE = "/mol_" + ID + ".orb";
+        string SHL_FILE = "/mol_" + ID + ".sh";
+
         Gaussian _gaussian( &_package_options );
-        _gaussian.WriteInputFile (seg, COM_FILE);
-        _gaussian.WriteShellScript ( SHL_FILE );
-        //_gaussian.Run( COM_FILE );
+        string SCR_DIR  = _gaussian.getScratchDir() + "/mol_" + ID;
+        
+        _gaussian.setScratchDir( SCR_DIR );
+        _gaussian.setRunDir( DIR );
+        _gaussian.setInputFile( COM_FILE );
+        _gaussian.setShellFile( SHL_FILE );
+        
+        _gaussian.WriteInputFile( seg );
+        _gaussian.WriteShellScript ();
+        _gaussian.Run( );
         
         // parse the output files and save the information into a single file
         //_orbitals.ReadOrbitalsGaussian( GAUSSIAN_ORB_FILE.c_str() );
