@@ -122,6 +122,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
     string XYZ_FILE = DIR + "/mol_" + ID + ".xyz";
     string COM_FILE = DIR + "/mol_" + ID + ".com";
     string ORB_FILE = DIR + "/mol_" + ID + ".orb";
+    string SHL_FILE = DIR + "/mol_" + ID + ".sh";
 
     string GAUSSIAN_ORB_FILE = DIR + "/fort.7" ;
     
@@ -134,7 +135,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         
         Gaussian _gaussian( &_package_options );
         _gaussian.WriteInputFile (seg, COM_FILE);
-        _gaussian.Run( COM_FILE );
+        _gaussian.WriteShellScript ( SHL_FILE );
+        //_gaussian.Run( COM_FILE );
         
         // parse the output files and save the information into a single file
         //_orbitals.ReadOrbitalsGaussian( GAUSSIAN_ORB_FILE.c_str() );

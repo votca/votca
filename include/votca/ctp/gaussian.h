@@ -43,7 +43,11 @@ public:
    ~Gaussian();
 
    bool WriteInputFile( Segment *seg, string filename );
+   bool WriteShellScript( string filename );
    bool Run( string filename );
+   
+   void setScratchDir( string scratch ) { _scratch = scratch; }
+   string getScratchDir( ) { return _scratch; }
    
 //protected:
              
@@ -59,6 +63,7 @@ private:
     string                              _memory;
     int                                 _threads;
     string                              _checkpointfile;
+    string                              _scratch;
     
 };
 

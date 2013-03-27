@@ -48,6 +48,7 @@ Gaussian::Gaussian( tools::Property *opt ) {
     _memory =           opt->get(key + ".memory").as<string> ();
     _threads =          opt->get(key + ".threads").as<int> ();
     _checkpointfile =   opt->get(key + ".checkpoint").as<string> ();
+    _scratch =          opt->get(key + ".scratch").as<string> ();
         
 };   
     
@@ -111,6 +112,18 @@ bool Gaussian::WriteInputFile( Segment *seg, string filename ) {
     _com_file.close();
 }
 
+bool Gaussian::WriteShellScript( string filename ) {
+    
+
+    ofstream _shell_file;
+    _shell_file.open ( filename.c_str() );
+
+    _shell_file << "#!/bin/tcsh" << endl ;
+    _shell_file << "setenv GAUSS_SCRDIR " << _scratch << endl;
+    _shell_file << "mkdir -p " << _scratch << endl;    
+
+}
+
 /**
  * Runs the Gaussian job
  */
@@ -129,10 +142,19 @@ bool Gaussian::Run( string filename )
     //execlp( _executable.c_str(), _executable.c_str(), (file.string()).c_str(), NULL ); 
     //cout << filename << endl ;
     
-    execlp( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL );
+    //system( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL );
     
     //execlp( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL ); 
     cout << filename << endl ;
+    
+    printf ("... ... Checking if processor is available ... ");
+    if (system(NULL)) puts ("Ok"); else exit (EXIT_FAILURE);
+    
+    string _command  = _executable + " " + filename.c_str();
+    printf ( _command.c_str() );
+    int i = system ( _command.c_str() );
+    printf ("The value returned was: %d.\n",i);
+    
     //rmdir ( "temp" );
     
     //chdir( (_current_path.string()).c_str() );
