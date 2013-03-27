@@ -125,7 +125,6 @@ bool Gaussian::WriteShellScript() {
     _shell_file << "#!/bin/tcsh" << endl ;
     _shell_file << "mkdir -p " << _scratch << endl;
     _shell_file << "setenv GAUSS_SCRDIR " << _scratch << endl;
-    _shell_file << "cd " << _run_dir << endl;
     _shell_file << _executable << " " << _com_file_name << endl;
     _shell_file.close();
 }
@@ -155,7 +154,9 @@ bool Gaussian::Run()
     printf ("... ... Checking if processor is available ... ");
     if (system(NULL)) puts ("Ok"); else exit (EXIT_FAILURE);
     
-    string _command  = _executable + " " + _com_file_name.c_str();
+    string _command  = "cd " + _run_dir + "; " 
+                             + _executable + " " 
+                             + _com_file_name.c_str();
     printf ( _command.c_str() );
     int i = system ( _command.c_str() );
     printf ("The value returned was: %d.\n",i);
