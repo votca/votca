@@ -105,9 +105,9 @@ bool Gaussian::WriteInputFile( Segment *seg ) {
 
         //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
         _com_file << setw(3) << name.c_str() 
-                  << setw(12) << setprecision(5) << pos.getX()*10
-                  << setw(12) << setprecision(5) << pos.getY()*10
-                  << setw(12) << setprecision(5) << pos.getZ()*10 
+                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()*10
+                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()*10
+                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()*10 
                   << endl;
     }
     
@@ -134,36 +134,25 @@ bool Gaussian::WriteShellScript() {
  */
 bool Gaussian::Run()
 {
-    //boost::filesystem::path _current_path = boost::filesystem::current_path();
-    
-    //boost::filesystem::path p( filename );
-    //boost::filesystem::path dir = p.parent_path();
-    //boost::filesystem::path file = p.filename();
-            
-    //chdir( (dir.string()).c_str() );
-    //mkdir ( "temp", S_IRWXU|S_IRGRP|S_IXGRP ) ;
 
-    //cout << endl << "... ... Running " << _executable << " package." << endl ;  
-    //execlp( _executable.c_str(), _executable.c_str(), (file.string()).c_str(), NULL ); 
-    //cout << filename << endl ;
-    
-    //system( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL );
-    
-    //execlp( _executable.c_str(), _executable.c_str(), filename.c_str(), NULL ); 
-    
-    printf ("... ... Checking if processor is available ... ");
-    if (system(NULL)) puts ("Ok"); else exit (EXIT_FAILURE);
-    
-    string _command  = "cd " + _run_dir + "; " 
-                             + _executable + " " 
-                             + _com_file_name.c_str();
-    printf ( _command.c_str() );
-    int i = system ( _command.c_str() );
-    printf ("The value returned was: %d.\n",i);
-    
-    //rmdir ( "temp" );
-    
-    //chdir( (_current_path.string()).c_str() );
+    if (system(NULL)) {
+        // if scratch is provided, run the shell script; 
+        // otherwise run gaussian directly and rely on global variables 
+        string _command;
+        if ( _scratch.size() != 0 ) {
+            _command  = "cd " + _run_dir + "; tcsh " + _shell_file_name;
+        }
+        else {
+            _command  = "cd " + _run_dir + "; " + _executable + " " + _com_file_name;
+        }
+        
+        int i = system ( _command.c_str() );
+    }
+    else {
+        cerr << "The job " << _com_file_name << " failed to complete" << endl; 
+        exit (EXIT_FAILURE);
+    }
+
 }
 
 

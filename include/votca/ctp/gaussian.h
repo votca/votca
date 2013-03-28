@@ -68,6 +68,9 @@ private:
     string                              _checkpointfile;
     string                              _scratch;
     
+    string                              _root_dir;
+    string                              _source_file;
+    
     string                              _shell_file_name;
     string                              _com_file_name;
     string                              _run_dir;

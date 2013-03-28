@@ -131,19 +131,23 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
    if ( _package == "gaussian" ) { 
         
         string COM_FILE = "mol_" + ID + ".com";
-        string ORB_FILE = "/mol_" + ID + ".orb";
-        string SHL_FILE = "/mol_" + ID + ".sh";
+        string ORB_FILE = "mol_" + ID + ".orb";
 
         Gaussian _gaussian( &_package_options );
-        string SCR_DIR  = _gaussian.getScratchDir() + "/mol_" + ID;
-        
-        _gaussian.setScratchDir( SCR_DIR );
+               
         _gaussian.setRunDir( DIR );
         _gaussian.setInputFile( COM_FILE );
-        _gaussian.setShellFile( SHL_FILE );
+
+        // provide a separate scratch dir for every thread
+        if ( ( _gaussian.getScratchDir() ).size() != 0 ) {
+           string SHL_FILE = "mol_" + ID + ".sh";
+          _gaussian.setShellFile( SHL_FILE );
+           string SCR_DIR  = _gaussian.getScratchDir() + "/mol_" + ID;
+          _gaussian.setScratchDir( SCR_DIR );
+          _gaussian.WriteShellScript ();
+        } 
         
         _gaussian.WriteInputFile( seg );
-        _gaussian.WriteShellScript ();
         _gaussian.Run( );
         
         // parse the output files and save the information into a single file
