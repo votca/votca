@@ -124,15 +124,6 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
             for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
                 t_atom *a = &(atoms->atom[iatom]);
 
-                // read exclusions
-                t_blocka * excl = &(mol->excls);
-                // insert exclusions
-                list<Bead *> excl_list;
-                for(int k=excl->index[iatom]; k<excl->index[iatom+1]; k++) {
-                    excl_list.push_back(top.getBead(excl->a[k]+ifirstatom));
-                }
-                top.InsertExclusion(top.getBead(iatom+ifirstatom), excl_list);
-
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
 #if GMX == 50
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
@@ -147,6 +138,20 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 stringstream nm;
                 nm << bead->getResnr() + 1 << ":" <<  top.getResidue(res_offset + bead->getResnr())->getName() << ":" << bead->getName();
                 mi->AddBead(bead, nm.str());
+            }
+
+            // add exclusions
+            for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
+                t_atom *a = &(atoms->atom[iatom]);
+
+                // read exclusions
+                t_blocka * excl = &(mol->excls);
+                // insert exclusions
+                list<Bead *> excl_list;
+                for(int k=excl->index[iatom]; k<excl->index[iatom+1]; k++) {
+                	excl_list.push_back(top.getBead(excl->a[k]+ifirstatom));
+                }
+                top.InsertExclusion(top.getBead(iatom+ifirstatom), excl_list);
             }
             ifirstatom+=mtop.molblock[iblock].natoms_mol;
         }

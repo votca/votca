@@ -117,10 +117,11 @@ inline void ExclusionList::ExcludeList( iteratable &l ) {
 }
 
 template<typename iteratable>
-inline void ExclusionList::InsertExclusion(Bead *bead1, iteratable &l)
+inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l)
 {
 	for(typename iteratable::iterator i=l.begin(); i!=l.end(); ++i) {
-		Bead *bead2 = *i;
+		Bead *bead1 = bead1_;
+		;Bead *bead2 = *i;
 		if (bead2 < bead1) swap(bead1, bead2);
 		if(bead1==bead2) continue;
 		if(IsExcluded(bead1, bead2)) continue;
