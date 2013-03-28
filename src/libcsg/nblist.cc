@@ -62,7 +62,7 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
             double d = abs(r);
             if(d < _cutoff){
             if(_do_exclusions)
-                if(top->getExclusions().IsExcluded((*iter1)->getId(), (*iter2)->getId())) {
+                if(top->getExclusions().IsExcluded(*iter1, *iter2)) {
                     continue;
                 }
                 if((*_match_function)(*iter1, *iter2, r, d))

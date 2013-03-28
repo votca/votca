@@ -127,11 +127,11 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 // read exclusions
                 t_blocka * excl = &(mol->excls);
                 // insert exclusions
-                list<int> excl_list;
+                list<Bead *> excl_list;
                 for(int k=excl->index[iatom]; k<excl->index[iatom+1]; k++) {
-                    excl_list.push_back(excl->a[k]+ifirstatom);
+                    excl_list.push_back(top.getBead(excl->a[k]+ifirstatom));
                 }
-                top.InsertExclusion(iatom+ifirstatom, excl_list);
+                top.InsertExclusion(top.getBead(iatom+ifirstatom), excl_list);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
 #if GMX == 50

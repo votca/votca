@@ -160,7 +160,7 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)
         double d = abs(r);
         if(d < _cutoff){
         if(_do_exclusions)
-            if(_top->getExclusions().IsExcluded((*iter)->getId(), bead->getId())) {
+            if(_top->getExclusions().IsExcluded((*iter), bead)) {
                 continue;
             }
             if((*_match_function)(*iter, bead, r, d))

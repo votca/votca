@@ -337,7 +337,8 @@ public:
         return _bc->getBoxType();
     }
 
-    void InsertExclusion(int i, list<int> l);
+    template<typename iteratable>
+    void InsertExclusion(Bead *bead1, iteratable &l);
 
     bool HasVel(){return _has_vel;}
     void SetHasVel(const bool v){ _has_vel=v;}
@@ -405,8 +406,9 @@ inline Molecule *Topology::MoleculeByIndex(int index)
     return _molecules[index];
 }
 
-inline void Topology::InsertExclusion(int i, list<int> l) {
-    _exclusions.InsertExclusion(i,l);
+template<typename iteratable>
+inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
+    _exclusions.InsertExclusion(bead1, l);
 }
 
 }}
