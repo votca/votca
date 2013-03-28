@@ -47,8 +47,9 @@ Gaussian::Gaussian( tools::Property *opt ) {
     _options =          opt->get(key + ".options").as<string> ();
     _memory =           opt->get(key + ".memory").as<string> ();
     _threads =          opt->get(key + ".threads").as<int> ();
-    _checkpointfile =   opt->get(key + ".checkpoint").as<string> ();
-    _scratch =          opt->get(key + ".scratch").as<string> ();
+    _chk_file_name  =   opt->get(key + ".checkpoint").as<string> ();
+    _scratch_dir =      opt->get(key + ".scratch").as<string> ();
+    _cleanup =          opt->get(key + ".cleanup").as<string> ();
         
 };   
     
@@ -73,8 +74,8 @@ bool Gaussian::WriteInputFile( Segment *seg ) {
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
-    if ( _checkpointfile.size() != 0 ) {
-        _com_file << "%chk = " << _checkpointfile << endl;
+    if ( _chk_file_name.size() != 0 ) {
+        _com_file << "%chk = " << _chk_file_name << endl;
     }
     
     if ( _memory.size() != 0 ) {
@@ -123,9 +124,9 @@ bool Gaussian::WriteShellScript() {
     _shell_file.open ( _shell_file_name_full.c_str() );
 
     _shell_file << "#!/bin/tcsh" << endl ;
-    _shell_file << "mkdir -p " << _scratch << endl;
-    _shell_file << "setenv GAUSS_SCRDIR " << _scratch << endl;
-    _shell_file << _executable << " " << _com_file_name << endl;
+    _shell_file << "mkdir -p " << _scratch_dir << endl;
+    _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
+    _shell_file << _executable << " " << _com_file_name << endl;    
     _shell_file.close();
 }
 
@@ -139,7 +140,7 @@ bool Gaussian::Run()
         // if scratch is provided, run the shell script; 
         // otherwise run gaussian directly and rely on global variables 
         string _command;
-        if ( _scratch.size() != 0 ) {
+        if ( _scratch_dir.size() != 0 ) {
             _command  = "cd " + _run_dir + "; tcsh " + _shell_file_name;
         }
         else {
@@ -155,5 +156,31 @@ bool Gaussian::Run()
 
 }
 
+/**
+ * Cleans up after the Gaussian job
+ */
+void Gaussian::CleanUp( string ID ) {
+    
+    // cleaning up the generated files
+    if ( _cleanup.size() != 0 ) {
+        Tokenizer tok_cleanup(_cleanup, " \t\n");
+        vector <string> _cleanup_info;
+        tok_cleanup.ToVector(_cleanup_info);
+        
+        vector<string> ::iterator it;
+        
+        for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
+            if ( *it == "xyz" || *it == "com" || *it == "log" ) { 
+                string file_name = _run_dir + "/mol_" + ID + "." + *it;
+                remove ( file_name.c_str() );
+            }
+            if ( *it == "fort.7" ) {
+                string file_name = _run_dir + "/" + *it;
+                remove ( file_name.c_str() );
+            }            
+        }
+    }
+    
+}
 
 }}

@@ -23,6 +23,7 @@
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
+#include <votca/ctp/orbitals.h>
 #include <string> 
 
 using namespace std;
@@ -45,12 +46,17 @@ public:
    bool WriteInputFile( Segment *seg );
    bool WriteShellScript();
    bool Run();
+   void CleanUp( string ID );
    
-   void setScratchDir( string scratch ) { _scratch = scratch; }
+   bool ReadOrbitals( Orbitals* _orbitals ) {};
+   bool ReadOverlap( Orbitals* _orbitals ) {};
+   bool ParseLog( Orbitals* _orbitals ) {};
+   
+   void setScratchDir( string scratch_dir ) { _scratch_dir = scratch_dir; }
    void setRunDir( string run_dir ) { _run_dir = run_dir; }
    void setInputFile( string com_file ) { _com_file_name = com_file; }
    void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
-   string getScratchDir( ) { return _scratch; }
+   string getScratchDir( ) { return _scratch_dir; }
    
 //protected:
              
@@ -65,16 +71,17 @@ private:
     string                              _executable;
     string                              _memory;
     int                                 _threads;
-    string                              _checkpointfile;
-    string                              _scratch;
-    
-    string                              _root_dir;
-    string                              _source_file;
     
     string                              _shell_file_name;
     string                              _com_file_name;
-    string                              _run_dir;
+    string                              _log_file_name;
+    string                              _xyz_file_name;
+    string                              _chk_file_name;
     
+    string                              _run_dir;
+    string                              _scratch_dir;
+        
+    string                              _cleanup;    
 };
 
 

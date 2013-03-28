@@ -120,9 +120,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
     string ID   = boost::lexical_cast<string>( seg->getId() );
     string DIR  = _outParent + "/mol_" + ID;
     string XYZ_FILE = DIR + "/mol_" + ID + ".xyz";
-    
-    string GAUSSIAN_ORB_FILE = DIR + "/fort.7" ;
-    
+    string ORB_FILE = DIR + "/mol_" + ID + ".orb";
+        
     mkdir(DIR.c_str(), 0755);        
     out = fopen(XYZ_FILE.c_str(),"w");
     seg->WriteXYZ(out);
@@ -131,7 +130,6 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
    if ( _package == "gaussian" ) { 
         
         string COM_FILE = "mol_" + ID + ".com";
-        string ORB_FILE = "mol_" + ID + ".orb";
 
         Gaussian _gaussian( &_package_options );
                
@@ -150,11 +148,15 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         _gaussian.WriteInputFile( seg );
         _gaussian.Run( );
         
-        // parse the output files and save the information into a single file
+        // parse the output files and save the information into a single orb file
+        string GAUSSIAN_ORB_FILE = DIR + "/fort.7" ;
+
         //_orbitals.ReadOrbitalsGaussian( GAUSSIAN_ORB_FILE.c_str() );
         //std::ofstream ofs( ORB_FILE.c_str() );
         //boost::archive::binary_oarchive oa( ofs );
         //oa << _orbitals;
+        
+        _gaussian.CleanUp( ID );
         
    }    
    

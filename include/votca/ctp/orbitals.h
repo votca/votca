@@ -90,6 +90,8 @@ protected:
     int                                 _unoccupied_levels;
     int                                 _electrons;
     
+    bool                                _verbose;
+    
     bool                                _has_basis_set_size;
     bool                                _has_occupied_levels;
     bool                                _has_unoccupied_levels;
@@ -121,7 +123,7 @@ private:
     template<typename Archive> 
     void serialize(Archive& ar, const unsigned version) {
 
-       std::cout << "... ... Serializing the Orbitals." << std::endl ;
+       if ( _verbose ) std::cout << "... ... Serializing the Orbitals." << std::endl ;
                
        ar & _has_basis_set_size;
        ar & _has_occupied_levels;

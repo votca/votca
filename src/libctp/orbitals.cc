@@ -49,6 +49,8 @@ Orbitals::Orbitals() {
     _has_mo_energies = false;
     _has_overlap = false;
     
+    _verbose = false;
+    
 };   
     
 Orbitals::~Orbitals() { 
@@ -75,7 +77,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
         cerr << endl << "File " << filename << " with molecular orbitals is not found " << endl;
         return 1;
     } else {
-        cout << endl << "... reading molecular orbitals from " << filename << endl;
+        if ( _verbose ) cout << endl << "... ... Reading molecular orbitals from " << filename << endl;
     }
 
     // number of coefficients per line is  in the first line of the file (5D15.8)
@@ -125,7 +127,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
     }
 
     // some sanity checks
-    cout << "... ... energy levels: " << _levels << endl;
+    if ( _verbose ) cout << "... ... Energy levels: " << _levels << endl;
 
     std::map< int, vector<double> >::iterator iter = _coefficients.begin();
     _basis_size = iter->second.size();
@@ -136,7 +138,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
 
         }
     }
-    cout << "... ... basis set size: " << _basis_size << endl;
+    if ( _verbose ) cout << "... ... Basis set size: " << _basis_size << endl;
 
     _basis_set_size = _basis_size;
     _has_basis_set_size = true;
@@ -166,7 +168,7 @@ bool Orbitals::ReadOrbitalsGaussian( const char * filename )
    _energies.clear();
    
      
-   cout << "... done reading orbital files from " << filename << endl;
+   if ( _verbose ) cout << "... ... Done reading orbital files from " << filename << endl;
    _has_mo_coefficients = true;
    _has_mo_energies = true;
    return 0;
@@ -186,7 +188,7 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
         cerr << endl << "File " << filename << " with overlap matrix is not found " << endl;
         return 1;
     } else {
-        cout << endl << "... reading the overlap matrix from " << filename << endl;
+        if ( _verbose ) cout << endl << "... ... Reading the overlap matrix from " << filename << endl;
     }
     
     while (_input_file ) {
@@ -205,7 +207,7 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
             //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
             
             _basis_size = boost::lexical_cast<int>(results[1]);
-            cout << "... ... number of basis functions: " << _basis_size << endl;
+            if ( _verbose ) cout << "... ... Number of basis functions: " << _basis_size << endl;
             // preparing the matrix container
             _overlap.resize( _basis_size );  
  
@@ -273,7 +275,7 @@ bool Orbitals::ReadOverlapGaussian( const char * filename )
                 // clear the index for the next block
                 _j_indeces.clear();        
             } // end of the blocks
-            cout << "... finished reading the overlap matrix from " << filename << endl;
+            cout << "... ... finished reading the overlap matrix from " << filename << endl;
         } // end of the if "Overlap" found   
     } // end of the loop over the file
 }
@@ -285,7 +287,7 @@ bool Orbitals::ParseGaussianLog( const char * filename ){
     unsigned _basis_size = 0;
     bool _read_overlap = false;
     
-    cout << endl << "... parsing " << filename << endl;
+    if ( _verbose )  cout << endl << "... ... Parsing " << filename << endl;
     
     ifstream _input_file(filename);
     if (_input_file.fail()) {
@@ -309,7 +311,7 @@ bool Orbitals::ParseGaussianLog( const char * filename ){
             
             _electrons = boost::lexical_cast<int>( results.front() );
             _has_electrons = true;
-            cout << "... number of electrons: " << _electrons << endl;
+            if ( _verbose ) cout << "... ... Number of electrons: " << _electrons << endl;
  
         }
         
@@ -323,7 +325,7 @@ bool Orbitals::ParseGaussianLog( const char * filename ){
             
             _basis_set_size = boost::lexical_cast<int>( results.front() );
             _has_basis_set_size = true;
-            cout << "... basis set size: " << _basis_set_size << endl;
+            if ( _verbose ) cout << "... ... Basis set size: " << _basis_set_size << endl;
  
         }        
         
@@ -363,15 +365,15 @@ bool Orbitals::ParseGaussianLog( const char * filename ){
             if ( eigenvalues_pos == std::string::npos ) {
                 _has_occupied_levels = true;
                 _has_unoccupied_levels = true;
-                cout << "... ... occupied levels: " << _occupied_levels << endl;
-                cout << "... ... unoccupied levels: " << _unoccupied_levels << endl;
+                if ( _verbose ) cout << "... ... Occupied levels: " << _occupied_levels << endl;
+                if ( _verbose ) cout << "... ... Unoccupied levels: " << _unoccupied_levels << endl;
             }
         }               
         // check if all information has been accumulated
         if ( _has_electrons && _has_basis_set_size && _has_occupied_levels ) break;
     }
     
-    cout << "... done parsing " << filename << " file" << endl;
+    if ( _verbose ) cout << "... ... Done parsing " << filename << " file" << endl;
 }
 
 const int    &Orbitals::getBasisSetSize() const { 
@@ -408,7 +410,7 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
     ub::vector<double>::iterator it1 = _mo_energies.begin();
     bool _degenerate = false;
     
-    cout << endl <<"... checking level degeneracy " << endl;
+    if ( _verbose ) cout << endl <<"... ... Checking level degeneracy " << endl;
     
     _level_degeneracy.clear();
             
@@ -441,25 +443,29 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
         it1++;
     }
 
-    if ( _degenerate ) {
-        cout << "... ... some levels are degenerate" << endl; 
-        for (std::map<int, std::vector<int> >::iterator it = _level_degeneracy.begin();
-                it != _level_degeneracy.end();
-                ++it) {
-            // output only degenerate levels
-            if ( (it->second).size() > 1 ) {
-                std::cout << "....level  "<< it->first << " : ";
-                std::vector<int> level_list;
-                for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
-                        cout << *lev << " ";
-                cout << endl;
+    if ( _verbose ){ 
+
+        if ( _degenerate ) {
+            cout << "... ... Some levels are degenerate" << endl; 
+            for (std::map<int, std::vector<int> >::iterator it = _level_degeneracy.begin();
+                    it != _level_degeneracy.end();
+                    ++it) {
+                // output only degenerate levels
+                if ( (it->second).size() > 1 ) {
+                    std::cout << "... ... level  "<< it->first << " : ";
+                    std::vector<int> level_list;
+                    for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
+                            cout << *lev << " ";
+                    cout << endl;
+                }
             }
+        } else {
+            cout << "... ... No degeneracy found" << endl;  
         }
-    } else {
-        cout << "... ... no degeneracy found" << endl;  
+
+        cout << "... ... Done checking level degeneracy" << endl;   
+    
     }
-     
-    cout << "... done checking level degeneracy" << endl;   
     
     _has_degeneracy = true;
     return _degenerate;
