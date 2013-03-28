@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,33 +15,33 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script make all the post update with backup for single pairs
+This script makes all the post update with backup for single pairs incl. backups
 
 Usage: ${0##*/}
-
-USES:  csg_get_interaction_property log mv do_external run_or_exit check_deps
-
-NEEDS: name inverse.post_update
 EOF
    exit 0
 fi
 
-check_deps "$0"
-
 name=$(csg_get_interaction_property name)
+
+#could be done by a overwrite somewhere
+is_done "post_update-$name" && exit 0
+
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
+[[ -n $tasklist ]] && msg "Postupd tasks for $name: $tasklist"
 i=1
-for task in $tasklist; do
-  log "Doing postupd task '$task' for '${name}'"
+for task in $tasklist shift; do
+  echo "Doing postupd task '$task' for '${name}'"
 
   #save the current one
-  run_or_exit mv "${name}.dpot.new" "${name}.dpot.${i}"
+  critical mv "${name}.dpot.new" "${name}.dpot.${i}"
   
   #perform postupd task
   do_external postupd "$task" "${name}.dpot.${i}" "${name}.dpot.new"
 
   ((i++))
 done
+mark_done "post_update-$name"

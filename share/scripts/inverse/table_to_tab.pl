@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,22 +22,19 @@ use strict;
 if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
   print <<EOF;
 $progname, version %version%
-This script convert csg potential files to tab format (as read by espresso)
-Potential are copy in the C12 column
-In addtion it does some magic tricks:
+This script converts csg potential files to the tab format (as read by espresso).
+Potential is copied in the C12 column.
+
+In addition, it does some magic tricks:
 - shift the potential, so that it is zero at the cutoff
 - set all values to zero after the cutoff
 
 Usage: $progname in_pot in_deriv_pot outfile
-
-NEEDS: cg.inverse.espresso.table_end cg.inverse.espresso.table_bins
-
-USES: csg_get_property saveto_table readin_table
 EOF
   exit 0;
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "3 parameters are necessary\n" if ($#ARGV<2);
 
 use CsgFunctions;
 

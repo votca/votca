@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,15 @@ void XMLTopologyReader::ParseTopology(const string &el, map<string, string> &att
 {
     if(el == "molecules")
          _parser.NextHandler(this, &XMLTopologyReader::ParseMolecules);
+    if(el == "box") {
+        matrix m;
+        m.ZeroMatrix();
+        m[0][0] = boost::lexical_cast<double>(attr["xx"]);
+        m[1][1] = boost::lexical_cast<double>(attr["yy"]);
+        m[2][2] = boost::lexical_cast<double>(attr["zz"]);
+        _top->setBox(m);
+        _parser.NextHandler(this, &XMLTopologyReader::ParseTopology);
+    }
 }
 
 void XMLTopologyReader::ParseMolecules(const string &el, map<string, string> &attr)

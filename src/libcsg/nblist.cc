@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
  */
 
-#include "nblist.h"
+#include <votca/csg/nblist.h>
 #include <iostream>
 
 namespace votca { namespace csg {
@@ -59,15 +59,16 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
             vec v = (*iter2)->getPos();
             
             vec r = top->BCShortestConnection(u, v);
+            double d = abs(r);
+            if(d < _cutoff){
             if(_do_exclusions)
                 if(top->getExclusions().IsExcluded((*iter1)->getId(), (*iter2)->getId())) {
                     continue;
                 }
-                    
-            if(abs(r) < _cutoff)
-                if((*_match_function)(*iter1, *iter2, r))
+                if((*_match_function)(*iter1, *iter2, r, d))
                     if(!FindPair(*iter1, *iter2))
                         AddPair( _pair_creator(*iter1, *iter2, r));
+            }
         } 
     }
 }

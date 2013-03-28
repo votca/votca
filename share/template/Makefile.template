@@ -1,5 +1,5 @@
 #change the name of the program here
-NAME=template
+NAME=template_threaded
 
 #add extra cc file to compile here
 EXTRA_SRC=
@@ -12,10 +12,8 @@ EXTRA_SRC=
 all: $(NAME)
 
 #if VOTCALDLIB is defined we add it to PKG_CONFIG_PATH
-ifeq "$(origin VOTCALDLIB)" "undefined"
-  $(error "VOTCALDLIB not found, please source VOTCARC")
-else
-  export PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:${VOTCALDLIB}/pkgconfig
+ifeq "$(origin VOTCASHARE)" "undefined"
+  $(error "VOTCASHARE not found, please source VOTCARC")
 endif
 
 #get CPPFLAGS and LDFLAGS from pkg-config
@@ -38,5 +36,5 @@ $(NAME): $(OBJS)
 clean:
 	rm -f $(NAME) $(OBJS)
 
-#all, clean are phony rules, e.g. they are always run
+#all, clean are phony rules, e.g. they should always run
 .PHONY: all clean

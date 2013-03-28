@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,15 +23,11 @@ $progname, version %version%
 Skeleton script
 
 Usage: $progname argument
-
-NEEDS: cg.inverse.kBT
-
-USES: csg_get_property
 EOF
   exit 0;
 }
 
-die "1 parameter are nessary\n" if ($#ARGV<0);
+die "1 parameter are necessary\n" if ($#ARGV<0);
 
 use CsgFunctions;
 

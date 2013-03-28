@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
  */
 
-#include <nblistgrid.h>
+#include <votca/csg/nblistgrid.h>
 
 namespace votca { namespace csg {
 
@@ -122,18 +122,19 @@ void NBListGrid::InitializeGrid(const matrix &box)
 
 NBListGrid::cell_t &NBListGrid::getCell(const vec &r)
 {
-    int a = (int)(r*_norm_a);
-    int b = (int)(r*_norm_b);
-    int c = (int)(r*_norm_c);
+    int a = (int)floor(r*_norm_a);
+    int b = (int)floor(r*_norm_b);
+    int c = (int)floor(r*_norm_c);
 
     if(a<0) a = _box_Na + a%_box_Na;
-    else a %= _box_Na;
+    a %= _box_Na;
 
-    if(b<0) b = _box_Nb + b%_box_Nb;
-    else b %= _box_Nb;
+    if(b<0)
+      b = _box_Nb + b%_box_Nb;
+    b %= _box_Nb;
 
     if(c<0) c = _box_Nc + c%_box_Nc;
-    else c %= _box_Nc;
+    c %= _box_Nc;
 
     return getCell(a,b,c);
  }
@@ -153,18 +154,19 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)
     vec u = bead->getPos();
 
     for(iter=cell._beads.begin(); iter!=cell._beads.end(); ++iter) {
-        if(_do_exclusions)
-            if(_top->getExclusions().IsExcluded(bead->getId(), (*iter)->getId())) {
-                continue;
-            }
 
         vec v = (*iter)->getPos();
-        vec r = _top->BCShortestConnection(u, v);
-        
-        if(abs(r) < _cutoff)
-            if((*_match_function)(bead, *iter, r))
-               if(!FindPair(bead, *iter))
-                    AddPair(_pair_creator(bead, *iter, r));
+        vec r = _top->BCShortestConnection(v, u);
+        double d = abs(r);
+        if(d < _cutoff){
+        if(_do_exclusions)
+            if(_top->getExclusions().IsExcluded((*iter)->getId(), bead->getId())) {
+                continue;
+            }
+            if((*_match_function)(*iter, bead, r, d))
+               if(!FindPair(*iter, bead))
+                    AddPair(_pair_creator(*iter, bead, r));
+        }
     }
 }
 

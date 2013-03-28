@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,35 +18,30 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the pressure for espresso
-for the Inverse Boltzmann Method
+This script calcs the pressure for espresso and writes it to outfile
 
-Usage: ${0##*/}
+Usage: ${0##*/} outfile
 
-USES: log check_deps
-
-NEEDS: cg.inverse.espresso.blockfile
-
-OPTIONAL: cg.inverse.espresso.bin
+Used external packages: espresso
 EOF
    exit 0
 fi
 
-check_deps "$0"
+[[ -z $1 ]] && die "${0##*/}: Missing argument"
 
 # Espresso config file (required for certain parameters, e.g. box size)
-esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
+esp="$(csg_get_property cg.inverse.espresso.blockfile)"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-p_file="$(mktemp esp.pressure.val.XXXXX)"
-esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")"
+p_file="$(critical mktemp esp.pressure.val.XXXXX)"
+esp_bin="$(csg_get_property cg.inverse.espresso.pressure_command)"
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
-esp_script="$(mktemp esp.pressure.tcl.XXXXX)"
-esp_success="$(mktemp esp.pressure.done.XXXXX)"
+esp_script="$(critical mktemp esp.pressure.tcl.XXXXX)"
+esp_success="$(critical mktemp esp.pressure.done.XXXXX)"
 
+echo "Calculating pressure"
 
-log "Calculating pressure"
 cat > $esp_script <<EOF
 set esp_in [open "|gzip -cd $esp" r]
 while { [blockfile \$esp_in read auto] != "eof" } { }
@@ -61,10 +56,10 @@ set out [open $esp_success w]
 close \$out
 EOF
 
-run_or_exit $esp_bin $esp_script
+critical $esp_bin $esp_script
 [ -f "$esp_success" ] || die "${0##*/}: Espresso calc pressure did not end successfully. Check log."
 
 p_now="$(cat $p_file)"
 
 [ -z "$p_now" ] && die "${0##*/}: Could not get pressure from simulation"
-echo ${p_now}
+echo "${p_now}" > "$1"

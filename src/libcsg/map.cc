@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  *
  */
 
-#include "map.h"
-#include "topology.h"
+#include <votca/csg/map.h>
+#include <votca/csg/topology.h>
 #include <iostream>
 #include <votca/tools/matrix.h>
 #include <votca/tools/tokenizer.h>
 #include <numeric>
+#include <boost/lexical_cast.hpp>
 
 namespace votca { namespace csg {
 
@@ -124,9 +125,13 @@ void Map_Sphere::Apply()
     Topology *top = _out->getParent();
     double max_dist = 0.5*top->ShortestBoxSize();
     vec r0 = vec(0,0,0);
+    string name0;
+    int id0;
     if(_matrix.size() > 0) {
         if(_matrix.front()._in->HasPos()) {
             r0=_matrix.front()._in->getPos();
+            name0 = _matrix.front()._in->getName();
+            id0 = _matrix.front()._in->getId();
         }
     }
 
@@ -138,8 +143,12 @@ void Map_Sphere::Apply()
         M+=bead->getM();
         if(bead->HasPos()) {
             vec r = top->BCShortestConnection(r0, bead->getPos());
-            if(abs(r) > max_dist)
-                throw std::runtime_error("coarse-grained bead is bigger than half the box");
+            if(abs(r) > max_dist) {
+                cout << r0 << " " << bead->getPos() << endl;
+                throw std::runtime_error("coarse-grained bead is bigger than half the box \n (atoms "
+                        + name0 + " (id " + boost::lexical_cast<string>(id0+1) + ")" + ", " + bead->getName() + " (id " + boost::lexical_cast<string>(bead->getId()+1) + ")" +  +" , molecule "
+                        + boost::lexical_cast<string>(bead->getMolecule()->getId()+1) + ")" );
+            }
             cg += (*iter)._weight * (r+r0);
             bPos=true;
         }

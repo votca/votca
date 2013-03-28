@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,33 +18,26 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function update
+This script implements the function update
 for the Inverse Monte Carlo Method
 
 Usage: ${0##*/}
-
-USES: csg_get_property msg run_or_exit do_external sort for_all check_deps csg_get_interaction_property
-
-NEEDS: cg.inverse.imc.solver inverse.imc.group  cg.inverse.program
 EOF
    exit 0
 fi
-
-check_deps "$0"
 
 solver=$(csg_get_property cg.inverse.imc.solver)
 sim_prog="$(csg_get_property cg.inverse.program)"
 do_external imc_stat $sim_prog
 
-#add other groups here later
-nb_groups=$(for_all non-bonded csg_get_interaction_property inverse.imc.group)
-list_groups=$(echo "$nb_groups" | sort -u)
-for group in $list_groups; do
+imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
+imc_groups=$(echo "$imc_groups" | sort -u)
+for group in $imc_groups; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for $group"
-  run_or_exit csg_imcrepack --in ${group} --out ${group}.packed
+  critical csg_imcrepack --in ${group} --out ${group}.packed
   do_external imcsolver $solver ${group}.packed ${group}.packed.sol
-  run_or_exit csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
+  critical csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
 done
 
-for_all non-bonded do_external imc purify
+for_all "non-bonded bonded" do_external imc purify

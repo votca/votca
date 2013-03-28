@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,26 +17,37 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script resamples target distribution to grid spacing
-for calculations
+This script resamples distribution to grid spacing of the setting xml file and extrapolates if needed
 
-Usage: ${0##*/}
-
-USES:  csg_get_interaction_property run_or_exit csg_resample check_deps get_main_dir
-
-NEEDS: min max step inverse.target name
+Usage: ${0##*/} input output
 EOF
    exit 0
 fi
 
-check_deps "$0"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
+input="$1"
+main_dir=$(get_main_dir)
+[[ -f ${main_dir}/$input ]] || die "${0##*/}: Could not find input file '$input' in maindir ($main_dir)"
+output="$2"
 
 min=$(csg_get_interaction_property min )
 max=$(csg_get_interaction_property max )
 step=$(csg_get_interaction_property step )
-target=$(csg_get_interaction_property inverse.target)
 name=$(csg_get_interaction_property name)
-main_dir=$(get_main_dir)
+tabtype="$(csg_get_interaction_property bondtype)"
 
-comment="$(get_table_comment)"
-run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
+if [[ $tabtype = "non-bonded" ]]; then
+  comment="$(get_table_comment)"
+  smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
+  critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+  #the left side is usually not a problem, but still we do it
+  do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
+elif [[ $tabtype = bond || $tabtype = angle || $tabtype = dihedral ]]; then
+  comment="$(get_table_comment)"
+  smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
+  critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+  #extrapolation is difficult, but constant will work in most cases
+  do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
+else
+  die "${0##*/}: Resample of distribution of type $tabtype is not implemented yet"
+fi

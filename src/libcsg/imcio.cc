@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/tokenizer.h>
 #include <iostream>
-#include "imcio.h"
+#include <votca/csg/imcio.h>
 
 namespace votca { namespace csg {
 

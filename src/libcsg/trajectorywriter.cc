@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
 
 #include <iostream>
-#include "trajectorywriter.h"
+#include <votca/csg/trajectorywriter.h>
 #include "modules/io/pdbwriter.h"
+#include "modules/io/xyzwriter.h"
 
 #ifdef GMX
 #include "modules/io/gmxtrajectorywriter.h"
@@ -35,6 +36,7 @@ using namespace std;
 void TrajectoryWriter::RegisterPlugins()
 {
     TrjWriterFactory().Register<PDBWriter>("pdb");
+    TrjWriterFactory().Register<XYZWriter>("xyz");
 #ifdef GMX
     TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,23 @@
 #ifndef _gmxtrajectoryreader_H
 #define	_gmxtrajectoryreader_H
 
-#include <string>
-#include "trajectoryreader.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
 
-#if GMX == 45
+#include <string>
+#include <votca/csg/trajectoryreader.h>
+#include "gmx_version_check.h"
+
+#if GMX == 50
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/typedefs.h>
+        #include <gromacs/legacyheaders/smalloc.h>
+        #include <gromacs/legacyheaders/vec.h>
+        #include <gromacs/legacyheaders/copyrite.h>
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/tpxio.h>
+#elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -63,7 +72,11 @@ using namespace std;
 */
 class GMXTrajectoryReader : public TrajectoryReader
 {
-    public:        
+    public:
+        GMXTrajectoryReader() {
+            gmx::CheckVersion();
+        }
+
         /// open a trejectory file
         bool Open(const string &file);
         /// read in the first frame
@@ -77,7 +90,9 @@ class GMXTrajectoryReader : public TrajectoryReader
         string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
-#if GMX == 45
+#if GMX == 50
+       t_trxstatus* _gmx_status;
+#elif GMX == 45
        t_trxstatus* _gmx_status;
 #elif GMX == 40
        int _gmx_status;

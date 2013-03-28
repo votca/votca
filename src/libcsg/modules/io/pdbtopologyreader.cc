@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,23 @@
  *
  */
 
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
+#endif
+
 #include <iostream>
 #include "pdbtopologyreader.h"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#if GMX == 45
+#if GMX == 50
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/typedefs.h>
+        #include <gromacs/legacyheaders/smalloc.h>
+        #include <gromacs/legacyheaders/confio.h>
+        #include <gromacs/legacyheaders/vec.h>
+        #include <gromacs/legacyheaders/copyrite.h>
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/tpxio.h>
+#elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -61,7 +70,8 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
     ::matrix box;
     int ePBC;
     t_atoms atoms;
-    
+    set_program_name("VOTCA");
+
     //snew(atoms,1);
     get_stx_coordnum((char*)file.c_str(),&(atoms.nr));
     init_t_atoms(&atoms,atoms.nr,TRUE);

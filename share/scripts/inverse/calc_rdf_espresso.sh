@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,32 +19,25 @@ if [ "$1" = "--help" ]; then
     cat <<EOF
 ${0##*/}, version %version%
 This script calcs the rdf for espresso
-for the Inverse Boltzmann Method
 
 Usage: ${0##*/}
 
-USES: csg_get_interaction_property csg_get_property log run_or_exit csg_resample is_done mark_done msg check_deps
-
-NEEDS: type1 type2 name step min max inverse.espresso.index1 inverse.espresso.index2
-
-OPTIONAL: cg.inverse.espresso.equi_snapshots cg.inverse.espresso.bin cg.inverse.espresso.traj
+Used external packages: espresso
 EOF
     exit 0
 fi
 
-check_deps "$0"
-
 # Topology+Trajectory read by Espresso
-top_traj="$(csg_get_property cg.inverse.espresso.traj "top_traj.esp")"
+top_traj="$(csg_get_property cg.inverse.espresso.traj)"
 
 # Number of snapshots before statistics are taken into account
-equi_snapshots="$(csg_get_property cg.inverse.espresso.equi_snapshots 0)"
+equi_snapshots="$(csg_get_property cg.inverse.espresso.first_frame)"
 
 # Espresso config file (required for certain parameters, e.g. box size)
-esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
+esp="$(csg_get_property cg.inverse.espresso.blockfile)"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-esp_bin="$(csg_get_property cg.inverse.espresso.bin "Espresso_bin")" 
+esp_bin="$(csg_get_property cg.inverse.espresso.rdf_command)"
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
 type1=$(csg_get_interaction_property type1)
@@ -56,13 +49,13 @@ max=$(csg_get_interaction_property max)
 index1=$(csg_get_interaction_property inverse.espresso.index1)
 index2=$(csg_get_interaction_property inverse.espresso.index2)
 
-log "Analyzing rdf for ${type1}-${type2}"
+echo "Analyzing rdf for ${type1}-${type2}"
 if is_done "rdf-$name"; then
-    msg "rdf analsysis for ${type1}-${type2} is already done"
+    echo "rdf analsysis for ${type1}-${type2} is already done"
 else
     # Output ${name}.dist.new.tab. Calculated by Espresso.
-    esp_script="$(mktemp esp.rdf.tcl.XXXXX)" 
-    esp_success="$(mktemp esp.rdf.done.XXXXX)"
+    esp_script="$(critical mktemp esp.rdf.tcl.XXXXX)"
+    esp_success="$(critical mktemp esp.rdf.done.XXXXX)"
     cat > $esp_script <<EOF
 puts "Calculating RDF. Please wait..."
 # First read the original conf.esp file to get the box size
@@ -103,11 +96,11 @@ puts "Calculation finished."
 set out [open $esp_success w]
 close \$out
 EOF
-    
-    run_or_exit $esp_bin $esp_script
+
+    critical $esp_bin $esp_script
     [ -f "$esp_success" ] || die "${0##*/}: Espresso calc rdf did not end successfully. Check log."
-    
+
     comment="$(get_table_comment)"
-    run_or_exit csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
+    critical csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
     mark_done "rdf-$name"
 fi

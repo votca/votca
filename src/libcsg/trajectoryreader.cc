@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
 
-#include "trajectoryreader.h"
+#include <votca/csg/trajectoryreader.h>
 #include "modules/io/esptrajectoryreader.h"
 #include "modules/io/lammpsreader.h"
+#include "modules/io/xyzreader.h"
 
 #ifdef GMX
 #include "modules/io/gmxtrajectoryreader.h"
@@ -33,6 +34,7 @@ void TrajectoryReader::RegisterPlugins(void)
 {
     TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
     TrjReaderFactory().Register<LAMMPSReader>("dump");
+    TrjReaderFactory().Register<XYZReader>("xyz");
 #ifdef GMX
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");

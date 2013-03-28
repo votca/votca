@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,14 +176,12 @@ string ESPTopologyReader::ReadBlockfileLine(string input_line, string variable)
 		
     pos_openvar = input_line.find(str_find);
     if (pos_openvar == string::npos) {
-	cerr << "Can't find '" << variable << "' variable in blockfile.\n";
-	return false;
+	throw runtime_error("Can't find '" + variable + "' variable in blockfile.\n");
     }
     input_line = input_line.substr(pos_openvar+variable.length()+2);
     pos_closevar = input_line.find('}');
     if (pos_closevar == string::npos) {
-	cerr << "Can't find '}' character in closing '" << variable << "' variable of the blockfile.\n";
-	return false;
+	throw runtime_error("Can't find '}' character in closing '" + variable + "' variable of the blockfile.\n");
     }
     input_line = input_line.substr(0,pos_closevar);		
 		

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,14 @@
  *
  */
 
+#include <votca_config.h>
 #include <votca/tools/version.h>
 #include <iostream>
-#include "version.h"
+#include <votca/csg/version.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#if GMX == 45
+#if GMX == 50
+#include <gromacs/legacyheaders/copyrite.h>
+#elif GMX == 45
 #include <gromacs/copyrite.h>
 #elif GMX == 40
     extern "C"
@@ -36,6 +35,12 @@
 // this one is needed because of bool is defined in one of the headers included by gmx
 #undef bool
 #endif
+
+extern "C" {
+   void VotcaCsgFromC(){
+     //do nothing - this is just that we have a c function for autotools
+   }
+}
 
 namespace votca { namespace csg {
 

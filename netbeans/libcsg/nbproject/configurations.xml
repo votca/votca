@@ -4,31 +4,36 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../include/bead.h</itemPath>
-      <itemPath>../../include/beadlist.h</itemPath>
-      <itemPath>../../include/beadpair.h</itemPath>
-      <itemPath>../../include/beadtype.h</itemPath>
-      <itemPath>../../include/cgengine.h</itemPath>
-      <itemPath>../../include/cgmoleculedef.h</itemPath>
-      <itemPath>../../include/cgobserver.h</itemPath>
-      <itemPath>../../include/csgapplication.h</itemPath>
-      <itemPath>../../include/exclusionlist.h</itemPath>
-      <itemPath>../../include/fileformatfactory.h</itemPath>
-      <itemPath>../../include/imcio.h</itemPath>
-      <itemPath>../../include/interaction.h</itemPath>
-      <itemPath>../../include/map.h</itemPath>
-      <itemPath>../../include/molecule.h</itemPath>
-      <itemPath>../../include/nblist.h</itemPath>
-      <itemPath>../../include/nblistgrid.h</itemPath>
-      <itemPath>../../include/nematicorder.h</itemPath>
-      <itemPath>../../include/pairlist.h</itemPath>
-      <itemPath>../../include/residue.h</itemPath>
-      <itemPath>../../include/topology.h</itemPath>
-      <itemPath>../../include/topologyitem.h</itemPath>
-      <itemPath>../../include/topologymap.h</itemPath>
-      <itemPath>../../include/topologyreader.h</itemPath>
-      <itemPath>../../include/trajectoryreader.h</itemPath>
-      <itemPath>../../include/trajectorywriter.h</itemPath>
+      <itemPath>../../include/votca/csg/bead.h</itemPath>
+      <itemPath>../../include/votca/csg/beadlist.h</itemPath>
+      <itemPath>../../include/votca/csg/beadpair.h</itemPath>
+      <itemPath>../../include/votca/csg/beadtype.h</itemPath>
+      <itemPath>../../include/votca/csg/boundarycondition.h</itemPath>
+      <itemPath>../../include/votca/csg/cgengine.h</itemPath>
+      <itemPath>../../include/votca/csg/cgmoleculedef.h</itemPath>
+      <itemPath>../../include/votca/csg/cgobserver.h</itemPath>
+      <itemPath>../../include/votca/csg/csgapplication.h</itemPath>
+      <itemPath>../../include/votca/csg/exclusionlist.h</itemPath>
+      <itemPath>../../include/votca/csg/fileformatfactory.h</itemPath>
+      <itemPath>../../include/votca/csg/imcio.h</itemPath>
+      <itemPath>../../include/votca/csg/interaction.h</itemPath>
+      <itemPath>../../include/votca/csg/map.h</itemPath>
+      <itemPath>../../include/votca/csg/molecule.h</itemPath>
+      <itemPath>../../include/votca/csg/nblist.h</itemPath>
+      <itemPath>../../include/votca/csg/nblistgrid.h</itemPath>
+      <itemPath>../../include/votca/csg/nematicorder.h</itemPath>
+      <itemPath>../../include/votca/csg/openbox.h</itemPath>
+      <itemPath>../../include/votca/csg/orthorhombicbox.h</itemPath>
+      <itemPath>../../include/votca/csg/pairlist.h</itemPath>
+      <itemPath>../../include/votca/csg/residue.h</itemPath>
+      <itemPath>../../include/votca/csg/topology.h</itemPath>
+      <itemPath>../../include/votca/csg/topologyitem.h</itemPath>
+      <itemPath>../../include/votca/csg/topologymap.h</itemPath>
+      <itemPath>../../include/votca/csg/topologyreader.h</itemPath>
+      <itemPath>../../include/votca/csg/trajectoryreader.h</itemPath>
+      <itemPath>../../include/votca/csg/trajectorywriter.h</itemPath>
+      <itemPath>../../include/votca/csg/triclinicbox.h</itemPath>
+      <itemPath>../../include/votca/csg/version.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -44,6 +49,10 @@
             <itemPath>../../src/libcsg/modules/io/esptopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/esptrajectoryreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/esptrajectoryreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/gmx_print_version.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/gmx_version_check.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/gmx_version_check.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/gmx_version_nb.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtrajectoryreader.cc</itemPath>
@@ -62,10 +71,14 @@
             <itemPath>../../src/libcsg/modules/io/pdbwriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/xyzreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/xyzwriter.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/xyzwriter.h</itemPath>
           </logicalFolder>
         </logicalFolder>
       </logicalFolder>
       <itemPath>../../src/libcsg/beadlist.cc</itemPath>
+      <itemPath>../../src/libcsg/boundarycondition.cc</itemPath>
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
       <itemPath>../../src/libcsg/csgapplication.cc</itemPath>
@@ -76,11 +89,14 @@
       <itemPath>../../src/libcsg/nblist.cc</itemPath>
       <itemPath>../../src/libcsg/nblistgrid.cc</itemPath>
       <itemPath>../../src/libcsg/nematicorder.cc</itemPath>
+      <itemPath>../../src/libcsg/openbox.cc</itemPath>
+      <itemPath>../../src/libcsg/orthorhombicbox.cc</itemPath>
       <itemPath>../../src/libcsg/topology.cc</itemPath>
       <itemPath>../../src/libcsg/topologymap.cc</itemPath>
       <itemPath>../../src/libcsg/topologyreader.cc</itemPath>
       <itemPath>../../src/libcsg/trajectoryreader.cc</itemPath>
       <itemPath>../../src/libcsg/trajectorywriter.cc</itemPath>
+      <itemPath>../../src/libcsg/triclinicbox.cc</itemPath>
       <itemPath>../../include/version.h</itemPath>
       <itemPath>../../src/libcsg/version_nb.cc</itemPath>
     </logicalFolder>
@@ -105,9 +121,10 @@
       <compileType>
         <ccTool>
           <incDir>
-            <pElem>../../include</pElem>
-            <pElem>../../../include</pElem>
+            <pElem>../../src/libcsg</pElem>
+            <pElem>../../../tools/include</pElem>
             <pElem>/usr/include/libxml2</pElem>
+            <pElem>../../include</pElem>
           </incDir>
         </ccTool>
         <archiverTool>

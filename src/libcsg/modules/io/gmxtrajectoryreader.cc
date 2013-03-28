@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  *
  */
 
-#include <malloc.h>
+#include <cstdlib>
 #include <iostream>
-#include "topology.h"
+#include <votca/csg/topology.h>
 #include "gmxtrajectoryreader.h"
 
 namespace votca { namespace csg {
@@ -37,7 +37,20 @@ void GMXTrajectoryReader::Close()
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
-#if GMX == 45
+    set_program_name("VOTCA");
+
+#if GMX == 50
+
+    output_env_t oenv;
+    // _snew("oenv", oenv, 1);
+    //oenv = (output_env_t)malloc(sizeof(*oenv));
+    output_env_init_default (&oenv);
+
+    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_V | TRX_READ_F))
+        throw std::runtime_error(string("cannot open ") + _filename);
+    //sfree(oenv);
+    free(oenv);
+#elif GMX == 45
     output_env_t oenv;
     // _snew("oenv", oenv, 1);
     oenv = (output_env_t)malloc(sizeof(*oenv));
@@ -86,7 +99,16 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
-#if GMX == 45
+#if GMX == 50
+    output_env_t oenv;
+    //_snew("oenv", oenv, 1);
+    //oenv = (output_env_t)malloc(sizeof(*oenv));
+    output_env_init_default (&oenv);
+    if(!read_next_frame(oenv, _gmx_status,&_gmx_frame))
+        return false;
+    //sfree(oenv);
+    free(oenv);
+#elif GMX == 45
     output_env_t oenv;
     //_snew("oenv", oenv, 1);
     oenv = (output_env_t)malloc(sizeof(*oenv));

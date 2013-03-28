@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 #ifndef _ESPTRAJECTORYREADER_H
 #define	_ESPTRAJECTORYREADER_H
 
-#include "trajectoryreader.h"
+#include <votca/csg/trajectoryreader.h>
 
 namespace votca { namespace csg {
 

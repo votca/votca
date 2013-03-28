@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,28 +26,23 @@ Basically dU=A*(1-r/r_c) with A= -max(0.1k_B T, Int ) * sign(p_cur-p_target)
 and Int is the integral from Eq. 7 in the paper.
 
 Usage: $progname p_cur outfile
-
-NEEDS: cg.inverse.kBT max step inverse.particle_dens inverse.p_target name
-
-USES: csg_get_property csg_get_interaction_property saveto_table readin_table
-
-OPTIONAL: inverse.post_update_options.pressure.wjk.scale 
 EOF
   exit 0;
 }
 
-die "2 parameters are nessary\n" if ($#ARGV<1);
+die "2 parameters are necessary\n" if ($#ARGV<1);
 
 
 use CsgFunctions;
 
 my $kBT=csg_get_property("cg.inverse.kBT");
 my $max=csg_get_interaction_property("max");
+my $min=csg_get_interaction_property("min");
 my $delta_r=csg_get_interaction_property("step");
 
 my $partDens=csg_get_interaction_property("inverse.particle_dens");
 my $name=csg_get_interaction_property("name");
-my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale","1.0");
+my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale");
 
 my $pi= 3.14159265;
 my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
@@ -96,10 +91,11 @@ my @r;
 my @pot;
 my @flag;
 my $outfile="$ARGV[1]";
-for(my $i=0;$i<=$max/$delta_r;$i++){
+my $comment="#$progname: p_now=$p_now, p_target=$p_target, prefactor=$pref\n";
+for(my $i=$min/$delta_r;$i<=$max/$delta_r;$i++){
   $r[$i]=$i*$delta_r;
   $pot[$i]=$pref*(1-$r[$i]/$max);
   $flag[$i]="i";
 }
-saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@r,@pot,@flag,$comment) || die "$progname: error at save table\n";
 

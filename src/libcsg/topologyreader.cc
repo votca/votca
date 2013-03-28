@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
 
-#include "topologyreader.h"
+#include <votca/csg/topologyreader.h>
 #include "modules/io/esptopologyreader.h"
 #include "modules/io/lammpsreader.h"
 #include "modules/io/xmltopologyreader.h"
+#include "modules/io/xyzreader.h"
 
 #ifdef GMX
 #include "modules/io/gmxtopologyreader.h"
@@ -37,6 +38,7 @@ void TopologyReader::RegisterPlugins(void)
     TopReaderFactory().Register<ESPTopologyReader>("esp");		
     TopReaderFactory().Register<XMLTopologyReader>("xml");
     TopReaderFactory().Register<LAMMPSReader>("dump");
+    TopReaderFactory().Register<XYZReader>("xyz");
 #ifdef GMX
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
     TopReaderFactory().Register<GROTopologyReader>("gro");

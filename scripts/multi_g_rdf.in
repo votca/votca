@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2010 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ end=""
 np=8
 index="index.ndx"
 out="${fbase}.xvg"
-version="@version@"
+version="@PROJECT_VERSION@ #CSG_HG_ID#"
 single="no"
 debug="no"
 
@@ -53,27 +53,27 @@ ${0##*/}, version ${version}
 
 
 
-This is a multiplexed version of $g_cmd
+This is a multiplexed version of $g_cmd. (Obsolete will be removed in the next version)
 
 Usage: ${0##*/} [OPTIONS] -- [${g_cmd}_options]
 
 Allowed options:
 -N, --NN            Number of tasks
                     Default: $np
--b         TIME     Begin time
+-b TIME             Begin time
                     Default: $begin
--e         TIME     End time
--n         FILE     Name of the index file
+-e TIME             End time
+-n FILE             Name of the index file
                     Default: $index
--o        FILE.xvg  Name of the total output file
+-o FILE.xvg         Name of the total output file
                     Default: $out
 --soutput FILE.xvg  Name of the single output files
                     Default: ${out%.xvg}_NP.xvg (used trunc of name given by -o)
 		    (where NP is replaced later by the number of the process)
-    --log  FILE     Name of logfile
+    --log FILE      Name of logfile
                     Default: ${out%.xvg}_NP.log" (used trunc of name given by -o)
 		    (where NP is replaced later by the number of the process)
-    --cmd  CMD      Change the gromacs command to run
+    --cmd CMD       Change the gromacs command to run
                     Default: ${g_cmd}
     --single        Run only one task at the time
     --debug         Enable debug output
@@ -83,10 +83,6 @@ Allowed options:
 Examples:
 * ${0##*/} -e 1
 * ${0##*/} -e 1 -- -bin 0.05
-
-USES:
-
-NEEDS:
 eof
 }
 
@@ -102,8 +98,8 @@ while [ "${1#-}" != "$1" ]; do
  case $1 in
    -[0-9]* | --[0-9]**)
     np=${1#-}
-    np=${1#-}
-    [ -z "${np//[0-9]}" ] || die "$1 could not be convert to a number"
+    np=${np#-}
+    [ -z "${np//[0-9]}" ] || die "$1 could not be converted to a number"
     shift ;;
    -b)
     begin="$2"
@@ -158,6 +154,38 @@ dt="$(awk -v b="$begin" -v e="$end" -v np="$np" 'BEGIN{print (e-b)/np}')"
 [ -z "$dt" ] && die "Could not calculate dt"
 
 [ -f "$index" ] || die "Indexfile $index not found"
+
+cat <<EOF
+${0##*/} is obsolete. Please use csg_stat instead. We will remove ${0##*/}
+in the next version of VOTCA. csg_stat is parallel as well (--nt option)
+and uses a smarter neighbor search algrithm (grid search), which speeds
+the caluclation up a lot. Additionally it supports calculations for
+multiple interaction (incl. bonded) at once. The only thing you have
+to do, is to create as xml file like this:
+
+<cg>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>A-A</name>
+    <min>0.0</min>
+    <max>2.23</max>
+    <step>0.01</step>
+    <!-- these are atom TYPES not energy groups, * (e.g. A*) is allowed. -->
+    <type1>A1</type1>
+    <type2>A1</type2>
+  </non-bonded>
+  <!-- another non-bonded block for another interaction -->
+  <non-bonded>
+    ..
+  </non-bonded>
+</cg>
+
+and execute:
+csg_stat -top topol.tpr --trj traj.trr --nt XXX --options FILE.xml
+EOF
+sleep 30
+
 echo "Select a reference group and 1 group"
 sed -n 's/.*\[\(.*\)\].*/\1/p' $index | awk '{print "Group",NR-1,"(",$0,")"}'
 echo -n "Select a group: "

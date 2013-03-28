@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
-#include <nblistgrid.h>
-#include <beadlist.h>
+#include <votca/csg/nblistgrid.h>
+#include <votca/csg/beadlist.h>
 #include "csg_fmatch.h"
 #include <votca/tools/table.h>
 #include <votca/tools/linalg.h>

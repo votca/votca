@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,20 +15,17 @@
 # limitations under the License.
 #
 
-version='@version@'
+version='@PROJECT_VERSION@ #CSG_HG_ID#'
 
-if [ -z "${CSGSHARE}" ]; then
-  if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
-    #transform it to a global path
-    export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
-  elif [ -f "@votcashare@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@votcashare@"
-  fi
+if [ -n "$(type -p csg_call 2> /dev/null)" ]; then
+  #in case we have an old version of csg_call without --show-share
+  tmp="$(csg_call --show-share 2> /dev/null)" && export VOTCASHARE="$tmp"
+  unset tmp
 fi
 
 #we leave --help here to have it even when
-#CSGSHARE is not defined
-if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+#VOTCASHARE is not defined
+if [[ $1 = "--help" || $1 = "-h" ]]; then
   cat << eof
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
@@ -37,40 +34,42 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 please submit bugs to bugs@votca.org
 
 eof
-  if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
-    exec ${CSGSHARE}/scripts/inverse/inverse.sh --help | \
+  if [[ -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]]; then
+    exec ${VOTCASHARE}/scripts/inverse/inverse.sh --help | \
       sed -e "s/inverse\.sh/${0##*/}/g" -e "s/%version%/${version}/"
     exit 0
   fi
   cat << eof
 ${0##*/}, version ${version}
 
+Start the script (inverse.sh) to run IBM, IMC, etc.
 
-
-Start the script to run ibm, imc, etc.
-
-Usage: ${0##*/} [OPTIONS] setting_file.xml
+Usage: ${0##*/} [OPTIONS] --options settings.xml
 
 Allowed options:
 -h, --help     Show this help
 
-NOTE: this is a short help, please export CSGSHARE or
-      source VOTCARC.bash or VOTCARC.csh to get the full help.
+NOTE: this is a short help, please source VOTCARC.bash or VOTCARC.csh
+      or export VOTCASHARE to get the full help.
 eof
 exit 0
 fi
 
-if [ -z "${CSGSHARE}" ]; then
-   echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
-   echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
-   exit 1
+#we don't know if it was done above
+if [[ -n "$(type -p csg_call)" ]]; then
+  VOTCASHARE="$(csg_call --show-share)" || exit 1
+  export VOTCASHARE
+else
+  echo "Could not find csg_call" >&2
+  exit 1
 fi
 
-echo "CSGSHARE is ${CSGSHARE}"
-if [ -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
-   exec ${CSGSHARE}/scripts/inverse/inverse.sh $@
-   exit 0
+if [[ -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]]; then
+  pre="$*"
+  [[ -n $pre && -z ${pre//*--debug*} ]] && pre="bash -x " || pre=""
+  exec ${pre} ${VOTCASHARE}/scripts/inverse/inverse.sh "$@"
+  exit 0
 else
-   echo "${0##*/}: Could not run \${CSGSHARE}/scripts/inverse/inverse.sh $@" >&2
-   exit 1
+  echo "${0##*/}: Could not run \${VOTCASHARE}/scripts/inverse/inverse.sh $@" >&2
+  exit 1
 fi

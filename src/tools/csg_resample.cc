@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  *
  */
 
+#include <votca/tools/spline.h>
 #include <votca/tools/cubicspline.h>
+#include <votca/tools/akimaspline.h>
+#include <votca/tools/linspline.h>
 #include <votca/tools/table.h>
 #include <votca/tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include "version.h"
+#include <votca/csg/version.h>
 
 using namespace std;
 namespace po = boost::program_options;
@@ -30,7 +33,7 @@ using namespace votca::tools;
 void help_text()
 {
     votca::csg::HelpTextHeader("csg_resample");
-    cout << "Change grid + interval of any sort of table files.\n"
+    cout << "Change grid and interval of any sort of table files.\n"
             "Mainly called internally by inverse script, can also be\n"
             "used to manually prepare input files for coarse-grained\n"
             "simulations.\n\n";     
@@ -47,23 +50,24 @@ void check_option(po::options_description &desc, po::variables_map &vm, const st
 
 int main(int argc, char** argv)
 {
-    string in_file, out_file, grid, spfit, comment, boundaries;
-    CubicSpline spline;
-    Table in, out, der;
 
+    string in_file, out_file, grid, fitgrid, comment, type, boundaries;
+    Spline *spline;
+    Table in, out, der;
     // program options
     po::options_description desc("Allowed options");            
     
     desc.add_options()
+      ("help", "produce this help message")
       ("in", po::value<string>(&in_file), "table to read")
       ("out", po::value<string>(&out_file), "table to write")
       ("derivative", po::value<string>(), "table to write")
-      ("grid", po::value<string>(&grid), "new grid spacing (min:step:max)")
-      ("spfit", po::value<string>(&spfit), "specify spline fit grid. if option is not specified, normal spline interpolation is performed")
-      //("bc", po::)
+      ("grid", po::value<string>(&grid), "new grid spacing (min:step:max). If 'grid' is specified only, interpolation is performed.")
+      ("type", po::value<string>(&type)->default_value("akima"), "[cubic|akima|linear]. If option is not specified, the default type 'akima' is assumed.")
+      ("fitgrid", po::value<string>(&fitgrid), "specify fit grid (min:step:max). If 'grid' and 'fitgrid' are specified, a fit is performed.")
+      ("nocut", "Option for fitgrid: Normally, values out of fitgrid boundaries are cut off. If they shouldn't, choose --nocut.")
       ("comment", po::value<string>(&comment), "store a comment in the output table")
-      ("boundaries", po::value<string>(&boundaries), "(natural|periodic|derivativezero) sets boundary conditions")
-      ("help", "options file for coarse graining");
+      ("boundaries", po::value<string>(&boundaries), "(natural|periodic|derivativezero) sets boundary conditions");
     
     po::variables_map vm;
     try {
@@ -75,6 +79,7 @@ int main(int argc, char** argv)
         return -1;
     }
     
+    try {
     // does the user want help?
     if (vm.count("help")) {
         help_text();
@@ -84,7 +89,17 @@ int main(int argc, char** argv)
     
     check_option(desc, vm, "in");
     check_option(desc, vm, "out");
-    check_option(desc, vm, "grid");
+
+    if(!(vm.count("grid") || vm.count("fitgrid"))) {
+            cout << "Need grid for interpolation or fitgrid for fit.\n";
+            return 1;
+    }
+
+    if((!vm.count("grid")) && vm.count("fitgrid")) {
+            cout << "Need a grid for fitting as well.\n";
+            return 1;
+    }
+
     
     double min, max, step;
     {
@@ -99,41 +114,113 @@ int main(int argc, char** argv)
         step = boost::lexical_cast<double>(toks[1]);
         max = boost::lexical_cast<double>(toks[2]);
     }
-        
-    
+
+   
     in.Load(in_file);
-    
-    if (vm.count("boundaries")){
-        if (boundaries=="periodic"){
-            spline.setBC(CubicSpline::splinePeriodic);
+
+    if (vm.count("type")) {
+        if(type=="cubic") {
+            spline = new CubicSpline();
         }
-        else if (boundaries=="derivativezero"){
-            spline.setBC(CubicSpline::splineDerivativeZero);
+        else if(type=="akima") {
+            spline = new AkimaSpline();
+        }
+        else if(type=="linear") {
+            spline = new LinSpline();
+        }
+        else {
+            throw std::runtime_error("unknown type");
+        }
+    }
+    spline->setBC(Spline::splineNormal);
+    
+
+    if (vm.count("boundaries")) {
+        if(boundaries=="periodic") {
+            spline->setBC(Spline::splinePeriodic);
+        }
+        if(boundaries=="derivativezero") {
+            spline->setBC(Spline::splineDerivativeZero);
         }
         //default: normal
-    }    
-    if (vm.count("spfit")) {
-        Tokenizer tok(spfit, ":");
+    }
+
+
+    // in case fit is specified
+    if (vm.count("fitgrid")) {
+        Tokenizer tok(fitgrid, ":");
         vector<string> toks;
         tok.ToVector(toks);
         if(toks.size()!=3) {
-            cout << "wrong range format in spfit, use min:step:max\n";
+            cout << "wrong range format in fitgrid, use min:step:max\n";
             return 1;        
         }
         double sp_min, sp_max, sp_step;
         sp_min = boost::lexical_cast<double>(toks[0]);
         sp_step = boost::lexical_cast<double>(toks[1]);
         sp_max = boost::lexical_cast<double>(toks[2]);
-        cout << "doing spline fit " << sp_min << ":" << sp_step << ":" << sp_max << endl;
-        spline.GenerateGrid(sp_min, sp_max, sp_step);
+        cout << "doing " << type << " fit " << sp_min << ":" << sp_step << ":" << sp_max << endl;
 
-        spline.Fit(in.x(), in.y());
+        // cut off any values out of fitgrid boundaries (exception: do nothing in case of --nocut)
+        ub::vector<double> x_copy;
+        ub::vector<double> y_copy;
+        if (!vm.count("nocut")) {
+            // determine vector size
+            int minindex=-1, maxindex;
+            for (size_t i=0; i<in.x().size(); i++) {
+                if(in.x(i)<sp_min) {
+                    minindex = i;
+                }
+                if(in.x(i)<sp_max) {
+                    maxindex = i;
+                }
+            }
+            // copy data values in [sp_min,sp_max] into new vectors
+            minindex++;
+            x_copy = ub::zero_vector<double>(maxindex-minindex+1);
+            y_copy = ub::zero_vector<double>(maxindex-minindex+1);
+            for (int i=minindex; i<=maxindex; i++) {
+                x_copy(i-minindex) = in.x(i);
+                y_copy(i-minindex) = in.y(i);
+            }
+        }
+
+        // fitting
+        spline->GenerateGrid(sp_min, sp_max, sp_step);
+        try {
+            if (vm.count("nocut")) {
+                spline->Fit(in.x(), in.y());
+            } else {
+                spline->Fit(x_copy, y_copy);
+            }   
+        } catch (const char* message) {
+            if(strcmp("qrsolve_zero_column_in_matrix",message)) {
+                throw std::runtime_error("error in Linalg::linalg_qrsolve : Not enough data for fit, please adjust grid (zero row in fit matrix)");
+            }    
+            else if(strcmp("constrained_qrsolve_zero_column_in_matrix",message)) {
+                throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : Not enough data for fit, please adjust grid (zero row in fit matrix)");
+            }
+            else throw std::runtime_error("Unknown error in csg_resample while fitting.");
+        }
     } else {
-        spline.Interpolate(in.x(), in.y());
+        // otherwise do interpolation (default = cubic)
+        try {
+            spline->Interpolate(in.x(), in.y());
+        } catch (const char* message) {
+            if(strcmp("qrsolve_zero_column_in_matrix",message)) {
+                throw std::runtime_error("error in Linalg::linalg_qrsolve : Not enough data, please adjust grid (zero row in fit matrix)");
+            }
+            else if(strcmp("constrained_qrsolve_zero_column_in_matrix",message)) {
+                throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : Not enough data, please adjust grid (zero row in fit matrix)");
+            }
+            else throw std::runtime_error("Unknown error in csg_resample while interpolating.");
+        }
     }
+
     
     out.GenerateGridSpacing(min, max, step);
-    spline.Calculate(out.x(), out.y());
+    spline->Calculate(out.x(), out.y());
+        
     
     //store a comment line
     if (vm.count("comment")){
@@ -159,8 +246,17 @@ int main(int argc, char** argv)
     if (vm.count("derivative")) {
         der.GenerateGridSpacing(min, max, step);
         der.flags() = ub::scalar_vector<double>(der.flags().size(), 'o');
-        spline.CalculateDerivative(der.x(), der.y());
+
+        spline->CalculateDerivative(der.x(), der.y());
+
         der.Save(vm["derivative"].as<string>());
+    }
+
+    delete spline;
+	}
+    catch(std::exception &error) {
+         cerr << "an error occurred:\n" << error.what() << endl;
+         return -1;
     }
     return 0;
 }

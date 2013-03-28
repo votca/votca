@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,52 +19,38 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents statistical analysis for the Inverse Monte Carlo Method
-using generic csg tools
+using generic csg tools (csg_stat)
 
 Usage: ${0##*/}
-
-USES: msg run_or_exit mark_done csg_stat csg_get_property \$CSGXMLFILE is_done check_deps for_all do_external
-
-NEEDS: cg.inverse.program cg.inverse.cgmap
-
-OPTIONAL: cg.inverse.\$sim_prog.first_frame cg.inverse.\$sim_prog.equi_time cg.inverse.gromacs.topol cg.inverse.gromacs.traj_type
 EOF
    exit 0
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-cgopts=""
-cgmap=$(csg_get_property --allow-empty cg.inverse.cgmap)
-if [ -n "$cgmap" ]; then
-  [ -f "$cgmap" ] || die "${0##*/}: imc cgmap file '$cgmap' not found, do you really need one?"
-  cgopts="--cg '$cgmap'"
-fi
-
 if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol "topol.tpr")
+  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
   [ -f "$topol" ] || die "${0##*/}: gromacs topol file '$topol' not found"
 
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type "xtc")
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
   [ -f "$traj" ] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
 
-equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time 0)"
-first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame 0)"
+equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
+first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
 
-check_deps "$0"
-msg "calculating statistics"
+tasks=$(get_number_tasks)
+msg "Calculating IMC statistics using $tasks tasks"
 if is_done "imc_analysis"; then
-  msg "IMC analysis is already done"
+  echo "IMC analysis is already done"
 else
-  msg "Running IMC analysis"
   #copy+resample all target dist in $this_dir
-  for_all non-bonded do_external resample target
+  for_all "non-bonded bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
-  run_or_exit csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" $cgopts \
-        --begin $equi_time --first-frame $first_frame
+  critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
+        --begin $equi_time --first-frame $first_frame --nt $tasks
   mark_done "imc_analysis"
 fi

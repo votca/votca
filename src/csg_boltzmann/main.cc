@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
 #include "bondedstatistics.h"
 #include "tabulatedpotential.h"
 #include "stdanalysis.h"
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 
@@ -41,7 +41,7 @@ public:
 
     string ProgramName() { return "csg_boltzmann"; }
     void HelpText(ostream &out) {
-        out << "Perform tasks that are needed for simple boltzmann\n"
+        out << "Performs tasks that are needed for simple boltzmann\n"
             "inversion in an interactive environment.";
     }
     bool DoTrajectory() { return true; }

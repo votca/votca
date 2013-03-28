@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,23 +18,23 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the function initialize in espresso
-for the Inverse Boltzmann Method
+This script implements the prepare step for espresso
 
-Usage: ${0##*/} last_sim_dir
-
-USES: check_deps cp_from_main_dir run_or_exit mv
-
-OPTIONAL: cg.inverse.espresso.blockfile
+Usage: ${0##*/}
 EOF
   exit 0
 fi
 
-check_deps "$0"
+msg --color blue "########################################################"
+msg --color blue "# WARNING the espresso interface is still experimental #"
+msg --color blue "# If you find a problem report it under:               #"
+msg --color blue "# http://code.google.com/p/votca/issues/list           #"
+msg --color blue "# with the template espresso                           #"
+msg --color blue "########################################################"
 
-esp="$(csg_get_property cg.inverse.espresso.blockfile "conf.esp.gz")"
+esp="$(csg_get_property cg.inverse.espresso.blockfile)"
+espout="$(csg_get_property cg.inverse.espresso.blockfile_out)"
 cp_from_main_dir $esp
-[ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-run_or_exit mv $esp confout.esp.gz
+critical cp $esp $espout
 

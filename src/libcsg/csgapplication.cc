@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@
  *
  */
 
-#include "csgapplication.h"
-#include "trajectorywriter.h"
-#include "trajectoryreader.h"
-#include "topologyreader.h"
-#include "topologymap.h"
-#include "cgengine.h"
-#include "version.h"
+#include <votca/csg/csgapplication.h>
+#include <votca/csg/trajectorywriter.h>
+#include <votca/csg/trajectoryreader.h>
+#include <votca/csg/topologyreader.h>
+#include <votca/csg/topologymap.h>
+#include <votca/csg/cgengine.h>
+#include <votca/csg/version.h>
+#include <boost/algorithm/string/trim.hpp>
 
 namespace votca {
     namespace csg {
@@ -38,17 +39,21 @@ namespace votca {
             TrajectoryReader::RegisterPlugins();
             TopologyReader::RegisterPlugins();
 
-            AddProgramOptions()
+	    if (NeedsTopology()) {
+                AddProgramOptions()
                     ("top", boost::program_options::value<string > (), "  atomistic topology file");
+	    }
             if (DoMapping()) {
                 if (DoMappingDefault()) {
                     AddProgramOptions("Mapping options")
-                            ("cg", boost::program_options::value<string > (), "  coarse graining mapping definitions (xml-file)")
+                            ("cg", boost::program_options::value<string > (), "  coarse graining mapping and bond definitions (xml-file)")
+                            ("map-ignore", boost::program_options::value<string >(), "  list of molecules to ignore separated by ;")
                             ("no-map", "  disable mapping and act on original trajectory");
                 } else {
                     AddProgramOptions("Mapping options")
-                            ("cg", boost::program_options::value<string > (), "  [OPTIONAL] coarse graining mapping definitions\n"
-                            "  (xml-file). If no file is given, program acts on original trajectory");
+                            ("cg", boost::program_options::value<string > (), "  [OPTIONAL] coarse graining mapping and bond definitions\n"
+                            "  (xml-file). If no file is given, program acts on original trajectory")
+                            ("map-ignore", boost::program_options::value<string >(), "  list of molecules to ignore if mapping is done separated by ;");
                 }
             }
 
@@ -58,11 +63,11 @@ namespace votca {
                 ("trj", boost::program_options::value<string > (), "  atomistic trajectory file")
                 ("begin", boost::program_options::value<double>()->default_value(0.0), "  skip frames before this time")
                 ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
-                ("nframes", boost::program_options::value<int>(), "  process so many frames")
+                ("nframes", boost::program_options::value<int>(), "  process the given number of frames")
                 ;
 
             if (DoThreaded())
-                /**
+                /*
                  * TODO default value of 1 for nt is not smart
                  */
                 AddProgramOptions("Threading options")
@@ -73,7 +78,9 @@ namespace votca {
 
         bool CsgApplication::EvaluateOptions(void) {
             _do_mapping = false;
-            CheckRequired("top", "no topology file specified");
+	    if (NeedsTopology()) {
+                CheckRequired("top", "no topology file specified");
+	    }
 
             // check for mapping options
             if (DoMapping()) {
@@ -211,6 +218,18 @@ namespace votca {
                 // read in the coarse graining definitions (xml files)
                 cg.LoadMoleculeType(_op_vm["cg"].as<string > ());
                 // create the mapping + cg topology
+
+                if(_op_vm.count("map-ignore") != 0) {
+                    Tokenizer tok(_op_vm["map-ignore"].as<string>(), ";");
+                    Tokenizer::iterator iter;
+                    for(iter=tok.begin(); iter!=tok.end(); ++iter) {
+                        string str=*iter;
+                        boost::trim(str);
+                        if(str.length() > 0)
+                            cg.AddIgnore(str);
+                    }
+                }
+
                 master->_map = cg.CreateCGTopology(master->_top, master->_top_cg);
 
                 cout << "I have " << master->_top_cg.BeadCount() << " beads in " << master->_top_cg.MoleculeCount() << " molecules for the coarsegraining" << endl;
@@ -273,7 +292,10 @@ namespace votca {
                 //////////////////////////////////////////////////
 
                 _traj_reader->FirstFrame(master->_top);
-                //seek to first frame, let thread0 do that
+                if(master->_top.getBoxType()==BoundaryCondition::typeOpen) {
+                    cout << "NOTE: You are using OpenBox boundary conditions. Check if this is intended.\n" << endl;
+                }
+                //seek first frame, let thread0 do that
                 bool bok;
                 for (bok = true; bok == true; bok = _traj_reader->NextFrame(master->_top)) {
                     if (((master->_top.getTime() < begin) && has_begin) || first_frame > 1) {
@@ -282,14 +304,14 @@ namespace votca {
                     }
                     break;
                 }
-                if (!bok) { // trajectory was too shor and we did not proceed to first frame
+                if (!bok) { // trajectory was too short and we did not proceed to first frame
                     _traj_reader->Close();
                     delete _traj_reader;
 
                     throw std::runtime_error("trajectory was too short, did not process a single frame");
                 }
 
-                // notify all observer that coarse graining has begun
+                // notify all observers that coarse graining has begun
                 if (_do_mapping) {
                     master->_map->Apply();
                     BeginEvaluate(&master->_top_cg, &master->_top);
@@ -300,7 +322,7 @@ namespace votca {
                 /////////////////////////////////////////////////////////////////////////
                 //start threads
                 if (DoThreaded()) {
-                    for (int thread = 0; thread < _myWorkers.size(); thread++) {
+                    for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
 
                         if (SynchronizeThreads()) {
                             Mutex *myMutexIn = new Mutex;
@@ -314,7 +336,7 @@ namespace votca {
                             myMutexOut->Lock();
                         }
                     }
-                    for (int thread = 0; thread < _myWorkers.size(); thread++)
+                    for (size_t thread = 0; thread < _myWorkers.size(); thread++)
                         _myWorkers[thread]->Start();
 
                     if (SynchronizeThreads()) {
@@ -324,7 +346,7 @@ namespace votca {
                     }
                     // mutex needed for merging if SynchronizeThreads()==False
                     Mutex mergeMutex;
-                    for (int thread = 0; thread < _myWorkers.size(); thread++) {
+                    for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
                         _myWorkers[thread]->WaitDone();
                         if (!SynchronizeThreads()) {
                             mergeMutex.Lock();
@@ -333,7 +355,7 @@ namespace votca {
                         }
                         delete _myWorkers[thread];
                     }
-                    for (int thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
+                    for (size_t thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
                         delete _threadsMutexesIn[thread];
                         delete _threadsMutexesOut[thread];
                     }

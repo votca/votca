@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,23 +15,19 @@
 # limitations under the License.
 #
 
-sw_opt=""
-version='@version@'
-quiet="no"
+version='@PROJECT_VERSION@ #CSG_HG_ID#'
 ext_cmd=""
 simprog=""
+log=""
+show_share="no"
 
 #unset stuff from enviorment
-unset CSGXMLFILE bondtype bondname CSGSCRIPTDIR  CSGLOG
+unset CSGXMLFILE CSGDEBUG bondtype bondname
 
 #failback define
 die() {
   echo -e "$*" >&2
   exit 1
-}
-
-qecho() {
-  [ "$quiet" = "yes" ] || echo -e "$*"
 }
 
 show_help () {
@@ -44,45 +40,43 @@ please submit bugs to bugs@votca.org
 
 ${0##*/}, version ${version}
 
+This script calls scripts and functions for the iterative framework.
+Function can be executed or shows if key1='function'.
 
-
-This script calls script for csg using source_wrapper
-
-Usage: ${0##*/} [OPTIONS] key1 key2
+Usage: ${0##*/} [OPTIONS] key1 key2 [SCRIPT OPTIONS]
 
 Allowed options:
 -l, --list           Show list of all script
--q, --quiet          Be quiet (useful with show and cat option)
     --cat            Show the content of the script
     --show           Show the path to the script
-    --check          Check all csg scripts
+    --show-share     Shows the used VOTCASHARE dir and exits
     --scriptdir DIR  Set the user script dir
-                     (Used if no xmlfile is given)
+                     (Used if no options xml file is given)
                      Default: empty
     --simprog PROG   Set the simprog
-                     (Used if no xmlfile is given)
+                     (Used if no options xml file is given)
                      Default: empty
-    --xmlfile FILE   Specify the xml file to use
+    --options FILE   Specify the options xml file to use
+    --log FILE       Specify the log file to use
+                     Default: stdout
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
+    --nocolor        Disable colors
+    --sloppy-tables  Allow tables without flags
+    --debug          Enable debug mode with a lot of information
 -h, --help           Show this help
 
 Examples:
 * ${0##*/} table smooth [ARGUMENTS]
 * ${0##*/} --show run gromacs
-* ${0##*/} --check
-
-USES: \$CSGSHARE
-
-NEEDS:
 eof
 }
 
 
-while [ "${1#-}" != "$1" ]; do
- if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+while [[ ${1#-} != $1 ]]; do
+ if [[ ${1#--} = $1 && -n ${1:2} ]]; then
     #short opt with arguments here: fc
-    if [ "${1#-[fc]}" != "${1}" ]; then
+    if [[ ${1#-[fc]} != ${1} ]]; then
        set -- "${1:0:2}" "${1:2}" "${@:2}"
     else
        set -- "${1:0:2}" "-${1:2}" "${@:2}"
@@ -90,21 +84,23 @@ while [ "${1#-}" != "$1" ]; do
  fi
  case $1 in
    -l | --list)
-    #we can not run it directly here SOURCE_WRAPPER is defined later
-    sw_opt="--status"
-    shift ;;
-   --check)
-    #we can not run it directly here SOURCE_WRAPPER is defined later
-    sw_opt="--check"
+    ext_cmd="show_csg_tables"
     shift ;;
    --scriptdir)
-    CSGSCRIPTDIR="$2"
+    scriptdir="$2"
     shift 2;;
    --simprog)
     simprog="$2"
     shift 2;;
-   --xmlfile)
+   --options)
     export CSGXMLFILE="$2"
+    [ -f "$CSGXMLFILE" ] || die "options xml file '$CSGXMLFILE' not found"
+    shift 2;;
+   --sloppy-tables)
+    export VOTCA_TABLES_WITHOUT_FLAG="yes"
+    shift ;;
+   --log)
+    log="$2"
     shift 2;;
    --ia-type)
     export bondtype="$2"
@@ -112,22 +108,24 @@ while [ "${1#-}" != "$1" ]; do
    --ia-name)
     export bondname="$2"
     shift 2;;
-    #direct call hack
    --cat)
     ext_cmd="cat_external"
     shift;;
    --show)
-    ext_cmd="show_external"
+    ext_cmd="source_wrapper"
     shift;;
-   --direct)
-    quiet="yes"
-    break;;
-   -q | --quiet)
-    quiet="yes"
+   --show-share)
+    show_share="yes"
+    shift;;
+   --nocolor)
+    export CSGNOCOLOR="yes"
     shift;;
    -h | --help)
     show_help
     exit 0;;
+   --debug)
+    export CSGDEBUG="yes"
+    shift;; 
    -v | --version)
     echo "${0##*/}, version $version"
     exit 0;;
@@ -136,69 +134,56 @@ while [ "${1#-}" != "$1" ]; do
  esac
 done
 
-[ -z "$2" ] && [ -z "$sw_opt" ] && die "${0##*/}: Missing argument"
-
-if [ -z "${CSGSHARE}" ]; then
+if [[ -z ${VOTCASHARE} ]]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
-    export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
-  elif [ -f "@votcashare@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@votcashare@"
+    export VOTCASHARE="$(cd ${0%/*}/../share/votca;pwd)"
+  elif [ -f "@CMAKE_INSTALL_PREFIX@/@DATA@/scripts/inverse/inverse.sh" ]; then
+    export VOTCASHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
   else
-    echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
-    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
+    echo "Error: Environment value VOTCASHARE is not defined and could not be guessed" >&2
+    echo "Export VOTCASHARE or source VOTCARC.bash or VOTCARC.csh" >&2
     exit 1
   fi
 else
-  if [ ! -f ${CSGSHARE}/scripts/inverse/inverse.sh ]; then
-    echo "Error: Environment value CSGSHARE seems to be wrong" >&2
-    echo "Could not find \${CSGSHARE}/scripts/inverse/inverse.sh" >&2
-    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
+  if [[ ! -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]]; then
+    echo "Error: Environment value VOTCASHARE seems to be wrong" >&2
+    echo "Could not find \${VOTCASHARE}/scripts/inverse/inverse.sh" >&2
+    echo "Export VOTCASHARE or source VOTCARC.bash or VOTCARC.csh" >&2
     exit 1
   fi
 fi
 
-qecho "CSGSHARE is ${CSGSHARE}"
-export CSGINVERSE=$CSGSHARE/scripts/inverse
-export PERL5LIB="$CSGINVERSE:$PERL5LIB"
-[ -d "$CSGINVERSE" ] || die "${0##*/}: CSGINVERSE '$CSGINVERSE' is not a dir"
-
-export SOURCE_WRAPPER=$CSGINVERSE/source_wrapper.pl
-[ -x "$SOURCE_WRAPPER" ] || die "${0##*/}: Could not execute source wrapper"
-
-source $($SOURCE_WRAPPER functions common) || die "$SOURCE_WRAPPER functions common failed"
-
-if [ -n "${CSGXMLFILE}" ]; then
-  CSGSCRIPTDIR="$(csg_get_property --allow-empty cg.inverse.scriptdir)"
-  simprog="$(csg_get_property --allow-empty cg.inverse.program)"
+if [ "$show_share" = "yes" ]; then
+  echo "${VOTCASHARE}"
+  exit 0
 fi
 
-if [ -n "${CSGSCRIPTDIR}" ]; then
-  #scriptdir maybe contains $PWD or something
-  eval CSGSCRIPTDIR=$CSGSCRIPTDIR
-  CSGSCRIPTDIR="$(cd $CSGSCRIPTDIR;pwd)"
-  [ -d "$CSGSCRIPTDIR" ] || die "${0##*/}: CSGSCRIPTDIR '$CSGSCRIPTDIR' is not a dir"
-  qecho "CSGSCRIPTDIR is ${CSGSCRIPTDIR}"
-  export CSGSCRIPTDIR
-  export PERL5LIB="$CSGSCRIPTDIR:$PERL5LIB"
+if [[ -f ${VOTCASHARE}/scripts/inverse/start_framework.sh ]]; then
+  source ${VOTCASHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
+else
+  die "Could not find start_framework.sh"
 fi
 
-if [ -n "${simprog}" ]; then
-  source $($SOURCE_WRAPPER functions $simprog) || die "$SOURCE_WRAPPER functions $simprog failed"
-fi
+[[ -n ${CSGXMLFILE} ]] && scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath "$scriptdir")"
+[[ -n ${scriptpath} ]] && add_to_csgshare "$scriptpath"
 
-if [ -n "$sw_opt" ]; then
-  $SOURCE_WRAPPER $sw_opt
+[[ -n ${CSGXMLFILE} ]] && simprog="$(csg_get_property --allow-empty cg.inverse.program "$simprog")"
+[[ -n ${simprog} ]] && source_function $simprog
+
+if [[ $ext_cmd = show_csg_tables ]]; then
+  $ext_cmd
   exit $?
 fi
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
 
-if [ -n "$ext_cmd" ]; then
+if [[ -n $ext_cmd ]]; then
   $ext_cmd $1 $2
   exit $?
 fi
 
-#help should always work
-if [ "$3" = "--help" ]; then
+#help of scripts should always work and be quiet
+if [[ $3 = --help ]]; then
 cat <<EOF
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
@@ -206,29 +191,13 @@ cat <<EOF
 
 please submit bugs to bugs@votca.org
 
-
-
-
 EOF
-  do_external -q $1 $2 --help | sed "s/%version%/${version}/"
-  exit 0
+  scriptname=$(source_wrapper $1 $2)
+  do_external -q $1 $2 --help | sed -e "s/%version%/${version}/" -e "/^Usage/s@${scriptname##*/}@${0##*/} [OPTIONS] $1 $2@g"
+  exit $?
 fi
 
-needs="$(do_external $1 $2 --help | sed -n 's/^NEEDS: \+\(.*\) *$/\1/p')"
-[ -n "$needs" ] && [ -z "$CSGXMLFILE" ] && die "Script '$1 $2' will need some options ($needs) from the xml file\nPlease specify it with --xmlfile option"
-[ -n "$CSGXMLFILE" ] && [ ! -f "$CSGXMLFILE" ] && die "xmlfile '$CSGXMLFILE' not found"
-
-interaction=""
-
-for i in $needs; do
-  [ -n "${i##cg.*}" ] && interaction="$interaction $i"
-done
-interaction=${interaction# }
-if [ -n "$interaction" ]; then
-  [ -z "${bondtype}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction type with --ia-type option"
-  [ -z "${bondname}" ] && die "Script '$1 $2' will need interaction options ($interaction) from the xml file\nPlease specify the interaction name with --ia-name option"
-fi
-
-export CSGLOG="$(mktemp ${0##*/}.log.XXX)" || die "mktemp failed"
-echo "For details see: $CSGLOG"
+[[ -n ${log} ]] && enable_logging "$log"
+[[ -n $CSGDEBUG ]] && set -x
 do_external $@
+exit $?

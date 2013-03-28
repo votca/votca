@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,22 @@
  *
  */
 
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
+#endif
+
 #include <iostream>
 #include "gmxtopologyreader.h"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#if GMX == 45
+#if GMX == 50
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/typedefs.h>
+        #include <gromacs/legacyheaders/smalloc.h>
+        #include <gromacs/legacyheaders/vec.h>
+        #include <gromacs/legacyheaders/copyrite.h>
+        #include <gromacs/legacyheaders/statutil.h>
+        #include <gromacs/legacyheaders/tpxio.h>
+#elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -56,11 +64,16 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     int natoms;
     // cleanup topology to store new data
     top.Cleanup();
+    set_program_name("VOTCA");
 
-#if GMX == 45
+#if GMX == 50
     t_inputrec ir;
     ::matrix gbox;
 
+    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
+#elif GMX == 45
+    t_inputrec ir;
+    ::matrix gbox;
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #elif GMX == 40
     int sss;   // wtf is this
@@ -78,7 +91,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         throw runtime_error("gromacs topology contains inconsistency in molecule definitons\n\n"
                 "A possible reason is an outdated .tpr file. Please rerun grompp to generate a new tpr file.\n"
                 "If the problem remains or "
-                "you're missing the files to rerun grompp,\ncontact the votca mailing list for a solution.");
+                "you're missing the files to rerun grompp,\n contact the votca mailing list for a solution.");
     }
 
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
@@ -92,7 +105,9 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         t_atoms *atoms=&(mol->atoms);
 
         for(int i=0; i < atoms->nres; i++) {
-#if GMX == 45
+#if GMX == 50
+                top.CreateResidue(*(atoms->resinfo[i].name));
+#elif GMX == 45
                 top.CreateResidue(*(atoms->resinfo[i].name));
 #elif GMX == 40
                 top.CreateResidue(*(atoms->resname[i]));
@@ -101,7 +116,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 #endif
         }
 
-
+        int ifirstatom = 0;
         for(int imol=0; imol<mtop.molblock[iblock].nmol; ++imol) {
             Molecule *mi = top.CreateMolecule(molname);
 
@@ -109,8 +124,19 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
             for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
                 t_atom *a = &(atoms->atom[iatom]);
 
+                // read exclusions
+                t_blocka * excl = &(mol->excls);
+                // insert exclusions
+                list<int> excl_list;
+                for(int k=excl->index[iatom]; k<excl->index[iatom+1]; k++) {
+                    excl_list.push_back(excl->a[k]+ifirstatom);
+                }
+                top.InsertExclusion(iatom+ifirstatom, excl_list);
+
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
-#if GMX == 45
+#if GMX == 50
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+#elif GMX == 45
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
 #elif GMX == 40
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr, a->m, a->q);
@@ -122,6 +148,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 nm << bead->getResnr() + 1 << ":" <<  top.getResidue(res_offset + bead->getResnr())->getName() << ":" << bead->getName();
                 mi->AddBead(bead, nm.str());
             }
+            ifirstatom+=mtop.molblock[iblock].natoms_mol;
         }
     }
 

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 #include <boost/lexical_cast.hpp>
 #include "analysistool.h"
 #include <votca/tools/histogram.h>
-#include "version.h"
+#include <votca/csg/version.h>
 #include "bondedstatistics.h"
 #include "tabulatedpotential.h"
 
@@ -120,7 +120,7 @@ void TabulatedPotential::Help(string cmd, vector<string> &args)
         }
         if(args[1] == "periodic") {
             cout << cmd << "set periodic <value>\n"
-                << "can be 1 for periodic interval (e.g. dihedral) of 0 for "
+                << "can be 1 for periodic interval (e.g. dihedral) or 0 for "
                     "non-periodic (e.g. bond)\n";
             return;
         }
@@ -307,10 +307,10 @@ void TabulatedPotential::Smooth(vector<double> &data, bool bPeriodic)
     }
     size_t i;
     for(i=0; i<data.size()-2; i++) {
-        old[3] = data[i];
+        old[2] = data[i];
         data[i] = (old[0] + 2.*old[1] + 3.*data[i] + 2.*data[i+1] + data[i+2])/9.;
         old[0]=old[1];
-        old[1]=old[3];;
+        old[1]=old[2];;
     }
     if(bPeriodic) {
         data[i] = (old[0] + 2.*old[1] + 3.*data[i] + 2.*data[i+1] + data[0])/9.;
