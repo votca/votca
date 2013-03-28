@@ -50,12 +50,14 @@ public:
    
    bool ReadOrbitals( Orbitals* _orbitals ) {};
    bool ReadOverlap( Orbitals* _orbitals ) {};
-   bool ParseLog( Orbitals* _orbitals ) {};
+   bool ParseLog( Orbitals* _orbitals );
    
    void setScratchDir( string scratch_dir ) { _scratch_dir = scratch_dir; }
    void setRunDir( string run_dir ) { _run_dir = run_dir; }
    void setInputFile( string com_file ) { _com_file_name = com_file; }
    void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
+   void setLogFile( string log_file ) { _log_file_name = log_file; }
+   
    string getScratchDir( ) { return _scratch_dir; }
    
 //protected:
@@ -81,7 +83,10 @@ private:
     string                              _run_dir;
     string                              _scratch_dir;
         
-    string                              _cleanup;    
+    string                              _cleanup;
+    
+    bool                                _get_orbitals;
+    bool                                _get_overlap;
 };
 
 

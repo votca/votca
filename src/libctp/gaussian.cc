@@ -21,7 +21,6 @@
 #include "votca/ctp/segment.h"
 #include <stdio.h>
 #include <iomanip>
-#include <boost/filesystem.hpp>
 #include <sys/stat.h>
 
 using namespace std;
@@ -182,5 +181,41 @@ void Gaussian::CleanUp( string ID ) {
     }
     
 }
+
+
+bool Gaussian::ParseLog( Orbitals* _orbitals ) {
+    
+    string _line;
+    unsigned _basis_size = 0;
+    bool _read_overlap = false;
+    bool _verbose = true;
+    
+    if ( _verbose )  cout << endl << "... ... Parsing " << _com_file_name << endl;
+    
+    ifstream _input_file( _com_file_name.c_str() );
+    if (_input_file.fail()) {
+        throw std::runtime_error("COM file is not found." );
+        return 1;
+    };
+
+    while ( _input_file  ) {
+
+        getline(_input_file, _line);
+        
+        // number of electrons
+        std::string::size_type electrons_pos = _line.find("alpha electrons");
+        if ( electrons_pos != std::string::npos ) cout << _input_file.tellg();
+               
+        // basis set size
+        std::string::size_type basis_pos = _line.find("basis functions");
+        if ( basis_pos != std::string::npos ) cout << _input_file.tellg();
+        
+        // energies of occupied/unoccupied levels
+        std::string::size_type eigenvalues_pos = _line.find("Alpha");
+         if ( eigenvalues_pos != std::string::npos ) cout << _input_file.tellg();
+       
+    }    
+}
+
 
 }}

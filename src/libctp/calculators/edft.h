@@ -130,6 +130,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
    if ( _package == "gaussian" ) { 
         
         string COM_FILE = "mol_" + ID + ".com";
+        string LOG_FILE = DIR + "/mol_" + ID + ".log";
 
         Gaussian _gaussian( &_package_options );
                
@@ -146,7 +147,15 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         } 
         
         _gaussian.WriteInputFile( seg );
-        _gaussian.Run( );
+        
+        // Run the executable
+        //_gaussian.Run( );
+        
+        // Collect the information
+        _gaussian.setLogFile( LOG_FILE );
+        Orbitals _orb;
+        _gaussian.ParseLog( &_orb );
+
         
         // parse the output files and save the information into a single orb file
         string GAUSSIAN_ORB_FILE = DIR + "/fort.7" ;
@@ -156,11 +165,11 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         //boost::archive::binary_oarchive oa( ofs );
         //oa << _orbitals;
         
-        _gaussian.CleanUp( ID );
+        //_gaussian.CleanUp( ID );
         
    }    
    
-    //exit(0);
+    exit(0);
     
     //this->LockCout();
     //cout << "\r... ... Evaluating site " << seg->getId()+1 << flush;   
