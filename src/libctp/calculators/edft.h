@@ -129,12 +129,10 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
  
    if ( _package == "gaussian" ) { 
         
-        string COM_FILE = "mol_" + ID + ".com";
-        string LOG_FILE = DIR + "/mol_" + ID + ".log";
-
         Gaussian _gaussian( &_package_options );
                
         _gaussian.setRunDir( DIR );
+        string COM_FILE = "mol_" + ID + ".com";
         _gaussian.setInputFile( COM_FILE );
 
         // provide a separate scratch dir for every thread
@@ -152,19 +150,25 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         //_gaussian.Run( );
         
         // Collect the information
+        string LOG_FILE = DIR + "/mol_" + ID + ".log";        
         _gaussian.setLogFile( LOG_FILE );
-        Orbitals _orb;
-        _gaussian.ParseLog( &_orb );
-
+        _gaussian.ParseLogFile( &_orbitals );
         
-        // parse the output files and save the information into a single orb file
         string GAUSSIAN_ORB_FILE = DIR + "/fort.7" ;
+        _gaussian.setOrbitalsFile( GAUSSIAN_ORB_FILE );
+        _gaussian.ParseOrbitalsFile( &_orbitals );
+ 
 
-        //_orbitals.ReadOrbitalsGaussian( GAUSSIAN_ORB_FILE.c_str() );
-        //std::ofstream ofs( ORB_FILE.c_str() );
-        //boost::archive::binary_oarchive oa( ofs );
-        //oa << _orbitals;
+        // save orbitals 
+        std::ofstream ofs( ORB_FILE.c_str() );
+        boost::archive::binary_oarchive oa( ofs );
+        oa << _orbitals;
+        ofs.close();
         
+        std::ifstream ifs( ORB_FILE.c_str() );
+        boost::archive::binary_iarchive ia( ifs );
+        ia >> _orbitals;
+        ifs.close();
         //_gaussian.CleanUp( ID );
         
    }    

@@ -20,7 +20,6 @@
 #ifndef __VOTCA_CTP_GAUSSIAN_H
 #define	__VOTCA_CTP_GAUSSIAN_H
 
-#include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
@@ -48,15 +47,15 @@ public:
    bool Run();
    void CleanUp( string ID );
    
-   bool ReadOrbitals( Orbitals* _orbitals ) {};
-   bool ReadOverlap( Orbitals* _orbitals ) {};
-   bool ParseLog( Orbitals* _orbitals );
+   bool ParseLogFile( Orbitals* _orbitals );
+   bool ParseOrbitalsFile( Orbitals* _orbitals );
    
    void setScratchDir( string scratch_dir ) { _scratch_dir = scratch_dir; }
    void setRunDir( string run_dir ) { _run_dir = run_dir; }
    void setInputFile( string com_file ) { _com_file_name = com_file; }
    void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
    void setLogFile( string log_file ) { _log_file_name = log_file; }
+   void setOrbitalsFile( string orb_file ) { _orb_file_name = orb_file; }
    
    string getScratchDir( ) { return _scratch_dir; }
    
@@ -79,6 +78,7 @@ private:
     string                              _log_file_name;
     string                              _xyz_file_name;
     string                              _chk_file_name;
+    string                              _orb_file_name;
     
     string                              _run_dir;
     string                              _scratch_dir;
@@ -87,6 +87,11 @@ private:
     
     bool                                _get_orbitals;
     bool                                _get_overlap;
+    
+    
+   int NumberOfElectrons( string _line );   
+   int BasisSetSize( string _line );   
+   int EnergiesFromLog( string _line, ifstream inputfile ); 
 };
 
 

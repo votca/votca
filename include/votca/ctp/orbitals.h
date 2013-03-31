@@ -22,6 +22,7 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
+#include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 
@@ -66,47 +67,53 @@ public:
    ~Orbitals();
 
     const int     &getBasisSetSize() const;
-    const int     &getNumberOfLevels() const;
+    void           setBasisSetSize( int &basis_set_size );
+    
+    int            getNumberOfLevels();
+    void           setNumberOfLevels( int &occupied_levels, int &unoccupied_levels );
+    
     const int     &getNumberOfElectrons() const;
-        
+    void           setNumberOfElectrons( int &electrons );
+    
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
     
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
     
-    bool ReadOrbitalsGaussian( const char * filename );
-    bool ReadOverlapGaussian( const char * filename );
-    bool ParseGaussianLog( const char * filename );
-    bool Save( const char * filename );
-
+    //bool ReadOrbitalsGaussian( const char * filename );
+    //bool ReadOverlapGaussian( const char * filename );
+    //bool ParseGaussianLog( const char * filename );
     
 protected:
     
     static const double                 _conv_Hrt_eV = 27.21138386;
-    
-    int                                 _basis_set_size;
-    int                                 _occupied_levels;
-    int                                 _unoccupied_levels;
-    int                                 _electrons;
-    
-    bool                                _verbose;
-    
+
     bool                                _has_basis_set_size;
-    bool                                _has_occupied_levels;
-    bool                                _has_unoccupied_levels;
-    bool                                _has_electrons;
-    bool                                _has_degeneracy;
-    bool                                _has_mo_energies;
-    bool                                _has_mo_coefficients;
-    bool                                _has_overlap;
+    int                                     _basis_set_size;   
     
-    std::vector<int>                    _active_levels;
-    std::map<int, std::vector<int> >    _level_degeneracy;
-     
-    ub::vector<double>                  _mo_energies;    
-    ub::matrix<double>                  _mo_coefficients;
-    ub::symmetric_matrix<double>        _overlap;
+    bool                                _has_occupied_levels;
+    int                                     _occupied_levels;
+    
+    bool                                _has_unoccupied_levels;
+    int                                     _unoccupied_levels;
+    
+    bool                                _has_number_of_electrons;
+    int                                     _number_of_electrons;
+    
+    bool                                _has_level_degeneracy;
+    std::map<int, std::vector<int> >        _level_degeneracy;
+    
+    bool                                _has_mo_energies;
+    ub::vector<double>                      _mo_energies; 
+    
+    bool                                _has_mo_coefficients;
+    bool                                _save_mo_coefficients;
+    ub::matrix<double>                      _mo_coefficients;
+    
+    bool                                _has_overlap;
+    bool                                _save_overlap;
+    ub::symmetric_matrix<double>            _overlap;
 
 private:
 
@@ -119,29 +126,50 @@ private:
     // Allow serialization to access non-public data members
     friend class boost::serialization::access;
     
+    //Allow Gaussian object to access non-public data members
+    friend class Gaussian;
+    
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 
     void serialize(Archive& ar, const unsigned version) {
 
-       if ( _verbose ) std::cout << "... ... Serializing the Orbitals." << std::endl ;
-               
+       // std::cout << "... ... Serializing the Orbitals." << std::endl ;
+       bool False = false;
+       
        ar & _has_basis_set_size;
        ar & _has_occupied_levels;
        ar & _has_unoccupied_levels;
-       ar & _has_electrons;
-       ar & _has_degeneracy;
+       ar & _has_number_of_electrons;
+       ar & _has_level_degeneracy;
        ar & _has_mo_energies;
-       ar & _has_mo_coefficients;
-       ar & _has_overlap;
+       if ( _save_mo_coefficients ) { ar & _has_mo_coefficients; } else { ar & False; }     
+       if ( _save_overlap ) { ar & _has_overlap; } else { ar & False; }
 
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
        if ( _has_unoccupied_levels ) { ar & _unoccupied_levels; }
-       if ( _has_electrons ) { ar & _electrons; }
-       if ( _has_degeneracy ) { ar & _level_degeneracy; }
+       if ( _has_number_of_electrons ) { ar & _number_of_electrons; }
+       if ( _has_level_degeneracy ) { ar & _level_degeneracy; }
        if ( _has_mo_energies ) { ar & _mo_energies; }
-       if ( _has_mo_coefficients ) { ar & _mo_coefficients; }
-       //if ( _has_overlap ) { ar & _overlap; }
+       if ( _has_mo_coefficients && _save_mo_coefficients ) { ar & _mo_coefficients; }
+       if ( _has_overlap && _save_overlap ) { 
+           // symmetric matrix does not serialize by default
+            if (Archive::is_saving::value) {
+                unsigned size = _overlap.size1();
+                ar & size;
+             }
+
+            // copy the values back if loading
+            if (Archive::is_loading::value) {
+                unsigned size;
+                ar & size;
+                _overlap.resize(size);
+             }
+            
+           for (unsigned i = 0; i < _overlap.size1(); ++i)
+                for (unsigned j = 0; j <= i; ++j)
+                    ar & _overlap(i, j);       
+       }
        //std::vector<int>      _active_levels;
     }
     

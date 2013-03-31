@@ -37,15 +37,15 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
     ParseOptionsXML( options );
     
-    _orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
-    _orbitalsB.ReadOrbitalsGaussian( _orbitalsB_file.c_str() );
-    _orbitalsAB.ReadOrbitalsGaussian( _orbitalsAB_file.c_str() );
+    //_orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
+    //_orbitalsB.ReadOrbitalsGaussian( _orbitalsB_file.c_str() );
+    //_orbitalsAB.ReadOrbitalsGaussian( _orbitalsAB_file.c_str() );
     
-    _orbitalsA.ParseGaussianLog(_logA_file.c_str());
-    _orbitalsB.ParseGaussianLog(_logB_file.c_str());
-    _orbitalsAB.ParseGaussianLog(_logAB_file.c_str());    
+    //_orbitalsA.ParseGaussianLog(_logA_file.c_str());
+    //_orbitalsB.ParseGaussianLog(_logB_file.c_str());
+    //_orbitalsAB.ParseGaussianLog(_logAB_file.c_str());    
 
-    _orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
+    //_orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
     
     int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
     int HOMO_B = _orbitalsB.getNumberOfElectrons() ;

@@ -19,6 +19,8 @@
 
 #include "votca/ctp/gaussian.h"
 #include "votca/ctp/segment.h"
+#include <votca/tools/globals.h>
+#include <boost/algorithm/string.hpp>
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
@@ -183,39 +185,312 @@ void Gaussian::CleanUp( string ID ) {
 }
 
 
-bool Gaussian::ParseLog( Orbitals* _orbitals ) {
+
+/**
+ * Reads in the MO coefficients from a GAUSSIAN fort.7 file
+ */
+bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
+{
+    std::map <int, std::vector<double> > _coefficients;
+    std::map <int, double> _energies;
     
-    string _line;
+    std::string _line;
+    unsigned _levels = 0;
+    unsigned _level;
     unsigned _basis_size = 0;
-    bool _read_overlap = false;
-    bool _verbose = true;
-    
-    if ( _verbose )  cout << endl << "... ... Parsing " << _com_file_name << endl;
-    
-    ifstream _input_file( _com_file_name.c_str() );
+
+    std::ifstream _input_file( _orb_file_name.c_str() );
     if (_input_file.fail()) {
-        throw std::runtime_error("COM file is not found." );
+        cerr << endl << "File " << _orb_file_name << " with molecular orbitals is not found " << endl;
+        return 1;
+    } else {
+        cout << endl << "... ... Reading molecular orbitals from " << _orb_file_name << endl;
+    }
+
+    // number of coefficients per line is  in the first line of the file (5D15.8)
+    getline(_input_file, _line);
+    std::vector<string> strs;
+    boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
+    //cout << strs.at(1) << endl;
+    int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
+    string format = strs.at(2);
+
+    //cout << endl << "Orbital file " << filename << " has " 
+    //        << nrecords_in_line << " records per line, in D"
+    //        << format << " format." << endl;
+
+    while (_input_file) {
+
+        getline(_input_file, _line);
+        // if a line has an equality sign, must be energy
+        std::string::size_type energy_pos = _line.find("=");
+
+        if (energy_pos != std::string::npos) {
+
+            vector<string> results;
+            boost::trim( _line );
+            
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+                    boost::algorithm::token_compress_on); 
+            //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
+            
+            _level = boost::lexical_cast<int>(results.front());
+            boost::replace_first(results.back(), "D", "e");
+            _energies[ _level ] = boost::lexical_cast<double>( results.back() );            
+            _levels++;
+
+        } else {
+            
+            while (_line.size() > 1) {
+                string _coefficient;
+                _coefficient.assign( _line, 0, 15 );
+                boost::trim( _coefficient );
+                boost::replace_first( _coefficient, "D", "e" );
+                double coefficient = boost::lexical_cast<double>( _coefficient );
+                _coefficients[ _level ].push_back( coefficient );
+                _line.erase(0, 15);
+            }
+        }
+    }
+
+    // some sanity checks
+    cout << "... ... Energy levels: " << _levels << endl;
+
+    std::map< int, vector<double> >::iterator iter = _coefficients.begin();
+    _basis_size = iter->second.size();
+
+    for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
+        if (iter->second.size() != _basis_size) {
+            cerr << "Error reading " << _orb_file_name << ". Basis set size change from level to level.";
+
+        }
+    }
+    cout << "... ... Basis set size: " << _basis_size << endl;
+
+    // copying information to the orbitals object
+    _orbitals->_basis_set_size = _basis_size;
+    _orbitals->_has_basis_set_size = true;
+    _orbitals->_has_mo_coefficients = true;
+    _orbitals->_has_mo_energies = true;
+    
+   // copying energies to a matrix
+   
+   _orbitals->_mo_energies.resize( _levels );
+   _level = 1;
+   for(size_t i=0; i < _orbitals->_mo_energies.size(); i++) {
+         _orbitals->_mo_energies[i] = _energies[ _level++ ];
+   }
+   
+   // copying orbitals to the matrix
+   (_orbitals->_mo_coefficients).resize( _levels, _basis_size );     
+   for(size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
+      for(size_t j = 0 ; j < _orbitals->_mo_coefficients.size2(); j++) {
+         _orbitals->_mo_coefficients(i,j) = _coefficients[i+1][j];
+         //cout << i << " " << j << endl;
+      }
+   }
+
+    
+   //cout << _mo_energies << endl;   
+   //cout << _mo_coefficients << endl; 
+   
+   // cleanup
+   _coefficients.clear();
+   _energies.clear();
+   
+     
+   cout << "... ... Done reading orbital files from " << _orb_file_name << endl;
+
+   return 0;
+}
+
+
+
+/**
+ * Parses the Gaussian Log file and stores data in the Orbitals object 
+ */
+bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
+
+    string _line;
+    vector<string> results;
+    bool _has_occupied_levels = false;
+    bool _has_unoccupied_levels = false;
+    bool _has_number_of_electrons = false;
+    bool _has_basis_set_size = false;
+    bool _has_overlap_matrix = false;
+
+    int _occupied_levels = 0;
+    int _unoccupied_levels = 0;
+    int _number_of_electrons = 0;
+    int _basis_set_size = 0;
+    
+    cout << endl << "... ... Parsing " << _log_file_name << endl;
+
+    ifstream _input_file(_log_file_name.c_str());
+    if (_input_file.fail()) {
+        throw std::runtime_error("LOG file is not found.");
         return 1;
     };
 
-    while ( _input_file  ) {
+    while (_input_file) {
 
         getline(_input_file, _line);
-        
-        // number of electrons
-        std::string::size_type electrons_pos = _line.find("alpha electrons");
-        if ( electrons_pos != std::string::npos ) cout << _input_file.tellg();
-               
-        // basis set size
-        std::string::size_type basis_pos = _line.find("basis functions");
-        if ( basis_pos != std::string::npos ) cout << _input_file.tellg();
-        
-        // energies of occupied/unoccupied levels
-        std::string::size_type eigenvalues_pos = _line.find("Alpha");
-         if ( eigenvalues_pos != std::string::npos ) cout << _input_file.tellg();
-       
-    }    
-}
+        boost::trim(_line);
 
+        /*
+         * number of occupied and virtual orbitals
+         * N alpha electrons      M beta electrons
+         */
+        std::string::size_type electrons_pos = _line.find("alpha electrons");
+        if (electrons_pos != std::string::npos) {
+            boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+            _has_number_of_electrons = true;
+            cout << "... ... Alpha electrons: " << boost::lexical_cast<int>(results.front()) << endl;
+            _orbitals->_number_of_electrons = boost::lexical_cast<int>(results.front()) ;
+            _orbitals->_has_number_of_electrons = true;
+        }
+
+        /*
+         * basis set size
+         * N basis functions,  M primitive gaussians,   K cartesian basis functions
+         */
+        std::string::size_type basis_pos = _line.find("basis functions,");
+        if (basis_pos != std::string::npos) {
+            boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+            _has_basis_set_size = true;
+            _basis_set_size = boost::lexical_cast<int>(results.front());
+            cout << "... ... Basis functions: " << _basis_set_size << endl;
+        }
+
+        /*
+         * energies of occupied/unoccupied levels
+         * Alpha  occ.(virt.) eigenvalues -- e1 e2 e3 e4 e5
+         */
+        std::string::size_type eigenvalues_pos = _line.find("Alpha");
+        if (eigenvalues_pos != std::string::npos) {
+            
+            std::list<std::string> stringList;
+            int _unoccupied_levels = 0;
+            int _occupied_levels = 0;
+
+            while (eigenvalues_pos != std::string::npos && !_has_occupied_levels && !_has_unoccupied_levels) {
+                //cout << _line << endl;
+
+                boost::iter_split(stringList, _line, boost::first_finder("--"));
+
+                vector<string> energies;
+                boost::trim(stringList.back());
+
+                boost::algorithm::split(energies, stringList.back(), boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+
+                if (stringList.front().find("virt.") != std::string::npos) {
+                    _unoccupied_levels += energies.size();
+                    energies.clear();
+                }
+
+                if (stringList.front().find("occ.") != std::string::npos) {
+                    _occupied_levels += energies.size();
+                    energies.clear();
+                }
+
+                getline(_input_file, _line);
+                eigenvalues_pos = _line.find("Alpha");
+                boost::trim(_line);
+
+                //boost::iter_split(stringList, _line, boost::first_finder("--"));
+
+                if (eigenvalues_pos == std::string::npos) {
+                    _has_occupied_levels = true;
+                    _has_unoccupied_levels = true;
+                    cout << "... ... Occupied levels: " << _occupied_levels << endl;
+                    cout << "... ... Unoccupied levels: " << _unoccupied_levels << endl;
+                }
+            } // end of the while loop              
+        } // end of the eigenvalue parsing
+        
+ 
+         /*
+         * overlap matrix
+         * stored after the *** Overlap *** line
+         */
+        std::string::size_type overlap_pos = _line.find("Overlap");
+        if (overlap_pos != std::string::npos ) {
+            
+            // prepare the container
+            _orbitals->_has_overlap = true;
+            (_orbitals->_overlap).resize( _basis_set_size );
+            
+            _has_overlap_matrix = true;
+            //cout << "Found the overlap matrix!" << endl;   
+            vector<int> _j_indeces;
+            
+            int _n_blocks = 1 + (( _basis_set_size - 1 ) / 5);
+            //cout << _n_blocks;
+            
+            getline(_input_file, _line); boost::trim( _line );
+
+            for (int _block = 0; _block < _n_blocks; _block++ ) {
+                
+                // first line gives the j index in the matrix
+                //cout << _line << endl;
+                
+                boost::tokenizer<> tok( _line );
+                std::transform( tok.begin(), tok.end(), std::back_inserter( _j_indeces ), &boost::lexical_cast<int,std::string> );
+                //std::copy( _j_indeces.begin(), _j_indeces.end(), std::ostream_iterator<int>(std::cout,"\n") );
+            
+                // read the block of max _basis_size lines + the following header
+                for (int i = 0; i <= _basis_set_size; i++ ) {
+                    getline (_input_file, _line); 
+                    //cout << _line << endl;
+                    if ( std::string::npos == _line.find("D") ) break;
+                    
+                    // split the line on the i index and the rest
+                    
+                    vector<string> _row;
+                    boost::trim( _line );
+                    boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
+                   
+                            
+                    int _i_index = boost::lexical_cast<int>(  _row.front()  ); 
+                    _row.erase( _row.begin() );
+                    
+                    //cout << _i_index << ":" << _line << endl ;
+                    
+                    std::vector<int>::iterator _j_iter = _j_indeces.begin();
+                    
+                    for (std::vector<string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
+                        string  _coefficient = *iter;
+                       
+                        boost::replace_first( _coefficient, "D", "e" );
+                        //cout << boost::lexical_cast<double>( _coefficient ) << endl;
+                        
+                        int _j_index = *_j_iter;                                
+                        //_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
+                        _orbitals->_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
+                        _j_iter++;
+                        
+                    }
+ 
+                    
+                }
+                
+                // clear the index for the next block
+                _j_indeces.clear();        
+            } // end of the blocks
+            cout << "... ... Read the overlap matrix" << endl;
+        } // end of the if "Overlap" found   
+
+        
+        // check if all information has been accumulated
+        if ( _has_number_of_electrons && 
+             _has_basis_set_size && 
+             _has_occupied_levels && 
+             _has_unoccupied_levels &&
+             _has_overlap_matrix
+           ) break;
+        
+    } // end of reading the file line-by-line
+    cout << "... ... Done parsing " << _log_file_name << endl;
+}
 
 }}
