@@ -168,7 +168,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         
         std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
         boost::archive::binary_iarchive ia( ifs );
-        ia >> _orbitals;
+        //ia >> _orbitals;
         ifs.close();
         //_gaussian.CleanUp( ID );
         

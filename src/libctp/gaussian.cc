@@ -413,7 +413,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
          * overlap matrix
          * stored after the *** Overlap *** line
          */
-        std::string::size_type overlap_pos = _line.find("Overlap");
+        std::string::size_type overlap_pos = _line.find("*** Overlap ***");
         if (overlap_pos != std::string::npos ) {
             
             // prepare the container
