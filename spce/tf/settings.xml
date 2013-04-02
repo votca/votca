@@ -28,6 +28,10 @@
 	<spline_end>3.6</spline_end>
 	<spline_step>0.4</spline_step>
 	<molname>SOL</molname>
+	<!-- The CG water model has a 5x higher compressibility
+	     compared to all-atom .
+	     We are using this to calculate 
+	     the prefactor m_mol/kappa_T/rho^2 to avoid instabilities(units: nm^3/mol/u).-->
 	<prefactor>0.01382</prefactor>
 	<!-- also cg_prefactor is possible -->
     </tf>
