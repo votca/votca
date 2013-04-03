@@ -41,8 +41,6 @@ Gaussian::Gaussian( tools::Property *opt ) {
     }
     
     _executable =       opt->get(key + ".executable").as<string> ();
-    _functional =       opt->get(key + ".functional").as<string> ();
-    _basis_set =        opt->get(key + ".basisset").as<string> ();
     _charge =           opt->get(key + ".charge").as<int> ();
     _spin =             opt->get(key + ".spin").as<int> ();
     _options =          opt->get(key + ".options").as<string> ();
@@ -86,11 +84,7 @@ bool Gaussian::WriteInputFile( Segment *seg ) {
     if ( _threads != 0 ) {
          _com_file << "%nprocshared = "  << _threads << endl;
     }
-    
-    if ( _functional.size() != 0 and _basis_set.size() != 0 ) {
-        _com_file <<  "# " <<  _functional << "/" <<  _basis_set;
-    }
-    
+        
     if ( _options.size() != 0 ) {
         _com_file <<  "  " << _options << endl ;
     }

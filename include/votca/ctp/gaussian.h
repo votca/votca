@@ -63,8 +63,6 @@ public:
              
 private:  
     
-    string                              _functional;
-    string                              _basis_set;
     int                                 _charge;
     int                                 _spin; // 2S+1
     string                              _options;

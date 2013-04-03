@@ -19,7 +19,6 @@
 
 
 #include "idft.h"
-#include "votca/ctp/qmcalculator.h"
 #include <votca/ctp/eigenvalues.h>
 
 
@@ -407,6 +406,10 @@ double IDFT::getCouplingElement( int levelA, int levelB ) {
     }
     // the  matrix should be symmetric, could also return this element
     // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
+}
+ 
+void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
+    cout << "evaluating" << endl;
 }
     
 /*

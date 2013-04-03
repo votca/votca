@@ -22,7 +22,7 @@
 #define	_CALC_INTEGRALS_H
 
 #include <votca/ctp/qmpair.h>
-#include <votca/ctp/paircalculator.h>
+#include <votca/ctp/parallelpaircalc.h>
 #include <votca/moo/mol_and_orb.h>
 
 namespace votca { namespace ctp {
@@ -33,7 +33,7 @@ namespace MOO = votca::moo;
 * \brief Semi-empirical electronic coupling elements for QM pairs
 *
 * Semi-empirical (ZINDO) electronic coupling elements for all conjugated
-* segments from the neighbout list. Requires molecular orbitals in GAUSSIAN
+* segments from the neighbour list. Requires molecular orbitals in GAUSSIAN
 * format.
 *
 * Callname: izindo

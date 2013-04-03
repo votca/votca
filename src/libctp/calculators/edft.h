@@ -152,8 +152,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         // Run the executable
         _gaussian.Run( );
         
-        // Collect information
-       
+        // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
         _gaussian.ParseLogFile( &_orbitals );
         
@@ -166,23 +165,14 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         oa << _orbitals;
         ofs.close();
         
-        std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
-        boost::archive::binary_iarchive ia( ifs );
+        //std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
+        //boost::archive::binary_iarchive ia( ifs );
         //ia >> _orbitals;
-        ifs.close();
-        //_gaussian.CleanUp( ID );
+        //ifs.close();
+        _gaussian.CleanUp( ID );
         
    }    
    
-    //exit(0);
-    
-    //this->LockCout();
-    //cout << "\r... ... Evaluating site " << seg->getId()+1 << flush;   
-    //string SiteName = seg->getName();
-    //cout << "... ... ... Site name " << SiteName << endl; 
-    //cout << "... ... ... slot " << slot << endl;    
-    //this->UnlockCout();
-
 }
 
 }}

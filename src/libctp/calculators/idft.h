@@ -21,7 +21,7 @@
 #ifndef _CALC_INTEGRALS_DFT_H
 #define	_CALC_INTEGRALS_DFT_H
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/parallelpaircalc.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/tools/property.h>
 #include <boost/numeric/ublas/io.hpp>
@@ -40,7 +40,7 @@ namespace votca { namespace ctp {
 * Callname: idft
 */
 
-class IDFT : public QMCalculator
+class IDFT : public ParallelPairCalculator
 {
 public:
 
@@ -53,6 +53,7 @@ public:
     string  Identify() { return "IDFT"; }
     
     double getCouplingElement( int level1, int level2 );   
+    void EvalPair(Topology *top, QMPair *qmpair, int slot);
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
