@@ -114,6 +114,9 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
 
 
     FILE *out;
+    vector < Segment* > segments;
+    segments.push_back( seg );
+    
     _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
     mkdir(_outParent.c_str(), 0755);
 
@@ -147,7 +150,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
           _gaussian.WriteShellScript ();
         } 
         
-        _gaussian.WriteInputFile( seg );
+        _gaussian.WriteInputFile( segments );
         
         // Run the executable
         _gaussian.Run( );
@@ -164,12 +167,19 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         boost::archive::binary_oarchive oa( ofs );
         oa << _orbitals;
         ofs.close();
-        
+       
+        //Orbitals _orbitals_new;
         //std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
-        //boost::archive::binary_iarchive ia( ifs );
-        //ia >> _orbitals;
+        //boost::archive::text_iarchive ia( ifs );
+        //ia >> _orbitals_new;
         //ifs.close();
+
+        //cout << "ELECTRONS " << _orbitals_new.getNumberOfElectrons() << endl ;
+        //cout << "BASIS SIZE " << _orbitals_new.getBasisSetSize() << endl ;
+ 
         _gaussian.CleanUp( ID );
+
+        //exit(0);
         
    }    
    

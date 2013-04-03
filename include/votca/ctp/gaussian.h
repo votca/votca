@@ -42,7 +42,7 @@ public:
     Gaussian( tools::Property *opt );
    ~Gaussian();
 
-   bool WriteInputFile( Segment *seg );
+   bool WriteInputFile( vector< Segment* > segments );
    bool WriteShellScript();
    bool Run();
    void CleanUp( string ID );

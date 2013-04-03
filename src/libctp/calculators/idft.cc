@@ -35,25 +35,6 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     _has_degeneracy = false;
     
     ParseOptionsXML( options );
-    
-    //_orbitalsA.ReadOrbitalsGaussian( _orbitalsA_file.c_str() );
-    //_orbitalsB.ReadOrbitalsGaussian( _orbitalsB_file.c_str() );
-    //_orbitalsAB.ReadOrbitalsGaussian( _orbitalsAB_file.c_str() );
-    
-    //_orbitalsA.ParseGaussianLog(_logA_file.c_str());
-    //_orbitalsB.ParseGaussianLog(_logB_file.c_str());
-    //_orbitalsAB.ParseGaussianLog(_logAB_file.c_str());    
-
-    //_orbitalsAB.ReadOverlapGaussian( _logAB_file.c_str() );
-    
-    int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
-    int HOMO_B = _orbitalsB.getNumberOfElectrons() ;
-    
-    int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
-    int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
-    
-    cout << getCouplingElement( HOMO_A , HOMO_B ) << endl; 
-    cout << getCouplingElement( LUMO_A , LUMO_B ) << endl; 
 
 }
 
@@ -70,79 +51,15 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     else {
         cout << "....not treating degenerate orbitals" << endl ;
     }    
-    
-    // Molecule A
-    key = "options.idft.moleculeA.orbitals";
 
-    //cout << key + ".orbitals" << endl;
-    
-    if ( opt->exists( key + ".file" ) ) {
-        _orbitalsA_file = opt->get( key + ".file" ).as< string > ();
-    }
-    else {
-        throw std::runtime_error("Error in options: molecule A orbitals filename is missing.");
-    }
-    
-    if ( opt->exists( key + ".occupied" ) ) {
-        _max_occupied_levels = opt->get( key + ".occupied" ).as< int > ();
-    }
-    else {
-        throw std::runtime_error("Maximum of occupied levels for molecule A is not provided");
-    }
-    
-    key = "options.idft.moleculeA";
+    string _package_xml = opt->get(key+".package").as<string> ();
+    cout << endl << "... ... Parsing " << _package_xml << endl ;
 
-    if ( opt->exists( key + ".log" ) ) {
-        _logA_file = opt->get( key + ".log" ).as< string > ();
-    }
-    else {
-        throw std::runtime_error("Error in options: molecule A log filename is missing.");
-    }
+    load_property_from_xml( _package_options, _package_xml.c_str() );    
     
-    // Molecule B
-    key = "options.idft.moleculeB.orbitals";
+    key = "package";
+    _package = _package_options.get(key+".name").as<string> ();
 
-    if ( opt->exists( key+".file" ) ) {
-        _orbitalsB_file = opt->get( key + ".file" ).as< string > ();
-    }
-    else {
-        throw std::runtime_error("Error in options: molecule B orbitals filename is missing.");
-    }
-
-
-    if ( opt->exists( key + ".occupied" ) ) {
-        _max_occupied_levels = opt->get( key + ".occupied" ).as< int > ();
-    }
-    else {
-        throw std::runtime_error("Maximum of occupied levels for molecule B is not provided");
-    }
-
-    key = "options.idft.moleculeB.";
-    
-    if ( opt->exists( key + ".log" ) ) {
-        _logB_file = opt->get( key + ".log" ).as< string > ();
-    }
-    else {
-        throw std::runtime_error("Error in options: molecule B log filename is missing.");
-    }
-    
-    // Dimer 
-    key = "options.idft.moleculeAB.orbitals";
-    
-    if ( opt->exists(key + ".file") ) {
-        _orbitalsAB_file = opt->get(key + ".file").as< string > ();
-    }
-    else {
-        throw std::runtime_error("Error in options: dimer orbitals filename is missing.");
-    }
-    
-    key = "options.idft.moleculeAB";
-    if ( opt->exists( key + ".log") ) {
-        _logAB_file = opt->get(key + ".log").as< string > ();
-    }
-    else {
-        throw std::runtime_error("Error in options: dimer log filename is missing.");
-    }    
     
     /* --- ORBITALS.XML Structure ---
      * <options>
@@ -409,13 +326,105 @@ double IDFT::getCouplingElement( int levelA, int levelB ) {
 }
  
 void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
-    cout << "evaluating" << endl;
-}
+
+    FILE *out;
+    vector < Segment* > segments;
+    segments.push_back( qmpair->Seg1() );
+    segments.push_back( qmpair->Seg2() );
     
-/*
-void IDFT::CleanUp() {
+    _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
+    mkdir(_outParent.c_str(), 0755);
+
+    string ID   = boost::lexical_cast<string>( qmpair->getId() );
+    string fileName = "pair_" + ID;
+    string DIR  = _outParent + "/" + "pair_" + ID;
+    string XYZ_FILE = fileName + ".xyz";
+    string ORB_FILE = fileName + ".orb";
+    string COM_FILE = fileName + ".com";
+    string LOG_FILE = fileName + ".log"; 
+    string SHL_FILE = fileName + ".sh";
+    string GAUSSIAN_ORB_FILE = "fort.7" ;
+        
+    mkdir(DIR.c_str(), 0755);        
+    out = fopen((DIR + "/" + XYZ_FILE).c_str(),"w");
+    qmpair->WriteXYZ(out);
+    fclose(out);
+ 
+   if ( _package == "gaussian" ) { 
+        
+        Gaussian _gaussian( &_package_options );
+               
+        _gaussian.setRunDir( DIR );
+        _gaussian.setInputFile( COM_FILE );
+
+        // provide a separate scratch dir for every thread
+        if ( ( _gaussian.getScratchDir() ).size() != 0 ) {
+          _gaussian.setShellFile( SHL_FILE );
+           string SCR_DIR  = _gaussian.getScratchDir() + "/pair_" + ID;
+          _gaussian.setScratchDir( SCR_DIR );
+          _gaussian.WriteShellScript ();
+        } 
+        
+        _gaussian.WriteInputFile( segments );
+        
+        // Run the executable
+        //_gaussian.Run( );
+        
+        // Collect information     
+        _gaussian.setLogFile( DIR + "/" + LOG_FILE );
+        _gaussian.ParseLogFile( &_orbitalsAB );
+        
+        _gaussian.setOrbitalsFile( DIR + "/" + GAUSSIAN_ORB_FILE );
+        _gaussian.ParseOrbitalsFile( &_orbitalsAB );
+ 
+        // save orbitals 
+        std::ofstream ofs( (DIR + "/" + ORB_FILE).c_str() );
+        boost::archive::binary_oarchive oa( ofs );
+        oa << _orbitalsAB;
+        ofs.close();
+        
+        _gaussian.CleanUp( ID );
+        
+   }      
+
+    // get the overlap integral 
+    string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
+    string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
+    
+    string ORB_FILE_A = "mol_" + ID_A + ".orb";
+    string ORB_FILE_B = "mol_" + ID_B + ".orb";
+    
+   
+    DIR  = _outParent + "/" + "mol_" + ID_A;
+    //cout << DIR +"/" + ORB_FILE_A << endl;
+    std::ifstream ifs_A( (DIR +"/" + ORB_FILE_A).c_str() );
+    boost::archive::binary_iarchive ia_A( ifs_A );
+    ia_A >> _orbitalsA;
+    ifs_A.close();
+    //cout << "BASIS SIZE A" << _orbitalsA.getBasisSetSize() << endl;
+ 
+    DIR  = _outParent + "/" + "mol_" + ID_B;
+    //cout << DIR +"/" + ORB_FILE_B << endl;
+    std::ifstream ifs_B( (DIR +"/" + ORB_FILE_B).c_str() );
+    boost::archive::binary_iarchive ia_B( ifs_B );
+    ia_B >> _orbitalsB;
+    ifs_B.close();
+    //cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize() << endl;
+    
+    int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
+    int HOMO_B = _orbitalsB.getNumberOfElectrons() ;
+    
+    int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
+    int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
+    
+    cout << getCouplingElement( HOMO_A , HOMO_B ) << endl; 
+    cout << getCouplingElement( LUMO_A , LUMO_B ) << endl; 
+
+    exit(0);
+
 
 }
-*/
+
+    
 
 }};

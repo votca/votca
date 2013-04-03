@@ -58,14 +58,13 @@ Gaussian::~Gaussian() {
 /**
  * Prepares the com file from a vector of segments
  */
-bool Gaussian::WriteInputFile( Segment *seg ) {
-
-    vector< Atom* > ::iterator ait;
-
-    int qmatoms = 0;
+bool Gaussian::WriteInputFile( vector<Segment* > segments ) {
 
     vector< Atom* > _atoms;
-    _atoms  = seg-> Atoms();
+    vector< Atom* > ::iterator ait;
+    vector< Segment* >::iterator sit; 
+    
+    int qmatoms = 0;
 
     ofstream _com_file;
     
@@ -86,25 +85,34 @@ bool Gaussian::WriteInputFile( Segment *seg ) {
     }
         
     if ( _options.size() != 0 ) {
-        _com_file <<  "  " << _options << endl ;
+        _com_file <<  _options << endl ;
     }
     
-    _com_file << endl << seg->getName() << endl << endl;
+    _com_file << endl;
+    for (sit = segments.begin() ; sit != segments.end(); ++sit) {
+        _com_file << (*sit)->getName() << " ";
+    }
+    _com_file << endl << endl;
+      
     _com_file << setw(2) << _charge << setw(2) << _spin << endl;
-    
-    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
-        if ((*ait)->HasQMPart() == false) { continue; }
+    for (sit = segments.begin() ; sit != segments.end(); ++sit) {
+        _atoms = (*sit)-> Atoms();
 
-        vec     pos = (*ait)->getQMPos();
-        string  name = (*ait)->getElement();
+        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
-        //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
-        _com_file << setw(3) << name.c_str() 
-                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()*10
-                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()*10
-                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()*10 
-                  << endl;
+            if ((*ait)->HasQMPart() == false) { continue; }
+
+            vec     pos = (*ait)->getQMPos();
+            string  name = (*ait)->getElement();
+
+            //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
+            _com_file << setw(3) << name.c_str() 
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()*10
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()*10
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()*10 
+                      << endl;
+        }
     }
     
     _com_file << endl;
@@ -339,9 +347,10 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         if (electrons_pos != std::string::npos) {
             boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
             _has_number_of_electrons = true;
-            cout << "... ... Alpha electrons: " << boost::lexical_cast<int>(results.front()) << endl;
-            _orbitals->_number_of_electrons = boost::lexical_cast<int>(results.front()) ;
+            _number_of_electrons =  boost::lexical_cast<int>(results.front()) ;
+            _orbitals->_number_of_electrons = _number_of_electrons ;
             _orbitals->_has_number_of_electrons = true;
+            cout << "... ... Alpha electrons: " << _number_of_electrons << endl ;
         }
 
         /*
@@ -353,6 +362,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
             _has_basis_set_size = true;
             _basis_set_size = boost::lexical_cast<int>(results.front());
+            _orbitals->_basis_set_size = _basis_set_size ;
+            _orbitals->_has_basis_set_size = true;
             cout << "... ... Basis functions: " << _basis_set_size << endl;
         }
 
@@ -396,6 +407,10 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 if (eigenvalues_pos == std::string::npos) {
                     _has_occupied_levels = true;
                     _has_unoccupied_levels = true;
+                    _orbitals->_occupied_levels = _occupied_levels;
+                    _orbitals->_unoccupied_levels = _unoccupied_levels;
+                    _orbitals->_has_occupied_levels = true;
+                    _orbitals->_has_unoccupied_levels = true;
                     cout << "... ... Occupied levels: " << _occupied_levels << endl;
                     cout << "... ... Unoccupied levels: " << _unoccupied_levels << endl;
                 }

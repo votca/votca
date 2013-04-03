@@ -23,10 +23,12 @@
 
 #include <votca/ctp/parallelpaircalc.h>
 #include <votca/ctp/orbitals.h>
+#include <votca/ctp/gaussian.h>
 #include <votca/tools/property.h>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/banded.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <sys/stat.h>
 
 namespace votca { namespace ctp {
     
@@ -69,6 +71,9 @@ private:
     
     int                 _max_occupied_levels;
     int                 _max_unoccupied_levels;
+
+    string              _package;
+    Property            _package_options; 
     
     double              _energy_difference;    
     
@@ -76,10 +81,8 @@ private:
     string              _orbitalsB_file;
     string              _orbitalsAB_file;
     
-    string              _logA_file;
-    string              _logB_file;
-    string              _logAB_file;
-    
+    string              _outParent;
+        
     Orbitals            _orbitalsA;
     Orbitals            _orbitalsB;
     Orbitals            _orbitalsAB;
