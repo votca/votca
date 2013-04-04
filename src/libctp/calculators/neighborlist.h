@@ -235,15 +235,15 @@ void Neighborlist::GenerateFromFile(Topology *top, string filename) {
             int seg1id          = boost::lexical_cast<int>(split[1]);
             int seg2id          = boost::lexical_cast<int>(split[2]);
             
+            Segment* seg1 = top->getSegment(seg1id);
+            Segment* seg2 = top->getSegment(seg2id);
+            
             if (not _generate_unsafe) {
                 string seg1name     = boost::lexical_cast<string>(split[7]);
                 string seg2name     = boost::lexical_cast<string>(split[8]);
                 assert(seg1->getName() == seg1name);
                 assert(seg2->getName() == seg2name);
-            }
-            
-            Segment* seg1 = top->getSegment(seg1id);
-            Segment* seg2 = top->getSegment(seg2id);              
+            }        
             
             QMPair* pair12 = top->NBList().Add(seg1,seg2);
             
