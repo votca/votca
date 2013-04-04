@@ -50,6 +50,7 @@ private:
     double                            _constantCutoff;
     string                            _generate_from;
     bool                              _generate_from_file;
+    bool                              _generate_unsafe;
 
 };
     
@@ -97,6 +98,12 @@ void Neighborlist::Initialize(Topology* top, Property *options) {
     else {
         _generate_from_file = false;
         _generate_from = "nofile";
+    }
+    if (options->exists(key+".generate_unsafe")) {
+        _generate_unsafe = true;
+    }
+    else {
+        _generate_unsafe = false;
     }
     
 }
@@ -208,6 +215,10 @@ void Neighborlist::GenerateFromFile(Topology *top, string filename) {
     std::string line;
     std::ifstream intt;
     intt.open(filename.c_str());
+    
+    if (_generate_unsafe) {
+        cout << endl << "... ... Generate unsafe = true ..." << flush;
+    }
 
     if (intt.is_open() ) {
         while ( intt.good() ) {
@@ -223,16 +234,16 @@ void Neighborlist::GenerateFromFile(Topology *top, string filename) {
             
             int seg1id          = boost::lexical_cast<int>(split[1]);
             int seg2id          = boost::lexical_cast<int>(split[2]);
-            string seg1name     = boost::lexical_cast<string>(split[7]);
-            string seg2name     = boost::lexical_cast<string>(split[8]);
-            double j2           = boost::lexical_cast<double>(split[3]);
+            
+            if (not _generate_unsafe) {
+                string seg1name     = boost::lexical_cast<string>(split[7]);
+                string seg2name     = boost::lexical_cast<string>(split[8]);
+                assert(seg1->getName() == seg1name);
+                assert(seg2->getName() == seg2name);
+            }
             
             Segment* seg1 = top->getSegment(seg1id);
-            Segment* seg2 = top->getSegment(seg2id);
-            
-            
-            assert(seg1->getName() == seg1name);
-            assert(seg2->getName() == seg2name);
+            Segment* seg2 = top->getSegment(seg2id);              
             
             QMPair* pair12 = top->NBList().Add(seg1,seg2);
             
