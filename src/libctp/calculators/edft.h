@@ -65,8 +65,7 @@ private:
     
     string _package;
     Property _package_options;    
-    
-    Orbitals _orbitals;
+
 };
 
 void EDFT::CleanUp() {
@@ -114,7 +113,9 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
 
 
     FILE *out;
+    Orbitals _orbitals;
     vector < Segment* > segments;
+    
     segments.push_back( seg );
     
     _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());

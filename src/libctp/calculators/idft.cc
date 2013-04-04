@@ -31,7 +31,6 @@ namespace votca { namespace ctp {
 
 void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
-    _has_integrals = false;
     _has_degeneracy = false;
     
     ParseOptionsXML( options );
@@ -49,7 +48,7 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
         _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     }
     else {
-        cout << "....not treating degenerate orbitals" << endl ;
+        cout << "... ... NOT treating degenerate orbitals" << endl ;
     }    
 
     string _package_xml = opt->get(key+".package").as<string> ();
@@ -96,7 +95,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
 
     int _size = S.size1(); 
 
-    cout << "....calculating SQRT of the " << _size << "x" << _size  << " overlap matrix" << endl;
+    cout << "... ... Calculating SQRT of the " << _size << "x" << _size  << " overlap matrix" << endl;
 
     _eigenvalues.resize( _size );
     _eigenvectors.resize( _size, _size ); 
@@ -138,7 +137,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
     
     EigenvaluesSymmetric(S, _eigenvalues, _eigenvectors);
-    cout << "....eigenvalue problem solved " << endl;
+    cout << "... ... Eigenvalue problem solved " << endl;
     
     //cout << "eigenvalues" << _eigenvalues << endl;
     //cout << _eigenvectors << endl;     
@@ -154,7 +153,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
     // multiply from the right on the transpose U
     S2 = ub::prod( _temp, ub::trans( _eigenvectors ) );
-    cout << "....projection matrix constructed  " << endl;
+    cout << "... ... Projection matrix constructed  " << endl;
        
 
 
@@ -165,12 +164,12 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     //cout << "S2: " << S2 << endl;
     //cout << "Overlap: " << _overlap << endl;
     
-    cout << "....done with the sqrt of a matrix" << endl;
+    cout << "... ... Done with the sqrt of the overlap matrix" << endl;
     
     
  }
 
-void IDFT::CalculateIntegrals() {
+void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, ub::matrix<double>* _JAB ) {
             
     /* test case
     ub::matrix<double> _monomersAB (4, 5);
@@ -194,17 +193,17 @@ void IDFT::CalculateIntegrals() {
     std::cout << _monomersAB << std::endl;
     */
     
-    cout << endl << "..calculating electronic couplings " << endl;
+    cout << endl << "... ... Calculating electronic couplings " << endl;
     
     // constructing the direct product orbA x orbB
-    int _basisA = _orbitalsA.getBasisSetSize();
-    int _basisB = _orbitalsB.getBasisSetSize();
+    int _basisA = _orbitalsA->getBasisSetSize();
+    int _basisB = _orbitalsB->getBasisSetSize();
     
     
-    cout << "....basis [molA:molB] " << _basisA << ":" << _basisB << endl;
+    cout << "... ... Basis [molA:molB] " << _basisA << ":" << _basisB << endl;
     
-    int _levelsA = _orbitalsA.getNumberOfLevels();
-    int _levelsB = _orbitalsB.getNumberOfLevels();
+    int _levelsA = _orbitalsA->getNumberOfLevels();
+    int _levelsB = _orbitalsB->getNumberOfLevels();
     
     ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
@@ -218,15 +217,15 @@ void IDFT::CalculateIntegrals() {
     //       | 0 B |  //      
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
-    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA.getOrbitals();
-    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB.getOrbitals();    
+    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
+    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();    
     //cout << "_psi_AxB: " << _psi_AxB << endl;
     
     // Fock matrix of a dimer   
-    ub::diagonal_matrix<double> _fock_AB( _orbitalsAB.getNumberOfLevels(), (*_orbitalsAB.getEnergies()).data() ); 
+    ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), (*_orbitalsAB->getEnergies()).data() ); 
 
     // psi_AxB * S_AB * psi_AB
-    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB.getOverlap(), ub::trans( *_orbitalsAB.getOrbitals() ) );          
+    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), ub::trans( *_orbitalsAB->getOrbitals() ) );          
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
     _psi_AB.clear();
    
@@ -275,9 +274,10 @@ void IDFT::CalculateIntegrals() {
     SQRTOverlap( _S_AxB , _S_AxB_2 );        
     _S_AxB.clear(); 
      
-    cout << "....calculating the effective overlap"<< endl;
+    cout << "... ... Calculating the effective overlap"<< endl;
     ub::matrix<double> JAB_temp = prod( JAB_dimer, _S_AxB_2 );
-    _JAB = ub::prod( _S_AxB_2, JAB_temp );
+        
+    (*_JAB) = ub::prod( _S_AxB_2, JAB_temp );
     
     // cleanup
     JAB_dimer.clear(); JAB_temp.clear(); _S_AxB_2.clear();
@@ -285,33 +285,29 @@ void IDFT::CalculateIntegrals() {
     //cout << JAB << endl;
     
     //cout << _S_AxB << endl;
-    _has_integrals = true;
-    cout << "..done calculating electronic couplings"<< endl;
+    //_has_integrals = true;
+    cout << "... ... Done calculating electronic couplings"<< endl;
        
     //cout << JAB_dimer.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
     //cout << JAB_dimer.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
 
 }
 
-double IDFT::getCouplingElement( int levelA, int levelB ) {
+double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, Orbitals* _orbitalsB, ub::matrix<double>* _JAB  ) {
     
-    int _levelsA = _orbitalsA.getNumberOfLevels();
-    int _levelsB = _orbitalsB.getNumberOfLevels();
-    
-    if ( !_has_integrals ) {
-         CalculateIntegrals();       
-    }
+    int _levelsA = _orbitalsA->getNumberOfLevels();
+    int _levelsB = _orbitalsB->getNumberOfLevels();
     
     if ( _has_degeneracy ) {
-        std::vector<int> list_levelsA = *_orbitalsA.getDegeneracy( levelA, _energy_difference );
-        std::vector<int> list_levelsB = *_orbitalsA.getDegeneracy( levelB, _energy_difference );
+        std::vector<int> list_levelsA = *_orbitalsA->getDegeneracy( levelA, _energy_difference );
+        std::vector<int> list_levelsB = *_orbitalsA->getDegeneracy( levelB, _energy_difference );
         
         double _JAB_sq = 0; double _JAB_one_level;
         
         for (std::vector<int>::iterator iA = list_levelsA.begin()++; iA != list_levelsA.end(); iA++) {
                 for (std::vector<int>::iterator iB = list_levelsB.begin()++; iB != list_levelsB.end(); iB++) { 
                     //cout << *iA << ':' << *iB << endl;
-                    _JAB_one_level = _JAB.at_element( *iA - 1  , *iB -1 + _levelsA );
+                    _JAB_one_level = _JAB->at_element( *iA - 1  , *iB -1 + _levelsA );
                     _JAB_sq +=  _JAB_one_level*_JAB_one_level ;
                 }
         }
@@ -319,7 +315,7 @@ double IDFT::getCouplingElement( int levelA, int levelB ) {
         return sqrt(_JAB_sq / ( list_levelsA.size() * list_levelsB.size() ) ) * _conv_Hrt_eV ;
         
     } else {
-        return _JAB.at_element( levelA - 1  , levelB -1 + _levelsA ) * _conv_Hrt_eV;
+        return _JAB->at_element( levelA - 1  , levelB -1 + _levelsA ) * _conv_Hrt_eV;
     }
     // the  matrix should be symmetric, could also return this element
     // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
@@ -331,6 +327,13 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     vector < Segment* > segments;
     segments.push_back( qmpair->Seg1() );
     segments.push_back( qmpair->Seg2() );
+    
+    ub::matrix<double> _JAB;
+    
+    Orbitals _orbitalsA;
+    Orbitals _orbitalsB;
+    Orbitals _orbitalsAB;
+    
     
     _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
     mkdir(_outParent.c_str(), 0755);
@@ -368,7 +371,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
         _gaussian.WriteInputFile( segments );
         
         // Run the executable
-        //_gaussian.Run( );
+        _gaussian.Run( );
         
         // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
@@ -396,7 +399,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     
    
     DIR  = _outParent + "/" + "mol_" + ID_A;
-    //cout << DIR +"/" + ORB_FILE_A << endl;
+    cout << "... ... " << DIR +"/" + ORB_FILE_A << endl;
     std::ifstream ifs_A( (DIR +"/" + ORB_FILE_A).c_str() );
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
@@ -404,25 +407,25 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     //cout << "BASIS SIZE A" << _orbitalsA.getBasisSetSize() << endl;
  
     DIR  = _outParent + "/" + "mol_" + ID_B;
-    //cout << DIR +"/" + ORB_FILE_B << endl;
+    cout << "... ... " << DIR +"/" + ORB_FILE_B << endl;
     std::ifstream ifs_B( (DIR +"/" + ORB_FILE_B).c_str() );
     boost::archive::binary_iarchive ia_B( ifs_B );
     ia_B >> _orbitalsB;
     ifs_B.close();
     //cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize() << endl;
-    
+
+    CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
+     
     int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
     int HOMO_B = _orbitalsB.getNumberOfElectrons() ;
     
     int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
     int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
     
-    cout << getCouplingElement( HOMO_A , HOMO_B ) << endl; 
-    cout << getCouplingElement( LUMO_A , LUMO_B ) << endl; 
-
-    exit(0);
-
-
+    cout << "Coupling " << ID_A << ":" << ID_B << " " 
+         << getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << " "
+         << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << endl; 
+    
 }
 
     

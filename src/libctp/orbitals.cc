@@ -82,7 +82,7 @@ int     Orbitals::getNumberOfLevels() {
     }
 }
 
-void          Orbitals::setNumberOfLevels( int &occupied_levels, int &unoccupied_levels  ){
+void   Orbitals::setNumberOfLevels( int &occupied_levels, int &unoccupied_levels  ){
     _has_occupied_levels = true; 
     _has_unoccupied_levels = true; 
     _occupied_levels = occupied_levels; 
@@ -192,6 +192,5 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
     
     return &_level_degeneracy.at(level);
 }
-
 
 }}

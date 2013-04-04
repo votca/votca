@@ -54,7 +54,6 @@ public:
     
     string  Identify() { return "IDFT"; }
     
-    double getCouplingElement( int level1, int level2 );   
     void EvalPair(Topology *top, QMPair *qmpair, int slot);
     
 /*  
@@ -66,7 +65,7 @@ private:
 
     static const double _conv_Hrt_eV = 27.21138386;
 
-    bool                _has_integrals;
+    //bool                _has_integrals;
     bool                _has_degeneracy;
     
     int                 _max_occupied_levels;
@@ -77,21 +76,22 @@ private:
     
     double              _energy_difference;    
     
-    string              _orbitalsA_file;
-    string              _orbitalsB_file;
-    string              _orbitalsAB_file;
+    //string              _orbitalsA_file;
+    //string              _orbitalsB_file;
+    //string              _orbitalsAB_file;
     
     string              _outParent;
         
-    Orbitals            _orbitalsA;
-    Orbitals            _orbitalsB;
-    Orbitals            _orbitalsAB;
+    //Orbitals            _orbitalsA;
+    //Orbitals            _orbitalsB;
+    //Orbitals            _orbitalsAB;
 
-    ub::matrix<double>  _JAB;     
+    //ub::matrix<double>  _JAB;     
     
-    void        SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
-    void        CalculateIntegrals();   
-    void        ParseOptionsXML( tools::Property *opt);    
+    void SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
+    void ParseOptionsXML( tools::Property *opt);    
+    void CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, ub::matrix<double>* _JAB );   
+    double getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, Orbitals* _orbitalsB, ub::matrix<double>* _JAB );   
     
 };
 

@@ -80,11 +80,7 @@ public:
     ub::vector<double>* getEnergies() { return &_mo_energies; }
     
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
-    
-    //bool ReadOrbitalsGaussian( const char * filename );
-    //bool ReadOverlapGaussian( const char * filename );
-    //bool ParseGaussianLog( const char * filename );
-    
+        
 protected:
     
     static const double                 _conv_Hrt_eV = 27.21138386;
