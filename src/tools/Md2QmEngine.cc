@@ -201,7 +201,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                        // Check whether elements of md and qm match
                        if (intCoords.at(qm_atom_id).first.substr(0,1)
                            != md_atom_name.substr(0,1) ) {
-                           cout << "WARNING: Atom " <<md_atom_name << "in mol. "
+                           cout << "WARNING: Atom " <<md_atom_name << " in mol. "
                                 << molMdName << " appears to have element type "
                                 << md_atom_name.substr(0,1)
                                 << ", but QM partner (ID " << qm_atom_id
@@ -546,7 +546,7 @@ void Md2QmEngine::getIntCoords(string &file,
             std::getline(intt, line);
 
             vector< string > split;
-            Tokenizer toker(line, " ");
+            Tokenizer toker(line, " \t");
             toker.ToVector(split);
             if ( !split.size()      ||
                   split.size() != 4 ||
