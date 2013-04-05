@@ -393,12 +393,12 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
         
         // in case we do not want to do an SCF loop for a dimer
         if ( _gaussian.GuessRequested() ) {
-            PrepareGuess( &_orbitalsA, &_orbitalsB, &_orbitalsAB );
-            _gaussian.setGuess( &_orbitalsAB );
-            
+            PrepareGuess(&_orbitalsA, &_orbitalsB, &_orbitalsAB);
+            _gaussian.WriteInputFile( segments, &_orbitalsAB );
+        } else {
+            _gaussian.WriteInputFile( segments, NULL );
         }
-         
-        _gaussian.WriteInputFile( segments );
+            
         exit(0);
         
         // Run the executable

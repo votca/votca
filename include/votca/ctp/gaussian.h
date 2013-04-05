@@ -42,7 +42,12 @@ public:
     Gaussian( tools::Property *opt );
    ~Gaussian();
 
-   bool WriteInputFile( vector< Segment* > segments );
+   /* Writes Gaussian input file with coordinates taken from all segments
+    * and guess for the dimer orbitals (if given) constructed from the
+    * orbitals of monomers 
+    */
+   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   
    bool WriteShellScript();
    bool Run();
    void CleanUp( string ID );

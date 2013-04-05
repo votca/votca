@@ -50,7 +50,6 @@ public:
     IDFT() {};
    ~IDFT() {};
    
-    // Topology is not needed; shall removed later with a different Application class
     void    Initialize(ctp::Topology *top, tools::Property *options );
     
     string  Identify() { return "IDFT"; }
@@ -79,10 +78,25 @@ private:
     string              _outParent;
             
     void SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
+    
     void ParseOptionsXML( tools::Property *opt);    
-    void CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, ub::matrix<double>* _JAB );   
-    double getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, Orbitals* _orbitalsB, ub::matrix<double>* _JAB );   
-    void PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB );
+    
+    void CalculateIntegrals(   Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsB, 
+                               Orbitals* _orbitalsAB, ub::matrix<double>* _JAB );  
+    
+    double getCouplingElement( int levelA, int levelB,  
+                               Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsB, 
+                               ub::matrix<double>* _JAB );
+    
+    /* Given two monomer orbitals (A and B) constructs a guess for a dimer
+     *  | A 0 | and energies [EA, EB]
+     *  | 0 B |
+     */
+    void PrepareGuess(         Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsB, 
+                               Orbitals* _orbitalsAB );
 };
 
 }}

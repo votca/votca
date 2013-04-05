@@ -67,9 +67,10 @@ Gaussian::~Gaussian() {
 
 /**
  * Prepares the com file from a vector of segments
+ * Appends a guess constructed from monomer orbitals if supplied
  */
-bool Gaussian::WriteInputFile( vector<Segment* > segments ) {
-
+bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
+{
     vector< Atom* > _atoms;
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
@@ -126,14 +127,14 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments ) {
     } 
     
     if ( _write_guess ) {
-        if ( _orbitals_guess = NULL ) {
+        if ( orbitals_guess = NULL ) {
             throw std::runtime_error( "A guess for dimer orbitals has not been prepared.");
         } else {
             vector<int> _sort_index;
 
-            _orbitals_guess->SortEnergies( &_sort_index );
+            orbitals_guess->SortEnergies( &_sort_index );
             
-                        exit(0);
+            exit(0);
                         
             copy(_sort_index.begin(), _sort_index.end(), ostream_iterator<char>(cout, " "));
             exit(0);
