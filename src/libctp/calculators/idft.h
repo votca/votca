@@ -65,8 +65,6 @@ private:
 
     static const double _conv_Hrt_eV = 27.21138386;
 
-//    bool                _has_degeneracy;
-    
     int                 _max_occupied_levels;
     int                 _max_unoccupied_levels;
 
@@ -90,9 +88,9 @@ private:
                                Orbitals* _orbitalsB, 
                                ub::matrix<double>* _JAB );
     
-    /* Given two monomer orbitals (A and B) constructs a guess for a dimer
-     *  | A 0 | and energies [EA, EB]
-     *  | 0 B |
+    /* Given two monomer orbitals (A and B) constructs a guess for dimer
+     *  orbitals: | A 0 | and energies: [EA, EB]
+     *            | 0 B |
      */
     void PrepareGuess(         Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 

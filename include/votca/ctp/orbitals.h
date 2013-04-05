@@ -67,13 +67,13 @@ public:
    ~Orbitals();
 
     const int     &getBasisSetSize() const;
-    void           setBasisSetSize( int &basis_set_size );
+    void           setBasisSetSize( const int &basis_set_size );
     
     int            getNumberOfLevels();
-    void           setNumberOfLevels( int &occupied_levels, int &unoccupied_levels );
+    void           setNumberOfLevels( const int &occupied_levels, const int &unoccupied_levels );
     
     const int     &getNumberOfElectrons() const;
-    void           setNumberOfElectrons( int &electrons );
+    void           setNumberOfElectrons( const int &electrons );
     
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }

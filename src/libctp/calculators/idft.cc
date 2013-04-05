@@ -446,6 +446,9 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _
     int _levelsA = _orbitalsA->getNumberOfLevels();
     int _levelsB = _orbitalsB->getNumberOfLevels();
     
+    int _electronsA = _orbitalsA->getNumberOfElectrons();
+    int _electronsB = _orbitalsB->getNumberOfElectrons();
+    
     ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
     
@@ -454,6 +457,11 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _
     // AxB = | A 0 |  //   A = [EA, EB]  //
     //       | 0 B |  //                 //
     _mo_coefficients->resize( _levelsA + _levelsB, _basisA + _basisB  );
+    _orbitalsAB->setBasisSetSize( _basisA + _basisB );
+    _orbitalsAB->setNumberOfLevels( _electronsA - _electronsB , 
+                                    _levelsA + _levelsB - _electronsA - _electronsB );
+    _orbitalsAB->setNumberOfElectrons( _electronsA + _electronsB );
+    
     ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();

@@ -85,7 +85,7 @@ const int    &Orbitals::getBasisSetSize() const {
     }
 }
 
-void          Orbitals::setBasisSetSize( int &basis_set_size ){
+void          Orbitals::setBasisSetSize( const int &basis_set_size ){
     _has_basis_set_size = true; 
     _basis_set_size = basis_set_size; 
 }
@@ -99,7 +99,7 @@ int     Orbitals::getNumberOfLevels() {
     }
 }
 
-void   Orbitals::setNumberOfLevels( int &occupied_levels, int &unoccupied_levels  ){
+void   Orbitals::setNumberOfLevels( const int &occupied_levels,const int &unoccupied_levels  ){
     _has_occupied_levels = true; 
     _has_unoccupied_levels = true; 
     _occupied_levels = occupied_levels; 
@@ -114,7 +114,7 @@ const int     &Orbitals::getNumberOfElectrons() const {
     }
 }
 
-void          Orbitals::setNumberOfElectrons( int &electrons ){
+void          Orbitals::setNumberOfElectrons( const int &electrons ){
     _has_number_of_electrons = true; 
     _number_of_electrons = electrons; 
 }
