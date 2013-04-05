@@ -33,6 +33,23 @@ using namespace std;
 
 namespace votca { namespace ctp {
 
+template <class VEC>
+class vector_less
+{
+        private:
+        typedef typename VEC::size_type  size_type;
+        typedef typename VEC::value_type value_type;
+        vector_less();
+
+        const VEC& data;
+        public:
+        vector_less(const VEC& vec) : data(vec) { }
+        bool operator() (const size_type& left, const size_type& right) const
+        {
+                return std::less<value_type> () ( data(left), data(right) );
+        }
+};   
+    
 Orbitals::Orbitals() { 
     
     _basis_set_size = 0;
@@ -192,5 +209,14 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
     
     return &_level_degeneracy.at(level);
 }
+
+void Orbitals::SortEnergies(  std::vector<int>* index ) {
+    cout << "MO Energies size" << _mo_energies.size() << endl ;
+    exit(0);
+    index->resize( _mo_energies.size() );
+    std::stable_sort(index->begin(), index->end(), vector_less< ub::vector<double> >( _mo_energies ));
+
+}
+
 
 }}

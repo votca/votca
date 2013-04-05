@@ -31,8 +31,7 @@ namespace votca { namespace ctp {
 
 void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
-    _has_degeneracy = false;
-    
+    _energy_difference = 0.0;
     ParseOptionsXML( options );
 
 }
@@ -44,7 +43,6 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     
     string key = "options.idft.";   
     if ( opt->exists( key + ".degeneracy" ) ) {
-        _has_degeneracy = true;
         _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     }
     else {
@@ -294,11 +292,11 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
 }
 
 double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, Orbitals* _orbitalsB, ub::matrix<double>* _JAB  ) {
-    
+       
     int _levelsA = _orbitalsA->getNumberOfLevels();
-    int _levelsB = _orbitalsB->getNumberOfLevels();
+    int _levelsB = _orbitalsB->getNumberOfLevels();    
     
-    if ( _has_degeneracy ) {
+    if ( _energy_difference != 0 ) {
         std::vector<int> list_levelsA = *_orbitalsA->getDegeneracy( levelA, _energy_difference );
         std::vector<int> list_levelsB = *_orbitalsA->getDegeneracy( levelB, _energy_difference );
         
@@ -353,6 +351,31 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     qmpair->WriteXYZ(out);
     fclose(out);
  
+    // get the overlap integral 
+    string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
+    string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
+    
+    string ORB_FILE_A = "mol_" + ID_A + ".orb";
+    string ORB_FILE_B = "mol_" + ID_B + ".orb";
+    
+   
+    DIR  = _outParent + "/" + "mol_" + ID_A;
+    cout << "... ... " << DIR +"/" + ORB_FILE_A << endl;
+    std::ifstream ifs_A( (DIR +"/" + ORB_FILE_A).c_str() );
+    boost::archive::binary_iarchive ia_A( ifs_A );
+    ia_A >> _orbitalsA;
+    ifs_A.close();
+    //cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
+ 
+    DIR  = _outParent + "/" + "mol_" + ID_B;
+    cout << "... ... " << DIR +"/" + ORB_FILE_B << endl;
+    std::ifstream ifs_B( (DIR +"/" + ORB_FILE_B).c_str() );
+    boost::archive::binary_iarchive ia_B( ifs_B );
+    ia_B >> _orbitalsB;
+    ifs_B.close();
+    //cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize() << endl;
+    
+    
    if ( _package == "gaussian" ) { 
         
         Gaussian _gaussian( &_package_options );
@@ -368,11 +391,19 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
           _gaussian.WriteShellScript ();
         } 
         
+        // in case we do not want to do an SCF loop for a dimer
+        if ( _gaussian.GuessRequested() ) {
+            PrepareGuess( &_orbitalsA, &_orbitalsB, &_orbitalsAB );
+            _gaussian.setGuess( &_orbitalsAB );
+            
+        }
+         
         _gaussian.WriteInputFile( segments );
+        exit(0);
         
         // Run the executable
         _gaussian.Run( );
-        
+
         // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
         _gaussian.ParseLogFile( &_orbitalsAB );
@@ -390,30 +421,6 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
         
    }      
 
-    // get the overlap integral 
-    string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
-    string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
-    
-    string ORB_FILE_A = "mol_" + ID_A + ".orb";
-    string ORB_FILE_B = "mol_" + ID_B + ".orb";
-    
-   
-    DIR  = _outParent + "/" + "mol_" + ID_A;
-    cout << "... ... " << DIR +"/" + ORB_FILE_A << endl;
-    std::ifstream ifs_A( (DIR +"/" + ORB_FILE_A).c_str() );
-    boost::archive::binary_iarchive ia_A( ifs_A );
-    ia_A >> _orbitalsA;
-    ifs_A.close();
-    //cout << "BASIS SIZE A" << _orbitalsA.getBasisSetSize() << endl;
- 
-    DIR  = _outParent + "/" + "mol_" + ID_B;
-    cout << "... ... " << DIR +"/" + ORB_FILE_B << endl;
-    std::ifstream ifs_B( (DIR +"/" + ORB_FILE_B).c_str() );
-    boost::archive::binary_iarchive ia_B( ifs_B );
-    ia_B >> _orbitalsB;
-    ifs_B.close();
-    //cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize() << endl;
-
     CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
      
     int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
@@ -428,6 +435,38 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     
 }
 
+void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB ) {
     
+    cout << "... ... Constructing the guess for the dimer orbitals" << endl;   
+    
+    // constructing the direct product orbA x orbB
+    int _basisA = _orbitalsA->getBasisSetSize();
+    int _basisB = _orbitalsB->getBasisSetSize();
+       
+    int _levelsA = _orbitalsA->getNumberOfLevels();
+    int _levelsB = _orbitalsB->getNumberOfLevels();
+    
+    ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
+    ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
+    
+    ub::matrix<double>* _mo_coefficients = _orbitalsAB->getOrbitals();
+        
+    // AxB = | A 0 |  //   A = [EA, EB]  //
+    //       | 0 B |  //                 //
+    _mo_coefficients->resize( _levelsA + _levelsB, _basisA + _basisB  );
+    ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
+    ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
+    ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
+    ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();   
+    
+    ub::vector<double>* _energies = _orbitalsAB->getEnergies();
+    _energies->resize( _levelsA + _levelsB );
+     
+    ub::project( *_energies, ub::range (0, _levelsA ) ) = *_orbitalsA->getEnergies();
+    ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
+    
+    cout << "... ... Have now " << _energies->size() << " energies" << endl;
+
+}   
 
 }};

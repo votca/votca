@@ -56,7 +56,7 @@ namespace votca { namespace ctp {
 /**
     \brief container for molecular orbitals
  
-    The Orbital class stores orbital id, energy, MO coefficients
+    The Orbitals class stores orbital id, energy, MO coefficients
     
 */
 class Orbitals 
@@ -80,6 +80,9 @@ public:
     ub::vector<double>* getEnergies() { return &_mo_energies; }
     
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
+    
+    // returns indeces of a re-sorted in a descending order vector of energies
+    void SortEnergies( std::vector<int>* index );
         
 protected:
     

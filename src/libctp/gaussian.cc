@@ -49,10 +49,20 @@ Gaussian::Gaussian( tools::Property *opt ) {
     _chk_file_name  =   opt->get(key + ".checkpoint").as<string> ();
     _scratch_dir =      opt->get(key + ".scratch").as<string> ();
     _cleanup =          opt->get(key + ".cleanup").as<string> ();
-        
+    
+    // check if the guess keyword is present, if yes, append the guess later
+    std::string::size_type iop_pos = _options.find("cards");
+    if (iop_pos != std::string::npos) {
+        _write_guess = true;
+    } else
+    {
+        _write_guess = false;
+    }
+    
+    _orbitals_guess = NULL;
 };   
     
-Gaussian::~Gaussian() { 
+Gaussian::~Gaussian() {     
 }  
 
 /**
@@ -62,7 +72,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments ) {
 
     vector< Atom* > _atoms;
     vector< Atom* > ::iterator ait;
-    vector< Segment* >::iterator sit; 
+    vector< Segment* >::iterator sit;
     
     int qmatoms = 0;
 
@@ -112,6 +122,21 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments ) {
                       << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()*10
                       << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()*10 
                       << endl;
+        }
+    } 
+    
+    if ( _write_guess ) {
+        if ( _orbitals_guess = NULL ) {
+            throw std::runtime_error( "A guess for dimer orbitals has not been prepared.");
+        } else {
+            vector<int> _sort_index;
+
+            _orbitals_guess->SortEnergies( &_sort_index );
+            
+                        exit(0);
+                        
+            copy(_sort_index.begin(), _sort_index.end(), ostream_iterator<char>(cout, " "));
+            exit(0);
         }
     }
     

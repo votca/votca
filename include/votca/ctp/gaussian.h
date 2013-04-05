@@ -56,8 +56,10 @@ public:
    void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
    void setLogFile( string log_file ) { _log_file_name = log_file; }
    void setOrbitalsFile( string orb_file ) { _orb_file_name = orb_file; }
+   void setGuess( Orbitals* orbitals_guess ) { _orbitals_guess = orbitals_guess; }
    
    string getScratchDir( ) { return _scratch_dir; }
+   bool GuessRequested( ) { return _write_guess; }
    
 //protected:
              
@@ -86,10 +88,13 @@ private:
     bool                                _get_orbitals;
     bool                                _get_overlap;
     
+    bool                                _write_guess;
+    Orbitals*                           _orbitals_guess;
     
-   int NumberOfElectrons( string _line );   
-   int BasisSetSize( string _line );   
-   int EnergiesFromLog( string _line, ifstream inputfile ); 
+    int NumberOfElectrons( string _line ); 
+    int BasisSetSize( string _line ); 
+    int EnergiesFromLog( string _line, ifstream inputfile ); 
+    
 };
 
 

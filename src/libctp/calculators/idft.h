@@ -28,6 +28,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/banded.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <sys/stat.h>
 
 namespace votca { namespace ctp {
@@ -65,8 +66,7 @@ private:
 
     static const double _conv_Hrt_eV = 27.21138386;
 
-    //bool                _has_integrals;
-    bool                _has_degeneracy;
+//    bool                _has_degeneracy;
     
     int                 _max_occupied_levels;
     int                 _max_unoccupied_levels;
@@ -75,24 +75,14 @@ private:
     Property            _package_options; 
     
     double              _energy_difference;    
-    
-    //string              _orbitalsA_file;
-    //string              _orbitalsB_file;
-    //string              _orbitalsAB_file;
-    
-    string              _outParent;
         
-    //Orbitals            _orbitalsA;
-    //Orbitals            _orbitalsB;
-    //Orbitals            _orbitalsAB;
-
-    //ub::matrix<double>  _JAB;     
-    
+    string              _outParent;
+            
     void SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
     void ParseOptionsXML( tools::Property *opt);    
     void CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, ub::matrix<double>* _JAB );   
     double getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, Orbitals* _orbitalsB, ub::matrix<double>* _JAB );   
-    
+    void PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB );
 };
 
 }}
