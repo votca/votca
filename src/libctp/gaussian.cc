@@ -21,6 +21,9 @@
 #include "votca/ctp/segment.h"
 #include <votca/tools/globals.h>
 #include <boost/algorithm/string.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/io.hpp>
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
@@ -28,7 +31,8 @@
 using namespace std;
 
 namespace votca { namespace ctp {
-
+    namespace ub = boost::numeric::ublas;
+    
 Gaussian::Gaussian( tools::Property *opt ) { 
     
     string key = "package";
@@ -136,24 +140,26 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
             _com_file << endl << "(5D15.8)" << endl;
             
             int level = 1;
+            int ncolumns = 5;
+            
             for ( vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++ soi ) {
                 
                 double _energy = (orbitals_guess->_mo_energies)[*soi] ;
-                char _senergy[18];
-                //sprintf(_senergy, "%15.8g", _energy);
-                //cout << _senergy << endl;
-                //cout  << setw(5) << level  << "  Alpha MO OE=" ;
-                stringstream _fe;
-                _fe <<  setiosflags(ios::fixed) << setprecision(8) << std::scientific << _energy << endl;
-                std::string text = _fe.str(); 
-                cout << text << endl;
                 
-                //cout << *soi << " " <<  (orbitals_guess->_mo_energies)[*soi] << endl;
+                _com_file  << setw(5) << level  << "  Alpha MO OE=" << FortranFormat( _energy ) << endl;
+                
+                ub::matrix_row< ub::matrix<double> > mr (orbitals_guess->_mo_coefficients, *soi);
+                
+                int column = 1;
+                for (unsigned j = 0; j < mr.size (); ++j) {
+                        _com_file <<  FortranFormat( mr[j] );
+                        if (column == ncolumns) { _com_file << std::endl; column = 0; }
+                        column++;
+                }
+                
                 level++;
+                _com_file << endl;
             } 
-            
-            //copy(_sort_index.begin(), _sort_index.end(), ostream_iterator<char>(cout, " "));
-            //exit(0);
         }
     }
     
@@ -543,5 +549,17 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     } // end of reading the file line-by-line
     cout << "... ... Done parsing " << _log_file_name << endl;
 }
+
+string Gaussian::FortranFormat( const double &number ) {
+    stringstream _ssnumber;
+    if ( number >= 0) _ssnumber << " ";
+    _ssnumber <<  setiosflags(ios::fixed) << setprecision(8) << std::scientific << number;
+    std::string _snumber = _ssnumber.str(); 
+    boost::replace_first(_snumber, "e", "D");
+    return _snumber;
+}
+        
+
+
 
 }}

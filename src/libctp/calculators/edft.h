@@ -154,7 +154,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         _gaussian.WriteInputFile( segments );
         
         // Run the executable
-        _gaussian.Run( );
+        //_gaussian.Run( );
         
         // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );

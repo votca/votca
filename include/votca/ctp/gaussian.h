@@ -97,6 +97,7 @@ private:
     int NumberOfElectrons( string _line ); 
     int BasisSetSize( string _line ); 
     int EnergiesFromLog( string _line, ifstream inputfile ); 
+    string FortranFormat( const double &number );
     
 };
 
