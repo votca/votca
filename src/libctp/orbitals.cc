@@ -211,9 +211,20 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
 }
 
 void Orbitals::SortEnergies(  std::vector<int>* index ) {
-    cout << "MO Energies size" << _mo_energies.size() << endl ;
-    exit(0);
+    cout << "... ... Sorting energies" << endl ;
+    //cout << _mo_energies << endl;
+    //cout << "MO Energies size" << _mo_energies.size() << endl ;
+    //exit(0);
     index->resize( _mo_energies.size() );
+    int i = 0;
+            for ( vector< int > ::iterator soi = index->begin(); soi != index->end(); ++soi ) {
+                index->at(i) = i++;
+                //i++;
+                //cout << *soi << " ";
+            } 
+    
+    //cout << _mo_energies;
+    
     std::stable_sort(index->begin(), index->end(), vector_less< ub::vector<double> >( _mo_energies ));
 
 }

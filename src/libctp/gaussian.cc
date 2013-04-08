@@ -59,7 +59,6 @@ Gaussian::Gaussian( tools::Property *opt ) {
         _write_guess = false;
     }
     
-    _orbitals_guess = NULL;
 };   
     
 Gaussian::~Gaussian() {     
@@ -127,17 +126,34 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     } 
     
     if ( _write_guess ) {
-        if ( orbitals_guess = NULL ) {
+        if ( orbitals_guess == NULL ) {
             throw std::runtime_error( "A guess for dimer orbitals has not been prepared.");
         } else {
             vector<int> _sort_index;
-
+            
             orbitals_guess->SortEnergies( &_sort_index );
             
-            exit(0);
-                        
-            copy(_sort_index.begin(), _sort_index.end(), ostream_iterator<char>(cout, " "));
-            exit(0);
+            _com_file << endl << "(5D15.8)" << endl;
+            
+            int level = 1;
+            for ( vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++ soi ) {
+                
+                double _energy = (orbitals_guess->_mo_energies)[*soi] ;
+                char _senergy[18];
+                //sprintf(_senergy, "%15.8g", _energy);
+                //cout << _senergy << endl;
+                //cout  << setw(5) << level  << "  Alpha MO OE=" ;
+                stringstream _fe;
+                _fe <<  setiosflags(ios::fixed) << setprecision(8) << std::scientific << _energy << endl;
+                std::string text = _fe.str(); 
+                cout << text << endl;
+                
+                //cout << *soi << " " <<  (orbitals_guess->_mo_energies)[*soi] << endl;
+                level++;
+            } 
+            
+            //copy(_sort_index.begin(), _sort_index.end(), ostream_iterator<char>(cout, " "));
+            //exit(0);
         }
     }
     

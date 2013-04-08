@@ -365,7 +365,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
     ifs_A.close();
-    //cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
+    cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
  
     DIR  = _outParent + "/" + "mol_" + ID_B;
     cout << "... ... " << DIR +"/" + ORB_FILE_B << endl;
@@ -373,9 +373,9 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     boost::archive::binary_iarchive ia_B( ifs_B );
     ia_B >> _orbitalsB;
     ifs_B.close();
-    //cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize() << endl;
+    cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize() << endl;
     
-    
+    DIR  = _outParent + "/" + "pair_" + ID;
    if ( _package == "gaussian" ) { 
         
         Gaussian _gaussian( &_package_options );
@@ -394,9 +394,20 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
         // in case we do not want to do an SCF loop for a dimer
         if ( _gaussian.GuessRequested() ) {
             PrepareGuess(&_orbitalsA, &_orbitalsB, &_orbitalsAB);
+            
+            //cout << _orbitalsAB.getNumberOfLevels() << endl;
+            //cout << *_orbitalsAB.getEnergies()  << endl;
+            //cout << "Guess address " << &_orbitalsAB << endl;
+            //Orbitals *_pOrbitalsAB = &_orbitalsAB;
+            //cout << "Guess address " << _pOrbitalsAB << endl;
+           
+            //Orbitals* test;
+            //test = NULL;
+            //cout << "NULL address " << test << endl;          
+            
             _gaussian.WriteInputFile( segments, &_orbitalsAB );
         } else {
-            _gaussian.WriteInputFile( segments, NULL );
+            _gaussian.WriteInputFile( segments );
         }
             
         exit(0);
@@ -452,8 +463,9 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _
     ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
     
-    ub::matrix<double>* _mo_coefficients = _orbitalsAB->getOrbitals();
-        
+    ub::matrix<double>* _mo_coefficients = _orbitalsAB->getOrbitals();    
+    //cout << "MO coefficients " << *_mo_coefficients << endl;
+    
     // AxB = | A 0 |  //   A = [EA, EB]  //
     //       | 0 B |  //                 //
     _mo_coefficients->resize( _levelsA + _levelsB, _basisA + _basisB  );
@@ -466,12 +478,15 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _
     ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
     ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();   
+
+    //cout << "MO coefficients " << *_mo_coefficients << endl;
     
     ub::vector<double>* _energies = _orbitalsAB->getEnergies();
     _energies->resize( _levelsA + _levelsB );
      
     ub::project( *_energies, ub::range (0, _levelsA ) ) = *_orbitalsA->getEnergies();
     ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
+    //cout << "MO energies " << *_energies << endl;
     
     cout << "... ... Have now " << _energies->size() << " energies" << endl;
 
