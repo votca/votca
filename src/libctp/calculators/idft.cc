@@ -167,7 +167,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
  }
 
-void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, ub::matrix<double>* _JAB ) {
+void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, PairOperator *opThread ) {
             
     /* test case
     ub::matrix<double> _monomersAB (4, 5);
@@ -191,7 +191,7 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     std::cout << _monomersAB << std::endl;
     */
     
-    cout << endl << "... ... Calculating electronic couplings " << endl;
+    cout << "\n... ... Calculating electronic couplings \n" ;
     
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -272,7 +272,7 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     SQRTOverlap( _S_AxB , _S_AxB_2 );        
     _S_AxB.clear(); 
      
-    cout << "... ... Calculating the effective overlap"<< endl;
+    cout << "... ... Calculating the effective overlap\n";
     ub::matrix<double> JAB_temp = prod( JAB_dimer, _S_AxB_2 );
         
     (*_JAB) = ub::prod( _S_AxB_2, JAB_temp );
@@ -284,7 +284,7 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     
     //cout << _S_AxB << endl;
     //_has_integrals = true;
-    cout << "... ... Done calculating electronic couplings"<< endl;
+    cout << "... ... Done calculating electronic couplings\n";
        
     //cout << JAB_dimer.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
     //cout << JAB_dimer.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
@@ -360,28 +360,21 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     
    
     DIR  = _outParent + "/" + "mol_" + ID_A;
-    cout << "... ... " << DIR +"/" + ORB_FILE_A << endl;
+    cout << "... ... " << DIR +"/" + ORB_FILE_A << "\n";
     std::ifstream ifs_A( (DIR +"/" + ORB_FILE_A).c_str() );
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
     ifs_A.close();
-    //*opThread << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
-    
-    //*opThread >> cout;
-    
+    //cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
+       
     DIR  = _outParent + "/" + "mol_" + ID_B;
-    cout << "... ... " << DIR +"/" + ORB_FILE_B << endl;
+    cout << "... ... " << DIR +"/" + ORB_FILE_B << "\n";
     std::ifstream ifs_B( (DIR +"/" + ORB_FILE_B).c_str() );
     boost::archive::binary_iarchive ia_B( ifs_B );
     ia_B >> _orbitalsB;
     ifs_B.close();
-    //"BASIS SIZE B " >> _orbitalsB.getBasisSetSize()  >> *opThread;
-    //opThread->AddLine( "BASIS SIZE B " );
-    //opThread->AddLine( "BASIS SIZE A " );
-    
-
-    cout << "HERE WE GO " << (*opThread);
-    
+    //cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize()  <, endl;
+      
     DIR  = _outParent + "/" + "pair_" + ID;
    if ( _package == "gaussian" ) { 
         
@@ -400,7 +393,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
         
         // in case we do not want to do an SCF loop for a dimer
         if ( _gaussian.GuessRequested() ) {
-            PrepareGuess(&_orbitalsA, &_orbitalsB, &_orbitalsAB);
+            PrepareGuess(&_orbitalsA, &_orbitalsB, &_orbitalsAB, opThread);
             
             //cout << _orbitalsAB.getNumberOfLevels() << endl;
             //cout << *_orbitalsAB.getEnergies()  << endl;
@@ -437,7 +430,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
         
    }      
 
-    CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
+    CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB, opThread );
      
     int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
     int HOMO_B = _orbitalsB.getNumberOfElectrons() ;
@@ -445,15 +438,16 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
     int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
     
-    cout << "Coupling " << ID_A << ":" << ID_B << " " 
+    cout << "... ... Coupling " << ID_A << ":" << ID_B << " " 
          << getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << " "
-         << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << endl; 
+         << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << "\n"; 
     
+    cout << (*opThread);
 }
 
-void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB ) {
+void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, PairOperator *opThread ) {
     
-    cout << "... ... Constructing the guess for the dimer orbitals" << endl;   
+    cout << "... ... Constructing the guess for the dimer orbitals\n";   
     
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -493,7 +487,7 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _
     ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
     //cout << "MO energies " << *_energies << endl;
     
-    cout << "... ... Have now " << _energies->size() << " energies" << endl;
+    ///"... ... Have now " >> _energies->size() >> " energies\n" >> *opThread;
 
 }   
 

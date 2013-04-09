@@ -17,23 +17,46 @@ namespace votca { namespace ctp {
            output << (thread._ss).str();
            return output;
        }
+
+       
+       friend string operator<<( QMThread&  thread, string input ) {
+           thread._ss << input ;
+           return input;
+       }
        
        friend string operator>>( string input, QMThread&  thread ) {
            thread._ss << input ;
            return input;
        }
+
        
-       friend int& operator>>( int& input, QMThread&  thread ) {
+       friend int operator<<( QMThread&  thread, int input ) {
            thread._ss << input ;
            return input;
        }
 
-       friend double& operator>>( double& input, QMThread&  thread ) {
+       friend int operator>>( int input, QMThread&  thread ) {
            thread._ss << input ;
            return input;
        }
 
-       friend float& operator>>( float& input, QMThread&  thread ) {
+ 
+       friend double operator<<( QMThread&  thread, double input ) {
+           thread._ss << input ;
+           return input;
+       }
+       friend double operator>>( double input, QMThread&  thread ) {
+           thread._ss << input ;
+           return input;
+       }
+
+
+       friend float operator<<( QMThread&  thread, float input ) {
+           thread._ss << input;
+           return input;
+       }
+              
+       friend float operator>>( float input, QMThread&  thread ) {
            thread._ss << input;
            return input;
        }
@@ -41,9 +64,6 @@ namespace votca { namespace ctp {
     public:
         
        ~QMThread() {};
-       void AddLine( const string _line ) {
-           _ss << _line;
-       }
 
     protected:
         

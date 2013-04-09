@@ -81,7 +81,8 @@ private:
     
     void CalculateIntegrals(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, ub::matrix<double>* _JAB );  
+                               Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, 
+                               PairOperator *opThread );  
     
     double getCouplingElement( int levelA, int levelB,  
                                Orbitals* _orbitalsA, 
@@ -94,7 +95,8 @@ private:
      */
     void PrepareGuess(         Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB );
+                               Orbitals* _orbitalsAB, 
+                               PairOperator *opThread );
 };
 
 }}
