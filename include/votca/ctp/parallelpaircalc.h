@@ -24,6 +24,7 @@
 
 #include <votca/ctp/qmcalculator.h>
 #include <votca/tools/thread.h>
+#include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
 
 
@@ -34,6 +35,8 @@ class ParallelPairCalculator : public QMCalculator
 
 public:
 
+    class PairOperator;
+    
     ParallelPairCalculator() : _nextPair(NULL) {};
    ~ParallelPairCalculator() {};
 
@@ -42,7 +45,7 @@ public:
     bool         EvaluateFrame(Topology *top);
     virtual void InitSlotData(Topology *top) { ; }
     virtual void PostProcess(Topology *top) { ; }
-    virtual void EvalPair(Topology *top, QMPair *qmpair, int slot) { ; }
+    virtual void EvalPair(Topology *top, QMPair *qmpair, PairOperator* opThread) { ; }
 
     QMPair     *RequestNextPair(int opId, Topology *top);
     void         LockCout() { _coutMutex.Lock(); }
@@ -53,7 +56,7 @@ public:
     // Pair workers (i.e. individual threads) //
     // ++++++++++++++++++++++++++++++++++++++ //
 
-    class PairOperator : public Thread
+    class PairOperator : public QMThread
     {
     public:
 

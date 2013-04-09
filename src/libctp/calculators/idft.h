@@ -54,7 +54,7 @@ public:
     
     string  Identify() { return "IDFT"; }
     
-    void EvalPair(Topology *top, QMPair *qmpair, int slot);
+    void EvalPair(Topology *top, QMPair *qmpair, PairOperator* opThread );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);

@@ -96,7 +96,7 @@ void ParallelPairCalculator::PairOperator::Run(void) {
         QMPair *qmpair = _master->RequestNextPair(_id, _top);
 
         if (qmpair == NULL) { break; }
-        else { this->_master->EvalPair(_top, qmpair, _id); }
+        else { this->_master->EvalPair(_top, qmpair, this); }
     }
 }
 

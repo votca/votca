@@ -20,7 +20,7 @@
 
 #include "idft.h"
 #include <votca/ctp/eigenvalues.h>
-
+#include <iostream>
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -319,7 +319,7 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, 
     // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
 }
  
-void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
+void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
 
     FILE *out;
     vector < Segment* > segments;
@@ -365,15 +365,22 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
     ifs_A.close();
-    cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
- 
+    //*opThread << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
+    
+    //*opThread >> cout;
+    
     DIR  = _outParent + "/" + "mol_" + ID_B;
     cout << "... ... " << DIR +"/" + ORB_FILE_B << endl;
     std::ifstream ifs_B( (DIR +"/" + ORB_FILE_B).c_str() );
     boost::archive::binary_iarchive ia_B( ifs_B );
     ia_B >> _orbitalsB;
     ifs_B.close();
-    cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize() << endl;
+    //"BASIS SIZE B " >> _orbitalsB.getBasisSetSize()  >> *opThread;
+    //opThread->AddLine( "BASIS SIZE B " );
+    //opThread->AddLine( "BASIS SIZE A " );
+    
+
+    cout << "HERE WE GO " << (*opThread);
     
     DIR  = _outParent + "/" + "pair_" + ID;
    if ( _package == "gaussian" ) { 
@@ -410,8 +417,6 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, int slot) {
             _gaussian.WriteInputFile( segments );
         }
             
-        exit(0);
-        
         // Run the executable
         _gaussian.Run( );
 
