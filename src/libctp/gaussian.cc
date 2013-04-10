@@ -368,6 +368,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_number_of_electrons = false;
     bool _has_basis_set_size = false;
     bool _has_overlap_matrix = false;
+    bool _has_charges = false;
 
     int _occupied_levels = 0;
     int _unoccupied_levels = 0;
@@ -538,12 +539,24 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         } // end of the if "Overlap" found   
 
         
+        /*
+         *  Partial charges from the input file
+         */
+        std::string::size_type charge_pos = _line.find("Charges from ESP fit");
+        
+        if (eigenvalues_pos != std::string::npos) {        
+            
+                _has_charges = true;
+        }
+        
+        
         // check if all information has been accumulated
         if ( _has_number_of_electrons && 
              _has_basis_set_size && 
              _has_occupied_levels && 
              _has_unoccupied_levels &&
-             _has_overlap_matrix
+             _has_overlap_matrix &&
+             _has_charges
            ) break;
         
     } // end of reading the file line-by-line

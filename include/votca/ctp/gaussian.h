@@ -93,6 +93,7 @@ private:
     bool                                _get_overlap;
     
     bool                                _write_guess;
+    bool                                _write_charges;
      
     int NumberOfElectrons( string _line ); 
     int BasisSetSize( string _line ); 

@@ -240,6 +240,15 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
     ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
     ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
+    
+    // DEBUG 
+    int levelA = _orbitalsA->getNumberOfElectrons() ;
+    int levelB = _orbitalsB->getNumberOfElectrons() ;
+
+    cout << "... ... Coupling before processing " 
+            << JAB_dimer.at_element( levelA - 1  , levelB -1 + _levelsA ) * _conv_Hrt_eV << " "
+            << JAB_dimer.at_element( levelA , levelB + _levelsA ) * _conv_Hrt_eV << "\n";
+    
     _temp.clear(); _fock_AB.clear();
     
     // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
@@ -337,8 +346,12 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     mkdir(_outParent.c_str(), 0755);
 
     string ID   = boost::lexical_cast<string>( qmpair->getId() );
-    string fileName = "pair_" + ID;
-    string DIR  = _outParent + "/" + "pair_" + ID;
+    // get the overlap integral 
+    string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
+    string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
+    
+    string fileName = "dimer" ;
+    string DIR  = _outParent + "/" + "pair_"  + ID_A + "_" + ID_B;
     string XYZ_FILE = fileName + ".xyz";
     string ORB_FILE = fileName + ".orb";
     string COM_FILE = fileName + ".com";
@@ -351,31 +364,29 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     qmpair->WriteXYZ(out);
     fclose(out);
  
-    // get the overlap integral 
-    string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
-    string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
+     
+    //string ORB_FILE_A = "mol_" + ID_A + ".orb";
+    //string ORB_FILE_B = "mol_" + ID_B + ".orb";
     
-    string ORB_FILE_A = "mol_" + ID_A + ".orb";
-    string ORB_FILE_B = "mol_" + ID_B + ".orb";
-    
+    string ORB_FILE_A = "monomer.orb";
+    string ORB_FILE_B = "monomer.orb";
    
-    DIR  = _outParent + "/" + "mol_" + ID_A;
-    cout << "... ... " << DIR +"/" + ORB_FILE_A << "\n";
-    std::ifstream ifs_A( (DIR +"/" + ORB_FILE_A).c_str() );
+    string DIR_A  = _outParent + "/" + "mol_" + ID_A;
+    cout << "... ... " << DIR_A +"/" + ORB_FILE_A << "\n";
+    std::ifstream ifs_A( (DIR_A +"/" + ORB_FILE_A).c_str() );
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
     ifs_A.close();
     //cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
        
-    DIR  = _outParent + "/" + "mol_" + ID_B;
-    cout << "... ... " << DIR +"/" + ORB_FILE_B << "\n";
-    std::ifstream ifs_B( (DIR +"/" + ORB_FILE_B).c_str() );
+    string DIR_B  = _outParent + "/" + "mol_" + ID_B;
+    cout << "... ... " << DIR_B +"/" + ORB_FILE_B << "\n";
+    std::ifstream ifs_B( (DIR_B +"/" + ORB_FILE_B).c_str() );
     boost::archive::binary_iarchive ia_B( ifs_B );
     ia_B >> _orbitalsB;
     ifs_B.close();
     //cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize()  <, endl;
       
-    DIR  = _outParent + "/" + "pair_" + ID;
    if ( _package == "gaussian" ) { 
         
         Gaussian _gaussian( &_package_options );
@@ -438,16 +449,21 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
     int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
     
-    cout << "... ... Coupling " << ID_A << ":" << ID_B << " " 
+    cout << "... ... Coupling " << ID_A << " " << ID_B << " " 
          << getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << " "
          << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << "\n"; 
     
+    qmpair->setJeff2( getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ),  1 );
+    qmpair->setJeff2( getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ), -1 );
+    
+    // Output the thread run summary and clean the thread
     cout << (*opThread);
+    opThread->Clean();
 }
 
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, PairOperator *opThread ) {
     
-    cout << "... ... Constructing the guess for the dimer orbitals\n";   
+    *opThread  << "... ... Constructing the guess for the dimer orbitals\n";   
     
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -485,6 +501,7 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _
      
     ub::project( *_energies, ub::range (0, _levelsA ) ) = *_orbitalsA->getEnergies();
     ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
+    
     //cout << "MO energies " << *_energies << endl;
     
     ///"... ... Have now " >> _energies->size() >> " energies\n" >> *opThread;

@@ -64,6 +64,9 @@ namespace votca { namespace ctp {
     public:
         
        ~QMThread() {};
+       void Clean() {
+           _ss.str( "" );
+       }
 
     protected:
         
@@ -75,4 +78,4 @@ namespace votca { namespace ctp {
     
 }}
 
-#endif 
+#endif /* _CTP_QMTHREAD_H */

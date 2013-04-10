@@ -122,7 +122,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
     mkdir(_outParent.c_str(), 0755);
 
     string ID   = boost::lexical_cast<string>( seg->getId() );
-    string fileName = "mol_" + ID;
+    //string fileName = "mol_" + ID;
+    string fileName = "monomer";
     string DIR  = _outParent + "/" + "mol_" + ID;
     string XYZ_FILE = fileName + ".xyz";
     string ORB_FILE = fileName + ".orb";
@@ -154,7 +155,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         _gaussian.WriteInputFile( segments );
         
         // Run the executable
-        //_gaussian.Run( );
+        _gaussian.Run( );
         
         // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
