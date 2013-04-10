@@ -1,0 +1,22 @@
+<eanalyze>
+  
+	<description>Site energy histogram, pair energy histogram, normalized site energy correlation function</description>
+
+	<sectionlabel>eanalyze</sectionlabel>
+
+        <item>
+                <name>resolution_sites</name>
+                <description>Bin size for site energy histogram</description>
+        </item>
+	<item>
+		<name>resolution_pairs</name>
+		<description>Bin size for pair energy histogram</description>
+	</item>
+
+	<item>
+		<name>resolution_space</name>
+		<description>Bin size for site energy correlation</description>
+	</item>
+
+
+</eanalyze>

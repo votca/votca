@@ -16,7 +16,7 @@ public:
 
     string  ProgramName() { return "ctp_run"; }    
 
-    void    HelpText(ostream &out) { out <<"Runs CTP calculators"<< endl; }
+    void    HelpText(ostream &out) { out <<"Runs charge transport calculators"<< endl; }
     void    HelpText() { };
     void    PrintDescription(const char *name, const bool length);
 
@@ -125,14 +125,19 @@ void CtpRun::PrintDescription(const char *name, const bool length) {
                     Property *pdesc=&( (*iter)->get( string("description") ) );
                     //Property *pdflt=&( (*iter)->get( string("default") ) );
                     if ( ! (pname->value()).empty() ) {
-                        cout << string("  -") << _fwstring(pname->value(), 20);
+                        string out_name = "  <" + pname->value() + ">";
+                        cout << _fwstring(out_name, 20);
+                        //cout << string("  <") << _fwstring(pname->value(), 20) << string(">");
                         cout << pdesc->value() << endl;
                     }
                  }
             }
             cout << endl;
         } catch(std::exception &error) {
-            cout << string("XML file or description tag missing: ") << xmlFile;
+            // cout << string("XML file or description tag missing: ") << xmlFile;
+            cout << string("  ") << _fwstring(string(name),14);
+            cout << "Undocumented" << endl;
+            
         }
 }
 

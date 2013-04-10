@@ -27,6 +27,8 @@
 #include "calculators/tdump.h"
 #include "calculators/rates.h"
 #include "calculators/izindo.h"
+#include "calculators/idft.h"
+#include "calculators/edft.h"
 #include "calculators/einternal.h"
 #include "calculators/eoutersphere.h"
 #include "calculators/emultipole.h"
@@ -57,6 +59,8 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<StateServer>     ("stateserver");
         Calculators().Register<TDump>           ("tdump");
         Calculators().Register<IZindo>          ("izindo");
+        Calculators().Register<EDFT>            ("edft");
+        Calculators().Register<IDFT>            ("idft");
         Calculators().Register<Rates>           ("rates");
         Calculators().Register<EInternal>       ("einternal");
         Calculators().Register<EOutersphere>    ("eoutersphere");

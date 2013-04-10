@@ -7,6 +7,7 @@
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/topologyreader.h>
 #include <votca/ctp/statesaversqlite.h>
+#include <votca/ctp/version.h>
 #include <votca/tools/globals.h>
 #include "Md2QmEngine.h"
 
@@ -20,8 +21,9 @@ class CtpMap : public Application
 {
 
 public:
-    string ProgramName()  { return "CTP MAP"; }
+    string ProgramName()  { return "ctp_map"; }
     void   HelpText(ostream &out) {out << "Generates QM|MD topology" << endl;}
+    void ShowHelpText(std::ostream &out);
 
     void Initialize();
     bool EvaluateOptions();
@@ -48,6 +50,8 @@ namespace propt = boost::program_options;
 
 void CtpMap::Initialize() {
 
+    Application::Initialize();
+    
     CSG::TrajectoryWriter::RegisterPlugins();
     CSG::TrajectoryReader::RegisterPlugins();
     CSG::TopologyReader::RegisterPlugins();
@@ -197,6 +201,14 @@ void CtpMap::Save(string mode) {
 
     _statsav.Close();
 
+}
+
+void CtpMap::ShowHelpText(std::ostream &out) {
+    string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
+    votca::ctp::HelpTextHeader(name);
+    HelpText(out);
+    out << "\n\n" << OptionsDesc() << endl;
 }
 
 

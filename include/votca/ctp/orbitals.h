@@ -1,0 +1,184 @@
+/* 
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef __VOTCA_CTP_ORBITALS_H
+#define	__VOTCA_CTP_ORBITALS_H
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <votca/tools/globals.h>
+#include <votca/tools/property.h>
+
+// Text archive that defines boost::archive::text_oarchive
+// and boost::archive::text_iarchive
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
+// XML archive that defines boost::archive::xml_oarchive
+// and boost::archive::xml_iarchive
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+
+// XML archive which uses wide characters (use for UTF-8 output ),
+// defines boost::archive::xml_woarchive
+// and boost::archive::xml_wiarchive
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+
+// Binary archive that defines boost::archive::binary_oarchive
+// and boost::archive::binary_iarchive
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/vector.hpp>
+
+namespace votca { namespace ctp {
+    namespace ub = boost::numeric::ublas;
+/**
+    \brief container for molecular orbitals
+ 
+    The Orbitals class stores orbital id, energy, MO coefficients
+    
+*/
+class Orbitals 
+{
+public:   
+
+    Orbitals();
+   ~Orbitals();
+
+    const int     &getBasisSetSize() const;
+    void           setBasisSetSize( const int &basis_set_size );
+    
+    int            getNumberOfLevels();
+    void           setNumberOfLevels( const int &occupied_levels, const int &unoccupied_levels );
+    
+    const int     &getNumberOfElectrons() const;
+    void           setNumberOfElectrons( const int &electrons );
+    
+    ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
+    ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
+    ub::vector<double>* getEnergies() { return &_mo_energies; }
+    
+    std::vector<int>* getDegeneracy( int level, double _energy_difference );
+    
+    // returns indeces of a re-sorted in a descending order vector of energies
+    void SortEnergies( std::vector<int>* index );
+        
+protected:
+    
+    static const double                 _conv_Hrt_eV = 27.21138386;
+
+    bool                                _has_basis_set_size;
+    int                                     _basis_set_size;   
+    
+    bool                                _has_occupied_levels;
+    int                                     _occupied_levels;
+    
+    bool                                _has_unoccupied_levels;
+    int                                     _unoccupied_levels;
+    
+    bool                                _has_number_of_electrons;
+    int                                     _number_of_electrons;
+    
+    bool                                _has_level_degeneracy;
+    std::map<int, std::vector<int> >        _level_degeneracy;
+    
+    bool                                _has_mo_energies;
+    ub::vector<double>                      _mo_energies; 
+    
+    bool                                _has_mo_coefficients;
+    bool                                _save_mo_coefficients;
+    ub::matrix<double>                      _mo_coefficients;
+    
+    bool                                _has_overlap;
+    bool                                _save_overlap;
+    ub::symmetric_matrix<double>            _overlap;
+
+private:
+
+    /**
+    * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
+    * @return A map with key as a level and a vector which is a list of close lying orbitals
+    */    
+    bool CheckDegeneracy( double _energy_difference );
+    
+    // Allow serialization to access non-public data members
+    friend class boost::serialization::access;
+    
+    //Allow Gaussian object to access non-public data members
+    friend class Gaussian;
+    
+    // serialization itself (template implementation stays in the header)
+    template<typename Archive> 
+    void serialize(Archive& ar, const unsigned version) {
+
+       // std::cout << "... ... Serializing the Orbitals." << std::endl ;
+       bool False = false;
+       
+       ar & _has_basis_set_size;
+       ar & _has_occupied_levels;
+       ar & _has_unoccupied_levels;
+       ar & _has_number_of_electrons;
+       ar & _has_level_degeneracy;
+       ar & _has_mo_energies;
+       if ( _save_mo_coefficients ) { ar & _has_mo_coefficients; } else { ar & False; }     
+       if ( _save_overlap ) { ar & _has_overlap; } else { ar & False; }
+
+       if ( _has_basis_set_size ) { ar & _basis_set_size; }
+       if ( _has_occupied_levels ) { ar & _occupied_levels; }
+       if ( _has_unoccupied_levels ) { ar & _unoccupied_levels; }
+       if ( _has_number_of_electrons ) { ar & _number_of_electrons; }
+       if ( _has_level_degeneracy ) { ar & _level_degeneracy; }
+       if ( _has_mo_energies ) { ar & _mo_energies; }
+       if ( _has_mo_coefficients && _save_mo_coefficients ) { ar & _mo_coefficients; }
+       if ( _has_overlap && _save_overlap ) { 
+           // symmetric matrix does not serialize by default
+            if (Archive::is_saving::value) {
+                unsigned size = _overlap.size1();
+                ar & size;
+             }
+
+            // copy the values back if loading
+            if (Archive::is_loading::value) {
+                unsigned size;
+                ar & size;
+                _overlap.resize(size);
+             }
+            
+           for (unsigned i = 0; i < _overlap.size1(); ++i)
+                for (unsigned j = 0; j <= i; ++j)
+                    ar & _overlap(i, j);       
+       }
+       //std::vector<int>      _active_levels;
+    }
+    
+    // 
+
+};
+
+//BOOST_CLASS_VERSION(Orbitals, 1)
+        
+}}
+
+#endif	/* __VOTCA_CTP_ORBITALS_H */
+
