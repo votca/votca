@@ -48,7 +48,7 @@ public:
     * and guess for the dimer orbitals (if given) constructed from the
     * orbitals of monomers 
     */
-   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL, vector<vector<APolarSite*> >* polar_sites = NULL );
+   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
    
    bool WriteShellScript();
    bool Run();

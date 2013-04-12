@@ -66,8 +66,7 @@ Orbitals::Orbitals() {
     _has_mo_coefficients = false;
     _has_mo_energies = false;
     _has_overlap = false;
-    _has_coordinates = false;
-    _has_atom_types = false;
+    _has_atoms = false;
     
     _save_mo_coefficients = true;
     _save_overlap = true;
@@ -78,6 +77,9 @@ Orbitals::~Orbitals() {
     _mo_energies.clear();
     _mo_coefficients.clear();
     _overlap.clear();
+    
+    std::vector< QMAtom* >::iterator it;
+    for ( it = _atoms.begin(); it != _atoms.end(); ++it ) delete *it;
 };   
 
 const int    &Orbitals::getBasisSetSize() const { 

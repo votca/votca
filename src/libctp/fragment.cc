@@ -191,7 +191,7 @@ void Fragment::Rigidify(bool Auto) {
     vec xQM, yQM, zQM;
 
     if (_symmetry == 3) {
-
+        
         vec r1MD = trihedron[0]->getPos();
         vec r2MD = trihedron[1]->getPos();
         vec r3MD = trihedron[2]->getPos();

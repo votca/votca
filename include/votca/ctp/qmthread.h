@@ -14,9 +14,7 @@ namespace votca { namespace ctp {
     class QMThread : public Thread
     {
        friend ostream& operator<<( ostream& out, QMThread&  t ) {
-           //out << "... ... ... ... ... ... ... ... ... ... ..." << endl;
            out << (t._ss).str();
-           //out << "... ... ... ... ... ... ... ... ... ... ..." << endl;
            t._ss.str( "" );
            return out;
        }

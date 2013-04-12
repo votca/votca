@@ -22,7 +22,7 @@
 #define	_CALC_INTEGRALS_H
 
 #include <votca/ctp/qmpair.h>
-#include <votca/ctp/parallelpaircalc.h>
+#include <votca/ctp/paircalculator.h>
 #include <votca/moo/mol_and_orb.h>
 
 namespace votca { namespace ctp {
@@ -33,7 +33,7 @@ namespace MOO = votca::moo;
 * \brief Semi-empirical electronic coupling elements for QM pairs
 *
 * Semi-empirical (ZINDO) electronic coupling elements for all conjugated
-* segments from the neighbour list. Requires molecular orbitals in GAUSSIAN
+* segments from the neighbout list. Requires molecular orbitals in GAUSSIAN
 * format.
 *
 * Callname: izindo
@@ -49,9 +49,9 @@ public:
     string  Identify() { return "IZindo"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    EvalPair(Topology *top, QMPair *pair, int slot);
+    void    EvalPair(Topology *top, QMPair *pair, PairOperator *opThread);
 
-    void    CTP2MOO2CTP(QMPair *pair, int slot, int state);
+    void    CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state);
     void    CalculateJ(QMPair *pair);
     void    CleanUp();
 
@@ -196,7 +196,7 @@ void IZindo::ParseOrbitalsXML(Topology *top, Property *opt) {
 }
 
 
-void IZindo::EvalPair(Topology *top, QMPair *qmpair, int slot) {
+void IZindo::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread) {
 
     this->LockCout();
     cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << flush;
@@ -223,16 +223,16 @@ void IZindo::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     }
 
     if (pair_has_e) {
-        this->CTP2MOO2CTP(qmpair, slot, -1);
+        this->CTP2MOO2CTP(qmpair, opThread, -1);
     }
     if (pair_has_h) {
-        this->CTP2MOO2CTP(qmpair, slot, +1);
+        this->CTP2MOO2CTP(qmpair, opThread, +1);
     }
 }
 
 
 
-void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
+void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
 
     // ++++++++++++++++++++++ //
     // Initialize MOO Objects //
@@ -389,8 +389,6 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, int slot, int state) {
                                     morb2->getorb(i), i);
         }
     }
-    
-    morb2->write_pdb("morbs.pdb", "MOL", 1);
 
     //_morb2->write_pdb("morbs.pdb", "MOL", 1);
     // ++++++++++++++++++++++++++++ //

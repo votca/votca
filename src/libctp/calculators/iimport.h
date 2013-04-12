@@ -95,6 +95,8 @@ void IImport::List2PairsTI(Topology *top, string &ti_file) {
             Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
+            if (split.size() == 0) { continue; }
+            
             if (split.size() != 4 && split.size() != 6) {
                 cout << endl << "... ... Invalid line: " << line << flush;
                 continue;
@@ -130,9 +132,11 @@ void IImport::List2PairsTI(Topology *top, string &ti_file) {
                 double j2_2 = boost::lexical_cast<double>(split[5]);
 
                 qmp->setJeff2(j2_2, e_h_2);
+                qmp->setIsPathCarrier(true, e_h_2);
             }
 
             qmp->setJeff2(j2_1, e_h_1);
+            qmp->setIsPathCarrier(true, e_h_1);
             ++pair_count;
             
         }

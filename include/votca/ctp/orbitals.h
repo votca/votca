@@ -54,6 +54,41 @@
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
+    
+/**
+    \brief container for basic atoms 
+     Stores atom type, coordinates, charge
+ */    
+class QMAtom
+{
+public:
+    
+   QMAtom (std::string _type, double _x, double _y, double _z, double _charge, bool _from_envornment)
+            : type( _type ), x(_x), y(_y), z(_z), charge(_charge), from_environment( _from_envornment )
+            {};
+            
+    QMAtom ()
+            : type( "" ), x(0), y(0), z(0), charge(0), from_environment( false )
+            {};     
+            
+   std::string type;
+   double x;
+   double y;
+   double z;
+   double charge;
+   bool   from_environment;
+   
+   template<typename Archive> 
+   void serialize(Archive& ar, const unsigned version) {
+       ar & type;
+       ar & x;
+       ar & y;
+       ar & z;
+       ar & charge;
+       ar & from_environment;
+   }  
+};
+    
 /**
     \brief container for molecular orbitals
  
@@ -84,7 +119,14 @@ public:
     
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
-        
+    
+    QMAtom* AddAtom (std::string _type, double _x, double _y, double _z, double _charge = 0, bool _from_environment = false){
+        //std::cout << _type << std::endl;
+        QMAtom* pAtom = new QMAtom(_type, _x, _y, _z, _charge, _from_environment);
+        _atoms.push_back( pAtom );
+        return pAtom;
+    }
+
 protected:
     
     static const double                 _conv_Hrt_eV = 27.21138386;
@@ -115,14 +157,10 @@ protected:
     bool                                _save_overlap;
     ub::symmetric_matrix<double>            _overlap;
     
-    bool                                _has_coordinates;
-    std::vector< tools::vec >               _coordinates;   
-    
-    bool                                _has_atom_types;
-    std::vector<std::string>                _atom_types;   
-
     bool                                _has_charges;
-    std::vector<double>                     _charges;
+    bool                                _has_atoms;
+    std::vector< QMAtom* >                  _atoms;   
+
     
 
 private:
@@ -152,7 +190,7 @@ private:
        ar & _has_number_of_electrons;
        ar & _has_level_degeneracy;
        ar & _has_mo_energies;
-       ar & _has_coordinates;
+       ar & _has_atoms;
        if ( _save_mo_coefficients ) { ar & _has_mo_coefficients; } else { ar & False; }     
        if ( _save_overlap ) { ar & _has_overlap; } else { ar & False; }
 
@@ -181,14 +219,8 @@ private:
                 for (unsigned j = 0; j <= i; ++j)
                     ar & _overlap(i, j);       
        }
-       if ( _has_coordinates ) {
-           std::vector< tools::vec >::iterator it;
-           for ( it = _coordinates.begin(); it != _coordinates.end(); ++it )
-           ar & (*it).x();
-           ar & (*it).y();
-           ar & (*it).z();
-       }
-       //std::vector<int>      _active_levels;
+       if ( _has_atoms ) { ar & _atoms; }
+        //std::vector<int>      _active_levels;
     }
     
     // 

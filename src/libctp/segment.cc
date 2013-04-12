@@ -319,7 +319,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
                  1.0,                   // Occupancy                    %6.2f
                  0.0,                   // Temperature factor           %6.2f
                  " ",                   // Segment identifier           %4s
-                 name.c_str(),          // Element symbol               %2s
+                 " ",                   // Element symbol               %2s
                  " "                    // Charge on the atom.          %2s
                  );
     }

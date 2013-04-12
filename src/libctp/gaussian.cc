@@ -72,7 +72,7 @@ Gaussian::~Gaussian() {
  * Prepares the com file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess, vector<vector<APolarSite*> >* polar_sites )
+bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
 {
     vector< Atom* > _atoms;
     vector< Atom* > ::iterator ait;
@@ -164,8 +164,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     }
     
     if ( _write_charges ) {
-        
-    }
+     }
 
     
     _com_file << endl;
@@ -591,10 +590,10 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 
                 vector<string>::iterator it_atom;
                 it_atom = atom.end();
-                double z =  boost::lexical_cast<double>( *(--it_atom) );
-                double y =  boost::lexical_cast<double>( *(--it_atom) );
-                double x =  boost::lexical_cast<double>( *(--it_atom) );
-                
+                double _z =  boost::lexical_cast<double>( *(--it_atom) );
+                double _y =  boost::lexical_cast<double>( *(--it_atom) );
+                double _x =  boost::lexical_cast<double>( *(--it_atom) );
+                _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 
             }
   

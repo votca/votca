@@ -113,24 +113,27 @@ void Rates::Initialize(Topology *top, Property *options) {
     }
 
 
+    if (_rateType == "jortner") {
+        
+   
     // Vibrational quanta
     if (options->exists(key+".nmaxvib")) {
-        _nMaxVib = options->get(key+".nmaxvib").as<double> ();
+            _nMaxVib = options->get(key+".nmaxvib").as<double> ();
+        }
+        else {
+            _nMaxVib = 20;
+            cout << endl << "... ... WARNING: No cut-off number for QM vibrations "
+                            "provided, using default 20.";
+        }
+        if (options->exists(key+".omegavib")) {
+            _omegaVib = options->get(key+".omegavib").as<double> ();
+        }
+        else {
+            _omegaVib = 0.2;
+            cout << endl << "... ... WARNING: No QM vibration frequency provided, "
+                            "using default 0.2eV.";
+        }
     }
-    else {
-        _nMaxVib = 20;
-        cout << endl << "... ... WARNING: No cut-off number for QM vibrations "
-                        "provided, using default 20.";
-    }
-    if (options->exists(key+".omegavib")) {
-        _omegaVib = options->get(key+".omegavib").as<double> ();
-    }
-    else {
-        _omegaVib = 0.2;
-        cout << endl << "... ... WARNING: No QM vibration frequency provided, "
-                        "using default 0.2eV.";
-    }
-
 
     // this->ParseEnergiesXML(top, options);
 
