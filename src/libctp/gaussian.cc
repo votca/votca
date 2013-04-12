@@ -72,7 +72,7 @@ Gaussian::~Gaussian() {
  * Prepares the com file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
+bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess, vector<vector<APolarSite*> >* polar_sites )
 {
     vector< Atom* > _atoms;
     vector< Atom* > ::iterator ait;
@@ -162,6 +162,11 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
             } 
         }
     }
+    
+    if ( _write_charges ) {
+        
+    }
+
     
     _com_file << endl;
     _com_file.close();
@@ -254,7 +259,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
         cerr << endl << "File " << _orb_file_name << " with molecular orbitals is not found " << endl;
         return 1;
     } else {
-        cout << endl << "... ... Reading molecular orbitals from " << _orb_file_name << endl;
+        if ( tools::globals::verbose ) cout << endl << "... ... Reading molecular orbitals from " << _orb_file_name << endl;
     }
 
     // number of coefficients per line is  in the first line of the file (5D15.8)
@@ -304,7 +309,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     }
 
     // some sanity checks
-    cout << "... ... Energy levels: " << _levels << endl;
+    if ( tools::globals::verbose ) cout << "... ... Energy levels: " << _levels << endl;
 
     std::map< int, vector<double> >::iterator iter = _coefficients.begin();
     _basis_size = iter->second.size();
@@ -315,7 +320,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
 
         }
     }
-    cout << "... ... Basis set size: " << _basis_size << endl;
+    if ( tools::globals::verbose ) cout << "... ... Basis set size: " << _basis_size << endl;
 
     // copying information to the orbitals object
     _orbitals->_basis_set_size = _basis_size;
@@ -349,7 +354,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
    _energies.clear();
    
      
-   cout << "... ... Done reading orbital files from " << _orb_file_name << endl;
+   if ( tools::globals::verbose ) cout << "... ... Done reading orbital files from " << _orb_file_name << endl;
 
    return 0;
 }
@@ -369,13 +374,14 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_basis_set_size = false;
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
-
+    bool _has_coordinates = false;
+    
     int _occupied_levels = 0;
     int _unoccupied_levels = 0;
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
     
-    cout << endl << "... ... Parsing " << _log_file_name << endl;
+    if ( tools::globals::verbose ) cout << endl << "... ... Parsing " << _log_file_name << endl;
 
     ifstream _input_file(_log_file_name.c_str());
     if (_input_file.fail()) {
@@ -399,7 +405,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _number_of_electrons =  boost::lexical_cast<int>(results.front()) ;
             _orbitals->_number_of_electrons = _number_of_electrons ;
             _orbitals->_has_number_of_electrons = true;
-            cout << "... ... Alpha electrons: " << _number_of_electrons << endl ;
+            if ( tools::globals::verbose ) cout << "... ... Alpha electrons: " << _number_of_electrons << endl ;
         }
 
         /*
@@ -413,7 +419,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _basis_set_size = boost::lexical_cast<int>(results.front());
             _orbitals->_basis_set_size = _basis_set_size ;
             _orbitals->_has_basis_set_size = true;
-            cout << "... ... Basis functions: " << _basis_set_size << endl;
+            if ( tools::globals::verbose ) cout << "... ... Basis functions: " << _basis_set_size << endl;
         }
 
         /*
@@ -460,8 +466,9 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                     _orbitals->_unoccupied_levels = _unoccupied_levels;
                     _orbitals->_has_occupied_levels = true;
                     _orbitals->_has_unoccupied_levels = true;
-                    cout << "... ... Occupied levels: " << _occupied_levels << endl;
-                    cout << "... ... Unoccupied levels: " << _unoccupied_levels << endl;
+                    if ( tools::globals::verbose ) 
+                        cout << "... ... Occupied levels: " << _occupied_levels << endl
+                        << "... ... Unoccupied levels: " << _unoccupied_levels << endl;
                 }
             } // end of the while loop              
         } // end of the eigenvalue parsing
@@ -535,7 +542,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 // clear the index for the next block
                 _j_indeces.clear();        
             } // end of the blocks
-            cout << "... ... Read the overlap matrix" << endl;
+            if ( tools::globals::verbose ) cout << "... ... Read the overlap matrix" << endl;
         } // end of the if "Overlap" found   
 
         
@@ -544,11 +551,56 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
          */
         std::string::size_type charge_pos = _line.find("Charges from ESP fit");
         
-        if (eigenvalues_pos != std::string::npos) {        
+        if (charge_pos != std::string::npos) {        
             
                 _has_charges = true;
         }
         
+
+         /*
+         * Coordinates of the final configuration
+         * stored in the archive at the end of the file
+         */
+         std::string::size_type coordinates_pos = _line.find("Test job not archived");
+        
+        if (coordinates_pos != std::string::npos) {
+            _has_coordinates = true;
+            string archive;
+            while ( _line.size() != 0 ) {
+                getline(_input_file, _line);
+                boost::trim(_line);
+                archive += _line;                
+            }
+            
+            std::list<std::string> stringList;
+            vector<string> results;
+            boost::iter_split( stringList, archive, boost::first_finder("\\\\") );
+             
+            list<string>::iterator coord_block = stringList.begin();
+            advance(coord_block, 3);
+            
+            vector<string> atom_block;
+            boost::algorithm::split(atom_block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
+            
+            vector<string>::iterator atom_block_it;
+            for(atom_block_it =  ++atom_block.begin(); atom_block_it != atom_block.end(); ++atom_block_it) {
+                vector<string> atom;
+                
+                boost::algorithm::split(atom, *atom_block_it, boost::is_any_of(","), boost::algorithm::token_compress_on);
+                string _atom_type = atom.front() ; 
+                
+                vector<string>::iterator it_atom;
+                it_atom = atom.end();
+                double z =  boost::lexical_cast<double>( *(--it_atom) );
+                double y =  boost::lexical_cast<double>( *(--it_atom) );
+                double x =  boost::lexical_cast<double>( *(--it_atom) );
+                
+                
+            }
+  
+            exit(0);
+        }
+
         
         // check if all information has been accumulated
         if ( _has_number_of_electrons && 
@@ -560,7 +612,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
            ) break;
         
     } // end of reading the file line-by-line
-    cout << "... ... Done parsing " << _log_file_name << endl;
+    if ( tools::globals::verbose ) cout << "... ... Done parsing " << _log_file_name << endl;
 }
 
 string Gaussian::FortranFormat( const double &number ) {

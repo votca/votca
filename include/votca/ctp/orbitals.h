@@ -25,6 +25,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
+#include <votca/tools/vec.h>
 
 // Text archive that defines boost::archive::text_oarchive
 // and boost::archive::text_iarchive
@@ -113,6 +114,16 @@ protected:
     bool                                _has_overlap;
     bool                                _save_overlap;
     ub::symmetric_matrix<double>            _overlap;
+    
+    bool                                _has_coordinates;
+    std::vector< tools::vec >               _coordinates;   
+    
+    bool                                _has_atom_types;
+    std::vector<std::string>                _atom_types;   
+
+    bool                                _has_charges;
+    std::vector<double>                     _charges;
+    
 
 private:
 
@@ -141,6 +152,7 @@ private:
        ar & _has_number_of_electrons;
        ar & _has_level_degeneracy;
        ar & _has_mo_energies;
+       ar & _has_coordinates;
        if ( _save_mo_coefficients ) { ar & _has_mo_coefficients; } else { ar & False; }     
        if ( _save_overlap ) { ar & _has_overlap; } else { ar & False; }
 
@@ -168,6 +180,13 @@ private:
            for (unsigned i = 0; i < _overlap.size1(); ++i)
                 for (unsigned j = 0; j <= i; ++j)
                     ar & _overlap(i, j);       
+       }
+       if ( _has_coordinates ) {
+           std::vector< tools::vec >::iterator it;
+           for ( it = _coordinates.begin(); it != _coordinates.end(); ++it )
+           ar & (*it).x();
+           ar & (*it).y();
+           ar & (*it).z();
        }
        //std::vector<int>      _active_levels;
     }

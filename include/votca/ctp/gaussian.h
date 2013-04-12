@@ -23,6 +23,8 @@
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
+#include <votca/ctp/apolarsite.h>
+
 #include <string> 
 
 using namespace std;
@@ -46,7 +48,7 @@ public:
     * and guess for the dimer orbitals (if given) constructed from the
     * orbitals of monomers 
     */
-   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL, vector<vector<APolarSite*> >* polar_sites = NULL );
    
    bool WriteShellScript();
    bool Run();

@@ -32,7 +32,7 @@ namespace votca { namespace ctp {
 void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
     _energy_difference = 0.0;
-    ParseOptionsXML( options );
+    ParseOptionsXML( options  );
 
 }
 
@@ -46,11 +46,11 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
         _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     }
     else {
-        cout << "... ... NOT treating degenerate orbitals" << endl ;
+        cout << "... ... NOT treating degenerate orbitals\n" ;
     }    
 
     string _package_xml = opt->get(key+".package").as<string> ();
-    cout << endl << "... ... Parsing " << _package_xml << endl ;
+    //cout << endl << "... ... Parsing " << _package_xml << endl ;
 
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     
@@ -93,7 +93,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
 
     int _size = S.size1(); 
 
-    cout << "... ... Calculating SQRT of the " << _size << "x" << _size  << " overlap matrix" << endl;
+    //cout << "... ... Calculating SQRT of the " << _size << "x" << _size  << " overlap matrix" << endl;
 
     _eigenvalues.resize( _size );
     _eigenvectors.resize( _size, _size ); 
@@ -135,7 +135,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
     
     EigenvaluesSymmetric(S, _eigenvalues, _eigenvectors);
-    cout << "... ... Eigenvalue problem solved " << endl;
+    //cout << "... ... Eigenvalue problem solved " << endl;
     
     //cout << "eigenvalues" << _eigenvalues << endl;
     //cout << _eigenvectors << endl;     
@@ -151,7 +151,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
     // multiply from the right on the transpose U
     S2 = ub::prod( _temp, ub::trans( _eigenvectors ) );
-    cout << "... ... Projection matrix constructed  " << endl;
+    //cout << "... ... Projection matrix constructed  " << endl;
        
 
 
@@ -162,7 +162,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     //cout << "S2: " << S2 << endl;
     //cout << "Overlap: " << _overlap << endl;
     
-    cout << "... ... Done with the sqrt of the overlap matrix" << endl;
+    //cout << "... ... Done with the sqrt of the overlap matrix" << endl;
     
     
  }
@@ -191,14 +191,14 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     std::cout << _monomersAB << std::endl;
     */
     
-    cout << "\n... ... Calculating electronic couplings \n" ;
+    if ( tools::globals::verbose ) *opThread << "\n... ... Calculating electronic couplings \n" ;
     
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
     int _basisB = _orbitalsB->getBasisSetSize();
     
     
-    cout << "... ... Basis [molA:molB] " << _basisA << ":" << _basisB << endl;
+    //cout << "... ... Basis [molA:molB] " << _basisA << ":" << _basisB << endl;
     
     int _levelsA = _orbitalsA->getNumberOfLevels();
     int _levelsB = _orbitalsB->getNumberOfLevels();
@@ -241,13 +241,14 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
     ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
     
-    // DEBUG 
+    /* DEBUG 
     int levelA = _orbitalsA->getNumberOfElectrons() ;
     int levelB = _orbitalsB->getNumberOfElectrons() ;
 
     cout << "... ... Coupling before processing " 
             << JAB_dimer.at_element( levelA - 1  , levelB -1 + _levelsA ) * _conv_Hrt_eV << " "
             << JAB_dimer.at_element( levelA , levelB + _levelsA ) * _conv_Hrt_eV << "\n";
+    */
     
     _temp.clear(); _fock_AB.clear();
     
@@ -281,7 +282,10 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     SQRTOverlap( _S_AxB , _S_AxB_2 );        
     _S_AxB.clear(); 
      
-    cout << "... ... Calculating the effective overlap\n";
+    if ( tools::globals::verbose ) *opThread << "... ... Calculating the effective overlap\n" ;
+    //stringstream test ;
+    //test << "BLA" << "BA";
+    
     ub::matrix<double> JAB_temp = prod( JAB_dimer, _S_AxB_2 );
         
     (*_JAB) = ub::prod( _S_AxB_2, JAB_temp );
@@ -293,7 +297,7 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     
     //cout << _S_AxB << endl;
     //_has_integrals = true;
-    cout << "... ... Done calculating electronic couplings\n";
+    if ( tools::globals::verbose ) *opThread << "... ... Done calculating electronic couplings\n";
        
     //cout << JAB_dimer.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
     //cout << JAB_dimer.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
@@ -340,8 +344,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     Orbitals _orbitalsA;
     Orbitals _orbitalsB;
     Orbitals _orbitalsAB;
-    
-    
+        
     _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
     mkdir(_outParent.c_str(), 0755);
 
@@ -372,7 +375,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     string ORB_FILE_B = "monomer.orb";
    
     string DIR_A  = _outParent + "/" + "mol_" + ID_A;
-    cout << "... ... " << DIR_A +"/" + ORB_FILE_A << "\n";
+    //cout << "... ... " + DIR_A +"/" + ORB_FILE_A + "\n";
     std::ifstream ifs_A( (DIR_A +"/" + ORB_FILE_A).c_str() );
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
@@ -380,7 +383,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     //cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
        
     string DIR_B  = _outParent + "/" + "mol_" + ID_B;
-    cout << "... ... " << DIR_B +"/" + ORB_FILE_B << "\n";
+    //cout << "... ... " << DIR_B +"/" + ORB_FILE_B << "\n";
     std::ifstream ifs_B( (DIR_B +"/" + ORB_FILE_B).c_str() );
     boost::archive::binary_iarchive ia_B( ifs_B );
     ia_B >> _orbitalsB;
@@ -458,13 +461,12 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     
     // Output the thread run summary and clean the thread
     cout << (*opThread);
-    opThread->Clean();
 }
 
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, PairOperator *opThread ) {
     
-    *opThread  << "... ... Constructing the guess for the dimer orbitals\n";   
-    
+    if ( tools::globals::verbose ) *opThread  << "... ... Constructing the guess for the dimer orbitals\n" ;   
+   
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
     int _basisB = _orbitalsB->getBasisSetSize();
