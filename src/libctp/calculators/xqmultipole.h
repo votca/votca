@@ -1231,6 +1231,12 @@ void XQMP::Initialize(Topology *top, Property *opt) {
             _aDamp = opt->get(key+".exp_damp").as< double >();
             if (_aDamp) { _useExp = true; }
         }
+        else {
+            cout << endl << "... ... WARNING: No sharpness parameter supplied";
+            cout << endl << "... ... ... Using default a = 0.39";
+            _aDamp = 0.39;
+            _useExp = true;
+        }
         if ( opt->exists(key+".scaling") ) {
             _scale1 = opt->get(key+".scaling").as< vector<double> >();
             if (0 < _scale1.size() && _scale1.size() < 4) {
