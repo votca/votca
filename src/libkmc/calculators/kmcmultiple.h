@@ -374,8 +374,6 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 
 vector<Node*> KMCMultiple::LoadGraph()
 {
-    string injectionpattern = "*";
-    
     vector<Node*> node;
     
     // Load nodes
@@ -411,7 +409,7 @@ vector<Node*> KMCMultiple::LoadGraph()
             siteenergy = eCation + internalenergy;
         }
         node[i]->siteenergy = siteenergy;
-        if (votca::tools::wildcmp(injectionpattern.c_str(), name.c_str()))
+        if (votca::tools::wildcmp(_injection_name.c_str(), name.c_str()))
         {
             node[i]->injectable = 1;
         }
@@ -431,7 +429,9 @@ vector<Node*> KMCMultiple::LoadGraph()
     {
         int seg1 = stmt->Column<int>(0);
         int seg2 = stmt->Column<int>(1);
-        double rate12 = stmt->Column<double>(2); // !!! CHANGE BACK AFTER DEBUGGING
+
+        double rate12 = stmt->Column<double>(2);
+
         myvec dr = myvec(stmt->Column<double>(3)*1E-9, stmt->Column<double>(4)*1E-9, stmt->Column<double>(5)*1E-9); // converted from nm to m
         double Jeff2 = stmt->Column<double>(6);
         double reorg_out = stmt->Column<double>(7); 
