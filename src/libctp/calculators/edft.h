@@ -170,11 +170,11 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         oa << _orbitals;
         ofs.close();
        
-        //Orbitals _orbitals_new;
-        //std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
-        //boost::archive::text_iarchive ia( ifs );
-        //ia >> _orbitals_new;
-        //ifs.close();
+        Orbitals _orbitals_new;
+        std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
+        boost::archive::text_iarchive ia( ifs );
+        ia >> _orbitals_new;
+        ifs.close();
 
         //cout << "ELECTRONS " << _orbitals_new.getNumberOfElectrons() << endl ;
         //cout << "BASIS SIZE " << _orbitals_new.getBasisSetSize() << endl ;

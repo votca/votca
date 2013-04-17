@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="80">
+<configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libctp/calculators/density.h</itemPath>
       <itemPath>../../src/libctp/calculators/eanalyze.h</itemPath>
       <itemPath>../../src/libctp/calculators/ecoulomb.h</itemPath>
+      <itemPath>../../src/libctp/calculators/edft.h</itemPath>
       <itemPath>../../src/libctp/calculators/einternal.cc</itemPath>
       <itemPath>../../src/libctp/calculators/einternal.h</itemPath>
       <itemPath>../../src/libctp/calculators/emultipole.h</itemPath>
@@ -31,6 +32,7 @@
       <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
       <itemPath>../../src/libctp/calculators/xmultipole.h</itemPath>
       <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
+      <itemPath>../../src/libctp/calculators/xqmultipole.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -51,6 +53,8 @@
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
     </logicalFolder>
@@ -64,9 +68,11 @@
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
       <itemPath>../../src/libctp/fragment.cc</itemPath>
+      <itemPath>../../src/libctp/gaussian.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/molecule.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
+      <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/qmapplication.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>

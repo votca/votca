@@ -93,6 +93,7 @@ private:
     
     bool                                _get_orbitals;
     bool                                _get_overlap;
+    bool                                _get_charges;
     
     bool                                _write_guess;
     bool                                _write_charges;

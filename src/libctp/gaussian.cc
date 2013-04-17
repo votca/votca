@@ -62,6 +62,16 @@ Gaussian::Gaussian( tools::Property *opt ) {
     {
         _write_guess = false;
     }
+
+    // check if the pop keyword is present, if yes, get the charges and save them
+    iop_pos = _options.find("pop");
+    if (iop_pos != std::string::npos) {
+        _get_charges = true;
+    } else
+    {
+        _get_charges = false;
+    }
+
     
 };   
     
@@ -550,9 +560,31 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
          */
         std::string::size_type charge_pos = _line.find("Charges from ESP fit");
         
-        if (charge_pos != std::string::npos) {        
-            
+        if (charge_pos != std::string::npos && _get_charges ) {        
+                cout << "... ... Getting charges out of the log file" << endl;
                 _has_charges = true;
+                getline(_input_file, _line);
+                getline(_input_file, _line);
+                
+                vector<string> _row;
+                getline(_input_file, _line);
+                boost::trim( _line );
+                //cout << _line << endl;
+                boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
+                int nfields =  _row.size();
+                //cout << _row.size() << endl;
+                
+                while ( nfields == 3 ) {
+                    int atom_id = boost::lexical_cast< int >( _row.at(0) );
+                    string atom_type = _row.at(1);
+                    double atom_charge = boost::lexical_cast< double >( _row.at(2) );
+                    //cout << atom_id << " " << atom_type << " " << atom_charge << endl;
+                    getline(_input_file, _line);
+                    boost::trim( _line );
+                    boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
+                    nfields =  _row.size();
+                }
+                
         }
         
 
@@ -597,7 +629,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 
             }
   
-            exit(0);
+            //exit(0);
         }
 
         
