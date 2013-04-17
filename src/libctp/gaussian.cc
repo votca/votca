@@ -561,7 +561,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         std::string::size_type charge_pos = _line.find("Charges from ESP fit");
         
         if (charge_pos != std::string::npos && _get_charges ) {        
-                cout << "... ... Getting charges out of the log file" << endl;
+                if ( tools::globals::verbose ) cout << "... ... Getting charges out of the log file" << endl;
                 _has_charges = true;
                 getline(_input_file, _line);
                 getline(_input_file, _line);

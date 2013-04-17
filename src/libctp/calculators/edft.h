@@ -172,7 +172,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
        
         Orbitals _orbitals_new;
         std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
-        boost::archive::text_iarchive ia( ifs );
+        boost::archive::binary_iarchive ia( ifs );
         ia >> _orbitals_new;
         ifs.close();
 
