@@ -28,6 +28,7 @@ class APolarSite
     friend class ZMultipole;
     friend class QMultipole;
     friend class XQMP;
+    friend class XInteractor;
 
 
 public:
