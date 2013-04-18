@@ -295,7 +295,10 @@ private:
 
 }; 
     
-    
+
+vector<XJob*> XJOBS_FROM_TABLE(const string &job_file, Topology *top);
+
+
     
 }}
 

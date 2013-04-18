@@ -22,7 +22,8 @@
 #include <votca/ctp/topology.h>
 #include <votca/ctp/apolarsite.h>
 
-// TODO Sharpness parameter init. in constructor
+// TODO Sharpness parameter should be initialised in constructor
+// ...  (currently hard-coded, 0.390)
 
 
 namespace votca { namespace ctp {

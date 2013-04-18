@@ -9,9 +9,11 @@
 #include <votca/ctp/xinteractor.h>
 
 
+// TODO JobXQMP requires destructor for privatized polar sites.
 
 namespace votca { namespace ctp {
 
+    
 class XQMP : public QMCalculator
 {
 
@@ -24,14 +26,12 @@ public:
     void                Initialize(Topology *, Property *);
     bool                EvaluateFrame(Topology *top);
 
-    // +++++++++++++++++++++++++++++++ //
-    // MULTIPOLE ALLOCATION FROM INPUT //
-    // +++++++++++++++++++++++++++++++ //
-
-    void                Collect_JOB(string job_file, Topology *top);
-
+    XJob               *RequestNextJob(int id, Topology *top);
+    void                LockCout() { _coutMutex.Lock(); }
+    void                UnlockCout() { _coutMutex.Unlock(); }
+    
     // +++++++++++++++++++++++++++ //
-    // Job Operator (Thread class) //
+    // XJOB OPERATOR (THREAD)      //
     // +++++++++++++++++++++++++++ //
 
     class JobXQMP : public Thread
@@ -39,13 +39,12 @@ public:
     public:
 
         JobXQMP(int id,     Topology *top,        XQMP *master)
-              : _id(id),         _top(top),     _master(master)
-              {};
+              : _id(id),         _top(top),     _master(master) {};
 
        ~JobXQMP() {};
 
-        int         getId() { return _id; }
-        void        setId(int id) { _id = id; }
+        int         getId()             { return _id; }
+        void        setId(int id)       { _id = id; }
 
         void        InitSlotData(Topology *top);
         void        Run(void);
@@ -68,40 +67,27 @@ public:
 
     };
 
-    XJob               *RequestNextJob(int id, Topology *top);
-    void                LockCout() { _coutMutex.Lock(); }
-    void                UnlockCout() { _coutMutex.Unlock(); }
-
-
 private:
 
     // ++++++++++++++++++++++++++++++++++++++++ //
-    // MULTIPOLE ALLOCATION TO SEGMENTS / PAIRS //
+    // MULTIPOLE ALLOCATION, XJOBS, ADD. OUTPUT //
     // ++++++++++++++++++++++++++++++++++++++++ //
 
+    // Polar-site mapping
     string                         _job_file;
     string                         _emp_file;
     string                         _xml_file;
     XMpsMap                        _mps_mapper;
     
-    // Job info : JOB_ID PAIR_ID MPS_1 MPS_2 TAG
+    // XJobs and thread management
     vector<XJob*>                  _XJobs;
     vector<XJob*>::iterator        _nextXJob;
     Mutex                          _nextJobMutex;
     Mutex                          _coutMutex;
     Mutex                          _logMutex;
     bool                           _maverick;
-
-    /*
-    vector<int>                    _jobIds;
-    map<int,string>                _jobId_jobTag;
-    map<int,int>                   _jobId_pairId;
-    map<int,string>                _jobId_mpsFile1;
-    map<int,string>                _jobId_mpsFile2;
-    map<int, pair<int,int> >       _pairId_seg1Id_seg2Id;
-    vector<int>::iterator          _nextJob;
-    */
     
+    // Control over induction-state output
     string                          _pdb_check;
     bool                            _write_chk;
     string                          _write_chk_suffix;
@@ -114,12 +100,12 @@ private:
     // INDUCTION + ENERGY EVALUATION            //
     // ++++++++++++++++++++++++++++++++++++++++ //
 
-    // Control options
+    // Induction switches, subthreading
     bool                            _induce;
     bool                            _induce_intra_pair;
     int                             _subthreads;
 
-    // Interaction parameters
+    // Multipole Interaction parameters
     bool                            _useCutoff;
     double                          _cutoff;
     double                          _cutoff2;
@@ -128,18 +114,15 @@ private:
     bool                            _useScaling;
     vector<double>                  _scale1;
 
-    // Convergence parameters
+    // Convergence parameters for induction
     float                           _wSOR_N;
     float                           _wSOR_C;
     double                          _epsTol;
     int                             _maxIter;
 
-    // Logging
+    // XJob logbook (file output)
     string                          _outFile;
     bool                            _energies2File;
-    map<int,vector<int> >           _log_seg_iter;
-    map<int,int>                    _log_seg_sphereSize;
-    map<int,vec>                    _log_seg_com;
 
 
 };
@@ -289,78 +272,13 @@ void XQMP::Initialize(Topology *top, Property *opt) {
 }
 
 
-void XQMP::Collect_JOB(string job_file, Topology *top) {
-
-    QMNBList &nblist = top->NBList();
-
-    std::string line;
-    std::ifstream intt;
-    intt.open(job_file.c_str());
-
-    if (intt.is_open() ) {
-        while ( intt.good() ) {
-
-            std::getline(intt, line);
-            vector<string> split;
-            Tokenizer toker(line, " ");
-            toker.ToVector(split);
-
-            if ( !split.size()      ||
-                  split[0] == "#"   ||
-                  split[0].substr(0,1) == "#" ) { continue; }
-
-// Sample line
-// # JOB_ID TAG  PAIR_ID SEG1_ID SEG1_NAME SEG1_MPS SEG2_ID SEG2_NAME SEG2_MPS  (TYPE  SITE)
-//   1      E_CT 3819    182     C60       c60.mps  392     DCV       dcv.mps   (site  392)
-
-            int jobId       = boost::lexical_cast<int>(split[0]);
-            string tag      = split[1];
-            int pairId      = boost::lexical_cast<int>(split[2]);
-
-            int seg1Id      = boost::lexical_cast<int>(split[3]);
-            string seg1Name = split[4];
-            string seg1mps  = split[5];
-
-            int seg2Id      = boost::lexical_cast<int>(split[6]);
-            string seg2Name = split[7];
-            string seg2mps  = split[8];
-
-            string job_type = "pair";
-            int    energy_site_id = -1;
-            if (split.size() == 11) {
-                job_type = split[9];
-                energy_site_id = boost::lexical_cast<int>(split[10]);
-            }
-
-            Segment *seg1   = top->getSegment(seg1Id);
-            Segment *seg2   = top->getSegment(seg2Id);
-
-            _XJobs.push_back(new XJob(jobId,  tag,    job_type, energy_site_id,
-                                      pairId, seg1Id, seg2Id,   seg1mps,
-                                      seg2mps, top));
-
-            _XJobs.back()->setType(job_type, energy_site_id);
-
-        } /* Exit loop over lines */
-    }
-    else { cout << endl << "ERROR: No such file " << job_file << endl;
-           throw runtime_error("Please supply input file.");           }
-
-    cout << endl 
-         << "... ... ... Registered " << _XJobs.size() << " jobs. "
-         << flush;
-
-}
-
-
 bool XQMP::EvaluateFrame(Topology *top) {
 
     cout << endl
          << "... ... Load multipole definition, collect jobs: "
          << flush;
 
-    Collect_JOB(_job_file, top); // <- Collect jobs .mps => Foreground .mps
-    
+    _XJobs = XJOBS_FROM_TABLE(_job_file, top);    
     _mps_mapper.CollectMapFromXML(_xml_file);
     _mps_mapper.CollectSegMpsAlloc(_emp_file, top);    
     _mps_mapper.CollectSitesFromMps(_XJobs);
@@ -394,7 +312,7 @@ bool XQMP::EvaluateFrame(Topology *top) {
              << flush;
     }
 
-    // To check rotation into global frame
+    // Check rotation into global frame
     if (_pdb_check != "") {
         cout << endl
              << "... ... Writing polar-site coordinates to "
@@ -430,8 +348,7 @@ bool XQMP::EvaluateFrame(Topology *top) {
              << flush;
     }
 
-    vector<JobXQMP*> jobOps;    
-
+    vector<JobXQMP*> jobOps;
     _nextXJob = _XJobs.begin();
 
     for (int id = 0; id < _nThreads; id++) {
@@ -465,13 +382,36 @@ bool XQMP::EvaluateFrame(Topology *top) {
         (*jit)->WriteInfoLine(out);
     }
     fclose(out);
-
+    
 }
 
 
+XJob *XQMP::RequestNextJob(int id, Topology *top) {
+
+    _nextJobMutex.Lock();
+
+    XJob *workOnThis;
+
+    if (_nextXJob == _XJobs.end()) {
+        workOnThis = NULL;
+    }
+    else {
+        workOnThis = *_nextXJob;
+        _nextXJob++;
+        cout << endl 
+             << "... ... Thread " << id << " evaluating job "
+             << workOnThis->getId() << " " << workOnThis->getTag()
+             << flush;
+    }
+
+    _nextJobMutex.Unlock();
+
+    return workOnThis;
+}
+
 
 // ========================================================================== //
-//                            JOBXQMP MEMBER FUNCTIONS                         //
+//                           JOBXQMP MEMBER FUNCTIONS                         //
 // ========================================================================== //
 
 
@@ -518,7 +458,8 @@ void XQMP::JobXQMP::Run(void) {
 void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
 
     double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-
+    
+    
     // ++++++++++++++++++++++++++ //
     // Adapt polar sites          //
     // ++++++++++++++++++++++++++ //
@@ -534,7 +475,6 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
 
     _polarSites_job[subs_here1-1] = subs1;
     _polarSites_job[subs_here2-1] = subs2;
-    
     
 
     // ++++++++++++++++++++++++++ //
@@ -759,35 +699,6 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
     subs2.clear();
 
 }
-
-
-XJob *XQMP::RequestNextJob(int id, Topology *top) {
-
-    _nextJobMutex.Lock();
-
-    XJob *workOnThis;
-
-    if (_nextXJob == _XJobs.end()) {
-        workOnThis = NULL;
-    }
-    else {
-        workOnThis = *_nextXJob;
-        _nextXJob++;
-        cout << endl 
-             << "... ... Thread " << id << " evaluating job "
-             << workOnThis->getId() << " " << workOnThis->getTag()
-             << flush;
-    }
-
-    _nextJobMutex.Unlock();
-
-    return workOnThis;
-}
-
-
-
-
-
 
 
 }}
