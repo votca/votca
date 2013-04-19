@@ -155,7 +155,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         _gaussian.WriteInputFile( segments );
         
         // Run the executable
-        _gaussian.Run( );
+        //_gaussian.Run( );
         
         // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
@@ -175,7 +175,11 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         boost::archive::binary_iarchive ia( ifs );
         ia >> _orbitals_new;
         ifs.close();
-
+        exit(0);
+        std::vector< QMAtom* >* _atoms = _orbitals_new.getAtoms();
+        cout << (_atoms->front())->type;
+        exit(0);
+        
         //cout << "ELECTRONS " << _orbitals_new.getNumberOfElectrons() << endl ;
         //cout << "BASIS SIZE " << _orbitals_new.getBasisSetSize() << endl ;
  

@@ -558,7 +558,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         /*
          *  Partial charges from the input file
          */
-        std::string::size_type charge_pos = _line.find("Charges from ESP fit");
+        std::string::size_type charge_pos = _line.find("Charges from ESP fit, RMS");
         
         if (charge_pos != std::string::npos && _get_charges ) {        
                 if ( tools::globals::verbose ) cout << "... ... Getting charges out of the log file" << endl;
@@ -578,7 +578,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(2) );
-                    //cout << atom_id << " " << atom_type << " " << atom_charge << endl;
+                    if ( tools::globals::verbose ) cout << atom_id << " " << atom_type << " " << atom_charge << endl;
                     getline(_input_file, _line);
                     boost::trim( _line );
                     boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
@@ -628,7 +628,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 
             }
-  
+            _orbitals->_has_atoms = true;
             //exit(0);
         }
 

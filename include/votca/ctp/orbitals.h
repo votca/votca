@@ -80,7 +80,7 @@ public:
    
    template<typename Archive> 
    void serialize(Archive& ar, const unsigned version) {
-       ar & type;
+       //ar & type;
        ar & x;
        ar & y;
        ar & z;
@@ -116,6 +116,7 @@ public:
     ub::vector<double>* getEnergies() { return &_mo_energies; }
     
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
+    std::vector< QMAtom* >* getAtoms() { return &_atoms; }
     
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
@@ -217,9 +218,33 @@ private:
             
            for (unsigned i = 0; i < _overlap.size1(); ++i)
                 for (unsigned j = 0; j <= i; ++j)
-                    ar & _overlap(i, j);       
+                    ar & _overlap(i, j);     
+           
        }
-       if ( _has_atoms ) { ar & _atoms; }
+       
+       std::cout << _has_atoms << std::endl;
+       
+       if ( _has_atoms ) { 
+            if (Archive::is_saving::value) {
+                unsigned size = _atoms.size();
+                std::cout << "saved size "  << size<< std::endl;
+                ar & size;
+                ar & _atoms;
+            }
+            if (Archive::is_loading::value) {
+                unsigned size;
+                ar & size;
+                std::cout << "loaded size "  << size<< std::endl;
+                for (unsigned i = 0; i < size; ++i) {
+                        QMAtom* pAtom = new QMAtom();
+                        ar & *pAtom;
+                        _atoms.push_back( pAtom );
+                        std::cout << "loaded atom " << i << std::endl;
+                }
+                
+            }            
+            
+       }
         //std::vector<int>      _active_levels;
     }
     
