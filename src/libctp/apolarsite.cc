@@ -340,6 +340,30 @@ void APolarSite::PrintTensorPDB(FILE *out, int state) {
 }
 
 
+void APolarSite::WritePdbLine(FILE *out, const string &tag) {
+    
+    fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
+              "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s%4.7f\n",
+         _id % 100000,          // Atom serial number           %5d
+         _name.c_str(),         // Atom name                    %4s
+         " ",                   // alternate location indicator.%1s
+         tag.c_str(),           // Residue name.                %3s
+         "A",                   // Chain identifier             %1s
+         _id % 10000,           // Residue sequence number      %4d
+         " ",                   // Insertion of residues.       %1s
+         _pos.getX()*10,        // X in Angstroms               %8.3f
+         _pos.getY()*10,        // Y in Angstroms               %8.3f
+         _pos.getZ()*10,        // Z in Angstroms               %8.3f
+         1.0,                   // Occupancy                    %6.2f
+         0.0,                   // Temperature factor           %6.2f
+         " ",                   // Segment identifier           %4s
+         _name.c_str(),          // Element symbol               %2s
+         " ",                   // Charge on the atom.          %2s
+         Q00
+         );    
+}
+
+
 void APolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
 
     double int2ext = 1.0;

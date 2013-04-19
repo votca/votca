@@ -493,6 +493,34 @@ public:
 
         _alloc_chunk.Unlock();
         return todo;
+    }    
+    
+    void        WriteShellPdb() {
+        
+        vector< vector<APolarSite*> > ::iterator sit;
+        vector< APolarSite* > ::iterator pit;
+        
+        string shellFile = "mm12.pdb";
+        FILE *out = fopen(shellFile.c_str(),"w");
+        
+        for (sit = _polsPolSphere.begin();
+             sit < _polsPolSphere.end(); ++sit) {
+            for (pit = (*sit).begin();
+                 pit < (*sit).end(); ++pit) {
+                (*pit)->WritePdbLine(out, "MM1");
+            }
+        }
+        
+        for (sit = _polsOutSphere.begin();
+             sit < _polsOutSphere.end(); ++sit) {
+            for (pit = (*sit).begin();
+                 pit < (*sit).end(); ++pit) {
+                (*pit)->WritePdbLine(out, "MM2");
+            }
+        }
+        
+        fclose(out);
+        
     }
     
     

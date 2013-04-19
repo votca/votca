@@ -20,6 +20,9 @@ void XInductor::Evaluate(XJob *job,
     _polsOutSphere  = polsOutSphere;
     _polarSites     = polarSites;
     _polarSites_job = polarSites_job;
+    
+    // Check shell definition
+    this->WriteShellPdb();
 
     // ++++++++++++++++++++++++++ //
     // (De-)polarize, charge to N //

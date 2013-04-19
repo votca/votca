@@ -27,7 +27,6 @@ class APolarSite
     friend class MolPol;
     friend class ZMultipole;
     friend class QMultipole;
-    friend class XQMP;
     friend class XInteractor;
 
 
@@ -88,6 +87,7 @@ public:
     void            PrintTensorPDB(FILE *out, int state);
     void            WriteChkLine(FILE *, vec &, bool, string, double);
     void            WriteXyzLine(FILE *, vec &, string);
+    void            WritePdbLine(FILE *out, const string &tag = "");
 
     vector<APolarSite*> CreateFrom_MPS(string filename, int state) { ; }
 

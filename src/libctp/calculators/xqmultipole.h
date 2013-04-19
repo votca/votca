@@ -492,18 +492,19 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
     vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
-        double r12 = abs(_top->PbShortestConnect((*sit)->getPos(), center));
-
+        // Boundary-corrected distance R12 = |r12|, boundary shift s12
+        vec    r12 = _top->PbShortestConnect((*sit)->getPos(), center);
+        double R12 = abs(r12);                
+        vec    s12 =  center - (*sit)->getPos() - r12;
+        
+        
         // Always add pair-job segments to polSphere, even for cut-off = 0.0
-        if ( (*sit)->getId() == job->getSeg1Id()
-          || (*sit)->getId() == job->getSeg2Id()) {
-            if   (job->getType() == "pair") { r12 = -1; }
-            else                            { ; }
-        }
+        if ( job->isInCenter((*sit)->getId()) ) { R12 = -1; }
+        
+        // Scan through cut-offs
+        if      ( R12 > _master->_cutoff2) { continue; }
 
-        if      ( r12 > _master->_cutoff2) { continue; }
-
-        else if ( r12 > _master->_cutoff ) {
+        else if ( R12 > _master->_cutoff ) {
             _segsOutSphere.push_back(*sit);
             _polsOutSphere.push_back( _polarSites_job[(*sit)->getId() - 1] );
         }
@@ -511,8 +512,8 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
             _segsPolSphere.push_back(*sit);
             _polsPolSphere.push_back( _polarSites_job[(*sit)->getId() - 1] );
         }
-    }
-
+    }    
+    
     if (_master->_maverick) {
         cout << endl
              << "... ... ... Segments in polarization sphere: "
@@ -529,23 +530,50 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
 //    string shellFile = "OuterShell.pdb";
 //    out = fopen(shellFile.c_str(), "w");
 //    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
-//        (*sit)->WritePDB(out, "Multipoles", "");
+//        (*sit)->WritePDB(out, "Multipoles", "Charges");
 //    }
 //    fclose(out);
 //
 //    shellFile = "InnerShell.pdb";
 //    out = fopen(shellFile.c_str(), "w");
 //    for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
-//        (*sit)->WritePDB(out, "Multipoles", "");
+//        (*sit)->WritePDB(out, "Multipoles", "Charges");
 //    }
 //    fclose(out);
 //
 //    shellFile = "Pair.pdb";
 //    out = fopen(shellFile.c_str(), "w");
-//    job->Seg1()->WritePDB(out, "Multipoles", "");
-//    job->Seg2()->WritePDB(out, "Multipoles", "");
+//    job->Seg1()->WritePDB(out, "Multipoles", "Charges");
+//    job->Seg2()->WritePDB(out, "Multipoles", "Charges");
 //    fclose(out);
-
+    
+    
+//    vector< vector<APolarSite*> > ::iterator sit2;
+//    vector< APolarSite* > ::iterator pit2;
+//
+//    shellFile = "pre_mm12.xyz";
+//    out = fopen(shellFile.c_str(),"w");
+//
+//    vec shift = vec();
+//
+//    for (sit2 = _polsPolSphere.begin();
+//         sit2 < _polsPolSphere.end(); ++sit2) {
+//        for (pit2 = (*sit2).begin();
+//             pit2 < (*sit2).end(); ++pit2) {
+//            (*pit2)->WriteXyzLine(out, shift, "MM1");
+//        }
+//    }
+//
+//    for (sit2 = _polsOutSphere.begin();
+//         sit2 < _polsOutSphere.end(); ++sit2) {
+//        for (pit2 = (*sit2).begin();
+//             pit2 < (*sit2).end(); ++pit2) {
+//            (*pit2)->WriteXyzLine(out, shift, "MM2");
+//        }
+//    }
+//
+//    fclose(out);
+    
 
     _inductor = XInductor(_master->_induce,     _master->_induce_intra_pair,
                           _master->_subthreads, _master->_wSOR_N,
