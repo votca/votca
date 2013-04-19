@@ -155,7 +155,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         _gaussian.WriteInputFile( segments );
         
         // Run the executable
-        //_gaussian.Run( );
+        _gaussian.Run( );
         
         // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
@@ -167,6 +167,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         // save orbitals 
         std::ofstream ofs( (DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
+        std::vector< QMAtom* >* _atoms = _orbitals.getAtoms();
+        cout << endl << "Serializing " << _atoms->size() << " atoms" << endl;        
         oa << _orbitals;
         ofs.close();
        
@@ -175,10 +177,15 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         boost::archive::binary_iarchive ia( ifs );
         ia >> _orbitals_new;
         ifs.close();
-        exit(0);
-        std::vector< QMAtom* >* _atoms = _orbitals_new.getAtoms();
-        cout << (_atoms->front())->type;
-        exit(0);
+
+        _atoms = _orbitals_new.getAtoms();
+        cout << "Deserializing " << _atoms->size() << " atoms" << endl;
+        cout << (_atoms->front())->type << " ";
+        cout << (_atoms->front())->x << " ";
+        cout << (_atoms->front())->y << " ";
+        cout << (_atoms->front())->z << " ";
+        cout << (_atoms->front())->charge << endl;
+        //exit(0);
         
         //cout << "ELECTRONS " << _orbitals_new.getNumberOfElectrons() << endl ;
         //cout << "BASIS SIZE " << _orbitals_new.getBasisSetSize() << endl ;

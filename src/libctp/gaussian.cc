@@ -384,6 +384,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
     bool _has_coordinates = false;
+    bool _has_qm_energy = false;
+    bool _has_self_energy = false;
     
     int _occupied_levels = 0;
     int _unoccupied_levels = 0;
@@ -576,15 +578,25 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 
                 while ( nfields == 3 ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
+                    int atom_number = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(2) );
-                    if ( tools::globals::verbose ) cout << atom_id << " " << atom_type << " " << atom_charge << endl;
+                    if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                     getline(_input_file, _line);
                     boost::trim( _line );
                     boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
                     nfields =  _row.size();
+                    
+                     if ( _orbitals->_has_atoms == false ) {
+                         _orbitals->AddAtom( atom_type, 0, 0, 0, atom_charge );
+                     } else {
+                         QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
+                         pAtom->type = atom_type;
+                         pAtom->charge = atom_charge;
+                     }
+                    
                 }
-                
+                _orbitals->_has_atoms = true;
         }
         
 
@@ -595,6 +607,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
          std::string::size_type coordinates_pos = _line.find("Test job not archived");
         
         if (coordinates_pos != std::string::npos) {
+            if ( tools::globals::verbose ) cout << "... ... Getting the coordinates" << endl;
             _has_coordinates = true;
             string archive;
             while ( _line.size() != 0 ) {
@@ -614,6 +627,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(atom_block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
             
             vector<string>::iterator atom_block_it;
+            int aindex = 0;
+            
             for(atom_block_it =  ++atom_block.begin(); atom_block_it != atom_block.end(); ++atom_block_it) {
                 vector<string> atom;
                 
@@ -625,11 +640,28 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 double _z =  boost::lexical_cast<double>( *(--it_atom) );
                 double _y =  boost::lexical_cast<double>( *(--it_atom) );
                 double _x =  boost::lexical_cast<double>( *(--it_atom) );
-                _orbitals->AddAtom( _atom_type, _x, _y, _z );
+                
+                if ( _orbitals->_has_atoms == false ) {
+                        _orbitals->AddAtom( _atom_type, _x, _y, _z );
+                } else {
+                         QMAtom* pAtom = _orbitals->_atoms.at( aindex );
+                         pAtom->type = _atom_type;
+                         pAtom->x = _x;
+                         pAtom->y = _y;
+                         pAtom->z = _z;
+                         aindex++;
+                }
                 
             }
+            
+            // get the QM energy out
+            advance(coord_block, 1);
+            vector<string> block;
+            boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
+            cout << "ENERGY " << block[1] <<  endl;
+            
             _orbitals->_has_atoms = true;
-            //exit(0);
+            exit(0);
         }
 
         

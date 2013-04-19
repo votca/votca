@@ -80,7 +80,7 @@ public:
    
    template<typename Archive> 
    void serialize(Archive& ar, const unsigned version) {
-       //ar & type;
+       ar & type;
        ar & x;
        ar & y;
        ar & z;
@@ -162,7 +162,11 @@ protected:
     bool                                _has_atoms;
     std::vector< QMAtom* >                  _atoms;   
 
+    bool                                _has_qm_energy;
+    double                                  _qm_energy;
     
+    bool                                _has_self_energy;
+    double                                  _self_energy;
 
 private:
 
@@ -192,6 +196,8 @@ private:
        ar & _has_level_degeneracy;
        ar & _has_mo_energies;
        ar & _has_atoms;
+       ar & _has_qm_energy;
+       
        if ( _save_mo_coefficients ) { ar & _has_mo_coefficients; } else { ar & False; }     
        if ( _save_overlap ) { ar & _has_overlap; } else { ar & False; }
 
@@ -218,38 +224,14 @@ private:
             
            for (unsigned i = 0; i < _overlap.size1(); ++i)
                 for (unsigned j = 0; j <= i; ++j)
-                    ar & _overlap(i, j);     
-           
+                    ar & _overlap(i, j); 
        }
        
-       std::cout << _has_atoms << std::endl;
-       
-       if ( _has_atoms ) { 
-            if (Archive::is_saving::value) {
-                unsigned size = _atoms.size();
-                std::cout << "saved size "  << size<< std::endl;
-                ar & size;
-                ar & _atoms;
-            }
-            if (Archive::is_loading::value) {
-                unsigned size;
-                ar & size;
-                std::cout << "loaded size "  << size<< std::endl;
-                for (unsigned i = 0; i < size; ++i) {
-                        QMAtom* pAtom = new QMAtom();
-                        ar & *pAtom;
-                        _atoms.push_back( pAtom );
-                        std::cout << "loaded atom " << i << std::endl;
-                }
-                
-            }            
-            
-       }
-        //std::vector<int>      _active_levels;
+       if ( _has_atoms ) { ar & _atoms; }
+       if ( _has_qm_energy ) { ar & _qm_energy; }
+       if ( _has_self_energy ) { ar & _self_energy; }       
     }
     
-    // 
-
 };
 
 //BOOST_CLASS_VERSION(Orbitals, 1)
