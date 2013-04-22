@@ -197,7 +197,8 @@ private:
        ar & _has_mo_energies;
        ar & _has_atoms;
        ar & _has_qm_energy;
-       
+       ar & _has_self_energy;
+      
        if ( _save_mo_coefficients ) { ar & _has_mo_coefficients; } else { ar & False; }     
        if ( _save_overlap ) { ar & _has_overlap; } else { ar & False; }
 

@@ -72,6 +72,15 @@ Gaussian::Gaussian( tools::Property *opt ) {
         _get_charges = false;
     }
 
+    // check if the charge keyword is present, if yes, get the self energy and save it
+    iop_pos = _options.find("charge");
+    if (iop_pos != std::string::npos) {
+        _get_self_energy = true;
+    } else
+    {
+        _get_self_energy = false;
+    }
+
     
 };   
     
@@ -581,7 +590,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                     int atom_number = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(2) );
-                    if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
+                    //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                     getline(_input_file, _line);
                     boost::trim( _line );
                     boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
@@ -657,13 +666,33 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             // get the QM energy out
             advance(coord_block, 1);
             vector<string> block;
+            vector<string> energy;
             boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
-            cout << "ENERGY " << block[1] <<  endl;
-            
+            boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
+            _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+            cout << "... ... QM energy " << _conv_Hrt_eV * _orbitals->_qm_energy <<  endl;
+                    
             _orbitals->_has_atoms = true;
-            exit(0);
+            _orbitals->_has_qm_energy = true;
+
         }
 
+         /*
+         * Self-energy of external charges
+         */
+         std::string::size_type self_energy_pos = _line.find("Self energy of the charges");
+        
+        if (self_energy_pos != std::string::npos) {
+            if ( tools::globals::verbose ) cout << "... ... Getting the self energy\n";  
+            vector<string> block;
+            vector<string> energy;
+            boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
+            boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+            cout << "... ... Self energy " << _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) <<  endl;
+            
+            _orbitals->_has_self_energy = true;
+            _orbitals->_self_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+        }
         
         // check if all information has been accumulated
         if ( _has_number_of_electrons && 
@@ -671,11 +700,13 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
              _has_occupied_levels && 
              _has_unoccupied_levels &&
              _has_overlap_matrix &&
-             _has_charges
+             _has_charges && 
+             _has_self_energy
            ) break;
         
     } // end of reading the file line-by-line
     if ( tools::globals::verbose ) cout << "... ... Done parsing " << _log_file_name << endl;
+                exit(0);
 }
 
 string Gaussian::FortranFormat( const double &number ) {
