@@ -41,6 +41,7 @@ public:
 
     virtual void    Initialize(Property *options) { }
     virtual bool    Evaluate() { return true; }
+    virtual bool    EndEvaluate() { return true; }
 
     void            setnThreads(int nThreads) { _nThreads = nThreads; }
 

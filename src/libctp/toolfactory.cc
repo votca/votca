@@ -20,6 +20,7 @@
 
 #include <votca/ctp/toolfactory.h>
 #include "votca_config.h"
+#include "qmtools/molpol.h"
 
 
 
@@ -28,8 +29,8 @@ namespace votca { namespace ctp {
 
 void QMToolFactory::RegisterAll(void)
 {
-        //QMTools().Register<Sandbox>         ("sandbox");
-        ;
+        QMTools().Register<MolPol>         ("molpol");
+        
 }
 
 }}
