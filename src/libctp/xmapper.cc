@@ -4,6 +4,18 @@
 namespace votca { namespace ctp {
 
     
+void XMpsMap::GenerateMap(string xml_file, 
+                          string alloc_table, 
+                          Topology *top, 
+                          vector<XJob*> &xjobs) {
+    
+    this->CollectMapFromXML(xml_file);
+    this->CollectSegMpsAlloc(alloc_table, top);
+    this->CollectSitesFromMps(xjobs);
+    
+}
+    
+    
 void XMpsMap::CollectMapFromXML(string xml_file) {
 
     cout << endl 
@@ -21,6 +33,7 @@ void XMpsMap::CollectMapFromXML(string xml_file) {
     map<string, vector<string> > alloc_frag_mpoleName;
     map<string, vector<int> > alloc_frag_trihedron;
     map<string, vector<double> > alloc_frag_weights;
+    map<string, vector<int> > alloc_frag_isVirtualMp;
 
     Property allocation; // <- Which polar sites are part of which fragment?
     load_property_from_xml(allocation, allocFile.c_str());
@@ -116,6 +129,26 @@ void XMpsMap::CollectMapFromXML(string xml_file) {
                    weights_mps = (*fragit)->get("weights")
                                        .as< vector<double> >();
                 }
+                
+                // Virtual vs real (= atom-centered) polar sites
+                vector<int> isVirtualMp;
+                if ((*fragit)->exists("virtual_mps")) {
+                    cout << endl
+                         << "... ... ... ... " << segName << ": "
+                         << "Checking for virtual expansion sites."
+                         << flush;
+                    vector<int> isVirtual_ints = (*fragit)->get("virtual_mps")
+                                        .as< vector<int> >();
+                    for (int i = 0; i < isVirtual_ints.size(); ++i) {
+                        bool isVirtual = (isVirtual_ints[i] == 0) ? false:true;
+                        isVirtualMp.push_back(isVirtual);
+                    }
+                }
+                else {
+                    for (int i = 0; i < weights_mps.size(); ++i) {
+                        isVirtualMp.push_back(false);
+                    }
+                }
 
                 Tokenizer tokPoles(mpoles, " \t\n");
                 vector<string> mpoleInfo;
@@ -139,10 +172,23 @@ void XMpsMap::CollectMapFromXML(string xml_file) {
 
                 }
 
+                if ( (mpoleIdcs.size() != mpoleNames.size())
+                   ||(mpoleIdcs.size() != weights_mps.size()) 
+                   ||(mpoleIdcs.size() != isVirtualMp.size()) ) {
+                    
+                    cout << endl 
+                         << "ERROR: Bad multipole definition in fragment '"
+                         << mapKeyName
+                         << "'. Misscounted?"
+                         << endl;
+                    throw std::runtime_error("Revise input.");                    
+                }
+                
                 alloc_frag_mpoleIdx[mapKeyName]         = mpoleIdcs;
                 alloc_frag_mpoleName[mapKeyName]        = mpoleNames;
                 alloc_frag_trihedron[mapKeyName]        = trihedron_mps;
                 alloc_frag_weights[mapKeyName]          = weights_mps;
+                alloc_frag_isVirtualMp[mapKeyName]      = isVirtualMp;
             }
         }
     }
@@ -151,7 +197,8 @@ void XMpsMap::CollectMapFromXML(string xml_file) {
     _alloc_frag_mpoleName   = alloc_frag_mpoleName;
     _alloc_frag_trihedron   = alloc_frag_trihedron;
     _alloc_frag_weights     = alloc_frag_weights;
-}  
+    _alloc_frag_isVirtualMp = alloc_frag_isVirtualMp;
+}
     
     
 void XMpsMap::CollectSegMpsAlloc(string alloc_table, Topology *top) {
@@ -315,11 +362,12 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
             Fragment *frag = *fit;
 
             // Retrieve polar-site data for this fragment
-            string idkey                = frag->getName() + seg->getName()
-                                        + seg->getMolecule()->getName();
-            vector<int> polesInFrag     = _alloc_frag_mpoleIdx.at(idkey);
-            vector<string> namesInFrag  = _alloc_frag_mpoleName.at(idkey);
-            vector<double> weightsInFrag= _alloc_frag_weights.at(idkey);
+            string idkey                 = frag->getName() + seg->getName()
+                                         + seg->getMolecule()->getName();
+            vector<int> polesInFrag      = _alloc_frag_mpoleIdx.at(idkey);
+            vector<string> namesInFrag   = _alloc_frag_mpoleName.at(idkey);
+            vector<double> weightsInFrag = _alloc_frag_weights.at(idkey);
+            vector<int> isVirtualMp      = _alloc_frag_isVirtualMp.at(idkey);
 
             if (map2md && polesInFrag.size() != frag->Atoms().size()) {
                 cout << endl
@@ -530,6 +578,7 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
                 APolarSite *templ        = pols_n[poleId-1];
                 APolarSite *newSite      = top->AddAPolarSite(name);
                 newSite->ImportFrom(templ);
+                newSite->setIsVirtual(isVirtualMp[i]);
                 seg->AddAPolarSite(newSite);
                 frag->AddAPolarSite(newSite);
 

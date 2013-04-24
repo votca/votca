@@ -36,16 +36,21 @@ public:
     XMpsMap() : _alloc_table("no_alloc") {};
    ~XMpsMap() {};
 
+    // User interface:
+    void GenerateMap(string xml_file, string alloc_table, Topology *top, vector<XJob*> &xjobs);
+    void EquipWithPolSites(Topology *top);
+    
+    // Adapt to XJob
+    vector<APolarSite*> MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg);    
+    vector<APolarSite*> GetRawPolSitesJob(const string &mpsfile) { return _mpsFile_pSites_job[mpsfile]; }    
+    
+    // Called by GenerateMap(...)
     void CollectMapFromXML(string xml_file);
     void CollectSegMpsAlloc(string alloc_table, Topology *top);
     void CollectSitesFromMps(vector<XJob*> &xjobs);
     
-    void EquipWithPolSites(Topology *top);
-    
     vector<APolarSite*> Parse_GDMA(string filename, int state);
-    vector<APolarSite*> MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg);
     
-    vector<APolarSite*> GetRawPolSitesJob(const string &mpsfile) { return _mpsFile_pSites_job[mpsfile]; }
     
 private:
 
@@ -57,6 +62,7 @@ private:
     map<string, vector<string> >        _alloc_frag_mpoleName;
     map<string, vector<int> >           _alloc_frag_trihedron;
     map<string, vector<double> >        _alloc_frag_weights;
+    map<string, vector<int> >           _alloc_frag_isVirtualMp;
 
     // Allocation of mps-files to segments, state-resolved
     map<int,string>                 _segId_mpsFile_n;

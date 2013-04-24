@@ -278,10 +278,8 @@ bool XQMP::EvaluateFrame(Topology *top) {
          << "... ... Load multipole definition, collect jobs: "
          << flush;
 
-    _XJobs = XJOBS_FROM_TABLE(_job_file, top);    
-    _mps_mapper.CollectMapFromXML(_xml_file);
-    _mps_mapper.CollectSegMpsAlloc(_emp_file, top);    
-    _mps_mapper.CollectSitesFromMps(_XJobs);
+    _XJobs = XJOBS_FROM_TABLE(_job_file, top);
+    _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
 
     // ++++++++++++++++++++ //
     // Ridigidfy + Estatify //

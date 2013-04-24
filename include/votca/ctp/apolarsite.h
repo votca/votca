@@ -33,12 +33,12 @@ class APolarSite
 public:
 
     APolarSite(int id, string name)
-            : _id(id), _name(name), _locX(vec(1,0,0)),
+            : _id(id), _name(name), _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
             { _Qs.resize(3); _Ps.resize(3); };
 
     APolarSite()
-            : _id(-1),  _locX(vec(1,0,0)),
+            : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)), _locZ(vec(0,0,1))
             { _Qs.resize(3); _Ps.resize(3); };
 
@@ -53,12 +53,14 @@ public:
     Fragment        *getFragment() { return _frag; }
 
 
+    void            setIsVirtual(bool isVirtual) { _isVirtual = isVirtual; }
     void            setPos(vec &pos) { _pos = pos; }
     void            setRank(int rank) { _rank = rank; } // rank; } // OVERRIDE
     void            setTopology(Topology *top) { _top = top; }
     void            setSegment(Segment *seg) { _seg = seg; }
     void            setFragment(Fragment *frag) { _frag = frag; }
     
+    bool            getIsVirtual() { return _isVirtual; }
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
@@ -98,6 +100,7 @@ private:
 
     int     _id;
     string  _name;
+    bool    _isVirtual;
     vec     _pos;
     vec     _locX;
     vec     _locY;
