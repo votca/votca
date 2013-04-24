@@ -102,7 +102,7 @@ int XInductor::Induce(int state, XJob *job) {
     // Intra-pair induction ...
     bool   induce_intra_pair = this->_induce_intra_pair;
     // ... change this for jobs of type "site":
-    if (job->getType() == "site") { induce_intra_pair = true; }
+    if (job->getSegments().size() == 1) { induce_intra_pair = true; }
 
     vector< vector<APolarSite*> > ::iterator sit1;
     vector< vector<APolarSite*> > ::iterator sit2;
@@ -124,10 +124,8 @@ int XInductor::Induce(int state, XJob *job) {
 
         // Intra-pair permanent induction field?
          if ( !induce_intra_pair ) {
-             if ( (  (*seg1)->getId() == job->getSeg1Id()
-                  || (*seg1)->getId() == job->getSeg2Id() )
-               && (  (*seg2)->getId() == job->getSeg1Id()
-                  || (*seg2)->getId() == job->getSeg2Id() )) {
+             if ( job->isInCenter((*seg1)->getId())
+               && job->isInCenter((*seg2)->getId()) ) {
                  continue;
              }
          }
@@ -336,7 +334,7 @@ double XInductor::Energy(int state, XJob *job) {
     // Job-Type 'pair'                                                 //
     // =============================================================== //
     
-    if (job->getType() == "pair") {
+    if (job->getSegments().size() > 1) {
 
         for (int id = 0; id < this->_subthreads; ++id) {
             _indus[id]->SetSwitch(0);
@@ -382,30 +380,34 @@ double XInductor::Energy(int state, XJob *job) {
         // Inter-site energy resulting from interaction with static shell  //
         // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
-        vector< APolarSite* > central1 = _polarSites_job[ job->getSeg1Id() - 1 ];
-        vector< APolarSite* > central2 = _polarSites_job[ job->getSeg2Id() - 1 ];        
-        
         // Interaction between central and static shell
-        for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
-            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-                for (pit2 = central1.begin(); pit2 < central1.end(); ++pit2) {
-                    e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                    e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
-                }
-                for (pit2 = central2.begin(); pit2 < central2.end(); ++pit2) {
-                    e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                    e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
+        for (int i = 0; i < job->getSegments().size(); ++i) {
+            
+            vector< APolarSite* > central 
+                    = _polarSites_job[ job->getSegments()[i]->getId() - 1 ];
+            
+            for (sit1 = _polsOutSphere.begin(); 
+                 sit1 < _polsOutSphere.end(); ++sit1) {
+                for (pit1 = (*sit1).begin(); 
+                     pit1 < (*sit1).end(); ++pit1) {
+                    for (pit2 = central.begin(); 
+                         pit2 < central.end(); ++pit2) {
+                        e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
+                        e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
+                    }
                 }
             }
         }
 
         // Interaction between polarizable and static shell
-        for (sit1 = this->_polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
-        for (sit2 = this->_polsPolSphere.begin(), seg2 = this->_segsPolSphere.begin(); sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
+        for (sit1 = this->_polsOutSphere.begin(); 
+             sit1 < _polsOutSphere.end(); ++sit1) {
+        for (sit2 = this->_polsPolSphere.begin(), 
+             seg2 = this->_segsPolSphere.begin(); 
+             sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
             
             // Continue when hitting one of the central sites (already covered)
-            if (   (*seg2)->getId() == job->getSeg1Id() 
-                || (*seg2)->getId() == job->getSeg2Id() ) {
+            if ( job->isInCenter((*seg2)->getId()) ) {
                 continue;
             }
             
@@ -443,7 +445,7 @@ double XInductor::Energy(int state, XJob *job) {
     // Job-Type 'site'                                                 //
     // =============================================================== //
     
-    else if (job->getType() == "site") {
+    else if (job->getSegments().size() <= 1) {
         
         for (int id = 0; id < this->_subthreads; ++id) {
             _indus[id]->SetSwitch(0);
@@ -487,24 +489,34 @@ double XInductor::Energy(int state, XJob *job) {
         // Inter-site energy resulting from interaction with static shell  //
         // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
         
-        vector< APolarSite* > central1 = _polarSites_job[ job->getSiteId() - 1 ];        
-        
         // Interaction between central and static shell
-        for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
-            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-                for (pit2 = central1.begin(); pit2 < central1.end(); ++pit2) {
-                    e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                    e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
+        for (int i = 0; i < job->getSegments().size(); ++i) {
+            
+            vector< APolarSite* > central 
+                    = _polarSites_job[ job->getSegments()[i]->getId() - 1 ];
+            
+            for (sit1 = _polsOutSphere.begin(); 
+                 sit1 < _polsOutSphere.end(); ++sit1) {
+                for (pit1 = (*sit1).begin(); 
+                     pit1 < (*sit1).end(); ++pit1) {
+                    for (pit2 = central.begin(); 
+                         pit2 < central.end(); ++pit2) {
+                        e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
+                        e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
+                    }
                 }
             }
-        }        
-        
+        }
+
         // Interaction between polarizable and static shell
-        for (sit1 = this->_polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
-        for (sit2 = this->_polsPolSphere.begin(), seg2 = this->_segsPolSphere.begin(); sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
+        for (sit1 = this->_polsOutSphere.begin(); 
+             sit1 < _polsOutSphere.end(); ++sit1) {
+        for (sit2 = this->_polsPolSphere.begin(), 
+             seg2 = this->_segsPolSphere.begin(); 
+             sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
             
-            // Continue when hitting central site (already covered above)
-            if ((*seg2)->getId() == job->getSiteId()) {
+            // Continue when hitting one of the central sites (already covered)
+            if ( job->isInCenter((*seg2)->getId()) ) {
                 continue;
             }
             
@@ -667,192 +679,101 @@ double XInductor::EnergyStatic(int state, XJob *job) {
     vector< APolarSite* >            ::iterator      pit1;
     vector< APolarSite* >            ::iterator      pit2;
 
-    if (job->getType() == "pair") {
         
-        assert(false);
-        
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Interaction pair <-> inner cut-off, without intra-pair interaction //
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Interaction pair <-> inner cut-off, without intra-pair interaction //
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
-        vector< APolarSite* > central1 = _polarSites_job[ job->getSeg1Id() - 1 ];
-        vector< APolarSite* > central2 = _polarSites_job[ job->getSeg2Id() - 1 ];
+    for (int i = 0; i < job->getSegments().size(); ++i) {
 
-        for (seg1 = _segsPolSphere.begin(); seg1 < _segsPolSphere.end(); ++seg1) {
+        vector<APolarSite*> central
+                = _polarSites_job[ job->getSegments()[i]->getId() - 1 ];
+
+        for (seg1 = _segsPolSphere.begin(); 
+             seg1 < _segsPolSphere.end(); ++seg1) {
 
             int id = (*seg1)->getId();
 
-            if (id == job->getSeg1Id() || id == job->getSeg2Id() ) {
-                continue;
-            }
+            if (job->isInCenter(id)) { continue; }
 
             for (pit1 = _polarSites_job[id-1].begin();
-                 pit1 < _polarSites_job[id-1].end();
-                 ++pit1) {
-                for (pit2 = central1.begin();
-                     pit2 < central1.end();
-                     ++pit2) {
+                 pit1 < _polarSites_job[id-1].end(); ++pit1) {
+                for (pit2 = central.begin();
+                     pit2 < central.end(); ++pit2) {
 
-                     e_f_c_non_c += _actor.E_f(*(*pit1), *(*pit2));
+                    e_f_c_non_c += _actor.E_f(*(*pit1), *(*pit2));                        
                 }
-                for (pit2 = central2.begin();
-                     pit2 < central2.end();
-                     ++pit2) {
-
-                     e_f_c_non_c += _actor.E_f(*(*pit1), *(*pit2));
-                }
-            }
+            }                
         }
 
 
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Interaction pair <-> outer cut-off                                 //
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Interaction pair <-> outer cut-off                                 //
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
-        for (seg1 = _segsOutSphere.begin(); seg1 < _segsOutSphere.end(); ++seg1) {
+        for (seg1 = _segsOutSphere.begin(); 
+             seg1 < _segsOutSphere.end(); ++seg1) {
 
             int id = (*seg1)->getId();
 
-            if (id == job->getSeg1Id() || id == job->getSeg2Id() ) {
+            if (job->isInCenter(id)) {
                 throw std::runtime_error("This should not have happened.");
             }
 
             for (pit1 = _polarSites_job[id-1].begin();
                  pit1 < _polarSites_job[id-1].end();
                  ++pit1) {
-                for (pit2 = central1.begin();
-                     pit2 < central1.end();
-                     ++pit2) {
-
-                     e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                }
-                for (pit2 = central2.begin();
-                     pit2 < central2.end();
+                for (pit2 = central.begin();
+                     pit2 < central.end();
                      ++pit2) {
 
                      e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
                 }
             }
         }
+    } /* Finish loop over segments in central sphere */
 
 
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Intra-pair interaction                                             //
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Intra-pair interaction                                             //
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
-        for (pit1 = central1.begin();
-             pit1 < central1.end();
-             ++pit1) {
-        for (pit2 = central2.begin();
-             pit2 < central2.end();
-             ++pit2) {
+    for (int i = 0; i < job->getSegments().size(); ++i) {
 
-             e_f_c_c += _actor.EnergyInter(*(*pit1), *(*pit2));
+        vector<APolarSite*> central_i
+                = _polarSites_job[ job->getSegments()[i]->getId() - 1 ];
+
+    for (int j = i+1; j < job->getSegments().size(); ++j) {
+
+        vector<APolarSite*> central_j
+                = _polarSites_job[ job->getSegments()[j]->getId() - 1 ];
+
+        for (pit1 = central_i.begin();
+             pit1 < central_i.end(); ++pit1) {
+        for (pit2 = central_j.begin();
+             pit2 < central_j.end(); ++pit2) {
+
+            e_f_c_c += _actor.EnergyInter(*(*pit1), *(*pit2));
         }}
-        
-        
-        
-        
-        // Increment energies
-        // ... 0th kind
-        E_Pair_Pair     += e_f_c_c;
-        E_Pair_Sph1     += e_f_c_non_c;
-        E_Pair_Sph2     += e_f_c_out;
-        // ... 1st kind
-        e_perm          += _actor.getEP();
-        eu_inter        += _actor.getEU_INTER();
-        // ... 2nd kind
-        epp             += _actor.getEPP();
-        epu             += _actor.getEPU();
-        euu             += _actor.getEUU();
-        // ... 3rd kind
-        // ... ... -> done in loops above
-        
-    }
+
+    }}
 
 
-    else if (job->getType() == "site") {
-        
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Interaction site <-> inner cut-off, without intra-pair interaction //
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Increment energies
+    // ... 0th kind
+    E_Pair_Pair     += e_f_c_c;
+    E_Pair_Sph1     += e_f_c_non_c;
+    E_Pair_Sph2     += e_f_c_out;
+    // ... 1st kind
+    e_perm          += _actor.getEP();
+    eu_inter        += _actor.getEU_INTER();
+    // ... 2nd kind
+    epp             += _actor.getEPP();
+    epu             += _actor.getEPU();
+    euu             += _actor.getEUU();
+    // ... 3rd kind
+    // ... ... -> done in loops above        
 
-        vector< APolarSite* > central1 = _polarSites_job[ job->getSiteId() - 1 ];
-
-        for (seg1 = _segsPolSphere.begin(); seg1 < _segsPolSphere.end(); ++seg1) {
-
-            int id = (*seg1)->getId();
-
-            if (id == job->getSiteId()) {
-                continue;
-            }
-
-            for (pit1 = _polarSites_job[id-1].begin();
-                 pit1 < _polarSites_job[id-1].end();
-                 ++pit1) {
-                for (pit2 = central1.begin();
-                     pit2 < central1.end();
-                     ++pit2) {
-
-                     e_f_c_non_c += _actor.E_f(*(*pit1), *(*pit2)); 
-                }
-            }
-        }
-        
-
-
-
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Interaction site <-> outer cut-off                                 //
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-
-        for (seg1 = _segsOutSphere.begin(); seg1 < _segsOutSphere.end(); ++seg1) {
-
-            int id = (*seg1)->getId();
-
-            if (id == job->getSiteId()) {
-                throw std::runtime_error("__ERROR__whx_071");
-            }
-
-            for (pit1 = _polarSites_job[id-1].begin();
-                 pit1 < _polarSites_job[id-1].end();
-                 ++pit1) {
-                for (pit2 = central1.begin();
-                     pit2 < central1.end();
-                     ++pit2) {
-
-                     e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                }
-            }
-        }
-        
-        
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Intra-site interaction                                             //
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-
-        // Intra-site energy ...
-        // ... not counted.
-        
-        
-        
-        // Increment energies
-        // ... 0th kind
-        E_Pair_Sph1     += e_f_c_non_c;
-        E_Pair_Sph2     += e_f_c_out;
-        // ... 1st kind
-        e_perm          += _actor.getEP();
-        eu_inter        += _actor.getEU_INTER();
-        // ... 2nd kind
-        epp             += _actor.getEPP();
-        epu             += _actor.getEPU();
-        euu             += _actor.getEUU();
-        // ... 3rd kind
-        // ... ... -> done in loops above
-
-    }
-    
-    else { assert(false); }
 
     // =============================================================== //
     // Energy Output                                                   //

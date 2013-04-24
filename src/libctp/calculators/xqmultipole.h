@@ -453,26 +453,22 @@ void XQMP::JobXQMP::Run(void) {
 }
 
 
-void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
-
-    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-    
+void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {  
     
     // ++++++++++++++++++++++++++ //
     // Adapt polar sites          //
     // ++++++++++++++++++++++++++ //
+    
     _polarSites_job = _polarSites;
-
-    int subs_here1 = job->getSeg1Id();
-    int subs_here2 = job->getSeg2Id();
-
-    vector<APolarSite*> subs1_raw = _master->_mps_mapper.GetRawPolSitesJob(job->getMPS1());
-    vector<APolarSite*> subs2_raw = _master->_mps_mapper.GetRawPolSitesJob(job->getMPS2());
-    vector<APolarSite*> subs1 = _master->_mps_mapper.MapPolSitesToSeg(subs1_raw,job->Seg1());
-    vector<APolarSite*> subs2 = _master->_mps_mapper.MapPolSitesToSeg(subs2_raw,job->Seg2());
-
-    _polarSites_job[subs_here1-1] = subs1;
-    _polarSites_job[subs_here2-1] = subs2;
+    
+    for (int i = 0; i < job->getSegments().size(); ++i) {        
+        Segment *seg = job->getSegments()[i];
+        vector<APolarSite*> subs_raw 
+                = _master->_mps_mapper.GetRawPolSitesJob(job->getSegMps()[i]);
+        vector<APolarSite*> subs
+                = _master->_mps_mapper.MapPolSitesToSeg(subs_raw, seg);
+        _polarSites_job[seg->getId()-1] = subs;       
+    }
     
 
     // ++++++++++++++++++++++++++ //
@@ -713,16 +709,16 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
     // ++++++++++++++++++++++++++ //
     // Clean up polar sites       //
     // ++++++++++++++++++++++++++ //
-
+    
     vector< APolarSite* > ::iterator cleanit;
-    for (cleanit = subs1.begin(); cleanit < subs1.end(); ++cleanit) {
-        delete *cleanit;
+    for (int i = 0; i < job->getSegments().size(); ++i) {        
+        Segment *seg = job->getSegments()[i];
+        vector<APolarSite*> subs = _polarSites_job[seg->getId()-1];
+        for (cleanit = subs.begin(); cleanit < subs.end(); ++cleanit) {
+            delete *cleanit;
+        }
+        subs.clear();
     }
-    for (cleanit = subs2.begin(); cleanit < subs2.end(); ++cleanit) {
-        delete *cleanit;
-    }
-    subs1.clear();
-    subs2.clear();
 
 }
 

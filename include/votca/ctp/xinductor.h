@@ -171,14 +171,14 @@ public:
             double e_m_12    = 0.0;
             double e_m_21    = 0.0;
             
-            if (_forker->_job->getType() == "site") {
-                
+            if (_forker->_job->getSegments().size() <= 1) {
+
                 for (int i = _nx1;                     i < _nx2; ++i) {
                 for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
 
                     // Site-non-site interaction
-                    if (this->_forker->_job->getSiteId() == (*_vsegs_cut1)[i]->getId()
-                     || this->_forker->_job->getSiteId() == (*_vsegs_cut1)[j]->getId()) {
+                    if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId())
+                     ^   this->_forker->_job->isInCenter((*_vsegs_cut1)[j]->getId()) ) {
 
                         for (pit1 = (*_vvpoles_cut1)[i].begin();
                              pit1 < (*_vvpoles_cut1)[i].end();
@@ -194,7 +194,7 @@ public:
                             _E_Pair_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
 
                             _E_f_C_non_C += e_f_12_21;
-                            if (this->_forker->_job->getSiteId() == (*_vsegs_cut1)[i]->getId()) {
+                            if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId()) ) {
                                 _E_m_C += e_m_12;
                                 _E_m_non_C += e_m_21;
                             }
@@ -228,16 +228,14 @@ public:
                 }}
             } // end procedure - job type "site"
             
-            else if (_forker->_job->getType() == "pair") {
+            else {
                 
                 for (int i = _nx1;                     i < _nx2; ++i) {
                 for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
 
                     // Pair-non-pair interaction
-                    if ( (this->_forker->_job->getSeg1Id() == (*_vsegs_cut1)[i]->getId()
-                       || this->_forker->_job->getSeg2Id() == (*_vsegs_cut1)[i]->getId())
-                     ^   (this->_forker->_job->getSeg1Id() == (*_vsegs_cut1)[j]->getId()
-                       || this->_forker->_job->getSeg2Id() == (*_vsegs_cut1)[j]->getId())) {
+                    if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId())
+                     ^   this->_forker->_job->isInCenter((*_vsegs_cut1)[j]->getId()) ) {
 
                         for (pit1 = (*_vvpoles_cut1)[i].begin();
                              pit1 < (*_vvpoles_cut1)[i].end();
@@ -253,8 +251,7 @@ public:
                             _E_Pair_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
 
                             _E_f_C_non_C += e_f_12_21;
-                            if (  this->_forker->_job->getSeg1Id() == (*_vsegs_cut1)[i]->getId()
-                               || this->_forker->_job->getSeg2Id() == (*_vsegs_cut1)[i]->getId() ) {
+                            if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId()) ) {
                                 _E_m_C += e_m_12;
                                 _E_m_non_C += e_m_21;
                             }
@@ -266,10 +263,9 @@ public:
                     }
                     
                     // Pair-pair interaction
-                    else if ( (this->_forker->_job->getSeg1Id() == (*_vsegs_cut1)[i]->getId()
-                            || this->_forker->_job->getSeg2Id() == (*_vsegs_cut1)[i]->getId())
-                         &&   (this->_forker->_job->getSeg1Id() == (*_vsegs_cut1)[j]->getId()
-                            || this->_forker->_job->getSeg2Id() == (*_vsegs_cut1)[j]->getId())) {
+                    else if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId())
+                    &&   this->_forker->_job->isInCenter((*_vsegs_cut1)[j]->getId()) ) {
+
                         for (pit1 = (*_vvpoles_cut1)[i].begin();
                              pit1 < (*_vvpoles_cut1)[i].end();
                              ++pit1) {
@@ -310,11 +306,8 @@ public:
                             _E_m_non_C       += e_m_21;
                         }}
                     }
-                }}         
-            } // end procedure - job type "pair"
-            
-            else { assert(false); }
-            
+                }}
+            } // end procedure - job type "pair"          
             
         }
         

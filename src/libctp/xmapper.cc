@@ -283,15 +283,13 @@ void XMpsMap::CollectSitesFromMps(vector<XJob*> &xjobs) {
          jit < xjobs.end();
          ++jit) {
 
-        string mpsfile1 = (*jit)->getMPS1();
-        string mpsfile2 = (*jit)->getMPS2();
-
-        if (_mpsFile_pSites_job.count(mpsfile1) > 0 ) { ; }
-        else { _mpsFile_pSites_job[mpsfile1] = Parse_GDMA(mpsfile1, 0); }
-
-        if (_mpsFile_pSites_job.count(mpsfile2) > 0 ) { ; }
-        else { _mpsFile_pSites_job[mpsfile2] = Parse_GDMA(mpsfile2, 0); }
-
+        vector<string> mpsfiles = (*jit)->getSegMps();
+        
+        for (int i = 0; i < mpsfiles.size(); ++i) {
+            string mpsfile = mpsfiles[i];
+            if (_mpsFile_pSites_job.count(mpsfile) > 0 ) { ; }
+            else { _mpsFile_pSites_job[mpsfile] = Parse_GDMA(mpsfile, 0); }
+        }
     }
 
     cout << endl
