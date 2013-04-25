@@ -18,6 +18,13 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
 }
 
 
+
+XJob::~XJob() {
+    
+    delete _ptop;    
+}
+
+
 void XJob::CalcCenterPos() {
 
     vec center = vec(0,0,0);

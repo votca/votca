@@ -519,6 +519,15 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
 
     job->setSizePol(_polsPolSphere.size());
     job->setSizeShell(_polsOutSphere.size());
+    
+    
+//    _master->_mps_mapper.Gen_QM_MM1_MM2(top, job, _master->_cutoff, _master->_cutoff2);
+//    job->getPolarTop()->CenterAround(job->Center());    
+//    job->getPolarTop()->PrintInfo();
+//    string ptop_pdb = "ptop.pdb";
+//    job->getPolarTop()->PrintPDB(ptop_pdb);
+//    job->getPolarTop()->~PolarTop();
+    
 
 //    FILE *out;
 //    string shellFile = "OuterShell.pdb";

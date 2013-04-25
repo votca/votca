@@ -258,7 +258,7 @@ void XMpsMap::CollectSitesFromMps(vector<XJob*> &xjobs) {
          misit != _segId_mpsFile_n.end();
          ++misit) {
         if (_mpsFile_pSites.count(misit->second) > 0 ) { continue; }
-        else { _mpsFile_pSites[misit->second] = Parse_GDMA(misit->second, 0); }
+        else { _mpsFile_pSites[misit->second] = APS_FROM_MPS(misit->second, 0); }
     }
 
     // Anion
@@ -266,7 +266,7 @@ void XMpsMap::CollectSitesFromMps(vector<XJob*> &xjobs) {
          misit != _segId_mpsFile_e.end();
          ++misit) {
         if (_mpsFile_pSites.count(misit->second) > 0 ) { continue; }
-        else { _mpsFile_pSites[misit->second] = Parse_GDMA(misit->second, -1); }
+        else { _mpsFile_pSites[misit->second] = APS_FROM_MPS(misit->second, -1); }
     }
 
     // Cation
@@ -274,7 +274,7 @@ void XMpsMap::CollectSitesFromMps(vector<XJob*> &xjobs) {
          misit != _segId_mpsFile_h.end();
          ++misit) {
         if (_mpsFile_pSites.count(misit->second) > 0 ) { continue; }
-        else { _mpsFile_pSites[misit->second] = Parse_GDMA(misit->second, +1); }
+        else { _mpsFile_pSites[misit->second] = APS_FROM_MPS(misit->second, +1); }
     }
     
     // Job Seg1 Seg2
@@ -288,7 +288,7 @@ void XMpsMap::CollectSitesFromMps(vector<XJob*> &xjobs) {
         for (int i = 0; i < mpsfiles.size(); ++i) {
             string mpsfile = mpsfiles[i];
             if (_mpsFile_pSites_job.count(mpsfile) > 0 ) { ; }
-            else { _mpsFile_pSites_job[mpsfile] = Parse_GDMA(mpsfile, 0); }
+            else { _mpsFile_pSites_job[mpsfile] = APS_FROM_MPS(mpsfile, 0); }
         }
     }
 
@@ -299,13 +299,6 @@ void XMpsMap::CollectSitesFromMps(vector<XJob*> &xjobs) {
          << ", " << _mpsFile_pSites_job.size()
          << " mps-files from XJobs."
          << flush;
-}
-
-
-vector<APolarSite*> XMpsMap::Parse_GDMA(string filename, int state) {
-
-    return APS_FROM_MPS(filename,state);
-    
 }
 
 
@@ -877,5 +870,87 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
     return return_pols;
 }
 
+
+void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
+    // Generates QM MM1 MM2, centered around job->Center()
+    // ... Newly created polar sites are not registered in the topology
+    
+    
+    // TARGET CONTAINERS
+    PolarTop *new_ptop = new PolarTop(top);
+    job->setPolarTop(new_ptop);
+    
+    vector<PolarSeg*> qm0;
+    vector<PolarSeg*> mm1;
+    vector<PolarSeg*> mm2;
+    vector<PolarSeg*> ::iterator psit;
+    
+    vector<Segment*> segs_qm0;
+    vector<Segment*> segs_mm1;
+    vector<Segment*> segs_mm2;    
+    vector<Segment*> ::iterator sit;
+    
+    // PARTITION SEGMENTS ONTO SHELLS    
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         ++sit) {
+        
+        Segment *seg = *sit;
+        
+        // QM0 SHELL
+        if (job->isInCenter(seg->getId())) {
+            segs_qm0.push_back(seg);
+        } 
+        // MM1 SHELL
+        else if (job->isWithinDist(seg->getPos(),co1,top)) {
+            segs_mm1.push_back(seg);
+        }
+        // MM2 SHELL
+        else if (job->isWithinDist(seg->getPos(),co2,top)) {
+            segs_mm2.push_back(seg);
+        }
+        // BEYOND
+        else {
+            ;
+        }
+    }
+    
+    // CREATE POLAR SEGMENTS FROM SHELLS    
+    // ... QM0 SHELL
+    for (int i = 0; i < job->getSegments().size(); ++i) {        
+        Segment *seg = job->getSegments()[i];
+        vector<APolarSite*> psites_raw 
+                = this->GetRawPolSitesJob(job->getSegMps()[i]);
+        vector<APolarSite*> psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg);        
+        qm0.push_back(new PolarSeg(psites_mapped));        
+    }    
+    // ... MM1 SHELL
+    for (sit = segs_mm1.begin(); sit < segs_mm1.end(); ++sit) {
+        Segment *seg = *sit;
+        // Look up appropriate set of polar sites
+        string mps = _segId_mpsFile_n[seg->getId()];
+        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        vector<APolarSite*> psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg);
+        mm1.push_back(new PolarSeg(psites_mapped));        
+    }
+    // ... MM1 SHELL
+    for (sit = segs_mm2.begin(); sit < segs_mm2.end(); ++sit) {
+        Segment *seg = *sit;
+        // Look up appropriate set of polar sites
+        string mps = _segId_mpsFile_n[seg->getId()];
+        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        vector<APolarSite*> psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg);
+        mm2.push_back(new PolarSeg(psites_mapped));
+    }
+    
+    // PROPAGATE SHELLS TO POLAR TOPOLOGY
+    new_ptop->setQM0(qm0);
+    new_ptop->setMM1(mm1);
+    new_ptop->setMM2(mm2);
+    
+}
 
 }}

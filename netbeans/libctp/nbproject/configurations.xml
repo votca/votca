@@ -3,9 +3,12 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libctp/calculators/density.h</itemPath>
+      <itemPath>../../src/libctp/calculators/eanalyze.cc</itemPath>
       <itemPath>../../src/libctp/calculators/eanalyze.h</itemPath>
       <itemPath>../../src/libctp/calculators/ecoulomb.h</itemPath>
       <itemPath>../../src/libctp/calculators/edft.h</itemPath>
+      <itemPath>../../src/libctp/calculators/eimport.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/eimport.h</itemPath>
       <itemPath>../../src/libctp/calculators/einternal.cc</itemPath>
       <itemPath>../../src/libctp/calculators/einternal.h</itemPath>
       <itemPath>../../src/libctp/calculators/emultipole.h</itemPath>
@@ -13,15 +16,22 @@
       <itemPath>../../src/libctp/calculators/emultipole_stdal.h</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
       <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
+      <itemPath>../../src/libctp/calculators/ianalyze.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/ianalyze.h</itemPath>
       <itemPath>../../src/libctp/calculators/idft.cc</itemPath>
       <itemPath>../../src/libctp/calculators/idft.h</itemPath>
+      <itemPath>../../src/libctp/calculators/iimport.cc</itemPath>
       <itemPath>../../src/libctp/calculators/iimport.h</itemPath>
       <itemPath>../../src/libctp/calculators/izindo.cc</itemPath>
       <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
       <itemPath>../../src/libctp/calculators/molpol.h</itemPath>
       <itemPath>../../src/libctp/calculators/neighborlist.cc</itemPath>
       <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
+      <itemPath>../../src/libctp/calculators/pairdump.cc</itemPath>
       <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
+      <itemPath>../../src/libctp/calculators/qmmm.cc</itemPath>
+      <itemPath>../../src/libctp/calculators/qmmm.h</itemPath>
+      <itemPath>../../src/libctp/calculators/qmultipole.h</itemPath>
       <itemPath>../../src/libctp/calculators/rates.cc</itemPath>
       <itemPath>../../src/libctp/calculators/rates.h</itemPath>
       <itemPath>../../src/libctp/calculators/sandbox.cc</itemPath>
@@ -30,9 +40,11 @@
       <itemPath>../../src/libctp/calculators/stateserver.h</itemPath>
       <itemPath>../../src/libctp/calculators/tdump.cc</itemPath>
       <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
+      <itemPath>../../src/libctp/calculators/velocity.h</itemPath>
       <itemPath>../../src/libctp/calculators/xmultipole.h</itemPath>
       <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
       <itemPath>../../src/libctp/calculators/xqmultipole.h</itemPath>
+      <itemPath>../../src/libctp/calculators/zmultipole.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -55,8 +67,17 @@
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
       <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmtool.h</itemPath>
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
+      <itemPath>../../include/votca/ctp/segmenttype.h</itemPath>
+      <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
+      <itemPath>../../include/votca/ctp/toolfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
+      <itemPath>../../include/votca/ctp/version.h</itemPath>
+      <itemPath>../../include/votca/ctp/xinductor.h</itemPath>
+      <itemPath>../../include/votca/ctp/xinteractor.h</itemPath>
+      <itemPath>../../include/votca/ctp/xjob.h</itemPath>
+      <itemPath>../../include/votca/ctp/xmapper.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -75,15 +96,24 @@
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/qmapplication.cc</itemPath>
+      <itemPath>../../src/libctp/qmcalculator.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libctp/qmnblist.cc</itemPath>
       <itemPath>../../src/libctp/qmpair.cc</itemPath>
-      <itemPath>../../src/libctp/qmtopology.cc</itemPath>
+      <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/segment.cc</itemPath>
+      <itemPath>../../src/libctp/segmenttype.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
+      <itemPath>../../src/libctp/toolfactory.cc</itemPath>
       <itemPath>../../src/libctp/topology.cc</itemPath>
+      <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
+      <itemPath>../../src/libctp/votca_config.h.in</itemPath>
+      <itemPath>../../src/libctp/xinductor.cc</itemPath>
+      <itemPath>../../src/libctp/xinteractor.cc</itemPath>
+      <itemPath>../../src/libctp/xjob.cc</itemPath>
+      <itemPath>../../src/libctp/xmapper.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

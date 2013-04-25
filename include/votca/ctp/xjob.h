@@ -19,6 +19,7 @@
 #define	__XJOB__H
 
 #include <votca/ctp/topology.h>
+#include <votca/ctp/polartop.h>
 
 namespace votca { namespace ctp {
   
@@ -30,24 +31,27 @@ public:
     XJob(int id, string tag, vector<Segment*> &qmSegs, 
          vector<string> &qmSegMps, Topology *top);
 
-   ~XJob() {};
+   ~XJob();
 
    int                  getId()                     { return _id; }
    string               getTag()                    { return _tag; }
    vector<Segment*>    &getSegments()               { return _qmSegs; }
    vector<string>      &getSegMps()                 { return _qmSegMps; }
    Topology            *getTop()                    { return _top; }
+   PolarTop            *getPolarTop()               { return _ptop; }
    int                  getIter()                   { return _iter; }
    vec                 &Center()                    { return _center; }
    
    void                 setIter(int iter)           { _iter = iter; }
    void                 setSizePol(int size)        { _sizePol = size; }
    void                 setSizeShell(int size)      { _sizeShell = size; }
+   void                 setPolarTop(PolarTop *ptop) { _ptop = ptop; }
    
    void                 CalcCenterPos();
    inline bool          isInCenter(int segId);
+   inline bool          isWithinDist(const vec &pt, double dist, Topology *top);
    bool                 StartFromCPT()  { return _start_from_cpt; }
-   void                 WriteInfoLine(FILE *out);
+   void                 WriteInfoLine(FILE *out);   
 
    void     setEnergy(double E_Tot,   
                       double E_Pair_Pair, 
@@ -109,6 +113,7 @@ private:
    vec                  _center;
    map<int,bool>        _isSegInCenter;
    bool                 _start_from_cpt;
+   PolarTop            *_ptop;
 
    int                  _iter;
    int                  _sizePol;
@@ -146,6 +151,15 @@ inline bool XJob::isInCenter(int segId) {
 
    bool inCenter = (this->_isSegInCenter.count(segId) > 0) ? true : false;
    return inCenter;
+}
+
+inline bool XJob::isWithinDist(const vec &pt, double dist, Topology *top) {
+    bool yesno = false;
+    
+    double dR = abs(top->PbShortestConnect(_center, pt));
+    if (dR <= dist) { yesno = true; }
+    
+    return yesno;
 }
 
 
