@@ -24,28 +24,32 @@ namespace votca { namespace ctp {
         template <class Traits> 
         friend Traits& operator<<( QMThread & t,  Traits& inp ) {
             
-            if ( tools::globals::verbose ) { // has to be changed to maverick
-                    std::cout << inp ;
-            } else {
-                    t._ss << inp ;
+            if ( tools::globals::verbose ) { 
+                if ( t._maverick ) { std::cout << inp ; }
+                else { t._ss << inp ; }
             }
             return inp;
         }        
         
         template <class Traits> 
         friend Traits& operator>>( Traits& inp, QMThread & t ) {
-            t._ss << inp ;
+            
+            if ( tools::globals::verbose ) { 
+                if ( t._maverick ) { std::cout << inp ; }
+                else { t._ss << inp ; }
+            }           
             return inp;
         }        
         
        
     public:
-        
+        QMThread( bool maverick = false ) { _maverick = maverick; };        
        ~QMThread() {};
        
     protected:
         
         stringstream     _ss;
+        bool             _maverick;
 
     };
 

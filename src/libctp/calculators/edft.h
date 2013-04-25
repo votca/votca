@@ -50,9 +50,9 @@ public:
    ~EDFT() {};
 
     string  Identify() { return "EDFT"; }
-    void    Initialize(Topology *top, Property *options);
-    void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    EvalSite(Topology *top, Segment *seg, int slot);
+    void    Initialize(Topology *top, Property *options, SiteOperator *opThread);
+    void    ParseOrbitalsXML(Topology *top, Property *options, SiteOperator *opThread);
+    void    EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThread);
 
     void    CleanUp();
 
@@ -72,7 +72,7 @@ void EDFT::CleanUp() {
 
 }
 
-void EDFT::Initialize(Topology *top, Property *options) {
+void EDFT::Initialize(Topology *top, Property *options, SiteOperator *opThread) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
@@ -88,12 +88,12 @@ void EDFT::Initialize(Topology *top, Property *options) {
      *
      */
 
-    this->ParseOrbitalsXML(top, options);
+    this->ParseOrbitalsXML(top, options, opThread);
 
 }
 
 
-void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
+void EDFT::ParseOrbitalsXML(Topology *top, Property *opt, SiteOperator *opThread) {
 
     string key = "options.edft";
     string _package_xml = opt->get(key+".package").as<string> ();
@@ -109,7 +109,7 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 }
 
 
-void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
+void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThread) {
 
 
     FILE *out;
@@ -168,7 +168,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         std::ofstream ofs( (DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
         std::vector< QMAtom* >* _atoms = _orbitals.getAtoms();
-        cout << endl << "Serializing " << _atoms->size() << " atoms" << endl;        
+        *opThread << "Serializing "; //*opThread << _atoms->size(); 
+        *opThread << " atoms\n";        
         oa << _orbitals;
         ofs.close();
        
