@@ -36,8 +36,8 @@ class XInteractor
 {
 public:
 
-    XInteractor(Topology *top) : _top(top) {};
-    XInteractor() : _top(NULL) {};
+    XInteractor(Topology *top) : _top(top),  a(0.390) {};
+    XInteractor() :              _top(NULL), a(0.390) {};
    ~XInteractor() {};
 
     // UNITS IN INPUT FILES
@@ -82,6 +82,14 @@ public:
     double          &getEPP() { return EPP; }
     double          &getEPU() { return EPU; }
     double          &getEUU() { return EUU; }
+    
+//    inline void     FieldIndu12_21(vector<PolarSite*> &, vector<PolarSite*> &);
+//    inline void     FieldIndu12___(vector<PolarSite*> &, vector<PolarSite*> &);
+//    inline void     FieldIndu___21(vector<PolarSite*> &, vector<PolarSite*> &);
+    
+//    void            BiasIndu(APolarSite &pol1, APolarSite &pol2);
+//    void            BiasStat(APolarSite &pol1, APolarSite &pol2);
+    
 
 private:
 
@@ -401,7 +409,6 @@ inline void XInteractor::FieldInduAlpha(APolarSite &pol1,
     e12 *= R;
 
     // Thole damping init.
-    a    = 0.390;
     u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 //        rax =   pol1._locX * e12;
@@ -501,7 +508,6 @@ inline void XInteractor::FieldIndu(APolarSite &pol1,
     e12 *= R;
 
     // Thole damping init.
-    a    = 0.390;
     u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 //        rax =   pol1._locX * e12;
@@ -726,7 +732,6 @@ inline double XInteractor::EnergyIntra(APolarSite &pol1,
     e12 *= R;
     
     // Thole damping init.
-    a    = 0.390;
     u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 //        rax =   pol1._locX * e12;
@@ -921,7 +926,6 @@ inline double XInteractor::EnergyIntra(APolarSite &pol1,
 inline double XInteractor::EnergyInter(APolarSite &pol1,
                                                    APolarSite &pol2) {
 
-    assert(false);
     
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
@@ -933,7 +937,6 @@ inline double XInteractor::EnergyInter(APolarSite &pol1,
     e12 *= R;
 
     // Thole damping init.
-    a    = 0.390;
     u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 
@@ -1300,7 +1303,6 @@ inline double XInteractor::EnergyInterESP(APolarSite &pol1,
     e12 *= R;
 
     // Thole damping init.
-    a    = 0.390;
     u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
         rax = e12.getX();
@@ -1612,7 +1614,6 @@ inline double XInteractor::E_f(APolarSite &pol1,
     e12 *= R;
 
     // Thole damping init.
-    a    = 0.390;
     u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 
@@ -2004,7 +2005,6 @@ inline double XInteractor::E_m(APolarSite &pol1,
     e12 *= R;
 
     // Thole damping init.
-    a    = 0.390;
     u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
 
 

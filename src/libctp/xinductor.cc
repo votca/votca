@@ -200,7 +200,7 @@ int XInductor::Induce(int state, XJob *job) {
             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
             for (pit2 = pit1 + 1;        pit2 < (*sit1).end(); ++pit2) {
 
-                _actor.FieldIndu(*(*pit1),*(*pit2));                            // <- Intra-pair => zero out?
+                _actor.FieldIndu(*(*pit1),*(*pit2));                            
             }}
         }
 
@@ -216,7 +216,7 @@ int XInductor::Induce(int state, XJob *job) {
 //            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
 //            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
 //
-//                _actor.FieldIndu(*(*pit1), *(*pit2));                         // <- Pair-environment => figure sth out
+//                _actor.FieldIndu(*(*pit1), *(*pit2));
 //            }}
 //        }}
 
@@ -331,221 +331,113 @@ double XInductor::Energy(int state, XJob *job) {
 
     
     // =============================================================== //
-    // Job-Type 'pair'                                                 //
+    // System Energy | QM | MM1 | MM2 |                                //
     // =============================================================== //
     
-    if (job->getSegments().size() > 1) {
 
-        for (int id = 0; id < this->_subthreads; ++id) {
-            _indus[id]->SetSwitch(0);
-        }
-        
-        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Inter-site energy comprising central + first polarization shell //
-        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        
-        
-        for (int id = 0; id < this->_subthreads; ++id) {
-            _indus[id]->Start();
-        }
+    for (int id = 0; id < this->_subthreads; ++id) {
+        _indus[id]->SetSwitch(0);
+    }
 
-        for (int id = 0; id < this->_subthreads; ++id) {
-            _indus[id]->WaitDone();
-        }
-
-        for (int id = 0; id < this->_subthreads; ++id) {
-            E_Pair_Pair += _indus[id]->GetEPairPair();
-            E_Pair_Sph1 += _indus[id]->GetEPairSph1();
-            E_Sph1_Sph1 += _indus[id]->GetESph1Sph1();
-
-            eu_inter += _indus[id]->GetActor().getEU_INTER();
-            eu_intra += _indus[id]->GetActor().getEU_INTRA();
-            e_perm   += _indus[id]->GetActor().getEP();
-            
-            epp += _indus[id]->GetActor().getEPP();
-            epu += _indus[id]->GetActor().getEPU();
-            euu += _indus[id]->GetActor().getEUU();
-            
-            e_f_c_c             += _indus[id]->GetE_f_C_C();
-            e_f_c_non_c         += _indus[id]->GetE_f_C_non_C();
-            e_f_non_c_non_c     += _indus[id]->GetE_f_non_C_non_C();            
-            e_m_c               += _indus[id]->GetE_m_C();
-            e_m_non_c           += _indus[id]->GetE_m_non_C();
-        }
-
-        this->ClearTodoTable(); 
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Inter-site energy comprising central + first polarization shell //
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
 
-        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Inter-site energy resulting from interaction with static shell  //
-        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    for (int id = 0; id < this->_subthreads; ++id) {
+        _indus[id]->Start();
+    }
 
-        // Interaction between central and static shell
-        for (int i = 0; i < job->getSegments().size(); ++i) {
-            
-            vector< APolarSite* > central 
-                    = _polarSites_job[ job->getSegments()[i]->getId() - 1 ];
-            
-            for (sit1 = _polsOutSphere.begin(); 
-                 sit1 < _polsOutSphere.end(); ++sit1) {
-                for (pit1 = (*sit1).begin(); 
-                     pit1 < (*sit1).end(); ++pit1) {
-                    for (pit2 = central.begin(); 
-                         pit2 < central.end(); ++pit2) {
-                        e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                        e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
-                    }
+    for (int id = 0; id < this->_subthreads; ++id) {
+        _indus[id]->WaitDone();
+    }
+
+    for (int id = 0; id < this->_subthreads; ++id) {
+        E_Pair_Pair += _indus[id]->GetEPairPair();
+        E_Pair_Sph1 += _indus[id]->GetEPairSph1();
+        E_Sph1_Sph1 += _indus[id]->GetESph1Sph1();
+
+        eu_inter += _indus[id]->GetActor().getEU_INTER();
+        eu_intra += _indus[id]->GetActor().getEU_INTRA();
+        e_perm   += _indus[id]->GetActor().getEP();
+
+        epp += _indus[id]->GetActor().getEPP();
+        epu += _indus[id]->GetActor().getEPU();
+        euu += _indus[id]->GetActor().getEUU();
+
+        e_f_c_c             += _indus[id]->GetE_f_C_C();
+        e_f_c_non_c         += _indus[id]->GetE_f_C_non_C();
+        e_f_non_c_non_c     += _indus[id]->GetE_f_non_C_non_C();            
+        e_m_c               += _indus[id]->GetE_m_C();
+        e_m_non_c           += _indus[id]->GetE_m_non_C();
+    }
+
+    this->ClearTodoTable(); 
+
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Inter-site energy resulting from interaction with static shell  //
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+
+    // Interaction between central and static shell
+    for (int i = 0; i < job->getSegments().size(); ++i) {
+
+        vector< APolarSite* > central 
+                = _polarSites_job[ job->getSegments()[i]->getId() - 1 ];
+
+        for (sit1 = _polsOutSphere.begin(); 
+             sit1 < _polsOutSphere.end(); ++sit1) {
+            for (pit1 = (*sit1).begin(); 
+                 pit1 < (*sit1).end(); ++pit1) {
+                for (pit2 = central.begin(); 
+                     pit2 < central.end(); ++pit2) {
+                    e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
+                    e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
                 }
             }
         }
-
-        // Interaction between polarizable and static shell
-        for (sit1 = this->_polsOutSphere.begin(); 
-             sit1 < _polsOutSphere.end(); ++sit1) {
-        for (sit2 = this->_polsPolSphere.begin(), 
-             seg2 = this->_segsPolSphere.begin(); 
-             sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
-            
-            // Continue when hitting one of the central sites (already covered)
-            if ( job->isInCenter((*seg2)->getId()) ) {
-                continue;
-            }
-            
-            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
-                e_f_non_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                e_m_non_c_out += _actor.E_m(*(*pit2), *(*pit1));
-            }}
-        }}
-        
-        
-        // Increment energies
-        // ... 0th kind        
-        E_Pair_Sph2 += e_f_c_out + e_m_c_out;
-        E_Sph1_Sph2 += e_f_non_c_out + e_m_non_c_out;
-        // ... 1st kind
-        e_perm      += _actor.getEP();
-        eu_inter    += _actor.getEU_INTER();
-        // ... 2nd kind
-        epp += _actor.getEPP();
-        epu += _actor.getEPU();
-        euu += _actor.getEUU();
-        // ... 3rd kind
-        // ... ... -> done in loop above, but need to summarize e_m_*
-        e_m_c      += e_m_c_out;
-        e_m_non_c  += e_m_non_c_out;
-        
-        
-        E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2;       
-        
     }
 
-    
-    // =============================================================== //
-    // Job-Type 'site'                                                 //
-    // =============================================================== //
-    
-    else if (job->getSegments().size() <= 1) {
-        
-        for (int id = 0; id < this->_subthreads; ++id) {
-            _indus[id]->SetSwitch(0);
-        }
-        
-        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Inter-site energy comprising central + first polarization shell //
-        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Interaction between polarizable and static shell
+    for (sit1 = this->_polsOutSphere.begin(); 
+         sit1 < _polsOutSphere.end(); ++sit1) {
+    for (sit2 = this->_polsPolSphere.begin(), 
+         seg2 = this->_segsPolSphere.begin(); 
+         sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
 
-        for (int id = 0; id < this->_subthreads; ++id) {
-            _indus[id]->Start();
-        }
-        
-        for (int id = 0; id < this->_subthreads; ++id) {
-            _indus[id]->WaitDone();
-        }
-        
-        for (int id = 0; id < this->_subthreads; ++id) {
-            E_Pair_Pair += _indus[id]->GetEPairPair();
-            E_Pair_Sph1 += _indus[id]->GetEPairSph1();
-            E_Sph1_Sph1 += _indus[id]->GetESph1Sph1();
-
-            eu_inter += _indus[id]->GetActor().getEU_INTER();
-            eu_intra += _indus[id]->GetActor().getEU_INTRA();
-            e_perm   += _indus[id]->GetActor().getEP();
-            
-            epp += _indus[id]->GetActor().getEPP();
-            epu += _indus[id]->GetActor().getEPU();
-            euu += _indus[id]->GetActor().getEUU();
-            
-            e_f_c_non_c         += _indus[id]->GetE_f_C_non_C();
-            e_f_non_c_non_c     += _indus[id]->GetE_f_non_C_non_C();
-            e_m_c               += _indus[id]->GetE_m_C();
-            e_m_non_c           += _indus[id]->GetE_m_non_C();
+        // Continue when hitting one of the central sites (already covered)
+        if ( job->isInCenter((*seg2)->getId()) ) {
+            continue;
         }
 
-        this->ClearTodoTable();
-
-
-        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        // Inter-site energy resulting from interaction with static shell  //
-        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
-        
-        // Interaction between central and static shell
-        for (int i = 0; i < job->getSegments().size(); ++i) {
-            
-            vector< APolarSite* > central 
-                    = _polarSites_job[ job->getSegments()[i]->getId() - 1 ];
-            
-            for (sit1 = _polsOutSphere.begin(); 
-                 sit1 < _polsOutSphere.end(); ++sit1) {
-                for (pit1 = (*sit1).begin(); 
-                     pit1 < (*sit1).end(); ++pit1) {
-                    for (pit2 = central.begin(); 
-                         pit2 < central.end(); ++pit2) {
-                        e_f_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                        e_m_c_out += _actor.E_m(*(*pit2), *(*pit1));
-                    }
-                }
-            }
-        }
-
-        // Interaction between polarizable and static shell
-        for (sit1 = this->_polsOutSphere.begin(); 
-             sit1 < _polsOutSphere.end(); ++sit1) {
-        for (sit2 = this->_polsPolSphere.begin(), 
-             seg2 = this->_segsPolSphere.begin(); 
-             sit2 < _polsPolSphere.end(); ++sit2, ++seg2) {
-            
-            // Continue when hitting one of the central sites (already covered)
-            if ( job->isInCenter((*seg2)->getId()) ) {
-                continue;
-            }
-            
-            for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
-            for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
-                e_f_non_c_out += _actor.E_f(*(*pit1), *(*pit2));
-                e_m_non_c_out += _actor.E_m(*(*pit2), *(*pit1));
-            }}
+        for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
+        for (pit2 = (*sit2).begin(); pit2 < (*sit2).end(); ++pit2) {
+            e_f_non_c_out += _actor.E_f(*(*pit1), *(*pit2));
+            e_m_non_c_out += _actor.E_m(*(*pit2), *(*pit1));
         }}
+    }}
+
+
+    // Increment energies
+    // ... 0th kind        
+    E_Pair_Sph2 += e_f_c_out + e_m_c_out;
+    E_Sph1_Sph2 += e_f_non_c_out + e_m_non_c_out;
+    // ... 1st kind
+    e_perm      += _actor.getEP();
+    eu_inter    += _actor.getEU_INTER();
+    // ... 2nd kind
+    epp += _actor.getEPP();
+    epu += _actor.getEPU();
+    euu += _actor.getEUU();
+    // ... 3rd kind
+    // ... ... -> done in loop above, but need to summarize e_m_*
+    e_m_c      += e_m_c_out;
+    e_m_non_c  += e_m_non_c_out;
+
+
+    E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2;
         
-        // Increment energies
-        // ... 0th kind
-        E_Pair_Sph2     += e_f_c_out + e_m_c_out;
-        E_Sph1_Sph2     += e_f_non_c_out + e_m_non_c_out;
-        // ... 1st kind
-        e_perm          += _actor.getEP();
-        eu_inter        += _actor.getEU_INTER();
-        // ... 2nd kind
-        epp             += _actor.getEPP();
-        epu             += _actor.getEPU();
-        euu             += _actor.getEUU();        
-        // ... 3rd kind 
-        // ... ... -> done in loop above, but need to summarize e_m_*
-        e_m_c           += e_m_c_out;
-        e_m_non_c       += e_m_non_c_out;
 
-    }
-
-    else { assert(false); }
 
     // =============================================================== //
     // Energy Output                                                   //
@@ -753,7 +645,7 @@ double XInductor::EnergyStatic(int state, XJob *job) {
         for (pit2 = central_j.begin();
              pit2 < central_j.end(); ++pit2) {
 
-            e_f_c_c += _actor.EnergyInter(*(*pit1), *(*pit2));
+            e_f_c_c += _actor.E_f(*(*pit1), *(*pit2));
         }}
 
     }}

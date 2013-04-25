@@ -169,146 +169,88 @@ public:
             
             double e_f_12_21 = 0.0;
             double e_m_12    = 0.0;
-            double e_m_21    = 0.0;
-            
-            if (_forker->_job->getSegments().size() <= 1) {
-
-                for (int i = _nx1;                     i < _nx2; ++i) {
-                for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
-
-                    // Site-non-site interaction
-                    if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId())
-                     ^   this->_forker->_job->isInCenter((*_vsegs_cut1)[j]->getId()) ) {
-
-                        for (pit1 = (*_vvpoles_cut1)[i].begin();
-                             pit1 < (*_vvpoles_cut1)[i].end();
-                             ++pit1) {
-                        for (pit2 = (*_vvpoles_cut1)[j].begin();
-                             pit2 < (*_vvpoles_cut1)[j].end();
-                             ++pit2) {
-
-                            e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
-                            e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
-                            e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
-
-                            _E_Pair_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
-
-                            _E_f_C_non_C += e_f_12_21;
-                            if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId()) ) {
-                                _E_m_C += e_m_12;
-                                _E_m_non_C += e_m_21;
-                            }
-                            else {
-                                _E_m_C += e_m_21;
-                                _E_m_non_C += e_m_12;
-                            }
-                        }}
-                    }
-
-                    // Non-site-non-site interaction
-                    else {
-                        for (pit1 = (*_vvpoles_cut1)[i].begin();
-                             pit1 < (*_vvpoles_cut1)[i].end();
-                             ++pit1) {
-                        for (pit2 = (*_vvpoles_cut1)[j].begin();
-                             pit2 < (*_vvpoles_cut1)[j].end();
-                             ++pit2) {
-
-                            e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
-                            e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
-                            e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
-
-                            _E_Sph1_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
-
-                            _E_f_non_C_non_C += e_f_12_21;
-                            _E_m_non_C       += e_m_12;
-                            _E_m_non_C       += e_m_21;
-                        }}
-                    }
-                }}
-            } // end procedure - job type "site"
-            
-            else {
+            double e_m_21    = 0.0;            
                 
-                for (int i = _nx1;                     i < _nx2; ++i) {
-                for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
+            for (int i = _nx1;                     i < _nx2; ++i) {
+            for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
 
-                    // Pair-non-pair interaction
-                    if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId())
-                     ^   this->_forker->_job->isInCenter((*_vsegs_cut1)[j]->getId()) ) {
+                bool i_inCenter 
+                       = _forker->_job->isInCenter((*_vsegs_cut1)[i]->getId());
+                bool j_inCenter 
+                       = _forker->_job->isInCenter((*_vsegs_cut1)[j]->getId());
 
-                        for (pit1 = (*_vvpoles_cut1)[i].begin();
-                             pit1 < (*_vvpoles_cut1)[i].end();
-                             ++pit1) {
-                        for (pit2 = (*_vvpoles_cut1)[j].begin();
-                             pit2 < (*_vvpoles_cut1)[j].end();
-                             ++pit2) {
+                // Pair-non-pair interaction
+                if ( i_inCenter ^ j_inCenter ) {
 
-                            e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
-                            e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
-                            e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
+                    for (pit1 = (*_vvpoles_cut1)[i].begin();
+                         pit1 < (*_vvpoles_cut1)[i].end();
+                         ++pit1) {
+                    for (pit2 = (*_vvpoles_cut1)[j].begin();
+                         pit2 < (*_vvpoles_cut1)[j].end();
+                         ++pit2) {
 
-                            _E_Pair_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
+                        e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
+                        e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
+                        e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
 
-                            _E_f_C_non_C += e_f_12_21;
-                            if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId()) ) {
-                                _E_m_C += e_m_12;
-                                _E_m_non_C += e_m_21;
-                            }
-                            else {
-                                _E_m_C += e_m_21;
-                                _E_m_non_C += e_m_12;
-                            }
-                        }}
-                    }
-                    
-                    // Pair-pair interaction
-                    else if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId())
-                    &&   this->_forker->_job->isInCenter((*_vsegs_cut1)[j]->getId()) ) {
+                        _E_Pair_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
 
-                        for (pit1 = (*_vvpoles_cut1)[i].begin();
-                             pit1 < (*_vvpoles_cut1)[i].end();
-                             ++pit1) {
-                        for (pit2 = (*_vvpoles_cut1)[j].begin();
-                             pit2 < (*_vvpoles_cut1)[j].end();
-                             ++pit2) {
-                            
-                            e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
-                            e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
-                            e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
-                            
-                            _E_Pair_Pair    += e_f_12_21 + e_m_12 + e_m_21;
-                            
-                            _E_f_C_C        += e_f_12_21;
-                            _E_m_C          += e_m_12;
-                            _E_m_C          += e_m_21;
-                            
-                        }}
-                    }
+                        _E_f_C_non_C += e_f_12_21;
+                        if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId()) ) {
+                            _E_m_C += e_m_12;
+                            _E_m_non_C += e_m_21;
+                        }
+                        else {
+                            _E_m_C += e_m_21;
+                            _E_m_non_C += e_m_12;
+                        }
+                    }}
+                }
 
-                    // Non-pair-non-pair interaction
-                    else {
-                        for (pit1 = (*_vvpoles_cut1)[i].begin();
-                             pit1 < (*_vvpoles_cut1)[i].end();
-                             ++pit1) {
-                        for (pit2 = (*_vvpoles_cut1)[j].begin();
-                             pit2 < (*_vvpoles_cut1)[j].end();
-                             ++pit2) {
+                // Pair-pair interaction
+                else if ( i_inCenter && j_inCenter ) {
 
-                            e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
-                            e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
-                            e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
+                    for (pit1 = (*_vvpoles_cut1)[i].begin();
+                         pit1 < (*_vvpoles_cut1)[i].end();
+                         ++pit1) {
+                    for (pit2 = (*_vvpoles_cut1)[j].begin();
+                         pit2 < (*_vvpoles_cut1)[j].end();
+                         ++pit2) {
 
-                            _E_Sph1_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
+                        e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
+                        e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
+                        e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
 
-                            _E_f_non_C_non_C += e_f_12_21;
-                            _E_m_non_C       += e_m_12;
-                            _E_m_non_C       += e_m_21;
-                        }}
-                    }
-                }}
-            } // end procedure - job type "pair"          
-            
+                        _E_Pair_Pair    += e_f_12_21 + e_m_12 + e_m_21;
+
+                        _E_f_C_C        += e_f_12_21;
+                        _E_m_C          += e_m_12;
+                        _E_m_C          += e_m_21;
+
+                    }}
+                }
+
+                // Non-pair-non-pair interaction
+                else {
+                    for (pit1 = (*_vvpoles_cut1)[i].begin();
+                         pit1 < (*_vvpoles_cut1)[i].end();
+                         ++pit1) {
+                    for (pit2 = (*_vvpoles_cut1)[j].begin();
+                         pit2 < (*_vvpoles_cut1)[j].end();
+                         ++pit2) {
+
+                        e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
+                        e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
+                        e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
+
+                        _E_Sph1_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
+
+                        _E_f_non_C_non_C += e_f_12_21;
+                        _E_m_non_C       += e_m_12;
+                        _E_m_non_C       += e_m_21;
+                    }}
+                }
+            }}
         }
         
 
