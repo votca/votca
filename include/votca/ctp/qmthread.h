@@ -2,6 +2,7 @@
 #define	_CTP_QMTHREAD_H
 
 #include "votca/tools/thread.h"
+#include "votca/tools/globals.h"
 #include <iostream>
 #include <string>
 
@@ -22,7 +23,12 @@ namespace votca { namespace ctp {
 
         template <class Traits> 
         friend Traits& operator<<( QMThread & t,  Traits& inp ) {
-            t._ss << inp ;
+            
+            if ( tools::globals::verbose ) { // has to be changed to maverick
+                    std::cout << inp ;
+            } else {
+                    t._ss << inp ;
+            }
             return inp;
         }        
         
@@ -40,6 +46,7 @@ namespace votca { namespace ctp {
     protected:
         
         stringstream     _ss;
+
     };
 
 

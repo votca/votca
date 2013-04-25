@@ -210,6 +210,7 @@ bool Gaussian::WriteShellScript() {
 bool Gaussian::Run()
 {
 
+    cout << endl << "... ... Running GAUSSIAN" ;
     if (system(NULL)) {
         // if scratch is provided, run the shell script; 
         // otherwise run gaussian directly and rely on global variables 
@@ -227,6 +228,8 @@ bool Gaussian::Run()
         cerr << "The job " << _com_file_name << " failed to complete" << endl; 
         exit (EXIT_FAILURE);
     }
+    
+    cout << " ... done" << endl ;
 
 }
 
@@ -670,7 +673,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
             boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
             _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
-            cout << "... ... QM energy " << _conv_Hrt_eV * _orbitals->_qm_energy <<  endl;
+            cout << "... ... QM energy " << _orbitals->_qm_energy <<  endl;
                     
             _orbitals->_has_atoms = true;
             _orbitals->_has_qm_energy = true;
@@ -688,10 +691,12 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             vector<string> energy;
             boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
             boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-            cout << "... ... Self energy " << _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) <<  endl;
             
             _orbitals->_has_self_energy = true;
             _orbitals->_self_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+            
+            cout << "... ... Self energy " << _orbitals->_self_energy <<  endl;
+
         }
         
         // check if all information has been accumulated
@@ -706,7 +711,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         
     } // end of reading the file line-by-line
     if ( tools::globals::verbose ) cout << "... ... Done parsing " << _log_file_name << endl;
-                exit(0);
+
 }
 
 string Gaussian::FortranFormat( const double &number ) {

@@ -172,26 +172,26 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         oa << _orbitals;
         ofs.close();
        
-        Orbitals _orbitals_new;
-        std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
-        boost::archive::binary_iarchive ia( ifs );
-        ia >> _orbitals_new;
-        ifs.close();
+        //Orbitals _orbitals_new;
+        //std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
+        //boost::archive::binary_iarchive ia( ifs );
+        //ia >> _orbitals_new;
+        //ifs.close();
 
-        _atoms = _orbitals_new.getAtoms();
-        cout << "Deserializing " << _atoms->size() << " atoms" << endl;
-        cout << (_atoms->front())->type << " ";
-        cout << (_atoms->front())->x << " ";
-        cout << (_atoms->front())->y << " ";
-        cout << (_atoms->front())->z << " ";
-        cout << (_atoms->front())->charge << endl;
+        //_atoms = _orbitals_new.getAtoms();
+        //cout << "Deserializing " << _atoms->size() << " atoms" << endl;
+        //cout << (_atoms->front())->type << " ";
+        //cout << (_atoms->front())->x << " ";
+        //cout << (_atoms->front())->y << " ";
+        //cout << (_atoms->front())->z << " ";
+        //cout << (_atoms->front())->charge << endl;
         //exit(0);
         
         //cout << "ELECTRONS " << _orbitals_new.getNumberOfElectrons() << endl ;
         //cout << "BASIS SIZE " << _orbitals_new.getBasisSetSize() << endl ;
  
         _gaussian.CleanUp( ID );
-
+        
         //exit(0);
         
    }    
