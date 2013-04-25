@@ -23,6 +23,8 @@
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
+#include <votca/ctp/apolarsite.h>
+
 #include <string> 
 
 using namespace std;
@@ -68,6 +70,8 @@ public:
 //protected:
              
 private:  
+
+    static const double _conv_Hrt_eV = 27.21138386;
     
     int                                 _charge;
     int                                 _spin; // 2S+1
@@ -91,8 +95,11 @@ private:
     
     bool                                _get_orbitals;
     bool                                _get_overlap;
+    bool                                _get_charges;
+    bool                                _get_self_energy;
     
     bool                                _write_guess;
+    bool                                _write_charges;
      
     int NumberOfElectrons( string _line ); 
     int BasisSetSize( string _line ); 

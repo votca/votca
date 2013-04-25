@@ -18,6 +18,7 @@
  */
 
 #include "votca/ctp/orbitals.h"
+#include "votca/tools/globals.h"
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
@@ -65,6 +66,7 @@ Orbitals::Orbitals() {
     _has_mo_coefficients = false;
     _has_mo_energies = false;
     _has_overlap = false;
+    _has_atoms = false;
     
     _save_mo_coefficients = true;
     _save_overlap = true;
@@ -75,6 +77,9 @@ Orbitals::~Orbitals() {
     _mo_energies.clear();
     _mo_coefficients.clear();
     _overlap.clear();
+    
+    std::vector< QMAtom* >::iterator it;
+    for ( it = _atoms.begin(); it != _atoms.end(); ++it ) delete *it;
 };   
 
 const int    &Orbitals::getBasisSetSize() const { 
@@ -128,9 +133,8 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
     
     ub::vector<double>::iterator it1 = _mo_energies.begin();
     bool _degenerate = false;
-    bool _verbose = true;
     
-    if ( _verbose ) cout << endl <<"... ... Checking level degeneracy " << endl;
+    if ( tools::globals::verbose ) cout << endl <<"... ... Checking level degeneracy " << endl;
     
     _level_degeneracy.clear();
             
@@ -163,7 +167,7 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
         it1++;
     }
 
-    if ( _verbose ){ 
+    if ( tools::globals::verbose ){ 
 
         if ( _degenerate ) {
             cout << "... ... Some levels are degenerate" << endl; 
@@ -211,7 +215,7 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
 }
 
 void Orbitals::SortEnergies(  std::vector<int>* index ) {
-    cout << "... ... Sorting energies" << endl ;
+    if ( tools::globals::verbose )  cout << "... ... Sorting energies" << endl ;
     //cout << _mo_energies << endl;
     //cout << "MO Energies size" << _mo_energies.size() << endl ;
     //exit(0);

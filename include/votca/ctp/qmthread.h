@@ -2,72 +2,51 @@
 #define	_CTP_QMTHREAD_H
 
 #include "votca/tools/thread.h"
+#include "votca/tools/globals.h"
 #include <iostream>
 #include <string>
 
 namespace votca { namespace ctp {
 
-// ++++++++++++++++++++++++++++++++++++++ //
+    // ++++++++++++++++++++++++++++++++++++++ //
     // Thread class with local string stream //
     // ++++++++++++++++++++++++++++++++++++++ //
 
     class QMThread : public Thread
     {
-       friend ostream& operator<<( ostream& output, const QMThread&  thread ) {
-           output << (thread._ss).str();
-           return output;
-       }
-
-       
-       friend string operator<<( QMThread&  thread, string input ) {
-           thread._ss << input ;
-           return input;
+       friend ostream& operator<<( ostream& out, QMThread&  t ) {
+           out << (t._ss).str();
+           t._ss.str( "" );
+           return out;
        }
        
-       friend string operator>>( string input, QMThread&  thread ) {
-           thread._ss << input ;
-           return input;
-       }
 
-       
-       friend int operator<<( QMThread&  thread, int input ) {
-           thread._ss << input ;
-           return input;
-       }
-
-       friend int operator>>( int input, QMThread&  thread ) {
-           thread._ss << input ;
-           return input;
-       }
-
- 
-       friend double operator<<( QMThread&  thread, double input ) {
-           thread._ss << input ;
-           return input;
-       }
-       friend double operator>>( double input, QMThread&  thread ) {
-           thread._ss << input ;
-           return input;
-       }
-
-
-       friend float operator<<( QMThread&  thread, float input ) {
-           thread._ss << input;
-           return input;
-       }
-              
-       friend float operator>>( float input, QMThread&  thread ) {
-           thread._ss << input;
-           return input;
-       }
+        template <class Traits> 
+        friend Traits& operator<<( QMThread & t,  Traits& inp ) {
+            
+            if ( tools::globals::verbose ) { // has to be changed to maverick
+                    std::cout << inp ;
+            } else {
+                    t._ss << inp ;
+            }
+            return inp;
+        }        
+        
+        template <class Traits> 
+        friend Traits& operator>>( Traits& inp, QMThread & t ) {
+            t._ss << inp ;
+            return inp;
+        }        
+        
        
     public:
         
        ~QMThread() {};
-
+       
     protected:
         
         stringstream     _ss;
+
     };
 
 
@@ -75,4 +54,4 @@ namespace votca { namespace ctp {
     
 }}
 
-#endif 
+#endif /* _CTP_QMTHREAD_H */

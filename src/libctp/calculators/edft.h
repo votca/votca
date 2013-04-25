@@ -122,7 +122,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
     mkdir(_outParent.c_str(), 0755);
 
     string ID   = boost::lexical_cast<string>( seg->getId() );
-    string fileName = "mol_" + ID;
+    //string fileName = "mol_" + ID;
+    string fileName = "monomer";
     string DIR  = _outParent + "/" + "mol_" + ID;
     string XYZ_FILE = fileName + ".xyz";
     string ORB_FILE = fileName + ".orb";
@@ -154,7 +155,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         _gaussian.WriteInputFile( segments );
         
         // Run the executable
-        //_gaussian.Run( );
+        _gaussian.Run( );
         
         // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
@@ -166,20 +167,31 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         // save orbitals 
         std::ofstream ofs( (DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
+        std::vector< QMAtom* >* _atoms = _orbitals.getAtoms();
+        cout << endl << "Serializing " << _atoms->size() << " atoms" << endl;        
         oa << _orbitals;
         ofs.close();
        
         //Orbitals _orbitals_new;
         //std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
-        //boost::archive::text_iarchive ia( ifs );
+        //boost::archive::binary_iarchive ia( ifs );
         //ia >> _orbitals_new;
         //ifs.close();
 
+        //_atoms = _orbitals_new.getAtoms();
+        //cout << "Deserializing " << _atoms->size() << " atoms" << endl;
+        //cout << (_atoms->front())->type << " ";
+        //cout << (_atoms->front())->x << " ";
+        //cout << (_atoms->front())->y << " ";
+        //cout << (_atoms->front())->z << " ";
+        //cout << (_atoms->front())->charge << endl;
+        //exit(0);
+        
         //cout << "ELECTRONS " << _orbitals_new.getNumberOfElectrons() << endl ;
         //cout << "BASIS SIZE " << _orbitals_new.getBasisSetSize() << endl ;
  
         _gaussian.CleanUp( ID );
-
+        
         //exit(0);
         
    }    
