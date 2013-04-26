@@ -44,20 +44,22 @@ public:
             : _induce(0),          _induce_intra_pair(0),
               _wSOR_N(0.5),        _wSOR_C(0.5),
               _epsTol(0.001),      _maxIter(512),
-              _maverick(true),     _top(NULL), _id(-1),
+              _maverick(true),     _top(NULL),
               _aDamp(0.390)
             { _actor = XInteractor(NULL, _aDamp); };
     
     XInductor(bool induce,   bool induce_intra_pair, int subthreads,
               float wSOR_N,  float wSOR_C,           double epsTol,
               int maxIter,   double aDamp,           bool maverick,
-              Topology *top, int thread_id)
+              Topology *top)
             : _induce(induce),         _induce_intra_pair(induce_intra_pair),
               _subthreads(subthreads), _wSOR_N(wSOR_N),     _wSOR_C(wSOR_C),   
               _epsTol(epsTol),         _maxIter(maxIter),
-              _maverick(maverick),     _top(top), _id(thread_id),
+              _maverick(maverick),     _top(top),
               _aDamp(aDamp)
             { _actor = XInteractor(top, _aDamp); };
+            
+    XInductor(Topology *top, Property *opt, string sfx, int nst, bool mav);
             
    ~XInductor() {};
    
@@ -360,8 +362,8 @@ public:
         }
 
         if (T > 1 && _maverick) {
-            printf("\n\nTHREAD %1d MESH LOAD: "
-                   "NST%1d C%1d N%1d nt%1d nr%1d\n", _id, T, C, N, nt, nr);
+            printf("\n\nTHREAD MESH LOAD: "
+                   "NST%1d C%1d N%1d nt%1d nr%1d\n", T, C, N, nt, nr);
             for (int id = 0; id < C+1; ++id) {
                 for (int run = 0; run < C+1; ++run) {
                     printf("--------+");
@@ -471,7 +473,6 @@ private:
     
     Topology                     *_top;
     XJob                         *_job;
-    int                           _id; // Thread ID
     
     // Control options
     bool                          _induce;

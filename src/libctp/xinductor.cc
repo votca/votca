@@ -677,4 +677,57 @@ double XInductor::EnergyStatic(XJob *job) {
 }
 
 
+XInductor::XInductor(Topology *top, Property *opt, 
+                     string sfx, int nst, bool mav)
+                  : _subthreads(nst), _maverick(mav) {
+    
+    string key = sfx + ".tholemodel";
+
+        if ( opt->exists(key+".induce") ) {
+            int induce = opt->get(key+".induce").as< int >();
+            _induce = (induce == 0) ? false : true;
+        }
+        else { _induce = true; }
+
+        if ( opt->exists(key+".induce_intra_pair") ) {
+            int induce = opt->get(key+".induce_intra_pair").as< int >();
+            _induce_intra_pair = (induce == 0) ? false : true;
+        }
+        else { _induce_intra_pair = true; }
+
+        if ( opt->exists(key+".exp_damp") ) {
+            _aDamp = opt->get(key+".exp_damp").as< double >();
+        }
+        else {
+            cout << endl << "... ... WARNING: No sharpness parameter supplied";
+            cout << endl << "... ... ... Using default a = 0.39";
+            _aDamp = 0.39;
+        }
+
+    key = sfx + ".convergence";
+
+        if ( opt->exists(key+".wSOR_N") ) {
+            _wSOR_N = opt->get(key+".wSOR_N").as< float >();
+        }
+        else { _wSOR_N = 0.75; }
+        if ( opt->exists(key+".wSOR_C") ) {
+            _wSOR_C = opt->get(key+".wSOR_C").as< float >();
+        }
+        else { _wSOR_C = 0.75; }
+
+        if ( opt->exists(key+".max_iter") ) {
+            _maxIter = opt->get(key+".max_iter").as< int >();
+        }
+        else { _maxIter = 512; }
+
+        if ( opt->exists(key+".tolerance") ) {
+            _epsTol = opt->get(key+".tolerance").as< double >();
+        }
+        else { _epsTol = 0.001; }
+    
+    _actor = XInteractor(top, _aDamp);
+    
+}
+
+
 }}
