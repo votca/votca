@@ -27,10 +27,9 @@
 #include <votca/tools/mutex.h>
 
 
-// TODO Pass sharpness (aDamp) to XInteractor
-// TODO Only one wSOR required, outsource to XJob
+// TODO Rename aDamp to aSharp
 // TODO No need for _top
-// TODO No need for segment containers?
+// TODO Initialize from Property object
 
 namespace votca { namespace ctp {
     
