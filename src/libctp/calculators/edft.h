@@ -50,8 +50,8 @@ public:
    ~EDFT() {};
 
     string  Identify() { return "EDFT"; }
-    void    Initialize(Topology *top, Property *options, SiteOperator *opThread);
-    void    ParseOrbitalsXML(Topology *top, Property *options, SiteOperator *opThread);
+    void    Initialize(Topology *top, Property *options);
+    void    ParseOrbitalsXML(Topology *top, Property *options);
     void    EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThread);
 
     void    CleanUp();
@@ -72,11 +72,11 @@ void EDFT::CleanUp() {
 
 }
 
-void EDFT::Initialize(Topology *top, Property *options, SiteOperator *opThread) {
+void EDFT::Initialize(Topology *top, Property *options) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
-    //cout << endl <<  "... ... Reading the input ";
+    cout << endl <<  "... ... Reading the input ";
     
     /* ---- OPTIONS.XML Structure -----
      *
@@ -88,12 +88,12 @@ void EDFT::Initialize(Topology *top, Property *options, SiteOperator *opThread) 
      *
      */
 
-    this->ParseOrbitalsXML(top, options, opThread);
+    this->ParseOrbitalsXML(top, options);
 
 }
 
 
-void EDFT::ParseOrbitalsXML(Topology *top, Property *opt, SiteOperator *opThread) {
+void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 
     string key = "options.edft";
     string _package_xml = opt->get(key+".package").as<string> ();
@@ -168,8 +168,10 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThrea
         std::ofstream ofs( (DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
         std::vector< QMAtom* >* _atoms = _orbitals.getAtoms();
-        *opThread << "Serializing "; //*opThread << _atoms->size(); 
-        *opThread << " atoms\n";        
+        
+        int _nat = _atoms->size() ;
+        
+        *opThread << "... ... Serializing " << _nat << " atoms\n";     
         oa << _orbitals;
         ofs.close();
        
@@ -194,6 +196,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThrea
         _gaussian.CleanUp( ID );
         
         //exit(0);
+        
+        cout << *opThread;
         
    }    
    

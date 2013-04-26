@@ -5,8 +5,10 @@
 #include "votca/tools/globals.h"
 #include <iostream>
 #include <string>
+#include <ctime>
 
 namespace votca { namespace ctp {
+    
 
     // ++++++++++++++++++++++++++++++++++++++ //
     // Thread class with local string stream //
@@ -22,23 +24,23 @@ namespace votca { namespace ctp {
        
 
         template <class Traits> 
-        friend Traits& operator<<( QMThread & t,  Traits& inp ) {
+        friend QMThread& operator<<( QMThread &t,  Traits& inp ) {
             
             if ( tools::globals::verbose ) { 
                 if ( t._maverick ) { std::cout << inp ; }
                 else { t._ss << inp ; }
             }
-            return inp;
-        }        
+            return t;
+        }
         
         template <class Traits> 
-        friend Traits& operator>>( Traits& inp, QMThread & t ) {
+        friend QMThread& operator>>( Traits& inp, QMThread & t ) {
             
             if ( tools::globals::verbose ) { 
                 if ( t._maverick ) { std::cout << inp ; }
                 else { t._ss << inp ; }
             }           
-            return inp;
+            return t;
         }        
         
        
@@ -52,8 +54,6 @@ namespace votca { namespace ctp {
         bool             _maverick;
 
     };
-
-
     
     
 }}

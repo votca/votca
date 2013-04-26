@@ -100,7 +100,7 @@ private:
     
     bool                                _write_guess;
     bool                                _write_charges;
-     
+         
     int NumberOfElectrons( string _line ); 
     int BasisSetSize( string _line ); 
     int EnergiesFromLog( string _line, ifstream inputfile ); 
