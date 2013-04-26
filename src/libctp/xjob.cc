@@ -8,7 +8,7 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
      vector<string> &qmSegMps, Topology *top) :
 
      _id(id), _tag(tag), _top(top), _start_from_cpt(false),
-     _qmSegs(qmSegs), _qmSegMps(qmSegMps) {
+     _qmSegs(qmSegs), _qmSegMps(qmSegMps), _ptop(NULL) {
 
      // Sanity checks
      assert(qmSegs.size() == qmSegMps.size());

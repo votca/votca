@@ -19,6 +19,7 @@
 #define	__XINDUCTOR__H
 
 #include <votca/ctp/topology.h>
+#include <votca/ctp/polarseg.h>
 #include <votca/ctp/apolarsite.h>
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/xjob.h>
@@ -502,6 +503,11 @@ private:
     vector< vector<APolarSite*> > _polsOutSphere;  // Polar sites in c/o 1-2
     vector< vector<APolarSite*> > _polarSites;     // Copy of top polar sites
     vector< vector<APolarSite*> > _polarSites_job; // Adapted to job specs 
+    
+    vector< PolarSeg* >           _qm0;
+    vector< PolarSeg* >           _mm1;
+    vector< PolarSeg* >           _mm2;
+    
     XInteractor                   _actor;
 
     // Manage induction workers

@@ -6,7 +6,7 @@
 
 namespace votca { namespace ctp {
     
-class PolarSeg
+class PolarSeg : public vector<APolarSite*>
 {
 
 public:
@@ -14,15 +14,13 @@ public:
     PolarSeg(vector<APolarSite*> &psites);
    ~PolarSeg();
 
-    vector<APolarSite*> &PSites() { return _psites; }
     const vec &getPos() { return _pos; }
     void CalcPos();
     void Translate(const vec &shift);
 
 private:
 
-    vec _pos;
-    vector<APolarSite*> _psites;     
+    vec _pos;    
 
 
 };    

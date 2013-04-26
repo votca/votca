@@ -917,6 +917,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
     
     // CREATE POLAR SEGMENTS FROM SHELLS    
     // ... QM0 SHELL
+    qm0.reserve(segs_qm0.size());
     for (int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
         vector<APolarSite*> psites_raw 
@@ -926,6 +927,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
         qm0.push_back(new PolarSeg(psites_mapped));        
     }    
     // ... MM1 SHELL
+    mm1.reserve(segs_mm1.size());
     for (sit = segs_mm1.begin(); sit < segs_mm1.end(); ++sit) {
         Segment *seg = *sit;
         // Look up appropriate set of polar sites
@@ -935,7 +937,8 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
                 = this->MapPolSitesToSeg(psites_raw, seg);
         mm1.push_back(new PolarSeg(psites_mapped));        
     }
-    // ... MM1 SHELL
+    // ... MM2 SHELL
+    mm2.reserve(segs_mm2.size());
     for (sit = segs_mm2.begin(); sit < segs_mm2.end(); ++sit) {
         Segment *seg = *sit;
         // Look up appropriate set of polar sites

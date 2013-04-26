@@ -66,19 +66,19 @@ void PolarTop::PrintPDB(const string &outfile) {
     vector<APolarSite*> ::iterator pit;
     for (sit = _qm0.begin(); sit < _qm0.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
-        for (pit = pseg->PSites().begin(); pit < pseg->PSites().end(); ++pit) {
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->WritePdbLine(out);
         }
     }
     for (sit = _mm1.begin(); sit < _mm1.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
-        for (pit = pseg->PSites().begin(); pit < pseg->PSites().end(); ++pit) {
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->WritePdbLine(out);
         }
     }
     for (sit = _mm2.begin(); sit < _mm2.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
-        for (pit = pseg->PSites().begin(); pit < pseg->PSites().end(); ++pit) {
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->WritePdbLine(out);
         }
     }

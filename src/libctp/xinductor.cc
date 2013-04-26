@@ -14,6 +14,9 @@ void XInductor::Evaluate(XJob *job,
     
     // Copy containers
     _job            = job;
+    _qm0            = job->getPolarTop()->QM0();
+    _mm1            = job->getPolarTop()->MM1();
+    _mm2            = job->getPolarTop()->MM2();
     _segsPolSphere  = segsPolSphere;
     _segsOutSphere  = segsOutSphere;
     _polsPolSphere  = polsPolSphere;
