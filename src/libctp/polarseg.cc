@@ -5,7 +5,7 @@ namespace votca { namespace ctp {
 
     
     
-PolarSeg::PolarSeg(vector<APolarSite*> &psites) {    
+PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) : _id(id) {    
     for (int i = 0; i < psites.size(); ++i) {
         push_back(psites[i]);
     }    
@@ -28,6 +28,15 @@ void PolarSeg::CalcPos() {
         _pos += (*this)[i]->getPos();        
     }
     _pos /= double(this->size());      
+}
+
+
+double PolarSeg::CalcTotQ() {
+    double Q = 0.0;
+    for (int i = 0; i < this->size(); ++i) {
+        Q += (*this)[i]->getQ00();
+    }
+    return Q;
 }
 
 

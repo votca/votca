@@ -12,20 +12,22 @@ class PolarTop
 
 public:
     
-   PolarTop(Topology *top) : _top(top) { cout << "Constructed ptop" << endl;};
+   PolarTop(Topology *top) : _top(top) {};
   ~PolarTop();
     
    vector<PolarSeg*> &QM0() { return _qm0; }
    vector<PolarSeg*> &MM1() { return _mm1; }
    vector<PolarSeg*> &MM2() { return _mm2; }
    
-   void setQM0(vector<PolarSeg*> &qm0) { _qm0 = qm0; }
-   void setMM1(vector<PolarSeg*> &mm1) { _mm1 = mm1; }
-   void setMM2(vector<PolarSeg*> &mm2) { _mm2 = mm2; }
+   void   setQM0(vector<PolarSeg*> &qm0) { _qm0 = qm0; }
+   void   setMM1(vector<PolarSeg*> &mm1) { _mm1 = mm1; }
+   void   setMM2(vector<PolarSeg*> &mm2) { _mm2 = mm2; }
    
-   void CenterAround(const vec &center);
-   void PrintInfo();
-   void PrintPDB(const string &outfile);
+   void   CenterAround(const vec &center);
+   string ShellInfoStr();
+   void   PrintInfo(ostream &out);
+   void   PrintPDB(string outfile);
+   void   PrintInduState(string out, string format, bool split, double space);
    
     
     

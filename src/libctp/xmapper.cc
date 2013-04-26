@@ -878,7 +878,6 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
     
     // TARGET CONTAINERS
     PolarTop *new_ptop = new PolarTop(top);
-    job->setPolarTop(new_ptop);
     
     vector<PolarSeg*> qm0;
     vector<PolarSeg*> mm1;
@@ -924,7 +923,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
                 = this->GetRawPolSitesJob(job->getSegMps()[i]);
         vector<APolarSite*> psites_mapped
                 = this->MapPolSitesToSeg(psites_raw, seg);        
-        qm0.push_back(new PolarSeg(psites_mapped));        
+        qm0.push_back(new PolarSeg(seg->getId(), psites_mapped));        
     }    
     // ... MM1 SHELL
     mm1.reserve(segs_mm1.size());
@@ -935,7 +934,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
         vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
         vector<APolarSite*> psites_mapped
                 = this->MapPolSitesToSeg(psites_raw, seg);
-        mm1.push_back(new PolarSeg(psites_mapped));        
+        mm1.push_back(new PolarSeg(seg->getId(), psites_mapped));        
     }
     // ... MM2 SHELL
     mm2.reserve(segs_mm2.size());
@@ -946,13 +945,17 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
         vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
         vector<APolarSite*> psites_mapped
                 = this->MapPolSitesToSeg(psites_raw, seg);
-        mm2.push_back(new PolarSeg(psites_mapped));
+        mm2.push_back(new PolarSeg(seg->getId(), psites_mapped));
     }
     
     // PROPAGATE SHELLS TO POLAR TOPOLOGY
     new_ptop->setQM0(qm0);
     new_ptop->setMM1(mm1);
     new_ptop->setMM2(mm2);
+    
+    // CENTER AROUND QM REGION
+    new_ptop->CenterAround(job->Center());
+    job->setPolarTop(new_ptop);
     
 }
 

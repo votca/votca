@@ -11,15 +11,18 @@ class PolarSeg : public vector<APolarSite*>
 
 public:
 
-    PolarSeg(vector<APolarSite*> &psites);
+    PolarSeg(int id, vector<APolarSite*> &psites);
    ~PolarSeg();
 
+    const int getId() { return _id; }
     const vec &getPos() { return _pos; }
     void CalcPos();
+    double CalcTotQ();
     void Translate(const vec &shift);
 
 private:
 
+    int _id;
     vec _pos;    
 
 

@@ -87,8 +87,9 @@ public:
 //    inline void     FieldIndu12___(vector<PolarSite*> &, vector<PolarSite*> &);
 //    inline void     FieldIndu___21(vector<PolarSite*> &, vector<PolarSite*> &);
     
-//    void            BiasIndu(APolarSite &pol1, APolarSite &pol2);
-//    void            BiasStat(APolarSite &pol1, APolarSite &pol2);
+    inline void     BiasIndu(APolarSite &pol1, APolarSite &pol2);
+    inline void     BiasStat(APolarSite &pol1, APolarSite &pol2);
+    inline void     RevBias();
     
 
 private:
@@ -275,9 +276,10 @@ private:
 /**
  * Used in ESP calculator (initialize stage of XQMP)
  */
-inline double XInteractor::PotentialPerm(vec r,
-                                                     APolarSite &pol) {
+inline double XInteractor::PotentialPerm(vec r, APolarSite &pol) {
 
+    assert(false);
+    
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol.getPos() - r;
     R    = 1/abs(e12);
@@ -318,8 +320,10 @@ inline double XInteractor::PotentialPerm(vec r,
 /**
  * Used in ESF calculator (initialize stage of XQMP)
  */
-inline vec XInteractor::FieldPermESF(vec r,
-                                                 APolarSite &pol) {
+inline vec XInteractor::FieldPermESF(vec r, APolarSite &pol) {
+    
+    assert(false);
+    
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol.getPos() - r;
     R    = 1/abs(e12);
@@ -397,8 +401,10 @@ inline vec XInteractor::FieldPermESF(vec r,
 /**
  * Used in molecular-polarizability calculator (initialize stage)
  */
-inline void XInteractor::FieldInduAlpha(APolarSite &pol1,
-                                                    APolarSite &pol2) {
+inline void XInteractor::FieldInduAlpha(APolarSite &pol1, APolarSite &pol2) {
+    
+    assert(false);
+    
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol2.getPos() - pol1.getPos();
     R    = 1/abs(e12);
@@ -494,55 +500,55 @@ inline void XInteractor::FieldInduAlpha(APolarSite &pol1,
 /**
  * Used in self-consistent field calculation (evaluation stage)
  */
-inline void XInteractor::FieldIndu(APolarSite &pol1,
-                                               APolarSite &pol2) {
+inline void XInteractor::FieldIndu(APolarSite &pol1, APolarSite &pol2) {
 
-    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
-    //          This implies that induced = - alpha * field
-    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
-    R    = 1/abs(e12);
-    R2   = R*R;
-    R3   = R2*R;
-    R4   = R3*R;
-    R5   = R4*R;
-    e12 *= R;
-
-    // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
-
-//        rax =   pol1._locX * e12;
-//        ray =   pol1._locY * e12;
-//        raz =   pol1._locZ * e12;
-//        rbx = - pol2._locX * e12;
-//        rby = - pol2._locY * e12;
-//        rbz = - pol2._locZ * e12;
-
-        rax = e12.getX();
-        ray = e12.getY();
-        raz = e12.getZ();
-        rbx = - rax;
-        rby = - ray;
-        rbz = - raz;
-
-//        cxx = pol1._locX * pol2._locX;
-//        cxy = pol1._locX * pol2._locY;
-//        cxz = pol1._locX * pol2._locZ;
-//        cyx = pol1._locY * pol2._locX;
-//        cyy = pol1._locY * pol2._locY;
-//        cyz = pol1._locY * pol2._locZ;
-//        czx = pol1._locZ * pol2._locX;
-//        czy = pol1._locZ * pol2._locY;
-//        czz = pol1._locZ * pol2._locZ;
-
-        cxx = 1;
-        cxy = 0;
-        cxz = 0;
-        cyx = 0;
-        cyy = 1;
-        cyz = 0;
-        czx = 0;
-        czy = 0;
-        czz = 1;
+//    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+//    //          This implies that induced = - alpha * field
+//    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+//    //e12  = pol2.getPos() - pol1.getPos();
+//    R    = 1/abs(e12);
+//    R2   = R*R;
+//    R3   = R2*R;
+//    R4   = R3*R;
+//    R5   = R4*R;
+//    e12 *= R;
+//
+//    // Thole damping init.
+//    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+//
+////        rax =   pol1._locX * e12;
+////        ray =   pol1._locY * e12;
+////        raz =   pol1._locZ * e12;
+////        rbx = - pol2._locX * e12;
+////        rby = - pol2._locY * e12;
+////        rbz = - pol2._locZ * e12;
+//
+//        rax = e12.getX();
+//        ray = e12.getY();
+//        raz = e12.getZ();
+//        rbx = - rax;
+//        rby = - ray;
+//        rbz = - raz;
+//
+////        cxx = pol1._locX * pol2._locX;
+////        cxy = pol1._locX * pol2._locY;
+////        cxz = pol1._locX * pol2._locZ;
+////        cyx = pol1._locY * pol2._locX;
+////        cyy = pol1._locY * pol2._locY;
+////        cyz = pol1._locY * pol2._locZ;
+////        czx = pol1._locZ * pol2._locX;
+////        czy = pol1._locZ * pol2._locY;
+////        czz = pol1._locZ * pol2._locZ;
+//
+//        cxx = 1;
+//        cxy = 0;
+//        cxz = 0;
+//        cyx = 0;
+//        cyy = 1;
+//        cyz = 0;
+//        czx = 0;
+//        czy = 0;
+//        czz = 1;
 
     // Fields generated by rank-1 induced m'poles
 
@@ -593,54 +599,54 @@ inline void XInteractor::FieldIndu(APolarSite &pol1,
 /**
  * Used in self-consistent field calculation (evaluation stage)
  */
-inline void XInteractor::FieldPerm(APolarSite &pol1,
-                                               APolarSite &pol2) {
-
-    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
-    //          This implies that induced = - alpha * field
-    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
-    R    = 1/abs(e12);
-    R2   = R*R;
-    R3   = R2*R;
-    R4   = R3*R;
-    R5   = R4*R;
-    e12 *= R;
-
-//        rax =   pol1._locX * e12;
-//        ray =   pol1._locY * e12;
-//        raz =   pol1._locZ * e12;
-//        rbx = - pol2._locX * e12;
-//        rby = - pol2._locY * e12;
-//        rbz = - pol2._locZ * e12;
-
-        rax = e12.getX();
-        ray = e12.getY();
-        raz = e12.getZ();
-        rbx = - rax;
-        rby = - ray;
-        rbz = - raz;
-
-    if (pol1._rank > 0 || pol2._rank > 0) {
-//        cxx = pol1._locX * pol2._locX;
-//        cxy = pol1._locX * pol2._locY;
-//        cxz = pol1._locX * pol2._locZ;
-//        cyx = pol1._locY * pol2._locX;
-//        cyy = pol1._locY * pol2._locY;
-//        cyz = pol1._locY * pol2._locZ;
-//        czx = pol1._locZ * pol2._locX;
-//        czy = pol1._locZ * pol2._locY;
-//        czz = pol1._locZ * pol2._locZ;
-
-        cxx = 1;
-        cxy = 0;
-        cxz = 0;
-        cyx = 0;
-        cyy = 1;
-        cyz = 0;
-        czx = 0;
-        czy = 0;
-        czz = 1;
-    }
+inline void XInteractor::FieldPerm(APolarSite &pol1, APolarSite &pol2) {
+    
+//    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+//    //          This implies that induced = - alpha * field
+//    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+//    //e12  = pol2.getPos() - pol1.getPos();
+//    R    = 1/abs(e12);
+//    R2   = R*R;
+//    R3   = R2*R;
+//    R4   = R3*R;
+//    R5   = R4*R;
+//    e12 *= R;
+//
+////        rax =   pol1._locX * e12;
+////        ray =   pol1._locY * e12;
+////        raz =   pol1._locZ * e12;
+////        rbx = - pol2._locX * e12;
+////        rby = - pol2._locY * e12;
+////        rbz = - pol2._locZ * e12;
+//
+//        rax = e12.getX();
+//        ray = e12.getY();
+//        raz = e12.getZ();
+//        rbx = - rax;
+//        rby = - ray;
+//        rbz = - raz;
+//
+//    if (pol1._rank > 0 || pol2._rank > 0) {
+////        cxx = pol1._locX * pol2._locX;
+////        cxy = pol1._locX * pol2._locY;
+////        cxz = pol1._locX * pol2._locZ;
+////        cyx = pol1._locY * pol2._locX;
+////        cyy = pol1._locY * pol2._locY;
+////        cyz = pol1._locY * pol2._locZ;
+////        czx = pol1._locZ * pol2._locX;
+////        czy = pol1._locZ * pol2._locY;
+////        czz = pol1._locZ * pol2._locZ;
+//
+//        cxx = 1;
+//        cxy = 0;
+//        cxz = 0;
+//        cyx = 0;
+//        cyy = 1;
+//        cyz = 0;
+//        czx = 0;
+//        czy = 0;
+//        czz = 1;
+//    }
 
     // Fields generated by rank-0 m'poles
         pol1.FPx += T1x_00() * pol2.Q00;
@@ -719,11 +725,13 @@ inline void XInteractor::FieldPerm(APolarSite &pol1,
 /**
  * Used in energy evaluation of converged fields (evaluation stage)
  */
-inline double XInteractor::EnergyIntra(APolarSite &pol1,
-                                                   APolarSite &pol2) {    
+inline double XInteractor::EnergyIntra(APolarSite &pol1, APolarSite &pol2) {    
 
+    assert(false);
+    
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
-    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    //e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    e12  = pol2.getPos() - pol1.getPos();
     R    = 1/abs(e12);
     R2   = R*R;
     R3   = R2*R;
@@ -923,12 +931,13 @@ inline double XInteractor::EnergyIntra(APolarSite &pol1,
 /**
  * Used in energy evaluation of converged fields (evaluation stage)
  */
-inline double XInteractor::EnergyInter(APolarSite &pol1,
-                                                   APolarSite &pol2) {
+inline double XInteractor::EnergyInter(APolarSite &pol1, APolarSite &pol2) {
 
+    assert(false);
     
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
-    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    //e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    e12  = pol2.getPos() - pol1.getPos();
     R    = 1/abs(e12);
     R2   = R*R;
     R3   = R2*R;
@@ -1290,8 +1299,9 @@ inline double XInteractor::EnergyInter(APolarSite &pol1,
 /**
  * Designed for use in ESP calculator (init. stage). Only for error-checking.
  */
-inline double XInteractor::EnergyInterESP(APolarSite &pol1,
-                                                      APolarSite &pol2) {
+inline double XInteractor::EnergyInterESP(APolarSite &pol1, APolarSite &pol2) {
+    
+    assert(false);
     
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
     e12  = pol2.getPos() - pol1.getPos();
@@ -1601,61 +1611,61 @@ inline double XInteractor::EnergyInterESP(APolarSite &pol1,
 }
 
 
-inline double XInteractor::E_f(APolarSite &pol1,
-                                          APolarSite &pol2) {
+inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
 
-    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
-    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
-    R    = 1/abs(e12);
-    R2   = R*R;
-    R3   = R2*R;
-    R4   = R3*R;
-    R5   = R4*R;
-    e12 *= R;
-
-    // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
-
-
-    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
-    //cout << "frag2 " << pol2.getFragment()->getId() << endl;
-    //cout << "seg1  " << pol1.getSegment()->getId() << endl;
-    //cout << "seg2  " << pol2.getSegment()->getId() << endl;
-
-
-//        rax =   pol1._locX * e12;
-//        ray =   pol1._locY * e12;
-//        raz =   pol1._locZ * e12;
-//        rbx = - pol2._locX * e12;
-//        rby = - pol2._locY * e12;
-//        rbz = - pol2._locZ * e12;
-
-        rax = e12.getX();
-        ray = e12.getY();
-        raz = e12.getZ();
-        rbx = - rax;
-        rby = - ray;
-        rbz = - raz;
-
-//        cxx = pol1._locX * pol2._locX;
-//        cxy = pol1._locX * pol2._locY;
-//        cxz = pol1._locX * pol2._locZ;
-//        cyx = pol1._locY * pol2._locX;
-//        cyy = pol1._locY * pol2._locY;
-//        cyz = pol1._locY * pol2._locZ;
-//        czx = pol1._locZ * pol2._locX;
-//        czy = pol1._locZ * pol2._locY;
-//        czz = pol1._locZ * pol2._locZ;
-
-        cxx = 1;
-        cxy = 0;
-        cxz = 0;
-        cyx = 0;
-        cyy = 1;
-        cyz = 0;
-        czx = 0;
-        czy = 0;
-        czz = 1;
+//    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+//    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+//    //e12  = pol2.getPos() - pol1.getPos();
+//    R    = 1/abs(e12);
+//    R2   = R*R;
+//    R3   = R2*R;
+//    R4   = R3*R;
+//    R5   = R4*R;
+//    e12 *= R;
+//
+//    // Thole damping init.
+//    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+//
+//
+//    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
+//    //cout << "frag2 " << pol2.getFragment()->getId() << endl;
+//    //cout << "seg1  " << pol1.getSegment()->getId() << endl;
+//    //cout << "seg2  " << pol2.getSegment()->getId() << endl;
+//
+//
+////        rax =   pol1._locX * e12;
+////        ray =   pol1._locY * e12;
+////        raz =   pol1._locZ * e12;
+////        rbx = - pol2._locX * e12;
+////        rby = - pol2._locY * e12;
+////        rbz = - pol2._locZ * e12;
+//
+//        rax = e12.getX();
+//        ray = e12.getY();
+//        raz = e12.getZ();
+//        rbx = - rax;
+//        rby = - ray;
+//        rbz = - raz;
+//
+////        cxx = pol1._locX * pol2._locX;
+////        cxy = pol1._locX * pol2._locY;
+////        cxz = pol1._locX * pol2._locZ;
+////        cyx = pol1._locY * pol2._locX;
+////        cyy = pol1._locY * pol2._locY;
+////        cyz = pol1._locY * pol2._locZ;
+////        czx = pol1._locZ * pol2._locX;
+////        czy = pol1._locZ * pol2._locY;
+////        czz = pol1._locZ * pol2._locZ;
+//
+//        cxx = 1;
+//        cxy = 0;
+//        cxz = 0;
+//        cyx = 0;
+//        cyy = 1;
+//        cyz = 0;
+//        czx = 0;
+//        czy = 0;
+//        czz = 1;
 
     double epp = 0.0; // <- Interaction perm. <> perm.
     double epu = 0.0; // <- Interaction perm. <> induced
@@ -1993,60 +2003,61 @@ inline double XInteractor::E_f(APolarSite &pol1,
 }
 
 
-inline double XInteractor::E_m(APolarSite &pol1,
-                                          APolarSite &pol2) {
-    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
-    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
-    R    = 1/abs(e12);
-    R2   = R*R;
-    R3   = R2*R;
-    R4   = R3*R;
-    R5   = R4*R;
-    e12 *= R;
-
-    // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
-
-
-    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
-    //cout << "frag2 " << pol2.getFragment()->getId() << endl;
-    //cout << "seg1  " << pol1.getSegment()->getId() << endl;
-    //cout << "seg2  " << pol2.getSegment()->getId() << endl;
-
-
-//        rax =   pol1._locX * e12;
-//        ray =   pol1._locY * e12;
-//        raz =   pol1._locZ * e12;
-//        rbx = - pol2._locX * e12;
-//        rby = - pol2._locY * e12;
-//        rbz = - pol2._locZ * e12;
-
-        rax = e12.getX();
-        ray = e12.getY();
-        raz = e12.getZ();
-        rbx = - rax;
-        rby = - ray;
-        rbz = - raz;
-
-//        cxx = pol1._locX * pol2._locX;
-//        cxy = pol1._locX * pol2._locY;
-//        cxz = pol1._locX * pol2._locZ;
-//        cyx = pol1._locY * pol2._locX;
-//        cyy = pol1._locY * pol2._locY;
-//        cyz = pol1._locY * pol2._locZ;
-//        czx = pol1._locZ * pol2._locX;
-//        czy = pol1._locZ * pol2._locY;
-//        czz = pol1._locZ * pol2._locZ;
-
-        cxx = 1;
-        cxy = 0;
-        cxz = 0;
-        cyx = 0;
-        cyy = 1;
-        cyz = 0;
-        czx = 0;
-        czy = 0;
-        czz = 1;
+inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
+    
+//    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+//    e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+//    //e12  = pol2.getPos() - pol1.getPos();
+//    R    = 1/abs(e12);
+//    R2   = R*R;
+//    R3   = R2*R;
+//    R4   = R3*R;
+//    R5   = R4*R;
+//    e12 *= R;
+//
+//    // Thole damping init.
+//    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+//
+//
+//    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
+//    //cout << "frag2 " << pol2.getFragment()->getId() << endl;
+//    //cout << "seg1  " << pol1.getSegment()->getId() << endl;
+//    //cout << "seg2  " << pol2.getSegment()->getId() << endl;
+//
+//
+////        rax =   pol1._locX * e12;
+////        ray =   pol1._locY * e12;
+////        raz =   pol1._locZ * e12;
+////        rbx = - pol2._locX * e12;
+////        rby = - pol2._locY * e12;
+////        rbz = - pol2._locZ * e12;
+//
+//        rax = e12.getX();
+//        ray = e12.getY();
+//        raz = e12.getZ();
+//        rbx = - rax;
+//        rby = - ray;
+//        rbz = - raz;
+//
+////        cxx = pol1._locX * pol2._locX;
+////        cxy = pol1._locX * pol2._locY;
+////        cxz = pol1._locX * pol2._locZ;
+////        cyx = pol1._locY * pol2._locX;
+////        cyy = pol1._locY * pol2._locY;
+////        cyz = pol1._locY * pol2._locZ;
+////        czx = pol1._locZ * pol2._locX;
+////        czy = pol1._locZ * pol2._locY;
+////        czz = pol1._locZ * pol2._locZ;
+//
+//        cxx = 1;
+//        cxy = 0;
+//        cxz = 0;
+//        cyx = 0;
+//        cyy = 1;
+//        cyz = 0;
+//        czx = 0;
+//        czy = 0;
+//        czz = 1;
 
         
     double epu = 0.0; // <- Interaction perm. <> induced
@@ -2157,6 +2168,107 @@ inline double XInteractor::E_m(APolarSite &pol1,
     EUU += euu;
     
     return epu + euu;
+}
+
+
+inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
+    
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    //          This implies that induced = - alpha * field
+    //e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    e12  = pol2.getPos() - pol1.getPos();    
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX(); rbx = - rax;
+        ray = e12.getY(); rby = - ray;
+        raz = e12.getZ(); rbz = - raz;
+
+    if (pol1._rank > 0 || pol2._rank > 0) {
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;        cxy = 0;        cxz = 0;
+        cyx = 0;        cyy = 1;        cyz = 0;
+        czx = 0;        czy = 0;        czz = 1;
+    }
+}
+
+
+inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
+
+    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
+    //e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
+    e12  = pol2.getPos() - pol1.getPos();
+    R    = 1/abs(e12);
+    R2   = R*R;
+    R3   = R2*R;
+    R4   = R3*R;
+    R5   = R4*R;
+    e12 *= R;
+
+    // Thole damping init.
+    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+
+//        rax =   pol1._locX * e12;
+//        ray =   pol1._locY * e12;
+//        raz =   pol1._locZ * e12;
+//        rbx = - pol2._locX * e12;
+//        rby = - pol2._locY * e12;
+//        rbz = - pol2._locZ * e12;
+
+        rax = e12.getX(); rbx = - rax;
+        ray = e12.getY(); rby = - ray;
+        raz = e12.getZ(); rbz = - raz;
+
+//        cxx = pol1._locX * pol2._locX;
+//        cxy = pol1._locX * pol2._locY;
+//        cxz = pol1._locX * pol2._locZ;
+//        cyx = pol1._locY * pol2._locX;
+//        cyy = pol1._locY * pol2._locY;
+//        cyz = pol1._locY * pol2._locZ;
+//        czx = pol1._locZ * pol2._locX;
+//        czy = pol1._locZ * pol2._locY;
+//        czz = pol1._locZ * pol2._locZ;
+
+        cxx = 1;        cxy = 0;        cxz = 0;
+        cyx = 0;        cyy = 1;        cyz = 0;
+        czx = 0;        czy = 0;        czz = 1;
+
+}
+
+
+inline void XInteractor::RevBias() {
+    
+    e12 *= -1;
+    
+    rax *= -1;
+    ray *= -1;
+    raz *= -1;
+    rbx *= -1;
+    rby *= -1;
+    rbz *= -1;
+    
+    // If C-matrix non-diagonal => transpose
+    
 }
 
 }}

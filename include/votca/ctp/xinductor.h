@@ -49,10 +49,11 @@ public:
             { _actor = XInteractor(NULL); };
     
     XInductor(bool induce,   bool induce_intra_pair, int subthreads,
-              float wSOR,    double epsTol,          int maxIter,
-              bool maverick, Topology *top,          int thread_id)
+              float wSOR_N,  float wSOR_C,           double epsTol,
+              int maxIter,   bool maverick,          Topology *top,
+              int thread_id)
             : _induce(induce),         _induce_intra_pair(induce_intra_pair),
-              _subthreads(subthreads), _wSOR_N(wSOR),       _wSOR_C(wSOR),   
+              _subthreads(subthreads), _wSOR_N(wSOR_N),     _wSOR_C(wSOR_C),   
               _epsTol(epsTol),         _maxIter(maxIter),
               _maverick(maverick),     _top(top), _id(thread_id) 
             { _actor = XInteractor(top); };
@@ -69,7 +70,8 @@ public:
     public:
 
         InduWorker(int id, Topology *top, XInductor *forker)
-                    : _id(id), _top(top), _forker(forker)
+                    : _id(id), _top(top), _forker(forker),
+                      _qmm(NULL), _mm2(NULL)
                   { _actor = XInteractor(top); };
 
        ~InduWorker() {};
@@ -95,16 +97,10 @@ public:
 
         }
 
-        void InitSpheres(vector< Segment* > *vsegs_cut1,
-                         vector< Segment* > *vsegs_cut2,
-                         vector< vector<APolarSite*> > *vvpoles_cut1,
-                         vector< vector<APolarSite*> > *vvpoles_cut2) {
-            _vsegs_cut1 = vsegs_cut1;
-            _vsegs_cut2 = vsegs_cut2;
-            _vvpoles_cut1 = vvpoles_cut1;
-            _vvpoles_cut2 = vvpoles_cut2;
-
-            _vvpoles = vvpoles_cut1;
+        void InitSpheres(vector< PolarSeg* > *qmm, 
+                         vector< PolarSeg* > *mm2) {
+            _qmm = qmm;
+            _mm2 = mm2;
         }
 
         void SetSwitch(int energy_induce) {
@@ -121,7 +117,7 @@ public:
                 _E_f_C_C          = 0.0;
                 _E_m_C            = 0.0;
                 _E_m_non_C        = 0.0;
-            }            
+            }
         }
 
         void Setc1c2(int c1, int c2) {
@@ -146,9 +142,9 @@ public:
             for (int i = _nx1;                     i < _nx2; ++i) {
             for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
 
-                for (pit1 = (*_vvpoles)[i].begin(); pit1 < (*_vvpoles)[i].end(); ++pit1) {
-                for (pit2 = (*_vvpoles)[j].begin(); pit2 < (*_vvpoles)[j].end(); ++pit2) {
-
+                for (pit1 = (*_qmm)[i]->begin(); pit1 < (*_qmm)[i]->end(); ++pit1) {
+                for (pit2 = (*_qmm)[j]->begin(); pit2 < (*_qmm)[j]->end(); ++pit2) {
+                    _actor.BiasIndu(*(*pit1), *(*pit2));
                     _actor.FieldIndu(*(*pit1), *(*pit2));
                 }}
             }}
@@ -176,28 +172,30 @@ public:
             for (int j = (i >= _ny1) ? i+1 : _ny1; j < _ny2; ++j) {
 
                 bool i_inCenter 
-                       = _forker->_job->isInCenter((*_vsegs_cut1)[i]->getId());
+                       = _forker->_job->isInCenter((*_qmm)[i]->getId());
                 bool j_inCenter 
-                       = _forker->_job->isInCenter((*_vsegs_cut1)[j]->getId());
+                       = _forker->_job->isInCenter((*_qmm)[j]->getId());
 
                 // Pair-non-pair interaction
                 if ( i_inCenter ^ j_inCenter ) {
 
-                    for (pit1 = (*_vvpoles_cut1)[i].begin();
-                         pit1 < (*_vvpoles_cut1)[i].end();
+                    for (pit1 = (*_qmm)[i]->begin();
+                         pit1 < (*_qmm)[i]->end();
                          ++pit1) {
-                    for (pit2 = (*_vvpoles_cut1)[j].begin();
-                         pit2 < (*_vvpoles_cut1)[j].end();
+                    for (pit2 = (*_qmm)[j]->begin();
+                         pit2 < (*_qmm)[j]->end();
                          ++pit2) {
 
+                        _actor.BiasIndu(*(*pit1),*(*pit2));
                         e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
                         e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
+                        _actor.RevBias();
                         e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
 
                         _E_Pair_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
 
                         _E_f_C_non_C += e_f_12_21;
-                        if ( this->_forker->_job->isInCenter((*_vsegs_cut1)[i]->getId()) ) {
+                        if ( i_inCenter ) {
                             _E_m_C += e_m_12;
                             _E_m_non_C += e_m_21;
                         }
@@ -211,15 +209,17 @@ public:
                 // Pair-pair interaction
                 else if ( i_inCenter && j_inCenter ) {
 
-                    for (pit1 = (*_vvpoles_cut1)[i].begin();
-                         pit1 < (*_vvpoles_cut1)[i].end();
+                    for (pit1 = (*_qmm)[i]->begin();
+                         pit1 < (*_qmm)[i]->end();
                          ++pit1) {
-                    for (pit2 = (*_vvpoles_cut1)[j].begin();
-                         pit2 < (*_vvpoles_cut1)[j].end();
+                    for (pit2 = (*_qmm)[j]->begin();
+                         pit2 < (*_qmm)[j]->end();
                          ++pit2) {
 
+                        _actor.BiasIndu(*(*pit1),*(*pit2));
                         e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
                         e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
+                        _actor.RevBias();
                         e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
 
                         _E_Pair_Pair    += e_f_12_21 + e_m_12 + e_m_21;
@@ -233,15 +233,17 @@ public:
 
                 // Non-pair-non-pair interaction
                 else {
-                    for (pit1 = (*_vvpoles_cut1)[i].begin();
-                         pit1 < (*_vvpoles_cut1)[i].end();
+                    for (pit1 = (*_qmm)[i]->begin();
+                         pit1 < (*_qmm)[i]->end();
                          ++pit1) {
-                    for (pit2 = (*_vvpoles_cut1)[j].begin();
-                         pit2 < (*_vvpoles_cut1)[j].end();
+                    for (pit2 = (*_qmm)[j]->begin();
+                         pit2 < (*_qmm)[j]->end();
                          ++pit2) {
 
+                        _actor.BiasIndu(*(*pit1),*(*pit2));
                         e_f_12_21        = _actor.E_f(*(*pit1),*(*pit2));
                         e_m_12           = _actor.E_m(*(*pit1),*(*pit2));
+                        _actor.RevBias();
                         e_m_21           = _actor.E_m(*(*pit2),*(*pit1));
 
                         _E_Sph1_Sph1     += e_f_12_21 + e_m_12 + e_m_21;
@@ -262,12 +264,9 @@ public:
           XJob                                 *_job;
           XInductor                            *_forker;
           XInteractor                           _actor;
-          vector< vector<APolarSite*> >        *_vvpoles;
-
-          vector< Segment* >                   *_vsegs_cut1;
-          vector< Segment* >                   *_vsegs_cut2;
-          vector< vector<APolarSite*> >        *_vvpoles_cut1;
-          vector< vector<APolarSite*> >        *_vvpoles_cut2;
+          
+          vector< PolarSeg* >                  *_qmm;
+          vector< PolarSeg* >                  *_mm2;
 
           int _nx1, _nx2;
           int _ny1, _ny2;
@@ -275,12 +274,10 @@ public:
 
           int _switch_energy_induce;
 
-          vector< Segment* >               ::iterator      seg1;
-          vector< Segment* >               ::iterator      seg2;
-          vector< vector<APolarSite*> >    ::iterator      sit1;
-          vector< vector<APolarSite*> >    ::iterator      sit2;
-          vector< APolarSite* >            ::iterator      pit1;
-          vector< APolarSite* >            ::iterator      pit2;
+          vector< PolarSeg* >    ::iterator      sit1;
+          vector< PolarSeg* >    ::iterator      sit2;
+          vector< APolarSite* >  ::iterator      pit1;
+          vector< APolarSite* >  ::iterator      pit2;
 
           double _E_Pair_Pair;
           double _E_Pair_Sph1;
@@ -317,7 +314,7 @@ public:
 
         int T = this->_subthreads;                  // Threads
         int C = T * 2;                              // Chunks
-        int N = _polsPolSphere.size();              // Elements
+        int N = _qmm.size();                        // Elements
         int nr = N % C;                             // Rest size
         int nt = (N-nr) / C;                        // Chunk size
         
@@ -429,28 +426,28 @@ public:
 
         _alloc_chunk.Unlock();
         return todo;
-    }    
+    }
     
     void        WriteShellPdb() {
         
-        vector< vector<APolarSite*> > ::iterator sit;
+        vector< PolarSeg* > ::iterator sit;
         vector< APolarSite* > ::iterator pit;
         
-        string shellFile = "mm12.pdb";
+        string shellFile = "qmmm.pdb";
         FILE *out = fopen(shellFile.c_str(),"w");
         
-        for (sit = _polsPolSphere.begin();
-             sit < _polsPolSphere.end(); ++sit) {
-            for (pit = (*sit).begin();
-                 pit < (*sit).end(); ++pit) {
-                (*pit)->WritePdbLine(out, "MM1");
+        for (sit = _qmm.begin();
+             sit < _qmm.end(); ++sit) {
+            for (pit = (*sit)->begin();
+                 pit < (*sit)->end(); ++pit) {
+                (*pit)->WritePdbLine(out, "QMM");
             }
         }
         
-        for (sit = _polsOutSphere.begin();
-             sit < _polsOutSphere.end(); ++sit) {
-            for (pit = (*sit).begin();
-                 pit < (*sit).end(); ++pit) {
+        for (sit = _mm2.begin();
+             sit < _mm2.end(); ++sit) {
+            for (pit = (*sit)->begin();
+                 pit < (*sit)->end(); ++pit) {
                 (*pit)->WritePdbLine(out, "MM2");
             }
         }
@@ -464,16 +461,10 @@ public:
     // Energy Computation          //
     // +++++++++++++++++++++++++++ //
     
-    void        Evaluate(XJob *job, 
-                         vector< Segment* >            &segsPolSphere,
-                         vector< Segment* >            &segsOutSphere,
-                         vector< vector<APolarSite*> > &polsPolSphere,
-                         vector< vector<APolarSite*> > &polsOutSphere,
-                         vector< vector<APolarSite*> > &polarSites,
-                         vector< vector<APolarSite*> > &polarSites_job);
-    int         Induce(int state, XJob *job);
-    double      Energy(int state, XJob *job);
-    double      EnergyStatic(int state, XJob *job);
+    void        Evaluate(XJob *job);
+    int         Induce(XJob *job);
+    double      Energy(XJob *job);
+    double      EnergyStatic(XJob *job);
     
 private:    
     
@@ -496,17 +487,11 @@ private:
     double                        _epsTol;
     int                           _maxIter;
     
-    // Polar-site containers
-    vector< Segment* >            _segsPolSphere;  // Segments    in c/o 0-1
-    vector< Segment* >            _segsOutSphere;  // Segments    in c/0 1-2
-    vector< vector<APolarSite*> > _polsPolSphere;  // Polar sites in c/o 0-1
-    vector< vector<APolarSite*> > _polsOutSphere;  // Polar sites in c/o 1-2
-    vector< vector<APolarSite*> > _polarSites;     // Copy of top polar sites
-    vector< vector<APolarSite*> > _polarSites_job; // Adapted to job specs 
-    
+    // Polar-site containers    
     vector< PolarSeg* >           _qm0;
     vector< PolarSeg* >           _mm1;
     vector< PolarSeg* >           _mm2;
+    vector< PolarSeg* >           _qmm;
     
     XInteractor                   _actor;
 

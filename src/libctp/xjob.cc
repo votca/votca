@@ -19,9 +19,14 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
 
 
 
-XJob::~XJob() {
-    
+XJob::~XJob() {    
     delete _ptop;    
+}
+
+
+void XJob::setPolarTop(PolarTop *ptop) { 
+    _ptop = ptop;
+    setShellSizes(ptop->QM0().size(), ptop->MM1().size(), ptop->MM2().size());
 }
 
 
@@ -81,7 +86,7 @@ void XJob::WriteInfoLine(FILE *out) {
                 _EM_SPH2);
    fprintf(out, "ITER %3d SPHERE %4d SHELL %4d "
                 "CENTER %4.7f %4.7f %4.7f ",
-                _iter, _sizePol, _sizeShell, 
+                _iter, _qm0_size+_mm1_size, _mm2_size, 
                 _center.getX(), _center.getY(), _center.getZ() );
    fprintf(out, "E_CUT0_CUT0 %+4.7f "
                 "E_CUT0_CUT1 %+4.7f "

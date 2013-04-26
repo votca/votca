@@ -39,20 +39,28 @@ public:
    vector<string>      &getSegMps()                 { return _qmSegMps; }
    Topology            *getTop()                    { return _top; }
    PolarTop            *getPolarTop()               { return _ptop; }
-   int                  getIter()                   { return _iter; }
-   vec                 &Center()                    { return _center; }
-   
-   void                 setIter(int iter)           { _iter = iter; }
-   void                 setSizePol(int size)        { _sizePol = size; }
-   void                 setSizeShell(int size)      { _sizeShell = size; }
-   void                 setPolarTop(PolarTop *ptop) { _ptop = ptop; }
+   int                  getIter()                   { return _iter; }   
+   void                 setPolarTop(PolarTop *ptop);
    
    void                 CalcCenterPos();
+   vec                 &Center()                    { return _center; }
+   
    inline bool          isInCenter(int segId);
    inline bool          isWithinDist(const vec &pt, double dist, Topology *top);
    bool                 StartFromCPT()  { return _start_from_cpt; }
-   void                 WriteInfoLine(FILE *out);   
+   void                 WriteInfoLine(FILE *out);
 
+   
+   void setInduIter(int iter) { 
+       _iter = iter;
+   }
+   
+   void setShellSizes(int qm0_size, int mm1_size, int mm2_size) {
+       _qm0_size = qm0_size;
+       _mm1_size = mm1_size;
+       _mm2_size = mm2_size;
+   }
+   
    void     setEnergy(double E_Tot,   
                       double E_Pair_Pair, 
                       double E_Pair_Sph1, 
@@ -115,9 +123,11 @@ private:
    bool                 _start_from_cpt;
    PolarTop            *_ptop;
 
+   // Inductor facts
+   int                  _qm0_size;
+   int                  _mm1_size;
+   int                  _mm2_size;   
    int                  _iter;
-   int                  _sizePol;
-   int                  _sizeShell;
 
    // Energy splittings:
    double               _E_Tot;
