@@ -52,7 +52,7 @@ public:
     string  Identify() { return "EDFT"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    EvalSite(Topology *top, Segment *seg, int slot);
+    void    EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThread);
 
     void    CleanUp();
 
@@ -76,7 +76,7 @@ void EDFT::Initialize(Topology *top, Property *options) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
-    //cout << endl <<  "... ... Reading the input ";
+    cout << endl <<  "... ... Reading the input ";
     
     /* ---- OPTIONS.XML Structure -----
      *
@@ -109,7 +109,7 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 }
 
 
-void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
+void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThread) {
 
 
     FILE *out;
@@ -168,7 +168,10 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         std::ofstream ofs( (DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
         std::vector< QMAtom* >* _atoms = _orbitals.getAtoms();
-        cout << endl << "Serializing " << _atoms->size() << " atoms" << endl;        
+        
+        int _nat = _atoms->size() ;
+        
+        *opThread << "... ... Serializing " << _nat << " atoms\n";     
         oa << _orbitals;
         ofs.close();
        
@@ -193,6 +196,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot) {
         _gaussian.CleanUp( ID );
         
         //exit(0);
+        
+        cout << *opThread;
         
    }    
    

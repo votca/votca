@@ -32,8 +32,10 @@ namespace votca { namespace ctp {
 class ParallelSiteCalculator : public QMCalculator
 {
 
+        
 public:
 
+    class SiteOperator;
     ParallelSiteCalculator() : _nextSite(NULL) {};
    ~ParallelSiteCalculator() {};
 
@@ -42,7 +44,7 @@ public:
     bool         EvaluateFrame(Topology *top);
     virtual void InitSlotData(Topology *top) { ; }
     virtual void PostProcess(Topology *top) { ; }
-    virtual void EvalSite(Topology *top, Segment *seg, int slot) { ; }
+    virtual void EvalSite(Topology *top, Segment *seg, int slot, SiteOperator* opThread ) { ; }
 
     Segment     *RequestNextSite(int opId, Topology *top);
     void         LockCout() { _coutMutex.Lock(); }
@@ -53,7 +55,7 @@ public:
     // Site workers (i.e. individual threads) //
     // ++++++++++++++++++++++++++++++++++++++ //
 
-    class SiteOperator : public Thread
+    class SiteOperator : public QMThread
     {
     public:
 
@@ -165,7 +167,7 @@ void ParallelSiteCalculator::SiteOperator::Run(void) {
         Segment *seg = _master->RequestNextSite(_id, _top);
 
         if (seg == NULL) { break; }
-        else { this->_master->EvalSite(_top, seg, _id); }
+        else { this->_master->EvalSite(_top, seg, _id, this); }
     }
 }
 
