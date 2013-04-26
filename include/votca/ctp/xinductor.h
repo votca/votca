@@ -45,18 +45,20 @@ public:
             : _induce(0),          _induce_intra_pair(0),
               _wSOR_N(0.5),        _wSOR_C(0.5),
               _epsTol(0.001),      _maxIter(512),
-              _maverick(true),     _top(NULL), _id(-1)
-            { _actor = XInteractor(NULL); };
+              _maverick(true),     _top(NULL), _id(-1),
+              _aDamp(0.390)
+            { _actor = XInteractor(NULL, _aDamp); };
     
     XInductor(bool induce,   bool induce_intra_pair, int subthreads,
               float wSOR_N,  float wSOR_C,           double epsTol,
-              int maxIter,   bool maverick,          Topology *top,
-              int thread_id)
+              int maxIter,   double aDamp,           bool maverick,
+              Topology *top, int thread_id)
             : _induce(induce),         _induce_intra_pair(induce_intra_pair),
               _subthreads(subthreads), _wSOR_N(wSOR_N),     _wSOR_C(wSOR_C),   
               _epsTol(epsTol),         _maxIter(maxIter),
-              _maverick(maverick),     _top(top), _id(thread_id) 
-            { _actor = XInteractor(top); };
+              _maverick(maverick),     _top(top), _id(thread_id),
+              _aDamp(aDamp)
+            { _actor = XInteractor(top, _aDamp); };
             
    ~XInductor() {};
    
@@ -72,7 +74,7 @@ public:
         InduWorker(int id, Topology *top, XInductor *forker)
                     : _id(id), _top(top), _forker(forker),
                       _qmm(NULL), _mm2(NULL)
-                  { _actor = XInteractor(top); };
+                    { _actor = XInteractor(top, forker->_aDamp); };
 
        ~InduWorker() {};
 

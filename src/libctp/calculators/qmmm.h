@@ -31,6 +31,18 @@ private:
 
 void QMMM::Initialize(Topology *top, Property *options) {
     
+    /*
+     
+     <qmmm>
+     *  <mapper>
+     *    <mpsmapxml>
+     *    <segmpstab>
+     *  </mapper>
+     * 
+     
+     
+     
+     */
     ;
 }
 

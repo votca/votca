@@ -872,9 +872,9 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
 
 
 void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
-    // Generates QM MM1 MM2, centered around job->Center()
-    // ... Newly created polar sites are not registered in the topology
-    
+    // Generates QM MM1 MM2, centered around job->Center().
+    // 'NEW' instances of polar sites are not registered in the topology.
+    // Stores the resulting 'polar topology' with the XJob class.    
     
     // TARGET CONTAINERS
     PolarTop *new_ptop = new PolarTop(top);

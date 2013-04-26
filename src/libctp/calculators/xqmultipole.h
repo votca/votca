@@ -2,81 +2,44 @@
 #define XQMULTIPOLE_H
 
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/xmapper.h>
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
 
 
-// TODO JobXQMP requires destructor for privatized polar sites.
 
 namespace votca { namespace ctp {
 
     
-class XQMP : public QMCalculator
+class XQMP : public ParallelXJobCalc
 {
 
 public:
 
     XQMP() {};
    ~XQMP() {};
-
+   
     string          Identify() { return "XQMultipole"; }
     void            Initialize(Topology *, Property *);
-    bool            EvaluateFrame(Topology *top);
 
-    XJob           *RequestNextJob(int id, Topology *top);
-    void            LockCout() { _coutMutex.Lock(); }
-    void            UnlockCout() { _coutMutex.Unlock(); }
+    void            PreProcess(Topology *top);
+    void            EvalJob(Topology *top, XJob *job, XJobOperator *thread);
+    void            PostProcess(Topology *top);
     
-    // ======================================== //
-    // XJOB OPERATOR (THREAD)                   //
-    // ======================================== //
-
-    class JobXQMP : public Thread
-    {
-    public:
-
-        JobXQMP(int id,   Topology *top, XQMP *master)
-              : _id(id), _top(top),     _master(master) {};
-       ~JobXQMP() {};
-
-        int         getId()             { return _id; }
-        void        setId(int id)       { _id = id; }
-        void        InitSlotData(Topology *top) { ; }
-        void        Run(void);
-        void        EvalJob(Topology *top, XJob *job);
-
-    public:
-
-        int         _id;
-        Topology   *_top;
-        XQMP       *_master;
-        XJob       *_job;
-        XInductor   _inductor;
-
-    };
 
 private:
 
+    
     // ======================================== //
     // MULTIPOLE ALLOCATION, XJOBS, ADD. OUTPUT //
     // ======================================== //
 
     // Polar-site mapping
-    string                         _job_file;
     string                         _emp_file;
     string                         _xml_file;
     XMpsMap                        _mps_mapper;
-    
-    // XJobs and thread management
-    vector<XJob*>                  _XJobs;
-    vector<XJob*>::iterator        _nextXJob;
-    Mutex                          _nextJobMutex;
-    Mutex                          _coutMutex;
-    Mutex                          _logMutex;
-    bool                           _maverick;
     
     // Control over induction-state output
     string                          _pdb_check;
@@ -86,15 +49,14 @@ private:
     double                          _chk_dpl_spacing;
     string                          _chk_format;
 
-
+    
     // ======================================== //
     // INDUCTION + ENERGY EVALUATION            //
     // ======================================== //
 
-    // Induction switches, subthreading
+    // Induction, subthreading (-> base class)
     bool                            _induce;
     bool                            _induce_intra_pair;
-    int                             _subthreads;
 
     // Multipole Interaction parameters
     bool                            _useCutoff;
@@ -141,10 +103,10 @@ void XQMP::Initialize(Topology *top, Property *opt) {
     key = "options.xqmultipole.control";
 
         if ( opt->exists(key+".job_file")) {
-            _job_file   = opt->get(key+".job_file").as<string>();
+            _xjobfile = opt->get(key+".job_file").as<string>();
         }
         else {
-            _job_file   = opt->get(key+".job_file").as<string>();
+            throw std::runtime_error("XJob-file not set. Abort.");
         }
 
         if ( opt->exists(key+".emp_file")) {
@@ -258,67 +220,20 @@ void XQMP::Initialize(Topology *top, Property *opt) {
         if ( opt->exists(key+".tolerance") ) {
             _epsTol = opt->get(key+".tolerance").as< double >();
         }
-        else { _epsTol = 0.001; }    
+        else { _epsTol = 0.001; }
 
 }
 
 
-bool XQMP::EvaluateFrame(Topology *top) {
+void XQMP::PreProcess(Topology *top) {
 
-    cout << endl << "... ... Register jobs, initialize MPS-mapper: " << flush;
-
-    // CREATE XJOBS, INITIALIZE MAPPER
-    _XJobs = XJOBS_FROM_TABLE(_job_file, top);
+    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
+    cout << endl << "... ... Initialize MPS-mapper: " << flush;
     _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
+}
 
 
-    // RIGIDIFY TOPOLOGY (=> LOCAL FRAMES)
-    if (!top->isRigid()) {
-        bool isRigid = top->Rigidify();
-        if (!isRigid) { return 0; }
-    }
-    else cout << endl << "... ... System is already rigidified." << flush;
-
-    
-    // CONVERT THREADS INTO SUBTHREADS IF BENEFICIAL
-    if (_XJobs.size() < _nThreads) {
-        _subthreads = (_nThreads - _XJobs.size()) / _XJobs.size() + 1;
-        _nThreads   = _XJobs.size();
-
-        cout << endl << "... ... "
-             << "Converted threads into subthreads to increase efficiency: "
-             << "NT = " << _nThreads << ", NST = " << _subthreads
-             << flush;
-    }
-
-    
-    // CREATE + EXECUTE THREADS (XJOB HANDLERS)
-    vector<JobXQMP*> jobOps;
-    _nextXJob = _XJobs.begin();
-
-    for (int id = 0; id < _nThreads; id++) {
-        JobXQMP *newOp = new JobXQMP(id, top, this);
-        jobOps.push_back(newOp);
-    }
-
-    for (int id = 0; id < _nThreads; id++) {
-        jobOps[id]->InitSlotData(top);
-    }
-
-    for (int id = 0; id < _nThreads; id++) {
-        jobOps[id]->Start();
-    }
-
-    for (int id = 0; id < _nThreads; id++) {
-        jobOps[id]->WaitDone();
-    }
-
-    for (int id = 0; id < _nThreads; id++) {
-        delete jobOps[id];
-    }
-
-    jobOps.clear();
-
+void XQMP::PostProcess(Topology *top) {
     
     // WRITE OUTPUT (PRIMARILY ENERGIE SPLITTINGS)
     FILE *out;
@@ -327,32 +242,7 @@ bool XQMP::EvaluateFrame(Topology *top) {
     for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
         (*jit)->WriteInfoLine(out);
     }
-    fclose(out);
-    
-}
-
-
-XJob *XQMP::RequestNextJob(int id, Topology *top) {
-
-    _nextJobMutex.Lock();
-
-    XJob *workOnThis;
-
-    if (_nextXJob == _XJobs.end()) {
-        workOnThis = NULL;
-    }
-    else {
-        workOnThis = *_nextXJob;
-        _nextXJob++;
-        cout << endl 
-             << "... ... Thread " << id << " evaluating job "
-             << workOnThis->getId() << " " << workOnThis->getTag()
-             << flush;
-    }
-
-    _nextJobMutex.Unlock();
-
-    return workOnThis;
+    fclose(out);    
 }
 
 
@@ -361,24 +251,13 @@ XJob *XQMP::RequestNextJob(int id, Topology *top) {
 // ========================================================================== //
 
 
-void XQMP::JobXQMP::Run(void) {
-
-    while (true) {
-        _job = _master->RequestNextJob(_id, _top);
-
-        if (_job == NULL) { break; }
-        else { this->EvalJob(_top, _job); }
-    }
-}
-
-
-void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
+void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     
     // GENERATE POLAR TOPOLOGY
-    double co1 = _master->_cutoff1;
-    double co2 = _master->_cutoff2;    
+    double co1 = _cutoff1;
+    double co2 = _cutoff2;    
     
-    _master->_mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
+    _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
     
     cout << endl << "... ... ... "
          << job->getPolarTop()->ShellInfoStr()
@@ -388,24 +267,25 @@ void XQMP::JobXQMP::EvalJob(Topology *top, XJob *job) {
     job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
 
     // CALL MAGIC INDUCTOR         
-    _inductor = XInductor(_master->_induce,     _master->_induce_intra_pair,
-                          _master->_subthreads, _master->_wSOR_N,
-                          _master->_wSOR_C,     _master->_epsTol,
-                          _master->_maxIter,    _master->_maverick,
-                          top,                  _id);
+    XInductor inductor = XInductor(_induce,     _induce_intra_pair,
+                                   _subthreads, _wSOR_N,
+                                   _wSOR_C,     _epsTol,
+                                   _maxIter,    _aDamp,
+                                   _maverick,    top,
+                                   thread->getId());
     
-    _inductor.Evaluate(job);
+    inductor.Evaluate(job);
     
 
     // SAVE INDUCTION STATE
-    if (_master->_write_chk) {
+    if (_write_chk) {
         
-        string format    = _master->_chk_format;
+        string format    = _chk_format;
         string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
-        string outstr    = job->getTag()+_master->_write_chk_suffix+dotsuffix;
+        string outstr    = job->getTag()+_write_chk_suffix+dotsuffix;
         
-        bool split       = _master->_chk_split_dpl;
-        double space     = _master->_chk_dpl_spacing;
+        bool split       = _chk_split_dpl;
+        double space     = _chk_dpl_spacing;
         
         job->getPolarTop()->PrintInduState(outstr, format, split, space);
         

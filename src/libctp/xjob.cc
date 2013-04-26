@@ -168,10 +168,6 @@ vector<XJob*> XJOBS_FROM_TABLE(const string &job_file, Topology *top) {
     }
     else { cout << endl << "ERROR: No such file " << job_file << endl;
            throw runtime_error("Please supply input file.");           }
-
-    cout << endl 
-         << "... ... ... Registered " << xjobs.size() << " jobs. "
-         << flush;
     
     return xjobs;
 }
