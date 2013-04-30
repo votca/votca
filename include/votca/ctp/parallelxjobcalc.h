@@ -3,7 +3,7 @@
 
 
 #include <votca/ctp/qmcalculator.h>
-#include <votca/tools/thread.h>
+#include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
 #include <votca/ctp/xjob.h>
 
@@ -40,7 +40,7 @@ public:
     // ======================================== //
     
 
-    class XJobOperator : public Thread
+    class XJobOperator : public QMThread
     {
     public:
 

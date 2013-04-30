@@ -50,6 +50,7 @@ public:
     * orbitals of monomers 
     */
    bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   void WriteInputHeader(FILE *out, string tag);
    
    bool WriteShellScript();
    bool Run();
@@ -65,8 +66,12 @@ public:
    void setLogFile( string log_file ) { _log_file_name = log_file; }
    void setOrbitalsFile( string orb_file ) { _orb_file_name = orb_file; }
    void setLog( Logger* pLog ) { _pLog = pLog; }
+   void setCharge(int charge) { _charge = charge; }
+   void setSpin(int spin) { _spin = spin; }
+   void setThreads(int threads) { _threads = threads; }
    
    string getScratchDir( ) { return _scratch_dir; }
+   string getPackageName() { return "gaussian"; }
    bool GuessRequested( ) { return _write_guess; }
    
 //protected:

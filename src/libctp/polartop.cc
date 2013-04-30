@@ -96,6 +96,13 @@ void PolarTop::PrintInduState(string outfile, string format,
     
     FILE *out;
     out = fopen(outfile.c_str(), "w");
+    this->PrintInduState(out, format, split_dpl, dpl_space);
+    fclose(out);    
+}
+
+
+void PolarTop::PrintInduState(FILE *out, string format,
+                              bool split_dpl, double dpl_space) {
 
     vector< PolarSeg* > ::iterator sit;
     vector< APolarSite* > ::iterator pit;    
@@ -143,8 +150,6 @@ void PolarTop::PrintInduState(string outfile, string format,
             (*pit)->WriteChkLine(out, pb_shift, false, format, dpl_space);
         }
     }
-
-    fclose(out);    
     
 }
 

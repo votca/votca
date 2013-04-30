@@ -87,6 +87,22 @@ Gaussian::Gaussian( tools::Property *opt ) {
 Gaussian::~Gaussian() {     
 }  
 
+// This class should not be here ...
+void Gaussian::WriteInputHeader(FILE *out, string tag) {
+
+    if (_chk_file_name.size())
+    fprintf(out, "%%chk = %s\n", _chk_file_name.c_str());
+    if (_memory.size())
+    fprintf(out, "%%mem = %s\n", _memory.c_str());
+    fprintf(out, "%%nprocshared = %1d\n", _threads);
+    fprintf(out, "%s\n", _options.c_str());
+    fprintf(out, "\n");
+    fprintf(out, "%s\n", tag.c_str());
+    fprintf(out, "\n");
+    fprintf(out, "%2d %2d\n", _charge, _spin);
+    return;
+}
+
 /**
  * Prepares the com file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied

@@ -28,6 +28,7 @@ public:
    void   PrintInfo(ostream &out);
    void   PrintPDB(string outfile);
    void   PrintInduState(string out, string format, bool split, double space);
+   void   PrintInduState(FILE *out,  string format, bool split, double space);
    
     
     
