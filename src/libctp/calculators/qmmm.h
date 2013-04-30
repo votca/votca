@@ -1,60 +1,272 @@
 #ifndef __QMMMCALC__H
 #define	__QMMMCALC__H
 
+#include <votca/ctp/parallelxjobcalc.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/xinductor.h>
+#include <votca/ctp/xinteractor.h>
 
 
 namespace votca { namespace ctp {
     
     
-class QMMM : public QMCalculator
+   
+class QMMM : public ParallelXJobCalc
 {
 
 public:
-    
+
     QMMM() {};
    ~QMMM() {};
    
-    string  Identify() { return "QMMM"; }
-    void    Initialize(Topology *top, Property *options);
-    bool    EvaluateFrame(Topology *top);
-   
-   
+    string          Identify() { return "QMMM"; }
+    void            Initialize(Topology *, Property *);
+
+    void            PreProcess(Topology *top);
+    void            EvalJob(Topology *top, XJob *job, XJobOperator *thread);
+    void            PostProcess(Topology *top);
+    
 
 private:
+    
+    Property                       *_options;
+    
+    // ======================================== //
+    // MULTIPOLE ALLOCATION, XJOBS, ADD. OUTPUT //
+    // ======================================== //
 
+    // Polar-site mapping
+    string                         _emp_file;
+    string                         _xml_file;
+    XMpsMap                        _mps_mapper;
+    
+    // Control over induction-state output
+    string                          _pdb_check;
+    bool                            _write_chk;
+    string                          _write_chk_suffix;
+    bool                            _chk_split_dpl;
+    double                          _chk_dpl_spacing;
+    string                          _chk_format;
+
+    
+    // ======================================== //
+    // INDUCTION + ENERGY EVALUATION            //
+    // ======================================== //
+
+    // Induction, subthreading (-> base class)
+    bool                            _induce;
+    bool                            _induce_intra_pair;
+
+    // Multipole Interaction parameters
+    string                          _method;
+    bool                            _useCutoff;
+    double                          _cutoff1;
+    double                          _cutoff2;
+    
+    // QM Package options
+    string                          _package;
+    Property                        _qmpack_opt;
+
+    // XJob logbook (file output)
+    string                          _outFile;
+    bool                            _energies2File;
 
 
 };
 
+// ========================================================================== //
+//                        XMULTIPOLE MEMBER FUNCTIONS                         //
+// ========================================================================== //
 
 
+void QMMM::Initialize(Topology *top, Property *opt) {
 
-void QMMM::Initialize(Topology *top, Property *options) {
+    _options = opt;
     
-    /*
-     
-     <qmmm>
-     *  <mapper>
-     *    <mpsmapxml>
-     *    <segmpstab>
-     *  </mapper>
-     * 
-     
-     
-     
-     */
-    ;
+    cout << endl
+         << "... ... Initialized with " << _nThreads << " threads. "
+         << flush;
+
+    _maverick = (_nThreads == 1) ? true : false;
+    
+
+    string key = "options.qmmm.multipoles";
+
+        if ( opt->exists(key) ) {
+            _xml_file = opt->get(key).as< string >();
+        }
+
+    key = "options.qmmm.control";
+
+        if ( opt->exists(key+".job_file")) {
+            _xjobfile = opt->get(key+".job_file").as<string>();
+        }
+        else {
+            throw std::runtime_error("XJob-file not set. Abort.");
+        }
+
+        if ( opt->exists(key+".emp_file")) {
+            _emp_file   = opt->get(key+".emp_file").as<string>();
+        }
+        else {
+            _emp_file   = opt->get(key+".emp_file").as<string>();
+        }
+
+        if ( opt->exists(key+".output") ) {
+            _outFile = opt->get(key+".output").as< string >();
+            _energies2File = true;
+        }
+        else { _energies2File = false; }
+
+        if (opt->exists(key+".pdb_check")) {
+            _pdb_check = opt->get(key+".pdb_check").as<string>();
+        }
+        else { _pdb_check = ""; }
+
+        if (opt->exists(key+".write_chk")) {
+            _write_chk_suffix = opt->get(key+".write_chk").as<string>();
+            _write_chk = true;
+        }
+        else { _write_chk = false; }
+
+        if (opt->exists(key+".format_chk")) {
+            _chk_format = opt->get(key+".format_chk").as<string>();
+        }
+        else { _chk_format = "xyz"; }
+
+        if (opt->exists(key+".split_dpl")) {
+            _chk_split_dpl = (opt->get(key+".split_dpl").as<int>() == 1) ?
+                         true : false;
+        }
+        else { _chk_split_dpl = true; }
+
+        if (opt->exists(key+".dpl_spacing")) {
+            _chk_dpl_spacing = opt->get(key+".dpl_spacing").as<double>();
+        }
+        else {
+            _chk_dpl_spacing = 1.0e-6;
+        }
+
+
+    key = "options.qmmm.coulombmethod";
+    
+        if ( opt->exists(key+".method") ) {
+            _method = opt->get(key+".method").as< string >();
+            if (_method != "cut-off" && _method != "cutoff") {
+                throw runtime_error("Method " + _method + " not recognised.");
+            }
+        }
+        else {
+            _method = "cut-off";
+        }
+        if ( opt->exists(key+".cutoff1") ) {
+            _cutoff1 = opt->get(key+".cutoff1").as< double >();
+            if (_cutoff1) { _useCutoff = true; }
+        }
+        if ( opt->exists(key+".cutoff2") ) {
+            _cutoff2 = opt->get(key+".cutoff2").as< double >();
+        }
+        else {
+            _cutoff2 = _cutoff1;
+        }
+        if ( opt->exists(key+".subthreads") ) {
+            _subthreads = opt->get(key+".subthreads").as< double >();
+        }
+        else {
+            _subthreads = 1;
+        }
+    
+    key = "options.qmmm.qmpackage";
+    
+        if (opt->exists(key+".package")) {
+            string package_xml = opt->get(key+".package").as< string >();
+            load_property_from_xml(_qmpack_opt, package_xml.c_str());
+            _package = _qmpack_opt.get("package.name").as< string >();
+        }
+        else {
+            throw runtime_error("No QM package specified.");
+        }
 }
 
 
-bool QMMM::EvaluateFrame(Topology *top) {
-    
-    return true;
+void QMMM::PreProcess(Topology *top) {
+
+    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
+    cout << endl << "... ... Initialize MPS-mapper: " << flush;
+    _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
 }
 
+
+void QMMM::PostProcess(Topology *top) {
+    
+    // WRITE OUTPUT (PRIMARILY ENERGIE SPLITTINGS)
+    FILE *out;
+    out = fopen(this->_outFile.c_str(), "w");
+    vector<XJob*> :: iterator jit;
+    for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
+        (*jit)->WriteInfoLine(out);
+    }
+    fclose(out);    
+}
+
+
+// ========================================================================== //
+//                           JOBXQMP MEMBER FUNCTIONS                         //
+// ========================================================================== //
+
+
+void QMMM::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
+    
+    // GENERATE POLAR TOPOLOGY
+    double co1 = _cutoff1;
+    double co2 = _cutoff2;    
+    
+    _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
+    
+    cout << endl << "... ... ... "
+         << job->getPolarTop()->ShellInfoStr()
+         << flush;
+    
+    if (tools::globals::verbose)
+    job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
+
+    // INITIALIZED CLASSICAL INDUCTOR         
+    XInductor inductor = XInductor(top, _options, "options.qmmm",
+                                   _subthreads, _maverick);
+    
+    
+    // INITIALIZE QM PACKAGE
     
     
     
+    
+    
+    
+    inductor.Evaluate(job);
+    
+
+    // SAVE INDUCTION STATE
+    if (_write_chk) {
+        
+        string format    = _chk_format;
+        string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
+        string outstr    = job->getTag()+_write_chk_suffix+dotsuffix;
+        
+        bool split       = _chk_split_dpl;
+        double space     = _chk_dpl_spacing;
+        
+        job->getPolarTop()->PrintInduState(outstr, format, split, space);
+        
+    }
+
+    // CLEAN POLAR TOPOLOGY    
+    job->getPolarTop()->~PolarTop();
+    
+}
+
+
+
     
 }}
 

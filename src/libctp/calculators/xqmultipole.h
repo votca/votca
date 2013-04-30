@@ -60,19 +60,10 @@ private:
     bool                            _induce_intra_pair;
 
     // Multipole Interaction parameters
+    string                          _method;
     bool                            _useCutoff;
     double                          _cutoff1;
     double                          _cutoff2;
-    bool                            _useExp;
-    double                          _aDamp;
-    bool                            _useScaling;
-    vector<double>                  _scale1;
-
-    // Convergence parameters for induction
-    float                           _wSOR_N;
-    float                           _wSOR_C;
-    double                          _epsTol;
-    int                             _maxIter;
 
     // XJob logbook (file output)
     string                          _outFile;
@@ -155,8 +146,17 @@ void XQMP::Initialize(Topology *top, Property *opt) {
         }
 
 
-    key = "options.xqmultipole.tholemodel";
-
+    key = "options.xqmultipole.coulombmethod";
+    
+        if ( opt->exists(key+".method") ) {
+            _method = opt->get(key+".method").as< string >();
+            if (_method != "cut-off" && _method != "cutoff") {
+                throw runtime_error("Method " + _method + " not recognised.");
+            }
+        }
+        else {
+            _method = "cut-off";
+        }
         if ( opt->exists(key+".cutoff1") ) {
             _cutoff1 = opt->get(key+".cutoff1").as< double >();
             if (_cutoff1) { _useCutoff = true; }
