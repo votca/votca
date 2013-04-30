@@ -64,7 +64,7 @@ private:
     string _outMonDir;
     
     string _package;
-    Property _package_options;    
+    Property _package_options;   
 
 };
 
@@ -76,7 +76,6 @@ void EDFT::Initialize(Topology *top, Property *options) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
-    cout << endl <<  "... ... Reading the input ";
     
     /* ---- OPTIONS.XML Structure -----
      *
@@ -97,7 +96,7 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 
     string key = "options.edft";
     string _package_xml = opt->get(key+".package").as<string> ();
-    cout << endl << "... ... Parsing " << _package_xml << endl ;
+    //cout << endl << "... ... Parsing " << _package_xml << endl ;
 
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     
@@ -111,7 +110,13 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 
 void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThread) {
 
-
+    Logger* pLog = opThread->getLogger();
+    pLog->setReportLevel(logDEBUG);
+    pLog->setMulithreading( _maverick );
+    
+    LOG(logTime,*pLog) << endl;
+    LOG(logINFO,*pLog) << "Evaluating site " << seg->getId() << endl; 
+    
     FILE *out;
     Orbitals _orbitals;
     vector < Segment* > segments;
@@ -140,7 +145,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThrea
    if ( _package == "gaussian" ) { 
         
         Gaussian _gaussian( &_package_options );
-               
+        _gaussian.setLog( pLog );       
         _gaussian.setRunDir( DIR );
         _gaussian.setInputFile( COM_FILE );
 
@@ -171,7 +176,8 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThrea
         
         int _nat = _atoms->size() ;
         
-        *opThread << "... ... Serializing " << _nat << " atoms\n";     
+        LOG(logINFO,*pLog) << "Serializing " << _nat << " atoms" << endl; 
+        
         oa << _orbitals;
         ofs.close();
        
@@ -195,9 +201,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThrea
  
         _gaussian.CleanUp( ID );
         
-        //exit(0);
-        
-        cout << *opThread;
+        cout << *pLog;
         
    }    
    

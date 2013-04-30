@@ -20,6 +20,7 @@
 
 #include "idft.h"
 #include <votca/ctp/eigenvalues.h>
+#include <votca/ctp/logger.h>
 #include <iostream>
 
 namespace votca { namespace ctp {
@@ -191,7 +192,7 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     std::cout << _monomersAB << std::endl;
     */
     
-    if ( tools::globals::verbose ) *opThread << "\n... ... Calculating electronic couplings \n" ;
+    ///if ( tools::globals::verbose ) *opThread << "\n... ... Calculating electronic couplings \n" ;
     
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -282,7 +283,7 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     SQRTOverlap( _S_AxB , _S_AxB_2 );        
     _S_AxB.clear(); 
      
-    if ( tools::globals::verbose ) *opThread << "... ... Calculating the effective overlap\n" ;
+    ///if ( tools::globals::verbose ) *opThread << "... ... Calculating the effective overlap\n" ;
     //stringstream test ;
     //test << "BLA" << "BA";
     
@@ -297,7 +298,7 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
     
     //cout << _S_AxB << endl;
     //_has_integrals = true;
-    if ( tools::globals::verbose ) *opThread << "... ... Done calculating electronic couplings\n";
+    ///if ( tools::globals::verbose ) *opThread << "... ... Done calculating electronic couplings\n";
        
     //cout << JAB_dimer.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
     //cout << JAB_dimer.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
@@ -334,6 +335,12 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, 
  
 void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
 
+    Logger* pLog = opThread->getLogger();
+    pLog->setReportLevel(logDEBUG);
+    
+    LOG(logTime,*pLog) << endl;
+    LOG(logINFO,*pLog) << "Evaluating pair " << qmpair->getId() << endl; 
+    
     FILE *out;
     vector < Segment* > segments;
     segments.push_back( qmpair->Seg1() );
@@ -393,7 +400,8 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
    if ( _package == "gaussian" ) { 
         
         Gaussian _gaussian( &_package_options );
-               
+        
+        _gaussian.setLog( pLog );       
         _gaussian.setRunDir( DIR );
         _gaussian.setInputFile( COM_FILE );
 
@@ -452,7 +460,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
     int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
     
-    cout << "... ... Coupling " << ID_A << " " << ID_B << " " 
+    LOG(logTime,*pLog) << "Coupling h/e" << ID_A << ":" << ID_B << " " 
          << getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << " "
          << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << "\n"; 
     
@@ -460,12 +468,12 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     qmpair->setJeff2( getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ), -1 );
     
     // Output the thread run summary and clean the thread
-    cout << (*opThread);
+    cout << *pLog;
 }
 
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, PairOperator *opThread ) {
     
-    if ( tools::globals::verbose ) *opThread  << "... ... Constructing the guess for the dimer orbitals\n" ;   
+    ///if ( tools::globals::verbose ) *opThread  << "... ... Constructing the guess for the dimer orbitals\n" ;   
    
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
