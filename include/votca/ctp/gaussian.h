@@ -24,6 +24,7 @@
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/apolarsite.h>
+#include <votca/ctp/logger.h>
 
 #include <string> 
 
@@ -63,6 +64,7 @@ public:
    void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
    void setLogFile( string log_file ) { _log_file_name = log_file; }
    void setOrbitalsFile( string orb_file ) { _orb_file_name = orb_file; }
+   void setLog( Logger* pLog ) { _pLog = pLog; }
    
    string getScratchDir( ) { return _scratch_dir; }
    bool GuessRequested( ) { return _write_guess; }
@@ -105,6 +107,8 @@ private:
     int BasisSetSize( string _line ); 
     int EnergiesFromLog( string _line, ifstream inputfile ); 
     string FortranFormat( const double &number );
+    
+    Logger*                             _pLog;
     
 };
 

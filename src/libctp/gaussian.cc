@@ -210,7 +210,8 @@ bool Gaussian::WriteShellScript() {
 bool Gaussian::Run()
 {
 
-    clog << endl << "... ... Running GAUSSIAN" ;
+    LOG(logINFO,*_pLog) << "Running GAUSSIAN job" << endl;
+    
     if (system(NULL)) {
         // if scratch is provided, run the shell script; 
         // otherwise run gaussian directly and rely on global variables 
@@ -229,7 +230,8 @@ bool Gaussian::Run()
         exit (EXIT_FAILURE);
     }
     
-    clog << " ... done" << endl ;
+    LOG(logINFO,*_pLog) << "Finished GAUSSIAN job" << endl;
+
 
 }
 
@@ -280,7 +282,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
         cerr << endl << "File " << _orb_file_name << " with molecular orbitals is not found " << endl;
         return 1;
     } else {
-        if ( tools::globals::verbose ) clog << endl << "... ... Reading molecular orbitals from " << _orb_file_name << endl;
+        LOG(logINFO, *_pLog) << "Reading MOs from " << _orb_file_name << endl;
     }
 
     // number of coefficients per line is  in the first line of the file (5D15.8)
@@ -330,7 +332,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     }
 
     // some sanity checks
-    if ( tools::globals::verbose ) clog << "... ... Energy levels: " << _levels << endl;
+    LOG( logINFO, *_pLog ) << "Energy levels: " << _levels << endl;
 
     std::map< int, vector<double> >::iterator iter = _coefficients.begin();
     _basis_size = iter->second.size();
@@ -341,7 +343,8 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
 
         }
     }
-    if ( tools::globals::verbose ) clog << "... ... Basis set size: " << _basis_size << endl;
+    
+    LOG( logINFO, *_pLog ) << "Basis set size: " << _basis_size << endl;
 
     // copying information to the orbitals object
     _orbitals->_basis_set_size = _basis_size;
@@ -349,8 +352,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     _orbitals->_has_mo_coefficients = true;
     _orbitals->_has_mo_energies = true;
     
-   // copying energies to a matrix
-   
+   // copying energies to a matrix  
    _orbitals->_mo_energies.resize( _levels );
    _level = 1;
    for(size_t i=0; i < _orbitals->_mo_energies.size(); i++) {
@@ -375,7 +377,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
    _energies.clear();
    
      
-   if ( tools::globals::verbose ) clog << "... ... Done reading orbital files from " << _orb_file_name << endl;
+   LOG(logINFO, *_pLog) << "Finished reading MOs from " << _orb_file_name << endl;
 
    return 0;
 }
@@ -404,7 +406,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
     
-    if ( tools::globals::verbose ) clog << endl << "... ... Parsing " << _log_file_name << endl;
+    LOG(logINFO,*_pLog) << "Parsing " << _log_file_name << endl;
 
     ifstream _input_file(_log_file_name.c_str());
     if (_input_file.fail()) {
@@ -428,7 +430,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _number_of_electrons =  boost::lexical_cast<int>(results.front()) ;
             _orbitals->_number_of_electrons = _number_of_electrons ;
             _orbitals->_has_number_of_electrons = true;
-            if ( tools::globals::verbose ) clog << "... ... Alpha electrons: " << _number_of_electrons << endl ;
+            LOG(logINFO,*_pLog) << "Alpha electrons: " << _number_of_electrons << endl ;
         }
 
         /*
@@ -442,7 +444,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _basis_set_size = boost::lexical_cast<int>(results.front());
             _orbitals->_basis_set_size = _basis_set_size ;
             _orbitals->_has_basis_set_size = true;
-            if ( tools::globals::verbose ) clog << "... ... Basis functions: " << _basis_set_size << endl;
+            LOG(logINFO,*_pLog) << "Basis functions: " << _basis_set_size << endl;
         }
 
         /*
@@ -489,9 +491,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                     _orbitals->_unoccupied_levels = _unoccupied_levels;
                     _orbitals->_has_occupied_levels = true;
                     _orbitals->_has_unoccupied_levels = true;
-                    if ( tools::globals::verbose ) 
-                        clog << "... ... Occupied levels: " << _occupied_levels << endl
-                        << "... ... Unoccupied levels: " << _unoccupied_levels << endl;
+                    LOG(logINFO,*_pLog) << "Occupied levels: " << _occupied_levels << endl;
+                    LOG(logINFO,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << endl;
                 }
             } // end of the while loop              
         } // end of the eigenvalue parsing
@@ -565,7 +566,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 // clear the index for the next block
                 _j_indeces.clear();        
             } // end of the blocks
-            if ( tools::globals::verbose ) clog << "... ... Read the overlap matrix" << endl;
+            LOG(logINFO,*_pLog) << "Read the overlap matrix" << endl;
         } // end of the if "Overlap" found   
 
         
@@ -673,7 +674,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
             boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
             _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
-            clog << "... ... QM energy " << _orbitals->_qm_energy <<  endl;
+            
+            LOG(logINFO, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  endl;
                     
             _orbitals->_has_atoms = true;
             _orbitals->_has_qm_energy = true;
@@ -695,7 +697,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _orbitals->_has_self_energy = true;
             _orbitals->_self_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
             
-            clog << "... ... Self energy " << _orbitals->_self_energy <<  endl;
+            LOG(logINFO, *_pLog) << "Self energy " << _orbitals->_self_energy <<  endl;
 
         }
         
@@ -710,7 +712,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
            ) break;
         
     } // end of reading the file line-by-line
-    if ( tools::globals::verbose ) clog << "... ... Done parsing " << _log_file_name << endl;
+    LOG(logINFO,*_pLog) << "Done parsing " << _log_file_name << endl;
 
 }
 

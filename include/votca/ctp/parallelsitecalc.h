@@ -145,8 +145,7 @@ Segment *ParallelSiteCalculator::RequestNextSite(int opId, Topology *top) {
     else {
         workOnThis = *_nextSite;
         _nextSite++;
-        cout << endl << "... ... " << "Evaluating site "
-             << workOnThis->getId() << flush;
+        //cout << endl << "... ... " << "Evaluating site " << workOnThis->getId() << endl;
     }
 
     _nextSiteMutex.Unlock();
