@@ -34,7 +34,7 @@ std::string timestamp();
  * Macros to use the Logger (level,logger) << message
  */
 #define LOG(level, log) \
-if ( level > (log).getReportLevel() ) ; \
+if ( &log != NULL && level > (log).getReportLevel() ) ; \
 else (log)(level)
 
 /*

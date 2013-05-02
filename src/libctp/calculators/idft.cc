@@ -337,9 +337,14 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
 
     Logger* pLog = opThread->getLogger();
     pLog->setReportLevel(logDEBUG);
+
+    string ID   = boost::lexical_cast<string>( qmpair->getId() );
+    string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
+    string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
     
     LOG(logTime,*pLog) << endl;
-    LOG(logINFO,*pLog) << "Evaluating pair " << qmpair->getId() << endl; 
+    LOG(logINFO,*pLog) << "Evaluating pair " << ID << " out of " << 
+          (top->NBList()).size() << " ["  << ID_A << ":" << ID_B << "]" << endl; 
     
     FILE *out;
     vector < Segment* > segments;
@@ -355,10 +360,6 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
     mkdir(_outParent.c_str(), 0755);
 
-    string ID   = boost::lexical_cast<string>( qmpair->getId() );
-    // get the overlap integral 
-    string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
-    string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
     
     string fileName = "dimer" ;
     string DIR  = _outParent + "/" + "pair_"  + ID_A + "_" + ID_B;
@@ -460,9 +461,9 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
     int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
     
-    LOG(logTime,*pLog) << "Coupling h/e" << ID_A << ":" << ID_B << " " 
+    LOG(logINFO,*pLog) << "Coupling h/e " << ID_A << ":" << ID_B << " " 
          << getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << " "
-         << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << "\n"; 
+         << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << endl; 
     
     qmpair->setJeff2( getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ),  1 );
     qmpair->setJeff2( getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ), -1 );
