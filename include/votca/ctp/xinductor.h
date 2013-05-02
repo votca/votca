@@ -469,6 +469,8 @@ public:
     double      Energy(XJob *job);
     double      EnergyStatic(XJob *job);
     
+    bool        hasConverged() { return (_induce) ? _isConverged : true; }
+    
 private:    
     
     Topology                     *_top;
@@ -479,6 +481,7 @@ private:
     bool                          _induce_intra_pair;
     bool                          _maverick;
     int                           _subthreads;
+    bool                          _isConverged;
     
     // Interaction parameters
     double                        _aDamp;

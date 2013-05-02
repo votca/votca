@@ -111,7 +111,8 @@ int XInductor::Induce(XJob *job) {
         }
     }
     
-    cout << endl << "... ... ... Using WSOR = " << wSOR << flush;
+    if (this->_maverick)
+    cout << endl << "... ... ... Inductor: Using WSOR = " << wSOR << flush;
 
     // Intra-pair induction ...
     bool   induce_intra_pair = this->_induce_intra_pair;
@@ -247,14 +248,12 @@ int XInductor::Induce(XJob *job) {
 //             << " | SOR " << wSOR << flush;
 
         // Break if converged
-        if      (converged) { break; }
+        if      (converged) { _isConverged = true; break; }
         else if (iter == maxI - 1) {
-            //this->_master->LockCout();
             cout << endl << "... ... ... WARNING Induced multipoles for job "
                  << job->getId() << " did not converge to precision: "
                  << " AVG dU:U " << avgdU << flush;
-            //this->_master->UnlockCout();
-            break;
+            _isConverged = false; break;
         }
     }
 

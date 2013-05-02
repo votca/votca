@@ -84,7 +84,7 @@ Gaussian::Gaussian( tools::Property *opt ) {
     
 };   
     
-Gaussian::~Gaussian() {     
+Gaussian::~Gaussian() {
 }  
 
 // This class should not be here ...
