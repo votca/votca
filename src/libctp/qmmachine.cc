@@ -1,11 +1,14 @@
 #include <votca/ctp/qmmachine.h>
 #include <sys/stat.h>
+#include <boost/format.hpp>
 
+
+using boost::format;
 
 namespace votca { namespace ctp {
 
-
-QMMachine::QMMachine(XJob *job, XInductor *xind, Gaussian *qmpack,
+template<class QMPackage>
+QMMachine<QMPackage>::QMMachine(XJob *job, XInductor *xind, QMPackage *qmpack,
                      Property *opt, string sfx, int nst, bool mav) 
                    : _job(job), _xind(xind), _qmpack(qmpack), _subthreads(nst),
                      _isConverged(false) {
@@ -41,14 +44,11 @@ QMMachine::QMMachine(XJob *job, XInductor *xind, Gaussian *qmpack,
     else {
         _maxIter = 32;
     }
-    
-    if (mav)
-        printf("\n... ... ... dR %1.4f dQ %1.4f QM %1.4f MM %1.4f IT %d",
-                _crit_dR, _crit_dQ, _crit_dE_QM, _crit_dE_MM, _maxIter);
 }
 
 
-QMMachine::~QMMachine() {
+template<class QMPackage>
+QMMachine<QMPackage>::~QMMachine() {
     
     vector<QMMIter*> ::iterator qit;
     for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
@@ -58,9 +58,12 @@ QMMachine::~QMMachine() {
 }
 
 
-void QMMachine::Evaluate(XJob *job) {
+template<class QMPackage>
+void QMMachine<QMPackage>::Evaluate(XJob *job) {
     
-    cout << endl << "... ... ... QM-MM Machine started." << flush;
+    LOG(logINFO,*_log)
+       << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
+       % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
     
     // PREPARE JOB DIRECTORY
     string jobFolder = "xjob_" + boost::lexical_cast<string>(_job->getId())
@@ -74,12 +77,12 @@ void QMMachine::Evaluate(XJob *job) {
     }
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
-    cout << endl << "... ... ... Q = " << chrg << ", 2S+1 = " << spin << flush;
+    LOG(logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
     
     // SET ITERATION-TIME CONSTANTS
     _qmpack->setCharge(chrg);
     _qmpack->setSpin(spin);
-    _qmpack->setThreads(_subthreads);    
+    _qmpack->setThreads(_subthreads);
     
     int iterCnt = 0;
     int iterMax = _maxIter;
@@ -97,7 +100,8 @@ void QMMachine::Evaluate(XJob *job) {
 }
 
 
-bool QMMachine::Iterate(string jobFolder, int iterCnt) {
+template<class QMPackage>
+bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     QMMIter *thisIter = this->CreateNewIter();
     int iter = iterCnt;
@@ -144,22 +148,33 @@ bool QMMachine::Iterate(string jobFolder, int iterCnt) {
     vector< QMAtom* > &atoms = *(orb_iter.getAtoms());    
     thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
-    printf("\n... ... ... Summary - iteration %d", iterCnt+1);
-    printf("\n... ... ... ... QM Size = %d atoms", atoms.size());
-    printf("\n... ... ... ... E(QM)   = %+4.9e", thisIter->getQMEnergy()); 
-    printf("\n... ... ... ... E(SF)   = %+4.9e", thisIter->getSFEnergy());
-    printf("\n... ... ... ... E(FM)   = %+4.9e", thisIter->getFMEnergy());
-    printf("\n... ... ... ... E(MM)   = %+4.9e", thisIter->getMMEnergy());
-    printf("\n... ... ... ... E(QMMM) = %+4.9e", thisIter->getQMMMEnergy());    
-    printf("\n... ... ... ... RMS(dR) = %+4.9e", thisIter->getRMSdR());
-    printf("\n... ... ... ... RMS(dQ) = %+4.9e", thisIter->getRMSdQ());
-    printf("\n... ... ... ... SUM(dQ) = %+4.9e", thisIter->getSUMdQ());
+    LOG(logINFO,*_log) 
+        << format("Summary - iteration %1$d:") % (iterCnt+1) << flush;
+    LOG(logINFO,*_log)
+        << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
+    LOG(logINFO,*_log)
+        << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
+    LOG(logINFO,*_log)
+        << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
+    LOG(logINFO,*_log)
+        << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
+    LOG(logINFO,*_log)
+        << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
+    LOG(logINFO,*_log)
+        << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
+    LOG(logINFO,*_log)
+        << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
+    LOG(logINFO,*_log)
+        << format("... MS(dQ)   = %1$+4.9e") % thisIter->getRMSdQ() << flush;
+    LOG(logINFO,*_log)
+        << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
     
-    return 0;   
+    return 0;
 }
 
 
-QMMachine::QMMIter *QMMachine::CreateNewIter() {
+template<class QMPackage>
+QMMIter *QMMachine<QMPackage>::CreateNewIter() {
     
     QMMIter *newIter = new QMMIter(_iters.size());
     this->_iters.push_back(newIter);
@@ -167,7 +182,8 @@ QMMachine::QMMIter *QMMachine::CreateNewIter() {
 }
 
 
-void QMMachine::WriteQMPackInputFile(string inputFile, Gaussian *qmpack, XJob *job) {
+template<class QMPackage>
+void QMMachine<QMPackage>::WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job) {
     
     // TODO _qmpack should do this entirely independently
     FILE *out;
@@ -179,7 +195,8 @@ void QMMachine::WriteQMPackInputFile(string inputFile, Gaussian *qmpack, XJob *j
 }
 
 
-bool QMMachine::hasConverged() {
+template<class QMPackage>
+bool QMMachine<QMPackage>::hasConverged() {
     
     _convg_dR = false;
     _convg_dQ = false;
@@ -204,16 +221,20 @@ bool QMMachine::hasConverged() {
     
     _isConverged = ((_convg_dR && _convg_dQ) && (_convg_dE_QM && _convg_dE_MM));
     
-    printf("\n... ... ... ... Convg dR = %s", _convg_dR ? "true" : "false");
-    printf("\n... ... ... ... Convg dQ = %s", _convg_dQ ? "true" : "false");
-    printf("\n... ... ... ... Convg QM = %s", _convg_dE_QM ? "true" : "false");
-    printf("\n... ... ... ... Convg MM = %s", _convg_dE_MM ? "true" : "false");
+    LOG(logINFO,*_log) 
+        << format("... Convg dR = %s") % (_convg_dR ? "true" : "false") << flush;
+    LOG(logINFO,*_log) 
+        << format("... Convg dQ = %s") % (_convg_dQ ? "true" : "false") << flush;
+    LOG(logINFO,*_log) 
+        << format("... Convg QM = %s") % (_convg_dE_QM ? "true" : "false") << flush;
+    LOG(logINFO,*_log) 
+        << format("... Convg MM = %s") % (_convg_dE_MM ? "true" : "false") << flush;
     
     return _isConverged;
 }
 
 
-void QMMachine::QMMIter::ConvertPSitesToQMAtoms(vector< PolarSeg* > &psegs,
+void QMMIter::ConvertPSitesToQMAtoms(vector< PolarSeg* > &psegs,
                                        vector< QMAtom * > &qmatoms) {
     
     assert(qmatoms.size() == 0);    
@@ -221,14 +242,14 @@ void QMMachine::QMMIter::ConvertPSitesToQMAtoms(vector< PolarSeg* > &psegs,
 }
 
 
-void QMMachine::QMMIter::ConvertQMAtomsToPSites(vector< QMAtom* > &qmatoms,
+void QMMIter::ConvertQMAtomsToPSites(vector< QMAtom* > &qmatoms,
                                        vector< PolarSeg* > &psegs) {
     assert(qmatoms.size() == 0);
     return;
 }
 
 
-void QMMachine::QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
+void QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
                                          vector< PolarSeg* > &psegs) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer
@@ -273,7 +294,7 @@ void QMMachine::QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
 }
 
 
-void QMMachine::QMMIter::setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM) {
+void QMMIter::setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM) {
     
     _hasdRdQ = true;    
     _dR_RMS = dR_RMS;
@@ -283,7 +304,7 @@ void QMMachine::QMMIter::setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM) {
 }
 
 
-void QMMachine::QMMIter::setQMSF(double energy_QM, double energy_SF) {
+void QMMIter::setQMSF(double energy_QM, double energy_SF) {
     
     _hasQM = true;    
     _e_QM = energy_QM;
@@ -292,7 +313,7 @@ void QMMachine::QMMIter::setQMSF(double energy_QM, double energy_SF) {
 }
 
 
-void QMMachine::QMMIter::setE_FM(double ef00, double ef01, double ef02, 
+void QMMIter::setE_FM(double ef00, double ef01, double ef02, 
     double ef11, double ef12, double em0, double em1,  double em2, double efm) {
     
     _hasMM = true;
@@ -309,22 +330,22 @@ void QMMachine::QMMIter::setE_FM(double ef00, double ef01, double ef02,
 }
 
 
-double QMMachine::QMMIter::getMMEnergy() {
+double QMMIter::getMMEnergy() {
     
     assert(_hasMM);
     return _ef_11 + _ef_12 + _em_1_ + _em_2_;
 }
 
 
-double QMMachine::QMMIter::getQMMMEnergy() {
+double QMMIter::getQMMMEnergy() {
     
     assert(_hasQM && _hasMM);    
     return _e_QM + _ef_11 + _ef_12 + _em_1_ + _em_2_;    
 }
 
-   
-    
-    
+
+// REGISTER QM PACKAGES
+template class QMMachine<Gaussian>;
     
     
     

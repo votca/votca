@@ -111,8 +111,8 @@ int XInductor::Induce(XJob *job) {
         }
     }
     
-    if (this->_maverick)
-    cout << endl << "... ... ... Inductor: Using WSOR = " << wSOR << flush;
+    LOG(logINFO,*_log) << "Inductor: Using WSOR = " << wSOR 
+        << ", ASHARP = " << _aDamp << flush;
 
     // Intra-pair induction ...
     bool   induce_intra_pair = this->_induce_intra_pair;
@@ -408,31 +408,26 @@ double XInductor::Energy(XJob *job) {
           + E_Pair_Sph2
           + E_Sph1_Sph2;
 
-    if (this->_maverick) {
-        cout << endl << "... ... ... ... "
-             << "E(X) = " << E_Tot * int2eV << " eV "
-             << endl << "                     = (Site, Site) " << E_Pair_Pair * int2eV
-             << endl << "                     + (Site, Sph1) " << E_Pair_Sph1 * int2eV
-             << endl << "                     + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-             << endl << "                     + (Site, Sph2) " << E_Pair_Sph2 * int2eV
-             << endl << "                     + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
+    LOG(logINFO,*_log) 
+             << "... E(X) = " << E_Tot * int2eV << " eV "
+             << flush << "...      = (Site, Site) " << E_Pair_Pair * int2eV
+             << flush << "...      + (Site, Sph1) " << E_Pair_Sph1 * int2eV
+             << flush << "...      + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
+             << flush << "...      + (Site, Sph2) " << E_Pair_Sph2 * int2eV
+             << flush << "...      + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
              << flush;
-    }
 
     // ... 1st kind
     double E_PPUU = epp 
                   + epu 
                   + euu;
 
-    if (this->_maverick) {
-        cout << endl
-             << "... ... ... ... E(X) = " << E_PPUU * int2eV
-             << " eV " 
-             << endl << "                     = (PP) "    << epp  * int2eV
-             << endl << "                     + (PU) "    << epu  * int2eV
-             << endl << "                     + (UU) "    << euu  * int2eV
+    LOG(logINFO,*_log)
+             << "... E(X) = " << E_PPUU * int2eV << " eV " 
+             << flush << "...      = (PP) "    << epp  * int2eV
+             << flush << "...      + (PU) "    << epu  * int2eV
+             << flush << "...      + (UU) "    << euu  * int2eV
              << flush;
-    }
 
     // ... 2nd kind
     double E_f_m = e_f_c_c 
@@ -444,20 +439,17 @@ double XInductor::Energy(XJob *job) {
                  + e_m_non_c
                  + e_m_out;
 
-    if (this->_maverick) {
-        cout << endl
-             << "... ... ... ... E(X) = " << E_f_m * int2eV
-             << " eV " 
-             << endl << "                     = (f,0-0) " << e_f_c_c          * int2eV
-             << endl << "                     + (f,0-1) " << e_f_c_non_c      * int2eV
-             << endl << "                     + (f,0-2) " << e_f_c_out        * int2eV
-             << endl << "                     + (f,1-1) " << e_f_non_c_non_c  * int2eV
-             << endl << "                     + (f,1-2) " << e_f_non_c_out    * int2eV
-             << endl << "                     + (m,-0-) " << e_m_c            * int2eV
-             << endl << "                     + (m,-1-) " << e_m_non_c        * int2eV
-             << endl << "                     + (m,-2-) " << e_m_out          * int2eV
+    LOG(logINFO,*_log)
+             << "... E(X) = " << E_f_m * int2eV << " eV " 
+             << flush << "...      = (f,0-0) " << e_f_c_c          * int2eV
+             << flush << "...      + (f,0-1) " << e_f_c_non_c      * int2eV
+             << flush << "...      + (f,0-2) " << e_f_c_out        * int2eV
+             << flush << "...      + (f,1-1) " << e_f_non_c_non_c  * int2eV
+             << flush << "...      + (f,1-2) " << e_f_non_c_out    * int2eV
+             << flush << "...      + (m,-0-) " << e_m_c            * int2eV
+             << flush << "...      + (m,-1-) " << e_m_non_c        * int2eV
+             << flush << "...      + (m,-2-) " << e_m_out          * int2eV
              << flush;
-    }
 
     // Forward results to job
     job->setEnergy(E_Tot            *int2eV,           
@@ -597,32 +589,27 @@ double XInductor::EnergyStatic(XJob *job) {
           + E_Sph1_Sph1
           + E_Pair_Sph2
           + E_Sph1_Sph2;
-
-    if (this->_maverick) {
-        cout << endl << "... ... ... ... "
-             << "E(X) = " << E_Tot * int2eV << " eV "
-             << endl << "                     = (Site, Site) " << E_Pair_Pair * int2eV
-             << endl << "                     + (Site, Sph1) " << E_Pair_Sph1 * int2eV
-             << endl << "                     + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-             << endl << "                     + (Site, Sph2) " << E_Pair_Sph2 * int2eV
-             << endl << "                     + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
+    
+    LOG(logINFO,*_log) 
+             << "... E(X) = " << E_Tot * int2eV << " eV "
+             << flush << "...      = (Site, Site) " << E_Pair_Pair * int2eV
+             << flush << "...      + (Site, Sph1) " << E_Pair_Sph1 * int2eV
+             << flush << "...      + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
+             << flush << "...      + (Site, Sph2) " << E_Pair_Sph2 * int2eV
+             << flush << "...      + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
              << flush;
-    }
 
     // ... 1st kind
     double E_PPUU = epp 
                   + epu 
                   + euu;
 
-    if (this->_maverick) {
-        cout << endl
-             << "... ... ... ... E(X) = " << E_PPUU * int2eV
-             << " eV " 
-             << endl << "                     = (PP) "    << epp  * int2eV
-             << endl << "                     + (PU) "    << epu  * int2eV
-             << endl << "                     + (UU) "    << euu  * int2eV
+    LOG(logINFO,*_log)
+             << "... E(X) = " << E_PPUU * int2eV << " eV " 
+             << flush << "...      = (PP) "    << epp  * int2eV
+             << flush << "...      + (PU) "    << epu  * int2eV
+             << flush << "...      + (UU) "    << euu  * int2eV
              << flush;
-    }
 
     // ... 2nd kind
     double E_f_m = e_f_c_c 
@@ -634,20 +621,17 @@ double XInductor::EnergyStatic(XJob *job) {
                  + e_m_non_c
                  + e_m_out;
 
-    if (this->_maverick) {
-        cout << endl
-             << "... ... ... ... E(X) = " << E_f_m * int2eV
-             << " eV " 
-             << endl << "                     = (f,0-0) " << e_f_c_c          * int2eV
-             << endl << "                     + (f,0-1) " << e_f_c_non_c      * int2eV
-             << endl << "                     + (f,0-2) " << e_f_c_out        * int2eV
-             << endl << "                     + (f,1-1) " << e_f_non_c_non_c  * int2eV
-             << endl << "                     + (f,1-2) " << e_f_non_c_out    * int2eV
-             << endl << "                     + (m,-0-) " << e_m_c            * int2eV
-             << endl << "                     + (m,-1-) " << e_m_non_c        * int2eV
-             << endl << "                     + (m,-2-) " << e_m_out          * int2eV
+    LOG(logINFO,*_log)
+             << "... E(X) = " << E_f_m * int2eV << " eV " 
+             << flush << "...      = (f,0-0) " << e_f_c_c          * int2eV
+             << flush << "...      + (f,0-1) " << e_f_c_non_c      * int2eV
+             << flush << "...      + (f,0-2) " << e_f_c_out        * int2eV
+             << flush << "...      + (f,1-1) " << e_f_non_c_non_c  * int2eV
+             << flush << "...      + (f,1-2) " << e_f_non_c_out    * int2eV
+             << flush << "...      + (m,-0-) " << e_m_c            * int2eV
+             << flush << "...      + (m,-1-) " << e_m_non_c        * int2eV
+             << flush << "...      + (m,-2-) " << e_m_out          * int2eV
              << flush;
-    }
 
     // Forward results to job
     job->setEnergy(E_Tot            *int2eV,           

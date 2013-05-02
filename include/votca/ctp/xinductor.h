@@ -23,8 +23,10 @@
 #include <votca/ctp/apolarsite.h>
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/xjob.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/thread.h>
 #include <votca/tools/mutex.h>
+
 
 
 // TODO Rename aDamp to aSharp
@@ -470,11 +472,13 @@ public:
     double      EnergyStatic(XJob *job);
     
     bool        hasConverged() { return (_induce) ? _isConverged : true; }
+    void        setLog(Logger *log) { _log = log; }
     
 private:    
     
     Topology                     *_top;
     XJob                         *_job;
+    Logger                       *_log;
     
     // Control options
     bool                          _induce;

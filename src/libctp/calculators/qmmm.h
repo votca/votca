@@ -7,11 +7,13 @@
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/qmmachine.h>
+#include <boost/format.hpp>
 
+
+using boost::format;
 
 namespace votca { namespace ctp {
-    
-    
+
    
 class QMMM : public ParallelXJobCalc
 {
@@ -219,41 +221,48 @@ void QMMM::PostProcess(Topology *top) {
 
 void QMMM::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     
+    // CONFIGURE LOGGER
+    Logger* log = thread->getLogger();
+    log->setReportLevel(logDEBUG);
+    log->setMultithreading(_maverick);
+    log->setPreface(logINFO, "\n... ... ...");
+    
+    Logger* qlog = new Logger();
+    qlog->setReportLevel(logWARNING);
+    qlog->setMultithreading(_maverick);    
+    
     // GENERATE POLAR TOPOLOGY FOR JOB
     double co1 = _cutoff1;
     double co2 = _cutoff2;    
     
     _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
     
-    cout << endl << "... ... ... "
-         << job->getPolarTop()->ShellInfoStr()
-         << flush;
+    LOG(logINFO,*log)
+         << job->getPolarTop()->ShellInfoStr() << flush;
     
     if (tools::globals::verbose)
     job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
 
     // INDUCTOR, QM RUNNER, QM-MM MACHINE
     XInductor xind = XInductor(top, _options, "options.qmmm",
-                               _subthreads, _maverick);    
-
-    Gaussian qmpack = Gaussian(&_qmpack_opt);
-    qmpack.setLog(thread->getLogger());
+        _subthreads, _maverick);    
+    xind.setLog(thread->getLogger());
     
-    QMMachine machine = QMMachine(job, &xind, &qmpack, _options, 
-                                  "options.qmmm", _subthreads, _maverick);
-
+    Gaussian qmpack = Gaussian(&_qmpack_opt);
+    qmpack.setLog(qlog);
+    
+    QMMachine<Gaussian> machine = QMMachine<Gaussian>(job, &xind, &qmpack, 
+        _options, "options.qmmm", _subthreads, _maverick);
+    machine.setLog(thread->getLogger());
     
     // EVALUATE: ITERATE UNTIL CONVERGED
     machine.Evaluate(job);    
-
-    // CLEAN POLAR TOPOLOGY
-    job->getPolarTop()->~PolarTop();
     
-    // OUTPUT LOGGED MESSAGES
+    // DELIVER OUTPUT & CLEAN
     this->LockCout();
     cout << *thread->getLogger();
     this->UnlockCout();
-    
+    job->getPolarTop()->~PolarTop();
 }
 
 

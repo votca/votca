@@ -112,7 +112,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThrea
 
     Logger* pLog = opThread->getLogger();
     pLog->setReportLevel(logDEBUG);
-    pLog->setMulithreading( _maverick );
+    pLog->setMultithreading( _maverick );
     
     LOG(logTime,*pLog) << endl;
     LOG(logINFO,*pLog) << "Evaluating site " << seg->getId() << endl; 

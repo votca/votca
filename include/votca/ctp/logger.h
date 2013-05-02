@@ -43,13 +43,32 @@ else (log)(level)
 class LogBuffer : public std::stringbuf {
 
 public:
-	LogBuffer() : std::stringbuf() {}
+	LogBuffer() : std::stringbuf(), _timePreface(""), 
+                _errorPreface(" ERROR   "), _warnPreface(" WARNING "),
+                _infoPreface("         "), _dbgPreface(" DEBUG   ") {}
         
         // sets the log level (needed for output)
 	void setLogLevel(TLogLevel LogLevel) { _LogLevel = LogLevel; }
         
         // sets Multithreading (buffering required)
         void setMultithreading( bool maverick ) { _maverick = maverick; }
+        
+        // sets preface strings for logERROR, logWARNING, ...
+        void setPreface(TLogLevel level, std::string preface) {            
+            switch ( level )
+            {
+                case logTime: 
+                    _timePreface = preface;
+                case logERROR: 
+                    _errorPreface = preface;
+                case logWARNING:
+                    _warnPreface = preface;      
+                case logINFO:
+                    _infoPreface = preface;     
+                case logDEBUG:
+                    _dbgPreface = preface;   
+            }
+        }
         
         // flushes all collected messages
         void FlushBuffer(){ std::cout << _stringStream.str(); _stringStream.str(""); }
@@ -71,6 +90,13 @@ private:
   
   // Multithreading
   bool _maverick;
+  
+  std::string _timePreface;
+  std::string _errorPreface;
+  std::string _warnPreface;
+  std::string _infoPreface;
+  std::string _dbgPreface;
+  
 
 protected:
 	virtual int sync() {
@@ -80,19 +106,19 @@ protected:
             switch ( _LogLevel )
             {
                 case logTime: 
-                    _message << "" << timestamp();
+                    _message << _timePreface << timestamp();
                     break;
                 case logERROR: 
-                    _message << " ERROR   ";
+                    _message << _errorPreface;
                     break;
                 case logWARNING:
-                    _message << " WARNING ";
+                    _message << _warnPreface;
                     break;      
                 case logINFO:
-                    _message << "         ";
+                    _message << _infoPreface;
                     break;      
                 case logDEBUG:
-                    _message << " DEBUG   ";
+                    _message << _dbgPreface;
                     break;      
             }
             
@@ -160,12 +186,16 @@ public:
 	}
         
         void setReportLevel( TLogLevel ReportLevel ) { _ReportLevel = ReportLevel; }
-        void setMulithreading( bool maverick ) { 
+        void setMultithreading( bool maverick ) { 
             _maverick = maverick;
             dynamic_cast<LogBuffer *>( rdbuf() )->setMultithreading( _maverick );
         }
         
         TLogLevel getReportLevel( ) { return _ReportLevel; }
+        
+        void setPreface(TLogLevel level, std::string preface) {            
+            dynamic_cast<LogBuffer *>( rdbuf() )->setPreface(level, preface);
+        }
         
 private:
     // at what level of detail output messages
