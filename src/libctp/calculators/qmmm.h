@@ -1,27 +1,27 @@
-#ifndef XQMULTIPOLE_H
-#define XQMULTIPOLE_H
-
+#ifndef __QMMMCALC__H
+#define	__QMMMCALC__H
 
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/xmapper.h>
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
-
+#include <votca/ctp/qmmachine.h>
 
 
 namespace votca { namespace ctp {
-
     
-class XQMP : public ParallelXJobCalc
+    
+   
+class QMMM : public ParallelXJobCalc
 {
 
 public:
 
-    XQMP() {};
-   ~XQMP() {};
+    QMMM() {};
+   ~QMMM() {};
    
-    string          Identify() { return "XQMultipole"; }
+    string          Identify() { return "QMMM"; }
     void            Initialize(Topology *, Property *);
 
     void            PreProcess(Topology *top);
@@ -64,6 +64,10 @@ private:
     bool                            _useCutoff;
     double                          _cutoff1;
     double                          _cutoff2;
+    
+    // QM Package options
+    string                          _package;
+    Property                        _qmpack_opt;
 
     // XJob logbook (file output)
     string                          _outFile;
@@ -77,7 +81,7 @@ private:
 // ========================================================================== //
 
 
-void XQMP::Initialize(Topology *top, Property *opt) {
+void QMMM::Initialize(Topology *top, Property *opt) {
 
     _options = opt;
     
@@ -88,13 +92,13 @@ void XQMP::Initialize(Topology *top, Property *opt) {
     _maverick = (_nThreads == 1) ? true : false;
     
 
-    string key = "options.xqmultipole.multipoles";
+    string key = "options.qmmm.multipoles";
 
         if ( opt->exists(key) ) {
             _xml_file = opt->get(key).as< string >();
         }
 
-    key = "options.xqmultipole.control";
+    key = "options.qmmm.control";
 
         if ( opt->exists(key+".job_file")) {
             _xjobfile = opt->get(key+".job_file").as<string>();
@@ -146,7 +150,7 @@ void XQMP::Initialize(Topology *top, Property *opt) {
         }
 
 
-    key = "options.xqmultipole.coulombmethod";
+    key = "options.qmmm.coulombmethod";
     
         if ( opt->exists(key+".method") ) {
             _method = opt->get(key+".method").as< string >();
@@ -173,10 +177,21 @@ void XQMP::Initialize(Topology *top, Property *opt) {
         else {
             _subthreads = 1;
         }
+    
+    key = "options.qmmm.qmpackage";
+    
+        if (opt->exists(key+".package")) {
+            string package_xml = opt->get(key+".package").as< string >();
+            load_property_from_xml(_qmpack_opt, package_xml.c_str());
+            _package = _qmpack_opt.get("package.name").as< string >();
+        }
+        else {
+            throw runtime_error("No QM package specified.");
+        }
 }
 
 
-void XQMP::PreProcess(Topology *top) {
+void QMMM::PreProcess(Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
@@ -184,7 +199,7 @@ void XQMP::PreProcess(Topology *top) {
 }
 
 
-void XQMP::PostProcess(Topology *top) {
+void QMMM::PostProcess(Topology *top) {
     
     // WRITE OUTPUT (PRIMARILY ENERGIE SPLITTINGS)
     FILE *out;
@@ -198,13 +213,13 @@ void XQMP::PostProcess(Topology *top) {
 
 
 // ========================================================================== //
-//                           JOBXQMP MEMBER FUNCTIONS                         //
+//                            QMMM MEMBER FUNCTIONS                           //
 // ========================================================================== //
 
 
-void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
+void QMMM::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     
-    // GENERATE POLAR TOPOLOGY
+    // GENERATE POLAR TOPOLOGY FOR JOB
     double co1 = _cutoff1;
     double co2 = _cutoff2;    
     
@@ -217,34 +232,33 @@ void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     if (tools::globals::verbose)
     job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
 
-    // CALL MAGIC INDUCTOR         
-    XInductor inductor = XInductor(top, _options, "options.xqmultipole",
-                                   _subthreads, _maverick);
-    
-    inductor.Evaluate(job);
-    
+    // INDUCTOR, QM RUNNER, QM-MM MACHINE
+    XInductor xind = XInductor(top, _options, "options.qmmm",
+                               _subthreads, _maverick);    
 
-    // SAVE INDUCTION STATE
-    if (_write_chk) {
-        
-        string format    = _chk_format;
-        string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
-        string outstr    = job->getTag()+_write_chk_suffix+dotsuffix;
-        
-        bool split       = _chk_split_dpl;
-        double space     = _chk_dpl_spacing;
-        
-        job->getPolarTop()->PrintInduState(outstr, format, split, space);
-        
-    }
+    Gaussian qmpack = Gaussian(&_qmpack_opt);
+    qmpack.setLog(thread->getLogger());
+    
+    QMMachine machine = QMMachine(job, &xind, &qmpack, _options, 
+                                  "options.qmmm", _subthreads, _maverick);
 
-    // CLEAN POLAR TOPOLOGY    
+    
+    // EVALUATE: ITERATE UNTIL CONVERGED
+    machine.Evaluate(job);    
+
+    // CLEAN POLAR TOPOLOGY
     job->getPolarTop()->~PolarTop();
+    
+    // OUTPUT LOGGED MESSAGES
+    this->LockCout();
+    cout << *thread->getLogger();
+    this->UnlockCout();
     
 }
 
 
+
+    
 }}
 
-#endif
-
+#endif /* __QMMM__H */

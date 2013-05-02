@@ -118,6 +118,11 @@ public:
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
     std::vector< QMAtom* >* getAtoms() { return &_atoms; }
     
+    bool hasSelfEnergy() { return _has_self_energy; }
+    bool hasQMEnergy() { return _has_qm_energy; }
+    double getSelfEnergy() { return (_has_self_energy) ? _self_energy : 0; }
+    double getQMEnergy() { return (_has_qm_energy) ? _qm_energy : 0; }
+    
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
     

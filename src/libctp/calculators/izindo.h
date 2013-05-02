@@ -353,7 +353,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
         }
     }
     
-    //_morb1->write_pdb("morbs.pdb", "MOL", 0);
+    morb1->write_pdb("morbs.pdb", "MOL", 0);
 
     // ++++++++++++++++++++++++++++++++++++++++ //
     // Rotate + Translate to MD Frame: Mol&Orb2 //
@@ -390,7 +390,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
         }
     }
 
-    //_morb2->write_pdb("morbs.pdb", "MOL", 1);
+    morb2->write_pdb("morbs.pdb", "MOL", 1);
     // ++++++++++++++++++++++++++++ //
     // Calculate transfer integrals //
     // ++++++++++++++++++++++++++++ //

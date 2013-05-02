@@ -35,6 +35,10 @@ private:
     bool _skip_corr;
     bool _skip_sites;
     bool _skip_pairs;
+    
+    bool _do_atomic_xyze;
+    int  _atomic_first;
+    int  _atomic_last;
 
 };
 
@@ -54,6 +58,16 @@ void EAnalyze::Initialize(Topology *top, Property *opt) {
     else {
         _states.push_back(-1);
         _states.push_back(+1);
+    }
+    
+    if (opt->exists(key+".do_atomic_xyze")) {
+        int do_xyze = opt->get(key+".do_atomic_xyze").as< int >();
+        _do_atomic_xyze = (do_xyze == 1) ? true : false;
+        _atomic_first = opt->get(key+".atomic_first").as< int >();
+        _atomic_last  = opt->get(key+".atomic_last").as< int >();
+    }
+    else {
+        _do_atomic_xyze = false;
     }
     
     _skip_corr = opt->exists(key+".skip_correlation");
@@ -179,35 +193,36 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     }
     fclose(out);
     
-    
-    tag = "x_y_z_e";
-    out = fopen(tag.c_str(), "w");
-    
-    for (sit = top->Segments().begin(); 
-         sit < top->Segments().end();
-         ++sit) {
-        
-        if ((*sit)->getId() > 1792) { continue; }
-        double E = (*sit)->getSiteEnergy(state);
-        
-        vector< Atom* > ::iterator ait;
-        for (ait = (*sit)->Atoms().begin();
-             ait < (*sit)->Atoms().end();
-             ++ait) {
-            
-            Atom *atm = *ait;
-            
-            fprintf(out, "%3s %4.7f %4.7f %4.7f %4.7f\n",
-                          (*sit)->getName().c_str(),
-                          atm->getPos().getX(),
-                          atm->getPos().getY(),
-                          atm->getPos().getZ(),
-                          E);            
+    // Write "seg x y z energy" with atomic {x,y,z}
+    if (_do_atomic_xyze) {
+        tag = (state == -1) ? "e_atomic_xyze" : "h_atomic_xyze";
+        out = fopen(tag.c_str(), "w");
+
+        for (sit = top->Segments().begin(); 
+             sit < top->Segments().end();
+             ++sit) {
+
+            if ((*sit)->getId() < _atomic_first) { continue; }
+            if ((*sit)->getId() > _atomic_last) { continue; }
+            double E = (*sit)->getSiteEnergy(state);
+
+            vector< Atom* > ::iterator ait;
+            for (ait = (*sit)->Atoms().begin();
+                 ait < (*sit)->Atoms().end();
+                 ++ait) {
+
+                Atom *atm = *ait;
+
+                fprintf(out, "%3s %4.7f %4.7f %4.7f %4.7f\n",
+                              (*sit)->getName().c_str(),
+                              atm->getPos().getX(),
+                              atm->getPos().getY(),
+                              atm->getPos().getZ(),
+                              E);            
+            }
         }
+        fclose(out);    
     }
-    
-    fclose(out);
-    
 }
 
 
