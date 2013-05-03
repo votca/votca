@@ -26,6 +26,7 @@ public:
     string          Identify() { return "QMMM"; }
     void            Initialize(Topology *, Property *);
 
+    void            CustomizeLogger(XJobOperator *thread);
     void            PreProcess(Topology *top);
     void            EvalJob(Topology *top, XJob *job, XJobOperator *thread);
     void            PostProcess(Topology *top);
@@ -79,7 +80,7 @@ private:
 };
 
 // ========================================================================== //
-//                        XMULTIPOLE MEMBER FUNCTIONS                         //
+//                      PARALLELCALC MEMBER FUNCTIONS                         //
 // ========================================================================== //
 
 
@@ -214,6 +215,20 @@ void QMMM::PostProcess(Topology *top) {
 }
 
 
+void QMMM::CustomizeLogger(XJobOperator *thread) {
+    
+    // CONFIGURE LOGGER
+    Logger* log = thread->getLogger();
+    log->setReportLevel(logDEBUG);
+    log->setMultithreading(_maverick);
+
+    log->setPreface(logINFO,    (format("\nT%1$02d ... ...") % thread->getId()).str());
+    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
+}
+
+
 // ========================================================================== //
 //                            QMMM MEMBER FUNCTIONS                           //
 // ========================================================================== //
@@ -221,12 +236,8 @@ void QMMM::PostProcess(Topology *top) {
 
 void QMMM::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     
-    // CONFIGURE LOGGER
-    Logger* log = thread->getLogger();
-    log->setReportLevel(logDEBUG);
-    log->setMultithreading(_maverick);
-    log->setPreface(logINFO, "\n... ... ...");
-    
+    // SILENT LOGGER FOR QMPACKAGE
+    Logger* log = thread->getLogger();    
     Logger* qlog = new Logger();
     qlog->setReportLevel(logWARNING);
     qlog->setMultithreading(_maverick);    

@@ -6,6 +6,7 @@
 #include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
 #include <votca/ctp/xjob.h>
+#include <votca/ctp/progressobserver.h>
 
 
 namespace votca { namespace ctp {
@@ -23,11 +24,10 @@ public:
     string       Identify() { return "Parallel XJob Calculator"; }
 
     bool         EvaluateFrame(Topology *top);
+    virtual void CustomizeLogger(XJobOperator* thread) { ; }
     virtual void PreProcess(Topology *top) { ; } 
     virtual void EvalJob(Topology *top, XJob *qmpair, XJobOperator* opThread) { ; }
-    virtual void PostProcess(Topology *top) { ; }    
-
-    XJob        *RequestNextJob(int id, Topology *top);
+    virtual void PostProcess(Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }
     void         UnlockCout() { _coutMutex.Unlock(); }
@@ -52,6 +52,7 @@ public:
         void        setId(int id) { _id = id; }
         void        InitData(Topology *top) { ; }
         void        Run(void);
+        
 
     public:
 
@@ -77,6 +78,8 @@ protected:
     bool                     _maverick;
     string                   _xjobfile;
     int                      _subthreads;
+    
+    ProgObserver< vector<XJob*>, XJob* > _progObs;
 
 
 };
