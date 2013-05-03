@@ -342,8 +342,7 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
     string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
     
-    LOG(logTime,*pLog) << endl;
-    LOG(logINFO,*pLog) << "Evaluating pair " << ID << " out of " << 
+    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating pair " << ID << " out of " << 
           (top->NBList()).size() << " ["  << ID_A << ":" << ID_B << "]" << endl; 
     
     FILE *out;

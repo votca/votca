@@ -114,8 +114,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThrea
     pLog->setReportLevel(logDEBUG);
     pLog->setMulithreading( _maverick );
     
-    LOG(logTime,*pLog) << endl;
-    LOG(logINFO,*pLog) << "Evaluating site " << seg->getId() << endl; 
+    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << endl; 
     
     FILE *out;
     Orbitals _orbitals;
@@ -176,7 +175,7 @@ void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThrea
         
         int _nat = _atoms->size() ;
         
-        LOG(logINFO,*pLog) << "Serializing " << _nat << " atoms" << endl; 
+        LOG(logDEBUG,*pLog) << "Serializing " << _nat << " atoms" << endl; 
         
         oa << _orbitals;
         ofs.close();

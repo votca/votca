@@ -25,11 +25,8 @@
 
 namespace votca { namespace ctp {
 
-enum TLogLevel {logTime, logERROR, logWARNING, logINFO, logDEBUG};
-
-// timestamp returns the current time as a string
-std::string timestamp();  
-
+enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
+ 
 /*
  * Macros to use the Logger (level,logger) << message
  */
@@ -79,9 +76,6 @@ protected:
 
             switch ( _LogLevel )
             {
-                case logTime: 
-                    _message << "" << timestamp();
-                    break;
                 case logERROR: 
                     _message << " ERROR   ";
                     break;
@@ -89,7 +83,7 @@ protected:
                     _message << " WARNING ";
                     break;      
                 case logINFO:
-                    _message << "         ";
+                    _message << " ";
                     break;      
                 case logDEBUG:
                     _message << " DEBUG   ";
@@ -107,7 +101,8 @@ protected:
 	    str("");
 	    return 0;
 	}
-        
+      
+/*        
         // timestamp 
         std::string timestamp() {
                 std::ostringstream stream;   
@@ -126,6 +121,7 @@ protected:
                         ;
                 return stream.str();  
         }        
+ */
 };
 
 
@@ -180,6 +176,31 @@ private:
         
 };
 
+/**
+*   \brief Timestamp returns the current time as a string
+*  Example: cout << TimeStamp()
+*/
+class TimeStamp 
+{
+  public:
+    friend std::ostream & operator<<(std::ostream &os, const TimeStamp& ts)
+    {
+        time_t rawtime;
+        tm * timeinfo;
+        time(&rawtime);
+        timeinfo = localtime( &rawtime );
+        os  << (timeinfo->tm_year)+1900
+            << "-" << timeinfo->tm_mon + 1
+            << "-" << timeinfo->tm_mday 
+            << " " << timeinfo->tm_hour
+            << ":" << timeinfo->tm_min 
+            << ":"  << timeinfo->tm_sec;
+         return os;    
+    }
+    
+    explicit TimeStamp() {};
+    
+};
 
 
 }}
