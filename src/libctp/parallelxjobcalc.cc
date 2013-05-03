@@ -59,10 +59,15 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
     for (int id = 0; id < _nThreads; id++) {
         jobOps[id]->WaitDone();
     }
+    
+    if (!_maverick)
+    for (int id = 0; id < _nThreads; id++) {
+        cout << endl << *(jobOps[id]->getLogger()) << flush;
+    }
 
     for (int id = 0; id < _nThreads; id++) {
         delete jobOps[id];
-    }
+    }    
 
     jobOps.clear();
 

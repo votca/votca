@@ -45,9 +45,6 @@ template<typename JobContainer, typename pJob>
 void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
     
     this->LockProgFile(thread);
-    
-    LOG(logDEBUG,*(thread->getLogger())) << "INSERT HERE: NEW CHUNK" << flush;
-    
    
     
     // REPORT FINISHED JOBS, CLEAR SYNC CONTAINER
