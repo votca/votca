@@ -63,13 +63,17 @@ class QMAtom
 {
 public:
     
-   QMAtom (std::string _type, double _x, double _y, double _z, double _charge, bool _from_envornment)
-            : type( _type ), x(_x), y(_y), z(_z), charge(_charge), from_environment( _from_envornment )
+   QMAtom (std::string _type, double _x, double _y, double _z, double _charge, bool _from_environment)
+            : type( _type ), x(_x), y(_y), z(_z), charge(_charge), from_environment( _from_environment )
             {};
             
     QMAtom ()
             : type( "" ), x(0), y(0), z(0), charge(0), from_environment( false )
             {};     
+            
+            
+   
+            
             
    std::string type;
    double x;

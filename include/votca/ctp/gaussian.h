@@ -70,6 +70,7 @@ public:
    void setSpin(int spin) { _spin = spin; }
    void setThreads(int threads) { _threads = threads; }
    
+   Logger *getLog() { return _pLog; }
    string getScratchDir( ) { return _scratch_dir; }
    string getPackageName() { return "gaussian"; }
    bool GuessRequested( ) { return _write_guess; }

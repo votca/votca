@@ -84,7 +84,7 @@ Gaussian::Gaussian( tools::Property *opt ) {
     
 };   
     
-Gaussian::~Gaussian() {     
+Gaussian::~Gaussian() {
 }  
 
 // This class should not be here ...
@@ -226,7 +226,7 @@ bool Gaussian::WriteShellScript() {
 bool Gaussian::Run()
 {
 
-    LOG(logINFO,*_pLog) << "Running GAUSSIAN job" << endl;
+    LOG(logDEBUG,*_pLog) << "Running GAUSSIAN job" << endl;
     
     if (system(NULL)) {
         // if scratch is provided, run the shell script; 
@@ -246,7 +246,7 @@ bool Gaussian::Run()
         exit (EXIT_FAILURE);
     }
     
-    LOG(logINFO,*_pLog) << "Finished GAUSSIAN job" << endl;
+    LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << endl;
 
 
 }
@@ -298,7 +298,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
         cerr << endl << "File " << _orb_file_name << " with molecular orbitals is not found " << endl;
         return 1;
     } else {
-        LOG(logINFO, *_pLog) << "Reading MOs from " << _orb_file_name << endl;
+        LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << endl;
     }
 
     // number of coefficients per line is  in the first line of the file (5D15.8)
@@ -348,7 +348,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     }
 
     // some sanity checks
-    LOG( logINFO, *_pLog ) << "Energy levels: " << _levels << endl;
+    LOG( logDEBUG, *_pLog ) << "Energy levels: " << _levels << endl;
 
     std::map< int, vector<double> >::iterator iter = _coefficients.begin();
     _basis_size = iter->second.size();
@@ -360,7 +360,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
         }
     }
     
-    LOG( logINFO, *_pLog ) << "Basis set size: " << _basis_size << endl;
+    LOG( logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << endl;
 
     // copying information to the orbitals object
     _orbitals->_basis_set_size = _basis_size;
@@ -393,7 +393,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
    _energies.clear();
    
      
-   LOG(logINFO, *_pLog) << "Finished reading MOs from " << _orb_file_name << endl;
+   LOG(logDEBUG, *_pLog) << "Finished reading MOs from " << _orb_file_name << endl;
 
    return 0;
 }

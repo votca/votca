@@ -49,7 +49,20 @@ public:
    inline bool          isWithinDist(const vec &pt, double dist, Topology *top);
    bool                 StartFromCPT()  { return _start_from_cpt; }
    void                 WriteInfoLine(FILE *out);
-
+   
+   
+   double getEF00() { return _EF_PAIR_PAIR; }
+   double getEF01() { return _EF_PAIR_SPH1; }
+   double getEF02() { return _EF_PAIR_SPH2; }
+   double getEF11() { return _EF_SPH1_SPH1; }
+   double getEF12() { return _EF_SPH1_SPH2; }
+   double getEM0()  { return _EM_PAIR; }
+   double getEM1()  { return _EM_SPH1; }
+   double getEM2()  { return _EM_SPH2; }
+   double getETOT() { return _E_Tot; }
+   
+   double getEQM()  { return _E_QM; }
+   double getESF()  { return _E_SF; }
    
    void setInduIter(int iter) { 
        _iter = iter;
@@ -109,6 +122,15 @@ public:
        _EM_SPH1        = e_m_non_c;
        _EM_SPH2        = e_m_out;
    }
+   
+   void setEnergy_QMMM(double energy_QM, 
+                       double energy_SF, 
+                       double energy_QMMM) {
+       
+       _E_QM = energy_QM;
+       _E_SF = energy_SF;
+       _E_QMMM = energy_QMMM;
+   }
 
 private:
   
@@ -152,7 +174,12 @@ private:
    double               _EF_SPH1_SPH2;
    double               _EM_PAIR;
    double               _EM_SPH1;
-   double               _EM_SPH2;       
+   double               _EM_SPH2;  
+   
+   // QM Energy (self-energy, internal)
+   double               _E_QM;
+   double               _E_SF;
+   double               _E_QMMM;
 
 }; 
     

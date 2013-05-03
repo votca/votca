@@ -7,6 +7,7 @@
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
+#include <votca/ctp/logger.h>
 
 
 
@@ -204,6 +205,12 @@ void XQMP::PostProcess(Topology *top) {
 
 void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     
+    // CONFIGURE STRING LOGGER
+    Logger *log = thread->getLogger();
+    log->setReportLevel(logINFO);
+    log->setMultithreading(_maverick);
+    log->setPreface(logINFO, "\n... ... ...");
+    
     // GENERATE POLAR TOPOLOGY
     double co1 = _cutoff1;
     double co2 = _cutoff2;    
@@ -220,7 +227,7 @@ void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     // CALL MAGIC INDUCTOR         
     XInductor inductor = XInductor(top, _options, "options.xqmultipole",
                                    _subthreads, _maverick);
-    
+    inductor.setLog(thread->getLogger());
     inductor.Evaluate(job);
     
 

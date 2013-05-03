@@ -68,6 +68,7 @@ public:
     double          getIsoP() { return 1./3. * (Pxx+Pyy+Pzz); }
     double          getProjP(vec &dir);
     
+    double          setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);

@@ -21,7 +21,7 @@ PolarTop::~PolarTop() {
 
 
 void PolarTop::PrintInfo(ostream &out) {
-   out  << endl
+   out  << endl << "Shells "
         << "|QM0| = " << _qm0.size() << ", "
         << "|MM1| = " << _mm1.size() << ", "
         << "|MM2| = " << _mm2.size() << ". "
@@ -31,7 +31,8 @@ void PolarTop::PrintInfo(ostream &out) {
 
 string PolarTop::ShellInfoStr() {    
     ostringstream stream;
-    stream << "|QM0| = " << _qm0.size() << ", "
+    stream << "Shells "
+           << "|QM0| = " << _qm0.size() << ", "
            << "|MM1| = " << _mm1.size() << ", "
            << "|MM2| = " << _mm2.size() << ". ";
     return stream.str();
