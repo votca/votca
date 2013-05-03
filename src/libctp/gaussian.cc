@@ -422,7 +422,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
     
-    LOG(logINFO,*_pLog) << "Parsing " << _log_file_name << endl;
+    LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << endl;
 
     ifstream _input_file(_log_file_name.c_str());
     if (_input_file.fail()) {
@@ -446,7 +446,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _number_of_electrons =  boost::lexical_cast<int>(results.front()) ;
             _orbitals->_number_of_electrons = _number_of_electrons ;
             _orbitals->_has_number_of_electrons = true;
-            LOG(logINFO,*_pLog) << "Alpha electrons: " << _number_of_electrons << endl ;
+            LOG(logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << endl ;
         }
 
         /*
@@ -460,7 +460,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _basis_set_size = boost::lexical_cast<int>(results.front());
             _orbitals->_basis_set_size = _basis_set_size ;
             _orbitals->_has_basis_set_size = true;
-            LOG(logINFO,*_pLog) << "Basis functions: " << _basis_set_size << endl;
+            LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << endl;
         }
 
         /*
@@ -507,8 +507,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                     _orbitals->_unoccupied_levels = _unoccupied_levels;
                     _orbitals->_has_occupied_levels = true;
                     _orbitals->_has_unoccupied_levels = true;
-                    LOG(logINFO,*_pLog) << "Occupied levels: " << _occupied_levels << endl;
-                    LOG(logINFO,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << endl;
+                    LOG(logDEBUG,*_pLog) << "Occupied levels: " << _occupied_levels << endl;
+                    LOG(logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << endl;
                 }
             } // end of the while loop              
         } // end of the eigenvalue parsing
@@ -582,7 +582,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 // clear the index for the next block
                 _j_indeces.clear();        
             } // end of the blocks
-            LOG(logINFO,*_pLog) << "Read the overlap matrix" << endl;
+            LOG(logDEBUG,*_pLog) << "Read the overlap matrix" << endl;
         } // end of the if "Overlap" found   
 
         
@@ -691,7 +691,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
             _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
             
-            LOG(logINFO, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  endl;
+            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  endl;
                     
             _orbitals->_has_atoms = true;
             _orbitals->_has_qm_energy = true;
@@ -713,7 +713,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _orbitals->_has_self_energy = true;
             _orbitals->_self_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
             
-            LOG(logINFO, *_pLog) << "Self energy " << _orbitals->_self_energy <<  endl;
+            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->_self_energy <<  endl;
 
         }
         
@@ -728,7 +728,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
            ) break;
         
     } // end of reading the file line-by-line
-    LOG(logINFO,*_pLog) << "Done parsing " << _log_file_name << endl;
+    LOG(logDEBUG,*_pLog) << "Done parsing " << _log_file_name << endl;
 
 }
 
