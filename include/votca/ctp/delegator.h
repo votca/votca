@@ -17,11 +17,12 @@
  *
  */
 
-#ifndef __VOTCA_CTP_DELEGATE_H
-#define	__VOTCA_CTP_DELEGATE_H
+#ifndef __VOTCA_CTP_DELEGATOR_H
+#define	__VOTCA_CTP_DELEGATOR_H
 
-#include <sstream>
 #include <iostream>
+#include <boost/interprocess/sync/file_lock.hpp> 
+using namespace boost::interprocess ; 
 
 namespace votca { namespace ctp {
 
@@ -30,21 +31,34 @@ enum TJobStatus {jobAVAILABLE, jobLOCKED, jobDONE, jobFAILED};
 /**
 *   \brief Delegator distributes jobs
 */
-class Delegator {
+class Delegator { 
     
 public:
         Delegator() {}
        ~Delegator() {}
         
-        void updateJobList() {}
+        void updateJobList() {
+            std::ofstream os ;
+            os.open(m_FileName.c_str(), std::ios_base::out | std::ios_base::binary | std::ios_base::app) ; 
+            file_lock flock("lock");
+            if (flock.try_lock()) { // flock.lock() - with waiting // timed_lock
+                cout << "Acquired lock" << endl; }
+            else {
+                cout << "Could not acquire lock" << endl; 
+                return 1;
+            }
+            sleep(30);
+            os.close();
+        }   
         void getJobs() {}
         void giveJob(){}
         
 private:
         std:map _map<int,string>;
+        std::string m_FileName("./locktest.txt") ; 
         
 };
 
 }}
 
-#endif /* __VOTCA_CTP_DELEGATE_H */
+#endif /* __VOTCA_CTP_DELEGATOR_H */
