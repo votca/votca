@@ -569,10 +569,14 @@ bool EOutersphere::EvaluateFrame(Topology *top) {
     else { cout << endl << "... ... System is already rigidified."; }
 
     // Forward multipoles to topology
-    if (!top->isEStatified()) {
+    if (_method != "constant" && !top->isEStatified()) {
         this->DistributeMpoles(top);
         cout << endl << "... ... Created " << top->PolarSites().size()
                  << " multipole sites.";
+    }
+    else if (_method == "constant") {
+        cout << endl << "... ... Method = 'constant' => Do not estatify." << flush;
+        cout << endl << "... ... Using constant lambda = " << _lambdaConstant << flush;
     }
     else { cout << endl << "... ... System is already estatified."; }
 
@@ -628,49 +632,64 @@ bool EOutersphere::EvaluateFrame(Topology *top) {
 
 void EOutersphere::PairOpOutersphere::EvalSite(Topology *top, QMPair *qmpair) {
 
-    this->_segsSphere.clear();
-    this->_polsSphere.clear();
-    this->_polsPair.clear();
+    if (_master->_method != "constant") {
+        this->_segsSphere.clear();
+        this->_polsSphere.clear();
+        this->_polsPair.clear();
 
-    vector<Segment*> ::iterator sit;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        vector<Segment*> ::iterator sit;
+        for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
-        // TODO Introduce volume-correction when using cutoff
-        //if ( abs(_top->PbShortestConnect((*sit)->getPos(), qmpair->getPos()))
-        //        > _master->_lambdaCutoff) { continue; }
+            // TODO Introduce volume-correction when using cutoff
+            //if ( abs(_top->PbShortestConnect((*sit)->getPos(), qmpair->getPos()))
+            //        > _master->_lambdaCutoff) { continue; }
 
-        if ( (*sit)->getId() == qmpair->Seg1()->getId() ||
-             (*sit)->getId() == qmpair->Seg2()->getId() ) {
-             _polsPair.push_back( _polarSites[(*sit)->getId() - 1] );
+            if ( (*sit)->getId() == qmpair->Seg1()->getId() ||
+                 (*sit)->getId() == qmpair->Seg2()->getId() ) {
+                 _polsPair.push_back( _polarSites[(*sit)->getId() - 1] );
+            }
+
+            else {
+                _segsSphere.push_back(*sit);
+                _polsSphere.push_back( _polarSites[(*sit)->getId() - 1] );
+            }
         }
 
-        else {
-            _segsSphere.push_back(*sit);
-            _polsSphere.push_back( _polarSites[(*sit)->getId() - 1] );
+        bool hasCation = qmpair->first->hasChrgState(+1)
+                      && qmpair->second->hasChrgState(+1);
+        bool hasAnion  = qmpair->first->hasChrgState(-1)
+                      && qmpair->second->hasChrgState(-1);
+
+        if (hasCation) {
+            int state = +1;
+            this->ResetFields();
+            this->ChargeDeltaPair(state);
+            double lOut = this->CalcOuter(top, qmpair, state);
+            qmpair->setLambdaO(lOut, state);
+            this->ResetFields();
         }
+
+        if (hasAnion) {
+            int state = -1;
+            this->ResetFields();
+            this->ChargeDeltaPair(state);
+            double lOut = this->CalcOuter(top, qmpair, state);
+            qmpair->setLambdaO(lOut, state);
+            this->ResetFields();
+        }        
     }
+    else if (_master->_method == "constant") {
+        if (hasCation) {
+            int state = +1;
+            double lOut = _master->_lambdaConstant;
+            qmpair->setLambdaO(lOut, state);
+        }
 
-    bool hasCation = qmpair->first->hasChrgState(+1)
-                  && qmpair->second->hasChrgState(+1);
-    bool hasAnion  = qmpair->first->hasChrgState(-1)
-                  && qmpair->second->hasChrgState(-1);
-
-    if (hasCation) {
-        int state = +1;
-        this->ResetFields();
-        this->ChargeDeltaPair(state);
-        double lOut = this->CalcOuter(top, qmpair, state);
-        qmpair->setLambdaO(lOut, state);
-        this->ResetFields();
-    }
-
-    if (hasAnion) {
-        int state = -1;
-        this->ResetFields();
-        this->ChargeDeltaPair(state);
-        double lOut = this->CalcOuter(top, qmpair, state);
-        qmpair->setLambdaO(lOut, state);
-        this->ResetFields();
+        if (hasAnion) {
+            int state = -1;
+            double lOut = _master->_lambdaConstant;
+            qmpair->setLambdaO(lOut, state);
+        }  
     }
 }
 
