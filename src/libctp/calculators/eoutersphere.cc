@@ -679,6 +679,12 @@ void EOutersphere::PairOpOutersphere::EvalSite(Topology *top, QMPair *qmpair) {
         }        
     }
     else if (_master->_method == "constant") {
+        
+        bool hasCation = qmpair->first->hasChrgState(+1)
+                      && qmpair->second->hasChrgState(+1);
+        bool hasAnion  = qmpair->first->hasChrgState(-1)
+                      && qmpair->second->hasChrgState(-1);
+        
         if (hasCation) {
             int state = +1;
             double lOut = _master->_lambdaConstant;

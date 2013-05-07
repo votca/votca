@@ -39,8 +39,12 @@ public:
    vector<string>      &getSegMps()                 { return _qmSegMps; }
    Topology            *getTop()                    { return _top; }
    PolarTop            *getPolarTop()               { return _ptop; }
-   int                  getIter()                   { return _iter; }   
+   int                  getIter()                   { return _iter; }
+   int                  getUserId() { return _userId; }
+   void                 setUserId(int userId) { _userId = userId; }
    void                 setPolarTop(PolarTop *ptop);
+   void                 setInfoLine(bool printMM = true, bool printQM = true);
+   string               getInfoLine() { return _infoLine; }
    
    void                 CalcCenterPos();
    vec                 &Center()                    { return _center; }
@@ -49,6 +53,7 @@ public:
    inline bool          isWithinDist(const vec &pt, double dist, Topology *top);
    bool                 StartFromCPT()  { return _start_from_cpt; }
    void                 WriteInfoLine(FILE *out);
+
    
    
    double getEF00() { return _EF_PAIR_PAIR; }
@@ -135,6 +140,7 @@ public:
 private:
   
    int                  _id;
+   int                  _userId;
    string               _tag;
    Topology            *_top;   
    
@@ -180,6 +186,8 @@ private:
    double               _E_QM;
    double               _E_SF;
    double               _E_QMMM;
+   
+   string               _infoLine;
 
 }; 
     

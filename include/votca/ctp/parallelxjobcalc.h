@@ -19,7 +19,7 @@ public:
     class XJobOperator;
     
     ParallelXJobCalc() : _nextXJob(NULL), _xjobfile("__NOFILE__") {};
-   ~ParallelXJobCalc() {};
+   ~ParallelXJobCalc() { delete _progObs; };
 
     string       Identify() { return "Parallel XJob Calculator"; }
 
@@ -45,7 +45,7 @@ public:
     public:
 
         XJobOperator(int id,   Topology *top, ParallelXJobCalc *master)
-                      : _id(id),    _top(top),          _master(master) {};
+                      : _top(top),          _master(master) { _id = id; };
        ~XJobOperator() {};
 
         int         getId() { return _id; }
@@ -56,7 +56,6 @@ public:
 
     public:
 
-        int               _id;
         Topology         *_top;
         ParallelXJobCalc *_master;
         XJob             *_job;
@@ -79,7 +78,7 @@ protected:
     string                   _xjobfile;
     int                      _subthreads;
     
-    ProgObserver< vector<XJob*>, XJob* > _progObs;
+    ProgObserver< vector<XJob*>, XJob* > *_progObs;
 
 
 };

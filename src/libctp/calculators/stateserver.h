@@ -172,17 +172,17 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         }
 
-        else if (*key == "xmp") {
+        else if (*key == "xjob") {
 
-                cout << "XMP input, ";
+                cout << "XJob Site List, ";
 
-                FILE *out_xmp;
-                string xmp_file = "xmp.table";
-                out_xmp = fopen(xmp_file.c_str(), "w");
+                FILE *out_xqm;
+                string xjob_file = "xjob_list";
+                out_xqm = fopen(xjob_file.c_str(), "w");
 
-                WriteXMP(out_xmp, top);
+                WriteXMP(out_xqm, top);
 
-                fclose(out_xmp);
+                fclose(out_xqm);
         }
 
         else if (*key == "emp") {
@@ -383,31 +383,60 @@ void StateServer::WriteEMP(FILE *out, Topology *top) {
 
 void StateServer::WriteXMP(FILE *out, Topology *top) {
 
-    fprintf(out, "# JOB_ID JOB_TAG    PAIR_ID    SEG1_ID SEG1_NAME SEG1_MPS  "
-            " SEG2_ID SEG2_NAME SEG2_MPS \n");
+    fprintf(out, "# JOB_ID JOB_TAG   ID1:SEG1:MPS1   ID2:SEG2:MPS2 \n");
 
-    QMNBList::iterator nit;
-    for (nit = top->NBList().begin();
-         nit != top->NBList().end();
-         nit++) {
-
-        QMPair *qmpair = *nit;
-
-       string prefix = "pair_"+boost::lexical_cast<string>(qmpair->getId())
-                   +"_"+boost::lexical_cast<string>(qmpair->Seg1()->getId())
-                   +"_"+boost::lexical_cast<string>(qmpair->Seg2()->getId());
-       string tag = "tag_xxx";
-
-        fprintf(out, "%5d %5s   %5d    %4d %5s %-30s   %4d %5s %-30s \n",
-                     qmpair->getId(),
-                     "tag_xxx",
-                     qmpair->getId(),
-                     qmpair->first->getId(),
-                     qmpair->first->getName().c_str(),
-                     (prefix+"_1.mps").c_str(),
-                     qmpair->second->getId(),
-                     qmpair->second->getName().c_str(),
-                     (prefix+"_2.mps").c_str());
+//    QMNBList::iterator nit;
+//    for (nit = top->NBList().begin();
+//         nit != top->NBList().end();
+//         nit++) {
+//
+//        QMPair *qmpair = *nit;
+//
+//       string prefix = "pair_"+boost::lexical_cast<string>(qmpair->getId())
+//                   +"_"+boost::lexical_cast<string>(qmpair->Seg1()->getId())
+//                   +"_"+boost::lexical_cast<string>(qmpair->Seg2()->getId());
+//       string tag = "tag_xxx";
+//
+//        fprintf(out, "%5d %5s   %5d    %4d %5s %-30s   %4d %5s %-30s \n",
+//                     qmpair->getId(),
+//                     "tag_xxx",
+//                     qmpair->getId(),
+//                     qmpair->first->getId(),
+//                     qmpair->first->getName().c_str(),
+//                     (prefix+"_1.mps").c_str(),
+//                     qmpair->second->getId(),
+//                     qmpair->second->getName().c_str(),
+//                     (prefix+"_2.mps").c_str());
+//    }
+    
+    int jobId = 0;    
+    vector< Segment* > ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        
+        Segment *seg = *sit;        
+        int segId = seg->getId();
+        string segName = seg->getName();
+        
+        string stateStr = "n";
+        string jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
+        string mpsFile = "MP_FILES/" + segName + "_" + stateStr + ".mps";        
+        ++jobId;
+        fprintf(out, "%5d %10s %d:%s:%s\n",
+                jobId, jobTag.c_str(), segId, segName.c_str(), mpsFile.c_str());
+        
+        stateStr = "e";
+        jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
+        mpsFile = "MP_FILES/" + segName + "_" + stateStr + ".mps";        
+        ++jobId;
+        fprintf(out, "%5d %10s %d:%s:%s\n",
+                jobId, jobTag.c_str(), segId, segName.c_str(), mpsFile.c_str());
+        
+        stateStr = "h";
+        jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
+        mpsFile = "MP_FILES/" + segName + "_" + stateStr + ".mps";        
+        ++jobId;
+        fprintf(out, "%5d %10s %d:%s:%s\n",
+                jobId, jobTag.c_str(), segId, segName.c_str(), mpsFile.c_str());      
     }
 }
 

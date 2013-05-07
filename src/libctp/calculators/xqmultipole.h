@@ -191,7 +191,7 @@ void XQMP::PreProcess(Topology *top) {
 
 void XQMP::PostProcess(Topology *top) {
     
-    // WRITE OUTPUT (PRIMARILY ENERGIE SPLITTINGS)
+    // WRITE OUTPUT (PRIMARILY ENERGY SPLITTINGS)
     FILE *out;
     out = fopen(this->_outFile.c_str(), "w");
     vector<XJob*> :: iterator jit;
@@ -259,7 +259,8 @@ void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
         
     }
 
-    // CLEAN POLAR TOPOLOGY    
+    // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
+    job->setInfoLine(true,false);
     job->getPolarTop()->~PolarTop();
     
 }

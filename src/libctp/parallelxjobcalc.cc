@@ -1,4 +1,5 @@
 #include <votca/ctp/parallelxjobcalc.h>
+#include <boost/algorithm/string.hpp>
 
 
 namespace votca { namespace ctp {
@@ -28,8 +29,10 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
              << flush;
     }
     
-    _progObs = ProgObserver< vector<XJob*>, XJob* >
-            (&_XJobs, _nThreads, "shared_progress_file");
+    string progFile = _xjobfile+"_status";
+    string lockFile = _xjobfile;
+    _progObs = new ProgObserver< vector<XJob*>, XJob* >
+            (&_XJobs, _nThreads, progFile, lockFile);
 
 
     // PRE-PROCESS (OVERWRITTEN IN CHILD OBJECT)
@@ -81,12 +84,12 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
 void ParallelXJobCalc::XJobOperator::Run(void) {
 
     while (true) {
-        _job = _master->_progObs.RequestNextJob(this);
+        _job = _master->_progObs->RequestNextJob(this);
 
         if (_job == NULL) { break; }
         else { 
             this->_master->EvalJob(_top, _job, this); 
-            this->_master->_progObs.ReportJobDone(_job, this);
+            this->_master->_progObs->ReportJobDone(_job, this);
         }
     }
 }

@@ -273,6 +273,7 @@ void QMMM::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     this->LockCout();
     cout << *thread->getLogger();
     this->UnlockCout();
+    job->setInfoLine();
     job->getPolarTop()->~PolarTop();
 }
 

@@ -1,4 +1,8 @@
 #include <votca/ctp/xjob.h>
+#include <boost/format.hpp>
+
+
+using boost::format;
 
 namespace votca { namespace ctp {
     
@@ -105,6 +109,42 @@ void XJob::WriteInfoLine(FILE *out) {
    fprintf(out, "\n");
 
 }
+
+
+void XJob::setInfoLine(bool printMM, bool printQM) {
+
+    // Job ID & tag
+    string str0 = ( format("%1$5d %2$-10s ") 
+        % _userId % _tag ).str();
+    
+    // Shell sizes & iterations
+    string str1 = ( format("|QM0| %1$d |MM1| %2$d |MM2| %3$d IT %4$d ") 
+        % _qm0_size % _mm1_size % _mm2_size % _iter).str();
+    
+    // Center coordinates
+    string str2 = ( format("XYZ %1$+4.7f %2$+4.7f %3$+4.7f ") 
+        % _center.getX() % _center.getY() % _center.getZ()).str();
+    
+    // QM energies
+    string str3 = ( format("QM %1$+4.7e SF %2$+4.7e QMMM %3$+4.7e ") 
+        % _E_QM % _E_SF % _E_QMMM ).str();
+    
+    // MM energies
+    string str4 = ( format("TT %4$+4.7f PP %1$+4.7f PU %2$+4.7f UU %3$+4.7f ") 
+        % _EPP % _EPU % _EUU % _E_Tot ).str();
+    string str5 = ( format("F00 %1$+4.7f F01 %2$+4.7f F02 %3$+4.7f F11 %4$4.7f F12 %5$4.7f ") 
+        % _EF_PAIR_PAIR % _EF_PAIR_SPH1 % _EF_PAIR_SPH2 % _EF_SPH1_SPH1 % _EF_SPH1_SPH2).str();    
+    string str6 = ( format("M0 %1$+4.7f M1 %2$+4.7f M2 %3$+4.7f ") 
+        % _EM_PAIR % _EM_SPH1 % _EM_SPH2 ).str();    
+    
+    // Assemble
+    _infoLine = str0 + str1 + str2;    
+    if (printQM)
+        _infoLine += str3;
+    if (printMM)
+        _infoLine += str4 + str5 + str6;
+    return;
+}
     
     
 
@@ -135,7 +175,7 @@ vector<XJob*> XJOBS_FROM_TABLE(const string &job_file, Topology *top) {
 // # JOB_ID TAG    SEG1_ID SEG1_NAME SEG1_MPS SEG2_ID SEG2_NAME SEG2_MPS
 //   1      E_CT   182:C60:MP_FILES/c60.mps   392:DCV:MP_FILES/dcv.mps
 
-            int jobId       = boost::lexical_cast<int>(split[0]);
+            int jobUserId   = boost::lexical_cast<int>(split[0]);
             string tag      = split[1];
             
             for (int i = 2; i < split.size(); ++i) {
@@ -162,7 +202,8 @@ vector<XJob*> XJOBS_FROM_TABLE(const string &job_file, Topology *top) {
                 qmSegMps.push_back(mpsFile);               
             }
             
-            xjobs.push_back(new XJob(jobId, tag, qmSegs, qmSegMps, top));
+            xjobs.push_back(new XJob(xjobs.size()+1, tag, qmSegs, qmSegMps, top));
+            xjobs.back()->setUserId(jobUserId);
 
         } /* Exit loop over lines */
     }
