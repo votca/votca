@@ -4,11 +4,12 @@
 
 namespace votca { namespace ctp {
 
-
-bool ParallelXJobCalc::EvaluateFrame(Topology *top) {    
+    
+template<typename JobContainer, typename pJob> 
+bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {    
 
     // CREATE XJOBS & PROGRESS OBSERVER (_XJOBFILE INIT. IN CHILD)
-    _XJobs = XJOBS_FROM_TABLE(_xjobfile, top); 
+    _XJobs = XJOBS_FROM_TABLE<JobContainer,pJob>(_xjobfile, top); 
     cout << endl << "... ... Registered " << _XJobs.size() << " jobs " << flush;
     
     // RIGIDIFY TOPOLOGY (=> LOCAL FRAMES)
@@ -31,7 +32,7 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
     
     string progFile = _xjobfile+"_status";
     string lockFile = _xjobfile;
-    _progObs = new ProgObserver< vector<XJob*>, XJob* >
+    _progObs = new ProgObserver< JobContainer, pJob >
             (&_XJobs, _nThreads, progFile, lockFile);
 
 
@@ -39,11 +40,10 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
     this->PreProcess(top);
     
     // CREATE + EXECUTE THREADS (XJOB HANDLERS)
-    vector<XJobOperator*> jobOps;
-    _nextXJob = _XJobs.begin();
+    vector<JobOperator*> jobOps;
 
     for (int id = 0; id < _nThreads; id++) {
-        XJobOperator *newOp = new XJobOperator(id, top, this);
+        JobOperator *newOp = new JobOperator(id, top, this);
         jobOps.push_back(newOp);
     }
     
@@ -81,7 +81,8 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
 }
 
 
-void ParallelXJobCalc::XJobOperator::Run(void) {
+template<typename JobContainer, typename pJob>
+void ParallelXJobCalc<JobContainer,pJob>::JobOperator::Run(void) {
 
     while (true) {
         _job = _master->_progObs->RequestNextJob(this);
@@ -93,5 +94,9 @@ void ParallelXJobCalc::XJobOperator::Run(void) {
         }
     }
 }
+
+
+// REGISTER PARALLEL CALCULATORS
+template class ParallelXJobCalc< vector<XJob*>, XJob* >;
 
 }}

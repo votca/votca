@@ -11,22 +11,23 @@
 
 namespace votca { namespace ctp {
 
+template<typename JobContainer, typename pJob> 
 class ParallelXJobCalc : public QMCalculator
 {
 
 public:
 
-    class XJobOperator;
+    class JobOperator;
     
-    ParallelXJobCalc() : _nextXJob(NULL), _xjobfile("__NOFILE__") {};
+    ParallelXJobCalc() : _xjobfile("__NOFILE__") {};
    ~ParallelXJobCalc() { delete _progObs; };
 
     string       Identify() { return "Parallel XJob Calculator"; }
 
     bool         EvaluateFrame(Topology *top);
-    virtual void CustomizeLogger(XJobOperator* thread) { ; }
+    virtual void CustomizeLogger(QMThread* thread) { ; }
     virtual void PreProcess(Topology *top) { ; } 
-    virtual void EvalJob(Topology *top, XJob *qmpair, XJobOperator* opThread) { ; }
+    virtual void EvalJob(Topology *top, XJob *qmpair, QMThread *opThread) { ; }
     virtual void PostProcess(Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }
@@ -40,16 +41,14 @@ public:
     // ======================================== //
     
 
-    class XJobOperator : public QMThread
+    class JobOperator : public QMThread
     {
     public:
 
-        XJobOperator(int id,   Topology *top, ParallelXJobCalc *master)
+        JobOperator(int id,   Topology *top, ParallelXJobCalc<JobContainer,pJob> *master)
                       : _top(top),          _master(master) { _id = id; };
-       ~XJobOperator() {};
+       ~JobOperator() {};
 
-        int         getId() { return _id; }
-        void        setId(int id) { _id = id; }
         void        InitData(Topology *top) { ; }
         void        Run(void);
         
@@ -57,8 +56,8 @@ public:
     public:
 
         Topology         *_top;
-        ParallelXJobCalc *_master;
-        XJob             *_job;
+        ParallelXJobCalc<JobContainer,pJob> *_master;
+        pJob              _job;
 
     };
 
@@ -70,15 +69,13 @@ public:
 protected:
 
     vector<XJob*>            _XJobs;
-    vector<XJob*> ::iterator _nextXJob;
-    Mutex                    _nextJobMutex;
     Mutex                    _coutMutex;
     Mutex                    _logMutex;
     bool                     _maverick;
     string                   _xjobfile;
     int                      _subthreads;
     
-    ProgObserver< vector<XJob*>, XJob* > *_progObs;
+    ProgObserver< JobContainer, pJob > *_progObs;
 
 
 };

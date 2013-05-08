@@ -15,7 +15,7 @@ using boost::format;
 namespace votca { namespace ctp {
 
    
-class QMMM : public ParallelXJobCalc
+class QMMM : public ParallelXJobCalc< vector<XJob*>, XJob* >
 {
 
 public:
@@ -26,9 +26,9 @@ public:
     string          Identify() { return "QMMM"; }
     void            Initialize(Topology *, Property *);
 
-    void            CustomizeLogger(XJobOperator *thread);
+    void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
-    void            EvalJob(Topology *top, XJob *job, XJobOperator *thread);
+    void            EvalJob(Topology *top, XJob *job, QMThread *thread);
     void            PostProcess(Topology *top);
     
 
@@ -215,7 +215,7 @@ void QMMM::PostProcess(Topology *top) {
 }
 
 
-void QMMM::CustomizeLogger(XJobOperator *thread) {
+void QMMM::CustomizeLogger(QMThread *thread) {
     
     // CONFIGURE LOGGER
     Logger* log = thread->getLogger();
@@ -234,7 +234,7 @@ void QMMM::CustomizeLogger(XJobOperator *thread) {
 // ========================================================================== //
 
 
-void QMMM::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
+void QMMM::EvalJob(Topology *top, XJob *job, QMThread *thread) {
     
     // SILENT LOGGER FOR QMPACKAGE
     Logger* log = thread->getLogger();    

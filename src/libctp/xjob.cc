@@ -147,9 +147,19 @@ void XJob::setInfoLine(bool printMM, bool printQM) {
     return;
 }
     
-    
 
-vector<XJob*> XJOBS_FROM_TABLE(const string &job_file, Topology *top) {
+template<typename JobContainer, typename pJob>
+JobContainer XJOBS_FROM_TABLE(const string &job_file, Topology *top) {
+    
+    
+    assert(false); // Define specialization
+    JobContainer jobcnt;
+    return jobcnt;
+}
+
+
+template<>
+vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, Topology *top) {
     
     vector<XJob*> xjobs;
     

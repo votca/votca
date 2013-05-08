@@ -17,7 +17,7 @@ using boost::format;
 namespace votca { namespace ctp {
 
     
-class XQMP : public ParallelXJobCalc
+class XQMP : public ParallelXJobCalc< vector<XJob*>, XJob* >
 {
 
 public:
@@ -28,9 +28,9 @@ public:
     string          Identify() { return "XQMultipole"; }
     void            Initialize(Topology *, Property *);
 
-    void            CustomizeLogger(XJobOperator *thread);
+    void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
-    void            EvalJob(Topology *top, XJob *job, XJobOperator *thread);
+    void            EvalJob(Topology *top, XJob *job, QMThread *thread);
     void            PostProcess(Topology *top);
     
 
@@ -202,7 +202,7 @@ void XQMP::PostProcess(Topology *top) {
 }
 
 
-void XQMP::CustomizeLogger(XJobOperator *thread) {
+void XQMP::CustomizeLogger(QMThread *thread) {
     
     // CONFIGURE LOGGER
     Logger* log = thread->getLogger();
@@ -222,7 +222,7 @@ void XQMP::CustomizeLogger(XJobOperator *thread) {
 // ========================================================================== //
 
 
-void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
+void XQMP::EvalJob(Topology *top, XJob *job, QMThread *thread) {
     
     Logger *log = thread->getLogger();
     
