@@ -9,6 +9,13 @@
 #include <votca/ctp/progressobserver.h>
 
 
+// PATHWAYS TO A NEW THREADED CALCULATOR
+// ... 1 Define 'JobContainer' (needs to define iterator), 'pJob' ( = *iterator)
+// ... 2 Derive new calculator as ': public ParallelXJobCalc<JobContainer,pJob>'
+// ... 3 Specialize XJOBS_FROM_TABLE< JobContainer, pJob> in xjob.cc
+// ... 4 Register new calculator (see end of parallelxjobcalc.cc)
+
+
 namespace votca { namespace ctp {
 
 template<typename JobContainer, typename pJob> 
