@@ -118,7 +118,7 @@ void XJob::setInfoLine(bool printMM, bool printQM) {
         % _userId % _tag ).str();
     
     // Shell sizes & iterations
-    string str1 = ( format("|QM0| %1$d |MM1| %2$d |MM2| %3$d IT %4$d ") 
+    string str1 = ( format("|QM0| %1$3d |MM1| %2$3d |MM2| %3$3d IT %4$2d ") 
         % _qm0_size % _mm1_size % _mm2_size % _iter).str();
     
     // Center coordinates
@@ -126,23 +126,24 @@ void XJob::setInfoLine(bool printMM, bool printQM) {
         % _center.getX() % _center.getY() % _center.getZ()).str();
     
     // QM energies
-    string str3 = ( format("QM %1$+4.7e SF %2$+4.7e QMMM %3$+4.7e ") 
+    string str3 = ( format("QMMM %3$+4.7e QM %1$+4.7e SF %2$+4.7e ") 
         % _E_QM % _E_SF % _E_QMMM ).str();
     
     // MM energies
     string str4 = ( format("TT %4$+4.7f PP %1$+4.7f PU %2$+4.7f UU %3$+4.7f ") 
         % _EPP % _EPU % _EUU % _E_Tot ).str();
-    string str5 = ( format("F00 %1$+4.7f F01 %2$+4.7f F02 %3$+4.7f F11 %4$4.7f F12 %5$4.7f ") 
+    string str5 = ( format("F00 %1$+4.7f F01 %2$+4.7f F02 %3$+4.7f F11 %4$+4.7f F12 %5$+4.7f ") 
         % _EF_PAIR_PAIR % _EF_PAIR_SPH1 % _EF_PAIR_SPH2 % _EF_SPH1_SPH1 % _EF_SPH1_SPH2).str();    
     string str6 = ( format("M0 %1$+4.7f M1 %2$+4.7f M2 %3$+4.7f ") 
-        % _EM_PAIR % _EM_SPH1 % _EM_SPH2 ).str();    
+        % _EM_PAIR % _EM_SPH1 % _EM_SPH2 ).str();
     
     // Assemble
-    _infoLine = str0 + str1 + str2;    
+    _infoLine = str0;    
     if (printQM)
         _infoLine += str3;
     if (printMM)
         _infoLine += str4 + str5 + str6;
+    _infoLine += str1 + str2;
     return;
 }
     

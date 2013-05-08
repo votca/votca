@@ -3,6 +3,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/format.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 #include <sys/types.h>
 #include <unistd.h>
@@ -117,7 +119,34 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
         complete[atJobId->first] = WriteProgLine(job, thread, "COMPLETE");
         assigned.erase(atJobId);
     }
-    _jobsToSync.clear();    
+    _jobsToSync.clear();
+    
+    // BACK-UP PROGRESS FILE
+    string backupfile = _progFile+"_backup";
+    //if (boost::filesystem::exists(backupfile))
+    //    boost::filesystem::remove(backupfile);
+    //boost::filesystem::copy_file(_progFile, backupfile);
+    LOG(logDEBUG,*(thread->getLogger())) 
+        << "Back-up progress file for the contingency of a restart ..." << flush;
+    ofs.open(backupfile.c_str(), ofstream::out);
+    ofs << "# Verify that no jobs are missing (e.g. cat ... | wc) "
+        << "before restarting from this file." << endl;
+    JobItCnt jit;
+    for (atJobId = complete.begin(); atJobId != complete.end(); ++atJobId) {
+        pJob job = (*_jobs)[atJobId->first-1];
+        ofs << atJobId->second << endl;        
+    }
+    for (atJobId = assigned.begin(); atJobId != assigned.end(); ++atJobId) {
+        pJob job = (*_jobs)[atJobId->first-1];
+        string modStr = atJobId->second;
+        boost::replace_first(modStr, "ASSIGNED", "QUEUEING");
+        ofs << modStr << endl;        
+    }
+    for (atJobId = queueing.begin(); atJobId != queueing.end(); ++atJobId) {
+        pJob job = (*_jobs)[atJobId->first-1];
+        ofs << atJobId->second << endl;        
+    }
+    ofs.close();    
     
     // ASSIGN NEW JOBS IF AVAILABLE
     LOG(logDEBUG,*(thread->getLogger())) << "Assign jobs from stack" << flush;
@@ -141,12 +170,11 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
     
     // SANITY CHECKS
     int jobCountMaps = queueing.size() + assigned.size() + complete.size();
-    assert(jobCountMaps == _jobs->size());
+    assert(jobCountMaps == _jobs->size());        
     
     // UPDATE PROGRESS STATUS FILE
     LOG(logDEBUG,*(thread->getLogger())) << "Update progress file ..." << flush;
     ofs.open(progFile.c_str(), ofstream::out);
-    JobItCnt jit;
     for (atJobId = complete.begin(); atJobId != complete.end(); ++atJobId) {
         pJob job = (*_jobs)[atJobId->first-1];
         ofs << atJobId->second << endl;        
@@ -293,15 +321,41 @@ string ProgObserver<JobContainer,pJob>::WriteProgLine(pJob job,
     pid_t pid = getpid();
     int   tid = thread->getId();
     
+    string jobstr0 = "";
+    string jobstr1 = "";
+    string jobstr2 = "";
+    
+    // HOST NAME
+    char host[128];
+    int h = gethostname(host, sizeof host);
+    
+    // CURRENT TIME
+    boost::posix_time::ptime now 
+        = boost::posix_time::second_clock::local_time();
+    
     // Job ID + Status
-    string jobstr0 = (format("%1$5d %2$8s ")
+    jobstr0 += (format("%1$5d %2$8s ")
         % job->getId() % status).str();
     
-    // PID + TID
-    string jobstr1 = (format("PID=%1$-5d TID=%2$-3d ")
-        % pid % tid).str();
+    if (status == "QUEUEING") {
+        jobstr1 += (format("HOST=........ TIME=........ PID=..... TID=... ")).str();
+    }
     
-    return jobstr0 + jobstr1;
+    else if (status == "ASSIGNED") {
+        jobstr1 += (format("HOST=%2$-8s TIME=%3$s PID=%1$05d TID=... ")
+            % pid % host % now.time_of_day()).str();
+        // += job-specific 'assigned' line
+    }
+    
+    else if (status == "COMPLETE") {
+        jobstr1 += (format("HOST=%3$-8s TIME=%4$s PID=%1$05d TID=%2$03d ")
+        % pid % tid % host % now.time_of_day()).str();
+        // += jobstr2 -> job-specific output line
+    }
+    
+    else ;
+    
+    return jobstr0 + jobstr1 + jobstr2;
 }
 
 
@@ -325,20 +379,38 @@ string ProgObserver< vector<XJob*>, XJob* >::WriteProgLine(XJob *job,
     pid_t pid = getpid();
     int   tid = thread->getId();
     
+    string jobstr0 = "";
+    string jobstr1 = "";
+    string jobstr2 = "";
+    
+    // HOST NAME
+    char host[128];
+    int h = gethostname(host, sizeof host);
+    
+    // CURRENT TIME
+    boost::posix_time::ptime now 
+        = boost::posix_time::second_clock::local_time();
+    
     // Job ID + Status
-    string jobstr0 = (format("%1$5d %2$8s ")
+    jobstr0 += (format("%1$5d %2$8s ")
         % job->getId() % status).str();
     
-    // PID + TID
-    string jobstr1 = (format("PID=%1$-5d TID=%2$-3d ")
-        % pid % tid).str();
+    if (status == "QUEUEING") {
+        jobstr1 += (format("HOST=........ TIME=........ PID=..... TID=... ")).str();
+    }
     
-    // Job User ID + Tag
-    string jobstr2 = "";
-    if (status == "ASSIGNED") jobstr2 += (format("%1$5d %2$10s ")
-        % job->getUserId() % job->getTag()).str();
+    else if (status == "ASSIGNED") {
+        jobstr1 += (format("HOST=%2$-8s TIME=%3$s PID=%1$05d TID=... ")
+            % pid % host % now.time_of_day()).str();
+        jobstr2 += (format("%1$5d %2$-10s ")
+            % job->getUserId() % job->getTag()).str();
+    }
     
-    else if (status == "COMPLETE") jobstr2 += job->getInfoLine();
+    else if (status == "COMPLETE") {
+        jobstr1 += (format("HOST=%3$-8s TIME=%4$s PID=%1$05d TID=%2$03d ")
+        % pid % tid % host % now.time_of_day()).str();
+        jobstr2 += job->getInfoLine();
+    }
     
     else ;
     

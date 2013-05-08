@@ -418,7 +418,8 @@ void StateServer::WriteXMP(FILE *out, Topology *top) {
         string segName = seg->getName();
         
         string stateStr = "n";
-        string jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
+        string jobTag = boost::lexical_cast<string>(segId) 
+            + ":" +segName.substr(0,3) + ":" + stateStr;
         string mpsFile = "MP_FILES/" + segName + "_" + stateStr + ".mps";        
         ++jobId;
         fprintf(out, "%5d %10s %d:%s:%s\n",
