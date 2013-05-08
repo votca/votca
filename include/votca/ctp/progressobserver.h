@@ -61,7 +61,7 @@ private:
     string _progFile;
     string _lockFile;
     Mutex _lockRequest;
-    boost::interprocess::file_lock _flock;
+    boost::interprocess::file_lock *_flock;
     
 }; 
     

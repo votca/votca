@@ -269,8 +269,8 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
 template<typename JobContainer, typename pJob>
 void ProgObserver<JobContainer,pJob>::LockProgFile(QMThread *thread) {
     
-    _flock = boost::interprocess::file_lock(_lockFile.c_str());
-    _flock.lock();
+    _flock = new boost::interprocess::file_lock(_lockFile.c_str());
+    _flock->lock();
     LOG(logDEBUG,*(thread->getLogger()))
         << "Imposed lock on " << _lockFile << flush;
 }
@@ -279,9 +279,10 @@ void ProgObserver<JobContainer,pJob>::LockProgFile(QMThread *thread) {
 template<typename JobContainer, typename pJob>
 void ProgObserver<JobContainer,pJob>::ReleaseProgFile(QMThread *thread) {
     
-    _flock.unlock();
+    _flock->unlock();
     LOG(logDEBUG,*(thread->getLogger()))
         << "Releasing " << _lockFile << ". " << flush;
+    delete _flock;
 }
 
 
