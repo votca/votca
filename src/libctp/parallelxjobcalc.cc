@@ -99,5 +99,6 @@ void ParallelXJobCalc<JobContainer,pJob>::JobOperator::Run(void) {
 // REGISTER PARALLEL CALCULATORS
 template class ParallelXJobCalc< vector<XJob*>, XJob* >;
 template class ParallelXJobCalc< vector<Segment*>, Segment* >;
+template class ParallelXJobCalc< QMNBList, QMPair* >;
 
 }}

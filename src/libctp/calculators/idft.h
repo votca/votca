@@ -21,7 +21,7 @@
 #ifndef _CALC_INTEGRALS_DFT_H
 #define	_CALC_INTEGRALS_DFT_H
 
-#include <votca/ctp/parallelpaircalc.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/gaussian.h>
 #include <votca/tools/property.h>
@@ -43,7 +43,7 @@ namespace votca { namespace ctp {
 * Callname: idft
 */
 
-class IDFT : public ParallelPairCalculator
+class IDFT : public ParallelXJobCalc< QMNBList, QMPair* >
 {
 public:
 
@@ -54,7 +54,7 @@ public:
     
     string  Identify() { return "IDFT"; }
     
-    void EvalPair(Topology *top, QMPair *qmpair, PairOperator* opThread );
+    void EvalJob(Topology *top, QMPair *qmpair, QMThread *Thread);
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
@@ -82,7 +82,7 @@ private:
     void CalculateIntegrals(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, 
-                               PairOperator *opThread );  
+                               QMThread *opThread );  
     
     double getCouplingElement( int levelA, int levelB,  
                                Orbitals* _orbitalsA, 
@@ -96,7 +96,7 @@ private:
     void PrepareGuess(         Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, 
-                               PairOperator *opThread );
+                               QMThread *opThread );
 };
 
 }}

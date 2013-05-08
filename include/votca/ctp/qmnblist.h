@@ -38,6 +38,7 @@ class QMNBList : public CSG::PairList< Segment*, QMPair >
 {
 public:
 
+    QMNBList() : _top(NULL), _cutoff(0) { };
     QMNBList(Topology* top) : _top(top), _cutoff(0) { };
    ~QMNBList() { CSG::PairList<Segment*, QMPair>::Cleanup(); }
 

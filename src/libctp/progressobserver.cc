@@ -48,7 +48,7 @@ pJob ProgObserver<JobContainer,pJob>::RequestNextJob(QMThread *thread) {
 template<typename JobContainer, typename pJob>
 void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
     
-    // INTERPROCESS FILE LOCKING (THREAD LOCKING IN ::RequestNextJob)
+    // INTERPROCESS FILE LOCKING (THREAD LOCK IN ::RequestNextJob)
     this->LockProgFile(thread);
    
     string progFile = _progFile;
@@ -133,17 +133,14 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
         << "before restarting from this file." << endl;
     JobItCnt jit;
     for (atJobId = complete.begin(); atJobId != complete.end(); ++atJobId) {
-        pJob job = (*_jobs)[atJobId->first-1];
         ofs << atJobId->second << endl;        
     }
     for (atJobId = assigned.begin(); atJobId != assigned.end(); ++atJobId) {
-        pJob job = (*_jobs)[atJobId->first-1];
         string modStr = atJobId->second;
         boost::replace_first(modStr, "ASSIGNED", "QUEUEING");
         ofs << modStr << endl;        
     }
     for (atJobId = queueing.begin(); atJobId != queueing.end(); ++atJobId) {
-        pJob job = (*_jobs)[atJobId->first-1];
         ofs << atJobId->second << endl;        
     }
     ofs.close();    
@@ -176,15 +173,12 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
     LOG(logDEBUG,*(thread->getLogger())) << "Update progress file ..." << flush;
     ofs.open(progFile.c_str(), ofstream::out);
     for (atJobId = complete.begin(); atJobId != complete.end(); ++atJobId) {
-        pJob job = (*_jobs)[atJobId->first-1];
         ofs << atJobId->second << endl;        
     }
     for (atJobId = assigned.begin(); atJobId != assigned.end(); ++atJobId) {
-        pJob job = (*_jobs)[atJobId->first-1];
         ofs << atJobId->second << endl;        
     }
     for (atJobId = queueing.begin(); atJobId != queueing.end(); ++atJobId) {
-        pJob job = (*_jobs)[atJobId->first-1];
         ofs << atJobId->second << endl;        
     }
     ofs.close();
@@ -421,6 +415,7 @@ string ProgObserver< vector<XJob*>, XJob* >::WriteProgLine(XJob *job,
 // REGISTER
 template class ProgObserver< vector<XJob*>, XJob* >;
 template class ProgObserver< vector<Segment*>, Segment* >;
+template class ProgObserver< QMNBList, QMPair* >;
     
     
     

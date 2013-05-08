@@ -161,8 +161,14 @@ JobContainer XJOBS_FROM_TABLE(const string &job_file, Topology *top) {
 template<>
 vector<Segment*> XJOBS_FROM_TABLE< vector<Segment*>, Segment* >(const string &job_file, Topology *top) {
     
-    vector< Segment* > segs;
-    return segs;
+    return top->Segments();
+}
+
+
+template<>
+QMNBList XJOBS_FROM_TABLE< QMNBList, QMPair* >(const string &job_file, Topology *top) {
+    
+    return top->NBList();
 }
 
 
