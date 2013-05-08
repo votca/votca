@@ -420,6 +420,7 @@ string ProgObserver< vector<XJob*>, XJob* >::WriteProgLine(XJob *job,
 
 // REGISTER
 template class ProgObserver< vector<XJob*>, XJob* >;
+template class ProgObserver< vector<Segment*>, Segment* >;
     
     
     

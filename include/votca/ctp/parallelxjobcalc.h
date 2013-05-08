@@ -27,7 +27,7 @@ public:
     bool         EvaluateFrame(Topology *top);
     virtual void CustomizeLogger(QMThread* thread) { ; }
     virtual void PreProcess(Topology *top) { ; } 
-    virtual void EvalJob(Topology *top, XJob *qmpair, QMThread *opThread) { ; }
+    virtual void EvalJob(Topology *top, pJob job, QMThread *thread) { ; }
     virtual void PostProcess(Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }
@@ -68,7 +68,7 @@ public:
 
 protected:
 
-    vector<XJob*>            _XJobs;
+    JobContainer             _XJobs;
     Mutex                    _coutMutex;
     Mutex                    _logMutex;
     bool                     _maverick;

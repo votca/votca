@@ -159,6 +159,14 @@ JobContainer XJOBS_FROM_TABLE(const string &job_file, Topology *top) {
 
 
 template<>
+vector<Segment*> XJOBS_FROM_TABLE< vector<Segment*>, Segment* >(const string &job_file, Topology *top) {
+    
+    vector< Segment* > segs;
+    return segs;
+}
+
+
+template<>
 vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, Topology *top) {
     
     vector<XJob*> xjobs;
