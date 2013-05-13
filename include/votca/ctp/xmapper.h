@@ -42,7 +42,7 @@ public:
     
     // Adapt to XJob
     vector<APolarSite*> MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg);    
-    vector<APolarSite*> GetRawPolSitesJob(const string &mpsfile) { return _mpsFile_pSites_job[mpsfile]; }    
+    vector<APolarSite*> GetRawPolSitesJob(const string &mpsfile) { return _mpsFile_pSites_job[mpsfile]; }
     void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2);
     
     // Called by GenerateMap(...)

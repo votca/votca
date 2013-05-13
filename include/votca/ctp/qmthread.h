@@ -51,13 +51,17 @@ namespace votca { namespace ctp {
         QMThread( bool maverick = false ) { _maverick = maverick; }; 
        ~QMThread() {};
 
-       Logger* getLogger() { return &_logger; }
+        int  getId() { return _id; }
+        void setId(int id) { _id = id; }
+       
+        Logger* getLogger() { return &_logger; }
        
     protected:
         
+        int              _id;
         stringstream     _ss;
         bool             _maverick;
-        Logger          _logger;
+        Logger           _logger;
 
     };
     

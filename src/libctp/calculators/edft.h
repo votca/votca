@@ -24,7 +24,7 @@
 #include <votca/ctp/segment.h>
 #include <votca/ctp/gaussian.h>
 #include <votca/ctp/orbitals.h>
-#include <votca/ctp/parallelsitecalc.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <unistd.h>
 #include <fstream>
 #include <sys/stat.h>
@@ -42,7 +42,7 @@ namespace votca { namespace ctp {
 * Callname: idft
 */
 
-class EDFT : public ParallelSiteCalculator
+class EDFT : public ParallelXJobCalc< vector<Segment*>, Segment* >
 {
 public:
 
@@ -52,7 +52,7 @@ public:
     string  Identify() { return "EDFT"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThread);
+    void    EvalJob(Topology *top, Segment *seg, QMThread *thread);
 
     void    CleanUp();
 
@@ -108,7 +108,7 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 }
 
 
-void EDFT::EvalSite(Topology *top, Segment *seg, int slot, SiteOperator *opThread) {
+void EDFT::EvalJob(Topology *top, Segment *seg, QMThread *opThread) {
 
     Logger* pLog = opThread->getLogger();
     pLog->setReportLevel(logDEBUG);

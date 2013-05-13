@@ -6,28 +6,36 @@
 #include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
 #include <votca/ctp/xjob.h>
+#include <votca/ctp/progressobserver.h>
+
+
+// PATHWAYS TO A NEW THREADED CALCULATOR
+// ... 1 Define 'JobContainer' (needs to define iterator), 'pJob' ( = *iterator)
+// ... 2 Derive new calculator as ': public ParallelXJobCalc<JobContainer,pJob>'
+// ... 3 Specialize XJOBS_FROM_TABLE< JobContainer, pJob> in xjob.cc
+// ... 4 Register new calculator (see end of parallelxjobcalc.cc)
 
 
 namespace votca { namespace ctp {
 
+template<typename JobContainer, typename pJob> 
 class ParallelXJobCalc : public QMCalculator
 {
 
 public:
 
-    class XJobOperator;
+    class JobOperator;
     
-    ParallelXJobCalc() : _nextXJob(NULL), _xjobfile("__NOFILE__") {};
-   ~ParallelXJobCalc() {};
+    ParallelXJobCalc() : _xjobfile("__NOFILE__") {};
+   ~ParallelXJobCalc() { delete _progObs; };
 
     string       Identify() { return "Parallel XJob Calculator"; }
 
     bool         EvaluateFrame(Topology *top);
+    virtual void CustomizeLogger(QMThread* thread) { ; }
     virtual void PreProcess(Topology *top) { ; } 
-    virtual void EvalJob(Topology *top, XJob *qmpair, XJobOperator* opThread) { ; }
-    virtual void PostProcess(Topology *top) { ; }    
-
-    XJob        *RequestNextJob(int id, Topology *top);
+    virtual void EvalJob(Topology *top, pJob job, QMThread *thread) { ; }
+    virtual void PostProcess(Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }
     void         UnlockCout() { _coutMutex.Unlock(); }
@@ -40,25 +48,23 @@ public:
     // ======================================== //
     
 
-    class XJobOperator : public QMThread
+    class JobOperator : public QMThread
     {
     public:
 
-        XJobOperator(int id,   Topology *top, ParallelXJobCalc *master)
-                      : _id(id),    _top(top),          _master(master) {};
-       ~XJobOperator() {};
+        JobOperator(int id,   Topology *top, ParallelXJobCalc<JobContainer,pJob> *master)
+                      : _top(top),          _master(master) { _id = id; };
+       ~JobOperator() {};
 
-        int         getId() { return _id; }
-        void        setId(int id) { _id = id; }
         void        InitData(Topology *top) { ; }
         void        Run(void);
+        
 
     public:
 
-        int               _id;
         Topology         *_top;
-        ParallelXJobCalc *_master;
-        XJob             *_job;
+        ParallelXJobCalc<JobContainer,pJob> *_master;
+        pJob              _job;
 
     };
 
@@ -69,14 +75,14 @@ public:
 
 protected:
 
-    vector<XJob*>            _XJobs;
-    vector<XJob*> ::iterator _nextXJob;
-    Mutex                    _nextJobMutex;
+    JobContainer             _XJobs;
     Mutex                    _coutMutex;
     Mutex                    _logMutex;
     bool                     _maverick;
     string                   _xjobfile;
     int                      _subthreads;
+    
+    ProgObserver< JobContainer, pJob > *_progObs;
 
 
 };

@@ -15,7 +15,7 @@ using boost::format;
 namespace votca { namespace ctp {
 
    
-class QMMM : public ParallelXJobCalc
+class QMMM : public ParallelXJobCalc< vector<XJob*>, XJob* >
 {
 
 public:
@@ -26,8 +26,9 @@ public:
     string          Identify() { return "QMMM"; }
     void            Initialize(Topology *, Property *);
 
+    void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
-    void            EvalJob(Topology *top, XJob *job, XJobOperator *thread);
+    void            EvalJob(Topology *top, XJob *job, QMThread *thread);
     void            PostProcess(Topology *top);
     
 
@@ -79,7 +80,7 @@ private:
 };
 
 // ========================================================================== //
-//                        XMULTIPOLE MEMBER FUNCTIONS                         //
+//                      PARALLELCALC MEMBER FUNCTIONS                         //
 // ========================================================================== //
 
 
@@ -214,19 +215,29 @@ void QMMM::PostProcess(Topology *top) {
 }
 
 
-// ========================================================================== //
-//                            QMMM MEMBER FUNCTIONS                           //
-// ========================================================================== //
-
-
-void QMMM::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
+void QMMM::CustomizeLogger(QMThread *thread) {
     
     // CONFIGURE LOGGER
     Logger* log = thread->getLogger();
     log->setReportLevel(logDEBUG);
     log->setMultithreading(_maverick);
-    log->setPreface(logINFO, "\n... ... ...");
+
+    log->setPreface(logINFO,    (format("\nT%1$02d ... ...") % thread->getId()).str());
+    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
+}
+
+
+// ========================================================================== //
+//                            QMMM MEMBER FUNCTIONS                           //
+// ========================================================================== //
+
+
+void QMMM::EvalJob(Topology *top, XJob *job, QMThread *thread) {
     
+    // SILENT LOGGER FOR QMPACKAGE
+    Logger* log = thread->getLogger();    
     Logger* qlog = new Logger();
     qlog->setReportLevel(logWARNING);
     qlog->setMultithreading(_maverick);    
@@ -262,6 +273,7 @@ void QMMM::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     this->LockCout();
     cout << *thread->getLogger();
     this->UnlockCout();
+    job->setInfoLine();
     job->getPolarTop()->~PolarTop();
 }
 

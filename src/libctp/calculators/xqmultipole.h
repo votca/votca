@@ -8,13 +8,16 @@
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/logger.h>
+#include <boost/format.hpp>
 
+
+using boost::format;
 
 
 namespace votca { namespace ctp {
 
     
-class XQMP : public ParallelXJobCalc
+class XQMP : public ParallelXJobCalc< vector<XJob*>, XJob* >
 {
 
 public:
@@ -25,8 +28,9 @@ public:
     string          Identify() { return "XQMultipole"; }
     void            Initialize(Topology *, Property *);
 
+    void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
-    void            EvalJob(Topology *top, XJob *job, XJobOperator *thread);
+    void            EvalJob(Topology *top, XJob *job, QMThread *thread);
     void            PostProcess(Topology *top);
     
 
@@ -187,7 +191,7 @@ void XQMP::PreProcess(Topology *top) {
 
 void XQMP::PostProcess(Topology *top) {
     
-    // WRITE OUTPUT (PRIMARILY ENERGIE SPLITTINGS)
+    // WRITE OUTPUT (PRIMARILY ENERGY SPLITTINGS)
     FILE *out;
     out = fopen(this->_outFile.c_str(), "w");
     vector<XJob*> :: iterator jit;
@@ -198,18 +202,29 @@ void XQMP::PostProcess(Topology *top) {
 }
 
 
+void XQMP::CustomizeLogger(QMThread *thread) {
+    
+    // CONFIGURE LOGGER
+    Logger* log = thread->getLogger();
+    log->setReportLevel(logDEBUG);
+    log->setMultithreading(_maverick);
+
+    log->setPreface(logINFO,    (format("\nT%1$02d ... ...") % thread->getId()).str());
+    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
+}
+
+
+
 // ========================================================================== //
 //                           JOBXQMP MEMBER FUNCTIONS                         //
 // ========================================================================== //
 
 
-void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
+void XQMP::EvalJob(Topology *top, XJob *job, QMThread *thread) {
     
-    // CONFIGURE STRING LOGGER
     Logger *log = thread->getLogger();
-    log->setReportLevel(logINFO);
-    log->setMultithreading(_maverick);
-    log->setPreface(logINFO, "\n... ... ...");
     
     // GENERATE POLAR TOPOLOGY
     double co1 = _cutoff1;
@@ -217,9 +232,8 @@ void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
     
     _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
     
-    cout << endl << "... ... ... "
-         << job->getPolarTop()->ShellInfoStr()
-         << flush;
+    LOG(logINFO,*log)
+         << job->getPolarTop()->ShellInfoStr() << flush;
     
     if (tools::globals::verbose)
     job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
@@ -245,7 +259,8 @@ void XQMP::EvalJob(Topology *top, XJob *job, XJobOperator *thread) {
         
     }
 
-    // CLEAN POLAR TOPOLOGY    
+    // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
+    job->setInfoLine(true,false);
     job->getPolarTop()->~PolarTop();
     
 }

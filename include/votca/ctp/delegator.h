@@ -26,7 +26,9 @@ using namespace boost::interprocess ;
 
 namespace votca { namespace ctp {
 
+
 enum TJobStatus {jobAVAILABLE, jobLOCKED, jobDONE, jobFAILED};
+
  
 /**
 *   \brief Delegator distributes jobs

@@ -61,20 +61,16 @@ public:
 
         SiteOperator(int id, Topology *top,
                      ParallelSiteCalculator *master)
-                   : _id(id), _top(top), _seg(NULL),
-                     _master(master)      {};
+                   : _top(top), _seg(NULL),
+                     _master(master)      { _id = id; };
 
        ~SiteOperator() {};
-
-        int  getId() { return _id; }
-        void setId(int id) { _id = id; }
 
         void Run(void);
         
 
     protected:
 
-        int                      _id;
         Topology                *_top;
         Segment                 *_seg;
         ParallelSiteCalculator  *_master;
