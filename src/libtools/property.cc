@@ -29,6 +29,14 @@
 
 namespace votca { namespace tools {
 
+PropertyFormat XML(formatXML);
+PropertyFormat TXT(formatTXT);
+PropertyFormat T2T(formatT2T);
+PropertyFormat LOG(formatLOG);
+
+// ostream modifier defines the output format
+const int Property::_format = std::ios_base::xalloc();  
+    
 Property &Property::get(const string &key)
 {
     Tokenizer tok(key, ".");
@@ -91,25 +99,100 @@ std::list<Property *> Property::Select(const string &filter)
     return selection;
 }
 
-void Property::PrintNode(std::ostream &out, const string &prefix, Property &p)
+void Property::PrintNodeTXT(std::ostream &out, const string &prefix, Property &p)
 {
     
     map<string, Property*>::iterator iter;
-    if((p._value != "") || p.HasChilds())
-        out << prefix << " = " << p._value << endl;
+    if((p._value != "") || p.HasChilds()) {
+        if ( prefix.find_first_not_of(' ') != std::string::npos )
+            
+        if((p._value).find_first_not_of("\t\n ") != std::string::npos)     
+        out << prefix << " = ";
+        
+        if((p._value).find_first_not_of("\t\n ") != std::string::npos) 
+            out << p._value << endl;
+        
+    }
+        
     for(iter = p._map.begin(); iter!=p._map.end(); ++iter) {
         if(prefix=="") 
-            PrintNode(out, prefix + (*iter).first, *(*iter).second);
+            PrintNodeTXT(out, prefix + (*iter).first, *(*iter).second);
         else
-            PrintNode(out, prefix + "." + (*iter).first, *(*iter).second);
+            PrintNodeTXT(out, prefix + "." + (*iter).first, *(*iter).second);
     }
+}
+
+void Property::PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset)
+{
+    
+    map<string, Property*>::iterator iter;    
+    
+    if( p.HasChilds() || p._value != "" ) {
+        
+        if ( prefix.find_first_not_of(' ') != std::string::npos )  
+        out << offset << "<" << prefix << ">" << endl;
+ 
+        if((p._value).find_first_not_of("\t\n ") != std::string::npos) 
+            out << "\t" << offset << p._value << endl;
+     
+        for(iter = p._map.begin(); iter!=p._map.end(); ++iter) {
+            offset += "\t";
+            PrintNodeXML(out, (*iter).first, *(*iter).second, offset);
+            offset.resize(offset.size()-1);           
+        }
+        
+        if ( prefix.find_first_not_of(' ') != std::string::npos ) {
+                out << offset << "</" << prefix << ">"  << endl;
+        }
+    }
+}
+
+void Property::PrintNodeT2T(std::ostream &out, const string &prefix, Property &p) {
+    out << "T2T format is not implemented";
+}
+
+void Property::PrintNodeLOG(std::ostream &out, const string &prefix, Property &p) {
+    out << "LOG format is not implemented";
 }
 
 std::ostream &operator<<(std::ostream &out, Property& p)
 {
-      Property::PrintNode(out, "", p);
-      return out;
-}
+    if (!out.good())
+        return out;
+
+    std::ostream::sentry sentry(out);
+
+    if(sentry)
+    {
+        switch(out.iword(p.GetFormat()))
+        {
+        default:
+            p.PrintNodeTXT(out, "", p);
+        case formatXML:
+            p.PrintNodeXML(out, "", p, "");
+            break;
+        case formatTXT:
+            p.PrintNodeTXT(out, "", p);
+            break;
+        case formatT2T:
+            p.PrintNodeT2T(out, "", p);
+            break;
+        case formatLOG:
+            p.PrintNodeLOG(out, "", p);
+            break;
+        }
+
+        out << endl;
+    }
+
+    return out;
+};
+
+//{
+//      Property::PrintNode(out, "", p);
+      //Property::PrintNodeXML(out, "", p, "");
+//      return out;
+//}
 
 static void start_hndl(void *data, const char *el, const char **attr)
 {
@@ -171,15 +254,6 @@ bool load_property_from_xml(Property &p, string filename)
   }
   fl.close();
   return true;
-}
-
-void Property::PrintT2T() {
-
-    map<string, Property*>::iterator iter;
-
-    for(iter = _map.begin(); iter!=_map.end(); ++iter) {
-             PrintNode(cout, (*iter).first, *(*iter).second);
-    }
 }
 
 }}

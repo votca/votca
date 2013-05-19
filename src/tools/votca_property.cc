@@ -69,23 +69,15 @@ int main(int argc, char** argv)
     try {
 
     Property p;
+    
     load_property_from_xml(p, file);
     
-    cout << "loaded  "  << file << endl;
-
-    list<Property *> sel = p.Select("*");
-
-    Tokenizer tok("cg_molecule",".");
-    Property pn;
-    for( Tokenizer::iterator n = tok.begin(); n!=tok.end(); ++n) {
-         pn = pn.get(*n);
-    }
-
-
-    cout << "info: " << p.name() <<":"<< p.path() <<":"<< p.value() << ":" << p.size() << endl;
-
-        for(list<Property*>::iterator iter = sel.begin(); iter!=sel.end(); ++iter) {
-        }
+    //cout << "loaded  "  << file << endl;
+    cout << XML << p;
+    cout << TXT << p;
+    cout << T2T << p;
+    cout << LOG << p;
+            
     } catch(std::exception &error) {
         cerr << "an error occurred:\n" << error.what() << endl;
         return -1;

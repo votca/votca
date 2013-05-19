@@ -20,10 +20,11 @@
 
 #include <map>
 #include <string>
-#include "lexical_cast.h"
+#include <iostream>
 #include <list>
-#include <boost/algorithm/string/trim.hpp>
 #include <stdexcept>
+#include "lexical_cast.h"
+#include <boost/algorithm/string/trim.hpp>
 
 #include "vec.h"
 #include "tokenizer.h"
@@ -32,6 +33,8 @@ namespace votca { namespace tools {
 
 using namespace std;
 
+enum formats{ formatXML, formatTXT, formatLOG, formatTEX, formatT2T };
+    
 /**
   * \brief class to manage properties and options, also used as an xml-wrapper
   *
@@ -40,6 +43,10 @@ using namespace std;
   * or read in from an xml file using load_property_from_xml.
   */
 class Property {
+    
+    // outputs the property to the ostream
+    friend std::ostream &operator<<(std::ostream &out, Property& p);
+    
 public:
     Property() : _path("") {}
     
@@ -135,9 +142,6 @@ public:
     // throw error and comment (with filename+code line)
     void throwRuntimeError(string message);
 
-    /// \brief output the content in the t2t format
-    void PrintT2T();
-    
     /**
      * \brief return attribute as type
      *
@@ -152,6 +156,11 @@ public:
      */
     template<typename T>
     void setAttribute(const string &attribute, const T &value);
+    
+    /**
+     * \brief stores output format
+     */    
+    static int GetFormat(){return _format;}; 
 
 private:        
     map<string,Property*> _map;
@@ -161,11 +170,22 @@ private:
     string _name;
     string _value;
     string _path;
-    
-    static void PrintNode(std::ostream &out, const string &prefix, Property &p);
-    
-    friend std::ostream &operator<<(std::ostream &out, Property& p);
 
+    static const int _format;
+    
+    /// \brief output the content in the text format
+    static void PrintNodeTXT(std::ostream &out, const string &prefix, Property &p);
+    /// \brief output the content in the xml format
+    static void PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset);
+    /// \brief output the content in the t2t format
+    static void PrintNodeT2T(std::ostream &out, const string &prefix, Property &p);
+    /// \brief output the content in the log format (values only)
+    static void PrintNodeLOG(std::ostream &out, const string &prefix, Property &p);
+    
+   
+    friend std::ostream &operator<<(std::ostream &out, const Property& p);
+    
+    
     struct PropertyStackEntry_t {
         Property *prop;
         string comment;
@@ -173,10 +193,9 @@ private:
 /*
 stack<Property *> -> stack< Propertz_stack_entry_t>
 */
+    
 };
-
-
-
+  
 
 inline Property &Property::set(const string &key, const string &value)
 {
@@ -202,7 +221,6 @@ inline bool Property::exists(const string &key)
 }
     
 bool load_property_from_xml(Property &p, string file);
-std::ostream &operator<<(std::ostream &out, Property& p);
 
 // TO DO: write a better function for this!!!!
 template<>
@@ -275,6 +293,25 @@ inline void Property::setAttribute(const string &attribute, const T &value)
 inline void throwRuntimeError(string message) {
     
 }
+
+
+class PropertyFormat {
+    
+public:
+    explicit PropertyFormat(formats fmt) : _fmt(fmt){}    
+    friend std::ostream& operator << (std::ostream& os, const PropertyFormat& pf)
+    {
+        os.iword(Property::GetFormat()) = pf._fmt;
+        return os;
+    }
+private:
+    int _fmt;     
+};
+
+extern PropertyFormat XML;
+extern PropertyFormat TXT;
+extern PropertyFormat T2T;
+extern PropertyFormat LOG;
 
 }}
 

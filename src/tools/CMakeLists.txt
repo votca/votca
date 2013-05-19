@@ -3,7 +3,7 @@ foreach(PROG votca_property)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_tools)
   #not realy useful, re-enable whenever it is ready to replace csg_property
-  #install(TARGETS ${PROG} RUNTIME DESTINATION bin)
+  install(TARGETS ${PROG} RUNTIME DESTINATION bin)
 
   #help2t2t is part of csg for now, re-enable whenever votca_tools is ready
   # or if votca issue 94 and votca-ctp issue 16 is solved

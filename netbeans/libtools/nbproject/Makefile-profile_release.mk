@@ -24,12 +24,13 @@ AS=as
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=profile_release
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile_nb
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -76,7 +77,7 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-profile_release.mk ../../src/libtools/libtools.a
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/libtools/libtools.a
 
 ../../src/libtools/libtools.a: ${OBJECTFILES}
 	${MKDIR} -p ../../src/libtools
@@ -204,7 +205,7 @@ ${OBJECTDIR}/_ext/1723120609/statement.o: ../../src/libtools/statement.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/profile_release
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} ../../src/libtools/libtools.a
 
 # Subprojects
