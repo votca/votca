@@ -31,17 +31,17 @@ void help_text()
 int main(int argc, char** argv)
 {      
     string file;
-    bool short_output = false;
-    bool with_path = false;
+    string format;
 
-    // lets read in some program options
+    // read in the program options
     namespace po = boost::program_options;
 
     // Declare the supported options.
-    po::options_description desc("Allowed options");    
+    po::options_description desc("Program options");    
     desc.add_options()
         ("help", "produce this help message")
-        ("file", po::value<string>(&file), "xml file to parse");
+        ("file", po::value<string>(&file), "xml file to parse")
+        ("format", po::value<string>(&format), "output format [XML TXT TEX]");
 
     // now read in the command line
     po::variables_map vm;
@@ -65,18 +65,41 @@ int main(int argc, char** argv)
         cout << desc << endl;
         return -1;
     }
-
+    // format specified
+    if (!vm.count("format")) {
+        cout << "format not specified, using XML\n";  
+        format = "XML";
+    } 
+    
     try {
 
     Property p;
     
+    map<string, PropertyFormat* > _mformat;
+    map<string, PropertyFormat* >::iterator it;
+     
+    _mformat["XML"] = &XML;
+    _mformat["TXT"] = &TXT;
+    _mformat["LOG"] = &LOG;
+    _mformat["T2T"] = &T2T;
+    _mformat["TEX"] = &TEX;
+    
     load_property_from_xml(p, file);
     
-    //cout << "loaded  "  << file << endl;
-    cout << XML << p;
-    cout << TXT << p;
-    cout << T2T << p;
-    cout << LOG << p;
+    it = _mformat.find( format );
+    if ( it != _mformat.end() ) {
+        cout << *(_mformat.find( format )->second) << p ;
+    } else {
+        cout << "format " << format << " not supported \n";
+        cout << desc << endl;
+        return -1;
+    }
+    
+    //cout << XML << p;
+    //cout << TXT << p;
+    //cout << T2T << p;
+    //cout << LOG << p;
+    //cout << TEX << p;
             
     } catch(std::exception &error) {
         cerr << "an error occurred:\n" << error.what() << endl;

@@ -181,6 +181,8 @@ private:
     static void PrintNodeT2T(std::ostream &out, const string &prefix, Property &p);
     /// \brief output the content in the log format (values only)
     static void PrintNodeLOG(std::ostream &out, const string &prefix, Property &p);
+    /// \brief output the content in the tex format (manual)
+    static void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int offset);
     
    
     friend std::ostream &operator<<(std::ostream &out, const Property& p);
@@ -312,6 +314,7 @@ extern PropertyFormat XML;
 extern PropertyFormat TXT;
 extern PropertyFormat T2T;
 extern PropertyFormat LOG;
+extern PropertyFormat TEX;
 
 }}
 
