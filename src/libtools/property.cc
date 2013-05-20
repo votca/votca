@@ -137,11 +137,11 @@ void Property::PrintNodeXML(std::ostream &out, const string &prefix, Property &p
         
         if ( prefix.find_first_not_of(' ') != std::string::npos )  {
                 out << offset << "<" << prefix ;
-                /* The attributes do not work so far
+                /* The attributes do not work so far */
                 for(ia = p._attributes.begin(); ia!=p._attributes.end(); ++ia) {
                         cout << " " << ia->first << "=\"" << ia->second << "\"" ;
                 }
-                 */
+                 
                 out << ">" << endl;
                       
         }
@@ -263,7 +263,7 @@ static void start_hndl(void *data, const char *el, const char **attr)
     Property &np = cur->add(el, "");
     
     for (int i = 0; attr[i]; i += 2)
-        cur->setAttribute(attr[i], attr[i + 1]);    
+        np.setAttribute(attr[i], attr[i + 1]);    
     
     property_stack->push(&np);
 }
