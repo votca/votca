@@ -128,10 +128,23 @@ void Property::PrintNodeXML(std::ostream &out, const string &prefix, Property &p
     
     map<string, Property*>::iterator iter;    
     
+    map<string,string>::iterator ia;
+    
+    //cout << p._name << " Attributes: " << p._attributes.size() << endl;
+    
+  
     if( p.HasChilds() || p._value != "" ) {
         
-        if ( prefix.find_first_not_of(' ') != std::string::npos )  
-        out << offset << "<" << prefix << ">" << endl;
+        if ( prefix.find_first_not_of(' ') != std::string::npos )  {
+                out << offset << "<" << prefix ;
+                /* The attributes do not work so far
+                for(ia = p._attributes.begin(); ia!=p._attributes.end(); ++ia) {
+                        cout << " " << ia->first << "=\"" << ia->second << "\"" ;
+                }
+                 */
+                out << ">" << endl;
+                      
+        }
  
         if((p._value).find_first_not_of("\t\n ") != std::string::npos) 
             out << "\t" << offset << p._value << endl;
