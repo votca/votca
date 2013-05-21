@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="79">
+<configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="calculators" displayName="calculators" projectFiles="true">
       <itemPath>../../src/libkmc/calculators/kmcsingle.h</itemPath>
@@ -22,7 +22,7 @@
       <itemPath>../../src/libkmc/kmcapplication.cc</itemPath>
       <itemPath>../../src/libkmc/kmccalculatorfactory.cc</itemPath>
     </logicalFolder>
-    <logicalFolder name="f1" displayName="XML" projectFiles="true">
+    <logicalFolder name="f1" displayName="XML" projectFiles="true" kind="ROOT">
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"

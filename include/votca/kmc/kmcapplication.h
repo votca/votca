@@ -66,8 +66,8 @@ protected:
     Property _options;
     /// sql database file
     string _filename;
-    
-    int _nThreads;
+    /// output text file
+    string _outputfile;
 
     /// load system information from statesaver
     void ReadData();

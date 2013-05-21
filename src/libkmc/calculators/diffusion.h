@@ -41,7 +41,7 @@ public:
     Diffusion() {zero_border=0.0;};
    ~Diffusion() {};
 
-    void Initialize(const char *filename, Property *options );
+    void Initialize(const char *filename, Property *options , const char *outputfile);
     bool EvaluateFrame();
     double zero_border;
 protected:
@@ -58,13 +58,14 @@ protected:
             double _dt;
             int _seed;
             string _filename; // HACK
+            string _outputfile;
             matrix diffusion; //matrix for diffusion tensor
             int    number_of_points; // number of vectors in diffusion tensor calculation
             matrix::eigensystem_t diff_tensor_eigensystem;
             
 };
 
-void Diffusion::Initialize(const char *filename, Property *options )
+void Diffusion::Initialize(const char *filename, Property *options , const char *outputfile)
 {
     	if (options->exists("options.diffusion.runtime")) {
 	    _runtime = options->get("options.diffusion.runtime").as<double>();
@@ -92,7 +93,7 @@ void Diffusion::Initialize(const char *filename, Property *options )
 	}
 	else {
 	    std::runtime_error("Error in diffusion: injection pattern is not provided");
-        }
+        }    
 
         if(options->exists("options.rates.field"))
         {
@@ -125,6 +126,7 @@ void Diffusion::Initialize(const char *filename, Property *options )
 
         
         _filename = filename;
+        _outputfile = outputfile;
 }
 
 bool Diffusion::EvaluateFrame()
@@ -141,7 +143,7 @@ void Diffusion::LoadGraph() {
     Database db;
     db.Open( _filename );
     cout << " Loading graph from " << _filename << endl;
-    Statement *stmt = db.Prepare("SELECT _id,name FROM conjsegs;");
+    Statement *stmt = db.Prepare("SELECT _id, name FROM segments;");
 
     while (stmt->Step() != SQLITE_DONE) {
         int id = stmt->Column<int>(0);
@@ -162,7 +164,7 @@ void Diffusion::LoadGraph() {
 
 
     int links = 0;
-    stmt = db.Prepare("SELECT conjseg1, conjseg2, rate12, rate21, r_x, r_y, r_z FROM pairs;");
+    stmt = db.Prepare("SELECT seg1, seg2, rate12e, rate21e, drX, drY, drZ FROM pairs;");
     while (stmt->Step() != SQLITE_DONE) {
         node_t *n1 = _nodes_lookup[stmt->Column<int>(0)];
         node_t *n2 = _nodes_lookup[stmt->Column<int>(1)];
@@ -179,7 +181,7 @@ void Diffusion::LoadGraph() {
 
 void Diffusion::RunKMC(void)
 {
-	double t = 0;
+    double t = 0;
         number_of_points = 0;
         //put zeros in diffusion tensor matrix
         diffusion.ZeroMatrix();
@@ -243,7 +245,7 @@ void Diffusion::WriteOcc()
     cout << "Opening for writing " << _filename << endl;
 	db.Open(_filename);
 	db.Exec("BEGIN;");
-	Statement *stmt = db.Prepare("UPDATE conjsegs SET occ = ? WHERE _id = ?;");
+	Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE _id = ?;");
 	for(int i=0; i<_nodes.size(); ++i) {
 		stmt->Reset();
 		stmt->Bind(1, _nodes[i]->_occ/_runtime);
