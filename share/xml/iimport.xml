@@ -1,11 +1,3 @@
-<iimport>
-  
-	<description>Reads in electronic coupling from file.xml, created by ctp_dipro in folder structure as gererated by pairdump. Writes data to state.sql</description>
-
-	<sectionlabel>iimport</sectionlabel>
-	
-	<item>
-		<name>TI_tag</name>
-		<description>Name/tag of transfer integral</description>
-	</item>
+<iimport help="Reads in electronic couplings from file.xml created by ctp-dipro in folder structure as gererated by pairdump. Writes data to the state file" label="calc:iimport">
+	<TI_tag help="Name/tag of transfer integral"></TI_tag>
 </iimport>
