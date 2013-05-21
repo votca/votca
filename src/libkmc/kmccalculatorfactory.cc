@@ -20,6 +20,7 @@
 #include "calculators/kmcsingle.h"
 #include "calculators/kmcmultiple.h"
 #include "calculators/diffusion.h"
+#include "calculators/diode.h"
 
 namespace votca { namespace kmc {
 
@@ -28,6 +29,7 @@ void KMCCalculatorFactory::RegisterAll(void)
     Calculators().Register<KMCSingle>("kmcsingle"); // single charge carrier in PBC
     Calculators().Register<KMCMultiple>("kmcmultiple"); // multiple charge carriers
     Calculators().Register<Diffusion>("diffusion"); // single charge carrier in PBC
+    Calculators().Register<Diode>("diode"); // single charge carrier in PBC
 }
 
 }}
