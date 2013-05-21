@@ -108,6 +108,7 @@ void Property::PrintNodeTXT(std::ostream &out, const string &prefix, Property &p
     
     if((p._value != "") || p.HasChilds()) {
         
+        if((p._value).find_first_not_of("\t\n ") != std::string::npos)   
                 out << prefix << " = " << p._value << endl;
     }
         
@@ -176,7 +177,7 @@ void Property::PrintNodeTEX(std::ostream &out, const string &prefix, Property &p
 
     list<Property>::iterator iter;       
      
-    if((p._value != "") || p.HasChilds()) {
+    if( (p._value != "") || p.HasChilds()) {
         
          if((p._value).find_first_not_of("\t\n ") != std::string::npos ) {
             string _tex_name = boost::replace_all_copy( p._name, "_", "\\_" );
@@ -186,8 +187,7 @@ void Property::PrintNodeTEX(std::ostream &out, const string &prefix, Property &p
                 << " & " <<  p._attributes["help"] << "\\\\" << endl;
          }
     }
-
-        
+      
     for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
         if(prefix=="") {
             offset += 10;
