@@ -104,23 +104,18 @@ std::list<Property *> Property::Select(const string &filter)
 void Property::PrintNodeTXT(std::ostream &out, const string &prefix, Property &p)
 {
     
-    map<string, Property*>::iterator iter;
+    list<Property>::iterator iter;
+    
     if((p._value != "") || p.HasChilds()) {
-        if ( prefix.find_first_not_of(' ') != std::string::npos )
-            
-        if((p._value).find_first_not_of("\t\n ") != std::string::npos)     
-        out << prefix << " = ";
         
-        if((p._value).find_first_not_of("\t\n ") != std::string::npos) 
-            out << p._value << endl;
-        
+                out << prefix << " = " << p._value << endl;
     }
         
-    for(iter = p._map.begin(); iter!=p._map.end(); ++iter) {
+    for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
         if(prefix=="") 
-            PrintNodeTXT(out, prefix + (*iter).first, *(*iter).second);
+            PrintNodeTXT(out, prefix + (*iter)._name, (*iter));
         else
-            PrintNodeTXT(out, prefix + "." + (*iter).first, *(*iter).second);
+            PrintNodeTXT(out, prefix + "." + (*iter)._name, (*iter));
     }
 }
 
