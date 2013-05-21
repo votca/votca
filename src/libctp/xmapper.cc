@@ -3,7 +3,7 @@
 
 namespace votca { namespace ctp {
 
-    
+
 void XMpsMap::GenerateMap(string xml_file, 
                           string alloc_table, 
                           Topology *top, 

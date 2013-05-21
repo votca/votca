@@ -1,6 +1,7 @@
 #include <votca/ctp/qmmachine.h>
 #include <sys/stat.h>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 
 
 using boost::format;
@@ -65,11 +66,6 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
        % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
     
-    // PREPARE JOB DIRECTORY
-    string jobFolder = "xjob_" + boost::lexical_cast<string>(_job->getId())
-                     + "_" + _job->getTag();    
-    mkdir(jobFolder.c_str(), 0755);
-    
     // FIGURE OUT CHARGE + MULTIPLICITY
     double dQ = 0.0;
     for (int i = 0; i < _job->getPolarTop()->QM0().size(); ++i) {
@@ -78,6 +74,15 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
     LOG(logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+    
+    
+    // PREPARE JOB DIRECTORY
+    string jobFolder = "xjob_" + boost::lexical_cast<string>(_job->getId())
+                     + "_" + _job->getTag();    
+    bool created = boost::filesystem::create_directory(jobFolder);
+    if (created) 
+        LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
+    
     
     // SET ITERATION-TIME CONSTANTS
     _qmpack->setCharge(chrg);
@@ -93,7 +98,8 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     }
     
     if (iterCnt == iterMax-1 && !_isConverged) {
-        printf("\n... ... ... WARNING: Not converged within %d iterations.", iterMax);
+        LOG(logWARNING,*_log)
+            << format("Not converged within %1$d iterations.") % iterMax;
     }
     
     return;
@@ -103,10 +109,17 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
 template<class QMPackage>
 bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
+    // CREATE ITERATION OBJECT & SETUP RUN DIRECTORY
     QMMIter *thisIter = this->CreateNewIter();
     int iter = iterCnt;
     string runFolder = jobFolder + "/iter_" + boost::lexical_cast<string>(iter);
-    mkdir(runFolder.c_str(), 0755);    
+       
+    bool created = boost::filesystem::create_directory(runFolder);
+    if (created) 
+        LOG(logDEBUG,*_log) << "Created directory " << runFolder << flush;
+    else
+        LOG(logWARNING,*_log) << "Could not create directory " << runFolder << flush;
+    
     
     // RUN CLASSICAL INDUCTION & SAVE
     _xind->Evaluate(_job);
@@ -168,6 +181,13 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         << format("... MS(dQ)   = %1$+4.9e") % thisIter->getRMSdQ() << flush;
     LOG(logINFO,*_log)
         << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
+    
+    // CLEAN DIRECTORY
+    int removed = boost::filesystem::remove_all(runFolder);
+    if (removed > 0) 
+        LOG(logDEBUG,*_log) << "Removed directory " << runFolder << flush;
+    else 
+        LOG(logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
     
     return 0;
 }

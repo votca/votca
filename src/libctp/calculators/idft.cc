@@ -168,7 +168,8 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
  }
 
-void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, PairOperator *opThread ) {
+void IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
+    Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, QMThread *opThread) {
             
     /* test case
     ub::matrix<double> _monomersAB (4, 5);
@@ -305,7 +306,8 @@ void IDFT::CalculateIntegrals( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbit
 
 }
 
-double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, Orbitals* _orbitalsB, ub::matrix<double>* _JAB  ) {
+double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
+    Orbitals* _orbitalsB, ub::matrix<double>* _JAB  ) {
        
     int _levelsA = _orbitalsA->getNumberOfLevels();
     int _levelsB = _orbitalsB->getNumberOfLevels();    
@@ -333,7 +335,7 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA, 
     // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
 }
  
-void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
+void IDFT::EvalJob(Topology *top, QMPair *qmpair, QMThread *opThread) {
 
     Logger* pLog = opThread->getLogger();
     pLog->setReportLevel(logDEBUG);
@@ -471,7 +473,8 @@ void IDFT::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread ) {
     cout << *pLog;
 }
 
-void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, PairOperator *opThread ) {
+void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
+    Orbitals* _orbitalsAB, QMThread *opThread ) {
     
     ///if ( tools::globals::verbose ) *opThread  << "... ... Constructing the guess for the dimer orbitals\n" ;   
    

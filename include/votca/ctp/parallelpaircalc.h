@@ -62,20 +62,16 @@ public:
 
         PairOperator(int id, Topology *top,
                      ParallelPairCalculator *master)
-                   : _id(id), _top(top), _pair(NULL),
-                     _master(master)      {};
+                   : _top(top), _pair(NULL),
+                     _master(master)      { _id = id; };
 
        ~PairOperator() {};
-
-        int  getId() { return _id; }
-        void setId(int id) { _id = id; }
 
         void Run(void);
         
 
     protected:
 
-        int                      _id;
         Topology                *_top;
         QMPair                 *_pair;
         ParallelPairCalculator  *_master;

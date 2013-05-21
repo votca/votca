@@ -1,23 +1,23 @@
 #include <votca/ctp/parallelxjobcalc.h>
+#include <boost/algorithm/string.hpp>
 
 
 namespace votca { namespace ctp {
 
+    
+template<typename JobContainer, typename pJob> 
+bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {    
 
-bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
-
-    // CREATE XJOBS FROM FILE (HAS TO BE INITIALIZED IN CHILD OBJECT)
-    _XJobs = XJOBS_FROM_TABLE(_xjobfile, top);    
+    // CREATE XJOBS & PROGRESS OBSERVER (_XJOBFILE INIT. IN CHILD)
+    _XJobs = XJOBS_FROM_TABLE<JobContainer,pJob>(_xjobfile, top); 
     cout << endl << "... ... Registered " << _XJobs.size() << " jobs " << flush;
     
-
     // RIGIDIFY TOPOLOGY (=> LOCAL FRAMES)
     if (!top->isRigid()) {
         bool isRigid = top->Rigidify();
         if (!isRigid) { return 0; }
     }
     else cout << endl << "... ... System is already rigidified." << flush;
-
     
     // CONVERT THREADS INTO SUBTHREADS IF BENEFICIAL
     if (_XJobs.size() < _nThreads) {
@@ -29,17 +29,26 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
              << "NT = " << _nThreads << ", NST = " << _subthreads
              << flush;
     }
+    
+    string progFile = _xjobfile+"_status";
+    string lockFile = _xjobfile;
+    _progObs = new ProgObserver< JobContainer, pJob >
+            (&_XJobs, _nThreads, progFile, lockFile);
+
 
     // PRE-PROCESS (OVERWRITTEN IN CHILD OBJECT)
     this->PreProcess(top);
     
     // CREATE + EXECUTE THREADS (XJOB HANDLERS)
-    vector<XJobOperator*> jobOps;
-    _nextXJob = _XJobs.begin();
+    vector<JobOperator*> jobOps;
 
     for (int id = 0; id < _nThreads; id++) {
-        XJobOperator *newOp = new XJobOperator(id, top, this);
+        JobOperator *newOp = new JobOperator(id, top, this);
         jobOps.push_back(newOp);
+    }
+    
+    for (int id = 0; id < _nThreads; ++id) {
+        CustomizeLogger(jobOps[id]);
     }
 
     for (int id = 0; id < _nThreads; id++) {
@@ -53,10 +62,15 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
     for (int id = 0; id < _nThreads; id++) {
         jobOps[id]->WaitDone();
     }
+    
+    if (!_maverick)
+    for (int id = 0; id < _nThreads; id++) {
+        cout << endl << *(jobOps[id]->getLogger()) << flush;
+    }
 
     for (int id = 0; id < _nThreads; id++) {
         delete jobOps[id];
-    }
+    }    
 
     jobOps.clear();
 
@@ -67,38 +81,24 @@ bool ParallelXJobCalc::EvaluateFrame(Topology *top) {
 }
 
 
-XJob *ParallelXJobCalc::RequestNextJob(int id, Topology *top) {
-
-    _nextJobMutex.Lock();
-
-    XJob *workOnThis;
-
-    if (_nextXJob == _XJobs.end()) {
-        workOnThis = NULL;
-    }
-    else {
-        workOnThis = *_nextXJob;
-        _nextXJob++;
-        cout << endl 
-             << "... ... Thread " << id << " evaluating job "
-             << workOnThis->getId() << " " << workOnThis->getTag()
-             << flush;
-    }
-
-    _nextJobMutex.Unlock();
-
-    return workOnThis;
-}
-
-
-void ParallelXJobCalc::XJobOperator::Run(void) {
+template<typename JobContainer, typename pJob>
+void ParallelXJobCalc<JobContainer,pJob>::JobOperator::Run(void) {
 
     while (true) {
-        _job = _master->RequestNextJob(_id, _top);
+        _job = _master->_progObs->RequestNextJob(this);
 
         if (_job == NULL) { break; }
-        else { this->_master->EvalJob(_top, _job, this); }
+        else { 
+            this->_master->EvalJob(_top, _job, this); 
+            this->_master->_progObs->ReportJobDone(_job, this);
+        }
     }
 }
+
+
+// REGISTER PARALLEL CALCULATORS
+template class ParallelXJobCalc< vector<XJob*>, XJob* >;
+template class ParallelXJobCalc< vector<Segment*>, Segment* >;
+template class ParallelXJobCalc< QMNBList, QMPair* >;
 
 }}

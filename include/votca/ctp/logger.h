@@ -54,14 +54,19 @@ public:
         void setPreface(TLogLevel level, std::string preface) {            
             switch ( level )
             {
+
                 case logERROR: 
                     _errorPreface = preface;
+                    break;
                 case logWARNING:
-                    _warnPreface = preface;      
+                    _warnPreface = preface;
+                    break;
                 case logINFO:
-                    _infoPreface = preface;     
+                    _infoPreface = preface;
+                    break;
                 case logDEBUG:
-                    _dbgPreface = preface;   
+                    _dbgPreface = preface;
+                    break;
             }
         }
         
