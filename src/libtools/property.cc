@@ -126,37 +126,44 @@ void Property::PrintNodeTXT(std::ostream &out, const string &prefix, Property &p
 void Property::PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset)
 {
     
-    map<string, Property*>::iterator iter;    
-    
+    list<Property>::iterator iter;       
     map<string,string>::iterator ia;
+    bool _endl = true;
     
     //cout << p._name << " Attributes: " << p._attributes.size() << endl;
     
-  
     if( p.HasChilds() || p._value != "" ) {
         
+        // the head node is always empty, do not print it
         if ( prefix.find_first_not_of(' ') != std::string::npos )  {
                 out << offset << "<" << prefix ;
                 /* The attributes do not work so far */
                 for(ia = p._attributes.begin(); ia!=p._attributes.end(); ++ia) {
                         cout << " " << ia->first << "=\"" << ia->second << "\"" ;
                 }
-                 
-                out << ">" << endl;
-                      
+                out << ">";
         }
  
-        if((p._value).find_first_not_of("\t\n ") != std::string::npos) 
-            out << "\t" << offset << p._value << endl;
-     
-        for(iter = p._map.begin(); iter!=p._map.end(); ++iter) {
+        if((p._value).find_first_not_of("\t\n ") != std::string::npos) {
+            out << p._value;
+            _endl = false;
+        } else {
+            out << endl;
+            _endl = true;
+        }
+        
+        for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
             offset += "\t";
-            PrintNodeXML(out, (*iter).first, *(*iter).second, offset);
+            PrintNodeXML(out, (*iter)._name , (*iter), offset);
             offset.resize(offset.size()-1);           
         }
         
         if ( prefix.find_first_not_of(' ') != std::string::npos ) {
+            if ( _endl ) {
                 out << offset << "</" << prefix << ">"  << endl;
+            } else {
+                out << "</" << prefix << ">"  << endl;
+            }
         }
     }
 }
@@ -175,15 +182,14 @@ void Property::PrintNodeTEX(std::ostream &out, const string &prefix, Property &p
      
     if((p._value != "") || p.HasChilds()) {
         
-         if((p._value).find_first_not_of("\t\n ") != std::string::npos && 
-             p.name()  != "description" &&
-             p.name()  != "sectionlabel"       
-           ) 
-                          
+         if((p._value).find_first_not_of("\t\n ") != std::string::npos ) 
+            
+            //string name =  p._name;
+            //boost::replace_all(name, "-", "\\_");
             out << " \\hspace{" << offset << "pt} "
                 << "\\hypertarget{" << prefix << "}"
                 <<  "{" << p._name << "}" 
-                << " & " << p._value << "\\\\" << endl;
+                << " & " <<  p._attributes["help"] << "\\\\" << endl;
     }
 
         
@@ -211,6 +217,7 @@ std::ostream &operator<<(std::ostream &out, Property& p)
         default:
             p.PrintNodeTXT(out, "", p);
         case formatXML:
+            //cout << p._name << " " << p._value << " " << p._path << endl;
             p.PrintNodeXML(out, "", p, "");
             break;
         case formatTXT:
@@ -224,12 +231,12 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             break;
         case formatTEX:
             string name = p.begin()->_name;
-            string label = (p.get(name + ".sectionlabel"))._value;
-            string description = (p.get(name + ".description"))._value;
+            string label = (p.get(name))._attributes["label"];
+            string help = (p.get(name))._attributes["help"];
             
             out << "\\subsection{" << p.begin()->_name << "}" << endl;
             out << "\\label{" << label << "}" << endl;
-            out << description << endl ;
+            out << help << endl ;
             
             out << "\\rowcolors{1}{invisiblegray}{white}" << endl;
             out << "{ \\small" << endl;
