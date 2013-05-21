@@ -19,6 +19,7 @@
 #include <votca/tools/property.h>
 #include <stdexcept>
 #include <votca/tools/tokenizer.h>
+#include <boost/algorithm/string.hpp>
 
 #include <stdio.h>
 #include <expat.h>
@@ -137,7 +138,7 @@ void Property::PrintNodeXML(std::ostream &out, const string &prefix, Property &p
         // the head node is always empty, do not print it
         if ( prefix.find_first_not_of(' ') != std::string::npos )  {
                 out << offset << "<" << prefix ;
-                /* The attributes do not work so far */
+                // the attributes 
                 for(ia = p._attributes.begin(); ia!=p._attributes.end(); ++ia) {
                         cout << " " << ia->first << "=\"" << ia->second << "\"" ;
                 }
@@ -178,28 +179,27 @@ void Property::PrintNodeLOG(std::ostream &out, const string &prefix, Property &p
 
 void Property::PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int offset) {
 
-    map<string, Property*>::iterator iter = p._map.begin() ;  
+    list<Property>::iterator iter;       
      
     if((p._value != "") || p.HasChilds()) {
         
-         if((p._value).find_first_not_of("\t\n ") != std::string::npos ) 
-            
-            //string name =  p._name;
-            //boost::replace_all(name, "-", "\\_");
+         if((p._value).find_first_not_of("\t\n ") != std::string::npos ) {
+            string _tex_name = boost::replace_all_copy( p._name, "_", "\\_" );
             out << " \\hspace{" << offset << "pt} "
                 << "\\hypertarget{" << prefix << "}"
-                <<  "{" << p._name << "}" 
+                <<  "{" << _tex_name << "}" 
                 << " & " <<  p._attributes["help"] << "\\\\" << endl;
+         }
     }
 
         
-    for(iter = p._map.begin(); iter!=p._map.end(); ++iter) {
+    for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
         if(prefix=="") {
             offset += 10;
-            PrintNodeTEX(out, prefix + (*iter).first, *(*iter).second, offset);
+            PrintNodeTEX(out, prefix + (*iter)._name, (*iter), offset);
             offset -= 10;
         } else
-            PrintNodeTEX(out, prefix + "." + (*iter).first, *(*iter).second, offset);
+            PrintNodeTEX(out, prefix + "." + (*iter)._name, (*iter), offset);
     }        
 }
 
