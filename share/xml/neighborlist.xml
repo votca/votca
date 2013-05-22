@@ -1,8 +1,8 @@
-<neighborlist help="Constructs a list of neighboring conjugated segments. Each **segments** section describes a pair of segment types for which a cutoff is specified. If you have two types of segments you need 3 **segments** sections" label="calc:neighborlist" section="sec:neighborlist">
+<neighborlist help="Constructs a list of neighboring conjugated segments." label="calc:neighborlist" section="sec:neighborlist">
 
-	<segments>
-		<type help="Each **segments** section contains the type of the two segments. If you have two types A and B this field can be A A, A B or B B.">A A</type>
-		<cutoff help="Each **segments** section contains a cutoff radius for the type of the two segments. A pair of segments is added to the neighborlist if the distance between centers of mass of any of their rigid fragments is below this cutoff">2.0</cutoff>
+	<segments help="Describes a pair of segment types">
+		<type help="Types of the two segments. For two types A and B this can be A A, A B or B B.">A A</type>
+		<cutoff help="Cutoff radius for centers of mass of rigid fragments" unit="nm" default="">2.0</cutoff>
 	</segments>
 
 </neighborlist>
