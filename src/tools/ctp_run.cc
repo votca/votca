@@ -109,32 +109,10 @@ void CtpRun::PrintDescription(const char *name, const bool length) {
             load_property_from_xml(options, xmlFile);
 
            if ( length ) { // short description of the calculator
-               
                  cout << string("  ") << _fwstring(string(name),14);
                  cout << options.begin()->getAttribute<string>("help");
-                 //cout << options.get(name+string(".description")).as<string>();
-
             } else { // long description of the calculator
-                //cout << " " << _fwstring(string(name),18);
-                //cout << options.get(name+string(".description")).as<string>() << endl;
-                //cout << options.begin()->getAttribute<string>("help");
-                
                 cout << HLP << options;
-                
-                /*list<Property *> items = options.Select(name+string(".item"));
-
-                for(list<Property*>::iterator iter = items.begin(); iter!=items.end(); ++iter) {
-                    //cout << "Long description" << endl;
-                    Property *pname=&( (*iter)->get( string("name") ) );
-                    Property *pdesc=&( (*iter)->get( string("description") ) );
-                    //Property *pdflt=&( (*iter)->get( string("default") ) );
-                    if ( ! (pname->value()).empty() ) {
-                        string out_name = "  <" + pname->value() + ">";
-                        cout << _fwstring(out_name, 20);
-                        //cout << string("  <") << _fwstring(pname->value(), 20) << string(">");
-                        cout << pdesc->value() << endl;
-                    }
-                } */
             }
             cout << endl;
         } catch(std::exception &error) {
