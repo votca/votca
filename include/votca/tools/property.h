@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include "lexical_cast.h"
 #include <boost/algorithm/string/trim.hpp>
+#include <stdlib.h>
 
 #include "vec.h"
 #include "tokenizer.h"
@@ -33,7 +34,7 @@ namespace votca { namespace tools {
 
 using namespace std;
 
-enum formats{ formatXML, formatTXT, formatLOG, formatTEX, formatT2T };
+enum formats{ formatXML, formatTXT, formatLOG, formatTEX, formatT2T, formatHLP };
     
 /**
   * \brief class to manage properties and options, also used as an xml-wrapper
@@ -318,6 +319,7 @@ extern PropertyFormat TXT;
 extern PropertyFormat T2T;
 extern PropertyFormat LOG;
 extern PropertyFormat TEX;
+extern PropertyFormat HLP;
 
 }}
 

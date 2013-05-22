@@ -27,6 +27,7 @@
 #include <fstream>
 #include <string>
 #include <stack>
+#include <iomanip>
 
 namespace votca { namespace tools {
 
@@ -35,6 +36,7 @@ PropertyFormat TXT(formatTXT);
 PropertyFormat T2T(formatT2T);
 PropertyFormat LOG(formatLOG);
 PropertyFormat TEX(formatTEX);
+PropertyFormat HLP(formatHLP);
 
 // ostream modifier defines the output format
 const int Property::_format = std::ios_base::xalloc();  
@@ -225,9 +227,44 @@ void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int offs
         out << "\\noindent Return to the description of \\slink{"
             << section << "}{\\texttt{"<< head_name << "}}.\n";
     }
-
-
 }
+
+void PrintNodeHLP(std::ostream &out, const string &prefix, Property &p, int offset) {
+
+    list<Property>::iterator iter;       
+    string head_name;
+    string help;
+    
+    // if this is the head node, print the header
+    if ( p.name() == "" ) {
+            head_name = p.begin()->name();
+            help = (p.get(head_name)).getAttribute<string>("help");            
+            out << " " << head_name << "\t"  << help << "\n\n" ;
+    } else {
+    
+        // if this node has children or a value or is not the first, start recursive printing
+        if( ( p.value() != "" || p.HasChilds() ) && offset > 0) {
+            out << "  " << std::setw(18) << p.name() << p.getAttribute<string>("help") << "\n";
+        }
+    }
+    
+    for(iter = p.begin(); iter != p.end(); ++iter) {
+        if(prefix=="") {
+            offset += 10;
+            PrintNodeHLP(out, prefix + (*iter).name(), (*iter), offset);
+            offset -= 10;
+        } else {
+            offset += 10;
+            PrintNodeHLP(out, prefix + "." + (*iter).name(), (*iter), offset);
+            offset -= 10;
+        }
+    }        
+
+    // if this is the head node, print the footer
+    if ( p.name() == "" ) {
+     }
+}
+
 
 std::ostream &operator<<(std::ostream &out, Property& p)
 {
@@ -257,6 +294,9 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             break;
         case formatTEX:            
             PrintNodeTEX(out, "", p, -10);
+            break;
+        case formatHLP:            
+            PrintNodeHLP(out, "", p, -10);
             break;
         }
         out << endl;
