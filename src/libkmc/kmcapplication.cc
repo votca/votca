@@ -19,6 +19,8 @@
 #include <votca/kmc/kmccalculatorfactory.h>
 #include <votca/kmc/kmcapplication.h>
 #include <string>
+#include <cstdio>
+#include <iostream>
 
 namespace votca { namespace kmc {
 
@@ -37,14 +39,13 @@ void KMCApplication::Initialize()
 
     AddProgramOptions()
             ("options,o", boost::program_options::value<string>(), "  program and calculator options")
-            ("file,f", boost::program_options::value<string>(), "  sqlite state file");
-
+            ("file,f", boost::program_options::value<string>(), "  sqlite state file")
+            ("textfile,t", boost::program_options::value<string>(), "  output text file (otherwise: screen output)");
+    
     AddProgramOptions("Calculators")
             ("execute,e", boost::program_options::value<string>(), "list of calculators separated by commas or spaces")
             ("list,l", "lists all available calculators")
             ("description,d", boost::program_options::value<string>(), "detailed description of a calculator");
-    AddProgramOptions() ("nthreads,t", boost::program_options::value<int>()->default_value(1),
-                         "  number of threads to create");
 }
 
 void KMCApplication::ShowHelpText(std::ostream &out)
@@ -129,10 +130,28 @@ bool KMCApplication::EvaluateOptions() {
         CheckRequired("options", "please provide an xml file with program options");
         CheckRequired("file", "no database file specified");
         
-        _filename = OptionsMap()["file"].as<string > ();
-        _nThreads = OptionsMap()["nthreads"].as<int>();
+        string _outputfile = "";
+        //if(OptionsMap()["textfile"] == NULL)
+        //{cout << "Mist!";}
+        if(OptionsMap().count("textfile")) 
+        {
+            _outputfile = OptionsMap()["textfile"].as<string > ();
+        }
+        if(_outputfile != "")
+        {
+            //char char_outputfile[1024] = {_outputfile}; // max. 1024 characters for filename
+            //char_outputfile = _outputfile;
+            cout << "Output into file: " << _outputfile.c_str() << "." << endl;
+            freopen(_outputfile.c_str(),"w",stdout);   
+            //cout << "hier ist output" << endl;
+        }
+        else
+        {
+            cout << " Output to screen." << endl;
+        }
         
-        //cout << " Database file: " << _filename << endl;
+        _filename = OptionsMap()["file"].as<string > ();
+        cout << " Database file: " << _filename << endl;        
         return true;
 }
         
@@ -154,9 +173,7 @@ void KMCApplication::Run()
 void KMCApplication::BeginEvaluate(){
     list<KMCCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->setnThreads(_nThreads);
-        (*iter)->Initialize(_filename.c_str(), &_options);
-        
+        (*iter)->Initialize(_filename.c_str(), &_options, _outputfile.c_str());
     }
 }
 
