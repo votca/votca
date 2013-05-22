@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * author: Kordt
  */
 
 #ifndef __VOTCA_KMC_MULTIPLE_H
@@ -270,25 +271,6 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
             
         }
 
-        if (options->exists("options.kmcmultiple.injectionfree")) {
-	    _injectionfree = options->get("options.kmcmultiple.injectionfree").as<int>();
-	}
-        else {
-	    cout << "WARNING in kmcmultiple: Number of additional free nodes in the injection interval unspecified. It will be set to 10." << endl;
-            _injectionfree = 10;
-        }
-
-        
-        if (options->exists("options.kmcmultiple.allowparallel")) {
-	    _allowparallel = options->get("options.kmcmultiple.allowparallel").as<int>();
-	}
-        else {
-	    cout << "WARNING in kmcmultiple: You did not specify if parallel computation is allowed. It will be disabled." << endl;
-            _allowparallel = 0;
-        }
-        if (options->exists("options.kmcmultiple.fieldX")) {
-	    _fieldX = options->get("options.kmcmultiple.fieldX").as<double>();
-	}
         else {
             _fieldX = 0;
         }
@@ -816,7 +798,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                 double reorg = node_i->reorg_intorig + node_j->reorg_intdest + node_i->event[destindex].reorg_out;
                 double dG_Site = node_j->siteenergy - node_i->siteenergy;
                 double dG = dG_Site + dG_Field;
-                double coulombfactor = exp(-(2*(dG_Site-reorg) * coulombsum + coulombsum*coulombsum) / (4*reorg*kB*_temperature) );
+                double coulombfactor = exp(-(2*(dG_Site+reorg) * coulombsum + coulombsum*coulombsum) / (4*reorg*kB*_temperature) );
                 // cout << coulombfactor << endl;
                 // double coulombfactor = 1.0;
             
