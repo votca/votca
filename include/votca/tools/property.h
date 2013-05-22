@@ -145,7 +145,7 @@ public:
     /**
      * \brief return attribute as type
      *
-     * returns an attributee after type conversion, e.g.
+     * returns an attribute after type conversion, e.g.
      * p.getAttribute<int>() returns an integer
      */
     template<typename T>
@@ -156,6 +156,11 @@ public:
      */
     template<typename T>
     void setAttribute(const string &attribute, const T &value);
+
+    /**
+     * \brief return true if a node has attributes
+     */
+    bool hasAttributes() { return _attributes.size() > 0; }
     
     /**
      * \brief stores output format
@@ -181,8 +186,6 @@ private:
     static void PrintNodeT2T(std::ostream &out, const string &prefix, Property &p);
     /// \brief output the content in the log format (values only)
     static void PrintNodeLOG(std::ostream &out, const string &prefix, Property &p);
-    /// \brief output the content in the tex format (manual)
-    static void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int offset);
     
    
     friend std::ostream &operator<<(std::ostream &out, const Property& p);

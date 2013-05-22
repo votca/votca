@@ -173,29 +173,60 @@ void Property::PrintNodeLOG(std::ostream &out, const string &prefix, Property &p
     out << "LOG format is not implemented";
 }
 
-void Property::PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int offset) {
+void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int offset) {
 
     list<Property>::iterator iter;       
-     
-    if( (p._value != "") || p.HasChilds()) {
-        
-         if((p._value).find_first_not_of("\t\n ") != std::string::npos ) {
-            string _tex_name = boost::replace_all_copy( p._name, "_", "\\_" );
+    string head_name;
+    string label; // reference of the xml file in the manual
+    string section; // reference of the description section in the manual
+    string help;
+    
+    // if this is the head node, print the header
+    if ( p.name() == "" ) {
+            head_name = p.begin()->name();
+            label = (p.get(head_name)).getAttribute<string>("label");
+            section = (p.get(head_name)).getAttribute<string>("section");
+            help = (p.get(head_name)).getAttribute<string>("help");
+            
+            out << "\\subsection{" << head_name << "}\n"  
+                << "\\label{" << label << "}\n" 
+                << help << endl ;
+            
+            out << "\\rowcolors{1}{invisiblegray}{white}\n" 
+                << "{ \\small\n"  
+                << "\\begin{longtable}{m{3cm}|m{11cm}}\n";
+    } else {
+    
+        // if this node has children or a value or is not the first, start recursive printing
+        if( ( p.value() != "" || p.HasChilds() ) && offset > 0) {
+            string _tex_name = boost::replace_all_copy( p.name(), "_", "\\_" );
             out << " \\hspace{" << offset << "pt} "
                 << "\\hypertarget{" << prefix << "}"
                 <<  "{" << _tex_name << "}" 
-                << " & " <<  p._attributes["help"] << "\\\\" << endl;
-         }
+                << " & " <<  p.getAttribute<string>("help") << "\\\\" << endl;
+        }
     }
-      
-    for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
+    
+    for(iter = p.begin(); iter != p.end(); ++iter) {
         if(prefix=="") {
             offset += 10;
-            PrintNodeTEX(out, prefix + (*iter)._name, (*iter), offset);
+            PrintNodeTEX(out, prefix + (*iter).name(), (*iter), offset);
             offset -= 10;
-        } else
-            PrintNodeTEX(out, prefix + "." + (*iter)._name, (*iter), offset);
+        } else {
+            offset += 10;
+            PrintNodeTEX(out, prefix + "." + (*iter).name(), (*iter), offset);
+            offset -= 10;
+        }
     }        
+
+    // if this is the head node, print the footer
+    if ( p.name() == "" ) {
+        out << "\\end{longtable}\n}\n";
+        out << "\\noindent Return to the description of \\slink{"
+            << section << "}{\\texttt{"<< head_name << "}}.\n";
+    }
+
+
 }
 
 std::ostream &operator<<(std::ostream &out, Property& p)
@@ -224,26 +255,10 @@ std::ostream &operator<<(std::ostream &out, Property& p)
         case formatLOG:
             p.PrintNodeLOG(out, "", p);
             break;
-        case formatTEX:
-            string name = p.begin()->_name;
-            string label = (p.get(name))._attributes["label"];
-            string help = (p.get(name))._attributes["help"];
-            
-            out << "\\subsection{" << p.begin()->_name << "}" << endl;
-            out << "\\label{" << label << "}" << endl;
-            out << help << endl ;
-            
-            out << "\\rowcolors{1}{invisiblegray}{white}" << endl;
-            out << "{ \\small" << endl;
-            out << "\\begin{longtable}{m{3cm}|m{11cm}}" << endl;
-            
-            p.PrintNodeTEX(out, "", p, -10);
-            
-            out << "\\end{longtable}" << endl;
-            out << "}" << endl;
+        case formatTEX:            
+            PrintNodeTEX(out, "", p, -10);
             break;
         }
-
         out << endl;
     }
 
