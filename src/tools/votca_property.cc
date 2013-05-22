@@ -83,6 +83,7 @@ int main(int argc, char** argv)
     _mformat["LOG"] = &LOG;
     _mformat["T2T"] = &T2T;
     _mformat["TEX"] = &TEX;
+    _mformat["HLP"] = &HLP;
     
     load_property_from_xml(p, file);
     

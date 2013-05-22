@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <votca/tools/tokenizer.h>
 #include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
 
 #include <stdio.h>
 #include <expat.h>
@@ -103,26 +104,26 @@ std::list<Property *> Property::Select(const string &filter)
     return selection;
 }
 
-void Property::PrintNodeTXT(std::ostream &out, const string &prefix, Property &p)
+void PrintNodeTXT(std::ostream &out, const string &prefix, Property &p)
 {
     
     list<Property>::iterator iter;
     
-    if((p._value != "") || p.HasChilds()) {
+    if((p.value() != "") || p.HasChilds()) {
         
-        if((p._value).find_first_not_of("\t\n ") != std::string::npos)   
-                out << prefix << " = " << p._value << endl;
+        if((p.value()).find_first_not_of("\t\n ") != std::string::npos)   
+                out << prefix << " = " << p.value() << endl;
     }
         
-    for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
+    for(iter = p.begin(); iter!=p.end(); ++iter) {
         if(prefix=="") 
-            PrintNodeTXT(out, prefix + (*iter)._name, (*iter));
+            PrintNodeTXT(out, prefix + (*iter).name(), (*iter));
         else
-            PrintNodeTXT(out, prefix + "." + (*iter)._name, (*iter));
+            PrintNodeTXT(out, prefix + "." + (*iter).name(), (*iter));
     }
 }
 
-void Property::PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset)
+void PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset)
 {
     
     list<Property>::iterator iter;       
@@ -131,7 +132,7 @@ void Property::PrintNodeXML(std::ostream &out, const string &prefix, Property &p
     
     //cout << p._name << " Attributes: " << p._attributes.size() << endl;
     
-    if( p.HasChilds() || p._value != "" ) {
+    if( p.HasChilds() || p.value() != "" ) {
         
         // the head node is always empty, do not print it
         if ( prefix.find_first_not_of(' ') != std::string::npos )  {
@@ -167,21 +168,32 @@ void Property::PrintNodeXML(std::ostream &out, const string &prefix, Property &p
     }
 }
 
-void Property::PrintNodeT2T(std::ostream &out, const string &prefix, Property &p) {
+void PrintNodeT2T(std::ostream &out, const string &prefix, Property &p) {
     out << "T2T format is not implemented";
 }
 
-void Property::PrintNodeLOG(std::ostream &out, const string &prefix, Property &p) {
+void PrintNodeLOG(std::ostream &out, const string &prefix, Property &p) {
     out << "LOG format is not implemented";
 }
 
-void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int offset) {
+void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int level) {
 
     list<Property>::iterator iter;       
     string head_name;
     string label; // reference of the xml file in the manual
     string section; // reference of the description section in the manual
     string help;
+    string header_format("\\subsection{%1%}\n"
+                         "\\label{%2%}\n%3%\n"
+                         "\\rowcolors{1}{invisiblegray}{white}\n"
+                         "{\\small\n "
+                         "\\begin{longtable}{m{3cm}|m{1cm}|m{1cm}|m{9cm}}\n"
+                         " option & default & unit & description\\\\\n");    
+    
+    string footer_format("\\end{longtable}\n}\n"
+                         "\\noindent Return to the description of \\slink{%1%}{\\texttt{%2%}}.\n");
+    
+    string body_format(" \\hspace{%1%pt}\\hypertarget{%2%}{%3%} & %4% & %5% & %6% \\\\\n");
     
     // if this is the head node, print the header
     if ( p.name() == "" ) {
@@ -190,43 +202,40 @@ void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int offs
             section = (p.get(head_name)).getAttribute<string>("section");
             help = (p.get(head_name)).getAttribute<string>("help");
             
-            out << "\\subsection{" << head_name << "}\n"  
-                << "\\label{" << label << "}\n" 
-                << help << endl ;
-            
-            out << "\\rowcolors{1}{invisiblegray}{white}\n" 
-                << "{ \\small\n"  
-                << "\\begin{longtable}{m{3cm}|m{11cm}}\n";
-    } else {
+            out << boost::format(header_format) % head_name % label % help;
+                    
+     } else {
     
         // if this node has children or a value or is not the first, start recursive printing
-        if( ( p.value() != "" || p.HasChilds() ) && offset > 0) {
+        if( ( p.value() != "" || p.HasChilds() ) && level > 0) {
             string _tex_name = boost::replace_all_copy( p.name(), "_", "\\_" );
-            out << " \\hspace{" << offset << "pt} "
+            
+            out << boost::format(body_format) % int((level-1)*10) 
+                    % prefix 
+                    % _tex_name 
+                    % p.getAttribute<string>("default")
+                    % p.getAttribute<string>("unit")
+                    % p.getAttribute<string>("help");
+            /*out << " \\hspace{" << (level-1)*10 << "pt} "
                 << "\\hypertarget{" << prefix << "}"
                 <<  "{" << _tex_name << "}" 
-                << " & " <<  p.getAttribute<string>("help") << "\\\\" << endl;
+                << " & " <<  p.getAttribute<string>("help") << "\\\\" << endl; */
         }
     }
     
     for(iter = p.begin(); iter != p.end(); ++iter) {
         if(prefix=="") {
-            offset += 10;
-            PrintNodeTEX(out, prefix + (*iter).name(), (*iter), offset);
-            offset -= 10;
+            PrintNodeTEX(out, prefix + (*iter).name(), (*iter), ++level);
+            level--;
         } else {
-            offset += 10;
-            PrintNodeTEX(out, prefix + "." + (*iter).name(), (*iter), offset);
-            offset -= 10;
+            PrintNodeTEX(out, prefix + "." + (*iter).name(), (*iter), ++level);
+            level--;
         }
     }        
 
     // if this is the head node, print the footer
-    if ( p.name() == "" ) {
-        out << "\\end{longtable}\n}\n";
-        out << "\\noindent Return to the description of \\slink{"
-            << section << "}{\\texttt{"<< head_name << "}}.\n";
-    }
+    if ( p.name() == "" ) out << boost::format(footer_format) % section % head_name;
+
 }
 
 void PrintNodeHLP(std::ostream &out, const string &prefix, Property &p, int offset) {
@@ -234,29 +243,42 @@ void PrintNodeHLP(std::ostream &out, const string &prefix, Property &p, int offs
     list<Property>::iterator iter;       
     string head_name;
     string help;
+    string fmt("t|<%1%>%|15t|%2%%|20t|%3%%|25t|%4%\n");
     
     // if this is the head node, print the header
     if ( p.name() == "" ) {
             head_name = p.begin()->name();
             help = (p.get(head_name)).getAttribute<string>("help");            
-            out << " " << head_name << "\t"  << help << "\n\n" ;
+            out << boost::format(" %1%: %|18t| %2%\n") % head_name % help;
+            //out << boost::format(fmt) % "option" % "def" % "[un]" % "description";
     } else {
     
         // if this node has children or a value or is not the first, start recursive printing
         if( ( p.value() != "" || p.HasChilds() ) && offset > 0) {
-            out << "  " << std::setw(18) << p.name() << p.getAttribute<string>("help") << "\n";
+            
+            string ofmt;
+            ofmt = "%|" + boost::lexical_cast<string>(offset) + fmt;
+            //cout << ofmt << " " << fmt << endl;
+            string unit( p.getAttribute<string>("unit") );
+            if ( !unit.empty() ) unit = "[" + unit + "]";
+            
+            out << boost::format(ofmt)
+                    % p.name() 
+                    % p.getAttribute<string>("default")
+                    % unit
+                    % p.getAttribute<string>("help");
         }
     }
     
     for(iter = p.begin(); iter != p.end(); ++iter) {
         if(prefix=="") {
-            offset += 10;
+            offset += 2;
             PrintNodeHLP(out, prefix + (*iter).name(), (*iter), offset);
-            offset -= 10;
+            offset -= 2;
         } else {
-            offset += 10;
+            offset += 2;
             PrintNodeHLP(out, prefix + "." + (*iter).name(), (*iter), offset);
-            offset -= 10;
+            offset -= 2;
         }
     }        
 
@@ -278,25 +300,25 @@ std::ostream &operator<<(std::ostream &out, Property& p)
         switch(out.iword(p.GetFormat()))
         {
         default:
-            p.PrintNodeTXT(out, "", p);
+            PrintNodeTXT(out, "", p);
         case formatXML:
             //cout << p._name << " " << p._value << " " << p._path << endl;
-            p.PrintNodeXML(out, "", p, "");
+            PrintNodeXML(out, "", p, "");
             break;
         case formatTXT:
-            p.PrintNodeTXT(out, "", p);
+            PrintNodeTXT(out, "", p);
             break;
         case formatT2T:
-            p.PrintNodeT2T(out, "", p);
+            PrintNodeT2T(out, "", p);
             break;
         case formatLOG:
-            p.PrintNodeLOG(out, "", p);
+            PrintNodeLOG(out, "", p);
             break;
         case formatTEX:            
-            PrintNodeTEX(out, "", p, -10);
+            PrintNodeTEX(out, "", p, -1);
             break;
         case formatHLP:            
-            PrintNodeHLP(out, "", p, -10);
+            PrintNodeHLP(out, "", p, -2);
             break;
         }
         out << endl;

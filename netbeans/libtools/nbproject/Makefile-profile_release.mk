@@ -22,7 +22,6 @@ AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
-CND_DLIB_EXT=so
 CND_CONF=profile_release
 CND_DISTDIR=dist
 CND_BUILDDIR=build

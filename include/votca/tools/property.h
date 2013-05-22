@@ -45,9 +45,13 @@ enum formats{ formatXML, formatTXT, formatLOG, formatTEX, formatT2T, formatHLP }
   */
 class Property {
     
-    // outputs the property to the ostream
+    /// \brief outputs the property to the ostream
     friend std::ostream &operator<<(std::ostream &out, Property& p);
-    
+    /// \brief output the content in the xml format
+    friend void PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset);
+    friend void PrintNodeTXT(std::ostream &out, const string &prefix, Property &p);
+
+   
 public:
     Property() : _path("") {}
     
@@ -162,6 +166,11 @@ public:
      * \brief return true if a node has attributes
      */
     bool hasAttributes() { return _attributes.size() > 0; }
+
+    /**
+     * \brief return true if a node has attributes
+     */
+    const map<string,string>* getAttributes() { return &_attributes; }
     
     /**
      * \brief stores output format
@@ -177,17 +186,7 @@ private:
     string _value;
     string _path;
 
-    static const int _format;
-    
-    /// \brief output the content in the text format
-    static void PrintNodeTXT(std::ostream &out, const string &prefix, Property &p);
-    /// \brief output the content in the xml format
-    static void PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset);
-    /// \brief output the content in the t2t format
-    static void PrintNodeT2T(std::ostream &out, const string &prefix, Property &p);
-    /// \brief output the content in the log format (values only)
-    static void PrintNodeLOG(std::ostream &out, const string &prefix, Property &p);
-    
+    static const int _format;    
    
     friend std::ostream &operator<<(std::ostream &out, const Property& p);
     
