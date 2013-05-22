@@ -1,9 +1,9 @@
-<emultipole help="Evaluates polarization contribution based on the Thole model" label="calc:emultipole">
+<emultipole help="Evaluates polarization contribution based on the Thole model" label="calc:emultipole" section="sec:thole">
 
 	<multipoles help="Polar Site Definitions in GDMA punch-file format"></multipoles>
 
 	<control help="Control options for induction computation">
-		<induce help="Enter '1' / '0' to toggle induction on / off">1</induce>
+		<induce help="Enter '1' / '0' to toggle induction on / off" default="1">1</induce>
 		<first help="First segment for which to compute site energies"></first>
 		<last help="Last segment for which to compute site energies"></last>
 		<output help="File to write site energies to. Site energies are also stored in the state file"></output>
@@ -27,7 +27,7 @@
 	</alpha>
 	
 	<thole help="Thole parameters required for charge-smearing">
-		<cutoff help="Cut-off beyond which all interactions are neglected" unit="nm">1</cutoff>
+		<cutoff help="Cut-off beyond which all interactions are neglected" default="" unit="nm">1</cutoff>
 		<expdamp help="Damping exponent used in exponential damping function"></expdamp>
 		<scaling help="1-n interaction scaling, currently not in use"></scaling>
 	</thole>

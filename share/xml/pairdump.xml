@@ -1,22 +1,7 @@
-<pairdump>
+<pairdump help="Coordinates of molecules and pairs from the neighbor list" label="calc:pairdump">
 
-	<description>Coordinates of molecules and pairs from the neighbor list</description>
-
-	<sectionlabel>pairdump</sectionlabel>
-
-	<item>
-		<name>format</name>
-		<description>**xyz** or **pdb** formats</description>
-	</item>
-
-	<item>
-		<name>subfolders</name>
-		<description>If **true** creates the required by \ctpdipro directory structure. Otherwise dumps all neighbor list pairs into the current folder</description>
-	</item>
-
-	<item>
-		<name>molecules</name>
-		<description>If **true** outputs single molecules, otherwise only pairs</description>
-	</item>
+	<format help="**xyz** or **pdb** formats"></format>
+	<subfolders help="If **true** creates the required by \ctpdipro directory structure. Otherwise dumps all neighbor list pairs into the current folder"></subfolders>
+	<molecules help="If **true** outputs single molecules, otherwise only pairs">true</molecules>
 
 </pairdump>
