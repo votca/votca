@@ -1,27 +1,6 @@
-<ehistogram>
-	
-	<description>Histogram of site energy differences of neighbor list pairs</description>
-
-	<sectionlabel>site_energies</sectionlabel>
-	
-	<item>
-		<name>min</name>
-		<description>Minimum of the energy interval, eV.</description>
-	</item>
-
-	<item>
-		<name>max</name>
-		<description>Maximum of the energy interval, eV.</description>
-	</item>
-
-	<item>
-		<name>nbins</name>
-		<description>Number of bins.</description>
-	</item>
-
-	<item>
-		<name>file</name>
-		<description>Output file.</description>
-	</item>
-
+<ehistogram help="Histogram of site energy differences of neighbor list pairs" label="calc:site_energies">
+	<min help="Minimum of the energy interval" unit="eV">0</min>
+	<max help="Maximum of the energy interval" unit=eV></max>
+	<nbins help="Number of bins">100</nbins>
+	<file help="Output file">ehistogram.dat</file>
 </ehistogram>

@@ -319,7 +319,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
                  1.0,                   // Occupancy                    %6.2f
                  0.0,                   // Temperature factor           %6.2f
                  " ",                   // Segment identifier           %4s
-                 name.c_str(),          // Element symbol               %2s
+                 " ",                   // Element symbol               %2s
                  " "                    // Charge on the atom.          %2s
                  );
     }
@@ -390,7 +390,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
 }
 
 
-void Segment::WriteXYZ(FILE *out) {
+void Segment::WriteXYZ(FILE *out, bool useQMPos) {
 
     vector< Atom* > ::iterator ait;
 
@@ -408,6 +408,7 @@ void Segment::WriteXYZ(FILE *out) {
         if ((*ait)->HasQMPart() == false) { continue; }
 
         vec     pos = (*ait)->getQMPos();
+        if (!useQMPos) pos = (*ait)->getPos();
         string  name = (*ait)->getElement();
 
         fprintf(out, "%2s %4.7f %4.7f %4.7f \n",

@@ -1,7 +1,3 @@
-<xmultipole>
-  
-	<description>Undocumented</description>
-
-	<sectionlabel>xmultipole</sectionlabel>
+<xmultipole help="Undocumented" label="calc:xmultipole">
 
 </xmultipole>

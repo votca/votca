@@ -1,27 +1,8 @@
-<rates>
-  
-	<description>Hopping rates using classical or semi-classical expression</description>
+<rates help="Hopping rates using classical or semi-classical expression" label="rates">
 
-	<sectionlabel>rates</sectionlabel>
-
-	<item>
-		<name>temperature</name>
-		<description>Temperature for rates given in Kelvin</description>
-	</item>
-
-	<item>
-		<name>method</name>
-		<description>Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second fallows the derivation by Jortner and Bixon</description>
-	</item>
-
-	<item>
-		<name>nmaxvib</name>
-		<description>If the method of choice is **jortner**, the maximal number of excited vibrations on the molecules has to be specified as an integer for the summation. The default value is 20</description>
-	</item>
-
-	<item>
-		<name>omegavib</name>
-		<description>If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV</description>
-	</item>
+	<temperature help="Temperature for rates" unit="K">300</temperature>
+	<method help="Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second is the rate proposed by Jortner and Bixon">marcus</method>
+	<nmaxvib help="If the method of choice is **jortner**, the maximal number of excited vibrations on the molecules has to be specified as an integer for the summation" unit="" default="20">20</nmaxvib>
+	<omegavib help="If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV" unit="eV" default="0.2">0.2</omegavib>
 
 </rates>

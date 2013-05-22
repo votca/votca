@@ -27,18 +27,18 @@ class APolarSite
     friend class MolPol;
     friend class ZMultipole;
     friend class QMultipole;
-    friend class XQMP;
+    friend class XInteractor;
 
 
 public:
 
     APolarSite(int id, string name)
-            : _id(id), _name(name), _locX(vec(1,0,0)),
+            : _id(id), _name(name), _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
             { _Qs.resize(3); _Ps.resize(3); };
 
     APolarSite()
-            : _id(-1),  _locX(vec(1,0,0)),
+            : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)), _locZ(vec(0,0,1))
             { _Qs.resize(3); _Ps.resize(3); };
 
@@ -53,12 +53,14 @@ public:
     Fragment        *getFragment() { return _frag; }
 
 
+    void            setIsVirtual(bool isVirtual) { _isVirtual = isVirtual; }
     void            setPos(vec &pos) { _pos = pos; }
     void            setRank(int rank) { _rank = rank; } // rank; } // OVERRIDE
     void            setTopology(Topology *top) { _top = top; }
     void            setSegment(Segment *seg) { _seg = seg; }
     void            setFragment(Fragment *frag) { _frag = frag; }
     
+    bool            getIsVirtual() { return _isVirtual; }
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
@@ -66,6 +68,7 @@ public:
     double          getIsoP() { return 1./3. * (Pxx+Pyy+Pzz); }
     double          getProjP(vec &dir);
     
+    double          setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
@@ -87,6 +90,7 @@ public:
     void            PrintTensorPDB(FILE *out, int state);
     void            WriteChkLine(FILE *, vec &, bool, string, double);
     void            WriteXyzLine(FILE *, vec &, string);
+    void            WritePdbLine(FILE *out, const string &tag = "");
 
     vector<APolarSite*> CreateFrom_MPS(string filename, int state) { ; }
 
@@ -97,6 +101,7 @@ private:
 
     int     _id;
     string  _name;
+    bool    _isVirtual;
     vec     _pos;
     vec     _locX;
     vec     _locY;

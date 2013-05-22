@@ -1,11 +1,3 @@
-<einternal>
-  
-	<description>Reads in site and reorganosation energy and writes it to state.sql</description>
-	<item>
-		<name>energiesXML</name>
-		<description>Input file.xml includedvacuum site, reorg. (charge, discharge) energies</description>
-	</item>
-
-	<sectionlabel>einternal</sectionlabel>
-
+<einternal help="Reads in site and reorganosation energies and writes them to the state file" label="calc:einternal">
+ 	<energiesXML help="XML input file with vacuum site, reorganization (charging, discharging) energies">energies.xml</energiesXML>
 </einternal>

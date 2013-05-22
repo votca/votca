@@ -31,6 +31,14 @@ private:
     vector<int> _states;
 
     double _site_avg;
+    
+    bool _skip_corr;
+    bool _skip_sites;
+    bool _skip_pairs;
+    
+    bool _do_atomic_xyze;
+    int  _atomic_first;
+    int  _atomic_last;
 
 };
 
@@ -51,6 +59,20 @@ void EAnalyze::Initialize(Topology *top, Property *opt) {
         _states.push_back(-1);
         _states.push_back(+1);
     }
+    
+    if (opt->exists(key+".do_atomic_xyze")) {
+        int do_xyze = opt->get(key+".do_atomic_xyze").as< int >();
+        _do_atomic_xyze = (do_xyze == 1) ? true : false;
+        _atomic_first = opt->get(key+".atomic_first").as< int >();
+        _atomic_last  = opt->get(key+".atomic_last").as< int >();
+    }
+    else {
+        _do_atomic_xyze = false;
+    }
+    
+    _skip_corr = opt->exists(key+".skip_correlation");
+    _skip_sites = opt->exists(key+".skip_sites");
+    _skip_pairs = opt->exists(key+".skip_pairs");
 
 }
 
@@ -73,8 +95,21 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
                  << flush;
         }
         else {
-            SiteHist(top, state);
-            SiteCorr(top, state);
+            // Site-energy histogram <> DOS
+            if (_skip_sites) {
+                cout << endl << "... ... ... Skip site-energy hist." << flush;
+            }
+            else {
+                SiteHist(top, state);
+            }
+            
+            // Site-energy correlation function
+            if (_skip_corr) {
+                cout << endl << "... ... ... Skip correlation ..." << flush;
+            }
+            else {
+                SiteCorr(top, state);
+            }
         }
 
         if (!nblist.size()) {
@@ -82,7 +117,13 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
                  << flush;
         }
         else {
-            PairHist(top, state);
+            // Site-energy-difference histogram <> Pair DOS
+            if (_skip_pairs) {
+                cout << endl << "... ... ... Skip pair-energy hist." << flush;
+            }
+            else {
+                PairHist(top, state);
+            }
         }
     }
 }
@@ -151,6 +192,37 @@ void EAnalyze::SiteHist(Topology *top, int state) {
         fprintf(out, "%4.7f %4d \n", E, histN[bin]);
     }
     fclose(out);
+    
+    // Write "seg x y z energy" with atomic {x,y,z}
+    if (_do_atomic_xyze) {
+        tag = (state == -1) ? "e_atomic_xyze" : "h_atomic_xyze";
+        out = fopen(tag.c_str(), "w");
+
+        for (sit = top->Segments().begin(); 
+             sit < top->Segments().end();
+             ++sit) {
+
+            if ((*sit)->getId() < _atomic_first) { continue; }
+            if ((*sit)->getId() > _atomic_last) { continue; }
+            double E = (*sit)->getSiteEnergy(state);
+
+            vector< Atom* > ::iterator ait;
+            for (ait = (*sit)->Atoms().begin();
+                 ait < (*sit)->Atoms().end();
+                 ++ait) {
+
+                Atom *atm = *ait;
+
+                fprintf(out, "%3s %4.7f %4.7f %4.7f %4.7f\n",
+                              (*sit)->getName().c_str(),
+                              atm->getPos().getX(),
+                              atm->getPos().getY(),
+                              atm->getPos().getZ(),
+                              E);            
+            }
+        }
+        fclose(out);    
+    }
 }
 
 
@@ -271,8 +343,8 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     double MIN = +1e15;
     double MAX = -1e15;
 
-    vector< Atom* > ::iterator fit1;
-    vector< Atom* > ::iterator fit2;
+    vector< Fragment* > ::iterator fit1;
+    vector< Fragment* > ::iterator fit2;
 
     cout << endl;
 
@@ -286,11 +358,11 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
         double R = abs(top->PbShortestConnect((*sit1)->getPos(),
                                               (*sit2)->getPos()));
 
-        for (fit1 = (*sit1)->Atoms().begin();
-             fit1 < (*sit1)->Atoms().end();
+        for (fit1 = (*sit1)->Fragments().begin();
+             fit1 < (*sit1)->Fragments().end();
              ++fit1) {
-        for (fit2 = (*sit2)->Atoms().begin();
-             fit2 < (*sit2)->Atoms().end();
+        for (fit2 = (*sit2)->Fragments().begin();
+             fit2 < (*sit2)->Fragments().end();
              ++fit2) {
 
             double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),

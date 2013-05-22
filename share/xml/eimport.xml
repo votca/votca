@@ -1,12 +1,3 @@
-<eimport>
-  
-	<description>Import site energy for segments. Takes output file from emultipole and writes site energy to the state file state.sql</description>
-
-	<sectionlabel>eimport</sectionlabel>
-
-	<item>
-		<name>energies</name>
-		<description>Read in site energies from file (formatted as output in emultipole.control.output)</description>
-	</item>
-
+<eimport help="Used to import site energies of conjugated segments. Takes the output file from emultipole and writes site energies to the state file" label="calc:eimport">
+	<energies help="Read in site energies from file (formatted as output in emultipole.control.output)"></energies>
 </eimport>
