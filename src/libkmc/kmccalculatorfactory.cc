@@ -20,6 +20,8 @@
 #include "calculators/kmcsingle.h"
 #include "calculators/kmcmultiple.h"
 #include "calculators/diffusion.h"
+#include "calculators/kmcparallel.h"
+#include "calculators/kmclight.h"
 
 namespace votca { namespace kmc {
 
@@ -28,6 +30,8 @@ void KMCCalculatorFactory::RegisterAll(void)
     Calculators().Register<KMCSingle>("kmcsingle"); // single charge carrier in PBC
     Calculators().Register<KMCMultiple>("kmcmultiple"); // multiple charge carriers
     Calculators().Register<Diffusion>("diffusion"); // single charge carrier in PBC
+    Calculators().Register<KMCParallel>("kmcparallel"); // single charge carrier threaded
+    Calculators().Register<KMCLight>("kmclight"); // fast kmc code (if works))
 }
 
 }}
