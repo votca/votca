@@ -66,6 +66,7 @@ protected:
     Property _options;
     /// sql database file
     string _filename;
+    string _outputfile;
     
     int _nThreads;
 
