@@ -24,14 +24,22 @@ namespace votca { namespace kmc {
 
     using namespace tools;
 
-class KMCCalculator{
+class KMCCalculator
+{
 public:
+    
     KMCCalculator() {};
-    virtual ~KMCCalculator() {};
-    virtual void Initialize(const char *filename, Property *options, const char *outputfile) {}
+    virtual     ~KMCCalculator() {};
+    
+    virtual void Initialize(const char *filename, Property *options) {}
     virtual bool EvaluateFrame() { return true; }
-    virtual void EndEvaluate() {}
+    virtual void EndEvaluate() {}    
+    
+    void         setnThreads(int nThreads) { _nThreads = nThreads; }
+    
 protected:
+    
+    int _nThreads;
 };
 
 }}
