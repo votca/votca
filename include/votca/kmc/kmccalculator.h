@@ -31,7 +31,7 @@ public:
     KMCCalculator() {};
     virtual     ~KMCCalculator() {};
     
-    virtual void Initialize(const char *filename, Property *options) {}
+    virtual void Initialize(const char *filename, Property *options, const char *outputfile) {}
     virtual bool EvaluateFrame() { return true; }
     virtual void EndEvaluate() {}    
     
