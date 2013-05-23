@@ -36,9 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o \
-	${OBJECTDIR}/_ext/484465351/version_nb.o \
-	${OBJECTDIR}/_ext/484465351/kmcapplication.o \
-	${OBJECTDIR}/_ext/484465351/version.o
+	${OBJECTDIR}/_ext/484465351/kmcapplication.o
 
 
 # C Compiler Flags
@@ -70,22 +68,12 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o: ../../src/libkmc/kmccalculatorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../include/votca/kmc -I../../../include/votca/tools -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
-
-${OBJECTDIR}/_ext/484465351/version_nb.o: ../../src/libkmc/version_nb.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../include/votca/kmc -I../../../include/votca/tools -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/version_nb.o ../../src/libkmc/version_nb.cc
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
 
 ${OBJECTDIR}/_ext/484465351/kmcapplication.o: ../../src/libkmc/kmcapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../include/votca/kmc -I../../../include/votca/tools -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmcapplication.o ../../src/libkmc/kmcapplication.cc
-
-${OBJECTDIR}/_ext/484465351/version.o: ../../src/libkmc/version.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../include/votca/kmc -I../../../include/votca/tools -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/version.o ../../src/libkmc/version.cc
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmcapplication.o ../../src/libkmc/kmcapplication.cc
 
 # Subprojects
 .build-subprojects:
