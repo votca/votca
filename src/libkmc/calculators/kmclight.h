@@ -728,7 +728,7 @@ bool KMCLight::EvaluateFrame()
             }
         }
     }
-    // output occupation probabilites
+    // output occupation 
     cout << endl;
     for(unsigned int j=0; j<occP.size();j++) 
     {
