@@ -19,6 +19,8 @@
 #include <votca/kmc/kmccalculatorfactory.h>
 #include <votca/kmc/kmcapplication.h>
 #include <string>
+#include <cstdio>
+#include <iostream>
 
 namespace votca { namespace kmc {
 
@@ -37,8 +39,9 @@ void KMCApplication::Initialize()
 
     AddProgramOptions()
             ("options,o", boost::program_options::value<string>(), "  program and calculator options")
-            ("file,f", boost::program_options::value<string>(), "  sqlite state file");
-
+            ("file,f", boost::program_options::value<string>(), "  sqlite state file")
+            ("textfile,t", boost::program_options::value<string>(), "  output text file (otherwise: screen output)");
+    
     AddProgramOptions("Calculators")
             ("execute,e", boost::program_options::value<string>(), "list of calculators separated by commas or spaces")
             ("list,l", "lists all available calculators")
@@ -70,25 +73,11 @@ void KMCApplication::PrintDescription(const char *name, const bool length)
            if ( length ) { // short description of the calculator
                
                  cout << string("  ") << _fwstring(string(name),14);
-                 cout << options.get(name+string(".description")).as<string>();
+                 cout << options.begin()->getAttribute<string>("help");
 
             } else { // long description of the calculator
-                cout << " " << _fwstring(string(name),18);
-                cout << options.get(name+string(".description")).as<string>() << endl;
- 
-                list<Property *> items = options.Select(name+string(".item"));
-
-                for(list<Property*>::iterator iter = items.begin(); iter!=items.end(); ++iter) {
-                    //cout << "Long description" << endl;
-                    Property *pname=&( (*iter)->get( string("name") ) );
-                    Property *pdesc=&( (*iter)->get( string("description") ) );
-                    //Property *pdflt=&( (*iter)->get( string("default") ) );
-                    if ( ! (pname->value()).empty() ) {
-                        cout << string("  -") << _fwstring(pname->value(), 14);
-                        cout << pdesc->value() << endl;
-                    }
-                 }
-            }
+                cout << HLP << options;
+             }
             cout << endl;
         } catch(std::exception &error) {
             cout << string("XML file or description tag missing: ") << xmlFile << endl;
@@ -141,8 +130,28 @@ bool KMCApplication::EvaluateOptions() {
         CheckRequired("options", "please provide an xml file with program options");
         CheckRequired("file", "no database file specified");
         
+        string _outputfile = "";
+        //if(OptionsMap()["textfile"] == NULL)
+        //{cout << "Mist!";}
+        if(OptionsMap().count("textfile")) 
+        {
+            _outputfile = OptionsMap()["textfile"].as<string > ();
+        }
+        if(_outputfile != "")
+        {
+            //char char_outputfile[1024] = {_outputfile}; // max. 1024 characters for filename
+            //char_outputfile = _outputfile;
+            cout << "Output into file: " << _outputfile.c_str() << "." << endl;
+            freopen(_outputfile.c_str(),"w",stdout);   
+            //cout << "hier ist output" << endl;
+        }
+        else
+        {
+            cout << " Output to screen." << endl;
+        }
+        
         _filename = OptionsMap()["file"].as<string > ();
-        cout << " Database file: " << _filename << endl;
+        cout << " Database file: " << _filename << endl;        
         return true;
 }
         
@@ -164,7 +173,7 @@ void KMCApplication::Run()
 void KMCApplication::BeginEvaluate(){
     list<KMCCalculator *>::iterator iter;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->Initialize(_filename.c_str(), &_options);
+        (*iter)->Initialize(_filename.c_str(), &_options, _outputfile.c_str());
     }
 }
 
