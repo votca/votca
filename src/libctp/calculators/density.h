@@ -33,6 +33,24 @@ private:
 
 void Density::Initialize(Topology *top, Property *options) {
 
+/*   an attempt to have default values 
+        Property default_options;
+        
+        char *votca_share = getenv("VOTCASHARE");
+        if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+        string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/")+this->Identify()+string(".xml");
+        
+   //     try {
+            
+            load_property_from_xml(default_options, xmlFile);
+            cout << TXT << default_options;
+   //     }
+        string default_key      = Identify();
+            
+            cout << default_options.get(default_key+".resolution").getAttribute<string>("default") << endl;
+            cout << "|"<< default_options.get(default_key+".output").getAttribute<string>("default") << "|" << endl;
+ */
+    
     string key      = "options.density";
     _axis           = options->get(key+".axis").as< vec >();
     _resolution     = options->get(key+".resolution").as< double >();
