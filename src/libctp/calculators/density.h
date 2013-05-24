@@ -11,12 +11,12 @@ class Density : public QMCalculator
 {
 public:
 
-    string      Identify() { return "Density"; }
+    string      Identify() { return "density"; }
     void        Initialize(Topology *top, Property *options);
     bool        EvaluateFrame(Topology *top);
 
 private:
-
+    
     vec         _axis;
     double      _resolution;
     string      _outfile;
@@ -30,8 +30,39 @@ private:
     int         _lastSegId;
 };
 
+void CopyNode(Property &p, Property &sp, string prefix)
+{
+    
+    list<Property>::iterator iter;
+    
+    if( p.HasChilds() ) {
+        
+        for(iter = p.begin(); iter!=p.end(); ++iter) {
+                CopyNode(*iter, sp, prefix);
+                string full_name =  prefix+"."+(*iter).path() + "." + (*iter).name();
+                cout << full_name << endl;
+                cout << sp.get(full_name) << endl;
+                //cout << (*iter).path() << " " << (*iter).name() << " " << (*iter).value() << endl;
+        }
+    }
+}
 
 void Density::Initialize(Topology *top, Property *options) {
+    
+    LoadDefaults( Identify() );
+    
+    //CopyNode(_options, *options, "options");
+    
+    _options.CopyValues("options", *options );
+    
+    /*
+    while ( _options.HasChilds() ) {
+        for(list<Property>::iterator iter = _options.begin(); iter != _options.end(); ++iter) {
+                cout << _options.name() << "|" << _options.path() << "|" << _options.value() << endl;
+        }
+        _options = *_options.begin();
+    }
+    */
     
     string key      = "options.density";
     _axis           = options->get(key+".axis").as< vec >();
