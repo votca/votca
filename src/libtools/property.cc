@@ -104,6 +104,26 @@ std::list<Property *> Property::Select(const string &filter)
     return selection;
 }
 
+void copy_node(string prefix_from, string prefix_to, Property &p_from, Property &p_to) {
+    
+    list<Property>::iterator iter;
+    
+    if( p_to.HasChilds() ) {
+        
+        for(iter = p_to.begin(); iter!=p_to.end(); ++iter) {
+                copy_node(prefix_from, prefix_to, p_from, *iter);
+                string full_name =  prefix_from + "." + (*iter).path() + "." + (*iter).name();
+                if (p_from.exists( full_name ) ) (*iter).value() = p_from.get(full_name).value();
+                //cout << (*iter).path() << " " << (*iter).name() << " " << (*iter).value() << endl;
+        }
+    }
+}
+
+void Property::CopyValues(string prefix, Property &p) {
+    copy_node(prefix, "", p, *this);
+}
+
+
 void PrintNodeTXT(std::ostream &out, const string &prefix, Property &p)
 {
     
@@ -243,7 +263,7 @@ void PrintNodeHLP(std::ostream &out, const string &prefix, Property &p, int offs
     list<Property>::iterator iter;       
     string head_name;
     string help;
-    string fmt("t|<%1%>%|15t|%2%%|20t|%3%%|25t|%4%\n");
+    string fmt("t|%1%%|15t|%2%%|20t|%3%%|25t|%4%\n");
     
     // if this is the head node, print the header
     if ( p.name() == "" ) {
@@ -259,13 +279,15 @@ void PrintNodeHLP(std::ostream &out, const string &prefix, Property &p, int offs
             string ofmt;
             ofmt = "%|" + boost::lexical_cast<string>(offset) + fmt;
             //cout << ofmt << " " << fmt << endl;
-            string unit( p.getAttribute<string>("unit") );
-            if ( !unit.empty() ) unit = "[" + unit + "]";
+            string _unit( p.getAttribute<string>("unit") );
+            string _default( p.getAttribute<string>("default") );
+            if ( !_unit.empty() ) _unit = "[" + _unit + "]";
+            if ( !_default.empty() ) _default = "(" + _default + ")";
             
             out << boost::format(ofmt)
                     % p.name() 
-                    % p.getAttribute<string>("default")
-                    % unit
+                    % _default
+                    % _unit
                     % p.getAttribute<string>("help");
         }
     }

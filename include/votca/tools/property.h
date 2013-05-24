@@ -79,7 +79,7 @@ public:
      * @return Reference to property object
      *
      * This function tries to find a property specified by key separated
-     * by "." to step down hierarchie. If the property is not
+     * by "." to step down hierarchy. If the property is not
      * found a runtime_exception is thrown.
      */
     Property &get(const string &key);
@@ -96,7 +96,7 @@ public:
      * @param filter
      * @return list of pointers to property objects
      *
-     * returns a list of properties that match the key kriteria including
+     * returns a list of properties that match the key criteria including
      * wildcards "*" and "?". Example: "base.item*.value"
     */
     std::list<Property *> Select(const string &filter);
@@ -166,17 +166,18 @@ public:
      * \brief return true if a node has attributes
      */
     bool hasAttributes() { return _attributes.size() > 0; }
-
-    /**
-     * \brief return true if a node has attributes
-     */
-    const map<string,string>* getAttributes() { return &_attributes; }
     
     /**
      * \brief stores output format
      */    
     static int GetFormat(){return _format;}; 
 
+    /**
+     * \brief copies values of a property
+     * @param prefix starting path (name0.name1.name2 ...) 
+     */
+     void CopyValues(string prefix, Property &p);
+    
 private:        
     map<string,Property*> _map;
     map<string,string> _attributes;
