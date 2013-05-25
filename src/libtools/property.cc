@@ -143,7 +143,7 @@ void PrintNodeTXT(std::ostream &out, const string &prefix, Property &p)
     }
 }
 
-void PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset)
+void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int level, const string &prefix,  string offset)
 {
     
     list<Property>::iterator iter;       
@@ -154,31 +154,34 @@ void PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string o
     
     if( p.HasChilds() || p.value() != "" ) {
         
-        // the head node is always empty, do not print it
-        if ( prefix.find_first_not_of(' ') != std::string::npos )  {
-                out << offset << "<" << prefix ;
-                // the attributes 
-                for(ia = p._attributes.begin(); ia!=p._attributes.end(); ++ia) {
-                        cout << " " << ia->first << "=\"" << ia->second << "\"" ;
-                }
-                out << ">";
-        }
- 
-        if((p._value).find_first_not_of("\t\n ") != std::string::npos) {
-            out << p._value;
-            _endl = false;
-        } else {
-            out << endl;
-            _endl = true;
+        // print starting only from the start_level (the first node (level 0) is always <> </>)
+        if ( level >= start_level )  {
+            // print the node name
+            out << offset << "<" << p._name ;
+            // print the node attributes 
+            for(ia = p._attributes.begin(); ia!=p._attributes.end(); ++ia) 
+                cout << " " << ia->first << "=\"" << ia->second << "\"" ;
+            out << ">";
+            // print node value
+            if((p._value).find_first_not_of("\t\n ") != std::string::npos) {
+                out << p._value;
+                _endl = false;
+            } else {
+                out << endl;
+                _endl = true;
+            }
         }
         
+        // continue iteratively through the rest of the nodes
         for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
-            offset += "\t";
-            PrintNodeXML(out, (*iter)._name , (*iter), offset);
-            offset.resize(offset.size()-1);           
+            level++; 
+            if (  level > start_level ) offset += "\t"; 
+            PrintNodeXML(out, (*iter), start_level, level, (*iter)._name, offset);
+            if (  level > start_level ) offset.resize(offset.size()-1); 
+            level--;           
         }
         
-        if ( prefix.find_first_not_of(' ') != std::string::npos ) {
+        if ( level >= start_level ) {
             if ( _endl ) {
                 out << offset << "</" << prefix << ">"  << endl;
             } else {
@@ -195,8 +198,8 @@ void PrintNodeT2T(std::ostream &out, const string &prefix, Property &p) {
 void PrintNodeLOG(std::ostream &out, const string &prefix, Property &p) {
     out << "LOG format is not implemented";
 }
-
-void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int level) {
+    
+void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int level, const string &prefix,  string offset) {
 
     list<Property>::iterator iter;       
     string head_name;
@@ -216,18 +219,19 @@ void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int leve
     string body_format(" \\hspace{%1%pt}\\hypertarget{%2%}{%3%} & %4% & %5% & %6% \\\\\n");
     
     // if this is the head node, print the header
-    if ( p.name() == "" ) {
-            head_name = p.begin()->name();
-            label = (p.get(head_name)).getAttribute<string>("label");
-            section = (p.get(head_name)).getAttribute<string>("section");
-            help = (p.get(head_name)).getAttribute<string>("help");
-            
-            out << boost::format(header_format) % head_name % label % help;
-                    
-     } else {
+    if ( level == start_level )  {
+            head_name = p._name;
+            label = p.getAttribute<string>("label");
+            section = p.getAttribute<string>("section");
+            help = p.getAttribute<string>("help");
+            out << boost::format(header_format) % head_name % label % help;                   
+     } 
+    
+    
+    if ( level > start_level ) {
     
         // if this node has children or a value or is not the first, start recursive printing
-        if( ( p.value() != "" || p.HasChilds() ) && level > 0) {
+        if( ( p.value() != "" || p.HasChilds() ) && level > -1) {
             string _tex_name = boost::replace_all_copy( p.name(), "_", "\\_" );
             
             out << boost::format(body_format) % int((level-1)*10) 
@@ -242,19 +246,22 @@ void PrintNodeTEX(std::ostream &out, const string &prefix, Property &p, int leve
                 << " & " <<  p.getAttribute<string>("help") << "\\\\" << endl; */
         }
     }
-    
+
+    // continue iteratively through the rest of the nodes
     for(iter = p.begin(); iter != p.end(); ++iter) {
         if(prefix=="") {
-            PrintNodeTEX(out, prefix + (*iter).name(), (*iter), ++level);
+            level++;
+            PrintNodeTEX(out, (*iter), start_level, level, (*iter)._name, offset);
             level--;
         } else {
-            PrintNodeTEX(out, prefix + "." + (*iter).name(), (*iter), ++level);
+            level++;
+            PrintNodeTEX(out, (*iter), start_level, level, prefix + "." + (*iter)._name, offset);
             level--;
         }
     }        
 
     // if this is the head node, print the footer
-    if ( p.name() == "" ) out << boost::format(footer_format) % section % head_name;
+    if ( level == start_level )  out << boost::format(footer_format) % section % head_name;
 
 }
 
@@ -324,8 +331,9 @@ std::ostream &operator<<(std::ostream &out, Property& p)
         default:
             PrintNodeTXT(out, "", p);
         case formatXML:
-            //cout << p._name << " " << p._value << " " << p._path << endl;
-            PrintNodeXML(out, "", p, "");
+            PrintNodeXML(out, p, 1);
+            PrintNodeXML(out, p, 2);
+            PrintNodeXML(out, p, 3);
             break;
         case formatTXT:
             PrintNodeTXT(out, "", p);
@@ -337,7 +345,7 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             PrintNodeLOG(out, "", p);
             break;
         case formatTEX:            
-            PrintNodeTEX(out, "", p, -1);
+            PrintNodeTEX(out, p, 2);
             break;
         case formatHLP:            
             PrintNodeHLP(out, "", p, -2);

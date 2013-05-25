@@ -48,8 +48,11 @@ class Property {
     /// \brief outputs the property to the ostream
     friend std::ostream &operator<<(std::ostream &out, Property& p);
     /// \brief output the content in the xml format
-    friend void PrintNodeXML(std::ostream &out, const string &prefix, Property &p, string offset);
+    friend void PrintNodeXML(std::ostream &out, Property &p, const int start_level=1, int level=0, const string &prefix="",  string offset="");
+    /// \brief output the content in the text format
     friend void PrintNodeTXT(std::ostream &out, const string &prefix, Property &p);
+    /// \brief output the content in the tex format
+    friend void PrintNodeTEX(std::ostream &out, Property &p, const int start_level=1, int level=0, const string &prefix="",  string offset="");
 
    
 public:
@@ -189,9 +192,6 @@ private:
 
     static const int _format;    
    
-    friend std::ostream &operator<<(std::ostream &out, const Property& p);
-    
-    
     struct PropertyStackEntry_t {
         Property *prop;
         string comment;
@@ -300,7 +300,12 @@ inline void throwRuntimeError(string message) {
     
 }
 
-
+/**
+  * \brief Manipulates the state of the output stream 
+  *
+  * Changes the state of the output stream. Property class then 
+  * formats it output according to this state (XML, TXT, T2T, etc)
+  */
 class PropertyFormat {
     
 public:
