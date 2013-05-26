@@ -1,3 +1,5 @@
+<options>
+
 <kmcsingle help="Kinetic Monte Carlo simulations of a single hopper in PBC" label="calc:kmcsingle" section="sec:kmc">
 
 	<runtime help="Total time of the KMC run" unit="s" default="">10e-4</runtime>
@@ -6,3 +8,5 @@
 	<injection help="Name pattern for conjugated segments" default="*">*</injection>
 
 </kmcsingle>
+
+</options>
