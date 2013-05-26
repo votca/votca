@@ -73,10 +73,10 @@ void KMCApplication::PrintDescription(const char *name, const bool length)
            if ( length ) { // short description of the calculator
                
                  cout << string("  ") << _fwstring(string(name),14);
-                 cout << options.begin()->getAttribute<string>("help");
+                 cout << options.get("options."+string(name)).getAttribute<string>("help");
 
             } else { // long description of the calculator
-                cout << HLP << options;
+                cout << HLP << setlevel(2) << options;
              }
             cout << endl;
         } catch(std::exception &error) {
