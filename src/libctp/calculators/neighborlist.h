@@ -37,7 +37,7 @@ public:
     Neighborlist() { };
    ~Neighborlist() { };
 
-    string Identify() { return "Neighborlist"; }
+    string Identify() { return "neighborlist"; }
     
     void Initialize(Topology *top, Property *options);
     bool EvaluateFrame(Topology *top);

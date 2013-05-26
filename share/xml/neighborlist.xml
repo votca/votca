@@ -1,11 +1,21 @@
 <options>
 
-<neighborlist help="Constructs a list of neighboring conjugated segments." label="calc:neighborlist" section="sec:neighborlist">
+<neighborlist help="Constructs a list of neighboring conjugated segments" label="calc:neighborlist" section="sec:neighborlist">
+
+	<constant help="If provided, this value is used for all segment types" unit="nm"></constant>
 
 	<segments help="A pair of segment types">
-		<type help="Types of the two segments. For two types A and B this can be A A, A B or B B.">A A</type>
-		<cutoff help="Cutoff radius for centers of mass of rigid fragments" unit="nm" default="">2.0</cutoff>
+		<type help="Types of two segments. For types A and B this can be A A, A B or B B">A A</type>
+		<cutoff help="Cutoff radius for centers of mass of rigid fragments" unit="nm">2.0</cutoff>
 	</segments>
+
+	<!-- suggestion -->
+	<load help="">
+		<file help="Text file with ID1 ID2 NAME1 NAME2"></file>
+		<id help="Indeces of columns with segment IDs"></id>
+		<type help="Indeces of columns with segment types">7 8</type>
+		<unsafe help=""></unsafe> <!-- what is this? -->
+	</load>
 
 </neighborlist>
 
