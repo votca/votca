@@ -1,4 +1,6 @@
-<rates help="Hopping rates using classical or semi-classical expression" label="rates">
+<options>
+
+<rates help="Hopping rates using classical or semi-classical expression" label="calc:rates">
 
 	<temperature help="Temperature for rates" unit="K">300</temperature>
 	<method help="Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second is the rate proposed by Jortner and Bixon">marcus</method>
@@ -6,3 +8,5 @@
 	<omegavib help="If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV" unit="eV" default="0.2">0.2</omegavib>
 
 </rates>
+
+</options>

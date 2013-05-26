@@ -5,8 +5,8 @@
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
             <name>ctp_run</name>
             <make-project-type>0</make-project-type>
-            <c-extensions/>
-            <cpp-extensions>cc</cpp-extensions>
+            <c-extensions>cc</c-extensions>
+            <cpp-extensions/>
             <header-extensions/>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
@@ -19,8 +19,14 @@
                 <sourceRootElem>../../src/tools</sourceRootElem>
             </sourceRootList>
             <confList>
-                <confElem>Debug</confElem>
-                <confElem>Release</confElem>
+                <confElem>
+                    <name>Debug</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Release</name>
+                    <type>1</type>
+                </confElem>
             </confList>
         </data>
     </configuration>

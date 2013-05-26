@@ -1,7 +1,11 @@
-<stateserver help="Calculator to export SQLite input to readable format" label="sec:stateserver">
+<options>
+
+<stateserver help="Export SQLite file to human readable format" label="sec:stateserver">
 
 	<out help="Output file name">out</out>
 	<pdb help="PDB coordinate file name">pdb</pdb>
 	<keys help="Sections to write to readable format (topology, segments, pairs, coordinates)">keys</keys>
 
 </stateserver>
+
+</options>

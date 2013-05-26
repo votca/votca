@@ -1,7 +1,11 @@
-<ecoulomb help="Evaluates electrostatic contribution to site energies based on atomic partial charges" label="sec:ecoulomb">
-	<method help="Type of screening used. **simple** for a constant dielectric constant, **distdep** for a distance-dependent screening. In the latter case screening length must be specified">method</method>
-	<epsilon help="Relative dielectric constant of the semiconductor">3.0</epsilon>
-	<screening help="Screening length used in the distance-dependent screening"></screening>
-	<cutoff help="Cutoff for Coulomb interactions for molecular centers of mass. If ommited, the whole box is used" unit="nm"></cutoff>
+<options>
+
+<!-- ctp_run -e ecoulomb -f state.db -o options.xml -->
+<ecoulomb help="Electrostatic contribution to site energies based on atomic partial charges" label="calc:ecoulomb">
+	<method help="Type of screening: **simple** for a constant and **distdep** for a distance-dependent screening">method</method>
+	<epsilon help="Relative dielectric constant">3.0</epsilon>
+	<screening help="Screening length used in the distance-dependent screening">1.0</screening>
+	<cutoff help="Cutoff for Coulomb interactions for molecular centers of mass. If ommited, the whole box is used" unit="nm">1.0</cutoff>
 </ecoulomb>
 
+</options>

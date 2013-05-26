@@ -1,3 +1,7 @@
-<iimport help="Imports electronic couplings from xml file created by ctp-dipro using folders of pairdump" label="calc:iimport">
+<options>
+
+<iimport help="Imports electronic couplings from xml of ctp-dipro using folders of pairdump" label="calc:iimport">
 	<TI_tag help="Name/tag of the transfer integral"></TI_tag>
 </iimport>
+
+</options>
