@@ -34,33 +34,33 @@ void Density::Initialize(Topology *top, Property *options) {
     
     LoadDefaults( Identify() );
     
-    _options.CopyValues("options", *options );
-    
-    cout << TXT << _options;
+    _options.CopyValues("", *options );
+
+    cout << " with options" << endl << TXT << setlevel(3) << _options;
     
     string key      = "options.density";
-    _axis           = options->get(key+".axis").as< vec >();
-    _resolution     = options->get(key+".resolution").as< double >();
-    _outfile        = options->get(key+".output").as< string >();
-    _outfile_EA_IP  = options->get(key+".output_e").as< string >();
-    _density_type   = options->get(key+".density_type").as< string >();
+    _axis           = _options.get(key+".axis").as< vec >();
+    _resolution     = _options.get(key+".resolution").as< double >();
+    _outfile        = _options.get(key+".output").as< string >();
+    _outfile_EA_IP  = _options.get(key+".output_e").as< string >();
+    _density_type   = _options.get(key+".density_type").as< string >();
 
-    int autobin     = options->get(key+".auto_bin").as< int >();
+    int autobin     = _options.get(key+".auto_bin").as< int >();
     _auto_bin       = (autobin == 1) ? true : false;
 
     if (!_auto_bin) {
-        _min            = options->get(key+".min").as< double >();
-        _max            = options->get(key+".max").as< double >();
+        _min            = _options.get(key+".min").as< double >();
+        _max            = _options.get(key+".max").as< double >();
     }
 
-    if (options->exists(key+".first")) {
-        _firstSegId = options->get(key+".first").as<int>();
-    }
-    else { _firstSegId = 1; }
-    if (options->exists(key+".last")) {
-        _lastSegId = options->get(key+".last").as<int>();
-    }
-    else { _lastSegId = -1; }
+    //if (_options->exists(key+".first")) {
+        _firstSegId = _options.get(key+".first").as<int>();
+    //}
+    //else { _firstSegId = 1; }
+    //if (_options->exists(key+".last")) {
+        _lastSegId = _options.get(key+".last").as<int>();
+    //}
+    //else { _lastSegId = -1; }
     
     // Normalize axis
     _axis           = _axis / sqrt(_axis*_axis);

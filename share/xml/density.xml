@@ -2,14 +2,18 @@
 
 <!-- ctp_run -e density -f state.db -o options.xml -->
 <density help="Density and site energy profiles" label="calc:density">
+
+	<density_type help="What centers of mass to use: 'segments' or 'atoms'" default="segments">segments</density_type>
 	<axis help="Axis along which to calculate density and energy profile">0.0 0.0 1.0</axis>
-	<resolution help="Spatial resolution of the profile" unit="nm" default="0.5">0.5</resolution>
-	<output help="Output file for density profile">density-profile.dat</output>
-	<output_e help="Output file for energy profile">energy-profile.dat</output_e>
-	<density_type help="What coordinated to use: 'segments' or 'atoms'">segments</density_type>
-	<auto_bin help="'0' for manual binning using min and max, '1' for automated binning" default="1">1</auto_bin>
-	<min help="Minimal distance along axis (manual binning)" unit="nm">-10</min>
-	<max help="Maximal distance along axis (manual binning)" nit="nm">10</max>
+	<auto_bin help="'0' for manual binning using min and max, '1' for automated" default="1">1</auto_bin>
+	<resolution help="Spatial resolution of the profile" unit="nm" default="0.1">0.1</resolution>
+	<min help="Minimal distance for manual binning" unit="nm">-10</min>
+	<max help="Maximal distance for manual binning" unit="nm">10</max>
+	<first help="ID of the first segment" default="1">1</first>
+	<last help="ID of the last segment, -1 is the list end" default="-1">-1</last>
+	<output help="Density profile file">density.dat</output>
+	<output_e help="Energy profile file">energy.dat</output_e>
+
 </density>
 
 </options>

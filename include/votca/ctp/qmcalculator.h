@@ -39,11 +39,16 @@ public:
     // reads-in default options from the shared folder
     void LoadDefaults(string name) {
 
+        // get the path to the shared folders with xml files
         char *votca_share = getenv("VOTCASHARE");
         if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
         string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/")+name+string(".xml");
+        
+        // load the xml description of the calculator (with default and test values)
         load_property_from_xml(_options, xmlFile);
-        cout << endl << TXT << _options;
+
+        // override test values with default values
+        _options.ResetFromDefaults();
 
     };
 
