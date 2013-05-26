@@ -1,7 +1,11 @@
-<tdump help="Outputs coarse-grained and back-mapped (using rigid fragments) trajectories" labels="sec:segments">
+<options>
+
+<tdump help="Coarse-grained and back-mapped (using rigid fragments) trajectories" label="sec:segments">
 
 	<cg help="Name of the coarse-grained trajectory">cg</cg>
-	<qm help="">"Name of the trajectory with back-substituted rigid fragments"</qm>
-	<frames help="Number of frames for which to output PDBs for mapped system">frames</frames>
+	<qm help="Name of the trajectory with back-substituted rigid fragments"></qm>
+	<frames help="Number of frames for which to output PDBs for mapped system"></frames>
 
 </tdump>
+
+</options>

@@ -1,3 +1,5 @@
+<options>
+
 <emultipole help="Evaluates polarization contribution based on the Thole model" label="calc:emultipole" section="sec:thole">
 
 	<multipoles help="Polar Site Definitions in GDMA punch-file format"></multipoles>
@@ -38,3 +40,5 @@
 	</conv>
 
 </emultipole>
+
+</options>

@@ -66,7 +66,8 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EInternal>       ("einternal");
         Calculators().Register<EOutersphere>    ("eoutersphere");
         Calculators().Register<EMultipole>      ("emultipole");
-        Calculators().Register<EMultipole_StdAl>("emultipole2");
+        // TO DO MOVE THIS TO CTP_APP
+        //Calculators().Register<EMultipole_StdAl>("emultipole2");
         Calculators().Register<EAnalyze>        ("eanalyze");
         Calculators().Register<EImport>         ("eimport");
         Calculators().Register<PairDump>        ("pairdump");
@@ -76,7 +77,8 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<Density>         ("density");
         Calculators().Register<XMP>             ("xmultipole");
         Calculators().Register<Velocity>        ("velocity");
-        Calculators().Register<MolPol>          ("molpol");
+        // HAS BEEN MOVED TO ctp_app?
+        //Calculators().Register<MolPol>          ("molpol");
         Calculators().Register<ZMultipole>      ("zmultipole");
         Calculators().Register<QMultipole>      ("qmultipole");
         Calculators().Register<XQMP>            ("xqmultipole");
