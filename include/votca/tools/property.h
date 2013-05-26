@@ -37,22 +37,29 @@ using namespace std;
 enum formats{ formatXML, formatTXT, formatLOG, formatTEX, formatT2T, formatHLP };
     
 /**
-  * \brief class to manage properties and options, also used as an xml-wrapper
-  *
-  * This class stores names and values in a hierachical (tree like) structure like it's
-  * used in an xml format. The structure can be eiter filled manually
-  * or read in from an xml file using load_property_from_xml.
-  */
+ * \brief class to manage program options with xml serialization functionality
+ *
+ * This class stores tags and content in a hierarchical (tree) structure similar
+ * to the one used in the XML format. The structure can be either filled manually
+ * or read in from an XML file using load_property_from_xml.
+ * The supported XML constructs are TAGS, ATTRIBUTES, and CONTENT:
+ * <tag attribute_name="attribute_value">
+ *      content
+ * </tag> 
+ * The property object can be output to an ostream using format modifiers:
+ * cout << XML << property;
+ * Supported formats are XML, TXT, TEX, HLP
+ */
 class Property {
     
     /// \brief outputs the property to the ostream
     friend std::ostream &operator<<(std::ostream &out, Property& p);
     /// \brief output the content in the xml format
-    friend void PrintNodeXML(std::ostream &out, Property &p, const int start_level=1, int level=0, const string &prefix="",  string offset="");
+    friend void PrintNodeXML(std::ostream &out, Property &p, const int start_level=1, int level=0, string prefix="", string offset="");
     /// \brief output the content in the text format
-    friend void PrintNodeTXT(std::ostream &out, const string &prefix, Property &p);
+    friend void PrintNodeTXT(std::ostream &out, Property &p, const int start_level=1, int level=0, string prefix="", string offset="");
     /// \brief output the content in the tex format
-    friend void PrintNodeTEX(std::ostream &out, Property &p, const int start_level=1, int level=0, const string &prefix="",  string offset="");
+    friend void PrintNodeTEX(std::ostream &out, Property &p, const int start_level=1, int level=0, string prefix="", string offset="");
 
    
 public:
@@ -176,6 +183,11 @@ public:
     static int GetFormat(){return _format;}; 
 
     /**
+     * \brief stores output level
+     */    
+    static int GetOutputLevel(){return _output_level;}; 
+
+    /**
      * \brief copies values of a property
      * @param prefix starting path (name0.name1.name2 ...) 
      */
@@ -190,7 +202,8 @@ private:
     string _value;
     string _path;
 
-    static const int _format;    
+    static const int _format; 
+    static const int _output_level;    
    
     struct PropertyStackEntry_t {
         Property *prop;
@@ -301,10 +314,10 @@ inline void throwRuntimeError(string message) {
 }
 
 /**
-  * \brief Manipulates the state of the output stream 
+  * \brief Manipulates the format state of the output stream 
   *
-  * Changes the state of the output stream. Property class then 
-  * formats it output according to this state (XML, TXT, T2T, etc)
+  * Changes the state of the output stream. Property class formats 
+  * its output according to this state (XML, TXT, T2T, etc)
   */
 class PropertyFormat {
     
@@ -325,6 +338,24 @@ extern PropertyFormat T2T;
 extern PropertyFormat LOG;
 extern PropertyFormat TEX;
 extern PropertyFormat HLP;
+
+/**
+  * \brief Manipulates the XML-level state of the output stream 
+  *
+  * forces property object to output nodes starting from a certain level 
+  */
+class setlevel {
+    
+public:
+    explicit setlevel(int level) : _level(level){}    
+    friend std::ostream& operator << (std::ostream& os, const setlevel& pl)
+    {
+        os.iword(Property::GetOutputLevel()) = pl._level;
+        return os;
+    }
+private:
+    int _level;     
+};
 
 }}
 

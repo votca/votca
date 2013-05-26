@@ -32,6 +32,7 @@ int main(int argc, char** argv)
 {      
     string file;
     string format;
+    int level;
 
     // read in the program options
     namespace po = boost::program_options;
@@ -41,7 +42,8 @@ int main(int argc, char** argv)
     desc.add_options()
         ("help", "produce this help message")
         ("file", po::value<string>(&file), "xml file to parse")
-        ("format", po::value<string>(&format), "output format [XML TXT TEX]");
+        ("format", po::value<string>(&format), "output format [XML TXT TEX]")
+        ("level", po::value<int>(&level), "output from this level ");
 
     // now read in the command line
     po::variables_map vm;
@@ -70,6 +72,10 @@ int main(int argc, char** argv)
         cout << "format not specified, using XML\n";  
         format = "XML";
     } 
+    // format specified
+    if (!vm.count("level")) {
+        level = 1;
+    } 
     
     try {
 
@@ -89,7 +95,7 @@ int main(int argc, char** argv)
     
     it = _mformat.find( format );
     if ( it != _mformat.end() ) {
-        cout << *(_mformat.find( format )->second) << p ;
+        cout << *(_mformat.find( format )->second) << setlevel(level) << p ;
     } else {
         cout << "format " << format << " not supported \n";
         cout << desc << endl;
