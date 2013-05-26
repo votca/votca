@@ -287,7 +287,7 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
 
 }
 
-void PrintNodeHLP(std::ostream &out, const string &prefix, Property &p, int offset) {
+void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="",  int offset=0) {
 
     list<Property>::iterator iter;       
     string head_name;
@@ -295,15 +295,17 @@ void PrintNodeHLP(std::ostream &out, const string &prefix, Property &p, int offs
     string fmt("t|%1%%|15t|%2%%|20t|%3%%|25t|%4%\n");
     
     // if this is the head node, print the header
-    if ( p.name() == "" ) {
-            head_name = p.begin()->name();
-            help = (p.get(head_name)).getAttribute<string>("help");            
+    if ( level == start_level ) {
+            head_name = p.name();
+            help = p.getAttribute<string>("help");            
             out << boost::format(" %1%: %|18t| %2%\n") % head_name % help;
+            offset=0;
             //out << boost::format(fmt) % "option" % "def" % "[un]" % "description";
-    } else {
+    } 
     
+    if ( level > start_level ) {
         // if this node has children or a value or is not the first, start recursive printing
-        if( ( p.value() != "" || p.HasChilds() ) && offset > 0) {
+        //if( ( p.value() != "" || p.HasChilds() ) ) {
             
             string ofmt;
             ofmt = "%|" + boost::lexical_cast<string>(offset) + fmt;
@@ -318,23 +320,23 @@ void PrintNodeHLP(std::ostream &out, const string &prefix, Property &p, int offs
                     % _default
                     % _unit
                     % p.getAttribute<string>("help");
-        }
+        //}
     }
     
     for(iter = p.begin(); iter != p.end(); ++iter) {
         if(prefix=="") {
-            offset += 2;
-            PrintNodeHLP(out, prefix + (*iter).name(), (*iter), offset);
-            offset -= 2;
+            offset += 2; level++;
+            PrintNodeHLP(out, (*iter), start_level, level, prefix + (*iter).name(), offset);
+            offset -= 2; level--;
         } else {
-            offset += 2;
-            PrintNodeHLP(out, prefix + "." + (*iter).name(), (*iter), offset);
-            offset -= 2;
+            offset += 2; level++;
+            PrintNodeHLP(out, (*iter), start_level, level, prefix + "." + (*iter).name(), offset);
+            offset -= 2; level--;
         }
     }        
 
     // if this is the head node, print the footer
-    if ( p.name() == "" ) {
+    if ( level == start_level ) {
      }
 }
 
@@ -371,7 +373,7 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             PrintNodeTEX(out, p, _level);
             break;
         case formatHLP:            
-            PrintNodeHLP(out, "", p, -2);
+            PrintNodeHLP(out, p, _level);
             break;
         }
         out << endl;
