@@ -192,6 +192,11 @@ public:
      * @param prefix starting path (name0.name1.name2 ...) 
      */
      void CopyValues(string prefix, Property &p);
+     
+    /**
+     * \brief resets the content using default attributes
+     */
+     void ResetFromDefaults();
     
 private:        
     map<string,Property*> _map;

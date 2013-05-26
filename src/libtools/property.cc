@@ -110,21 +110,26 @@ void copy_node(string prefix_from, string prefix_to, Property &p_from, Property 
     
     list<Property>::iterator iter;
     
-    if( p_to.HasChilds() ) {
-        
-        for(iter = p_to.begin(); iter!=p_to.end(); ++iter) {
-                copy_node(prefix_from, prefix_to, p_from, *iter);
-                string full_name =  prefix_from + "." + (*iter).path() + "." + (*iter).name();
-                if (p_from.exists( full_name ) ) (*iter).value() = p_from.get(full_name).value();
-                //cout << (*iter).path() << " " << (*iter).name() << " " << (*iter).value() << endl;
-        }
+    for(iter = p_to.begin(); iter!=p_to.end(); ++iter) {
+           copy_node(prefix_from, prefix_to, p_from, *iter);
+           string full_name =  prefix_from + "." + (*iter).path() + "." + (*iter).name();
+           if (p_from.exists( full_name ) ) (*iter).value() = p_from.get(full_name).value();
     }
+
 }
 
 void Property::CopyValues(string prefix, Property &p) {
     copy_node(prefix, "", p, *this);
 }
 
+void reset_property( Property &p ) {
+    p.value() = p.getAttribute<string>("default");
+    for(list<Property>::iterator iter = p.begin(); iter!=p.end(); ++iter) reset_property( (*iter) );    
+}
+
+void Property::ResetFromDefaults() {
+    reset_property( *this );
+}
 
 void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int level, string prefix, string offset)
 {
@@ -226,7 +231,7 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
                          "\\rowcolors{1}{invisiblegray}{white}\n"
                          "{\\small\n "
                          "\\begin{longtable}{m{3cm}|m{1cm}|m{1cm}|m{9cm}}\n"
-                         " option & default & unit & description\\\\\n");    
+                         " option & default & unit & description\\\\\n\\hline\n");    
     
     string footer_format("\\end{longtable}\n}\n"
                          "\\noindent Return to the description of \\slink{%1%}{\\texttt{%2%}}.\n");
@@ -250,7 +255,7 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
         if( ( p.value() != "" || p.HasChilds() ) && level > -1) {
             string _tex_name = boost::replace_all_copy( p.name(), "_", "\\_" );
             
-            out << boost::format(body_format) % int((level-1)*10) 
+            out << boost::format(body_format) % int((level-start_level-1)*10) 
                     % prefix 
                     % _tex_name 
                     % p.getAttribute<string>("default")
