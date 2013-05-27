@@ -49,7 +49,7 @@ public:
     EDFT() {};
    ~EDFT() {};
 
-    string  Identify() { return "EDFT"; }
+    string  Identify() { return "edft"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
     void    EvalJob(Topology *top, Segment *seg, QMThread *thread);

@@ -1,0 +1,11 @@
+<options>
+
+<!-- ctp_run -e idft -f state.db -o options.xml -->
+<idft help="Projection method for electronic couplings. Requires edft otput" label="calc:idft">
+
+	<package help="XML file describing the input of the first-principles package"></package>
+	<degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0.01">0.01</degeneracy>
+
+</idft>
+
+</options>
