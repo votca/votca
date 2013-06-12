@@ -30,6 +30,7 @@
       <itemPath>../../src/libctp/calculators/stateserver.h</itemPath>
       <itemPath>../../src/libctp/calculators/tdump.cc</itemPath>
       <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
+      <itemPath>../../src/libctp/calculators/velocity.h</itemPath>
       <itemPath>../../src/libctp/calculators/xmultipole.h</itemPath>
       <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
       <itemPath>../../src/libctp/calculators/xqmultipole.h</itemPath>

@@ -32,7 +32,7 @@ private:
 
 void Density::Initialize(Topology *top, Property *options) {
     
-    LoadDefaults( Identify() );
+    LoadDefaults();
     
     _options.CopyValues("", *options );
 
