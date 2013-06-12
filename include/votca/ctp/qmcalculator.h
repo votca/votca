@@ -46,6 +46,7 @@ public:
         string name = Identify();
         string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/") + name + string(".xml");
         
+        cout << name << endl;
         // load the xml description of the calculator (with default and test values)
         load_property_from_xml(_options, xmlFile);
 
@@ -55,7 +56,7 @@ public:
     };
 
     
-    virtual string  Identify() { return "Generic calculator"; }
+    virtual string  Identify() = 0; //{ return "Generic calculator"; }
 
     virtual void    Initialize(CTP::Topology *top, Property *options) { }
     virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
