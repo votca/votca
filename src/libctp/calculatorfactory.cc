@@ -39,7 +39,7 @@
 #include "calculators/ecoulomb.h"
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
-#include "calculators/density.h"
+#include "calculators/profile.h"
 #include "calculators/xmultipole2.h"
 #include "calculators/velocity.h"
 #include "calculators/molpol.h"
@@ -74,7 +74,10 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<ECoulomb>        ("ecoulomb");
         Calculators().Register<IImport>         ("iimport");
         Calculators().Register<IAnalyze>        ("ianalyze");
-        Calculators().Register<Density>         ("density");
+        
+        // density, energy, etc profiles
+        Calculators().Register<Profile>         ("profile");
+
         Calculators().Register<XMP>             ("xmultipole");
         Calculators().Register<Velocity>        ("velocity");
         // HAS BEEN MOVED TO ctp_app?

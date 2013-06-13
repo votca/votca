@@ -1,17 +1,33 @@
-#ifndef DENSITY_H
-#define DENSITY_H
+/* 
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
 
-namespace votca { namespace ctp {
-
+#ifndef VOTCA_CTP_PROFILE_H
+#define VOTCA_CTP_PROFILE_H
 
 #include <votca/ctp/qmcalculator.h>
 
-class Density : public QMCalculator
+namespace votca { namespace ctp {
+
+class Profile : public QMCalculator
 {
 public:
 
-    string      Identify() { return "density"; }
+    string      Identify() { return "profile"; }
     void        Initialize(Topology *top, Property *options);
     bool        EvaluateFrame(Topology *top);
 
@@ -30,45 +46,48 @@ private:
     int         _lastSegId;
 };
 
-void Density::Initialize(Topology *top, Property *options) {
+void Profile::Initialize(Topology *top, Property *options) {
     
-    LoadDefaults();
-    
+    // _options already has default values, update them with the supplied options
     _options.CopyValues("", *options );
 
-    cout << " with options" << endl << TXT << setlevel(3) << _options;
+    string key      = "options." + Identify();
     
-    string key      = "options.density";
-    _axis           = _options.get(key+".axis").as< vec >();
-    _resolution     = _options.get(key+".resolution").as< double >();
-    _outfile        = _options.get(key+".output").as< string >();
-    _outfile_EA_IP  = _options.get(key+".output_e").as< string >();
-    _density_type   = _options.get(key+".density_type").as< string >();
-
-    int autobin     = _options.get(key+".auto_bin").as< int >();
+    // GEOMETRICAL OPTIONS
+    // axis along which to calculate profiles
+    _axis           = _options.get(key+".axis.direction").as< vec >();   
+    // spatial resolution of the profile
+    _resolution     = _options.get(key+".axis.bin").as< double >();
+    // do binning automatically
+    int autobin     = _options.get(key+".axis.auto").as< int >();
     _auto_bin       = (autobin == 1) ? true : false;
-
+   // min and max for manual binning 
     if (!_auto_bin) {
         _min            = _options.get(key+".min").as< double >();
         _max            = _options.get(key+".max").as< double >();
     }
-
-    //if (_options->exists(key+".first")) {
-        _firstSegId = _options.get(key+".first").as<int>();
-    //}
-    //else { _firstSegId = 1; }
-    //if (_options->exists(key+".last")) {
-        _lastSegId = _options.get(key+".last").as<int>();
-    //}
-    //else { _lastSegId = -1; }
-    
     // Normalize axis
     _axis           = _axis / sqrt(_axis*_axis);
+    
+    // OUTPUT OPTIONS
+    // output file for the density profile
+    _outfile        = _options.get(key+".output.density").as< string >();
+    // output file for the site energy profile
+    _outfile_EA_IP  = _options.get(key+".output.energy").as< string >();
+    
+ 
+    // PROPERTY OPTIONS
+    // to use segments or atoms centers of mass
+    _density_type   = _options.get(key+".particles.type").as< string >();
+    // limit statistics to the first:last range
+    _firstSegId = _options.get(key+".particles.first").as<int>();
+    _lastSegId = _options.get(key+".particles.last").as<int>();
+    
 }
 
 
 
-bool Density::EvaluateFrame(Topology *top) {
+bool Profile::EvaluateFrame(Topology *top) {
 
     map< string, vector< double > > map_seg_zs; // for atomistic number density
     map< string, vector< double > > map_com_zs; // for segment number density
