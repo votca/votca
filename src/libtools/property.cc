@@ -123,7 +123,9 @@ void Property::CopyValues(string prefix, Property &p) {
 }
 
 void reset_property( Property &p ) {
+    //cout << " BEFORE " << p.name() << " " << p.value() << " " << p.getAttribute<string>("default") << endl;
     p.value() = p.getAttribute<string>("default");
+    //cout << " AFTER " << p.name() << " " << p.value() << " " << p.getAttribute<string>("default") << endl;
     for(list<Property>::iterator iter = p.begin(); iter!=p.end(); ++iter) reset_property( (*iter) );    
 }
 
@@ -169,7 +171,7 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
     
     //cout << p._name << " Attributes: " << p._attributes.size() << endl;
     
-    if( p.HasChilds() || p.value() != "" ) {
+    //if( p.HasChilds() || p.value() != "" ) {
         
         // print starting only from the start_level (the first node (level 0) is always <> </>)
         if ( level >= start_level )  {
@@ -177,18 +179,22 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
             out << offset << "<" << p._name ;
             // print the node attributes 
             for(ia = p._attributes.begin(); ia!=p._attributes.end(); ++ia) 
-                cout << " " << ia->first << "=\"" << ia->second << "\"" ;
+                out << " " << ia->first << "=\"" << ia->second << "\"" ;
             out << ">";
-            // print node value
-            if((p._value).find_first_not_of("\t\n ") != std::string::npos) {
-                out << p._value;
-                _endl = false;
-            } else {
-                out << endl;
-                _endl = true;
-            }
+            
+            // print node value if it is not empty
+            bool has_value = ( (p._value).find_first_not_of("\t\n ") != std::string::npos );
+            if( has_value ) { out << p._value; _endl = false; }
+            
+            // check if we need the end of the line or not
+            if( !has_value &&  p.HasChilds() ) out << endl;
+            if( !has_value &&  !p.HasChilds() ) _endl = false;
+            
+ 
         }
         
+        
+    
         // continue iteratively through the rest of the nodes
         for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
             level++; 
@@ -208,7 +214,7 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
             prefix = "";
         }
         
-    }
+    //}
 }
 
 void PrintNodeT2T(std::ostream &out, const string &prefix, Property &p) {

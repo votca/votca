@@ -305,7 +305,13 @@ inline vector<double> Property::as<vector <double> >() const {
 template<typename T>
 inline T Property::getAttribute(const string &attribute)
 {
-    return lexical_cast<T>(_attributes[attribute], "wrong type in attribute " + attribute + " of element " + _path + "."  + _name + "\n");
+    std::map<string,string>::iterator it;
+    
+    if ( _attributes.find( attribute ) != _attributes.end() ) {
+        return lexical_cast<T>(_attributes[attribute], "wrong type in attribute " + attribute + " of element " + _path + "."  + _name + "\n");
+    } else {
+        return "";
+    }
 }
 
 template<typename T>
