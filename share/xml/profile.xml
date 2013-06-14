@@ -18,8 +18,8 @@
 	</particles>
 
 	<output>
-		<density help="Density profile file" default="density.dat">profile-density.dat</density>
-		<energy help="Energy profile file" default="energy.dat">profile-energy.dat</energy>
+		<density help="Density profile file" default="density.dat">density.dat</density>
+		<energy help="Energy profile file" default="energy.dat">energy.dat</energy>
 	</output>
 
 </profile>
