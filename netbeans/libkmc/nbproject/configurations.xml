@@ -5,6 +5,7 @@
       <itemPath>/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/diffusion.h</itemPath>
       <itemPath>/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/kmcmultiple.h</itemPath>
       <itemPath>../../src/libkmc/calculators/kmcsingle.h</itemPath>
+      <itemPath>/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/node.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
