@@ -36,7 +36,7 @@
 #include "calculators/eanalyze.h"
 #include "calculators/eimport.h"
 #include "calculators/pairdump.h"
-#include "calculators/ecoulomb.h"
+//#include "calculators/ecoulomb.h"
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
 #include "calculators/profile.h"
@@ -71,7 +71,10 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EAnalyze>        ("eanalyze");
         Calculators().Register<EImport>         ("eimport");
         Calculators().Register<PairDump>        ("pairdump");
-        Calculators().Register<ECoulomb>        ("ecoulomb");
+        
+        // obsolete - remove if nobody complains
+        //Calculators().Register<ECoulomb>        ("ecoulomb");
+        
         Calculators().Register<IImport>         ("iimport");
         Calculators().Register<IAnalyze>        ("ianalyze");
         
