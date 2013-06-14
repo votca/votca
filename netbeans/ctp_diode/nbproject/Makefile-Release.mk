@@ -35,7 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/1472/ctp_diode.o
+	${OBJECTDIR}/_ext/715944016/ctp_diode.o
 
 
 # C Compiler Flags
@@ -62,10 +62,10 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_diode: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_diode ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/1472/ctp_diode.o: ../ctp_diode.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1472
+${OBJECTDIR}/_ext/715944016/ctp_diode.o: ../../src/tools/ctp_diode.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1472/ctp_diode.o ../ctp_diode.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_diode.o ../../src/tools/ctp_diode.cc
 
 # Subprojects
 .build-subprojects:
