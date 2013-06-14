@@ -783,7 +783,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                             }
                             if(additionmade == 1 && substractionmade == 1)
                             {  // makes sure not to create cutoff-caused unbalanced additions/substractions
-                                coulombsum -= contribution;
+                                coulombsum += contribution;
                                 // cout << " = "<< contribution << endl;
                             }
                         }
