@@ -25,6 +25,7 @@
 #include <votca/csg/trajectorywriter.h>
 #include <votca/tools/application.h>
 #include <votca/ctp/calculatorfactory.h>
+#include <votca/ctp/progressobserver.h>
 
 #include <votca/ctp/topology.h>
 #include "statesaversqlite.h"
@@ -50,7 +51,7 @@ public:
 
 
 
-   virtual void BeginEvaluate(int nThreads);
+   virtual void BeginEvaluate(int nThreads, ProgObserver< vector<Job*>, Job*> *obs);
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
 

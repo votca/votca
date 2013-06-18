@@ -199,6 +199,7 @@ vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, T
 // Sample line
 // # JOB_ID TAG    SEG1_ID SEG1_NAME SEG1_MPS SEG2_ID SEG2_NAME SEG2_MPS
 //   1      E_CT   182:C60:MP_FILES/c60.mps   392:DCV:MP_FILES/dcv.mps
+//   1  AVAILABLE E_CT 182:C60:MP_FILES/c60.mps 392:DCV:MP_FILES/dcv.mps
 
             int jobUserId   = boost::lexical_cast<int>(split[0]);
             string tag      = split[1];

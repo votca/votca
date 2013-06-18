@@ -17,7 +17,7 @@ using boost::format;
 namespace votca { namespace ctp {
 
     
-class XQMP : public ParallelXJobCalc< vector<XJob*>, XJob* >
+class XQMP : public ParallelXJobCalc< vector<Job*>, Job* >
 {
 
 public:
@@ -30,7 +30,7 @@ public:
 
     void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
-    void            EvalJob(Topology *top, XJob *job, QMThread *thread);
+    void            EvalJob(Topology *top, Job *job, QMThread *thread);
     void            PostProcess(Topology *top);
     
 
@@ -183,22 +183,22 @@ void XQMP::Initialize(Topology *top, Property *opt) {
 
 void XQMP::PreProcess(Topology *top) {
 
-    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
-    cout << endl << "... ... Initialize MPS-mapper: " << flush;
-    _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
+//    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
+//    cout << endl << "... ... Initialize MPS-mapper: " << flush;
+//    _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
 }
 
 
 void XQMP::PostProcess(Topology *top) {
     
-    // WRITE OUTPUT (PRIMARILY ENERGY SPLITTINGS)
-    FILE *out;
-    out = fopen(this->_outFile.c_str(), "w");
-    vector<XJob*> :: iterator jit;
-    for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
-        (*jit)->WriteInfoLine(out);
-    }
-    fclose(out);    
+//    // WRITE OUTPUT (PRIMARILY ENERGY SPLITTINGS)
+//    FILE *out;
+//    out = fopen(this->_outFile.c_str(), "w");
+//    vector<XJob*> :: iterator jit;
+//    for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
+//        (*jit)->WriteInfoLine(out);
+//    }
+//    fclose(out);
 }
 
 
@@ -222,7 +222,7 @@ void XQMP::CustomizeLogger(QMThread *thread) {
 // ========================================================================== //
 
 
-void XQMP::EvalJob(Topology *top, XJob *job, QMThread *thread) {
+void XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     Logger *log = thread->getLogger();
     
@@ -230,38 +230,38 @@ void XQMP::EvalJob(Topology *top, XJob *job, QMThread *thread) {
     double co1 = _cutoff1;
     double co2 = _cutoff2;    
     
-    _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
-    
-    LOG(logINFO,*log)
-         << job->getPolarTop()->ShellInfoStr() << flush;
-    
-    if (tools::globals::verbose)
-    job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
-
-    // CALL MAGIC INDUCTOR         
-    XInductor inductor = XInductor(top, _options, "options.xqmultipole",
-                                   _subthreads, _maverick);
-    inductor.setLog(thread->getLogger());
-    inductor.Evaluate(job);
-    
-
-    // SAVE INDUCTION STATE
-    if (_write_chk) {
-        
-        string format    = _chk_format;
-        string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
-        string outstr    = job->getTag()+_write_chk_suffix+dotsuffix;
-        
-        bool split       = _chk_split_dpl;
-        double space     = _chk_dpl_spacing;
-        
-        job->getPolarTop()->PrintInduState(outstr, format, split, space);
-        
-    }
-
-    // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
-    job->setInfoLine(true,false);
-    job->getPolarTop()->~PolarTop();
+//    _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
+//    
+//    LOG(logINFO,*log)
+//         << job->getPolarTop()->ShellInfoStr() << flush;
+//    
+//    if (tools::globals::verbose)
+//    job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
+//
+//    // CALL MAGIC INDUCTOR         
+//    XInductor inductor = XInductor(top, _options, "options.xqmultipole",
+//                                   _subthreads, _maverick);
+//    inductor.setLog(thread->getLogger());
+//    inductor.Evaluate(job);
+//    
+//
+//    // SAVE INDUCTION STATE
+//    if (_write_chk) {
+//        
+//        string format    = _chk_format;
+//        string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
+//        string outstr    = job->getTag()+_write_chk_suffix+dotsuffix;
+//        
+//        bool split       = _chk_split_dpl;
+//        double space     = _chk_dpl_spacing;
+//        
+//        job->getPolarTop()->PrintInduState(outstr, format, split, space);
+//        
+//    }
+//
+//    // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
+//    job->setInfoLine(true,false);
+//    job->getPolarTop()->~PolarTop();
     
 }
 

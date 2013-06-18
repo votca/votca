@@ -20,11 +20,12 @@
 
 #include <votca/ctp/topology.h>
 #include <votca/ctp/polartop.h>
+#include <votca/ctp/job.h>
 
 namespace votca { namespace ctp {
   
 
-class XJob
+class XJob : public Job
 {
 public:
 

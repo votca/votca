@@ -42,7 +42,7 @@ namespace votca { namespace ctp {
 * Callname: idft
 */
 
-class EDFT : public ParallelXJobCalc< vector<Segment*>, Segment* >
+class EDFT : public ParallelXJobCalc< vector<Job*>, Job* >
 {
 public:
 
@@ -52,7 +52,7 @@ public:
     string  Identify() { return "EDFT"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    EvalJob(Topology *top, Segment *seg, QMThread *thread);
+    void    EvalJob(Topology *top, Job *job, QMThread *thread);
 
     void    CleanUp();
 
@@ -108,8 +108,10 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 }
 
 
-void EDFT::EvalJob(Topology *top, Segment *seg, QMThread *opThread) {
+void EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
+    Segment *seg = top->getSegment(job->getId());
+    
     Logger* pLog = opThread->getLogger();
     pLog->setReportLevel(logDEBUG);
     pLog->setMultithreading( _maverick );
@@ -119,7 +121,7 @@ void EDFT::EvalJob(Topology *top, Segment *seg, QMThread *opThread) {
     
     FILE *out;
     Orbitals _orbitals;
-    vector < Segment* > segments;
+    vector < Segment* > segments;    
     
     segments.push_back( seg );
     

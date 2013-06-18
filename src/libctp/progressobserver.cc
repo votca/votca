@@ -75,7 +75,7 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
     // READ PROGRESS STATUS FILE INTO MAPS
     map<int,string> assigned;
     map<int,string> complete;
-    map<int,string> queueing;
+    map<int,string> queueing;                    
     map<int,string> ::iterator atJobId;
     
     ifs.open(progFile.c_str(), ifstream::in);    
@@ -290,9 +290,11 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
 
 template<typename JobContainer, typename pJob>
 void ProgObserver<JobContainer,pJob>::LockProgFile(QMThread *thread) {
-    
+    cout << endl << "Try lock1" << endl;
+    cout << endl << _lockFile << endl;
     _flock = new boost::interprocess::file_lock(_lockFile.c_str());
     _flock->lock();
+    cout << endl << "Try lock2" << endl;
     LOG(logDEBUG,*(thread->getLogger()))
         << "Imposed lock on " << _lockFile << flush;
 }
@@ -361,6 +363,47 @@ void ProgObserver<JobContainer,pJob>::ReportJobDone(pJob job, QMThread *thread) 
 }
 
 
+template<typename JobContainer, typename pJob>
+void ProgObserver<JobContainer,pJob>::InitFromProgFile(string progFile, 
+    QMThread *thread) {
+    
+    cout << endl << progFile << endl;
+    
+    _progFile = progFile;
+    
+    this->LockProgFile(thread);
+    
+    Property prog;
+    cout << endl << progFile << endl;
+    cout << endl << "Load property" << endl;
+    load_property_from_xml(prog, progFile);
+    
+    cout << endl << "INIT FROM PRGO FILE 2 " << endl;
+    
+    ofstream ofs;
+    
+    // WRITE PROGRESS STATUS FILE IF NECESSARY
+    string newProgFile = progFile + "_new";
+    ofs.open(newProgFile.c_str(), ofstream::out);
+    if (!ofs.is_open()) {
+        LOG(logERROR,*(thread->getLogger())) << "Could not open file "
+            << newProgFile << flush;
+        throw runtime_error("Bad file handle.");
+    }
+    
+    cout << endl << "INIT FROM PRGO FILE 3" << endl;
+    
+    LOG(logDEBUG,*(thread->getLogger())) << "Created new file "
+        << newProgFile << flush;
+    ofs << XML << prog;
+    ofs.close();
+    
+    this->ReleaseProgFile(thread);
+    
+    throw runtime_error("Stop here.");
+}
+
+
 // ========================================================================== //
 //                         TEMPLATE SPECIALIZATIONS
 // ========================================================================== //
@@ -416,6 +459,7 @@ string ProgObserver< vector<XJob*>, XJob* >::WriteProgLine(XJob *job,
 template class ProgObserver< vector<XJob*>, XJob* >;
 template class ProgObserver< vector<Segment*>, Segment* >;
 template class ProgObserver< QMNBList, QMPair* >;
+template class ProgObserver< vector<Job*>, Job* >;
     
     
     

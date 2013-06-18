@@ -48,7 +48,8 @@ namespace votca { namespace ctp {
         */
        
     public:
-        QMThread( bool maverick = false ) { _maverick = maverick; }; 
+        QMThread() { _maverick = false; }
+        QMThread(bool maverick) { _maverick = maverick; }; 
        ~QMThread() {};
 
         int  getId() { return _id; }

@@ -15,7 +15,7 @@ using boost::format;
 namespace votca { namespace ctp {
 
    
-class QMMM : public ParallelXJobCalc< vector<XJob*>, XJob* >
+class QMMM : public ParallelXJobCalc< vector<Job*>, Job* >
 {
 
 public:
@@ -196,22 +196,22 @@ void QMMM::Initialize(Topology *top, Property *opt) {
 
 void QMMM::PreProcess(Topology *top) {
 
-    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
-    cout << endl << "... ... Initialize MPS-mapper: " << flush;
-    _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
+//    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
+//    cout << endl << "... ... Initialize MPS-mapper: " << flush;
+//    _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
 }
 
 
 void QMMM::PostProcess(Topology *top) {
     
-    // WRITE OUTPUT (PRIMARILY ENERGIE SPLITTINGS)
-    FILE *out;
-    out = fopen(this->_outFile.c_str(), "w");
-    vector<XJob*> :: iterator jit;
-    for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
-        (*jit)->WriteInfoLine(out);
-    }
-    fclose(out);    
+//    // WRITE OUTPUT (PRIMARILY ENERGIE SPLITTINGS)
+//    FILE *out;
+//    out = fopen(this->_outFile.c_str(), "w");
+//    vector<XJob*> :: iterator jit;
+//    for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
+//        (*jit)->WriteInfoLine(out);
+//    }
+//    fclose(out);    
 }
 
 
@@ -246,35 +246,35 @@ void QMMM::EvalJob(Topology *top, XJob *job, QMThread *thread) {
     double co1 = _cutoff1;
     double co2 = _cutoff2;    
     
-    _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
-    
-    LOG(logINFO,*log)
-         << job->getPolarTop()->ShellInfoStr() << flush;
-    
-    if (tools::globals::verbose)
-    job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
-
-    // INDUCTOR, QM RUNNER, QM-MM MACHINE
-    XInductor xind = XInductor(top, _options, "options.qmmm",
-        _subthreads, _maverick);    
-    xind.setLog(thread->getLogger());
-    
-    Gaussian qmpack = Gaussian(&_qmpack_opt);
-    qmpack.setLog(qlog);
-    
-    QMMachine<Gaussian> machine = QMMachine<Gaussian>(job, &xind, &qmpack, 
-        _options, "options.qmmm", _subthreads, _maverick);
-    machine.setLog(thread->getLogger());
-    
-    // EVALUATE: ITERATE UNTIL CONVERGED
-    machine.Evaluate(job);    
-    
-    // DELIVER OUTPUT & CLEAN
-    this->LockCout();
-    cout << *thread->getLogger();
-    this->UnlockCout();
-    job->setInfoLine();
-    job->getPolarTop()->~PolarTop();
+//    _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
+//    
+//    LOG(logINFO,*log)
+//         << job->getPolarTop()->ShellInfoStr() << flush;
+//    
+//    if (tools::globals::verbose)
+//    job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
+//
+//    // INDUCTOR, QM RUNNER, QM-MM MACHINE
+//    XInductor xind = XInductor(top, _options, "options.qmmm",
+//        _subthreads, _maverick);    
+//    xind.setLog(thread->getLogger());
+//    
+//    Gaussian qmpack = Gaussian(&_qmpack_opt);
+//    qmpack.setLog(qlog);
+//    
+//    QMMachine<Gaussian> machine = QMMachine<Gaussian>(job, &xind, &qmpack, 
+//        _options, "options.qmmm", _subthreads, _maverick);
+//    machine.setLog(thread->getLogger());
+//    
+//    // EVALUATE: ITERATE UNTIL CONVERGED
+//    machine.Evaluate(job);    
+//    
+//    // DELIVER OUTPUT & CLEAN
+//    this->LockCout();
+//    cout << *thread->getLogger();
+//    this->UnlockCout();
+//    job->setInfoLine();
+//    job->getPolarTop()->~PolarTop();
 }
 
 

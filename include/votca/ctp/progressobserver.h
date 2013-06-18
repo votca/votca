@@ -5,6 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <votca/tools/mutex.h>
+#include <votca/tools/property.h>
+#include <votca/ctp/job.h>
 #include <votca/ctp/xjob.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
@@ -27,6 +29,9 @@ public:
     typedef typename JobContainer::iterator JobItCnt;
     typedef typename vector<pJob>::iterator JobItVec;
     
+    ProgObserver(int nThreads, string stateFile)
+        : _nThreads(nThreads), _lockFile(stateFile) { ; }
+    
     ProgObserver()
         : _jobs(NULL), _nThreads(-1), _progFile("nofile"), _lockFile("nofile"),
           _nextjit(NULL), _metajit(NULL) { ; }
@@ -37,6 +42,8 @@ public:
     
    ~ProgObserver() { ; }
    
+   string getLockFile() { return _lockFile; }
+    void InitFromProgFile(string progFile, QMThread *master);
    
     pJob RequestNextJob(QMThread *thread);
     void ReportJobDone(pJob job, QMThread *thread);
