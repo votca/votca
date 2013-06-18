@@ -199,12 +199,24 @@ inline bool XJob::isInCenter(int segId) {
 }
 
 inline bool XJob::isWithinDist(const vec &pt, double dist, Topology *top) {
-    bool yesno = false;
+//    // This will not work for pairs far apart
+//    bool yesno = false;
+//    
+//    double dR = abs(top->PbShortestConnect(_center, pt));
+//    if (dR <= dist) { yesno = true; }
+//    
+//    return yesno;
     
-    double dR = abs(top->PbShortestConnect(_center, pt));
-    if (dR <= dist) { yesno = true; }
     
-    return yesno;
+    bool inCenter = false;
+    
+    for (int i = 0; i < _qmSegs.size(); ++i) {         
+        Segment *seg = _qmSegs[i];
+        double dR = abs(top->PbShortestConnect(seg->getPos(), pt));
+        if (dR <= dist) { inCenter = true; break; }
+    }
+    
+    return inCenter;    
 }
 
 
