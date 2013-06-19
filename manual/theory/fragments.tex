@@ -19,7 +19,8 @@ After partitioning, an additional step is often required to remove bond length f
 
 To partition the system on hopping sites and substitute rigid fragments with the corresponding ground-state geometries \ctpmap program is used
 \vskip 0.1cm
-{\noindent \small \ctpmap \tpl \topology \trj \trajectory \csg \xmlcsg  \sql \sqlstate}
+{\noindent \small \ctpmap \tpl \topology \trj \trajectory \sql \sqlstate}
+%{\noindent \small \ctpmap \tpl \topology \trj \trajectory \csg \xmlcsg  \sql \sqlstate}
 \vskip 0.1cm
 It reads in the \gromacs topology (\topology) and trajectory (\trajectory) files, definitions ofconjugated segments and rigid fragments (\xmlcsg) and outputs coordinates of conjugated segments (hopping sites) and rigid fragments (as provided in the MD trajectory and after rigidification) to the  state file (\sqlstate). After this step, all information (frame number, dimensions of the simulation box, etc) are stored in the \slink{statefile}{state file} and only this file is used for further calculations.  
 
