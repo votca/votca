@@ -5,6 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <votca/tools/mutex.h>
+#include <votca/tools/property.h>
+#include <votca/ctp/job.h>
 #include <votca/ctp/xjob.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
@@ -27,17 +29,22 @@ public:
     typedef typename JobContainer::iterator JobItCnt;
     typedef typename vector<pJob>::iterator JobItVec;
     
-    ProgObserver()
-        : _jobs(NULL), _nThreads(-1), _progFile("nofile"), _lockFile("nofile"),
-          _nextjit(NULL), _metajit(NULL) { ; }
+    ProgObserver(int nThreads, string stateFile)
+        : _nThreads(nThreads), _lockFile(stateFile) { ; }
     
-    ProgObserver(JobContainer *jobs, int nThreads, string sharedProgFile, string lockFile)
-        : _jobs(jobs), _nThreads(nThreads), _progFile(sharedProgFile), _lockFile(lockFile)
-          { _metajit = _jobs->begin(); _nextjit = _jobsToProc.begin(); }
+    ProgObserver()
+        : _jobs(NULL), _nThreads(-1), _progFile("__NOFILE__"), 
+          _lockFile("__NOFILE__"),    _nextjit(NULL), _metajit(NULL) { ; }
+    
+    //ProgObserver(JobContainer *jobs, int nThreads, string sharedProgFile, string lockFile)
+    //    : _jobs(jobs), _nThreads(nThreads), _progFile(sharedProgFile), _lockFile(lockFile)
+    //      { _metajit = _jobs->begin(); _nextjit = _jobsToProc.begin(); }
     
    ~ProgObserver() { ; }
    
-   
+    string getLockFile() { return _lockFile; }
+    
+    void InitFromProgFile(string progFile, QMThread *master);   
     pJob RequestNextJob(QMThread *thread);
     void ReportJobDone(pJob job, QMThread *thread);
     
@@ -45,7 +52,7 @@ public:
     void LockProgFile(QMThread *thread);
     string WriteProgLine(pJob job, QMThread *thread, string status);
     void ReleaseProgFile(QMThread *thread);
-    void ReportJobOutcome(pJob job, QMThread *thread) {;}
+    void ReportJobOutcome(pJob job, QMThread *thread) { ; }
    
    
 private:    
@@ -63,7 +70,16 @@ private:
     Mutex _lockRequest;
     boost::interprocess::file_lock *_flock;
     
-}; 
+};
+
+
+
+
+template<typename JobContainer, typename pJob>
+JobContainer LOAD_JOBS(const string &xml_file);
+
+template<typename JobContainer, typename pJob>
+void WRITE_JOBS(JobContainer &jobs, const string &job_file);
     
     
     

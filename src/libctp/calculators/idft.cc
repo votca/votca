@@ -335,8 +335,10 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
     // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
 }
  
-void IDFT::EvalJob(Topology *top, QMPair *qmpair, QMThread *opThread) {
+void IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
+    QMPair *qmpair = NULL; // Need to init this from job
+    
     Logger* pLog = opThread->getLogger();
     pLog->setReportLevel(logDEBUG);
     

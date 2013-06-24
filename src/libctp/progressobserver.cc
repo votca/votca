@@ -13,7 +13,7 @@ using boost::format;
 
 namespace votca { namespace ctp {
     
-
+    
 template<typename JobContainer, typename pJob>
 pJob ProgObserver<JobContainer,pJob>::RequestNextJob(QMThread *thread) {
     
@@ -42,6 +42,18 @@ pJob ProgObserver<JobContainer,pJob>::RequestNextJob(QMThread *thread) {
     
     _lockRequest.Unlock();
     return jobToProc;
+}
+
+
+template<typename JobContainer, typename pJob>
+void ProgObserver<JobContainer,pJob>::ReportJobDone(pJob job, QMThread *thread) {
+    
+    _lockRequest.Lock();
+    
+    LOG(logDEBUG,*(thread->getLogger())) << "Reporting job done." << flush;
+    _jobsToSync.push_back(job);
+    
+    _lockRequest.Unlock();
 }
 
 
@@ -75,7 +87,7 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
     // READ PROGRESS STATUS FILE INTO MAPS
     map<int,string> assigned;
     map<int,string> complete;
-    map<int,string> queueing;
+    map<int,string> queueing;                    
     map<int,string> ::iterator atJobId;
     
     ifs.open(progFile.c_str(), ifstream::in);    
@@ -290,7 +302,6 @@ void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
 
 template<typename JobContainer, typename pJob>
 void ProgObserver<JobContainer,pJob>::LockProgFile(QMThread *thread) {
-    
     _flock = new boost::interprocess::file_lock(_lockFile.c_str());
     _flock->lock();
     LOG(logDEBUG,*(thread->getLogger()))
@@ -353,11 +364,49 @@ string ProgObserver<JobContainer,pJob>::WriteProgLine(pJob job,
 }
 
 
+
+
+
 template<typename JobContainer, typename pJob>
-void ProgObserver<JobContainer,pJob>::ReportJobDone(pJob job, QMThread *thread) {
+void ProgObserver<JobContainer,pJob>::InitFromProgFile(string progFile, 
+    QMThread *thread) {
     
-    LOG(logDEBUG,*(thread->getLogger())) << "Reporting job done." << flush;
-    _jobsToSync.push_back(job);
+    _progFile = progFile;
+    
+    LOG(logINFO,*(thread->getLogger())) << "Initialize jobs from "
+            << progFile << flush;    
+    LOG(logINFO,*(thread->getLogger())) << "Lock & load ... " << flush;
+    
+    // LOCK, READ INTO XML
+    this->LockProgFile(thread);  
+    
+    Property prog;
+    load_property_from_xml(prog, progFile);
+    
+//    ofstream ofs;
+//    
+//    // WRITE PROGRESS STATUS FILE IF NECESSARY
+//    string newProgFile = progFile + "_new";
+//    ofs.open(newProgFile.c_str(), ofstream::out);
+//    if (!ofs.is_open()) {
+//        LOG(logERROR,*(thread->getLogger())) << "Could not open file "
+//            << newProgFile << flush;
+//        throw runtime_error("Bad file handle.");
+//    }
+//    
+//    LOG(logDEBUG,*(thread->getLogger())) << "Created new file "
+//        << newProgFile << flush;
+//    ofs << XML << prog;
+//    ofs.close();    
+    
+    
+    JobContainer jobs = LOAD_JOBS<JobContainer,pJob>(progFile);
+    WRITE_JOBS<JobContainer,pJob>(jobs, progFile+"_write");
+    
+    // RELEASE PROGRESS FILE
+    this->ReleaseProgFile(thread);
+    
+    throw runtime_error("Stop here.");
 }
 
 
@@ -412,14 +461,75 @@ string ProgObserver< vector<XJob*>, XJob* >::WriteProgLine(XJob *job,
 }
 
 
+
+    
+    
+    
+
+
+// JOB IMPORT FUNCTIONS
+template<typename JobContainer, typename pJob>
+JobContainer LOAD_JOBS(const string &job_file) {    
+    
+    throw std::runtime_error("LOAD_JOBS not specialized for this type.");    
+    JobContainer jobcnt;
+    return jobcnt;
+}
+
+template<>
+vector<Job*> LOAD_JOBS< vector<Job*>, Job* >(const string &job_file) {
+    
+    vector<Job*> jobs;
+    
+    Property xml;
+    load_property_from_xml(xml, job_file);
+    
+    list<Property*> jobProps = xml.Select("jobs.job");
+    list<Property*> ::iterator it;
+    for (it = jobProps.begin(); it != jobProps.end(); ++it) {
+        
+        Job *newJob = new Job(*it);
+        jobs.push_back(newJob);       
+    }
+    
+    return jobs;   
+}
+
+template<typename JobContainer, typename pJob>
+void WRITE_JOBS(JobContainer &jobs, const string &job_file) {
+    
+    throw std::runtime_error("WRITE_JOBS not specialized for this type.");    
+    return;
+}
+
+template<>
+void WRITE_JOBS< vector<Job*>, Job* >(vector<Job*> &jobs, 
+        const string &job_file) {
+    
+    vector<Job*> ::iterator it;
+    
+    ofstream ofs;    
+    ofs.open(job_file.c_str(), ofstream::out);
+    if (!ofs.is_open()) {
+        throw runtime_error("Bad file handle: " + job_file);
+    }    
+    ofs << "<jobs>" << endl;    
+    for (it = jobs.begin(); it != jobs.end(); ++it)  
+        (*it)->ToStream(ofs);
+    ofs << "</jobs>" << endl;
+    
+    ofs.close();
+    return;
+}
+
+
+
+
 // REGISTER
-template class ProgObserver< vector<XJob*>, XJob* >;
-template class ProgObserver< vector<Segment*>, Segment* >;
-template class ProgObserver< QMNBList, QMPair* >;
-    
-    
-    
-    
+//template class ProgObserver< vector<XJob*>, XJob* >;
+//template class ProgObserver< vector<Segment*>, Segment* >;
+//template class ProgObserver< QMNBList, QMPair* >;
+template class ProgObserver< vector<Job*>, Job* >;
     
     
 }}

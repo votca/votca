@@ -63,6 +63,7 @@ void QMApplication::Run() {
 
     load_property_from_xml(_options, _op_vm["options"].as<string>());
 
+    // EVALUATE OPTIONS
     int nThreads = OptionsMap()["nthreads"].as<int>();
     int nframes = OptionsMap()["nframes"].as<int>();
     int fframe = OptionsMap()["first-frame"].as<int>();
@@ -70,14 +71,16 @@ void QMApplication::Run() {
                                            "in VOTCA::CTP starts from 1.");
     int  save = OptionsMap()["save"].as<int>();
 
-    cout << "Initializing calculators " << endl;
-    BeginEvaluate(nThreads);
-
-
-
+    // STATESAVER & PROGRESS OBSERVER
     string statefile = OptionsMap()["file"].as<string>();
     StateSaverSQLite statsav;
     statsav.Open(_top, statefile);
+    ProgObserver< vector<Job*>, Job* > progObs
+        = ProgObserver< vector<Job*>, Job* >(nThreads, statefile);
+    
+    // INITIALIZE & RUN CALCULATORS
+    cout << "Initializing calculators " << endl;
+    BeginEvaluate(nThreads, &progObs);
 
     while (statsav.NextFrame()) {
         cout << "Evaluating frame " << _top.getDatabaseId() << endl;
@@ -98,11 +101,12 @@ void QMApplication::AddCalculator(QMCalculator* calculator) {
 }
 
 
-void QMApplication::BeginEvaluate(int nThreads = 1) {
+void QMApplication::BeginEvaluate(int nThreads = 1, ProgObserver< vector<Job*>, Job* > *obs = NULL) {
     list< QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
+        (*it)->setProgObserver(obs);
         (*it)->Initialize(&_top, &_options);        
         cout << endl;
     }

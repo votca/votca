@@ -18,12 +18,13 @@
  */
 
 
-#ifndef _QMCALCULATOR2_H
-#define _QMCALCULATOR2_H
+#ifndef _QMCALCULATOR_H
+#define _QMCALCULATOR_H
 
 
-#include <votca/tools/property.h>
+
 #include <votca/ctp/topology.h>
+#include <votca/ctp/progressobserver.h>
 
 namespace CTP = votca::ctp;
 
@@ -43,13 +44,15 @@ public:
     virtual void    EndEvaluate(CTP::Topology *top) { }
 
     void            setnThreads(int nThreads) { _nThreads = nThreads; }
+    void            setProgObserver(ProgObserver< vector<Job*>, Job* > *obs) { _progObs = obs; }
 
 protected:
 
     int _nThreads;
+    ProgObserver< vector<Job*>, Job* > *_progObs;
 
 };
 
 }}
 
-#endif /* _QMCALCULATOR2_H */
+#endif /* _QMCALCULATOR_H */

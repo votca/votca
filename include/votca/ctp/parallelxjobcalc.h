@@ -27,11 +27,12 @@ public:
     class JobOperator;
     
     ParallelXJobCalc() : _xjobfile("__NOFILE__") {};
-   ~ParallelXJobCalc() { delete _progObs; };
+   ~ParallelXJobCalc() { ; };
 
     string       Identify() { return "Parallel XJob Calculator"; }
 
     bool         EvaluateFrame(Topology *top);
+    virtual void LoadJobs() { ; }
     virtual void CustomizeLogger(QMThread* thread) { ; }
     virtual void PreProcess(Topology *top) { ; } 
     virtual void EvalJob(Topology *top, pJob job, QMThread *thread) { ; }
@@ -82,7 +83,7 @@ protected:
     string                   _xjobfile;
     int                      _subthreads;
     
-    ProgObserver< JobContainer, pJob > *_progObs;
+    // ProgObserver< JobContainer, pJob > *_progObs;
 
 
 };
