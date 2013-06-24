@@ -27,12 +27,16 @@ private:
 
     string _outFormat;
     bool   _subFolder;
+    bool   _useQMPos;
 };
 
 
 void PairDump::Initialize(Topology *top, Property *options) {
 
     string key = "options.pairdump";   
+    
+    int useQMPos = options->get(key+".useQMcoords").as< int >();
+    _useQMPos = (useQMPos == 1) ? true : false;
 }
 
 
@@ -59,7 +63,7 @@ bool PairDump::EvaluateFrame(Topology *top) {
 
         mkdir(DIR.c_str(), 0755);        
         out = fopen(FILE.c_str(),"w");
-        (*sit)->WriteXYZ(out);
+        (*sit)->WriteXYZ(out, _useQMPos);
         fclose(out);
     }
 
@@ -76,7 +80,7 @@ bool PairDump::EvaluateFrame(Topology *top) {
         mkdir(DIR1.c_str(), 0755);
         mkdir(DIR2.c_str(), 0755);
         out = fopen(FILE.c_str(),"w");
-        (*pit)->WriteXYZ(out);
+        (*pit)->WriteXYZ(out, _useQMPos);
         fclose(out);
     }
 }

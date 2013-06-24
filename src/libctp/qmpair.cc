@@ -215,7 +215,7 @@ void QMPair::WritePDB(string fileName) {
     fclose(pdb);
 }
 
-void QMPair::WriteXYZ(FILE *out) {
+void QMPair::WriteXYZ(FILE *out, bool useQMPos) {
 
     int qmatoms = 0;
 
@@ -225,7 +225,7 @@ void QMPair::WriteXYZ(FILE *out) {
          ait < Seg1PbCopy()->Atoms().end();
          ++ait) {
 
-        if ((*ait)->HasQMPart()) {
+        if ((*ait)->HasQMPart() || !useQMPos) {
             ++qmatoms;
         }
     }
@@ -234,7 +234,7 @@ void QMPair::WriteXYZ(FILE *out) {
          ait < Seg2PbCopy()->Atoms().end();
          ++ait) {
 
-        if ((*ait)->HasQMPart()) {
+        if ((*ait)->HasQMPart() || !useQMPos) {
             ++qmatoms;
         }
     }
@@ -246,11 +246,14 @@ void QMPair::WriteXYZ(FILE *out) {
          ait < Seg1PbCopy()->Atoms().end();
          ++ait) {
 
-        if (!(*ait)->HasQMPart()) {
+        if (!(*ait)->HasQMPart() && useQMPos) {
             continue;
         }
 
-        vec     pos = (*ait)->getQMPos();
+        vec pos;
+        if (useQMPos) pos = (*ait)->getQMPos();
+        else pos = (*ait)->getPos();
+        
         string  name = (*ait)->getElement();
 
         fprintf(out, "%2s %4.7f %4.7f %4.7f \n",
@@ -264,11 +267,14 @@ void QMPair::WriteXYZ(FILE *out) {
          ait < Seg2PbCopy()->Atoms().end();
          ++ait) {
 
-        if (!(*ait)->HasQMPart()) {
+        if (!(*ait)->HasQMPart() && useQMPos) {
             continue;
         }
 
-        vec     pos = (*ait)->getQMPos();
+        vec pos;
+        if (useQMPos) pos = (*ait)->getQMPos();
+        else pos = (*ait)->getPos();
+        
         string  name = (*ait)->getElement();
 
         fprintf(out, "%2s %4.7f %4.7f %4.7f \n",
