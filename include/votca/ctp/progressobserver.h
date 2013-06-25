@@ -75,7 +75,7 @@ template<typename JobContainer, typename pJob, typename rJob>
 JobContainer LOAD_JOBS(const string &xml_file);
 
 template<typename JobContainer, typename pJob, typename rJob>
-void WRITE_JOBS(JobContainer &jobs, const string &job_file);
+void WRITE_JOBS(JobContainer &jobs, const string &job_file, string fileformat);
 
 template<typename JobContainer, typename pJob, typename rJob>
 void UPDATE_JOBS(JobContainer &from, JobContainer &to);

@@ -12,7 +12,7 @@ class PolarTop
 
 public:
     
-   PolarTop(Topology *top) : _top(top) { cout << endl << "CONSTRUCT POLARTOP - DONE" << endl;};
+   PolarTop(Topology *top) : _top(top) { };
   ~PolarTop();
     
    vector<PolarSeg*> &QM0() { return _qm0; }

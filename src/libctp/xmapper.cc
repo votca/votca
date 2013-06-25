@@ -871,7 +871,6 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
 vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile) {
     _lockThread.Lock();
     if (!_mpsFile_pSites_job.count(mpsfile)) {
-        cout << endl << endl << "NEW SET: " << mpsfile << endl;
         _mpsFile_pSites_job[mpsfile] = APS_FROM_MPS(mpsfile, 0);
     }
     _lockThread.Unlock();

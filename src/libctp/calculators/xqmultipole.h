@@ -31,7 +31,9 @@ public:
     void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
-    void            PostProcess(Topology *top);
+    void            PostProcess(Topology *top) { ; }
+    
+    XJob            ProcessInputString(Job *, Topology *, QMThread *);
     
 
 private:
@@ -48,7 +50,7 @@ private:
     XMpsMap                        _mps_mapper;
     
     // Control over induction-state output
-    string                          _pdb_check;
+    bool                            _pdb_check;
     bool                            _write_chk;
     string                          _write_chk_suffix;
     bool                            _chk_split_dpl;
@@ -70,9 +72,6 @@ private:
     double                          _cutoff1;
     double                          _cutoff2;
 
-    // XJob logbook (file output)
-    string                          _outFile;
-    bool                            _energies2File;
 
 
 };
@@ -115,16 +114,10 @@ void XQMP::Initialize(Topology *top, Property *opt) {
             _emp_file   = opt->get(key+".emp_file").as<string>();
         }
 
-        if ( opt->exists(key+".output") ) {
-            _outFile = opt->get(key+".output").as< string >();
-            _energies2File = true;
-        }
-        else { _energies2File = false; }
-
         if (opt->exists(key+".pdb_check")) {
-            _pdb_check = opt->get(key+".pdb_check").as<string>();
+            _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
-        else { _pdb_check = ""; }
+        else { _pdb_check = false; }
 
         if (opt->exists(key+".write_chk")) {
             _write_chk_suffix = opt->get(key+".write_chk").as<string>();
@@ -189,19 +182,6 @@ void XQMP::PreProcess(Topology *top) {
 }
 
 
-void XQMP::PostProcess(Topology *top) {
-    
-//    // WRITE OUTPUT (PRIMARILY ENERGY SPLITTINGS)
-//    FILE *out;
-//    out = fopen(this->_outFile.c_str(), "w");
-//    vector<XJob*> :: iterator jit;
-//    for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
-//        (*jit)->WriteInfoLine(out);
-//    }
-//    fclose(out);
-}
-
-
 void XQMP::CustomizeLogger(QMThread *thread) {
     
     // CONFIGURE LOGGER
@@ -209,7 +189,7 @@ void XQMP::CustomizeLogger(QMThread *thread) {
     log->setReportLevel(logDEBUG);
     log->setMultithreading(_maverick);
 
-    log->setPreface(logINFO,    (format("\nT%1$02d ... ...") % thread->getId()).str());
+    log->setPreface(logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
     log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
     log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
     log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
@@ -222,18 +202,11 @@ void XQMP::CustomizeLogger(QMThread *thread) {
 // ========================================================================== //
 
 
-Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
-    
-    Logger *log = thread->getLogger();
-    
-    LOG(logINFO,*log)
-        << job->getInput() << flush;
-    
-    // CREATE XJOB FROM JOB INPUT STRING
-    vector<Segment*> qmSegs;
-    vector<string>   qmSegMps;
+XJob XQMP::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     
     string input = job->getInput();
+    vector<Segment*> qmSegs;
+    vector<string>   qmSegMps;
     vector<string> split;
     Tokenizer toker(input, " \t\n");
     toker.ToVector(split);
@@ -251,7 +224,7 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
 
         Segment *seg = top->getSegment(segId);
         if (seg->getName() != segName) {
-            LOG(logERROR,*log)
+            LOG(logERROR,*(thread->getLogger()))
                 << "ERROR: Seg " << segId << ":" << seg->getName() << " "
                 << " maltagged as " << segName << ". Skip job ..." << flush;
             throw std::runtime_error("Input does not match topology.");
@@ -261,7 +234,19 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
         qmSegMps.push_back(mpsFile);               
     }
     
-    XJob xjob = XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
+    return XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
+}
+
+
+Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
+    
+    Logger *log = thread->getLogger();
+    
+    LOG(logINFO,*log)
+        << "Job input = " << job->getInput() << flush;
+    
+    // CREATE XJOB FROM JOB INPUT STRING
+    XJob xjob = this->ProcessInputString(job, top, thread);
     
     
     // GENERATE POLAR TOPOLOGY
@@ -273,7 +258,7 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     LOG(logINFO,*log)
          << xjob.getPolarTop()->ShellInfoStr() << flush;
     
-    if (tools::globals::verbose)
+    if (tools::globals::verbose || _pdb_check)
     xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
 
     // CALL MAGIC INDUCTOR         
@@ -283,28 +268,26 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     inductor.Evaluate(&xjob);
     
 
-//    // SAVE INDUCTION STATE
-//    if (_write_chk) {
-//        
-//        string format    = _chk_format;
-//        string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
-//        string outstr    = xjob.getTag()+_write_chk_suffix+dotsuffix;
-//        
-//        bool split       = _chk_split_dpl;
-//        double space     = _chk_dpl_spacing;
-//        
-//        xjob.getPolarTop()->PrintInduState(outstr, format, split, space);
-//        
-//    }
+    // SAVE INDUCTION STATE
+    if (_write_chk) {
+        
+        string format    = _chk_format;
+        string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
+        string outstr    = xjob.getTag()+_write_chk_suffix+dotsuffix;
+        
+        bool split       = _chk_split_dpl;
+        double space     = _chk_dpl_spacing;
+        
+        xjob.getPolarTop()->PrintInduState(outstr, format, split, space);        
+    }
 
     // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
     xjob.setInfoLine(true,false);
-    //xjob.getPolarTop()->~PolarTop();
     
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     Job::JobResult jobRes = Job::JobResult(job);
-    jobRes.setOutput("........");
+    jobRes.setOutput(xjob.getInfoLine());
     jobRes.setStatus("COMPLETE");
     
     return jobRes;

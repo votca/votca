@@ -44,9 +44,6 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
         LOG(logDEBUG,*(thread->getLogger())) << "Request, so more: " << jobToProc->getId() << flush;
     }
     
-    int a;
-    cin >> a;
-    
     _lockThread.Unlock();
     return jobToProc;
 }
@@ -90,14 +87,16 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     this->LockProgFile(thread);
     
     string progFile = _progFile;
-    string backFile = _progFile+"~";    
+    string progBackFile = _progFile+"~";
+    string tabFile = progFile;
+    boost::algorithm::replace_last(tabFile, ".xml", ".tab");
+    if (tabFile == progFile) tabFile += ".tab";
+    string tabBackFile = tabFile+"~";
     
     // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
     LOG(logDEBUG,*(thread->getLogger()))
         << "Update internal structures from job file" << flush;
-    cout << endl << "LOAD" << endl;
     JobContainer jobs_ext = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);    
-    cout << endl << "UPDATE" << endl;
     UPDATE_JOBS<JobContainer,pJob,rJob>(jobs_ext, _jobs);
     
     JobItVec it;
@@ -110,7 +109,8 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     // GENERATE BACK-UP FOR SHARED XML
     LOG(logDEBUG,*(thread->getLogger()))
         << "Create job-file back-up" << flush;
-    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, backFile);
+    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progBackFile, "xml");
+    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, tabBackFile, "tab");
     
     
     // ASSIGN NEW JOBS IF AVAILABLE
@@ -130,11 +130,12 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     }
     
     // UPDATE PROGRESS STATUS FILE
-    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile);
+    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile, "xml");
+    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, tabFile, "tab");
 
     // RELEASE PROGRESS STATUS FILE
     this->ReleaseProgFile(thread);
-    return;    
+    return;
 }
 
 
@@ -173,7 +174,7 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
     // TODO Delete jobs here before loading new
     _jobs = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);
     _metajit = _jobs.begin();
-    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile+"~");
+    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile+"~", "xml");
     LOG(logINFO,*(thread->getLogger())) << "Registered " << _jobs.size()
          << " jobs." << flush;
     
@@ -201,10 +202,7 @@ vector<Job*> LOAD_JOBS< vector<Job*>, Job*, Job::JobResult >(const string &job_f
     
     vector<Job*> jobs;    
     Property xml;
-    cout << endl << "SIG1" << job_file << endl;
     load_property_from_xml(xml, job_file);
-    
-    cout << endl << "SIG2" << endl;
     
     list<Property*> jobProps = xml.Select("jobs.job");
     list<Property*> ::iterator it;
@@ -214,13 +212,11 @@ vector<Job*> LOAD_JOBS< vector<Job*>, Job*, Job::JobResult >(const string &job_f
         jobs.push_back(newJob);       
     }
     
-    cout << endl << "SIG3" << endl;
-    
     return jobs;   
 }
 
 template<typename JobContainer, typename pJob, typename rJob>
-void WRITE_JOBS(JobContainer &jobs, const string &job_file) {
+void WRITE_JOBS(JobContainer &jobs, const string &job_file, string fileformat) {
     
     throw std::runtime_error("WRITE_JOBS not specialized for this type.");    
     return;
@@ -228,7 +224,7 @@ void WRITE_JOBS(JobContainer &jobs, const string &job_file) {
 
 template<>
 void WRITE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &jobs, 
-        const string &job_file) {
+        const string &job_file, string fileformat) {
     
     vector<Job*> ::iterator it;
     
@@ -237,10 +233,10 @@ void WRITE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &jobs,
     if (!ofs.is_open()) {
         throw runtime_error("Bad file handle: " + job_file);
     }    
-    ofs << "<jobs>" << endl;    
+    if (fileformat == "xml") ofs << "<jobs>" << endl;    
     for (it = jobs.begin(); it != jobs.end(); ++it)  
-        (*it)->ToStream(ofs);
-    ofs << "</jobs>" << endl;
+        (*it)->ToStream(ofs, fileformat);
+    if (fileformat == "xml") ofs << "</jobs>" << endl;
     
     ofs.close();
     return;

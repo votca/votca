@@ -5,7 +5,6 @@
 namespace votca { namespace ctp {
 
 PolarTop::~PolarTop() {
-    cout << endl << "DESTRUCT POLARTOP" << endl;
     vector<PolarSeg*> ::iterator psit;
     for (psit = _qm0.begin(); psit < _qm0.end(); ++psit) {          
       delete *psit;          
@@ -18,7 +17,6 @@ PolarTop::~PolarTop() {
     }
 
     _qm0.clear(); _mm1.clear(); _mm2.clear();
-    cout << endl << "DESTRUCT POLARTOP - DONE" << endl;
 }
 
 

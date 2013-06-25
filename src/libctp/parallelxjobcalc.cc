@@ -39,7 +39,7 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
     
     master->getLogger()->setReportLevel(logDEBUG);
     master->getLogger()->setMultithreading(true);
-    master->getLogger()->setPreface(logINFO,    "\nMST ...");
+    master->getLogger()->setPreface(logINFO,    "\nMST INF");
     master->getLogger()->setPreface(logERROR,   "\nMST ERR");
     master->getLogger()->setPreface(logWARNING, "\nMST WAR");
     master->getLogger()->setPreface(logDEBUG,   "\nMST DBG");
