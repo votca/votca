@@ -71,7 +71,7 @@ string ProgObserver<JobContainer,pJob,rJob>::GenerateStamp(QMThread *thread) {
     int h = gethostname(host, sizeof host);
     pid_t pid = getpid();
     int tid = thread->getId();
-    return (format("HOST=%1$s::PID=%2$d::TID=%3$d") % host % pid % tid).str();   
+    return (format("%1$s:%2$d:%3$d") % host % pid % tid).str();   
 }
 
 
@@ -95,10 +95,17 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
     LOG(logDEBUG,*(thread->getLogger()))
         << "Update internal structures from job file" << flush;
-    Property prog;
-    load_property_from_xml(prog, progFile);
+    cout << endl << "LOAD" << endl;
     JobContainer jobs_ext = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);    
+    cout << endl << "UPDATE" << endl;
     UPDATE_JOBS<JobContainer,pJob,rJob>(jobs_ext, _jobs);
+    
+    JobItVec it;
+    for (it = jobs_ext.begin(); it != jobs_ext.end(); ++it) {
+        pJob pj = *it;
+        delete pj;
+    }
+    jobs_ext.clear();
     
     // GENERATE BACK-UP FOR SHARED XML
     LOG(logDEBUG,*(thread->getLogger()))
@@ -163,9 +170,6 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
     // LOCK, READ INTO XML
     this->LockProgFile(thread);  
     
-    Property prog;
-    load_property_from_xml(prog, progFile);
-    
     // TODO Delete jobs here before loading new
     _jobs = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);
     _metajit = _jobs.begin();
@@ -195,10 +199,12 @@ JobContainer LOAD_JOBS(const string &job_file) {
 template<>
 vector<Job*> LOAD_JOBS< vector<Job*>, Job*, Job::JobResult >(const string &job_file) {
     
-    vector<Job*> jobs;
-    
+    vector<Job*> jobs;    
     Property xml;
+    cout << endl << "SIG1" << job_file << endl;
     load_property_from_xml(xml, job_file);
+    
+    cout << endl << "SIG2" << endl;
     
     list<Property*> jobProps = xml.Select("jobs.job");
     list<Property*> ::iterator it;
@@ -207,6 +213,8 @@ vector<Job*> LOAD_JOBS< vector<Job*>, Job*, Job::JobResult >(const string &job_f
         Job *newJob = new Job(*it);
         jobs.push_back(newJob);       
     }
+    
+    cout << endl << "SIG3" << endl;
     
     return jobs;   
 }

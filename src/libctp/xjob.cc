@@ -23,8 +23,8 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
 
 
 
-XJob::~XJob() {    
-    delete _ptop;    
+XJob::~XJob() {
+    delete _ptop;
 }
 
 
@@ -115,7 +115,7 @@ void XJob::setInfoLine(bool printMM, bool printQM) {
 
     // Job ID & tag
     string str0 = ( format("%1$5d %2$-10s ") 
-        % _userId % _tag ).str();
+        % _id % _tag ).str();
     
     // Shell sizes & iterations
     string str1 = ( format("|QM0| %1$3d |MM1| %2$3d |MM2| %3$3d IT %4$2d ") 

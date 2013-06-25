@@ -183,9 +183,9 @@ void XQMP::Initialize(Topology *top, Property *opt) {
 
 void XQMP::PreProcess(Topology *top) {
 
-//    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
-//    cout << endl << "... ... Initialize MPS-mapper: " << flush;
-//    _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
+    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
+    cout << endl << "... ... Initialize MPS-mapper: " << flush;
+    _mps_mapper.GenerateMap(_xml_file, _emp_file, top);
 }
 
 
@@ -229,44 +229,80 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     LOG(logINFO,*log)
         << job->getInput() << flush;
     
+    // CREATE XJOB FROM JOB INPUT STRING
+    vector<Segment*> qmSegs;
+    vector<string>   qmSegMps;
+    
+    string input = job->getInput();
+    vector<string> split;
+    Tokenizer toker(input, " \t\n");
+    toker.ToVector(split);
+    
+    for (int i = 0; i < split.size(); ++i) {
+                
+        string id_seg_mps = split[i];
+        vector<string> split_id_seg_mps;
+        Tokenizer toker(id_seg_mps, ":");
+        toker.ToVector(split_id_seg_mps);
+
+        int segId = boost::lexical_cast<int>(split_id_seg_mps[0]);
+        string segName = split_id_seg_mps[1];
+        string mpsFile = split_id_seg_mps[2];
+
+        Segment *seg = top->getSegment(segId);
+        if (seg->getName() != segName) {
+            LOG(logERROR,*log)
+                << "ERROR: Seg " << segId << ":" << seg->getName() << " "
+                << " maltagged as " << segName << ". Skip job ..." << flush;
+            throw std::runtime_error("Input does not match topology.");
+        }
+
+        qmSegs.push_back(seg);
+        qmSegMps.push_back(mpsFile);               
+    }
+    
+    XJob xjob = XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
+    
+    
     // GENERATE POLAR TOPOLOGY
     double co1 = _cutoff1;
     double co2 = _cutoff2;    
     
-//    _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
-//    
-//    LOG(logINFO,*log)
-//         << job->getPolarTop()->ShellInfoStr() << flush;
-//    
-//    if (tools::globals::verbose)
-//    job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
-//
-//    // CALL MAGIC INDUCTOR         
-//    XInductor inductor = XInductor(top, _options, "options.xqmultipole",
-//                                   _subthreads, _maverick);
-//    inductor.setLog(thread->getLogger());
-//    inductor.Evaluate(job);
-//    
-//
+    _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2);
+    
+    LOG(logINFO,*log)
+         << xjob.getPolarTop()->ShellInfoStr() << flush;
+    
+    if (tools::globals::verbose)
+    xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
+
+    // CALL MAGIC INDUCTOR         
+    XInductor inductor = XInductor(top, _options, "options.xqmultipole",
+                                   _subthreads, _maverick);
+    inductor.setLog(thread->getLogger());
+    inductor.Evaluate(&xjob);
+    
+
 //    // SAVE INDUCTION STATE
 //    if (_write_chk) {
 //        
 //        string format    = _chk_format;
 //        string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
-//        string outstr    = job->getTag()+_write_chk_suffix+dotsuffix;
+//        string outstr    = xjob.getTag()+_write_chk_suffix+dotsuffix;
 //        
 //        bool split       = _chk_split_dpl;
 //        double space     = _chk_dpl_spacing;
 //        
-//        job->getPolarTop()->PrintInduState(outstr, format, split, space);
+//        xjob.getPolarTop()->PrintInduState(outstr, format, split, space);
 //        
 //    }
-//
-//    // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
-//    job->setInfoLine(true,false);
-//    job->getPolarTop()->~PolarTop();
+
+    // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
+    xjob.setInfoLine(true,false);
+    //xjob.getPolarTop()->~PolarTop();
     
     
+    // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     Job::JobResult jobRes = Job::JobResult(job);
     jobRes.setOutput("........");
     jobRes.setStatus("COMPLETE");
