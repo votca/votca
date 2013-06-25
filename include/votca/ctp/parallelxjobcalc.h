@@ -5,7 +5,7 @@
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
-#include <votca/ctp/xjob.h>
+#include <votca/ctp/job.h>
 #include <votca/ctp/progressobserver.h>
 
 
@@ -15,10 +15,13 @@
 // ... 3 Specialize XJOBS_FROM_TABLE< JobContainer, pJob> in xjob.cc
 // ... 4 Register new calculator (see end of parallelxjobcalc.cc)
 
+// REQUIRED MEMBERS FOR pJob
+// pJob::JobResult (struct)
+
 
 namespace votca { namespace ctp {
 
-template<typename JobContainer, typename pJob> 
+template<typename JobContainer, typename pJob, typename rJob> 
 class ParallelXJobCalc : public QMCalculator
 {
 
@@ -35,7 +38,7 @@ public:
     virtual void LoadJobs() { ; }
     virtual void CustomizeLogger(QMThread* thread) { ; }
     virtual void PreProcess(Topology *top) { ; } 
-    virtual void EvalJob(Topology *top, pJob job, QMThread *thread) { ; }
+    virtual rJob EvalJob(Topology *top, pJob job, QMThread *thread) { return rJob(); }
     virtual void PostProcess(Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }
@@ -53,7 +56,7 @@ public:
     {
     public:
 
-        JobOperator(int id,   Topology *top, ParallelXJobCalc<JobContainer,pJob> *master)
+        JobOperator(int id,   Topology *top, ParallelXJobCalc<JobContainer,pJob,rJob> *master)
                       : _top(top),          _master(master) { _id = id; };
        ~JobOperator() {};
 
@@ -64,7 +67,7 @@ public:
     public:
 
         Topology         *_top;
-        ParallelXJobCalc<JobContainer,pJob> *_master;
+        ParallelXJobCalc<JobContainer,pJob,rJob> *_master;
         pJob              _job;
 
     };

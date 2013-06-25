@@ -51,7 +51,7 @@ public:
 
 
 
-   virtual void BeginEvaluate(int nThreads, ProgObserver< vector<Job*>, Job*> *obs);
+   virtual void BeginEvaluate(int nThreads, ProgObserver< vector<Job*>, Job*, Job::JobResult> *obs);
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
 

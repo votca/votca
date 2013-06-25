@@ -7,7 +7,6 @@
 #include <votca/tools/mutex.h>
 #include <votca/tools/property.h>
 #include <votca/ctp/job.h>
-#include <votca/ctp/xjob.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
 using namespace std;
@@ -15,12 +14,14 @@ using namespace std;
 namespace votca { namespace ctp {
     
 class QMThread;
+
+// TYPENAME EXAMPLE USAGE
+//     ProgObserver< vector<Job*>, Job*, Job::JobResult >
+// REQUIRED METHODS FOR TYPENAMES
+//     pJob ->getId() ->SaveResults(rJob)
+//     JobContainer .size() .begin() .end()
     
-// E.G. ProgObserver< vector<Seg*>, Seg* >
-//      ProgObserver< vector<XJob*>, XJob* >
-//      ProgObserver< QMNBList, QMPair* >    
-    
-template<typename JobContainer, typename pJob>
+template<typename JobContainer, typename pJob, typename rJob>
 class ProgObserver 
 {
     
@@ -33,32 +34,27 @@ public:
         : _nThreads(nThreads), _lockFile(stateFile) { ; }
     
     ProgObserver()
-        : _jobs(NULL), _nThreads(-1), _progFile("__NOFILE__"), 
+        : _nThreads(-1), _progFile("__NOFILE__"), 
           _lockFile("__NOFILE__"),    _nextjit(NULL), _metajit(NULL) { ; }
     
-    //ProgObserver(JobContainer *jobs, int nThreads, string sharedProgFile, string lockFile)
-    //    : _jobs(jobs), _nThreads(nThreads), _progFile(sharedProgFile), _lockFile(lockFile)
-    //      { _metajit = _jobs->begin(); _nextjit = _jobsToProc.begin(); }
-    
    ~ProgObserver() { ; }
-   
-    string getLockFile() { return _lockFile; }
     
     void InitFromProgFile(string progFile, QMThread *master);   
     pJob RequestNextJob(QMThread *thread);
-    void ReportJobDone(pJob job, QMThread *thread);
+    void ReportJobDone(pJob job, rJob *res, QMThread *thread);
     
     void SyncWithProgFile(QMThread *thread);
     void LockProgFile(QMThread *thread);
-    string WriteProgLine(pJob job, QMThread *thread, string status);
     void ReleaseProgFile(QMThread *thread);
-    void ReportJobOutcome(pJob job, QMThread *thread) { ; }
+    
+    string GenerateStamp(QMThread *thread);
+    string GenerateTime();
    
    
 private:    
     
     JobItCnt _metajit;
-    JobContainer *_jobs;
+    JobContainer _jobs;
     
     JobItVec _nextjit;
     vector<pJob> _jobsToProc;
@@ -67,7 +63,7 @@ private:
     int _nThreads;
     string _progFile;
     string _lockFile;
-    Mutex _lockRequest;
+    Mutex _lockThread;
     boost::interprocess::file_lock *_flock;
     
 };
@@ -75,11 +71,14 @@ private:
 
 
 
-template<typename JobContainer, typename pJob>
+template<typename JobContainer, typename pJob, typename rJob>
 JobContainer LOAD_JOBS(const string &xml_file);
 
-template<typename JobContainer, typename pJob>
+template<typename JobContainer, typename pJob, typename rJob>
 void WRITE_JOBS(JobContainer &jobs, const string &job_file);
+
+template<typename JobContainer, typename pJob, typename rJob>
+void UPDATE_JOBS(JobContainer &from, JobContainer &to);
     
     
     

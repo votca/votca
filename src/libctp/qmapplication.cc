@@ -75,8 +75,8 @@ void QMApplication::Run() {
     string statefile = OptionsMap()["file"].as<string>();
     StateSaverSQLite statsav;
     statsav.Open(_top, statefile);
-    ProgObserver< vector<Job*>, Job* > progObs
-        = ProgObserver< vector<Job*>, Job* >(nThreads, statefile);
+    ProgObserver< vector<Job*>, Job*, Job::JobResult > progObs
+        = ProgObserver< vector<Job*>, Job*, Job::JobResult >(nThreads, statefile);
     
     // INITIALIZE & RUN CALCULATORS
     cout << "Initializing calculators " << endl;
@@ -101,7 +101,7 @@ void QMApplication::AddCalculator(QMCalculator* calculator) {
 }
 
 
-void QMApplication::BeginEvaluate(int nThreads = 1, ProgObserver< vector<Job*>, Job* > *obs = NULL) {
+void QMApplication::BeginEvaluate(int nThreads = 1, ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
     list< QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";

@@ -5,8 +5,8 @@
 namespace votca { namespace ctp {
 
     
-template<typename JobContainer, typename pJob> 
-bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {    
+template<typename JobContainer, typename pJob, typename rJob> 
+bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {    
 
     // CREATE XJOBS & PROGRESS OBSERVER (_XJOBFILE INIT. IN CHILD)
 //    _XJobs = XJOBS_FROM_TABLE<JobContainer,pJob>(_xjobfile, top); 
@@ -92,16 +92,16 @@ bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {
 }
 
 
-template<typename JobContainer, typename pJob>
-void ParallelXJobCalc<JobContainer,pJob>::JobOperator::Run(void) {
+template<typename JobContainer, typename pJob, typename rJob>
+void ParallelXJobCalc<JobContainer,pJob,rJob>::JobOperator::Run(void) {
 
     while (true) {
         _job = _master->_progObs->RequestNextJob(this);
 
         if (_job == NULL) { break; }
         else { 
-            this->_master->EvalJob(_top, _job, this); 
-            this->_master->_progObs->ReportJobDone(_job, this);
+            rJob res = this->_master->EvalJob(_top, _job, this);
+            this->_master->_progObs->ReportJobDone(_job, &res, this);
         }
     }
 }
@@ -111,6 +111,6 @@ void ParallelXJobCalc<JobContainer,pJob>::JobOperator::Run(void) {
 //template class ParallelXJobCalc< vector<XJob*>, XJob* >;
 //template class ParallelXJobCalc< vector<Segment*>, Segment* >;
 //template class ParallelXJobCalc< QMNBList, QMPair* >;
-template class ParallelXJobCalc< vector<Job*>, Job* >;
+template class ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >;
 
 }}

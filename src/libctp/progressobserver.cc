@@ -9,15 +9,19 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+// Shuffling around #include directives between progobs.h and progobs.cc yields these errors:
+// /people/thnfs/homes/poelking/VOTCA_SUSE_12/src/ctp/include/votca/ctp/logger.h:83:13: error: ‘string’ was not declared in this scope
+// /usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld: CMakeFiles/ctp_map.dir/ctp_map.cc.o: undefined reference to symbol _ZN5boost6system15system_categoryEv
+
 using boost::format;
 
 namespace votca { namespace ctp {
     
     
-template<typename JobContainer, typename pJob>
-pJob ProgObserver<JobContainer,pJob>::RequestNextJob(QMThread *thread) {
+template<typename JobContainer, typename pJob, typename rJob>
+pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     
-    _lockRequest.Lock();    
+    _lockThread.Lock();    
     pJob jobToProc;
     
     LOG(logDEBUG,*(thread->getLogger())) << "Requesting next job" << flush;
@@ -40,268 +44,95 @@ pJob ProgObserver<JobContainer,pJob>::RequestNextJob(QMThread *thread) {
         LOG(logDEBUG,*(thread->getLogger())) << "Request, so more: " << jobToProc->getId() << flush;
     }
     
-    _lockRequest.Unlock();
+    int a;
+    cin >> a;
+    
+    _lockThread.Unlock();
     return jobToProc;
 }
 
 
-template<typename JobContainer, typename pJob>
-void ProgObserver<JobContainer,pJob>::ReportJobDone(pJob job, QMThread *thread) {
-    
-    _lockRequest.Lock();
-    
-    LOG(logDEBUG,*(thread->getLogger())) << "Reporting job done." << flush;
-    _jobsToSync.push_back(job);
-    
-    _lockRequest.Unlock();
+template<typename JobContainer, typename pJob, typename rJob>
+void ProgObserver<JobContainer,pJob,rJob>::ReportJobDone(pJob job, rJob *res, QMThread *thread) {    
+    _lockThread.Lock();    
+    LOG(logDEBUG,*(thread->getLogger())) << "Reporting job done." << flush;    
+    // RESULTS, TIME, STAMP
+    job->SaveResults(res);    
+    job->setTime(GenerateTime());
+    job->setStamp(GenerateStamp(thread));    
+    _lockThread.Unlock();
+    return;
 }
 
 
-template<typename JobContainer, typename pJob>
-void ProgObserver<JobContainer,pJob>::SyncWithProgFile(QMThread *thread) {
+template<typename JobContainer, typename pJob, typename rJob>
+string ProgObserver<JobContainer,pJob,rJob>::GenerateStamp(QMThread *thread) {
+    char host[128];
+    int h = gethostname(host, sizeof host);
+    pid_t pid = getpid();
+    int tid = thread->getId();
+    return (format("HOST=%1$s::PID=%2$d::TID=%3$d") % host % pid % tid).str();   
+}
+
+
+template<typename JobContainer, typename pJob, typename rJob>
+string ProgObserver<JobContainer,pJob,rJob>::GenerateTime() {
+    boost::posix_time::ptime now 
+        = boost::posix_time::second_clock::local_time();
+    return (format("%1$s") % now.time_of_day()).str();  
+}
+
+
+template<typename JobContainer, typename pJob, typename rJob>
+void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     
     // INTERPROCESS FILE LOCKING (THREAD LOCK IN ::RequestNextJob)
     this->LockProgFile(thread);
-   
+    
     string progFile = _progFile;
-    ofstream ofs;
-    ifstream ifs;
+    string backFile = _progFile+"~";    
     
-    // WRITE PROGRESS STATUS FILE IF NECESSARY
-    if (!boost::filesystem::exists(progFile)) {
-        ofs.open(progFile.c_str(), ofstream::out);
-        if (!ofs.is_open()) {
-            LOG(logERROR,*(thread->getLogger())) << "Could not open file "
-                << progFile << flush;
-            throw runtime_error("Bad file handle.");
-        }
-        LOG(logDEBUG,*(thread->getLogger())) << "Created new file "
-            << progFile << flush;
-        JobItCnt jit;
-        for (jit = _jobs->begin(); jit != _jobs->end(); ++jit) {
-            ofs << WriteProgLine(*jit, thread, "QUEUEING") << endl;
-        }
-        ofs.close();
-    }
+    // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
+    LOG(logDEBUG,*(thread->getLogger()))
+        << "Update internal structures from job file" << flush;
+    Property prog;
+    load_property_from_xml(prog, progFile);
+    JobContainer jobs_ext = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);    
+    UPDATE_JOBS<JobContainer,pJob,rJob>(jobs_ext, _jobs);
     
-    // READ PROGRESS STATUS FILE INTO MAPS
-    map<int,string> assigned;
-    map<int,string> complete;
-    map<int,string> queueing;                    
-    map<int,string> ::iterator atJobId;
+    // GENERATE BACK-UP FOR SHARED XML
+    LOG(logDEBUG,*(thread->getLogger()))
+        << "Create job-file back-up" << flush;
+    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, backFile);
     
-    ifs.open(progFile.c_str(), ifstream::in);    
-    if (!ifs.is_open()) {
-        LOG(logERROR,*(thread->getLogger())) << "Could not open file "
-            << progFile << flush;
-        throw runtime_error("Bad file handle.");
-    }
-    while (ifs.good()) {
-        string line;
-        std::getline(ifs, line);
-        vector< string > split;
-        Tokenizer toker(line, " \t");
-        toker.ToVector(split);
-        if ( !split.size()      ||
-              split[0] == "#"   ||
-              split[0].substr(0,1) == "#" ) { continue; }
-
-        int id = boost::lexical_cast<int>(split[0]);
-        string status = split[1];
-        
-        if (status == "COMPLETE")
-            complete[id] = line;
-        else if (status == "ASSIGNED")
-            assigned[id] = line;
-        else if (status == "QUEUEING")
-            queueing[id] = line;
-        else
-            assert(false); // unrecognized status        
-    }    
-    ifs.close();    
-    
-    // REPORT FINISHED JOBS, CLEAR SYNC CONTAINER
-    LOG(logDEBUG,*(thread->getLogger())) << "Sync finished jobs " << flush;
-    JobItVec vjit;
-    for (vjit = _jobsToSync.begin(); vjit != _jobsToSync.end(); ++vjit) {
-        pJob job = *vjit;
-        atJobId = assigned.find(job->getId());
-        if (atJobId == assigned.end())
-            throw runtime_error("Job recently finished, but had not been assigned.");
-        complete[atJobId->first] = WriteProgLine(job, thread, "COMPLETE");
-        assigned.erase(atJobId);
-    }
-    _jobsToSync.clear();
-    
-    // BACK-UP PROGRESS FILE
-    string backupfile = _progFile+"_backup";
-    //if (boost::filesystem::exists(backupfile))
-    //    boost::filesystem::remove(backupfile);
-    //boost::filesystem::copy_file(_progFile, backupfile);
-    LOG(logDEBUG,*(thread->getLogger())) 
-        << "Back-up progress file for the contingency of a restart ..." << flush;
-    ofs.open(backupfile.c_str(), ofstream::out);
-    ofs << "# Verify that no jobs are missing (e.g. cat ... | wc) "
-        << "before restarting from this file." << endl;
-    JobItCnt jit;
-    for (atJobId = complete.begin(); atJobId != complete.end(); ++atJobId) {
-        ofs << atJobId->second << endl;        
-    }
-    for (atJobId = assigned.begin(); atJobId != assigned.end(); ++atJobId) {
-        string modStr = atJobId->second;
-        boost::replace_first(modStr, "ASSIGNED", "QUEUEING");
-        ofs << modStr << endl;        
-    }
-    for (atJobId = queueing.begin(); atJobId != queueing.end(); ++atJobId) {
-        ofs << atJobId->second << endl;        
-    }
-    ofs.close();    
     
     // ASSIGN NEW JOBS IF AVAILABLE
-    LOG(logDEBUG,*(thread->getLogger())) << "Assign jobs from stack" << flush;
+    LOG(logDEBUG,*(thread->getLogger()))
+        << "Assign jobs from stack" << flush;
     _jobsToProc.clear();
     while (_jobsToProc.size() < _nThreads) {
-        if (_metajit == _jobs->end()) break;        
+        if (_metajit == _jobs.end()) break;        
         
-        atJobId = queueing.find((*_metajit)->getId());
-        
-        if (atJobId == queueing.end()) {            
-            ; // Job already processed elsewhere
-        }
-        else {
+        if ((*_metajit)->isAvailable()) {            
+            (*_metajit)->setStatus("ASSIGNED");
+            (*_metajit)->setStamp(GenerateStamp(thread));
+            (*_metajit)->setTime(GenerateTime());
             _jobsToProc.push_back(*_metajit);
-            assigned[atJobId->first] = WriteProgLine(*_metajit, thread, "ASSIGNED");
-            queueing.erase(atJobId);
-        }
-        
+        }        
         ++_metajit;
     }
     
-    // SANITY CHECKS
-    int jobCountMaps = queueing.size() + assigned.size() + complete.size();
-    assert(jobCountMaps == _jobs->size());        
-    
     // UPDATE PROGRESS STATUS FILE
-    LOG(logDEBUG,*(thread->getLogger())) << "Update progress file ..." << flush;
-    ofs.open(progFile.c_str(), ofstream::out);
-    for (atJobId = complete.begin(); atJobId != complete.end(); ++atJobId) {
-        ofs << atJobId->second << endl;        
-    }
-    for (atJobId = assigned.begin(); atJobId != assigned.end(); ++atJobId) {
-        ofs << atJobId->second << endl;        
-    }
-    for (atJobId = queueing.begin(); atJobId != queueing.end(); ++atJobId) {
-        ofs << atJobId->second << endl;        
-    }
-    ofs.close();
+    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile);
 
     // RELEASE PROGRESS STATUS FILE
     this->ReleaseProgFile(thread);
-    
-//    // REPORT FINISHED JOBS, CLEAR SYNC CONTAINER
-//    string progFileFinished = _progFile + "_finished";    
-//    
-//    // Create file if not yet there
-//    if (!boost::filesystem::exists(progFileFinished)) {
-//        ofs.open(progFileFinished.c_str(), ofstream::out);
-//        LOG(logERROR,*(thread->getLogger())) << "Created new file "
-//            << progFileFinished << flush;
-//    }
-//    else {
-//        ofs.open(progFileFinished.c_str(), ofstream::out | ofstream::app);
-//    }
-//    
-//    if (!ofs.is_open()) {
-//        LOG(logERROR,*(thread->getLogger())) << "Could not open file "
-//            << progFileFinished << flush;
-//        throw runtime_error("Bad file handle.");
-//    }
-//    
-//    JobItVec vjit;
-//    for (vjit = _jobsToSync.begin(); vjit != _jobsToSync.end(); ++vjit) {
-//        ofs << WriteProgLine(*vjit, "finished");
-//    }
-//    
-//    ofs.close();    
-//    _jobsToSync.clear();
-//    
-//    
-//    // READ PREVIOUSLY ASSIGNED JOBS INTO MAP
-//    string progFileAssigned = _progFile + "_assigned";
-//    
-//    // Create file if not yet there
-//    if (!boost::filesystem::exists(progFileAssigned)) {
-//        ofs.open(progFileAssigned.c_str(), ofstream::out);
-//        ofs.close();
-//        LOG(logERROR,*(thread->getLogger())) << "Created new file "
-//            << progFileAssigned << flush;
-//    }
-//    
-//    map<int, string> assignedId_line;
-//
-//    ifs.open(progFileAssigned.c_str(), ifstream::in);
-//
-//    if (!ifs.is_open()) {
-//        LOG(logERROR,*(thread->getLogger())) << "Could not open file "
-//            << progFileAssigned << flush;
-//        throw runtime_error("Bad file handle.");
-//    }    
-//
-//    while ( ifs.good() ) {
-//        string line;
-//        std::getline(ifs, line);
-//
-//        vector< string > split;
-//        Tokenizer toker(line, " \t");
-//        toker.ToVector(split);
-//        if ( !split.size()      ||
-//              split[0] == "#"   ||
-//              split[0].substr(0,1) == "#" ) { continue; }
-//
-//        int id = boost::lexical_cast<int>(split[0]);
-//        assignedId_line[id] = line;
-//    }
-//    
-//    ifs.close();
-//    
-//    // GRAB NEW JOBS TO PROCESS
-//    _jobsToProc.clear();
-//    
-//    while(_jobsToProc.size() < _nThreads) {
-//        
-//        if (_metajit == _jobs->end()) break;
-//        
-//        
-//        if ( assignedId_line.count((*_metajit)->getId()) > 0 ) {
-//            ; // Already being processed somewhere
-//        }
-//        else {
-//            _jobsToProc.push_back(*_metajit);
-//        }
-//        
-//        ++_metajit;        
-//    }
-//    
-//    // APPEND NEWLY ASSIGNED JOBS TO LIST OF ASSIGNED JOBS
-//    ofs.open(progFileAssigned.c_str(), ofstream::out | ofstream::app);   
-//    
-//    if (!ofs.is_open()) {
-//        LOG(logERROR,*(thread->getLogger())) << "Could not open file "
-//            << progFileAssigned << flush;
-//        throw runtime_error("Bad file handle.");
-//    }
-//    
-//    for (vjit = _jobsToProc.begin(); vjit != _jobsToProc.end(); ++vjit) {
-//        ofs << WriteProgLine(*vjit, "assigned");
-//    }
-//    
-//    ofs.close();    
-    
+    return;    
 }
 
 
-template<typename JobContainer, typename pJob>
-void ProgObserver<JobContainer,pJob>::LockProgFile(QMThread *thread) {
+template<typename JobContainer, typename pJob, typename rJob>
+void ProgObserver<JobContainer,pJob,rJob>::LockProgFile(QMThread *thread) {
     _flock = new boost::interprocess::file_lock(_lockFile.c_str());
     _flock->lock();
     LOG(logDEBUG,*(thread->getLogger()))
@@ -309,8 +140,8 @@ void ProgObserver<JobContainer,pJob>::LockProgFile(QMThread *thread) {
 }
 
 
-template<typename JobContainer, typename pJob>
-void ProgObserver<JobContainer,pJob>::ReleaseProgFile(QMThread *thread) {
+template<typename JobContainer, typename pJob, typename rJob>
+void ProgObserver<JobContainer,pJob,rJob>::ReleaseProgFile(QMThread *thread) {
     
     _flock->unlock();
     LOG(logDEBUG,*(thread->getLogger()))
@@ -319,63 +150,15 @@ void ProgObserver<JobContainer,pJob>::ReleaseProgFile(QMThread *thread) {
 }
 
 
-template<typename JobContainer, typename pJob>
-string ProgObserver<JobContainer,pJob>::WriteProgLine(pJob job, 
-    QMThread *thread, string status) {
-    
-    pid_t pid = getpid();
-    int   tid = thread->getId();
-    
-    string jobstr0 = "";
-    string jobstr1 = "";
-    string jobstr2 = "";
-    
-    // HOST NAME
-    char host[128];
-    int h = gethostname(host, sizeof host);
-    
-    // CURRENT TIME
-    boost::posix_time::ptime now 
-        = boost::posix_time::second_clock::local_time();
-    
-    // Job ID + Status
-    jobstr0 += (format("%1$5d %2$8s ")
-        % job->getId() % status).str();
-    
-    if (status == "QUEUEING") {
-        jobstr1 += (format("HOST=........ TIME=........ PID=..... TID=... ")).str();
-    }
-    
-    else if (status == "ASSIGNED") {
-        jobstr1 += (format("HOST=%2$-8s TIME=%3$s PID=%1$05d TID=... ")
-            % pid % host % now.time_of_day()).str();
-        // += job-specific 'assigned' line
-    }
-    
-    else if (status == "COMPLETE") {
-        jobstr1 += (format("HOST=%3$-8s TIME=%4$s PID=%1$05d TID=%2$03d ")
-        % pid % tid % host % now.time_of_day()).str();
-        // += jobstr2 -> job-specific output line
-    }
-    
-    else ;
-    
-    return jobstr0 + jobstr1 + jobstr2;
-}
-
-
-
-
-
-template<typename JobContainer, typename pJob>
-void ProgObserver<JobContainer,pJob>::InitFromProgFile(string progFile, 
+template<typename JobContainer, typename pJob, typename rJob>
+void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile, 
     QMThread *thread) {
     
     _progFile = progFile;
     
     LOG(logINFO,*(thread->getLogger())) << "Initialize jobs from "
             << progFile << flush;    
-    LOG(logINFO,*(thread->getLogger())) << "Lock & load ... " << flush;
+    LOG(logINFO,*(thread->getLogger())) << "Lock & load " << flush;
     
     // LOCK, READ INTO XML
     this->LockProgFile(thread);  
@@ -383,30 +166,16 @@ void ProgObserver<JobContainer,pJob>::InitFromProgFile(string progFile,
     Property prog;
     load_property_from_xml(prog, progFile);
     
-//    ofstream ofs;
-//    
-//    // WRITE PROGRESS STATUS FILE IF NECESSARY
-//    string newProgFile = progFile + "_new";
-//    ofs.open(newProgFile.c_str(), ofstream::out);
-//    if (!ofs.is_open()) {
-//        LOG(logERROR,*(thread->getLogger())) << "Could not open file "
-//            << newProgFile << flush;
-//        throw runtime_error("Bad file handle.");
-//    }
-//    
-//    LOG(logDEBUG,*(thread->getLogger())) << "Created new file "
-//        << newProgFile << flush;
-//    ofs << XML << prog;
-//    ofs.close();    
-    
-    
-    JobContainer jobs = LOAD_JOBS<JobContainer,pJob>(progFile);
-    WRITE_JOBS<JobContainer,pJob>(jobs, progFile+"_write");
+    // TODO Delete jobs here before loading new
+    _jobs = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);
+    _metajit = _jobs.begin();
+    WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile+"~");
+    LOG(logINFO,*(thread->getLogger())) << "Registered " << _jobs.size()
+         << " jobs." << flush;
     
     // RELEASE PROGRESS FILE
     this->ReleaseProgFile(thread);
-    
-    throw runtime_error("Stop here.");
+    return;
 }
 
 
@@ -415,60 +184,7 @@ void ProgObserver<JobContainer,pJob>::InitFromProgFile(string progFile,
 // ========================================================================== //
 
 
-template<>
-string ProgObserver< vector<XJob*>, XJob* >::WriteProgLine(XJob *job, 
-    QMThread *thread, string status) {
-    
-    pid_t pid = getpid();
-    int   tid = thread->getId();
-    
-    string jobstr0 = "";
-    string jobstr1 = "";
-    string jobstr2 = "";
-    
-    // HOST NAME
-    char host[128];
-    int h = gethostname(host, sizeof host);
-    
-    // CURRENT TIME
-    boost::posix_time::ptime now 
-        = boost::posix_time::second_clock::local_time();
-    
-    // Job ID + Status
-    jobstr0 += (format("%1$5d %2$8s ")
-        % job->getId() % status).str();
-    
-    if (status == "QUEUEING") {
-        jobstr1 += (format("HOST=........ TIME=........ PID=..... TID=... ")).str();
-    }
-    
-    else if (status == "ASSIGNED") {
-        jobstr1 += (format("HOST=%2$-8s TIME=%3$s PID=%1$05d TID=... ")
-            % pid % host % now.time_of_day()).str();
-        jobstr2 += (format("%1$5d %2$-10s ")
-            % job->getUserId() % job->getTag()).str();
-    }
-    
-    else if (status == "COMPLETE") {
-        jobstr1 += (format("HOST=%3$-8s TIME=%4$s PID=%1$05d TID=%2$03d ")
-        % pid % tid % host % now.time_of_day()).str();
-        jobstr2 += job->getInfoLine();
-    }
-    
-    else ;
-    
-    return jobstr0 + jobstr1 + jobstr2;
-}
-
-
-
-    
-    
-    
-
-
-// JOB IMPORT FUNCTIONS
-template<typename JobContainer, typename pJob>
+template<typename JobContainer, typename pJob, typename rJob>
 JobContainer LOAD_JOBS(const string &job_file) {    
     
     throw std::runtime_error("LOAD_JOBS not specialized for this type.");    
@@ -477,7 +193,7 @@ JobContainer LOAD_JOBS(const string &job_file) {
 }
 
 template<>
-vector<Job*> LOAD_JOBS< vector<Job*>, Job* >(const string &job_file) {
+vector<Job*> LOAD_JOBS< vector<Job*>, Job*, Job::JobResult >(const string &job_file) {
     
     vector<Job*> jobs;
     
@@ -495,7 +211,7 @@ vector<Job*> LOAD_JOBS< vector<Job*>, Job* >(const string &job_file) {
     return jobs;   
 }
 
-template<typename JobContainer, typename pJob>
+template<typename JobContainer, typename pJob, typename rJob>
 void WRITE_JOBS(JobContainer &jobs, const string &job_file) {
     
     throw std::runtime_error("WRITE_JOBS not specialized for this type.");    
@@ -503,7 +219,7 @@ void WRITE_JOBS(JobContainer &jobs, const string &job_file) {
 }
 
 template<>
-void WRITE_JOBS< vector<Job*>, Job* >(vector<Job*> &jobs, 
+void WRITE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &jobs, 
         const string &job_file) {
     
     vector<Job*> ::iterator it;
@@ -522,14 +238,43 @@ void WRITE_JOBS< vector<Job*>, Job* >(vector<Job*> &jobs,
     return;
 }
 
+template<typename JobContainer, typename pJob, typename rJob>
+void UPDATE_JOBS(JobContainer &from, JobContainer &to) {
+    
+    throw std::runtime_error("UPDATE_JOBS not specialized for this type.");    
+    return;
+}
+
+template<>
+void UPDATE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &from, vector<Job*> &to) {
+    
+    vector<Job*> ::iterator it_int;
+    vector<Job*> ::iterator it_ext;
+    
+    if (to.size() != from.size()) 
+        throw runtime_error("Progress file out of sync (::size), abort.");
+    
+    for (it_int = to.begin(), it_ext = from.begin(); 
+        it_int != to.end();
+        ++it_int, ++it_ext) {
+        
+        Job* job_int = *it_int;
+        Job* job_ext = *it_ext;
+        
+        if (job_int->getId() != job_ext->getId())
+            throw runtime_error("Progress file out of sync (::id), abort.");
+        
+        job_int->UpdateFrom(job_ext);
+    }
+    
+    return;
+}
+
 
 
 
 // REGISTER
-//template class ProgObserver< vector<XJob*>, XJob* >;
-//template class ProgObserver< vector<Segment*>, Segment* >;
-//template class ProgObserver< QMNBList, QMPair* >;
-template class ProgObserver< vector<Job*>, Job* >;
+template class ProgObserver< vector<Job*>, Job*, Job::JobResult >;
     
     
 }}

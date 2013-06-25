@@ -44,12 +44,12 @@ public:
     virtual void    EndEvaluate(CTP::Topology *top) { }
 
     void            setnThreads(int nThreads) { _nThreads = nThreads; }
-    void            setProgObserver(ProgObserver< vector<Job*>, Job* > *obs) { _progObs = obs; }
+    void            setProgObserver(ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
 
 protected:
 
     int _nThreads;
-    ProgObserver< vector<Job*>, Job* > *_progObs;
+    ProgObserver< vector<Job*>, Job*, Job::JobResult > *_progObs;
 
 };
 
