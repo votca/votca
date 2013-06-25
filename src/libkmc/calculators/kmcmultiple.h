@@ -669,7 +669,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                     {
                         if(ncindex != cindex)
                         {
-                            // + E_ik
+                            // - E_ik
                             myvec distancevec = carrier[ncindex]->node->position - node_i->position;
                             double epsR = 3;
                             double dX = std::abs(distancevec.x());
@@ -689,9 +689,9 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                             }
                             double distance = sqrt(dX*dX+dY*dY+dZ*dZ);
                             double rawcoulombcontribution = 1.4399644850445791e-09 / epsR / distance;
-                            coulombsum += rawcoulombcontribution;
+                            coulombsum -= rawcoulombcontribution;
                         
-                            // - E_jk
+                            // + E_jk
                             distancevec = carrier[ncindex]->node->position - node_j->position;
                             dX = std::abs(distancevec.x());
                             dY = std::abs(distancevec.y());
@@ -710,7 +710,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                             }
                             distance = sqrt(dX*dX+dY*dY+dZ*dZ);
                             rawcoulombcontribution = 1.4399644850445791e-09 / epsR / distance;
-                            coulombsum -= rawcoulombcontribution;
+                            coulombsum += rawcoulombcontribution;
                         }
                     }
                     
@@ -720,7 +720,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                         Node *node_k = carrier[ncindex]->node;
                         if(ncindex != cindex) // charge doesn't have Coulomb interaction with itself
                         {
-                            // + E_ik
+                            // - E_ik
                             // check if there is an entry for this interaction
                             unsigned long key = node_i->id + dimension * carrier[ncindex]->node->id;
                             
@@ -732,8 +732,8 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                             if( coul_iterator != coulomb.end() )
                             {
                                 // if there is an entry, add it to the Coulomb sum
-                                contribution += coul_iterator->second;
-                                additionmade = 1;
+                                contribution -= coul_iterator->second;
+                                substractionmade = 1;
                             }
                             
 // ####################################################################################################
@@ -769,17 +769,17 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
 // ####################################################################################################
                         
                             
-                            // - E_jk
+                            // + E_jk
                             key = node_j->id + dimension * carrier[ncindex]->node->id;
                             coul_iterator = coulomb.find(key);
                             if( coul_iterator != coulomb.end() && additionmade == 1)
                             {
                                 // if there is an entry, add it to the Coulomb sum
-                                contribution -= coul_iterator->second;
+                                contribution += coul_iterator->second;
                                 // cout << " - "<< coul_iterator->second;
 
 
-                                substractionmade = 1;
+                                additionmade = 1;
                             }
                             if(additionmade == 1 && substractionmade == 1)
                             {  // makes sure not to create cutoff-caused unbalanced additions/substractions
