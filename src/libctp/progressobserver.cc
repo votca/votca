@@ -24,7 +24,8 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     _lockThread.Lock();    
     pJob jobToProc;
     
-    LOG(logDEBUG,*(thread->getLogger())) << "Requesting next job" << flush;
+    LOG(logDEBUG,*(thread->getLogger())) 
+        << "Requesting next job" << flush;
     
     // NEED NEW CHUNK?
     if (_nextjit == _jobsToProc.end()) {
@@ -34,14 +35,16 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     
     // JOBS EATEN ALL UP?
     if (_nextjit == _jobsToProc.end()) {
-        LOG(logDEBUG,*(thread->getLogger())) << "Request: No more." << flush;
+        LOG(logDEBUG,*(thread->getLogger())) 
+            << "Next job: ID = - (none available)" << flush;
         jobToProc = NULL;
     }
     // TAKE A BITE
     else {        
         jobToProc = *_nextjit;
         ++_nextjit;
-        LOG(logDEBUG,*(thread->getLogger())) << "Request, so more: " << jobToProc->getId() << flush;
+        LOG(logDEBUG,*(thread->getLogger()))
+            << "Next job: ID = " << jobToProc->getId() << flush;
     }
     
     _lockThread.Unlock();
@@ -52,11 +55,12 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
 template<typename JobContainer, typename pJob, typename rJob>
 void ProgObserver<JobContainer,pJob,rJob>::ReportJobDone(pJob job, rJob *res, QMThread *thread) {    
     _lockThread.Lock();    
-    LOG(logDEBUG,*(thread->getLogger())) << "Reporting job done." << flush;    
+    LOG(logDEBUG,*(thread->getLogger()))
+        << "Reporting job results" << flush;    
     // RESULTS, TIME, STAMP
     job->SaveResults(res);    
     job->setTime(GenerateTime());
-    job->setStamp(GenerateStamp(thread));    
+    job->setStamp(GenerateStamp(thread));
     _lockThread.Unlock();
     return;
 }

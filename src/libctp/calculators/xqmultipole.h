@@ -281,7 +281,7 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
         xjob.getPolarTop()->PrintInduState(outstr, format, split, space);        
     }
 
-    // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
+    // JOT INFO STRING & CLEAN POLAR TOPOLOGY
     xjob.setInfoLine(true,false);
     
     
