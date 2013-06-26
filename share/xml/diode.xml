@@ -1,0 +1,34 @@
+<diode>
+	<description>Parallel calculation</description>
+	<sectionlabel>diode</sectionlabel>
+
+	<item>
+		<name>runtime</name>
+		<description>Total runtime for each injection</description>
+	</item>
+        <item>
+                <name>outtime</name>
+                <description>Prints current node ID and position</description>
+        </item>
+        <item>
+                <name>seed</name>
+                <description>Seeds C++ RNG seeds Marsaglia RNG</description>
+        </item>
+        <item>
+                <name>injection</name>
+                <description>Injection-site name pattern (uses wildcard-comparison)</description>
+        </item>
+        <item>
+                <name>channel</name>
+                <description>'electron' or 'hole'</description>
+        </item>
+        <item>
+                <name>runs</name>
+                <description>Number of injections, distributed among threads</description>
+        </item>
+        <item>
+                <name>output</name>
+                <description>File that displays avg velocity for each injection and avg velocity over injection</description>
+        </item>
+
+</diode>
