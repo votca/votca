@@ -38,17 +38,19 @@ void QMApplication::Initialize(void) {
     namespace propt = boost::program_options;
 
     AddProgramOptions() ("options,o", propt::value<string>(),
-                         "  calculator options");
+        "  calculator options");
     AddProgramOptions() ("file,f", propt::value<string>(),
-                         "  sqlight state file, *.sql");
+        "  sqlight state file, *.sql");
     AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
-                         "  start from this frame");
+        "  start from this frame");
     AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(-1),
-                         "  number of frames to process");
+        "  number of frames to process");
     AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
-                         "  number of threads to create");
+        "  number of threads to create");
     AddProgramOptions() ("save,s", propt::value<int>()->default_value(1),
-                         "  whether or not to save changes to state file");
+        "  whether or not to save changes to state file");
+    AddProgramOptions() ("restart,r", propt::value<string>()->default_value(""),
+        "  parallelized runs: restart jobs, as in '-r host(mach1:1234,mach2:5678) stat(FAILED)'");
 }
 
 
@@ -75,8 +77,12 @@ void QMApplication::Run() {
     string statefile = OptionsMap()["file"].as<string>();
     StateSaverSQLite statsav;
     statsav.Open(_top, statefile);
+    
+    string restartArg = OptionsMap()["restart"].as<string>();
+    int cacheSize = nThreads;
     ProgObserver< vector<Job*>, Job*, Job::JobResult > progObs
-        = ProgObserver< vector<Job*>, Job*, Job::JobResult >(nThreads, statefile);
+        = ProgObserver< vector<Job*>, Job*, Job::JobResult >(cacheSize, statefile);
+    progObs.UseRestartPattern(restartArg);
     
     // INITIALIZE & RUN CALCULATORS
     cout << "Initializing calculators " << endl;
@@ -101,7 +107,8 @@ void QMApplication::AddCalculator(QMCalculator* calculator) {
 }
 
 
-void QMApplication::BeginEvaluate(int nThreads = 1, ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
+void QMApplication::BeginEvaluate(int nThreads = 1, 
+        ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
     list< QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";

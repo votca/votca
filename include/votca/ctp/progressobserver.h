@@ -30,15 +30,16 @@ public:
     typedef typename JobContainer::iterator JobItCnt;
     typedef typename vector<pJob>::iterator JobItVec;
     
-    ProgObserver(int nThreads, string stateFile)
-        : _nThreads(nThreads), _lockFile(stateFile) { ; }
+    ProgObserver(int cacheSize, string stateFile)
+        : _cacheSize(cacheSize), _lockFile(stateFile) { ; }
     
     ProgObserver()
-        : _nThreads(-1), _progFile("__NOFILE__"), 
+        : _cacheSize(-1), _progFile("__NOFILE__"), 
           _lockFile("__NOFILE__"),    _nextjit(NULL), _metajit(NULL) { ; }
     
    ~ProgObserver() { ; }
     
+    void UseRestartPattern(string restartPattern);
     void InitFromProgFile(string progFile, QMThread *master);   
     pJob RequestNextJob(QMThread *thread);
     void ReportJobDone(pJob job, rJob *res, QMThread *thread);
@@ -47,7 +48,7 @@ public:
     void LockProgFile(QMThread *thread);
     void ReleaseProgFile(QMThread *thread);
     
-    string GenerateStamp(QMThread *thread);
+    string GenerateHost(QMThread *thread);
     string GenerateTime();
    
    
@@ -60,11 +61,15 @@ private:
     vector<pJob> _jobsToProc;
     vector<pJob> _jobsToSync;
     
-    int _nThreads;
+    int _cacheSize;
     string _progFile;
     string _lockFile;
     Mutex _lockThread;
     boost::interprocess::file_lock *_flock;
+    
+    map<string,bool> _restart_hosts;
+    map<string,bool> _restart_stats;
+    bool _restartMode;
     
 };
 

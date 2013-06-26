@@ -335,7 +335,7 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
     // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
 }
  
-Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+Job::JobResult IDFT::EvalJob(Topology *top, const Job *job, QMThread *opThread) {
 
     QMPair *qmpair = NULL; // Need to init this from job
     
@@ -474,7 +474,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // Output the thread run summary and clean the thread
     cout << *pLog;
     
-    return Job::JobResult(job);
+    return Job::JobResult();
 }
 
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,

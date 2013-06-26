@@ -28,7 +28,7 @@ public:
 
     void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
-    Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
+    Job::JobResult  EvalJob(Topology *top, const Job *job, QMThread *thread);
     void            PostProcess(Topology *top);
     
 
@@ -234,7 +234,7 @@ void QMMM::CustomizeLogger(QMThread *thread) {
 // ========================================================================== //
 
 
-Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
+Job::JobResult QMMM::EvalJob(Topology *top, const Job *job, QMThread *thread) {
     
     // SILENT LOGGER FOR QMPACKAGE
     Logger* log = thread->getLogger();    
@@ -276,7 +276,7 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
 //    job->setInfoLine();
 //    job->getPolarTop()->~PolarTop();
     
-    return Job::JobResult(job);
+    return Job::JobResult();
 }
 
 

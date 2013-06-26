@@ -54,25 +54,25 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
 
 template<typename JobContainer, typename pJob, typename rJob>
 void ProgObserver<JobContainer,pJob,rJob>::ReportJobDone(pJob job, rJob *res, QMThread *thread) {    
-    _lockThread.Lock();    
+    _lockThread.Lock();
     LOG(logDEBUG,*(thread->getLogger()))
         << "Reporting job results" << flush;    
-    // RESULTS, TIME, STAMP
+    // RESULTS, TIME, HOST
     job->SaveResults(res);    
     job->setTime(GenerateTime());
-    job->setStamp(GenerateStamp(thread));
+    job->setHost(GenerateHost(thread));
     _lockThread.Unlock();
     return;
 }
 
 
 template<typename JobContainer, typename pJob, typename rJob>
-string ProgObserver<JobContainer,pJob,rJob>::GenerateStamp(QMThread *thread) {
+string ProgObserver<JobContainer,pJob,rJob>::GenerateHost(QMThread *thread) {
     char host[128];
     int h = gethostname(host, sizeof host);
     pid_t pid = getpid();
-    int tid = thread->getId();
-    return (format("%1$s:%2$d:%3$d") % host % pid % tid).str();   
+    int tid = thread->getId(); // not used
+    return (format("%1$s:%2$d") % host % pid).str();   
 }
 
 
@@ -89,6 +89,8 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     
     // INTERPROCESS FILE LOCKING (THREAD LOCK IN ::RequestNextJob)
     this->LockProgFile(thread);
+    
+    int a; cin >> a;
     
     string progFile = _progFile;
     string progBackFile = _progFile+"~";
@@ -121,15 +123,27 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     LOG(logDEBUG,*(thread->getLogger()))
         << "Assign jobs from stack" << flush;
     _jobsToProc.clear();
-    while (_jobsToProc.size() < _nThreads) {
-        if (_metajit == _jobs.end()) break;        
+    
+    int cacheSize = (_cacheSize < 8) ? 8 : _cacheSize;
+    while (_jobsToProc.size() < cacheSize) {
+        if (_metajit == _jobs.end()) break;
         
-        if ((*_metajit)->isAvailable()) {            
+        bool startJob = false;
+        
+        // Start if job available or restart patterns matched
+        if ( ((*_metajit)->isAvailable())
+          || (_restartMode && _restart_stats.count((*_metajit)->getStatusStr()))
+          || (_restartMode && _restart_hosts.count((*_metajit)->getHost())) )
+            startJob = true;
+        
+        if (startJob) {
+            (*_metajit)->Reset();
             (*_metajit)->setStatus("ASSIGNED");
-            (*_metajit)->setStamp(GenerateStamp(thread));
+            (*_metajit)->setHost(GenerateHost(thread));
             (*_metajit)->setTime(GenerateTime());
             _jobsToProc.push_back(*_metajit);
-        }        
+        }
+
         ++_metajit;
     }
     
@@ -163,6 +177,38 @@ void ProgObserver<JobContainer,pJob,rJob>::ReleaseProgFile(QMThread *thread) {
 
 
 template<typename JobContainer, typename pJob, typename rJob>
+void ProgObserver<JobContainer,pJob,rJob>::UseRestartPattern(string pattern) {
+    // e.g. host(pckr124:1234) stat(FAILED)
+    
+    boost::algorithm::replace_all(pattern, " ", "");
+    if (pattern == "") _restartMode = false;
+    else _restartMode = true;
+    
+    vector<string> split;
+    Tokenizer toker(pattern, "(,)");
+    toker.ToVector(split);
+    
+    string category = "";
+    for (int i = 0; i < split.size(); ++i) {
+        
+        if (split[i] == "host" || split[i] == "stat") category = split[i];
+        
+        else if (category == "host") _restart_hosts[split[i]] = true;
+        else if (category == "stat") {
+            if (split[i] == "ASSIGNED" || split[i] == "COMPLETE") 
+                throw runtime_error("Restart if status == " 
+                    + split[i] + "? Not a good idea.");
+            _restart_stats[split[i]] = true;
+        }
+        
+        else throw runtime_error("Restart pattern ill-defined, format is"
+                "[host([HOSTNAME:PID])] [stat([STATUS])]");
+    }
+    return;
+}
+
+
+template<typename JobContainer, typename pJob, typename rJob>
 void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile, 
     QMThread *thread) {
     
@@ -181,6 +227,24 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
     WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile+"~", "xml");
     LOG(logINFO,*(thread->getLogger())) << "Registered " << _jobs.size()
          << " jobs." << flush;
+    
+    // SUMMARIZE RESTART PATTERNS
+    if (_restartMode && _restart_hosts.size()) {        
+        string infostr = "Restart if host == ";
+        map<string,bool> ::iterator mit;
+        for (mit = _restart_hosts.begin(); mit != _restart_hosts.end(); ++mit) {
+            infostr += mit->first + " ";
+        }
+        LOG(logINFO,*(thread->getLogger())) << infostr << flush;  
+    }
+    if (_restartMode && _restart_stats.size()) {        
+        string infostr = "Restart if stat == ";
+        map<string,bool> ::iterator mit;
+        for (mit = _restart_stats.begin(); mit != _restart_stats.end(); ++mit) {
+            infostr += mit->first + " ";
+        }
+        LOG(logINFO,*(thread->getLogger())) << infostr << flush;  
+    }
     
     // RELEASE PROGRESS FILE
     this->ReleaseProgFile(thread);
@@ -238,8 +302,10 @@ void WRITE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &jobs,
         throw runtime_error("Bad file handle: " + job_file);
     }    
     if (fileformat == "xml") ofs << "<jobs>" << endl;    
-    for (it = jobs.begin(); it != jobs.end(); ++it)  
+    for (it = jobs.begin(); it != jobs.end(); ++it) {
+        if (fileformat == "tab" && !(*it)->isComplete()) continue;
         (*it)->ToStream(ofs, fileformat);
+    }
     if (fileformat == "xml") ofs << "</jobs>" << endl;
     
     ofs.close();

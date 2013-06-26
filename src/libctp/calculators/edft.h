@@ -52,7 +52,7 @@ public:
     string  Identify() { return "EDFT"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
-    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
+    Job::JobResult EvalJob(Topology *top, const Job *job, QMThread *thread);
 
     void    CleanUp();
 
@@ -108,7 +108,7 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 }
 
 
-Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+Job::JobResult EDFT::EvalJob(Topology *top, const Job *job, QMThread *opThread) {
 
     Segment *seg = top->getSegment(job->getId());
     
@@ -205,7 +205,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
         cout << *pLog;
         
-        return Job::JobResult(job);
+        return Job::JobResult();
    }    
    
 }

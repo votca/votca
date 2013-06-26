@@ -38,7 +38,7 @@ public:
     virtual void LoadJobs() { ; }
     virtual void CustomizeLogger(QMThread* thread) { ; }
     virtual void PreProcess(Topology *top) { ; } 
-    virtual rJob EvalJob(Topology *top, pJob job, QMThread *thread) { return rJob(); }
+    virtual rJob EvalJob(Topology *top, const pJob job, QMThread *thread) { return rJob(); }
     virtual void PostProcess(Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }

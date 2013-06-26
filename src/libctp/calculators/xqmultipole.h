@@ -33,7 +33,7 @@ public:
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
     void            PostProcess(Topology *top) { ; }
     
-    XJob            ProcessInputString(Job *, Topology *, QMThread *);
+    XJob            ProcessInputString(const Job *, Topology *, QMThread *);
     
 
 private:
@@ -202,7 +202,7 @@ void XQMP::CustomizeLogger(QMThread *thread) {
 // ========================================================================== //
 
 
-XJob XQMP::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
+XJob XQMP::ProcessInputString(const Job *job, Topology *top, QMThread *thread) {
     
     string input = job->getInput();
     vector<Segment*> qmSegs;
@@ -210,7 +210,7 @@ XJob XQMP::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     vector<string> split;
     Tokenizer toker(input, " \t\n");
     toker.ToVector(split);
-    
+
     for (int i = 0; i < split.size(); ++i) {
                 
         string id_seg_mps = split[i];
@@ -286,11 +286,17 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    Job::JobResult jobRes = Job::JobResult(job);
-    jobRes.setOutput(xjob.getInfoLine());
-    jobRes.setStatus("COMPLETE");
+    Job::JobResult jres = Job::JobResult();
+    jres.setOutput(xjob.getInfoLine());
+    jres.setStatus(Job::COMPLETE);
     
-    return jobRes;
+    if (!inductor.hasConverged()) {
+        jres.setStatus(Job::FAILED);
+        jres.setError(inductor.getError());
+        LOG(logERROR,*log) << inductor.getError() << flush;
+    }
+    
+    return jres;
 }
 
 

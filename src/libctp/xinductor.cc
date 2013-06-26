@@ -1,6 +1,6 @@
 #include <votca/ctp/xinductor.h>
+#include <boost/format.hpp>
 #include <vector>
-
 
 namespace votca { namespace ctp {
 
@@ -250,10 +250,13 @@ int XInductor::Induce(XJob *job) {
         // Break if converged
         if      (converged) { _isConverged = true; break; }
         else if (iter == maxI - 1) {
-            cout << endl << "... ... ... WARNING Induced multipoles for job "
-                 << job->getId() << " did not converge to precision: "
-                 << " AVG dU:U " << avgdU << flush;
-            _isConverged = false; break;
+            _isConverged = false;
+            //this->setError("Did not converge to precision (" 
+            //    + boost::lexical_cast<string>(maxI) + " steps, AVG dU:U " 
+            //    + boost::lexical_cast<string>(avgdU) + ")");
+            this->setError((boost::format("Did not converge to precision "
+               "(%1$d steps, AVG(dU:U) = %2$1.3e)") % maxI % avgdU).str());
+            break;
         }
     }
 

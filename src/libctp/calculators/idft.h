@@ -54,7 +54,7 @@ public:
     
     string  Identify() { return "IDFT"; }
     
-    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
+    Job::JobResult EvalJob(Topology *top, const Job *job, QMThread *Thread);
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
