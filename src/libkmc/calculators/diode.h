@@ -21,6 +21,8 @@
 using namespace std;
 
 namespace votca { namespace kmc {
+    
+#include <votca/kmc/graph.h>
 
 class Diode : public KMCCalculator 
 {
@@ -45,6 +47,7 @@ private:
 
 void Diode::Initialize(const char *filename, Property *options, const char *outputfile )
 {
+    
 }
 
 bool Diode::EvaluateFrame()

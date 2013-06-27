@@ -18,12 +18,24 @@
 #ifndef __VOTCA_KMC_GRAPH_H_
 #define __VOTCA_KMC_GRAPH_H_
 
+#include <votca/kmc/node.h>
+
 namespace votca { namespace kmc {
   
 using namespace std;
 
 class Graph {
-  public:
+ public:
+     // TO IMPLEMENT
+     void LoadFromStateFile(){};
+     // TO IMPLEMENT
+     void CreateLattice(){};
+     
+     vector<Node*> &getNeighbours( Node* node, CarrierType type ) { return node->getNeighbours(type); }
+   
+ private:
+     vector< Node* > nodes;
+     
 };
 
 }} 
