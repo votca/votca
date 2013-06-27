@@ -83,7 +83,7 @@ template<typename JobContainer, typename pJob, typename rJob>
 void WRITE_JOBS(JobContainer &jobs, const string &job_file, string fileformat);
 
 template<typename JobContainer, typename pJob, typename rJob>
-void UPDATE_JOBS(JobContainer &from, JobContainer &to);
+void UPDATE_JOBS(JobContainer &from, JobContainer &to, string thisHost);
     
     
     

@@ -103,7 +103,7 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     LOG(logDEBUG,*(thread->getLogger()))
         << "Update internal structures from job file" << flush;
     JobContainer jobs_ext = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);    
-    UPDATE_JOBS<JobContainer,pJob,rJob>(jobs_ext, _jobs);
+    UPDATE_JOBS<JobContainer,pJob,rJob>(jobs_ext, _jobs, GenerateHost(thread));
     
     JobItVec it;
     for (it = jobs_ext.begin(); it != jobs_ext.end(); ++it) {
@@ -313,14 +313,15 @@ void WRITE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &jobs,
 }
 
 template<typename JobContainer, typename pJob, typename rJob>
-void UPDATE_JOBS(JobContainer &from, JobContainer &to) {
+void UPDATE_JOBS(JobContainer &from, JobContainer &to, string thisHost) {
     
     throw std::runtime_error("UPDATE_JOBS not specialized for this type.");    
     return;
 }
 
 template<>
-void UPDATE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &from, vector<Job*> &to) {
+void UPDATE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &from, 
+        vector<Job*> &to, string thisHost) {
     
     vector<Job*> ::iterator it_int;
     vector<Job*> ::iterator it_ext;
@@ -338,7 +339,8 @@ void UPDATE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &from, vecto
         if (job_int->getId() != job_ext->getId())
             throw runtime_error("Progress file out of sync (::id), abort.");
         
-        job_int->UpdateFrom(job_ext);
+        if (job_ext->getHost() != thisHost)
+            job_int->UpdateFrom(job_ext);
     }
     
     return;
