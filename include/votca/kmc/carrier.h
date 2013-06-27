@@ -18,16 +18,19 @@
 #ifndef __VOTCA_KMC_CARRIER_H_
 #define __VOTCA_KMC_CARRIER_H_
 
-#include <node.h>
 #include <votca/tools/vec.h>
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-
 class Carrier {
 public:
+
+    const CarrierType &getType() const { return _type; }
+    const Node *getNode() const { return _node; }
+    const vec &getDistance() const { return _distance; }
+    
 private:
     CarrierType _type;
     vec _distance;

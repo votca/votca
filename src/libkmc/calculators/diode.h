@@ -23,7 +23,8 @@ using namespace std;
 namespace votca { namespace kmc {
     
 #include <votca/kmc/graph.h>
-
+#include <votca/kmc/carrier.h>
+    
 class Diode : public KMCCalculator 
 {
 public:

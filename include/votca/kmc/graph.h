@@ -31,7 +31,7 @@ class Graph {
      // TO IMPLEMENT
      void CreateLattice(){};
      
-     vector<Node*> &getNeighbours( Node* node, CarrierType type ) { return node->getNeighbours(type); }
+     const vector<Node*> &getNeighbours( Node* node, CarrierType type ) { return node->getNeighbours(type); }
    
  private:
      vector< Node* > nodes;
