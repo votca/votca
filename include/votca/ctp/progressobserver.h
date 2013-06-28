@@ -8,6 +8,7 @@
 #include <votca/tools/property.h>
 #include <votca/ctp/job.h>
 #include <boost/interprocess/sync/file_lock.hpp>
+#include <boost/program_options.hpp>
 
 using namespace std;
 
@@ -30,16 +31,13 @@ public:
     typedef typename JobContainer::iterator JobItCnt;
     typedef typename vector<pJob>::iterator JobItVec;
     
-    ProgObserver(int cacheSize, string stateFile)
-        : _cacheSize(cacheSize), _lockFile(stateFile) { ; }
-    
     ProgObserver()
-        : _cacheSize(-1), _progFile("__NOFILE__"), 
-          _lockFile("__NOFILE__"),    _nextjit(NULL), _metajit(NULL) { ; }
+        : _lockFile("__NOFILE__"), _progFile("__NOFILE__"), _cacheSize(-1),
+          _nextjit(NULL), _metajit(NULL) { ; }
     
    ~ProgObserver() { ; }
     
-    void UseRestartPattern(string restartPattern);
+    void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
     void InitFromProgFile(string progFile, QMThread *master);   
     pJob RequestNextJob(QMThread *thread);
     void ReportJobDone(pJob job, rJob *res, QMThread *thread);

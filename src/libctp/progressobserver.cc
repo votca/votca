@@ -90,8 +90,6 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     // INTERPROCESS FILE LOCKING (THREAD LOCK IN ::RequestNextJob)
     this->LockProgFile(thread);
     
-    int a; cin >> a;
-    
     string progFile = _progFile;
     string progBackFile = _progFile+"~";
     string tabFile = progFile;
@@ -177,15 +175,20 @@ void ProgObserver<JobContainer,pJob,rJob>::ReleaseProgFile(QMThread *thread) {
 
 
 template<typename JobContainer, typename pJob, typename rJob>
-void ProgObserver<JobContainer,pJob,rJob>::UseRestartPattern(string pattern) {
-    // e.g. host(pckr124:1234) stat(FAILED)
+void ProgObserver<JobContainer,pJob,rJob>
+    ::InitCmdLineOpts(const boost::program_options::variables_map &optsMap) {
     
-    boost::algorithm::replace_all(pattern, " ", "");
-    if (pattern == "") _restartMode = false;
+    _lockFile = optsMap["file"].as<string>();
+    _cacheSize = optsMap["cache"].as<int>();
+    string restartPattern = optsMap["restart"].as<string>();
+    
+    // restartPattern = e.g. host(pckr124:1234) stat(FAILED)    
+    boost::algorithm::replace_all(restartPattern, " ", "");
+    if (restartPattern == "") _restartMode = false;
     else _restartMode = true;
     
     vector<string> split;
-    Tokenizer toker(pattern, "(,)");
+    Tokenizer toker(restartPattern, "(,)");
     toker.ToVector(split);
     
     string category = "";
@@ -212,7 +215,14 @@ template<typename JobContainer, typename pJob, typename rJob>
 void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile, 
     QMThread *thread) {
     
-    _progFile = progFile;
+    _progFile = progFile;    
+    
+    LOG(logINFO,*(thread->getLogger()))
+        << "Job file = '" << _progFile << "', ";
+    LOG(logINFO,*(thread->getLogger())) 
+        << "lock file = '" << _lockFile << "', ";
+    LOG(logINFO,*(thread->getLogger())) 
+        << "cache size =  " << _cacheSize << flush;
     
     LOG(logINFO,*(thread->getLogger())) << "Initialize jobs from "
             << progFile << flush;    
@@ -228,7 +238,8 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
     LOG(logINFO,*(thread->getLogger())) << "Registered " << _jobs.size()
          << " jobs." << flush;
     
-    // SUMMARIZE RESTART PATTERNS
+    
+    // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK
     if (_restartMode && _restart_hosts.size()) {        
         string infostr = "Restart if host == ";
         map<string,bool> ::iterator mit;
@@ -245,6 +256,8 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
         }
         LOG(logINFO,*(thread->getLogger())) << infostr << flush;  
     }
+    
+    
     
     // RELEASE PROGRESS FILE
     this->ReleaseProgFile(thread);
@@ -339,7 +352,7 @@ void UPDATE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &from,
         if (job_int->getId() != job_ext->getId())
             throw runtime_error("Progress file out of sync (::id), abort.");
         
-        if (job_ext->getHost() != thisHost)
+        if (job_ext->hasHost() && job_ext->getHost() != thisHost)
             job_int->UpdateFrom(job_ext);
     }
     

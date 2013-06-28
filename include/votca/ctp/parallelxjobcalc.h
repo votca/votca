@@ -29,7 +29,7 @@ public:
 
     class JobOperator;
     
-    ParallelXJobCalc() : _xjobfile("__NOFILE__") {};
+    ParallelXJobCalc() : _jobfile("__NOFILE__") {};
    ~ParallelXJobCalc() { ; };
 
     string       Identify() { return "Parallel XJob Calculator"; }
@@ -83,7 +83,7 @@ protected:
     Mutex                    _coutMutex;
     Mutex                    _logMutex;
     bool                     _maverick;
-    string                   _xjobfile;
+    string                   _jobfile;
     int                      _subthreads;
     
     // ProgObserver< JobContainer, pJob > *_progObs;

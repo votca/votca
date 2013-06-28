@@ -25,6 +25,7 @@
 #include <map>
 #include "qmdatabase.h"
 #include "topology.h"
+#include <boost/interprocess/sync/file_lock.hpp>
 
 namespace votca { namespace ctp {
 
@@ -62,6 +63,9 @@ public:
     Topology *getTopology() { return _qmtop; }
     bool HasTopology(Topology *top);
     
+    void LockStateFile();
+    void UnlockStateFile();
+    
 private:
     Topology       *_qmtop;
     QMDatabase      _db;
@@ -73,6 +77,8 @@ private:
 
     string          _sqlfile;
     bool            _was_read;
+    
+    boost::interprocess::file_lock *_flock;
 };
 
 }}

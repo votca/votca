@@ -50,7 +50,10 @@ void QMApplication::Initialize(void) {
     AddProgramOptions() ("save,s", propt::value<int>()->default_value(1),
         "  whether or not to save changes to state file");
     AddProgramOptions() ("restart,r", propt::value<string>()->default_value(""),
-        "  parallelized runs: restart jobs, as in '-r host(mach1:1234,mach2:5678) stat(FAILED)'");
+        "  parallelized job execution: job restart pattern; "
+            "e.g. '-r host(mach1:1234,mach2:5678) stat(FAILED)'");
+    AddProgramOptions() ("cache,c", propt::value<int>()->default_value(8),
+        "  parallelized job execution: job cache size");
 }
 
 
@@ -76,13 +79,11 @@ void QMApplication::Run() {
     // STATESAVER & PROGRESS OBSERVER
     string statefile = OptionsMap()["file"].as<string>();
     StateSaverSQLite statsav;
-    statsav.Open(_top, statefile);
-    
-    string restartArg = OptionsMap()["restart"].as<string>();
-    int cacheSize = nThreads;
+    statsav.Open(_top, statefile);    
+
     ProgObserver< vector<Job*>, Job*, Job::JobResult > progObs
-        = ProgObserver< vector<Job*>, Job*, Job::JobResult >(cacheSize, statefile);
-    progObs.UseRestartPattern(restartArg);
+        = ProgObserver< vector<Job*>, Job*, Job::JobResult >();
+    progObs.InitCmdLineOpts(OptionsMap());
     
     // INITIALIZE & RUN CALCULATORS
     cout << "Initializing calculators " << endl;

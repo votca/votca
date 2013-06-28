@@ -7,11 +7,7 @@ namespace votca { namespace ctp {
     
 template<typename JobContainer, typename pJob, typename rJob> 
 bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {    
-
-    // CREATE XJOBS & PROGRESS OBSERVER (_XJOBFILE INIT. IN CHILD)
-//    _XJobs = XJOBS_FROM_TABLE<JobContainer,pJob>(_xjobfile, top); 
-    cout << endl << "... ... Registered " << _XJobs.size() << " jobs " << flush;
-    
+   
     // RIGIDIFY TOPOLOGY (=> LOCAL FRAMES)
     if (!top->isRigid()) {
         bool isRigid = top->Rigidify();
@@ -29,23 +25,18 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
              << "NT = " << _nThreads << ", NST = " << _subthreads
              << flush;
     }
-    
-    // >>>>>>>>>>>>>>>>>>
+
     // INITIALIZE PROGRESS OBSERVER
-    string progFile = _xjobfile;
-    assert(_xjobfile != "__NOFILE__");
-    
-    JobOperator* master = new JobOperator(-1, top, this);
-    
+    string progFile = _jobfile;
+    assert(_jobfile != "__NOFILE__");    
+    JobOperator* master = new JobOperator(-1, top, this);    
     master->getLogger()->setReportLevel(logDEBUG);
     master->getLogger()->setMultithreading(true);
     master->getLogger()->setPreface(logINFO,    "\nMST INF");
     master->getLogger()->setPreface(logERROR,   "\nMST ERR");
     master->getLogger()->setPreface(logWARNING, "\nMST WAR");
-    master->getLogger()->setPreface(logDEBUG,   "\nMST DBG");
-    
+    master->getLogger()->setPreface(logDEBUG,   "\nMST DBG");    
     _progObs->InitFromProgFile(progFile, master);
-    // <<<<<<<<<<<<<<<<<<<
 
     // PRE-PROCESS (OVERWRITTEN IN CHILD OBJECT)
     this->PreProcess(top);

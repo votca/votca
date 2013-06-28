@@ -101,10 +101,10 @@ void XQMP::Initialize(Topology *top, Property *opt) {
     key = "options.xqmultipole.control";
 
         if ( opt->exists(key+".job_file")) {
-            _xjobfile = opt->get(key+".job_file").as<string>();
+            _jobfile = opt->get(key+".job_file").as<string>();
         }
         else {
-            throw std::runtime_error("XJob-file not set. Abort.");
+            throw std::runtime_error("Job-file not set. Abort.");
         }
 
         if ( opt->exists(key+".emp_file")) {
