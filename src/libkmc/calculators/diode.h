@@ -24,6 +24,7 @@ namespace votca { namespace kmc {
     
 #include <votca/kmc/graph.h>
 #include <votca/kmc/carrier.h>
+#include <votca/kmc/state.h>
     
 class Diode : public KMCCalculator 
 {

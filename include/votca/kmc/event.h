@@ -15,31 +15,45 @@
  *
  */
 
-#ifndef __VOTCA_KMC_NODE_H_
-#define __VOTCA_KMC_NODE_H_
-
-#include <votca/tools/vec.h>
+#ifndef __VOTCA_KMC_EVENT_H_
+#define __VOTCA_KMC_EVENT_H_
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-enum CarrierType{ Electron, Hole, Exciton };
+enum EventType { Injection, Collection, Transfer, Recombination, Dissociation, ExcitonFormation };
 
-class Node {
-    public:
-        const int &getID() const { return _id; }
-        const string &getType() const { return _type; }
-        const vec &getPosition() const { return _position; }
-        const vector<Node*> &getNeighbours(CarrierType type){ return _neighbours[type]; }
-        const double &getOccupation( CarrierType type ) const { return _occupation[type]; }
-    private:
-        int _id;
-        const string _type;
-        vec _position;
-        vector< vector<Node*> > _neighbours;
-        vector<double> _occupation;
+
+class Event {
+    
+public:
+    
+    Event(EventType type, Carrier *carrier1, Carrier *carrier2) : _type(type), _carrier1(carrier1), _carrier2(carrier2) { ; }
+    
+    virtual void OnExecute() { ; }
+    const double &getRate() const { return _rate; }
+    
+    
+private:
+    
+    EventType _type;
+    double _rate;
+    Carrier *_carrier1;
+    Carrier *_carrier2;   
+
+    
 };
+
+class Recombination : Event {
+public:
+    
+    void OnExecute() { ; }
+    // TODO updating the state
+    
+private:    
+};
+
 
 }} 
 

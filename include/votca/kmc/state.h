@@ -15,44 +15,18 @@
  *
  */
 
-#ifndef __VOTCA_KMC_EVENT_H_
-#define __VOTCA_KMC_EVENT_H_
+#ifndef __VOTCA_KMC_STATE_H_
+#define __VOTCA_KMC_STATE_H_
+
+#include <votca/kmc/event.h>
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-
-enum EventType { Injection, Collection, Transfer, Recombination, Dissociation, ExcitonFormation }
-
-
-class Event {
-    
-public:
-    
-    Event(EventType type, Carrier *carrier1, Carrier *carrier2) : _type(type), _carrier1(carrier1), _carrier2(carrier2) { ; }
-    
-    virtual void OnExecute() { ; }
-    const double &getRate() const { return _rate; }
-    
-    
+class State {
 private:
-    
-    EventType type;
-    double _rate:
-    Carrier *_carrier1;
-    Carrier *_carrier2;   
-
-    
-};
-
-class Recombination : Event {
-public:
-    
-    void OnExecute() { ; }
-    // TODO updating the state
-    
-private:    
+    list<Event*> _events;
 };
 
 
