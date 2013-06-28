@@ -31,7 +31,7 @@ public:
     
     Event(EventType type, Carrier *carrier1, Carrier *carrier2) : _type(type), _carrier1(carrier1), _carrier2(carrier2) { ; }
     
-    virtual void OnExecute() { ; }
+    virtual void onExecute() { ; }
     const double &getRate() const { return _rate; }
     
     

@@ -27,6 +27,7 @@ using namespace std;
 class State {
 private:
     list<Event*> _events;
+    list<Carrier*> _carriers;
 };
 
 
