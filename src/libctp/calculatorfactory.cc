@@ -47,6 +47,7 @@
 #include "calculators/qmultipole.h"
 #include "calculators/xqmultipole.h"
 #include "calculators/qmmm.h"
+#include "calculators/jobwriter.h"
 
 
 
@@ -81,6 +82,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<QMultipole>      ("qmultipole");
         Calculators().Register<XQMP>            ("xqmultipole");
         Calculators().Register<QMMM>            ("qmmm");
+        Calculators().Register<JobWriter>       ("jobwriter");
 }
 
 }}

@@ -45,6 +45,18 @@ Job::Job(Property *prop)
 }
 
 
+Job::Job(int id, string &tag, string &input, string &status)
+  : _has_host(false), _has_time(false), _has_error(false),
+    _has_output(false), _has_sqlcmd(false) {
+    
+    _id = id;
+    _tag = tag;
+    _input = input;
+    _status = ConvertStatus(status);
+    _attemptsCount = 0;    
+}
+
+
 string Job::ConvertStatus(JobStatus status) const {
     
     string converted;

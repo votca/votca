@@ -231,7 +231,15 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
     // LOCK, READ INTO XML
     this->LockProgFile(thread);  
     
-    // TODO Delete jobs here before loading new
+    // ... Clear container
+    JobItCnt it;
+    for (it = _jobs.begin(); it != _jobs.end(); ++it) {
+        pJob job = *it;
+        delete job;
+    }
+    _jobs.clear();
+
+    // ... Load new
     _jobs = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);
     _metajit = _jobs.begin();
     WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile+"~", "xml");
@@ -239,7 +247,7 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
          << " jobs." << flush;
     
     
-    // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK
+    // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK FILE
     if (_restartMode && _restart_hosts.size()) {        
         string infostr = "Restart if host == ";
         map<string,bool> ::iterator mit;
@@ -255,8 +263,7 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
             infostr += mit->first + " ";
         }
         LOG(logINFO,*(thread->getLogger())) << infostr << flush;  
-    }
-    
+    }   
     
     
     // RELEASE PROGRESS FILE

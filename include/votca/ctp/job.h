@@ -28,9 +28,9 @@ public:
     };
     
 
-    
-    Job(Property *prop);            
-   ~Job() {;}   
+    Job(Property *prop);
+    Job(int id, string &tag, string &input, string &stat);
+   ~Job() {;}
     
     string    ConvertStatus(JobStatus) const;
     JobStatus ConvertStatus(string) const;
