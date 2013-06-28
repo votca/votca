@@ -43,7 +43,7 @@ void QMApplication::Initialize(void) {
         "  sqlight state file, *.sql");
     AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
         "  start from this frame");
-    AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(-1),
+    AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(1),
         "  number of frames to process");
     AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
         "  number of threads to create");
@@ -89,12 +89,22 @@ void QMApplication::Run() {
     cout << "Initializing calculators " << endl;
     BeginEvaluate(nThreads, &progObs);
 
-    while (statsav.NextFrame()) {
+    int frameId = -1;
+    int framesDone = 0;
+    while (statsav.NextFrame() && framesDone < nframes) {
+        frameId += 1;
+        if (frameId < fframe) continue;
         cout << "Evaluating frame " << _top.getDatabaseId() << endl;
         EvaluateFrame();
         if (save == 1) { statsav.WriteFrame(); }
         else { cout << "Changes have not been written to state file." << endl; }
+        framesDone += 1;
     }
+    
+    if (framesDone == 0)
+        cout << "Input requires first frame = " << fframe+1 << ", # frames = " 
+             << nframes << " => No frames processed.";
+    
     statsav.Close();
     EndEvaluate();
 
