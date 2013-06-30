@@ -19,17 +19,26 @@
 #define __VOTCA_KMC_STATE_H_
 
 #include <votca/kmc/event.h>
+#include <votca/kmc/carrier.h>
+#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-class State {
-private:
-    list<Event*> _events;
-    list<Carrier*> _carriers;
-};
 
+class State {
+public:
+    
+    void Save(){ ; }
+    void Load(){ ; }
+    
+private:
+    
+    list<Carrier*> _carriers;  
+
+    
+};
 
 
 

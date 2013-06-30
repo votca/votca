@@ -45,7 +45,7 @@ private:
     
 };
 
-class Recombination : Event {
+class ElectronTransfer : Event {
 public:
     
     void OnExecute() { ; }

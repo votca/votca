@@ -27,7 +27,7 @@ using namespace std;
 class Graph {
  public:
      // TO IMPLEMENT
-     void LoadFromStateFile(){};
+     void Load(){};
      // TO IMPLEMENT
      void CreateLattice(){};
      

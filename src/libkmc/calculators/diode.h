@@ -25,6 +25,7 @@ namespace votca { namespace kmc {
 #include <votca/kmc/graph.h>
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/state.h>
+#include <votca/kmc/event.h>
     
 class Diode : public KMCCalculator 
 {
@@ -34,7 +35,9 @@ public:
 
   void Initialize(const char *filename, Property *options, const char *outputfile );
   bool EvaluateFrame();
-
+  
+  void RunKMC(void);
+            
 protected:
             
 private:
@@ -54,6 +57,17 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 
 bool Diode::EvaluateFrame()
 {
+}
+
+void Diode::RunKMC() {
+    
+    // create 
+    Graph _graph;
+    _graph.Load();
+    
+    State _state();
+    _state.Load();
+
 }
 
 }}
