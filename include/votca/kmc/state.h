@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,34 @@
  *
  */
 
-#ifndef __VOTCA_KMC_CALCULATOR_H
-#define	__VOTCA_KMC_CALCULATOR_H
+#ifndef __VOTCA_KMC_STATE_H_
+#define __VOTCA_KMC_STATE_H_
 
-#include <votca/tools/property.h>
+#include <votca/kmc/event.h>
+#include <votca/kmc/carrier.h>
+#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
+  
+using namespace std;
 
-    using namespace tools;
 
-class KMCCalculator
-{
+class State {
 public:
     
-    KMCCalculator() {};
-    virtual     ~KMCCalculator() {};
+    void Save(){ ; }
+    void Load(){ ; }
     
-    virtual void Initialize(const char *filename, Property *options, const char *outputfile) {}
-    virtual bool EvaluateFrame() { return true; }
-    virtual void EndEvaluate() {}    
+private:
     
-    void         setnThreads(int nThreads) { _nThreads = nThreads; }
+    list<Carrier*> _carriers;  
+
     
-protected:
-    
-    int _nThreads;
 };
 
-}}
 
-#endif	/* __VOTCA_KMC_CALCULATOR_H */
+
+}} 
+
+#endif
 
