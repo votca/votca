@@ -47,13 +47,16 @@ private:
   static const double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
   static const double epsr = 3.0; // relative material permittivity
   static const double Pi   = 3.14159265358979323846;
+  
+    // create 
+    Graph _graph;  
 
 };
 
 
 void Diode::Initialize(const char *filename, Property *options, const char *outputfile )
 {
-    
+    _graph.Load();
 }
 
 bool Diode::EvaluateFrame()
@@ -64,9 +67,8 @@ bool Diode::EvaluateFrame()
 void Diode::RunKMC() {
     
     cout << "I am in Run KMC\n" ;
-    // create 
-    Graph _graph;
-    _graph.Load();
+
+
     
     State _state;
     _state.Load();
