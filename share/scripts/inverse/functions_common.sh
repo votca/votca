@@ -519,8 +519,8 @@ csg_calc() { #simple calculator, a + b, ...
   [[ -n "$(type -p awk)" ]] || die "csg_calc: Could not find awk"
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
-    "+"|"-"|'*'|"/"|"**")
-      res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
+    "+"|"-"|'*'|"/"|"^")
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
        true;;
     '>'|'<' )
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
@@ -531,7 +531,7 @@ csg_calc() { #simple calculator, a + b, ...
        true;;
     "="|"==")
        #we expect that x and y are close together
-       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( sqrt(((x-y)/x)**2) < $err )}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( sqrt(((x-y)/x)**2) < $err )}' failed"
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( sqrt(((x-y)/x)^2) < $err )}")" || die "csg_calc: awk -v x='$1' -v y='$3' 'BEGIN{print ( sqrt(((x-y)/x)^2) < $err )}' failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
        #return value matters

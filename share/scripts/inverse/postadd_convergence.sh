@@ -71,7 +71,7 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   critical paste $tmp1 $tmp3 > $tmp4
   critical awk '{if ($4!=$1){print "x column differs in line",NR;exit 1;}}' $tmp4
   echo "Calc convergence for ${name} with weight $weight"
-  critical awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)**2;}END{print dist,sqrt(sum*bin*w);}' $tmp4 >> $tmp
+  critical awk -v bin=$step -v w=$weight -v dist=$dist '{sum+=($5-$2)^2;}END{print dist,sqrt(sum*bin*w);}' $tmp4 >> $tmp
 done
 
 critical awk '{sum+=$2;}END{print sum;}' $tmp > ${name}.conv
