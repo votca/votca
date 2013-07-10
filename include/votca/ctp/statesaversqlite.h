@@ -37,7 +37,7 @@ public:
     StateSaverSQLite() { };
    ~StateSaverSQLite() { _db.Close(); }
 
-    void Open(Topology &qmtop, const string &file);
+    void Open(Topology &qmtop, const string &file, bool lock = true);
     void Close() { _db.Close(); }
     bool NextFrame();
 

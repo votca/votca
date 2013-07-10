@@ -23,9 +23,9 @@
 
 namespace votca { namespace ctp {
 
-void StateSaverSQLite::Open(Topology& qmtop, const string &file) {
+void StateSaverSQLite::Open(Topology& qmtop, const string &file, bool lock) {
     _sqlfile = file;
-    this->LockStateFile();
+    if (lock) this->LockStateFile();
     _db.OpenHelper(file.c_str());
     
     _qmtop = &qmtop;
@@ -43,7 +43,7 @@ void StateSaverSQLite::Open(Topology& qmtop, const string &file) {
         _topIds.push_back(stmt->Column<int>(1));
     }
     delete stmt;
-    this->UnlockStateFile();
+    if (lock) this->UnlockStateFile();
     return;    
 }
 

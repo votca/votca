@@ -83,7 +83,7 @@ void CtpMap::Run() {
     // +++++++++++++++++++++++++++++++++++++ //
 
     _outdb = _op_vm["file"].as<string> ();
-    _statsav.Open(_qmtopol, _outdb);
+    _statsav.Open(_qmtopol, _outdb, false);
     _statsav.FramesInDatabase();
     _statsav.Close();
 

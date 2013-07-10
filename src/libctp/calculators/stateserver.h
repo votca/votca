@@ -185,12 +185,12 @@ bool StateServer::EvaluateFrame(Topology *top) {
                 fclose(out_xqm);
         }
 
-        else if (*key == "emp") {
+        else if (*key == "mps") {
 
-                cout << "EMP input, ";
+                cout << "MPS input, ";
 
                 FILE *out_emp;
-                string emp_file = "emp.table";
+                string emp_file = "mps.tab";
                 out_emp = fopen(emp_file.c_str(), "w");
 
                 WriteEMP(out_emp, top);
@@ -372,12 +372,12 @@ void StateServer::WriteEMP(FILE *out, Topology *top) {
     vector< Segment* > ::iterator sit;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {        
 
-        fprintf(out, "%4d %5s %-30s %-30s %-30s \n",
+        fprintf(out, "%4d %15s %-30s %-30s %-30s \n",
                      (*sit)->getId(),
                      (*sit)->getName().c_str(),
-                     ((*sit)->getName()+"_n.mps").c_str(),
-                     ((*sit)->getName()+"_e.mps").c_str(),
-                     ((*sit)->getName()+"_h.mps").c_str());
+                     ("MP_FILES/"+(*sit)->getName()+"_n.mps").c_str(),
+                     ("MP_FILES/"+(*sit)->getName()+"_e.mps").c_str(),
+                     ("MP_FILES/"+(*sit)->getName()+"_h.mps").c_str());
     }
 }
 

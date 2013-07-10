@@ -868,17 +868,17 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
 }
 
 
-vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile) {
+vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile, QMThread *thread) {
     _lockThread.Lock();
     if (!_mpsFile_pSites_job.count(mpsfile)) {
-        _mpsFile_pSites_job[mpsfile] = APS_FROM_MPS(mpsfile, 0);
+        _mpsFile_pSites_job[mpsfile] = APS_FROM_MPS(mpsfile, 0, thread);
     }
     _lockThread.Unlock();
     return _mpsFile_pSites_job[mpsfile];
 }
 
 
-void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
+void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, QMThread *thread) {
     // Generates QM MM1 MM2, centered around job->Center().
     // 'NEW' instances of polar sites are not registered in the topology.
     // Stores the resulting 'polar topology' with the XJob class.    
@@ -927,7 +927,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
     for (int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
         vector<APolarSite*> psites_raw 
-                = this->GetOrCreateRawSites(job->getSegMps()[i]);
+                = this->GetOrCreateRawSites(job->getSegMps()[i],thread);
         vector<APolarSite*> psites_mapped
                 = this->MapPolSitesToSeg(psites_raw, seg);        
         qm0.push_back(new PolarSeg(seg->getId(), psites_mapped));        
@@ -965,5 +965,6 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
     job->setPolarTop(new_ptop);
     
 }
+
 
 }}

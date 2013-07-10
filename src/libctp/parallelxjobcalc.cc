@@ -57,6 +57,8 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
         jobOps[id]->InitData(top);
     }
 
+    if (!_maverick) cout << endl; // REQUIRED FOR PROGRESS BAR IN OBSERVER
+    
     for (int id = 0; id < _nThreads; id++) {
         jobOps[id]->Start();
     }

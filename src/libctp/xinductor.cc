@@ -69,7 +69,7 @@ void XInductor::Evaluate(XJob *job) {
     }
     
     this->InitChunks();
-
+    
     // ++++++++++++++++++++++++++ //
     // Compute state energy       //
     // ++++++++++++++++++++++++++ //

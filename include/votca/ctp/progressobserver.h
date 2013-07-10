@@ -68,6 +68,7 @@ private:
     map<string,bool> _restart_hosts;
     map<string,bool> _restart_stats;
     bool _restartMode;
+    int _jobsReported;
     
 };
 

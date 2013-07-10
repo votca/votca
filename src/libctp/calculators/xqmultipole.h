@@ -253,7 +253,7 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     double co1 = _cutoff1;
     double co2 = _cutoff2;    
     
-    _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2);
+    _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2, thread);
     
     LOG(logINFO,*log)
          << xjob.getPolarTop()->ShellInfoStr() << flush;

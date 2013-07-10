@@ -54,6 +54,7 @@ namespace votca { namespace ctp {
 
         int  getId() { return _id; }
         void setId(int id) { _id = id; }
+        bool isMaverick() { return _maverick; }
        
         Logger* getLogger() { return &_logger; }
        

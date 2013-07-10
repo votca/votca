@@ -47,6 +47,17 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
             << "Next job: ID = " << jobToProc->getId() << flush;
     }
     
+    if (!thread->isMaverick() && jobToProc != NULL) {
+        int idx = jobToProc->getId();        
+        int frac = (_jobs.size() >= 10) ? 10 : _jobs.size();
+        int rounded = int(double(_jobs.size())/frac)*frac;
+        int tenth = rounded / frac;        
+        if (idx % tenth == 0) {
+            double percent = double(idx-1) / rounded * 100 + 0.5;
+            cout << (format("=> [%1$2.0f%%] ") % percent).str() << flush;
+        }
+    }
+    
     _lockThread.Unlock();
     return jobToProc;
 }
@@ -60,7 +71,9 @@ void ProgObserver<JobContainer,pJob,rJob>::ReportJobDone(pJob job, rJob *res, QM
     // RESULTS, TIME, HOST
     job->SaveResults(res);    
     job->setTime(GenerateTime());
-    job->setHost(GenerateHost(thread));
+    job->setHost(GenerateHost(thread));    
+    // PRINT PROGRESS BAR
+    _jobsReported += 1;
     _lockThread.Unlock();
     return;
 }
@@ -199,8 +212,8 @@ void ProgObserver<JobContainer,pJob,rJob>
         else if (category == "host") _restart_hosts[split[i]] = true;
         else if (category == "stat") {
             if (split[i] == "ASSIGNED" || split[i] == "COMPLETE") 
-                throw runtime_error("Restart if status == " 
-                    + split[i] + "? Not a good idea.");
+                cout << "Restart if status == " << split[i] 
+                    << "? Not necessarily a good idea." << endl;
             _restart_stats[split[i]] = true;
         }
         
@@ -215,7 +228,8 @@ template<typename JobContainer, typename pJob, typename rJob>
 void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile, 
     QMThread *thread) {
     
-    _progFile = progFile;    
+    _progFile = progFile;
+    _jobsReported = 0;
     
     LOG(logINFO,*(thread->getLogger()))
         << "Job file = '" << _progFile << "', ";

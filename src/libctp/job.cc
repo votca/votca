@@ -17,8 +17,12 @@ Job::Job(Property *prop)
     _id = prop->get("id").as<int>();
     _tag = prop->get("tag").as<string>();
     _input = prop->get("input").as<string>();
-    _status = ConvertStatus(prop->get("status").as<string>());
     _attemptsCount = 0;
+    
+    if (prop->exists("status"))
+        _status = ConvertStatus(prop->get("status").as<string>());
+    else 
+        _status = AVAILABLE;
     
     if (prop->exists("sqlcmd")) {
         _sqlcmd = prop->get("sqlcmd").as<string>();
