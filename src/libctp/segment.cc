@@ -405,7 +405,7 @@ void Segment::WriteXYZ(FILE *out, bool useQMPos) {
 
     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
-        if ((*ait)->HasQMPart() == false) { continue; }
+        if ((*ait)->HasQMPart() == false && useQMPos) { continue; }
 
         vec     pos = (*ait)->getQMPos();
         if (!useQMPos) pos = (*ait)->getPos();

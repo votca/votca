@@ -4,7 +4,7 @@
 
 namespace votca { namespace ctp {
 
-PolarTop::~PolarTop() {       
+PolarTop::~PolarTop() {
     vector<PolarSeg*> ::iterator psit;
     for (psit = _qm0.begin(); psit < _qm0.end(); ++psit) {          
       delete *psit;          
@@ -16,7 +16,7 @@ PolarTop::~PolarTop() {
       delete *psit;
     }
 
-    _qm0.clear(); _mm1.clear(); _mm2.clear();      
+    _qm0.clear(); _mm1.clear(); _mm2.clear();
 }
 
 

@@ -23,8 +23,8 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
 
 
 
-XJob::~XJob() {    
-    delete _ptop;    
+XJob::~XJob() {
+    delete _ptop;
 }
 
 
@@ -115,7 +115,7 @@ void XJob::setInfoLine(bool printMM, bool printQM) {
 
     // Job ID & tag
     string str0 = ( format("%1$5d %2$-10s ") 
-        % _userId % _tag ).str();
+        % _id % _tag ).str();
     
     // Shell sizes & iterations
     string str1 = ( format("|QM0| %1$3d |MM1| %2$3d |MM2| %3$3d IT %4$2d ") 
@@ -199,6 +199,7 @@ vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, T
 // Sample line
 // # JOB_ID TAG    SEG1_ID SEG1_NAME SEG1_MPS SEG2_ID SEG2_NAME SEG2_MPS
 //   1      E_CT   182:C60:MP_FILES/c60.mps   392:DCV:MP_FILES/dcv.mps
+//   1  AVAILABLE E_CT 182:C60:MP_FILES/c60.mps 392:DCV:MP_FILES/dcv.mps
 
             int jobUserId   = boost::lexical_cast<int>(split[0]);
             string tag      = split[1];

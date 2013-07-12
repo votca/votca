@@ -43,7 +43,7 @@ namespace votca { namespace ctp {
 * Callname: idft
 */
 
-class IDFT : public ParallelXJobCalc< QMNBList, QMPair* >
+class IDFT : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 public:
 
@@ -54,7 +54,7 @@ public:
     
     string  Identify() { return "IDFT"; }
     
-    void EvalJob(Topology *top, QMPair *qmpair, QMThread *Thread);
+    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);

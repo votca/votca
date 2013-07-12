@@ -23,9 +23,9 @@
 
 namespace votca { namespace ctp {
 
-void StateSaverSQLite::Open(Topology& qmtop, const string &file) {
-
+void StateSaverSQLite::Open(Topology& qmtop, const string &file, bool lock) {
     _sqlfile = file;
+    if (lock) this->LockStateFile();
     _db.OpenHelper(file.c_str());
     
     _qmtop = &qmtop;
@@ -43,13 +43,14 @@ void StateSaverSQLite::Open(Topology& qmtop, const string &file) {
         _topIds.push_back(stmt->Column<int>(1));
     }
     delete stmt;
-    
+    if (lock) this->UnlockStateFile();
+    return;    
 }
 
 
 
 void StateSaverSQLite::WriteFrame() {
-
+    this->LockStateFile();
     bool hasAlready = this->HasTopology(_qmtop);
 
     if ( ! hasAlready ) {
@@ -83,6 +84,8 @@ void StateSaverSQLite::WriteFrame() {
     _db.EndTransaction();
 
     cout << ". " << endl;
+    this->UnlockStateFile();
+    return;
 }
 
 
@@ -530,18 +533,17 @@ void StateSaverSQLite::WritePairs(bool update) {
 
 
 bool StateSaverSQLite::NextFrame() {
-
+    this->LockStateFile();
+    bool hasNextFrame = false;
     _current_frame++;
 
-    if(_current_frame >= _frames.size()) {
-        return false;
-    }
-    else {
+    if(_current_frame < _frames.size()) {
         this->ReadFrame();
         _was_read=true;
-        return true;
+        hasNextFrame = true;
     }
-
+    this->UnlockStateFile();
+    return hasNextFrame;
 }
 
 
@@ -901,5 +903,20 @@ int StateSaverSQLite::FramesInDatabase() {
          << " frames stored in database. \n";
     return _frames.size();
 }
+
+
+void StateSaverSQLite::LockStateFile() {    
+    _flock = new boost::interprocess::file_lock(_sqlfile.c_str());
+    _flock->lock();
+    return;
+}
+
+
+void StateSaverSQLite::UnlockStateFile() {
+    _flock->unlock();
+    delete _flock;
+    return;
+}
+
 
 }}

@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
+#include <c++/4.7/istream>
 
 using namespace std;
 
@@ -221,7 +222,7 @@ bool Gaussian::WriteShellScript() {
 }
 
 /**
- * Runs the Gaussian job
+ * Runs the Gaussian job. Returns 
  */
 bool Gaussian::Run()
 {
@@ -240,13 +241,15 @@ bool Gaussian::Run()
         }
         
         int i = system ( _command.c_str() );
+        LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << endl;
+        return true;
     }
     else {
-        cerr << "The job " << _com_file_name << " failed to complete" << endl; 
-        exit (EXIT_FAILURE);
+        LOG(logERROR,*_pLog) << _com_file_name << " failed to start" << endl; 
+        return false;
     }
     
-    LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << endl;
+
 
 
 }
@@ -254,7 +257,7 @@ bool Gaussian::Run()
 /**
  * Cleans up after the Gaussian job
  */
-void Gaussian::CleanUp( string ID ) {
+void Gaussian::CleanUp() {
     
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
@@ -263,12 +266,28 @@ void Gaussian::CleanUp( string ID ) {
         tok_cleanup.ToVector(_cleanup_info);
         
         vector<string> ::iterator it;
-        
+               
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
-            if ( *it == "xyz" || *it == "com" || *it == "log" ) { 
-                string file_name = _run_dir + "/mol_" + ID + "." + *it;
+            if ( *it == "com" ) {
+                string file_name = _run_dir + "/" + _com_file_name;
                 remove ( file_name.c_str() );
             }
+            
+            if ( *it == "sh" ) {
+                string file_name = _run_dir + "/" + _shell_file_name;
+                remove ( file_name.c_str() );
+            }
+            
+            if ( *it == "log" ) {
+                string file_name = _run_dir + "/" + _log_file_name;
+                remove ( file_name.c_str() );
+            }
+
+           if ( *it == "chk" ) {
+                string file_name = _run_dir + "/" + _chk_file_name;
+                remove ( file_name.c_str() );
+            }
+            
             if ( *it == "fort.7" ) {
                 string file_name = _run_dir + "/" + *it;
                 remove ( file_name.c_str() );
@@ -294,9 +313,10 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     unsigned _basis_size = 0;
 
     std::ifstream _input_file( _orb_file_name.c_str() );
+    
     if (_input_file.fail()) {
-        cerr << endl << "File " << _orb_file_name << " with molecular orbitals is not found " << endl;
-        return 1;
+        LOG( logERROR, *_pLog ) << "File " << _orb_file_name << " with molecular orbitals is not found " << endl;
+        return false;
     } else {
         LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << endl;
     }
@@ -395,7 +415,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
      
    LOG(logDEBUG, *_pLog) << "Finished reading MOs from " << _orb_file_name << endl;
 
-   return 0;
+   return true;
 }
 
 
@@ -424,12 +444,38 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << endl;
 
+    // check if the log file exists
     ifstream _input_file(_log_file_name.c_str());
     if (_input_file.fail()) {
-        throw std::runtime_error("LOG file is not found.");
-        return 1;
+        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is not found" << endl;
+        return false;
     };
 
+    // Check if it is a normal termination of GAUSSIAN
+    int _LL_BUFFSIZE_ = 2048;
+    char  buff[_LL_BUFFSIZE_]; 
+
+    _line.clear();
+    _input_file.seekg(0, ios_base::end);
+    int length = _input_file.tellg();
+    _input_file.seekg(length-min(length,_LL_BUFFSIZE_),ios::beg); // seek back from end a short ways
+    // read in each line of the file until we're done
+    buff[0]=0;
+
+    do {
+        //if (!isspace(buff[0]) && buff[0] != 0)
+        _line = buff;
+    } while (_input_file.getline(buff, _LL_BUFFSIZE_));
+    
+    std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
+    if (self_energy_pos == std::string::npos) {
+        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is incomplete" << endl;
+        return false;      
+    } else {
+        _input_file.seekg(std::ios::beg);
+    }
+    
+    // Start parsing the file line by line
     while (_input_file) {
 
         getline(_input_file, _line);
@@ -717,7 +763,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
 
         }
         
-        // check if all information has been accumulated
+        // check if all information has been accumulated and quit 
         if ( _has_number_of_electrons && 
              _has_basis_set_size && 
              _has_occupied_levels && 
@@ -728,8 +774,9 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
            ) break;
         
     } // end of reading the file line-by-line
+   
     LOG(logDEBUG,*_pLog) << "Done parsing " << _log_file_name << endl;
-
+    return true;
 }
 
 string Gaussian::FortranFormat( const double &number ) {

@@ -54,7 +54,7 @@ public:
    
    bool WriteShellScript();
    bool Run();
-   void CleanUp( string ID );
+   void CleanUp();
    
    bool ParseLogFile( Orbitals* _orbitals );
    bool ParseOrbitalsFile( Orbitals* _orbitals );

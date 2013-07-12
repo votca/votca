@@ -17,7 +17,7 @@ using boost::format;
 namespace votca { namespace ctp {
 
     
-class XQMP : public ParallelXJobCalc< vector<XJob*>, XJob* >
+class XQMP : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 
 public:
@@ -30,8 +30,10 @@ public:
 
     void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
-    void            EvalJob(Topology *top, XJob *job, QMThread *thread);
-    void            PostProcess(Topology *top);
+    Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
+    void            PostProcess(Topology *top) { ; }
+    
+    XJob            ProcessInputString(const Job *, Topology *, QMThread *);
     
 
 private:
@@ -48,7 +50,7 @@ private:
     XMpsMap                        _mps_mapper;
     
     // Control over induction-state output
-    string                          _pdb_check;
+    bool                            _pdb_check;
     bool                            _write_chk;
     string                          _write_chk_suffix;
     bool                            _chk_split_dpl;
@@ -70,9 +72,6 @@ private:
     double                          _cutoff1;
     double                          _cutoff2;
 
-    // XJob logbook (file output)
-    string                          _outFile;
-    bool                            _energies2File;
 
 
 };
@@ -102,10 +101,10 @@ void XQMP::Initialize(Topology *top, Property *opt) {
     key = "options.xqmultipole.control";
 
         if ( opt->exists(key+".job_file")) {
-            _xjobfile = opt->get(key+".job_file").as<string>();
+            _jobfile = opt->get(key+".job_file").as<string>();
         }
         else {
-            throw std::runtime_error("XJob-file not set. Abort.");
+            throw std::runtime_error("Job-file not set. Abort.");
         }
 
         if ( opt->exists(key+".emp_file")) {
@@ -115,16 +114,10 @@ void XQMP::Initialize(Topology *top, Property *opt) {
             _emp_file   = opt->get(key+".emp_file").as<string>();
         }
 
-        if ( opt->exists(key+".output") ) {
-            _outFile = opt->get(key+".output").as< string >();
-            _energies2File = true;
-        }
-        else { _energies2File = false; }
-
         if (opt->exists(key+".pdb_check")) {
-            _pdb_check = opt->get(key+".pdb_check").as<string>();
+            _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
-        else { _pdb_check = ""; }
+        else { _pdb_check = false; }
 
         if (opt->exists(key+".write_chk")) {
             _write_chk_suffix = opt->get(key+".write_chk").as<string>();
@@ -185,20 +178,7 @@ void XQMP::PreProcess(Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
-    _mps_mapper.GenerateMap(_xml_file, _emp_file, top, _XJobs);
-}
-
-
-void XQMP::PostProcess(Topology *top) {
-    
-    // WRITE OUTPUT (PRIMARILY ENERGY SPLITTINGS)
-    FILE *out;
-    out = fopen(this->_outFile.c_str(), "w");
-    vector<XJob*> :: iterator jit;
-    for (jit = _XJobs.begin(); jit < _XJobs.end(); ++jit) {
-        (*jit)->WriteInfoLine(out);
-    }
-    fclose(out);    
+    _mps_mapper.GenerateMap(_xml_file, _emp_file, top);
 }
 
 
@@ -209,7 +189,7 @@ void XQMP::CustomizeLogger(QMThread *thread) {
     log->setReportLevel(logDEBUG);
     log->setMultithreading(_maverick);
 
-    log->setPreface(logINFO,    (format("\nT%1$02d ... ...") % thread->getId()).str());
+    log->setPreface(logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
     log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
     log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
     log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
@@ -222,27 +202,70 @@ void XQMP::CustomizeLogger(QMThread *thread) {
 // ========================================================================== //
 
 
-void XQMP::EvalJob(Topology *top, XJob *job, QMThread *thread) {
+XJob XQMP::ProcessInputString(const Job *job, Topology *top, QMThread *thread) {
+    
+    string input = job->getInput();
+    vector<Segment*> qmSegs;
+    vector<string>   qmSegMps;
+    vector<string> split;
+    Tokenizer toker(input, " \t\n");
+    toker.ToVector(split);
+
+    for (int i = 0; i < split.size(); ++i) {
+                
+        string id_seg_mps = split[i];
+        vector<string> split_id_seg_mps;
+        Tokenizer toker(id_seg_mps, ":");
+        toker.ToVector(split_id_seg_mps);
+
+        int segId = boost::lexical_cast<int>(split_id_seg_mps[0]);
+        string segName = split_id_seg_mps[1];
+        string mpsFile = split_id_seg_mps[2];
+
+        Segment *seg = top->getSegment(segId);
+        if (seg->getName() != segName) {
+            LOG(logERROR,*(thread->getLogger()))
+                << "ERROR: Seg " << segId << ":" << seg->getName() << " "
+                << " maltagged as " << segName << ". Skip job ..." << flush;
+            throw std::runtime_error("Input does not match topology.");
+        }
+
+        qmSegs.push_back(seg);
+        qmSegMps.push_back(mpsFile);               
+    }
+    
+    return XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
+}
+
+
+Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     Logger *log = thread->getLogger();
+    
+    LOG(logINFO,*log)
+        << "Job input = " << job->getInput() << flush;
+    
+    // CREATE XJOB FROM JOB INPUT STRING
+    XJob xjob = this->ProcessInputString(job, top, thread);
+    
     
     // GENERATE POLAR TOPOLOGY
     double co1 = _cutoff1;
     double co2 = _cutoff2;    
     
-    _mps_mapper.Gen_QM_MM1_MM2(top, job, co1, co2);
+    _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2, thread);
     
     LOG(logINFO,*log)
-         << job->getPolarTop()->ShellInfoStr() << flush;
+         << xjob.getPolarTop()->ShellInfoStr() << flush;
     
-    if (tools::globals::verbose)
-    job->getPolarTop()->PrintPDB(job->getTag()+"_QM0_MM1_MM2.pdb");
+    if (tools::globals::verbose || _pdb_check)
+    xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
 
     // CALL MAGIC INDUCTOR         
     XInductor inductor = XInductor(top, _options, "options.xqmultipole",
                                    _subthreads, _maverick);
     inductor.setLog(thread->getLogger());
-    inductor.Evaluate(job);
+    inductor.Evaluate(&xjob);
     
 
     // SAVE INDUCTION STATE
@@ -250,19 +273,30 @@ void XQMP::EvalJob(Topology *top, XJob *job, QMThread *thread) {
         
         string format    = _chk_format;
         string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
-        string outstr    = job->getTag()+_write_chk_suffix+dotsuffix;
+        string outstr    = xjob.getTag()+_write_chk_suffix+dotsuffix;
         
         bool split       = _chk_split_dpl;
         double space     = _chk_dpl_spacing;
         
-        job->getPolarTop()->PrintInduState(outstr, format, split, space);
-        
+        xjob.getPolarTop()->PrintInduState(outstr, format, split, space);        
     }
 
-    // SET JOT INFO STRING & CLEAN POLAR TOPOLOGY
-    job->setInfoLine(true,false);
-    job->getPolarTop()->~PolarTop();
+    // JOT INFO STRING & CLEAN POLAR TOPOLOGY
+    xjob.setInfoLine(true,false);
     
+    
+    // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
+    Job::JobResult jres = Job::JobResult();
+    jres.setOutput(xjob.getInfoLine());
+    jres.setStatus(Job::COMPLETE);
+    
+    if (!inductor.hasConverged()) {
+        jres.setStatus(Job::FAILED);
+        jres.setError(inductor.getError());
+        LOG(logERROR,*log) << inductor.getError() << flush;
+    }
+    
+    return jres;
 }
 
 

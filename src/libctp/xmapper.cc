@@ -6,12 +6,11 @@ namespace votca { namespace ctp {
 
 void XMpsMap::GenerateMap(string xml_file, 
                           string alloc_table, 
-                          Topology *top, 
-                          vector<XJob*> &xjobs) {
+                          Topology *top) {
     
     this->CollectMapFromXML(xml_file);
     this->CollectSegMpsAlloc(alloc_table, top);
-    this->CollectSitesFromMps(xjobs);
+    this->CollectSitesFromMps();
     
 }
     
@@ -245,7 +244,7 @@ void XMpsMap::CollectSegMpsAlloc(string alloc_table, Topology *top) {
 }
 
 
-void XMpsMap::CollectSitesFromMps(vector<XJob*> &xjobs) {
+void XMpsMap::CollectSitesFromMps() {
 
     // +++++++++++++ //
     // Parse + Store //
@@ -278,26 +277,24 @@ void XMpsMap::CollectSitesFromMps(vector<XJob*> &xjobs) {
     }
     
     // Job Seg1 Seg2
-    vector<XJob*> :: iterator jit;
-    for (jit = xjobs.begin();
-         jit < xjobs.end();
-         ++jit) {
-
-        vector<string> mpsfiles = (*jit)->getSegMps();
-        
-        for (int i = 0; i < mpsfiles.size(); ++i) {
-            string mpsfile = mpsfiles[i];
-            if (_mpsFile_pSites_job.count(mpsfile) > 0 ) { ; }
-            else { _mpsFile_pSites_job[mpsfile] = APS_FROM_MPS(mpsfile, 0); }
-        }
-    }
+//    vector<XJob*> :: iterator jit;
+//    for (jit = xjobs.begin();
+//         jit < xjobs.end();
+//         ++jit) {
+//
+//        vector<string> mpsfiles = (*jit)->getSegMps();
+//        
+//        for (int i = 0; i < mpsfiles.size(); ++i) {
+//            string mpsfile = mpsfiles[i];
+//            if (_mpsFile_pSites_job.count(mpsfile) > 0 ) { ; }
+//            else { _mpsFile_pSites_job[mpsfile] = APS_FROM_MPS(mpsfile, 0); }
+//        }
+//    }
 
     cout << endl
          << "... ... ..."
          << " Parsed " << _mpsFile_pSites.size()
          << " mps-files from " << _alloc_table
-         << ", " << _mpsFile_pSites_job.size()
-         << " mps-files from XJobs."
          << flush;
 }
 
@@ -871,7 +868,17 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
 }
 
 
-void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
+vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile, QMThread *thread) {
+    _lockThread.Lock();
+    if (!_mpsFile_pSites_job.count(mpsfile)) {
+        _mpsFile_pSites_job[mpsfile] = APS_FROM_MPS(mpsfile, 0, thread);
+    }
+    _lockThread.Unlock();
+    return _mpsFile_pSites_job[mpsfile];
+}
+
+
+void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, QMThread *thread) {
     // Generates QM MM1 MM2, centered around job->Center().
     // 'NEW' instances of polar sites are not registered in the topology.
     // Stores the resulting 'polar topology' with the XJob class.    
@@ -920,11 +927,11 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
     for (int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
         vector<APolarSite*> psites_raw 
-                = this->GetRawPolSitesJob(job->getSegMps()[i]);
+                = this->GetOrCreateRawSites(job->getSegMps()[i],thread);
         vector<APolarSite*> psites_mapped
                 = this->MapPolSitesToSeg(psites_raw, seg);        
         qm0.push_back(new PolarSeg(seg->getId(), psites_mapped));        
-    }    
+    }
     // ... MM1 SHELL
     mm1.reserve(segs_mm1.size());
     for (sit = segs_mm1.begin(); sit < segs_mm1.end(); ++sit) {
@@ -958,5 +965,6 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2) {
     job->setPolarTop(new_ptop);
     
 }
+
 
 }}
