@@ -30,6 +30,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <sys/stat.h>
+#include <boost/filesystem.hpp>
 
 namespace votca { namespace ctp {
     

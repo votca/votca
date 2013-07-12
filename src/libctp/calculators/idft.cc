@@ -42,7 +42,7 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
    
     // Orbitals are in fort.7 file; number of electrons in .log file
     
-    string key = "options.idft.";   
+    string key = "options.idft.";
     if ( opt->exists( key + ".degeneracy" ) ) {
         _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     }
@@ -359,15 +359,25 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Orbitals _orbitalsA;
     Orbitals _orbitalsB;
     Orbitals _orbitalsAB;
-        
-    _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
-    mkdir(_outParent.c_str(), 0755);
 
+    string idft_work_dir = "OR_FILES";
+    string gaussian_work_dir = "gaussian";
+    string orbitals_storage_dir = "pairs";
+    string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
+    
+    string DIR  = idft_work_dir + "/" + gaussian_work_dir + "/" + frame_dir + "/" + "pair_"  + ID_A + "_" + ID_B;
+    string ORB_DIR = idft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
+    
+    // orbital file used to archive parsed data
+    string ORB_FILE = "pair_" + ID + ".orb";
+    
+    boost::filesystem::create_directories(DIR);     
+    boost::filesystem::create_directories(ORB_DIR);        
     
     string fileName = "dimer" ;
-    string DIR  = _outParent + "/" + "pair_"  + ID_A + "_" + ID_B;
+    //string DIR  = _outParent + "/" + "pair_"  + ID_A + "_" + ID_B;
     string XYZ_FILE = fileName + ".xyz";
-    string ORB_FILE = fileName + ".orb";
+    //string ORB_FILE = fileName + ".orb";
     string COM_FILE = fileName + ".com";
     string LOG_FILE = fileName + ".log"; 
     string SHL_FILE = fileName + ".sh";

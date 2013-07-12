@@ -35,12 +35,12 @@
 namespace votca { namespace ctp {
 
 /**
-* \brief Site energies and orbitals for QM pairs
+* \brief Site energies and orbitals for QM molecules
 *
 * QM orbitals and energies for all molecules
-* Requires first-principles package, i.e. GAUSSIAN installation
+* Requires a first-principles package, i.e. GAUSSIAN installation
 *
-* Callname: idft
+* Callname: edft
 */
 
 class EDFT : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
@@ -142,7 +142,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
     
     string ID   = boost::lexical_cast<string>( seg->getId() );
-    
     string DIR  = edft_work_dir + "/" + gaussian_work_dir + "/" + frame_dir + "/mol_" + ID;
     string ORB_DIR = edft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
 
@@ -156,7 +155,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     // orbital file used to archive parsed data
     string ORB_FILE = "molecule_" + ID + ".orb";
-
     
     boost::filesystem::create_directories(DIR);     
     boost::filesystem::create_directories(ORB_DIR);        
