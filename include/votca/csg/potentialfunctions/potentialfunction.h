@@ -1,5 +1,5 @@
-/* 
- * 
+/*
+ *
  * Author: sikandar
  *
  * Created on November 8, 2011, 11:52 PM
@@ -23,7 +23,7 @@ using namespace votca::tools;
 
 class PotentialFunction {
 public:
-    
+
     virtual ~PotentialFunction() {}
     // read parameters from the input file
     virtual void setParam(string filename);
@@ -39,7 +39,7 @@ public:
     // set ith parameter
     void setParam(const int i, const double val) { _lam(i) = val; }
     // set ith parameter among those to be optimized
-    virtual void setOptParam(const int i, const double val) { 
+    virtual void setOptParam(const int i, const double val) {
         setParam(i,val);
     }
     // set minimum r value to avoid large values
@@ -69,9 +69,9 @@ public:
     double getMinDist() const { return _min; }
 
 protected:
-    
+
     PotentialFunction(const string& name_,const int nlam_,const double min_,const double max_);
-    
+
     string _name;
     ub::vector<double> _lam;
     double _cut_off;

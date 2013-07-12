@@ -22,20 +22,20 @@ public:
     double CalculateDF(const int i, const double r) const;
     // calculate second derivative w.r.t. ith parameter
     double CalculateD2F(const int i, const int j, const double r) const;
-    
+
     int getOptParamSize() const ;
-    
+
     void setParam(string filename);
     // save parameters to the file
     void SaveParam(const string& filename);
-    
+
     void SavePotTab(const string& filename, const double step);
 
-    void SavePotTab(const string& filename, const double step, const double rmin, const double rcut);    
+    void SavePotTab(const string& filename, const double step, const double rmin, const double rcut);
     void setOptParam(const int i, const double val);
-    
+
     double getOptParam(const int i) const;
-    
+
     void extrapolExclParam();
 
 protected:
@@ -51,10 +51,10 @@ protected:
     int _nbreak;
     double _dr;
     ub::vector<double> _rbreak;
-    
+
     ub::matrix<double> _M;
-    
-    string _extrapol_type;    
+
+    string _extrapol_type;
 
 };
 

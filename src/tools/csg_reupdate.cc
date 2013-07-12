@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.cpp
  * Author: mashaya1
  *
@@ -15,7 +15,7 @@
 #include "csg_reupdate.h"
 #include <votca/tools/linalg.h>
 /*
- * 
+ *
  */
 int main(int argc, char** argv) {
     CsgREupdate app;
