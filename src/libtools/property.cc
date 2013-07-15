@@ -16,12 +16,7 @@
  */
 
 #include <iostream>
-#include <votca/tools/property.h>
 #include <stdexcept>
-#include <votca/tools/tokenizer.h>
-#include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
-
 #include <stdio.h>
 #include <expat.h>
 #include <string.h>
@@ -29,6 +24,12 @@
 #include <string>
 #include <stack>
 #include <iomanip>
+
+#include <votca/tools/property.h>
+#include <votca/tools/tokenizer.h>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
 
 namespace votca { namespace tools {
 
@@ -236,7 +237,7 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
                          "\\label{%2%}\n%3%\n"
                          "\\rowcolors{1}{invisiblegray}{white}\n"
                          "{\\small\n "
-                         "\\begin{longtable}{m{3cm}|m{1cm}|m{1cm}|m{9cm}}\n"
+                         "\\begin{longtable}{m{3cm}|m{2cm}|m{1cm}|m{8cm}}\n"
                          " option & default & unit & description\\\\\n\\hline\n");    
     
     string footer_format("\\end{longtable}\n}\n"
