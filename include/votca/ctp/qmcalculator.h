@@ -34,10 +34,33 @@ class QMCalculator
 {
 public:
 
-                    QMCalculator() { };
-    virtual        ~QMCalculator() { };
+                    QMCalculator() {}
+    virtual        ~QMCalculator() {}
 
-    virtual string  Identify() { return "Generic calculator"; }
+    // reads-in default options from the shared folder
+    void LoadDefaults() {
+
+        // get the path to the shared folders with xml files
+        char *votca_share = getenv("VOTCASHARE");
+        if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+        
+        string name = Identify();
+        string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/") + name + string(".xml");
+        
+        //cout << "Calculator " << name  << " reading from " << xmlFile << endl;
+        
+        // load the xml description of the calculator (with the default and test values)
+        load_property_from_xml(_options, xmlFile);
+
+        // override test values with the default values
+        _options.ResetFromDefaults();
+        
+        //cout << XML << _options;
+
+    };
+
+    // an abstract function, must be implemented in every calculator
+    virtual string  Identify() = 0; //{ return "Generic calculator"; }
 
     virtual void    Initialize(CTP::Topology *top, Property *options) { }
     virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
@@ -49,6 +72,7 @@ public:
 protected:
 
     int _nThreads;
+    Property _options;
     ProgObserver< vector<Job*>, Job*, Job::JobResult > *_progObs;
 
 };

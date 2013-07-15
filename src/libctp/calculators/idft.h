@@ -30,6 +30,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <sys/stat.h>
+#include <boost/filesystem.hpp>
 
 namespace votca { namespace ctp {
     
@@ -52,9 +53,9 @@ public:
    
     void    Initialize(ctp::Topology *top, tools::Property *options );
     
-    string  Identify() { return "IDFT"; }
+    string  Identify() { return "idft"; }
     
-    Job::JobResult EvalJob(Topology *top, const Job *job, QMThread *Thread);
+    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);

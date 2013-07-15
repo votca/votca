@@ -36,9 +36,9 @@ public:
 
     bool         EvaluateFrame(Topology *top);
     virtual void LoadJobs() { ; }
-    virtual void CustomizeLogger(QMThread* thread) { ; }
+    virtual void CustomizeLogger(QMThread* thread);
     virtual void PreProcess(Topology *top) { ; } 
-    virtual rJob EvalJob(Topology *top, const pJob job, QMThread *thread) { return rJob(); }
+    virtual rJob EvalJob(Topology *top, const pJob job, QMThread *thread) = 0;
     virtual void PostProcess(Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }

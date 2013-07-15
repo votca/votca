@@ -13,6 +13,7 @@ void JobWriter::Initialize(Topology *top, Property *options) {
     _key_funct["xqmultipole:ct"] = &JobWriter::xqmultipole_ct;
     _key_funct["xqmultipole:chrg"] = &JobWriter::xqmultipole_chrg;
     _key_funct["xqmultipole:kmc"] = &JobWriter::xqmultipole_kmc;    
+    _key_funct["edft"] = &JobWriter::edft;
     
     // SPLIT KEYS
     string keys = options->get("options.jobwriter.keys").as<string>();    
@@ -235,7 +236,30 @@ void JobWriter::xqmultipole_ct(Topology *top) {
 }
     
     
+void JobWriter::edft(Topology *top) {
+
+    string jobFile = "jobs_edft.xml";   
+    vector<Segment*>::iterator sit;
     
+    ofstream ofs;
+    ofs.open(jobFile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+ 
+    ofs << "<jobs>" << endl;    
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        int id = (*sit)->getId();
+        string tag = "";
+        string input = "";
+        string stat = "AVAILABLE";
+        Job job(id, tag, input, stat);
+        job.ToStream(ofs,"xml");
+    }
+
+    // CLOSE STREAM
+    ofs << "</jobs>" << endl;    
+    ofs.close();
+    
+}
     
     
 }}

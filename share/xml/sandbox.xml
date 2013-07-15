@@ -1,12 +1,9 @@
-<sandbox>
-	
-	<description>Sandbox to test ctp classes</description>
+<options>
 
-	<sectionlabel>sandbox</sectionlabel>
+<sandbox help="Sandbox to test ctp classes" label="sec:sanbox">
 	
-	<item>
-		<name>ID</name>
-		<description>Not in use</description>
-	</item>
+	<ID help="Not in use">ID</ID>
 
 </sandbox>
+
+</options>

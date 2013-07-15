@@ -30,16 +30,17 @@
 #include <sys/stat.h>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/filesystem.hpp>
 
 namespace votca { namespace ctp {
 
 /**
-* \brief Site energies and orbitals for QM pairs
+* \brief Site energies and orbitals for QM molecules
 *
 * QM orbitals and energies for all molecules
-* Requires first-principles package, i.e. GAUSSIAN installation
+* Requires a first-principles package, i.e. GAUSSIAN installation
 *
-* Callname: idft
+* Callname: edft
 */
 
 class EDFT : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
@@ -49,17 +50,17 @@ public:
     EDFT() {};
    ~EDFT() {};
 
-    string  Identify() { return "EDFT"; }
+    string  Identify() { return "edft"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
-    Job::JobResult EvalJob(Topology *top, const Job *job, QMThread *thread);
+    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
 
     void    CleanUp();
 
 
 private:
 
-    bool   _maverick;
+    //bool   _maverick;
     string _outParent;
     string _outMonDir;
     
@@ -77,10 +78,14 @@ void EDFT::Initialize(Topology *top, Property *options) {
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
     
+    string key = "options." + Identify();
+    _jobfile = options->get(key + ".control.job_file").as<string>();
     /* ---- OPTIONS.XML Structure -----
      *
      * <edft>
-     *
+     *      <control>
+     *           <job_file>edft.jobs<job_file>
+     *      </control>
      *      <package>gaussian.xml</package>
      *
      * </edft>
@@ -108,41 +113,53 @@ void EDFT::ParseOrbitalsXML(Topology *top, Property *opt) {
 }
 
 
-Job::JobResult EDFT::EvalJob(Topology *top, const Job *job, QMThread *opThread) {
+Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
+    bool _run_status;
+    bool _parse_log_status;
+    bool _parse_orbitals_status;
+    
     Segment *seg = top->getSegment(job->getId());
     
     Logger* pLog = opThread->getLogger();
-    pLog->setReportLevel(logDEBUG);
-    pLog->setMultithreading( _maverick );
     
-    LOG(logTime,*pLog) << endl;
-    LOG(logINFO,*pLog) << "Evaluating site " << seg->getId() << endl; 
+    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
     
     FILE *out;
     Orbitals _orbitals;
     vector < Segment* > segments;    
     
     segments.push_back( seg );
-    
-    _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
-    mkdir(_outParent.c_str(), 0755);
 
+    // log, com, fort 7 files will be stored in ORB_FILES/gaussian/frame_x/mol_ID/
+    // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
+    
+    string edft_work_dir = "OR_FILES";
+    string gaussian_work_dir = "gaussian";
+    string orbitals_storage_dir = "molecules";
+    string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
+    
     string ID   = boost::lexical_cast<string>( seg->getId() );
-    //string fileName = "mol_" + ID;
+    string DIR  = edft_work_dir + "/" + gaussian_work_dir + "/" + frame_dir + "/mol_" + ID;
+    string ORB_DIR = edft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
+
+    // GAUSSIAN filenames
     string fileName = "monomer";
-    string DIR  = _outParent + "/" + "mol_" + ID;
     string XYZ_FILE = fileName + ".xyz";
-    string ORB_FILE = fileName + ".orb";
     string COM_FILE = fileName + ".com";
     string LOG_FILE = fileName + ".log"; 
     string SHL_FILE = fileName + ".sh";
     string GAUSSIAN_ORB_FILE = "fort.7" ;
-        
-    mkdir(DIR.c_str(), 0755);        
-    out = fopen((DIR + "/" + XYZ_FILE).c_str(),"w");
-    seg->WriteXYZ(out);
-    fclose(out);
+
+    // orbital file used to archive parsed data
+    string ORB_FILE = "molecule_" + ID + ".orb";
+    
+    boost::filesystem::create_directories(DIR);     
+    boost::filesystem::create_directories(ORB_DIR);        
+    
+    //out = fopen((DIR + "/" + XYZ_FILE).c_str(),"w");
+    //seg->WriteXYZ(out);
+    //fclose(out);
  
    if ( _package == "gaussian" ) { 
         
@@ -162,26 +179,26 @@ Job::JobResult EDFT::EvalJob(Topology *top, const Job *job, QMThread *opThread) 
         _gaussian.WriteInputFile( segments );
         
         // Run the executable
-        _gaussian.Run( );
+        _run_status = _gaussian.Run( );
         
         // Collect information     
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
-        _gaussian.ParseLogFile( &_orbitals );
+        _parse_log_status = _gaussian.ParseLogFile( &_orbitals );
         
         _gaussian.setOrbitalsFile( DIR + "/" + GAUSSIAN_ORB_FILE );
-        _gaussian.ParseOrbitalsFile( &_orbitals );
+        _parse_orbitals_status = _gaussian.ParseOrbitalsFile( &_orbitals );
  
-        // save orbitals 
-        std::ofstream ofs( (DIR + "/" + ORB_FILE).c_str() );
+        // save orbitals
+        std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
-        std::vector< QMAtom* >* _atoms = _orbitals.getAtoms();
-        
-        int _nat = _atoms->size() ;
-        
-        LOG(logINFO,*pLog) << "Serializing " << _nat << " atoms" << endl; 
-        
         oa << _orbitals;
         ofs.close();
+        
+        /*
+        std::vector< QMAtom* >* _atoms = _orbitals.getAtoms();
+        int _nat = _atoms->size() ;
+        LOG(logDEBUG,*pLog) << "Serializing " << _nat << " atoms" << endl; 
+        */
        
         //Orbitals _orbitals_new;
         //std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
@@ -201,11 +218,44 @@ Job::JobResult EDFT::EvalJob(Topology *top, const Job *job, QMThread *opThread) 
         //cout << "ELECTRONS " << _orbitals_new.getNumberOfElectrons() << endl ;
         //cout << "BASIS SIZE " << _orbitals_new.getBasisSetSize() << endl ;
  
-        _gaussian.CleanUp( ID );
+        _gaussian.CleanUp();
         
-        cout << *pLog;
+    // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
+    Job::JobResult jres = Job::JobResult();
+    string output = "GAUSSIAN: ";
+    jres.setStatus(Job::COMPLETE);
+    
+    if ( !_run_status ) {
+        output += "run failed; " ;
+        LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
+        jres.setStatus(Job::FAILED);
+    } else {
+        output += "run completed; " ;
+    }
+    
+    if ( !_parse_log_status ) {
+        output += "log incomplete; ";
+        LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
+        jres.setStatus(Job::FAILED);
+    } else {
+        output += "log parsed; " ;
+    }
+
+    if ( !_parse_orbitals_status ) {
+        output += "fort7 failed; " ;
+        LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
+    } else {
+        output += "orbitals parsed; " ;
+    }
         
-        return Job::JobResult();
+    // output of the JOB 
+    jres.setOutput( output );
+
+    // dump the LOG
+    cout << *pLog;
+    
+    return jres;
+
    }    
    
 }

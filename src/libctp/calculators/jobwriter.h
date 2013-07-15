@@ -15,7 +15,7 @@ public:
 
     typedef void (JobWriter::*WriteFunct)(Topology*);
     
-    string Identify() { return "Job Writer"; }
+    string Identify() { return "jobwriter"; }
     void Initialize(Topology *top, Property *options);
     bool EvaluateFrame(Topology *top);    
     
@@ -23,6 +23,8 @@ public:
     void xqmultipole_ct(Topology *top);
     void xqmultipole_chrg(Topology *top);
     void xqmultipole_kmc(Topology *top);
+    
+    void edft(Topology *top);
     
 
 private:

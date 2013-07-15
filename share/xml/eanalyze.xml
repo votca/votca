@@ -1,22 +1,16 @@
-<eanalyze>
-  
-	<description>Site energy histogram, pair energy histogram, normalized site energy correlation function</description>
+<options>
 
-	<sectionlabel>eanalyze</sectionlabel>
+<eanalyze help="Histogram and correlation function of site energies and pair energy differences" label="calc:eanalyze">
 
-        <item>
-                <name>resolution_sites</name>
-                <description>Bin size for site energy histogram</description>
-        </item>
-	<item>
-		<name>resolution_pairs</name>
-		<description>Bin size for pair energy histogram</description>
-	</item>
-
-	<item>
-		<name>resolution_space</name>
-		<description>Bin size for site energy correlation</description>
-	</item>
-
+	<resolution_sites help="Bin size for site energy histogram" unit="eV">0.01</resolution_sites>
+	<resolution_pairs help="Bin size for pair energy histogram" unit="eV">0.01</resolution_pairs>
+	<resolution_space help="Bin size for site energy correlation" unit="eV">0.01</resolution_space>
+	<states help="?"></states>
+	<do_atomic_xyze help="?"></do_atomic_xyze>
+	<skip_correlation help="?"></skip_correlation>
+	<skip_sites help="?"></skip_sites>
+	<skip_pairs help="?"></skip_pairs>
 
 </eanalyze>
+
+</options>

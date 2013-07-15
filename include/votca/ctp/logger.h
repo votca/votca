@@ -25,16 +25,13 @@
 
 namespace votca { namespace ctp {
 
-enum TLogLevel {logTime, logERROR, logWARNING, logINFO, logDEBUG};
-
-// timestamp returns the current time as a string
-std::string timestamp();  
-
+enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
+ 
 /*
  * Macros to use the Logger (level,logger) << message
  */
 #define LOG(level, log) \
-if ( level > (log).getReportLevel() ) ; \
+if ( &log != NULL && level > (log).getReportLevel() ) ; \
 else (log)(level)
 
 /*
@@ -43,7 +40,7 @@ else (log)(level)
 class LogBuffer : public std::stringbuf {
 
 public:
-	LogBuffer() : std::stringbuf(), _timePreface(""), 
+	LogBuffer() : std::stringbuf(),
                 _errorPreface(" ERROR   "), _warnPreface(" WARNING "),
                 _infoPreface("         "), _dbgPreface(" DEBUG   ") {}
         
@@ -57,9 +54,7 @@ public:
         void setPreface(TLogLevel level, std::string preface) {            
             switch ( level )
             {
-                case logTime: 
-                    _timePreface = preface;
-                    break;
+
                 case logERROR: 
                     _errorPreface = preface;
                     break;
@@ -110,9 +105,6 @@ protected:
 
             switch ( _LogLevel )
             {
-                case logTime: 
-                    _message << _timePreface << timestamp();
-                    break;
                 case logERROR: 
                     _message << _errorPreface;
                     break;
@@ -138,25 +130,7 @@ protected:
 	    str("");
 	    return 0;
 	}
-        
-        // timestamp 
-        std::string timestamp() {
-                std::ostringstream stream;   
-                time_t rawtime;
-                tm * timeinfo;
- 
-                time(&rawtime);
-                timeinfo = localtime( &rawtime );
- 
-                stream  //<< (timeinfo->tm_year)+1900
-                        //<< "-" << timeinfo->tm_mon + 1
-                        //<< "-" << timeinfo->tm_mday 
-                        << " " << timeinfo->tm_hour
-                        << ":" << timeinfo->tm_min 
-                        << ":"  << timeinfo->tm_sec
-                        ;
-                return stream.str();  
-        }        
+      
 };
 
 
@@ -215,6 +189,31 @@ private:
         
 };
 
+/**
+*   \brief Timestamp returns the current time as a string
+*  Example: cout << TimeStamp()
+*/
+class TimeStamp 
+{
+  public:
+    friend std::ostream & operator<<(std::ostream &os, const TimeStamp& ts)
+    {
+        time_t rawtime;
+        tm * timeinfo;
+        time(&rawtime);
+        timeinfo = localtime( &rawtime );
+        os  << (timeinfo->tm_year)+1900
+            << "-" << timeinfo->tm_mon + 1
+            << "-" << timeinfo->tm_mday 
+            << " " << timeinfo->tm_hour
+            << ":" << timeinfo->tm_min 
+            << ":"  << timeinfo->tm_sec;
+         return os;    
+    }
+    
+    explicit TimeStamp() {};
+    
+};
 
 
 }}

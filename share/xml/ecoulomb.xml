@@ -1,28 +1,16 @@
-<ecoulomb>
+<options>
 
-        <description>Electrostatic contribution to site energies</description>
-	
-	<sectionlabel>ecoulomb</sectionlabel>
-	
-	<item>
-		<name>method</name>
-		<description>Type of screening used. **simple** for a constant dielectric constant, **distdep** for a distance-dependent screening. In the latter case screening length must be specified.</description>
-	</item>
+<!-- ctp_run -e ecoulomb -f state.db -o options.xml -->
+<ecoulomb help="Electrostatic contribution to site energies based on atomic partial charges" label="calc:ecoulomb">
 
-	<item>
-		<name>epsilon</name>
-		<description>Relative dielectric constant of the semiconductor.</description>
-	</item>
-
-	<item>
-		<name>screening</name>
-		<description>Screening length used in the distance-dependent screening.</description>
-	</item>
-
-	<item>
-		<name>cutoff</name>
-		<description>Cutoff in nm for coulomb interactions based on molecular centers of mass. If ommited, the whole box is taken.</description>
-	</item>
+	<method help="Type of screening: **simple** for a constant and **distdep** for a distance-dependent screening">simple</method>
+	<epsilon help="Relative dielectric constant">3.0</epsilon>
+	<screening help="Screening length used in the distance-dependent screening" unit="nm">1.0</screening>
+	<cutoff help="Cutoff for Coulomb interactions for molecular centers of mass. If ommited, the whole box is used" unit="nm">1.0</cutoff>
+	<first help="First site to evaluate" default="1">1</first>
+	<last help="Last site to evaluate" default="-1">-1</last>
+	<output help="Output file" default="ecoulomb.dat">ecoulomb.dat</output>
 
 </ecoulomb>
 
+</options>

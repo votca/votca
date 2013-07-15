@@ -1,12 +1,7 @@
-<izindo>
-  
-	<description>Semiempirical electronic coupling elements for all neighbor list pairs</description>
+<options>
 
-	<sectionlabel>izindo</sectionlabel>
-
-	<item>
-		<name>basisset</name>
-		<description>Basis set used to generate monomer orbitals. Default is **INDO**</description>
-	</item>
-
+<izindo help="Semiempirical electronic coupling elements for all neighbor list pairs" label="calc:izindo">
+	<basisset help="Basis set used to generate monomer orbitals. Default is **INDO**"></basisset>
 </izindo>
+
+</options>
