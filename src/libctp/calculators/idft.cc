@@ -545,6 +545,10 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         output += "orbitals parsed; " ;
     }
 
+    if ( _run_status && _parse_log_status &&  _parse_orbitals_status ) {
+        output += "Coupling h/e " + sID_A + ":" + sID_B;
+    }
+    
     LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << sID_A << ":" << sID_B << flush; 
         
     // output of the JOB 
