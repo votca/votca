@@ -227,7 +227,7 @@ bool Gaussian::WriteShellScript() {
 bool Gaussian::Run()
 {
 
-    LOG(logDEBUG,*_pLog) << "Running GAUSSIAN job" << endl;
+    LOG(logDEBUG,*_pLog) << "Running GAUSSIAN job" << flush;
     
     if (system(NULL)) {
         // if scratch is provided, run the shell script; 
@@ -241,11 +241,11 @@ bool Gaussian::Run()
         }
         
         int i = system ( _command.c_str() );
-        LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << endl;
+        LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << flush;
         return true;
     }
     else {
-        LOG(logERROR,*_pLog) << _com_file_name << " failed to start" << endl; 
+        LOG(logERROR,*_pLog) << _com_file_name << " failed to start" << flush; 
         return false;
     }
     
@@ -315,10 +315,10 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     std::ifstream _input_file( _orb_file_name.c_str() );
     
     if (_input_file.fail()) {
-        LOG( logERROR, *_pLog ) << "File " << _orb_file_name << " with molecular orbitals is not found " << endl;
+        LOG( logERROR, *_pLog ) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
         return false;
     } else {
-        LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << endl;
+        LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
     }
 
     // number of coefficients per line is  in the first line of the file (5D15.8)
@@ -368,19 +368,19 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     }
 
     // some sanity checks
-    LOG( logDEBUG, *_pLog ) << "Energy levels: " << _levels << endl;
+    LOG( logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
 
     std::map< int, vector<double> >::iterator iter = _coefficients.begin();
     _basis_size = iter->second.size();
 
     for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
         if (iter->second.size() != _basis_size) {
-            cerr << "Error reading " << _orb_file_name << ". Basis set size change from level to level.";
-
+            LOG( logERROR, *_pLog ) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
+            return false;
         }
     }
     
-    LOG( logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << endl;
+    LOG( logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
 
     // copying information to the orbitals object
     _orbitals->_basis_set_size = _basis_size;
@@ -413,7 +413,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
    _energies.clear();
    
      
-   LOG(logDEBUG, *_pLog) << "Finished reading MOs from " << _orb_file_name << endl;
+   LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
 
    return true;
 }
@@ -442,12 +442,12 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
     
-    LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << endl;
+    LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
 
     // check if the log file exists
     ifstream _input_file(_log_file_name.c_str());
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is not found" << endl;
+        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is not found" << flush;
         return false;
     };
 
@@ -469,11 +469,13 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     
     std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
     if (self_energy_pos == std::string::npos) {
-        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is incomplete" << endl;
+        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is incomplete" << flush;
         return false;      
-    } else {
-        _input_file.seekg(std::ios::beg);
     }
+
+    //rewind back to the beginning of the file; note clear())
+    _input_file.clear();
+    _input_file.seekg(0, std::ios::beg);
     
     // Start parsing the file line by line
     while (_input_file) {
@@ -492,7 +494,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _number_of_electrons =  boost::lexical_cast<int>(results.front()) ;
             _orbitals->_number_of_electrons = _number_of_electrons ;
             _orbitals->_has_number_of_electrons = true;
-            LOG(logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << endl ;
+            LOG(logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
         }
 
         /*
@@ -506,7 +508,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _basis_set_size = boost::lexical_cast<int>(results.front());
             _orbitals->_basis_set_size = _basis_set_size ;
             _orbitals->_has_basis_set_size = true;
-            LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << endl;
+            LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
         }
 
         /*
@@ -517,8 +519,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         if (eigenvalues_pos != std::string::npos) {
             
             std::list<std::string> stringList;
-            int _unoccupied_levels = 0;
-            int _occupied_levels = 0;
+            //int _unoccupied_levels = 0;
+            //int _occupied_levels = 0;
 
             while (eigenvalues_pos != std::string::npos && !_has_occupied_levels && !_has_unoccupied_levels) {
                 //cout << _line << endl;
@@ -553,8 +555,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                     _orbitals->_unoccupied_levels = _unoccupied_levels;
                     _orbitals->_has_occupied_levels = true;
                     _orbitals->_has_unoccupied_levels = true;
-                    LOG(logDEBUG,*_pLog) << "Occupied levels: " << _occupied_levels << endl;
-                    LOG(logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << endl;
+                    LOG(logDEBUG,*_pLog) << "Occupied levels: " << _occupied_levels << flush;
+                    LOG(logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;
                 }
             } // end of the while loop              
         } // end of the eigenvalue parsing
@@ -628,7 +630,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 // clear the index for the next block
                 _j_indeces.clear();        
             } // end of the blocks
-            LOG(logDEBUG,*_pLog) << "Read the overlap matrix" << endl;
+            LOG(logDEBUG,*_pLog) << "Read the overlap matrix" << flush;
         } // end of the if "Overlap" found   
 
         
@@ -638,7 +640,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         std::string::size_type charge_pos = _line.find("Charges from ESP fit, RMS");
         
         if (charge_pos != std::string::npos && _get_charges ) {        
-                if ( tools::globals::verbose ) clog << "... ... Getting charges out of the log file" << endl;
+                LOG(logDEBUG,*_pLog) << "Getting charges" << flush;
                 _has_charges = true;
                 getline(_input_file, _line);
                 getline(_input_file, _line);
@@ -682,7 +684,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
          std::string::size_type coordinates_pos = _line.find("Test job not archived");
         
         if (coordinates_pos != std::string::npos) {
-            if ( tools::globals::verbose ) clog << "... ... Getting the coordinates" << endl;
+            LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             _has_coordinates = true;
             string archive;
             while ( _line.size() != 0 ) {
@@ -737,7 +739,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
             _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
             
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  endl;
+            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
                     
             _orbitals->_has_atoms = true;
             _orbitals->_has_qm_energy = true;
@@ -750,7 +752,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
          std::string::size_type self_energy_pos = _line.find("Self energy of the charges");
         
         if (self_energy_pos != std::string::npos) {
-            if ( tools::globals::verbose ) clog << "... ... Getting the self energy\n";  
+            LOG(logDEBUG,*_pLog) << "Getting the self energy\n";  
             vector<string> block;
             vector<string> energy;
             boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
@@ -759,7 +761,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _orbitals->_has_self_energy = true;
             _orbitals->_self_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
             
-            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->_self_energy <<  endl;
+            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->_self_energy <<  flush;
 
         }
         
@@ -775,7 +777,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         
     } // end of reading the file line-by-line
    
-    LOG(logDEBUG,*_pLog) << "Done parsing " << _log_file_name << endl;
+    LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
     return true;
 }
 

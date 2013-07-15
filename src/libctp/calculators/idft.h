@@ -53,7 +53,7 @@ public:
    
     void    Initialize(ctp::Topology *top, tools::Property *options );
     
-    string  Identify() { return "IDFT"; }
+    string  Identify() { return "idft"; }
     
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
     

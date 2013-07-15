@@ -122,10 +122,8 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Segment *seg = top->getSegment(job->getId());
     
     Logger* pLog = opThread->getLogger();
-    pLog->setReportLevel(logDEBUG);
-    pLog->setMultithreading( _maverick );
     
-    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << endl; 
+    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
     
     FILE *out;
     Orbitals _orbitals;

@@ -22,6 +22,7 @@
 #include <votca/ctp/eigenvalues.h>
 #include <votca/ctp/logger.h>
 #include <iostream>
+#include <c++/4.7/bits/stl_vector.h>
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -33,6 +34,7 @@ namespace votca { namespace ctp {
 void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
     _energy_difference = 0.0;
+    
     ParseOptionsXML( options  );
 
 }
@@ -42,7 +44,7 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
    
     // Orbitals are in fort.7 file; number of electrons in .log file
     
-    string key = "options.idft.";
+    string key = "options." + Identify();
     if ( opt->exists( key + ".degeneracy" ) ) {
         _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     }
@@ -50,12 +52,14 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
         cout << "... ... NOT treating degenerate orbitals\n" ;
     }    
 
+    _jobfile = opt->get(key + ".control.job_file").as<string>();
+
     string _package_xml = opt->get(key+".package").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
 
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     
-    key = "package";
+     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
 
     
@@ -338,15 +342,34 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
 Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     QMPair *qmpair = NULL; // Need to init this from job
+
+    QMNBList::iterator pit;
+    QMNBList &nblist = top->NBList();    
     
+    int _job_ID = job->getId();
+    string _job_tag = job->getTag();
+    
+    Tokenizer _tok ( _job_tag, ":" ); 
+    vector<string> _mol_ids;
+    _tok.ToVector( _mol_ids );
+    
+    string sID_A = _mol_ids[0];
+    string sID_B = _mol_ids[1];
+
+    int ID_A   = boost::lexical_cast<int>( sID_A );
+    int ID_B   = boost::lexical_cast<int>( sID_B );
+    
+    Segment *seg_A = top->getSegment( ID_A );
+    Segment *seg_B = top->getSegment( ID_B );
+    qmpair = nblist.FindPair( seg_A, seg_B );
+    
+    string ID = boost::lexical_cast<string>(qmpair->getId()); 
+        
     Logger* pLog = opThread->getLogger();
     pLog->setReportLevel(logDEBUG);
 
-    string ID   = boost::lexical_cast<string>( qmpair->getId() );
-    string ID_A   = boost::lexical_cast<string>( ( qmpair->Seg1() )->getId() );
-    string ID_B   = boost::lexical_cast<string>( ( qmpair->Seg2() )->getId() );
     
-    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating pair " << ID << " out of " << 
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Evaluating pair " << ID << " out of " << 
           (top->NBList()).size() << " ["  << ID_A << ":" << ID_B << "]" << endl; 
     
     FILE *out;
@@ -361,20 +384,21 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Orbitals _orbitalsAB;
 
     string idft_work_dir = "OR_FILES";
+    string edft_work_dir = "OR_FILES";
     string gaussian_work_dir = "gaussian";
     string orbitals_storage_dir = "pairs";
     string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
     
-    string DIR  = idft_work_dir + "/" + gaussian_work_dir + "/" + frame_dir + "/" + "pair_"  + ID_A + "_" + ID_B;
-    string ORB_DIR = idft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
+    string GAUSS_DIR  = idft_work_dir + "/" + gaussian_work_dir + "/" + frame_dir + "/" + "pair_"  + sID_A + "_" + sID_B;
+    string ORBIT_DIR = idft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
     
     // orbital file used to archive parsed data
-    string ORB_FILE = "pair_" + ID + ".orb";
+    string ORB_FILE = "pair_" + sID_A + "_" + sID_B + ".orb";
     
-    boost::filesystem::create_directories(DIR);     
-    boost::filesystem::create_directories(ORB_DIR);        
+    boost::filesystem::create_directories(GAUSS_DIR);     
+    boost::filesystem::create_directories(ORBIT_DIR);        
     
-    string fileName = "dimer" ;
+    string fileName = "pair_"  + sID_A + "_" + sID_B ;
     //string DIR  = _outParent + "/" + "pair_"  + ID_A + "_" + ID_B;
     string XYZ_FILE = fileName + ".xyz";
     //string ORB_FILE = fileName + ".orb";
@@ -383,42 +407,46 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string SHL_FILE = fileName + ".sh";
     string GAUSSIAN_ORB_FILE = "fort.7" ;
         
-    mkdir(DIR.c_str(), 0755);        
-    out = fopen((DIR + "/" + XYZ_FILE).c_str(),"w");
+    out = fopen((GAUSS_DIR + "/" + XYZ_FILE).c_str(),"w");
     qmpair->WriteXYZ(out);
     fclose(out);
  
-     
-    //string ORB_FILE_A = "mol_" + ID_A + ".orb";
-    //string ORB_FILE_B = "mol_" + ID_B + ".orb";
+    string ORB_FILE_A = "molecule_" + sID_A + ".orb";
+    string ORB_FILE_B = "molecule_" + sID_B + ".orb";
     
-    string ORB_FILE_A = "monomer.orb";
-    string ORB_FILE_B = "monomer.orb";
+    //string ORB_FILE_A = "monomer.orb";
+    //string ORB_FILE_B = "monomer.orb";
    
-    string DIR_A  = _outParent + "/" + "mol_" + ID_A;
+    string DIR_A  = edft_work_dir + "/" + "molecules/" + frame_dir;
     //cout << "... ... " + DIR_A +"/" + ORB_FILE_A + "\n";
     std::ifstream ifs_A( (DIR_A +"/" + ORB_FILE_A).c_str() );
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
     ifs_A.close();
-    //cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
-       
-    string DIR_B  = _outParent + "/" + "mol_" + ID_B;
+    cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
+    cout << "NUMBER OF LEVELS" << _orbitalsA.getNumberOfLevels() << endl; 
+    
+    exit(0);
+    
+    string DIR_B  = edft_work_dir + "/" + "molecules/" + frame_dir;
     //cout << "... ... " << DIR_B +"/" + ORB_FILE_B << "\n";
     std::ifstream ifs_B( (DIR_B +"/" + ORB_FILE_B).c_str() );
     boost::archive::binary_iarchive ia_B( ifs_B );
     ia_B >> _orbitalsB;
     ifs_B.close();
-    //cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize()  <, endl;
+    cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize()  << endl;
       
    if ( _package == "gaussian" ) { 
         
         Gaussian _gaussian( &_package_options );
         
         _gaussian.setLog( pLog );       
-        _gaussian.setRunDir( DIR );
+        _gaussian.setRunDir( GAUSS_DIR );
         _gaussian.setInputFile( COM_FILE );
 
+        cout << GAUSS_DIR << endl;
+        cout << COM_FILE << endl;
+        
         // provide a separate scratch dir for every thread
         if ( ( _gaussian.getScratchDir() ).size() != 0 ) {
           _gaussian.setShellFile( SHL_FILE );
@@ -429,11 +457,16 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
         // in case we do not want to do an SCF loop for a dimer
         if ( _gaussian.GuessRequested() ) {
+            
+            cout << "Preparing the guess" << endl;
+            
             PrepareGuess(&_orbitalsA, &_orbitalsB, &_orbitalsAB, opThread);
             
-            //cout << _orbitalsAB.getNumberOfLevels() << endl;
-            //cout << *_orbitalsAB.getEnergies()  << endl;
-            //cout << "Guess address " << &_orbitalsAB << endl;
+            cout << "Preparing the guess" << endl;
+            cout << _orbitalsAB.getNumberOfLevels() << endl;
+             
+            cout << *_orbitalsAB.getEnergies()  << endl;
+            cout << "Guess address " << &_orbitalsAB << endl;
             //Orbitals *_pOrbitalsAB = &_orbitalsAB;
             //cout << "Guess address " << _pOrbitalsAB << endl;
            
@@ -443,21 +476,24 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             
             _gaussian.WriteInputFile( segments, &_orbitalsAB );
         } else {
+            cout << "Preparing the guess" << endl;
             _gaussian.WriteInputFile( segments );
         }
-            
+        cout << pLog;
+        exit(0);
+        
         // Run the executable
         _gaussian.Run( );
 
         // Collect information     
-        _gaussian.setLogFile( DIR + "/" + LOG_FILE );
+        _gaussian.setLogFile( GAUSS_DIR + "/" + LOG_FILE );
         _gaussian.ParseLogFile( &_orbitalsAB );
         
-        _gaussian.setOrbitalsFile( DIR + "/" + GAUSSIAN_ORB_FILE );
+        _gaussian.setOrbitalsFile( GAUSS_DIR + "/" + GAUSSIAN_ORB_FILE );
         _gaussian.ParseOrbitalsFile( &_orbitalsAB );
  
         // save orbitals 
-        std::ofstream ofs( (DIR + "/" + ORB_FILE).c_str() );
+        std::ofstream ofs( (ORBIT_DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
         oa << _orbitalsAB;
         ofs.close();
@@ -490,7 +526,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     Orbitals* _orbitalsAB, QMThread *opThread ) {
     
-    ///if ( tools::globals::verbose ) *opThread  << "... ... Constructing the guess for the dimer orbitals\n" ;   
+    //LOG(logDEBUG,*opThread->getLogger())  << "... ... Constructing the guess for the dimer orbitals\n" ;   
    
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -506,7 +542,7 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
     
     ub::matrix<double>* _mo_coefficients = _orbitalsAB->getOrbitals();    
-    //cout << "MO coefficients " << *_mo_coefficients << endl;
+    cout << "MO coefficients " << *_mo_coefficients << endl;
     
     // AxB = | A 0 |  //   A = [EA, EB]  //
     //       | 0 B |  //                 //
@@ -521,7 +557,7 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
     ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();   
 
-    //cout << "MO coefficients " << *_mo_coefficients << endl;
+    cout << "MO coefficients " << *_mo_coefficients << endl;
     
     ub::vector<double>* _energies = _orbitalsAB->getEnergies();
     _energies->resize( _levelsA + _levelsB );
@@ -529,7 +565,7 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::project( *_energies, ub::range (0, _levelsA ) ) = *_orbitalsA->getEnergies();
     ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
     
-    //cout << "MO energies " << *_energies << endl;
+    cout << "MO energies " << *_energies << endl;
     
     ///"... ... Have now " >> _energies->size() >> " energies\n" >> *opThread;
 
