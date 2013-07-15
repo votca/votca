@@ -25,6 +25,7 @@ public:
     void xqmultipole_kmc(Topology *top);
     
     void edft(Topology *top);
+    void idft(Topology *top);
     
 
 private:

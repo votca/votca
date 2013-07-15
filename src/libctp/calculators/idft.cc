@@ -341,12 +341,19 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
  
 Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
-    QMPair *qmpair = NULL; // Need to init this from job
+    bool _run_status;
+    bool _parse_log_status;
+    bool _parse_orbitals_status;
+    
+    QMPair *qmpair = NULL;
+    Logger* pLog = opThread->getLogger();
 
     QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
     
     int _job_ID = job->getId();
+    string sID = boost::lexical_cast<string>( _job_ID ); 
+    
     string _job_tag = job->getTag();
     
     Tokenizer _tok ( _job_tag, ":" ); 
@@ -362,15 +369,11 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Segment *seg_A = top->getSegment( ID_A );
     Segment *seg_B = top->getSegment( ID_B );
     qmpair = nblist.FindPair( seg_A, seg_B );
-    
-    string ID = boost::lexical_cast<string>(qmpair->getId()); 
-        
-    Logger* pLog = opThread->getLogger();
-    pLog->setReportLevel(logDEBUG);
 
     
-    LOG(logDEBUG,*pLog) << TimeStamp() << " Evaluating pair " << ID << " out of " << 
-          (top->NBList()).size() << " ["  << ID_A << ":" << ID_B << "]" << endl; 
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Evaluating pair "  
+            << sID << " ["  << ID_A << ":" << ID_B << "] out of " << 
+           (top->NBList()).size()  << flush; 
     
     FILE *out;
     vector < Segment* > segments;
@@ -423,10 +426,9 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
     ifs_A.close();
-    cout << "BASIS SIZE A " << _orbitalsA.getBasisSetSize() << endl;
-    cout << "NUMBER OF LEVELS" << _orbitalsA.getNumberOfLevels() << endl; 
+    //LOG(logDEBUG,*pLog) << "Basis size A " << _orbitalsA.getBasisSetSize() << flush;
+    //LOG(logDEBUG,*pLog) << "Number of Levels A " << _orbitalsA.getNumberOfLevels() << flush; 
     
-    exit(0);
     
     string DIR_B  = edft_work_dir + "/" + "molecules/" + frame_dir;
     //cout << "... ... " << DIR_B +"/" + ORB_FILE_B << "\n";
@@ -434,7 +436,8 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     boost::archive::binary_iarchive ia_B( ifs_B );
     ia_B >> _orbitalsB;
     ifs_B.close();
-    cout << "BASIS SIZE B " << _orbitalsB.getBasisSetSize()  << endl;
+    //LOG(logDEBUG,*pLog) << "Basis size B " << _orbitalsB.getBasisSetSize() << flush;
+    //LOG(logDEBUG,*pLog) << "Number of Levels B " << _orbitalsB.getNumberOfLevels() << flush; 
       
    if ( _package == "gaussian" ) { 
         
@@ -444,13 +447,13 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         _gaussian.setRunDir( GAUSS_DIR );
         _gaussian.setInputFile( COM_FILE );
 
-        cout << GAUSS_DIR << endl;
-        cout << COM_FILE << endl;
+        //cout << GAUSS_DIR << endl;
+        //cout << COM_FILE << endl;
         
         // provide a separate scratch dir for every thread
         if ( ( _gaussian.getScratchDir() ).size() != 0 ) {
           _gaussian.setShellFile( SHL_FILE );
-           string SCR_DIR  = _gaussian.getScratchDir() + "/pair_" + ID;
+           string SCR_DIR  = _gaussian.getScratchDir() + "/pair_" + sID;
           _gaussian.setScratchDir( SCR_DIR );
           _gaussian.WriteShellScript ();
         } 
@@ -458,15 +461,12 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         // in case we do not want to do an SCF loop for a dimer
         if ( _gaussian.GuessRequested() ) {
             
-            cout << "Preparing the guess" << endl;
+            LOG(logDEBUG,*pLog) << "Preparing the guess" << flush;
             
             PrepareGuess(&_orbitalsA, &_orbitalsB, &_orbitalsAB, opThread);
             
-            cout << "Preparing the guess" << endl;
-            cout << _orbitalsAB.getNumberOfLevels() << endl;
-             
-            cout << *_orbitalsAB.getEnergies()  << endl;
-            cout << "Guess address " << &_orbitalsAB << endl;
+            //cout << *_orbitalsAB.getEnergies()  << endl;
+            //cout << "Guess address " << &_orbitalsAB << endl;
             //Orbitals *_pOrbitalsAB = &_orbitalsAB;
             //cout << "Guess address " << _pOrbitalsAB << endl;
            
@@ -476,21 +476,18 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             
             _gaussian.WriteInputFile( segments, &_orbitalsAB );
         } else {
-            cout << "Preparing the guess" << endl;
             _gaussian.WriteInputFile( segments );
         }
-        cout << pLog;
-        exit(0);
         
         // Run the executable
-        _gaussian.Run( );
+        _run_status = _gaussian.Run( );
 
         // Collect information     
         _gaussian.setLogFile( GAUSS_DIR + "/" + LOG_FILE );
-        _gaussian.ParseLogFile( &_orbitalsAB );
+        _parse_log_status = _gaussian.ParseLogFile( &_orbitalsAB );
         
         _gaussian.setOrbitalsFile( GAUSS_DIR + "/" + GAUSSIAN_ORB_FILE );
-        _gaussian.ParseOrbitalsFile( &_orbitalsAB );
+        _parse_orbitals_status = _gaussian.ParseOrbitalsFile( &_orbitalsAB );
  
         // save orbitals 
         std::ofstream ofs( (ORBIT_DIR + "/" + ORB_FILE).c_str() );
@@ -512,13 +509,46 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
     LOG(logINFO,*pLog) << "Coupling h/e " << ID_A << ":" << ID_B << " " 
          << getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << " "
-         << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << endl; 
+         << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << flush; 
     
     qmpair->setJeff2( getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ),  1 );
     qmpair->setJeff2( getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ), -1 );
     
     // Output the thread run summary and clean the thread
     cout << *pLog;
+ 
+     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
+    Job::JobResult jres = Job::JobResult();
+    string output = "GAUSSIAN: ";
+    jres.setStatus(Job::COMPLETE);
+    
+    if ( !_run_status ) {
+        output += "run failed; " ;
+        LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
+        jres.setStatus(Job::FAILED);
+    } else {
+        output += "run completed; " ;
+    }
+    
+    if ( !_parse_log_status ) {
+        output += "log incomplete; ";
+        LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
+        jres.setStatus(Job::FAILED);
+    } else {
+        output += "log parsed; " ;
+    }
+
+    if ( !_parse_orbitals_status ) {
+        output += "fort7 failed; " ;
+        LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
+    } else {
+        output += "orbitals parsed; " ;
+    }
+
+    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << sID_A << ":" << sID_B << flush; 
+        
+    // output of the JOB 
+    jres.setOutput( output );   
     
     return Job::JobResult();
 }
@@ -542,7 +572,7 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
     
     ub::matrix<double>* _mo_coefficients = _orbitalsAB->getOrbitals();    
-    cout << "MO coefficients " << *_mo_coefficients << endl;
+    //cout << "MO coefficients " << *_mo_coefficients << endl;
     
     // AxB = | A 0 |  //   A = [EA, EB]  //
     //       | 0 B |  //                 //
@@ -557,7 +587,7 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
     ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();   
 
-    cout << "MO coefficients " << *_mo_coefficients << endl;
+    //cout << "MO coefficients " << *_mo_coefficients << endl;
     
     ub::vector<double>* _energies = _orbitalsAB->getEnergies();
     _energies->resize( _levelsA + _levelsB );
@@ -565,7 +595,7 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::project( *_energies, ub::range (0, _levelsA ) ) = *_orbitalsA->getEnergies();
     ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
     
-    cout << "MO energies " << *_energies << endl;
+    //cout << "MO energies " << *_energies << endl;
     
     ///"... ... Have now " >> _energies->size() >> " energies\n" >> *opThread;
 

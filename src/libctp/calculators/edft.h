@@ -247,6 +247,8 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     } else {
         output += "orbitals parsed; " ;
     }
+
+    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
         
     // output of the JOB 
     jres.setOutput( output );

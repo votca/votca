@@ -14,6 +14,7 @@ void JobWriter::Initialize(Topology *top, Property *options) {
     _key_funct["xqmultipole:chrg"] = &JobWriter::xqmultipole_chrg;
     _key_funct["xqmultipole:kmc"] = &JobWriter::xqmultipole_kmc;    
     _key_funct["edft"] = &JobWriter::edft;
+    _key_funct["idft"] = &JobWriter::idft;
     
     // SPLIT KEYS
     string keys = options->get("options.jobwriter.keys").as<string>();    
@@ -238,7 +239,7 @@ void JobWriter::xqmultipole_ct(Topology *top) {
     
 void JobWriter::edft(Topology *top) {
 
-    string jobFile = "jobs_edft.xml";   
+    string jobFile = "edft.jobs";   
     vector<Segment*>::iterator sit;
     
     ofstream ofs;
@@ -261,5 +262,45 @@ void JobWriter::edft(Topology *top) {
     
 }
     
+void JobWriter::idft(Topology *top) {
+
+    string jobFile = "idft.jobs";   
+    ofstream ofs;
+
+    ofs.open(jobFile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+ 
+    QMNBList::iterator pit;
+    QMNBList &nblist = top->NBList();    
+
+    int jobCount = 0;
+    if (nblist.size() == 0) {
+        cout << endl << "... ... No pairs in neighbor list, skip." << flush;
+        return;
+    }    
+
+    ofs << "<jobs>" << endl;    
     
+    for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+        
+        int id1 = (*pit)->Seg1()->getId();
+        string name1 = (*pit)->Seg1()->getName();
+        int id2 = (*pit)->Seg2()->getId();
+        string name2 = (*pit)->Seg2()->getName();   
+
+        int id = ++jobCount;
+        string tag = (format("%1$s:%2$s") % id1 % id2 ).str(); 
+        string input = (format("%1$s:%2$s") % name1 % name2 ).str();
+        string stat = "AVAILABLE";
+        Job job(id, tag, input, stat);
+        job.ToStream(ofs,"xml");
+    }
+
+    // CLOSE STREAM
+    ofs << "</jobs>" << endl;    
+    ofs.close();
+    
+}
+
+
 }}
