@@ -82,6 +82,7 @@ Orbitals::~Orbitals() {
     for ( it = _atoms.begin(); it != _atoms.end(); ++it ) delete *it;
 };   
 
+/*
 const int    &Orbitals::getBasisSetSize() const { 
     if ( _has_basis_set_size ) {
         return _basis_set_size; 
@@ -89,13 +90,14 @@ const int    &Orbitals::getBasisSetSize() const {
         throw std::runtime_error(" Basis set size is unknown. Parse a log file first. " );
     }
 }
+*/
 
 void          Orbitals::setBasisSetSize( const int &basis_set_size ){
     _has_basis_set_size = true; 
     _basis_set_size = basis_set_size; 
 }
 
-
+/*
 int     Orbitals::getNumberOfLevels() {
     if ( _has_occupied_levels && _has_unoccupied_levels ) {
         return  _occupied_levels + _unoccupied_levels; 
@@ -103,6 +105,7 @@ int     Orbitals::getNumberOfLevels() {
         throw std::runtime_error(" Number of levels is unknown. Parse a log file first. " );
     }
 }
+*/
 
 void   Orbitals::setNumberOfLevels( const int &occupied_levels,const int &unoccupied_levels  ){
     _has_occupied_levels = true; 
@@ -110,7 +113,7 @@ void   Orbitals::setNumberOfLevels( const int &occupied_levels,const int &unoccu
     _occupied_levels = occupied_levels; 
     _unoccupied_levels = unoccupied_levels; 
 }
-
+/*
 const int     &Orbitals::getNumberOfElectrons() const {
     if ( _has_number_of_electrons ) {
         return  _number_of_electrons; 
@@ -118,7 +121,7 @@ const int     &Orbitals::getNumberOfElectrons() const {
         throw std::runtime_error(" Number of electrons is unknown. Parse a log file first. " );
     }
 }
-
+*/
 void          Orbitals::setNumberOfElectrons( const int &electrons ){
     _has_number_of_electrons = true; 
     _number_of_electrons = electrons; 
@@ -175,7 +178,7 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
                     it != _level_degeneracy.end();
                     ++it) {
                 // output only degenerate levels
-                if ( (it->second).size() > 1 ) {
+                if ( (it->second).size() > 0 ) {
                     std::cout << "... ... level  "<< it->first << " : ";
                     for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
                             cout << *lev << " ";
@@ -210,7 +213,7 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
         */
         
     }        
-    
+    cout << "Getting degeneracy for level " << level << endl;
     return &_level_degeneracy.at(level);
 }
 

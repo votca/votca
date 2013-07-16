@@ -66,12 +66,13 @@ public:
     virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
     virtual void    EndEvaluate(CTP::Topology *top) { }
 
-    void            setnThreads(int nThreads) { _nThreads = nThreads; }
+    void            setnThreads(int nThreads) { _nThreads = nThreads; _maverick = (_nThreads == 1) ? true : false; }
     void            setProgObserver(ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
 
 protected:
 
     int _nThreads;
+    bool _maverick;
     Property _options;
     ProgObserver< vector<Job*>, Job*, Job::JobResult > *_progObs;
 

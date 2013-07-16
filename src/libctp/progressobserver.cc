@@ -135,8 +135,7 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
         << "Assign jobs from stack" << flush;
     _jobsToProc.clear();
     
-    int cacheSize = (_cacheSize < 8) ? 8 : _cacheSize;
-    while (_jobsToProc.size() < cacheSize) {
+    while (_jobsToProc.size() < _cacheSize) {
         if (_metajit == _jobs.end()) break;
         
         bool startJob = false;

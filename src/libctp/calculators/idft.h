@@ -80,7 +80,7 @@ private:
     
     void ParseOptionsXML( tools::Property *opt);    
     
-    void CalculateIntegrals(   Orbitals* _orbitalsA, 
+    bool CalculateIntegrals(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, 
                                QMThread *opThread );  

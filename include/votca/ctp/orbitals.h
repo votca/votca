@@ -106,13 +106,15 @@ public:
     Orbitals();
    ~Orbitals();
 
-    const int     &getBasisSetSize() const;
+    bool           hasBasisSetSize() { return _has_basis_set_size; }
+    int            getBasisSetSize() { return (_has_basis_set_size) ? _basis_set_size : 0; }
     void           setBasisSetSize( const int &basis_set_size );
     
-    int            getNumberOfLevels();
+    int            getNumberOfLevels() { return (_has_occupied_levels && _has_unoccupied_levels) ? ( _occupied_levels + _unoccupied_levels ) : 0; }
     void           setNumberOfLevels( const int &occupied_levels, const int &unoccupied_levels );
     
-    const int     &getNumberOfElectrons() const;
+    bool           hasNumberOfElectrons() { return _has_number_of_electrons; }
+    int            getNumberOfElectrons() { return (_has_number_of_electrons) ? _number_of_electrons : 0; } ;
     void           setNumberOfElectrons( const int &electrons );
     
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
@@ -123,8 +125,9 @@ public:
     std::vector< QMAtom* >* getAtoms() { return &_atoms; }
     
     bool hasSelfEnergy() { return _has_self_energy; }
-    bool hasQMEnergy() { return _has_qm_energy; }
     double getSelfEnergy() { return (_has_self_energy) ? _self_energy : 0; }
+
+    bool hasQMEnergy() { return _has_qm_energy; }
     double getQMEnergy() { return (_has_qm_energy) ? _qm_energy : 0; }
     
     // returns indeces of a re-sorted in a descending order vector of energies
