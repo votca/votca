@@ -26,6 +26,7 @@ Allowed options:
     --help       show this help
     --clean      remove all intermediate temp files
     --r2d        converts rad to degree (scale x axis with 180/3.1415)
+                 for angle and dihedral
                  Note: VOTCA calcs in rad, but gromacs in degree
     --no-shift   do not shift the potential
 EOF
@@ -33,7 +34,7 @@ EOF
 
 clean="no"
 do_shift="yes"
-xscale=1
+r2d=1
 
 ### begin parsing options
 shopt -s extglob
@@ -48,7 +49,7 @@ while [[ ${1#-} != $1 ]]; do
  fi
  case $1 in
    --r2d)
-    xscale="57.2957795"
+    r2d="57.2957795"
     shift ;;
    --clean)
     clean="yes"
@@ -65,25 +66,12 @@ while [[ ${1#-} != $1 ]]; do
 done
 ### end parsing options
 
-if [[ -n $1 ]]; then
-  name="${1%%.*}"
-  input="$1"
-  shift
-else
-  name=$(csg_get_interaction_property name)
-  input="${name}.pot.cur"
-fi
+[[ -z $1 || -z $2 ]] && die "${0##*/}: missing argument"
+input="$1"
+trunc="${1%%.*}"
 [[ -f $input ]] || die "${0##*/}: Could not find input file '$input'"
-
-if [[ -n $1 ]]; then 
-  output="$1"
-  shift
-else
-  output="$(csg_get_interaction_property inverse.gromacs.table)"
-fi
-
+output="$2"
 echo "Convert $input to $output"
-
 
 #special if calling from csg_call
 xvgtype="$(csg_get_interaction_property bondtype)"
@@ -119,17 +107,17 @@ fi
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 comment="$(get_table_comment $input)"
 
-if [[ $tabtype = "angle" || $tabtype = "dihedral" ]] && [[ $xscale != 1 ]]; then
-  scale="$(critical mktemp ${name}.pot.scale.XXXXX)"
-  do_external table linearop --on-x "${input}" "${scale}" "$xscale" "0"
+if [[ $tabtype = "angle" || $tabtype = "dihedral" ]] && [[ $r2d != 1 ]]; then
+  scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
+  do_external table linearop --on-x "${input}" "${scale}" "$r2d" "0"
 else
   scale="${input}"
 fi
 
-smooth="$(critical mktemp ${name}.pot.smooth.XXXXX)"
+smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
 critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 
-extrapol="$(critical mktemp ${name}.pot.extrapol.XXXXX)"
+extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
 if [[ $clean = "yes" ]]; then
   do_external potential extrapolate --clean --type "$tabtype" "${smooth}" "${extrapol}"
 else
@@ -137,7 +125,7 @@ else
 fi
 
 if [[ $do_shift = "yes" ]]; then
-  tshift="$(critical mktemp ${name}.pot.shift.XXXXX)"
+  tshift="$(critical mktemp ${trunc}.pot.shift.XXXXX)"
   if [[ $tabtype = "non-bonded" || $tabtype = "thermforce" ]]; then
     do_external pot shift_nonbonded "${extrapol}" "${tshift}"
   else

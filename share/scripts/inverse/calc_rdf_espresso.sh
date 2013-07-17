@@ -37,7 +37,7 @@ equi_snapshots="$(csg_get_property cg.inverse.espresso.first_frame)"
 esp="$(csg_get_property cg.inverse.espresso.blockfile)"
 [ -f "$esp" ] || die "${0##*/}: espresso blockfile '$esp' not found"
 
-esp_bin="$(csg_get_property cg.inverse.espresso.rdf_command)" 
+esp_bin="$(csg_get_property cg.inverse.espresso.rdf_command)"
 [ -n "$(type -p $esp_bin)" ] || die "${0##*/}: esp_bin binary '$esp_bin' not found"
 
 type1=$(csg_get_interaction_property type1)
@@ -54,7 +54,7 @@ if is_done "rdf-$name"; then
     echo "rdf analsysis for ${type1}-${type2} is already done"
 else
     # Output ${name}.dist.new.tab. Calculated by Espresso.
-    esp_script="$(critical mktemp esp.rdf.tcl.XXXXX)" 
+    esp_script="$(critical mktemp esp.rdf.tcl.XXXXX)"
     esp_success="$(critical mktemp esp.rdf.done.XXXXX)"
     cat > $esp_script <<EOF
 puts "Calculating RDF. Please wait..."
@@ -96,10 +96,10 @@ puts "Calculation finished."
 set out [open $esp_success w]
 close \$out
 EOF
-    
+
     critical $esp_bin $esp_script
     [ -f "$esp_success" ] || die "${0##*/}: Espresso calc rdf did not end successfully. Check log."
-    
+
     comment="$(get_table_comment)"
     critical csg_resample --in ${name}.dist.new.tab --out ${name}.dist.new --grid ${min}:${binsize}:${max} --comment "$comment"
     mark_done "rdf-$name"

@@ -18,7 +18,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents statistical analysis for the iterative Boltzmann inversion 
+This script implemtents statistical analysis for the iterative Boltzmann inversion
 using generic csg tools (csg_stat)
 
 Usage: ${0##*/}
@@ -30,9 +30,9 @@ name="$(csg_get_interaction_property name)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [[ $sim_prog = "gromacs" ]]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-  topol=$(csg_get_property cg.inverse.gromacs.rdf.topol "$topol")
-  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist" 
+  topol=$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.topol)
+  [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
+  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
   ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
   [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
@@ -41,8 +41,9 @@ else
 fi
 
 if [[ -n $(csg_get_property --allow-empty cg.bonded.name) ]]; then
-  mapping="$(csg_get_property cg.inverse.map)"
-  mapping="$(csg_get_property cg.inverse.gromacs.rdf.map "$mapping")"
+  mapping="$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.map)"
+  [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
+  [[ -z $mapping ]] && die "Mapping file for bonded interaction needed"
   [[ -f "$(get_main_dir)/$mapping" ]] || die "${0##*/}: Mapping file '$mapping' for bonded interaction not found in maindir"
   mapping="--cg $(get_main_dir)/$mapping"
 else
@@ -73,6 +74,9 @@ fi
 
 if [[ ${with_errors} = "yes" ]]; then
   if ! is_done "${name}_rdf_average"; then
+    for i in ${name}_*.dist.block; do
+      [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.gromacs.rdf.block_length) is too big."
+    done
     msg "Calculating average rdfs and its errors for interaction $name"
     do_external table average --output ${name}.dist.new ${name}_*.dist.block
     mark_done "${name}_rdf_average"

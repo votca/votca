@@ -50,7 +50,6 @@ first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
 with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors)
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
-  output="${output}.block"
 else
   suffix=""
 fi
@@ -63,13 +62,16 @@ fi
 if [[ ${with_errors} = "yes" ]]; then
   msg "Calculating density for $name with errors"
   block_length=$(csg_get_property cg.inverse.gromacs.density.block_length)
-  critical csg_density --trj "$traj" --top "$topol" --out "$output" --begin "$equi_time" --first-frame "$first_frame" --block-length $block_length "$@"
+  critical csg_density --trj "$traj" --top "$topol" --out "${output}.block" --begin "$equi_time" --first-frame "$first_frame" --block-length $block_length "$@"
+  for i in ${output}.block_*; do
+    [[ -f $i ]] || die "${0##*/}: Could not find ${output}.block_* after running csg_density, that usually means the blocksize (cg.inverse.gromacs.density.block_length) is too big."
+  done
   #mind the --clean option to avoid ${name}.dist.block_* to fail on the second run
   do_external table average --clean --output "${output}" ${output}.block_*
 else
   msg "Calculating density for $name"
   critical csg_density --trj "$traj" --top "$topol" --out "$output" --begin "$equi_time" --first-frame "$first_frame" "$@"
-  critical sed -i -e '/nan/d' -e '/inf/d' "$output"
 fi
+critical sed -i -e '/nan/d' -e '/inf/d' "$output"
 mark_done "${name}_density_analysis${suffix}"
 

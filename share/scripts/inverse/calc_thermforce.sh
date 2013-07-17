@@ -27,8 +27,6 @@ fi
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
-[[ -f $2 ]] && die "${0##*/}: $2 is already there"
-
 name=$(csg_get_interaction_property name)
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
@@ -46,7 +44,7 @@ else
   outfile="${name}.sym.dens"
   adressc="$(get_simulation_setting adress_reference_coords "0")"
   ref="$(echo "$adressc" | awk '{if (NF<1) exit 1; print $1;}')" || die "${0##*/}: we need at least one number in adress_reference_coords, but got '$adressc'"
-  critical do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$ref"
+  do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$ref"
   infile="${outfile}"
 fi
 
@@ -73,8 +71,8 @@ critical csg_resample --type cubic --in "$bigger" --out "$smooth" --grid "$sp_mi
 prefactor="$(csg_get_interaction_property inverse.tf.prefactor)"
 forcefile_pref="${name}.tf_with_prefactor"
 cg_prefactor="$(csg_get_interaction_property --allow-empty inverse.tf.cg_prefactor)"
-if [[ -z $cg_prefactor ]]; then 
-  echo "Using fixed prefactor $prefactor" 
+if [[ -z $cg_prefactor ]]; then
+  echo "Using fixed prefactor $prefactor"
   do_external table linearop "$forcefile" "${forcefile_pref}" "${prefactor}" 0.0
 else
   echo "Using linear interpolation of prefactors between $prefactor and $cg_prefactor"

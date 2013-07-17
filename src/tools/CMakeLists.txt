@@ -1,5 +1,6 @@
-foreach(PROG csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_density)
+foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_density)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
+  file(GLOB csg_reupdate_SOURCES csg_reupdate.cc potentialfunctions/*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_csg)
   install(TARGETS ${PROG} RUNTIME DESTINATION bin)

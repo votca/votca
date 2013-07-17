@@ -26,7 +26,7 @@ This script calcs dU out of two rdfs with the rules of inverse boltzmann
 In addition, it does some magic tricks:
 - do not update if one of the two rdf is undefined
 
-Usage: $progname new_rdf target_rdf cur_pot outfile
+Usage: $progname target_rdf new_rdf cur_pot outfile
 EOF
   exit 0;
 }
@@ -83,5 +83,6 @@ for (my $i=$#r_aim;$i>=0;$i--){
   }
 }
 
-saveto_table($outfile,@r_aim,@dpot,@flag) || die "$progname: error at save table\n";
+my $comment="#progname: aim_rdf=$aim_rdf_file cur_rdf=$cur_rdf_file cur_pot=$cur_rdf_file\n";
+saveto_table($outfile,@r_aim,@dpot,@flag,$comment) || die "$progname: error at save table\n";
 

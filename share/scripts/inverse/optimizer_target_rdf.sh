@@ -30,13 +30,24 @@ do_external rdf ${sim_prog}
 name="$(csg_get_interaction_property name)"
 [[ -f ${name}.dist.new ]] || die "${0##*/}: Could not calculate ${name}.dist.new"
 target="$(csg_get_interaction_property inverse.optimizer.rdf.target)"
-do_external resample target ${target} ${name}.dist.tgt
+if [[ $(csg_get_interaction_property inverse.optimizer.mapping.change) = no ]]; then
+  do_external resample target ${target} ${name}.dist.tgt
+else
+  otype="$(csg_get_property cg.inverse.optimizer.type)"
+  do_external calc target_rdf
+fi
 weight=$(csg_get_interaction_property --allow-empty inverse.optimizer.rdf.weight)
+weightfile=$(csg_get_interaction_property --allow-empty inverse.optimizer.rdf.weightfile)
 if [[ -n $weight ]]; then
   min=$(csg_get_interaction_property min)
   step=$(csg_get_interaction_property step)
   max=$(csg_get_interaction_property max)
-  do_external table functional --fct "$weight" --grid "${min}:${step}:${max}" "${name}.rdf.weight"
+  if [[ -z ${weightfile} ]]; then
+    do_external table functional --fct "$weight" --grid "${min}:${step}:${max}" "${name}.rdf.weight"
+  else
+    [[ -f $(get_main_dir)/${weightfile} ]] || die "${0##*/}: Could not find function weightfile '$weightfile' in maindir."
+    do_external table functional --fct "$weight" --grid "${min}:${step}:${max}" --headerfile "$(get_main_dir)/${weightfile}" "${name}.rdf.weight"
+  fi
   do_external table combine --op x "${name}.dist.tgt" "${name}.rdf.weight" "${name}.dist.tgt.weighted"
   do_external table combine --op x "${name}.dist.new" "${name}.rdf.weight" "${name}.dist.new.weighted"
   do_external table combine --sum --op d "${name}.dist.tgt.weighted" "${name}.dist.new.weighted" > "${name}.rdf.conv"

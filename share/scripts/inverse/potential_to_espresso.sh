@@ -25,10 +25,11 @@ EOF
   exit 0
 fi
 
-name=$(csg_get_interaction_property name)
-input="${name}.pot.cur"
-
-output="$(csg_get_interaction_property inverse.espresso.table)"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: missing argument"
+input="$1"
+trunc="${1%%.*}"
+[[ -f $input ]] || die "${0##*/}: Could not find input file '$input'"
+output="$2"
 echo "Convert $input to $output"
 
 r_cut=$(csg_get_interaction_property max)
@@ -36,5 +37,7 @@ espresso_bins="$(csg_get_property cg.inverse.espresso.table_bins)"
 
 comment="$(get_table_comment)"
 
-critical csg_resample --in ${input} --out smooth_${input} --der smooth_dpot_${input} --grid 0:${espresso_bins}:${r_cut} --comment "$comment"
-do_external convert_potential tab smooth_${input} smooth_dpot_${input} ${output}
+smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
+deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
+critical csg_resample --in ${input} --out "${smooth}" --der "${deriv}" --grid "0:${espresso_bins}:${r_cut}" --comment "$comment"
+do_external convert_potential tab "${smooth}" "${deriv}" "${output}"

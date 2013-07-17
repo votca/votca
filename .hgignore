@@ -18,13 +18,12 @@ scripts/multi_g_*.help
 scripts/multi_g_*.t2t
 scripts/csg_inverse.t2t
 scripts/*.out
-share/scripts/inverse/MD5SUM
+share/scripts/inverse/cma.py*
 share/doc/Doxyfile
 share/doc/html/*
 share/man/*.man
 share/template/template_serial
 share/template/template_threaded
-share/template/votca/csg
 src/csg_boltzmann/csg_boltzmann
 src/libcsg/version.cc
 src/libcsg/gmx_print_version
@@ -39,11 +38,13 @@ src/tools/csg_resample
 src/tools/csg_stat
 src/tools/csg_part_dist
 src/tools/csg_density
+src/tools/csg_reupdate
 
 src/libcsg/hgversion.h
 src/libcsg/votca_config.h
 
 netbeans/*/build
+netbeans/*/dist
 src/csg_boltzmann/build
 */nbproject/private
 Makefile-variables.mk

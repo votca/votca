@@ -41,7 +41,7 @@ else
 fi
 
 #convert potential in format for sim_prog
-for_all "non-bonded bonded" do_external convert_potential gromacs --r2d
+for_all "non-bonded bonded" do_external convert_potential gromacs --r2d '$(csg_get_interaction_property name).pot.cur $(csg_get_interaction_property inverse.gromacs.table)'
 
 check_temp || die "${0##*/}: check of tempertures failed"
 

@@ -259,6 +259,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
       ret=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$ret' in $mapping appears twice"
       ret="$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
       ret="$(echo "$ret" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
+      [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
       echo "$ret"
     elif [[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
       echo "thermforce"
@@ -366,7 +367,7 @@ to_int() { #convert all given numbers to int using awk's int function
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for i in "$@"; do
     is_num "$i" || die "${FUNCNAME[0]}: $i is not a number"
-    awk -v x="$i" 'BEGIN{ print int(x); }' || die "${FUNCNAME[0]}: awk failed"
+    awk -v x="$i" 'BEGIN{ print ( int(x) ) }' || die "${FUNCNAME[0]}: awk failed"
   done
   return 0
 }
@@ -389,12 +390,11 @@ has_duplicate() { #check if one of the argument is double
 }
 export -f has_duplicate
 
-
 is_num() { #checks if all arguments are numbers
   local i res
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for i in "$@"; do
-    res=$(awk -v x="$i" 'BEGIN{ print x+0==x; }') || die "${FUNCNAME[0]}: awk failed"
+    res=$(awk -v x="$i" 'BEGIN{ print ( x+0==x ) }') || die "${FUNCNAME[0]}: awk failed"
     [[ $res -eq 1 ]] || return 1
     unset res
   done
@@ -518,17 +518,21 @@ get_time() { #gives back current time in sec from 1970
 }
 export -f get_time
 
-get_number_tasks() { #get the number of possible tasks from the xml file or determine it automatically under linux
+get_number_tasks() { #get the number of possible tasks from the xml file or determine it automatically under some systems
   local tasks
   tasks="$(csg_get_property cg.inverse.simulation.tasks)"
   [[ $tasks = "auto" ]] && tasks=0
-  is_int "$tasks" || die "${FUNCNAME[0]}: cg.inverse.simulation.tasks needs to be a number or 'auto', but I got $tasks"
-  #this only work for linux
-  if [[ $tasks -eq 0 && -r /proc/cpuinfo ]]; then
-    tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')
-    [[ -z ${tasks//[0-9]} ]] || tasks=1
+  is_int "$tasks" || die "${FUNCNAME[0]}: cg.inverse.simulation.tasks needs to be a number or 'auto', but I got $(csg_get_property cg.inverse.simulation.tasks)"
+  if [[ $tasks -eq 0 ]]; then #auto-detect
+    if [[ -r /proc/cpuinfo ]]; then #linux
+      tasks=$(sed -n '/processor/p' /proc/cpuinfo | sed -n '$=')
+    elif [[ -x /usr/sbin/sysctl ]]; then #mac os
+      tasks=$(/usr/sbin/sysctl -n hw.ncpu)
+    elif [[ -x /usr/sbin/lsdev ]]; then #AIX
+      tasks=$(/usr/sbin/lsdev | sed -n '/Processor/p' | sed -n '$=')
+    fi
+    is_int "${tasks}" || tasks=1 #failback in case we got non-int
   fi
-  [[ $tasks -le 1 ]] && tasks=1
   echo "$tasks"
 }
 export -f get_number_tasks
@@ -676,8 +680,8 @@ csg_calc() { #simple calculator, a + b, ...
   [[ -n "$(type -p awk)" ]] || die "${FUNCNAME[0]}: Could not find awk"
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
-    "+"|"-"|'*'|"/"|"**")
-       res="$(awk -v x="$1" -v y="$3" "BEGIN{print x $2 y}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print x $2 y}' failed"
+    "+"|"-"|'*'|"/"|"^")
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
        true;;
     '>'|'<' )
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
@@ -689,7 +693,7 @@ csg_calc() { #simple calculator, a + b, ...
     "="|"==")
        #this is really tricky... case x=0,y=0 is catched by (x==y) after that |x-y|/max(|x|,|y|) will work expect for x,y beginng close to zero
        res="$(awk -v x="$1" -v y="$3" -v e="$err" \
-       'func max(x,y){return (x>y)?x:y;} func abs(x){return (x<0)?-x:x;} BEGIN{if (x==y){print 1;}else{if (abs(x-y)<e){print 1;}else{ print ( abs(x-y)/max(abs(x),abs(y)) < e );}}}')" \
+       'function max(x,y){return (x>y)?x:y;} function abs(x){return (x<0)?-x:x;} BEGIN{if (x==y){print 1;}else{if (abs(x-y)<e){print 1;}else{ print ( abs(x-y)/max(abs(x),abs(y)) < e );}}}')" \
 	 || die "${FUNCNAME[0]}: awk for =/== failed"
        #awk return 1 for true and 0 for false, shell exit codes are the other way around
        ret="$((1-$res))"
@@ -835,8 +839,10 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/bin/command}";;
       cg.inverse.scriptdir)
         new="${i/dir/path}";;
-      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.grompp.index)
+      cg.inverse.gromacs.grompp.index)
         new="${i/.grompp}";;
+      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.topol)
+        new="cg.inverse.gromacs.topol_in";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;
       cg.inverse.convergence_check)

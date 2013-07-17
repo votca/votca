@@ -27,7 +27,7 @@ EOF
    exit 0
 fi
 
-[[ -z $1 || -z $1 ]] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 # initialize & run the matlab file
 cat_external solve matlab | sed -e "s/\$name_out/$2/" -e "s/\$name/$1/" > solve_$1.m || die "${0##*/}: sed failed"

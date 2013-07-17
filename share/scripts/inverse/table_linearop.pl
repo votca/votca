@@ -103,10 +103,8 @@ if ("$with_errors" eq "yes") {
 
 for(my $i=0; $i<=$#r; $i++) {
   # skip if flag does not match
-  if($withflag) {
-    if(!($flag[$i] =~ m/[$withflag]/)) {
+  if(($withflag) and ($flag[$i] !~ m/[$withflag]/)) {
       next;
-    }
   }
   if ("$col" eq "x") {
     $r[$i]=$a*$r[$i]+$b;

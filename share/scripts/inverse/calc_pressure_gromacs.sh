@@ -29,8 +29,8 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-topol="$(csg_get_property cg.inverse.gromacs.g_energy.topol "${topol}")"
+topol="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.topol)"
+[[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
 [[ -f $topol ]] || die "${0##*/}: Gromacs tpr file '$topol' not found"
 
 g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin)"
@@ -42,10 +42,16 @@ opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.opts)"
 begin="$(calc_begin_time)"
 
 echo "Running ${g_energy}"
-output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${topol}" ${opts})
-echo "$output"
+output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${topol}" ${opts} 2>&1)
+echo "$output" | gromacs_log "${g_energy} -b "${begin}" -s "${topol}" ${opts}"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
-p_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
-  die "${0##*/}: awk failed"
+#awk 'print $2' does not work for older version of g_energy as the format varies between
+#^Pressure XXX (bar) and ^Pressure (bar) XXX
+p_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(\(-\?[0-9][^[:space:]]*[0-9]\|nan\)\)[[:space:]].*$/\1/p' ) || \
+  die "${0##*/}: sed grep of Pressure failed"
 [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
+
+[[ $p_now = nan && $(csg_get_property cg.inverse.gromacs.g_energy.pressure.allow_nan) = no ]] && \
+  die "${0##*/}: Pressure was nan, check your simulation (this usually means system has blow up -> use pre simulation)"
+
 echo "Pressure=${p_now}" > "$1"

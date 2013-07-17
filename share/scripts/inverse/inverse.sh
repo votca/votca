@@ -191,7 +191,7 @@ avg_steptime=0
 steps_done=0
 [[ $iterations_max -eq 0 ]] && iterations=$begin || iterations=$iterations_max
 for ((i=$begin;i<$iterations+1;i++)); do
-  [ $iterations_max -eq 0 ] && ((iterations++))
+  [[ $iterations_max -eq 0 ]] && ((iterations++))
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
@@ -236,7 +236,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
 
   if simulation_finish; then
     mark_done "Simulation"
-  elif [ "$(csg_get_property cg.inverse.simulation.background)" = "yes" ]; then
+  elif [[ "$(csg_get_property cg.inverse.simulation.background)" = "yes" ]]; then
     msg "Simulation is suppose to run in background, which we cannot check."
     msg "Stopping now, resume csg_inverse whenever the simulation is done."
     exit 0
@@ -272,12 +272,11 @@ for ((i=$begin;i<$iterations+1;i++)); do
     echo "No convergence check to be done"
   else
     msg "Doing convergence check: $convergence_check"
-    [[ -f stop ]] && rm -f stop
+    [[ -f stop ]] && rm -f stop #just in case a script created a stop file
     do_external convergence_check "$convergence_check"
     if [[ -f stop ]]; then
       msg "Iterations are converged, stopping"
-      touch "done"
-      exit 0
+      break
     else
       msg "Iterations are not converged, going on"
     fi

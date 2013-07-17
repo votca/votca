@@ -5,22 +5,22 @@ cmake_minimum_required(VERSION 2.6)
 
 project(${NAME})
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 enable_language(CXX)
+include(CheckCXXCompilerFlag)
 
-FIND_PACKAGE(PkgConfig)
-#only check for libvotca_csg, because it depends on libvotca_tools
-#do not use find_package to avoid extra dependencies
-#do not use REQUIRED here, we have a better error message then pkgconfig
-PKG_CHECK_MODULES(VOTCA_CSG libvotca_csg)
-if (NOT VOTCA_CSG_FOUND)
-  message(FATAL_ERROR "libvotca_csg not found, source VOTCARC.")
-endif (NOT VOTCA_CSG_FOUND)
-find_library(LIB_CSG votca_csg HINTS ${VOTCA_CSG_LIBRARY_DIRS})
-include_directories( ${VOTCA_CSG_INCLUDE_DIRS} )
+find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options )
+include_directories(${Boost_INCLUDE_DIRS})
+set (BOOST_LIBRARIES ${Boost_PROGRAM_OPTIONS_LIBRARY})
+
+find_package(VOTCA_TOOLS REQUIRED)
+include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
+find_package(VOTCA_CSG REQUIRED)
+include_directories(${VOTCA_CSG_INCLUDE_DIRS})
 
 file(GLOB ${NAME}_SOURCES ${NAME}*.cc)
 #add extra source files here
 add_executable(${NAME} ${${NAME}_SOURCES})
-target_link_libraries(${NAME} ${LIB_CSG})
+target_link_libraries(${NAME} ${VOTCA_CSG_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES})
 install(TARGETS ${NAME} RUNTIME DESTINATION bin)
 set_target_properties(${NAME} PROPERTIES OUTPUT_NAME csg_${NAME})
