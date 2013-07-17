@@ -163,11 +163,9 @@ protected:
     ub::vector<double>                      _mo_energies; 
     
     bool                                _has_mo_coefficients;
-    bool                                _save_mo_coefficients;
     ub::matrix<double>                      _mo_coefficients;
     
     bool                                _has_overlap;
-    bool                                _save_overlap;
     ub::symmetric_matrix<double>            _overlap;
     
     bool                                _has_charges;
@@ -198,30 +196,26 @@ private:
     template<typename Archive> 
     void serialize(Archive& ar, const unsigned version) {
 
-       // std::cout << "... ... Serializing the Orbitals." << std::endl ;
-       bool False = false;
-       
        ar & _has_basis_set_size;
        ar & _has_occupied_levels;
        ar & _has_unoccupied_levels;
        ar & _has_number_of_electrons;
        ar & _has_level_degeneracy;
        ar & _has_mo_energies;
+       ar & _has_mo_coefficients;
+       ar & _has_overlap;
        ar & _has_atoms;
        ar & _has_qm_energy;
        ar & _has_self_energy;
-      
-       if ( _save_mo_coefficients ) { ar & _has_mo_coefficients; } else { ar & False; }     
-       if ( _save_overlap ) { ar & _has_overlap; } else { ar & False; }
-
+       
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
        if ( _has_unoccupied_levels ) { ar & _unoccupied_levels; }
        if ( _has_number_of_electrons ) { ar & _number_of_electrons; }
        if ( _has_level_degeneracy ) { ar & _level_degeneracy; }
        if ( _has_mo_energies ) { ar & _mo_energies; }
-       if ( _has_mo_coefficients && _save_mo_coefficients ) { ar & _mo_coefficients; }
-       if ( _has_overlap && _save_overlap ) { 
+       if ( _has_mo_coefficients ) { ar & _mo_coefficients; }
+       if ( _has_overlap ) { 
            // symmetric matrix does not serialize by default
             if (Archive::is_saving::value) {
                 unsigned size = _overlap.size1();

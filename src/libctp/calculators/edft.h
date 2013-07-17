@@ -119,17 +119,17 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     bool _parse_log_status;
     bool _parse_orbitals_status;
     
-    Segment *seg = top->getSegment(job->getId());
-    
-    Logger* pLog = opThread->getLogger();
-    
-    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
-    
     FILE *out;
     Orbitals _orbitals;
-    vector < Segment* > segments;    
+    Job::JobResult jres = Job::JobResult();
+    string output = "GAUSSIAN: ";
     
+    vector < Segment* > segments;    
+    Segment *seg = top->getSegment(job->getId());
     segments.push_back( seg );
+
+    Logger* pLog = opThread->getLogger();
+    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
     // log, com, fort 7 files will be stored in ORB_FILES/gaussian/frame_x/mol_ID/
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
@@ -180,15 +180,25 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
         // Run the executable
         _run_status = _gaussian.Run( );
+        if ( !_run_status ) {
+                output += "run failed; " ;
+                LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
+                cout << *pLog;
+                jres.setStatus(Job::FAILED);
+                return jres;
+        } 
         
         // Collect information     
+        LOG(logDEBUG,*pLog) << "Parsing " <<  LOG_FILE << flush;
         _gaussian.setLogFile( DIR + "/" + LOG_FILE );
         _parse_log_status = _gaussian.ParseLogFile( &_orbitals );
         
+        LOG(logDEBUG,*pLog) << "Parsing " <<  GAUSSIAN_ORB_FILE << flush;
         _gaussian.setOrbitalsFile( DIR + "/" + GAUSSIAN_ORB_FILE );
         _parse_orbitals_status = _gaussian.ParseOrbitalsFile( &_orbitals );
  
         // save orbitals
+        LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
         std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
         oa << _orbitals;
@@ -200,12 +210,15 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         LOG(logDEBUG,*pLog) << "Serializing " << _nat << " atoms" << endl; 
         */
        
-        //Orbitals _orbitals_new;
-        //std::ifstream ifs( (DIR +"/" + ORB_FILE).c_str() );
-        //boost::archive::binary_iarchive ia( ifs );
-        //ia >> _orbitals_new;
-        //ifs.close();
-
+        /*
+        Orbitals _orbitals_new;
+        LOG(logDEBUG,*pLog) << "Deserializing from " <<  ORB_FILE << flush;
+        std::ifstream ifs( (ORB_DIR +"/" + ORB_FILE).c_str() );
+        boost::archive::binary_iarchive ia( ifs );
+        ia >> _orbitals_new;
+        ifs.close();
+        */
+       
         //_atoms = _orbitals_new.getAtoms();
         //cout << "Deserializing " << _atoms->size() << " atoms" << endl;
         //cout << (_atoms->front())->type << " ";
@@ -221,14 +234,14 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         _gaussian.CleanUp();
         
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    Job::JobResult jres = Job::JobResult();
-    string output = "GAUSSIAN: ";
     jres.setStatus(Job::COMPLETE);
     
     if ( !_run_status ) {
         output += "run failed; " ;
         LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
+        jres.setOutput( output ); 
         jres.setStatus(Job::FAILED);
+        return jres;
     } else {
         output += "run completed; " ;
     }
@@ -236,7 +249,9 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     if ( !_parse_log_status ) {
         output += "log incomplete; ";
         LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
+        jres.setOutput( output ); 
         jres.setStatus(Job::FAILED);
+        return jres;
     } else {
         output += "log parsed; " ;
     }
@@ -244,6 +259,9 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     if ( !_parse_orbitals_status ) {
         output += "fort7 failed; " ;
         LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
+        jres.setOutput( output ); 
+        jres.setStatus(Job::FAILED);
+        return jres;
     } else {
         output += "orbitals parsed; " ;
     }

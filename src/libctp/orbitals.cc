@@ -67,12 +67,11 @@ Orbitals::Orbitals() {
     _has_mo_energies = false;
     _has_overlap = false;
     _has_atoms = false;
-    
-    _save_mo_coefficients = true;
-    _save_overlap = true;
-        
+    _has_qm_energy = false;
+    _has_self_energy = false;
+            
 };   
-    
+
 Orbitals::~Orbitals() { 
     _mo_energies.clear();
     _mo_coefficients.clear();
@@ -178,7 +177,7 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
                     it != _level_degeneracy.end();
                     ++it) {
                 // output only degenerate levels
-                if ( (it->second).size() > 0 ) {
+                if ( (it->second).size() > 1 ) {
                     std::cout << "... ... level  "<< it->first << " : ";
                     for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
                             cout << *lev << " ";
@@ -213,7 +212,7 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
         */
         
     }        
-    cout << "Getting degeneracy for level " << level << endl;
+    //cout << "Getting degeneracy for level " << level << endl;
     return &_level_degeneracy.at(level);
 }
 

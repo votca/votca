@@ -233,7 +233,7 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     // AxB = | A 0 |  //
     //       | 0 B |  //  
-    LOG(logDEBUG,*_pLog) << "Constructing the direct product AxB" << flush;    
+    LOG(logDEBUG,*_pLog) << "Constructing direct product AxB" << flush;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
@@ -344,7 +344,7 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
         
         for (std::vector<int>::iterator iA = list_levelsA.begin()++; iA != list_levelsA.end(); iA++) {
                 for (std::vector<int>::iterator iB = list_levelsB.begin()++; iB != list_levelsB.end(); iB++) { 
-                    cout << *iA << ':' << *iB << endl;
+                    //cout << *iA << ':' << *iB << endl;
                     _JAB_one_level = _JAB->at_element( *iA - 1  , *iB -1 + _levelsA );
                     _JAB_sq +=  _JAB_one_level*_JAB_one_level ;
                 }
@@ -395,6 +395,15 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Segment *seg_B = top->getSegment( ID_B );
     qmpair = nblist.FindPair( seg_A, seg_B );
 
+    if ( qmpair == NULL ) {
+        output += (format("Pair %1%:%2% does not exist") % sID_A % sID_B ).str() ;
+        LOG(logERROR,*pLog) << "Non-existing pair " << sID_A << ":" << sID_B << flush;
+        cout << *pLog;
+        jres.setOutput( output ); 
+        jres.setStatus(Job::FAILED);
+        return jres;
+
+    }
     
     LOG(logDEBUG,*pLog) << TimeStamp() << " Evaluating pair "  
             << sID << " ["  << ID_A << ":" << ID_B << "] out of " << 
@@ -445,8 +454,8 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     //string ORB_FILE_A = "monomer.orb";
     //string ORB_FILE_B = "monomer.orb";
    
+    LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE_A << flush;    
     string DIR_A  = edft_work_dir + "/" + "molecules/" + frame_dir;
-    //cout << "... ... " + DIR_A +"/" + ORB_FILE_A + "\n";
     std::ifstream ifs_A( (DIR_A +"/" + ORB_FILE_A).c_str() );
     boost::archive::binary_iarchive ia_A( ifs_A );
     ia_A >> _orbitalsA;
@@ -455,6 +464,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     //LOG(logDEBUG,*pLog) << "Number of Levels A " << _orbitalsA.getNumberOfLevels() << flush; 
     
     
+    LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE_B << flush;    
     string DIR_B  = edft_work_dir + "/" + "molecules/" + frame_dir;
     //cout << "... ... " << DIR_B +"/" + ORB_FILE_B << "\n";
     std::ifstream ifs_B( (DIR_B +"/" + ORB_FILE_B).c_str() );
@@ -495,12 +505,13 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         }
         
         // Run the gaussian executable
-        _run_status = _gaussian.Run( );
-        //_run_status = true;
+        //_run_status = _gaussian.Run( );
+        _run_status = true;
         if ( !_run_status ) {
                 output += "run failed; " ;
                 LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
                 cout << *pLog;
+                jres.setOutput( output ); 
                 jres.setStatus(Job::FAILED);
                 return jres;
         } 
@@ -513,6 +524,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                 output += "log incomplete; ";
                 LOG(logERROR,*pLog) << "GAUSSIAN log parsing failed" << flush;
                 cout << *pLog;
+                jres.setOutput( output ); 
                 jres.setStatus(Job::FAILED);
                 return jres;
         } 
@@ -524,11 +536,13 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                 output += "fort7 failed; " ;
                 LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) parsing failed" << flush;
                 cout << *pLog;
+                jres.setOutput( output ); 
                 jres.setStatus(Job::FAILED);
                 return jres;
         } 
         
         // save orbitals 
+        LOG(logDEBUG,*pLog) << "Saving orbitals to " << ORB_FILE << flush;    
         std::ofstream ofs( (ORBIT_DIR + "/" + ORB_FILE).c_str() );
         boost::archive::binary_oarchive oa( ofs );
         oa << _orbitalsAB;
@@ -544,6 +558,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         output += "integrals failed; " ;
         LOG(logERROR,*pLog) << "Calculating integrals failed" << flush;
         cout << *pLog;
+        jres.setOutput( output ); 
         jres.setStatus(Job::FAILED);
         return jres;
     } 
@@ -569,7 +584,14 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
      cout << *pLog;
 
     // output of the JOB 
-    output += (format("Pair %1%:%2% Coupling h:e %3%:%4%") % sID_A % sID_B % J_h % J_e).str() ;
+    //output += (format("Pair %1%:%2% Coupling h:e %3%:%4%") % sID_A % sID_B % J_h % J_e).str() ;
+    
+    for (int levelA = 1; levelA < _orbitalsA.getNumberOfLevels(); ++levelA ) {
+        for (int levelB = levelA; levelB < _orbitalsB.getNumberOfLevels(); ++levelB ) {
+            output += (format("\n%1%:%2%:%3%") % levelA % levelB % getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB ) ).str() ;
+        }
+    }
+    
     jres.setOutput( output );   
     jres.setStatus(Job::COMPLETE);
     

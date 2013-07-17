@@ -123,7 +123,7 @@ protected:
                 // collect all messages of one thread
                 _stringStream << _message.str()  << " " << str();
             } else {
-                // if only one thread outputs, flash immediately
+                // if only one thread outputs, flush immediately
                 std::cout << _message.str() << " " << str() << std::flush;
             }
             _message.str("");
