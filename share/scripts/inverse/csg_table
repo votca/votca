@@ -187,6 +187,7 @@ table functional table_functional.sh
 
 # generic potential manipulation
 potential extrapolate potential_extrapolate.sh
+convert_potential tab table_to_tab.pl
 
 # tools needed for (atom/molecule) configuration handling
 configuration compare configuration_compare.py
@@ -209,6 +210,8 @@ prepare_generic gromacs prepare_generic_gromacs.sh
 initstep_generic gromacs initialize_step_generic_gromacs.sh
 prepare_generic espresso prepare_generic_espresso.sh
 initstep_generic espresso initialize_step_generic_espresso.sh
+prepare_generic lammps prepare_generic_lammps.sh
+initstep_generic lammps initialize_step_generic_lammps.sh
 
 
 # gromacs scripts specific stuff
@@ -224,10 +227,18 @@ pressure espresso calc_pressure_espresso.sh
 rdf espresso calc_rdf_espresso.sh
 
 # ESPResSo scripts
-convert_potential espresso potential_to_espresso.sh
-convert_potential tab table_to_tab.pl
+convert_potential espresso potential_to_generic.sh
 
 # function for ESPResSo
 functions espresso functions_espresso.sh
+
+# lammps scripts
+convert_potential lammps potential_to_generic.sh
+
+# Interface to ESPResSo
+run lammps run_lammps.sh
+
+# function for lammps
+functions lammps functions_lammps.sh
 
 # END: these scripts have to be defined for each simulation program

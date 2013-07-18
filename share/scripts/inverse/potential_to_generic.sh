@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script is a wrapper to convert a potential to espresso
+This script is a high class wrapper to convert a potential to the generic
+3 column tab format used by espresso and lammps
 
 Usage: ${0##*/}
 EOF
@@ -32,12 +33,14 @@ trunc="${1%%.*}"
 output="$2"
 echo "Convert $input to $output"
 
+sim_prog="$(csg_get_property cg.inverse.program)"
 r_cut=$(csg_get_interaction_property max)
-espresso_bins="$(csg_get_property cg.inverse.espresso.table_bins)"
+r_min=$(csg_get_interaction_property min)
+bin_size="$(csg_get_property cg.inverse.${sim_prog}.table_bins)"
 
 comment="$(get_table_comment)"
 
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
-critical csg_resample --in ${input} --out "${smooth}" --der "${deriv}" --grid "0:${espresso_bins}:${r_cut}" --comment "$comment"
+critical csg_resample --in ${input} --out "${smooth}" --der "${deriv}" --grid "${r_min}:${bin_size}:${r_cut}" --comment "$comment"
 do_external convert_potential tab "${smooth}" "${deriv}" "${output}"

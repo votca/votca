@@ -68,9 +68,6 @@
       <table_bins>
 	<DESC>espresso internal grid for tabulated potentials</DESC>
       </table_bins>
-      <table_end>
-	<DESC>end of espresso internal table</DESC>
-      </table_end>
       <traj>top_traj.esp
 	<DESC> Name of the output Espresso trajectory file</DESC>
       </traj>
@@ -254,6 +251,15 @@
 	<DESC> solver for solving a linear equation system: octave/numpy/matlab </DESC>
       </solver>
     </imc>
+    <lammps>
+      <DESC> general lammps specific options </DESC>
+      <command>lmp
+	<DESC> command to run lammps  (name or absolute path or mpirun lammps..) </DESC>
+      </command>
+      <script>
+	<DESC> lammps script to run </DESC>
+      </script>
+    </lammps>
     <re>
       <DESC>general options for realtive entropy method</DESC>
       <csg_reupdate>
