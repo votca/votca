@@ -13,7 +13,7 @@
     
     <inverse>
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
-      <target>rdf_CG_CG_aim.xvg</target>
+      <target>CG-CG.dist.tgt</target>
       <!-- update cycles -->
       <do_potential>1</do_potential>
       <!-- additional post processing of dU before added to potential -->
