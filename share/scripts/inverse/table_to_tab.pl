@@ -87,11 +87,11 @@ if ($sim_prog eq "espresso") {
   printf(OUTFILE "VOTCA\n");
   printf(OUTFILE "N %i R %f %f\n",$#r+1,$r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $force[$i], $pot[$i]);
+    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], $force[$i]);
   }
 } else {
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], $force[$i], $pot[$i]);
+    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], $force[$i]);
   }
 }
 close(OUTFILE) or die "Error at closing $outfile\n";

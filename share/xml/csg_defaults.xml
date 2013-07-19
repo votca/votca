@@ -433,6 +433,12 @@
 	  <DESC>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups.</DESC>
 	</group>
       </imc>
+      <lammps>
+	<DESC>lammps specific options for this interations</DESC>
+        <table>
+	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the lammps script needs to contain the name of that table as the tabulated interaction and the interaction is stored in the VOTCA section of the file..</DESC>
+	</table>
+      </lammps>
       <post_add>
 	<DESC>Additional post processing of U after dU added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</DESC>
       </post_add>
