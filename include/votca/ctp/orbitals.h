@@ -120,6 +120,7 @@ public:
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
+    double getEnergy( int level) { return (_has_mo_energies) ? _conv_Hrt_eV*_mo_energies[level-1] : 0; }
     
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
     std::vector< QMAtom* >* getAtoms() { return &_atoms; }

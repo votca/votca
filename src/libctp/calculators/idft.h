@@ -67,15 +67,15 @@ private:
     static const double _conv_Hrt_eV = 27.21138386;
 
     int                 _max_occupied_levels;
-    int                 _max_unoccupied_levels;
-
+    int                 _max_unoccupied_levels;  
+    
     string              _package;
     Property            _package_options; 
     
     double              _energy_difference;    
         
     string              _outParent;
-            
+    
     void SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
     
     void ParseOptionsXML( tools::Property *opt);    
@@ -86,7 +86,7 @@ private:
                                QMThread *opThread );  
     
     double getCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsA,  
                                Orbitals* _orbitalsB, 
                                ub::matrix<double>* _JAB );
     

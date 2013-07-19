@@ -48,15 +48,14 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     // Orbitals are in fort.7 file; number of electrons in .log file
     
     string key = "options." + Identify();
-    if ( opt->exists( key + ".degeneracy" ) ) {
-        _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
-    }
-    else {
-        cout << "... ... NOT treating degenerate orbitals\n" ;
-    }    
-
+    _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
+    
     _jobfile = opt->get(key + ".control.job_file").as<string>();
-
+    string _tasks = opt->get(key+".control.tasks").as<string> ();
+    
+    _max_occupied_levels = opt->get(key+".output.levels").as<int> ();
+    _max_unoccupied_levels = _max_occupied_levels;
+    
     string _package_xml = opt->get(key+".package").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
 
@@ -405,7 +404,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     }
     
-    LOG(logDEBUG,*pLog) << TimeStamp() << " Evaluating pair "  
+    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating pair "  
             << sID << " ["  << ID_A << ":" << ID_B << "] out of " << 
            (top->NBList()).size()  << flush; 
     
@@ -586,13 +585,35 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // output of the JOB 
     //output += (format("Pair %1%:%2% Coupling h:e %3%:%4%") % sID_A % sID_B % J_h % J_e).str() ;
     
-    for (int levelA = 1; levelA < _orbitalsA.getNumberOfLevels(); ++levelA ) {
-        for (int levelB = levelA; levelB < _orbitalsB.getNumberOfLevels(); ++levelB ) {
-            output += (format("\n%1%:%2%:%3%") % levelA % levelB % getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB ) ).str() ;
+    for (int levelA = HOMO_A - _max_occupied_levels; levelA < LUMO_A + _max_unoccupied_levels; ++levelA ) {
+        for (int levelB = HOMO_B - _max_occupied_levels; levelB < HOMO_B + _max_unoccupied_levels ; ++levelB ) {
+            double energyA = _orbitalsA.getEnergy( levelA );
+            double energyB = _orbitalsB.getEnergy( levelB );
+            output += (format("%1%:%2%:%3%:%4%:%5% ") % levelA % energyA % levelB % energyB % getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB ) ).str() ;
         }
     }
+
+    /* <pair idA="" idB="" typeA="" typeB="">
+     *          <overlap orbA="" orbB="" enA="" enB="" ></overlap>
+     * </pair>
+     * 
+     */ 
+    Property _job_summary;
+        Property *_pair_summary = &_job_summary.add("pair","");
+        _pair_summary->setAttribute("idA", sID_A);
+        _pair_summary->setAttribute("idB", sID_B);
+        _pair_summary->setAttribute("typeA", "");
+        _pair_summary->setAttribute("typeB", "");
+                Property *_overlap_summary = &_pair_summary->add("overlap",""); 
+                _overlap_summary->setAttribute("orbA", "");
+                _overlap_summary->setAttribute("orbB", "");
+                _overlap_summary->setAttribute("enA", "");
+                _overlap_summary->setAttribute("enB", "");
     
-    jres.setOutput( output );   
+                stringstream sout;
+                sout <<  setlevel(1) << *_pair_summary;
+                
+    jres.setOutput( sout.str() );   
     jres.setStatus(Job::COMPLETE);
     
     return jres;
