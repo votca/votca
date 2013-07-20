@@ -1,16 +1,14 @@
-# 3d Lennard-Jones melt
+# coarse-grained spce water
 
 units		lj
 atom_style	atomic
 
-atom_modify map array sort 0 0.0
 read_data       spce.data
 
 velocity	all create 2.49 87287
 
 pair_style	table linear 1000
 pair_coeff	1 1 CG_CG.pot VOTCA 0.9
-pair_write	1 1 1000 r 0.1 0.8 table.txt IBI
 
 timestep	0.001
 fix		1 all nve
@@ -19,7 +17,6 @@ compute 	myrdf all rdf 91 1 1
 fix		3 all ave/time 5 50 250 c_myrdf file spce.rdf mode vector
 
 dump		1 all xyz 50 traj.xyz
-dump		2 all custom 1 traj.custom id x y z fx fy fz mass
 
 thermo		50
 run		250
