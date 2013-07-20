@@ -27,7 +27,6 @@ This script converts csg potential files to the tab format
 
 In addition, it does some magic tricks:
 - shift the potential, so that it is zero at the cutoff
-- set all values to zero after the cutoff
 
 Usage: $progname in_pot in_deriv_pot outfile
 EOF
@@ -59,21 +58,20 @@ for (my $i=0;$i<=$#r;$i++){
    $pot[$i]-=$pot[$#r];
 }
 
-my @force=@d_pot;
+my @minus_force=@d_pot;
 
 # Smooth out force (9-point avg) 
 for (my $i=4;$i<$#r_repeat-3;$i++){
-		$force[$i]=($d_pot[$i-4]+$d_pot[$i-3]+$d_pot[$i-2]
+		$minus_force[$i]=($d_pot[$i-4]+$d_pot[$i-3]+$d_pot[$i-2]
 								+$d_pot[$i-1]+$d_pot[$i]+$d_pot[$i+1]+$d_pot[$i+2]
 								+$d_pot[$i+3]+$d_pot[$i+4])/(9.);
 }
 
 if ($sim_prog eq "espresso") {
   # add extra 1/r factor for ESPResSo
-  for (my $i=1;$i<=$#r_repeat;$i++){
-		$force[$i]*=-1.0/$r_repeat[$i];
+  for (my $i=0;$i<=$#r_repeat;$i++){
+		$minus_force[$i]*=1.0/$r_repeat[$i] if ($r_repeat[$i] > 0);
   } 
-  $force[0]=$force[1];
 }
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
@@ -81,17 +79,17 @@ open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 if ($sim_prog eq "espresso") {
   printf(OUTFILE "#%d %f %f\n", $#r+1, $r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], $force[$i], $pot[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], -$minus_force[$i], $pot[$i]);
   }
 } elsif ($sim_prog eq "lammps") {
   printf(OUTFILE "VOTCA\n");
-  printf(OUTFILE "N %i R %f %f\n",$#r+1,$r[0],$r[$#r]);
+  printf(OUTFILE "N %i R %f %f\n\n",$#r+1,$r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], $force[$i]);
+    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$minus_force[$i]);
   }
 } else {
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], $force[$i]);
+    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], -$minus_force[$i]);
   }
 }
 close(OUTFILE) or die "Error at closing $outfile\n";
