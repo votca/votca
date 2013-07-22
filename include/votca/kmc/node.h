@@ -33,6 +33,14 @@ class Node {
         const vec &getPosition() const { return _position; }
         const vector<Node*> &getNeighbours(CarrierType type){ return _neighbours[type]; }
         const double &getOccupation( CarrierType type ) const { return _occupation[type]; }
+        
+        void setID (int index) {
+            _id = index;
+        }
+        void setPosition (double ix, double iy, double iz) {
+            _position = vec(ix,iy,iz);
+        };
+
     private:
         int _id;
         const string _type;

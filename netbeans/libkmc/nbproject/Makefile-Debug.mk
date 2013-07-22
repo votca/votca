@@ -34,8 +34,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o \
-	${OBJECTDIR}/_ext/484465351/kmcapplication.o
+	${OBJECTDIR}/_ext/484465351/kmcapplication.o \
+	${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o
 
 
 # C Compiler Flags
@@ -64,15 +64,15 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a: ${OBJECTFILES}
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a ${OBJECTFILES} 
 	$(RANLIB) ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a
 
-${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o: ../../src/libkmc/kmccalculatorfactory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
-	${RM} $@.d
-	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
-
 ${OBJECTDIR}/_ext/484465351/kmcapplication.o: ../../src/libkmc/kmcapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
 	${RM} $@.d
 	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmcapplication.o ../../src/libkmc/kmcapplication.cc
+
+${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o: ../../src/libkmc/kmccalculatorfactory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
+	${RM} $@.d
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
 
 # Subprojects
 .build-subprojects:

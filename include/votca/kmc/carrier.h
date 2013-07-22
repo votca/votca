@@ -19,6 +19,7 @@
 #define __VOTCA_KMC_CARRIER_H_
 
 #include <votca/tools/vec.h>
+#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
   
