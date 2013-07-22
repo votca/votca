@@ -18,9 +18,24 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
+my $usage="Usage: $progname [OPTIONS] <in> <derivatives_in> <out>";
+my $type="non-bonded";
+my $sim_prog="none";
 
-if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
-  print <<EOF;
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
+{
+  if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
+    $_=shift(@ARGV);
+    #short opt having agruments examples fo
+    if ( $_ =~ /^-[fo]/ ) {
+      unshift(@ARGV,substr($_,0,2),substr($_,2));
+    }
+    else{
+      unshift(@ARGV,substr($_,0,2),"-".substr($_,2));
+    }
+  }
+  if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help")){
+    print <<EOF;
 $progname, version %version%
 This script converts csg potential files to the tab format
 (as read by espresso and lammps).
@@ -28,10 +43,33 @@ This script converts csg potential files to the tab format
 In addition, it does some magic tricks:
 - shift the potential, so that it is zero at the cutoff
 
-Usage: $progname in_pot in_deriv_pot outfile
+$usage
+
+Allowed options:
+-h, --help            show this help message
+--type XXX            change the type of xvg table
+                      Default: $type
+--header XXX          Write a special simulation programm header
+
+Examples:
+* $progname --type non-bonded table.in table_b0.xvg
 EOF
-  exit 0;
+    exit 0;
+  }
+  elsif ($ARGV[0] eq "--type"){
+      shift(@ARGV);
+      $type = shift(@ARGV);
+  }
+  elsif ($ARGV[0] eq "--header"){
+      shift(@ARGV);
+      $sim_prog = shift(@ARGV);
+  }
+  else{
+    die "Unknown option '".$ARGV[0]."' !\n";
+  }
 }
+
+die "$progname: conversion of bonded interaction to generic tables is not implemented yet!" unless ($type eq "non-bonded");
 
 die "3 parameters are necessary\n" if ($#ARGV<2);
 
@@ -40,8 +78,6 @@ use CsgFunctions;
 my $in_pot="$ARGV[0]";
 my $in_deriv_pot="$ARGV[1]";
 my $outfile="$ARGV[2]";
-
-my $sim_prog=csg_get_property("cg.inverse.program");
 
 my @r;
 my @r_repeat;

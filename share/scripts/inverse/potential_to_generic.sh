@@ -33,14 +33,27 @@ trunc="${1%%.*}"
 output="$2"
 echo "Convert $input to $output"
 
+bondtype="$(csg_get_interaction_property bondtype)"
+[[ $bondtype != non-bonded ]] && die "${0##*/}: conversion of bonded interaction to generic tables is not implemented yet!"
+
 sim_prog="$(csg_get_property cg.inverse.program)"
 r_cut=$(csg_get_interaction_property max)
 r_min=$(csg_get_interaction_property min)
 bin_size="$(csg_get_property cg.inverse.${sim_prog}.table_bins)"
 
 comment="$(get_table_comment)"
+table_begin="$(csg_get_interaction_property --allow-empty inverse.${sim_prog}.table_begin)"
+if [[ -z ${table_begin} ]]; then 
+  table_begin="$r_min"
+else
+  smooth2="$(critical mktemp ${trunc}.pot.extended.XXXXX)"
+  critical csg_resample --in ${input} --out "${smooth2}" --grid "${table_begin}:${bin_size}:${r_cut}" --comment "$comment"
+  extrapolate="$(critical mktemp ${trunc}.pot.extrapolated.XXXXX)"
+  do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate}"
+  input="${extrapolate}"
+fi
 
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
-critical csg_resample --in ${input} --out "${smooth}" --der "${deriv}" --grid "${r_min}:${bin_size}:${r_cut}" --comment "$comment"
-do_external convert_potential tab "${smooth}" "${deriv}" "${output}"
+critical csg_resample --in ${input} --out "${smooth}" --der "${deriv}" --grid "${table_begin}:${bin_size}:${r_cut}" --comment "$comment"
+do_external convert_potential tab --header "${sim_prog}" --type "${bondtype}" "${smooth}" "${deriv}" "${output}"
