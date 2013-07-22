@@ -7,7 +7,7 @@
     <type1>CG</type1>
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
-    <min>0.20</min>
+    <min>0.25</min>
     <max>0.9</max>
     <step>0.01</step>
     <inverse>
@@ -21,7 +21,8 @@
       <post_add></post_add>
       <!-- name of the table for gromacs run -->
       <lammps>
-        <table>CG_CG.pot</table>
+	<table>CG_CG.pot</table>
+	<table_begin>0.20</table_begin>
       </lammps>
     </inverse>
   </non-bonded>
