@@ -44,5 +44,7 @@ else
 
     comment="$(get_table_comment)"
     critical csg_resample --in "${tmp}" --out "${name}".dist.new --grid "${min}:${binsize}:${max}" --comment "$comment"
+    #lammps rdf output has bin middle, hence $max is marked with o
+    critical sed -i '$s/o$/i/' "${name}".dist.new
     mark_done "rdf-$name"
 fi
