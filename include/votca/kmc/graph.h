@@ -32,7 +32,7 @@ class Graph {
      // TO IMPLEMENT
      // void Load(){};
      // TO IMPLEMENT
-     void CreateSquareLattice(int NX, int NY, int NZ, double latconst);
+     void CreateCubicLattice(int NX, int NY, int NZ, double latt_const);
      
      //const vector<Node*> &getNeighbours( Node* node, CarrierType type ) { return node->getNeighbours(type); }
    
@@ -41,7 +41,7 @@ class Graph {
      
 };
 
-/* void Graph::Load() {
+void Graph::Load() {
     
     votca::tools::Database db;
     db.Open( _filename );
@@ -53,19 +53,22 @@ class Graph {
     int index = 0;
     
     while (stmt->Step() != SQLITE_DONE) {
+        Node *newNode = new Node();
+        nodes.push_back(newNode);
+   
         node_id = stmt->Column<int>(0);
         nodeposition = vec(stmt->Column<double>(1),stmt->Coulumb<double(2),stmt->Coulomb<double(3)); //positions in nm
 
-        nodes[index]->id = node_id;
-        nodes[index]->position = nodeposition;
+        nodes[index]->setID(node_id);
+        nodes[index]->setPosition(nodeposition);
         
         index++;
     }    
     
 
-} */
+}
 
-void Graph:: CreateSquareLattice(int NX, int NY, int NZ, double latt_const) {
+void Graph:: CreateCubicLattice(int NX, int NY, int NZ, double latt_const) {
     
     //specify lattice types (square lattice, fcc lattice, fractal lattice?)
     //and dimensions
@@ -84,7 +87,7 @@ void Graph:: CreateSquareLattice(int NX, int NY, int NZ, double latt_const) {
                 nodeposition = vec(latt_const*ix,latt_const*iy,latt_const*iz); //positions in nm
 
                 nodes[index]->setID(node_id);
-                nodes[index]->setPosition(latt_const*ix,latt_const*iy,latt_const*iz);
+                nodes[index]->setPosition(nodeposition);
                     
                 index++;
             }

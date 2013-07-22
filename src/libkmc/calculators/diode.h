@@ -132,7 +132,7 @@ void Diode::RunKMC() {
  //   cout << _graph->nodes[0]->nodeposition.x;
 
 
-    _graph.CreateSquareLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
+    _graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
     
 //    State _state;
 //    _state.Load();
