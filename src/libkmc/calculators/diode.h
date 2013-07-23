@@ -19,16 +19,21 @@
 #define	__VOTCA_KMC_DIODE_H
 
 #include <votca/kmc/graph.h>
+<<<<<<< local
 //#include <votca/kmc/carrier.h>
 //#include <votca/kmc/state.h>
 //#include <votca/kmc/event.h>
 #include <votca/tools/vec.h>
+=======
+#include <votca/kmc/carrier.h>
+#include <votca/kmc/state.h>
+#include <votca/kmc/event.h>
+>>>>>>> other
 
 using namespace std;
 
 namespace votca { namespace kmc {
     
-   
 class Diode : public KMCCalculator 
 {
 public:
@@ -134,8 +139,8 @@ void Diode::RunKMC() {
 
     _graph.CreateSquareLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
     
-//    State _state;
-//    _state.Load();
+    State _state;
+    _state.Load();
 
 }
 
