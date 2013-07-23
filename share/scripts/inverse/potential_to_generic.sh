@@ -38,11 +38,13 @@ bondtype="$(csg_get_interaction_property bondtype)"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 r_cut=$(csg_get_interaction_property max)
+step=$(csg_get_interaction_property step)
 r_min=$(csg_get_interaction_property min)
-bin_size="$(csg_get_property cg.inverse.${sim_prog}.table_bins)"
+bin_size="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_bins)"
+[[ -z ${bin_size} ]] && bin_size="${step}"
 
 comment="$(get_table_comment)"
-table_begin="$(csg_get_interaction_property --allow-empty inverse.${sim_prog}.table_begin)"
+table_begin="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_begin)"
 if [[ -z ${table_begin} ]]; then 
   table_begin="$r_min"
 else
