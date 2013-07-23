@@ -29,19 +29,20 @@ fi
 name="$(csg_get_interaction_property name)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
+topol=$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.topol)
 if [[ $sim_prog = "gromacs" ]]; then
-  topol=$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.topol)
   [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
   ext=$(csg_get_property cg.inverse.gromacs.traj_type)
   traj="traj.${ext}"
-  [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
 else
-  die "${0##*/}: Simulation program '$sim_prog' not supported yet"
+  [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
+  traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 fi
+[[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
+[[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
 if [[ -n $(csg_get_property --allow-empty cg.bonded.name) ]]; then
-  mapping="$(csg_get_property --allow-empty cg.inverse.gromacs.rdf.map)"
+  mapping="$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.map)"
   [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
   [[ -z $mapping ]] && die "Mapping file for bonded interaction needed"
   [[ -f "$(get_main_dir)/$mapping" ]] || die "${0##*/}: Mapping file '$mapping' for bonded interaction not found in maindir"
@@ -50,13 +51,13 @@ else
   mapping=""
 fi
 
-equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
-first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
+equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
+first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
 
-with_errors=$(csg_get_property cg.inverse.gromacs.rdf.with_errors)
+with_errors=$(csg_get_property cg.inverse.$sim_prog.rdf.with_errors)
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
-  block_length=$(csg_get_property cg.inverse.gromacs.rdf.block_length)
+  block_length=$(csg_get_property cg.inverse.$sim_prog.rdf.block_length)
   error_opts="--block-length ${block_length} --ext dist.block"
 else
   suffix=""
@@ -75,7 +76,7 @@ fi
 if [[ ${with_errors} = "yes" ]]; then
   if ! is_done "${name}_rdf_average"; then
     for i in ${name}_*.dist.block; do
-      [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.gromacs.rdf.block_length) is too big."
+      [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.$sim_prog.rdf.block_length) is too big."
     done
     msg "Calculating average rdfs and its errors for interaction $name"
     do_external table average --output ${name}.dist.new ${name}_*.dist.block

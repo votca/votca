@@ -36,6 +36,7 @@ class  BeadType : public TopologyItem {
 public:    
     const int &getId() const { return _id; }
     const string &getName() const { return _name; }
+    void setName(const string &name) { _name=name; }
     
 private:
     int _id;

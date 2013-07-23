@@ -68,9 +68,6 @@
       <table_bins>
 	<DESC>espresso internal grid for tabulated potentials</DESC>
       </table_bins>
-      <table_end>
-	<DESC>end of espresso internal table</DESC>
-      </table_end>
       <traj>top_traj.esp
 	<DESC> Name of the output Espresso trajectory file</DESC>
       </traj>
@@ -254,6 +251,47 @@
 	<DESC> solver for solving a linear equation system: octave/numpy/matlab </DESC>
       </solver>
     </imc>
+    <lammps>
+      <DESC> general lammps specific options </DESC>
+      <command>lmp
+	<DESC> command to run lammps  (name or absolute path or mpirun lammps..) </DESC>
+      </command>
+      <script>
+	<DESC> lammps script to run </DESC>
+      </script>
+      <traj>
+	<DESC> trajectory file to be created by lammps, use a format like xyz, which can be read by csg_stat</DESC>
+      </traj>
+    </lammps>
+    <sim_prog>
+      <DESC> options, which apply to all simulation programs</DESC>
+      <equi_time>0
+	<DESC>begin analysis after this time (max of this and first_frame is used)</DESC>
+      </equi_time>
+      <first_frame>0
+	<DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
+      </first_frame>
+      <rdf>
+	<block_length>
+	  <DESC>Length of the block for the error analysis</DESC>
+	</block_length>
+	<map>
+	  <DESC>Special mapping file for rdf calculations needed for bonded interactions</DESC>
+	</map>
+	<topol>
+	  <DESC> Special topology file to be used for csg_stat</DESC>
+	</topol>
+	<with_errors>n
+	  <DESC>calculate error on the rdf: yes/no</DESC>
+	</with_errors>
+      </rdf>
+      <topol>
+         <DESC> General topology file to be use if no special one is specified</DESC>
+      </topol>
+      <traj>
+	<DESC> trajectory file to be created by the simulation program</DESC>
+      </traj>
+    </sim_prog>
     <re>
       <DESC>general options for realtive entropy method</DESC>
       <csg_reupdate>
@@ -421,12 +459,27 @@
 	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step.</DESC>
 	</table>
       </gromacs>
+      <sim_prog>
+        <DESC> interaction specific options, which apply to all simulation programs</DESC>
+        <table_begin>
+	  <DESC> Start of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
+	</table_begin>
+        <table_bins>
+	  <DESC> Binszie of the tabulated potential of this interaction. (gromacs uses a non interaction specific option)</DESC>
+	</table_bins>
+      </sim_prog>
       <imc>
         <DESC>ection containing inverse monte carlo specific options.</DESC>
 	<group>
 	  <DESC>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups.</DESC>
 	</group>
       </imc>
+      <lammps>
+	<DESC>lammps specific options for this interations</DESC>
+        <table>
+	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the lammps script needs to contain the name of that table as the tabulated interaction and the interaction is stored in the VOTCA section of the file..</DESC>
+	</table>
+      </lammps>
       <post_add>
 	<DESC>Additional post processing of U after dU added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</DESC>
       </post_add>

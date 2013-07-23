@@ -322,6 +322,13 @@ csg_get_property () { #get an property from the xml file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+    if [[ -z $ret ]] && [[ $1 = *gromacs* || $1 = *espresso* || $1 = *lammps* ]]; then
+      local path=${1/gromacs/sim_prog}
+      path=${path/lammps/sim_prog}
+      path=${path/espresso/sim_prog}
+      ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${path}" --short --print . | trim_all)"
+    fi
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
   echo "${ret}"
@@ -828,7 +835,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
     cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol cg.inverse.convergence_check \
-    cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit; do
+    cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit \
+    cg.inverse.espresso.table_end; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
@@ -851,6 +859,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
 	new="";;
       cg.inverse.convergence_check_options.limit)
         new="cg.inverse.convergence_check.limit";;
+      cg.inverse.espresso.table_end)
+        new="";;
       *)
         die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac

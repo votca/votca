@@ -226,6 +226,12 @@ public:
     void RenameMolecules(string range, string name);
 
     /**
+     *  \brief rename all the bead types
+     * \param name current rame of the bead type
+     * \param newname new name of bead type
+     */
+    void RenameBeadType(string name, string newname);
+    /**
      * set the simulation box
      * \param box triclinic box matrix
      */

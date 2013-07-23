@@ -50,6 +50,7 @@ private:
     void ParseRoot(const string &el, map<string, string> &attr);
     void ParseTopology(const string &el, map<string, string> &attr);
     void ParseMolecules(const string &el, map<string, string> &attr);
+    void ParseBeadTypes(const string &el, map<string, string> &attr);
     
 private:
     ParseXML _parser;
