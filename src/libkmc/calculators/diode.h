@@ -18,14 +18,14 @@
 #ifndef __VOTCA_KMC_DIODE_H
 #define	__VOTCA_KMC_DIODE_H
 
-using namespace std;
-
-namespace votca { namespace kmc {
-    
 #include <votca/kmc/graph.h>
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/state.h>
 #include <votca/kmc/event.h>
+
+using namespace std;
+
+namespace votca { namespace kmc {
     
 class Diode : public KMCCalculator 
 {
@@ -65,7 +65,7 @@ void Diode::RunKMC() {
     Graph _graph;
     _graph.Load();
     
-    State _state();
+    State _state;
     _state.Load();
 
 }
