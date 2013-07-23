@@ -13,8 +13,6 @@ pair_coeff	1 1 CG_CG.pot VOTCA 0.9
 timestep	0.001
 fix		1 all nve
 fix		2 all langevin 2.49 2.49 0.2 545454
-compute 	myrdf all rdf 91 1 1
-fix		3 all ave/time 50 50 2500 c_myrdf file spce.rdf mode vector
 
 dump		1 all xyz 50 traj.xyz
 

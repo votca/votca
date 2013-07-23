@@ -41,10 +41,14 @@
       <script>spce.in</script>
       <!-- rdf file created by lammps !-->
       <rdf>spce.rdf</rdf>
+      <!-- topology to be used by  csg_stat !-->
+      <topol>topol.xml</topol>
+      <!-- traj file created by lammps !-->
+      <traj>traj.xyz</traj>
     </lammps>
     <initial_configuration>maindir</initial_configuration>
     <!-- these files are copied for each new run -->
-    <filelist>spce.data spce.in</filelist>
+    <filelist>spce.data spce.in topol.xml spce.pdb</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
