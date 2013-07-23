@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
-#include <c++/4.7/istream>
 
 using namespace std;
 

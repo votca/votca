@@ -22,7 +22,6 @@
 #include <votca/ctp/eigenvalues.h>
 #include <votca/ctp/logger.h>
 #include <iostream>
-#include <c++/4.7/bits/stl_vector.h>
 #include <boost/format.hpp>
 
 using boost::format;
@@ -51,7 +50,11 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     
     _jobfile = opt->get(key + ".control.job_file").as<string>();
-    string _tasks = opt->get(key+".control.tasks").as<string> ();
+    string _tasks_string = opt->get(key+".control.tasks").as<string> ();
+    
+    Tokenizer tok(_tasks_string, ",");
+    vector< string > _tasks;
+    tok.ToVector(_tasks);    
     
     _max_occupied_levels = opt->get(key+".output.levels").as<int> ();
     _max_unoccupied_levels = _max_occupied_levels;
