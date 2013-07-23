@@ -207,6 +207,17 @@ void Topology::RenameMolecules(string range, string name)
     }
 }
 
+void Topology::RenameBeadType(string name, string newname)
+{
+    BeadContainer::iterator bead;
+    for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
+      BeadType *type =  GetOrCreateBeadType((*bead)->getType()->getName());
+      if (name.compare(type->getName()) == 0 ) {
+	type->setName(newname);
+      }
+    }
+}
+
 void Topology::CheckMoleculeNaming(void)
 {
     map<string,int> nbeads;
