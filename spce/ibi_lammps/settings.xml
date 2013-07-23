@@ -11,16 +11,8 @@
     <max>0.9</max>
     <step>0.01</step>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
-      <target>CG-CG.dist.tgt</target>
-      <!-- update cycles -->
-      <do_potential>1</do_potential>
-      <!-- additional post processing of dU before added to potential -->
-      <post_update></post_update>
-      <!-- additional post processing of U after dU added to potential -->
-      <post_add></post_add>
-      <!-- name of the table for gromacs run -->
       <lammps>
+        <!-- name of the table for lammps run -->
 	<table>CG_CG.pot</table>
 	<table_begin>0.20</table_begin>
 	<table_bins>0.002</table_bins>
@@ -30,16 +22,14 @@
   
   <!-- general options for inverse script -->
   <inverse>
-    <!-- 300*0.00831451 gromacs units -->
+    <!-- 300*0.00831451 lammps units -->
     <kBT>2.49435</kBT>
-    <!-- use gromacs as simulation program -->
+    <!-- use lammps as simulation program -->
     <program>lammps</program>
     <!-- lammps specific options -->
     <lammps>
       <!-- lammps script to run !-->
       <script>spce.in</script>
-      <!-- rdf file created by lammps !-->
-      <rdf>spce.rdf</rdf>
       <!-- topology to be used by  csg_stat !-->
       <topol>topol.xml</topol>
       <!-- traj file created by lammps !-->
@@ -52,11 +42,5 @@
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
-    <!-- directory for user scripts -->
-    <scriptpath></scriptpath>
-    <!-- write log to this file -->
-    <log_file>inverse.log</log_file>
-    <!-- write restart step to this file -->
-    <restart_file>restart_points.log</restart_file>
   </inverse>
 </cg>
