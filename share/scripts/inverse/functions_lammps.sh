@@ -28,9 +28,9 @@ echo Used external packages: espresso
 fi
 
 simulation_finish() { #checks if simulation is finished
-  local lammps_rdf
-  lammps_rdf="$(csg_get_property cg.inverse.lammps.rdf)"
-  [[ -f $lammps_rdf ]] && return 0 
+  local traj
+  traj="$(csg_get_property cg.inverse.lammps.traj)"
+  [[ -f $traj ]] && return 0 
   return 1
 }
 export -f simulation_finish

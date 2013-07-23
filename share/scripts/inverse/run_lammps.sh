@@ -33,7 +33,7 @@ script="$(csg_get_property cg.inverse.lammps.script)"
 lmp_bin="$(csg_get_property cg.inverse.lammps.command)"
 #no check for Espresso, because Espresso could maybe exist only computenodes
 
-rdf="$(csg_get_property cg.inverse.lammps.rdf)"
+traj="$(csg_get_property cg.inverse.lammps.traj)"
 
 if [[ -n $CSGENDING ]]; then
   echo "${0##*/} does not support wallclock time yet (go here and implement it). Per step wallclock time check is still performed!"
@@ -44,4 +44,4 @@ method="$(csg_get_property cg.inverse.method)"
 
 critical $lmp_bin -in "${script}"
 
-[[ -f $rdf ]] || die "${0##*/}: rdf file '$rdf' wasn't created after running lammps"
+[[ -f $traj ]] || die "${0##*/}: traj file '$traj' wasn't found after running lammps"

@@ -256,9 +256,20 @@
       <command>lmp
 	<DESC> command to run lammps  (name or absolute path or mpirun lammps..) </DESC>
       </command>
+      <equi_time>0
+	<DESC>begin analysis after this time when using gromacs (max of this and first_frame is used)</DESC>
+      </equi_time>
+      <first_frame>0
+	<DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
+      </first_frame>
       <script>
 	<DESC> lammps script to run </DESC>
       </script>
+      <rdf>
+	<with_errors>no
+	  <DESC>calculate error on the rdf: yes/no</DESC>
+	</with_errors>
+      </rdf>
     </lammps>
     <re>
       <DESC>general options for realtive entropy method</DESC>
