@@ -82,7 +82,7 @@
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx allplots.gp</filelist>
     <!-- do so many iterations -->
-    <iterations_max>300</iterations_max>
+    <iterations_max>910</iterations_max>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
     <!-- directory for user scripts -->

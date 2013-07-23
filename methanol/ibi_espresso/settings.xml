@@ -45,8 +45,6 @@
       <equi_snapshots>5</equi_snapshots>
       <!-- grid for table*.tab !-->
       <table_bins>0.005</table_bins>
-      <!-- extend the tables to this value -->
-      <table_end>1.55</table_end>
       <!-- Blockfile: contains simulation parameters -->
       <blockfile>conf.esp.gz</blockfile>
       <!-- Number of steps to integrate between each snapshot -->
