@@ -23,6 +23,7 @@
       <lammps>
 	<table>CG_CG.pot</table>
 	<table_begin>0.20</table_begin>
+	<table_bins>0.002</table_bins>
       </lammps>
     </inverse>
   </non-bonded>
@@ -35,8 +36,6 @@
     <program>lammps</program>
     <!-- lammps specific options -->
     <lammps>
-      <!-- grid for table*.xvg !-->
-      <table_bins>0.002</table_bins>
       <!-- lammps script to run !-->
       <script>spce.in</script>
       <!-- rdf file created by lammps !-->
