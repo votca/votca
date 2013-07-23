@@ -97,10 +97,17 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
     for(int i=0; i < atoms.nr; i++) {
         t_atom *a;
         a = &(atoms.atom[i]);
-        string name=string(atoms.pdbinfo[i].atomnm);
-        boost::trim(name);
-        BeadType *type = top.GetOrCreateBeadType(name);
+	//this is not correct, but still better than no type at all!
+	BeadType *type = top.GetOrCreateBeadType(*(atoms.atomname[i]));
+#if GMX == 50
         top.CreateBead(1, *(atoms.atomname[i]), type, a->resind, a->m, a->q);
+#elif GMX == 45
+        top.CreateBead(1, *(atoms.atomname[i]), type, a->resind, a->m, a->q);
+#elif GMX == 40
+        top.CreateBead(1, *(atoms.atomname[i]), type, a->resnr, a->m, a->q);
+#else
+#error Unsupported GMX version
+#endif
         //cout << *(gtp.atoms.atomname[i]) << " residue: " << a->resnr << endl;
     }
    
