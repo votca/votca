@@ -343,6 +343,9 @@
     <restart_file>restart_points.log
       <DESC>Name of the restart file in case a step has to be resumed</DESC>
     </restart_file>
+    <rdf_min>1e-10
+      <DESC> minimal value for the rdf to consider for initial guess of the potential)</DESC>
+    </rdf_min>
     <scriptpath>
       <DESC> list of directories for user scripts (e.g. $PWD) separated by a colon (like PATH)</DESC>
     </scriptpath>
