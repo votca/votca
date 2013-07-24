@@ -189,6 +189,9 @@ table functional table_functional.sh
 potential extrapolate potential_extrapolate.sh
 convert_potential tab table_to_tab.pl
 
+# generic distribution manipulation
+dist adjust dist_adjust.pl
+
 # tools needed for (atom/molecule) configuration handling
 configuration compare configuration_compare.py
 
