@@ -241,6 +241,7 @@ convert_potential lammps potential_to_generic.sh
 # Interface to ESPResSo
 run lammps run_lammps.sh
 rdf lammps calc_rdf_generic.sh
+imc_stat lammps imc_stat_generic.sh
 
 # function for lammps
 functions lammps functions_lammps.sh

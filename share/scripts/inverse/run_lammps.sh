@@ -40,7 +40,7 @@ if [[ -n $CSGENDING ]]; then
 fi
 
 method="$(csg_get_property cg.inverse.method)"
-[[ $method = "ibi" ]] || die "${0##*/}: lammps only supports method: ibi"
+[[ $method = "ibi" ||  $method = imc ]] || die "${0##*/}: lammps only supports method: ibi"
 
 critical $lmp_bin -in "${script}"
 
