@@ -123,9 +123,14 @@ if ($sim_prog eq "espresso") {
   for(my $i=0;$i<=$#r;$i++){
     printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$minus_force[$i]);
   }
+} elsif ($sim_prog eq "gromacs") {
+  printf(OUTFILE "#This is just a failback, for using different columns use table_to_xvg.pl instead!\n");
+  for(my $i=0;$i<=$#r;$i++){
+    printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n",$r[$i], ,0,0,0,0,$pot[$i], -$minus_force[$i]);
+  }
 } else {
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], -$minus_force[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], -$minus_force[$i]);
   }
 }
 close(OUTFILE) or die "Error at closing $outfile\n";
