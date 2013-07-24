@@ -32,13 +32,12 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 topol=$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.topol)
 if [[ $sim_prog = "gromacs" ]]; then
   [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
-  traj="traj.${ext}"
 else
   [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
-  traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 fi
 [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
+
+traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 [[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
 if [[ -n $(csg_get_property --allow-empty cg.bonded.name) ]]; then

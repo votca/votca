@@ -226,9 +226,9 @@
       <topol_out>topol.tpr
 	<DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
       </topol_out>
-      <traj_type>xtc
-	<DESC> Gromacs trajectory type (xtc/trr) file to use</DESC>
-      </traj_type>
+      <traj>traj.xtc
+	<DESC> Gromacs trajectory file to use</DESC>
+      </traj>
     </gromacs>
     <imc>
       <DESC> general imc specific options </DESC>

@@ -836,7 +836,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
     cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol cg.inverse.convergence_check \
     cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit \
-    cg.inverse.espresso.table_end; do
+    cg.inverse.espresso.table_end cg.inverse.gromacs.traj_type; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     case $i in
       cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
@@ -853,6 +853,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="cg.inverse.gromacs.topol_in";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;
+      cg.inverse.gromacs.traj_type)
+        new="";;
       cg.inverse.convergence_check)
 	new="${i}.type";;
       cg.inverse.convergence_check_options.name_glob)
