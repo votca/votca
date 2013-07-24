@@ -25,15 +25,21 @@ EOF
    exit 0
 fi
 
-topol=$(csg_get_property --allow-empty cg.inverse.gromacs.re.topol)
-[[ -z ${topol} ]] && topol="$(csg_get_property cg.inverse.gromacs.topol_out)"
-[[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist" 
-ext=$(csg_get_property cg.inverse.gromacs.traj_type)
-traj="traj.${ext}"
-[[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
+sim_prog="$(csg_get_property cg.inverse.program)"
+topol=$(csg_get_property --allow-empty cg.inverse.$sim_prog.re.topol)
+if [[ $sim_prog = "gromacs" ]]; then
+  [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol_out)
+  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
+  traj="traj.${ext}"
+else
+  [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
+  traj=$(csg_get_property cg.inverse.$sim_prog.traj)
+fi
+[[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
+[[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
-equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
-first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
+equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
+first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
 csg_reupdate_opts="$(csg_get_property --allow-empty cg.inverse.re.csg_reupdate.opts)"
 
 tasks=$(get_number_tasks)

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
     cat <<EOF
 ${0##*/}, version %version%
-This script runs lammps for the Inverse Boltzmann Method
+This script runs lammps
 
 Usage: ${0##*/}
 
@@ -40,7 +40,8 @@ if [[ -n $CSGENDING ]]; then
 fi
 
 method="$(csg_get_property cg.inverse.method)"
-[[ $method = "ibi" ||  $method = imc || $method = optimizer ]] || die "${0##*/}: lammps does not support method $method yet!"
+shopt -s extglob
+[[ $method = @(ibi|imc|optimizer|re) ]] || die "${0##*/}: lammps does not support method $method yet!"
 
 critical $lmp_bin -in "${script}"
 
