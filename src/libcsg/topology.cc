@@ -218,6 +218,17 @@ void Topology::RenameBeadType(string name, string newname)
     }
 }
 
+void Topology::SetBeadTypeMass(string name, double value)
+{
+    BeadContainer::iterator bead;
+    for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
+      if (name.compare((*bead)->getType()->getName()) == 0 ) {
+	(*bead)->setM(value);
+      }
+    }
+
+}
+
 void Topology::CheckMoleculeNaming(void)
 {
     map<string,int> nbeads;

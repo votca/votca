@@ -231,6 +231,14 @@ public:
      * \param newname new name of bead type
      */
     void RenameBeadType(string name, string newname);
+    
+    /**
+     *  \brief set the mass of all the beads of a certain type
+     * \param name the bead type
+     * \param value mass value
+     */
+    void SetBeadTypeMass(string name, double value);
+
     /**
      * set the simulation box
      * \param box triclinic box matrix
