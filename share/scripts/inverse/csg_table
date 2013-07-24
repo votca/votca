@@ -206,7 +206,7 @@ pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_generic.sh
 imc_stat gromacs imc_stat_generic.sh
 
-density gromacs calc_density_gromacs.sh
+density gromacs calc_density_generic.sh
 
 # these scripts have to be defined for each method, if NOT generic
 prepare_generic gromacs prepare_generic_gromacs.sh

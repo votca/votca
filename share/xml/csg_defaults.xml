@@ -268,9 +268,22 @@
       <equi_time>0
 	<DESC>begin analysis after this time (max of this and first_frame is used)</DESC>
       </equi_time>
+      <density>
+	<block_length>
+	  <DESC>Length of the block for the error analysis</DESC>
+	</block_length>
+	<with_errors>no
+	  <DESC>calculate error on the density: yes/no</DESC>
+	</with_errors>
+      </density>
       <first_frame>0
 	<DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
       </first_frame>
+      <re>
+	<topol>
+	  <DESC> topol file to be used for csg_reupdate</DESC>
+	</topol>
+      </re>
       <rdf>
 	<block_length>
 	  <DESC>Length of the block for the error analysis</DESC>
