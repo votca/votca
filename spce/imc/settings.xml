@@ -7,15 +7,13 @@
     <type1>CG</type1>
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
-    <min>0</min>
+    <min>0.25</min>
     <max>0.9</max>
     <step>0.01</step>
     
     <inverse>
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
       <target>CG-CG.dist.tgt</target>
-      <!-- update cycles -->
-      <do_potential>1</do_potential>
       <!-- additional post processing of dU before added to potential -->
       <post_update>smooth</post_update>
       <!-- some options for the post update scripts -->
@@ -24,8 +22,6 @@
           <iterations>2</iterations>
         </smooth>
       </post_update_options>
-      <!-- additional post processing of U after dU added to potential -->
-      <post_add></post_add>
       <!-- inverse monte carlo specific stuff -->
       <imc>
         <group>CG-CG</group>
@@ -60,13 +56,6 @@
     <iterations_max>20</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>imc</method>
-    <!-- directory for user scripts -->
-    <scriptpath>$PWD</scriptpath>
-    <!-- write log to this file -->
-    <log_file>inverse.log</log_file>
-    <!-- write restart step to this file -->
-    <restart_file>restart_points.log</restart_file>
-    <!-- imc specific stuff -->
     <imc>
       <!-- solver to solve linear equation system, can be octave or matlab -->
       <solver>octave</solver>
