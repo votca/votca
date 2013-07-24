@@ -11,6 +11,8 @@
     <max>0.9</max>
     <step>0.01</step>
     <inverse>
+      <!-- target distribution (rdf)  -->
+      <target>CG-CG.dist.tgt</target>
       <lammps>
         <!-- name of the table for lammps run -->
 	<table>CG_CG.pot</table>
