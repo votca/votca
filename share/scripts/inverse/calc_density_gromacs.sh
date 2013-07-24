@@ -32,11 +32,12 @@ shift
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 if [[ $sim_prog = "gromacs" ]]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
 else
   die "${0##*/}: Simulation program '$sim_prog' not supported yet"
 fi
+
+topol=$(csg_get_property cg.inverse.gromacs.topol)
+[[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
 
 traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 [[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"

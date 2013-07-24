@@ -28,7 +28,7 @@ EOF
    exit 0
 fi
 
-tpr="$(csg_get_property cg.inverse.gromacs.topol_out)"
+tpr="$(csg_get_property cg.inverse.gromacs.topol)"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
 [[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"

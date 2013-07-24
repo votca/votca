@@ -223,9 +223,9 @@
       <topol_in>topol.top
 	<DESC> Gromacs text topology (top) file read by grompp</DESC>
       </topol_in>
-      <topol_out>topol.tpr
+      <topol>topol.tpr
 	<DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
-      </topol_out>
+      </topol>
       <traj>traj.xtc
 	<DESC> Gromacs trajectory file to use</DESC>
       </traj>

@@ -849,7 +849,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/dir/path}";;
       cg.inverse.gromacs.grompp.index)
         new="${i/.grompp}";;
-      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.topol)
+      cg.inverse.gromacs.grompp.topol)
         new="cg.inverse.gromacs.topol_in";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;

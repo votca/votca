@@ -28,11 +28,7 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-if [ "$sim_prog" = "gromacs" ]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-else
-  topol=$(csg_get_property cg.inverse.$sim_prog.topol)
-fi
+topol=$(csg_get_property cg.inverse.$sim_prog.topol)
 [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
 traj=$(csg_get_property cg.inverse.$sim_prog.traj)
