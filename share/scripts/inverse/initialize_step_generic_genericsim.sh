@@ -18,17 +18,18 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initializes an lammps simulation
+This script initializes an iteration for the generic simulation program 
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
+sim_prog="$(csg_get_property cg.inverse.program)"
 from=$(csg_get_property cg.inverse.initial_configuration)
 if [[ $from != "maindir" ]]; then
-  die "${0##*/}: for lammps only initial_configuration maindir is implemented, please change cg.inverse.initial_configuration to 'maindir'"
+  die "${0##*/}: for ${sim_prog} only initial_configuration maindir is implemented, please change cg.inverse.initial_configuration to 'maindir' or implement it!"
 fi
 
 #convert potential in format for sim_prog
-for_all "non-bonded bonded" do_external convert_potential lammps '$(csg_get_interaction_property name).pot.cur $(csg_get_interaction_property inverse.lammps.table)'
+for_all "non-bonded bonded" do_external convert_potential ${sim_prog} '$(csg_get_interaction_property name).pot.cur' '$'"(csg_get_interaction_property inverse.$sim_prog.table)"

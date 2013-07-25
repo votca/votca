@@ -285,8 +285,8 @@
       <DESC>number of steps to be used for average computation</DESC>
       </steps>
     </average>
-    <initial_configuration>laststep
-      <DESC>what initial configuration to use in every step: maindir/laststep</DESC>
+    <initial_configuration>maindir
+      <DESC>what initial configuration to use in every step: maindir/laststep. laststep is only supported by gromacs.</DESC>
     </initial_configuration>
     <iterations_max>
       <DESC>do the given number of iterations (0=inf)</DESC>

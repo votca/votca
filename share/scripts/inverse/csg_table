@@ -211,10 +211,10 @@ density gromacs calc_density_generic.sh
 # these scripts have to be defined for each method, if NOT generic
 prepare_generic gromacs prepare_generic_gromacs.sh
 initstep_generic gromacs initialize_step_generic_gromacs.sh
-prepare_generic espresso prepare_generic_espresso.sh
-initstep_generic espresso initialize_step_generic_espresso.sh
-prepare_generic lammps prepare_generic_lammps.sh
-initstep_generic lammps initialize_step_generic_lammps.sh
+prepare_generic espresso dummy.sh 
+initstep_generic espresso initialize_step_generic_genericsim.sh
+prepare_generic lammps dummy.sh
+initstep_generic lammps initialize_step_generic_genericsim.sh
 
 
 # gromacs scripts specific stuff
@@ -234,7 +234,7 @@ density espresso calc_density_generic.sh
 convert_potential espresso potential_to_generic.sh
 
 # function for ESPResSo
-functions espresso functions_espresso.sh
+functions espresso functions_genericsim.sh
 
 # lammps scripts
 convert_potential lammps potential_to_generic.sh
@@ -246,6 +246,6 @@ imc_stat lammps imc_stat_generic.sh
 density lammps calc_density_generic.sh
 
 # function for lammps
-functions lammps functions_lammps.sh
+functions lammps functions_genericsim.sh
 
 # END: these scripts have to be defined for each simulation program
