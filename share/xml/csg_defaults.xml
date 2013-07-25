@@ -23,52 +23,19 @@
       </type>
     </convergence_check>
     <espresso>
-      <blockfile>conf.esp.gz
-	<DESC>Name of the original blockfile read by Espresso</DESC>
-      </blockfile>
-      <blockfile_out>confout.esp.gz
-	<DESC>Name of the original outcome blockfile written by Espresso</DESC>
-      </blockfile_out>
       <command>Espresso
 	<DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>
       </command>
-      <debug>no
-	<DESC> debug Espresso (yes/no)</DESC>
-      </debug>
-      <exclusions>0
-	<DESC>Espresso bond partners to exclude</DESC>
-      </exclusions>
       <first_frame>0
 	<DESC>trash the given number of frames at the beginning of trajectory</DESC>
       </first_frame>
-      <meta_cmd>
-	<DESC>Espresso metadynamics command to call [experimental]</DESC>
-      </meta_cmd>
-      <meta_min_sampling>
-	<DESC>Espresso metadynamics minimal number of sampling [experimental]</DESC>
-      </meta_min_sampling>
-      <n_snapshots>
-	<DESC>number of snapshots. Total time = n_steps * n_snapshots</DESC>
-      </n_snapshots>
-      <n_steps>
-	<DESC>Number of steps to integrate before a snapshot</DESC>
-      </n_steps>
-      <pressure_command>Espresso
-	<DESC>Espresso command to run when calculating the pressure (name or absolute path or mpirun espresso..)</DESC>
-      </pressure_command>
-      <rdf_command>Espresso
-	<DESC>Espresso command to run when calculating the rdf (name or absolute path or mpirun espresso..)</DESC>
-      </rdf_command>
       <scriptdir>
 	<DESC>overwrite ESPRESSO_SCRIPTS from environment with this dir</DESC>
       </scriptdir>
-      <success>success.esp
-	<DESC>File to create if Espresso simulation was successfull</DESC>
-      </success>
       <table_bins>
 	<DESC>espresso internal grid for tabulated potentials</DESC>
       </table_bins>
-      <traj>top_traj.esp
+      <traj>
 	<DESC> Name of the output Espresso trajectory file</DESC>
       </traj>
     </espresso>
@@ -462,12 +429,6 @@
         <table>
 	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso blockfile needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
 	</table>
-	<index1>
-	  <DESC>Index list of type1 -- Name of the Tcl variable containing all index1 particles that is contained in the espresso blockfile.</DESC>
-	</index1>
-	<index2>
-	  <DESC>Index list of type2 -- Name of the Tcl variable containing all index1 particles that is contained in the espresso blockfile.</DESC>
-	</index2>
       </espresso>
       <gromacs>
 	<DESC>Gromacs specific options for this interations</DESC>

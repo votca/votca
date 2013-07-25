@@ -26,15 +26,8 @@ EOF
 fi
 
 from=$(csg_get_property cg.inverse.initial_configuration)
-esp="$(csg_get_property cg.inverse.espresso.blockfile)"
-if [[ $from = "laststep" ]]; then
-  espout="$(csg_get_property cg.inverse.espresso.blockfile_out)"
-  #avoid overwriting $espout
-  cp_from_last_step --rename "$espout" "$esp"
-elif [[ $from = "maindir" ]]; then
-  cp_from_main_dir $esp
-else
-  die "${0##*/}: initial_configuration '$from' not implemented"
+if [[ $from != "maindir" ]]; then
+  die "${0##*/}: for lammps only initial_configuration maindir is implemented, please change cg.inverse.initial_configuration to 'maindir'"
 fi
 
 #convert potential in format for sim_prog

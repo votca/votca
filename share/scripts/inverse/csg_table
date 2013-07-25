@@ -226,8 +226,9 @@ functions gromacs functions_gromacs.sh
 
 # Interface to ESPResSo
 run espresso run_espresso.sh
-pressure espresso calc_pressure_espresso.sh
-rdf espresso calc_rdf_espresso.sh
+rdf espresso calc_rdf_generic.sh
+imc_stat espresso imc_stat_generic.sh
+density espresso calc_density_generic.sh
 
 # ESPResSo scripts
 convert_potential espresso potential_to_generic.sh

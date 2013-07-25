@@ -33,7 +33,7 @@ fi
 
 step_nr="$(get_current_step_nr)"
 sim_prog="$(csg_get_property cg.inverse.program)"
-[[ $sim_prog = lammps ]] && die "${0##*/}: pressure correction for lammps is not implemented yet!"
+[[ $sim_prog != gromacs ]] && die "${0##*/}: pressure correction for ${sim_prog} is not implemented yet!"
 
 name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property min)

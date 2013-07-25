@@ -838,11 +838,14 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
     cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol cg.inverse.convergence_check \
     cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit \
-    cg.inverse.espresso.table_end cg.inverse.gromacs.traj_type; do
+    cg.inverse.espresso.table_end cg.inverse.gromacs.traj_type cg.inverse.gromacs.topol_out \
+    cg.inverse.espresso.blockfile cg.inverse.espresso.blockfile_out cg.inverse.espresso.n_steps \
+    cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.n_snapshots \
+    cg.non-bonded.inverse.espresso.index1 cg.non-bonded.inverse.espresso.index2 cg.inverse.espresso.success \
+    ; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
+    new=""
     case $i in
-      cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
-        new="";;
       cg.inverse.mpi.tasks|cg.inverse.parallel.tasks)
         new="cg.inverse.simulation.tasks";;
       cg.inverse.gromacs.mdrun.bin|cg.inverse.espresso.bin)
@@ -855,18 +858,14 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="cg.inverse.gromacs.topol_in";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;
+      cg.inverse.gromacs.topol_out)
+        new="${i/_out}";;
       cg.inverse.gromacs.traj_type)
         new="";;
       cg.inverse.convergence_check)
 	new="${i}.type";;
-      cg.inverse.convergence_check_options.name_glob)
-	new="";;
       cg.inverse.convergence_check_options.limit)
         new="cg.inverse.convergence_check.limit";;
-      cg.inverse.espresso.table_end)
-        new="";;
-      *)
-        die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac
     [[ -n $new ]] && new="has been renamed to $new" || new="has been removed"
     die "${FUNCNAME[0]}: The xml option $i $new\nPlease remove the obsolete options from the xmlfile"

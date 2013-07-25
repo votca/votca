@@ -31,10 +31,3 @@ msg --color blue "# If you find a problem report it under:               #"
 msg --color blue "# http://code.google.com/p/votca/issues/list           #"
 msg --color blue "# with the template espresso                           #"
 msg --color blue "########################################################"
-
-esp="$(csg_get_property cg.inverse.espresso.blockfile)"
-espout="$(csg_get_property cg.inverse.espresso.blockfile_out)"
-cp_from_main_dir $esp
-
-critical cp $esp $espout
-

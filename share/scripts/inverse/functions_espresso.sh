@@ -36,11 +36,9 @@ fi
 unset esp_dir
 
 simulation_finish() { #checks if simulation is finished
-  local esp_success traj_esp espout
-  esp_success="$(csg_get_property cg.inverse.espresso.success)"
-  traj_esp="$(csg_get_property cg.inverse.espresso.traj)"
-  espout="$(csg_get_property cg.inverse.espresso.blockfile_out)"
-  [[ -f $esp_success && -f $traj_esp && -f $espout ]] && return 0 
+  local traj
+  traj="$(csg_get_property cg.inverse.espresso.traj)"
+  [[ -f $traj ]] && return 0 
   return 1
 }
 export -f simulation_finish
