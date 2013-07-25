@@ -225,7 +225,7 @@ convert_potential xvg table_to_xvg.pl
 functions gromacs functions_gromacs.sh
 
 # Interface to ESPResSo
-run espresso run_espresso.sh
+run espresso run_genericsim.sh
 rdf espresso calc_rdf_generic.sh
 imc_stat espresso imc_stat_generic.sh
 density espresso calc_density_generic.sh
@@ -240,7 +240,7 @@ functions espresso functions_genericsim.sh
 convert_potential lammps potential_to_generic.sh
 
 # Interface to ESPResSo
-run lammps run_lammps.sh
+run lammps run_genericsim.sh
 rdf lammps calc_rdf_generic.sh
 imc_stat lammps imc_stat_generic.sh
 density lammps calc_density_generic.sh

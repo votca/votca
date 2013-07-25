@@ -18,31 +18,35 @@
 if [ "$1" = "--help" ]; then
     cat <<EOF
 ${0##*/}, version %version%
-This script runs lammps
+This script runs a generic simulation program
 
 Usage: ${0##*/}
-
-Used external packages: lammps
 EOF
     exit 0
 fi
 
-script="$(csg_get_property cg.inverse.lammps.script)"
-[[ -f $script ]] || die "${0##*/}: lammps script '$script' not found (make sure it is in cg.inverse.filelist)"
+sim_prog="$(csg_get_property cg.inverse.program)"
+script="$(csg_get_property cg.inverse.$sim_prog.script)"
+[[ -f $script ]] || die "${0##*/}: $sim_prog script '$script' not found (make sure it is in cg.inverse.filelist)"
 
-lmp_bin="$(csg_get_property cg.inverse.lammps.command)"
+cmd="$(csg_get_property cg.inverse.$sim_prog.command)"
 #no check for Espresso, because Espresso could maybe exist only computenodes
 
-traj="$(csg_get_property cg.inverse.lammps.traj)"
+opts=$(csg_get_property --allow-empty cg.inverse.$sim_prog.opts)
+#expand ${script} in there
+opts="$(eval echo $opts)"
+
+# trajectory file
+traj="$(csg_get_property cg.inverse.$sim_prog.traj)"
 
 if [[ -n $CSGENDING ]]; then
-  echo "${0##*/} does not support wallclock time yet (go here and implement it). Per step wallclock time check is still performed!"
+  echo "${0##*/}: $sim_prog does not support wallclock time yet (go here and implement it). Per step wallclock time check is still performed!"
 fi
 
 method="$(csg_get_property cg.inverse.method)"
 shopt -s extglob
-[[ $method = @(ibi|imc|optimizer|re) ]] || die "${0##*/}: lammps does not support method $method yet!"
+[[ $method = @(ibi|imc|optimizer|re) ]] || die "${0##*/}: ${sim_prog} does not support method $method yet!"
 
-critical $lmp_bin -in "${script}"
+critical $cmd ${opts}
 
-[[ -f $traj ]] || die "${0##*/}: traj file '$traj' wasn't found after running lammps"
+simulation_finish
