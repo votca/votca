@@ -82,25 +82,16 @@ my $outfile="$ARGV[2]";
 my @r;
 my @r_repeat;
 my @pot;
-my @d_pot;
+my @minus_force;
 my @flag;
 my @flag_repeat;
 #cutoff is last point
 (readin_table($in_pot,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
-(readin_table($in_deriv_pot,@r_repeat,@d_pot,@flag_repeat)) || die "$progname: error at readin_table\n";
+(readin_table($in_deriv_pot,@r_repeat,@minus_force,@flag_repeat)) || die "$progname: error at readin_table\n";
 
 #shift potential so that it is zero at cutoff
 for (my $i=0;$i<=$#r;$i++){
    $pot[$i]-=$pot[$#r];
-}
-
-my @minus_force=@d_pot;
-
-# Smooth out force (9-point avg) 
-for (my $i=4;$i<$#r_repeat-3;$i++){
-		$minus_force[$i]=($d_pot[$i-4]+$d_pot[$i-3]+$d_pot[$i-2]
-								+$d_pot[$i-1]+$d_pot[$i]+$d_pot[$i+1]+$d_pot[$i+2]
-								+$d_pot[$i+3]+$d_pot[$i+4])/(9.);
 }
 
 if ($sim_prog eq "espresso") {
