@@ -27,14 +27,6 @@ echo Used external packages: espresso
   exit 0
 fi
 
-#check performed when this file is sourced
-esp_dir="$(csg_get_property --allow-empty cg.inverse.espresso.scriptdir)" || exit 1
-if [[ -n ${esp_dir} ]]; then
-  export ESPRESSO_SCRIPTS="${esp_dir}"
-  [[ -d ${ESPRESSO_SCRIPTS} ]] || die "${BASH_SOURCE[0]}: cg.inverse.espresso.scriptdir ($ESPRESSO_SCRIPTS) is not a directory"
-fi
-unset esp_dir
-
 simulation_finish() { #checks if simulation is finished
   local traj
   traj="$(csg_get_property cg.inverse.espresso.traj)"

@@ -29,9 +29,6 @@
       <first_frame>0
 	<DESC>trash the given number of frames at the beginning of trajectory</DESC>
       </first_frame>
-      <scriptdir>
-	<DESC>overwrite ESPRESSO_SCRIPTS from environment with this dir</DESC>
-      </scriptdir>
       <table_bins>
 	<DESC>espresso internal grid for tabulated potentials</DESC>
       </table_bins>
