@@ -417,7 +417,47 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
    return true;
 }
 
+bool Gaussian::CheckLogFile() {
+    
+    // check if the log file exists
+    char ch;
+    ifstream _input_file(_log_file_name.c_str());
+    
+    if (_input_file.fail()) {
+        LOG(logERROR,*_pLog) << "Gaussian LOG is not found" << flush;
+        return false;
+    };
 
+    _input_file.seekg(0,ios_base::end);   // go to the EOF
+    
+    // get empty lines and end of lines out of the way
+    do {
+        _input_file.seekg(-2,ios_base::cur);
+        _input_file.get(ch);   
+        //cout << "\nChar: " << ch << endl;
+    } while ( ch == '\n' || ch == ' ' || (int)_input_file.tellg() == -1 );
+ 
+    // get the beginning of the line or the file
+    do {
+       _input_file.seekg(-2,ios_base::cur);
+       _input_file.get(ch);   
+       //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
+    } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
+            
+    string _line;            
+    getline(_input_file,_line);                      // Read the current line
+    //cout << "\nResult: " << _line << '\n';     // Display it
+    _input_file.close();
+        
+    std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
+    if (self_energy_pos == std::string::npos) {
+            LOG(logERROR,*_pLog) << "Gaussian LOG is incomplete" << flush;
+            return false;      
+    } else {
+            //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
+            return true;
+    }
+}
 
 /**
  * Parses the Gaussian Log file and stores data in the Orbitals object 
@@ -440,43 +480,15 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _unoccupied_levels = 0;
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
+
     
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
 
-    // check if the log file exists
-    ifstream _input_file(_log_file_name.c_str());
-    if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is not found" << flush;
-        return false;
-    };
-
-    // Check if it is a normal termination of GAUSSIAN
-    int _LL_BUFFSIZE_ = 2048;
-    char  buff[_LL_BUFFSIZE_]; 
-
-    _line.clear();
-    _input_file.seekg(0, ios_base::end);
-    int length = _input_file.tellg();
-    _input_file.seekg(length-min(length,_LL_BUFFSIZE_),ios::beg); // seek back from end a short ways
-    // read in each line of the file until we're done
-    buff[0]=0;
-
-    do {
-        //if (!isspace(buff[0]) && buff[0] != 0)
-        _line = buff;
-    } while (_input_file.getline(buff, _LL_BUFFSIZE_));
-    
-    std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
-    if (self_energy_pos == std::string::npos) {
-        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is incomplete" << flush;
-        return false;      
-    }
-
-    //rewind back to the beginning of the file; note clear())
-    _input_file.clear();
-    _input_file.seekg(0, std::ios::beg);
+    // check if LOG file is complete
+    if ( !CheckLogFile() ) return false;
     
     // Start parsing the file line by line
+    ifstream _input_file(_log_file_name.c_str());
     while (_input_file) {
 
         getline(_input_file, _line);

@@ -33,7 +33,7 @@ public:
     Rates() { };
    ~Rates() { };
 
-    string Identify() { return "Rates"; }
+    string Identify() { return "rates"; }
 
     void Initialize(Topology *top, Property *options);
     void ParseEnergiesXML(Topology *top, Property *opt);

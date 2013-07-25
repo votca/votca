@@ -66,6 +66,7 @@ Orbitals::Orbitals() {
     _has_mo_coefficients = false;
     _has_mo_energies = false;
     _has_overlap = false;
+    _has_integrals = false;
     _has_atoms = false;
     _has_qm_energy = false;
     _has_self_energy = false;

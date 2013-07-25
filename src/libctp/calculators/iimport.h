@@ -11,20 +11,23 @@ class IImport : public QMCalculator
 {
 public:
 
-    string      Identify() { return "IImport"; }
+    string      Identify() { return "iimport"; }
 
     void        Initialize(Topology *top, Property *options);
     bool        EvaluateFrame(Topology *top);
     void        XML2PairTI(QMPair *qmpair, string &xmlDirFile);
     void        List2PairsTI(Topology *top, string &ti_file);
-
+    void        FromIDFT(Topology *top, string &_idft_jobs_file);
+    
 private:
 
     bool        _importFromDirs;
     bool        _importFromList;
+    bool        _importFromIDFT;
 
     string      _TI_tag;
     string      _TI_file;
+    string      _idft_jobs_file;
 };
 
 
@@ -32,21 +35,33 @@ void IImport::Initialize(Topology *top, Property *options) {
 
     _importFromDirs = false;
     _importFromList = false;
+    _importFromIDFT = false;
 
-    string key = "options.iimport";
+    // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *options );
+    
+    string key = "options." + Identify();
 
-    if (options->exists(key+".TI_tag")) {
-        _TI_tag = options->get(key+".TI_tag").as< string >();
+    //if (options->exists(key+".TI_tag")) {
+    _TI_tag = _options.get(key+".TI_tag").as< string >();
+    if (_TI_tag != "") {
         _importFromDirs = true;
         cout << endl << "... ... Using TI XML tag '" << _TI_tag << "'" << flush;
     }
 
-    else if (options->exists(key+".TI_file")) {
-        _TI_file = options->get(key+".TI_file").as< string >();
+    //else if (options->exists(key+".TI_file")) {
+    
+    _TI_file = _options.get(key+".TI_file").as< string >();
+    if (_TI_file != "") {
         _importFromList = true;
         cout << endl << "... ... Using TI table '" << _TI_file << "'" << flush;
     }
     
+    _idft_jobs_file = _options.get(key+".idft_jobs_file").as< string >();
+    if ( _idft_jobs_file != "" ) {
+        _importFromIDFT = true;
+        cout << endl << "... ... Using IDFT jobs file '" << _TI_file << "'" << flush;
+    }
 
     
 }
@@ -75,6 +90,7 @@ bool IImport::EvaluateFrame(Topology *top) {
     }
   }
 
+  if ( _importFromIDFT ) FromIDFT(top, _idft_jobs_file);
 }
 
 
@@ -215,6 +231,70 @@ void IImport::XML2PairTI(QMPair *qmpair, string &xmlDirFile) {
 
     intt.close();
 
+}
+
+
+void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
+
+    Property xml;
+    QMNBList &nblist = top->NBList();   
+
+    load_property_from_xml(xml, _idft_jobs_file);
+    
+    list<Property*> jobProps = xml.Select("jobs.job");
+    list<Property*> ::iterator it;
+    
+    for (it = jobProps.begin(); it != jobProps.end(); ++it) {
+ 
+        if ( (*it)->exists("output") ) {
+            Property poutput = (*it)->get("output.pair");
+            
+            int homoA = poutput.getAttribute<int>("homoA");
+            int homoB = poutput.getAttribute<int>("homoB");
+            
+            int idA = poutput.getAttribute<int>("idA");
+            int idB = poutput.getAttribute<int>("idB");
+                       
+            string typeA = poutput.getAttribute<string>("typeA");
+            string typeB = poutput.getAttribute<string>("typeB");
+            //cout << idA << ":" << idB << "\n"; 
+            Segment *segA = top->getSegment(idA);
+            Segment *segB = top->getSegment(idB);
+
+            QMPair *qmp = nblist.FindPair(segA,segB);
+            
+            if (qmp == NULL) {
+                throw std::runtime_error("no pair found in the neighbor list\n");
+            }   else {
+                list<Property*> pOverlap = poutput.Select("overlap");
+                list<Property*> ::iterator itOverlap;
+                
+                for (itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
+                    double energyA = (*itOverlap)->getAttribute<double>("eA");
+                    double energyB = (*itOverlap)->getAttribute<double>("eB");
+                    double overlapAB = (*itOverlap)->getAttribute<double>("jAB");
+                    int orbA = (*itOverlap)->getAttribute<double>("orbA");
+                    int orbB = (*itOverlap)->getAttribute<double>("orbB");
+ 
+                    if ( orbA == homoA && orbB == homoB ) {
+                        qmp->setJeff2(overlapAB*overlapAB, 1);
+                        qmp->setIsPathCarrier(true, 1);
+                    }
+
+                    if ( orbA == homoA+1 && orbB == homoB+1 ) {
+                        qmp->setJeff2(overlapAB*overlapAB, -1);
+                        qmp->setIsPathCarrier(true, -1);
+                    }
+                   
+                    
+                }
+            }
+            
+            
+        } else {
+            cout << "Job " << (*it)->get( "id" ).as<string>() << " " << (*it)->get( "status" ).as<string>() << endl;
+        }
+    }
 }
 
 }}

@@ -120,6 +120,10 @@ public:
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
+
+    ub::matrix<double>* getIntegrals() { return _integrals; }
+    void setIntegrals( ub::matrix<double>* integrals ) { _has_integrals = true;  _integrals = integrals; }
+ 
     double getEnergy( int level) { return (_has_mo_energies) ? _conv_Hrt_eV*_mo_energies[level-1] : 0; }
     
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
@@ -140,8 +144,15 @@ public:
         _atoms.push_back( pAtom );
         return pAtom;
     }
+    
+    void setStorage( bool _store_orbitals, bool _store_overlap,  bool _store_integrals ) {
+        _has_mo_coefficients = _store_orbitals;
+        _has_overlap = _store_overlap;
+        _has_integrals = _store_integrals;
+    } 
+        
 
-protected:
+private:
     
     static const double                 _conv_Hrt_eV = 27.21138386;
 
@@ -178,6 +189,9 @@ protected:
     
     bool                                _has_self_energy;
     double                                  _self_energy;
+    
+    bool                                _has_integrals;
+    ub::matrix<double>*                 _integrals;
 
 private:
 
@@ -208,6 +222,7 @@ private:
        ar & _has_atoms;
        ar & _has_qm_energy;
        ar & _has_self_energy;
+       ar & _has_integrals;
        
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
@@ -237,7 +252,8 @@ private:
        
        if ( _has_atoms ) { ar & _atoms; }
        if ( _has_qm_energy ) { ar & _qm_energy; }
-       if ( _has_self_energy ) { ar & _self_energy; }       
+       if ( _has_self_energy ) { ar & _self_energy; }     
+       if ( _has_integrals ) { ar & _integrals; } 
     }
     
 };

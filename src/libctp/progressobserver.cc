@@ -310,6 +310,11 @@ vector<Job*> LOAD_JOBS< vector<Job*>, Job*, Job::JobResult >(const string &job_f
     for (it = jobProps.begin(); it != jobProps.end(); ++it) {
         
         Job *newJob = new Job(*it);
+        
+        // CHECKING
+        //cout << "Progress observer\n" ; 
+        //cout << **it;
+        
         jobs.push_back(newJob);       
     }
     

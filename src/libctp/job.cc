@@ -1,6 +1,6 @@
 #include <votca/ctp/job.h>
 #include <boost/format.hpp>
-
+#include <boost/algorithm/string.hpp> 
 
 
 using boost::format;
@@ -12,8 +12,8 @@ namespace votca { namespace ctp {
 Job::Job(Property *prop)
   : _has_host(false), _has_time(false), _has_error(false),
     _has_output(false), _has_sqlcmd(false) {
-
-    // DEFINED BY USER
+   
+     // DEFINED BY USER
     _id = prop->get("id").as<int>();
     _tag = prop->get("tag").as<string>();
     _input = prop->get("input").as<string>();
@@ -39,7 +39,19 @@ Job::Job(Property *prop)
         _has_time = true;
     }
     if (prop->exists("output")) {
-        _output = prop->get("output").as<string>();
+        //_output = prop->get("output").as<string>();
+
+        Property poutput =  prop->get( "output" );
+        stringstream soutput;
+        soutput << poutput;
+
+        //cout << endl << *prop << endl;
+        
+        _output = soutput.str();
+        boost::replace_all(_output, "<output>", "");
+        boost::replace_all(_output, "</output>", "");
+        boost::replace_all(_output, "\n", "");
+        boost::replace_all(_output, "\t", "");
         _has_output = true;
     }
     if (prop->exists("error")) {
@@ -100,7 +112,7 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
     
     if (fileformat == "xml") {
         string tab = "\t";
-
+        
         ofs << tab << "<job>\n";
         ofs << tab << tab << (format("<id>%1$d</id>\n") % _id).str();
         ofs << tab << tab << (format("<tag>%1$s</tag>\n") % _tag).str();
@@ -122,7 +134,7 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
         if (_has_error)
             ofs << tab << tab << (format("<error>%1$s</error>\n")
                 % _error).str();
-        ofs << tab << "</job>\n";        
+        ofs << tab << "</job>\n";     
     }
     else if (fileformat == "tab") {
         string time = _time;

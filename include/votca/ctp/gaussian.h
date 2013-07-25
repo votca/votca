@@ -56,6 +56,7 @@ public:
    bool Run();
    void CleanUp();
    
+   bool CheckLogFile();
    bool ParseLogFile( Orbitals* _orbitals );
    bool ParseOrbitalsFile( Orbitals* _orbitals );
    

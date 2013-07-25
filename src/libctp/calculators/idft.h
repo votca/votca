@@ -72,6 +72,17 @@ private:
     string              _package;
     Property            _package_options; 
     
+    // what to do
+    bool                _do_input;
+    bool                _do_run;
+    bool                _do_parse;
+    bool                _do_project;
+    
+    // what to write in the storage
+    bool                _store_orbitals;
+    bool                _store_overlap;
+    bool                _store_integrals;
+    
     double              _energy_difference;    
         
     string              _outParent;
