@@ -219,8 +219,9 @@ for ((i=$begin;i<$iterations+1;i++)); do
     echo "Filecopy already done"
     for i in $filelist; do
       echo Comparing "$(get_main_dir)/$i" "$i"
+      [[ -z $(type -p cmp) ]] && echo "program 'cmp' not found, comparision skipped" && continue
       cmp "$(get_main_dir)/$i" "$i" && echo "Unchanged" || \
-	msg --color blue "file '$i' in the main dir was changed since the last execution, this will have no effect on current iteration, to take effect remove the current iteration ('${this_dir##*/}')"
+	msg --color blue --to-stderr "WARNING: file '$i' in the main dir was changed since the last execution, this will have no effect on current iteration, to take effect remove the current iteration ('${this_dir##*/}')"
     done
   else
     #get need files (leave the " " unglob happens inside the function)
