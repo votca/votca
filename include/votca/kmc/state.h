@@ -22,6 +22,13 @@
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/node.h>
 
+// Text archive that defines boost::archive::text_oarchive
+// and boost::archive::text_iarchive
+//#include <boost/archive/text_iarchive.hpp>
+//nclude <boost/archive/text_oarchive.hpp>
+
+//#include <boost/serialization/list.hpp>
+
 namespace votca { namespace kmc {
   
 using namespace std;
@@ -32,7 +39,13 @@ public:
     
     void Save(){ ; }
     void Load(){ ; }
-    
+
+//   template<typename Archive> 
+//   void serialize(Archive& ar, const unsigned version) {
+//       //ar & _carriers; 
+//       ;
+//   }     
+   
 private:
     
     list<Carrier*> _carriers;  
