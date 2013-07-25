@@ -218,6 +218,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   if is_done "Filecopy"; then
     echo "Filecopy already done"
     for f in $filelist; do
+      [[ -f $f ]] || cp_from_main_dir "$f"
       echo Comparing "$(get_main_dir)/$f" "$f"
       [[ -z $(type -p cmp) ]] && echo "program 'cmp' not found, comparision skipped" && continue
       cmp "$(get_main_dir)/$f" "$f" && echo "Unchanged" || \
