@@ -154,6 +154,7 @@ do_external() { #takes two tags, find the according script and excute it
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
+  [[ $1 != "function" && ! -x ${script/ *} ]] && die "${FUNCNAME[0]}: subscript '${script/ *}' (from tags $tags), is not executable! (Run chmod +x ${script/ *})"
   #print this message to stderr to allow $(do_external ) and do_external XX > 
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
@@ -750,6 +751,7 @@ source_wrapper() { #print the full name of a script belonging to two tags (1st, 
   else
     cmd=$(get_command_from_csg_tables "$1" "$2") || die "${FUNCNAME[0]}: get_command_from_csg_tables '$1' '$2' failed"
     [[ -z $cmd ]] && die "${FUNCNAME[0]}: Could not get any script from tags '$1' '$2'"
+    #cmd might contain option after the script name
     script="${cmd%% *}"
     real_script="$(find_in_csgshare "$script")"
     echo "${cmd/${script}/${real_script}}"
