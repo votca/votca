@@ -174,7 +174,7 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
     
     //if( p.HasChilds() || p.value() != "" ) {
         
-        // print starting only from the start_level (the first node (level 0) is always <> </>)
+        // print starting only from the start_level (the first node (level 0) can be <> </>)
         if ( level >= start_level )  {
             // print the node name
             out << offset << "<" << p._name ;
@@ -190,11 +190,7 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
             // check if we need the end of the line or not
             if( !has_value &&  p.HasChilds() ) out << endl;
             if( !has_value &&  !p.HasChilds() ) _endl = false;
-            
- 
         }
-        
-        
     
         // continue iteratively through the rest of the nodes
         for(iter = p._properties.begin(); iter!=p._properties.end(); ++iter) {
@@ -207,13 +203,11 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
         
         if ( level >= start_level ) {
             if ( _endl ) {
-                out << offset << "</" << prefix << ">"  << endl;
+                out << offset << "</" << p._name << ">"  << endl;
             } else {
-                out << "</" << prefix << ">"  << endl;
+                out << "</" << p._name << ">"  << endl;
             }
-        } else {
-            prefix = "";
-        }
+        } 
         
     //}
 }

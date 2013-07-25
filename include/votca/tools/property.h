@@ -176,7 +176,10 @@ public:
      * \brief return true if a node has attributes
      */
     bool hasAttributes() { return _attributes.size() > 0; }
-    
+    /**
+     * \brief return true if an attribute exists
+     */
+    bool hasAttribute(const string &attribute);
     /**
      * \brief stores output format
      */    
@@ -302,16 +305,32 @@ inline vector<double> Property::as<vector <double> >() const {
     return tmp;
 }
 
+inline bool Property::hasAttribute(const string &attribute) {
+    std::map<string,string>::iterator it;
+    it = _attributes.find(attribute);
+    if ( it == _attributes.end() ) return false;
+    return true;
+}
+
 template<typename T>
 inline T Property::getAttribute(const string &attribute)
 {
     std::map<string,string>::iterator it;
     
+    it = _attributes.find(attribute);
+    
+    if (it != _attributes.end()) {
+        return lexical_cast<T>(_attributes[attribute], "wrong type in attribute " + attribute + " of element " + _path + "."  + _name + "\n");
+    } else {
+        throw std::runtime_error("attribute " + attribute + " not found\n");
+    }
+/*    
     if ( _attributes.find( attribute ) != _attributes.end() ) {
         return lexical_cast<T>(_attributes[attribute], "wrong type in attribute " + attribute + " of element " + _path + "."  + _name + "\n");
     } else {
         return "";
     }
+ */
 }
 
 template<typename T>
