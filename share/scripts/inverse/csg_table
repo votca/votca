@@ -239,7 +239,7 @@ functions espresso functions_genericsim.sh
 # lammps scripts
 convert_potential lammps potential_to_generic.sh
 
-# Interface to ESPResSo
+# interface to lammps
 run lammps run_genericsim.sh
 rdf lammps calc_rdf_generic.sh
 imc_stat lammps imc_stat_generic.sh
@@ -247,5 +247,14 @@ density lammps calc_density_generic.sh
 
 # function for lammps
 functions lammps functions_genericsim.sh
+
+# interface to dlpoly (not fully functional)
+run dlpoly run_genericsim.sh
+
+# function for lammps
+functions dlpoly functions_genericsim.sh
+
+# lammps scripts
+convert_potential dlpoly potential_to_generic.sh
 
 # END: these scripts have to be defined for each simulation program
