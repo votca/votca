@@ -25,10 +25,13 @@ EOF
    exit 0
 fi
 
-msg --color blue "####################################################"
-msg --color blue "# WARNING multicomponent imc is still experimental #"
-msg --color blue "####################################################"
+names=( $(csg_get_interaction_property --all name) )
+if [[ ${#names[@]} -gt 1 ]]; then
+  msg --color blue "####################################################"
+  msg --color blue "# WARNING multicomponent imc is still experimental #"
+  msg --color blue "####################################################"
+fi
 
-[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && die "IMC does not support bonded interaction, go and implement it"
+[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && die "IMC does not support bonded interactions, go and implement it"
 
 do_external prepare generic

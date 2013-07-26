@@ -154,6 +154,7 @@ do_external() { #takes two tags, find the according script and excute it
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
+  [[ $1 != "function" && ! -x ${script/ *} ]] && die "${FUNCNAME[0]}: subscript '${script/ *}' (from tags $tags), is not executable! (Run chmod +x ${script/ *})"
   #print this message to stderr to allow $(do_external ) and do_external XX > 
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
@@ -321,6 +322,13 @@ csg_get_property () { #get an property from the xml file
   #if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+    if [[ -z $ret ]] && [[ $1 = *gromacs* || $1 = *espresso* || $1 = *lammps* ]]; then
+      local path=${1/gromacs/sim_prog}
+      path=${path/lammps/sim_prog}
+      path=${path/espresso/sim_prog}
+      ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${path}" --short --print . | trim_all)"
+    fi
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
@@ -681,7 +689,7 @@ csg_calc() { #simple calculator, a + b, ...
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
     "+"|"-"|'*'|"/"|"^")
-      res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
        true;;
     '>'|'<' )
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
@@ -743,6 +751,7 @@ source_wrapper() { #print the full name of a script belonging to two tags (1st, 
   else
     cmd=$(get_command_from_csg_tables "$1" "$2") || die "${FUNCNAME[0]}: get_command_from_csg_tables '$1' '$2' failed"
     [[ -z $cmd ]] && die "${FUNCNAME[0]}: Could not get any script from tags '$1' '$2'"
+    #cmd might contain option after the script name
     script="${cmd%% *}"
     real_script="$(find_in_csgshare "$script")"
     echo "${cmd/${script}/${real_script}}"
@@ -828,11 +837,16 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
     cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol cg.inverse.convergence_check \
-    cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit; do
+    cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit \
+    cg.inverse.espresso.table_end cg.inverse.gromacs.traj_type cg.inverse.gromacs.topol_out \
+    cg.inverse.espresso.blockfile cg.inverse.espresso.blockfile_out cg.inverse.espresso.n_steps \
+    cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.n_snapshots \
+    cg.non-bonded.inverse.espresso.index1 cg.non-bonded.inverse.espresso.index2 cg.inverse.espresso.success \
+    cg.inverse.espresso.scriptdir \
+    ; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
+    new=""
     case $i in
-      cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
-        new="";;
       cg.inverse.mpi.tasks|cg.inverse.parallel.tasks)
         new="cg.inverse.simulation.tasks";;
       cg.inverse.gromacs.mdrun.bin|cg.inverse.espresso.bin)
@@ -841,18 +855,18 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/dir/path}";;
       cg.inverse.gromacs.grompp.index)
         new="${i/.grompp}";;
-      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.topol)
+      cg.inverse.gromacs.grompp.topol)
         new="cg.inverse.gromacs.topol_in";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;
+      cg.inverse.gromacs.topol_out)
+        new="${i/_out}";;
+      cg.inverse.gromacs.traj_type)
+        new="";;
       cg.inverse.convergence_check)
 	new="${i}.type";;
-      cg.inverse.convergence_check_options.name_glob)
-	new="";;
       cg.inverse.convergence_check_options.limit)
         new="cg.inverse.convergence_check.limit";;
-      *)
-        die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac
     [[ -n $new ]] && new="has been renamed to $new" || new="has been removed"
     die "${FUNCNAME[0]}: The xml option $i $new\nPlease remove the obsolete options from the xmlfile"

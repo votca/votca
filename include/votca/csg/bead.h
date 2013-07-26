@@ -64,10 +64,22 @@ public:
     const string &getName() const { return _name; }
     
     /**
+     * set bead name
+     * \param name bead name
+     */
+    void setName(const string &name) { _name=name; }
+
+    /**
      * get the bead type
      * \return bead type object
      */
     const BeadType *getType() const { return _type; }
+
+    /**
+     * set the bead type
+     * \param bead type object
+     */
+    void setType(BeadType *type) { _type=type; }
 
     /**
      * get the bead type pointer (not constant)

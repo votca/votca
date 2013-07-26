@@ -40,8 +40,9 @@ $progname, version %version%
 
 This script converts csg potential files to the xvg format.
 
+$usage
+
 Allowed options:
--v, --version         print version
 -h, --help            show this help message
 --type XXX            change the type of xvg table
                       Default: $type

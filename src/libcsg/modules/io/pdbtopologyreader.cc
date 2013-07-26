@@ -81,13 +81,33 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
 
     read_stx_conf((char*)file.c_str(), title,&atoms,
                           x,NULL,&ePBC,box);
-    Residue *res = top.CreateResidue("no");
+
+    for(int i=0; i < atoms.nres; i++) {
+#if GMX == 50
+        top.CreateResidue(*(atoms.resinfo[i].name));
+#elif GMX == 45
+        top.CreateResidue(*(atoms.resinfo[i].name));
+#elif GMX == 40
+        top.CreateResidue(*(atoms.resname[i]));
+#else
+#error Unsupported GMX version
+#endif
+    }
     // read the atoms
     for(int i=0; i < atoms.nr; i++) {
         t_atom *a;
         a = &(atoms.atom[i]);
-        BeadType *type = top.GetOrCreateBeadType("no");
-        top.CreateBead(1, *(atoms.atomname[i]), type, res->getId(), a->m, a->q);  
+	//this is not correct, but still better than no type at all!
+	BeadType *type = top.GetOrCreateBeadType(*(atoms.atomname[i]));
+#if GMX == 50
+        top.CreateBead(1, *(atoms.atomname[i]), type, a->resind, a->m, a->q);
+#elif GMX == 45
+        top.CreateBead(1, *(atoms.atomname[i]), type, a->resind, a->m, a->q);
+#elif GMX == 40
+        top.CreateBead(1, *(atoms.atomname[i]), type, a->resnr, a->m, a->q);
+#else
+#error Unsupported GMX version
+#endif
         //cout << *(gtp.atoms.atomname[i]) << " residue: " << a->resnr << endl;
     }
    

@@ -27,10 +27,7 @@ This script converts rdf to pot of mean force (''\$F(r)=-k_B T\\\\ln g(r)\$'')
 In addtion, it does some magic tricks:
 - do not crash when calc log(0)
 - extrapolate the beginning of pot
-- the maximum to interpolate is pot_max (see xml)
-- bigger value will be set to that max
 - shift the potential, so that it is zero at the cutoff
-- set all values to zero after the cutoff
 
 Usage: $progname infile outfile
 EOF
@@ -45,7 +42,7 @@ my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
 my $pref=csg_get_property("cg.inverse.kBT");
-my $r_cut=csg_get_interaction_property("max");
+my $rdf_min=csg_get_property("cg.inverse.rdf_min");
 
 my @r;
 my @rdf;
@@ -54,16 +51,13 @@ my @flag;
 
 my @pot;
 for (my $i=0;$i<=$#r;$i++){
-#  if ($flag[$i] eq "i"){
-    #rdf = 0 will give undefined pot
-    if ($rdf[$i]>1e-10) {
+    if ($rdf[$i]>$rdf_min) {
       $pot[$i]=-$pref*log($rdf[$i]);
     }
     else {
       $pot[$i]="nan";
       $flag[$i]="u";
     }
-#  }
 }
 
 #find first defined value (begining for r=0)
@@ -76,20 +70,12 @@ for (my $i=$#pot;$i>=0;$i--){
      last;
    }
 }
-
-#find i which is the cutoff
-my $i_cut=$#r;
-for (my $nr=0;$nr<=$#r;$nr++){
-   if ($r[$nr]>=$r_cut) {
-     $i_cut=$nr;
-     last;
-   }
-}
+die "All data points from file '$infile' are invalid after Boltzmann inversion, please check if your distribution is a valid rdf.\n" if ($first_undef_bin==$#pot);
 
 #shift potential so that it is zero at cutoff
 #first do the shift, then extrapolation
-for (my $i=0;$i<=$i_cut;$i++){
-   $pot[$i]-=$pot[$i_cut] unless  ($flag[$i] =~ /[u]/);
+for (my $i=0;$i<=$#r;$i++){
+   $pot[$i]-=$pot[$#r] unless  ($flag[$i] =~ /[u]/);
 }
 
 #quadratic extrapolation at the begining
@@ -100,11 +86,4 @@ for (my $i=$first_undef_bin;$i>=0;$i--){
    $flag[$i]="o";
 }
 
-# set end of the potential to zero
-for (my $i=$i_cut;$i<$#flag;$i++) {
-  $pot[$i]=0;
-  $flag[$i]="o";
-}
-
 saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at save table\n";
-

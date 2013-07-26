@@ -60,9 +60,10 @@ void XMLTopologyReader::ParseRoot(const string &el, map<string, string> &attr)
 
 void XMLTopologyReader::ParseTopology(const string &el, map<string, string> &attr)
 {
-    if(el == "molecules")
+    if(el == "molecules") {
          _parser.NextHandler(this, &XMLTopologyReader::ParseMolecules);
-    if(el == "box") {
+    }
+    else if(el == "box") {
         matrix m;
         m.ZeroMatrix();
         m[0][0] = boost::lexical_cast<double>(attr["xx"]);
@@ -70,6 +71,12 @@ void XMLTopologyReader::ParseTopology(const string &el, map<string, string> &att
         m[2][2] = boost::lexical_cast<double>(attr["zz"]);
         _top->setBox(m);
         _parser.NextHandler(this, &XMLTopologyReader::ParseTopology);
+    }
+    else if(el == "beadtypes") {
+         _parser.NextHandler(this, &XMLTopologyReader::ParseBeadTypes);
+    }
+    else {
+        throw runtime_error("unknown tag: "+ el);
     }
 }
 
@@ -103,5 +110,25 @@ void XMLTopologyReader::ParseMolecules(const string &el, map<string, string> &at
     }
 }
 
+void XMLTopologyReader::ParseBeadTypes(const string &el, map<string, string> &attr)
+{
+    if (el == "rename") {
+        string name = attr["name"];
+        string newname = attr["newname"];
+        if (name == "" || newname == "")
+            throw runtime_error("invalid rename tag");
+        _top->RenameBeadType(name, newname);
+        _parser.IgnoreChilds();
+    }
+    if (el == "mass") {
+        string name = attr["name"];
+        string svalue = attr["value"];
+        if (name == "" || svalue == "")
+            throw runtime_error("invalid rename tag");
+	double value = boost::lexical_cast<double>(svalue);
+        _top->SetBeadTypeMass(name, value);
+        _parser.IgnoreChilds();
+    }
+}
 }}
 

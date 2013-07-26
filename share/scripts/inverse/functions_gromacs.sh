@@ -87,9 +87,8 @@ To disable this check set cg.inverse.gromacs.temp_check to 'no'"
 export -f check_temp
 
 simulation_finish() { #checks if simulation is finished
-  local ext traj confout
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
-  traj="traj.${ext}"
+  local traj confout
+  traj=$(csg_get_property cg.inverse.gromacs.traj)
   confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
   [[ $1 = "--no-traj" ]] && [[ -f $confout ]] && return 0
   [[ -f $traj ]] && [[ -f $confout ]] && return 0
