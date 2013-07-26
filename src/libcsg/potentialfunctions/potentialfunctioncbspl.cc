@@ -16,6 +16,24 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
    * extrapolated from first statistically significant knot values near rmin
    */
 
+  /* determine minimum for B-spline from CG-MD rdf */
+  Table dist;
+  string filename = _name + ".dist.cur";
+  dist.Load(filename);
+  double new_min;
+
+  for( int i = 0; i < dist.size(); i++){
+
+    if(dist.y(i) > 1.0e-3){
+      new_min = dist.x(i);
+      break;
+    }
+
+  }
+
+  if(new_min > _min)
+    _min = new_min;
+
   _extrapol_type = extrapol_type_;
   // number of break points = _lam.size() - 2
   _nbreak = _lam.size() - 2;
