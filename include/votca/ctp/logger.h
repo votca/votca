@@ -28,7 +28,7 @@ namespace votca { namespace ctp {
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
  
 /*
- * Macros to use the Logger (level,logger) << message
+ * Macros to use the Logger: LOG(level,logger) << message
  */
 #define LOG(level, log) \
 if ( &log != NULL && level > (log).getReportLevel() ) ; \

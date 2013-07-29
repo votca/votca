@@ -3,7 +3,7 @@
 
 #include <votca/ctp/qmcalculator.h>
 #include <sys/stat.h>
-
+#include <votca/ctp/logger.h>
 
 namespace votca { namespace ctp {
 
@@ -32,7 +32,7 @@ private:
 
 
 void IImport::Initialize(Topology *top, Property *options) {
-
+    
     _importFromDirs = false;
     _importFromList = false;
     _importFromIDFT = false;
@@ -237,8 +237,15 @@ void IImport::XML2PairTI(QMPair *qmpair, string &xmlDirFile) {
 void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
 
     Property xml;
-    QMNBList &nblist = top->NBList();   
 
+    QMNBList &nblist = top->NBList();   
+    int _number_of_pairs = nblist.size();
+    int _current_pairs = 0;
+    int _incomplete_jobs = 0;
+    
+    Logger _log;
+    _log.setReportLevel(logINFO);
+    
     load_property_from_xml(xml, _idft_jobs_file);
     
     list<Property*> jobProps = xml.Select("jobs.job");
@@ -246,7 +253,10 @@ void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
     
     for (it = jobProps.begin(); it != jobProps.end(); ++it) {
  
-        if ( (*it)->exists("output") ) {
+        if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
+            
+            //cout << **it;
+            
             Property poutput = (*it)->get("output.pair");
             
             int homoA = poutput.getAttribute<int>("homoA");
@@ -263,13 +273,17 @@ void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
 
             QMPair *qmp = nblist.FindPair(segA,segB);
             
-            if (qmp == NULL) {
-                throw std::runtime_error("no pair found in the neighbor list\n");
+            if (qmp == NULL) { // there is no pair in the neighbor list with this name
+                LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
+                
+                _current_pairs++;
+                
                 list<Property*> pOverlap = poutput.Select("overlap");
                 list<Property*> ::iterator itOverlap;
                 
                 for (itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
+                    
                     double energyA = (*itOverlap)->getAttribute<double>("eA");
                     double energyB = (*itOverlap)->getAttribute<double>("eB");
                     double overlapAB = (*itOverlap)->getAttribute<double>("jAB");
@@ -292,9 +306,13 @@ void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
             
             
         } else {
-            cout << "Job " << (*it)->get( "id" ).as<string>() << " " << (*it)->get( "status" ).as<string>() << endl;
+            _incomplete_jobs++;
+            //LOG(logINFO, _log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
         }
     }
+    
+    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    cout << _log;
 }
 
 }}
