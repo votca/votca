@@ -47,7 +47,7 @@ bool GROTopologyReader::ReadTopology(string file, Topology &top)
         string resname;
         fl >> resname;
         int resnr = atoi(c);
-        if(resnr > top.ResidueCount()) {
+        if(resnr >= top.ResidueCount()) {
             if (top.ResidueCount()==0) //gro resnr start with 1 but VOTCA starts with 0
 	      top.CreateResidue("ZERO"); // create 0 res, to allow to keep gro numbering
             top.CreateResidue(resname);
