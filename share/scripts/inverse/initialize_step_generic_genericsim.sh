@@ -27,8 +27,22 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 from=$(csg_get_property cg.inverse.initial_configuration)
-if [[ $from != "maindir" ]]; then
-  die "${0##*/}: for ${sim_prog} only initial_configuration maindir is implemented, please change cg.inverse.initial_configuration to 'maindir' or implement it!"
+conf="$(csg_get_property --allow-empty cg.inverse.$sim_prog.conf)"
+echo "Using intial configuration from $from"
+if [[ $from = "maindir" ]]; then
+  if [[ -n $conf ]]; then
+    cp_from_main_dir "$conf"
+  else
+    echo "Option cg.inverse.$sim_prog.conf was empty, so I assume $sim_prog needs no conf or you have added it to cg.inverse.filelist."
+  fi
+elif [[ $from = "laststep" ]]; then
+  [[ -n $conf ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.conf is needed!"
+  confout="$(csg_get_property --allow-empty cg.inverse.$sim_prog.conf_out)"
+  [[ -n $confout ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.confout is needed!"
+  #avoid overwriting $confout
+  cp_from_last_step --rename "${confout}" "${conf}"
+else
+  die "${0##*/}: initial_configuration '$from' not implemented"
 fi
 
 #convert potential in format for sim_prog
