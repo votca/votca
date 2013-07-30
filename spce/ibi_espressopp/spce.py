@@ -81,8 +81,8 @@ integrator.addExtension(lT)
 print "runing ..."
 
 espresso.tools.info(system, integrator)
-for step in range(10):
-  integrator.run(2)
+for step in range(50):
+  integrator.run(10)
   espresso.tools.info(system, integrator)
   print 'writing .xyz trajectory...'
   espresso.tools.DumpConfigurations.fastwritexyz_standard('traj.xyz', system, unfolded = False, append = True)
