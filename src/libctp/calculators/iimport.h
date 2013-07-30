@@ -307,7 +307,7 @@ void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
             
         } else {
             _incomplete_jobs++;
-            //LOG(logINFO, _log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
+            LOG(logINFO, _log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
         }
     }
     

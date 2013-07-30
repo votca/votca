@@ -183,13 +183,15 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
     
     // CLEAN DIRECTORY
+    /*
     int removed = boost::filesystem::remove_all(runFolder);
     if (removed > 0) 
         LOG(logDEBUG,*_log) << "Removed directory " << runFolder << flush;
     else 
         LOG(logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
-    
+    */
     return 0;
+     
 }
 
 

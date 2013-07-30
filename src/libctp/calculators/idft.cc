@@ -674,7 +674,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     Orbitals* _orbitalsAB, QMThread *opThread ) {
     
-    //LOG(logDEBUG,*opThread->getLogger())  << "... ... Constructing the guess for the dimer orbitals\n" ;   
+    LOG(logDEBUG,*opThread->getLogger())  << "Constructing the guess for the dimer orbitals" << flush;   
    
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
