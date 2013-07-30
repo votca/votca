@@ -323,10 +323,9 @@ csg_get_property () { #get an property from the xml file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
-    if [[ -z $ret ]] && [[ $1 = *gromacs* || $1 = *espresso* || $1 = *lammps* ]]; then
-      local path=${1/gromacs/sim_prog}
-      path=${path/lammps/sim_prog}
-      path=${path/espresso/sim_prog}
+    local sim_prog="$(csg_get_property cg.inverse.program)" #no problem to call recursively as sim_prog has a default
+    if [[ -z $ret ]] && [[ $1 = *${sim_prog}* ]]; then
+      local path=${1/${sim_prog}/sim_prog}
       ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${path}" --short --print . | trim_all)"
     fi
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
