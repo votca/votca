@@ -1,0 +1,7 @@
+<options>
+
+<pdb2map help="Converts PDB or GRO files to VOTCA mapping" label="calc:pdb2map">
+
+</pdb2map>
+
+</options>

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<<<<<<< local
 <configurationDescriptor version="84">
+=======
+<configurationDescriptor version="80">
+>>>>>>> other
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libctp/calculators/density.h</itemPath>
@@ -22,7 +26,6 @@
       <itemPath>../../src/libctp/calculators/neighborlist.cc</itemPath>
       <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
       <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
-      <itemPath>../../src/libctp/qmtools/pdb2map.h</itemPath>
       <itemPath>../../src/libctp/calculators/rates.cc</itemPath>
       <itemPath>../../src/libctp/calculators/rates.h</itemPath>
       <itemPath>../../src/libctp/calculators/sandbox.cc</itemPath>
@@ -59,7 +62,8 @@
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
       <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
-      <itemPath>../../../../include/votca/ctp/topology.h</itemPath>
+      <itemPath>../../src/libctp/segmenttype.cc</itemPath>
+      <itemPath>../../include/votca/ctp/topology.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
