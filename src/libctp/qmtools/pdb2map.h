@@ -273,6 +273,18 @@ bool PDB2Map::Evaluate() {
                 localCounter++;
             }
             
+            Property record;
+         
+            Property *pfragment = &record.add("fragment","");
+            pfragment->add("name", mapName);
+            pfragment->add("mdatoms", mapMdAtoms.str());
+            pfragment->add("qmatoms", mapQmAtoms.str());
+            pfragment->add("mpoles", mapQmAtoms.str());
+            pfragment->add("weights", mapWeight.str());
+            pfragment->add("localframe", mapFrame.str());
+                    
+            cout << setlevel(1) << XML << record;
+            
             map2pdbFile 
                  << "\t\t\t\t<fragment>\n"
                  << "\t\t\t\t\t<name> "     << mapName          << " </name>\n"
