@@ -65,7 +65,7 @@ if is_done "rdf-$name"; then
 else
   msg "Running g_rdf for ${grp1}-${grp2} using $tasks tasks"
   if [ $tasks -gt 1 ]; then
-    echo -e "${grp1}\n${grp2}" | critical multi_g_rdf --cmd ${g_rdf} -${tasks} -b ${begin} -e ${end} -n "$index" -o ${name}.dist.new.xvg --soutput ${name}.dist.new.NP.xvg -- -bin ${binsize}  -s "$tpr" -f "${traj}" ${opts}
+    echo -e "${grp1}\n${grp2}" | critical multi_g_rdf --cmd ${g_rdf} --${tasks} -b ${begin} -e ${end} -n "$index" -o ${name}.dist.new.xvg --soutput ${name}.dist.new.NP.xvg -- -bin ${binsize}  -s "$tpr" -f "${traj}" ${opts}
   else
     echo -e "${grp1}\n${grp2}" | critical ${g_rdf} -b ${begin} -n "$index" -bin ${binsize} -o ${name}.dist.new.xvg -s "$tpr" -f "${traj}" ${opts}
   fi
