@@ -4,7 +4,8 @@
 
 #include <votca/ctp/topology.h>
 #include <votca/ctp/atom.h>
-#include <votca/ctp/segment.h>
+#include <votca/ctp/atom.h>
+#include <votca/ctp/logger.h>
 #include <boost/algorithm/string.hpp>
 #include <votca/tools/vec.h>
 #include <boost/format.hpp>
@@ -32,36 +33,44 @@ private:
     string      _input_file;
     string      _output_file;
     Topology    _top;
- 
+
+   // element:mass map
+    map <string,int> el2mass;
+
 };
 
 void PDB2Map::Initialize(Property* options) 
 {
-        
-    // Just a map Element:mass for mapping
 
-    map <string,int> el2mass;
-    
-            el2mass["H"]        = 1;
-            el2mass["B"]        = 10;
-            el2mass["C"]        = 12;
-            el2mass["N"]        = 14;
-            el2mass["O"]        = 16;
-            el2mass["F"]        = 19;
-            el2mass["Al"]       = 27;
-            el2mass["Si"]       = 28;
-            el2mass["P"]        = 31;
-            el2mass["S"]        = 32;
-            el2mass["Cl"]       = 35;
-            el2mass["Ir"]       = 192;
+    // fill out periodic table
+    el2mass["H"]        = 1;
+    el2mass["B"]        = 10;
+    el2mass["C"]        = 12;
+    el2mass["N"]        = 14;
+    el2mass["O"]        = 16;
+    el2mass["F"]        = 19;
+    el2mass["Al"]       = 27;
+    el2mass["Si"]       = 28;
+    el2mass["P"]        = 31;
+    el2mass["S"]        = 32;
+    el2mass["Cl"]       = 35;
+    el2mass["Ir"]       = 192;
 
     
     // options reading
-    
     _input_file  = options->get("options.pdb2map.file").as<string> ();
     _output_file = options->get("options.pdb2map.outfile").as<string> ();
     
-    cout << "\n... ... " <<"Reading from: " << _input_file << "\n\n";
+    //cout << "\n... ... " <<"Reading from: " << _input_file << "\n\n";
+
+    
+}
+
+
+
+bool PDB2Map::Evaluate() {
+    
+    LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;
     
     // read strings to vector
     
@@ -86,8 +95,7 @@ void PDB2Map::Initialize(Property* options)
     newSegment->setMolecule(newMolecule);
             
  
-    // go go interate over strings, create atoms
-    // topologu insanity part 2
+    // iterate over lines, create atoms
     
     int _atom_id = 0;
     int _newResNum = 0;
@@ -286,16 +294,15 @@ void PDB2Map::Initialize(Property* options)
           "</topology>\n";    
     map2pdbFile << tailLine;
     
-    cout << "\n... ... " <<"Writing into: " << _output_file << "\n\n";
+    //cout << "\n... ... " <<"Writing into: " << _output_file << "\n\n";
+    
+    LOG( logINFO, _log ) << "Writing into: " << _output_file << flush;
+        
     ofstream outfile( _output_file.c_str() );
     outfile << map2pdbFile.str();
     outfile.close();
-}
-
-
-
-bool PDB2Map::Evaluate() {
     
+    cout << _log;
 }
 
 
