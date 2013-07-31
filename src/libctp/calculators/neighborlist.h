@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __NEIGHBORLIST2_H
-#define __NEIGHBORLIST2_H
+#ifndef __VOTCA_CTP_NEIGHBORLIST_H
+#define __VOTCA_CTP_NEIGHBORLIST_H
 
 #include <votca/tools/globals.h>
 #include <votca/ctp/qmcalculator.h>
@@ -37,7 +37,7 @@ public:
     Neighborlist() { };
    ~Neighborlist() { };
 
-    string Identify() { return "Neighborlist"; }
+    string Identify() { return "neighborlist"; }
     
     void Initialize(Topology *top, Property *options);
     bool EvaluateFrame(Topology *top);
@@ -75,7 +75,7 @@ void Neighborlist::Initialize(Topology* top, Property *options) {
 
         if (names.size() != 2) {
             cout << "ERROR: Faulty pair definition for cut-off's: "
-                 << "Need two segment names separated by a ' '" << endl;
+                 << "Need two segment names separated by a space" << endl;
             throw std::runtime_error("Error in options file.");
         }
 

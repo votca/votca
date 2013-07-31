@@ -28,7 +28,8 @@ QMPair *QMNBList::Add(Segment* seg1, Segment* seg2) {
         throw std::runtime_error("Critical bug: pair already exists");
     }
 
-    int id = this->size();
+    // POTENTIAL BUGS : +1 added to start from 1;
+    int id = this->size()+1;
 
     QMPair *pair = new QMPair(id, seg1, seg2);
 

@@ -39,7 +39,7 @@ public:
               _framesToWrite(1),   _framesWritten(0)     { };
    ~TDump() { };
 
-    string Identify() { return "Trajectory dump"; }
+    string Identify() { return "tdump"; }
 
     void Initialize(Topology *top, Property *options);
     bool EvaluateFrame(Topology *top);
@@ -58,16 +58,13 @@ private:
 
 void TDump::Initialize(Topology *top, Property *options) {
 
-    string key = "options.tdump";
+    // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *options );
 
-    if (options->exists(key+".md") && options->exists(key+".qm")) {
-        _outPDBmd = options->get(key+".md").as<string>();
-        _outPDBqm = options->get(key+".qm").as<string>();
-    }
-
-    if (options->exists(key+".frames")) {
-        _framesToWrite = options->get(key+".frames").as<int>();
-    }
+    string key      = "options." + Identify();
+    _outPDBmd = _options.get(key+".md").as<string>();
+    _outPDBqm = _options.get(key+".qm").as<string>();
+    _framesToWrite = _options.get(key+".frames").as<int>();
 
 }
 

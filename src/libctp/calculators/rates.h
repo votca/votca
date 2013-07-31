@@ -33,7 +33,7 @@ public:
     Rates() { };
    ~Rates() { };
 
-    string Identify() { return "Rates"; }
+    string Identify() { return "rates"; }
 
     void Initialize(Topology *top, Property *options);
     void ParseEnergiesXML(Topology *top, Property *opt);
@@ -105,7 +105,7 @@ void Rates::Initialize(Topology *top, Property *options) {
              << endl;
         throw std::runtime_error("Missing input in options file.");
     }
-    if (_rateType != "marcus" && _rateType != "jortner") {
+    if (_rateType != "marcus" && _rateType != "jortner" && _rateType != "sven") {
         cout << endl
              << "... ... ERROR: Unknown rate type '" << _rateType << "' "
              << endl;
@@ -288,6 +288,11 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 
     double rate21 = 0.;                                       // 2->1
 
+    double rate_symm12 = 0;
+    double rate_symm21 = 0;
+    double measure = 0;
+    
+    
     double reorg12  = seg1->getU_nC_nN(state)                 // 1->2
                     + seg2->getU_cN_cC(state);
     double reorg21  = seg1->getU_cN_cC(state)                 // 2->1
@@ -394,6 +399,38 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 
         rate21 = J2 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
                 * exp( - (-dG + reorg21)*(-dG + reorg21) / (4*_kT*reorg21) );
+        
+    // ++++++++++++ //
+    // SYMMETRIC RATES //
+    // ++++++++++++ //
+        
+    } else if (_rateType == "sven") {
+         
+        reorg12 = reorg12 + lOut;
+        reorg21 = reorg21 + lOut;
+       
+        rate12 = J2 / hbar_eV * sqrt( M_PI / (reorg12*_kT) )
+                * exp( - (+dG + reorg12)*(+dG + reorg12) / (4*_kT*reorg12) );
+
+        rate21 = J2 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
+                * exp( - (-dG + reorg21)*(-dG + reorg21) / (4*_kT*reorg21) );
+        
+        double e1  = seg2->getU_cC_nN(state) + seg2->getEMpoles(state);    // 1->2 == - 2->1
+        double e2  =  seg1->getU_cC_nN(state) + seg1->getEMpoles(state);       
+        
+//
+        rate_symm12 = J2 / hbar_eV * sqrt( M_PI / (reorg12*_kT) )
+                * exp( - ( dG*dG + reorg12*reorg12 - 2.*dG*reorg12 )  / (4*_kT*reorg12) ) ;
+
+        rate_symm21 = J2 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
+                * exp( - ( dG*dG + reorg21*reorg21 + 2.*dG*reorg21 )  / (4*_kT*reorg21) ) ;
+        
+        double _rate_symm12 = rate12 * exp( -e1 / _kT );
+        double _rate_symm21 = rate21 * exp( -e2 / _kT );
+        
+        cout << " " << qmpair->Seg1()->getId() << " " << qmpair->Seg2()->getId() <<
+                rate_symm12 << " " << " " << rate_symm21 << " " <<
+                _rate_symm12 << " " <<  _rate_symm21 << endl;
     }
 
     qmpair->setRate12(rate12, state);

@@ -469,10 +469,13 @@ public:
     void        Evaluate(XJob *job);
     int         Induce(XJob *job);
     double      Energy(XJob *job);
-    double      EnergyStatic(XJob *job);
+    double      EnergyStatic(XJob *job);    
+    
+    void        setLog(Logger *log) { _log = log; }
     
     bool        hasConverged() { return (_induce) ? _isConverged : true; }
-    void        setLog(Logger *log) { _log = log; }
+    void        setError(string error) { _error = error; }
+    string      getError() { return _error; }
     
 private:    
     
@@ -486,6 +489,7 @@ private:
     bool                          _maverick;
     int                           _subthreads;
     bool                          _isConverged;
+    string                        _error;
     
     // Interaction parameters
     double                        _aDamp;

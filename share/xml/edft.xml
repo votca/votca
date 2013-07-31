@@ -1,0 +1,10 @@
+<options>
+
+<!-- ctp_run -e edft -f state.db -o options.xml -->
+<edft help="A wrapper for first principles based single site calculations" label="calc:edft">
+
+	<package help="XML file describing the input of the first-principles package"></package>
+
+</edft>
+
+</options>

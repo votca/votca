@@ -1,0 +1,24 @@
+<options>
+
+<!-- ctp_run -e idft -f state.db -o options.xml -->
+<qmmm help="QM/MM with the Thole MM model" label="calc:qmmm">
+
+	<multiples help="XML file with multipole moments and polarizabilities"></multiples>
+
+	<control>
+		<job_file help="Job control file"></job_file>
+		<emp_file help=""></emp_file>		
+	</control>
+
+	<output help=""></output>
+	<pdb_check help=""></pdb_check>
+	<write_check help=""></write_check>
+	<format_check help=""></format_check>
+	<split_dpl help=""></split_dpl>
+
+
+</qmmm>
+
+</options>
+
+

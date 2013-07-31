@@ -5,20 +5,24 @@
 #include <vector>
 #include <iostream>
 #include <votca/tools/mutex.h>
-#include <votca/ctp/xjob.h>
+#include <votca/tools/property.h>
+#include <votca/ctp/job.h>
 #include <boost/interprocess/sync/file_lock.hpp>
+#include <boost/program_options.hpp>
 
 using namespace std;
 
 namespace votca { namespace ctp {
     
 class QMThread;
+
+// TYPENAME EXAMPLE USAGE
+//     ProgObserver< vector<Job*>, Job*, Job::JobResult >
+// REQUIRED METHODS FOR TYPENAMES
+//     pJob ->getId() ->SaveResults(rJob)
+//     JobContainer .size() .begin() .end()
     
-// E.G. ProgObserver< vector<Seg*>, Seg* >
-//      ProgObserver< vector<XJob*>, XJob* >
-//      ProgObserver< QMNBList, QMPair* >    
-    
-template<typename JobContainer, typename pJob>
+template<typename JobContainer, typename pJob, typename rJob>
 class ProgObserver 
 {
     
@@ -28,42 +32,57 @@ public:
     typedef typename vector<pJob>::iterator JobItVec;
     
     ProgObserver()
-        : _jobs(NULL), _nThreads(-1), _progFile("nofile"), _lockFile("nofile"),
+        : _lockFile("__NOFILE__"), _progFile("__NOFILE__"), _cacheSize(-1),
           _nextjit(NULL), _metajit(NULL) { ; }
     
-    ProgObserver(JobContainer *jobs, int nThreads, string sharedProgFile, string lockFile)
-        : _jobs(jobs), _nThreads(nThreads), _progFile(sharedProgFile), _lockFile(lockFile)
-          { _metajit = _jobs->begin(); _nextjit = _jobsToProc.begin(); }
-    
    ~ProgObserver() { ; }
-   
-   
+    
+    void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
+    void InitFromProgFile(string progFile, QMThread *master);   
     pJob RequestNextJob(QMThread *thread);
-    void ReportJobDone(pJob job, QMThread *thread);
+    void ReportJobDone(pJob job, rJob *res, QMThread *thread);
     
     void SyncWithProgFile(QMThread *thread);
     void LockProgFile(QMThread *thread);
-    string WriteProgLine(pJob job, QMThread *thread, string status);
     void ReleaseProgFile(QMThread *thread);
-    void ReportJobOutcome(pJob job, QMThread *thread) {;}
+    
+    string GenerateHost(QMThread *thread);
+    string GenerateTime();
    
    
 private:    
     
     JobItCnt _metajit;
-    JobContainer *_jobs;
+    JobContainer _jobs;
     
     JobItVec _nextjit;
     vector<pJob> _jobsToProc;
     vector<pJob> _jobsToSync;
     
-    int _nThreads;
+    int _cacheSize;
     string _progFile;
     string _lockFile;
-    Mutex _lockRequest;
+    Mutex _lockThread;
     boost::interprocess::file_lock *_flock;
     
-}; 
+    map<string,bool> _restart_hosts;
+    map<string,bool> _restart_stats;
+    bool _restartMode;
+    int _jobsReported;
+    
+};
+
+
+
+
+template<typename JobContainer, typename pJob, typename rJob>
+JobContainer LOAD_JOBS(const string &xml_file);
+
+template<typename JobContainer, typename pJob, typename rJob>
+void WRITE_JOBS(JobContainer &jobs, const string &job_file, string fileformat);
+
+template<typename JobContainer, typename pJob, typename rJob>
+void UPDATE_JOBS(JobContainer &from, JobContainer &to, string thisHost);
     
     
     

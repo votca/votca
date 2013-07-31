@@ -531,7 +531,7 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
 }
 
 
-vector<APolarSite*> APS_FROM_MPS(string filename, int state) {
+vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
 
     int poleCount = 1;
     double Q0_total = 0.0;
@@ -694,12 +694,12 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state) {
     else { cout << endl << "ERROR: No such file " << filename << endl;
            throw runtime_error("Please supply input file.");           }
 
-
+    if (thread == NULL)
     printf("\n... ... ... Reading %-25s -> N = %2d Q0(Sum) = %+1.3f ",
                           filename.c_str(), poles.size(),  Q0_total);
 
     if (useDefaultPs) {
-
+        if (thread == NULL)
         cout << endl << "... ... ... NOTE Using default Thole polarizabilities "
              << "for charge state " << state << ". ";
 

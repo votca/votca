@@ -18,6 +18,7 @@ class Topology;
 class Molecule;
 class Segment;
 class Fragment;
+class QMThread;
 
 
 class APolarSite
@@ -144,7 +145,7 @@ private:
 
 
 
-vector<APolarSite*> APS_FROM_MPS(string filename, int state);
+vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread = NULL);
 
 
 

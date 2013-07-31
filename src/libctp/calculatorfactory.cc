@@ -36,10 +36,10 @@
 #include "calculators/eanalyze.h"
 #include "calculators/eimport.h"
 #include "calculators/pairdump.h"
-#include "calculators/ecoulomb.h"
+//#include "calculators/ecoulomb.h"
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
-#include "calculators/density.h"
+#include "calculators/profile.h"
 #include "calculators/xmultipole2.h"
 #include "calculators/velocity.h"
 #include "calculators/molpol.h"
@@ -47,6 +47,7 @@
 #include "calculators/qmultipole.h"
 #include "calculators/xqmultipole.h"
 #include "calculators/qmmm.h"
+#include "calculators/jobwriter.h"
 
 
 
@@ -71,10 +72,16 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EAnalyze>        ("eanalyze");
         Calculators().Register<EImport>         ("eimport");
         Calculators().Register<PairDump>        ("pairdump");
-        Calculators().Register<ECoulomb>        ("ecoulomb");
+        
+        // obsolete - remove if nobody complains
+        //Calculators().Register<ECoulomb>        ("ecoulomb");
+        
         Calculators().Register<IImport>         ("iimport");
         Calculators().Register<IAnalyze>        ("ianalyze");
-        Calculators().Register<Density>         ("density");
+        
+        // density, energy, etc profiles
+        Calculators().Register<Profile>         ("profile");
+
         Calculators().Register<XMP>             ("xmultipole");
         Calculators().Register<Velocity>        ("velocity");
         // HAS BEEN MOVED TO ctp_app?
@@ -83,6 +90,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<QMultipole>      ("qmultipole");
         Calculators().Register<XQMP>            ("xqmultipole");
         Calculators().Register<QMMM>            ("qmmm");
+        Calculators().Register<JobWriter>       ("jobwriter");
 }
 
 }}

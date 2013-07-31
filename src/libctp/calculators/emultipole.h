@@ -2261,6 +2261,8 @@ bool EMultipole::EvaluateFrame(Topology *top) {
     if (this->_calcGSP) {
         vector< Segment* > ::iterator sit;
         vector< PolarSite* > ::iterator pit;
+        vector< Segment* > ::iterator sit2;
+        vector< PolarSite* > ::iterator pit2;
 
         vec gsp_n   = _gsp_normal;
         int id1     = _gsp_first;
@@ -2337,9 +2339,93 @@ bool EMultipole::EvaluateFrame(Topology *top) {
         }
         fclose(out);
 
+        
+        // Dipole spatial correlation function
+        
+        cout << endl;
+        
+        filename = "dpl_corr.dat";
+        out = fopen(filename.c_str(),"w");
+        
+        for (sit = top->Segments().begin();
+             sit < top->Segments().end();
+             ++sit) {           
+            
+            Segment *seg1 = *sit;            
+            if (seg1->getId() < id1 || seg1->getId() > id2) continue;
+            
+            // Dipole Seg1
+            vec    d1 = vec(0,0,0);
+            for (pit = seg1->PolarSites().begin(); 
+                 pit < seg1->PolarSites().end();
+                 ++pit) {
+                // Charge and shift by segment center of geometry
+                (*pit)->Charge(0);
+                (*pit)->Translate(-1*seg1->getPos());
+
+                d1 += (*pit)->Q00 * (*pit)->getPos();
+                if ((*pit)->getRank() > 0) {
+                    d1 += vec((*pit)->Q1x,(*pit)->Q1y,(*pit)->Q1z);
+                }
+                // Undo shift
+                (*pit)->Translate(+1*seg1->getPos());
+            }
+            
+            
+            
+            for (sit2 = sit + 1;
+                 sit2 < top->Segments().end();
+                 ++sit2) {
+                
+                Segment *seg2 = *sit2;  
+                if (seg2->getId() > id2) continue;
+                
+                cout << "\r... ... Progress - " << seg1->getId() << " <> " << seg2->getId() << flush;
+                
+                 // Dipole Seg2
+                 vec    d2 = vec(0,0,0);
+                 for (pit2 = seg2->PolarSites().begin(); 
+                      pit2 < seg2->PolarSites().end();
+                      ++pit2) {
+                     // Charge and shift by segment center of geometry
+                     (*pit2)->Charge(0);
+                     (*pit2)->Translate(-1*seg2->getPos());
+
+                     d2 += (*pit2)->Q00 * (*pit2)->getPos();
+                     if ((*pit2)->getRank() > 0) {
+                         d2 += vec((*pit2)->Q1x,(*pit2)->Q1y,(*pit2)->Q1z);
+                     }
+                     // Undo shift
+                     (*pit2)->Translate(+1*seg2->getPos());
+                 }
+                
+                 d1 = d1.normalize();
+                 d2 = d2.normalize();
+                 
+                 double dot = d1*d2;
+                 double dR = abs(top->PbShortestConnect(seg1->getPos(),seg2->getPos()));   
+                 
+                 
+                 fprintf(out, "%4d %4d %4.7f %+4.7e\n", seg1->getId(), seg2->getId(), dR, dot);
+                
+            }
+        }
+        fclose(out);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         cout << endl << "... ... Calculated GSP, return." << flush;
 
         return 0;
+        
+        
     }
 
 

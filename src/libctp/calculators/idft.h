@@ -30,6 +30,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <sys/stat.h>
+#include <boost/filesystem.hpp>
 
 namespace votca { namespace ctp {
     
@@ -43,7 +44,7 @@ namespace votca { namespace ctp {
 * Callname: idft
 */
 
-class IDFT : public ParallelXJobCalc< QMNBList, QMPair* >
+class IDFT : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 public:
 
@@ -52,9 +53,9 @@ public:
    
     void    Initialize(ctp::Topology *top, tools::Property *options );
     
-    string  Identify() { return "IDFT"; }
+    string  Identify() { return "idft"; }
     
-    void EvalJob(Topology *top, QMPair *qmpair, QMThread *Thread);
+    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
@@ -66,26 +67,37 @@ private:
     static const double _conv_Hrt_eV = 27.21138386;
 
     int                 _max_occupied_levels;
-    int                 _max_unoccupied_levels;
-
+    int                 _max_unoccupied_levels;  
+    
     string              _package;
     Property            _package_options; 
+    
+    // what to do
+    bool                _do_input;
+    bool                _do_run;
+    bool                _do_parse;
+    bool                _do_project;
+    
+    // what to write in the storage
+    bool                _store_orbitals;
+    bool                _store_overlap;
+    bool                _store_integrals;
     
     double              _energy_difference;    
         
     string              _outParent;
-            
+    
     void SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
     
     void ParseOptionsXML( tools::Property *opt);    
     
-    void CalculateIntegrals(   Orbitals* _orbitalsA, 
+    bool CalculateIntegrals(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, 
                                QMThread *opThread );  
     
     double getCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsA,  
                                Orbitals* _orbitalsB, 
                                ub::matrix<double>* _JAB );
     

@@ -1,17 +1,16 @@
 #include <votca/ctp/parallelxjobcalc.h>
 #include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
+
+using boost::format;
 
 
 namespace votca { namespace ctp {
 
     
-template<typename JobContainer, typename pJob> 
-bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {    
-
-    // CREATE XJOBS & PROGRESS OBSERVER (_XJOBFILE INIT. IN CHILD)
-    _XJobs = XJOBS_FROM_TABLE<JobContainer,pJob>(_xjobfile, top); 
-    cout << endl << "... ... Registered " << _XJobs.size() << " jobs " << flush;
-    
+template<typename JobContainer, typename pJob, typename rJob> 
+bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {    
+   
     // RIGIDIFY TOPOLOGY (=> LOCAL FRAMES)
     if (!top->isRigid()) {
         bool isRigid = top->Rigidify();
@@ -20,7 +19,7 @@ bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {
     else cout << endl << "... ... System is already rigidified." << flush;
     
     // CONVERT THREADS INTO SUBTHREADS IF BENEFICIAL
-    if (_XJobs.size() < _nThreads) {
+    if (_XJobs.size() < _nThreads && false) {
         _subthreads = (_nThreads - _XJobs.size()) / _XJobs.size() + 1;
         _nThreads   = _XJobs.size();
 
@@ -29,12 +28,18 @@ bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {
              << "NT = " << _nThreads << ", NST = " << _subthreads
              << flush;
     }
-    
-    string progFile = _xjobfile+"_status";
-    string lockFile = _xjobfile;
-    _progObs = new ProgObserver< JobContainer, pJob >
-            (&_XJobs, _nThreads, progFile, lockFile);
 
+    // INITIALIZE PROGRESS OBSERVER
+    string progFile = _jobfile;
+    assert(_jobfile != "__NOFILE__");    
+    JobOperator* master = new JobOperator(-1, top, this);    
+    master->getLogger()->setReportLevel(logDEBUG);
+    master->getLogger()->setMultithreading(true);
+    master->getLogger()->setPreface(logINFO,    "\nMST INF");
+    master->getLogger()->setPreface(logERROR,   "\nMST ERR");
+    master->getLogger()->setPreface(logWARNING, "\nMST WAR");
+    master->getLogger()->setPreface(logDEBUG,   "\nMST DBG");    
+    _progObs->InitFromProgFile(progFile, master);
 
     // PRE-PROCESS (OVERWRITTEN IN CHILD OBJECT)
     this->PreProcess(top);
@@ -55,6 +60,8 @@ bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {
         jobOps[id]->InitData(top);
     }
 
+    if (!_maverick) cout << endl; // REQUIRED FOR PROGRESS BAR IN OBSERVER
+    
     for (int id = 0; id < _nThreads; id++) {
         jobOps[id]->Start();
     }
@@ -81,24 +88,38 @@ bool ParallelXJobCalc<JobContainer,pJob>::EvaluateFrame(Topology *top) {
 }
 
 
-template<typename JobContainer, typename pJob>
-void ParallelXJobCalc<JobContainer,pJob>::JobOperator::Run(void) {
+template<typename JobContainer, typename pJob, typename rJob>
+void ParallelXJobCalc<JobContainer,pJob,rJob>::JobOperator::Run(void) {
 
     while (true) {
         _job = _master->_progObs->RequestNextJob(this);
 
         if (_job == NULL) { break; }
         else { 
-            this->_master->EvalJob(_top, _job, this); 
-            this->_master->_progObs->ReportJobDone(_job, this);
+            rJob res = this->_master->EvalJob(_top, _job, this);
+            this->_master->_progObs->ReportJobDone(_job, &res, this);
         }
     }
 }
 
+template<typename JobContainer, typename pJob, typename rJob>
+void ParallelXJobCalc<JobContainer,pJob,rJob>::CustomizeLogger(QMThread *thread) {
+    
+    // CONFIGURE LOGGER
+    Logger* log = thread->getLogger();
+    log->setReportLevel(logDEBUG);
+    log->setMultithreading(_maverick);
+
+    log->setPreface(logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
+    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
+}
 
 // REGISTER PARALLEL CALCULATORS
-template class ParallelXJobCalc< vector<XJob*>, XJob* >;
-template class ParallelXJobCalc< vector<Segment*>, Segment* >;
-template class ParallelXJobCalc< QMNBList, QMPair* >;
+//template class ParallelXJobCalc< vector<XJob*>, XJob* >;
+//template class ParallelXJobCalc< vector<Segment*>, Segment* >;
+//template class ParallelXJobCalc< QMNBList, QMPair* >;
+template class ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >;
 
 }}

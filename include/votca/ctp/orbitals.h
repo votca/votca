@@ -106,25 +106,33 @@ public:
     Orbitals();
    ~Orbitals();
 
-    const int     &getBasisSetSize() const;
+    bool           hasBasisSetSize() { return _has_basis_set_size; }
+    int            getBasisSetSize() { return (_has_basis_set_size) ? _basis_set_size : 0; }
     void           setBasisSetSize( const int &basis_set_size );
     
-    int            getNumberOfLevels();
+    int            getNumberOfLevels() { return (_has_occupied_levels && _has_unoccupied_levels) ? ( _occupied_levels + _unoccupied_levels ) : 0; }
     void           setNumberOfLevels( const int &occupied_levels, const int &unoccupied_levels );
     
-    const int     &getNumberOfElectrons() const;
+    bool           hasNumberOfElectrons() { return _has_number_of_electrons; }
+    int            getNumberOfElectrons() { return (_has_number_of_electrons) ? _number_of_electrons : 0; } ;
     void           setNumberOfElectrons( const int &electrons );
     
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
+
+    ub::matrix<double>* getIntegrals() { return _integrals; }
+    void setIntegrals( ub::matrix<double>* integrals ) { _has_integrals = true;  _integrals = integrals; }
+ 
+    double getEnergy( int level) { return (_has_mo_energies) ? _conv_Hrt_eV*_mo_energies[level-1] : 0; }
     
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
     std::vector< QMAtom* >* getAtoms() { return &_atoms; }
     
     bool hasSelfEnergy() { return _has_self_energy; }
-    bool hasQMEnergy() { return _has_qm_energy; }
     double getSelfEnergy() { return (_has_self_energy) ? _self_energy : 0; }
+
+    bool hasQMEnergy() { return _has_qm_energy; }
     double getQMEnergy() { return (_has_qm_energy) ? _qm_energy : 0; }
     
     // returns indeces of a re-sorted in a descending order vector of energies
@@ -136,8 +144,15 @@ public:
         _atoms.push_back( pAtom );
         return pAtom;
     }
+    
+    void setStorage( bool _store_orbitals, bool _store_overlap,  bool _store_integrals ) {
+        _has_mo_coefficients = _store_orbitals;
+        _has_overlap = _store_overlap;
+        _has_integrals = _store_integrals;
+    } 
+        
 
-protected:
+private:
     
     static const double                 _conv_Hrt_eV = 27.21138386;
 
@@ -160,11 +175,9 @@ protected:
     ub::vector<double>                      _mo_energies; 
     
     bool                                _has_mo_coefficients;
-    bool                                _save_mo_coefficients;
     ub::matrix<double>                      _mo_coefficients;
     
     bool                                _has_overlap;
-    bool                                _save_overlap;
     ub::symmetric_matrix<double>            _overlap;
     
     bool                                _has_charges;
@@ -176,6 +189,9 @@ protected:
     
     bool                                _has_self_energy;
     double                                  _self_energy;
+    
+    bool                                _has_integrals;
+    ub::matrix<double>*                 _integrals;
 
 private:
 
@@ -195,30 +211,27 @@ private:
     template<typename Archive> 
     void serialize(Archive& ar, const unsigned version) {
 
-       // std::cout << "... ... Serializing the Orbitals." << std::endl ;
-       bool False = false;
-       
        ar & _has_basis_set_size;
        ar & _has_occupied_levels;
        ar & _has_unoccupied_levels;
        ar & _has_number_of_electrons;
        ar & _has_level_degeneracy;
        ar & _has_mo_energies;
+       ar & _has_mo_coefficients;
+       ar & _has_overlap;
        ar & _has_atoms;
        ar & _has_qm_energy;
        ar & _has_self_energy;
-      
-       if ( _save_mo_coefficients ) { ar & _has_mo_coefficients; } else { ar & False; }     
-       if ( _save_overlap ) { ar & _has_overlap; } else { ar & False; }
-
+       ar & _has_integrals;
+       
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
        if ( _has_unoccupied_levels ) { ar & _unoccupied_levels; }
        if ( _has_number_of_electrons ) { ar & _number_of_electrons; }
        if ( _has_level_degeneracy ) { ar & _level_degeneracy; }
        if ( _has_mo_energies ) { ar & _mo_energies; }
-       if ( _has_mo_coefficients && _save_mo_coefficients ) { ar & _mo_coefficients; }
-       if ( _has_overlap && _save_overlap ) { 
+       if ( _has_mo_coefficients ) { ar & _mo_coefficients; }
+       if ( _has_overlap ) { 
            // symmetric matrix does not serialize by default
             if (Archive::is_saving::value) {
                 unsigned size = _overlap.size1();
@@ -239,7 +252,8 @@ private:
        
        if ( _has_atoms ) { ar & _atoms; }
        if ( _has_qm_energy ) { ar & _qm_energy; }
-       if ( _has_self_energy ) { ar & _self_energy; }       
+       if ( _has_self_energy ) { ar & _self_energy; }     
+       if ( _has_integrals ) { ar & _integrals; } 
     }
     
 };
