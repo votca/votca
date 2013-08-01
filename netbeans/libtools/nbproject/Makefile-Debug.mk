@@ -139,7 +139,7 @@ ${OBJECTDIR}/_ext/1723120609/linalg.o: ../../src/libtools/linalg.cc
 ${OBJECTDIR}/_ext/1723120609/linktest.o: ../../src/libtools/linktest.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/linktest.o ../../src/libtools/linktest.cc
+	$(COMPILE.c) -g -I../../include -I../../../include/votca -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1723120609/linktest.o ../../src/libtools/linktest.cc
 
 ${OBJECTDIR}/_ext/1723120609/linspline.o: ../../src/libtools/linspline.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1723120609
