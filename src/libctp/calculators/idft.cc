@@ -23,6 +23,8 @@
 #include <votca/ctp/logger.h>
 #include <iostream>
 #include <boost/format.hpp>
+#include <votca/ctp/turbomole.h>
+#include <votca/ctp/gaussian.h>
 
 using boost::format;
 
@@ -564,6 +566,75 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
    }    // end of package = gaussian  
 
+
+    
+   if ( _package == "turbomole" ) { 
+        
+        Turbomole _turbomole( &_package_options );
+        _turbomole.setLog( pLog );       
+        
+        // if asked, prepare the input files
+        if ( _do_input ) {
+                COM_FILE = "coord";
+                _turbomole.setRunDir( GAUSS_DIR );
+                _turbomole.setInputFile( COM_FILE );
+
+                //cout << GAUSS_DIR << endl;
+                //cout << COM_FILE << endl;
+
+             _turbomole.WriteInputFile( segments );
+        
+        }
+        
+        // if asked, run the gaussian executable
+        if ( _do_run ) {
+                _run_status = _turbomole.Run( );
+
+                if ( !_run_status ) {
+                        output += "run failed; " ;
+                        LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
+                        cout << *pLog;
+                        jres.setOutput( output ); 
+                        jres.setStatus(Job::FAILED);
+                        return jres;
+                } 
+        }
+        
+       // if asked, parse the log/orbitals files
+        if ( _do_parse ) {
+                string TURBOMOLE_ORB_FILE = "mos" ;  
+                string TURBOMOLE_LOG_FILE = "ridft.log" ;   
+                _turbomole.setLogFile( GAUSS_DIR + "/" + TURBOMOLE_LOG_FILE );
+                _parse_log_status = _turbomole.ParseLogFile( &_orbitalsAB );
+
+                if ( !_parse_log_status ) {
+                        output += "log incomplete; ";
+                        LOG(logERROR,*pLog) << "GAUSSIAN log parsing failed" << flush;
+                        cout << *pLog;
+                        jres.setOutput( output ); 
+                        jres.setStatus(Job::FAILED);
+                        return jres;
+                } 
+        
+                _turbomole.setOrbitalsFile( GAUSS_DIR + "/" + TURBOMOLE_ORB_FILE );
+                _parse_orbitals_status = _turbomole.ParseOrbitalsFile( &_orbitalsAB );
+ 
+                if ( !_parse_orbitals_status ) {
+                        output += "fort7 failed; " ;
+                        LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) parsing failed" << flush;
+                        cout << *pLog;
+                        jres.setOutput( output ); 
+                        jres.setStatus(Job::FAILED);
+                        return jres;
+                } 
+        }
+        
+        _turbomole.CleanUp();
+        
+   }    // end of package = gaussian  
+    
+    
+    
 
    if ( _do_project ) {
        if ( !_do_parse ) { // orbitals must be loaded from a file

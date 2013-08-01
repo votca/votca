@@ -204,8 +204,9 @@ private:
     // Allow serialization to access non-public data members
     friend class boost::serialization::access;
     
-    //Allow Gaussian object to access non-public data members
+    //Allow Gaussian/Turbomole object to access non-public data members
     friend class Gaussian;
+    friend class Turbomole;
     
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 

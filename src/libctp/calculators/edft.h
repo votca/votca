@@ -23,6 +23,8 @@
 
 #include <votca/ctp/segment.h>
 #include <votca/ctp/gaussian.h>
+#include <votca/ctp/turbomole.h>
+
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/parallelxjobcalc.h>
 #include <unistd.h>
@@ -196,14 +198,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         LOG(logDEBUG,*pLog) << "Parsing " <<  GAUSSIAN_ORB_FILE << flush;
         _gaussian.setOrbitalsFile( DIR + "/" + GAUSSIAN_ORB_FILE );
         _parse_orbitals_status = _gaussian.ParseOrbitalsFile( &_orbitals );
- 
-        // save orbitals
-        LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-        std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-        boost::archive::binary_oarchive oa( ofs );
-        oa << _orbitals;
-        ofs.close();
-        
+         
         /*
         std::vector< QMAtom* >* _atoms = _orbitals.getAtoms();
         int _nat = _atoms->size() ;
@@ -238,7 +233,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
     if ( !_run_status ) {
         output += "run failed; " ;
-        LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
+        LOG(logERROR,*pLog) << "GAUSSIAN run failed" << flush;
         jres.setOutput( output ); 
         jres.setStatus(Job::FAILED);
         return jres;
@@ -266,8 +261,50 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         output += "orbitals parsed; " ;
     }
 
-    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+   } // end of the gaussian
+
+    if ( _package == "turbomole" ) {
+        Turbomole _turbomole( &_package_options );
+        _turbomole.setLog( pLog );       
+        _turbomole.setRunDir( DIR );
+        string COM_FILE = "coord";
+        _turbomole.setInputFile( COM_FILE );
+        _turbomole.WriteInputFile( segments );
+
+        // Run the executable
+        _run_status = _turbomole.Run( );
+        //_run_status = true;
+        if ( !_run_status ) {
+                output += "run failed; " ;
+                LOG(logERROR,*pLog) << "TURBOMOLE run failed" << flush;
+                cout << *pLog;
+                //jres.setStatus(Job::FAILED);
+                return jres;
+        } 
         
+        string TURBOMOLE_ORB_FILE = "mos" ;   
+        LOG(logDEBUG,*pLog) << "Parsing " <<  TURBOMOLE_ORB_FILE << flush;
+        _turbomole.setOrbitalsFile( DIR + "/" + TURBOMOLE_ORB_FILE );
+        _parse_orbitals_status = _turbomole.ParseOrbitalsFile( &_orbitals );
+        
+         // Collect information   
+        string TURBOMOLE_LOG_FILE = "ridft.log" ;   
+        LOG(logDEBUG,*pLog) << "Parsing " <<  TURBOMOLE_LOG_FILE << flush;
+        _turbomole.setLogFile( DIR + "/" + TURBOMOLE_LOG_FILE );
+        _parse_log_status = _turbomole.ParseLogFile( &_orbitals );
+       
+    }
+    
+    
+    // save orbitals
+    LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
+    std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+    boost::archive::binary_oarchive oa( ofs );
+    oa << _orbitals;
+    ofs.close();
+
+    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+    
     // output of the JOB 
     jres.setOutput( output );
 
@@ -275,8 +312,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     cout << *pLog;
     
     return jres;
-
-   }    
+    
    
 }
 
