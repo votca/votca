@@ -56,8 +56,6 @@ Turbomole::Turbomole( tools::Property *opt ) {
     
 };   
     
-Turbomole::~Turbomole() {
-}  
 
 /**
  * Prepares the com file from a vector of segments

@@ -84,8 +84,6 @@ Gaussian::Gaussian( tools::Property *opt ) {
     
 };   
     
-Gaussian::~Gaussian() {
-}  
 
 // This class should not be here ...
 void Gaussian::WriteInputHeader(FILE *out, string tag) {

@@ -495,18 +495,20 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         // if asked, prepare the input files
         if ( _do_input ) {
                 _gaussian.setRunDir( GAUSS_DIR );
-                _gaussian.setInputFile( COM_FILE );
+                _gaussian.setInputFileName( COM_FILE );
 
                 //cout << GAUSS_DIR << endl;
                 //cout << COM_FILE << endl;
 
                 // provide a separate scratch dir for every thread
+                /*
                 if ( ( _gaussian.getScratchDir() ).size() != 0 ) {
                   _gaussian.setShellFile( SHL_FILE );
                    string SCR_DIR  = _gaussian.getScratchDir() + "/pair_" + sID;
                   _gaussian.setScratchDir( SCR_DIR );
                   _gaussian.WriteShellScript ();
                 } 
+                 */
 
                 // in case we do not want to do an SCF loop for a dimer
                 if ( _gaussian.GuessRequested() ) {
@@ -537,7 +539,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
        // if asked, parse the log/orbitals files
         if ( _do_parse ) {
-                _gaussian.setLogFile( GAUSS_DIR + "/" + LOG_FILE );
+                _gaussian.setLogFileName( GAUSS_DIR + "/" + LOG_FILE );
                 _parse_log_status = _gaussian.ParseLogFile( &_orbitalsAB );
 
                 if ( !_parse_log_status ) {
@@ -549,7 +551,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                         return jres;
                 } 
         
-                _gaussian.setOrbitalsFile( GAUSS_DIR + "/" + GAUSSIAN_ORB_FILE );
+                _gaussian.setOrbitalsFileName( GAUSS_DIR + "/" + GAUSSIAN_ORB_FILE );
                 _parse_orbitals_status = _gaussian.ParseOrbitalsFile( &_orbitalsAB );
  
                 if ( !_parse_orbitals_status ) {

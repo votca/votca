@@ -25,6 +25,7 @@
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/apolarsite.h>
 #include <votca/ctp/logger.h>
+#include <votca/ctp/qmpackage.h>
 
 #include <string> 
 
@@ -38,12 +39,12 @@ namespace votca { namespace ctp {
     and extracts information from its log and io files
     
 */
-class Gaussian
+class Gaussian : public QMPackage
 {
 public:   
 
     Gaussian( tools::Property *opt );
-   ~Gaussian();
+    virtual ~Gaussian(){};
 
    /* Writes Gaussian input file with coordinates taken from all segments
     * and guess for the dimer orbitals (if given) constructed from the
@@ -60,21 +61,21 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
    bool ParseOrbitalsFile( Orbitals* _orbitals );
    
-   void setScratchDir( string scratch_dir ) { _scratch_dir = scratch_dir; }
-   void setRunDir( string run_dir ) { _run_dir = run_dir; }
-   void setInputFile( string com_file ) { _com_file_name = com_file; }
-   void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
-   void setLogFile( string log_file ) { _log_file_name = log_file; }
-   void setOrbitalsFile( string orb_file ) { _orb_file_name = orb_file; }
-   void setLog( Logger* pLog ) { _pLog = pLog; }
+   //void setScratchDir( string scratch_dir ) { _scratch_dir = scratch_dir; }
+   //void setRunDir( string run_dir ) { _run_dir = run_dir; }
+   //void setInputFile( string com_file ) { _com_file_name = com_file; }
+   //void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
+   //void setLogFile( string log_file ) { _log_file_name = log_file; }
+   //void setOrbitalsFile( string orb_file ) { _orb_file_name = orb_file; }
+   //void setLog( Logger* pLog ) { _pLog = pLog; }
    void setCharge(int charge) { _charge = charge; }
    void setSpin(int spin) { _spin = spin; }
    void setThreads(int threads) { _threads = threads; }
    
-   Logger *getLog() { return _pLog; }
+   //Logger *getLog() { return _pLog; }
    string getScratchDir( ) { return _scratch_dir; }
    string getPackageName() { return "gaussian"; }
-   bool GuessRequested( ) { return _write_guess; }
+   //bool GuessRequested( ) { return _write_guess; }
    
 //protected:
              

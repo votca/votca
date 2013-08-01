@@ -25,6 +25,7 @@
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/apolarsite.h>
 #include <votca/ctp/logger.h>
+#include <votca/ctp/qmpackage.h>
 
 #include <string> 
 
@@ -38,12 +39,12 @@ namespace votca { namespace ctp {
     and extracts information from its log and io files
     
 */
-class Turbomole
+class Turbomole : public QMPackage
 {
 public:   
 
     Turbomole( tools::Property *opt );
-   ~Turbomole();
+   virtual ~Turbomole(){};
 
    /* Writes Turbomole input file with coordinates taken from all segments
     * and guess for the dimer orbitals (if given) constructed from the

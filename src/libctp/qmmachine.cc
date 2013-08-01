@@ -135,12 +135,12 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     string path_logFile = runFolder + "/" + logFile;
     this->WriteQMPackInputFile(path_comFile, _qmpack, _job);
     _qmpack->setRunDir(runFolder);
-    _qmpack->setInputFile(comFile);
+    _qmpack->setInputFileName(comFile);
     
     // RUN HERE (OVERRIDE - COPY EXISTING LOG-FILE)
     string cpstr = "cp e_1_n.log " + path_logFile;
     int sig = system(cpstr.c_str());
-    _qmpack->setLogFile(path_logFile);
+    _qmpack->setLogFileName(path_logFile);
     
     // EXTRACT LOG-FILE INFOS TO ORBITALS
     Orbitals orb_iter;
