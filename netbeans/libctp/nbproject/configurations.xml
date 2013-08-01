@@ -118,6 +118,11 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../../../include/votca/ctp/turbomole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/apolarsite.h"
             ex="false"
             tool="3"
@@ -138,8 +143,6 @@
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/gaussian.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -172,11 +175,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/progressobserver.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/qmapplication.h"
             ex="false"
             tool="3"
@@ -193,6 +191,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmpackage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmpair.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -269,16 +272,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/calculators/jobwriter.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/jobwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/calculators/molpol.h"
             ex="false"
             tool="3"
@@ -345,8 +338,6 @@
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/job.cc" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/orbitals.cc" ex="false" tool="0" flavor2="0">
@@ -356,21 +347,13 @@
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/parallelxjobcalc.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/polarsite.cc" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../src/libctp/progressobserver.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/qmapplication.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/qmnblist.cc" ex="false" tool="0" flavor2="0">
       </item>
@@ -386,6 +369,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libctp/turbomole.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/version_nb.cc" ex="false" tool="0" flavor2="0">
       </item>
@@ -412,6 +397,11 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../../../include/votca/ctp/turbomole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/apolarsite.h"
             ex="false"
             tool="3"
@@ -432,8 +422,6 @@
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/gaussian.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -466,11 +454,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/progressobserver.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/qmapplication.h"
             ex="false"
             tool="3"
@@ -487,6 +470,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmpackage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmpair.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -563,16 +551,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/calculators/jobwriter.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/jobwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/calculators/molpol.h"
             ex="false"
             tool="3"
@@ -639,8 +617,6 @@
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/job.cc" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/orbitals.cc" ex="false" tool="0" flavor2="0">
@@ -650,21 +626,13 @@
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/parallelxjobcalc.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/polarsite.cc" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../src/libctp/progressobserver.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/qmapplication.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/qmnblist.cc" ex="false" tool="0" flavor2="0">
       </item>
@@ -680,6 +648,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libctp/turbomole.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/version_nb.cc" ex="false" tool="0" flavor2="0">
       </item>

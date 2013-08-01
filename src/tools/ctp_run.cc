@@ -75,7 +75,7 @@ bool CtpRun::EvaluateOptions() {
                         iter != Calculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                         PrintDescription( (iter->first).c_str(), _long );
+                        PrintDescription( (iter->first).c_str(), _long );
                         printerror = false;
                         break;
                     }
@@ -104,7 +104,7 @@ void CtpRun::PrintDescription(const char *name, const bool length) {
         char *votca_share = getenv("VOTCASHARE");
         if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
         string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/")+name+string(".xml");
-        try {
+         try {
             Property options;
             load_property_from_xml(options, xmlFile);
 
