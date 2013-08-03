@@ -166,6 +166,15 @@ public:
     template<typename T>
     T getAttribute(const string &attribute);
 
+        /**
+     * \brief return attribute as type
+     *
+     * returns an attribute after type conversion, e.g.
+     * p.getAttribute<int>() returns an integer
+     */
+    template<typename T>
+    T getAttribute( std::map<string,string>::iterator it);
+    
     /**
      * \brief set an attribute
      */
@@ -180,6 +189,16 @@ public:
      * \brief return true if an attribute exists
      */
     bool hasAttribute(const string &attribute);
+    /**
+     * \brief returns and iterator to an attribute
+     */    
+    std::map<string,string>::iterator findAttribute(const string &attribute){ return _attributes.find(attribute); }
+
+    /**
+     * \brief returns and iterator to an attribute
+     */    
+    std::map<string,string>::iterator lastAttribute(){ return _attributes.end(); }
+    
     /**
      * \brief stores output format
      */    
@@ -313,6 +332,16 @@ inline bool Property::hasAttribute(const string &attribute) {
 }
 
 template<typename T>
+inline T Property::getAttribute(std::map<string,string>::iterator it)
+{
+    if (it != _attributes.end()) {
+        return lexical_cast<T>((*it).second);
+    } else {
+        throw std::runtime_error("attribute " + (*it).first + " not found\n");
+    }
+}
+
+template<typename T>
 inline T Property::getAttribute(const string &attribute)
 {
     std::map<string,string>::iterator it;
@@ -324,15 +353,7 @@ inline T Property::getAttribute(const string &attribute)
     } else {
         throw std::runtime_error("attribute " + attribute + " not found\n");
     }
-/*    
-    if ( _attributes.find( attribute ) != _attributes.end() ) {
-        return lexical_cast<T>(_attributes[attribute], "wrong type in attribute " + attribute + " of element " + _path + "."  + _name + "\n");
-    } else {
-        return "";
-    }
- */
 }
-
 template<typename T>
 inline void Property::setAttribute(const string &attribute, const T &value)
 {

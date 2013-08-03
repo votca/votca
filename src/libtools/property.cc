@@ -293,7 +293,7 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
     list<Property>::iterator iter;       
     string head_name;
     string help;
-    string fmt("t|%1%%|15t|%2%%|45t|%3%%|55t|%4%\n");
+    string fmt("t|%1%%|15t|%2%%|40t|%3%%|55t|%4%\n");
     
     // if this is the head node, print the header
     if ( level == start_level ) {
