@@ -19,7 +19,6 @@
 
 #include "votca/ctp/gaussian.h"
 #include "votca/ctp/segment.h"
-#include <votca/tools/globals.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>

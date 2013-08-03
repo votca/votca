@@ -1,9 +1,12 @@
-#ifndef __QMPACKAGE__H
-#define	__QMPACKAGE__H
+/* 
+ * File:   qmpackage.h
+ * Author: andrienko
+ *
+ * Created on July 30, 2013, 8:25 PM
+ */
+#ifndef _CTP_QMPACKAGE_H
+#define	_CTP_QMPACKAGE_H
 
-#include <votca/ctp/segment.h>
-#include <votca/ctp/orbitals.h>
-#include <votca/ctp/apolarsite.h>
 #include <votca/ctp/logger.h>
 
 namespace votca { namespace ctp {
@@ -44,11 +47,9 @@ public:
    void setLog( Logger* pLog ) { _pLog = pLog; }
       
    bool GuessRequested( ) { return _write_guess; }
-   
-private:
-
-    string                              _executable;
     
+private:
+    string                              _executable;
     string                              _input_file_name;
     string                              _log_file_name;
     string                              _xyz_file_name;
@@ -72,4 +73,5 @@ private:
 
 }}
 
-#endif
+#endif	/* QMPACKAGE_H */
+
