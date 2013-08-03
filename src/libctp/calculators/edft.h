@@ -24,10 +24,7 @@
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
 
-#include <votca/ctp/qmpackage.h>
-#include <votca/ctp/gaussian.h>
-#include <votca/ctp/turbomole.h>
-
+#include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/parallelxjobcalc.h>
 #include <unistd.h>
 
@@ -114,6 +111,7 @@ void EDFT::Initialize(Topology *top, Property *options) {
 Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     QMPackage *_qmpackage;
+
     string output;
     
     bool _run_status;
@@ -131,12 +129,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Logger* pLog = opThread->getLogger();
     LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
-    if ( _package == "gaussian" ) {        
-        _qmpackage = new Gaussian( &_package_options );
-    } else if ( _package == "turbomole" ) {
-        _qmpackage = new Turbomole( &_package_options );
-    } 
-
     // log, com, and orbital files will be stored in ORB_FILES/package_name/frame_x/mol_ID/
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
     
@@ -152,6 +144,10 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string DIR  = edft_work_dir + "/" + qmpackage_work_dir + "/" + frame_dir + "/mol_" + ID;
     string ORB_DIR = edft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
 
+    // get the corresponding object from the QMPackageFactory
+    _qmpackage =  QMPackages().Create( _package_name );
+ 
+    // MOVE TO THE CORRESPONDING IMPLEMENTAION!
     // GAUSSIAN filenames
     string fileName = "monomer";
     string XYZ_FILE = fileName + ".xyz";
