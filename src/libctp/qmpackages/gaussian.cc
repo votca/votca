@@ -17,7 +17,7 @@
  *
  */
 
-#include "votca/ctp/gaussian.h"
+#include "gaussian.h"
 #include "votca/ctp/segment.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -32,26 +32,34 @@ using namespace std;
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
-Gaussian::Gaussian( tools::Property *opt ) { 
-               
-    string key = "package";
+void Gaussian::Initialize( Property *options ) {
 
-    string _name = opt->get(key+".name").as<string> ();
+    // GAUSSIAN file names
+    string fileName = "system";
+
+    _xyz_file_name = fileName + ".xyz";
+    _input_file_name = fileName + ".com";
+    _log_file_name = fileName + ".log"; 
+    _shell_file_name = fileName + ".sh";
+    _orb_file_name = "fort.7" ;               
+
+    string key = "package";
+    string _name = options->get(key+".name").as<string> ();
     
     if ( _name != "gaussian" ) {
         cerr << "Tried to use " << _name << " package. ";
-        throw std::runtime_error( "Package is not supported.");
+        throw std::runtime_error( "Wrong options file");
     }
     
-    _executable =       opt->get(key + ".executable").as<string> ();
-    _charge =           opt->get(key + ".charge").as<int> ();
-    _spin =             opt->get(key + ".spin").as<int> ();
-    _options =          opt->get(key + ".options").as<string> ();
-    _memory =           opt->get(key + ".memory").as<string> ();
-    _threads =          opt->get(key + ".threads").as<int> ();
-    _chk_file_name  =   opt->get(key + ".checkpoint").as<string> ();
-    _scratch_dir =      opt->get(key + ".scratch").as<string> ();
-    _cleanup =          opt->get(key + ".cleanup").as<string> ();
+    _executable =       options->get(key + ".executable").as<string> ();
+    _charge =           options->get(key + ".charge").as<int> ();
+    _spin =             options->get(key + ".spin").as<int> ();
+    _options =          options->get(key + ".options").as<string> ();
+    _memory =           options->get(key + ".memory").as<string> ();
+    _threads =          options->get(key + ".threads").as<int> ();
+    _chk_file_name  =   options->get(key + ".checkpoint").as<string> ();
+    _scratch_dir =      options->get(key + ".scratch").as<string> ();
+    _cleanup =          options->get(key + ".cleanup").as<string> ();
     
     // check if the guess keyword is present, if yes, append the guess later
     std::string::size_type iop_pos = _options.find("cards");
@@ -80,9 +88,8 @@ Gaussian::Gaussian( tools::Property *opt ) {
         _get_self_energy = false;
     }
 
-    
-};   
-    
+
+}    
 
 // This class should not be here ...
 void Gaussian::WriteInputHeader(FILE *out, string tag) {
@@ -114,7 +121,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
 
     ofstream _com_file;
     
-    string _com_file_name_full = _run_dir + "/" + _com_file_name;
+    string _com_file_name_full = _run_dir + "/" + _input_file_name;
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
@@ -213,7 +220,7 @@ bool Gaussian::WriteShellScript() {
     _shell_file << "#!/bin/tcsh" << endl ;
     _shell_file << "mkdir -p " << _scratch_dir << endl;
     _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
-    _shell_file << _executable << " " << _com_file_name << endl;    
+    _shell_file << _executable << " " << _input_file_name << endl;    
     _shell_file.close();
 }
 
@@ -233,7 +240,7 @@ bool Gaussian::Run()
             _command  = "cd " + _run_dir + "; tcsh " + _shell_file_name;
         }
         else {
-            _command  = "cd " + _run_dir + "; " + _executable + " " + _com_file_name;
+            _command  = "cd " + _run_dir + "; " + _executable + " " + _input_file_name;
         }
         
         int i = system ( _command.c_str() );
@@ -241,7 +248,7 @@ bool Gaussian::Run()
         return true;
     }
     else {
-        LOG(logERROR,*_pLog) << _com_file_name << " failed to start" << flush; 
+        LOG(logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
         return false;
     }
     
@@ -265,7 +272,7 @@ void Gaussian::CleanUp() {
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
             if ( *it == "com" ) {
-                string file_name = _run_dir + "/" + _com_file_name;
+                string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );
             }
             

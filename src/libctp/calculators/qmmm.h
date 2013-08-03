@@ -286,10 +286,13 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
         _subthreads, _maverick);    
     xind.setLog(thread->getLogger());
     
-    Gaussian qmpack = Gaussian(&_qmpack_opt);
-    qmpack.setLog(qlog);
+    //Gaussian qmpack = Gaussian(&_qmpack_opt);
+
+    // get the corresponding object from the QMPackageFactory
+    QMPackage *qmpack =  QMPackages().Create( _package );
+    qmpack->setLog(qlog);
     
-    QMMachine<Gaussian> machine = QMMachine<Gaussian>(&xjob, &xind, &qmpack, 
+    QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack, 
         _options, "options.qmmm", _subthreads, _maverick);
     machine.setLog(thread->getLogger());
     

@@ -20,11 +20,8 @@
 #ifndef __VOTCA_CTP_GAUSSIAN_H
 #define	__VOTCA_CTP_GAUSSIAN_H
 
-#include <votca/tools/property.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/orbitals.h>
+
 #include <votca/ctp/apolarsite.h>
-#include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackage.h>
 
 #include <string> 
@@ -43,14 +40,16 @@ class Gaussian : public QMPackage
 {
 public:   
 
-    Gaussian( tools::Property *opt );
-    virtual ~Gaussian(){};
+   string getPackageName() { return "gaussian"; }
 
-   /* Writes Gaussian input file with coordinates taken from all segments
-    * and guess for the dimer orbitals (if given) constructed from the
-    * orbitals of monomers 
+   void Initialize( Property *options );
+
+   /* Writes Gaussian input file with coordinates of segments
+    * and a guess for the dimer (if requested) constructed from the
+    * monomer orbitals
     */
    bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+
    void WriteInputHeader(FILE *out, string tag);
    
    bool WriteShellScript();
@@ -61,20 +60,11 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
    bool ParseOrbitalsFile( Orbitals* _orbitals );
    
-   //void setScratchDir( string scratch_dir ) { _scratch_dir = scratch_dir; }
-   //void setRunDir( string run_dir ) { _run_dir = run_dir; }
-   //void setInputFile( string com_file ) { _com_file_name = com_file; }
-   //void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
-   //void setLogFile( string log_file ) { _log_file_name = log_file; }
-   //void setOrbitalsFile( string orb_file ) { _orb_file_name = orb_file; }
-   //void setLog( Logger* pLog ) { _pLog = pLog; }
    void setCharge(int charge) { _charge = charge; }
    void setSpin(int spin) { _spin = spin; }
    void setThreads(int threads) { _threads = threads; }
    
-   //Logger *getLog() { return _pLog; }
    string getScratchDir( ) { return _scratch_dir; }
-   string getPackageName() { return "gaussian"; }
    //bool GuessRequested( ) { return _write_guess; }
    
 //protected:
@@ -92,7 +82,7 @@ private:
     int                                 _threads;
     
     string                              _shell_file_name;
-    string                              _com_file_name;
+    string                              _input_file_name;
     string                              _log_file_name;
     string                              _xyz_file_name;
     string                              _chk_file_name;

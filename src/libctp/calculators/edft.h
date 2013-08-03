@@ -147,14 +147,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // get the corresponding object from the QMPackageFactory
     _qmpackage =  QMPackages().Create( _package_name );
  
-    // MOVE TO THE CORRESPONDING IMPLEMENTAION!
-    // GAUSSIAN filenames
-    string fileName = "monomer";
-    string XYZ_FILE = fileName + ".xyz";
-    string COM_FILE = fileName + ".com";
-    string LOG_FILE = fileName + ".log"; 
-    string SHL_FILE = fileName + ".sh";
-    string GAUSSIAN_ORB_FILE = "fort.7" ;
+
 
     // orbital file used to archive parsed data
     string ORB_FILE = "molecule_" + ID + ".orb";
@@ -170,37 +163,13 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    
    _qmpackage->setLog( pLog );       
    _qmpackage->setRunDir( DIR );
-   _qmpackage->setInputFileName( COM_FILE );
 
-   /*
-   // provide a separate scratch dir for every thread
-        if ( ( _gaussian.getScratchDir() ).size() != 0 ) {
-          _gaussian.setShellFile( SHL_FILE );
-           string SCR_DIR  = _gaussian.getScratchDir() + "/mol_" + ID;
-          _gaussian.setScratchDir( SCR_DIR );
-          _gaussian.WriteShellScript ();
-        } 
-   */     
+
+   // Write input files
    _qmpackage->WriteInputFile( segments );
         
    // Run the executable
    _run_status = _qmpackage->Run( );
-
-        
-   // Collect information     
-   LOG(logDEBUG,*pLog) << "Parsing " <<  LOG_FILE << flush;
-   _qmpackage->setLogFileName( DIR + "/" + LOG_FILE );
-   _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
-        
-   LOG(logDEBUG,*pLog) << "Parsing " <<  GAUSSIAN_ORB_FILE << flush;
-   _qmpackage->setOrbitalsFileName( DIR + "/" + GAUSSIAN_ORB_FILE );
-   _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
-        
-   _qmpackage->CleanUp();
-        
-    // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    jres.setStatus(Job::COMPLETE);
-    
     if ( !_run_status ) {
         output += "run failed; " ;
         LOG(logERROR,*pLog) << _package_name << " run failed" << flush;
@@ -210,7 +179,9 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     } else {
         output += "run completed; " ;
     }
-    
+        
+   // Parse log files
+   _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
     if ( !_parse_log_status ) {
         output += "log incomplete; ";
         LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
@@ -221,6 +192,8 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         output += "log parsed; " ;
     }
 
+   // Parse orbitals file
+   _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
     if ( !_parse_orbitals_status ) {
         output += "fort7 failed; " ;
         LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
@@ -230,6 +203,13 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     } else {
         output += "orbitals parsed; " ;
     }
+   
+   // Clean run
+   _qmpackage->CleanUp();
+        
+    // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
+    jres.setStatus(Job::COMPLETE);
+
 
     // save orbitals
     LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;

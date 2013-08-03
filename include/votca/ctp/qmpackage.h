@@ -4,16 +4,19 @@
  *
  * Created on July 30, 2013, 8:25 PM
  */
-#ifndef _CTP_QMPACKAGE_H
-#define	_CTP_QMPACKAGE_H
+#ifndef _CTP_QM_PACKAGE_H
+#define	_CTP_QM_PACKAGE_H
 
 #include <votca/ctp/logger.h>
+#include <votca/ctp/orbitals.h>
+#include <votca/tools/property.h>
+#include <votca/ctp/segment.h>
 
 namespace votca { namespace ctp {
 
 using namespace std;    
 // ========================================================================== //
-// QMPackage base class for wrappers of TURBOMOLE, GAUSSIAN, etc          //
+// QMPackage base class for wrappers of TURBOMOLE, GAUSSIAN, etc              //
 // ========================================================================== //
     
 class QMPackage
@@ -22,9 +25,11 @@ class QMPackage
 public:
 
    QMPackage(){};
-   virtual ~QMPackage(){};
+   virtual ~QMPackage(){}; 
 
    virtual string getPackageName() = 0;
+
+   virtual void Initialize( Property *options ) = 0;
    
    virtual bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals = NULL) = 0;
    
@@ -48,7 +53,7 @@ public:
       
    bool GuessRequested( ) { return _write_guess; }
     
-private:
+protected:
     string                              _executable;
     string                              _input_file_name;
     string                              _log_file_name;
@@ -68,10 +73,10 @@ private:
     bool                                _write_charges;
     
     Logger*                             _pLog;
-    
+       
 };
 
 }}
 
-#endif	/* QMPACKAGE_H */
+#endif	/* _CTP_QM_PACKAGE_H */
 

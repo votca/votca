@@ -4,7 +4,7 @@
 
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
-#include <votca/ctp/gaussian.h>
+#include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/orbitals.h>
 
 

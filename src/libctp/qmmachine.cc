@@ -85,10 +85,13 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     
     
     // SET ITERATION-TIME CONSTANTS
+    // TO ADJUST
+    /*
     _qmpack->setCharge(chrg);
     _qmpack->setSpin(spin);
     _qmpack->setThreads(_subthreads);
-    
+    */
+
     int iterCnt = 0;
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
@@ -210,7 +213,9 @@ void QMMachine<QMPackage>::WriteQMPackInputFile(string inputFile, QMPackage *qmp
     // TODO _qmpack should do this entirely independently
     FILE *out;
     out = fopen(inputFile.c_str(), "w");
-    _qmpack->WriteInputHeader(out, job->getTag());
+
+    // TO ADJUST
+    //_qmpack->WriteInputHeader(out, job->getTag());
     job->getPolarTop()->PrintInduState(out, _qmpack->getPackageName(), true, 1e-04);
     fclose(out);
     
@@ -367,7 +372,7 @@ double QMMIter::getQMMMEnergy() {
 
 
 // REGISTER QM PACKAGES
-template class QMMachine<Gaussian>;
+template class QMMachine<QMPackage>;
     
     
     
