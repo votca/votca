@@ -23,8 +23,7 @@
 #include <votca/ctp/logger.h>
 #include <iostream>
 #include <boost/format.hpp>
-#include <votca/ctp/turbomole.h>
-#include <votca/ctp/gaussian.h>
+#include <votca/ctp/qmpackagefactory.h>
 
 using boost::format;
 
@@ -381,6 +380,8 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     stringstream sout;
 
+    QMPackage *_qmpackage;
+
      // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     Job::JobResult jres = Job::JobResult();
     string output;
@@ -487,15 +488,18 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     //LOG(logDEBUG,*pLog) << "Basis size B " << _orbitalsB.getBasisSetSize() << flush;
     //LOG(logDEBUG,*pLog) << "Number of Levels B " << _orbitalsB.getNumberOfLevels() << flush; 
       
-   if ( _package == "gaussian" ) { 
+   //if ( _package == "gaussian" ) { 
         
-        Gaussian _gaussian( &_package_options );
-        _gaussian.setLog( pLog );       
+    // get the corresponding object from the QMPackageFactory
+    _qmpackage =  QMPackages().Create( _package );
+
+    //Gaussian _gaussian( &_package_options );
+        _qmpackage->setLog( pLog );       
         
         // if asked, prepare the input files
         if ( _do_input ) {
-                _gaussian.setRunDir( GAUSS_DIR );
-                _gaussian.setInputFileName( COM_FILE );
+                _qmpackage->setRunDir( GAUSS_DIR );
+                _qmpackage->setInputFileName( COM_FILE );
 
                 //cout << GAUSS_DIR << endl;
                 //cout << COM_FILE << endl;
@@ -511,21 +515,21 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                  */
 
                 // in case we do not want to do an SCF loop for a dimer
-                if ( _gaussian.GuessRequested() ) {
+                if ( _qmpackage->GuessRequested() ) {
 
                     LOG(logDEBUG,*pLog) << "Preparing the guess" << flush;
                     PrepareGuess(&_orbitalsA, &_orbitalsB, &_orbitalsAB, opThread);
-                    _gaussian.WriteInputFile( segments, &_orbitalsAB );
+                    _qmpackage->WriteInputFile( segments, &_orbitalsAB );
 
                 } else {
-                    _gaussian.WriteInputFile( segments );
+                    _qmpackage->WriteInputFile( segments );
                 }
         
         }
         
         // if asked, run the gaussian executable
         if ( _do_run ) {
-                _run_status = _gaussian.Run( );
+                _run_status = _qmpackage->Run( );
 
                 if ( !_run_status ) {
                         output += "run failed; " ;
@@ -539,8 +543,8 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
        // if asked, parse the log/orbitals files
         if ( _do_parse ) {
-                _gaussian.setLogFileName( GAUSS_DIR + "/" + LOG_FILE );
-                _parse_log_status = _gaussian.ParseLogFile( &_orbitalsAB );
+                _qmpackage->setLogFileName( GAUSS_DIR + "/" + LOG_FILE );
+                _parse_log_status = _qmpackage->ParseLogFile( &_orbitalsAB );
 
                 if ( !_parse_log_status ) {
                         output += "log incomplete; ";
@@ -551,8 +555,8 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                         return jres;
                 } 
         
-                _gaussian.setOrbitalsFileName( GAUSS_DIR + "/" + GAUSSIAN_ORB_FILE );
-                _parse_orbitals_status = _gaussian.ParseOrbitalsFile( &_orbitalsAB );
+                _qmpackage->setOrbitalsFileName( GAUSS_DIR + "/" + GAUSSIAN_ORB_FILE );
+                _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
  
                 if ( !_parse_orbitals_status ) {
                         output += "fort7 failed; " ;
@@ -564,11 +568,12 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                 } 
         }
         
-        _gaussian.CleanUp();
+        _qmpackage->CleanUp();
         
-   }    // end of package = gaussian  
+   //}   end of package = gaussian  
 
 
+/* HAS TO BE REWRITTEN
     
    if ( _package == "turbomole" ) { 
         
@@ -633,9 +638,9 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
         _turbomole.CleanUp();
         
-   }    // end of package = gaussian  
+   }    // end of package = turbomole  
     
-    
+*/    
     
 
    if ( _do_project ) {

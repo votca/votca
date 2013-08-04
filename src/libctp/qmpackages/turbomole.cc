@@ -17,7 +17,7 @@
  *
  */
 
-#include "votca/ctp/turbomole.h"
+#include "turbomole.h"
 #include "votca/ctp/segment.h"
 #include <votca/tools/globals.h>
 #include <boost/algorithm/string.hpp>
@@ -33,7 +33,7 @@ using namespace std;
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
-Turbomole::Turbomole( tools::Property *opt ) { 
+void Turbomole::Initialize( Property *opt ) { 
                
     string key = "package";
 
@@ -54,7 +54,7 @@ Turbomole::Turbomole( tools::Property *opt ) {
     _get_self_energy = false;
 
     
-};   
+}
     
 
 /**

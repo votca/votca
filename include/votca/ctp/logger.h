@@ -75,7 +75,7 @@ public:
         
         // returns the pointer to the collected messages
         std::string Messages() { 
-            string _messages = _stringStream.str(); 
+            std::string _messages = _stringStream.str(); 
             _stringStream.str("");
             return _messages; 
         }

@@ -43,7 +43,7 @@ class Turbomole : public QMPackage
 {
 public:   
 
-    Turbomole( tools::Property *opt );
+   void Initialize( Property *options );
    virtual ~Turbomole(){};
 
    /* Writes Turbomole input file with coordinates taken from all segments

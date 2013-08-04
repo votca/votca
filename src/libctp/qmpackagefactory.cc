@@ -25,10 +25,10 @@
 
 namespace votca { namespace ctp {
 
-void QMPackagesFactory::RegisterAll(void)
+void QMPackageFactory::RegisterAll(void)
 {
         QMPackages().Register<Gaussian>         ("gaussian");
-        QMPackages().Register<Turbomole>         ("turbomole");(
+        QMPackages().Register<Turbomole>        ("turbomole");
 }
 
 }}
