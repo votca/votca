@@ -28,14 +28,19 @@ EOF
 fi
 
 start_gnuplot_pipe() {
-  eval "exec ${fd}> gnuplot_lock"
+  fd=$(csg_get_interaction_property inverse.post_add_options.plot.fd)
+  is_int "$fd" || die "${0##*/}: inverse.post_add_options.plot.fd should be a number, but I got $fd"
+  [[ -z $(type -p flock) ]] && die "${0##*/}: could not find flock needed by gnuplot pipe"
+  [[ -z $(type -p mkfifo) ]] && die "${0##*/}: could not find mkfifo needed by gnuplot pipe"
+  eval "exec ${fd}> gnuplot_pipe.lock"
   if flock -n -x $fd; then
-    rm -rf gnuplot_pipe
+    rm -rf gnuplot_pipe gnuplot_pipe.log
     mkfifo gnuplot_pipe
     while true; do
       if read <gnuplot_pipe; then
         echo -e "$REPLY"
-        [ "$REPLY" = "exit" ] && break
+        echo -e "$REPLY" >> gnuplot_pipe.log
+        [[ $REPLY = "exit" ]] && break
       fi
     done | $gnuplot $opts
   fi
@@ -45,9 +50,6 @@ start_gnuplot_pipe() {
 
 [[ -f $2 ]] && die "${0##*/}: $2 is already there"
 do_external postadd dummy "$1" "$2"
-
-fd=$(csg_get_interaction_property inverse.post_add_options.plot.fd)
-is_int "$fd" || die "${0##*/}: inverse.post_add_options.plot.fd should be a number, but I got $fd"
 
 gnuplot=$(csg_get_property cg.inverse.gnuplot.bin)
 [ -n "$(type -p $gnuplot)" ] || die "${0##*/}: gnuplot binary '$gnuplot' not found"
@@ -67,11 +69,13 @@ if [[ -z ${what_to_kill} ]]; then
   sleep 1
   cd - > /dev/null
 
-  #gnuplot is in laststep_dir
+  #gnuplot is in laststep, move to current one
   echo "cd '$PWD'" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
 
-  cat "$(get_main_dir)/$script" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
+  #name pipe accept only one command at the time, for i in $(cat ); do echo $i > pipe; done would do the same
+  echo "load '$(get_main_dir)/$script'" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
 else
+  [[ -z $(type -p killall) ]] && die "${0##*/}: could not find killall needed to kill gnuplot"
   killall $what_to_kill
   $gnuplot $opts "$(get_main_dir)/$script"
 fi

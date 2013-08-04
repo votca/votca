@@ -565,7 +565,7 @@ csg_inverse_clean() { #clean out the main directory
   log="$(csg_get_property cg.inverse.log_file)"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
-  files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
+  files="$(ls -d done ${log} $(get_stepname --trunc)* gnuplot_pipe* *~ 2>/dev/null)"
   if [[ -z $files ]]; then
     echo "Nothing to clean"
   else
