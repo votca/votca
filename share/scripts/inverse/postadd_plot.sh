@@ -27,25 +27,6 @@ EOF
    exit 0
 fi
 
-start_gnuplot_pipe() {
-  fd=$(csg_get_interaction_property inverse.post_add_options.plot.fd)
-  is_int "$fd" || die "${0##*/}: inverse.post_add_options.plot.fd should be a number, but I got $fd"
-  [[ -z $(type -p flock) ]] && die "${0##*/}: could not find flock needed by gnuplot pipe"
-  [[ -z $(type -p mkfifo) ]] && die "${0##*/}: could not find mkfifo needed by gnuplot pipe"
-  eval "exec ${fd}> gnuplot_pipe.lock"
-  if flock -n -x $fd; then
-    rm -rf gnuplot_pipe gnuplot_pipe.log
-    mkfifo gnuplot_pipe
-    while true; do
-      if read <gnuplot_pipe; then
-        echo -e "$REPLY"
-        echo -e "$REPLY" >> gnuplot_pipe.log
-        [[ $REPLY = "exit" ]] && break
-      fi
-    done | $gnuplot $opts
-  fi
-}
-
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 [[ -f $2 ]] && die "${0##*/}: $2 is already there"
@@ -63,11 +44,30 @@ what_to_kill="$(csg_get_interaction_property --allow-empty inverse.post_add_opti
 
 msg "Plotting '$script' using $gnuplot"
 if [[ -z ${what_to_kill} ]]; then
-  cd $(get_main_dir)
-  start_gnuplot_pipe &
-  #wait for gnuplot_pipe
-  sleep 1
-  cd - > /dev/null
+  [[ -z $(type -p flock) ]] && die "${0##*/}: could not find flock needed by gnuplot pipe"
+  [[ -z $(type -p mkfifo) ]] && die "${0##*/}: could not find mkfifo needed by gnuplot pipe"
+  (
+    flock -n 7 || exit 0 #see flock man page to understand this trick
+    cd $(get_main_dir)
+    rm -rf gnuplot_pipe gnuplot_pipe.log
+    mkfifo gnuplot_pipe
+    while true; do
+      if read <gnuplot_pipe; then
+        echo -e "$REPLY"
+        echo -e "$REPLY" >> gnuplot_pipe.log
+        [[ $REPLY = "exit" ]] && break
+      fi
+    done | $gnuplot $opts &
+    while true; do
+      if [[ -z $(ps -o pid= -p "${CSG_MASTER_PID}") ]]; then
+	echo "exit" > $(get_main_dir)/gnuplot_pipe
+        exit
+      fi
+      sleep 1 #lowers the load
+    done &
+    sleep 1 #wait for gnuplot_pipe
+    cd - > /dev/null
+  ) 7> $(get_main_dir)/gnuplot_pipe.lock
 
   #gnuplot is in laststep, move to current one
   echo "cd '$PWD'" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
