@@ -43,42 +43,28 @@ class Turbomole : public QMPackage
 {
 public:   
 
+   string getPackageName() { return "turbomole"; }
+
    void Initialize( Property *options );
-   virtual ~Turbomole(){};
 
    /* Writes Turbomole input file with coordinates taken from all segments
     * and guess for the dimer orbitals (if given) constructed from the
     * orbitals of monomers 
     */
    bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
-   void WriteInputHeader(FILE *out, string tag);
-   
-   bool WriteShellScript();
+
    bool Run();
+
    void CleanUp();
    
    bool CheckLogFile();
+
    bool ParseLogFile( Orbitals* _orbitals );
+
    bool ParseOrbitalsFile( Orbitals* _orbitals );
    
-   void setScratchDir( string scratch_dir ) { _scratch_dir = scratch_dir; }
-   void setRunDir( string run_dir ) { _run_dir = run_dir; }
-   void setInputFile( string com_file ) { _com_file_name = com_file; }
-   void setShellFile( string shell_file ) { _shell_file_name = shell_file; }
-   void setLogFile( string log_file ) { _log_file_name = log_file; }
-   void setOrbitalsFile( string orb_file ) { _orb_file_name = orb_file; }
-   void setLog( Logger* pLog ) { _pLog = pLog; }
-   void setCharge(int charge) { _charge = charge; }
-   void setSpin(int spin) { _spin = spin; }
-   void setThreads(int threads) { _threads = threads; }
-   
    Logger *getLog() { return _pLog; }
-   string getScratchDir( ) { return _scratch_dir; }
-   string getPackageName() { return "turbomole"; }
-   bool GuessRequested( ) { return _write_guess; }
-   
-//protected:
-             
+
 private:  
 
     static const double _conv_Hrt_eV = 27.21138386;
@@ -87,36 +73,12 @@ private:
     int                                 _spin; // 2S+1
     string                              _options;
     
-    string                              _executable;
     string                              _memory;
     int                                 _threads;
     
-    string                              _shell_file_name;
-    string                              _com_file_name;
-    string                              _log_file_name;
-    string                              _xyz_file_name;
-    string                              _chk_file_name;
-    string                              _orb_file_name;
-    
-    string                              _run_dir;
     string                              _scratch_dir;
         
     string                              _cleanup;
-    
-    bool                                _get_orbitals;
-    bool                                _get_overlap;
-    bool                                _get_charges;
-    bool                                _get_self_energy;
-    
-    bool                                _write_guess;
-    bool                                _write_charges;
-         
-    int NumberOfElectrons( string _line ); 
-    int BasisSetSize( string _line ); 
-    int EnergiesFromLog( string _line, ifstream inputfile ); 
-    string FortranFormat( const double &number );
-    
-    Logger*                             _pLog;
     
 };
 

@@ -73,7 +73,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
 
     ofstream _com_file;
     
-    string _com_file_name_full = _run_dir + "/" + _com_file_name;
+    string _com_file_name_full = _run_dir + "/" + _input_file_name;
     
     //cerr << "FILE NAME: " << _com_file_name_full << endl;
     
@@ -124,19 +124,6 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     
 }
 
-bool Turbomole::WriteShellScript() {
-    ofstream _shell_file;
-    
-    string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
-            
-    _shell_file.open ( _shell_file_name_full.c_str() );
-
-    _shell_file << "#!/bin/tcsh" << endl ;
-    _shell_file << "mkdir -p " << _scratch_dir << endl;
-    _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
-    _shell_file << _executable << " " << _com_file_name << endl;    
-    _shell_file.close();
-}
 
 /**
  * Runs the Gaussian job. Returns 
@@ -150,19 +137,14 @@ bool Turbomole::Run()
         // if scratch is provided, run the shell script; 
         // otherwise run gaussian directly and rely on global variables 
         string _command;
-        if ( _scratch_dir.size() != 0 ) {
-            _command  = "cd " + _run_dir + "; tcsh " + _shell_file_name;
-        }
-        else {
-            _command  = "cd " + _run_dir + "; " + _executable + " > " + _executable + ".log ";
-        }
+        _command  = "cd " + _run_dir + "; " + _executable + " > " + _executable + ".log ";
         
         int i = system ( _command.c_str() );
         LOG(logDEBUG,*_pLog) << "Finished TURBOMOLE job" << flush;
         return true;
     }
     else {
-        LOG(logERROR,*_pLog) << _com_file_name << " failed to start" << flush; 
+        LOG(logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
         return false;
     }
     
@@ -186,25 +168,16 @@ void Turbomole::CleanUp() {
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
             if ( *it == "com" ) {
-                string file_name = _run_dir + "/" + _com_file_name;
+                string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );
             }
             
-            if ( *it == "sh" ) {
-                string file_name = _run_dir + "/" + _shell_file_name;
-                remove ( file_name.c_str() );
-            }
             
             if ( *it == "log" ) {
                 string file_name = _run_dir + "/" + _log_file_name;
                 remove ( file_name.c_str() );
             }
 
-           if ( *it == "chk" ) {
-                string file_name = _run_dir + "/" + _chk_file_name;
-                remove ( file_name.c_str() );
-            }
-            
             if ( *it == "fort.7" ) {
                 string file_name = _run_dir + "/" + *it;
                 remove ( file_name.c_str() );
@@ -660,15 +633,6 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     return true;
 }
 
-string Turbomole::FortranFormat( const double &number ) {
-    stringstream _ssnumber;
-    if ( number >= 0) _ssnumber << " ";
-    _ssnumber <<  setiosflags(ios::fixed) << setprecision(8) << std::scientific << number;
-    std::string _snumber = _ssnumber.str(); 
-    boost::replace_first(_snumber, "e", "D");
-    return _snumber;
-}
-        
 
 
 
