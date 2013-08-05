@@ -63,6 +63,14 @@ public:
 
 private:
 
+    // what to do
+    bool                _do_input;
+    bool                _do_run;
+    bool                _do_parse;
+
+    // what to write in the storage
+    bool                _store_orbitals;
+
     //bool   _maverick;
     string _outParent;
     string _outMonDir;
@@ -78,39 +86,36 @@ void EDFT::CleanUp() {
 
 void EDFT::Initialize(Topology *top, Property *options) {
 
-    /* ---- OPTIONS.XML Structure -----
-     *
-     * <edft>
-     *      <control>
-     *           <job_file>edft.jobs<job_file>
-     *      </control>
-     *      <package>gaussian.xml</package>
-     *
-     * </edft>
-     *
-     */
+    _do_input = false;
+    _do_run = false;
+    _do_parse = false;
 
     _maverick = (_nThreads == 1) ? true : false;
     
     string key = "options." + Identify();
-    _jobfile = options->get(key + ".control.job_file").as<string>();
+    _jobfile = options->get(key + ".job_file").as<string>();
 
     string _package_xml = options->get(key+".package").as<string> ();
-    //cout << endl << "... ... Parsing " << _package_xml << endl ;
 
-    load_property_from_xml( _package_options, _package_xml.c_str() );    
+    string _tasks_string = options->get(key+".tasks").as<string> ();
+    if (_tasks_string.find("input") != std::string::npos) _do_input = true;
+    if (_tasks_string.find("run") != std::string::npos) _do_run = true;
+    if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;    
+
+    string _store_string = options->get(key+".store").as<string> ();
+    if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
     
+    load_property_from_xml( _package_options, _package_xml.c_str() );    
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
     
-    //cout << endl << "... ... Using " << _package << " package" << endl ;    
+    // register all QM packages (Gaussian, turbomole, etc))
+    QMPackageFactory::RegisterAll(); 
 
 }
 
 
 Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
-
-    QMPackage *_qmpackage;
 
     string output;
     
@@ -133,75 +138,70 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
     
     string edft_work_dir = "OR_FILES";
-    
-    string _package_name = _qmpackage->getPackageName();
-    string qmpackage_work_dir = _package_name;
 
     string orbitals_storage_dir = "molecules";
     string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
     
     string ID   = boost::lexical_cast<string>( seg->getId() );
-    string DIR  = edft_work_dir + "/" + qmpackage_work_dir + "/" + frame_dir + "/mol_" + ID;
+    string qmpackage_work_dir  = edft_work_dir + "/" + _package + "/" + frame_dir + "/mol_" + ID;
     string ORB_DIR = edft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
 
     // get the corresponding object from the QMPackageFactory
-    _qmpackage =  QMPackages().Create( _package_name );
- 
-
-
-    // orbital file used to archive parsed data
-    string ORB_FILE = "molecule_" + ID + ".orb";
-    
-    boost::filesystem::create_directories(DIR);     
+    QMPackage *_qmpackage =  QMPackages().Create( _package );
+     
+    boost::filesystem::create_directories( qmpackage_work_dir );     
     boost::filesystem::create_directories(ORB_DIR);        
     
-    //out = fopen((DIR + "/" + XYZ_FILE).c_str(),"w");
-    //seg->WriteXYZ(out);
-    //fclose(out);
- 
-
+   _qmpackage->setLog( pLog );  
    
-   _qmpackage->setLog( pLog );       
-   _qmpackage->setRunDir( DIR );
+   _qmpackage->Initialize( &_package_options );
 
+   _qmpackage->setRunDir( qmpackage_work_dir );
+  
 
-   // Write input files
-   _qmpackage->WriteInputFile( segments );
+    // if asked, prepare the input files
+    if ( _do_input ) {
+        _qmpackage->WriteInputFile( segments );
+    }
         
    // Run the executable
-   _run_status = _qmpackage->Run( );
-    if ( !_run_status ) {
-        output += "run failed; " ;
-        LOG(logERROR,*pLog) << _package_name << " run failed" << flush;
-        jres.setOutput( output ); 
-        jres.setStatus(Job::FAILED);
-        return jres;
-    } else {
-        output += "run completed; " ;
+    if ( _do_run ) {
+        _run_status = _qmpackage->Run( );
+        if ( !_run_status ) {
+            output += "run failed; " ;
+            LOG(logERROR,*pLog) << _package << " run failed" << flush;
+            jres.setOutput( output ); 
+            jres.setStatus(Job::FAILED);
+            return jres;
+        } else {
+            output += "run completed; " ;
+        }
     }
         
    // Parse log files
-   _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
-    if ( !_parse_log_status ) {
-        output += "log incomplete; ";
-        LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
-        jres.setOutput( output ); 
-        jres.setStatus(Job::FAILED);
-        return jres;
-    } else {
-        output += "log parsed; " ;
-    }
+    if ( _do_parse ) {
+        _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
+        if ( !_parse_log_status ) {
+            output += "log incomplete; ";
+            LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
+            jres.setOutput( output ); 
+            jres.setStatus(Job::FAILED);
+            return jres;
+        } else {
+            output += "log parsed; " ;
+        }
 
-   // Parse orbitals file
-   _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
-    if ( !_parse_orbitals_status ) {
-        output += "fort7 failed; " ;
-        LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
-        jres.setOutput( output ); 
-        jres.setStatus(Job::FAILED);
-        return jres;
-    } else {
-        output += "orbitals parsed; " ;
+       // Parse orbitals file
+       _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
+        if ( !_parse_orbitals_status ) {
+            output += "fort7 failed; " ;
+            LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
+            jres.setOutput( output ); 
+            jres.setStatus(Job::FAILED);
+            return jres;
+        } else {
+            output += "orbitals parsed; " ;
+        }
     }
    
    // Clean run
@@ -212,12 +212,13 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
 
     // save orbitals
+    string ORB_FILE = "molecule_" + ID + ".orb";
     LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
     std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
     boost::archive::binary_oarchive oa( ofs );
     oa << _orbitals;
     ofs.close();
-
+                                
     LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
     
     // output of the JOB 

@@ -77,36 +77,22 @@ private:
     int                                 _spin; // 2S+1
     string                              _options;
     
-    string                              _executable;
     string                              _memory;
     int                                 _threads;
     
     string                              _shell_file_name;
-    string                              _input_file_name;
-    string                              _log_file_name;
-    string                              _xyz_file_name;
     string                              _chk_file_name;
-    string                              _orb_file_name;
     
-    string                              _run_dir;
     string                              _scratch_dir;
         
     string                              _cleanup;
-    
-    bool                                _get_orbitals;
-    bool                                _get_overlap;
-    bool                                _get_charges;
-    bool                                _get_self_energy;
-    
-    bool                                _write_guess;
-    bool                                _write_charges;
+
          
     int NumberOfElectrons( string _line ); 
     int BasisSetSize( string _line ); 
     int EnergiesFromLog( string _line, ifstream inputfile ); 
     string FortranFormat( const double &number );
-    
-    Logger*                             _pLog;
+
     
 };
 

@@ -3,7 +3,7 @@
 <!-- ctp_run -e edft -f state.db -o options.xml -->
 <edft help="A wrapper for first principles based single site calculations" label="calc:edft">
 
-	<job_file help="Job control file (full path)">idft.jobs</job_file>
+	<job_file help="Job control file (full path)"></job_file>
 
 	<tasks help="What to run" default="input,run,parse">input,run,parse,project</tasks> 
 

@@ -315,7 +315,8 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     unsigned _level;
     unsigned _basis_size = 0;
 
-    std::ifstream _input_file( _orb_file_name.c_str() );
+    string _orb_file_name_full = _run_dir + "/" + _orb_file_name;
+    std::ifstream _input_file( _orb_file_name_full.c_str() );
     
     if (_input_file.fail()) {
         LOG( logERROR, *_pLog ) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
@@ -425,7 +426,7 @@ bool Gaussian::CheckLogFile() {
     
     // check if the log file exists
     char ch;
-    ifstream _input_file(_log_file_name.c_str());
+    ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
     
     if (_input_file.fail()) {
         LOG(logERROR,*_pLog) << "Gaussian LOG is not found" << flush;
@@ -484,15 +485,14 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _unoccupied_levels = 0;
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
-
     
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
-
+    string _log_file_name_full =  _run_dir + "/" + _log_file_name;
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
     
     // Start parsing the file line by line
-    ifstream _input_file(_log_file_name.c_str());
+    ifstream _input_file(_log_file_name_full.c_str());
     while (_input_file) {
 
         getline(_input_file, _line);
@@ -755,7 +755,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
             
             LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
-                    
+            _has_qm_energy = true;
             _orbitals->_has_atoms = true;
             _orbitals->_has_qm_energy = true;
 
