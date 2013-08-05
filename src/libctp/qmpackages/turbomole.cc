@@ -48,12 +48,15 @@ void Turbomole::Initialize( Property *opt ) {
     _options =          opt->get(key + ".options").as<string> ();
     _scratch_dir =      opt->get(key + ".scratch").as<string> ();
     _cleanup =          opt->get(key + ".cleanup").as<string> ();
+
+    _input_file_name = "coord";
+    _log_file_name = _executable + ".log";
+    _orb_file_name = "mos" ;   
     
     _write_guess = false;
     _get_charges = false;
     _get_self_energy = false;
-
-    
+        
 }
     
 
@@ -126,7 +129,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
 
 
 /**
- * Runs the Gaussian job. Returns 
+ * Runs the TURBOMOLE job. 
  */
 bool Turbomole::Run()
 {
@@ -154,7 +157,7 @@ bool Turbomole::Run()
 }
 
 /**
- * Cleans up after the Gaussian job
+ * Cleans up after the TURBOMOLE job
  */
 void Turbomole::CleanUp() {
     
@@ -167,18 +170,17 @@ void Turbomole::CleanUp() {
         vector<string> ::iterator it;
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
-            if ( *it == "com" ) {
+            if ( *it == "coord" ) {
                 string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );
             }
-            
-            
+           
             if ( *it == "log" ) {
                 string file_name = _run_dir + "/" + _log_file_name;
                 remove ( file_name.c_str() );
             }
 
-            if ( *it == "fort.7" ) {
+            if ( *it == "mos" ) {
                 string file_name = _run_dir + "/" + *it;
                 remove ( file_name.c_str() );
             }            
@@ -190,7 +192,7 @@ void Turbomole::CleanUp() {
 
 
 /**
- * Reads in the MO coefficients from a GAUSSIAN fort.7 file
+ * Reads in the MO coefficients from a TURBOMOLE file
  */
 bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
 {
@@ -315,6 +317,9 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
    return true;
 }
 
+/*
+ * TO DO 
+ */
 bool Turbomole::CheckLogFile() {
     
     // check if the log file exists
@@ -359,6 +364,7 @@ bool Turbomole::CheckLogFile() {
 
 /**
  * Parses the Gaussian Log file and stores data in the Orbitals object 
+ * TO DO
  */
 bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
 
