@@ -62,8 +62,6 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
-   
-   Logger *getLog() { return _pLog; }
 
 private:  
 
