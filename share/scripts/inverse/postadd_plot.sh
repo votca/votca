@@ -50,6 +50,7 @@ if [[ -z ${what_to_kill} ]]; then
     flock -n 7 || exit 0 #see flock man page to understand this trick
     cd $(get_main_dir)
     rm -rf gnuplot_pipe gnuplot_pipe.log
+    msg "Creating gnuplot_pipe ..."
     mkfifo gnuplot_pipe
     while true; do
       if read <gnuplot_pipe; then
@@ -61,6 +62,7 @@ if [[ -z ${what_to_kill} ]]; then
     while true; do
       if [[ -z $(ps -o pid= -p "${CSG_MASTER_PID}") ]]; then
 	echo "exit" > $(get_main_dir)/gnuplot_pipe
+	rm -rf gnuplot_pipe gnuplot_pipe.log gnuplot_pipe.lock
         exit
       fi
       sleep 1 #lowers the load
