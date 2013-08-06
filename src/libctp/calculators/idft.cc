@@ -223,10 +223,10 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
-    int _basisB = _orbitalsB->getNumberOfLevels();
+    int _basisB = _orbitalsB->getBasisSetSize();
     
     if ( ( _basisA == 0 ) || ( _basisB == 0 ) ) {
-        LOG(logERROR,*_pLog) << "No basis set size information is stored" << flush;
+        LOG(logERROR,*_pLog) << "No basis set size information is stored in monomers" << flush;
         return false;
     }
     
@@ -236,7 +236,7 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     int _levelsB = _orbitalsB->getNumberOfLevels();
     
     if ( ( _levelsA == 0 ) || (_levelsB == 0) ) {
-        LOG(logERROR,*_pLog) << "No information about number of levels stored" << flush;
+        LOG(logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << flush;
         return false;
     } 
      
@@ -449,13 +449,16 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // set a log file for the package
     _qmpackage->setLog( pLog );       
 
+    // set the run dir 
+    _qmpackage->setRunDir( _qmpackage_work_dir );
+        
     // get the package options
     _qmpackage->Initialize( &_package_options );
     
     // if asked, prepare the input files
     if (_do_input) {
         
-        _qmpackage->setRunDir( _qmpackage_work_dir );
+
         boost::filesystem::create_directories( _qmpackage_work_dir );           
         // in case we do not want to do an SCF loop for a dimer
         if ( _qmpackage->GuessRequested() ) {

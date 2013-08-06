@@ -204,7 +204,7 @@ private:
     // Allow serialization to access non-public data members
     friend class boost::serialization::access;
     
-    //Allow Gaussian/Turbomole object to access non-public data members
+    //Allow Gaussian object to access non-public data members
     friend class Gaussian;
     friend class Turbomole;
     

@@ -65,7 +65,7 @@ public:
 
 private:  
 
-    static const double _conv_Hrt_eV = 27.21138386;
+    //static const double _conv_Hrt_eV = 27.21138386;
     
     int                                 _charge;
     int                                 _spin; // 2S+1
