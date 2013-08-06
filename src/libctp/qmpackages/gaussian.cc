@@ -23,9 +23,12 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/format.hpp>
+
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
+#include <vector>
 
 using namespace std;
 
@@ -83,9 +86,11 @@ void Gaussian::Initialize( Property *options ) {
     iop_pos = _options.find("charge");
     if (iop_pos != std::string::npos) {
         _get_self_energy = true;
+        _write_charges = true;
     } else
     {
         _get_self_energy = false;
+        _write_charges = false;
     }
 
 
@@ -142,6 +147,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     }
     
     _com_file << endl;
+    _com_file << "TITLE ";
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         _com_file << (*sit)->getName() << " ";
     }
@@ -203,7 +209,27 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     }
     
     if ( _write_charges ) {
-     }
+        vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+        vector< QMAtom* >::iterator it;
+        
+        for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
+            if ( !(*it)->from_environment ) {
+            _com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
+            }
+        }
+        
+        _com_file << endl;
+        
+        for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
+            if ( (*it)->from_environment ) {
+                boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+                fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
+                _com_file << fmt << endl;
+            }
+        }
+        
+        _com_file << endl;
+    }
 
     
     _com_file << endl;

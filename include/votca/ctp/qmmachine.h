@@ -28,7 +28,8 @@ public:
 
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
    void ConvertQMAtomsToPSites(vector< QMAtom* > &, vector< PolarSeg* > &);
-   void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);       
+   void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);   
+   void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb);   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF);

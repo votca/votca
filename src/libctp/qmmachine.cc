@@ -132,36 +132,41 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                       _job->getEM1(),  _job->getEM2(),  _job->getETOT());
     
     // WRITE AND SET QM INPUT FILE
-    string comFile = _job->getTag() + ".com";
-    string logFile = _job->getTag() + ".log";
-    string path_comFile = runFolder + "/" + comFile;
-    string path_logFile = runFolder + "/" + logFile;
-    this->WriteQMPackInputFile(path_comFile, _qmpack, _job);
+    Orbitals orb_iter_input;
+    vector<Segment*> empty;
+    thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
+      
     _qmpack->setRunDir(runFolder);
-    _qmpack->setInputFileName(comFile);
+    
+    LOG(logDEBUG,*_log) << "Writing input file " << runFolder << flush;
+ 
+    
+    _qmpack->WriteInputFile(empty, &orb_iter_input);
+
     
     // RUN HERE (OVERRIDE - COPY EXISTING LOG-FILE)
-    string cpstr = "cp e_1_n.log " + path_logFile;
-    int sig = system(cpstr.c_str());
-    _qmpack->setLogFileName(path_logFile);
+    //string cpstr = "cp e_1_n.log " + path_logFile;
+    //int sig = system(cpstr.c_str());
+    //_qmpack->setLogFileName(path_logFile);
+    _qmpack->Run();
     
-    // EXTRACT LOG-FILE INFOS TO ORBITALS
-    Orbitals orb_iter;
-    _qmpack->ParseLogFile(&orb_iter);
+    // EXTRACT LOG-FILE INFOS TO ORBITALS   
+    Orbitals orb_iter_output;
+    _qmpack->ParseLogFile(&orb_iter_output);
     
-    assert(orb_iter.hasSelfEnergy());
-    assert(orb_iter.hasQMEnergy());
+    assert(orb_iter_output.hasSelfEnergy());
+    assert(orb_iter_output.hasQMEnergy());
     
     // EXTRACT & SAVE QM ENERGIES
-    double energy___sf = orb_iter.getSelfEnergy();
-    double energy_qmsf = orb_iter.getQMEnergy();
+    double energy___sf = orb_iter_output.getSelfEnergy();
+    double energy_qmsf = orb_iter_output.getQMEnergy();
     double energy_qm__ = energy_qmsf - energy___sf;
     thisIter->setQMSF(energy_qm__, energy___sf);
     _job->setEnergy_QMMM(thisIter->getQMEnergy(), thisIter->getSFEnergy(),
                          thisIter->getQMMMEnergy());
     
     // EXTRACT & SAVE QMATOM DATA
-    vector< QMAtom* > &atoms = *(orb_iter.getAtoms());    
+    vector< QMAtom* > &atoms = *(orb_iter_output.getAtoms());
     thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
     LOG(logINFO,*_log) 
@@ -186,6 +191,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
     
     // CLEAN DIRECTORY
+    _qmpack->CleanUp();
     /*
     int removed = boost::filesystem::remove_all(runFolder);
     if (removed > 0) 
@@ -318,6 +324,60 @@ void QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
     dQ_RMS = sqrt(dQ_RMS);
 
     this->setdRdQ(dR_RMS, dQ_RMS, dQ_SUM);
+}
+
+
+void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb) {
+    
+    double AA_to_NM = 0.1; // Angstrom to nanometer
+    
+    // INNER SHELL QM0
+    for (int i = 0; i < ptop->QM0().size(); ++i) {
+        PolarSeg *pseg = ptop->MM1()[i];
+        for (int j = 0; j < pseg->size(); ++j) {
+            
+            APolarSite *aps = (*pseg)[j];
+            vec pos = aps->getPos()/AA_to_NM;
+            double Q = aps->getQ00();
+            string type = "qm";
+
+            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, false);            
+              
+        }
+    }
+    
+    // MIDDLE SHELL MM1
+    for (int i = 0; i < ptop->MM1().size(); ++i) {
+        PolarSeg *pseg = ptop->MM1()[i];
+        for (int j = 0; j < pseg->size(); ++j) {
+            
+            APolarSite *aps = (*pseg)[j];
+            vec pos = aps->getPos()/AA_to_NM;
+            double Q = aps->getQ00();
+            string type = "mm";
+
+            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, true);            
+            // TODO Split higher moments onto charges
+              
+        }
+    }
+    
+    // OUTER SHELL MM2
+    for (int i = 0; i < ptop->MM2().size(); ++i) {
+        PolarSeg *pseg = ptop->MM2()[i];
+        for (int j = 0; j < pseg->size(); ++j) {
+            
+            APolarSite *aps = (*pseg)[j];
+            vec pos = aps->getPos()/AA_to_NM;
+            double Q = aps->getQ00();
+            string type = "mm";
+
+            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, true);              
+        }
+    }
+    return;
+    
+    
 }
 
 

@@ -191,6 +191,10 @@ void QMMM::Initialize(Topology *top, Property *opt) {
         else {
             throw runtime_error("No QM package specified.");
         }
+    
+    // register all QM packages (Gaussian, turbomole, etc))
+    QMPackageFactory::RegisterAll();
+    
 }
 
 
@@ -262,8 +266,12 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
     // SILENT LOGGER FOR QMPACKAGE
     Logger* log = thread->getLogger();    
     Logger* qlog = new Logger();
-    qlog->setReportLevel(logWARNING);
+    qlog->setReportLevel(logDEBUG);
     qlog->setMultithreading(_maverick);
+    qlog->setPreface(logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
+    qlog->setPreface(logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
+    qlog->setPreface(logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
+    qlog->setPreface(logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());      
     
     // CREATE XJOB FROM JOB INPUT STRING
     LOG(logINFO,*log)
@@ -290,6 +298,9 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
 
     // get the corresponding object from the QMPackageFactory
     QMPackage *qmpack =  QMPackages().Create( _package );
+    
+    qmpack->Initialize( &_qmpack_opt );
+    
     qmpack->setLog(qlog);
     
     QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack, 
