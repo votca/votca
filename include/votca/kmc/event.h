@@ -31,16 +31,22 @@ public:
     
     Event(EventType type, Carrier *carrier1, Carrier *carrier2) : _type(type), _carrier1(carrier1), _carrier2(carrier2) { ; }
     
-    virtual void onExecute() { ; }
-    const double &getRate() const { return _rate; }
+    virtual void onExecute() { ; } //overridden by derived class
+    const double &getRate() const { 
+    //start with Miller Abrahams rate
+        
+        
+        return _rate; }
     
     
 private:
     
     EventType _type;
     double _rate;
-    Carrier *_carrier1;
-    Carrier *_carrier2;   
+//    Carrier *_carrier1; //Need to obtain index of this carrier
+//    Carrier *_carrier2; //Idem
+    int _carrier1_index;
+    int _carrier2_index;
 
     
 };
@@ -48,7 +54,10 @@ private:
 class ElectronTransfer : Event {
 public:
     
-    void OnExecute() { ; }
+    void OnExecute() { 
+       carriers[] 
+        ; }
+    double &getRate() const {return _rate;}
     // TODO updating the state
     
 private:    

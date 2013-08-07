@@ -20,6 +20,7 @@
 
 #include <votca/kmc/graph.h>
 //#include <votca/kmc/carrier.h>
+#include <votca/kmc/store.h>
 //#include <votca/kmc/state.h>
 //#include <votca/kmc/event.h>
 #include <votca/tools/vec.h>
@@ -35,14 +36,14 @@ public:
   Diode() {};
  ~Diode() {};
 
-  // void Initialize(const char *filename, Property *options, const char *outputfile );
-  void Initialize(Property *options);
+  void Initialize(const char *filename, Property *options, const char *outputfile );
   bool EvaluateFrame();
   
-  void RunKMC(void);
-            
+  int totalnumberofnodes;
+  
 protected:
-    
+
+ void RunKMC(void);    
  string _lattice_type;
  
  // square lattice
@@ -51,6 +52,9 @@ protected:
  int _Nbox_y;
  int _Nbox_z;
  double _lattice_const;
+ double _hopping_distance; //maximum distance over which hops are occuring (readable from statefile)
+// bool _to_recalculate_pairs; //want to recalculate the possible hopping pairs?
+ double _disorder_strength;
             
 private:
   static const double kB   = 8.617332478E-5; // eV/K
@@ -64,7 +68,8 @@ private:
   //string _optionsxml;
   //string _outputfile;
   
-    Graph _graph;
+  Graph _graph;
+  State _state;
    
 };
 
@@ -115,8 +120,8 @@ void Diode::Initialize(Property *options) {
         }
         
 
-//        _filename = filename;
-//        _outputfile = outputfile;    
+        _statefile = statefile;
+        _outputfile = outputfile;    
    
     
 }
@@ -131,9 +136,18 @@ void Diode::RunKMC() {
     cout << "I am in Run KMC\n" ;
  //   cout << _graph->nodes[0]->nodeposition.x;
 
-
-    _graph.CreateSquareLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
+    totalnumberofnodes = 0;
     
+    if(_lattice_type="statefile") {
+      _graph.Load();
+    }
+    else if(_lattice_type="square") {
+      _graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
+    }
+    
+    _graph.CreateGaussianEnergyLandscape(_disorder_strength);
+    
+    _state.clear();
 //    State _state;
 //    _state.Load();
 
