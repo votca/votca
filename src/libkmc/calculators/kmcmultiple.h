@@ -56,7 +56,7 @@ typedef unordered_map<unsigned long, double> CoulombMap;
 typedef CoulombMap::const_iterator CoulombIt;
 
 
-struct Event
+struct EventMultiple
 {
     // Event() : dr(3) {}
     int destination;
@@ -79,7 +79,7 @@ class NodeMultiple
         double escaperate;
         double occupationtime;
         myvec position;
-        vector<Event> event;
+        vector<EventMultiple> event;
         // new stuff for Coulomb interaction:
         double siteenergy;
         double reorg_intorig; // UnCnN
@@ -93,7 +93,7 @@ class NodeMultiple
 
 void NodeMultiple::AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reorg_out)
 {
-    Event newEvent;
+    EventMultiple newEvent;
     newEvent.destination = seg2;
     newEvent.rate = rate12;
     newEvent.initialrate = rate12;

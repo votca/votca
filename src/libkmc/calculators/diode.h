@@ -19,17 +19,17 @@
 #define	__VOTCA_KMC_DIODE_H
 
 #include <votca/kmc/graph.h>
-//#include <votca/kmc/carrier.h>
-//#include <votca/kmc/store.h>
-//#include <votca/kmc/state.h>
-//#include <votca/kmc/event.h>
 #include <votca/tools/vec.h>
+#include <votca/kmc/carrier.h>
+#include <votca/kmc/state.h>
+#include <votca/kmc/event.h>
+
+//#include <votca/kmc/store.h>
 
 using namespace std;
 
 namespace votca { namespace kmc {
     
-   
 class Diode : public KMCCalculator 
 {
 public:

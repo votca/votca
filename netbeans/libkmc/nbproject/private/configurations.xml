@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<<<<<<< local
 <configurationDescriptor version="89">
+=======
+<configurationDescriptor version="84">
+>>>>>>> other
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="3">
