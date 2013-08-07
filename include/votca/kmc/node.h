@@ -24,17 +24,26 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
-enum CarrierType{ Electron, Hole, Exciton };
+
 
 class Node {
+    
     public:
+        
         const int &getID() const { return _id; }
+        
         const string &getType() const { return _type; }
+        
         const vec &getPosition() const { return _position; }
+        
 //        const vector<Node*> &getNeighbours(CarrierType type){ return _neighbours[type]; }
+        
         const vector<Node*> &getNeighbours{ return _neighbours[_id]; }
+        
         const double &getOccupation( CarrierType type ) const { return _occupation[type]; }
+        
         const int &getCarrierID const {return _carrierid;} // -1 if empty
+        
         const double &getStaticEnergy const {return _static_energy;}
         
 //        void setID (int index) {

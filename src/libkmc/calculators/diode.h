@@ -18,11 +18,12 @@
 #ifndef __VOTCA_KMC_DIODE_H
 #define	__VOTCA_KMC_DIODE_H
 
-#include <votca/kmc/graph.h>
+//#include <votca/kmc/graph.h>
 #include <votca/tools/vec.h>
-#include <votca/kmc/carrier.h>
-#include <votca/kmc/state.h>
-#include <votca/kmc/event.h>
+//#include <votca/kmc/carrier.h>
+//#include <votca/kmc/state.h>
+
+#include <votca/kmc/eventfactory.h>
 
 //#include <votca/kmc/store.h>
 
@@ -36,7 +37,7 @@ public:
   Diode() {};
  ~Diode() {};
 
-  void Initialize(const char *filename, Property *options, const char *outputfile );
+  void Initialize(Property *options);
   bool EvaluateFrame();
   
   int totalnumberofnodes;
@@ -68,8 +69,8 @@ private:
   //string _optionsxml;
   //string _outputfile;
   
-  Graph _graph;
-  State _state;
+  //Graph _graph;
+  //State _state;
    
 };
 
@@ -120,34 +121,44 @@ void Diode::Initialize(Property *options) {
         }
         
 
-        _statefile = statefile;
-        _outputfile = outputfile;    
+        //_statefile = statefile;
+        //_outputfile = outputfile;    
+        
    
     
 }
 
 bool Diode::EvaluateFrame()
 {
+    // register all QM packages (Gaussian, turbomole, etc))
+    EventFactory::RegisterAll(); 
+        
     RunKMC();
 }
 
 void Diode::RunKMC() {
     
     cout << "I am in Run KMC\n" ;
+    
+    // get the corresponding object from the QMPackageFactory
+    Event *_electron_transfer =  Events().Create( _ElectronTransfer );
+
+    _electron_transfer->onExecute();
+    
  //   cout << _graph->nodes[0]->nodeposition.x;
 
     totalnumberofnodes = 0;
     
-    if(_lattice_type="statefile") {
-      _graph.Load();
+    if(_lattice_type == "statefile") {
+      //_graph.Load();
     }
-    else if(_lattice_type="square") {
-      _graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
+    else if(_lattice_type == "square") {
+      //_graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
     }
     
-    _graph.CreateGaussianEnergyLandscape(_disorder_strength);
+    //_graph.CreateGaussianEnergyLandscape(_disorder_strength);
     
-    _state.clear();
+    //_state.clear();
 //    State _state;
 //    _state.Load();
 
