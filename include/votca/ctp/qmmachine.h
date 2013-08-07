@@ -93,7 +93,7 @@ public:
    ~QMMachine();
     
     void Evaluate(XJob *job);
-    void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
+    //void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
     
     bool Iterate(string jobFolder, int iterCnt);    
     QMMIter *CreateNewIter();

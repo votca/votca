@@ -212,7 +212,7 @@ QMMIter *QMMachine<QMPackage>::CreateNewIter() {
     return newIter;
 }
 
-
+/*
 template<class QMPackage>
 void QMMachine<QMPackage>::WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job) {
     
@@ -226,7 +226,7 @@ void QMMachine<QMPackage>::WriteQMPackInputFile(string inputFile, QMPackage *qmp
     fclose(out);
     
 }
-
+*/
 
 template<class QMPackage>
 bool QMMachine<QMPackage>::hasConverged() {
