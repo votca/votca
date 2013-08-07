@@ -20,7 +20,7 @@
 
 #include <votca/kmc/graph.h>
 //#include <votca/kmc/carrier.h>
-#include <votca/kmc/store.h>
+//#include <votca/kmc/store.h>
 //#include <votca/kmc/state.h>
 //#include <votca/kmc/event.h>
 #include <votca/tools/vec.h>
