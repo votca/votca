@@ -125,7 +125,9 @@ void Property::CopyValues(string prefix, Property &p) {
 
 void reset_property( Property &p ) {
     //cout << " BEFORE " << p.name() << " " << p.value() << " " << p.getAttribute<string>("default") << endl;
-    p.value() = p.getAttribute<string>("default");
+    if ( p.hasAttribute("default") ) {
+        p.value() = p.getAttribute<string>("default");
+    }
     //cout << " AFTER " << p.name() << " " << p.value() << " " << p.getAttribute<string>("default") << endl;
     for(list<Property>::iterator iter = p.begin(); iter!=p.end(); ++iter) reset_property( (*iter) );    
 }
