@@ -50,44 +50,28 @@ public:
     */
    bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
 
-   void WriteInputHeader(FILE *out, string tag);
-   
    bool WriteShellScript();
+
    bool Run();
+
    void CleanUp();
    
    bool CheckLogFile();
+
    bool ParseLogFile( Orbitals* _orbitals );
+
    bool ParseOrbitalsFile( Orbitals* _orbitals );
-   
-   void setCharge(int charge) { _charge = charge; }
-   void setSpin(int spin) { _spin = spin; }
-   void setThreads(int threads) { _threads = threads; }
-   
+      
    string getScratchDir( ) { return _scratch_dir; }
-   //bool GuessRequested( ) { return _write_guess; }
    
-//protected:
-             
 private:  
 
-    static const double _conv_Hrt_eV = 27.21138386;
-    
-    int                                 _charge;
-    int                                 _spin; // 2S+1
-    string                              _options;
-    
-    string                              _memory;
-    int                                 _threads;
-    
     string                              _shell_file_name;
     string                              _chk_file_name;
-    
     string                              _scratch_dir;
         
     string                              _cleanup;
 
-         
     int NumberOfElectrons( string _line ); 
     int BasisSetSize( string _line ); 
     int EnergiesFromLog( string _line, ifstream inputfile ); 

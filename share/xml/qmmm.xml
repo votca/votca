@@ -1,20 +1,54 @@
 <options>
 
-<!-- ctp_run -e idft -f state.db -o options.xml -->
+<!-- ctp_run -e qmmm -f state.db -o options.xml -t 1 -c 1 -->
 <qmmm help="QM/MM with the Thole MM model" label="calc:qmmm">
 
 	<multiples help="XML file with multipole moments and polarizabilities"></multiples>
 
 	<control>
 		<job_file help="Job control file"></job_file>
-		<emp_file help=""></emp_file>		
+		<emp_file help="Allocation of .mps file to segments, run 'stateserver' with key = 'emp' to create a template"></emp_file>
+		<output help="Output of QM and MM energies" default="energies.out">energies.out</output>
+		<pdb_check help="PDB file of polar sites">mps.pdb</pdb_check>
+		<write_chk help="XYZ file with dipoles split onto point charges" default="dipoles.xyz">dipoles.xyz</write_chk>
+		<format_chk help="format, gaussian or xyz" >xyz</format_chk>
+		<split_dpl help="'0' do not split dipoles onto point charges, '1' do split" >1</split_dpl>
+		<dpl_spacing help="Spacing to be used when splitting dipole onto point charges: d = q * a" unit="nm">1e-3</dpl_spacing>
 	</control>
 
-	<output help=""></output>
-	<pdb_check help=""></pdb_check>
-	<write_check help=""></write_check>
-	<format_check help=""></format_check>
-	<split_dpl help=""></split_dpl>
+	<qmpackage>
+		<package>gaussian.xml</package>
+	</qmpackage>
+
+
+	<qmmmconvg>
+		<dR>0.001</dR>
+		<dQ>0.001</dQ>
+		<dE_QM>0.0001</dE_QM>
+		<dE_MM>0.0001</dE_MM>
+		<max_iter>32</max_iter>
+	</qmmmconvg>
+
+	<coulombmethod>
+		<method>cut-off</method>
+		<cutoff1>1.0</cutoff1>
+		<cutoff2>1.2</cutoff2>
+                        <!--subthreads>1</subthreads-->
+	</coulombmethod>
+
+	<tholemodel>
+		<induce>1</induce>
+		<induce_intra_pair>1</induce_intra_pair>
+		<exp_damp>0.39</exp_damp>
+		<scaling>0.25 0.50 0.75</scaling>
+	</tholemodel>
+
+	<convergence>
+		<wSOR_N>0.30</wSOR_N>
+		<wSOR_C>0.30</wSOR_C>
+		<max_iter>512</max_iter>
+		<tolerance>0.001</tolerance>
+	</convergence>
 
 
 </qmmm>

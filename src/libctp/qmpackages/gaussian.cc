@@ -96,22 +96,6 @@ void Gaussian::Initialize( Property *options ) {
 
 }    
 
-// This class should not be here ...
-void Gaussian::WriteInputHeader(FILE *out, string tag) {
-
-    if (_chk_file_name.size())
-    fprintf(out, "%%chk = %s\n", _chk_file_name.c_str());
-    if (_memory.size())
-    fprintf(out, "%%mem = %s\n", _memory.c_str());
-    fprintf(out, "%%nprocshared = %1d\n", _threads);
-    fprintf(out, "%s\n", _options.c_str());
-    fprintf(out, "\n");
-    fprintf(out, "%s\n", tag.c_str());
-    fprintf(out, "\n");
-    fprintf(out, "%2d %2d\n", _charge, _spin);
-    return;
-}
-
 /**
  * Prepares the com file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
@@ -130,32 +114,22 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
-    if ( _chk_file_name.size() != 0 ) {
-        _com_file << "%chk = " << _chk_file_name << endl;
-    }
-    
-    if ( _memory.size() != 0 ) {
-        _com_file << "%mem = " << _memory << endl ;
-    }
-    
-    if ( _threads != 0 ) {
-         _com_file << "%nprocshared = "  << _threads << endl;
-    }
-        
-    if ( _options.size() != 0 ) {
-        _com_file <<  _options << endl ;
-    }
-    
+    if ( _chk_file_name.size() ) _com_file << "%chk = " << _chk_file_name << endl;
+    if ( _memory.size() ) _com_file << "%mem = " << _memory << endl ;
+    if ( _threads ) _com_file << "%nprocshared = "  << _threads << endl;
+    if ( _options.size() ) _com_file <<  _options << endl ;
+
     _com_file << endl;
     _com_file << "TITLE ";
+
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         _com_file << (*sit)->getName() << " ";
     }
     _com_file << endl << endl;
-      
     _com_file << setw(2) << _charge << setw(2) << _spin << endl;
 
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
+        
         _atoms = (*sit)-> Atoms();
 
         for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -494,6 +468,8 @@ bool Gaussian::CheckLogFile() {
  * Parses the Gaussian Log file and stores data in the Orbitals object 
  */
 bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
+
+    static const double _conv_Hrt_eV = 27.21138386;
 
     string _line;
     vector<string> results;

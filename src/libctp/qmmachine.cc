@@ -86,11 +86,11 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     
     // SET ITERATION-TIME CONSTANTS
     // TO ADJUST
-    /*
+    
     _qmpack->setCharge(chrg);
     _qmpack->setSpin(spin);
     _qmpack->setThreads(_subthreads);
-    */
+    
 
     int iterCnt = 0;
     int iterMax = _maxIter;

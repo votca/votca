@@ -52,8 +52,21 @@ public:
    void setLog( Logger* pLog ) { _pLog = pLog; }
       
    bool GuessRequested( ) { return _write_guess; }
-    
+
+   void setCharge(const int charge) { _charge = charge; }
+   
+   void setSpin(const int spin) { _spin = spin; }
+   
+   void setThreads(const int threads) { _threads = threads; }
+   
 protected:
+
+    int                                 _charge;
+    int                                 _spin; // 2S+1
+    int                                 _threads;
+    string                              _memory;
+    string                              _options;
+    
     string                              _executable;
     string                              _input_file_name;
     string                              _log_file_name;
@@ -71,7 +84,7 @@ protected:
     
     bool                                _write_guess;
     bool                                _write_charges;
-    
+
     Logger*                             _pLog;
        
 };
