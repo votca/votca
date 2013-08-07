@@ -123,6 +123,9 @@ private:
     bool _convg_dQ;
     bool _convg_dE_QM;
     bool _convg_dE_MM;
+    
+    bool _split_dpl;
+    double _dpl_spacing;
 
 };
 
