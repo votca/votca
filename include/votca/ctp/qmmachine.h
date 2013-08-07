@@ -29,7 +29,7 @@ public:
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
    void ConvertQMAtomsToPSites(vector< QMAtom* > &, vector< PolarSeg* > &);
    void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);   
-   void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb);   
+   void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF);
@@ -123,6 +123,9 @@ private:
     bool _convg_dQ;
     bool _convg_dE_QM;
     bool _convg_dE_MM;
+    
+    bool _split_dpl;
+    double _dpl_spacing;
 
 };
 

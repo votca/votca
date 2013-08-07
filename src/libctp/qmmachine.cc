@@ -45,6 +45,20 @@ QMMachine<QMPackage>::QMMachine(XJob *job, XInductor *xind, QMPackage *qmpack,
     else {
         _maxIter = 32;
     }
+    
+    key = sfx + ".control";
+    if (opt->exists(key+".split_dpl")) {
+        _split_dpl = opt->get(key+".split_dpl").as<bool>();
+    }
+    else {
+        _split_dpl = true;
+    }
+    if (opt->exists(key+".dpl_spacing")) {
+        _dpl_spacing = opt->get(key+".dpl_spacing").as<double>();
+    }
+    else {
+        _dpl_spacing = 1e-3;
+    }
 }
 
 
@@ -134,7 +148,8 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // WRITE AND SET QM INPUT FILE
     Orbitals orb_iter_input;
     vector<Segment*> empty;
-    thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
+    thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input,
+        _split_dpl, _dpl_spacing);
       
     _qmpack->setRunDir(runFolder);
     
@@ -327,7 +342,8 @@ void QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
 }
 
 
-void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb) {
+void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, 
+        bool split_dpl, double dpl_spacing) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer
     
@@ -356,9 +372,31 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb) {
             double Q = aps->getQ00();
             string type = "mm";
 
-            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, true);            
-            // TODO Split higher moments onto charges
-              
+            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, true);
+            
+            if (split_dpl) {
+                vec tot_dpl = vec(aps->U1x,aps->U1y,aps->U1z);
+                if (aps->getRank() > 0)
+                    { tot_dpl += vec(aps->Q1x,aps->Q1y,aps->Q1z); }            
+                // Calculate virtual charge positions
+                double a        = dpl_spacing;
+                double mag_d    = abs(tot_dpl);
+                vec    dir_d_0  = tot_dpl.normalize();
+                vec    dir_d    = dir_d_0.normalize();
+                vec    A        = aps->getPos() + 0.5 * a * dir_d;
+                vec    B        = aps->getPos() - 0.5 * a * dir_d;
+                double qA       = mag_d / a;
+                double qB       = - qA;
+                // Zero out if magnitude small [e*nm]
+                if (aps->getIsoP() < 1e-9 || mag_d < 1e-9) {
+                    A = aps->getPos() + 0.1*a*vec(1,0,0); // != pos since self-energy may diverge
+                    B = aps->getPos() - 0.1*a*vec(1,0,0);
+                    qA = 0;
+                    qB = 0;
+                }
+                orb.AddAtom("A", A.x(), A.y(), A.z(), qA, true);
+                orb.AddAtom("B", B.x(), B.y(), B.z(), qB, true);
+            }             
         }
     }
     
