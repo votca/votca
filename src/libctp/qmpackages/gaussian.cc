@@ -225,7 +225,7 @@ bool Gaussian::WriteShellScript() {
 }
 
 /**
- * Runs the Gaussian job. Returns 
+ * Runs the Gaussian job. 
  */
 bool Gaussian::Run()
 {
@@ -244,8 +244,13 @@ bool Gaussian::Run()
         }
         
         int i = system ( _command.c_str() );
-        LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << flush;
-        return true;
+        
+        if ( CheckLogFile() ) {
+            LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << flush;
+            return true;
+        } else {
+            LOG(logDEBUG,*_pLog) << "GAUSSIAN job failed" << flush;
+        }
     }
     else {
         LOG(logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
