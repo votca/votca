@@ -28,9 +28,14 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
         << "Requesting next job" << flush;
     
     // NEED NEW CHUNK?
-    if (_nextjit == _jobsToProc.end()) {
+    if (_nextjit == _jobsToProc.end() && _moreJobsAvailable) {
         SyncWithProgFile(thread);
         _nextjit = _jobsToProc.begin();
+		if (_nextjit == _jobsToProc.end()) {
+			 _moreJobsAvailable = false;
+			LOG(logDEBUG,*(thread->getLogger()))
+				<< "Sync did not yield any new jobs." << flush;
+		}
     }
     
     // JOBS EATEN ALL UP?
@@ -135,7 +140,7 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
         << "Assign jobs from stack" << flush;
     _jobsToProc.clear();
     
-    int cacheSize = (_cacheSize < 8) ? 8 : _cacheSize;
+    int cacheSize = _cacheSize;
     while (_jobsToProc.size() < cacheSize) {
         if (_metajit == _jobs.end()) break;
         
@@ -174,6 +179,11 @@ void ProgObserver<JobContainer,pJob,rJob>::LockProgFile(QMThread *thread) {
     _flock->lock();
     LOG(logDEBUG,*(thread->getLogger()))
         << "Imposed lock on " << _lockFile << flush;
+    LOG(logDEBUG,*(thread->getLogger()))
+        << "Sleep ... " << _lockFile << flush;
+    boost::this_thread::sleep(boost::posix_time::milliseconds(10000.));
+    LOG(logDEBUG,*(thread->getLogger()))
+        << "Wake up ... " << _lockFile << flush;
 }
 
 
@@ -253,12 +263,14 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
     }
     _jobs.clear();
 
-    // ... Load new
+    // ... Load new, set availability bool
     _jobs = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);
     _metajit = _jobs.begin();
     WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile+"~", "xml");
     LOG(logINFO,*(thread->getLogger())) << "Registered " << _jobs.size()
          << " jobs." << flush;
+	if (_jobs.size()>0) _moreJobsAvailable = true;
+	else _moreJobsAvailable = false;
     
     
     // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK FILE

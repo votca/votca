@@ -1,0 +1,11 @@
+<options>
+	<molpol>
+		<mps_input>input.mps</mps_input>
+		<mps_output>output.mps</mps_output>
+		<pol_output>molpol.dat</pol_output>
+		<expdamp>0.39000</expdamp>
+		<wSOR>0.35000</wSOR>
+		<maxiter>1024</maxiter>
+		<tolerance>0.00001</tolerance>
+	</molpol>
+</options>

@@ -847,8 +847,8 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             }
 
             newSite->Charge(0);
-            
-            return_pols.push_back(newSite);
+            if (newSite->getIsActive())           
+                return_pols.push_back(newSite);
 
         }
     } // End loop over fragments
@@ -959,6 +959,10 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
     new_ptop->setQM0(qm0);
     new_ptop->setMM1(mm1);
     new_ptop->setMM2(mm2);
+    
+    new_ptop->setSegsQM0(segs_qm0);
+    new_ptop->setSegsMM1(segs_mm1);
+    new_ptop->setSegsMM2(segs_mm2);
     
     // CENTER AROUND QM REGION
     new_ptop->CenterAround(job->Center());

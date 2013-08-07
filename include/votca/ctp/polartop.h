@@ -23,6 +23,10 @@ public:
    void   setMM1(vector<PolarSeg*> &mm1) { _mm1 = mm1; }
    void   setMM2(vector<PolarSeg*> &mm2) { _mm2 = mm2; }
    
+   void   setSegsQM0(vector<Segment*> &qm0) { _segs_qm0 = qm0; }
+   void   setSegsMM1(vector<Segment*> &mm1) { _segs_mm1 = mm1; }
+   void   setSegsMM2(vector<Segment*> &mm2) { _segs_mm2 = mm2; }
+   
    void   CenterAround(const vec &center);
    string ShellInfoStr();
    void   PrintInfo(ostream &out);
@@ -39,6 +43,10 @@ private:
    vector<PolarSeg*> _qm0; // QM SHELL
    vector<PolarSeg*> _mm1; // POLARIZABLE SHELL
    vector<PolarSeg*> _mm2; // STATIC SHELL
+   
+   vector<Segment*> _segs_qm0;
+   vector<Segment*> _segs_mm1;
+   vector<Segment*> _segs_mm2;
 
 };  
 

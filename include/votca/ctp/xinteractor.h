@@ -2226,7 +2226,10 @@ inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+    u3   = 1 / (R3 * sqrt( 
+        1./3.*(pol1.Pxx*pol2.Pxx + pol1.Pxy*pol2.Pxy + pol1.Pxz*pol2.Pxz
+             + pol1.Pxy*pol2.Pxy + pol1.Pyy*pol2.Pyy + pol1.Pyz*pol2.Pyz
+             + pol1.Pxz*pol2.Pxz + pol1.Pyz*pol2.Pyz + pol1.Pzz*pol2.Pzz) ));
 
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;

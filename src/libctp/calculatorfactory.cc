@@ -85,7 +85,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<XMP>             ("xmultipole");
         Calculators().Register<Velocity>        ("velocity");
         // HAS BEEN MOVED TO ctp_app?
-        //Calculators().Register<MolPol>          ("molpol");
+        Calculators().Register<MolPol>          ("molpol");
         Calculators().Register<ZMultipole>      ("zmultipole");
         Calculators().Register<QMultipole>      ("qmultipole");
         Calculators().Register<XQMP>            ("xqmultipole");

@@ -121,6 +121,28 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
 
 }
 
+bool APolarSite::getIsActive() {
+    // Returns false if charge and polarizability are both zero, true otherwise
+    bool isActive = false;
+    
+    // Tolerances
+    double q_tol = 1e-9; // [e]
+    double d_tol = 1e-9; // [enm]
+    double Q_tol = 1e-9; // [enm^2]
+    double p_tol = 1e-9; // [nm^3]   
+    // Magnitudes
+    double q_mag = sqrt(Q00*Q00);
+    double d_mag = sqrt(Q1x*Q1x + Q1y*Q1y + Q1z*Q1z);
+    double Q_mag = sqrt(Q20*Q20 + Q22c*Q22c + Q22s*Q22s + Q21c*Q21c + Q21s*Q21s);
+    // Compare
+    if (q_mag>q_tol) isActive = true;
+    if (_rank > 0 && d_mag>d_tol) isActive = true;
+    if (_rank > 1 && Q_mag>Q_tol) isActive = true;    
+    if (getIsoP() > p_tol) isActive = true;
+    
+    return isActive;
+}
+
 void APolarSite::Translate(const vec &shift) {
 
     _pos += shift;
@@ -432,7 +454,6 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
         matrix::eigensystem_t EIGEN;
 
         if (_rank == 2) {
-            tot_dpl += vec(Q1x,Q1y,Q1z);
             //cout << endl
             //     << "WARNING: Quadrupoles are not split onto point charges."
             //     << endl;
@@ -450,11 +471,8 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
             matrix Q = matrix(vec(Qxx,Qxy,Qxz),
                               vec(Qxy,Qyy,Qyz),
                               vec(Qxz,Qyz,Qzz));
-
             
             Q.SolveEigensystem(EIGEN);
-
-
         }
 
         double a        = spacing;
@@ -466,9 +484,9 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
         double qA       = mag_d / a;
         double qB       = - qA;
         
-        if (this->eigendamp == 0) {
-            A = pos;
-            B = pos;
+        if (this->eigendamp == 0 || mag_d < 1e-9) {
+            A = pos + 0.1*a*vec(1,0,0); // != pos since self-energy may diverge
+            B = pos - 0.1*a*vec(1,0,0);
             qA = 0;
             qB = 0;
         }
