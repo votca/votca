@@ -18,50 +18,40 @@
 #ifndef __VOTCA_KMC_EVENT_H_
 #define __VOTCA_KMC_EVENT_H_
 
+#include <votca/kmc/carrier.h>
+
 namespace votca { namespace kmc {
   
 using namespace std;
 
-enum EventType { Injection, Collection, Transfer, Recombination, Dissociation, ExcitonFormation };
+enum EventType { _ElectronTransfer, _Injection, _Collection, _Recombination, _Dissociation, _ExcitonFormation };
 
-
+/*
+ * Abstract base class for all events  
+ */
 class Event {
     
 public:
     
-    Event(EventType type, Carrier *carrier1, Carrier *carrier2) : _type(type), _carrier1(carrier1), _carrier2(carrier2) { ; }
+    void Initialize(Carrier *carrier1, Carrier *carrier2) { ; }
     
-    virtual void onExecute() { ; } //overridden by derived class
-    const double &getRate() const { 
-    //start with Miller Abrahams rate
-        
-        
-        return _rate; }
+    virtual void onExecute() = 0;
+    
+    virtual EventType &getEventType(){ return _type; }
+    
+    // maybe make _rate public (check the efficiency)) or inline it
+    const double &getRate() const { return _rate; }
     
     
-private:
+protected:
     
     EventType _type;
     double _rate;
-//    Carrier *_carrier1; //Need to obtain index of this carrier
-//    Carrier *_carrier2; //Idem
-    int _carrier1_index;
-    int _carrier2_index;
-
+    Carrier *_carrier1; 
+    Carrier *_carrier2;
     
 };
 
-class ElectronTransfer : Event {
-public:
-    
-    void OnExecute() { 
-       carriers[] 
-        ; }
-    double &getRate() const {return _rate;}
-    // TODO updating the state
-    
-private:    
-};
 
 
 }} 
