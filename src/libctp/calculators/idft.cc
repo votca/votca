@@ -505,6 +505,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                     cout << *pLog;
                     jres.setOutput( output ); 
                     jres.setStatus(Job::FAILED);
+                    delete _qmpackage;
                     return jres;
             } 
     } // end of the run
@@ -520,6 +521,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                     cout << *pLog;
                     jres.setOutput( output ); 
                     jres.setStatus(Job::FAILED);
+                    delete _qmpackage;
                     return jres;
             } 
             
@@ -531,6 +533,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                     cout << *pLog;
                     jres.setOutput( output ); 
                     jres.setStatus(Job::FAILED);
+                    delete _qmpackage;
                     return jres;
             } 
     } // end of the parse orbitals/log
@@ -650,6 +653,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
    // cleanup whatever is not needed
    _qmpackage->CleanUp();
+   delete _qmpackage;
    
     jres.setOutput( sout.str() );   
     jres.setStatus(Job::COMPLETE);

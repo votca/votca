@@ -172,6 +172,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             LOG(logERROR,*pLog) << _package << " run failed" << flush;
             jres.setOutput( output ); 
             jres.setStatus(Job::FAILED);
+            delete _qmpackage;
             return jres;
         } else {
             output += "run completed; " ;
@@ -186,6 +187,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
             jres.setOutput( output ); 
             jres.setStatus(Job::FAILED);
+            delete _qmpackage;
             return jres;
         } else {
             output += "log parsed; " ;
@@ -198,6 +200,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
             jres.setOutput( output ); 
             jres.setStatus(Job::FAILED);
+            delete _qmpackage;
             return jres;
         } else {
             output += "orbitals parsed; " ;
@@ -206,6 +209,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    
    // Clean run
    _qmpackage->CleanUp();
+   delete _qmpackage;
         
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     jres.setStatus(Job::COMPLETE);
