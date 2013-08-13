@@ -39,7 +39,6 @@ set temperature 2.49
 set time_step 0.001
 set friction 5.0
 set int_steps 1000
-set int_steps 1000
 
 setmd box_l $box_length $box_length $box_length
 setmd skin $skin
@@ -47,29 +46,31 @@ setmd time_step $time_step
 thermostat langevin $temperature $friction
 
 #open file to read
-set infile [open "spce.esp" r]
+set infile [open "spce.gro" r]
 
 #skip comment lines
+gets $infile in_string
 ##comment out first two lines in .esp, when converted from .gro
-set in_string "#"
-while { [string index $in_string 0] == "#" } { gets $infile in_string }
+gets $infile n_part
+puts "number of particles in initial condition: $n_part"
 
 #read data lines
-while { 1 } {
-  # if at file end, close file and stop loop
-  if {[eof $infile]} {
-    close $infile
-    break
-  }
+for { set i 0 } { $i < $n_part } { incr i 1 } {
+  # read next line
+  gets $infile in_string
   # write numbers into variables
-  scan $in_string "%s %s %i %f %f %f %f %f %f" p_name p_sp p_id pos_x pos_y pos_z v_x v_y v_z
+  scan $in_string "%s %s %i %f %f %f" p_name p_sp p_id pos_x pos_y pos_z
   # determine type (all particles of same type)
   set p_type 0
   # set up particle
-  part $p_id pos $pos_x $pos_y $pos_z type $p_type v $v_x $v_y $v_z mass 18.01540
-  # read next line
-  gets $infile in_string
+  part $p_id pos $pos_x $pos_y $pos_z type $p_type mass 18.01540
 }
+gets $infile in_string
+# write numbers into variables
+scan $in_string "%f %f %f" box_x box_y box_z
+setmd box_l $box_x $box_y $box_z
+puts "box size: [setmd box_l]"
+close $infile
 
 inter $p_type $p_type tabulated "CG_CG.tab" 
 

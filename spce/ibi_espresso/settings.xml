@@ -39,7 +39,7 @@
     </espresso>
     <initial_configuration>maindir</initial_configuration>
     <!-- these files are copied for each new run -->
-    <filelist>spce.tcl spce.esp topol.xml spce.pdb</filelist>
+    <filelist>spce.tcl spce.gro topol.xml</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->

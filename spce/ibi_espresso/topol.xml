@@ -1,4 +1,4 @@
-<topology base="spce.pdb">
+<topology base="spce.gro">
   <box xx="4.03100" yy="4.03100" zz="4.03100"/>
   <molecules>
     <clear/>
