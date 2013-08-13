@@ -396,7 +396,8 @@ void Imc::WriteDist(const string &suffix)
             }
         }
         else {
-            dist.y() = iter->second->_norm * dist.y();
+	    // \TODO normalize bond and angle differently....
+            dist.y() = iter->second->_norm * dist.y() / ( ub::norm_1(dist.y()) * iter->second->_step );
         }
         
         dist.Save((iter->first) + suffix);
