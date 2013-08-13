@@ -63,10 +63,8 @@ void HistogramNew::Normalize()
 {
     double area = 0;
     
+    area=ub::norm_1(_data.y()) * _step;
     
-    area=ub::norm_1(_data.x()) * _step;
-    
-    _weight /= area;
     double scale = 1./area;
     
     _data.y() *= scale;    
