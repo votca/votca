@@ -142,8 +142,10 @@ void Diode::RunKMC() {
     
     // get the corresponding object from the QMPackageFactory
     Event *_electron_transfer =  Events().Create( _ElectronTransfer );
+ //   Event *_hole_transfer = Events().Create( _HoleTransfer );
 
     _electron_transfer->onExecute();
+    //_hole_transfer->onExecute();
     
  //   cout << _graph->nodes[0]->nodeposition.x;
 

@@ -21,12 +21,26 @@
 #include <votca/kmc/eventfactory.h>
 #include "votca_config.h"
 #include "events/electron_transfer.h"
+#include "events/hole_transfer.h"
+#include "events/electron_injection.h"
+#include "events/hole_injection.h"
+#include "events/electron_collection.h"
+#include "events/hole_collection.h"
+#include "events/recombination.h"
+#include "events/dissociation.h"
 
 namespace votca { namespace kmc {
 
 void EventFactory::RegisterAll(void)
 {
         Events().Register< ElectronTransfer >         ( _ElectronTransfer );
+        Events().Register< HoleTransfer >         ( _HoleTransfer );
+        Events().Register< ElectronInjection >         ( _ElectronInjection );
+        Events().Register< HoleInjection >         ( _HoleInjection );
+        Events().Register< ElectronCollection >         ( _ElectronCollection );
+        Events().Register< HoleCollection >         ( _HoleCollection );
+        Events().Register< Recombination >         ( _Recombination );
+        Events().Register< Dissociation >         ( _Dissociation );        
 }
 
 }}

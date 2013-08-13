@@ -26,7 +26,7 @@ class ElectronTransfer : public Event {
 public:
     
     void onExecute() { 
-        cout << "I am executed" << endl; 
+        cout << "Electron transfer executed" << endl; 
     }
     // TODO updating the state
    

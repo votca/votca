@@ -24,7 +24,7 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
-enum EventType { _ElectronTransfer, _Injection, _Collection, _Recombination, _Dissociation, _ExcitonFormation };
+enum EventType { _ElectronTransfer, _HoleTransfer, _ElectronInjection, _HoleInjection, _ElectronCollection, _HoleCollection, _Recombination, _Dissociation};
 
 /*
  * Abstract base class for all events  
