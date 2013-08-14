@@ -20,8 +20,9 @@
 
 //#include <votca/kmc/graph.h>
 #include <votca/tools/vec.h>
-//#include <votca/kmc/carrier.h>
-//#include <votca/kmc/state.h>
+//#include <votca/tools/store.h>
+#include <votca/kmc/carrier.h>
+#include <votca/kmc/state.h>
 
 #include <votca/kmc/eventfactory.h>
 
@@ -41,6 +42,7 @@ public:
   bool EvaluateFrame();
   
   int totalnumberofnodes;
+  double _hopping_distance; //maximum distance over which hops are occuring (readable from statefile)
   
 protected:
 
@@ -53,7 +55,7 @@ protected:
  int _Nbox_y;
  int _Nbox_z;
  double _lattice_const;
- double _hopping_distance; //maximum distance over which hops are occuring (readable from statefile)
+
 // bool _to_recalculate_pairs; //want to recalculate the possible hopping pairs?
  double _disorder_strength;
             
@@ -138,14 +140,15 @@ bool Diode::EvaluateFrame()
 
 void Diode::RunKMC() {
     
-    cout << "I am in Run KMC\n" ;
+    // create carrier container and store
+    
     
     // get the corresponding object from the QMPackageFactory
     Event *_electron_transfer =  Events().Create( _ElectronTransfer );
  //   Event *_hole_transfer = Events().Create( _HoleTransfer );
 
     _electron_transfer->onExecute();
-    //_hole_transfer->onExecute();
+//    _hole_transfer->onExecute();
     
  //   cout << _graph->nodes[0]->nodeposition.x;
 
@@ -155,7 +158,7 @@ void Diode::RunKMC() {
       //_graph.Load();
     }
     else if(_lattice_type == "square") {
-      //_graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
+      //_graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const,_hopping_distance);
     }
     
     //_graph.CreateGaussianEnergyLandscape(_disorder_strength);

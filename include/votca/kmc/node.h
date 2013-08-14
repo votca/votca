@@ -31,43 +31,15 @@ class Node {
     public:
         
         const int &getID() const { return _id; }
-        
         const string &getType() const { return _type; }
-        
         const vec &getPosition() const { return _position; }
-        
-//        const vector<Node*> &getNeighbours(CarrierType type){ return _neighbours[type]; }
-        
-        const vector<Node*> &getNeighbours{ return _neighbours[_id]; }
-        
+        const vector<Node*> &getNeighbours() const { return _neighbours; }
         const double &getOccupation( CarrierType type ) const { return _occupation[type]; }
+        const int &getCarrierID() const {return _carrierID;} // -1 if empty
+        const double &getStaticEnergy() const {return _static_energy;}
         
-        const int &getCarrierID const {return _carrierid;} // -1 if empty
-        
-        const double &getStaticEnergy const {return _static_energy;}
-        
-//        void setID (int index) {
-//            _id = index;
-//        }
-//        void setPosition (double ix, double iy, double iz) {
-//            _position = vec(ix,iy,iz);
-//        }
-        
-        void setNeighbours (int vertex2) {
-            _neighbours.push_back(index2);
-        }
-        
-//        void setOccupation(CarrierType type, double occup) {
-//            _occupation[type] = occup;
-//        }
-        
-//        void setCarrierID(int carID) {
-//            _carrierID = carID;
-//        }
-        
-        ;
+        void setNeighbours (Node* vertex2) {_neighbours.push_back(vertex2);}
 
-    private:
         int _id;
         const string _type;
         vec _position;

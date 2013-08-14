@@ -21,6 +21,8 @@
 #include <votca/kmc/event.h>
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/node.h>
+#include <votca/kmc/graph.h>
+//#include <votca/kmc/store.h>
 
 // Text archive that defines boost::archive::text_oarchive
 // and boost::archive::text_iarchive
@@ -37,9 +39,10 @@ using namespace std;
 class State {
 public:
     
-    void Clear();
-    void Save(){ ; }
-    void Load(){ ; }
+//    void Clear(int totalnumberofnodes);
+    void Save(){};
+    void Load(){};
+    void Add_Remove_Carrier() {};
 
 //   template<typename Archive> 
 //   void serialize(Archive& ar, const unsigned version) {
@@ -53,7 +56,7 @@ private:
     
 };
 
-void State::Clear {
+/*void State::Clear(int totalnumberofnodes) {
     
     for (int node_index=0;node_index<totalnumberofnodes;node_index++) {
         nodes[node_index]->setOccupation(Electron,0.0);
@@ -62,7 +65,7 @@ void State::Clear {
         nodes[node_index]->setCarrierID(-1);
 
     }
-}
+}*/
 
 }} 
 

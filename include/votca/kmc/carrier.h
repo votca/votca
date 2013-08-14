@@ -35,17 +35,13 @@ public:
     //const Node *getNode() const { return _node; }
     const tools::vec &getDistance() const { return _distance; }
     
-    void setType(CarrierType type) {
-        _type = type;
-    }
+//    void setType(CarrierType type) {
+//        _type = type;
+//    }
     
-    //void setNode(Node* position) {
-    //    //_node = position;
-    //}
-    
-    void setCarrierID(int Id) {
-        _carrierID = Id;
-    }
+//    void setCarrierID(int Id) {
+//        _carrierID = Id;
+//    }
      
     
 private:
