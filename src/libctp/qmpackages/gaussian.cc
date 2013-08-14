@@ -116,7 +116,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     // header 
     if ( _chk_file_name.size() ) _com_file << "%chk = " << _chk_file_name << endl;
     if ( _memory.size() ) _com_file << "%mem = " << _memory << endl ;
-    if ( _threads ) _com_file << "%nprocshared = "  << _threads << endl;
+    if ( _threads > 1 ) _com_file << "%nprocshared = "  << _threads << endl;
     if ( _options.size() ) _com_file <<  _options << endl ;
 
     _com_file << endl;
