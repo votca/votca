@@ -19,21 +19,23 @@
 #define __VOTCA_KMC_CARRIER_H_
 
 #include <votca/tools/vec.h>
-//#include <votca/kmc/node.h>
+#include <votca/kmc/node.h>
+
+typedef votca::tools::vec myvec;
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-enum CarrierType{ Electron, Hole, Exciton };
+enum CarrierType{ Electron, Hole, Exciton, Void };
 
 class Carrier {
 public:
 
     const int &getCarrierID() const { return _carrierID; }
-    const CarrierType &getType() const { return _type; }
-    //const Node *getNode() const { return _node; }
-    const tools::vec &getDistance() const { return _distance; }
+    const CarrierType &getCarrierType() const { return _carriertype; }
+    const Node* getNode() const { return _node; }
+    const myvec &getDistance() const { return _distance; }
     
 //    void setType(CarrierType type) {
 //        _type = type;
@@ -42,12 +44,10 @@ public:
 //    void setCarrierID(int Id) {
 //        _carrierID = Id;
 //    }
-     
-    
-private:
-    CarrierType _type;
-    tools::vec _distance;
-    //Node* _node;
+
+    CarrierType _carriertype;
+    myvec _distance;
+    Node* _node;
     int _carrierID;    
 };
 

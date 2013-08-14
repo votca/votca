@@ -18,7 +18,7 @@
 #ifndef __VOTCA_KMC_EVENT_H_
 #define __VOTCA_KMC_EVENT_H_
 
-#include <votca/kmc/carrier.h>
+#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
   
@@ -33,8 +33,8 @@ class Event {
     
 public:
     
-    void Initialize(Carrier *carrier1, Carrier *carrier2) { ; }
-    
+    void Initialize(Node* node1, Node* node2) { ; }
+  
     virtual void onExecute() = 0;
     
     virtual EventType &getEventType(){ return _type; }
@@ -47,8 +47,8 @@ protected:
     
     EventType _type;
     double _rate;
-    Carrier *_carrier1; 
-    Carrier *_carrier2;
+    Node* node1; 
+    Node* node2;
     
 };
 

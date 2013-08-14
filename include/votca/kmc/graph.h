@@ -18,29 +18,31 @@
 #ifndef __VOTCA_KMC_GRAPH_H_
 #define __VOTCA_KMC_GRAPH_H_
 
-#include <votca/kmc/node.h>
+
 #include <votca/tools/database.h>
 #include <votca/tools/vec.h>
 #include <votca/tools/random.h>
-
+#include <votca/kmc/carrier.h>
+#include <votca/kmc/node.h>
+#include <votca/kmc/state.h>
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
+typedef enum {ADD, REMOVE} e_action;
+
 class Graph {
  public:
-//     void Graph_Load(){};
+     void Load();
      void CreateCubicLattice(int NX, int NY, int NZ, double latt_const, double hopping_distance);
-     void CreateGaussianEnergyLandscape(double disorder_strength, int numberofnodes);
      //const vector<Node*> &getNeighbours( Node* node, CarrierType type ) { return node->getNeighbours(type); }
+
+     vector< Node* > _nodes;
    
- private:
-     vector< Node* > nodes;
-     
 };
 
-/*void Graph::Graph_Load() {
+/*void Graph::Load() {
     
     votca::tools::Database db;
     db.Open( _filename );
@@ -87,7 +89,7 @@ class Graph {
 
    
 
-}*/
+ * }*/
 
 void Graph:: CreateCubicLattice(int NX, int NY, int NZ, double latt_const, double hopping_distance) {
     
@@ -103,13 +105,13 @@ void Graph:: CreateCubicLattice(int NX, int NY, int NZ, double latt_const, doubl
         for(int iy=0; iy<NY; iy++) {
             for(int iz=0; iz<NZ; iz++) {
                 Node *newNode = new Node();
-                nodes.push_back(newNode);
+                _nodes.push_back(newNode);
 
                 node_id = NX*NY*iz + NX*iy + ix-1;
                 nodeposition = vec(latt_const*ix,latt_const*iy,latt_const*iz); //positions in nm
 
-                nodes[index]->_id = node_id;
-                nodes[index]->_position = nodeposition;
+                _nodes[index]->_id = node_id;
+                _nodes[index]->_position = nodeposition;
                     
                 index++;
                 numberofnodes++;
@@ -128,30 +130,22 @@ void Graph:: CreateCubicLattice(int NX, int NY, int NZ, double latt_const, doubl
     
     for (int index1=0;index1<numberofnodes;index1++) {
         for (int index2 = 0;index2<numberofnodes;index++) {
-            position1 = nodes[index1]->getPosition();
-            position2 = nodes[index2]->getPosition();
+            position1 = _nodes[index1]->getPosition();
+            position2 = _nodes[index2]->getPosition();
             
             distancesqr = (position1.x()-position2.x())*(position1.x()-position2.x())  +  (position1.y()-position2.y())*(position1.y()-position2.y()) + (position1.z()-position2.z())*(position1.z()-position2.z());
             
             if(distancesqr <= hopping_distance*hopping_distance) {
-                nodes[index1]->setNeighbours(nodes[index2]);
-                nodes[index2]->setNeighbours(nodes[index1]);
+                _nodes[index1]->setNeighbours(_nodes[index2]);
+                _nodes[index2]->setNeighbours(_nodes[index1]);
                 numberofpairs++;
             }
         }
     }
 }
 
-void Graph:: CreateGaussianEnergyLandscape(double disorder_strength, int numberofnodes) {
-   
-    for (int index1 = 0; index1<numberofnodes; index1++) {
-        votca::tools::Random *RandomVariable = new votca::tools::Random();
-        RandomVariable->init(rand(), rand(), rand(), rand());
-        nodes[index1]->_static_energy = RandomVariable->rand_gaussian(disorder_strength);
-    }
-}
 
-}
+}}
 
 
 

@@ -20,6 +20,8 @@
 
 #include <votca/tools/vec.h>
 
+typedef votca::tools::vec myvec;
+
 namespace votca { namespace kmc {
   
 using namespace std;
@@ -31,20 +33,18 @@ class Node {
     public:
         
         const int &getID() const { return _id; }
-        const string &getType() const { return _type; }
-        const vec &getPosition() const { return _position; }
+        const myvec &getPosition() const { return _position; }
         const vector<Node*> &getNeighbours() const { return _neighbours; }
-        const double &getOccupation( CarrierType type ) const { return _occupation[type]; }
+        const int &getOccupation () const { return _occupation; }
         const int &getCarrierID() const {return _carrierID;} // -1 if empty
         const double &getStaticEnergy() const {return _static_energy;}
         
         void setNeighbours (Node* vertex2) {_neighbours.push_back(vertex2);}
 
         int _id;
-        const string _type;
-        vec _position;
+        myvec _position;
         vector<Node*> _neighbours;
-        double _occupation[3];
+        int _occupation;
         int _carrierID;
         double _static_energy;
 };

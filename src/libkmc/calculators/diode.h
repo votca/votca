@@ -18,9 +18,9 @@
 #ifndef __VOTCA_KMC_DIODE_H
 #define	__VOTCA_KMC_DIODE_H
 
-//#include <votca/kmc/graph.h>
+#include <votca/kmc/lattice.h>
 #include <votca/tools/vec.h>
-//#include <votca/tools/store.h>
+#include <votca/kmc/store.h>
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/state.h>
 
@@ -43,6 +43,9 @@ public:
   
   int totalnumberofnodes;
   double _hopping_distance; //maximum distance over which hops are occuring (readable from statefile)
+
+//  Graph _graph;
+//  State _state;
   
 protected:
 
@@ -71,8 +74,7 @@ private:
   //string _optionsxml;
   //string _outputfile;
   
-  //Graph _graph;
-  //State _state;
+
    
 };
 
@@ -144,7 +146,7 @@ void Diode::RunKMC() {
     
     
     // get the corresponding object from the QMPackageFactory
-    Event *_electron_transfer =  Events().Create( _ElectronTransfer );
+    Event* _electron_transfer =  Events().Create( _ElectronTransfer );
  //   Event *_hole_transfer = Events().Create( _HoleTransfer );
 
     _electron_transfer->onExecute();
@@ -158,8 +160,18 @@ void Diode::RunKMC() {
       //_graph.Load();
     }
     else if(_lattice_type == "square") {
-      //_graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const,_hopping_distance);
+      //_graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const;);
     }
+    
+    //everytime when a carrier is added or removed, combine
+    //carrier1 = carriers.buy();
+    //_graph->nodes->_carrierID = carrier1
+    //pCarrier1 = carriers.get_item(carrier1);
+    //    if (ncarriers == maxcarriers) {
+    //  const int GROW = 10; // Grow with 10 elements
+    //  grow(GROW);
+    // }
+    //ncarriers++;
     
     //_graph.CreateGaussianEnergyLandscape(_disorder_strength);
     

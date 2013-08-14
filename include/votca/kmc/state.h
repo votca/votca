@@ -21,8 +21,8 @@
 #include <votca/kmc/event.h>
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/node.h>
-#include <votca/kmc/graph.h>
-//#include <votca/kmc/store.h>
+//#include <votca/kmc/graph.h>
+#include <votca/kmc/store.h>
 
 // Text archive that defines boost::archive::text_oarchive
 // and boost::archive::text_iarchive
@@ -39,23 +39,43 @@ using namespace std;
 class State {
 public:
     
+// container methods    
+    
+    void Grow(int growsize);
+    int Buy();
+    void Sell(int itemnr); //check whether this can work with direct pointer
+    Carrier* Get_item(int itemnr);
+    
 //    void Clear(int totalnumberofnodes);
     void Save(){};
     void Load(){};
-    void Add_Remove_Carrier() {};
 
 //   template<typename Archive> 
 //   void serialize(Archive& ar, const unsigned version) {
 //       //ar & _carriers; 
 //       ;
 //   }     
-   
-private:
     
-    list<Carrier*> _carriers;  
+    Store<Carrier> _carriers;  
     
 };
 
+void State::Grow(int growsize){
+    _carriers.Grow(growsize);
+}
+
+int State::Buy(){
+    _carriers.Buy();
+}
+
+void State::Sell(int itemnr){
+    _carriers.Sell(itemnr);
+}
+
+Carrier* State::Get_item(int itemnr){
+    _carriers.Get_item(itemnr);
+}
+    
 /*void State::Clear(int totalnumberofnodes) {
     
     for (int node_index=0;node_index<totalnumberofnodes;node_index++) {
