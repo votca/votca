@@ -236,5 +236,40 @@ void Orbitals::SortEnergies(  std::vector<int>* index ) {
 
 }
 
+/// Writes a PDB file
+void Orbitals::WritePDB( FILE *out ) {
+    // out.setf(ios::fixed);
+    
+    vector < QMAtom* > :: iterator atom;
+    int id = 0;
+    
+    //cout << "Natoms " << _atoms.size() << endl;
+    
+    for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
+         id++;      
+         string resname = ( (*atom)->from_environment ) ? "MM" : "QM";
+         int resnr = 1;
+         
+         //cout << id << " " << (*atom)->type << " " << endl;
+         
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s  %8.3f\n",
+                 id,                    // Atom serial number           %5d 
+                 (*atom)->type.c_str(), // Atom name                    %4s
+                 " ",                   // alternate location indicator.%1s
+                 resname.c_str(),       // Residue name.                %3s
+                 "A",                   // Chain identifier             %1s
+                 resnr,                 // Residue sequence number      %4d
+                 " ",                   // Insertion of residues.       %1s
+                 (*atom)->x,            // X in Angstroms               %8.3f
+                 (*atom)->y,            // Y in Angstroms               %8.3f
+                 (*atom)->z,            // Z in Angstroms               %8.3f
+                 1.0,                   // Occupancy                    %6.2f
+                 0.0,                   // Temperature factor           %6.2f
+                 " ",                   // Segment identifier           %4s
+                 (*atom)->type.c_str(), // Element symbol               %2s
+                 (*atom)->charge        // Charge on the atom.          %2s
+                 );
+    }  
+}
 
 }}

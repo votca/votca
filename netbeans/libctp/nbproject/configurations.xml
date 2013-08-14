@@ -60,6 +60,7 @@
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/turbomole.h</itemPath>
+      <itemPath>../../include/votca/ctp/xinductor.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -96,6 +97,7 @@
       <itemPath>../../src/libctp/qmpackages/turbomole.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
+      <itemPath>../../src/libctp/xinductor.cc</itemPath>
       <itemPath>../../src/libctp/xmapper.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -226,6 +228,11 @@
       </item>
       <item path="../../include/votca/ctp/topology.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/xinductor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/apolarsite.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/calculatorfactory.cc"
@@ -445,6 +452,8 @@
       <item path="../../src/libctp/version_nb.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/votca_config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/xinductor.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -566,6 +575,11 @@
       </item>
       <item path="../../include/votca/ctp/topology.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/xinductor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/apolarsite.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/calculatorfactory.cc"
@@ -785,6 +799,8 @@
       <item path="../../src/libctp/version_nb.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/votca_config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/xinductor.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>

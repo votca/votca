@@ -151,6 +151,7 @@ public:
         _has_integrals = _store_integrals;
     } 
         
+    void WritePDB( FILE *out );
 
 private:
     

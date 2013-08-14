@@ -8,9 +8,6 @@
 #include <votca/ctp/orbitals.h>
 
 
-// TODO Derive Gaussian from abstract QMPackage class and include in a factory
-
-
 namespace votca { namespace ctp {
     
     

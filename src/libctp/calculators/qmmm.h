@@ -312,6 +312,9 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
     // EVALUATE: ITERATE UNTIL CONVERGED
     machine.Evaluate(&xjob);    
     
+    // DESTROY QMPackage
+    delete qmpack;
+    
     // DELIVER OUTPUT & CLEAN
     this->LockCout();
     cout << *thread->getLogger();

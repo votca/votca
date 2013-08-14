@@ -252,7 +252,7 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
             
             _level = boost::lexical_cast<int>(results.front());
             boost::replace_first(results[3], "D", "e");
-            _energies[ _level ] = boost::lexical_cast<double>( results.back() );            
+            _energies[ _level ] = boost::lexical_cast<double>( results[3] );            
             _levels++;
 
         } else if ( dollar_pos == std::string::npos ) {

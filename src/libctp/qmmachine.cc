@@ -139,6 +139,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     
     // RUN CLASSICAL INDUCTION & SAVE
+    _job->getPolarTop()->PrintPDB(runFolder + "/QM0_MM1_MM2.pdb");
     _xind->Evaluate(_job);
     assert(_xind->hasConverged());
     thisIter->setE_FM(_job->getEF00(), _job->getEF01(), _job->getEF02(),
@@ -147,18 +148,21 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     // WRITE AND SET QM INPUT FILE
     Orbitals orb_iter_input;
+    
     vector<Segment*> empty;
-    thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input,
-        _split_dpl, _dpl_spacing);
+    thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input, _split_dpl, _dpl_spacing);
       
     _qmpack->setRunDir(runFolder);
     
     LOG(logDEBUG,*_log) << "Writing input file " << runFolder << flush;
- 
     
     _qmpack->WriteInputFile(empty, &orb_iter_input);
-
-    
+ 
+    FILE *out;
+    out = fopen((runFolder + "/system.pdb").c_str(),"w");
+    orb_iter_input.WritePDB( out );
+    fclose(out);
+         
     // RUN HERE (OVERRIDE - COPY EXISTING LOG-FILE)
     //string cpstr = "cp e_1_n.log " + path_logFile;
     //int sig = system(cpstr.c_str());
@@ -168,6 +172,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // EXTRACT LOG-FILE INFOS TO ORBITALS   
     Orbitals orb_iter_output;
     _qmpack->ParseLogFile(&orb_iter_output);
+
+
+    out = fopen((runFolder + "/parsed.pdb").c_str(),"w");
+    orb_iter_input.WritePDB( out );
+    fclose(out);
     
     assert(orb_iter_output.hasSelfEnergy());
     assert(orb_iter_output.hasQMEnergy());
@@ -207,6 +216,8 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     // CLEAN DIRECTORY
     _qmpack->CleanUp();
+
+    
     /*
     int removed = boost::filesystem::remove_all(runFolder);
     if (removed > 0) 
@@ -349,7 +360,7 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
     
     // INNER SHELL QM0
     for (int i = 0; i < ptop->QM0().size(); ++i) {
-        PolarSeg *pseg = ptop->MM1()[i];
+        PolarSeg *pseg = ptop->QM0()[i];
         for (int j = 0; j < pseg->size(); ++j) {
             
             APolarSite *aps = (*pseg)[j];
@@ -379,12 +390,12 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
                 if (aps->getRank() > 0)
                     { tot_dpl += vec(aps->Q1x,aps->Q1y,aps->Q1z); }            
                 // Calculate virtual charge positions
-                double a        = dpl_spacing;
-                double mag_d    = abs(tot_dpl);
-                vec    dir_d_0  = tot_dpl.normalize();
+                double a        = dpl_spacing; // this is in nm
+                double mag_d    = abs(tot_dpl); // this is in e * nm
+                vec    dir_d_0  = tot_dpl.normalize(); 
                 vec    dir_d    = dir_d_0.normalize();
-                vec    A        = aps->getPos() + 0.5 * a * dir_d;
-                vec    B        = aps->getPos() - 0.5 * a * dir_d;
+                vec    A        = pos + 0.5 * a * dir_d /AA_to_NM; // converted to AA
+                vec    B        = pos - 0.5 * a * dir_d /AA_to_NM;
                 double qA       = mag_d / a;
                 double qB       = - qA;
                 // Zero out if magnitude small [e*nm]
