@@ -45,6 +45,7 @@
       <itemPath>../../include/votca/ctp/parallelpaircalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelxjobcalc.h</itemPath>
+      <itemPath>../../include/votca/ctp/polarseg.h</itemPath>
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/progressobserver.h</itemPath>
       <itemPath>../../include/votca/ctp/qmapplication.h</itemPath>
@@ -175,6 +176,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/polarseg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/polarsite.h"
             ex="false"
@@ -522,6 +525,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/polarseg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/polarsite.h"
             ex="false"

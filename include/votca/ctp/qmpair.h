@@ -37,8 +37,8 @@ public:
     
     enum ChargeTransferType 
     { 
-        SuperExchange, 
-        Hopping
+        _superExchange, 
+        _hopping
     };
 
     QMPair() : _R(0,0,0), _ghost(NULL), _top(NULL),
