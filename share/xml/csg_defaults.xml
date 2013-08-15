@@ -246,6 +246,15 @@
     </lammps>
     <sim_prog>
       <DESC> options, which apply to all simulation programs</DESC>
+      <command>
+	<DESC>Command to run for the simulation (name or absolute path or mpirun XXX ..)</DESC>
+      </command>
+      <conf>
+	<DESC>Name of the coordinate file read by the simulation program (if needed)</DESC>
+      </conf>
+      <conf_out>
+	<DESC>Name of the original outcome coordinate written by simulation program (if any)</DESC>
+      </conf_out>
       <equi_time>0
 	<DESC>begin analysis after this time (max of this and first_frame is used)</DESC>
       </equi_time>
@@ -285,6 +294,12 @@
       <traj>
 	<DESC> trajectory file to be created by the simulation program</DESC>
       </traj>
+      <script>
+	<DESC> simulation script to run (if any)</DESC>
+      </script>
+      <opts>
+	<DESC> option to be given to simulation program, use ${script} in there </DESC>
+      </opts>
     </sim_prog>
     <re>
       <DESC>general options for realtive entropy method</DESC>
@@ -441,7 +456,7 @@
       <espresso>
 	<DESC>Espresso specific options for this interations</DESC>
         <table>
-	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso blockfile needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
+	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
 	</table>
       </espresso>
       <gromacs>
@@ -452,6 +467,9 @@
       </gromacs>
       <sim_prog>
         <DESC> interaction specific options, which apply to all simulation programs</DESC>
+        <table>
+	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original simulation script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
+	</table>
         <table_begin>
 	  <DESC> Start of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
 	</table_begin>
