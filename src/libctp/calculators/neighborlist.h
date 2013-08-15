@@ -297,6 +297,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                                 }
                             }
                         }
+                        _neighbors.clear();
                     } // 
                 } // end of the check of zero partners
             } // end of if this is a bridged pair
