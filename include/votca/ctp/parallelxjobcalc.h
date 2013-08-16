@@ -82,7 +82,6 @@ protected:
     JobContainer             _XJobs;
     Mutex                    _coutMutex;
     Mutex                    _logMutex;
-    bool                     _maverick;
     string                   _jobfile;
     int                      _subthreads;
     

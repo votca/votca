@@ -25,17 +25,39 @@
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/qmpair.h>
 
-namespace TOOLS = votca::tools;
 
 namespace votca { namespace ctp {
 
-
+namespace TOOLS = votca::tools;
+    
 class Neighborlist : public QMCalculator
 {
+
+class SuperExchangeType {
+public:
+    string donor;
+    string acceptor;
+    list<string> bridges;
+    
+    bool isOfBridge(string segment_type ) {
+        std::list<string>::iterator findIter = std::find(bridges.begin(), bridges.end(), segment_type);
+        return findIter != bridges.end();
+    };
+    
+    bool isOfDonorAcceptor ( string segment_type ) {
+        return segment_type == donor || segment_type == acceptor ;
+    }
+};
+
 public:
 
     Neighborlist() { };
-   ~Neighborlist() { };
+   ~Neighborlist() { 
+       // cleanup the list of superexchange pairs
+       for ( std::list<SuperExchangeType*>::iterator it = _superexchange.begin() ; it != _superexchange.end(); it++  ) {
+           delete *it;
+       }
+   };
 
     string Identify() { return "neighborlist"; }
     
@@ -51,13 +73,15 @@ private:
     string                            _generate_from;
     bool                              _generate_from_file;
     bool                              _generate_unsafe;
+    
+    std::list<SuperExchangeType*>        _superexchange;
 
 };
     
 
 void Neighborlist::Initialize(Topology* top, Property *options) {
 
-    string key = "options.neighborlist";
+    std::string key = "options.neighborlist";
 
     list< Property* > segs = options->Select(key+".segments");
     list< Property* > ::iterator segsIt;
@@ -106,6 +130,40 @@ void Neighborlist::Initialize(Topology* top, Property *options) {
         _generate_unsafe = false;
     }
     
+    // if superexchange is given
+    if (options->exists(key + ".superexchange")) {
+        list< Property* > _se = options->Select(key + ".superexchange");
+        list< Property* > ::iterator seIt;
+
+        for (seIt = _se.begin();
+                seIt != _se.end();
+                seIt++) {
+
+            string types = (*seIt)->get("type").as<string>();
+
+            Tokenizer tok(types, " ");
+            vector< string > names;
+            tok.ToVector(names);
+
+            if (names.size() < 3) {
+                cout << "ERROR: Faulty superexchange definition: "
+                        << "Need at least three segment names (DONOR BRIDGES ACCEPTOR separated by a space" << endl;
+                throw std::runtime_error("Error in options file.");
+            }
+
+            // fill up the donor-bride-acceptor structure
+            SuperExchangeType* _su = new SuperExchangeType();
+            _su->donor = names.front();
+            _su->acceptor = names.back();
+            
+            for ( vector<string>::iterator it = ++names.begin() ; it != --names.end(); it++  ) {
+                _su->bridges.push_back(*it);
+            }
+            _superexchange.push_back(_su);
+
+        }
+    }
+            
 }
 
 bool Neighborlist::EvaluateFrame(Topology *top) {
@@ -193,7 +251,64 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
 
     }
     
-    cout << endl << "... ... Created " << top->NBList().size() << " pairs.";
+    cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
+
+    // dealing with the superexchange (bridged) pairs
+    QMNBList& nblist = top->NBList();
+ 
+    // loop over all donor/acceptor pair types
+    for (std::list<SuperExchangeType*>::iterator itDA = _superexchange.begin(); itDA != _superexchange.end(); itDA++) {
+
+        cout << endl << " ... ... Processing " << (*itDA)->donor << ":" << (*itDA)->acceptor << " superexchange pairs" << endl;
+        int _bridged_pairs = 0;
+        int bridged_molecules = 0;
+
+        // vector of neighboring segments of the donor/acceptor type
+        map< int, Segment*> _ns;
+
+        // loop over all segments in the topology
+        for (vector< Segment* >::iterator segit = top->Segments().begin(); segit != top->Segments().end(); segit++) {
+
+            // check if this is a bridge
+            Segment* segment = *segit;
+            string name = segment->getName();
+
+            if ((*itDA)->isOfBridge(name)) {
+                QMNBList::PairList< Segment*, QMPair >::partners *_partners = nblist.FindPartners(segment);
+
+                // loop over all partners of a segment
+                QMNBList::PairList< Segment*, QMPair >::partners::iterator itp;
+                if (_partners != NULL) {
+                    map< int, Segment*> _neighbors;
+                    for (itp = _partners->begin(); itp != _partners->end(); itp++) {
+                        Segment *nb = itp->first;
+                        QMPair *pair = itp->second;
+                        // check if the neighbor is of a donor or acceptor type
+                        if ((*itDA)->isOfDonorAcceptor(nb->getName())) _neighbors[ nb->getId() ] = nb;
+                    } // end of the loop of all partners of a segment
+
+                     // create new pairs
+                    if (_neighbors.size() > 1) {
+                        for (map<int, Segment*>::iterator it1 = _neighbors.begin(); it1 != _neighbors.end(); it1++) {
+                            for (map<int, Segment*>::iterator it2 = _neighbors.begin(); it2 != _neighbors.end(); it2++) {
+                                if (nblist.FindPair(it1->second, it2->second) == NULL && nblist.FindPair(it2->second, it1->second) == NULL) {
+                                    QMPair* _pair = nblist.Add(it1->second, it2->second);
+                                    _bridged_pairs++;
+                                }
+                            }
+                        }
+                        _neighbors.clear();
+                    } // 
+                } // end of the check of zero partners
+            } // end of if this is a bridged pair
+        } // end of the loop of all segments
+        
+        cout << " ... ... Added " << _bridged_pairs << " bridged pairs" << endl;    
+        
+    } // end of the loop over donor/acceptor types
+
+    //cout << "Number of bridged DA molecules: " << _bridged_pairs << endl;
+
 
     if (TOOLS::globals::verbose) {
         cout << "[idA:idB] com distance" << endl;
@@ -202,7 +317,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                 QMPair *pair = *ipair;
                 Segment* segment1 = pair->Seg1PbCopy();
                 Segment* segment2 = pair->Seg2PbCopy();
-                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist()<< endl;
+                //cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist()<< endl;
         }
     }
     

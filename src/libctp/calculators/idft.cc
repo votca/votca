@@ -19,10 +19,16 @@
 
 
 #include "idft.h"
+
+#include <boost/format.hpp>
+#include <boost/filesystem.hpp>
+
 #include <votca/ctp/eigenvalues.h>
 #include <votca/ctp/logger.h>
-#include <iostream>
-#include <c++/4.7/bits/stl_vector.h>
+#include <votca/ctp/qmpackagefactory.h>
+
+using boost::format;
+using namespace boost::filesystem;
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -35,7 +41,19 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     
     _energy_difference = 0.0;
     
+    _do_input = false;
+    _do_run = false;
+    _do_parse = false;
+    _do_project = false;
+    
+    _store_orbitals = false;
+    _store_overlap = false;
+    _store_integrals = false;
+    
     ParseOptionsXML( options  );
+    
+    // register all QM packages (Gaussian, turbomole, etc))
+    QMPackageFactory::RegisterAll();
 
 }
 
@@ -45,15 +63,24 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     // Orbitals are in fort.7 file; number of electrons in .log file
     
     string key = "options." + Identify();
-    if ( opt->exists( key + ".degeneracy" ) ) {
-        _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
-    }
-    else {
-        cout << "... ... NOT treating degenerate orbitals\n" ;
-    }    
+    _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
+    
+    _jobfile = opt->get(key + ".job_file").as<string>();
 
-    _jobfile = opt->get(key + ".control.job_file").as<string>();
+    string _tasks_string = opt->get(key+".tasks").as<string> ();
+    if (_tasks_string.find("input") != std::string::npos) _do_input = true;
+    if (_tasks_string.find("run") != std::string::npos) _do_run = true;
+    if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;
+    if (_tasks_string.find("project") != std::string::npos) _do_project = true;
 
+    string _store_string = opt->get(key+".store").as<string> ();
+    if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
+    if (_store_string.find("overlap") != std::string::npos) _store_overlap = true;
+    if (_store_string.find("integrals") != std::string::npos) _store_integrals = true;
+    
+    _max_occupied_levels = opt->get(key+".levels").as<int> ();
+    _max_unoccupied_levels = _max_occupied_levels;
+    
     string _package_xml = opt->get(key+".package").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
 
@@ -76,12 +103,6 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
 
 }
 
-/*
-class _inv_sqrt {
-public:
-  double operator()(double x) { return 1./x; }
-};
-*/
 
 double inv_sqrt(double x) { return 1./sqrt(x); }
 
@@ -172,9 +193,9 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
  }
 
-void IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
+bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
     Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, QMThread *opThread) {
-            
+          
     /* test case
     ub::matrix<double> _monomersAB (4, 5);
     ub::zero_matrix<double> _AB (4, 5);
@@ -197,17 +218,28 @@ void IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     std::cout << _monomersAB << std::endl;
     */
     
-    ///if ( tools::globals::verbose ) *opThread << "\n... ... Calculating electronic couplings \n" ;
-    
+    Logger* _pLog = opThread->getLogger();
+    LOG(logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
+        
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
     int _basisB = _orbitalsB->getBasisSetSize();
     
+    if ( ( _basisA == 0 ) || ( _basisB == 0 ) ) {
+        LOG(logERROR,*_pLog) << "No basis set size information is stored in monomers" << flush;
+        return false;
+    }
     
-    //cout << "... ... Basis [molA:molB] " << _basisA << ":" << _basisB << endl;
+    LOG(logDEBUG,*_pLog) << "Basis [molA:molB] " << _basisA << ":" << _basisB << flush;
     
     int _levelsA = _orbitalsA->getNumberOfLevels();
     int _levelsB = _orbitalsB->getNumberOfLevels();
+    
+    if ( ( _levelsA == 0 ) || (_levelsB == 0) ) {
+        LOG(logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << flush;
+        return false;
+    } 
+     
     
     ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
@@ -218,7 +250,8 @@ void IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::matrix<double> _psi_AxB ( _levelsA + _levelsB, _basisA + _basisB  );
     
     // AxB = | A 0 |  //
-    //       | 0 B |  //      
+    //       | 0 B |  //  
+    LOG(logDEBUG,*_pLog) << "Constructing direct product AxB" << flush;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
@@ -226,9 +259,11 @@ void IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     //cout << "_psi_AxB: " << _psi_AxB << endl;
     
     // Fock matrix of a dimer   
+    LOG(logDEBUG,*_pLog) << "Constructing the dimer Fock matrix" << flush;    
     ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), (*_orbitalsAB->getEnergies()).data() ); 
 
     // psi_AxB * S_AB * psi_AB
+    LOG(logDEBUG,*_pLog) << "Projecting the dimer onto monomer orbitals" << flush;    
     ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), ub::trans( *_orbitalsAB->getOrbitals() ) );          
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
     _psi_AB.clear();
@@ -244,6 +279,7 @@ void IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
      */
     
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
+    LOG(logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;    
     ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
     ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
     
@@ -284,9 +320,10 @@ void IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     cout << _test2;
     exit(0);
     */
-    ub::trans( _S_AxB );
-    SQRTOverlap( _S_AxB , _S_AxB_2 );        
-    _S_AxB.clear(); 
+     ub::trans( _S_AxB );
+     LOG(logDEBUG,*_pLog) << "Calculating square root of the overlap matrix" << flush;    
+     SQRTOverlap( _S_AxB , _S_AxB_2 );        
+     _S_AxB.clear(); 
      
     ///if ( tools::globals::verbose ) *opThread << "... ... Calculating the effective overlap\n" ;
     //stringstream test ;
@@ -303,10 +340,11 @@ void IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     //cout << _S_AxB << endl;
     //_has_integrals = true;
-    ///if ( tools::globals::verbose ) *opThread << "... ... Done calculating electronic couplings\n";
-       
     //cout << JAB_dimer.at_element( HOMO_A , HOMO_B + _levelsA ) * conv_Hrt_eV << endl; 
     //cout << JAB_dimer.at_element(_levelsA + HOMO_B, HOMO_A ) * conv_Hrt_eV << endl;
+
+    LOG(logDEBUG,*_pLog) << "Done with electronic couplings" << flush;
+    return true;   
 
 }
 
@@ -341,226 +379,293 @@ double IDFT::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
  
 Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
-    bool _run_status;
-    bool _parse_log_status;
-    bool _parse_orbitals_status;
+    bool _run_status = false;
+    bool _parse_log_status = false ;
+    bool _parse_orbitals_status = false;
+    bool _calculate_integrals = false;
+    stringstream sout;
+    string output;
     
-    QMPair *qmpair = NULL;
-    Logger* pLog = opThread->getLogger();
-
-    QMNBList::iterator pit;
-    QMNBList &nblist = top->NBList();    
+     // report back to the progress observer
+    Job::JobResult jres = Job::JobResult();
     
+    // get the logger from the thread
+    Logger* pLog = opThread->getLogger();   
+    
+    // get the information about the job executed by the thread
     int _job_ID = job->getId();
-    string sID = boost::lexical_cast<string>( _job_ID ); 
-    
     string _job_tag = job->getTag();
     
+    // job tag is ID_A:ID_B
     Tokenizer _tok ( _job_tag, ":" ); 
     vector<string> _mol_ids;
     _tok.ToVector( _mol_ids );
     
-    string sID_A = _mol_ids[0];
-    string sID_B = _mol_ids[1];
-
-    int ID_A   = boost::lexical_cast<int>( sID_A );
-    int ID_B   = boost::lexical_cast<int>( sID_B );
+    int ID_A   = boost::lexical_cast<int>( _mol_ids.front() );
+    int ID_B   = boost::lexical_cast<int>( _mol_ids.back() );
     
     Segment *seg_A = top->getSegment( ID_A );
     Segment *seg_B = top->getSegment( ID_B );
-    qmpair = nblist.FindPair( seg_A, seg_B );
 
-    
-    LOG(logDEBUG,*pLog) << TimeStamp() << " Evaluating pair "  
-            << sID << " ["  << ID_A << ":" << ID_B << "] out of " << 
-           (top->NBList()).size()  << flush; 
-    
-    FILE *out;
     vector < Segment* > segments;
-    segments.push_back( qmpair->Seg1() );
-    segments.push_back( qmpair->Seg2() );
+    segments.push_back( seg_A );
+    segments.push_back( seg_B );
     
-    ub::matrix<double> _JAB;
-    
-    Orbitals _orbitalsA;
-    Orbitals _orbitalsB;
-    Orbitals _orbitalsAB;
+    string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());     
 
+    /* if we really want that this pair exists in the neighbor list
+    QMNBList &nblist = top->NBList(); 
+    QMPair *qmpair = nblist.FindPair( seg_A, seg_B );
+    if ( qmpair == NULL ) {
+        output += (format("Pair %1%:%2% does not exist") % sID_A % sID_B ).str() ;
+        LOG(logERROR,*pLog) << "Non-existing pair " << sID_A << ":" << sID_B << flush;
+        cout << *pLog;
+        jres.setOutput( output ); 
+        jres.setStatus(Job::FAILED);
+        return jres;
+    } else {
+        FILE *out;
+        out = fopen((GAUSS_DIR + "/" + XYZ_FILE).c_str(),"w");
+        qmpair->WriteXYZ(out);
+        fclose(out);
+    }
+    */
+    
+    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating pair "  
+            << _job_ID << " ["  << ID_A << ":" << ID_B << "] out of " << 
+           (top->NBList()).size()  << flush; 
+
+    // set the folders 
     string idft_work_dir = "OR_FILES";
     string edft_work_dir = "OR_FILES";
-    string gaussian_work_dir = "gaussian";
-    string orbitals_storage_dir = "pairs";
-    string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
-    
-    string GAUSS_DIR  = idft_work_dir + "/" + gaussian_work_dir + "/" + frame_dir + "/" + "pair_"  + sID_A + "_" + sID_B;
-    string ORBIT_DIR = idft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
-    
-    // orbital file used to archive parsed data
-    string ORB_FILE = "pair_" + sID_A + "_" + sID_B + ".orb";
-    
-    boost::filesystem::create_directories(GAUSS_DIR);     
-    boost::filesystem::create_directories(ORBIT_DIR);        
-    
-    string fileName = "pair_"  + sID_A + "_" + sID_B ;
-    //string DIR  = _outParent + "/" + "pair_"  + ID_A + "_" + ID_B;
-    string XYZ_FILE = fileName + ".xyz";
-    //string ORB_FILE = fileName + ".orb";
-    string COM_FILE = fileName + ".com";
-    string LOG_FILE = fileName + ".log"; 
-    string SHL_FILE = fileName + ".sh";
-    string GAUSSIAN_ORB_FILE = "fort.7" ;
-        
-    out = fopen((GAUSS_DIR + "/" + XYZ_FILE).c_str(),"w");
-    qmpair->WriteXYZ(out);
-    fclose(out);
+    string _pair_dir = ( format("%1%%2%%3%%4%%5%") % "pair" % "_" % ID_A % "_" % ID_B ).str();
  
-    string ORB_FILE_A = "molecule_" + sID_A + ".orb";
-    string ORB_FILE_B = "molecule_" + sID_B + ".orb";
+    string _qmpackage_work_dir = idft_work_dir + "/" + _package + "/" + frame_dir + "/" + _pair_dir ;
+    //cout << endl << _qmpackage_work_dir << endl;
     
-    //string ORB_FILE_A = "monomer.orb";
-    //string ORB_FILE_B = "monomer.orb";
-   
-    string DIR_A  = edft_work_dir + "/" + "molecules/" + frame_dir;
-    //cout << "... ... " + DIR_A +"/" + ORB_FILE_A + "\n";
-    std::ifstream ifs_A( (DIR_A +"/" + ORB_FILE_A).c_str() );
-    boost::archive::binary_iarchive ia_A( ifs_A );
-    ia_A >> _orbitalsA;
-    ifs_A.close();
-    //LOG(logDEBUG,*pLog) << "Basis size A " << _orbitalsA.getBasisSetSize() << flush;
-    //LOG(logDEBUG,*pLog) << "Number of Levels A " << _orbitalsA.getNumberOfLevels() << flush; 
-    
-    
-    string DIR_B  = edft_work_dir + "/" + "molecules/" + frame_dir;
-    //cout << "... ... " << DIR_B +"/" + ORB_FILE_B << "\n";
-    std::ifstream ifs_B( (DIR_B +"/" + ORB_FILE_B).c_str() );
-    boost::archive::binary_iarchive ia_B( ifs_B );
-    ia_B >> _orbitalsB;
-    ifs_B.close();
-    //LOG(logDEBUG,*pLog) << "Basis size B " << _orbitalsB.getBasisSetSize() << flush;
-    //LOG(logDEBUG,*pLog) << "Number of Levels B " << _orbitalsB.getNumberOfLevels() << flush; 
-      
-   if ( _package == "gaussian" ) { 
-        
-        Gaussian _gaussian( &_package_options );
-        
-        _gaussian.setLog( pLog );       
-        _gaussian.setRunDir( GAUSS_DIR );
-        _gaussian.setInputFile( COM_FILE );
+    // get the corresponding object from the QMPackageFactory
+    QMPackage *_qmpackage =  QMPackages().Create( _package );
 
-        //cout << GAUSS_DIR << endl;
-        //cout << COM_FILE << endl;
+    // set a log file for the package
+    _qmpackage->setLog( pLog );       
+
+    // set the run dir 
+    _qmpackage->setRunDir( _qmpackage_work_dir );
         
-        // provide a separate scratch dir for every thread
-        if ( ( _gaussian.getScratchDir() ).size() != 0 ) {
-          _gaussian.setShellFile( SHL_FILE );
-           string SCR_DIR  = _gaussian.getScratchDir() + "/pair_" + sID;
-          _gaussian.setScratchDir( SCR_DIR );
-          _gaussian.WriteShellScript ();
-        } 
+    // get the package options
+    _qmpackage->Initialize( &_package_options );
+    
+    // if asked, prepare the input files
+    if (_do_input) {
         
+
+        boost::filesystem::create_directories( _qmpackage_work_dir );           
         // in case we do not want to do an SCF loop for a dimer
-        if ( _gaussian.GuessRequested() ) {
+        if ( _qmpackage->GuessRequested() ) {
+            LOG(logDEBUG, *pLog) << "Preparing the guess" << flush;
             
-            LOG(logDEBUG,*pLog) << "Preparing the guess" << flush;
+            Orbitals _orbitalsA;
+            Orbitals _orbitalsB;
+            Orbitals _orbitalsAB;
             
+            // load the corresponding monomer orbitals and prepare the dimer guess 
+            string orb_file_A = (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str();
+            string DIR_A  = edft_work_dir + "/" + "molecules/" + frame_dir;
+            std::ifstream ifs_A( (DIR_A +"/" + orb_file_A).c_str() );
+            LOG(logDEBUG,*pLog) << "Loading orbitals from " << orb_file_A << flush;   
+            boost::archive::binary_iarchive ia_A( ifs_A );
+            ia_A >> _orbitalsA;
+            ifs_A.close();
+
+            string orb_file_B = (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str();
+            LOG(logDEBUG,*pLog) << "Loading orbitals from " << orb_file_B << flush;    
+            string DIR_B  = edft_work_dir + "/" + "molecules/" + frame_dir;
+            std::ifstream ifs_B( (DIR_B +"/" + orb_file_B).c_str() );
+            boost::archive::binary_iarchive ia_B( ifs_B );
+            ia_B >> _orbitalsB;
+            ifs_B.close();
+                            
             PrepareGuess(&_orbitalsA, &_orbitalsB, &_orbitalsAB, opThread);
-            
-            //cout << *_orbitalsAB.getEnergies()  << endl;
-            //cout << "Guess address " << &_orbitalsAB << endl;
-            //Orbitals *_pOrbitalsAB = &_orbitalsAB;
-            //cout << "Guess address " << _pOrbitalsAB << endl;
-           
-            //Orbitals* test;
-            //test = NULL;
-            //cout << "NULL address " << test << endl;          
-            
-            _gaussian.WriteInputFile( segments, &_orbitalsAB );
+
+            boost::filesystem::create_directories( _qmpackage_work_dir );
+            _qmpackage->WriteInputFile(segments, &_orbitalsAB);
+
         } else {
-            _gaussian.WriteInputFile( segments );
+            _qmpackage->WriteInputFile(segments);
         }
-        
-        // Run the executable
-        _run_status = _gaussian.Run( );
 
-        // Collect information     
-        _gaussian.setLogFile( GAUSS_DIR + "/" + LOG_FILE );
-        _parse_log_status = _gaussian.ParseLogFile( &_orbitalsAB );
-        
-        _gaussian.setOrbitalsFile( GAUSS_DIR + "/" + GAUSSIAN_ORB_FILE );
-        _parse_orbitals_status = _gaussian.ParseOrbitalsFile( &_orbitalsAB );
+    } // end of the input
+    
+    // run the executable
+    if ( _do_run ) {
+            _run_status = _qmpackage->Run( );
+            if ( !_run_status ) {
+                    output += "run failed; " ;
+                    LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
+                    cout << *pLog;
+                    jres.setOutput( output ); 
+                    jres.setStatus(Job::FAILED);
+                    delete _qmpackage;
+                    return jres;
+            } 
+    } // end of the run
  
-        // save orbitals 
-        std::ofstream ofs( (ORBIT_DIR + "/" + ORB_FILE).c_str() );
-        boost::archive::binary_oarchive oa( ofs );
-        oa << _orbitalsAB;
-        ofs.close();
-        
-        _gaussian.CleanUp();
-        
-   }      
+    Orbitals _orbitalsAB; // This will be later used to write orbitals of the dimer to a file
+   // parse the log/orbitals files
+    if ( _do_parse ) {
+             _parse_log_status = _qmpackage->ParseLogFile( &_orbitalsAB );
 
-    CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB, opThread );
+            if ( !_parse_log_status ) {
+                    output += "log incomplete; ";
+                    LOG(logERROR,*pLog) << "LOG parsing failed" << flush;
+                    cout << *pLog;
+                    jres.setOutput( output ); 
+                    jres.setStatus(Job::FAILED);
+                    delete _qmpackage;
+                    return jres;
+            } 
+            
+            _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
+
+            if ( !_parse_orbitals_status ) {
+                    output += "fort7 failed; " ;
+                    LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) parsing failed" << flush;
+                    cout << *pLog;
+                    jres.setOutput( output ); 
+                    jres.setStatus(Job::FAILED);
+                    delete _qmpackage;
+                    return jres;
+            } 
+    } // end of the parse orbitals/log
+        
+
+    string _orbitals_storage_dir = idft_work_dir + "/" + "pairs/" + frame_dir;
+   // orbital file used to archive parsed data
+    string _pair_file = ( format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb" ).str();
+   ub::matrix<double> _JAB;
+        
+   if ( _do_project ) {
+       
+       if ( !_do_parse ) { // orbitals must be loaded from a file
+           LOG(logDEBUG,*pLog) << "Loading orbitals from " << _pair_file << flush;    
+           std::ifstream ifs( (_orbitals_storage_dir + "/" + _pair_file).c_str() );
+           boost::archive::binary_iarchive ia( ifs );
+           ia >> _orbitalsAB;
+           ifs.close();
+       }
+       
+       Orbitals _orbitalsA;
+       Orbitals _orbitalsB;
+ 
+        // load the corresponding monomer orbitals and prepare the dimer guess 
+        string orb_file_A = (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str();
+        string DIR_A  = edft_work_dir + "/" + "molecules/" + frame_dir;
+        std::ifstream ifs_A( (DIR_A +"/" + orb_file_A).c_str() );
+        LOG(logDEBUG,*pLog) << "Loading orbitals from " << orb_file_A << flush;   
+        boost::archive::binary_iarchive ia_A( ifs_A );
+        ia_A >> _orbitalsA;
+        ifs_A.close();
+
+        string orb_file_B = (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str();
+        LOG(logDEBUG,*pLog) << "Loading orbitals from " << orb_file_B << flush;    
+        string DIR_B  = edft_work_dir + "/" + "molecules/" + frame_dir;
+        std::ifstream ifs_B( (DIR_B +"/" + orb_file_B).c_str() );
+        boost::archive::binary_iarchive ia_B( ifs_B );
+        ia_B >> _orbitalsB;
+        ifs_B.close();
      
-    int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
-    int HOMO_B = _orbitalsB.getNumberOfElectrons() ;
+       _calculate_integrals = CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB, opThread );
+
+        if ( !_calculate_integrals ) {
+                output += "integrals failed; " ;
+                LOG(logERROR,*pLog) << "Calculating integrals failed" << flush;
+                cout << *pLog;
+                jres.setOutput( output ); 
+                jres.setStatus(Job::FAILED);
+                return jres;
+        } 
     
-    int LUMO_A = _orbitalsA.getNumberOfElectrons() + 1;
-    int LUMO_B = _orbitalsB.getNumberOfElectrons() + 1;
+        int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
+        int HOMO_B = _orbitalsB.getNumberOfElectrons() ;
     
-    LOG(logINFO,*pLog) << "Coupling h/e " << ID_A << ":" << ID_B << " " 
-         << getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << " "
-         << getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ) << flush; 
+        int LUMO_A = HOMO_A + 1;
+        int LUMO_B = HOMO_B + 1;
     
-    qmpair->setJeff2( getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB ),  1 );
-    qmpair->setJeff2( getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB ), -1 );
+        double J_h = getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB );
+        double J_e = getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB );
     
-    // Output the thread run summary and clean the thread
-    cout << *pLog;
- 
-     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    Job::JobResult jres = Job::JobResult();
-    string output = "GAUSSIAN: ";
+        LOG(logINFO,*pLog) << "Couplings h/e " << ID_A << ":" << ID_B << " " << J_h  << ":" << J_e  << flush; 
+    
+        //qmpair->setJeff2( J_h,  1 );
+        //qmpair->setJeff2( J_e, -1 );
+       
+        // Output the thread run summary and clean the Logger
+        LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
+        cout << *pLog;
+
+       // save orbitals 
+       boost::filesystem::create_directories(_orbitals_storage_dir);  
+
+       LOG(logDEBUG,*pLog) << "Saving orbitals to " << _pair_file << flush;
+       std::ofstream ofs( (_orbitals_storage_dir + "/" + _pair_file).c_str() );
+       boost::archive::binary_oarchive oa( ofs );
+
+       if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )   _store_orbitals = false;
+       if ( !( _store_overlap && _do_parse && _parse_log_status) )    _store_overlap = false;
+       if ( !( _store_integrals && _do_project && _calculate_integrals) )  { _store_integrals = false; _orbitalsAB.setIntegrals( &_JAB ) ; }
+
+       _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
+       oa << _orbitalsAB;
+       ofs.close();
+   
+    // save project summary    
+    /* <pair idA="" idB="" typeA="" typeB="">
+     *          <overlap orbA="" orbB="" enA="" enB="" ></overlap>
+     * </pair>
+     * 
+     */
+    Property _job_summary;
+        Property *_pair_summary = &_job_summary.add("pair","");
+         string nameA = seg_A->getName();
+         string nameB = seg_B->getName();
+        _pair_summary->setAttribute("idA", ID_A);
+        _pair_summary->setAttribute("idB", ID_B);
+        _pair_summary->setAttribute("homoA", HOMO_A);
+        _pair_summary->setAttribute("homoB", HOMO_B);
+        _pair_summary->setAttribute("typeA", nameA);
+        _pair_summary->setAttribute("typeB", nameB);
+        for (int levelA = HOMO_A - _max_occupied_levels +1; levelA <= LUMO_A + _max_unoccupied_levels; ++levelA ) {
+                for (int levelB = HOMO_B - _max_occupied_levels + 1; levelB <= HOMO_B + _max_unoccupied_levels ; ++levelB ) {        
+                        Property *_overlap_summary = &_pair_summary->add("overlap",""); 
+                        double JAB = getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB );
+                        double energyA = _orbitalsA.getEnergy( levelA );
+                        double energyB = _orbitalsB.getEnergy( levelB );
+                        _overlap_summary->setAttribute("orbA", levelA);
+                        _overlap_summary->setAttribute("orbB", levelB);
+                        _overlap_summary->setAttribute("jAB", JAB);
+                        _overlap_summary->setAttribute("eA", energyA);
+                        _overlap_summary->setAttribute("eB", energyB);
+                }
+        }
+    
+        sout <<  setlevel(1) << _job_summary;
+   } // end of the projection loop
+
+   // cleanup whatever is not needed
+   _qmpackage->CleanUp();
+   delete _qmpackage;
+   
+    jres.setOutput( sout.str() );   
     jres.setStatus(Job::COMPLETE);
     
-    if ( !_run_status ) {
-        output += "run failed; " ;
-        LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
-        jres.setStatus(Job::FAILED);
-    } else {
-        output += "run completed; " ;
-    }
-    
-    if ( !_parse_log_status ) {
-        output += "log incomplete; ";
-        LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
-        jres.setStatus(Job::FAILED);
-    } else {
-        output += "log parsed; " ;
-    }
-
-    if ( !_parse_orbitals_status ) {
-        output += "fort7 failed; " ;
-        LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
-    } else {
-        output += "orbitals parsed; " ;
-    }
-
-    if ( _run_status && _parse_log_status &&  _parse_orbitals_status ) {
-        output += "Coupling h/e " + sID_A + ":" + sID_B;
-    }
-    
-    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << sID_A << ":" << sID_B << flush; 
-        
-    // output of the JOB 
-    jres.setOutput( output );   
-    
-    return Job::JobResult();
+    return jres;
 }
+
 
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     Orbitals* _orbitalsAB, QMThread *opThread ) {
     
-    //LOG(logDEBUG,*opThread->getLogger())  << "... ... Constructing the guess for the dimer orbitals\n" ;   
+    LOG(logDEBUG,*opThread->getLogger())  << "Constructing the guess for the dimer orbitals" << flush;   
    
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -606,3 +711,4 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 }   
 
 }};
+  

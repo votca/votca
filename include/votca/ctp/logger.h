@@ -28,7 +28,7 @@ namespace votca { namespace ctp {
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
  
 /*
- * Macros to use the Logger (level,logger) << message
+ * Macros to use the Logger: LOG(level,logger) << message
  */
 #define LOG(level, log) \
 if ( &log != NULL && level > (log).getReportLevel() ) ; \
@@ -75,7 +75,7 @@ public:
         
         // returns the pointer to the collected messages
         std::string Messages() { 
-            string _messages = _stringStream.str(); 
+            std::string _messages = _stringStream.str(); 
             _stringStream.str("");
             return _messages; 
         }
@@ -123,7 +123,7 @@ protected:
                 // collect all messages of one thread
                 _stringStream << _message.str()  << " " << str();
             } else {
-                // if only one thread outputs, flash immediately
+                // if only one thread outputs, flush immediately
                 std::cout << _message.str() << " " << str() << std::flush;
             }
             _message.str("");

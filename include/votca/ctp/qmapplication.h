@@ -23,17 +23,21 @@
 
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
+
 #include <votca/tools/application.h>
+#include <votca/tools/property.h>
+
 #include <votca/ctp/calculatorfactory.h>
 #include <votca/ctp/progressobserver.h>
-
 #include <votca/ctp/topology.h>
+
 #include "statesaversqlite.h"
 #include "qmcalculator.h"
 
 
-using namespace std;
 namespace votca { namespace ctp {
+
+using namespace std;
 
 class QMApplication : public Application
 {
@@ -63,9 +67,13 @@ protected:
     Property                _options;
     list< QMCalculator* >   _calculators;
 
+    enum HelpOutputType { _helpShort, _helpLong };
+    
     void ReadData() {};
     void WriteData() {};
     void LoadOptions() {};
+    
+    void PrintDescription(std::ostream &out, string name,  HelpOutputType _help_output_type);
 
 };
 

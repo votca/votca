@@ -17,43 +17,52 @@
  *
  */
 
-#include "votca/ctp/gaussian.h"
+#include "gaussian.h"
 #include "votca/ctp/segment.h"
-#include <votca/tools/globals.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/format.hpp>
+
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
-#include <c++/4.7/istream>
+#include <vector>
 
 using namespace std;
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
-Gaussian::Gaussian( tools::Property *opt ) { 
-               
-    string key = "package";
+void Gaussian::Initialize( Property *options ) {
 
-    string _name = opt->get(key+".name").as<string> ();
+    // GAUSSIAN file names
+    string fileName = "system";
+
+    _xyz_file_name = fileName + ".xyz";
+    _input_file_name = fileName + ".com";
+    _log_file_name = fileName + ".log"; 
+    _shell_file_name = fileName + ".sh";
+    _orb_file_name = "fort.7" ;               
+
+    string key = "package";
+    string _name = options->get(key+".name").as<string> ();
     
     if ( _name != "gaussian" ) {
         cerr << "Tried to use " << _name << " package. ";
-        throw std::runtime_error( "Package is not supported.");
+        throw std::runtime_error( "Wrong options file");
     }
     
-    _executable =       opt->get(key + ".executable").as<string> ();
-    _charge =           opt->get(key + ".charge").as<int> ();
-    _spin =             opt->get(key + ".spin").as<int> ();
-    _options =          opt->get(key + ".options").as<string> ();
-    _memory =           opt->get(key + ".memory").as<string> ();
-    _threads =          opt->get(key + ".threads").as<int> ();
-    _chk_file_name  =   opt->get(key + ".checkpoint").as<string> ();
-    _scratch_dir =      opt->get(key + ".scratch").as<string> ();
-    _cleanup =          opt->get(key + ".cleanup").as<string> ();
+    _executable =       options->get(key + ".executable").as<string> ();
+    _charge =           options->get(key + ".charge").as<int> ();
+    _spin =             options->get(key + ".spin").as<int> ();
+    _options =          options->get(key + ".options").as<string> ();
+    _memory =           options->get(key + ".memory").as<string> ();
+    _threads =          options->get(key + ".threads").as<int> ();
+    _chk_file_name  =   options->get(key + ".checkpoint").as<string> ();
+    _scratch_dir =      options->get(key + ".scratch").as<string> ();
+    _cleanup =          options->get(key + ".cleanup").as<string> ();
     
     // check if the guess keyword is present, if yes, append the guess later
     std::string::size_type iop_pos = _options.find("cards");
@@ -77,32 +86,15 @@ Gaussian::Gaussian( tools::Property *opt ) {
     iop_pos = _options.find("charge");
     if (iop_pos != std::string::npos) {
         _get_self_energy = true;
+        _write_charges = true;
     } else
     {
         _get_self_energy = false;
+        _write_charges = false;
     }
 
-    
-};   
-    
-Gaussian::~Gaussian() {
-}  
 
-// This class should not be here ...
-void Gaussian::WriteInputHeader(FILE *out, string tag) {
-
-    if (_chk_file_name.size())
-    fprintf(out, "%%chk = %s\n", _chk_file_name.c_str());
-    if (_memory.size())
-    fprintf(out, "%%mem = %s\n", _memory.c_str());
-    fprintf(out, "%%nprocshared = %1d\n", _threads);
-    fprintf(out, "%s\n", _options.c_str());
-    fprintf(out, "\n");
-    fprintf(out, "%s\n", tag.c_str());
-    fprintf(out, "\n");
-    fprintf(out, "%2d %2d\n", _charge, _spin);
-    return;
-}
+}    
 
 /**
  * Prepares the com file from a vector of segments
@@ -118,35 +110,26 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
 
     ofstream _com_file;
     
-    string _com_file_name_full = _run_dir + "/" + _com_file_name;
+    string _com_file_name_full = _run_dir + "/" + _input_file_name;
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
-    if ( _chk_file_name.size() != 0 ) {
-        _com_file << "%chk = " << _chk_file_name << endl;
-    }
-    
-    if ( _memory.size() != 0 ) {
-        _com_file << "%mem = " << _memory << endl ;
-    }
-    
-    if ( _threads != 0 ) {
-         _com_file << "%nprocshared = "  << _threads << endl;
-    }
-        
-    if ( _options.size() != 0 ) {
-        _com_file <<  _options << endl ;
-    }
-    
+    if ( _chk_file_name.size() ) _com_file << "%chk = " << _chk_file_name << endl;
+    if ( _memory.size() ) _com_file << "%mem = " << _memory << endl ;
+    if ( _threads > 1 ) _com_file << "%nprocshared = "  << _threads << endl;
+    if ( _options.size() ) _com_file <<  _options << endl ;
+
     _com_file << endl;
+    _com_file << "TITLE ";
+
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         _com_file << (*sit)->getName() << " ";
     }
     _com_file << endl << endl;
-      
     _com_file << setw(2) << _charge << setw(2) << _spin << endl;
 
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
+        
         _atoms = (*sit)-> Atoms();
 
         for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -200,7 +183,27 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     }
     
     if ( _write_charges ) {
-     }
+        vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+        vector< QMAtom* >::iterator it;
+        
+        for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
+            if ( !(*it)->from_environment ) {
+            _com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
+            }
+        }
+        
+        _com_file << endl;
+        
+        for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
+            if ( (*it)->from_environment ) {
+                boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+                fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
+                _com_file << fmt << endl;
+            }
+        }
+        
+        _com_file << endl;
+    }
 
     
     _com_file << endl;
@@ -217,12 +220,12 @@ bool Gaussian::WriteShellScript() {
     _shell_file << "#!/bin/tcsh" << endl ;
     _shell_file << "mkdir -p " << _scratch_dir << endl;
     _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
-    _shell_file << _executable << " " << _com_file_name << endl;    
+    _shell_file << _executable << " " << _input_file_name << endl;    
     _shell_file.close();
 }
 
 /**
- * Runs the Gaussian job. Returns 
+ * Runs the Gaussian job. 
  */
 bool Gaussian::Run()
 {
@@ -237,15 +240,20 @@ bool Gaussian::Run()
             _command  = "cd " + _run_dir + "; tcsh " + _shell_file_name;
         }
         else {
-            _command  = "cd " + _run_dir + "; " + _executable + " " + _com_file_name;
+            _command  = "cd " + _run_dir + "; " + _executable + " " + _input_file_name;
         }
         
         int i = system ( _command.c_str() );
-        LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << flush;
-        return true;
+        
+        if ( CheckLogFile() ) {
+            LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << flush;
+            return true;
+        } else {
+            LOG(logDEBUG,*_pLog) << "GAUSSIAN job failed" << flush;
+        }
     }
     else {
-        LOG(logERROR,*_pLog) << _com_file_name << " failed to start" << flush; 
+        LOG(logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
         return false;
     }
     
@@ -269,7 +277,7 @@ void Gaussian::CleanUp() {
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
             if ( *it == "com" ) {
-                string file_name = _run_dir + "/" + _com_file_name;
+                string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );
             }
             
@@ -312,7 +320,8 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     unsigned _level;
     unsigned _basis_size = 0;
 
-    std::ifstream _input_file( _orb_file_name.c_str() );
+    string _orb_file_name_full = _run_dir + "/" + _orb_file_name;
+    std::ifstream _input_file( _orb_file_name_full.c_str() );
     
     if (_input_file.fail()) {
         LOG( logERROR, *_pLog ) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
@@ -418,12 +427,54 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
    return true;
 }
 
+bool Gaussian::CheckLogFile() {
+    
+    // check if the log file exists
+    char ch;
+    ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
+    
+    if (_input_file.fail()) {
+        LOG(logERROR,*_pLog) << "Gaussian LOG is not found" << flush;
+        return false;
+    };
 
+    _input_file.seekg(0,ios_base::end);   // go to the EOF
+    
+    // get empty lines and end of lines out of the way
+    do {
+        _input_file.seekg(-2,ios_base::cur);
+        _input_file.get(ch);   
+        //cout << "\nChar: " << ch << endl;
+    } while ( ch == '\n' || ch == ' ' || (int)_input_file.tellg() == -1 );
+ 
+    // get the beginning of the line or the file
+    do {
+       _input_file.seekg(-2,ios_base::cur);
+       _input_file.get(ch);   
+       //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
+    } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
+            
+    string _line;            
+    getline(_input_file,_line);                      // Read the current line
+    //cout << "\nResult: " << _line << '\n';     // Display it
+    _input_file.close();
+        
+    std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
+    if (self_energy_pos == std::string::npos) {
+            LOG(logERROR,*_pLog) << "Gaussian LOG is incomplete" << flush;
+            return false;      
+    } else {
+            //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
+            return true;
+    }
+}
 
 /**
  * Parses the Gaussian Log file and stores data in the Orbitals object 
  */
 bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
+
+    static const double _conv_Hrt_eV = 27.21138386;
 
     string _line;
     vector<string> results;
@@ -443,41 +494,12 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _basis_set_size = 0;
     
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
-
-    // check if the log file exists
-    ifstream _input_file(_log_file_name.c_str());
-    if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is not found" << flush;
-        return false;
-    };
-
-    // Check if it is a normal termination of GAUSSIAN
-    int _LL_BUFFSIZE_ = 2048;
-    char  buff[_LL_BUFFSIZE_]; 
-
-    _line.clear();
-    _input_file.seekg(0, ios_base::end);
-    int length = _input_file.tellg();
-    _input_file.seekg(length-min(length,_LL_BUFFSIZE_),ios::beg); // seek back from end a short ways
-    // read in each line of the file until we're done
-    buff[0]=0;
-
-    do {
-        //if (!isspace(buff[0]) && buff[0] != 0)
-        _line = buff;
-    } while (_input_file.getline(buff, _LL_BUFFSIZE_));
-    
-    std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
-    if (self_energy_pos == std::string::npos) {
-        LOG(logERROR,*_pLog) << "Gaussian LOG " << _log_file_name << " is incomplete" << flush;
-        return false;      
-    }
-
-    //rewind back to the beginning of the file; note clear())
-    _input_file.clear();
-    _input_file.seekg(0, std::ios::beg);
+    string _log_file_name_full =  _run_dir + "/" + _log_file_name;
+    // check if LOG file is complete
+    if ( !CheckLogFile() ) return false;
     
     // Start parsing the file line by line
+    ifstream _input_file(_log_file_name_full.c_str());
     while (_input_file) {
 
         getline(_input_file, _line);
@@ -740,7 +762,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
             
             LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
-                    
+            _has_qm_energy = true;
             _orbitals->_has_atoms = true;
             _orbitals->_has_qm_energy = true;
 

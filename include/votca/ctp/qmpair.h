@@ -34,6 +34,13 @@ class Topology;
 class QMPair : public std::pair< Segment*, Segment* >
 {
 public:
+    
+    enum ChargeTransferType 
+    { 
+        _superExchange, 
+        _hopping
+    };
+
     QMPair() : _R(0,0,0), _ghost(NULL), _top(NULL),
                 _id(-1),    _hasGhost(0),
                 _rate12_e(0), _rate21_e(0),
@@ -106,7 +113,7 @@ protected:
     double          _Jeff2_e;
     double          _Jeff2_h;
 
-
+    ChargeTransferType _charge_transfer_type;
 
 
 };

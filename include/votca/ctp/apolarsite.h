@@ -30,6 +30,7 @@ class APolarSite
     friend class ZMultipole;
     friend class QMultipole;
     friend class XInteractor;
+    friend class QMMIter;
 
 
 public:
