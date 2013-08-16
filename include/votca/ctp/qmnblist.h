@@ -37,10 +37,45 @@ class Topology;
 class QMNBList : public CSG::PairList< Segment*, QMPair >
 {
 public:
+    
+    
+    class SuperExchangeType
+    {
+    public:
+        
+        // TODO finish
+        SuperExchangeType(string initString) : _initString(initString) { ; }
+        
+        string _initString;
+        string donor;
+        string acceptor;
+        list<string> bridges;
+
+        bool isOfBridge(string segment_type ) {
+            std::list<string>::iterator findIter = std::find(bridges.begin(), bridges.end(), segment_type);
+            return findIter != bridges.end();
+        };
+
+        bool isOfDonorAcceptor ( string segment_type ) {
+            return segment_type == donor || segment_type == acceptor ;
+        }
+    };
 
     QMNBList() : _top(NULL), _cutoff(0) { };
     QMNBList(Topology* top) : _top(top), _cutoff(0) { };
-   ~QMNBList() { CSG::PairList<Segment*, QMPair>::Cleanup(); }
+   ~QMNBList() { 
+       CSG::PairList<Segment*, QMPair>::Cleanup();       
+       // cleanup the list of superexchange pairs
+       for ( std::list<SuperExchangeType*>::iterator it = _superexchange.begin() ; it != _superexchange.end(); it++  ) {
+           delete *it;
+       }
+   }
+    
+    void GenerateSuperExchange();
+    
+    void AddSuperExchangeType(string type) { _superexchange.push_back(new SuperExchangeType(type)); }
+    void setSuperExchangeTypes(list<SuperExchangeType*> types) { _superexchange = types; }
+    list<SuperExchangeType*> &getSuperExchangeTypes() { return _superexchange; }
 
     void    setCutoff(double cutoff) { _cutoff = cutoff; }
     double  getCutoff() { return _cutoff; }
@@ -53,7 +88,19 @@ protected:
     
     double      _cutoff;
     Topology   *_top;
+    list<SuperExchangeType*> _superexchange;
 };
+
+
+
+
+
+
+
+
+
+
+
 
 }}
 

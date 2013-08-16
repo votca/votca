@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="89">
+<configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libctp/calculators/eanalyze.h</itemPath>
@@ -59,6 +59,7 @@
       <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
       <itemPath>../../include/votca/ctp/qmtool.h</itemPath>
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
+      <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/turbomole.h</itemPath>
       <itemPath>../../include/votca/ctp/xinductor.h</itemPath>
@@ -114,7 +115,6 @@
   <confs>
     <conf name="Debug" type="3">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -228,6 +228,11 @@
       <item path="../../include/votca/ctp/qmtool.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/statesaversqlite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/topology.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -463,7 +468,6 @@
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -577,6 +581,11 @@
       <item path="../../include/votca/ctp/qmtool.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/statesaversqlite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/topology.h" ex="false" tool="3" flavor2="0">
       </item>

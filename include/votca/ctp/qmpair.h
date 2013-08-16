@@ -88,7 +88,11 @@ public:
    void     WritePDB(string fileName);
    void     WriteXYZ(FILE *out, bool useQMPos = true);
 
-
+   // superexchange pairs have a list of bridging segments
+   void     SetType( ChargeTransferType charge_transfer_type ) { _charge_transfer_type = charge_transfer_type; }
+   void     AddBridgingSegment( Segment* _segment ){ _bridging_segments.push_back(_segment); }
+   vector<Segment*> &getBridgingSegments() { return _bridging_segments; }
+   ChargeTransferType getType(){return _charge_transfer_type;}
 
 protected:
 
@@ -114,6 +118,7 @@ protected:
     double          _Jeff2_h;
 
     ChargeTransferType _charge_transfer_type;
+    vector<Segment*> _bridging_segments;
 
 
 };
