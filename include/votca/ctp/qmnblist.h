@@ -38,18 +38,34 @@ class QMNBList : public CSG::PairList< Segment*, QMPair >
 {
 public:
     
-    
-    class SuperExchangeType
-    {
-    public:
+    // container for records of type Donor-Bridge1-Bridge2-...-Acceptor
+    class SuperExchangeType {
+      public:
         
-        // TODO finish
-        SuperExchangeType(string initString) : _initString(initString) { ; }
+        // Initializes the object from a [Donor Bridge1 Bridge2 ... Acceptor] string
+        SuperExchangeType(string initString) { 
+
+	    Tokenizer tok(initString, " ");
+            vector< string > names;
+            tok.ToVector(names);
+
+            if (names.size() < 3) {
+                cout << "ERROR: Faulty superexchange definition: "
+                        << "Need at least three segment names (DONOR BRIDGES ACCEPTOR separated by a space" << endl;
+                throw std::runtime_error("Error in options file.");
+            }
+
+            // fill up the donor-bride-acceptor structure
+
+            donor = names.front();
+            acceptor = names.back();
+            
+            for ( vector<string>::iterator it = ++names.begin() ; it != --names.end(); it++  ) {
+                bridges.push_back(*it);
+            }
+	}
         
-        string _initString;
-        string donor;
-        string acceptor;
-        list<string> bridges;
+
 
         bool isOfBridge(string segment_type ) {
             std::list<string>::iterator findIter = std::find(bridges.begin(), bridges.end(), segment_type);
@@ -59,6 +75,19 @@ public:
         bool isOfDonorAcceptor ( string segment_type ) {
             return segment_type == donor || segment_type == acceptor ;
         }
+
+	string asString() {
+	    string ts;
+            ts += donor;
+            for( list<string>::iterator si; si != bridges.end(); si++ ) ts = ts + " " + *si;
+            ts += acceptor; 
+	}
+
+      private:
+
+        string donor;
+        string acceptor;
+        list<string> bridges;         
     };
 
     QMNBList() : _top(NULL), _cutoff(0) { };

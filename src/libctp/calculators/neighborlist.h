@@ -36,7 +36,12 @@ class Neighborlist : public QMCalculator
 public:
 
     Neighborlist() { };
-   ~Neighborlist() { };
+   ~Neighborlist() {
+       // cleanup the list of superexchange pair types
+       for ( std::list<QMNBList::SuperExchangeType*>::iterator it = _superexchange.begin() ; it != _superexchange.end(); it++  ) {
+           delete *it;
+       }
+    };
 
     string Identify() { return "neighborlist"; }
     
@@ -114,32 +119,10 @@ void Neighborlist::Initialize(Topology* top, Property *options) {
         list< Property* > _se = options->Select(key + ".superexchange");
         list< Property* > ::iterator seIt;
 
-        for (seIt = _se.begin();
-                seIt != _se.end();
-                seIt++) {
-
+        for (seIt = _se.begin(); seIt != _se.end(); seIt++) {
             string types = (*seIt)->get("type").as<string>();
-
-            Tokenizer tok(types, " ");
-            vector< string > names;
-            tok.ToVector(names);
-
-            if (names.size() < 3) {
-                cout << "ERROR: Faulty superexchange definition: "
-                        << "Need at least three segment names (DONOR BRIDGES ACCEPTOR separated by a space" << endl;
-                throw std::runtime_error("Error in options file.");
-            }
-
-            // fill up the donor-bride-acceptor structure
             QMNBList::SuperExchangeType* _su = new QMNBList::SuperExchangeType(types);
-            _su->donor = names.front();
-            _su->acceptor = names.back();
-            
-            for ( vector<string>::iterator it = ++names.begin() ; it != --names.end(); it++  ) {
-                _su->bridges.push_back(*it);
-            }
-            _superexchange.push_back(_su);
-
+            _superexchange.push_back(_su); 
         }
     }
             

@@ -92,7 +92,7 @@ public:
    void     SetType( ChargeTransferType charge_transfer_type ) { _charge_transfer_type = charge_transfer_type; }
    void     AddBridgingSegment( Segment* _segment ){ _bridging_segments.push_back(_segment); }
    vector<Segment*> &getBridgingSegments() { return _bridging_segments; }
-   ChargeTransferType getType(){return _charge_transfer_type;}
+   ChargeTransferType &getType(){return _charge_transfer_type;}
 
 protected:
 

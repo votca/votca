@@ -443,11 +443,12 @@ void StateSaverSQLite::WritePairs(bool update) {
         stmt = _db.Prepare("INSERT INTO pairs ("
                            "frame, top, id, "
                            "seg1, seg2, drX, "
-                           "drY, drZ,   "
+                           "drY, drZ, "
                            "has_e, has_h, "
                            "lOe, lOh, rate12e, "
                            "rate21e, rate12h, rate21h, "
-                           "Jeff2e,  Jeff2h "
+                           "Jeff2e,  Jeff2h, "
+                           "bridges "
                            ") VALUES ("
                            "?, ?, ?, "
                            "?, ?, ?, "
@@ -455,7 +456,8 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "?, ?, "
                            "?, ?, ?, "
                            "?, ?, ?, "
-                           "?, ? "
+                           "?, ?, "
+                           "? "
                            ")");
     }
     else {
@@ -464,7 +466,8 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "has_e = ?, has_h = ?, "
                            "lOe = ?, lOh = ?, rate12e = ?, "
                            "rate21e = ?, rate12h = ?, rate21h = ?, "
-                           "Jeff2e = ?,  Jeff2h = ? "
+                           "Jeff2e = ?,  Jeff2h = ?, "
+                           "bridges = ? "
                            "WHERE top = ? AND id = ?");
     }
 
@@ -499,6 +502,7 @@ void StateSaverSQLite::WritePairs(bool update) {
             stmt->Bind(16, pair->getRate21(+1));
             stmt->Bind(17, pair->getJeff2(-1));
             stmt->Bind(18, pair->getJeff2(+1));
+            stmt->Bind(19, (int)(pair->getBridgingSegments()).size() );
         }
         
         else {
@@ -518,8 +522,9 @@ void StateSaverSQLite::WritePairs(bool update) {
                 stmt->Bind(8, pair->getRate21(+1));
                 stmt->Bind(9, pair->getJeff2(-1));
                 stmt->Bind(10, pair->getJeff2(+1));
-                stmt->Bind(11, pair->getTopology()->getDatabaseId());
-                stmt->Bind(12, pair->getId());
+                stmt->Bind(11, (int)pair->getBridgingSegments().size());
+                stmt->Bind(12, pair->getTopology()->getDatabaseId());
+                stmt->Bind(13, pair->getId());
         }
 
         stmt->InsertStep();
@@ -570,7 +575,7 @@ void StateSaverSQLite::WriteSuperExchange(bool update) {
 
         stmt->Bind(1, _qmtop->getDatabaseId());
         stmt->Bind(2, _qmtop->getDatabaseId());
-        stmt->Bind(3, seType->_initString);
+        stmt->Bind(3, seType->asString());
 
         stmt->InsertStep();
         stmt->Reset();

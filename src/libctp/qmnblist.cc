@@ -81,7 +81,7 @@ void QMNBList::GenerateSuperExchange() {
     // loop over all donor/acceptor pair types
     for (std::list<SuperExchangeType*>::iterator itDA = _superexchange.begin(); itDA != _superexchange.end(); itDA++) {
 
-        cout << endl << " ... ... Processing " << (*itDA)->donor << ":" << (*itDA)->acceptor << " superexchange pairs" << endl;
+        cout << endl << " ... ... Processing superexchange pairs of type " << (*itDA)->asString() << endl;
         int _bridged_pairs = 0;
         int bridged_molecules = 0;
 

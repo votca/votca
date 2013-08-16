@@ -162,7 +162,8 @@ void QMDatabase::onCreate()
         "rate12h    REAL DEFAULT 0,"
         "rate21h    REAL DEFAULT 0,"
         "Jeff2e     REAL DEFAULT 0,"
-        "Jeff2h     REAL DEFAULT 0)");
+        "Jeff2h     REAL DEFAULT 0,"
+        "bridges    INT  DEFAULT 0)");
     
     
     // Super-exchange types
