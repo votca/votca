@@ -48,6 +48,7 @@
 #include "calculators/xqmultipole.h"
 #include "calculators/qmmm.h"
 #include "calculators/jobwriter.h"
+#include "calculators/ewald.h"
 
 
 
@@ -91,6 +92,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<XQMP>            ("xqmultipole");
         Calculators().Register<QMMM>            ("qmmm");
         Calculators().Register<JobWriter>       ("jobwriter");
+        Calculators().Register<Ewald>           ("ewald");
 }
 
 }}

@@ -18,6 +18,7 @@
 #ifndef __XINTERACTOR__H
 #define	__XINTERACTOR__H
 
+#include <math.h>
 #include <votca/tools/vec.h>
 #include <votca/ctp/topology.h>
 #include <votca/ctp/apolarsite.h>
@@ -72,6 +73,9 @@ public:
 
     inline double   E_f(APolarSite &pol1, APolarSite &pol2);
     inline double   E_m(APolarSite &pol1, APolarSite &pol2);
+    
+    inline double   E_QQ_ERFC(APolarSite &pol1, APolarSite &pol2);
+    inline double   E_QQ_ERF(APolarSite &pol1, APolarSite &pol2) { return 0.0; }
 
     void            ResetEnergy() { EP = EU_INTER = EU_INTRA = 0.0;
                                     EPP = EPU = EUU = 0.0; }
@@ -2168,6 +2172,21 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
     EUU += euu;
     
     return epu + euu;
+}
+
+
+inline double XInteractor::E_QQ_ERFC(APolarSite &pol1, APolarSite &pol2) {
+    e12  = pol2.getPos() - pol1.getPos();    
+    R    = 1/abs(e12);
+    double epp = 0.0; // <- Interaction perm. <> perm.
+    
+    double alpha = 1.;
+    epp += pol1.Q00 * T00_00() * erfc(alpha/R) * pol2.Q00;    
+    
+    EP += epp;    
+    EPP += epp;
+    
+    return epp;    
 }
 
 

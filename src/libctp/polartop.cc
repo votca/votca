@@ -15,8 +15,18 @@ PolarTop::~PolarTop() {
     for (psit = _mm2.begin(); psit < _mm2.end(); ++psit) {
       delete *psit;
     }
+    for (psit = _bgN.begin(); psit < _bgN.end(); ++psit) {          
+      delete *psit;          
+    }
+    for (psit = _fgN.begin(); psit < _fgN.end(); ++psit) {
+      delete *psit;
+    }
+    for (psit = _fgC.begin(); psit < _fgC.end(); ++psit) {
+      delete *psit;
+    }
 
     _qm0.clear(); _mm1.clear(); _mm2.clear();
+    _bgN.clear(); _fgN.clear(); _fgC.clear();
 }
 
 
@@ -25,6 +35,9 @@ void PolarTop::PrintInfo(ostream &out) {
         << "|QM0| = " << _qm0.size() << ", "
         << "|MM1| = " << _mm1.size() << ", "
         << "|MM2| = " << _mm2.size() << ". "
+        << "|FGC| = " << _fgC.size() << ", "
+        << "|FGN| = " << _fgN.size() << ", "
+        << "|BGN| = " << _bgN.size() << ". "
         << flush;
 }
 
@@ -34,7 +47,10 @@ string PolarTop::ShellInfoStr() {
     stream << "Shells "
            << "|QM0| = " << _qm0.size() << ", "
            << "|MM1| = " << _mm1.size() << ", "
-           << "|MM2| = " << _mm2.size() << ". ";
+           << "|MM2| = " << _mm2.size() << ". "
+           << "|FGC| = " << _fgC.size() << ", "
+           << "|FGN| = " << _fgN.size() << ", "
+           << "|BGN| = " << _bgN.size() << ". ";
     return stream.str();
 }
 
@@ -60,7 +76,26 @@ void PolarTop::CenterAround(const vec &center) {
         vec shift = _top->PbShortestConnect(center, pseg->getPos())
                          -(pseg->getPos() - center);        
         pseg->Translate(shift);        
+    }
+    
+    for (sit = _bgN.begin(); sit < _bgN.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        vec shift = _top->PbShortestConnect(center, pseg->getPos())
+                         -(pseg->getPos() - center);
+        pseg->Translate(shift);        
     }    
+    for (sit = _fgN.begin(); sit < _fgN.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        vec shift = _top->PbShortestConnect(center, pseg->getPos())
+                         -(pseg->getPos() - center);        
+        pseg->Translate(shift);        
+    }    
+    for (sit = _fgC.begin(); sit < _fgC.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        vec shift = _top->PbShortestConnect(center, pseg->getPos())
+                         -(pseg->getPos() - center);        
+        pseg->Translate(shift);
+    }
 }
 
 
@@ -88,6 +123,24 @@ void PolarTop::PrintPDB(string outfile) {
             (*pit)->WritePdbLine(out, "MM2");
         }
     }
+    for (sit = _fgC.begin(); sit < _fgC.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "FGC");
+        }
+    }
+    for (sit = _fgN.begin(); sit < _fgN.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "FGN");
+        }
+    }
+    for (sit = _bgN.begin(); sit < _bgN.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "BGN");
+        }
+    }   
     fclose(out);    
 }
 
