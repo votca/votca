@@ -211,26 +211,49 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                 } /* exit loop frag1 */
             } /* exit loop seg2 */
                 
-                break;
+               // break;
         } /* exit loop seg1 */       
 
     }
 
-    top->NBList().GenerateSuperExchange();
-    
-    cout << endl << " ... ... Created " << top->NBList().size() << " pairs.";
+    cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
 
-    if (TOOLS::globals::verbose) {
-        cout << "[idA:idB] com distance" << endl;
-        QMNBList& nblist = top->NBList();
-        for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
+    top->NBList().GenerateSuperExchange();
+  
+    // DEBUG output
+    if (votca::tools::globals::verbose) {
+
+	Property bridges_summary;
+        Property *_bridges = &bridges_summary.add("bridges","");
+
+        cout << "Bridged Pairs \n [idA:idB] com distance" << endl;
+        for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
                 QMPair *pair = *ipair;
                 Segment* segment1 = pair->Seg1PbCopy();
                 Segment* segment2 = pair->Seg2PbCopy();
-                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist() << endl;
+                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist()<< " bridges: " << (pair->getBridgingSegments()).size() << " | " << flush;
+                vector<Segment*> bsegments = pair->getBridgingSegments();
+ 
+                Property *_pair_property = &_bridges->add("pair","");
+                                   
+                _pair_property->setAttribute("id1", segment1->getId());
+                _pair_property->setAttribute("id2", segment2->getId());
+                _pair_property->setAttribute("name1", segment1->getName());
+                _pair_property->setAttribute("name2", segment2->getName());
+                _pair_property->setAttribute("r12", pair->Dist());
+                                    
+                Property *_bridge_property = &_pair_property->add("bridge","");
+
+                for ( vector<Segment*>::iterator itb = bsegments.begin(); itb != bsegments.end(); itb++ ) {
+                    cout << (*itb)->getId() << " " ;
+                    _bridge_property->setAttribute("id", (*itb)->getId());
+                }        
+                
+                cout << endl;
         }
+        //cout << bridges_summary;
     }
-    
+
     return true;        
 }
 

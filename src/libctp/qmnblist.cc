@@ -74,14 +74,12 @@ void QMNBList::PrintInfo(FILE *out) {
 
 void QMNBList::GenerateSuperExchange() {
 
-    QMNBList bridged_nblist;
-    Property bridges_summary;
-    Property *_bridges = &bridges_summary.add("bridges","");
-  
+    //QMNBList bridged_nblist;
+
     // loop over all donor/acceptor pair types
     for (std::list<SuperExchangeType*>::iterator itDA = _superexchange.begin(); itDA != _superexchange.end(); itDA++) {
 
-        cout << endl << " ... ... Processing superexchange pairs of type " << (*itDA)->asString() << endl;
+        cout << endl << " ... ... Processing superexchange pairs of type " << (*itDA)->asString() << flush;
         int _bridged_pairs = 0;
         int bridged_molecules = 0;
 
@@ -115,26 +113,15 @@ void QMNBList::GenerateSuperExchange() {
                             map<int, Segment*>::iterator it_diag = it1;
                             for (map<int, Segment*>::iterator it2 = ++it_diag; it2 != _neighbors.end(); it2++) {
                                 
-                                QMPair *pair = bridged_nblist.FindPair(it1->second, it2->second);
+                                QMPair *pair = FindPair(it1->second, it2->second);
                                 
                                 if (pair == NULL ) { 
-                                    QMPair* _pair = bridged_nblist.Add(it1->second, it2->second);
+                                    QMPair* _pair = Add(it1->second, it2->second);
                                     _pair->SetType( QMPair::_superExchange );
-                                    _pair->AddBridgingSegment( segment );
-                                    
-                                    string nameA = it1->second->getName();
-                                    string nameB = it2->second->getName();
-                                    
-                                    Property *_pair_property = &_bridges->add("pair","");
-                                    
-                                    _pair_property->setAttribute("idA", it1->second->getId());
-                                    _pair_property->setAttribute("idB", it2->second->getId());
-                                    
-                                    Property *_bridge_property = &_pair_property->add("bridge","");
-                                    _bridge_property->setAttribute("id", segment->getId());
-                                    
+                                    _pair->AddBridgingSegment( segment );                                   
                                     _bridged_pairs++;
-                                } else { // pair of superexchange type is already there 
+                                } else { // pair type is already there 
+                                    pair->SetType( QMPair::_superExchange );
                                     pair->AddBridgingSegment( segment );
                                 }
                             }
@@ -144,29 +131,10 @@ void QMNBList::GenerateSuperExchange() {
             } // end of if this is a bridged pair
         } // end of the loop of all segments
         
-        cout << " ... ... Added " << _bridged_pairs << " bridged pairs" << endl;    
+        cout << " : added " << _bridged_pairs << " bridged pairs" << endl;    
         
     } // end of the loop over donor/acceptor types
 
-    
-    cout << bridges_summary;
-    
-    if (votca::tools::globals::verbose) {
-        cout << "Bridged Pairs \n [idA:idB] com distance" << endl;
-        for (QMNBList::iterator ipair = bridged_nblist.begin(); ipair != bridged_nblist.end(); ++ipair) {
-                QMPair *pair = *ipair;
-                Segment* segment1 = pair->Seg1PbCopy();
-                Segment* segment2 = pair->Seg2PbCopy();
-                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist()<< " bridges: " << (pair->getBridgingSegments()).size() << " | " << flush;
-                vector<Segment*> bsegments = pair->getBridgingSegments();
-        
-                for ( vector<Segment*>::iterator itb = bsegments.begin(); itb != bsegments.end(); itb++ ) {
-                    cout << (*itb)->getId() << " " ;
-                }        
-                
-                cout << endl;
-        }
-    }
 
     return;
 }

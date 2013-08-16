@@ -79,8 +79,9 @@ public:
 	string asString() {
 	    string ts;
             ts += donor;
-            for( list<string>::iterator si; si != bridges.end(); si++ ) ts = ts + " " + *si;
-            ts += acceptor; 
+            for( list<string>::iterator si = bridges.begin(); si != bridges.end(); si++ ) ts = ts + " " + *si;
+            ts += " " + acceptor; 
+            return ts;
 	}
 
       private:
