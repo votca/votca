@@ -181,7 +181,7 @@ void ProgObserver<JobContainer,pJob,rJob>::LockProgFile(QMThread *thread) {
         << "Imposed lock on " << _lockFile << flush;
     LOG(logDEBUG,*(thread->getLogger()))
         << "Sleep ... " << _lockFile << flush;
-    boost::this_thread::sleep(boost::posix_time::milliseconds(10000.));
+    //boost::this_thread::sleep(boost::posix_time::milliseconds(0.0));
     LOG(logDEBUG,*(thread->getLogger()))
         << "Wake up ... " << _lockFile << flush;
 }
