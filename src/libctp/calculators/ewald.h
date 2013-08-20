@@ -261,7 +261,8 @@ Job::JobResult Ewald::EvalJob(Topology *top, Job *job, QMThread *thread) {
     xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_FGC_FGN_BGN.pdb");
     
     // CALL EWALD MAGIC
-    Ewald2D ewald2d = Ewald2D(top, xjob.getPolarTop(), &xjob, thread->getLogger());
+    Ewald2D ewald2d = Ewald2D(top, xjob.getPolarTop(), &xjob, _cutoff2, thread->getLogger());
+    ewald2d.CheckParameters();
     ewald2d.Evaluate();
     
     

@@ -19,11 +19,59 @@ namespace votca { namespace ctp {
         
     public:
         
-        Ewald2D(Topology *top, PolarTop *ptop, XJob *xjob, Logger *log);
+        Ewald2D(Topology *top, PolarTop *ptop, XJob *xjob, double R_co, Logger *log);
        ~Ewald2D() { ; }
        
+        void CheckParameters();
         void Evaluate();
+        //bool SortByMagnitude(vec k1, vec k2) { return abs(k1) < abs(k2); }
         
+        
+        struct vec_smaller_than
+        {
+            inline bool operator() (const vec& vec1, const vec& vec2, double t = 1e-40)
+            {
+                bool smaller = false;                
+                // LEVEL 1: Magnitude
+                double V1 = abs(vec1);
+                double V2 = abs(vec2);                
+                if (match_double(V1,V2,t)) {
+                    // LEVEL 2: X
+                    double X1 = vec1.getX();
+                    double X2 = vec2.getX();
+                    if (match_double(X1,X2,t)) {
+                        // LEVEL 3: Y
+                        double Y1 = vec1.getY();
+                        double Y2 = vec2.getY();
+                        if (match_double(Y1,Y2,t)) {
+                            // LEVEL 4: Z
+                            double Z1 = vec1.getZ();
+                            double Z2 = vec2.getZ();
+                            if (match_double(Z1,Z2,t)) smaller = true;
+                            else if (Z1 < Z2) smaller = true;
+                            else smaller = false;
+                        }
+                        else if (Y1 < Y2) smaller = true;
+                        else smaller = false;
+                    }
+                    else if (X1 < X2) smaller = true;
+                    else smaller = false;
+                }
+                else if (V1 < V2) smaller = true;
+                else smaller = false;                
+                return smaller;
+            }
+            
+            inline bool match_double(double a, double b, double t = 1e-40) {                
+                if ((a-b)*(a-b) < t) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            
+        };
         
         
     private:
