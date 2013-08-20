@@ -74,7 +74,7 @@ postupd scale postupd_scale.sh
 postupd pressure postupd_pressure.sh
 postupd splinesmooth postupd_splinesmooth.sh
 postupd smooth postupd_smooth.sh
-postupd shift potential_shift.pl --type non-bonded
+postupd shift postadd_shift.sh
 postupd dummy postadd_dummy.sh
 postupd tag tag_file.sh
 postupd extrapolate postupd_extrapolate.sh
@@ -90,7 +90,7 @@ postadd dummy postadd_dummy.sh
 postadd copyback postadd_copyback.sh
 postadd convergence postadd_convergence.sh
 postadd acc_convergence postadd_acc_convergence.sh 
-postadd shift potential_shift.pl --type non-bonded
+postadd shift postadd_shift.sh
 postadd overwrite postadd_overwrite.sh
 postadd plot postadd_plot.sh
 postadd average postadd_average.sh
