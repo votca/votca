@@ -46,7 +46,3 @@ fi
 for_all "non-bonded bonded" do_external convert_potential gromacs '$(csg_get_interaction_property name).pot.cur $(csg_get_interaction_property inverse.gromacs.table)'
 
 check_temp || die "${0##*/}: check of tempertures failed"
-
-if [[ $(csg_get_property cg.inverse.method) != "tf" ]]; then
-  for_all "non-bonded" check_cutoff || die "${0##*/}: check of cutoff for non-bonded interactions failed"
-fi

@@ -91,6 +91,9 @@ if [[ $tabtype = "non-bonded" ]]; then
     tabl=$(csg_calc "$rlist" + "$tabext")
     [[ -n $tablend  ]] &&  csg_calc "$tablend" "<" "$tabl" && \
       die "${0##*/}: Error table is shorter then what mdp file ($mdp) needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
+    max="$(csg_get_interaction_property max)"
+    rvdw="$(get_simulation_setting rvdw)"
+    csg_calc "$max" ">" "$rvdw" && die "${0##*/}: rvdw ($rvdw) is smaller than max ($max)"
     [[ -z $tablend ]] && tablend=$(csg_calc "$rlist" + "$tabext")
   elif [[ -z $tablend ]]; then
     die "${0##*/}: cg.inverse.gromacs.table_end was not defined in xml seeting file"
