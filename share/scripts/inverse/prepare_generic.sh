@@ -37,6 +37,3 @@ if [[ $sim_prog != gromacs ]] ; then
   msg --color blue "# http://code.google.com/p/votca/issues/list         #"
   msg --color blue "######################################################"
 fi
-
-#do some special stuff for this simulation program
-do_external prepare_generic $sim_prog

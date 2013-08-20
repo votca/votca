@@ -200,7 +200,6 @@ tables jackknife tables_jackknife.pl
 
 # BEGIN: these scripts have to be defined for each simulation program
 # interface to gromacs
-prepare_generic gromacs prepare_generic_gromacs.sh
 initstep_generic gromacs initialize_step_generic_gromacs.sh
 run gromacs run_gromacs.sh
 presimulation gromacs run_gromacs.sh --pre
@@ -218,7 +217,6 @@ convert_potential xvg table_to_xvg.pl
 functions gromacs functions_gromacs.sh
 
 # Interface to ESPResSo
-prepare_generic espresso dummy.sh 
 initstep_generic espresso initialize_step_generic_genericsim.sh
 run espresso run_genericsim.sh
 rdf espresso calc_rdf_generic.sh
@@ -235,7 +233,6 @@ functions espresso functions_genericsim.sh
 convert_potential lammps potential_to_generic.sh
 
 # interface to lammps
-prepare_generic lammps dummy.sh
 initstep_generic lammps initialize_step_generic_genericsim.sh
 run lammps run_genericsim.sh
 rdf lammps calc_rdf_generic.sh
@@ -249,7 +246,6 @@ functions lammps functions_genericsim.sh
 convert_potential espressopp potential_to_generic.sh
 
 # interface to espressopp
-prepare_generic espressopp dummy.sh
 initstep_generic espressopp initialize_step_generic_genericsim.sh
 run espressopp run_genericsim.sh
 rdf espressopp calc_rdf_generic.sh
