@@ -25,7 +25,7 @@ Usage: ${0##*/} [options] input output
 Allowed options:
     --help       show this help
     --clean      remove all intermediate temp files
-    --r2d        converts rad to degree (scale x axis with 180/3.1415)
+    --no-r2d     do not converts rad to degree (scale x axis with 180/3.1415)
                  for angle and dihedral
                  Note: VOTCA calcs in rad, but gromacs in degree
     --no-shift   do not shift the potential
@@ -34,7 +34,7 @@ EOF
 
 clean="no"
 do_shift="yes"
-r2d=1
+r2d="57.2957795"
 
 ### begin parsing options
 shopt -s extglob
@@ -48,8 +48,10 @@ while [[ ${1#-} != $1 ]]; do
     fi
  fi
  case $1 in
-   --r2d)
-    r2d="57.2957795"
+   --r2d) #default now
+    shift ;;
+   --no-r2d)
+    r2d=1
     shift ;;
    --clean)
     clean="yes"
