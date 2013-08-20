@@ -276,7 +276,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   #map bondtype back to tags in xml file (for csg_call)
   case "$bondtype" in
-    "non-bonded"|"thermoforce")
+    "non-bonded"|"thermforce")
       xmltype="non-bonded";;
     "bonded"|"bond"|"angle"|"dihedral")
       xmltype="bonded";;
