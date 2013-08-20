@@ -30,12 +30,14 @@ fi
 from="$(csg_get_property cg.inverse.initial_configuration)"
 conf="$(csg_get_property cg.inverse.gromacs.conf)"
 echo "Using intial configuration from $from"
-if [[ $from = "laststep" ]]; then
+if [[ $from = "nowhere" ]]; then
+  :
+elif [[ $from = "maindir" ]] || [[ $from = "laststep" && $(get_current_step_nr) -eq 1 ]]; then
+  cp_from_main_dir "$conf"
+elif [[ $from = "laststep" ]]; then
   confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
   #avoid overwriting $confout
   cp_from_last_step --rename "${confout}" "${conf}"
-elif [[ $from = "maindir" ]]; then
-  cp_from_main_dir "$conf"
 else
   die "${0##*/}: initial_configuration '$from' not implemented"
 fi

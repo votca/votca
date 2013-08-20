@@ -29,16 +29,20 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 from=$(csg_get_property cg.inverse.initial_configuration)
 conf="$(csg_get_property --allow-empty cg.inverse.$sim_prog.conf)"
 echo "Using intial configuration from $from"
-if [[ $from = "maindir" ]]; then
+if [[ $from = "nowhere" ]]; then
+  :
+elif [[ $from = "maindir" || $(get_current_step_nr) -eq 1 ]]; then
   if [[ -n $conf ]]; then
+    [[ $from = "laststep" && $(get_current_step_nr) -eq 1 ]] && \
+      echo "In Step 1 we always use configuration from maindir, even though 'laststep' was set"
     cp_from_main_dir "$conf"
   else
     echo "Option cg.inverse.$sim_prog.conf was empty, so I assume $sim_prog needs no conf or you have added it to cg.inverse.filelist."
   fi
 elif [[ $from = "laststep" ]]; then
-  [[ -n $conf ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.conf is needed!"
+  [[ -z $conf ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.conf is needed!"
   confout="$(csg_get_property --allow-empty cg.inverse.$sim_prog.conf_out)"
-  [[ -n $confout ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.confout is needed!"
+  [[ -z $confout ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.confout is needed!"
   #avoid overwriting $confout
   cp_from_last_step --rename "${confout}" "${conf}"
 else

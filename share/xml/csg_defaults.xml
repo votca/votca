@@ -318,7 +318,7 @@
       </steps>
     </average>
     <initial_configuration>maindir
-      <DESC>what initial configuration to use in every step: maindir/laststep. laststep is only supported by gromacs.</DESC>
+      <DESC>what initial configuration to use in every step: maindir/laststep/nowhere.</DESC>
     </initial_configuration>
     <iterations_max>
       <DESC>do the given number of iterations (0=inf)</DESC>
