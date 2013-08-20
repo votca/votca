@@ -207,6 +207,8 @@ tables jackknife tables_jackknife.pl
 
 # BEGIN: these scripts have to be defined for each simulation program
 # interface to gromacs
+prepare_generic gromacs prepare_generic_gromacs.sh
+initstep_generic gromacs initialize_step_generic_gromacs.sh
 run gromacs run_gromacs.sh
 presimulation gromacs run_gromacs.sh --pre
 pressure gromacs calc_pressure_gromacs.sh
@@ -214,15 +216,6 @@ rdf gromacs calc_rdf_generic.sh
 imc_stat gromacs imc_stat_generic.sh
 
 density gromacs calc_density_generic.sh
-
-# these scripts have to be defined for each method, if NOT generic
-prepare_generic gromacs prepare_generic_gromacs.sh
-initstep_generic gromacs initialize_step_generic_gromacs.sh
-prepare_generic espresso dummy.sh 
-initstep_generic espresso initialize_step_generic_genericsim.sh
-prepare_generic lammps dummy.sh
-initstep_generic lammps initialize_step_generic_genericsim.sh
-
 
 # gromacs scripts specific stuff
 convert_potential gromacs potential_to_gromacs.sh
@@ -232,6 +225,8 @@ convert_potential xvg table_to_xvg.pl
 functions gromacs functions_gromacs.sh
 
 # Interface to ESPResSo
+prepare_generic espresso dummy.sh 
+initstep_generic espresso initialize_step_generic_genericsim.sh
 run espresso run_genericsim.sh
 rdf espresso calc_rdf_generic.sh
 imc_stat espresso imc_stat_generic.sh
@@ -247,6 +242,8 @@ functions espresso functions_genericsim.sh
 convert_potential lammps potential_to_generic.sh
 
 # interface to lammps
+prepare_generic lammps dummy.sh
+initstep_generic lammps initialize_step_generic_genericsim.sh
 run lammps run_genericsim.sh
 rdf lammps calc_rdf_generic.sh
 imc_stat lammps imc_stat_generic.sh
@@ -254,6 +251,20 @@ density lammps calc_density_generic.sh
 
 # function for lammps
 functions lammps functions_genericsim.sh
+
+# espressopp scripts
+convert_potential espressopp potential_to_generic.sh
+
+# interface to espressopp
+prepare_generic espressopp dummy.sh
+initstep_generic espressopp initialize_step_generic_genericsim.sh
+run espressopp run_genericsim.sh
+rdf espressopp calc_rdf_generic.sh
+imc_stat espressopp imc_stat_generic.sh
+density espressopp calc_density_generic.sh
+
+# function for espressopp
+functions espressopp functions_genericsim.sh
 
 # interface to dlpoly (not fully functional)
 run dlpoly run_genericsim.sh
