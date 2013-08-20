@@ -99,10 +99,6 @@ postadd average postadd_average.sh
 convergence_check default convergence_check_default.sh
 
 # table preparation
-dpot shift_nonbonded potential_shift.pl --type non-bonded
-pot shift_nonbonded potential_shift.pl --type non-bonded
-dpot shift_bonded potential_shift.pl --type bonded
-pot shift_bonded potential_shift.pl --type bonded
 resample target resample_target.sh
 dpot crop dpot_crop.pl
 
@@ -187,6 +183,7 @@ table functional table_functional.sh
 
 # generic potential manipulation
 potential extrapolate potential_extrapolate.sh
+potential shift potential_shift.sh
 convert_potential tab table_to_tab.pl
 
 # generic distribution manipulation

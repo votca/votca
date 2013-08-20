@@ -131,11 +131,7 @@ fi
 
 if [[ $do_shift = "yes" ]]; then
   tshift="$(critical mktemp ${trunc}.pot.shift.XXXXX)"
-  if [[ $tabtype = "non-bonded" || $tabtype = "thermforce" ]]; then
-    do_external pot shift_nonbonded "${extrapol}" "${tshift}"
-  else
-    do_external pot shift_bonded "${extrapol}" "${tshift}"
-  fi
+  do_external potential shift --type "$tabtype" "${extrapol}" "${tshift}"
 else
   tshift="$extrapol"
 fi

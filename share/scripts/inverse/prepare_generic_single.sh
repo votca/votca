@@ -61,7 +61,7 @@ else
     smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
     critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
     extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
-    do_external pot shift_nonbonded ${smooth} ${extrapolate}
+    do_external potential shift --type "${tabtype}" ${smooth} ${extrapolate}
     do_external table change_flag "${extrapolate}" "${output}"
   else
     die "${0##*/}: Not implemented yet, implement it or provide ${name}.pot.in!"
