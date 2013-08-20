@@ -104,7 +104,9 @@ public:
     void GenerateSuperExchange();
     
     void AddSuperExchangeType(string type) { _superexchange.push_back(new SuperExchangeType(type)); }
+    
     void setSuperExchangeTypes(list<SuperExchangeType*> types) { _superexchange = types; }
+    
     list<SuperExchangeType*> &getSuperExchangeTypes() { return _superexchange; }
 
     void    setCutoff(double cutoff) { _cutoff = cutoff; }

@@ -37,7 +37,7 @@ QMPair::QMPair(int id, Segment *seg1, Segment *seg2)
           _rate12_h(0), _rate21_h(0),
           _has_e(false), _has_h(false),
           _lambdaO_e(0), _lambdaO_h(0),
-          _Jeff2_e(0),   _Jeff2_h(0), _charge_transfer_type( _hopping ) {
+          _Jeff2_e(0),   _Jeff2_h(0), _pair_type( Hopping ) {
 
     _top = seg1->getTopology();
 

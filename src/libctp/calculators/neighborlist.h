@@ -131,7 +131,6 @@ void Neighborlist::Initialize(Topology* top, Property *options) {
 bool Neighborlist::EvaluateFrame(Topology *top) {
 
     top->NBList().Cleanup();
-    top->NBList().setSuperExchangeTypes(_superexchange);
 
     if (_generate_from_file) {        
         this->GenerateFromFile(top, _generate_from);        
@@ -218,6 +217,8 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
 
     cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
 
+    // add superexchange pairs
+    top->NBList().setSuperExchangeTypes(_superexchange);
     top->NBList().GenerateSuperExchange();
   
     // DEBUG output
@@ -231,7 +232,14 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                 QMPair *pair = *ipair;
                 Segment* segment1 = pair->Seg1PbCopy();
                 Segment* segment2 = pair->Seg2PbCopy();
-                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist()<< " bridges: " << (pair->getBridgingSegments()).size() << " | " << flush;
+                
+                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " 
+                             << pair->Dist()<< " bridges: " 
+                             << (pair->getBridgingSegments()).size() 
+                             << " type: " 
+                             << pair->getType() 
+                             << " | " << flush;
+                
                 vector<Segment*> bsegments = pair->getBridgingSegments();
  
                 Property *_pair_property = &_bridges->add("pair","");

@@ -448,7 +448,7 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "lOe, lOh, rate12e, "
                            "rate21e, rate12h, rate21h, "
                            "Jeff2e,  Jeff2h, "
-                           "bridges "
+                           "type "
                            ") VALUES ("
                            "?, ?, ?, "
                            "?, ?, ?, "
@@ -467,7 +467,7 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "lOe = ?, lOh = ?, rate12e = ?, "
                            "rate21e = ?, rate12h = ?, rate21h = ?, "
                            "Jeff2e = ?,  Jeff2h = ?, "
-                           "bridges = ? "
+                           "type = ? "
                            "WHERE top = ? AND id = ?");
     }
 
@@ -502,7 +502,7 @@ void StateSaverSQLite::WritePairs(bool update) {
             stmt->Bind(16, pair->getRate21(+1));
             stmt->Bind(17, pair->getJeff2(-1));
             stmt->Bind(18, pair->getJeff2(+1));
-            stmt->Bind(19, (int)(pair->getBridgingSegments()).size() );
+            stmt->Bind(19, (int)(pair->getType()) );
         }
         
         else {
@@ -522,9 +522,9 @@ void StateSaverSQLite::WritePairs(bool update) {
                 stmt->Bind(8, pair->getRate21(+1));
                 stmt->Bind(9, pair->getJeff2(-1));
                 stmt->Bind(10, pair->getJeff2(+1));
-                stmt->Bind(11, (int)pair->getBridgingSegments().size());
+                stmt->Bind(11, (int)pair->getType());
                 stmt->Bind(12, pair->getTopology()->getDatabaseId());
-                stmt->Bind(13, pair->getId());
+                stmt->Bind(13, pair->getId());          
         }
 
         stmt->InsertStep();
@@ -859,7 +859,7 @@ void StateSaverSQLite::ReadAtoms(int topId) {
         double  posY = stmt->Column<double>(7);
         double  posZ = stmt->Column<double>(8);
         double  weight = stmt->Column<double>(9);
-        int     qmid = stmt->Column<double>(10);
+        int     qmid = stmt->Column<int>(10);
         double  qmPosX = stmt->Column<double>(11);
         double  qmPosY = stmt->Column<double>(12);
         double  qmPosZ = stmt->Column<double>(13);
@@ -892,11 +892,10 @@ void StateSaverSQLite::ReadPairs(int topId) {
     cout << ", pairs" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
-                                  "seg1, seg2, has_e,"
-                                  "has_h, lOe, "
-                                  "lOh, rate12e, rate21e, "
-                                  "rate12h, rate21h, "
-                                  "Jeff2e, Jeff2h "
+                                  "seg1, seg2, has_e, has_h, "
+                                  "lOe, lOh, rate12e, rate21e, "
+                                  "rate12h, rate21h, Jeff2e, Jeff2h, "
+                                  "type "
                                   "FROM pairs "
                                   "WHERE top = ?;");
 
@@ -915,6 +914,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  r4  = stmt->Column<double>(9);
         double  je  = stmt->Column<double>(10);
         double  jh  = stmt->Column<double>(11);
+        int     tp  = stmt->Column<int>(12);
         
         QMPair *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
                                                 _qmtop->getSegment(s2));
@@ -932,6 +932,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
         newPair->setRate21(r4, +1);
         newPair->setJeff2(je, -1);
         newPair->setJeff2(jh, +1);
+        newPair->setType(tp);
 
     }
     delete stmt;

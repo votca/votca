@@ -81,6 +81,7 @@ void QMNBList::GenerateSuperExchange() {
 
         cout << endl << " ... ... Processing superexchange pairs of type " << (*itDA)->asString() << flush;
         int _bridged_pairs = 0;
+        int _bridged_and_direct_pairs = 0;
         int bridged_molecules = 0;
 
         // vector of neighboring segments of the donor/acceptor type
@@ -117,11 +118,14 @@ void QMNBList::GenerateSuperExchange() {
                                 
                                 if (pair == NULL ) { 
                                     QMPair* _pair = Add(it1->second, it2->second);
-                                    _pair->SetType( QMPair::_superExchange );
+                                    _pair->setType( QMPair::SuperExchange );
                                     _pair->AddBridgingSegment( segment );                                   
                                     _bridged_pairs++;
                                 } else { // pair type is already there 
-                                    pair->SetType( QMPair::_superExchange );
+                                    if ( pair->getType() == QMPair::Hopping ) {
+                                        _bridged_and_direct_pairs++;
+                                        pair->setType( QMPair::SuperExchangeAndHopping );
+                                    }
                                     pair->AddBridgingSegment( segment );
                                 }
                             }
@@ -131,8 +135,8 @@ void QMNBList::GenerateSuperExchange() {
             } // end of if this is a bridged pair
         } // end of the loop of all segments
         
-        cout << " : added " << _bridged_pairs << " bridged pairs" << endl;    
-        
+        cout << " : added " << _bridged_pairs + _bridged_and_direct_pairs << " bridged with " << _bridged_and_direct_pairs << " mixed pairs" << endl;     
+       
     } // end of the loop over donor/acceptor types
 
 

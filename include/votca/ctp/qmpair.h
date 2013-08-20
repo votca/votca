@@ -35,10 +35,11 @@ class QMPair : public std::pair< Segment*, Segment* >
 {
 public:
     
-    enum ChargeTransferType 
+    enum PairType 
     { 
-        _superExchange, 
-        _hopping
+        Hopping,
+        SuperExchange,
+        SuperExchangeAndHopping
     };
 
     QMPair() : _R(0,0,0), _ghost(NULL), _top(NULL),
@@ -47,7 +48,8 @@ public:
                 _rate12_h(0), _rate21_h(0),
                 _has_e(false), _has_h(false),
                 _lambdaO_e(0), _lambdaO_h(0),
-                _Jeff2_e(0),   _Jeff2_h(0) { };
+                _Jeff2_e(0),   _Jeff2_h(0),
+                _pair_type(Hopping) { };
     QMPair(int id, Segment *seg1, Segment *seg2);
    ~QMPair();
 
@@ -89,10 +91,11 @@ public:
    void     WriteXYZ(FILE *out, bool useQMPos = true);
 
    // superexchange pairs have a list of bridging segments
-   void     SetType( ChargeTransferType charge_transfer_type ) { _charge_transfer_type = charge_transfer_type; }
+   void     setType( PairType pair_type ) { _pair_type = pair_type; }
+   void     setType( int pair_type ) { _pair_type = (PairType) pair_type; }
    void     AddBridgingSegment( Segment* _segment ){ _bridging_segments.push_back(_segment); }
    vector<Segment*> &getBridgingSegments() { return _bridging_segments; }
-   ChargeTransferType &getType(){return _charge_transfer_type;}
+   PairType &getType(){return _pair_type;}
 
 protected:
 
@@ -117,7 +120,7 @@ protected:
     double          _Jeff2_e;
     double          _Jeff2_h;
 
-    ChargeTransferType _charge_transfer_type;
+    PairType _pair_type;
     vector<Segment*> _bridging_segments;
 
 
