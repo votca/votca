@@ -169,7 +169,7 @@ do_external() { #takes two tags, find the according script and excute it
     CSG_CALLSTACK="$(show_callstack --extra "${script/ *}")" $script "${@:3}"
   else
     CSG_CALLSTACK="$(show_callstack)" $script "${@:3}"
-  fi || die "${FUNCNAME[0]}: subscript $script ${@:3} (from tags $tags) failed"
+  fi || die "${FUNCNAME[0]}: subscript" "$script ${*:3}" "(from tags $tags) failed"
 }
 export -f do_external
 
