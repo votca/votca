@@ -31,7 +31,7 @@ max=$(csg_get_interaction_property max )
 step=$(csg_get_interaction_property step )
 comment="$(get_table_comment)"
 main_dir=$(get_main_dir)
-tabtype="$(csg_get_interaction_property bondtype)"
+bondtype="$(csg_get_interaction_property bondtype)"
 output="${name}.pot.new"
 
 if [[ -f ${main_dir}/${name}.pot.in ]]; then
@@ -40,28 +40,30 @@ if [[ -f ${main_dir}/${name}.pot.in ]]; then
   echo "Converting ${main_dir}/${name}.pot.in to ${output}"
   critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${smooth} --grid ${min}:${step}:${max} --comment "$comment"
   extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
-  do_external potential extrapolate --type "$tabtype" "${smooth}" "${extrapolate}"
+  do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
   do_external table change_flag "${extrapolate}" "${output}"
 else
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
-  if [[ $tabtype = "thermforce" ]]; then
+  if [[ $bondtype = "thermforce" ]]; then
     #therm force is resampled later and as one want to symetrize 1d density
     cp_from_main_dir --rename "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
     #initial guess from density
     raw="$(critical mktemp -u ${name}.pot.new.raw.XXX)"
     do_external calc thermforce ${name}.dist.tgt ${raw}
     do_external table change_flag "${raw}" "${output}"
-  elif [[ ${tabtype} = "non-bonded" ]]; then
+  elif [[ ${bondtype} = "non-bonded" ]]; then
     #resample target dist
     do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
     # initial guess from rdf
     raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
-    do_external rdf pot ${name}.dist.tgt ${raw}
+    kbt="$(csg_get_property cg.inverse.kBT)"
+    dist_min="$(csg_get_property cg.inverse.rdf_min)"
+    do_external dist invert --type "${bondtype}" --kbT "${kbt}" --min "${dist_min}" ${name}.dist.tgt ${raw}
     smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
     critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
     extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
-    do_external potential shift --type "${tabtype}" ${smooth} ${extrapolate}
+    do_external potential shift --type "${bondtype}" ${smooth} ${extrapolate}
     do_external table change_flag "${extrapolate}" "${output}"
   else
     die "${0##*/}: Not implemented yet, implement it or provide ${name}.pot.in!"

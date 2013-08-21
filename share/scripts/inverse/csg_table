@@ -56,9 +56,6 @@ add_pot re dummy.sh
 
 # END: these scripts have to be defined for each method
 
-# initial guesses
-rdf pot RDF_to_POT.pl
-
 # post update
 post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
@@ -188,6 +185,8 @@ convert_potential tab table_to_tab.pl
 
 # generic distribution manipulation
 dist adjust dist_adjust.pl
+dist invert dist_boltzmann_invert.pl
+
 
 # tools needed for (atom/molecule) configuration handling
 configuration compare configuration_compare.py

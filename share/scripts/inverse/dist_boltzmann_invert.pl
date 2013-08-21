@@ -18,29 +18,76 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
+my $usage="Usage: $progname [OPTIONS] <in> <out>";
 
-if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
-  print <<EOF;
-$progname, %version%
-This script converts rdf to pot of mean force (''\$F(r)=-k_B T\\\\ln g(r)\$'')
+my $kbT=undef;
+my $rdf_min=1e-10;
+my $type="non-bonded";
+
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
+{
+  if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
+    $_=shift(@ARGV);
+    #short opt having agruments examples fo
+    if ( $_ =~ /^-[fo]/ ) {
+      unshift(@ARGV,substr($_,0,2),substr($_,2));
+    }
+    else{
+      unshift(@ARGV,substr($_,0,2),"-".substr($_,2));
+    }
+  }
+  if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
+  {
+    print <<END;
+$progname, version %version%
+Boltzmann inverts a distribution (''\$F(r)=-k_B T\\\\ln g(r)\$'')
 
 In addtion, it does some magic tricks:
 - do not crash when calc log(0)
+- choose the right normalization depending on the type of interaction
 
-Usage: $progname infile outfile
-EOF
-  exit 0;
+$usage
+
+Allowed options:
+    --kbT NUMBER      use NUMBER as ''\$k_B*T\$'' for the entropic part
+    --type XXX        change the type of interaction
+                      Default: $type
+    --min XXX         minimum value to consider
+                      Default: $rdf_min
+-h, --help            Show this help message
+
+Possible types: non-bonded, bond, angle, dihedral, bonded
+
+Examples:
+* $progname --kbT 2.49435 --min 0.001 tmp.dist tmp.pot
+END
+    exit;
+  }
+  elsif ($ARGV[0] eq "--kbT"){
+    shift(@ARGV);
+    $kbT=shift(@ARGV);
+  }
+  elsif ($ARGV[0] eq "--type"){
+    shift(@ARGV);
+    $type = shift(@ARGV);
+  }
+  elsif ($ARGV[0] eq "--min"){
+    shift(@ARGV);
+    $rdf_min = shift(@ARGV);
+  }
+  else {
+    die "Unknown option '".$ARGV[0]."' !\n";
+  }
 }
-
 die "2 parameters are necessary\n" if ($#ARGV<1);
+
+die "$progname: kbT not defined specify it with --kbT option\n" unless defined($kbT);
+die "$progname: conversion of bonded interaction to generic tables is not implemented yet!" unless ($type eq "non-bonded");
 
 use CsgFunctions;
 
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
-
-my $pref=csg_get_property("cg.inverse.kBT");
-my $rdf_min=csg_get_property("cg.inverse.rdf_min");
 
 my @r;
 my @rdf;
@@ -50,7 +97,7 @@ my @flag;
 my @pot;
 for (my $i=0;$i<=$#r;$i++){
     if ($rdf[$i]>$rdf_min) {
-      $pot[$i]=-$pref*log($rdf[$i]);
+      $pot[$i]=-$kbT*log($rdf[$i]);
     }
     else {
       $pot[$i]="nan";
