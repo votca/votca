@@ -26,8 +26,6 @@ This script converts rdf to pot of mean force (''\$F(r)=-k_B T\\\\ln g(r)\$'')
 
 In addtion, it does some magic tricks:
 - do not crash when calc log(0)
-- extrapolate the beginning of pot
-- shift the potential, so that it is zero at the cutoff
 
 Usage: $progname infile outfile
 EOF
@@ -72,17 +70,9 @@ for (my $i=$#pot;$i>=0;$i--){
 }
 die "All data points from file '$infile' are invalid after Boltzmann inversion, please check if your distribution is a valid rdf.\n" if ($first_undef_bin==$#pot);
 
-#shift potential so that it is zero at cutoff
-#first do the shift, then extrapolation
-for (my $i=0;$i<=$#r;$i++){
-   $pot[$i]-=$pot[$#r] unless  ($flag[$i] =~ /[u]/);
-}
-
-#quadratic extrapolation at the begining
-my $slope=$pot[$first_undef_bin+1]-$pot[$first_undef_bin+2];
+#set point at beginning to invalid
 for (my $i=$first_undef_bin;$i>=0;$i--){
-   $slope+=$slope;
-   $pot[$i]=$pot[$i+1]+$slope;
+   $pot[$i]=$pot[$first_undef_bin+1];
    $flag[$i]="o";
 }
 
