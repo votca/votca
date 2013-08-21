@@ -177,7 +177,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                 }
                 
                 level++;
-                _com_file << endl;
+                if ( column != 1 ) _com_file << endl;
             } 
         }
     }

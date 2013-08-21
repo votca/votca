@@ -77,7 +77,8 @@ private:
     string                              _scratch_dir;
         
     string                              _cleanup;
-    
+
+    string FortranFormat( const double &number );    
 };
 
 
