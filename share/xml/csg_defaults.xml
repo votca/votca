@@ -66,9 +66,6 @@
       <conf_out>confout.gro
 	<DESC>Name of the original outcome coordinate written by mdrun</DESC>
       </conf_out>
-      <cutoff_check>yes
-	<DESC>check non-bonded interaction cutoffs against rvdw in mdp file: yes/no</DESC>
-      </cutoff_check>
       <density>
 	<block_length>
 	  <DESC>Length of the block for the error analysis</DESC>
