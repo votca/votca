@@ -45,6 +45,7 @@ Boltzmann inverts a distribution (''\$F(x)=-k_B T\\\\ln g(x)\$'')
 In addtion, it does some magic tricks:
 - do not crash when calc log(0)
 - choose the right normalization depending on the type of interaction
+- input dist should be unnormalized (like csg_stat calcs it)
 
 $usage
 
@@ -83,7 +84,6 @@ END
 die "2 parameters are necessary\n" if ($#ARGV<1);
 
 die "$progname: kbT not defined specify it with --kbT option\n" unless defined($kbT);
-die "$progname: conversion of bonded interaction to generic tables is not implemented yet!" unless ($type eq "non-bonded");
 
 use CsgFunctions;
 
@@ -112,22 +112,39 @@ for (my $i=0;$i<=$#x;$i++){
     }
 }
 
-#find first defined value (begining for x=0)
-#but it is more stable to search first undefined value begin
-#beginning form large x
-my $first_undef_bin=-1;
-for (my $i=$#pot;$i>=0;$i--){
-   if ($flag[$i] eq "u") {
-     $first_undef_bin=$i;
+#find a valid point
+my $valid_i=-1;
+for (my $i=0;$i<=$#pot;$i++){
+   if ($flag[$i] eq "i") {
+     $valid_i=$i;
      last;
    }
 }
-die "All data points from file '$infile' are invalid after Boltzmann inversion, please check if your distribution is a valid dist.\n" if ($first_undef_bin==$#pot);
+die "All data points from file '$infile' are invalid after Boltzmann inversion, please check if your distribution is a valid dist.\n" if ($valid_i==-1);
 
 #set point at beginning to invalid
-for (my $i=$first_undef_bin;$i>=0;$i--){
-   $pot[$i]=$pot[$first_undef_bin+1];
-   $flag[$i]="o";
+my $first=undef;
+for (my $i=$valid_i;$i>=0;$i--){
+   if ($flag[$i] eq "u") {
+     $pot[$i]=$pot[$i+1];
+     $flag[$i]="o";
+     $first=$i unless defined $first;
+   }
 }
+$first=0 unless defined $first;
+
+#set point at end to invalid
+my $last=undef;
+for (my $i=$valid_i;$i<=$#pot;$i++){
+   if ($flag[$i] eq "u") {
+     $pot[$i]=$pot[$i-1];
+     $flag[$i]="o";
+     $last=$i unless defined $last;
+   }
+}
+$last=$#pot unless defined $last;
+my $n=10;
+my $valid=$last-$first+1;
+die "Only $valid points are valid after Boltzmann inversion from file '$infile', please check if your distribution is a valid dist.\n" if ($valid < $n);
 
 saveto_table($outfile,@x,@pot,@flag) || die "$progname: error at save table\n";

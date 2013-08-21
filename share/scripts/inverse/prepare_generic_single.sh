@@ -52,7 +52,7 @@ else
     raw="$(critical mktemp -u ${name}.pot.new.raw.XXX)"
     do_external calc thermforce ${name}.dist.tgt ${raw}
     do_external table change_flag "${raw}" "${output}"
-  elif [[ ${bondtype} = "non-bonded" ]]; then
+  else
     #resample target dist
     do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
     # initial guess from rdf
@@ -65,8 +65,6 @@ else
     extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
     do_external potential shift --type "${bondtype}" ${smooth} ${extrapolate}
     do_external table change_flag "${extrapolate}" "${output}"
-  else
-    die "${0##*/}: Not implemented yet, implement it or provide ${name}.pot.in!"
   fi
 fi
 
