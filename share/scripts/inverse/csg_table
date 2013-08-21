@@ -180,7 +180,7 @@ table functional table_functional.sh
 
 # generic potential manipulation
 potential extrapolate potential_extrapolate.sh
-potential shift potential_shift.sh
+potential shift potential_shift.pl
 convert_potential tab table_to_tab.pl
 
 # generic distribution manipulation
