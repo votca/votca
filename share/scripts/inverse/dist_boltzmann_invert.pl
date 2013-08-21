@@ -21,7 +21,7 @@ use strict;
 my $usage="Usage: $progname [OPTIONS] <in> <out>";
 
 my $kbT=undef;
-my $rdf_min=1e-10;
+my $dist_min=1e-10;
 my $type="non-bonded";
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
@@ -40,7 +40,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
   {
     print <<END;
 $progname, version %version%
-Boltzmann inverts a distribution (''\$F(r)=-k_B T\\\\ln g(r)\$'')
+Boltzmann inverts a distribution (''\$F(x)=-k_B T\\\\ln g(x)\$'')
 
 In addtion, it does some magic tricks:
 - do not crash when calc log(0)
@@ -53,10 +53,10 @@ Allowed options:
     --type XXX        change the type of interaction
                       Default: $type
     --min XXX         minimum value to consider
-                      Default: $rdf_min
+                      Default: $dist_min
 -h, --help            Show this help message
 
-Possible types: non-bonded, bond, angle, dihedral, bonded
+Possible types: non-bonded, bond, angle, dihedral
 
 Examples:
 * $progname --kbT 2.49435 --min 0.001 tmp.dist tmp.pot
@@ -70,10 +70,11 @@ END
   elsif ($ARGV[0] eq "--type"){
     shift(@ARGV);
     $type = shift(@ARGV);
+    die "$progname: Unsupported type of interatction: $type -> go and implement it\n" unless (( "$type" eq "bond" ) or ("$type" eq "dihedral") or ("$type" eq "angle") or ("$type" eq "non-bonded"));
   }
   elsif ($ARGV[0] eq "--min"){
     shift(@ARGV);
-    $rdf_min = shift(@ARGV);
+    $dist_min = shift(@ARGV);
   }
   else {
     die "Unknown option '".$ARGV[0]."' !\n";
@@ -89,15 +90,21 @@ use CsgFunctions;
 my $infile="$ARGV[0]";
 my $outfile="$ARGV[1]";
 
-my @r;
-my @rdf;
+my @x;
+my @dist;
 my @flag;
-(readin_table($infile,@r,@rdf,@flag)) || die "$progname: error at readin_table\n";
+(readin_table($infile,@x,@dist,@flag)) || die "$progname: error at readin_table\n";
 
 my @pot;
-for (my $i=0;$i<=$#r;$i++){
-    if ($rdf[$i]>$rdf_min) {
-      $pot[$i]=-$kbT*log($rdf[$i]);
+for (my $i=0;$i<=$#x;$i++){
+    if ($dist[$i]>$dist_min) {
+      my $norm=1;
+      if ( "$type" eq "bond" ) {
+	$norm=$x[$i];
+      } elsif ( "$type" eq "angle" ) {
+	$norm=sin($x[$i]);
+      }
+      $pot[$i]=-$kbT*log($dist[$i]/$norm);
     }
     else {
       $pot[$i]="nan";
@@ -105,9 +112,9 @@ for (my $i=0;$i<=$#r;$i++){
     }
 }
 
-#find first defined value (begining for r=0)
+#find first defined value (begining for x=0)
 #but it is more stable to search first undefined value begin
-#beginning form large r
+#beginning form large x
 my $first_undef_bin=-1;
 for (my $i=$#pot;$i>=0;$i--){
    if ($flag[$i] eq "u") {
@@ -115,7 +122,7 @@ for (my $i=$#pot;$i>=0;$i--){
      last;
    }
 }
-die "All data points from file '$infile' are invalid after Boltzmann inversion, please check if your distribution is a valid rdf.\n" if ($first_undef_bin==$#pot);
+die "All data points from file '$infile' are invalid after Boltzmann inversion, please check if your distribution is a valid dist.\n" if ($first_undef_bin==$#pot);
 
 #set point at beginning to invalid
 for (my $i=$first_undef_bin;$i>=0;$i--){
@@ -123,4 +130,4 @@ for (my $i=$first_undef_bin;$i>=0;$i--){
    $flag[$i]="o";
 }
 
-saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at save table\n";
+saveto_table($outfile,@x,@pot,@flag) || die "$progname: error at save table\n";

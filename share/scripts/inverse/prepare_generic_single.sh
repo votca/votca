@@ -58,7 +58,7 @@ else
     # initial guess from rdf
     raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
     kbt="$(csg_get_property cg.inverse.kBT)"
-    dist_min="$(csg_get_property cg.inverse.rdf_min)"
+    dist_min="$(csg_get_property cg.inverse.dist_min)"
     do_external dist invert --type "${bondtype}" --kbT "${kbt}" --min "${dist_min}" ${name}.dist.tgt ${raw}
     smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
     critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
