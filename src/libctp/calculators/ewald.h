@@ -172,6 +172,8 @@ void Ewald::Initialize(Topology *top, Property *opt) {
         else {
             _subthreads = 1;
         }
+    
+    _mps_mapper.setEstaticsOnly(true);
 }
 
 
@@ -248,14 +250,13 @@ Job::JobResult Ewald::EvalJob(Topology *top, Job *job, QMThread *thread) {
     // CREATE XJOB FROM JOB INPUT STRING
     XJob xjob = this->ProcessInputString(job, top, thread);    
     
-    // GENERATE POLAR TOPOLOGY    
+    // GENERATE POLAR TOPOLOGY
     _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
     
     // CALL EWALD MAGIC
     Ewald2D ewald2d = Ewald2D(top, xjob.getPolarTop(), _cutoff2, thread->getLogger());
     if (tools::globals::verbose || _pdb_check)
         ewald2d.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
-    ewald2d.CheckParameters();
     ewald2d.Evaluate();
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)

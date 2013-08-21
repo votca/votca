@@ -226,7 +226,7 @@ void Ewald2D::WriteDensitiesPDB(string pdbfile) {
 }
 
 
-void Ewald2D::CheckParameters() {
+double Ewald2D::ConvergeRealSpaceSum() {
     
     LOG(logDEBUG,*_log) << flush;
 
@@ -239,7 +239,7 @@ void Ewald2D::CheckParameters() {
     
     // REAL-SPACE CONVERGENCE   
     double dR = 0.1; // [nm]
-    double dE_tol = 1e-3; // [eV]
+    double dE_tol = 1e-4; // [eV]
     double prev_ER = 0.0;
     double this_ER = 0.0;
     for (int i = 0; i < 100; ++i) {
@@ -260,18 +260,19 @@ void Ewald2D::CheckParameters() {
                 }
             }
         }
-        double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER));
+        double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER))*int2eV;
         LOG(logDEBUG,*_log)
             << (format("Rc = %1$+1.7f   |MGN| = %3$5d nm   ER = %2$+1.7f eV   dER(rms) = %4$+1.7f") 
             % Rc % (this_ER*int2eV) % _mg_N.size() % dER_rms).str() << flush;
         if (i > 0 && dER_rms < dE_tol) {
             LOG(logDEBUG,*_log)  
-                << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") % Rc ) << flush;
+                << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
+                % Rc ) << flush;
             break;
         }
         prev_ER = this_ER;
     }
-    return;
+    return this_ER;
 }
 
 
@@ -306,15 +307,20 @@ void Ewald2D::Evaluate() {
     int nb_max = ceil(_R_co/abs(b)-0.5)+1;    
     LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "System & Ewald parameters" << flush;
-    LOG(logDEBUG,*_log) << "  o Real-space unit cell:    " << a << b << c << flush;
-    LOG(logDEBUG,*_log) << "  o Real-space c/o:          " << _R_co << " nm" << flush;
-    LOG(logDEBUG,*_log) << "  o na(max), nb(max):        " << na_max << ", " << nb_max << flush;
-    LOG(logDEBUG,*_log) << "  o 1st Brillouin zone:      " << A << B << C << flush;
-    LOG(logDEBUG,*_log) << "  o Reciprocal-space c/o:    " << _K_co << " 1/nm" << flush;
-    LOG(logDEBUG,*_log) << "  o R-K switching param.     " << _a << " 1/nm" << flush;
-    LOG(logDEBUG,*_log) << "  o Unit-cell volume:        " << LxLyLz << " nm**3" << flush;
-    LOG(logDEBUG,*_log) << "  o LxLy for 2D Ewald:       " << LxLy << " nm**2" << flush;  
-    LOG(logDEBUG,*_log) << "  o kx(max), ky(max):        " << kx_max << ", " << ky_max << flush;
+    LOG(logDEBUG,*_log) << "  o Real-space unit cell:      " << a << " x " << b << " x " << c << flush;
+    LOG(logDEBUG,*_log) << "  o Real-space c/o (guess):    " << _R_co << " nm" << flush;
+    LOG(logDEBUG,*_log) << "  o na(max), nb(max):          " << na_max << ", " << nb_max << flush;
+    LOG(logDEBUG,*_log) << "  o 1st Brillouin zone:        " << A << " x " << B << " x " << C << flush;
+    LOG(logDEBUG,*_log) << "  o Reciprocal-space c/o:      " << _K_co << " 1/nm" << flush;
+    LOG(logDEBUG,*_log) << "  o R-K switching param.       " << _a << " 1/nm" << flush;
+    LOG(logDEBUG,*_log) << "  o Unit-cell volume:          " << LxLyLz << " nm**3" << flush;
+    LOG(logDEBUG,*_log) << "  o LxLy for 2D Ewald:         " << LxLy << " nm**2" << flush;  
+    LOG(logDEBUG,*_log) << "  o kx(max), ky(max):          " << kx_max << ", " << ky_max << flush;
+    
+    
+    // REAL-SPACE CONTRIBUTION
+    double EPP_fgC_mgN = ConvergeRealSpaceSum();
+    
     
     // CELLS OF THE RECIPROCAL LATTICE OVER WHICH TO SUM
     //    ---------------------------------
@@ -346,29 +352,7 @@ void Ewald2D::Evaluate() {
             Ks.push_back(K);
         }
     }
-    std::sort(Ks.begin(), Ks.end(), VecSmallerThan());
-    
-    // REAL-SPACE CONTRIBUTION
-    double EPP_fgC_mgN = 0.0;
-    double EPP_fgC_bgN = 0.0;    
-    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-        for (sit2 = _mg_N.begin(); sit2 < _mg_N.end(); ++sit2) {
-            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                    EPP_fgC_mgN += _actor.E_QQ_ERFC(*(*pit1), *(*pit2), _a);
-                }                
-            }           
-        }
-    }    
-    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-        for (sit2 = _bg_N.begin(); sit2 < _bg_N.end(); ++sit2) {
-            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                    EPP_fgC_bgN += _actor.E_QQ_ERFC(*(*pit1), *(*pit2), _a);
-                }                
-            }
-        }
-    }
+    std::sort(Ks.begin(), Ks.end(), VecSmallerThan());    
     
     // K=0 TERM
     double EK0_fgC_bgP = 0.0;
@@ -389,7 +373,7 @@ void Ewald2D::Evaluate() {
     int N_EKK_memory = int(0.5*(kx_max+ky_max)+0.5);
     int N_K_proc = 0;
     vector< double > dEKKs;
-    double dEKK_rms_crit = 1e-3;
+    double dEKK_rms_crit = 1e-4; // [eV]
     
     for (kit = Ks.begin(); kit < Ks.end(); ++kit, ++N_K_proc) {
         vec k = *kit;
@@ -426,11 +410,20 @@ void Ewald2D::Evaluate() {
         
         LOG(logDEBUG,*_log)  
             << (format("   dE = %1$+1.7f   EKK = %2$+1.7f   RMS(%4$d) = %3$+1.7f") 
-            % dEKK % EKK_fgC_bgP % dEKK_rms % N_EKK_memory) << flush;
+            % (dEKK*2*M_PI/LxLy*int2eV) % (EKK_fgC_bgP*2*M_PI/LxLy*int2eV)
+            % (dEKK_rms*2*M_PI/LxLy*int2eV) % N_EKK_memory) << flush;
         
-        if (dEKK_rms <= 1e-4) {
+//        cout << endl;
+//        for (int i = 0; i < dEKKs.size(); ++i) {
+//            cout << "| " << dEKKs[i];
+//        }
+//        cout << flush;
+        
+        
+        if (dEKK_rms*2*M_PI/LxLy*int2eV <= dEKK_rms_crit) {
             LOG(logDEBUG,*_log)  
-                << (format(":::: Converged to precision as of |K| = %1$+1.3f 1/nm") % K ) << flush;
+                << (format(":::: Converged to precision as of |K| = %1$+1.3f 1/nm") 
+                % K ) << flush;
             break;
         }
         
@@ -459,7 +452,6 @@ void Ewald2D::Evaluate() {
     LOG(logDEBUG,*_log) << flush;
     LOG(logINFO,*_log)
         << (format("Interaction FGC -> ***")).str()
-        << flush << (format("  o EPP(FGC->BGN) = %1$+1.7f eV") % (EPP_fgC_bgN*int2eV)).str()
         << flush << (format("  + EPP(FGC->MGN) = %1$+1.7f eV") % _ER).str()
         << flush << (format("  + EK0(FGC->BGP) = %1$+1.7f eV") % _E0).str()
         << flush << (format("  + EKK(FGC->BGP) = %1$+1.7f eV") % _EK).str()
@@ -477,7 +469,8 @@ string Ewald2D::GenerateOutputString() {
     rstr += (format("ET %1$+1.7f ER %2$+1.7f EK %3$+1.7f E0 %4$+1.7f EC %5$+1.7f ") 
         % _ET % _ER % _EK % _E0 % _EC).str();
     rstr += (format("FGC %1$1d FGN %2$1d MGN %3$3d BGN %4$4d BGP %5$4d") 
-        % _fg_C.size() % _fg_N.size() % _mg_N.size() % _bg_N.size() % _bg_P.size()).str();
+        % _fg_C.size() % _fg_N.size() % _mg_N.size() % _bg_N.size() 
+        % _bg_P.size()).str();
     return rstr;
 }
     

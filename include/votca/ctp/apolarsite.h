@@ -66,7 +66,7 @@ public:
     void            setFragment(Fragment *frag) { _frag = frag; }
     
     bool            getIsVirtual() { return _isVirtual; }
-    bool            getIsActive();
+    bool            getIsActive(bool estatics_only);
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }

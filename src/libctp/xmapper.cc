@@ -847,7 +847,7 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             }
 
             newSite->Charge(0);
-            if (newSite->getIsActive())           
+            if (newSite->getIsActive(_estatics_only))           
                 return_pols.push_back(newSite);
 
         }

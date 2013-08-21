@@ -143,7 +143,7 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
 
 }
 
-bool APolarSite::getIsActive() {
+bool APolarSite::getIsActive(bool estatics_only) {
     // Returns false if charge and polarizability are both zero, true otherwise
     bool isActive = false;
     
@@ -160,7 +160,7 @@ bool APolarSite::getIsActive() {
     if (q_mag>q_tol) isActive = true;
     if (_rank > 0 && d_mag>d_tol) isActive = true;
     if (_rank > 1 && Q_mag>Q_tol) isActive = true;    
-    if (getIsoP() > p_tol) isActive = true;
+    if (getIsoP() > p_tol && !estatics_only) isActive = true;
     
     return isActive;
 }

@@ -26,9 +26,9 @@ namespace votca { namespace ctp {
        ~Ewald2D();
        
         void WriteDensitiesPDB(string pdbfile);
-        void CheckParameters();
-        void SetupMidground(double R_co);
         void Evaluate();
+        double ConvergeRealSpaceSum();
+        void SetupMidground(double R_co);
         string GenerateOutputString();
         
         // To sort K-vectors via std::sort
