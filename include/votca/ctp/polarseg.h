@@ -12,6 +12,7 @@ class PolarSeg : public vector<APolarSite*>
 public:
 
     PolarSeg(int id, vector<APolarSite*> &psites);
+    PolarSeg(PolarSeg *templ);
    ~PolarSeg();
 
     const int getId() { return _id; }

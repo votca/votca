@@ -2179,54 +2179,24 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
 
 inline double XInteractor::E_QQ_ERFC(APolarSite &pol1, APolarSite &pol2, double &ew_alpha) {
     e12  = pol2.getPos() - pol1.getPos();    
-    R    = 1/abs(e12);
-    double epp = 0.0; // <- Interaction perm. <> perm.
-    
-    epp += pol1.Q00 * T00_00() * erfc(ew_alpha/R) * pol2.Q00;
-    //epp += pol1.Q00 * T00_00() * pol2.Q00;
-    
-    EP += epp;    
-    EPP += epp;
-    
-    return epp;    
+    R    = 1/abs(e12);    
+    return pol1.Q00 * pol2.Q00 * R * erfc(ew_alpha/R);
+    //return pol1.Q00 * T00_00() * pol2.Q00;
 }
 
 
 inline double XInteractor::E_QQ_ERF(APolarSite &pol1, APolarSite &pol2, double &ew_alpha) {
     e12  = pol2.getPos() - pol1.getPos();
-    if (abs(e12) < 1e-50) {
-        //cout << endl << pol2.getPos() << pol1.getPos();
-        R = 1e+50;
-    }
-    else {
-        R = 1/abs(e12);
-    }
-    double epp = 0.0; // <- Interaction perm. <> perm.
-        
-    epp += pol1.Q00 * T00_00() * erf(ew_alpha/R) * pol2.Q00;
-    //epp += pol1.Q00 * T00_00() * pol2.Q00;
-    
-    EP += epp;
-    EPP += epp;
-    
-    return epp;    
+    R = (abs(e12) < 1e-50) ? 1e+50 : 1/abs(e12);    
+    return pol1.Q00 * pol2.Q00 * R * erf(ew_alpha/R);
 }
 
 
 inline double XInteractor::E_QQ_K0(APolarSite &pol1, APolarSite &pol2, double &ew_alpha) {
     // NOTE Without prefactor 2*PI/(Lx*Ly)
-    double z12  = pol2.getPos().getZ() - pol1.getPos().getZ();
-    double epp = 0.0; // <- Interaction perm. <> perm.
-        
-    epp += pol1.Q00 * pol2.Q00 * (
-            exp(-ew_alpha*ew_alpha*z12*z12) / (sqrt(M_PI)*ew_alpha)
-          + z12*erf(ew_alpha*z12) );
-    //epp += pol1.Q00 * T00_00() * pol2.Q00;
-    
-    EP += epp;
-    EPP += epp;
-    
-    return epp;    
+    e12  = pol2.getPos() - pol1.getPos();
+    double z12  = e12.getZ();
+    return - pol1.Q00 * pol2.Q00 * (   exp(-ew_alpha*ew_alpha*z12*z12) / (sqrt(M_PI)*ew_alpha)   +    z12*erf(ew_alpha*z12)    );  
 }
 
 
@@ -2235,16 +2205,7 @@ inline double XInteractor::E_QQ_KK(APolarSite &pol1, APolarSite &pol2, double &e
     e12  = pol2.getPos() - pol1.getPos();
     double z12  = e12.getZ();
     double K = abs(k);
-    
-    double epp = 0.0;
-    epp += pol1.Q00 * pol2.Q00 * cos(k*e12) / K * (
-            exp(K*z12)*erfc(K/(2*ew_alpha)+ew_alpha*z12)
-          + exp(-K*z12)*erfc(K/(2*ew_alpha)-ew_alpha*z12) );
-    
-    EP += epp;
-    EPP += epp;
-    
-    return epp;    
+    return pol1.Q00 * pol2.Q00 * cos(k*e12) / K * (    exp(K*z12)*erfc(K/(2*ew_alpha)+ew_alpha*z12)   +    exp(-K*z12)*erfc(K/(2*ew_alpha)-ew_alpha*z12)   ); 
 }
 
 

@@ -248,58 +248,22 @@ Job::JobResult Ewald::EvalJob(Topology *top, Job *job, QMThread *thread) {
     // CREATE XJOB FROM JOB INPUT STRING
     XJob xjob = this->ProcessInputString(job, top, thread);    
     
-    // GENERATE POLAR TOPOLOGY
-    double co1 = _cutoff1;
-    double co2 = _cutoff2;    
-    
+    // GENERATE POLAR TOPOLOGY    
     _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
     
-    LOG(logINFO,*log)
-         << xjob.getPolarTop()->ShellInfoStr() << flush;
-    
-    if (tools::globals::verbose || _pdb_check)
-    xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_FGC_FGN_BGN.pdb");
-    
     // CALL EWALD MAGIC
-    Ewald2D ewald2d = Ewald2D(top, xjob.getPolarTop(), &xjob, _cutoff2, thread->getLogger());
+    Ewald2D ewald2d = Ewald2D(top, xjob.getPolarTop(), _cutoff2, thread->getLogger());
+    if (tools::globals::verbose || _pdb_check)
+        ewald2d.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
     ewald2d.CheckParameters();
     ewald2d.Evaluate();
     
-    
-    // CALL MAGIC INDUCTOR         
-    XInductor inductor = XInductor(top, _options, "options.ewald",
-                                   _subthreads, _maverick);
-    inductor.setLog(thread->getLogger());
-//    inductor.Evaluate(&xjob);
-//    
-//
-//    // SAVE INDUCTION STATE
-//    if (_write_chk) {
-//        
-//        string format    = _chk_format;
-//        string dotsuffix = (format == "gaussian") ? ".com" : ".xyz";
-//        string outstr    = xjob.getTag()+_write_chk_suffix+dotsuffix;
-//        
-//        bool split       = _chk_split_dpl;
-//        double space     = _chk_dpl_spacing;
-//        
-//        xjob.getPolarTop()->PrintInduState(outstr, format, split, space);        
-//    }
-//
-//    // JOT INFO STRING & CLEAN POLAR TOPOLOGY
-//    xjob.setInfoLine(true,false);
-    
-    
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
+    string output = (format("%1$4d %2$-15s %3$s") 
+        % xjob.getId() % xjob.getTag() % ewald2d.GenerateOutputString()).str();
     Job::JobResult jres = Job::JobResult();
-    jres.setOutput(xjob.getInfoLine());
+    jres.setOutput(output);
     jres.setStatus(Job::COMPLETE);
-    
-    if (!inductor.hasConverged()) {
-        jres.setStatus(Job::FAILED);
-        jres.setError(inductor.getError());
-        LOG(logERROR,*log) << inductor.getError() << flush;
-    }
     
     return jres;
 }

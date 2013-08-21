@@ -6,6 +6,28 @@
 namespace votca { namespace ctp {
 
 
+APolarSite::APolarSite(APolarSite *templ) 
+    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),        
+      _pos(templ->_pos),
+        
+      _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),
+        
+      _top(templ->_top), _seg(templ->_seg), _frag(templ->_frag),
+        
+      _Qs(templ->_Qs), _rank(templ->_rank), _Ps(templ->_Ps),
+      Pxx(templ->Pxx), Pxy(templ->Pxy), Pxz(templ->Pxz), Pyy(templ->Pyy),
+      Pyz(templ->Pyz), Pzz(templ->Pzz), pax(templ->pax), pay(templ->pay),
+      paz(templ->paz), eigenpxx(templ->eigenpxx), eigenpyy(templ->eigenpyy),
+      eigenpzz(templ->eigenpzz), eigendamp(templ->eigendamp),
+        
+      Q00(templ->Q00), Q1x(templ->Q1x), Q1y(templ->Q1y), Q1z(templ->Q1z),
+      Q20(templ->Q20), Q21c(templ->Q21c), Q21s(templ->Q21s), Q22c(templ->Q22c),
+      Q22s(templ->Q22s) {
+        
+    this->Depolarize();
+}
+    
+    
 void APolarSite::ImportFrom(APolarSite *templ, string tag) {
 
     _pos = templ->getPos();

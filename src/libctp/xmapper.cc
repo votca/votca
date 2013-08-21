@@ -1046,7 +1046,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
     new_ptop->setSegsMM2(segs_mm2);
     
     // CENTER AROUND QM REGION
-    //new_ptop->CenterAround(job->Center());
+    new_ptop->CenterAround(job->Center());
     job->setPolarTop(new_ptop);
     
 }
