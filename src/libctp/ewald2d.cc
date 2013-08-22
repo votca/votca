@@ -517,7 +517,7 @@ string Ewald2D::GenerateOutputString() {
     string rstr;
     rstr += (format("XYZ %1$+1.7f %2$+1.7f %3$+1.7f ") 
         % _center.getX() % _center.getY() % _center.getZ()).str();
-    rstr += (format("ET %1$+1.7f ER %2$+1.7f EK %3$+1.7f E0 %4$+1.7f EC %5$+1.7f EDQ %6$+1.7f") 
+    rstr += (format("ET %1$+1.7f ER %2$+1.7f EK %3$+1.7f E0 %4$+1.7f EC %5$+1.7f EDQ %6$+1.7f ") 
         % _ET % _ER % _EK % _E0 % _EC %_EDQ).str();
     rstr += (format("FGC %1$1d FGN %2$1d MGN %3$3d BGN %4$4d BGP %5$4d") 
         % _fg_C.size() % _fg_N.size() % _mg_N.size() % _bg_N.size() 
