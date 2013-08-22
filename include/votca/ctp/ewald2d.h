@@ -16,6 +16,8 @@ namespace votca { namespace ctp {
     // NOTE: PolarTop should be set-up with three containers: FGC, FGN, BGN
     //       MGN is set-up in constructor using the real-space c/o (from input)
     //       The topology is used to retrieve information on the sim. box (PB)
+    //       All polar segments should be positioned as nearest images of the
+    //       foreground charge density (FGC, FGN).
     
     class Ewald2D
     {
@@ -26,10 +28,12 @@ namespace votca { namespace ctp {
        ~Ewald2D();
        
         void WriteDensitiesPDB(string pdbfile);
+        bool Converged() { return _converged_R && _converged_K; }
         void Evaluate();
         double ConvergeRealSpaceSum();
         void SetupMidground(double R_co);
         string GenerateOutputString();
+        string GenerateErrorString();
         
         // To sort K-vectors via std::sort
         struct VecSmallerThan
@@ -47,6 +51,7 @@ namespace votca { namespace ctp {
         // PERIODIC BOUNDARY
         Topology *_top;
         CSG::BoundaryCondition *_bc;    // Periodicity reduced to xy sub-space
+        vec _center;
         
         // POLAR SEGMENTS
         PolarTop *_ptop;
@@ -60,6 +65,8 @@ namespace votca { namespace ctp {
         double _a;                      // _a = 1/(sqrt(2)*sigma)
         double _K_co;                   // k-space c/o
         double _R_co;                   // r-space c/o
+        bool   _converged_R;            // Did R-space sum converge?
+        bool   _converged_K;            // Did K-space sum converge?
         
         // ENERGIES
         double _ER;                     // R-space sum
@@ -67,6 +74,7 @@ namespace votca { namespace ctp {
         double _EK;                     // K-space sum
         double _E0;                     // K-space K=0 contribution
         double _ET;                     // ER - EC + EK + E0
+        double _EDQ;                    // Higher-Rank FGC->MGN correction
         
     };
 

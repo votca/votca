@@ -13,6 +13,11 @@ Ewald2D::~Ewald2D() {
     vector< PolarSeg* >::iterator sit;
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit)
         delete (*sit);
+    _fg_C.clear();
+    _fg_N.clear();
+    _mg_N.clear();
+    _bg_N.clear();
+    _bg_P.clear();
 }
     
     
@@ -118,7 +123,20 @@ Ewald2D::Ewald2D(Topology *top, PolarTop *ptop, double R_co, Logger *log)
             (*pit)->Depolarize();
             (*pit)->Charge(0); // <- Not necessarily neutral state
         }
-    }  
+    }
+    
+    // CALCULATE NET DIPOLE OF BGP
+    vec netdpl = vec(0,0,0);
+    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            netdpl += (*pit)->getPos() * (*pit)->getQ00();
+        }
+    }
+    LOG(logINFO,*_log)
+        << (format("Net dipole moment of background density")).str()
+        << flush << (format("  o D(BGP) [e*nm] = %1$+1.3f %2$+1.3f %3$+1.3f  ") 
+        % netdpl.getX() % netdpl.getY() % netdpl.getZ()).str() << flush;
     
     // INIT. INTERACTOR
     _actor = XInteractor(top, 0.39);    
@@ -130,6 +148,7 @@ void Ewald2D::SetupMidground(double R_co) {
     // SET-UP MIDGROUND
     // TODO Extend this to several molecules in the foreground
     assert(_fg_C.size() == 1);
+    _center = _fg_C[0]->getPos();
     // NOTE No periodic-boundary correction here: We require that all
     //      polar-segment CoM coords. be folded with respect to central
     //      segment
@@ -138,8 +157,9 @@ void Ewald2D::SetupMidground(double R_co) {
     // NOTE Includes periodic images if within cut-off
     
     vector<PolarSeg*>::iterator sit; 
-    vector<APolarSite*> ::iterator pit;  
-    for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) delete (*sit);
+    vector<APolarSite*> ::iterator pit;
+    for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit)
+        delete (*sit);
     _mg_N.clear();
     
     vec a = _top->getBox().getCol(0);
@@ -240,6 +260,7 @@ double Ewald2D::ConvergeRealSpaceSum() {
     // REAL-SPACE CONVERGENCE   
     double dR = 0.1; // [nm]
     double dE_tol = 1e-4; // [eV]
+    _converged_R = false;
     double prev_ER = 0.0;
     double this_ER = 0.0;
     for (int i = 0; i < 100; ++i) {
@@ -265,6 +286,7 @@ double Ewald2D::ConvergeRealSpaceSum() {
             << (format("Rc = %1$+1.7f   |MGN| = %3$5d nm   ER = %2$+1.7f eV   dER(rms) = %4$+1.7f") 
             % Rc % (this_ER*int2eV) % _mg_N.size() % dER_rms).str() << flush;
         if (i > 0 && dER_rms < dE_tol) {
+            _converged_R = true;
             LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
                 % Rc ) << flush;
@@ -374,6 +396,7 @@ void Ewald2D::Evaluate() {
     int N_K_proc = 0;
     vector< double > dEKKs;
     double dEKK_rms_crit = 1e-4; // [eV]
+    _converged_K = false;
     
     for (kit = Ks.begin(); kit < Ks.end(); ++kit, ++N_K_proc) {
         vec k = *kit;
@@ -419,8 +442,9 @@ void Ewald2D::Evaluate() {
 //        }
 //        cout << flush;
         
-        
-        if (dEKK_rms*2*M_PI/LxLy*int2eV <= dEKK_rms_crit) {
+        if (dEKK_rms*2*M_PI/LxLy*int2eV <= dEKK_rms_crit && N_K_proc > 2) {
+        //if (dEKK_rms*2*M_PI/LxLy*int2eV <= dEKK_rms_crit) {
+            _converged_K = true;
             LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision as of |K| = %1$+1.3f 1/nm") 
                 % K ) << flush;
@@ -443,11 +467,25 @@ void Ewald2D::Evaluate() {
         }
     }
     
+    // REAL-SPACE HIGHER-RANK CORRECTION
+    double EDQ_fgC_mgN = 0.0;
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit2 = _mg_N.begin(); sit2 < _mg_N.end(); ++sit2) {
+            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                    _actor.BiasStat(*(*pit1), *(*pit2));
+                    EDQ_fgC_mgN += _actor.E_Q0_DQ(*(*pit1), *(*pit2));
+                }
+            }
+        }
+    }
+    
     _ER = EPP_fgC_mgN*int2eV;
     _EC = EPP_fgC_fgN*int2eV;
     _EK = EKK_fgC_bgP*int2eV;
     _E0 = EK0_fgC_bgP*int2eV;
     _ET = _ER + _EK + _E0 - _EC;
+    _EDQ = EDQ_fgC_mgN*int2eV;
     
     LOG(logDEBUG,*_log) << flush;
     LOG(logINFO,*_log)
@@ -458,16 +496,29 @@ void Ewald2D::Evaluate() {
         << flush << (format("  - EPP(FGC->FGN) = %1$+1.7f eV") % _EC).str()
         << flush << (format("    ------------------------------")).str()
         << flush << (format("    SUM(E)        = %1$+1.7f eV") % _ET).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("  + EDQ(FGC->MGN) = %1$+1.7f eV") % _EDQ).str()
         << flush;
     LOG(logDEBUG,*_log) << flush;    
     return;
 }
 
 
+string Ewald2D::GenerateErrorString() {
+    string rstr;
+    rstr += (format("Converged R-sum = %1$s, converged K-sum = %2$s")
+        % ((_converged_R) ? "true" : "false")
+        % ((_converged_K) ? "true" : "false")).str();
+    return rstr;
+}
+
+
 string Ewald2D::GenerateOutputString() {
     string rstr;
-    rstr += (format("ET %1$+1.7f ER %2$+1.7f EK %3$+1.7f E0 %4$+1.7f EC %5$+1.7f ") 
-        % _ET % _ER % _EK % _E0 % _EC).str();
+    rstr += (format("XYZ %1$+1.7f %2$+1.7f %3$+1.7f ") 
+        % _center.getX() % _center.getY() % _center.getZ()).str();
+    rstr += (format("ET %1$+1.7f ER %2$+1.7f EK %3$+1.7f E0 %4$+1.7f EC %5$+1.7f EDQ %6$+1.7f") 
+        % _ET % _ER % _EK % _E0 % _EC %_EDQ).str();
     rstr += (format("FGC %1$1d FGN %2$1d MGN %3$3d BGN %4$4d BGP %5$4d") 
         % _fg_C.size() % _fg_N.size() % _mg_N.size() % _bg_N.size() 
         % _bg_P.size()).str();

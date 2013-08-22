@@ -4,6 +4,12 @@
 
 namespace votca { namespace ctp {
 
+    
+PolarTop::PolarTop(Topology *top) : _top(top) {
+    ;
+};
+    
+    
 PolarTop::~PolarTop() {
     vector<PolarSeg*> ::iterator psit;
     for (psit = _qm0.begin(); psit < _qm0.end(); ++psit) {          

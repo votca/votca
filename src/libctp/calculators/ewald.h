@@ -29,7 +29,6 @@ public:
     string          Identify() { return "ewald"; }
     void            Initialize(Topology *, Property *);
 
-    void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
     void            PostProcess(Topology *top) { ; }
@@ -46,39 +45,21 @@ private:
     // ======================================== //
 
     // Polar-site mapping
-    string                         _emp_file;
+    string                         _mps_table;
     string                         _xml_file;
     XMpsMap                        _mps_mapper;
-    
-    // Control over induction-state output
-    bool                            _pdb_check;
-    bool                            _write_chk;
-    string                          _write_chk_suffix;
-    bool                            _chk_split_dpl;
-    double                          _chk_dpl_spacing;
-    string                          _chk_format;
-
-    
-    // ======================================== //
-    // INDUCTION + ENERGY EVALUATION            //
-    // ======================================== //
-
-    // Induction, subthreading (-> base class)
-    bool                            _induce;
-    bool                            _induce_intra_pair;
+    bool                           _pdb_check;
 
     // Multipole Interaction parameters
     string                          _method;
-    bool                            _useCutoff;
-    double                          _cutoff1;
-    double                          _cutoff2;
+    double                          _cutoff;
 
 
 
 };
 
 // ========================================================================== //
-//                        XMULTIPOLE MEMBER FUNCTIONS                         //
+//                           EWALD MEMBER FUNCTIONS                           //
 // ========================================================================== //
 
 
@@ -108,11 +89,11 @@ void Ewald::Initialize(Topology *top, Property *opt) {
             throw std::runtime_error("Job-file not set. Abort.");
         }
 
-        if ( opt->exists(key+".emp_file")) {
-            _emp_file   = opt->get(key+".emp_file").as<string>();
+        if ( opt->exists(key+".mps_table")) {
+            _mps_table = opt->get(key+".mps_table").as<string>();
         }
         else {
-            _emp_file   = opt->get(key+".emp_file").as<string>();
+            _mps_table = opt->get(key+".emp_file").as<string>();
         }
 
         if (opt->exists(key+".pdb_check")) {
@@ -120,60 +101,27 @@ void Ewald::Initialize(Topology *top, Property *opt) {
         }
         else { _pdb_check = false; }
 
-        if (opt->exists(key+".write_chk")) {
-            _write_chk_suffix = opt->get(key+".write_chk").as<string>();
-            _write_chk = true;
-        }
-        else { _write_chk = false; }
-
-        if (opt->exists(key+".format_chk")) {
-            _chk_format = opt->get(key+".format_chk").as<string>();
-        }
-        else { _chk_format = "xyz"; }
-
-        if (opt->exists(key+".split_dpl")) {
-            _chk_split_dpl = (opt->get(key+".split_dpl").as<int>() == 1) ?
-                         true : false;
-        }
-        else { _chk_split_dpl = true; }
-
-        if (opt->exists(key+".dpl_spacing")) {
-            _chk_dpl_spacing = opt->get(key+".dpl_spacing").as<double>();
-        }
-        else {
-            _chk_dpl_spacing = 1.0e-6;
-        }
-
 
     key = "options.ewald.coulombmethod";
     
         if ( opt->exists(key+".method") ) {
             _method = opt->get(key+".method").as< string >();
-            if (_method != "cut-off" && _method != "cutoff") {
+            if (_method != "ewald" && _method != "Ewald") {
                 throw runtime_error("Method " + _method + " not recognised.");
             }
         }
         else {
-            _method = "cut-off";
+            _method = "ewald";
         }
-        if ( opt->exists(key+".cutoff1") ) {
-            _cutoff1 = opt->get(key+".cutoff1").as< double >();
-            if (_cutoff1) { _useCutoff = true; }
-        }
-        if ( opt->exists(key+".cutoff2") ) {
-            _cutoff2 = opt->get(key+".cutoff2").as< double >();
+        if ( opt->exists(key+".cutoff") ) {
+            _cutoff = opt->get(key+".cutoff").as< double >();
         }
         else {
-            _cutoff2 = _cutoff1;
-        }
-        if ( opt->exists(key+".subthreads") ) {
-            _subthreads = opt->get(key+".subthreads").as< double >();
-        }
-        else {
-            _subthreads = 1;
+            throw runtime_error("No real-space cut-off provided.");
         }
     
     _mps_mapper.setEstaticsOnly(true);
+    return;
 }
 
 
@@ -181,28 +129,9 @@ void Ewald::PreProcess(Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
-    _mps_mapper.GenerateMap(_xml_file, _emp_file, top);
+    _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
+    return;
 }
-
-
-void Ewald::CustomizeLogger(QMThread *thread) {
-    
-    // CONFIGURE LOGGER
-    Logger* log = thread->getLogger();
-    log->setReportLevel(logDEBUG);
-    log->setMultithreading(_maverick);
-
-    log->setPreface(logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
-    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
-    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
-}
-
-
-
-// ========================================================================== //
-//                           JOBXQMP MEMBER FUNCTIONS                         //
-// ========================================================================== //
 
 
 XJob Ewald::ProcessInputString(const Job *job, Topology *top, QMThread *thread) {
@@ -254,7 +183,7 @@ Job::JobResult Ewald::EvalJob(Topology *top, Job *job, QMThread *thread) {
     _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
     
     // CALL EWALD MAGIC
-    Ewald2D ewald2d = Ewald2D(top, xjob.getPolarTop(), _cutoff2, thread->getLogger());
+    Ewald2D ewald2d = Ewald2D(top, xjob.getPolarTop(), _cutoff, thread->getLogger());
     if (tools::globals::verbose || _pdb_check)
         ewald2d.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
     ewald2d.Evaluate();
@@ -265,6 +194,12 @@ Job::JobResult Ewald::EvalJob(Topology *top, Job *job, QMThread *thread) {
     Job::JobResult jres = Job::JobResult();
     jres.setOutput(output);
     jres.setStatus(Job::COMPLETE);
+    
+    if (!ewald2d.Converged()) {
+        jres.setStatus(Job::FAILED);
+        jres.setError(ewald2d.GenerateErrorString());
+        LOG(logERROR,*log) << ewald2d.GenerateErrorString() << flush;
+    }    
     
     return jres;
 }

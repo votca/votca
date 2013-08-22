@@ -847,8 +847,11 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             }
 
             newSite->Charge(0);
+            // Do not forget to deallocate if site is inactive
             if (newSite->getIsActive(_estatics_only))           
                 return_pols.push_back(newSite);
+            else 
+                delete newSite;
 
         }
     } // End loop over fragments

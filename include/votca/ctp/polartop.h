@@ -12,7 +12,7 @@ class PolarTop
 
 public:
     
-   PolarTop(Topology *top) : _top(top) { };
+   PolarTop(Topology *top);
   ~PolarTop();
    
    // QM-MM-MM

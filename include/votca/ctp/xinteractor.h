@@ -78,6 +78,7 @@ public:
     inline double   E_QQ_ERF(APolarSite &pol1, APolarSite &pol2, double &ew_alpha);
     inline double   E_QQ_K0(APolarSite &pol1, APolarSite &pol2, double &ew_alpha);
     inline double   E_QQ_KK(APolarSite &pol1, APolarSite &pol2, double &ew_alpha, vec &k);
+    inline double   E_Q0_DQ(APolarSite &pol1, APolarSite &pol2);
 
     void            ResetEnergy() { EP = EU_INTER = EU_INTRA = 0.0;
                                     EPP = EPU = EUU = 0.0; }
@@ -2206,6 +2207,147 @@ inline double XInteractor::E_QQ_KK(APolarSite &pol1, APolarSite &pol2, double &e
     double z12  = e12.getZ();
     double K = abs(k);
     return pol1.Q00 * pol2.Q00 * cos(k*e12) / K * (    exp(K*z12)*erfc(K/(2*ew_alpha)+ew_alpha*z12)   +    exp(-K*z12)*erfc(K/(2*ew_alpha)-ew_alpha*z12)   ); 
+}
+
+
+inline double XInteractor::E_Q0_DQ(APolarSite &pol1, APolarSite &pol2) {
+    
+    // Counts these interactions:
+    // pol1(q)       <> pol2(d,Q,...)
+    // pol1(d,Q,...) <> pol2(q)
+    
+    double epp = 0.0;
+    
+    // d <> q
+    if (pol1._rank > 0) {
+        epp += pol1.Q1x * T1x_00() * pol2.Q00;
+        epp += pol1.Q1y * T1y_00() * pol2.Q00;
+        epp += pol1.Q1z * T1z_00() * pol2.Q00;
+    }
+
+    // q <> d
+    if (pol2._rank > 0) {
+        epp += pol1.Q00 * T00_1x() * pol2.Q1x;
+        epp += pol1.Q00 * T00_1y() * pol2.Q1y;
+        epp += pol1.Q00 * T00_1z() * pol2.Q1z;
+    }
+
+    // Q <> q
+    if (pol1._rank > 1) {
+        epp += pol1.Q20  * T20_00()  * pol2.Q00;
+        epp += pol1.Q21c * T21c_00() * pol2.Q00;
+        epp += pol1.Q21s * T21s_00() * pol2.Q00;
+        epp += pol1.Q22c * T22c_00() * pol2.Q00;
+        epp += pol1.Q22s * T22s_00() * pol2.Q00;
+    }
+
+    // q <> Q
+    if (pol2._rank > 1) {
+        epp += pol1.Q00 * T00_20()  * pol2.Q20;
+        epp += pol1.Q00 * T00_21c() * pol2.Q21c;
+        epp += pol1.Q00 * T00_21s() * pol2.Q21s;
+        epp += pol1.Q00 * T00_22c() * pol2.Q22c;
+        epp += pol1.Q00 * T00_22s() * pol2.Q22s;
+    }
+
+    // d <> d
+    if (pol1._rank > 0 && pol2._rank > 0) {
+        epp += pol1.Q1x * T1x_1x() * pol2.Q1x;
+        epp += pol1.Q1x * T1x_1y() * pol2.Q1y;
+        epp += pol1.Q1x * T1x_1z() * pol2.Q1z;
+
+        epp += pol1.Q1y * T1y_1x() * pol2.Q1x;
+        epp += pol1.Q1y * T1y_1y() * pol2.Q1y;
+        epp += pol1.Q1y * T1y_1z() * pol2.Q1z;
+
+        epp += pol1.Q1z * T1z_1x() * pol2.Q1x;
+        epp += pol1.Q1z * T1z_1y() * pol2.Q1y;
+        epp += pol1.Q1z * T1z_1z() * pol2.Q1z;
+    }
+
+    // Q <> d
+    if (pol1._rank > 1 && pol2._rank > 0) {
+        epp += pol1.Q20 * T20_1x() * pol2.Q1x;
+        epp += pol1.Q20 * T20_1y() * pol2.Q1y;
+        epp += pol1.Q20 * T20_1z() * pol2.Q1z;
+
+        epp += pol1.Q21c * T21c_1x() * pol2.Q1x;
+        epp += pol1.Q21c * T21c_1y() * pol2.Q1y;
+        epp += pol1.Q21c * T21c_1z() * pol2.Q1z;
+
+        epp += pol1.Q21s * T21s_1x() * pol2.Q1x;
+        epp += pol1.Q21s * T21s_1y() * pol2.Q1y;
+        epp += pol1.Q21s * T21s_1z() * pol2.Q1z;
+
+        epp += pol1.Q22c * T22c_1x() * pol2.Q1x;
+        epp += pol1.Q22c * T22c_1y() * pol2.Q1y;
+        epp += pol1.Q22c * T22c_1z() * pol2.Q1z;
+
+        epp += pol1.Q22s * T22s_1x() * pol2.Q1x;
+        epp += pol1.Q22s * T22s_1y() * pol2.Q1y;
+        epp += pol1.Q22s * T22s_1z() * pol2.Q1z;
+    }
+
+    // d <> Q
+    if (pol1._rank > 0 && pol2._rank > 1) {
+        epp += pol1.Q1x * T1x_20() * pol2.Q20;
+        epp += pol1.Q1y * T1y_20() * pol2.Q20;
+        epp += pol1.Q1z * T1z_20() * pol2.Q20;
+
+        epp += pol1.Q1x * T1x_21c() * pol2.Q21c;
+        epp += pol1.Q1y * T1y_21c() * pol2.Q21c;
+        epp += pol1.Q1z * T1z_21c() * pol2.Q21c;
+
+        epp += pol1.Q1x * T1x_21s() * pol2.Q21s;
+        epp += pol1.Q1y * T1y_21s() * pol2.Q21s;
+        epp += pol1.Q1z * T1z_21s() * pol2.Q21s;
+
+        epp += pol1.Q1x * T1x_22c() * pol2.Q22c;
+        epp += pol1.Q1y * T1y_22c() * pol2.Q22c;
+        epp += pol1.Q1z * T1z_22c() * pol2.Q22c;
+
+        epp += pol1.Q1x * T1x_22s() * pol2.Q22s;
+        epp += pol1.Q1y * T1y_22s() * pol2.Q22s;
+        epp += pol1.Q1z * T1z_22s() * pol2.Q22s;
+    }
+
+    // Q <> Q
+    if (pol1._rank > 1 && pol2._rank > 1) {
+        epp += pol1.Q20  * T20_20()   * pol2.Q20;
+        epp += pol1.Q21c * T21c_21c() * pol2.Q21c;
+        epp += pol1.Q21s * T21s_21s() * pol2.Q21s;
+        epp += pol1.Q22c * T22c_22c() * pol2.Q22c;
+        epp += pol1.Q22s * T22s_22s() * pol2.Q22s;
+
+
+        epp += pol1.Q20  * T20_21c() * pol2.Q21c;
+        epp += pol1.Q20  * T20_21s() * pol2.Q21s;
+        epp += pol1.Q20  * T20_22c() * pol2.Q22c;
+        epp += pol1.Q20  * T20_22s() * pol2.Q22s;
+        epp += pol1.Q21c * T21c_20() * pol2.Q20;
+        epp += pol1.Q21s * T21s_20() * pol2.Q20;
+        epp += pol1.Q22c * T22c_20() * pol2.Q20;
+        epp += pol1.Q22s * T22s_20() * pol2.Q20;
+
+
+        epp += pol1.Q21c * T21c_21s() * pol2.Q21s;
+        epp += pol1.Q21c * T21c_22c() * pol2.Q22c;
+        epp += pol1.Q21c * T21c_22s() * pol2.Q22s;
+        epp += pol1.Q21s * T21s_21c() * pol2.Q21c;
+        epp += pol1.Q22c * T22c_21c() * pol2.Q21c;
+        epp += pol1.Q22s * T22s_21c() * pol2.Q21c;
+
+
+        epp += pol1.Q21s * T21s_22c() * pol2.Q22c;
+        epp += pol1.Q21s * T21s_22s() * pol2.Q22s;
+        epp += pol1.Q22c * T22c_21s() * pol2.Q21s;
+        epp += pol1.Q22s * T22s_21s() * pol2.Q21s;
+
+        epp += pol1.Q22s * T22s_22c() * pol2.Q22c;
+        epp += pol1.Q22c * T22c_22s() * pol2.Q22s;
+    }
+    
+    return epp;    
 }
 
 
