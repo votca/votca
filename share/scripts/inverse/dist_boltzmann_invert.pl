@@ -100,7 +100,7 @@ for (my $i=0;$i<=$#x;$i++){
     if ($dist[$i]>$dist_min) {
       my $norm=1;
       if ( "$type" eq "bond" ) {
-	$norm=$x[$i];
+	$norm=$x[$i]*$x[$i];
       } elsif ( "$type" eq "angle" ) {
 	$norm=sin($x[$i]);
       }
