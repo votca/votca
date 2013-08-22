@@ -33,8 +33,8 @@ is_done "post_add-$name" && exit 0
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
 [[ -n $tasklist ]] && msg "Postadd tasks for $name: $tasklist"
 i=1
-#after all we tag the potential
-for task in tag $tasklist; do
+#after all we shift and tag the potential
+for task in $tasklist shift tag; do
   echo "Doing postadd task '$task' for '${name}'"
   
   #save the current one
