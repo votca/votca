@@ -2,7 +2,7 @@
   <bonded>
     <!-- name of the interaction -->
     <name>bond</name>
-    <min>0.21</min>
+    <min>0.215</min>
     <max>0.285</max>
     <step>0.001</step>
     <inverse>
@@ -16,9 +16,9 @@
   <bonded>
     <!-- name of the interaction -->
     <name>angle</name>
-    <min>1.4</min>
+    <min>1.7</min>
     <max>3.1</max>
-    <step>0.05</step>
+    <step>0.02</step>
     <inverse>
       <!-- target distribution -->
       <target>angle.dist.tgt</target>
@@ -118,7 +118,7 @@
     <!-- gromacs specific options -->
     <gromacs>
       <!-- trash so many frames at the beginning -->
-      <equi_time>0</equi_time>
+      <equi_time>10</equi_time>
       <!-- grid for table*.xvg !-->
       <table_bins>0.002</table_bins>
       <!-- cut the potential at this value (gromacs bug) -->
