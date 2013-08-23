@@ -80,7 +80,7 @@ if [[ $pot_type = "non-bonded"  ]]; then
 elif [[ $pot_type = "thermforce" ]]; then
   do_external table extrapolate --function constant --avgpoints $avg_points --region leftright "${input}" "${output}"
 elif [[ $pot_type = "bond"  || $pot_type = "angle" || $pot_type = "dihedral" ]]; then
-  do_external table extrapolate --function exponential --avgpoints $avg_points --region leftright "${input}" "${output}"
+  do_external table extrapolate --function linear --avgpoints $avg_points --region leftright "${input}" "${output}"
 else
   die "${0##*/}: I don't know how to extraploate potential type '$pot_type', go and implement it!"
 fi
