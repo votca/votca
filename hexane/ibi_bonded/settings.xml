@@ -2,9 +2,9 @@
   <bonded>
     <!-- name of the interaction -->
     <name>bond</name>
-    <min>0.215</min>
-    <max>0.285</max>
-    <step>0.001</step>
+    <min>0.22</min>
+    <max>0.28</max>
+    <step>0.002</step>
     <inverse>
       <!-- target distribution -->
       <target>bond.dist.tgt</target>
