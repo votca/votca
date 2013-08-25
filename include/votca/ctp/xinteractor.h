@@ -2180,7 +2180,7 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
 
 inline double XInteractor::E_QQ_ERFC(APolarSite &pol1, APolarSite &pol2, double &ew_alpha) {
     e12  = pol2.getPos() - pol1.getPos();    
-    R    = 1/abs(e12);    
+    R    = 1/abs(e12);
     return pol1.Q00 * pol2.Q00 * R * erfc(ew_alpha/R);
     //return pol1.Q00 * T00_00() * pol2.Q00;
 }
