@@ -31,6 +31,7 @@ namespace votca { namespace ctp {
         bool Converged() { return _converged_R && _converged_K; }
         void Evaluate();
         double ConvergeRealSpaceSum();
+        double ConvergeReciprocalSpaceSum();
         void SetupMidground(double R_co);
         string GenerateOutputString();
         string GenerateErrorString();
@@ -62,11 +63,19 @@ namespace votca { namespace ctp {
         vector< PolarSeg* > _fg_C;      // Charged foreground
         
         // CONVERGENCE
-        double _a;                      // _a = 1/(sqrt(2)*sigma)
+        double _alpha;                  // _a = 1/(sqrt(2)*sigma)
         double _K_co;                   // k-space c/o
         double _R_co;                   // r-space c/o
         bool   _converged_R;            // Did R-space sum converge?
         bool   _converged_K;            // Did K-space sum converge?
+        
+        // LATTICE (REAL, RECIPROCAL)
+        vec _a; vec _b; vec _c;
+        int _na_max; int _nb_max; int _nc_max;
+        vec _A; vec _B; vec _C;
+        int _NA_max; int _NB_max; int _NC_max;
+        double _LxLy;
+        double _LxLyLz;
         
         // ENERGIES
         double _ER;                     // R-space sum
@@ -75,6 +84,8 @@ namespace votca { namespace ctp {
         double _E0;                     // K-space K=0 contribution
         double _ET;                     // ER - EC + EK + E0
         double _EDQ;                    // Higher-Rank FGC->MGN correction
+        
+        
         
     };
 

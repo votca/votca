@@ -59,7 +59,8 @@ public:
     // ... Energy (eV) = Energy (int) * 1/4PiEps0(SI) * e * 1e+09
     //
     // ... Potential (V) = Potential(int) * 1/4PiEps0(SI) * e * 1e+0.9
-
+   
+    static const double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     inline double   EnergyInter(APolarSite &pol1, APolarSite &pol2);
     inline double   EnergyInterESP(APolarSite &pol1, APolarSite &pol2);
