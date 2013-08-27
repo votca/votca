@@ -212,7 +212,7 @@ void Topology::RenameBeadType(string name, string newname)
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
       BeadType *type =  GetOrCreateBeadType((*bead)->getType()->getName());
-      if (name.compare(type->getName()) == 0 ) {
+      if (wildcmp(name.c_str(),(*bead)->getType()->getName().c_str())) {
 	type->setName(newname);
       }
     }
