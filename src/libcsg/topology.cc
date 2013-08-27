@@ -222,7 +222,7 @@ void Topology::SetBeadTypeMass(string name, double value)
 {
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
-      if (name.compare((*bead)->getType()->getName()) == 0 ) {
+      if (wildcmp(name.c_str(),(*bead)->getType()->getName().c_str())) {
 	(*bead)->setM(value);
       }
     }
