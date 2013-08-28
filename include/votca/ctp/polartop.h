@@ -41,7 +41,7 @@ public:
    void   setSegsFGN(vector<Segment*> &fgN) { _segs_fgN = fgN; }
    void   setSegsFGC(vector<Segment*> &fgC) { _segs_fgC = fgC; }
    
-   
+   void   Translate(const vec &shift);
    void   CenterAround(const vec &center);
    string ShellInfoStr();
    void   PrintInfo(ostream &out);

@@ -61,6 +61,36 @@ string PolarTop::ShellInfoStr() {
 }
 
 
+void PolarTop::Translate(const vec &shift) {
+    vector<PolarSeg*> ::iterator sit;    
+    for (sit = _qm0.begin(); sit < _qm0.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        pseg->Translate(shift);        
+    }    
+    for (sit = _mm1.begin(); sit < _mm1.end(); ++sit) {        
+        PolarSeg* pseg = *sit;     
+        pseg->Translate(shift);        
+    }    
+    for (sit = _mm2.begin(); sit < _mm2.end(); ++sit) {        
+        PolarSeg* pseg = *sit;           
+        pseg->Translate(shift);
+    }
+    
+    for (sit = _bgN.begin(); sit < _bgN.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        pseg->Translate(shift);        
+    }    
+    for (sit = _fgN.begin(); sit < _fgN.end(); ++sit) {        
+        PolarSeg* pseg = *sit;              
+        pseg->Translate(shift);        
+    }    
+    for (sit = _fgC.begin(); sit < _fgC.end(); ++sit) {        
+        PolarSeg* pseg = *sit;              
+        pseg->Translate(shift);
+    }
+}
+
+
 void PolarTop::CenterAround(const vec &center) {
     
     vector<PolarSeg*> ::iterator sit;
@@ -81,7 +111,7 @@ void PolarTop::CenterAround(const vec &center) {
         PolarSeg* pseg = *sit;        
         vec shift = _top->PbShortestConnect(center, pseg->getPos())
                          -(pseg->getPos() - center);        
-        pseg->Translate(shift);        
+        pseg->Translate(shift);
     }
     
     for (sit = _bgN.begin(); sit < _bgN.end(); ++sit) {        

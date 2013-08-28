@@ -38,7 +38,8 @@ void PolarSeg::CalcPos() {
     for (int i = 0; i < this->size(); ++i) {        
         _pos += (*this)[i]->getPos();        
     }
-    _pos /= double(this->size());      
+    if (this->size() > 0)
+        _pos /= double(this->size());
 }
 
 

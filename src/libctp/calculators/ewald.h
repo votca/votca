@@ -8,6 +8,7 @@
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/ewald2d.h>
+#include <votca/ctp/ewald3d.h>
 #include <votca/ctp/logger.h>
 #include <boost/format.hpp>
 
@@ -17,7 +18,8 @@ using boost::format;
 
 namespace votca { namespace ctp {
 
-    
+
+template<class EwaldMethod>
 class Ewald : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 
@@ -63,7 +65,8 @@ private:
 // ========================================================================== //
 
 
-void Ewald::Initialize(Topology *top, Property *opt) {
+template<class EwaldMethod>
+void Ewald<EwaldMethod>::Initialize(Topology *top, Property *opt) {
 
     _options = opt;
     
@@ -125,7 +128,8 @@ void Ewald::Initialize(Topology *top, Property *opt) {
 }
 
 
-void Ewald::PreProcess(Topology *top) {
+template<class EwaldMethod>
+void Ewald<EwaldMethod>::PreProcess(Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
@@ -134,7 +138,8 @@ void Ewald::PreProcess(Topology *top) {
 }
 
 
-XJob Ewald::ProcessInputString(const Job *job, Topology *top, QMThread *thread) {
+template<class EwaldMethod>
+XJob Ewald<EwaldMethod>::ProcessInputString(const Job *job, Topology *top, QMThread *thread) {
     
     string input = job->getInput();
     vector<Segment*> qmSegs;
@@ -170,7 +175,8 @@ XJob Ewald::ProcessInputString(const Job *job, Topology *top, QMThread *thread) 
 }
 
 
-Job::JobResult Ewald::EvalJob(Topology *top, Job *job, QMThread *thread) {
+template<class EwaldMethod>
+Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     Logger *log = thread->getLogger();    
     LOG(logINFO,*log)
@@ -183,22 +189,22 @@ Job::JobResult Ewald::EvalJob(Topology *top, Job *job, QMThread *thread) {
     _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
     
     // CALL EWALD MAGIC
-    Ewald2D ewald2d = Ewald2D(top, xjob.getPolarTop(), _cutoff, thread->getLogger());
+    EwaldMethod ewaldNd = EwaldMethod(top, xjob.getPolarTop(), _options, thread->getLogger());
     if (tools::globals::verbose || _pdb_check)
-        ewald2d.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
-    ewald2d.Evaluate();
+        ewaldNd.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
+    ewaldNd.Evaluate();
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     string output = (format("%1$4d %2$-15s %3$s") 
-        % xjob.getId() % xjob.getTag() % ewald2d.GenerateOutputString()).str();
+        % xjob.getId() % xjob.getTag() % ewaldNd.GenerateOutputString()).str();
     Job::JobResult jres = Job::JobResult();
     jres.setOutput(output);
     jres.setStatus(Job::COMPLETE);
     
-    if (!ewald2d.Converged()) {
+    if (!ewaldNd.Converged()) {
         jres.setStatus(Job::FAILED);
-        jres.setError(ewald2d.GenerateErrorString());
-        LOG(logERROR,*log) << ewald2d.GenerateErrorString() << flush;
+        jres.setError(ewaldNd.GenerateErrorString());
+        LOG(logERROR,*log) << ewaldNd.GenerateErrorString() << flush;
     }    
     
     return jres;

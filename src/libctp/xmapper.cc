@@ -956,7 +956,8 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     new_ptop->setSegsFGN(segs_fgN);
     new_ptop->setSegsBGN(segs_bgN);    
     // Center polar topology
-    new_ptop->CenterAround(job->Center());
+    vec center = job->Center();
+    new_ptop->CenterAround(center);
     job->setPolarTop(new_ptop);
     
 }

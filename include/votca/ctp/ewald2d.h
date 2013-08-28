@@ -24,7 +24,7 @@ namespace votca { namespace ctp {
         
     public:
         
-        Ewald2D(Topology *top, PolarTop *ptop, double R_co, Logger *log);
+        Ewald2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
        ~Ewald2D();
        
         void WriteDensitiesPDB(string pdbfile);
@@ -68,6 +68,7 @@ namespace votca { namespace ctp {
         double _R_co;                   // r-space c/o
         bool   _converged_R;            // Did R-space sum converge?
         bool   _converged_K;            // Did K-space sum converge?
+        double _crit_dE;
         
         // LATTICE (REAL, RECIPROCAL)
         vec _a; vec _b; vec _c;

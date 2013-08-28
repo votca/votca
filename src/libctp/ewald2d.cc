@@ -21,11 +21,13 @@ Ewald2D::~Ewald2D() {
 }
     
     
-Ewald2D::Ewald2D(Topology *top, PolarTop *ptop, double R_co, Logger *log) 
+Ewald2D::Ewald2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
     : _top(top), _ptop(ptop), _log(log) {
     
+    _crit_dE = opt->get("options.ewald.convergence.energy").as<double>();
+    
     // EWALD INTERACTION PARAMETERS (GUESS ONLY)
-    _R_co = R_co;  
+    _R_co = _R_co = opt->get("options.ewald.coulombmethod.cutoff").as<double>();
     _K_co = 100/_R_co;
     _alpha = 3.5/_R_co;
     
@@ -277,11 +279,10 @@ double Ewald2D::ConvergeRealSpaceSum() {
     
     // REAL-SPACE CONVERGENCE   
     double dR = 0.1; // [nm]
-    double dE_tol = 1e-4; // [eV]
     _converged_R = false;
     double prev_ER = 0.0;
     double this_ER = 0.0;
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         double Rc = _R_co + (i-1)*dR;
         // Set-up midground
         this->SetupMidground(Rc);
@@ -300,7 +301,7 @@ double Ewald2D::ConvergeRealSpaceSum() {
         LOG(logDEBUG,*_log)
             << (format("Rc = %1$+1.7f   |MGN| = %3$5d nm   ER = %2$+1.7f eV   dER(rms) = %4$+1.7f") 
             % Rc % (this_ER*_actor.int2eV) % _mg_N.size() % dER_rms).str() << flush;
-        if (i > 0 && dER_rms < dE_tol) {
+        if (i > 0 && dER_rms < _crit_dE) {
             _converged_R = true;
             LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
@@ -358,7 +359,6 @@ double Ewald2D::ConvergeReciprocalSpaceSum() {
     int N_EKK_memory = int(0.5*(_NA_max+_NB_max)+0.5);
     int N_K_proc = 0;
     vector< double > dEKKs;
-    double dEKK_rms_crit = 1e-4; // [eV]
     _converged_K = false;
     
     for (kit = Ks.begin(); kit < Ks.end(); ++kit, ++N_K_proc) {
@@ -405,7 +405,7 @@ double Ewald2D::ConvergeReciprocalSpaceSum() {
 //        }
 //        cout << flush;
         
-        if (dEKK_rms*2*M_PI/_LxLy*_actor.int2eV <= dEKK_rms_crit && N_K_proc > 2) {
+        if (dEKK_rms*2*M_PI/_LxLy*_actor.int2eV <= _crit_dE && N_K_proc > 2) {
         //if (dEKK_rms*2*M_PI/LxLy*_actor.int2eV <= dEKK_rms_crit) {
             _converged_K = true;
             LOG(logDEBUG,*_log)  
